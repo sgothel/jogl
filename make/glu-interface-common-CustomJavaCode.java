@@ -1,3 +1,46 @@
+//----------------------------------------------------------------------
+// Projection routines
+//
+
+/** Interface to C language function: <br> <code> GLint gluProject(GLdouble objX, GLdouble objY, GLdouble objZ, const GLdouble *  model, const GLdouble *  proj, const GLint *  view, GLdouble *  winX, GLdouble *  winY, GLdouble *  winZ); </code>    */
+public boolean gluProject(double objX, double objY, double objZ, double[] model, double[] proj, int[] view, double[] winX, double[] winY, double[] winZ);
+
+/**
+ * Convenience routine for gluProject that accepts the outgoing window
+ * coordinates as a single array.
+ */
+public boolean gluProject(double objx,
+                          double objy,
+                          double objz,
+                          double[] modelMatrix,
+                          double[] projMatrix,
+                          int[] viewport,
+                          double[] winPos);
+
+/** Interface to C language function: <br> <code> GLint gluUnProject(GLdouble winX, GLdouble winY, GLdouble winZ, const GLdouble *  model, const GLdouble *  proj, const GLint *  view, GLdouble *  objX, GLdouble *  objY, GLdouble *  objZ); </code>    */
+public boolean gluUnProject(double winX, double winY, double winZ, double[] model, double[] proj, int[] view, double[] objX, double[] objY, double[] objZ);
+
+/**
+ * Convenience routine for gluUnProject that accepts the outgoing
+ * object coordinates (a 3-vector) as a single array.
+ */
+public boolean gluUnProject(double winX, double winY, double winZ, double[] model, double[] proj, int[] view, double[] objPos);
+
+/** Interface to C language function: <br> <code> GLint gluUnProject4(GLdouble winX, GLdouble winY, GLdouble winZ, GLdouble clipW, const GLdouble *  model, const GLdouble *  proj, const GLint *  view, GLdouble nearVal, GLdouble farVal, GLdouble *  objX, GLdouble *  objY, GLdouble *  objZ, GLdouble *  objW); </code>    */
+public boolean gluUnProject4(double winX, double winY, double winZ, double clipW, double[] model, double[] proj, int[] view, double nearVal, double farVal, double[] objX, double[] objY, double[] objZ, double[] objW);
+
+/**
+ * Convenience routine for gluUnProject4 that accepts the outgoing
+ * object coordinates (a 4-vector) as a single array.
+ */
+public boolean gluUnProject4(double winX, double winY, double winZ, double clipW, double[] model, double[] proj, int[] view, double nearVal, double farVal, double[] objPos);
+
+
+
+//----------------------------------------------------------------------
+// Tesselation routines
+//
+
 /*****************************************************************************
  * <b>gluBeginPolygon</b> and {@link net.java.games.jogl.GLU#gluEndPolygon
  * gluEndPolygon} delimit the definition of a nonconvex polygon. To define
