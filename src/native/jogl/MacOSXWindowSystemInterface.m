@@ -16,6 +16,23 @@ void* createContext(void* shareContext, void* view)
 	NSOpenGLContext *nsChareCtx = (NSOpenGLContext*)shareContext;
 	NSView *nsView = (NSView*)view;
 	
+        if (nsView != NULL)
+        {
+            NSRect frame = [nsView frame];
+            if ((frame.size.width == 0) || (frame.size.height == 0))
+            {
+                fprintf(stderr, "Error: empty view at \"%s:%s:%d\"\n", __FILE__, __FUNCTION__, __LINE__);
+                // the view is not ready yet
+                return NULL;
+            }
+            else if ([nsView lockFocusIfCanDraw] == NO)
+            {
+                fprintf(stderr, "Error: view not ready at \"%s:%s:%d\"\n", __FILE__, __FUNCTION__, __LINE__);
+                // the view is not ready yet
+                return NULL;
+            }
+        }
+        
 	if (gAutoreleasePool == NULL)
 	{
 		gAutoreleasePool = [[NSAutoreleasePool alloc] init];
@@ -41,7 +58,7 @@ void* createContext(void* shareContext, void* view)
 	
 	if (nsView == NULL)
 	{
-		attribs[12] = 0; // no stencil, no accums fo pBuffers
+		attribs[12] = 0; // no stencil, no accums for pBuffers
 	}
 	
 	NSOpenGLPixelFormat* fmt = [[NSOpenGLPixelFormat alloc] initWithAttributes:attribs];
@@ -49,15 +66,16 @@ void* createContext(void* shareContext, void* view)
 	NSOpenGLContext* nsContext = [[NSOpenGLContext alloc] initWithFormat:fmt shareContext:nsChareCtx];
 	
 	[fmt release];
-	
+        
 	if (nsView != nil)
 	{
-		[nsContext setView: nsView];		
+		[nsContext setView:nsView];
+                
+		[nsView unlockFocus];		
 	}
-		
+        
 	[nsContext retain];
 	
-//fprintf(stderr, "	nsContext=%p\n", nsContext);
 	return nsContext;
 }
 
