@@ -40,7 +40,9 @@
 package net.java.games.jogl.impl.windows;
 
 import java.awt.Component;
+import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
+import java.awt.Rectangle;
 import java.util.*;
 import net.java.games.gluegen.runtime.*; // for PROCADDRESS_VAR_PREFIX
 import net.java.games.jogl.*;
@@ -138,7 +140,7 @@ public abstract class WindowsGLContext extends GLContext {
     }
 
     if (!WGL.wglMakeCurrent(hdc, hglrc)) {
-      throw new GLException("Error making context current");
+      throw new GLException("Error making context current: " + WGL.GetLastError());
     }
 
     if (created) {
@@ -164,7 +166,7 @@ public abstract class WindowsGLContext extends GLContext {
 
   protected synchronized void free() throws GLException {
     if (!WGL.wglMakeCurrent(0, 0)) {
-      throw new GLException("Error freeing OpenGL context");
+      throw new GLException("Error freeing OpenGL context: " + WGL.GetLastError());
     }
   }
 
@@ -270,10 +272,11 @@ public abstract class WindowsGLContext extends GLContext {
       GLCapabilities[] availableCaps = null;
       int numFormats = 0;
       pfd = newPixelFormatDescriptor();
-      GraphicsDevice device = component.getGraphicsConfiguration().getDevice();
+      GraphicsConfiguration config = component.getGraphicsConfiguration();
+      GraphicsDevice device = config.getDevice();
       // Produce a recommended pixel format selection for the GLCapabilitiesChooser.
       // Try to use wglChoosePixelFormatARB if we have it available
-      GL dummyGL = WindowsGLContextFactory.getDummyGLContext(device);
+      GL dummyGL = WindowsGLContextFactory.getDummyGL(device);
       int recommendedPixelFormat = -1;
       boolean haveWGLChoosePixelFormatARB = false;
       boolean haveWGLARBMultisample = false;
@@ -284,6 +287,19 @@ public abstract class WindowsGLContext extends GLContext {
           if (availableWGLExtensions.indexOf("WGL_ARB_multisample") >= 0) {
             haveWGLARBMultisample = true;
           }
+        }
+      }
+      Rectangle rect = config.getBounds();
+      long dc = 0;
+      long rc = 0;
+      boolean freeWGLC = false;
+      if( dummyGL != null ) {
+        dc = WindowsGLContextFactory.getDummyGLContext( device ).hdc;
+        rc = WindowsGLContextFactory.getDummyGLContext( device ).hglrc;
+        if( !WGL.wglMakeCurrent( dc, rc ) ) {
+          System.err.println("Error Making WGLC Current: " + WGL.GetLastError() );
+        } else {
+          freeWGLC = true;
         }
       }
       if (dummyGL != null && haveWGLChoosePixelFormatARB) {
@@ -365,6 +381,11 @@ public abstract class WindowsGLContext extends GLContext {
               System.err.println("Used wglChoosePixelFormatARB to recommend pixel format " + recommendedPixelFormat);
             }
           }
+        } else {
+          if (DEBUG) {
+            System.err.println("wglChoosePixelFormatARB failed: " + WGL.GetLastError() );
+            Thread.dumpStack();
+          }
         }
         if (DEBUG) {
           if (recommendedPixelFormat < 0) {
@@ -388,7 +409,7 @@ public abstract class WindowsGLContext extends GLContext {
         niattribs = 0;
         iattributes[0] = GL.WGL_NUMBER_PIXEL_FORMATS_ARB;
         if (!dummyGL.wglGetPixelFormatAttribivARB(hdc, 0, 0, 1, iattributes, iresults)) {
-          throw new GLException("Unable to enumerate pixel formats of window using wglGetPixelFormatAttribivARB");
+          throw new GLException("Unable to enumerate pixel formats of window using wglGetPixelFormatAttribivARB: " + WGL.GetLastError());
         }
         numFormats = iresults[0];
         // Should we be filtering out the pixel formats which aren't
@@ -423,6 +444,9 @@ public abstract class WindowsGLContext extends GLContext {
           }
           availableCaps[i] = iattributes2GLCapabilities(iattributes, iresults, niattribs, true);
         }
+        if( freeWGLC ) {
+          WGL.wglMakeCurrent( 0, 0 );
+        }
       } else {
         if (DEBUG) {
           System.err.println("Using ChoosePixelFormat because no wglChoosePixelFormatARB: dummyGL = " + dummyGL);
@@ -456,7 +480,7 @@ public abstract class WindowsGLContext extends GLContext {
       }
       pixelFormat += 1; // one-base the index
       if (WGL.DescribePixelFormat(hdc, pixelFormat, pfd.size(), pfd) == 0) {
-        throw new GLException("Error re-describing the chosen pixel format");
+        throw new GLException("Error re-describing the chosen pixel format: " + WGL.GetLastError());
       }
     } else {
       // For now, use ChoosePixelFormat for offscreen surfaces until

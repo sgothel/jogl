@@ -40,15 +40,16 @@
 package net.java.games.jogl.impl.windows;
 
 import java.awt.Component;
-import java.awt.Dialog;
-import java.awt.EventQueue;
 import java.awt.Frame;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
+import java.awt.Rectangle;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.Collection;
+import java.util.Iterator;
 import net.java.games.jogl.*;
 import net.java.games.jogl.impl.*;
 
@@ -68,6 +69,10 @@ public class WindowsGLContextFactory extends GLContextFactory {
   private static Map/*<GraphicsDevice, String>*/ dummyExtensionsMap = new HashMap();
   private static Set/*<GraphicsDevice    >*/     pendingContextSet  = new HashSet();
   
+  public WindowsGLContextFactory() {
+    Runtime.getRuntime().addShutdownHook( new ShutdownHook() );
+  }
+  
   public GraphicsConfiguration chooseGraphicsConfiguration(GLCapabilities capabilities,
                                                            GLCapabilitiesChooser chooser,
                                                            GraphicsDevice device) {
@@ -84,80 +89,212 @@ public class WindowsGLContextFactory extends GLContextFactory {
       return new WindowsOffscreenGLContext(capabilities, chooser, shareWith);
     }
   }
-
-  public static String getDummyGLExtensions(final GraphicsDevice device) {
-      String exts = (String) dummyExtensionsMap.get(device);
-      return (exts == null) ? "" : exts;
+  
+  // Return cached GL context
+  public static WindowsGLContext getDummyGLContext( final GraphicsDevice device ) {
+    checkForDummyContext( device );
+    NativeWindowStruct nws = (NativeWindowStruct) dummyContextMap.get(device);
+    return nws.getWindowsContext();
   }
 
-  public static GL getDummyGLContext(final GraphicsDevice device) {
-    GL gl = (GL) dummyContextMap.get(device);
-    if (gl != null) {
-      return gl;
-    }
+  // Return cached extension string
+  public static String getDummyGLExtensions(final GraphicsDevice device) {
+    checkForDummyContext( device );
+    String exts = (String) dummyExtensionsMap.get(device);
+    return (exts == null) ? "" : exts;
+  }
+
+  // Return cached GL function pointers
+  public static GL getDummyGL(final GraphicsDevice device) {
+    checkForDummyContext( device );
+    NativeWindowStruct nws = (NativeWindowStruct) dummyContextMap.get(device);
+    return( nws.getWindowsContext().getGL() );
+  }
     
-    if (!pendingContextSet.contains(device)) {
+  /*
+   * Locate a cached native window, if one doesn't exist create one amd
+   * cache it.
+   */
+  private static void checkForDummyContext( final GraphicsDevice device ) {
+    if (!pendingContextSet.contains(device) && !dummyContextMap.containsKey( device ) ) {
       pendingContextSet.add(device);
       GraphicsConfiguration config = device.getDefaultConfiguration();
-      final Dialog frame = new Dialog(new Frame(config), "", false, config);
-      frame.setUndecorated(true);
-      final GLCanvas canvas = GLDrawableFactory.getFactory().createGLCanvas(new GLCapabilities(),
-                                                                            null,
-                                                                            null,
-                                                                            device);
-      canvas.addGLEventListener(new GLEventListener() {
-          public void init(GLDrawable drawable) {
-            pendingContextSet.remove(device);
-            dummyContextMap.put(device, drawable.getGL());
-            String availableGLExtensions = "";
-            String availableWGLExtensions = "";
-            String availableEXTExtensions = "";
-            try {
-              availableWGLExtensions = drawable.getGL().wglGetExtensionsStringARB(WGL.wglGetCurrentDC());
-            } catch (GLException e) {}
-            try {
-              availableEXTExtensions = drawable.getGL().wglGetExtensionsStringEXT();
-            } catch (GLException e) {}
-            availableGLExtensions = drawable.getGL().glGetString(GL.GL_EXTENSIONS);
-            dummyExtensionsMap.put(device, availableGLExtensions + " " + availableEXTExtensions + " " + availableWGLExtensions);
-            EventQueue.invokeLater(new Runnable() {
-                public void run() {
-                  frame.dispose();
-                }
-              });
-          }
- 
-          public void display(GLDrawable drawable) {
-          }
-          
-          public void reshape(GLDrawable drawable, int x, int y, int width, int height) {
-          }
-          
-          public void destroy(GLDrawable drawable) {
-          }
-
-          public void displayChanged(GLDrawable drawable, boolean modeChanged, boolean deviceChanged) {
-          }
-        });
-      // Attempt to work around deadlock issues with SingleThreadedWorkaround,
-      // which causes some of the methods below to block doing work on the AWT thread
+      Rectangle rect = config.getBounds();
+      GLCapabilities caps = new GLCapabilities();
+      caps.setDepthBits( 16 );
+      // Create a context that we use to query pixel formats
+      WindowsOnscreenGLContext context = new WindowsOnscreenGLContext( null, caps, null, null );
+      // Start a native thread and grab native screen resources from the thread
+      NativeWindowThread nwt = new NativeWindowThread( rect );
+      nwt.start();
+      long hWnd = 0;
+      long tempHDC = 0;
+      while( (hWnd = nwt.getHWND()) == 0 || (tempHDC = nwt.getHDC()) == 0 ) {
+        Thread.yield();
+      }
+      // Choose a hardware accelerated pixel format
+      PIXELFORMATDESCRIPTOR pfd = context.glCapabilities2PFD( caps, true );
+      int pixelFormat = WGL.ChoosePixelFormat( tempHDC, pfd );
+      if( pixelFormat == 0 ) {
+        System.err.println("Pixel Format is Zero");
+        pendingContextSet.remove(device);
+        return;
+      }
+      // Set the hardware accelerated pixel format
+      if (!WGL.SetPixelFormat(tempHDC, pixelFormat, pfd)) {
+        System.err.println("SetPixelFormat Failed");
+        pendingContextSet.remove( device );
+        return;
+      }
+      // Create a rendering context
+      long tempHGLRC = WGL.wglCreateContext( tempHDC );
+      if( hWnd == 0 || tempHDC == 0 || tempHGLRC == 0 ) {
+        pendingContextSet.remove( device );
+        return;
+      }
+      // Store native handles for later use
+      NativeWindowStruct nws = new NativeWindowStruct();
+      nws.setHWND( hWnd );
+      nws.setWindowsContext( context );
+      nws.setWindowThread( nwt );
+      long currentHDC = WGL.wglGetCurrentDC();
+      long currentHGLRC = WGL.wglGetCurrentContext();
+      // Make the new hardware accelerated context current
+      if( !WGL.wglMakeCurrent( tempHDC, tempHGLRC ) ) {
+        pendingContextSet.remove( device );
+        return;
+      }
+      // Grab function pointers
+      context.hdc = tempHDC;
+      context.hglrc = tempHGLRC;
+      context.resetGLFunctionAvailability();
+      context.createGL();
+      pendingContextSet.remove( device );
+      dummyContextMap.put( device, nws );
+      String availableGLExtensions = "";
+      String availableWGLExtensions = "";
+      String availableEXTExtensions = "";
       try {
-        EventQueue.invokeLater(new Runnable() {
-            public void run() {
-              canvas.setSize(0, 0);
-              canvas.setNoAutoRedrawMode(true);
-              canvas.setAutoSwapBufferMode(false);
-              frame.add(canvas);
-              frame.pack();
-              frame.show();
-              canvas.display();
-            }
-          });
-      } catch (Exception e) {
-        throw new GLException(e);
+        availableWGLExtensions = context.getGL().wglGetExtensionsStringARB( currentHDC );
+      } catch( GLException e ) {
+      }
+      try {
+        availableEXTExtensions = context.getGL().wglGetExtensionsStringEXT();
+      } catch( GLException e ) {
+      }
+      availableGLExtensions = context.getGL().glGetString( GL.GL_EXTENSIONS );
+      dummyExtensionsMap.put(device, availableGLExtensions + " " + availableEXTExtensions + " " + availableWGLExtensions);
+      WGL.wglMakeCurrent( currentHDC, currentHGLRC );
+    }
+  }
+ 
+  /*
+   * This class stores handles to native resources that need to be destroyed
+   * at JVM shutdown.
+   */
+  static class NativeWindowStruct {
+    private long                HWND;
+    private WindowsGLContext    windowsContext;
+    private Thread              windowThread;
+    
+    public NativeWindowStruct() {
+    }
+          
+    public long getHDC() {
+      return( windowsContext.hdc );
+    }
+          
+    public long getHGLRC() {
+      return( windowsContext.hglrc );
+    }
+
+    public void setHWND( long hwnd ) {
+      HWND = hwnd;
+    }
+    
+    public long getHWND() {
+      return( HWND );
+    }
+    
+    public void setWindowsContext( WindowsGLContext context ) {
+      windowsContext = context;
+    }
+    
+    public WindowsGLContext getWindowsContext() {
+      return( windowsContext );
+    }
+    
+    public void setWindowThread( Thread thread ) {
+      windowThread = thread;
+    }
+    
+    public Thread getWindowThread() {
+      return( windowThread );
+    }
+  }
+  
+  /*
+   * Native HWDN and HDC handles must be created and destroyed on the same
+   * thread.
+   */
+  
+  static class NativeWindowThread extends Thread {
+    private long HWND = 0;
+    private long HDC = 0;
+    private Rectangle rectangle;
+    
+    public NativeWindowThread( Rectangle rect ) {
+      rectangle = rect;
+    }
+    
+    public synchronized long getHWND() {
+      return( HWND );
+    }
+    
+    public synchronized long getHDC() {
+      return( HDC );
+    }
+    
+    public void run() {
+      // Create a native window and device context
+      HWND = WGL.CreateDummyWindow( rectangle.x, rectangle.y, rectangle.width, rectangle.height );
+      HDC = WGL.GetDC( HWND );
+      // Pause this thread until JVM shutdown
+      try {
+        synchronized( this ) {
+          wait();
+        }
+      } catch( InterruptedException e ) {
+      }
+      // Start the message pump at shutdown
+      WGL.NativeEventLoop();
+    }
+  }
+  
+  /*
+   * This class is registered with the JVM to destroy all cached redering 
+   * contexts, device contexts, and window handles.
+   */
+ 
+  class ShutdownHook extends Thread {
+    public void run() {
+      // Collect all saved screen resources
+      Collection c = dummyContextMap.values();
+      Iterator iter = c.iterator();
+      while( iter.hasNext() ) {
+        // NativeWindowStruct holds refs to native resources that need to be destroyed
+        NativeWindowStruct struct = (NativeWindowStruct)iter.next();
+        // Restart native window threads to respond to window closing events
+        synchronized( struct.getWindowThread() ) {
+          struct.getWindowThread().notifyAll();
+        }
+        // Destroy OpenGL rendering context
+        if( !WGL.wglDeleteContext( struct.getHGLRC() ) ) {
+          System.err.println( "Error Destroying NativeWindowStruct RC: " + WGL.GetLastError() );
+        }
+        // Send context handles to native method for deletion
+        WGL.DestroyDummyWindow( struct.getHWND(), struct.getHDC() );
       }
     }
- 
-    return (GL) dummyContextMap.get(device);
   }
 }

@@ -265,7 +265,7 @@
 	<property name="c.compiler.includes" value="/I&quot;make/stub_includes/opengl&quot; /I&quot;${c.compiler.include.root}/PlatformSDK/Include&quot; /I&quot;${c.compiler.include.root}/include&quot; /I&quot;${java.includes.dir}&quot; /I&quot;${java.includes.dir.platform}&quot; /I&quot;make/stub_includes/cg&quot;" />
         <property name="c.linker" value="link.exe" />
         <property name="c.linker.flags" value="/DLL /LIBPATH:&quot;${c.linker.lib.root}/PlatformSDK/lib&quot; /LIBPATH:&quot;${c.linker.lib.root}/lib&quot; /LIBPATH:&quot;${java.lib.dir.platform}&quot; /INCREMENTAL:NO /NOLOGO /MACHINE:IX86 /OPT:REF /OPT:ICF /SUBSYSTEM:WINDOWS" />
-        <property name="c.linker.jogl.libs" value="opengl32.lib glu32.lib jawt.lib gdi32.lib kernel32.lib" />
+        <property name="c.linker.jogl.libs" value="opengl32.lib glu32.lib jawt.lib gdi32.lib user32.lib kernel32.lib" />
         <property name="rootrel.c.linker.jogl.dso" value="${rootrel.obj}/jogl.dll" />
         <property name="c.linker.jogl.dso" value="${project.root}/${rootrel.c.linker.jogl.dso}" />
         <property name="c.linker.jogl.flags" value="/OUT:&quot;${c.linker.jogl.dso}&quot;" />
@@ -315,7 +315,7 @@
 	<property name="c.compiler.includes" value="-I&quot;make/stub_includes/opengl&quot; -I&quot;${java.includes.dir}&quot; -I&quot;${java.includes.dir.platform}&quot; -I&quot;make/stub_includes/cg&quot;" />
         <property name="c.linker" value="gcc.exe" />
         <property name="c.linker.flags" value="-shared" />
-        <property name="c.linker.jogl.libs" value="-Wl,--kill-at -L&quot;${java.lib.dir.platform}&quot; -lopengl32 -lglu32 -ljawt -lgdi32" />
+        <property name="c.linker.jogl.libs" value="-Wl,--kill-at -L&quot;${java.lib.dir.platform}&quot; -lopengl32 -lglu32 -ljawt -lgdi32 -luser32" />
         <property name="rootrel.c.linker.jogl.dso" value="${rootrel.obj}/jogl.dll" />
         <property name="c.linker.jogl.dso" value="${project.root}/${rootrel.c.linker.jogl.dso}" />
         <property name="c.linker.jogl.flags" value="-o ${c.linker.jogl.dso}" />

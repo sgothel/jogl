@@ -152,7 +152,7 @@ public class Animator {
     while (shouldStop && thread != null) {
       try {
         wait();
-      } catch (InterruptedException e) {
+      } catch (InterruptedException ie) {
       }
     }
   }

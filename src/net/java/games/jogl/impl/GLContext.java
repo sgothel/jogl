@@ -691,17 +691,15 @@ public abstract class GLContext {
       their makeCurrent() implementation once the context is
       current. */
   private void recomputeSingleThreadedWorkaround() {
-    if (!SingleThreadedWorkaround.doWorkaround()) {
-      GL gl = getGL();
-      String str = gl.glGetString(GL.GL_VENDOR);
-      if (str != null && str.indexOf("ATI") >= 0) {
-        // Doing this instead of calling setRenderingThread(null) should
-        // be OK since we are doing this very early in the maintenance
-        // of the per-thread context stack, before we are actually
-        // pushing any GLContext objects on it
-        renderingThread = null;
-        SingleThreadedWorkaround.shouldDoWorkaround();
-      }
+    GL gl = getGL();
+    String str = gl.glGetString(GL.GL_VENDOR);
+    if (str != null && str.indexOf("ATI") >= 0) {
+      // Doing this instead of calling setRenderingThread(null) should
+      // be OK since we are doing this very early in the maintenance
+      // of the per-thread context stack, before we are actually
+      // pushing any GLContext objects on it
+      renderingThread = null;
+      SingleThreadedWorkaround.shouldDoWorkaround();
     }
   }
 }
