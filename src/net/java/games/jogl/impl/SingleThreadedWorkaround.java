@@ -52,6 +52,7 @@ public class SingleThreadedWorkaround {
   // If the user specified the workaround's system property (either
   // true or false), don't let the automatic detection have any effect
   private static boolean systemPropertySpecified = false;
+  private static boolean verbose = false;
   
   static {
     AccessController.doPrivileged(new PrivilegedAction() {
@@ -61,6 +62,7 @@ public class SingleThreadedWorkaround {
             systemPropertySpecified = true;
             ATI_WORKAROUND = Boolean.valueOf(workaround).booleanValue();
           }
+          verbose = (System.getProperty("jogl.verbose") != null);
           printWorkaroundNotice();
           return null;
         }
@@ -79,7 +81,7 @@ public class SingleThreadedWorkaround {
   }
 
   private static void printWorkaroundNotice() {
-    if (ATI_WORKAROUND) {
+    if (ATI_WORKAROUND && verbose) {
       System.err.println("Using ATI workaround of dispatching display() on event thread");
     }
   }
