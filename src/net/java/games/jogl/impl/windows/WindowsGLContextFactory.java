@@ -101,10 +101,10 @@ public class WindowsGLContextFactory extends GLContextFactory {
       GraphicsConfiguration config = device.getDefaultConfiguration();
       final Dialog frame = new Dialog(new Frame(config), "", false, config);
       frame.setUndecorated(true);
-      GLCanvas canvas = GLDrawableFactory.getFactory().createGLCanvas(new GLCapabilities(),
-                                                                      null,
-                                                                      null,
-                                                                      device);
+      final GLCanvas canvas = GLDrawableFactory.getFactory().createGLCanvas(new GLCapabilities(),
+                                                                            null,
+                                                                            null,
+                                                                            device);
       canvas.addGLEventListener(new GLEventListener() {
           public void init(GLDrawable drawable) {
             pendingContextSet.remove(device);
@@ -133,16 +133,29 @@ public class WindowsGLContextFactory extends GLContextFactory {
           public void reshape(GLDrawable drawable, int x, int y, int width, int height) {
           }
           
+          public void destroy(GLDrawable drawable) {
+          }
+
           public void displayChanged(GLDrawable drawable, boolean modeChanged, boolean deviceChanged) {
           }
         });
-      canvas.setSize(0, 0);
-      canvas.setNoAutoRedrawMode(true);
-      canvas.setAutoSwapBufferMode(false);
-      frame.add(canvas);
-      frame.pack();
-      frame.show();
-      canvas.display();
+      // Attempt to work around deadlock issues with SingleThreadedWorkaround,
+      // which causes some of the methods below to block doing work on the AWT thread
+      try {
+        EventQueue.invokeLater(new Runnable() {
+            public void run() {
+              canvas.setSize(0, 0);
+              canvas.setNoAutoRedrawMode(true);
+              canvas.setAutoSwapBufferMode(false);
+              frame.add(canvas);
+              frame.pack();
+              frame.show();
+              canvas.display();
+            }
+          });
+      } catch (Exception e) {
+        throw new GLException(e);
+      }
     }
  
     return (GL) dummyContextMap.get(device);

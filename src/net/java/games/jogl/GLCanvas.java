@@ -40,6 +40,7 @@
 package net.java.games.jogl;
 
 import java.awt.Canvas;
+import java.awt.EventQueue;
 import java.awt.Graphics;
 import java.awt.GraphicsConfiguration;
 import net.java.games.jogl.impl.*;
@@ -60,7 +61,7 @@ public final class GLCanvas extends Canvas implements GLDrawable {
 
   private GLDrawableHelper drawableHelper = new GLDrawableHelper();
   private GLContext context;
-  
+
   GLCanvas(GraphicsConfiguration config,
            GLCapabilities capabilities,
            GLCapabilitiesChooser chooser,
@@ -80,6 +81,20 @@ public final class GLCanvas extends Canvas implements GLDrawable {
     if (!context.getNoAutoRedrawMode()) {
       display();
     }
+  }
+
+  /** Overridden from Canvas; used to indicate when it's safe to
+      create an OpenGL context for the component. */
+  public void addNotify() {
+    super.addNotify();
+    context.setRealized();
+  }
+
+  /** Overridden from Canvas; used to indicate that it's no longer
+      safe to have an OpenGL context for the component. */
+  public void removeNotify() {
+    context.destroy();
+    super.removeNotify();
   }
 
   /** Overridden from Canvas; causes {@link GLDrawableHelper#reshape}
@@ -183,7 +198,15 @@ public final class GLCanvas extends Canvas implements GLDrawable {
   //
 
   private void displayImpl() {
-    context.invokeGL(displayAction, false, initAction);
+    if (SingleThreadedWorkaround.doWorkaround() && !EventQueue.isDispatchThread()) {
+      try {
+        EventQueue.invokeAndWait(displayOnEventDispatchThreadAction);
+      } catch (Exception e) {
+        throw new GLException(e);
+      }
+    } else {
+      context.invokeGL(displayAction, false, initAction);
+    }
   }
 
   class InitAction implements Runnable {
@@ -206,4 +229,15 @@ public final class GLCanvas extends Canvas implements GLDrawable {
     }
   }
   private SwapBuffersAction swapBuffersAction = new SwapBuffersAction();
+
+  // Workaround for ATI driver bugs related to multithreading issues
+  // like simultaneous rendering via Animators to canvases that are
+  // being resized on the AWT event dispatch thread
+  class DisplayOnEventDispatchThreadAction implements Runnable {
+    public void run() {
+      context.invokeGL(displayAction, false, initAction);
+    }
+  }
+  private DisplayOnEventDispatchThreadAction displayOnEventDispatchThreadAction =
+    new DisplayOnEventDispatchThreadAction();
 }

@@ -40,7 +40,6 @@
 package net.java.games.jogl.impl;
 
 import java.awt.Component;
-import java.awt.EventQueue;
 import net.java.games.jogl.*;
 import net.java.games.gluegen.runtime.*;
 
@@ -62,8 +61,8 @@ public abstract class GLContext {
   // fetched from a locked DrawingSurface during the validation as a
   // result of calling show() on the main thread. To work around this
   // we prevent any JAWT or OpenGL operations from being done until
-  // the first event is received from the AWT event dispatch thread.
-  private boolean realized;
+  // addNotify() is called on the component.
+  protected boolean realized;
 
   protected GLCapabilities capabilities;
   protected GLCapabilitiesChooser chooser;
@@ -77,6 +76,14 @@ public abstract class GLContext {
   protected GLU glu = gluRoot; // this is the context's GLU interface
   protected Thread renderingThread;
   protected Runnable deferredReshapeAction;
+  // Support for OpenGL context destruction and recreation in the face
+  // of the setRenderingThread optimization, which makes the context
+  // permanently current on the animation thread. FIXME: should make
+  // this more uniform and general, possibly by implementing in terms
+  // of Runnables; however, necessary sequence of operations in
+  // invokeGL makes this tricky.
+  protected boolean deferredDestroy;
+  protected boolean deferredSetRealized;
 
   // Error checking for setRenderingThread to ensure that one thread
   // doesn't attempt to call setRenderingThread on more than one
@@ -163,23 +170,38 @@ public abstract class GLContext {
     
     // Defer JAWT and OpenGL operations until onscreen components are
     // realized
-    if (!realized()) {
-      realized = EventQueue.isDispatchThread();
-    }
-
-    if (!realized() ||
+    if (!isRealized() ||
 	willSetRenderingThread ||
         (renderingThread != null &&
          renderingThread != currentThread)) {
-      if (isReshape) {
-        deferredReshapeAction = runnable;
+      // Support for removeNotify()/addNotify() when the
+      // setRenderingThread optimization is in effect and before the
+      // animation thread gets a chance to handle either request
+      if (!isRealized() && deferredSetRealized) {
+        setRealized();
+        deferredSetRealized = false;
+      } else {
+        if (isReshape) {
+          deferredReshapeAction = runnable;
+        }
+        return;
       }
+    }
+
+    if (isReshape && noAutoRedraw && !SingleThreadedWorkaround.doWorkaround()) {
+      // Don't process reshape requests on the AWT thread
+      deferredReshapeAction = runnable;
       return;
     }
 
-    if (isReshape && noAutoRedraw) {
-      // Don't process reshape requests on the AWT thread
-      deferredReshapeAction = runnable;
+    if (deferredDestroy) {
+      deferredDestroy = false;
+      if (renderingThread != null) {
+        // Need to disable the setRenderingThread optimization to free
+        // up the context
+        setRenderingThread(null, initAction);
+      }
+      destroy();
       return;
     }
 
@@ -345,6 +367,11 @@ public abstract class GLContext {
   }
 
   public synchronized void setRenderingThread(Thread currentThreadOrNull, Runnable initAction) {
+    if (SingleThreadedWorkaround.doWorkaround()) {
+      willSetRenderingThread = false;
+      return;
+    }
+
     Thread currentThread = Thread.currentThread();
     if (currentThreadOrNull != null && currentThreadOrNull != currentThread) {
       throw new GLException("Argument must be either the current thread or null");
@@ -436,6 +463,7 @@ public abstract class GLContext {
       resetProcAddressTable(gluProcAddressTable);
       haveResetGLUProcAddressTable = true; // Only need to do this once globally
     }
+    recomputeSingleThreadedWorkaround();
   }
 
   /**
@@ -550,6 +578,53 @@ public abstract class GLContext {
       GLException to be thrown. */
   protected abstract void free() throws GLException;
 
+  /** Inform the system that the associated heavyweight widget has
+      been realized and that it is safe to create an associated OpenGL
+      context. If the widget is later destroyed then destroy() should
+      be called, which will cause the underlying OpenGL context to be
+      destroyed as well as the realized bit to be set to false. */
+  public void setRealized() {
+    if (getRenderingThread() != null &&
+        Thread.currentThread() != getRenderingThread()) {
+      deferredSetRealized = true;
+      return;
+    }
+    setRealized(true);
+  }
+
+  /** Sets only the "realized" bit. Should be called by subclasses
+      from within the destroy() implementation. */
+  protected synchronized void setRealized(boolean realized) {
+    this.realized = realized;
+  }
+
+  /** Indicates whether the component associated with this context has
+      been realized. */
+  public synchronized boolean getRealized() {
+    return realized;
+  }
+
+  /** Destroys the underlying OpenGL context and changes the realized
+      state to false. This should be called when the widget is being
+      destroyed. */
+  public synchronized void destroy() throws GLException {
+    if (getRenderingThread() != null &&
+        Thread.currentThread() != getRenderingThread()) {
+      deferredDestroy = true;
+      return;
+    }
+    setRealized(false);
+    GLContextShareSet.contextDestroyed(this);
+    destroyImpl();
+  }
+
+  /** Destroys the underlying OpenGL context. */
+  protected abstract void destroyImpl() throws GLException;
+
+  public synchronized boolean isRealized() {
+    return (component == null || getRealized());
+  }
+
   /** Helper routine which resets a ProcAddressTable generated by the
       GLEmitter by looking up anew all of its function pointers. */
   protected void resetProcAddressTable(Object table) {
@@ -610,10 +685,23 @@ public abstract class GLContext {
     perThreadSavedCurrentContext.set(new GLContextInitActionPair(context, initAction));
   }
 
-  //----------------------------------------------------------------------
-  // Internals only below this point
-  //
-  private boolean realized() {
-    return ((component == null) || realized || component.isDisplayable());
+  /** Support for automatic detection of whether we need to enable the
+      single-threaded workaround for ATI and other vendors' cards.
+      Should be called by subclasses for onscreen rendering inside
+      their makeCurrent() implementation once the context is
+      current. */
+  private void recomputeSingleThreadedWorkaround() {
+    if (!SingleThreadedWorkaround.doWorkaround()) {
+      GL gl = getGL();
+      String str = gl.glGetString(GL.GL_VENDOR);
+      if (str != null && str.indexOf("ATI") >= 0) {
+        // Doing this instead of calling setRenderingThread(null) should
+        // be OK since we are doing this very early in the maintenance
+        // of the per-thread context stack, before we are actually
+        // pushing any GLContext objects on it
+        renderingThread = null;
+        SingleThreadedWorkaround.shouldDoWorkaround();
+      }
+    }
   }
 }

@@ -129,6 +129,7 @@ public class X11OffscreenGLContext extends X11GLContext {
         pendingOffscreenResize = false;
       }
     }
+    mostRecentDisplay = display;
     return super.makeCurrent(initAction);
   }
 

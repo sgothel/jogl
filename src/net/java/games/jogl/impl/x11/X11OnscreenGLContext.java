@@ -189,6 +189,7 @@ public class X11OnscreenGLContext extends X11GLContext {
       visualID = 0;
       return false;
     }
+    mostRecentDisplay = display;
     return true;
   }
 

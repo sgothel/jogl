@@ -168,6 +168,18 @@ public abstract class WindowsGLContext extends GLContext {
     }
   }
 
+  protected void destroyImpl() throws GLException {
+    if (hglrc != 0) {
+      if (!WGL.wglDeleteContext(hglrc)) {
+        throw new GLException("Unable to delete OpenGL context");
+      }
+      if (DEBUG) {
+        System.err.println("!!! Destroyed OpenGL context " + hglrc);
+      }
+      hglrc = 0;
+    }
+  }
+
   public abstract void swapBuffers() throws GLException;
 
   protected long dynamicLookupFunction(String glFuncName) {
@@ -455,6 +467,9 @@ public abstract class WindowsGLContext extends GLContext {
       throw new GLException("Unable to set pixel format");
     }
     hglrc = WGL.wglCreateContext(hdc);
+    if (DEBUG) {
+      System.err.println("!!! Created OpenGL context " + hglrc);
+    }
     if (hglrc == 0) {
       throw new GLException("Unable to create OpenGL context");
     }

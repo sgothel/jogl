@@ -217,6 +217,7 @@ public class X11PbufferGLContext extends X11GLContext {
 
     // Set up instance variables
     this.display = display;
+    mostRecentDisplay = display;
     this.parentContext = parentContext;
     buffer = tmpBuffer;
     this.fbConfig = fbConfig;

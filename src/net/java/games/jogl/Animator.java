@@ -39,6 +39,9 @@
 
 package net.java.games.jogl;
 
+import java.awt.EventQueue;
+import net.java.games.jogl.impl.SingleThreadedWorkaround;
+
 /** <P> An Animator can be attached to a GLDrawable to drive its
     display() method in a loop. For efficiency, it sets up the
     rendering thread for the drawable to be its own internal thread,
@@ -113,7 +116,12 @@ public class Animator {
                 // during display(), so don't disable the rendering
                 // thread again.
                 if (noException) {
-                  drawable.setRenderingThread(null);
+                  // Destruction of the underlying GLContext may have
+                  // disabled the setRenderingThread optimization out
+                  // from under us
+                  if (drawable.getRenderingThread() != null) {
+                    drawable.setRenderingThread(null);
+                  }
                 }
               } finally {
                 synchronized (Animator.this) {
@@ -133,6 +141,14 @@ public class Animator {
       finished. */
   public synchronized void stop() {
     shouldStop = true;
+    // It's hard to tell whether the thread which calls stop() has
+    // dependencies on the Animator's internal thread. Currently we
+    // use a couple of heuristics to determine whether we should do
+    // the blocking wait().
+    if ((Thread.currentThread() == thread) ||
+        (SingleThreadedWorkaround.doWorkaround() && EventQueue.isDispatchThread())) {
+      return;
+    }
     while (shouldStop && thread != null) {
       try {
         wait();

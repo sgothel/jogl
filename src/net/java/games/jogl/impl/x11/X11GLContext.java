@@ -59,6 +59,11 @@ public abstract class X11GLContext extends GLContext {
   // OpenGL functions.
   private GLProcAddressTable glProcAddressTable;
   private static boolean haveResetGLXProcAddressTable;
+  // Cache the most recent value of the "display" variable (which we
+  // only guarantee to be valid in between makeCurrent / free pairs)
+  // so that we can implement displayImpl() (which must be done when
+  // the context is not current)
+  protected long mostRecentDisplay;
 
   static {
     functionNameMap = new HashMap();
@@ -164,6 +169,18 @@ public abstract class X11GLContext extends GLContext {
   protected synchronized void free() throws GLException {
     if (!GLX.glXMakeCurrent(display, 0, 0)) {
       throw new GLException("Error freeing OpenGL context");
+    }
+  }
+
+  protected void destroyImpl() throws GLException {
+    if (context != 0) {
+      if (!GLX.glXDestroyContext(mostRecentDisplay, context)) {
+        throw new GLException("Unable to delete OpenGL context");
+      }
+      if (DEBUG) {
+        System.err.println("!!! Destroyed OpenGL context " + context);
+      }
+      context = 0;
     }
   }
 

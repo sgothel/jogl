@@ -172,6 +172,18 @@ public abstract class MacOSXGLContext extends GLContext
       }
   }
 	
+  protected void destroyImpl() throws GLException {
+    if (nsContext != 0) {
+      if (!CGL.deleteContext(nsContext, null)) {
+        throw new GLException("Unable to delete OpenGL context");
+      }
+      if (DEBUG) {
+        System.err.println("!!! Destroyed OpenGL context " + nsContext);
+      }
+      nsContext = 0;
+    }
+  }
+
   public abstract void swapBuffers() throws GLException;
 	
   protected long dynamicLookupFunction(String glFuncName) {

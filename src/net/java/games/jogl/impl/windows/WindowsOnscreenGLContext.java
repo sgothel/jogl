@@ -155,11 +155,18 @@ public class WindowsOnscreenGLContext extends WindowsGLContext {
       throw new GLException("Unable to lock surface");
     }
     // See whether the surface changed and if so destroy the old
-    // OpenGL context so it will be recreated
+    // OpenGL context so it will be recreated (NOTE: removeNotify
+    // should handle this case, but it may be possible that race
+    // conditions can cause this code to be triggered -- should test
+    // more)
     if ((res & JAWTFactory.JAWT_LOCK_SURFACE_CHANGED) != 0) {
       if (hglrc != 0) {
         if (!WGL.wglDeleteContext(hglrc)) {
           throw new GLException("Unable to delete old GL context after surface changed");
+        }
+        GLContextShareSet.contextDestroyed(this);
+        if (DEBUG) {
+          System.err.println("!!! Destroyed OpenGL context " + hglrc + " due to JAWT_LOCK_SURFACE_CHANGED");
         }
         hglrc = 0;
       }
