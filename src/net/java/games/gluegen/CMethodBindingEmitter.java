@@ -468,27 +468,29 @@ public class CMethodBindingEmitter extends FunctionEmitter
   protected void emitBodyVariablePreCallSetup(PrintWriter writer,
                                               boolean emittingPrimitiveArrayCritical)
   {
-    // Convert all Buffers to pointers first so we don't have to
-    // call ReleasePrimitiveArrayCritical for any arrays if any
-    // incoming buffers aren't direct
-    if (binding.hasContainingType()) {
-      emitPointerConversion(writer, binding,
-                            binding.getContainingType(),
-                            binding.getContainingCType(),
-                            JavaMethodBindingEmitter.javaThisArgumentName(),
-                            CMethodBindingEmitter.cThisArgumentName());
-    }
-    
-    for (int i = 0; i < binding.getNumArguments(); i++) {
-      JavaType type = binding.getJavaArgumentType(i);
-      if (type.isJNIEnv() || binding.isArgumentThisPointer(i)) {
-        continue;
+    if (!emittingPrimitiveArrayCritical) {
+      // Convert all Buffers to pointers first so we don't have to
+      // call ReleasePrimitiveArrayCritical for any arrays if any
+      // incoming buffers aren't direct
+      if (binding.hasContainingType()) {
+        emitPointerConversion(writer, binding,
+                              binding.getContainingType(),
+                              binding.getContainingCType(),
+                              JavaMethodBindingEmitter.javaThisArgumentName(),
+                              CMethodBindingEmitter.cThisArgumentName());
       }
-      if (type.isNIOBuffer()) {
-        emitPointerConversion(writer, binding, type,
-                              binding.getCArgumentType(i),
-                              binding.getArgumentName(i),
-                              pointerConversionArgumentName(i));
+    
+      for (int i = 0; i < binding.getNumArguments(); i++) {
+        JavaType type = binding.getJavaArgumentType(i);
+        if (type.isJNIEnv() || binding.isArgumentThisPointer(i)) {
+          continue;
+        }
+        if (type.isNIOBuffer()) {
+          emitPointerConversion(writer, binding, type,
+                                binding.getCArgumentType(i),
+                                binding.getArgumentName(i),
+                                pointerConversionArgumentName(i));
+        }
       }
     }
 
@@ -504,6 +506,9 @@ public class CMethodBindingEmitter extends FunctionEmitter
         boolean needsDataCopy = javaArgTypeNeedsDataCopy(javaArgType);
         Class subArrayElementJavaType = javaArgType.getJavaClass().getComponentType();
 
+        // We only defer the emission of GetPrimitiveArrayCritical
+        // calls that won't be matched up until after the function
+        // we're calling
         if ((!needsDataCopy && !emittingPrimitiveArrayCritical) ||
             (needsDataCopy  && emittingPrimitiveArrayCritical)) {
           continue;
