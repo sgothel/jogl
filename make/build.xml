@@ -731,6 +731,8 @@
         <linkerarg value="Cocoa" />
         <linkerarg value="-framework" />
         <linkerarg value="OpenGL" />
+        <linkerarg value="-framework" if="c.compiler.use-cglib" />
+        <linkerarg value="Cg" if="c.compiler.use-cglib" />
       </linker>
 
       <patternset id="c.src.files.jogl">
@@ -798,6 +800,12 @@
       <move file="${obj}/libjogl.dylib" tofile="${obj}/libjogl.jnilib" />
     </target>
 
+    <target name="c.rename.jogl_cg.lib" if="os.isMacOSX">
+      <!-- FIXME: this is a hack; the cpptask should have an option to change the
+           suffix or at least understand the override from dylib to jnilib -->
+      <move file="${obj}/libjogl_cg.dylib" tofile="${obj}/libjogl_cg.jnilib" />
+    </target>
+
     <target name="c.build.jogl">
       <antcall target="c.build" inheritRefs="true">
         <param name="c.compiler.src.files" value="c.src.files.jogl"/>
@@ -812,6 +820,7 @@
         <param name="c.compiler.use-cglib" value="XXX"/>      
         <param name="output.lib.name" value="jogl_cg"/>      
       </antcall>
+      <antcall target="c.rename.jogl_cg.lib" inheritRefs="true" />
     </target>
 
 
@@ -831,7 +840,7 @@
     <target name="c.compile.jogl.solaris" depends="declare.solaris, c.build.jogl">
     </target>
     
-    <target name="c.compile.jogl.macosx" depends="declare.macosx, c.build.jogl">
+    <target name="c.compile.jogl.macosx" depends="declare.macosx, c.build.jogl, c.build.cg">
     </target>
     
     <!-- ================================================================== -->
