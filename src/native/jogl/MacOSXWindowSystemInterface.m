@@ -1,5 +1,6 @@
 #import <Cocoa/Cocoa.h>
 #import <OpenGL/gl.h>
+#import <jni.h>
 #import "ContextUpdater.h"
 
 // see MacOSXPbufferGLContext.java createPbuffer
@@ -15,8 +16,44 @@ typedef int Bool;
 
 NSAutoreleasePool* gAutoreleasePool = NULL;
 
-void* createContext(void* shareContext, void* view)
+void* createContext( JNIEnv* env, jobject glCapabilities, void* shareContext, void* view)
 {
+	fprintf( stderr, "Creating context \n");
+
+	jclass clazz = (*env)->GetObjectClass( env, glCapabilities );
+		
+	
+	jfieldID redSizeField = (*env)->GetFieldID( env, clazz, "redBits" , "I" );
+	jfieldID greenSizeField = (*env)->GetFieldID( env, clazz, "greenBits" , "I" );
+	jfieldID blueSizeField = (*env)->GetFieldID( env, clazz, "blueBits" , "I" );
+	
+	jfieldID alphaSizeField = (*env)->GetFieldID( env, clazz, "alphaBits", "I" );
+	jfieldID depthSizeField = (*env)->GetFieldID( env, clazz, "depthBits", "I" );
+	jfieldID stencilSizeField = (*env)->GetFieldID( env, clazz, "stencilBits", "I" );
+	jfieldID accumRedSizeField = (*env)->GetFieldID( env, clazz, "accumRedBits", "I" );
+	jfieldID accumGreenSizeField = (*env)->GetFieldID( env, clazz, "accumGreenBits", "I" );
+	jfieldID accumBlueSizeField = (*env)->GetFieldID( env, clazz, "accumBlueBits", "I" );
+	jfieldID accumAlphaSizeField = (*env)->GetFieldID( env, clazz, "accumAlphaBits", "I" );
+
+	jint redSize = (*env)->GetIntField( env, glCapabilities, redSizeField );
+	jint greenSize = (*env)->GetIntField( env, glCapabilities, greenSizeField );
+	jint blueSize = (*env)->GetIntField( env, glCapabilities, blueSizeField );	
+	jint colorSize = redSize + greenSize + blueSize;
+	
+	jint accumRedSize = (*env)->GetIntField( env, glCapabilities, accumRedSizeField );
+	jint accumGreenSize = (*env)->GetIntField( env, glCapabilities, accumGreenSizeField );
+	jint accumBlueSize = (*env)->GetIntField( env, glCapabilities, accumBlueSizeField );
+	jint accumAlphaSize = (*env)->GetIntField( env, glCapabilities, accumAlphaSizeField );
+	jint accumSize = accumRedSize + accumGreenSize + accumBlueSize + accumAlphaSize; 
+	
+	
+	jint alphaSize = (*env)->GetIntField( env, glCapabilities, alphaSizeField );
+	jint depthSize = (*env)->GetIntField( env, glCapabilities, depthSizeField );
+	jint stencilSize = (*env)->GetIntField( env, glCapabilities, stencilSizeField );
+	
+	fprintf(stderr, "Color %d, alpha %d, depth %d, stencil %d, accum %d", colorSize, alphaSize, depthSize, stencilSize, accumSize );
+	
+	
 //fprintf(stderr, "createContext shareContext=%p view=%p\n", shareContext, view);
 	NSOpenGLContext *nsChareCtx = (NSOpenGLContext*)shareContext;
 	NSView *nsView = (NSView*)view;
@@ -26,13 +63,13 @@ void* createContext(void* shareContext, void* view)
             NSRect frame = [nsView frame];
             if ((frame.size.width == 0) || (frame.size.height == 0))
             {
-                fprintf(stderr, "Error: empty view at \"%s:%s:%d\"\n", __FILE__, __FUNCTION__, __LINE__);
+                fprintf(stderr, "Error: view width or height == 0at \"%s:%s:%d\"\n", __FILE__, __FUNCTION__, __LINE__);
                 // the view is not ready yet
                 return NULL;
             }
             else if ([nsView lockFocusIfCanDraw] == NO)
             {
-                fprintf(stderr, "Error: view not ready at \"%s:%s:%d\"\n", __FILE__, __FUNCTION__, __LINE__);
+                fprintf(stderr, "Error: view not ready, cannot lock focus at \"%s:%s:%d\"\n", __FILE__, __FUNCTION__, __LINE__);
                 // the view is not ready yet
                 return NULL;
             }
@@ -48,18 +85,21 @@ void* createContext(void* shareContext, void* view)
 	// pixel formats for a given window on Mac OS X, so we will assume
 	// that we can match the requested capabilities and leave the
 	// selection up to the built-in pixel format selection algorithm.
+	
 	NSOpenGLPixelFormatAttribute attribs[] =
 	{
 		NSOpenGLPFANoRecovery, YES,
 		NSOpenGLPFAAccelerated, YES,
 		NSOpenGLPFADoubleBuffer, YES,
-		NSOpenGLPFAColorSize, 32,
-		NSOpenGLPFAAlphaSize, 8,
-		NSOpenGLPFADepthSize, 8,
-		NSOpenGLPFAStencilSize, 8,
-		NSOpenGLPFAAccumSize, 0,
+		NSOpenGLPFAColorSize, colorSize,
+		NSOpenGLPFAAlphaSize, alphaSize,
+		NSOpenGLPFADepthSize, depthSize,
+		NSOpenGLPFAStencilSize, stencilSize,
+		NSOpenGLPFAAccumSize, accumSize,
 		0
 	};
+	
+	
 	
 	NSOpenGLPixelFormat* fmt = [[NSOpenGLPixelFormat alloc] initWithAttributes:attribs];
 	
