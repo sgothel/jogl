@@ -1008,6 +1008,7 @@
         <delete>
             <fileset dir="${jogl.dist.dir}" includes="jogl-natives-*.jar" />
         </delete>
+        <delete file="${jogl.dist.dir}/jogl-src.zip" />
         <jar destfile="${jogl.dist.dir}/jogl.jar" duplicate="preserve">
 	    <zipgroupfileset dir="${jogl.dist.dir}"
 	                     includes="jogl-win32/*.jar, jogl-linux/*.jar, jogl-macosx/*.jar" />
@@ -1029,6 +1030,12 @@
         <!-- jar destfile="${jogl.dist.dir}/jogl-natives-solx86.jar"
              basedir="${jogl.dist.dir}/jogl-solx86"
              includes="libjogl.so" -->
+	<!-- Build a source archive as well -->
+        <zip destfile="${jogl.dist.dir}/jogl-src.zip"
+	     basedir="../.."
+	     includes="jogl/doc/**,jogl/make/**,jogl/src/**"
+	     excludes="**/*.class,**/*~"
+	     />
     </target>
 
     <!-- ================================================================== -->
