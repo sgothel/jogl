@@ -46,6 +46,10 @@ import net.java.games.jogl.*;
 import net.java.games.jogl.impl.*;
 
 public class X11GLContextFactory extends GLContextFactory {
+  static {
+    NativeLibLoader.load();
+  }
+
   public GraphicsConfiguration chooseGraphicsConfiguration(GLCapabilities capabilities,
                                                            GLCapabilitiesChooser chooser,
                                                            GraphicsDevice device) {
