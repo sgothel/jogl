@@ -24,7 +24,7 @@ extern "C" {
 ** 
 ** Original Code. The Original Code is: OpenGL Sample Implementation,
 ** Version 1.2.1, released January 26, 2000, developed by Silicon Graphics,
-** Inc. The Original Code is Copyright (c) 1991-2000 Silicon Graphics, Inc.
+** Inc. The Original Code is Copyright (c) 1991-2002 Silicon Graphics, Inc.
 ** Copyright in any portions created by third parties is as indicated
 ** elsewhere herein. All Rights Reserved.
 ** 
@@ -34,13 +34,16 @@ extern "C" {
 ** version 1.2.1 Specification.
 */
 
-#if defined(_WIN32) && !defined(APIENTRY) && !defined(__CYGWIN__)
+#if defined(_WIN32) && !defined(APIENTRY) && !defined(__CYGWIN__) && !defined(__SCITECH_SNAP__)
 #define WIN32_LEAN_AND_MEAN 1
 #include <windows.h>
 #endif
 
 #ifndef APIENTRY
 #define APIENTRY
+#endif
+#ifndef APIENTRYP
+#define APIENTRYP APIENTRY *
 #endif
 #ifndef GLAPI
 #define GLAPI extern
@@ -282,6 +285,32 @@ extern "C" {
 #ifndef WGL_I3D_swap_frame_lock
 #endif
 
+#ifndef WGL_NV_render_depth_texture
+#define WGL_BIND_TO_TEXTURE_DEPTH_NV   0x20A3
+#define WGL_BIND_TO_TEXTURE_RECTANGLE_DEPTH_NV 0x20A4
+#define WGL_DEPTH_TEXTURE_FORMAT_NV    0x20A5
+#define WGL_TEXTURE_DEPTH_COMPONENT_NV 0x20A6
+#define WGL_DEPTH_COMPONENT_NV         0x20A7
+#endif
+
+#ifndef WGL_NV_render_texture_rectangle
+#define WGL_BIND_TO_TEXTURE_RECTANGLE_RGB_NV 0x20A0
+#define WGL_BIND_TO_TEXTURE_RECTANGLE_RGBA_NV 0x20A1
+#define WGL_TEXTURE_RECTANGLE_NV       0x20A2
+#endif
+
+#ifndef WGL_NV_float_buffer
+#define WGL_FLOAT_COMPONENTS_NV        0x20B0
+#define WGL_BIND_TO_TEXTURE_RECTANGLE_FLOAT_R_NV 0x20B1
+#define WGL_BIND_TO_TEXTURE_RECTANGLE_FLOAT_RG_NV 0x20B2
+#define WGL_BIND_TO_TEXTURE_RECTANGLE_FLOAT_RGB_NV 0x20B3
+#define WGL_BIND_TO_TEXTURE_RECTANGLE_FLOAT_RGBA_NV 0x20B4
+#define WGL_TEXTURE_FLOAT_R_NV         0x20B5
+#define WGL_TEXTURE_FLOAT_RG_NV        0x20B6
+#define WGL_TEXTURE_FLOAT_RGB_NV       0x20B7
+#define WGL_TEXTURE_FLOAT_RGBA_NV      0x20B8
+#endif
+
 
 /*************************************************************/
 
@@ -446,8 +475,8 @@ typedef int (WINAPI * PFNWGLGETSWAPINTERVALEXTPROC) (void);
 #define WGL_EXT_depth_float 1
 #endif
 
-#ifndef GL_NV_vertex_array_range
-#define GL_NV_vertex_array_range 1
+#ifndef WGL_NV_vertex_array_range
+#define WGL_NV_vertex_array_range 1
 #ifdef WGL_WGLEXT_PROTOTYPES
 extern void* WINAPI wglAllocateMemoryNV (GLsizei, GLfloat, GLfloat, GLfloat);
 extern void WINAPI wglFreeMemoryNV (void *);
@@ -455,8 +484,6 @@ extern void WINAPI wglFreeMemoryNV (void *);
 typedef void* (WINAPI * PFNWGLALLOCATEMEMORYNVPROC) (GLsizei size, GLfloat readfreq, GLfloat writefreq, GLfloat priority);
 typedef void (WINAPI * PFNWGLFREEMEMORYNVPROC) (void *pointer);
 #endif
-/* Hack to allow the platform-independent routines to be picked up from other headers */
-#undef GL_NV_vertex_array_range
 
 #ifndef WGL_3DFX_multisample
 #define WGL_3DFX_multisample 1
@@ -588,43 +615,12 @@ typedef BOOL (WINAPI * PFNWGLQUERYFRAMETRACKINGI3DPROC) (DWORD *pFrameCount, DWO
  * -----------------------------------------------------------
  */
 
-/*
- * Note(ckline): The WGL_NV_float_buffer name string was hidden inside 
- * the spec for NV_float_buffer; it's not its own specification. See
- * http://oss.sgi.com/projects/ogl-sample/registry/NV/float_buffer.txt
- */
-#ifndef WGL_NV_float_buffer
-#define WGL_FLOAT_COMPONENTS_NV                     0x20B0
-#define WGL_BIND_TO_TEXTURE_RECTANGLE_FLOAT_R_NV    0x20B1
-#define WGL_BIND_TO_TEXTURE_RECTANGLE_FLOAT_RG_NV   0x20B2
-#define WGL_BIND_TO_TEXTURE_RECTANGLE_FLOAT_RGB_NV  0x20B3
-#define WGL_BIND_TO_TEXTURE_RECTANGLE_FLOAT_RGBA_NV 0x20B4
-#define WGL_TEXTURE_FLOAT_R_NV                      0x20B5
-#define WGL_TEXTURE_FLOAT_RG_NV                     0x20B6
-#define WGL_TEXTURE_FLOAT_RGB_NV                    0x20B7
-#define WGL_TEXTURE_FLOAT_RGBA_NV                   0x20B8
-#endif
-
 #ifndef WGL_NV_float_buffer
 #define WGL_NV_float_buffer 1
 #endif
 
 #ifndef WGL_NV_render_texture_rectangle
-#define WGL_BIND_TO_TEXTURE_RECTANGLE_RGB_NV        0x20A0
-#define WGL_BIND_TO_TEXTURE_RECTANGLE_RGBA_NV       0x20A1
-#define WGL_TEXTURE_RECTANGLE_NV                    0x20A2
-#endif
-
-#ifndef WGL_NV_render_texture_rectangle
 #define WGL_NV_render_texture_rectangle 1
-#endif
-
-#ifndef WGL_NV_render_depth_texture
-#define WGL_TEXTURE_DEPTH_COMPONENT_NV          0x20A6
-#define WGL_DEPTH_TEXTURE_FORMAT_NV             0x20A5
-#define WGL_BIND_TO_TEXTURE_DEPTH_NV            0x20A3
-#define WGL_BIND_TO_TEXTURE_RECTANGLE_DEPTH_NV  0x20A4
-#define WGL_DEPTH_COMPONENT_NV                  0x20A7
 #endif
 
 #ifndef WGL_NV_render_depth_texture

@@ -143,7 +143,8 @@ public class PCPP {
       to constants.  Macros and multi-line defines (which typically
       contain either macro definitions or expressions) are currently
       not handled. */
-  private Map/*<String, String>*/ defineMap = new HashMap();
+  private Map/*<String, String>*/ defineMap          = new HashMap();
+  private Set/*<String>*/         nonConstantDefines = new HashSet();
 
   /** List containing the #include paths as Strings */
   private List/*<String>*/ includePaths;
@@ -364,9 +365,9 @@ public class PCPP {
       } else {
         // System.err.println("UNDEFINED: '" + name + "'  (line " + lineNumber() + " file " + filename() + ")");        
       }      
+      nonConstantDefines.remove(name);
     }
     else System.err.println("FAILED TO UNDEFINE: '" + name + "'  (line " + lineNumber() + " file " + filename() + ")"); 
-    
   }
   
   private void handleDefine() throws IOException {
@@ -414,7 +415,7 @@ public class PCPP {
         } else {
           // Value is a symbolic constant like "#define FOO BAR".
           // Try to look up the symbol's value
-          String newValue = (String) defineMap.get(value);
+          String newValue = resolveDefine(value, true);
           if (newValue != null) {
             // Set the value to the value of the symbol.
             //
@@ -427,30 +428,32 @@ public class PCPP {
           {
             // Still perform textual replacement
             defineMap.put(name, value);
+            nonConstantDefines.add(name);
             emitDefine = false;
           }
         }
       }
       else
       {
-        // can't handle definitions that aren't constants or empty
+        // Non-constant define; try to do reasonable textual substitution anyway
+        // (FIXME: should identify some of these, like (-1), as constants)
         emitDefine = false;
-        StringBuffer buf = new StringBuffer("#define ");
-        buf.append(name);
-        for (int i = 0; i < sz; ++i) {
-          buf.append(" ");
-          buf.append(values.get(i));
+        StringBuffer val = new StringBuffer();
+        for (int i = 0; i < sz; i++) {
+          if (i != 0) {
+            val.append(" ");
+          }
+          val.append(resolveDefine((String) values.get(i), false));
         }
-        System.err.println("WARNING: Ignoring \"" + buf.toString() +
-          "\" at \"" + filename() + "\" line " + lineNumber() +
-          ": Unable to handle definition to non-constant");     
         if (defineMap.get(name) != null) {
-                                        // This is probably something the user should investigate.
+          // This is probably something the user should investigate.
           throw new RuntimeException("Cannot redefine symbol \"" + name +
             " from \"" + defineMap.get(name) + "\" to non-constant " +
-            " definition \"" + buf.toString() + "\"");
+            " definition \"" + val.toString() + "\"");
         }
-      }
+        defineMap.put(name, val.toString());
+        nonConstantDefines.add(name);
+      }        
       
       if (emitDefine)
       {
@@ -498,6 +501,24 @@ public class PCPP {
       return false;
     }
     return true;
+  }
+
+  private String resolveDefine(String word, boolean returnNullIfNotFound) {
+    String lastWord = (String) defineMap.get(word);
+    if (lastWord == null) {
+      if (returnNullIfNotFound) {
+        return null;
+      }
+      return word;
+    }
+    String nextWord = null;
+    do {
+      nextWord = (String) defineMap.get(lastWord);
+      if (nextWord != null) {
+        lastWord = nextWord;
+      }
+    } while (nextWord != null);
+    return lastWord;
   }
 
   ////////////////////////////////////////////////
@@ -628,8 +649,8 @@ public class PCPP {
 
             // See if the statement is "true"; i.e., a non-zero expression
             if (symbolValue != null) {
-              // The statement is true if the symbol is defined.
-              return true;
+              // The statement is true if the symbol is defined and is a constant expression
+              return (!nonConstantDefines.contains(word));
             } else {
               // The statement is true if the symbol evaluates to a non-zero value
               // 

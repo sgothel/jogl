@@ -113,24 +113,27 @@ public class CGLPAWrapperEmitter extends CMethodBindingEmitter
     super.emitBodyVariableDeclarations(writer);
   }
 
-  protected void emitBodyVariablePreCallSetup(PrintWriter writer)
+  protected void emitBodyVariablePreCallSetup(PrintWriter writer,
+                                              boolean emittingPrimitiveArrayCritical)
   {
-    super.emitBodyVariablePreCallSetup(writer);
+    super.emitBodyVariablePreCallSetup(writer, emittingPrimitiveArrayCritical);
 
-    // set the function pointer to the value of the passed-in glProcAddress
-    FunctionSymbol cSym = getBinding().getCSymbol();
-    String funcPointerTypedefName =
-      GLEmitter.getGLFunctionPointerTypedefName(cSym);
+    if (!emittingPrimitiveArrayCritical) {
+      // set the function pointer to the value of the passed-in glProcAddress
+      FunctionSymbol cSym = getBinding().getCSymbol();
+      String funcPointerTypedefName =
+        GLEmitter.getGLFunctionPointerTypedefName(cSym);
 
-    String ptrVarName = "ptr_" + cSym.getName();
+      String ptrVarName = "ptr_" + cSym.getName();
     
-    writer.print("  ");
-    writer.print(ptrVarName);
-    writer.print(" = (");
-    writer.print(funcPointerTypedefName);
-    writer.println(") (intptr_t) glProcAddress;");
+      writer.print("  ");
+      writer.print(ptrVarName);
+      writer.print(" = (");
+      writer.print(funcPointerTypedefName);
+      writer.println(") (intptr_t) glProcAddress;");
 
-    writer.println("  assert(" + ptrVarName + " != NULL);");
+      writer.println("  assert(" + ptrVarName + " != NULL);");
+    }
   }
 
   // FIXME: refactor this and the superclass version so we don't have to copy
@@ -192,6 +195,9 @@ public class CGLPAWrapperEmitter extends CMethodBindingEmitter
         }
         if (javaType.isArray() || javaType.isNIOBuffer()) {
           writer.print(pointerConversionArgumentName(i));
+          if (javaArgTypeNeedsDataCopy(javaType)) {
+            writer.print("_copy");
+          }
         } else {
           if (javaType.isString()) { writer.print("_UTF8"); }
           writer.print(binding.getArgumentName(i));          
