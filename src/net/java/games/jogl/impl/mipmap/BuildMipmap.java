@@ -745,41 +745,41 @@ public class BuildMipmap {
           break;
         case( GL.GL_UNSIGNED_BYTE_3_3_2 ):
           assert( format == GL.GL_RGB );
-          HalveImage.halveImagePackedPixel( 3, new Extract332(), width, height, data, dstImage, element_size, rowsize, myswap_bytes );
+          HalveImage.halveImagePackedPixel( 3, new Extract332(), newwidth, newheight, srcImage, dstImage, element_size, rowsize, myswap_bytes );
             break;
         case( GL.GL_UNSIGNED_BYTE_2_3_3_REV ):
           assert( format == GL.GL_RGB );
-          HalveImage.halveImagePackedPixel( 3, new Extract233rev(), width, height, data, dstImage, element_size, rowsize, myswap_bytes );
+          HalveImage.halveImagePackedPixel( 3, new Extract233rev(), newwidth, newheight, srcImage, dstImage, element_size, rowsize, myswap_bytes );
             break;
         case( GL.GL_UNSIGNED_SHORT_5_6_5 ):
-          HalveImage.halveImagePackedPixel( 3, new Extract565(), width, height, data, dstImage, element_size, rowsize, myswap_bytes );
+          HalveImage.halveImagePackedPixel( 3, new Extract565(), newwidth, newheight, srcImage, dstImage, element_size, rowsize, myswap_bytes );
             break;
         case( GL.GL_UNSIGNED_SHORT_5_6_5_REV ):
-          HalveImage.halveImagePackedPixel( 3, new Extract565rev(), width, height, data, dstImage, element_size, rowsize, myswap_bytes );
+          HalveImage.halveImagePackedPixel( 3, new Extract565rev(), newwidth, newheight, srcImage, dstImage, element_size, rowsize, myswap_bytes );
             break;
         case( GL.GL_UNSIGNED_SHORT_4_4_4_4 ):
-          HalveImage.halveImagePackedPixel( 4, new Extract4444(), width, height, data, dstImage, element_size, rowsize, myswap_bytes );
+          HalveImage.halveImagePackedPixel( 4, new Extract4444(), newwidth, newheight, srcImage, dstImage, element_size, rowsize, myswap_bytes );
             break;
         case( GL.GL_UNSIGNED_SHORT_4_4_4_4_REV ):
-          HalveImage.halveImagePackedPixel( 4, new Extract4444rev(), width, height, data, dstImage, element_size, rowsize, myswap_bytes );
+          HalveImage.halveImagePackedPixel( 4, new Extract4444rev(), newwidth, newheight, srcImage, dstImage, element_size, rowsize, myswap_bytes );
             break;
         case( GL.GL_UNSIGNED_SHORT_5_5_5_1 ):
-          HalveImage.halveImagePackedPixel( 4, new Extract5551(), width, height, data, dstImage, element_size, rowsize, myswap_bytes );
+          HalveImage.halveImagePackedPixel( 4, new Extract5551(), newwidth, newheight, srcImage, dstImage, element_size, rowsize, myswap_bytes );
             break;
         case( GL.GL_UNSIGNED_SHORT_1_5_5_5_REV ):
-          HalveImage.halveImagePackedPixel( 4, new Extract1555rev(), width, height, data, dstImage, element_size, rowsize, myswap_bytes );
+          HalveImage.halveImagePackedPixel( 4, new Extract1555rev(), newwidth, newheight, srcImage, dstImage, element_size, rowsize, myswap_bytes );
             break;
         case( GL.GL_UNSIGNED_INT_8_8_8_8 ):
-          HalveImage.halveImagePackedPixel( 4, new Extract8888(), width, height, data, dstImage, element_size, rowsize, myswap_bytes );
+          HalveImage.halveImagePackedPixel( 4, new Extract8888(), newwidth, newheight, srcImage, dstImage, element_size, rowsize, myswap_bytes );
             break;
         case( GL.GL_UNSIGNED_INT_8_8_8_8_REV ):
-          HalveImage.halveImagePackedPixel( 4, new Extract8888rev(), width, height, data, dstImage, element_size, rowsize, myswap_bytes );
+          HalveImage.halveImagePackedPixel( 4, new Extract8888rev(), newwidth, newheight, srcImage, dstImage, element_size, rowsize, myswap_bytes );
             break;
         case( GL.GL_UNSIGNED_INT_10_10_10_2 ):
-          HalveImage.halveImagePackedPixel( 4, new Extract1010102(), width, height, data, dstImage, element_size, rowsize, myswap_bytes );
+          HalveImage.halveImagePackedPixel( 4, new Extract1010102(), newwidth, newheight, srcImage, dstImage, element_size, rowsize, myswap_bytes );
             break;
         case( GL.GL_UNSIGNED_INT_2_10_10_10_REV ):
-          HalveImage.halveImagePackedPixel( 4, new Extract2101010rev(), width, height, data, dstImage, element_size, rowsize, myswap_bytes );
+          HalveImage.halveImagePackedPixel( 4, new Extract2101010rev(), newwidth, newheight, srcImage, dstImage, element_size, rowsize, myswap_bytes );
             break;
         default:
           assert( false );
