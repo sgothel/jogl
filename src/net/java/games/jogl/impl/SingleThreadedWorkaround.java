@@ -48,7 +48,7 @@ import java.security.PrivilegedAction;
     that is simultaneously being resized by the event queue thread */
 
 public class SingleThreadedWorkaround {
-  private static boolean ATI_WORKAROUND = false;
+  private static boolean singleThreadedWorkaround = false;
   // If the user specified the workaround's system property (either
   // true or false), don't let the automatic detection have any effect
   private static boolean systemPropertySpecified = false;
@@ -57,10 +57,14 @@ public class SingleThreadedWorkaround {
   static {
     AccessController.doPrivileged(new PrivilegedAction() {
         public Object run() {
-          String workaround = System.getProperty("ATI_WORKAROUND");
+          String workaround = System.getProperty("JOGL_SINGLE_THREADED_WORKAROUND");
+          if (workaround == null) {
+            // Old system property (for compatibility)
+            workaround = System.getProperty("ATI_WORKAROUND");
+          }
           if (workaround != null) {
             systemPropertySpecified = true;
-            ATI_WORKAROUND = Boolean.valueOf(workaround).booleanValue();
+            singleThreadedWorkaround = Boolean.valueOf(workaround).booleanValue();
           }
           verbose = (System.getProperty("jogl.verbose") != null);
           printWorkaroundNotice();
@@ -71,18 +75,18 @@ public class SingleThreadedWorkaround {
 
   public static void shouldDoWorkaround() {
     if (!systemPropertySpecified) {
-      ATI_WORKAROUND = true;
+      singleThreadedWorkaround = true;
       printWorkaroundNotice();
     }
   }
 
   public static boolean doWorkaround() {
-    return ATI_WORKAROUND;
+    return singleThreadedWorkaround;
   }
 
   private static void printWorkaroundNotice() {
-    if (ATI_WORKAROUND && verbose) {
-      System.err.println("Using ATI workaround of dispatching display() on event thread");
+    if (singleThreadedWorkaround && verbose) {
+      System.err.println("Using single-threaded workaround of dispatching display() on event thread");
     }
   }
 }
