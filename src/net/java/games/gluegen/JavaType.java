@@ -325,6 +325,10 @@ public class JavaType {
     return ((clazz != null) && !isArray() && clazz.isPrimitive() && (clazz != Void.TYPE));
   }
 
+  public boolean isPrimitiveArray() {
+    return (isArray() && (clazz.getComponentType().isPrimitive()));
+  }
+
   public boolean isVoid() {
     return (clazz == Void.TYPE);
   }

@@ -145,11 +145,7 @@ public abstract class GLContext {
                    GLCapabilitiesChooser chooser,
                    GLContext shareWith) {
     this.component = component;
-    try {
-      this.capabilities = (GLCapabilities) capabilities.clone();
-    } catch (CloneNotSupportedException e) {
-      throw new GLException(e);
-    }
+    this.capabilities = (GLCapabilities) capabilities.clone();
     this.chooser = chooser;
     setGL(createGL());
     functionAvailability = new FunctionAvailabilityCache(this);
