@@ -159,7 +159,8 @@ public abstract class WindowsGLContext extends GLContext {
         }
         if (!WGL.wglShareLists(hglrc2, hglrc)) {
           throw new GLException("wglShareLists(0x" + Long.toHexString(hglrc2) +
-                                ", 0x" + Long.toHexString(hglrc) + ") failed");
+                                ", 0x" + Long.toHexString(hglrc) + ") failed: error code " +
+                                WGL.GetLastError());
         }
       }
       GLContextShareSet.contextCreated(this);      
