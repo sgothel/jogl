@@ -57,10 +57,20 @@
  * 
  */ 
 
+
 #ifndef _cg_h
 #define _cg_h
 
-#ifndef CG_DEPRECATED_API
+
+#define CG_VERSION_1_2                1
+#define CG_VERSION_NUM                1200
+
+
+//
+// This #define foreces the old API for now.  This will be removed soon, but
+// the user will still have the ability to enable it.
+//
+// #define CG_DEPRECATED_1_1_API 1
 
 // Set up for either Win32 import/export/lib.
 #ifndef CGDLL_API
@@ -143,28 +153,8 @@ typedef enum
 
 typedef enum
  {
-  CG_UNKNOWN = 4096,
-  CG_IN,
-  CG_OUT,
-  CG_INOUT,
-  CG_MIXED,
-  CG_VARYING,
-  CG_UNIFORM,
-  CG_CONSTANT,
-  CG_PROGRAM_SOURCE,
-  CG_PROGRAM_ENTRY,
-  CG_COMPILED_PROGRAM,
-  CG_PROGRAM_PROFILE,
-
-  CG_GLOBAL,
-  CG_PROGRAM,
-
-  CG_DEFAULT,
-  CG_ERROR,
-
-  CG_SOURCE,
-  CG_OBJECT,
-
+//# define CG_ENUM_MACRO(enum_name, enum_val) enum_name = enum_val,
+# include <Cg/cg_enums.h>
  } CGenum;
 
 #include <stdarg.h>
@@ -179,12 +169,15 @@ typedef void (*CGerrorCallbackFunc)(void);
 /*** Functions                                                         ***/
 /*************************************************************************/
 
+#ifndef CG_EXPLICIT
+
 /*** Context functions ***/
 
 CGDLL_API /*CGcontext*/CGcontext* cgCreateContext(void); 
 CGDLL_API void cgDestroyContext(/*CGcontext*/CGcontext* ctx); 
 CGDLL_API CGbool cgIsContext(/*CGcontext*/CGcontext* ctx);
 CGDLL_API const char *cgGetLastListing(/*CGcontext*/CGcontext* ctx);
+CGDLL_API void cgSetAutoCompile(/*CGcontext*/CGcontext* ctx, CGenum flag);
 
 /*** Program functions ***/
 CGDLL_API /*CGprogram*/CGprogram* cgCreateProgram(/*CGcontext*/CGcontext* ctx, 
@@ -213,24 +206,52 @@ CGDLL_API const char *cgGetProgramString(/*CGprogram*/CGprogram* prog, CGenum pn
 CGDLL_API CGprofile cgGetProgramProfile(/*CGprogram*/CGprogram* prog); 
 
 /*** Parameter functions ***/
+
+CGDLL_API /*CGparameter*/CGparameter* cgCreateParameter(/*CGcontext*/CGcontext* ctx, CGtype type);
+CGDLL_API /*CGparameter*/CGparameter* cgCreateParameterArray(/*CGcontext*/CGcontext* ctx,
+                                             CGtype type, 
+                                             int length);
+CGDLL_API /*CGparameter*/CGparameter* cgCreateParameterMultiDimArray(/*CGcontext*/CGcontext* ctx,
+                                                     CGtype type,
+                                                     int dim, 
+                                                     const int *lengths);
+CGDLL_API void cgDestroyParameter(/*CGparameter*/CGparameter* param);
+CGDLL_API void cgConnectParameter(/*CGparameter*/CGparameter* from, /*CGparameter*/CGparameter* to);
+CGDLL_API void cgDisconnectParameter(/*CGparameter*/CGparameter* param);
+CGDLL_API /*CGparameter*/CGparameter* cgGetConnectedParameter(/*CGparameter*/CGparameter* param);
+
+CGDLL_API int cgGetNumConnectedToParameters(/*CGparameter*/CGparameter* param);
+CGDLL_API /*CGparameter*/CGparameter* cgGetConnectedToParameter(/*CGparameter*/CGparameter* param, int index);
+
 CGDLL_API /*CGparameter*/CGparameter* cgGetNamedParameter(/*CGprogram*/CGprogram* prog, const char *name);
+CGDLL_API /*CGparameter*/CGparameter* cgGetNamedProgramParameter(/*CGprogram*/CGprogram* prog, 
+                                                 CGenum name_space, 
+                                                 const char *name);
+
 CGDLL_API /*CGparameter*/CGparameter* cgGetFirstParameter(/*CGprogram*/CGprogram* prog, CGenum name_space);
 CGDLL_API /*CGparameter*/CGparameter* cgGetNextParameter(/*CGparameter*/CGparameter* current);
 CGDLL_API /*CGparameter*/CGparameter* cgGetFirstLeafParameter(/*CGprogram*/CGprogram* prog, CGenum name_space);
 CGDLL_API /*CGparameter*/CGparameter* cgGetNextLeafParameter(/*CGparameter*/CGparameter* current);
 
-
 CGDLL_API /*CGparameter*/CGparameter* cgGetFirstStructParameter(/*CGparameter*/CGparameter* param);
+CGDLL_API /*CGparameter*/CGparameter* cgGetNamedStructParameter(/*CGparameter*/CGparameter* param, 
+                                                const char *name);
+
 CGDLL_API /*CGparameter*/CGparameter* cgGetFirstDependentParameter(/*CGparameter*/CGparameter* param);
 
 CGDLL_API /*CGparameter*/CGparameter* cgGetArrayParameter(/*CGparameter*/CGparameter* aparam, int index);
 CGDLL_API int cgGetArrayDimension(/*CGparameter*/CGparameter* param);
+CGDLL_API CGtype cgGetArrayType(/*CGparameter*/CGparameter* param);
 CGDLL_API int cgGetArraySize(/*CGparameter*/CGparameter* param, int dimension);
+CGDLL_API void cgSetArraySize(/*CGparameter*/CGparameter* param, int size);
+CGDLL_API void cgSetMultiDimArraySize(/*CGparameter*/CGparameter* param, const int *sizes);
 
 CGDLL_API /*CGprogram*/CGprogram* cgGetParameterProgram(/*CGparameter*/CGparameter* prog);
+CGDLL_API /*CGcontext*/CGcontext* cgGetParameterContext(/*CGparameter*/CGparameter* param);
 CGDLL_API CGbool cgIsParameter(/*CGparameter*/CGparameter* param);
 CGDLL_API const char *cgGetParameterName(/*CGparameter*/CGparameter* param);
 CGDLL_API CGtype cgGetParameterType(/*CGparameter*/CGparameter* param);
+CGDLL_API CGtype cgGetParameterNamedType(/*CGparameter*/CGparameter* param);
 CGDLL_API const char *cgGetParameterSemantic(/*CGparameter*/CGparameter* param);
 CGDLL_API CGresource cgGetParameterResource(/*CGparameter*/CGparameter* param);
 CGDLL_API CGresource cgGetParameterBaseResource(/*CGparameter*/CGparameter* param);
@@ -242,16 +263,74 @@ CGDLL_API const double *cgGetParameterValues(/*CGparameter*/CGparameter* param,
                                              CGenum value_type,
                                              int *nvalues);
 CGDLL_API int cgGetParameterOrdinalNumber(/*CGparameter*/CGparameter* param);
+CGDLL_API CGbool cgIsParameterGlobal(/*CGparameter*/CGparameter* param);
+CGDLL_API int cgGetParameterIndex(/*CGparameter*/CGparameter* param);
+
+CGDLL_API void cgSetParameterVariability(/*CGparameter*/CGparameter* param, CGenum vary);
+CGDLL_API void cgSetParameterSemantic(/*CGparameter*/CGparameter* param, const char *semantic);
+
+
+CGDLL_API void cgSetParameter1f(/*CGparameter*/CGparameter* param, float x);
+CGDLL_API void cgSetParameter2f(/*CGparameter*/CGparameter* param, float x, float y);
+CGDLL_API void cgSetParameter3f(/*CGparameter*/CGparameter* param, float x, float y, float z);
+CGDLL_API void cgSetParameter4f(/*CGparameter*/CGparameter* param, 
+                                float x, 
+                                float y, 
+                                float z,
+                                float w);
+CGDLL_API void cgSetParameter1d(/*CGparameter*/CGparameter* param, double x);
+CGDLL_API void cgSetParameter2d(/*CGparameter*/CGparameter* param, double x, double y);
+CGDLL_API void cgSetParameter3d(/*CGparameter*/CGparameter* param, 
+                                double x, 
+                                double y, 
+                                double z);
+CGDLL_API void cgSetParameter4d(/*CGparameter*/CGparameter* param, 
+                                double x, 
+                                double y, 
+                                double z,
+                                double w);
+
+
+CGDLL_API void cgSetParameter1fv(/*CGparameter*/CGparameter* param, const float *v);
+CGDLL_API void cgSetParameter2fv(/*CGparameter*/CGparameter* param, const float *v);
+CGDLL_API void cgSetParameter3fv(/*CGparameter*/CGparameter* param, const float *v);
+CGDLL_API void cgSetParameter4fv(/*CGparameter*/CGparameter* param, const float *v);
+CGDLL_API void cgSetParameter1dv(/*CGparameter*/CGparameter* param, const double *v);
+CGDLL_API void cgSetParameter2dv(/*CGparameter*/CGparameter* param, const double *v);
+CGDLL_API void cgSetParameter3dv(/*CGparameter*/CGparameter* param, const double *v);
+CGDLL_API void cgSetParameter4dv(/*CGparameter*/CGparameter* param, const double *v);
+
+CGDLL_API void cgSetMatrixParameterdr(/*CGparameter*/CGparameter* param, const double *matrix);
+CGDLL_API void cgSetMatrixParameterfr(/*CGparameter*/CGparameter* param, const float *matrix);
+CGDLL_API void cgSetMatrixParameterdc(/*CGparameter*/CGparameter* param, const double *matrix);
+CGDLL_API void cgSetMatrixParameterfc(/*CGparameter*/CGparameter* param, const float *matrix);
+
 
 /*** Type Functions ***/
 
 CGDLL_API const char *cgGetTypeString(CGtype type);
 CGDLL_API CGtype cgGetType(const char *type_string);
 
+CGDLL_API CGtype cgGetNamedUserType(/*CGprogram*/CGprogram* program, const char *name);
+
+CGDLL_API int cgGetNumUserTypes(/*CGprogram*/CGprogram* program);
+CGDLL_API CGtype cgGetUserType(/*CGprogram*/CGprogram* program, int index);
+
+CGDLL_API int cgGetNumParentTypes(CGtype type);
+CGDLL_API CGtype cgGetParentType(CGtype type, int index);
+
+CGDLL_API CGbool cgIsParentType(CGtype parent, CGtype child);
+CGDLL_API CGbool cgIsInterfaceType(CGtype type);
+
 /*** Resource Functions ***/
 
 CGDLL_API const char *cgGetResourceString(CGresource resource);
 CGDLL_API CGresource cgGetResource(const char *resource_string);
+
+/*** Enum Functions ***/
+
+CGDLL_API const char *cgGetEnumString(CGenum en);
+CGDLL_API CGenum cgGetEnum(const char *enum_string);
 
 /*** Profile Functions ***/
 
@@ -259,24 +338,35 @@ CGDLL_API const char *cgGetProfileString(CGprofile profile);
 CGDLL_API CGprofile cgGetProfile(const char *profile_string);
 
 /*** Error Functions ***/
+
 CGDLL_API CGerror cgGetError(void);
 CGDLL_API const char *cgGetErrorString(CGerror error);
+CGDLL_API const char *cgGetLastErrorString(CGerror *error);
 CGDLL_API void cgSetErrorCallback(CGerrorCallbackFunc func);
 CGDLL_API CGerrorCallbackFunc cgGetErrorCallback(void);
+
+/*** Misc Functions ***/
+
+CGDLL_API const char *cgGetString(CGenum sname);
+
+
+/*** Support for deprecated Cg 1.1 API ***/
+
+CGDLL_API /*CGparameter*/CGparameter* cgGetNextParameter_depr1_1(/*CGparameter*/CGparameter* current);
+CGDLL_API /*CGparameter*/CGparameter* cgGetNextLeafParameter_depr1_1(/*CGparameter*/CGparameter* current);
+
+#ifdef CG_DEPRECATED_1_1_API
+
+#define cgGetNextParameter cgGetNextParameter_depr1_1
+#define cgGetNextLeafParameter cgGetNextLeafParameter_depr1_1
+
+#endif
+
+#endif
 
 #ifdef __cplusplus
 }
 #endif
 
-#else
-
-#define cgCreateContext cgGL_DEPRECATEDAPI_CreateContext
-#define cgGetNextProgram cgGL_DEPRECATEDAPI_GetNextProgram
-#define cgGetLastListing cgGL_DEPRECATEDAPI_GetLastListing
-#define cgGetProgramProfile cgGL_DEPRECATEDAPI_ProgramProfile
-
-# include <CG/cg_deprecated_api.h>
-
-#endif
 
 #endif

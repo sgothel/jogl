@@ -629,7 +629,7 @@
     <target name="java.compile" depends="java.generate,java.generate.cg">
         <!-- Perform the first pass Java compile. -->
         <javac destdir="${classes}"
-               excludes="${java.excludes.platform}" source="1.4" debug="true" debuglevel="source,lines">
+               excludes="${java.excludes.platform},net/java/games/jogl/impl/nurbs/**" source="1.4" debug="true" debuglevel="source,lines">
             <src path="${src}" />
             <src path="${src.generated.java}" />
             <classpath refid="antlr.classpath" />

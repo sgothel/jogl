@@ -1,3 +1,4 @@
+
 /*
  *
  * Copyright (c) 2002, NVIDIA Corporation.
@@ -50,15 +51,45 @@
  */ 
 
 
-/*CG_PROFILE_MACRO(Vertex,vp20,*/CG_PROFILE_VP20=/*,"vp20",*/6146,//1)
-/*CG_PROFILE_MACRO(Fragment20,fp20,*/CG_PROFILE_FP20=/*,"fp20",*/6147,//0)
-/*CG_PROFILE_MACRO(Vertex30,vp30,*/CG_PROFILE_VP30=/*,"vp30",*/6148,//1)
-/*CG_PROFILE_MACRO(Fragment,fp30,*/CG_PROFILE_FP30=/*,"fp30",*/6149,//0)
-/*CG_PROFILE_MACRO(ARBVertex,arbvp1,*/CG_PROFILE_ARBVP1=/*,"arbvp1",*/6150,//1)
-/*CG_PROFILE_MACRO(Fragment40,fp40,*/CG_PROFILE_FP40=/*,"fp40",*/6151,//0)
-/*CG_PROFILE_MACRO(ARBFragment,arbfp1,*/CG_PROFILE_ARBFP1=/*,"arbfp1",*/7000,//0)
-/*CG_PROFILE_MACRO(Vertex40,vp40,*/CG_PROFILE_VP40=/*,"vp40",*/7001,//1)
+/* 
+ * The following macro invocations define the supported CG basic data types.
+ *
+ * The macros have the form :
+ *
+ *   CG_DATATYPE_MACRO(enum_name, enum_val)
+ *
+ *     enum_name     : The C enumerant name.
+ *     enum_val      : The enumerant value.
+ *   
+ */
 
-#ifndef CG_IN_PROFILES_INCLUDE
-# undef CG_PROFILE_MACRO
-#endif
+
+
+/*CG_ENUM_MACRO(*/CG_UNKNOWN=/*, */4096,//)
+/*CG_ENUM_MACRO(*/CG_IN=/*, */4097,//)
+/*CG_ENUM_MACRO(*/CG_OUT=/*, */4098,//)
+/*CG_ENUM_MACRO(*/CG_INOUT=/*, */4099,//)
+/*CG_ENUM_MACRO(*/CG_MIXED=/*, */4100,//)
+/*CG_ENUM_MACRO(*/CG_VARYING=/*, */4101,//)
+/*CG_ENUM_MACRO(*/CG_UNIFORM=/*, */4102,//)
+/*CG_ENUM_MACRO(*/CG_CONSTANT=/*, */4103,//)
+/*CG_ENUM_MACRO(*/CG_PROGRAM_SOURCE=/*, */4104,//)
+/*CG_ENUM_MACRO(*/CG_PROGRAM_ENTRY=/*, */4105,//)
+/*CG_ENUM_MACRO(*/CG_COMPILED_PROGRAM=/*, */4106,//)
+/*CG_ENUM_MACRO(*/CG_PROGRAM_PROFILE=/*, */4107,//)
+/*CG_ENUM_MACRO(*/CG_GLOBAL=/*, */4108,//)
+/*CG_ENUM_MACRO(*/CG_PROGRAM=/*, */4109,//)
+/*CG_ENUM_MACRO(*/CG_DEFAULT=/*, */4110,//)
+/*CG_ENUM_MACRO(*/CG_ERROR=/*, */4111,//)
+/*CG_ENUM_MACRO(*/CG_SOURCE=/*, */4112,//)
+/*CG_ENUM_MACRO(*/CG_OBJECT=/*, */4113,//)
+/*CG_ENUM_MACRO(*/CG_COMPILE_MANUAL=/*, */4114,//)
+/*CG_ENUM_MACRO(*/CG_COMPILE_IMMEDIATE=/*, */4115,//)
+/*CG_ENUM_MACRO(*/CG_COMPILE_LAZY=/*, */4116,//)
+/*CG_ENUM_MACRO(*/CG_CURRENT=/*, */4117,//)
+/*CG_ENUM_MACRO(*/CG_LITERAL=/*, */4118,//)
+/*CG_ENUM_MACRO(*/CG_VERSION=/*, */4119,//)
+
+#undef CG_ENUM_MACRO
+
+

@@ -66,158 +66,217 @@
  *   CG_ERROR_MACRO(code, enum_name, message)
  *
  *     code      : The integer error code associated with the error.
- *     enum_name : The name of enumerant of the error code.  
- *                  (Note : the prefix "cg" will be added to the name).
- *     new_enum_name : The name of enumerant of the error code in the new API.  
+ *     enum_name : The name of enumerant of the error code in the API.  
  *     message   : A description string associated with the error.
  *   
  */
 
 CG_NO_ERROR=
 /*CG_ERROR_MACRO(*/0,/* 
-               NoError,
                CG_NO_ERROR,
                "No error has occurred.")*/
 
 CG_COMPILER_ERROR=
 /*CG_ERROR_MACRO(*/1,/* 
-               CompileError, 
                CG_COMPILER_ERROR, 
                "The compile returned an error.")*/
 
 CG_INVALID_PARAMETER_ERROR=
 /*CG_ERROR_MACRO(*/2,/* 
-               InvalidParameterError,
                CG_INVALID_PARAMETER_ERROR,
                "The parameter used is invalid.")*/
 
 CG_INVALID_PROFILE_ERROR=
 /*CG_ERROR_MACRO(*/3,/* 
-               InvalidProfileError, 
                CG_INVALID_PROFILE_ERROR,
                "The profile is not supported.")*/
 
 CG_PROGRAM_LOAD_ERROR=
 /*CG_ERROR_MACRO(*/4,/* 
-               ProgramLoadError,
                CG_PROGRAM_LOAD_ERROR,
                "The program could not load.")*/
 
 CG_PROGRAM_BIND_ERROR=
 /*CG_ERROR_MACRO(*/5,/* 
-               ProgramBindError, 
                CG_PROGRAM_BIND_ERROR, 
                "The program could not bind.")*/
 
 CG_PROGRAM_NOT_LOADED_ERROR=
 /*CG_ERROR_MACRO(*/6,/* 
-               ProgramNotLoadedError,
                CG_PROGRAM_NOT_LOADED_ERROR, 
                "The program must be loaded before this operation may be used.")*/
 
 CG_UNSUPPORTED_GL_EXTENSION_ERROR=
 /*CG_ERROR_MACRO(*/7,/* 
-               UnsupportedGLExtensionError,
                CG_UNSUPPORTED_GL_EXTENSION_ERROR, 
                "An unsupported GL extension was required to perform this operation.")*/
 
 CG_INVALID_VALUE_TYPE_ERROR=
 /*CG_ERROR_MACRO(*/8,/* 
-               InvalidValueTypeError,
                CG_INVALID_VALUE_TYPE_ERROR, 
                "An unknown value type was assigned to a parameter.")*/
 
 CG_NOT_MATRIX_PARAM_ERROR=
 /*CG_ERROR_MACRO(*/9,/* 
-               NotMatrixParamError,
                CG_NOT_MATRIX_PARAM_ERROR, 
                "The parameter is not of matrix type.")*/
 
 CG_INVALID_ENUMERANT_ERROR=
 /*CG_ERROR_MACRO(*/10,/* 
-               InvalidEnumerantError,
                CG_INVALID_ENUMERANT_ERROR, 
                "The enumerant parameter has an invalid value.")*/
 
 CG_NOT_4x4_MATRIX_ERROR=
 /*CG_ERROR_MACRO(*/11,/* 
-               Not4x4MatrixError,
                CG_NOT_4x4_MATRIX_ERROR, 
                "The parameter must be a 4x4 matrix type.")*/
 
 CG_FILE_READ_ERROR=
 /*CG_ERROR_MACRO(*/12,/* 
-               FileReadError,
                CG_FILE_READ_ERROR, 
                "The file could not be read.")*/
 
 CG_FILE_WRITE_ERROR=
 /*CG_ERROR_MACRO(*/13,/* 
-               FileWriteError,
                CG_FILE_WRITE_ERROR, 
                "The file could not be written.")*/
 
 CG_NVPARSE_ERROR=
 /*CG_ERROR_MACRO(*/14,/* 
-               NVParseError,
                CG_NVPARSE_ERROR, 
                "nvparse could not successfully parse the output from the Cg "
                "compiler backend.")*/
 
 CG_MEMORY_ALLOC_ERROR=
 /*CG_ERROR_MACRO(*/15,/* 
-               MemoryAllocError,
                CG_MEMORY_ALLOC_ERROR, 
                "Memory allocation failed.")*/
 
 CG_INVALID_CONTEXT_HANDLE_ERROR=
 /*CG_ERROR_MACRO(*/16,/* 
-               InvalidContextHandleError,
                CG_INVALID_CONTEXT_HANDLE_ERROR, 
                "Invalid context handle.")*/
 
 CG_INVALID_PROGRAM_HANDLE_ERROR=
 /*CG_ERROR_MACRO(*/17,/* 
-               InvalidProgramHandleError,
                CG_INVALID_PROGRAM_HANDLE_ERROR, 
                "Invalid program handle.")*/
 
 CG_INVALID_PARAM_HANDLE_ERROR=
 /*CG_ERROR_MACRO(*/18,/* 
-               InvalidParamHandleError,
                CG_INVALID_PARAM_HANDLE_ERROR, 
                "Invalid parameter handle.")*/
 
 CG_UNKNOWN_PROFILE_ERROR=
 /*CG_ERROR_MACRO(*/19,/* 
-               UnknownProfileError,
                CG_UNKNOWN_PROFILE_ERROR, 
                "The specified profile is unknown.")*/
 
 CG_VAR_ARG_ERROR=
 /*CG_ERROR_MACRO(*/20,/* 
-               VarArgError,
                CG_VAR_ARG_ERROR, 
                "The variable arguments were specified incorrectly.")*/
 
 CG_INVALID_DIMENSION_ERROR=
 /*CG_ERROR_MACRO(*/21,/* 
-               InvalidDimensionError,
                CG_INVALID_DIMENSION_ERROR, 
                "The dimension value is invalid.")*/
 
 CG_ARRAY_PARAM_ERROR=
 /*CG_ERROR_MACRO(*/22,/* 
-               ArrayParamError,
                CG_ARRAY_PARAM_ERROR, 
                "The parameter must be an array.")*/
 
 CG_OUT_OF_ARRAY_BOUNDS_ERROR=
 /*CG_ERROR_MACRO(*/23,/* 
-               OutOfArrayBoundsError,
                CG_OUT_OF_ARRAY_BOUNDS_ERROR, 
                "Index into the array is out of bounds.")*/
 
+CG_CONFLICTING_TYPES_ERROR=
+/*CG_ERROR_MACRO(*/24,/* 
+               CG_CONFLICTING_TYPES_ERROR, 
+               "A type being added to the context conflicts with an "
+               "existing type.")*/
+
+CG_CONFLICTING_PARAMETER_TYPES_ERROR=
+/*CG_ERROR_MACRO(*/25,/* 
+               CG_CONFLICTING_PARAMETER_TYPES_ERROR, 
+               "The parameters being bound have conflicting types.")*/
+
+CG_PARAMETER_IS_NOT_SHARED_ERROR=
+/*CG_ERROR_MACRO(*/26,/* 
+               CG_PARAMETER_IS_NOT_SHARED_ERROR, 
+               "The parameter must be global.")*/
+
+CG_INVALID_PARAMETER_VARIABILITY_ERROR=
+/*CG_ERROR_MACRO(*/27,/* 
+               CG_INVALID_PARAMETER_VARIABILITY_ERROR, 
+               "The parameter could not be changed to the given variability.")*/
+
+CG_CANNOT_DESTROY_PARAMETER_ERROR=
+/*CG_ERROR_MACRO(*/28,/* 
+               CG_CANNOT_DESTROY_PARAMETER_ERROR, 
+               "Cannot destroy the parameter.  It is bound to other parameters "
+               "or is not a root parameter.")*/
+
+
+CG_NOT_ROOT_PARAMETER_ERROR=
+/*CG_ERROR_MACRO(*/29,/* 
+               CG_NOT_ROOT_PARAMETER_ERROR, 
+               "The parameter is not a root parameter.")*/
+
+CG_PARAMETERS_DO_NOT_MATCH_ERROR=
+/*CG_ERROR_MACRO(*/30,/* 
+               CG_PARAMETERS_DO_NOT_MATCH_ERROR, 
+               "The two parameters being bound do not match.")*/
+
+CG_IS_NOT_PROGRAM_PARAMETER_ERROR=
+/*CG_ERROR_MACRO(*/31,/* 
+               CG_IS_NOT_PROGRAM_PARAMETER_ERROR, 
+               "The parameter is not a program parameter.")*/
+
+CG_INVALID_PARAMETER_TYPE_ERROR=
+/*CG_ERROR_MACRO(*/32,/* 
+               CG_INVALID_PARAMETER_TYPE_ERROR, 
+               "The type of the parameter is invalid.")*/
+
+CG_PARAMETER_IS_NOT_RESIZABLE_ARRAY_ERROR=
+/*CG_ERROR_MACRO(*/33,/* 
+               CG_PARAMETER_IS_NOT_RESIZABLE_ARRAY_ERROR, 
+               "The parameter must be a resizable array.")*/
+
+CG_INVALID_SIZE_ERROR=
+/*CG_ERROR_MACRO(*/34,/* 
+               CG_INVALID_SIZE_ERROR, 
+               "The size value is invalid.")*/
+
+CG_BIND_CREATES_CYCLE_ERROR=
+/*CG_ERROR_MACRO(*/35,/* 
+               CG_BIND_CREATES_CYCLE_ERROR, 
+               "Cannot bind the given parameters.  Binding will form a cycle.")*/
+
+CG_ARRAY_TYPES_DO_NOT_MATCH_ERROR=
+/*CG_ERROR_MACRO(*/36,/* 
+               CG_ARRAY_TYPES_DO_NOT_MATCH_ERROR, 
+               "Cannot bind the given parameters.  Array types do not match.")*/
+
+CG_ARRAY_DIMENSIONS_DO_NOT_MATCH_ERROR=
+/*CG_ERROR_MACRO(*/37,/* 
+               CG_ARRAY_DIMENSIONS_DO_NOT_MATCH_ERROR, 
+               "Cannot bind the given parameters.  "
+               "Array dimensions do not match.")*/
+
+CG_ARRAY_HAS_WRONG_DIMENSION_ERROR=
+/*CG_ERROR_MACRO(*/38,/* 
+               CG_ARRAY_HAS_WRONG_DIMENSION_ERROR, 
+               "The array is has the wrong dimension.")*/
+
+CG_TYPE_IS_NOT_DEFINED_IN_PROGRAM_ERROR=
+/*CG_ERROR_MACRO(*/39,/* 
+               CG_TYPE_IS_NOT_DEFINED_IN_PROGRAM_ERROR, 
+               "Connecting the parameters failed because The type of the "
+               "source parameter is not defined within the given program "
+               "or does not match the type with the same name in the program.")*/
 
 //#undef CG_ERROR_MACRO
 
