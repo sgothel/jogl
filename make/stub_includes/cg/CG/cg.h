@@ -153,7 +153,7 @@ typedef enum
 typedef enum
  {
 //# define CG_ENUM_MACRO(enum_name, enum_val) enum_name = enum_val,
-# include <Cg/cg_enums.h>
+# include <CG/cg_enums.h>
  } CGenum;
 
 #include <stdarg.h>
