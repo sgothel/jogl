@@ -180,7 +180,13 @@
         <property name="java.includes.dir.macosx" value="/System/Library/Frameworks/JavaVM.framework/Versions/CurrentJDK/Headers" />
         <property name="java.lib.dir.win32" value="${java.home.dir}/lib" />
         <property name="java.lib.dir.linux" value="${java.home.dir}/jre/lib/i386" />
-        <property name="java.lib.dir.solaris" value="${java.home.dir}/jre/lib/${os.arch}" />
+	<condition property="cpu" value="sparc">
+            <os name="SunOS" arch="sparc" />
+        </condition>
+	<condition property="cpu" value="i386">
+            <os name="SunOS" arch="x86" />
+        </condition>
+        <property name="java.lib.dir.solaris" value="${java.home.dir}/jre/lib/${cpu}" />
         <property name="java.lib.dir.macosx" value="/System/Library/Frameworks/JavaVM.framework/Libraries" />
         <property name="gl.headers" value="${stub.includes.dir}/opengl/**/*.h" /> <!-- NOTE:  this MUST be relative for FileSet --> <!-- CHECK:  this may need to be pruned for each platform -->
 
@@ -995,9 +1001,11 @@
         <jar destfile="${jogl.dist.dir}/jogl-natives-solsparc.jar"
              basedir="${jogl.dist.dir}/jogl-solsparc"
              includes="libjogl.so" />
-        <jar destfile="${jogl.dist.dir}/jogl-natives-solx86.jar"
+        <!-- Note: Solaris/x86 elided for now as it requires Mesa to
+             be installed -->
+        <!-- jar destfile="${jogl.dist.dir}/jogl-natives-solx86.jar"
              basedir="${jogl.dist.dir}/jogl-solx86"
-             includes="libjogl.so" />
+             includes="libjogl.so" -->
     </target>
 
     <!-- ================================================================== -->
@@ -1074,7 +1082,7 @@ Use a platform specific target:  win32.vc6, win32.vc7, win32.mingw, linux, macos
     <!--
        - Solaris (assuming Solaris CC)
       -->
-    <target name="solaris" depends="setup.java.home.dir.nonmacosx, declare.linux">
+    <target name="solaris" depends="setup.java.home.dir.nonmacosx, declare.solaris">
         <!-- Generate, compile, and build the jar for the Java sources. -->
         <antcall target="jar" inheritRefs="true" />
 
