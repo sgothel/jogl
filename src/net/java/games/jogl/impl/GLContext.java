@@ -620,6 +620,9 @@ public abstract class GLContext {
       from within the destroy() implementation. */
   protected synchronized void setRealized(boolean realized) {
     this.realized = realized;
+    if (DEBUG) {
+      System.err.println("GLContext.setRealized(" + realized + ") for context " + this);
+    }
   }
 
   /** Indicates whether the component associated with this context has

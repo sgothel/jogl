@@ -141,6 +141,11 @@ public abstract class WindowsGLContext extends GLContext {
 
     if (!WGL.wglMakeCurrent(hdc, hglrc)) {
       throw new GLException("Error making context current: " + WGL.GetLastError());
+    } else {
+      if (DEBUG) {
+        System.err.println("wglMakeCurrent(hdc " + hdcToString(hdc) +
+                           ", hglrc " + hdcToString(hglrc) + ") succeeded");
+      }
     }
 
     if (created) {
@@ -501,11 +506,17 @@ public abstract class WindowsGLContext extends GLContext {
       pixelFormat = WGL.ChoosePixelFormat(hdc, pfd);
     }
     if (!WGL.SetPixelFormat(hdc, pixelFormat, pfd)) {
-      throw new GLException("Unable to set pixel format");
+      int lastError = WGL.GetLastError();
+      if (DEBUG) {
+        System.err.println("SetPixelFormat failed: current context = " + WGL.wglGetCurrentContext() +
+                           ", current DC = " + WGL.wglGetCurrentDC());
+        System.err.println("GetPixelFormat(hdc " + hdcToString(hdc) + ") returns " + WGL.GetPixelFormat(hdc));
+      }
+      throw new GLException("Unable to set pixel format " + pixelFormat + " for device context " + hdcToString(hdc) + ": error code " + lastError);
     }
     hglrc = WGL.wglCreateContext(hdc);
     if (DEBUG) {
-      System.err.println("!!! Created OpenGL context " + hglrc);
+      System.err.println("!!! Created OpenGL context " + hglrc + " for device context " + hdcToString(hdc) + " using pixel format " + pixelFormat);
     }
     if (hglrc == 0) {
       throw new GLException("Unable to create OpenGL context");
@@ -664,5 +675,9 @@ public abstract class WindowsGLContext extends GLContext {
       }
     }
     return res;
+  }
+
+  protected static String hdcToString(long hdc) {
+    return "0x" + Long.toHexString(hdc);
   }
 }
