@@ -63,12 +63,12 @@ typedef struct _jmethodID *jmethodID;
  */
 
 #define JNI_OK           0                 /* success */
-#define JNI_ERR          -1              /* unknown error */
-#define JNI_EDETACHED    -2              /* thread detached from the VM */
-#define JNI_EVERSION     -3              /* JNI version error */
-#define JNI_ENOMEM       -4              /* not enough memory */
-#define JNI_EEXIST       -5              /* VM already created */
-#define JNI_EINVAL       -6              /* invalid arguments */
+#define JNI_ERR          (-1)              /* unknown error */
+#define JNI_EDETACHED    (-2)              /* thread detached from the VM */
+#define JNI_EVERSION     (-3)              /* JNI version error */
+#define JNI_ENOMEM       (-4)              /* not enough memory */
+#define JNI_EEXIST       (-5)              /* VM already created */
+#define JNI_EINVAL       (-6)              /* invalid arguments */
 
 /*
  * used in ReleaseScalarArrayElements

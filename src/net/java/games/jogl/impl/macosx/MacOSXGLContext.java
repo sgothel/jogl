@@ -45,23 +45,33 @@ import net.java.games.gluegen.opengl.*; // for PROCADDRESS_VAR_PREFIX
 import net.java.games.jogl.*;
 import net.java.games.jogl.impl.*;
 
-public abstract class MacOSXGLContext extends GLContext {
-
-  public MacOSXGLContext(Component component, GLCapabilities capabilities, GLCapabilitiesChooser chooser) {
+public abstract class MacOSXGLContext extends GLContext
+{	
+  private static JAWT jawt;
+  protected long nsContext; // NSOpenGLContext
+	
+  public MacOSXGLContext(Component component, GLCapabilities capabilities, GLCapabilitiesChooser chooser)
+  {
     super(component, capabilities, chooser);
   }
-  
-  protected GL createGL()
+	
+  protected String mapToRealGLFunctionName(String glFunctionName)
   {
-    return new MacOSXGLImpl(this);
-  }
-  
-  protected String mapToRealGLFunctionName(String glFunctionName) {
     return glFunctionName;
   }
-
-  protected abstract boolean isOffscreen();
+	
+  protected String mapToRealGLExtensionName(String glFunctionName)
+  {
+    return glFunctionName;
+  }
+	
+  protected boolean isFunctionAvailable(String glFunctionName)
+  {
+    return super.isFunctionAvailable(glFunctionName);
+  }
   
+  protected abstract boolean isOffscreen();
+	
   public abstract int getOffscreenContextBufferedImageType();
 
   public abstract int getOffscreenContextReadBuffer();
@@ -69,42 +79,114 @@ public abstract class MacOSXGLContext extends GLContext {
   public abstract boolean offscreenImageNeedsVerticalFlip();
 
   /**
-   * Creates and initializes an appropriate OpenGl context. Should only be
+   * Creates and initializes an appropriate OpenGl nsContext. Should only be
    * called by {@link makeCurrent(Runnable)}.
    */
   protected abstract void create();
-  
-  protected synchronized boolean makeCurrent(Runnable initAction) throws GLException
-  {
-	  throw new RuntimeException(" FIXME: not implemented ");
-  }
-
-  protected synchronized void free() throws GLException {
-   throw new RuntimeException(" FIXME: not implemented ");
-   }
-
+	
+  protected abstract boolean makeCurrent(Runnable initAction) throws GLException;
+	
+  protected abstract void free() throws GLException;
+	
   protected abstract void swapBuffers() throws GLException;
-
-
-  protected void resetGLFunctionAvailability() {
-	  throw new RuntimeException(" FIXME: not implemented ");
-  }
-  
-  protected void resetGLProcAddressTable() {
-	  throw new RuntimeException(" FIXME: not implemented ");
-  }
-  
-  public net.java.games.jogl.impl.ProcAddressTable getGLProcAddressTable() {
-	  throw new RuntimeException(" FIXME: not implemented ");
-  }
-  
-  public String getPlatformExtensionsString() {
-	  throw new RuntimeException(" FIXME: not implemented ");
-  }
-
-  protected boolean isFunctionAvailable(String glFunctionName)
+	
+	
+  protected void resetGLFunctionAvailability()
   {
-	  throw new RuntimeException(" FIXME: not implemented ");
+    super.resetGLFunctionAvailability();
+    resetGLProcAddressTable();
   }
-  
+	
+  protected void resetGLProcAddressTable()
+  {    
+    if (DEBUG) {
+      System.err.println("!!! Initializing OpenGL extension address table");
+    }
+
+    net.java.games.jogl.impl.ProcAddressTable table = getGLProcAddressTable();
+    
+    // if GL is no longer an interface, we'll have to re-implement the code
+    // below so it only iterates through gl methods (a non-interface might
+    // have constructors, custom methods, etc). For now we assume all methods
+    // will be gl methods.
+    GL gl = getGL();
+
+    Class tableClass = table.getClass();
+    
+    java.lang.reflect.Field[] fields = tableClass.getDeclaredFields();
+    
+    for (int i = 0; i < fields.length; ++i) {
+      String addressFieldName = fields[i].getName();
+      if (!addressFieldName.startsWith(GLEmitter.PROCADDRESS_VAR_PREFIX))
+      {
+        // not a proc address variable
+        continue;
+      }
+      int startOfMethodName = GLEmitter.PROCADDRESS_VAR_PREFIX.length();
+      String glFuncName = addressFieldName.substring(startOfMethodName);
+      try
+      {
+        java.lang.reflect.Field addressField = tableClass.getDeclaredField(addressFieldName);
+        assert(addressField.getType() == Long.TYPE);
+        // get the current value of the proc address variable in the table object
+        long oldProcAddress = addressField.getLong(table); 
+        long newProcAddress = CGL.getProcAddress(glFuncName);
+        /*
+        System.err.println(
+          "!!!   Address=" + (newProcAddress == 0 
+                        ? "<NULL>    "
+                        : ("0x" +
+                           Long.toHexString(newProcAddress))) +
+          "\tGL func: " + glFuncName);
+        */
+        // set the current value of the proc address variable in the table object
+        addressField.setLong(gl, newProcAddress); 
+      } catch (Exception e) {
+        throw new GLException(
+          "Cannot get GL proc address for method \"" +
+          glFuncName + "\": Couldn't get value of field \"" + addressFieldName +
+          "\" in class " + tableClass.getName(), e);
+      }
+    }
+
+  }
+	
+  public net.java.games.jogl.impl.ProcAddressTable getGLProcAddressTable()
+  {
+    if (glProcAddressTable == null) {
+      // FIXME: cache ProcAddressTables by capability bits so we can
+      // share them among contexts with the same capabilities
+      glProcAddressTable =
+        new net.java.games.jogl.impl.ProcAddressTable();
+    }          
+    return glProcAddressTable;
+  }
+	
+  public String getPlatformExtensionsString()
+  {
+    return "";
+  }
+	
+  //----------------------------------------------------------------------
+  // Internals only below this point
+  //
+	
+  // Table that holds the addresses of the native C-language entry points for
+  // OpenGL functions.
+  private net.java.games.jogl.impl.ProcAddressTable glProcAddressTable;
+	
+  protected JAWT getJAWT()
+  {
+    if (jawt == null)
+      {
+	JAWT j = new JAWT();
+	j.version(JAWTFactory.JAWT_VERSION_1_4);
+	if (!JAWTFactory.JAWT_GetAWT(j))
+	  {
+	    throw new RuntimeException("Unable to initialize JAWT");
+	  }
+	jawt = j;
+      }
+    return jawt;
+  }
 }

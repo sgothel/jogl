@@ -193,8 +193,8 @@ JOGL_STUB_INCLUDES_DIR_MACOSX=$(JOGL_STUB_INCLUDES_DIR)/macosx
 JOGL_STUB_INCLUDES_WIN32 = \
 	$(JOGL_STUB_INCLUDES_DIR_WIN32)/jni.h \
 	$(JOGL_STUB_INCLUDES_DIR_WIN32)/jni_md.h \
-	$(JOGL_STUB_INCLUDES_DIR_WIN32)/WINDOWS.H \
-	$(JOGL_STUB_INCLUDES_DIR_WIN32)/WINGDI.H
+	$(JOGL_STUB_INCLUDES_DIR_WIN32)/windows.h \
+	$(JOGL_STUB_INCLUDES_DIR_WIN32)/wingdi.h
 
 JOGL_STUB_INCLUDES_MACOSX = \
 	$(JOGL_STUB_INCLUDES_DIR_MACOSX)/jni.h \
@@ -218,7 +218,7 @@ DSO_DIR = ../build/obj
 # Package-independent Win32 settings
 ifeq ($(MAKECMDGOALS),win32)
 JOGL_STUB_INCLUDES_DIR_PD=$(JOGL_STUB_INCLUDES_DIR_WIN32)
-JOGL_STUB_INCLUDES_DIRS_PD=$(JOGL_STUB_INCLUDES_DIR_WIN32) $(JOGL_STUB_INCLUDES_DIR_X11)
+JOGL_STUB_INCLUDES_DIRS_PD=$(JOGL_STUB_INCLUDES_DIR_WIN32) $(JOGL_STUB_INCLUDES_DIR_X11) $(JOGL_STUB_INCLUDES_DIR_MACOSX)
 JAVA_INCLUDE_PATH_PD=$(JAVA_INCLUDE_PATH)/win32
 JAVA_LIBRARY_PATH_PD=$(JAVA_HOME)/lib
 
@@ -274,8 +274,8 @@ endif # WIN32
 # Package-independent macosx settings
 ifeq ($(MAKECMDGOALS), macosx)
 JOGL_STUB_INCLUDES_DIR_PD=$(JOGL_STUB_INCLUDES_DIR_MACOSX)
-JOGL_STUB_INCLUDES_DIRS_PD=$(JOGL_STUB_INCLUDES_DIR_MACOSX)
-JAVA_INCLUDE_PATH_PD=/System/Library/Frameworks/JavaVM.framework/Headers/
+JOGL_STUB_INCLUDES_DIRS_PD=$(JOGL_STUB_INCLUDES_DIR_MACOSX) $(JOGL_STUB_INCLUDES_DIR_X11) $(JOGL_STUB_INCLUDES_DIR_WIN32)
+JAVA_INCLUDE_PATH_PD=/System/Library/Frameworks/JavaVM.framework/Versions/CurrentJDK/Headers
 INCLUDE_PATH_ROOT_PD=/usr/include
 OS := macosx
 JAVA_LIBRARY_PATH_PD=/System/Library/Frameworks/JavaVM.framework/Libraries
@@ -294,17 +294,18 @@ endif
 LIB_PATH_ROOT_PD=/usr/lib
 LINKFLAGS:=$(LINKFLAGS) -L$(LIB_PATH_ROOT_PD) -L$(JAVA_LIBRARY_PATH_PD)  
 DEFINES:=$(DEFINES)
-INCLUDES=-I/System/Library/Frameworks/OpenGL.framework/Headers/ -I$(INCLUDE_PATH_ROOT_PD) -I"$(JAVA_INCLUDE_PATH)" -I"$(JAVA_INCLUDE_PATH_PD)"
+INCLUDES=-I$(JOGL_STUB_INCLUDES_DIR_OPENGL) -I"$(JAVA_INCLUDE_PATH)" -I"$(JAVA_INCLUDE_PATH_PD)"
 CFLAGS=$(OPTFLAGS) $(DEBUGFLAGS)
 OBJ_FILE_EXT=o
 C_BUILD_OBJ_CMD=$(CC) -Dmacosx -c $(CFLAGS) $(INCLUDES) $(DEFINES) $< -o $@
-DSO_EXTENSION_PD=dylib
+DSO_PREFIX_PD=lib
+DSO_EXTENSION_PD=jnilib
 endif # macosx
 
 # Package-independent x11 settings
 ifeq ($(MAKECMDGOALS), x11)
 JOGL_STUB_INCLUDES_DIR_PD=$(JOGL_STUB_INCLUDES_DIR_X11)
-JOGL_STUB_INCLUDES_DIRS_PD=$(JOGL_STUB_INCLUDES_DIR_X11) $(JOGL_STUB_INCLUDES_DIR_WIN32)
+JOGL_STUB_INCLUDES_DIRS_PD=$(JOGL_STUB_INCLUDES_DIR_X11) $(JOGL_STUB_INCLUDES_DIR_WIN32) $(JOGL_STUB_INCLUDES_DIR_MACOSX)
 JAVA_INCLUDE_PATH_PD=$(JAVA_INCLUDE_PATH)/$(OS)
 INCLUDE_PATH_ROOT_PD=/usr/include
 ifeq ($(OS), Linux)
@@ -420,28 +421,27 @@ JOGL_GENERATED_CFILES_X11 = \
 	$(GENSRC_GL_NATIVE_DIR)/X11GLImpl_JNI.c
 
 JOGL_JAVAFILES_MACOSX = \
-	$(JOGL_IMPL_DIR)/macosx/MacOSXGLContext.java
-#	$(JOGL_IMPL_DIR)/macosx/MacOSXGLContextFactory.java \
-#	$(JOGL_IMPL_DIR)/macosx/MacOSXOnscreenGLContext.java \
-#	$(JOGL_IMPL_DIR)/macosx/MacOSXOffscreenGLContext.java
+	$(JOGL_IMPL_DIR)/macosx/MacOSXGLContext.java \
+	$(JOGL_IMPL_DIR)/macosx/MacOSXGLContextFactory.java \
+	$(JOGL_IMPL_DIR)/macosx/MacOSXOnscreenGLContext.java \
+	$(JOGL_IMPL_DIR)/macosx/MacOSXOffscreenGLContext.java \
+	$(JOGL_IMPL_DIR)/macosx/MacOSXDummyGLContext.java
 
 JOGL_GENERATED_JAVAFILES_MACOSX = \
-	$(GENSRC_JOGL_IMPL_DIR)/macosx/MacOSXGL.java \
+	$(GENSRC_JOGL_IMPL_DIR)/macosx/CGL.java \
 	$(GENSRC_JOGL_IMPL_DIR)/macosx/JAWT_MacOSXDrawingSurfaceInfo.java \
 	$(GENSRC_JOGL_IMPL_DIR)/macosx/MacOSXGLImpl.java
 
 JOGL_GENERATED_CFILES_MACOSX = \
-	$(GENSRC_GL_NATIVE_DIR)/MacOSXGL_JNI.c \
+	$(GENSRC_GL_NATIVE_DIR)/CGL_JNI.c \
 	$(GENSRC_GL_NATIVE_DIR)/MacOSXGLImpl_JNI.c
-#	$(GENSRC_GL_NATIVE_DIR)/JAWT_MacOSXDrawingSurfaceInfo_JNI.c 
-
 
 # The following variables must be set by in the appropriate
 # platform-dependent (PD) section below:
 #
 #  JOGL_STUB_INCLUDES_PD           All of the files in the PD stub_includes dir
-#                                 (multiple directories are needed to pick up e.g. wglext.h
-#                                 and glxext.h on all platforms)
+#                                 (multiple directories are needed to pick up e.g. wglext.h,
+#                                 glxext.h, and cglext.h on all platforms)
 #  JOGL_JAVAFILES_PD            The platform-dependent Java files
 #  JOGL_GENERATED_JAVAFILES_PD  The platform-dependent GlueGen-generated Java files
 #  JOGL_CFG                  Name of the gl.cfg file
@@ -458,6 +458,8 @@ JOGL_GENERATED_CFILES_MACOSX = \
 #  GL_C_BUILD_OBJ_CMD             Command to build an a object file from C source
 #  GL_LINKFLAGS                   Flags to pass to the linker on the command line
 #  GL_C_LINK_DSO_CMD              Command to link the GL shared library
+#  JOGL_PD_CFILES                 Any platform-dependent "C" sources (currently only used on Mac OS X for
+#                                 an Objective C file)
 
 # Win32-specific settings for jogl
 ifeq ($(MAKECMDGOALS),win32)
@@ -512,8 +514,6 @@ endif # X11
 ifeq ($(MAKECMDGOALS), macosx)
 #this is part of the os
 JAVA_HOME=/System/Library/Frameworks/JavaVM.framework/Home
-#for apple we'll use something much closer to the apple supplied headers, for now anyway
-JOGL_STUB_INCLUDES_DIR_OPENGL=$(JOGL_STUB_INCLUDES_DIR)/macosx
 
 JOGL_STUB_INCLUDES_PD=$(JOGL_STUB_INCLUDES_MACOSX)
 JOGL_JAVAFILES_PD=$(JOGL_JAVAFILES_MACOSX)
@@ -522,31 +522,35 @@ JOGL_CFG=gl-macosx.cfg
 JOGL_IMPL_CFG=gl-impl-macosx.cfg
 JOGL_GLU_CFG=glu.cfg
 JOGL_GLU_IMPL_CFG=glu-impl-macosx.cfg
-JOGL_WINDOW_SYSTEM_CFG=gl-glx-macosx.cfg
+JOGL_WINDOW_SYSTEM_CFG=gl-cgl-macosx.cfg
 JOGL_JAWT_CFG=jawt-macosx.cfg
-JOGL_WINDOW_SYSTEM_CFG=glx-macosx.cfg
+JOGL_WINDOW_SYSTEM_CFG=cgl-macosx.cfg
 JOGL_GENERATED_CFILES_PD=$(JOGL_GENERATED_CFILES_MACOSX)
 
 GL_DEFINES=$(DEFINES)
 GL_INCLUDES=-I$(JOGL_STUB_INCLUDES_DIR_OPENGL) -I"$(JAVA_INCLUDE_PATH)" -I"$(JAVA_INCLUDE_PATH_PD)" $(INCLUDES)
 GL_C_BUILD_OBJ_CMD=$(CC) -c $(CFLAGS) $(INCLUDES) $(DEFINES) $< -o $@
-JOGL_DSO_LINK_ADDITIONAL_LIBS= -framework JavaVM -framework OpenGL
+JOGL_DSO_LINK_ADDITIONAL_LIBS= -framework Cocoa -framework OpenGL -ljawt
 GL_LINKFLAGS=$(LINKFLAGS) $(JOGL_DSO_LINK_ADDITIONAL_LIBS)
 GL_C_LINK_DSO_CMD=$(LINK) -bundle -o $@ $(GL_LINKFLAGS)
+JOGL_PD_CFILES=$(NATIVE_GL_SRC_DIR)/MacOSXWindowSystemInterface.m
 endif # macosx
 
-JOGL_CFG_FILES = $(wildcard gl*.cfg jawt*.cfg wingdi*.cfg )
+JOGL_CFG_FILES = $(wildcard gl*.cfg jawt*.cfg wingdi*.cfg glx*.cfg cgl*.cfg)
 
 JOGL_HEADERS = \
 	$(JOGL_STUB_INCLUDES_DIR_OPENGL)/GL/gl.h \
 	$(JOGL_STUB_INCLUDES_DIR_OPENGL)/GL/glext.h \
+	$(JOGL_STUB_INCLUDES_DIR_OPENGL)/GL/cglext.h \
 	$(JOGL_STUB_INCLUDES_DIR_OPENGL)/GL/glxext.h \
-	$(JOGL_STUB_INCLUDES_DIR_OPENGL)/GL/wglext.h
+	$(JOGL_STUB_INCLUDES_DIR_OPENGL)/GL/wglext.h \
+	$(JOGL_STUB_INCLUDES_DIR_OPENGL)/GL/glx.h
 
 JOGL_GENERATED_JAVAFILES = \
 	$(GENSRC_JOGL_DIR)/GL.java \
 	$(GENSRC_JOGL_DIR)/WGL.java \
 	$(GENSRC_JOGL_DIR)/GLX.java \
+	$(GENSRC_JOGL_DIR)/CGL.java \
 	$(GENSRC_JOGL_DIR)/XVisualInfo.java \
 	$(GENSRC_JOGL_GLU_DIR)/GLU.java \
 	$(GENSRC_JOGL_GLU_DIR)/GLUquadric.java \
@@ -625,9 +629,12 @@ JOGL_GENERATED_CFILES = \
 
 JOGL_CFILES = \
 	$(NATIVE_GL_SRC_DIR)/JAWT_DrawingSurfaceInfo.c \
+	$(JOGL_PD_CFILES) \
 	$(JOGL_GENERATED_CFILES)
 
-JOGL_OBJ_FILES=$(patsubst $(GENSRC_GL_NATIVE_DIR)/%,$(JOGL_OBJ_DIR)/%,$(patsubst $(NATIVE_GL_SRC_DIR)/%,$(JOGL_OBJ_DIR)/%,$(JOGL_CFILES:.c=.$(OBJ_FILE_EXT))))
+JOGL_OBJS_TMP=$(JOGL_CFILES:.m=.$(OBJ_FILE_EXT))
+
+JOGL_OBJ_FILES=$(patsubst $(GENSRC_GL_NATIVE_DIR)/%,$(JOGL_OBJ_DIR)/%,$(patsubst $(NATIVE_GL_SRC_DIR)/%,$(JOGL_OBJ_DIR)/%,$(JOGL_OBJS_TMP:.c=.$(OBJ_FILE_EXT))))
 
 #
 #----------------------------------------------------------------------
@@ -641,7 +648,7 @@ OUTPUT_DIRS = $(OBJ_DIR) $(JOGL_OBJ_DIR) $(JOGL_DSO_DIR) $(GENSRC_JOGL_IMPL_DIR)
 .PHONY: all clean doc devdoc
 all:
 	@echo "********************************************************************************"
-	@echo "ERROR: You must specify a platform-specific target (win32, x11, etc.)"
+	@echo "ERROR: You must specify a platform-specific target (win32, x11, macosx, etc.)"
 	@echo "********************************************************************************"
 
 doc:
@@ -764,22 +771,34 @@ $(BUILD_STATIC_GL_INFO_CLASS) : $(BUILD_STATIC_GL_INFO_SRC)
 	$(JAVAC) -source 1.4 -d $(CLASSES_DIR) $(BUILD_STATIC_GL_INFO_SRC)
 
 $(JOGL_GENERATED_JAVAFILES) $(JOGL_GENERATED_CFILES) : $(JOGL_STUB_INCLUDES_PD) $(JOGL_CFG_FILES) $(GG_CLASSFILES) $(BUILD_STATIC_GL_INFO_CLASS) $(JOGL_HEADERS) $(JOGL_STUB_INCLUDES_DIR_PD)/gl.c $(JOGL_STUB_INCLUDES_DIR_PD)/gl-impl.c $(JOGL_STUB_INCLUDES_DIR_PD)/window-system.c
+
 # generate GL interface class
 	$(JAVA) -cp "$(CLASSES_DIR)$(CP_SEPARATOR)$(CLASSPATH)" net.java.games.gluegen.GlueGen -Enet.java.games.gluegen.opengl.GLEmitter -C$(JOGL_CFG) $(JOGL_GLUEGEN_INCLUDES) -I$(JOGL_STUB_INCLUDES_DIR_OPENGL) $(JOGL_STUB_INCLUDES_DIR_PD)/gl.c
+
 # generate GL implementation class
 	$(JAVA) -cp "$(CLASSES_DIR)$(CP_SEPARATOR)$(CLASSPATH)" net.java.games.gluegen.GlueGen -Enet.java.games.gluegen.opengl.GLEmitter -C$(JOGL_IMPL_CFG) $(JOGL_GLUEGEN_INCLUDES) -I$(JOGL_STUB_INCLUDES_DIR_OPENGL) $(JOGL_STUB_INCLUDES_DIR_PD)/gl-impl.c
+
 # generate WGL interface class
-	$(JAVA) -cp "$(CLASSES_DIR)$(CP_SEPARATOR)$(CLASSPATH)" net.java.games.gluegen.GlueGen -Enet.java.games.gluegen.opengl.GLEmitter -Cgl-wgl-win32.cfg -I$(JOGL_STUB_INCLUDES_DIR_WIN32) -I$(JOGL_STUB_INCLUDES_DIR_X11) -I$(JOGL_STUB_INCLUDES_DIR_OPENGL) $(JOGL_STUB_INCLUDES_DIR_WIN32)/gl-impl.c
+	$(JAVA) -cp "$(CLASSES_DIR)$(CP_SEPARATOR)$(CLASSPATH)" net.java.games.gluegen.GlueGen -Enet.java.games.gluegen.opengl.GLEmitter -Cgl-wgl-win32.cfg -I$(JOGL_STUB_INCLUDES_DIR_WIN32) -I$(JOGL_STUB_INCLUDES_DIR_X11) -I$(JOGL_STUB_INCLUDES_DIR_MACOSX) -I$(JOGL_STUB_INCLUDES_DIR_OPENGL) $(JOGL_STUB_INCLUDES_DIR_WIN32)/gl-impl.c
+
 # generate GLX interface class
-	$(JAVA) -cp "$(CLASSES_DIR)$(CP_SEPARATOR)$(CLASSPATH)" net.java.games.gluegen.GlueGen -Enet.java.games.gluegen.opengl.GLEmitter -Cgl-glx-x11.cfg -I$(JOGL_STUB_INCLUDES_DIR_X11) -I$(JOGL_STUB_INCLUDES_DIR_WIN32) -I$(JOGL_STUB_INCLUDES_DIR_OPENGL) $(JOGL_STUB_INCLUDES_DIR_X11)/gl-impl.c
+	$(JAVA) -cp "$(CLASSES_DIR)$(CP_SEPARATOR)$(CLASSPATH)" net.java.games.gluegen.GlueGen -Enet.java.games.gluegen.opengl.GLEmitter -Cgl-glx-x11.cfg -I$(JOGL_STUB_INCLUDES_DIR_X11) -I$(JOGL_STUB_INCLUDES_DIR_WIN32) -I$(JOGL_STUB_INCLUDES_DIR_MACOSX) -I$(JOGL_STUB_INCLUDES_DIR_OPENGL) $(JOGL_STUB_INCLUDES_DIR_X11)/gl-impl.c
+
+# generate CGL interface class
+	$(JAVA) -cp "$(CLASSES_DIR)$(CP_SEPARATOR)$(CLASSPATH)" net.java.games.gluegen.GlueGen -Enet.java.games.gluegen.opengl.GLEmitter -Cgl-cgl-macosx.cfg -I$(JOGL_STUB_INCLUDES_DIR_X11) -I$(JOGL_STUB_INCLUDES_DIR_WIN32) -I$(JOGL_STUB_INCLUDES_DIR_MACOSX) -I$(JOGL_STUB_INCLUDES_DIR_OPENGL) $(JOGL_STUB_INCLUDES_DIR_MACOSX)/gl-impl.c
+
 # generate JAWT class
 	$(JAVA) -cp "$(CLASSES_DIR)$(CP_SEPARATOR)$(CLASSPATH)" net.java.games.gluegen.GlueGen -Enet.java.games.gluegen.JavaEmitter -C$(JOGL_JAWT_CFG) $(JOGL_GLUEGEN_INCLUDES) -I"$(JAVA_INCLUDE_PATH)" "$(JAVA_INCLUDE_PATH_PD)/jawt_md.h"
-# generate WGL/GLX implementation class
+
+# generate WGL/GLX/CGL implementation class
 	$(JAVA) -cp "$(CLASSES_DIR)$(CP_SEPARATOR)$(CLASSPATH)" net.java.games.gluegen.GlueGen -Enet.java.games.gluegen.JavaEmitter -C$(JOGL_WINDOW_SYSTEM_CFG) $(JOGL_GLUEGEN_INCLUDES) -I$(JOGL_STUB_INCLUDES_DIR_OPENGL) $(JOGL_STUB_INCLUDES_DIR_PD)/window-system.c
+
 # generate StaticGLInfo class
 	$(JAVA) -cp "$(CLASSES_DIR)$(CP_SEPARATOR)$(CLASSPATH)" net.java.games.gluegen.opengl.BuildStaticGLInfo net.java.games.jogl.impl $(GENSRC_JOGL_IMPL_DIR) $(JOGL_HEADERS)
+
 # generate GLU interface class
 	$(JAVA) -cp "$(CLASSES_DIR)$(CP_SEPARATOR)$(CLASSPATH)" net.java.games.gluegen.GlueGen -Enet.java.games.gluegen.opengl.GLEmitter -C$(JOGL_GLU_CFG) $(JOGL_GLUEGEN_INCLUDES) -I$(JOGL_STUB_INCLUDES_DIR_OPENGL) $(JOGL_STUB_INCLUDES_DIR_PD)/glu.c
+
 # generate GLU implementation class
 	$(JAVA) -cp "$(CLASSES_DIR)$(CP_SEPARATOR)$(CLASSPATH)" net.java.games.gluegen.GlueGen -Enet.java.games.gluegen.opengl.GLEmitter -C$(JOGL_GLU_IMPL_CFG) $(JOGL_GLUEGEN_INCLUDES) -I$(JOGL_STUB_INCLUDES_DIR_OPENGL) $(JOGL_STUB_INCLUDES_DIR_PD)/glu-impl.c
 
@@ -816,6 +835,9 @@ $(JOGL_OBJ_DIR)/%.$(OBJ_FILE_EXT) : $(GENSRC_GL_NATIVE_DIR)/%.c
 $(JOGL_DSO): $(JOGL_OBJ_FILES) 
 	$(GL_C_LINK_DSO_CMD) $(JOGL_OBJ_FILES) 
 
+# Hand-coded rule for the Objective C source on Mac OS X
+$(JOGL_OBJ_DIR)/MacOSXWindowSystemInterface.$(OBJ_FILE_EXT) : $(NATIVE_GL_SRC_DIR)/MacOSXWindowSystemInterface.m
+	$(GL_C_BUILD_OBJ_CMD)
 
 #
 # jar build rule

@@ -60,6 +60,10 @@ public final class GLCanvas extends Canvas implements GLDrawable {
 
   private GLDrawableHelper drawableHelper = new GLDrawableHelper();
   private GLContext context;
+  
+  // FIXME: Temporary workaround for JAWT bug in Panther developer release.
+  // This workaround makes things quite a bit slower 
+  private static final boolean isOSX = System.getProperty("os.name").equals("Mac OS X");
 
   GLCanvas(GLCapabilities capabilities, GLCapabilitiesChooser chooser) {
     super();
@@ -72,14 +76,24 @@ public final class GLCanvas extends Canvas implements GLDrawable {
   }
   
   public void display() {
-    context.invokeGL(displayAction, false, initAction);
+    if (isOSX) {
+      // Temporary workaround for JAWT bug in Panther developer release.
+      // All OpenGL rendering must occur on the AWT event thread.
+      repaint();
+    } else {
+      displayImpl();
+    }
   }
 
   /** Overridden from Canvas; calls {@link #display}. Should not be
       invoked by applications directly. */
   public void paint(Graphics g) {
-    if (!context.getNoAutoRedrawMode()) {
-      display();
+    if (isOSX) {
+      displayImpl();
+    } else {
+      if (!context.getNoAutoRedrawMode()) {
+	display();
+      }
     }
   }
 
@@ -160,6 +174,10 @@ public final class GLCanvas extends Canvas implements GLDrawable {
   //----------------------------------------------------------------------
   // Internals only below this point
   //
+
+  private void displayImpl() {
+    context.invokeGL(displayAction, false, initAction);
+  }
 
   class InitAction implements Runnable {
     public void run() {

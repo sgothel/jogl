@@ -8,6 +8,8 @@
 
 #include <GL/gl.h>
 
+#include <GL/cglext.h>
+
 // Define GLX_GLXEXT_PROTOTYPES so that the OpenGL GLX extension prototypes in
 // "glxext.h" are parsed.
 #define GLX_GLXEXT_PROTOTYPES

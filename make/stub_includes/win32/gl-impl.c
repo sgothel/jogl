@@ -7,6 +7,8 @@
 
 #include <GL/gl.h>
 
+#include <GL/cglext.h>
+
 // Define WGL_GLEXT_PROTOTYPES so that the OpenGL WGL extension prototypes in
 // "wglext.h" are parsed.
 #define WGL_WGLEXT_PROTOTYPES

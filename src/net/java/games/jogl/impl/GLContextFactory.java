@@ -60,7 +60,8 @@ public abstract class GLContextFactory {
 
         if (osNameLowerCase.startsWith("wind")) {
           factoryClass = Class.forName("net.java.games.jogl.impl.windows.WindowsGLContextFactory");
-        } else if (osNameLowerCase.startsWith("darwin")) {
+        } else if (osNameLowerCase.startsWith("mac os x")) {
+          factoryClass = Class.forName("net.java.games.jogl.impl.macosx.MacOSXGLContextFactory");
         } else {
           // Assume Linux, Solaris, etc. Should probably test for these explicitly.
           factoryClass = Class.forName("net.java.games.jogl.impl.x11.X11GLContextFactory");

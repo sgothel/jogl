@@ -37,17 +37,18 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package net.java.games.jogl.impl;
+package net.java.games.jogl.impl.macosx;
 
-public class NativeLibLoader {
-  static {
-    boolean isOSX = System.getProperty("os.name").equals("Mac OS X");
-    if (!isOSX) {
-      System.loadLibrary("jawt");
+import java.awt.Component;
+import net.java.games.jogl.*;
+import net.java.games.jogl.impl.*;
+
+public class MacOSXGLContextFactory extends GLContextFactory {
+  public GLContext createGLContext(Component component, GLCapabilities capabilities, GLCapabilitiesChooser chooser) {
+    if (component != null) {
+      return new MacOSXOnscreenGLContext(component, capabilities, chooser);
+    } else {
+      return new MacOSXOffscreenGLContext(capabilities, chooser);
     }
-    System.loadLibrary("jogl");
-  }
-
-  public static void load() {
   }
 }
