@@ -2,8 +2,13 @@
 #import <OpenGL/gl.h>
 #import "ContextUpdater.h"
 
-#ifndef GL_TEXTURE_RECTANGLE_EXT
-	#define GL_TEXTURE_RECTANGLE_EXT 0x84F5
+// see MacOSXPbufferGLContext.java createPbuffer
+#define USE_GL_TEXTURE_RECTANGLE_EXT
+
+#ifdef USE_GL_TEXTURE_RECTANGLE_EXT
+    #ifndef GL_TEXTURE_RECTANGLE_EXT
+            #define GL_TEXTURE_RECTANGLE_EXT 0x84F5
+    #endif
 #endif
 
 typedef int Bool;
@@ -32,7 +37,7 @@ void* createContext(void* shareContext, void* view)
                 return NULL;
             }
         }
-        
+                
 	if (gAutoreleasePool == NULL)
 	{
 		gAutoreleasePool = [[NSAutoreleasePool alloc] init];
@@ -56,11 +61,6 @@ void* createContext(void* shareContext, void* view)
 		0
 	};
 	
-	if (nsView == NULL)
-	{
-		attribs[12] = 0; // no stencil, no accums for pBuffers
-	}
-	
 	NSOpenGLPixelFormat* fmt = [[NSOpenGLPixelFormat alloc] initWithAttributes:attribs];
 	
 	NSOpenGLContext* nsContext = [[NSOpenGLContext alloc] initWithFormat:fmt shareContext:nsChareCtx];
@@ -73,9 +73,10 @@ void* createContext(void* shareContext, void* view)
                 
 		[nsView unlockFocus];		
 	}
-        
+                
 	[nsContext retain];
 	
+//fprintf(stderr, "	nsContext=%p\n", nsContext);
 	return nsContext;
 }
 
@@ -140,6 +141,7 @@ void updateContextUnregister(void* context, void* view, void* updater)
 	[contextUpdater release];
 }
 
+#ifndef USE_GL_TEXTURE_RECTANGLE_EXT
 static int getNextPowerOf2(int number)
 {
 	if (((number-1) & number) == 0)
@@ -155,23 +157,28 @@ static int getNextPowerOf2(int number)
     }
     return (1<<power);
 }
+#endif
 
 void* createPBuffer(void* context, int width, int height)
 {
-//fprintf(stderr, "createPBuffer context=%p width=%d height=%d\n", context, width, height);
+///fprintf(stderr, "createPBuffer context=%p width=%d height=%d\n", context, width, height);
 #ifdef AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER)
 	NSOpenGLContext *nsContext = (NSOpenGLContext*)context;
 	
-	//unsigned long taget = GL_TEXTURE_RECTANGLE_EXT;
+#ifdef USE_GL_TEXTURE_RECTANGLE_EXT
+	unsigned long taget = GL_TEXTURE_RECTANGLE_EXT;
+#else
 	unsigned long taget = GL_TEXTURE_2D; // texture size must be a multiple of power of 2
 	
-	width = getNextPowerOf2(width);
-	height = getNextPowerOf2(height);
-	
+        width = getNextPowerOf2(width);
+        height = getNextPowerOf2(height);
+#endif
+        
 	NSOpenGLPixelBuffer* pBuffer = [[NSOpenGLPixelBuffer alloc] initWithTextureTarget:taget textureInternalFormat:GL_RGBA textureMaxMipMapLevel:0 pixelsWide:width pixelsHigh:height];
 	
 	[nsContext setPixelBuffer:pBuffer cubeMapFace:0 mipMapLevel:0 currentVirtualScreen:0];
-	
+	[nsContext update];
+        
 	return pBuffer;
 #else
 	return NULL;
@@ -200,7 +207,9 @@ int bindPBuffer(void* context, void* buffer)
 #ifdef AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER)
 	NSOpenGLContext *nsContext = (NSOpenGLContext*)context;
 	NSOpenGLPixelBuffer *pBuffer = (NSOpenGLPixelBuffer*)buffer;
-			
+        
+        glPushMatrix();
+        
 	GLuint pBufferTextureName;
 	glGenTextures(1, &pBufferTextureName);
 	
@@ -214,6 +223,15 @@ int bindPBuffer(void* context, void* buffer)
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 	glEnable([pBuffer textureTarget]);
 	
+#ifdef USE_GL_TEXTURE_RECTANGLE_EXT
+        GLint matrixMode;
+        glGetIntegerv(GL_MATRIX_MODE, &matrixMode);
+        glMatrixMode(GL_TEXTURE);
+        glLoadIdentity();
+        glScalef([pBuffer pixelsWide], [pBuffer pixelsHigh], 1.0f); // GL_TEXTURE_RECTANGLE_EXT wants texture coordinates in texture image space (not 0 to 1)
+        glMatrixMode(matrixMode);
+#endif
+        
 	return pBufferTextureName;
 #else
 	return 0;
@@ -227,8 +245,9 @@ void unbindPBuffer(void* context, void* buffer, int texture)
 	NSOpenGLPixelBuffer *pBuffer = (NSOpenGLPixelBuffer*)buffer;
 	GLuint pBufferTextureName = (GLuint)texture;
 	
-	//glDisable([pBuffer textureTarget]);
 	glDeleteTextures(1, &pBufferTextureName);
+        
+        glPopMatrix();
 #endif
 }
 
