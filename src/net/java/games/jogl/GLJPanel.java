@@ -189,58 +189,73 @@ public final class GLJPanel extends JPanel implements GLDrawable {
   public void reshape(int x, int y, int width, int height) {
     super.reshape(x, y, width, height);
 
-    GLContext context = null;
-    neededOffscreenImageWidth = 0;
-    neededOffscreenImageHeight = 0;
+    // Move all reshape requests onto AWT EventQueue thread
+    final int fx = x;
+    final int fy = y;
+    final int fwidth = width;
+    final int fheight = height;
 
-    if (!hardwareAccelerationDisabled) {
-      if (width > pbufferWidth || height > pbufferHeight) {
-        // Must destroy and recreate pbuffer to fit
-        pbuffer.destroy();
-        if (width > pbufferWidth) {
-          pbufferWidth = getNextPowerOf2(width);
-        }
-        if (height > pbufferHeight) {
-          pbufferHeight = getNextPowerOf2(height);
-        }
-        initialize();
-      }
-      GLPbufferImpl pbufferImpl = (GLPbufferImpl) pbuffer;
-      context = pbufferImpl.getContext();
-      // It looks like NVidia's drivers (at least the ones on my
-      // notebook) are buggy and don't allow a rectangle of less than
-      // the pbuffer's width to be read...this doesn't really matter
-      // because it's the Graphics.drawImage() calls that are the
-      // bottleneck. Should probably make the size of the offscreen
-      // image be the exact size of the pbuffer to save some work on
-      // resize operations...
-      neededOffscreenImageWidth  = pbufferWidth;
-      neededOffscreenImageHeight = height;
-    } else {
-      offscreenContext.resizeOffscreenContext(width, height);
-      context = offscreenContext;
-      neededOffscreenImageWidth  = width;
-      neededOffscreenImageHeight = height;
-    }
-
-    if (offscreenImage != null &&
-        (offscreenImage.getWidth()  != neededOffscreenImageWidth ||
-         offscreenImage.getHeight() != neededOffscreenImageHeight)) {
-      offscreenImage.flush();
-      offscreenImage = null;
-    }
-
-    panelWidth = width;
-    panelHeight = height;
-    final int fx      = 0;
-    final int fy      = 0;
-
-    context.invokeGL(new Runnable() {
+    Runnable r = new Runnable() {
         public void run() {
-          getGL().glViewport(fx, fy, panelWidth, panelHeight);
-          drawableHelper.reshape(GLJPanel.this, fx, fy, panelWidth, panelHeight);
+          GLContext context = null;
+          neededOffscreenImageWidth = 0;
+          neededOffscreenImageHeight = 0;
+
+          if (!hardwareAccelerationDisabled) {
+            if (fwidth > pbufferWidth || fheight > pbufferHeight) {
+              // Must destroy and recreate pbuffer to fit
+              pbuffer.destroy();
+              if (fwidth > pbufferWidth) {
+                pbufferWidth = getNextPowerOf2(fwidth);
+              }
+              if (fheight > pbufferHeight) {
+                pbufferHeight = getNextPowerOf2(fheight);
+              }
+              initialize();
+            }
+            GLPbufferImpl pbufferImpl = (GLPbufferImpl) pbuffer;
+            context = pbufferImpl.getContext();
+            // It looks like NVidia's drivers (at least the ones on my
+            // notebook) are buggy and don't allow a rectangle of less than
+            // the pbuffer's width to be read...this doesn't really matter
+            // because it's the Graphics.drawImage() calls that are the
+            // bottleneck. Should probably make the size of the offscreen
+            // image be the exact size of the pbuffer to save some work on
+            // resize operations...
+            neededOffscreenImageWidth  = pbufferWidth;
+            neededOffscreenImageHeight = fheight;
+          } else {
+            offscreenContext.resizeOffscreenContext(fwidth, fheight);
+            context = offscreenContext;
+            neededOffscreenImageWidth  = fwidth;
+            neededOffscreenImageHeight = fheight;
+          }
+
+          if (offscreenImage != null &&
+              (offscreenImage.getWidth()  != neededOffscreenImageWidth ||
+               offscreenImage.getHeight() != neededOffscreenImageHeight)) {
+            offscreenImage.flush();
+            offscreenImage = null;
+          }
+
+          panelWidth  = fwidth;
+          panelHeight = fheight;
+
+          context.invokeGL(new Runnable() {
+              public void run() {
+                getGL().glViewport(0, 0, panelWidth, panelHeight);
+                drawableHelper.reshape(GLJPanel.this, 0, 0, panelWidth, panelHeight);
+              }
+            }, true, initAction);
         }
-      }, true, initAction);
+      };
+    if (EventQueue.isDispatchThread()) {
+      r.run();
+    } else {
+      // Avoid blocking EventQueue thread due to possible deadlocks
+      // during component creation
+      EventQueue.invokeLater(r);
+    }
   }
 
   public void addGLEventListener(GLEventListener listener) {
