@@ -39,13 +39,20 @@
 
 package net.java.games.jogl.impl;
 
+import java.security.*;
+
 public class NativeLibLoader {
   static {
-    boolean isOSX = System.getProperty("os.name").equals("Mac OS X");
-    if (!isOSX) {
-      System.loadLibrary("jawt");
-    }
-    System.loadLibrary("jogl");
+    AccessController.doPrivileged(new PrivilegedAction() {
+        public Object run() {
+          boolean isOSX = System.getProperty("os.name").equals("Mac OS X");
+          if (!isOSX) {
+            System.loadLibrary("jawt");
+          }
+          System.loadLibrary("jogl");
+          return null;
+        }
+      });
   }
 
   public static void load() {
