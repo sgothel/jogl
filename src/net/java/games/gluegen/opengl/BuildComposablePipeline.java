@@ -355,6 +355,10 @@ public class BuildComposablePipeline
     {
       output.println("  private void checkGLGetError(String caller)");
       output.println("  {");
+      output.println("    if (insideBeginEndPair) {");
+      output.println("      return;");
+      output.println("    }");
+      output.println();
       output.println("    // Debug code to make sure the pipeline is working; leave commented out unless testing this class");
       output.println("    //System.err.println(\"Checking for GL errors " +
 		     "after call to \" + caller + \"()\");");
