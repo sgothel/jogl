@@ -52,6 +52,7 @@ import java.lang.reflect.*;
  * and display.
  */
 public final class FunctionAvailabilityCache {
+  private static final boolean DEBUG = false;
 
   FunctionAvailabilityCache(GLContext context)
   {
@@ -70,7 +71,9 @@ public final class FunctionAvailabilityCache {
 
   public boolean isFunctionAvailable(String glFunctionName)
   {
-    //System.err.println("!!! CHECKING FOR AVAILABILITY OF: "+glFunctionName);
+    if (DEBUG) {
+      System.err.println("!!! CHECKING FOR AVAILABILITY OF: "+ glFunctionName);
+    }
 
     Boolean available = (Boolean)availabilityCache.get(glFunctionName);
 
@@ -89,6 +92,10 @@ public final class FunctionAvailabilityCache {
       availabilityCache.put(glFunctionName, available);
     }
 
+    if (DEBUG) {
+      System.err.println("!!! AVAILABILITY OF "+ glFunctionName + ": " + available.booleanValue());
+    }
+
     return available.booleanValue();
   }
 
@@ -102,7 +109,9 @@ public final class FunctionAvailabilityCache {
     // of extensions that are in the GL_EXTENSIONS string
     if (availableExtensionCache.isEmpty()) {
       GL gl = context.getGL();
-      //System.err.println("!!! Pre-caching extension availability");
+      if (DEBUG) {
+        System.err.println("!!! Pre-caching extension availability");
+      }
       String allAvailableExtensions =
         gl.glGetString(GL.GL_EXTENSIONS) + " " + context.getPlatformExtensionsString();
       StringTokenizer tok = new StringTokenizer(allAvailableExtensions);
@@ -110,7 +119,9 @@ public final class FunctionAvailabilityCache {
         String availableExt = tok.nextToken().trim();
         availableExt = availableExt.intern();
         availableExtensionCache.add(availableExt);
-        //System.err.println("!!!   Available: " + availableExt);
+        if (DEBUG) {
+          System.err.println("!!!   Available: " + availableExt);
+        }
       }
 
       // put a dummy var in here so that the cache is no longer empty even if

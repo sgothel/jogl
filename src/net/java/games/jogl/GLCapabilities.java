@@ -61,6 +61,10 @@ public class GLCapabilities implements Cloneable {
   // Shift bits from PIXELFORMATDESCRIPTOR not present because they
   // are unlikely to be supported on Windows anyway
 
+  // Support for full-scene antialiasing (FSAA)
+  private boolean sampleBuffers = false;
+  private int     numSamples    = 2;
+
   // Bits for pbuffer creation
   private boolean offscreenFloatingPointBuffers;
   private boolean offscreenRenderToTexture;
@@ -243,6 +247,32 @@ public class GLCapabilities implements Cloneable {
       considered. */
   public void setAccumAlphaBits(int accumAlphaBits) {
     this.accumAlphaBits = accumAlphaBits;
+  }
+
+  /** Indicates whether sample buffers for full-scene antialiasing
+      (FSAA) should be allocated for this drawable. Defaults to
+      false. */
+  public void setSampleBuffers(boolean onOrOff) {
+    sampleBuffers = onOrOff;
+  }
+
+  /** Returns whether sample buffers for full-scene antialiasing
+      (FSAA) should be allocated for this drawable. Defaults to
+      false. */
+  public boolean getSampleBuffers() {
+    return sampleBuffers;
+  }
+
+  /** If sample buffers are enabled, indicates the number of buffers
+      to be allocated. Defaults to 2. */
+  public void setNumSamples(int numSamples) {
+    this.numSamples = numSamples;
+  }
+
+  /** Returns the number of sample buffers to be allocated if sample
+      buffers are enabled. Defaults to 2. */
+  public int getNumSamples() {
+    return numSamples;
   }
 
   /** For offscreen surfaces only (pbuffers), indicates whether

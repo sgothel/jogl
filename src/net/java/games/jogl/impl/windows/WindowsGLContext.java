@@ -40,6 +40,7 @@
 package net.java.games.jogl.impl.windows;
 
 import java.awt.Component;
+import java.awt.GraphicsDevice;
 import java.util.*;
 import net.java.games.gluegen.runtime.*; // for PROCADDRESS_VAR_PREFIX
 import net.java.games.jogl.*;
@@ -58,6 +59,9 @@ public abstract class WindowsGLContext extends GLContext {
   private GLProcAddressTable glProcAddressTable;
   // Handle to GLU32.dll
   private long hglu32;
+
+  private static final int MAX_PFORMATS = 256;
+  private static final int MAX_ATTRIBS  = 256;
 
   static {
     functionNameMap = new HashMap();
@@ -250,60 +254,198 @@ public abstract class WindowsGLContext extends GLContext {
   protected void choosePixelFormatAndCreateContext(boolean onscreen) {
     PIXELFORMATDESCRIPTOR pfd = null;
     int pixelFormat = 0;
-    if (chooser == null) {
-      // Note: this code path isn't taken any more now that the
-      // DefaultGLCapabilitiesChooser is present. However, it is being
-      // left in place for debugging purposes.
-      pfd = glCapabilities2PFD(capabilities, onscreen);
-      pixelFormat = WGL.ChoosePixelFormat(hdc, pfd);
-      if (pixelFormat == 0) {
-        throw new GLException("Unable to choose appropriate pixel format");
+    if (onscreen) {
+      GLCapabilities[] availableCaps = null;
+      int numFormats = 0;
+      pfd = new PIXELFORMATDESCRIPTOR();
+      GraphicsDevice device = component.getGraphicsConfiguration().getDevice();
+      // Produce a recommended pixel format selection for the GLCapabilitiesChooser.
+      // Try to use wglChoosePixelFormatARB if we have it available
+      GL dummyGL = WindowsGLContextFactory.getDummyGLContext(device);
+      int recommendedPixelFormat = -1;
+      pfd = new PIXELFORMATDESCRIPTOR();
+      boolean haveWGLChoosePixelFormatARB = false;
+      if (dummyGL != null) {
+        // It seems that at this point in initialization,
+        // glGetString(GL.GL_EXTENSIONS) is returning null, so we
+        // need to use wglGetExtensionsStringARB
+        String availableWGLExtensions = dummyGL.wglGetExtensionsStringARB(hdc);
+        if (availableWGLExtensions.indexOf("WGL_ARB_pixel_format") >= 0) {
+          haveWGLChoosePixelFormatARB = true;
+        }
       }
-      if (DEBUG) {
-        System.err.println("Chosen pixel format from ChoosePixelFormat:");
-	PIXELFORMATDESCRIPTOR tmpPFD = new PIXELFORMATDESCRIPTOR();
-	WGL.DescribePixelFormat(hdc, pixelFormat, tmpPFD.size(), tmpPFD);
-        System.err.println(pfd2GLCapabilities(tmpPFD));
-      }
-    } else {
-      if (onscreen) {
-        int numFormats = WGL.DescribePixelFormat(hdc, 1, 0, null);
+      if (dummyGL != null && haveWGLChoosePixelFormatARB) {
+        int[]   iattributes = new int  [2 * MAX_ATTRIBS];
+        int[]   iresults    = new int  [2 * MAX_ATTRIBS];
+        float[] fattributes = new float[2 * MAX_ATTRIBS];
+        int niattribs = 0;
+        int nfattribs = 0;
+        iattributes[niattribs++] = GL.WGL_SUPPORT_OPENGL_ARB;
+        iattributes[niattribs++] = GL.GL_TRUE;
+        iattributes[niattribs++] = GL.WGL_DRAW_TO_WINDOW_ARB;
+        iattributes[niattribs++] = GL.GL_TRUE;
+        iattributes[niattribs++] = GL.WGL_PIXEL_TYPE_ARB;
+        iattributes[niattribs++] = GL.WGL_TYPE_RGBA_ARB;
+        iattributes[niattribs++] = GL.WGL_DOUBLE_BUFFER_ARB;
+        if (capabilities.getDoubleBuffered()) {
+          iattributes[niattribs++] = GL.GL_TRUE;
+        } else {
+          iattributes[niattribs++] = GL.GL_FALSE;
+        }
+        iattributes[niattribs++] = GL.WGL_STEREO_ARB;
+        if (capabilities.getStereo()) {
+          iattributes[niattribs++] = GL.GL_TRUE;
+        } else {
+          iattributes[niattribs++] = GL.GL_FALSE;
+        }
+        iattributes[niattribs++] = GL.WGL_DEPTH_BITS_ARB;
+        iattributes[niattribs++] = capabilities.getDepthBits();
+        iattributes[niattribs++] = GL.WGL_RED_BITS_ARB;
+        iattributes[niattribs++] = capabilities.getRedBits();
+        iattributes[niattribs++] = GL.WGL_GREEN_BITS_ARB;
+        iattributes[niattribs++] = capabilities.getGreenBits();
+        iattributes[niattribs++] = GL.WGL_BLUE_BITS_ARB;
+        iattributes[niattribs++] = capabilities.getBlueBits();
+        iattributes[niattribs++] = GL.WGL_ALPHA_BITS_ARB;
+        iattributes[niattribs++] = capabilities.getAlphaBits();
+        iattributes[niattribs++] = GL.WGL_STENCIL_BITS_ARB;
+        iattributes[niattribs++] = capabilities.getStencilBits();
+        if (capabilities.getAccumRedBits()   > 0 ||
+            capabilities.getAccumGreenBits() > 0 ||
+            capabilities.getAccumBlueBits()  > 0 ||
+            capabilities.getAccumAlphaBits()  > 0) {
+          iattributes[niattribs++] = GL.WGL_ACCUM_BITS_ARB;
+          iattributes[niattribs++] = (capabilities.getAccumRedBits() +
+                                      capabilities.getAccumGreenBits() +
+                                      capabilities.getAccumBlueBits() +
+                                      capabilities.getAccumAlphaBits());
+          iattributes[niattribs++] = GL.WGL_ACCUM_RED_BITS_ARB;
+          iattributes[niattribs++] = capabilities.getAccumRedBits();
+          iattributes[niattribs++] = GL.WGL_ACCUM_GREEN_BITS_ARB;
+          iattributes[niattribs++] = capabilities.getAccumGreenBits();
+          iattributes[niattribs++] = GL.WGL_ACCUM_BLUE_BITS_ARB;
+          iattributes[niattribs++] = capabilities.getAccumBlueBits();
+          iattributes[niattribs++] = GL.WGL_ACCUM_ALPHA_BITS_ARB;
+          iattributes[niattribs++] = capabilities.getAccumAlphaBits();
+        }
+        if (capabilities.getSampleBuffers()) {
+          iattributes[niattribs++] = GL.WGL_SAMPLE_BUFFERS_ARB;
+          iattributes[niattribs++] = GL.GL_TRUE;
+          iattributes[niattribs++] = GL.WGL_SAMPLES_ARB;
+          iattributes[niattribs++] = capabilities.getNumSamples();
+        }
+          
+        int[] pformats = new int[MAX_PFORMATS];
+        int[] numFormatsTmp = new int[1];
+        if (dummyGL.wglChoosePixelFormatARB(hdc,
+                                            iattributes,
+                                            fattributes,
+                                            MAX_PFORMATS,
+                                            pformats, 
+                                            numFormatsTmp)) {
+          numFormats = numFormatsTmp[0];
+          if (numFormats > 0) {
+            recommendedPixelFormat = pformats[0];
+            if (DEBUG) {
+              System.err.println("Used wglChoosePixelFormatARB to recommend pixel format " + recommendedPixelFormat);
+            }
+          }
+        }
+        if (DEBUG) {
+          if (recommendedPixelFormat < 0) {
+            System.err.print("wglChoosePixelFormatARB didn't recommend a pixel format");
+            if (capabilities.getSampleBuffers()) {
+              System.err.print(" for multisampled GLCapabilities");
+            }
+            System.err.println();
+          }
+        }
+
+        // Produce a list of GLCapabilities to give to the
+        // GLCapabilitiesChooser.
+        // Use wglGetPixelFormatAttribivARB instead of
+        // DescribePixelFormat to get higher-precision information
+        // about the pixel format (should make the GLCapabilities
+        // more precise as well...i.e., remove the
+        // "HardwareAccelerated" bit, which is basically
+        // meaningless, and put in whether it can render to a
+        // window, to a pbuffer, or to a pixmap)
+        niattribs = 0;
+        iattributes[0] = GL.WGL_NUMBER_PIXEL_FORMATS_ARB;
+        if (!dummyGL.wglGetPixelFormatAttribivARB(hdc, 0, 0, 1, iattributes, iresults)) {
+          throw new GLException("Unable to enumerate pixel formats of window using wglGetPixelFormatAttribivARB");
+        }
+        numFormats = iresults[0];
+        // Should we be filtering out the pixel formats which aren't
+        // applicable, as we are doing here?
+        // We don't have enough information in the GLCapabilities to
+        // represent those that aren't...
+        iattributes[niattribs++] = GL.WGL_DRAW_TO_WINDOW_ARB;
+        iattributes[niattribs++] = GL.WGL_ACCELERATION_ARB;
+        iattributes[niattribs++] = GL.WGL_SUPPORT_OPENGL_ARB;
+        iattributes[niattribs++] = GL.WGL_DEPTH_BITS_ARB;
+        iattributes[niattribs++] = GL.WGL_STENCIL_BITS_ARB;
+        iattributes[niattribs++] = GL.WGL_DOUBLE_BUFFER_ARB;
+        iattributes[niattribs++] = GL.WGL_STEREO_ARB;
+        iattributes[niattribs++] = GL.WGL_PIXEL_TYPE_ARB;
+        iattributes[niattribs++] = GL.WGL_RED_BITS_ARB;
+        iattributes[niattribs++] = GL.WGL_GREEN_BITS_ARB;
+        iattributes[niattribs++] = GL.WGL_BLUE_BITS_ARB;
+        iattributes[niattribs++] = GL.WGL_ALPHA_BITS_ARB;
+        iattributes[niattribs++] = GL.WGL_ACCUM_RED_BITS_ARB;
+        iattributes[niattribs++] = GL.WGL_ACCUM_GREEN_BITS_ARB;
+        iattributes[niattribs++] = GL.WGL_ACCUM_BLUE_BITS_ARB;
+        iattributes[niattribs++] = GL.WGL_ACCUM_ALPHA_BITS_ARB;
+        iattributes[niattribs++] = GL.WGL_SAMPLE_BUFFERS_ARB;
+        iattributes[niattribs++] = GL.WGL_SAMPLES_ARB;
+
+        availableCaps = new GLCapabilities[numFormats];
+        for (int i = 0; i < numFormats; i++) {
+          if (!dummyGL.wglGetPixelFormatAttribivARB(hdc, i+1, 0, niattribs, iattributes, iresults)) {
+            throw new GLException("Error getting pixel format attributes for pixel format " + (i + 1) + " of device context");
+          }
+          availableCaps[i] = iattributes2GLCapabilities(iattributes, iresults, niattribs, true);
+        }
+      } else {
+        if (DEBUG) {
+          System.err.println("Using ChoosePixelFormat because no wglChoosePixelFormatARB: dummyGL = " + dummyGL);
+        }
+        pfd = glCapabilities2PFD(capabilities, onscreen);
+        recommendedPixelFormat = WGL.ChoosePixelFormat(hdc, pfd);
+
+        numFormats = WGL.DescribePixelFormat(hdc, 1, 0, null);
         if (numFormats == 0) {
           throw new GLException("Unable to enumerate pixel formats of window for GLCapabilitiesChooser");
         }
-        GLCapabilities[] availableCaps = new GLCapabilities[numFormats];
-        pfd = new PIXELFORMATDESCRIPTOR();
+        availableCaps = new GLCapabilities[numFormats];
         for (int i = 0; i < numFormats; i++) {
           if (WGL.DescribePixelFormat(hdc, 1 + i, pfd.size(), pfd) == 0) {
             throw new GLException("Error describing pixel format " + (1 + i) + " of device context");
           }
           availableCaps[i] = pfd2GLCapabilities(pfd);
         }
-        // Supply information to chooser
-        // FIXME: should provide a hint to the pixel format selection
-        // algorithm, and should be using wglChoosePixelFormatARB in
-        // order to do so
-        pixelFormat = chooser.chooseCapabilities(capabilities, availableCaps, -1);
-        if ((pixelFormat < 0) || (pixelFormat >= numFormats)) {
-          throw new GLException("Invalid result " + pixelFormat +
-                                " from GLCapabilitiesChooser (should be between 0 and " +
-                                (numFormats - 1) + ")");
-        }
-        if (DEBUG) {
-          System.err.println("Chosen pixel format (" + pixelFormat + "):");
-          System.err.println(availableCaps[pixelFormat]);
-        }
-        pixelFormat += 1; // one-base the index
-        if (WGL.DescribePixelFormat(hdc, pixelFormat, pfd.size(), pfd) == 0) {
-          throw new GLException("Error re-describing the chosen pixel format");
-        }
-      } else {
-        // For now, use ChoosePixelFormat for offscreen surfaces until
-        // we figure out how to properly choose an offscreen-
-        // compatible pixel format
-        pfd = glCapabilities2PFD(capabilities, onscreen);
-        pixelFormat = WGL.ChoosePixelFormat(hdc, pfd);
       }
+      // Supply information to chooser
+      pixelFormat = chooser.chooseCapabilities(capabilities, availableCaps, recommendedPixelFormat);
+      if ((pixelFormat < 0) || (pixelFormat >= numFormats)) {
+        throw new GLException("Invalid result " + pixelFormat +
+                              " from GLCapabilitiesChooser (should be between 0 and " +
+                              (numFormats - 1) + ")");
+      }
+      if (DEBUG) {
+        System.err.println("Chosen pixel format (" + pixelFormat + "):");
+        System.err.println(availableCaps[pixelFormat]);
+      }
+      pixelFormat += 1; // one-base the index
+      if (WGL.DescribePixelFormat(hdc, pixelFormat, pfd.size(), pfd) == 0) {
+        throw new GLException("Error re-describing the chosen pixel format");
+      }
+    } else {
+      // For now, use ChoosePixelFormat for offscreen surfaces until
+      // we figure out how to properly choose an offscreen-
+      // compatible pixel format
+      pfd = glCapabilities2PFD(capabilities, onscreen);
+      pixelFormat = WGL.ChoosePixelFormat(hdc, pfd);
     }
     if (!WGL.SetPixelFormat(hdc, pixelFormat, pfd)) {
       throw new GLException("Unable to set pixel format");
@@ -371,6 +513,95 @@ public abstract class WindowsGLContext extends GLContext {
     res.setStereo        ((pfd.dwFlags() & WGL.PFD_STEREO) != 0);
     res.setHardwareAccelerated(((pfd.dwFlags() & WGL.PFD_GENERIC_FORMAT) == 0) ||
 			       ((pfd.dwFlags() & WGL.PFD_GENERIC_ACCELERATED) != 0));
+    return res;
+  }
+
+  static GLCapabilities iattributes2GLCapabilities(int[] iattribs,
+                                                   int[] iresults,
+                                                   int   niattribs,
+                                                   boolean requireRenderToWindow) {
+    GLCapabilities res = new GLCapabilities();
+    for (int i = 0; i < niattribs; i++) {
+      switch (iattribs[i]) {
+        case GL.WGL_DRAW_TO_WINDOW_ARB:
+          if (iresults[i] != GL.GL_TRUE)
+            return null;
+          break;
+
+        case GL.WGL_ACCELERATION_ARB:
+          res.setHardwareAccelerated(iresults[i] == GL.WGL_FULL_ACCELERATION_ARB);
+          break;
+
+        case GL.WGL_SUPPORT_OPENGL_ARB:
+          if (iresults[i] != GL.GL_TRUE)
+            return null;
+          break;
+
+        case GL.WGL_DEPTH_BITS_ARB:
+          res.setDepthBits(iresults[i]);
+          break;
+
+        case GL.WGL_STENCIL_BITS_ARB:
+          res.setStencilBits(iresults[i]);
+          break;
+
+        case GL.WGL_DOUBLE_BUFFER_ARB:
+          res.setDoubleBuffered(iresults[i] == GL.GL_TRUE);
+          break;
+
+        case GL.WGL_STEREO_ARB:
+          res.setStereo(iresults[i] == GL.GL_TRUE);
+          break;
+
+        case GL.WGL_PIXEL_TYPE_ARB:
+          if (iresults[i] != GL.WGL_TYPE_RGBA_ARB)
+            return null;
+          break;
+
+        case GL.WGL_RED_BITS_ARB:
+          res.setRedBits(iresults[i]);
+          break;
+          
+        case GL.WGL_GREEN_BITS_ARB:
+          res.setGreenBits(iresults[i]);
+          break;
+
+        case GL.WGL_BLUE_BITS_ARB:
+          res.setBlueBits(iresults[i]);
+          break;
+
+        case GL.WGL_ALPHA_BITS_ARB:
+          res.setAlphaBits(iresults[i]);
+          break;
+
+        case GL.WGL_ACCUM_RED_BITS_ARB:
+          res.setAccumRedBits(iresults[i]);
+          break;
+
+        case GL.WGL_ACCUM_GREEN_BITS_ARB:
+          res.setAccumGreenBits(iresults[i]);
+          break;
+
+        case GL.WGL_ACCUM_BLUE_BITS_ARB:
+          res.setAccumBlueBits(iresults[i]);
+          break;
+
+        case GL.WGL_ACCUM_ALPHA_BITS_ARB:
+          res.setAccumAlphaBits(iresults[i]);
+          break;
+
+        case GL.WGL_SAMPLE_BUFFERS_ARB:
+          res.setSampleBuffers(iresults[i] == GL.GL_TRUE);
+          break;
+
+        case GL.WGL_SAMPLES_ARB:
+          res.setNumSamples(iresults[i]);
+          break;
+
+        default:
+          throw new GLException("Unknown pixel format attribute " + iattribs[i]);
+      }
+    }
     return res;
   }
 }

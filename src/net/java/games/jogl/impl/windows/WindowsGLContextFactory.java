@@ -40,12 +40,31 @@
 package net.java.games.jogl.impl.windows;
 
 import java.awt.Component;
+import java.awt.Frame;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import net.java.games.jogl.*;
 import net.java.games.jogl.impl.*;
 
 public class WindowsGLContextFactory extends GLContextFactory {
+  // On Windows we want to be able to use some extension routines like
+  // wglChoosePixelFormatARB during the creation of the user's first
+  // GLContext. However, this and other routines' function pointers
+  // aren't loaded by the driver until the first OpenGL context is
+  // created. The standard way of working around this chicken-and-egg
+  // problem is to create a dummy window, show it, send it a paint
+  // message, create an OpenGL context, fetch the needed function
+  // pointers, and then destroy the dummy window and context. In JOGL
+  // since we closely associate the contexts with components we leave
+  // the dummy window around as it should not have a large footprint
+  // impact.
+  private static Map/*<GraphicsDevice, GL>*/ dummyContextMap   = new HashMap();
+  private static Set/*<GraphicsDevice    >*/ pendingContextSet = new HashSet();
+  
   public GraphicsConfiguration chooseGraphicsConfiguration(GLCapabilities capabilities,
                                                            GLCapabilitiesChooser chooser,
                                                            GraphicsDevice device) {
@@ -61,5 +80,45 @@ public class WindowsGLContextFactory extends GLContextFactory {
     } else {
       return new WindowsOffscreenGLContext(capabilities, chooser, shareWith);
     }
+  }
+
+  public static GL getDummyGLContext(final GraphicsDevice device) {
+    GL gl = (GL) dummyContextMap.get(device);
+    if (gl != null) {
+      return gl;
+    }
+    
+    if (!pendingContextSet.contains(device)) {
+      pendingContextSet.add(device);
+      GraphicsConfiguration config = device.getDefaultConfiguration();
+      Frame frame = new Frame(config);
+      frame.setUndecorated(true);
+      GLCanvas canvas = GLDrawableFactory.getFactory().createGLCanvas(new GLCapabilities(),
+                                                                      null,
+                                                                      null,
+                                                                      device);
+      canvas.addGLEventListener(new GLEventListener() {
+          public void init(GLDrawable drawable) {
+            pendingContextSet.remove(device);
+            dummyContextMap.put(device, drawable.getGL());
+          }
+
+          public void display(GLDrawable drawable) {
+          }
+
+          public void reshape(GLDrawable drawable, int x, int y, int width, int height) {
+          }
+
+          public void displayChanged(GLDrawable drawable, boolean modeChanged, boolean deviceChanged) {
+          }
+        });
+      canvas.setSize(0, 0);
+      frame.add(canvas);
+      frame.pack();
+      frame.show();
+      canvas.display();
+    }
+
+    return (GL) dummyContextMap.get(device);
   }
 }

@@ -195,7 +195,7 @@ public abstract class GLContext {
     if (mustDoMakeCurrent) {
       if (curContext != null) {
         if (DEBUG) {
-          System.err.println("Freeing context " + curContext + " due to recursive makeCurrent");
+          // System.err.println("Freeing context " + curContext + " due to recursive makeCurrent");
         }
         curContext.free();
       }
@@ -211,7 +211,7 @@ public abstract class GLContext {
         return;
       }
       if (DEBUG) {
-        System.err.println("Making context " + this + " current");
+        // System.err.println("Making context " + this + " current");
       }
     }
     ctxStack.push(this, initAction);
@@ -265,14 +265,14 @@ public abstract class GLContext {
         }
 
         if (DEBUG) {
-          System.err.println("Freeing context " + this);
+          // System.err.println("Freeing context " + this);
         }
 
         free();
 
         if (curContext != null && !mustFreeBecauseOfNoRenderingThread) {
           if (DEBUG) {
-            System.err.println("Making context " + curContext + " current again");
+            // System.err.println("Making context " + curContext + " current again");
           }
           curContext.makeCurrent(curInitAction);
         }
