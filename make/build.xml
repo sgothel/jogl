@@ -652,7 +652,8 @@
       <!-- compiler configuration -->
       <compiler id="compiler.cfg.linux" name="gcc" />
 
-      <compiler id="compiler.cfg.solaris" name="CC"/>
+      <compiler id="compiler.cfg.solaris" name="suncc">
+      </compiler>
 
       <compiler id="compiler.cfg.win32.mingw" name="gcc">
         <defineset>
@@ -705,7 +706,7 @@
       </linker>
 
       <linker id="linker.cfg.solaris">
-        <syslibset dir="/usr/X11R6/lib" libs="GL, GLU, X11"/>
+        <syslibset libs="GL, GLU, X11"/>
       </linker>
 
       <linker id="linker.cfg.win32.mingw" name="gcc" incremental="false">
