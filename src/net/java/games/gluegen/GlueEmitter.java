@@ -93,7 +93,11 @@ public interface GlueEmitter {
   public void beginStructs(TypeDictionary typedefDictionary,
                            TypeDictionary structDictionary,
                            Map            canonMap) throws Exception;
-  /** Emit glue code for the given CompoundType. */
-  public void emitStruct(CompoundType t) throws Exception;
+  /** Emit glue code for the given CompoundType. alternateName is
+      provided when the CompoundType (e.g. "struct foo_t") has not
+      been typedefed to anything but the type of "pointer to struct
+      foo_t" has (e.g. "typedef struct foo_t {} *Foo"); in this case
+      alternateName would be set to Foo. */
+  public void emitStruct(CompoundType t, String alternateName) throws Exception;
   public void endStructs() throws Exception;
 }

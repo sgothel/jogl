@@ -113,6 +113,9 @@ public class JavaMethodBindingImplEmitter extends JavaMethodBindingEmitter
           returnType.isNIOByteBuffer()) {
         writer.println("ByteBuffer _res;");
         writer.print("    _res = ");
+      } else if (returnType.isArrayOfCompoundTypeWrappers()) {
+        writer.println("ByteBuffer[] _res;");
+        writer.print("    _res = ");
       } else {
         writer.print("return ");
       }
@@ -205,7 +208,7 @@ public class JavaMethodBindingImplEmitter extends JavaMethodBindingEmitter
         writer.println("      _tmp.order(ByteOrder.nativeOrder());");
         writer.println("      _res.position(0);");
         writer.println("      _res.limit(_res.capacity());");
-        writer.println("      _retarray[_count] = new " + returnType.getName() + "(_tmp);");
+        writer.println("      _retarray[_count] = new " + getReturnTypeString(true) + "(_tmp);");
         writer.println("    }");
         writer.print  ("    return _retarray");
       }
@@ -213,6 +216,14 @@ public class JavaMethodBindingImplEmitter extends JavaMethodBindingEmitter
       writer.println(";");
       writer.println("    if (_res == null) return null;");
       writer.print("    return _res.order(ByteOrder.nativeOrder())");
+    } else if (returnType.isArrayOfCompoundTypeWrappers()) {
+      writer.println(";");
+      writer.println("    if (_res == null) return null;");
+      writer.println("    " + getReturnTypeString(false) + " _retarray = new " + getReturnTypeString(true) + "[_res.length];");
+      writer.println("    for (int _count = 0; _count < _res.length; _count++) {");
+      writer.println("      _retarray[_count] = new " + getReturnTypeString(true) + "(_res[_count]);");
+      writer.println("    }");
+      writer.print  ("    return _retarray");
     }
     writer.println(";");
   }

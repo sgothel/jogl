@@ -451,18 +451,26 @@ public class JavaEmitter implements GlueEmitter {
     this.canonMap          = canonMap;
   }
 
-  public void emitStruct(CompoundType structType) throws Exception {
-    if (structType.getName() == null) {
+  public void emitStruct(CompoundType structType, String alternateName) throws Exception {
+    String name = structType.getName();
+    if (name == null && alternateName != null) {
+      name = alternateName;
+    }
+
+    if (name == null) {
       System.err.println("WARNING: skipping emission of unnamed struct \"" + structType + "\"");
       return;
     }
 
-    if (cfg.shouldIgnore(structType.getName())) {
+    if (cfg.shouldIgnore(name)) {
       return;
     }
 
     Type containingCType = canonicalize(new PointerType(machDesc.pointerSizeInBytes(), structType, 0));
     JavaType containingType = typeToJavaType(containingCType, false);
+    if (!containingType.isCompoundTypeWrapper()) {
+      return;
+    }
     String containingTypeName = containingType.getName();
 
     boolean needsNativeCode = false;
@@ -473,7 +481,7 @@ public class JavaEmitter implements GlueEmitter {
       }
     }
 
-    String structClassPkg = cfg.packageForStruct(structType.getName());
+    String structClassPkg = cfg.packageForStruct(name);
     PrintWriter writer = null;
     PrintWriter cWriter = null;
     try
@@ -534,7 +542,7 @@ public class JavaEmitter implements GlueEmitter {
     for (int i = 0; i < structType.getNumFields(); i++) {
       Field field = structType.getField(i);
       Type fieldType = field.getType();
-      if (!cfg.shouldIgnore(structType.getName() + " " + field.getName())) {
+      if (!cfg.shouldIgnore(name + " " + field.getName())) {
         if (fieldType.isFunctionPointer()) {
           try {
             // Emit method call and associated native code
@@ -566,7 +574,7 @@ public class JavaEmitter implements GlueEmitter {
                            cWriter);
             cEmitter.emit();
           } catch (Exception e) {
-            System.err.println("While processing field " + field + " of type " + structType.getName() + ":");
+            System.err.println("While processing field " + field + " of type " + name + ":");
             throw(e);
           }
         } else if (fieldType.isCompound()) {
@@ -575,7 +583,7 @@ public class JavaEmitter implements GlueEmitter {
           // a name?)
           if (fieldType.getName() == null) {
             throw new RuntimeException("Anonymous structs as fields not supported yet (field \"" +
-                                       field + "\" in type \"" + structType.getName() + "\")");
+                                       field + "\" in type \"" + name + "\")");
           }
         
           writer.println();
@@ -586,7 +594,7 @@ public class JavaEmitter implements GlueEmitter {
 
           // FIXME: add setter by autogenerating "copyTo" for all compound type wrappers
         } else if (fieldType.isArray()) {
-          System.err.println("WARNING: Array fields (field \"" + field + "\" of type \"" + structType.getName() +
+          System.err.println("WARNING: Array fields (field \"" + field + "\" of type \"" + name +
                              "\") not implemented yet");
         } else {
           JavaType javaType = null;
@@ -594,7 +602,7 @@ public class JavaEmitter implements GlueEmitter {
             javaType = typeToJavaType(fieldType, false);
           } catch (Exception e) {
             System.err.println("Error occurred while creating accessor for field \"" +
-                               field.getName() + "\" in type \"" + structType.getName() + "\"");
+                               field.getName() + "\" in type \"" + name + "\"");
             e.printStackTrace();
             throw(e);
           }
@@ -629,10 +637,6 @@ public class JavaEmitter implements GlueEmitter {
             writer.println("  }");
           } else {
             // FIXME
-            String name = structType.getName();
-            if (name == null) {
-              name = structType.toString();
-            }
             System.err.println("WARNING: Complicated fields (field \"" + field + "\" of type \"" + name +
                                "\") not implemented yet");
             //          throw new RuntimeException("Complicated fields (field \"" + field + "\" of type \"" + t +
@@ -663,12 +667,19 @@ public class JavaEmitter implements GlueEmitter {
                                              String bindingJavaClassName,
                                              PrintWriter output) {
     MessageFormat returnValueCapacityFormat = null;         
+    MessageFormat returnValueLengthFormat = null;         
     JavaType javaReturnType = binding.getJavaReturnType();
     if (javaReturnType.isNIOBuffer()) {
       // See whether capacity has been specified
       String capacity = cfg.returnValueCapacity(binding.getName());
       if (capacity != null) {
         returnValueCapacityFormat = new MessageFormat(capacity);
+      }
+    } else if (javaReturnType.isArray()) {
+      // See whether length has been specified
+      String len = cfg.returnValueLength(binding.getName());
+      if (len != null) {
+        returnValueLengthFormat = new MessageFormat(len);
       }
     }
     CMethodBindingEmitter cEmitter;
@@ -685,6 +696,9 @@ public class JavaEmitter implements GlueEmitter {
     }
     if (returnValueCapacityFormat != null) {
       cEmitter.setReturnValueCapacityExpression(returnValueCapacityFormat);
+    }
+    if (returnValueLengthFormat != null) {
+      cEmitter.setReturnValueLengthExpression(returnValueLengthFormat);
     }
     cEmitter.setTemporaryCVariableDeclarations(cfg.temporaryCVariableDeclarations(binding.getName()));
     cEmitter.setTemporaryCVariableAssignments(cfg.temporaryCVariableAssignments(binding.getName()));
@@ -758,12 +772,21 @@ public class JavaEmitter implements GlueEmitter {
               throw new RuntimeException("Arrays of compound types not handled yet");
             }
             // Special cases for known JNI types (in particular for converting jawt.h)
-            if (cType.getName() != null &&
-                cType.getName().equals("jobject")) {
+            if (t.getName() != null &&
+                t.getName().equals("jobject")) {
               return javaType(java.lang.Object.class);
             }
 
-            return JavaType.createForCStruct(cfg.renameJavaType(targetType.getName()));
+            String name = targetType.getName();
+            if (name == null) {
+              // Try containing pointer type for any typedefs
+              name = t.getName();
+              if (name == null) {
+                throw new RuntimeException("Couldn't find a proper type name for pointer type " + t);
+              }
+            }
+
+            return JavaType.createForCStruct(cfg.renameJavaType(name));
           } else {
             throw new RuntimeException("Don't know how to convert pointer/array type \"" +
                                        t + "\"");
@@ -775,15 +798,16 @@ public class JavaEmitter implements GlueEmitter {
           // Get the target type of the target type (targetType was computer earlier
           // as to be a pointer to the target type, so now we need to get its
           // target type)
+          Type bottomType;
           if (targetType.isPointer()) {
             // t is<type>**, targetType is <type>*, we need to get <type>
-            targetType = targetType.asPointer().getTargetType(); 
+            bottomType = targetType.asPointer().getTargetType(); 
           } else {
             // t is<type>[][], targetType is <type>[], we need to get <type>
-            targetType = targetType.asArray().getElementType(); 
+            bottomType = targetType.asArray().getElementType(); 
           }
-          if (targetType.isInt()) {
-            switch (targetType.getSize())
+          if (bottomType.isInt()) {
+            switch (bottomType.getSize())
             {
               case 1:  return javaType(ArrayTypes.byteArrayArrayClass);
               // FIXME: handle 2,4,8-byte int types here
@@ -793,10 +817,13 @@ public class JavaEmitter implements GlueEmitter {
                   "Java type; Currently, the only supported depth=2 " +
                   "pointer/array integer types are \"char**\" and \"char[][]\"");
             }
+          } else if (targetType.isPointer() && (targetType.pointerDepth() == 1)) {
+            // Array of pointers; convert as array of StructAccessors
+            return JavaType.createForCArray(targetType);
           } else {
             throw new RuntimeException(
               "Could not convert C type \"" + t + "\" " +
-              "to appropriate Java type; need to add support for " +
+              "to appropriate Java type; need to add more support for " +
               "depth=2 pointer/array types with non-integral target " +
               "types [debug info: targetType=\"" + targetType + "\"]");            
           }

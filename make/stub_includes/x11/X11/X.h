@@ -10,6 +10,7 @@ typedef unsigned long VisualID;
 typedef XID           Colormap;
 typedef XID           Cursor;
 typedef XID           Drawable;
+typedef XID           Font;
 typedef XID           GContext;
 typedef XID           KeySym;
 typedef XID           Pixmap;

@@ -40,6 +40,8 @@
 package net.java.games.jogl.impl.x11;
 
 import java.awt.Component;
+import java.util.*;
+
 import net.java.games.jogl.*;
 import net.java.games.jogl.impl.*;
 
@@ -48,6 +50,9 @@ public class X11OnscreenGLContext extends X11GLContext {
   private JAWT_DrawingSurface ds;
   private JAWT_DrawingSurfaceInfo dsi;
   private JAWT_X11DrawingSurfaceInfo x11dsi;
+
+  // Variables for pbuffer support
+  List pbuffersToInstantiate = new ArrayList();
 
   public X11OnscreenGLContext(Component component, GLCapabilities capabilities, GLCapabilitiesChooser chooser) {
     super(component, capabilities, chooser);
@@ -75,14 +80,16 @@ public class X11OnscreenGLContext extends X11GLContext {
   }
 
   public boolean canCreatePbufferContext() {
-    // For now say no
-    return false;
+    // FIXME: should we gate this on GLX 1.3 being available?
+    return true;
   }
 
   public synchronized GLContext createPbufferContext(GLCapabilities capabilities,
                                                      int initialWidth,
                                                      int initialHeight) {
-    throw new GLException("Not yet supported");
+    X11PbufferGLContext ctx = new X11PbufferGLContext(capabilities, initialWidth, initialHeight);
+    pbuffersToInstantiate.add(ctx);
+    return ctx;
   }
 
   public void bindPbufferToTexture() {
@@ -98,7 +105,16 @@ public class X11OnscreenGLContext extends X11GLContext {
       if (!lockSurface()) {
         return false;
       }
-      return super.makeCurrent(initAction);
+      boolean ret = super.makeCurrent(initAction);
+      if (ret) {
+        // Instantiate any pending pbuffers
+        while (!pbuffersToInstantiate.isEmpty()) {
+          X11PbufferGLContext ctx =
+            (X11PbufferGLContext) pbuffersToInstantiate.remove(pbuffersToInstantiate.size() - 1);
+          ctx.createPbuffer(display, context);
+        }
+      }
+      return ret;
     } catch (RuntimeException e) {
       try {
         unlockSurface();

@@ -95,8 +95,13 @@ public class DebugEmitter implements GlueEmitter {
                            TypeDictionary structDictionary,
                            Map            canonMap) {
   }
-  public void emitStruct(CompoundType t) {
-    System.out.println("Referenced type \"" + t.getName() + "\"");
+  public void emitStruct(CompoundType t, String alternateName) {
+    String name = t.getName();
+    if (name == null && alternateName != null) {
+      name = alternateName;
+    }
+
+    System.out.println("Referenced type \"" + name + "\"");
   }
   public void endStructs() {}
 }

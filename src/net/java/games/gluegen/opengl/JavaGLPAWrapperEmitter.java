@@ -50,10 +50,12 @@ public class JavaGLPAWrapperEmitter extends JavaMethodBindingImplEmitter
     new WrappedMethodCommentEmitter();
 
   private JavaMethodBindingEmitter emitterBeingWrapped;
+  private String getProcAddressTableExpr;
   
-  public JavaGLPAWrapperEmitter(JavaMethodBindingEmitter methodToWrap)
+  public JavaGLPAWrapperEmitter(JavaMethodBindingEmitter methodToWrap, String getProcAddressTableExpr)
   {    
     super(methodToWrap.getBinding(), methodToWrap.getDefaultOutput(), methodToWrap.getRuntimeExceptionType());
+    this.getProcAddressTableExpr = getProcAddressTableExpr;
 
     if (methodToWrap.getBinding().hasContainingType())
     {
@@ -119,6 +121,9 @@ public class JavaGLPAWrapperEmitter extends JavaMethodBindingImplEmitter
 
     // Now make our binding use the original access of the wrapped method
     this.addModifier(origAccess);
+    if (emitterBeingWrapped.hasModifier(STATIC)) {
+      this.addModifier(STATIC);
+    }
   }
 
   protected boolean needsBody() {
@@ -152,9 +157,7 @@ public class JavaGLPAWrapperEmitter extends JavaMethodBindingImplEmitter
     String procAddressVariable =
       GLEmitter.PROCADDRESS_VAR_PREFIX + wrappedBinding.getName();
 
-    writer.print("    final long addr = context.getGLProcAddressTable().");
-    writer.print(procAddressVariable);    
-    writer.println(';');    
+    writer.println("    final long addr = " + getProcAddressTableExpr + "." + procAddressVariable + ";");
     writer.println("    if (addr == 0) {");
     writer.println("      throw new GLException(\"Method \\\"" + binding.getName() + "\\\" not available\");");
     writer.println("    }");

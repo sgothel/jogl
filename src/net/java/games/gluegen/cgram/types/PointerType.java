@@ -100,6 +100,10 @@ public class PointerType extends Type {
     }
   }
 
+  public boolean hasTypedefedName() {
+    return hasTypedefedName;
+  }
+
   public PointerType asPointer() { return this; }
 
   public Type getTargetType() { return targetType; }

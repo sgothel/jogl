@@ -122,7 +122,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
   }
 
   protected String getReturnTypeString(boolean skipArray) {
-    if (skipArray || getReturnedArrayLengthExpression() == null) {
+    if (skipArray || (getReturnedArrayLengthExpression() == null && !binding.getJavaReturnType().isArrayOfCompoundTypeWrappers())) {
       return binding.getJavaReturnType().getName();
     }
     return binding.getJavaReturnType().getName() + "[]";

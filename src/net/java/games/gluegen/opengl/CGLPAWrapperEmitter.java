@@ -68,6 +68,15 @@ public class CGLPAWrapperEmitter extends CMethodBindingEmitter
       methodToWrap.getIsJavaMethodStatic(),
       methodToWrap.getDefaultOutput()
       );
+
+    if (methodToWrap.getReturnValueCapacityExpression() != null) {
+      setReturnValueCapacityExpression(methodToWrap.getReturnValueCapacityExpression());
+    }
+    if (methodToWrap.getReturnValueLengthExpression() != null) {
+      setReturnValueLengthExpression(methodToWrap.getReturnValueLengthExpression());
+    }
+    setTemporaryCVariableDeclarations(methodToWrap.getTemporaryCVariableDeclarations());
+    setTemporaryCVariableAssignments (methodToWrap.getTemporaryCVariableAssignments ());
     
     setCommentEmitter(defaultCommentEmitter);
   }
@@ -190,6 +199,13 @@ public class CGLPAWrapperEmitter extends CMethodBindingEmitter
       }
     }
     writer.println(");");
+  }
+
+  protected String jniMangle(MethodBinding binding) {
+    StringBuffer buf = new StringBuffer();
+    buf.append(super.jniMangle(binding));
+    jniMangle(Long.TYPE, buf);
+    return buf.toString();
   }
 
   /** This class emits the comment for the wrapper method */

@@ -39,6 +39,10 @@
 
 package net.java.games.gluegen;
 
+import java.nio.*;
+
+import net.java.games.gluegen.cgram.types.*;
+
 /**
  * Describes a java-side representation of a type that is used to represent
  * the same data on both the Java-side and C-side during a JNI operation. Also
@@ -47,8 +51,10 @@ package net.java.games.gluegen;
 public class JavaType {
   private Class  clazz; // Primitive types and other types representable as Class objects
   private String name;  // Types we're generating glue code for (i.e., C structs)
+  private Type   elementType; // Element type if this JavaType represents a C array
   private static JavaType nioBufferType;
   private static JavaType nioByteBufferType;
+  private static JavaType nioByteBufferArrayType;
 
   public boolean equals(Object arg) {
     if ((arg == null) || (!(arg instanceof JavaType))) {
@@ -70,12 +76,26 @@ public class JavaType {
     return clazz.hashCode();
   }
 
+  /** Creates a JavaType corresponding to the given Java type. This
+      can be used to represent arrays of primitive values or Strings;
+      the emitters understand how to perform proper conversion from
+      the corresponding C type. */
   public static JavaType createForClass(Class clazz) {
     return new JavaType(clazz);
   }
 
+  /** Creates a JavaType corresponding to the specified C CompoundType
+      name; for example, if "Foo" is supplied, then this JavaType
+      represents a "Foo *" by way of a StructAccessor. */
   public static JavaType createForCStruct(String name) {
     return new JavaType(name);
+  }
+
+  /** Creates a JavaType corresponding to an array of the given
+      element type. This is used to represent arrays of "Foo **" which
+      should be mapped to Foo[] in Java. */
+  public static JavaType createForCArray(Type elementType) {
+    return new JavaType(elementType);
   }
 
   public static JavaType createForVoidPointer() {
@@ -100,6 +120,14 @@ public class JavaType {
     return nioByteBufferType;
   }
 
+  public static JavaType forNIOByteBufferArrayClass() {
+    if (nioByteBufferArrayType == null) {
+      ByteBuffer[] tmp = new ByteBuffer[0];
+      nioByteBufferArrayType = createForClass(tmp.getClass());
+    }
+    return nioByteBufferArrayType;
+  }
+
   /**
    * Returns the Java Class corresponding to this type. Returns null if this
    * object corresponds to a C "void*" type.
@@ -118,6 +146,9 @@ public class JavaType {
         return arrayName(clazz);
       }
       return clazz.getName();
+    }
+    if (elementType != null) {
+      return elementType.getName();
     }
     return name;
   }
@@ -150,6 +181,10 @@ public class JavaType {
         // Type is array-of-string
         return "jobjectArray /*elements are String*/";
         //return "jobjectArray";
+      }
+      else if (elementType == java.nio.ByteBuffer.class)
+      {
+        return "jobjectArray /*elements are ByteBuffer*/";
       }
       else if (elementType.isArray())
       {
@@ -189,6 +224,10 @@ public class JavaType {
     return (clazz == java.nio.ByteBuffer.class);
   }
 
+  public boolean isNIOByteBufferArray() {
+    return (this == nioByteBufferArrayType);
+  }
+
   public boolean isString() {
     return (clazz == java.lang.String.class);
   }
@@ -205,17 +244,16 @@ public class JavaType {
     return (clazz == Void.TYPE);
   }
 
-  public boolean isObjectType() {
-    // FIXME: what about char* -> String conversion?
-    return (isNIOBuffer() || isArray());
-  }
-
   public boolean isCompoundTypeWrapper() {
     return (clazz == null && name != null && !isJNIEnv());
   }
   
+  public boolean isArrayOfCompoundTypeWrappers() {
+    return (elementType != null);
+  }
+  
   public boolean isVoidPointerType() {
-    return (clazz == null && name == null);
+    return (clazz == null && name == null && elementType == null);
   }
 
   public boolean isJNIEnv() {
@@ -250,6 +288,11 @@ public class JavaType {
   /** Constructs a type representing a named C struct. */
   private JavaType(String name) {
     this.name = name;
+  }
+
+  /** Constructs a type representing an array of C pointers. */
+  private JavaType(Type elementType) {
+    this.elementType = elementType;
   }
 
   /**

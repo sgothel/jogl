@@ -156,6 +156,7 @@ GG_JAVAFILES = \
 	$(GLUEGEN_DIR)/StructLayout.java \
 	$(GLUEGEN_DIR)/TypeInfo.java \
 	$(GLUEGEN_DIR)/runtime/BufferFactory.java \
+	$(GLUEGEN_DIR)/runtime/ProcAddressHelper.java \
 	$(GLUEGEN_DIR)/runtime/StructAccessor.java \
 	$(GLUEGEN_DIR)/opengl/ConvertFromGL4Java.java \
 	$(GLUEGEN_DIR)/opengl/CGLPAWrapperEmitter.java \
@@ -394,6 +395,7 @@ JOGL_JAVAFILES_WINDOWS = \
 JOGL_GENERATED_JAVAFILES_WINDOWS = \
 	$(GENSRC_JOGL_IMPL_DIR)/windows/BITMAPINFO.java \
 	$(GENSRC_JOGL_IMPL_DIR)/windows/BITMAPINFOHEADER.java \
+	$(GENSRC_JOGL_IMPL_DIR)/windows/GLProcAddressTable.java \
 	$(GENSRC_JOGL_IMPL_DIR)/windows/JAWT_Win32DrawingSurfaceInfo.java \
 	$(GENSRC_JOGL_IMPL_DIR)/windows/PIXELFORMATDESCRIPTOR.java \
 	$(GENSRC_JOGL_IMPL_DIR)/windows/RGBQUAD.java \
@@ -408,12 +410,17 @@ JOGL_JAVAFILES_X11 = \
 	$(JOGL_IMPL_DIR)/x11/X11GLContext.java \
 	$(JOGL_IMPL_DIR)/x11/X11GLContextFactory.java \
 	$(JOGL_IMPL_DIR)/x11/X11OnscreenGLContext.java \
-	$(JOGL_IMPL_DIR)/x11/X11OffscreenGLContext.java
+	$(JOGL_IMPL_DIR)/x11/X11OffscreenGLContext.java \
+	$(JOGL_IMPL_DIR)/x11/X11PbufferGLContext.java
 
 JOGL_GENERATED_JAVAFILES_X11 = \
+	$(GENSRC_JOGL_IMPL_DIR)/x11/GLProcAddressTable.java \
 	$(GENSRC_JOGL_IMPL_DIR)/x11/GLX.java \
+	$(GENSRC_JOGL_IMPL_DIR)/x11/GLXFBConfig.java \
+	$(GENSRC_JOGL_IMPL_DIR)/x11/GLXProcAddressTable.java \
 	$(GENSRC_JOGL_IMPL_DIR)/x11/JAWT_X11DrawingSurfaceInfo.java \
-	$(GENSRC_JOGL_IMPL_DIR)/x11/X11GLImpl.java
+	$(GENSRC_JOGL_IMPL_DIR)/x11/X11GLImpl.java \
+	$(GENSRC_JOGL_IMPL_DIR)/x11/XVisualInfo.java
 
 JOGL_GENERATED_CFILES_X11 = \
 	$(GENSRC_GL_NATIVE_DIR)/GLX_JNI.c \
@@ -429,6 +436,7 @@ JOGL_JAVAFILES_MACOSX = \
 
 JOGL_GENERATED_JAVAFILES_MACOSX = \
 	$(GENSRC_JOGL_IMPL_DIR)/macosx/CGL.java \
+	$(GENSRC_JOGL_IMPL_DIR)/macosx/GLProcAddressTable.java \
 	$(GENSRC_JOGL_IMPL_DIR)/macosx/JAWT_MacOSXDrawingSurfaceInfo.java \
 	$(GENSRC_JOGL_IMPL_DIR)/macosx/MacOSXGLImpl.java
 
@@ -478,7 +486,7 @@ JOGL_GENERATED_CFILES_PD=$(JOGL_GENERATED_CFILES_WINDOWS)
 GL_DEFINES=/D "JOGL_EXPORTS" $(DEFINES) 
 GL_INCLUDES=/I"$(JOGL_STUB_INCLUDES_DIR_OPENGL)" $(INCLUDES)
 GL_C_BUILD_OBJ_CMD=$(CC) /c $< $(CFLAGS) $(GL_INCLUDES) $(GL_DEFINES) /Fo"$@" 
-JOGL_DSO_LINK_ADDITIONAL_LIBS=opengl32.lib glu32.lib jawt.lib gdi32.lib
+JOGL_DSO_LINK_ADDITIONAL_LIBS=opengl32.lib glu32.lib jawt.lib gdi32.lib kernel32.lib
 GL_LINKFLAGS=$(LINKFLAGS) $(JOGL_DSO_LINK_ADDITIONAL_LIBS)
 GL_C_LINK_DSO_CMD=$(LINK) /OUT:"$@" $(GL_LINKFLAGS)
 endif # WIN32
@@ -551,16 +559,15 @@ JOGL_GENERATED_JAVAFILES = \
 	$(GENSRC_JOGL_DIR)/WGL.java \
 	$(GENSRC_JOGL_DIR)/GLX.java \
 	$(GENSRC_JOGL_DIR)/CGL.java \
-	$(GENSRC_JOGL_DIR)/XVisualInfo.java \
 	$(GENSRC_JOGL_GLU_DIR)/GLU.java \
 	$(GENSRC_JOGL_GLU_DIR)/GLUquadric.java \
 	$(GENSRC_JOGL_GLU_IMPL_DIR)/GLUImpl.java \
+	$(GENSRC_JOGL_GLU_IMPL_DIR)/GLUProcAddressTable.java \
 	$(GENSRC_JOGL_IMPL_DIR)/JAWT.java \
 	$(GENSRC_JOGL_IMPL_DIR)/JAWTFactory.java \
 	$(GENSRC_JOGL_IMPL_DIR)/JAWT_DrawingSurface.java \
 	$(GENSRC_JOGL_IMPL_DIR)/JAWT_DrawingSurfaceInfo.java \
 	$(GENSRC_JOGL_IMPL_DIR)/JAWT_Rectangle.java \
-	$(GENSRC_JOGL_IMPL_DIR)/ProcAddressTable.java \
 	$(GENSRC_JOGL_IMPL_DIR)/StaticGLInfo.java \
 	$(JOGL_GENERATED_JAVAFILES_PD)
 
@@ -878,7 +885,7 @@ $(JOGL_GENERATED_JAVAFILES) $(JOGL_GENERATED_CFILES) : $(JOGL_STUB_INCLUDES_PD) 
 	$(JAVA) -cp "$(CLASSES_DIR)$(CP_SEPARATOR)$(CLASSPATH)" net.java.games.gluegen.GlueGen -Enet.java.games.gluegen.JavaEmitter -C$(JOGL_JAWT_CFG) $(JOGL_GLUEGEN_INCLUDES) -I"$(JAVA_INCLUDE_PATH)" "$(JAVA_INCLUDE_PATH_PD)/jawt_md.h"
 
 # generate WGL/GLX/CGL implementation class
-	$(JAVA) -cp "$(CLASSES_DIR)$(CP_SEPARATOR)$(CLASSPATH)" net.java.games.gluegen.GlueGen -Enet.java.games.gluegen.JavaEmitter -C$(JOGL_WINDOW_SYSTEM_CFG) $(JOGL_GLUEGEN_INCLUDES) -I$(JOGL_STUB_INCLUDES_DIR_OPENGL) $(JOGL_STUB_INCLUDES_DIR_PD)/window-system.c
+	$(JAVA) -cp "$(CLASSES_DIR)$(CP_SEPARATOR)$(CLASSPATH)" net.java.games.gluegen.GlueGen -Enet.java.games.gluegen.opengl.GLEmitter -C$(JOGL_WINDOW_SYSTEM_CFG) $(JOGL_GLUEGEN_INCLUDES) -I$(JOGL_STUB_INCLUDES_DIR_OPENGL) $(JOGL_STUB_INCLUDES_DIR_PD)/window-system.c
 
 # generate StaticGLInfo class
 	$(JAVA) -cp "$(CLASSES_DIR)$(CP_SEPARATOR)$(CLASSPATH)" net.java.games.gluegen.opengl.BuildStaticGLInfo net.java.games.jogl.impl $(GENSRC_JOGL_IMPL_DIR) $(JOGL_HEADERS)

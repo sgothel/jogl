@@ -1,3 +1,6 @@
+#ifndef _XUTIL_H_
+#define _XUTIL_H_
+
 #include <X11/X.h>
 #include <X11/Xlib.h>
 
@@ -30,3 +33,5 @@ typedef struct {
 #define VisualColormapSizeMask	0x80
 #define VisualBitsPerRGBMask	0x100
 #define VisualAllMask		0x1FF
+
+#endif /* #defined _XUTIL_H_ */

@@ -119,6 +119,10 @@ public class WindowsPbufferGLContext extends WindowsGLContext {
 
   public void createPbuffer(long parentHdc, long parentHglrc) {
     GL gl = getGL();
+    // Must initally grab OpenGL function pointers while parent's
+    // context is current because otherwise we don't have the wgl
+    // extensions available to us
+    resetGLFunctionAvailability();
     
     int[]   iattributes = new int  [2*MAX_ATTRIBS];
     float[] fattributes = new float[2*MAX_ATTRIBS];

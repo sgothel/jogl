@@ -41,7 +41,7 @@ package net.java.games.jogl.impl.x11;
 
 import java.awt.Component;
 import java.util.*;
-import net.java.games.gluegen.opengl.*; // for PROCADDRESS_VAR_PREFIX
+import net.java.games.gluegen.runtime.*; // for PROCADDRESS_VAR_PREFIX
 import net.java.games.jogl.*;
 import net.java.games.jogl.impl.*;
 
@@ -53,6 +53,11 @@ public abstract class X11GLContext extends GLContext {
   private boolean glXQueryExtensionsStringInitialized;
   private boolean glXQueryExtensionsStringAvailable;
   private static final Map/*<String, String>*/ functionNameMap;
+  private boolean isGLX13;
+  // Table that holds the addresses of the native C-language entry points for
+  // OpenGL functions.
+  private GLProcAddressTable glProcAddressTable;
+  private static boolean haveResetGLXProcAddressTable;
 
   static {
     functionNameMap = new HashMap();
@@ -105,6 +110,14 @@ public abstract class X11GLContext extends GLContext {
    */
   protected abstract void create();
   
+  public boolean isExtensionAvailable(String glExtensionName) {
+    if (glExtensionName.equals("GL_ARB_pbuffer") ||
+        glExtensionName.equals("GL_ARB_pixel_format")) {
+      return isGLX13;
+    }
+    return super.isExtensionAvailable(glExtensionName);
+  }
+
   protected synchronized boolean makeCurrent(Runnable initAction) throws GLException {
     boolean created = false;
     if (context == 0) {
@@ -140,72 +153,44 @@ public abstract class X11GLContext extends GLContext {
 
   protected abstract void swapBuffers() throws GLException;
 
+  protected long dynamicLookupFunction(String glFuncName) {
+    long res = GLX.glXGetProcAddressARB(glFuncName);
+    if (res == 0) {
+      // GLU routines aren't known to the OpenGL function lookup
+      res = GLX.dlsym(glFuncName);
+    }
+    return res;
+  }
 
   protected void resetGLFunctionAvailability() {
     super.resetGLFunctionAvailability();
-    resetGLProcAddressTable();
-  }
-  
-  protected void resetGLProcAddressTable() {    
-    
     if (DEBUG) {
       System.err.println("!!! Initializing OpenGL extension address table");
     }
+    resetProcAddressTable(getGLProcAddressTable());
 
-    net.java.games.jogl.impl.ProcAddressTable table = getGLProcAddressTable();
-    
-    // if GL is no longer an interface, we'll have to re-implement the code
-    // below so it only iterates through gl methods (a non-interface might
-    // have constructors, custom methods, etc). For now we assume all methods
-    // will be gl methods.
-    GL gl = getGL();
-
-    Class tableClass = table.getClass();
-    
-    java.lang.reflect.Field[] fields = tableClass.getDeclaredFields();
-    
-    for (int i = 0; i < fields.length; ++i) {
-      String addressFieldName = fields[i].getName();
-      if (!addressFieldName.startsWith(GLEmitter.PROCADDRESS_VAR_PREFIX))
-      {
-        // not a proc address variable
-        continue;
-      }
-      int startOfMethodName = GLEmitter.PROCADDRESS_VAR_PREFIX.length();
-      String glFuncName = addressFieldName.substring(startOfMethodName);
-      try
-      {
-        java.lang.reflect.Field addressField = tableClass.getDeclaredField(addressFieldName);
-        assert(addressField.getType() == Long.TYPE);
-        // get the current value of the proc address variable in the table object
-        long oldProcAddress = addressField.getLong(table); 
-        long newProcAddress = GLX.glXGetProcAddressARB(glFuncName);
-        /*
-        System.err.println(
-          "!!!   Address=" + (newProcAddress == 0 
-                        ? "<NULL>    "
-                        : ("0x" +
-                           Long.toHexString(newProcAddress))) +
-          "\tGL func: " + glFuncName);
-        */
-        // set the current value of the proc address variable in the table object
-        addressField.setLong(gl, newProcAddress); 
-      } catch (Exception e) {
-        throw new GLException(
-          "Cannot get GL proc address for method \"" +
-          glFuncName + "\": Couldn't get value of field \"" + addressFieldName +
-          "\" in class " + tableClass.getName(), e);
-      }
+    if (!haveResetGLXProcAddressTable) {
+      resetProcAddressTable(GLX.getGLXProcAddressTable());
     }
 
+    // Figure out whether we are running GLX version 1.3 or above and
+    // therefore have pbuffer support
+    if (display == 0) {
+      throw new GLException("Expected non-null DISPLAY for querying GLX version");
+    }
+    int[] major = new int[1];
+    int[] minor = new int[1];
+    if (!GLX.glXQueryVersion(display, major, minor)) {
+      throw new GLException("glXQueryVersion failed");
+    }
+    isGLX13 = ((major[0] > 1) || (minor[0] > 2));
   }
   
-  public net.java.games.jogl.impl.ProcAddressTable getGLProcAddressTable() {
+  public GLProcAddressTable getGLProcAddressTable() {
     if (glProcAddressTable == null) {
       // FIXME: cache ProcAddressTables by capability bits so we can
       // share them among contexts with the same capabilities
-      glProcAddressTable =
-        new net.java.games.jogl.impl.ProcAddressTable();
+      glProcAddressTable = new GLProcAddressTable();
     }          
     return glProcAddressTable;
   }
@@ -244,10 +229,6 @@ public abstract class X11GLContext extends GLContext {
   //----------------------------------------------------------------------
   // Internals only below this point
   //
-
-  // Table that holds the addresses of the native C-language entry points for
-  // OpenGL functions.
-  private net.java.games.jogl.impl.ProcAddressTable glProcAddressTable;
 
   protected JAWT getJAWT() {
     if (jawt == null) {

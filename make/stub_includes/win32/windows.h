@@ -20,6 +20,7 @@ typedef HANDLE              HBITMAP;
 typedef HANDLE              HDC;
 typedef HANDLE              HGDIOBJ;
 typedef HANDLE              HGLRC;
+typedef HANDLE              HMODULE;
 typedef HANDLE              HPALETTE;
 typedef HANDLE              HWND;
 typedef long                LONG;

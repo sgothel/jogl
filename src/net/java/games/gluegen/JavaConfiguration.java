@@ -105,6 +105,7 @@ public class JavaConfiguration {
   private List/*<String>*/ forcedStructs = new ArrayList();
   private Map/*<String,List<Integer>>*/ mirroredArgs = new HashMap(); 
   private Map/*<String, String>*/ returnValueCapacities = new HashMap(); 
+  private Map/*<String, String>*/ returnValueLengths = new HashMap(); 
   private Map/*<String, List<String>>*/ temporaryCVariableDeclarations = new HashMap();
   private Map/*<String, List<String>>*/ temporaryCVariableAssignments = new HashMap();
   private Map/*<String,List<String>>*/ extendedInterfaces = new HashMap();
@@ -288,7 +289,9 @@ public class JavaConfiguration {
 
   /** Provides a Java MessageFormat expression indicating the number
       of elements in the returned array from the specified function
-      name as defined by the ReturnsArray directive. */
+      name. Indicates that the given return value, which must be a
+      pointer to a CompoundType, is actually an array of the
+      CompoundType rather than a pointer to a single object. */
   public String returnedArrayLength(String functionName) {
     return (String) returnedArrayLengths.get(functionName);
   }
@@ -376,6 +379,13 @@ public class JavaConfiguration {
       native method, or null if no expression has been specified. */
   public String returnValueCapacity(String functionName) {
     return (String) returnValueCapacities.get(functionName);
+  }
+
+  /** Returns a MessageFormat string of the C expression calculating
+      the length of the array being returned from a native method, or
+      null if no expression has been specified. */
+  public String returnValueLength(String functionName) {
+    return (String) returnValueLengths.get(functionName);
   }
 
   /** Returns a List of Strings of expressions declaring temporary C
@@ -582,6 +592,10 @@ public class JavaConfiguration {
       readReturnValueCapacity(tok, filename, lineNo);
       // Warning: make sure delimiters are reset at the top of this loop
       // because ReturnValueCapacity changes them.
+    } else if (cmd.equalsIgnoreCase("ReturnValueLength")) {
+      readReturnValueLength(tok, filename, lineNo);
+      // Warning: make sure delimiters are reset at the top of this loop
+      // because ReturnValueLength changes them.
     } else if (cmd.equalsIgnoreCase("Include")) {
       doInclude(tok, file, filename, lineNo);
     } else if (cmd.equalsIgnoreCase("IncludeAs")) {
@@ -922,6 +936,18 @@ public class JavaConfiguration {
       returnValueCapacities.put(functionName, restOfLine);
     } catch (NoSuchElementException e) {
       throw new RuntimeException("Error parsing \"ReturnValueCapacity\" command at line " + lineNo +
+        " in file \"" + filename + "\"", e);
+    }
+  }
+
+  protected void readReturnValueLength(StringTokenizer tok, String filename, int lineNo) {
+    try {
+      String functionName = tok.nextToken();
+      String restOfLine = tok.nextToken("\n\r\f");
+      restOfLine = restOfLine.trim();
+      returnValueLengths.put(functionName, restOfLine);
+    } catch (NoSuchElementException e) {
+      throw new RuntimeException("Error parsing \"ReturnValueLength\" command at line " + lineNo +
         " in file \"" + filename + "\"", e);
     }
   }

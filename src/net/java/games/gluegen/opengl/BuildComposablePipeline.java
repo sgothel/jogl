@@ -209,7 +209,7 @@ public class BuildComposablePipeline
     {
       output.print("  public ");
       output.print(' ');
-      output.print(m.getReturnType().getName());
+      output.print(JavaType.createForClass(m.getReturnType()).getName());
       output.print(' ');
       output.print(m.getName());
       output.print('(');

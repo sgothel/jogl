@@ -241,20 +241,35 @@ public class GlueGen implements GlueEmitterControls {
           System.err.println("WARNING: during forced struct emission: type \"" + name + "\" was not a struct");
         } else {
           type.visit(referencedStructs);
-      }
+        }
       }
       
       // Lay out structs
       emit.beginStructLayout();
       for (Iterator iter = referencedStructs.results(); iter.hasNext(); ) {
-        emit.layoutStruct((CompoundType) iter.next());
+        Type t = (Type) iter.next();
+        if (t.isCompound()) {
+          emit.layoutStruct(t.asCompound());
+        } else if (t.isPointer()) {
+          PointerType p = t.asPointer();
+          CompoundType c = p.getTargetType().asCompound();
+          emit.layoutStruct(c);
+        }
       }
       emit.endStructLayout();
 
       // Emit structs      
       emit.beginStructs(td, sd, headerParser.getCanonMap());
       for (Iterator iter = referencedStructs.results(); iter.hasNext(); ) {
-        emit.emitStruct((CompoundType) iter.next());
+        Type t = (Type) iter.next();
+        if (t.isCompound()) {
+          emit.emitStruct(t.asCompound(), null);
+        } else if (t.isPointer()) {
+          PointerType p = t.asPointer();
+          CompoundType c = p.getTargetType().asCompound();
+          assert p.hasTypedefedName() && c.getName() == null : "ReferencedStructs incorrectly recorded pointer type " + p;
+          emit.emitStruct(c, p.getName());
+        }
       }
       emit.endStructs();
 

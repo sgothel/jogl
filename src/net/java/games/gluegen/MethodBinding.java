@@ -174,7 +174,8 @@ public class MethodBinding {
   public boolean        needsBody() {
     if (!computedNeedsBody) {
       if (javaReturnType.isCompoundTypeWrapper() ||
-          javaReturnType.isNIOByteBuffer()) {
+          javaReturnType.isNIOByteBuffer() ||
+          javaReturnType.isArrayOfCompoundTypeWrappers()) {
         // Needs wrapping and/or setting of byte order (neither of
         // which can be done easily from native code)
         needsBody = true;
@@ -204,6 +205,8 @@ public class MethodBinding {
     binding.thisPointerIndex = thisPointerIndex;
     if (javaReturnType.isCompoundTypeWrapper()) {
       binding.setJavaReturnType(JavaType.forNIOByteBufferClass());
+    } else if (javaReturnType.isArrayOfCompoundTypeWrappers()) {
+      binding.setJavaReturnType(JavaType.forNIOByteBufferArrayClass());
     } else {
       binding.setJavaReturnType(javaReturnType);
     }

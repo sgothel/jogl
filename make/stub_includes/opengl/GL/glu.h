@@ -330,6 +330,67 @@ GLAPI void GLAPIENTRY gluTessVertex (GLUtesselator* tess, GLdouble *location, GL
 GLAPI GLint GLAPIENTRY gluUnProject (GLdouble winX, GLdouble winY, GLdouble winZ, const GLdouble *model, const GLdouble *proj, const GLint *view, GLdouble* objX, GLdouble* objY, GLdouble* objZ);
 GLAPI GLint GLAPIENTRY gluUnProject4 (GLdouble winX, GLdouble winY, GLdouble winZ, GLdouble clipW, const GLdouble *model, const GLdouble *proj, const GLint *view, GLdouble nearVal, GLdouble farVal, GLdouble* objX, GLdouble* objY, GLdouble* objZ, GLdouble* objW);
 
+
+typedef void (GLAPIENTRY * PFNGLUBEGINCURVEPROC) (GLUnurbs* nurb);
+typedef void (GLAPIENTRY * PFNGLUBEGINPOLYGONPROC) (GLUtesselator* tess);
+typedef void (GLAPIENTRY * PFNGLUBEGINSURFACEPROC) (GLUnurbs* nurb);
+typedef void (GLAPIENTRY * PFNGLUBEGINTRIMPROC) (GLUnurbs* nurb);
+typedef GLint (GLAPIENTRY * PFNGLUBUILD1DMIPMAPLEVELSPROC) (GLenum target, GLint internalFormat, GLsizei width, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *data);
+typedef GLint (GLAPIENTRY * PFNGLUBUILD1DMIPMAPSPROC) (GLenum target, GLint internalFormat, GLsizei width, GLenum format, GLenum type, const void *data);
+typedef GLint (GLAPIENTRY * PFNGLUBUILD2DMIPMAPLEVELSPROC) (GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *data);
+typedef GLint (GLAPIENTRY * PFNGLUBUILD2DMIPMAPSPROC) (GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *data);
+typedef GLint (GLAPIENTRY * PFNGLUBUILD3DMIPMAPLEVELSPROC) (GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *data);
+typedef GLint (GLAPIENTRY * PFNGLUBUILD3DMIPMAPSPROC) (GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *data);
+typedef GLboolean (GLAPIENTRY * PFNGLUCHECKEXTENSIONPROC) (const GLubyte *extName, const GLubyte *extString);
+typedef void (GLAPIENTRY * PFNGLUCYLINDERPROC) (GLUquadric* quad, GLdouble base, GLdouble top, GLdouble height, GLint slices, GLint stacks);
+typedef void (GLAPIENTRY * PFNGLUDELETENURBSRENDERERPROC) (GLUnurbs* nurb);
+typedef void (GLAPIENTRY * PFNGLUDELETEQUADRICPROC) (GLUquadric* quad);
+typedef void (GLAPIENTRY * PFNGLUDELETETESSPROC) (GLUtesselator* tess);
+typedef void (GLAPIENTRY * PFNGLUDISKPROC) (GLUquadric* quad, GLdouble inner, GLdouble outer, GLint slices, GLint loops);
+typedef void (GLAPIENTRY * PFNGLUENDCURVEPROC) (GLUnurbs* nurb);
+typedef void (GLAPIENTRY * PFNGLUENDPOLYGONPROC) (GLUtesselator* tess);
+typedef void (GLAPIENTRY * PFNGLUENDSURFACEPROC) (GLUnurbs* nurb);
+typedef void (GLAPIENTRY * PFNGLUENDTRIMPROC) (GLUnurbs* nurb);
+typedef const GLubyte * (GLAPIENTRY * PFNGLUERRORSTRINGPROC) (GLenum error);
+typedef void (GLAPIENTRY * PFNGLUGETNURBSPROPERTYPROC) (GLUnurbs* nurb, GLenum property, GLfloat* data);
+typedef const GLubyte * (GLAPIENTRY * PFNGLUGETSTRINGPROC) (GLenum name);
+typedef void (GLAPIENTRY * PFNGLUGETTESSPROPERTYPROC) (GLUtesselator* tess, GLenum which, GLdouble* data);
+typedef void (GLAPIENTRY * PFNGLULOADSAMPLINGMATRICESPROC) (GLUnurbs* nurb, const GLfloat *model, const GLfloat *perspective, const GLint *view);
+typedef void (GLAPIENTRY * PFNGLULOOKATPROC) (GLdouble eyeX, GLdouble eyeY, GLdouble eyeZ, GLdouble centerX, GLdouble centerY, GLdouble centerZ, GLdouble upX, GLdouble upY, GLdouble upZ);
+typedef GLUnurbs* (GLAPIENTRY * PFNGLUNEWNURBSRENDERERPROC) (void);
+typedef GLUquadric* (GLAPIENTRY * PFNGLUNEWQUADRICPROC) (void);
+typedef GLUtesselator* (GLAPIENTRY * PFNGLUNEWTESSPROC) (void);
+typedef void (GLAPIENTRY * PFNGLUNEXTCONTOURPROC) (GLUtesselator* tess, GLenum type);
+typedef void (GLAPIENTRY * PFNGLUNURBSCALLBACKPROC) (GLUnurbs* nurb, GLenum which, _GLUfuncptr CallBackFunc);
+typedef void (GLAPIENTRY * PFNGLUNURBSCALLBACKDATAPROC) (GLUnurbs* nurb, GLvoid* userData);
+typedef void (GLAPIENTRY * PFNGLUNURBSCALLBACKDATAEXTPROC) (GLUnurbs* nurb, GLvoid* userData);
+typedef void (GLAPIENTRY * PFNGLUNURBSCURVEPROC) (GLUnurbs* nurb, GLint knotCount, GLfloat *knots, GLint stride, GLfloat *control, GLint order, GLenum type);
+typedef void (GLAPIENTRY * PFNGLUNURBSPROPERTYPROC) (GLUnurbs* nurb, GLenum property, GLfloat value);
+typedef void (GLAPIENTRY * PFNGLUNURBSSURFACEPROC) (GLUnurbs* nurb, GLint sKnotCount, GLfloat* sKnots, GLint tKnotCount, GLfloat* tKnots, GLint sStride, GLint tStride, GLfloat* control, GLint sOrder, GLint tOrder, GLenum type);
+typedef void (GLAPIENTRY * PFNGLUORTHO2DPROC) (GLdouble left, GLdouble right, GLdouble bottom, GLdouble top);
+typedef void (GLAPIENTRY * PFNGLUPARTIALDISKPROC) (GLUquadric* quad, GLdouble inner, GLdouble outer, GLint slices, GLint loops, GLdouble start, GLdouble sweep);
+typedef void (GLAPIENTRY * PFNGLUPERSPECTIVEPROC) (GLdouble fovy, GLdouble aspect, GLdouble zNear, GLdouble zFar);
+typedef void (GLAPIENTRY * PFNGLUPICKMATRIXPROC) (GLdouble x, GLdouble y, GLdouble delX, GLdouble delY, GLint *viewport);
+typedef GLint (GLAPIENTRY * PFNGLUPROJECTPROC) (GLdouble objX, GLdouble objY, GLdouble objZ, const GLdouble *model, const GLdouble *proj, const GLint *view, GLdouble* winX, GLdouble* winY, GLdouble* winZ);
+typedef void (GLAPIENTRY * PFNGLUPWLCURVEPROC) (GLUnurbs* nurb, GLint count, GLfloat* data, GLint stride, GLenum type);
+typedef void (GLAPIENTRY * PFNGLUQUADRICCALLBACKPROC) (GLUquadric* quad, GLenum which, _GLUfuncptr CallBackFunc);
+typedef void (GLAPIENTRY * PFNGLUQUADRICDRAWSTYLEPROC) (GLUquadric* quad, GLenum draw);
+typedef void (GLAPIENTRY * PFNGLUQUADRICNORMALSPROC) (GLUquadric* quad, GLenum normal);
+typedef void (GLAPIENTRY * PFNGLUQUADRICORIENTATIONPROC) (GLUquadric* quad, GLenum orientation);
+typedef void (GLAPIENTRY * PFNGLUQUADRICTEXTUREPROC) (GLUquadric* quad, GLboolean texture);
+typedef GLint (GLAPIENTRY * PFNGLUSCALEIMAGEPROC) (GLenum format, GLsizei wIn, GLsizei hIn, GLenum typeIn, const void *dataIn, GLsizei wOut, GLsizei hOut, GLenum typeOut, GLvoid* dataOut);
+typedef void (GLAPIENTRY * PFNGLUSPHEREPROC) (GLUquadric* quad, GLdouble radius, GLint slices, GLint stacks);
+typedef void (GLAPIENTRY * PFNGLUTESSBEGINCONTOURPROC) (GLUtesselator* tess);
+typedef void (GLAPIENTRY * PFNGLUTESSBEGINPOLYGONPROC) (GLUtesselator* tess, GLvoid* data);
+typedef void (GLAPIENTRY * PFNGLUTESSCALLBACKPROC) (GLUtesselator* tess, GLenum which, _GLUfuncptr CallBackFunc);
+typedef void (GLAPIENTRY * PFNGLUTESSENDCONTOURPROC) (GLUtesselator* tess);
+typedef void (GLAPIENTRY * PFNGLUTESSENDPOLYGONPROC) (GLUtesselator* tess);
+typedef void (GLAPIENTRY * PFNGLUTESSNORMALPROC) (GLUtesselator* tess, GLdouble valueX, GLdouble valueY, GLdouble valueZ);
+typedef void (GLAPIENTRY * PFNGLUTESSPROPERTYPROC) (GLUtesselator* tess, GLenum which, GLdouble data);
+typedef void (GLAPIENTRY * PFNGLUTESSVERTEXPROC) (GLUtesselator* tess, GLdouble *location, GLvoid* data);
+typedef GLint (GLAPIENTRY * PFNGLUUNPROJECTPROC) (GLdouble winX, GLdouble winY, GLdouble winZ, const GLdouble *model, const GLdouble *proj, const GLint *view, GLdouble* objX, GLdouble* objY, GLdouble* objZ);
+typedef GLint (GLAPIENTRY * PFNGLUUNPROJECT4PROC) (GLdouble winX, GLdouble winY, GLdouble winZ, GLdouble clipW, const GLdouble *model, const GLdouble *proj, const GLint *view, GLdouble nearVal, GLdouble farVal, GLdouble* objX, GLdouble* objY, GLdouble* objZ, GLdouble* objW);
+
 #ifdef __cplusplus
 }
 #endif

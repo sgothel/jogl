@@ -37,36 +37,10 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package net.java.games.gluegen;
+package net.java.games.gluegen.runtime;
 
-import java.util.*;
-import net.java.games.gluegen.cgram.types.*;
+/** Contains constants used in glue code generation. */
 
-public class ReferencedStructs implements TypeVisitor {
-  private Set results = new HashSet();
-
-  public void clear() {
-    results.clear();
-  }
-  
-  public Iterator results() {
-    return results.iterator();
-  }
-
-  public void visitType(Type t) {
-    if (t.isPointer()) {
-      PointerType p = t.asPointer();
-      if (p.hasTypedefedName()) {
-        CompoundType c = p.getTargetType().asCompound();
-        if (c != null && c.getName() == null) {
-          // This otherwise-unnamed CompoundType is referred to by a
-          // PointerType that has a typedef name. Assume that it is
-          // referred to in the glue code and emit it.
-          results.add(p);
-        }
-      }
-    } else if (t.isCompound()) {
-      results.add(t);
-    }
-  }
+public class ProcAddressHelper {
+  public static final String PROCADDRESS_VAR_PREFIX = "_addressof_";
 }

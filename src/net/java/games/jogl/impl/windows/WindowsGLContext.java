@@ -41,7 +41,7 @@ package net.java.games.jogl.impl.windows;
 
 import java.awt.Component;
 import java.util.*;
-import net.java.games.gluegen.opengl.*; // for PROCADDRESS_VAR_PREFIX
+import net.java.games.gluegen.runtime.*; // for PROCADDRESS_VAR_PREFIX
 import net.java.games.jogl.*;
 import net.java.games.jogl.impl.*;
 
@@ -53,6 +53,11 @@ public abstract class WindowsGLContext extends GLContext {
   private boolean wglGetExtensionsStringEXTAvailable;
   private static final Map/*<String, String>*/ functionNameMap;
   private static final Map/*<String, String>*/ extensionNameMap;
+  // Table that holds the addresses of the native C-language entry points for
+  // OpenGL functions.
+  private GLProcAddressTable glProcAddressTable;
+  // Handle to GLU32.dll
+  private long hglu32;
 
   static {
     functionNameMap = new HashMap();
@@ -132,72 +137,34 @@ public abstract class WindowsGLContext extends GLContext {
 
   protected abstract void swapBuffers() throws GLException;
 
+  protected long dynamicLookupFunction(String glFuncName) {
+    long res = WGL.wglGetProcAddress(glFuncName);
+    if (res == 0) {
+      // GLU routines aren't known to the OpenGL function lookup
+      if (hglu32 == 0) {
+        hglu32 = WGL.LoadLibraryA("GLU32");
+        if (hglu32 == 0) {
+          throw new GLException("Error loading GLU32.DLL");
+        }
+      }
+      res = WGL.GetProcAddress(hglu32, glFuncName);
+    }
+    return res;
+  }
 
   protected void resetGLFunctionAvailability() {
     super.resetGLFunctionAvailability();
-    resetGLProcAddressTable();
-  }
-  
-  protected void resetGLProcAddressTable() {    
-    
     if (DEBUG) {
       System.err.println("!!! Initializing OpenGL extension address table");
     }
-
-    net.java.games.jogl.impl.ProcAddressTable table = getGLProcAddressTable();
-    
-    // if GL is no longer an interface, we'll have to re-implement the code
-    // below so it only iterates through gl methods (a non-interface might
-    // have constructors, custom methods, etc). For now we assume all methods
-    // will be gl methods.
-    GL gl = getGL();
-
-    Class tableClass = table.getClass();
-    
-    java.lang.reflect.Field[] fields = tableClass.getDeclaredFields();
-    
-    for (int i = 0; i < fields.length; ++i) {
-      String addressFieldName = fields[i].getName();
-      if (!addressFieldName.startsWith(GLEmitter.PROCADDRESS_VAR_PREFIX))
-      {
-        // not a proc address variable
-        continue;
-      }
-      int startOfMethodName = GLEmitter.PROCADDRESS_VAR_PREFIX.length();
-      String glFuncName = addressFieldName.substring(startOfMethodName);
-      try
-      {
-        java.lang.reflect.Field addressField = tableClass.getDeclaredField(addressFieldName);
-        assert(addressField.getType() == Long.TYPE);
-        // get the current value of the proc address variable in the table object
-        long oldProcAddress = addressField.getLong(table); 
-        long newProcAddress = WGL.wglGetProcAddress(glFuncName);
-        /*
-        System.err.println(
-          "!!!   Address=" + (newProcAddress == 0 
-                        ? "<NULL>    "
-                        : ("0x" +
-                           Long.toHexString(newProcAddress))) +
-          "\tGL func: " + glFuncName);
-        */
-        // set the current value of the proc address variable in the table object
-        addressField.setLong(gl, newProcAddress); 
-      } catch (Exception e) {
-        throw new GLException(
-          "Cannot get GL proc address for method \"" +
-          glFuncName + "\": Couldn't get value of field \"" + addressFieldName +
-          "\" in class " + tableClass.getName(), e);
-      }
-    }
-
+    resetProcAddressTable(getGLProcAddressTable());
   }
   
-  public net.java.games.jogl.impl.ProcAddressTable getGLProcAddressTable() {
+  public GLProcAddressTable getGLProcAddressTable() {
     if (glProcAddressTable == null) {
       // FIXME: cache ProcAddressTables by capability bits so we can
       // share them among contexts with the same capabilities
-      glProcAddressTable =
-        new net.java.games.jogl.impl.ProcAddressTable();
+      glProcAddressTable = new GLProcAddressTable();
     }          
     return glProcAddressTable;
   }
@@ -233,10 +200,6 @@ public abstract class WindowsGLContext extends GLContext {
   //----------------------------------------------------------------------
   // Internals only below this point
   //
-
-  // Table that holds the addresses of the native C-language entry points for
-  // OpenGL functions.
-  private net.java.games.jogl.impl.ProcAddressTable glProcAddressTable;
 
   protected JAWT getJAWT() {
     if (jawt == null) {

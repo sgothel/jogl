@@ -1,8 +1,11 @@
-/** WARNING: this function is not yet implemented! */
+/** Indicates whether the given GLU routine is available to be called. */
 public boolean isFunctionAvailable(String gluFunctionName)
 {
-  // TODO FIXME: Implement the GLU equivalent GL.isFunctionAvailable(String)
-  if (true) throw new GLException("GLU.isFunctionAvailable is not yet implemented.");
-  
-  return false;
+  return (gluProcAddressTable.getAddressFor(gluFunctionName) != 0);
+}
+
+private GLUProcAddressTable gluProcAddressTable;
+public GLUImpl(GLUProcAddressTable gluProcAddressTable)
+{
+  this.gluProcAddressTable = gluProcAddressTable;
 }

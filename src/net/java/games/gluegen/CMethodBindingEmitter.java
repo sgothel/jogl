@@ -50,6 +50,10 @@ public class CMethodBindingEmitter extends FunctionEmitter
 {
   protected static final CommentEmitter defaultCommentEmitter =
     new DefaultCommentEmitter();
+
+  protected static final String arrayResLength = "_array_res_length";
+  protected static final String arrayRes       = "_array_res";
+  protected static final String arrayIdx       = "_array_idx";
   
   private MethodBinding binding;
 
@@ -88,6 +92,12 @@ public class CMethodBindingEmitter extends FunctionEmitter
    * == false;
    */
   private MessageFormat returnValueCapacityExpression = null;
+  
+  /**
+   * Length of the returned array. Is ignored if
+   * binding.getJavaReturnType().isArray() is false.
+   */
+  private MessageFormat returnValueLengthExpression = null;
   
   // Note: the VC++ 6.0 compiler emits hundreds of warnings when the
   // (necessary) null-checking code is enabled. This appears to just
@@ -168,12 +178,65 @@ public class CMethodBindingEmitter extends FunctionEmitter
   }
 
   /**
+   * Get the expression for the length of the returned array
+   */
+  public final MessageFormat getReturnValueLengthExpression()
+  {
+    return returnValueLengthExpression;
+  }
+
+  /**
+   * If this function returns an array, sets the expression for the
+   * length of the returned array.
+   *
+   * @param expression a MessageFormat which, when applied to an array
+   * of type String[] that contains each of the arguments names of the
+   * Java-side binding, returns an expression that will (when compiled
+   * by a C compiler) evaluate to an integer-valued expression. The
+   * value of this expression is the length of the array returned from
+   * this method.
+   *
+   * @throws IllegalArgumentException if the <code>
+   * binding.getJavaReturnType().isNIOBuffer() == false
+   * </code>
+   */
+  public final void setReturnValueLengthExpression(MessageFormat expression)
+  {
+    returnValueLengthExpression = expression;
+    
+    if (!binding.getJavaReturnType().isArray())
+    {
+      throw new IllegalArgumentException(
+        "Cannot specify return value length for a method that does not " +
+        "return an array: \"" + binding + "\"");      
+    }
+  }
+
+  /**
+   * Returns the List of Strings containing declarations for temporary
+   * C variables to be assigned to after the underlying function call.
+   */
+  public final List/*<String>*/ getTemporaryCVariableDeclarations() {
+    return temporaryCVariableDeclarations;
+  }
+
+  /**
    * Sets up a List of Strings containing declarations for temporary C
    * variables to be assigned to after the underlying function call. A
    * null argument indicates that no manual declarations are to be made.
    */
   public final void setTemporaryCVariableDeclarations(List/*<String>*/ arg) {
     temporaryCVariableDeclarations = arg;
+  }
+
+  /**
+   * Returns the List of Strings containing assignments for temporary
+   * C variables which are made after the underlying function call. A
+   * null argument indicates that no manual assignments are to be
+   * made.
+   */
+  public final List/*<String>*/ getTemporaryCVariableAssignments() {
+    return temporaryCVariableAssignments;
   }
 
   /**
@@ -340,8 +403,6 @@ public class CMethodBindingEmitter extends FunctionEmitter
     Type cReturnType = binding.getCReturnType();
 
     JavaType javaReturnType = binding.getJavaReturnType();
-    String arrayResLength = "_array_res_length";
-    String arrayRes       = "_array_res";
     String capitalizedComponentType = null;
     if (!cReturnType.isVoid()) {
       writer.print("  ");
@@ -349,24 +410,36 @@ public class CMethodBindingEmitter extends FunctionEmitter
       writer.print(binding.getCSymbol().getReturnType().getName(true));
       writer.println(" _res;");
       if (javaReturnType.isArray()) {
-        writer.print("  int ");
-        writer.print(arrayResLength);
-        writer.println(";");
+        if (javaReturnType.isNIOByteBufferArray()) {
+          writer.print("  int ");
+          writer.print(arrayResLength);
+          writer.println(";");
+          writer.print("  int ");
+          writer.print(arrayIdx);
+          writer.println(";");
+          writer.print("  jobjectArray ");
+          writer.print(arrayRes);
+          writer.println(";");
+        } else {
+          writer.print("  int ");
+          writer.print(arrayResLength);
+          writer.println(";");
 
-        Class componentType = javaReturnType.getJavaClass().getComponentType();
-        if (componentType.isArray()) {
-          throw new RuntimeException("Multi-dimensional arrays not supported yet");            
+          Class componentType = javaReturnType.getJavaClass().getComponentType();
+          if (componentType.isArray()) {
+            throw new RuntimeException("Multi-dimensional arrays not supported yet");            
+          }
+
+          String javaTypeName = componentType.getName();
+          capitalizedComponentType =
+            "" + Character.toUpperCase(javaTypeName.charAt(0)) + javaTypeName.substring(1);
+          String javaArrayTypeName = "j" + javaTypeName + "Array";
+          writer.print("  ");
+          writer.print(javaArrayTypeName);
+          writer.print(" ");
+          writer.print(arrayRes);
+          writer.println(";");
         }
-
-        String javaTypeName = componentType.getName();
-        capitalizedComponentType =
-          "" + Character.toUpperCase(javaTypeName.charAt(0)) + javaTypeName.substring(1);
-        String javaArrayTypeName = "j" + javaTypeName + "Array";
-        writer.print("  ");
-        writer.print(javaArrayTypeName);
-        writer.print(" ");
-        writer.print(arrayRes);
-        writer.println(";");
       }
     } 
   }
@@ -568,6 +641,11 @@ public class CMethodBindingEmitter extends FunctionEmitter
         if (EMIT_NULL_CHECKS) {
           writer.println("  }");
         }
+      } else if (javaArgType.isArrayOfCompoundTypeWrappers()) {
+
+        // FIXME
+        throw new RuntimeException("Outgoing arrays of StructAccessors not yet implemented");
+
       }
     }
   }
@@ -696,6 +774,11 @@ public class CMethodBindingEmitter extends FunctionEmitter
         if (EMIT_NULL_CHECKS) {
           writer.println("  }");
         }
+      } else if (javaArgType.isArrayOfCompoundTypeWrappers()) {
+
+        // FIXME
+        throw new RuntimeException("Outgoing arrays of StructAccessors not yet implemented");
+
       }
     }
   }
@@ -826,35 +909,63 @@ public class CMethodBindingEmitter extends FunctionEmitter
         writer.print("  if (_res == NULL) return NULL;");
         writer.println("  return (*env)->NewStringUTF(env, _res);");
       } else if (javaReturnType.isArray()) {
-        // FIXME: must have user provide length of array in .cfg file
-        // by providing a constant value, input parameter, or
-        // expression which computes the array size (already present
-        // as ReturnValueCapacity, not yet implemented / tested here)
+        if (javaReturnType.isNIOByteBufferArray()) {
+          writer.println("  if (_res == NULL) return NULL;");
+          if (returnValueLengthExpression == null) {
+            throw new RuntimeException("Error while generating C code: no length specified for array returned from function " +
+                                       binding);
+          }
+          String[] argumentNames = new String[binding.getNumArguments()];
+          for (int i = 0; i < binding.getNumArguments(); i++) {
+            argumentNames[i] = binding.getArgumentName(i);
+          }
+          writer.println("  " + arrayResLength + " = " + returnValueLengthExpression.format(argumentNames) + ";");
+          writer.println("  " + arrayRes + " = (*env)->NewObjectArray(env, " + arrayResLength + ", (*env)->FindClass(env, \"java/nio/ByteBuffer\"), NULL);");
+          writer.println("  for (" + arrayIdx + " = 0; " + arrayIdx + " < " + arrayResLength + "; " + arrayIdx + "++) {");
+          Type retType = binding.getCSymbol().getReturnType();
+          Type baseType;
+          if (retType.isPointer()) {
+            baseType = retType.asPointer().getTargetType().asPointer().getTargetType();
+          } else {
+            baseType = retType.asArray().getElementType().asPointer().getTargetType();
+          }
+          int sz = baseType.getSize();
+          if (sz < 0)
+            sz = 0;
+          writer.println("    (*env)->SetObjectArrayElement(env, " + arrayRes + ", " + arrayIdx +
+                         ", (*env)->NewDirectByteBuffer(env, _res[" + arrayIdx + "], " + sz + "));");
+          writer.println("  }");
+          writer.println("  return " + arrayRes + ";");
+        } else {
+          // FIXME: must have user provide length of array in .cfg file
+          // by providing a constant value, input parameter, or
+          // expression which computes the array size (already present
+          // as ReturnValueCapacity, not yet implemented / tested here)
 
-        throw new RuntimeException(
-          "Could not emit native code for function \"" + binding +
-          "\": array return values for non-char types not implemented yet");
+          throw new RuntimeException(
+                                     "Could not emit native code for function \"" + binding +
+                                     "\": array return values for non-char types not implemented yet");
 
-        // FIXME: This is approximately what will be required here
-        //
-        //writer.print("  ");
-        //writer.print(arrayRes);
-        //writer.print(" = (*env)->New");
-        //writer.print(capitalizedComponentType);
-        //writer.print("Array(env, ");
-        //writer.print(arrayResLength);
-        //writer.println(");");
-        //writer.print("  (*env)->Set");
-        //writer.print(capitalizedComponentType);
-        //writer.print("ArrayRegion(env, ");
-        //writer.print(arrayRes);
-        //writer.print(", 0, ");
-        //writer.print(arrayResLength);
-        //writer.println(", _res);");
-        //writer.print("  return ");
-        //writer.print(arrayRes);
-        //writer.println(";");
-        
+          // FIXME: This is approximately what will be required here
+          //
+          //writer.print("  ");
+          //writer.print(arrayRes);
+          //writer.print(" = (*env)->New");
+          //writer.print(capitalizedComponentType);
+          //writer.print("Array(env, ");
+          //writer.print(arrayResLength);
+          //writer.println(");");
+          //writer.print("  (*env)->Set");
+          //writer.print(capitalizedComponentType);
+          //writer.print("ArrayRegion(env, ");
+          //writer.print(arrayRes);
+          //writer.print(", 0, ");
+          //writer.print(arrayResLength);
+          //writer.println(", _res);");
+          //writer.print("  return ");
+          //writer.print(arrayRes);
+          //writer.println(";");
+        }
       }
     }
   }  
@@ -1033,6 +1144,11 @@ public class CMethodBindingEmitter extends FunctionEmitter
         // Type is pointer to something we can't/don't handle
         throw new RuntimeException("Unsupported pointer type: \"" + cType.getName() + "\"");
       }
+    }
+    else if (javaType.isArrayOfCompoundTypeWrappers())
+    {
+      // FIXME
+      throw new RuntimeException("Outgoing arrays of StructAccessors not yet implemented");
     }
     else
     {
