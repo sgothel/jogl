@@ -237,6 +237,11 @@ public abstract class X11GLContext extends GLContext {
     if (!GLX.glXQueryVersion(display, major, minor)) {
       throw new GLException("glXQueryVersion failed");
     }
+    if (DEBUG) {
+      System.err.println("!!! GLX version: major " + major[0] +
+                         ", minor " + minor[0]);
+    }
+
     isGLX13 = ((major[0] > 1) || (minor[0] > 2));
   }
   
@@ -258,7 +263,16 @@ public abstract class X11GLContext extends GLContext {
       glXQueryExtensionsStringInitialized = true;
     }
     if (glXQueryExtensionsStringAvailable) {
-      return GLX.glXQueryExtensionsString(display, GLX.DefaultScreen(display));
+      lockAWT();
+      try {
+        String ret = GLX.glXQueryExtensionsString(display, GLX.DefaultScreen(display));
+        if (DEBUG) {
+          System.err.println("!!! GLX extensions: " + ret);
+        }
+        return ret;
+      } finally {
+        unlockAWT();
+      }
     } else {
       return "";
     }
