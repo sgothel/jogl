@@ -37,7 +37,7 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package net.java.games.util;
+package net.java.games.jogl.util;
 
 class GLUTBitmap8x13 {
 

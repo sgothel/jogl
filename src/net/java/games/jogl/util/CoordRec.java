@@ -37,30 +37,20 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package net.java.games.util;
+package net.java.games.jogl.util;
 
-public class DurationTimer {
-  private long startTime;
-  private long accumulatedTime;
+/* Copyright (c) Mark J. Kilgard, 1994, 1998. */
 
-  public void reset() {
-    accumulatedTime = 0;
-  }
+/* This program is freely distributable without licensing fees 
+   and is provided without guarantee or warrantee expressed or 
+   implied. This program is -not- in the public domain. */
 
-  public void start() {
-    startTime = System.currentTimeMillis();
-  }
+class CoordRec {
+  float x;
+  float y;
 
-  public void stop() {
-    long curTime = System.currentTimeMillis();
-    accumulatedTime += (curTime - startTime);
-  }
-
-  public long getDuration() {
-    return accumulatedTime;
-  }
-
-  public float getDurationAsSeconds() {
-    return (float) accumulatedTime / 1000.0f;
+  CoordRec(float x, float y) {
+    this.x = x;
+    this.y = y;
   }
 }

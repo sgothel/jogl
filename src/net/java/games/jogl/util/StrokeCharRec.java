@@ -37,7 +37,7 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package net.java.games.util;
+package net.java.games.jogl.util;
 
 /* Copyright (c) Mark J. Kilgard, 1994, 1998. */
 
@@ -45,12 +45,19 @@ package net.java.games.util;
    and is provided without guarantee or warrantee expressed or 
    implied. This program is -not- in the public domain. */
 
-class CoordRec {
-  float x;
-  float y;
+class StrokeCharRec {
+  int num_strokes;
+  StrokeRec[] stroke;
+  float center;
+  float right;
 
-  CoordRec(float x, float y) {
-    this.x = x;
-    this.y = y;
+  StrokeCharRec(int num_strokes,
+                StrokeRec[] stroke,
+                float center,
+                float right) {
+    this.num_strokes = num_strokes;
+    this.stroke = stroke;
+    this.center = center;
+    this.right = right;
   }
 }

@@ -37,7 +37,7 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package net.java.games.util;
+package net.java.games.jogl.util;
 
 /* Copyright (c) Mark J. Kilgard, 1994, 1998. */
 
@@ -45,25 +45,22 @@ package net.java.games.util;
    and is provided without guarantee or warrantee expressed or 
    implied. This program is -not- in the public domain. */
 
-class BitmapCharRec {
-  int width;
-  int height;
-  float xorig;
-  float yorig;
-  float advance;
-  byte[] bitmap;
+class StrokeFontRec {
+  String name;
+  int num_chars;
+  StrokeCharRec[] ch;
+  float top;
+  float bottom;
 
-  BitmapCharRec(int width,
-                int height,
-                float xorig,
-                float yorig,
-                float advance,
-                byte[] bitmap) {
-    this.width   = width;
-    this.height  = height;
-    this.xorig   = xorig;
-    this.yorig   = yorig;
-    this.advance = advance;
-    this.bitmap  = bitmap;
+  StrokeFontRec(String name,
+                int num_chars,
+                StrokeCharRec[] ch,
+                float top,
+                float bottom) {
+    this.name = name;
+    this.num_chars = num_chars;
+    this.ch = ch;
+    this.top = top;
+    this.bottom = bottom;
   }
 }

@@ -37,36 +37,21 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package net.java.games.util;
+package net.java.games.jogl.util;
 
-import java.nio.*;
+/* Copyright (c) Mark J. Kilgard, 1994, 1998. */
 
-/** Utility routines for dealing with direct buffers. */
+/* This program is freely distributable without licensing fees 
+   and is provided without guarantee or warrantee expressed or 
+   implied. This program is -not- in the public domain. */
 
-public class BufferUtils {
-  public static final int SIZEOF_FLOAT = 4;
-  public static final int SIZEOF_INT = 4;
-
-  public static FloatBuffer newFloatBuffer(int numElements) {
-    ByteBuffer bb = newByteBuffer(numElements * SIZEOF_FLOAT);
-    return bb.asFloatBuffer();
-  }
-
-  public static IntBuffer newIntBuffer(int numElements) {
-    ByteBuffer bb = newByteBuffer(numElements * SIZEOF_INT);
-    return bb.asIntBuffer();
-  }
-
-  public static ByteBuffer newByteBuffer(int numElements) {
-    ByteBuffer bb = ByteBuffer.allocateDirect(numElements);
-    bb.order(ByteOrder.nativeOrder());
-    return bb;
-  }
-
-  public static FloatBuffer copyFloatBuffer(FloatBuffer orig) {
-    FloatBuffer dest = newFloatBuffer(orig.capacity());
-    orig.rewind();
-    dest.put(orig);
-    return dest;
+class StrokeRec {
+  int num_coords;
+  CoordRec[] coord;
+  
+  StrokeRec(int num_coords,
+            CoordRec[] coord) {
+    this.num_coords = num_coords;
+    this.coord = coord;
   }
 }
