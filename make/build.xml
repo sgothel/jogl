@@ -1029,10 +1029,10 @@
     <!--
        - Inform the user that one of the platform targets should be used.
       -->
-    <target name="all" depends="init">
+    <target name="all">
         <fail>
         
-Use a platform specific target:  win32.vc6, win32.vc7, win32.mingw, linux, macosx
+Use a platform specific target:  linux, macosx, solaris, win32.vc6, win32.vc7, win32.mingw
         </fail>
     </target>      
 

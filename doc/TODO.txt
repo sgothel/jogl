@@ -3,23 +3,29 @@
   HIGH PRIORITY
 -----------------
 
-- Correct sharing of data (display lists, texture objects) between
-  contexts. This is different for X vs W32 -- one can be done at
-  runtime, the other requires sharing to be done at context creation.
-  For Win32, see the wglShareLists(). For a GLX platform, see the
-  share parameter to glXCreateContext().
+- Make pixel format selection more robust. Provide access to the
+  selected GLCapabilities so applications can see whether they got the
+  pixel format they expected. Check the GLJPanel implementation after
+  the most recent DefaultGLCapabilitiesChooser changes and see whether
+  it is still working.
 
+- Fully expose ARB_vertex_buffer_object APIs.
+
+- Test Cg binding on Linux. Find out if Cg is available on Mac OS X.
+
+- Finish implementation in GlueGen of <type>** arguments (currently
+  only works for "const char**". This is needed for
+  glMultiDrawElements and one Cg routine.
 
 - Non-const array types must be properly released with JNI_COMMIT in
   order to see side effects if the array was copied.
 
-- Finish implementation of <type>** arguments (currently only works
-  for "const char**". This is needed for glMultiDrawElements and
-  one Cg routine.
-
 -----------------
  MEDIUM PRIORITY
 -----------------
+
+- Look into providing built-in full-screen support on all supported
+  platforms.
 
 - Figure out how to implement GLEventListener.displayChanged(bool,bool). 
   I believe we need additional support in J2SE before this will be possible
