@@ -145,8 +145,7 @@ public class Animator {
     // dependencies on the Animator's internal thread. Currently we
     // use a couple of heuristics to determine whether we should do
     // the blocking wait().
-    if ((Thread.currentThread() == thread) ||
-        (SingleThreadedWorkaround.doWorkaround() && EventQueue.isDispatchThread())) {
+    if ((Thread.currentThread() == thread) || EventQueue.isDispatchThread()) {
       return;
     }
     while (shouldStop && thread != null) {
