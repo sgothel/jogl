@@ -80,25 +80,25 @@ public class Animator {
     if (runnable == null) {
       runnable = new Runnable() {
           public void run() {
-            // Try to get OpenGL context optimization since we know we
-            // will be rendering this one drawable continually from
-            // this thread; make the context current once instead of
-            // making it current and freeing it each frame.
-            drawable.setRenderingThread(Thread.currentThread());
-
-            // Since setRenderingThread is currently advisory (because
-            // of the poor JAWT implementation in the Motif AWT, which
-            // performs excessive locking) we also prevent repaint(),
-            // which is called from the AWT thread, from having an
-            // effect for better multithreading behavior. This call is
-            // not strictly necessary, but if end users write their
-            // own animation loops which update multiple drawables per
-            // tick then it may be necessary to enforce the order of
-            // updates.
-            drawable.setNoAutoRedrawMode(true);
-
             boolean noException = false;
             try {
+              // Try to get OpenGL context optimization since we know we
+              // will be rendering this one drawable continually from
+              // this thread; make the context current once instead of
+              // making it current and freeing it each frame.
+              drawable.setRenderingThread(Thread.currentThread());
+
+              // Since setRenderingThread is currently advisory (because
+              // of the poor JAWT implementation in the Motif AWT, which
+              // performs excessive locking) we also prevent repaint(),
+              // which is called from the AWT thread, from having an
+              // effect for better multithreading behavior. This call is
+              // not strictly necessary, but if end users write their
+              // own animation loops which update multiple drawables per
+              // tick then it may be necessary to enforce the order of
+              // updates.
+              drawable.setNoAutoRedrawMode(true);
+
               while (!shouldStop) {
                 noException = false;
                 drawable.display();
@@ -107,14 +107,18 @@ public class Animator {
             } finally {
               shouldStop = false;
               drawable.setNoAutoRedrawMode(false);
-              if (noException) {
-                try {
+              try {
+                // The surface is already unlocked and rendering
+                // thread is already null if an exception occurred
+                // during display(), so don't disable the rendering
+                // thread again.
+                if (noException) {
                   drawable.setRenderingThread(null);
-                } finally {
+                }
+              } finally {
+                synchronized (Animator.this) {
                   thread = null;
-                  synchronized (Animator.this) {
-                    Animator.this.notify();
-                  }
+                  Animator.this.notify();
                 }
               }
             }
