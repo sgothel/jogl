@@ -67,17 +67,6 @@ import net.java.games.jogl.impl.*;
     them. */
 
 public final class GLJPanel extends JPanel implements GLDrawable {
-  private static boolean isMacOSX;
-
-  static {
-    AccessController.doPrivileged(new PrivilegedAction() {
-        public Object run() {
-          isMacOSX = System.getProperty("os.name").equals("Mac OS X");
-          return null;
-        }
-      });
-  }
-
   private GLDrawableHelper drawableHelper = new GLDrawableHelper();
 
   // Data used for either pbuffers or pixmap-based offscreen surfaces
@@ -112,7 +101,6 @@ public final class GLJPanel extends JPanel implements GLDrawable {
 
   // For saving/restoring of OpenGL state during ReadPixels
   private int[] swapbytes    = new int[1];
-  private int[] lsbfirst     = new int[1];
   private int[] rowlength    = new int[1];
   private int[] skiprows     = new int[1];
   private int[] skippixels   = new int[1];
@@ -478,12 +466,8 @@ public final class GLJPanel extends JPanel implements GLDrawable {
               awtFormat = BufferedImage.TYPE_INT_RGB;
             }
 
-            // Choose better pixel format on Mac OS X
-            if (isMacOSX) {
-              hwGLFormat = GL.GL_UNSIGNED_INT_8_8_8_8_REV;
-            } else {
-              hwGLFormat = GL.GL_UNSIGNED_BYTE;
-            }
+            // This seems to be a good choice on all platforms
+            hwGLFormat = GL.GL_UNSIGNED_INT_8_8_8_8_REV;
           } else {
             awtFormat = offscreenContext.getOffscreenContextBufferedImageType();
           }
@@ -521,18 +505,12 @@ public final class GLJPanel extends JPanel implements GLDrawable {
         GL gl = getGL();
         // Save current modes
         gl.glGetIntegerv(GL.GL_PACK_SWAP_BYTES,    swapbytes);
-        gl.glGetIntegerv(GL.GL_PACK_LSB_FIRST,     lsbfirst);
         gl.glGetIntegerv(GL.GL_PACK_ROW_LENGTH,    rowlength);
         gl.glGetIntegerv(GL.GL_PACK_SKIP_ROWS,     skiprows);
         gl.glGetIntegerv(GL.GL_PACK_SKIP_PIXELS,   skippixels);
         gl.glGetIntegerv(GL.GL_PACK_ALIGNMENT,     alignment);
 
-        // Little endian machines (DEC Alpha, Intel X86, PPC (in LSB
-        // mode)...  for example) could benefit from setting
-        // GL_PACK_LSB_FIRST to GL_TRUE instead of GL_FALSE, but this
-        // would require changing the generated bitmaps too.
         gl.glPixelStorei(GL.GL_PACK_SWAP_BYTES,    GL.GL_FALSE);
-        gl.glPixelStorei(GL.GL_PACK_LSB_FIRST,     GL.GL_TRUE);
         gl.glPixelStorei(GL.GL_PACK_ROW_LENGTH,    offscreenImage.getWidth());
         gl.glPixelStorei(GL.GL_PACK_SKIP_ROWS,     0);
         gl.glPixelStorei(GL.GL_PACK_SKIP_PIXELS,   0);
@@ -548,7 +526,6 @@ public final class GLJPanel extends JPanel implements GLDrawable {
 
         // Restore saved modes.
         gl.glPixelStorei(GL.GL_PACK_SWAP_BYTES,  swapbytes[0]);
-        gl.glPixelStorei(GL.GL_PACK_LSB_FIRST,   lsbfirst[0]);
         gl.glPixelStorei(GL.GL_PACK_ROW_LENGTH,  rowlength[0]);
         gl.glPixelStorei(GL.GL_PACK_SKIP_ROWS,   skiprows[0]);
         gl.glPixelStorei(GL.GL_PACK_SKIP_PIXELS, skippixels[0]);
