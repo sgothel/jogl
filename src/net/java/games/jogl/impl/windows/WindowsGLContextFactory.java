@@ -59,12 +59,13 @@ public class WindowsGLContextFactory extends GLContextFactory {
   // created. The standard way of working around this chicken-and-egg
   // problem is to create a dummy window, show it, send it a paint
   // message, create an OpenGL context, fetch the needed function
-  // pointers, and then destroy the dummy window and context. In JOGL
-  // since we closely associate the contexts with components we leave
-  // the dummy window around as it should not have a large footprint
-  // impact.
-  private static Map/*<GraphicsDevice, GL>*/ dummyContextMap   = new HashMap();
-  private static Set/*<GraphicsDevice    >*/ pendingContextSet = new HashSet();
+  // pointers, and then destroy the dummy window and context. It turns
+  // out that ATI cards need the dummy context to be current while
+  // wglChoosePixelFormatARB is called, so we cache the extension
+  // strings the dummy context reports as being available.
+  private static Map/*<GraphicsDevice, GL>*/     dummyContextMap    = new HashMap();
+  private static Map/*<GraphicsDevice, String>*/ dummyExtensionsMap = new HashMap();
+  private static Set/*<GraphicsDevice    >*/     pendingContextSet  = new HashSet();
   
   public GraphicsConfiguration chooseGraphicsConfiguration(GLCapabilities capabilities,
                                                            GLCapabilitiesChooser chooser,
@@ -81,6 +82,11 @@ public class WindowsGLContextFactory extends GLContextFactory {
     } else {
       return new WindowsOffscreenGLContext(capabilities, chooser, shareWith);
     }
+  }
+
+  public static String getDummyGLExtensions(final GraphicsDevice device) {
+      String exts = (String) dummyExtensionsMap.get(device);
+      return (exts == null) ? "" : exts;
   }
 
   public static GL getDummyGLContext(final GraphicsDevice device) {
@@ -102,19 +108,30 @@ public class WindowsGLContextFactory extends GLContextFactory {
           public void init(GLDrawable drawable) {
             pendingContextSet.remove(device);
             dummyContextMap.put(device, drawable.getGL());
+            String availableGLExtensions = "";
+            String availableWGLExtensions = "";
+            String availableEXTExtensions = "";
+            try {
+              availableWGLExtensions = drawable.getGL().wglGetExtensionsStringARB(WGL.wglGetCurrentDC());
+            } catch (GLException e) {}
+            try {
+              availableEXTExtensions = drawable.getGL().wglGetExtensionsStringEXT();
+            } catch (GLException e) {}
+            availableGLExtensions = drawable.getGL().glGetString(GL.GL_EXTENSIONS);
+            dummyExtensionsMap.put(device, availableGLExtensions + " " + availableEXTExtensions + " " + availableWGLExtensions);
             EventQueue.invokeLater(new Runnable() {
                 public void run() {
                   frame.dispose();
                 }
               });
           }
-
+ 
           public void display(GLDrawable drawable) {
           }
-
+          
           public void reshape(GLDrawable drawable, int x, int y, int width, int height) {
           }
-
+          
           public void displayChanged(GLDrawable drawable, boolean modeChanged, boolean deviceChanged) {
           }
         });
@@ -124,7 +141,7 @@ public class WindowsGLContextFactory extends GLContextFactory {
       frame.show();
       canvas.display();
     }
-
+ 
     return (GL) dummyContextMap.get(device);
   }
 }

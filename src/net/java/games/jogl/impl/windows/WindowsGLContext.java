@@ -267,17 +267,7 @@ public abstract class WindowsGLContext extends GLContext {
       boolean haveWGLChoosePixelFormatARB = false;
       boolean haveWGLARBMultisample = false;
       if (dummyGL != null) {
-        // It seems that at this point in initialization,
-        // glGetString(GL.GL_EXTENSIONS) is returning null, so we
-        // need to use wglGetExtensionsStringARB
-        String availableWGLExtensions = "";
-        // FIXME: would like to do this operation without throwing an
-        // exception if wglGetExtensionsStringARB isn't available
-        try {
-          availableWGLExtensions = dummyGL.wglGetExtensionsStringARB(hdc);
-        } catch (GLException e) {
-          // Apparently wglGetExtensionsStringARB wasn't available; ignore
-        }
+        String availableWGLExtensions = WindowsGLContextFactory.getDummyGLExtensions(device);
         if (availableWGLExtensions.indexOf("WGL_ARB_pixel_format") >= 0) {
           haveWGLChoosePixelFormatARB = true;
           if (availableWGLExtensions.indexOf("WGL_ARB_multisample") >= 0) {
