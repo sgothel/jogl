@@ -794,13 +794,20 @@
       </cc>
     </target>  
 
-    <target name="c.rename.jogl.lib" if="os.isMacOSX">
+    <target name="c.rename.jogl.libs.mingw">
+      <!-- FIXME: this is a hack; the cpptask should have an option to change the
+           suffix or at least understand the override from .so to .dll -->
+      <move file="${obj}/libjogl.so" tofile="${obj}/jogl.dll" />
+      <move file="${obj}/libjogl_cg.so" tofile="${obj}/jogl_cg.dll" failonerror="false" />
+    </target>
+
+    <target name="c.rename.jogl.lib.macosx" if="os.isMacOSX">
       <!-- FIXME: this is a hack; the cpptask should have an option to change the
            suffix or at least understand the override from dylib to jnilib -->
       <move file="${obj}/libjogl.dylib" tofile="${obj}/libjogl.jnilib" />
     </target>
 
-    <target name="c.rename.jogl_cg.lib" if="os.isMacOSX">
+    <target name="c.rename.jogl_cg.lib.macosx" if="os.isMacOSX">
       <!-- FIXME: this is a hack; the cpptask should have an option to change the
            suffix or at least understand the override from dylib to jnilib -->
       <move file="${obj}/libjogl_cg.dylib" tofile="${obj}/libjogl_cg.jnilib" />
@@ -811,7 +818,7 @@
         <param name="c.compiler.src.files" value="c.src.files.jogl"/>
         <param name="output.lib.name" value="jogl"/>      
       </antcall>
-      <antcall target="c.rename.jogl.lib" inheritRefs="true" />
+      <antcall target="c.rename.jogl.lib.macosx" inheritRefs="true" />
     </target>
 
     <target name="c.build.cg" if="jogl.cg">
@@ -820,7 +827,7 @@
         <param name="c.compiler.use-cglib" value="XXX"/>      
         <param name="output.lib.name" value="jogl_cg"/>      
       </antcall>
-      <antcall target="c.rename.jogl_cg.lib" inheritRefs="true" />
+      <antcall target="c.rename.jogl_cg.lib.macosx" inheritRefs="true" />
     </target>
 
 
@@ -832,6 +839,7 @@
     </target>
 
     <target name="c.compile.jogl.win32.mingw" depends="declare.win32.mingw, c.build.jogl, c.build.cg">
+      <antcall target="c.rename.jogl.libs.mingw" inheritrefs="true" />
     </target>
     
     <target name="c.compile.jogl.linux" depends="declare.linux, c.build.jogl, c.build.cg" >
