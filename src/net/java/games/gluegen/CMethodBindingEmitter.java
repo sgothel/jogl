@@ -576,7 +576,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
             throw new RuntimeException(
               "Could not copy data for type \"" + cArgType +
               "\"; copying only supported for types of the form " +
-              "ptr-to-ptr-to-primitive.");
+              "ptr-to-ptr-to-type.");
           }
           PointerType cArgPtrType = cArgType.asPointer();
           if (cArgPtrType == null) {
@@ -611,6 +611,13 @@ public class CMethodBindingEmitter extends FunctionEmitter
                                   "(jstring) _tmpObj",
                                   "(const char*)"+convName+"_copy[_copyIndex]");
           }
+          else if (isNIOBufferClass(subArrayElementJavaType))
+          {
+            emitGetDirectBufferAddress(writer,
+                                       "_tmpObj",
+                                       cArgElementType.getName(),
+                                       convName + "_copy[_copyIndex]");
+          }
           else
           {
             // Question: do we always need to copy the sub-arrays, or just
@@ -625,7 +632,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
               cArgElementType.getTargetType().getName(), // assumes cArgPtrType is ptr-to-ptr-to-primitive !!
               "(*env)->GetArrayLength(env, _tmpObj)",
               "Could not allocate buffer during copying of data in argument \\\""+binding.getArgumentName(i)+"\\\"");
-            // FIXME: copy the data (use Get<type>ArrayRegion() calls)
+            // FIXME: copy the data (use matched Get/ReleasePrimitiveArrayCritical() calls)
             if (true) throw new RuntimeException(
               "Cannot yet handle type \"" + cArgType.getName() +
               "\"; need to add support for copying ptr-to-ptr-to-primitiveType subarrays");
@@ -727,62 +734,57 @@ public class CMethodBindingEmitter extends FunctionEmitter
 
           writer.println("    /* Clean up " + convName + "_copy */");
 
-          // Re-fetch length of array that was copied
-          String arrayLenName = "_tmpArrayLen";
-          writer.print("    ");
-          writer.print(arrayLenName);
-          writer.print(" = (*env)->GetArrayLength(env, ");
-          writer.print(binding.getArgumentName(i)); 
-          writer.println(");");
+          // Only need to perform cleanup for individual array
+          // elements if they are not direct buffers
+          if (!isNIOBufferClass(subArrayElementJavaType)) {
+            // Re-fetch length of array that was copied
+            String arrayLenName = "_tmpArrayLen";
+            writer.print("    ");
+            writer.print(arrayLenName);
+            writer.print(" = (*env)->GetArrayLength(env, ");
+            writer.print(binding.getArgumentName(i)); 
+            writer.println(");");
 
-          // free each element
-          PointerType cArgPtrType = cArgType.asPointer();
-          if (cArgPtrType == null) {
-            throw new RuntimeException(
-              "Could not copy data for type \"" + cArgType +
-              "\"; currently only pointer types supported.");
-          }
-          PointerType cArgElementType = cArgPtrType.getTargetType().asPointer();          
+            // free each element
+            PointerType cArgPtrType = cArgType.asPointer();
+            if (cArgPtrType == null) {
+              throw new RuntimeException(
+                "Could not copy data for type \"" + cArgType +
+                "\"; currently only pointer types supported.");
+            }
+            PointerType cArgElementType = cArgPtrType.getTargetType().asPointer();          
          
-          // process each element in the array
-          writer.println("    for (_copyIndex = 0; _copyIndex < " + arrayLenName +"; ++_copyIndex) {");
+            // process each element in the array
+            writer.println("    for (_copyIndex = 0; _copyIndex < " + arrayLenName +"; ++_copyIndex) {");
 
-          // get each array element
-          writer.println("      /* free each element of " +convName +"_copy */");    
-          String subArrayElementJNITypeString = jniType(subArrayElementJavaType);
-          writer.print("      _tmpObj = (");
-          writer.print(subArrayElementJNITypeString);
-          writer.print(") (*env)->GetObjectArrayElement(env, ");
-          writer.print(binding.getArgumentName(i));
-          writer.println(", _copyIndex);");            
+            // get each array element
+            writer.println("      /* free each element of " +convName +"_copy */");    
+            String subArrayElementJNITypeString = jniType(subArrayElementJavaType);
+            writer.print("      _tmpObj = (");
+            writer.print(subArrayElementJNITypeString);
+            writer.print(") (*env)->GetObjectArrayElement(env, ");
+            writer.print(binding.getArgumentName(i));
+            writer.println(", _copyIndex);");            
 
-          if (subArrayElementJNITypeString == "jstring")
-          {            
-            writer.print("     (*env)->ReleaseStringUTFChars(env, ");
-            writer.print("(jstring) _tmpObj");
-            writer.print(", ");
-            writer.print(convName+"_copy[_copyIndex]");
-            writer.println(");");           
-          }
-          else
-          {
-            // FIXME: free up stuff here
-            if (true) throw new RuntimeException(
-              "Cannot yet handle type \"" + cArgType.getName() +
-              "\"; need to add support for cleaning up copied ptr-to-ptr-to-primitiveType subarrays"); 
+            if (subArrayElementJNITypeString == "jstring") {            
+              writer.print("     (*env)->ReleaseStringUTFChars(env, ");
+              writer.print("(jstring) _tmpObj");
+              writer.print(", ");
+              writer.print(convName+"_copy[_copyIndex]");
+              writer.println(");");           
+            } else {
+              if (true) throw new RuntimeException(
+                "Cannot yet handle type \"" + cArgType.getName() +
+                "\"; need to add support for cleaning up copied ptr-to-ptr-to-primitiveType subarrays"); 
+            }
+            writer.println("    }");
           }
 
-          writer.println("    }");
           // free the main array
           writer.print("    free(");
           writer.print(convName+"_copy");
           writer.println(");");
-  
-
-          writer.println();
         } // end of cleaning up copied data
-
-
 
         if (EMIT_NULL_CHECKS) {
           writer.println("  }");
@@ -1059,10 +1061,12 @@ public class CMethodBindingEmitter extends FunctionEmitter
       return "j" + javaType.getName();
     } else if (javaType == java.lang.String.class) {
       return "jstring";
+    } else if (isNIOBufferClass(javaType)) {
+      return "jobject";
     } else {
       throw new RuntimeException(
         "Could not determine JNI type for Java class \"" +
-        javaType.getName() + "\"; was not String or primitive");
+        javaType.getName() + "\"; was not String, primitive or direct buffer");
     }
   }
   
@@ -1112,7 +1116,10 @@ public class CMethodBindingEmitter extends FunctionEmitter
                                      String sourceVarName,
                                      String receivingVarName)
   {
-    writer.print("    ");
+    writer.print("    if (");
+    writer.print(sourceVarName);
+    writer.println(" != NULL) {");
+    writer.print("      ");
     writer.print(receivingVarName);
     writer.print(" = (*env)->GetStringUTFChars(env, ");
     writer.print(sourceVarName);
@@ -1124,8 +1131,39 @@ public class CMethodBindingEmitter extends FunctionEmitter
         writer, receivingVarName,
         "Failed to get UTF-8 chars for argument \\\""+sourceVarName+"\\\"");
     }
+    writer.println("    } else {");
+    writer.print("      ");
+    writer.print(receivingVarName);
+    writer.println(" = NULL;");
+    writer.println("    }");
   }      
 
+  private void emitGetDirectBufferAddress(PrintWriter writer,
+                                          String sourceVarName,
+                                          String receivingVarTypeString,
+                                          String receivingVarName) {
+    if (EMIT_NULL_CHECKS) {
+      writer.print("    if (");
+      writer.print(sourceVarName);
+      writer.println(" != NULL) {");
+    }
+    writer.print("      ");
+    writer.print(receivingVarName);
+    writer.print(" = (");
+    writer.print(receivingVarTypeString);
+    writer.print(") (*env)->GetDirectBufferAddress(env, ");
+    writer.print(sourceVarName);
+    writer.println(");");
+    if (EMIT_NULL_CHECKS) {
+      writer.println("    } else {");
+      writer.print("      ");
+      writer.print(receivingVarName);
+      writer.println(" = NULL;");
+      writer.println("    }");
+    }
+  }
+                                          
+  
   // Note: if the data in the Type needs to be converted from the Java memory
   // model to the C memory model prior to calling any C-side functions, then
   // an extra variable named XXX_copy (where XXX is the value of the
@@ -1156,7 +1194,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
       }
       else if (elementType == java.lang.String.class)
       {
-        ptrTypeString = "jstring *";
+        ptrTypeString = "jstring";
       }
       else if (elementType.isArray())
       {
@@ -1173,6 +1211,11 @@ public class CMethodBindingEmitter extends FunctionEmitter
           throw new RuntimeException("Unsupported pointer type: \"" + cType.getName() + "\"");    
         }
 
+      }
+      else if (isNIOBufferClass(elementType))
+      {
+        // type is an array of direct buffers of some sort
+        ptrTypeString = cType.getName();
       }
       else
       {
@@ -1228,6 +1271,12 @@ public class CMethodBindingEmitter extends FunctionEmitter
                                      Type cType,
                                      String incomingArgumentName,
                                      String cVariableName) {
+    emitGetDirectBufferAddress(writer,
+                               incomingArgumentName,
+                               cType.getName(),
+                               cVariableName);
+
+    /*
     if (EMIT_NULL_CHECKS) {
       writer.print("  if (");
       writer.print(incomingArgumentName);
@@ -1245,6 +1294,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
     if (EMIT_NULL_CHECKS) {
       writer.println("  }");
     }
+    */
   }
 
   protected String pointerConversionArgumentName(int i) {
@@ -1280,9 +1330,14 @@ public class CMethodBindingEmitter extends FunctionEmitter
     if (javaArgType.isArray()) {
       Class subArrayElementJavaType = javaArgType.getJavaClass().getComponentType();
       return (subArrayElementJavaType.isArray() ||
-              subArrayElementJavaType == java.lang.String.class);
+              subArrayElementJavaType == java.lang.String.class ||
+              isNIOBufferClass(subArrayElementJavaType));
     }
     return false;
+  }
+
+  protected static boolean isNIOBufferClass(Class c) {
+    return java.nio.Buffer.class.isAssignableFrom(c);
   }
 }
 

@@ -102,10 +102,22 @@ public class JavaMethodBindingImplEmitter extends JavaMethodBindingEmitter
         writer.println("      throw new " + getRuntimeExceptionType() + "(\"Length of array \\\"" + binding.getArgumentName(i) +
                        "\\\" was less than the required " + arrayType.getLength() + "\");");
       } else {
-        if (binding.getJavaArgumentType(i).isNIOBuffer()) {
+        JavaType javaType = binding.getJavaArgumentType(i);
+        if (javaType.isNIOBuffer()) {
           writer.println("    if (!BufferFactory.isDirect(" + binding.getArgumentName(i) + "))");
           writer.println("      throw new " + getRuntimeExceptionType() + "(\"Argument \\\"" +
                          binding.getArgumentName(i) + "\\\" was not a direct buffer\");");
+        } else if (javaType.isNIOBufferArray()) {
+          String argName = binding.getArgumentName(i);
+          // Check direct buffer properties of all buffers within
+          writer.println("    if (" + argName + " != null) {");
+          writer.println("      for (int _ctr = 0; _ctr < " + argName + ".length; _ctr++) {");
+          writer.println("        if (!BufferFactory.isDirect(" + argName + "[_ctr])) {");
+          writer.println("          throw new " + getRuntimeExceptionType() + "(\"Element \" + _ctr + \" of argument \\\"" +
+                         binding.getArgumentName(i) + "\\\" was not a direct buffer\");");
+          writer.println("        }");
+          writer.println("      }");
+          writer.println("    }");
         }
       }
     }

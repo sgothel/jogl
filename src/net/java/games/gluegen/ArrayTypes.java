@@ -39,14 +39,14 @@
 
 package net.java.games.gluegen;
 
+import java.nio.*;
+
 /**
  * Convenience class containing the Class objects corresponding to arrays of
  * various types (e.g., {@link #booleanArrayClass} is the Class of Java type
  * "boolean[]").
  */
 public class ArrayTypes {
-  /** Class for Java type string[] */
-  public static final Class stringArrayClass;
   /** Class for Java type boolean[] */
   public static final Class booleanArrayClass;
   /** Class for Java type byte[] */
@@ -63,28 +63,47 @@ public class ArrayTypes {
   public static final Class floatArrayClass;
   /** Class for Java type double[] */
   public static final Class doubleArrayClass;
+  /** Class for Java type String[] */
+  public static final Class stringArrayClass;
 
-  /** Class for Java type string[][] */
-  public static final Class stringArrayArrayClass;
-  /** Class for Java type boolean[][] */
-  public static final Class booleanArrayArrayClass;
-  /** Class for Java type byte[][] */
-  public static final Class byteArrayArrayClass;
-  /** Class for Java type char[][] */
-  public static final Class charArrayArrayClass;
-  /** Class for Java type short[][] */
-  public static final Class shortArrayArrayClass;
-  /** Class for Java type int[][] */
-  public static final Class intArrayArrayClass;
-  /** Class for Java type long[][] */
-  public static final Class longArrayArrayClass;
-  /** Class for Java type float[][] */
-  public static final Class floatArrayArrayClass;
-  /** Class for Java type double[][] */
-  public static final Class doubleArrayArrayClass;
+  // Classes for two-dimensional arrays.
+  //
+  // GlueGen converts C types like int** into Java arrays of direct
+  // buffers of the appropriate type (like IntBuffer[]). If the tool
+  // supported conversions like byte[][] -> char**, it would
+  // effectively be necessary to copy all of the data from the Java
+  // heap to the C heap during each call. The reason for this is that
+  // if we wanted to use GetPrimitiveArrayCritical to lock down the
+  // storage for each individual array element, we would need to fetch
+  // each element of the two-dimensional Java array into temporary
+  // storage before making the first GetPrimitiveArrayCritical call,
+  // since one can not call GetObjectArrayElement inside a Get /
+  // ReleasePrimitiveArrayCritical pair. This means that we would need
+  // two top-level pieces of temporary storage for the two-dimensional
+  // array as well as two loops to set up the contents, which would be
+  // too complicated.
+  //
+  // The one concession we make is converting String[] -> char**. The
+  // JVM takes care of the C heap allocation for GetStringUTFChars and
+  // ReleaseStringUTFChars, and this conversion is important for
+  // certain OpenGL operations.
+
+  /** Class for Java type Buffer[] */
+  public static final Class bufferArrayClass;
+  /** Class for Java type ByteBuffer[] */
+  public static final Class byteBufferArrayClass;
+  /** Class for Java type ShortBuffer[] */
+  public static final Class shortBufferArrayClass;
+  /** Class for Java type IntBuffer[] */
+  public static final Class intBufferArrayClass;
+  /** Class for Java type LongBuffer[] */
+  public static final Class longBufferArrayClass;
+  /** Class for Java type FloatBuffer[] */
+  public static final Class floatBufferArrayClass;
+  /** Class for Java type DoubleBuffer[] */
+  public static final Class doubleBufferArrayClass;
 
   static {
-    stringArrayClass  = new String [0].getClass();
     booleanArrayClass = new boolean[0].getClass();
     byteArrayClass    = new byte   [0].getClass();
     charArrayClass    = new char   [0].getClass();
@@ -93,15 +112,14 @@ public class ArrayTypes {
     longArrayClass    = new long   [0].getClass();
     floatArrayClass   = new float  [0].getClass();
     doubleArrayClass  = new double [0].getClass();
+    stringArrayClass  = new String [0].getClass();
 
-    stringArrayArrayClass  = new String [0][0].getClass();
-    booleanArrayArrayClass = new boolean[0][0].getClass();
-    byteArrayArrayClass    = new byte   [0][0].getClass();
-    charArrayArrayClass    = new char   [0][0].getClass();
-    shortArrayArrayClass   = new short  [0][0].getClass();
-    intArrayArrayClass     = new int    [0][0].getClass();
-    longArrayArrayClass    = new long   [0][0].getClass();
-    floatArrayArrayClass   = new float  [0][0].getClass();
-    doubleArrayArrayClass  = new double [0][0].getClass();
+    bufferArrayClass       = new Buffer      [0].getClass();
+    byteBufferArrayClass   = new ByteBuffer  [0].getClass();
+    shortBufferArrayClass  = new ShortBuffer [0].getClass();
+    intBufferArrayClass    = new IntBuffer   [0].getClass();
+    longBufferArrayClass   = new LongBuffer  [0].getClass();
+    floatBufferArrayClass  = new FloatBuffer [0].getClass();
+    doubleBufferArrayClass = new DoubleBuffer[0].getClass();
   }
 }

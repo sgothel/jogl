@@ -225,13 +225,25 @@ public abstract class Type {
   }
 
   /** Helper method for determining how many pointer indirections this
-      type represents (i.e., "void **" returns 2). */
+      type represents (i.e., "void **" returns 2). Returns 0 if this
+      type is not a pointer type. */
   public int pointerDepth() {
     PointerType pt = asPointer();
     if (pt == null) {
       return 0;
     }
     return 1 + pt.getTargetType().pointerDepth();
+  }
+
+  /** Helper method for determining how many array dimentions this
+      type represents (i.e., "char[][]" returns 2). Returns 0 if this
+      type is not an array type. */
+  public int arrayDimension() {
+    ArrayType arrayType = asArray();
+    if (arrayType == null) {
+      return 0;
+    }
+    return 1 + arrayType.getElementType().arrayDimension();
   }
 
   /** Helper routine for list equality comparison */

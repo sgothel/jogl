@@ -752,7 +752,7 @@ public class JavaEmitter implements GlueEmitter {
     } else if (t.isVoid()) {
       return javaType(Void.TYPE);
     } else {
-      if (t.pointerDepth() > 0 || arrayDimension(t) > 0) {
+      if (t.pointerDepth() > 0 || t.arrayDimension() > 0) {
         Type targetType; // target type 
         if (t.isPointer()) {
           // t is <type>*, we need to get <type>
@@ -765,7 +765,7 @@ public class JavaEmitter implements GlueEmitter {
         // Handle Types of form pointer-to-type or array-of-type, like
         // char* or int[]; these are expanded out into Java primitive
         // arrays, NIO buffers, or both in expandMethodBinding
-        if (t.pointerDepth() == 1 || arrayDimension(t) == 1) {
+        if (t.pointerDepth() == 1 || t.arrayDimension() == 1) {
           if (targetType.isVoid()) {
             return JavaType.createForVoidPointer();
           } else if (targetType.isInt()) {
@@ -808,7 +808,7 @@ public class JavaEmitter implements GlueEmitter {
         }
         // Handle Types of form pointer-to-pointer-to-type or
         // array-of-arrays-of-type, like char** or int[][]
-        else if (t.pointerDepth() == 2 || arrayDimension(t) == 2) {
+        else if (t.pointerDepth() == 2 || t.arrayDimension() == 2) {
           // Get the target type of the target type (targetType was computer earlier
           // as to be a pointer to the target type, so now we need to get its
           // target type)
@@ -820,28 +820,38 @@ public class JavaEmitter implements GlueEmitter {
             // t is<type>[][], targetType is <type>[], we need to get <type>
             bottomType = targetType.asArray().getElementType(); 
           }
-          if (bottomType.isInt()) {
-            switch (bottomType.getSize())
-            {
-              case 1:  return javaType(ArrayTypes.byteArrayArrayClass);
-              // FIXME: handle 2,4,8-byte int types here
-              default:
-                throw new RuntimeException(
-                  "Could not convert C type \"" + t + "\" to appropriate " +
-                  "Java type; Currently, the only supported depth=2 " +
-                  "pointer/array integer types are \"char**\" and \"char[][]\"");
+
+          if (bottomType.isPrimitive()) {
+            if (bottomType.isInt()) {
+              switch (bottomType.getSize()) {
+                case 1: return javaType(ArrayTypes.byteBufferArrayClass);
+                case 2: return javaType(ArrayTypes.shortBufferArrayClass);
+                case 4: return javaType(ArrayTypes.intBufferArrayClass);
+                case 8: return javaType(ArrayTypes.longBufferArrayClass);
+                default: throw new RuntimeException("Unknown two-dimensional integer array type of element size " +
+                                                    bottomType.getSize() + " and name " + bottomType.getName());
+              }
+            } else if (bottomType.isFloat()) {
+              return javaType(ArrayTypes.floatBufferArrayClass);
+            } else if (bottomType.isDouble()) {
+              return javaType(ArrayTypes.doubleBufferArrayClass);
+            } else {
+              throw new RuntimeException("Unexpected primitive type " + bottomType.getName() +
+                                         " in two-dimensional array");
             }
-          } else if (targetType.isPointer() && (targetType.pointerDepth() == 1)) {
+          } else if (bottomType.isVoid()) {
+            return javaType(ArrayTypes.bufferArrayClass);
+          } else if (targetType.isPointer() && (targetType.pointerDepth() == 1) &&
+                     targetType.asPointer().getTargetType().isCompound()) {
             // Array of pointers; convert as array of StructAccessors
             return JavaType.createForCArray(targetType);
           } else {
             throw new RuntimeException(
               "Could not convert C type \"" + t + "\" " +
               "to appropriate Java type; need to add more support for " +
-              "depth=2 pointer/array types with non-integral target " +
-              "types [debug info: targetType=\"" + targetType + "\"]");            
+              "depth=2 pointer/array types [debug info: targetType=\"" +
+              targetType + "\"]");            
           }
-                   
         } else {
           // can't handle this type of pointer/array argument
           throw new RuntimeException(
@@ -849,7 +859,7 @@ public class JavaEmitter implements GlueEmitter {
             "appropriate Java type; types with pointer/array depth " +
             "greater than 2 are not yet supported [debug info: " +
             "pointerDepth=" + t.pointerDepth() + " arrayDimension=" +
-            arrayDimension(t) + " targetType=\"" + targetType + "\"]");
+            t.arrayDimension() + " targetType=\"" + targetType + "\"]");
         }
         
       } else {
@@ -904,14 +914,6 @@ public class JavaEmitter implements GlueEmitter {
       pDirFile.mkdirs();
     }
     return new PrintWriter(new BufferedWriter(new FileWriter(file)));
-  }
-
-  private int arrayDimension(Type type) {
-    ArrayType arrayType = type.asArray();
-    if (arrayType == null) {
-      return 0;
-    }
-    return 1 + arrayDimension(arrayType.getElementType());
   }
 
   private boolean isOpaque(Type type) {
@@ -1187,7 +1189,7 @@ public class JavaEmitter implements GlueEmitter {
           "Cannot apply ReturnsString configuration directive to \"" + sym +
           "\". ReturnsString requires native method to have return type \"char *\"");
       }
-      binding.setJavaReturnType(JavaType.createForClass(java.lang.String.class));
+      binding.setJavaReturnType(javaType(java.lang.String.class));
     } else {
       binding.setJavaReturnType(typeToJavaType(sym.getReturnType(), false));
     }
@@ -1207,9 +1209,9 @@ public class JavaEmitter implements GlueEmitter {
         //System.out.println("Forcing conversion of " + binding.getName() + " arg #" + i + " from byte[] to String ");
         if (mappedType.isCVoidPointerType() ||
             mappedType.isCCharPointerType() ||
-            (mappedType.isArray() && mappedType.getJavaClass() == ArrayTypes.byteArrayArrayClass)) {
-          // convert mapped type from void* and byte[] to String, or byte[][] to String[]
-          if (mappedType.getJavaClass() == ArrayTypes.byteArrayArrayClass) {
+            (mappedType.isArray() && mappedType.getJavaClass() == ArrayTypes.byteBufferArrayClass)) {
+          // convert mapped type from void* and byte[] to String, or ByteBuffer[] to String[]
+          if (mappedType.getJavaClass() == ArrayTypes.byteBufferArrayClass) {
             mappedType = javaType(ArrayTypes.stringArrayClass);
           } else {         
             mappedType = javaType(String.class);
@@ -1330,22 +1332,22 @@ public class JavaEmitter implements GlueEmitter {
           variant = mb.createCPrimitivePointerVariant(-1, JavaType.forNIOByteBufferClass());
           if (! result.contains(variant)) result.add(variant); 
         } else if (mb.getJavaReturnType().isCCharPointerType()) {
-          variant = mb.createCPrimitivePointerVariant(-1, JavaType.createForClass(ArrayTypes.byteArrayClass));
+          variant = mb.createCPrimitivePointerVariant(-1, javaType(ArrayTypes.byteArrayClass));
           if (! result.contains(variant)) result.add(variant); 
         } else if (mb.getJavaReturnType().isCShortPointerType()) {
-          variant = mb.createCPrimitivePointerVariant(-1, JavaType.createForClass(ArrayTypes.shortArrayClass));
+          variant = mb.createCPrimitivePointerVariant(-1, javaType(ArrayTypes.shortArrayClass));
           if (! result.contains(variant)) result.add(variant); 
         } else if (mb.getJavaReturnType().isCInt32PointerType()) {
-          variant = mb.createCPrimitivePointerVariant(-1, JavaType.createForClass(ArrayTypes.intArrayClass));
+          variant = mb.createCPrimitivePointerVariant(-1, javaType(ArrayTypes.intArrayClass));
           if (! result.contains(variant)) result.add(variant); 
         } else if (mb.getJavaReturnType().isCInt64PointerType()) {
-          variant = mb.createCPrimitivePointerVariant(-1, JavaType.createForClass(ArrayTypes.longArrayClass));
+          variant = mb.createCPrimitivePointerVariant(-1, javaType(ArrayTypes.longArrayClass));
           if (! result.contains(variant)) result.add(variant); 
         } else if (mb.getJavaReturnType().isCFloatPointerType()) {
-          variant = mb.createCPrimitivePointerVariant(-1, JavaType.createForClass(ArrayTypes.floatArrayClass));
+          variant = mb.createCPrimitivePointerVariant(-1, javaType(ArrayTypes.floatArrayClass));
           if (! result.contains(variant)) result.add(variant); 
         } else if (mb.getJavaReturnType().isCDoublePointerType()) {
-          variant = mb.createCPrimitivePointerVariant(-1, JavaType.createForClass(ArrayTypes.doubleArrayClass));
+          variant = mb.createCPrimitivePointerVariant(-1, javaType(ArrayTypes.doubleArrayClass));
           if (! result.contains(variant)) result.add(variant); 
         }
         shouldRemoveCurrent = true;

@@ -263,9 +263,9 @@ public class JavaType {
         return "jobjectArray /*elements are String*/";
         //return "jobjectArray";
       }
-      else if (elementType == java.nio.ByteBuffer.class)
+      else if (java.nio.Buffer.class.isAssignableFrom(elementType))
       {
-        return "jobjectArray /*elements are ByteBuffer*/";
+        return "jobjectArray /*elements are " + elementType.getName() + "*/";
       }
       else if (elementType.isArray())
       {
@@ -306,6 +306,11 @@ public class JavaType {
 
   public boolean isNIOByteBufferArray() {
     return (this == nioByteBufferArrayType);
+  }
+
+  public boolean isNIOBufferArray() {
+    return (isArray() &&
+            (java.nio.Buffer.class.isAssignableFrom(clazz.getComponentType())));
   }
 
   public boolean isString() {
