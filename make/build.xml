@@ -905,7 +905,7 @@
        -        on the platform specific build targets.  To circumvent any 
        -        errors, ensure that the source is built first.
       -->
-    <target name="javadoc.nocg" depends="init" unless="jogl.cg">
+    <target name="javadoc.nocg" depends="setup.java.home.dir.nonmacosx,init" unless="jogl.cg">
         <!-- Build the general Javadoc -->
         <javadoc packagenames="${javadoc.packagenames}"
                  sourcepath="${src};${src.generated.java}"        
@@ -915,7 +915,7 @@
     </target>
 
     <!-- Same as above but with Cg directories added -->
-    <target name="javadoc.cg" depends="init" if="jogl.cg">
+    <target name="javadoc.cg" depends="setup.java.home.dir.nonmacosx,init" if="jogl.cg">
         <!-- Build the general Javadoc -->
         <javadoc packagenames="${javadoc.packagenames},net.java.games.cg"
                  sourcepath="${src};${src.generated.java}"        
