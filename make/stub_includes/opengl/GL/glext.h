@@ -5956,7 +5956,7 @@ typedef void (APIENTRYP PFNGLBLENDEQUATIONSEPARATEEXTPROC) (GLenum modeRGB, GLen
 /*
  * ------------------------------------------------
  * Everything here and below was added manually
- * by ckline and kbr to the version of glext.h obtained from:
+ * by ckline, kbr and yvg to the version of glext.h obtained from:
  * http://oss.sgi.com/projects/ogl-sample/registry/index.html
  * ------------------------------------------------
  */
@@ -5989,6 +5989,32 @@ typedef void (APIENTRYP PFNGLDRAWELEMENTARRAYNVPROC) (GLenum mode, GLint first, 
 typedef void (APIENTRYP PFNGLDRAWRANGEELEMENTARRAYNVPROC) (GLenum mode, GLuint start, GLuint end, GLint first, GLsizei count);
 typedef void (APIENTRYP PFNGLMULTIDRAWELEMENTARRAYNVPROC) (GLenum mode, const GLint *first, const GLsizei *count, GLsizei primcount);
 typedef void (APIENTRYP PFNGLMULTIDRAWRANGEELEMENTARRAYNVPROC) (GLenum mode, GLuint start, GLuint end, const GLint *first, const GLsizei *count, GLsizei primcount);
+#endif
+
+/*
+ * note(yvg): manually created this definition from the description at http://www.west.net/~brittain/3dsmax2.htm
+*/
+#ifndef GL_KTX_buffer_region
+#define GL_KTX_FRONT_REGION     0
+#define GL_KTX_BACK_REGION      1
+#define GL_KTX_Z_REGION    2
+#define GL_KTX_STENCIL_REGION   3
+#endif
+ 
+#ifndef GL_KTX_buffer_region
+#define GL_KTX_buffer_region 1
+#ifdef GL_GLEXT_PROTOTYPES
+GLAPI GLuint APIENTRY glNewBufferRegion(GLenum);
+GLAPI void APIENTRY glDeleteBufferRegion(GLuint);
+GLAPI void APIENTRY glReadBufferRegion(GLuint, GLint, GLint, GLsizei, GLsizei);
+GLAPI void APIENTRY glDrawBufferRegion(GLuint, GLint, GLint, GLsizei, GLsizei, GLint, GLint);
+GLAPI GLuint APIENTRY glBufferRegionEnabled(GLvoid);
+#endif
+typedef GLuint (APIENTRY * PFNGLNEWBUFFERREGIONPROC) (GLenum type);
+typedef void (APIENTRY * PFNGLDELETEBUFFERREGIONPROC) (GLuint region);
+typedef void (APIENTRY * PFNGLREADBUFFERREGIONPROC) (GLuint region, GLint x, GLint y, GLsizei width, GLsizei height);
+typedef void (APIENTRY * PFNGLDRAWBUFFERREGIONPROC) (GLuint region, GLint x, GLint y, GLsizei width, GLsizei height, GLint xDest, GLint yDest);
+typedef GLuint (APIENTRY * PFNGLBUFFERREGIONENABLEDPROC) (GLvoid);
 #endif
 
 #ifdef __cplusplus

@@ -40,6 +40,7 @@
 package net.java.games.jogl.impl.windows;
 
 import java.awt.Component;
+import java.awt.Dialog;
 import java.awt.EventQueue;
 import java.awt.Frame;
 import java.awt.GraphicsConfiguration;
@@ -98,7 +99,7 @@ public class WindowsGLContextFactory extends GLContextFactory {
     if (!pendingContextSet.contains(device)) {
       pendingContextSet.add(device);
       GraphicsConfiguration config = device.getDefaultConfiguration();
-      final Frame frame = new Frame(config);
+      final Dialog frame = new Dialog(new Frame(config), "", false, config);
       frame.setUndecorated(true);
       GLCanvas canvas = GLDrawableFactory.getFactory().createGLCanvas(new GLCapabilities(),
                                                                       null,
