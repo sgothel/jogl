@@ -387,12 +387,6 @@
     </target>
 
     <target name="declare.macosx" depends="init">
-        <echo message="*************************************" />
-        <echo message="*                                   *" />
-        <echo message="*     EXECUTING DECLARE.MACOSX      *" />
-        <echo message="*                                   *" />
-        <echo message="*************************************" />
-
         <!-- Set platform configuration files. -->
         <property name="gl.cfg" value="${config}/gl-macosx.cfg" />
         <property name="gl.impl.cfg" value="${config}/gl-impl-macosx.cfg" />
