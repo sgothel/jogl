@@ -84,7 +84,9 @@ public class ScaleInternal {
           highx = x + 0.5f;
           lowx = x - 0.5f;
         }
-        // Ok, now apply box filter to box that goes from
+        // Ok, now apply box filter to box that goes from (lowx, lowy)
+        // to (highx, highy) on input data into this pixel on output
+        // data.
         totals[0] = totals[1] = totals[2] = totals[3] = 0.0f;
         area = 0.0f;
         
@@ -186,11 +188,14 @@ public class ScaleInternal {
       
       for( j = 0; j < widthout; j++ ) {
         
-        // Ok, now apply box filterto box that goes from
+        // Ok, now apply box filter to box that goes from (lowx, lowy)
+        // to (highx, highy) on input data into this pixel on output
+        // data.
         totals[0] = totals[1] = totals[2] = totals[3] = 0.0f;
         
         // caulate the value for pixels in the 1st row
         xindex = lowx_int * group_size;
+
         if( ( highy_int > lowy_int ) && ( highx_int > lowx_int ) ) {
           
           y_percent = 1 - lowy_float;
@@ -205,7 +210,7 @@ public class ScaleInternal {
             temp += group_size;
             for( k = 0, temp_index = temp; k < components; k++, temp_index += element_size ) {
               datain.position( temp_index );
-              totals[k] += ( 0x000000FF & datain.get() ) * percent;
+              totals[k] += ( 0x000000FF & datain.get() ) * y_percent;
             }
           }
           temp += group_size;
@@ -301,7 +306,7 @@ public class ScaleInternal {
             totals[k] += ( 0x000000FF & datain.get() ) * percent;
           }
         }
-        
+
         // this is for the pixels in the body
         temp0 = xindex + group_size + ( lowy_int + 1 ) * ysize;
         for( m = lowy_int + 1; m < highy_int; m++ ) {
@@ -395,7 +400,9 @@ public class ScaleInternal {
       
       for( j = 0; j < widthout; j++ ) {
         
-        // Ok, now apply box filterto box that goes from
+        // Ok, now apply box filter to box that goes from (lowx, lowy)
+        // to (highx, highy) on input data into this pixel on output
+        // data.
         totals[0] = totals[1] = totals[2] = totals[3] = 0.0f;
         
         // caulate the value for pixels in the 1st row
@@ -414,7 +421,7 @@ public class ScaleInternal {
             temp += group_size;
             for( k = 0, temp_index = temp; k < components; k++, temp_index += element_size ) {
               datain.position( temp_index );
-              totals[k] += datain.get() * percent;
+              totals[k] += datain.get() * y_percent;
             }
           }
           temp += group_size;
@@ -604,7 +611,9 @@ public class ScaleInternal {
       
       for( j = 0; j < widthout; j++ ) {
         
-        // Ok, now apply box filterto box that goes from
+        // Ok, now apply box filter to box that goes from (lowx, lowy)
+        // to (highx, highy) on input data into this pixel on output
+        // data.
         totals[0] = totals[1] = totals[2] = totals[3] = 0.0f;
         
         // caulate the value for pixels in the 1st row
@@ -878,7 +887,9 @@ public class ScaleInternal {
       
       for( j = 0; j < widthout; j++ ) {
         
-        // Ok, now apply box filterto box that goes from
+        // Ok, now apply box filter to box that goes from (lowx, lowy)
+        // to (highx, highy) on input data into this pixel on output
+        // data.
         totals[0] = totals[1] = totals[2] = totals[3] = 0.0f;
         
         // caulate the value for pixels in the 1st row
@@ -1164,7 +1175,9 @@ public class ScaleInternal {
       
       for( j = 0; j < widthout; j++ ) {
         
-        // Ok, now apply box filterto box that goes from
+        // Ok, now apply box filter to box that goes from (lowx, lowy)
+        // to (highx, highy) on input data into this pixel on output
+        // data.
         totals[0] = totals[1] = totals[2] = totals[3] = 0.0f;
         
         // caulate the value for pixels in the 1st row
@@ -1445,7 +1458,9 @@ public class ScaleInternal {
       
       for( j = 0; j < widthout; j++ ) {
         
-        // Ok, now apply box filterto box that goes from
+        // Ok, now apply box filter to box that goes from (lowx, lowy)
+        // to (highx, highy) on input data into this pixel on output
+        // data.
         totals[0] = totals[1] = totals[2] = totals[3] = 0.0f;
         
         // caulate the value for pixels in the 1st row
@@ -1733,7 +1748,9 @@ public class ScaleInternal {
       
       for( j = 0; j < widthout; j++ ) {
         
-        // Ok, now apply box filterto box that goes from
+        // Ok, now apply box filter to box that goes from (lowx, lowy)
+        // to (highx, highy) on input data into this pixel on output
+        // data.
         totals[0] = totals[1] = totals[2] = totals[3] = 0.0f;
         
         // caulate the value for pixels in the 1st row
