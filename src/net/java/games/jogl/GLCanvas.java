@@ -124,6 +124,12 @@ public final class GLCanvas extends Canvas implements GLDrawable {
       }, true, initAction);
   }
 
+  /** Overridden from Canvas to prevent Java2D's clearing of the
+      canvas from interfering with the OpenGL rendering. */
+  public void update(Graphics g) {
+    paint(g);
+  }
+  
   public void addGLEventListener(GLEventListener listener) {
     drawableHelper.addGLEventListener(listener);
   }
