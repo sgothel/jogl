@@ -85,6 +85,12 @@ public class DefaultGLCapabilitiesChooser implements GLCapabilitiesChooser {
   public int chooseCapabilities(GLCapabilities desired,
                                 GLCapabilities[] available,
                                 int windowSystemRecommendedChoice) {
+    if (DEBUG) {
+      for (int i = 0; i < available.length; i++) {
+        System.err.println("Available " + i + ": " + available[i]);
+      }
+    }
+
     if (windowSystemRecommendedChoice >= 0 &&
         windowSystemRecommendedChoice < available.length &&
         available[windowSystemRecommendedChoice] != null) {
@@ -93,12 +99,6 @@ public class DefaultGLCapabilitiesChooser implements GLCapabilitiesChooser {
         System.err.println(available[windowSystemRecommendedChoice]);
       }
       return windowSystemRecommendedChoice;
-    }
-
-    if (DEBUG) {
-      for (int i = 0; i < available.length; i++) {
-        System.err.println("Available " + i + ": " + available[i]);
-      }
     }
 
     // Create score array
