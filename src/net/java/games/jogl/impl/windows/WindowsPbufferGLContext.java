@@ -397,7 +397,7 @@ public class WindowsPbufferGLContext extends WindowsGLContext {
       }
 
       GL gl = getGL();
-      gl.glCopyTexImage2D(textureTarget, 0, GL.GL_RGB, 0, 0, width, height, 0);
+      gl.glCopyTexSubImage2D(textureTarget, 0, 0, 0, 0, 0, width, height);
     }
   }
 
