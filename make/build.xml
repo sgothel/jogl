@@ -45,7 +45,8 @@
    - Thanks to Rob Grzywinski and Artur Biesiadowski for the bulk of the
    - ANT build, including the GlueGen and StaticGLInfo tasks, the building of
    - the Java generated sources, the first and second phase Java compiles, and
-   - the building of the jar file.
+   - the building of the jar file. Thanks to Alex Radeski for the bulk of the
+   - port to the ant-contrib CPPTask framework.
    -->
 <project name="JOGL" basedir="." default="all">
     
