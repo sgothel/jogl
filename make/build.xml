@@ -215,9 +215,6 @@
             <pathelement location="${antlr.jar}" />
         </path>
 
-        <!-- The ANT specific Makefile for building the native sources. -->
-        <property name="makefile" value="${config}/MakefileAnt" />
-
         <!-- The resulting jogl.jar. -->
         <property name="jogl.jar" value="${build}/jogl.jar" />
 
@@ -229,7 +226,7 @@
         <property name="javadoc.dev.packagenames.win32"  value="net.java.games.jogl.impl.windows" />
         <property name="javadoc.dev.packagenames.x11"    value="net.java.games.jogl.impl.x11" />
         <property name="javadoc.dev.packagenames.macosx" value="net.java.games.jogl.impl.macosx" />
-        <property name="javadoc.dev.packagenames" value="net.java.games.jogl,net.java.games.jogl.impl,net.java.games.jogl.util,net.java.games.gluegen.*" />
+        <property name="javadoc.dev.packagenames" value="net.java.games.jogl,net.java.games.jogl.impl,net.java.games.jogl.util,net.java.games.gluegen" />
         
     </target>
     
