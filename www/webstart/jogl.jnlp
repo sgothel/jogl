@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <jnlp spec="1.0.1" 
-      codebase="http://jogl.dev.java.net/webstart/"
+      codebase="https://jogl.dev.java.net/webstart/"
       href="jogl.jnlp">
   <information>
     <title>JOGL</title>
