@@ -184,8 +184,10 @@ public class MethodBinding {
           JavaType javaArgType = getJavaArgumentType(i);
           Type cArgType = getCArgumentType(i);
           if (javaArgType.isCompoundTypeWrapper() ||
+              javaArgType.isNIOBuffer() ||
               cArgType.isArray()) {
-            // Needs unwrapping of accessors or checking of array lengths
+            // Needs unwrapping of accessors, checking of array
+            // lengths, or checking of direct buffer property
             needsBody = true;
             break;
           }

@@ -11,6 +11,9 @@
 
 - Fully expose ARB_vertex_buffer_object APIs.
 
+- Fix addNotify()/removeNotify() handling so that adding and removing
+  a canvas from a window, etc. works properly.
+
 - Test Cg binding on Linux. Find out if Cg is available on Mac OS X.
 
 - Finish implementation in GlueGen of <type>** arguments (currently

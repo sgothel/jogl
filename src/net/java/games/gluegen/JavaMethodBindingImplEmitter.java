@@ -89,10 +89,10 @@ public class JavaMethodBindingImplEmitter extends JavaMethodBindingEmitter
   }
 
   protected void emitPreCallSetup(MethodBinding binding, PrintWriter writer) {
-    emitArrayLengthChecks(binding, writer);
+    emitArrayLengthAndNIOBufferChecks(binding, writer);
   }
 
-  protected void emitArrayLengthChecks(MethodBinding binding, PrintWriter writer) {
+  protected void emitArrayLengthAndNIOBufferChecks(MethodBinding binding, PrintWriter writer) {
     // Check lengths of any incoming arrays if necessary
     for (int i = 0; i < binding.getNumArguments(); i++) {
       Type type = binding.getCArgumentType(i);
@@ -101,6 +101,12 @@ public class JavaMethodBindingImplEmitter extends JavaMethodBindingEmitter
         writer.println("    if (" + binding.getArgumentName(i) + ".length < " + arrayType.getLength() + ")");
         writer.println("      throw new " + getRuntimeExceptionType() + "(\"Length of array \\\"" + binding.getArgumentName(i) +
                        "\\\" was less than the required " + arrayType.getLength() + "\");");
+      } else {
+        if (binding.getJavaArgumentType(i).isNIOBuffer()) {
+          writer.println("    if (!BufferFactory.isDirect(" + binding.getArgumentName(i) + "))");
+          writer.println("      throw new " + getRuntimeExceptionType() + "(\"Argument \\\"" +
+                         binding.getArgumentName(i) + "\\\" was not a direct buffer\");");
+        }
       }
     }
   }

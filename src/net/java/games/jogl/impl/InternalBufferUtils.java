@@ -37,39 +37,19 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package net.java.games.gluegen.runtime;
+package net.java.games.jogl.impl;
 
 import java.nio.*;
 
-public class BufferFactory {
-  public static ByteBuffer newDirectByteBuffer(int size) {
-    ByteBuffer buf = ByteBuffer.allocateDirect(size);
-    buf.order(ByteOrder.nativeOrder());
-    return buf;
-  }
+/** Utility routines available only to the JOGL implementation. */
 
-  /** Helper routine to tell whether a buffer is direct or not. Null
-      pointers are considered direct. isDirect() should really be
-      public in Buffer and not replicated in all subclasses. */
-  public static boolean isDirect(Buffer buf) {
-    if (buf == null) {
-      return true;
-    }
-    if (buf instanceof ByteBuffer) {
-      return ((ByteBuffer) buf).isDirect();
-    } else if (buf instanceof FloatBuffer) {
-      return ((FloatBuffer) buf).isDirect();
-    } else if (buf instanceof DoubleBuffer) {
-      return ((DoubleBuffer) buf).isDirect();
-    } else if (buf instanceof CharBuffer) {
-      return ((CharBuffer) buf).isDirect();
-    } else if (buf instanceof ShortBuffer) {
-      return ((ShortBuffer) buf).isDirect();
-    } else if (buf instanceof IntBuffer) {
-      return ((IntBuffer) buf).isDirect();
-    } else if (buf instanceof LongBuffer) {
-      return ((LongBuffer) buf).isDirect();
-    }
-    throw new RuntimeException("Unknown buffer type " + buf.getClass().getName());
-  }
+public class InternalBufferUtils {
+  /** Allocates a new direct byte buffer at the given address with the
+      given capacity. This is exposed only because of glMapBufferARB
+      and its semantics; it is undesirable to allocate a new buffer
+      every frame because (a) ByteBuffers are finalizable and (b) the
+      application would typically need to re-slice the buffer every
+      frame. Instead we cache these ByteBuffer objects up in Java and
+      look them up in a HashMap by base address and capacity. */
+  public static native ByteBuffer newDirectByteBuffer(long address, int capacity);
 }

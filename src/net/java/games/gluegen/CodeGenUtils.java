@@ -94,6 +94,7 @@ public class CodeGenUtils
       w.print(imports[i]);
       w.println(';');
     }
+    w.println("import net.java.games.gluegen.runtime.*;");
 
     w.println();
 

@@ -37,39 +37,18 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package net.java.games.gluegen.runtime;
+#include <jni.h>
 
-import java.nio.*;
+#ifdef _MSC_VER
+ /* This typedef is only needed for VC6 */
+ #if _MSC_VER <= 1200
+ typedef int intptr_t;
+ #endif
+#else
+ #include <inttypes.h>
+#endif
 
-public class BufferFactory {
-  public static ByteBuffer newDirectByteBuffer(int size) {
-    ByteBuffer buf = ByteBuffer.allocateDirect(size);
-    buf.order(ByteOrder.nativeOrder());
-    return buf;
-  }
-
-  /** Helper routine to tell whether a buffer is direct or not. Null
-      pointers are considered direct. isDirect() should really be
-      public in Buffer and not replicated in all subclasses. */
-  public static boolean isDirect(Buffer buf) {
-    if (buf == null) {
-      return true;
-    }
-    if (buf instanceof ByteBuffer) {
-      return ((ByteBuffer) buf).isDirect();
-    } else if (buf instanceof FloatBuffer) {
-      return ((FloatBuffer) buf).isDirect();
-    } else if (buf instanceof DoubleBuffer) {
-      return ((DoubleBuffer) buf).isDirect();
-    } else if (buf instanceof CharBuffer) {
-      return ((CharBuffer) buf).isDirect();
-    } else if (buf instanceof ShortBuffer) {
-      return ((ShortBuffer) buf).isDirect();
-    } else if (buf instanceof IntBuffer) {
-      return ((IntBuffer) buf).isDirect();
-    } else if (buf instanceof LongBuffer) {
-      return ((LongBuffer) buf).isDirect();
-    }
-    throw new RuntimeException("Unknown buffer type " + buf.getClass().getName());
-  }
+JNIEXPORT jobject JNICALL
+Java_net_java_games_jogl_impl_InternalBufferUtils_newDirectByteBuffer(JNIEnv* env, jclass unused, jlong address, jint capacity) {
+  return (*env)->NewDirectByteBuffer(env, (void*) (intptr_t) address, capacity);
 }

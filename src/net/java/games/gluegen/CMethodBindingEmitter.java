@@ -1205,20 +1205,6 @@ public class CMethodBindingEmitter extends FunctionEmitter
     writer.print(incomingArgumentName);
     writer.println(");");
           
-    writer.print("    if (");
-    writer.print(cVariableName);
-    writer.println(" == NULL) {");
-    writer.println("      (*env)->ThrowNew(env, (*env)->FindClass(env, \"java/lang/RuntimeException\"),");
-    writer.print  ("                       \"Argument \\\"");
-    writer.print(incomingArgumentName);
-    writer.println("\\\" was not a direct buffer\");");
-    writer.print  ("      return");
-    if (!binding.getJavaReturnType().isVoid()) {
-      writer.print(" 0");
-    }
-    writer.println(";");
-    writer.println("    }");
-
     if (EMIT_NULL_CHECKS) {
       writer.println("  }");
     }
