@@ -67,11 +67,6 @@ public class GLEmitter extends JavaEmitter
   {
     this.typedefDictionary = typedefDictionary;
 
-    if (getConfig().emitImpl()) {
-      cWriter().println("#include <assert.h> /* this include emitted by GLEmitter.java */"); 
-      cWriter().println();
-    }
-
     if (getGLConfig().emitProcAddressTable())
     {
       beginGLProcAddressTable();
@@ -186,6 +181,10 @@ public class GLEmitter extends JavaEmitter
       if (baseJavaEmitter.isForNIOBufferBaseRoutine())
         return null;
       return baseJavaEmitter;
+    }
+    if (getGLConfig().manuallyImplement(baseJavaEmitter.getName())) {
+      // User will provide Java-side implementation of this routine
+      return null;
     }
     return new JavaGLPAWrapperEmitter(baseJavaEmitter, getGLConfig().getProcAddressTableExpr());
   }

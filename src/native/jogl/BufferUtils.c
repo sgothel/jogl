@@ -37,45 +37,18 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package net.java.games.jogl.util;
+#include <jni.h>
 
-import java.nio.*;
+#ifdef _MSC_VER
+ /* This typedef is only needed for VC6 */
+ #if _MSC_VER <= 1200
+ typedef int intptr_t;
+ #endif
+#else
+ #include <inttypes.h>
+#endif
 
-/** Utility routines for dealing with direct buffers. */
-
-public class BufferUtils {
-  public static final int SIZEOF_FLOAT = 4;
-  public static final int SIZEOF_INT = 4;
-
-  public static FloatBuffer newFloatBuffer(int numElements) {
-    ByteBuffer bb = newByteBuffer(numElements * SIZEOF_FLOAT);
-    return bb.asFloatBuffer();
-  }
-
-  public static IntBuffer newIntBuffer(int numElements) {
-    ByteBuffer bb = newByteBuffer(numElements * SIZEOF_INT);
-    return bb.asIntBuffer();
-  }
-
-  public static ByteBuffer newByteBuffer(int numElements) {
-    ByteBuffer bb = ByteBuffer.allocateDirect(numElements);
-    bb.order(ByteOrder.nativeOrder());
-    return bb;
-  }
-
-  public static FloatBuffer copyFloatBuffer(FloatBuffer orig) {
-    FloatBuffer dest = newFloatBuffer(orig.capacity());
-    orig.rewind();
-    dest.put(orig);
-    return dest;
-  }
-
-  /** Creates an "offset buffer" for use with the
-      ARB_vertex_buffer_object extension. The resulting Buffers are
-      suitable for use with routines such as glVertexPointer <em>when
-      used in conjunction with that extension</em>. They have no
-      capacity and are not suitable for passing to OpenGL routines
-      that do not support buffer offsets, or to non-OpenGL
-      routines. */
-  public static native ByteBuffer bufferOffset(int offset);
+JNIEXPORT jobject JNICALL
+Java_net_java_games_jogl_util_BufferUtils_bufferOffset(JNIEnv* env, jclass unused, jint offset) {
+  return (*env)->NewDirectByteBuffer(env, (void*) (intptr_t) offset, 0);
 }

@@ -391,31 +391,30 @@ public class JavaEmitter implements GlueEmitter {
           allEmitters.add(entryPointInterface);           
         }
 
-        if (cfg.emitImpl() && binding.needsBody() && !isUnimplemented) {
-          // Generate the method which calls the underlying function
-          // after unboxing has occurred
-          PrintWriter output = cfg.allStatic() ? javaWriter() : javaImplWriter();
-          JavaMethodBindingEmitter wrappedEntryPoint =
-            new JavaMethodBindingEmitter(specialBinding, output, cfg.runtimeExceptionType(), true);
-          wrappedEntryPoint.addModifier(JavaMethodBindingEmitter.PRIVATE);
-          wrappedEntryPoint.addModifier(JavaMethodBindingEmitter.STATIC); // Doesn't really matter
-          wrappedEntryPoint.addModifier(JavaMethodBindingEmitter.NATIVE);
-          allEmitters.add(wrappedEntryPoint); 
-        }
-
-        // If the user has stated that the function will be
-        // manually implemented, then don't auto-generate a function body.
         if (cfg.emitImpl()) {
-          if (!cfg.manuallyImplement(sym.getName()) && !isUnimplemented)
-            {
-              CMethodBindingEmitter cEmitter =
-                makeCEmitter(specialBinding, 
-                             overloaded,
-                             (binding != specialBinding),
-                             cfg.implPackageName(), cfg.implClassName(),
-                             cWriter());
-              allEmitters.add(cEmitter);
+          // If the user has stated that the function will be
+          // manually implemented, then don't auto-generate a function body.
+          if (!cfg.manuallyImplement(sym.getName()) && !isUnimplemented) {
+            if (binding.needsBody()) {
+              // Generate the method which calls the underlying function
+              // after unboxing has occurred
+              PrintWriter output = cfg.allStatic() ? javaWriter() : javaImplWriter();
+              JavaMethodBindingEmitter wrappedEntryPoint =
+                new JavaMethodBindingEmitter(specialBinding, output, cfg.runtimeExceptionType(), true);
+              wrappedEntryPoint.addModifier(JavaMethodBindingEmitter.PRIVATE);
+              wrappedEntryPoint.addModifier(JavaMethodBindingEmitter.STATIC); // Doesn't really matter
+              wrappedEntryPoint.addModifier(JavaMethodBindingEmitter.NATIVE);
+              allEmitters.add(wrappedEntryPoint); 
             }
+        
+            CMethodBindingEmitter cEmitter =
+              makeCEmitter(specialBinding, 
+                           overloaded,
+                           (binding != specialBinding),
+                           cfg.implPackageName(), cfg.implClassName(),
+                           cWriter());
+            allEmitters.add(cEmitter);
+          }
         }
       } // end iteration over expanded bindings
     } catch (Exception e) {
@@ -1118,6 +1117,12 @@ public class JavaEmitter implements GlueEmitter {
   protected void emitCHeader(PrintWriter cWriter, String className) {
     cWriter.println("#include <jni.h>");
     cWriter.println();
+
+    if (getConfig().emitImpl()) {
+      cWriter.println("#include <assert.h>"); 
+      cWriter.println();
+    }
+
     for (Iterator iter = cfg.customCCode().iterator(); iter.hasNext(); ) {
       cWriter.println((String) iter.next());
     }

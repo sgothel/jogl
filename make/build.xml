@@ -159,6 +159,8 @@
             <include name="${stub.includes.dir}/win32/**" />
             <include name="${stub.includes.dir}/x11/**" />
             <include name="*.cfg" />
+            <include name="*.java" />
+            <include name="*.c" />
             <exclude name="cg-common.cfg" />
         </fileset>
         <dirset id="stub.includes.cg.fileset.all" dir=".">
@@ -475,6 +477,9 @@
              (the uptodate task doesn't allow arbitrary source and target filesets but should) -->
         <dependset>
             <srcfileset refid="stub.includes.dependencies.fileset" />
+            <srcfileset dir=".">
+	        <include name="${classes}/net/java/games/gluegen/**/*.class" />
+            </srcfileset>
             <targetfileset dir=".">
                 <include name="${src.generated.java}/**/*.java" />
                 <include name="${src.generated.c}/**/*.c" />
