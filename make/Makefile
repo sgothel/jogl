@@ -45,7 +45,7 @@
 # completely, exec a subordinate make after ensuring the required
 # directories exist.
 
-.PHONY: default all gluegen win32 x11 doc devdoc
-default clean all gluegen win32 x11 doc devdoc macosx:
-	-mkdir -p ../build/obj ../build/obj/jogl ../build/gensrc/classes/net/java/games/jogl/impl ../build/gensrc/native/jogl ../build/classes ../build/gensrc/classes/net/java/games/gluegen/cgram
+.PHONY: default all gluegen win32 x11 macosx doc devdoc
+default clean all gluegen win32 x11 macosx doc devdoc:
+	-mkdir -p ../build/obj ../build/obj/jogl ../build/obj/jogl_cg ../build/gensrc/classes/net/java/games/jogl/impl ../build/gensrc/classes/net/java/games/cg ../build/gensrc/native/jogl ../build/gensrc/native/jogl_cg ../build/classes ../build/gensrc/classes/net/java/games/gluegen/cgram
 	-$(MAKE) -f Makefile2 $(MAKECMDGOALS) $(MAKEFLAGS)

@@ -640,10 +640,93 @@ JOGL_OBJ_FILES=$(patsubst $(GENSRC_GL_NATIVE_DIR)/%,$(JOGL_OBJ_DIR)/%,$(patsubst
 #----------------------------------------------------------------------
 
 #----------------------------------------------------------------------
+# jogl.cg variables
+#
+# Cg is NVidia's high level language for programmable 3D graphics
+# http://www.nvidia.com/cg
+#
+
+# Only build the Cg binding if requested (CG=1 on the make command line)
+
+ifdef CG
+
+NATIVE_NVCG_SRC_DIR=$(SRC_DIR)/native/jogl_cg
+GENSRC_NVCG_NATIVE_DIR=$(GENSRC_NATIVE_DIR)/jogl_cg
+
+JOGL_NVCG_DIR=$(SRC_DIR)/net/java/games/cg
+JOGL_NVCG_IMPL_DIR=$(SRC_DIR)/net/java/games/cg/impl
+GENSRC_JOGL_NVCG_DIR=$(GENSRC_JAVA_DIR)/net/java/games/cg
+GENSRC_JOGL_NVCG_IMPL_DIR=$(GENSRC_JAVA_DIR)/net/java/games/cg/impl
+
+#JOGL_STUB_INCLUDES_DIR_NVCG=C:\Program Files\Nvidia Corporation\Cg\include
+JOGL_STUB_INCLUDES_DIR_NVCG=$(JOGL_STUB_INCLUDES_DIR)/cg
+
+JOGL_NVCG_OBJ_DIR = $(OBJ_DIR)/jogl_cg
+JOGL_NVCG_DSO_DIR = $(DSO_DIR)
+JOGL_NVCG_DSO= $(JOGL_NVCG_DSO_DIR)/jogl_cg.$(DSO_EXTENSION_PD)
+
+# Win32-specific settings for jogl.cg
+ifeq ($(MAKECMDGOALS),win32)
+NVCG_DEFINES=/D "JOGL_NVCG_EXPORTS" $(DEFINES) 
+NVCG_INCLUDES=/I"$(JOGL_STUB_INCLUDES_DIR_OPENGL)" /I"$(JOGL_STUB_INCLUDES_DIR_NVCG)" $(INCLUDES)
+NVCG_C_BUILD_OBJ_CMD=$(CC) /c $< $(CFLAGS) $(NVCG_INCLUDES) $(NVCG_DEFINES) /Fo"$@" 
+JOGL_NVCG_DSO_LINK_ADDITIONAL_LIBS= opengl32.lib cg.lib cgGL.lib  /LIBPATH:"C:\Program Files\Nvidia Corporation\Cg\lib" 
+NVCG_LINKFLAGS= $(LINKFLAGS) $(JOGL_NVCG_DSO_LINK_ADDITIONAL_LIBS)
+NVCG_C_LINK_DSO_CMD=$(LINK) /OUT:"$@" $(NVCG_LINKFLAGS)
+endif # Win32
+
+# X11-specific settings for jogl.cg
+ifeq ($(MAKECMDGOALS), x11)
+NVCG_DEFINES=$(DEFINES)
+NVCG_INCLUDES=-I$(JOGL_STUB_INCLUDES_DIR_OPENGL) -I$(JOGL_STUB_INCLUDES_DIR_NVCG) $(INCLUDES)
+NVCG_C_BUILD_OBJ_CMD=$(CC) -c $(CFLAGS) $(INCLUDES) $(DEFINES) $< -o $@
+# !!! FIXME: what are the correct libraries on X11? Probably also need to add the library directory to the lib search path
+JOGL_NVCG_DSO_LINK_ADDITIONAL_LIBS= -lGL -lcg -lcgGL
+NVCG_LINKFLAGS=$(LINKFLAGS) -L$(JAVA_LIBRARY_PATH_PD)  $(JOGL_NVCG_DSO_LINK_ADDITIONAL_LIBS)
+NVCG_C_LINK_DSO_CMD=$(LINK) -o $@ $(NVCG_LINKFLAGS) 
+endif # X11
+
+JOGL_NVCG_CFG_FILES = $(wildcard cg*.cfg)
+
+JOGL_NVCG_CFG=cg-common.cfg
+
+JOGL_NVCG_HEADERS = \
+	$(JOGL_STUB_INCLUDES_DIR_NVCG)/CgGL.h
+
+JOGL_NVCG_GENERATED_JAVAFILES = \
+        $(GENSRC_JOGL_NVCG_DIR)/CgGL.java \
+        $(GENSRC_JOGL_NVCG_DIR)/CGcontext.java \
+        $(GENSRC_JOGL_NVCG_DIR)/CGparameter.java \
+        $(GENSRC_JOGL_NVCG_DIR)/CGprogram.java
+
+JOGL_NVCG_JAVAFILES = \
+        $(JOGL_NVCG_DIR)/CgException.java \
+	$(JOGL_NVCG_GENERATED_JAVAFILES)
+
+JOGL_NVCG_CLASSFILES = $(patsubst $(GENSRC_JAVA_DIR)/%,$(CLASSES_DIR)/%,$(patsubst $(SRC_DIR)/%,$(CLASSES_DIR)/%,$(JOGL_NVCG_JAVAFILES:.java=.class)))
+
+JOGL_NVCG_GENERATED_CFILES = \
+	$(GENSRC_NVCG_NATIVE_DIR)/CgGL_JNI.c 
+
+JOGL_NVCG_CFILES = \
+	$(JOGL_NVCG_GENERATED_CFILES) 
+
+JOGL_NVCG_OBJ_FILES=$(patsubst $(GENSRC_NVCG_NATIVE_DIR)/%,$(JOGL_NVCG_OBJ_DIR)/%,$(patsubst $(NATIVE_NVCG_SRC_DIR)/%,$(JOGL_NVCG_OBJ_DIR)/%,$(JOGL_NVCG_CFILES:.c=.$(OBJ_FILE_EXT))))
+
+JOGL_NVCG_DSO=$(JOGL_NVCG_DSO_DIR)/jogl_cg.$(DSO_EXTENSION_PD)
+
+JOGL_NVCG_DOC_PKGS=net.java.games.cg
+
+endif # ifdef CG
+
+#
+#----------------------------------------------------------------------
+
+#----------------------------------------------------------------------
 # Rules
 #
 
-OUTPUT_DIRS = $(OBJ_DIR) $(JOGL_OBJ_DIR) $(JOGL_DSO_DIR) $(GENSRC_JOGL_IMPL_DIR) $(GENSRC_GL_NATIVE_DIR) $(CLASSES_DIR) $(GENSRC_CGRAM_DIR)
+OUTPUT_DIRS = $(OBJ_DIR) $(JOGL_OBJ_DIR) $(JOGL_NVCG_OBJ_DIR) $(JOGL_DSO_DIR) $(GENSRC_JOGL_IMPL_DIR) $(GENSRC_GL_NATIVE_DIR) $(CLASSES_DIR) $(GENSRC_CGRAM_DIR)
 
 .PHONY: all clean doc devdoc
 all:
@@ -657,7 +740,8 @@ doc:
 		-public -sourcepath "$(SRC_DIR)$(CP_SEPARATOR)$(GENSRC_JAVA_DIR)" \
 		net.java.games.jogl \
 		net.java.games.gluegen.runtime \
-		net.java.games.jogl.util
+		net.java.games.jogl.util \
+		$(JOGL_NVCG_DOC_PKGS)
 
 devdoc: 
 	mkdir -p $(JAVADOC_DIR_DEVDOC)
@@ -674,14 +758,17 @@ devdoc:
 		net.java.games.gluegen.opengl \
 		net.java.games.gluegen.pcpp \
 		net.java.games.gluegen.runtime \
-		net.java.games.jogl.util
+		net.java.games.jogl.util \
+		$(JOGL_NVCG_DOC_PKGS)
 
 # (Iff we are not on macosx): print an error if the user has not set JAVA_HOME, since that will cause
 # builds to fail
 ifneq ($(JAVA_HOME),)
 
-win32: WIN32_COMPILER_SPECIFIED $(OUTPUT_DIRS) $(JOGL_JAR) $(JOGL_DSO) 
+win32: WIN32_COMPILER_SPECIFIED $(OUTPUT_DIRS) $(JOGL_JAR) $(JOGL_DSO) $(JOGL_NVCG_DSO)
 x11: $(OUTPUT_DIRS) $(JOGL_JAR) $(JOGL_DSO)
+# FIXME: add back the following Cg prerequisites to the above x11 rule
+# $(JOGL_NVCG_DSO)
 macosx: $(OUTPUT_DIRS) $(JOGL_JAR) $(JOGL_DSO)
 
 gluegen: $(GG_CLASSFILES)
@@ -816,6 +903,19 @@ $(JOGL_CLASSFILES_SECOND_PASS) : $(JOGL_JAVAFILES_SECOND_PASS)
 	$(JAVAC) -source 1.4 -classpath "$(CLASSES_DIR)$(CP_SEPARATOR)$(CLASSPATH)" -d $(CLASSES_DIR) $(JOGL_JAVAFILES_SECOND_PASS)
 
 #
+# jogl.cg package rules (once jogl is built)
+#
+
+$(JOGL_NVCG_GENERATED_JAVAFILES) $(JOGL_NVCG_GENERATED_CFILES) : $(JOGL_NVCG_CFG_FILES) $(GG_CLASSFILES) $(JOGL_NVGC_HEADERS) $(JOGL_STUB_INCLUDES_DIR_PD)/cg.c 
+# generate Cg java class
+	$(JAVA) -cp "$(CLASSES_DIR)$(CP_SEPARATOR)$(CLASSPATH)" net.java.games.gluegen.GlueGen -Enet.java.games.gluegen.JavaEmitter -C$(JOGL_NVCG_CFG) -I"$(JOGL_STUB_INCLUDES_DIR_NVCG)" -I$(JOGL_STUB_INCLUDES_DIR_PD) -I$(JOGL_STUB_INCLUDES_DIR_OPENGL) $(JOGL_STUB_INCLUDES_DIR_PD)/cg.c
+
+$(JOGL_NVCG_CLASSFILES) : $(JOGL_NVCG_JAVAFILES)
+# compile Cg java classes
+	mkdir -p $(CLASSES_DIR)
+	$(JAVAC) -source 1.4 -classpath "$(CLASSES_DIR)$(CP_SEPARATOR)$(CLASSPATH)" -d $(CLASSES_DIR) $(JOGL_NVCG_JAVAFILES)
+
+#
 # .so / .dll build rules
 #
 
@@ -831,9 +931,17 @@ $(JOGL_OBJ_DIR)/%.$(OBJ_FILE_EXT) : $(NATIVE_GL_SRC_DIR)/%.c
 $(JOGL_OBJ_DIR)/%.$(OBJ_FILE_EXT) : $(GENSRC_GL_NATIVE_DIR)/%.c 
 	$(GL_C_BUILD_OBJ_CMD)
 
+# Build auto-generated jogl.cg C code
+$(JOGL_NVCG_OBJ_DIR)/%.$(OBJ_FILE_EXT) : $(GENSRC_NVCG_NATIVE_DIR)/%.c
+	$(NVCG_C_BUILD_OBJ_CMD)
+
 # Build the jogl JNI dll
 $(JOGL_DSO): $(JOGL_OBJ_FILES) 
 	$(GL_C_LINK_DSO_CMD) $(JOGL_OBJ_FILES) 
+
+# Build the jogl.cg JNI dll
+$(JOGL_NVCG_DSO): $(JOGL_NVCG_OBJ_FILES) 
+	$(NVCG_C_LINK_DSO_CMD) $(JOGL_NVCG_OBJ_FILES) 
 
 # Hand-coded rule for the Objective C source on Mac OS X
 $(JOGL_OBJ_DIR)/MacOSXWindowSystemInterface.$(OBJ_FILE_EXT) : $(NATIVE_GL_SRC_DIR)/MacOSXWindowSystemInterface.m
@@ -843,7 +951,7 @@ $(JOGL_OBJ_DIR)/MacOSXWindowSystemInterface.$(OBJ_FILE_EXT) : $(NATIVE_GL_SRC_DI
 # jar build rule
 #
 
-$(JOGL_JAR): $(JOGL_CLASSFILES)
+$(JOGL_JAR): $(JOGL_CLASSFILES) $(JOGL_NVCG_CLASSFILES)
 	rm -f $@
 	cd $(CLASSES_DIR) ; \
 	jar cvf ../jogl.jar *
