@@ -280,7 +280,8 @@ public abstract class GLContext {
       ctxStack.push(this, initAction);
     }
 
-    boolean caughtException = false;
+    RuntimeException userException = null;
+    GLException internalException  = null;
 
     try {
       if (deferredReshapeAction != null) {
@@ -292,10 +293,10 @@ public abstract class GLContext {
         swapBuffers();
       }
     } catch (RuntimeException e) {
-      caughtException = true;
-      throw(e);
+      userException = e;
+      throw(userException);
     } finally {
-      if (caughtException) {
+      if (userException != null) {
         // Disallow setRenderingThread if display action is throwing exceptions
         renderingThread = null;
       }
@@ -316,13 +317,21 @@ public abstract class GLContext {
           System.err.println("Freeing context " + this);
         }
 
-        free();
+        try {
+          free();
+        } catch (GLException e) {
+          internalException = e;
+        }
 
         if (curContext != null) {
           if (DEBUG) {
             System.err.println("Making context " + curContext + " current again");
           }
-          curContext.makeCurrent(curInitAction);
+          try {
+            curContext.makeCurrent(curInitAction);
+          } catch (GLException e) {
+            internalException = e;
+          }
         }
       }
 
@@ -334,9 +343,26 @@ public abstract class GLContext {
         assert(savedPerThreadContext == curContext);
         ctxStack.pop();
         if (savedPerThreadContext.getRenderingThread() == null) {
-          savedPerThreadContext.free();
+          try {
+            savedPerThreadContext.free();
+          } catch (GLException e) {
+            internalException = e;
+          }
         } else {
           setPerThreadSavedCurrentContext(savedPerThreadContext, savedPerThreadInitAction);
+        }
+      }
+
+      // Make sure the end user's exception shows up in any stack
+      // traces; the rethrow of the userException above should take
+      // precedence if the internalException will otherwise squelch it
+      if (internalException != null) {
+        if (userException != null &&
+            internalException.getCause() == null) {
+          internalException.initCause(userException);
+          throw(internalException);
+        } else if (userException == null) {
+          throw(internalException);
         }
       }
     }
