@@ -155,54 +155,18 @@ void updateContextUnregister(void* context, void* view, void* updater)
 	[contextUpdater release];
 }
 
-#ifndef USE_GL_TEXTURE_RECTANGLE_EXT
-static int getNextPowerOf2(int number)
+void* createPBuffer(int renderTarget, int width, int height)
 {
-	if (((number-1) & number) == 0)
-	{
-		//ex: 8 -> 0b1000; 8-1=7 -> 0b0111; 0b1000&0b0111 == 0
-		return number;
-	}	
-    int power = 0;
-    while (number > 0)
-    {
-        number = number>>1;
-        power++;
-    }
-    return (1<<power);
-}
-#endif
+  //  fprintf(stderr, "createPBuffer renderTarget=%d width=%d height=%d\n", renderTarget, width, height);
 
-void* createPBuffer(void* context, int width, int height)
-{
-///fprintf(stderr, "createPBuffer context=%p width=%d height=%d\n", context, width, height);
-#ifdef AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER)
-	NSOpenGLContext *nsContext = (NSOpenGLContext*)context;
-	
-#ifdef USE_GL_TEXTURE_RECTANGLE_EXT
-	unsigned long taget = GL_TEXTURE_RECTANGLE_EXT;
-#else
-	unsigned long taget = GL_TEXTURE_2D; // texture size must be a multiple of power of 2
-	
-        width = getNextPowerOf2(width);
-        height = getNextPowerOf2(height);
-#endif
-        
-	NSOpenGLPixelBuffer* pBuffer = [[NSOpenGLPixelBuffer alloc] initWithTextureTarget:taget textureInternalFormat:GL_RGBA textureMaxMipMapLevel:0 pixelsWide:width pixelsHigh:height];
-	
-	[nsContext setPixelBuffer:pBuffer cubeMapFace:0 mipMapLevel:0 currentVirtualScreen:0];
-	[nsContext update];
-        
-	return pBuffer;
-#else
-	return NULL;
-#endif
+  NSOpenGLPixelBuffer* pBuffer = [[NSOpenGLPixelBuffer alloc] initWithTextureTarget:renderTarget textureInternalFormat:GL_RGBA textureMaxMipMapLevel:0 pixelsWide:width pixelsHigh:height];
+
+  return pBuffer;
 }
 
 Bool destroyPBuffer(void* context, void* buffer)
 {
 //fprintf(stderr, "destroyPBuffer context=%p, buffer=%p\n", context, buffer);
-#ifdef AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER)
 	NSOpenGLContext *nsContext = (NSOpenGLContext*)context;
 	NSOpenGLPixelBuffer *pBuffer = (NSOpenGLPixelBuffer*)buffer;
 	
@@ -213,61 +177,20 @@ Bool destroyPBuffer(void* context, void* buffer)
 	[pBuffer release];
 	
 	return true;
-#else
-	return false;
-#endif
 }
 
-int bindPBuffer(void* context, void* buffer)
-{
-//fprintf(stderr, "bindPBuffer context=%p, buffer=%p\n", context, buffer);
-#ifdef AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER)
-	NSOpenGLContext *nsContext = (NSOpenGLContext*)context;
-	NSOpenGLPixelBuffer *pBuffer = (NSOpenGLPixelBuffer*)buffer;
-        
-        glPushMatrix();
-        glPushAttrib(GL_CURRENT_BIT|GL_ENABLE_BIT|GL_TEXTURE_BIT|GL_TRANSFORM_BIT);
-        
-	GLuint pBufferTextureName;
-	glGenTextures(1, &pBufferTextureName);
-	
-	glBindTexture([pBuffer textureTarget], pBufferTextureName);
-	
-	glTexParameteri([pBuffer textureTarget], GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri([pBuffer textureTarget], GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	
-	[nsContext setTextureImageToPixelBuffer:pBuffer colorBuffer:GL_FRONT_LEFT];
-	
-	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-	glEnable([pBuffer textureTarget]);
-	
-#ifdef USE_GL_TEXTURE_RECTANGLE_EXT
-        //GLint matrixMode;
-        //glGetIntegerv(GL_MATRIX_MODE, &matrixMode);
-        glMatrixMode(GL_TEXTURE);
-        glLoadIdentity();
-        glScalef([pBuffer pixelsWide], [pBuffer pixelsHigh], 1.0f); // GL_TEXTURE_RECTANGLE_EXT wants texture coordinates in texture image space (not 0 to 1)
-        //glMatrixMode(matrixMode);
-#endif
-        
-	return pBufferTextureName;
-#else
-	return 0;
-#endif
+void setContextPBuffer(void* context, void* buffer) {
+  NSOpenGLContext *nsContext = (NSOpenGLContext*)context;
+  NSOpenGLPixelBuffer *pBuffer = (NSOpenGLPixelBuffer*)buffer;
+
+  [nsContext setPixelBuffer: pBuffer cubeMapFace: 0 mipMapLevel: 0 currentVirtualScreen: [nsContext currentVirtualScreen]];
 }
 
-void unbindPBuffer(void* context, void* buffer, int texture)
-{
-//fprintf(stderr, "unbindPBuffer context=%p, buffer=%p\n", context, buffer);
-#ifdef AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER)
-	NSOpenGLPixelBuffer *pBuffer = (NSOpenGLPixelBuffer*)buffer;
-	GLuint pBufferTextureName = (GLuint)texture;
-	
-	glDeleteTextures(1, &pBufferTextureName);
-        
-        glPopAttrib();
-        glPopMatrix();
-#endif
+void setContextTextureImageToPBuffer(void* context, void* buffer, int colorBuffer) {
+  NSOpenGLContext *nsContext = (NSOpenGLContext*)context;
+  NSOpenGLPixelBuffer *pBuffer = (NSOpenGLPixelBuffer*)buffer;
+
+  [nsContext setTextureImageToPixelBuffer: pBuffer colorBuffer: (unsigned long) colorBuffer];
 }
 
 #include <mach-o/dyld.h>

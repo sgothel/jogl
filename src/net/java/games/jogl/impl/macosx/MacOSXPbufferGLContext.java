@@ -7,21 +7,18 @@ public class MacOSXPbufferGLContext extends MacOSXGLContext {
 
   private static final boolean DEBUG = false;
   
-  // see MacOSXWindowSystemInterface.m createPBuffer
-  private static final boolean USE_GL_TEXTURE_RECTANGLE_EXT = true;
-
   protected int  initWidth;
   protected int  initHeight;
 
   private long pBuffer;
-  private int pBufferTextureName;
   
   protected int  width;
   protected int  height;
 
-  // FIXME: kept around because we create the OpenGL context lazily to
-  // better integrate with the MacOSXGLContext framework
-  private long nsContextOfParent;
+  // State for render-to-texture and render-to-texture-rectangle support
+  private boolean created;
+  private int textureTarget; // e.g. GL_TEXTURE_2D, GL_TEXTURE_RECTANGLE_NV
+  private int texture;       // actual texture object
 
   public MacOSXPbufferGLContext(GLCapabilities capabilities, int initialWidth, int initialHeight) {
     super(null, capabilities, null, null);
@@ -40,11 +37,15 @@ public class MacOSXPbufferGLContext extends MacOSXGLContext {
   }
 
   public void bindPbufferToTexture() {
-	pBufferTextureName = CGL.bindPBuffer(nsContextOfParent, pBuffer);
+    GL gl = getGL();
+    gl.glBindTexture(textureTarget, texture);
+    // FIXME: not clear whether this is really necessary, but since
+    // the API docs seem to imply it is and since it doesn't seem to
+    // impact performance, leaving it in
+    CGL.setContextTextureImageToPBuffer(nsContext, pBuffer, GL.GL_FRONT);
   }
 
   public void releasePbufferFromTexture() {
-	CGL.unbindPBuffer(nsContextOfParent, pBuffer, pBufferTextureName);
   }
 
   public void createPbuffer(long parentView, long parentContext) {
@@ -53,38 +54,68 @@ public class MacOSXPbufferGLContext extends MacOSXGLContext {
     // context is current because otherwise we don't have the cgl
     // extensions available to us
     resetGLFunctionAvailability();
+
+    int renderTarget;
+    if (capabilities.getOffscreenRenderToTextureRectangle()) {
+      width = initWidth;
+      height = initHeight;
+      renderTarget = GL.GL_TEXTURE_RECTANGLE_EXT;
+    } else {
+      width = getNextPowerOf2(initWidth);
+      height = getNextPowerOf2(initHeight);
+      renderTarget = GL.GL_TEXTURE_2D;
+    }
 		
-	this.pBuffer = CGL.createPBuffer(nsContext, initWidth, initHeight);
+    this.pBuffer = CGL.createPBuffer(renderTarget, width, height);
     if (this.pBuffer == 0) {
       throw new GLException("pbuffer creation error: CGL.createPBuffer() failed");
     }
 	
-	nsContextOfParent = parentContext;
-	
-        if (USE_GL_TEXTURE_RECTANGLE_EXT)
-        {
-            // GL_TEXTURE_RECTANGLE_EXT
-            width = initWidth;
-            height = initHeight;
-        }
-        else
-        {
-            // GL_TEXTURE_2D
-            width = getNextPowerOf2(initWidth);
-            height = getNextPowerOf2(initHeight);
-        }
-        
     if (DEBUG) {
       System.err.println("Created pbuffer " + width + " x " + height);
     }
   }
 
+  protected synchronized boolean makeCurrent(Runnable initAction) throws GLException {
+    created = false;
+
+    if (pBuffer == 0) {
+      // pbuffer not instantiated yet
+      return false;
+    }
+
+    boolean res = super.makeCurrent(initAction);
+    if (created) {
+      // Initialize render-to-texture support if requested
+      boolean rect = capabilities.getOffscreenRenderToTextureRectangle();
+      GL gl = getGL();
+      if (rect) {
+        if (!gl.isExtensionAvailable("GL_EXT_texture_rectangle")) {
+          System.err.println("MacOSXPbufferGLContext: WARNING: GL_EXT_texture_rectangle extension not " +
+                             "supported; skipping requested render_to_texture_rectangle support for pbuffer");
+          rect = false;
+        }
+      }
+      textureTarget = (rect ? GL.GL_TEXTURE_RECTANGLE_EXT : GL.GL_TEXTURE_2D);
+      int[] tmp = new int[1];
+      gl.glGenTextures(1, tmp);
+      texture = tmp[0];
+      gl.glBindTexture(textureTarget, texture);
+      gl.glTexParameteri(textureTarget, GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST);
+      gl.glTexParameteri(textureTarget, GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST);
+      gl.glTexParameteri(textureTarget, GL.GL_TEXTURE_WRAP_S, GL.GL_CLAMP_TO_EDGE);
+      gl.glTexParameteri(textureTarget, GL.GL_TEXTURE_WRAP_T, GL.GL_CLAMP_TO_EDGE);
+      gl.glCopyTexImage2D(textureTarget, 0, GL.GL_RGB, 0, 0, width, height, 0);
+    }
+    return res;
+  }
+
   public void destroyPBuffer() {
     if (this.pBuffer != 0) {
-	CGL.destroyPBuffer(nsContext, pBuffer);
+      CGL.destroyPBuffer(nsContext, pBuffer);
     }
-	this.pBuffer = 0;
-        
+    this.pBuffer = 0;
+    
     if (DEBUG) {
       System.err.println("Destroyed pbuffer " + width + " x " + height);
     }
@@ -99,24 +130,28 @@ public class MacOSXPbufferGLContext extends MacOSXGLContext {
     // resizing of the pbuffer anyway.
     return false;
   }
-
+  
   public void swapBuffers() throws GLException {
     // FIXME: do we need to do anything if the pbuffer is double-buffered?
   }
 
-  int getNextPowerOf2(int number)
-  {
-	if (((number-1) & number) == 0)
-	{
-		//ex: 8 -> 0b1000; 8-1=7 -> 0b0111; 0b1000&0b0111 == 0
-		return number;
-	}	
-	int power = 0;
-	while (number > 0)
-	{
+  private int getNextPowerOf2(int number) {
+    if (((number-1) & number) == 0) {
+      //ex: 8 -> 0b1000; 8-1=7 -> 0b0111; 0b1000&0b0111 == 0
+      return number;
+    }
+    int power = 0;
+    while (number > 0) {
       number = number>>1;
       power++;
-	}	
-	return (1<<power);
+    }
+    return (1<<power);
+  }
+
+  protected void create() {
+    super.create();
+    created = true;
+    // Must now associate the pbuffer with our newly-created context
+    CGL.setContextPBuffer(nsContext, pBuffer);
   }
 }

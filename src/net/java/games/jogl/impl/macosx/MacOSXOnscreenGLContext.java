@@ -107,6 +107,7 @@ public class MacOSXOnscreenGLContext extends MacOSXGLContext {
     
   public synchronized GLContext createPbufferContext(GLCapabilities capabilities, int initialWidth, int initialHeight) {
     MacOSXPbufferGLContext ctx = new MacOSXPbufferGLContext(capabilities, initialWidth, initialHeight);
+    GLContextShareSet.registerSharing(this, ctx);
     pbuffersToInstantiate.add(ctx);
     return ctx;
   }

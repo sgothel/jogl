@@ -25,9 +25,9 @@ void  updateContext(void* nsContext, void* nsView);
 void* updateContextRegister(void* nsContext, void* nsView);
 void  updateContextUnregister(void* nsContext, void* nsView, void* updater);
 
-void* createPBuffer(void* nsContext, int width, int height);
+void* createPBuffer(int renderTarget, int width, int height);
 Bool destroyPBuffer(void* nsContext, void* pBuffer);
-int bindPBuffer(void* nsContext, void* pBuffer);
-void unbindPBuffer(void* nsContext, void* pBuffer, int pBufferTextureName);
+void setContextPBuffer(void* nsContext, void* pBuffer);
+void setContextTextureImageToPBuffer(void* nsContext, void* pBuffer, int colorBuffer);
 
 void* getProcAddress(const char *procName);
