@@ -177,7 +177,7 @@ public class GLPbufferImpl implements GLPbuffer {
   public void removePropertyChangeListener(String propertyName,
                                            PropertyChangeListener listener) {}
 
-    /** Querries initialization status a <code>this</code> pBuffer
+    /** Queries initialization status of this pBuffer.
      * @return true if initialized
      * */
   public boolean isInitialized(){
@@ -191,7 +191,7 @@ public class GLPbufferImpl implements GLPbuffer {
   class InitAction implements Runnable {
     public void run() {
       drawableHelper.init(GLPbufferImpl.this);
-        isInitialized=true;
+      isInitialized=true;
     }
   }
   private InitAction initAction = new InitAction();

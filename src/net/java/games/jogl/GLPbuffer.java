@@ -61,6 +61,6 @@ public interface GLPbuffer extends GLDrawable {
   /** Unbinds the pbuffer from its internal texture target. */
   public void releaseTexture();
 
-  /** Querries initialization status a <code>this</code> pBuffer*/
+  /** Queries initialization status of this pBuffer. */
   public boolean isInitialized();
 }
