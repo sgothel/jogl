@@ -706,7 +706,7 @@
         <syslibset dir="${x11.cg.lib}" libs="Cg, CgGL" if="c.compiler.use-cglib"/>
       </linker>
 
-      <linker id="linker.cfg.solaris">
+      <linker id="linker.cfg.solaris" name="suncc">
         <syslibset libs="GL, GLU, X11"/>
       </linker>
 
