@@ -145,6 +145,7 @@ void* updateContextRegister(void* context, void* view)
 	
 	ContextUpdater *contextUpdater = [[ContextUpdater alloc] init];
 	[contextUpdater registerFor:nsContext with:nsView];
+        return NULL;
 }
 
 void updateContextUnregister(void* context, void* view, void* updater)
