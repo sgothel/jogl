@@ -698,8 +698,10 @@ public abstract class GLContext {
       // be OK since we are doing this very early in the maintenance
       // of the per-thread context stack, before we are actually
       // pushing any GLContext objects on it
-      renderingThread = null;
       SingleThreadedWorkaround.shouldDoWorkaround();
+      if( SingleThreadedWorkaround.doWorkaround() ) {
+        renderingThread = null;
+      }
     }
   }
 }
