@@ -48,6 +48,7 @@ import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.awt.image.DataBufferInt;
+import java.security.*;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import net.java.games.jogl.impl.*;
@@ -66,6 +67,17 @@ import net.java.games.jogl.impl.*;
     them. */
 
 public final class GLJPanel extends JPanel implements GLDrawable {
+  private static boolean isMacOSX;
+
+  static {
+    AccessController.doPrivileged(new PrivilegedAction() {
+        public Object run() {
+          isMacOSX = System.getProperty("os.name").equals("Mac OS X");
+          return null;
+        }
+      });
+  }
+
   private GLDrawableHelper drawableHelper = new GLDrawableHelper();
 
   // Data used for either pbuffers or pixmap-based offscreen surfaces
@@ -455,6 +467,7 @@ public final class GLJPanel extends JPanel implements GLDrawable {
           // bottleneck
 
           int awtFormat = 0;
+          int hwGLFormat = 0;
           if (!hardwareAccelerationDisabled) {
             // Should be more flexible in these BufferedImage formats;
             // perhaps see what the preferred image types are on the
@@ -462,7 +475,14 @@ public final class GLJPanel extends JPanel implements GLDrawable {
             if (offscreenCaps.getAlphaBits() > 0) {
               awtFormat = BufferedImage.TYPE_INT_ARGB;
             } else {
-              awtFormat = BufferedImage.TYPE_3BYTE_BGR;
+              awtFormat = BufferedImage.TYPE_INT_RGB;
+            }
+
+            // Choose better pixel format on Mac OS X
+            if (isMacOSX) {
+              hwGLFormat = GL.GL_UNSIGNED_INT_8_8_8_8_REV;
+            } else {
+              hwGLFormat = GL.GL_UNSIGNED_BYTE;
             }
           } else {
             awtFormat = offscreenContext.getOffscreenContextBufferedImageType();
@@ -479,16 +499,11 @@ public final class GLJPanel extends JPanel implements GLDrawable {
               break;
 
             case BufferedImage.TYPE_INT_RGB:
-              glFormat = GL.GL_BGRA;
-              glType   = GL.GL_UNSIGNED_BYTE;
-              dbInt    = (DataBufferInt) offscreenImage.getRaster().getDataBuffer();
-              break;
-
             case BufferedImage.TYPE_INT_ARGB:
               glFormat = GL.GL_BGRA;
               glType   = (hardwareAccelerationDisabled
                             ? offscreenContext.getOffscreenContextPixelDataType()
-                            : GL.GL_UNSIGNED_BYTE);
+                            : hwGLFormat);
               dbInt    = (DataBufferInt) offscreenImage.getRaster().getDataBuffer();
               break;
 
