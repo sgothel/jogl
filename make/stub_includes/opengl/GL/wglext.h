@@ -24,7 +24,7 @@ extern "C" {
 ** 
 ** Original Code. The Original Code is: OpenGL Sample Implementation,
 ** Version 1.2.1, released January 26, 2000, developed by Silicon Graphics,
-** Inc. The Original Code is Copyright (c) 1991-2002 Silicon Graphics, Inc.
+** Inc. The Original Code is Copyright (c) 1991-2004 Silicon Graphics, Inc.
 ** Copyright in any portions created by third parties is as indicated
 ** elsewhere herein. All Rights Reserved.
 ** 
@@ -52,9 +52,9 @@ extern "C" {
 /*************************************************************/
 
 /* Header file version number */
-/* wglext.h last updated 2002/03/22 */
+/* wglext.h last updated 2004/07/26 */
 /* Current version at http://oss.sgi.com/projects/ogl-sample/registry/ */
-#define WGL_WGLEXT_VERSION 4
+#define WGL_WGLEXT_VERSION 5
 
 #ifndef WGL_ARB_buffer_region
 #define WGL_FRONT_COLOR_BUFFER_BIT_ARB 0x00000001
@@ -297,6 +297,10 @@ extern "C" {
 #define WGL_BIND_TO_TEXTURE_RECTANGLE_RGB_NV 0x20A0
 #define WGL_BIND_TO_TEXTURE_RECTANGLE_RGBA_NV 0x20A1
 #define WGL_TEXTURE_RECTANGLE_NV       0x20A2
+#endif
+
+#ifndef WGL_ATI_pixel_format_float
+#define WGL_TYPE_RGBA_FLOAT_ATI        0x21A0
 #endif
 
 #ifndef WGL_NV_float_buffer
@@ -609,6 +613,11 @@ typedef BOOL (WINAPI * PFNWGLENDFRAMETRACKINGI3DPROC) (void);
 typedef BOOL (WINAPI * PFNWGLQUERYFRAMETRACKINGI3DPROC) (DWORD *pFrameCount, DWORD *pMissedFrames, float *pLastMissedUsage);
 #endif
 
+#ifndef WGL_ATI_pixel_format_float
+#define WGL_ATI_pixel_format_float 1
+#endif
+
+
 /*
  * -----------------------------------------------------------
  * Everything here and below was added manually
@@ -627,13 +636,6 @@ typedef BOOL (WINAPI * PFNWGLQUERYFRAMETRACKINGI3DPROC) (DWORD *pFrameCount, DWO
 
 #ifndef WGL_NV_render_depth_texture
 #define WGL_NV_render_depth_texture 1
-#endif
-
-#ifndef WGL_ATI_pixel_format_float
-#define WGL_ATI_pixel_format_float  1
-#define WGL_TYPE_RGBA_FLOAT_ATI             0x21A0
-#define GL_TYPE_RGBA_FLOAT_ATI              0x8820
-#define GL_COLOR_CLEAR_UNCLAMPED_VALUE_ATI  0x8835
 #endif
 
   

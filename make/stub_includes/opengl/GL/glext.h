@@ -24,7 +24,7 @@ extern "C" {
 ** 
 ** Original Code. The Original Code is: OpenGL Sample Implementation,
 ** Version 1.2.1, released January 26, 2000, developed by Silicon Graphics,
-** Inc. The Original Code is Copyright (c) 1991-2002 Silicon Graphics, Inc.
+** Inc. The Original Code is Copyright (c) 1991-2004 Silicon Graphics, Inc.
 ** Copyright in any portions created by third parties is as indicated
 ** elsewhere herein. All Rights Reserved.
 ** 
@@ -52,9 +52,9 @@ extern "C" {
 /*************************************************************/
 
 /* Header file version number, required by OpenGL ABI for Linux */
-/* glext.h last updated 2004/2/23 */
+/* glext.h last updated 2004/7/26 */
 /* Current version at http://oss.sgi.com/projects/ogl-sample/registry/ */
-#define GL_GLEXT_VERSION 22
+#define GL_GLEXT_VERSION 24
 
 #ifndef GL_VERSION_1_2
 #define GL_UNSIGNED_BYTE_3_3_2            0x8032
@@ -173,9 +173,7 @@ extern "C" {
 #define GL_COLOR_TABLE_ALPHA_SIZE         0x80DD
 #define GL_COLOR_TABLE_LUMINANCE_SIZE     0x80DE
 #define GL_COLOR_TABLE_INTENSITY_SIZE     0x80DF
-#define GL_IGNORE_BORDER                  0x8150
 #define GL_CONSTANT_BORDER                0x8151
-#define GL_WRAP_BORDER                    0x8152
 #define GL_REPLICATE_BORDER               0x8153
 #define GL_CONVOLUTION_BORDER_COLOR       0x8154
 #endif
@@ -253,7 +251,6 @@ extern "C" {
 #define GL_NUM_COMPRESSED_TEXTURE_FORMATS 0x86A2
 #define GL_COMPRESSED_TEXTURE_FORMATS     0x86A3
 #define GL_CLAMP_TO_BORDER                0x812D
-#define GL_CLAMP_TO_BORDER_SGIS           0x812D
 #define GL_COMBINE                        0x8570
 #define GL_COMBINE_RGB                    0x8571
 #define GL_COMBINE_ALPHA                  0x8572
@@ -359,7 +356,7 @@ extern "C" {
 #define GL_DYNAMIC_READ                   0x88E9
 #define GL_DYNAMIC_COPY                   0x88EA
 #define GL_SAMPLES_PASSED                 0x8914
-#define GL_FOG_COORD_SOURCE               GL_FOG_COORDINATE_SOURCE
+#define GL_FOG_COORD_SRC                  GL_FOG_COORDINATE_SOURCE
 #define GL_FOG_COORD                      GL_FOG_COORDINATE
 #define GL_CURRENT_FOG_COORD              GL_CURRENT_FOG_COORDINATE
 #define GL_FOG_COORD_ARRAY_TYPE           GL_FOG_COORDINATE_ARRAY_TYPE
@@ -458,7 +455,6 @@ extern "C" {
 #define GL_COMPRESSED_RGB_ARB             0x84ED
 #define GL_COMPRESSED_RGBA_ARB            0x84EE
 #define GL_TEXTURE_COMPRESSION_HINT_ARB   0x84EF
-#define GL_TEXTURE_IMAGE_SIZE_ARB         0x86A0
 #define GL_TEXTURE_COMPRESSED_IMAGE_SIZE_ARB 0x86A0
 #define GL_TEXTURE_COMPRESSED_ARB         0x86A1
 #define GL_NUM_COMPRESSED_TEXTURE_FORMATS_ARB 0x86A2
@@ -752,6 +748,14 @@ extern "C" {
 #define GL_FLOAT_MAT2_ARB                 0x8B5A
 #define GL_FLOAT_MAT3_ARB                 0x8B5B
 #define GL_FLOAT_MAT4_ARB                 0x8B5C
+#define GL_SAMPLER_1D_ARB                 0x8B5D
+#define GL_SAMPLER_2D_ARB                 0x8B5E
+#define GL_SAMPLER_3D_ARB                 0x8B5F
+#define GL_SAMPLER_CUBE_ARB               0x8B60
+#define GL_SAMPLER_1D_SHADOW_ARB          0x8B61
+#define GL_SAMPLER_2D_SHADOW_ARB          0x8B62
+#define GL_SAMPLER_2D_RECT_ARB            0x8B63
+#define GL_SAMPLER_2D_RECT_SHADOW_ARB     0x8B64
 #define GL_OBJECT_DELETE_STATUS_ARB       0x8B80
 #define GL_OBJECT_COMPILE_STATUS_ARB      0x8B81
 #define GL_OBJECT_LINK_STATUS_ARB         0x8B82
@@ -776,9 +780,11 @@ extern "C" {
 #ifndef GL_ARB_fragment_shader
 #define GL_FRAGMENT_SHADER_ARB            0x8B30
 #define GL_MAX_FRAGMENT_UNIFORM_COMPONENTS_ARB 0x8B49
+#define GL_FRAGMENT_SHADER_DERIVATIVE_HINT_ARB 0x8B8B
 #endif
 
 #ifndef GL_ARB_shading_language_100
+#define GL_SHADING_LANGUAGE_VERSION_ARB   0x8B8C
 #endif
 
 #ifndef GL_ARB_texture_non_power_of_two
@@ -790,6 +796,33 @@ extern "C" {
 #endif
 
 #ifndef GL_ARB_fragment_program_shadow
+#endif
+
+#ifndef GL_ARB_draw_buffers
+#define GL_MAX_DRAW_BUFFERS_ARB           0x8824
+#define GL_DRAW_BUFFER0_ARB               0x8825
+#define GL_DRAW_BUFFER1_ARB               0x8826
+#define GL_DRAW_BUFFER2_ARB               0x8827
+#define GL_DRAW_BUFFER3_ARB               0x8828
+#define GL_DRAW_BUFFER4_ARB               0x8829
+#define GL_DRAW_BUFFER5_ARB               0x882A
+#define GL_DRAW_BUFFER6_ARB               0x882B
+#define GL_DRAW_BUFFER7_ARB               0x882C
+#define GL_DRAW_BUFFER8_ARB               0x882D
+#define GL_DRAW_BUFFER9_ARB               0x882E
+#define GL_DRAW_BUFFER10_ARB              0x882F
+#define GL_DRAW_BUFFER11_ARB              0x8830
+#define GL_DRAW_BUFFER12_ARB              0x8831
+#define GL_DRAW_BUFFER13_ARB              0x8832
+#define GL_DRAW_BUFFER14_ARB              0x8833
+#define GL_DRAW_BUFFER15_ARB              0x8834
+#endif
+
+#ifndef GL_ARB_texture_rectangle
+#define GL_TEXTURE_RECTANGLE_ARB          0x84F5
+#define GL_TEXTURE_BINDING_RECTANGLE_ARB  0x84F6
+#define GL_PROXY_TEXTURE_RECTANGLE_ARB    0x84F7
+#define GL_MAX_RECTANGLE_TEXTURE_SIZE_ARB 0x84F8
 #endif
 
 #ifndef GL_EXT_abgr
@@ -1120,6 +1153,10 @@ extern "C" {
 
 #ifndef GL_SGIS_texture_edge_clamp
 #define GL_CLAMP_TO_EDGE_SGIS             0x812F
+#endif
+
+#ifndef GL_SGIS_texture_border_clamp
+#define GL_CLAMP_TO_BORDER_SGIS           0x812D
 #endif
 
 #ifndef GL_EXT_blend_minmax
@@ -2695,6 +2732,11 @@ extern "C" {
 #define GL_DRAW_BUFFER15_ATI              0x8834
 #endif
 
+#ifndef GL_ATI_pixel_format_float
+#define GL_TYPE_RGBA_FLOAT_ATI            0x8820
+#define GL_COLOR_CLEAR_UNCLAMPED_VALUE_ATI 0x8835
+#endif
+
 #ifndef GL_ATI_texture_env_combine3
 #define GL_MODULATE_ADD_ATI               0x8744
 #define GL_MODULATE_SIGNED_ADD_ATI        0x8745
@@ -2805,6 +2847,33 @@ extern "C" {
 #define GL_UNSIGNED_SHORT_8_8_MESA        0x85BA
 #define GL_UNSIGNED_SHORT_8_8_REV_MESA    0x85BB
 #define GL_YCBCR_MESA                     0x8757
+#endif
+
+#ifndef GL_EXT_pixel_buffer_object
+#define GL_PIXEL_PACK_BUFFER_EXT          0x88EB
+#define GL_PIXEL_UNPACK_BUFFER_EXT        0x88EC
+#define GL_PIXEL_PACK_BUFFER_BINDING_EXT  0x88ED
+#define GL_PIXEL_UNPACK_BUFFER_BINDING_EXT 0x88EF
+#endif
+
+#ifndef GL_NV_fragment_program_option
+#endif
+
+#ifndef GL_NV_fragment_program2
+#define GL_MAX_PROGRAM_EXEC_INSTRUCTIONS_NV 0x88F4
+#define GL_MAX_PROGRAM_CALL_DEPTH_NV      0x88F5
+#define GL_MAX_PROGRAM_IF_DEPTH_NV        0x88F6
+#define GL_MAX_PROGRAM_LOOP_DEPTH_NV      0x88F7
+#define GL_MAX_PROGRAM_LOOP_COUNT_NV      0x88F8
+#endif
+
+#ifndef GL_NV_vertex_program2_option
+/* reuse GL_MAX_PROGRAM_EXEC_INSTRUCTIONS_NV */
+/* reuse GL_MAX_PROGRAM_CALL_DEPTH_NV */
+#endif
+
+#ifndef GL_NV_vertex_program3
+/* reuse GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS_ARB */
 #endif
 
 
@@ -3701,6 +3770,18 @@ typedef GLint (APIENTRYP PFNGLGETATTRIBLOCATIONARBPROC) (GLhandleARB programObj,
 #define GL_ARB_fragment_program_shadow 1
 #endif
 
+#ifndef GL_ARB_draw_buffers
+#define GL_ARB_draw_buffers 1
+#ifdef GL_GLEXT_PROTOTYPES
+GLAPI void APIENTRY glDrawBuffersARB (GLsizei, const GLenum *);
+#endif /* GL_GLEXT_PROTOTYPES */
+typedef void (APIENTRYP PFNGLDRAWBUFFERSARBPROC) (GLsizei n, const GLenum *bufs);
+#endif
+
+#ifndef GL_ARB_texture_rectangle
+#define GL_ARB_texture_rectangle 1
+#endif
+
 #ifndef GL_EXT_abgr
 #define GL_EXT_abgr 1
 #endif
@@ -4435,10 +4516,6 @@ typedef void (APIENTRYP PFNGLTEXCOORDPOINTERVINTELPROC) (GLint size, GLenum type
 #define GL_HP_occlusion_test 1
 #endif
 
-#ifndef GL_IBM_texture_mirrored_repeat
-#define GL_IBM_texture_mirrored_repeat 1
-#endif
-
 #ifndef GL_EXT_pixel_transform
 #define GL_EXT_pixel_transform 1
 #ifdef GL_GLEXT_PROTOTYPES
@@ -4783,10 +4860,6 @@ typedef void (APIENTRYP PFNGLBLENDFUNCSEPARATEINGRPROC) (GLenum sfactorRGB, GLen
 
 #ifndef GL_SUN_convolution_border_modes
 #define GL_SUN_convolution_border_modes 1
-#endif
-
-#ifndef GL_EXT_texture_compression_s3tc
-#define GL_EXT_texture_compression_s3tc 1
 #endif
 
 #ifndef GL_EXT_texture_env_add
@@ -5737,6 +5810,13 @@ GLAPI void APIENTRY glDrawBuffersATI (GLsizei, const GLenum *);
 typedef void (APIENTRYP PFNGLDRAWBUFFERSATIPROC) (GLsizei n, const GLenum *bufs);
 #endif
 
+#ifndef GL_ATI_pixel_format_float
+#define GL_ATI_pixel_format_float 1
+/* This is really a WGL extension, but defines some associated GL enums.
+ * ATI does not export "GL_ATI_pixel_format_float" in the GL_EXTENSIONS string.
+ */
+#endif
+
 #ifndef GL_ATI_texture_env_combine3
 #define GL_ATI_texture_env_combine3 1
 #endif
@@ -5954,6 +6034,26 @@ typedef void (APIENTRYP PFNGLBLENDEQUATIONSEPARATEEXTPROC) (GLenum modeRGB, GLen
 #define GL_MESA_ycbcr_texture 1
 #endif
 
+#ifndef GL_EXT_pixel_buffer_object
+#define GL_EXT_pixel_buffer_object 1
+#endif
+
+#ifndef GL_NV_fragment_program_option
+#define GL_NV_fragment_program_option 1
+#endif
+
+#ifndef GL_NV_fragment_program2
+#define GL_NV_fragment_program2 1
+#endif
+
+#ifndef GL_NV_vertex_program2_option
+#define GL_NV_vertex_program2_option 1
+#endif
+
+#ifndef GL_NV_vertex_program3
+#define GL_NV_vertex_program3 1
+#endif
+
 
 /*
  * ------------------------------------------------
@@ -5963,15 +6063,6 @@ typedef void (APIENTRYP PFNGLBLENDEQUATIONSEPARATEEXTPROC) (GLenum modeRGB, GLen
  * ------------------------------------------------
  */
   
-#ifndef GL_EXT_texture_edge_clamp
-#define CLAMP_TO_EDGE_EXT                 0x812F
-#endif
-
-#ifndef GL_NV_stencil_two_side
-#define GL_STENCIL_TEST_TWO_SIDE_NV       0x8910
-#define GL_ACTIVE_STENCIL_FACE_NV         0x8911
-#endif
-
 #ifndef GL_NV_element_array
 #define GL_ELEMENT_ARRAY_TYPE_NV          0x8769
 #define GL_ELEMENT_ARRAY_POINTER_NV       0x876A
