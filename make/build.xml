@@ -179,8 +179,8 @@
         <property name="java.includes.dir.solaris" value="${java.includes.dir}/solaris" />
         <property name="java.includes.dir.macosx" value="/System/Library/Frameworks/JavaVM.framework/Versions/CurrentJDK/Headers" />
         <property name="java.lib.dir.win32" value="${java.home.dir}/lib" />
-        <property name="java.lib.dir.linux" value="${java.home.dir}/lib/i386" />
-        <property name="java.lib.dir.solaris" value="${java.home.dir}/${os.arch}" />
+        <property name="java.lib.dir.linux" value="${java.home.dir}/jre/lib/i386" />
+        <property name="java.lib.dir.solaris" value="${java.home.dir}/jre/lib/${os.arch}" />
         <property name="java.lib.dir.macosx" value="/System/Library/Frameworks/JavaVM.framework/Libraries" />
         <property name="gl.headers" value="${stub.includes.dir}/opengl/**/*.h" /> <!-- NOTE:  this MUST be relative for FileSet --> <!-- CHECK:  this may need to be pruned for each platform -->
 
@@ -562,7 +562,7 @@
         <gluegen src="${stub.includes.platform}/window-system.c" 
                  config="${window.cfg}"
                  includeRefid="stub.includes.fileset.platform"
-                 emitter="net.java.games.gluegen.JavaEmitter">
+                 emitter="net.java.games.gluegen.opengl.GLEmitter">
             <classpath refid="gen.classpath" />
         </gluegen>
 
