@@ -70,7 +70,7 @@
         <!-- Load the user specified properties file that defines various host
            - specific paths.  The user will be notified if this is does not
            - exist. -->
-        <property name="user.properties.file" value="${make}/host.properties" />
+        <property name="user.properties.file" value="${user.home}/jogl.properties" />
         <property file="${user.properties.file}" />
         <echo message="Loaded ${user.properties.file}." />
         <echo message="antlr.jar=${antlr.jar}" />
@@ -410,7 +410,10 @@
         <!-- Set up gcc -->
         <property name="c.compiler" value="gcc" />
         <property name="c.compiler.optflags" value="-O2 -Dmacosx" />
-        <property name="c.compiler.flags" value="${c.compiler.optflags} -c -o" />
+	<!-- Note: specifying -ObjC for all files is sloppy (only needed for      -->
+	<!-- JAWT-related .c files) but this doesn't break anything and is easier -->
+	<!-- than rewriting the whole Makefile                                    -->
+        <property name="c.compiler.flags" value="${c.compiler.optflags} -ObjC -c -o" />
         <property name="c.compiler.obj.suffix" value="o" />
 	<property name="c.compiler.jogl.outputfile.expr" value="${rootrel.obj.jogl}/*.${c.compiler.obj.suffix}" />
 	<property name="c.compiler.includes" value="-I&quot;make/stub_includes/opengl&quot; -I&quot;${java.includes.dir}&quot; -I&quot;${java.includes.dir.platform}&quot; -I&quot;make/stub_includes/cg&quot;" />

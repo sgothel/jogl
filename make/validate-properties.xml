@@ -12,11 +12,12 @@
     <target name="antlr.jar.validate" unless="antlr.jar">
         <fail>
         
-    **************************************************************
-    ** The property &quot;antlr.jar&quot; was not set in host.properties. **
-    ** Please set &quot;antlr.jar&quot; to the full path of the ANTLR jar **
-    ** including the jar itself.                                **
-    **************************************************************
+    *****************************************************************
+    ** The property &quot;antlr.jar&quot; was not set in the jogl.properties **
+    ** file that should be in your home directory (${user.home}).    **
+    ** Please set &quot;antlr.jar&quot; to the full path of the ANTLR jar    **
+    ** including the jar itself.                                   **
+    *****************************************************************
         </fail>
     </target>
 
@@ -28,10 +29,11 @@
     <target name="java.home.dir.validate" unless="java.home.dir">
         <fail>
         
-    ******************************************************************
-    ** The property &quot;java.home.dir&quot; was not set in host.properties. **
-    ** Please set &quot;java.home.dir&quot; to your JAVA_HOME directory.      **
-    ******************************************************************
+    *********************************************************************
+    ** The property &quot;java.home.dir&quot; was not set in the jogl.properties **
+    ** file that should be in your home directory (${user.home}).       **
+    ** Please set &quot;java.home.dir&quot; to your JAVA_HOME directory.         **
+    *********************************************************************
         </fail>
     </target>
 

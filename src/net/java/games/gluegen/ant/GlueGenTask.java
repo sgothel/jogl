@@ -147,6 +147,7 @@ public class GlueGenTask extends Task
         // set the VM and classname in the commandline
         gluegenCommandline.setVm(JavaEnvUtils.getJreExecutable("java"));
         gluegenCommandline.setClassname(GLUE_GEN);
+        // gluegenCommandline.createVmArgument().setValue("-verbose:class");
     }
 
     // =========================================================================
