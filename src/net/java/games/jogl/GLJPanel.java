@@ -86,7 +86,8 @@ public final class GLJPanel extends JPanel implements GLDrawable {
   private int glType;
 
   // Implementation using pbuffers
-  private static boolean hardwareAccelerationDisabled = true;
+  private static boolean hardwareAccelerationDisabled =
+    Debug.isPropertyDefined("jogl.gljpanel.nohw");
   private boolean   pbufferInitializationCompleted;
   private GLPbuffer pbuffer;
   private int       pbufferWidth  = 256;
