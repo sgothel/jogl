@@ -224,6 +224,18 @@ public class GLEmitter extends JavaEmitter
       //System.err.println("WARNING (GL): *not* run-time linking: " + sym +
       //                   "(" + funcPointerTypedefName + " undefined)");
     }
+    else 
+    {
+      FunctionType typedef = typedefDictionary.get(funcPointerTypedefName).asPointer().getTargetType().asFunction();
+      FunctionType fun = sym.getType();
+      int numarg = typedef.getNumArguments();
+      for ( int i =0; i < numarg; i++ )
+      {
+        if ( fun.getArgumentName(i) == null )
+          fun.setArgumentName(i,typedef.getArgumentName(i));
+      }
+    }
+    
     return shouldWrap;
   }
   

@@ -94,6 +94,11 @@ public class FunctionType extends Type {
     argumentNames.add(argumentName);
   }
 
+  public void setArgumentName(int i, String name)
+  {
+    argumentNames.set(i,name);
+  }
+
   public String toString() {
     return toString(null);
   }

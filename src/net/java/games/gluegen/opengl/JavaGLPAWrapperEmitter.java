@@ -157,8 +157,8 @@ public class JavaGLPAWrapperEmitter extends JavaMethodBindingImplEmitter
     String procAddressVariable =
       GLEmitter.PROCADDRESS_VAR_PREFIX + wrappedBinding.getName();
 
-    writer.println("    final long addr = " + getProcAddressTableExpr + "." + procAddressVariable + ";");
-    writer.println("    if (addr == 0) {");
+    writer.println("    final long __addr_ = " + getProcAddressTableExpr + "." + procAddressVariable + ";");
+    writer.println("    if (__addr_ == 0) {");
     writer.println("      throw new GLException(\"Method \\\"" + binding.getName() + "\\\" not available\");");
     writer.println("    }");
   }
@@ -168,7 +168,7 @@ public class JavaGLPAWrapperEmitter extends JavaMethodBindingImplEmitter
     if (numEmitted > 0) {
       writer.print(", ");
     }
-    writer.print("addr");
+    writer.print("__addr_");
     return 1 + numEmitted;
   }
 
