@@ -109,6 +109,7 @@ public class JavaConfiguration {
   private Map/*<String, List<String>>*/ temporaryCVariableDeclarations = new HashMap();
   private Map/*<String, List<String>>*/ temporaryCVariableAssignments = new HashMap();
   private Map/*<String,List<String>>*/ extendedInterfaces = new HashMap();
+  private Map/*<String,List<String>>*/ implementedInterfaces = new HashMap();
   private Map/*<String,String>*/ javaTypeRenames = new HashMap();
 
   /** Reads the configuration file.
@@ -413,6 +414,18 @@ public class JavaConfiguration {
     return res;
   }
 
+  /** Returns a List of Strings indicating the interfaces the passed
+      class should declare it implements. May return null or a list
+      of zero length if there are none. */
+  public List/*<String>*/ implementedInterfaces(String className) {
+    List res = (List) implementedInterfaces.get(className);
+    if (res == null) {
+      res = new ArrayList();
+      implementedInterfaces.put(className, res);
+    }
+    return res;
+  }
+
   /** Returns true if this #define, function, struct, or field within
       a struct should be ignored during glue code generation. */
   public boolean shouldIgnore(String symbol) {
@@ -602,6 +615,8 @@ public class JavaConfiguration {
       doIncludeAs(tok, file, filename, lineNo);
     } else if (cmd.equalsIgnoreCase("Extends")) {
       readExtend(tok, filename, lineNo);
+    } else if (cmd.equalsIgnoreCase("Implements")) {
+      readImplements(tok, filename, lineNo);
     } else if (cmd.equalsIgnoreCase("RenameJavaType")) {
       readRenameJavaType(tok, filename, lineNo);
     } else if (cmd.equalsIgnoreCase("RuntimeExceptionType")) {
@@ -1028,6 +1043,17 @@ public class JavaConfiguration {
       intfs.add(tok.nextToken());
     } catch (NoSuchElementException e) {
       throw new RuntimeException("Error parsing \"Extends\" command at line " + lineNo +
+        " in file \"" + filename + "\": missing expected parameter", e);
+    }
+  }
+
+  protected void readImplements(StringTokenizer tok, String filename, int lineNo) {
+    try {
+      String className = tok.nextToken();
+      List intfs = implementedInterfaces(className);
+      intfs.add(tok.nextToken());
+    } catch (NoSuchElementException e) {
+      throw new RuntimeException("Error parsing \"Implements\" command at line " + lineNo +
         " in file \"" + filename + "\": missing expected parameter", e);
     }
   }

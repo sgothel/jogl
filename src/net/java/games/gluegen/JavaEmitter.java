@@ -515,12 +515,29 @@ public class JavaEmitter implements GlueEmitter {
     writer.println();
     writer.println("import net.java.games.gluegen.runtime.*;");
     writer.println();
+    List/*<String>*/ imports = cfg.imports();
+    for (Iterator iter = imports.iterator(); iter.hasNext(); ) {
+      writer.print("import ");
+      writer.print(iter.next());
+      writer.println(";");
+    }
     List/*<String>*/ javadoc = cfg.javadocForClass(containingTypeName);
     for (Iterator iter = javadoc.iterator(); iter.hasNext(); ) {
       writer.println((String) iter.next());
     }
     writer.println();
-    writer.println("public class " + containingTypeName + " {");
+    writer.print("public class " + containingTypeName + " ");
+    boolean firstIteration = true;
+    List/*<String>*/ userSpecifiedInterfaces = cfg.implementedInterfaces(containingTypeName);
+    for (Iterator iter = userSpecifiedInterfaces.iterator(); iter.hasNext(); ) {
+      if (firstIteration) {
+        writer.print("implements ");
+      }
+      firstIteration = false;
+      writer.print(iter.next());
+      writer.print(" ");
+    }
+    writer.println("{");
     writer.println("  private StructAccessor accessor;");
     writer.println();
     writer.println("  public static int size() {");
@@ -1048,13 +1065,14 @@ public class JavaEmitter implements GlueEmitter {
     try {    
       if (cfg.allStatic() || cfg.emitInterface()) {
         String[] interfaces;
+        List userSpecifiedInterfaces = null;
         if (cfg.emitInterface()) {
-          List userSpecifiedInterfaces = cfg.extendedInterfaces(cfg.className());
-          interfaces = new String[userSpecifiedInterfaces.size()];
-          userSpecifiedInterfaces.toArray(interfaces);
+          userSpecifiedInterfaces = cfg.extendedInterfaces(cfg.className());
         } else {
-          interfaces = null;
+          userSpecifiedInterfaces = cfg.implementedInterfaces(cfg.className());
         }
+        interfaces = new String[userSpecifiedInterfaces.size()];
+        userSpecifiedInterfaces.toArray(interfaces);
         
         final List/*<String>*/ intfDocs = cfg.javadocForClass(cfg.className());
         CodeGenUtils.EmissionCallback docEmitter =
@@ -1089,6 +1107,13 @@ public class JavaEmitter implements GlueEmitter {
             }
           };
 
+        String[] interfaces;
+        List userSpecifiedInterfaces = null;
+        userSpecifiedInterfaces = cfg.implementedInterfaces(cfg.implClassName());
+        interfaces = new String[1 + userSpecifiedInterfaces.size()];
+        userSpecifiedInterfaces.toArray(interfaces);
+        interfaces[userSpecifiedInterfaces.size()] = cfg.className();
+
         CodeGenUtils.emitJavaHeaders(
           javaImplWriter,
           cfg.implPackageName(),
@@ -1096,7 +1121,7 @@ public class JavaEmitter implements GlueEmitter {
           true,
           (String[]) cfg.imports().toArray(new String[] {}),
           new String[] { "public" },
-          new String[] { cfg.className() },
+          interfaces,
           null,
           docEmitter);                      
       }
