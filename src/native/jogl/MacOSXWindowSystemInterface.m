@@ -18,7 +18,7 @@ NSAutoreleasePool* gAutoreleasePool = NULL;
 
 void* createContext( JNIEnv* env, jobject glCapabilities, void* shareContext, void* view)
 {
-	fprintf( stderr, "Creating context \n");
+        // fprintf( stderr, "Creating context \n");
 
 	jclass clazz = (*env)->GetObjectClass( env, glCapabilities );
 		
@@ -51,7 +51,7 @@ void* createContext( JNIEnv* env, jobject glCapabilities, void* shareContext, vo
 	jint depthSize = (*env)->GetIntField( env, glCapabilities, depthSizeField );
 	jint stencilSize = (*env)->GetIntField( env, glCapabilities, stencilSizeField );
 	
-	fprintf(stderr, "Color %d, alpha %d, depth %d, stencil %d, accum %d", colorSize, alphaSize, depthSize, stencilSize, accumSize );
+	// fprintf(stderr, "Color %d, alpha %d, depth %d, stencil %d, accum %d", colorSize, alphaSize, depthSize, stencilSize, accumSize );
 	
 	
 //fprintf(stderr, "createContext shareContext=%p view=%p\n", shareContext, view);
@@ -227,7 +227,7 @@ void* createPBuffer(void* context, int width, int height)
 
 Bool destroyPBuffer(void* context, void* buffer)
 {
-fprintf(stderr, "destroyPBuffer context=%p, buffer=%p\n", context, buffer);
+//fprintf(stderr, "destroyPBuffer context=%p, buffer=%p\n", context, buffer);
 #ifdef AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER)
 	NSOpenGLContext *nsContext = (NSOpenGLContext*)context;
 	NSOpenGLPixelBuffer *pBuffer = (NSOpenGLPixelBuffer*)buffer;
