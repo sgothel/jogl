@@ -86,7 +86,11 @@ public final class GLJPanel extends JPanel implements GLDrawable {
 
   GLJPanel(GLCapabilities capabilities, GLCapabilitiesChooser chooser, GLDrawable shareWith) {
     super();
-    context = GLContextFactory.getFactory().createGLContext(null, capabilities, chooser,
+    // Works around problems on many vendors' cards; we don't need a
+    // back buffer for the offscreen surface anyway
+    GLCapabilities myCaps = (GLCapabilities) capabilities.clone();
+    myCaps.setDoubleBuffered(false);
+    context = GLContextFactory.getFactory().createGLContext(null, myCaps, chooser,
                                                             GLContextHelper.getContext(shareWith));
   }
 
