@@ -78,7 +78,6 @@ public final class GLJPanel extends JPanel implements GLDrawable {
   private int                   neededOffscreenImageHeight;
   private DataBufferByte   dbByte;
   private DataBufferInt    dbInt;
-  private Object semaphore = new Object();
   private int panelWidth   = 0;
   private int panelHeight  = 0;
   private Updater updater;
@@ -127,26 +126,9 @@ public final class GLJPanel extends JPanel implements GLDrawable {
       // Multithreaded redrawing of Swing components is not allowed,
       // so do everything on the event dispatch thread
       try {
-        // Wait a reasonable period of time for the repaint to
-        // complete, so that we don't swamp the AWT event queue thread
-        // with repaint requests. We used to have an explicit flag to
-        // detect when the repaint completed; unfortunately, under
-        // some circumstances, the top-level window can be torn down
-        // while we're waiting for the repaint to complete, which will
-        // never happen. It doesn't look like there's enough
-        // information in the EventQueue to figure out whether there
-        // are pending events without posting to the queue, which we
-        // don't want to do during shutdown, and adding a
-        // HierarchyListener and watching for displayability events
-        // might be fragile since we don't know exactly how this
-        // component will be used in users' applications. For these
-        // reasons we simply wait up to a brief period of time for the
-        // repaint to complete.
-        synchronized(semaphore) {
-          repaint();
-          semaphore.wait(100);
-        }
-      } catch (InterruptedException e) {
+        EventQueue.invokeAndWait(paintImmediatelyAction);
+      } catch (Exception e) {
+        throw new GLException(e);
       }
     }
   }
@@ -176,9 +158,6 @@ public final class GLJPanel extends JPanel implements GLDrawable {
       }
     } else {
       offscreenContext.invokeGL(displayAction, false, initAction);
-    }
-    synchronized(semaphore) {
-      semaphore.notifyAll();
     }
   }
 
@@ -593,6 +572,13 @@ public final class GLJPanel extends JPanel implements GLDrawable {
     }
   }
   private SwapBuffersAction swapBuffersAction = new SwapBuffersAction();
+
+  class PaintImmediatelyAction implements Runnable {
+    public void run() {
+      paintImmediately(0, 0, getWidth(), getHeight());
+    }
+  }
+  private PaintImmediatelyAction paintImmediatelyAction = new PaintImmediatelyAction();
 
   private int getNextPowerOf2(int number) {
     if (((number-1) & number) == 0) {
