@@ -205,3 +205,160 @@ public boolean gluUnProject4(double winX, double winY, double winZ, double clipW
 public void gluPickMatrix(double x, double y, double delX, double delY, int[] viewport) {
   project.gluPickMatrix(gl, x, y, delX, delY, viewport);
 }
+
+public int gluScaleImageJava( int format, int widthin, int heightin,
+          int typein, Object datain, int widthout, int heightout,
+          int typeout, Object dataout ) {
+  ByteBuffer in = null;
+  ByteBuffer out = null;
+  if( datain instanceof ByteBuffer ) {
+    in = (ByteBuffer)datain;
+  } else if( datain instanceof byte[] ) {
+    in = ByteBuffer.allocateDirect( ((byte[])datain).length ).order( ByteOrder.nativeOrder() );
+  } else if( datain instanceof short[] ) {
+    in = ByteBuffer.allocateDirect( ((byte[])datain).length * 2 ).order( ByteOrder.nativeOrder() );
+  } else if( datain instanceof int[] ) {
+    in = ByteBuffer.allocateDirect( ((byte[])datain).length * 4 ).order( ByteOrder.nativeOrder() );
+  } else if( datain instanceof float[] ) {
+    in = ByteBuffer.allocateDirect( ((byte[])datain).length * 4 ).order( ByteOrder.nativeOrder() );
+  } else {
+    throw new IllegalArgumentException( "Input data must be a primitive array or a ByteBuffer" );
+  }
+  if( datain instanceof ByteBuffer ) {
+    out = (ByteBuffer)datain;
+  } else if( datain instanceof byte[] ) {
+    out = ByteBuffer.wrap( ((byte[])datain) );
+  } else if( datain instanceof short[] ) {
+    out = ByteBuffer.allocate( ((short[])datain).length * 2 );
+  } else if( datain instanceof int[] ) {
+    out = ByteBuffer.allocate( ((int[])datain).length * 4 );
+  } else if( datain instanceof float[] ) {
+    out = ByteBuffer.allocate( ((float[])datain).length * 4 );
+  } else {
+    throw new IllegalArgumentException( "Output data must be a primitive array or a ByteBuffer" );
+  }
+  int errno = Mipmap.gluScaleImage( gl, format, widthin, heightin, typein, in, 
+            widthout, heightout, typeout, out );
+  if( errno == 0 ) {
+    if( datain instanceof short[] ) {
+      out.asShortBuffer().get( (short[])dataout );
+    } else if( datain instanceof int[] ) {
+      out.asIntBuffer().get( (int[])dataout );
+    } else if( datain instanceof float[] ) {
+      out.asFloatBuffer().get( (float[])dataout );
+    }
+  }
+  return( errno );
+}
+
+public int gluBuild1DMipmapLevelsJava( int target, int internalFormat, int width,
+          int format, int type, int userLevel, int baseLevel, int maxLevel,
+          Object data ) {
+  ByteBuffer buffer = null;
+  if( data instanceof ByteBuffer ) {
+    buffer = (ByteBuffer)data;
+  } else if( data instanceof byte[] ) {
+    buffer = ByteBuffer.allocateDirect( ((byte[])data).length ).order( ByteOrder.nativeOrder() );
+    buffer.put( (byte[])data );
+  } else if( data instanceof short[] ) {
+    buffer = ByteBuffer.allocateDirect( ((short[])data).length * 2 ).order( ByteOrder.nativeOrder() );
+    buffer.asShortBuffer().put( (short[])data );
+  } else if( data instanceof int[] ) {
+    buffer = ByteBuffer.allocateDirect( ((int[])data).length * 4 ).order( ByteOrder.nativeOrder() );
+    buffer.asIntBuffer().put( (int[])data );
+  } else if( data instanceof float[] ) {
+    buffer = ByteBuffer.allocateDirect( ((float[])data).length * 4 ).order( ByteOrder.nativeOrder() );
+    buffer.asFloatBuffer().put( (float[])data );
+  } else {
+    throw new IllegalArgumentException( "Input data must be a primitive array or a ByteBuffer" );
+  }
+  return( Mipmap.gluBuild1DMipmapLevels( gl, target, internalFormat, width,
+          format, type, userLevel, baseLevel, maxLevel, buffer ) );
+}
+
+public int gluBuild1DMipmapsJava( int target, int internalFormat, int width,
+          int format, int type, Object data ) {
+  ByteBuffer buffer = null;
+  if( data instanceof ByteBuffer ) {
+    buffer = (ByteBuffer)data;
+  } else if( data instanceof byte[] ) {
+    buffer = ByteBuffer.allocateDirect( ((byte[])data).length ).order( ByteOrder.nativeOrder() );
+    buffer.put( (byte[])data );
+  } else if( data instanceof short[] ) {
+    buffer = ByteBuffer.allocateDirect( ((short[])data).length * 2 ).order( ByteOrder.nativeOrder() );
+    buffer.asShortBuffer().put( (short[])data );
+  } else if( data instanceof int[] ) {
+    buffer = ByteBuffer.allocateDirect( ((int[])data).length * 4 ).order( ByteOrder.nativeOrder() );
+    buffer.asIntBuffer().put( (int[])data );
+  } else if( data instanceof float[] ) {
+    buffer = ByteBuffer.allocateDirect( ((float[])data).length * 4 ).order( ByteOrder.nativeOrder() );
+    buffer.asFloatBuffer().put( (float[])data );
+  } else {
+    throw new IllegalArgumentException( "Input data must be a primitive array or a ByteBuffer" );
+  }
+  return( Mipmap.gluBuild1DMipmaps( gl, target, internalFormat, width, format,
+          type, buffer ) );
+}
+
+public int gluBuild2DMipmapLevelsJava( int target, int internalFormat, int width,
+        int height, int format, int type, int userLevel, int baseLevel,
+        int maxLevel, Object data ) {
+  return( Mipmap.gluBuild2DMipmapLevels( gl, target, internalFormat, width,
+          height, format, type, userLevel, baseLevel, maxLevel, data ) );
+}
+
+public int gluBuild2DMipmapsJava( int target, int internalFormat, int width,
+        int height, int format, int type, Object data ) {
+  return( Mipmap.gluBuild2DMipmaps( gl, target, internalFormat, width, height,
+          format, type, data ) );
+}
+
+public int gluBuild3DMipmapLevelsJava( int target, int internalFormat, int width,
+        int height, int depth, int format, int type, int userLevel, int baseLevel,
+        int maxLevel, Object data ) {
+  ByteBuffer buffer = null;
+  if( data instanceof ByteBuffer ) {
+    buffer = (ByteBuffer)data;
+  } else if( data instanceof byte[] ) {
+    buffer = ByteBuffer.allocateDirect( ((byte[])data).length ).order( ByteOrder.nativeOrder() );
+    buffer.put( (byte[])data );
+  } else if( data instanceof short[] ) {
+    buffer = ByteBuffer.allocateDirect( ((short[])data).length * 2 ).order( ByteOrder.nativeOrder() );
+    buffer.asShortBuffer().put( (short[])data );
+  } else if( data instanceof int[] ) {
+    buffer = ByteBuffer.allocateDirect( ((int[])data).length * 4 ).order( ByteOrder.nativeOrder() );
+    buffer.asIntBuffer().put( (int[])data );
+  } else if( data instanceof float[] ) {
+    buffer = ByteBuffer.allocateDirect( ((float[])data).length * 4 ).order( ByteOrder.nativeOrder() );
+    buffer.asFloatBuffer().put( (float[])data );
+  } else {
+    throw new IllegalArgumentException( "Input data must be a primitive array or a ByteBuffer" );
+  }
+  return( Mipmap.gluBuild3DMipmapLevels( gl, target, internalFormat, width,
+          height, depth, format, type, userLevel, baseLevel, maxLevel, buffer ) );
+}
+
+public int gluBuild3DMipmapsJava( int target, int internalFormat, int width,
+        int height, int depth, int format, int type, Object data ) {
+  ByteBuffer buffer = null;
+  if( data instanceof ByteBuffer ) {
+    buffer = (ByteBuffer)data;
+  } else if( data instanceof byte[] ) {
+    buffer = ByteBuffer.allocateDirect( ((byte[])data).length ).order( ByteOrder.nativeOrder() );
+    buffer.put( (byte[])data );
+  } else if( data instanceof short[] ) {
+    buffer = ByteBuffer.allocateDirect( ((short[])data).length * 2 ).order( ByteOrder.nativeOrder() );
+    buffer.asShortBuffer().put( (short[])data );
+  } else if( data instanceof int[] ) {
+    buffer = ByteBuffer.allocateDirect( ((int[])data).length * 4 ).order( ByteOrder.nativeOrder() );
+    buffer.asIntBuffer().put( (int[])data );
+  } else if( data instanceof float[] ) {
+    buffer = ByteBuffer.allocateDirect( ((float[])data).length * 4 ).order( ByteOrder.nativeOrder() );
+    buffer.asFloatBuffer().put( (float[])data );
+  } else {
+    throw new IllegalArgumentException( "Input data must be a primitive array or a ByteBuffer" );
+  }
+  return( Mipmap.gluBuild3DMipmaps( gl, target, internalFormat, width, height,
+          depth, format, type, buffer ) );
+}
+
