@@ -54,7 +54,7 @@ public abstract class MacOSXGLContext extends GLContext
   // Table that holds the addresses of the native C-language entry points for
   // OpenGL functions.
   private GLProcAddressTable glProcAddressTable;
-	
+  
   public MacOSXGLContext(Component component,
                          GLCapabilities capabilities,
                          GLCapabilitiesChooser chooser,
@@ -73,14 +73,22 @@ public abstract class MacOSXGLContext extends GLContext
     return glFunctionName;
   }
 	
-  protected String mapToRealGLExtensionName(String glFunctionName)
+  protected String mapToRealGLExtensionName(String glExtensionName)
   {
-    return glFunctionName;
+    return glExtensionName;
   }
 	
   protected boolean isFunctionAvailable(String glFunctionName)
   {
     return super.isFunctionAvailable(glFunctionName);
+  }
+  
+  public boolean isExtensionAvailable(String glExtensionName) {
+    if (glExtensionName.equals("GL_ARB_pbuffer") ||
+        glExtensionName.equals("GL_ARB_pixel_format")) {
+      return true;
+    }
+    return super.isExtensionAvailable(glExtensionName);
   }
   
   protected abstract boolean isOffscreen();
