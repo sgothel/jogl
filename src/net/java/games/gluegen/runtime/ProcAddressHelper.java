@@ -43,5 +43,4 @@ package net.java.games.gluegen.runtime;
 
 public class ProcAddressHelper {
   public static final String PROCADDRESS_VAR_PREFIX = "_addressof_";
-
 }
