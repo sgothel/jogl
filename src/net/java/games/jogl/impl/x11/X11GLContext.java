@@ -174,9 +174,7 @@ public abstract class X11GLContext extends GLContext {
 
   protected void destroyImpl() throws GLException {
     if (context != 0) {
-      if (!GLX.glXDestroyContext(mostRecentDisplay, context)) {
-        throw new GLException("Unable to delete OpenGL context");
-      }
+      GLX.glXDestroyContext(mostRecentDisplay, context);
       if (DEBUG) {
         System.err.println("!!! Destroyed OpenGL context " + context);
       }

@@ -167,14 +167,17 @@ public class X11OffscreenGLContext extends X11GLContext {
     isDoubleBuffered = (X11GLContextFactory.glXGetConfig(display, vis, GLX.GLX_DOUBLEBUFFER, new int[1]) != 0);
   }
 
-  private void destroy() {
-    // Must destroy OpenGL context, pixmap and GLXPixmap
-    GLX.glXDestroyContext(display, context);
-    GLX.glXDestroyGLXPixmap(display, (int) drawable);
-    GLX.XFreePixmap(display, pixmap);
-    context = 0;
-    drawable = 0;
-    pixmap = 0;
-    GLContextShareSet.contextDestroyed(this);
+  protected void destroyImpl() {
+    if (context != 0) {
+      super.destroyImpl();
+      // Must destroy OpenGL context, pixmap and GLXPixmap
+      GLX.glXDestroyContext(display, context);
+      GLX.glXDestroyGLXPixmap(display, (int) drawable);
+      GLX.XFreePixmap(display, pixmap);
+      context = 0;
+      drawable = 0;
+      pixmap = 0;
+      GLContextShareSet.contextDestroyed(this);
+    }
   }
 }
