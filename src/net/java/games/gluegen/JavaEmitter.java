@@ -753,9 +753,6 @@ public class JavaEmitter implements GlueEmitter {
       return javaType(Void.TYPE);
     } else {
       if (t.pointerDepth() > 0 || arrayDimension(t) > 0) {
-        // FIXME: add option to disable generation of typed pointer ->
-        // array conversions so that these will be handled with direct
-        // buffers (Should this be done later? in expandMethodBinding?)
         Type targetType; // target type 
         if (t.isPointer()) {
           // t is <type>*, we need to get <type>
@@ -765,24 +762,25 @@ public class JavaEmitter implements GlueEmitter {
           targetType = t.asArray().getElementType(); 
         }
 
-        // Handle Types of form pointer-to-type or array-of-type, like char*
-        // or int[]
+        // Handle Types of form pointer-to-type or array-of-type, like
+        // char* or int[]; these are expanded out into Java primitive
+        // arrays, NIO buffers, or both in expandMethodBinding
         if (t.pointerDepth() == 1 || arrayDimension(t) == 1) {
           if (targetType.isVoid()) {
             return JavaType.createForVoidPointer();
           } else if (targetType.isInt()) {
             switch (targetType.getSize()) {
-              case 1:  return javaType(ArrayTypes.byteArrayClass);
-              case 2:  return javaType(ArrayTypes.shortArrayClass);
-              case 4:  return javaType(ArrayTypes.intArrayClass);
-              case 8:  return javaType(ArrayTypes.longArrayClass);
+              case 1:  return JavaType.createForCCharPointer();
+              case 2:  return JavaType.createForCShortPointer();
+              case 4:  return JavaType.createForCInt32Pointer();
+              case 8:  return JavaType.createForCInt64Pointer();
               default: throw new RuntimeException("Unknown integer array type of size " +
                                                   t.getSize() + " and name " + t.getName());
             }
           } else if (targetType.isFloat()) {
-            return javaType(ArrayTypes.floatArrayClass);
+            return JavaType.createForCFloatPointer();
           } else if (targetType.isDouble()) {
-            return javaType(ArrayTypes.doubleArrayClass);
+            return JavaType.createForCDoublePointer();
           } else if (targetType.isCompound()) {
             if (t.isArray()) {
               throw new RuntimeException("Arrays of compound types not handled yet");
@@ -1207,10 +1205,9 @@ public class JavaEmitter implements GlueEmitter {
       // Take into account any ArgumentIsString configuration directives that apply
       if (stringArgIndices != null && stringArgIndices.contains(new Integer(i))) {   
         //System.out.println("Forcing conversion of " + binding.getName() + " arg #" + i + " from byte[] to String ");
-        if ((mappedType.isArray() &&
-             (mappedType.getJavaClass() == ArrayTypes.byteArrayClass ||
-              mappedType.getJavaClass() == ArrayTypes.byteArrayArrayClass)) ||
-            (mappedType.isVoidPointerType())) {
+        if (mappedType.isCVoidPointerType() ||
+            mappedType.isCCharPointerType() ||
+            (mappedType.isArray() && mappedType.getJavaClass() == ArrayTypes.byteArrayArrayClass)) {
           // convert mapped type from void* and byte[] to String, or byte[][] to String[]
           if (mappedType.getJavaClass() == ArrayTypes.byteArrayArrayClass) {
             mappedType = javaType(ArrayTypes.stringArrayClass);
@@ -1234,8 +1231,8 @@ public class JavaEmitter implements GlueEmitter {
     return binding;
   }
   
-  // Expands a MethodBinding containing void pointer types into
-  // multiple variants taking double arrays and NIO buffers, subject
+  // Expands a MethodBinding containing C primitive pointer types into
+  // multiple variants taking Java primitive arrays and NIO buffers, subject
   // to the per-function "NIO only" rule in the configuration file
   private List/*<MethodBinding>*/ expandMethodBinding(MethodBinding binding) {
     List result = new ArrayList();
@@ -1246,37 +1243,111 @@ public class JavaEmitter implements GlueEmitter {
       boolean shouldRemoveCurrent = false;
       for (int j = 0; j < mb.getNumArguments(); j++) {
         JavaType t = mb.getJavaArgumentType(j);
-        if (t.isVoidPointerType()) {
-          // Create variants
-          MethodBinding variant = null;
-          if (!cfg.nioOnly(mb.getCSymbol().getName())) {                
-            variant = mb.createVoidPointerVariant(j, javaType(ArrayTypes.booleanArrayClass));
-            if (! result.contains(variant)) result.add(variant); 
-            variant = mb.createVoidPointerVariant(j, javaType(ArrayTypes.byteArrayClass));
-            if (! result.contains(variant)) result.add(variant); 
-            variant = mb.createVoidPointerVariant(j, javaType(ArrayTypes.charArrayClass));
-            if (! result.contains(variant)) result.add(variant); 
-            variant = mb.createVoidPointerVariant(j, javaType(ArrayTypes.shortArrayClass));
-            if (! result.contains(variant)) result.add(variant); 
-            variant = mb.createVoidPointerVariant(j, javaType(ArrayTypes.intArrayClass));
-            if (! result.contains(variant)) result.add(variant); 
-            variant = mb.createVoidPointerVariant(j, javaType(ArrayTypes.longArrayClass));
-            if (! result.contains(variant)) result.add(variant); 
-            variant = mb.createVoidPointerVariant(j, javaType(ArrayTypes.floatArrayClass));
-            if (! result.contains(variant)) result.add(variant); 
-            variant = mb.createVoidPointerVariant(j, javaType(ArrayTypes.doubleArrayClass));
-            if (! result.contains(variant)) result.add(variant); 
-          }
-          variant = mb.createVoidPointerVariant(j, JavaType.forNIOBufferClass());
-          if (! result.contains(variant)) result.add(variant); 
-
+        if (t.isCPrimitivePointerType()) {
           // Remove original from list
           shouldRemoveCurrent = true;
+          MethodBinding variant = null;
+
+          // Non-NIO variants for void* and other C primitive pointer types
+          if (!cfg.nioOnly(mb.getCSymbol().getName())) {
+            if (t.isCVoidPointerType()) {
+              variant = mb.createCPrimitivePointerVariant(j, javaType(ArrayTypes.booleanArrayClass));
+              if (! result.contains(variant)) result.add(variant);
+              variant = mb.createCPrimitivePointerVariant(j, javaType(ArrayTypes.charArrayClass));
+              if (! result.contains(variant)) result.add(variant);
+            }
+            if (t.isCCharPointerType() || t.isCVoidPointerType()) {
+              variant = mb.createCPrimitivePointerVariant(j, javaType(ArrayTypes.byteArrayClass));
+              if (! result.contains(variant)) result.add(variant);
+            }
+            if (t.isCShortPointerType() || t.isCVoidPointerType()) {
+              variant = mb.createCPrimitivePointerVariant(j, javaType(ArrayTypes.shortArrayClass));
+              if (! result.contains(variant)) result.add(variant);
+            }
+            if (t.isCInt32PointerType() || t.isCVoidPointerType()) {
+              variant = mb.createCPrimitivePointerVariant(j, javaType(ArrayTypes.intArrayClass));
+              if (! result.contains(variant)) result.add(variant);
+            }
+            if (t.isCInt64PointerType() || t.isCVoidPointerType()) {
+              variant = mb.createCPrimitivePointerVariant(j, javaType(ArrayTypes.longArrayClass));
+              if (! result.contains(variant)) result.add(variant);
+            }
+            if (t.isCFloatPointerType() || t.isCVoidPointerType()) {
+              variant = mb.createCPrimitivePointerVariant(j, javaType(ArrayTypes.floatArrayClass));
+              if (! result.contains(variant)) result.add(variant);
+            }
+            if (t.isCDoublePointerType() || t.isCVoidPointerType()) {
+              variant = mb.createCPrimitivePointerVariant(j, javaType(ArrayTypes.doubleArrayClass));
+              if (! result.contains(variant)) result.add(variant);
+            }
+          }
+
+          // NIO variants for void* and other C primitive pointer types
+          if (!cfg.noNio(mb.getCSymbol().getName())) {
+            if (t.isCVoidPointerType()) {
+              variant = mb.createCPrimitivePointerVariant(j, JavaType.forNIOBufferClass());
+              if (! result.contains(variant)) result.add(variant);
+            }
+          }
+
+          if ((cfg.nioMode() == JavaConfiguration.NIO_MODE_ALL_POINTERS && !cfg.noNio(mb.getCSymbol().getName())) ||
+              (cfg.nioMode() == JavaConfiguration.NIO_MODE_VOID_ONLY    && cfg.forcedNio(mb.getCSymbol().getName()))) {
+            if (t.isCCharPointerType()) {
+              variant = mb.createCPrimitivePointerVariant(j, JavaType.forNIOByteBufferClass());
+              if (! result.contains(variant)) result.add(variant);
+            }
+
+            if (t.isCShortPointerType()) {
+              variant = mb.createCPrimitivePointerVariant(j, JavaType.forNIOShortBufferClass());
+              if (! result.contains(variant)) result.add(variant);
+            }
+
+            if (t.isCInt32PointerType()) {
+              variant = mb.createCPrimitivePointerVariant(j, JavaType.forNIOIntBufferClass());
+              if (! result.contains(variant)) result.add(variant);
+            }
+
+            if (t.isCInt64PointerType()) {
+              variant = mb.createCPrimitivePointerVariant(j, JavaType.forNIOLongBufferClass());
+              if (! result.contains(variant)) result.add(variant);
+            }
+
+            if (t.isCFloatPointerType()) {
+              variant = mb.createCPrimitivePointerVariant(j, JavaType.forNIOFloatBufferClass());
+              if (! result.contains(variant)) result.add(variant);
+            }
+
+            if (t.isCDoublePointerType()) {
+              variant = mb.createCPrimitivePointerVariant(j, JavaType.forNIODoubleBufferClass());
+              if (! result.contains(variant)) result.add(variant);
+            }
+          }
         }
       }
-      if (mb.getJavaReturnType().isVoidPointerType()) {
-        MethodBinding variant = mb.createVoidPointerVariant(-1, JavaType.forNIOByteBufferClass());
-        if (! result.contains(variant)) result.add(variant); 
+      if (mb.getJavaReturnType().isCPrimitivePointerType()) {
+        MethodBinding variant = null;
+        if (mb.getJavaReturnType().isCVoidPointerType()) {
+          variant = mb.createCPrimitivePointerVariant(-1, JavaType.forNIOByteBufferClass());
+          if (! result.contains(variant)) result.add(variant); 
+        } else if (mb.getJavaReturnType().isCCharPointerType()) {
+          variant = mb.createCPrimitivePointerVariant(-1, JavaType.createForClass(ArrayTypes.byteArrayClass));
+          if (! result.contains(variant)) result.add(variant); 
+        } else if (mb.getJavaReturnType().isCShortPointerType()) {
+          variant = mb.createCPrimitivePointerVariant(-1, JavaType.createForClass(ArrayTypes.shortArrayClass));
+          if (! result.contains(variant)) result.add(variant); 
+        } else if (mb.getJavaReturnType().isCInt32PointerType()) {
+          variant = mb.createCPrimitivePointerVariant(-1, JavaType.createForClass(ArrayTypes.intArrayClass));
+          if (! result.contains(variant)) result.add(variant); 
+        } else if (mb.getJavaReturnType().isCInt64PointerType()) {
+          variant = mb.createCPrimitivePointerVariant(-1, JavaType.createForClass(ArrayTypes.longArrayClass));
+          if (! result.contains(variant)) result.add(variant); 
+        } else if (mb.getJavaReturnType().isCFloatPointerType()) {
+          variant = mb.createCPrimitivePointerVariant(-1, JavaType.createForClass(ArrayTypes.floatArrayClass));
+          if (! result.contains(variant)) result.add(variant); 
+        } else if (mb.getJavaReturnType().isCDoublePointerType()) {
+          variant = mb.createCPrimitivePointerVariant(-1, JavaType.createForClass(ArrayTypes.doubleArrayClass));
+          if (! result.contains(variant)) result.add(variant); 
+        }
         shouldRemoveCurrent = true;
       }
       if (shouldRemoveCurrent) {
@@ -1285,6 +1356,39 @@ public class JavaEmitter implements GlueEmitter {
       }
       ++i;
     }
+
+    // Honor the flattenNIOVariants directive in the configuration file
+    if (cfg.flattenNIOVariants()) {
+      i = 0;
+      while (i < result.size()) {
+        boolean shouldRemoveCurrent = false;
+        MethodBinding mb = (MethodBinding) result.get(i);
+        for (int j = 0; j < binding.getNumArguments() && !shouldRemoveCurrent; j++) {
+          JavaType t1 = binding.getJavaArgumentType(j);
+          if (t1.isCPrimitivePointerType() && !t1.isCVoidPointerType()) {
+            for (int k = j + 1; k < binding.getNumArguments() && !shouldRemoveCurrent; k++) {
+              JavaType t2 = binding.getJavaArgumentType(k);
+              if (t2.isCPrimitivePointerType() && !t2.isCVoidPointerType()) {
+                // The "NIO-ness" of the converted arguments in the
+                // new binding must match
+                JavaType nt1 = mb.getJavaArgumentType(j);
+                JavaType nt2 = mb.getJavaArgumentType(k);
+                if (nt1.isNIOBuffer() != nt2.isNIOBuffer()) {
+                  shouldRemoveCurrent = true;
+                }
+              }
+            }
+          }
+        }
+        if (shouldRemoveCurrent) {
+          result.remove(i);
+          --i;
+        }
+
+        ++i;
+      }
+    }
+
     return result;
   }
 

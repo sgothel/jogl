@@ -97,6 +97,14 @@ public class JavaConfiguration {
   private Set/*<Pattern>*/ ignoreNots = new HashSet();
   private Set/*<Pattern>*/ unimplemented = new HashSet();
   private Set/*<String>*/ nioOnly = new HashSet();
+  /** See {@link #nioMode} */
+  public static final int NIO_MODE_VOID_ONLY = 1;
+  /** See {@link #nioMode} */
+  public static final int NIO_MODE_ALL_POINTERS = 2;
+  private int nioMode = NIO_MODE_VOID_ONLY;
+  private Set/*<String>*/ noNio = new HashSet();
+  private Set/*<String>*/ forcedNio = new HashSet();
+  private boolean flattenNIOVariants = true;
   private Set/*<String>*/ manuallyImplement = new HashSet();
   private Map/*<String,List<String>>*/ customJavaCode = new HashMap();
   private Map/*<String,List<String>>*/ classJavadoc = new HashMap();
@@ -306,10 +314,44 @@ public class JavaConfiguration {
   }
 
   /** Returns true if the given function should only create a java.nio
-      variant, and no array variants, for <code>void*</code>
-      pointers. */
+      variant, and no array variants, for <code>void*</code> and other
+      C primitive pointers. */
   public boolean nioOnly(String functionName) {
     return nioOnly.contains(functionName);
+  }
+
+  /** Returns true if the user requested that the given function
+      should only create array variants, and no java.nio variant, for
+      <code>void*</code> and other C primitive pointers, overriding
+      the NIO mode default. */
+  public boolean noNio(String functionName) {
+    return noNio.contains(functionName);
+  }
+
+  /** Returns true if the user requested that the given function
+      should create a java.nio variant for the given function's
+      <code>void*</code> and other C primitive pointers, overriding
+      the NIO mode default. */
+  public boolean forcedNio(String functionName) {
+    return forcedNio.contains(functionName);
+  }
+
+  /** Returns the default NIO generation mode for C primitive pointer
+      arguments. NIO_MODE_VOID_ONLY is the default and specifies
+      that only void* arguments will have java.nio variants generated
+      for them. NIO_MODE_ALL_POINTERS specifies that all C
+      primitive arguments will have java.nio variants generated. */
+  public int nioMode() {
+    return nioMode;
+  }
+
+  /** Returns true if, for the plethora of java.nio variants generated
+      for primitive C pointer types, the emitter should flatten the
+      output down to two variants: one taking only Java primitive
+      arrays as arguments, and one taking only java.nio.Buffers as
+      arguments. */
+  public boolean flattenNIOVariants() {
+    return flattenNIOVariants;
   }
 
   /** Returns true if the glue code for the given function will be
@@ -587,6 +629,14 @@ public class JavaConfiguration {
       // because readClassJavadoc changes them.
     } else if (cmd.equalsIgnoreCase("NioOnly")) {
       nioOnly.add(readString("NioOnly", tok, filename, lineNo));
+    } else if (cmd.equalsIgnoreCase("NoNio")) {
+      noNio.add(readString("NoNio", tok, filename, lineNo));
+    } else if (cmd.equalsIgnoreCase("ForcedNio")) {
+      forcedNio.add(readString("ForcedNio", tok, filename, lineNo));
+    } else if (cmd.equalsIgnoreCase("NioMode")) {
+      readNioMode(tok, filename, lineNo);
+    } else if (cmd.equalsIgnoreCase("FlattenNIOVariants")) {
+      flattenNIOVariants = readBoolean("FlattenNIOVariants", tok, filename, lineNo).booleanValue();
     } else if (cmd.equalsIgnoreCase("EmitStruct")) {
       forcedStructs.add(readString("EmitStruct", tok, filename, lineNo));
     } else if (cmd.equalsIgnoreCase("MirrorExpandedBindingArgs")) {
@@ -796,6 +846,37 @@ public class JavaConfiguration {
   protected void addClassJavadoc(String className, String code) {
     List codeList = javadocForClass(className);
     codeList.add(code);
+  }
+
+  /**
+   * Sets the default NIO generation mode for C primitive
+   * pointers. Options are VOID_ONLY or ALL_POINTERS. When the mode is
+   * set to VOID_ONLY, java.nio variants of methods are only generated
+   * for C primitive pointers of type <code>void*</code>. All other
+   * pointers are translated by default into Java primitive arrays.
+   * When the mode is set to ALL_POINTERS, C primitive pointers of
+   * other types (i.e., <code>int*</code>) will have java.nio variants
+   * generated for them (i.e., <code>IntBuffer</code> as opposed to
+   * merely <code>int[]</code>). This default mode can be overridden
+   * with the NioOnly and NoNio directives. The default for this mode
+   * is currently VOID_ONLY.
+   */
+  protected void readNioMode(StringTokenizer tok, String filename, int lineNo) {
+    try {
+      String mode = tok.nextToken();
+      if (mode.equalsIgnoreCase("VOID_ONLY")) {
+        nioMode = NIO_MODE_VOID_ONLY;
+      } else if (mode.equalsIgnoreCase("ALL_POINTERS")) {
+        nioMode = NIO_MODE_ALL_POINTERS;
+      } else {
+        throw new RuntimeException("Error parsing \"NioMode\" command at line " + lineNo +
+                                   " in file \"" + filename + "\"; expected VOID_ONLY or ALL_POINTERS");
+      }
+    } catch (NoSuchElementException e) {
+      throw new RuntimeException(
+                                 "Error parsing \"NioMode\" command at line " + lineNo +
+                                 " in file \"" + filename + "\"", e);
+    }
   }
 
   /**

@@ -49,11 +49,29 @@ import net.java.games.gluegen.cgram.types.*;
  * contains some utility methods for creating common types.
  */
 public class JavaType {
+  private static final int PTR_C_VOID   = 1;
+  private static final int PTR_C_CHAR   = 2;
+  private static final int PTR_C_SHORT  = 3;
+  private static final int PTR_C_INT32  = 4;
+  private static final int PTR_C_INT64  = 5;
+  private static final int PTR_C_FLOAT  = 6;
+  private static final int PTR_C_DOUBLE = 7;
+
   private Class  clazz; // Primitive types and other types representable as Class objects
   private String name;  // Types we're generating glue code for (i.e., C structs)
   private Type   elementType; // Element type if this JavaType represents a C array
+  private int    primitivePointerType; // Represents C arrays that
+                                       // will / can be represented
+                                       // with NIO buffers (resolved
+                                       // down to another JavaType
+                                       // later in processing)
   private static JavaType nioBufferType;
   private static JavaType nioByteBufferType;
+  private static JavaType nioShortBufferType;
+  private static JavaType nioIntBufferType;
+  private static JavaType nioLongBufferType;
+  private static JavaType nioFloatBufferType;
+  private static JavaType nioDoubleBufferType;
   private static JavaType nioByteBufferArrayType;
 
   public boolean equals(Object arg) {
@@ -61,9 +79,13 @@ public class JavaType {
       return false;
     }
     JavaType t = (JavaType) arg;
-    return (t.clazz == clazz &&
-            ((t.name == name) ||
-             ((name != null) && (t.name != null) && (t.name.equals(name)))));
+    return (this == t ||
+            (t.clazz == clazz &&
+             ((name == t.name) ||
+              ((name != null) && (t.name != null) && (name.equals(t.name)))) &&
+             ((elementType == t.elementType) ||
+              (elementType != null) && (t.elementType != null) && (elementType.equals(t.elementType))) &&
+             (primitivePointerType == t.primitivePointerType)));
   }
 
   public int hashCode() {
@@ -99,7 +121,31 @@ public class JavaType {
   }
 
   public static JavaType createForVoidPointer() {
-    return new JavaType();
+    return new JavaType(PTR_C_VOID);
+  }
+
+  public static JavaType createForCCharPointer() {
+    return new JavaType(PTR_C_CHAR);
+  }
+
+  public static JavaType createForCShortPointer() {
+    return new JavaType(PTR_C_SHORT);
+  }
+
+  public static JavaType createForCInt32Pointer() {
+    return new JavaType(PTR_C_INT32);
+  }
+
+  public static JavaType createForCInt64Pointer() {
+    return new JavaType(PTR_C_INT64);
+  }
+
+  public static JavaType createForCFloatPointer() {
+    return new JavaType(PTR_C_FLOAT);
+  }
+
+  public static JavaType createForCDoublePointer() {
+    return new JavaType(PTR_C_DOUBLE);
   }
 
   public static JavaType createForJNIEnv() {
@@ -120,6 +166,41 @@ public class JavaType {
     return nioByteBufferType;
   }
 
+  public static JavaType forNIOShortBufferClass() {
+    if (nioShortBufferType == null) {
+      nioShortBufferType = createForClass(java.nio.ShortBuffer.class);
+    }
+    return nioShortBufferType;
+  }
+
+  public static JavaType forNIOIntBufferClass() {
+    if (nioIntBufferType == null) {
+      nioIntBufferType = createForClass(java.nio.IntBuffer.class);
+    }
+    return nioIntBufferType;
+  }
+
+  public static JavaType forNIOLongBufferClass() {
+    if (nioLongBufferType == null) {
+      nioLongBufferType = createForClass(java.nio.LongBuffer.class);
+    }
+    return nioLongBufferType;
+  }
+
+  public static JavaType forNIOFloatBufferClass() {
+    if (nioFloatBufferType == null) {
+      nioFloatBufferType = createForClass(java.nio.FloatBuffer.class);
+    }
+    return nioFloatBufferType;
+  }
+
+  public static JavaType forNIODoubleBufferClass() {
+    if (nioDoubleBufferType == null) {
+      nioDoubleBufferType = createForClass(java.nio.DoubleBuffer.class);
+    }
+    return nioDoubleBufferType;
+  }
+
   public static JavaType forNIOByteBufferArrayClass() {
     if (nioByteBufferArrayType == null) {
       ByteBuffer[] tmp = new ByteBuffer[0];
@@ -130,7 +211,7 @@ public class JavaType {
 
   /**
    * Returns the Java Class corresponding to this type. Returns null if this
-   * object corresponds to a C "void*" type.
+   * object corresponds to a C primitive array type.
    */
   public Class getJavaClass() {
     return clazz;
@@ -216,8 +297,7 @@ public class JavaType {
   }
 
   public boolean isNIOBuffer() {
-    return (clazz == java.nio.Buffer.class ||
-            clazz == java.nio.ByteBuffer.class);
+    return (clazz != null && java.nio.Buffer.class.isAssignableFrom(clazz));
   }
 
   public boolean isNIOByteBuffer() {
@@ -252,8 +332,36 @@ public class JavaType {
     return (elementType != null);
   }
   
-  public boolean isVoidPointerType() {
-    return (clazz == null && name == null && elementType == null);
+  public boolean isCPrimitivePointerType() {
+    return (primitivePointerType != 0);
+  }
+
+  public boolean isCVoidPointerType() {
+    return (primitivePointerType == PTR_C_VOID);
+  }
+
+  public boolean isCCharPointerType() {
+    return (primitivePointerType == PTR_C_CHAR);
+  }
+
+  public boolean isCShortPointerType() {
+    return (primitivePointerType == PTR_C_SHORT);
+  }
+
+  public boolean isCInt32PointerType() {
+    return (primitivePointerType == PTR_C_INT32);
+  }
+
+  public boolean isCInt64PointerType() {
+    return (primitivePointerType == PTR_C_INT64);
+  }
+
+  public boolean isCFloatPointerType() {
+    return (primitivePointerType == PTR_C_FLOAT);
+  }
+
+  public boolean isCDoublePointerType() {
+    return (primitivePointerType == PTR_C_DOUBLE);
   }
 
   public boolean isJNIEnv() {
@@ -261,11 +369,12 @@ public class JavaType {
   }
 
   public Object clone() {
-    JavaType clone = new JavaType();
+    JavaType clone = new JavaType(primitivePointerType);
 
     clone.clazz = this.clazz;
     clone.name = this.name;
-    
+    clone.elementType = this.elementType;
+
     return clone;
   }
 
@@ -295,12 +404,10 @@ public class JavaType {
     this.elementType = elementType;
   }
 
-  /**
-   * Default constructor; the type is initialized to the equivalent of a
-   * C-language "void *".
-   */
-  private JavaType() {
-    
+  /** Constructs a type representing a pointer to a C primitive
+      (integer, floating-point, or void pointer) type. */
+  private JavaType(int primitivePointerType) {
+    this.primitivePointerType = primitivePointerType;
   }
 
   private String arrayName(Class clazz) {

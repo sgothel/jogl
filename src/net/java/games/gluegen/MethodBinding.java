@@ -142,11 +142,11 @@ public class MethodBinding {
     return sym.getName();
   }
 
-  /** Replaces the void* argument at slot <i>argumentNumber</i>
+  /** Replaces the C primitive pointer argument at slot <i>argumentNumber</i>
       (0..getNumArguments() - 1) with the specified type. If
       argumentNumber is less than 0 then replaces the return type. */
-  public MethodBinding  createVoidPointerVariant(int argumentNumber,
-                                                 JavaType newArgType) {
+  public MethodBinding  createCPrimitivePointerVariant(int argumentNumber,
+                                                       JavaType newArgType) {
     MethodBinding binding = new MethodBinding(sym);
     if (argumentNumber < 0) {
       binding.setJavaReturnType(newArgType);
