@@ -336,7 +336,9 @@ public class GLEmitter extends JavaEmitter
     private String  tableClassPackage;
     private String  tableClassName = "ProcAddressTable";
     private Set/*<String>*/ skipProcAddressGen  = new HashSet();
-    private String  getProcAddressTableExpr = "context.getGLProcAddressTable()";
+    private String  contextVariableName = "context";
+    private String  defaultGetProcAddressTableExpr = ".getGLProcAddressTable()";
+    private String  getProcAddressTableExpr;
 
     protected void dispatch(String cmd, StringTokenizer tok, File file, String filename, int lineNo) throws IOException {
       if (cmd.equalsIgnoreCase("EmitProcAddressTable"))
@@ -356,6 +358,10 @@ public class GLEmitter extends JavaEmitter
       {
         String sym = readString("SkipProcAddressGen", tok, filename, lineNo);
         skipProcAddressGen.add(sym);
+      }
+      else if (cmd.equalsIgnoreCase("ContextVariableName"))
+      {
+        contextVariableName = readString("ContextVariableName", tok, filename, lineNo);
       }
       else if (cmd.equalsIgnoreCase("GetProcAddressTableExpr"))
       {
@@ -381,7 +387,13 @@ public class GLEmitter extends JavaEmitter
     public String  tableClassPackage()              { return tableClassPackage;                  }
     public String  tableClassName()                 { return tableClassName;                     }
     public boolean skipProcAddressGen (String name) { return skipProcAddressGen.contains(name);  }
-    public String  getProcAddressTableExpr()        { return getProcAddressTableExpr;            }
+    public String  contextVariableName()            { return contextVariableName;                }
+    public String  getProcAddressTableExpr() {
+      if (getProcAddressTableExpr == null) {
+        getProcAddressTableExpr = contextVariableName + defaultGetProcAddressTableExpr;
+      }
+      return getProcAddressTableExpr;
+    }
   } // end class GLConfiguration
 }
   
