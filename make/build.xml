@@ -659,6 +659,7 @@
              (the uptodate element doesn't support arbitrary source and destination files) -->
         <dependset>
             <srcfilelist dir="${classes}/net/java/games/jogl" files="GL.class" />
+            <srcfilelist dir="${classes}/net/java/games/gluegen/opengl" files="BuildComposablePipeline.class" />
             <targetfileset dir="${src.generated.java}/net/java/games/jogl"
                            includes="DebugGL.java,TraceGL.java" />
         </dependset>

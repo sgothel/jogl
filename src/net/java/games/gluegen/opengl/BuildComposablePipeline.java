@@ -470,6 +470,34 @@ public class BuildComposablePipeline
     protected void postMethodEmissionHook(PrintWriter output)
     {
       output.println("private PrintStream " + getOutputStreamName() + ";");
+      output.println("private int indent = 0;"); 
+      output.println("protected String dumpArray(Object obj)");
+      output.println("{");
+      output.println("  StringBuffer sb = new StringBuffer(\"[\");");
+      output.println("  int len  = java.lang.reflect.Array.getLength(obj);");
+      output.println("  int count = Math.min(len,16);");
+      output.println("  for ( int i =0; i < count; i++ ) {");
+      output.println("    sb.append(java.lang.reflect.Array.get(obj,i));");
+      output.println("    if (i < count-1)"); 
+      output.println("      sb.append(',');");
+      output.println("  }");
+      output.println("  if ( len > 16 )");
+      output.println("    sb.append(\"...\").append(len);");
+      output.println("  sb.append(']');");
+      output.println("  return sb.toString();");
+      output.println("}");
+      output.println("protected void print(String str)");
+      output.println("{");
+      output.println("  "+getOutputStreamName()+".print(str);");
+      output.println("}");
+      output.println("protected void println(String str)");
+      output.println("{");
+      output.println("  "+getOutputStreamName()+".println(str);");
+      output.println("}");
+      output.println("protected void printIndent()");
+      output.println("{");
+      output.println("  for( int i =0; i < indent; i++) {"+getOutputStreamName()+".print(' ');}");
+      output.println("}");
     }
     protected void emitClassDocComment(PrintWriter output)
     {
@@ -485,13 +513,42 @@ public class BuildComposablePipeline
     
     protected void preDownstreamCallHook(PrintWriter output, Method m)
     {
-      output.println(getOutputStreamName() + ".println(\"Entered " + m.getName() + "\");");
+      Class[] params = m.getParameterTypes();
+      if ( m.getName().equals("glEnd") || m.getName().equals("glEndList")) 
+      {
+        output.println("indent-=2;");
+        output.println("    printIndent();");
+      } 
+      else 
+      {
+        output.println("printIndent();");
+      }
+      
+      output.print("    print(\"" + m.getName() + "(\"");
+      for ( int i =0; i < params.length; i++ ) 
+      {
+        if ( params[i].isArray() )
+          output.print("+dumpArray(arg"+i+")");
+        else
+          output.print("+arg"+i);
+        if ( i < params.length-1)
+          output.print("+\",\"");      
+      }
+      output.println("+\")\");");
       output.print("    ");
     }
 
     protected void postDownstreamCallHook(PrintWriter output, Method m)
     {
-      output.println("    " + getOutputStreamName() + ".println(\"Exited " + m.getName() + "\");");
+      Class ret = m.getReturnType();
+      if ( ret != Void.TYPE ) 
+      {
+        output.println("    println(\" = \"+_res);"); 
+      }
+      else 
+      {
+        output.println("    println(\"\");");
+      }
     }
 
     private String getOutputStreamName() {
