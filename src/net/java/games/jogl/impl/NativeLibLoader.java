@@ -47,7 +47,15 @@ public class NativeLibLoader {
         public Object run() {
           boolean isOSX = System.getProperty("os.name").equals("Mac OS X");
           if (!isOSX) {
-            System.loadLibrary("jawt");
+            try {
+              System.loadLibrary("jawt");
+            } catch (UnsatisfiedLinkError e) {
+              // Accessibility technologies load JAWT themselves; safe to continue
+              // as long as JAWT is loaded by any loader
+              if (e.getMessage().indexOf("already loaded") == -1) {
+                throw e;
+              }
+            }
           }
           System.loadLibrary("jogl");
           return null;
