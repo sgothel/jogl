@@ -104,7 +104,7 @@ public class WindowsOffscreenGLContext extends WindowsGLContext {
 
   protected synchronized boolean makeCurrent(Runnable initAction) throws GLException {
     if (pendingOffscreenResize) {
-      if (pendingOffscreenWidth != width || pendingOffscreenWidth != height) {
+      if (pendingOffscreenWidth != width || pendingOffscreenHeight != height) {
         if (hglrc != 0) {
           destroy();
         }

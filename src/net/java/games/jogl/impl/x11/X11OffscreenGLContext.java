@@ -111,7 +111,7 @@ public class X11OffscreenGLContext extends X11GLContext {
   protected synchronized boolean makeCurrent(Runnable initAction) throws GLException {
     ensureDisplayOpened();
     if (pendingOffscreenResize) {
-      if (pendingOffscreenWidth != width || pendingOffscreenWidth != height) {
+      if (pendingOffscreenWidth != width || pendingOffscreenHeight != height) {
         if (context != 0) {
           destroy();
         }
