@@ -79,7 +79,7 @@
         <!-- Load the user specified properties file that defines various host
            - specific paths.  The user will be notified if this is does not
            - exist. -->
-        <property name="user.properties.file" value="${user.home}/Library/Java/jogl.properties" />
+        <property name="user.properties.file" value="${user.home}/jogl.properties" />
         <property file="${user.properties.file}" />
         <echo message="Loaded ${user.properties.file}." />
         <echo message="antlr.jar=${antlr.jar}" />
