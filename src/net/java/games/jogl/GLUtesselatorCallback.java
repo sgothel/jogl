@@ -142,7 +142,7 @@ public interface GLUtesselatorCallback {
    * The <b>vertex</b> callback method is invoked between the
    * {@link net.java.games.jogl.GLUtesselatorCallback#begin begin} and
    * {@link net.java.games.jogl.GLUtesselatorCallback#end end} callback methods.
-   * It is similar to {@link net.java.games.jogl.GL#glVertex glVertex}, and it
+   * It is similar to {@link net.java.games.jogl.GL#glVertex3f glVertex3f}, and it
    * defines the vertices of the triangles created by the tessellation process.
    * The method takes a reference as its only argument. This reference is
    * identical to the opaque reference provided by the user when the vertex was

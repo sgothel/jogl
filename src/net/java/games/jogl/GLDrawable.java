@@ -179,7 +179,7 @@ public interface GLDrawable extends ComponentEvents {
   public void setAutoSwapBufferMode(boolean onOrOff);
 
   /** Indicates whether automatic buffer swapping is enabled for this
-      drawable. See {@link #setAutoBufferSwapMode}. */
+      drawable. See {@link #setAutoSwapBufferMode}. */
   public boolean getAutoSwapBufferMode();
 
   /** Swaps the front and back buffers of this drawable. When

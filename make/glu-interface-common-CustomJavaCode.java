@@ -341,7 +341,7 @@ public void gluTessBeginPolygon(GLUtesselator tesselator, Object data);
  * <b>GLU_TESS_VERTEX</b>
  * <UL>
  *   The vertex callback is invoked between the begin and end callbacks. It is
- *   similar to {@link net.java.games.jogl.GL#glVertex glVertex}, and it
+ *   similar to {@link net.java.games.jogl.GL#glVertex3f glVertex3f}, and it
  *   defines the vertices of the triangles created by the tessellation
  *   process. The method takes a reference as its only argument. This
  *   reference is identical to the opaque reference provided by the user when
@@ -528,7 +528,7 @@ public void gluTessBeginPolygon(GLUtesselator tesselator, Object data);
  *
  * @see net.java.games.jogl.GL#glBegin              glBegin
  * @see net.java.games.jogl.GL#glEdgeFlag           glEdgeFlag
- * @see net.java.games.jogl.GL#glVertex             glVertex
+ * @see net.java.games.jogl.GL#glVertex3f           glVertex3f
  * @see net.java.games.jogl.GLU#gluNewTess          gluNewTess
  * @see net.java.games.jogl.GLU#gluErrorString      gluErrorString
  * @see net.java.games.jogl.GLU#gluTessVertex       gluTessVertex
