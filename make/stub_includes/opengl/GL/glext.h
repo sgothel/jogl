@@ -2281,6 +2281,16 @@ extern "C" {
 #define GL_LOCAL_CONSTANT_DATATYPE_EXT    0x87ED
 #endif
 
+/* Support for GL_EXT_texture_rectangle on non-nVidia cards */ 
+#ifndef GL_EXT_texture_rectangle 
+#define GL_EXT_texture_rectangle 	  1 
+#define GL_TEXTURE_RECTANGLE_EXT	  0x84F5 
+#define GL_TEXTURE_BINDING_RECTANGLE_EXT  0x84F6 
+#define GL_PROXY_TEXTURE_RECTANGLE_EXT    0x84F7 
+#define GL_MAX_RECTANGLE_TEXTURE_SIZE_EXT 0x84F8 
+#endif /* GL_TEXTURE_RECTANGLE_EXT */ 
+
+
 #ifndef GL_ATI_vertex_streams
 #define GL_MAX_VERTEX_STREAMS_ATI         0x876B
 #define GL_VERTEX_STREAM0_ATI             0x876C
