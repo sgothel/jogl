@@ -196,7 +196,7 @@ public class BuildStaticGLInfo
 
     output.println("  // maps function names to the extension string or OpenGL");
     output.println("  // specification version string to which they correspond.");
-    output.println("  private static HashMap funcToAssocMap = null;");
+    output.println("  private static HashMap funcToAssocMap;");
     output.println();
 
     output.println("  /**");
@@ -221,12 +221,11 @@ public class BuildStaticGLInfo
     output.println("   */");
     output.println("  public static String getFunctionAssociation(String glFunctionName)");
     output.println("  {");
-    output.println("    if (funcToAssocMap == null) { init(); }");
     output.println("    return (String)funcToAssocMap.get(glFunctionName);");
     output.println("  }");
     output.println();
 
-    output.println("  private static void init()");
+    output.println("  static");
     output.println("  {");
     output.println("    funcToAssocMap = new HashMap(1536); // approximate max capacity");
     output.println("    String group;");

@@ -263,7 +263,9 @@ public class WindowsGLContextFactory extends GLContextFactory {
     
     public void run() {
       // Create a native window and device context
-      HWND = WGL.CreateDummyWindow( rectangle.x, rectangle.y, rectangle.width, rectangle.height );
+      synchronized (WindowsGLContextFactory.class) {
+        HWND = WGL.CreateDummyWindow( rectangle.x, rectangle.y, rectangle.width, rectangle.height );
+      }
       HDC = WGL.GetDC( HWND );
       
       // Start the message pump at shutdown
