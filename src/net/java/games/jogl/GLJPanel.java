@@ -121,8 +121,8 @@ public final class GLJPanel extends JPanel implements GLDrawable {
 
   public void display() {
     if (EventQueue.isDispatchThread()) {
-      // Can't block this thread
-      repaint();
+      // Want display() to be synchronous, so call paintImmediately()
+      paintImmediately(0, 0, getWidth(), getHeight());
     } else {
       // Multithreaded redrawing of Swing components is not allowed,
       // so do everything on the event dispatch thread
