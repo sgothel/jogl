@@ -953,7 +953,7 @@
              includes="libjogl.so,libjogl_cg.so" />
         <jar destfile="${jogl.dist.dir}/jogl-natives-macosx.jar"
              basedir="${jogl.dist.dir}/jogl-macosx"
-             includes="libjogl.jnilib" />
+             includes="libjogl.jnilib,libjogl_cg.jnilib" />
         <jar destfile="${jogl.dist.dir}/jogl-natives-solsparc.jar"
              basedir="${jogl.dist.dir}/jogl-solsparc"
              includes="libjogl.so" />
