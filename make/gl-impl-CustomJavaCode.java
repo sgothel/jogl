@@ -8,6 +8,19 @@ private static class ARBVBOKey {
     this.addr = addr;
     this.capacity = capacity;
   }
+
+  public int hashCode() {
+    return (int) addr;
+  }
+
+  public boolean equals(Object o) {
+    if ((o == null) || (!(o instanceof ARBVBOKey))) {
+      return false;
+    }
+
+    ARBVBOKey other = (ARBVBOKey) o;
+    return ((addr == other.addr) && (capacity == other.capacity));
+  }
 }
 
 private Map/*<ARBVBOKey, ByteBuffer>*/ arbVBOCache = new HashMap();

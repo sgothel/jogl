@@ -49,6 +49,6 @@
 #endif
 
 JNIEXPORT jobject JNICALL
-Java_net_java_games_jogl_util_BufferUtils_bufferOffset(JNIEnv* env, jclass unused, jint offset) {
+Java_net_java_games_jogl_util_BufferUtils_bufferOffset0(JNIEnv* env, jclass unused, jint offset) {
   return (*env)->NewDirectByteBuffer(env, (void*) (intptr_t) offset, 0);
 }
