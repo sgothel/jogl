@@ -242,6 +242,17 @@ public abstract class X11GLContext extends GLContext {
                          ", minor " + minor[0]);
     }
 
+    // Work around bugs in ATI's Linux drivers where they report they
+    // only implement GLX version 1.2 but actually do support pbuffers
+    if (major[0] == 1 && minor[0] == 2) {
+      GL gl = getGL();
+      String str = gl.glGetString(GL.GL_VENDOR);
+      if (str != null && str.indexOf("ATI") >= 0) {
+        isGLX13 = true;
+        return;
+      }
+    }
+
     isGLX13 = ((major[0] > 1) || (minor[0] > 2));
   }
   
