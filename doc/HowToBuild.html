@@ -30,7 +30,7 @@ OpenGL binding from a fresh copy of the source distribution:
       </UL>
       
   <LI> <B>Add Jogl to your CLASSPATH:</B> <br> To be able to use Jogl once built, you must add the build process' resulting jogl.jar (<source tree root>/build/jogl.jar) to your CLASSPATH environment variable.
-  <LI> <B>Add Jogl to your PATH:</B> <br> To be able to use Jogl once built, you must also add the build process JNI code library directory (<source tree root>/build/obj) to your PATH.
+  <LI> <B>Add Jogl to your PATH or LD_LIBRARY_PATH:</B> <br> To be able to use Jogl once built, you must also add the build process's JNI code library directory (<source tree root>/build/obj) to your PATH (on Windows) or LD_LIBRARY_PATH (on Unix platforms) environment variable.
 
   <LI> <B>Test if everything's working:</B> <br> To test if everything went well, you should check out the source code for the <B>jogl-demos</B> project (available at <a href = "http://jogl-demos.dev.java.net/">http://jogl-demos.dev.java.net/</a>), build the demos using the supplied instructions, and run the Gears demo ("java demos.gears.Gears").
   <LI> <B>Build Javadoc:</B> <br> "ant javadoc" will produce the end-user documentation for Jogl along with some auxiliary utility packages. The developers' documentation, including that for the GlueGen tool, can be generated for your current platform using one of the following commands: "ant javadoc.dev.win32", "ant javadoc.dev.x11", or "ant javadoc.dev.macosx". (The javadoc for the Cg binding can be built by inserting <code>-Djogl.cg=1</code> into the command line as above.)
