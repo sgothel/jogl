@@ -137,6 +137,8 @@ public class WindowsGLContextFactory extends GLContextFactory {
           }
         });
       canvas.setSize(0, 0);
+      canvas.setNoAutoRedrawMode(true);
+      canvas.setAutoSwapBufferMode(false);
       frame.add(canvas);
       frame.pack();
       frame.show();
