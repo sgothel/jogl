@@ -130,7 +130,7 @@ public class Image {
     }
     
     myswap_bytes = psm.getUnpackSwapBytes();
-    components = GLU.mipmap.Mipmap.elements_per_group( format, type );
+    components = Mipmap.elements_per_group( format, type );
     if( psm.getUnpackRowLength() > 0 ) {
       groups_per_line = psm.getUnpackRowLength();
     } else {
@@ -184,7 +184,7 @@ public class Image {
         start += rowsize;
       }
     } else {
-      element_size = GLU.mipmap.Mipmap.bytes_per_element( type );
+      element_size = Mipmap.bytes_per_element( type );
       group_size = element_size * components;
       if( element_size == 1 ) {
         myswap_bytes = false;
@@ -355,10 +355,10 @@ public class Image {
       } // for i
       
       // iterators should be one byte past end
-      if( !GLU.mipmap.Mipmap.isTypePackedPixel( type ) ) {
+      if( !Mipmap.isTypePackedPixel( type ) ) {
         assert( iter2 == ( width * height * components ) );
       } else {
-        assert( iter2 == ( width * height * GLU.mipmap.Mipmap.elements_per_group( format, 0 ) ) );
+        assert( iter2 == ( width * height * Mipmap.elements_per_group( format, 0 ) ) );
       }
       assert( iter == ( rowsize * height + psm.getUnpackSkipRows() * rowsize + psm.getUnpackSkipPixels() * group_size ) );
     }
@@ -428,7 +428,7 @@ public class Image {
     }
     
     myswap_bytes = psm.getPackSwapBytes();
-    components = GLU.mipmap.Mipmap.elements_per_group( format, type );
+    components = Mipmap.elements_per_group( format, type );
     if( psm.getPackRowLength() > 0 ) {
       groups_per_line = psm.getPackRowLength();
     } else {
@@ -490,7 +490,7 @@ public class Image {
     } else {
       float shoveComponents[] = new float[4];
       
-      element_size = GLU.mipmap.Mipmap.bytes_per_element( type );
+      element_size = Mipmap.bytes_per_element( type );
       group_size = element_size * components;
       if( element_size == 1 ) {
         myswap_bytes = false;
@@ -780,10 +780,10 @@ public class Image {
         iter = start;
       } // for i
       // iterators should be one byte past end
-      if( !GLU.mipmap.Mipmap.isTypePackedPixel( type ) ) {
+      if( !Mipmap.isTypePackedPixel( type ) ) {
         assert( iter2 == width * height * components );
       } else {
-        assert( iter2 == width * height * GLU.mipmap.Mipmap.elements_per_group( format, 0 ) );
+        assert( iter2 == width * height * Mipmap.elements_per_group( format, 0 ) );
       }
       assert( iter == rowsize * height + psm.getPackSkipRows() * rowsize + psm.getPackSkipPixels() * group_size );
     }

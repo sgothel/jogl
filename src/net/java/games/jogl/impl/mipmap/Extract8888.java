@@ -32,7 +32,7 @@
  * compliant with the OpenGL(R) version 1.2.1 Specification.
  */
 
-package GLU.mipmap;
+package net.java.games.jogl.impl.mipmap;
 
 import java.nio.*;
 

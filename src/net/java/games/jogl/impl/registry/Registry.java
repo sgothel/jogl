@@ -48,9 +48,9 @@ public class Registry {
   }
   
   public static String gluGetString(int name) {
-    if( name == GLU.GLU.GLU_VERSION ) {
+    if( name == GLU.GLU_VERSION ) {
       return( "1.3" );
-    } else if( name == GLU.GLU.GLU_EXTENSIONS ) {
+    } else if( name == GLU.GLU_EXTENSIONS ) {
       return( "GLU_EXT_nurbs_tessellator GLU_EXT_object_space_tess " );
     }
     return( null );

@@ -35,6 +35,8 @@
 package net.java.games.jogl.impl.error;
 
 import net.java.games.jogl.GL;
+import net.java.games.jogl.GLU;
+import net.java.games.jogl.impl.GLUImpl;
 
 /**
  *
@@ -73,14 +75,14 @@ public class Error {
     if( errorCode == GL.GL_TABLE_TOO_LARGE ) {
       return( "table too large" );
     }
-    if( (errorCode >= GLU.GLU.GLU_INVALID_ENUM) && (errorCode <= GLU.GLU.GLU_INVALID_OPERATION) ) {
-      return( gluErrorStrings[ errorCode - GLU.GLU.GLU_INVALID_ENUM ] );
+    if( (errorCode >= GLUImpl.GLU_INVALID_ENUM) && (errorCode <= GLUImpl.GLU_INVALID_OPERATION) ) {
+      return( gluErrorStrings[ errorCode - GLUImpl.GLU_INVALID_ENUM ] );
     }
-    if( (errorCode >= GLU.GLU.GLU_NURBS_ERROR1) && (errorCode <= GLU.GLU.GLU_NURBS_ERROR37) ) {
-      return( gluErrorStrings[ errorCode - (GLU.GLU.GLU_NURBS_ERROR1 - 1) ] );
+    if( (errorCode >= GLUImpl.GLU_NURBS_ERROR1) && (errorCode <= GLUImpl.GLU_NURBS_ERROR37) ) {
+      return( gluErrorStrings[ errorCode - (GLUImpl.GLU_NURBS_ERROR1 - 1) ] );
     }
-    if( (errorCode >= GLU.GLU.GLU_TESS_ERROR1) && (errorCode <= GLU.GLU.GLU_TESS_ERROR8) ) {
-      return( gluErrorStrings[ errorCode - (GLU.GLU.GLU_TESS_ERROR1 - 1) ] );
+    if( (errorCode >= GLUImpl.GLU_TESS_ERROR1) && (errorCode <= GLUImpl.GLU_TESS_ERROR8) ) {
+      return( gluErrorStrings[ errorCode - (GLUImpl.GLU_TESS_ERROR1 - 1) ] );
     }
     return( null );
   }
