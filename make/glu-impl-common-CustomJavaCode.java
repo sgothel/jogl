@@ -1,3 +1,17 @@
+private static boolean useJavaMipmapCode = true;
+
+static {
+  AccessController.doPrivileged(new PrivilegedAction() {
+      public Object run() {
+        String val = System.getProperty("jogl.glu.nojava");
+        if (val != null && !val.toLowerCase().equals("false")) {
+          useJavaMipmapCode = false;
+        }
+        return null;
+      }
+    });
+}
+
 /** Indicates whether the given GLU routine is available to be called. */
 public boolean isFunctionAvailable(String gluFunctionName)
 {
@@ -206,9 +220,8 @@ public void gluPickMatrix(double x, double y, double delX, double delY, int[] vi
   project.gluPickMatrix(gl, x, y, delX, delY, viewport);
 }
 
-
 //----------------------------------------------------------------------
-// Mimpmap and image scaling functionality
+// Mipmap and image scaling functionality
 
 
 // Boolean
@@ -420,27 +433,27 @@ public int gluScaleImageJava( int format, int widthin, int heightin,
   } else {
     throw new IllegalArgumentException( "Input data must be a primitive array or a ByteBuffer" );
   }
-  if( datain instanceof ByteBuffer ) {
-    out = (ByteBuffer)datain;
-  } else if( datain instanceof byte[] ) {
-    out = ByteBuffer.wrap( ((byte[])datain) );
-  } else if( datain instanceof short[] ) {
-    out = ByteBuffer.allocate( ((short[])datain).length * 2 );
-  } else if( datain instanceof int[] ) {
-    out = ByteBuffer.allocate( ((int[])datain).length * 4 );
-  } else if( datain instanceof float[] ) {
-    out = ByteBuffer.allocate( ((float[])datain).length * 4 );
+  if( dataout instanceof ByteBuffer ) {
+    out = (ByteBuffer)dataout;
+  } else if( dataout instanceof byte[] ) {
+    out = ByteBuffer.wrap( ((byte[])dataout) );
+  } else if( dataout instanceof short[] ) {
+    out = ByteBuffer.allocate( ((short[])dataout).length * 2 );
+  } else if( dataout instanceof int[] ) {
+    out = ByteBuffer.allocate( ((int[])dataout).length * 4 );
+  } else if( dataout instanceof float[] ) {
+    out = ByteBuffer.allocate( ((float[])dataout).length * 4 );
   } else {
     throw new IllegalArgumentException( "Output data must be a primitive array or a ByteBuffer" );
   }
   int errno = Mipmap.gluScaleImage( gl, format, widthin, heightin, typein, in, 
             widthout, heightout, typeout, out );
   if( errno == 0 ) {
-    if( datain instanceof short[] ) {
+    if( dataout instanceof short[] ) {
       out.asShortBuffer().get( (short[])dataout );
-    } else if( datain instanceof int[] ) {
+    } else if( dataout instanceof int[] ) {
       out.asIntBuffer().get( (int[])dataout );
-    } else if( datain instanceof float[] ) {
+    } else if( dataout instanceof float[] ) {
       out.asFloatBuffer().get( (float[])dataout );
     }
   }
@@ -557,4 +570,853 @@ public int gluBuild3DMipmapsJava( int target, int internalFormat, int width,
   return( Mipmap.gluBuild3DMipmaps( gl, target, internalFormat, width, height,
           depth, format, type, buffer ) );
 }
+
+
+//----------------------------------------------------------------------
+// Wrappers for mipmap and image scaling entry points which dispatch either
+// to the Java or C versions.
+//
+
+
+/** Interface to C language function: <br> <code> GLint gluBuild1DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
+public int gluBuild1DMipmapLevels(int target, int internalFormat, int width, int format, int type, int level, int base, int max, byte[] data) {
+  if (useJavaMipmapCode) {
+    return gluBuild1DMipmapLevelsJava(target, internalFormat, width, format, type, level, base, max, data);
+  } else {
+    return gluBuild1DMipmapLevelsC(target, internalFormat, width, format, type, level, base, max, data);
+  }
+}
+
+/** Interface to C language function: <br> <code> GLint gluBuild1DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
+public int gluBuild1DMipmapLevels(int target, int internalFormat, int width, int format, int type, int level, int base, int max, short[] data) {
+  if (useJavaMipmapCode) {
+    return gluBuild1DMipmapLevelsJava(target, internalFormat, width, format, type, level, base, max, data);
+  } else {
+    return gluBuild1DMipmapLevelsC(target, internalFormat, width, format, type, level, base, max, data);
+  }
+}
+
+/** Interface to C language function: <br> <code> GLint gluBuild1DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
+public int gluBuild1DMipmapLevels(int target, int internalFormat, int width, int format, int type, int level, int base, int max, int[] data) {
+  if (useJavaMipmapCode) {
+    return gluBuild1DMipmapLevelsJava(target, internalFormat, width, format, type, level, base, max, data);
+  } else {
+    return gluBuild1DMipmapLevelsC(target, internalFormat, width, format, type, level, base, max, data);
+  }
+}
+
+/** Interface to C language function: <br> <code> GLint gluBuild1DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
+public int gluBuild1DMipmapLevels(int target, int internalFormat, int width, int format, int type, int level, int base, int max, float[] data) {
+  if (useJavaMipmapCode) {
+    return gluBuild1DMipmapLevelsJava(target, internalFormat, width, format, type, level, base, max, data);
+  } else {
+    return gluBuild1DMipmapLevelsC(target, internalFormat, width, format, type, level, base, max, data);
+  }
+}
+
+/** Interface to C language function: <br> <code> GLint gluBuild1DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
+public int gluBuild1DMipmapLevels(int target, int internalFormat, int width, int format, int type, int level, int base, int max, java.nio.Buffer data) {
+  if (useJavaMipmapCode) {
+    return gluBuild1DMipmapLevelsJava(target, internalFormat, width, format, type, level, base, max, data);
+  } else {
+    return gluBuild1DMipmapLevelsC(target, internalFormat, width, format, type, level, base, max, data);
+  }
+}
+
+/** Interface to C language function: <br> <code> GLint gluBuild1DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLenum format, GLenum type, const void *  data); </code>    */
+public int gluBuild1DMipmaps(int target, int internalFormat, int width, int format, int type, byte[] data) {
+  if (useJavaMipmapCode) {
+    return gluBuild1DMipmapsJava(target, internalFormat, width, format, type, data);
+  } else {
+    return gluBuild1DMipmapsC(target, internalFormat, width, format, type, data);
+  }
+}
+
+/** Interface to C language function: <br> <code> GLint gluBuild1DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLenum format, GLenum type, const void *  data); </code>    */
+public int gluBuild1DMipmaps(int target, int internalFormat, int width, int format, int type, short[] data) {
+  if (useJavaMipmapCode) {
+    return gluBuild1DMipmapsJava(target, internalFormat, width, format, type, data);
+  } else {
+    return gluBuild1DMipmapsC(target, internalFormat, width, format, type, data);
+  }
+}
+
+
+/** Interface to C language function: <br> <code> GLint gluBuild1DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLenum format, GLenum type, const void *  data); </code>    */
+public int gluBuild1DMipmaps(int target, int internalFormat, int width, int format, int type, int[] data) {
+  if (useJavaMipmapCode) {
+    return gluBuild1DMipmapsJava(target, internalFormat, width, format, type, data);
+  } else {
+    return gluBuild1DMipmapsC(target, internalFormat, width, format, type, data);
+  }
+}
+
+
+/** Interface to C language function: <br> <code> GLint gluBuild1DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLenum format, GLenum type, const void *  data); </code>    */
+public int gluBuild1DMipmaps(int target, int internalFormat, int width, int format, int type, float[] data) {
+  if (useJavaMipmapCode) {
+    return gluBuild1DMipmapsJava(target, internalFormat, width, format, type, data);
+  } else {
+    return gluBuild1DMipmapsC(target, internalFormat, width, format, type, data);
+  }
+}
+
+
+/** Interface to C language function: <br> <code> GLint gluBuild2DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
+public int gluBuild2DMipmapLevels(int target, int internalFormat, int width, int height, int format, int type, int level, int base, int max, byte[] data) {
+  if (useJavaMipmapCode) {
+    return gluBuild2DMipmapLevelsJava(target, internalFormat, width, height, format, type, level, base, max, data);
+  } else {
+    return gluBuild2DMipmapLevelsC(target, internalFormat, width, height, format, type, level, base, max, data);
+  }
+}
+
+/** Interface to C language function: <br> <code> GLint gluBuild2DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
+public int gluBuild2DMipmapLevels(int target, int internalFormat, int width, int height, int format, int type, int level, int base, int max, short[] data) {
+  if (useJavaMipmapCode) {
+    return gluBuild2DMipmapLevelsJava(target, internalFormat, width, height, format, type, level, base, max, data);
+  } else {
+    return gluBuild2DMipmapLevelsC(target, internalFormat, width, height, format, type, level, base, max, data);
+  }
+}
+
+
+/** Interface to C language function: <br> <code> GLint gluBuild2DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
+public int gluBuild2DMipmapLevels(int target, int internalFormat, int width, int height, int format, int type, int level, int base, int max, int[] data) {
+  if (useJavaMipmapCode) {
+    return gluBuild2DMipmapLevelsJava(target, internalFormat, width, height, format, type, level, base, max, data);
+  } else {
+    return gluBuild2DMipmapLevelsC(target, internalFormat, width, height, format, type, level, base, max, data);
+  }
+}
+
+
+/** Interface to C language function: <br> <code> GLint gluBuild2DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
+public int gluBuild2DMipmapLevels(int target, int internalFormat, int width, int height, int format, int type, int level, int base, int max, float[] data) {
+  if (useJavaMipmapCode) {
+    return gluBuild2DMipmapLevelsJava(target, internalFormat, width, height, format, type, level, base, max, data);
+  } else {
+    return gluBuild2DMipmapLevelsC(target, internalFormat, width, height, format, type, level, base, max, data);
+  }
+}
+
+
+/** Interface to C language function: <br> <code> GLint gluBuild2DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
+public int gluBuild2DMipmapLevels(int target, int internalFormat, int width, int height, int format, int type, int level, int base, int max, java.nio.Buffer data) {
+  if (useJavaMipmapCode) {
+    return gluBuild2DMipmapLevelsJava(target, internalFormat, width, height, format, type, level, base, max, data);
+  } else {
+    return gluBuild2DMipmapLevelsC(target, internalFormat, width, height, format, type, level, base, max, data);
+  }
+}
+
+
+/** Interface to C language function: <br> <code> GLint gluBuild2DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *  data); </code>    */
+public int gluBuild2DMipmaps(int target, int internalFormat, int width, int height, int format, int type, byte[] data) {
+  if (useJavaMipmapCode) {
+    return gluBuild2DMipmapsJava(target, internalFormat, width, height, format, type, data);
+  } else {
+    return gluBuild2DMipmapsC(target, internalFormat, width, height, format, type, data);
+  }
+}
+
+
+/** Interface to C language function: <br> <code> GLint gluBuild2DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *  data); </code>    */
+public int gluBuild2DMipmaps(int target, int internalFormat, int width, int height, int format, int type, short[] data) {
+  if (useJavaMipmapCode) {
+    return gluBuild2DMipmapsJava(target, internalFormat, width, height, format, type, data);
+  } else {
+    return gluBuild2DMipmapsC(target, internalFormat, width, height, format, type, data);
+  }
+}
+
+
+/** Interface to C language function: <br> <code> GLint gluBuild2DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *  data); </code>    */
+public int gluBuild2DMipmaps(int target, int internalFormat, int width, int height, int format, int type, int[] data) {
+  if (useJavaMipmapCode) {
+    return gluBuild2DMipmapsJava(target, internalFormat, width, height, format, type, data);
+  } else {
+    return gluBuild2DMipmapsC(target, internalFormat, width, height, format, type, data);
+  }
+}
+
+
+/** Interface to C language function: <br> <code> GLint gluBuild2DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *  data); </code>    */
+public int gluBuild2DMipmaps(int target, int internalFormat, int width, int height, int format, int type, float[] data) {
+  if (useJavaMipmapCode) {
+    return gluBuild2DMipmapsJava(target, internalFormat, width, height, format, type, data);
+  } else {
+    return gluBuild2DMipmapsC(target, internalFormat, width, height, format, type, data);
+  }
+}
+
+
+/** Interface to C language function: <br> <code> GLint gluBuild2DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *  data); </code>    */
+public int gluBuild2DMipmaps(int target, int internalFormat, int width, int height, int format, int type, java.nio.Buffer data) {
+  if (useJavaMipmapCode) {
+    return gluBuild2DMipmapsJava(target, internalFormat, width, height, format, type, data);
+  } else {
+    return gluBuild2DMipmapsC(target, internalFormat, width, height, format, type, data);
+  }
+}
+
+
+/** Interface to C language function: <br> <code> GLint gluBuild3DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
+public int gluBuild3DMipmapLevels(int target, int internalFormat, int width, int height, int depth, int format, int type, int level, int base, int max, byte[] data) {
+  if (useJavaMipmapCode) {
+    return gluBuild3DMipmapLevelsJava(target, internalFormat, width, height, depth, format, type, level, base, max, data);
+  } else {
+    return gluBuild3DMipmapLevelsC(target, internalFormat, width, height, depth, format, type, level, base, max, data);
+  }
+}
+
+
+/** Interface to C language function: <br> <code> GLint gluBuild3DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
+public int gluBuild3DMipmapLevels(int target, int internalFormat, int width, int height, int depth, int format, int type, int level, int base, int max, short[] data) {
+  if (useJavaMipmapCode) {
+    return gluBuild3DMipmapLevelsJava(target, internalFormat, width, height, depth, format, type, level, base, max, data);
+  } else {
+    return gluBuild3DMipmapLevelsC(target, internalFormat, width, height, depth, format, type, level, base, max, data);
+  }
+}
+
+
+/** Interface to C language function: <br> <code> GLint gluBuild3DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
+public int gluBuild3DMipmapLevels(int target, int internalFormat, int width, int height, int depth, int format, int type, int level, int base, int max, int[] data) {
+  if (useJavaMipmapCode) {
+    return gluBuild3DMipmapLevelsJava(target, internalFormat, width, height, depth, format, type, level, base, max, data);
+  } else {
+    return gluBuild3DMipmapLevelsC(target, internalFormat, width, height, depth, format, type, level, base, max, data);
+  }
+}
+
+
+/** Interface to C language function: <br> <code> GLint gluBuild3DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
+public int gluBuild3DMipmapLevels(int target, int internalFormat, int width, int height, int depth, int format, int type, int level, int base, int max, float[] data) {
+  if (useJavaMipmapCode) {
+    return gluBuild3DMipmapLevelsJava(target, internalFormat, width, height, depth, format, type, level, base, max, data);
+  } else {
+    return gluBuild3DMipmapLevelsC(target, internalFormat, width, height, depth, format, type, level, base, max, data);
+  }
+}
+
+
+/** Interface to C language function: <br> <code> GLint gluBuild3DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
+public int gluBuild3DMipmapLevels(int target, int internalFormat, int width, int height, int depth, int format, int type, int level, int base, int max, java.nio.Buffer data) {
+  if (useJavaMipmapCode) {
+    return gluBuild3DMipmapLevelsJava(target, internalFormat, width, height, depth, format, type, level, base, max, data);
+  } else {
+    return gluBuild3DMipmapLevelsC(target, internalFormat, width, height, depth, format, type, level, base, max, data);
+  }
+}
+
+
+/** Interface to C language function: <br> <code> GLint gluBuild3DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *  data); </code>    */
+public int gluBuild3DMipmaps(int target, int internalFormat, int width, int height, int depth, int format, int type, byte[] data) {
+  if (useJavaMipmapCode) {
+    return gluBuild3DMipmapsJava(target, internalFormat, width, height, depth, format, type, data);
+  } else {
+    return gluBuild3DMipmapsC(target, internalFormat, width, height, depth, format, type, data);
+  }
+}
+
+
+/** Interface to C language function: <br> <code> GLint gluBuild3DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *  data); </code>    */
+public int gluBuild3DMipmaps(int target, int internalFormat, int width, int height, int depth, int format, int type, short[] data) {
+  if (useJavaMipmapCode) {
+    return gluBuild3DMipmapsJava(target, internalFormat, width, height, depth, format, type, data);
+  } else {
+    return gluBuild3DMipmapsC(target, internalFormat, width, height, depth, format, type, data);
+  }
+}
+
+
+/** Interface to C language function: <br> <code> GLint gluBuild3DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *  data); </code>    */
+public int gluBuild3DMipmaps(int target, int internalFormat, int width, int height, int depth, int format, int type, int[] data) {
+  if (useJavaMipmapCode) {
+    return gluBuild3DMipmapsJava(target, internalFormat, width, height, depth, format, type, data);
+  } else {
+    return gluBuild3DMipmapsC(target, internalFormat, width, height, depth, format, type, data);
+  }
+}
+
+
+/** Interface to C language function: <br> <code> GLint gluBuild3DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *  data); </code>    */
+public int gluBuild3DMipmaps(int target, int internalFormat, int width, int height, int depth, int format, int type, float[] data) {
+  if (useJavaMipmapCode) {
+    return gluBuild3DMipmapsJava(target, internalFormat, width, height, depth, format, type, data);
+  } else {
+    return gluBuild3DMipmapsC(target, internalFormat, width, height, depth, format, type, data);
+  }
+}
+
+
+/** Interface to C language function: <br> <code> GLint gluBuild3DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *  data); </code>    */
+public int gluBuild3DMipmaps(int target, int internalFormat, int width, int height, int depth, int format, int type, java.nio.Buffer data) {
+  if (useJavaMipmapCode) {
+    return gluBuild3DMipmapsJava(target, internalFormat, width, height, depth, format, type, data);
+  } else {
+    return gluBuild3DMipmapsC(target, internalFormat, width, height, depth, format, type, data);
+  }
+}
+
+
+/** Interface to C language function: <br> <code> GLint gluScaleImage(GLenum format, GLsizei wIn, GLsizei hIn, GLenum typeIn, const void *  dataIn, GLsizei wOut, GLsizei hOut, GLenum typeOut, GLvoid *  dataOut); </code>    */
+public int gluScaleImage(int format, int wIn, int hIn, int typeIn, byte[] dataIn, int wOut, int hOut, int typeOut, byte[] dataOut) {
+  if (useJavaMipmapCode) {
+    return gluScaleImageJava(format, wIn, hIn, typeIn, dataIn, wOut, hOut, typeOut, dataOut);
+  } else {
+    return gluScaleImageC(format, wIn, hIn, typeIn, dataIn, wOut, hOut, typeOut, dataOut);
+  }
+}
+
+
+/** Interface to C language function: <br> <code> GLint gluScaleImage(GLenum format, GLsizei wIn, GLsizei hIn, GLenum typeIn, const void *  dataIn, GLsizei wOut, GLsizei hOut, GLenum typeOut, GLvoid *  dataOut); </code>    */
+public int gluScaleImage(int format, int wIn, int hIn, int typeIn, short[] dataIn, int wOut, int hOut, int typeOut, short[] dataOut) {
+  if (useJavaMipmapCode) {
+    return gluScaleImageJava(format, wIn, hIn, typeIn, dataIn, wOut, hOut, typeOut, dataOut);
+  } else {
+    return gluScaleImageC(format, wIn, hIn, typeIn, dataIn, wOut, hOut, typeOut, dataOut);
+  }
+}
+
+
+/** Interface to C language function: <br> <code> GLint gluScaleImage(GLenum format, GLsizei wIn, GLsizei hIn, GLenum typeIn, const void *  dataIn, GLsizei wOut, GLsizei hOut, GLenum typeOut, GLvoid *  dataOut); </code>    */
+public int gluScaleImage(int format, int wIn, int hIn, int typeIn, int[] dataIn, int wOut, int hOut, int typeOut, int[] dataOut) {
+  if (useJavaMipmapCode) {
+    return gluScaleImageJava(format, wIn, hIn, typeIn, dataIn, wOut, hOut, typeOut, dataOut);
+  } else {
+    return gluScaleImageC(format, wIn, hIn, typeIn, dataIn, wOut, hOut, typeOut, dataOut);
+  }
+}
+
+
+/** Interface to C language function: <br> <code> GLint gluScaleImage(GLenum format, GLsizei wIn, GLsizei hIn, GLenum typeIn, const void *  dataIn, GLsizei wOut, GLsizei hOut, GLenum typeOut, GLvoid *  dataOut); </code>    */
+public int gluScaleImage(int format, int wIn, int hIn, int typeIn, float[] dataIn, int wOut, int hOut, int typeOut, float[] dataOut) {
+  if (useJavaMipmapCode) {
+    return gluScaleImageJava(format, wIn, hIn, typeIn, dataIn, wOut, hOut, typeOut, dataOut);
+  } else {
+    return gluScaleImageC(format, wIn, hIn, typeIn, dataIn, wOut, hOut, typeOut, dataOut);
+  }
+}
+
+
+/** Interface to C language function: <br> <code> GLint gluScaleImage(GLenum format, GLsizei wIn, GLsizei hIn, GLenum typeIn, const void *  dataIn, GLsizei wOut, GLsizei hOut, GLenum typeOut, GLvoid *  dataOut); </code>    */
+public int gluScaleImage(int format, int wIn, int hIn, int typeIn, java.nio.Buffer dataIn, int wOut, int hOut, int typeOut, java.nio.Buffer dataOut) {
+  if (useJavaMipmapCode) {
+    return gluScaleImageJava(format, wIn, hIn, typeIn, dataIn, wOut, hOut, typeOut, dataOut);
+  } else {
+    return gluScaleImageC(format, wIn, hIn, typeIn, dataIn, wOut, hOut, typeOut, dataOut);
+  }
+}
+
+
+
+//----------------------------------------------------------------------
+// Wrappers for C entry points for mipmap and scaling functionality.
+// (These are only used as a fallback and will be removed in a future release)
+
+  /** Entry point to C language function: <br> <code> GLint gluBuild1DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
+  public int gluBuild1DMipmapLevelsC(int target, int internalFormat, int width, int format, int type, int level, int base, int max, byte[] data)
+  {
+    final long __addr_ = gluProcAddressTable._addressof_gluBuild1DMipmapLevels;
+    if (__addr_ == 0) {
+      throw new GLException("Method \"gluBuild1DMipmapLevels\" not available");
+    }
+    return dispatch_gluBuild1DMipmapLevels(target, internalFormat, width, format, type, level, base, max, data, __addr_);
+  }
+
+  /** Encapsulates function pointer for OpenGL function <br>: <code> GLint gluBuild1DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
+  private native int dispatch_gluBuild1DMipmapLevels(int target, int internalFormat, int width, int format, int type, int level, int base, int max, byte[] data, long glProcAddress);
+
+
+  /** Entry point to C language function: <br> <code> GLint gluBuild1DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
+  public int gluBuild1DMipmapLevelsC(int target, int internalFormat, int width, int format, int type, int level, int base, int max, short[] data)
+  {
+    final long __addr_ = gluProcAddressTable._addressof_gluBuild1DMipmapLevels;
+    if (__addr_ == 0) {
+      throw new GLException("Method \"gluBuild1DMipmapLevels\" not available");
+    }
+    return dispatch_gluBuild1DMipmapLevels(target, internalFormat, width, format, type, level, base, max, data, __addr_);
+  }
+
+  /** Encapsulates function pointer for OpenGL function <br>: <code> GLint gluBuild1DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
+  private native int dispatch_gluBuild1DMipmapLevels(int target, int internalFormat, int width, int format, int type, int level, int base, int max, short[] data, long glProcAddress);
+
+
+  /** Entry point to C language function: <br> <code> GLint gluBuild1DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
+  public int gluBuild1DMipmapLevelsC(int target, int internalFormat, int width, int format, int type, int level, int base, int max, int[] data)
+  {
+    final long __addr_ = gluProcAddressTable._addressof_gluBuild1DMipmapLevels;
+    if (__addr_ == 0) {
+      throw new GLException("Method \"gluBuild1DMipmapLevels\" not available");
+    }
+    return dispatch_gluBuild1DMipmapLevels(target, internalFormat, width, format, type, level, base, max, data, __addr_);
+  }
+
+  /** Encapsulates function pointer for OpenGL function <br>: <code> GLint gluBuild1DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
+  private native int dispatch_gluBuild1DMipmapLevels(int target, int internalFormat, int width, int format, int type, int level, int base, int max, int[] data, long glProcAddress);
+
+  /** Entry point to C language function: <br> <code> GLint gluBuild1DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
+  public int gluBuild1DMipmapLevelsC(int target, int internalFormat, int width, int format, int type, int level, int base, int max, float[] data)
+  {
+    final long __addr_ = gluProcAddressTable._addressof_gluBuild1DMipmapLevels;
+    if (__addr_ == 0) {
+      throw new GLException("Method \"gluBuild1DMipmapLevels\" not available");
+    }
+    return dispatch_gluBuild1DMipmapLevels(target, internalFormat, width, format, type, level, base, max, data, __addr_);
+  }
+
+  /** Encapsulates function pointer for OpenGL function <br>: <code> GLint gluBuild1DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
+  private native int dispatch_gluBuild1DMipmapLevels(int target, int internalFormat, int width, int format, int type, int level, int base, int max, float[] data, long glProcAddress);
+
+  /** Entry point to C language function: <br> <code> GLint gluBuild1DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
+  public int gluBuild1DMipmapLevelsC(int target, int internalFormat, int width, int format, int type, int level, int base, int max, java.nio.Buffer data)
+  {
+    if (!BufferFactory.isDirect(data))
+      throw new GLException("Argument \"data\" was not a direct buffer");
+    final long __addr_ = gluProcAddressTable._addressof_gluBuild1DMipmapLevels;
+    if (__addr_ == 0) {
+      throw new GLException("Method \"gluBuild1DMipmapLevels\" not available");
+    }
+    return dispatch_gluBuild1DMipmapLevels(target, internalFormat, width, format, type, level, base, max, data, __addr_);
+  }
+
+  /** Encapsulates function pointer for OpenGL function <br>: <code> GLint gluBuild1DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
+  native private int dispatch_gluBuild1DMipmapLevels(int target, int internalFormat, int width, int format, int type, int level, int base, int max, java.nio.Buffer data, long glProcAddress);
+
+  /** Entry point to C language function: <br> <code> GLint gluBuild1DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLenum format, GLenum type, const void *  data); </code>    */
+  public int gluBuild1DMipmapsC(int target, int internalFormat, int width, int format, int type, byte[] data)
+  {
+    final long __addr_ = gluProcAddressTable._addressof_gluBuild1DMipmaps;
+    if (__addr_ == 0) {
+      throw new GLException("Method \"gluBuild1DMipmaps\" not available");
+    }
+    return dispatch_gluBuild1DMipmaps(target, internalFormat, width, format, type, data, __addr_);
+  }
+
+  /** Encapsulates function pointer for OpenGL function <br>: <code> GLint gluBuild1DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLenum format, GLenum type, const void *  data); </code>    */
+  private native int dispatch_gluBuild1DMipmaps(int target, int internalFormat, int width, int format, int type, byte[] data, long glProcAddress);
+
+
+  /** Entry point to C language function: <br> <code> GLint gluBuild1DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLenum format, GLenum type, const void *  data); </code>    */
+  public int gluBuild1DMipmapsC(int target, int internalFormat, int width, int format, int type, short[] data)
+  {
+    final long __addr_ = gluProcAddressTable._addressof_gluBuild1DMipmaps;
+    if (__addr_ == 0) {
+      throw new GLException("Method \"gluBuild1DMipmaps\" not available");
+    }
+    return dispatch_gluBuild1DMipmaps(target, internalFormat, width, format, type, data, __addr_);
+  }
+
+  /** Encapsulates function pointer for OpenGL function <br>: <code> GLint gluBuild1DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLenum format, GLenum type, const void *  data); </code>    */
+  private native int dispatch_gluBuild1DMipmaps(int target, int internalFormat, int width, int format, int type, short[] data, long glProcAddress);
+
+
+  /** Entry point to C language function: <br> <code> GLint gluBuild1DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLenum format, GLenum type, const void *  data); </code>    */
+  public int gluBuild1DMipmapsC(int target, int internalFormat, int width, int format, int type, int[] data)
+  {
+    final long __addr_ = gluProcAddressTable._addressof_gluBuild1DMipmaps;
+    if (__addr_ == 0) {
+      throw new GLException("Method \"gluBuild1DMipmaps\" not available");
+    }
+    return dispatch_gluBuild1DMipmaps(target, internalFormat, width, format, type, data, __addr_);
+  }
+
+  /** Encapsulates function pointer for OpenGL function <br>: <code> GLint gluBuild1DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLenum format, GLenum type, const void *  data); </code>    */
+  private native int dispatch_gluBuild1DMipmaps(int target, int internalFormat, int width, int format, int type, int[] data, long glProcAddress);
+
+
+  /** Entry point to C language function: <br> <code> GLint gluBuild1DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLenum format, GLenum type, const void *  data); </code>    */
+  public int gluBuild1DMipmapsC(int target, int internalFormat, int width, int format, int type, float[] data)
+  {
+    final long __addr_ = gluProcAddressTable._addressof_gluBuild1DMipmaps;
+    if (__addr_ == 0) {
+      throw new GLException("Method \"gluBuild1DMipmaps\" not available");
+    }
+    return dispatch_gluBuild1DMipmaps(target, internalFormat, width, format, type, data, __addr_);
+  }
+
+  /** Encapsulates function pointer for OpenGL function <br>: <code> GLint gluBuild1DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLenum format, GLenum type, const void *  data); </code>    */
+  private native int dispatch_gluBuild1DMipmaps(int target, int internalFormat, int width, int format, int type, float[] data, long glProcAddress);
+
+
+  /** Entry point to C language function: <br> <code> GLint gluBuild1DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLenum format, GLenum type, const void *  data); </code>    */
+  public int gluBuild1DMipmapsC(int target, int internalFormat, int width, int format, int type, java.nio.Buffer data)
+  {
+    if (!BufferFactory.isDirect(data))
+      throw new GLException("Argument \"data\" was not a direct buffer");
+    final long __addr_ = gluProcAddressTable._addressof_gluBuild1DMipmaps;
+    if (__addr_ == 0) {
+      throw new GLException("Method \"gluBuild1DMipmaps\" not available");
+    }
+    return dispatch_gluBuild1DMipmaps(target, internalFormat, width, format, type, data, __addr_);
+  }
+
+  /** Encapsulates function pointer for OpenGL function <br>: <code> GLint gluBuild1DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLenum format, GLenum type, const void *  data); </code>    */
+  native private int dispatch_gluBuild1DMipmaps(int target, int internalFormat, int width, int format, int type, java.nio.Buffer data, long glProcAddress);
+
+
+  /** Entry point to C language function: <br> <code> GLint gluBuild2DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
+  public int gluBuild2DMipmapLevelsC(int target, int internalFormat, int width, int height, int format, int type, int level, int base, int max, byte[] data)
+  {
+    final long __addr_ = gluProcAddressTable._addressof_gluBuild2DMipmapLevels;
+    if (__addr_ == 0) {
+      throw new GLException("Method \"gluBuild2DMipmapLevels\" not available");
+    }
+    return dispatch_gluBuild2DMipmapLevels(target, internalFormat, width, height, format, type, level, base, max, data, __addr_);
+  }
+
+  /** Encapsulates function pointer for OpenGL function <br>: <code> GLint gluBuild2DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
+  private native int dispatch_gluBuild2DMipmapLevels(int target, int internalFormat, int width, int height, int format, int type, int level, int base, int max, byte[] data, long glProcAddress);
+
+
+  /** Entry point to C language function: <br> <code> GLint gluBuild2DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
+  public int gluBuild2DMipmapLevelsC(int target, int internalFormat, int width, int height, int format, int type, int level, int base, int max, short[] data)
+  {
+    final long __addr_ = gluProcAddressTable._addressof_gluBuild2DMipmapLevels;
+    if (__addr_ == 0) {
+      throw new GLException("Method \"gluBuild2DMipmapLevels\" not available");
+    }
+    return dispatch_gluBuild2DMipmapLevels(target, internalFormat, width, height, format, type, level, base, max, data, __addr_);
+  }
+
+  /** Encapsulates function pointer for OpenGL function <br>: <code> GLint gluBuild2DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
+  private native int dispatch_gluBuild2DMipmapLevels(int target, int internalFormat, int width, int height, int format, int type, int level, int base, int max, short[] data, long glProcAddress);
+
+
+  /** Entry point to C language function: <br> <code> GLint gluBuild2DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
+  public int gluBuild2DMipmapLevelsC(int target, int internalFormat, int width, int height, int format, int type, int level, int base, int max, int[] data)
+  {
+    final long __addr_ = gluProcAddressTable._addressof_gluBuild2DMipmapLevels;
+    if (__addr_ == 0) {
+      throw new GLException("Method \"gluBuild2DMipmapLevels\" not available");
+    }
+    return dispatch_gluBuild2DMipmapLevels(target, internalFormat, width, height, format, type, level, base, max, data, __addr_);
+  }
+
+  /** Encapsulates function pointer for OpenGL function <br>: <code> GLint gluBuild2DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
+  private native int dispatch_gluBuild2DMipmapLevels(int target, int internalFormat, int width, int height, int format, int type, int level, int base, int max, int[] data, long glProcAddress);
+
+
+  /** Entry point to C language function: <br> <code> GLint gluBuild2DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
+  public int gluBuild2DMipmapLevelsC(int target, int internalFormat, int width, int height, int format, int type, int level, int base, int max, float[] data)
+  {
+    final long __addr_ = gluProcAddressTable._addressof_gluBuild2DMipmapLevels;
+    if (__addr_ == 0) {
+      throw new GLException("Method \"gluBuild2DMipmapLevels\" not available");
+    }
+    return dispatch_gluBuild2DMipmapLevels(target, internalFormat, width, height, format, type, level, base, max, data, __addr_);
+  }
+
+  /** Encapsulates function pointer for OpenGL function <br>: <code> GLint gluBuild2DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
+  private native int dispatch_gluBuild2DMipmapLevels(int target, int internalFormat, int width, int height, int format, int type, int level, int base, int max, float[] data, long glProcAddress);
+
+
+  /** Entry point to C language function: <br> <code> GLint gluBuild2DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
+  public int gluBuild2DMipmapLevelsC(int target, int internalFormat, int width, int height, int format, int type, int level, int base, int max, java.nio.Buffer data)
+  {
+    if (!BufferFactory.isDirect(data))
+      throw new GLException("Argument \"data\" was not a direct buffer");
+    final long __addr_ = gluProcAddressTable._addressof_gluBuild2DMipmapLevels;
+    if (__addr_ == 0) {
+      throw new GLException("Method \"gluBuild2DMipmapLevels\" not available");
+    }
+    return dispatch_gluBuild2DMipmapLevels(target, internalFormat, width, height, format, type, level, base, max, data, __addr_);
+  }
+
+  /** Encapsulates function pointer for OpenGL function <br>: <code> GLint gluBuild2DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
+  native private int dispatch_gluBuild2DMipmapLevels(int target, int internalFormat, int width, int height, int format, int type, int level, int base, int max, java.nio.Buffer data, long glProcAddress);
+
+
+  /** Entry point to C language function: <br> <code> GLint gluBuild2DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *  data); </code>    */
+  public int gluBuild2DMipmapsC(int target, int internalFormat, int width, int height, int format, int type, byte[] data)
+  {
+    final long __addr_ = gluProcAddressTable._addressof_gluBuild2DMipmaps;
+    if (__addr_ == 0) {
+      throw new GLException("Method \"gluBuild2DMipmaps\" not available");
+    }
+    return dispatch_gluBuild2DMipmaps(target, internalFormat, width, height, format, type, data, __addr_);
+  }
+
+  /** Encapsulates function pointer for OpenGL function <br>: <code> GLint gluBuild2DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *  data); </code>    */
+  private native int dispatch_gluBuild2DMipmaps(int target, int internalFormat, int width, int height, int format, int type, byte[] data, long glProcAddress);
+
+
+  /** Entry point to C language function: <br> <code> GLint gluBuild2DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *  data); </code>    */
+  public int gluBuild2DMipmapsC(int target, int internalFormat, int width, int height, int format, int type, short[] data)
+  {
+    final long __addr_ = gluProcAddressTable._addressof_gluBuild2DMipmaps;
+    if (__addr_ == 0) {
+      throw new GLException("Method \"gluBuild2DMipmaps\" not available");
+    }
+    return dispatch_gluBuild2DMipmaps(target, internalFormat, width, height, format, type, data, __addr_);
+  }
+
+  /** Encapsulates function pointer for OpenGL function <br>: <code> GLint gluBuild2DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *  data); </code>    */
+  private native int dispatch_gluBuild2DMipmaps(int target, int internalFormat, int width, int height, int format, int type, short[] data, long glProcAddress);
+
+
+  /** Entry point to C language function: <br> <code> GLint gluBuild2DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *  data); </code>    */
+  public int gluBuild2DMipmapsC(int target, int internalFormat, int width, int height, int format, int type, int[] data)
+  {
+    final long __addr_ = gluProcAddressTable._addressof_gluBuild2DMipmaps;
+    if (__addr_ == 0) {
+      throw new GLException("Method \"gluBuild2DMipmaps\" not available");
+    }
+    return dispatch_gluBuild2DMipmaps(target, internalFormat, width, height, format, type, data, __addr_);
+  }
+
+  /** Encapsulates function pointer for OpenGL function <br>: <code> GLint gluBuild2DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *  data); </code>    */
+  private native int dispatch_gluBuild2DMipmaps(int target, int internalFormat, int width, int height, int format, int type, int[] data, long glProcAddress);
+
+
+  /** Entry point to C language function: <br> <code> GLint gluBuild2DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *  data); </code>    */
+  public int gluBuild2DMipmapsC(int target, int internalFormat, int width, int height, int format, int type, float[] data)
+  {
+    final long __addr_ = gluProcAddressTable._addressof_gluBuild2DMipmaps;
+    if (__addr_ == 0) {
+      throw new GLException("Method \"gluBuild2DMipmaps\" not available");
+    }
+    return dispatch_gluBuild2DMipmaps(target, internalFormat, width, height, format, type, data, __addr_);
+  }
+
+  /** Encapsulates function pointer for OpenGL function <br>: <code> GLint gluBuild2DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *  data); </code>    */
+  private native int dispatch_gluBuild2DMipmaps(int target, int internalFormat, int width, int height, int format, int type, float[] data, long glProcAddress);
+
+
+  /** Entry point to C language function: <br> <code> GLint gluBuild2DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *  data); </code>    */
+  public int gluBuild2DMipmapsC(int target, int internalFormat, int width, int height, int format, int type, java.nio.Buffer data)
+  {
+    if (!BufferFactory.isDirect(data))
+      throw new GLException("Argument \"data\" was not a direct buffer");
+    final long __addr_ = gluProcAddressTable._addressof_gluBuild2DMipmaps;
+    if (__addr_ == 0) {
+      throw new GLException("Method \"gluBuild2DMipmaps\" not available");
+    }
+    return dispatch_gluBuild2DMipmaps(target, internalFormat, width, height, format, type, data, __addr_);
+  }
+
+  /** Encapsulates function pointer for OpenGL function <br>: <code> GLint gluBuild2DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *  data); </code>    */
+  native private int dispatch_gluBuild2DMipmaps(int target, int internalFormat, int width, int height, int format, int type, java.nio.Buffer data, long glProcAddress);
+
+
+  /** Entry point to C language function: <br> <code> GLint gluBuild3DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
+  public int gluBuild3DMipmapLevelsC(int target, int internalFormat, int width, int height, int depth, int format, int type, int level, int base, int max, byte[] data)
+  {
+    final long __addr_ = gluProcAddressTable._addressof_gluBuild3DMipmapLevels;
+    if (__addr_ == 0) {
+      throw new GLException("Method \"gluBuild3DMipmapLevels\" not available");
+    }
+    return dispatch_gluBuild3DMipmapLevels(target, internalFormat, width, height, depth, format, type, level, base, max, data, __addr_);
+  }
+
+  /** Encapsulates function pointer for OpenGL function <br>: <code> GLint gluBuild3DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
+  private native int dispatch_gluBuild3DMipmapLevels(int target, int internalFormat, int width, int height, int depth, int format, int type, int level, int base, int max, byte[] data, long glProcAddress);
+
+
+  /** Entry point to C language function: <br> <code> GLint gluBuild3DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
+  public int gluBuild3DMipmapLevelsC(int target, int internalFormat, int width, int height, int depth, int format, int type, int level, int base, int max, short[] data)
+  {
+    final long __addr_ = gluProcAddressTable._addressof_gluBuild3DMipmapLevels;
+    if (__addr_ == 0) {
+      throw new GLException("Method \"gluBuild3DMipmapLevels\" not available");
+    }
+    return dispatch_gluBuild3DMipmapLevels(target, internalFormat, width, height, depth, format, type, level, base, max, data, __addr_);
+  }
+
+  /** Encapsulates function pointer for OpenGL function <br>: <code> GLint gluBuild3DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
+  private native int dispatch_gluBuild3DMipmapLevels(int target, int internalFormat, int width, int height, int depth, int format, int type, int level, int base, int max, short[] data, long glProcAddress);
+
+
+  /** Entry point to C language function: <br> <code> GLint gluBuild3DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
+  public int gluBuild3DMipmapLevelsC(int target, int internalFormat, int width, int height, int depth, int format, int type, int level, int base, int max, int[] data)
+  {
+    final long __addr_ = gluProcAddressTable._addressof_gluBuild3DMipmapLevels;
+    if (__addr_ == 0) {
+      throw new GLException("Method \"gluBuild3DMipmapLevels\" not available");
+    }
+    return dispatch_gluBuild3DMipmapLevels(target, internalFormat, width, height, depth, format, type, level, base, max, data, __addr_);
+  }
+
+  /** Encapsulates function pointer for OpenGL function <br>: <code> GLint gluBuild3DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
+  private native int dispatch_gluBuild3DMipmapLevels(int target, int internalFormat, int width, int height, int depth, int format, int type, int level, int base, int max, int[] data, long glProcAddress);
+
+
+  /** Entry point to C language function: <br> <code> GLint gluBuild3DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
+  public int gluBuild3DMipmapLevelsC(int target, int internalFormat, int width, int height, int depth, int format, int type, int level, int base, int max, float[] data)
+  {
+    final long __addr_ = gluProcAddressTable._addressof_gluBuild3DMipmapLevels;
+    if (__addr_ == 0) {
+      throw new GLException("Method \"gluBuild3DMipmapLevels\" not available");
+    }
+    return dispatch_gluBuild3DMipmapLevels(target, internalFormat, width, height, depth, format, type, level, base, max, data, __addr_);
+  }
+
+  /** Encapsulates function pointer for OpenGL function <br>: <code> GLint gluBuild3DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
+  private native int dispatch_gluBuild3DMipmapLevels(int target, int internalFormat, int width, int height, int depth, int format, int type, int level, int base, int max, float[] data, long glProcAddress);
+
+
+  /** Entry point to C language function: <br> <code> GLint gluBuild3DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
+  public int gluBuild3DMipmapLevelsC(int target, int internalFormat, int width, int height, int depth, int format, int type, int level, int base, int max, java.nio.Buffer data)
+  {
+    if (!BufferFactory.isDirect(data))
+      throw new GLException("Argument \"data\" was not a direct buffer");
+    final long __addr_ = gluProcAddressTable._addressof_gluBuild3DMipmapLevels;
+    if (__addr_ == 0) {
+      throw new GLException("Method \"gluBuild3DMipmapLevels\" not available");
+    }
+    return dispatch_gluBuild3DMipmapLevels(target, internalFormat, width, height, depth, format, type, level, base, max, data, __addr_);
+  }
+
+  /** Encapsulates function pointer for OpenGL function <br>: <code> GLint gluBuild3DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
+  native private int dispatch_gluBuild3DMipmapLevels(int target, int internalFormat, int width, int height, int depth, int format, int type, int level, int base, int max, java.nio.Buffer data, long glProcAddress);
+
+
+  /** Entry point to C language function: <br> <code> GLint gluBuild3DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *  data); </code>    */
+  public int gluBuild3DMipmapsC(int target, int internalFormat, int width, int height, int depth, int format, int type, byte[] data)
+  {
+    final long __addr_ = gluProcAddressTable._addressof_gluBuild3DMipmaps;
+    if (__addr_ == 0) {
+      throw new GLException("Method \"gluBuild3DMipmaps\" not available");
+    }
+    return dispatch_gluBuild3DMipmaps(target, internalFormat, width, height, depth, format, type, data, __addr_);
+  }
+
+  /** Encapsulates function pointer for OpenGL function <br>: <code> GLint gluBuild3DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *  data); </code>    */
+  private native int dispatch_gluBuild3DMipmaps(int target, int internalFormat, int width, int height, int depth, int format, int type, byte[] data, long glProcAddress);
+
+
+  /** Entry point to C language function: <br> <code> GLint gluBuild3DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *  data); </code>    */
+  public int gluBuild3DMipmapsC(int target, int internalFormat, int width, int height, int depth, int format, int type, short[] data)
+  {
+    final long __addr_ = gluProcAddressTable._addressof_gluBuild3DMipmaps;
+    if (__addr_ == 0) {
+      throw new GLException("Method \"gluBuild3DMipmaps\" not available");
+    }
+    return dispatch_gluBuild3DMipmaps(target, internalFormat, width, height, depth, format, type, data, __addr_);
+  }
+
+  /** Encapsulates function pointer for OpenGL function <br>: <code> GLint gluBuild3DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *  data); </code>    */
+  private native int dispatch_gluBuild3DMipmaps(int target, int internalFormat, int width, int height, int depth, int format, int type, short[] data, long glProcAddress);
+
+
+  /** Entry point to C language function: <br> <code> GLint gluBuild3DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *  data); </code>    */
+  public int gluBuild3DMipmapsC(int target, int internalFormat, int width, int height, int depth, int format, int type, int[] data)
+  {
+    final long __addr_ = gluProcAddressTable._addressof_gluBuild3DMipmaps;
+    if (__addr_ == 0) {
+      throw new GLException("Method \"gluBuild3DMipmaps\" not available");
+    }
+    return dispatch_gluBuild3DMipmaps(target, internalFormat, width, height, depth, format, type, data, __addr_);
+  }
+
+  /** Encapsulates function pointer for OpenGL function <br>: <code> GLint gluBuild3DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *  data); </code>    */
+  private native int dispatch_gluBuild3DMipmaps(int target, int internalFormat, int width, int height, int depth, int format, int type, int[] data, long glProcAddress);
+
+
+  /** Entry point to C language function: <br> <code> GLint gluBuild3DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *  data); </code>    */
+  public int gluBuild3DMipmapsC(int target, int internalFormat, int width, int height, int depth, int format, int type, float[] data)
+  {
+    final long __addr_ = gluProcAddressTable._addressof_gluBuild3DMipmaps;
+    if (__addr_ == 0) {
+      throw new GLException("Method \"gluBuild3DMipmaps\" not available");
+    }
+    return dispatch_gluBuild3DMipmaps(target, internalFormat, width, height, depth, format, type, data, __addr_);
+  }
+
+  /** Encapsulates function pointer for OpenGL function <br>: <code> GLint gluBuild3DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *  data); </code>    */
+  private native int dispatch_gluBuild3DMipmaps(int target, int internalFormat, int width, int height, int depth, int format, int type, float[] data, long glProcAddress);
+
+
+  /** Entry point to C language function: <br> <code> GLint gluBuild3DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *  data); </code>    */
+  public int gluBuild3DMipmapsC(int target, int internalFormat, int width, int height, int depth, int format, int type, java.nio.Buffer data)
+  {
+    if (!BufferFactory.isDirect(data))
+      throw new GLException("Argument \"data\" was not a direct buffer");
+    final long __addr_ = gluProcAddressTable._addressof_gluBuild3DMipmaps;
+    if (__addr_ == 0) {
+      throw new GLException("Method \"gluBuild3DMipmaps\" not available");
+    }
+    return dispatch_gluBuild3DMipmaps(target, internalFormat, width, height, depth, format, type, data, __addr_);
+  }
+
+  /** Encapsulates function pointer for OpenGL function <br>: <code> GLint gluBuild3DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *  data); </code>    */
+  native private int dispatch_gluBuild3DMipmaps(int target, int internalFormat, int width, int height, int depth, int format, int type, java.nio.Buffer data, long glProcAddress);
+
+
+  /** Entry point to C language function: <br> <code> GLint gluScaleImage(GLenum format, GLsizei wIn, GLsizei hIn, GLenum typeIn, const void *  dataIn, GLsizei wOut, GLsizei hOut, GLenum typeOut, GLvoid *  dataOut); </code>    */
+  public int gluScaleImageC(int format, int wIn, int hIn, int typeIn, byte[] dataIn, int wOut, int hOut, int typeOut, byte[] dataOut)
+  {
+    final long __addr_ = gluProcAddressTable._addressof_gluScaleImage;
+    if (__addr_ == 0) {
+      throw new GLException("Method \"gluScaleImage\" not available");
+    }
+    return dispatch_gluScaleImage(format, wIn, hIn, typeIn, dataIn, wOut, hOut, typeOut, dataOut, __addr_);
+  }
+
+  /** Encapsulates function pointer for OpenGL function <br>: <code> GLint gluScaleImage(GLenum format, GLsizei wIn, GLsizei hIn, GLenum typeIn, const void *  dataIn, GLsizei wOut, GLsizei hOut, GLenum typeOut, GLvoid *  dataOut); </code>    */
+  private native int dispatch_gluScaleImage(int format, int wIn, int hIn, int typeIn, byte[] dataIn, int wOut, int hOut, int typeOut, byte[] dataOut, long glProcAddress);
+
+
+  /** Entry point to C language function: <br> <code> GLint gluScaleImage(GLenum format, GLsizei wIn, GLsizei hIn, GLenum typeIn, const void *  dataIn, GLsizei wOut, GLsizei hOut, GLenum typeOut, GLvoid *  dataOut); </code>    */
+  public int gluScaleImageC(int format, int wIn, int hIn, int typeIn, short[] dataIn, int wOut, int hOut, int typeOut, short[] dataOut)
+  {
+    final long __addr_ = gluProcAddressTable._addressof_gluScaleImage;
+    if (__addr_ == 0) {
+      throw new GLException("Method \"gluScaleImage\" not available");
+    }
+    return dispatch_gluScaleImage(format, wIn, hIn, typeIn, dataIn, wOut, hOut, typeOut, dataOut, __addr_);
+  }
+
+  /** Encapsulates function pointer for OpenGL function <br>: <code> GLint gluScaleImage(GLenum format, GLsizei wIn, GLsizei hIn, GLenum typeIn, const void *  dataIn, GLsizei wOut, GLsizei hOut, GLenum typeOut, GLvoid *  dataOut); </code>    */
+  private native int dispatch_gluScaleImage(int format, int wIn, int hIn, int typeIn, short[] dataIn, int wOut, int hOut, int typeOut, short[] dataOut, long glProcAddress);
+
+
+  /** Entry point to C language function: <br> <code> GLint gluScaleImage(GLenum format, GLsizei wIn, GLsizei hIn, GLenum typeIn, const void *  dataIn, GLsizei wOut, GLsizei hOut, GLenum typeOut, GLvoid *  dataOut); </code>    */
+  public int gluScaleImageC(int format, int wIn, int hIn, int typeIn, int[] dataIn, int wOut, int hOut, int typeOut, int[] dataOut)
+  {
+    final long __addr_ = gluProcAddressTable._addressof_gluScaleImage;
+    if (__addr_ == 0) {
+      throw new GLException("Method \"gluScaleImage\" not available");
+    }
+    return dispatch_gluScaleImage(format, wIn, hIn, typeIn, dataIn, wOut, hOut, typeOut, dataOut, __addr_);
+  }
+
+  /** Encapsulates function pointer for OpenGL function <br>: <code> GLint gluScaleImage(GLenum format, GLsizei wIn, GLsizei hIn, GLenum typeIn, const void *  dataIn, GLsizei wOut, GLsizei hOut, GLenum typeOut, GLvoid *  dataOut); </code>    */
+  private native int dispatch_gluScaleImage(int format, int wIn, int hIn, int typeIn, int[] dataIn, int wOut, int hOut, int typeOut, int[] dataOut, long glProcAddress);
+
+
+  /** Entry point to C language function: <br> <code> GLint gluScaleImage(GLenum format, GLsizei wIn, GLsizei hIn, GLenum typeIn, const void *  dataIn, GLsizei wOut, GLsizei hOut, GLenum typeOut, GLvoid *  dataOut); </code>    */
+  public int gluScaleImageC(int format, int wIn, int hIn, int typeIn, float[] dataIn, int wOut, int hOut, int typeOut, float[] dataOut)
+  {
+    final long __addr_ = gluProcAddressTable._addressof_gluScaleImage;
+    if (__addr_ == 0) {
+      throw new GLException("Method \"gluScaleImage\" not available");
+    }
+    return dispatch_gluScaleImage(format, wIn, hIn, typeIn, dataIn, wOut, hOut, typeOut, dataOut, __addr_);
+  }
+
+  /** Encapsulates function pointer for OpenGL function <br>: <code> GLint gluScaleImage(GLenum format, GLsizei wIn, GLsizei hIn, GLenum typeIn, const void *  dataIn, GLsizei wOut, GLsizei hOut, GLenum typeOut, GLvoid *  dataOut); </code>    */
+  private native int dispatch_gluScaleImage(int format, int wIn, int hIn, int typeIn, float[] dataIn, int wOut, int hOut, int typeOut, float[] dataOut, long glProcAddress);
+
+
+  /** Entry point to C language function: <br> <code> GLint gluScaleImage(GLenum format, GLsizei wIn, GLsizei hIn, GLenum typeIn, const void *  dataIn, GLsizei wOut, GLsizei hOut, GLenum typeOut, GLvoid *  dataOut); </code>    */
+  public int gluScaleImageC(int format, int wIn, int hIn, int typeIn, java.nio.Buffer dataIn, int wOut, int hOut, int typeOut, java.nio.Buffer dataOut)
+  {
+    if (!BufferFactory.isDirect(dataIn))
+      throw new GLException("Argument \"dataIn\" was not a direct buffer");
+    if (!BufferFactory.isDirect(dataOut))
+      throw new GLException("Argument \"dataOut\" was not a direct buffer");
+    final long __addr_ = gluProcAddressTable._addressof_gluScaleImage;
+    if (__addr_ == 0) {
+      throw new GLException("Method \"gluScaleImage\" not available");
+    }
+    return dispatch_gluScaleImage(format, wIn, hIn, typeIn, dataIn, wOut, hOut, typeOut, dataOut, __addr_);
+  }
+
+  /** Encapsulates function pointer for OpenGL function <br>: <code> GLint gluScaleImage(GLenum format, GLsizei wIn, GLsizei hIn, GLenum typeIn, const void *  dataIn, GLsizei wOut, GLsizei hOut, GLenum typeOut, GLvoid *  dataOut); </code>    */
+  native private int dispatch_gluScaleImage(int format, int wIn, int hIn, int typeIn, java.nio.Buffer dataIn, int wOut, int hOut, int typeOut, java.nio.Buffer dataOut, long glProcAddress);
+
+
 

@@ -36,6 +36,7 @@ package net.java.games.jogl.impl.mipmap;
 
 import net.java.games.jogl.GL;
 import net.java.games.jogl.GLU;
+import net.java.games.jogl.impl.Debug;
 import java.nio.*;
 import java.io.*;
 
@@ -44,7 +45,9 @@ import java.io.*;
  * @author  Administrator
  */
 public class BuildMipmap {
-  
+
+  private static boolean DEBUG = Debug.debug("BuildMipmap");
+
   /** Creates a new instance of BuildMipmap */
   public BuildMipmap() {
   }
@@ -694,19 +697,23 @@ public class BuildMipmap {
     gl.glPixelStorei( GL.GL_UNPACK_SWAP_BYTES, GL.GL_FALSE );
     if( baseLevel <= level && level <= maxLevel ) {
       srcImage.rewind();
-      System.err.println("GL Error(" + level + "): " + gl.glGetError() );
+      if (DEBUG) {
+        System.err.println("GL Error(" + level + "): " + gl.glGetError() );
+      }
       gl.glTexImage2D( target, level, internalFormat, newwidth, newheight, 0, format, type, srcImage );
-      System.err.println("GL Error(" + level + "): " + gl.glGetError() );
-      try {
-        File file = new File( "glu2DMipmapJ" + level + ".bin" );
-        FileOutputStream fos = new FileOutputStream( file );
-        srcImage.limit( Mipmap.image_size( newwidth, newheight, format, type ) );
-        fos.getChannel().write( srcImage );
-        srcImage.clear();
-        fos.close();
-      } catch( IOException e ) {
-        System.err.println("IOException");
-        System.err.println(e.getMessage());
+      if (DEBUG) {
+        System.err.println("GL Error(" + level + "): " + gl.glGetError() );
+        try {
+          File file = new File( "glu2DMipmapJ" + level + ".bin" );
+          FileOutputStream fos = new FileOutputStream( file );
+          srcImage.limit( Mipmap.image_size( newwidth, newheight, format, type ) );
+          fos.getChannel().write( srcImage );
+          srcImage.clear();
+          fos.close();
+        } catch( IOException e ) {
+          System.err.println("IOException");
+          System.err.println(e.getMessage());
+        }
       }
     }
     
@@ -800,16 +807,18 @@ public class BuildMipmap {
         if( baseLevel <= level && level <= maxLevel ) {
           srcImage.rewind();
           gl.glTexImage2D( target, level, internalFormat, newwidth, newheight, 0, format, type, srcImage );
-          System.err.println("GL Error(" + level + "): " + gl.glGetError() );
-          try {
-            File file = new File( "glu2DMipmapJ" + level + ".bin" );
-            FileOutputStream fos = new FileOutputStream( file );
-            srcImage.limit( Mipmap.image_size( newwidth, newheight, format, type ) );
-            fos.getChannel().write( srcImage );
-            srcImage.clear();
-          } catch( IOException e ) {
-            System.err.println("IOException");
-            System.err.println(e.getMessage());
+          if (DEBUG) {
+            System.err.println("GL Error(" + level + "): " + gl.glGetError() );
+            try {
+              File file = new File( "glu2DMipmapJ" + level + ".bin" );
+              FileOutputStream fos = new FileOutputStream( file );
+              srcImage.limit( Mipmap.image_size( newwidth, newheight, format, type ) );
+              fos.getChannel().write( srcImage );
+              srcImage.clear();
+            } catch( IOException e ) {
+              System.err.println("IOException");
+              System.err.println(e.getMessage());
+            }
           }
         }
       } else {
@@ -844,16 +853,18 @@ public class BuildMipmap {
         if( baseLevel <= level && level <= maxLevel ) {
           newMipmapImage.rewind();
           gl.glTexImage2D( target, level, internalFormat, newwidth, newheight, 0, format, type, newMipmapImage );
-          System.err.println("GL Error: " + gl.glGetError() );
-          try {
-            File file = new File( "glu2DMipmapJ" + level + ".bin" );
-            FileOutputStream fos = new FileOutputStream( file );
-            srcImage.limit( Mipmap.image_size( newwidth, newheight, format, type ) );
-            fos.getChannel().write( newMipmapImage );
-            srcImage.clear();
-          } catch( IOException e ) {
-            System.err.println("IOException");
-            System.err.println(e.getMessage());
+          if (DEBUG) {
+            System.err.println("GL Error: " + gl.glGetError() );
+            try {
+              File file = new File( "glu2DMipmapJ" + level + ".bin" );
+              FileOutputStream fos = new FileOutputStream( file );
+              srcImage.limit( Mipmap.image_size( newwidth, newheight, format, type ) );
+              fos.getChannel().write( newMipmapImage );
+              srcImage.clear();
+            } catch( IOException e ) {
+              System.err.println("IOException");
+              System.err.println(e.getMessage());
+            }
           }
         }
       }

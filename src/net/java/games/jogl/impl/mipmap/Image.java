@@ -529,7 +529,7 @@ public class Image {
                 userdata.put( iter, (byte)oldimage.get(iter2++) );
               } else {
                 //userdata[iter] = (byte)( oldimage[iter2++] >> 8 );
-                userdata.put( iter, (byte)( oldimage.get(iter2++) >> 8 ) );
+                userdata.put( iter, (byte)( oldimage.get(iter2++) ) );
               }
               break;
             case( GL.GL_BYTE ):
@@ -538,7 +538,7 @@ public class Image {
                 userdata.put( iter, (byte)oldimage.get(iter2++) );
               } else {
                 //userdata[iter] = (byte)( oldimage[iter2++] >> 9 );
-                userdata.put( iter, (byte)( oldimage.get(iter2++) >> 9 ) );
+                userdata.put( iter, (byte)( oldimage.get(iter2++) ) );
               }
               break;
             case( GL.GL_UNSIGNED_SHORT_5_6_5 ):

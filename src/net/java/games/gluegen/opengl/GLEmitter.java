@@ -288,6 +288,10 @@ public class GLEmitter extends JavaEmitter
     tableWriter.println("public class " + tableClassName);
     tableWriter.println("{");
     numProcAddressEntries = 0;
+
+    for (Iterator iter = getGLConfig().getForceProcAddressGen().iterator(); iter.hasNext(); ) {
+      emitGLProcAddressTableEntryForString((String) iter.next());
+    }
   }
 
   private void endGLProcAddressTable() throws Exception
@@ -331,9 +335,14 @@ public class GLEmitter extends JavaEmitter
 
   protected void emitGLProcAddressTableEntryForSymbol(FunctionSymbol cFunc)
   {
+    emitGLProcAddressTableEntryForString(cFunc.getName());
+  }
+
+  protected void emitGLProcAddressTableEntryForString(String str)
+  {
     tableWriter.print("  public long ");
     tableWriter.print(PROCADDRESS_VAR_PREFIX);
-    tableWriter.print(cFunc.getName());
+    tableWriter.print(str);
     tableWriter.println(";");
     ++numProcAddressEntries;    
   }
@@ -348,6 +357,7 @@ public class GLEmitter extends JavaEmitter
     private String  tableClassPackage;
     private String  tableClassName = "ProcAddressTable";
     private Set/*<String>*/ skipProcAddressGen  = new HashSet();
+    private List/*<String>*/ forceProcAddressGen  = new ArrayList();
     private String  contextVariableName = "context";
     private String  defaultGetProcAddressTableExpr = ".getGLProcAddressTable()";
     private String  getProcAddressTableExpr;
@@ -370,6 +380,11 @@ public class GLEmitter extends JavaEmitter
       {
         String sym = readString("SkipProcAddressGen", tok, filename, lineNo);
         skipProcAddressGen.add(sym);
+      }
+      else if (cmd.equalsIgnoreCase("ForceProcAddressGen"))
+      {
+        String sym = readString("ForceProcAddressGen", tok, filename, lineNo);
+        forceProcAddressGen.add(sym);
       }
       else if (cmd.equalsIgnoreCase("ContextVariableName"))
       {
@@ -399,6 +414,7 @@ public class GLEmitter extends JavaEmitter
     public String  tableClassPackage()              { return tableClassPackage;                  }
     public String  tableClassName()                 { return tableClassName;                     }
     public boolean skipProcAddressGen (String name) { return skipProcAddressGen.contains(name);  }
+    public List    getForceProcAddressGen()         { return forceProcAddressGen;                }
     public String  contextVariableName()            { return contextVariableName;                }
     public String  getProcAddressTableExpr() {
       if (getProcAddressTableExpr == null) {
