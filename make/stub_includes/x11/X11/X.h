@@ -1,7 +1,7 @@
 #ifndef _X_H_
 #define _X_H_
 
-typedef unsigned long XID;
+typedef struct {} *   XID;
 typedef int           Bool;
 typedef struct {}     Display;
 typedef int           Status;

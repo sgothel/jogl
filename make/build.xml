@@ -200,6 +200,7 @@
         <property name="java.includes.dir.macosx" value="/System/Library/Frameworks/JavaVM.framework/Versions/CurrentJDK/Headers" />
         <property name="java.lib.dir.win32" value="${java.home.dir}/lib" />
         <property name="java.lib.dir.linux" value="${java.home.dir}/jre/lib/i386" />
+        <property name="java.lib.dir.linux.amd64" value="${java.home.dir}/jre/lib/amd64" />
 	<condition property="cpu" value="sparc">
             <os name="SunOS" arch="sparc" />
         </condition>
@@ -303,7 +304,6 @@
         <property name="javadoc.dev.packagenames.platform" value="${javadoc.dev.packagenames.x11}" />
     </target>
 
-    
     <target name="declare.linux" depends="declare.x11">
         <property name="java.includes.dir.platform"           value="${java.includes.dir.linux}" />
         <property name="java.lib.dir.platform"                value="${java.lib.dir.linux}" />       
@@ -312,6 +312,13 @@
         <property name="linker.cfg.id"                        value="linker.cfg.linux" /> 
     </target>
     
+    <target name="declare.linux.amd64" depends="declare.x11">
+        <property name="java.includes.dir.platform"           value="${java.includes.dir.linux}" />
+        <property name="java.lib.dir.platform"                value="${java.lib.dir.linux.amd64}" />       
+
+        <property name="compiler.cfg.id"                      value="compiler.cfg.linux.amd64" /> 
+        <property name="linker.cfg.id"                        value="linker.cfg.linux.amd64" /> 
+    </target>
     
     <target name="declare.solaris" depends="declare.x11">
         <property name="java.includes.dir.platform"           value="${java.includes.dir.solaris}" />
@@ -653,6 +660,10 @@
       <!-- compiler configuration -->
       <compiler id="compiler.cfg.linux" name="gcc" />
 
+      <compiler id="compiler.cfg.linux.amd64" name="gcc">
+        <compilerarg value="-fPIC"/>
+      </compiler>
+
       <compiler id="compiler.cfg.solaris" name="suncc">
       </compiler>
 
@@ -703,6 +714,11 @@
  
       <linker id="linker.cfg.linux" name="gcc">
         <syslibset dir="/usr/X11R6/lib" libs="GL, GLU, X11"/>
+        <syslibset dir="${x11.cg.lib}" libs="Cg, CgGL" if="c.compiler.use-cglib"/>
+      </linker>
+
+      <linker id="linker.cfg.linux.amd64" name="gcc">
+        <syslibset dir="/usr/X11R6/lib64" libs="GL, GLU, X11"/>
         <syslibset dir="${x11.cg.lib}" libs="Cg, CgGL" if="c.compiler.use-cglib"/>
       </linker>
 
@@ -843,6 +859,9 @@
     </target>
     
     <target name="c.compile.jogl.linux" depends="declare.linux, c.build.jogl, c.build.cg" >
+    </target>
+    
+    <target name="c.compile.jogl.linux.amd64" depends="declare.linux.amd64, c.build.jogl, c.build.cg" >
     </target>
     
     <target name="c.compile.jogl.solaris" depends="declare.solaris, c.build.jogl">
@@ -1001,7 +1020,7 @@
     <target name="all">
         <fail>
         
-Use a platform specific target:  linux, macosx, solaris, win32.vc6, win32.vc7, win32.mingw
+Use a platform specific target:  linux, linux.amd64, macosx, solaris, win32.vc6, win32.vc7, win32.mingw
         </fail>
     </target>      
 
@@ -1050,7 +1069,18 @@ Use a platform specific target:  linux, macosx, solaris, win32.vc6, win32.vc7, w
     </target>
 
     <!--
-       - Solaris (assuming Solaris CC)
+       - Linux on AMD64 (assuming GCC)
+      -->
+    <target name="linux.amd64" depends="setup.java.home.dir.nonmacosx, declare.linux.amd64">
+        <!-- Generate, compile, and build the jar for the Java sources. -->
+        <antcall target="jar" inheritRefs="true" />
+
+        <!-- Compile the native C sources and build the jogl lib. -->
+        <antcall target="c.compile.jogl.linux.amd64" />
+    </target>
+
+    <!--
+        - Solaris (assuming Solaris CC)
       -->
     <target name="solaris" depends="setup.java.home.dir, declare.solaris">
         <!-- Generate, compile, and build the jar for the Java sources. -->

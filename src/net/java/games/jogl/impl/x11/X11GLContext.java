@@ -40,6 +40,7 @@
 package net.java.games.jogl.impl.x11;
 
 import java.awt.Component;
+import java.security.*;
 import java.util.*;
 import net.java.games.gluegen.runtime.*; // for PROCADDRESS_VAR_PREFIX
 import net.java.games.jogl.*;
@@ -64,11 +65,24 @@ public abstract class X11GLContext extends GLContext {
   // so that we can implement displayImpl() (which must be done when
   // the context is not current)
   protected long mostRecentDisplay;
+  // There is currently a bug on Linux/AMD64 distributions in glXGetProcAddressARB
+  protected static boolean isLinuxAMD64;
 
   static {
     functionNameMap = new HashMap();
     functionNameMap.put("glAllocateMemoryNV", "glXAllocateMemoryNV");
     functionNameMap.put("glFreeMemoryNV", "glXFreeMemoryNV");
+
+    AccessController.doPrivileged(new PrivilegedAction() {
+        public Object run() {
+          String os   = System.getProperty("os.name").toLowerCase();
+          String arch = System.getProperty("os.arch").toLowerCase();
+          if (os.startsWith("linux") && arch.equals("amd64")) {
+            isLinuxAMD64 = true;
+          }
+          return null;
+        }
+      });
   }
 
   public X11GLContext(Component component,
@@ -185,7 +199,10 @@ public abstract class X11GLContext extends GLContext {
   public abstract void swapBuffers() throws GLException;
 
   protected long dynamicLookupFunction(String glFuncName) {
-    long res = GLX.glXGetProcAddressARB(glFuncName);
+    long res = 0;
+    if (!isLinuxAMD64) {
+      res = GLX.glXGetProcAddressARB(glFuncName);
+    }
     if (res == 0) {
       // GLU routines aren't known to the OpenGL function lookup
       res = GLX.dlsym(glFuncName);
@@ -235,7 +252,7 @@ public abstract class X11GLContext extends GLContext {
       throw new GLException("Context not current");
     }
     if (!glXQueryExtensionsStringInitialized) {
-      glXQueryExtensionsStringAvailable = (GLX.glXGetProcAddressARB("glXQueryExtensionsString") != 0);
+      glXQueryExtensionsStringAvailable = (dynamicLookupFunction("glXQueryExtensionsString") != 0);
       glXQueryExtensionsStringInitialized = true;
     }
     if (glXQueryExtensionsStringAvailable) {

@@ -141,7 +141,14 @@ public class GlueGen implements GlueEmitterControls {
       }
 
       HeaderParser headerParser = new HeaderParser();
-      MachineDescription machDesc = new MachineDescription32Bit();
+      MachineDescription machDesc;
+      String os = System.getProperty("os.name").toLowerCase();
+      String cpu = System.getProperty("os.arch").toLowerCase();
+      if (os.startsWith("linux") && cpu.equals("amd64")) {
+           machDesc = new MachineDescription64Bit();
+      } else {
+           machDesc = new MachineDescription32Bit();
+      }
       headerParser.setMachineDescription(machDesc);
       TypeDictionary td = new TypeDictionary();
       headerParser.setTypedefDictionary(td);

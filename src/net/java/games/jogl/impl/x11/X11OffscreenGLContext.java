@@ -44,7 +44,7 @@ import net.java.games.jogl.*;
 import net.java.games.jogl.impl.*;
 
 public class X11OffscreenGLContext extends X11GLContext {
-  private int pixmap;
+  private long pixmap;
   private boolean isDoubleBuffered;
   // Width and height of the underlying bitmap
   private int width;

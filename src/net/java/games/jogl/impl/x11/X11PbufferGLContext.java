@@ -209,7 +209,7 @@ public class X11PbufferGLContext extends X11GLContext {
 
     iattributes[niattribs++] = 0;
 
-    int tmpBuffer = GLX.glXCreatePbuffer(display, fbConfig, iattributes);
+    long tmpBuffer = GLX.glXCreatePbuffer(display, fbConfig, iattributes);
     if (tmpBuffer == 0) {
       // FIXME: query X error code for detail error message
       throw new GLException("pbuffer creation error: glXCreatePbuffer() failed");
@@ -251,10 +251,7 @@ public class X11PbufferGLContext extends X11GLContext {
         created = true;
       }
 
-      // FIXME: this cast to int would be wrong on 64-bit platforms
-      // where the argument type to glXMakeCurrent would change (should
-      // probably make GLXDrawable, and maybe XID, Opaque as long)
-      if (!GLX.glXMakeContextCurrent(display, (int) buffer, (int) buffer, context)) {
+      if (!GLX.glXMakeContextCurrent(display, buffer, buffer, context)) {
         throw new GLException("Error making context current");
       }
 
