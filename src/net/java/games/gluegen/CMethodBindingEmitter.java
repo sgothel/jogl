@@ -721,7 +721,14 @@ public class CMethodBindingEmitter extends FunctionEmitter
           }
 
           writer.println("    /* Clean up " + convName + "_copy */");
+
+          // Re-fetch length of array that was copied
           String arrayLenName = "_tmpArrayLen";
+          writer.print("    ");
+          writer.print(arrayLenName);
+          writer.print(" = (*env)->GetArrayLength(env, ");
+          writer.print(binding.getArgumentName(i)); 
+          writer.println(");");
 
           // free each element
           PointerType cArgPtrType = cArgType.asPointer();
