@@ -47,9 +47,6 @@ import net.java.games.jogl.*;
 
 public class GLDrawableHelper {
   private List listeners = new ArrayList();
-  private GL gl;
-  // FIXME
-  //  private GLU glu;
 
   public GLDrawableHelper() {
   }
