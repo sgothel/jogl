@@ -140,15 +140,14 @@ public class WindowsOffscreenGLContext extends WindowsGLContext {
     header.biCompression(WGL.BI_RGB);
     header.biSizeImage(width * height * bitsPerPixel / 8);
 
-    // CreateDIBSection doesn't really need the device context if we are
-    // producing a truecolor bitmap.
-    hbitmap = WGL.CreateDIBSection(0, info, WGL.DIB_RGB_COLORS, 0, 0, 0);
-    if (hbitmap == 0) {
-      throw new GLException("Error creating offscreen bitmap");
-    }
     hdc = WGL.CreateCompatibleDC(0);
     if (hdc == 0) {
+      System.out.println("LastError: " + WGL.GetLastError());
       throw new GLException("Error creating device context for offscreen OpenGL context");
+    }
+    hbitmap = WGL.CreateDIBSection(hdc, info, WGL.DIB_RGB_COLORS, 0, 0, 0);
+    if (hbitmap == 0) {
+      throw new GLException("Error creating offscreen bitmap");
     }
     if ((origbitmap = WGL.SelectObject(hdc, hbitmap)) == 0) {
       throw new GLException("Error selecting bitmap into new device context");

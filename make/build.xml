@@ -1000,10 +1000,10 @@
         </jar>
         <jar destfile="${jogl.dist.dir}/jogl-natives-win32.jar"
              basedir="${jogl.dist.dir}/jogl-win32"
-             includes="jogl.dll" />
+             includes="jogl.dll,jogl_cg.dll" />
         <jar destfile="${jogl.dist.dir}/jogl-natives-linux.jar"
              basedir="${jogl.dist.dir}/jogl-linux"
-             includes="libjogl.so" />
+             includes="libjogl.so,libjogl_cg.so" />
         <jar destfile="${jogl.dist.dir}/jogl-natives-macosx.jar"
              basedir="${jogl.dist.dir}/jogl-macosx"
              includes="libjogl.jnilib" />

@@ -254,32 +254,40 @@ public abstract class WindowsGLContext extends GLContext {
         System.err.println(pfd2GLCapabilities(tmpPFD));
       }
     } else {
-      int numFormats = WGL.DescribePixelFormat(hdc, 1, 0, null);
-      if (numFormats == 0) {
-        throw new GLException("Unable to enumerate pixel formats of window for GLCapabilitiesChooser");
-      }
-      GLCapabilities[] availableCaps = new GLCapabilities[numFormats];
-      pfd = new PIXELFORMATDESCRIPTOR();
-      for (int i = 0; i < numFormats; i++) {
-        if (WGL.DescribePixelFormat(hdc, 1 + i, pfd.size(), pfd) == 0) {
-          throw new GLException("Error describing pixel format " + (1 + i) + " of device context");
+      if (onscreen) {
+        int numFormats = WGL.DescribePixelFormat(hdc, 1, 0, null);
+        if (numFormats == 0) {
+          throw new GLException("Unable to enumerate pixel formats of window for GLCapabilitiesChooser");
         }
-        availableCaps[i] = pfd2GLCapabilities(pfd);
-      }
-      // Supply information to chooser
-      pixelFormat = chooser.chooseCapabilities(capabilities, availableCaps);
-      if ((pixelFormat < 0) || (pixelFormat >= numFormats)) {
-        throw new GLException("Invalid result " + pixelFormat +
-                              " from GLCapabilitiesChooser (should be between 0 and " +
-                              (numFormats - 1) + ")");
-      }
-      if (DEBUG) {
-        System.err.println("Chosen pixel format (" + pixelFormat + "):");
-        System.err.println(availableCaps[pixelFormat]);
-      }
-      pixelFormat += 1; // one-base the index
-      if (WGL.DescribePixelFormat(hdc, pixelFormat, pfd.size(), pfd) == 0) {
-        throw new GLException("Error re-describing the chosen pixel format");
+        GLCapabilities[] availableCaps = new GLCapabilities[numFormats];
+        pfd = new PIXELFORMATDESCRIPTOR();
+        for (int i = 0; i < numFormats; i++) {
+          if (WGL.DescribePixelFormat(hdc, 1 + i, pfd.size(), pfd) == 0) {
+            throw new GLException("Error describing pixel format " + (1 + i) + " of device context");
+          }
+          availableCaps[i] = pfd2GLCapabilities(pfd);
+        }
+        // Supply information to chooser
+        pixelFormat = chooser.chooseCapabilities(capabilities, availableCaps);
+        if ((pixelFormat < 0) || (pixelFormat >= numFormats)) {
+          throw new GLException("Invalid result " + pixelFormat +
+                                " from GLCapabilitiesChooser (should be between 0 and " +
+                                (numFormats - 1) + ")");
+        }
+        if (DEBUG) {
+          System.err.println("Chosen pixel format (" + pixelFormat + "):");
+          System.err.println(availableCaps[pixelFormat]);
+        }
+        pixelFormat += 1; // one-base the index
+        if (WGL.DescribePixelFormat(hdc, pixelFormat, pfd.size(), pfd) == 0) {
+          throw new GLException("Error re-describing the chosen pixel format");
+        }
+      } else {
+        // For now, use ChoosePixelFormat for offscreen surfaces until
+        // we figure out how to properly choose an offscreen-
+        // compatible pixel format
+        pfd = glCapabilities2PFD(capabilities, onscreen);
+        pixelFormat = WGL.ChoosePixelFormat(hdc, pfd);
       }
     }
     if (!WGL.SetPixelFormat(hdc, pixelFormat, pfd)) {
