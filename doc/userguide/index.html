@@ -164,17 +164,28 @@ begins to perform rendering.
 </P>
 <P>
 
-The <CODE>init()</CODE> method is called once, upon context
-creation. (Hooks for context destruction, and support for context
-recreation, are not yet implemented.) The <CODE>display()</CODE>
-method is called to perform per-frame rendering. The
-<CODE>reshape()</CODE> method is called when the drawable has been
-resized; the default implementation automatically resizes the OpenGL
-viewport so often it is not necessary to do any work in this method.
-The <CODE>displayChanged()</CODE> method is designed to allow
-applications to support on-the-fly screen mode switching, but support
-for this is not yet implemented so the body of this method should
-remain empty.
+The <CODE>init()</CODE> method is called upon OpenGL context creation.
+Any display lists or textures used during the application's normal
+rendering loop can be safely initialized in <CODE>init()</CODE>.
+Because the underlying AWT window may be destroyed and recreated while
+using the same GLCanvas and GLEventListener, the GLEventListener's
+<CODE>init()</CODE> method may be called more than once during the
+lifetime of the application. It is the responsibility of the
+application to understand its sharing of textures and display lists
+between multiple OpenGL contexts and reinitialize them when the
+<CODE>init()</CODE> callback is entered if necessary.
+
+</P>
+<P>
+
+The <CODE>display()</CODE> method is called to perform per-frame
+rendering. The <CODE>reshape()</CODE> method is called when the
+drawable has been resized; the default implementation automatically
+resizes the OpenGL viewport so often it is not necessary to do any
+work in this method.  The <CODE>displayChanged()</CODE> method is
+designed to allow applications to support on-the-fly screen mode
+switching, but support for this is not yet implemented so the body of
+this method should remain empty.
 
 </P>
 <P>
@@ -311,44 +322,54 @@ date.
 </P>
 <P>
 
-In addition to correctness issues, there are also performance issues
-to consider with multithreaded OpenGL applications. The OpenGL context
-associated with a particular drawable can only be current on one
-thread at a time. If multiple threads may be making the context
-current then this implies that the context must be made current and
-freed during each render; the overhead of these context operations may
-be significant depending on the application. For this reason Jogl has
-a built-in mechanism for optimizing the OpenGL context handling to the
-efficiency of an analogous C application.
+Prior to JOGL 1.1 b10, the JOGL library attempted to give applications
+strict control over which thread or threads performed OpenGL
+rendering. The <CODE>setRenderingThread()</CODE>,
+<CODE>setNoAutoRedrawMode()</CODE> and <CODE>display()</CODE> APIs
+were originally designed to allow the application to create its own
+animation thread and avoid OpenGL context switching on platforms that
+supported it. Unfortunately, serious stability issues caused by
+multithreading bugs in either vendors' OpenGL drivers or in the Java
+platform implementation have arisen on three of JOGL's major supported
+platforms: Windows, Linux and Mac OS X. A detailed description of
+these issues can be found on <a
+href="http://www.javagaming.org/cgi-bin/JGNetForums/YaBB.cgi?board=jogl;action=display;num=1109286717">this
+thread</a> in the <a
+href="http://www.javagaming.org/cgi-bin/JGNetForums/YaBB.cgi?board=jogl">JOGL
+forums</a>. In order to address these bugs, the threading model in
+JOGL 1.1 b10 and later has changed.
 
 </P>
 <P>
 
-<CODE>GLDrawable.setRenderingThread</CODE> informs the Jogl library
-that rendering to a particular drawable will only occur from the
-specified thread. The intent is that the OpenGL context can be made
-current and remain current on that thread until
-setRenderingThread(null) is called. Unfortunately, due to
-quality-of-implementation bugs in the X11 JAWT, this optimization had
-to be made advisory; in other words, it was not possible to guarantee
-that setRenderingThread would yield any faster OpenGL context handling
-on these platforms.
+All GLEventListener callbacks and other internal OpenGL context
+management are now performed on one thread: the AWT event queue
+thread. This is a thread internal to the implementation of the AWT and
+is always present when the AWT is being used. When the
+<CODE>GLDrawable.display()</CODE> method is called from user code, it
+now performs the work synchronously on the AWT event queue thread,
+even if the calling thread is a different thread. The
+<CODE>setRenderingThread()</CODE> optimization is now a no-op. The
+<CODE>setNoAutoRedraw()</CODE> API still works as previously
+advertised, though now that all work is done on the AWT event queue
+thread it no longer needs to be used in most cases. (It was previously
+useful for working around certain kinds of OpenGL driver bugs.)
 
 </P>
 <P>
 
-In some situations, typically when an application is using pbuffers to
-compute intermediate results, it is required that automatic redraws be
-suspended for a particular drawable so that the application can
-completely control when and where the display() method is called. For
-this reason the <CODE>GLDrawable.setNoAutoRedrawMode()</CODE> method
-was added; it is used not only by the Jogl implementation but also by
-utility libraries such as gleem (included in the jogl-demos
-distribution). We consider it unfortunate that it was necessary to
-expose two APIs to express basically the same idea and hope that if
-the JAWT implementation in the 1.5 platform has better locking
-behavior that <CODE>GLDrawable.setNoAutoRedrawMode()</CODE> may be
-able to be removed.
+Most JOGL applications will not see a change in behavior from this
+change in the JOGL implementation. Applications which use thread-local
+storage or complex multithreading and synchronization may see a change
+in their control flow requiring code changes. While it is strongly
+recommended to change such applications to work under the new
+threading model, the old threading model can be used by specifying the
+system property <CODE>-Djogl.1thread=auto</CODE> or
+<CODE>-Djogl.1thread=false</CODE>. The "auto" setting is equivalent to
+the behavior in 1.1 b09 and before, where on ATI cards the
+single-threaded mode would be used. The "false' setting is equivalent
+to disabling the single-threaded mode. "true" is now the default
+setting.
 
 </P>
 
@@ -409,13 +430,7 @@ The following issues, among others, are outstanding on all platforms:
 
 <UL>
 
-<LI> The DefaultGLCapabilitiesChooser tends to choose the wrong visual
-on lower-end graphics cards.
-
-<LI> Hardware acceleration for GLJPanel could be implemented using
-pbuffers.
-
-<LI> Stability issues, in particular on older graphics cards.
+<LI> A few remaining stability issues, mostly on older graphics cards.
 
 </UL>
 
@@ -470,8 +485,6 @@ with using Jogl with an NSOpenGLView.
 The following issues remain with the Mac OS X port:
 
 <UL>
-
-<LI> GLJPanel is not yet implemented on Mac OS X.
 
 <LI> Due to the mechanism by which the Cocoa graphics system selects
 OpenGL pixel formats, the GLCapabilitiesChooser mechanism can not be
