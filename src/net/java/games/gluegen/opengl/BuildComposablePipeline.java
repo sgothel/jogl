@@ -473,6 +473,7 @@ public class BuildComposablePipeline
       output.println("private int indent = 0;"); 
       output.println("protected String dumpArray(Object obj)");
       output.println("{");
+      output.println("  if (obj == null) return \"[null]\";");
       output.println("  StringBuffer sb = new StringBuffer(\"[\");");
       output.println("  int len  = java.lang.reflect.Array.getLength(obj);");
       output.println("  int count = Math.min(len,16);");
