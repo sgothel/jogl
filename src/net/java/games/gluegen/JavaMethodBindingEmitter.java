@@ -231,16 +231,16 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
         // distinguish between the values found within multiple anonymous
         // enums in the same C translation unit.
         if (type.isEnum() && type.getName() != HeaderParser.ANONYMOUS_ENUM_NAME) {
-          EnumType enum = (EnumType)type;
+          EnumType enumType = (EnumType)type;
           writer.println();
           writer.print(emitter.getBaseIndentString()); 
           writer.print("    ");
           writer.print("@param ");
           writer.print(binding.getArgumentName(i));
           writer.print(" valid values are: <code>");
-          for (int j = 0; j < enum.getNumEnumerates(); ++j) {
+          for (int j = 0; j < enumType.getNumEnumerates(); ++j) {
             if (j>0) writer.print(", ");
-            writer.print(enum.getEnumName(j));
+            writer.print(enumType.getEnumName(j));
           }
           writer.println("</code>");
         }
