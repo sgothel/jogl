@@ -39,6 +39,10 @@
 
 package net.java.games.jogl;
 
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
+import net.java.games.jogl.impl.*;
+
 /** <P> Provides a virtual machine- and operating system-independent
     mechanism for creating {@link net.java.games.jogl.GLCanvas} and {@link
     net.java.games.jogl.GLJPanel} objects. </P>
@@ -74,47 +78,80 @@ public class GLDrawableFactory {
     return factory;
   }
 
-  /** Creates a {@link GLCanvas} with the specified capabilities using
-      the default capabilities selection algorithm. */
+  /** Creates a {@link GLCanvas} on the default graphics device with
+      the specified capabilities using the default capabilities
+      selection algorithm. */
   public GLCanvas createGLCanvas(GLCapabilities capabilities) {
     return createGLCanvas(capabilities, null, null);
   }
 
-  /** Creates a {@link GLCanvas} with the specified capabilities using
-      the default capabilities selection algorithm. The canvas will
-      share textures and display lists with the specified {@link
-      GLDrawable}; the drawable must either be null or have been
-      fabricated from this factory or by classes in this package. A
-      null drawable indicates no sharing. */
+  /** Creates a {@link GLCanvas} on the default graphics device with
+      the specified capabilities using the default capabilities
+      selection algorithm. The canvas will share textures and display
+      lists with the specified {@link GLDrawable}; the drawable must
+      either be null or have been fabricated from this factory or by
+      classes in this package. A null drawable indicates no
+      sharing. */
   public GLCanvas createGLCanvas(GLCapabilities capabilities, GLDrawable shareWith) {
     return createGLCanvas(capabilities, null, shareWith);
   }
 
-  /** Creates a {@link GLCanvas} with the specified capabilities using
-      the supplied capabilities selection algorithm. A null chooser is
-      equivalent to using the {@link DefaultGLCapabilitiesChooser}. */
+  /** Creates a {@link GLCanvas} on the default graphics device with
+      the specified capabilities using the supplied capabilities
+      selection algorithm. A null chooser is equivalent to using the
+      {@link DefaultGLCapabilitiesChooser}. */
   public GLCanvas createGLCanvas(GLCapabilities capabilities, GLCapabilitiesChooser chooser) {
     return createGLCanvas(capabilities, chooser, null);
   }
 
-  /** Creates a {@link GLCanvas} with the specified capabilities using
-      the supplied capabilities selection algorithm. A null chooser is
-      equivalent to using the {@link DefaultGLCapabilitiesChooser}.
-      The canvas will share textures and display lists with the
-      specified {@link GLDrawable}; the drawable must either be null
-      or have been fabricated from this factory or by classes in this
-      package. A null drawable indicates no sharing. */
+  /** Creates a {@link GLCanvas} on the default graphics device with
+      the specified capabilities using the supplied capabilities
+      selection algorithm. A null chooser is equivalent to using the
+      {@link DefaultGLCapabilitiesChooser}.  The canvas will share
+      textures and display lists with the specified {@link
+      GLDrawable}; the drawable must either be null or have been
+      fabricated from this factory or by classes in this package. A
+      null drawable indicates no sharing. */
   public GLCanvas createGLCanvas(GLCapabilities capabilities,
                                  GLCapabilitiesChooser chooser,
                                  GLDrawable shareWith) {
-    // FIXME: do we need to select a GraphicsConfiguration here as in
-    // GL4Java? If so, this class will have to be made abstract and
-    // we'll have to provide hooks into this package to get at the
-    // GLCanvas and GLJPanel constructors.
+    return createGLCanvas(capabilities, chooser, shareWith, null);
+  }
+
+  /** Creates a {@link GLCanvas} on the specified graphics device with
+      the specified capabilities using the supplied capabilities
+      selection algorithm. A null chooser is equivalent to using the
+      {@link DefaultGLCapabilitiesChooser}.  The canvas will share
+      textures and display lists with the specified {@link
+      GLDrawable}; the drawable must either be null or have been
+      fabricated from this factory or by classes in this package. A
+      null drawable indicates no sharing. A null GraphicsDevice is
+      equivalent to using that returned from
+      <code>GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice()</code>. */
+  public GLCanvas createGLCanvas(GLCapabilities capabilities,
+                                 GLCapabilitiesChooser chooser,
+                                 GLDrawable shareWith,
+                                 GraphicsDevice device) {
     if (chooser == null) {
       chooser = new DefaultGLCapabilitiesChooser();
     }
-    return new GLCanvas(capabilities, chooser, shareWith);
+    if (device == null) {
+      device = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+    }
+    // The platform-specific GLContextFactory will only provide a
+    // non-null GraphicsConfiguration on platforms where this is
+    // necessary (currently only X11, as Windows allows the pixel
+    // format of the window to be set later and Mac OS X seems to
+    // handle this very differently than all other platforms). On
+    // other platforms this method returns null; it is the case (at
+    // least in the Sun AWT implementation) that this will result in
+    // equivalent behavior to calling the no-arg super() constructor
+    // for Canvas.
+    return new GLCanvas(GLContextFactory.getFactory().
+                          chooseGraphicsConfiguration(capabilities, chooser, device),
+                        capabilities,
+                        chooser,
+                        shareWith);
   }
 
   /** Creates a {@link GLJPanel} with the specified capabilities using

@@ -49,6 +49,7 @@ public abstract class X11GLContext extends GLContext {
   private static JAWT jawt;
   protected long display;
   protected long drawable;
+  protected long visualID;
   protected long context;
   private boolean glXQueryExtensionsStringInitialized;
   private boolean glXQueryExtensionsStringAvailable;
@@ -262,47 +263,75 @@ public abstract class X11GLContext extends GLContext {
   }
 
   protected XVisualInfo chooseVisual() {
-    int screen = 0; // FIXME: provide way to specify this?
-    XVisualInfo vis = null;
-    if (chooser == null) {
-      // Note: this code path isn't taken any more now that the
-      // DefaultGLCapabilitiesChooser is present. However, it is being
-      // left in place for debugging purposes.
-      int[] attribs = glCapabilities2AttribList(capabilities);
-      vis = GLX.glXChooseVisual(display, screen, attribs);
-      if (vis == null) {
-        throw new GLException("Unable to find matching visual");
-      }
-      if (DEBUG) {
-        System.err.println("Chosen visual from glXChooseVisual:");
-        System.err.println(xvi2GLCapabilities(vis));
-      }
-    } else {
+    if (!isOffscreen) {
+      // The visual has already been chosen by the time we get here;
+      // it's specified by the GraphicsConfiguration of the
+      // GLCanvas. Fortunately, the JAWT supplies the visual ID for
+      // the component in a portable fashion, so all we have to do is
+      // use XGetVisualInfo with a VisualIDMask to get the
+      // corresponding XVisualInfo to pass into glXChooseVisual.
       int[] count = new int[1];
       XVisualInfo template = new XVisualInfo();
-      template.screen(screen);
-      XVisualInfo[] infos = GLX.XGetVisualInfo(display, GLX.VisualScreenMask, template, count);
-      if (infos == null) {
-        throw new GLException("Error while enumerating available XVisualInfos");
+      template.visualid(visualID);
+      XVisualInfo[] infos = GLX.XGetVisualInfo(display, GLX.VisualIDMask, template, count);
+      if (infos == null || infos.length == 0) {
+        throw new GLException("Error while getting XVisualInfo for visual ID " + visualID);
       }
-      GLCapabilities[] caps = new GLCapabilities[infos.length];
-      for (int i = 0; i < infos.length; i++) {
-        caps[i] = xvi2GLCapabilities(infos[i]);
+      // FIXME: the storage for the infos array is leaked (should
+      // clean it up somehow when we're done with the visual we're
+      // returning)
+      return infos[0];
+    } else {
+      // It isn't clear to me whether we need this much code to handle
+      // the offscreen case, where we're creating a pixmap into which
+      // to render...this is what we (incorrectly) used to do for the
+      // onscreen case
+
+      int screen = 0; // FIXME: provide way to specify this?
+      XVisualInfo vis = null;
+      if (chooser == null) {
+        // Note: this code path isn't taken any more now that the
+        // DefaultGLCapabilitiesChooser is present. However, it is being
+        // left in place for debugging purposes.
+        int[] attribs = X11GLContextFactory.glCapabilities2AttribList(capabilities);
+        vis = GLX.glXChooseVisual(display, screen, attribs);
+        if (vis == null) {
+          throw new GLException("Unable to find matching visual");
+        }
+        if (DEBUG) {
+          System.err.println("Chosen visual from glXChooseVisual:");
+          System.err.println(X11GLContextFactory.xvi2GLCapabilities(display, vis));
+        }
+      } else {
+        int[] count = new int[1];
+        XVisualInfo template = new XVisualInfo();
+        template.screen(screen);
+        XVisualInfo[] infos = GLX.XGetVisualInfo(display, GLX.VisualScreenMask, template, count);
+        if (infos == null) {
+          throw new GLException("Error while enumerating available XVisualInfos");
+        }
+        GLCapabilities[] caps = new GLCapabilities[infos.length];
+        for (int i = 0; i < infos.length; i++) {
+          caps[i] = X11GLContextFactory.xvi2GLCapabilities(display, infos[i]);
+        }
+        int chosen = chooser.chooseCapabilities(capabilities, caps, -1);
+        if (chosen < 0 || chosen >= caps.length) {
+          throw new GLException("GLCapabilitiesChooser specified invalid index (expected 0.." + (caps.length - 1) + ")");
+        }
+        if (DEBUG) {
+          System.err.println("Chosen visual (" + chosen + "):");
+          System.err.println(caps[chosen]);
+        }
+        vis = infos[chosen];
+        if (vis == null) {
+          throw new GLException("GLCapabilitiesChooser chose an invalid visual");
+        }
+        // FIXME: the storage for the infos array is leaked (should
+        // clean it up somehow when we're done with the visual we're
+        // returning)
       }
-      int chosen = chooser.chooseCapabilities(capabilities, caps);
-      if (chosen < 0 || chosen >= caps.length) {
-        throw new GLException("GLCapabilitiesChooser specified invalid index (expected 0.." + (caps.length - 1) + ")");
-      }
-      if (DEBUG) {
-        System.err.println("Chosen visual (" + chosen + "):");
-        System.err.println(caps[chosen]);
-      }
-      vis = infos[chosen];
-      if (vis == null) {
-        throw new GLException("GLCapabilitiesChooser chose an invalid visual");
-      }
+      return vis;
     }
-    return vis;
   }
 
   protected long createContext(XVisualInfo vis, boolean onscreen) {
@@ -332,97 +361,5 @@ public abstract class X11GLContext extends GLContext {
 
   protected long getContext() {
     return context;
-  }
-
-  protected int[] glCapabilities2AttribList(GLCapabilities caps) {
-    int colorDepth = (caps.getRedBits() +
-                      caps.getGreenBits() +
-                      caps.getBlueBits());
-    if (colorDepth < 15) {
-      throw new GLException("Bit depths < 15 (i.e., non-true-color) not supported");
-    }
-    int[] res = new int[22];
-    int idx = 0;
-    res[idx++] = GLX.GLX_RGBA;
-    if (caps.getDoubleBuffered()) {
-      res[idx++] = GLX.GLX_DOUBLEBUFFER;
-    }
-    if (caps.getStereo()) {
-      res[idx++] = GLX.GLX_STEREO;
-    }
-    res[idx++] = GLX.GLX_RED_SIZE;
-    res[idx++] = caps.getRedBits();
-    res[idx++] = GLX.GLX_GREEN_SIZE;
-    res[idx++] = caps.getGreenBits();
-    res[idx++] = GLX.GLX_BLUE_SIZE;
-    res[idx++] = caps.getBlueBits();
-    res[idx++] = GLX.GLX_ALPHA_SIZE;
-    res[idx++] = caps.getAlphaBits();
-    res[idx++] = GLX.GLX_DEPTH_SIZE;
-    res[idx++] = caps.getDepthBits();
-    res[idx++] = GLX.GLX_STENCIL_SIZE;
-    res[idx++] = caps.getStencilBits();
-    res[idx++] = GLX.GLX_ACCUM_RED_SIZE;
-    res[idx++] = caps.getAccumRedBits();
-    res[idx++] = GLX.GLX_ACCUM_GREEN_SIZE;
-    res[idx++] = caps.getAccumGreenBits();
-    res[idx++] = GLX.GLX_ACCUM_BLUE_SIZE;
-    res[idx++] = caps.getAccumBlueBits();
-    res[idx++] = 0;
-    return res;
-  }
-
-  protected GLCapabilities xvi2GLCapabilities(XVisualInfo info) {
-    int[] tmp = new int[1];
-    int val = glXGetConfig(info, GLX.GLX_USE_GL, tmp);
-    if (val == 0) {
-      // Visual does not support OpenGL
-      return null;
-    }
-    val = glXGetConfig(info, GLX.GLX_RGBA, tmp);
-    if (val == 0) {
-      // Visual does not support RGBA
-      return null;
-    }
-    GLCapabilities res = new GLCapabilities();
-    res.setDoubleBuffered(glXGetConfig(info, GLX.GLX_DOUBLEBUFFER,     tmp) != 0);
-    res.setStereo        (glXGetConfig(info, GLX.GLX_STEREO,           tmp) != 0);
-    // Note: use of hardware acceleration is determined by
-    // glXCreateContext, not by the XVisualInfo. Optimistically claim
-    // that all GLCapabilities have the capability to be hardware
-    // accelerated.
-    res.setHardwareAccelerated(true);
-    res.setDepthBits     (glXGetConfig(info, GLX.GLX_DEPTH_SIZE,       tmp));
-    res.setStencilBits   (glXGetConfig(info, GLX.GLX_STENCIL_SIZE,     tmp));
-    res.setRedBits       (glXGetConfig(info, GLX.GLX_RED_SIZE,         tmp));
-    res.setGreenBits     (glXGetConfig(info, GLX.GLX_GREEN_SIZE,       tmp));
-    res.setBlueBits      (glXGetConfig(info, GLX.GLX_BLUE_SIZE,        tmp));
-    res.setAlphaBits     (glXGetConfig(info, GLX.GLX_ALPHA_SIZE,       tmp));
-    res.setAccumRedBits  (glXGetConfig(info, GLX.GLX_ACCUM_RED_SIZE,   tmp));
-    res.setAccumGreenBits(glXGetConfig(info, GLX.GLX_ACCUM_GREEN_SIZE, tmp));
-    res.setAccumBlueBits (glXGetConfig(info, GLX.GLX_ACCUM_BLUE_SIZE,  tmp));
-    res.setAccumAlphaBits(glXGetConfig(info, GLX.GLX_ACCUM_ALPHA_SIZE, tmp));
-    return res;
-  }
-
-  protected String glXGetConfigErrorCode(int err) {
-    switch (err) {
-      case GLX.GLX_NO_EXTENSION:  return "GLX_NO_EXTENSION";
-      case GLX.GLX_BAD_SCREEN:    return "GLX_BAD_SCREEN";
-      case GLX.GLX_BAD_ATTRIBUTE: return "GLX_BAD_ATTRIBUTE";
-      case GLX.GLX_BAD_VISUAL:    return "GLX_BAD_VISUAL";
-      default:                return "Unknown error code " + err;
-    }
-  }
-
-  protected int glXGetConfig(XVisualInfo info, int attrib, int[] tmp) {
-    if (display == 0) {
-      throw new GLException("No display connection");
-    }
-    int res = GLX.glXGetConfig(display, info, attrib, tmp);
-    if (res != 0) {
-      throw new GLException("glXGetConfig failed: error code " + glXGetConfigErrorCode(res));
-    }
-    return tmp[0];
   }
 }

@@ -40,6 +40,8 @@
 package net.java.games.jogl.impl;
 
 import java.awt.Component;
+import java.awt.GraphicsConfiguration;
+import java.awt.GraphicsDevice;
 import net.java.games.jogl.*;
 
 public abstract class GLContextFactory {
@@ -83,6 +85,18 @@ public abstract class GLContextFactory {
 
     return factory;
   }
+
+  /** Selects a GraphicsConfiguration on the specified GraphicsDevice
+      that matches the desired GLCapabilities according to the
+      specified GLCapabilitiesChooser's selection algorithm and any
+      hints provided by the underlying window system. This routine is
+      currently only implemented on X11, where it is necessary to
+      choose the desired visual before creating the underlying AWT
+      Canvas; on other platforms it returns null, yielding the default
+      behavior. */
+  public abstract GraphicsConfiguration chooseGraphicsConfiguration(GLCapabilities capabilities,
+                                                                    GLCapabilitiesChooser chooser,
+                                                                    GraphicsDevice device);
 
   public abstract GLContext createGLContext(Component component,
                                             GLCapabilities capabilities,

@@ -40,10 +40,18 @@
 package net.java.games.jogl.impl.macosx;
 
 import java.awt.Component;
+import java.awt.GraphicsConfiguration;
+import java.awt.GraphicsDevice;
 import net.java.games.jogl.*;
 import net.java.games.jogl.impl.*;
 
 public class MacOSXGLContextFactory extends GLContextFactory {
+  public GraphicsConfiguration chooseGraphicsConfiguration(GLCapabilities capabilities,
+                                                           GLCapabilitiesChooser chooser,
+                                                           GraphicsDevice device) {
+    return null;
+  }
+
   public GLContext createGLContext(Component component,
                                    GLCapabilities capabilities,
                                    GLCapabilitiesChooser chooser,

@@ -50,9 +50,6 @@ public class X11OffscreenGLContext extends X11GLContext {
   private int width;
   private int height;
 
-  // Display connection for use by all offscreen surfaces
-  private long staticDisplay;
-
   public X11OffscreenGLContext(GLCapabilities capabilities,
                                GLCapabilitiesChooser chooser,
                                GLContext shareWith) {
@@ -121,7 +118,7 @@ public class X11OffscreenGLContext extends X11GLContext {
   }
 
   protected synchronized boolean makeCurrent(Runnable initAction) throws GLException {
-    ensureDisplayOpened();
+    display = X11GLContextFactory.getDisplayConnection();
     if (pendingOffscreenResize) {
       if (pendingOffscreenWidth != width || pendingOffscreenHeight != height) {
         if (context != 0) {
@@ -167,16 +164,6 @@ public class X11OffscreenGLContext extends X11GLContext {
       throw new GLException("Unable to create OpenGL context");
     }
     isDoubleBuffered = (glXGetConfig(vis, GLX.GLX_DOUBLEBUFFER, new int[1]) != 0);
-  }
-
-  private void ensureDisplayOpened() {
-    if (staticDisplay == 0) {
-      staticDisplay = GLX.XOpenDisplay(null);
-      if (staticDisplay == 0) {
-        throw new GLException("Unable to open default display, needed for offscreen surface handling");
-      }
-    }
-    display = staticDisplay;
   }
 
   private void destroy() {
