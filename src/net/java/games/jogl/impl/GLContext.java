@@ -67,13 +67,9 @@ public abstract class GLContext {
   protected GLCapabilities capabilities;
   protected GLCapabilitiesChooser chooser;
   protected GL gl;
-  // All GLU interfaces eventually route calls down to gluRoot. It can be
-  // static because GLU it doesn't actually need to own context, it just makes
-  // GL calls and assumes some context is active.
   protected static final GLUProcAddressTable gluProcAddressTable = new GLUProcAddressTable();
-  protected static final GLU gluRoot = new GLUImpl(gluProcAddressTable);
   protected static boolean haveResetGLUProcAddressTable;
-  protected GLU glu = gluRoot; // this is the context's GLU interface
+  protected GLU glu = new GLUImpl(gluProcAddressTable);
   protected Thread renderingThread;
   protected Runnable deferredReshapeAction;
   // Support for OpenGL context destruction and recreation in the face
@@ -155,7 +151,7 @@ public abstract class GLContext {
       throw new GLException(e);
     }
     this.chooser = chooser;
-    gl = createGL();
+    setGL(createGL());
     functionAvailability = new FunctionAvailabilityCache(this);
     if (shareWith != null) {
       GLContextShareSet.registerSharing(this, shareWith);
@@ -374,6 +370,8 @@ public abstract class GLContext {
 
   public void setGL(GL gl) {
     this.gl = gl;
+    // Also reset the GL object for the pure-Java GLU implementation
+    ((GLUImpl) glu).setGL(gl);
   }
 
   public GLU getGLU() {    

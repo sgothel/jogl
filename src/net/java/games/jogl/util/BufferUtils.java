@@ -45,8 +45,14 @@ import java.util.*;
 /** Utility routines for dealing with direct buffers. */
 
 public class BufferUtils {
+  public static final int SIZEOF_DOUBLE = 8;
   public static final int SIZEOF_FLOAT = 4;
   public static final int SIZEOF_INT = 4;
+
+  public static DoubleBuffer newDoubleBuffer(int numElements) {
+    ByteBuffer bb = newByteBuffer(numElements * SIZEOF_DOUBLE);
+    return bb.asDoubleBuffer();
+  }
 
   public static FloatBuffer newFloatBuffer(int numElements) {
     ByteBuffer bb = newByteBuffer(numElements * SIZEOF_FLOAT);
@@ -64,8 +70,29 @@ public class BufferUtils {
     return bb;
   }
 
+  public static DoubleBuffer copyDoubleBuffer(DoubleBuffer orig) {
+    DoubleBuffer dest = newDoubleBuffer(orig.capacity());
+    orig.rewind();
+    dest.put(orig);
+    return dest;
+  }
+
   public static FloatBuffer copyFloatBuffer(FloatBuffer orig) {
     FloatBuffer dest = newFloatBuffer(orig.capacity());
+    orig.rewind();
+    dest.put(orig);
+    return dest;
+  }
+
+  public static IntBuffer copyIntBuffer(IntBuffer orig) {
+    IntBuffer dest = newIntBuffer(orig.capacity());
+    orig.rewind();
+    dest.put(orig);
+    return dest;
+  }
+
+  public static ByteBuffer copyByteBuffer(ByteBuffer orig) {
+    ByteBuffer dest = newByteBuffer(orig.capacity());
     orig.rewind();
     dest.put(orig);
     return dest;
