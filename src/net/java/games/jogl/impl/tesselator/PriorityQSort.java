@@ -1,9 +1,4 @@
 /*
-* Portions Copyright (C) 2003 Sun Microsystems, Inc.
-* All rights reserved.
-*/
-
-/*
 ** License Applicability. Except to the extent portions of this file are
 ** made subject to an alternative license as permitted in the SGI Free
 ** Software License B, Version 1.1 (the "License"), the contents of this
@@ -47,7 +42,11 @@ package net.java.games.jogl.impl.tesselator;
 class PriorityQSort extends net.java.games.jogl.impl.tesselator.PriorityQ {
     net.java.games.jogl.impl.tesselator.PriorityQHeap heap;
     Object[] keys;
-    Object[] order;
+
+    // JAVA: 'order' contains indices into the keys array.
+    // This simulates the indirect pointers used in the original C code
+    // (from Frank Suykens, Luciad.com).
+    int[] order;
     int size, max;
     boolean initialized;
     net.java.games.jogl.impl.tesselator.PriorityQ.Leq leq;
@@ -78,9 +77,9 @@ class PriorityQSort extends net.java.games.jogl.impl.tesselator.PriorityQ {
         return (!net.java.games.jogl.impl.tesselator.PriorityQHeap.LEQ(leq, x, y));
     }
 
-    private static void Swap(Object[] array, int a, int b) {
+    private static void Swap(int[] array, int a, int b) {
         if (true) {
-            Object tmp = array[a];
+            int tmp = array[a];
             array[a] = array[b];
             array[b] = tmp;
         } else {
@@ -107,7 +106,7 @@ class PriorityQSort extends net.java.games.jogl.impl.tesselator.PriorityQ {
         /* Create an array of indirect pointers to the keys, so that we
          * the handles we have returned are still valid.
          */
-        order = new Object[size + 1];
+        order = new int[size + 1];
 /* the previous line is a patch to compensate for the fact that IBM */
 /* machines return a null on a malloc of zero bytes (unlike SGI),   */
 /* so we have to put in this defense to guard against a memory      */
@@ -115,7 +114,8 @@ class PriorityQSort extends net.java.games.jogl.impl.tesselator.PriorityQ {
         p = 0;
         r = size - 1;
         for (piv = 0, i = p; i <= r; ++piv, ++i) {
-            order[i] = keys[piv];
+            // indirect pointers: keep an index into the keys array, not a direct pointer to its contents
+            order[i] = piv;
         }
 
         /* Sort the indirect pointers in descending order,
@@ -128,20 +128,20 @@ class PriorityQSort extends net.java.games.jogl.impl.tesselator.PriorityQ {
             p = stack[top].p;
             r = stack[top].r;
             while (r > p + 10) {
-                seed = Math.abs(seed * 1539415821 + 1);
+                seed = Math.abs( seed * 1539415821 + 1 );
                 i = p + seed % (r - p + 1);
-                keys[piv] = order[i];
+                piv = order[i];
                 order[i] = order[p];
-                order[p] = keys[piv];
+                order[p] = piv;
                 i = p - 1;
                 j = r + 1;
                 do {
                     do {
                         ++i;
-                    } while (GT(leq, order[i], keys[piv]));
+                    } while (GT(leq, keys[order[i]], keys[piv]));
                     do {
                         --j;
-                    } while (LT(leq, order[j], keys[piv]));
+                    } while (LT(leq, keys[order[j]], keys[piv]));
                     Swap(order, i, j);
                 } while (i < j);
                 Swap(order, i, j);	/* Undo last swap */
@@ -159,11 +159,11 @@ class PriorityQSort extends net.java.games.jogl.impl.tesselator.PriorityQ {
             }
             /* Insertion sort small lists */
             for (i = p + 1; i <= r; ++i) {
-                keys[piv] = order[i];
-                for (j = i; j > p && LT(leq, order[j - 1], keys[piv]); --j) {
+                piv = order[i];
+                for (j = i; j > p && LT(leq, keys[order[j - 1]], keys[piv]); --j) {
                     order[j] = order[j - 1];
                 }
-                order[j] = keys[piv];
+                order[j] = piv;
             }
         }
         max = size;
@@ -174,7 +174,7 @@ class PriorityQSort extends net.java.games.jogl.impl.tesselator.PriorityQ {
         p = order;
         r = p + size - 1;
         for (i = p; i < r; ++i) {
-            assert (LEQ(     * * (i + 1), **i ));
+            Assertion.doAssert(LEQ(     * * (i + 1), **i ));
         }
         #endif*/
 
@@ -204,7 +204,7 @@ class PriorityQSort extends net.java.games.jogl.impl.tesselator.PriorityQ {
                 return Integer.MAX_VALUE;
             }
         }
-        assert (curr != Integer.MAX_VALUE);
+        assert curr != Integer.MAX_VALUE;
         keys[curr] = keyNew;
 
         /* Negative handles index the sorted array. */
@@ -218,7 +218,7 @@ class PriorityQSort extends net.java.games.jogl.impl.tesselator.PriorityQ {
         if (size == 0) {
             return heap.pqExtractMin();
         }
-        sortMin = order[size - 1];
+        sortMin = keys[order[size - 1]];
         if (!heap.pqIsEmpty()) {
             heapMin = heap.pqMinimum();
             if (LEQ(leq, heapMin, sortMin)) {
@@ -227,7 +227,7 @@ class PriorityQSort extends net.java.games.jogl.impl.tesselator.PriorityQ {
         }
         do {
             --size;
-        } while (size > 0 && order[size - 1] == null);
+        } while (size > 0 && keys[order[size - 1]] == null);
         return sortMin;
     }
 
@@ -238,7 +238,7 @@ class PriorityQSort extends net.java.games.jogl.impl.tesselator.PriorityQ {
         if (size == 0) {
             return heap.pqMinimum();
         }
-        sortMin = order[size - 1];
+        sortMin = keys[order[size - 1]];
         if (!heap.pqIsEmpty()) {
             heapMin = heap.pqMinimum();
             if (net.java.games.jogl.impl.tesselator.PriorityQHeap.LEQ(leq, heapMin, sortMin)) {
@@ -260,10 +260,10 @@ class PriorityQSort extends net.java.games.jogl.impl.tesselator.PriorityQ {
             return;
         }
         curr = -(curr + 1);
-        assert (curr < max && keys[curr] != null);
+        assert curr < max && keys[curr] != null;
 
         keys[curr] = null;
-        while (size > 0 && order[size - 1] == null) {
+        while (size > 0 && keys[order[size - 1]] == null) {
             --size;
         }
     }
