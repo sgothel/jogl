@@ -132,6 +132,7 @@ public abstract class MacOSXGLContext extends GLContext
     }
     nsContext = CGL.createContext(share,
                                   nsView,
+                                  capabilities.getDoubleBuffered() ? 1 : 0,
                                   capabilities.getRedBits(),
                                   capabilities.getGreenBits(),
                                   capabilities.getBlueBits(),
