@@ -418,14 +418,14 @@
 
         <!-- Set up gcc -->
         <property name="c.compiler" value="gcc" />
-        <property name="c.compiler.optflags" value="-Os -arch ppc -Dmacosx" />
-	<!-- Note: specifying -ObjC for all files is sloppy (only needed for      -->
-	<!-- JAWT-related .c files) but this doesn't break anything and is easier -->
-	<!-- than rewriting the whole Makefile                                    -->
+        <property name="c.compiler.optflags" value="-fast -mcpu=7450 -arch ppc -Dmacosx -fPIC" />
+		<!-- Note: specifying -ObjC for all files is sloppy (only needed for      -->
+		<!-- JAWT-related .c files) but this doesn't break anything and is easier -->
+		<!-- than rewriting the whole Makefile                                    -->
         <property name="c.compiler.flags" value="${c.compiler.optflags} -fno-common -fpascal-strings  -Wmost -ObjC -c -o" />
         <property name="c.compiler.obj.suffix" value="o" />
-	<property name="c.compiler.jogl.outputfile.expr" value="${rootrel.obj.jogl}/*.${c.compiler.obj.suffix}" />
-	<property name="c.compiler.includes" value="-I&quot;make/stub_includes/opengl&quot; -I&quot;${java.includes.dir}&quot; -I&quot;${java.includes.dir.platform}&quot; -I&quot;make/stub_includes/cg&quot;" />
+		<property name="c.compiler.jogl.outputfile.expr" value="${rootrel.obj.jogl}/*.${c.compiler.obj.suffix}" />
+		<property name="c.compiler.includes" value="-I&quot;make/stub_includes/opengl&quot; -I&quot;${java.includes.dir}&quot; -I&quot;${java.includes.dir.platform}&quot; -I&quot;make/stub_includes/cg&quot;" />
         <property name="c.linker" value="gcc" />
         <property name="c.linker.flags" value="-arch ppc -prebind -Wl,-single_module -dynamiclib -compatibility_version 1 -current_version 1 -prebind_all_twolevel_modules" />
         <property name="c.linker.jogl.libs" value="-L&quot;${java.lib.dir.platform}&quot; -framework Cocoa -framework OpenGL -ljawt" />
@@ -433,7 +433,7 @@
         <property name="c.linker.jogl.dso" value="${project.root}/${rootrel.c.linker.jogl.dso}" />
         <property name="c.linker.jogl.flags" value="-o ${c.linker.jogl.dso}" />
         <!-- Cg declarations -->
-	<property name="c.compiler.cg.outputfile.expr" value="${rootrel.obj.cg}/*.${c.compiler.obj.suffix}" />
+		<property name="c.compiler.cg.outputfile.expr" value="${rootrel.obj.cg}/*.${c.compiler.obj.suffix}" />
         <property name="c.linker.cg.libs" value="-framework OpenGL -lCg -lCgGL" />
         <property name="rootrel.c.linker.cg.dso" value="${rootrel.obj}/libjogl_cg.jnilib" />
         <property name="c.linker.cg.dso" value="${project.root}/${rootrel.c.linker.cg.dso}" />
