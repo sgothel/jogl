@@ -58,6 +58,13 @@ public class NativeLibLoader {
             }
           }
           System.loadLibrary("jogl");
+
+          // Workaround for 4845371.
+          // Make sure the first reference to the JNI GetDirectBufferAddress is done
+          // from a privileged context so the VM's internal class lookups will succeed.
+          JAWT jawt = new JAWT();
+          JAWTFactory.JAWT_GetAWT(jawt);
+
           return null;
         }
       });
