@@ -75,6 +75,13 @@ public class WindowsPbufferGLContext extends WindowsGLContext {
       throw new GLException("Initial width and height of pbuffer must be positive (were (" +
 			    initWidth + ", " + initHeight + "))");
     }
+
+    if (DEBUG) {
+      System.out.println("Pbuffer caps on init: " + capabilities +
+                         (capabilities.getOffscreenRenderToTexture() ? " [rtt]" : "") +
+                         (capabilities.getOffscreenRenderToTextureRectangle() ? " [rect]" : "") +
+                         (capabilities.getOffscreenFloatingPointBuffers() ? " [float]" : ""));
+    }
   }
 
   public boolean canCreatePbufferContext() {
@@ -127,6 +134,13 @@ public class WindowsPbufferGLContext extends WindowsGLContext {
     float[] fattributes = new float[2*MAX_ATTRIBS];
     int nfattribs = 0;
     int niattribs = 0;
+
+    if (DEBUG) {
+      System.out.println("Pbuffer caps: " + capabilities +
+                         (capabilities.getOffscreenRenderToTexture() ? " [rtt]" : "") +
+                         (capabilities.getOffscreenRenderToTextureRectangle() ? " [rect]" : "") +
+                         (capabilities.getOffscreenFloatingPointBuffers() ? " [float]" : ""));
+    }
 
     rtt              = capabilities.getOffscreenRenderToTexture();
     rect             = capabilities.getOffscreenRenderToTextureRectangle();
@@ -228,9 +242,10 @@ public class WindowsPbufferGLContext extends WindowsGLContext {
       iattributes[5] = GL.WGL_FLOAT_COMPONENTS_NV;
       iattributes[6] = GL.WGL_SAMPLE_BUFFERS_EXT;
       iattributes[7] = GL.WGL_SAMPLES_EXT;
-      int[] ivalues = new int[8];
+      iattributes[8] = GL.WGL_DRAW_TO_PBUFFER_ARB;
+      int[] ivalues = new int[9];
       for (int i = 0; i < nformats; i++) {
-        if (!gl.wglGetPixelFormatAttribivARB(parentHdc, pformats[i], 0, 8, iattributes, ivalues)) {
+        if (!gl.wglGetPixelFormatAttribivARB(parentHdc, pformats[i], 0, 9, iattributes, ivalues)) {
           throw new GLException("Error while querying pixel format " + pformats[i] +
                                 "'s (index " + i + "'s) capabilities for debugging");
         }
@@ -245,38 +260,49 @@ public class WindowsPbufferGLContext extends WindowsGLContext {
         if (ivalues[5] != 0) {
           System.err.print(" [float]");
         }
+        if (ivalues[8] != 0) {
+          System.err.print(" [pbuffer]");
+        }
         System.err.println();
       }
     }
 
-    int format = pformats[0];
+    long tmpBuffer = 0;
+    int whichFormat = 0;
+    // Loop is a workaround for bugs in NVidia's recent drivers
+    do {
+      int format = pformats[whichFormat];
 
-    // Create the p-buffer.
-    niattribs = 0;
+      // Create the p-buffer.
+      niattribs = 0;
 
-    if (rtt) {
-      iattributes[niattribs++]   = GL.WGL_TEXTURE_FORMAT_ARB;
-      if (useFloat) {
-        iattributes[niattribs++] = GL.WGL_TEXTURE_FLOAT_RGB_NV;
-      } else {
-        iattributes[niattribs++] = GL.WGL_TEXTURE_RGBA_ARB;
+      if (rtt) {
+        iattributes[niattribs++]   = GL.WGL_TEXTURE_FORMAT_ARB;
+        if (useFloat) {
+          iattributes[niattribs++] = GL.WGL_TEXTURE_FLOAT_RGB_NV;
+        } else {
+          iattributes[niattribs++] = GL.WGL_TEXTURE_RGBA_ARB;
+        }
+
+        iattributes[niattribs++] = GL.WGL_TEXTURE_TARGET_ARB;
+        iattributes[niattribs++] = rect ? GL.WGL_TEXTURE_RECTANGLE_NV : GL.WGL_TEXTURE_2D_ARB;
+
+        iattributes[niattribs++] = GL.WGL_MIPMAP_TEXTURE_ARB;
+        iattributes[niattribs++] = GL.GL_FALSE;
+
+        iattributes[niattribs++] = GL.WGL_PBUFFER_LARGEST_ARB;
+        iattributes[niattribs++] = GL.GL_FALSE;
       }
 
-      iattributes[niattribs++] = GL.WGL_TEXTURE_TARGET_ARB;
-      iattributes[niattribs++] = rect ? GL.WGL_TEXTURE_RECTANGLE_NV : GL.WGL_TEXTURE_2D_ARB;
+      iattributes[niattribs++] = 0;
 
-      iattributes[niattribs++] = GL.WGL_MIPMAP_TEXTURE_ARB;
-      iattributes[niattribs++] = GL.GL_FALSE;
+      tmpBuffer = gl.wglCreatePbufferARB(parentHdc, format, initWidth, initHeight, iattributes);
+      ++whichFormat;
+    } while ((tmpBuffer == 0) && (whichFormat < nformats));
 
-      iattributes[niattribs++] = GL.WGL_PBUFFER_LARGEST_ARB;
-      iattributes[niattribs++] = GL.GL_FALSE;
-    }
-
-    iattributes[niattribs++] = 0;
-
-    long tmpBuffer = gl.wglCreatePbufferARB(parentHdc, format, initWidth, initHeight, iattributes);
     if (tmpBuffer == 0) {
-      throw new GLException("pbuffer creation error: wglCreatePbufferARB() failed: " + wglGetLastError());
+      throw new GLException("pbuffer creation error: wglCreatePbufferARB() failed: tried " + nformats +
+                            " pixel formats, last error was: " + wglGetLastError());
     }
 
     // Get the device context.
