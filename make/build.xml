@@ -951,6 +951,57 @@
 
     <!-- ================================================================== -->
     <!--
+       - Build the platform-independent distribution out of jars built for
+       - Windows, Linux and Mac OS X; the Java sources for Jogl can't be
+       - fully cross-compiled at this time. To run this target, you need to
+       - specify the property jogl.dist.dir as a System property (i.e.,
+       - "ant -Djogl.dist.dir=../dist dist"); directories named jogl-linux,
+       - jogl-win32, and jogl-macosx need to be inside that directory and each
+       - of those directories needs to contain both the jogl.jar for that
+       - platform as well as the native code (libjogl.so, jogl.dll, or
+       - libjogl.jnilib). Also builds jars containing the native code for
+       - Windows, Linux, Mac OS X, Solaris/SPARC and Solaris/x86.
+      -->
+    <target name="dist.check" unless="jogl.dist.dir">
+        <fail>
+  
+    ******************************************************************
+    ** To build the Jogl distribution out of the platform-specific  **
+    ** component jars and native code, the property jogl.dist.dir   **
+    ** needs to be specified on the command line. Please read the   **
+    ** comments associated with the "dist" target in the build.xml. **
+    ******************************************************************
+        </fail>
+    </target>
+
+    <target name="dist" depends="dist.check">
+        <delete file="${jogl.dist.dir}/jogl.jar" />
+        <delete>
+            <fileset dir="${jogl.dist.dir}" includes="jogl-natives-*.jar" />
+        </delete>
+        <jar destfile="${jogl.dist.dir}/jogl.jar" duplicate="preserve">
+	    <zipgroupfileset dir="${jogl.dist.dir}"
+	                     includes="jogl-win32/*.jar, jogl-linux/*.jar, jogl-macosx/*.jar" />
+        </jar>
+        <jar destfile="${jogl.dist.dir}/jogl-natives-win32.jar"
+             basedir="${jogl.dist.dir}/jogl-win32"
+             includes="jogl.dll" />
+        <jar destfile="${jogl.dist.dir}/jogl-natives-linux.jar"
+             basedir="${jogl.dist.dir}/jogl-linux"
+             includes="libjogl.so" />
+        <jar destfile="${jogl.dist.dir}/jogl-natives-macosx.jar"
+             basedir="${jogl.dist.dir}/jogl-macosx"
+             includes="libjogl.jnilib" />
+        <jar destfile="${jogl.dist.dir}/jogl-natives-solsparc.jar"
+             basedir="${jogl.dist.dir}/jogl-solsparc"
+             includes="libjogl.so" />
+        <jar destfile="${jogl.dist.dir}/jogl-natives-solx86.jar"
+             basedir="${jogl.dist.dir}/jogl-solx86"
+             includes="libjogl.so" />
+    </target>
+
+    <!-- ================================================================== -->
+    <!--
        - Clean up all that is built.
       -->
     <target name="clean" depends="declare">
