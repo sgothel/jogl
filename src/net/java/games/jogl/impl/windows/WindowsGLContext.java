@@ -359,7 +359,8 @@ public abstract class WindowsGLContext extends GLContext {
                                             numFormatsTmp)) {
           numFormats = numFormatsTmp[0];
           if (numFormats > 0) {
-            recommendedPixelFormat = pformats[0];
+            // Remove one-basing of pixel format (added on later)
+            recommendedPixelFormat = pformats[0] - 1;
             if (DEBUG) {
               System.err.println("Used wglChoosePixelFormatARB to recommend pixel format " + recommendedPixelFormat);
             }
@@ -427,7 +428,8 @@ public abstract class WindowsGLContext extends GLContext {
           System.err.println("Using ChoosePixelFormat because no wglChoosePixelFormatARB: dummyGL = " + dummyGL);
         }
         pfd = glCapabilities2PFD(capabilities, onscreen);
-        recommendedPixelFormat = WGL.ChoosePixelFormat(hdc, pfd);
+        // Remove one-basing of pixel format (added on later)
+        recommendedPixelFormat = WGL.ChoosePixelFormat(hdc, pfd) - 1;
 
         numFormats = WGL.DescribePixelFormat(hdc, 1, 0, null);
         if (numFormats == 0) {
