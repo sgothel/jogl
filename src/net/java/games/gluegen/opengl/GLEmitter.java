@@ -93,14 +93,27 @@ public class GLEmitter extends JavaEmitter
     return new GLConfiguration();
   }
 
-  protected Iterator generateMethodBindingEmitters(FunctionSymbol sym) throws Exception
+  protected List generateMethodBindingEmitters(FunctionSymbol sym) throws Exception
   {
-    Iterator defaultEmitters = super.generateMethodBindingEmitters(sym);
+    return generateMethodBindingEmittersImpl(sym);
+  }
+
+  protected List generateMethodBindingEmitters(FunctionSymbol sym, boolean skipProcessing) throws Exception {
+    if (skipProcessing) {
+      return super.generateMethodBindingEmitters(sym);
+    } else {
+      return generateMethodBindingEmittersImpl(sym);
+    }
+  }
+
+  private List generateMethodBindingEmittersImpl(FunctionSymbol sym) throws Exception
+  {
+    List defaultEmitters = super.generateMethodBindingEmitters(sym);
 
     // if the superclass didn't generate any bindings for the symbol, let's
     // honor that (for example, the superclass might have caught an Ignore
     // direction that matched the symbol's name).
-    if (!defaultEmitters.hasNext())
+    if (defaultEmitters.isEmpty())
     {
       return defaultEmitters;
     }
@@ -121,9 +134,9 @@ public class GLEmitter extends JavaEmitter
       emitGLProcAddressTableEntryForSymbol(sym);
     }
     
-    while (defaultEmitters.hasNext())
+    for (Iterator iter = defaultEmitters.iterator(); iter.hasNext(); )
     {
-      FunctionEmitter emitter = (FunctionEmitter)defaultEmitters.next();
+      FunctionEmitter emitter = (FunctionEmitter) iter.next();
       if (emitter instanceof JavaMethodBindingEmitter)
       {
         JavaMethodBindingEmitter newEmitter =
@@ -144,7 +157,7 @@ public class GLEmitter extends JavaEmitter
       }
     }
     
-    return modifiedEmitters.iterator();
+    return modifiedEmitters;
   }
 
   /**
@@ -168,7 +181,7 @@ public class GLEmitter extends JavaEmitter
   // Internals only below this point
   //
   
-  private JavaMethodBindingEmitter generateModifiedEmitter(JavaMethodBindingEmitter baseJavaEmitter)
+  protected JavaMethodBindingEmitter generateModifiedEmitter(JavaMethodBindingEmitter baseJavaEmitter)
   {    
     if (!(baseJavaEmitter instanceof JavaMethodBindingImplEmitter)) {
       // We only want to wrap the native entry point in the implementation
@@ -178,7 +191,7 @@ public class GLEmitter extends JavaEmitter
       // it needs argument conversion or similar, filter that out since we will
       // be providing such an emitter ourselves. Otherwise return the emitter
       // unmodified.
-      if (baseJavaEmitter.isForNIOBufferBaseRoutine())
+      if (baseJavaEmitter.isForImplementingMethodCall())
         return null;
       return baseJavaEmitter;
     }
@@ -189,7 +202,7 @@ public class GLEmitter extends JavaEmitter
     return new JavaGLPAWrapperEmitter(baseJavaEmitter, getGLConfig().getProcAddressTableExpr());
   }
 
-  private CMethodBindingEmitter generateModifiedEmitter(CMethodBindingEmitter baseCEmitter)
+  protected CMethodBindingEmitter generateModifiedEmitter(CMethodBindingEmitter baseCEmitter)
   {    
     // The C-side JNI binding for this particular function will have an
     // extra final argument, which is the address (the OpenGL procedure
@@ -202,7 +215,7 @@ public class GLEmitter extends JavaEmitter
     return res;
   }
     
-  private boolean needsProcAddressWrapper(FunctionSymbol sym)
+  protected boolean needsProcAddressWrapper(FunctionSymbol sym)
   {
     String symName =  sym.getName();
 
@@ -316,7 +329,7 @@ public class GLEmitter extends JavaEmitter
     w.close();
   }
 
-  private void emitGLProcAddressTableEntryForSymbol(FunctionSymbol cFunc)
+  protected void emitGLProcAddressTableEntryForSymbol(FunctionSymbol cFunc)
   {
     tableWriter.print("  public long ");
     tableWriter.print(PROCADDRESS_VAR_PREFIX);
@@ -325,7 +338,7 @@ public class GLEmitter extends JavaEmitter
     ++numProcAddressEntries;    
   }
 
-  private GLConfiguration getGLConfig() {
+  protected GLConfiguration getGLConfig() {
     return (GLConfiguration) getConfig();
   }
 

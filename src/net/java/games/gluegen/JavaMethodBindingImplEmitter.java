@@ -65,6 +65,13 @@ public class JavaMethodBindingImplEmitter extends JavaMethodBindingEmitter
     this.isUnimplemented = isUnimplemented;
   }
 
+  public JavaMethodBindingImplEmitter(JavaMethodBindingEmitter arg) {
+    super(arg);
+    if (arg instanceof JavaMethodBindingImplEmitter) {
+      this.isUnimplemented = ((JavaMethodBindingImplEmitter) arg).isUnimplemented;
+    }
+  }
+
   protected void emitBody(PrintWriter writer)
   {    
     MethodBinding binding = getBinding();
@@ -84,8 +91,15 @@ public class JavaMethodBindingImplEmitter extends JavaMethodBindingEmitter
     }
   }
 
+  protected boolean isUnimplemented() {
+    return isUnimplemented;
+  }
+
   protected boolean needsBody() {
-    return isUnimplemented || getBinding().needsBody() || getBinding().hasContainingType();
+    return (isUnimplemented ||
+            getBinding().signatureUsesNIO() ||
+            getBinding().signatureUsesCArrays() ||
+            getBinding().hasContainingType());
   }
 
   protected void emitPreCallSetup(MethodBinding binding, PrintWriter writer) {
