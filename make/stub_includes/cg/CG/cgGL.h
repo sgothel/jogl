@@ -55,7 +55,7 @@
 
 #ifndef CG_DEPRECATED_API
 
-#include <Cg/cg.h>
+#include <CG/cg.h>
 
 /* Set up for either Win32 import/export/lib. */
 #ifndef CGGLDLL_API
@@ -371,7 +371,7 @@ CGGLDLL_API GLenum cgGLGetTextureEnum(/*CGparameter*/CGparameter* param);
 #define cgGLEnableClientState cgGL_DEPRECATEDAPI_EnableClientState
 #define cgGLDisableClientState cgGL_DEPRECATEDAPI_DisableClientState
 
-#include <Cg/cgGL_deprecated_api.h>
+#include <CG/cgGL_deprecated_api.h>
 
 #endif
 

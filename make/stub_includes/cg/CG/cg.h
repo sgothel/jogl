@@ -109,7 +109,7 @@ typedef enum
   CG_TYPE_START_ENUM = 1024,
 //# define CG_DATATYPE_MACRO(name, compiler_name, enum_name, ncols, nrows) enum_name ,
 
-#include <Cg/cg_datatypes.h>
+#include <CG/cg_datatypes.h>
 
  } CGtype;
 
@@ -117,7 +117,7 @@ typedef enum
  {
 //# define CG_BINDLOCATION_MACRO(name,enum_name,compiler_name,enum_int,addressable,param_type) enum_name = enum_int,
 
-#include <Cg/cg_bindlocations.h>
+#include <CG/cg_bindlocations.h>
 
   CG_UNDEFINED,
 
@@ -130,7 +130,7 @@ typedef enum
 
 //# define CG_PROFILE_MACRO(name, compiler_id, compiler_id_caps, compiler_opt,int_id,vertex_profile) CG_PROFILE_##compiler_id_caps = int_id,
   
-#include <Cg/cg_profiles.h>
+#include <CG/cg_profiles.h>
 
   CG_PROFILE_MAX,
  } CGprofile;
@@ -138,7 +138,7 @@ typedef enum
 typedef enum
  {
 //# define CG_ERROR_MACRO(code, enum_name, new_enum_name, message) new_enum_name = code,
-# include <Cg/cg_errors.h>
+# include <CG/cg_errors.h>
  } CGerror;
 
 typedef enum
@@ -275,7 +275,7 @@ CGDLL_API CGerrorCallbackFunc cgGetErrorCallback(void);
 #define cgGetLastListing cgGL_DEPRECATEDAPI_GetLastListing
 #define cgGetProgramProfile cgGL_DEPRECATEDAPI_ProgramProfile
 
-# include <Cg/cg_deprecated_api.h>
+# include <CG/cg_deprecated_api.h>
 
 #endif
 

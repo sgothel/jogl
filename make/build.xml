@@ -314,7 +314,7 @@
         <property name="c.linker.jogl.flags" value="-o ${c.linker.jogl.dso}" />
         <!-- Cg declarations -->
 	<property name="c.compiler.cg.outputfile.expr" value="${rootrel.obj.cg}/*.${c.compiler.obj.suffix}" />
-        <property name="c.linker.cg.libs" value="-Wl,--kill-at -L&quot;${windows.cg.lib}&quot; -lopengl32 -lcg -lcgGL" />
+        <property name="c.linker.cg.libs" value="-Wl,--kill-at -L&quot;${windows.cg.lib}&quot; -lopengl32 -lCg -lCgGL" />
         <property name="rootrel.c.linker.cg.dso" value="${rootrel.obj}/jogl_cg.dll" />
         <property name="c.linker.cg.dso" value="${project.root}/${rootrel.c.linker.cg.dso}" />
         <property name="c.linker.cg.flags" value="-o ${c.linker.cg.dso}" />
@@ -360,7 +360,7 @@
         <property name="c.linker.jogl.flags" value="-o ${c.linker.jogl.dso}" />
         <!-- Cg declarations -->
 	<property name="c.compiler.cg.outputfile.expr" value="${rootrel.obj.cg}/*.${c.compiler.obj.suffix}" />
-        <property name="c.linker.cg.libs" value="-L&quot;${x11.cg.lib}&quot; -lcg -lcgGL -lGL" />
+        <property name="c.linker.cg.libs" value="-L&quot;${x11.cg.lib}&quot; -lCg -lCgGL -lGL" />
         <property name="rootrel.c.linker.cg.dso" value="${rootrel.obj}/libjogl_cg.so" />
         <property name="c.linker.cg.dso" value="${project.root}/${rootrel.c.linker.cg.dso}" />
         <property name="c.linker.cg.flags" value="-o ${c.linker.cg.dso}" />
@@ -425,7 +425,7 @@
         <property name="c.linker.jogl.flags" value="-o ${c.linker.jogl.dso}" />
         <!-- Cg declarations -->
 	<property name="c.compiler.cg.outputfile.expr" value="${rootrel.obj.cg}/*.${c.compiler.obj.suffix}" />
-        <property name="c.linker.cg.libs" value="-framework OpenGL -lcg -lcgGL" />
+        <property name="c.linker.cg.libs" value="-framework OpenGL -lCg -lCgGL" />
         <property name="rootrel.c.linker.cg.dso" value="${rootrel.obj}/libjogl_cg.jnilib" />
         <property name="c.linker.cg.dso" value="${project.root}/${rootrel.c.linker.cg.dso}" />
         <property name="c.linker.cg.flags" value="-o ${c.linker.cg.dso}" />
