@@ -265,13 +265,7 @@ public class WindowsGLContextFactory extends GLContextFactory {
       // Create a native window and device context
       HWND = WGL.CreateDummyWindow( rectangle.x, rectangle.y, rectangle.width, rectangle.height );
       HDC = WGL.GetDC( HWND );
-      // Pause this thread until JVM shutdown
-      try {
-        synchronized( this ) {
-          wait();
-        }
-      } catch( InterruptedException e ) {
-      }
+      
       // Start the message pump at shutdown
       WGL.NativeEventLoop();
     }
