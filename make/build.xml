@@ -198,6 +198,7 @@
         <property name="java.includes.dir.linux" value="${java.includes.dir}/linux" />
         <property name="java.includes.dir.solaris" value="${java.includes.dir}/solaris" />
         <property name="java.includes.dir.macosx" value="/System/Library/Frameworks/JavaVM.framework/Versions/CurrentJDK/Headers" />
+        <property name="java.includes.dir.freebsd" value="${java.includes.dir}/freebsd" />
         <property name="java.lib.dir.win32" value="${java.home.dir}/lib" />
         <property name="java.lib.dir.linux" value="${java.home.dir}/jre/lib/i386" />
         <property name="java.lib.dir.linux.amd64" value="${java.home.dir}/jre/lib/amd64" />
@@ -320,6 +321,14 @@
         <property name="linker.cfg.id"                        value="linker.cfg.linux.amd64" /> 
     </target>
     
+    <target name="declare.freebsd" depends="declare.x11">
+        <property name="java.includes.dir.platform"           value="${java.includes.dir.freebsd}" />
+        <property name="java.lib.dir.platform"                value="${java.lib.dir.linux}" />
+
+        <property name="compiler.cfg.id"                      value="compiler.cfg.freebsd" />
+        <property name="linker.cfg.id"                        value="linker.cfg.linux" />
+    </target>
+
     <target name="declare.solaris" depends="declare.x11">
         <property name="java.includes.dir.platform"           value="${java.includes.dir.solaris}" />
         <property name="java.lib.dir.platform"                value="${java.lib.dir.solaris}" />
@@ -710,6 +719,10 @@
         </defineset>
       </compiler>
 
+      <compiler id="compiler.cfg.freebsd" name="gcc">
+        <includepath path="/usr/X11R6/include" />
+      </compiler>
+
       <!-- linker configuration -->
  
       <linker id="linker.cfg.linux" name="gcc">
@@ -870,6 +883,9 @@
     <target name="c.compile.jogl.macosx" depends="declare.macosx, c.build.jogl, c.build.cg">
     </target>
     
+    <target name="c.compile.jogl.freebsd" depends="declare.freebsd, c.build.jogl, c.build.cg" >
+    </target>
+
     <!-- ================================================================== -->
     <!--
        - Build the jogl.jar file.
@@ -1099,5 +1115,16 @@ Use a platform specific target:  linux, linux.amd64, macosx, solaris, win32.vc6,
         
         <!-- Compile the native C sources and build the jogl lib. -->
         <antcall target="c.compile.jogl.macosx" />
+    </target>
+
+    <!--
+       - FreeBSD (assuming GCC)
+      -->
+    <target name="freebsd" depends="declare.freebsd">
+        <!-- Generate, compile, and build the jar for the Java sources. -->
+        <antcall target="jar" inheritRefs="true" />
+
+        <!-- Compile the native C sources and build the jogl lib. -->
+        <antcall target="c.compile.jogl.freebsd" />
     </target>
 </project>
