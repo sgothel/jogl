@@ -280,7 +280,10 @@ public abstract class WindowsGLContext extends GLContext {
           availableCaps[i] = pfd2GLCapabilities(pfd);
         }
         // Supply information to chooser
-        pixelFormat = chooser.chooseCapabilities(capabilities, availableCaps);
+        // FIXME: should provide a hint to the pixel format selection
+        // algorithm, and should be using wglChoosePixelFormatARB in
+        // order to do so
+        pixelFormat = chooser.chooseCapabilities(capabilities, availableCaps, -1);
         if ((pixelFormat < 0) || (pixelFormat >= numFormats)) {
           throw new GLException("Invalid result " + pixelFormat +
                                 " from GLCapabilitiesChooser (should be between 0 and " +

@@ -175,6 +175,7 @@ public class X11OnscreenGLContext extends X11GLContext {
     x11dsi = (JAWT_X11DrawingSurfaceInfo) dsi.platformInfo();
     display = x11dsi.display();
     drawable = x11dsi.drawable();
+    visualID = x11dsi.visualID();
     if (display == 0 || drawable == 0) {
       // Widget not yet realized
       ds.FreeDrawingSurfaceInfo(dsi);
@@ -183,6 +184,9 @@ public class X11OnscreenGLContext extends X11GLContext {
       ds = null;
       dsi = null;
       x11dsi = null;
+      display = 0;
+      drawable = 0;
+      visualID = 0;
       return false;
     }
     return true;
@@ -200,6 +204,7 @@ public class X11OnscreenGLContext extends X11GLContext {
     x11dsi = null;
     display = 0;
     drawable = 0;
+    visualID = 0;
   }
 
   protected void create() {

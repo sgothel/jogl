@@ -61,14 +61,6 @@ public final class GLCanvas extends Canvas implements GLDrawable {
   private GLDrawableHelper drawableHelper = new GLDrawableHelper();
   private GLContext context;
   
-  GLCanvas(GLCapabilities capabilities,
-           GLCapabilitiesChooser chooser,
-           GLDrawable shareWith) {
-    super();
-    context = GLContextFactory.getFactory().createGLContext(this, capabilities, chooser,
-                                                            GLContextHelper.getContext(shareWith));
-  }
-
   GLCanvas(GraphicsConfiguration config,
            GLCapabilities capabilities,
            GLCapabilitiesChooser chooser,

@@ -47,6 +47,11 @@ public interface GLCapabilitiesChooser {
       GLCapabilities} most closely matching the desired one from the
       list of all supported. Some of the entries in the
       <code>available</code> array may be null; the chooser must
-      ignore these. */
-  public int chooseCapabilities(GLCapabilities desired, GLCapabilities[] available);
+      ignore these. The <em>windowSystemRecommendedChoice</em>
+      parameter may be provided to the chooser by the underlying
+      window system; if this index is valid, it is recommended, but
+      not necessarily required, that the chooser select that entry. */
+  public int chooseCapabilities(GLCapabilities desired,
+                                GLCapabilities[] available,
+                                int windowSystemRecommendedChoice);
 }

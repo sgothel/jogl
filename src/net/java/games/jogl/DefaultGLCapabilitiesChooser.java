@@ -71,13 +71,28 @@ package net.java.games.jogl;
     than accumulation buffer (including alpha) and stencil buffer
     depth mismatches.
 
+    <LI> If a valid windowSystemRecommendedChoice parameter is
+    supplied, chooses that instead of using the cross-platform code.
+
     </UL>
 */
 
 public class DefaultGLCapabilitiesChooser implements GLCapabilitiesChooser {
   private static final boolean DEBUG = false;
 
-  public int chooseCapabilities(GLCapabilities desired, GLCapabilities[] available) {
+  public int chooseCapabilities(GLCapabilities desired,
+                                GLCapabilities[] available,
+                                int windowSystemRecommendedChoice) {
+    if (windowSystemRecommendedChoice >= 0 &&
+        windowSystemRecommendedChoice < available.length &&
+        available[windowSystemRecommendedChoice] != null) {
+      if (DEBUG) {
+        System.err.println("Choosing window system's recommended choice of " + windowSystemRecommendedChoice);
+        System.err.println(available[windowSystemRecommendedChoice]);
+      }
+      return windowSystemRecommendedChoice;
+    }
+
     if (DEBUG) {
       for (int i = 0; i < available.length; i++) {
         System.err.println("Available " + i + ": " + available[i]);
