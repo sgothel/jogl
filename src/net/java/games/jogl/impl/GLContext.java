@@ -251,6 +251,15 @@ public abstract class GLContext {
         if (isReshape) {
           deferredReshapeAction = runnable;
         }
+
+        // Clean up after ourselves on the way out.
+        // NOTE that this is an abbreviated version of the code below
+        // and should probably be refactored/cleaned up -- this bug
+        // fix was done without a lot of intense thought about the
+        // situation
+        if (curContext != null) {
+          curContext.makeCurrent(curInitAction);
+        }
         return;
       }
       if (DEBUG) {
