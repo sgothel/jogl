@@ -182,6 +182,18 @@ public final class GLJPanel extends JPanel implements GLDrawable {
     return false;
   }
 
+  public void setAutoSwapBufferMode(boolean onOrOff) {
+    context.setAutoSwapBufferMode(onOrOff);
+  }
+
+  public boolean getAutoSwapBufferMode() {
+    return context.getAutoSwapBufferMode();
+  }
+
+  public void swapBuffers() {
+    context.invokeGL(swapBuffersAction, false, initAction);
+  }
+
   public boolean canCreateOffscreenDrawable() {
     // For now let's say no; maybe we can reimplement this class in
     // terms of pbuffers (though not all vendors support them, and
@@ -304,4 +316,11 @@ public final class GLJPanel extends JPanel implements GLDrawable {
     }
   }
   private DisplayAction displayAction = new DisplayAction();
+
+  class SwapBuffersAction implements Runnable {
+    public void run() {
+      context.swapBuffers();
+    }
+  }
+  private SwapBuffersAction swapBuffersAction = new SwapBuffersAction();
 }
