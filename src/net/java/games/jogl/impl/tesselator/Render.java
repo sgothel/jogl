@@ -303,7 +303,7 @@ class Render {
                         tess.callEdgeFlagOrEdgeFlagData( edgeState != 0);
                     }
                 }
-                tess.callVertexOrVertexData( e.Org.data);
+                tess.callVertexOrVertexData( e.Org.coords);
 
                 e = e.Lnext;
             } while (e != f.anEdge);
