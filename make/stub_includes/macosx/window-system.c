@@ -8,6 +8,7 @@ Bool  makeCurrentContext(void* nsContext, void* nsView);
 Bool  clearCurrentContext(void* nsContext, void* nsView);
 Bool  deleteContext(void* nsContext, void* nsView);
 Bool  flushBuffer(void* nsContext, void* nsView);
+void  updateContext(void* nsContext, void* nsView);
 
 void* updateContextRegister(void* nsContext, void* nsView);
 void  updateContextUnregister(void* nsContext, void* nsView, void* updater);

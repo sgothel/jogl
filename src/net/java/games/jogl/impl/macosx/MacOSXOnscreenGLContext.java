@@ -50,6 +50,7 @@ public class MacOSXOnscreenGLContext extends MacOSXGLContext {
   private JAWT_DrawingSurface ds;
   private JAWT_DrawingSurfaceInfo dsi;
   private JAWT_MacOSXDrawingSurfaceInfo macosxdsi;
+  private Runnable myDeferredReshapeAction;
     
   // Variables for pbuffer support
   List pbuffersToInstantiate = new ArrayList();
@@ -59,6 +60,24 @@ public class MacOSXOnscreenGLContext extends MacOSXGLContext {
                                  GLCapabilitiesChooser chooser,
                                  GLContext shareWith) {
     super(component, capabilities, chooser, shareWith);
+  }
+
+  // gznote: remove when updater is thread safe!
+  public synchronized void invokeGL(final Runnable runnable, boolean isReshape, Runnable initAction) throws GLException {
+    if (isReshape) {
+      myDeferredReshapeAction = new Runnable() {
+          public void run() {
+            CGL.updateContext(nsContext, nsView);
+            runnable.run();
+          }
+        };
+    } else {
+      if (myDeferredReshapeAction != null) {
+        super.invokeGL(myDeferredReshapeAction, true, initAction);
+        myDeferredReshapeAction = null;
+      }
+      super.invokeGL(runnable, isReshape, initAction);
+    }
   }
 
   protected GL createGL() {
@@ -167,7 +186,7 @@ public class MacOSXOnscreenGLContext extends MacOSXGLContext {
     // OpenGL nsContext so it will be recreated
     if ((res & JAWTFactory.JAWT_LOCK_SURFACE_CHANGED) != 0) {
       if (nsContext != 0) {
-		CGL.updateContextUnregister(nsContext, nsView, updater);
+		//CGL.updateContextUnregister(nsContext, nsView, updater); // gznote: not thread safe yet!
         if (!CGL.deleteContext(nsContext, nsView)) {
           throw new GLException("Unable to delete old GL nsContext after surface changed");
         }

@@ -108,7 +108,7 @@ public abstract class MacOSXGLContext extends GLContext
     if (nsContext == 0) {
       throw new GLException("Error creating nsContext");
     }
-	updater = CGL.updateContextRegister(nsContext, nsView);
+	//updater = CGL.updateContextRegister(nsContext, nsView); // gznote: not thread safe yet!
     GLContextShareSet.contextCreated(this);
   }    
 	

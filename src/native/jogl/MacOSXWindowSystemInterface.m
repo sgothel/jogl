@@ -96,6 +96,14 @@ Bool flushBuffer(void* context, void* view)
 	return true;
 }
 
+void updateContext(void* context, void* view)
+{
+//fprintf(stderr, "updateContext context=%p, view=%p\n", context, view);
+	NSOpenGLContext *nsContext = (NSOpenGLContext*)context;
+	
+	[nsContext update];
+}
+
 void* updateContextRegister(void* context, void* view)
 {
 //fprintf(stderr, "updateContextRegister context=%p, view=%p\n", context, view);
