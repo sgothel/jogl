@@ -290,47 +290,33 @@ public abstract class X11GLContext extends GLContext {
 
       int screen = 0; // FIXME: provide way to specify this?
       XVisualInfo vis = null;
-      if (chooser == null) {
-        // Note: this code path isn't taken any more now that the
-        // DefaultGLCapabilitiesChooser is present. However, it is being
-        // left in place for debugging purposes.
-        int[] attribs = X11GLContextFactory.glCapabilities2AttribList(capabilities);
-        vis = GLX.glXChooseVisual(display, screen, attribs);
-        if (vis == null) {
-          throw new GLException("Unable to find matching visual");
-        }
-        if (DEBUG) {
-          System.err.println("Chosen visual from glXChooseVisual:");
-          System.err.println(X11GLContextFactory.xvi2GLCapabilities(display, vis));
-        }
-      } else {
-        int[] count = new int[1];
-        XVisualInfo template = new XVisualInfo();
-        template.screen(screen);
-        XVisualInfo[] infos = GLX.XGetVisualInfo(display, GLX.VisualScreenMask, template, count);
-        if (infos == null) {
-          throw new GLException("Error while enumerating available XVisualInfos");
-        }
-        GLCapabilities[] caps = new GLCapabilities[infos.length];
-        for (int i = 0; i < infos.length; i++) {
-          caps[i] = X11GLContextFactory.xvi2GLCapabilities(display, infos[i]);
-        }
-        int chosen = chooser.chooseCapabilities(capabilities, caps, -1);
-        if (chosen < 0 || chosen >= caps.length) {
-          throw new GLException("GLCapabilitiesChooser specified invalid index (expected 0.." + (caps.length - 1) + ")");
-        }
-        if (DEBUG) {
-          System.err.println("Chosen visual (" + chosen + "):");
-          System.err.println(caps[chosen]);
-        }
-        vis = infos[chosen];
-        if (vis == null) {
-          throw new GLException("GLCapabilitiesChooser chose an invalid visual");
-        }
-        // FIXME: the storage for the infos array is leaked (should
-        // clean it up somehow when we're done with the visual we're
-        // returning)
+      int[] count = new int[1];
+      XVisualInfo template = new XVisualInfo();
+      template.screen(screen);
+      XVisualInfo[] infos = GLX.XGetVisualInfo(display, GLX.VisualScreenMask, template, count);
+      if (infos == null) {
+        throw new GLException("Error while enumerating available XVisualInfos");
       }
+      GLCapabilities[] caps = new GLCapabilities[infos.length];
+      for (int i = 0; i < infos.length; i++) {
+        caps[i] = X11GLContextFactory.xvi2GLCapabilities(display, infos[i]);
+      }
+      int chosen = chooser.chooseCapabilities(capabilities, caps, -1);
+      if (chosen < 0 || chosen >= caps.length) {
+        throw new GLException("GLCapabilitiesChooser specified invalid index (expected 0.." + (caps.length - 1) + ")");
+      }
+      if (DEBUG) {
+        System.err.println("Chosen visual (" + chosen + "):");
+        System.err.println(caps[chosen]);
+      }
+      vis = infos[chosen];
+      if (vis == null) {
+        throw new GLException("GLCapabilitiesChooser chose an invalid visual");
+      }
+      // FIXME: the storage for the infos array is leaked (should
+      // clean it up somehow when we're done with the visual we're
+      // returning)
+
       return vis;
     }
   }

@@ -166,6 +166,10 @@ public class X11PbufferGLContext extends X11GLContext {
       iattributes[niattribs++] = capabilities.getAccumBlueBits();
     }
 
+    // FIXME: add FSAA support? Don't want to get into a situation
+    // where we have to retry the glXChooseFBConfig call if it fails
+    // due to a lack of an antialiased visual...
+
     iattributes[niattribs++] = 0; // null-terminate
 
     int screen = 0; // FIXME: provide way to specify this?

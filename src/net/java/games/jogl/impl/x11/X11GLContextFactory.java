@@ -50,6 +50,8 @@ public class X11GLContextFactory extends GLContextFactory {
     NativeLibLoader.load();
   }
 
+  private static final int MAX_ATTRIBS = 128;
+
   public GraphicsConfiguration chooseGraphicsConfiguration(GLCapabilities capabilities,
                                                            GLCapabilitiesChooser chooser,
                                                            GraphicsDevice device) {
@@ -57,7 +59,8 @@ public class X11GLContextFactory extends GLContextFactory {
     // Until we have a rock-solid visual selection algorithm written
     // in pure Java, we're going to provide the underlying window
     // system's selection to the chooser as a hint
-    int[] attribs = glCapabilities2AttribList(capabilities);
+
+    int[] attribs = glCapabilities2AttribList(capabilities, isMultisampleAvailable());
     long display = getDisplayConnection();
     XVisualInfo recommendedVis = GLX.glXChooseVisual(display, screen, attribs);
     int recommendedIndex = -1;
@@ -150,17 +153,22 @@ public class X11GLContextFactory extends GLContextFactory {
     res.setAccumGreenBits(glXGetConfig(display, info, GLX.GLX_ACCUM_GREEN_SIZE, tmp));
     res.setAccumBlueBits (glXGetConfig(display, info, GLX.GLX_ACCUM_BLUE_SIZE,  tmp));
     res.setAccumAlphaBits(glXGetConfig(display, info, GLX.GLX_ACCUM_ALPHA_SIZE, tmp));
+    if (isMultisampleAvailable()) {
+      res.setSampleBuffers(glXGetConfig(display, info, GLX.GLX_SAMPLE_BUFFERS_ARB, tmp) != 0);
+      res.setNumSamples   (glXGetConfig(display, info, GLX.GLX_SAMPLES_ARB,        tmp));
+    }
     return res;
   }
 
-  public static int[] glCapabilities2AttribList(GLCapabilities caps) {
+  public static int[] glCapabilities2AttribList(GLCapabilities caps,
+                                                boolean isMultisampleAvailable) {
     int colorDepth = (caps.getRedBits() +
                       caps.getGreenBits() +
                       caps.getBlueBits());
     if (colorDepth < 15) {
       throw new GLException("Bit depths < 15 (i.e., non-true-color) not supported");
     }
-    int[] res = new int[22];
+    int[] res = new int[MAX_ATTRIBS];
     int idx = 0;
     res[idx++] = GLX.GLX_RGBA;
     if (caps.getDoubleBuffered()) {
@@ -187,6 +195,12 @@ public class X11GLContextFactory extends GLContextFactory {
     res[idx++] = caps.getAccumGreenBits();
     res[idx++] = GLX.GLX_ACCUM_BLUE_SIZE;
     res[idx++] = caps.getAccumBlueBits();
+    if (isMultisampleAvailable && caps.getSampleBuffers()) {
+      res[idx++] = GL.GLX_SAMPLE_BUFFERS_ARB;
+      res[idx++] = GL.GL_TRUE;
+      res[idx++] = GL.GLX_SAMPLES_ARB;
+      res[idx++] = caps.getNumSamples();
+    }
     res[idx++] = 0;
     return res;
   }
@@ -201,6 +215,20 @@ public class X11GLContextFactory extends GLContextFactory {
       }
     }
     return staticDisplay;
+  }
+
+  private static boolean checkedMultisample;
+  private static boolean multisampleAvailable;
+  public static boolean isMultisampleAvailable() {
+    if (!checkedMultisample) {
+      long display = getDisplayConnection();
+      String exts = GLX.glXGetClientString(display, GLX.GLX_EXTENSIONS);
+      if (exts != null) {
+        multisampleAvailable = (exts.indexOf("GLX_ARB_multisample") >= 0);
+      }
+      checkedMultisample = true;
+    }
+    return multisampleAvailable;
   }
 
   private static String glXGetConfigErrorCode(int err) {
