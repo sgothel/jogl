@@ -475,8 +475,8 @@ typedef int (WINAPI * PFNWGLGETSWAPINTERVALEXTPROC) (void);
 #define WGL_EXT_depth_float 1
 #endif
 
-#ifndef WGL_NV_vertex_array_range
-#define WGL_NV_vertex_array_range 1
+#ifndef GL_NV_vertex_array_range
+#define GL_NV_vertex_array_range 1
 #ifdef WGL_WGLEXT_PROTOTYPES
 extern void* WINAPI wglAllocateMemoryNV (GLsizei, GLfloat, GLfloat, GLfloat);
 extern void WINAPI wglFreeMemoryNV (void *);
@@ -484,6 +484,8 @@ extern void WINAPI wglFreeMemoryNV (void *);
 typedef void* (WINAPI * PFNWGLALLOCATEMEMORYNVPROC) (GLsizei size, GLfloat readfreq, GLfloat writefreq, GLfloat priority);
 typedef void (WINAPI * PFNWGLFREEMEMORYNVPROC) (void *pointer);
 #endif
+/* Hack to allow the platform-independent routines to be picked up from other headers */
+#undef GL_NV_vertex_array_range
 
 #ifndef WGL_3DFX_multisample
 #define WGL_3DFX_multisample 1

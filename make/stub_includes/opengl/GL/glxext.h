@@ -610,8 +610,8 @@ typedef Bool ( * PFNGLXWAITFORSBCOMLPROC) (Display *dpy, GLXDrawable drawable, i
 /*
  * ???. GLX_NV_vertex_array_range
  */
-#ifndef GLX_NV_vertex_array_range
-#define GLX_NV_vertex_array_range 1
+#ifndef GL_NV_vertex_array_range
+#define GL_NV_vertex_array_range 1
 #ifdef GLX_GLXEXT_PROTOTYPES
 extern GLvoid* glXAllocateMemoryNV (GLsizei size, GLfloat readfreq, GLfloat writefreq, GLfloat priority);
 extern void glXFreeMemoryNV (GLvoid *pointer);
@@ -619,6 +619,8 @@ extern void glXFreeMemoryNV (GLvoid *pointer);
 typedef GLvoid* ( * PFNGLXALLOCATEMEMORYNVPROC) (GLsizei size, GLfloat readfreq, GLfloat writefreq, GLfloat priority);
 typedef void ( * PFNGLXFREEMEMORYNVPROC) (GLvoid *pointer);
 #endif
+/* Hack to allow the platform-independent routines to be picked up from other headers */
+#undef GL_NV_vertex_array_range
 
 
 #ifdef __cplusplus

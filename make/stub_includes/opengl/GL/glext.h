@@ -4826,6 +4826,8 @@ GLAPI void APIENTRY glVertexArrayRangeNV (GLsizei, const GLvoid *);
 typedef void (APIENTRYP PFNGLFLUSHVERTEXARRAYRANGENVPROC) (void);
 typedef void (APIENTRYP PFNGLVERTEXARRAYRANGENVPROC) (GLsizei length, const GLvoid *pointer);
 #endif
+/* Hack to allow the platform-dependent routines to be picked up from other headers */
+#undef GL_NV_vertex_array_range
 
 #ifndef GL_NV_register_combiners
 #define GL_NV_register_combiners 1
