@@ -75,12 +75,14 @@ public class BuildMipmap {
     levels += userLevel;
     
     Mipmap.retrieveStoreModes( gl, psm );
-    newImage = ByteBuffer.allocateDirect( Mipmap.image_size( width, 1, format, 
+    try {
+      newImage = ByteBuffer.allocateDirect( Mipmap.image_size( width, 1, format, 
             GL.GL_UNSIGNED_SHORT ) ).order( ByteOrder.nativeOrder() ).asShortBuffer();
-    newImage_width = width;
-    if( newImage == null ) {
+    } catch( OutOfMemoryError ome ) {
       return( GLU.GLU_OUT_OF_MEMORY );
     }
+    newImage_width = width;
+    
     Image.fill_image( psm, width, 1, format, type, Mipmap.is_index( format ), data, newImage );
     cmpts = Mipmap.elements_per_group( format, type );
     gl.glPixelStorei( GL.GL_UNPACK_ALIGNMENT, 2 );
@@ -101,8 +103,9 @@ public class BuildMipmap {
       } else {
         if( otherImage == null ) {
           memreq = Mipmap.image_size( newwidth, 1, format, GL.GL_UNSIGNED_SHORT );
-          otherImage = ByteBuffer.allocateDirect( memreq ).order( ByteOrder.nativeOrder() ).asShortBuffer();
-          if( otherImage == null ) {
+          try {
+            otherImage = ByteBuffer.allocateDirect( memreq ).order( ByteOrder.nativeOrder() ).asShortBuffer();
+          } catch( OutOfMemoryError ome ) {
             gl.glPixelStorei( GL.GL_UNPACK_ALIGNMENT, psm.getUnpackAlignment() );
             gl.glPixelStorei( GL.GL_UNPACK_SKIP_ROWS, psm.getUnpackSkipRows() );
             gl.glPixelStorei( GL.GL_UNPACK_SKIP_PIXELS, psm.getUnpackSkipPixels() );
@@ -161,13 +164,14 @@ public class BuildMipmap {
       levels = level;
     }
     
-    newImage = ByteBuffer.allocateDirect( Mipmap.image_size( width, height, 
+    try {
+      newImage = ByteBuffer.allocateDirect( Mipmap.image_size( width, height, 
             format, GL.GL_UNSIGNED_SHORT ) ).order( ByteOrder.nativeOrder() ).asShortBuffer();
-    newImage_width = width;
-    newImage_height = height;
-    if( newImage == null ) {
+    } catch( OutOfMemoryError ome ) {
       return( GLU.GLU_OUT_OF_MEMORY );
     }
+    newImage_width = width;
+    newImage_height = height;
     
     Image.fill_image( psm, width, height, format, type, Mipmap.is_index( format ), data, newImage );
     
@@ -187,8 +191,9 @@ public class BuildMipmap {
       } else {
         if( otherImage == null ) {
           memreq = Mipmap.image_size( newwidth[0], newheight[0], format, GL.GL_UNSIGNED_SHORT );
-          otherImage = ByteBuffer.allocateDirect( memreq ).order( ByteOrder.nativeOrder() ).asShortBuffer();
-          if( otherImage == null ) {
+          try {
+            otherImage = ByteBuffer.allocateDirect( memreq ).order( ByteOrder.nativeOrder() ).asShortBuffer();
+          } catch( OutOfMemoryError ome ) {
             gl.glPixelStorei( GL.GL_UNPACK_ALIGNMENT, psm.getUnpackAlignment() );
             gl.glPixelStorei( GL.GL_UNPACK_SKIP_ROWS, psm.getUnpackSkipRows() );
             gl.glPixelStorei( GL.GL_UNPACK_SKIP_PIXELS, psm.getUnpackSkipPixels() );
@@ -285,9 +290,7 @@ public class BuildMipmap {
     if( padding != 0 ) {
       rowsize += psm.getUnpackAlignment() - padding;
     }
-    //data.mark();
-    //data.setIndexInBytes( psm.getUnpackSkipRows() * rowsize + psm.getUnpackSkipPixels() * group_size );
-    //data.mark();
+    
     data.position( psm.getUnpackSkipRows() * rowsize + psm.getUnpackSkipPixels() * group_size );
     data.mark();
     
@@ -322,51 +325,41 @@ public class BuildMipmap {
       }
       memreq = Mipmap.image_size( nextWidth, nextHeight, format, type );
       
-      switch( type ) {
-        case( GL.GL_UNSIGNED_BYTE ):
-        case( GL.GL_BYTE ):
-          dstImage = ByteBuffer.allocateDirect( memreq );
-          break;
-        case( GL.GL_UNSIGNED_SHORT ):
-        case( GL.GL_SHORT ):
-          dstImage = ByteBuffer.allocateDirect( memreq );
-          break;
-        case( GL.GL_UNSIGNED_INT ):
-        case( GL.GL_INT ):
-          dstImage = ByteBuffer.allocateDirect( memreq );
-          break;
-        case( GL.GL_FLOAT ):
-          dstImage = ByteBuffer.allocateDirect( memreq );
-          break;
-        case( GL.GL_UNSIGNED_BYTE_3_3_2 ):
-        case( GL.GL_UNSIGNED_BYTE_2_3_3_REV ):
-          dstImage = ByteBuffer.allocateDirect( memreq );
-          break;
-        case( GL.GL_UNSIGNED_SHORT_5_6_5 ):
-        case( GL.GL_UNSIGNED_SHORT_5_6_5_REV ):
-        case( GL.GL_UNSIGNED_SHORT_4_4_4_4 ):
-        case( GL.GL_UNSIGNED_SHORT_4_4_4_4_REV ):
-        case( GL.GL_UNSIGNED_SHORT_5_5_5_1 ):
-        case( GL.GL_UNSIGNED_SHORT_1_5_5_5_REV ):
-          dstImage = ByteBuffer.allocateDirect( memreq );
-          break;
-        case( GL.GL_UNSIGNED_INT_8_8_8_8 ):
-        case( GL.GL_UNSIGNED_INT_8_8_8_8_REV ):
-        case( GL.GL_UNSIGNED_INT_10_10_10_2 ):
-        case( GL.GL_UNSIGNED_INT_2_10_10_10_REV ):
-          dstImage = ByteBuffer.allocateDirect( memreq );
-          break;
-        default:
-          return( GLU.GLU_INVALID_ENUM );
-      }
-      if( dstImage == null ) {
+      try {
+        switch( type ) {
+          case( GL.GL_UNSIGNED_BYTE ):
+          case( GL.GL_BYTE ):
+          case( GL.GL_UNSIGNED_SHORT ):
+          case( GL.GL_SHORT ):
+          case( GL.GL_UNSIGNED_INT ):
+          case( GL.GL_INT ):
+          case( GL.GL_FLOAT ):
+          case( GL.GL_UNSIGNED_BYTE_3_3_2 ):
+          case( GL.GL_UNSIGNED_BYTE_2_3_3_REV ):
+          case( GL.GL_UNSIGNED_SHORT_5_6_5 ):
+          case( GL.GL_UNSIGNED_SHORT_5_6_5_REV ):
+          case( GL.GL_UNSIGNED_SHORT_4_4_4_4 ):
+          case( GL.GL_UNSIGNED_SHORT_4_4_4_4_REV ):
+          case( GL.GL_UNSIGNED_SHORT_5_5_5_1 ):
+          case( GL.GL_UNSIGNED_SHORT_1_5_5_5_REV ):
+          case( GL.GL_UNSIGNED_INT_8_8_8_8 ):
+          case( GL.GL_UNSIGNED_INT_8_8_8_8_REV ):
+          case( GL.GL_UNSIGNED_INT_10_10_10_2 ):
+          case( GL.GL_UNSIGNED_INT_2_10_10_10_REV ):
+            dstImage = ByteBuffer.allocateDirect( memreq ).order( ByteOrder.nativeOrder() );
+            break;
+          default:
+            return( GLU.GLU_INVALID_ENUM );
+        }
+      } catch( OutOfMemoryError ome ) {
         gl.glPixelStorei( GL.GL_UNPACK_ALIGNMENT, psm.getUnpackAlignment() );
         gl.glPixelStorei( GL.GL_UNPACK_SKIP_ROWS, psm.getUnpackSkipRows() );
         gl.glPixelStorei( GL.GL_UNPACK_SKIP_PIXELS, psm.getUnpackSkipPixels() );
         gl.glPixelStorei( GL.GL_UNPACK_ROW_LENGTH, psm.getUnpackRowLength() );
         gl.glPixelStorei( GL.GL_UNPACK_SWAP_BYTES, (psm.getUnpackSwapBytes() ? 1 : 0) );
         return( GLU.GLU_OUT_OF_MEMORY );
-      } else {
+      }
+      if( dstImage != null ) {
         switch( type ) {
           case( GL.GL_UNSIGNED_BYTE ):
             HalveImage.halveImage_ubyte( cmpts, width, height, data, dstImage, element_size, rowsize, group_size );
@@ -449,44 +442,33 @@ public class BuildMipmap {
       tempImage = srcImage;
       srcImage = dstImage;
       dstImage = tempImage;
-      switch( type ) {
-        case( GL.GL_UNSIGNED_BYTE ):
-        case( GL.GL_BYTE ):
-          dstImage = ByteBuffer.allocateDirect( memreq ).order( ByteOrder.nativeOrder() );
-          break;
-        case( GL.GL_UNSIGNED_SHORT ):
-        case( GL.GL_SHORT ):
-          dstImage = ByteBuffer.allocateDirect( memreq ).order( ByteOrder.nativeOrder() );
-          break;
-        case( GL.GL_UNSIGNED_INT ):
-        case( GL.GL_INT ):
-          dstImage = ByteBuffer.allocateDirect( memreq ).order( ByteOrder.nativeOrder() );
-          break;
-        case( GL.GL_FLOAT ):
-          dstImage = ByteBuffer.allocateDirect( memreq ).order( ByteOrder.nativeOrder() );
-          break;
-        case( GL.GL_UNSIGNED_BYTE_3_3_2 ):
-        case( GL.GL_UNSIGNED_BYTE_2_3_3_REV ):
-          dstImage = ByteBuffer.allocateDirect( memreq ).order( ByteOrder.nativeOrder() );
-          break;
-        case( GL.GL_UNSIGNED_SHORT_5_6_5 ):
-        case( GL.GL_UNSIGNED_SHORT_5_6_5_REV ):
-        case( GL.GL_UNSIGNED_SHORT_4_4_4_4 ):
-        case( GL.GL_UNSIGNED_SHORT_4_4_4_4_REV ):
-        case( GL.GL_UNSIGNED_SHORT_5_5_5_1 ):
-        case( GL.GL_UNSIGNED_SHORT_1_5_5_5_REV ):
-          dstImage = ByteBuffer.allocateDirect( memreq ).order( ByteOrder.nativeOrder() );
-          break;
-        case( GL.GL_UNSIGNED_INT_8_8_8_8 ):
-        case( GL.GL_UNSIGNED_INT_8_8_8_8_REV ):
-        case( GL.GL_UNSIGNED_INT_10_10_10_2 ):
-        case( GL.GL_UNSIGNED_INT_2_10_10_10_REV ):
-          dstImage = ByteBuffer.allocateDirect( memreq ).order( ByteOrder.nativeOrder() );
-          break;
-        default:
-          return( GLU.GLU_INVALID_ENUM );
-      }
-      if( dstImage == null ) {
+      try {
+        switch( type ) {
+          case( GL.GL_UNSIGNED_BYTE ):
+          case( GL.GL_BYTE ):
+          case( GL.GL_UNSIGNED_SHORT ):
+          case( GL.GL_SHORT ):
+          case( GL.GL_UNSIGNED_INT ):
+          case( GL.GL_INT ):
+          case( GL.GL_FLOAT ):
+          case( GL.GL_UNSIGNED_BYTE_3_3_2 ):
+          case( GL.GL_UNSIGNED_BYTE_2_3_3_REV ):
+          case( GL.GL_UNSIGNED_SHORT_5_6_5 ):
+          case( GL.GL_UNSIGNED_SHORT_5_6_5_REV ):
+          case( GL.GL_UNSIGNED_SHORT_4_4_4_4 ):
+          case( GL.GL_UNSIGNED_SHORT_4_4_4_4_REV ):
+          case( GL.GL_UNSIGNED_SHORT_5_5_5_1 ):
+          case( GL.GL_UNSIGNED_SHORT_1_5_5_5_REV ):
+          case( GL.GL_UNSIGNED_INT_8_8_8_8 ):
+          case( GL.GL_UNSIGNED_INT_8_8_8_8_REV ):
+          case( GL.GL_UNSIGNED_INT_10_10_10_2 ):
+          case( GL.GL_UNSIGNED_INT_2_10_10_10_REV ):
+            dstImage = ByteBuffer.allocateDirect( memreq ).order( ByteOrder.nativeOrder() );
+            break;
+          default:
+            return( GLU.GLU_INVALID_ENUM );
+        }
+      } catch( OutOfMemoryError ome ) {
         gl.glPixelStorei( GL.GL_UNPACK_ALIGNMENT, psm.getUnpackAlignment() );
         gl.glPixelStorei( GL.GL_UNPACK_SKIP_ROWS, psm.getUnpackSkipRows() );
         gl.glPixelStorei( GL.GL_UNPACK_SKIP_PIXELS, psm.getUnpackSkipPixels() );
@@ -498,44 +480,33 @@ public class BuildMipmap {
       level = userLevel + 1;
     } else { // user's image is not nice powerof2 size square
       memreq = Mipmap.image_size( newwidth, newheight, format, type );
-      switch( type ) {
-        case( GL.GL_UNSIGNED_BYTE ):
-        case( GL.GL_BYTE ):
-          dstImage = ByteBuffer.allocateDirect( memreq ).order( ByteOrder.nativeOrder() );
-          break;
-        case( GL.GL_UNSIGNED_SHORT ):
-        case( GL.GL_SHORT ):
-          dstImage = ByteBuffer.allocateDirect( memreq ).order( ByteOrder.nativeOrder() );
-          break;
-        case( GL.GL_UNSIGNED_INT ):
-        case( GL.GL_INT ):
-          dstImage = ByteBuffer.allocateDirect( memreq ).order( ByteOrder.nativeOrder() );
-          break;
-        case( GL.GL_FLOAT ):
-          dstImage = ByteBuffer.allocateDirect( memreq ).order( ByteOrder.nativeOrder() );
-          break;
-        case( GL.GL_UNSIGNED_BYTE_3_3_2 ):
-        case( GL.GL_UNSIGNED_BYTE_2_3_3_REV ):
-          dstImage = ByteBuffer.allocateDirect( memreq ).order( ByteOrder.nativeOrder() );
-          break;
-        case( GL.GL_UNSIGNED_SHORT_5_6_5 ):
-        case( GL.GL_UNSIGNED_SHORT_5_6_5_REV ):
-        case( GL.GL_UNSIGNED_SHORT_4_4_4_4 ):
-        case( GL.GL_UNSIGNED_SHORT_4_4_4_4_REV ):
-        case( GL.GL_UNSIGNED_SHORT_5_5_5_1 ):
-        case( GL.GL_UNSIGNED_SHORT_1_5_5_5_REV ):
-          dstImage = ByteBuffer.allocateDirect( memreq ).order( ByteOrder.nativeOrder() );
-          break;
-        case( GL.GL_UNSIGNED_INT_8_8_8_8 ):
-        case( GL.GL_UNSIGNED_INT_8_8_8_8_REV ):
-        case( GL.GL_UNSIGNED_INT_10_10_10_2 ):
-        case( GL.GL_UNSIGNED_INT_2_10_10_10_REV ):
-          dstImage = ByteBuffer.allocateDirect( memreq ).order( ByteOrder.nativeOrder() );
-          break;
-        default:
-          return( GLU.GLU_INVALID_ENUM );
-      }
-      if( dstImage == null ) {
+      try { 
+        switch( type ) {
+          case( GL.GL_UNSIGNED_BYTE ):
+          case( GL.GL_BYTE ):
+          case( GL.GL_UNSIGNED_SHORT ):
+          case( GL.GL_SHORT ):
+          case( GL.GL_UNSIGNED_INT ):
+          case( GL.GL_INT ):
+          case( GL.GL_FLOAT ):
+          case( GL.GL_UNSIGNED_BYTE_3_3_2 ):
+          case( GL.GL_UNSIGNED_BYTE_2_3_3_REV ):
+          case( GL.GL_UNSIGNED_SHORT_5_6_5 ):
+          case( GL.GL_UNSIGNED_SHORT_5_6_5_REV ):
+          case( GL.GL_UNSIGNED_SHORT_4_4_4_4 ):
+          case( GL.GL_UNSIGNED_SHORT_4_4_4_4_REV ):
+          case( GL.GL_UNSIGNED_SHORT_5_5_5_1 ):
+          case( GL.GL_UNSIGNED_SHORT_1_5_5_5_REV ):
+          case( GL.GL_UNSIGNED_INT_8_8_8_8 ):
+          case( GL.GL_UNSIGNED_INT_8_8_8_8_REV ):
+          case( GL.GL_UNSIGNED_INT_10_10_10_2 ):
+          case( GL.GL_UNSIGNED_INT_2_10_10_10_REV ):
+            dstImage = ByteBuffer.allocateDirect( memreq ).order( ByteOrder.nativeOrder() );
+            break;
+          default:
+            return( GLU.GLU_INVALID_ENUM );
+        }
+      } catch( OutOfMemoryError ome ) {
         gl.glPixelStorei( GL.GL_UNPACK_ALIGNMENT, psm.getUnpackAlignment() );
         gl.glPixelStorei( GL.GL_UNPACK_SKIP_ROWS, psm.getUnpackSkipRows() );
         gl.glPixelStorei( GL.GL_UNPACK_SKIP_PIXELS, psm.getUnpackSkipPixels() );
@@ -643,45 +614,33 @@ public class BuildMipmap {
         }
         
         memreq = Mipmap.image_size( nextWidth, nextHeight, format, type );
-      
-        switch( type ) {
-          case( GL.GL_UNSIGNED_BYTE ):
-          case( GL.GL_BYTE ):
-            dstImage = ByteBuffer.allocateDirect( memreq ).order( ByteOrder.nativeOrder() );
-            break;
-          case( GL.GL_UNSIGNED_SHORT ):
-          case( GL.GL_SHORT ):
-            dstImage = ByteBuffer.allocateDirect( memreq ).order( ByteOrder.nativeOrder() );
-            break;
-          case( GL.GL_UNSIGNED_INT ):
-          case( GL.GL_INT ):
-            dstImage = ByteBuffer.allocateDirect( memreq ).order( ByteOrder.nativeOrder() );
-            break;
-          case( GL.GL_FLOAT ):
-            dstImage = ByteBuffer.allocateDirect( memreq ).order( ByteOrder.nativeOrder() );
-            break;
-          case( GL.GL_UNSIGNED_BYTE_3_3_2 ):
-          case( GL.GL_UNSIGNED_BYTE_2_3_3_REV ):
-            dstImage = ByteBuffer.allocateDirect( memreq ).order( ByteOrder.nativeOrder() );
-            break;
-          case( GL.GL_UNSIGNED_SHORT_5_6_5 ):
-          case( GL.GL_UNSIGNED_SHORT_5_6_5_REV ):
-          case( GL.GL_UNSIGNED_SHORT_4_4_4_4 ):
-          case( GL.GL_UNSIGNED_SHORT_4_4_4_4_REV ):
-          case( GL.GL_UNSIGNED_SHORT_5_5_5_1 ):
-          case( GL.GL_UNSIGNED_SHORT_1_5_5_5_REV ):
-            dstImage = ByteBuffer.allocateDirect( memreq ).order( ByteOrder.nativeOrder() );
-            break;
-          case( GL.GL_UNSIGNED_INT_8_8_8_8 ):
-          case( GL.GL_UNSIGNED_INT_8_8_8_8_REV ):
-          case( GL.GL_UNSIGNED_INT_10_10_10_2 ):
-          case( GL.GL_UNSIGNED_INT_2_10_10_10_REV ):
-            dstImage = ByteBuffer.allocateDirect( memreq ).order( ByteOrder.nativeOrder() );
-            break;
-          default:
-            return( GLU.GLU_INVALID_ENUM );
-        }
-        if( dstImage == null ) {
+        try {
+          switch( type ) {
+            case( GL.GL_UNSIGNED_BYTE ):
+            case( GL.GL_BYTE ):
+            case( GL.GL_UNSIGNED_SHORT ):
+            case( GL.GL_SHORT ):
+            case( GL.GL_UNSIGNED_INT ):
+            case( GL.GL_INT ):
+            case( GL.GL_FLOAT ):
+            case( GL.GL_UNSIGNED_BYTE_3_3_2 ):
+            case( GL.GL_UNSIGNED_BYTE_2_3_3_REV ):
+            case( GL.GL_UNSIGNED_SHORT_5_6_5 ):
+            case( GL.GL_UNSIGNED_SHORT_5_6_5_REV ):
+            case( GL.GL_UNSIGNED_SHORT_4_4_4_4 ):
+            case( GL.GL_UNSIGNED_SHORT_4_4_4_4_REV ):
+            case( GL.GL_UNSIGNED_SHORT_5_5_5_1 ):
+            case( GL.GL_UNSIGNED_SHORT_1_5_5_5_REV ):
+            case( GL.GL_UNSIGNED_INT_8_8_8_8 ):
+            case( GL.GL_UNSIGNED_INT_8_8_8_8_REV ):
+            case( GL.GL_UNSIGNED_INT_10_10_10_2 ):
+            case( GL.GL_UNSIGNED_INT_2_10_10_10_REV ):
+              dstImage = ByteBuffer.allocateDirect( memreq ).order( ByteOrder.nativeOrder() );
+              break;
+            default:
+              return( GLU.GLU_INVALID_ENUM );
+          }
+        } catch( OutOfMemoryError ome ) {
           gl.glPixelStorei( GL.GL_UNPACK_ALIGNMENT, psm.getUnpackAlignment() );
           gl.glPixelStorei( GL.GL_UNPACK_SKIP_ROWS, psm.getUnpackSkipRows() );
           gl.glPixelStorei( GL.GL_UNPACK_SKIP_PIXELS, psm.getUnpackSkipPixels() );
@@ -829,8 +788,10 @@ public class BuildMipmap {
         int srcTrav;
         
         // allocate new image for mipmap of size newRowLength x newheight
-        ByteBuffer newMipmapImage = ByteBuffer.allocateDirect( newRowLength * newheight );
-        if( newMipmapImage == null ) {
+        ByteBuffer newMipmapImage = null;
+        try {
+          newMipmapImage = ByteBuffer.allocateDirect( newRowLength * newheight );
+        } catch( OutOfMemoryError ome ) {
           gl.glPixelStorei( GL.GL_UNPACK_ALIGNMENT, psm.getUnpackAlignment() );
           gl.glPixelStorei( GL.GL_UNPACK_SKIP_ROWS, psm.getUnpackSkipRows() );
           gl.glPixelStorei( GL.GL_UNPACK_SKIP_PIXELS, psm.getUnpackSkipPixels() );
@@ -923,12 +884,12 @@ public class BuildMipmap {
       try {
         newImage = ByteBuffer.allocateDirect( Mipmap.image_size( 
               width, height, format, GL.GL_UNSIGNED_BYTE ) ).order( ByteOrder.nativeOrder() );
-        newImage_width = width;
-        newImage_height = height;
       } catch( OutOfMemoryError err ) {
         return( GLU.GLU_OUT_OF_MEMORY );
       }
-      
+      newImage_width = width;
+      newImage_height = height;
+
       // Abbreviated version of fill_image for the restricted case.
       if( psm.getUnpackRowLength() > 0 ) {
         group_per_line = psm.getUnpackRowLength();
@@ -1123,22 +1084,19 @@ public class BuildMipmap {
         switch( type ) {
           case( GL.GL_UNSIGNED_BYTE ):
           case( GL.GL_BYTE ):
+          case( GL.GL_UNSIGNED_SHORT ):
+          case( GL.GL_SHORT ):
+          case( GL.GL_UNSIGNED_INT ):
+          case( GL.GL_INT ):
+          case( GL.GL_FLOAT ):
           case( GL.GL_UNSIGNED_BYTE_3_3_2 ):
           case( GL.GL_UNSIGNED_BYTE_2_3_3_REV ):
-            dstImage = ByteBuffer.allocateDirect( memReq ).order( ByteOrder.nativeOrder() );
-            break;
-          case( GL.GL_SHORT ):
-          case( GL.GL_UNSIGNED_SHORT ):
           case( GL.GL_UNSIGNED_SHORT_5_6_5 ):
           case( GL.GL_UNSIGNED_SHORT_5_6_5_REV ):
           case( GL.GL_UNSIGNED_SHORT_4_4_4_4 ):
           case( GL.GL_UNSIGNED_SHORT_4_4_4_4_REV ):
           case( GL.GL_UNSIGNED_SHORT_5_5_5_1 ):
           case( GL.GL_UNSIGNED_SHORT_1_5_5_5_REV ):
-            dstImage = ByteBuffer.allocateDirect( memReq ).order( ByteOrder.nativeOrder() );
-            break;
-          case( GL.GL_INT ):
-          case( GL.GL_UNSIGNED_INT ):
           case( GL.GL_UNSIGNED_INT_8_8_8_8 ):
           case( GL.GL_UNSIGNED_INT_8_8_8_8_REV ):
           case( GL.GL_UNSIGNED_INT_10_10_10_2 ):
@@ -1149,9 +1107,6 @@ public class BuildMipmap {
             return( GLU.GLU_INVALID_ENUM );
         }
       } catch( OutOfMemoryError err ) {
-        dstImage = null;
-      }
-      if( dstImage == null ) {
         gl.glPixelStorei( GL.GL_UNPACK_ALIGNMENT, psm.getUnpackAlignment() );
         gl.glPixelStorei( GL.GL_UNPACK_SKIP_ROWS, psm.getUnpackSkipRows() );
         gl.glPixelStorei( GL.GL_UNPACK_SKIP_PIXELS, psm.getUnpackSkipPixels() );
@@ -1160,7 +1115,9 @@ public class BuildMipmap {
         gl.glPixelStorei( GL.GL_UNPACK_SKIP_IMAGES, psm.getUnpackSkipImages() );
         gl.glPixelStorei( GL.GL_UNPACK_IMAGE_HEIGHT, psm.getUnpackImageHeight() );
         return( GLU.GLU_OUT_OF_MEMORY );
-      } else {
+      }
+      
+      if( dstImage != null ) {
         switch( type ) {
           case( GL.GL_UNSIGNED_BYTE ):
             if( depth > 1 ) {
@@ -1311,40 +1268,31 @@ public class BuildMipmap {
       dstImage = tempImage;
       try {
         switch( type ) {
-          case( GL.GL_BYTE ):
           case( GL.GL_UNSIGNED_BYTE ):
+          case( GL.GL_BYTE ):
+          case( GL.GL_UNSIGNED_SHORT ):
+          case( GL.GL_SHORT ):
+          case( GL.GL_UNSIGNED_INT ):
+          case( GL.GL_INT ):
+          case( GL.GL_FLOAT ):
           case( GL.GL_UNSIGNED_BYTE_3_3_2 ):
           case( GL.GL_UNSIGNED_BYTE_2_3_3_REV ):
-            dstImage = ByteBuffer.allocateDirect( memReq ).order( ByteOrder.nativeOrder() );
-            break;
-          case( GL.GL_SHORT ):
-          case( GL.GL_UNSIGNED_SHORT ):
           case( GL.GL_UNSIGNED_SHORT_5_6_5 ):
           case( GL.GL_UNSIGNED_SHORT_5_6_5_REV ):
           case( GL.GL_UNSIGNED_SHORT_4_4_4_4 ):
           case( GL.GL_UNSIGNED_SHORT_4_4_4_4_REV ):
           case( GL.GL_UNSIGNED_SHORT_5_5_5_1 ):
           case( GL.GL_UNSIGNED_SHORT_1_5_5_5_REV ):
-            dstImage = ByteBuffer.allocateDirect( memReq ).order( ByteOrder.nativeOrder() );
-            break;
-          case( GL.GL_INT ):
-          case( GL.GL_UNSIGNED_INT ):
           case( GL.GL_UNSIGNED_INT_8_8_8_8 ):
           case( GL.GL_UNSIGNED_INT_8_8_8_8_REV ):
           case( GL.GL_UNSIGNED_INT_10_10_10_2 ):
           case( GL.GL_UNSIGNED_INT_2_10_10_10_REV ):
             dstImage = ByteBuffer.allocateDirect( memReq ).order( ByteOrder.nativeOrder() );
             break;
-          case( GL.GL_FLOAT ):
-            dstImage = ByteBuffer.allocateDirect( memReq ).order( ByteOrder.nativeOrder() );
-            break;
           default:
             return( GLU.GLU_INVALID_ENUM );
         }
       } catch( OutOfMemoryError err ) {
-        dstImage = null;
-      }
-      if( dstImage == null ) {
         gl.glPixelStorei( GL.GL_UNPACK_ALIGNMENT, psm.getUnpackAlignment() );
         gl.glPixelStorei( GL.GL_UNPACK_SKIP_ROWS, psm.getUnpackSkipRows() );
         gl.glPixelStorei( GL.GL_UNPACK_SKIP_PIXELS, psm.getUnpackSkipPixels() );
@@ -1354,46 +1302,38 @@ public class BuildMipmap {
         gl.glPixelStorei( GL.GL_UNPACK_IMAGE_HEIGHT, psm.getUnpackImageHeight() );
         return( GLU.GLU_OUT_OF_MEMORY );
       }
+      
       // level userLevel + 1 is in srcImage; level userLevel already saved
       level = userLevel + 1;
     } else {
       memReq = Mipmap.imageSize3D( newWidth, newHeight, newDepth, format, type );
       try {
         switch( type ) {
-          case( GL.GL_BYTE ):
           case( GL.GL_UNSIGNED_BYTE ):
+          case( GL.GL_BYTE ):
+          case( GL.GL_UNSIGNED_SHORT ):
+          case( GL.GL_SHORT ):
+          case( GL.GL_UNSIGNED_INT ):
+          case( GL.GL_INT ):
+          case( GL.GL_FLOAT ):
           case( GL.GL_UNSIGNED_BYTE_3_3_2 ):
           case( GL.GL_UNSIGNED_BYTE_2_3_3_REV ):
-            dstImage = ByteBuffer.allocateDirect( memReq ).order( ByteOrder.nativeOrder() );
-            break;
-          case( GL.GL_SHORT ):
-          case( GL.GL_UNSIGNED_SHORT ):
           case( GL.GL_UNSIGNED_SHORT_5_6_5 ):
           case( GL.GL_UNSIGNED_SHORT_5_6_5_REV ):
           case( GL.GL_UNSIGNED_SHORT_4_4_4_4 ):
           case( GL.GL_UNSIGNED_SHORT_4_4_4_4_REV ):
           case( GL.GL_UNSIGNED_SHORT_5_5_5_1 ):
           case( GL.GL_UNSIGNED_SHORT_1_5_5_5_REV ):
-            dstImage = ByteBuffer.allocateDirect( memReq ).order( ByteOrder.nativeOrder() );
-            break;
-          case( GL.GL_INT ):
-          case( GL.GL_UNSIGNED_INT ):
           case( GL.GL_UNSIGNED_INT_8_8_8_8 ):
           case( GL.GL_UNSIGNED_INT_8_8_8_8_REV ):
           case( GL.GL_UNSIGNED_INT_10_10_10_2 ):
           case( GL.GL_UNSIGNED_INT_2_10_10_10_REV ):
             dstImage = ByteBuffer.allocateDirect( memReq ).order( ByteOrder.nativeOrder() );
             break;
-          case( GL.GL_FLOAT ):
-            dstImage = ByteBuffer.allocateDirect( memReq ).order( ByteOrder.nativeOrder() );
-            break;
           default:
             return( GLU.GLU_INVALID_ENUM );
         }
       } catch( OutOfMemoryError err ) {
-        dstImage = null;
-      }
-      if( dstImage == null ) {
         gl.glPixelStorei( GL.GL_UNPACK_ALIGNMENT, psm.getUnpackAlignment() );
         gl.glPixelStorei( GL.GL_UNPACK_SKIP_ROWS, psm.getUnpackSkipRows() );
         gl.glPixelStorei( GL.GL_UNPACK_SKIP_PIXELS, psm.getUnpackSkipPixels() );
@@ -1431,40 +1371,31 @@ public class BuildMipmap {
         memReq = Mipmap.imageSize3D( nextWidth, nextHeight, nextDepth, format, type );
         try {
           switch( type ) {
-            case( GL.GL_BYTE ):
             case( GL.GL_UNSIGNED_BYTE ):
+            case( GL.GL_BYTE ):
+            case( GL.GL_UNSIGNED_SHORT ):
+            case( GL.GL_SHORT ):
+            case( GL.GL_UNSIGNED_INT ):
+            case( GL.GL_INT ):
+            case( GL.GL_FLOAT ):
             case( GL.GL_UNSIGNED_BYTE_3_3_2 ):
             case( GL.GL_UNSIGNED_BYTE_2_3_3_REV ):
-              dstImage = ByteBuffer.allocateDirect( memReq ).order( ByteOrder.nativeOrder() );
-              break;
-            case( GL.GL_SHORT ):
-            case( GL.GL_UNSIGNED_SHORT ):
             case( GL.GL_UNSIGNED_SHORT_5_6_5 ):
             case( GL.GL_UNSIGNED_SHORT_5_6_5_REV ):
             case( GL.GL_UNSIGNED_SHORT_4_4_4_4 ):
             case( GL.GL_UNSIGNED_SHORT_4_4_4_4_REV ):
             case( GL.GL_UNSIGNED_SHORT_5_5_5_1 ):
             case( GL.GL_UNSIGNED_SHORT_1_5_5_5_REV ):
-              dstImage = ByteBuffer.allocateDirect( memReq ).order( ByteOrder.nativeOrder() );
-              break;
-            case( GL.GL_INT ):
-            case( GL.GL_UNSIGNED_INT ):
             case( GL.GL_UNSIGNED_INT_8_8_8_8 ):
             case( GL.GL_UNSIGNED_INT_8_8_8_8_REV ):
             case( GL.GL_UNSIGNED_INT_10_10_10_2 ):
             case( GL.GL_UNSIGNED_INT_2_10_10_10_REV ):
               dstImage = ByteBuffer.allocateDirect( memReq ).order( ByteOrder.nativeOrder() );
               break;
-            case( GL.GL_FLOAT ):
-              dstImage = ByteBuffer.allocateDirect( memReq ).order( ByteOrder.nativeOrder() );
-              break;
             default:
               return( GLU.GLU_INVALID_ENUM );
           }
         } catch( OutOfMemoryError err ) {
-          dstImage = null;
-        }
-        if( dstImage == null ) {
           gl.glPixelStorei( GL.GL_UNPACK_ALIGNMENT, psm.getUnpackAlignment() );
           gl.glPixelStorei( GL.GL_UNPACK_SKIP_ROWS, psm.getUnpackSkipRows() );
           gl.glPixelStorei( GL.GL_UNPACK_SKIP_PIXELS, psm.getUnpackSkipPixels() );
