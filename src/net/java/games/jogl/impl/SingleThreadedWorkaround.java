@@ -45,10 +45,20 @@ import java.security.PrivilegedAction;
 /** Encapsulates the workaround of running all display operations on
     the AWT event queue thread for the purposes of working around
     problems seen primarily on ATI cards when rendering into a surface
-    that is simultaneously being resized by the event queue thread */
+    that is simultaneously being resized by the event queue thread.
+    <p>
+
+    As of JOGL 1.1 b10, this property defaults to true. Problems have
+    been seen on Windows, Linux and Mac OS X platforms that are solved
+    by switching all OpenGL work to a single thread, which this
+    workaround provides. The forthcoming JSR-231 work will rethink how
+    such a mechanism is implemented, but the core result of needing to
+    perform all OpenGL work on a single thread for best compatibility
+    will remain.
+*/
 
 public class SingleThreadedWorkaround {
-  private static boolean singleThreadedWorkaround = false;
+  private static boolean singleThreadedWorkaround = true;
   // If the user specified the workaround's system property (either
   // true or false), don't let the automatic detection have any effect
   private static boolean systemPropertySpecified = false;
@@ -56,12 +66,16 @@ public class SingleThreadedWorkaround {
   static {
     AccessController.doPrivileged(new PrivilegedAction() {
         public Object run() {
-          String workaround = System.getProperty("JOGL_SINGLE_THREADED_WORKAROUND");
+          String workaround = System.getProperty("jogl.1thread");
           if (workaround == null) {
             // Old system property (for compatibility)
+            workaround = System.getProperty("JOGL_SINGLE_THREADED_WORKAROUND");
+          }
+          if (workaround == null) {
+            // Older system property (for compatibility)
             workaround = System.getProperty("ATI_WORKAROUND");
           }
-          if (workaround != null) {
+          if (workaround != null && (!workaround.equals("auto"))) {
             systemPropertySpecified = true;
             singleThreadedWorkaround = Boolean.valueOf(workaround).booleanValue();
           }

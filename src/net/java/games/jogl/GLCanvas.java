@@ -72,9 +72,9 @@ public final class GLCanvas extends Canvas implements GLDrawable {
   }
   
   public void display() {
-    withSingleThreadedWorkaroundDo(displayOnEventDispatchThreadAction,
-                                   displayAction,
-                                   false);
+    maybeDoSingleThreadedWorkaround(displayOnEventDispatchThreadAction,
+                                    displayAction,
+                                    false);
   }
 
   /** Overridden from Canvas; calls {@link #display}. Should not be
@@ -122,7 +122,7 @@ public final class GLCanvas extends Canvas implements GLDrawable {
           context.invokeGL(reshapeRunnable, true, initAction);
         }
       };
-    withSingleThreadedWorkaroundDo(reshapeOnEDTRunnable, reshapeRunnable, true);
+    maybeDoSingleThreadedWorkaround(reshapeOnEDTRunnable, reshapeRunnable, true);
   }
 
   /** Overridden from Canvas to prevent Java2D's clearing of the
@@ -184,7 +184,7 @@ public final class GLCanvas extends Canvas implements GLDrawable {
   }
 
   public void swapBuffers() {
-    withSingleThreadedWorkaroundDo(swapBuffersOnEventDispatchThreadAction, swapBuffersAction, false);
+    maybeDoSingleThreadedWorkaround(swapBuffersOnEventDispatchThreadAction, swapBuffersAction, false);
   }
 
   public boolean canCreateOffscreenDrawable() {
@@ -205,9 +205,9 @@ public final class GLCanvas extends Canvas implements GLDrawable {
   // Internals only below this point
   //
 
-  private void withSingleThreadedWorkaroundDo(Runnable eventDispatchThreadAction,
-                                              Runnable invokeGLAction,
-                                              boolean  isReshape) {
+  private void maybeDoSingleThreadedWorkaround(Runnable eventDispatchThreadAction,
+                                               Runnable invokeGLAction,
+                                               boolean  isReshape) {
     if (SingleThreadedWorkaround.doWorkaround() && !EventQueue.isDispatchThread()) {
       try {
         // Reshape events must not block on the event queue due to the
