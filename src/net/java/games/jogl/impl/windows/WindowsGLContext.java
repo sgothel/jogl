@@ -257,13 +257,12 @@ public abstract class WindowsGLContext extends GLContext {
     if (onscreen) {
       GLCapabilities[] availableCaps = null;
       int numFormats = 0;
-      pfd = new PIXELFORMATDESCRIPTOR();
+      pfd = newPixelFormatDescriptor();
       GraphicsDevice device = component.getGraphicsConfiguration().getDevice();
       // Produce a recommended pixel format selection for the GLCapabilitiesChooser.
       // Try to use wglChoosePixelFormatARB if we have it available
       GL dummyGL = WindowsGLContextFactory.getDummyGLContext(device);
       int recommendedPixelFormat = -1;
-      pfd = new PIXELFORMATDESCRIPTOR();
       boolean haveWGLChoosePixelFormatARB = false;
       boolean haveWGLARBMultisample = false;
       if (dummyGL != null) {
@@ -472,9 +471,7 @@ public abstract class WindowsGLContext extends GLContext {
     if (colorDepth < 15) {
       throw new GLException("Bit depths < 15 (i.e., non-true-color) not supported");
     }
-    PIXELFORMATDESCRIPTOR pfd = new PIXELFORMATDESCRIPTOR();
-    pfd.nSize((short) pfd.size());
-    pfd.nVersion((short) 1);
+    PIXELFORMATDESCRIPTOR pfd = newPixelFormatDescriptor();
     int pfdFlags = (WGL.PFD_SUPPORT_OPENGL |
                     WGL.PFD_GENERIC_ACCELERATED);
     if (caps.getDoubleBuffered()) {
@@ -496,6 +493,13 @@ public abstract class WindowsGLContext extends GLContext {
     pfd.cBlueBits ((byte) caps.getBlueBits());
     pfd.cDepthBits((byte) caps.getDepthBits());
     pfd.iLayerType((byte) WGL.PFD_MAIN_PLANE);
+    return pfd;
+  }
+
+  static PIXELFORMATDESCRIPTOR newPixelFormatDescriptor() {
+    PIXELFORMATDESCRIPTOR pfd = new PIXELFORMATDESCRIPTOR();
+    pfd.nSize((short) pfd.size());
+    pfd.nVersion((short) 1);
     return pfd;
   }
 
