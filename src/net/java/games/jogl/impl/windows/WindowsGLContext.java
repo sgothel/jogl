@@ -164,7 +164,7 @@ public abstract class WindowsGLContext extends GLContext {
     }
   }
 
-  protected abstract void swapBuffers() throws GLException;
+  public abstract void swapBuffers() throws GLException;
 
   protected long dynamicLookupFunction(String glFuncName) {
     long res = WGL.wglGetProcAddress(glFuncName);

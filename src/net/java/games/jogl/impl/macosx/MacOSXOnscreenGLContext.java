@@ -156,7 +156,7 @@ public class MacOSXOnscreenGLContext extends MacOSXGLContext {
     }
   }
     
-  protected synchronized void swapBuffers() throws GLException {
+  public synchronized void swapBuffers() throws GLException {
     if (!CGL.flushBuffer(nsContext, nsView)) {
       throw new GLException("Error swapping buffers");
     }

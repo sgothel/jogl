@@ -396,7 +396,7 @@ public class WindowsPbufferGLContext extends WindowsGLContext {
     }
   }
 
-  protected void swapBuffers() throws GLException {
+  public void swapBuffers() throws GLException {
     // FIXME: do we need to do anything if the pbuffer is double-buffered?
     // For now, just grab the pixels for the render-to-texture support.
     if (rtt && !hasRTT) {

@@ -136,7 +136,7 @@ public class X11OnscreenGLContext extends X11GLContext {
     }
   }
 
-  protected synchronized void swapBuffers() throws GLException {
+  public synchronized void swapBuffers() throws GLException {
     // FIXME: this cast to int would be wrong on 64-bit platforms
     // where the argument type to glXMakeCurrent would change (should
     // probably make GLXDrawable, and maybe XID, Opaque as long)

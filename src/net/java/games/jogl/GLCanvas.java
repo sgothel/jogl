@@ -160,6 +160,18 @@ public final class GLCanvas extends Canvas implements GLDrawable {
     return context.getNoAutoRedrawMode();
   }
 
+  public void setAutoSwapBufferMode(boolean onOrOff) {
+    context.setAutoSwapBufferMode(onOrOff);
+  }
+
+  public boolean getAutoSwapBufferMode() {
+    return context.getAutoSwapBufferMode();
+  }
+
+  public void swapBuffers() {
+    context.invokeGL(swapBuffersAction, false, initAction);
+  }
+
   public boolean canCreateOffscreenDrawable() {
     return context.canCreatePbufferContext();
   }
@@ -195,4 +207,11 @@ public final class GLCanvas extends Canvas implements GLDrawable {
     }
   }
   private DisplayAction displayAction = new DisplayAction();
+
+  class SwapBuffersAction implements Runnable {
+    public void run() {
+      context.swapBuffers();
+    }
+  }
+  private SwapBuffersAction swapBuffersAction = new SwapBuffersAction();
 }

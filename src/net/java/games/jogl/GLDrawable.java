@@ -170,6 +170,24 @@ public interface GLDrawable extends ComponentEvents {
       drawable. Defaults to false. */
   public boolean getNoAutoRedrawMode();
 
+  /** Enables or disables automatic buffer swapping for this drawable.
+      By default this property is set to true; when true, after all
+      GLEventListeners have been called for a display() event, the
+      front and back buffers are swapped, displaying the results of
+      the render. When disabled, the user is responsible for calling
+      {@link #swapBuffers} manually. */
+  public void setAutoSwapBufferMode(boolean onOrOff);
+
+  /** Indicates whether automatic buffer swapping is enabled for this
+      drawable. See {@link #setAutoBufferSwapMode}. */
+  public boolean getAutoSwapBufferMode();
+
+  /** Swaps the front and back buffers of this drawable. When
+      automatic buffer swapping is enabled (as is the default), it is
+      not necessary to call this method and doing so may have
+      undefined results. */
+  public void swapBuffers();
+
   /** Indicates whether this drawable is capable of fabricating a
       subordinate offscreen drawable for advanced rendering techniques
       which require offscreen hardware-accelerated surfaces. */

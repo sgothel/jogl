@@ -46,39 +46,39 @@ import net.java.games.jogl.*;
     methods to be able to share it between GLCanvas and GLJPanel. */
 
 public class GLDrawableHelper {
-  private List listeners = new ArrayList();
+  private volatile List listeners = new ArrayList();
 
   public GLDrawableHelper() {
   }
 
-  public void addGLEventListener(GLEventListener listener) {
-    listeners.add(listener);
+  public synchronized void addGLEventListener(GLEventListener listener) {
+    List newListeners = (List) ((ArrayList) listeners).clone();
+    newListeners.add(listener);
+    listeners = newListeners;
   }
   
-  public void removeGLEventListener(GLEventListener listener) {
-    listeners.remove(listener);
+  public synchronized void removeGLEventListener(GLEventListener listener) {
+    List newListeners = (List) ((ArrayList) listeners).clone();
+    newListeners.remove(listener);
+    listeners = newListeners;
   }
 
   public void init(GLDrawable drawable) {
-    // Note that we don't use iterator() since listeners may
-    // add/remove other listeners during initialization. We don't
-    // guarantee that all listeners will be evaluated if
-    // removeGLEventListener is called.
-    for (int i = 0; i < listeners.size(); i++) {
-      ((GLEventListener) listeners.get(i)).init(drawable);
+    for (Iterator iter = listeners.iterator(); iter.hasNext(); ) {
+      ((GLEventListener) iter.next()).init(drawable);
     }
   }
 
   public void display(GLDrawable drawable) {
-    for (int i = 0; i < listeners.size(); i++) {
-      ((GLEventListener) listeners.get(i)).display(drawable);
+    for (Iterator iter = listeners.iterator(); iter.hasNext(); ) {
+      ((GLEventListener) iter.next()).display(drawable);
     }
   }
 
   public void reshape(GLDrawable drawable,
                       int x, int y, int width, int height) {
-    for (int i = 0; i < listeners.size(); i++) {
-      ((GLEventListener) listeners.get(i)).reshape(drawable, x, y, width, height);
+    for (Iterator iter = listeners.iterator(); iter.hasNext(); ) {
+      ((GLEventListener) iter.next()).reshape(drawable, x, y, width, height);
     }
   }
 }

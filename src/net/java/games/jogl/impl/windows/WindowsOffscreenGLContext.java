@@ -128,7 +128,7 @@ public class WindowsOffscreenGLContext extends WindowsGLContext {
     return super.makeCurrent(initAction);
   }
 
-  protected synchronized void swapBuffers() throws GLException {
+  public synchronized void swapBuffers() throws GLException {
   }
 
   protected void create() {

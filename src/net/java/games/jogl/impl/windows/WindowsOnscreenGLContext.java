@@ -135,7 +135,7 @@ public class WindowsOnscreenGLContext extends WindowsGLContext {
     }
   }
 
-  protected synchronized void swapBuffers() throws GLException {
+  public synchronized void swapBuffers() throws GLException {
     if (!WGL.SwapBuffers(hdc)) {
       throw new GLException("Error swapping buffers");
     }

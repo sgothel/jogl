@@ -100,7 +100,7 @@ public class MacOSXPbufferGLContext extends MacOSXGLContext {
     return false;
   }
 
-  protected void swapBuffers() throws GLException {
+  public void swapBuffers() throws GLException {
     // FIXME: do we need to do anything if the pbuffer is double-buffered?
   }
 

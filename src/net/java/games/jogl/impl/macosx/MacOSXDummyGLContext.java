@@ -98,7 +98,7 @@ class MacOSXDummyGLContext extends MacOSXGLContext
     throw new GLException("Should not call this");
   }
 	
-  protected synchronized void swapBuffers() throws GLException {
+  public synchronized void swapBuffers() throws GLException {
     throw new GLException("Should not call this");
   }
 	

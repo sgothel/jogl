@@ -100,6 +100,6 @@ public class MacOSXOffscreenGLContext extends MacOSXPbufferGLContext
     return super.makeCurrent(initAction);
   }
 	
-  protected synchronized void swapBuffers() throws GLException {
+  public synchronized void swapBuffers() throws GLException {
   }	
 }

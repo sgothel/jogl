@@ -135,7 +135,7 @@ public class X11OffscreenGLContext extends X11GLContext {
     return super.makeCurrent(initAction);
   }
 
-  protected synchronized void swapBuffers() throws GLException {
+  public synchronized void swapBuffers() throws GLException {
   }
 
   protected synchronized void free() throws GLException {

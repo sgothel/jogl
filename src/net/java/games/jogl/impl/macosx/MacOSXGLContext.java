@@ -159,7 +159,7 @@ public abstract class MacOSXGLContext extends GLContext
       }
   }
 	
-  protected abstract void swapBuffers() throws GLException;
+  public abstract void swapBuffers() throws GLException;
 	
   protected long dynamicLookupFunction(String glFuncName) {
     return CGL.getProcAddress(glFuncName);

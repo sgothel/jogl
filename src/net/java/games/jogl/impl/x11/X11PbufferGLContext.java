@@ -313,7 +313,7 @@ public class X11PbufferGLContext extends X11GLContext {
     }
   }
 
-  protected void swapBuffers() throws GLException {
+  public void swapBuffers() throws GLException {
     // FIXME: do we need to do anything if the pbuffer is double-buffered?
   }
 
