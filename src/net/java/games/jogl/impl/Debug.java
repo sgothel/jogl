@@ -40,6 +40,7 @@
 package net.java.games.jogl.impl;
 
 import java.security.*;
+import net.java.games.jogl.Version;
 
 /** Helper routines for logging and debugging. */
 
@@ -51,6 +52,9 @@ public class Debug {
   static {
     verbose = isPropertyDefined("jogl.verbose");
     debugAll = isPropertyDefined("jogl.debug");
+    if (verbose) {
+      System.err.println("JOGL version " + Version.getVersion());
+    }
   }
 
   public static boolean getBooleanProperty(final String property) {
