@@ -62,6 +62,7 @@ public class WindowsPbufferGLContext extends WindowsGLContext {
   // State for render-to-texture and render-to-texture-rectangle support
   private boolean created;
   private boolean rtt;       // render-to-texture?
+  private boolean hasRTT;    // render-to-texture extension available?
   private boolean rect;      // render-to-texture-rectangle?
   private int textureTarget; // e.g. GL_TEXTURE_2D, GL_TEXTURE_RECTANGLE_NV
   private int texture;       // actual texture object
@@ -93,15 +94,13 @@ public class WindowsPbufferGLContext extends WindowsGLContext {
     }
     GL gl = getGL();
     gl.glBindTexture(textureTarget, texture);
-    // Note: this test was on the rtt variable in NVidia's code but I
-    // think it doesn't make sense written that way
-    if (rect) {
+    if (rtt && hasRTT) {
       if (!gl.wglBindTexImageARB(buffer, GL.WGL_FRONT_LEFT_ARB)) {
         throw new GLException("Binding of pbuffer to texture failed: " + wglGetLastError());
       }
     }
-    // Note that if the render-to-texture-rectangle extension is not
-    // specified, we perform a glCopyTexImage2D in swapBuffers().
+    // Note that if the render-to-texture extension is not supported,
+    // we perform a glCopyTexImage2D in swapBuffers().
   }
 
   public void releasePbufferFromTexture() {
@@ -109,7 +108,7 @@ public class WindowsPbufferGLContext extends WindowsGLContext {
       throw new GLException("Shouldn't try to bind a pbuffer to a texture if render-to-texture hasn't been " +
                             "specified in its GLCapabilities");
     }
-    if (rect) {
+    if (rtt && hasRTT) {
       GL gl = getGL();
       if (!gl.wglReleaseTexImageARB(buffer, GL.WGL_FRONT_LEFT_ARB)) {
         throw new GLException("Releasing of pbuffer from texture failed: " + wglGetLastError());
@@ -182,6 +181,8 @@ public class WindowsPbufferGLContext extends WindowsGLContext {
       iattributes[niattribs++] = GL.GL_TRUE;
     }
 
+    // FIXME: using NVidia-specific extensions and enums, as well as
+    // confusing render-to-texture with render-to-texture-rectangle
     if (useFloat) {
       iattributes[niattribs++] = GL.WGL_FLOAT_COMPONENTS_NV;
       iattributes[niattribs++] = GL.GL_TRUE;
@@ -321,32 +322,39 @@ public class WindowsPbufferGLContext extends WindowsGLContext {
           System.err.println("Initializing render-to-texture support");
         }
 
-        GL gl = getGL();
-        if (rect && !gl.isExtensionAvailable("GL_NV_texture_rectangle")) {
-          System.err.println("WindowsPbufferGLContext: WARNING: GL_NV_texture_rectangle extension not " +
-                             "supported; skipping requested render_to_texture_rectangle support for pbuffer");
-          rect = false;
-        }
-        if (rect) {
-          if (DEBUG) {
-            System.err.println("  Using render-to-texture-rectangle");
-          }
-          textureTarget = GL.GL_TEXTURE_RECTANGLE_NV;
+        if (!gl.isExtensionAvailable("WGL_ARB_render_texture")) {
+          System.err.println("WindowsPbufferGLContext: WARNING: WGL_ARB_render_texture extension not " +
+                             "supported; implementing render_to_texture support using slow texture readback");
         } else {
-          if (DEBUG) {
-            System.err.println("  Using vanilla render-to-texture");
+          hasRTT = true;
+          GL gl = getGL();
+
+          if (rect && !gl.isExtensionAvailable("GL_NV_texture_rectangle")) {
+            System.err.println("WindowsPbufferGLContext: WARNING: GL_NV_texture_rectangle extension not " +
+                               "supported; skipping requested render_to_texture_rectangle support for pbuffer");
+            rect = false;
           }
-          textureTarget = GL.GL_TEXTURE_2D;
+          if (rect) {
+            if (DEBUG) {
+              System.err.println("  Using render-to-texture-rectangle");
+            }
+            textureTarget = GL.GL_TEXTURE_RECTANGLE_NV;
+          } else {
+            if (DEBUG) {
+              System.err.println("  Using vanilla render-to-texture");
+            }
+            textureTarget = GL.GL_TEXTURE_2D;
+          }
+          int[] tmp = new int[1];
+          gl.glGenTextures(1, tmp);
+          texture = tmp[0];
+          gl.glBindTexture(textureTarget, texture);
+          gl.glTexParameteri(textureTarget, GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST);
+          gl.glTexParameteri(textureTarget, GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST);
+          gl.glTexParameteri(textureTarget, GL.GL_TEXTURE_WRAP_S, GL.GL_CLAMP_TO_EDGE);
+          gl.glTexParameteri(textureTarget, GL.GL_TEXTURE_WRAP_T, GL.GL_CLAMP_TO_EDGE);
+          gl.glCopyTexImage2D(textureTarget, 0, GL.GL_RGB, 0, 0, width, height, 0);
         }
-        int[] tmp = new int[1];
-        gl.glGenTextures(1, tmp);
-        texture = tmp[0];
-        gl.glBindTexture(textureTarget, texture);
-        gl.glTexParameteri(textureTarget, GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST);
-        gl.glTexParameteri(textureTarget, GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST);
-        gl.glTexParameteri(textureTarget, GL.GL_TEXTURE_WRAP_S, GL.GL_CLAMP_TO_EDGE);
-        gl.glTexParameteri(textureTarget, GL.GL_TEXTURE_WRAP_T, GL.GL_CLAMP_TO_EDGE);
-        gl.glCopyTexImage2D(textureTarget, 0, GL.GL_RGB, 0, 0, width, height, 0);
       }
     }
     return res;
@@ -391,7 +399,7 @@ public class WindowsPbufferGLContext extends WindowsGLContext {
   protected void swapBuffers() throws GLException {
     // FIXME: do we need to do anything if the pbuffer is double-buffered?
     // For now, just grab the pixels for the render-to-texture support.
-    if (rtt && !rect) {
+    if (rtt && !hasRTT) {
       if (DEBUG) {
         System.err.println("Copying pbuffer data to GL_TEXTURE_2D state");
       }
