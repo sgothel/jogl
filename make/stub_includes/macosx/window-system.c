@@ -3,11 +3,18 @@
 
 typedef int Bool;
 
-void* createContext(void* nsView, void* shareContext);
-Bool  makeCurrentContext(void* nsView, void* nsContext);
-Bool  clearCurrentContext(void* nsView, void* nsContext);
-void  updateContext(void* nsView, void* nsContext);
-Bool  deleteContext(void* nsView, void* nsContext);
-Bool  flushBuffer(void* nsView, void* nsContext);
+void* createContext(void* shareContext, void* nsView);
+Bool  makeCurrentContext(void* nsContext, void* nsView);
+Bool  clearCurrentContext(void* nsContext, void* nsView);
+Bool  deleteContext(void* nsContext, void* nsView);
+Bool  flushBuffer(void* nsContext, void* nsView);
+
+void* updateContextRegister(void* nsContext, void* nsView);
+void  updateContextUnregister(void* nsContext, void* nsView, void* updater);
+
+void* createPBuffer(void* nsContext, int width, int height);
+Bool destroyPBuffer(void* nsContext, void* pBuffer);
+int bindPBuffer(void* nsContext, void* pBuffer);
+void unbindPBuffer(void* nsContext, void* pBuffer, int pBufferTextureName);
 
 void* getProcAddress(const char *procName);

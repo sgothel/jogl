@@ -48,12 +48,11 @@ public class MacOSXOffscreenGLContext extends MacOSXGLContext
   // Width and height of the underlying bitmap
   private int  width;
   private int  height;
-	
+  
   public MacOSXOffscreenGLContext(GLCapabilities capabilities,
                                   GLCapabilitiesChooser chooser,
                                   GLContext shareWith) {
     super(null, capabilities, chooser, shareWith);
-    System.err.println("MacOSXOffscreenGLContext not implemented yet");
   }
 	
   protected GL createGL() {
@@ -65,15 +64,10 @@ public class MacOSXOffscreenGLContext extends MacOSXGLContext
   }
 	
   public int getOffscreenContextBufferedImageType() {
-    if (capabilities.getAlphaBits() > 0) {
       return BufferedImage.TYPE_INT_ARGB;
-    } else {
-      return BufferedImage.TYPE_INT_RGB;
-    }
   }
 	
   public int getOffscreenContextReadBuffer() {
-    // On Windows these nsContexts are always single-buffered
     return GL.GL_FRONT;
   }
 	
@@ -100,22 +94,23 @@ public class MacOSXOffscreenGLContext extends MacOSXGLContext
   }
 	
   protected synchronized boolean makeCurrent(Runnable initAction) throws GLException {
-    return false;
+    if (pendingOffscreenResize) {
+      if (pendingOffscreenWidth != width || pendingOffscreenHeight != height) {
+        if (nsContext != 0) {
+          destroy();
+        }
+        width  = pendingOffscreenWidth;
+        height = pendingOffscreenHeight;
+        pendingOffscreenResize = false;
+      }
+    }
+    return super.makeCurrent(initAction);
   }
 	
   protected synchronized void swapBuffers() throws GLException {
-    throw new GLException("Not yet implemented");
-  }
-	
-  protected synchronized void free() throws GLException {
-    throw new GLException("Not yet implemented");
-  }
-
-  protected void create() {
-    throw new GLException("Not yet implemented");
   }
 	
   private void destroy() {
-    throw new GLException("Not yet implemented");
+	free();
   }
 }

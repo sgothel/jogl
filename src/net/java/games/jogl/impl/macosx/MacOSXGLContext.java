@@ -49,6 +49,8 @@ public abstract class MacOSXGLContext extends GLContext
 {	
   private static JAWT jawt;
   protected long nsContext; // NSOpenGLContext
+  protected long nsView; // NSView
+  protected long updater; // ContextUpdater
   // Table that holds the addresses of the native C-language entry points for
   // OpenGL functions.
   private GLProcAddressTable glProcAddressTable;
@@ -61,6 +63,11 @@ public abstract class MacOSXGLContext extends GLContext
     super(component, capabilities, chooser, shareWith);
   }
 	
+  protected GL createGL()
+  {
+    return new MacOSXGLImpl(this);
+  }
+  
   protected String mapToRealGLFunctionName(String glFunctionName)
   {
     return glFunctionName;
@@ -88,11 +95,51 @@ public abstract class MacOSXGLContext extends GLContext
    * Creates and initializes an appropriate OpenGl nsContext. Should only be
    * called by {@link makeCurrent(Runnable)}.
    */
-  protected abstract void create();
+  protected void create() {
+    MacOSXGLContext other = (MacOSXGLContext) GLContextShareSet.getShareContext(this);
+    long share = 0;
+    if (other != null) {
+      share = other.getNSContext();
+      if (share == 0) {
+        throw new GLException("GLContextShareSet returned an invalid OpenGL context");
+      }
+    }
+    nsContext = CGL.createContext(share, nsView);
+    if (nsContext == 0) {
+      throw new GLException("Error creating nsContext");
+    }
+	updater = CGL.updateContextRegister(nsContext, nsView);
+    GLContextShareSet.contextCreated(this);
+  }    
 	
-  protected abstract boolean makeCurrent(Runnable initAction) throws GLException;
+  protected synchronized boolean makeCurrent(Runnable initAction) throws GLException {
+      boolean created = false;
+      if (nsContext == 0) {
+        create();
+        if (DEBUG) {
+          System.err.println("!!! Created GL nsContext for " + getClass().getName());
+        }
+        created = true;
+      }
+            
+      if (!CGL.makeCurrentContext(nsContext, nsView)) {
+        throw new GLException("Error making nsContext current");
+      }
+            
+      if (created) {
+        resetGLFunctionAvailability();
+        if (initAction != null) {
+          initAction.run();
+        }
+      }
+      return true;
+  }
 	
-  protected abstract void free() throws GLException;
+  protected synchronized void free() throws GLException {
+      if (!CGL.clearCurrentContext(nsContext, nsView)) {
+        throw new GLException("Error freeing OpenGL nsContext");
+      }
+  }
 	
   protected abstract void swapBuffers() throws GLException;
 	
@@ -134,6 +181,10 @@ public abstract class MacOSXGLContext extends GLContext
 	
   protected long getNSContext() {
     return nsContext;
+  }
+
+  protected long getNSView() {
+    return nsView;
   }
 
   protected JAWT getJAWT()

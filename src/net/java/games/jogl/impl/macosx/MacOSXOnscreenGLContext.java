@@ -50,33 +50,17 @@ public class MacOSXOnscreenGLContext extends MacOSXGLContext {
   private JAWT_DrawingSurface ds;
   private JAWT_DrawingSurfaceInfo dsi;
   private JAWT_MacOSXDrawingSurfaceInfo macosxdsi;
-  private long nsView; // NSView
-  private Runnable myDeferredReshapeAction;
     
+  // Variables for pbuffer support
+  List pbuffersToInstantiate = new ArrayList();
+
   public MacOSXOnscreenGLContext(Component component,
                                  GLCapabilities capabilities,
                                  GLCapabilitiesChooser chooser,
                                  GLContext shareWith) {
     super(component, capabilities, chooser, shareWith);
   }
-    
-  public synchronized void invokeGL(final Runnable runnable, boolean isReshape, Runnable initAction) throws GLException {
-    if (isReshape) {
-      myDeferredReshapeAction = new Runnable() {
-          public void run() {
-            CGL.updateContext(nsView, nsContext);
-            runnable.run();
-          }
-        };
-    } else {
-      if (myDeferredReshapeAction != null) {
-        super.invokeGL(myDeferredReshapeAction, true, initAction);
-        myDeferredReshapeAction = null;
-      }
-      super.invokeGL(runnable, isReshape, initAction);
-    }
-  }
-    
+
   protected GL createGL() {
     return new MacOSXGLImpl(this);
   }
@@ -98,12 +82,13 @@ public class MacOSXOnscreenGLContext extends MacOSXGLContext {
   }
     
   public boolean canCreatePbufferContext() {
-    // For now say no
-    return false;
+    return true;
   }
     
   public synchronized GLContext createPbufferContext(GLCapabilities capabilities, int initialWidth, int initialHeight) {
-    throw new GLException("Not supported");
+    MacOSXPbufferGLContext ctx = new MacOSXPbufferGLContext(capabilities, initialWidth, initialHeight);
+    pbuffersToInstantiate.add(ctx);
+    return ctx;
   }
     
   public void bindPbufferToTexture() {
@@ -122,72 +107,42 @@ public class MacOSXOnscreenGLContext extends MacOSXGLContext {
     // yet on this platform. This method can be deleted once
     // the update for that release ships.
   }
-
-  protected void create() {
-    MacOSXGLContext other = (MacOSXGLContext) GLContextShareSet.getShareContext(this);
-    long share = 0;
-    if (other != null) {
-      share = other.getNSContext();
-      if (share == 0) {
-        throw new GLException("GLContextShareSet returned an invalid OpenGL context");
-      }
-    }
-    nsContext = CGL.createContext(nsView, share);
-    if (nsContext == 0) {
-      throw new GLException("Error creating nsContext");
-    }
-    GLContextShareSet.contextCreated(this);
-  }    
     
   protected synchronized boolean makeCurrent(Runnable initAction) throws GLException {
     try {
       if (!lockSurface()) {
         return false;
       }
-            
-      boolean created = false;
-      if (nsContext == 0) {
-        create();
-        if (DEBUG) {
-          System.err.println("!!! Created GL nsContext for " + getClass().getName());
-        }
-        created = true;
-      }
-            
-      if (!CGL.makeCurrentContext(nsView, nsContext)) {
-        throw new GLException("Error making nsContext current");
-      }
-            
-      if (created) {
-        resetGLFunctionAvailability();
-        if (initAction != null) {
-          initAction.run();
+      boolean ret = super.makeCurrent(initAction);
+      if (ret) {
+        // Instantiate any pending pbuffers
+        while (!pbuffersToInstantiate.isEmpty()) {
+          MacOSXPbufferGLContext ctx =
+            (MacOSXPbufferGLContext) pbuffersToInstantiate.remove(pbuffersToInstantiate.size() - 1);
+          ctx.createPbuffer(nsView, nsContext);
         }
       }
-      return true;
+      return ret;
     } catch (RuntimeException e) {
       try {
         unlockSurface();
       } catch (Exception e2) {
         // do nothing if unlockSurface throws
       }
-            
       throw(e); 
     }
   }
     
   protected synchronized void free() throws GLException {
     try {
-      if (!CGL.clearCurrentContext(nsView, nsContext)) {
-        throw new GLException("Error freeing OpenGL nsContext");
-      }
+      super.free();
     } finally {
       unlockSurface();
     }
   }
     
   protected synchronized void swapBuffers() throws GLException {
-    if (!CGL.flushBuffer(nsView, nsContext)) {
+    if (!CGL.flushBuffer(nsContext, nsView)) {
       throw new GLException("Error swapping buffers");
     }
   }
@@ -212,7 +167,8 @@ public class MacOSXOnscreenGLContext extends MacOSXGLContext {
     // OpenGL nsContext so it will be recreated
     if ((res & JAWTFactory.JAWT_LOCK_SURFACE_CHANGED) != 0) {
       if (nsContext != 0) {
-        if (!CGL.deleteContext(nsView, nsContext)) {
+		CGL.updateContextUnregister(nsContext, nsView, updater);
+        if (!CGL.deleteContext(nsContext, nsView)) {
           throw new GLException("Unable to delete old GL nsContext after surface changed");
         }
       }
