@@ -122,7 +122,20 @@ public abstract class MacOSXGLContext extends GLContext
         throw new GLException("GLContextShareSet returned an invalid OpenGL context");
       }
     }
-    nsContext = CGL.createContext( capabilities, share, nsView);
+    nsContext = CGL.createContext(share,
+                                  nsView,
+                                  capabilities.getRedBits(),
+                                  capabilities.getGreenBits(),
+                                  capabilities.getBlueBits(),
+                                  capabilities.getAlphaBits(),
+                                  capabilities.getDepthBits(),
+                                  capabilities.getStencilBits(),
+                                  capabilities.getAccumRedBits(),
+                                  capabilities.getAccumGreenBits(),
+                                  capabilities.getAccumBlueBits(),
+                                  capabilities.getAccumAlphaBits(),
+                                  capabilities.getSampleBuffers() ? 1 : 0,
+                                  capabilities.getNumSamples());
     if (nsContext == 0) {
       throw new GLException("Error creating nsContext");
     }

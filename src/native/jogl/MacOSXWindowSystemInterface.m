@@ -16,45 +16,23 @@ typedef int Bool;
 
 NSAutoreleasePool* gAutoreleasePool = NULL;
 
-void* createContext( JNIEnv* env, jobject glCapabilities, void* shareContext, void* view)
+void* createContext(void* shareContext, void* view,
+                    int redBits,
+                    int greenBits,
+                    int blueBits,
+                    int alphaBits,
+                    int depthBits,
+                    int stencilBits,
+                    int accumRedBits,
+                    int accumGreenBits,
+                    int accumBlueBits,
+                    int accumAlphaBits,
+                    int sampleBuffers,
+                    int numSamples)
 {
-        // fprintf( stderr, "Creating context \n");
-
-	jclass clazz = (*env)->GetObjectClass( env, glCapabilities );
-		
-	
-	jfieldID redSizeField = (*env)->GetFieldID( env, clazz, "redBits" , "I" );
-	jfieldID greenSizeField = (*env)->GetFieldID( env, clazz, "greenBits" , "I" );
-	jfieldID blueSizeField = (*env)->GetFieldID( env, clazz, "blueBits" , "I" );
-	
-	jfieldID alphaSizeField = (*env)->GetFieldID( env, clazz, "alphaBits", "I" );
-	jfieldID depthSizeField = (*env)->GetFieldID( env, clazz, "depthBits", "I" );
-	jfieldID stencilSizeField = (*env)->GetFieldID( env, clazz, "stencilBits", "I" );
-	jfieldID accumRedSizeField = (*env)->GetFieldID( env, clazz, "accumRedBits", "I" );
-	jfieldID accumGreenSizeField = (*env)->GetFieldID( env, clazz, "accumGreenBits", "I" );
-	jfieldID accumBlueSizeField = (*env)->GetFieldID( env, clazz, "accumBlueBits", "I" );
-	jfieldID accumAlphaSizeField = (*env)->GetFieldID( env, clazz, "accumAlphaBits", "I" );
-
-	jint redSize = (*env)->GetIntField( env, glCapabilities, redSizeField );
-	jint greenSize = (*env)->GetIntField( env, glCapabilities, greenSizeField );
-	jint blueSize = (*env)->GetIntField( env, glCapabilities, blueSizeField );	
-	jint colorSize = redSize + greenSize + blueSize;
-	
-	jint accumRedSize = (*env)->GetIntField( env, glCapabilities, accumRedSizeField );
-	jint accumGreenSize = (*env)->GetIntField( env, glCapabilities, accumGreenSizeField );
-	jint accumBlueSize = (*env)->GetIntField( env, glCapabilities, accumBlueSizeField );
-	jint accumAlphaSize = (*env)->GetIntField( env, glCapabilities, accumAlphaSizeField );
-	jint accumSize = accumRedSize + accumGreenSize + accumBlueSize + accumAlphaSize; 
-	
-	
-	jint alphaSize = (*env)->GetIntField( env, glCapabilities, alphaSizeField );
-	jint depthSize = (*env)->GetIntField( env, glCapabilities, depthSizeField );
-	jint stencilSize = (*env)->GetIntField( env, glCapabilities, stencilSizeField );
-	
-	// fprintf(stderr, "Color %d, alpha %d, depth %d, stencil %d, accum %d", colorSize, alphaSize, depthSize, stencilSize, accumSize );
-	
-	
-//fprintf(stderr, "createContext shareContext=%p view=%p\n", shareContext, view);
+        int colorSize = redBits + greenBits + blueBits;
+        int accumSize = accumRedBits + accumGreenBits + accumBlueBits;
+  
 	NSOpenGLContext *nsChareCtx = (NSOpenGLContext*)shareContext;
 	NSView *nsView = (NSView*)view;
 	
@@ -80,22 +58,18 @@ void* createContext( JNIEnv* env, jobject glCapabilities, void* shareContext, vo
 		gAutoreleasePool = [[NSAutoreleasePool alloc] init];
 	}
 	
-	// FIXME: hardcoded pixel format. Instead pass these attributes down
-	// as arguments. There is really no way to enumerate the possible
-	// pixel formats for a given window on Mac OS X, so we will assume
-	// that we can match the requested capabilities and leave the
-	// selection up to the built-in pixel format selection algorithm.
-	
 	NSOpenGLPixelFormatAttribute attribs[] =
 	{
 		NSOpenGLPFANoRecovery, YES,
 		NSOpenGLPFAAccelerated, YES,
 		NSOpenGLPFADoubleBuffer, YES,
 		NSOpenGLPFAColorSize, colorSize,
-		NSOpenGLPFAAlphaSize, alphaSize,
-		NSOpenGLPFADepthSize, depthSize,
-		NSOpenGLPFAStencilSize, stencilSize,
+		NSOpenGLPFAAlphaSize, alphaBits,
+		NSOpenGLPFADepthSize, depthBits,
+		NSOpenGLPFAStencilSize, stencilBits,
 		NSOpenGLPFAAccumSize, accumSize,
+		NSOpenGLPFASampleBuffers, sampleBuffers,
+		NSOpenGLPFASamples, numSamples,
 		0
 	};
 	

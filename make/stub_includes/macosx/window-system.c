@@ -1,10 +1,21 @@
 /* C routines encapsulating small amounts of Objective C code to allow
    nsContext creation and manipulation to occur from Java */
 
-#include <jni.h>
 typedef int Bool;
 
-void* createContext(JNIEnv* env, jobject glCapabilities, void* shareContext, void* nsView);
+void* createContext(void* shareContext, void* nsView,
+                    int redBits,
+                    int greenBits,
+                    int blueBits,
+                    int alphaBits,
+                    int depthBits,
+                    int stencilBits,
+                    int accumRedBits,
+                    int accumGreenBits,
+                    int accumBlueBits,
+                    int accumAlphaBits,
+                    int sampleBuffers,
+                    int numSamples);
 Bool  makeCurrentContext(void* nsContext, void* nsView);
 Bool  clearCurrentContext(void* nsContext, void* nsView);
 Bool  deleteContext(void* nsContext, void* nsView);
