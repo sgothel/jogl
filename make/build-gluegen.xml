@@ -42,29 +42,42 @@
        - Build GlueGen.
       -->
     <target name="build.gluegen" depends="declare">
+
+        <!-- Because ANTLR looks for importVocab files in the current
+             working directory, it likes to have all of its files,
+             including supergrammars, in one place, so copy all of the
+             grammars to the output directory up front so we don't put
+             temporary files into the source tree -->
+        <mkdir dir="${generated.java.from.grammar}" />
+	<copy todir="${generated.java.from.grammar}">
+	    <fileset dir="${c.grammar}">
+	        <include name="*.g" />
+            </fileset>
+	</copy>
+
         <!-- Generate the Java files from the C grammar using ANTLR. -->
         <antcall target="generate.c.grammar">
-            <param name="target" value="${c.grammar}/StdCParser.g" />
-            <param name="output.dir" value="${generated.java.from.grammar}" />
+	    <param name="output.dir" value="${generated.java.from.grammar}" />
+            <param name="target" value="StdCParser.g" />
         </antcall>
         <antcall target="generate.c.grammar.glib">
-            <param name="target" value="${c.grammar}/GnuCParser.g" />
-            <param name="glib" value="${c.grammar}/StdCParser.g" />
-            <param name="output.dir" value="${generated.java.from.grammar}" />
+	    <param name="output.dir" value="${generated.java.from.grammar}" />
+            <param name="target" value="GnuCParser.g" />
+            <param name="glib" value="StdCParser.g" />
         </antcall>
         <antcall target="generate.c.grammar">
-            <param name="target" value="${c.grammar}/GnuCTreeParser.g" />
-            <param name="output.dir" value="${generated.java.from.grammar}" />
+	    <param name="output.dir" value="${generated.java.from.grammar}" />
+            <param name="target" value="GnuCTreeParser.g" />
         </antcall>
         <antcall target="generate.c.grammar.glib">
-            <param name="target" value="${c.grammar}/GnuCEmitter.g" />
-            <param name="glib" value="${c.grammar}/GnuCTreeParser.g" />
-            <param name="output.dir" value="${generated.java.from.grammar}" />
+	    <param name="output.dir" value="${generated.java.from.grammar}" />
+            <param name="target" value="GnuCEmitter.g" />
+            <param name="glib" value="GnuCTreeParser.g" />
         </antcall>
         <antcall target="generate.c.grammar.glib">
-            <param name="target" value="${c.grammar}/HeaderParser.g" />
-            <param name="glib" value="${c.grammar}/GnuCTreeParser.g" />
-            <param name="output.dir" value="${generated.java.from.grammar}" />
+	    <param name="output.dir" value="${generated.java.from.grammar}" />
+            <param name="target" value="HeaderParser.g" />
+            <param name="glib" value="GnuCTreeParser.g" />
         </antcall>
     
         <!-- Ensure that the output classes directory exists. -->
@@ -94,12 +107,8 @@
        -        the directory does not exist, it will be created.
       -->
     <target name="generate.c.grammar" depends="declare">
-        <!-- Ensure that the output directory exists.
-           - NOTE:  this will ignore silently if the directory already exists. -->
-        <mkdir dir="${output.dir}" />
-        
         <!-- Generate the Java files -->
-        <antlr target="${target}" outputdirectory="${output.dir}">
+        <antlr target="${output.dir}/${target}" outputdirectory="${output.dir}">
             <classpath refid="antlr.classpath" />
         </antlr>
     </target>
@@ -114,12 +123,8 @@
        -        the directory does not exist, it will be created.
       -->
     <target name="generate.c.grammar.glib" depends="declare">
-        <!-- Ensure that the output directory exists.
-           - NOTE:  this will ignore silently if the directory already exists. -->
-        <mkdir dir="${output.dir}" />
-        
         <!-- Generate the Java files -->
-        <antlr target="${target}" glib="${glib}" outputdirectory="${output.dir}">
+        <antlr target="${output.dir}/${target}" glib="${output.dir}/${glib}" outputdirectory="${output.dir}">
             <classpath refid="antlr.classpath" />
         </antlr>
     </target>

@@ -248,9 +248,7 @@
         <property name="java.includes.dir.platform" value="${java.includes.dir.win32}" />
         <property name="java.lib.dir.platform" value="${java.lib.dir.win32}" />
         <property name="java.excludes.platform" value="${java.excludes.win32}" />
-        <dirset id="stub.includes.fileset.platform" dir=".">
-            <include name="${stub.includes.dir}/win32/**" />
-        </dirset>
+	<property name="stub.includes.fileset.platform.params" value="${stub.includes.dir}/win32/**" />
 
         <!-- Set Javadoc properties. -->
         <property name="javadoc.dev.packagenames.platform" value="${javadoc.dev.packagenames.win32}" />
@@ -338,10 +336,7 @@
         <!-- Set platform directories. -->
         <property name="stub.includes.platform" value="${stub.includes.x11}" />
         <property name="java.excludes.platform" value="${java.excludes.x11}" />
-        <dirset id="stub.includes.fileset.platform" dir=".">
-            <include name="${stub.includes.dir}/opengl/**" />
-            <include name="${stub.includes.dir}/x11/**" />
-        </dirset>
+	<property name="stub.includes.fileset.platform.params" value="${stub.includes.dir}/opengl/** ${stub.includes.dir}/x11/**" />
 
         <!-- Set Javadoc properties. -->
         <property name="javadoc.dev.packagenames.platform" value="${javadoc.dev.packagenames.x11}" />
@@ -392,6 +387,12 @@
     </target>
 
     <target name="declare.macosx" depends="init">
+        <echo message="*************************************" />
+        <echo message="*                                   *" />
+        <echo message="*     EXECUTING DECLARE.MACOSX      *" />
+        <echo message="*                                   *" />
+        <echo message="*************************************" />
+
         <!-- Set platform configuration files. -->
         <property name="gl.cfg" value="${config}/gl-macosx.cfg" />
         <property name="gl.impl.cfg" value="${config}/gl-impl-macosx.cfg" />
@@ -406,9 +407,7 @@
         <property name="java.includes.dir.platform" value="${java.includes.dir.macosx}" />
         <property name="java.lib.dir.platform" value="${java.lib.dir.macosx}" />
         <property name="java.excludes.platform" value="${java.excludes.macosx}" />
-        <dirset id="stub.includes.fileset.platform" dir=".">
-            <include name="${stub.includes.dir}/macosx/**" />
-        </dirset>
+	<property name="stub.includes.fileset.platform.params" value="${stub.includes.dir}/macosx/**" />
 
         <!-- Set Javadoc properties. -->
         <property name="javadoc.dev.packagenames.platform" value="${javadoc.dev.packagenames.macosx}" />
@@ -527,6 +526,7 @@
            - Java files -->
 
         <!-- Generate GL interface class -->
+        <echo message="Generating GL interface class" />
         <gluegen src="${stub.includes.common}/gl.c" 
                  config="${gl.cfg}"
                  includeRefid="stub.includes.fileset.all"
@@ -535,6 +535,7 @@
         </gluegen>
 
         <!-- Generate GL implementation class -->
+        <echo message="Generating GL implementation class" />
         <gluegen src="${stub.includes.common}/gl-impl.c" 
                  config="${gl.impl.cfg}"
                  includeRefid="stub.includes.fileset.all"
@@ -543,6 +544,7 @@
         </gluegen>
 
         <!-- Generate WGL interface class -->
+        <echo message="Generating WGL interface class" />
         <gluegen src="${stub.includes.common}/gl-impl.c" 
                  config="${config}/gl-wgl-win32.cfg"
                  includeRefid="stub.includes.fileset.all"
@@ -551,6 +553,7 @@
         </gluegen>
 
         <!-- Generate GLX interface class -->
+        <echo message="Generating GLX interface class" />
         <gluegen src="${stub.includes.common}/gl-impl.c" 
                  config="${config}/gl-glx-x11.cfg"
                  includeRefid="stub.includes.fileset.all"
@@ -559,6 +562,7 @@
         </gluegen>
 
         <!-- Generate CGL interface class -->
+        <echo message="Generating CGL interface class" />
         <gluegen src="${stub.includes.common}/gl-impl.c" 
                  config="${config}/gl-cgl-macosx.cfg"
                  includeRefid="stub.includes.fileset.all"
@@ -570,6 +574,9 @@
         <!-- NOTE:  the "literalInclude" in this GlueGen call is simply to
            -        get around the fact that neither FileSet nor DirSet can
            -        handle different drives in an effective manner. -->
+        <echo message="Generating JAWT interface class" />
+        <echo message="java.home.dir=${java.home.dir}" />
+	<dirset id="stub.includes.fileset.platform" dir="." includes="${stub.includes.fileset.platform.params}" />
         <gluegen src="${java.includes.dir.platform}/jawt_md.h" 
                  config="${jawt.cfg}"
                  literalInclude="${java.includes.dir}"
@@ -579,6 +586,7 @@
         </gluegen>
 
 	<!-- Generate WGL/GLX/CGL implementation class -->
+        <echo message="Generating WGL/GLX/CGL implementation class" />
         <gluegen src="${stub.includes.platform}/window-system.c" 
                  config="${window.cfg}"
                  includeRefid="stub.includes.fileset.platform"
@@ -587,6 +595,7 @@
         </gluegen>
 
 	<!-- Generate StaticGLInfo class -->
+        <echo message="Generating StaticGLInfo class" />
         <staticglgen package="net.java.games.jogl.impl"
                      headers="${gl.headers}"
                      outputdir="${src.generated.java}/net/java/games/jogl/impl">
@@ -594,6 +603,7 @@
         </staticglgen>
 
 	<!-- Generate GLU interface class -->
+        <echo message="Generating GLU interface class" />
         <gluegen src="${stub.includes.common}/glu.c" 
                  config="${glu.cfg}"
                  includeRefid="stub.includes.fileset.all"
@@ -602,6 +612,7 @@
         </gluegen>
 
 	<!-- Generate GLU implementation class -->
+        <echo message="Generating GLU implementation class" />
         <gluegen src="${stub.includes.common}/glu-impl.c" 
                  config="${glu.impl.cfg}"
                  includeRefid="stub.includes.fileset.all"
