@@ -61,6 +61,7 @@ public abstract class WindowsGLContext extends GLContext {
   private GLProcAddressTable glProcAddressTable;
   // Handle to GLU32.dll
   private long hglu32;
+  private boolean haveWGLARBPbuffer = true;
 
   private static final int MAX_PFORMATS = 256;
   private static final int MAX_ATTRIBS  = 256;
@@ -150,6 +151,8 @@ public abstract class WindowsGLContext extends GLContext {
 
     if (created) {
       resetGLFunctionAvailability();
+      haveWGLARBPbuffer = (isExtensionAvailable("WGL_ARB_pbuffer") &&
+                           isExtensionAvailable("WGL_ARB_pixel_format"));
       // Windows can set up sharing of display lists after creation time
       WindowsGLContext other = (WindowsGLContext) GLContextShareSet.getShareContext(this);
       if (other != null) {
@@ -680,5 +683,9 @@ public abstract class WindowsGLContext extends GLContext {
 
   protected static String hdcToString(long hdc) {
     return "0x" + Long.toHexString(hdc);
+  }
+
+  protected boolean haveWGLARBPbuffer() {
+    return haveWGLARBPbuffer;
   }
 }

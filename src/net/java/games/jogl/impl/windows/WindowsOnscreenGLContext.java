@@ -102,7 +102,7 @@ public class WindowsOnscreenGLContext extends WindowsGLContext {
   }
 
   public boolean canCreatePbufferContext() {
-    return true;
+    return haveWGLARBPbuffer();
   }
 
   public synchronized GLContext createPbufferContext(GLCapabilities capabilities,

@@ -190,7 +190,9 @@ public interface GLDrawable extends ComponentEvents {
 
   /** Indicates whether this drawable is capable of fabricating a
       subordinate offscreen drawable for advanced rendering techniques
-      which require offscreen hardware-accelerated surfaces. */
+      which require offscreen hardware-accelerated surfaces. Note that
+      this method is only guaranteed to return a correct result once
+      your GLEventListener's init() method has been called. */
   public boolean canCreateOffscreenDrawable();
 
   /** Creates a subordinate offscreen drawable (pbuffer) for this
