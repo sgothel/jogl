@@ -118,7 +118,7 @@ public class WindowsOffscreenGLContext extends WindowsGLContext {
     if (pendingOffscreenResize) {
       if (pendingOffscreenWidth != width || pendingOffscreenHeight != height) {
         if (hglrc != 0) {
-          destroy();
+          destroyImpl();
         }
         width  = pendingOffscreenWidth;
         height = pendingOffscreenHeight;
@@ -126,6 +126,19 @@ public class WindowsOffscreenGLContext extends WindowsGLContext {
       }
     }
     return super.makeCurrent(initAction);
+  }
+
+  protected void destroyImpl() {
+    if (hglrc != 0) {
+      super.destroyImpl();
+      // Must destroy OpenGL context, bitmap and device context
+      WGL.SelectObject(hdc, origbitmap);
+      WGL.DeleteObject(hbitmap);
+      WGL.DeleteDC(hdc);
+      origbitmap = 0;
+      hbitmap = 0;
+      hdc = 0;
+    }
   }
 
   public synchronized void swapBuffers() throws GLException {
@@ -166,18 +179,5 @@ public class WindowsOffscreenGLContext extends WindowsGLContext {
     }
     
     choosePixelFormatAndCreateContext(false);
-  }
-
-  private void destroy() {
-    // Must destroy OpenGL context, bitmap and device context
-    WGL.wglDeleteContext(hglrc);
-    WGL.SelectObject(hdc, origbitmap);
-    WGL.DeleteObject(hbitmap);
-    WGL.DeleteDC(hdc);
-    hglrc = 0;
-    origbitmap = 0;
-    hbitmap = 0;
-    hdc = 0;
-    GLContextShareSet.contextDestroyed(this);
   }
 }
