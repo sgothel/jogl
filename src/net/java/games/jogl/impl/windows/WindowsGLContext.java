@@ -265,6 +265,7 @@ public abstract class WindowsGLContext extends GLContext {
       int recommendedPixelFormat = -1;
       pfd = new PIXELFORMATDESCRIPTOR();
       boolean haveWGLChoosePixelFormatARB = false;
+      boolean haveWGLARBMultisample = false;
       if (dummyGL != null) {
         // It seems that at this point in initialization,
         // glGetString(GL.GL_EXTENSIONS) is returning null, so we
@@ -272,6 +273,9 @@ public abstract class WindowsGLContext extends GLContext {
         String availableWGLExtensions = dummyGL.wglGetExtensionsStringARB(hdc);
         if (availableWGLExtensions.indexOf("WGL_ARB_pixel_format") >= 0) {
           haveWGLChoosePixelFormatARB = true;
+          if (availableWGLExtensions.indexOf("WGL_ARB_multisample") >= 0) {
+            haveWGLARBMultisample = true;
+          }
         }
       }
       if (dummyGL != null && haveWGLChoosePixelFormatARB) {
@@ -328,11 +332,13 @@ public abstract class WindowsGLContext extends GLContext {
           iattributes[niattribs++] = GL.WGL_ACCUM_ALPHA_BITS_ARB;
           iattributes[niattribs++] = capabilities.getAccumAlphaBits();
         }
-        if (capabilities.getSampleBuffers()) {
-          iattributes[niattribs++] = GL.WGL_SAMPLE_BUFFERS_ARB;
-          iattributes[niattribs++] = GL.GL_TRUE;
-          iattributes[niattribs++] = GL.WGL_SAMPLES_ARB;
-          iattributes[niattribs++] = capabilities.getNumSamples();
+        if (haveWGLARBMultisample) {
+          if (capabilities.getSampleBuffers()) {
+            iattributes[niattribs++] = GL.WGL_SAMPLE_BUFFERS_ARB;
+            iattributes[niattribs++] = GL.GL_TRUE;
+            iattributes[niattribs++] = GL.WGL_SAMPLES_ARB;
+            iattributes[niattribs++] = capabilities.getNumSamples();
+          }
         }
           
         int[] pformats = new int[MAX_PFORMATS];
@@ -396,8 +402,10 @@ public abstract class WindowsGLContext extends GLContext {
         iattributes[niattribs++] = GL.WGL_ACCUM_GREEN_BITS_ARB;
         iattributes[niattribs++] = GL.WGL_ACCUM_BLUE_BITS_ARB;
         iattributes[niattribs++] = GL.WGL_ACCUM_ALPHA_BITS_ARB;
-        iattributes[niattribs++] = GL.WGL_SAMPLE_BUFFERS_ARB;
-        iattributes[niattribs++] = GL.WGL_SAMPLES_ARB;
+        if (haveWGLARBMultisample) {
+          iattributes[niattribs++] = GL.WGL_SAMPLE_BUFFERS_ARB;
+          iattributes[niattribs++] = GL.WGL_SAMPLES_ARB;
+        }
 
         availableCaps = new GLCapabilities[numFormats];
         for (int i = 0; i < numFormats; i++) {
