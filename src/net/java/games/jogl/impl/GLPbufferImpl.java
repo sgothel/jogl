@@ -196,6 +196,10 @@ public class GLPbufferImpl implements GLPbuffer {
     return isInitialized;
   }
 
+  public void destroy() {
+    context.destroy();
+  }
+
   //----------------------------------------------------------------------
   // Internals only below this point
   //

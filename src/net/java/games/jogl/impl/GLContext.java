@@ -44,7 +44,7 @@ import net.java.games.jogl.*;
 import net.java.games.gluegen.runtime.*;
 
 public abstract class GLContext {
-  protected static final boolean DEBUG = false;
+  protected static final boolean DEBUG = Debug.debug("GLContext");
 
   static {
     NativeLibLoader.load();

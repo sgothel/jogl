@@ -43,7 +43,7 @@ import net.java.games.jogl.*;
 import net.java.games.jogl.impl.*;
 
 public class WindowsPbufferGLContext extends WindowsGLContext {
-  private static final boolean DEBUG = false;
+  private static final boolean DEBUG = Debug.debug("WindowsPbufferGLContext");
 
   private int  initWidth;
   private int  initHeight;
@@ -308,10 +308,16 @@ public class WindowsPbufferGLContext extends WindowsGLContext {
 
     if (buffer == 0) {
       // pbuffer not instantiated yet
+      if (DEBUG) {
+        System.err.println("pbuffer not instantiated yet");
+      }
       return false;
     }
 
     boolean res = super.makeCurrent(initAction);
+    if (DEBUG) {
+      System.err.println("super.makeCurrent() = " + res + ", created = " + created);
+    }
     if (created) {
       // Initialize render-to-texture support if requested
       rtt  = capabilities.getOffscreenRenderToTexture();
@@ -393,6 +399,22 @@ public class WindowsPbufferGLContext extends WindowsGLContext {
     // FIXME: provide option to not share display lists with subordinate pbuffer?
     if (!WGL.wglShareLists(parentHglrc, hglrc)) {
       throw new GLException("pbuffer: wglShareLists() failed");
+    }
+  }
+
+  protected void destroyImpl() throws GLException {
+    if (hglrc != 0) {
+      super.destroyImpl();
+      // Must release DC and pbuffer
+      GL gl = getGL();
+      if (gl.wglReleasePbufferDCARB(buffer, hdc) == 0) {
+        throw new GLException("Error releasing pbuffer device context: error code " + WGL.GetLastError());
+      }
+      hdc = 0;
+      if (!gl.wglDestroyPbufferARB(buffer)) {
+        throw new GLException("Error destroying pbuffer: error code " + WGL.GetLastError());
+      }
+      buffer = 0;
     }
   }
 

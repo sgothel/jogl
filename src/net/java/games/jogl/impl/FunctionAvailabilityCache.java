@@ -52,7 +52,7 @@ import java.lang.reflect.*;
  * and display.
  */
 public final class FunctionAvailabilityCache {
-  private static final boolean DEBUG = false;
+  private static final boolean DEBUG = Debug.debug("FunctionAvailabilityCache");
 
   FunctionAvailabilityCache(GLContext context)
   {

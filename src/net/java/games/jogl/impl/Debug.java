@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2003-2005 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -39,52 +39,49 @@
 
 package net.java.games.jogl.impl;
 
-import java.security.AccessController;
-import java.security.PrivilegedAction;
+import java.security.*;
 
-/** Encapsulates the workaround of running all display operations on
-    the AWT event queue thread for the purposes of working around
-    problems seen primarily on ATI cards when rendering into a surface
-    that is simultaneously being resized by the event queue thread */
+/** Helper routines for logging and debugging. */
 
-public class SingleThreadedWorkaround {
-  private static boolean singleThreadedWorkaround = false;
-  // If the user specified the workaround's system property (either
-  // true or false), don't let the automatic detection have any effect
-  private static boolean systemPropertySpecified = false;
+public class Debug {
+  // Some common properties
+  private static boolean verbose;
+  private static boolean debugAll;
   
   static {
-    AccessController.doPrivileged(new PrivilegedAction() {
+    verbose = isPropertyDefined("jogl.verbose");
+    debugAll = isPropertyDefined("jogl.debug");
+  }
+
+  public static boolean getBooleanProperty(final String property) {
+    Boolean b = (Boolean) AccessController.doPrivileged(new PrivilegedAction() {
         public Object run() {
-          String workaround = System.getProperty("JOGL_SINGLE_THREADED_WORKAROUND");
-          if (workaround == null) {
-            // Old system property (for compatibility)
-            workaround = System.getProperty("ATI_WORKAROUND");
-          }
-          if (workaround != null) {
-            systemPropertySpecified = true;
-            singleThreadedWorkaround = Boolean.valueOf(workaround).booleanValue();
-          }
-          printWorkaroundNotice();
-          return null;
+          boolean val = Boolean.getBoolean(property);
+          return (val ? Boolean.TRUE : Boolean.FALSE);
         }
       });
+    return b.booleanValue();
   }
 
-  public static void shouldDoWorkaround() {
-    if (!systemPropertySpecified) {
-      singleThreadedWorkaround = true;
-      printWorkaroundNotice();
-    }
+  public static boolean isPropertyDefined(final String property) {
+    Boolean b = (Boolean) AccessController.doPrivileged(new PrivilegedAction() {
+        public Object run() {
+          String val = System.getProperty(property);
+          return (val != null ? Boolean.TRUE : Boolean.FALSE);
+        }
+      });
+    return b.booleanValue();
   }
 
-  public static boolean doWorkaround() {
-    return singleThreadedWorkaround;
+  public static boolean verbose() {
+    return verbose;
   }
 
-  private static void printWorkaroundNotice() {
-    if (singleThreadedWorkaround && Debug.verbose()) {
-      System.err.println("Using single-threaded workaround of dispatching display() on event thread");
-    }
+  public static boolean debugAll() {
+    return debugAll;
+  }
+
+  public static boolean debug(String subcomponent) {
+    return debugAll() || isPropertyDefined("jogl.debug." + subcomponent);
   }
 }

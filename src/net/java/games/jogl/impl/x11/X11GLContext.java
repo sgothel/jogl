@@ -187,6 +187,7 @@ public abstract class X11GLContext extends GLContext {
   }
 
   protected void destroyImpl() throws GLException {
+    lockAWT();
     if (context != 0) {
       GLX.glXDestroyContext(mostRecentDisplay, context);
       if (DEBUG) {
@@ -194,6 +195,7 @@ public abstract class X11GLContext extends GLContext {
       }
       context = 0;
     }
+    unlockAWT();
   }
 
   public abstract void swapBuffers() throws GLException;
@@ -380,5 +382,15 @@ public abstract class X11GLContext extends GLContext {
 
   protected long getContext() {
     return context;
+  }
+
+  // These synchronization primitives prevent the AWT from making
+  // requests from the X server asynchronously to this code.
+  protected void lockAWT() {
+    getJAWT().Lock();
+  }
+
+  protected void unlockAWT() {
+    getJAWT().Unlock();
   }
 }

@@ -63,4 +63,9 @@ public interface GLPbuffer extends GLDrawable {
 
   /** Queries initialization status of this pBuffer. */
   public boolean isInitialized();
+
+  /** Destroys the native resources associated with this pbuffer. It
+      is not valid to call display() or any other routines on this
+      pbuffer after it has been destroyed. */
+  public void destroy();
 }

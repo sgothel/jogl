@@ -39,6 +39,8 @@
 
 package net.java.games.jogl;
 
+import net.java.games.jogl.impl.Debug;
+
 /** <P> The default implementation of the {@link
     GLCapabilitiesChooser} interface, which provides consistent visual
     selection behavior across platforms. The precise algorithm is
@@ -78,7 +80,7 @@ package net.java.games.jogl;
 */
 
 public class DefaultGLCapabilitiesChooser implements GLCapabilitiesChooser {
-  private static final boolean DEBUG = false;
+  private static final boolean DEBUG = Debug.debug("DefaultGLCapabilitiesChooser");
 
   public int chooseCapabilities(GLCapabilities desired,
                                 GLCapabilities[] available,
