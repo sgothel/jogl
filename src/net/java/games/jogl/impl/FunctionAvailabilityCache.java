@@ -136,9 +136,9 @@ public final class FunctionAvailabilityCache {
    * Returns true if the given OpenGL function is part of the OpenGL core
    * that corresponds to the give OpenGL version string.
    *
-   * @param versionString must be of the form "X" or "X.Y" or "X.Y.Z", where
+   * @param glVersionString must be of the form "X" or "X.Y" or "X.Y.Z", where
    * X, Y, and Z are integers
-   @ @exception GLException if the glFunctionName passed in is
+   * @exception GLException if the glFunctionName passed in is
    * not the name of any known OpenGL extension function. 
    */
   public static boolean isPartOfGLCore(String glVersionString, String glFunctionName)

@@ -107,7 +107,7 @@ public abstract class WindowsGLContext extends GLContext {
 
   /**
    * Creates and initializes an appropriate OpenGL context. Should only be
-   * called by {@link makeCurrent(Runnable)}.
+   * called by {@link #makeCurrent(Runnable)}.
    */
   protected abstract void create();
   

@@ -301,7 +301,6 @@ DEFINES:=$(DEFINES)
 INCLUDES=-I$(JOGL_STUB_INCLUDES_DIR_OPENGL) -I"$(JAVA_INCLUDE_PATH)" -I"$(JAVA_INCLUDE_PATH_PD)"
 CFLAGS=$(OPTFLAGS) $(DEBUGFLAGS)
 OBJ_FILE_EXT=o
-C_BUILD_OBJ_CMD=$(CC) -Dmacosx -c $(CFLAGS) $(INCLUDES) $(DEFINES) $< -o $@
 DSO_PREFIX_PD=lib
 DSO_EXTENSION_PD=jnilib
 endif # macosx
@@ -353,7 +352,6 @@ INCLUDES=-I$(JOGL_STUB_INCLUDES_DIR_OPENGL) -I"$(JAVA_INCLUDE_PATH)" -I"$(JAVA_I
 # -I$(INCLUDE_PATH_ROOT_PD) 
 CFLAGS=$(OPTFLAGS) $(DEBUGFLAGS)
 OBJ_FILE_EXT=o
-C_BUILD_OBJ_CMD=$(CC) -c $(CFLAGS) $(INCLUDES) $(DEFINES) $< -o $@
 DSO_PREFIX_PD=lib
 DSO_EXTENSION_PD=so
 endif # x11
@@ -458,8 +456,6 @@ JOGL_GENERATED_CFILES_MACOSX = \
 #  JOGL_CFG                  Name of the gl.cfg file
 #  JOGL_IMPL_CFG             Name of the gl-impl.cfg file
 #  JOGL_JAWT_CFG                Name of the jawt.cfg file
-#  JOGL_WINDOW_SYSTEM_CFG    Name of the e.g., gl-wgl-win32.cfg file which provides 
-#                                 WGL, GLX, etc. extensions to GL
 #  JOGL_WINDOW_SYSTEM_CFG       Name of the e.g., wingdi.cfg file which provides internal 
 #                                 access to core routines in WGL, glX, etc.
 #  JOGL_GENERATED_CFILES_PD     Names of platform-dependent .c files
@@ -481,7 +477,6 @@ JOGL_CFG=gl-win32.cfg
 JOGL_IMPL_CFG=gl-impl-win32.cfg
 JOGL_GLU_CFG=glu.cfg
 JOGL_GLU_IMPL_CFG=glu-impl-win32.cfg
-JOGL_WINDOW_SYSTEM_CFG=gl-wgl-win32.cfg
 JOGL_JAWT_CFG=jawt-win32.cfg
 JOGL_WINDOW_SYSTEM_CFG=wingdi-win32.cfg
 JOGL_GENERATED_CFILES_PD=$(JOGL_GENERATED_CFILES_WINDOWS)
@@ -507,7 +502,6 @@ JOGL_CFG=gl-x11.cfg
 JOGL_IMPL_CFG=gl-impl-x11.cfg
 JOGL_GLU_CFG=glu.cfg
 JOGL_GLU_IMPL_CFG=glu-impl-x11.cfg
-JOGL_WINDOW_SYSTEM_CFG=gl-glx-x11.cfg
 JOGL_JAWT_CFG=jawt-x11.cfg
 JOGL_WINDOW_SYSTEM_CFG=glx-x11.cfg
 JOGL_GENERATED_CFILES_PD=$(JOGL_GENERATED_CFILES_X11)
@@ -533,7 +527,6 @@ JOGL_CFG=gl-macosx.cfg
 JOGL_IMPL_CFG=gl-impl-macosx.cfg
 JOGL_GLU_CFG=glu.cfg
 JOGL_GLU_IMPL_CFG=glu-impl-macosx.cfg
-JOGL_WINDOW_SYSTEM_CFG=gl-cgl-macosx.cfg
 JOGL_JAWT_CFG=jawt-macosx.cfg
 JOGL_WINDOW_SYSTEM_CFG=cgl-macosx.cfg
 JOGL_GENERATED_CFILES_PD=$(JOGL_GENERATED_CFILES_MACOSX)

@@ -112,7 +112,7 @@ public class JavaConfiguration {
   private Map/*<String,String>*/ javaTypeRenames = new HashMap();
 
   /** Reads the configuration file.
-      @param path to file that should be read
+      @param filename path to file that should be read
   */
   public final void read(String filename) throws  IOException {
     read(filename, null);
@@ -120,7 +120,7 @@ public class JavaConfiguration {
   
   /** Reads the specified file, treating each line as if it started with the
       specified string.
-      @param path to file that should be read
+      @param filename path to file that should be read
       @param linePrefix if not null, treat each line read as if it were
       prefixed with the specified string.
   */
@@ -345,7 +345,7 @@ public class JavaConfiguration {
 
   /** Returns the package into which to place the glue code for
       accessing the specified struct. Defaults to emitting into the
-      regular package (i.e., the result of {@link getPackage}}. */
+      regular package (i.e., the result of {@link #packageName}). */
   public String packageForStruct(String structName) {
     String res = (String) structPackages.get(structName);
     if (res == null) {

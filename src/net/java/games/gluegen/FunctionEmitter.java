@@ -101,7 +101,7 @@ public abstract class FunctionEmitter
     emit(getDefaultOutput());
   }
 
-  /** Returns, as a String, whatever {@link emit()} would output. */
+  /** Returns, as a String, whatever {@link #emit} would output. */
   public String toString()
   {
     StringWriter sw = new StringWriter(500);

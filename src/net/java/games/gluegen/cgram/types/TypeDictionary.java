@@ -91,7 +91,7 @@ public class TypeDictionary {
   }
 
   /** Get all the names that map to Types. 
-    * @returns a Set of Strings that are the typedef names that map to Types in the dictionary.
+    * @return a Set of Strings that are the typedef names that map to Types in the dictionary.
   */
   public Set keySet() {
     return map.keySet();

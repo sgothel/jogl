@@ -134,7 +134,7 @@ public class CompoundType extends Type {
   }
 
   /** Indicates to this CompoundType that its body has been parsed and
-      that no more {@link addField} operations will be made. */
+      that no more {@link #addField} operations will be made. */
   public void setBodyParsed() {
     bodyParsed = true;
   }

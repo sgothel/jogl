@@ -309,7 +309,7 @@ public abstract class GLContext {
    *
    * @param glFunctionName the name of the OpenGL function (e.g., use
    * "glPolygonOffsetEXT" to check if the {@link
-   * net.java.games.jogl.glPolygonOffsetEXT(float,float)} is available).
+   * net.java.games.jogl.GL#glPolygonOffsetEXT(float,float)} is available).
    */
   protected boolean isFunctionAvailable(String glFunctionName) {
     return functionAvailability.isFunctionAvailable(mapToRealGLFunctionName(glFunctionName));
