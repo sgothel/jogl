@@ -1,6 +1,6 @@
 /** Entry point to C language function: <br> <code> LPVOID glMapBufferARB(GLenum target, GLenum access); </code>    */
 public java.nio.ByteBuffer glMapBufferARB(int target, int access) {
-  final long __addr_ = context.getGLProcAddressTable()._addressof_glMapBufferARB;
+  final long __addr_ = _context.getGLProcAddressTable()._addressof_glMapBufferARB;
   if (__addr_ == 0) {
     throw new GLException("Method \"glMapBufferARB\" not available");
   }
