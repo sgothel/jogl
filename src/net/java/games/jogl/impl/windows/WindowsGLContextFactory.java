@@ -40,10 +40,11 @@
 package net.java.games.jogl.impl.windows;
 
 import java.awt.Component;
-import java.awt.Frame;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.awt.Rectangle;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -70,7 +71,12 @@ public class WindowsGLContextFactory extends GLContextFactory {
   private static Set/*<GraphicsDevice    >*/     pendingContextSet  = new HashSet();
   
   public WindowsGLContextFactory() {
-    Runtime.getRuntime().addShutdownHook( new ShutdownHook() );
+    AccessController.doPrivileged( new PrivilegedAction() {
+      public Object run() {
+        Runtime.getRuntime().addShutdownHook( new ShutdownHook() );
+        return( null );
+      }
+    }); 
   }
   
   public GraphicsConfiguration chooseGraphicsConfiguration(GLCapabilities capabilities,
