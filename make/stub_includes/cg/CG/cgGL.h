@@ -53,7 +53,6 @@
 #define _cggl_h
 
 
-#ifndef CG_DEPRECATED_API
 
 #include <CG/cg.h>
 
@@ -123,226 +122,233 @@ CGGLDLL_API void cgGLSetOptimalOptions(CGprofile profile);
  *** Program Managment Functions                                 
  *****************************************************************************/
 
-CGGLDLL_API void cgGLLoadProgram(/*CGprogram*/CGprogram* program);
-CGGLDLL_API void cgGLBindProgram(/*CGprogram*/CGprogram* program);
+CGGLDLL_API void cgGLLoadProgram(CGprogram program);
+CGGLDLL_API CGbool cgGLIsProgramLoaded(CGprogram program);
+CGGLDLL_API void cgGLBindProgram(CGprogram program);
+CGGLDLL_API void cgGLUnbindProgram(CGprofile profile);
+CGGLDLL_API GLuint cgGLGetProgramID(CGprogram program);
 
 /******************************************************************************
  *** Parameter Managment Functions                                 
  *****************************************************************************/
 
-CGGLDLL_API void cgGLSetParameter1f(/*CGparameter*/CGparameter* param,
+CGGLDLL_API void cgGLSetParameter1f(CGparameter param,
                                     float x);
 
-CGGLDLL_API void cgGLSetParameter2f(/*CGparameter*/CGparameter* param,
+CGGLDLL_API void cgGLSetParameter2f(CGparameter param,
                                     float x,
                                     float y);
 
-CGGLDLL_API void cgGLSetParameter3f(/*CGparameter*/CGparameter* param,
+CGGLDLL_API void cgGLSetParameter3f(CGparameter param,
                                     float x,
                                     float y,
                                     float z);
 
-CGGLDLL_API void cgGLSetParameter4f(/*CGparameter*/CGparameter* param,
+CGGLDLL_API void cgGLSetParameter4f(CGparameter param,
                                     float x,
                                     float y,
                                     float z,
                                     float w);
 
-CGGLDLL_API void cgGLSetParameter1fv(/*CGparameter*/CGparameter* param, const float *v);
+CGGLDLL_API void cgGLSetParameter1fv(CGparameter param, const float *v);
 
-CGGLDLL_API void cgGLSetParameter2fv(/*CGparameter*/CGparameter* param, const float *v);
+CGGLDLL_API void cgGLSetParameter2fv(CGparameter param, const float *v);
 
-CGGLDLL_API void cgGLSetParameter3fv(/*CGparameter*/CGparameter* param, const float *v);
+CGGLDLL_API void cgGLSetParameter3fv(CGparameter param, const float *v);
 
-CGGLDLL_API void cgGLSetParameter4fv(/*CGparameter*/CGparameter* param, const float *v);
+CGGLDLL_API void cgGLSetParameter4fv(CGparameter param, const float *v);
 
-CGGLDLL_API void cgGLSetParameter1d(/*CGparameter*/CGparameter* param,
+CGGLDLL_API void cgGLSetParameter1d(CGparameter param,
                                     double x);
 
-CGGLDLL_API void cgGLSetParameter2d(/*CGparameter*/CGparameter* param,
+CGGLDLL_API void cgGLSetParameter2d(CGparameter param,
                                     double x,
                                     double y);
 
-CGGLDLL_API void cgGLSetParameter3d(/*CGparameter*/CGparameter* param,
+CGGLDLL_API void cgGLSetParameter3d(CGparameter param,
                                     double x,
                                     double y,
                                     double z);
 
-CGGLDLL_API void cgGLSetParameter4d(/*CGparameter*/CGparameter* param,
+CGGLDLL_API void cgGLSetParameter4d(CGparameter param,
                                     double x,
                                     double y,
                                     double z,
                                     double w);
 
-CGGLDLL_API void cgGLSetParameter1dv(/*CGparameter*/CGparameter* param, const double *v);
+CGGLDLL_API void cgGLSetParameter1dv(CGparameter param, const double *v);
 
-CGGLDLL_API void cgGLSetParameter2dv(/*CGparameter*/CGparameter* param, const double *v);
+CGGLDLL_API void cgGLSetParameter2dv(CGparameter param, const double *v);
 
-CGGLDLL_API void cgGLSetParameter3dv(/*CGparameter*/CGparameter* param, const double *v);
+CGGLDLL_API void cgGLSetParameter3dv(CGparameter param, const double *v);
 
-CGGLDLL_API void cgGLSetParameter4dv(/*CGparameter*/CGparameter* param, const double *v);
+CGGLDLL_API void cgGLSetParameter4dv(CGparameter param, const double *v);
 
-CGGLDLL_API void cgGLSetParameter4dv(/*CGparameter*/CGparameter* param, const double *v);
+CGGLDLL_API void cgGLSetParameter4dv(CGparameter param, const double *v);
 
-CGGLDLL_API void cgGLGetParameter1f(/*CGparameter*/CGparameter* param, float *v);
+CGGLDLL_API void cgGLGetParameter1f(CGparameter param, float *v);
 
-CGGLDLL_API void cgGLGetParameter2f(/*CGparameter*/CGparameter* param, float *v);
+CGGLDLL_API void cgGLGetParameter2f(CGparameter param, float *v);
 
-CGGLDLL_API void cgGLGetParameter3f(/*CGparameter*/CGparameter* param, float *v);
+CGGLDLL_API void cgGLGetParameter3f(CGparameter param, float *v);
 
-CGGLDLL_API void cgGLGetParameter4f(/*CGparameter*/CGparameter* param, float *v);
+CGGLDLL_API void cgGLGetParameter4f(CGparameter param, float *v);
 
-CGGLDLL_API void cgGLGetParameter1d(/*CGparameter*/CGparameter* param, double *v);
+CGGLDLL_API void cgGLGetParameter1d(CGparameter param, double *v);
 
-CGGLDLL_API void cgGLGetParameter2d(/*CGparameter*/CGparameter* param, double *v);
+CGGLDLL_API void cgGLGetParameter2d(CGparameter param, double *v);
 
-CGGLDLL_API void cgGLGetParameter3d(/*CGparameter*/CGparameter* param, double *v);
+CGGLDLL_API void cgGLGetParameter3d(CGparameter param, double *v);
 
-CGGLDLL_API void cgGLGetParameter4d(/*CGparameter*/CGparameter* param, double *v);
+CGGLDLL_API void cgGLGetParameter4d(CGparameter param, double *v);
 
-CGGLDLL_API void cgGLSetParameterArray1f(/*CGparameter*/CGparameter* param,
+CGGLDLL_API void cgGLSetParameterArray1f(CGparameter param,
                                          long offset,
                                          long nelements,
                                          const float *v);
 
-CGGLDLL_API void cgGLSetParameterArray2f(/*CGparameter*/CGparameter* param,
+CGGLDLL_API void cgGLSetParameterArray2f(CGparameter param,
                                          long offset,
                                          long nelements,
                                          const float *v);
 
-CGGLDLL_API void cgGLSetParameterArray3f(/*CGparameter*/CGparameter* param,
+CGGLDLL_API void cgGLSetParameterArray3f(CGparameter param,
                                          long offset,
                                          long nelements,
                                          const float *v);
 
-CGGLDLL_API void cgGLSetParameterArray4f(/*CGparameter*/CGparameter* param,
+CGGLDLL_API void cgGLSetParameterArray4f(CGparameter param,
                                          long offset,
                                          long nelements,
                                          const float *v);
 
-CGGLDLL_API void cgGLSetParameterArray1d(/*CGparameter*/CGparameter* param,
+CGGLDLL_API void cgGLSetParameterArray1d(CGparameter param,
                                          long offset,
                                          long nelements,
                                          const double *v);
 
-CGGLDLL_API void cgGLSetParameterArray2d(/*CGparameter*/CGparameter* param,
+CGGLDLL_API void cgGLSetParameterArray2d(CGparameter param,
                                          long offset,
                                          long nelements,
                                          const double *v);
 
-CGGLDLL_API void cgGLSetParameterArray3d(/*CGparameter*/CGparameter* param,
+CGGLDLL_API void cgGLSetParameterArray3d(CGparameter param,
                                          long offset,
                                          long nelements,
                                          const double *v);
 
-CGGLDLL_API void cgGLSetParameterArray4d(/*CGparameter*/CGparameter* param,
+CGGLDLL_API void cgGLSetParameterArray4d(CGparameter param,
                                          long offset,
                                          long nelements,
                                          const double *v);
 
-CGGLDLL_API void cgGLGetParameterArray1f(/*CGparameter*/CGparameter* param,
+CGGLDLL_API void cgGLGetParameterArray1f(CGparameter param,
                                          long offset,
                                          long nelements,
                                          float *v);
 
-CGGLDLL_API void cgGLGetParameterArray2f(/*CGparameter*/CGparameter* param,
+CGGLDLL_API void cgGLGetParameterArray2f(CGparameter param,
                                          long offset,
                                          long nelements,
                                          float *v);
 
-CGGLDLL_API void cgGLGetParameterArray3f(/*CGparameter*/CGparameter* param,
+CGGLDLL_API void cgGLGetParameterArray3f(CGparameter param,
                                          long offset,
                                          long nelements,
                                          float *v);
 
-CGGLDLL_API void cgGLGetParameterArray4f(/*CGparameter*/CGparameter* param,
+CGGLDLL_API void cgGLGetParameterArray4f(CGparameter param,
                                          long offset,
                                          long nelements,
                                          float *v);
 
-CGGLDLL_API void cgGLGetParameterArray1d(/*CGparameter*/CGparameter* param,
+CGGLDLL_API void cgGLGetParameterArray1d(CGparameter param,
                                          long offset,
                                          long nelements,
                                          double *v);
 
-CGGLDLL_API void cgGLGetParameterArray2d(/*CGparameter*/CGparameter* param,
+CGGLDLL_API void cgGLGetParameterArray2d(CGparameter param,
                                          long offset,
                                          long nelements,
                                          double *v);
 
-CGGLDLL_API void cgGLGetParameterArray3d(/*CGparameter*/CGparameter* param,
+CGGLDLL_API void cgGLGetParameterArray3d(CGparameter param,
                                          long offset,
                                          long nelements,
                                          double *v);
 
-CGGLDLL_API void cgGLGetParameterArray4d(/*CGparameter*/CGparameter* param,
+CGGLDLL_API void cgGLGetParameterArray4d(CGparameter param,
                                          long offset,
                                          long nelements,
                                          double *v);
 
-CGGLDLL_API void cgGLSetParameterPointer(/*CGparameter*/CGparameter* param,
+CGGLDLL_API void cgGLSetParameterPointer(CGparameter param,
                                          GLint fsize,
                                          GLenum type,
                                          GLsizei stride,
-                                         GLvoid *pointer);
+                                         const GLvoid *pointer);
 
-CGGLDLL_API void cgGLEnableClientState(/*CGparameter*/CGparameter* param);
-CGGLDLL_API void cgGLDisableClientState(/*CGparameter*/CGparameter* param);
+CGGLDLL_API void cgGLEnableClientState(CGparameter param);
+CGGLDLL_API void cgGLDisableClientState(CGparameter param);
 
 /******************************************************************************
  *** Matrix Parameter Managment Functions                                 
  *****************************************************************************/
 
-CGGLDLL_API void cgGLSetMatrixParameterdr(/*CGparameter*/CGparameter* param, const double *matrix);
-CGGLDLL_API void cgGLSetMatrixParameterfr(/*CGparameter*/CGparameter* param, const float *matrix);
-CGGLDLL_API void cgGLSetMatrixParameterdc(/*CGparameter*/CGparameter* param, const double *matrix);
-CGGLDLL_API void cgGLSetMatrixParameterfc(/*CGparameter*/CGparameter* param, const float *matrix);
+CGGLDLL_API void cgGLSetMatrixParameterdr(CGparameter param, 
+                                          const double *matrix);
+CGGLDLL_API void cgGLSetMatrixParameterfr(CGparameter param, 
+                                          const float *matrix);
+CGGLDLL_API void cgGLSetMatrixParameterdc(CGparameter param, 
+                                          const double *matrix);
+CGGLDLL_API void cgGLSetMatrixParameterfc(CGparameter param, 
+                                          const float *matrix);
 
-CGGLDLL_API void cgGLGetMatrixParameterdr(/*CGparameter*/CGparameter* param, double *matrix);
-CGGLDLL_API void cgGLGetMatrixParameterfr(/*CGparameter*/CGparameter* param, float *matrix);
-CGGLDLL_API void cgGLGetMatrixParameterdc(/*CGparameter*/CGparameter* param, double *matrix);
-CGGLDLL_API void cgGLGetMatrixParameterfc(/*CGparameter*/CGparameter* param, float *matrix);
+CGGLDLL_API void cgGLGetMatrixParameterdr(CGparameter param, double *matrix);
+CGGLDLL_API void cgGLGetMatrixParameterfr(CGparameter param, float *matrix);
+CGGLDLL_API void cgGLGetMatrixParameterdc(CGparameter param, double *matrix);
+CGGLDLL_API void cgGLGetMatrixParameterfc(CGparameter param, float *matrix);
 
-CGGLDLL_API void cgGLSetStateMatrixParameter(/*CGparameter*/CGparameter* param, 
+CGGLDLL_API void cgGLSetStateMatrixParameter(CGparameter param, 
                                              CGGLenum matrix,
                                              CGGLenum transform);
 
-CGGLDLL_API void cgGLSetMatrixParameterArrayfc(/*CGparameter*/CGparameter* param, 
+CGGLDLL_API void cgGLSetMatrixParameterArrayfc(CGparameter param, 
                                                long offset,
                                                long nelements,
                                                const float *matrices);
 
-CGGLDLL_API void cgGLSetMatrixParameterArrayfr(/*CGparameter*/CGparameter* param, 
+CGGLDLL_API void cgGLSetMatrixParameterArrayfr(CGparameter param, 
                                                long offset,
                                                long nelements,
                                                const float *matrices);
 
-CGGLDLL_API void cgGLSetMatrixParameterArraydc(/*CGparameter*/CGparameter* param, 
+CGGLDLL_API void cgGLSetMatrixParameterArraydc(CGparameter param, 
                                                long offset,
                                                long nelements,
                                                const double *matrices);
 
-CGGLDLL_API void cgGLSetMatrixParameterArraydr(/*CGparameter*/CGparameter* param, 
+CGGLDLL_API void cgGLSetMatrixParameterArraydr(CGparameter param, 
                                                long offset,
                                                long nelements,
                                                const double *matrices);
 
-CGGLDLL_API void cgGLGetMatrixParameterArrayfc(/*CGparameter*/CGparameter* param, 
+CGGLDLL_API void cgGLGetMatrixParameterArrayfc(CGparameter param, 
                                                long offset,
                                                long nelements,
                                                float *matrices);
 
-CGGLDLL_API void cgGLGetMatrixParameterArrayfr(/*CGparameter*/CGparameter* param, 
+CGGLDLL_API void cgGLGetMatrixParameterArrayfr(CGparameter param, 
                                                long offset,
                                                long nelements,
                                                float *matrices);
 
-CGGLDLL_API void cgGLGetMatrixParameterArraydc(/*CGparameter*/CGparameter* param, 
+CGGLDLL_API void cgGLGetMatrixParameterArraydc(CGparameter param, 
                                                long offset,
                                                long nelements,
                                                double *matrices);
 
-CGGLDLL_API void cgGLGetMatrixParameterArraydr(/*CGparameter*/CGparameter* param, 
+CGGLDLL_API void cgGLGetMatrixParameterArraydr(CGparameter param, 
                                                long offset,
                                                long nelements,
                                                double *matrices);
@@ -351,11 +357,13 @@ CGGLDLL_API void cgGLGetMatrixParameterArraydr(/*CGparameter*/CGparameter* param
  *** Texture Parameter Managment Functions
  *****************************************************************************/
 
-CGGLDLL_API void cgGLSetTextureParameter(/*CGparameter*/CGparameter* param, GLuint texobj);
-CGGLDLL_API GLuint cgGLGetTextureParameter(/*CGparameter*/CGparameter* param);
-CGGLDLL_API void cgGLEnableTextureParameter(/*CGparameter*/CGparameter* param);
-CGGLDLL_API void cgGLDisableTextureParameter(/*CGparameter*/CGparameter* param);
-CGGLDLL_API GLenum cgGLGetTextureEnum(/*CGparameter*/CGparameter* param);
+CGGLDLL_API void cgGLSetTextureParameter(CGparameter param, GLuint texobj);
+CGGLDLL_API GLuint cgGLGetTextureParameter(CGparameter param);
+CGGLDLL_API void cgGLEnableTextureParameter(CGparameter param);
+CGGLDLL_API void cgGLDisableTextureParameter(CGparameter param);
+CGGLDLL_API GLenum cgGLGetTextureEnum(CGparameter param);
+CGGLDLL_API void cgGLSetManageTextureParameters(CGcontext ctx, CGbool flag);
+CGGLDLL_API CGbool cgGLGetManageTextureParameters(CGcontext ctx);
 
 #endif
 
@@ -363,16 +371,5 @@ CGGLDLL_API GLenum cgGLGetTextureEnum(/*CGparameter*/CGparameter* param);
 }
 #endif
 
-
-#else
-
-#define cgGLLoadProgram cgGLDEPRECATEDAPI_LoadProgram
-#define cgGLBindProgram cgGLDEPRECATEDAPI_BindProgram
-#define cgGLEnableClientState cgGL_DEPRECATEDAPI_EnableClientState
-#define cgGLDisableClientState cgGL_DEPRECATEDAPI_DisableClientState
-
-#include <CG/cgGL_deprecated_api.h>
-
-#endif
 
 #endif

@@ -864,7 +864,8 @@ public class JavaEmitter implements GlueEmitter {
         
       } else {
         throw new RuntimeException(
-          "Could not convert C type \"" + t + "\" to appropriate Java type; ");
+          "Could not convert C type \"" + t + "\" (class " +
+          t.getClass().getName() + ") to appropriate Java type");
       }
     }    
   }
