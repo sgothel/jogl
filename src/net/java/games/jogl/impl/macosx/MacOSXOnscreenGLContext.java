@@ -45,6 +45,8 @@ import java.util.*;
 import net.java.games.jogl.*;
 import net.java.games.jogl.impl.*;
 
+import java.security.*;
+
 public class MacOSXOnscreenGLContext extends MacOSXGLContext {
   // Variables for lockSurface/unlockSurface
   private JAWT_DrawingSurface ds;
@@ -54,6 +56,9 @@ public class MacOSXOnscreenGLContext extends MacOSXGLContext {
     
   // Variables for pbuffer support
   List pbuffersToInstantiate = new ArrayList();
+
+  // Workaround for instance of 4796548
+  private boolean firstLock = true;
 
   public MacOSXOnscreenGLContext(Component component,
                                  GLCapabilities capabilities,
@@ -189,7 +194,16 @@ public class MacOSXOnscreenGLContext extends MacOSXGLContext {
       }
     }
         
-    dsi = ds.GetDrawingSurfaceInfo();
+    if (firstLock) {
+      AccessController.doPrivileged(new PrivilegedAction() {
+          public Object run() {
+            dsi = ds.GetDrawingSurfaceInfo();
+            return null;
+          }
+        });
+    } else {
+      dsi = ds.GetDrawingSurfaceInfo();
+    }
     if (dsi == null) {
       ds.Unlock();
       getJAWT().FreeDrawingSurface(ds);
@@ -199,6 +213,8 @@ public class MacOSXOnscreenGLContext extends MacOSXGLContext {
       return false;
     }
         
+    firstLock = false;
+
     macosxdsi = (JAWT_MacOSXDrawingSurfaceInfo) dsi.platformInfo();
     if (macosxdsi == null) {
       ds.FreeDrawingSurfaceInfo(dsi);
