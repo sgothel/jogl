@@ -110,7 +110,7 @@ class MacOSXDummyGLContext extends MacOSXGLContext
     throw new GLException("Should not call this");
   }
 	
-  private void destroy() {
+  public void destroy() {
     throw new GLException("Should not call this");
   }
 
