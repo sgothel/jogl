@@ -176,7 +176,7 @@ public class ScaleInternal {
     highy_float = convy_float;
     
     for( i = 0; i < heightout; i++ ) {
-      /* Clamp here to be sure we don't read beyond input buffer. */
+      // Clamp here to be sure we don't read beyond input buffer.
       if (highy_int >= heightin)
         highy_int = heightin - 1;
       lowx_int = 0;
@@ -385,7 +385,7 @@ public class ScaleInternal {
     highy_float = convy_float;
     
     for( i = 0; i < heightout; i++ ) {
-      /* Clamp here to be sure we don't read beyond input buffer. */
+      // Clamp here to be sure we don't read beyond input buffer.
       if (highy_int >= heightin)
         highy_int = heightin - 1;
       lowx_int = 0;
@@ -594,7 +594,7 @@ public class ScaleInternal {
     highy_float = convy_float;
     
     for( i = 0; i < heightout; i++ ) {
-      /* Clamp here to be sure we don't read beyond input buffer. */
+      // Clamp here to be sure we don't read beyond input buffer.
       if (highy_int >= heightin)
         highy_int = heightin - 1;
       lowx_int = 0;
@@ -868,7 +868,7 @@ public class ScaleInternal {
     highy_float = convy_float;
     
     for( i = 0; i < heightout; i++ ) {
-      /* Clamp here to be sure we don't read beyond input buffer. */
+      // Clamp here to be sure we don't read beyond input buffer.
       if (highy_int >= heightin)
         highy_int = heightin - 1;
       lowx_int = 0;
@@ -1154,7 +1154,7 @@ public class ScaleInternal {
     highy_float = convy_float;
     
     for( i = 0; i < heightout; i++ ) {
-      /* Clamp here to be sure we don't read beyond input buffer. */
+      // Clamp here to be sure we don't read beyond input buffer.
       if (highy_int >= heightin)
         highy_int = heightin - 1;
       lowx_int = 0;
@@ -1435,7 +1435,7 @@ public class ScaleInternal {
     highy_float = convy_float;
     
     for( i = 0; i < heightout; i++ ) {
-      /* Clamp here to be sure we don't read beyond input buffer. */
+      // Clamp here to be sure we don't read beyond input buffer.
       if (highy_int >= heightin)
         highy_int = heightin - 1;
       lowx_int = 0;
@@ -1723,7 +1723,7 @@ public class ScaleInternal {
     highy_float = convy_float;
     
     for( i = 0; i < heightout; i++ ) {
-      /* Clamp here to be sure we don't read beyond input buffer. */
+      // Clamp here to be sure we don't read beyond input buffer.
       if (highy_int >= heightin)
         highy_int = heightin - 1;
       lowx_int = 0;
@@ -2014,7 +2014,7 @@ public class ScaleInternal {
     highy_float = convx_float;
     
     for( i = 0; i < heightOut; i++ ) {
-      /* Clamp here to be sure we don't read beyond input buffer. */
+      // Clamp here to be sure we don't read beyond input buffer.
       if (highy_int >= heightIn)
         highy_int = heightIn - 1;
       lowx_int = 0;
