@@ -17,8 +17,12 @@ OpenGL binding from a fresh copy of the source distribution:
 
   <LI> <B>Unset your CLASSPATH environment variable:</B> <br> The Ant build requires that the Jogl jars not be visible on the classpath. On Unix, type <code> unsetenv CLASSPATH </code> into a csh or tcsh shell, or <code> set CLASSPATH=; export CLASSPATH </code> into a Bourne shell. On Windows, type <code> set CLASSPATH= </code> into a command prompt.
 
-  <LI> <B>Copy and edit jogl.properties:</B> <br> Copy <b>make/jogl.properties</b> into your home directory (pointed to by the Java system property <b>user.home</b>). Edit the copy to change any settings that are necessary, in particular the location of the ANTLR jar file (typically <b>$HOME/antlr-2.7.2/antlr.jar</b>).
-
+  <LI> <B>Copy and edit jogl.properties:</B> <br>
+    <UL>
+      <LI> <B>On Windows and X11 platforms:</B> Copy <b>make/jogl.properties</b> into your home directory (pointed to by the Java system property <b>user.home</b>).
+      <LI> <B>On Mac OS X:</B> Copy <b>make/jogl.properties</b> into the <b>Library/Java</b> subdirectory of your home directory (pointed to by the Java system property <b>user.home</b>).
+    </UL>
+    Edit the copy to change any settings that are necessary, in particular the location of the ANTLR jar file (typically <b>$HOME/antlr-2.7.2/antlr.jar</b>).
   <LI> <B>Build the source tree:</B> <br> Open a command shell in the "make" directory of the source tree and type "ant [target]", where [target] is one of <code>linux</code>, <code>macosx</code>, <code>solaris</code>, <code>win32.vc6</code>, <code>win32.vc7</code>, or <code>win32.mingw</code>.
       <UL>
 	<LI>The win32 targets require one of Microsoft Visual C++ 6, 7 (Visual Studio .NET) or the free MinGW (<a href="http://www.mingw.org/">http://www.mingw.org/</a>) compilers to be installed. Choose the appropriate target for the compiler desired.

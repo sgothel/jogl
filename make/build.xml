@@ -75,6 +75,15 @@
         <echo message="Loaded ${user.properties.file}." />
         <echo message="antlr.jar=${antlr.jar}" />
     </target>
+    <target name="load.user.properties.macosx" depends="base.init">
+        <!-- Load the user specified properties file that defines various host
+           - specific paths.  The user will be notified if this is does not
+           - exist. -->
+        <property name="user.properties.file" value="${user.home}/Library/Java/jogl.properties" />
+        <property file="${user.properties.file}" />
+        <echo message="Loaded ${user.properties.file}." />
+        <echo message="antlr.jar=${antlr.jar}" />
+    </target>
 
     <!-- ================================================================== -->
     <!-- 
@@ -83,7 +92,7 @@
     <target name="setup.java.home.dir.nonmacosx" depends="load.user.properties" unless="java.home.dir">
         <property name="java.home.dir" value="${java.home}/.." />
     </target>
-    <target name="setup.java.home.dir.macosx" depends="load.user.properties" unless="java.home.dir">
+    <target name="setup.java.home.dir.macosx" depends="load.user.properties.macosx" unless="java.home.dir">
         <property name="java.home.dir" value="/System/Library/Frameworks/JavaVM.framework/Home" />
     </target>
 
