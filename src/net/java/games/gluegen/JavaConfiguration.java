@@ -49,6 +49,29 @@ import net.java.games.gluegen.cgram.types.*;
     JavaEmitter. */
 
 public class JavaConfiguration {
+
+  /* possible PrimitiveArrayExpansionMode states */
+  private int ALL_POINTERS = 1;
+  private int NON_VOID_ONLY = 2;
+  private int NO_POINTERS = 3;
+
+  /* Default primitive array expansion mode is ALL_POINTERS, meaning all C 
+     pointers, including void pointers, will have Java primitive array 
+     expansions */
+  private int primitiveArrayExpansionMode = ALL_POINTERS;  
+
+  /* Determines which primitive array types void * C signatures are 
+     expanded into (assuming PrimitiveArrayExpansionMode = ALL_POINTERS). */
+  private boolean voidPointerExpansionToBoolean = true;
+  private boolean voidPointerExpansionToChar = true;
+  private boolean voidPointerExpansionToByte = true;
+  private boolean voidPointerExpansionToShort = true;
+  private boolean voidPointerExpansionToInt = true;
+  private boolean voidPointerExpansionToLong = true;
+  private boolean voidPointerExpansionToFloat = true;
+  private boolean voidPointerExpansionToDouble = true;
+
+
   private int nestedReads;
   private String packageName;
   private String implPackageName;
@@ -229,6 +252,30 @@ public class JavaConfiguration {
   public String      runtimeExceptionType()          { return runtimeExceptionType; }
   /** Returns the list of imports that should be emitted at the top of each .java file. */
   public List/*<String>*/ imports()                  { return imports; }
+
+
+  /* Return Primitive Array Expansion Mode state */
+  public boolean isPrimArrayExpModeAllPtrs() {
+       return (primitiveArrayExpansionMode == ALL_POINTERS);
+  }
+  public boolean isPrimArrayExpModeNonVoidPtrs() {
+       return (primitiveArrayExpansionMode == NON_VOID_ONLY);
+  }
+  public boolean isPrimArrayExpModeNoPtrs() {
+       return (primitiveArrayExpansionMode == NO_POINTERS);
+  }
+
+
+  /** Returns VoidPointerExpansion values */
+  public boolean voidPointerExpansionToBoolean() { return voidPointerExpansionToBoolean; }
+  public boolean voidPointerExpansionToChar() { return voidPointerExpansionToChar; }
+  public boolean voidPointerExpansionToByte() { return voidPointerExpansionToByte; }
+  public boolean voidPointerExpansionToShort() { return voidPointerExpansionToShort; }
+  public boolean voidPointerExpansionToInt() { return voidPointerExpansionToInt; }
+  public boolean voidPointerExpansionToLong() { return voidPointerExpansionToLong; }
+  public boolean voidPointerExpansionToFloat() { return voidPointerExpansionToFloat; }
+  public boolean voidPointerExpansionToDouble() { return voidPointerExpansionToDouble; }
+
 
   /** If this type should be considered opaque, returns the TypeInfo
       describing the replacement type. Returns null if this type
@@ -637,6 +684,10 @@ public class JavaConfiguration {
       readNioMode(tok, filename, lineNo);
     } else if (cmd.equalsIgnoreCase("FlattenNIOVariants")) {
       flattenNIOVariants = readBoolean("FlattenNIOVariants", tok, filename, lineNo).booleanValue();
+    } else if (cmd.equalsIgnoreCase("PrimitiveArrayExpansionMode")) {
+      readPrimitiveExpMode(tok, filename, lineNo);
+    } else if (cmd.equalsIgnoreCase("VoidPointerExpansion")) {
+      readVoidPointerExpansionSet(tok, filename, lineNo);
     } else if (cmd.equalsIgnoreCase("EmitStruct")) {
       forcedStructs.add(readString("EmitStruct", tok, filename, lineNo));
     } else if (cmd.equalsIgnoreCase("MirrorExpandedBindingArgs")) {
@@ -878,6 +929,113 @@ public class JavaConfiguration {
                                  " in file \"" + filename + "\"", e);
     }
   }
+
+
+ /**
+   * Sets the Primitive Array Expansion Mode.  Options are ALL_POINTERS (default),
+   * NON_VOID_ONLY, and NO_POINTERS.  ALL_POINTERS means that all Primitive array
+   * C pointers (float*, int*, void*, etc.) get expanded into non-NIO buffer
+   * targets.  The setting has no bearing on whether NIO buffer targets happen.
+   * So float * goes to float[], int* goes to int[], and void* gets expanded to 
+   * (by default) double[], float[], long[], int[], short[], byte[], char[], and
+   * boolean[].  NON_VOID_ONLY means that all Primitive array pointers except
+   * for void * get expanded, and NO_POINTERS means that no C Primitive array
+   * pointers get expanded.  
+   * For void * expansion the default is all 8 primitive types as listed above. 
+   * However, the types can be restricted by use of the VoidPointerExpansion
+   * attribute defined elsewhere in this file.
+   */
+
+  protected void readPrimitiveExpMode(StringTokenizer tok, String filename, int lineNo) {
+    try {
+      String mode = tok.nextToken();
+      if (mode.equalsIgnoreCase("ALL_POINTERS")) {
+        primitiveArrayExpansionMode = ALL_POINTERS;
+      } else if (mode.equalsIgnoreCase("NON_VOID_ONLY")) {
+        primitiveArrayExpansionMode = NON_VOID_ONLY;
+      } else if (mode.equalsIgnoreCase("NO_POINTERS")) {
+        primitiveArrayExpansionMode = NO_POINTERS;
+      } else {
+        throw new RuntimeException("Error parsing \"PrimitiveArrayExpansionMode\" command at line " + lineNo +
+                                   " in file \"" + filename 
+                                + "\"; expected NO_POINTERS, NON_VOID_ONLY or ALL_POINTERS");
+      }
+    } catch (NoSuchElementException e) {
+      throw new RuntimeException(
+                                 "Error parsing \"PrimitiveArrayExpansionMode\" command at line " + lineNo +
+                                 " in file \"" + filename + "\"", e);
+    }
+  }
+
+
+
+  /**
+   *   readVoidPointerExpansionSet:
+   *   Parses VoidPointerExpansion arguments.  Expecting subset of boolean, char, byte,
+   *   short, int, long,float, double.  Example grammar file syntax:
+   *   VoidPointerExpansion  short int float  byte double
+   *   If PrimitiveArrayExpansionMode is set to NON_VOID_ONLY or NO_POINTERS, then 
+   *   the VoidPointerExpansion attribute has no effect, since in that case void 
+   *   pointers are not expanded.
+   */
+
+  protected void readVoidPointerExpansionSet(StringTokenizer tok, String filename, int lineNo) {
+      int number_passes=0;
+      boolean finished = false;
+
+      voidPointerExpansionToBoolean = false;
+      voidPointerExpansionToChar = false;
+      voidPointerExpansionToByte = false;
+      voidPointerExpansionToShort = false;
+      voidPointerExpansionToInt = false;
+      voidPointerExpansionToLong = false;
+      voidPointerExpansionToFloat = false;
+      voidPointerExpansionToDouble = false;
+
+    while(!finished) {
+      try {
+        String mode = tok.nextToken();
+        if (mode.equalsIgnoreCase("float")) {
+          voidPointerExpansionToFloat = true;
+          number_passes++;
+        } else if (mode.equalsIgnoreCase("int")) {
+          voidPointerExpansionToInt = true;
+          number_passes++;
+        } else if (mode.equalsIgnoreCase("byte")) {
+          voidPointerExpansionToByte = true;
+          number_passes++;
+        } else if (mode.equalsIgnoreCase("short")) {
+          voidPointerExpansionToShort = true;
+          number_passes++;
+        } else if (mode.equalsIgnoreCase("boolean")) {
+          voidPointerExpansionToBoolean = true;
+          number_passes++;
+        } else if (mode.equalsIgnoreCase("char")) {
+          voidPointerExpansionToChar = true;
+          number_passes++;
+        } else if (mode.equalsIgnoreCase("long")) {
+          voidPointerExpansionToLong = true;
+          number_passes++;
+        } else if (mode.equalsIgnoreCase("double")) {
+          voidPointerExpansionToDouble = true;
+          number_passes++;
+        } else {
+          throw new RuntimeException("Error parsing \"VoidPointerExpansion\" command at line " + lineNo +
+                                     " in file \"" + filename +
+               "\"; expected some combination of boolean, char, byte, short, int, long, float, double");
+          }
+      } catch (NoSuchElementException e) {
+          if(number_passes == 0) {
+        throw new RuntimeException(
+                                 "Error parsing \"VoidPointerExpansion\" command at line " + lineNo +
+                                 " in file \"" + filename + "\"", e);
+          }
+          finished = true;
+      }
+    }
+  }
+
+
 
   /**
    * When void* arguments in the C function prototypes are encountered, the

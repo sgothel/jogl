@@ -1255,41 +1255,75 @@ public class JavaEmitter implements GlueEmitter {
           shouldRemoveCurrent = true;
           MethodBinding variant = null;
 
-          // Non-NIO variants for void* and other C primitive pointer types
-          if (!cfg.nioOnly(mb.getCSymbol().getName())) {
-            if (t.isCVoidPointerType()) {
-              variant = mb.createCPrimitivePointerVariant(j, javaType(ArrayTypes.booleanArrayClass));
-              if (! result.contains(variant)) result.add(variant);
-              variant = mb.createCPrimitivePointerVariant(j, javaType(ArrayTypes.charArrayClass));
-              if (! result.contains(variant)) result.add(variant);
-            }
-            if (t.isCCharPointerType() || t.isCVoidPointerType()) {
+          // Non-NIO variants for non-void C primitive pointer types 
+          if (!cfg.nioOnly(mb.getCSymbol().getName()) && !t.isCVoidPointerType() 
+                             && !cfg.isPrimArrayExpModeNoPtrs()) {
+            if (t.isCCharPointerType()) {
               variant = mb.createCPrimitivePointerVariant(j, javaType(ArrayTypes.byteArrayClass));
               if (! result.contains(variant)) result.add(variant);
             }
-            if (t.isCShortPointerType() || t.isCVoidPointerType()) {
+            if (t.isCShortPointerType()) {
               variant = mb.createCPrimitivePointerVariant(j, javaType(ArrayTypes.shortArrayClass));
               if (! result.contains(variant)) result.add(variant);
             }
-            if (t.isCInt32PointerType() || t.isCVoidPointerType()) {
+            if (t.isCInt32PointerType()) {
               variant = mb.createCPrimitivePointerVariant(j, javaType(ArrayTypes.intArrayClass));
               if (! result.contains(variant)) result.add(variant);
             }
-            if (t.isCInt64PointerType() || t.isCVoidPointerType()) {
+            if (t.isCInt64PointerType()) {
               variant = mb.createCPrimitivePointerVariant(j, javaType(ArrayTypes.longArrayClass));
               if (! result.contains(variant)) result.add(variant);
             }
-            if (t.isCFloatPointerType() || t.isCVoidPointerType()) {
+            if (t.isCFloatPointerType()) {
               variant = mb.createCPrimitivePointerVariant(j, javaType(ArrayTypes.floatArrayClass));
               if (! result.contains(variant)) result.add(variant);
             }
-            if (t.isCDoublePointerType() || t.isCVoidPointerType()) {
+            if (t.isCDoublePointerType()) {
               variant = mb.createCPrimitivePointerVariant(j, javaType(ArrayTypes.doubleArrayClass));
               if (! result.contains(variant)) result.add(variant);
             }
           }
 
-          // NIO variants for void* and other C primitive pointer types
+
+          // Non-NIO variants for void* C primitive pointer type
+          if (!cfg.nioOnly(mb.getCSymbol().getName()) && t.isCVoidPointerType()  
+                            && cfg.isPrimArrayExpModeAllPtrs()) {
+            if (cfg.voidPointerExpansionToBoolean()) {
+              variant = mb.createCPrimitivePointerVariant(j, javaType(ArrayTypes.booleanArrayClass));
+              if (! result.contains(variant)) result.add(variant);
+            }
+            if (cfg.voidPointerExpansionToChar()) {
+              variant = mb.createCPrimitivePointerVariant(j, javaType(ArrayTypes.charArrayClass));
+              if (! result.contains(variant)) result.add(variant);
+            }
+            if (cfg.voidPointerExpansionToByte()) {
+              variant = mb.createCPrimitivePointerVariant(j, javaType(ArrayTypes.byteArrayClass));
+              if (! result.contains(variant)) result.add(variant);
+            }
+            if (cfg.voidPointerExpansionToShort()) {
+              variant = mb.createCPrimitivePointerVariant(j, javaType(ArrayTypes.shortArrayClass));
+              if (! result.contains(variant)) result.add(variant);
+            }
+            if (cfg.voidPointerExpansionToInt()) {
+              variant = mb.createCPrimitivePointerVariant(j, javaType(ArrayTypes.intArrayClass));
+              if (! result.contains(variant)) result.add(variant);
+            }
+            if (cfg.voidPointerExpansionToLong()) {
+              variant = mb.createCPrimitivePointerVariant(j, javaType(ArrayTypes.longArrayClass));
+              if (! result.contains(variant)) result.add(variant);
+            }
+            if (cfg.voidPointerExpansionToFloat()) {
+              variant = mb.createCPrimitivePointerVariant(j, javaType(ArrayTypes.floatArrayClass));
+              if (! result.contains(variant)) result.add(variant);
+            }
+            if (cfg.voidPointerExpansionToDouble()) {
+              variant = mb.createCPrimitivePointerVariant(j, javaType(ArrayTypes.doubleArrayClass));
+              if (! result.contains(variant)) result.add(variant);
+            }
+          }
+
+
+          // NIO variant for void* C primitive pointer type
           if (!cfg.noNio(mb.getCSymbol().getName())) {
             if (t.isCVoidPointerType()) {
               variant = mb.createCPrimitivePointerVariant(j, JavaType.forNIOBufferClass());
@@ -1297,6 +1331,7 @@ public class JavaEmitter implements GlueEmitter {
             }
           }
 
+          // NIO variants for non-void* C primitive pointer types
           if ((cfg.nioMode() == JavaConfiguration.NIO_MODE_ALL_POINTERS && !cfg.noNio(mb.getCSymbol().getName())) ||
               (cfg.nioMode() == JavaConfiguration.NIO_MODE_VOID_ONLY    && cfg.forcedNio(mb.getCSymbol().getName()))) {
             if (t.isCCharPointerType()) {
@@ -1331,6 +1366,7 @@ public class JavaEmitter implements GlueEmitter {
           }
         }
       }
+
       if (mb.getJavaReturnType().isCPrimitivePointerType()) {
         MethodBinding variant = null;
         if (mb.getJavaReturnType().isCVoidPointerType()) {
@@ -1365,6 +1401,12 @@ public class JavaEmitter implements GlueEmitter {
     }
 
     // Honor the flattenNIOVariants directive in the configuration file
+    // FlattenNIOVariants <boolean>
+    // true: If there are multiple arguments in a method signature that map
+    //       to NIO buffer, do not pair an NIO buffer argument with a primitive
+    //       array argument
+    // false: Allow cross-pairing of nio and primitive array arguments in a
+    //       single method signature.
     if (cfg.flattenNIOVariants()) {
       i = 0;
       while (i < result.size()) {
