@@ -76,7 +76,7 @@ public class CompoundType extends Type {
     } else if (getName() != null) {
       hashcode = getName().hashCode();
     } else {
-      hashcode = System.identityHashCode(this);
+      hashcode = 0;
     }
 
     computedHashcode = true;
@@ -90,8 +90,9 @@ public class CompoundType extends Type {
     }
     CompoundType t = (CompoundType) arg;
     return (super.equals(arg) &&
-                       kind == t.kind &&
-                       listsEqual(fields, t.fields));
+            (structName == t.structName || (structName != null && structName.equals(t.structName))) &&
+            kind == t.kind &&
+            listsEqual(fields, t.fields));
   }
 
   /** Returns the struct name of this CompoundType, i.e. the "foo" in

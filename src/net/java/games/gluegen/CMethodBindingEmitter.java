@@ -609,7 +609,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
             writer.print("  ");
             emitGetStringUTFChars(writer,
                                   "(jstring) _tmpObj",
-                                  "(const char*)"+convName+"_copy[_copyIndex]");
+                                  convName+"_copy[_copyIndex]");
           }
           else if (isNIOBufferClass(subArrayElementJavaType))
           {
@@ -781,7 +781,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
           }
 
           // free the main array
-          writer.print("    free(");
+          writer.print("    free((void*) ");
           writer.print(convName+"_copy");
           writer.println(");");
         } // end of cleaning up copied data
@@ -1251,7 +1251,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
       Class elementType = javaType.getJavaClass().getComponentType();
       if (javaType.isArray() &&
           javaType.getJavaClass().getComponentType() == java.lang.String.class) {
-        writer.print("  char **");
+        writer.print("  const char **");
       } else {
         writer.print(ptrTypeString);
       }
