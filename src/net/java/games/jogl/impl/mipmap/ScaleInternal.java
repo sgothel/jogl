@@ -2010,7 +2010,6 @@ public class ScaleInternal {
           y_percent = 1 - lowy_float;
           temp = xindex + lowy_int * rowSizeInBytes;
           percent = y_percent * ( 1 - lowx_float );
-          dataIn.rewind();
           dataIn.position( temp );
           extract.extract( isSwap, dataIn, extractTotals );
           for( k = 0; k < components; k++ ) {
@@ -2019,7 +2018,6 @@ public class ScaleInternal {
           left = temp;
           for( l = lowx_int + 1; l < highx_int; l++ ) {
             temp += pixelSizeInBytes;
-            dataIn.rewind();
             dataIn.position( temp );
             extract.extract( isSwap, dataIn, extractTotals );
             for( k = 0; k < components; k++ ) {
@@ -2029,7 +2027,6 @@ public class ScaleInternal {
           temp += pixelSizeInBytes;
           right = temp;
           percent = y_percent * highx_float;
-          dataIn.rewind();
           dataIn.position( temp );
           extract.extract( isSwap, dataIn, extractTotals );
           for( k = 0; k < components; k++ ) {
@@ -2040,7 +2037,6 @@ public class ScaleInternal {
           y_percent = highy_float;
           percent = y_percent * ( 1 - lowx_float );
           temp = xindex + highy_int * rowSizeInBytes;
-          dataIn.rewind();
           dataIn.position( temp );
           extract.extract( isSwap, dataIn, extractTotals );
           for( k = 0; k < components; k++ ) {
@@ -2048,7 +2044,6 @@ public class ScaleInternal {
           }
           for( l = lowx_int + 1; l < highx_int; l++ ) {
             temp += pixelSizeInBytes;
-            dataIn.rewind();
             dataIn.position( temp );
             extract.extract( isSwap, dataIn, extractTotals );
             for( k = 0; k < components; k++ ) {
@@ -2057,7 +2052,6 @@ public class ScaleInternal {
           }
           temp += pixelSizeInBytes;
           percent = y_percent * highx_float;
-          dataIn.rewind();
           dataIn.position( temp );
           for( k = 0; k < components; k++ ) {
             totals[k] += extractTotals[k] * percent;
@@ -2067,10 +2061,8 @@ public class ScaleInternal {
           for( m = lowy_int + 1; m < highy_int; m++ ) {
             left += rowSizeInBytes;
             right += rowSizeInBytes;
-            dataIn.rewind();
             dataIn.position( left );
             extract.extract( isSwap, dataIn, extractTotals );
-            dataIn.rewind();
             dataIn.position( right );
             extract.extract( isSwap, dataIn, extractMoreTotals );
             for( k = 0; k < components; k++ ) {
@@ -2081,7 +2073,6 @@ public class ScaleInternal {
           x_percent = highx_float - lowx_float;
           percent = ( 1 - lowy_float ) * x_percent;
           temp = xindex + lowy_int * rowSizeInBytes;
-          dataIn.rewind();
           dataIn.position( temp );
           extract.extract( isSwap, dataIn, extractTotals );
           for( k = 0; k < components; k++ ) {
@@ -2089,7 +2080,6 @@ public class ScaleInternal {
           }
           for( m = lowy_int + 1; m < highy_int; m++ ) {
             temp += rowSizeInBytes;
-            dataIn.rewind();
             dataIn.position( temp );
             extract.extract( isSwap, dataIn, extractTotals );
             for( k = 0; k < components; k++ ) {
@@ -2098,14 +2088,8 @@ public class ScaleInternal {
           }
           percent = x_percent * highy_float;
           temp += rowSizeInBytes;
-          dataIn.rewind();
           dataIn.position( temp );
-          try {
-            extract.extract( isSwap, dataIn, extractTotals );
-          } catch( BufferUnderflowException e ) {
-            System.err.println("Buffer Underflow");
-            System.err.println( e.getMessage() );
-          }
+          extract.extract( isSwap, dataIn, extractTotals );
           for( k = 0; k < components; k++ ) {
             totals[k] += extractTotals[k] * percent;
           }
@@ -2113,7 +2097,6 @@ public class ScaleInternal {
           y_percent = highy_float - lowy_float;
           percent = ( 1 - lowx_float ) * y_percent;
           temp = xindex + lowy_int * rowSizeInBytes;
-          dataIn.rewind();
           dataIn.position( temp );
           extract.extract( isSwap, dataIn, extractTotals );
           for( k = 0; k < components; k++ ) {
@@ -2121,7 +2104,6 @@ public class ScaleInternal {
           }
           for( l = lowx_int + 1; l < highx_int; l++ ) {
             temp += pixelSizeInBytes;
-            dataIn.rewind();
             dataIn.position( temp );
             extract.extract( isSwap, dataIn, extractTotals );
             for( k = 0; k < components; k++ ) {
@@ -2130,7 +2112,6 @@ public class ScaleInternal {
           }
           temp += pixelSizeInBytes;
           percent = y_percent * highx_float;
-          dataIn.rewind();
           dataIn.position( temp );
           extract.extract( isSwap, dataIn, extractTotals );
           for( k = 0; k < components; k++ ) {
@@ -2139,7 +2120,6 @@ public class ScaleInternal {
         } else {
           percent = ( highy_float - lowy_float ) * ( highx_float - lowx_float );
           temp = xindex + lowy_int * rowSizeInBytes;
-          dataIn.rewind();
           dataIn.position( temp );
           extract.extract( isSwap, dataIn, extractTotals );
           for( k = 0; k < components; k++ ) {
@@ -2152,7 +2132,6 @@ public class ScaleInternal {
         for( m = lowy_int + 1; m < highy_int; m++ ) {
           temp = temp0;
           for( l = lowx_int + 1; l < highx_int; l++ ) {
-            dataIn.rewind();
             dataIn.position( temp );
             extract.extract( isSwap, dataIn, extractTotals );
             for( k = 0; k < components; k++ ) {
