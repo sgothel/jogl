@@ -40,6 +40,7 @@
 package net.java.games.jogl.impl;
 
 import java.awt.Dimension;
+import java.awt.EventQueue;
 import java.awt.event.*;
 import java.beans.PropertyChangeListener;
 
@@ -61,7 +62,9 @@ public class GLPbufferImpl implements GLPbuffer {
   }
 
   public void display() {
-    context.invokeGL(displayAction, false, initAction);
+    maybeDoSingleThreadedWorkaround(displayOnEventDispatchThreadAction,
+                                    displayAction,
+                                    false);
   }
 
   public void setSize(int width, int height) {
@@ -107,7 +110,7 @@ public class GLPbufferImpl implements GLPbuffer {
   }
   
   void willSetRenderingThread() {
-    context.willSetRenderingThread();
+    // Not supported for pbuffers
   }
 
   public void setRenderingThread(Thread currentThreadOrNull) throws GLException {
@@ -135,7 +138,7 @@ public class GLPbufferImpl implements GLPbuffer {
   }
 
   public void swapBuffers() {
-    context.invokeGL(swapBuffersAction, false, initAction);
+    maybeDoSingleThreadedWorkaround(swapBuffersOnEventDispatchThreadAction, swapBuffersAction, false);
   }
 
   public boolean canCreateOffscreenDrawable() {
@@ -149,10 +152,14 @@ public class GLPbufferImpl implements GLPbuffer {
   }
 
   public void bindTexture() {
+    // Doesn't make much sense to try to do this on the event dispatch
+    // thread given that it has to be called while the context is current
     context.bindPbufferToTexture();
   }
 
   public void releaseTexture() {
+    // Doesn't make much sense to try to do this on the event dispatch
+    // thread given that it has to be called while the context is current
     context.releasePbufferFromTexture();
   }
 
@@ -196,9 +203,37 @@ public class GLPbufferImpl implements GLPbuffer {
     return isInitialized;
   }
 
+  public void destroy() {
+    context.destroy();
+  }
+
   //----------------------------------------------------------------------
   // Internals only below this point
   //
+
+  private void maybeDoSingleThreadedWorkaround(Runnable eventDispatchThreadAction,
+                                               Runnable invokeGLAction,
+                                               boolean  isReshape) {
+    if (SingleThreadedWorkaround.doWorkaround() && !EventQueue.isDispatchThread()) {
+      try {
+        // Reshape events must not block on the event queue due to the
+        // possibility of deadlocks during initial component creation.
+        // This solution is not optimal, because it changes the
+        // semantics of reshape() to have some of the processing being
+        // done asynchronously, but at least it preserves the
+        // semantics of the single-threaded workaround.
+        if (!isReshape) {
+          EventQueue.invokeAndWait(eventDispatchThreadAction);
+        } else {
+          EventQueue.invokeLater(eventDispatchThreadAction);
+        }
+      } catch (Exception e) {
+        throw new GLException(e);
+      }
+    } else {
+      context.invokeGL(invokeGLAction, isReshape, initAction);
+    }
+  }
 
   class InitAction implements Runnable {
     public void run() {
@@ -221,4 +256,22 @@ public class GLPbufferImpl implements GLPbuffer {
     }
   }
   private SwapBuffersAction swapBuffersAction = new SwapBuffersAction();
+
+  // Workaround for ATI driver bugs related to multithreading issues
+  // like simultaneous rendering via Animators to canvases that are
+  // being resized on the AWT event dispatch thread
+  class DisplayOnEventDispatchThreadAction implements Runnable {
+    public void run() {
+      context.invokeGL(displayAction, false, initAction);
+    }
+  }
+  private DisplayOnEventDispatchThreadAction displayOnEventDispatchThreadAction =
+    new DisplayOnEventDispatchThreadAction();
+  class SwapBuffersOnEventDispatchThreadAction implements Runnable {
+    public void run() {
+      context.invokeGL(swapBuffersAction, false, initAction);
+    }
+  }
+  private SwapBuffersOnEventDispatchThreadAction swapBuffersOnEventDispatchThreadAction =
+    new SwapBuffersOnEventDispatchThreadAction();
 }

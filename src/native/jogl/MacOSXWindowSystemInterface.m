@@ -17,6 +17,7 @@ typedef int Bool;
 NSAutoreleasePool* gAutoreleasePool = NULL;
 
 void* createContext(void* shareContext, void* view,
+                    int doubleBuffer,
                     int redBits,
                     int greenBits,
                     int blueBits,

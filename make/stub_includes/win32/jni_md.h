@@ -3,7 +3,7 @@
 #define JNIIMPORT
 #define JNICALL
 
-typedef long jint;
+typedef int jint;
 typedef __int64 jlong;
 typedef signed char jbyte;
 

@@ -4,8 +4,7 @@ import net.java.games.jogl.*;
 import net.java.games.jogl.impl.*;
 
 public class MacOSXPbufferGLContext extends MacOSXGLContext {
-
-  private static final boolean DEBUG = false;
+  private static final boolean DEBUG = Debug.debug("MacOSXPbufferGLContext");
   
   protected int  initWidth;
   protected int  initHeight;
@@ -131,6 +130,10 @@ public class MacOSXPbufferGLContext extends MacOSXGLContext {
     return false;
   }
   
+  protected void destroyImpl() throws GLException {
+    destroyPBuffer();
+  }
+
   public void swapBuffers() throws GLException {
     // FIXME: do we need to do anything if the pbuffer is double-buffered?
   }

@@ -40,8 +40,8 @@
 #include <jni.h>
 
 #ifdef _MSC_VER
- /* This typedef is only needed for VC6 */
- #if _MSC_VER <= 1200
+ /* This typedef seems to be needed at least for VC6 and Visual Studio 2003 */
+ #if _MSC_VER <= 1400
  typedef int intptr_t;
  #endif
 #else

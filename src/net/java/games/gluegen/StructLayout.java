@@ -123,9 +123,11 @@ public class StructLayout {
     String cpu = System.getProperty("os.arch").toLowerCase();
     if ((os.startsWith("windows") && cpu.equals("x86")) ||
         (os.startsWith("linux") && cpu.equals("i386")) ||
+        (os.startsWith("linux") && cpu.equals("amd64")) ||
         (os.startsWith("sunos") && cpu.equals("sparc")) ||
-        (os.startsWith("sunos") && cpu.equals("x86"))||
-        (os.startsWith("mac os") && cpu.equals("ppc"))
+        (os.startsWith("sunos") && cpu.equals("x86")) ||
+        (os.startsWith("mac os") && cpu.equals("ppc")) ||
+        (os.startsWith("freebsd") && cpu.equals("i386"))
 	) {
       // FIXME: make struct alignment configurable? May need to change
       // packing rules on a per-type basis?

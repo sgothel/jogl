@@ -52,7 +52,7 @@ import java.lang.reflect.*;
  * and display.
  */
 public final class FunctionAvailabilityCache {
-  private static final boolean DEBUG = false;
+  private static final boolean DEBUG = Debug.debug("FunctionAvailabilityCache");
 
   FunctionAvailabilityCache(GLContext context)
   {
@@ -114,6 +114,10 @@ public final class FunctionAvailabilityCache {
       }
       String allAvailableExtensions =
         gl.glGetString(GL.GL_EXTENSIONS) + " " + context.getPlatformExtensionsString();
+      if (DEBUG) {
+        System.err.println("!!! Available extensions: " + allAvailableExtensions);
+        System.err.println("!!! GL vendor: " + gl.glGetString(GL.GL_VENDOR));
+      }
       StringTokenizer tok = new StringTokenizer(allAvailableExtensions);
       while (tok.hasMoreTokens()) {
         String availableExt = tok.nextToken().trim();

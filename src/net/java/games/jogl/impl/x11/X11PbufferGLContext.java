@@ -43,7 +43,7 @@ import net.java.games.jogl.*;
 import net.java.games.jogl.impl.*;
 
 public class X11PbufferGLContext extends X11GLContext {
-  private static final boolean DEBUG = false;
+  private static final boolean DEBUG = Debug.debug("X11PbufferGLContext");
 
   private int  initWidth;
   private int  initHeight;
@@ -209,7 +209,7 @@ public class X11PbufferGLContext extends X11GLContext {
 
     iattributes[niattribs++] = 0;
 
-    int tmpBuffer = GLX.glXCreatePbuffer(display, fbConfig, iattributes);
+    long tmpBuffer = GLX.glXCreatePbuffer(display, fbConfig, iattributes);
     if (tmpBuffer == 0) {
       // FIXME: query X error code for detail error message
       throw new GLException("pbuffer creation error: glXCreatePbuffer() failed");
@@ -251,10 +251,7 @@ public class X11PbufferGLContext extends X11GLContext {
         created = true;
       }
 
-      // FIXME: this cast to int would be wrong on 64-bit platforms
-      // where the argument type to glXMakeCurrent would change (should
-      // probably make GLXDrawable, and maybe XID, Opaque as long)
-      if (!GLX.glXMakeContextCurrent(display, (int) buffer, (int) buffer, context)) {
+      if (!GLX.glXMakeContextCurrent(display, buffer, buffer, context)) {
         throw new GLException("Error making context current");
       }
 
@@ -318,6 +315,19 @@ public class X11PbufferGLContext extends X11GLContext {
     }
   }
 
+  protected void destroyImpl() throws GLException {
+    lockAWT();
+    try {
+      if (context != 0) {
+        super.destroyImpl();
+        GLX.glXDestroyPbuffer(display, buffer);
+        buffer = 0;
+      }
+    } finally {
+      unlockAWT();
+    }
+  }
+
   public void swapBuffers() throws GLException {
     // FIXME: do we need to do anything if the pbuffer is double-buffered?
   }
@@ -328,16 +338,5 @@ public class X11PbufferGLContext extends X11GLContext {
       throw new GLException("glXGetFBConfigAttrib failed");
     }
     return tmp[0];
-  }
-
-  // These synchronization primitives, which prevent the AWT from
-  // making requests from the X server asynchronously to this code,
-  // are required for pbuffers to work properly on X11.
-  private void lockAWT() {
-    getJAWT().Lock();
-  }
-
-  private void unlockAWT() {
-    getJAWT().Unlock();
   }
 }

@@ -66,7 +66,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
   private String runtimeExceptionType;
 
   private MethodBinding binding;
-  private boolean forNIOBufferBaseRoutine;
+  private boolean forImplementingMethodCall;
 
   // A non-null value indicates that rather than returning a compound
   // type accessor we are returning an array of such accessors; this
@@ -80,18 +80,26 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
     this(binding, output, runtimeExceptionType, false);
   }
   
-  public JavaMethodBindingEmitter(MethodBinding binding, PrintWriter output, String runtimeExceptionType, boolean forNIOBufferBaseRoutine)
+  public JavaMethodBindingEmitter(MethodBinding binding, PrintWriter output, String runtimeExceptionType, boolean forImplementingMethodCall)
   {
     super(output);
     this.binding = binding;
-    this.forNIOBufferBaseRoutine = forNIOBufferBaseRoutine;
+    this.forImplementingMethodCall = forImplementingMethodCall;
     this.runtimeExceptionType = runtimeExceptionType;
     setCommentEmitter(defaultInterfaceCommentEmitter);
   }
   
+  public JavaMethodBindingEmitter(JavaMethodBindingEmitter arg) {
+    super(arg);
+    runtimeExceptionType          = arg.runtimeExceptionType;
+    binding                       = arg.binding;
+    forImplementingMethodCall     = arg.forImplementingMethodCall;
+    returnedArrayLengthExpression = arg.returnedArrayLengthExpression;
+  }
+
   public final MethodBinding getBinding() { return binding; }
 
-  public final boolean isForNIOBufferBaseRoutine() { return forNIOBufferBaseRoutine; }
+  public boolean isForImplementingMethodCall() { return forImplementingMethodCall; }
 
   public String getName() {
     return binding.getName();
@@ -130,9 +138,10 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
 
   protected void emitName(PrintWriter writer)
   {
-    writer.print(binding.getName());
-    if (forNIOBufferBaseRoutine) {
-      writer.print("0");
+    if (forImplementingMethodCall) {
+      writer.print(getImplMethodName());
+    } else {
+      writer.print(getName());
     }
   }
 
@@ -141,7 +150,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
     boolean needComma = false;
     int numEmitted = 0;
 
-    if (forNIOBufferBaseRoutine && binding.hasContainingType()) {
+    if (forImplementingMethodCall && binding.hasContainingType()) {
       // Always emit outgoing "this" argument
       writer.print("java.nio.Buffer ");
       writer.print(javaThisArgumentName());      

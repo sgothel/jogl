@@ -61,6 +61,25 @@ public class WindowsOnscreenGLContext extends WindowsGLContext {
     super(component, capabilities, chooser, shareWith);
   }
   
+  public void invokeGL(Runnable runnable, boolean isReshape, Runnable initAction) throws GLException {
+    // Unfortunately, invokeGL can be called with the AWT tree lock
+    // held, and the Windows onscreen implementation of
+    // choosePixelFormatAndCreateContext calls
+    // Component.getGraphicsConfiguration(), which grabs the tree
+    // lock. To avoid deadlock we have to lock the tree lock before
+    // grabbing the GLContext's lock if we're going to create an
+    // OpenGL context during this call. This code might not be
+    // completely correct, and we might need to uniformly grab the AWT
+    // tree lock, which might become a performance issue...
+    if (hglrc == 0) {
+      synchronized(component.getTreeLock()) {
+        super.invokeGL(runnable, isReshape, initAction);
+      }
+    } else {
+      super.invokeGL(runnable, isReshape, initAction);
+    }
+  }
+
   protected GL createGL()
   {
     return new WindowsGLImpl(this);
@@ -83,7 +102,7 @@ public class WindowsOnscreenGLContext extends WindowsGLContext {
   }
 
   public boolean canCreatePbufferContext() {
-    return true;
+    return haveWGLARBPbuffer();
   }
 
   public synchronized GLContext createPbufferContext(GLCapabilities capabilities,

@@ -264,10 +264,8 @@ public class JavaEmitter implements GlueEmitter {
         continue; // don't generate bindings for this symbol
       }
       
-      Iterator allBindings = generateMethodBindingEmitters(cFunc);
-      while (allBindings.hasNext()) {
-        methodBindingEmitters.add(allBindings.next());
-      }
+      List allBindings = generateMethodBindingEmitters(cFunc);
+      methodBindingEmitters.addAll(allBindings);
     }
 
     // Emit all the methods
@@ -305,7 +303,7 @@ public class JavaEmitter implements GlueEmitter {
    * Generate all appropriate Java bindings for the specified C function
    * symbols.
    */
-  protected Iterator generateMethodBindingEmitters(FunctionSymbol sym) throws Exception {
+  protected List generateMethodBindingEmitters(FunctionSymbol sym) throws Exception {
 
     ArrayList/*<FunctionEmitter>*/ allEmitters = new ArrayList(1);
 
@@ -375,7 +373,7 @@ public class JavaEmitter implements GlueEmitter {
           if (cfg.allStatic()) {
             entryPoint.addModifier(JavaMethodBindingEmitter.STATIC);
           }
-          if (!isUnimplemented && !binding.needsBody()) {
+          if (!isUnimplemented && !bindingNeedsBody(binding)) {
             entryPoint.addModifier(JavaMethodBindingEmitter.NATIVE);
           }
           entryPoint.setReturnedArrayLengthExpression(cfg.returnedArrayLength(binding.getName()));
@@ -395,8 +393,8 @@ public class JavaEmitter implements GlueEmitter {
           // If the user has stated that the function will be
           // manually implemented, then don't auto-generate a function body.
           if (!cfg.manuallyImplement(sym.getName()) && !isUnimplemented) {
-            if (binding.needsBody()) {
-              // Generate the method which calls the underlying function
+            if (bindingNeedsBody(binding)) {
+              // Generate the method which calls the underlying C function
               // after unboxing has occurred
               PrintWriter output = cfg.allStatic() ? javaWriter() : javaImplWriter();
               JavaMethodBindingEmitter wrappedEntryPoint =
@@ -422,7 +420,7 @@ public class JavaEmitter implements GlueEmitter {
         "Error while generating bindings for \"" + sym + "\"", e);
     }
 
-    return allEmitters.iterator();
+    return allEmitters;
   }
 
     
@@ -571,7 +569,7 @@ public class JavaEmitter implements GlueEmitter {
 
             JavaMethodBindingEmitter entryPoint = new JavaMethodBindingImplEmitter(binding, writer, cfg.runtimeExceptionType());
             entryPoint.addModifier(JavaMethodBindingEmitter.PUBLIC);
-            if (!binding.needsBody() && !binding.hasContainingType()) {
+            if (!bindingNeedsBody(binding) && !binding.hasContainingType()) {
               entryPoint.addModifier(JavaMethodBindingEmitter.NATIVE);
             }
             entryPoint.emit();
@@ -675,6 +673,12 @@ public class JavaEmitter implements GlueEmitter {
   //----------------------------------------------------------------------
   // Internals only below this point
   //
+
+  protected boolean bindingNeedsBody(MethodBinding binding) {
+    // We need to perform NIO checks and conversions and array length
+    // checks
+    return binding.signatureUsesNIO() || binding.signatureUsesCArrays();
+  }
 
   private CMethodBindingEmitter makeCEmitter(MethodBinding binding,
                                              boolean overloaded,

@@ -3,7 +3,7 @@
 #define JNIIMPORT
 #define JNICALL
 
-typedef long jint;
+typedef int jint;
 #ifdef _LP64 /* 64-bit Solaris */
 typedef long jlong;
 #else

@@ -151,7 +151,6 @@ public class JavaGLPAWrapperEmitter extends JavaMethodBindingImplEmitter
 
   protected void emitPreCallSetup(MethodBinding binding, PrintWriter writer) {
     super.emitPreCallSetup(binding, writer);
-    JavaType returnType = binding.getJavaReturnType();
 
     MethodBinding wrappedBinding = emitterBeingWrapped.getBinding();
     String procAddressVariable =

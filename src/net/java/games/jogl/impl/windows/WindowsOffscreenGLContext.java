@@ -172,7 +172,8 @@ public class WindowsOffscreenGLContext extends WindowsGLContext {
     }
     hbitmap = WGL.CreateDIBSection(hdc, info, WGL.DIB_RGB_COLORS, 0, 0, 0);
     if (hbitmap == 0) {
-      throw new GLException("Error creating offscreen bitmap");
+      throw new GLException("Error creating offscreen bitmap of width " + width +
+                            ", height " + height);
     }
     if ((origbitmap = WGL.SelectObject(hdc, hbitmap)) == 0) {
       throw new GLException("Error selecting bitmap into new device context");

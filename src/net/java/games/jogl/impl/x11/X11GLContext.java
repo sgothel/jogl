@@ -40,6 +40,7 @@
 package net.java.games.jogl.impl.x11;
 
 import java.awt.Component;
+import java.security.*;
 import java.util.*;
 import net.java.games.gluegen.runtime.*; // for PROCADDRESS_VAR_PREFIX
 import net.java.games.jogl.*;
@@ -64,11 +65,24 @@ public abstract class X11GLContext extends GLContext {
   // so that we can implement displayImpl() (which must be done when
   // the context is not current)
   protected long mostRecentDisplay;
+  // There is currently a bug on Linux/AMD64 distributions in glXGetProcAddressARB
+  protected static boolean isLinuxAMD64;
 
   static {
     functionNameMap = new HashMap();
     functionNameMap.put("glAllocateMemoryNV", "glXAllocateMemoryNV");
     functionNameMap.put("glFreeMemoryNV", "glXFreeMemoryNV");
+
+    AccessController.doPrivileged(new PrivilegedAction() {
+        public Object run() {
+          String os   = System.getProperty("os.name").toLowerCase();
+          String arch = System.getProperty("os.arch").toLowerCase();
+          if (os.startsWith("linux") && arch.equals("amd64")) {
+            isLinuxAMD64 = true;
+          }
+          return null;
+        }
+      });
   }
 
   public X11GLContext(Component component,
@@ -173,6 +187,7 @@ public abstract class X11GLContext extends GLContext {
   }
 
   protected void destroyImpl() throws GLException {
+    lockAWT();
     if (context != 0) {
       GLX.glXDestroyContext(mostRecentDisplay, context);
       if (DEBUG) {
@@ -180,12 +195,16 @@ public abstract class X11GLContext extends GLContext {
       }
       context = 0;
     }
+    unlockAWT();
   }
 
   public abstract void swapBuffers() throws GLException;
 
   protected long dynamicLookupFunction(String glFuncName) {
-    long res = GLX.glXGetProcAddressARB(glFuncName);
+    long res = 0;
+    if (!isLinuxAMD64) {
+      res = GLX.glXGetProcAddressARB(glFuncName);
+    }
     if (res == 0) {
       // GLU routines aren't known to the OpenGL function lookup
       res = GLX.dlsym(glFuncName);
@@ -218,6 +237,22 @@ public abstract class X11GLContext extends GLContext {
     if (!GLX.glXQueryVersion(display, major, minor)) {
       throw new GLException("glXQueryVersion failed");
     }
+    if (DEBUG) {
+      System.err.println("!!! GLX version: major " + major[0] +
+                         ", minor " + minor[0]);
+    }
+
+    // Work around bugs in ATI's Linux drivers where they report they
+    // only implement GLX version 1.2 but actually do support pbuffers
+    if (major[0] == 1 && minor[0] == 2) {
+      GL gl = getGL();
+      String str = gl.glGetString(GL.GL_VENDOR);
+      if (str != null && str.indexOf("ATI") >= 0) {
+        isGLX13 = true;
+        return;
+      }
+    }
+
     isGLX13 = ((major[0] > 1) || (minor[0] > 2));
   }
   
@@ -235,11 +270,20 @@ public abstract class X11GLContext extends GLContext {
       throw new GLException("Context not current");
     }
     if (!glXQueryExtensionsStringInitialized) {
-      glXQueryExtensionsStringAvailable = (GLX.glXGetProcAddressARB("glXQueryExtensionsString") != 0);
+      glXQueryExtensionsStringAvailable = (dynamicLookupFunction("glXQueryExtensionsString") != 0);
       glXQueryExtensionsStringInitialized = true;
     }
     if (glXQueryExtensionsStringAvailable) {
-      return GLX.glXQueryExtensionsString(display, GLX.DefaultScreen(display));
+      lockAWT();
+      try {
+        String ret = GLX.glXQueryExtensionsString(display, GLX.DefaultScreen(display));
+        if (DEBUG) {
+          System.err.println("!!! GLX extensions: " + ret);
+        }
+        return ret;
+      } finally {
+        unlockAWT();
+      }
     } else {
       return "";
     }
@@ -363,5 +407,15 @@ public abstract class X11GLContext extends GLContext {
 
   protected long getContext() {
     return context;
+  }
+
+  // These synchronization primitives prevent the AWT from making
+  // requests from the X server asynchronously to this code.
+  protected void lockAWT() {
+    getJAWT().Lock();
+  }
+
+  protected void unlockAWT() {
+    getJAWT().Unlock();
   }
 }

@@ -72,7 +72,9 @@ public final class GLCanvas extends Canvas implements GLDrawable {
   }
   
   public void display() {
-    displayImpl();
+    maybeDoSingleThreadedWorkaround(displayOnEventDispatchThreadAction,
+                                    displayAction,
+                                    false);
   }
 
   /** Overridden from Canvas; calls {@link #display}. Should not be
@@ -109,12 +111,18 @@ public final class GLCanvas extends Canvas implements GLDrawable {
     final int fy      = 0;
     final int fwidth  = width;
     final int fheight = height;
-    context.invokeGL(new Runnable() {
+    final Runnable reshapeRunnable = new Runnable() {
         public void run() {
           getGL().glViewport(fx, fy, fwidth, fheight);
           drawableHelper.reshape(GLCanvas.this, fx, fy, fwidth, fheight);
         }
-      }, true, initAction);
+      };
+    final Runnable reshapeOnEDTRunnable = new Runnable() {
+        public void run() {
+          context.invokeGL(reshapeRunnable, true, initAction);
+        }
+      };
+    maybeDoSingleThreadedWorkaround(reshapeOnEDTRunnable, reshapeRunnable, true);
   }
 
   /** Overridden from Canvas to prevent Java2D's clearing of the
@@ -176,7 +184,7 @@ public final class GLCanvas extends Canvas implements GLDrawable {
   }
 
   public void swapBuffers() {
-    context.invokeGL(swapBuffersAction, false, initAction);
+    maybeDoSingleThreadedWorkaround(swapBuffersOnEventDispatchThreadAction, swapBuffersAction, false);
   }
 
   public boolean canCreateOffscreenDrawable() {
@@ -197,15 +205,27 @@ public final class GLCanvas extends Canvas implements GLDrawable {
   // Internals only below this point
   //
 
-  private void displayImpl() {
+  private void maybeDoSingleThreadedWorkaround(Runnable eventDispatchThreadAction,
+                                               Runnable invokeGLAction,
+                                               boolean  isReshape) {
     if (SingleThreadedWorkaround.doWorkaround() && !EventQueue.isDispatchThread()) {
       try {
-        EventQueue.invokeAndWait(displayOnEventDispatchThreadAction);
+        // Reshape events must not block on the event queue due to the
+        // possibility of deadlocks during initial component creation.
+        // This solution is not optimal, because it changes the
+        // semantics of reshape() to have some of the processing being
+        // done asynchronously, but at least it preserves the
+        // semantics of the single-threaded workaround.
+        if (!isReshape) {
+          EventQueue.invokeAndWait(eventDispatchThreadAction);
+        } else {
+          EventQueue.invokeLater(eventDispatchThreadAction);
+        }
       } catch (Exception e) {
         throw new GLException(e);
       }
     } else {
-      context.invokeGL(displayAction, false, initAction);
+      context.invokeGL(invokeGLAction, isReshape, initAction);
     }
   }
 
@@ -240,4 +260,11 @@ public final class GLCanvas extends Canvas implements GLDrawable {
   }
   private DisplayOnEventDispatchThreadAction displayOnEventDispatchThreadAction =
     new DisplayOnEventDispatchThreadAction();
+  class SwapBuffersOnEventDispatchThreadAction implements Runnable {
+    public void run() {
+      context.invokeGL(swapBuffersAction, false, initAction);
+    }
+  }
+  private SwapBuffersOnEventDispatchThreadAction swapBuffersOnEventDispatchThreadAction =
+    new SwapBuffersOnEventDispatchThreadAction();
 }

@@ -42,34 +42,45 @@ package net.java.games.jogl.impl;
 import java.security.*;
 
 public class NativeLibLoader {
-  static {
-    AccessController.doPrivileged(new PrivilegedAction() {
-        public Object run() {
-          boolean isOSX = System.getProperty("os.name").equals("Mac OS X");
-          if (!isOSX) {
-            try {
-              System.loadLibrary("jawt");
-            } catch (UnsatisfiedLinkError e) {
-              // Accessibility technologies load JAWT themselves; safe to continue
-              // as long as JAWT is loaded by any loader
-              if (e.getMessage().indexOf("already loaded") == -1) {
-                throw e;
-              }
-            }
-          }
-          System.loadLibrary("jogl");
+  private static volatile boolean doLoading   = true;
+  private static volatile boolean doneLoading = false;
 
-          // Workaround for 4845371.
-          // Make sure the first reference to the JNI GetDirectBufferAddress is done
-          // from a privileged context so the VM's internal class lookups will succeed.
-          JAWT jawt = new JAWT();
-          JAWTFactory.JAWT_GetAWT(jawt);
-
-          return null;
-        }
-      });
+  public static void disableLoading() {
+    doLoading = false;
   }
 
-  public static void load() {
+  public static void enableLoading() {
+    doLoading = true;
+  }
+
+  public static synchronized void load() {
+    if (doLoading && !doneLoading) {
+      AccessController.doPrivileged(new PrivilegedAction() {
+          public Object run() {
+            boolean isOSX = System.getProperty("os.name").equals("Mac OS X");
+            if (!isOSX) {
+              try {
+                System.loadLibrary("jawt");
+              } catch (UnsatisfiedLinkError e) {
+                // Accessibility technologies load JAWT themselves; safe to continue
+                // as long as JAWT is loaded by any loader
+                if (e.getMessage().indexOf("already loaded") == -1) {
+                  throw e;
+                }
+              }
+            }
+            System.loadLibrary("jogl");
+
+            // Workaround for 4845371.
+            // Make sure the first reference to the JNI GetDirectBufferAddress is done
+            // from a privileged context so the VM's internal class lookups will succeed.
+            JAWT jawt = new JAWT();
+            JAWTFactory.JAWT_GetAWT(jawt);
+
+            return null;
+          }
+        });
+      doneLoading = true;
+    }
   }
 }

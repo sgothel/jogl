@@ -59,6 +59,15 @@ public abstract class FunctionEmitter
     this.defaultOutput = defaultOutput;
   }
   
+  /**
+   * Makes this FunctionEmitter a copy of the passed one.
+   */
+  public FunctionEmitter(FunctionEmitter arg) {
+    modifiers      = (HashSet) arg.modifiers.clone();
+    commentEmitter = arg.commentEmitter;
+    defaultOutput  = arg.defaultOutput;
+  }
+
   public PrintWriter getDefaultOutput() { return defaultOutput; }
   
   public void addModifiers(Iterator/*<EmissionModifier>*/ mi)

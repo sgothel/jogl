@@ -75,8 +75,12 @@ public class GLCapabilities implements Cloneable {
     */
   public GLCapabilities() {}
 
-  public Object clone() throws CloneNotSupportedException {
-    return super.clone();
+  public Object clone() {
+    try {
+      return super.clone();
+    } catch (CloneNotSupportedException e) {
+      throw new GLException(e);
+    }
   }
 
   /** Indicates whether double-buffering is enabled. */

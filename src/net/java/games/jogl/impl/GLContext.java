@@ -44,7 +44,7 @@ import net.java.games.jogl.*;
 import net.java.games.gluegen.runtime.*;
 
 public abstract class GLContext {
-  protected static final boolean DEBUG = false;
+  protected static final boolean DEBUG = Debug.debug("GLContext");
 
   static {
     NativeLibLoader.load();
@@ -145,11 +145,7 @@ public abstract class GLContext {
                    GLCapabilitiesChooser chooser,
                    GLContext shareWith) {
     this.component = component;
-    try {
-      this.capabilities = (GLCapabilities) capabilities.clone();
-    } catch (CloneNotSupportedException e) {
-      throw new GLException(e);
-    }
+    this.capabilities = (GLCapabilities) capabilities.clone();
     this.chooser = chooser;
     setGL(createGL());
     functionAvailability = new FunctionAvailabilityCache(this);
@@ -254,6 +250,15 @@ public abstract class GLContext {
         // when the component has been visualized.
         if (isReshape) {
           deferredReshapeAction = runnable;
+        }
+
+        // Clean up after ourselves on the way out.
+        // NOTE that this is an abbreviated version of the code below
+        // and should probably be refactored/cleaned up -- this bug
+        // fix was done without a lot of intense thought about the
+        // situation
+        if (curContext != null) {
+          curContext.makeCurrent(curInitAction);
         }
         return;
       }
@@ -620,6 +625,9 @@ public abstract class GLContext {
       from within the destroy() implementation. */
   protected synchronized void setRealized(boolean realized) {
     this.realized = realized;
+    if (DEBUG) {
+      System.err.println("GLContext.setRealized(" + realized + ") for context " + this);
+    }
   }
 
   /** Indicates whether the component associated with this context has
