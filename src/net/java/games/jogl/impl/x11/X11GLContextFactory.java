@@ -66,7 +66,7 @@ public class X11GLContextFactory extends GLContextFactory {
     }
     GLCapabilities[] caps = new GLCapabilities[infos.length];
     for (int i = 0; i < infos.length; i++) {
-      caps[i] = xvi2GLCapabilities(infos[i]);
+      caps[i] = xvi2GLCapabilities(display, infos[i]);
       // Attempt to find the visual chosen by glXChooseVisual
       if (recommendedVis != null && recommendedVis.visualid() == infos[i].visualid()) {
         recommendedIndex = i;
@@ -75,10 +75,6 @@ public class X11GLContextFactory extends GLContextFactory {
     int chosen = chooser.chooseCapabilities(capabilities, caps, recommendedIndex);
     if (chosen < 0 || chosen >= caps.length) {
       throw new GLException("GLCapabilitiesChooser specified invalid index (expected 0.." + (caps.length - 1) + ")");
-    }
-    if (DEBUG) {
-      System.err.println("Chosen visual (" + chosen + "):");
-      System.err.println(caps[chosen]);
     }
     XVisualInfo vis = infos[chosen];
     if (vis == null) {

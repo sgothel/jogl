@@ -263,7 +263,7 @@ public abstract class X11GLContext extends GLContext {
   }
 
   protected XVisualInfo chooseVisual() {
-    if (!isOffscreen) {
+    if (!isOffscreen()) {
       // The visual has already been chosen by the time we get here;
       // it's specified by the GraphicsConfiguration of the
       // GLCanvas. Fortunately, the JAWT supplies the visual ID for
@@ -272,7 +272,8 @@ public abstract class X11GLContext extends GLContext {
       // corresponding XVisualInfo to pass into glXChooseVisual.
       int[] count = new int[1];
       XVisualInfo template = new XVisualInfo();
-      template.visualid(visualID);
+      // FIXME: probably not 64-bit clean
+      template.visualid((int) visualID);
       XVisualInfo[] infos = GLX.XGetVisualInfo(display, GLX.VisualIDMask, template, count);
       if (infos == null || infos.length == 0) {
         throw new GLException("Error while getting XVisualInfo for visual ID " + visualID);

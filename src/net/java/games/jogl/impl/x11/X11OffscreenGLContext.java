@@ -163,7 +163,7 @@ public class X11OffscreenGLContext extends X11GLContext {
     if (context == 0) {
       throw new GLException("Unable to create OpenGL context");
     }
-    isDoubleBuffered = (glXGetConfig(vis, GLX.GLX_DOUBLEBUFFER, new int[1]) != 0);
+    isDoubleBuffered = (X11GLContextFactory.glXGetConfig(display, vis, GLX.GLX_DOUBLEBUFFER, new int[1]) != 0);
   }
 
   private void destroy() {
