@@ -53,12 +53,14 @@
     <!-- 
        - Base initialization.
       -->
-    <target name="base.init">
+    <target name="base.init" >
+        <condition property="os.isMacOSX"><os name="Mac OS X"/></condition>
+
         <!-- Set the project root directory to be up one directory. -->
-        <property name="project.root" value=".." />
+        <property name="project.root" value="${basedir}/.." />
     
         <!-- Set the configuration and build files to this directory. -->
-        <property name="make" value="." />
+        <property name="make" value="${basedir}" />
     </target>
 
 
@@ -66,21 +68,23 @@
     <!-- 
        - Load user properties which override build defaults.
       -->
-    <target name="load.user.properties" depends="base.init">
+    <target name="load.user.properties" depends="base.init" unless="user.properties.file">
         <!-- Load the user specified properties file that defines various host
            - specific paths.  The user will be notified if this is does not
            - exist. -->
         <property name="user.properties.file" value="${user.home}/jogl.properties" />
         <property file="${user.properties.file}" />
+
         <echo message="Loaded ${user.properties.file}." />
         <echo message="antlr.jar=${antlr.jar}" />
     </target>
-    <target name="load.user.properties.macosx" depends="base.init">
+    <target name="load.user.properties.macosx" depends="base.init" unless="user.properties.file">
         <!-- Load the user specified properties file that defines various host
            - specific paths.  The user will be notified if this is does not
            - exist. -->
         <property name="user.properties.file" value="${user.home}/jogl.properties" />
         <property file="${user.properties.file}" />
+
         <echo message="Loaded ${user.properties.file}." />
         <echo message="antlr.jar=${antlr.jar}" />
     </target>
@@ -89,19 +93,20 @@
     <!-- 
        - Set up java.home.dir appropriately on all platforms.
       -->
-    <target name="setup.java.home.dir.nonmacosx" depends="load.user.properties" unless="java.home.dir">
-        <property name="java.home.dir" value="${java.home}/.." />
+    <target name="setup.java.home.dir.nonmacosx" depends="load.user.properties" unless="os.isMacOSX">
+      <!-- java home dir is up one directory as java.home points to '<java-install-dir>/jre' -->
+      <property name="java.home.dir" value="${java.home}/.." />
     </target>
-    <target name="setup.java.home.dir.macosx" depends="load.user.properties.macosx" unless="java.home.dir">
-        <property name="java.home.dir" value="/System/Library/Frameworks/JavaVM.framework/Home" />
+    <target name="setup.java.home.dir.macosx" depends="load.user.properties.macosx" if="os.isMacOSX">
+      <property name="java.home.dir" value="/System/Library/Frameworks/JavaVM.framework/Home" />
     </target>
-
+    <target name="setup.java.home.dir" depends="setup.java.home.dir.nonmacosx,setup.java.home.dir.macosx"/>
 
     <!-- ================================================================== -->
     <!-- 
        - Declare all paths and user defined variables.
       -->
-    <target name="declare" description="Declare properties" depends="base.init">
+    <target name="declare" description="Declare properties" depends="setup.java.home.dir, base.init">
         <!-- Shorthand for file.separator -->
         <property name="sep" value="${file.separator}" />
 
@@ -118,7 +123,7 @@
              and need exact string matching, which is why they use file.separator
              instead of "/". -->
         <property name="rootrel.src" value="src" />
-        <property name="rootrel.src.c" value="${rootrel.src}${sep}native${sep}jogl" />
+        <property name="rootrel.src.c.jogl" value="${rootrel.src}${sep}native${sep}jogl" />
         <property name="rootrel.build" value="build" />
         <property name="rootrel.src.generated" value="${rootrel.build}${sep}gensrc" />
         <property name="rootrel.generated.java" value="${rootrel.src.generated}${sep}classes" />
@@ -239,199 +244,106 @@
       -->
     <target name="declare.win32" depends="init">
         <!-- Set platform configuration files. -->
-        <property name="gl.cfg" value="${config}/gl-win32.cfg" />
-        <property name="gl.impl.cfg" value="${config}/gl-impl-win32.cfg" />
-        <property name="glu.cfg" value="${config}/glu.cfg" />
-        <property name="glu.impl.cfg" value="${config}/glu-impl-win32.cfg" />
-        <property name="jawt.cfg" value="${config}/jawt-win32.cfg" />
-        <property name="window.cfg" value="${config}/wingdi-win32.cfg" />
+        <property name="gl.cfg"                                 value="${config}/gl-win32.cfg" />
+        <property name="gl.impl.cfg"                            value="${config}/gl-impl-win32.cfg" />
+        <property name="glu.cfg"                                value="${config}/glu.cfg" />
+        <property name="glu.impl.cfg"                           value="${config}/glu-impl-win32.cfg" />
+        <property name="jawt.cfg"                               value="${config}/jawt-win32.cfg" />
+        <property name="window.cfg"                             value="${config}/wingdi-win32.cfg" />
 
         <!-- Set platform directories. -->
-        <property name="stub.includes.platform" value="${stub.includes}/win32" />
-        <property name="java.includes.dir.platform" value="${java.includes.dir.win32}" />
-        <property name="java.lib.dir.platform" value="${java.lib.dir.win32}" />
-        <property name="java.excludes.platform" value="${java.excludes.win32}" />
-	<property name="stub.includes.fileset.platform.params" value="${stub.includes.dir}/win32/** ${stub.includes.dir}/common/**" />
+        <property name="stub.includes.platform"                 value="${stub.includes}/win32" />
+        <property name="java.includes.dir.platform"             value="${java.includes.dir.win32}" />
+        <property name="java.lib.dir.platform"                  value="${java.lib.dir.win32}" />
+        <property name="java.excludes.platform"                 value="${java.excludes.win32}" />
+        <property name="stub.includes.fileset.platform.params"  value="${stub.includes.dir}/win32/** ${stub.includes.dir}/common/**" />
 
         <!-- Set Javadoc properties. -->
-        <property name="javadoc.dev.packagenames.platform" value="${javadoc.dev.packagenames.win32}" />
-    </target>
+        <property name="javadoc.dev.packagenames.platform"      value="${javadoc.dev.packagenames.win32}" />
+    </target>          
 
-    <target name="declare.win32.vc.common">
-        <property name="c.compiler" value="cl.exe" />
-        <property name="c.compiler.flags" value="${c.compiler.optflags} /nologo /TC /c" />
-        <property name="c.compiler.obj.suffix" value="obj" />
-	<property name="c.compiler.jogl.outputfile.expr" value="/Fo${rootrel.obj.jogl}/*.${c.compiler.obj.suffix}" />
-	<property name="c.compiler.includes" value="/I&quot;make/stub_includes/opengl&quot; /I&quot;${c.compiler.include.root}/PlatformSDK/Include&quot; /I&quot;${c.compiler.include.root}/include&quot; /I&quot;${java.includes.dir}&quot; /I&quot;${java.includes.dir.platform}&quot; /I&quot;make/stub_includes/cg&quot;" />
-        <property name="c.linker" value="link.exe" />
-        <property name="c.linker.flags" value="/DLL /LIBPATH:&quot;${c.linker.lib.root}/PlatformSDK/lib&quot; /LIBPATH:&quot;${c.linker.lib.root}/lib&quot; /LIBPATH:&quot;${java.lib.dir.platform}&quot; /INCREMENTAL:NO /NOLOGO /MACHINE:IX86 /OPT:REF /OPT:ICF /SUBSYSTEM:WINDOWS" />
-        <property name="c.linker.jogl.libs" value="opengl32.lib glu32.lib jawt.lib gdi32.lib user32.lib kernel32.lib" />
-        <property name="rootrel.c.linker.jogl.dso" value="${rootrel.obj}/jogl.dll" />
-        <property name="c.linker.jogl.dso" value="${project.root}/${rootrel.c.linker.jogl.dso}" />
-        <property name="c.linker.jogl.flags" value="/OUT:&quot;${c.linker.jogl.dso}&quot;" />
-        <!-- Cg declarations -->
-	<property name="c.compiler.cg.outputfile.expr" value="/Fo${rootrel.obj.cg}/*.${c.compiler.obj.suffix}" />
-        <property name="c.linker.cg.libs" value="opengl32.lib cg.lib cgGL.lib /LIBPATH:&quot;${windows.cg.lib}&quot;" />
-        <property name="rootrel.c.linker.cg.dso" value="${rootrel.obj}/jogl_cg.dll" />
-        <property name="c.linker.cg.dso" value="${project.root}/${rootrel.c.linker.cg.dso}" />
-        <property name="c.linker.cg.flags" value="/OUT:&quot;${c.linker.cg.dso}&quot;" />
-    </target>
+    <target name="declare.win32.vc6" depends="declare.win32">    
+      <property name="c.compiler.include.root"                value="${vc6.root}" />
+      <property name="c.linker.lib.root"                      value="${vc6.root}" />
 
-    <target name="declare.win32.vc6.debug" if="debug">
-	<!-- FIXME: put in debug flags -->
-        <property name="c.compiler.optflags"   value="/MD /W3 /O2 /Ob1 /GF /Gy" />
+      <property name="compiler.cfg.id"                      value="compiler.cfg.win32.msvc" /> 
+      <property name="linker.cfg.id"                        value="linker.cfg.win32.msvc" />     
     </target>
-    <target name="declare.win32.vc6.optimized" unless="debug">
-        <property name="c.compiler.optflags"   value="/MD /W3 /O2 /Ob1 /GF /Gy" />
-    </target>
-
-    <target name="declare.win32.vc6.pre" depends="declare.win32,declare.win32.vc6.debug,declare.win32.vc6.optimized">
-	<property name="c.compiler.include.root" value="${vc6.root}" />
-	<property name="c.linker.lib.root" value="${vc6.root}" />
-    </target>
-
-    <target name="declare.win32.vc6" depends="declare.win32.vc6.pre, declare.win32.vc.common" />
     
-    <target name="declare.win32.vc7.debug" if="debug">
-        <property name="c.compiler.optflags" value="/MDd /Yd /GS /RTCs /RTCu /RTCc /W3 /Od /GF /EHsc /Zi /GS /Gy /Wp64 /Zi /D &quot;_DEBUG&quot;" />
-    </target>
-    <target name="declare.win32.vc7.optimized" unless="debug">
-        <property name="c.compiler.optflags"   value="/MD /W3 /O2 /Ob1 /GF /EHsc /GS /Gy /Wp64 /D &quot;NDEBUG&quot;" />
-    </target>
+    <target name="declare.win32.vc7" depends="declare.win32">
+      <property name="c.compiler.include.root"                value="${vc7.root}" />
+      <property name="c.linker.lib.root"                      value="${vc7.root}" />
 
-    <target name="declare.win32.vc7.pre" depends="declare.win32,declare.win32.vc7.debug,declare.win32.vc7.optimized">
-	<property name="c.compiler.include.root" value="${vc7.root}" />
-	<property name="c.linker.lib.root" value="${vc7.root}" />
+      <property name="compiler.cfg.id"                      value="compiler.cfg.win32.msvc" /> 
+      <property name="linker.cfg.id"                        value="linker.cfg.win32.msvc" />     
     </target>
-
-    <target name="declare.win32.vc7" depends="declare.win32.vc7.pre, declare.win32.vc.common" />
-
-    <target name="declare.win32.mingw" depends="declare.win32">
-        <property name="c.compiler" value="gcc.exe" />
-        <property name="c.compiler.optflags" value="-O3" />
-        <property name="c.compiler.flags" value="${c.compiler.optflags} -c -DBUILD_DLL -D_WINGDI_ -D_STRICT_ANSI -D_JNI_IMPLEMENTATION_ -D__int64='long long' -D_MSC_VER=1400 -o" />
-        <property name="c.compiler.obj.suffix" value="o" />
-	<property name="c.compiler.jogl.outputfile.expr" value="${rootrel.obj.jogl}/*.${c.compiler.obj.suffix}" />
-	<property name="c.compiler.includes" value="-I&quot;make/stub_includes/opengl&quot; -I&quot;${java.includes.dir}&quot; -I&quot;${java.includes.dir.platform}&quot; -I&quot;make/stub_includes/cg&quot;" />
-        <property name="c.linker" value="gcc.exe" />
-        <property name="c.linker.flags" value="-shared" />
-        <property name="c.linker.jogl.libs" value="-Wl,--kill-at -L&quot;${java.lib.dir.platform}&quot; -lopengl32 -lglu32 -ljawt -lgdi32 -luser32" />
-        <property name="rootrel.c.linker.jogl.dso" value="${rootrel.obj}/jogl.dll" />
-        <property name="c.linker.jogl.dso" value="${project.root}/${rootrel.c.linker.jogl.dso}" />
-        <property name="c.linker.jogl.flags" value="-o ${c.linker.jogl.dso}" />
-        <!-- Cg declarations -->
-	<property name="c.compiler.cg.outputfile.expr" value="${rootrel.obj.cg}/*.${c.compiler.obj.suffix}" />
-        <property name="c.linker.cg.libs" value="-Wl,--kill-at -L&quot;${windows.cg.lib}&quot; -lopengl32 -lCg -lCgGL" />
-        <property name="rootrel.c.linker.cg.dso" value="${rootrel.obj}/jogl_cg.dll" />
-        <property name="c.linker.cg.dso" value="${project.root}/${rootrel.c.linker.cg.dso}" />
-        <property name="c.linker.cg.flags" value="-o ${c.linker.cg.dso}" />
+    
+    <target name="declare.win32.mingw" depends="declare.win32">  
+        <property name="compiler.cfg.id"                      value="compiler.cfg.win32.mingw" /> 
+        <property name="linker.cfg.id"                        value="linker.cfg.win32.mingw" />     
     </target>
 
     <target name="declare.x11" depends="init">
         <!-- Set platform configuration files. -->
-        <property name="gl.cfg" value="${config}/gl-x11.cfg" />
-        <property name="gl.impl.cfg" value="${config}/gl-impl-x11.cfg" />
-        <property name="glu.cfg" value="${config}/glu.cfg" />
-        <property name="glu.impl.cfg" value="${config}/glu-impl-x11.cfg" />
-        <property name="jawt.cfg" value="${config}/jawt-x11.cfg" />
-        <property name="window.cfg" value="${config}/glx-x11.cfg" />
+        <property name="gl.cfg"                               value="${config}/gl-x11.cfg" />
+        <property name="gl.impl.cfg"                          value="${config}/gl-impl-x11.cfg" />
+        <property name="glu.cfg"                              value="${config}/glu.cfg" />
+        <property name="glu.impl.cfg"                         value="${config}/glu-impl-x11.cfg" />
+        <property name="jawt.cfg"                             value="${config}/jawt-x11.cfg" />
+        <property name="window.cfg"                           value="${config}/glx-x11.cfg" />
 
         <!-- Set platform directories. -->
-        <property name="stub.includes.platform" value="${stub.includes.x11}" />
-        <property name="java.excludes.platform" value="${java.excludes.x11}" />
-	<property name="stub.includes.fileset.platform.params" value="${stub.includes.dir}/opengl/** ${stub.includes.dir}/x11/** ${stub.includes.dir}/common/**" />
+        <property name="stub.includes.platform"               value="${stub.includes.x11}" />
+        <property name="java.excludes.platform"               value="${java.excludes.x11}" />
+        <property name="stub.includes.fileset.platform.params"  
+                  value="${stub.includes.dir}/opengl/** ${stub.includes.dir}/x11/** ${stub.includes.dir}/common/**" />
 
         <!-- Set Javadoc properties. -->
         <property name="javadoc.dev.packagenames.platform" value="${javadoc.dev.packagenames.x11}" />
     </target>
 
+    
     <target name="declare.linux" depends="declare.x11">
-        <property name="java.includes.dir.platform" value="${java.includes.dir.linux}" />
-        <property name="java.lib.dir.platform" value="${java.lib.dir.linux}" />
+        <property name="java.includes.dir.platform"           value="${java.includes.dir.linux}" />
+        <property name="java.lib.dir.platform"                value="${java.lib.dir.linux}" />       
 
-        <!-- Set up gcc -->
-        <property name="c.compiler" value="gcc" />
-        <property name="c.compiler.optflags" value="-O2" />
-        <property name="c.compiler.flags" value="${c.compiler.optflags} -c -o" />
-        <property name="c.compiler.obj.suffix" value="o" />
-	<property name="c.compiler.jogl.outputfile.expr" value="${rootrel.obj.jogl}/*.${c.compiler.obj.suffix}" />
-	<property name="c.compiler.includes" value="-I&quot;make/stub_includes/opengl&quot; -I&quot;${java.includes.dir}&quot; -I&quot;${java.includes.dir.platform}&quot; -I&quot;make/stub_includes/cg&quot;" />
-        <property name="c.linker" value="gcc" />
-        <property name="c.linker.flags" value="-shared" />
-        <property name="c.linker.jogl.libs" value="-L&quot;${java.lib.dir.platform}&quot; -L/usr/X11R6/lib -ljawt -lGL -lGLU -lX11" />
-        <property name="rootrel.c.linker.jogl.dso" value="${rootrel.obj}/libjogl.so" />
-        <property name="c.linker.jogl.dso" value="${project.root}/${rootrel.c.linker.jogl.dso}" />
-        <property name="c.linker.jogl.flags" value="-o ${c.linker.jogl.dso}" />
-        <!-- Cg declarations -->
-	<property name="c.compiler.cg.outputfile.expr" value="${rootrel.obj.cg}/*.${c.compiler.obj.suffix}" />
-        <property name="c.linker.cg.libs" value="-L&quot;${x11.cg.lib}&quot; -lCg -lCgGL -lGL" />
-        <property name="rootrel.c.linker.cg.dso" value="${rootrel.obj}/libjogl_cg.so" />
-        <property name="c.linker.cg.dso" value="${project.root}/${rootrel.c.linker.cg.dso}" />
-        <property name="c.linker.cg.flags" value="-o ${c.linker.cg.dso}" />
+        <property name="compiler.cfg.id"                      value="compiler.cfg.linux" /> 
+        <property name="linker.cfg.id"                        value="linker.cfg.linux" /> 
     </target>
-
+    
+    
     <target name="declare.solaris" depends="declare.x11">
-        <property name="java.includes.dir.platform" value="${java.includes.dir.solaris}" />
-        <property name="java.lib.dir.platform" value="${java.lib.dir.solaris}" />
+        <property name="java.includes.dir.platform"           value="${java.includes.dir.solaris}" />
+        <property name="java.lib.dir.platform"                value="${java.lib.dir.solaris}" />
 
-        <!-- Set up Solaris CC -->
-        <property name="c.compiler" value="cc" />
-        <property name="c.compiler.optflags" value="-xO0 -KPIC" />
-        <property name="c.compiler.flags" value="${c.compiler.optflags} -c -o" />
-        <property name="c.compiler.obj.suffix" value="o" />
-	<property name="c.compiler.jogl.outputfile.expr" value="${rootrel.obj.jogl}/*.${c.compiler.obj.suffix}" />
-	<property name="c.compiler.includes" value="-I&quot;make/stub_includes/opengl&quot; -I&quot;${java.includes.dir}&quot; -I&quot;${java.includes.dir.platform}&quot;" />
-        <property name="c.linker" value="cc" />
-        <property name="c.linker.flags" value="-G" />
-        <property name="c.linker.jogl.libs" value="-L&quot;${java.lib.dir.platform}&quot; -ljawt -lGL -lGLU -lX11" />
-        <property name="rootrel.c.linker.jogl.dso" value="${rootrel.obj}/libjogl.so" />
-        <property name="c.linker.jogl.dso" value="${project.root}/${rootrel.c.linker.jogl.dso}" />
-        <property name="c.linker.jogl.flags" value="-o ${c.linker.jogl.dso}" />
+        <property name="compiler.cfg.id"                      value="compiler.cfg.solaris" /> 
+        <property name="linker.cfg.id"                        value="linker.cfg.solaris" /> 
     </target>
-
+    
+    
     <target name="declare.macosx" depends="init">
         <!-- Set platform configuration files. -->
-        <property name="gl.cfg" value="${config}/gl-macosx.cfg" />
-        <property name="gl.impl.cfg" value="${config}/gl-impl-macosx.cfg" />
-        <property name="glu.cfg" value="${config}/glu.cfg" />
-        <property name="glu.impl.cfg" value="${config}/glu-impl-macosx.cfg" />
-        <property name="jawt.cfg" value="${config}/jawt-macosx.cfg" />
-        <property name="window.cfg" value="${config}/cgl-macosx.cfg" />
-        <property name="is.macosx" value="true" />
+        <property name="gl.cfg"                               value="${config}/gl-macosx.cfg" />
+        <property name="gl.impl.cfg"                          value="${config}/gl-impl-macosx.cfg" />
+        <property name="glu.cfg"                              value="${config}/glu.cfg" />
+        <property name="glu.impl.cfg"                         value="${config}/glu-impl-macosx.cfg" />
+        <property name="jawt.cfg"                             value="${config}/jawt-macosx.cfg" />
+        <property name="window.cfg"                           value="${config}/cgl-macosx.cfg" />
 
         <!-- Set platform directories. -->
-        <property name="stub.includes.platform" value="${stub.includes}/macosx" />
-        <property name="java.includes.dir.platform" value="${java.includes.dir.macosx}" />
-        <property name="java.lib.dir.platform" value="${java.lib.dir.macosx}" />
-        <property name="java.excludes.platform" value="${java.excludes.macosx}" />
+        <property name="stub.includes.platform"               value="${stub.includes}/macosx" />
+        <property name="java.includes.dir.platform"           value="${java.includes.dir.macosx}" />
+        <property name="java.lib.dir.platform"                value="${java.lib.dir.macosx}" />
+        <property name="java.excludes.platform"               value="${java.excludes.macosx}" />
 	<property name="stub.includes.fileset.platform.params" value="${stub.includes.dir}/macosx/** ${stub.includes.dir}/common/**" />
 
         <!-- Set Javadoc properties. -->
         <property name="javadoc.dev.packagenames.platform" value="${javadoc.dev.packagenames.macosx}" />
 
-        <!-- Set up gcc -->
-        <property name="c.compiler" value="gcc" />
-        <property name="c.compiler.optflags" value="-fast -mcpu=7450 -arch ppc -Dmacosx -fPIC" />
-		<!-- Note: specifying -ObjC for all files is sloppy (only needed for      -->
-		<!-- JAWT-related .c files) but this doesn't break anything and is easier -->
-		<!-- than rewriting the whole Makefile                                    -->
-        <property name="c.compiler.flags" value="${c.compiler.optflags} -fno-common -fpascal-strings  -Wmost -ObjC -c -o" />
-        <property name="c.compiler.obj.suffix" value="o" />
-		<property name="c.compiler.jogl.outputfile.expr" value="${rootrel.obj.jogl}/*.${c.compiler.obj.suffix}" />
-		<property name="c.compiler.includes" value="-I&quot;make/stub_includes/opengl&quot; -I&quot;${java.includes.dir}&quot; -I&quot;${java.includes.dir.platform}&quot; -I&quot;make/stub_includes/cg&quot;" />
-        <property name="c.linker" value="gcc" />
-        <property name="c.linker.flags" value="-arch ppc -prebind -Wl,-single_module -dynamiclib -compatibility_version 1 -current_version 1 -prebind_all_twolevel_modules" />
-        <property name="c.linker.jogl.libs" value="-L&quot;${java.lib.dir.platform}&quot; -framework Cocoa -framework OpenGL -ljawt" />
-        <property name="rootrel.c.linker.jogl.dso" value="${rootrel.obj}/libjogl.jnilib" />
-        <property name="c.linker.jogl.dso" value="${project.root}/${rootrel.c.linker.jogl.dso}" />
-        <property name="c.linker.jogl.flags" value="-o ${c.linker.jogl.dso}" />
-        <!-- Cg declarations -->
-		<property name="c.compiler.cg.outputfile.expr" value="${rootrel.obj.cg}/*.${c.compiler.obj.suffix}" />
-        <property name="c.linker.cg.libs" value="-framework OpenGL -lCg -lCgGL" />
-        <property name="rootrel.c.linker.cg.dso" value="${rootrel.obj}/libjogl_cg.jnilib" />
-        <property name="c.linker.cg.dso" value="${project.root}/${rootrel.c.linker.cg.dso}" />
-        <property name="c.linker.cg.flags" value="-o ${c.linker.cg.dso}" />
+        <property name="compiler.cfg.id"                      value="compiler.cfg.macosx" /> 
+        <property name="linker.cfg.id"                        value="linker.cfg.macosx" /> 
     </target>
+    
     
     <!-- ================================================================== -->
     <!-- 
@@ -731,184 +643,193 @@
        - Compile the native C code for JOGL (and optionally the Cg binding).
       -->
 
-    <!--
-       - Check dependencies to see whether we need to recompile .c or .m files
-      -->
-    <target name="c.compile.jogl.check.nonmacosx" unless="is.macosx">
-        <condition property="c.compile.jogl.skip">
-            <and>
-                <uptodate>
-                    <srcfiles dir="${project.root}" includes="${rootrel.src.c}/*.c" />
-                    <mapper type="glob" from="${rootrel.src.c}${sep}*.c" to="${rootrel.obj.jogl}${sep}*.${c.compiler.obj.suffix}" />
-                </uptodate>
-                <uptodate>
-                    <srcfiles dir="${project.root}" includes="${rootrel.generated.c.jogl}/*.c" />
-                    <mapper type="glob" from="${rootrel.generated.c.jogl}${sep}*.c" to="${rootrel.obj.jogl}${sep}*.${c.compiler.obj.suffix}" />
-                </uptodate>
-            </and>
-        </condition>
-    </target>
+    <!-- import cpptasks -->
+    <typedef resource="net/sf/antcontrib/cpptasks/antlib.xml" classpath="${basedir}/lib/cpptasks-cvs-040628.jar"/>
+    <!--typedef resource="net/sf/antcontrib/cpptasks/antlib.xml"/-->
 
-    <target name="c.compile.jogl.check.macosx" if="is.macosx">
-        <condition property="c.compile.jogl.skip">
-            <and>
-                <uptodate>
-                    <srcfiles dir="${project.root}" includes="${rootrel.src.c}/*.c" />
-                    <mapper type="glob" from="${rootrel.src.c}${sep}*.c" to="${rootrel.obj.jogl}${sep}*.${c.compiler.obj.suffix}" />
-                </uptodate>
-                <uptodate>
-                    <srcfiles dir="${project.root}" includes="${rootrel.generated.c.jogl}/*.c" />
-                    <mapper type="glob" from="${rootrel.generated.c.jogl}${sep}*.c" to="${rootrel.obj.jogl}${sep}*.${c.compiler.obj.suffix}" />
-                </uptodate>
-                <uptodate>
-                    <srcfiles dir="${project.root}" includes="${rootrel.src.c}/*.m" />
-                    <mapper type="glob" from="${rootrel.src.c}${sep}*.m" to="${rootrel.obj.jogl}${sep}*.${c.compiler.obj.suffix}" />
-                </uptodate>
-            </and>
-        </condition>
-    </target>
-
-    <target name="c.compile.jogl.check" depends="c.compile.jogl.check.nonmacosx,c.compile.jogl.check.macosx">
-    </target>
-
-    <!--
-       - Compile source files
-      -->
-    <target name="c.compile.jogl.macosx.objs" if="is.macosx">
-        <apply executable="${c.compiler}" dest="${rootrel.obj.jogl}" dir="${project.root}" relative="true" failonerror="true">
-	    <arg line="${c.compiler.includes}" />
-	    <arg line="${c.compiler.flags}" />
-	    <fileset dir="${project.root}">
-                <include name="${rootrel.src.c}/*.m"/>
-            </fileset>
-            <targetfile />
-            <srcfile />
-            <mapper type="glob" from="${rootrel.src.c}${sep}*.m" to="${c.compiler.jogl.outputfile.expr}" />
-        </apply>
-    </target>
-
-    <target name="c.compile.jogl" depends="c.compile.jogl.check" unless="c.compile.jogl.skip">
-        <apply executable="${c.compiler}" dest="${rootrel.obj.jogl}" dir="${project.root}" relative="true" failonerror="true">
-	    <arg line="${c.compiler.includes}" />
-	    <arg line="${c.compiler.flags}" />
-	    <fileset dir="${project.root}">
-                <include name="${rootrel.src.c}/*.c"/>
-            </fileset>
-            <targetfile />
-            <srcfile />
-            <mapper type="glob" from="${rootrel.src.c}${sep}*.c" to="${c.compiler.jogl.outputfile.expr}" />
-        </apply>
-        <apply executable="${c.compiler}" dest="${rootrel.obj.jogl}" dir="${project.root}" relative="true" failonerror="true">
-	    <arg line="${c.compiler.includes}" />
-	    <arg line="${c.compiler.flags}" />
-	    <fileset dir="${project.root}">
-                <include name="${rootrel.generated.c.jogl}/*.c"/>
-            </fileset>
-            <targetfile />
-            <srcfile />
-            <mapper type="glob" from="${rootrel.generated.c.jogl}${sep}*.c" to="${c.compiler.jogl.outputfile.expr}" />
-        </apply>
-        <antcall target="c.compile.jogl.macosx.objs" inheritRefs="true" />
-    </target>
-
+    <target name="c.configure">
     
-    <target name="c.compile.cg.check">
-        <uptodate property="c.compile.cg.skip">
-            <srcfiles dir="${project.root}" includes="${rootrel.generated.c.cg}/*.c" />
-            <mapper type="glob" from="${rootrel.generated.c.cg}${sep}*.c" to="${rootrel.obj.cg}${sep}*.${c.compiler.obj.suffix}" />
-        </uptodate>
+      <!-- compiler configuration -->
+      <compiler id="compiler.cfg.linux" name="gcc" />
+
+      <compiler id="compiler.cfg.solaris" name="CC"/>
+
+      <compiler id="compiler.cfg.win32.mingw" name="gcc">
+        <defineset>
+          <define name="_DEBUG"   if="c.compiler.use-debug"/>        
+          <define name="DEBUG"    if="c.compiler.use-debug"/>        
+          <define name="NDEBUG"   unless="c.compiler.use-debug"/>        
+
+          <define name="DBUILD_DLL" />
+          <define name="_WINGDI_" /> 
+          <define name="_STRICT_ANSI" /> 
+          <define name="_JNI_IMPLEMENTATION_" />
+        </defineset>
+      </compiler>
+
+      <compiler id="compiler.cfg.win32.msvc" name="msvc">
+        <compilerarg value="/W3"/>      <!-- set warning level -->
+        <compilerarg value="/Ob1"/>     <!-- inline only functions marked inline -->
+        <compilerarg value="/GF"/>      <!-- enable string pooling -->
+        <compilerarg value="/Gy"/>      <!-- enable function level linking -->
+        <compilerarg value="/GS"      if="c.compiler.use-msvc7"/>  <!-- buffer security checks -->
+        <compilerarg value="/Wp64"    if="c.compiler.use-msvc7"/>  <!-- detect 64-bit port problems -->
+        <compilerarg value="/RTCcsu"  if="c.compiler.use-msvc7"/>  <!-- various runtime checks -->
+	<!-- Note: previous compiler options for VC7 were:
+	     Debug:     /MDd /Yd /GS /RTCs /RTCu /RTCc /W3 /Od /GF /EHsc /Zi /GS /Gy /Wp64 /Zi /D &quot;_DEBUG&quot;
+             Optimized: /MD /W3 /O2 /Ob1 /GF /EHsc /GS /Gy /Wp64 /D &quot;NDEBUG&quot; -->
+
+        <sysincludepath path="${c.compiler.include.root}/PlatformSDK/Include"/>
+        <sysincludepath path="${c.compiler.include.root}/include"/>
+
+        <defineset>
+          <define name="_DEBUG"   if="c.compiler.use-debug"/>        
+          <define name="DEBUG"    if="c.compiler.use-debug"/>        
+          <define name="NDEBUG"   unless="c.compiler.use-debug"/>        
+        </defineset>
+      </compiler>
+
+      <compiler id="compiler.cfg.macosx" name="gcc">
+        <compilerarg value="-Wmost" />
+        <compilerarg value="-ObjC" />
+        <defineset>
+          <define name="macosx" />
+        </defineset>
+      </compiler>
+
+      <!-- linker configuration -->
+ 
+      <linker id="linker.cfg.linux" name="gcc">
+        <syslibset dir="/usr/X11R6/lib" libs="GL, GLU, X11"/>
+        <syslibset dir="${x11.cg.lib}" libs="Cg, CgGL" if="c.compiler.use-cglib"/>
+      </linker>
+
+      <linker id="linker.cfg.solaris">
+        <syslibset dir="/usr/X11R6/lib" libs="GL, GLU, X11"/>
+      </linker>
+
+      <linker id="linker.cfg.win32.mingw" name="gcc" incremental="false">
+        <linkerarg value="-Wl,--kill-at" />        <!-- remove @ from function names -->
+        <syslibset libs="opengl32, glu32, gdi32, kernel32"/>
+        <syslibset dir="${windows.cg.lib}" libs="cg, cgGL" if="c.compiler.use-cglib"/>
+      </linker>
+
+      <linker id="linker.cfg.win32.msvc" name="msvc" incremental="false">
+        <linkerarg value="/OPT:REF,ICF" />        <!-- enable link-time optimisations -->
+        <linkerarg value="/SUBSYSTEM:WINDOWS" />  <!-- output is not a console app as uses WinMain entry point -->
+        <linkerarg value="/MACHINE:IX86" />       <!-- explicity set target platform -->
+        
+        <syslibset dir="${c.linker.lib.root}/lib" libs="opengl32, glu32, gdi32, user32, kernel32" unless="c.compiler.use-msvc7"/>
+        <syslibset dir="${c.linker.lib.root}/PlatformSDK/lib" libs="opengl32, glu32, gdi32, user32, kernel32" if="c.compiler.use-msvc7"/>
+        <syslibset dir="${windows.cg.lib}" libs="cg, cgGL" if="c.compiler.use-cglib"/>
+      </linker>
+
+      <linker id="linker.cfg.macosx" name="gcc">
+        <linkerarg value="-framework" />
+        <linkerarg value="Cocoa" />
+        <linkerarg value="-framework" />
+        <linkerarg value="OpenGL" />
+      </linker>
+
+      <patternset id="c.src.files.jogl">
+        <include name="${rootrel.src.c.jogl}/*.c"/>
+        <include name="${rootrel.src.c.jogl}/*.m" if="os.isMacOSX"/>
+        <include name="${rootrel.generated.c.jogl}/*.c"/>
+      </patternset>
+      
+      <patternset id="c.src.files.cg">
+        <include name="${rootrel.generated.c.cg}/*.c"/>
+      </patternset>
+
     </target>
 
-    <target name="c.compile.cg" depends="c.compile.cg.check" if="jogl.cg" unless="c.compile.cg.skip">
-        <apply executable="${c.compiler}" dest="${rootrel.obj.cg}" dir="${project.root}" relative="true" failonerror="true">
-	    <arg line="${c.compiler.includes}" />
-	    <arg line="${c.compiler.flags}" />
-	    <fileset dir="${project.root}">
-                <include name="${rootrel.generated.c.cg}/*.c"/>
-            </fileset>
-            <targetfile />
-            <srcfile />
-            <mapper type="glob" from="${rootrel.generated.c.cg}${sep}*.c" to="${c.compiler.cg.outputfile.expr}" />
-        </apply>
+    <target name="c.build" depends="c.configure">
+      <fail message="Requires '${c.compiler.src.files}'" unless="c.compiler.src.files"/>
+      <fail message="Requires '${compiler.cfg.id}'"      unless="compiler.cfg.id"/>
+      <fail message="Requires '${linker.cfg.id}'"        unless="linker.cfg.id"/>
+      <fail message="Requires '${output.lib.name}'"      unless="output.lib.name"/>
+
+      <echo message="Output lib name = ${output.lib.name}" />
+
+      <!-- NOTE: the value of the debug and optimise attributes will not be overridden if already set externally -->
+      <property name="c.compiler.debug"     value="true" /> 
+      <!-- Optimise flags one of { none, size, speed, minimal, full, aggressive, extreme, unsafe } --> 
+      <property name="c.compiler.optimise"  value="none" /> 
+
+      <condition property="c.compiler.use-debug"><istrue value="${c.compiler.debug}"/></condition>
+
+      <cc outtype="shared" 
+          objdir="${obj.jogl}" 
+          outfile="${obj}/${output.lib.name}"
+          optimize="${c.compiler.optimise}" 
+          debug="${c.compiler.debug}"
+          multithreaded="true" 
+          exceptions="false" 
+          rtti="false">   
+
+        <!-- TODO: versioninfo  companyname="java.net"
+                      legalcopyright="Copyright"
+                      productname="JOGL" 
+                      productversion="x.y.z"
+                      description="Description"
+                      fileversion="x.y.z" 
+                      filecomments="File Comment" /-->      
+
+        <fileset dir="${project.root}"><patternset refid="${c.compiler.src.files}"/></fileset>
+
+        <compiler extends="${compiler.cfg.id}" >
+          <sysincludepath path="${java.includes.dir}"/>
+          <sysincludepath path="${java.includes.dir.platform}"/>
+          <includepath path="stub_includes/opengl"/>
+          <includepath path="stub_includes/cg" if="c.compiler.use-cglib"/>        
+        </compiler>
+
+        <linker extends="${linker.cfg.id}">
+          <syslibset dir="${java.lib.dir.platform}" libs="jawt"/>            
+        </linker>
+      </cc>
+    </target>  
+
+    <target name="c.rename.jogl.lib" if="os.isMacOSX">
+      <!-- FIXME: this is a hack; the cpptask should have an option to change the
+           suffix or at least understand the override from dylib to jnilib -->
+      <move file="${obj}/libjogl.dylib" tofile="${obj}/libjogl.jnilib" />
     </target>
 
-    <!--
-       - Link object files
-      -->
-    <target name="c.link.jogl.check">
-        <!-- Check object files against resulting DSO/DLL -->
-        <uptodate property="c.link.jogl.skip">
-            <srcfiles id="c.link.jogl.obj.fileset" dir="${project.root}" includes="${rootrel.obj.jogl}/*.${c.compiler.obj.suffix}" />
-            <mapper type="merge" to="${rootrel.c.linker.jogl.dso}" />
-        </uptodate>
+    <target name="c.build.jogl">
+      <antcall target="c.build" inheritRefs="true">
+        <param name="c.compiler.src.files" value="c.src.files.jogl"/>
+        <param name="output.lib.name" value="jogl"/>      
+      </antcall>
+      <antcall target="c.rename.jogl.lib" inheritRefs="true" />
     </target>
 
-    <target name="c.link.jogl" depends="c.link.jogl.check" unless="c.link.jogl.skip">
-        <pathconvert pathsep=" " property="c.link.jogl.obj.files" refid="c.link.jogl.obj.fileset" />
-        <exec dir="." executable="${c.linker}" failonerror="true">
-            <arg line="${c.linker.jogl.flags}" />
-            <arg line="${c.linker.flags}" />
-            <arg line="${c.link.jogl.obj.files}" />
-            <arg line="${c.linker.jogl.libs}" />
-        </exec>        
+    <target name="c.build.cg" if="jogl.cg">
+      <antcall target="c.build" inheritRefs="true">
+        <param name="c.compiler.src.files" value="c.src.files.cg"/>      
+        <param name="c.compiler.use-cglib" value="XXX"/>      
+        <param name="output.lib.name" value="jogl_cg"/>      
+      </antcall>
     </target>
 
-    <target name="c.link.cg.check">
-        <!-- Check object files against resulting DSO/DLL -->
-        <uptodate property="c.link.cg.skip">
-            <srcfiles id="c.link.cg.obj.fileset" dir="${project.root}" includes="${rootrel.obj.cg}/*.${c.compiler.obj.suffix}" />
-            <mapper type="merge" to="${rootrel.c.linker.cg.dso}" />
-        </uptodate>
+
+    <target name="c.compile.jogl.win32.vc6" depends="declare.win32.vc6, c.build.jogl, c.build.cg" >
     </target>
 
-    <target name="c.link.cg" depends="c.link.cg.check" if="jogl.cg" unless="c.link.cg.skip">
-        <pathconvert pathsep=" " property="c.link.cg.obj.files" refid="c.link.cg.obj.fileset" />
-        <exec dir="." executable="${c.linker}" failonerror="true">
-            <arg line="${c.linker.cg.flags}" />
-            <arg line="${c.linker.flags}" />
-            <arg line="${c.link.cg.obj.files}" />
-            <arg line="${c.linker.cg.libs}" />
-        </exec>        
+    <target name="c.compile.jogl.win32.vc7" depends="declare.win32.vc7, c.build.jogl, c.build.cg">
+     <property name="c.compiler.use-msvc7" value="true"/>
     </target>
 
-    <target name="c.compile.jogl.win32.vc6" depends="declare.win32.vc6">
-        <antcall target="c.compile.jogl" inheritRefs="true" />
-        <antcall target="c.link.jogl" inheritRefs="true" />
-        <antcall target="c.compile.cg" inheritRefs="true" />
-        <antcall target="c.link.cg" inheritRefs="true" />
-    </target>
-
-    <target name="c.compile.jogl.win32.vc7" depends="declare.win32.vc7">
-        <antcall target="c.compile.jogl" inheritRefs="true" />
-        <antcall target="c.link.jogl" inheritRefs="true" />
-        <antcall target="c.compile.cg" inheritRefs="true" />
-        <antcall target="c.link.cg" inheritRefs="true" />
-    </target>
-
-    <target name="c.compile.jogl.win32.mingw" depends="declare.win32.mingw">
-        <antcall target="c.compile.jogl" inheritRefs="true" />
-        <antcall target="c.link.jogl" inheritRefs="true" />
-        <antcall target="c.compile.cg" inheritRefs="true" />
-        <antcall target="c.link.cg" inheritRefs="true" />
-    </target>
-
-    <target name="c.compile.jogl.linux" depends="declare.linux">
-        <antcall target="c.compile.jogl" inheritRefs="true" />
-        <antcall target="c.link.jogl" inheritRefs="true" />
-        <antcall target="c.compile.cg" inheritRefs="true" />
-        <antcall target="c.link.cg" inheritRefs="true" />
+    <target name="c.compile.jogl.win32.mingw" depends="declare.win32.mingw, c.build.jogl, c.build.cg">
     </target>
     
-    <target name="c.compile.jogl.solaris" depends="declare.solaris">
-        <antcall target="c.compile.jogl" inheritRefs="true" />
-        <antcall target="c.link.jogl" inheritRefs="true" />
+    <target name="c.compile.jogl.linux" depends="declare.linux, c.build.jogl, c.build.cg" >
     </target>
     
-    <target name="c.compile.jogl.macosx" depends="declare.macosx">
-        <antcall target="c.compile.jogl" inheritRefs="true" />
-        <antcall target="c.link.jogl" inheritRefs="true" />
-        <antcall target="c.compile.cg" inheritRefs="true" />
-        <antcall target="c.link.cg" inheritRefs="true" />
+    <target name="c.compile.jogl.solaris" depends="declare.solaris, c.build.jogl">
+    </target>
+    
+    <target name="c.compile.jogl.macosx" depends="declare.macosx, c.build.jogl">
     </target>
     
     <!-- ================================================================== -->
@@ -934,7 +855,7 @@
        -        on the platform specific build targets.  To circumvent any 
        -        errors, ensure that the source is built first.
       -->
-    <target name="javadoc.nocg" depends="setup.java.home.dir.nonmacosx,init" unless="jogl.cg">
+    <target name="javadoc.nocg" depends="setup.java.home.dir,init" unless="jogl.cg">
         <!-- Build the general Javadoc -->
         <javadoc packagenames="${javadoc.packagenames}"
                  sourcepath="${src};${src.generated.java}"        
@@ -944,7 +865,7 @@
     </target>
 
     <!-- Same as above but with Cg directories added -->
-    <target name="javadoc.cg" depends="setup.java.home.dir.nonmacosx,init" if="jogl.cg">
+    <target name="javadoc.cg" depends="setup.java.home.dir,init" if="jogl.cg">
         <!-- Build the general Javadoc -->
         <javadoc packagenames="${javadoc.packagenames},net.java.games.cg"
                  sourcepath="${src};${src.generated.java}"        
@@ -974,9 +895,9 @@
                  link="${javadoc.link}" />
     </target>
 
-    <target name="javadoc.dev.win32"  depends="setup.java.home.dir.nonmacosx,declare.win32,javadoc.dev.nocg,javadoc.dev.cg" />
-    <target name="javadoc.dev.x11"    depends="setup.java.home.dir.nonmacosx,declare.x11,javadoc.dev.nocg,javadoc.dev.cg" />
-    <target name="javadoc.dev.macosx" depends="setup.java.home.dir.macosx,declare.macosx,javadoc.dev.nocg,javadoc.dev.cg" />
+    <target name="javadoc.dev.win32"  depends="setup.java.home.dir,declare.win32,javadoc.dev.nocg,javadoc.dev.cg" />
+    <target name="javadoc.dev.x11"    depends="setup.java.home.dir,declare.x11,javadoc.dev.nocg,javadoc.dev.cg" />
+    <target name="javadoc.dev.macosx" depends="setup.java.home.dir,declare.macosx,javadoc.dev.nocg,javadoc.dev.cg" />
 
     <!-- ================================================================== -->
     <!--
@@ -1068,7 +989,7 @@ Use a platform specific target:  linux, macosx, solaris, win32.vc6, win32.vc7, w
     <!--
        - Win32 with MS VC6
       -->
-    <target name="win32.vc6" depends="setup.java.home.dir.nonmacosx, declare.win32">
+    <target name="win32.vc6" depends="setup.java.home.dir, declare.win32">
         <!-- Generate, compile, and build the jar for the Java sources. -->
         <antcall target="jar" inheritRefs="true" />
         
@@ -1079,7 +1000,7 @@ Use a platform specific target:  linux, macosx, solaris, win32.vc6, win32.vc7, w
     <!--
        - Win32 with MS VC7
       -->
-    <target name="win32.vc7" depends="setup.java.home.dir.nonmacosx, declare.win32">
+    <target name="win32.vc7" depends="setup.java.home.dir, declare.win32">
         <!-- Generate, compile, and build the jar for the Java sources. -->
         <antcall target="jar" inheritRefs="true" />
         
@@ -1090,7 +1011,7 @@ Use a platform specific target:  linux, macosx, solaris, win32.vc6, win32.vc7, w
     <!--
        - Win32 with mingw32
       -->
-    <target name="win32.mingw" depends="setup.java.home.dir.nonmacosx, declare.win32">
+    <target name="win32.mingw" depends="setup.java.home.dir, declare.win32">
         <!-- Generate, compile, and build the jar for the Java sources. -->
         <antcall target="jar" inheritRefs="true" />
         
@@ -1101,7 +1022,7 @@ Use a platform specific target:  linux, macosx, solaris, win32.vc6, win32.vc7, w
     <!--
        - Linux (assuming GCC)
       -->
-    <target name="linux" depends="setup.java.home.dir.nonmacosx, declare.linux">
+    <target name="linux" depends="declare.linux">
         <!-- Generate, compile, and build the jar for the Java sources. -->
         <antcall target="jar" inheritRefs="true" />
 
@@ -1112,7 +1033,7 @@ Use a platform specific target:  linux, macosx, solaris, win32.vc6, win32.vc7, w
     <!--
        - Solaris (assuming Solaris CC)
       -->
-    <target name="solaris" depends="setup.java.home.dir.nonmacosx, declare.solaris">
+    <target name="solaris" depends="setup.java.home.dir, declare.solaris">
         <!-- Generate, compile, and build the jar for the Java sources. -->
         <antcall target="jar" inheritRefs="true" />
 
@@ -1123,7 +1044,7 @@ Use a platform specific target:  linux, macosx, solaris, win32.vc6, win32.vc7, w
     <!--
        - Mac OSX
       -->
-    <target name="macosx" depends="setup.java.home.dir.macosx, declare.macosx">
+    <target name="macosx" depends="setup.java.home.dir, declare.macosx">
         <!-- Generate, compile, and build the jar for the Java sources. -->
         <antcall target="jar" inheritRefs="true" />
         
