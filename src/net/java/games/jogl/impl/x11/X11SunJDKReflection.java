@@ -39,8 +39,10 @@
 
 package net.java.games.jogl.impl.x11;
 
+import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.lang.reflect.*;
+import java.security.*;
 
 /** This class encapsulates the reflection routines necessary to peek
     inside a few data structures in the AWT implementation on X11 for
@@ -50,26 +52,27 @@ public class X11SunJDKReflection {
   private static Class   x11GraphicsDeviceClass;
   private static Method  x11GraphicsDeviceGetScreenMethod;
   private static Class   x11GraphicsConfigClass;
-  private static Class   x11GraphicsConfigGetVisualMethod;
+  private static Method  x11GraphicsConfigGetVisualMethod;
   private static boolean initted;
 
   static {
-    try {
     AccessController.doPrivileged(new PrivilegedAction() {
         public Object run() {
-          x11GraphicsDeviceClass = Class.forName("sun.awt.X11GraphicsDevice");
-          x11GraphicsDeviceGetScreenMethod = x11GraphicsDeviceClass.getDeclaredMethod("getScreen", new Class[] {});
-          x11GraphicsDeviceGetScreenMethod.setAccessible(true);
+          try {
+            x11GraphicsDeviceClass = Class.forName("sun.awt.X11GraphicsDevice");
+            x11GraphicsDeviceGetScreenMethod = x11GraphicsDeviceClass.getDeclaredMethod("getScreen", new Class[] {});
+            x11GraphicsDeviceGetScreenMethod.setAccessible(true);
 
-          x11GraphicsConfigClass = Class.forName("sun.awt.X11GraphicsConfig");
-          x11GraphicsConfigGetVisualMethod = x11GraphicsConfigClass.getDeclaredMethod("getVisual", new Class[] {});
-          x11GraphicsConfigGetVisualMethod.setAccessible(true);
-          initted = true;
+            x11GraphicsConfigClass = Class.forName("sun.awt.X11GraphicsConfig");
+            x11GraphicsConfigGetVisualMethod = x11GraphicsConfigClass.getDeclaredMethod("getVisual", new Class[] {});
+            x11GraphicsConfigGetVisualMethod.setAccessible(true);
+            initted = true;
+          } catch (Exception e) {
+            // Either not a Sun JDK or the interfaces have changed since 1.4.2 / 1.5
+          }
+          return null;
         }
       });
-    } catch (Exception e) {
-      // Either not a Sun JDK or the interfaces have changed since 1.4.2 / 1.5
-    }
   }
 
   public static int graphicsDeviceGetScreen(GraphicsDevice device) {
@@ -77,7 +80,11 @@ public class X11SunJDKReflection {
       return 0;
     }
 
-    return ((Integer) x11GraphicsDeviceGetScreenMethod.invoke(device, new Object[] {})).intValue();
+    try {
+      return ((Integer) x11GraphicsDeviceGetScreenMethod.invoke(device, new Object[] {})).intValue();
+    } catch (Exception e) {
+      return 0;
+    }
   }
 
   public static int graphicsConfigurationGetVisualID(GraphicsConfiguration config) {
@@ -85,6 +92,10 @@ public class X11SunJDKReflection {
       return 0;
     }
 
-    return ((Integer) x11GraphicsConfigGetVisualMethod.invoke(config, new Object[] {})).intValue();
+    try {
+      return ((Integer) x11GraphicsConfigGetVisualMethod.invoke(config, new Object[] {})).intValue();
+    } catch (Exception e) {
+      return 0;
+    }
   }
 }
