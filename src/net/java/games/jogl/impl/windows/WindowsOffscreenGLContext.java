@@ -50,8 +50,10 @@ public class WindowsOffscreenGLContext extends WindowsGLContext {
   private int  width;
   private int  height;
 
-  public WindowsOffscreenGLContext(GLCapabilities capabilities, GLCapabilitiesChooser chooser) {
-    super(null, capabilities, chooser);
+  public WindowsOffscreenGLContext(GLCapabilities capabilities,
+                                   GLCapabilitiesChooser chooser,
+                                   GLContext shareWith) {
+    super(null, capabilities, chooser, shareWith);
   }
 
   protected GL createGL()
@@ -165,5 +167,6 @@ public class WindowsOffscreenGLContext extends WindowsGLContext {
     origbitmap = 0;
     hbitmap = 0;
     hdc = 0;
+    GLContextShareSet.contextDestroyed(this);
   }
 }

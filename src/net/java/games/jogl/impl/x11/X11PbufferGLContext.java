@@ -65,7 +65,7 @@ public class X11PbufferGLContext extends X11GLContext {
   // it looks like floating-point buffers are not)
 
   public X11PbufferGLContext(GLCapabilities capabilities, int initialWidth, int initialHeight) {
-    super(null, capabilities, null);
+    super(null, capabilities, null, null);
     this.initWidth  = initialWidth;
     this.initHeight = initialHeight;
     if (initWidth <= 0 || initHeight <= 0) {

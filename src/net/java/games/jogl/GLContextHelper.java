@@ -37,21 +37,32 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package net.java.games.jogl.impl.x11;
+package net.java.games.jogl;
 
-import java.awt.Component;
-import net.java.games.jogl.*;
 import net.java.games.jogl.impl.*;
 
-public class X11GLContextFactory extends GLContextFactory {
-  public GLContext createGLContext(Component component,
-                                   GLCapabilities capabilities,
-                                   GLCapabilitiesChooser chooser,
-                                   GLContext shareWith) {
-    if (component != null) {
-      return new X11OnscreenGLContext(component, capabilities, chooser, shareWith);
+/** This package-private class helps extract a GLContext from a
+    GLDrawable. The getContext() method can not be placed in the
+    public API of GLDrawable without exposing the GLContext class to
+    the public API, which is not desired. */
+
+class GLContextHelper {
+  static GLContext getContext(GLDrawable drawable) throws GLException {
+    if (drawable == null) {
+      return null;
+    }
+
+    if (drawable instanceof GLCanvas) {
+      return ((GLCanvas) drawable).getContext();
+    } else if (drawable instanceof GLJPanel) {
+      return ((GLJPanel) drawable).getContext();
+    } else if (drawable instanceof GLPbufferImpl) {
+      return ((GLPbufferImpl) drawable).getContext();
     } else {
-      return new X11OffscreenGLContext(capabilities, chooser, shareWith);
+      throw new GLException(
+        "Sharing of contexts and display lists not supported among user-defined GLDrawables " +
+        "(unknown drawable type " + drawable.getClass().getName() + ")"
+      );
     }
   }
 }

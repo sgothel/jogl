@@ -143,6 +143,10 @@ public class GLPbufferImpl implements GLPbuffer {
     context.releasePbufferFromTexture();
   }
 
+  public GLContext getContext() {
+    return context;
+  }
+
   //----------------------------------------------------------------------
   // No-ops for ComponentEvents
   //

@@ -53,9 +53,12 @@ public abstract class MacOSXGLContext extends GLContext
   // OpenGL functions.
   private GLProcAddressTable glProcAddressTable;
 	
-  public MacOSXGLContext(Component component, GLCapabilities capabilities, GLCapabilitiesChooser chooser)
+  public MacOSXGLContext(Component component,
+                         GLCapabilities capabilities,
+                         GLCapabilitiesChooser chooser,
+                         GLContext shareWith)
   {
-    super(component, capabilities, chooser);
+    super(component, capabilities, chooser, shareWith);
   }
 	
   protected String mapToRealGLFunctionName(String glFunctionName)
@@ -96,6 +99,10 @@ public abstract class MacOSXGLContext extends GLContext
   protected long dynamicLookupFunction(String glFuncName) {
     return CGL.getProcAddress(glFuncName);
   }
+
+  public boolean isCreated() {
+    return (nsContext != 0);
+  }
 	
   protected void resetGLFunctionAvailability()
   {
@@ -125,6 +132,10 @@ public abstract class MacOSXGLContext extends GLContext
   // Internals only below this point
   //
 	
+  protected long getNSContext() {
+    return nsContext;
+  }
+
   protected JAWT getJAWT()
   {
     if (jawt == null)

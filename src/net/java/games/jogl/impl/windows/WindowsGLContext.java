@@ -69,8 +69,11 @@ public abstract class WindowsGLContext extends GLContext {
     extensionNameMap.put("GL_ARB_pixel_format", "WGL_ARB_pixel_format");
   }
 
-  public WindowsGLContext(Component component, GLCapabilities capabilities, GLCapabilitiesChooser chooser) {
-    super(component, capabilities, chooser);
+  public WindowsGLContext(Component component,
+                          GLCapabilities capabilities,
+                          GLCapabilitiesChooser chooser,
+                          GLContext shareWith) {
+    super(component, capabilities, chooser, shareWith);
   }
   
   protected GL createGL()
@@ -103,7 +106,7 @@ public abstract class WindowsGLContext extends GLContext {
   public abstract boolean offscreenImageNeedsVerticalFlip();
 
   /**
-   * Creates and initializes an appropriate OpenGl context. Should only be
+   * Creates and initializes an appropriate OpenGL context. Should only be
    * called by {@link makeCurrent(Runnable)}.
    */
   protected abstract void create();
@@ -124,6 +127,20 @@ public abstract class WindowsGLContext extends GLContext {
 
     if (created) {
       resetGLFunctionAvailability();
+      // Windows can set up sharing of display lists after creation time
+      WindowsGLContext other = (WindowsGLContext) GLContextShareSet.getShareContext(this);
+      if (other != null) {
+        long hglrc2 = other.getHGLRC();
+        if (hglrc2 == 0) {
+          throw new GLException("GLContextShareSet returned an invalid OpenGL context");
+        }
+        if (!WGL.wglShareLists(hglrc2, hglrc)) {
+          throw new GLException("wglShareLists(0x" + Long.toHexString(hglrc2) +
+                                ", 0x" + Long.toHexString(hglrc) + ") failed");
+        }
+      }
+      GLContextShareSet.contextCreated(this);      
+
       initAction.run();
     }
     return true;
@@ -150,6 +167,10 @@ public abstract class WindowsGLContext extends GLContext {
       res = WGL.GetProcAddress(hglu32, glFuncName);
     }
     return res;
+  }
+
+  public boolean isCreated() {
+    return (hglrc != 0);
   }
 
   protected void resetGLFunctionAvailability() {
@@ -268,6 +289,10 @@ public abstract class WindowsGLContext extends GLContext {
     if (hglrc == 0) {
       throw new GLException("Unable to create OpenGL context");
     }
+  }
+
+  protected long getHGLRC() {
+    return hglrc;
   }
 
   static PIXELFORMATDESCRIPTOR glCapabilities2PFD(GLCapabilities caps, boolean onscreen) {

@@ -64,8 +64,6 @@ import net.java.games.jogl.impl.*;
     them. */
 
 public final class GLJPanel extends JPanel implements GLDrawable {
-  private GLCapabilities capabilities;
-  private GLCapabilitiesChooser chooser;
   private GLDrawableHelper drawableHelper = new GLDrawableHelper();
   private GLContext context;
   private BufferedImage offscreenImage;
@@ -86,10 +84,10 @@ public final class GLJPanel extends JPanel implements GLDrawable {
   private int[] skippixels   = new int[1];
   private int[] alignment    = new int[1];
 
-  GLJPanel(GLCapabilities capabilities, GLCapabilitiesChooser chooser) {
+  GLJPanel(GLCapabilities capabilities, GLCapabilitiesChooser chooser, GLDrawable shareWith) {
     super();
-    this.capabilities = capabilities;
-    this.chooser = chooser;
+    context = GLContextFactory.getFactory().createGLContext(null, capabilities, chooser,
+                                                            GLContextHelper.getContext(shareWith));
   }
 
   public void display() {
@@ -110,7 +108,7 @@ public final class GLJPanel extends JPanel implements GLDrawable {
       be invoked by applications directly. */
   public void paintComponent(Graphics g) {
     displayAction.setGraphics(g);
-    getContext().invokeGL(displayAction, false, initAction);
+    context.invokeGL(displayAction, false, initAction);
     synchronized(semaphore) {
       repaintDone = true;
       semaphore.notifyAll();
@@ -129,8 +127,8 @@ public final class GLJPanel extends JPanel implements GLDrawable {
     final int fy      = 0;
     final int fwidth  = width;
     final int fheight = height;
-    getContext().resizeOffscreenContext(width, height);
-    getContext().invokeGL(new Runnable() {
+    context.resizeOffscreenContext(width, height);
+    context.invokeGL(new Runnable() {
         public void run() {
           getGL().glViewport(fx, fy, fwidth, fheight);
           drawableHelper.reshape(GLJPanel.this, fx, fy, fwidth, fheight);
@@ -153,23 +151,19 @@ public final class GLJPanel extends JPanel implements GLDrawable {
   }
 
   public GL getGL() {
-    // must use getContext() because context is created lazily
-    return getContext().getGL();
+    return context.getGL();
   }
 
   public void setGL(GL gl) {
-    // must use getContext() because context is created lazily
-    getContext().setGL(gl);
+    context.setGL(gl);
   }
 
   public GLU getGLU() {
-    // must use getContext() because context is created lazily
-    return getContext().getGLU();
+    return context.getGLU();
   }
   
   public void setGLU(GLU glu) {
-    // must use getContext() because context is created lazily
-    getContext().setGLU(glu);
+    context.setGLU(glu);
   }
   
   public void setRenderingThread(Thread currentThreadOrNull) throws GLException {
@@ -178,7 +172,7 @@ public final class GLJPanel extends JPanel implements GLDrawable {
   }
 
   public Thread getRenderingThread() {
-    return getContext().getRenderingThread();
+    return context.getRenderingThread();
   }
 
   public void setNoAutoRedrawMode(boolean noAutoRedraws) {
@@ -201,16 +195,13 @@ public final class GLJPanel extends JPanel implements GLDrawable {
     throw new GLException("Not supported");
   }
 
+  GLContext getContext() {
+    return context;
+  }
+
   //----------------------------------------------------------------------
   // Internals only below this point
   //
-
-  private GLContext getContext() {
-    if (context == null) {
-      context = GLContextFactory.getFactory().createGLContext(null, capabilities, chooser);
-    }
-    return context;
-  }
 
   class InitAction implements Runnable {
     public void run() {
@@ -230,7 +221,7 @@ public final class GLJPanel extends JPanel implements GLDrawable {
       drawableHelper.display(GLJPanel.this);
       // Must now copy pixels from offscreen context into surface
       if (offscreenImage == null) {
-        int awtFormat = getContext().getOffscreenContextBufferedImageType();
+        int awtFormat = context.getOffscreenContextBufferedImageType();
         offscreenImage = new BufferedImage(getWidth(), getHeight(), awtFormat);
         switch (awtFormat) {
           case BufferedImage.TYPE_3BYTE_BGR:

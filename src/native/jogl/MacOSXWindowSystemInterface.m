@@ -3,8 +3,9 @@
 
 typedef int Bool;
 
-void* createContext(void* nsView) {
+void* createContext(void* nsView, void* shareContext) {
   NSView *view = nsView;
+  NSOpenGLContext *share = shareContext;
         
   // FIXME: hardcoded pixel format. Instead pass these attributes down
   // as arguments. There is really no way to enumerate the possible
@@ -28,7 +29,7 @@ void* createContext(void* nsView) {
     
   NSOpenGLPixelFormat* fmt = [[NSOpenGLPixelFormat alloc] initWithAttributes: (NSOpenGLPixelFormatAttribute*) attribs]; 
     
-  NSOpenGLContext* context = [[NSOpenGLContext alloc] initWithFormat: [fmt autorelease] shareContext: nil];
+  NSOpenGLContext* context = [[NSOpenGLContext alloc] initWithFormat: [fmt autorelease] shareContext: share];
     
   if (view != nil) {
     [context setView: view];

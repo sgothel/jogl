@@ -113,7 +113,10 @@ public abstract class GLContext {
   // moment in time
   protected FunctionAvailabilityCache functionAvailability;
       
-  public GLContext(Component component, GLCapabilities capabilities, GLCapabilitiesChooser chooser) {
+  public GLContext(Component component,
+                   GLCapabilities capabilities,
+                   GLCapabilitiesChooser chooser,
+                   GLContext shareWith) {
     this.component = component;
     try {
       this.capabilities = (GLCapabilities) capabilities.clone();
@@ -123,6 +126,9 @@ public abstract class GLContext {
     this.chooser = chooser;
     gl = createGL();
     functionAvailability = new FunctionAvailabilityCache(this);
+    if (shareWith != null) {
+      GLContextShareSet.registerSharing(this, shareWith);
+    }
   }
 
   /** Runs the given runnable with this OpenGL context valid. */
@@ -434,7 +440,12 @@ public abstract class GLContext {
 
   /** Dynamically looks up the given function. */
   protected abstract long dynamicLookupFunction(String glFuncName);
-  
+
+  /** Indicates whether the underlying OpenGL context has been
+      created. This is used to manage sharing of display lists and
+      textures between contexts. */
+  public abstract boolean isCreated();
+
   //----------------------------------------------------------------------
   // Internals only below this point
   //

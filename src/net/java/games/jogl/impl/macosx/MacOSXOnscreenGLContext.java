@@ -53,8 +53,11 @@ public class MacOSXOnscreenGLContext extends MacOSXGLContext {
   private long nsView; // NSView
   private Runnable myDeferredReshapeAction;
     
-  public MacOSXOnscreenGLContext(Component component, GLCapabilities capabilities, GLCapabilitiesChooser chooser) {
-    super(component, capabilities, chooser);
+  public MacOSXOnscreenGLContext(Component component,
+                                 GLCapabilities capabilities,
+                                 GLCapabilitiesChooser chooser,
+                                 GLContext shareWith) {
+    super(component, capabilities, chooser, shareWith);
   }
     
   public synchronized void invokeGL(final Runnable runnable, boolean isReshape, Runnable initAction) throws GLException {
@@ -121,12 +124,19 @@ public class MacOSXOnscreenGLContext extends MacOSXGLContext {
   }
 
   protected void create() {
-    nsContext = CGL.createContext(nsView);
+    MacOSXGLContext other = (MacOSXGLContext) GLContextShareSet.getShareContext(this);
+    long share = 0;
+    if (other != null) {
+      share = other.getNSContext();
+      if (share == 0) {
+        throw new GLException("GLContextShareSet returned an invalid OpenGL context");
+      }
+    }
+    nsContext = CGL.createContext(nsView, share);
     if (nsContext == 0) {
       throw new GLException("Error creating nsContext");
     }
-    // FIXME
-    //choosePixelFormatAndCreateContext(true);
+    GLContextShareSet.contextCreated(this);
   }    
     
   protected synchronized boolean makeCurrent(Runnable initAction) throws GLException {

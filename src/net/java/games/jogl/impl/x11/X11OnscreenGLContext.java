@@ -54,8 +54,11 @@ public class X11OnscreenGLContext extends X11GLContext {
   // Variables for pbuffer support
   List pbuffersToInstantiate = new ArrayList();
 
-  public X11OnscreenGLContext(Component component, GLCapabilities capabilities, GLCapabilitiesChooser chooser) {
-    super(component, capabilities, chooser);
+  public X11OnscreenGLContext(Component component,
+                              GLCapabilities capabilities,
+                              GLCapabilitiesChooser chooser,
+                              GLContext shareWith) {
+    super(component, capabilities, chooser, shareWith);
   }
   
   protected GL createGL()

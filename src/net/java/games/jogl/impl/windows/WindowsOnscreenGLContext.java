@@ -54,8 +54,11 @@ public class WindowsOnscreenGLContext extends WindowsGLContext {
   // Variables for pbuffer support
   List pbuffersToInstantiate = new ArrayList();
 
-  public WindowsOnscreenGLContext(Component component, GLCapabilities capabilities, GLCapabilitiesChooser chooser) {
-    super(component, capabilities, chooser);
+  public WindowsOnscreenGLContext(Component component,
+                                  GLCapabilities capabilities,
+                                  GLCapabilitiesChooser chooser,
+                                  GLContext shareWith) {
+    super(component, capabilities, chooser, shareWith);
   }
   
   protected GL createGL()

@@ -44,11 +44,14 @@ import net.java.games.jogl.*;
 import net.java.games.jogl.impl.*;
 
 public class MacOSXGLContextFactory extends GLContextFactory {
-  public GLContext createGLContext(Component component, GLCapabilities capabilities, GLCapabilitiesChooser chooser) {
+  public GLContext createGLContext(Component component,
+                                   GLCapabilities capabilities,
+                                   GLCapabilitiesChooser chooser,
+                                   GLContext shareWith) {
     if (component != null) {
-      return new MacOSXOnscreenGLContext(component, capabilities, chooser);
+      return new MacOSXOnscreenGLContext(component, capabilities, chooser, shareWith);
     } else {
-      return new MacOSXOffscreenGLContext(capabilities, chooser);
+      return new MacOSXOffscreenGLContext(capabilities, chooser, shareWith);
     }
   }
 }

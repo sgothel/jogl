@@ -54,7 +54,7 @@ class MacOSXDummyGLContext extends MacOSXGLContext
   private MacOSXGLImpl gl;
 
   MacOSXDummyGLContext(MacOSXGLImpl gl) {
-    super(null, null, null);
+    super(null, null, null, null);
     this.gl = gl;
   }
 	

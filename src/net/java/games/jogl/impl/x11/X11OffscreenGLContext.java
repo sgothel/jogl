@@ -53,8 +53,10 @@ public class X11OffscreenGLContext extends X11GLContext {
   // Display connection for use by all offscreen surfaces
   private long staticDisplay;
 
-  public X11OffscreenGLContext(GLCapabilities capabilities, GLCapabilitiesChooser chooser) {
-    super(null, capabilities, chooser);
+  public X11OffscreenGLContext(GLCapabilities capabilities,
+                               GLCapabilitiesChooser chooser,
+                               GLContext shareWith) {
+    super(null, capabilities, chooser, shareWith);
   }
 
   protected GL createGL()
@@ -173,5 +175,6 @@ public class X11OffscreenGLContext extends X11GLContext {
     context = 0;
     drawable = 0;
     pixmap = 0;
+    GLContextShareSet.contextDestroyed(this);
   }
 }

@@ -3,7 +3,7 @@
 
 typedef int Bool;
 
-void* createContext(void* nsView);
+void* createContext(void* nsView, void* shareContext);
 Bool  makeCurrentContext(void* nsView, void* nsContext);
 Bool  clearCurrentContext(void* nsView, void* nsContext);
 void  updateContext(void* nsView, void* nsContext);

@@ -67,7 +67,7 @@ public class WindowsPbufferGLContext extends WindowsGLContext {
   private int texture;       // actual texture object
 
   public WindowsPbufferGLContext(GLCapabilities capabilities, int initialWidth, int initialHeight) {
-    super(null, capabilities, null);
+    super(null, capabilities, null, null);
     this.initWidth  = initialWidth;
     this.initHeight = initialHeight;
     if (initWidth <= 0 || initHeight <= 0) {

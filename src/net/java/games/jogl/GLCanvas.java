@@ -65,14 +65,21 @@ public final class GLCanvas extends Canvas implements GLDrawable {
   // This workaround makes things quite a bit slower 
   private static final boolean isOSX = System.getProperty("os.name").equals("Mac OS X");
 
-  GLCanvas(GLCapabilities capabilities, GLCapabilitiesChooser chooser) {
+  GLCanvas(GLCapabilities capabilities,
+           GLCapabilitiesChooser chooser,
+           GLDrawable shareWith) {
     super();
-    context = GLContextFactory.getFactory().createGLContext(this, capabilities, chooser);
+    context = GLContextFactory.getFactory().createGLContext(this, capabilities, chooser,
+                                                            GLContextHelper.getContext(shareWith));
   }
 
-  GLCanvas(GraphicsConfiguration config, GLCapabilities capabilities, GLCapabilitiesChooser chooser) {
+  GLCanvas(GraphicsConfiguration config,
+           GLCapabilities capabilities,
+           GLCapabilitiesChooser chooser,
+           GLDrawable shareWith) {
     super(config);
-    context = GLContextFactory.getFactory().createGLContext(this, capabilities, chooser);
+    context = GLContextFactory.getFactory().createGLContext(this, capabilities, chooser,
+                                                            GLContextHelper.getContext(shareWith));
   }
   
   public void display() {
@@ -169,6 +176,10 @@ public final class GLCanvas extends Canvas implements GLDrawable {
                                            int initialWidth,
                                            int initialHeight) {
     return new GLPbufferImpl(context.createPbufferContext(capabilities, initialWidth, initialHeight));
+  }
+
+  GLContext getContext() {
+    return context;
   }
 
   //----------------------------------------------------------------------

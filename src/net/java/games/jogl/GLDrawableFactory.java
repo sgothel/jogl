@@ -77,13 +77,36 @@ public class GLDrawableFactory {
   /** Creates a {@link GLCanvas} with the specified capabilities using
       the default capabilities selection algorithm. */
   public GLCanvas createGLCanvas(GLCapabilities capabilities) {
-    return createGLCanvas(capabilities, null);
+    return createGLCanvas(capabilities, null, null);
+  }
+
+  /** Creates a {@link GLCanvas} with the specified capabilities using
+      the default capabilities selection algorithm. The canvas will
+      share textures and display lists with the specified {@link
+      GLDrawable}; the drawable must either be null or have been
+      fabricated from this factory or by classes in this package. A
+      null drawable indicates no sharing. */
+  public GLCanvas createGLCanvas(GLCapabilities capabilities, GLDrawable shareWith) {
+    return createGLCanvas(capabilities, null, shareWith);
   }
 
   /** Creates a {@link GLCanvas} with the specified capabilities using
       the supplied capabilities selection algorithm. A null chooser is
       equivalent to using the {@link DefaultGLCapabilitiesChooser}. */
   public GLCanvas createGLCanvas(GLCapabilities capabilities, GLCapabilitiesChooser chooser) {
+    return createGLCanvas(capabilities, chooser, null);
+  }
+
+  /** Creates a {@link GLCanvas} with the specified capabilities using
+      the supplied capabilities selection algorithm. A null chooser is
+      equivalent to using the {@link DefaultGLCapabilitiesChooser}.
+      The canvas will share textures and display lists with the
+      specified {@link GLDrawable}; the drawable must either be null
+      or have been fabricated from this factory or by classes in this
+      package. A null drawable indicates no sharing. */
+  public GLCanvas createGLCanvas(GLCapabilities capabilities,
+                                 GLCapabilitiesChooser chooser,
+                                 GLDrawable shareWith) {
     // FIXME: do we need to select a GraphicsConfiguration here as in
     // GL4Java? If so, this class will have to be made abstract and
     // we'll have to provide hooks into this package to get at the
@@ -91,22 +114,45 @@ public class GLDrawableFactory {
     if (chooser == null) {
       chooser = new DefaultGLCapabilitiesChooser();
     }
-    return new GLCanvas(capabilities, chooser);
+    return new GLCanvas(capabilities, chooser, shareWith);
   }
 
   /** Creates a {@link GLJPanel} with the specified capabilities using
       the default capabilities selection algorithm. */
   public GLJPanel createGLJPanel(GLCapabilities capabilities) {
-    return createGLJPanel(capabilities, null);
+    return createGLJPanel(capabilities, null, null);
+  }
+
+  /** Creates a {@link GLJPanel} with the specified capabilities using
+      the default capabilities selection algorithm. The panel will
+      share textures and display lists with the specified {@link
+      GLDrawable}; the drawable must either be null or have been
+      fabricated from this factory or by classes in this package. A
+      null drawable indicates no sharing. */
+  public GLJPanel createGLJPanel(GLCapabilities capabilities, GLDrawable shareWith) {
+    return createGLJPanel(capabilities, null, shareWith);
   }
 
   /** Creates a {@link GLJPanel} with the specified capabilities using
       the supplied capabilities selection algorithm. A null chooser is
       equivalent to using the {@link DefaultGLCapabilitiesChooser}. */
   public GLJPanel createGLJPanel(GLCapabilities capabilities, GLCapabilitiesChooser chooser) {
+    return createGLJPanel(capabilities, chooser, null);
+  }
+
+  /** Creates a {@link GLJPanel} with the specified capabilities using
+      the supplied capabilities selection algorithm. A null chooser is
+      equivalent to using the {@link DefaultGLCapabilitiesChooser}.
+      The panel will share textures and display lists with the
+      specified {@link GLDrawable}; the drawable must either be null
+      or have been fabricated from this factory or by classes in this
+      package. A null drawable indicates no sharing. */
+  public GLJPanel createGLJPanel(GLCapabilities capabilities,
+                                 GLCapabilitiesChooser chooser,
+                                 GLDrawable shareWith) {
     if (chooser == null) {
       chooser = new DefaultGLCapabilitiesChooser();
     }
-    return new GLJPanel(capabilities, chooser);
+    return new GLJPanel(capabilities, chooser, shareWith);
   }
 }

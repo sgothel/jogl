@@ -86,5 +86,6 @@ public abstract class GLContextFactory {
 
   public abstract GLContext createGLContext(Component component,
                                             GLCapabilities capabilities,
-                                            GLCapabilitiesChooser chooser);
+                                            GLCapabilitiesChooser chooser,
+                                            GLContext shareWith);
 }

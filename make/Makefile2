@@ -62,6 +62,9 @@ JAVADOC_DIR_DEVDOC=$(ROOT)/javadoc_jogl_dev
 JAVADOC_LINK=http://java.sun.com/j2se/1.4.1/docs/api/
 JAVA=java
 JAVAC=javac
+ifdef DEBUG
+JAVAC_FLAGS=-g
+endif # DEBUG
 
 OS:=$(patsubst CYGWIN%,Windows%,$(shell uname -s))
 ifneq (,$(findstring Windows,$(OS)))
@@ -578,6 +581,7 @@ JOGL_JAVAFILES_FIRST_PASS = \
 	$(JOGL_DIR)/GLCanvas.java \
 	$(JOGL_DIR)/GLCapabilities.java \
 	$(JOGL_DIR)/GLCapabilitiesChooser.java \
+	$(JOGL_DIR)/GLContextHelper.java \
 	$(JOGL_DIR)/GLDrawable.java \
 	$(JOGL_DIR)/GLDrawableFactory.java \
 	$(JOGL_DIR)/GLEventListener.java \
@@ -587,6 +591,7 @@ JOGL_JAVAFILES_FIRST_PASS = \
 	$(JOGL_IMPL_DIR)/FunctionAvailabilityCache.java \
 	$(JOGL_IMPL_DIR)/GLContext.java \
 	$(JOGL_IMPL_DIR)/GLContextFactory.java \
+	$(JOGL_IMPL_DIR)/GLContextShareSet.java \
 	$(JOGL_IMPL_DIR)/GLDrawableHelper.java \
 	$(JOGL_IMPL_DIR)/GLPbufferImpl.java \
 	$(JOGL_IMPL_DIR)/JAWT_PlatformInfo.java \
@@ -854,7 +859,7 @@ $(GENSRC_CGRAM_DIR)/HeaderParser.java $(GENSRC_CGRAM_DIR)/HeaderParserTokenTypes
 
 $(GG_CLASSFILES) : $(GG_JAVAFILES)
 	mkdir -p $(CLASSES_DIR)
-	$(JAVAC) -source 1.4 -d $(CLASSES_DIR) $(GG_JAVAFILES)
+	$(JAVAC) $(JAVAC_FLAGS) -source 1.4 -d $(CLASSES_DIR) $(GG_JAVAFILES)
 
 #
 # Jogl package build rules (once GlueGen is built)
@@ -862,7 +867,7 @@ $(GG_CLASSFILES) : $(GG_JAVAFILES)
 
 
 $(BUILD_STATIC_GL_INFO_CLASS) : $(BUILD_STATIC_GL_INFO_SRC)
-	$(JAVAC) -source 1.4 -d $(CLASSES_DIR) $(BUILD_STATIC_GL_INFO_SRC)
+	$(JAVAC) $(JAVAC_FLAGS) -source 1.4 -d $(CLASSES_DIR) $(BUILD_STATIC_GL_INFO_SRC)
 
 $(JOGL_GENERATED_JAVAFILES) $(JOGL_GENERATED_CFILES) : $(JOGL_STUB_INCLUDES_PD) $(JOGL_CFG_FILES) $(GG_CLASSFILES) $(BUILD_STATIC_GL_INFO_CLASS) $(JOGL_HEADERS) $(JOGL_STUB_INCLUDES_DIR_PD)/gl.c $(JOGL_STUB_INCLUDES_DIR_PD)/gl-impl.c $(JOGL_STUB_INCLUDES_DIR_PD)/window-system.c
 
@@ -898,16 +903,16 @@ $(JOGL_GENERATED_JAVAFILES) $(JOGL_GENERATED_CFILES) : $(JOGL_STUB_INCLUDES_PD) 
 
 $(JOGL_CLASSFILES_FIRST_PASS) : $(JOGL_JAVAFILES_FIRST_PASS)
 	mkdir -p $(CLASSES_DIR)
-	$(JAVAC) -source 1.4 -classpath "$(CLASSES_DIR)$(CP_SEPARATOR)$(CLASSPATH)" -d $(CLASSES_DIR) $(JOGL_JAVAFILES_FIRST_PASS)
+	$(JAVAC) $(JAVAC_FLAGS) -source 1.4 -classpath "$(CLASSES_DIR)$(CP_SEPARATOR)$(CLASSPATH)" -d $(CLASSES_DIR) $(JOGL_JAVAFILES_FIRST_PASS)
 
 $(BUILD_GL_COMPOSABLE_PIPELINE_CLASS) : $(BUILD_GL_COMPOSABLE_PIPELINE_SRC)
-	$(JAVAC) -classpath "$(CLASSES_DIR)$(CP_SEPARATOR)$(CLASSPATH)" -source 1.4 -d $(CLASSES_DIR) $(BUILD_GL_COMPOSABLE_PIPELINE_SRC)
+	$(JAVAC) $(JAVAC_FLAGS) -classpath "$(CLASSES_DIR)$(CP_SEPARATOR)$(CLASSPATH)" -source 1.4 -d $(CLASSES_DIR) $(BUILD_GL_COMPOSABLE_PIPELINE_SRC)
 
 $(GL_COMPOSABLE_PIPELINE_GENERATED_JAVAFILES) : $(JOGL_CLASSFILES_FIRST_PASS) $(BUILD_GL_COMPOSABLE_PIPELINE_CLASS)
 	$(JAVA) -cp "$(CLASSES_DIR)$(CP_SEPARATOR)$(CLASSPATH)" net.java.games.gluegen.opengl.BuildComposablePipeline net.java.games.jogl.GL $(GENSRC_JOGL_DIR)
 
 $(JOGL_CLASSFILES_SECOND_PASS) : $(JOGL_JAVAFILES_SECOND_PASS)
-	$(JAVAC) -source 1.4 -classpath "$(CLASSES_DIR)$(CP_SEPARATOR)$(CLASSPATH)" -d $(CLASSES_DIR) $(JOGL_JAVAFILES_SECOND_PASS)
+	$(JAVAC) $(JAVAC_FLAGS) -source 1.4 -classpath "$(CLASSES_DIR)$(CP_SEPARATOR)$(CLASSPATH)" -d $(CLASSES_DIR) $(JOGL_JAVAFILES_SECOND_PASS)
 
 #
 # jogl.cg package rules (once jogl is built)
@@ -920,7 +925,7 @@ $(JOGL_NVCG_GENERATED_JAVAFILES) $(JOGL_NVCG_GENERATED_CFILES) : $(JOGL_NVCG_CFG
 $(JOGL_NVCG_CLASSFILES) : $(JOGL_NVCG_JAVAFILES)
 # compile Cg java classes
 	mkdir -p $(CLASSES_DIR)
-	$(JAVAC) -source 1.4 -classpath "$(CLASSES_DIR)$(CP_SEPARATOR)$(CLASSPATH)" -d $(CLASSES_DIR) $(JOGL_NVCG_JAVAFILES)
+	$(JAVAC) $(JAVAC_FLAGS) -source 1.4 -classpath "$(CLASSES_DIR)$(CP_SEPARATOR)$(CLASSPATH)" -d $(CLASSES_DIR) $(JOGL_NVCG_JAVAFILES)
 
 #
 # .so / .dll build rules

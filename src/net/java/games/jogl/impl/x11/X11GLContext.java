@@ -65,8 +65,11 @@ public abstract class X11GLContext extends GLContext {
     functionNameMap.put("glFreeMemoryNV", "glXFreeMemoryNV");
   }
 
-  public X11GLContext(Component component, GLCapabilities capabilities, GLCapabilitiesChooser chooser) {
-    super(component, capabilities, chooser);
+  public X11GLContext(Component component,
+                      GLCapabilities capabilities,
+                      GLCapabilitiesChooser chooser,
+                      GLContext shareWith) {
+    super(component, capabilities, chooser, shareWith);
   }
   
   protected GL createGL()
@@ -160,6 +163,10 @@ public abstract class X11GLContext extends GLContext {
       res = GLX.dlsym(glFuncName);
     }
     return res;
+  }
+
+  public boolean isCreated() {
+    return (context != 0);
   }
 
   protected void resetGLFunctionAvailability() {
@@ -287,18 +294,32 @@ public abstract class X11GLContext extends GLContext {
   }
 
   protected long createContext(XVisualInfo vis, boolean onscreen) {
-    // FIXME: support sharing of display lists between contexts
-    return GLX.glXCreateContext(display, vis, 0, onscreen);
+    X11GLContext other = (X11GLContext) GLContextShareSet.getShareContext(this);
+    long share = 0;
+    if (other != null) {
+      share = other.getContext();
+      if (share == 0) {
+        throw new GLException("GLContextShareSet returned an invalid OpenGL context");
+      }
+    }
+    long res = GLX.glXCreateContext(display, vis, share, onscreen);
+    if (res != 0) {
+      GLContextShareSet.contextCreated(this);
+    }
+    return res;
   }
 
   // Helper routine for the overridden create() to call
   protected void chooseVisualAndCreateContext(boolean onscreen) {
     XVisualInfo vis = chooseVisual();
-    // FIXME: support sharing of display lists between contexts
     context = createContext(vis, onscreen);
     if (context == 0) {
       throw new GLException("Unable to create OpenGL context");
     }
+  }
+
+  protected long getContext() {
+    return context;
   }
 
   protected int[] glCapabilities2AttribList(GLCapabilities caps) {

@@ -46,11 +46,12 @@ import net.java.games.jogl.impl.*;
 public class WindowsGLContextFactory extends GLContextFactory {
   public GLContext createGLContext(Component component,
                                    GLCapabilities capabilities,
-                                   GLCapabilitiesChooser chooser) {
+                                   GLCapabilitiesChooser chooser,
+                                   GLContext shareWith) {
     if (component != null) {
-      return new WindowsOnscreenGLContext(component, capabilities, chooser);
+      return new WindowsOnscreenGLContext(component, capabilities, chooser, shareWith);
     } else {
-      return new WindowsOffscreenGLContext(capabilities, chooser);
+      return new WindowsOffscreenGLContext(capabilities, chooser, shareWith);
     }
   }
 }

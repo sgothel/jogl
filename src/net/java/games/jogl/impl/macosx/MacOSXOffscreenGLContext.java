@@ -49,8 +49,10 @@ public class MacOSXOffscreenGLContext extends MacOSXGLContext
   private int  width;
   private int  height;
 	
-  public MacOSXOffscreenGLContext(GLCapabilities capabilities, GLCapabilitiesChooser chooser) {
-    super(null, capabilities, chooser);
+  public MacOSXOffscreenGLContext(GLCapabilities capabilities,
+                                  GLCapabilitiesChooser chooser,
+                                  GLContext shareWith) {
+    super(null, capabilities, chooser, shareWith);
     System.err.println("MacOSXOffscreenGLContext not implemented yet");
   }
 	
