@@ -4,16 +4,20 @@ import net.java.games.jogl.*;
 import net.java.games.jogl.impl.*;
 
 public class MacOSXPbufferGLContext extends MacOSXGLContext {
-  private static final boolean DEBUG = false;
 
-  private int  initWidth;
-  private int  initHeight;
+  private static final boolean DEBUG = false;
+  
+  // see MacOSXWindowSystemInterface.m createPBuffer
+  private static final boolean USE_GL_TEXTURE_RECTANGLE_EXT = true;
+
+  protected int  initWidth;
+  protected int  initHeight;
 
   private long pBuffer;
   private int pBufferTextureName;
   
-  private int  width;
-  private int  height;
+  protected int  width;
+  protected int  height;
 
   // FIXME: kept around because we create the OpenGL context lazily to
   // better integrate with the MacOSXGLContext framework
@@ -23,10 +27,6 @@ public class MacOSXPbufferGLContext extends MacOSXGLContext {
     super(null, capabilities, null, null);
     this.initWidth  = initialWidth;
     this.initHeight = initialHeight;
-    if (initWidth <= 0 || initHeight <= 0) {
-      throw new GLException("Initial width and height of pbuffer must be positive (were (" +
-			    initWidth + ", " + initHeight + "))");
-    }
   }
 
   public boolean canCreatePbufferContext() {
@@ -61,11 +61,32 @@ public class MacOSXPbufferGLContext extends MacOSXGLContext {
 	
 	nsContextOfParent = parentContext;
 	
-	width = getNextPowerOf2(initWidth);
-	height = getNextPowerOf2(initHeight);
-	
+        if (USE_GL_TEXTURE_RECTANGLE_EXT)
+        {
+            // GL_TEXTURE_RECTANGLE_EXT
+            width = initWidth;
+            height = initHeight;
+        }
+        else
+        {
+            // GL_TEXTURE_2D
+            width = getNextPowerOf2(initWidth);
+            height = getNextPowerOf2(initHeight);
+        }
+        
     if (DEBUG) {
       System.err.println("Created pbuffer " + width + " x " + height);
+    }
+  }
+
+  public void destroyPBuffer() {
+    if (this.pBuffer != 0) {
+	CGL.destroyPBuffer(nsContext, pBuffer);
+    }
+	this.pBuffer = 0;
+        
+    if (DEBUG) {
+      System.err.println("Destroyed pbuffer " + width + " x " + height);
     }
   }
 
@@ -77,18 +98,6 @@ public class MacOSXPbufferGLContext extends MacOSXGLContext {
     // FIXME: currently the only caller of this won't cause proper
     // resizing of the pbuffer anyway.
     return false;
-  }
-
-  public int getOffscreenContextBufferedImageType() {
-    throw new GLException("Should not call this");
-  }
-
-  public int getOffscreenContextReadBuffer() {
-    throw new GLException("Should not call this");
-  }
-
-  public boolean offscreenImageNeedsVerticalFlip() {
-    throw new GLException("Should not call this");
   }
 
   protected void swapBuffers() throws GLException {

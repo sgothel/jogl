@@ -80,10 +80,6 @@ public class MacOSXOnscreenGLContext extends MacOSXGLContext {
     }
   }
 
-  protected GL createGL() {
-    return new MacOSXGLImpl(this);
-  }
-    
   protected boolean isOffscreen() {
     return false;
   }

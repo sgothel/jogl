@@ -101,7 +101,7 @@ Bool deleteContext(void* context, void* view)
 //fprintf(stderr, "deleteContext context=%p, view=%p\n", context, view);
 	NSOpenGLContext *nsContext = (NSOpenGLContext*)context;
 	
-	[nsContext setView: nil];
+	[nsContext clearDrawable];
 	[nsContext release];
 	return true;
 }
@@ -187,12 +187,15 @@ void* createPBuffer(void* context, int width, int height)
 
 Bool destroyPBuffer(void* context, void* buffer)
 {
-//fprintf(stderr, "destroyPBuffer context=%p, buffer=%p\n", context, buffer);
+fprintf(stderr, "destroyPBuffer context=%p, buffer=%p\n", context, buffer);
 #ifdef AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER)
 	NSOpenGLContext *nsContext = (NSOpenGLContext*)context;
 	NSOpenGLPixelBuffer *pBuffer = (NSOpenGLPixelBuffer*)buffer;
 	
-	[nsContext setPixelBuffer:NULL cubeMapFace:0 mipMapLevel:0 currentVirtualScreen:0];
+        if (nsContext != NULL)
+        {
+            [nsContext clearDrawable];
+        }
 	[pBuffer release];
 	
 	return true;
@@ -209,6 +212,7 @@ int bindPBuffer(void* context, void* buffer)
 	NSOpenGLPixelBuffer *pBuffer = (NSOpenGLPixelBuffer*)buffer;
         
         glPushMatrix();
+        glPushAttrib(GL_CURRENT_BIT|GL_ENABLE_BIT|GL_TEXTURE_BIT|GL_TRANSFORM_BIT);
         
 	GLuint pBufferTextureName;
 	glGenTextures(1, &pBufferTextureName);
@@ -224,12 +228,12 @@ int bindPBuffer(void* context, void* buffer)
 	glEnable([pBuffer textureTarget]);
 	
 #ifdef USE_GL_TEXTURE_RECTANGLE_EXT
-        GLint matrixMode;
-        glGetIntegerv(GL_MATRIX_MODE, &matrixMode);
+        //GLint matrixMode;
+        //glGetIntegerv(GL_MATRIX_MODE, &matrixMode);
         glMatrixMode(GL_TEXTURE);
         glLoadIdentity();
         glScalef([pBuffer pixelsWide], [pBuffer pixelsHigh], 1.0f); // GL_TEXTURE_RECTANGLE_EXT wants texture coordinates in texture image space (not 0 to 1)
-        glMatrixMode(matrixMode);
+        //glMatrixMode(matrixMode);
 #endif
         
 	return pBufferTextureName;
@@ -247,6 +251,7 @@ void unbindPBuffer(void* context, void* buffer, int texture)
 	
 	glDeleteTextures(1, &pBufferTextureName);
         
+        glPopAttrib();
         glPopMatrix();
 #endif
 }

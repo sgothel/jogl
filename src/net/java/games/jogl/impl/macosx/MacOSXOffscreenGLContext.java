@@ -43,48 +43,42 @@ import java.awt.image.BufferedImage;
 import net.java.games.jogl.*;
 import net.java.games.jogl.impl.*;
 
-public class MacOSXOffscreenGLContext extends MacOSXGLContext
-{
-  // Width and height of the underlying bitmap
-  private int  width;
-  private int  height;
-  
+public class MacOSXOffscreenGLContext extends MacOSXPbufferGLContext
+{  
   public MacOSXOffscreenGLContext(GLCapabilities capabilities,
                                   GLCapabilitiesChooser chooser,
                                   GLContext shareWith) {
-    super(null, capabilities, chooser, shareWith);
-  }
-	
-  protected GL createGL() {
-    return new MacOSXGLImpl(this);
+    super(capabilities, -1, -1);
   }
 	
   protected boolean isOffscreen() {
     return true;
   }
 	
+  public boolean offscreenImageNeedsVerticalFlip() {
+    return true;
+  }
+  
   public int getOffscreenContextBufferedImageType() {
       return BufferedImage.TYPE_INT_ARGB;
   }
 	
+  public int getOffscreenContextWidth() {
+      return initWidth;
+  }
+
+  public int getOffscreenContextHeight() {
+      return initWidth;
+  }
+
+  public int getOffscreenContextPixelDataType() {
+      return GL.GL_UNSIGNED_INT_8_8_8_8_REV;
+  }
+
   public int getOffscreenContextReadBuffer() {
-    return GL.GL_FRONT;
+    return GL.GL_BACK;
   }
-	
-  public boolean offscreenImageNeedsVerticalFlip() {
-    // We can take care of this in the DIB creation (see below)
-    return false;
-  }
-	
-  public boolean canCreatePbufferContext() {
-    // For now say no
-    return false;
-  }
-	
-  public synchronized GLContext createPbufferContext(GLCapabilities capabilities, int initialWidth, int initialHeight) {
-    throw new GLException("Not supported");
-  }
-	
+
   public void bindPbufferToTexture() {
     throw new GLException("Should not call this");
   }
@@ -94,13 +88,12 @@ public class MacOSXOffscreenGLContext extends MacOSXGLContext
   }
 	
   protected synchronized boolean makeCurrent(Runnable initAction) throws GLException {
-    if (pendingOffscreenResize) {
+    if (pendingOffscreenResize && (nsContext != 0)) {
       if (pendingOffscreenWidth != width || pendingOffscreenHeight != height) {
-        if (nsContext != 0) {
-          destroy();
-        }
-        width  = pendingOffscreenWidth;
-        height = pendingOffscreenHeight;
+        destroyPBuffer();
+        initWidth  = pendingOffscreenWidth;
+        initHeight = pendingOffscreenHeight;
+        createPbuffer(0, 0);
         pendingOffscreenResize = false;
       }
     }
@@ -108,9 +101,5 @@ public class MacOSXOffscreenGLContext extends MacOSXGLContext
   }
 	
   protected synchronized void swapBuffers() throws GLException {
-  }
-	
-  private void destroy() {
-	free();
-  }
+  }	
 }

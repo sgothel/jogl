@@ -101,6 +101,18 @@ public abstract class WindowsGLContext extends GLContext {
   
   public abstract int getOffscreenContextBufferedImageType();
 
+  public int getOffscreenContextWidth() {
+    throw new GLException("Should not call this");
+  }
+  
+  public int getOffscreenContextHeight() {
+    throw new GLException("Should not call this");
+  }
+  
+  public int getOffscreenContextPixelDataType() {
+    throw new GLException("Should not call this");
+  }
+
   public abstract int getOffscreenContextReadBuffer();
 
   public abstract boolean offscreenImageNeedsVerticalFlip();

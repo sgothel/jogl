@@ -73,6 +73,18 @@ public class WindowsOffscreenGLContext extends WindowsGLContext {
     }
   }
 
+  public int getOffscreenContextWidth() {
+      return width;
+  }
+
+  public int getOffscreenContextHeight() {
+      return height;
+  }
+
+  public int getOffscreenContextPixelDataType() {
+      return GL.GL_UNSIGNED_BYTE;
+  }
+  
   public int getOffscreenContextReadBuffer() {
     // On Windows these contexts are always single-buffered
     return GL.GL_FRONT;

@@ -464,12 +464,21 @@ public abstract class GLContext {
       which to read pixels (GL.GL_FRONT or GL.GL_BACK). */
   public abstract int getOffscreenContextReadBuffer();
 
+  /** Only called for offscreen contexts; needed by glReadPixels */
+  public abstract int getOffscreenContextWidth();
+  
+  /** Only called for offscreen contexts; needed by glReadPixels */
+  public abstract int getOffscreenContextHeight();
+  
+  /** Only called for offscreen contexts; needed by glReadPixels */
+  public abstract int getOffscreenContextPixelDataType();
+  
   /** On some platforms the mismatch between OpenGL's coordinate
       system (origin at bottom left) and the window system's
       coordinate system (origin at top left) necessitates a vertical
       flip of pixels read from offscreen contexts. */
   public abstract boolean offscreenImageNeedsVerticalFlip();
-
+  
   /** Attempts to make the GL context current. If necessary, creates a
       context and calls the initAction once the context is current.
       Most error conditions cause an exception to be thrown, except

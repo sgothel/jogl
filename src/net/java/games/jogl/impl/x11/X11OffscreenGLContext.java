@@ -76,6 +76,18 @@ public class X11OffscreenGLContext extends X11GLContext {
     }
   }
 
+  public int getOffscreenContextWidth() {
+      return width;
+  }
+
+  public int getOffscreenContextHeight() {
+      return height;
+  }
+
+  public int getOffscreenContextPixelDataType() {
+      return GL.GL_UNSIGNED_BYTE;
+  }
+  
   public int getOffscreenContextReadBuffer() {
     if (isDoubleBuffered) {
       return GL.GL_BACK;

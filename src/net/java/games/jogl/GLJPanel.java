@@ -133,8 +133,8 @@ public final class GLJPanel extends JPanel implements GLDrawable {
           getGL().glViewport(fx, fy, fwidth, fheight);
           drawableHelper.reshape(GLJPanel.this, fx, fy, fwidth, fheight);
           if (offscreenImage != null &&
-              (offscreenImage.getWidth()  != getWidth() ||
-               offscreenImage.getHeight() != getHeight())) {
+              (offscreenImage.getWidth()  != context.getOffscreenContextWidth() ||
+               offscreenImage.getHeight() != context.getOffscreenContextHeight())) {
             offscreenImage.flush();
             offscreenImage = null;
           }
@@ -222,7 +222,7 @@ public final class GLJPanel extends JPanel implements GLDrawable {
       // Must now copy pixels from offscreen context into surface
       if (offscreenImage == null) {
         int awtFormat = context.getOffscreenContextBufferedImageType();
-        offscreenImage = new BufferedImage(getWidth(), getHeight(), awtFormat);
+        offscreenImage = new BufferedImage(context.getOffscreenContextWidth(), context.getOffscreenContextHeight(), awtFormat);
         switch (awtFormat) {
           case BufferedImage.TYPE_3BYTE_BGR:
             glFormat = GL.GL_BGR;
@@ -240,7 +240,7 @@ public final class GLJPanel extends JPanel implements GLDrawable {
 
           case BufferedImage.TYPE_INT_ARGB:
             glFormat = GL.GL_BGRA;
-            glType   = GL.GL_UNSIGNED_BYTE;
+            glType   = context.getOffscreenContextPixelDataType();
             glComps  = 4;
             dbInt    = (DataBufferInt) offscreenImage.getRaster().getDataBuffer();
             break;
@@ -269,7 +269,7 @@ public final class GLJPanel extends JPanel implements GLDrawable {
       // would require changing the generated bitmaps too.
       gl.glPixelStorei(GL.GL_PACK_SWAP_BYTES,    GL.GL_FALSE);
       gl.glPixelStorei(GL.GL_PACK_LSB_FIRST,     GL.GL_TRUE);
-      gl.glPixelStorei(GL.GL_PACK_ROW_LENGTH,    getWidth());
+      gl.glPixelStorei(GL.GL_PACK_ROW_LENGTH,    offscreenImage.getWidth());
       gl.glPixelStorei(GL.GL_PACK_SKIP_ROWS,     0);
       gl.glPixelStorei(GL.GL_PACK_SKIP_PIXELS,   0);
       gl.glPixelStorei(GL.GL_PACK_ALIGNMENT,     1);
@@ -277,9 +277,9 @@ public final class GLJPanel extends JPanel implements GLDrawable {
       // Actually read the pixels.
       gl.glReadBuffer(context.getOffscreenContextReadBuffer());
       if (dbByte != null) {
-        gl.glReadPixels(0, 0, getWidth(), getHeight(), glFormat, glType, dbByte.getData());
+        gl.glReadPixels(0, 0, offscreenImage.getWidth(), offscreenImage.getHeight(), glFormat, glType, dbByte.getData());
       } else if (dbInt != null) {
-        gl.glReadPixels(0, 0, getWidth(), getHeight(), glFormat, glType, dbInt.getData());
+        gl.glReadPixels(0, 0, offscreenImage.getWidth(), offscreenImage.getHeight(), glFormat, glType, dbInt.getData());
       }
 
       // Restore saved modes.
@@ -295,11 +295,11 @@ public final class GLJPanel extends JPanel implements GLDrawable {
 
       if (context.offscreenImageNeedsVerticalFlip()) {
         g.drawImage(offscreenImage,
-                    0, 0, getWidth(), getHeight(),
-                    0, getHeight(), getWidth(), 0,
+                    0, 0, offscreenImage.getWidth(), offscreenImage.getHeight(),
+                    0, offscreenImage.getHeight(), offscreenImage.getWidth(), 0,
                     GLJPanel.this);
       } else {
-        g.drawImage(offscreenImage, 0, 0, getWidth(), getHeight(), GLJPanel.this);
+        g.drawImage(offscreenImage, 0, 0, offscreenImage.getWidth(), offscreenImage.getHeight(), GLJPanel.this);
       }
     }
   }
