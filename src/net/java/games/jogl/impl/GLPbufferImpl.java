@@ -54,6 +54,7 @@ public class GLPbufferImpl implements GLPbuffer {
   // GLPbufferContext
   private GLContext context;
   private GLDrawableHelper drawableHelper = new GLDrawableHelper();
+  private boolean isInitialized=false;
 
   public GLPbufferImpl(GLContext context) {
     this.context = context;
@@ -176,6 +177,13 @@ public class GLPbufferImpl implements GLPbuffer {
   public void removePropertyChangeListener(String propertyName,
                                            PropertyChangeListener listener) {}
 
+    /** Querries initialization status a <code>this</code> pBuffer
+     * @return true if initialized
+     * */
+  public boolean isInitialized(){
+    return isInitialized;
+  }
+
   //----------------------------------------------------------------------
   // Internals only below this point
   //
@@ -183,6 +191,7 @@ public class GLPbufferImpl implements GLPbuffer {
   class InitAction implements Runnable {
     public void run() {
       drawableHelper.init(GLPbufferImpl.this);
+        isInitialized=true;
     }
   }
   private InitAction initAction = new InitAction();
