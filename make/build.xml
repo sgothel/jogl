@@ -523,7 +523,7 @@
         </gluegen>
 
         <!-- Generate WGL interface class -->
-        <gluegen src="${stub.includes.dir}/win32/gl-impl.c" 
+        <gluegen src="${stub.includes.common}/gl-impl.c" 
                  config="${config}/gl-wgl-win32.cfg"
                  includeRefid="stub.includes.fileset.all"
                  emitter="net.java.games.gluegen.opengl.GLEmitter">
@@ -531,7 +531,7 @@
         </gluegen>
 
         <!-- Generate GLX interface class -->
-        <gluegen src="${stub.includes.dir}/x11/gl-impl.c" 
+        <gluegen src="${stub.includes.common}/gl-impl.c" 
                  config="${config}/gl-glx-x11.cfg"
                  includeRefid="stub.includes.fileset.all"
                  emitter="net.java.games.gluegen.opengl.GLEmitter">
@@ -539,7 +539,7 @@
         </gluegen>
 
         <!-- Generate CGL interface class -->
-        <gluegen src="${stub.includes.dir}/macosx/gl-impl.c" 
+        <gluegen src="${stub.includes.common}/gl-impl.c" 
                  config="${config}/gl-cgl-macosx.cfg"
                  includeRefid="stub.includes.fileset.all"
                  emitter="net.java.games.gluegen.opengl.GLEmitter">
