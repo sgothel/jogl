@@ -424,12 +424,16 @@ public int gluScaleImageJava( int format, int widthin, int heightin,
     in = (ByteBuffer)datain;
   } else if( datain instanceof byte[] ) {
     in = ByteBuffer.allocateDirect( ((byte[])datain).length ).order( ByteOrder.nativeOrder() );
+    in.put((byte[]) datain).rewind();
   } else if( datain instanceof short[] ) {
     in = ByteBuffer.allocateDirect( ((byte[])datain).length * 2 ).order( ByteOrder.nativeOrder() );
+    in.asShortBuffer().put((short[]) datain).rewind();
   } else if( datain instanceof int[] ) {
     in = ByteBuffer.allocateDirect( ((byte[])datain).length * 4 ).order( ByteOrder.nativeOrder() );
+    in.asIntBuffer().put((int[]) datain).rewind();
   } else if( datain instanceof float[] ) {
     in = ByteBuffer.allocateDirect( ((byte[])datain).length * 4 ).order( ByteOrder.nativeOrder() );
+    in.asFloatBuffer().put((float[]) datain).rewind();
   } else {
     throw new IllegalArgumentException( "Input data must be a primitive array or a ByteBuffer" );
   }
