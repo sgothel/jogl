@@ -1,0 +1,51 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+<head>
+<title>How to build the Jogl OpenGL binding for Java</title>
+</head>
+<body>
+
+<h1>How to build the Jogl OpenGL binding for Java</h1>
+<hr>
+
+Here are the steps that are required in order to build the Jogl
+OpenGL binding from a fresh copy of the source distribution:
+
+<OL>
+  <LI> <B>Install ANTLR:</B> <br> Download and unpack ANTLR 2.7.2 from <a href="http://www.antlr.org">http://www.antlr.org</a>. 
+
+  <LI> <B>Set your CLASSPATH environment variable:</B> <br> Add the ANTLR jar file to your classpath.
+
+  <LI> <B>Set the JAVA_HOME environment variable:</B> <br> Create an environment variable named JAVA_HOME and set it to point to the root of your Java SDK.
+
+  <LI> <B>Install GNU Make:</B> To confirm that it is installed, run "make -v"; you should see some output that starts with "GNU Make version" and then a version number. 
+      <UL>
+	<LI><b>On Linux/Solaris:</b> Gnu Make is probably already installed. If it is not, you can obtain it from <a href="http://www.gnu.org/directory/devel/build/make.html">http://www.gnu.org/directory/devel/build/make.html</a>
+	<LI><b>On Win32:</b> You have two options. The first is to install the Cygwin environment, available from <a href="http://www.cygwin.com/">http://www.cygwin.com/</a>. The second (untested) option is to install the GnuWin32 tools, available from <a href="http://sourceforge.net/projects/gnuwin32/"</a>http://sourceforge.net/projects/gnuwin32/</a>.
+      </UL>
+  <LI> <B>Build the source tree:</B> <br> You can do this by opening a command shell in the "make" directory of the source tree and typing "make PLATFORM COMPILER_OPTIONS CG_OPTIONS". PLATFORM, COMPILER_OPTIONS and CG_OPTIONS are as follows:
+      <UL>
+	<LI><b>PLATFORM</b> This must be one of "win32", "x11", or "macosx". "win32" will build the code for 32-bit Microsoft Windows operating systems, "x11" will build for Linux or Sun Solaris, and "macosx" will build for Apple MacOS X.  
+	<LI><b>COMPILER_OPTIONS</b> This is currently only needed when "win32" is specified. COMPILER_OPTIONS must be one of "VC6=1" or "VC7=1"; choosing the former will invoke the Microsoft Visual C++ 6.0 compiler, and the latter option will invoke the Microsoft Visual C++ 7 (Visual Studio .NET) compiler. These are the two compilers currently supported by Jogl on Win32. 
+	<LI><b>CG_OPTIONS</b> A value of "CG=1" will generate an experimental binding for the Cg language runtime by NVidia Corporation. As of this writing the Cg binding was only supported on the Windows platform.
+      </UL>
+      
+  <LI> <B>Add Jogl to your CLASSPATH:</B> <br> To be able to use Jogl, you must add the build process Java bytecode output directory (<source tree root>/build/classes) to your CLASSPATH environment variable.
+  <LI> <B>Add Jogl to your PATH:</B> <br> To be able to use Jogl, you must also add the build process JNI code library directory (<source tree root>/build/obj) to your PATH.
+  <LI> <B>Test if everything's working:</B> <br> To test if everything went well, you should build the "Gears.java" demo in the "<source tree root>/demos/gears" directory. Run "javac Gears.java" and then "java Gears"; you should see some spinning 3D gears appear in a window. 
+  <LI> <B>Build Javadoc:</B> <br> "make doc" will produce the end-user documentation for Jogl along with some auxiliary utility packages. "make devdoc" will produce the developers' documentation, including that for the GlueGen tool. Appending "CG=1" to either of these commands will cause the javadoc for the Cg binding to be generated.
+</OL>
+ 
+Note that there are a lot of warnings produced by ANTLR about the 
+C grammar and our modifications to some of the signatures of the 
+productions; the C grammar warnings have been documented by the 
+author of the grammar as having been investigated completely and 
+harmless, and the warnings about our modifications are also 
+harmless. <P>
+
+- Christopher Kline and Kenneth Russell, June 2003
+
+
+
+</body>
+</html>

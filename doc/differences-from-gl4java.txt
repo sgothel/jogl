@@ -1,0 +1,12 @@
+- GLContext is no longer exposed in the public API.
+- No more GLAnimCanvas/GLAnimJPanel variants. To perform animation,
+  attach an Animator to a GLDrawable.
+- No GLEnum class. Use GL.[GL_CONSTANT_NAME].
+- GLFunc/GLFunc14 are named GL.
+- GLUFunc/GLUFunc14 are named GLU.
+- Drawable factory does not take initial width and height of drawable.
+- GLEventListener.reshape() now takes x and y arguments, though these
+  should usually be ignored by the application.
+- Simpler GLEventListener API; preDisplay and postDisplay have been
+  removed. GLEventListener.cleanup is not yet supported as it is not
+  clear what the semantics of this routine should be.

@@ -1,0 +1,78 @@
+
+-----------------
+  HIGH PRIORITY
+-----------------
+
+- Correct sharing of data (display lists, texture objects) between
+  contexts. This is different for X vs W32 -- one can be done at
+  runtime, the other requires sharing to be done at context creation.
+  For Win32, see the wglShareLists(). For a GLX platform, see the
+  share parameter to glXCreateContext().
+
+
+- Non-const array types must be properly released with JNI_COMMIT in
+  order to see side effects if the array was copied.
+
+- Finish implementation of <type>** arguments (currently only works
+  for "const char**". This is needed for glMultiDrawElements and
+  one Cg routine.
+
+-----------------
+ MEDIUM PRIORITY
+-----------------
+
+- Figure out how to implement GLEventListener.displayChanged(bool,bool). 
+  I believe we need additional support in J2SE before this will be possible
+  to detect and implement. The basic problem is that we need to find a way 
+  to determine when a GLCanvas has moved to a different
+  display device, so we can re-load the GL function addresses using
+  wgl/glXGetProcAddress. See comments at top of GLCanvas.java. Also need a
+  way to determine with the display mode (e.g., bit depth) of the GLDrawable
+  has changed. Once both of these problems are solved, we'll need to hook it
+  into GLEventListener.displayChanged() and also be sure to reset the
+  GLDrawable's glProcAddress table as appropriate.
+
+-----------------
+ LOW PRIORITY
+-----------------
+
+- Think about making StructAccessors for e.g. GLUquadric "more opaque"
+
+- Think about e.g. protected access for Impl classes
+
+- Find a way to limit the expansion of void* types to only certain
+  java array types. For example, glCallLists(..., GLenum type, void*)
+  only accepts certain values in its type parameter; it would be nice
+  to limit the expansion to those types.
+
+- Fix glProgramStringARB and glGetProgramString{NV,ARB} so that they
+  use Strings and/or StringBuffers insteead of GLUbyte* and void*
+
+- figure out how to deal with WGL entry points:
+    WINGDIAPI HGLRC WINAPI wglCreateLayerContext(HDC, int);
+    WINGDIAPI BOOL  WINAPI wglUseFontBitmapsA(HDC, DWORD, DWORD, DWORD);
+    WINGDIAPI BOOL  WINAPI wglUseFontBitmapsW(HDC, DWORD, DWORD, DWORD);
+  see commented-out section in make/stub_includes/win32/wingdi.h
+
+- Need a disciplined mechanism for converting char* argument types. For
+  example, many C functions accept a "char*" argument with the semantic that
+  output data will be written into the buffer pointed to by the
+  argument. The type "const char*" is used when the argument's data will be
+  unchanged. Our system needs a new directive, such as
+  "ArgumentIsStringBuffer" to be used for type conversion in those cases
+  where the native code needs to write output into the "char*" argument. Not
+  sure how to handle this on the native side -- it may require hints to the
+  native code generator as to how large the StringBuffer's backing buffer
+  needs to be, so we can assert this condition before passing the backing
+  buffer to the C function we are wrapping.
+
+- Throw an exception if native calls to GetPrimitiveArrayCritical
+  return null.
+
+- Before emitting functions and constants, sort them first by
+  extension suffix (i.e., ARB, ATI, NV, etc) and then by name. This
+  will organize them in the file more logically. When writing the
+  code, the sort function can check the last substring that's all caps,
+  and treat this as the extension owner. Be careful though, some end
+  in "3D" and that's not an extension.
+
