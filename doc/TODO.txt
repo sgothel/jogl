@@ -45,6 +45,8 @@
  LOW PRIORITY
 -----------------
 
+- Hardware acceleration for GLJPanel via pbuffers
+
 - Think about making StructAccessors for e.g. GLUquadric "more opaque"
 
 - Think about e.g. protected access for Impl classes
