@@ -62,6 +62,7 @@ public class Animator {
   private Thread thread;
   private boolean shouldStop;
 
+  /** Creates a new Animator for a particular drawable. */
   public Animator(GLDrawable drawable) {
     this.drawable = drawable;
 
@@ -71,6 +72,7 @@ public class Animator {
     }
   }
 
+  /** Starts this animator. */
   public synchronized void start() {
     if (thread != null) {
       throw new GLException("Already started");
@@ -78,8 +80,23 @@ public class Animator {
     if (runnable == null) {
       runnable = new Runnable() {
           public void run() {
+            // Try to get OpenGL context optimization since we know we
+            // will be rendering this one drawable continually from
+            // this thread; make the context current once instead of
+            // making it current and freeing it each frame.
             drawable.setRenderingThread(Thread.currentThread());
+
+            // Since setRenderingThread is currently advisory (because
+            // of the poor JAWT implementation in the Motif AWT, which
+            // performs excessive locking) we also prevent repaint(),
+            // which is called from the AWT thread, from having an
+            // effect for better multithreading behavior. This call is
+            // not strictly necessary, but if end users write their
+            // own animation loops which update multiple drawables per
+            // tick then it may be necessary to enforce the order of
+            // updates.
             drawable.setNoAutoRedrawMode(true);
+
             boolean noException = false;
             try {
               while (!shouldStop) {
@@ -108,6 +125,8 @@ public class Animator {
     thread.start();
   }
 
+  /** Stops this animator, blocking until the animation thread has
+      finished. */
   public synchronized void stop() {
     shouldStop = true;
     while (shouldStop && thread != null) {
