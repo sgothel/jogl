@@ -1095,7 +1095,7 @@ public class JavaEmitter implements GlueEmitter {
           cfg.implPackageName(),
           cfg.implClassName(),
           true,
-          new String[] { "java.nio.*", cfg.packageName() + ".*" },
+          (String[]) cfg.imports().toArray(new String[] {}),
           new String[] { "public" },
           new String[] { cfg.className() },
           null,
