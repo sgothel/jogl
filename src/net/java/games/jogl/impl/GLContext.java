@@ -65,11 +65,6 @@ public abstract class GLContext {
   // the first event is received from the AWT event dispatch thread.
   private boolean realized;
 
-  // This avoids (as much as possible) losing the effects of
-  // setRenderingThread, which may need to be deferred if the
-  // component is not realized
-  private boolean deferredSetRenderingThread;
-
   protected GLCapabilities capabilities;
   protected GLCapabilitiesChooser chooser;
   protected GL gl;
@@ -82,6 +77,11 @@ public abstract class GLContext {
   protected GLU glu = gluRoot; // this is the context's GLU interface
   protected Thread renderingThread;
   protected Runnable deferredReshapeAction;
+
+  // Error checking for setRenderingThread to ensure that one thread
+  // doesn't attempt to call setRenderingThread on more than one
+  // drawable
+  protected static final ThreadLocal perThreadRenderingContext = new ThreadLocal();
 
   // This is a workaround for a bug in NVidia's drivers where
   // vertex_array_range is only safe for single-threaded use; a bug
@@ -112,6 +112,14 @@ public abstract class GLContext {
   // Cache of the functions that are available to be called at the current
   // moment in time
   protected FunctionAvailabilityCache functionAvailability;
+
+  // Support for recursive makeCurrent() calls as well as calling
+  // other drawables' display() methods from within another one's
+  protected static final ThreadLocal perThreadContextStack = new ThreadLocal() {
+      protected synchronized Object initialValue() {
+        return new GLContextStack();
+      }
+    };
       
   public GLContext(Component component,
                    GLCapabilities capabilities,
@@ -133,7 +141,9 @@ public abstract class GLContext {
 
   /** Runs the given runnable with this OpenGL context valid. */
   public synchronized void invokeGL(Runnable runnable, boolean isReshape, Runnable initAction) throws GLException {
-    Thread currentThread = null;
+    // Could be more clever about not calling this every time, but
+    // Thread.currentThread() is very fast and this makes the logic simpler
+    Thread currentThread = Thread.currentThread();
     
     // Defer JAWT and OpenGL operations until onscreen components are
     // realized
@@ -144,7 +154,7 @@ public abstract class GLContext {
     if (!realized() ||
 	willSetRenderingThread ||
         (renderingThread != null &&
-         renderingThread != (currentThread = Thread.currentThread()))) {
+         renderingThread != currentThread)) {
       if (isReshape) {
         deferredReshapeAction = runnable;
       }
@@ -157,8 +167,35 @@ public abstract class GLContext {
       return;
     }
 
-    if (renderingThread == null || deferredSetRenderingThread) {
-      deferredSetRenderingThread = false;
+    GLContextStack ctxStack = getPerThreadContextStack();
+    GLContext curContext = ctxStack.peekContext();
+    Runnable  curInitAction = ctxStack.peekInitAction();
+    boolean mustDoMakeCurrent = true;
+    boolean mustSkipFreeForRenderingThread = false;
+    boolean mustFreeBecauseOfNoRenderingThread = false;
+
+    if (curContext == this) {
+      mustDoMakeCurrent = false;
+    }
+
+    if (currentThread == renderingThread && curContext == null) {
+      mustSkipFreeForRenderingThread = true;
+    }
+    
+    if (!mustDoMakeCurrent &&
+        renderingThread == null &&
+        ctxStack.size() == 1) {
+      mustFreeBecauseOfNoRenderingThread = true;
+    }
+    
+    if (mustDoMakeCurrent) {
+      if (curContext != null) {
+        if (DEBUG) {
+          System.err.println("Freeing context " + curContext + " due to recursive makeCurrent");
+        }
+        curContext.free();
+      }
+
       if (!makeCurrent(initAction)) {
         // Couldn't make the thread current because the component has not yet
         // been visualized, and therefore the context cannot be created.
@@ -169,17 +206,23 @@ public abstract class GLContext {
         }
         return;
       }
+      if (DEBUG) {
+        System.err.println("Making context " + this + " current");
+      }
     }
+    ctxStack.push(this, initAction);
 
     // At this point the OpenGL context is current. Offscreen contexts
     // handle resizing the backing bitmap in makeCurrent. Therefore we
     // may need to free and make the context current again if we
     // didn't actually make it current above.
     if (pendingOffscreenResize && renderingThread != null) {
+      ctxStack.pop();
       free();
       if (!makeCurrent(initAction)) {
         throw new GLException("Error while resizing offscreen context");
       }
+      ctxStack.push(this, initAction);
     }
 
     boolean caughtException = false;
@@ -199,8 +242,34 @@ public abstract class GLContext {
         // Disallow setRenderingThread if display action is throwing exceptions
         renderingThread = null;
       }
-      if (renderingThread == null) {
+
+      if (!mustFreeBecauseOfNoRenderingThread && !mustSkipFreeForRenderingThread) {
+        ctxStack.pop();
+      }
+
+      // Free the context if another one was current, but not if the
+      // setRenderingThread optimization kicks in. However, if the
+      // setRenderingThread optimization has recently been disabled,
+      // must force a free.
+      if ((mustDoMakeCurrent && !mustSkipFreeForRenderingThread) ||
+          mustFreeBecauseOfNoRenderingThread) {
+        if (mustFreeBecauseOfNoRenderingThread) {
+          // Must match previous push()
+          ctxStack.pop();
+        }
+
+        if (DEBUG) {
+          System.err.println("Freeing context " + this);
+        }
+
         free();
+
+        if (curContext != null && !mustFreeBecauseOfNoRenderingThread) {
+          if (DEBUG) {
+            System.err.println("Making context " + curContext + " current again");
+          }
+          curContext.makeCurrent(curInitAction);
+        }
       }
     }
   }
@@ -240,18 +309,29 @@ public abstract class GLContext {
     if (renderingThread == null && currentThreadOrNull == null) {
       throw new GLException("Attempt to clear rendering thread when already cleared");
     }
+
+    Object currentThreadRenderingContext = perThreadRenderingContext.get();
+    if (currentThreadOrNull != null &&
+        currentThreadRenderingContext != null &&
+        currentThreadRenderingContext != this) {
+      throw new GLException("Attempt to call setRenderingThread on more than one drawable in this thread");
+    }
+
     this.willSetRenderingThread = false;
     if (currentThreadOrNull == null) {
       renderingThread = null;
-      if (realized()) {
-        // We are guaranteed to own the context
-        free();
-      }
+      perThreadRenderingContext.set(null);
+      // Just in case the end user wasn't planning on drawing the
+      // drawable even once more (which would give us a chance to free
+      // the context), try to free the context now by performing an
+      // invokeGL with a do-nothing action
+      invokeGL(new Runnable() {
+          public void run() {
+          }
+        }, false, initAction);
     } else {
       renderingThread = currentThreadOrNull;
-      if (realized()) {
-        makeCurrent(initAction);
-      }
+      perThreadRenderingContext.set(this);
     }
   }
 
@@ -428,7 +508,7 @@ public abstract class GLContext {
         // set the current value of the proc address variable in the table object
         addressField.setLong(table, newProcAddress); 
         if (DEBUG) {
-          System.err.println(glFuncName + " = 0x" + Long.toHexString(newProcAddress));
+          //          System.err.println(glFuncName + " = 0x" + Long.toHexString(newProcAddress));
         }
       } catch (Exception e) {
         throw new GLException("Cannot get GL proc address for method \"" +
@@ -445,6 +525,12 @@ public abstract class GLContext {
       created. This is used to manage sharing of display lists and
       textures between contexts. */
   public abstract boolean isCreated();
+
+  /** Support for recursive makeCurrent() calls as well as calling
+      other drawables' display() methods from within another one's */
+  protected static GLContextStack getPerThreadContextStack() {
+    return (GLContextStack) perThreadContextStack.get();
+  }
 
   //----------------------------------------------------------------------
   // Internals only below this point

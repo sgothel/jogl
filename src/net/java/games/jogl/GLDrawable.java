@@ -111,9 +111,11 @@ public interface GLDrawable extends ComponentEvents {
       {@link GLEventListener}s. Called automatically by the window
       system toolkit upon receiving a repaint() request. When used in
       conjunction with {@link
-      net.java.games.jogl.GLDrawable#setRenderingThread}, this routine may be
-      called manually by the application's main loop for higher
-      performance and better control over the rendering process. */
+      net.java.games.jogl.GLDrawable#setRenderingThread}, this routine
+      may be called manually by the application's main loop for higher
+      performance and better control over the rendering process. It is
+      legal to call another GLDrawable's display method from within
+      {@link GLEventListener#display}. */
   public void display();
 
   /** <P> Changes this GLDrawable to allow OpenGL rendering only from
@@ -129,7 +131,9 @@ public interface GLDrawable extends ComponentEvents {
       drawable. Throws {@link GLException} if the rendering thread for
       this drawable has been set and attempts are made to set or clear
       the rendering thread from another thread, or if the passed
-      thread is not equal to the current thread or null. </P>
+      thread is not equal to the current thread or null. Also throws
+      {@link GLException} if the current thread attempts to call
+      <code>setRenderingThread</code> on more than one drawable. </P>
       
       <P> <B>NOTE:</B> Currently this routine is only advisory, which
       means that on some platforms the underlying optimizations are

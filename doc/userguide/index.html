@@ -408,9 +408,11 @@ The following issues, among others, are outstanding on all platforms:
 
 <UL>
 
-<LI> Sharing of textures and display lists between contexts has not
-yet been exposed in the public API, though pbuffers always share
-display lists with their parent widget.
+<LI> The DefaultGLCapabilitiesChooser tends to choose the wrong visual
+on lower-end graphics cards.
+
+<LI> Hardware acceleration for GLJPanel could be implemented using
+pbuffers.
 
 </UL>
 
@@ -426,8 +428,9 @@ No outstanding issues at this time.
 
 <UL>
 
-<LI> Pbuffer support has not yet been implemented in Jogl on X11
-platforms.
+<LI> Multi-head support is not yet working properly in Jogl.
+Contributions have been made by the community in this area and we
+expect to fold these changes in to the main source tree shortly.
 
 </UL>
 
@@ -467,20 +470,6 @@ The following issues remain with the Mac OS X port:
 
 <UL>
 
-<LI> Jogl's GLCanvas support does not and will never work with any
-earlier release of Java on Mac OS X than the first developer preview
-of Panther (10.3).
-
-<LI> Due to bugs in the JAWT implementation on Mac OS X, some fairly
-severe workarounds had to be put into the Jogl sources that impact
-performance significantly. These bugs have been fixed by Gerard
-Ziemski at Apple and the fixes will most likely show up in the Java
-that ships with the second developer preview of Panther (10.3), at
-which time the performance of OpenGL-based applications on OS X using
-Jogl and the GLCanvas will increase. Still, with Developer Preview 1
-of Panther (released at JavaOne), resizing of GLCanvases does not work
-and yields an application crash. This issue will be fixed with DP2.
-
 <LI> GLJPanel is not yet implemented on Mac OS X.
 
 <LI> Due to the mechanism by which the Cocoa graphics system selects
@@ -491,10 +480,7 @@ the requested capablities. The underlying Cocoa pixel format selection
 algorithm will then run to choose the best-fit visual. Currently the
 capabilities of the underlying context are hardcoded.
 
-<LI> Pbuffers are not yet supported in the Mac OS X port of Jogl.
-Pbuffers will first become visible to Mac OS X applications in the
-Panther (10.3) release, at which time the pbuffer support will be
-ported.
+<LI> Pbuffers are supported in Jogl on Mac OS X 10.3 and later.
 
 </UL>
 
