@@ -454,11 +454,7 @@ public final class GLJPanel extends JPanel implements GLDrawable {
             // Should be more flexible in these BufferedImage formats;
             // perhaps see what the preferred image types are on the
             // given platform
-            if (offscreenCaps.getAlphaBits() > 0) {
-              awtFormat = BufferedImage.TYPE_INT_ARGB;
-            } else {
-              awtFormat = BufferedImage.TYPE_INT_RGB;
-            }
+            awtFormat = BufferedImage.TYPE_INT_RGB;
 
             // This seems to be a good choice on all platforms
             hwGLFormat = GL.GL_UNSIGNED_INT_8_8_8_8_REV;
