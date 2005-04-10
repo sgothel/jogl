@@ -85,6 +85,17 @@ public class SingleThreadedWorkaround {
       });
   }
 
+  /** Public method for users to disable the single-threaded
+      workaround in application code. Should perhaps eventually
+      promote this method to the public API. */
+  public static void disableWorkaround() {
+    systemPropertySpecified = true;
+    singleThreadedWorkaround = false;
+    if (Debug.verbose()) {
+      System.err.println("Application forced disabling of single-threaded workaround of dispatching display() on event thread");
+    }
+  }
+
   public static void shouldDoWorkaround() {
     if (!systemPropertySpecified) {
       singleThreadedWorkaround = true;
