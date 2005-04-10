@@ -531,10 +531,10 @@ public final class GLJPanel extends JPanel implements GLDrawable {
           // Should figure out if we need to set the image scaling
           // preference to FAST since it doesn't require subsampling
           // of pixels -- FIXME
-          for (int i = 0; i < panelHeight - 1; i++) {
+          for (int i = 0; i < panelHeight; i++) {
             g.drawImage(offscreenImage,
                         0, i, panelWidth, i+1,
-                        0, panelHeight - i - 2, panelWidth, panelHeight - i - 1,
+                        0, panelHeight - i - 1, panelWidth, panelHeight - i,
                         GLJPanel.this);
           }
         } else {
