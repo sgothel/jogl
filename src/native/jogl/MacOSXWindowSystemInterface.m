@@ -235,3 +235,9 @@ void* getProcAddress(const char *procname)
 	
 	return NULL;
 }
+
+void setSwapInterval(void* context, int interval) {
+  NSOpenGLContext *nsContext = (NSOpenGLContext*)context;
+  long swapInterval = interval;
+  [nsContext setValues: &swapInterval forParameter: NSOpenGLCPSwapInterval];
+}

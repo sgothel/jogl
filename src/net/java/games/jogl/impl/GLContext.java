@@ -552,6 +552,13 @@ public abstract class GLContext {
    */
   public abstract void releasePbufferFromTexture();
 
+  /*
+   * Sets the swap interval for onscreen OpenGL contexts. Has no
+   * effect for offscreen contexts.
+   */
+  public void setSwapInterval(final int interval) {
+  }
+
   /** Maps the given "platform-independent" function name to a real function
       name. Currently this is only used to map "glAllocateMemoryNV" and
       associated routines to wglAllocateMemoryNV / glXAllocateMemoryNV. */

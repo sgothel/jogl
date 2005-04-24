@@ -32,3 +32,5 @@ void setContextPBuffer(void* nsContext, void* pBuffer);
 void setContextTextureImageToPBuffer(void* nsContext, void* pBuffer, int colorBuffer);
 
 void* getProcAddress(const char *procName);
+
+void setSwapInterval(void* nsContext, int interval);

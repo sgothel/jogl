@@ -103,6 +103,13 @@ public class X11OnscreenGLContext extends X11GLContext {
     throw new GLException("Should not call this");
   }
 
+  public void setSwapInterval(int interval) {
+    GL gl = getGL();
+    if (gl.isExtensionAvailable("GLX_SGI_swap_control")) {
+      gl.glXSwapIntervalSGI(interval);
+    }
+  }
+
   protected synchronized boolean makeCurrent(Runnable initAction) throws GLException {
     try {
       if (!lockSurface()) {
