@@ -144,7 +144,8 @@ public class GlueGen implements GlueEmitterControls {
       MachineDescription machDesc;
       String os = System.getProperty("os.name").toLowerCase();
       String cpu = System.getProperty("os.arch").toLowerCase();
-      if (os.startsWith("linux") && cpu.equals("amd64")) {
+      if ((os.startsWith("linux") && cpu.equals("amd64")) ||
+          (os.startsWith("linux") && cpu.equals("ia64"))) {
            machDesc = new MachineDescription64Bit();
       } else {
            machDesc = new MachineDescription32Bit();
