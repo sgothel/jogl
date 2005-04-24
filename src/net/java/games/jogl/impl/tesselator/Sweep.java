@@ -404,7 +404,7 @@ class Sweep {
         coords[1] = isect.coords[1];
         coords[2] = isect.coords[2];
 
-        double[][] outData = new double[1][];
+        Object[] outData = new Object[1];
         tess.callCombineOrCombineData(coords, data, weights, outData);
         isect.data = outData[0];
         if (isect.data == null) {

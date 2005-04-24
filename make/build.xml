@@ -202,6 +202,7 @@
         <property name="java.lib.dir.win32" value="${java.home.dir}/lib" />
         <property name="java.lib.dir.linux" value="${java.home.dir}/jre/lib/i386" />
         <property name="java.lib.dir.linux.amd64" value="${java.home.dir}/jre/lib/amd64" />
+        <property name="java.lib.dir.linux.ia64" value="${java.home.dir}/jre/lib/ia64" />
 	<condition property="cpu" value="sparc">
             <os name="SunOS" arch="sparc" />
         </condition>
@@ -321,6 +322,15 @@
         <property name="linker.cfg.id"                        value="linker.cfg.linux.amd64" /> 
     </target>
     
+    <target name="declare.linux.ia64" depends="declare.x11">
+        <property name="java.includes.dir.platform"           value="${java.includes.dir.linux}" />
+        <property name="java.lib.dir.platform"                value="${java.lib.dir.linux.ia64}" />       
+
+        <property name="compiler.cfg.id"                      value="compiler.cfg.linux" /> 
+        <property name="linker.cfg.id"                        value="linker.cfg.linux" /> 
+    </target>
+
+
     <target name="declare.freebsd" depends="declare.x11">
         <property name="java.includes.dir.platform"           value="${java.includes.dir.freebsd}" />
         <property name="java.lib.dir.platform"                value="${java.lib.dir.linux}" />
@@ -877,6 +887,9 @@
     <target name="c.compile.jogl.linux.amd64" depends="declare.linux.amd64, c.build.jogl, c.build.cg" >
     </target>
     
+    <target name="c.compile.jogl.linux.ia64" depends="declare.linux.ia64, c.build.jogl, c.build.cg" >
+    </target>
+
     <target name="c.compile.jogl.solaris" depends="declare.solaris, c.build.jogl">
     </target>
     
@@ -1036,7 +1049,7 @@
     <target name="all">
         <fail>
         
-Use a platform specific target:  linux, linux.amd64, macosx, solaris, win32.vc6, win32.vc7, win32.mingw
+Use a platform specific target:  linux, linux.amd64, linux.ia64, macosx, solaris, win32.vc6, win32.vc7, win32.mingw
         </fail>
     </target>      
 
@@ -1093,6 +1106,17 @@ Use a platform specific target:  linux, linux.amd64, macosx, solaris, win32.vc6,
 
         <!-- Compile the native C sources and build the jogl lib. -->
         <antcall target="c.compile.jogl.linux.amd64" />
+    </target>
+
+     <!--
+       - Linux on IA64 (assuming GCC)
+      -->
+    <target name="linux.ia64" depends="setup.java.home.dir.nonmacosx, declare.linux.ia64">
+        <!-- Generate, compile, and build the jar for the Java sources. -->
+        <antcall target="jar" inheritRefs="true" />
+
+        <!-- Compile the native C sources and build the jogl lib. -->
+        <antcall target="c.compile.jogl.linux.ia64" />
     </target>
 
     <!--

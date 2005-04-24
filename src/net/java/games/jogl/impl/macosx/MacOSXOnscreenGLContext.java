@@ -52,7 +52,6 @@ public class MacOSXOnscreenGLContext extends MacOSXGLContext {
   private JAWT_DrawingSurface ds;
   private JAWT_DrawingSurfaceInfo dsi;
   private JAWT_MacOSXDrawingSurfaceInfo macosxdsi;
-  private Runnable myDeferredReshapeAction;
     
   // Variables for pbuffer support
   List pbuffersToInstantiate = new ArrayList();
@@ -65,24 +64,6 @@ public class MacOSXOnscreenGLContext extends MacOSXGLContext {
                                  GLCapabilitiesChooser chooser,
                                  GLContext shareWith) {
     super(component, capabilities, chooser, shareWith);
-  }
-
-  // gznote: remove when updater is thread safe!
-  public synchronized void invokeGL(final Runnable runnable, boolean isReshape, Runnable initAction) throws GLException {
-    if (isReshape) {
-      myDeferredReshapeAction = new Runnable() {
-          public void run() {
-            CGL.updateContext(nsContext, nsView);
-            runnable.run();
-          }
-        };
-    } else {
-      if (myDeferredReshapeAction != null) {
-        super.invokeGL(myDeferredReshapeAction, true, initAction);
-        myDeferredReshapeAction = null;
-      }
-      super.invokeGL(runnable, isReshape, initAction);
-    }
   }
 
   protected boolean isOffscreen() {
@@ -136,6 +117,14 @@ public class MacOSXOnscreenGLContext extends MacOSXGLContext {
       }
       boolean ret = super.makeCurrent(initAction);
       if (ret) {
+        // Assume the canvas might have been resized or moved and tell the OpenGL
+        // context to update itself. This used to be done only upon receiving a
+        // reshape event but that doesn't appear to be sufficient. An experiment
+        // was also done to add a HierarchyBoundsListener to the GLCanvas and
+        // do this updating only upon reshape of this component or reshape or movement
+        // of an ancestor, but this also wasn't sufficient and left garbage on the
+        // screen in some situations.
+        CGL.updateContext(nsContext, nsView);
         // Instantiate any pending pbuffers
         while (!pbuffersToInstantiate.isEmpty()) {
           MacOSXPbufferGLContext ctx =

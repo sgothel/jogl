@@ -78,7 +78,6 @@ public final class GLJPanel extends JPanel implements GLDrawable {
   private int                   neededOffscreenImageHeight;
   private DataBufferByte   dbByte;
   private DataBufferInt    dbInt;
-  private Object semaphore = new Object();
   private int panelWidth   = 0;
   private int panelHeight  = 0;
   private Updater updater;
@@ -127,26 +126,9 @@ public final class GLJPanel extends JPanel implements GLDrawable {
       // Multithreaded redrawing of Swing components is not allowed,
       // so do everything on the event dispatch thread
       try {
-        // Wait a reasonable period of time for the repaint to
-        // complete, so that we don't swamp the AWT event queue thread
-        // with repaint requests. We used to have an explicit flag to
-        // detect when the repaint completed; unfortunately, under
-        // some circumstances, the top-level window can be torn down
-        // while we're waiting for the repaint to complete, which will
-        // never happen. It doesn't look like there's enough
-        // information in the EventQueue to figure out whether there
-        // are pending events without posting to the queue, which we
-        // don't want to do during shutdown, and adding a
-        // HierarchyListener and watching for displayability events
-        // might be fragile since we don't know exactly how this
-        // component will be used in users' applications. For these
-        // reasons we simply wait up to a brief period of time for the
-        // repaint to complete.
-        synchronized(semaphore) {
-          repaint();
-          semaphore.wait(100);
-        }
-      } catch (InterruptedException e) {
+        EventQueue.invokeAndWait(paintImmediatelyAction);
+      } catch (Exception e) {
+        throw new GLException(e);
       }
     }
   }
@@ -176,9 +158,6 @@ public final class GLJPanel extends JPanel implements GLDrawable {
       }
     } else {
       offscreenContext.invokeGL(displayAction, false, initAction);
-    }
-    synchronized(semaphore) {
-      semaphore.notifyAll();
     }
   }
 
@@ -475,11 +454,7 @@ public final class GLJPanel extends JPanel implements GLDrawable {
             // Should be more flexible in these BufferedImage formats;
             // perhaps see what the preferred image types are on the
             // given platform
-            if (offscreenCaps.getAlphaBits() > 0) {
-              awtFormat = BufferedImage.TYPE_INT_ARGB;
-            } else {
-              awtFormat = BufferedImage.TYPE_INT_RGB;
-            }
+            awtFormat = BufferedImage.TYPE_INT_RGB;
 
             // This seems to be a good choice on all platforms
             hwGLFormat = GL.GL_UNSIGNED_INT_8_8_8_8_REV;
@@ -552,10 +527,10 @@ public final class GLJPanel extends JPanel implements GLDrawable {
           // Should figure out if we need to set the image scaling
           // preference to FAST since it doesn't require subsampling
           // of pixels -- FIXME
-          for (int i = 0; i < panelHeight - 1; i++) {
+          for (int i = 0; i < panelHeight; i++) {
             g.drawImage(offscreenImage,
                         0, i, panelWidth, i+1,
-                        0, panelHeight - i - 2, panelWidth, panelHeight - i - 1,
+                        0, panelHeight - i - 1, panelWidth, panelHeight - i,
                         GLJPanel.this);
           }
         } else {
@@ -593,6 +568,13 @@ public final class GLJPanel extends JPanel implements GLDrawable {
     }
   }
   private SwapBuffersAction swapBuffersAction = new SwapBuffersAction();
+
+  class PaintImmediatelyAction implements Runnable {
+    public void run() {
+      paintImmediately(0, 0, getWidth(), getHeight());
+    }
+  }
+  private PaintImmediatelyAction paintImmediatelyAction = new PaintImmediatelyAction();
 
   private int getNextPowerOf2(int number) {
     if (((number-1) & number) == 0) {
