@@ -67,7 +67,10 @@ import net.java.games.jogl.impl.*;
     them. */
 
 public final class GLJPanel extends JPanel implements GLDrawable {
+  protected static final boolean DEBUG = Debug.debug("GLJPanel");
+
   private GLDrawableHelper drawableHelper = new GLDrawableHelper();
+  private volatile boolean isInitialized;
 
   // Data used for either pbuffers or pixmap-based offscreen surfaces
   private GLCapabilities        offscreenCaps;
@@ -114,11 +117,13 @@ public final class GLJPanel extends JPanel implements GLDrawable {
     offscreenCaps.setDoubleBuffered(false);
     this.chooser = chooser;
     this.shareWith = shareWith;
-    
-    initialize();
   }
 
   public void display() {
+    if (!isInitialized) {
+      return;
+    }
+
     if (EventQueue.isDispatchThread()) {
       // Want display() to be synchronous, so call paintImmediately()
       paintImmediately(0, 0, getWidth(), getHeight());
@@ -137,6 +142,10 @@ public final class GLJPanel extends JPanel implements GLDrawable {
       GLEventListener#display}. Should not be invoked by applications
       directly. */
   public void paintComponent(Graphics g) {
+    if (!isInitialized) {
+      return;
+    }
+
     updater.setGraphics(g);
     if (!hardwareAccelerationDisabled) {
       if (!pbufferInitializationCompleted) {
@@ -161,12 +170,47 @@ public final class GLJPanel extends JPanel implements GLDrawable {
     }
   }
 
+  public void addNotify() {
+    super.addNotify();
+    initialize();
+    if (DEBUG) {
+      System.err.println("GLJPanel.addNotify()");
+    }
+  }
+
+  /** Overridden from JPanel; used to indicate that it's no longer
+      safe to have an OpenGL context for the component. */
+  public void removeNotify() {
+    if (DEBUG) {
+      System.err.println("GLJPanel.removeNotify()");
+    }
+    if (!hardwareAccelerationDisabled) {
+      if (pbuffer != null) {
+        pbuffer.destroy();
+      }
+      if (toplevel != null) {
+        toplevel.dispose();
+      }
+      pbuffer = null;
+      heavyweight = null;
+      toplevel = null;
+    } else {
+      offscreenContext.destroy();
+    }
+    isInitialized = false;
+    super.removeNotify();
+  }
+
   /** Overridden from Canvas; causes {@link GLDrawableHelper#reshape}
       to be called on all registered {@link GLEventListener}s. Called
       automatically by the AWT; should not be invoked by applications
       directly. */
   public void reshape(int x, int y, int width, int height) {
     super.reshape(x, y, width, height);
+
+    if (!isInitialized) {
+      return;
+    }
 
     // Move all reshape requests onto AWT EventQueue thread
     final int fx = x;
@@ -393,6 +437,7 @@ public final class GLJPanel extends JPanel implements GLDrawable {
               }
             }
           });
+        isInitialized = true;
         return;
       } else {
         // If the heavyweight reports that it can't create an
@@ -415,6 +460,8 @@ public final class GLJPanel extends JPanel implements GLDrawable {
           }
         }, true, initAction);
     }
+    
+    isInitialized = true;
   }
 
   class Updater implements GLEventListener {

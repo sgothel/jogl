@@ -59,6 +59,8 @@ import net.java.games.jogl.impl.*;
 
 public final class GLCanvas extends Canvas implements GLDrawable {
 
+  protected static final boolean DEBUG = Debug.debug("GLCanvas");
+
   private GLDrawableHelper drawableHelper = new GLDrawableHelper();
   private GLContext context;
 
@@ -90,6 +92,9 @@ public final class GLCanvas extends Canvas implements GLDrawable {
   public void addNotify() {
     super.addNotify();
     context.setRealized();
+    if (DEBUG) {
+      System.err.println("GLCanvas.addNotify()");
+    }
   }
 
   /** Overridden from Canvas; used to indicate that it's no longer
@@ -97,6 +102,9 @@ public final class GLCanvas extends Canvas implements GLDrawable {
   public void removeNotify() {
     context.destroy();
     super.removeNotify();
+    if (DEBUG) {
+      System.err.println("GLCanvas.removeNotify()");
+    }
   }
 
   /** Overridden from Canvas; causes {@link GLDrawableHelper#reshape}
