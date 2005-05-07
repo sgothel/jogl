@@ -432,7 +432,10 @@ public class WindowsPbufferGLContext extends WindowsGLContext {
     if (hglrc != 0) {
       super.destroyImpl();
       // Must release DC and pbuffer
-      GL gl = getGL();
+      // NOTE that since the context is not current, glGetError() can
+      // not be called here, so we skip the use of any composable
+      // pipelines
+      GL gl = createGL();
       if (gl.wglReleasePbufferDCARB(buffer, hdc) == 0) {
         throw new GLException("Error releasing pbuffer device context: error code " + WGL.GetLastError());
       }

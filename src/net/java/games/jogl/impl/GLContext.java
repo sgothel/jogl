@@ -484,6 +484,12 @@ public abstract class GLContext {
    * the definition of "available".
    */
   protected void resetGLFunctionAvailability() {
+    // In order to be able to allow the user to uniformly install the
+    // debug and trace pipelines in their GLEventListener.init()
+    // method (for both GLCanvas and GLJPanel), we need to reset the
+    // actual GL object in the GLDrawable as well
+    setGL(createGL());
+
     functionAvailability.flush();
     if (!haveResetGLUProcAddressTable) {
       if (DEBUG) {

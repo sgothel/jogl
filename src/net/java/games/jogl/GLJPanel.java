@@ -291,17 +291,27 @@ public final class GLJPanel extends JPanel implements GLDrawable {
 
   public GL getGL() {
     if (!hardwareAccelerationDisabled) {
+      if (pbuffer == null) {
+        return null;
+      }
       return pbuffer.getGL();
     } else {
+      if (offscreenContext == null) {
+        return null;
+      }
       return offscreenContext.getGL();
     }
   }
 
   public void setGL(GL gl) {
     if (!hardwareAccelerationDisabled) {
-      pbuffer.setGL(gl);
+      if (pbuffer != null) {
+        pbuffer.setGL(gl);
+      }
     } else {
-      offscreenContext.setGL(gl);
+      if (offscreenContext != null) {
+        offscreenContext.setGL(gl);
+      }
     }
   }
 
@@ -473,6 +483,9 @@ public final class GLJPanel extends JPanel implements GLDrawable {
 
     public void init(GLDrawable drawable) {
       if (!hardwareAccelerationDisabled) {
+        if (DEBUG) {
+          System.err.println("GLJPanel$Updater.init(): pbufferInitializationCompleted = true");
+        }
         pbufferInitializationCompleted = true;
         EventQueue.invokeLater(new Runnable() {
             public void run() {
