@@ -489,7 +489,10 @@ public final class GLJPanel extends JPanel implements GLDrawable {
         pbufferInitializationCompleted = true;
         EventQueue.invokeLater(new Runnable() {
             public void run() {
-              toplevel.setVisible(false);
+              // Race conditions might dispose of this before now
+              if (toplevel != null) {
+                toplevel.setVisible(false);
+              }
             }
           });
       }
