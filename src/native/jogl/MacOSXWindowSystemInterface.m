@@ -29,7 +29,8 @@ void* createContext(void* shareContext, void* view,
                     int accumBlueBits,
                     int accumAlphaBits,
                     int sampleBuffers,
-                    int numSamples)
+                    int numSamples,
+                    int* viewNotReady)
 {
         int colorSize = redBits + greenBits + blueBits;
         int accumSize = accumRedBits + accumGreenBits + accumBlueBits;
@@ -48,7 +49,10 @@ void* createContext(void* shareContext, void* view,
             }
             else if ([nsView lockFocusIfCanDraw] == NO)
             {
-                fprintf(stderr, "Error: view not ready, cannot lock focus at \"%s:%s:%d\"\n", __FILE__, __FUNCTION__, __LINE__);
+                if (viewNotReady != NULL) {
+                    *viewNotReady = 1;
+                }
+
                 // the view is not ready yet
                 return NULL;
             }

@@ -131,6 +131,9 @@ public class MacOSXOnscreenGLContext extends MacOSXGLContext {
             (MacOSXPbufferGLContext) pbuffersToInstantiate.remove(pbuffersToInstantiate.size() - 1);
           ctx.createPbuffer(nsView, nsContext);
         }
+      } else {
+        // View might not have been ready
+        unlockSurface();
       }
       return ret;
     } catch (RuntimeException e) {

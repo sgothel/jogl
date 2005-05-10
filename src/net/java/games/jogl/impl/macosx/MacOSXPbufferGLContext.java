@@ -65,13 +65,13 @@ public class MacOSXPbufferGLContext extends MacOSXGLContext {
       renderTarget = GL.GL_TEXTURE_2D;
     }
 		
-    this.pBuffer = CGL.createPBuffer(renderTarget, width, height);
-    if (this.pBuffer == 0) {
+    pBuffer = CGL.createPBuffer(renderTarget, width, height);
+    if (pBuffer == 0) {
       throw new GLException("pbuffer creation error: CGL.createPBuffer() failed");
     }
 	
     if (DEBUG) {
-      System.err.println("Created pbuffer " + width + " x " + height);
+      System.err.println("Created pbuffer 0x" + Long.toHexString(pBuffer) + ", " + width + " x " + height + " for " + this);
     }
   }
 
@@ -79,6 +79,9 @@ public class MacOSXPbufferGLContext extends MacOSXGLContext {
     created = false;
 
     if (pBuffer == 0) {
+      if (DEBUG) {
+        System.err.println("Pbuffer not instantiated yet for " + this);
+      }
       // pbuffer not instantiated yet
       return false;
     }
@@ -151,10 +154,13 @@ public class MacOSXPbufferGLContext extends MacOSXGLContext {
     return (1<<power);
   }
 
-  protected void create() {
-    super.create();
+  protected boolean create() {
+    if (!super.create()) {
+      return false;
+    }
     created = true;
     // Must now associate the pbuffer with our newly-created context
     CGL.setContextPBuffer(nsContext, pBuffer);
+    return true;
   }
 }

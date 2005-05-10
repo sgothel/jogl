@@ -121,7 +121,7 @@ public abstract class MacOSXGLContext extends GLContext
    * Creates and initializes an appropriate OpenGl nsContext. Should only be
    * called by {@link makeCurrent(Runnable)}.
    */
-  protected void create() {
+  protected boolean create() {
     MacOSXGLContext other = (MacOSXGLContext) GLContextShareSet.getShareContext(this);
     long share = 0;
     if (other != null) {
@@ -130,6 +130,7 @@ public abstract class MacOSXGLContext extends GLContext
         throw new GLException("GLContextShareSet returned an invalid OpenGL context");
       }
     }
+    int[] viewNotReady = new int[1];
     nsContext = CGL.createContext(share,
                                   nsView,
                                   capabilities.getDoubleBuffered() ? 1 : 0,
@@ -144,18 +145,29 @@ public abstract class MacOSXGLContext extends GLContext
                                   capabilities.getAccumBlueBits(),
                                   capabilities.getAccumAlphaBits(),
                                   capabilities.getSampleBuffers() ? 1 : 0,
-                                  capabilities.getNumSamples());
+                                  capabilities.getNumSamples(),
+                                  viewNotReady);
     if (nsContext == 0) {
+      if (viewNotReady[0] == 1) {
+        if (DEBUG) {
+          System.err.println("!!! View not ready for " + getClass().getName());
+        }
+        // View not ready at the window system level -- this is OK
+        return false;
+      }
       throw new GLException("Error creating nsContext");
     }
 	//updater = CGL.updateContextRegister(nsContext, nsView); // gznote: not thread safe yet!
     GLContextShareSet.contextCreated(this);
+    return true;
   }    
 	
   protected synchronized boolean makeCurrent(Runnable initAction) throws GLException {
       boolean created = false;
       if (nsContext == 0) {
-        create();
+        if (!create()) {
+          return false;
+        }
         if (DEBUG) {
           System.err.println("!!! Created GL nsContext for " + getClass().getName());
         }

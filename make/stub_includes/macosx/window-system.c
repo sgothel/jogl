@@ -16,7 +16,8 @@ void* createContext(void* shareContext, void* nsView,
                     int accumBlueBits,
                     int accumAlphaBits,
                     int sampleBuffers,
-                    int numSamples);
+                    int numSamples,
+                    int* viewNotReady);
 Bool  makeCurrentContext(void* nsContext, void* nsView);
 Bool  clearCurrentContext(void* nsContext, void* nsView);
 Bool  deleteContext(void* nsContext, void* nsView);

@@ -106,7 +106,7 @@ class MacOSXDummyGLContext extends MacOSXGLContext
     throw new GLException("Should not call this");
   }
 
-  protected void create() {
+  protected boolean create() {
     throw new GLException("Should not call this");
   }
 	

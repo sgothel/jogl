@@ -153,6 +153,9 @@ public final class GLJPanel extends JPanel implements GLDrawable {
           heavyweight.display();
           pbuffer.display();
         } catch (GLException e) {
+          if (DEBUG) {
+            e.printStackTrace();
+          }
           // We consider any exception thrown during updating of the
           // heavyweight or pbuffer during the initialization phases
           // to be an indication that there was a problem
@@ -436,13 +439,16 @@ public final class GLJPanel extends JPanel implements GLDrawable {
         pbufferInitializationCompleted = false;
         if (firstTime) {
           toplevel.add(heavyweight);
-          toplevel.setSize(0, 0);
+          toplevel.setSize(1, 1);
         }
         EventQueue.invokeLater(new Runnable() {
             public void run() {
               try {
                 toplevel.setVisible(true);
               } catch (GLException e) {
+                if (DEBUG) {
+                  e.printStackTrace();
+                }
                 disableHardwareRendering();
               }
             }
