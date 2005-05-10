@@ -1013,11 +1013,9 @@
         <jar destfile="${jogl.dist.dir}/jogl-natives-solsparc.jar"
              basedir="${jogl.dist.dir}/jogl-solsparc"
              includes="libjogl.so" />
-        <!-- Note: Solaris/x86 elided for now as it requires Mesa to
-             be installed -->
-        <!-- jar destfile="${jogl.dist.dir}/jogl-natives-solx86.jar"
+        <jar destfile="${jogl.dist.dir}/jogl-natives-solx86.jar"
              basedir="${jogl.dist.dir}/jogl-solx86"
-             includes="libjogl.so" -->
+             includes="libjogl.so" />
 	<!-- Build a source archive as well -->
         <zip destfile="${jogl.dist.dir}/jogl-src.zip"
 	     basedir="../.."
