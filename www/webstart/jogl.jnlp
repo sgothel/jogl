@@ -23,6 +23,9 @@
     <resources os="SunOS" arch="sparc">
       <nativelib href = "jogl-natives-solsparc.jar" />
     </resources>
+    <resources os="SunOS" arch="x86">
+      <nativelib href = "jogl-natives-solx86.jar" />
+    </resources>
     <resources os="Linux">
       <nativelib href = "jogl-natives-linux.jar" />
     </resources>
