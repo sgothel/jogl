@@ -47,7 +47,6 @@ import net.java.games.jogl.*;
 import net.java.games.jogl.impl.*;
 
 public abstract class X11GLContext extends GLContext {
-  private static JAWT jawt;
   protected long display;
   protected long drawable;
   protected long visualID;
@@ -310,15 +309,7 @@ public abstract class X11GLContext extends GLContext {
   //
 
   protected JAWT getJAWT() {
-    if (jawt == null) {
-      JAWT j = new JAWT();
-      j.version(JAWTFactory.JAWT_VERSION_1_4);
-      if (!JAWTFactory.JAWT_GetAWT(j)) {
-        throw new RuntimeException("Unable to initialize JAWT");
-      }
-      jawt = j;
-    }
-    return jawt;
+    return X11GLContextFactory.getJAWT();
   }
 
   protected XVisualInfo chooseVisual() {
@@ -412,10 +403,10 @@ public abstract class X11GLContext extends GLContext {
   // These synchronization primitives prevent the AWT from making
   // requests from the X server asynchronously to this code.
   protected void lockAWT() {
-    getJAWT().Lock();
+    X11GLContextFactory.lockAWT();
   }
 
   protected void unlockAWT() {
-    getJAWT().Unlock();
+    X11GLContextFactory.unlockAWT();
   }
 }
