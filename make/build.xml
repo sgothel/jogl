@@ -176,7 +176,7 @@
             <include name="${stub.includes.dir}/x11/**" />
             <include name="${stub.includes.dir}/common/**" />
             <include name="*.cfg" />
-            <include name="*.java" />
+            <include name="gl*.java" />
             <include name="*.c" />
             <exclude name="cg-common.cfg" />
         </fileset>
@@ -191,6 +191,7 @@
         <fileset id="stub.includes.cg.dependencies.fileset" dir=".">
             <include name="${stub.includes.dir}/cg/**" />
             <include name="cg-common.cfg" />
+            <include name="cg-common-CustomJavaCode.java" />
         </fileset>
 
         <property name="java.includes.dir" value="${java.home.dir}/include" /> <!-- NOTE:  this MUST be relative for FileSet -->
