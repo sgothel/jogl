@@ -2822,8 +2822,10 @@ extern "C" {
 #ifndef GL_APPLE_vertex_array_range
 #define GL_VERTEX_ARRAY_RANGE_APPLE       0x851D
 #define GL_VERTEX_ARRAY_RANGE_LENGTH_APPLE 0x851E
-#define GL_VERTEX_ARRAY_STORAGE_HINT_APPLE 0x851F
+#define GL_MAX_VERTEX_ARRAY_RANGE_ELEMENT_APPLE 0x8520
 #define GL_VERTEX_ARRAY_RANGE_POINTER_APPLE 0x8521
+#define GL_VERTEX_ARRAY_STORAGE_HINT_APPLE 0x851F
+#define GL_STORAGE_PRIVATE_APPLE          0x85BD
 #define GL_STORAGE_CACHED_APPLE           0x85BE
 #define GL_STORAGE_SHARED_APPLE           0x85BF
 #endif
@@ -6572,6 +6574,89 @@ typedef void (APIENTRY * PFNGLDRAWBUFFERREGIONPROC) (GLuint region, GLint x, GLi
 typedef GLuint (APIENTRY * PFNGLBUFFERREGIONENABLEDPROC) (GLvoid);
 #endif
 
+/*
+ * Note: (kbr) imported these extensions from Apple's glext.h
+ */
+#ifndef GL_APPLE_texture_range
+#define GL_TEXTURE_RANGE_LENGTH_APPLE      0x85B7
+#define GL_TEXTURE_RANGE_POINTER_APPLE     0x85B8
+#define GL_TEXTURE_STORAGE_HINT_APPLE      0x85BC
+#define GL_TEXTURE_MINIMIZE_STORAGE_APPLE  0x85B6
+#endif
+#ifndef GL_APPLE_texture_range
+#define GL_APPLE_texture_range 1
+#ifdef GL_GLEXT_PROTOTYPES
+GLAPI void glTextureRangeAPPLE(GLenum target, GLsizei length, const GLvoid *pointer);
+GLAPI void glGetTexParameterPointervAPPLE(GLenum target, GLenum pname, GLvoid **params);
+#endif
+typedef void (APIENTRY * PFNGLTEXTURERANGEAPPLEPROC) (GLenum target, GLsizei length, const GLvoid *pointer);
+typedef void (APIENTRY * PFNGLGETTEXPARAMETERPOINTERVAPPLEPROC) (GLenum target, GLenum pname, GLvoid **params);
+#endif
+
+#ifndef GL_APPLE_float_pixels
+#define GL_HALF_APPLE                      0x140B
+#define GL_COLOR_FLOAT_APPLE               0x8A0F
+#define GL_RGBA_FLOAT32_APPLE              0x8814
+#define GL_RGB_FLOAT32_APPLE               0x8815
+#define GL_ALPHA_FLOAT32_APPLE             0x8816
+#define GL_INTENSITY_FLOAT32_APPLE         0x8817
+#define GL_LUMINANCE_FLOAT32_APPLE         0x8818
+#define GL_LUMINANCE_ALPHA_FLOAT32_APPLE   0x8819
+#define GL_RGBA_FLOAT16_APPLE              0x881A
+#define GL_RGB_FLOAT16_APPLE               0x881B
+#define GL_ALPHA_FLOAT16_APPLE             0x881C
+#define GL_INTENSITY_FLOAT16_APPLE         0x881D
+#define GL_LUMINANCE_FLOAT16_APPLE         0x881E
+#define GL_LUMINANCE_ALPHA_FLOAT16_APPLE   0x881F
+#endif
+
+#ifndef GL_APPLE_pixel_buffer
+#define GL_MIN_PBUFFER_VIEWPORT_DIMS_APPLE 0x8A10
+#endif
+
+#ifndef GL_APPLE_vertex_program_evaluators
+#define GL_VERTEX_ATTRIB_MAP1_APPLE                      0x8A00
+#define GL_VERTEX_ATTRIB_MAP2_APPLE                      0x8A01
+#define GL_VERTEX_ATTRIB_MAP1_SIZE_APPLE                 0x8A02
+#define GL_VERTEX_ATTRIB_MAP1_COEFF_APPLE                0x8A03
+#define GL_VERTEX_ATTRIB_MAP1_ORDER_APPLE                0x8A04
+#define GL_VERTEX_ATTRIB_MAP1_DOMAIN_APPLE               0x8A05
+#define GL_VERTEX_ATTRIB_MAP2_SIZE_APPLE                 0x8A06
+#define GL_VERTEX_ATTRIB_MAP2_COEFF_APPLE                0x8A07
+#define GL_VERTEX_ATTRIB_MAP2_ORDER_APPLE                0x8A08
+#define GL_VERTEX_ATTRIB_MAP2_DOMAIN_APPLE               0x8A09
+#endif
+#ifndef GL_APPLE_vertex_program_evaluators
+#define GL_APPLE_vertex_program_evaluators 1
+#ifdef GL_GLEXT_PROTOTYPES
+GLAPI void APIENTRY glEnableVertexAttribAPPLE(GLuint index, GLenum pname);
+GLAPI void APIENTRY glDisableVertexAttribAPPLE(GLuint index, GLenum pname);
+GLAPI GLboolean APIENTRY glIsVertexAttribEnabledAPPLE(GLuint index, GLenum pname);
+GLAPI void APIENTRY glMapVertexAttrib1dAPPLE(GLuint index, GLuint size, GLdouble u1, GLdouble u2, GLint stride, GLint order, const GLdouble *points);
+GLAPI void APIENTRY glMapVertexAttrib1fAPPLE(GLuint index, GLuint size, GLfloat u1, GLfloat u2, GLint stride, GLint order, const GLfloat *points);
+GLAPI void APIENTRY glMapVertexAttrib2dAPPLE(GLuint index, GLuint size, GLdouble u1, GLdouble u2, GLint ustride, GLint uorder, GLdouble v1, GLdouble v2, GLint vstride, GLint vorder, const GLdouble *points);
+GLAPI void APIENTRY glMapVertexAttrib2fAPPLE(GLuint index, GLuint size, GLfloat u1, GLfloat u2, GLint ustride, GLint uorder, GLfloat v1, GLfloat v2, GLint vstride, GLint vorder, const GLfloat *points);
+#endif
+typedef void (APIENTRY * PFNGLENABLEVERTEXATTRIBAPPLEPROC) (GLuint index, GLenum pname);
+typedef void (APIENTRY * PFNGLDISABLEVERTEXATTRIBAPPLEPROC) (GLuint index, GLenum pname);
+typedef GLboolean (APIENTRY * PFNGLISVERTEXATTRIBENABLEDAPPLEPROC) (GLuint index, GLenum pname);
+typedef void (APIENTRY * PFNGLMAPVERTEXATTRIB1DAPPLEPROC) (GLuint index, GLuint size, GLdouble u1, GLdouble u2, GLint stride, GLint order, const GLdouble *points);
+typedef void (APIENTRY * PFNGLMAPVERTEXATTRIB1FAPPLEPROC) (GLuint index, GLuint size, GLfloat u1, GLfloat u2, GLint stride, GLint order, const GLfloat *points);
+typedef void (APIENTRY * PFNGLMAPVERTEXATTRIB2DAPPLEPROC) (GLuint index, GLuint size, GLdouble u1, GLdouble u2, GLint ustride, GLint uorder, GLdouble v1, GLdouble v2, GLint vstride, GLint vorder, const GLdouble *points);
+typedef void (APIENTRY * PFNGLMAPVERTEXATTRIB2FAPPLEPROC) (GLuint index, GLuint size, GLfloat u1, GLfloat u2, GLint ustride, GLint uorder, GLfloat v1, GLfloat v2, GLint vstride, GLint vorder, const GLfloat *points);
+#endif
+
+#ifndef GL_APPLE_flush_render
+#define GL_APPLE_flush_render 1
+#ifdef GL_GLEXT_PROTOTYPES
+GLAPI void APIENTRY glFlushRenderAPPLE(void);
+GLAPI void APIENTRY glFinishRenderAPPLE(void);
+GLAPI void APIENTRY glSwapAPPLE(void);
+#endif
+typedef void (APIENTRY * PFNGLFLUSHRENDERAPPLEPROC) (void);
+typedef void (APIENTRY * PFNGLFINISHRENDERAPPLEPROC) (void);
+typedef void (APIENTRY * PFNGLSWAPAPPLEPROC) (void);
+#endif
 
 #ifdef __cplusplus
 }
