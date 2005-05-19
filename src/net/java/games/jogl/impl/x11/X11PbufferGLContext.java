@@ -60,10 +60,6 @@ public class X11PbufferGLContext extends X11GLContext {
   private static final int MAX_PFORMATS = 256;
   private static final int MAX_ATTRIBS  = 256;
 
-  // FIXME: figure out how to support render-to-texture and
-  // render-to-texture-rectangle (which appear to be supported, though
-  // it looks like floating-point buffers are not)
-
   public X11PbufferGLContext(GLCapabilities capabilities, int initialWidth, int initialHeight) {
     super(null, capabilities, null, null);
     this.initWidth  = initialWidth;
@@ -101,10 +97,6 @@ public class X11PbufferGLContext extends X11GLContext {
     
     if (parentContext == 0) {
       throw new GLException("Null parentContext");
-    }
-
-    if (capabilities.getOffscreenFloatingPointBuffers()) {
-      throw new GLException("Floating-point pbuffers not supported yet on X11");
     }
 
     if (capabilities.getOffscreenRenderToTexture()) {
@@ -164,6 +156,11 @@ public class X11PbufferGLContext extends X11GLContext {
       iattributes[niattribs++] = capabilities.getAccumGreenBits();
       iattributes[niattribs++] = GLX.GLX_ACCUM_BLUE_SIZE;
       iattributes[niattribs++] = capabilities.getAccumBlueBits();
+    }
+
+    if (capabilities.getOffscreenFloatingPointBuffers()) {
+      iattributes[niattribs++] = GLX.GLX_FLOAT_COMPONENTS_NV;
+      iattributes[niattribs++] = GL.GL_TRUE;
     }
 
     // FIXME: add FSAA support? Don't want to get into a situation
