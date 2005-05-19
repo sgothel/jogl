@@ -52,9 +52,9 @@ extern "C" {
 /*************************************************************/
 
 /* Header file version number */
-/* wglext.h last updated 2004/07/26 */
+/* wglext.h last updated 2005/01/07 */
 /* Current version at http://oss.sgi.com/projects/ogl-sample/registry/ */
-#define WGL_WGLEXT_VERSION 5
+#define WGL_WGLEXT_VERSION 6
 
 #ifndef WGL_ARB_buffer_region
 #define WGL_FRONT_COLOR_BUFFER_BIT_ARB 0x00000001
@@ -173,6 +173,10 @@ extern "C" {
 #define WGL_AUX7_ARB                   0x208E
 #define WGL_AUX8_ARB                   0x208F
 #define WGL_AUX9_ARB                   0x2090
+#endif
+
+#ifndef WGL_ARB_pixel_format_float
+#define WGL_TYPE_RGBA_FLOAT_ARB        0x21A0
 #endif
 
 #ifndef WGL_EXT_make_current_read
@@ -405,6 +409,10 @@ typedef BOOL (WINAPI * PFNWGLRELEASETEXIMAGEARBPROC) (HPBUFFERARB hPbuffer, int 
 typedef BOOL (WINAPI * PFNWGLSETPBUFFERATTRIBARBPROC) (HPBUFFERARB hPbuffer, const int *piAttribList);
 #endif
 
+#ifndef WGL_ARB_pixel_format_float
+#define WGL_ARB_pixel_format_float 1
+#endif
+
 #ifndef WGL_EXT_display_color_table
 #define WGL_EXT_display_color_table 1
 #ifdef WGL_WGLEXT_PROTOTYPES
@@ -617,6 +625,9 @@ typedef BOOL (WINAPI * PFNWGLQUERYFRAMETRACKINGI3DPROC) (DWORD *pFrameCount, DWO
 #define WGL_ATI_pixel_format_float 1
 #endif
 
+#ifndef WGL_NV_float_buffer
+#define WGL_NV_float_buffer 1
+#endif
 
 /*
  * -----------------------------------------------------------
@@ -625,10 +636,6 @@ typedef BOOL (WINAPI * PFNWGLQUERYFRAMETRACKINGI3DPROC) (DWORD *pFrameCount, DWO
  * http://oss.sgi.com/projects/ogl-sample/registry/index.html
  * -----------------------------------------------------------
  */
-
-#ifndef WGL_NV_float_buffer
-#define WGL_NV_float_buffer 1
-#endif
 
 #ifndef WGL_NV_render_texture_rectangle
 #define WGL_NV_render_texture_rectangle 1
