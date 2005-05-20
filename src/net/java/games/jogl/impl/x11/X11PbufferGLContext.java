@@ -159,6 +159,9 @@ public class X11PbufferGLContext extends X11GLContext {
     }
 
     if (capabilities.getOffscreenFloatingPointBuffers()) {
+      if (!gl.isExtensionAvailable("GLX_NV_float_buffer")) {
+        throw new GLException("Floating-point pbuffers on X11 currently require NVidia hardware");
+      }
       iattributes[niattribs++] = GLX.GLX_FLOAT_COMPONENTS_NV;
       iattributes[niattribs++] = GL.GL_TRUE;
     }
@@ -327,6 +330,11 @@ public class X11PbufferGLContext extends X11GLContext {
 
   public void swapBuffers() throws GLException {
     // FIXME: do we need to do anything if the pbuffer is double-buffered?
+  }
+
+  public int getFloatingPointMode() {
+    // Floating-point pbuffers currently require NVidia hardware on X11
+    return GLPbuffer.NV_FLOAT;
   }
 
   private int queryFBConfig(long display, GLXFBConfig fbConfig, int attrib) {

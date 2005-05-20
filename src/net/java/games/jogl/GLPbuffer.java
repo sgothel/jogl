@@ -46,6 +46,15 @@ package net.java.games.jogl;
     may be removed in a future release. */
 
 public interface GLPbuffer extends GLDrawable {
+  /** Indicates the GL_APPLE_float extension is being used for this pbuffer. */
+  public static final int APPLE_FLOAT = 1;
+
+  /** Indicates the GL_ATI_texture_float extension is being used for this pbuffer. */
+  public static final int ATI_FLOAT = 2;
+
+  /** Indicates the GL_NV_float_buffer extension is being used for this pbuffer. */
+  public static final int NV_FLOAT = 3;
+
   /** Binds this pbuffer to its internal texture target. Only valid to
       call if offscreen render-to-texture has been specified in the
       GLCapabilities for this GLPbuffer. If the
@@ -68,4 +77,13 @@ public interface GLPbuffer extends GLDrawable {
       is not valid to call display() or any other routines on this
       pbuffer after it has been destroyed. */
   public void destroy();
+
+  /** Indicates which vendor's extension is being used to support
+      floating point channels in this pbuffer if that capability was
+      requested in the GLCapabilities during pbuffer creation. Returns
+      one of NV_FLOAT, ATI_FLOAT or APPLE_FLOAT, or throws GLException
+      if floating-point channels were not requested for this pbuffer.
+      This function may only be called once the init method for this
+      pbuffer's GLEventListener has been called. */
+  public int getFloatingPointMode();
 }

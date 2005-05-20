@@ -153,6 +153,10 @@ public class MacOSXPbufferGLContext extends MacOSXGLContext {
     // FIXME: do we need to do anything if the pbuffer is double-buffered?
   }
 
+  public int getFloatingPointMode() {
+    return GLPbuffer.APPLE_FLOAT;
+  }
+
   private int getNextPowerOf2(int number) {
     if (((number-1) & number) == 0) {
       //ex: 8 -> 0b1000; 8-1=7 -> 0b0111; 0b1000&0b0111 == 0
