@@ -27,7 +27,7 @@ void  updateContext(void* nsContext, void* nsView);
 void* updateContextRegister(void* nsContext, void* nsView);
 void  updateContextUnregister(void* nsContext, void* nsView, void* updater);
 
-void* createPBuffer(int renderTarget, int width, int height);
+void* createPBuffer(int renderTarget, int internalFormat, int width, int height);
 Bool destroyPBuffer(void* nsContext, void* pBuffer);
 void setContextPBuffer(void* nsContext, void* pBuffer);
 void setContextTextureImageToPBuffer(void* nsContext, void* pBuffer, int colorBuffer);

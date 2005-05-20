@@ -64,8 +64,20 @@ public class MacOSXPbufferGLContext extends MacOSXGLContext {
       height = getNextPowerOf2(initHeight);
       renderTarget = GL.GL_TEXTURE_2D;
     }
+
+    int internalFormat = GL.GL_RGBA;
+    if (capabilities.getOffscreenFloatingPointBuffers()) {
+      if (!gl.isExtensionAvailable("GL_APPLE_float_pixels")) {
+	throw new GLException("Floating-point support (GL_APPLE_float_pixels) not available");
+      }
+      switch (capabilities.getRedBits()) {
+        case 16: internalFormat = GL.GL_RGBA_FLOAT16_APPLE; break;
+        case 32: internalFormat = GL.GL_RGBA_FLOAT32_APPLE; break;
+        default: throw new GLException("Invalid floating-point bit depth (only 16 and 32 supported)");
+      }
+    }
 		
-    pBuffer = CGL.createPBuffer(renderTarget, width, height);
+    pBuffer = CGL.createPBuffer(renderTarget, internalFormat, width, height);
     if (pBuffer == 0) {
       throw new GLException("pbuffer creation error: CGL.createPBuffer() failed");
     }

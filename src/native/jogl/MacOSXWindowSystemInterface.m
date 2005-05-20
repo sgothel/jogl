@@ -161,11 +161,11 @@ void updateContextUnregister(void* context, void* view, void* updater)
 	[contextUpdater release];
 }
 
-void* createPBuffer(int renderTarget, int width, int height)
+void* createPBuffer(int renderTarget, int internalFormat, int width, int height)
 {
-  //  fprintf(stderr, "createPBuffer renderTarget=%d width=%d height=%d\n", renderTarget, width, height);
+  //  fprintf(stderr, "createPBuffer renderTarget=%d internalFormat=%d width=%d height=%d\n", renderTarget, internalFormat, width, height);
 
-  NSOpenGLPixelBuffer* pBuffer = [[NSOpenGLPixelBuffer alloc] initWithTextureTarget:renderTarget textureInternalFormat:GL_RGBA textureMaxMipMapLevel:0 pixelsWide:width pixelsHigh:height];
+  NSOpenGLPixelBuffer* pBuffer = [[NSOpenGLPixelBuffer alloc] initWithTextureTarget:renderTarget textureInternalFormat:internalFormat textureMaxMipMapLevel:0 pixelsWide:width pixelsHigh:height];
 
   return pBuffer;
 }
