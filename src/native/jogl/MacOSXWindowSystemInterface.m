@@ -40,14 +40,7 @@ void* createContext(void* shareContext, void* view,
 	
         if (nsView != NULL)
         {
-            NSRect frame = [nsView frame];
-            if ((frame.size.width == 0) || (frame.size.height == 0))
-            {
-                fprintf(stderr, "Error: view width or height == 0at \"%s:%s:%d\"\n", __FILE__, __FUNCTION__, __LINE__);
-                // the view is not ready yet
-                return NULL;
-            }
-            else if ([nsView lockFocusIfCanDraw] == NO)
+	    if ([nsView lockFocusIfCanDraw] == NO)
             {
                 if (viewNotReady != NULL) {
                     *viewNotReady = 1;
