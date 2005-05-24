@@ -64,7 +64,18 @@ import net.java.games.jogl.impl.*;
     use hardware-accelerated rendering via pbuffers and falls back on
     to software rendering if problems occur. This class can not be
     instantiated directly; use {@link GLDrawableFactory} to construct
-    them. */
+    them. <P>
+
+    Note that because this component attempts to use pbuffers for
+    rendering, and because pbuffers can not be resized, somewhat
+    surprising behavior may occur during resize operations; the {@link
+    GLEventListener#init} method may be called multiple times as the
+    pbuffer is resized to be able to cover the size of the GLJPanel.
+    This behavior is correct, as the textures and display lists for
+    the GLJPanel will have been lost during the resize operation. The
+    application should attempt to make its GLEventListener.init()
+    methods as side-effect-free as possible.
+*/
 
 public final class GLJPanel extends JPanel implements GLDrawable {
   protected static final boolean DEBUG = Debug.debug("GLJPanel");

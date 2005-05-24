@@ -48,8 +48,12 @@ import java.util.EventListener;
 
 public interface GLEventListener extends EventListener {
   /** Called by the drawable immediately after the OpenGL context is
-      initialized for the first time. Can be used to perform one-time
-      OpenGL initialization such as setup of lights and display lists.
+      initialized. Can be used to perform one-time OpenGL
+      initialization such as setup of lights and display lists.  Note
+      that this method may be called more than once if the underlying
+      OpenGL context for the GLDrawable is destroyed and recreated,
+      for example if a GLCanvas is removed from the widget hierarchy
+      and later added again.
   */
   public void init(GLDrawable drawable);
   
