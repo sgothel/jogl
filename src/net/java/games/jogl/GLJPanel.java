@@ -230,7 +230,13 @@ public final class GLJPanel extends JPanel implements GLDrawable {
           if (!hardwareAccelerationDisabled) {
             if (fwidth > pbufferWidth || fheight > pbufferHeight) {
               // Must destroy and recreate pbuffer to fit
-              pbuffer.destroy();
+              if (pbuffer != null) {
+                pbuffer.destroy();
+              }
+              if (toplevel != null) {
+                toplevel.dispose();
+              }
+              isInitialized = false;
               if (fwidth > pbufferWidth) {
                 pbufferWidth = getNextPowerOf2(fwidth);
               }

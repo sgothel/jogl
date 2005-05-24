@@ -177,6 +177,9 @@ public class WindowsPbufferGLContext extends WindowsGLContext {
         ati = true;
         floatMode = GLPbuffer.ATI_FLOAT;
       }
+      if (DEBUG) {
+        System.err.println("Using " + (ati ? "ATI" : "NVidia") + " floating-point extension");
+      }
     }
 
     if (useFloat && ati) {
