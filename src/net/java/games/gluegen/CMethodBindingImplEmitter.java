@@ -83,6 +83,14 @@ public class CMethodBindingImplEmitter extends CMethodBindingEmitter
       Class c = type.getJavaClass();
       if (c != null) {
         jniMangle(c, buf);
+      // Add mangling for buffer offset arguments
+      if(type.isNIOBuffer()) { 
+             jniMangle(Integer.TYPE, buf);
+       } else if (type.isNIOBufferArray())   {
+                       int[] intArrayType = new int[0];
+                       c = intArrayType.getClass();
+                       jniMangle(c , buf);
+       }
       } else {
         // FIXME: add support for char* -> String conversion
         throw new RuntimeException("Unknown kind of JavaType: name="+type.getName());

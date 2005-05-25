@@ -303,6 +303,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
 
   protected int emitArguments(PrintWriter writer)
   {
+    int numBufferOffsetArgs = 0, numBufferOffsetArrayArgs = 0;
     writer.print("JNIEnv *env, ");
     int numEmitted = 1; // initially just the JNIEnv
     if (isJavaMethodStatic && !binding.hasContainingType())
@@ -320,6 +321,9 @@ public class CMethodBindingEmitter extends FunctionEmitter
     {
       // "this" argument always comes down in argument 0 as direct buffer
       writer.print(", jobject " + JavaMethodBindingEmitter.javaThisArgumentName());
+      numBufferOffsetArgs++;
+      // add Buffer offset argument for Buffer types
+      writer.print(", jint " + byteOffsetConversionArgName(numBufferOffsetArgs));
     }
     for (int i = 0; i < binding.getNumArguments(); i++) {
       JavaType javaArgType = binding.getJavaArgumentType(i);
@@ -338,8 +342,18 @@ public class CMethodBindingEmitter extends FunctionEmitter
       writer.print(" ");
       writer.print(binding.getArgumentName(i));
       ++numEmitted;
+      // Add Buffer offset argument immediately after any Buffer arguments
+      if(javaArgType.isNIOBuffer() || javaArgType.isNIOBufferArray()) {
+             if(!javaArgType.isArray()) {
+                 numBufferOffsetArgs++;
+                 writer.print(", jint " + byteOffsetConversionArgName(numBufferOffsetArgs));
+             } else {
+                 numBufferOffsetArrayArgs++;
+                 writer.print(", jintArray " + 
+                                byteOffsetArrayConversionArgName(numBufferOffsetArrayArgs));
+           }
+       } 
     }
-
     return numEmitted;
   }
 
@@ -393,6 +407,10 @@ public class CMethodBindingEmitter extends FunctionEmitter
           writer.println("  jobject _tmpObj;");
           writer.println("  int _copyIndex;");
           writer.println("  jsize _tmpArrayLen;");
+
+          // Pointer to the data in the Buffer, taking the offset into account 
+          writer.println("   GLint * _offsetHandle = NULL;");
+
           emittedDataCopyTemps = true;
         }
       } else if (type.isString()) {
@@ -468,16 +486,20 @@ public class CMethodBindingEmitter extends FunctionEmitter
   protected void emitBodyVariablePreCallSetup(PrintWriter writer,
                                               boolean emittingPrimitiveArrayCritical)
   {
+    int byteOffsetCounter=0, byteOffsetArrayCounter=0;
+
     if (!emittingPrimitiveArrayCritical) {
       // Convert all Buffers to pointers first so we don't have to
       // call ReleasePrimitiveArrayCritical for any arrays if any
       // incoming buffers aren't direct
       if (binding.hasContainingType()) {
+        byteOffsetCounter++;
         emitPointerConversion(writer, binding,
                               binding.getContainingType(),
                               binding.getContainingCType(),
                               JavaMethodBindingEmitter.javaThisArgumentName(),
-                              CMethodBindingEmitter.cThisArgumentName());
+                              CMethodBindingEmitter.cThisArgumentName(),
+                              byteOffsetConversionArgName(byteOffsetCounter));
       }
     
       for (int i = 0; i < binding.getNumArguments(); i++) {
@@ -486,10 +508,12 @@ public class CMethodBindingEmitter extends FunctionEmitter
           continue;
         }
         if (type.isNIOBuffer()) {
+          byteOffsetCounter++;
           emitPointerConversion(writer, binding, type,
                                 binding.getCArgumentType(i),
                                 binding.getArgumentName(i),
-                                pointerConversionArgumentName(i));
+                                pointerConversionArgumentName(i),
+                                byteOffsetConversionArgName(byteOffsetCounter));
         }
       }
     }
@@ -505,6 +529,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
       if (javaArgType.isArray()) {
         boolean needsDataCopy = javaArgTypeNeedsDataCopy(javaArgType);
         Class subArrayElementJavaType = javaArgType.getJavaClass().getComponentType();
+
 
         // We only defer the emission of GetPrimitiveArrayCritical
         // calls that won't be matched up until after the function
@@ -592,6 +617,18 @@ public class CMethodBindingEmitter extends FunctionEmitter
             arrayLenName,
             "Could not allocate buffer for copying data in argument \\\""+binding.getArgumentName(i)+"\\\"");
 
+         // Get the handle for the byte offset array sent down for Buffers
+         // But avoid doing this if the Array is a string array, the one exception since
+         // that type is never converted to a Buffer according to JOGL semantics (for instance, 
+         // glShaderSourceARB Java signature is String[], not Buffer)
+           byteOffsetArrayCounter++;
+           if(subArrayElementJavaType != java.lang.String.class)
+            writer.println
+            ("     _offsetHandle = (GLint *) (*env)->GetPrimitiveArrayCritical(env, " +
+             byteOffsetArrayConversionArgName(byteOffsetArrayCounter) +
+             ", NULL);");
+
+
           // process each element in the array
           writer.println("    for (_copyIndex = 0; _copyIndex < "+arrayLenName+"; ++_copyIndex) {");
 
@@ -609,14 +646,17 @@ public class CMethodBindingEmitter extends FunctionEmitter
             writer.print("  ");
             emitGetStringUTFChars(writer,
                                   "(jstring) _tmpObj",
-                                  convName+"_copy[_copyIndex]");
+                                  "(const char*)"+convName+"_copy[_copyIndex]");
           }
           else if (isNIOBufferClass(subArrayElementJavaType))
           {
+            /* We always assume an integer "byte offset" argument follows any Buffer
+               in the method binding. */
             emitGetDirectBufferAddress(writer,
                                        "_tmpObj",
                                        cArgElementType.getName(),
-                                       convName + "_copy[_copyIndex]");
+                                       convName + "_copy[_copyIndex]",
+                                       "_offsetHandle[_copyIndex]");
           }
           else
           {
@@ -640,6 +680,13 @@ public class CMethodBindingEmitter extends FunctionEmitter
  
           }
           writer.println("    }");
+
+           if(subArrayElementJavaType != java.lang.String.class) {
+                writer.println
+                ("   (*env)->ReleasePrimitiveArrayCritical(env, " + 
+                 byteOffsetArrayConversionArgName(byteOffsetArrayCounter) + 
+                 ", _offsetHandle, JNI_ABORT);");
+          }
 
           writer.println();
         } // end of data copy
@@ -781,7 +828,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
           }
 
           // free the main array
-          writer.print("    free((void*) ");
+          writer.print("    free(");
           writer.print(convName+"_copy");
           writer.println(");");
         } // end of cleaning up copied data
@@ -1019,6 +1066,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
 
   protected String jniMangle(MethodBinding binding) {
     StringBuffer buf = new StringBuffer();
+    int numBufferOffsetArgs = 0;
     buf.append(jniMangle(binding.getName()));
     buf.append("__");
     for (int i = 0; i < binding.getNumArguments(); i++) {
@@ -1026,11 +1074,28 @@ public class CMethodBindingEmitter extends FunctionEmitter
       Class c = type.getJavaClass();
       if (c != null) {
         jniMangle(c, buf);
+         // If Buffer offset arguments were added, we need to mangle the JNI for the 
+         // extra arguments
+         if(type == JavaType.forNIOBufferClass() ||
+             type == JavaType.forNIOByteBufferClass() ||
+             type == JavaType.forNIOShortBufferClass() ||
+             type == JavaType.forNIOIntBufferClass() ||
+             type == JavaType.forNIOLongBufferClass() ||
+             type == JavaType.forNIOFloatBufferClass() ||
+             type == JavaType.forNIODoubleBufferClass())   {
+                 jniMangle(Integer.TYPE, buf);
+         } else if (type.isNIOByteBufferArray() || 
+                    type.isNIOBufferArray())   {
+                       int[] intArrayType = new int[0];
+                       c = intArrayType.getClass(); 
+                       jniMangle(c , buf);
+         }
       } else {
         // FIXME: add support for char* -> String conversion
         throw new RuntimeException("Unknown kind of JavaType: name="+type.getName());
       }
     }
+
     return buf.toString();
   }
 
@@ -1138,22 +1203,53 @@ public class CMethodBindingEmitter extends FunctionEmitter
     writer.println("    }");
   }      
 
+
+
   private void emitGetDirectBufferAddress(PrintWriter writer,
                                           String sourceVarName,
                                           String receivingVarTypeString,
-                                          String receivingVarName) {
+                                          String receivingVarName,
+                                          String byteOffsetVarName) {
     if (EMIT_NULL_CHECKS) {
       writer.print("    if (");
       writer.print(sourceVarName);
       writer.println(" != NULL) {");
     }
-    writer.print("      ");
-    writer.print(receivingVarName);
-    writer.print(" = (");
-    writer.print(receivingVarTypeString);
-    writer.print(") (*env)->GetDirectBufferAddress(env, ");
-    writer.print(sourceVarName);
-    writer.println(");");
+   /*  Pre Buffer Offset code: In the case where there is NOT an integer offset 
+       in bytes for the direct buffer, we used to use:
+          (type*) (*env)->GetDirectBufferAddress(env, buf); 
+       generated as follows:
+    if(byteOffsetVarName == null) {
+       writer.print("      ");
+       writer.print(receivingVarName);
+       writer.print(" = (");
+       writer.print(receivingVarTypeString);
+       writer.print(") (*env)->GetDirectBufferAddress(env, ");
+       writer.print(sourceVarName);
+       writer.println(");");
+  */
+
+   /* In the case (now always the case) where there is an integer offset in bytes for 
+      the direct buffer, we want to use:
+          _ptrX = (type*) (*env)->GetDirectBufferAddress(env, buf); 
+          _ptrX = (type*) ((char*)buf + __byteOffset);
+      Note that __byteOffset is an int */ 
+       writer.print("      ");
+       writer.print(receivingVarName);
+       writer.print(" = (");
+       writer.print(receivingVarTypeString);
+
+       writer.print(") (*env)->GetDirectBufferAddress(env, ");
+       writer.print(sourceVarName);
+       writer.println(");");
+
+       writer.print("      ");
+       writer.print(receivingVarName);
+       writer.print(" = (");
+       writer.print(receivingVarTypeString);
+       writer.print(") ((char*)" + receivingVarName + " + ");
+       writer.println(byteOffsetVarName + ");");
+
     if (EMIT_NULL_CHECKS) {
       writer.println("    } else {");
       writer.print("      ");
@@ -1270,11 +1366,13 @@ public class CMethodBindingEmitter extends FunctionEmitter
                                      JavaType type,
                                      Type cType,
                                      String incomingArgumentName,
-                                     String cVariableName) {
+                                     String cVariableName,
+                                     String byteOffsetVarName) {
     emitGetDirectBufferAddress(writer,
                                incomingArgumentName,
                                cType.getName(),
-                               cVariableName);
+                               cVariableName, 
+                               byteOffsetVarName);
 
     /*
     if (EMIT_NULL_CHECKS) {
@@ -1300,6 +1398,15 @@ public class CMethodBindingEmitter extends FunctionEmitter
   protected String pointerConversionArgumentName(int i) {
     return "_ptr" + i;
   }
+
+  protected String byteOffsetConversionArgName(int i) {
+    return "__byteOffset" + i;
+  }
+
+  protected String byteOffsetArrayConversionArgName(int i) {
+    return "__byteOffsetArray" + i;
+  }
+
 
   /**
    * Class that emits a generic comment for CMethodBindingEmitters; the comment

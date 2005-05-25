@@ -119,7 +119,7 @@ public class JavaConfiguration {
   private Set/*<Pattern>*/ ignores = new HashSet();
   private Set/*<Pattern>*/ ignoreNots = new HashSet();
   private Set/*<Pattern>*/ unimplemented = new HashSet();
-  private Set/*<String>*/ nioOnly = new HashSet();
+  private Set/*<String>*/ nioDirectOnly = new HashSet();
   /** See {@link #nioMode} */
   public static final int NIO_MODE_VOID_ONLY = 1;
   /** See {@link #nioMode} */
@@ -363,8 +363,8 @@ public class JavaConfiguration {
   /** Returns true if the given function should only create a java.nio
       variant, and no array variants, for <code>void*</code> and other
       C primitive pointers. */
-  public boolean nioOnly(String functionName) {
-    return nioOnly.contains(functionName);
+  public boolean nioDirectOnly(String functionName) {
+    return nioDirectOnly.contains(functionName);
   }
 
   /** Returns true if the user requested that the given function
@@ -674,8 +674,8 @@ public class JavaConfiguration {
       readClassJavadoc(tok, filename, lineNo);
       // Warning: make sure delimiters are reset at the top of this loop
       // because readClassJavadoc changes them.
-    } else if (cmd.equalsIgnoreCase("NioOnly")) {
-      nioOnly.add(readString("NioOnly", tok, filename, lineNo));
+    } else if (cmd.equalsIgnoreCase("NioDirectOnly")) {
+      nioDirectOnly.add(readString("NioDirectOnly", tok, filename, lineNo));
     } else if (cmd.equalsIgnoreCase("NoNio")) {
       noNio.add(readString("NoNio", tok, filename, lineNo));
     } else if (cmd.equalsIgnoreCase("ForcedNio")) {
@@ -909,7 +909,7 @@ public class JavaConfiguration {
    * other types (i.e., <code>int*</code>) will have java.nio variants
    * generated for them (i.e., <code>IntBuffer</code> as opposed to
    * merely <code>int[]</code>). This default mode can be overridden
-   * with the NioOnly and NoNio directives. The default for this mode
+   * with the NioDirectOnly and NoNio directives. The default for this mode
    * is currently VOID_ONLY.
    */
   protected void readNioMode(StringTokenizer tok, String filename, int lineNo) {

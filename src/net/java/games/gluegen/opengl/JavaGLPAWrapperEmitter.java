@@ -82,11 +82,15 @@ public class JavaGLPAWrapperEmitter extends JavaMethodBindingImplEmitter
         }       
         protected int emitArguments(PrintWriter writer)
         {
+          // following is set to true so that Buffer offset parameters are generated
+          // in parent class method, when appropriate
+          prefixedMethod = true;
           int numEmitted = super.emitArguments(writer);
           if (numEmitted > 0)
           {
             writer.print(", ");
           }
+
           writer.print("long glProcAddress");
           ++numEmitted;
           

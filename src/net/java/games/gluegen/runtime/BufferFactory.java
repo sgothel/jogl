@@ -40,6 +40,7 @@
 package net.java.games.gluegen.runtime;
 
 import java.nio.*;
+import net.java.games.jogl.util.BufferUtils;
 
 public class BufferFactory {
   public static ByteBuffer newDirectByteBuffer(int size) {
@@ -72,4 +73,86 @@ public class BufferFactory {
     }
     throw new RuntimeException("Unknown buffer type " + buf.getClass().getName());
   }
+
+
+  /** Helper routine to get the Buffer byte offset by taking into
+      account the Buffer position and the underlying type.  This is
+      the total offset for Direct Buffers.  */
+
+  public static int getPositionByteOffset(Buffer buf) {
+      if(buf == null) {
+        return 0;
+      }
+      if(buf instanceof ByteBuffer) {
+          return (buf.position());
+      } else if (buf instanceof FloatBuffer) {
+          return (buf.position() * BufferUtils.SIZEOF_FLOAT);
+      } else if (buf instanceof IntBuffer) {
+          return (buf.position() * BufferUtils.SIZEOF_INT);
+      } else if (buf instanceof ShortBuffer) {
+          return (buf.position() * BufferUtils.SIZEOF_SHORT);
+      } else if (buf instanceof DoubleBuffer) {
+          return (buf.position() * BufferUtils.SIZEOF_DOUBLE);
+      } else if (buf instanceof LongBuffer) {
+          return (buf.position() * BufferUtils.SIZEOF_LONG);
+      } 
+
+      throw new RuntimeException("Disallowed array backing store type in buffer "
+                            + buf.getClass().getName());
+  }
+
+
+  /** Helper routine to return the array backing store reference from
+      a Buffer object.  */
+
+   public static Object getArray(Buffer buf) {
+      if (buf == null) {
+          return null;
+      }
+      if(buf instanceof ByteBuffer) {
+          return ((ByteBuffer) buf).array();
+      } else if (buf instanceof FloatBuffer) {
+          return ((FloatBuffer) buf).array();
+      } else if (buf instanceof IntBuffer) {
+          return ((IntBuffer) buf).array();
+      } else if (buf instanceof ShortBuffer) { 
+          return ((ShortBuffer) buf).array();
+      } else if (buf instanceof DoubleBuffer) {
+          return ((DoubleBuffer) buf).array();
+      } else if (buf instanceof LongBuffer) {
+          return ((LongBuffer) buf).array();
+      }
+
+      throw new RuntimeException("Disallowed array backing store type in buffer "
+                            + buf.getClass().getName());
+   } 
+
+
+  /** Helper routine to get the full byte offset from the beginning of
+      the array that is the storage for the indirect Buffer
+      object.  The array offset also includes the position offset 
+      within the buffer, in addition to any array offset. */
+
+  public static int getTotalByteOffset(Buffer buf) {
+    if(buf == null) {
+      return 0;
+    }
+    int pos = buf.position();
+    if(buf instanceof ByteBuffer) {
+      return (((ByteBuffer)buf).arrayOffset() + pos);
+    } else if(buf instanceof FloatBuffer) {
+      return (BufferUtils.SIZEOF_FLOAT*(((FloatBuffer)buf).arrayOffset() + pos));
+    } else if(buf instanceof IntBuffer) {
+      return (BufferUtils.SIZEOF_INT*(((IntBuffer)buf).arrayOffset() + pos));
+    } else if(buf instanceof ShortBuffer) {
+      return (BufferUtils.SIZEOF_SHORT*(((ShortBuffer)buf).arrayOffset() + pos));
+    } else if(buf instanceof DoubleBuffer) {
+      return (BufferUtils.SIZEOF_DOUBLE*(((DoubleBuffer)buf).arrayOffset() + pos));
+    } else if(buf instanceof LongBuffer) {
+      return (BufferUtils.SIZEOF_LONG*(((LongBuffer)buf).arrayOffset() + pos));
+    } 
+
+    throw new RuntimeException("Unknown buffer type " + buf.getClass().getName());
+  }
+
 }

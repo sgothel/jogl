@@ -48,6 +48,8 @@ public class BufferUtils {
   public static final int SIZEOF_DOUBLE = 8;
   public static final int SIZEOF_FLOAT = 4;
   public static final int SIZEOF_INT = 4;
+  public static final int SIZEOF_LONG = 8;
+  public static final int SIZEOF_SHORT = 2;
 
   public static DoubleBuffer newDoubleBuffer(int numElements) {
     ByteBuffer bb = newByteBuffer(numElements * SIZEOF_DOUBLE);

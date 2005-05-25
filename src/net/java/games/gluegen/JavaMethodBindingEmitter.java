@@ -65,8 +65,10 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
   // Exception type raised in the generated code if runtime checks fail
   private String runtimeExceptionType;
 
-  private MethodBinding binding;
-  private boolean forImplementingMethodCall;
+  protected MethodBinding binding;
+  protected boolean forImplementingMethodCall;
+
+  protected boolean prefixedMethod = false;
 
   // A non-null value indicates that rather than returning a compound
   // type accessor we are returning an array of such accessors; this
@@ -149,13 +151,16 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
   {
     boolean needComma = false;
     int numEmitted = 0;
+    int numBufferOffsetArgs = 0, numBufferOffsetArrayArgs = 0;
 
-    if (forImplementingMethodCall && binding.hasContainingType()) {
+    if (forImplementingMethodCall  && binding.hasContainingType()) {
       // Always emit outgoing "this" argument
       writer.print("java.nio.Buffer ");
       writer.print(javaThisArgumentName());      
       ++numEmitted;
       needComma = true;
+      numBufferOffsetArgs++;
+      writer.print(", int " + byteOffsetConversionArgName(numBufferOffsetArgs));
     }
 
     for (int i = 0; i < binding.getNumArguments(); i++) {
@@ -185,14 +190,37 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
       writer.print(binding.getArgumentName(i));
       ++numEmitted;
       needComma = true;
+      // Add Buffer offset argument to store the buffer offset
+      if((forImplementingMethodCall || prefixedMethod) &&
+         (type.isNIOBuffer()  || type.isNIOBufferArray())) {
+              if(!type.isArray()) {
+                   numBufferOffsetArgs++;
+                   writer.print(", int " + byteOffsetConversionArgName(numBufferOffsetArgs));
+              } else {
+                   numBufferOffsetArrayArgs++;
+                   writer.print(", int[] " + 
+                                 byteOffsetArrayConversionArgName(numBufferOffsetArrayArgs));
+              }
+      }
     }
     return numEmitted;
   }
+
 
   protected String getImplMethodName()
   {
     return binding.getName() + "0";
   }
+
+
+  protected String byteOffsetConversionArgName(int i) {
+    return "__byteOffset" + i;
+  }
+                                                                                                            
+  protected String byteOffsetArrayConversionArgName(int i) {
+    return "__byteOffsetArray" + i;
+  }
+                                                                                                            
 
   protected void emitBody(PrintWriter writer)
   {

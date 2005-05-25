@@ -1256,7 +1256,7 @@ public class JavaEmitter implements GlueEmitter {
           MethodBinding variant = null;
 
           // Non-NIO variants for non-void C primitive pointer types 
-          if (!cfg.nioOnly(mb.getCSymbol().getName()) && !t.isCVoidPointerType() 
+          if (!cfg.nioDirectOnly(mb.getCSymbol().getName()) && !t.isCVoidPointerType() 
                              && !cfg.isPrimArrayExpModeNoPtrs()) {
             if (t.isCCharPointerType()) {
               variant = mb.createCPrimitivePointerVariant(j, javaType(ArrayTypes.byteArrayClass));
@@ -1286,7 +1286,7 @@ public class JavaEmitter implements GlueEmitter {
 
 
           // Non-NIO variants for void* C primitive pointer type
-          if (!cfg.nioOnly(mb.getCSymbol().getName()) && t.isCVoidPointerType()  
+          if (!cfg.nioDirectOnly(mb.getCSymbol().getName()) && t.isCVoidPointerType()  
                             && cfg.isPrimArrayExpModeAllPtrs()) {
             if (cfg.voidPointerExpansionToBoolean()) {
               variant = mb.createCPrimitivePointerVariant(j, javaType(ArrayTypes.booleanArrayClass));
@@ -1332,8 +1332,10 @@ public class JavaEmitter implements GlueEmitter {
           }
 
           // NIO variants for non-void* C primitive pointer types
-          if ((cfg.nioMode() == JavaConfiguration.NIO_MODE_ALL_POINTERS && !cfg.noNio(mb.getCSymbol().getName())) ||
-              (cfg.nioMode() == JavaConfiguration.NIO_MODE_VOID_ONLY    && cfg.forcedNio(mb.getCSymbol().getName()))) {
+          if ((cfg.nioMode() == JavaConfiguration.NIO_MODE_ALL_POINTERS && 
+                                    !cfg.noNio(mb.getCSymbol().getName())) ||
+              (cfg.nioMode() == JavaConfiguration.NIO_MODE_VOID_ONLY    && 
+                                    cfg.forcedNio(mb.getCSymbol().getName()))) {
             if (t.isCCharPointerType()) {
               variant = mb.createCPrimitivePointerVariant(j, JavaType.forNIOByteBufferClass());
               if (! result.contains(variant)) result.add(variant);
