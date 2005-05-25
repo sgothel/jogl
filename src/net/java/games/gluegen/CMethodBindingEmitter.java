@@ -1076,16 +1076,9 @@ public class CMethodBindingEmitter extends FunctionEmitter
         jniMangle(c, buf);
          // If Buffer offset arguments were added, we need to mangle the JNI for the 
          // extra arguments
-         if(type == JavaType.forNIOBufferClass() ||
-             type == JavaType.forNIOByteBufferClass() ||
-             type == JavaType.forNIOShortBufferClass() ||
-             type == JavaType.forNIOIntBufferClass() ||
-             type == JavaType.forNIOLongBufferClass() ||
-             type == JavaType.forNIOFloatBufferClass() ||
-             type == JavaType.forNIODoubleBufferClass())   {
+         if(type.isNIOBuffer()) {
                  jniMangle(Integer.TYPE, buf);
-         } else if (type.isNIOByteBufferArray() || 
-                    type.isNIOBufferArray())   {
+         } else if (type.isNIOBufferArray())   {
                        int[] intArrayType = new int[0];
                        c = intArrayType.getClass(); 
                        jniMangle(c , buf);
