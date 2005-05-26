@@ -239,7 +239,14 @@ public final class GLJPanel extends JPanel implements GLDrawable {
           neededOffscreenImageHeight = 0;
 
           if (!hardwareAccelerationDisabled) {
-            if (fwidth > pbufferWidth || fheight > pbufferHeight) {
+            // Use factor larger than 2 during shrinks for some hysteresis
+            float shrinkFactor = 2.5f;
+            if ((fwidth > pbufferWidth           )       || (fheight > pbufferHeight) ||
+                (fwidth < (pbufferWidth / shrinkFactor)) || (fheight < (pbufferWidth / shrinkFactor))) {
+              if (DEBUG) {
+                System.err.println("Resizing pbuffer from (" + pbufferWidth + ", " + pbufferHeight + ") " +
+                                   " to fit (" + fwidth + ", " + fheight + ")");
+              }
               // Must destroy and recreate pbuffer to fit
               if (pbuffer != null) {
                 pbuffer.destroy();
@@ -248,11 +255,10 @@ public final class GLJPanel extends JPanel implements GLDrawable {
                 toplevel.dispose();
               }
               isInitialized = false;
-              if (fwidth > pbufferWidth) {
-                pbufferWidth = getNextPowerOf2(fwidth);
-              }
-              if (fheight > pbufferHeight) {
-                pbufferHeight = getNextPowerOf2(fheight);
+              pbufferWidth = getNextPowerOf2(fwidth);
+              pbufferHeight = getNextPowerOf2(fheight);
+              if (DEBUG) {
+                System.err.println("New pbuffer size is (" + pbufferWidth + ", " + pbufferHeight + ")");
               }
               initialize();
             }
