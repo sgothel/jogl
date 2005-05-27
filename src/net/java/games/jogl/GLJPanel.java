@@ -87,11 +87,15 @@ public final class GLJPanel extends JPanel implements GLDrawable {
   private GLCapabilities        offscreenCaps;
   private GLCapabilitiesChooser chooser;
   private GLDrawable            shareWith;
+  // This image is exactly the correct size to render into the panel
   private BufferedImage         offscreenImage;
-  private int                   neededOffscreenImageWidth;
-  private int                   neededOffscreenImageHeight;
-  private DataBufferByte   dbByte;
-  private DataBufferInt    dbInt;
+  // One of these is used to store the read back pixels before storing
+  // in the BufferedImage
+  private byte[]                readBackBytes;
+  private int[]                 readBackInts;
+  private int                   readBackWidthInPixels;
+  private int                   readBackHeightInPixels;
+  // Width of the actual GLJPanel
   private int panelWidth   = 0;
   private int panelHeight  = 0;
   private Updater updater;
@@ -235,8 +239,8 @@ public final class GLJPanel extends JPanel implements GLDrawable {
     Runnable r = new Runnable() {
         public void run() {
           GLContext context = null;
-          neededOffscreenImageWidth = 0;
-          neededOffscreenImageHeight = 0;
+          readBackWidthInPixels = 0;
+          readBackHeightInPixels = 0;
 
           if (!hardwareAccelerationDisabled) {
             // Use factor larger than 2 during shrinks for some hysteresis
@@ -271,18 +275,16 @@ public final class GLJPanel extends JPanel implements GLDrawable {
             // bottleneck. Should probably make the size of the offscreen
             // image be the exact size of the pbuffer to save some work on
             // resize operations...
-            neededOffscreenImageWidth  = pbufferWidth;
-            neededOffscreenImageHeight = fheight;
+            readBackWidthInPixels  = pbufferWidth;
+            readBackHeightInPixels = fheight;
           } else {
             offscreenContext.resizeOffscreenContext(fwidth, fheight);
             context = offscreenContext;
-            neededOffscreenImageWidth  = fwidth;
-            neededOffscreenImageHeight = fheight;
+            readBackWidthInPixels  = fwidth;
+            readBackHeightInPixels = fheight;
           }
 
-          if (offscreenImage != null &&
-              (offscreenImage.getWidth()  != neededOffscreenImageWidth ||
-               offscreenImage.getHeight() != neededOffscreenImageHeight)) {
+          if (offscreenImage != null) {
             offscreenImage.flush();
             offscreenImage = null;
           }
@@ -554,14 +556,14 @@ public final class GLJPanel extends JPanel implements GLDrawable {
             awtFormat = offscreenContext.getOffscreenContextBufferedImageType();
           }
 
-          offscreenImage = new BufferedImage(neededOffscreenImageWidth,
-                                             neededOffscreenImageHeight,
+          offscreenImage = new BufferedImage(panelWidth,
+                                             panelHeight,
                                              awtFormat);
           switch (awtFormat) {
             case BufferedImage.TYPE_3BYTE_BGR:
               glFormat = GL.GL_BGR;
               glType   = GL.GL_UNSIGNED_BYTE;
-              dbByte   = (DataBufferByte) offscreenImage.getRaster().getDataBuffer();
+              readBackBytes = new byte[readBackWidthInPixels * readBackHeightInPixels * 3];
               break;
 
             case BufferedImage.TYPE_INT_RGB:
@@ -570,7 +572,7 @@ public final class GLJPanel extends JPanel implements GLDrawable {
               glType   = (hardwareAccelerationDisabled
                             ? offscreenContext.getOffscreenContextPixelDataType()
                             : hwGLFormat);
-              dbInt    = (DataBufferInt) offscreenImage.getRaster().getDataBuffer();
+              readBackInts = new int[readBackWidthInPixels * readBackHeightInPixels];
               break;
 
             default:
@@ -593,17 +595,17 @@ public final class GLJPanel extends JPanel implements GLDrawable {
         gl.glGetIntegerv(GL.GL_PACK_ALIGNMENT,     alignment);
 
         gl.glPixelStorei(GL.GL_PACK_SWAP_BYTES,    GL.GL_FALSE);
-        gl.glPixelStorei(GL.GL_PACK_ROW_LENGTH,    offscreenImage.getWidth());
+        gl.glPixelStorei(GL.GL_PACK_ROW_LENGTH,    readBackWidthInPixels);
         gl.glPixelStorei(GL.GL_PACK_SKIP_ROWS,     0);
         gl.glPixelStorei(GL.GL_PACK_SKIP_PIXELS,   0);
         gl.glPixelStorei(GL.GL_PACK_ALIGNMENT,     1);
 
         // Actually read the pixels.
         gl.glReadBuffer(GL.GL_FRONT);
-        if (dbByte != null) {
-          gl.glReadPixels(0, 0, offscreenImage.getWidth(), offscreenImage.getHeight(), glFormat, glType, dbByte.getData());
-        } else if (dbInt != null) {
-          gl.glReadPixels(0, 0, offscreenImage.getWidth(), offscreenImage.getHeight(), glFormat, glType, dbInt.getData());
+        if (readBackBytes != null) {
+          gl.glReadPixels(0, 0, readBackWidthInPixels, readBackHeightInPixels, glFormat, glType, readBackBytes);
+        } else if (readBackInts != null) {
+          gl.glReadPixels(0, 0, readBackWidthInPixels, readBackHeightInPixels, glFormat, glType, readBackInts);
         }
 
         // Restore saved modes.
@@ -612,20 +614,46 @@ public final class GLJPanel extends JPanel implements GLDrawable {
         gl.glPixelStorei(GL.GL_PACK_SKIP_ROWS,   skiprows[0]);
         gl.glPixelStorei(GL.GL_PACK_SKIP_PIXELS, skippixels[0]);
         gl.glPixelStorei(GL.GL_PACK_ALIGNMENT,   alignment[0]);
-      
-        if (!hardwareAccelerationDisabled ||
-            offscreenContext.offscreenImageNeedsVerticalFlip()) {
-          // This performs reasonably well; the snippet below does not.
-          // Should figure out if we need to set the image scaling
-          // preference to FAST since it doesn't require subsampling
-          // of pixels -- FIXME
-          for (int i = 0; i < panelHeight; i++) {
-            g.drawImage(offscreenImage,
-                        0, i, panelWidth, i+1,
-                        0, panelHeight - i - 1, panelWidth, panelHeight - i,
-                        GLJPanel.this);
+
+        if (readBackBytes != null || readBackInts != null) {
+          // Copy temporary data into raster of BufferedImage for faster
+          // blitting Note that we could avoid this copy in the cases
+          // where !offscreenContext.offscreenImageNeedsVerticalFlip(),
+          // but that's the software rendering path which is very slow
+          // anyway
+          Object src  = null;
+          Object dest = null;
+          int    srcIncr  = 0;
+          int    destIncr = 0;
+
+          if (readBackBytes != null) {
+            src = readBackBytes;
+            dest = ((DataBufferByte) offscreenImage.getRaster().getDataBuffer()).getData();
+            srcIncr = readBackWidthInPixels * 3;
+            destIncr = offscreenImage.getWidth() * 3;
+          } else {
+            src = readBackInts;
+            dest = ((DataBufferInt) offscreenImage.getRaster().getDataBuffer()).getData();
+            srcIncr = readBackWidthInPixels;
+            destIncr = offscreenImage.getWidth();
           }
-        } else {
+
+          if (!hardwareAccelerationDisabled ||
+              offscreenContext.offscreenImageNeedsVerticalFlip()) {
+            int srcPos = 0;
+            int destPos = (offscreenImage.getHeight() - 1) * destIncr;
+            for (; destPos >= 0; srcPos += srcIncr, destPos -= destIncr) {
+              System.arraycopy(src, srcPos, dest, destPos, destIncr);
+            }
+          } else {
+            int srcPos = 0;
+            int destEnd = destIncr * offscreenImage.getHeight();
+            for (int destPos = 0; destPos < destEnd; srcPos += srcIncr, destPos += destIncr) {
+              System.arraycopy(src, srcPos, dest, destPos, destIncr);
+            }
+          }
+
+          // Draw resulting image in one shot
           g.drawImage(offscreenImage, 0, 0, offscreenImage.getWidth(), offscreenImage.getHeight(), GLJPanel.this);
         }
       }
