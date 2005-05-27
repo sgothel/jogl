@@ -20,7 +20,7 @@
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
  * PARTICULAR PURPOSE OR NON-INFRINGEMENT, ARE HEREBY EXCLUDED. SUN
- * MIDROSYSTEMS, INC. ("SUN") AND ITS LICENSORS SHALL NOT BE LIABLE FOR
+ * MICROSYSTEMS, INC. ("SUN") AND ITS LICENSORS SHALL NOT BE LIABLE FOR
  * ANY DAMAGES SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR
  * DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES. IN NO EVENT WILL SUN OR
  * ITS LICENSORS BE LIABLE FOR ANY LOST REVENUE, PROFIT OR DATA, OR FOR
@@ -42,11 +42,12 @@ package net.java.games.jogl;
 /** Offscreen rendering support via pbuffers. This class adds very
     little functionality over the GLDrawable class; the only methods
     are those which allow access to the pbuffer's contents as a
-    texture map. These methods are currently highly experimental and
-    may be removed in a future release. */
+    texture map and which enable offscreen rendering to floating-point
+    buffers. These methods are currently highly experimental and may
+    be removed in a future release. */
 
 public interface GLPbuffer extends GLDrawable {
-  /** Indicates the GL_APPLE_float extension is being used for this pbuffer. */
+  /** Indicates the GL_APPLE_float_pixels extension is being used for this pbuffer. */
   public static final int APPLE_FLOAT = 1;
 
   /** Indicates the GL_ATI_texture_float extension is being used for this pbuffer. */

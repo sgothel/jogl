@@ -20,7 +20,7 @@
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
  * PARTICULAR PURPOSE OR NON-INFRINGEMENT, ARE HEREBY EXCLUDED. SUN
- * MIDROSYSTEMS, INC. ("SUN") AND ITS LICENSORS SHALL NOT BE LIABLE FOR
+ * MICROSYSTEMS, INC. ("SUN") AND ITS LICENSORS SHALL NOT BE LIABLE FOR
  * ANY DAMAGES SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR
  * DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES. IN NO EVENT WILL SUN OR
  * ITS LICENSORS BE LIABLE FOR ANY LOST REVENUE, PROFIT OR DATA, OR FOR
@@ -67,10 +67,9 @@ public interface GLEventListener extends EventListener {
       component has been resized. The client can update the viewport
       and view volume of the window appropriately, for example by a
       call to {@link net.java.games.jogl.GL#glViewport}; note that for
-      convenience the component has already called {@link
-      net.java.games.jogl.GL#glViewport}(x, y, width, height) when this method
-      is called, so the client may not have to do anything in this
-      method.
+      convenience the component has already called <code>glViewport(x,
+      y, width, height)</code> when this method is called, so the
+      client may not have to do anything in this method.
   */
   public void reshape(GLDrawable drawable, int x, int y, int width, int height);
 
