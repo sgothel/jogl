@@ -90,7 +90,7 @@ public class X11PbufferGLContext extends X11GLContext {
     throw new GLException("Not yet implemented");
   }
 
-  public void createPbuffer(long display, long parentContext) {
+  public void createPbuffer(long display, long parentContext, GL gl) {
     if (display == 0) {
       throw new GLException("Null display");
     }

@@ -121,7 +121,7 @@ public class X11OnscreenGLContext extends X11GLContext {
         while (!pbuffersToInstantiate.isEmpty()) {
           X11PbufferGLContext ctx =
             (X11PbufferGLContext) pbuffersToInstantiate.remove(pbuffersToInstantiate.size() - 1);
-          ctx.createPbuffer(display, context);
+          ctx.createPbuffer(display, context, getGL());
         }
       }
       return ret;
