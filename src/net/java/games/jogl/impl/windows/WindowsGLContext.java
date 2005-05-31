@@ -143,7 +143,7 @@ public abstract class WindowsGLContext extends GLContext {
     if (!WGL.wglMakeCurrent(hdc, hglrc)) {
       throw new GLException("Error making context current: " + WGL.GetLastError());
     } else {
-      if (DEBUG) {
+      if (DEBUG && VERBOSE) {
         System.err.println("wglMakeCurrent(hdc " + hdcToString(hdc) +
                            ", hglrc " + hdcToString(hglrc) + ") succeeded");
       }

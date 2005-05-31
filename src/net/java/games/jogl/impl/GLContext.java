@@ -45,6 +45,7 @@ import net.java.games.gluegen.runtime.*;
 
 public abstract class GLContext {
   protected static final boolean DEBUG = Debug.debug("GLContext");
+  protected static final boolean VERBOSE = Debug.verbose();
 
   static {
     NativeLibLoader.load();
@@ -237,7 +238,7 @@ public abstract class GLContext {
 
     if (mustDoMakeCurrent) {
       if (curContext != null) {
-        if (DEBUG) {
+        if (DEBUG && VERBOSE) {
           System.err.println("Freeing context " + curContext + " due to recursive makeCurrent");
         }
         curContext.free();
@@ -262,7 +263,7 @@ public abstract class GLContext {
         }
         return;
       }
-      if (DEBUG) {
+      if (DEBUG && VERBOSE) {
         System.err.println("Making context " + this + " current");
       }
     }
@@ -314,7 +315,7 @@ public abstract class GLContext {
       // Free the context unless the setRenderingThread optimization
       // kicks in.
       if (mustDoMakeCurrent && !mustSkipFreeForRenderingThread) {
-        if (DEBUG) {
+        if (DEBUG && VERBOSE) {
           System.err.println("Freeing context " + this);
         }
 
@@ -325,7 +326,7 @@ public abstract class GLContext {
         }
 
         if (curContext != null) {
-          if (DEBUG) {
+          if (DEBUG && VERBOSE) {
             System.err.println("Making context " + curContext + " current again");
           }
           try {
@@ -662,6 +663,9 @@ public abstract class GLContext {
   public synchronized void destroy() throws GLException {
     if (getRenderingThread() != null &&
         Thread.currentThread() != getRenderingThread()) {
+      if (DEBUG) {
+        System.err.println("Deferred destroy for context " + this);
+      }
       deferredDestroy = true;
       return;
     }
