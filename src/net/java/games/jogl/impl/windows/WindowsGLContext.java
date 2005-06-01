@@ -284,8 +284,11 @@ public abstract class WindowsGLContext extends GLContext {
       GraphicsConfiguration config = component.getGraphicsConfiguration();
       GraphicsDevice device = config.getDevice();
       // Produce a recommended pixel format selection for the GLCapabilitiesChooser.
-      // Try to use wglChoosePixelFormatARB if we have it available
-      GL dummyGL = WindowsGLContextFactory.getDummyGL(device);
+      // Use wglChoosePixelFormatARB if user requested multisampling and if we have it available
+      GL dummyGL = null;
+      if (capabilities.getSampleBuffers()) {
+        dummyGL = WindowsGLContextFactory.getDummyGL(device);
+      }
       int recommendedPixelFormat = -1;
       boolean haveWGLChoosePixelFormatARB = false;
       boolean haveWGLARBMultisample = false;
@@ -468,7 +471,11 @@ public abstract class WindowsGLContext extends GLContext {
 
       if (!gotAvailableCaps) {
         if (DEBUG) {
-          System.err.println("Using ChoosePixelFormat because no wglChoosePixelFormatARB: dummyGL = " + dummyGL);
+          if (!capabilities.getSampleBuffers()) {
+            System.err.println("Using ChoosePixelFormat because multisampling not requested");
+          } else {
+            System.err.println("Using ChoosePixelFormat because no wglChoosePixelFormatARB: dummyGL = " + dummyGL);
+          }
         }
         pfd = glCapabilities2PFD(capabilities, onscreen);
         // Remove one-basing of pixel format (added on later)
