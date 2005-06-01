@@ -5,6 +5,7 @@ typedef int Bool;
 
 void* createContext(void* shareContext, void* nsView,
                     int doubleBuffer,
+                    int stereo,
                     int redBits,
                     int greenBits,
                     int blueBits,
