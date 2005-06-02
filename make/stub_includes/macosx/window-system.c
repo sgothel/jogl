@@ -18,6 +18,8 @@ void* createContext(void* shareContext, void* nsView,
                     int accumAlphaBits,
                     int sampleBuffers,
                     int numSamples,
+                    int pbuffer,
+                    int floatingPoint,
                     int* viewNotReady);
 Bool  makeCurrentContext(void* nsContext, void* nsView);
 Bool  clearCurrentContext(void* nsContext, void* nsView);

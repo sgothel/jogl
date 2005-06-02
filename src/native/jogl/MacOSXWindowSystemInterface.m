@@ -1,5 +1,6 @@
 #import <Cocoa/Cocoa.h>
 #import <OpenGL/gl.h>
+#import <OpenGL/CGLTypes.h>
 #import <jni.h>
 #import "ContextUpdater.h"
 
@@ -29,6 +30,8 @@ void* createContext(void* shareContext, void* view,
                     int accumAlphaBits,
                     int sampleBuffers,
                     int numSamples,
+                    int pbuffer,
+                    int floatingPoint,
                     int* viewNotReady)
 {
   int colorSize = redBits + greenBits + blueBits;
@@ -50,11 +53,16 @@ void* createContext(void* shareContext, void* view,
       return NULL;
     }
   }
-                
+
   NSOpenGLPixelFormatAttribute attribs[256];
   int idx = 0;
-  if (doubleBuffer) attribs[idx++] = NSOpenGLPFADoubleBuffer;
-  if (stereo)       attribs[idx++] = NSOpenGLPFAStereo;
+  if (pbuffer)       attribs[idx++] = NSOpenGLPFAPixelBuffer;
+  // kCGLPFAColorFloat is equivalent to NSOpenGLPFAColorFloat, but the
+  // latter is only available on 10.4 and we need to compile under
+  // 10.3
+  if (floatingPoint) attribs[idx++] = kCGLPFAColorFloat;
+  if (doubleBuffer)  attribs[idx++] = NSOpenGLPFADoubleBuffer;
+  if (stereo)        attribs[idx++] = NSOpenGLPFAStereo;
   attribs[idx++] = NSOpenGLPFAColorSize;     attribs[idx++] = colorSize;
   attribs[idx++] = NSOpenGLPFAAlphaSize;     attribs[idx++] = alphaBits;
   attribs[idx++] = NSOpenGLPFADepthSize;     attribs[idx++] = depthBits;

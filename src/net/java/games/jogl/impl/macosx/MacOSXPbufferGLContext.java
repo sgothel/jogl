@@ -1,10 +1,27 @@
 package net.java.games.jogl.impl.macosx;
 
+import java.security.*;
+import java.util.*;
+
 import net.java.games.jogl.*;
 import net.java.games.jogl.impl.*;
 
 public class MacOSXPbufferGLContext extends MacOSXGLContext {
   private static final boolean DEBUG = Debug.debug("MacOSXPbufferGLContext");
+  private static boolean isTigerOrLater;
+
+  static {
+    String osVersion =
+      (String) AccessController.doPrivileged(new PrivilegedAction() {
+	  public Object run() {
+	    return System.getProperty("os.version");
+	  }
+	});
+    StringTokenizer tok = new StringTokenizer(osVersion, ". ");
+    int major = Integer.parseInt(tok.nextToken());
+    int minor = Integer.parseInt(tok.nextToken());
+    isTigerOrLater = ((major > 10) || (minor > 3));
+  }
   
   protected int  initWidth;
   protected int  initHeight;
@@ -171,7 +188,11 @@ public class MacOSXPbufferGLContext extends MacOSXGLContext {
   }
 
   protected boolean create() {
-    if (!super.create()) {
+    if (capabilities.getOffscreenFloatingPointBuffers() &&
+	!isTigerOrLater) {
+      throw new GLException("Floating-point pbuffers supported only on OS X 10.4 or later");
+    }
+    if (!super.create(true, capabilities.getOffscreenFloatingPointBuffers())) {
       return false;
     }
     created = true;

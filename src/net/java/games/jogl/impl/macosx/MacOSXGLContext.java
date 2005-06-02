@@ -117,11 +117,15 @@ public abstract class MacOSXGLContext extends GLContext
     throw new GLException("Should not call this");
   }
 
+  protected boolean create() {
+    return create(false, false);
+  }
+
   /**
    * Creates and initializes an appropriate OpenGl nsContext. Should only be
    * called by {@link makeCurrent(Runnable)}.
    */
-  protected boolean create() {
+  protected boolean create(boolean pbuffer, boolean floatingPoint) {
     MacOSXGLContext other = (MacOSXGLContext) GLContextShareSet.getShareContext(this);
     long share = 0;
     if (other != null) {
@@ -147,6 +151,8 @@ public abstract class MacOSXGLContext extends GLContext
                                   capabilities.getAccumAlphaBits(),
                                   capabilities.getSampleBuffers() ? 1 : 0,
                                   capabilities.getNumSamples(),
+                                  (pbuffer ? 1 : 0),
+                                  (floatingPoint ? 1 : 0),
                                   viewNotReady);
     if (nsContext == 0) {
       if (viewNotReady[0] == 1) {
