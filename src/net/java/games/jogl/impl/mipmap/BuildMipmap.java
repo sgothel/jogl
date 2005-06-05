@@ -306,12 +306,13 @@ public class BuildMipmap {
       if( baseLevel <= level && level <= maxLevel ) {
         gl.glTexImage2D( target, level, internalFormat, width, height, 0, format, type, data );
       }
-      if( levels == 0 ) {
+      if( levels == 0 ) { /* we're done. clean up and return */
         gl.glPixelStorei( GL.GL_UNPACK_ALIGNMENT, psm.getUnpackAlignment() );
         gl.glPixelStorei( GL.GL_UNPACK_SKIP_ROWS, psm.getUnpackSkipRows() );
         gl.glPixelStorei( GL.GL_UNPACK_SKIP_PIXELS, psm.getUnpackSkipPixels() );
         gl.glPixelStorei( GL.GL_UNPACK_ROW_LENGTH, psm.getUnpackRowLength() );
         gl.glPixelStorei( GL.GL_UNPACK_SWAP_BYTES, (psm.getUnpackSwapBytes() ? 1 : 0) );
+        return( 0 );
       }
       int nextWidth = newwidth / 2;
       int nextHeight = newheight / 2;
@@ -1055,7 +1056,7 @@ public class BuildMipmap {
         gl.glTexImage3D( target, level, internalFormat, width, height, depth,
                 0, format, type, usersImage );
       }
-      if( levels == 0 ) {
+      if( levels == 0 ) { /* we're done. clean up and return */
         gl.glPixelStorei( GL.GL_UNPACK_ALIGNMENT, psm.getUnpackAlignment() );
         gl.glPixelStorei( GL.GL_UNPACK_SKIP_ROWS, psm.getUnpackSkipRows() );
         gl.glPixelStorei( GL.GL_UNPACK_SKIP_PIXELS, psm.getUnpackSkipPixels() );
