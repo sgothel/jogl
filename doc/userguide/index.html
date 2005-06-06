@@ -17,6 +17,8 @@
   <LI> Using the Composable Pipeline
   <LI> Multithreading Issues
   <LI> Pbuffers
+  <LI> GLU
+  <LI> More Resources
   <LI> Platform notes
   <UL>
     <LI> All Platforms
@@ -36,7 +38,7 @@ API. It supports integration with the Java platform's AWT and Swing
 widget sets while providing a minimal and easy-to-use API that handles
 many of the issues associated with building multithreaded OpenGL
 applications. Jogl provides access to the latest OpenGL routines
-(OpenGL 1.4 with vendor extensions) as well as platform-independent
+(OpenGL 2.0 with vendor extensions) as well as platform-independent
 access to hardware-accelerated offscreen rendering ("pbuffers"). Jogl
 also provides some of the most popular features introduced by other
 Java bindings for OpenGL like GL4Java, LWJGL and Magician, including a
@@ -79,10 +81,11 @@ Jogl provides two basic widgets into which OpenGL rendering can be
 performed. The GLCanvas is a heavyweight AWT widget which supports
 hardware acceleration and which is intended to be the primary widget
 used by applications. The GLJPanel is a fully Swing-compatible
-lightweight widget which currently does not support hardware
-acceleration but which is intended to provide 100% correct Swing
-integration in the rare circumstances where a GLCanvas can not be
-used. See <a href =
+lightweight widget which supports hardware acceleration but which is
+not as fast as the GLCanvas because it reads back the frame buffer in
+order to draw it using Java2D. The GLJPanel is intended to provide
+100% correct Swing integration in the circumstances where a GLCanvas
+can not be used. See <a href =
 "http://java.sun.com/products/jfc/tsc/articles/mixing/">this
 article</a> on <a href = "http://java.sun.com/products/jfc/tsc/">The
 Swing Connection</a> for more information about mixing lightweight and
@@ -124,8 +127,10 @@ changes. The GLDrawable interface provides
 GLCanvas and GLJPanel instances are created using the factory methods
 in GLDrawableFactory. These factory methods allow the user to request
 a certain set of OpenGL parameters in the form of a GLCapabilities
-object as well as optionally customize the format selection algorithm
-by specifying a GLCapabilitiesChooser.
+object, to customize the format selection algorithm by specifying a
+GLCapabilitiesChooser, to share textures and display lists with other
+GLDrawables, and to specify the display device on which the GLDrawable
+will be created.
 
 </P>
 <P>
@@ -144,10 +149,11 @@ An application can override the default pixel format selection
 algorithm by providing a GLCapabilitiesChooser to the
 GLDrawableFactory. The chooseCapabilities method will be called with
 all of the available pixel formats as an array of GLCapabilities
-objects; it should return an integer index into this array. The
-DefaultGLCapabilitiesChooser attempts to provide a better
-cross-platform selection algorithm than the WGL and GLX pixel format
-selection algorithms.
+objects, as well as the index indicating the window system's
+recommended choice; it should return an integer index into this
+array. The DefaultGLCapabilitiesChooser uses the window system's
+recommendation when it is available, and otherwise attempts to use a
+platform-independent selection algorithm.
 
 </P>
 
@@ -164,16 +170,20 @@ begins to perform rendering.
 </P>
 <P>
 
-The <CODE>init()</CODE> method is called upon OpenGL context creation.
-Any display lists or textures used during the application's normal
-rendering loop can be safely initialized in <CODE>init()</CODE>.
-Because the underlying AWT window may be destroyed and recreated while
+The <CODE>init()</CODE> method is called when a new OpenGL context is
+created for the given GLDrawable. Any display lists or textures used
+during the application's normal rendering loop can be safely
+initialized in <CODE>init()</CODE>. It is important to note that
+because the underlying AWT window may be destroyed and recreated while
 using the same GLCanvas and GLEventListener, the GLEventListener's
 <CODE>init()</CODE> method may be called more than once during the
-lifetime of the application. It is the responsibility of the
-application to understand its sharing of textures and display lists
-between multiple OpenGL contexts and reinitialize them when the
-<CODE>init()</CODE> callback is entered if necessary.
+lifetime of the application. The init() method should therefore be
+kept as short as possible and only contain the OpenGL initialization
+required for the <CODE>display()</CODE> method to run properly. It is
+the responsibility of the application to keep track of how its various
+OpenGL contexts share display lists, textures and other OpenGL objects
+so they can be either be reinitialized or so that reinitialization can
+be skipped when the <CODE>init()</CODE> callback is called.
 
 </P>
 <P>
@@ -322,7 +332,7 @@ date.
 </P>
 <P>
 
-Prior to JOGL 1.1 b10, the JOGL library attempted to give applications
+Prior to Jogl 1.1 b10, the Jogl library attempted to give applications
 strict control over which thread or threads performed OpenGL
 rendering. The <CODE>setRenderingThread()</CODE>,
 <CODE>setNoAutoRedrawMode()</CODE> and <CODE>display()</CODE> APIs
@@ -330,22 +340,19 @@ were originally designed to allow the application to create its own
 animation thread and avoid OpenGL context switching on platforms that
 supported it. Unfortunately, serious stability issues caused by
 multithreading bugs in either vendors' OpenGL drivers or in the Java
-platform implementation have arisen on three of JOGL's major supported
-platforms: Windows, Linux and Mac OS X. A detailed description of
-these issues can be found on <a
-href="http://www.javagaming.org/cgi-bin/JGNetForums/YaBB.cgi?board=jogl;action=display;num=1109286717">this
-thread</a> in the <a
-href="http://www.javagaming.org/cgi-bin/JGNetForums/YaBB.cgi?board=jogl">JOGL
-forums</a>. In order to address these bugs, the threading model in
-JOGL 1.1 b10 and later has changed.
+platform implementation have arisen on three of Jogl's major supported
+platforms: Windows, Linux and Mac OS X. In order to address these
+bugs, the threading model in Jogl 1.1 b10 and later has changed.
 
 </P>
 <P>
 
 All GLEventListener callbacks and other internal OpenGL context
-management are now performed on one thread: the AWT event queue
-thread. This is a thread internal to the implementation of the AWT and
-is always present when the AWT is being used. When the
+management are now performed on one thread. (In the current
+implementation, this thread is the AWT event queue thread, which is a
+thread internal to the implementation of the AWT and which is always
+present when the AWT is being used. Future versions of Jogl may change
+the thread on which the OpenGL work is performed.) When the
 <CODE>GLDrawable.display()</CODE> method is called from user code, it
 now performs the work synchronously on the AWT event queue thread,
 even if the calling thread is a different thread. The
@@ -358,8 +365,8 @@ useful for working around certain kinds of OpenGL driver bugs.)
 </P>
 <P>
 
-Most JOGL applications will not see a change in behavior from this
-change in the JOGL implementation. Applications which use thread-local
+Most applications will not see a change in behavior from this change
+in the Jogl implementation. Applications which use thread-local
 storage or complex multithreading and synchronization may see a change
 in their control flow requiring code changes. While it is strongly
 recommended to change such applications to work under the new
@@ -390,11 +397,14 @@ the future.
 To create a pbuffer, create a GLCanvas and (assuming it reports that
 it can create an offscreen drawable) make a pbuffer using the
 <CODE>createOffscreenDrawable</CODE> API. Because of the multithreaded
-nature of the AWT, the pbuffer is actually created lazily. For this
-reason the application's main loop typically needs to detect when the
-init() methods of all of the GLEventListeners for all of the offscreen
-surfaces have been called. See the demonstrations such as the
-ProceduralTexturePhysics demo for an example of this.
+nature of the AWT, the pbuffer is actually created lazily. However,
+even if multiple pbuffers are created, and the order in which they are
+rendered is significant, handling the lazy instantiation can be
+straightforward: the display(GLDrawable) method of one pbuffer's
+GLEventListener can directly call another pbuffer's display() method.
+See the source code for the Jogl demonstrations such as the
+ProceduralTexturePhysics demo and the HDR demo for examples of this
+usage.
 
 </P>
 <P>
@@ -413,8 +423,55 @@ A pbuffer is used by calling its display() method. Rendering, as
 always, occurs while the pbuffer's OpenGL context is current. There
 are render-to-texture options that can be specified in the
 GLCapabilities for the pbuffer which can make it easier to operate
-upon the resulting pixels. These APIs are however extremely
-experimental and not yet implemented on all platforms.
+upon the resulting pixels. These APIs are however highly experimental
+and not yet implemented on all platforms.
+
+</P>
+
+<H2> GLU </H2>
+
+<P>
+
+Jogl contains support for the GLU (OpenGL Utility Library) version
+1.3. Jogl originally supported GLU by wrapping the C version of the
+APIs, but over time, and thanks to the contributions of several
+individuals, it now uses a pure-Java version of SGI's GLU library. The
+pure Java port is enabled by default, and addresses stability issues
+on certain Linux distributions as well as the lack of native GLU 1.3
+support on the Windows platform. In case of problems with the Java
+port, the C version of the GLU library may be used by specifying the
+system property <CODE>-Djogl.glu.nojava</CODE> on the command
+line. All of the same functionality is exposed with both the Java and
+C versions of the GLU library; currently NURBS support is the only
+missing feature on both sides. If you run into problems with the Java
+port of the GLU library please file a bug using the Issue Tracker on
+the Jogl home page.
+
+</P>
+
+<H2> More Resources </H2>
+
+<P>
+
+The Jogl forum on <A HREF="http://javagaming.org/">javagaming.org</A>
+is the best place to ask questions about the library. Many users, as
+well as the Jogl developers, read this forum frequently, and the
+archived threads contain a lot of useful information (which still
+needs to be distilled into documentation).
+
+</P>
+<P>
+
+The <A HREF="http://jogl-demos.dev.java.net/">Jogl demos</A> provide
+several examples of usage of the Jogl library.
+
+</P>
+<P>
+
+Pepijn Van Eeckhoudt's ports of the NeHe demos<br>
+Jogl port of GLExcess<br>
+Greg Pierce's introduction to Jogl<br>
+Link to release information about Jogl 1.1 on javagaming.org
 
 </P>
 
@@ -454,6 +511,16 @@ No outstanding issues at this time.
 
 <P>
 
+There are some problems with visual artifacts and stability problems
+with some of the Jogl demos on Mac OS X. It appears that at least some
+of these problems are due to bugs in Apple's OpenGL support. Bugs have
+been filed about these problems and it is hoped they will be addressed
+in the near future.
+
+</P>
+
+<P>
+
 The Mac OS X port of Jogl, in particular the GL interface and its
 implementation, can be used either with the provided GLCanvas widget
 or with the Cocoa NSOpenGLView. In order to use it with Cocoa the
@@ -488,13 +555,10 @@ The following issues remain with the Mac OS X port:
 
 <LI> Due to the mechanism by which the Cocoa graphics system selects
 OpenGL pixel formats, the GLCapabilitiesChooser mechanism can not be
-implemented on Mac OS X as on other platforms. In the future, the
-chooser will be used and the capabilities array will contain exactly
-the requested capablities. The underlying Cocoa pixel format selection
-algorithm will then run to choose the best-fit visual. Currently the
-capabilities of the underlying context are hardcoded.
-
-<LI> Pbuffers are supported in Jogl on Mac OS X 10.3 and later.
+implemented on Mac OS X as on other platforms. Currently the
+underlying Cocoa pixel format selection is used on an
+NSOpenGLPixelFormat derived from the settings in the GLCapabilities,
+and the GLCapabilitiesChooser is ignored.
 
 </UL>
 
