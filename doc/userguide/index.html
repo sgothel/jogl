@@ -526,7 +526,27 @@ The following issues, among others, are outstanding on all platforms:
 
 <P>
 
-No outstanding issues at this time.
+For correct operation, it is necessary to specify the system property
+<CODE>-Dsun.java2d.noddraw=true</CODE> when running JOGL applications
+on Windows; this system property disables the use of DirectDraw by
+Java2D. There are driver-level incompatibilities between DirectDraw
+and OpenGL which manifest themselves as application crashes, poor
+performance, bad flickering, and other artifacts. This poor behavior
+may exhibit itself when OpenGL and DirectDraw are simply used in the
+same application, not even just in the same window, so disabling
+Java2D's DirectDraw pipeline and forcing it to use its GDI pipeline is
+the only way to work around these issues. Java Web Start applications
+may set this system property by adding the following line to the
+<CODE>&lt;resources&gt;</CODE> section of the JNLP file: <PRE>
+&lt;property name="sun.java2d.noddraw" value="true"/&gt; </PRE>
+
+</P>
+<P>
+
+JOGL currently does not interoperate well with the OpenGL pipeline for
+Java2D available in JDK 5.0 and later. We will address this in a
+future JOGL release and plan to have better interoperability by the
+time JDK 6.0 is shipped.
 
 </P>
 
