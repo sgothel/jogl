@@ -185,7 +185,7 @@ public class WindowsOnscreenGLContext extends WindowsGLContext {
         }
         GLContextShareSet.contextDestroyed(this);
         if (DEBUG) {
-          System.err.println("!!! Destroyed OpenGL context " + hglrc + " due to JAWT_LOCK_SURFACE_CHANGED");
+          System.err.println(getThreadName() + ": !!! Destroyed OpenGL context " + hglrc + " due to JAWT_LOCK_SURFACE_CHANGED");
         }
         hglrc = 0;
       }

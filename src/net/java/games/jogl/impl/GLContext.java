@@ -239,7 +239,7 @@ public abstract class GLContext {
     if (mustDoMakeCurrent) {
       if (curContext != null) {
         if (DEBUG && VERBOSE) {
-          System.err.println("Freeing context " + curContext + " due to recursive makeCurrent");
+          System.err.println(getThreadName() + ": Freeing context " + curContext + " due to recursive makeCurrent");
         }
         curContext.free();
       }
@@ -264,7 +264,7 @@ public abstract class GLContext {
         return;
       }
       if (DEBUG && VERBOSE) {
-        System.err.println("Making context " + this + " current");
+        System.err.println(getThreadName() + ": Making context " + this + " current");
       }
     }
     ctxStack.push(this, initAction);
@@ -316,7 +316,7 @@ public abstract class GLContext {
       // kicks in.
       if (mustDoMakeCurrent && !mustSkipFreeForRenderingThread) {
         if (DEBUG && VERBOSE) {
-          System.err.println("Freeing context " + this);
+          System.err.println(getThreadName() + ": Freeing context " + this);
         }
 
         try {
@@ -327,7 +327,7 @@ public abstract class GLContext {
 
         if (curContext != null) {
           if (DEBUG && VERBOSE) {
-            System.err.println("Making context " + curContext + " current again");
+            System.err.println(getThreadName() + ": Making context " + curContext + " current again");
           }
           try {
             curContext.makeCurrent(curInitAction);
@@ -501,7 +501,7 @@ public abstract class GLContext {
     functionAvailability.flush();
     if (!haveResetGLUProcAddressTable) {
       if (DEBUG) {
-        System.err.println("!!! Initializing GLU extension address table");
+        System.err.println(getThreadName() + ": !!! Initializing GLU extension address table");
       }
       resetProcAddressTable(gluProcAddressTable);
       haveResetGLUProcAddressTable = true; // Only need to do this once globally
@@ -647,7 +647,7 @@ public abstract class GLContext {
   protected synchronized void setRealized(boolean realized) {
     this.realized = realized;
     if (DEBUG) {
-      System.err.println("GLContext.setRealized(" + realized + ") for context " + this);
+      System.err.println(getThreadName() + ": GLContext.setRealized(" + realized + ") for context " + this);
     }
   }
 
@@ -664,7 +664,7 @@ public abstract class GLContext {
     if (getRenderingThread() != null &&
         Thread.currentThread() != getRenderingThread()) {
       if (DEBUG) {
-        System.err.println("Deferred destroy for context " + this);
+        System.err.println(getThreadName() + ": Deferred destroy for context " + this);
       }
       deferredDestroy = true;
       return;
@@ -759,5 +759,9 @@ public abstract class GLContext {
         renderingThread = null;
       }
     }
+  }
+
+  protected static String getThreadName() {
+    return Thread.currentThread().getName();
   }
 }

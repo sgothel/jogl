@@ -135,7 +135,7 @@ public abstract class WindowsGLContext extends GLContext {
     if (hglrc == 0) {
       create();
       if (DEBUG) {
-        System.err.println("!!! Created GL context for " + getClass().getName());
+        System.err.println(getThreadName() + ": !!! Created GL context for " + getClass().getName());
       }
       created = true;
     }
@@ -144,7 +144,7 @@ public abstract class WindowsGLContext extends GLContext {
       throw new GLException("Error making context current: " + WGL.GetLastError());
     } else {
       if (DEBUG && VERBOSE) {
-        System.err.println("wglMakeCurrent(hdc " + hdcToString(hdc) +
+        System.err.println(getThreadName() + ": wglMakeCurrent(hdc " + hdcToString(hdc) +
                            ", hglrc " + hdcToString(hglrc) + ") succeeded");
       }
     }
@@ -185,7 +185,7 @@ public abstract class WindowsGLContext extends GLContext {
         throw new GLException("Unable to delete OpenGL context");
       }
       if (DEBUG) {
-        System.err.println("!!! Destroyed OpenGL context " + hglrc);
+        System.err.println(getThreadName() + ": !!! Destroyed OpenGL context " + hglrc);
       }
       hglrc = 0;
     }
@@ -215,7 +215,7 @@ public abstract class WindowsGLContext extends GLContext {
   protected void resetGLFunctionAvailability() {
     super.resetGLFunctionAvailability();
     if (DEBUG) {
-      System.err.println("!!! Initializing OpenGL extension address table");
+      System.err.println(getThreadName() + ": !!! Initializing OpenGL extension address table");
     }
     resetProcAddressTable(getGLProcAddressTable());
   }
@@ -309,7 +309,7 @@ public abstract class WindowsGLContext extends GLContext {
         dc = WindowsGLContextFactory.getDummyGLContext( device ).hdc;
         rc = WindowsGLContextFactory.getDummyGLContext( device ).hglrc;
         if( !WGL.wglMakeCurrent( dc, rc ) ) {
-          System.err.println("Error Making WGLC Current: " + WGL.GetLastError() );
+          System.err.println(getThreadName() + ": Error Making WGLC Current: " + WGL.GetLastError() );
         } else {
           freeWGLC = true;
         }
@@ -392,18 +392,18 @@ public abstract class WindowsGLContext extends GLContext {
             // Remove one-basing of pixel format (added on later)
             recommendedPixelFormat = pformats[0] - 1;
             if (DEBUG) {
-              System.err.println("Used wglChoosePixelFormatARB to recommend pixel format " + recommendedPixelFormat);
+              System.err.println(getThreadName() + ": Used wglChoosePixelFormatARB to recommend pixel format " + recommendedPixelFormat);
             }
           }
         } else {
           if (DEBUG) {
-            System.err.println("wglChoosePixelFormatARB failed: " + WGL.GetLastError() );
+            System.err.println(getThreadName() + ": wglChoosePixelFormatARB failed: " + WGL.GetLastError() );
             Thread.dumpStack();
           }
         }
         if (DEBUG) {
           if (recommendedPixelFormat < 0) {
-            System.err.print("wglChoosePixelFormatARB didn't recommend a pixel format");
+            System.err.print(getThreadName() + ": wglChoosePixelFormatARB didn't recommend a pixel format");
             if (capabilities.getSampleBuffers()) {
               System.err.print(" for multisampled GLCapabilities");
             }
@@ -472,9 +472,9 @@ public abstract class WindowsGLContext extends GLContext {
       if (!gotAvailableCaps) {
         if (DEBUG) {
           if (!capabilities.getSampleBuffers()) {
-            System.err.println("Using ChoosePixelFormat because multisampling not requested");
+            System.err.println(getThreadName() + ": Using ChoosePixelFormat because multisampling not requested");
           } else {
-            System.err.println("Using ChoosePixelFormat because no wglChoosePixelFormatARB: dummyGL = " + dummyGL);
+            System.err.println(getThreadName() + ": Using ChoosePixelFormat because no wglChoosePixelFormatARB: dummyGL = " + dummyGL);
           }
         }
         pfd = glCapabilities2PFD(capabilities, onscreen);
@@ -502,7 +502,7 @@ public abstract class WindowsGLContext extends GLContext {
                               (numFormats - 1) + ")");
       }
       if (DEBUG) {
-        System.err.println("Chosen pixel format (" + pixelFormat + "):");
+        System.err.println(getThreadName() + ": Chosen pixel format (" + pixelFormat + "):");
         System.err.println(availableCaps[pixelFormat]);
       }
       pixelFormat += 1; // one-base the index
@@ -519,15 +519,15 @@ public abstract class WindowsGLContext extends GLContext {
     if (!WGL.SetPixelFormat(hdc, pixelFormat, pfd)) {
       int lastError = WGL.GetLastError();
       if (DEBUG) {
-        System.err.println("SetPixelFormat failed: current context = " + WGL.wglGetCurrentContext() +
+        System.err.println(getThreadName() + ": SetPixelFormat failed: current context = " + WGL.wglGetCurrentContext() +
                            ", current DC = " + WGL.wglGetCurrentDC());
-        System.err.println("GetPixelFormat(hdc " + hdcToString(hdc) + ") returns " + WGL.GetPixelFormat(hdc));
+        System.err.println(getThreadName() + ": GetPixelFormat(hdc " + hdcToString(hdc) + ") returns " + WGL.GetPixelFormat(hdc));
       }
       throw new GLException("Unable to set pixel format " + pixelFormat + " for device context " + hdcToString(hdc) + ": error code " + lastError);
     }
     hglrc = WGL.wglCreateContext(hdc);
     if (DEBUG) {
-      System.err.println("!!! Created OpenGL context " + hglrc + " for device context " + hdcToString(hdc) + " using pixel format " + pixelFormat);
+      System.err.println(getThreadName() + ": !!! Created OpenGL context " + hglrc + " for device context " + hdcToString(hdc) + " using pixel format " + pixelFormat);
     }
     if (hglrc == 0) {
       throw new GLException("Unable to create OpenGL context");
