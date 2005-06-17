@@ -258,6 +258,7 @@ public final class GLJPanel extends JPanel implements GLDrawable {
               if (toplevel != null) {
                 toplevel.dispose();
               }
+              pbuffer = null;
               isInitialized = false;
               pbufferWidth = getNextPowerOf2(fwidth);
               pbufferHeight = getNextPowerOf2(fheight);
@@ -697,6 +698,12 @@ public final class GLJPanel extends JPanel implements GLDrawable {
   private PaintImmediatelyAction paintImmediatelyAction = new PaintImmediatelyAction();
 
   private int getNextPowerOf2(int number) {
+    // Workaround for problems where 0 width or height are transiently
+    // seen during layout
+    if (number == 0) {
+      return 2;
+    }
+
     if (((number-1) & number) == 0) {
       //ex: 8 -> 0b1000; 8-1=7 -> 0b0111; 0b1000&0b0111 == 0
       return number;
