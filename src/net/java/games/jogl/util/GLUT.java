@@ -383,13 +383,17 @@ public class GLUT {
   }
 
   public int  glutStrokeWidth    (int font, char character) {
+    return (int) glutStrokeWidthf(font, character);
+  }
+
+  public float glutStrokeWidthf   (int font, char character) {
     StrokeFontRec fontinfo = getStrokeFont(font);
     int c = character & 0xFFFF;
     if (c < 0 || c >= fontinfo.num_chars)
       return 0;
     StrokeCharRec ch = fontinfo.ch[c];
     if (ch != null)
-      return (int) ch.right;
+      return ch.right;
     else
       return 0;
   }
@@ -410,8 +414,12 @@ public class GLUT {
   }
 
   public int  glutStrokeLength   (int font, String string) {
+    return (int) glutStrokeLengthf(font, string);
+  }
+
+  public float glutStrokeLengthf  (int font, String string) {
     StrokeFontRec fontinfo = getStrokeFont(font);
-    int length = 0;
+    float length = 0;
     int len = string.length();
     for (int i = 0; i < len; i++) {
       char c = string.charAt(i);
