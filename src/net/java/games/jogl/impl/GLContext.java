@@ -46,6 +46,7 @@ import net.java.games.gluegen.runtime.*;
 public abstract class GLContext {
   protected static final boolean DEBUG = Debug.debug("GLContext");
   protected static final boolean VERBOSE = Debug.verbose();
+  protected static final boolean NO_FREE = Debug.isPropertyDefined("jogl.GLContext.nofree");
 
   static {
     NativeLibLoader.load();

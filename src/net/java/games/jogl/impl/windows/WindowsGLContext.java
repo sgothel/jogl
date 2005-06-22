@@ -140,12 +140,24 @@ public abstract class WindowsGLContext extends GLContext {
       created = true;
     }
 
-    if (!WGL.wglMakeCurrent(hdc, hglrc)) {
-      throw new GLException("Error making context current: " + WGL.GetLastError());
-    } else {
-      if (DEBUG && VERBOSE) {
-        System.err.println(getThreadName() + ": wglMakeCurrent(hdc " + hdcToString(hdc) +
-                           ", hglrc " + hdcToString(hglrc) + ") succeeded");
+    boolean skipMakeCurrent = false;
+    if (NO_FREE) {
+      if (WGL.wglGetCurrentContext() == hglrc) {
+        if (DEBUG && VERBOSE) {
+          System.err.println(getThreadName() + ": skipping wglMakeCurrent because context already current");
+        }
+        skipMakeCurrent = true;
+      }
+    }
+
+    if (!skipMakeCurrent) {
+      if (!WGL.wglMakeCurrent(hdc, hglrc)) {
+        throw new GLException("Error making context current: " + WGL.GetLastError());
+      } else {
+        if (DEBUG && VERBOSE) {
+          System.err.println(getThreadName() + ": wglMakeCurrent(hdc " + hdcToString(hdc) +
+                             ", hglrc " + hdcToString(hglrc) + ") succeeded");
+        }
       }
     }
 
@@ -174,8 +186,10 @@ public abstract class WindowsGLContext extends GLContext {
   }
 
   protected synchronized void free() throws GLException {
-    if (!WGL.wglMakeCurrent(0, 0)) {
-      throw new GLException("Error freeing OpenGL context: " + WGL.GetLastError());
+    if (!NO_FREE) {
+      if (!WGL.wglMakeCurrent(0, 0)) {
+        throw new GLException("Error freeing OpenGL context: " + WGL.GetLastError());
+      }
     }
   }
 
@@ -550,9 +564,6 @@ public abstract class WindowsGLContext extends GLContext {
                     WGL.PFD_GENERIC_ACCELERATED);
     if (caps.getDoubleBuffered()) {
       pfdFlags |= WGL.PFD_DOUBLEBUFFER;
-      if (onscreen) {
-        pfdFlags |= WGL.PFD_SWAP_EXCHANGE;
-      }
     }
     if (onscreen) {
       pfdFlags |= WGL.PFD_DRAW_TO_WINDOW;
@@ -565,7 +576,17 @@ public abstract class WindowsGLContext extends GLContext {
     pfd.cRedBits  ((byte) caps.getRedBits());
     pfd.cGreenBits((byte) caps.getGreenBits());
     pfd.cBlueBits ((byte) caps.getBlueBits());
+    pfd.cAlphaBits((byte) caps.getAlphaBits());
+    int accumDepth = (caps.getAccumRedBits() +
+                      caps.getAccumGreenBits() +
+                      caps.getAccumBlueBits());
+    pfd.cAccumBits     ((byte) accumDepth);
+    pfd.cAccumRedBits  ((byte) caps.getAccumRedBits());
+    pfd.cAccumGreenBits((byte) caps.getAccumGreenBits());
+    pfd.cAccumBlueBits ((byte) caps.getAccumBlueBits());
+    pfd.cAccumAlphaBits((byte) caps.getAccumAlphaBits());
     pfd.cDepthBits((byte) caps.getDepthBits());
+    pfd.cStencilBits((byte) caps.getStencilBits());
     pfd.iLayerType((byte) WGL.PFD_MAIN_PLANE);
     return pfd;
   }

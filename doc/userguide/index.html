@@ -549,6 +549,25 @@ future JOGL release and plan to have better interoperability by the
 time JDK 6.0 is shipped.
 
 </P>
+<P>
+
+There is a serious memory leak in ATI's OpenGL drivers which is
+exhibited on Windows XP on Mobility Radeon 9700 hardware. It's
+possible it will be present on other hardware as well though it was
+not reproducible at the time of this writing on desktop Radeon
+hardware or older ATI mobile chips. The bug is documented in <A
+HREF="https://jogl.dev.java.net/issues/show_bug.cgi?id=166">JOGL Issue
+166</A> and a bug has been filed with ATI. You can confirm the
+presence of the bug either with the test case in that bug report or by
+simply running the Gears demo; if the process size grows over time in
+the Task Manager, the memory leak is present on your hardware. For the
+time being, you can work around this memory leak by specifying the
+system property <CODE>-Djogl.GLContext.nofree</CODE> on the command
+line when launching your JOGL applications. There is no good
+general-purpose workaround for this bug which behaves well on all
+hardware.
+
+</P>
 
 <H3> Solaris, Linux (X11 platforms) </H3>
 
