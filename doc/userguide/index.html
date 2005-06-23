@@ -15,6 +15,7 @@
   <LI> Creating a GLDrawable
   <LI> Writing a GLEventListener
   <LI> Using the Composable Pipeline
+  <LI> Heavyweight and Lightweight Issues
   <LI> Multithreading Issues
   <LI> Pbuffers
   <LI> GLU
@@ -89,7 +90,8 @@ can not be used. See <a href =
 "http://java.sun.com/products/jfc/tsc/articles/mixing/">this
 article</a> on <a href = "http://java.sun.com/products/jfc/tsc/">The
 Swing Connection</a> for more information about mixing lightweight and
-heavyweight widgets.
+heavyweight widgets. See also the section on "Heavyweight and
+Lightweight Issues" below.
 
 </P>
 <P>
@@ -245,6 +247,94 @@ class MyListener implements GLEventListener {
   // ...
 }
 </PRE>
+
+</P>
+
+<H2> Heavyweight and Lightweight Issues </H2>
+
+<P>
+
+As mentioned above, JOGL supplies both a heavyweight (GLCanvas) and a
+lightweight (GLJPanel) widget to be able to provide the fastest
+possible performance for applications which need it as well as 100%
+correct Swing integration, again for applications which need it. The
+GLCanvas provides much higher performance than the GLJPanel in nearly
+all situations and can be used in almost every kind of application
+except those using JInternalFrames. Please see the Swing Connection
+article mentioned above for details on mixing heavyweight and
+lightweight widgets. A couple of common pitfalls are described here.
+
+</P>
+<P>
+
+When using JPopupMenus or Swing tool tips in conjunction with the
+GLCanvas, it is necessary to disable the use of lightweight widgets
+for the popups. See the methods
+<CODE>ToolTipManager.setLightWeightPopupEnabled</CODE>,
+<CODE>JPopupMenu.setLightWeightPopupEnabled</CODE>, and
+<CODE>JPopupMenu.setDefaultLightWeightPopupEnabled</CODE>.
+
+</P>
+<P>
+
+There are occasionally problems with certain LayoutManagers and
+component configurations where if a GLCanvas is placed in the middle
+of a set of lightweight widgets then it may only grow and never
+shrink. These issues are documented somewhat in <a href =
+"https://jogl.dev.java.net/issues/show_bug.cgi?id=135">JOGL Issue
+135</a> and most recently in the thread <a
+href="http://192.18.37.44/forums/index.php?topic=8699.0">"Resize
+behaviour"</a> in the JOGL forum. The root cause is behavior of the
+Canvas, and in particular its ComponentPeer. The implementation of
+getPreferredSize() calls getMinimumSize() and getMinimumSize() turns
+around and calls Component.getSize(). This effectively means that the
+Canvas will report its preferred size as being as large as the
+component has ever been. For some layout managers this doesn't seem to
+matter, but for others like the BoxLayout it does. See the test case
+attached to Issue 135 for an example. Replacing the GLCanvas with an
+ordinary Canvas yields the same behavior.
+
+</P>
+<P>
+
+One suggestion was to override getPreferredSize() so that if a
+preferred size has not been set by the user, to default to (0,
+0). This works fine for some test cases but breaks all of the other
+JOGL demos because they use a different LayoutManager. There appear to
+be a lot of interactions between heavyweight vs. lightweight widgets
+and layout managers. One experiment which was done was to override
+setSize() in GLCanvas to update the preferred size.  This works down
+to the size specified by the user; if the window is resized any
+smeller the same problem appears. If reshape() (the base routine of
+setSize(), setBounds(), etc.) is changed to do the same thing, the
+demo breaks in the same way it originally did. Therefore this solution
+is fragile because it isn't clear which of these methods are used
+internally by the AWT and for what purposes.
+
+</P>
+<P>
+
+There are two possible solutions, both application-specific. The best
+and most portable appears to be to put the GLCanvas into a JPanel and
+set the JPanel's preferred size to (0, 0). The JPanel will cause this
+constraint to be enforced on its contained GLCanvas. The other
+workaround is to call <CODE>setPreferredSize(new Dimension(0,
+0))</CODE> on a newly-created GLCanvas; this method is new in 1.5.
+
+</P>
+<P>
+
+Another issue that occasionally arises on Windows is flickering during
+live resizing of a GLCanvas. This is caused by the AWT's repainting
+the background of the Canvas and can not be overridden on a per-Canvas
+basis, for example when subclassing Canvas into GLCanvas.  The
+repainting of the background of Canvases on Windows can be disabled by
+specifying the system property
+<CODE>-Dsun.awt.noerasebackground=true</CODE>. Whether to specify this
+flag depends on the application and should not be done universally,
+but instead on a case-by-case basis. Some more detail is in the thread
+<a href="http://192.18.37.44/forums/index.php?topic=8770.0">"TIP: JOGL
++ Swing flicker"</a> in the JOGL forum.
 
 </P>
 
