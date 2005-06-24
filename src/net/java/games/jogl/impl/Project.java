@@ -159,14 +159,13 @@ class Project {
    * @param in
    * @param out
    */
-  private void __gluMultMatrixVecd(double[] matrix, double[] in, double[] out) {
+  private void __gluMultMatrixVecd(double[] matrix, int matrix_offset, double[] in, double[] out) {
     for (int i = 0; i < 4; i++) {
       out[i] =
-        in[0] * matrix[0*4+i] +
-        in[1] * matrix[1*4+i] +
-        in[2] * matrix[2*4+i] +
-        in[3] * matrix[3*4+i];
-
+        in[0] * matrix[0*4+i+matrix_offset] +
+        in[1] * matrix[1*4+i+matrix_offset] +
+        in[2] * matrix[2*4+i+matrix_offset] +
+        in[3] * matrix[3*4+i+matrix_offset];
     }
   }
 
@@ -245,14 +244,14 @@ class Project {
    * @param b
    * @param r
    */
-  private void __gluMultMatricesd(double[] a, double[] b, double[] r) {
+  private void __gluMultMatricesd(double[] a, int a_offset, double[] b, int b_offset, double[] r) {
     for (int i = 0; i < 4; i++) {
       for (int j = 0; j < 4; j++) {
         r[i*4+j] =
-          a[i*4+0]*b[0*4+j] +
-          a[i*4+1]*b[1*4+j] +
-          a[i*4+2]*b[2*4+j] +
-          a[i*4+3]*b[3*4+j];
+          a[i*4+0+a_offset]*b[0*4+j+b_offset] +
+          a[i*4+1+a_offset]*b[1*4+j+b_offset] +
+          a[i*4+2+a_offset]*b[2*4+j+b_offset] +
+          a[i*4+3+a_offset]*b[3*4+j+b_offset];
       }
     }
   }
@@ -414,9 +413,13 @@ class Project {
                             double objy,
                             double objz,
                             double[] modelMatrix,
+                            int modelMatrix_offset,
                             double[] projMatrix,
+                            int projMatrix_offset,
                             int[] viewport,
-                            double[] win_pos) {
+                            int viewport_offset,
+                            double[] win_pos,
+                            int win_pos_offset ) {
 
     double[] in = this.in;
     double[] out = this.out;
@@ -426,8 +429,8 @@ class Project {
     in[2] = objz;
     in[3] = 1.0;
 
-    __gluMultMatrixVecd(modelMatrix, in, out);
-    __gluMultMatrixVecd(projMatrix, out, in);
+    __gluMultMatrixVecd(modelMatrix, modelMatrix_offset, in, out);
+    __gluMultMatrixVecd(projMatrix, projMatrix_offset, out, in);
 
     if (in[3] == 0.0)
       return false;
@@ -440,9 +443,9 @@ class Project {
     in[2] = in[2] * in[3] + 0.5f;
 
     // Map x,y to viewport
-    win_pos[0] = in[0] * viewport[2] + viewport[0];
-    win_pos[1] = in[1] * viewport[3] + viewport[1];
-    win_pos[2] = in[2];
+    win_pos[0+win_pos_offset] = in[0] * viewport[2+viewport_offset] + viewport[0+viewport_offset];
+    win_pos[1+win_pos_offset] = in[1] * viewport[3+viewport_offset] + viewport[1+viewport_offset];
+    win_pos[2+win_pos_offset] = in[2];
 
     return true;
   }
@@ -464,13 +467,17 @@ class Project {
                               double winy,
                               double winz,
                               double[] modelMatrix,
+                              int modelMatrix_offset,
                               double[] projMatrix,
+                              int projMatrix_offset,
                               int[] viewport,
-                              double[] obj_pos) {
+                              int viewport_offset,
+                              double[] obj_pos,
+                              int obj_pos_offset) {
     double[] in = this.in;
     double[] out = this.out;
 
-    __gluMultMatricesd(modelMatrix, projMatrix, finalMatrix);
+    __gluMultMatricesd(modelMatrix, modelMatrix_offset, projMatrix, projMatrix_offset, finalMatrix);
 
     if (!__gluInvertMatrixd(finalMatrix, finalMatrix))
       return false;
@@ -481,24 +488,24 @@ class Project {
     in[3] = 1.0;
 
     // Map x and y from window coordinates
-    in[0] = (in[0] - viewport[0]) / viewport[2];
-    in[1] = (in[1] - viewport[1]) / viewport[3];
+    in[0] = (in[0] - viewport[0+viewport_offset]) / viewport[2+viewport_offset];
+    in[1] = (in[1] - viewport[1+viewport_offset]) / viewport[3+viewport_offset];
 
     // Map to range -1 to 1
     in[0] = in[0] * 2 - 1;
     in[1] = in[1] * 2 - 1;
     in[2] = in[2] * 2 - 1;
 
-    __gluMultMatrixVecd(finalMatrix, in, out);
+    __gluMultMatrixVecd(finalMatrix, 0, in, out);
 
     if (out[3] == 0.0)
       return false;
 
     out[3] = 1.0 / out[3];
 
-    obj_pos[0] = out[0] * out[3];
-    obj_pos[1] = out[1] * out[3];
-    obj_pos[2] = out[2] * out[3];
+    obj_pos[0+obj_pos_offset] = out[0] * out[3];
+    obj_pos[1+obj_pos_offset] = out[1] * out[3];
+    obj_pos[2+obj_pos_offset] = out[2] * out[3];
 
     return true;
   }
@@ -524,15 +531,19 @@ class Project {
                                double winz,
                                double clipw,
                                double[] modelMatrix,
+                               int modelMatrix_offset,
                                double[] projMatrix,
+                               int projMatrix_offset,
                                int[] viewport,
+                               int viewport_offset,
                                double near,
                                double far,
-                               double[] obj_pos) {
+                               double[] obj_pos,
+                               int obj_pos_offset ) {
     double[] in = this.in;
     double[] out = this.out;
 
-    __gluMultMatricesd(modelMatrix, projMatrix, finalMatrix);
+    __gluMultMatricesd(modelMatrix, modelMatrix_offset, projMatrix, projMatrix_offset, finalMatrix);
 
     if (!__gluInvertMatrixd(finalMatrix, finalMatrix))
       return false;
@@ -543,8 +554,8 @@ class Project {
     in[3] = clipw;
 
     // Map x and y from window coordinates
-    in[0] = (in[0] - viewport[0]) / viewport[2];
-    in[1] = (in[1] - viewport[1]) / viewport[3];
+    in[0] = (in[0] - viewport[0+viewport_offset]) / viewport[2+viewport_offset];
+    in[1] = (in[1] - viewport[1+viewport_offset]) / viewport[3+viewport_offset];
     in[2] = (in[2] - near) / (far - near);
 
     // Map to range -1 to 1
@@ -552,15 +563,15 @@ class Project {
     in[1] = in[1] * 2 - 1;
     in[2] = in[2] * 2 - 1;
 
-    __gluMultMatrixVecd(finalMatrix, in, out);
+    __gluMultMatrixVecd(finalMatrix, 0, in, out);
 
     if (out[3] == 0.0)
       return false;
 
-    obj_pos[0] = out[0];
-    obj_pos[1] = out[1];
-    obj_pos[2] = out[2];
-    obj_pos[3] = out[3];
+    obj_pos[0+obj_pos_offset] = out[0];
+    obj_pos[1+obj_pos_offset] = out[1];
+    obj_pos[2+obj_pos_offset] = out[2];
+    obj_pos[3+obj_pos_offset] = out[3];
     return true;
   }
 
@@ -578,15 +589,16 @@ class Project {
                             double y,
                             double deltaX,
                             double deltaY,
-                            int[] viewport) {
+                            int[] viewport,
+                            int viewport_offset) {
     if (deltaX <= 0 || deltaY <= 0) {
       return;
     }
 
     /* Translate and scale the picked region to the entire window */
-    gl.glTranslated((viewport[2] - 2 * (x - viewport[0])) / deltaX,
-                    (viewport[3] - 2 * (y - viewport[1])) / deltaY,
+    gl.glTranslated((viewport[2+viewport_offset] - 2 * (x - viewport[0+viewport_offset])) / deltaX,
+                    (viewport[3+viewport_offset] - 2 * (y - viewport[1+viewport_offset])) / deltaY,
                     0);
-    gl.glScaled(viewport[2] / deltaX, viewport[3] / deltaY, 1.0);
+    gl.glScaled(viewport[2+viewport_offset] / deltaX, viewport[3+viewport_offset] / deltaY, 1.0);
   }
 }

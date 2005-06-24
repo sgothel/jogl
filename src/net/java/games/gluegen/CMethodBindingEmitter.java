@@ -55,7 +55,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
   protected static final String arrayRes       = "_array_res";
   protected static final String arrayIdx       = "_array_idx";
   
-  private MethodBinding binding;
+  protected MethodBinding binding;
 
   /** Name of the package in which the corresponding Java method resides.*/
   private String packageName;
@@ -304,6 +304,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
   protected int emitArguments(PrintWriter writer)
   {
     int numBufferOffsetArgs = 0, numBufferOffsetArrayArgs = 0;
+
     writer.print("JNIEnv *env, ");
     int numEmitted = 1; // initially just the JNIEnv
     if (isJavaMethodStatic && !binding.hasContainingType())
@@ -352,7 +353,13 @@ public class CMethodBindingEmitter extends FunctionEmitter
                  writer.print(", jintArray " + 
                                 byteOffsetArrayConversionArgName(numBufferOffsetArrayArgs));
            }
-       } 
+       }
+
+       // Add array primitive index/offset parameter
+       if(javaArgType.isArray() && !javaArgType.isNIOBufferArray() && !javaArgType.isStringArray()) {
+             writer.print(", jint " + binding.getArgumentName(i) + "_offset");
+       }
+ 
     }
     return numEmitted;
   }
@@ -563,6 +570,9 @@ public class CMethodBindingEmitter extends FunctionEmitter
           writer.print(") (*env)->GetPrimitiveArrayCritical(env, ");
           writer.print(binding.getArgumentName(i));
           writer.println(", NULL);");
+//if(cargtypename is void*)
+//   _ptrX = ((char*)convName + index1*sizeof(thisArgsJavaType));
+ 
         } else {
           // Handle the case where the array elements are of a type that needs a
           // data copy operation to convert from the java memory model to the C
@@ -867,6 +877,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
 
   protected void emitBodyCallCFunction(PrintWriter writer)
   {
+
     // Make the call to the actual C function
     writer.print("  ");
 
@@ -909,10 +920,28 @@ public class CMethodBindingEmitter extends FunctionEmitter
           writer.print("(intptr_t) ");
         }
         if (javaArgType.isArray() || javaArgType.isNIOBuffer()) {
-          writer.print(pointerConversionArgumentName(i));
-          if (javaArgTypeNeedsDataCopy(javaArgType)) {
-            writer.print("_copy");
-          }
+
+            // Add special code for accounting for array offsets 
+            //
+            // For mapping from byte primitive array type to type* case produces code:
+            //    (GLtype*)((char*)_ptr0 + varName_offset)
+            // where varName_offset is the number of bytes offset as calculated in Java code
+            if(javaArgType.isArray() && !javaArgType.isNIOBufferArray() && !javaArgType.isStringArray()) {
+                    writer.print("( (char*)");
+            } 
+            /* End of this section of new code for array offsets */    
+         
+            writer.print(pointerConversionArgumentName(i));
+            if (javaArgTypeNeedsDataCopy(javaArgType)) {
+                writer.print("_copy");
+            }
+
+            /* Continuation of special code for accounting for array offsets */
+            if(javaArgType.isArray() && !javaArgType.isNIOBufferArray() && !javaArgType.isStringArray()) {
+                      writer.print(" + " + binding.getArgumentName(i) + "_offset)");     
+            }  
+            /* End of this section of new code for array offsets */
+
         } else {
           if (javaArgType.isString()) { writer.print("_UTF8"); }
           writer.print(binding.getArgumentName(i));          
@@ -1066,7 +1095,6 @@ public class CMethodBindingEmitter extends FunctionEmitter
 
   protected String jniMangle(MethodBinding binding) {
     StringBuffer buf = new StringBuffer();
-    int numBufferOffsetArgs = 0;
     buf.append(jniMangle(binding.getName()));
     buf.append("__");
     for (int i = 0; i < binding.getNumArguments(); i++) {
@@ -1082,6 +1110,9 @@ public class CMethodBindingEmitter extends FunctionEmitter
                        int[] intArrayType = new int[0];
                        c = intArrayType.getClass(); 
                        jniMangle(c , buf);
+         }
+         if(type.isArray() && !type.isNIOBufferArray())  {
+                 jniMangle(Integer.TYPE, buf);
          }
       } else {
         // FIXME: add support for char* -> String conversion

@@ -44,6 +44,7 @@ import java.util.*;
 import java.text.MessageFormat;
 
 import net.java.games.gluegen.cgram.types.*;
+import net.java.games.jogl.util.BufferUtils;
 
 /** Emits the Java-side component of the Java<->C JNI binding. */
 public class JavaMethodBindingImplEmitter extends JavaMethodBindingEmitter
@@ -52,17 +53,19 @@ public class JavaMethodBindingImplEmitter extends JavaMethodBindingEmitter
 
   public JavaMethodBindingImplEmitter(MethodBinding binding, PrintWriter output, String runtimeExceptionType)
   {
-    this(binding, output, runtimeExceptionType, false);
+    this(binding, output, runtimeExceptionType, false, false);
   }
 
   public JavaMethodBindingImplEmitter(MethodBinding binding,
                                       PrintWriter output,
                                       String runtimeExceptionType,
-                                      boolean isUnimplemented)
+                                      boolean isUnimplemented, 
+                                      boolean arrayImplExpansion)
   {
     super(binding, output, runtimeExceptionType);
     setCommentEmitter(defaultJavaCommentEmitter);
     this.isUnimplemented = isUnimplemented;
+    this.forArrayImplementingMethodCall = arrayImplExpansion;
   }
 
   public JavaMethodBindingImplEmitter(JavaMethodBindingEmitter arg) {
@@ -99,6 +102,7 @@ public class JavaMethodBindingImplEmitter extends JavaMethodBindingEmitter
     return (isUnimplemented ||
             getBinding().signatureUsesNIO() ||
             getBinding().signatureUsesCArrays() ||
+            getBinding().signatureUsesPrimitiveArrays() ||
             getBinding().hasContainingType());
   }
 
@@ -112,13 +116,13 @@ public class JavaMethodBindingImplEmitter extends JavaMethodBindingEmitter
     // Check lengths of any incoming arrays if necessary
     for (int i = 0; i < binding.getNumArguments(); i++) {
       Type type = binding.getCArgumentType(i);
+      JavaType javaType = binding.getJavaArgumentType(i);
       if (type.isArray()) {
         ArrayType arrayType = type.asArray();
         writer.println("    if (" + binding.getArgumentName(i) + ".length < " + arrayType.getLength() + ")");
         writer.println("      throw new " + getRuntimeExceptionType() + "(\"Length of array \\\"" + binding.getArgumentName(i) +
                        "\\\" was less than the required " + arrayType.getLength() + "\");");
       } else {
-        JavaType javaType = binding.getJavaArgumentType(i);
         if (javaType.isNIOBuffer()) {
           writer.println("    if (!BufferFactory.isDirect(" + binding.getArgumentName(i) + "))");
           writer.println("      throw new " + getRuntimeExceptionType() + "(\"Argument \\\"" +
@@ -141,6 +145,12 @@ public class JavaMethodBindingImplEmitter extends JavaMethodBindingEmitter
           writer.println(argName + "[_ctr]);");
           writer.println("      }");
           writer.println("    }");
+        } else if (javaType.isArray() && !javaType.isNIOBufferArray() &&!javaType.isStringArray()) {
+           String argName = binding.getArgumentName(i);
+           String offsetArg = argName + "_offset";
+           writer.println("    if(" + argName + ".length <= " + offsetArg + ")");
+           writer.print("         throw new " + getRuntimeExceptionType()); 
+           writer.println("(\"array offset argument \\\"" + offsetArg + "\\\" equals or exceeds array length\");");
         }
       }
     }
@@ -175,6 +185,7 @@ public class JavaMethodBindingImplEmitter extends JavaMethodBindingEmitter
     boolean needComma = false;
     int numArgsEmitted = 0;
     int numBufferOffsetArgs = 0, numBufferOffsetArrayArgs = 0;
+
     if (binding.hasContainingType()) {
       // Emit this pointer
       assert(binding.getContainingType().isCompoundTypeWrapper());
@@ -228,6 +239,28 @@ public class JavaMethodBindingImplEmitter extends JavaMethodBindingEmitter
                    writer.print(", " + byteOffsetArrayConversionArgName(numBufferOffsetArrayArgs));
             }
       }
+
+      // Add Array offset parameter for primitive arrays
+      if(type.isArray() && !type.isNIOBufferArray() && !type.isStringArray()) {
+           // writer.print(", " + binding.getArgumentName(i) + "_offset");
+              if(type.isFloatArray()) {
+                     writer.print(", BufferFactory.SIZEOF_FLOAT * " + binding.getArgumentName(i) + "_offset");
+              } else if(type.isDoubleArray()) {
+                     writer.print(", BufferFactory.SIZEOF_DOUBLE * " + binding.getArgumentName(i) + "_offset");
+              } else if(type.isByteArray()) {
+                     writer.print(", " + binding.getArgumentName(i) + "_offset");
+              } else if(type.isLongArray()) {
+                     writer.print(", BufferFactory.SIZEOF_LONG * " + binding.getArgumentName(i) + "_offset");
+              } else if(type.isShortArray()) {
+                     writer.print(", BufferFactory.SIZEOF_SHORT * " + binding.getArgumentName(i) + "_offset");
+              } else if(type.isIntArray()) {
+                     writer.print(", BufferFactory.SIZEOF_INT * " + binding.getArgumentName(i) + "_offset");
+              } else {
+                    throw new RuntimeException("Unsupported type for calculating array offset argument for " +
+              binding.getArgumentName(i) +  "-- error occurred while processing Java glue code for " + binding.getName());
+              }         
+      }
+
     }
     return numArgsEmitted;
   }

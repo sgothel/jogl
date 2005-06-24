@@ -54,8 +54,10 @@ public class CGLPAWrapperEmitter extends CMethodBindingEmitter
   private static String procAddressJavaTypeName =
     JavaType.createForClass(Long.TYPE).jniTypeName();
 
+  protected boolean arrayImplRoutine = false;
+
   public CGLPAWrapperEmitter(CMethodBindingEmitter methodToWrap)
-  {    
+  {  
     super(
       new MethodBinding(methodToWrap.getBinding()) {
         public String getName() {
@@ -68,6 +70,9 @@ public class CGLPAWrapperEmitter extends CMethodBindingEmitter
       methodToWrap.getIsJavaMethodStatic(),
       methodToWrap.getDefaultOutput()
       );
+
+//    if(binding.signatureUsesPrimitiveArrays())
+//          arrayImplRoutine = true;
 
     if (methodToWrap.getReturnValueCapacityExpression() != null) {
       setReturnValueCapacityExpression(methodToWrap.getReturnValueCapacityExpression());
@@ -194,10 +199,31 @@ public class CGLPAWrapperEmitter extends CMethodBindingEmitter
           writer.print("(intptr_t) ");
         }
         if (javaType.isArray() || javaType.isNIOBuffer()) {
-          writer.print(pointerConversionArgumentName(i));
-          if (javaArgTypeNeedsDataCopy(javaType)) {
-            writer.print("_copy");
-          }
+
+            Type cArgType = binding.getCSymbol().getArgumentType(i); 
+            boolean containsVoid = false;
+            // Add special code for accounting for array offsets
+            //
+            // For mapping from byte primitive array type to type* case produces code:
+            //    (GLtype*)((char*)_ptr0 + varName_offset)
+            // where varName_offset is the number of bytes offset as calculated in Java code
+
+            if(javaType.isArray() && !javaType.isNIOBufferArray() && !javaType.isStringArray()) {
+                    writer.print("( (char*)");
+            }
+            /* End of special code section for accounting for array offsets */
+
+           writer.print(pointerConversionArgumentName(i));
+           if (javaArgTypeNeedsDataCopy(javaType)) {
+              writer.print("_copy");
+           }
+
+            /* Add special code for accounting for array offsets */
+            if(javaType.isArray() && !javaType.isNIOBufferArray() && !javaType.isStringArray()) {
+                      writer.print(" + " + binding.getArgumentName(i) + "_offset)");
+            }
+            /* End of special code section for accounting for array offsets */
+
         } else {
           if (javaType.isString()) { writer.print("_UTF8"); }
           writer.print(binding.getArgumentName(i));          
@@ -209,8 +235,36 @@ public class CGLPAWrapperEmitter extends CMethodBindingEmitter
 
   protected String jniMangle(MethodBinding binding) {
     StringBuffer buf = new StringBuffer();
-    buf.append(super.jniMangle(binding));
-    jniMangle(Long.TYPE, buf);
+    buf.append(jniMangle(binding.getName()));
+
+    if(binding.signatureUsesPrimitiveArrays())
+        buf.append("1");
+
+    buf.append("__");
+    for (int i = 0; i < binding.getNumArguments(); i++) {
+      JavaType type = binding.getJavaArgumentType(i);
+      Class c = type.getJavaClass();
+      if (c != null) {
+        jniMangle(c, buf);
+         // If Buffer offset arguments were added, we need to mangle the JNI for the
+         // extra arguments
+         if(type.isNIOBuffer()) {
+                 jniMangle(Integer.TYPE, buf);
+         } else if (type.isNIOBufferArray())   {
+                       int[] intArrayType = new int[0];
+                       c = intArrayType.getClass();
+                       jniMangle(c , buf);
+         }
+         if(type.isArray() && !type.isNIOBufferArray() && !type.isStringArray())  {
+                 jniMangle(Integer.TYPE, buf);
+         }
+      } else {
+        // FIXME: add support for char* -> String conversion
+        throw new RuntimeException("Unknown kind of JavaType: name="+type.getName());
+      }
+    }
+
+    jniMangle(Long.TYPE, buf);  // to account for the additional _addr_ parameter
     return buf.toString();
   }
 

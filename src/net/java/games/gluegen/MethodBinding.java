@@ -233,7 +233,7 @@ public class MethodBinding {
         signatureUsesCArrays = true;
       }
 
-      if (javaArgType.isPrimitiveArray()) {
+      if (javaArgType.isPrimitiveArray() && !javaArgType.isStringArray() ) {
         // Needs getPrimitiveArrayCritical or similar construct
         // depending on native code calling convention
         signatureUsesPrimitiveArrays = true;

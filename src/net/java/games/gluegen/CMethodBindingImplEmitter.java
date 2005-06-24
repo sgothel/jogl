@@ -48,8 +48,11 @@ public class CMethodBindingImplEmitter extends CMethodBindingEmitter
   protected static final CommentEmitter defaultCImplCommentEmitter =
     new CImplCommentEmitter();
 
+  protected boolean arrayImplRoutine = false;
+
   public CMethodBindingImplEmitter(MethodBinding binding,
                                    boolean isOverloadedBinding,
+                                   boolean arrayImpl,
                                    String javaPackageName,
                                    String javaClassName,
                                    boolean isJavaMethodStatic,
@@ -59,13 +62,17 @@ public class CMethodBindingImplEmitter extends CMethodBindingEmitter
           javaPackageName, javaClassName,
           isJavaMethodStatic, output);
     setCommentEmitter(defaultCImplCommentEmitter);
+    arrayImplRoutine = arrayImpl;
   }
 
   protected void emitName(PrintWriter writer)
   {
     super.emitName(writer);
     if (!getIsOverloadedBinding()) {
-      writer.print("0");
+      if(!arrayImplRoutine)
+         writer.print("0");
+      else
+         writer.print("1");
     }
   }
 
@@ -76,7 +83,12 @@ public class CMethodBindingImplEmitter extends CMethodBindingEmitter
   protected String jniMangle(MethodBinding binding) {
     StringBuffer buf = new StringBuffer();
     buf.append(jniMangle(binding.getName()));
-    buf.append("0");
+
+    if(!arrayImplRoutine)
+        buf.append("0");
+    else
+        buf.append("1");
+
     buf.append("__");
     for (int i = 0; i < binding.getNumArguments(); i++) {
       JavaType type = binding.getJavaArgumentType(i);
@@ -90,6 +102,9 @@ public class CMethodBindingImplEmitter extends CMethodBindingEmitter
                        int[] intArrayType = new int[0];
                        c = intArrayType.getClass();
                        jniMangle(c , buf);
+       }
+       if(type.isArray() && !type.isNIOBufferArray() && !type.isStringArray())  {
+                jniMangle(Integer.TYPE, buf);
        }
       } else {
         // FIXME: add support for char* -> String conversion

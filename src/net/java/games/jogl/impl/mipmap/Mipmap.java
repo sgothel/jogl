@@ -257,7 +257,7 @@ public class Mipmap {
         if( target == GL.GL_TEXTURE_2D || target == GL.GL_PROXY_TEXTURE_2D ) {
           proxyTarget = GL.GL_PROXY_TEXTURE_2D;
           gl.glTexImage2D( proxyTarget, 1, internalFormat, widthAtLevelOne,
-                    heightAtLevelOne, 0, format, type, (double[])null );
+                    heightAtLevelOne, 0, format, type, (double[])null, 0);
         } else if( (target == GL.GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB) || 
               (target == GL.GL_TEXTURE_CUBE_MAP_NEGATIVE_X_ARB) || 
               (target == GL.GL_TEXTURE_CUBE_MAP_POSITIVE_Y_ARB) || 
@@ -266,14 +266,14 @@ public class Mipmap {
               (target == GL.GL_TEXTURE_CUBE_MAP_NEGATIVE_Z_ARB) ) {
                 proxyTarget = GL.GL_PROXY_TEXTURE_CUBE_MAP_ARB;
                 gl.glTexImage2D( proxyTarget, 1, internalFormat, widthAtLevelOne,
-                        heightAtLevelOne, 0, format, type, (double[])null );
+                        heightAtLevelOne, 0, format, type, (double[])null , 0);
         } else {
           assert( target == GL.GL_TEXTURE_1D || target == GL.GL_PROXY_TEXTURE_1D );
           proxyTarget = GL.GL_PROXY_TEXTURE_1D;
           gl.glTexImage1D( proxyTarget, 1, internalFormat, widthAtLevelOne, 
-              0, format, type, (double[])null );
+              0, format, type, (double[])null, 0);
         }
-        gl.glGetTexLevelParameteriv( proxyTarget, 1, GL.GL_TEXTURE_WIDTH, proxyWidth );
+        gl.glGetTexLevelParameteriv( proxyTarget, 1, GL.GL_TEXTURE_WIDTH, proxyWidth, 0 );
         // does it fit?
         if( proxyWidth[0] == 0 ) { // nope, so try again with theses sizes
           if( widthPowerOf2 == 1 && heightPowerOf2 == 1 ) {
@@ -299,7 +299,7 @@ public class Mipmap {
       }
     }
     int[] maxsize = new int[1];
-    gl.glGetIntegerv( GL.GL_MAX_TEXTURE_SIZE, maxsize );
+    gl.glGetIntegerv( GL.GL_MAX_TEXTURE_SIZE, maxsize , 0);
     // clamp user's texture sizes to maximum sizes, if necessary
     newWidth[0] = nearestPower( width );
     if( newWidth[0] > maxsize[0] ) {
@@ -333,9 +333,9 @@ public class Mipmap {
       if( target == GL.GL_TEXTURE_3D || target == GL.GL_PROXY_TEXTURE_3D ) {
         proxyTarget = GL.GL_PROXY_TEXTURE_3D;
         gl.glTexImage3D( proxyTarget, 1, internalFormat, widthAtLevelOne,
-                heightAtLevelOne, depthAtLevelOne, 0, format, type, (double[])null );
+                heightAtLevelOne, depthAtLevelOne, 0, format, type, (double[])null, 0 );
       }
-      gl.glGetTexLevelParameteriv( proxyTarget, 1, GL.GL_TEXTURE_WIDTH, proxyWidth );
+      gl.glGetTexLevelParameteriv( proxyTarget, 1, GL.GL_TEXTURE_WIDTH, proxyWidth, 0 );
       // does it fit
       if( proxyWidth[0] == 0 ) {
         if( widthPowerOf2 == 1 && heightPowerOf2 == 1 && depthPowerOf2 == 1 ) {
@@ -454,67 +454,67 @@ public class Mipmap {
   
   public static void retrieveStoreModes( GL gl, PixelStorageModes psm ) {
     int[] a = new int[1];
-    gl.glGetIntegerv( GL.GL_UNPACK_ALIGNMENT, a );
+    gl.glGetIntegerv( GL.GL_UNPACK_ALIGNMENT, a, 0);
     psm.setUnpackAlignment( a[0] );
-    gl.glGetIntegerv( GL.GL_UNPACK_ROW_LENGTH, a );
+    gl.glGetIntegerv( GL.GL_UNPACK_ROW_LENGTH, a, 0);
     psm.setUnpackRowLength( a[0] );
-    gl.glGetIntegerv( GL.GL_UNPACK_SKIP_ROWS, a );
+    gl.glGetIntegerv( GL.GL_UNPACK_SKIP_ROWS, a, 0);
     psm.setUnpackSkipRows( a[0] );
-    gl.glGetIntegerv( GL.GL_UNPACK_SKIP_PIXELS, a );
+    gl.glGetIntegerv( GL.GL_UNPACK_SKIP_PIXELS, a, 0);
     psm.setUnpackSkipPixels( a[0] );
-    gl.glGetIntegerv( GL.GL_UNPACK_LSB_FIRST, a );
+    gl.glGetIntegerv( GL.GL_UNPACK_LSB_FIRST, a, 0);
     psm.setUnpackLsbFirst( ( a[0] == 1 ) );
-    gl.glGetIntegerv( GL.GL_UNPACK_SWAP_BYTES, a );
+    gl.glGetIntegerv( GL.GL_UNPACK_SWAP_BYTES, a, 0);
     psm.setUnpackSwapBytes( ( a[0] == 1 ) );
     
-    gl.glGetIntegerv( GL.GL_PACK_ALIGNMENT, a );
+    gl.glGetIntegerv( GL.GL_PACK_ALIGNMENT, a, 0);
     psm.setPackAlignment( a[0] );
-    gl.glGetIntegerv( GL.GL_PACK_ROW_LENGTH, a );
+    gl.glGetIntegerv( GL.GL_PACK_ROW_LENGTH, a, 0);
     psm.setPackRowLength( a[0] );
-    gl.glGetIntegerv( GL.GL_PACK_SKIP_ROWS, a );
+    gl.glGetIntegerv( GL.GL_PACK_SKIP_ROWS, a, 0);
     psm.setPackSkipRows( a[0] );
-    gl.glGetIntegerv( GL.GL_PACK_SKIP_PIXELS, a );
+    gl.glGetIntegerv( GL.GL_PACK_SKIP_PIXELS, a, 0);
     psm.setPackSkipPixels( a[0] );
-    gl.glGetIntegerv( GL.GL_PACK_LSB_FIRST, a );
+    gl.glGetIntegerv( GL.GL_PACK_LSB_FIRST, a, 0);
     psm.setPackLsbFirst( ( a[0] == 1 ) );
-    gl.glGetIntegerv( GL.GL_PACK_SWAP_BYTES, a );
+    gl.glGetIntegerv( GL.GL_PACK_SWAP_BYTES, a, 0);
     psm.setPackSwapBytes( ( a[0] == 1 ) );
   }
   
   public static void retrieveStoreModes3D( GL gl, PixelStorageModes psm ) {
     int[] a = new int[1];
-    gl.glGetIntegerv( GL.GL_UNPACK_ALIGNMENT, a );
+    gl.glGetIntegerv( GL.GL_UNPACK_ALIGNMENT, a, 0);
     psm.setUnpackAlignment( a[0] );
-    gl.glGetIntegerv( GL.GL_UNPACK_ROW_LENGTH, a );
+    gl.glGetIntegerv( GL.GL_UNPACK_ROW_LENGTH, a, 0);
     psm.setUnpackRowLength( a[0] );
-    gl.glGetIntegerv( GL.GL_UNPACK_SKIP_ROWS, a );
+    gl.glGetIntegerv( GL.GL_UNPACK_SKIP_ROWS, a, 0);
     psm.setUnpackSkipRows( a[0] );
-    gl.glGetIntegerv( GL.GL_UNPACK_SKIP_PIXELS, a );
+    gl.glGetIntegerv( GL.GL_UNPACK_SKIP_PIXELS, a, 0);
     psm.setUnpackSkipPixels( a[0] );
-    gl.glGetIntegerv( GL.GL_UNPACK_LSB_FIRST, a );
+    gl.glGetIntegerv( GL.GL_UNPACK_LSB_FIRST, a, 0);
     psm.setUnpackLsbFirst( ( a[0] == 1 ) );
-    gl.glGetIntegerv( GL.GL_UNPACK_SWAP_BYTES, a );
+    gl.glGetIntegerv( GL.GL_UNPACK_SWAP_BYTES, a, 0);
     psm.setUnpackSwapBytes( ( a[0] == 1 ) );
-    gl.glGetIntegerv( GL.GL_UNPACK_SKIP_IMAGES, a );
+    gl.glGetIntegerv( GL.GL_UNPACK_SKIP_IMAGES, a, 0);
     psm.setUnpackSkipImages( a[0] );
-    gl.glGetIntegerv( GL.GL_UNPACK_IMAGE_HEIGHT, a );
+    gl.glGetIntegerv( GL.GL_UNPACK_IMAGE_HEIGHT, a, 0);
     psm.setUnpackImageHeight( a[0] );
     
-    gl.glGetIntegerv( GL.GL_PACK_ALIGNMENT, a );
+    gl.glGetIntegerv( GL.GL_PACK_ALIGNMENT, a, 0);
     psm.setPackAlignment( a[0] );
-    gl.glGetIntegerv( GL.GL_PACK_ROW_LENGTH, a );
+    gl.glGetIntegerv( GL.GL_PACK_ROW_LENGTH, a, 0);
     psm.setPackRowLength( a[0] );
-    gl.glGetIntegerv( GL.GL_PACK_SKIP_ROWS, a );
+    gl.glGetIntegerv( GL.GL_PACK_SKIP_ROWS, a, 0);
     psm.setPackSkipRows( a[0] );
-    gl.glGetIntegerv( GL.GL_PACK_SKIP_PIXELS, a );
+    gl.glGetIntegerv( GL.GL_PACK_SKIP_PIXELS, a, 0 );
     psm.setPackSkipPixels( a[0] );
-    gl.glGetIntegerv( GL.GL_PACK_LSB_FIRST, a );
+    gl.glGetIntegerv( GL.GL_PACK_LSB_FIRST, a, 0 );
     psm.setPackLsbFirst( ( a[0] == 1 ) );
-    gl.glGetIntegerv( GL.GL_PACK_SWAP_BYTES, a );
+    gl.glGetIntegerv( GL.GL_PACK_SWAP_BYTES, a, 0 );
     psm.setPackSwapBytes( ( a[0] == 1 ) );
-    gl.glGetIntegerv( GL.GL_PACK_SKIP_IMAGES, a );
+    gl.glGetIntegerv( GL.GL_PACK_SKIP_IMAGES, a, 0 );
     psm.setPackSkipImages( a[0] );
-    gl.glGetIntegerv( GL.GL_PACK_IMAGE_HEIGHT, a );
+    gl.glGetIntegerv( GL.GL_PACK_IMAGE_HEIGHT, a, 0 );
     psm.setPackImageHeight( a[0] );
   }
   
@@ -602,7 +602,8 @@ public class Mipmap {
     return( BuildMipmap.gluBuild1DMipmapLevelsCore( gl, target, internalFormat, 
                   width, widthPowerOf2[0], format, type, 0, 0, levels, data ) );
   }
-  
+
+ 
   public static int gluBuild2DMipmapLevels( GL gl, int target, int internalFormat,
           int width, int height, int format, int type, int userLevel,
           int baseLevel, int maxLevel, Object data ) {
@@ -632,32 +633,14 @@ public class Mipmap {
     ByteBuffer buffer = null;
     if( data instanceof ByteBuffer ) {
         buffer = (ByteBuffer)data;
-    } else if( data instanceof byte[] ) {
-      byte[] array = (byte[])data;
-      buffer = ByteBuffer.allocateDirect(array.length);
-      buffer.put(array);
-    } else if( data instanceof short[] ) {
-        short[] array = (short[])data;
-        buffer = ByteBuffer.allocateDirect( array.length * 2 );
-        ShortBuffer sb = buffer.asShortBuffer();
-        sb.put( array );
-    } else if( data instanceof int[] ) {
-        int[] array = (int[])data;
-        buffer = ByteBuffer.allocateDirect( array.length * 4 );
-        IntBuffer ib = buffer.asIntBuffer();
-        ib.put( array );
-    } else if( data instanceof float[] ) {
-        float[] array = (float[])data;
-        buffer = ByteBuffer.allocateDirect( array.length * 4 );
-        FloatBuffer fb = buffer.asFloatBuffer();
-        fb.put( array );
-    }
+    } 
     
     return( BuildMipmap.gluBuild2DMipmapLevelsCore( gl, target, internalFormat,
             width, height, width, height, format, type, userLevel, baseLevel,
             maxLevel, buffer ) );
   }
-  
+
+ 
   public static int gluBuild2DMipmaps( GL gl, int target, int internalFormat,
           int width, int height, int format, int type, Object data ) {
     int[] widthPowerOf2 = new int[1];
@@ -686,32 +669,14 @@ public class Mipmap {
     ByteBuffer buffer = null;
     if( data instanceof ByteBuffer ) {
         buffer = (ByteBuffer)data;
-    } else if( data instanceof byte[] ) {
-      byte[] array = (byte[])data;
-      buffer = ByteBuffer.allocateDirect(array.length);
-      buffer.put(array);
-    } else if( data instanceof short[] ) {
-        short[] array = (short[])data;
-        buffer = ByteBuffer.allocateDirect( array.length * 2 );
-        ShortBuffer sb = buffer.asShortBuffer();
-        sb.put( array );
-    } else if( data instanceof int[] ) {
-        int[] array = (int[])data;
-        buffer = ByteBuffer.allocateDirect( array.length * 4 );
-        IntBuffer ib = buffer.asIntBuffer();
-        ib.put( array );
-    } else if( data instanceof float[] ) {
-        float[] array = (float[])data;
-        buffer = ByteBuffer.allocateDirect( array.length * 4 );
-        FloatBuffer fb = buffer.asFloatBuffer();
-        fb.put( array );
-    }
+    } 
     
     return( BuildMipmap.gluBuild2DMipmapLevelsCore( gl, target, internalFormat, 
             width, height, widthPowerOf2[0], heightPowerOf2[0], format, type, 0, 
             0, levels, buffer ) );
   }
-  
+ 
+ 
   public static int gluBuild3DMipmaps( GL gl, int target, int internalFormat,
           int width, int height, int depth, int format, int type, ByteBuffer data ) {
     int[] widthPowerOf2 = new int[1];

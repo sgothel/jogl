@@ -98,6 +98,10 @@ public class JavaType {
     return clazz.hashCode();
   }
 
+  public JavaType getElementType() {
+       return new JavaType(elementType);
+  }
+
   /** Creates a JavaType corresponding to the given Java type. This
       can be used to represent arrays of primitive values or Strings;
       the emitters understand how to perform proper conversion from
@@ -321,12 +325,65 @@ public class JavaType {
     return ((clazz != null) && clazz.isArray());
   }
 
+  public boolean isFloatArray() {
+     return(clazz.isArray() && clazz.getComponentType() == Float.TYPE);
+  }
+
+  public boolean isDoubleArray() {
+     return(clazz.isArray() && clazz.getComponentType() == Double.TYPE);
+  }
+
+  public boolean isByteArray() {
+     return(clazz.isArray() && clazz.getComponentType() == Byte.TYPE);
+  }
+
+  public boolean isIntArray() {
+     return(clazz.isArray() && clazz.getComponentType() == Integer.TYPE);
+  }
+
+  public boolean isShortArray() {
+     return(clazz.isArray() && clazz.getComponentType() == Short.TYPE);
+  }
+
+  public boolean isLongArray() {
+     return(clazz.isArray() && clazz.getComponentType() == Long.TYPE);
+  }
+
+  public boolean isStringArray() {
+     return(clazz.isArray() && clazz.getComponentType() == java.lang.String.class);
+  }
+
+
   public boolean isPrimitive() {
     return ((clazz != null) && !isArray() && clazz.isPrimitive() && (clazz != Void.TYPE));
   }
 
   public boolean isPrimitiveArray() {
     return (isArray() && (clazz.getComponentType().isPrimitive()));
+  }
+
+  public boolean isShort() {
+    return (clazz == Short.TYPE);
+  }
+
+  public boolean isFloat() {
+    return (clazz == Float.TYPE);
+  }
+
+  public boolean isDouble() {
+    return (clazz == Double.TYPE);
+  }
+
+  public boolean isByte() {
+    return (clazz == Byte.TYPE);
+  }
+
+  public boolean isLong() {
+    return (clazz == Long.TYPE);
+  }
+
+  public boolean isInt() {
+    return (clazz == Integer.TYPE);
   }
 
   public boolean isVoid() {

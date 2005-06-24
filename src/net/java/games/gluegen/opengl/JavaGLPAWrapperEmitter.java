@@ -75,10 +75,15 @@ public class JavaGLPAWrapperEmitter extends JavaMethodBindingImplEmitter
                                    methodToWrap.getDefaultOutput(),
                                    methodToWrap.getRuntimeExceptionType())
       {
+
         protected void emitName(PrintWriter writer)
         {
           writer.print(GLEmitter.WRAP_PREFIX);
           super.emitName(writer);
+
+          if(getBinding().signatureUsesPrimitiveArrays())
+               writer.print("1");
+
         }       
         protected int emitArguments(PrintWriter writer)
         {
@@ -135,7 +140,10 @@ public class JavaGLPAWrapperEmitter extends JavaMethodBindingImplEmitter
   }
 
   protected String getImplMethodName() {
-    return GLEmitter.WRAP_PREFIX + getBinding().getName();
+    if(getBinding().signatureUsesPrimitiveArrays())
+         return GLEmitter.WRAP_PREFIX + getBinding().getName() + "1";
+    else
+         return GLEmitter.WRAP_PREFIX + getBinding().getName();
   }
 
   public void emit(PrintWriter writer)

@@ -517,7 +517,7 @@ public class GLUT {
     int[][] faces = boxFaces;
     for (int i = 5; i >= 0; i--) {
       gl.glBegin(type);
-      gl.glNormal3fv(n[i]);
+      gl.glNormal3fv(n[i], 0);
       float[] vt = v[faces[i][0]];
       gl.glVertex3f(vt[0] * size, vt[1] * size, vt[2] * size);
       vt = v[faces[i][1]];
@@ -606,12 +606,12 @@ public class GLUT {
     normalize(n0);
 
     gl.glBegin(shadeType);
-    gl.glNormal3fv(n0);
-    gl.glVertex3fv(dodec[a]);
-    gl.glVertex3fv(dodec[b]);
-    gl.glVertex3fv(dodec[c]);
-    gl.glVertex3fv(dodec[d]);
-    gl.glVertex3fv(dodec[e]);
+    gl.glNormal3fv(n0, 0);
+    gl.glVertex3fv(dodec[a], 0);
+    gl.glVertex3fv(dodec[b], 0);
+    gl.glVertex3fv(dodec[c], 0);
+    gl.glVertex3fv(dodec[d], 0);
+    gl.glVertex3fv(dodec[e], 0);
     gl.glEnd();
   }
 
@@ -643,10 +643,10 @@ public class GLUT {
     normalize(q1);
 
     gl.glBegin(shadeType);
-    gl.glNormal3fv(q1);
-    gl.glVertex3fv(n1);
-    gl.glVertex3fv(n2);
-    gl.glVertex3fv(n3);
+    gl.glNormal3fv(q1, 0);
+    gl.glVertex3fv(n1, 0);
+    gl.glVertex3fv(n2, 0);
+    gl.glVertex3fv(n3, 0);
     gl.glEnd();
   }
 
@@ -1016,16 +1016,16 @@ public class GLUT {
           }
         }
       }
-      gl.glMap2f(GL.GL_MAP2_TEXTURE_COORD_2, 0, 1, 2, 2, 0, 1, 4, 2, teapotTex);
-      gl.glMap2f(GL.GL_MAP2_VERTEX_3, 0, 1, 3, 4, 0, 1, 12, 4, p);
+      gl.glMap2f(GL.GL_MAP2_TEXTURE_COORD_2, 0, 1, 2, 2, 0, 1, 4, 2, teapotTex, 0);
+      gl.glMap2f(GL.GL_MAP2_VERTEX_3, 0, 1, 3, 4, 0, 1, 12, 4, p, 0);
       gl.glMapGrid2f(grid, 0.0f, 1.0f, grid, 0.0f, 1.0f);
       evaluateTeapotMesh(gl, grid, type, i, !backCompatible);
-      gl.glMap2f(GL.GL_MAP2_VERTEX_3, 0, 1, 3, 4, 0, 1, 12, 4, q);
+      gl.glMap2f(GL.GL_MAP2_VERTEX_3, 0, 1, 3, 4, 0, 1, 12, 4, q, 0);
       evaluateTeapotMesh(gl, grid, type, i, !backCompatible);
       if (i < 6) {
-        gl.glMap2f(GL.GL_MAP2_VERTEX_3, 0, 1, 3, 4, 0, 1, 12, 4, r);
+        gl.glMap2f(GL.GL_MAP2_VERTEX_3, 0, 1, 3, 4, 0, 1, 12, 4, r, 0);
         evaluateTeapotMesh(gl, grid, type, i, !backCompatible);
-        gl.glMap2f(GL.GL_MAP2_VERTEX_3, 0, 1, 3, 4, 0, 1, 12, 4, s);
+        gl.glMap2f(GL.GL_MAP2_VERTEX_3, 0, 1, 3, 4, 0, 1, 12, 4, s, 0);
         evaluateTeapotMesh(gl, grid, type, i, !backCompatible);
       }
     }
@@ -1093,7 +1093,7 @@ public class GLUT {
     BitmapCharRec ch = fontinfo.ch[c - fontinfo.first];
     if (ch != null) {
       gl.glBitmap(ch.width, ch.height, ch.xorig, ch.yorig,
-                  ch.advance, 0, ch.bitmap);
+                  ch.advance, 0, ch.bitmap, 0);
     }
   }
 
@@ -1157,12 +1157,12 @@ public class GLUT {
                                   int[] skiprows,
                                   int[] skippixels,
                                   int[] alignment) {
-    gl.glGetIntegerv(GL.GL_UNPACK_SWAP_BYTES, swapbytes);
-    gl.glGetIntegerv(GL.GL_UNPACK_LSB_FIRST, lsbfirst);
-    gl.glGetIntegerv(GL.GL_UNPACK_ROW_LENGTH, rowlength);
-    gl.glGetIntegerv(GL.GL_UNPACK_SKIP_ROWS, skiprows);
-    gl.glGetIntegerv(GL.GL_UNPACK_SKIP_PIXELS, skippixels);
-    gl.glGetIntegerv(GL.GL_UNPACK_ALIGNMENT, alignment);
+    gl.glGetIntegerv(GL.GL_UNPACK_SWAP_BYTES, swapbytes, 0);
+    gl.glGetIntegerv(GL.GL_UNPACK_LSB_FIRST, lsbfirst, 0);
+    gl.glGetIntegerv(GL.GL_UNPACK_ROW_LENGTH, rowlength, 0);
+    gl.glGetIntegerv(GL.GL_UNPACK_SKIP_ROWS, skiprows, 0);
+    gl.glGetIntegerv(GL.GL_UNPACK_SKIP_PIXELS, skippixels, 0);
+    gl.glGetIntegerv(GL.GL_UNPACK_ALIGNMENT, alignment, 0);
     /* Little endian machines (DEC Alpha for example) could
        benefit from setting GL_UNPACK_LSB_FIRST to GL_TRUE
        instead of GL_FALSE, but this would require changing the

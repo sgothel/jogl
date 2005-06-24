@@ -62,12 +62,12 @@ public class X11GLContextFactory extends GLContextFactory {
 
     int[] attribs = glCapabilities2AttribList(capabilities, isMultisampleAvailable());
     long display = getDisplayConnection();
-    XVisualInfo recommendedVis = GLX.glXChooseVisual(display, screen, attribs);
+    XVisualInfo recommendedVis = GLX.glXChooseVisual(display, screen, attribs, 0);
     int recommendedIndex = -1;
     int[] count = new int[1];
     XVisualInfo template = new XVisualInfo();
     template.screen(screen);
-    XVisualInfo[] infos = GLX.XGetVisualInfo(display, GLX.VisualScreenMask, template, count);
+    XVisualInfo[] infos = GLX.XGetVisualInfo(display, GLX.VisualScreenMask, template, count, 0);
     if (infos == null) {
       throw new GLException("Error while enumerating available XVisualInfos");
     }
@@ -125,37 +125,37 @@ public class X11GLContextFactory extends GLContextFactory {
 
   public static GLCapabilities xvi2GLCapabilities(long display, XVisualInfo info) {
     int[] tmp = new int[1];
-    int val = glXGetConfig(display, info, GLX.GLX_USE_GL, tmp);
+    int val = glXGetConfig(display, info, GLX.GLX_USE_GL, tmp, 0);
     if (val == 0) {
       // Visual does not support OpenGL
       return null;
     }
-    val = glXGetConfig(display, info, GLX.GLX_RGBA, tmp);
+    val = glXGetConfig(display, info, GLX.GLX_RGBA, tmp, 0);
     if (val == 0) {
       // Visual does not support RGBA
       return null;
     }
     GLCapabilities res = new GLCapabilities();
-    res.setDoubleBuffered(glXGetConfig(display, info, GLX.GLX_DOUBLEBUFFER,     tmp) != 0);
-    res.setStereo        (glXGetConfig(display, info, GLX.GLX_STEREO,           tmp) != 0);
+    res.setDoubleBuffered(glXGetConfig(display, info, GLX.GLX_DOUBLEBUFFER,     tmp, 0) != 0);
+    res.setStereo        (glXGetConfig(display, info, GLX.GLX_STEREO,           tmp, 0) != 0);
     // Note: use of hardware acceleration is determined by
     // glXCreateContext, not by the XVisualInfo. Optimistically claim
     // that all GLCapabilities have the capability to be hardware
     // accelerated.
     res.setHardwareAccelerated(true);
-    res.setDepthBits     (glXGetConfig(display, info, GLX.GLX_DEPTH_SIZE,       tmp));
-    res.setStencilBits   (glXGetConfig(display, info, GLX.GLX_STENCIL_SIZE,     tmp));
-    res.setRedBits       (glXGetConfig(display, info, GLX.GLX_RED_SIZE,         tmp));
-    res.setGreenBits     (glXGetConfig(display, info, GLX.GLX_GREEN_SIZE,       tmp));
-    res.setBlueBits      (glXGetConfig(display, info, GLX.GLX_BLUE_SIZE,        tmp));
-    res.setAlphaBits     (glXGetConfig(display, info, GLX.GLX_ALPHA_SIZE,       tmp));
-    res.setAccumRedBits  (glXGetConfig(display, info, GLX.GLX_ACCUM_RED_SIZE,   tmp));
-    res.setAccumGreenBits(glXGetConfig(display, info, GLX.GLX_ACCUM_GREEN_SIZE, tmp));
-    res.setAccumBlueBits (glXGetConfig(display, info, GLX.GLX_ACCUM_BLUE_SIZE,  tmp));
-    res.setAccumAlphaBits(glXGetConfig(display, info, GLX.GLX_ACCUM_ALPHA_SIZE, tmp));
+    res.setDepthBits     (glXGetConfig(display, info, GLX.GLX_DEPTH_SIZE,       tmp, 0));
+    res.setStencilBits   (glXGetConfig(display, info, GLX.GLX_STENCIL_SIZE,     tmp, 0));
+    res.setRedBits       (glXGetConfig(display, info, GLX.GLX_RED_SIZE,         tmp, 0));
+    res.setGreenBits     (glXGetConfig(display, info, GLX.GLX_GREEN_SIZE,       tmp, 0));
+    res.setBlueBits      (glXGetConfig(display, info, GLX.GLX_BLUE_SIZE,        tmp, 0));
+    res.setAlphaBits     (glXGetConfig(display, info, GLX.GLX_ALPHA_SIZE,       tmp, 0));
+    res.setAccumRedBits  (glXGetConfig(display, info, GLX.GLX_ACCUM_RED_SIZE,   tmp, 0));
+    res.setAccumGreenBits(glXGetConfig(display, info, GLX.GLX_ACCUM_GREEN_SIZE, tmp, 0));
+    res.setAccumBlueBits (glXGetConfig(display, info, GLX.GLX_ACCUM_BLUE_SIZE,  tmp, 0));
+    res.setAccumAlphaBits(glXGetConfig(display, info, GLX.GLX_ACCUM_ALPHA_SIZE, tmp, 0));
     if (isMultisampleAvailable()) {
-      res.setSampleBuffers(glXGetConfig(display, info, GLX.GLX_SAMPLE_BUFFERS_ARB, tmp) != 0);
-      res.setNumSamples   (glXGetConfig(display, info, GLX.GLX_SAMPLES_ARB,        tmp));
+      res.setSampleBuffers(glXGetConfig(display, info, GLX.GLX_SAMPLE_BUFFERS_ARB, tmp, 0) != 0);
+      res.setNumSamples   (glXGetConfig(display, info, GLX.GLX_SAMPLES_ARB,        tmp, 0));
     }
     return res;
   }
@@ -241,14 +241,14 @@ public class X11GLContextFactory extends GLContextFactory {
     }
   }
 
-  public static int glXGetConfig(long display, XVisualInfo info, int attrib, int[] tmp) {
+  public static int glXGetConfig(long display, XVisualInfo info, int attrib, int[] tmp, int tmp_offset) {
     if (display == 0) {
       throw new GLException("No display connection");
     }
-    int res = GLX.glXGetConfig(display, info, attrib, tmp);
+    int res = GLX.glXGetConfig(display, info, attrib, tmp, tmp_offset);
     if (res != 0) {
       throw new GLException("glXGetConfig failed: error code " + glXGetConfigErrorCode(res));
     }
-    return tmp[0];
+    return tmp[tmp_offset];
   }
 }

@@ -494,11 +494,11 @@ public final class GLJPanel extends JPanel implements GLDrawable {
       if (offscreenImage != null) {
         GL gl = getGL();
         // Save current modes
-        gl.glGetIntegerv(GL.GL_PACK_SWAP_BYTES,    swapbytes);
-        gl.glGetIntegerv(GL.GL_PACK_ROW_LENGTH,    rowlength);
-        gl.glGetIntegerv(GL.GL_PACK_SKIP_ROWS,     skiprows);
-        gl.glGetIntegerv(GL.GL_PACK_SKIP_PIXELS,   skippixels);
-        gl.glGetIntegerv(GL.GL_PACK_ALIGNMENT,     alignment);
+        gl.glGetIntegerv(GL.GL_PACK_SWAP_BYTES,    swapbytes, 0);
+        gl.glGetIntegerv(GL.GL_PACK_ROW_LENGTH,    rowlength, 0);
+        gl.glGetIntegerv(GL.GL_PACK_SKIP_ROWS,     skiprows, 0);
+        gl.glGetIntegerv(GL.GL_PACK_SKIP_PIXELS,   skippixels, 0);
+        gl.glGetIntegerv(GL.GL_PACK_ALIGNMENT,     alignment, 0);
 
         gl.glPixelStorei(GL.GL_PACK_SWAP_BYTES,    GL.GL_FALSE);
         gl.glPixelStorei(GL.GL_PACK_ROW_LENGTH,    offscreenImage.getWidth());
@@ -509,9 +509,9 @@ public final class GLJPanel extends JPanel implements GLDrawable {
         // Actually read the pixels.
         gl.glReadBuffer(GL.GL_FRONT);
         if (dbByte != null) {
-          gl.glReadPixels(0, 0, offscreenImage.getWidth(), offscreenImage.getHeight(), glFormat, glType, dbByte.getData());
+          gl.glReadPixels(0, 0, offscreenImage.getWidth(), offscreenImage.getHeight(), glFormat, glType, dbByte.getData(), 0);
         } else if (dbInt != null) {
-          gl.glReadPixels(0, 0, offscreenImage.getWidth(), offscreenImage.getHeight(), glFormat, glType, dbInt.getData());
+          gl.glReadPixels(0, 0, offscreenImage.getWidth(), offscreenImage.getHeight(), glFormat, glType, dbInt.getData(), 0);
         }
 
         // Restore saved modes.

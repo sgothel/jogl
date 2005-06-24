@@ -32,7 +32,7 @@ public java.nio.ByteBuffer glMapBuffer(int target, int access) {
     throw new GLException("Method \"glMapBuffer\" not available");
   }
   int[] sz = new int[1];
-  glGetBufferParameteriv(target, GL_BUFFER_SIZE_ARB, sz);
+  glGetBufferParameteriv(target, GL_BUFFER_SIZE_ARB, sz, 0);
   long addr;
   addr = dispatch_glMapBuffer(target, access, __addr_);
   if (addr == 0 || sz[0] == 0) {
@@ -55,7 +55,7 @@ public java.nio.ByteBuffer glMapBufferARB(int target, int access) {
     throw new GLException("Method \"glMapBufferARB\" not available");
   }
   int[] sz = new int[1];
-  glGetBufferParameterivARB(target, GL_BUFFER_SIZE_ARB, sz);
+  glGetBufferParameterivARB(target, GL_BUFFER_SIZE_ARB, sz, 0);
   long addr;
   addr = dispatch_glMapBufferARB(target, access, __addr_);
   if (addr == 0 || sz[0] == 0) {

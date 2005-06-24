@@ -43,6 +43,13 @@ import java.nio.*;
 import net.java.games.jogl.util.BufferUtils;
 
 public class BufferFactory {
+
+  public static int SIZEOF_FLOAT = BufferUtils.SIZEOF_FLOAT;
+  public static int SIZEOF_DOUBLE = BufferUtils.SIZEOF_DOUBLE;
+  public static int SIZEOF_INT = BufferUtils.SIZEOF_INT;
+  public static int SIZEOF_SHORT = BufferUtils.SIZEOF_SHORT;
+  public static int SIZEOF_LONG = BufferUtils.SIZEOF_LONG;
+
   public static ByteBuffer newDirectByteBuffer(int size) {
     ByteBuffer buf = ByteBuffer.allocateDirect(size);
     buf.order(ByteOrder.nativeOrder());

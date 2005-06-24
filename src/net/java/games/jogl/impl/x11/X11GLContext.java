@@ -234,7 +234,7 @@ public abstract class X11GLContext extends GLContext {
     }
     int[] major = new int[1];
     int[] minor = new int[1];
-    if (!GLX.glXQueryVersion(display, major, minor)) {
+    if (!GLX.glXQueryVersion(display, major, 0, minor, 0)) {
       throw new GLException("glXQueryVersion failed");
     }
     if (DEBUG) {
@@ -333,7 +333,7 @@ public abstract class X11GLContext extends GLContext {
       XVisualInfo template = new XVisualInfo();
       // FIXME: probably not 64-bit clean
       template.visualid((int) visualID);
-      XVisualInfo[] infos = GLX.XGetVisualInfo(display, GLX.VisualIDMask, template, count);
+      XVisualInfo[] infos = GLX.XGetVisualInfo(display, GLX.VisualIDMask, template, count, 0);
       if (infos == null || infos.length == 0) {
         throw new GLException("Error while getting XVisualInfo for visual ID " + visualID);
       }
@@ -352,7 +352,7 @@ public abstract class X11GLContext extends GLContext {
       int[] count = new int[1];
       XVisualInfo template = new XVisualInfo();
       template.screen(screen);
-      XVisualInfo[] infos = GLX.XGetVisualInfo(display, GLX.VisualScreenMask, template, count);
+      XVisualInfo[] infos = GLX.XGetVisualInfo(display, GLX.VisualScreenMask, template, count, 0);
       if (infos == null) {
         throw new GLException("Error while enumerating available XVisualInfos");
       }

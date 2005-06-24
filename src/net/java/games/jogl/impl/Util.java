@@ -236,7 +236,7 @@ class Util {
    * @return int
    */
   protected int glGetIntegerv(GL gl, int what) {
-    gl.glGetIntegerv(what, scratch);
+    gl.glGetIntegerv(what, scratch, 0);
     return scratch[0];
   }
 }

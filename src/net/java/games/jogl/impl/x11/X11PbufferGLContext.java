@@ -174,7 +174,7 @@ public class X11PbufferGLContext extends X11GLContext {
 
     int screen = 0; // FIXME: provide way to specify this?
     int[] nelementsTmp = new int[1];
-    GLXFBConfig[] fbConfigs = GLX.glXChooseFBConfig(display, screen, iattributes, nelementsTmp);
+    GLXFBConfig[] fbConfigs = GLX.glXChooseFBConfig(display, screen, iattributes, 0, nelementsTmp, 0);
     if (fbConfigs == null || fbConfigs.length == 0 || fbConfigs[0] == null) {
       throw new GLException("pbuffer creation error: glXChooseFBConfig() failed");
     }
@@ -209,7 +209,7 @@ public class X11PbufferGLContext extends X11GLContext {
 
     iattributes[niattribs++] = 0;
 
-    long tmpBuffer = GLX.glXCreatePbuffer(display, fbConfig, iattributes);
+    long tmpBuffer = GLX.glXCreatePbuffer(display, fbConfig, iattributes, 0);
     if (tmpBuffer == 0) {
       // FIXME: query X error code for detail error message
       throw new GLException("pbuffer creation error: glXCreatePbuffer() failed");
@@ -224,9 +224,9 @@ public class X11PbufferGLContext extends X11GLContext {
 
     // Determine the actual width and height we were able to create.
     int[] tmp = new int[1];
-    GLX.glXQueryDrawable(display, (int) buffer, GL.GLX_WIDTH, tmp);
+    GLX.glXQueryDrawable(display, (int) buffer, GL.GLX_WIDTH, tmp, 0);
     width = tmp[0];
-    GLX.glXQueryDrawable(display, (int) buffer, GL.GLX_HEIGHT, tmp);
+    GLX.glXQueryDrawable(display, (int) buffer, GL.GLX_HEIGHT, tmp, 0);
     height = tmp[0];
 
     if (DEBUG) {
@@ -334,7 +334,7 @@ public class X11PbufferGLContext extends X11GLContext {
 
   private int queryFBConfig(long display, GLXFBConfig fbConfig, int attrib) {
     int[] tmp = new int[1];
-    if (GLX.glXGetFBConfigAttrib(display, fbConfig, attrib, tmp) != 0) {
+    if (GLX.glXGetFBConfigAttrib(display, fbConfig, attrib, tmp, 0) != 0) {
       throw new GLException("glXGetFBConfigAttrib failed");
     }
     return tmp[0];

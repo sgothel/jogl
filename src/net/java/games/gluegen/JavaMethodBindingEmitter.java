@@ -67,6 +67,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
 
   protected MethodBinding binding;
   protected boolean forImplementingMethodCall;
+  protected boolean forArrayImplementingMethodCall = false;
 
   protected boolean prefixedMethod = false;
 
@@ -79,14 +80,15 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
 
   public JavaMethodBindingEmitter(MethodBinding binding, PrintWriter output, String runtimeExceptionType)
   {
-    this(binding, output, runtimeExceptionType, false);
+    this(binding, output, runtimeExceptionType, false, false);
   }
   
-  public JavaMethodBindingEmitter(MethodBinding binding, PrintWriter output, String runtimeExceptionType, boolean forImplementingMethodCall)
+  public JavaMethodBindingEmitter(MethodBinding binding, PrintWriter output, String runtimeExceptionType, boolean forImplementingMethodCall, boolean forArrayImplementingMethodCall)
   {
     super(output);
     this.binding = binding;
     this.forImplementingMethodCall = forImplementingMethodCall;
+    this.forArrayImplementingMethodCall = forArrayImplementingMethodCall;
     this.runtimeExceptionType = runtimeExceptionType;
     setCommentEmitter(defaultInterfaceCommentEmitter);
   }
@@ -190,6 +192,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
       writer.print(binding.getArgumentName(i));
       ++numEmitted;
       needComma = true;
+
       // Add Buffer offset argument to store the buffer offset
       if((forImplementingMethodCall || prefixedMethod) &&
          (type.isNIOBuffer()  || type.isNIOBufferArray())) {
@@ -202,6 +205,12 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
                                  byteOffsetArrayConversionArgName(numBufferOffsetArrayArgs));
               }
       }
+
+      // Add array index offset argument after each primitive array
+      if( type.isArray() && !type.isNIOBufferArray() && !type.isStringArray()) {
+            writer.print(", int " + binding.getArgumentName(i) + "_offset");
+      }
+
     }
     return numEmitted;
   }
@@ -209,7 +218,10 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
 
   protected String getImplMethodName()
   {
-    return binding.getName() + "0";
+    if(!forArrayImplementingMethodCall)
+       return binding.getName() + "0";
+    else
+       return binding.getName() + "1";
   }
 
 

@@ -364,11 +364,19 @@ public class JavaEmitter implements GlueEmitter {
           // Generate the emitter for the method which may do conversion
           // from type wrappers to NIO Buffers or which may call the
           // underlying function directly
+
+            boolean arrayImplMethod = false;
+              if(binding.signatureUsesPrimitiveArrays()) {
+                      //overloaded = true;  
+                      arrayImplMethod = true;
+              }
+
           JavaMethodBindingImplEmitter entryPoint =
             new JavaMethodBindingImplEmitter(binding,
                                              (cfg.allStatic() ? javaWriter() : javaImplWriter()),
                                              cfg.runtimeExceptionType(),
-                                             isUnimplemented);
+                                             isUnimplemented,
+                                             arrayImplMethod);
           entryPoint.addModifier(JavaMethodBindingEmitter.PUBLIC);
           if (cfg.allStatic()) {
             entryPoint.addModifier(JavaMethodBindingEmitter.STATIC);
@@ -393,12 +401,20 @@ public class JavaEmitter implements GlueEmitter {
           // If the user has stated that the function will be
           // manually implemented, then don't auto-generate a function body.
           if (!cfg.manuallyImplement(sym.getName()) && !isUnimplemented) {
+            // need to check if should create CMethodBindingImplEmitter instead of just 
+            // CMethodBindingEmitter.  Basically adds a "0" to JNI method name
+            boolean arrayImplMethod = false;
+
             if (bindingNeedsBody(binding)) {
               // Generate the method which calls the underlying C function
               // after unboxing has occurred
               PrintWriter output = cfg.allStatic() ? javaWriter() : javaImplWriter();
+              if(binding.signatureUsesPrimitiveArrays()) {
+                      arrayImplMethod = true;
+              }
               JavaMethodBindingEmitter wrappedEntryPoint =
-                new JavaMethodBindingEmitter(specialBinding, output, cfg.runtimeExceptionType(), true);
+                new JavaMethodBindingEmitter(specialBinding, output, cfg.runtimeExceptionType(), true, 
+                                              arrayImplMethod);
               wrappedEntryPoint.addModifier(JavaMethodBindingEmitter.PRIVATE);
               wrappedEntryPoint.addModifier(JavaMethodBindingEmitter.STATIC); // Doesn't really matter
               wrappedEntryPoint.addModifier(JavaMethodBindingEmitter.NATIVE);
@@ -409,6 +425,7 @@ public class JavaEmitter implements GlueEmitter {
               makeCEmitter(specialBinding, 
                            overloaded,
                            (binding != specialBinding),
+                           arrayImplMethod,
                            cfg.implPackageName(), cfg.implClassName(),
                            cWriter());
             allEmitters.add(cEmitter);
@@ -574,7 +591,7 @@ public class JavaEmitter implements GlueEmitter {
             }
             entryPoint.emit();
 
-            JavaMethodBindingEmitter wrappedEntryPoint = new JavaMethodBindingEmitter(specialBinding, writer, cfg.runtimeExceptionType(), true);
+            JavaMethodBindingEmitter wrappedEntryPoint = new JavaMethodBindingEmitter(specialBinding, writer, cfg.runtimeExceptionType(), true, false);
             wrappedEntryPoint.addModifier(JavaMethodBindingEmitter.PRIVATE);
             wrappedEntryPoint.addModifier(JavaMethodBindingEmitter.NATIVE);
             wrappedEntryPoint.emit();
@@ -582,7 +599,8 @@ public class JavaEmitter implements GlueEmitter {
             CMethodBindingEmitter cEmitter =
               makeCEmitter(specialBinding,
                            false, // overloaded
-                           true, // doing impl routine?
+                           true, // doing NIO impl routine?
+                           false, // array impl method ?
                            structClassPkg,
                            containingTypeName,
                            cWriter);
@@ -677,12 +695,13 @@ public class JavaEmitter implements GlueEmitter {
   protected boolean bindingNeedsBody(MethodBinding binding) {
     // We need to perform NIO checks and conversions and array length
     // checks
-    return binding.signatureUsesNIO() || binding.signatureUsesCArrays();
+    return binding.signatureUsesNIO() || binding.signatureUsesCArrays() || binding.signatureUsesPrimitiveArrays();
   }
 
   private CMethodBindingEmitter makeCEmitter(MethodBinding binding,
                                              boolean overloaded,
-                                             boolean doingImplRoutine,
+                                             boolean doingNIOImplRoutine,
+                                             boolean doingArrayImplRoutine,
                                              String bindingJavaPackageName,
                                              String bindingJavaClassName,
                                              PrintWriter output) {
@@ -703,8 +722,9 @@ public class JavaEmitter implements GlueEmitter {
       }
     }
     CMethodBindingEmitter cEmitter;
-    if (doingImplRoutine) {
+    if (doingNIOImplRoutine || doingArrayImplRoutine) {
       cEmitter = new CMethodBindingImplEmitter(binding, overloaded,
+                                               doingArrayImplRoutine,
                                                bindingJavaPackageName,
                                                bindingJavaClassName,
                                                cfg.allStatic(), output);

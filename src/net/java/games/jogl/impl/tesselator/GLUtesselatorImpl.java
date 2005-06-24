@@ -231,12 +231,12 @@ public class GLUtesselatorImpl implements GLUtesselator {
     }
 
 /* Returns tessellator property */
-    public void gluGetTessProperty(int which, double[] value) {
+    public void gluGetTessProperty(int which, double[] value, int value_offset) {
         switch (which) {
             case GLU.GLU_TESS_TOLERANCE:
 /* tolerance should be in range [0..1] */
                 assert (0.0 <= relTolerance && relTolerance <= 1.0);
-                value[0] = relTolerance;
+                value[value_offset] = relTolerance;
                 break;
             case GLU.GLU_TESS_WINDING_RULE:
                 assert (windingRule == GLU.GLU_TESS_WINDING_ODD ||
@@ -244,14 +244,14 @@ public class GLUtesselatorImpl implements GLUtesselator {
                         windingRule == GLU.GLU_TESS_WINDING_POSITIVE ||
                         windingRule == GLU.GLU_TESS_WINDING_NEGATIVE ||
                         windingRule == GLU.GLU_TESS_WINDING_ABS_GEQ_TWO);
-                value[0] = windingRule;
+                value[value_offset] = windingRule;
                 break;
             case GLU.GLU_TESS_BOUNDARY_ONLY:
                 assert (boundaryOnly == true || boundaryOnly == false);
-                value[0] = boundaryOnly ? 1 : 0;
+                value[value_offset] = boundaryOnly ? 1 : 0;
                 break;
             default:
-                value[0] = 0.0;
+                value[value_offset] = 0.0;
                 callErrorOrErrorData(GLU.GLU_INVALID_ENUM);
                 break;
         }
@@ -386,7 +386,7 @@ public class GLUtesselatorImpl implements GLUtesselator {
         return true;
     }
 
-    public void gluTessVertex(double[] coords, Object vertexData) {
+    public void gluTessVertex(double[] coords, int coords_offset, Object vertexData) {
         int i;
         boolean tooLarge = false;
         double x;
@@ -402,7 +402,7 @@ public class GLUtesselatorImpl implements GLUtesselator {
             lastEdge = null;
         }
         for (i = 0; i < 3; ++i) {
-            x = coords[i];
+            x = coords[i+coords_offset];
             if (x < -GLU.GLU_TESS_MAX_COORD) {
                 x = -GLU.GLU_TESS_MAX_COORD;
                 tooLarge = true;

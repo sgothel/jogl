@@ -3,7 +3,7 @@
 //
 
 /** Interface to C language function: <br> <code> GLint gluProject(GLdouble objX, GLdouble objY, GLdouble objZ, const GLdouble *  model, const GLdouble *  proj, const GLint *  view, GLdouble *  winX, GLdouble *  winY, GLdouble *  winZ); </code>    */
-public boolean gluProject(double objX, double objY, double objZ, double[] model, double[] proj, int[] view, double[] winX, double[] winY, double[] winZ);
+public boolean gluProject(double objX, double objY, double objZ, double[] model, int model_offset, double[] proj, int proj_offset, int[] view, int view_offset, double[] winX, int winX_offset, double[] winY, int winY_offset, double[] winZ, int winZ_offset);
 
 /**
  * Convenience routine for gluProject that accepts the outgoing window
@@ -13,27 +13,32 @@ public boolean gluProject(double objx,
                           double objy,
                           double objz,
                           double[] modelMatrix,
+                          int modelMatrix_offset,
                           double[] projMatrix,
+                          int projMatrix_offset,
                           int[] viewport,
-                          double[] winPos);
+                          int viewport_offset,
+                          double[] winPos,
+                          int winPos_offset );
 
 /** Interface to C language function: <br> <code> GLint gluUnProject(GLdouble winX, GLdouble winY, GLdouble winZ, const GLdouble *  model, const GLdouble *  proj, const GLint *  view, GLdouble *  objX, GLdouble *  objY, GLdouble *  objZ); </code>    */
-public boolean gluUnProject(double winX, double winY, double winZ, double[] model, double[] proj, int[] view, double[] objX, double[] objY, double[] objZ);
+public boolean gluUnProject(double winX, double winY, double winZ, double[] model, int model_offset, double[] proj, int proj_offset, int[] view, int view_offset, double[] objX, int objX_offset, double[] objY, int objY_offset, double[] objZ, int objZ_offset);
 
 /**
  * Convenience routine for gluUnProject that accepts the outgoing
  * object coordinates (a 3-vector) as a single array.
  */
-public boolean gluUnProject(double winX, double winY, double winZ, double[] model, double[] proj, int[] view, double[] objPos);
+public boolean gluUnProject(double winX, double winY, double winZ, double[] model, int model_offset, double[] proj, int proj_offset, int[] view, int view_offset, double[] objPos, int objPos_offset);
 
 /** Interface to C language function: <br> <code> GLint gluUnProject4(GLdouble winX, GLdouble winY, GLdouble winZ, GLdouble clipW, const GLdouble *  model, const GLdouble *  proj, const GLint *  view, GLdouble nearVal, GLdouble farVal, GLdouble *  objX, GLdouble *  objY, GLdouble *  objZ, GLdouble *  objW); </code>    */
-public boolean gluUnProject4(double winX, double winY, double winZ, double clipW, double[] model, double[] proj, int[] view, double nearVal, double farVal, double[] objX, double[] objY, double[] objZ, double[] objW);
+public boolean gluUnProject4(double winX, double winY, double winZ, double clipW, double[] model, int model_offset, double[] proj, int proj_offset, int[] view, int view_offset, double nearVal, double farVal, double[] objX, int objX_offset, double[] objY, int objY_offset, double[] objZ, int objZ_offset, double[] objW, int objW_offset);
 
 /**
  * Convenience routine for gluUnProject4 that accepts the outgoing
  * object coordinates (a 4-vector) as a single array.
  */
-public boolean gluUnProject4(double winX, double winY, double winZ, double clipW, double[] model, double[] proj, int[] view, double nearVal, double farVal, double[] objPos);
+public boolean gluUnProject4(double winX, double winY, double winZ, double clipW, double[] model, int model_offset, double[] proj, int proj_offset, int[] view, int view_offset, double nearVal, double farVal, double[] objPos, int objPos_offset);
+
 
 
 
@@ -139,7 +144,7 @@ public void gluEndPolygon(GLUtesselator tesselator);
  * @see net.java.games.jogl.GLU#gluNewTess      gluNewTess
  * @see net.java.games.jogl.GLU#gluTessProperty gluTessProperty
  ****************************************************************************/
-public void gluGetTessProperty(GLUtesselator tesselator, int which, double[] value);
+public void gluGetTessProperty(GLUtesselator tesselator, int which, double[] value, int value_offset);
 
 
 /*****************************************************************************
@@ -800,111 +805,29 @@ public void gluTessProperty(GLUtesselator tesselator, int which, double value);
  * @see net.java.games.jogl.GLU#gluTessNormal       gluTessNormal
  * @see net.java.games.jogl.GLU#gluTessEndPolygon   gluTessEndPolygon
  ****************************************************************************/
-public void gluTessVertex(GLUtesselator tesselator, double[] coords, Object data);
+public void gluTessVertex(GLUtesselator tesselator, double[] coords, int coords_offset, Object data);
 
 
 //----------------------------------------------------------------------
 // Mipmap and scaling routines
 //
 
-/** Interface to C language function: <br> <code> GLint gluBuild1DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
-public int gluBuild1DMipmapLevels(int target, int internalFormat, int width, int format, int type, int level, int base, int max, byte[] data);
-
-/** Interface to C language function: <br> <code> GLint gluBuild1DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
-public int gluBuild1DMipmapLevels(int target, int internalFormat, int width, int format, int type, int level, int base, int max, short[] data);
-
-/** Interface to C language function: <br> <code> GLint gluBuild1DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
-public int gluBuild1DMipmapLevels(int target, int internalFormat, int width, int format, int type, int level, int base, int max, int[] data);
-
-/** Interface to C language function: <br> <code> GLint gluBuild1DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
-public int gluBuild1DMipmapLevels(int target, int internalFormat, int width, int format, int type, int level, int base, int max, float[] data);
 
 /** Interface to C language function: <br> <code> GLint gluBuild1DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
 public int gluBuild1DMipmapLevels(int target, int internalFormat, int width, int format, int type, int level, int base, int max, java.nio.Buffer data);
 
-/** Interface to C language function: <br> <code> GLint gluBuild1DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLenum format, GLenum type, const void *  data); </code>    */
-public int gluBuild1DMipmaps(int target, int internalFormat, int width, int format, int type, byte[] data);
-
-/** Interface to C language function: <br> <code> GLint gluBuild1DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLenum format, GLenum type, const void *  data); </code>    */
-public int gluBuild1DMipmaps(int target, int internalFormat, int width, int format, int type, short[] data);
-
-/** Interface to C language function: <br> <code> GLint gluBuild1DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLenum format, GLenum type, const void *  data); </code>    */
-public int gluBuild1DMipmaps(int target, int internalFormat, int width, int format, int type, int[] data);
-
-/** Interface to C language function: <br> <code> GLint gluBuild1DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLenum format, GLenum type, const void *  data); </code>    */
-public int gluBuild1DMipmaps(int target, int internalFormat, int width, int format, int type, float[] data);
-
-/** Interface to C language function: <br> <code> GLint gluBuild2DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
-public int gluBuild2DMipmapLevels(int target, int internalFormat, int width, int height, int format, int type, int level, int base, int max, byte[] data);
-
-/** Interface to C language function: <br> <code> GLint gluBuild2DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
-public int gluBuild2DMipmapLevels(int target, int internalFormat, int width, int height, int format, int type, int level, int base, int max, short[] data);
-
-/** Interface to C language function: <br> <code> GLint gluBuild2DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
-public int gluBuild2DMipmapLevels(int target, int internalFormat, int width, int height, int format, int type, int level, int base, int max, int[] data);
-
-/** Interface to C language function: <br> <code> GLint gluBuild2DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
-public int gluBuild2DMipmapLevels(int target, int internalFormat, int width, int height, int format, int type, int level, int base, int max, float[] data);
 
 /** Interface to C language function: <br> <code> GLint gluBuild2DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
 public int gluBuild2DMipmapLevels(int target, int internalFormat, int width, int height, int format, int type, int level, int base, int max, java.nio.Buffer data);
 
 /** Interface to C language function: <br> <code> GLint gluBuild2DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *  data); </code>    */
-public int gluBuild2DMipmaps(int target, int internalFormat, int width, int height, int format, int type, byte[] data);
-
-/** Interface to C language function: <br> <code> GLint gluBuild2DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *  data); </code>    */
-public int gluBuild2DMipmaps(int target, int internalFormat, int width, int height, int format, int type, short[] data);
-
-/** Interface to C language function: <br> <code> GLint gluBuild2DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *  data); </code>    */
-public int gluBuild2DMipmaps(int target, int internalFormat, int width, int height, int format, int type, int[] data);
-
-/** Interface to C language function: <br> <code> GLint gluBuild2DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *  data); </code>    */
-public int gluBuild2DMipmaps(int target, int internalFormat, int width, int height, int format, int type, float[] data);
-
-/** Interface to C language function: <br> <code> GLint gluBuild2DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *  data); </code>    */
 public int gluBuild2DMipmaps(int target, int internalFormat, int width, int height, int format, int type, java.nio.Buffer data);
-
-/** Interface to C language function: <br> <code> GLint gluBuild3DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
-public int gluBuild3DMipmapLevels(int target, int internalFormat, int width, int height, int depth, int format, int type, int level, int base, int max, byte[] data);
-
-/** Interface to C language function: <br> <code> GLint gluBuild3DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
-public int gluBuild3DMipmapLevels(int target, int internalFormat, int width, int height, int depth, int format, int type, int level, int base, int max, short[] data);
-
-/** Interface to C language function: <br> <code> GLint gluBuild3DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
-public int gluBuild3DMipmapLevels(int target, int internalFormat, int width, int height, int depth, int format, int type, int level, int base, int max, int[] data);
-
-/** Interface to C language function: <br> <code> GLint gluBuild3DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
-public int gluBuild3DMipmapLevels(int target, int internalFormat, int width, int height, int depth, int format, int type, int level, int base, int max, float[] data);
 
 /** Interface to C language function: <br> <code> GLint gluBuild3DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
 public int gluBuild3DMipmapLevels(int target, int internalFormat, int width, int height, int depth, int format, int type, int level, int base, int max, java.nio.Buffer data);
 
 /** Interface to C language function: <br> <code> GLint gluBuild3DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *  data); </code>    */
-public int gluBuild3DMipmaps(int target, int internalFormat, int width, int height, int depth, int format, int type, byte[] data);
-
-/** Interface to C language function: <br> <code> GLint gluBuild3DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *  data); </code>    */
-public int gluBuild3DMipmaps(int target, int internalFormat, int width, int height, int depth, int format, int type, short[] data);
-
-/** Interface to C language function: <br> <code> GLint gluBuild3DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *  data); </code>    */
-public int gluBuild3DMipmaps(int target, int internalFormat, int width, int height, int depth, int format, int type, int[] data);
-
-/** Interface to C language function: <br> <code> GLint gluBuild3DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *  data); </code>    */
-public int gluBuild3DMipmaps(int target, int internalFormat, int width, int height, int depth, int format, int type, float[] data);
-
-/** Interface to C language function: <br> <code> GLint gluBuild3DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *  data); </code>    */
 public int gluBuild3DMipmaps(int target, int internalFormat, int width, int height, int depth, int format, int type, java.nio.Buffer data);
-
-/** Interface to C language function: <br> <code> GLint gluScaleImage(GLenum format, GLsizei wIn, GLsizei hIn, GLenum typeIn, const void *  dataIn, GLsizei wOut, GLsizei hOut, GLenum typeOut, GLvoid *  dataOut); </code>    */
-public int gluScaleImage(int format, int wIn, int hIn, int typeIn, byte[] dataIn, int wOut, int hOut, int typeOut, byte[] dataOut);
-
-/** Interface to C language function: <br> <code> GLint gluScaleImage(GLenum format, GLsizei wIn, GLsizei hIn, GLenum typeIn, const void *  dataIn, GLsizei wOut, GLsizei hOut, GLenum typeOut, GLvoid *  dataOut); </code>    */
-public int gluScaleImage(int format, int wIn, int hIn, int typeIn, short[] dataIn, int wOut, int hOut, int typeOut, short[] dataOut);
-
-/** Interface to C language function: <br> <code> GLint gluScaleImage(GLenum format, GLsizei wIn, GLsizei hIn, GLenum typeIn, const void *  dataIn, GLsizei wOut, GLsizei hOut, GLenum typeOut, GLvoid *  dataOut); </code>    */
-public int gluScaleImage(int format, int wIn, int hIn, int typeIn, int[] dataIn, int wOut, int hOut, int typeOut, int[] dataOut);
-
-/** Interface to C language function: <br> <code> GLint gluScaleImage(GLenum format, GLsizei wIn, GLsizei hIn, GLenum typeIn, const void *  dataIn, GLsizei wOut, GLsizei hOut, GLenum typeOut, GLvoid *  dataOut); </code>    */
-public int gluScaleImage(int format, int wIn, int hIn, int typeIn, float[] dataIn, int wOut, int hOut, int typeOut, float[] dataOut);
 
 /** Interface to C language function: <br> <code> GLint gluScaleImage(GLenum format, GLsizei wIn, GLsizei hIn, GLenum typeIn, const void *  dataIn, GLsizei wOut, GLsizei hOut, GLenum typeOut, GLvoid *  dataOut); </code>    */
 public int gluScaleImage(int format, int wIn, int hIn, int typeIn, java.nio.Buffer dataIn, int wOut, int hOut, int typeOut, java.nio.Buffer dataOut);
