@@ -593,10 +593,6 @@ public abstract class GLContext {
       requests. */
   protected abstract boolean isOffscreen();
 
-  /** Only called for offscreen contexts; returns the type of
-      BufferedImage required for reading this context's pixels. */
-  public abstract int getOffscreenContextBufferedImageType();
-
   /** Only called for offscreen contexts; returns the buffer from
       which to read pixels (GL.GL_FRONT or GL.GL_BACK). */
   public abstract int getOffscreenContextReadBuffer();

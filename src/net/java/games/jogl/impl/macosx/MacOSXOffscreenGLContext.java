@@ -59,10 +59,6 @@ public class MacOSXOffscreenGLContext extends MacOSXPbufferGLContext
     return true;
   }
   
-  public int getOffscreenContextBufferedImageType() {
-      return BufferedImage.TYPE_INT_ARGB;
-  }
-	
   public int getOffscreenContextWidth() {
       return initWidth;
   }

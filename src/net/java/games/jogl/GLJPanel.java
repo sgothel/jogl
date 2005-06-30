@@ -310,6 +310,16 @@ public final class GLJPanel extends JPanel implements GLDrawable {
     }
   }
 
+  public void setOpaque(boolean opaque) {
+    if (opaque != isOpaque()) {
+      if (offscreenImage != null) {
+        offscreenImage.flush();
+        offscreenImage = null;
+      }
+    }
+    super.setOpaque(opaque);
+  }
+
   public void addGLEventListener(GLEventListener listener) {
     drawableHelper.addGLEventListener(listener);
   }
@@ -546,15 +556,17 @@ public final class GLJPanel extends JPanel implements GLDrawable {
           int awtFormat = 0;
           int hwGLFormat = 0;
           if (!hardwareAccelerationDisabled) {
-            // Should be more flexible in these BufferedImage formats;
-            // perhaps see what the preferred image types are on the
-            // given platform
-            awtFormat = BufferedImage.TYPE_INT_RGB;
-
             // This seems to be a good choice on all platforms
             hwGLFormat = GL.GL_UNSIGNED_INT_8_8_8_8_REV;
+          }
+
+          // Should be more flexible in these BufferedImage formats;
+          // perhaps see what the preferred image types are on the
+          // given platform
+          if (isOpaque()) {
+            awtFormat = BufferedImage.TYPE_INT_RGB;
           } else {
-            awtFormat = offscreenContext.getOffscreenContextBufferedImageType();
+            awtFormat = BufferedImage.TYPE_INT_ARGB;
           }
 
           offscreenImage = new BufferedImage(panelWidth,

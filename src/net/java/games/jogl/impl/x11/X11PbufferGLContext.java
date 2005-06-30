@@ -286,10 +286,6 @@ public class X11PbufferGLContext extends X11GLContext {
     return false;
   }
 
-  public int getOffscreenContextBufferedImageType() {
-    throw new GLException("Should not call this");
-  }
-
   public int getOffscreenContextReadBuffer() {
     throw new GLException("Should not call this");
   }

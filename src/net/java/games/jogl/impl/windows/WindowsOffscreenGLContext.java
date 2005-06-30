@@ -65,14 +65,6 @@ public class WindowsOffscreenGLContext extends WindowsGLContext {
     return true;
   }
 
-  public int getOffscreenContextBufferedImageType() {
-    if (capabilities.getAlphaBits() > 0) {
-      return BufferedImage.TYPE_INT_ARGB;
-    } else {
-      return BufferedImage.TYPE_INT_RGB;
-    }
-  }
-
   public int getOffscreenContextWidth() {
       return width;
   }

@@ -106,8 +106,6 @@ public abstract class WindowsGLContext extends GLContext {
 
   protected abstract boolean isOffscreen();
   
-  public abstract int getOffscreenContextBufferedImageType();
-
   public int getOffscreenContextWidth() {
     throw new GLException("Should not call this");
   }

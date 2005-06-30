@@ -93,10 +93,6 @@ public abstract class MacOSXGLContext extends GLContext
   
   protected abstract boolean isOffscreen();
 	
-  public int getOffscreenContextBufferedImageType() {
-    throw new GLException("Should not call this");
-  }
-
   public int getOffscreenContextReadBuffer() {
     throw new GLException("Should not call this");
   }

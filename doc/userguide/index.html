@@ -159,6 +159,18 @@ recommendation when it is available, and otherwise attempts to use a
 platform-independent selection algorithm.
 
 </P>
+<P>
+
+The GLJPanel can be made non-opaque according to Swing's rendering
+model, so it can act as an overlay to other Swing or Java2D drawing.
+In order to enable this, set up your GLCapabilities object with a
+non-zero alpha depth (a common value is 8 bits) and call
+setOpaque(false) on the GLJPanel once it has been created. Java2D
+rendering underneath it will then show through areas where OpenGL has
+produced an alpha value less than 1.0. See the JGears and JRefract
+demos for examples of how to use this functionality.
+
+</P>
 
 <H2> Writing a GLEventListener </H2>
 

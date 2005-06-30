@@ -70,10 +70,6 @@ public class MacOSXOnscreenGLContext extends MacOSXGLContext {
     return false;
   }
     
-  public int getOffscreenContextBufferedImageType() {
-    throw new GLException("Should not call this");
-  }
-    
   public int getOffscreenContextReadBuffer() {
     throw new GLException("Should not call this");
   }
