@@ -20,7 +20,7 @@
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
  * PARTICULAR PURPOSE OR NON-INFRINGEMENT, ARE HEREBY EXCLUDED. SUN
- * MIDROSYSTEMS, INC. ("SUN") AND ITS LICENSORS SHALL NOT BE LIABLE FOR
+ * MICROSYSTEMS, INC. ("SUN") AND ITS LICENSORS SHALL NOT BE LIABLE FOR
  * ANY DAMAGES SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR
  * DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES. IN NO EVENT WILL SUN OR
  * ITS LICENSORS BE LIABLE FOR ANY LOST REVENUE, PROFIT OR DATA, OR FOR
@@ -179,7 +179,7 @@ public final class FunctionAvailabilityCache {
     catch (IllegalArgumentException e)
     {      
       // funcCoreVersionString is not an OpenGL version identifier (i.e., not
-      // of the form GL_VERSION_XXX).
+      // of the form GL_VERSION_XXX or X.Y).
       //
       // Since the association string returned from
       // StaticGLInfo.getFunctionAssociation() was not null, this function
@@ -206,15 +206,19 @@ public final class FunctionAvailabilityCache {
     // belongs.
     if (actualVersion.compareTo(versionToCheck) <= 0)
     {
-      System.err.println(
-        glFunctionName + " is in core OpenGL " + glVersionString +
-        " because it is in OpenGL " + funcCoreVersionString);
+      if (DEBUG) {
+        System.err.println(
+          glFunctionName + " is in core OpenGL " + glVersionString +
+          " because it is in OpenGL " + funcCoreVersionString);
+      }
       return true;
     }
     
-    System.err.println(
-      glFunctionName + " is NOT a part of the OpenGL " + glVersionString + " core" +
-      "; it is part of OpenGL " + funcCoreVersionString);
+    if (DEBUG) {
+      System.err.println(
+        glFunctionName + " is NOT a part of the OpenGL " + glVersionString + " core" +
+        "; it is part of OpenGL " + funcCoreVersionString);
+    }
 
     return false;
   }
@@ -256,33 +260,35 @@ public final class FunctionAvailabilityCache {
 
     /**
      * @param versionString must be of the form "GL_VERSION_X" or
-     * "GL_VERSION_X_Y" or "GL_VERSION_X_Y_Z", where X, Y, and Z are integers.
+     * "GL_VERSION_X_Y" or "GL_VERSION_X_Y_Z" or "X.Y", where X, Y,
+     * and Z are integers.
      *
      * @exception IllegalArgumentException if the argument is not a valid
      * OpenGL version identifier
      */
     public Version(String versionString)
     {
-      if (! versionString.startsWith("GL_VERSION_"))
+      try 
       {
-        // not a version string
-        throw new IllegalArgumentException(
-          "Illegal version identifier \"" + versionString +
-          "\"; does not start with \"GL_VERSION_\"");
-      }
-      
-      try
-      {
-        StringTokenizer tok = new StringTokenizer(versionString, "_");
+        if (versionString.startsWith("GL_VERSION_"))
+        {
+          StringTokenizer tok = new StringTokenizer(versionString, "_");
 
-        tok.nextToken(); // GL_
-        tok.nextToken(); // VERSION_ 
-        if (!tok.hasMoreTokens()) { major = 0; return; }
-        major = Integer.valueOf(tok.nextToken()).intValue();
-        if (!tok.hasMoreTokens()) { minor = 0; return; }
-        minor = Integer.valueOf(tok.nextToken()).intValue();
-        if (!tok.hasMoreTokens()) { sub = 0; return; }
-        sub = Integer.valueOf(tok.nextToken()).intValue();
+          tok.nextToken(); // GL_
+          tok.nextToken(); // VERSION_ 
+          if (!tok.hasMoreTokens()) { major = 0; return; }
+          major = Integer.valueOf(tok.nextToken()).intValue();
+          if (!tok.hasMoreTokens()) { minor = 0; return; }
+          minor = Integer.valueOf(tok.nextToken()).intValue();
+          if (!tok.hasMoreTokens()) { sub = 0; return; }
+          sub = Integer.valueOf(tok.nextToken()).intValue();
+        }
+        else
+        {
+          StringTokenizer tok = new StringTokenizer(versionString, ". ");
+          major = Integer.valueOf(tok.nextToken()).intValue();
+          minor = Integer.valueOf(tok.nextToken()).intValue();
+        }
       }
       catch (Exception e)
       {

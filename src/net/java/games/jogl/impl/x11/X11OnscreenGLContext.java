@@ -20,7 +20,7 @@
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
  * PARTICULAR PURPOSE OR NON-INFRINGEMENT, ARE HEREBY EXCLUDED. SUN
- * MIDROSYSTEMS, INC. ("SUN") AND ITS LICENSORS SHALL NOT BE LIABLE FOR
+ * MICROSYSTEMS, INC. ("SUN") AND ITS LICENSORS SHALL NOT BE LIABLE FOR
  * ANY DAMAGES SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR
  * DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES. IN NO EVENT WILL SUN OR
  * ITS LICENSORS BE LIABLE FOR ANY LOST REVENUE, PROFIT OR DATA, OR FOR
@@ -70,10 +70,6 @@ public class X11OnscreenGLContext extends X11GLContext {
     return false;
   }
   
-  public int getOffscreenContextBufferedImageType() {
-    throw new GLException("Should not call this");
-  }
-
   public int getOffscreenContextReadBuffer() {
     throw new GLException("Should not call this");
   }
@@ -121,7 +117,7 @@ public class X11OnscreenGLContext extends X11GLContext {
         while (!pbuffersToInstantiate.isEmpty()) {
           X11PbufferGLContext ctx =
             (X11PbufferGLContext) pbuffersToInstantiate.remove(pbuffersToInstantiate.size() - 1);
-          ctx.createPbuffer(display, context);
+          ctx.createPbuffer(display, context, getGL());
         }
       }
       return ret;

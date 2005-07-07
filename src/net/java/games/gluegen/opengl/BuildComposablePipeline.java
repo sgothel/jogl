@@ -20,7 +20,7 @@
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
  * PARTICULAR PURPOSE OR NON-INFRINGEMENT, ARE HEREBY EXCLUDED. SUN
- * MIDROSYSTEMS, INC. ("SUN") AND ITS LICENSORS SHALL NOT BE LIABLE FOR
+ * MICROSYSTEMS, INC. ("SUN") AND ITS LICENSORS SHALL NOT BE LIABLE FOR
  * ANY DAMAGES SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR
  * DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES. IN NO EVENT WILL SUN OR
  * ITS LICENSORS BE LIABLE FOR ANY LOST REVENUE, PROFIT OR DATA, OR FOR
@@ -302,6 +302,9 @@ public class BuildComposablePipeline
       output.print(  "  public " + getPipelineName() + "(" + baseName + " ");
       output.println(getDownstreamObjectName() + ")");
       output.println("  {");
+      output.println("    if (" + getDownstreamObjectName() + " == null) {");
+      output.println("      throw new IllegalArgumentException(\"null " + getDownstreamObjectName() + "\");");
+      output.println("    }");
       output.print(  "    this." + getDownstreamObjectName());
       output.println(" = " + getDownstreamObjectName() + ";");
       output.println("  }");
@@ -374,6 +377,7 @@ public class BuildComposablePipeline
       output.println();
       output.println("    // Loop repeatedly to allow for distributed GL implementations,");
       output.println("    // as detailed in the glGetError() specification");
+      output.println("    int recursionDepth = 10;");
       output.println("    do {");
       output.println("      switch (err) {");
       output.println("        case GL_INVALID_ENUM: buf.append(\"GL_INVALID_ENUM \"); break;");
@@ -385,7 +389,7 @@ public class BuildComposablePipeline
       output.println("        case GL_NO_ERROR: throw new InternalError(\"Should not be treating GL_NO_ERROR as error\");");
       output.println("        default: throw new InternalError(\"Unknown glGetError() return value: \" + err);");
       output.println("      }");
-      output.println(  "    } while ((err = " +
+      output.println("    } while ((--recursionDepth >= 0) && (err = " +
 		     getDownstreamObjectName() +
 		     ".glGetError()) != GL_NO_ERROR);");
       output.println("    throw new GLException(buf.toString());");
@@ -459,6 +463,9 @@ public class BuildComposablePipeline
       output.print(  "  public " + getPipelineName() + "(" + getBaseInterfaceName() + " ");
       output.println(getDownstreamObjectName() + ", PrintStream " + getOutputStreamName() + ")");
       output.println("  {");
+      output.println("    if (" + getDownstreamObjectName() + " == null) {");
+      output.println("      throw new IllegalArgumentException(\"null " + getDownstreamObjectName() + "\");");
+      output.println("    }");
       output.print(  "    this." + getDownstreamObjectName());
       output.println(" = " + getDownstreamObjectName() + ";");
       output.print(  "    this." + getOutputStreamName());

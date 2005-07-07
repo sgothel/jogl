@@ -1,10 +1,27 @@
 package net.java.games.jogl.impl.macosx;
 
+import java.security.*;
+import java.util.*;
+
 import net.java.games.jogl.*;
 import net.java.games.jogl.impl.*;
 
 public class MacOSXPbufferGLContext extends MacOSXGLContext {
   private static final boolean DEBUG = Debug.debug("MacOSXPbufferGLContext");
+  private static boolean isTigerOrLater;
+
+  static {
+    String osVersion =
+      (String) AccessController.doPrivileged(new PrivilegedAction() {
+	  public Object run() {
+	    return System.getProperty("os.version");
+	  }
+	});
+    StringTokenizer tok = new StringTokenizer(osVersion, ". ");
+    int major = Integer.parseInt(tok.nextToken());
+    int minor = Integer.parseInt(tok.nextToken());
+    isTigerOrLater = ((major > 10) || (minor > 3));
+  }
   
   protected int  initWidth;
   protected int  initHeight;
@@ -64,14 +81,26 @@ public class MacOSXPbufferGLContext extends MacOSXGLContext {
       height = getNextPowerOf2(initHeight);
       renderTarget = GL.GL_TEXTURE_2D;
     }
+
+    int internalFormat = GL.GL_RGBA;
+    if (capabilities.getOffscreenFloatingPointBuffers()) {
+      if (!gl.isExtensionAvailable("GL_APPLE_float_pixels")) {
+	throw new GLException("Floating-point support (GL_APPLE_float_pixels) not available");
+      }
+      switch (capabilities.getRedBits()) {
+        case 16: internalFormat = GL.GL_RGBA_FLOAT16_APPLE; break;
+        case 32: internalFormat = GL.GL_RGBA_FLOAT32_APPLE; break;
+        default: throw new GLException("Invalid floating-point bit depth (only 16 and 32 supported)");
+      }
+    }
 		
-    this.pBuffer = CGL.createPBuffer(renderTarget, width, height);
-    if (this.pBuffer == 0) {
+    pBuffer = CGL.createPBuffer(renderTarget, internalFormat, width, height);
+    if (pBuffer == 0) {
       throw new GLException("pbuffer creation error: CGL.createPBuffer() failed");
     }
 	
     if (DEBUG) {
-      System.err.println("Created pbuffer " + width + " x " + height);
+      System.err.println("Created pbuffer 0x" + Long.toHexString(pBuffer) + ", " + width + " x " + height + " for " + this);
     }
   }
 
@@ -79,6 +108,9 @@ public class MacOSXPbufferGLContext extends MacOSXGLContext {
     created = false;
 
     if (pBuffer == 0) {
+      if (DEBUG) {
+        System.err.println("Pbuffer not instantiated yet for " + this);
+      }
       // pbuffer not instantiated yet
       return false;
     }
@@ -138,6 +170,10 @@ public class MacOSXPbufferGLContext extends MacOSXGLContext {
     // FIXME: do we need to do anything if the pbuffer is double-buffered?
   }
 
+  public int getFloatingPointMode() {
+    return GLPbuffer.APPLE_FLOAT;
+  }
+
   private int getNextPowerOf2(int number) {
     if (((number-1) & number) == 0) {
       //ex: 8 -> 0b1000; 8-1=7 -> 0b0111; 0b1000&0b0111 == 0
@@ -151,10 +187,17 @@ public class MacOSXPbufferGLContext extends MacOSXGLContext {
     return (1<<power);
   }
 
-  protected void create() {
-    super.create();
+  protected boolean create() {
+    if (capabilities.getOffscreenFloatingPointBuffers() &&
+	!isTigerOrLater) {
+      throw new GLException("Floating-point pbuffers supported only on OS X 10.4 or later");
+    }
+    if (!super.create(true, capabilities.getOffscreenFloatingPointBuffers())) {
+      return false;
+    }
     created = true;
     // Must now associate the pbuffer with our newly-created context
     CGL.setContextPBuffer(nsContext, pBuffer);
+    return true;
   }
 }

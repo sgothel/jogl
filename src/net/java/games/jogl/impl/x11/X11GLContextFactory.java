@@ -20,7 +20,7 @@
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
  * PARTICULAR PURPOSE OR NON-INFRINGEMENT, ARE HEREBY EXCLUDED. SUN
- * MIDROSYSTEMS, INC. ("SUN") AND ITS LICENSORS SHALL NOT BE LIABLE FOR
+ * MICROSYSTEMS, INC. ("SUN") AND ITS LICENSORS SHALL NOT BE LIABLE FOR
  * ANY DAMAGES SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR
  * DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES. IN NO EVENT WILL SUN OR
  * ITS LICENSORS BE LIABLE FOR ANY LOST REVENUE, PROFIT OR DATA, OR FOR
@@ -61,23 +61,30 @@ public class X11GLContextFactory extends GLContextFactory {
     // system's selection to the chooser as a hint
 
     int[] attribs = glCapabilities2AttribList(capabilities, isMultisampleAvailable());
-    long display = getDisplayConnection();
-    XVisualInfo recommendedVis = GLX.glXChooseVisual(display, screen, attribs, 0);
+    XVisualInfo[] infos = null;
+    GLCapabilities[] caps = null;
     int recommendedIndex = -1;
-    int[] count = new int[1];
-    XVisualInfo template = new XVisualInfo();
-    template.screen(screen);
-    XVisualInfo[] infos = GLX.XGetVisualInfo(display, GLX.VisualScreenMask, template, count, 0);
-    if (infos == null) {
-      throw new GLException("Error while enumerating available XVisualInfos");
-    }
-    GLCapabilities[] caps = new GLCapabilities[infos.length];
-    for (int i = 0; i < infos.length; i++) {
-      caps[i] = xvi2GLCapabilities(display, infos[i]);
-      // Attempt to find the visual chosen by glXChooseVisual
-      if (recommendedVis != null && recommendedVis.visualid() == infos[i].visualid()) {
-        recommendedIndex = i;
+    lockAWT();
+    try {
+      long display = getDisplayConnection();
+      XVisualInfo recommendedVis = GLX.glXChooseVisual(display, screen, attribs, 0);
+      int[] count = new int[1];
+      XVisualInfo template = new XVisualInfo();
+      template.screen(screen);
+      infos = GLX.XGetVisualInfo(display, GLX.VisualScreenMask, template, count, 0);
+      if (infos == null) {
+        throw new GLException("Error while enumerating available XVisualInfos");
       }
+      caps = new GLCapabilities[infos.length];
+      for (int i = 0; i < infos.length; i++) {
+        caps[i] = xvi2GLCapabilities(display, infos[i]);
+        // Attempt to find the visual chosen by glXChooseVisual
+        if (recommendedVis != null && recommendedVis.visualid() == infos[i].visualid()) {
+          recommendedIndex = i;
+        }
+      }
+    } finally {
+      unlockAWT();
     }
     int chosen = chooser.chooseCapabilities(capabilities, caps, recommendedIndex);
     if (chosen < 0 || chosen >= caps.length) {
@@ -205,11 +212,38 @@ public class X11GLContextFactory extends GLContextFactory {
     return res;
   }
 
+  // JAWT access
+  private static JAWT jawt;
+  public static JAWT getJAWT() {
+    if (jawt == null) {
+      JAWT j = new JAWT();
+      j.version(JAWTFactory.JAWT_VERSION_1_4);
+      if (!JAWTFactory.JAWT_GetAWT(j)) {
+        throw new RuntimeException("Unable to initialize JAWT");
+      }
+      jawt = j;
+    }
+    return jawt;
+  }
+
+  public static void lockAWT() {
+    getJAWT().Lock();
+  }
+
+  public static void unlockAWT() {
+    getJAWT().Unlock();
+  }
+
   // Display connection for use by visual selection algorithm and by all offscreen surfaces
   private static long staticDisplay;
   public static long getDisplayConnection() {
     if (staticDisplay == 0) {
-      staticDisplay = GLX.XOpenDisplay(null);
+      lockAWT();
+      try {
+        staticDisplay = GLX.XOpenDisplay(null);
+      } finally {
+        unlockAWT();
+      }
       if (staticDisplay == 0) {
         throw new GLException("Unable to open default display, needed for visual selection and offscreen surface handling");
       }

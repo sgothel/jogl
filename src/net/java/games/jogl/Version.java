@@ -89,11 +89,11 @@ public final class Version {
   /**
    * Version string of this build.
    */
-  private static final String version = "1.1.0-b11";
+  private static final String version = "1.1.1";
 
   /**
-   * Returns the verison string and build number of
-   * this implementation.  See the class descritpion
+   * Returns the version string and build number of
+   * this implementation.  See the class description
    * for the version string format. 
    *
    * @return The version string of this implementation.

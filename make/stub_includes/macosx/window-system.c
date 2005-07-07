@@ -5,6 +5,7 @@ typedef int Bool;
 
 void* createContext(void* shareContext, void* nsView,
                     int doubleBuffer,
+                    int stereo,
                     int redBits,
                     int greenBits,
                     int blueBits,
@@ -16,7 +17,10 @@ void* createContext(void* shareContext, void* nsView,
                     int accumBlueBits,
                     int accumAlphaBits,
                     int sampleBuffers,
-                    int numSamples);
+                    int numSamples,
+                    int pbuffer,
+                    int floatingPoint,
+                    int* viewNotReady);
 Bool  makeCurrentContext(void* nsContext, void* nsView);
 Bool  clearCurrentContext(void* nsContext, void* nsView);
 Bool  deleteContext(void* nsContext, void* nsView);
@@ -26,7 +30,7 @@ void  updateContext(void* nsContext, void* nsView);
 void* updateContextRegister(void* nsContext, void* nsView);
 void  updateContextUnregister(void* nsContext, void* nsView, void* updater);
 
-void* createPBuffer(int renderTarget, int width, int height);
+void* createPBuffer(int renderTarget, int internalFormat, int width, int height);
 Bool destroyPBuffer(void* nsContext, void* pBuffer);
 void setContextPBuffer(void* nsContext, void* pBuffer);
 void setContextTextureImageToPBuffer(void* nsContext, void* pBuffer, int colorBuffer);

@@ -20,7 +20,7 @@
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
  * PARTICULAR PURPOSE OR NON-INFRINGEMENT, ARE HEREBY EXCLUDED. SUN
- * MIDROSYSTEMS, INC. ("SUN") AND ITS LICENSORS SHALL NOT BE LIABLE FOR
+ * MICROSYSTEMS, INC. ("SUN") AND ITS LICENSORS SHALL NOT BE LIABLE FOR
  * ANY DAMAGES SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR
  * DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES. IN NO EVENT WILL SUN OR
  * ITS LICENSORS BE LIABLE FOR ANY LOST REVENUE, PROFIT OR DATA, OR FOR
@@ -59,6 +59,8 @@ import net.java.games.jogl.impl.*;
 
 public final class GLCanvas extends Canvas implements GLDrawable {
 
+  protected static final boolean DEBUG = Debug.debug("GLCanvas");
+
   private GLDrawableHelper drawableHelper = new GLDrawableHelper();
   private GLContext context;
 
@@ -90,6 +92,9 @@ public final class GLCanvas extends Canvas implements GLDrawable {
   public void addNotify() {
     super.addNotify();
     context.setRealized();
+    if (DEBUG) {
+      System.err.println("GLCanvas.addNotify()");
+    }
   }
 
   /** Overridden from Canvas; used to indicate that it's no longer
@@ -97,6 +102,9 @@ public final class GLCanvas extends Canvas implements GLDrawable {
   public void removeNotify() {
     context.destroy();
     super.removeNotify();
+    if (DEBUG) {
+      System.err.println("GLCanvas.removeNotify()");
+    }
   }
 
   /** Overridden from Canvas; causes {@link GLDrawableHelper#reshape}

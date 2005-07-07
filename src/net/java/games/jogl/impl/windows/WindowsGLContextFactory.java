@@ -20,7 +20,7 @@
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
  * PARTICULAR PURPOSE OR NON-INFRINGEMENT, ARE HEREBY EXCLUDED. SUN
- * MIDROSYSTEMS, INC. ("SUN") AND ITS LICENSORS SHALL NOT BE LIABLE FOR
+ * MICROSYSTEMS, INC. ("SUN") AND ITS LICENSORS SHALL NOT BE LIABLE FOR
  * ANY DAMAGES SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR
  * DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES. IN NO EVENT WILL SUN OR
  * ITS LICENSORS BE LIABLE FOR ANY LOST REVENUE, PROFIT OR DATA, OR FOR
@@ -56,6 +56,9 @@ import net.java.games.jogl.*;
 import net.java.games.jogl.impl.*;
 
 public class WindowsGLContextFactory extends GLContextFactory {
+  private static final boolean DEBUG = Debug.debug("WindowsGLContextFactory");
+  private static final boolean VERBOSE = Debug.verbose();
+
   // On Windows we want to be able to use some extension routines like
   // wglChoosePixelFormatARB during the creation of the user's first
   // GLContext. However, this and other routines' function pointers
@@ -174,6 +177,11 @@ public class WindowsGLContextFactory extends GLContextFactory {
    */
   private static void checkForDummyContext( final GraphicsDevice device ) {
     if (!pendingContextSet.contains(device) && !dummyContextMap.containsKey( device ) ) {
+      if (DEBUG) {
+        System.err.println("WindowsGLContextFactory.checkForDummyContext() called on thread " +
+                           Thread.currentThread().getName());
+      }
+
       pendingContextSet.add(device);
       GraphicsConfiguration config = device.getDefaultConfiguration();
       Rectangle rect = config.getBounds();

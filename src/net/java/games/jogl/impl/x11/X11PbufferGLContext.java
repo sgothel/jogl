@@ -20,7 +20,7 @@
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
  * PARTICULAR PURPOSE OR NON-INFRINGEMENT, ARE HEREBY EXCLUDED. SUN
- * MIDROSYSTEMS, INC. ("SUN") AND ITS LICENSORS SHALL NOT BE LIABLE FOR
+ * MICROSYSTEMS, INC. ("SUN") AND ITS LICENSORS SHALL NOT BE LIABLE FOR
  * ANY DAMAGES SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR
  * DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES. IN NO EVENT WILL SUN OR
  * ITS LICENSORS BE LIABLE FOR ANY LOST REVENUE, PROFIT OR DATA, OR FOR
@@ -60,10 +60,6 @@ public class X11PbufferGLContext extends X11GLContext {
   private static final int MAX_PFORMATS = 256;
   private static final int MAX_ATTRIBS  = 256;
 
-  // FIXME: figure out how to support render-to-texture and
-  // render-to-texture-rectangle (which appear to be supported, though
-  // it looks like floating-point buffers are not)
-
   public X11PbufferGLContext(GLCapabilities capabilities, int initialWidth, int initialHeight) {
     super(null, capabilities, null, null);
     this.initWidth  = initialWidth;
@@ -94,17 +90,13 @@ public class X11PbufferGLContext extends X11GLContext {
     throw new GLException("Not yet implemented");
   }
 
-  public void createPbuffer(long display, long parentContext) {
+  public void createPbuffer(long display, long parentContext, GL gl) {
     if (display == 0) {
       throw new GLException("Null display");
     }
     
     if (parentContext == 0) {
       throw new GLException("Null parentContext");
-    }
-
-    if (capabilities.getOffscreenFloatingPointBuffers()) {
-      throw new GLException("Floating-point pbuffers not supported yet on X11");
     }
 
     if (capabilities.getOffscreenRenderToTexture()) {
@@ -164,6 +156,14 @@ public class X11PbufferGLContext extends X11GLContext {
       iattributes[niattribs++] = capabilities.getAccumGreenBits();
       iattributes[niattribs++] = GLX.GLX_ACCUM_BLUE_SIZE;
       iattributes[niattribs++] = capabilities.getAccumBlueBits();
+    }
+
+    if (capabilities.getOffscreenFloatingPointBuffers()) {
+      if (!gl.isExtensionAvailable("GLX_NV_float_buffer")) {
+        throw new GLException("Floating-point pbuffers on X11 currently require NVidia hardware");
+      }
+      iattributes[niattribs++] = GLX.GLX_FLOAT_COMPONENTS_NV;
+      iattributes[niattribs++] = GL.GL_TRUE;
     }
 
     // FIXME: add FSAA support? Don't want to get into a situation
@@ -286,10 +286,6 @@ public class X11PbufferGLContext extends X11GLContext {
     return false;
   }
 
-  public int getOffscreenContextBufferedImageType() {
-    throw new GLException("Should not call this");
-  }
-
   public int getOffscreenContextReadBuffer() {
     throw new GLException("Should not call this");
   }
@@ -330,6 +326,11 @@ public class X11PbufferGLContext extends X11GLContext {
 
   public void swapBuffers() throws GLException {
     // FIXME: do we need to do anything if the pbuffer is double-buffered?
+  }
+
+  public int getFloatingPointMode() {
+    // Floating-point pbuffers currently require NVidia hardware on X11
+    return GLPbuffer.NV_FLOAT;
   }
 
   private int queryFBConfig(long display, GLXFBConfig fbConfig, int attrib) {

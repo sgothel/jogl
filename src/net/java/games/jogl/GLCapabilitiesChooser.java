@@ -20,7 +20,7 @@
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
  * PARTICULAR PURPOSE OR NON-INFRINGEMENT, ARE HEREBY EXCLUDED. SUN
- * MIDROSYSTEMS, INC. ("SUN") AND ITS LICENSORS SHALL NOT BE LIABLE FOR
+ * MICROSYSTEMS, INC. ("SUN") AND ITS LICENSORS SHALL NOT BE LIABLE FOR
  * ANY DAMAGES SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR
  * DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES. IN NO EVENT WILL SUN OR
  * ITS LICENSORS BE LIABLE FOR ANY LOST REVENUE, PROFIT OR DATA, OR FOR
@@ -40,7 +40,10 @@
 package net.java.games.jogl;
 
 /** Provides a mechanism by which applications can customize the
-    window type selection for a given {@link GLCapabilities}. */
+    window type selection for a given {@link GLCapabilities}.
+    Developers can implement this interface and pass an instance into
+    the appropriate method of {@link GLDrawableFactory}; the chooser
+    will be called during the OpenGL context creation process. */
 
 public interface GLCapabilitiesChooser {
   /** Chooses the index (0..available.length - 1) of the {@link
@@ -50,7 +53,14 @@ public interface GLCapabilitiesChooser {
       ignore these. The <em>windowSystemRecommendedChoice</em>
       parameter may be provided to the chooser by the underlying
       window system; if this index is valid, it is recommended, but
-      not necessarily required, that the chooser select that entry. */
+      not necessarily required, that the chooser select that entry.
+
+      <P> <em>Note:</em> this method is called automatically by the
+      {@link GLDrawableFactory} when an instance of this class is
+      passed in to one of its factory methods. It should generally not
+      be invoked by users directly, unless it is desired to delegate
+      the choice to some other GLCapabilitiesChooser object.
+  */
   public int chooseCapabilities(GLCapabilities desired,
                                 GLCapabilities[] available,
                                 int windowSystemRecommendedChoice);

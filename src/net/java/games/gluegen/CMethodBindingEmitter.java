@@ -20,7 +20,7 @@
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
  * PARTICULAR PURPOSE OR NON-INFRINGEMENT, ARE HEREBY EXCLUDED. SUN
- * MIDROSYSTEMS, INC. ("SUN") AND ITS LICENSORS SHALL NOT BE LIABLE FOR
+ * MICROSYSTEMS, INC. ("SUN") AND ITS LICENSORS SHALL NOT BE LIABLE FOR
  * ANY DAMAGES SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR
  * DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES. IN NO EVENT WILL SUN OR
  * ITS LICENSORS BE LIABLE FOR ANY LOST REVENUE, PROFIT OR DATA, OR FOR
@@ -656,7 +656,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
             writer.print("  ");
             emitGetStringUTFChars(writer,
                                   "(jstring) _tmpObj",
-                                  "(const char*)"+convName+"_copy[_copyIndex]");
+                                  convName+"_copy[_copyIndex]");
           }
           else if (isNIOBufferClass(subArrayElementJavaType))
           {
@@ -838,7 +838,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
           }
 
           // free the main array
-          writer.print("    free(");
+          writer.print("    free((void*) ");
           writer.print(convName+"_copy");
           writer.println(");");
         } // end of cleaning up copied data

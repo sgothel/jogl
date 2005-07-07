@@ -20,7 +20,7 @@
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
  * PARTICULAR PURPOSE OR NON-INFRINGEMENT, ARE HEREBY EXCLUDED. SUN
- * MIDROSYSTEMS, INC. ("SUN") AND ITS LICENSORS SHALL NOT BE LIABLE FOR
+ * MICROSYSTEMS, INC. ("SUN") AND ITS LICENSORS SHALL NOT BE LIABLE FOR
  * ANY DAMAGES SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR
  * DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES. IN NO EVENT WILL SUN OR
  * ITS LICENSORS BE LIABLE FOR ANY LOST REVENUE, PROFIT OR DATA, OR FOR
@@ -66,6 +66,7 @@ public class WindowsPbufferGLContext extends WindowsGLContext {
   private boolean rect;      // render-to-texture-rectangle?
   private int textureTarget; // e.g. GL_TEXTURE_2D, GL_TEXTURE_RECTANGLE_NV
   private int texture;       // actual texture object
+  private int floatMode;
 
   public WindowsPbufferGLContext(GLCapabilities capabilities, int initialWidth, int initialHeight) {
     super(null, capabilities, null, null);
@@ -145,18 +146,57 @@ public class WindowsPbufferGLContext extends WindowsGLContext {
     rtt              = capabilities.getOffscreenRenderToTexture();
     rect             = capabilities.getOffscreenRenderToTextureRectangle();
     boolean useFloat = capabilities.getOffscreenFloatingPointBuffers();
+    boolean ati      = false;
     
     // Since we are trying to create a pbuffer, the pixel format we
     // request (and subsequently use) must be "p-buffer capable".
     iattributes[niattribs++] = GL.WGL_DRAW_TO_PBUFFER_ARB;
     iattributes[niattribs++] = GL.GL_TRUE;
 
-    if (!rtt) {
-      // Currently we don't support non-truecolor visuals in the
-      // GLCapabilities, so we don't offer the option of making
-      // color-index pbuffers.
-      iattributes[niattribs++] = GL.WGL_PIXEL_TYPE_ARB;
-      iattributes[niattribs++] = GL.WGL_TYPE_RGBA_ARB;
+    if (rtt && !rect) {
+      throw new GLException("Render-to-texture-rectangle requires render-to-texture to be specified");
+    }
+
+    if (rect) {
+      if (!gl.isExtensionAvailable("GL_NV_texture_rectangle")) {
+        throw new GLException("Render-to-texture-rectangle requires GL_NV_texture_rectangle extension");
+      }
+    }
+
+    if (useFloat) {
+      if (!gl.isExtensionAvailable("WGL_ATI_pixel_format_float") &&
+          !gl.isExtensionAvailable("WGL_NV_float_buffer")) {
+        throw new GLException("Floating-point pbuffers not supported by this hardware");
+      }
+
+      // Prefer NVidia extension over ATI
+      if (gl.isExtensionAvailable("WGL_NV_float_buffer")) {
+        ati = false;
+        floatMode = GLPbuffer.NV_FLOAT;
+      } else {
+        ati = true;
+        floatMode = GLPbuffer.ATI_FLOAT;
+      }
+      if (DEBUG) {
+        System.err.println("Using " + (ati ? "ATI" : "NVidia") + " floating-point extension");
+      }
+    }
+
+    if (useFloat && ati) {
+      if (rtt) {
+        throw new GLException("Render-to-floating-point-texture not supported on ATI hardware");
+      } else {
+        iattributes[niattribs++] = GL.WGL_PIXEL_TYPE_ARB;
+        iattributes[niattribs++] = GL.WGL_TYPE_RGBA_FLOAT_ATI;
+      }
+    } else {
+      if (!rtt) {
+        // Currently we don't support non-truecolor visuals in the
+        // GLCapabilities, so we don't offer the option of making
+        // color-index pbuffers.
+        iattributes[niattribs++] = GL.WGL_PIXEL_TYPE_ARB;
+        iattributes[niattribs++] = GL.WGL_TYPE_RGBA_ARB;
+      }
     }
 
     iattributes[niattribs++] = GL.WGL_DOUBLE_BUFFER_ARB;
@@ -195,15 +235,17 @@ public class WindowsPbufferGLContext extends WindowsGLContext {
       iattributes[niattribs++] = GL.GL_TRUE;
     }
 
-    // FIXME: using NVidia-specific extensions and enums, as well as
-    // confusing render-to-texture with render-to-texture-rectangle
-    if (useFloat) {
+    if (useFloat && !ati) {
       iattributes[niattribs++] = GL.WGL_FLOAT_COMPONENTS_NV;
       iattributes[niattribs++] = GL.GL_TRUE;
     }
 
     if (rtt) {
       if (useFloat) {
+        assert(!ati);
+        if (!rect) {
+          throw new GLException("Render-to-floating-point-texture only supported on NVidia hardware with render-to-texture-rectangle");
+        }
         iattributes[niattribs++] = GL.WGL_BIND_TO_TEXTURE_RECTANGLE_FLOAT_RGB_NV;
         iattributes[niattribs++] = GL.GL_TRUE;
       } else {
@@ -239,7 +281,7 @@ public class WindowsPbufferGLContext extends WindowsGLContext {
       iattributes[2] = GL.WGL_BLUE_BITS_ARB;
       iattributes[3] = GL.WGL_ALPHA_BITS_ARB;
       iattributes[4] = GL.WGL_DEPTH_BITS_ARB;
-      iattributes[5] = GL.WGL_FLOAT_COMPONENTS_NV;
+      iattributes[5] = (useFloat ? (ati ? GL.WGL_PIXEL_TYPE_ARB : GL.WGL_FLOAT_COMPONENTS_NV) : GL.WGL_RED_BITS_ARB);
       iattributes[6] = GL.WGL_SAMPLE_BUFFERS_EXT;
       iattributes[7] = GL.WGL_SAMPLES_EXT;
       iattributes[8] = GL.WGL_DRAW_TO_PBUFFER_ARB;
@@ -257,9 +299,20 @@ public class WindowsPbufferGLContext extends WindowsGLContext {
         System.err.print(" depth: " + ivalues[4]);
         System.err.print(" multisample: " + ivalues[6]);
         System.err.print(" samples: " + ivalues[7]);
-        if (ivalues[5] != 0) {
-          System.err.print(" [float]");
+        if (useFloat) {
+          if (ati) {
+            if (ivalues[5] == GL.WGL_TYPE_RGBA_FLOAT_ATI) {
+              System.err.print(" [ati float]");
+            } else if (ivalues[5] != GL.WGL_TYPE_RGBA_ARB) {
+              System.err.print(" [unknown pixel type " + ivalues[5] + "]");
+            }
+          } else {
+            if (ivalues[5] != 0) {
+              System.err.print(" [float]");
+            }
+          }
         }
+
         if (ivalues[8] != 0) {
           System.err.print(" [pbuffer]");
         }
@@ -402,10 +455,6 @@ public class WindowsPbufferGLContext extends WindowsGLContext {
     return false;
   }
 
-  public int getOffscreenContextBufferedImageType() {
-    throw new GLException("Should not call this");
-  }
-
   public int getOffscreenContextReadBuffer() {
     throw new GLException("Should not call this");
   }
@@ -432,7 +481,10 @@ public class WindowsPbufferGLContext extends WindowsGLContext {
     if (hglrc != 0) {
       super.destroyImpl();
       // Must release DC and pbuffer
-      GL gl = getGL();
+      // NOTE that since the context is not current, glGetError() can
+      // not be called here, so we skip the use of any composable
+      // pipelines
+      GL gl = createGL();
       if (gl.wglReleasePbufferDCARB(buffer, hdc) == 0) {
         throw new GLException("Error releasing pbuffer device context: error code " + WGL.GetLastError());
       }
@@ -455,6 +507,10 @@ public class WindowsPbufferGLContext extends WindowsGLContext {
       GL gl = getGL();
       gl.glCopyTexSubImage2D(textureTarget, 0, 0, 0, 0, 0, width, height);
     }
+  }
+
+  public int getFloatingPointMode() {
+    return floatMode;
   }
 
   private String wglGetLastError() {

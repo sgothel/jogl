@@ -20,7 +20,7 @@
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
  * PARTICULAR PURPOSE OR NON-INFRINGEMENT, ARE HEREBY EXCLUDED. SUN
- * MIDROSYSTEMS, INC. ("SUN") AND ITS LICENSORS SHALL NOT BE LIABLE FOR
+ * MICROSYSTEMS, INC. ("SUN") AND ITS LICENSORS SHALL NOT BE LIABLE FOR
  * ANY DAMAGES SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR
  * DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES. IN NO EVENT WILL SUN OR
  * ITS LICENSORS BE LIABLE FOR ANY LOST REVENUE, PROFIT OR DATA, OR FOR
@@ -68,10 +68,6 @@ public class MacOSXOnscreenGLContext extends MacOSXGLContext {
 
   protected boolean isOffscreen() {
     return false;
-  }
-    
-  public int getOffscreenContextBufferedImageType() {
-    throw new GLException("Should not call this");
   }
     
   public int getOffscreenContextReadBuffer() {
@@ -131,6 +127,9 @@ public class MacOSXOnscreenGLContext extends MacOSXGLContext {
             (MacOSXPbufferGLContext) pbuffersToInstantiate.remove(pbuffersToInstantiate.size() - 1);
           ctx.createPbuffer(nsView, nsContext);
         }
+      } else {
+        // View might not have been ready
+        unlockSurface();
       }
       return ret;
     } catch (RuntimeException e) {

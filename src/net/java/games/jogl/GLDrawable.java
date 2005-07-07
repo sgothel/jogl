@@ -20,7 +20,7 @@
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
  * PARTICULAR PURPOSE OR NON-INFRINGEMENT, ARE HEREBY EXCLUDED. SUN
- * MIDROSYSTEMS, INC. ("SUN") AND ITS LICENSORS SHALL NOT BE LIABLE FOR
+ * MICROSYSTEMS, INC. ("SUN") AND ITS LICENSORS SHALL NOT BE LIABLE FOR
  * ANY DAMAGES SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR
  * DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES. IN NO EVENT WILL SUN OR
  * ITS LICENSORS BE LIABLE FOR ANY LOST REVENUE, PROFIT OR DATA, OR FOR
@@ -94,10 +94,22 @@ public interface GLDrawable extends ComponentEvents {
       Dimension is null a new one will be allocated and returned. */
   public Dimension getSize(Dimension d);
 
-  /** Returns the {@link GL} pipeline object this GLDrawable uses. */
+  /** Returns the {@link GL} pipeline object this GLDrawable uses.  If
+      this method is called outside of the {@link GLEventListener}'s
+      callback methods (init, display, etc.) it may return null. Users
+      should not rely on the identity of the returned GL object; for
+      example, users should not maintain a hash table with the GL
+      object as the key. Additionally, the GL object should not be
+      cached in client code, but should be re-fetched from the
+      GLDrawable at the beginning of each call to init, display,
+      etc. */
   public GL getGL();
 
-  /** Sets the {@link GL} pipeline object this GLDrawable uses. */
+  /** Sets the {@link GL} pipeline object this GLDrawable uses. This
+      should only be called from within the GLEventListener's callback
+      methods, and usually only from within the init() method, in
+      order to install a composable pipeline. See the JOGL demos for
+      examples. */
   public void setGL(GL gl);
 
   /** Returns the {@link GLU} pipeline object this GLDrawable uses. */

@@ -15,8 +15,11 @@
   <LI> Creating a GLDrawable
   <LI> Writing a GLEventListener
   <LI> Using the Composable Pipeline
+  <LI> Heavyweight and Lightweight Issues
   <LI> Multithreading Issues
   <LI> Pbuffers
+  <LI> GLU
+  <LI> More Resources
   <LI> Platform notes
   <UL>
     <LI> All Platforms
@@ -24,6 +27,7 @@
     <LI> Solaris, Linux (X11 platforms)
     <LI> Macintosh OS X
   </UL>
+  <LI> Version History
 
 </UL>
 
@@ -36,7 +40,7 @@ API. It supports integration with the Java platform's AWT and Swing
 widget sets while providing a minimal and easy-to-use API that handles
 many of the issues associated with building multithreaded OpenGL
 applications. Jogl provides access to the latest OpenGL routines
-(OpenGL 1.4 with vendor extensions) as well as platform-independent
+(OpenGL 2.0 with vendor extensions) as well as platform-independent
 access to hardware-accelerated offscreen rendering ("pbuffers"). Jogl
 also provides some of the most popular features introduced by other
 Java bindings for OpenGL like GL4Java, LWJGL and Magician, including a
@@ -79,14 +83,16 @@ Jogl provides two basic widgets into which OpenGL rendering can be
 performed. The GLCanvas is a heavyweight AWT widget which supports
 hardware acceleration and which is intended to be the primary widget
 used by applications. The GLJPanel is a fully Swing-compatible
-lightweight widget which currently does not support hardware
-acceleration but which is intended to provide 100% correct Swing
-integration in the rare circumstances where a GLCanvas can not be
-used. See <a href =
+lightweight widget which supports hardware acceleration but which is
+not as fast as the GLCanvas because it reads back the frame buffer in
+order to draw it using Java2D. The GLJPanel is intended to provide
+100% correct Swing integration in the circumstances where a GLCanvas
+can not be used. See <a href =
 "http://java.sun.com/products/jfc/tsc/articles/mixing/">this
 article</a> on <a href = "http://java.sun.com/products/jfc/tsc/">The
 Swing Connection</a> for more information about mixing lightweight and
-heavyweight widgets.
+heavyweight widgets. See also the section on "Heavyweight and
+Lightweight Issues" below.
 
 </P>
 <P>
@@ -124,8 +130,10 @@ changes. The GLDrawable interface provides
 GLCanvas and GLJPanel instances are created using the factory methods
 in GLDrawableFactory. These factory methods allow the user to request
 a certain set of OpenGL parameters in the form of a GLCapabilities
-object as well as optionally customize the format selection algorithm
-by specifying a GLCapabilitiesChooser.
+object, to customize the format selection algorithm by specifying a
+GLCapabilitiesChooser, to share textures and display lists with other
+GLDrawables, and to specify the display device on which the GLDrawable
+will be created.
 
 </P>
 <P>
@@ -144,10 +152,23 @@ An application can override the default pixel format selection
 algorithm by providing a GLCapabilitiesChooser to the
 GLDrawableFactory. The chooseCapabilities method will be called with
 all of the available pixel formats as an array of GLCapabilities
-objects; it should return an integer index into this array. The
-DefaultGLCapabilitiesChooser attempts to provide a better
-cross-platform selection algorithm than the WGL and GLX pixel format
-selection algorithms.
+objects, as well as the index indicating the window system's
+recommended choice; it should return an integer index into this
+array. The DefaultGLCapabilitiesChooser uses the window system's
+recommendation when it is available, and otherwise attempts to use a
+platform-independent selection algorithm.
+
+</P>
+<P>
+
+The GLJPanel can be made non-opaque according to Swing's rendering
+model, so it can act as an overlay to other Swing or Java2D drawing.
+In order to enable this, set up your GLCapabilities object with a
+non-zero alpha depth (a common value is 8 bits) and call
+setOpaque(false) on the GLJPanel once it has been created. Java2D
+rendering underneath it will then show through areas where OpenGL has
+produced an alpha value less than 1.0. See the JGears and JRefract
+demos for examples of how to use this functionality.
 
 </P>
 
@@ -164,16 +185,20 @@ begins to perform rendering.
 </P>
 <P>
 
-The <CODE>init()</CODE> method is called upon OpenGL context creation.
-Any display lists or textures used during the application's normal
-rendering loop can be safely initialized in <CODE>init()</CODE>.
-Because the underlying AWT window may be destroyed and recreated while
+The <CODE>init()</CODE> method is called when a new OpenGL context is
+created for the given GLDrawable. Any display lists or textures used
+during the application's normal rendering loop can be safely
+initialized in <CODE>init()</CODE>. It is important to note that
+because the underlying AWT window may be destroyed and recreated while
 using the same GLCanvas and GLEventListener, the GLEventListener's
 <CODE>init()</CODE> method may be called more than once during the
-lifetime of the application. It is the responsibility of the
-application to understand its sharing of textures and display lists
-between multiple OpenGL contexts and reinitialize them when the
-<CODE>init()</CODE> callback is entered if necessary.
+lifetime of the application. The init() method should therefore be
+kept as short as possible and only contain the OpenGL initialization
+required for the <CODE>display()</CODE> method to run properly. It is
+the responsibility of the application to keep track of how its various
+OpenGL contexts share display lists, textures and other OpenGL objects
+so they can be either be reinitialized or so that reinitialization can
+be skipped when the <CODE>init()</CODE> callback is called.
 
 </P>
 <P>
@@ -235,6 +260,94 @@ class MyListener implements GLEventListener {
   // ...
 }
 </PRE>
+
+</P>
+
+<H2> Heavyweight and Lightweight Issues </H2>
+
+<P>
+
+As mentioned above, JOGL supplies both a heavyweight (GLCanvas) and a
+lightweight (GLJPanel) widget to be able to provide the fastest
+possible performance for applications which need it as well as 100%
+correct Swing integration, again for applications which need it. The
+GLCanvas provides much higher performance than the GLJPanel in nearly
+all situations and can be used in almost every kind of application
+except those using JInternalFrames. Please see the Swing Connection
+article mentioned above for details on mixing heavyweight and
+lightweight widgets. A couple of common pitfalls are described here.
+
+</P>
+<P>
+
+When using JPopupMenus or Swing tool tips in conjunction with the
+GLCanvas, it is necessary to disable the use of lightweight widgets
+for the popups. See the methods
+<CODE>ToolTipManager.setLightWeightPopupEnabled</CODE>,
+<CODE>JPopupMenu.setLightWeightPopupEnabled</CODE>, and
+<CODE>JPopupMenu.setDefaultLightWeightPopupEnabled</CODE>.
+
+</P>
+<P>
+
+There are occasionally problems with certain LayoutManagers and
+component configurations where if a GLCanvas is placed in the middle
+of a set of lightweight widgets then it may only grow and never
+shrink. These issues are documented somewhat in <a href =
+"https://jogl.dev.java.net/issues/show_bug.cgi?id=135">JOGL Issue
+135</a> and most recently in the thread <a
+href="http://192.18.37.44/forums/index.php?topic=8699.0">"Resize
+behaviour"</a> in the JOGL forum. The root cause is behavior of the
+Canvas, and in particular its ComponentPeer. The implementation of
+getPreferredSize() calls getMinimumSize() and getMinimumSize() turns
+around and calls Component.getSize(). This effectively means that the
+Canvas will report its preferred size as being as large as the
+component has ever been. For some layout managers this doesn't seem to
+matter, but for others like the BoxLayout it does. See the test case
+attached to Issue 135 for an example. Replacing the GLCanvas with an
+ordinary Canvas yields the same behavior.
+
+</P>
+<P>
+
+One suggestion was to override getPreferredSize() so that if a
+preferred size has not been set by the user, to default to (0,
+0). This works fine for some test cases but breaks all of the other
+JOGL demos because they use a different LayoutManager. There appear to
+be a lot of interactions between heavyweight vs. lightweight widgets
+and layout managers. One experiment which was done was to override
+setSize() in GLCanvas to update the preferred size.  This works down
+to the size specified by the user; if the window is resized any
+smeller the same problem appears. If reshape() (the base routine of
+setSize(), setBounds(), etc.) is changed to do the same thing, the
+demo breaks in the same way it originally did. Therefore this solution
+is fragile because it isn't clear which of these methods are used
+internally by the AWT and for what purposes.
+
+</P>
+<P>
+
+There are two possible solutions, both application-specific. The best
+and most portable appears to be to put the GLCanvas into a JPanel and
+set the JPanel's preferred size to (0, 0). The JPanel will cause this
+constraint to be enforced on its contained GLCanvas. The other
+workaround is to call <CODE>setPreferredSize(new Dimension(0,
+0))</CODE> on a newly-created GLCanvas; this method is new in 1.5.
+
+</P>
+<P>
+
+Another issue that occasionally arises on Windows is flickering during
+live resizing of a GLCanvas. This is caused by the AWT's repainting
+the background of the Canvas and can not be overridden on a per-Canvas
+basis, for example when subclassing Canvas into GLCanvas.  The
+repainting of the background of Canvases on Windows can be disabled by
+specifying the system property
+<CODE>-Dsun.awt.noerasebackground=true</CODE>. Whether to specify this
+flag depends on the application and should not be done universally,
+but instead on a case-by-case basis. Some more detail is in the thread
+<a href="http://192.18.37.44/forums/index.php?topic=8770.0">"TIP: JOGL
++ Swing flicker"</a> in the JOGL forum.
 
 </P>
 
@@ -322,7 +435,7 @@ date.
 </P>
 <P>
 
-Prior to JOGL 1.1 b10, the JOGL library attempted to give applications
+Prior to Jogl 1.1 b10, the Jogl library attempted to give applications
 strict control over which thread or threads performed OpenGL
 rendering. The <CODE>setRenderingThread()</CODE>,
 <CODE>setNoAutoRedrawMode()</CODE> and <CODE>display()</CODE> APIs
@@ -330,22 +443,19 @@ were originally designed to allow the application to create its own
 animation thread and avoid OpenGL context switching on platforms that
 supported it. Unfortunately, serious stability issues caused by
 multithreading bugs in either vendors' OpenGL drivers or in the Java
-platform implementation have arisen on three of JOGL's major supported
-platforms: Windows, Linux and Mac OS X. A detailed description of
-these issues can be found on <a
-href="http://www.javagaming.org/cgi-bin/JGNetForums/YaBB.cgi?board=jogl;action=display;num=1109286717">this
-thread</a> in the <a
-href="http://www.javagaming.org/cgi-bin/JGNetForums/YaBB.cgi?board=jogl">JOGL
-forums</a>. In order to address these bugs, the threading model in
-JOGL 1.1 b10 and later has changed.
+platform implementation have arisen on three of Jogl's major supported
+platforms: Windows, Linux and Mac OS X. In order to address these
+bugs, the threading model in Jogl 1.1 b10 and later has changed.
 
 </P>
 <P>
 
 All GLEventListener callbacks and other internal OpenGL context
-management are now performed on one thread: the AWT event queue
-thread. This is a thread internal to the implementation of the AWT and
-is always present when the AWT is being used. When the
+management are now performed on one thread. (In the current
+implementation, this thread is the AWT event queue thread, which is a
+thread internal to the implementation of the AWT and which is always
+present when the AWT is being used. Future versions of Jogl may change
+the thread on which the OpenGL work is performed.) When the
 <CODE>GLDrawable.display()</CODE> method is called from user code, it
 now performs the work synchronously on the AWT event queue thread,
 even if the calling thread is a different thread. The
@@ -358,8 +468,8 @@ useful for working around certain kinds of OpenGL driver bugs.)
 </P>
 <P>
 
-Most JOGL applications will not see a change in behavior from this
-change in the JOGL implementation. Applications which use thread-local
+Most applications will not see a change in behavior from this change
+in the Jogl implementation. Applications which use thread-local
 storage or complex multithreading and synchronization may see a change
 in their control flow requiring code changes. While it is strongly
 recommended to change such applications to work under the new
@@ -390,11 +500,14 @@ the future.
 To create a pbuffer, create a GLCanvas and (assuming it reports that
 it can create an offscreen drawable) make a pbuffer using the
 <CODE>createOffscreenDrawable</CODE> API. Because of the multithreaded
-nature of the AWT, the pbuffer is actually created lazily. For this
-reason the application's main loop typically needs to detect when the
-init() methods of all of the GLEventListeners for all of the offscreen
-surfaces have been called. See the demonstrations such as the
-ProceduralTexturePhysics demo for an example of this.
+nature of the AWT, the pbuffer is actually created lazily. However,
+even if multiple pbuffers are created, and the order in which they are
+rendered is significant, handling the lazy instantiation can be
+straightforward: the display(GLDrawable) method of one pbuffer's
+GLEventListener can directly call another pbuffer's display() method.
+See the source code for the Jogl demonstrations such as the
+ProceduralTexturePhysics demo and the HDR demo for examples of this
+usage.
 
 </P>
 <P>
@@ -413,8 +526,86 @@ A pbuffer is used by calling its display() method. Rendering, as
 always, occurs while the pbuffer's OpenGL context is current. There
 are render-to-texture options that can be specified in the
 GLCapabilities for the pbuffer which can make it easier to operate
-upon the resulting pixels. These APIs are however extremely
-experimental and not yet implemented on all platforms.
+upon the resulting pixels. These APIs are however highly experimental
+and not yet implemented on all platforms.
+
+</P>
+
+<H2> GLU </H2>
+
+<P>
+
+Jogl contains support for the GLU (OpenGL Utility Library) version
+1.3. Jogl originally supported GLU by wrapping the C version of the
+APIs, but over time, and thanks to the contributions of several
+individuals, it now uses a pure-Java version of SGI's GLU library. The
+pure Java port is enabled by default, and addresses stability issues
+on certain Linux distributions as well as the lack of native GLU 1.3
+support on the Windows platform. In case of problems with the Java
+port, the C version of the GLU library may be used by specifying the
+system property <CODE>-Djogl.glu.nojava</CODE> on the command
+line. All of the same functionality is exposed with both the Java and
+C versions of the GLU library; currently NURBS support is the only
+missing feature on both sides. If you run into problems with the Java
+port of the GLU library please file a bug using the Issue Tracker on
+the Jogl home page.
+
+</P>
+
+<H2> More Resources </H2>
+
+<P>
+
+The <A HREF="http://192.18.37.44/forums/index.php?board=25.0">JOGL
+forum</A> on <A HREF="http://javagaming.org/">javagaming.org</A> is
+the best place to ask questions about the library. Many users, as well
+as the Jogl developers, read this forum frequently, and the archived
+threads contain a lot of useful information (which still needs to be
+distilled into documentation).
+
+</P>
+<P>
+
+The <A HREF="http://jogl-demos.dev.java.net/">JOGL demos</A> provide
+several examples of usage of the library.
+
+</P>
+<P>
+
+Pepijn Van Eeckhoudt has done <A
+HREF="http://pepijn.fab4.be/nehe/">JOGL ports of many of the the NeHe
+demos</A>. These are small examples of various pieces of OpenGL
+functionality. See also the <A HREF="http://nehe.gamedev.net/">NeHe
+web site</A>.
+
+</P>
+<P>
+
+Pepijn also did a <A
+HREF="http://www.glexcess.com/files/glexcess.jar">JOGL port</a> of
+Paolo Martella's <A HREF="http://www.glexcess.com/">GLExcess</A>
+demo. To see the news update about this port, go to the main GLExcess
+site and scroll down.
+
+</P>
+<P>
+
+Gregory Pierce's <A
+HREF="http://192.18.37.44/forums/index.php?topic=1474.0">introduction
+to JOGL</a> is a useful tutorial on starting to use the JOGL library.
+
+</P>
+<P>
+
+For release information about the JOGL library, please see the <A
+HREF="http://192.18.37.44/forums/index.php?topic=1596.0">JOGL Release
+Information</A> thread on the JOGL forum on javagaming.org.
+
+</P>
+<P>
+
+Please post on the JOGL forum if you have a resource you'd like to add
+to this documentation.
 
 </P>
 
@@ -438,7 +629,46 @@ The following issues, among others, are outstanding on all platforms:
 
 <P>
 
-No outstanding issues at this time.
+For correct operation, it is necessary to specify the system property
+<CODE>-Dsun.java2d.noddraw=true</CODE> when running JOGL applications
+on Windows; this system property disables the use of DirectDraw by
+Java2D. There are driver-level incompatibilities between DirectDraw
+and OpenGL which manifest themselves as application crashes, poor
+performance, bad flickering, and other artifacts. This poor behavior
+may exhibit itself when OpenGL and DirectDraw are simply used in the
+same application, not even just in the same window, so disabling
+Java2D's DirectDraw pipeline and forcing it to use its GDI pipeline is
+the only way to work around these issues. Java Web Start applications
+may set this system property by adding the following line to the
+<CODE>&lt;resources&gt;</CODE> section of the JNLP file: <PRE>
+&lt;property name="sun.java2d.noddraw" value="true"/&gt; </PRE>
+
+</P>
+<P>
+
+JOGL currently does not interoperate well with the OpenGL pipeline for
+Java2D available in JDK 5.0 and later. We will address this in a
+future JOGL release and plan to have better interoperability by the
+time JDK 6.0 is shipped.
+
+</P>
+<P>
+
+There is a serious memory leak in ATI's OpenGL drivers which is
+exhibited on Windows XP on Mobility Radeon 9700 hardware. It's
+possible it will be present on other hardware as well though it was
+not reproducible at the time of this writing on desktop Radeon
+hardware or older ATI mobile chips. The bug is documented in <A
+HREF="https://jogl.dev.java.net/issues/show_bug.cgi?id=166">JOGL Issue
+166</A> and a bug has been filed with ATI. You can confirm the
+presence of the bug either with the test case in that bug report or by
+simply running the Gears demo; if the process size grows over time in
+the Task Manager, the memory leak is present on your hardware. For the
+time being, you can work around this memory leak by specifying the
+system property <CODE>-Djogl.GLContext.nofree</CODE> on the command
+line when launching your JOGL applications. There is no good
+general-purpose workaround for this bug which behaves well on all
+hardware.
 
 </P>
 
@@ -451,6 +681,16 @@ No outstanding issues at this time.
 </P>
 
 <H3> Mac OS X </H3>
+
+<P>
+
+There are some problems with visual artifacts and stability problems
+with some of the Jogl demos on Mac OS X. It appears that at least some
+of these problems are due to bugs in Apple's OpenGL support. Bugs have
+been filed about these problems and it is hoped they will be addressed
+in the near future.
+
+</P>
 
 <P>
 
@@ -488,17 +728,25 @@ The following issues remain with the Mac OS X port:
 
 <LI> Due to the mechanism by which the Cocoa graphics system selects
 OpenGL pixel formats, the GLCapabilitiesChooser mechanism can not be
-implemented on Mac OS X as on other platforms. In the future, the
-chooser will be used and the capabilities array will contain exactly
-the requested capablities. The underlying Cocoa pixel format selection
-algorithm will then run to choose the best-fit visual. Currently the
-capabilities of the underlying context are hardcoded.
-
-<LI> Pbuffers are supported in Jogl on Mac OS X 10.3 and later.
+implemented on Mac OS X as on other platforms. Currently the
+underlying Cocoa pixel format selection is used on an
+NSOpenGLPixelFormat derived from the settings in the GLCapabilities,
+and the GLCapabilitiesChooser is ignored.
 
 </UL>
 
 </P>
+
+<H2> Version History </H2>
+
+<P>
+
+JOGL's version history can be found online in the <a
+href="http://192.18.37.44/forums/index.php?topic=1596.0">"JOGL Release
+Information"</a> thread in the JOGL forum. Comments about the 1.1
+release train are in the thread <a
+href="http://192.18.37.44/forums/index.php?topic=4217.0">"JOGL 1.1
+released"</a>.
 
 </BODY>
 </HTML>

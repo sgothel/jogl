@@ -1,5 +1,6 @@
 #import <Cocoa/Cocoa.h>
 #import <OpenGL/gl.h>
+#import <OpenGL/CGLTypes.h>
 #import <jni.h>
 #import "ContextUpdater.h"
 
@@ -14,10 +15,9 @@
 
 typedef int Bool;
 
-NSAutoreleasePool* gAutoreleasePool = NULL;
-
 void* createContext(void* shareContext, void* view,
                     int doubleBuffer,
+                    int stereo,
                     int redBits,
                     int greenBits,
                     int blueBits,
@@ -29,170 +29,173 @@ void* createContext(void* shareContext, void* view,
                     int accumBlueBits,
                     int accumAlphaBits,
                     int sampleBuffers,
-                    int numSamples)
+                    int numSamples,
+                    int pbuffer,
+                    int floatingPoint,
+                    int* viewNotReady)
 {
-        int colorSize = redBits + greenBits + blueBits;
-        int accumSize = accumRedBits + accumGreenBits + accumBlueBits;
+  int colorSize = redBits + greenBits + blueBits;
+  int accumSize = accumRedBits + accumGreenBits + accumBlueBits;
   
-	NSOpenGLContext *nsChareCtx = (NSOpenGLContext*)shareContext;
-	NSView *nsView = (NSView*)view;
+  NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+
+  NSOpenGLContext *nsChareCtx = (NSOpenGLContext*)shareContext;
+  NSView *nsView = (NSView*)view;
 	
-        if (nsView != NULL)
-        {
-            NSRect frame = [nsView frame];
-            if ((frame.size.width == 0) || (frame.size.height == 0))
-            {
-                fprintf(stderr, "Error: view width or height == 0at \"%s:%s:%d\"\n", __FILE__, __FUNCTION__, __LINE__);
-                // the view is not ready yet
-                return NULL;
-            }
-            else if ([nsView lockFocusIfCanDraw] == NO)
-            {
-                fprintf(stderr, "Error: view not ready, cannot lock focus at \"%s:%s:%d\"\n", __FILE__, __FUNCTION__, __LINE__);
-                // the view is not ready yet
-                return NULL;
-            }
-        }
-                
-	if (gAutoreleasePool == NULL)
-	{
-		gAutoreleasePool = [[NSAutoreleasePool alloc] init];
-	}
+  if (nsView != NULL) {
+    if ([nsView lockFocusIfCanDraw] == NO) {
+      if (viewNotReady != NULL) {
+        *viewNotReady = 1;
+      }
+            
+      // the view is not ready yet
+      [pool release];
+      return NULL;
+    }
+  }
+
+  NSOpenGLPixelFormatAttribute attribs[256];
+  int idx = 0;
+  if (pbuffer)       attribs[idx++] = NSOpenGLPFAPixelBuffer;
+  // kCGLPFAColorFloat is equivalent to NSOpenGLPFAColorFloat, but the
+  // latter is only available on 10.4 and we need to compile under
+  // 10.3
+  if (floatingPoint) attribs[idx++] = kCGLPFAColorFloat;
+  if (doubleBuffer)  attribs[idx++] = NSOpenGLPFADoubleBuffer;
+  if (stereo)        attribs[idx++] = NSOpenGLPFAStereo;
+  attribs[idx++] = NSOpenGLPFAColorSize;     attribs[idx++] = colorSize;
+  attribs[idx++] = NSOpenGLPFAAlphaSize;     attribs[idx++] = alphaBits;
+  attribs[idx++] = NSOpenGLPFADepthSize;     attribs[idx++] = depthBits;
+  attribs[idx++] = NSOpenGLPFAStencilSize;   attribs[idx++] = stencilBits;
+  attribs[idx++] = NSOpenGLPFAAccumSize;     attribs[idx++] = accumSize;
+  attribs[idx++] = NSOpenGLPFASampleBuffers; attribs[idx++] = sampleBuffers;
+  attribs[idx++] = NSOpenGLPFASamples;       attribs[idx++] = numSamples;
+  attribs[idx++] = 0;
 	
-	NSOpenGLPixelFormatAttribute attribs[] =
-	{
-		NSOpenGLPFANoRecovery, YES,
-		NSOpenGLPFAAccelerated, YES,
-		NSOpenGLPFADoubleBuffer, YES,
-		NSOpenGLPFAColorSize, colorSize,
-		NSOpenGLPFAAlphaSize, alphaBits,
-		NSOpenGLPFADepthSize, depthBits,
-		NSOpenGLPFAStencilSize, stencilBits,
-		NSOpenGLPFAAccumSize, accumSize,
-		NSOpenGLPFASampleBuffers, sampleBuffers,
-		NSOpenGLPFASamples, numSamples,
-		0
-	};
-	
-	
-	
-	NSOpenGLPixelFormat* fmt = [[NSOpenGLPixelFormat alloc] initWithAttributes:attribs];
-	
-	NSOpenGLContext* nsContext = [[NSOpenGLContext alloc] initWithFormat:fmt shareContext:nsChareCtx];
-	
-	[fmt release];
+  NSOpenGLPixelFormat* fmt = [[NSOpenGLPixelFormat alloc]
+                               initWithAttributes:attribs];
+  NSOpenGLContext* nsContext = [[NSOpenGLContext alloc]
+                                 initWithFormat:fmt
+                                 shareContext:nsChareCtx];
+  [fmt release];
         
-	if (nsView != nil)
-	{
-		[nsContext setView:nsView];
-                
-		[nsView unlockFocus];		
-	}
-                
-	[nsContext retain];
+  if (nsView != nil) {
+    [nsContext setView:nsView];
+    [nsView unlockFocus];		
+  }
+
+  [pool release];
+  return nsContext;
+}
+
+Bool makeCurrentContext(void* context, void* view) {
+  NSOpenGLContext *nsContext = (NSOpenGLContext*)context;
 	
-//fprintf(stderr, "	nsContext=%p\n", nsContext);
-	return nsContext;
+  NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+  [nsContext makeCurrentContext];
+  [pool release];
+  return true;
 }
 
-Bool makeCurrentContext(void* context, void* view)
-{
-//fprintf(stderr, "makeCurrentContext context=%p, view=%p\n", context, view);
-	NSOpenGLContext *nsContext = (NSOpenGLContext*)context;
+Bool clearCurrentContext(void* context, void* view) {
+  NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+  [NSOpenGLContext clearCurrentContext];
+  [pool release];
+  return true;
+}
+
+Bool deleteContext(void* context, void* view) {
+  NSOpenGLContext *nsContext = (NSOpenGLContext*)context;
 	
-	[nsContext makeCurrentContext];
-	return true;
+  NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+  [nsContext clearDrawable];
+  [nsContext release];
+  [pool release];
+  return true;
 }
 
-Bool clearCurrentContext(void* context, void* view)
-{
-//fprintf(stderr, "clearCurrentContext context=%p, view=%p\n", context, view);
-	[NSOpenGLContext clearCurrentContext];
-	return true;
-}
-
-Bool deleteContext(void* context, void* view)
-{
-//fprintf(stderr, "deleteContext context=%p, view=%p\n", context, view);
-	NSOpenGLContext *nsContext = (NSOpenGLContext*)context;
+Bool flushBuffer(void* context, void* view) {
+  NSOpenGLContext *nsContext = (NSOpenGLContext*)context;
 	
-	[nsContext clearDrawable];
-	[nsContext release];
-	return true;
+  NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+  [nsContext flushBuffer];
+  [pool release];
+  return true;
 }
 
-Bool flushBuffer(void* context, void* view)
-{
-//fprintf(stderr, "flushBuffer context=%p, view=%p\n", context, view);
-	NSOpenGLContext *nsContext = (NSOpenGLContext*)context;
+void updateContext(void* context, void* view) {
+  NSOpenGLContext *nsContext = (NSOpenGLContext*)context;
 	
-	[nsContext flushBuffer];
-	return true;
+  NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+  [nsContext update];
+  [pool release];
 }
 
-void updateContext(void* context, void* view)
-{
-//fprintf(stderr, "updateContext context=%p, view=%p\n", context, view);
-	NSOpenGLContext *nsContext = (NSOpenGLContext*)context;
+void* updateContextRegister(void* context, void* view) {
+  NSOpenGLContext *nsContext = (NSOpenGLContext*)context;
+  NSView *nsView = (NSView*)view;
 	
-	[nsContext update];
+  NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+  ContextUpdater *contextUpdater = [[ContextUpdater alloc] init];
+  [contextUpdater registerFor:nsContext with:nsView];
+  [pool release];
+  return NULL;
 }
 
-void* updateContextRegister(void* context, void* view)
-{
-//fprintf(stderr, "updateContextRegister context=%p, view=%p\n", context, view);
-	NSOpenGLContext *nsContext = (NSOpenGLContext*)context;
-	NSView *nsView = (NSView*)view;
+void updateContextUnregister(void* context, void* view, void* updater) {
+  ContextUpdater *contextUpdater = (ContextUpdater *)updater;
 	
-	ContextUpdater *contextUpdater = [[ContextUpdater alloc] init];
-	[contextUpdater registerFor:nsContext with:nsView];
-        return NULL;
+  NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+  [contextUpdater release];
+  [pool release];
 }
 
-void updateContextUnregister(void* context, void* view, void* updater)
-{
-//fprintf(stderr, "updateContextUnregister context=%p, view=%p\n", context, view);
-	ContextUpdater *contextUpdater = (ContextUpdater *)updater;
-	
-	[contextUpdater release];
-}
-
-void* createPBuffer(int renderTarget, int width, int height)
-{
-  //  fprintf(stderr, "createPBuffer renderTarget=%d width=%d height=%d\n", renderTarget, width, height);
-
-  NSOpenGLPixelBuffer* pBuffer = [[NSOpenGLPixelBuffer alloc] initWithTextureTarget:renderTarget textureInternalFormat:GL_RGBA textureMaxMipMapLevel:0 pixelsWide:width pixelsHigh:height];
-
+void* createPBuffer(int renderTarget, int internalFormat, int width, int height) {
+  NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+  NSOpenGLPixelBuffer* pBuffer = [[NSOpenGLPixelBuffer alloc]
+                                   initWithTextureTarget:renderTarget
+                                   textureInternalFormat:internalFormat
+                                   textureMaxMipMapLevel:0
+                                   pixelsWide:width
+                                   pixelsHigh:height];
+  [pool release];
   return pBuffer;
 }
 
-Bool destroyPBuffer(void* context, void* buffer)
-{
-//fprintf(stderr, "destroyPBuffer context=%p, buffer=%p\n", context, buffer);
-	NSOpenGLContext *nsContext = (NSOpenGLContext*)context;
-	NSOpenGLPixelBuffer *pBuffer = (NSOpenGLPixelBuffer*)buffer;
+Bool destroyPBuffer(void* context, void* buffer) {
+  NSOpenGLContext *nsContext = (NSOpenGLContext*)context;
+  NSOpenGLPixelBuffer *pBuffer = (NSOpenGLPixelBuffer*)buffer;
 	
-        if (nsContext != NULL)
-        {
-            [nsContext clearDrawable];
-        }
-	[pBuffer release];
+  NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+  if (nsContext != NULL) {
+    [nsContext clearDrawable];
+  }
+  [pBuffer release];
+  [pool release];
 	
-	return true;
+  return true;
 }
 
 void setContextPBuffer(void* context, void* buffer) {
   NSOpenGLContext *nsContext = (NSOpenGLContext*)context;
   NSOpenGLPixelBuffer *pBuffer = (NSOpenGLPixelBuffer*)buffer;
 
-  [nsContext setPixelBuffer: pBuffer cubeMapFace: 0 mipMapLevel: 0 currentVirtualScreen: [nsContext currentVirtualScreen]];
+  NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+  [nsContext setPixelBuffer: pBuffer
+             cubeMapFace: 0
+             mipMapLevel: 0
+             currentVirtualScreen: [nsContext currentVirtualScreen]];
+  [pool release];
 }
 
 void setContextTextureImageToPBuffer(void* context, void* buffer, int colorBuffer) {
   NSOpenGLContext *nsContext = (NSOpenGLContext*)context;
   NSOpenGLPixelBuffer *pBuffer = (NSOpenGLPixelBuffer*)buffer;
 
-  [nsContext setTextureImageToPixelBuffer: pBuffer colorBuffer: (unsigned long) colorBuffer];
+  NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+  [nsContext setTextureImageToPixelBuffer: pBuffer
+             colorBuffer: (unsigned long) colorBuffer];
+  [pool release];
 }
 
 #include <mach-o/dyld.h>
@@ -201,39 +204,34 @@ static char libGLStr[] = "/System/Library/Frameworks/OpenGL.framework/Libraries/
 static char libGLUStr[] = "/System/Library/Frameworks/OpenGL.framework/Libraries/libGLU.dylib";
 static const struct mach_header *libGLImage;
 static const struct mach_header *libGLUImage;
-void* getProcAddress(const char *procname)
-{
-	if (imagesInitialized == false)
-	{
-		imagesInitialized = true;
-		unsigned long options = NSADDIMAGE_OPTION_RETURN_ON_ERROR;
-		libGLImage = NSAddImage(libGLStr, options);
-		libGLUImage = NSAddImage(libGLUStr, options);
-	}
+void* getProcAddress(const char *procname) {
+  if (imagesInitialized == false) {
+    imagesInitialized = true;
+    unsigned long options = NSADDIMAGE_OPTION_RETURN_ON_ERROR;
+    libGLImage = NSAddImage(libGLStr, options);
+    libGLUImage = NSAddImage(libGLUStr, options);
+  }
 	
-	unsigned long options = NSLOOKUPSYMBOLINIMAGE_OPTION_BIND | NSLOOKUPSYMBOLINIMAGE_OPTION_RETURN_ON_ERROR;
-	char underscoreName[512] = "_";
-	strcat(underscoreName, procname);
+  unsigned long options = NSLOOKUPSYMBOLINIMAGE_OPTION_BIND | NSLOOKUPSYMBOLINIMAGE_OPTION_RETURN_ON_ERROR;
+  char underscoreName[512] = "_";
+  strcat(underscoreName, procname);
 	
-	if (NSIsSymbolNameDefinedInImage(libGLImage, underscoreName) == YES)
-	{
-		NSSymbol sym = NSLookupSymbolInImage(libGLImage, underscoreName, options);
-		return NSAddressOfSymbol(sym);
-	}
+  if (NSIsSymbolNameDefinedInImage(libGLImage, underscoreName) == YES) {
+    NSSymbol sym = NSLookupSymbolInImage(libGLImage, underscoreName, options);
+    return NSAddressOfSymbol(sym);
+  }
 	
-	if (NSIsSymbolNameDefinedInImage(libGLUImage, underscoreName) == YES)
-	{
-		NSSymbol sym = NSLookupSymbolInImage(libGLUImage, underscoreName, options);
-		return NSAddressOfSymbol(sym);
-	}
+  if (NSIsSymbolNameDefinedInImage(libGLUImage, underscoreName) == YES)	{
+    NSSymbol sym = NSLookupSymbolInImage(libGLUImage, underscoreName, options);
+    return NSAddressOfSymbol(sym);
+  }
 	
-	if (NSIsSymbolNameDefinedWithHint(underscoreName, "GL")) 
-	{
-		NSSymbol sym = NSLookupAndBindSymbol(underscoreName);
-		return NSAddressOfSymbol(sym);
-	}
-	
-	return NULL;
+  if (NSIsSymbolNameDefinedWithHint(underscoreName, "GL")) {
+    NSSymbol sym = NSLookupAndBindSymbol(underscoreName);
+    return NSAddressOfSymbol(sym);
+  }
+  
+  return NULL;
 }
 
 void setSwapInterval(void* context, int interval) {

@@ -20,7 +20,7 @@
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
  * PARTICULAR PURPOSE OR NON-INFRINGEMENT, ARE HEREBY EXCLUDED. SUN
- * MIDROSYSTEMS, INC. ("SUN") AND ITS LICENSORS SHALL NOT BE LIABLE FOR
+ * MICROSYSTEMS, INC. ("SUN") AND ITS LICENSORS SHALL NOT BE LIABLE FOR
  * ANY DAMAGES SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR
  * DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES. IN NO EVENT WILL SUN OR
  * ITS LICENSORS BE LIABLE FOR ANY LOST REVENUE, PROFIT OR DATA, OR FOR
@@ -56,6 +56,7 @@ public class GLPbufferImpl implements GLPbuffer {
   private GLContext context;
   private GLDrawableHelper drawableHelper = new GLDrawableHelper();
   private boolean isInitialized=false;
+  private int floatMode;
 
   public GLPbufferImpl(GLContext context) {
     this.context = context;
@@ -207,6 +208,13 @@ public class GLPbufferImpl implements GLPbuffer {
     context.destroy();
   }
 
+  public int getFloatingPointMode() {
+    if (floatMode == 0) {
+      throw new GLException("Pbuffer not initialized, or floating-point support not requested");
+    }
+    return floatMode;
+  }
+
   //----------------------------------------------------------------------
   // Internals only below this point
   //
@@ -237,8 +245,9 @@ public class GLPbufferImpl implements GLPbuffer {
 
   class InitAction implements Runnable {
     public void run() {
-      drawableHelper.init(GLPbufferImpl.this);
       isInitialized=true;
+      floatMode = context.getFloatingPointMode();
+      drawableHelper.init(GLPbufferImpl.this);
     }
   }
   private InitAction initAction = new InitAction();

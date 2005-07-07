@@ -52,9 +52,9 @@ extern "C" {
 /*************************************************************/
 
 /* Header file version number, required by OpenGL ABI for Linux */
-/* glxext.h last updated 2004/07/26 */
+/* glxext.h last updated 2005/04/28 */
 /* Current version at http://oss.sgi.com/projects/ogl-sample/registry/ */
-#define GLX_GLXEXT_VERSION 6
+#define GLX_GLXEXT_VERSION 11
 
 #ifndef GLX_VERSION_1_3
 #define GLX_WINDOW_BIT                     0x00000001
@@ -126,6 +126,11 @@ extern "C" {
 #ifndef GLX_ARB_multisample
 #define GLX_SAMPLE_BUFFERS_ARB             100000
 #define GLX_SAMPLES_ARB                    100001
+#endif
+
+#ifndef GLX_ARB_fbconfig_float
+#define GLX_RGBA_FLOAT_TYPE_ARB            0x20B9
+#define GLX_RGBA_FLOAT_BIT_ARB             0x00000004
 #endif
 
 #ifndef GLX_SGIS_multisample
@@ -282,7 +287,11 @@ extern "C" {
 #ifndef GLX_OML_sync_control
 #endif
 
-#ifndef GLX_SGIX_hyperpipe_group
+#ifndef GLX_NV_float_buffer
+#define GLX_FLOAT_COMPONENTS_NV            0x20B0
+#endif
+
+#ifndef GLX_SGIX_hyperpipe
 #define GLX_HYPERPIPE_PIPE_NAME_LENGTH_SGIX 80
 #define GLX_BAD_HYPERPIPE_CONFIG_SGIX      91
 #define GLX_BAD_HYPERPIPE_SGIX             92
@@ -391,6 +400,10 @@ typedef __GLXextFuncPtr ( * PFNGLXGETPROCADDRESSARBPROC) (const GLubyte *procNam
 
 #ifndef GLX_ARB_multisample
 #define GLX_ARB_multisample 1
+#endif
+
+#ifndef GLX_ARB_fbconfig_float
+#define GLX_ARB_fbconfig_float 1
 #endif
 
 #ifndef GLX_SGIS_multisample
@@ -618,8 +631,12 @@ typedef Bool ( * PFNGLXWAITFORSBCOMLPROC) (Display *dpy, GLXDrawable drawable, i
 #endif /* STDC test */
 #endif
 
-#ifndef GLX_SGIX_hyperpipe_group
-#define GLX_SGIX_hyperpipe_group 1
+#ifndef GLX_NV_float_buffer
+#define GLX_NV_float_buffer 1
+#endif
+
+#ifndef GLX_SGIX_hyperpipe
+#define GLX_SGIX_hyperpipe 1
 
 typedef struct {
     char    pipeName[GLX_HYPERPIPE_PIPE_NAME_LENGTH_SGIX];

@@ -20,7 +20,7 @@
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
  * PARTICULAR PURPOSE OR NON-INFRINGEMENT, ARE HEREBY EXCLUDED. SUN
- * MIDROSYSTEMS, INC. ("SUN") AND ITS LICENSORS SHALL NOT BE LIABLE FOR
+ * MICROSYSTEMS, INC. ("SUN") AND ITS LICENSORS SHALL NOT BE LIABLE FOR
  * ANY DAMAGES SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR
  * DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES. IN NO EVENT WILL SUN OR
  * ITS LICENSORS BE LIABLE FOR ANY LOST REVENUE, PROFIT OR DATA, OR FOR
@@ -48,8 +48,12 @@ import java.util.EventListener;
 
 public interface GLEventListener extends EventListener {
   /** Called by the drawable immediately after the OpenGL context is
-      initialized for the first time. Can be used to perform one-time
-      OpenGL initialization such as setup of lights and display lists.
+      initialized. Can be used to perform one-time OpenGL
+      initialization such as setup of lights and display lists.  Note
+      that this method may be called more than once if the underlying
+      OpenGL context for the GLDrawable is destroyed and recreated,
+      for example if a GLCanvas is removed from the widget hierarchy
+      and later added again.
   */
   public void init(GLDrawable drawable);
   
@@ -63,10 +67,9 @@ public interface GLEventListener extends EventListener {
       component has been resized. The client can update the viewport
       and view volume of the window appropriately, for example by a
       call to {@link net.java.games.jogl.GL#glViewport}; note that for
-      convenience the component has already called {@link
-      net.java.games.jogl.GL#glViewport}(x, y, width, height) when this method
-      is called, so the client may not have to do anything in this
-      method.
+      convenience the component has already called <code>glViewport(x,
+      y, width, height)</code> when this method is called, so the
+      client may not have to do anything in this method.
   */
   public void reshape(GLDrawable drawable, int x, int y, int width, int height);
 

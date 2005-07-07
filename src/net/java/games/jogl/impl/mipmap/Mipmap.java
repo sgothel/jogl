@@ -36,6 +36,7 @@ package net.java.games.jogl.impl.mipmap;
 
 import net.java.games.jogl.GL;
 import net.java.games.jogl.GLU;
+import net.java.games.jogl.GLException;
 import java.nio.*;
 
 /**
@@ -244,52 +245,60 @@ public class Mipmap {
       int[] proxyWidth = new int[1];
       boolean noProxyTextures = false;
       
-      do {
-        // compute level 1 width & height, clamping each at 1
-        int widthAtLevelOne = ( ( width > 1 ) ? (widthPowerOf2 >> 1) : widthPowerOf2 );
-        int heightAtLevelOne = ( ( height > 1 ) ? (heightPowerOf2 >> 1) : heightPowerOf2 );
-        int proxyTarget;
+      // Some drivers (in particular, ATI's) seem to set a GL error
+      // when proxy textures are used even though this is in violation
+      // of the spec. Guard against this and interactions with the
+      // DebugGL by watching for GLException.
+      try {
+        do {
+          // compute level 1 width & height, clamping each at 1
+          int widthAtLevelOne = ( ( width > 1 ) ? (widthPowerOf2 >> 1) : widthPowerOf2 );
+          int heightAtLevelOne = ( ( height > 1 ) ? (heightPowerOf2 >> 1) : heightPowerOf2 );
+          int proxyTarget;
         
-        assert( widthAtLevelOne > 0 );
-        assert( heightAtLevelOne > 0 );
+          assert( widthAtLevelOne > 0 );
+          assert( heightAtLevelOne > 0 );
         
-        // does width x height at level 1 & all their mipmaps fit?
-        if( target == GL.GL_TEXTURE_2D || target == GL.GL_PROXY_TEXTURE_2D ) {
-          proxyTarget = GL.GL_PROXY_TEXTURE_2D;
-          gl.glTexImage2D( proxyTarget, 1, internalFormat, widthAtLevelOne,
-                    heightAtLevelOne, 0, format, type, (double[])null, 0);
-        } else if( (target == GL.GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB) || 
-              (target == GL.GL_TEXTURE_CUBE_MAP_NEGATIVE_X_ARB) || 
-              (target == GL.GL_TEXTURE_CUBE_MAP_POSITIVE_Y_ARB) || 
-              (target == GL.GL_TEXTURE_CUBE_MAP_NEGATIVE_Y_ARB) || 
-              (target == GL.GL_TEXTURE_CUBE_MAP_POSITIVE_Z_ARB) || 
-              (target == GL.GL_TEXTURE_CUBE_MAP_NEGATIVE_Z_ARB) ) {
-                proxyTarget = GL.GL_PROXY_TEXTURE_CUBE_MAP_ARB;
-                gl.glTexImage2D( proxyTarget, 1, internalFormat, widthAtLevelOne,
-                        heightAtLevelOne, 0, format, type, (double[])null , 0);
-        } else {
-          assert( target == GL.GL_TEXTURE_1D || target == GL.GL_PROXY_TEXTURE_1D );
-          proxyTarget = GL.GL_PROXY_TEXTURE_1D;
-          gl.glTexImage1D( proxyTarget, 1, internalFormat, widthAtLevelOne, 
-              0, format, type, (double[])null, 0);
-        }
-        gl.glGetTexLevelParameteriv( proxyTarget, 1, GL.GL_TEXTURE_WIDTH, proxyWidth, 0 );
-        // does it fit?
-        if( proxyWidth[0] == 0 ) { // nope, so try again with theses sizes
-          if( widthPowerOf2 == 1 && heightPowerOf2 == 1 ) {
-            /* A 1x1 texture couldn't fit for some reason so break out.  This
-             * should never happen.  But things happen.  The disadvantage with
-             * this if-statement is that we will never be aware of when this
-             * happens since it will silently branch out.
-             */
-            noProxyTextures = true;
-            break;
+          // does width x height at level 1 & all their mipmaps fit?
+          if( target == GL.GL_TEXTURE_2D || target == GL.GL_PROXY_TEXTURE_2D ) {
+            proxyTarget = GL.GL_PROXY_TEXTURE_2D;
+            gl.glTexImage2D( proxyTarget, 1, internalFormat, widthAtLevelOne,
+                             heightAtLevelOne, 0, format, type, (double[])null, 0 );
+          } else if( (target == GL.GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB) || 
+                     (target == GL.GL_TEXTURE_CUBE_MAP_NEGATIVE_X_ARB) || 
+                     (target == GL.GL_TEXTURE_CUBE_MAP_POSITIVE_Y_ARB) || 
+                     (target == GL.GL_TEXTURE_CUBE_MAP_NEGATIVE_Y_ARB) || 
+                     (target == GL.GL_TEXTURE_CUBE_MAP_POSITIVE_Z_ARB) || 
+                     (target == GL.GL_TEXTURE_CUBE_MAP_NEGATIVE_Z_ARB) ) {
+            proxyTarget = GL.GL_PROXY_TEXTURE_CUBE_MAP_ARB;
+            gl.glTexImage2D( proxyTarget, 1, internalFormat, widthAtLevelOne,
+                             heightAtLevelOne, 0, format, type, (double[])null, 0 );
+          } else {
+            assert( target == GL.GL_TEXTURE_1D || target == GL.GL_PROXY_TEXTURE_1D );
+            proxyTarget = GL.GL_PROXY_TEXTURE_1D;
+            gl.glTexImage1D( proxyTarget, 1, internalFormat, widthAtLevelOne, 
+                             0, format, type, (double[])null, 0 );
           }
-          widthPowerOf2 = widthAtLevelOne;
-          heightPowerOf2 = heightAtLevelOne;
-        }
-        // else it doese fit
-      } while( proxyWidth[0] == 0 );
+          gl.glGetTexLevelParameteriv( proxyTarget, 1, GL.GL_TEXTURE_WIDTH, proxyWidth, 0 );
+          // does it fit?
+          if( proxyWidth[0] == 0 ) { // nope, so try again with theses sizes
+            if( widthPowerOf2 == 1 && heightPowerOf2 == 1 ) {
+              /* A 1x1 texture couldn't fit for some reason so break out.  This
+               * should never happen.  But things happen.  The disadvantage with
+               * this if-statement is that we will never be aware of when this
+               * happens since it will silently branch out.
+               */
+              noProxyTextures = true;
+              break;
+            }
+            widthPowerOf2 = widthAtLevelOne;
+            heightPowerOf2 = heightAtLevelOne;
+          }
+          // else it does fit
+        } while( proxyWidth[0] == 0 );
+      } catch (GLException e) {
+        noProxyTextures = true;
+      }
       // loop must terminate
       // return the width & height at level 0 that fits
       if( !noProxyTextures ) {

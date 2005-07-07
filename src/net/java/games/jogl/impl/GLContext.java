@@ -20,7 +20,7 @@
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
  * PARTICULAR PURPOSE OR NON-INFRINGEMENT, ARE HEREBY EXCLUDED. SUN
- * MIDROSYSTEMS, INC. ("SUN") AND ITS LICENSORS SHALL NOT BE LIABLE FOR
+ * MICROSYSTEMS, INC. ("SUN") AND ITS LICENSORS SHALL NOT BE LIABLE FOR
  * ANY DAMAGES SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR
  * DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES. IN NO EVENT WILL SUN OR
  * ITS LICENSORS BE LIABLE FOR ANY LOST REVENUE, PROFIT OR DATA, OR FOR
@@ -45,6 +45,8 @@ import net.java.games.gluegen.runtime.*;
 
 public abstract class GLContext {
   protected static final boolean DEBUG = Debug.debug("GLContext");
+  protected static final boolean VERBOSE = Debug.verbose();
+  protected static final boolean NO_FREE = Debug.isPropertyDefined("jogl.GLContext.nofree");
 
   static {
     NativeLibLoader.load();
@@ -237,8 +239,8 @@ public abstract class GLContext {
 
     if (mustDoMakeCurrent) {
       if (curContext != null) {
-        if (DEBUG) {
-          System.err.println("Freeing context " + curContext + " due to recursive makeCurrent");
+        if (DEBUG && VERBOSE) {
+          System.err.println(getThreadName() + ": Freeing context " + curContext + " due to recursive makeCurrent");
         }
         curContext.free();
       }
@@ -262,8 +264,8 @@ public abstract class GLContext {
         }
         return;
       }
-      if (DEBUG) {
-        System.err.println("Making context " + this + " current");
+      if (DEBUG && VERBOSE) {
+        System.err.println(getThreadName() + ": Making context " + this + " current");
       }
     }
     ctxStack.push(this, initAction);
@@ -314,8 +316,8 @@ public abstract class GLContext {
       // Free the context unless the setRenderingThread optimization
       // kicks in.
       if (mustDoMakeCurrent && !mustSkipFreeForRenderingThread) {
-        if (DEBUG) {
-          System.err.println("Freeing context " + this);
+        if (DEBUG && VERBOSE) {
+          System.err.println(getThreadName() + ": Freeing context " + this);
         }
 
         try {
@@ -325,8 +327,8 @@ public abstract class GLContext {
         }
 
         if (curContext != null) {
-          if (DEBUG) {
-            System.err.println("Making context " + curContext + " current again");
+          if (DEBUG && VERBOSE) {
+            System.err.println(getThreadName() + ": Making context " + curContext + " current again");
           }
           try {
             curContext.makeCurrent(curInitAction);
@@ -472,6 +474,13 @@ public abstract class GLContext {
     pendingOffscreenHeight = newHeight;
   }
 
+  /** Indicates which floating-point pbuffer implementation is in
+      use. Returns one of GLPbuffer.APPLE_FLOAT, GLPbuffer.ATI_FLOAT,
+      or GLPbuffer.NV_FLOAT. */
+  public int getFloatingPointMode() throws GLException {
+    throw new GLException("Not supported on non-pbuffer contexts");
+  }
+
   /** Returns a non-null (but possibly empty) string containing the
       space-separated list of available platform-dependent (e.g., WGL,
       GLX) extensions. Can only be called while this context is
@@ -484,10 +493,16 @@ public abstract class GLContext {
    * the definition of "available".
    */
   protected void resetGLFunctionAvailability() {
+    // In order to be able to allow the user to uniformly install the
+    // debug and trace pipelines in their GLEventListener.init()
+    // method (for both GLCanvas and GLJPanel), we need to reset the
+    // actual GL object in the GLDrawable as well
+    setGL(createGL());
+
     functionAvailability.flush();
     if (!haveResetGLUProcAddressTable) {
       if (DEBUG) {
-        System.err.println("!!! Initializing GLU extension address table");
+        System.err.println(getThreadName() + ": !!! Initializing GLU extension address table");
       }
       resetProcAddressTable(gluProcAddressTable);
       haveResetGLUProcAddressTable = true; // Only need to do this once globally
@@ -578,10 +593,6 @@ public abstract class GLContext {
       requests. */
   protected abstract boolean isOffscreen();
 
-  /** Only called for offscreen contexts; returns the type of
-      BufferedImage required for reading this context's pixels. */
-  public abstract int getOffscreenContextBufferedImageType();
-
   /** Only called for offscreen contexts; returns the buffer from
       which to read pixels (GL.GL_FRONT or GL.GL_BACK). */
   public abstract int getOffscreenContextReadBuffer();
@@ -633,7 +644,7 @@ public abstract class GLContext {
   protected synchronized void setRealized(boolean realized) {
     this.realized = realized;
     if (DEBUG) {
-      System.err.println("GLContext.setRealized(" + realized + ") for context " + this);
+      System.err.println(getThreadName() + ": GLContext.setRealized(" + realized + ") for context " + this);
     }
   }
 
@@ -649,6 +660,9 @@ public abstract class GLContext {
   public synchronized void destroy() throws GLException {
     if (getRenderingThread() != null &&
         Thread.currentThread() != getRenderingThread()) {
+      if (DEBUG) {
+        System.err.println(getThreadName() + ": Deferred destroy for context " + this);
+      }
       deferredDestroy = true;
       return;
     }
@@ -742,5 +756,9 @@ public abstract class GLContext {
         renderingThread = null;
       }
     }
+  }
+
+  protected static String getThreadName() {
+    return Thread.currentThread().getName();
   }
 }

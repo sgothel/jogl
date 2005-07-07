@@ -20,7 +20,7 @@
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
  * PARTICULAR PURPOSE OR NON-INFRINGEMENT, ARE HEREBY EXCLUDED. SUN
- * MIDROSYSTEMS, INC. ("SUN") AND ITS LICENSORS SHALL NOT BE LIABLE FOR
+ * MICROSYSTEMS, INC. ("SUN") AND ITS LICENSORS SHALL NOT BE LIABLE FOR
  * ANY DAMAGES SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR
  * DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES. IN NO EVENT WILL SUN OR
  * ITS LICENSORS BE LIABLE FOR ANY LOST REVENUE, PROFIT OR DATA, OR FOR
@@ -93,10 +93,6 @@ public abstract class MacOSXGLContext extends GLContext
   
   protected abstract boolean isOffscreen();
 	
-  public int getOffscreenContextBufferedImageType() {
-    throw new GLException("Should not call this");
-  }
-
   public int getOffscreenContextReadBuffer() {
     throw new GLException("Should not call this");
   }
@@ -117,11 +113,15 @@ public abstract class MacOSXGLContext extends GLContext
     throw new GLException("Should not call this");
   }
 
+  protected boolean create() {
+    return create(false, false);
+  }
+
   /**
    * Creates and initializes an appropriate OpenGl nsContext. Should only be
    * called by {@link makeCurrent(Runnable)}.
    */
-  protected void create() {
+  protected boolean create(boolean pbuffer, boolean floatingPoint) {
     MacOSXGLContext other = (MacOSXGLContext) GLContextShareSet.getShareContext(this);
     long share = 0;
     if (other != null) {
@@ -130,9 +130,11 @@ public abstract class MacOSXGLContext extends GLContext
         throw new GLException("GLContextShareSet returned an invalid OpenGL context");
       }
     }
+    int[] viewNotReady = new int[1];
     nsContext = CGL.createContext(share,
                                   nsView,
                                   capabilities.getDoubleBuffered() ? 1 : 0,
+                                  capabilities.getStereo() ? 1 : 0,
                                   capabilities.getRedBits(),
                                   capabilities.getGreenBits(),
                                   capabilities.getBlueBits(),
@@ -144,18 +146,31 @@ public abstract class MacOSXGLContext extends GLContext
                                   capabilities.getAccumBlueBits(),
                                   capabilities.getAccumAlphaBits(),
                                   capabilities.getSampleBuffers() ? 1 : 0,
-                                  capabilities.getNumSamples());
+                                  capabilities.getNumSamples(),
+                                  (pbuffer ? 1 : 0),
+                                  (floatingPoint ? 1 : 0),
+                                  viewNotReady);
     if (nsContext == 0) {
+      if (viewNotReady[0] == 1) {
+        if (DEBUG) {
+          System.err.println("!!! View not ready for " + getClass().getName());
+        }
+        // View not ready at the window system level -- this is OK
+        return false;
+      }
       throw new GLException("Error creating nsContext");
     }
 	//updater = CGL.updateContextRegister(nsContext, nsView); // gznote: not thread safe yet!
     GLContextShareSet.contextCreated(this);
+    return true;
   }    
 	
   protected synchronized boolean makeCurrent(Runnable initAction) throws GLException {
       boolean created = false;
       if (nsContext == 0) {
-        create();
+        if (!create()) {
+          return false;
+        }
         if (DEBUG) {
           System.err.println("!!! Created GL nsContext for " + getClass().getName());
         }
