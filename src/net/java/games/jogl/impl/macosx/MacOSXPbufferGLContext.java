@@ -129,7 +129,7 @@ public class MacOSXPbufferGLContext extends MacOSXGLContext {
       }
       textureTarget = (rect ? GL.GL_TEXTURE_RECTANGLE_EXT : GL.GL_TEXTURE_2D);
       int[] tmp = new int[1];
-      gl.glGenTextures(1, tmp);
+      gl.glGenTextures(1, tmp, 0);
       texture = tmp[0];
       gl.glBindTexture(textureTarget, texture);
       gl.glTexParameteri(textureTarget, GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST);

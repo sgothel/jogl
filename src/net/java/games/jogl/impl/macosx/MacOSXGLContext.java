@@ -149,7 +149,7 @@ public abstract class MacOSXGLContext extends GLContext
                                   capabilities.getNumSamples(),
                                   (pbuffer ? 1 : 0),
                                   (floatingPoint ? 1 : 0),
-                                  viewNotReady);
+                                  viewNotReady, 0);
     if (nsContext == 0) {
       if (viewNotReady[0] == 1) {
         if (DEBUG) {
