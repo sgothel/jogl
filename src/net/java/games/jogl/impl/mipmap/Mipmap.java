@@ -642,7 +642,26 @@ public class Mipmap {
     ByteBuffer buffer = null;
     if( data instanceof ByteBuffer ) {
         buffer = (ByteBuffer)data;
-    } 
+    } else if( data instanceof byte[] ) {
+      byte[] array = (byte[])data;
+      buffer = ByteBuffer.allocateDirect(array.length);
+      buffer.put(array);
+    } else if( data instanceof short[] ) {
+        short[] array = (short[])data;
+        buffer = ByteBuffer.allocateDirect( array.length * 2 );
+        ShortBuffer sb = buffer.asShortBuffer();
+        sb.put( array );
+    } else if( data instanceof int[] ) {
+        int[] array = (int[])data;
+        buffer = ByteBuffer.allocateDirect( array.length * 4 );
+        IntBuffer ib = buffer.asIntBuffer();
+        ib.put( array );
+    } else if( data instanceof float[] ) {
+        float[] array = (float[])data;
+        buffer = ByteBuffer.allocateDirect( array.length * 4 );
+        FloatBuffer fb = buffer.asFloatBuffer();
+        fb.put( array );
+    }
     
     return( BuildMipmap.gluBuild2DMipmapLevelsCore( gl, target, internalFormat,
             width, height, width, height, format, type, userLevel, baseLevel,
@@ -678,7 +697,26 @@ public class Mipmap {
     ByteBuffer buffer = null;
     if( data instanceof ByteBuffer ) {
         buffer = (ByteBuffer)data;
-    } 
+    } else if( data instanceof byte[] ) {
+      byte[] array = (byte[])data;
+      buffer = ByteBuffer.allocateDirect(array.length);
+      buffer.put(array);
+    } else if( data instanceof short[] ) {
+        short[] array = (short[])data;
+        buffer = ByteBuffer.allocateDirect( array.length * 2 );
+        ShortBuffer sb = buffer.asShortBuffer();
+        sb.put( array );
+    } else if( data instanceof int[] ) {
+        int[] array = (int[])data;
+        buffer = ByteBuffer.allocateDirect( array.length * 4 );
+        IntBuffer ib = buffer.asIntBuffer();
+        ib.put( array );
+    } else if( data instanceof float[] ) {
+        float[] array = (float[])data;
+        buffer = ByteBuffer.allocateDirect( array.length * 4 );
+        FloatBuffer fb = buffer.asFloatBuffer();
+        fb.put( array );
+    }
     
     return( BuildMipmap.gluBuild2DMipmapLevelsCore( gl, target, internalFormat, 
             width, height, widthPowerOf2[0], heightPowerOf2[0], format, type, 0, 

@@ -394,11 +394,11 @@ public abstract class WindowsGLContext extends GLContext {
         int[] pformats = new int[MAX_PFORMATS];
         int[] numFormatsTmp = new int[1];
         if (dummyGL.wglChoosePixelFormatARB(hdc,
-                                            iattributes,
-                                            fattributes,
+                                            iattributes, 0,
+                                            fattributes, 0,
                                             MAX_PFORMATS,
-                                            pformats, 
-                                            numFormatsTmp)) {
+                                            pformats, 0,
+                                            numFormatsTmp, 0)) {
           numFormats = numFormatsTmp[0];
           if (numFormats > 0) {
             // Remove one-basing of pixel format (added on later)
@@ -434,7 +434,7 @@ public abstract class WindowsGLContext extends GLContext {
         // window, to a pbuffer, or to a pixmap)
         niattribs = 0;
         iattributes[0] = GL.WGL_NUMBER_PIXEL_FORMATS_ARB;
-        if (dummyGL.wglGetPixelFormatAttribivARB(hdc, 0, 0, 1, iattributes, iresults)) {
+        if (dummyGL.wglGetPixelFormatAttribivARB(hdc, 0, 0, 1, iattributes, 0, iresults, 0)) {
           numFormats = iresults[0];
           // Should we be filtering out the pixel formats which aren't
           // applicable, as we are doing here?
@@ -463,7 +463,7 @@ public abstract class WindowsGLContext extends GLContext {
 
           availableCaps = new GLCapabilities[numFormats];
           for (int i = 0; i < numFormats; i++) {
-            if (!dummyGL.wglGetPixelFormatAttribivARB(hdc, i+1, 0, niattribs, iattributes, iresults)) {
+            if (!dummyGL.wglGetPixelFormatAttribivARB(hdc, i+1, 0, niattribs, iattributes, 0, iresults, 0)) {
               throw new GLException("Error getting pixel format attributes for pixel format " + (i + 1) + " of device context");
             }
             availableCaps[i] = iattributes2GLCapabilities(iattributes, iresults, niattribs, true);

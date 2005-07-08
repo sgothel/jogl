@@ -424,16 +424,45 @@ public int gluScaleImageJava( int format, int widthin, int heightin,
   ByteBuffer out = null;
   if( datain instanceof ByteBuffer ) {
     in = (ByteBuffer)datain;
+  } else if( datain instanceof byte[] ) {
+    in = ByteBuffer.allocateDirect( ((byte[])datain).length ).order( ByteOrder.nativeOrder() );
+    in.put((byte[]) datain).rewind();
+  } else if( datain instanceof short[] ) {
+    in = ByteBuffer.allocateDirect( ((byte[])datain).length * 2 ).order( ByteOrder.nativeOrder() );
+    in.asShortBuffer().put((short[]) datain).rewind();
+  } else if( datain instanceof int[] ) {
+    in = ByteBuffer.allocateDirect( ((byte[])datain).length * 4 ).order( ByteOrder.nativeOrder() );
+    in.asIntBuffer().put((int[]) datain).rewind();
+  } else if( datain instanceof float[] ) {
+    in = ByteBuffer.allocateDirect( ((byte[])datain).length * 4 ).order( ByteOrder.nativeOrder() );
+    in.asFloatBuffer().put((float[]) datain).rewind();
   } else {
-    throw new IllegalArgumentException( "Input data must be a ByteBuffer" );
+    throw new IllegalArgumentException( "Input data must be a primitive array or a ByteBuffer" );
   }
   if( dataout instanceof ByteBuffer ) {
     out = (ByteBuffer)dataout;
+  } else if( dataout instanceof byte[] ) {
+    out = ByteBuffer.wrap( ((byte[])dataout) );
+  } else if( dataout instanceof short[] ) {
+    out = ByteBuffer.allocate( ((short[])dataout).length * 2 );
+  } else if( dataout instanceof int[] ) {
+    out = ByteBuffer.allocate( ((int[])dataout).length * 4 );
+  } else if( dataout instanceof float[] ) {
+    out = ByteBuffer.allocate( ((float[])dataout).length * 4 );
   } else {
-    throw new IllegalArgumentException( "Output data must be a ByteBuffer" );
+    throw new IllegalArgumentException( "Output data must be a primitive array or a ByteBuffer" );
   }
   int errno = Mipmap.gluScaleImage( gl, format, widthin, heightin, typein, in, 
             widthout, heightout, typeout, out );
+  if( errno == 0 ) {
+    if( dataout instanceof short[] ) {
+      out.asShortBuffer().get( (short[])dataout );
+    } else if( dataout instanceof int[] ) {
+      out.asIntBuffer().get( (int[])dataout );
+    } else if( dataout instanceof float[] ) {
+      out.asFloatBuffer().get( (float[])dataout );
+    }
+  }
   return( errno );
 }
 
@@ -444,8 +473,20 @@ public int gluBuild1DMipmapLevelsJava( int target, int internalFormat, int width
   ByteBuffer buffer = null;
   if( data instanceof ByteBuffer ) {
     buffer = (ByteBuffer)data;
+  } else if( data instanceof byte[] ) {
+    buffer = ByteBuffer.allocateDirect( ((byte[])data).length ).order( ByteOrder.nativeOrder() );
+    buffer.put( (byte[])data );
+  } else if( data instanceof short[] ) {
+    buffer = ByteBuffer.allocateDirect( ((short[])data).length * 2 ).order( ByteOrder.nativeOrder() );
+    buffer.asShortBuffer().put( (short[])data );
+  } else if( data instanceof int[] ) {
+    buffer = ByteBuffer.allocateDirect( ((int[])data).length * 4 ).order( ByteOrder.nativeOrder() );
+    buffer.asIntBuffer().put( (int[])data );
+  } else if( data instanceof float[] ) {
+    buffer = ByteBuffer.allocateDirect( ((float[])data).length * 4 ).order( ByteOrder.nativeOrder() );
+    buffer.asFloatBuffer().put( (float[])data );
   } else {
-    throw new IllegalArgumentException( "Input data must be a ByteBuffer" );
+    throw new IllegalArgumentException( "Input data must be a primitive array or a ByteBuffer" );
   }
   return( Mipmap.gluBuild1DMipmapLevels( gl, target, internalFormat, width,
           format, type, userLevel, baseLevel, maxLevel, buffer ) );
@@ -457,6 +498,18 @@ public int gluBuild1DMipmapsJava( int target, int internalFormat, int width,
   ByteBuffer buffer = null;
   if( data instanceof ByteBuffer ) {
     buffer = (ByteBuffer)data;
+  } else if( data instanceof byte[] ) {
+    buffer = ByteBuffer.allocateDirect( ((byte[])data).length ).order( ByteOrder.nativeOrder() );
+    buffer.put( (byte[])data );
+  } else if( data instanceof short[] ) {
+    buffer = ByteBuffer.allocateDirect( ((short[])data).length * 2 ).order( ByteOrder.nativeOrder() );
+    buffer.asShortBuffer().put( (short[])data );
+  } else if( data instanceof int[] ) {
+    buffer = ByteBuffer.allocateDirect( ((int[])data).length * 4 ).order( ByteOrder.nativeOrder() );
+    buffer.asIntBuffer().put( (int[])data );
+  } else if( data instanceof float[] ) {
+    buffer = ByteBuffer.allocateDirect( ((float[])data).length * 4 ).order( ByteOrder.nativeOrder() );
+    buffer.asFloatBuffer().put( (float[])data );
   } else {
     throw new IllegalArgumentException( "Input data must be a primitive array or a ByteBuffer" );
   }
@@ -484,6 +537,18 @@ public int gluBuild3DMipmapLevelsJava( int target, int internalFormat, int width
   ByteBuffer buffer = null;
   if( data instanceof ByteBuffer ) {
     buffer = (ByteBuffer)data;
+  } else if( data instanceof byte[] ) {
+    buffer = ByteBuffer.allocateDirect( ((byte[])data).length ).order( ByteOrder.nativeOrder() );
+    buffer.put( (byte[])data );
+  } else if( data instanceof short[] ) {
+    buffer = ByteBuffer.allocateDirect( ((short[])data).length * 2 ).order( ByteOrder.nativeOrder() );
+    buffer.asShortBuffer().put( (short[])data );
+  } else if( data instanceof int[] ) {
+    buffer = ByteBuffer.allocateDirect( ((int[])data).length * 4 ).order( ByteOrder.nativeOrder() );
+    buffer.asIntBuffer().put( (int[])data );
+  } else if( data instanceof float[] ) {
+    buffer = ByteBuffer.allocateDirect( ((float[])data).length * 4 ).order( ByteOrder.nativeOrder() );
+    buffer.asFloatBuffer().put( (float[])data );
   } else {
     throw new IllegalArgumentException( "Input data must be a primitive array or a ByteBuffer" );
   }
@@ -496,6 +561,18 @@ public int gluBuild3DMipmapsJava( int target, int internalFormat, int width,
   ByteBuffer buffer = null;
   if( data instanceof ByteBuffer ) {
     buffer = (ByteBuffer)data;
+  } else if( data instanceof byte[] ) {
+    buffer = ByteBuffer.allocateDirect( ((byte[])data).length ).order( ByteOrder.nativeOrder() );
+    buffer.put( (byte[])data );
+  } else if( data instanceof short[] ) {
+    buffer = ByteBuffer.allocateDirect( ((short[])data).length * 2 ).order( ByteOrder.nativeOrder() );
+    buffer.asShortBuffer().put( (short[])data );
+  } else if( data instanceof int[] ) {
+    buffer = ByteBuffer.allocateDirect( ((int[])data).length * 4 ).order( ByteOrder.nativeOrder() );
+    buffer.asIntBuffer().put( (int[])data );
+  } else if( data instanceof float[] ) {
+    buffer = ByteBuffer.allocateDirect( ((float[])data).length * 4 ).order( ByteOrder.nativeOrder() );
+    buffer.asFloatBuffer().put( (float[])data );
   } else {
     throw new IllegalArgumentException( "Input data must be a primitive array or a ByteBuffer" );
   }
@@ -510,6 +587,42 @@ public int gluBuild3DMipmapsJava( int target, int internalFormat, int width,
 //
 
 
+/** Interface to C language function: <br> <code> GLint gluBuild1DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
+public int gluBuild1DMipmapLevels(int target, int internalFormat, int width, int format, int type, int level, int base, int max, byte[] data) {
+  if (useJavaMipmapCode) {
+    return gluBuild1DMipmapLevelsJava(target, internalFormat, width, format, type, level, base, max, data);
+  } else {
+    throw new GLException("Primitive array data no longer supported by C GLU implementation");
+  }
+}
+
+/** Interface to C language function: <br> <code> GLint gluBuild1DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
+public int gluBuild1DMipmapLevels(int target, int internalFormat, int width, int format, int type, int level, int base, int max, short[] data) {
+  if (useJavaMipmapCode) {
+    return gluBuild1DMipmapLevelsJava(target, internalFormat, width, format, type, level, base, max, data);
+  } else {
+    throw new GLException("Primitive array data no longer supported by C GLU implementation");
+  }
+}
+
+/** Interface to C language function: <br> <code> GLint gluBuild1DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
+public int gluBuild1DMipmapLevels(int target, int internalFormat, int width, int format, int type, int level, int base, int max, int[] data) {
+  if (useJavaMipmapCode) {
+    return gluBuild1DMipmapLevelsJava(target, internalFormat, width, format, type, level, base, max, data);
+  } else {
+    throw new GLException("Primitive array data no longer supported by C GLU implementation");
+  }
+}
+
+/** Interface to C language function: <br> <code> GLint gluBuild1DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
+public int gluBuild1DMipmapLevels(int target, int internalFormat, int width, int format, int type, int level, int base, int max, float[] data) {
+  if (useJavaMipmapCode) {
+    return gluBuild1DMipmapLevelsJava(target, internalFormat, width, format, type, level, base, max, data);
+  } else {
+    throw new GLException("Primitive array data no longer supported by C GLU implementation");
+  }
+}
+
 /* Todo travis: change 0 to offset for buffer here */
 /** Interface to C language function: <br> <code> GLint gluBuild1DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
 public int gluBuild1DMipmapLevels(int target, int internalFormat, int width, int format, int type, int level, int base, int max, java.nio.Buffer data) {
@@ -520,8 +633,81 @@ public int gluBuild1DMipmapLevels(int target, int internalFormat, int width, int
   }
 }
 
+/** Interface to C language function: <br> <code> GLint gluBuild1DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLenum format, GLenum type, const void *  data); </code>    */
+public int gluBuild1DMipmaps(int target, int internalFormat, int width, int format, int type, byte[] data) {
+  if (useJavaMipmapCode) {
+    return gluBuild1DMipmapsJava(target, internalFormat, width, format, type, data);
+  } else {
+    throw new GLException("Primitive array data no longer supported by C GLU implementation");
+  }
+}
+
+/** Interface to C language function: <br> <code> GLint gluBuild1DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLenum format, GLenum type, const void *  data); </code>    */
+public int gluBuild1DMipmaps(int target, int internalFormat, int width, int format, int type, short[] data) {
+  if (useJavaMipmapCode) {
+    return gluBuild1DMipmapsJava(target, internalFormat, width, format, type, data);
+  } else {
+    throw new GLException("Primitive array data no longer supported by C GLU implementation");
+  }
+}
 
 
+/** Interface to C language function: <br> <code> GLint gluBuild1DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLenum format, GLenum type, const void *  data); </code>    */
+public int gluBuild1DMipmaps(int target, int internalFormat, int width, int format, int type, int[] data) {
+  if (useJavaMipmapCode) {
+    return gluBuild1DMipmapsJava(target, internalFormat, width, format, type, data);
+  } else {
+    throw new GLException("Primitive array data no longer supported by C GLU implementation");
+  }
+}
+
+
+/** Interface to C language function: <br> <code> GLint gluBuild1DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLenum format, GLenum type, const void *  data); </code>    */
+public int gluBuild1DMipmaps(int target, int internalFormat, int width, int format, int type, float[] data) {
+  if (useJavaMipmapCode) {
+    return gluBuild1DMipmapsJava(target, internalFormat, width, format, type, data);
+  } else {
+    throw new GLException("Primitive array data no longer supported by C GLU implementation");
+  }
+}
+
+
+/** Interface to C language function: <br> <code> GLint gluBuild2DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
+public int gluBuild2DMipmapLevels(int target, int internalFormat, int width, int height, int format, int type, int level, int base, int max, byte[] data) {
+  if (useJavaMipmapCode) {
+    return gluBuild2DMipmapLevelsJava(target, internalFormat, width, height, format, type, level, base, max, data);
+  } else {
+    throw new GLException("Primitive array data no longer supported by C GLU implementation");
+  }
+}
+
+/** Interface to C language function: <br> <code> GLint gluBuild2DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
+public int gluBuild2DMipmapLevels(int target, int internalFormat, int width, int height, int format, int type, int level, int base, int max, short[] data) {
+  if (useJavaMipmapCode) {
+    return gluBuild2DMipmapLevelsJava(target, internalFormat, width, height, format, type, level, base, max, data);
+  } else {
+    throw new GLException("Primitive array data no longer supported by C GLU implementation");
+  }
+}
+
+/** Interface to C language function: <br> <code> GLint gluBuild2DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
+public int gluBuild2DMipmapLevels(int target, int internalFormat, int width, int height, int format, int type, int level, int base, int max, int[] data) {
+  if (useJavaMipmapCode) {
+    return gluBuild2DMipmapLevelsJava(target, internalFormat, width, height, format, type, level, base, max, data);
+  } else {
+    throw new GLException("Primitive array data no longer supported by C GLU implementation");
+  }
+}
+
+
+/** Interface to C language function: <br> <code> GLint gluBuild2DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
+public int gluBuild2DMipmapLevels(int target, int internalFormat, int width, int height, int format, int type, int level, int base, int max, float[] data) {
+  if (useJavaMipmapCode) {
+    return gluBuild2DMipmapLevelsJava(target, internalFormat, width, height, format, type, level, base, max, data);
+  } else {
+    throw new GLException("Primitive array data no longer supported by C GLU implementation");
+  }
+}
 
 /** Interface to C language function: <br> <code> GLint gluBuild2DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
 public int gluBuild2DMipmapLevels(int target, int internalFormat, int width, int height, int format, int type, int level, int base, int max, java.nio.Buffer data) {
@@ -533,6 +719,44 @@ public int gluBuild2DMipmapLevels(int target, int internalFormat, int width, int
 }
 
 
+/** Interface to C language function: <br> <code> GLint gluBuild2DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *  data); </code>    */
+public int gluBuild2DMipmaps(int target, int internalFormat, int width, int height, int format, int type, byte[] data) {
+  if (useJavaMipmapCode) {
+    return gluBuild2DMipmapsJava(target, internalFormat, width, height, format, type, data);
+  } else {
+    throw new GLException("Primitive array data no longer supported by C GLU implementation");
+  }
+}
+
+
+/** Interface to C language function: <br> <code> GLint gluBuild2DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *  data); </code>    */
+public int gluBuild2DMipmaps(int target, int internalFormat, int width, int height, int format, int type, short[] data) {
+  if (useJavaMipmapCode) {
+    return gluBuild2DMipmapsJava(target, internalFormat, width, height, format, type, data);
+  } else {
+    throw new GLException("Primitive array data no longer supported by C GLU implementation");
+  }
+}
+
+
+/** Interface to C language function: <br> <code> GLint gluBuild2DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *  data); </code>    */
+public int gluBuild2DMipmaps(int target, int internalFormat, int width, int height, int format, int type, int[] data) {
+  if (useJavaMipmapCode) {
+    return gluBuild2DMipmapsJava(target, internalFormat, width, height, format, type, data);
+  } else {
+    throw new GLException("Primitive array data no longer supported by C GLU implementation");
+  }
+}
+
+
+/** Interface to C language function: <br> <code> GLint gluBuild2DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *  data); </code>    */
+public int gluBuild2DMipmaps(int target, int internalFormat, int width, int height, int format, int type, float[] data) {
+  if (useJavaMipmapCode) {
+    return gluBuild2DMipmapsJava(target, internalFormat, width, height, format, type, data);
+  } else {
+    throw new GLException("Primitive array data no longer supported by C GLU implementation");
+  }
+}
 
 /** Interface to C language function: <br> <code> GLint gluBuild2DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *  data); </code>    */
 public int gluBuild2DMipmaps(int target, int internalFormat, int width, int height, int format, int type, java.nio.Buffer data) {
@@ -544,7 +768,44 @@ public int gluBuild2DMipmaps(int target, int internalFormat, int width, int heig
 }
 
 
+/** Interface to C language function: <br> <code> GLint gluBuild3DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
+public int gluBuild3DMipmapLevels(int target, int internalFormat, int width, int height, int depth, int format, int type, int level, int base, int max, byte[] data) {
+  if (useJavaMipmapCode) {
+    return gluBuild3DMipmapLevelsJava(target, internalFormat, width, height, depth, format, type, level, base, max, data);
+  } else {
+    throw new GLException("Primitive array data no longer supported by C GLU implementation");
+  }
+}
 
+
+/** Interface to C language function: <br> <code> GLint gluBuild3DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
+public int gluBuild3DMipmapLevels(int target, int internalFormat, int width, int height, int depth, int format, int type, int level, int base, int max, short[] data) {
+  if (useJavaMipmapCode) {
+    return gluBuild3DMipmapLevelsJava(target, internalFormat, width, height, depth, format, type, level, base, max, data);
+  } else {
+    throw new GLException("Primitive array data no longer supported by C GLU implementation");
+  }
+}
+
+
+/** Interface to C language function: <br> <code> GLint gluBuild3DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
+public int gluBuild3DMipmapLevels(int target, int internalFormat, int width, int height, int depth, int format, int type, int level, int base, int max, int[] data) {
+  if (useJavaMipmapCode) {
+    return gluBuild3DMipmapLevelsJava(target, internalFormat, width, height, depth, format, type, level, base, max, data);
+  } else {
+    throw new GLException("Primitive array data no longer supported by C GLU implementation");
+  }
+}
+
+
+/** Interface to C language function: <br> <code> GLint gluBuild3DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
+public int gluBuild3DMipmapLevels(int target, int internalFormat, int width, int height, int depth, int format, int type, int level, int base, int max, float[] data) {
+  if (useJavaMipmapCode) {
+    return gluBuild3DMipmapLevelsJava(target, internalFormat, width, height, depth, format, type, level, base, max, data);
+  } else {
+    throw new GLException("Primitive array data no longer supported by C GLU implementation");
+  }
+}
 
 /** Interface to C language function: <br> <code> GLint gluBuild3DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
 public int gluBuild3DMipmapLevels(int target, int internalFormat, int width, int height, int depth, int format, int type, int level, int base, int max, java.nio.Buffer data) {
@@ -556,6 +817,44 @@ public int gluBuild3DMipmapLevels(int target, int internalFormat, int width, int
 }
 
 
+/** Interface to C language function: <br> <code> GLint gluBuild3DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *  data); </code>    */
+public int gluBuild3DMipmaps(int target, int internalFormat, int width, int height, int depth, int format, int type, byte[] data) {
+  if (useJavaMipmapCode) {
+    return gluBuild3DMipmapsJava(target, internalFormat, width, height, depth, format, type, data);
+  } else {
+    throw new GLException("Primitive array data no longer supported by C GLU implementation");
+  }
+}
+
+
+/** Interface to C language function: <br> <code> GLint gluBuild3DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *  data); </code>    */
+public int gluBuild3DMipmaps(int target, int internalFormat, int width, int height, int depth, int format, int type, short[] data) {
+  if (useJavaMipmapCode) {
+    return gluBuild3DMipmapsJava(target, internalFormat, width, height, depth, format, type, data);
+  } else {
+    throw new GLException("Primitive array data no longer supported by C GLU implementation");
+  }
+}
+
+
+/** Interface to C language function: <br> <code> GLint gluBuild3DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *  data); </code>    */
+public int gluBuild3DMipmaps(int target, int internalFormat, int width, int height, int depth, int format, int type, int[] data) {
+  if (useJavaMipmapCode) {
+    return gluBuild3DMipmapsJava(target, internalFormat, width, height, depth, format, type, data);
+  } else {
+    throw new GLException("Primitive array data no longer supported by C GLU implementation");
+  }
+}
+
+
+/** Interface to C language function: <br> <code> GLint gluBuild3DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *  data); </code>    */
+public int gluBuild3DMipmaps(int target, int internalFormat, int width, int height, int depth, int format, int type, float[] data) {
+  if (useJavaMipmapCode) {
+    return gluBuild3DMipmapsJava(target, internalFormat, width, height, depth, format, type, data);
+  } else {
+    throw new GLException("Primitive array data no longer supported by C GLU implementation");
+  }
+}
 
 /** Interface to C language function: <br> <code> GLint gluBuild3DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *  data); </code>    */
 public int gluBuild3DMipmaps(int target, int internalFormat, int width, int height, int depth, int format, int type, java.nio.Buffer data) {
@@ -567,7 +866,44 @@ public int gluBuild3DMipmaps(int target, int internalFormat, int width, int heig
 }
 
 
+/** Interface to C language function: <br> <code> GLint gluScaleImage(GLenum format, GLsizei wIn, GLsizei hIn, GLenum typeIn, const void *  dataIn, GLsizei wOut, GLsizei hOut, GLenum typeOut, GLvoid *  dataOut); </code>    */
+public int gluScaleImage(int format, int wIn, int hIn, int typeIn, byte[] dataIn, int wOut, int hOut, int typeOut, byte[] dataOut) {
+  if (useJavaMipmapCode) {
+    return gluScaleImageJava(format, wIn, hIn, typeIn, dataIn, wOut, hOut, typeOut, dataOut);
+  } else {
+    throw new GLException("Primitive array data no longer supported by C GLU implementation");
+  }
+}
 
+
+/** Interface to C language function: <br> <code> GLint gluScaleImage(GLenum format, GLsizei wIn, GLsizei hIn, GLenum typeIn, const void *  dataIn, GLsizei wOut, GLsizei hOut, GLenum typeOut, GLvoid *  dataOut); </code>    */
+public int gluScaleImage(int format, int wIn, int hIn, int typeIn, short[] dataIn, int wOut, int hOut, int typeOut, short[] dataOut) {
+  if (useJavaMipmapCode) {
+    return gluScaleImageJava(format, wIn, hIn, typeIn, dataIn, wOut, hOut, typeOut, dataOut);
+  } else {
+    throw new GLException("Primitive array data no longer supported by C GLU implementation");
+  }
+}
+
+
+/** Interface to C language function: <br> <code> GLint gluScaleImage(GLenum format, GLsizei wIn, GLsizei hIn, GLenum typeIn, const void *  dataIn, GLsizei wOut, GLsizei hOut, GLenum typeOut, GLvoid *  dataOut); </code>    */
+public int gluScaleImage(int format, int wIn, int hIn, int typeIn, int[] dataIn, int wOut, int hOut, int typeOut, int[] dataOut) {
+  if (useJavaMipmapCode) {
+    return gluScaleImageJava(format, wIn, hIn, typeIn, dataIn, wOut, hOut, typeOut, dataOut);
+  } else {
+    throw new GLException("Primitive array data no longer supported by C GLU implementation");
+  }
+}
+
+
+/** Interface to C language function: <br> <code> GLint gluScaleImage(GLenum format, GLsizei wIn, GLsizei hIn, GLenum typeIn, const void *  dataIn, GLsizei wOut, GLsizei hOut, GLenum typeOut, GLvoid *  dataOut); </code>    */
+public int gluScaleImage(int format, int wIn, int hIn, int typeIn, float[] dataIn, int wOut, int hOut, int typeOut, float[] dataOut) {
+  if (useJavaMipmapCode) {
+    return gluScaleImageJava(format, wIn, hIn, typeIn, dataIn, wOut, hOut, typeOut, dataOut);
+  } else {
+    throw new GLException("Primitive array data no longer supported by C GLU implementation");
+  }
+}
 
 /** Interface to C language function: <br> <code> GLint gluScaleImage(GLenum format, GLsizei wIn, GLsizei hIn, GLenum typeIn, const void *  dataIn, GLsizei wOut, GLsizei hOut, GLenum typeOut, GLvoid *  dataOut); </code>    */
 public int gluScaleImage(int format, int wIn, int hIn, int typeIn, java.nio.Buffer dataIn, int wOut, int hOut, int typeOut, java.nio.Buffer dataOut) {

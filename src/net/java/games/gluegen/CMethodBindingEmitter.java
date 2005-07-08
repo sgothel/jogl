@@ -702,9 +702,19 @@ public class CMethodBindingEmitter extends FunctionEmitter
         } // end of data copy
         
         if (EMIT_NULL_CHECKS) {
-          writer.println("  }");
-        }
+          writer.print("  }");
 
+          if (needsDataCopy) {
+            writer.println();
+          } else {
+            // Zero out array offset in the case of a null pointer
+            // being passed down to prevent construction of arbitrary
+            // pointers
+            writer.println(" else {");
+            writer.println("    " + binding.getArgumentName(i) + "_offset = 0;");
+            writer.println("  }");
+          }
+        }
       } else if (javaArgType.isString()) {
         if (emittingPrimitiveArrayCritical) {
           continue;

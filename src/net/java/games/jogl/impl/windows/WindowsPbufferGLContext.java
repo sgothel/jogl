@@ -261,11 +261,11 @@ public class WindowsPbufferGLContext extends WindowsGLContext {
     int   nformats;
     int[] nformatsTmp = new int[1];
     if (!gl.wglChoosePixelFormatARB(parentHdc,
-                                    iattributes,
-                                    fattributes,
+                                    iattributes, 0,
+                                    fattributes, 0,
                                     MAX_PFORMATS,
-                                    pformats, 
-                                    nformatsTmp)) {
+                                    pformats, 0,
+                                    nformatsTmp, 0)) {
       throw new GLException("pbuffer creation error: wglChoosePixelFormatARB() failed");
     }
     nformats = nformatsTmp[0];
@@ -287,7 +287,7 @@ public class WindowsPbufferGLContext extends WindowsGLContext {
       iattributes[8] = GL.WGL_DRAW_TO_PBUFFER_ARB;
       int[] ivalues = new int[9];
       for (int i = 0; i < nformats; i++) {
-        if (!gl.wglGetPixelFormatAttribivARB(parentHdc, pformats[i], 0, 9, iattributes, ivalues)) {
+        if (!gl.wglGetPixelFormatAttribivARB(parentHdc, pformats[i], 0, 9, iattributes, 0, ivalues, 0)) {
           throw new GLException("Error while querying pixel format " + pformats[i] +
                                 "'s (index " + i + "'s) capabilities for debugging");
         }
@@ -349,7 +349,7 @@ public class WindowsPbufferGLContext extends WindowsGLContext {
 
       iattributes[niattribs++] = 0;
 
-      tmpBuffer = gl.wglCreatePbufferARB(parentHdc, format, initWidth, initHeight, iattributes);
+      tmpBuffer = gl.wglCreatePbufferARB(parentHdc, format, initWidth, initHeight, iattributes, 0);
       ++whichFormat;
     } while ((tmpBuffer == 0) && (whichFormat < nformats));
 
@@ -372,9 +372,9 @@ public class WindowsPbufferGLContext extends WindowsGLContext {
 
     // Determine the actual width and height we were able to create.
     int[] tmp = new int[1];
-    gl.wglQueryPbufferARB( buffer, GL.WGL_PBUFFER_WIDTH_ARB,  tmp );
+    gl.wglQueryPbufferARB( buffer, GL.WGL_PBUFFER_WIDTH_ARB,  tmp, 0 );
     width = tmp[0];
-    gl.wglQueryPbufferARB( buffer, GL.WGL_PBUFFER_HEIGHT_ARB, tmp );
+    gl.wglQueryPbufferARB( buffer, GL.WGL_PBUFFER_HEIGHT_ARB, tmp, 0 );
     height = tmp[0];
 
     if (DEBUG) {
@@ -431,7 +431,7 @@ public class WindowsPbufferGLContext extends WindowsGLContext {
             textureTarget = GL.GL_TEXTURE_2D;
           }
           int[] tmp = new int[1];
-          gl.glGenTextures(1, tmp);
+          gl.glGenTextures(1, tmp, 0);
           texture = tmp[0];
           gl.glBindTexture(textureTarget, texture);
           gl.glTexParameteri(textureTarget, GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST);

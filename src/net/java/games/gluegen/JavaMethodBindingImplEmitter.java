@@ -148,7 +148,7 @@ public class JavaMethodBindingImplEmitter extends JavaMethodBindingEmitter
         } else if (javaType.isArray() && !javaType.isNIOBufferArray() &&!javaType.isStringArray()) {
            String argName = binding.getArgumentName(i);
            String offsetArg = argName + "_offset";
-           writer.println("    if(" + argName + ".length <= " + offsetArg + ")");
+           writer.println("    if(" + argName + " != null && " + argName + ".length <= " + offsetArg + ")");
            writer.print("         throw new " + getRuntimeExceptionType()); 
            writer.println("(\"array offset argument \\\"" + offsetArg + "\\\" equals or exceeds array length\");");
         }
