@@ -104,7 +104,7 @@ public class MacOSXPbufferGLContext extends MacOSXGLContext {
     }
   }
 
-  protected synchronized boolean makeCurrent(Runnable initAction) throws GLException {
+  protected int makeCurrentImpl() throws GLException {
     created = false;
 
     if (pBuffer == 0) {
@@ -112,10 +112,10 @@ public class MacOSXPbufferGLContext extends MacOSXGLContext {
         System.err.println("Pbuffer not instantiated yet for " + this);
       }
       // pbuffer not instantiated yet
-      return false;
+      return CONTEXT_NOT_CURRENT;
     }
 
-    boolean res = super.makeCurrent(initAction);
+    int res = super.makeCurrentImpl();
     if (created) {
       // Initialize render-to-texture support if requested
       boolean rect = capabilities.getOffscreenRenderToTextureRectangle();

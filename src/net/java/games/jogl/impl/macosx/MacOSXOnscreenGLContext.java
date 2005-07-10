@@ -53,6 +53,18 @@ public class MacOSXOnscreenGLContext extends MacOSXGLContext {
   private JAWT_DrawingSurfaceInfo dsi;
   private JAWT_MacOSXDrawingSurfaceInfo macosxdsi;
     
+  // Indicates whether the component (if an onscreen context) has been
+  // realized. Plausibly, before the component is realized the JAWT
+  // should return an error or NULL object from some of its
+  // operations; this appears to be the case on Win32 but is not true
+  // at least with Sun's current X11 implementation (1.4.x), which
+  // crashes with no other error reported if the DrawingSurfaceInfo is
+  // fetched from a locked DrawingSurface during the validation as a
+  // result of calling show() on the main thread. To work around this
+  // we prevent any JAWT or OpenGL operations from being done until
+  // addNotify() is called on the component.
+  protected boolean realized;
+
   // Variables for pbuffer support
   List pbuffersToInstantiate = new ArrayList();
 
@@ -82,8 +94,9 @@ public class MacOSXOnscreenGLContext extends MacOSXGLContext {
     return true;
   }
     
-  public synchronized GLContext createPbufferContext(GLCapabilities capabilities, int initialWidth, int initialHeight) {
+  public GLContext createPbufferContext(GLCapabilities capabilities, int initialWidth, int initialHeight) {
     MacOSXPbufferGLContext ctx = new MacOSXPbufferGLContext(capabilities, initialWidth, initialHeight);
+    ctx.setSynchronized(true);
     GLContextShareSet.registerSharing(this, ctx);
     pbuffersToInstantiate.add(ctx);
     return ctx;
@@ -97,22 +110,17 @@ public class MacOSXOnscreenGLContext extends MacOSXGLContext {
     throw new GLException("Should not call this");
   }
     
-  public synchronized void setRenderingThread(Thread currentThreadOrNull, Runnable initAction) {
-    this.willSetRenderingThread = false;
-    // FIXME: the JAWT in the Panther developer release
-    // requires all JAWT operations to be done on the AWT
-    // thread. This means that setRenderingThread won't work
-    // yet on this platform. This method can be deleted once
-    // the update for that release ships.
-  }
-    
-  protected synchronized boolean makeCurrent(Runnable initAction) throws GLException {
+  protected int makeCurrentImpl() throws GLException {
     try {
-      if (!lockSurface()) {
-        return false;
+      if (!realized) {
+        return CONTEXT_NOT_CURRENT;
       }
-      boolean ret = super.makeCurrent(initAction);
-      if (ret) {
+      if (!lockSurface()) {
+        return CONTEXT_NOT_CURRENT;
+      }
+      int ret = super.makeCurrentImpl();
+      if ((ret == CONTEXT_CURRENT) ||
+          (ret == CONTEXT_CURRENT_NEW)) {
         // Assume the canvas might have been resized or moved and tell the OpenGL
         // context to update itself. This used to be done only upon receiving a
         // reshape event but that doesn't appear to be sufficient. An experiment
@@ -142,15 +150,20 @@ public class MacOSXOnscreenGLContext extends MacOSXGLContext {
     }
   }
     
-  protected synchronized void free() throws GLException {
+  protected void releaseImpl() throws GLException {
     try {
-      super.free();
+      super.releaseImpl();
     } finally {
       unlockSurface();
     }
   }
     
-  public synchronized void swapBuffers() throws GLException {
+  protected void destroyImpl() throws GLException {
+    realized = false;
+    super.destroyImpl();
+  }
+
+  public void swapBuffers() throws GLException {
     if (!CGL.flushBuffer(nsContext, nsView)) {
       throw new GLException("Error swapping buffers");
     }

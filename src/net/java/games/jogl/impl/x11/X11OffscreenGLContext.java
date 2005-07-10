@@ -95,9 +95,9 @@ public class X11OffscreenGLContext extends X11GLContext {
     return false;
   }
 
-  public synchronized GLContext createPbufferContext(GLCapabilities capabilities,
-                                                     int initialWidth,
-                                                     int initialHeight) {
+  public GLContext createPbufferContext(GLCapabilities capabilities,
+                                        int initialWidth,
+                                        int initialHeight) {
     throw new GLException("Not supported");
   }
 
@@ -109,7 +109,7 @@ public class X11OffscreenGLContext extends X11GLContext {
     throw new GLException("Should not call this");
   }
 
-  protected synchronized boolean makeCurrent(Runnable initAction) throws GLException {
+  protected int makeCurrentImpl() throws GLException {
     display = X11GLContextFactory.getDisplayConnection();
     if (pendingOffscreenResize) {
       if (pendingOffscreenWidth != width || pendingOffscreenHeight != height) {
@@ -122,15 +122,15 @@ public class X11OffscreenGLContext extends X11GLContext {
       }
     }
     mostRecentDisplay = display;
-    return super.makeCurrent(initAction);
+    return super.makeCurrentImpl();
   }
 
-  public synchronized void swapBuffers() throws GLException {
+  public void swapBuffers() throws GLException {
   }
 
-  protected synchronized void free() throws GLException {
+  protected void releaseImpl() throws GLException {
     try {
-      super.free();
+      super.releaseImpl();
     } finally {
       display = 0;
     }

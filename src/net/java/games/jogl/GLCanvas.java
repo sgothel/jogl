@@ -43,6 +43,7 @@ import java.awt.Canvas;
 import java.awt.EventQueue;
 import java.awt.Graphics;
 import java.awt.GraphicsConfiguration;
+import java.awt.GraphicsDevice;
 import net.java.games.jogl.impl.*;
 
 // FIXME: Subclasses need to call resetGLFunctionAvailability() on their
@@ -57,20 +58,21 @@ import net.java.games.jogl.impl.*;
     instantiated directly; use {@link GLDrawableFactory} to construct
     them. */
 
-public final class GLCanvas extends Canvas implements GLDrawable {
+public class GLCanvas extends Canvas implements GLAutoDrawable {
 
   protected static final boolean DEBUG = Debug.debug("GLCanvas");
 
   private GLDrawableHelper drawableHelper = new GLDrawableHelper();
-  private GLContext context;
+  private GLContextImpl context;
 
-  GLCanvas(GraphicsConfiguration config,
-           GLCapabilities capabilities,
-           GLCapabilitiesChooser chooser,
-           GLDrawable shareWith) {
-    super(config);
-    context = GLContextFactory.getFactory().createGLContext(this, capabilities, chooser,
-                                                            GLContextHelper.getContext(shareWith));
+  public GLCanvas(GLCapabilities capabilities,
+                  GLCapabilitiesChooser chooser,
+                  GLDrawable shareWith,
+                  GraphicsDevice device) {
+    super(GLDrawableFactory.getFactory().chooseGraphicsConfiguration(capabilities, chooser, device));
+    context = (GLContextImpl) GLContextFactory.getFactory().createGLContext(this, capabilities, chooser,
+                                                                            GLContextHelper.getContext(shareWith));
+    context.setSynchronized(true);
   }
   
   public void display() {
@@ -82,9 +84,7 @@ public final class GLCanvas extends Canvas implements GLDrawable {
   /** Overridden from Canvas; calls {@link #display}. Should not be
       invoked by applications directly. */
   public void paint(Graphics g) {
-    if (!context.getNoAutoRedrawMode()) {
-      display();
-    }
+    display();
   }
 
   /** Overridden from Canvas; used to indicate when it's safe to
@@ -127,7 +127,7 @@ public final class GLCanvas extends Canvas implements GLDrawable {
       };
     final Runnable reshapeOnEDTRunnable = new Runnable() {
         public void run() {
-          context.invokeGL(reshapeRunnable, true, initAction);
+          drawableHelper.invokeGL(context, reshapeRunnable, true, initAction);
         }
       };
     maybeDoSingleThreadedWorkaround(reshapeOnEDTRunnable, reshapeRunnable, true);
@@ -163,26 +163,6 @@ public final class GLCanvas extends Canvas implements GLDrawable {
     context.setGLU(glu);
   }
   
-  void willSetRenderingThread() {
-    context.willSetRenderingThread();
-  }
-
-  public void setRenderingThread(Thread currentThreadOrNull) throws GLException {
-    context.setRenderingThread(currentThreadOrNull, initAction);
-  }
-
-  public Thread getRenderingThread() {
-    return context.getRenderingThread();
-  }
-
-  public void setNoAutoRedrawMode(boolean noAutoRedraw) {
-    context.setNoAutoRedrawMode(noAutoRedraw);
-  }
-
-  public boolean getNoAutoRedrawMode() {
-    return context.getNoAutoRedrawMode();
-  }
-
   public void setAutoSwapBufferMode(boolean onOrOff) {
     context.setAutoSwapBufferMode(onOrOff);
   }
@@ -233,7 +213,7 @@ public final class GLCanvas extends Canvas implements GLDrawable {
         throw new GLException(e);
       }
     } else {
-      context.invokeGL(invokeGLAction, isReshape, initAction);
+      drawableHelper.invokeGL(context, invokeGLAction, isReshape, initAction);
     }
   }
 
@@ -263,14 +243,14 @@ public final class GLCanvas extends Canvas implements GLDrawable {
   // being resized on the AWT event dispatch thread
   class DisplayOnEventDispatchThreadAction implements Runnable {
     public void run() {
-      context.invokeGL(displayAction, false, initAction);
+      drawableHelper.invokeGL(context, displayAction, false, initAction);
     }
   }
   private DisplayOnEventDispatchThreadAction displayOnEventDispatchThreadAction =
     new DisplayOnEventDispatchThreadAction();
   class SwapBuffersOnEventDispatchThreadAction implements Runnable {
     public void run() {
-      context.invokeGL(swapBuffersAction, false, initAction);
+      drawableHelper.invokeGL(context, swapBuffersAction, false, initAction);
     }
   }
   private SwapBuffersOnEventDispatchThreadAction swapBuffersOnEventDispatchThreadAction =

@@ -20,7 +20,7 @@
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
  * PARTICULAR PURPOSE OR NON-INFRINGEMENT, ARE HEREBY EXCLUDED. SUN
- * MICROSYSTEMS, INC. ("SUN") AND ITS LICENSORS SHALL NOT BE LIABLE FOR
+ * MIDROSYSTEMS, INC. ("SUN") AND ITS LICENSORS SHALL NOT BE LIABLE FOR
  * ANY DAMAGES SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR
  * DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES. IN NO EVENT WILL SUN OR
  * ITS LICENSORS BE LIABLE FOR ANY LOST REVENUE, PROFIT OR DATA, OR FOR
@@ -37,22 +37,18 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package net.java.games.jogl.impl;
+package net.java.games.jogl;
 
-public class GLContextInitActionPair {
-  private GLContext ctx;
-  private Runnable  initAction;
+public interface GLAutoDrawable extends GLDrawable, ComponentEvents {
+  /** Adds a {@link GLEventListener} to this drawable. If multiple
+      listeners are added to a given drawable, they are notified of
+      events in an arbitrary order. */
+  public void addGLEventListener(GLEventListener listener);
 
-  public GLContextInitActionPair(GLContext ctx, Runnable initAction) {
-    this.ctx = ctx;
-    this.initAction = initAction;
-  }
-
-  public GLContext getContext() {
-    return ctx;
-  }
-  
-  public Runnable getInitAction() {
-    return initAction;
-  }
+  /** Removes a {@link GLEventListener} from this drawable. Note that
+      if this is done from within a particular drawable's {@link
+      GLEventListener} handler (reshape, display, etc.) that it is not
+      guaranteed that all other listeners will be evaluated properly
+      during this update cycle. */
+  public void removeGLEventListener(GLEventListener listener);
 }

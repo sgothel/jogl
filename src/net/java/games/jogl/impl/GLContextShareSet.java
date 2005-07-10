@@ -41,6 +41,7 @@ package net.java.games.jogl.impl;
 
 import java.lang.ref.*;
 import java.util.*;
+import net.java.games.jogl.*;
 
 /** Provides a mechanism by which OpenGL contexts can share textures
     and display lists in the face of multithreading and asynchronous
@@ -61,7 +62,8 @@ public class GLContextShareSet {
 
     public void add(GLContext ctx) {
       if (allShares.put(ctx, dummyValue) == null) {
-        if (ctx.isCreated()) {
+        // FIXME: downcast to GLContextImpl undesirable
+        if (((GLContextImpl) ctx).isCreated()) {
           createdShares.put(ctx, dummyValue);
         } else {
           destroyedShares.put(ctx, dummyValue);

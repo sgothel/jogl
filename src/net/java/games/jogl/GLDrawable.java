@@ -39,8 +39,6 @@
 
 package net.java.games.jogl;
 
-import java.awt.Dimension;
-
 // FIXME: We need some way to tell when the device upon which the canvas is
 // being displayed has changed (e.g., the user drags the canvas's parent
 // window from one screen on multi-screen environment to another, when the
@@ -67,32 +65,16 @@ import java.awt.Dimension;
     GLCanvas} and {@link GLJPanel}. */
 
 public interface GLDrawable extends ComponentEvents {
-  /** Adds a {@link GLEventListener} to this drawable. If multiple
-      listeners are added to a given drawable, they are notified of
-      events in an arbitrary order. */
-  public void addGLEventListener(GLEventListener listener);
-
-  /** Removes a {@link GLEventListener} from this drawable. Note that
-      if this is done from within a particular drawable's {@link
-      GLEventListener} handler (reshape, display, etc.) that it is not
-      guaranteed that all other listeners will be evaluated properly
-      during this update cycle. */
-  public void removeGLEventListener(GLEventListener listener);
-
-  /** Sets the size of this GLDrawable. */
+  /** Requests a new width and height for this GLDrawable. Not all
+      drawables are able to respond to this request and may silently
+      ignore it. */
   public void setSize(int width, int height);
 
-  /** Sets the size of this GLDrawable. */
-  public void setSize(Dimension d);
+  /** Returns the current width of this GLDrawable. */
+  public int getWidth();
 
-  /** Returns the size of this GLDrawable as a newly-created Dimension
-      object. */
-  public Dimension getSize();
-
-  /** Stores the size of this GLDrawable into the user-provided
-      Dimension object, returning that object. If the provided
-      Dimension is null a new one will be allocated and returned. */
-  public Dimension getSize(Dimension d);
+  /** Returns the current height of this GLDrawable. */
+  public int getHeight();
 
   /** Returns the {@link GL} pipeline object this GLDrawable uses.  If
       this method is called outside of the {@link GLEventListener}'s
@@ -129,58 +111,6 @@ public interface GLDrawable extends ComponentEvents {
       legal to call another GLDrawable's display method from within
       {@link GLEventListener#display}. */
   public void display();
-
-  /** <P> Changes this GLDrawable to allow OpenGL rendering only from
-      the supplied thread, which must either be the current thread or
-      null. Attempts by other threads to perform OpenGL operations
-      like rendering or resizing the window will be ignored as long as
-      the thread is set. Setting up the rendering thread is not
-      required but enables the system to perform additional
-      optimizations, in particular when the application requires
-      control over the rendering loop. Before exiting,
-      <code>setRenderingThread(null)</code> must be called or other
-      threads will be unable to perform OpenGL rendering to this
-      drawable. Throws {@link GLException} if the rendering thread for
-      this drawable has been set and attempts are made to set or clear
-      the rendering thread from another thread, or if the passed
-      thread is not equal to the current thread or null. Also throws
-      {@link GLException} if the current thread attempts to call
-      <code>setRenderingThread</code> on more than one drawable. </P>
-      
-      <P> <B>NOTE:</B> Currently this routine is only advisory, which
-      means that on some platforms the underlying optimizations are
-      disabled and setting the rendering thread has no effect.
-      Applications should not rely on setRenderingThread to prevent
-      rendering from other threads. <P>
-
-      @throws GLException if the rendering thread for this drawable has
-      been set by another thread or if the passed thread is not equal
-      to the current thread or null
-  */
-  public void setRenderingThread(Thread currentThreadOrNull) throws GLException;
-
-  /** Returns the rendering thread for this drawable, or null if none
-      has been set. */
-  public Thread getRenderingThread();
-
-  /** Disables automatic redraws of this drawable if possible. This is
-      provided as an overriding mechanism for applications which
-      perform animation on the drawable and for which the (currently
-      advisory) {@link #setRenderingThread} does not provide strict
-      enough guarantees. Its sole purpose is to avoid deadlocks that
-      are unfortunately all too easy to run into when both animating a
-      drawable from a given thread as well as having updates performed
-      by the AWT event thread (repaints, etc.). When it is enabled,
-      repaint requests driven by the AWT will not result in the OpenGL
-      event listeners' display methods being called from the AWT
-      thread, unless (as with GLJPanel) this is the only mechanism by
-      which repaints are done. The necessity of this API may be
-      rethought in a future release. Defaults to false. */
-  public void setNoAutoRedrawMode(boolean noAutoRedraws);
-
-  /** Returns whether automatic redraws are disabled for this
-      drawable. Defaults to false. */
-  public boolean getNoAutoRedrawMode();
 
   /** Enables or disables automatic buffer swapping for this drawable.
       By default this property is set to true; when true, after all

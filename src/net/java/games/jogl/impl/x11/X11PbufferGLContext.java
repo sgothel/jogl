@@ -234,10 +234,10 @@ public class X11PbufferGLContext extends X11GLContext {
     }
   }
 
-  protected synchronized boolean makeCurrent(Runnable initAction) throws GLException {
+  protected int makeCurrentImpl() throws GLException {
     if (buffer == 0) {
       // pbuffer not instantiated yet
-      return false;
+      return CONTEXT_NOT_CURRENT;
     }
 
     lockAWT();
@@ -257,15 +257,15 @@ public class X11PbufferGLContext extends X11GLContext {
 
       if (created) {
         resetGLFunctionAvailability();
-        initAction.run();
+        return CONTEXT_CURRENT_NEW;
       }
-      return true;
+      return CONTEXT_CURRENT;
     } finally {
       unlockAWT();
     }
   }
 
-  protected synchronized void free() throws GLException {
+  protected void releaseImpl() throws GLException {
     lockAWT();
     try {
       if (!GLX.glXMakeContextCurrent(display, 0, 0, 0)) {

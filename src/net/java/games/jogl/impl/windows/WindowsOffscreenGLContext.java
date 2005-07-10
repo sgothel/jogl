@@ -92,9 +92,9 @@ public class WindowsOffscreenGLContext extends WindowsGLContext {
     return false;
   }
 
-  public synchronized GLContext createPbufferContext(GLCapabilities capabilities,
-                                                     int initialWidth,
-                                                     int initialHeight) {
+  public GLContext createPbufferContext(GLCapabilities capabilities,
+                                        int initialWidth,
+                                        int initialHeight) {
     throw new GLException("Not supported");
   }
 
@@ -106,7 +106,7 @@ public class WindowsOffscreenGLContext extends WindowsGLContext {
     throw new GLException("Should not call this");
   }
 
-  protected synchronized boolean makeCurrent(Runnable initAction) throws GLException {
+  protected int makeCurrentImpl() throws GLException {
     if (pendingOffscreenResize) {
       if (pendingOffscreenWidth != width || pendingOffscreenHeight != height) {
         if (hglrc != 0) {
@@ -117,7 +117,7 @@ public class WindowsOffscreenGLContext extends WindowsGLContext {
         pendingOffscreenResize = false;
       }
     }
-    return super.makeCurrent(initAction);
+    return super.makeCurrentImpl();
   }
 
   protected void destroyImpl() {
@@ -133,7 +133,7 @@ public class WindowsOffscreenGLContext extends WindowsGLContext {
     }
   }
 
-  public synchronized void swapBuffers() throws GLException {
+  public void swapBuffers() throws GLException {
   }
 
   protected void create() {

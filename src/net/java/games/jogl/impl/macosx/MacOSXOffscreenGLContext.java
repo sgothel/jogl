@@ -83,7 +83,7 @@ public class MacOSXOffscreenGLContext extends MacOSXPbufferGLContext
     throw new GLException("Should not call this");
   }
 	
-  protected synchronized boolean makeCurrent(Runnable initAction) throws GLException {
+  protected int makeCurrentImpl() throws GLException {
     if (pendingOffscreenResize && (nsContext != 0)) {
       if (pendingOffscreenWidth != width || pendingOffscreenHeight != height) {
         destroyPBuffer();
@@ -93,9 +93,9 @@ public class MacOSXOffscreenGLContext extends MacOSXPbufferGLContext
         pendingOffscreenResize = false;
       }
     }
-    return super.makeCurrent(initAction);
+    return super.makeCurrentImpl();
   }
 	
-  public synchronized void swapBuffers() throws GLException {
+  public void swapBuffers() throws GLException {
   }	
 }

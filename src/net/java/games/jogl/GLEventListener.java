@@ -51,17 +51,17 @@ public interface GLEventListener extends EventListener {
       initialized. Can be used to perform one-time OpenGL
       initialization such as setup of lights and display lists.  Note
       that this method may be called more than once if the underlying
-      OpenGL context for the GLDrawable is destroyed and recreated,
+      OpenGL context for the GLAutoDrawable is destroyed and recreated,
       for example if a GLCanvas is removed from the widget hierarchy
       and later added again.
   */
-  public void init(GLDrawable drawable);
+  public void init(GLAutoDrawable drawable);
   
   /** Called by the drawable to initiate OpenGL rendering by the
       client. After all GLEventListeners have been notified of a
       display event, the drawable will swap its buffers if necessary.
   */
-  public void display(GLDrawable drawable);
+  public void display(GLAutoDrawable drawable);
 
   /** Called by the drawable during the first repaint after the
       component has been resized. The client can update the viewport
@@ -71,20 +71,20 @@ public interface GLEventListener extends EventListener {
       y, width, height)</code> when this method is called, so the
       client may not have to do anything in this method.
   */
-  public void reshape(GLDrawable drawable, int x, int y, int width, int height);
+  public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height);
 
   /** Called by the drawable when the display mode or the display device
-      associated with the GLDrawable has changed. The two boolean parameters
+      associated with the GLAutoDrawable has changed. The two boolean parameters
       indicate the types of change(s) that have occurred. (<b> !!! CURRENTLY
       UNIMPLEMENTED !!! </b>)
       <P>
 
       An example of a display <i>mode</i> change is when the bit depth changes (e.g.,
-      from 32-bit to 16-bit color) on monitor upon which the GLDrawable is
+      from 32-bit to 16-bit color) on monitor upon which the GLAutoDrawable is
       currently being displayed. <p>
 
       An example of a display <i>device</i> change is when the user drags the
-      window containing the GLDrawable from one monitor to another in a
+      window containing the GLAutoDrawable from one monitor to another in a
       multiple-monitor setup. <p>
 
       The reason that this function handles both types of changes (instead of
@@ -94,5 +94,5 @@ public interface GLEventListener extends EventListener {
       adjustments to compensate for a device change if it knows that the mode
       on the new device is identical the previous mode.
   */
-  public void displayChanged(GLDrawable drawable, boolean modeChanged, boolean deviceChanged);
+  public void displayChanged(GLAutoDrawable drawable, boolean modeChanged, boolean deviceChanged);
 }

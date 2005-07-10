@@ -46,7 +46,7 @@ import net.java.games.gluegen.runtime.*; // for PROCADDRESS_VAR_PREFIX
 import net.java.games.jogl.*;
 import net.java.games.jogl.impl.*;
 
-public abstract class X11GLContext extends GLContext {
+public abstract class X11GLContext extends GLContextImpl {
   protected long display;
   protected long drawable;
   protected long visualID;
@@ -126,19 +126,9 @@ public abstract class X11GLContext extends GLContext {
 
   public abstract boolean offscreenImageNeedsVerticalFlip();
 
-  public synchronized void setRenderingThread(Thread currentThreadOrNull, Runnable initAction) {
-    this.willSetRenderingThread = false;
-    // FIXME: the JAWT on X11 grabs the AWT lock while the
-    // DrawingSurface is locked, which means that no other events can
-    // be processed. Currently we handle this by preventing the
-    // effects of setRenderingThread. We should figure out a better
-    // solution that is reasonably robust. Must file a bug to be fixed
-    // in the 1.5 JAWT.
-  }
-
   /**
    * Creates and initializes an appropriate OpenGl context. Should only be
-   * called by {@link makeCurrent(Runnable)}.
+   * called by {@link makeCurrentImpl()}.
    */
   protected abstract void create();
   
@@ -150,7 +140,7 @@ public abstract class X11GLContext extends GLContext {
     return super.isExtensionAvailable(glExtensionName);
   }
 
-  protected synchronized boolean makeCurrent(Runnable initAction) throws GLException {
+  protected int makeCurrentImpl() throws GLException {
     boolean created = false;
     if (context == 0) {
       create();
@@ -172,12 +162,12 @@ public abstract class X11GLContext extends GLContext {
 
     if (created) {
       resetGLFunctionAvailability();
-      initAction.run();
+      return CONTEXT_CURRENT_NEW;
     }
-    return true;
+    return CONTEXT_CURRENT;
   }
 
-  protected synchronized void free() throws GLException {
+  protected void releaseImpl() throws GLException {
     if (!GLX.glXMakeCurrent(display, 0, 0)) {
       throw new GLException("Error freeing OpenGL context");
     }

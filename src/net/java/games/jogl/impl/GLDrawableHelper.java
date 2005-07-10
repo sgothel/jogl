@@ -42,11 +42,13 @@ package net.java.games.jogl.impl;
 import java.util.*;
 import net.java.games.jogl.*;
 
-/** Encapsulates the implementation of most of the GLDrawable's
+/** Encapsulates the implementation of most of the GLAutoDrawable's
     methods to be able to share it between GLCanvas and GLJPanel. */
 
 public class GLDrawableHelper {
   private volatile List listeners = new ArrayList();
+  private static final boolean DEBUG = Debug.debug("GLDrawableHelper");
+  private static final boolean VERBOSE = Debug.verbose();
 
   public GLDrawableHelper() {
   }
@@ -63,22 +65,92 @@ public class GLDrawableHelper {
     listeners = newListeners;
   }
 
-  public void init(GLDrawable drawable) {
+  public void init(GLAutoDrawable drawable) {
     for (Iterator iter = listeners.iterator(); iter.hasNext(); ) {
       ((GLEventListener) iter.next()).init(drawable);
     }
   }
 
-  public void display(GLDrawable drawable) {
+  public void display(GLAutoDrawable drawable) {
     for (Iterator iter = listeners.iterator(); iter.hasNext(); ) {
       ((GLEventListener) iter.next()).display(drawable);
     }
   }
 
-  public void reshape(GLDrawable drawable,
+  public void reshape(GLAutoDrawable drawable,
                       int x, int y, int width, int height) {
     for (Iterator iter = listeners.iterator(); iter.hasNext(); ) {
       ((GLEventListener) iter.next()).reshape(drawable, x, y, width, height);
+    }
+  }
+
+  private static final ThreadLocal perThreadInitAction = new ThreadLocal();
+  private Runnable deferredReshapeAction;
+  /** Principal helper method which runs a Runnable with the context
+      made current. This could have been made part of GLContext, but a
+      desired goal is to be able to implement the GLCanvas in terms of
+      the GLContext's public APIs, and putting it into a separate
+      class helps ensure that we don't inadvertently use private
+      methods of the GLContext or its implementing classes. */
+  public void invokeGL(GLContext context,
+                       Runnable  runnable,
+                       boolean   isReshape,
+                       Runnable  initAction) {
+    // Support for recursive makeCurrent() calls as well as calling
+    // other drawables' display() methods from within another one's
+    GLContext lastContext    = GLContext.getCurrent();
+    Runnable  lastInitAction = (Runnable) perThreadInitAction.get();
+    if (lastContext != null) {
+      lastContext.release();
+    }
+    
+    int res = 0;
+    try {
+      res = context.makeCurrent();
+      if (res == GLContext.CONTEXT_NOT_CURRENT) {
+        if (isReshape) {
+          if (DEBUG) {
+            System.err.println("GLDrawableHelper " + this + ".invokeGL(): Deferring reshape action");
+          }
+          deferredReshapeAction = runnable;
+        }
+      } else {
+        if (res == GLContext.CONTEXT_CURRENT_NEW) {
+          if (DEBUG) {
+            System.err.println("GLDrawableHelper " + this + ".invokeGL(): Running initAction");
+          }
+          initAction.run();
+        }
+        if (deferredReshapeAction != null) {
+          if (DEBUG) {
+            System.err.println("GLDrawableHelper " + this + ".invokeGL(): Running deferred reshape action");
+          }
+          Runnable act = deferredReshapeAction;
+          deferredReshapeAction = null;
+          act.run();
+        }
+        if (DEBUG && VERBOSE) {
+          System.err.println("GLDrawableHelper " + this + ".invokeGL(): Running runnable");
+        }
+        runnable.run();
+        // FIXME: must phrase this in terms of new GLDrawable swap buffer functionality
+        if (((GLContextImpl) context).getAutoSwapBufferMode()) {
+          ((GLContextImpl) context).swapBuffers();
+        }
+      }
+    } finally {
+      try {
+        if (res != GLContext.CONTEXT_NOT_CURRENT) {
+          context.release();
+        }
+      } catch (Exception e) {
+      }
+      if (lastContext != null) {
+        int res2 = lastContext.makeCurrent();
+        if (res2 == GLContext.CONTEXT_CURRENT_NEW) {
+          lastInitAction.run();
+        }
+      }
     }
   }
 }

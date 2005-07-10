@@ -53,13 +53,13 @@ import net.java.games.jogl.*;
 
 public class GLPbufferImpl implements GLPbuffer {
   // GLPbufferContext
-  private GLContext context;
+  private GLContextImpl context;
   private GLDrawableHelper drawableHelper = new GLDrawableHelper();
   private boolean isInitialized=false;
   private int floatMode;
 
   public GLPbufferImpl(GLContext context) {
-    this.context = context;
+    this.context = (GLContextImpl) context;
   }
 
   public void display() {
@@ -73,15 +73,12 @@ public class GLPbufferImpl implements GLPbuffer {
     throw new GLException("Not yet implemented");
   }
 
-  public void setSize(Dimension d) {
-    setSize(d.width, d.height);
+  public int getWidth() {
+    // FIXME
+    throw new GLException("Not yet implemented");
   }
 
-  public Dimension getSize() {
-    return getSize(null);
-  }
-
-  public Dimension getSize(Dimension d) {
+  public int getHeight() {
     // FIXME
     throw new GLException("Not yet implemented");
   }
@@ -110,26 +107,6 @@ public class GLPbufferImpl implements GLPbuffer {
     context.setGLU(glu);
   }
   
-  void willSetRenderingThread() {
-    // Not supported for pbuffers
-  }
-
-  public void setRenderingThread(Thread currentThreadOrNull) throws GLException {
-    // Not supported for pbuffers
-  }
-
-  public Thread getRenderingThread() {
-    // Not supported for pbuffers
-    return null;
-  }
-
-  public void setNoAutoRedrawMode(boolean noAutoRedraws) {
-  }
-
-  public boolean getNoAutoRedrawMode() {
-    return false;
-  }
-
   public void setAutoSwapBufferMode(boolean onOrOff) {
     context.setAutoSwapBufferMode(onOrOff);
   }
@@ -166,6 +143,11 @@ public class GLPbufferImpl implements GLPbuffer {
 
   public GLContext getContext() {
     return context;
+  }
+
+  // FIXME: workaround for problems with deferring reshape actions
+  public GLDrawableHelper getDrawableHelper() {
+    return drawableHelper;
   }
 
   //----------------------------------------------------------------------
@@ -239,7 +221,7 @@ public class GLPbufferImpl implements GLPbuffer {
         throw new GLException(e);
       }
     } else {
-      context.invokeGL(invokeGLAction, isReshape, initAction);
+      drawableHelper.invokeGL(context, invokeGLAction, isReshape, initAction);
     }
   }
 
@@ -271,14 +253,14 @@ public class GLPbufferImpl implements GLPbuffer {
   // being resized on the AWT event dispatch thread
   class DisplayOnEventDispatchThreadAction implements Runnable {
     public void run() {
-      context.invokeGL(displayAction, false, initAction);
+      drawableHelper.invokeGL(context, displayAction, false, initAction);
     }
   }
   private DisplayOnEventDispatchThreadAction displayOnEventDispatchThreadAction =
     new DisplayOnEventDispatchThreadAction();
   class SwapBuffersOnEventDispatchThreadAction implements Runnable {
     public void run() {
-      context.invokeGL(swapBuffersAction, false, initAction);
+      drawableHelper.invokeGL(context, swapBuffersAction, false, initAction);
     }
   }
   private SwapBuffersOnEventDispatchThreadAction swapBuffersOnEventDispatchThreadAction =

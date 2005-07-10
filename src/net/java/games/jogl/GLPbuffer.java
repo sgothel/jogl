@@ -46,7 +46,7 @@ package net.java.games.jogl;
     buffers. These methods are currently highly experimental and may
     be removed in a future release. */
 
-public interface GLPbuffer extends GLDrawable {
+public interface GLPbuffer extends GLAutoDrawable {
   /** Indicates the GL_APPLE_float_pixels extension is being used for this pbuffer. */
   public static final int APPLE_FLOAT = 1;
 

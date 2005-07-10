@@ -45,7 +45,7 @@ import net.java.games.gluegen.runtime.*; // for PROCADDRESS_VAR_PREFIX
 import net.java.games.jogl.*;
 import net.java.games.jogl.impl.*;
 
-public abstract class MacOSXGLContext extends GLContext
+public abstract class MacOSXGLContext extends GLContextImpl
 {	
   private static JAWT jawt;
   protected long nsContext; // NSOpenGLContext
@@ -119,7 +119,7 @@ public abstract class MacOSXGLContext extends GLContext
 
   /**
    * Creates and initializes an appropriate OpenGl nsContext. Should only be
-   * called by {@link makeCurrent(Runnable)}.
+   * called by {@link makeCurrentImpl()}.
    */
   protected boolean create(boolean pbuffer, boolean floatingPoint) {
     MacOSXGLContext other = (MacOSXGLContext) GLContextShareSet.getShareContext(this);
@@ -165,7 +165,7 @@ public abstract class MacOSXGLContext extends GLContext
     return true;
   }    
 	
-  protected synchronized boolean makeCurrent(Runnable initAction) throws GLException {
+  protected int makeCurrentImpl() throws GLException {
       boolean created = false;
       if (nsContext == 0) {
         if (!create()) {
@@ -183,14 +183,12 @@ public abstract class MacOSXGLContext extends GLContext
             
       if (created) {
         resetGLFunctionAvailability();
-        if (initAction != null) {
-          initAction.run();
-        }
+        return CONTEXT_CURRENT_NEW;
       }
-      return true;
+      return CONTEXT_CURRENT;
   }
 	
-  protected synchronized void free() throws GLException {
+  protected void releaseImpl() throws GLException {
       if (!CGL.clearCurrentContext(nsContext, nsView)) {
         throw new GLException("Error freeing OpenGL nsContext");
       }

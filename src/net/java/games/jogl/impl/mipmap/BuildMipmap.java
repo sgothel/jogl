@@ -46,7 +46,8 @@ import java.io.*;
  */
 public class BuildMipmap {
 
-  private static boolean DEBUG = Debug.debug("BuildMipmap");
+  private static final boolean DEBUG = Debug.debug("BuildMipmap");
+  private static final boolean VERBOSE = Debug.verbose();
 
   /** Creates a new instance of BuildMipmap */
   public BuildMipmap() {
@@ -663,16 +664,18 @@ public class BuildMipmap {
       gl.glTexImage2D( target, level, internalFormat, newwidth, newheight, 0, format, type, srcImage );
       if (DEBUG) {
         System.err.println("GL Error(" + level + "): " + gl.glGetError() );
-        try {
-          File file = new File( "glu2DMipmapJ" + level + ".bin" );
-          FileOutputStream fos = new FileOutputStream( file );
-          srcImage.limit( Mipmap.image_size( newwidth, newheight, format, type ) );
-          fos.getChannel().write( srcImage );
-          srcImage.clear();
-          fos.close();
-        } catch( IOException e ) {
-          System.err.println("IOException");
-          System.err.println(e.getMessage());
+        if (VERBOSE) {
+          try {
+            File file = new File( "glu2DMipmapJ" + level + ".bin" );
+            FileOutputStream fos = new FileOutputStream( file );
+            srcImage.limit( Mipmap.image_size( newwidth, newheight, format, type ) );
+            fos.getChannel().write( srcImage );
+            srcImage.clear();
+            fos.close();
+          } catch( IOException e ) {
+            System.err.println("IOException");
+            System.err.println(e.getMessage());
+          }
         }
       }
     }
@@ -769,15 +772,17 @@ public class BuildMipmap {
           gl.glTexImage2D( target, level, internalFormat, newwidth, newheight, 0, format, type, srcImage );
           if (DEBUG) {
             System.err.println("GL Error(" + level + "): " + gl.glGetError() );
-            try {
-              File file = new File( "glu2DMipmapJ" + level + ".bin" );
-              FileOutputStream fos = new FileOutputStream( file );
-              srcImage.limit( Mipmap.image_size( newwidth, newheight, format, type ) );
-              fos.getChannel().write( srcImage );
-              srcImage.clear();
-            } catch( IOException e ) {
-              System.err.println("IOException");
-              System.err.println(e.getMessage());
+            if (VERBOSE) {
+              try {
+                File file = new File( "glu2DMipmapJ" + level + ".bin" );
+                FileOutputStream fos = new FileOutputStream( file );
+                srcImage.limit( Mipmap.image_size( newwidth, newheight, format, type ) );
+                fos.getChannel().write( srcImage );
+                srcImage.clear();
+              } catch( IOException e ) {
+                System.err.println("IOException");
+                System.err.println(e.getMessage());
+              }
             }
           }
         }
@@ -817,15 +822,17 @@ public class BuildMipmap {
           gl.glTexImage2D( target, level, internalFormat, newwidth, newheight, 0, format, type, newMipmapImage );
           if (DEBUG) {
             System.err.println("GL Error: " + gl.glGetError() );
-            try {
-              File file = new File( "glu2DMipmapJ" + level + ".bin" );
-              FileOutputStream fos = new FileOutputStream( file );
-              srcImage.limit( Mipmap.image_size( newwidth, newheight, format, type ) );
-              fos.getChannel().write( newMipmapImage );
-              srcImage.clear();
-            } catch( IOException e ) {
-              System.err.println("IOException");
-              System.err.println(e.getMessage());
+            if (VERBOSE) {
+              try {
+                File file = new File( "glu2DMipmapJ" + level + ".bin" );
+                FileOutputStream fos = new FileOutputStream( file );
+                srcImage.limit( Mipmap.image_size( newwidth, newheight, format, type ) );
+                fos.getChannel().write( newMipmapImage );
+                srcImage.clear();
+              } catch( IOException e ) {
+                System.err.println("IOException");
+                System.err.println(e.getMessage());
+              }
             }
           }
         }

@@ -77,7 +77,7 @@ import net.java.games.jogl.impl.*;
     methods as side-effect-free as possible.
 */
 
-public final class GLJPanel extends JPanel implements GLDrawable {
+public final class GLJPanel extends JPanel implements GLAutoDrawable {
   protected static final boolean DEBUG = Debug.debug("GLJPanel");
 
   private GLDrawableHelper drawableHelper = new GLDrawableHelper();
@@ -114,7 +114,7 @@ public final class GLJPanel extends JPanel implements GLDrawable {
   private Frame     toplevel;
 
   // Implementation using software rendering
-  private GLContext offscreenContext;
+  private GLContextImpl offscreenContext;
 
   // For saving/restoring of OpenGL state during ReadPixels
   private int[] swapbytes    = new int[1];
@@ -184,7 +184,7 @@ public final class GLJPanel extends JPanel implements GLDrawable {
         pbuffer.display();
       }
     } else {
-      offscreenContext.invokeGL(displayAction, false, initAction);
+      drawableHelper.invokeGL(offscreenContext, displayAction, false, initAction);
     }
   }
 
@@ -239,6 +239,7 @@ public final class GLJPanel extends JPanel implements GLDrawable {
     Runnable r = new Runnable() {
         public void run() {
           GLContext context = null;
+          GLDrawableHelper helper = drawableHelper;
           readBackWidthInPixels = 0;
           readBackHeightInPixels = 0;
 
@@ -269,6 +270,11 @@ public final class GLJPanel extends JPanel implements GLDrawable {
             }
             GLPbufferImpl pbufferImpl = (GLPbufferImpl) pbuffer;
             context = pbufferImpl.getContext();
+            // FIXME: hack workaround for fact that reshapes may be
+            // deferred; must rethink this and defer them manually
+            // until the next display()
+            helper = pbufferImpl.getDrawableHelper();
+
             // It looks like NVidia's drivers (at least the ones on my
             // notebook) are buggy and don't allow a rectangle of less than
             // the pbuffer's width to be read...this doesn't really matter
@@ -293,8 +299,14 @@ public final class GLJPanel extends JPanel implements GLDrawable {
           panelWidth  = fwidth;
           panelHeight = fheight;
 
-          context.invokeGL(new Runnable() {
+          if (DEBUG) {
+            System.err.println("Doing invokeGL of reshape action");
+          }
+          helper.invokeGL(context, new Runnable() {
               public void run() {
+                if (DEBUG) {
+                  System.err.println("glViewport(0, 0, " + panelWidth + ", " + panelHeight + ")");
+                }
                 getGL().glViewport(0, 0, panelWidth, panelHeight);
                 drawableHelper.reshape(GLJPanel.this, 0, 0, panelWidth, panelHeight);
               }
@@ -370,22 +382,6 @@ public final class GLJPanel extends JPanel implements GLDrawable {
     }
   }
   
-  public void setRenderingThread(Thread currentThreadOrNull) throws GLException {
-    // Not supported for GLJPanel because all repaint requests must be
-    // handled by the AWT thread
-  }
-
-  public Thread getRenderingThread() {
-    return null;
-  }
-
-  public void setNoAutoRedrawMode(boolean noAutoRedraws) {
-  }
-
-  public boolean getNoAutoRedrawMode() {
-    return false;
-  }
-
   public void setAutoSwapBufferMode(boolean onOrOff) {
     if (!hardwareAccelerationDisabled) {
       pbuffer.setAutoSwapBufferMode(onOrOff);
@@ -406,7 +402,7 @@ public final class GLJPanel extends JPanel implements GLDrawable {
     if (!hardwareAccelerationDisabled) {
       pbuffer.swapBuffers();
     } else {
-      offscreenContext.invokeGL(swapBuffersAction, false, initAction);
+      drawableHelper.invokeGL(offscreenContext, swapBuffersAction, false, initAction);
     }
   }
 
@@ -461,7 +457,7 @@ public final class GLJPanel extends JPanel implements GLDrawable {
         // The pbuffer shares textures and display lists with the
         // heavyweight, so by transitivity the pbuffer will share with
         // it as well.
-        heavyweight = GLDrawableFactory.getFactory().createGLCanvas(new GLCapabilities(), shareWith);
+        heavyweight = GLDrawableFactory.getFactory().createGLCanvas(new GLCapabilities(), null, shareWith, null);
         firstTime = true;
       }
       if (heavyweight.canCreateOffscreenDrawable()) {
@@ -500,13 +496,17 @@ public final class GLJPanel extends JPanel implements GLDrawable {
     }
 
     // Create an offscreen context instead
-    offscreenContext = GLContextFactory.getFactory().createGLContext(null, offscreenCaps, chooser,
-                                                                     GLContextHelper.getContext(shareWith));
+    offscreenContext = (GLContextImpl) GLContextFactory.getFactory().createGLContext(null, offscreenCaps, chooser,
+                                                                                     GLContextHelper.getContext(shareWith));
+    offscreenContext.setSynchronized(true);
     offscreenContext.resizeOffscreenContext(panelWidth, panelHeight);
     updater = new Updater();
     if (panelWidth > 0 && panelHeight > 0) {
-      offscreenContext.invokeGL(new Runnable() {
+      drawableHelper.invokeGL(offscreenContext, new Runnable() {
           public void run() {
+            if (DEBUG) {
+              System.err.println("glViewport(0, 0, " + panelWidth + ", " + panelHeight + ")");
+            }
             getGL().glViewport(0, 0, panelWidth, panelHeight);
             drawableHelper.reshape(GLJPanel.this, 0, 0, panelWidth, panelHeight);
           }
@@ -523,7 +523,7 @@ public final class GLJPanel extends JPanel implements GLDrawable {
       this.g = g;
     }
 
-    public void init(GLDrawable drawable) {
+    public void init(GLAutoDrawable drawable) {
       if (!hardwareAccelerationDisabled) {
         if (DEBUG) {
           System.err.println("GLJPanel$Updater.init(): pbufferInitializationCompleted = true");
@@ -541,7 +541,7 @@ public final class GLJPanel extends JPanel implements GLDrawable {
       drawableHelper.init(GLJPanel.this);
     }
 
-    public void display(GLDrawable drawable) {
+    public void display(GLAutoDrawable drawable) {
       drawableHelper.display(GLJPanel.this);
 
       // Must now copy pixels from offscreen context into surface
@@ -672,11 +672,11 @@ public final class GLJPanel extends JPanel implements GLDrawable {
       }
     }
 
-    public void reshape(GLDrawable drawable, int x, int y, int width, int height) {
+    public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
       // This is handled above and dispatched directly to the appropriate context
     }
 
-    public void displayChanged(GLDrawable drawable, boolean modeChanged, boolean deviceChanged) {
+    public void displayChanged(GLAutoDrawable drawable, boolean modeChanged, boolean deviceChanged) {
     }
   }
 

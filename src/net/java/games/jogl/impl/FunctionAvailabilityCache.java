@@ -54,7 +54,7 @@ import java.lang.reflect.*;
 public final class FunctionAvailabilityCache {
   private static final boolean DEBUG = Debug.debug("FunctionAvailabilityCache");
 
-  FunctionAvailabilityCache(GLContext context)
+  FunctionAvailabilityCache(GLContextImpl context)
   {
     this.context = context;
   }
@@ -243,7 +243,7 @@ public final class FunctionAvailabilityCache {
 
   private HashMap availabilityCache = new HashMap(50); 
   private HashSet availableExtensionCache = new HashSet(50);
-  private GLContext context;
+  private GLContextImpl context;
 
   /**
    * A class for storing and comparing revision version numbers.

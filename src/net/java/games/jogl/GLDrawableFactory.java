@@ -39,6 +39,7 @@
 
 package net.java.games.jogl;
 
+import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import net.java.games.jogl.impl.*;
@@ -78,44 +79,57 @@ public class GLDrawableFactory {
     return factory;
   }
 
+  /**
+   * Selects an AWT GraphicsConfiguration on the specified
+   * GraphicsDevice compatible with the supplied GLCapabilities. This
+   * method is intended to be used by applications which do not use
+   * the supplied GLCanvas class but instead wrap their own Canvas
+   * with a GLDrawable. Some platforms (specifically X11) require the
+   * GraphicsConfiguration to be specified when the platform-specific
+   * window system object, such as a Canvas, is created. This method
+   * returns null on platforms on which the OpenGL pixel format
+   * selection process is performed later.
+   *
+   * @see java.awt.Canvas(java.awt.GraphicsConfiguration)
+   */
+  public GraphicsConfiguration
+    chooseGraphicsConfiguration(GLCapabilities capabilities,
+                                GLCapabilitiesChooser chooser,
+                                GraphicsDevice device) {
+    return GLContextFactory.getFactory().chooseGraphicsConfiguration(capabilities, chooser, device);
+  }
+
+  /**
+   * Returns a GLDrawable that wraps a platform-specific window system
+   * object, such as an AWT or LCDUI Canvas. On platforms which
+   * support it, selects a pixel format compatible with the supplied
+   * GLCapabilities, or if the passed GLCapabilities object is null,
+   * uses a default set of capabilities. On these platforms, uses
+   * either the supplied GLCapabilitiesChooser object, or if the
+   * passed GLCapabilitiesChooser object is null, uses a
+   * DefaultGLCapabilitiesChooser instance.
+   *
+   * @throw IllegalArgumentException if the passed target is either
+   *        null or its data type is not supported by this GLDrawableFactory.
+   * @throw GLException if any window system-specific errors caused
+   *        the creation of the GLDrawable to fail.
+   */
+  public GLDrawable getGLDrawable(Object target,
+                                  GLCapabilities capabilities,
+                                  GLCapabilitiesChooser chooser)
+    throws IllegalArgumentException, GLException {
+    // FIXME
+    throw new GLException("Not yet implemented");
+  }
+  
+  //----------------------------------------------------------------------
+  // Methods to create high-level objects
+
   /** Creates a {@link GLCanvas} on the default graphics device with
       the specified capabilities using the default capabilities
       selection algorithm. */
   public GLCanvas createGLCanvas(GLCapabilities capabilities) {
-    return createGLCanvas(capabilities, null, null);
-  }
-
-  /** Creates a {@link GLCanvas} on the default graphics device with
-      the specified capabilities using the default capabilities
-      selection algorithm. The canvas will share textures and display
-      lists with the specified {@link GLDrawable}; the drawable must
-      either be null or have been fabricated from this factory or by
-      classes in this package. A null drawable indicates no
-      sharing. */
-  public GLCanvas createGLCanvas(GLCapabilities capabilities, GLDrawable shareWith) {
-    return createGLCanvas(capabilities, null, shareWith);
-  }
-
-  /** Creates a {@link GLCanvas} on the default graphics device with
-      the specified capabilities using the supplied capabilities
-      selection algorithm. A null chooser is equivalent to using the
-      {@link DefaultGLCapabilitiesChooser}. */
-  public GLCanvas createGLCanvas(GLCapabilities capabilities, GLCapabilitiesChooser chooser) {
-    return createGLCanvas(capabilities, chooser, null);
-  }
-
-  /** Creates a {@link GLCanvas} on the default graphics device with
-      the specified capabilities using the supplied capabilities
-      selection algorithm. A null chooser is equivalent to using the
-      {@link DefaultGLCapabilitiesChooser}.  The canvas will share
-      textures and display lists with the specified {@link
-      GLDrawable}; the drawable must either be null or have been
-      fabricated from this factory or by classes in this package. A
-      null drawable indicates no sharing. */
-  public GLCanvas createGLCanvas(GLCapabilities capabilities,
-                                 GLCapabilitiesChooser chooser,
-                                 GLDrawable shareWith) {
-    return createGLCanvas(capabilities, chooser, shareWith, null);
+    return createGLCanvas(capabilities, null, null, null);
   }
 
   /** Creates a {@link GLCanvas} on the specified graphics device with
@@ -147,11 +161,10 @@ public class GLDrawableFactory {
     // least in the Sun AWT implementation) that this will result in
     // equivalent behavior to calling the no-arg super() constructor
     // for Canvas.
-    return new GLCanvas(GLContextFactory.getFactory().
-                          chooseGraphicsConfiguration(capabilities, chooser, device),
-                        capabilities,
+    return new GLCanvas(capabilities,
                         chooser,
-                        shareWith);
+                        shareWith,
+                        device);
   }
 
   /** Creates a {@link GLJPanel} with the specified capabilities using
@@ -191,5 +204,28 @@ public class GLDrawableFactory {
       chooser = new DefaultGLCapabilitiesChooser();
     }
     return new GLJPanel(capabilities, chooser, shareWith);
+  }
+
+  /**
+   * Returns true if it is possible to create a GLPbuffer with the
+   * given capabilites and dimensions.
+   */
+  public boolean canCreateGLPbuffer(GLCapabilities capabilities,
+                                    int initialWidth,
+                                    int initialHeight) {
+    // FIXME
+    throw new GLException("Not yet implemented");
+  }
+
+
+  /**
+   * Creates a GLPbuffer with the given capabilites and dimensions.
+   */
+  public GLPbuffer createGLPbuffer(GLCapabilities capabilities,
+                                   int initialWidth,
+                                   int initialHeight,
+                                   GLContext shareWith) {
+    // FIXME
+    throw new GLException("Not yet implemented");
   }
 }

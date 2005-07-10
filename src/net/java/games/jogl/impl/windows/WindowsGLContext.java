@@ -48,7 +48,7 @@ import net.java.games.gluegen.runtime.*; // for PROCADDRESS_VAR_PREFIX
 import net.java.games.jogl.*;
 import net.java.games.jogl.impl.*;
 
-public abstract class WindowsGLContext extends GLContext {
+public abstract class WindowsGLContext extends GLContextImpl {
   private static JAWT jawt;
   protected long hglrc;
   protected long hdc;
@@ -124,11 +124,11 @@ public abstract class WindowsGLContext extends GLContext {
 
   /**
    * Creates and initializes an appropriate OpenGL context. Should only be
-   * called by {@link #makeCurrent(Runnable)}.
+   * called by {@link #makeCurrentImpl()}.
    */
   protected abstract void create();
   
-  protected synchronized boolean makeCurrent(Runnable initAction) throws GLException {
+  protected int makeCurrentImpl() throws GLException {
     boolean created = false;
     if (hglrc == 0) {
       create();
@@ -177,13 +177,12 @@ public abstract class WindowsGLContext extends GLContext {
         }
       }
       GLContextShareSet.contextCreated(this);      
-
-      initAction.run();
+      return CONTEXT_CURRENT_NEW;
     }
-    return true;
+    return CONTEXT_CURRENT;
   }
 
-  protected synchronized void free() throws GLException {
+  protected void releaseImpl() throws GLException {
     if (!NO_FREE) {
       if (!WGL.wglMakeCurrent(0, 0)) {
         throw new GLException("Error freeing OpenGL context: " + WGL.GetLastError());

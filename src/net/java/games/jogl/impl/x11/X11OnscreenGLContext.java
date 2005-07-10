@@ -51,6 +51,18 @@ public class X11OnscreenGLContext extends X11GLContext {
   private JAWT_DrawingSurfaceInfo dsi;
   private JAWT_X11DrawingSurfaceInfo x11dsi;
 
+  // Indicates whether the component (if an onscreen context) has been
+  // realized. Plausibly, before the component is realized the JAWT
+  // should return an error or NULL object from some of its
+  // operations; this appears to be the case on Win32 but is not true
+  // at least with Sun's current X11 implementation (1.4.x), which
+  // crashes with no other error reported if the DrawingSurfaceInfo is
+  // fetched from a locked DrawingSurface during the validation as a
+  // result of calling show() on the main thread. To work around this
+  // we prevent any JAWT or OpenGL operations from being done until
+  // addNotify() is called on the component.
+  protected boolean realized;
+
   // Variables for pbuffer support
   List pbuffersToInstantiate = new ArrayList();
 
@@ -83,10 +95,11 @@ public class X11OnscreenGLContext extends X11GLContext {
     return true;
   }
 
-  public synchronized GLContext createPbufferContext(GLCapabilities capabilities,
-                                                     int initialWidth,
-                                                     int initialHeight) {
+  public GLContext createPbufferContext(GLCapabilities capabilities,
+                                        int initialWidth,
+                                        int initialHeight) {
     X11PbufferGLContext ctx = new X11PbufferGLContext(capabilities, initialWidth, initialHeight);
+    ctx.setSynchronized(true);
     pbuffersToInstantiate.add(ctx);
     return ctx;
   }
@@ -106,13 +119,21 @@ public class X11OnscreenGLContext extends X11GLContext {
     }
   }
 
-  protected synchronized boolean makeCurrent(Runnable initAction) throws GLException {
+  public void setRealized() {
+    realized = true;
+  }
+
+  protected int makeCurrentImpl() throws GLException {
     try {
-      if (!lockSurface()) {
-        return false;
+      if (!realized) {
+        return CONTEXT_NOT_CURRENT;
       }
-      boolean ret = super.makeCurrent(initAction);
-      if (ret) {
+      if (!lockSurface()) {
+        return CONTEXT_NOT_CURRENT;
+      }
+      int ret = super.makeCurrentImpl();
+      if ((ret == CONTEXT_CURRENT) ||
+          (ret == CONTEXT_CURRENT_NEW)) {
         // Instantiate any pending pbuffers
         while (!pbuffersToInstantiate.isEmpty()) {
           X11PbufferGLContext ctx =
@@ -131,15 +152,20 @@ public class X11OnscreenGLContext extends X11GLContext {
     }
   }
 
-  protected synchronized void free() throws GLException {
+  protected void releaseImpl() throws GLException {
     try {
-      super.free();
+      super.releaseImpl();
     } finally {
       unlockSurface();
     }
   }
 
-  public synchronized void swapBuffers() throws GLException {
+  protected void destroyImpl() throws GLException {
+    realized = false;
+    super.destroyImpl();
+  }
+
+  public void swapBuffers() throws GLException {
     // FIXME: this cast to int would be wrong on 64-bit platforms
     // where the argument type to glXMakeCurrent would change (should
     // probably make GLXDrawable, and maybe XID, Opaque as long)

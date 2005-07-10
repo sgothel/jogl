@@ -382,7 +382,7 @@ public class WindowsPbufferGLContext extends WindowsGLContext {
     }
   }
 
-  protected synchronized boolean makeCurrent(Runnable initAction) throws GLException {
+  protected int makeCurrentImpl() throws GLException {
     created = false;
 
     if (buffer == 0) {
@@ -390,10 +390,10 @@ public class WindowsPbufferGLContext extends WindowsGLContext {
       if (DEBUG) {
         System.err.println("pbuffer not instantiated yet");
       }
-      return false;
+      return CONTEXT_NOT_CURRENT;
     }
 
-    boolean res = super.makeCurrent(initAction);
+    int res = super.makeCurrentImpl();
     if (DEBUG) {
       System.err.println("super.makeCurrent() = " + res + ", created = " + created);
     }
