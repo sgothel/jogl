@@ -169,7 +169,7 @@ public abstract class MacOSXGLContext extends GLContextImpl
       boolean created = false;
       if (nsContext == 0) {
         if (!create()) {
-          return false;
+          return CONTEXT_NOT_CURRENT;
         }
         if (DEBUG) {
           System.err.println("!!! Created GL nsContext for " + getClass().getName());

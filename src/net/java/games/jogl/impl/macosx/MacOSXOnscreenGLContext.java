@@ -110,6 +110,10 @@ public class MacOSXOnscreenGLContext extends MacOSXGLContext {
     throw new GLException("Should not call this");
   }
     
+  public void setRealized() {
+    realized = true;
+  }
+
   protected int makeCurrentImpl() throws GLException {
     try {
       if (!realized) {
