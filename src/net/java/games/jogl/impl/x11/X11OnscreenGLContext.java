@@ -39,47 +39,20 @@
 
 package net.java.games.jogl.impl.x11;
 
-import java.awt.Component;
 import java.util.*;
 
 import net.java.games.jogl.*;
 import net.java.games.jogl.impl.*;
 
 public class X11OnscreenGLContext extends X11GLContext {
-  // Variables for lockSurface/unlockSurface
-  private JAWT_DrawingSurface ds;
-  private JAWT_DrawingSurfaceInfo dsi;
-  private JAWT_X11DrawingSurfaceInfo x11dsi;
-
-  // Indicates whether the component (if an onscreen context) has been
-  // realized. Plausibly, before the component is realized the JAWT
-  // should return an error or NULL object from some of its
-  // operations; this appears to be the case on Win32 but is not true
-  // at least with Sun's current X11 implementation (1.4.x), which
-  // crashes with no other error reported if the DrawingSurfaceInfo is
-  // fetched from a locked DrawingSurface during the validation as a
-  // result of calling show() on the main thread. To work around this
-  // we prevent any JAWT or OpenGL operations from being done until
-  // addNotify() is called on the component.
-  protected boolean realized;
-
+  protected X11OnscreenGLDrawable drawable;
   // Variables for pbuffer support
   List pbuffersToInstantiate = new ArrayList();
 
-  public X11OnscreenGLContext(Component component,
-                              GLCapabilities capabilities,
-                              GLCapabilitiesChooser chooser,
+  public X11OnscreenGLContext(X11OnscreenGLDrawable drawable,
                               GLContext shareWith) {
-    super(component, capabilities, chooser, shareWith);
-  }
-  
-  protected GL createGL()
-  {
-    return new X11GLImpl(this);
-  }
-  
-  protected boolean isOffscreen() {
-    return false;
+    super(drawable, shareWith);
+    this.drawable = drawable;
   }
   
   public int getOffscreenContextReadBuffer() {
@@ -91,17 +64,15 @@ public class X11OnscreenGLContext extends X11GLContext {
   }
 
   public boolean canCreatePbufferContext() {
-    // FIXME: should we gate this on GLX 1.3 being available?
-    return true;
+    return isExtensionAvailable("GL_ARB_pbuffer");
   }
 
-  public GLContext createPbufferContext(GLCapabilities capabilities,
-                                        int initialWidth,
-                                        int initialHeight) {
-    X11PbufferGLContext ctx = new X11PbufferGLContext(capabilities, initialWidth, initialHeight);
-    ctx.setSynchronized(true);
-    pbuffersToInstantiate.add(ctx);
-    return ctx;
+  public GLDrawableImpl createPbufferDrawable(GLCapabilities capabilities,
+                                              int initialWidth,
+                                              int initialHeight) {
+    X11PbufferGLDrawable buf = new X11PbufferGLDrawable(capabilities, initialWidth, initialHeight);
+    pbuffersToInstantiate.add(buf);
+    return buf;
   }
 
   public void bindPbufferToTexture() {
@@ -112,39 +83,39 @@ public class X11OnscreenGLContext extends X11GLContext {
     throw new GLException("Should not call this");
   }
 
-  public void setSwapInterval(int interval) {
-    GL gl = getGL();
-    if (gl.isExtensionAvailable("GLX_SGI_swap_control")) {
-      gl.glXSwapIntervalSGI(interval);
-    }
-  }
-
-  public void setRealized() {
-    realized = true;
-  }
-
   protected int makeCurrentImpl() throws GLException {
     try {
-      if (!realized) {
+      int lockRes = drawable.lockSurface();
+      if (lockRes == X11OnscreenGLDrawable.LOCK_SURFACE_NOT_READY) {
         return CONTEXT_NOT_CURRENT;
       }
-      if (!lockSurface()) {
-        return CONTEXT_NOT_CURRENT;
+      if (lockRes == X11OnscreenGLDrawable.LOCK_SURFACE_CHANGED) {
+        if (context != 0) {
+          GLX.glXDestroyContext(mostRecentDisplay, context);
+          GLContextShareSet.contextDestroyed(this);
+          if (DEBUG) {
+            System.err.println(getThreadName() + ": !!! Destroyed OpenGL context " + toHexString(context) + " due to JAWT_LOCK_SURFACE_CHANGED");
+          }
+          context = 0;
+        }
       }
       int ret = super.makeCurrentImpl();
       if ((ret == CONTEXT_CURRENT) ||
           (ret == CONTEXT_CURRENT_NEW)) {
         // Instantiate any pending pbuffers
         while (!pbuffersToInstantiate.isEmpty()) {
-          X11PbufferGLContext ctx =
-            (X11PbufferGLContext) pbuffersToInstantiate.remove(pbuffersToInstantiate.size() - 1);
-          ctx.createPbuffer(display, context, getGL());
+          X11PbufferGLDrawable buf =
+            (X11PbufferGLDrawable) pbuffersToInstantiate.remove(pbuffersToInstantiate.size() - 1);
+          buf.createPbuffer(getGL(), drawable.getDisplay());
+          if (DEBUG) {
+            System.err.println(getThreadName() + ": created pbuffer " + buf);
+          }
         }
       }
       return ret;
     } catch (RuntimeException e) {
       try {
-        unlockSurface();
+        drawable.unlockSurface();
       } catch (Exception e2) {
         // do nothing if unlockSurface throws
       }
@@ -156,88 +127,11 @@ public class X11OnscreenGLContext extends X11GLContext {
     try {
       super.releaseImpl();
     } finally {
-      unlockSurface();
+      drawable.unlockSurface();
     }
-  }
-
-  protected void destroyImpl() throws GLException {
-    realized = false;
-    super.destroyImpl();
-  }
-
-  public void swapBuffers() throws GLException {
-    // FIXME: this cast to int would be wrong on 64-bit platforms
-    // where the argument type to glXMakeCurrent would change (should
-    // probably make GLXDrawable, and maybe XID, Opaque as long)
-    GLX.glXSwapBuffers(display, (int) drawable);
-  }
-
-  private boolean lockSurface() throws GLException {
-    if (drawable != 0) {
-      throw new GLException("Surface already locked");
-    }
-    ds = getJAWT().GetDrawingSurface(component);
-    if (ds == null) {
-      // Widget not yet realized
-      return false;
-    }
-    int res = ds.Lock();
-    if ((res & JAWTFactory.JAWT_LOCK_ERROR) != 0) {
-      throw new GLException("Unable to lock surface");
-    }
-    // See whether the surface changed and if so destroy the old
-    // OpenGL context so it will be recreated
-    if ((res & JAWTFactory.JAWT_LOCK_SURFACE_CHANGED) != 0) {
-      if (context != 0) {
-        GLX.glXDestroyContext(display, context);
-        context = 0;
-      }
-    }
-    dsi = ds.GetDrawingSurfaceInfo();
-    if (dsi == null) {
-      // Widget not yet realized
-      ds.Unlock();
-      getJAWT().FreeDrawingSurface(ds);
-      ds = null;
-      return false;
-    }
-    x11dsi = (JAWT_X11DrawingSurfaceInfo) dsi.platformInfo();
-    display = x11dsi.display();
-    drawable = x11dsi.drawable();
-    visualID = x11dsi.visualID();
-    if (display == 0 || drawable == 0) {
-      // Widget not yet realized
-      ds.FreeDrawingSurfaceInfo(dsi);
-      ds.Unlock();
-      getJAWT().FreeDrawingSurface(ds);
-      ds = null;
-      dsi = null;
-      x11dsi = null;
-      display = 0;
-      drawable = 0;
-      visualID = 0;
-      return false;
-    }
-    mostRecentDisplay = display;
-    return true;
-  }
-
-  private void unlockSurface() {
-    if (drawable == 0) {
-      throw new GLException("Surface already unlocked");
-    }
-    ds.FreeDrawingSurfaceInfo(dsi);
-    ds.Unlock();
-    getJAWT().FreeDrawingSurface(ds);
-    ds = null;
-    dsi = null;
-    x11dsi = null;
-    display = 0;
-    drawable = 0;
-    visualID = 0;
   }
 
   protected void create() {
-    chooseVisualAndCreateContext(true);
-  }    
+    createContext(true);
+  }
 }

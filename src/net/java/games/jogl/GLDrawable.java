@@ -61,10 +61,32 @@ package net.java.games.jogl;
 // context whenever the displayChanged() function is called on our
 // GLEventListeners
 
-/** Abstracts common functionality among the OpenGL components {@link
-    GLCanvas} and {@link GLJPanel}. */
+public interface GLDrawable {
+  /**
+   * Creates a new context for drawing to this drawable that will
+   * share display lists with the given GLContext.
+   *
+   * The GLContext <code>share</code> need not be associated with this
+   * GLDrawable.
+   */
+  public GLContext createContext(GLContext shareWith);
 
-public interface GLDrawable extends ComponentEvents {
+  /**
+   * Indicates to on-screen GLDrawable implementations whether the
+   * underlying window has been created and can be drawn into. This
+   * must typically be called with an argument of <code>true</code> in
+   * the <code>addNotify</code> method of components performing OpenGL
+   * rendering and with an argument of <code>false</code> in the
+   * <code>removeNotify</code> method. Calling this method has no
+   * other effects. For example, if <code>removeNotify</code> is
+   * called on a Canvas implementation for which a GLDrawable has been
+   * created, it is also necessary to destroy all OpenGL contexts
+   * associated with that GLDrawable. This is not done automatically
+   * by the implementation. It is not necessary to call
+   * <code>setRealized</code> on either a GLCanvas or a GLJPanel.
+   */
+  public void setRealized(boolean realized);
+
   /** Requests a new width and height for this GLDrawable. Not all
       drawables are able to respond to this request and may silently
       ignore it. */
@@ -76,74 +98,9 @@ public interface GLDrawable extends ComponentEvents {
   /** Returns the current height of this GLDrawable. */
   public int getHeight();
 
-  /** Returns the {@link GL} pipeline object this GLDrawable uses.  If
-      this method is called outside of the {@link GLEventListener}'s
-      callback methods (init, display, etc.) it may return null. Users
-      should not rely on the identity of the returned GL object; for
-      example, users should not maintain a hash table with the GL
-      object as the key. Additionally, the GL object should not be
-      cached in client code, but should be re-fetched from the
-      GLDrawable at the beginning of each call to init, display,
-      etc. */
-  public GL getGL();
-
-  /** Sets the {@link GL} pipeline object this GLDrawable uses. This
-      should only be called from within the GLEventListener's callback
-      methods, and usually only from within the init() method, in
-      order to install a composable pipeline. See the JOGL demos for
-      examples. */
-  public void setGL(GL gl);
-
-  /** Returns the {@link GLU} pipeline object this GLDrawable uses. */
-  public GLU getGLU();
-
-  /** Sets the {@link GLU} pipeline object this GLDrawable uses. */
-  public void setGLU(GLU glu);
-
-  /** Causes OpenGL rendering to be performed for this GLDrawable by
-      calling {@link GLEventListener#display} for all registered
-      {@link GLEventListener}s. Called automatically by the window
-      system toolkit upon receiving a repaint() request. When used in
-      conjunction with {@link
-      net.java.games.jogl.GLDrawable#setRenderingThread}, this routine
-      may be called manually by the application's main loop for higher
-      performance and better control over the rendering process. It is
-      legal to call another GLDrawable's display method from within
-      {@link GLEventListener#display}. */
-  public void display();
-
-  /** Enables or disables automatic buffer swapping for this drawable.
-      By default this property is set to true; when true, after all
-      GLEventListeners have been called for a display() event, the
-      front and back buffers are swapped, displaying the results of
-      the render. When disabled, the user is responsible for calling
-      {@link #swapBuffers} manually. */
-  public void setAutoSwapBufferMode(boolean onOrOff);
-
-  /** Indicates whether automatic buffer swapping is enabled for this
-      drawable. See {@link #setAutoSwapBufferMode}. */
-  public boolean getAutoSwapBufferMode();
-
-  /** Swaps the front and back buffers of this drawable. When
-      automatic buffer swapping is enabled (as is the default), it is
-      not necessary to call this method and doing so may have
-      undefined results. */
-  public void swapBuffers();
-
-  /** Indicates whether this drawable is capable of fabricating a
-      subordinate offscreen drawable for advanced rendering techniques
-      which require offscreen hardware-accelerated surfaces. Note that
-      this method is only guaranteed to return a correct result once
-      your GLEventListener's init() method has been called. */
-  public boolean canCreateOffscreenDrawable();
-
-  /** Creates a subordinate offscreen drawable (pbuffer) for this
-      drawable. This routine should only be called if {@link
-      #canCreateOffscreenDrawable} returns true. The passed
-      capabilities are matched according to the platform-dependent
-      pbuffer format selection algorithm, which currently can not be
-      overridden. */
-  public GLPbuffer createOffscreenDrawable(GLCapabilities capabilities,
-                                           int initialWidth,
-                                           int initialHeight);
+  /** Swaps the front and back buffers of this drawable. For {@link
+      GLAutoDrawable} implementations, when automatic buffer swapping
+      is enabled (as is the default), it is not necessary to call this
+      method and doing so may have undefined results. */
+  public void swapBuffers() throws GLException;
 }

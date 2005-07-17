@@ -119,15 +119,22 @@ public class X11GLContextFactory extends GLContextFactory {
     return null;
   }
 
-  public GLContext createGLContext(Component component,
-                                   GLCapabilities capabilities,
-                                   GLCapabilitiesChooser chooser,
-                                   GLContext shareWith) {
-    if (component != null) {
-      return new X11OnscreenGLContext(component, capabilities, chooser, shareWith);
-    } else {
-      return new X11OffscreenGLContext(capabilities, chooser, shareWith);
+  public GLDrawable getGLDrawable(Object target,
+                                  GLCapabilities capabilities,
+                                  GLCapabilitiesChooser chooser) {
+    if (target == null) {
+      throw new IllegalArgumentException("Null target");
     }
+    if (!(target instanceof Component)) {
+      throw new IllegalArgumentException("GLDrawables not supported for objects of type " +
+                                         target.getClass().getName() + " (only Components are supported in this implementation)");
+    }
+    return new X11OnscreenGLDrawable((Component) target);
+  }
+
+  public GLDrawableImpl createOffscreenDrawable(GLCapabilities capabilities,
+                                                GLCapabilitiesChooser chooser) {
+    return new X11OffscreenGLDrawable(capabilities, chooser);
   }
 
   public static GLCapabilities xvi2GLCapabilities(long display, XVisualInfo info) {

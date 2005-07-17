@@ -49,6 +49,7 @@ public class GLDrawableHelper {
   private volatile List listeners = new ArrayList();
   private static final boolean DEBUG = Debug.debug("GLDrawableHelper");
   private static final boolean VERBOSE = Debug.verbose();
+  private boolean autoSwapBufferMode = true;
 
   public GLDrawableHelper() {
   }
@@ -84,17 +85,24 @@ public class GLDrawableHelper {
     }
   }
 
+  public void setAutoSwapBufferMode(boolean onOrOff) {
+    autoSwapBufferMode = onOrOff;
+  }
+
+  public boolean getAutoSwapBufferMode() {
+    return autoSwapBufferMode;
+  }
+
   private static final ThreadLocal perThreadInitAction = new ThreadLocal();
-  private Runnable deferredReshapeAction;
   /** Principal helper method which runs a Runnable with the context
       made current. This could have been made part of GLContext, but a
       desired goal is to be able to implement the GLCanvas in terms of
       the GLContext's public APIs, and putting it into a separate
       class helps ensure that we don't inadvertently use private
       methods of the GLContext or its implementing classes. */
-  public void invokeGL(GLContext context,
+  public void invokeGL(GLDrawable drawable,
+                       GLContext context,
                        Runnable  runnable,
-                       boolean   isReshape,
                        Runnable  initAction) {
     // Support for recursive makeCurrent() calls as well as calling
     // other drawables' display() methods from within another one's
@@ -107,35 +115,19 @@ public class GLDrawableHelper {
     int res = 0;
     try {
       res = context.makeCurrent();
-      if (res == GLContext.CONTEXT_NOT_CURRENT) {
-        if (isReshape) {
-          if (DEBUG) {
-            System.err.println("GLDrawableHelper " + this + ".invokeGL(): Deferring reshape action");
-          }
-          deferredReshapeAction = runnable;
-        }
-      } else {
+      if (res != GLContext.CONTEXT_NOT_CURRENT) {
         if (res == GLContext.CONTEXT_CURRENT_NEW) {
           if (DEBUG) {
             System.err.println("GLDrawableHelper " + this + ".invokeGL(): Running initAction");
           }
           initAction.run();
         }
-        if (deferredReshapeAction != null) {
-          if (DEBUG) {
-            System.err.println("GLDrawableHelper " + this + ".invokeGL(): Running deferred reshape action");
-          }
-          Runnable act = deferredReshapeAction;
-          deferredReshapeAction = null;
-          act.run();
-        }
         if (DEBUG && VERBOSE) {
           System.err.println("GLDrawableHelper " + this + ".invokeGL(): Running runnable");
         }
         runnable.run();
-        // FIXME: must phrase this in terms of new GLDrawable swap buffer functionality
-        if (((GLContextImpl) context).getAutoSwapBufferMode()) {
-          ((GLContextImpl) context).swapBuffers();
+        if (autoSwapBufferMode) {
+          drawable.swapBuffers();
         }
       }
     } finally {

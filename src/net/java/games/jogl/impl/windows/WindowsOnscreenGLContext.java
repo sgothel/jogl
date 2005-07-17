@@ -39,68 +39,20 @@
 
 package net.java.games.jogl.impl.windows;
 
-import java.awt.Component;
 import java.util.*;
 
 import net.java.games.jogl.*;
 import net.java.games.jogl.impl.*;
 
 public class WindowsOnscreenGLContext extends WindowsGLContext {
-  // Variables for lockSurface/unlockSurface
-  JAWT_DrawingSurface ds;
-  JAWT_DrawingSurfaceInfo dsi;
-  JAWT_Win32DrawingSurfaceInfo win32dsi;
-
-  // Indicates whether the component (if an onscreen context) has been
-  // realized. Plausibly, before the component is realized the JAWT
-  // should return an error or NULL object from some of its
-  // operations; this appears to be the case on Win32 but is not true
-  // at least with Sun's current X11 implementation (1.4.x), which
-  // crashes with no other error reported if the DrawingSurfaceInfo is
-  // fetched from a locked DrawingSurface during the validation as a
-  // result of calling show() on the main thread. To work around this
-  // we prevent any JAWT or OpenGL operations from being done until
-  // addNotify() is called on the component.
-  protected boolean realized;
-
+  protected WindowsOnscreenGLDrawable drawable;
   // Variables for pbuffer support
-  List pbuffersToInstantiate = new ArrayList();
+  protected List pbuffersToInstantiate = new ArrayList();
 
-  public WindowsOnscreenGLContext(Component component,
-                                  GLCapabilities capabilities,
-                                  GLCapabilitiesChooser chooser,
+  public WindowsOnscreenGLContext(WindowsOnscreenGLDrawable drawable,
                                   GLContext shareWith) {
-    super(component, capabilities, chooser, shareWith);
-  }
-  
-  /*
-  public void invokeGL(Runnable runnable, boolean isReshape, Runnable initAction) throws GLException {
-    // Unfortunately, invokeGL can be called with the AWT tree lock
-    // held, and the Windows onscreen implementation of
-    // choosePixelFormatAndCreateContext calls
-    // Component.getGraphicsConfiguration(), which grabs the tree
-    // lock. To avoid deadlock we have to lock the tree lock before
-    // grabbing the GLContext's lock if we're going to create an
-    // OpenGL context during this call. This code might not be
-    // completely correct, and we might need to uniformly grab the AWT
-    // tree lock, which might become a performance issue...
-    if (hglrc == 0) {
-      synchronized(component.getTreeLock()) {
-        super.invokeGL(runnable, isReshape, initAction);
-      }
-    } else {
-      super.invokeGL(runnable, isReshape, initAction);
-    }
-  }
-  */
-
-  protected GL createGL()
-  {
-    return new WindowsGLImpl(this);
-  }
-  
-  protected boolean isOffscreen() {
-    return false;
+    super(drawable, shareWith);
+    this.drawable = drawable;
   }
   
   public int getOffscreenContextReadBuffer() {
@@ -115,13 +67,12 @@ public class WindowsOnscreenGLContext extends WindowsGLContext {
     return haveWGLARBPbuffer();
   }
 
-  public GLContext createPbufferContext(GLCapabilities capabilities,
-                                        int initialWidth,
-                                        int initialHeight) {
-    WindowsPbufferGLContext ctx = new WindowsPbufferGLContext(capabilities, initialWidth, initialHeight);
-    ctx.setSynchronized(true);
-    pbuffersToInstantiate.add(ctx);
-    return ctx;
+  public GLDrawableImpl createPbufferDrawable(GLCapabilities capabilities,
+                                              int initialWidth,
+                                              int initialHeight) {
+    WindowsPbufferGLDrawable buf = new WindowsPbufferGLDrawable(capabilities, initialWidth, initialHeight);
+    pbuffersToInstantiate.add(buf);
+    return buf;
   }
 
   public void bindPbufferToTexture() {
@@ -132,32 +83,47 @@ public class WindowsOnscreenGLContext extends WindowsGLContext {
     throw new GLException("Should not call this");
   }
 
-  public void setRealized() {
-    realized = true;
-  }
-
   protected int makeCurrentImpl() throws GLException {
     try {
-      if (!realized) {
+      int lockRes = drawable.lockSurface();
+      if (lockRes == WindowsOnscreenGLDrawable.LOCK_SURFACE_NOT_READY) {
         return CONTEXT_NOT_CURRENT;
       }
-      if (!lockSurface()) {
-        return CONTEXT_NOT_CURRENT;
+      if (lockRes == WindowsOnscreenGLDrawable.LOCK_SURFACE_CHANGED) {
+        if (hglrc != 0) {
+          if (!WGL.wglDeleteContext(hglrc)) {
+            throw new GLException("Unable to delete old GL context after surface changed");
+          }
+          GLContextShareSet.contextDestroyed(this);
+          if (DEBUG) {
+            System.err.println(getThreadName() + ": !!! Destroyed OpenGL context " + toHexString(hglrc) + " due to JAWT_LOCK_SURFACE_CHANGED");
+          }
+          hglrc = 0;
+        }
       }
       int ret = super.makeCurrentImpl();
       if ((ret == CONTEXT_CURRENT) ||
           (ret == CONTEXT_CURRENT_NEW)) {
         // Instantiate any pending pbuffers
-        while (!pbuffersToInstantiate.isEmpty()) {
-          WindowsPbufferGLContext ctx =
-            (WindowsPbufferGLContext) pbuffersToInstantiate.remove(pbuffersToInstantiate.size() - 1);
-          ctx.createPbuffer(hdc, hglrc);
+        // NOTE that we supply the drawable a GL instance for our
+        // context and that we eliminate all pipelines for it -- see
+        // WindowsPbufferGLDrawable.destroy()
+        if (!pbuffersToInstantiate.isEmpty()) {
+          GL tmpGL = createGL();
+          while (!pbuffersToInstantiate.isEmpty()) {
+            WindowsPbufferGLDrawable buf =
+              (WindowsPbufferGLDrawable) pbuffersToInstantiate.remove(pbuffersToInstantiate.size() - 1);
+            buf.createPbuffer(tmpGL, drawable.getHDC());
+            if (DEBUG) {
+              System.err.println(getThreadName() + ": created pbuffer " + buf);
+            }
+          }
         }
       }
       return ret;
     } catch (RuntimeException e) {
       try {
-        unlockSurface();
+        drawable.unlockSurface();
       } catch (Exception e2) {
         // do nothing if unlockSurface throws
       }
@@ -169,88 +135,7 @@ public class WindowsOnscreenGLContext extends WindowsGLContext {
     try {
       super.releaseImpl();
     } finally {
-      unlockSurface();
+      drawable.unlockSurface();
     }
   }
-
-  protected void destroyImpl() throws GLException {
-    realized = false;
-    super.destroyImpl();
-  }
-
-  public void swapBuffers() throws GLException {
-    if (!WGL.SwapBuffers(hdc) && (WGL.GetLastError() != 0)) {
-      throw new GLException("Error swapping buffers");
-    }
-  }
-
-  private boolean lockSurface() throws GLException {
-    if (hdc != 0) {
-      throw new GLException("Surface already locked");
-    }
-    ds = getJAWT().GetDrawingSurface(component);
-    if (ds == null) {
-      // Widget not yet realized
-      return false;
-    }
-    int res = ds.Lock();
-    if ((res & JAWTFactory.JAWT_LOCK_ERROR) != 0) {
-      throw new GLException("Unable to lock surface");
-    }
-    // See whether the surface changed and if so destroy the old
-    // OpenGL context so it will be recreated (NOTE: removeNotify
-    // should handle this case, but it may be possible that race
-    // conditions can cause this code to be triggered -- should test
-    // more)
-    if ((res & JAWTFactory.JAWT_LOCK_SURFACE_CHANGED) != 0) {
-      if (hglrc != 0) {
-        if (!WGL.wglDeleteContext(hglrc)) {
-          throw new GLException("Unable to delete old GL context after surface changed");
-        }
-        GLContextShareSet.contextDestroyed(this);
-        if (DEBUG) {
-          System.err.println(getThreadName() + ": !!! Destroyed OpenGL context " + hglrc + " due to JAWT_LOCK_SURFACE_CHANGED");
-        }
-        hglrc = 0;
-      }
-    }
-    dsi = ds.GetDrawingSurfaceInfo();
-    if (dsi == null) {
-      // Widget not yet realized
-      ds.Unlock();
-      getJAWT().FreeDrawingSurface(ds);
-      ds = null;
-      return false;
-    }
-    win32dsi = (JAWT_Win32DrawingSurfaceInfo) dsi.platformInfo();
-    hdc = win32dsi.hdc();
-    if (hdc == 0) {
-      // Widget not yet realized
-      ds.FreeDrawingSurfaceInfo(dsi);
-      ds.Unlock();
-      getJAWT().FreeDrawingSurface(ds);
-      ds = null;
-      dsi = null;
-      win32dsi = null;
-      return false;
-    }
-    return true;
-  }
-
-  private void unlockSurface() {
-    if (hdc == 0) {
-      throw new GLException("Surface already unlocked");
-    }
-    ds.FreeDrawingSurfaceInfo(dsi);
-    ds.Unlock();
-    getJAWT().FreeDrawingSurface(ds);
-    ds = null;
-    dsi = null;
-    win32dsi = null;
-    hdc = 0;
-  }
-
-  protected void create() {
-    choosePixelFormatAndCreateContext(true);
-  }    
 }

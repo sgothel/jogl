@@ -39,46 +39,24 @@
 
 package net.java.games.jogl.impl.x11;
 
-import java.awt.image.BufferedImage;
 import net.java.games.jogl.*;
 import net.java.games.jogl.impl.*;
 
 public class X11OffscreenGLContext extends X11GLContext {
-  private long pixmap;
-  private boolean isDoubleBuffered;
-  // Width and height of the underlying bitmap
-  private int width;
-  private int height;
+  private X11OffscreenGLDrawable drawable;
 
-  public X11OffscreenGLContext(GLCapabilities capabilities,
-                               GLCapabilitiesChooser chooser,
+  public X11OffscreenGLContext(X11OffscreenGLDrawable drawable,
                                GLContext shareWith) {
-    super(null, capabilities, chooser, shareWith);
-  }
-
-  protected GL createGL()
-  {
-    return new X11GLImpl(this);
-  }
-
-  protected boolean isOffscreen() {
-    return true;
-  }
-
-  public int getOffscreenContextWidth() {
-      return width;
-  }
-
-  public int getOffscreenContextHeight() {
-      return height;
+    super(drawable, shareWith);
+    this.drawable = drawable;
   }
 
   public int getOffscreenContextPixelDataType() {
-      return GL.GL_UNSIGNED_BYTE;
+    return GL.GL_UNSIGNED_BYTE;
   }
   
   public int getOffscreenContextReadBuffer() {
-    if (isDoubleBuffered) {
+    if (drawable.isDoubleBuffered()) {
       return GL.GL_BACK;
     }
     return GL.GL_FRONT;
@@ -95,9 +73,9 @@ public class X11OffscreenGLContext extends X11GLContext {
     return false;
   }
 
-  public GLContext createPbufferContext(GLCapabilities capabilities,
-                                        int initialWidth,
-                                        int initialHeight) {
+  public GLDrawableImpl createPbufferDrawable(GLCapabilities capabilities,
+                                              int initialWidth,
+                                              int initialHeight) {
     throw new GLException("Not supported");
   }
 
@@ -109,67 +87,7 @@ public class X11OffscreenGLContext extends X11GLContext {
     throw new GLException("Should not call this");
   }
 
-  protected int makeCurrentImpl() throws GLException {
-    display = X11GLContextFactory.getDisplayConnection();
-    if (pendingOffscreenResize) {
-      if (pendingOffscreenWidth != width || pendingOffscreenHeight != height) {
-        if (context != 0) {
-          destroy();
-        }
-        width  = pendingOffscreenWidth;
-        height = pendingOffscreenHeight;
-        pendingOffscreenResize = false;
-      }
-    }
-    mostRecentDisplay = display;
-    return super.makeCurrentImpl();
-  }
-
-  public void swapBuffers() throws GLException {
-  }
-
-  protected void releaseImpl() throws GLException {
-    try {
-      super.releaseImpl();
-    } finally {
-      display = 0;
-    }
-  }
-
   protected void create() {
-    XVisualInfo vis = chooseVisual();
-    int bitsPerPixel = vis.depth();
-
-    if (display == 0) {
-      throw new GLException("No active display");
-    }
-    int screen = GLX.DefaultScreen(display);
-    pixmap = GLX.XCreatePixmap(display, (int) GLX.RootWindow(display, screen), width, height, bitsPerPixel);
-    if (pixmap == 0) {
-      throw new GLException("XCreatePixmap failed");
-    }
-    drawable = GLX.glXCreateGLXPixmap(display, vis, pixmap);
-    if (drawable == 0) {
-      throw new GLException("glXCreateGLXPixmap failed");
-    }
-    context = createContext(vis, false);
-    if (context == 0) {
-      throw new GLException("Unable to create OpenGL context");
-    }
-    isDoubleBuffered = (X11GLContextFactory.glXGetConfig(display, vis, GLX.GLX_DOUBLEBUFFER, new int[1], 0) != 0);
-  }
-
-  protected void destroyImpl() {
-    if (context != 0) {
-      super.destroyImpl();
-      // Must destroy OpenGL context, pixmap and GLXPixmap
-      GLX.glXDestroyContext(display, context);
-      GLX.glXDestroyGLXPixmap(display, (int) drawable);
-      GLX.XFreePixmap(display, pixmap);
-      context = 0;
-      drawable = 0;
-      pixmap = 0;
-      GLContextShareSet.contextDestroyed(this);
-    }
+    createContext(false);
   }
 }

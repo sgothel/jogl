@@ -50,14 +50,6 @@ public abstract class GLContextImpl extends GLContext {
   protected static final boolean VERBOSE = Debug.verbose();
   protected static final boolean NO_FREE = Debug.isPropertyDefined("jogl.GLContext.nofree");
 
-  static {
-    NativeLibLoader.load();
-  }
-
-  protected GLCapabilities capabilities;
-  protected GLCapabilitiesChooser chooser;
-  protected Component component;
-
   // Cache of the functions that are available to be called at the current
   // moment in time
   protected FunctionAvailabilityCache functionAvailability;
@@ -67,13 +59,7 @@ public abstract class GLContextImpl extends GLContext {
   protected static final GLUProcAddressTable gluProcAddressTable = new GLUProcAddressTable();
   protected static boolean haveResetGLUProcAddressTable;
 
-  public GLContextImpl(Component component,
-                       GLCapabilities capabilities,
-                       GLCapabilitiesChooser chooser,
-                       GLContext shareWith) {
-    this.component = component;
-    this.capabilities = (GLCapabilities) capabilities.clone();
-    this.chooser = chooser;
+  public GLContextImpl(GLContext shareWith) {
     setGL(createGL());
     functionAvailability = new FunctionAvailabilityCache(this);
     if (shareWith != null) {
@@ -115,6 +101,9 @@ public abstract class GLContextImpl extends GLContext {
   protected abstract void releaseImpl() throws GLException;
 
   public void destroy() {
+    if (lock.isHeld()) {
+      throw new GLException("Can not destroy context while it is current");
+    }
     // Should we check the lock state? It should not be current on any
     // thread.
     destroyImpl();
@@ -148,26 +137,9 @@ public abstract class GLContextImpl extends GLContext {
     this.glu = glu;
   }
 
-  // Subclasses for onscreen GLContexts should override this to
-  // receive a notification from the GLCanvas or other implementation
-  // upon addNotify
-  public void setRealized() {
-  }
-
   //----------------------------------------------------------------------
   // Helpers for various context implementations
   //
-
-  // Flag for enabling / disabling automatic swapping of the front and
-  // back buffers
-  protected boolean autoSwapBuffers = true;
-
-  // Offscreen context handling. Offscreen contexts should handle
-  // these resize requests in makeCurrent and clear the
-  // pendingOffscreenResize flag.
-  protected boolean pendingOffscreenResize;
-  protected int     pendingOffscreenWidth;
-  protected int     pendingOffscreenHeight;
 
   /** Create the GL for this context. */
   protected abstract GL createGL();
@@ -181,12 +153,12 @@ public abstract class GLContextImpl extends GLContext {
   public abstract boolean canCreatePbufferContext();
 
   /**
-   * Pbuffer support; creates a subordinate GLContext for a pbuffer
+   * Pbuffer support; creates a subordinate GLDrawable for a pbuffer
    * associated with this context.
    */
-  public abstract GLContext createPbufferContext(GLCapabilities capabilities,
-                                                 int initialWidth,
-                                                 int initialHeight);
+  public abstract GLDrawableImpl createPbufferDrawable(GLCapabilities capabilities,
+                                                       int initialWidth,
+                                                       int initialHeight);
 
   /**
    * Pbuffer support; given that this is a GLContext associated with a
@@ -217,18 +189,6 @@ public abstract class GLContextImpl extends GLContext {
       "GL_ARB_pbuffer" and "GL_ARB_pixel_format" to "WGL_ARB_pbuffer"
       and "WGL_ARB_pixel_format" (not yet mapped to X11). */
   protected abstract String mapToRealGLExtensionName(String glExtensionName);
-
-  public void setAutoSwapBufferMode(boolean autoSwapBuffers) {
-    this.autoSwapBuffers = autoSwapBuffers;
-  }
-
-  public boolean getAutoSwapBufferMode() {
-    return autoSwapBuffers;
-  }
-
-  /** Swaps the buffers of the OpenGL context if necessary. All error
-      conditions cause a GLException to be thrown. */
-  public abstract void swapBuffers() throws GLException;
 
   /** Returns a non-null (but possibly empty) string containing the
       space-separated list of available platform-dependent (e.g., WGL,
@@ -333,11 +293,6 @@ public abstract class GLContextImpl extends GLContext {
     throw new GLException("Not supported on non-pbuffer contexts");
   }
 
-  /** Hook indicating whether the concrete GLContext implementation is
-      offscreen and therefore whether we need to process resize
-      requests. */
-  protected abstract boolean isOffscreen();
-
   /** On some platforms the mismatch between OpenGL's coordinate
       system (origin at bottom left) and the window system's
       coordinate system (origin at top left) necessitates a vertical
@@ -347,18 +302,11 @@ public abstract class GLContextImpl extends GLContext {
   /** Only called for offscreen contexts; needed by glReadPixels */
   public abstract int getOffscreenContextPixelDataType();
 
-  /** Routine needed only for offscreen contexts in order to resize
-      the underlying bitmap. Called by GLJPanel. */
-  public void resizeOffscreenContext(int newWidth, int newHeight) {
-    if (!isOffscreen()) {
-      throw new GLException("Should only call for offscreen OpenGL contexts");
-    }
-    pendingOffscreenResize = true;
-    pendingOffscreenWidth  = newWidth;
-    pendingOffscreenHeight = newHeight;
-  }
-
   protected static String getThreadName() {
     return Thread.currentThread().getName();
+  }
+
+  public static String toHexString(long hex) {
+    return "0x" + Long.toHexString(hex);
   }
 }

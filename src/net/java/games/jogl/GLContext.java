@@ -118,13 +118,6 @@ public abstract class GLContext {
   }
   
   /**
-   * For onscreen GLDrawables, indicates to the GLContext
-   * implementation that the underlying window has been created and
-   * can be drawn into.
-   */
-  public abstract void setRealized();
-
-  /**
    * Destroys this OpenGL context and frees its associated resources.
    * <P>
    * For onscreen GLDrawables, should be used to indicate to the

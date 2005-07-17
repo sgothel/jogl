@@ -60,13 +60,13 @@ import net.java.games.jogl.impl.SingleThreadedWorkaround;
 */
 
 public class Animator {
-  private GLDrawable drawable;
+  private GLAutoDrawable drawable;
   private Runnable runnable;
   private Thread thread;
   private boolean shouldStop;
 
   /** Creates a new Animator for a particular drawable. */
-  public Animator(GLDrawable drawable) {
+  public Animator(GLAutoDrawable drawable) {
     this.drawable = drawable;
   }
 

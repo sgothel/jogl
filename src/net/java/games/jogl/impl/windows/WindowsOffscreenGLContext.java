@@ -39,38 +39,13 @@
 
 package net.java.games.jogl.impl.windows;
 
-import java.awt.image.BufferedImage;
 import net.java.games.jogl.*;
 import net.java.games.jogl.impl.*;
 
 public class WindowsOffscreenGLContext extends WindowsGLContext {
-  private long origbitmap;
-  private long hbitmap;
-  // Width and height of the underlying bitmap
-  private int  width;
-  private int  height;
-
-  public WindowsOffscreenGLContext(GLCapabilities capabilities,
-                                   GLCapabilitiesChooser chooser,
+  public WindowsOffscreenGLContext(WindowsOffscreenGLDrawable drawable,
                                    GLContext shareWith) {
-    super(null, capabilities, chooser, shareWith);
-  }
-
-  protected GL createGL()
-  {
-    return new WindowsGLImpl(this);
-  }
-
-  protected boolean isOffscreen() {
-    return true;
-  }
-
-  public int getOffscreenContextWidth() {
-      return width;
-  }
-
-  public int getOffscreenContextHeight() {
-      return height;
+    super(drawable, shareWith);
   }
 
   public int getOffscreenContextPixelDataType() {
@@ -92,9 +67,9 @@ public class WindowsOffscreenGLContext extends WindowsGLContext {
     return false;
   }
 
-  public GLContext createPbufferContext(GLCapabilities capabilities,
-                                        int initialWidth,
-                                        int initialHeight) {
+  public GLDrawableImpl createPbufferDrawable(GLCapabilities capabilities,
+                                              int initialWidth,
+                                              int initialHeight) {
     throw new GLException("Not supported");
   }
 
@@ -104,73 +79,5 @@ public class WindowsOffscreenGLContext extends WindowsGLContext {
 
   public void releasePbufferFromTexture() {
     throw new GLException("Should not call this");
-  }
-
-  protected int makeCurrentImpl() throws GLException {
-    if (pendingOffscreenResize) {
-      if (pendingOffscreenWidth != width || pendingOffscreenHeight != height) {
-        if (hglrc != 0) {
-          destroyImpl();
-        }
-        width  = pendingOffscreenWidth;
-        height = pendingOffscreenHeight;
-        pendingOffscreenResize = false;
-      }
-    }
-    return super.makeCurrentImpl();
-  }
-
-  protected void destroyImpl() {
-    if (hglrc != 0) {
-      super.destroyImpl();
-      // Must destroy OpenGL context, bitmap and device context
-      WGL.SelectObject(hdc, origbitmap);
-      WGL.DeleteObject(hbitmap);
-      WGL.DeleteDC(hdc);
-      origbitmap = 0;
-      hbitmap = 0;
-      hdc = 0;
-    }
-  }
-
-  public void swapBuffers() throws GLException {
-  }
-
-  protected void create() {
-    BITMAPINFO info = new BITMAPINFO();
-    BITMAPINFOHEADER header = info.bmiHeader();
-    int bitsPerPixel = (capabilities.getRedBits() +
-                        capabilities.getGreenBits() +
-                        capabilities.getBlueBits());
-    header.biSize(header.size());
-    header.biWidth(width);
-    // NOTE: negating the height causes the DIB to be in top-down row
-    // order rather than bottom-up; ends up being correct during pixel
-    // readback
-    header.biHeight(-1 * height);
-    header.biPlanes((short) 1);
-    header.biBitCount((short) bitsPerPixel);
-    header.biXPelsPerMeter(0);
-    header.biYPelsPerMeter(0);
-    header.biClrUsed(0);
-    header.biClrImportant(0);
-    header.biCompression(WGL.BI_RGB);
-    header.biSizeImage(width * height * bitsPerPixel / 8);
-
-    hdc = WGL.CreateCompatibleDC(0);
-    if (hdc == 0) {
-      System.out.println("LastError: " + WGL.GetLastError());
-      throw new GLException("Error creating device context for offscreen OpenGL context");
-    }
-    hbitmap = WGL.CreateDIBSection(hdc, info, WGL.DIB_RGB_COLORS, 0, 0, 0);
-    if (hbitmap == 0) {
-      throw new GLException("Error creating offscreen bitmap of width " + width +
-                            ", height " + height);
-    }
-    if ((origbitmap = WGL.SelectObject(hdc, hbitmap)) == 0) {
-      throw new GLException("Error selecting bitmap into new device context");
-    }
-    
-    choosePixelFormatAndCreateContext(false);
   }
 }

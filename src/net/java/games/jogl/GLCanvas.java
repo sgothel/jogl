@@ -63,18 +63,28 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
   protected static final boolean DEBUG = Debug.debug("GLCanvas");
 
   private GLDrawableHelper drawableHelper = new GLDrawableHelper();
+  private GLDrawable drawable;
   private GLContextImpl context;
+  private boolean autoSwapBufferMode = true;
+  private boolean sendReshape = false;
 
   public GLCanvas(GLCapabilities capabilities,
                   GLCapabilitiesChooser chooser,
-                  GLDrawable shareWith,
+                  GLContext shareWith,
                   GraphicsDevice device) {
     super(GLDrawableFactory.getFactory().chooseGraphicsConfiguration(capabilities, chooser, device));
-    context = (GLContextImpl) GLContextFactory.getFactory().createGLContext(this, capabilities, chooser,
-                                                                            GLContextHelper.getContext(shareWith));
+    drawable = GLDrawableFactory.getFactory().getGLDrawable(this, capabilities, chooser);
+    context = (GLContextImpl) drawable.createContext(shareWith);
     context.setSynchronized(true);
   }
   
+  public GLContext createContext(GLContext shareWith) {
+    return drawable.createContext(shareWith);
+  }
+
+  public void setRealized(boolean realized) {
+  }
+
   public void display() {
     maybeDoSingleThreadedWorkaround(displayOnEventDispatchThreadAction,
                                     displayAction,
@@ -91,7 +101,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
       create an OpenGL context for the component. */
   public void addNotify() {
     super.addNotify();
-    context.setRealized();
+    drawable.setRealized(true);
     if (DEBUG) {
       System.err.println("GLCanvas.addNotify()");
     }
@@ -101,6 +111,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
       safe to have an OpenGL context for the component. */
   public void removeNotify() {
     context.destroy();
+    drawable.setRealized(false);
     super.removeNotify();
     if (DEBUG) {
       System.err.println("GLCanvas.removeNotify()");
@@ -113,24 +124,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
       directly. */
   public void reshape(int x, int y, int width, int height) {
     super.reshape(x, y, width, height);
-    // Note: we ignore the given x and y within the parent component
-    // since we are drawing directly into this heavyweight component.
-    final int fx      = 0;
-    final int fy      = 0;
-    final int fwidth  = width;
-    final int fheight = height;
-    final Runnable reshapeRunnable = new Runnable() {
-        public void run() {
-          getGL().glViewport(fx, fy, fwidth, fheight);
-          drawableHelper.reshape(GLCanvas.this, fx, fy, fwidth, fheight);
-        }
-      };
-    final Runnable reshapeOnEDTRunnable = new Runnable() {
-        public void run() {
-          drawableHelper.invokeGL(context, reshapeRunnable, true, initAction);
-        }
-      };
-    maybeDoSingleThreadedWorkaround(reshapeOnEDTRunnable, reshapeRunnable, true);
+    sendReshape = true;
   }
 
   /** Overridden from Canvas to prevent Java2D's clearing of the
@@ -145,6 +139,10 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
 
   public void removeGLEventListener(GLEventListener listener) {
     drawableHelper.removeGLEventListener(listener);
+  }
+
+  public GLContext getContext() {
+    return context;
   }
 
   public GL getGL() {
@@ -164,11 +162,11 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
   }
   
   public void setAutoSwapBufferMode(boolean onOrOff) {
-    context.setAutoSwapBufferMode(onOrOff);
+    drawableHelper.setAutoSwapBufferMode(onOrOff);
   }
 
   public boolean getAutoSwapBufferMode() {
-    return context.getAutoSwapBufferMode();
+    return drawableHelper.getAutoSwapBufferMode();
   }
 
   public void swapBuffers() {
@@ -182,11 +180,8 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
   public GLPbuffer createOffscreenDrawable(GLCapabilities capabilities,
                                            int initialWidth,
                                            int initialHeight) {
-    return new GLPbufferImpl(context.createPbufferContext(capabilities, initialWidth, initialHeight));
-  }
-
-  GLContext getContext() {
-    return context;
+    // FIXME: add option to not share textures and display lists with parent context
+    return new GLPbufferImpl(context.createPbufferDrawable(capabilities, initialWidth, initialHeight), getContext());
   }
 
   //----------------------------------------------------------------------
@@ -213,7 +208,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
         throw new GLException(e);
       }
     } else {
-      drawableHelper.invokeGL(context, invokeGLAction, isReshape, initAction);
+      drawableHelper.invokeGL(drawable, context, invokeGLAction, initAction);
     }
   }
 
@@ -226,6 +221,16 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
   
   class DisplayAction implements Runnable {
     public void run() {
+      if (sendReshape) {
+        // Note: we ignore the given x and y within the parent component
+        // since we are drawing directly into this heavyweight component.
+        int width = getWidth();
+        int height = getHeight();
+        getGL().glViewport(0, 0, width, height);
+        drawableHelper.reshape(GLCanvas.this, 0, 0, width, height);
+        sendReshape = false;
+      }
+
       drawableHelper.display(GLCanvas.this);
     }
   }
@@ -233,7 +238,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
 
   class SwapBuffersAction implements Runnable {
     public void run() {
-      context.swapBuffers();
+      drawable.swapBuffers();
     }
   }
   private SwapBuffersAction swapBuffersAction = new SwapBuffersAction();
@@ -243,14 +248,14 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
   // being resized on the AWT event dispatch thread
   class DisplayOnEventDispatchThreadAction implements Runnable {
     public void run() {
-      drawableHelper.invokeGL(context, displayAction, false, initAction);
+      drawableHelper.invokeGL(drawable, context, displayAction, initAction);
     }
   }
   private DisplayOnEventDispatchThreadAction displayOnEventDispatchThreadAction =
     new DisplayOnEventDispatchThreadAction();
   class SwapBuffersOnEventDispatchThreadAction implements Runnable {
     public void run() {
-      drawableHelper.invokeGL(context, swapBuffersAction, false, initAction);
+      drawableHelper.invokeGL(drawable, context, swapBuffersAction, initAction);
     }
   }
   private SwapBuffersOnEventDispatchThreadAction swapBuffersOnEventDispatchThreadAction =

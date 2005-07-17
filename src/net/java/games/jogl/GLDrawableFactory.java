@@ -118,8 +118,7 @@ public class GLDrawableFactory {
                                   GLCapabilities capabilities,
                                   GLCapabilitiesChooser chooser)
     throws IllegalArgumentException, GLException {
-    // FIXME
-    throw new GLException("Not yet implemented");
+    return GLContextFactory.getFactory().getGLDrawable(target, capabilities, chooser);
   }
   
   //----------------------------------------------------------------------
@@ -136,15 +135,14 @@ public class GLDrawableFactory {
       the specified capabilities using the supplied capabilities
       selection algorithm. A null chooser is equivalent to using the
       {@link DefaultGLCapabilitiesChooser}.  The canvas will share
-      textures and display lists with the specified {@link
-      GLDrawable}; the drawable must either be null or have been
-      fabricated from this factory or by classes in this package. A
-      null drawable indicates no sharing. A null GraphicsDevice is
-      equivalent to using that returned from
+      textures and display lists with the specified {@link GLContext};
+      the context must either be null or have been fabricated by
+      classes in this package. A null context indicates no sharing. A
+      null GraphicsDevice is equivalent to using that returned from
       <code>GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice()</code>. */
   public GLCanvas createGLCanvas(GLCapabilities capabilities,
                                  GLCapabilitiesChooser chooser,
-                                 GLDrawable shareWith,
+                                 GLContext shareWith,
                                  GraphicsDevice device) {
     if (chooser == null) {
       chooser = new DefaultGLCapabilitiesChooser();
@@ -176,10 +174,10 @@ public class GLDrawableFactory {
   /** Creates a {@link GLJPanel} with the specified capabilities using
       the default capabilities selection algorithm. The panel will
       share textures and display lists with the specified {@link
-      GLDrawable}; the drawable must either be null or have been
-      fabricated from this factory or by classes in this package. A
-      null drawable indicates no sharing. */
-  public GLJPanel createGLJPanel(GLCapabilities capabilities, GLDrawable shareWith) {
+      GLContext}; the context must either be null or have been
+      fabricated by classes in this package. A null context indicates
+      no sharing. */
+  public GLJPanel createGLJPanel(GLCapabilities capabilities, GLContext shareWith) {
     return createGLJPanel(capabilities, null, shareWith);
   }
 
@@ -194,12 +192,12 @@ public class GLDrawableFactory {
       the supplied capabilities selection algorithm. A null chooser is
       equivalent to using the {@link DefaultGLCapabilitiesChooser}.
       The panel will share textures and display lists with the
-      specified {@link GLDrawable}; the drawable must either be null
-      or have been fabricated from this factory or by classes in this
-      package. A null drawable indicates no sharing. */
+      specified {@link GLContext}; the context must either be null or
+      have been fabricated by classes in this package. A null context
+      indicates no sharing. */
   public GLJPanel createGLJPanel(GLCapabilities capabilities,
                                  GLCapabilitiesChooser chooser,
-                                 GLDrawable shareWith) {
+                                 GLContext shareWith) {
     if (chooser == null) {
       chooser = new DefaultGLCapabilitiesChooser();
     }

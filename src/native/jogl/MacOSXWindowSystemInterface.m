@@ -163,13 +163,17 @@ void* createPBuffer(int renderTarget, int internalFormat, int width, int height)
 }
 
 Bool destroyPBuffer(void* context, void* buffer) {
-  NSOpenGLContext *nsContext = (NSOpenGLContext*)context;
+  /* FIXME: not clear whether we need to perform the clearDrawable below */
+  /* FIXME: remove the context argument -- don't need it any more */
+  /*  NSOpenGLContext *nsContext = (NSOpenGLContext*)context; */
   NSOpenGLPixelBuffer *pBuffer = (NSOpenGLPixelBuffer*)buffer;
 	
   NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+  /*
   if (nsContext != NULL) {
     [nsContext clearDrawable];
   }
+  */
   [pBuffer release];
   [pool release];
 	

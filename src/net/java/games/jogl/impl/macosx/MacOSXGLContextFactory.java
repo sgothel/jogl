@@ -46,20 +46,31 @@ import net.java.games.jogl.*;
 import net.java.games.jogl.impl.*;
 
 public class MacOSXGLContextFactory extends GLContextFactory {
+  static {
+    NativeLibLoader.load();
+  }
+
   public GraphicsConfiguration chooseGraphicsConfiguration(GLCapabilities capabilities,
                                                            GLCapabilitiesChooser chooser,
                                                            GraphicsDevice device) {
     return null;
   }
 
-  public GLContext createGLContext(Component component,
-                                   GLCapabilities capabilities,
-                                   GLCapabilitiesChooser chooser,
-                                   GLContext shareWith) {
-    if (component != null) {
-      return new MacOSXOnscreenGLContext(component, capabilities, chooser, shareWith);
-    } else {
-      return new MacOSXOffscreenGLContext(capabilities, chooser, shareWith);
+  public GLDrawable getGLDrawable(Object target,
+                                  GLCapabilities capabilities,
+                                  GLCapabilitiesChooser chooser) {
+    if (target == null) {
+      throw new IllegalArgumentException("Null target");
     }
+    if (!(target instanceof Component)) {
+      throw new IllegalArgumentException("GLDrawables not supported for objects of type " +
+                                         target.getClass().getName() + " (only Components are supported in this implementation)");
+    }
+    return new MacOSXOnscreenGLDrawable((Component) target, capabilities, chooser);
+  }
+
+  public GLDrawableImpl createOffscreenDrawable(GLCapabilities capabilities,
+                                                GLCapabilitiesChooser chooser) {
+    return new MacOSXOffscreenGLDrawable(capabilities);
   }
 }

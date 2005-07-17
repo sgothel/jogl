@@ -59,6 +59,10 @@ public class WindowsGLContextFactory extends GLContextFactory {
   private static final boolean DEBUG = Debug.debug("WindowsGLContextFactory");
   private static final boolean VERBOSE = Debug.verbose();
 
+  static {
+    NativeLibLoader.load();
+  }
+
   // On Windows we want to be able to use some extension routines like
   // wglChoosePixelFormatARB during the creation of the user's first
   // GLContext. However, this and other routines' function pointers
@@ -139,17 +143,31 @@ public class WindowsGLContextFactory extends GLContextFactory {
     return null;
   }
 
-  public GLContext createGLContext(Component component,
-                                   GLCapabilities capabilities,
-                                   GLCapabilitiesChooser chooser,
-                                   GLContext shareWith) {
-    if (component != null) {
-      return new WindowsOnscreenGLContext(component, capabilities, chooser, shareWith);
-    } else {
-      return new WindowsOffscreenGLContext(capabilities, chooser, shareWith);
+  public GLDrawable getGLDrawable(Object target,
+                                  GLCapabilities capabilities,
+                                  GLCapabilitiesChooser chooser) {
+    if (target == null) {
+      throw new IllegalArgumentException("Null target");
     }
+    if (!(target instanceof Component)) {
+      throw new IllegalArgumentException("GLDrawables not supported for objects of type " +
+                                         target.getClass().getName() + " (only Components are supported in this implementation)");
+    }
+    return new WindowsOnscreenGLDrawable((Component) target, capabilities, chooser);
   }
-  
+
+  public GLDrawableImpl createOffscreenDrawable(GLCapabilities capabilities,
+                                                GLCapabilitiesChooser chooser) {
+    return new WindowsOffscreenGLDrawable(capabilities, chooser);
+  }
+
+  // Return cached GL drawable
+  public static WindowsGLDrawable getDummyGLDrawable( final GraphicsDevice device ) {
+    checkForDummyContext( device );
+    NativeWindowStruct nws = (NativeWindowStruct) dummyContextMap.get(device);
+    return nws.getWindowsDrawable();
+  }
+
   // Return cached GL context
   public static WindowsGLContext getDummyGLContext( final GraphicsDevice device ) {
     checkForDummyContext( device );
@@ -188,7 +206,9 @@ public class WindowsGLContextFactory extends GLContextFactory {
       GLCapabilities caps = new GLCapabilities();
       caps.setDepthBits( 16 );
       // Create a context that we use to query pixel formats
-      WindowsOnscreenGLContext context = new WindowsOnscreenGLContext( null, caps, null, null );
+      
+      WindowsOnscreenGLDrawable drawable = new WindowsOnscreenGLDrawable(null, caps, null);
+      WindowsOnscreenGLContext context = new WindowsOnscreenGLContext( drawable, null );
       // Start a native thread and grab native screen resources from the thread
       NativeWindowThread nwt = new NativeWindowThread( rect );
       nwt.start();
@@ -198,7 +218,7 @@ public class WindowsGLContextFactory extends GLContextFactory {
         Thread.yield();
       }
       // Choose a hardware accelerated pixel format
-      PIXELFORMATDESCRIPTOR pfd = context.glCapabilities2PFD( caps, true );
+      PIXELFORMATDESCRIPTOR pfd = drawable.glCapabilities2PFD( caps, true );
       int pixelFormat = WGL.ChoosePixelFormat( tempHDC, pfd );
       if( pixelFormat == 0 ) {
         System.err.println("Pixel Format is Zero");
@@ -220,6 +240,7 @@ public class WindowsGLContextFactory extends GLContextFactory {
       // Store native handles for later use
       NativeWindowStruct nws = new NativeWindowStruct();
       nws.setHWND( hWnd );
+      nws.setWindowsDrawable( drawable );
       nws.setWindowsContext( context );
       nws.setWindowThread( nwt );
       long currentHDC = WGL.wglGetCurrentDC();
@@ -230,7 +251,7 @@ public class WindowsGLContextFactory extends GLContextFactory {
         return;
       }
       // Grab function pointers
-      context.hdc = tempHDC;
+      drawable.hdc = tempHDC;
       context.hglrc = tempHGLRC;
       context.resetGLFunctionAvailability();
       context.createGL();
@@ -259,6 +280,7 @@ public class WindowsGLContextFactory extends GLContextFactory {
    */
   static class NativeWindowStruct {
     private long                HWND;
+    private WindowsGLDrawable   windowsDrawable;
     private WindowsGLContext    windowsContext;
     private Thread              windowThread;
     
@@ -266,7 +288,7 @@ public class WindowsGLContextFactory extends GLContextFactory {
     }
           
     public long getHDC() {
-      return( windowsContext.hdc );
+      return( windowsDrawable.hdc );
     }
           
     public long getHGLRC() {
@@ -281,10 +303,18 @@ public class WindowsGLContextFactory extends GLContextFactory {
       return( HWND );
     }
     
+    public void setWindowsDrawable( WindowsGLDrawable drawable ) {
+      windowsDrawable = drawable;
+    }
+
     public void setWindowsContext( WindowsGLContext context ) {
       windowsContext = context;
     }
     
+    public WindowsGLDrawable getWindowsDrawable() {
+      return( windowsDrawable );
+    }
+
     public WindowsGLContext getWindowsContext() {
       return( windowsContext );
     }
@@ -357,5 +387,20 @@ public class WindowsGLContextFactory extends GLContextFactory {
         WGL.DestroyDummyWindow( struct.getHWND(), struct.getHDC() );
       }
     }
+  }
+
+
+  static String wglGetLastError() {
+    int err = WGL.GetLastError();
+    String detail = null;
+    switch (err) {
+      case WGL.ERROR_INVALID_PIXEL_FORMAT: detail = "ERROR_INVALID_PIXEL_FORMAT";       break;
+      case WGL.ERROR_NO_SYSTEM_RESOURCES:  detail = "ERROR_NO_SYSTEM_RESOURCES";        break;
+      case WGL.ERROR_INVALID_DATA:         detail = "ERROR_INVALID_DATA";               break;
+      case WGL.ERROR_PROC_NOT_FOUND:       detail = "ERROR_PROC_NOT_FOUND";             break;
+      case WGL.ERROR_INVALID_WINDOW_HANDLE:detail = "ERROR_INVALID_WINDOW_HANDLE";      break;
+      default:                             detail = "(Unknown error code " + err + ")"; break;
+    }
+    return detail;
   }
 }

@@ -45,34 +45,21 @@ import net.java.games.jogl.impl.*;
 
 public class MacOSXOffscreenGLContext extends MacOSXPbufferGLContext
 {  
-  public MacOSXOffscreenGLContext(GLCapabilities capabilities,
-                                  GLCapabilitiesChooser chooser,
+  public MacOSXOffscreenGLContext(MacOSXPbufferGLDrawable drawable,
                                   GLContext shareWith) {
-    super(capabilities, -1, -1);
+    super(drawable, shareWith);
   }
 	
-  protected boolean isOffscreen() {
-    return true;
-  }
-	
-  public boolean offscreenImageNeedsVerticalFlip() {
-    return true;
-  }
-  
-  public int getOffscreenContextWidth() {
-      return initWidth;
-  }
-
-  public int getOffscreenContextHeight() {
-      return initWidth;
-  }
-
   public int getOffscreenContextPixelDataType() {
-      return GL.GL_UNSIGNED_INT_8_8_8_8_REV;
+    return GL.GL_UNSIGNED_INT_8_8_8_8_REV;
   }
 
   public int getOffscreenContextReadBuffer() {
-    return GL.GL_BACK;
+    return GL.GL_FRONT;
+  }
+
+  public boolean offscreenImageNeedsVerticalFlip() {
+    return true;
   }
 
   public void bindPbufferToTexture() {
@@ -82,20 +69,4 @@ public class MacOSXOffscreenGLContext extends MacOSXPbufferGLContext
   public void releasePbufferFromTexture() {
     throw new GLException("Should not call this");
   }
-	
-  protected int makeCurrentImpl() throws GLException {
-    if (pendingOffscreenResize && (nsContext != 0)) {
-      if (pendingOffscreenWidth != width || pendingOffscreenHeight != height) {
-        destroyPBuffer();
-        initWidth  = pendingOffscreenWidth;
-        initHeight = pendingOffscreenHeight;
-        createPbuffer(0, 0);
-        pendingOffscreenResize = false;
-      }
-    }
-    return super.makeCurrentImpl();
-  }
-	
-  public void swapBuffers() throws GLException {
-  }	
 }

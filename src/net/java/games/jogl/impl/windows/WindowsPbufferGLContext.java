@@ -43,55 +43,27 @@ import net.java.games.jogl.*;
 import net.java.games.jogl.impl.*;
 
 public class WindowsPbufferGLContext extends WindowsGLContext {
-  private static final boolean DEBUG = Debug.debug("WindowsPbufferGLContext");
-
-  private int  initWidth;
-  private int  initHeight;
-
-  private long buffer; // pbuffer handle
-  private int  width;
-  private int  height;
-
-  // FIXME: kept around because we create the OpenGL context lazily to
-  // better integrate with the WindowsGLContext framework
-  private long parentHglrc;
-
-  private static final int MAX_PFORMATS = 256;
-  private static final int MAX_ATTRIBS  = 256;
-
   // State for render-to-texture and render-to-texture-rectangle support
-  private boolean created;
+  private WindowsPbufferGLDrawable drawable;
   private boolean rtt;       // render-to-texture?
   private boolean hasRTT;    // render-to-texture extension available?
   private boolean rect;      // render-to-texture-rectangle?
   private int textureTarget; // e.g. GL_TEXTURE_2D, GL_TEXTURE_RECTANGLE_NV
   private int texture;       // actual texture object
-  private int floatMode;
 
-  public WindowsPbufferGLContext(GLCapabilities capabilities, int initialWidth, int initialHeight) {
-    super(null, capabilities, null, null);
-    this.initWidth  = initialWidth;
-    this.initHeight = initialHeight;
-    if (initWidth <= 0 || initHeight <= 0) {
-      throw new GLException("Initial width and height of pbuffer must be positive (were (" +
-			    initWidth + ", " + initHeight + "))");
-    }
-
-    if (DEBUG) {
-      System.out.println("Pbuffer caps on init: " + capabilities +
-                         (capabilities.getOffscreenRenderToTexture() ? " [rtt]" : "") +
-                         (capabilities.getOffscreenRenderToTextureRectangle() ? " [rect]" : "") +
-                         (capabilities.getOffscreenFloatingPointBuffers() ? " [float]" : ""));
-    }
+  public WindowsPbufferGLContext(WindowsPbufferGLDrawable drawable,
+                                 GLContext shareWith) {
+    super(drawable, shareWith);
+    this.drawable = drawable;
   }
 
   public boolean canCreatePbufferContext() {
     return false;
   }
 
-  public GLContext createPbufferContext(GLCapabilities capabilities,
-                                        int initialWidth,
-                                        int initialHeight) {
+  public GLDrawableImpl createPbufferDrawable(GLCapabilities capabilities,
+                                              int initialWidth,
+                                              int initialHeight) {
     throw new GLException("Not supported");
   }
 
@@ -103,10 +75,11 @@ public class WindowsPbufferGLContext extends WindowsGLContext {
     GL gl = getGL();
     gl.glBindTexture(textureTarget, texture);
     if (rtt && hasRTT) {
-      if (!gl.wglBindTexImageARB(buffer, GL.WGL_FRONT_LEFT_ARB)) {
+      if (!gl.wglBindTexImageARB(drawable.getPbuffer(), GL.WGL_FRONT_LEFT_ARB)) {
         throw new GLException("Binding of pbuffer to texture failed: " + wglGetLastError());
       }
     }
+    // FIXME: comment is wrong now
     // Note that if the render-to-texture extension is not supported,
     // we perform a glCopyTexImage2D in swapBuffers().
   }
@@ -118,289 +91,32 @@ public class WindowsPbufferGLContext extends WindowsGLContext {
     }
     if (rtt && hasRTT) {
       GL gl = getGL();
-      if (!gl.wglReleaseTexImageARB(buffer, GL.WGL_FRONT_LEFT_ARB)) {
+      if (!gl.wglReleaseTexImageARB(drawable.getPbuffer(), GL.WGL_FRONT_LEFT_ARB)) {
         throw new GLException("Releasing of pbuffer from texture failed: " + wglGetLastError());
       }
     }
   }
 
-  public void createPbuffer(long parentHdc, long parentHglrc) {
-    GL gl = getGL();
-    // Must initally grab OpenGL function pointers while parent's
-    // context is current because otherwise we don't have the wgl
-    // extensions available to us
-    resetGLFunctionAvailability();
-    
-    int[]   iattributes = new int  [2*MAX_ATTRIBS];
-    float[] fattributes = new float[2*MAX_ATTRIBS];
-    int nfattribs = 0;
-    int niattribs = 0;
-
-    if (DEBUG) {
-      System.out.println("Pbuffer caps: " + capabilities +
-                         (capabilities.getOffscreenRenderToTexture() ? " [rtt]" : "") +
-                         (capabilities.getOffscreenRenderToTextureRectangle() ? " [rect]" : "") +
-                         (capabilities.getOffscreenFloatingPointBuffers() ? " [float]" : ""));
-    }
-
-    rtt              = capabilities.getOffscreenRenderToTexture();
-    rect             = capabilities.getOffscreenRenderToTextureRectangle();
-    boolean useFloat = capabilities.getOffscreenFloatingPointBuffers();
-    boolean ati      = false;
-    
-    // Since we are trying to create a pbuffer, the pixel format we
-    // request (and subsequently use) must be "p-buffer capable".
-    iattributes[niattribs++] = GL.WGL_DRAW_TO_PBUFFER_ARB;
-    iattributes[niattribs++] = GL.GL_TRUE;
-
-    if (rtt && !rect) {
-      throw new GLException("Render-to-texture-rectangle requires render-to-texture to be specified");
-    }
-
-    if (rect) {
-      if (!gl.isExtensionAvailable("GL_NV_texture_rectangle")) {
-        throw new GLException("Render-to-texture-rectangle requires GL_NV_texture_rectangle extension");
-      }
-    }
-
-    if (useFloat) {
-      if (!gl.isExtensionAvailable("WGL_ATI_pixel_format_float") &&
-          !gl.isExtensionAvailable("WGL_NV_float_buffer")) {
-        throw new GLException("Floating-point pbuffers not supported by this hardware");
-      }
-
-      // Prefer NVidia extension over ATI
-      if (gl.isExtensionAvailable("WGL_NV_float_buffer")) {
-        ati = false;
-        floatMode = GLPbuffer.NV_FLOAT;
-      } else {
-        ati = true;
-        floatMode = GLPbuffer.ATI_FLOAT;
-      }
-      if (DEBUG) {
-        System.err.println("Using " + (ati ? "ATI" : "NVidia") + " floating-point extension");
-      }
-    }
-
-    if (useFloat && ati) {
-      if (rtt) {
-        throw new GLException("Render-to-floating-point-texture not supported on ATI hardware");
-      } else {
-        iattributes[niattribs++] = GL.WGL_PIXEL_TYPE_ARB;
-        iattributes[niattribs++] = GL.WGL_TYPE_RGBA_FLOAT_ATI;
-      }
-    } else {
-      if (!rtt) {
-        // Currently we don't support non-truecolor visuals in the
-        // GLCapabilities, so we don't offer the option of making
-        // color-index pbuffers.
-        iattributes[niattribs++] = GL.WGL_PIXEL_TYPE_ARB;
-        iattributes[niattribs++] = GL.WGL_TYPE_RGBA_ARB;
-      }
-    }
-
-    iattributes[niattribs++] = GL.WGL_DOUBLE_BUFFER_ARB;
-    if (capabilities.getDoubleBuffered()) {
-      iattributes[niattribs++] = GL.GL_TRUE;
-    } else {
-      iattributes[niattribs++] = GL.GL_FALSE;
-    }
-
-    iattributes[niattribs++] = GL.WGL_DEPTH_BITS_ARB;
-    iattributes[niattribs++] = capabilities.getDepthBits();
-
-    iattributes[niattribs++] = GL.WGL_RED_BITS_ARB;
-    iattributes[niattribs++] = capabilities.getRedBits();
-
-    iattributes[niattribs++] = GL.WGL_GREEN_BITS_ARB;
-    iattributes[niattribs++] = capabilities.getGreenBits();
-
-    iattributes[niattribs++] = GL.WGL_BLUE_BITS_ARB;
-    iattributes[niattribs++] = capabilities.getBlueBits();
-
-    iattributes[niattribs++] = GL.WGL_ALPHA_BITS_ARB;
-    iattributes[niattribs++] = capabilities.getAlphaBits();
-
-    iattributes[niattribs++] = GL.WGL_STENCIL_BITS_ARB;
-    if (capabilities.getStencilBits() > 0) {
-      iattributes[niattribs++] = GL.GL_TRUE;
-    } else {
-      iattributes[niattribs++] = GL.GL_FALSE;
-    }
-
-    if (capabilities.getAccumRedBits()   > 0 ||
-        capabilities.getAccumGreenBits() > 0 ||
-        capabilities.getAccumBlueBits()  > 0) {
-      iattributes[niattribs++] = GL.WGL_ACCUM_BITS_ARB;
-      iattributes[niattribs++] = GL.GL_TRUE;
-    }
-
-    if (useFloat && !ati) {
-      iattributes[niattribs++] = GL.WGL_FLOAT_COMPONENTS_NV;
-      iattributes[niattribs++] = GL.GL_TRUE;
-    }
-
-    if (rtt) {
-      if (useFloat) {
-        assert(!ati);
-        if (!rect) {
-          throw new GLException("Render-to-floating-point-texture only supported on NVidia hardware with render-to-texture-rectangle");
-        }
-        iattributes[niattribs++] = GL.WGL_BIND_TO_TEXTURE_RECTANGLE_FLOAT_RGB_NV;
-        iattributes[niattribs++] = GL.GL_TRUE;
-      } else {
-        iattributes[niattribs++] = rect ? GL.WGL_BIND_TO_TEXTURE_RECTANGLE_RGB_NV : GL.WGL_BIND_TO_TEXTURE_RGB_ARB;
-        iattributes[niattribs++] = GL.GL_TRUE;
-      }
-    }
-
-    iattributes[niattribs++] = GL.WGL_SUPPORT_OPENGL_ARB;
-    iattributes[niattribs++] = GL.GL_TRUE;
-    
-    int[] pformats = new int[MAX_PFORMATS];
-    int   nformats;
-    int[] nformatsTmp = new int[1];
-    if (!gl.wglChoosePixelFormatARB(parentHdc,
-                                    iattributes, 0,
-                                    fattributes, 0,
-                                    MAX_PFORMATS,
-                                    pformats, 0,
-                                    nformatsTmp, 0)) {
-      throw new GLException("pbuffer creation error: wglChoosePixelFormatARB() failed");
-    }
-    nformats = nformatsTmp[0];
-    if (nformats <= 0) {
-      throw new GLException("pbuffer creation error: Couldn't find a suitable pixel format");
-    }
-
-    if (DEBUG) {
-      System.err.println("" + nformats + " suitable pixel formats found");
-      // query pixel format
-      iattributes[0] = GL.WGL_RED_BITS_ARB;
-      iattributes[1] = GL.WGL_GREEN_BITS_ARB;
-      iattributes[2] = GL.WGL_BLUE_BITS_ARB;
-      iattributes[3] = GL.WGL_ALPHA_BITS_ARB;
-      iattributes[4] = GL.WGL_DEPTH_BITS_ARB;
-      iattributes[5] = (useFloat ? (ati ? GL.WGL_PIXEL_TYPE_ARB : GL.WGL_FLOAT_COMPONENTS_NV) : GL.WGL_RED_BITS_ARB);
-      iattributes[6] = GL.WGL_SAMPLE_BUFFERS_EXT;
-      iattributes[7] = GL.WGL_SAMPLES_EXT;
-      iattributes[8] = GL.WGL_DRAW_TO_PBUFFER_ARB;
-      int[] ivalues = new int[9];
-      for (int i = 0; i < nformats; i++) {
-        if (!gl.wglGetPixelFormatAttribivARB(parentHdc, pformats[i], 0, 9, iattributes, 0, ivalues, 0)) {
-          throw new GLException("Error while querying pixel format " + pformats[i] +
-                                "'s (index " + i + "'s) capabilities for debugging");
-        }
-        System.err.print("pixel format " + pformats[i] + " (index " + i + "): ");
-        System.err.print( "r: " + ivalues[0]);
-        System.err.print(" g: " + ivalues[1]);
-        System.err.print(" b: " + ivalues[2]);
-        System.err.print(" a: " + ivalues[3]);
-        System.err.print(" depth: " + ivalues[4]);
-        System.err.print(" multisample: " + ivalues[6]);
-        System.err.print(" samples: " + ivalues[7]);
-        if (useFloat) {
-          if (ati) {
-            if (ivalues[5] == GL.WGL_TYPE_RGBA_FLOAT_ATI) {
-              System.err.print(" [ati float]");
-            } else if (ivalues[5] != GL.WGL_TYPE_RGBA_ARB) {
-              System.err.print(" [unknown pixel type " + ivalues[5] + "]");
-            }
-          } else {
-            if (ivalues[5] != 0) {
-              System.err.print(" [float]");
-            }
-          }
-        }
-
-        if (ivalues[8] != 0) {
-          System.err.print(" [pbuffer]");
-        }
-        System.err.println();
-      }
-    }
-
-    long tmpBuffer = 0;
-    int whichFormat = 0;
-    // Loop is a workaround for bugs in NVidia's recent drivers
-    do {
-      int format = pformats[whichFormat];
-
-      // Create the p-buffer.
-      niattribs = 0;
-
-      if (rtt) {
-        iattributes[niattribs++]   = GL.WGL_TEXTURE_FORMAT_ARB;
-        if (useFloat) {
-          iattributes[niattribs++] = GL.WGL_TEXTURE_FLOAT_RGB_NV;
-        } else {
-          iattributes[niattribs++] = GL.WGL_TEXTURE_RGBA_ARB;
-        }
-
-        iattributes[niattribs++] = GL.WGL_TEXTURE_TARGET_ARB;
-        iattributes[niattribs++] = rect ? GL.WGL_TEXTURE_RECTANGLE_NV : GL.WGL_TEXTURE_2D_ARB;
-
-        iattributes[niattribs++] = GL.WGL_MIPMAP_TEXTURE_ARB;
-        iattributes[niattribs++] = GL.GL_FALSE;
-
-        iattributes[niattribs++] = GL.WGL_PBUFFER_LARGEST_ARB;
-        iattributes[niattribs++] = GL.GL_FALSE;
-      }
-
-      iattributes[niattribs++] = 0;
-
-      tmpBuffer = gl.wglCreatePbufferARB(parentHdc, format, initWidth, initHeight, iattributes, 0);
-      ++whichFormat;
-    } while ((tmpBuffer == 0) && (whichFormat < nformats));
-
-    if (tmpBuffer == 0) {
-      throw new GLException("pbuffer creation error: wglCreatePbufferARB() failed: tried " + nformats +
-                            " pixel formats, last error was: " + wglGetLastError());
-    }
-
-    // Get the device context.
-    long tmpHdc = gl.wglGetPbufferDCARB(tmpBuffer);
-    if (tmpHdc == 0) {
-      throw new GLException("pbuffer creation error: wglGetPbufferDCARB() failed");
-    }
-
-    this.parentHglrc = parentHglrc;
-
-    // Set up instance variables
-    buffer = tmpBuffer;
-    hdc    = tmpHdc;
-
-    // Determine the actual width and height we were able to create.
-    int[] tmp = new int[1];
-    gl.wglQueryPbufferARB( buffer, GL.WGL_PBUFFER_WIDTH_ARB,  tmp, 0 );
-    width = tmp[0];
-    gl.wglQueryPbufferARB( buffer, GL.WGL_PBUFFER_HEIGHT_ARB, tmp, 0 );
-    height = tmp[0];
-
-    if (DEBUG) {
-      System.err.println("Created pbuffer " + width + " x " + height);
-    }
-  }
-
   protected int makeCurrentImpl() throws GLException {
-    created = false;
-
-    if (buffer == 0) {
-      // pbuffer not instantiated yet
+    if (drawable.getHDC() == 0) {
+      // pbuffer not instantiated (yet?)
       if (DEBUG) {
-        System.err.println("pbuffer not instantiated yet");
+        System.err.println("pbuffer not instantiated");
       }
       return CONTEXT_NOT_CURRENT;
     }
 
     int res = super.makeCurrentImpl();
-    if (DEBUG) {
-      System.err.println("super.makeCurrent() = " + res + ", created = " + created);
+    if (DEBUG && VERBOSE) {
+      System.err.println("super.makeCurrent() = " + res);
     }
-    if (created) {
+    if (res == CONTEXT_CURRENT_NEW) {
+      GLCapabilities capabilities = drawable.getCapabilities();
+
       // Initialize render-to-texture support if requested
       rtt  = capabilities.getOffscreenRenderToTexture();
       rect = capabilities.getOffscreenRenderToTextureRectangle();
+      GL gl = getGL();
 
       if (rtt) {
         if (DEBUG) {
@@ -412,7 +128,6 @@ public class WindowsPbufferGLContext extends WindowsGLContext {
                              "supported; implementing render_to_texture support using slow texture readback");
         } else {
           hasRTT = true;
-          GL gl = getGL();
 
           if (rect && !gl.isExtensionAvailable("GL_NV_texture_rectangle")) {
             System.err.println("WindowsPbufferGLContext: WARNING: GL_NV_texture_rectangle extension not " +
@@ -438,21 +153,11 @@ public class WindowsPbufferGLContext extends WindowsGLContext {
           gl.glTexParameteri(textureTarget, GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST);
           gl.glTexParameteri(textureTarget, GL.GL_TEXTURE_WRAP_S, GL.GL_CLAMP_TO_EDGE);
           gl.glTexParameteri(textureTarget, GL.GL_TEXTURE_WRAP_T, GL.GL_CLAMP_TO_EDGE);
-          gl.glCopyTexImage2D(textureTarget, 0, GL.GL_RGB, 0, 0, width, height, 0);
+          gl.glCopyTexImage2D(textureTarget, 0, GL.GL_RGB, 0, 0, drawable.getWidth(), drawable.getHeight(), 0);
         }
       }
     }
     return res;
-  }
-
-  public void handleModeSwitch(long parentHdc, long parentHglrc) {
-    throw new GLException("Not yet implemented");
-  }
-
-  protected boolean isOffscreen() {
-    // FIXME: currently the only caller of this won't cause proper
-    // resizing of the pbuffer anyway.
-    return false;
   }
 
   public int getOffscreenContextReadBuffer() {
@@ -463,67 +168,11 @@ public class WindowsPbufferGLContext extends WindowsGLContext {
     throw new GLException("Should not call this");
   }
 
-  protected void create() {
-    created = true;
-    // Create a gl context for the p-buffer.
-    hglrc = WGL.wglCreateContext(hdc);
-    if (hglrc == 0) {
-      throw new GLException("pbuffer creation error: wglCreateContext() failed");
-    }
-
-    // FIXME: provide option to not share display lists with subordinate pbuffer?
-    if (!WGL.wglShareLists(parentHglrc, hglrc)) {
-      throw new GLException("pbuffer: wglShareLists() failed");
-    }
-  }
-
-  protected void destroyImpl() throws GLException {
-    if (hglrc != 0) {
-      super.destroyImpl();
-      // Must release DC and pbuffer
-      // NOTE that since the context is not current, glGetError() can
-      // not be called here, so we skip the use of any composable
-      // pipelines
-      GL gl = createGL();
-      if (gl.wglReleasePbufferDCARB(buffer, hdc) == 0) {
-        throw new GLException("Error releasing pbuffer device context: error code " + WGL.GetLastError());
-      }
-      hdc = 0;
-      if (!gl.wglDestroyPbufferARB(buffer)) {
-        throw new GLException("Error destroying pbuffer: error code " + WGL.GetLastError());
-      }
-      buffer = 0;
-    }
-  }
-
-  public void swapBuffers() throws GLException {
-    // FIXME: do we need to do anything if the pbuffer is double-buffered?
-    // For now, just grab the pixels for the render-to-texture support.
-    if (rtt && !hasRTT) {
-      if (DEBUG) {
-        System.err.println("Copying pbuffer data to GL_TEXTURE_2D state");
-      }
-
-      GL gl = getGL();
-      gl.glCopyTexSubImage2D(textureTarget, 0, 0, 0, 0, 0, width, height);
-    }
-  }
-
   public int getFloatingPointMode() {
-    return floatMode;
+    return drawable.getFloatingPointMode();
   }
 
-  private String wglGetLastError() {
-    int err = WGL.GetLastError();
-    String detail = null;
-    switch (err) {
-      case WGL.ERROR_INVALID_PIXEL_FORMAT: detail = "ERROR_INVALID_PIXEL_FORMAT";       break;
-      case WGL.ERROR_NO_SYSTEM_RESOURCES:  detail = "ERROR_NO_SYSTEM_RESOURCES";        break;
-      case WGL.ERROR_INVALID_DATA:         detail = "ERROR_INVALID_DATA";               break;
-      case WGL.ERROR_PROC_NOT_FOUND:       detail = "ERROR_PROC_NOT_FOUND";             break;
-      case WGL.ERROR_INVALID_WINDOW_HANDLE:detail = "ERROR_INVALID_WINDOW_HANDLE";      break;
-      default:                             detail = "(Unknown error code " + err + ")"; break;
-    }
-    return detail;
+  private static String wglGetLastError() {
+    return WindowsGLContextFactory.wglGetLastError();
   }
 }

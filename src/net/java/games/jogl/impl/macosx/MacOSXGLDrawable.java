@@ -39,56 +39,40 @@
 
 package net.java.games.jogl.impl.macosx;
 
+import java.awt.Component;
+
 import net.java.games.jogl.*;
 import net.java.games.jogl.impl.*;
 
-/** This MacOSXGLContext implementation provides interoperability with
-    the NSOpenGLView Cocoa widget. The MacOSXGLImpl can be
-    instantiated without a GLContext, in which case it expects that
-    the end user will handle all OpenGL context management. Dynamic
-    function lookup is supported in this configuration by having this
-    object provide the FunctionAvailabilityTable. */
+public abstract class MacOSXGLDrawable extends GLDrawableImpl {
+  protected static final boolean DEBUG = Debug.debug("MacOSXGLDrawable");
 
-class MacOSXDummyGLContext extends MacOSXGLContext
-{
-  private MacOSXGLImpl gl;
+  protected long nsView; // NSView
+  protected GLCapabilities capabilities;
+  protected GLCapabilitiesChooser chooser;
 
-  MacOSXDummyGLContext(MacOSXGLImpl gl) {
-    super(null, null);
-    this.gl = gl;
-  }
-	
-  protected GL createGL() {
-    return gl;
-  }
-	
-  public int getOffscreenContextReadBuffer() {
-    throw new GLException("Should not call this");
-  }
-	
-  public boolean offscreenImageNeedsVerticalFlip() {
-    throw new GLException("Should not call this");
-  }
-	
-  public boolean canCreatePbufferContext() {
-    throw new GLException("Should not call this");
-  }
-	
-  public GLDrawableImpl createPbufferDrawable(GLCapabilities capabilities,
-                                              int initialWidth,
-                                              int initialHeight) {
-    throw new GLException("Should not call this");
+  public MacOSXGLDrawable(GLCapabilities capabilities,
+                          GLCapabilitiesChooser chooser) {
+    this.capabilities = (GLCapabilities) capabilities.clone();
+    this.chooser = chooser;
   }
 
-  public void bindPbufferToTexture() {
-    throw new GLException("Should not call this");
+  public void setRealized(boolean val) {
+    throw new GLException("Should not call this (should only be called for onscreen GLDrawables)");
   }
-	
-  public void releasePbufferFromTexture() {
-    throw new GLException("Should not call this");
+
+  public void destroy() {
+    throw new GLException("Should not call this (should only be called for offscreen GLDrawables)");
   }
-	
-  public void resetGLFunctionAvailability() {
-    super.resetGLFunctionAvailability();
+
+  public void swapBuffers() throws GLException {
+  }
+
+  public GLCapabilities getCapabilities() {
+    return capabilities;
+  }
+
+  public long getView() {
+    return nsView;
   }
 }

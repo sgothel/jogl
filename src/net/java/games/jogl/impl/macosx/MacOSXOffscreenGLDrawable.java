@@ -42,53 +42,22 @@ package net.java.games.jogl.impl.macosx;
 import net.java.games.jogl.*;
 import net.java.games.jogl.impl.*;
 
-/** This MacOSXGLContext implementation provides interoperability with
-    the NSOpenGLView Cocoa widget. The MacOSXGLImpl can be
-    instantiated without a GLContext, in which case it expects that
-    the end user will handle all OpenGL context management. Dynamic
-    function lookup is supported in this configuration by having this
-    object provide the FunctionAvailabilityTable. */
+public class MacOSXOffscreenGLDrawable extends MacOSXPbufferGLDrawable {
 
-class MacOSXDummyGLContext extends MacOSXGLContext
-{
-  private MacOSXGLImpl gl;
-
-  MacOSXDummyGLContext(MacOSXGLImpl gl) {
-    super(null, null);
-    this.gl = gl;
-  }
-	
-  protected GL createGL() {
-    return gl;
-  }
-	
-  public int getOffscreenContextReadBuffer() {
-    throw new GLException("Should not call this");
-  }
-	
-  public boolean offscreenImageNeedsVerticalFlip() {
-    throw new GLException("Should not call this");
-  }
-	
-  public boolean canCreatePbufferContext() {
-    throw new GLException("Should not call this");
-  }
-	
-  public GLDrawableImpl createPbufferDrawable(GLCapabilities capabilities,
-                                              int initialWidth,
-                                              int initialHeight) {
-    throw new GLException("Should not call this");
+  public MacOSXOffscreenGLDrawable(GLCapabilities capabilities) {
+    super(capabilities, 0, 0);
   }
 
-  public void bindPbufferToTexture() {
-    throw new GLException("Should not call this");
+  public GLContext createContext(GLContext shareWith) {
+    return new MacOSXOffscreenGLContext(this, shareWith);
   }
-	
-  public void releasePbufferFromTexture() {
-    throw new GLException("Should not call this");
-  }
-	
-  public void resetGLFunctionAvailability() {
-    super.resetGLFunctionAvailability();
+
+  public void setSize(int width, int height) {
+    destroy();
+    initWidth = width;
+    initHeight = height;
+    // Floating-point frame buffers are never used with offscreen
+    // drawables (in GLJPanel) so don't need a GL object here
+    createPbuffer(null);
   }
 }

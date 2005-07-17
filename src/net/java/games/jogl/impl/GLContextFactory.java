@@ -98,8 +98,12 @@ public abstract class GLContextFactory {
                                                                     GLCapabilitiesChooser chooser,
                                                                     GraphicsDevice device);
 
-  public abstract GLContext createGLContext(Component component,
-                                            GLCapabilities capabilities,
-                                            GLCapabilitiesChooser chooser,
-                                            GLContext shareWith);
+  // GLCanvas support
+  public abstract GLDrawable getGLDrawable(Object target,
+                                           GLCapabilities capabilities,
+                                           GLCapabilitiesChooser chooser);
+
+  // GLJPanel support
+  public abstract GLDrawableImpl createOffscreenDrawable(GLCapabilities capabilities,
+                                                         GLCapabilitiesChooser chooser);
 }

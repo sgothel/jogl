@@ -47,20 +47,17 @@ import net.java.games.jogl.impl.*;
 
 public abstract class MacOSXGLContext extends GLContextImpl
 {	
-  private static JAWT jawt;
+  protected MacOSXGLDrawable drawable;
   protected long nsContext; // NSOpenGLContext
-  protected long nsView; // NSView
-  protected long updater; // ContextUpdater
   // Table that holds the addresses of the native C-language entry points for
   // OpenGL functions.
   private GLProcAddressTable glProcAddressTable;
   
-  public MacOSXGLContext(Component component,
-                         GLCapabilities capabilities,
-                         GLCapabilitiesChooser chooser,
+  public MacOSXGLContext(MacOSXGLDrawable drawable,
                          GLContext shareWith)
   {
-    super(component, capabilities, chooser, shareWith);
+    super(shareWith);
+    this.drawable = drawable;
   }
 	
   protected GL createGL()
@@ -78,34 +75,11 @@ public abstract class MacOSXGLContext extends GLContextImpl
     return glExtensionName;
   }
 	
-  protected boolean isFunctionAvailable(String glFunctionName)
-  {
-    return super.isFunctionAvailable(glFunctionName);
-  }
-  
-  public boolean isExtensionAvailable(String glExtensionName) {
-    if (glExtensionName.equals("GL_ARB_pbuffer") ||
-        glExtensionName.equals("GL_ARB_pixel_format")) {
-      return true;
-    }
-    return super.isExtensionAvailable(glExtensionName);
-  }
-  
-  protected abstract boolean isOffscreen();
-	
-  public int getOffscreenContextReadBuffer() {
+  public int getOffscreenContextPixelDataType() {
     throw new GLException("Should not call this");
   }
 
-  public int getOffscreenContextWidth() {
-    throw new GLException("Should not call this");
-  }
-  
-  public int getOffscreenContextHeight() {
-    throw new GLException("Should not call this");
-  }
-  
-  public int getOffscreenContextPixelDataType() {
+  public int getOffscreenContextReadBuffer() {
     throw new GLException("Should not call this");
   }
 
@@ -131,8 +105,9 @@ public abstract class MacOSXGLContext extends GLContextImpl
       }
     }
     int[] viewNotReady = new int[1];
+    GLCapabilities capabilities = drawable.getCapabilities();
     nsContext = CGL.createContext(share,
-                                  nsView,
+                                  drawable.getView(),
                                   capabilities.getDoubleBuffered() ? 1 : 0,
                                   capabilities.getStereo() ? 1 : 0,
                                   capabilities.getRedBits(),
@@ -160,38 +135,37 @@ public abstract class MacOSXGLContext extends GLContextImpl
       }
       throw new GLException("Error creating nsContext");
     }
-	//updater = CGL.updateContextRegister(nsContext, nsView); // gznote: not thread safe yet!
     GLContextShareSet.contextCreated(this);
     return true;
   }    
 	
   protected int makeCurrentImpl() throws GLException {
-      boolean created = false;
-      if (nsContext == 0) {
-        if (!create()) {
-          return CONTEXT_NOT_CURRENT;
-        }
-        if (DEBUG) {
-          System.err.println("!!! Created GL nsContext for " + getClass().getName());
-        }
-        created = true;
+    boolean created = false;
+    if (nsContext == 0) {
+      if (!create()) {
+        return CONTEXT_NOT_CURRENT;
       }
+      if (DEBUG) {
+        System.err.println("!!! Created GL nsContext for " + getClass().getName());
+      }
+      created = true;
+    }
             
-      if (!CGL.makeCurrentContext(nsContext, nsView)) {
-        throw new GLException("Error making nsContext current");
-      }
+    if (!CGL.makeCurrentContext(nsContext, drawable.getView())) {
+      throw new GLException("Error making nsContext current");
+    }
             
-      if (created) {
-        resetGLFunctionAvailability();
-        return CONTEXT_CURRENT_NEW;
-      }
-      return CONTEXT_CURRENT;
+    if (created) {
+      resetGLFunctionAvailability();
+      return CONTEXT_CURRENT_NEW;
+    }
+    return CONTEXT_CURRENT;
   }
 	
   protected void releaseImpl() throws GLException {
-      if (!CGL.clearCurrentContext(nsContext, nsView)) {
-        throw new GLException("Error freeing OpenGL nsContext");
-      }
+    if (!CGL.clearCurrentContext(nsContext, drawable.getView())) {
+      throw new GLException("Error freeing OpenGL nsContext");
+    }
   }
 	
   protected void destroyImpl() throws GLException {
@@ -199,15 +173,14 @@ public abstract class MacOSXGLContext extends GLContextImpl
       if (!CGL.deleteContext(nsContext, 0)) {
         throw new GLException("Unable to delete OpenGL context");
       }
+      nsContext = 0;
+      GLContextShareSet.contextDestroyed(this);
       if (DEBUG) {
         System.err.println("!!! Destroyed OpenGL context " + nsContext);
       }
-      nsContext = 0;
     }
   }
 
-  public abstract void swapBuffers() throws GLException;
-	
   protected long dynamicLookupFunction(String glFuncName) {
     return CGL.getProcAddress(glFuncName);
   }
@@ -247,30 +220,24 @@ public abstract class MacOSXGLContext extends GLContextImpl
     CGL.setSwapInterval(nsContext, interval);
   }
 
+  protected boolean isFunctionAvailable(String glFunctionName)
+  {
+    return super.isFunctionAvailable(glFunctionName);
+  }
+  
+  public boolean isExtensionAvailable(String glExtensionName) {
+    if (glExtensionName.equals("GL_ARB_pbuffer") ||
+        glExtensionName.equals("GL_ARB_pixel_format")) {
+      return true;
+    }
+    return super.isExtensionAvailable(glExtensionName);
+  }
+  
   //----------------------------------------------------------------------
   // Internals only below this point
   //
 	
   protected long getNSContext() {
     return nsContext;
-  }
-
-  protected long getNSView() {
-    return nsView;
-  }
-
-  protected JAWT getJAWT()
-  {
-    if (jawt == null)
-      {
-	JAWT j = new JAWT();
-	j.version(JAWTFactory.JAWT_VERSION_1_4);
-	if (!JAWTFactory.JAWT_GetAWT(j))
-	  {
-	    throw new RuntimeException("Unable to initialize JAWT");
-	  }
-	jawt = j;
-      }
-    return jawt;
   }
 }

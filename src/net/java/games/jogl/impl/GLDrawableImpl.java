@@ -37,32 +37,16 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package net.java.games.jogl;
+package net.java.games.jogl.impl;
 
-import net.java.games.jogl.impl.*;
+import net.java.games.jogl.*;
 
-/** This package-private class helps extract a GLContext from a
-    GLDrawable. The getContext() method can not be placed in the
-    public API of GLDrawable without exposing the GLContext class to
-    the public API, which is not desired. */
+public abstract class GLDrawableImpl implements GLDrawable {
+  /** For offscreen GLDrawables (pbuffers and "pixmap" drawables),
+      indicates that native resources should be reclaimed. */
+  public abstract void destroy() throws GLException;
 
-class GLContextHelper {
-  static GLContext getContext(GLDrawable drawable) throws GLException {
-    if (drawable == null) {
-      return null;
-    }
-
-    if (drawable instanceof GLCanvas) {
-      return ((GLCanvas) drawable).getContext();
-    } else if (drawable instanceof GLJPanel) {
-      return ((GLJPanel) drawable).getContext();
-    } else if (drawable instanceof GLPbufferImpl) {
-      return ((GLPbufferImpl) drawable).getContext();
-    } else {
-      throw new GLException(
-        "Sharing of contexts and display lists not supported among user-defined GLDrawables " +
-        "(unknown drawable type " + drawable.getClass().getName() + ")"
-      );
-    }
+  public static String toHexString(long hex) {
+    return GLContextImpl.toHexString(hex);
   }
 }

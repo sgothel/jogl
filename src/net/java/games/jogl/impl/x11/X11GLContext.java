@@ -47,9 +47,7 @@ import net.java.games.jogl.*;
 import net.java.games.jogl.impl.*;
 
 public abstract class X11GLContext extends GLContextImpl {
-  protected long display;
-  protected long drawable;
-  protected long visualID;
+  protected X11GLDrawable drawable;
   protected long context;
   private boolean glXQueryExtensionsStringInitialized;
   private boolean glXQueryExtensionsStringAvailable;
@@ -84,11 +82,10 @@ public abstract class X11GLContext extends GLContextImpl {
       });
   }
 
-  public X11GLContext(Component component,
-                      GLCapabilities capabilities,
-                      GLCapabilitiesChooser chooser,
+  public X11GLContext(X11GLDrawable drawable,
                       GLContext shareWith) {
-    super(component, capabilities, chooser, shareWith);
+    super(shareWith);
+    this.drawable = drawable;
   }
   
   protected GL createGL()
@@ -108,16 +105,6 @@ public abstract class X11GLContext extends GLContextImpl {
     return glExtensionName;
   }
 
-  protected abstract boolean isOffscreen();
-  
-  public int getOffscreenContextWidth() {
-    throw new GLException("Should not call this");
-  }
-  
-  public int getOffscreenContextHeight() {
-    throw new GLException("Should not call this");
-  }
-  
   public int getOffscreenContextPixelDataType() {
     throw new GLException("Should not call this");
   }
@@ -126,18 +113,32 @@ public abstract class X11GLContext extends GLContextImpl {
 
   public abstract boolean offscreenImageNeedsVerticalFlip();
 
-  /**
-   * Creates and initializes an appropriate OpenGl context. Should only be
-   * called by {@link makeCurrentImpl()}.
+  /** Helper routine which usually just turns around and calls
+   * createContext (except for pbuffers, which use a different context
+   * creation mechanism). Should only be called by {@link
+   * makeCurrentImpl()}.
    */
   protected abstract void create();
-  
-  public boolean isExtensionAvailable(String glExtensionName) {
-    if (glExtensionName.equals("GL_ARB_pbuffer") ||
-        glExtensionName.equals("GL_ARB_pixel_format")) {
-      return isGLX13;
+
+  /**
+   * Creates and initializes an appropriate OpenGL context. Should only be
+   * called by {@link create()}.
+   */
+  protected void createContext(boolean onscreen) {
+    XVisualInfo vis = drawable.chooseVisual(onscreen);
+    X11GLContext other = (X11GLContext) GLContextShareSet.getShareContext(this);
+    long share = 0;
+    if (other != null) {
+      share = other.getContext();
+      if (share == 0) {
+        throw new GLException("GLContextShareSet returned an invalid OpenGL context");
+      }
     }
-    return super.isExtensionAvailable(glExtensionName);
+    context = GLX.glXCreateContext(drawable.getDisplay(), vis, share, onscreen);
+    if (context == 0) {
+      throw new GLException("Unable to create OpenGL context");
+    }
+    GLContextShareSet.contextCreated(this);
   }
 
   protected int makeCurrentImpl() throws GLException {
@@ -145,19 +146,20 @@ public abstract class X11GLContext extends GLContextImpl {
     if (context == 0) {
       create();
       if (DEBUG) {
-        System.err.println("!!! Created GL context for " + getClass().getName());
+        System.err.println(getThreadName() + ": !!! Created GL context for " + getClass().getName());
       }
       created = true;
     }
-    if (drawable == 0) {
-      throw new GLException("Unable to make context current; drawable was null");
-    }
 
-    // FIXME: this cast to int would be wrong on 64-bit platforms
-    // where the argument type to glXMakeCurrent would change (should
-    // probably make GLXDrawable, and maybe XID, Opaque as long)
-    if (!GLX.glXMakeCurrent(display, (int) drawable, context)) {
+    if (!GLX.glXMakeCurrent(drawable.getDisplay(), drawable.getDrawable(), context)) {
       throw new GLException("Error making context current");
+    } else {
+      mostRecentDisplay = drawable.getDisplay();
+      if (DEBUG && VERBOSE) {
+        System.err.println(getThreadName() + ": glXMakeCurrent(display " + toHexString(drawable.getDisplay()) +
+                           ", drawable " + toHexString(drawable.getDrawable()) +
+                           ", context " + toHexString(context) + ") succeeded");
+      }
     }
 
     if (created) {
@@ -168,7 +170,7 @@ public abstract class X11GLContext extends GLContextImpl {
   }
 
   protected void releaseImpl() throws GLException {
-    if (!GLX.glXMakeCurrent(display, 0, 0)) {
+    if (!GLX.glXMakeCurrent(drawable.getDisplay(), 0, 0)) {
       throw new GLException("Error freeing OpenGL context");
     }
   }
@@ -177,15 +179,15 @@ public abstract class X11GLContext extends GLContextImpl {
     lockAWT();
     if (context != 0) {
       GLX.glXDestroyContext(mostRecentDisplay, context);
+      context = 0;
+      mostRecentDisplay = 0;
+      GLContextShareSet.contextDestroyed(this);
       if (DEBUG) {
         System.err.println("!!! Destroyed OpenGL context " + context);
       }
-      context = 0;
     }
     unlockAWT();
   }
-
-  public abstract void swapBuffers() throws GLException;
 
   protected long dynamicLookupFunction(String glFuncName) {
     long res = 0;
@@ -216,12 +218,12 @@ public abstract class X11GLContext extends GLContextImpl {
 
     // Figure out whether we are running GLX version 1.3 or above and
     // therefore have pbuffer support
-    if (display == 0) {
+    if (drawable.getDisplay() == 0) {
       throw new GLException("Expected non-null DISPLAY for querying GLX version");
     }
     int[] major = new int[1];
     int[] minor = new int[1];
-    if (!GLX.glXQueryVersion(display, major, 0, minor, 0)) {
+    if (!GLX.glXQueryVersion(drawable.getDisplay(), major, 0, minor, 0)) {
       throw new GLException("glXQueryVersion failed");
     }
     if (DEBUG) {
@@ -253,7 +255,7 @@ public abstract class X11GLContext extends GLContextImpl {
   }
   
   public synchronized String getPlatformExtensionsString() {
-    if (display == 0) {
+    if (drawable.getDisplay() == 0) {
       throw new GLException("Context not current");
     }
     if (!glXQueryExtensionsStringInitialized) {
@@ -263,7 +265,7 @@ public abstract class X11GLContext extends GLContextImpl {
     if (glXQueryExtensionsStringAvailable) {
       lockAWT();
       try {
-        String ret = GLX.glXQueryExtensionsString(display, GLX.DefaultScreen(display));
+        String ret = GLX.glXQueryExtensionsString(drawable.getDisplay(), GLX.DefaultScreen(drawable.getDisplay()));
         if (DEBUG) {
           System.err.println("!!! GLX extensions: " + ret);
         }
@@ -292,97 +294,17 @@ public abstract class X11GLContext extends GLContextImpl {
     return available;
   }
   
+  public boolean isExtensionAvailable(String glExtensionName) {
+    if (glExtensionName.equals("GL_ARB_pbuffer") ||
+        glExtensionName.equals("GL_ARB_pixel_format")) {
+      return isGLX13;
+    }
+    return super.isExtensionAvailable(glExtensionName);
+  }
+
   //----------------------------------------------------------------------
   // Internals only below this point
   //
-
-  protected JAWT getJAWT() {
-    return X11GLContextFactory.getJAWT();
-  }
-
-  protected XVisualInfo chooseVisual() {
-    if (!isOffscreen()) {
-      // The visual has already been chosen by the time we get here;
-      // it's specified by the GraphicsConfiguration of the
-      // GLCanvas. Fortunately, the JAWT supplies the visual ID for
-      // the component in a portable fashion, so all we have to do is
-      // use XGetVisualInfo with a VisualIDMask to get the
-      // corresponding XVisualInfo to pass into glXChooseVisual.
-      int[] count = new int[1];
-      XVisualInfo template = new XVisualInfo();
-      // FIXME: probably not 64-bit clean
-      template.visualid((int) visualID);
-      XVisualInfo[] infos = GLX.XGetVisualInfo(display, GLX.VisualIDMask, template, count, 0);
-      if (infos == null || infos.length == 0) {
-        throw new GLException("Error while getting XVisualInfo for visual ID " + visualID);
-      }
-      // FIXME: the storage for the infos array is leaked (should
-      // clean it up somehow when we're done with the visual we're
-      // returning)
-      return infos[0];
-    } else {
-      // It isn't clear to me whether we need this much code to handle
-      // the offscreen case, where we're creating a pixmap into which
-      // to render...this is what we (incorrectly) used to do for the
-      // onscreen case
-
-      int screen = 0; // FIXME: provide way to specify this?
-      XVisualInfo vis = null;
-      int[] count = new int[1];
-      XVisualInfo template = new XVisualInfo();
-      template.screen(screen);
-      XVisualInfo[] infos = GLX.XGetVisualInfo(display, GLX.VisualScreenMask, template, count, 0);
-      if (infos == null) {
-        throw new GLException("Error while enumerating available XVisualInfos");
-      }
-      GLCapabilities[] caps = new GLCapabilities[infos.length];
-      for (int i = 0; i < infos.length; i++) {
-        caps[i] = X11GLContextFactory.xvi2GLCapabilities(display, infos[i]);
-      }
-      int chosen = chooser.chooseCapabilities(capabilities, caps, -1);
-      if (chosen < 0 || chosen >= caps.length) {
-        throw new GLException("GLCapabilitiesChooser specified invalid index (expected 0.." + (caps.length - 1) + ")");
-      }
-      if (DEBUG) {
-        System.err.println("Chosen visual (" + chosen + "):");
-        System.err.println(caps[chosen]);
-      }
-      vis = infos[chosen];
-      if (vis == null) {
-        throw new GLException("GLCapabilitiesChooser chose an invalid visual");
-      }
-      // FIXME: the storage for the infos array is leaked (should
-      // clean it up somehow when we're done with the visual we're
-      // returning)
-
-      return vis;
-    }
-  }
-
-  protected long createContext(XVisualInfo vis, boolean onscreen) {
-    X11GLContext other = (X11GLContext) GLContextShareSet.getShareContext(this);
-    long share = 0;
-    if (other != null) {
-      share = other.getContext();
-      if (share == 0) {
-        throw new GLException("GLContextShareSet returned an invalid OpenGL context");
-      }
-    }
-    long res = GLX.glXCreateContext(display, vis, share, onscreen);
-    if (res != 0) {
-      GLContextShareSet.contextCreated(this);
-    }
-    return res;
-  }
-
-  // Helper routine for the overridden create() to call
-  protected void chooseVisualAndCreateContext(boolean onscreen) {
-    XVisualInfo vis = chooseVisual();
-    context = createContext(vis, onscreen);
-    if (context == 0) {
-      throw new GLException("Unable to create OpenGL context");
-    }
-  }
 
   protected long getContext() {
     return context;
