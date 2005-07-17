@@ -57,16 +57,6 @@ public class WindowsPbufferGLContext extends WindowsGLContext {
     this.drawable = drawable;
   }
 
-  public boolean canCreatePbufferContext() {
-    return false;
-  }
-
-  public GLDrawableImpl createPbufferDrawable(GLCapabilities capabilities,
-                                              int initialWidth,
-                                              int initialHeight) {
-    throw new GLException("Not supported");
-  }
-
   public void bindPbufferToTexture() {
     if (!rtt) {
       throw new GLException("Shouldn't try to bind a pbuffer to a texture if render-to-texture hasn't been " +
@@ -158,14 +148,6 @@ public class WindowsPbufferGLContext extends WindowsGLContext {
       }
     }
     return res;
-  }
-
-  public int getOffscreenContextReadBuffer() {
-    throw new GLException("Should not call this");
-  }
-
-  public boolean offscreenImageNeedsVerticalFlip() {
-    throw new GLException("Should not call this");
   }
 
   public int getFloatingPointMode() {

@@ -75,18 +75,6 @@ public abstract class MacOSXGLContext extends GLContextImpl
     return glExtensionName;
   }
 	
-  public int getOffscreenContextPixelDataType() {
-    throw new GLException("Should not call this");
-  }
-
-  public int getOffscreenContextReadBuffer() {
-    throw new GLException("Should not call this");
-  }
-
-  public boolean offscreenImageNeedsVerticalFlip() {
-    throw new GLException("Should not call this");
-  }
-
   protected boolean create() {
     return create(false, false);
   }
@@ -233,6 +221,36 @@ public abstract class MacOSXGLContext extends GLContextImpl
     return super.isExtensionAvailable(glExtensionName);
   }
   
+  public int getOffscreenContextPixelDataType() {
+    throw new GLException("Should not call this");
+  }
+
+  public int getOffscreenContextReadBuffer() {
+    throw new GLException("Should not call this");
+  }
+
+  public boolean offscreenImageNeedsVerticalFlip() {
+    throw new GLException("Should not call this");
+  }
+
+  public boolean canCreatePbufferContext() {
+    return false;
+  }
+
+  public GLDrawableImpl createPbufferDrawable(GLCapabilities capabilities,
+                                              int initialWidth,
+                                              int initialHeight) {
+    throw new GLException("Not supported");
+  }
+
+  public void bindPbufferToTexture() {
+    throw new GLException("Should not call this");
+  }
+    
+  public void releasePbufferFromTexture() {
+    throw new GLException("Should not call this");
+  }
+    
   //----------------------------------------------------------------------
   // Internals only below this point
   //

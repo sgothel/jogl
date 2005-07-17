@@ -61,12 +61,4 @@ public class MacOSXOffscreenGLContext extends MacOSXPbufferGLContext
   public boolean offscreenImageNeedsVerticalFlip() {
     return true;
   }
-
-  public void bindPbufferToTexture() {
-    throw new GLException("Should not call this");
-  }
-	
-  public void releasePbufferFromTexture() {
-    throw new GLException("Should not call this");
-  }
 }

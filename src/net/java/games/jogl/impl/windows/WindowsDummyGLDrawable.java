@@ -42,23 +42,56 @@ package net.java.games.jogl.impl.windows;
 import net.java.games.jogl.*;
 import net.java.games.jogl.impl.*;
 
-public class WindowsOffscreenGLContext extends WindowsGLContext {
-  public WindowsOffscreenGLContext(WindowsOffscreenGLDrawable drawable,
-                                   GLContext shareWith) {
-    super(drawable, shareWith);
+public class WindowsDummyGLDrawable extends WindowsGLDrawable {
+  private long hwnd;
+
+  public WindowsDummyGLDrawable() {
+    super(null, new GLCapabilities(), null);
+    // All entries to CreateDummyWindow must synchronize on one object
+    // to avoid accidentally registering the dummy window class twice
+    synchronized (WindowsDummyGLDrawable.class) {
+      hwnd = WGL.CreateDummyWindow(0, 0, 1, 1);
+    }
+    hdc = WGL.GetDC(hwnd);
+    // Choose a (hopefully hardware-accelerated) OpenGL pixel format for this device context
+    GLCapabilities caps = new GLCapabilities();
+    caps.setDepthBits(16);
+    PIXELFORMATDESCRIPTOR pfd = glCapabilities2PFD(caps, true);
+    int pixelFormat = WGL.ChoosePixelFormat(hdc, pfd);
+    if ((pixelFormat == 0) ||
+        (!WGL.SetPixelFormat(hdc, pixelFormat, pfd))) {
+      destroy();
+    }
   }
 
-  public int getOffscreenContextPixelDataType() {
-      return GL.GL_UNSIGNED_BYTE;
-  }
-  
-  public int getOffscreenContextReadBuffer() {
-    // On Windows these contexts are always single-buffered
-    return GL.GL_FRONT;
+  public void setSize(int width, int height) {
   }
 
-  public boolean offscreenImageNeedsVerticalFlip() {
-    // We can take care of this in the DIB creation (see below)
-    return false;
+  public int getWidth() {
+    return 1;
+  }
+
+  public int getHeight() {
+    return 1;
+  }
+
+  public GLContext createContext(GLContext shareWith) {
+    if (hdc == 0) {
+      // Construction failed
+      return null;
+    }
+    return new WindowsGLContext(this, shareWith);
+  }
+
+  public void destroy() {
+    if (hdc != 0) {
+      WGL.ReleaseDC(hwnd, hdc);
+      hdc = 0;
+    }
+    if (hwnd != 0) {
+      WGL.ShowWindow(hwnd, WGL.SW_HIDE);
+      WGL.DestroyWindow(hwnd);
+      hwnd = 0;
+    }
   }
 }

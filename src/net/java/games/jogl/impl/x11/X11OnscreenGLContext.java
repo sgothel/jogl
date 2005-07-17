@@ -55,14 +55,6 @@ public class X11OnscreenGLContext extends X11GLContext {
     this.drawable = drawable;
   }
   
-  public int getOffscreenContextReadBuffer() {
-    throw new GLException("Should not call this");
-  }
-
-  public boolean offscreenImageNeedsVerticalFlip() {
-    throw new GLException("Should not call this");
-  }
-
   public boolean canCreatePbufferContext() {
     return isExtensionAvailable("GL_ARB_pbuffer");
   }
@@ -73,14 +65,6 @@ public class X11OnscreenGLContext extends X11GLContext {
     X11PbufferGLDrawable buf = new X11PbufferGLDrawable(capabilities, initialWidth, initialHeight);
     pbuffersToInstantiate.add(buf);
     return buf;
-  }
-
-  public void bindPbufferToTexture() {
-    throw new GLException("Should not call this");
-  }
-
-  public void releasePbufferFromTexture() {
-    throw new GLException("Should not call this");
   }
 
   protected int makeCurrentImpl() throws GLException {

@@ -44,7 +44,7 @@ import net.java.games.gluegen.runtime.*; // for PROCADDRESS_VAR_PREFIX
 import net.java.games.jogl.*;
 import net.java.games.jogl.impl.*;
 
-public abstract class WindowsGLContext extends GLContextImpl {
+public class WindowsGLContext extends GLContextImpl {
   protected WindowsGLDrawable drawable;
   protected long hglrc;
   private boolean wglGetExtensionsStringEXTInitialized;
@@ -94,14 +94,6 @@ public abstract class WindowsGLContext extends GLContextImpl {
     }
     return glExtensionName;
   }
-
-  public int getOffscreenContextPixelDataType() {
-    throw new GLException("Should not call this");
-  }
-
-  public abstract int getOffscreenContextReadBuffer();
-
-  public abstract boolean offscreenImageNeedsVerticalFlip();
 
   /**
    * Creates and initializes an appropriate OpenGL context. Should only be
@@ -259,6 +251,36 @@ public abstract class WindowsGLContext extends GLContextImpl {
     return available;
   }
   
+  public int getOffscreenContextPixelDataType() {
+    throw new GLException("Should not call this");
+  }
+
+  public int getOffscreenContextReadBuffer() {
+    throw new GLException("Should not call this");
+  }
+
+  public boolean offscreenImageNeedsVerticalFlip() {
+    throw new GLException("Should not call this");
+  }
+
+  public boolean canCreatePbufferContext() {
+    return false;
+  }
+
+  public GLDrawableImpl createPbufferDrawable(GLCapabilities capabilities,
+                                              int initialWidth,
+                                              int initialHeight) {
+    throw new GLException("Not supported");
+  }
+
+  public void bindPbufferToTexture() {
+    throw new GLException("Should not call this");
+  }
+
+  public void releasePbufferFromTexture() {
+    throw new GLException("Should not call this");
+  }
+
   //----------------------------------------------------------------------
   // Internals only below this point
   //

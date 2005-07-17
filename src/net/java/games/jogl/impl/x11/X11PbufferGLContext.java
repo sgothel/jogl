@@ -51,16 +51,6 @@ public class X11PbufferGLContext extends X11GLContext {
     this.drawable = drawable;
   }
 
-  public boolean canCreatePbufferContext() {
-    return false;
-  }
-
-  public GLDrawableImpl createPbufferDrawable(GLCapabilities capabilities,
-                                              int initialWidth,
-                                              int initialHeight) {
-    throw new GLException("Not supported");
-  }
-
   public void bindPbufferToTexture() {
     // FIXME: figure out how to implement this
     throw new GLException("Not yet implemented");
@@ -126,14 +116,6 @@ public class X11PbufferGLContext extends X11GLContext {
     } finally {
       unlockAWT();
     }
-  }
-
-  public int getOffscreenContextReadBuffer() {
-    throw new GLException("Should not call this");
-  }
-
-  public boolean offscreenImageNeedsVerticalFlip() {
-    throw new GLException("Should not call this");
   }
 
   public int getFloatingPointMode() {

@@ -105,14 +105,6 @@ public abstract class X11GLContext extends GLContextImpl {
     return glExtensionName;
   }
 
-  public int getOffscreenContextPixelDataType() {
-    throw new GLException("Should not call this");
-  }
-
-  public abstract int getOffscreenContextReadBuffer();
-
-  public abstract boolean offscreenImageNeedsVerticalFlip();
-
   /** Helper routine which usually just turns around and calls
    * createContext (except for pbuffers, which use a different context
    * creation mechanism). Should only be called by {@link
@@ -300,6 +292,36 @@ public abstract class X11GLContext extends GLContextImpl {
       return isGLX13;
     }
     return super.isExtensionAvailable(glExtensionName);
+  }
+
+  public int getOffscreenContextPixelDataType() {
+    throw new GLException("Should not call this");
+  }
+
+  public int getOffscreenContextReadBuffer() {
+    throw new GLException("Should not call this");
+  }
+
+  public boolean offscreenImageNeedsVerticalFlip() {
+    throw new GLException("Should not call this");
+  }
+
+  public boolean canCreatePbufferContext() {
+    return false;
+  }
+
+  public GLDrawableImpl createPbufferDrawable(GLCapabilities capabilities,
+                                              int initialWidth,
+                                              int initialHeight) {
+    throw new GLException("Not supported");
+  }
+
+  public void bindPbufferToTexture() {
+    throw new GLException("Should not call this");
+  }
+
+  public void releasePbufferFromTexture() {
+    throw new GLException("Should not call this");
   }
 
   //----------------------------------------------------------------------

@@ -68,25 +68,6 @@ public class X11OffscreenGLContext extends X11GLContext {
     return true;
   }
 
-  public boolean canCreatePbufferContext() {
-    // For now say no
-    return false;
-  }
-
-  public GLDrawableImpl createPbufferDrawable(GLCapabilities capabilities,
-                                              int initialWidth,
-                                              int initialHeight) {
-    throw new GLException("Not supported");
-  }
-
-  public void bindPbufferToTexture() {
-    throw new GLException("Should not call this");
-  }
-
-  public void releasePbufferFromTexture() {
-    throw new GLException("Should not call this");
-  }
-
   protected void create() {
     createContext(false);
   }

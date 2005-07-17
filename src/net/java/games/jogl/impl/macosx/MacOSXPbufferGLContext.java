@@ -34,16 +34,6 @@ public class MacOSXPbufferGLContext extends MacOSXGLContext {
     this.drawable = drawable;
   }
 
-  public boolean canCreatePbufferContext() {
-    return false;
-  }
-
-  public GLDrawableImpl createPbufferDrawable(GLCapabilities capabilities,
-                                              int initialWidth,
-                                              int initialHeight) {
-    throw new GLException("Not supported");
-  }
-
   public void bindPbufferToTexture() {
     GL gl = getGL();
     gl.glBindTexture(textureTarget, texture);

@@ -55,14 +55,6 @@ public class WindowsOnscreenGLContext extends WindowsGLContext {
     this.drawable = drawable;
   }
   
-  public int getOffscreenContextReadBuffer() {
-    throw new GLException("Should not call this");
-  }
-
-  public boolean offscreenImageNeedsVerticalFlip() {
-    throw new GLException("Should not call this");
-  }
-
   public boolean canCreatePbufferContext() {
     return haveWGLARBPbuffer();
   }
@@ -73,14 +65,6 @@ public class WindowsOnscreenGLContext extends WindowsGLContext {
     WindowsPbufferGLDrawable buf = new WindowsPbufferGLDrawable(capabilities, initialWidth, initialHeight);
     pbuffersToInstantiate.add(buf);
     return buf;
-  }
-
-  public void bindPbufferToTexture() {
-    throw new GLException("Should not call this");
-  }
-
-  public void releasePbufferFromTexture() {
-    throw new GLException("Should not call this");
   }
 
   protected int makeCurrentImpl() throws GLException {

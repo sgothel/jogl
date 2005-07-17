@@ -144,6 +144,25 @@ typedef struct tagPIXELFORMATDESCRIPTOR
 #define ERROR_PROC_NOT_FOUND             127
 #define ERROR_INVALID_WINDOW_HANDLE      1400
 
+/*
+ * ShowWindow() Commands
+ */
+#define SW_HIDE             0
+#define SW_SHOWNORMAL       1
+#define SW_NORMAL           1
+#define SW_SHOWMINIMIZED    2
+#define SW_SHOWMAXIMIZED    3
+#define SW_MAXIMIZE         3
+#define SW_SHOWNOACTIVATE   4
+#define SW_SHOW             5
+#define SW_MINIMIZE         6
+#define SW_SHOWMINNOACTIVE  7
+#define SW_SHOWNA           8
+#define SW_RESTORE          9
+#define SW_SHOWDEFAULT      10
+#define SW_FORCEMINIMIZE    11
+#define SW_MAX              11
+
 // Windows routines
 WINBASEAPI DWORD WINAPI GetLastError(VOID);
 WINBASEAPI HMODULE WINAPI LoadLibraryA(LPCSTR lpLibFileName);
@@ -183,10 +202,11 @@ WINGDIAPI BOOL    WINAPI DeleteDC(HDC);
 WINGDIAPI BOOL    WINAPI DeleteObject(HGDIOBJ);
 WINGDIAPI HGDIOBJ WINAPI SelectObject(HDC, HGDIOBJ);
 
-// Routines for creation of a dummy device context and OpenGL context
-// for the purposes of getting wglChoosePixelFormatARB and associated
-// routines
-WINGDIAPI HDC     WINAPI GetDC(HDC);
-WINGDIAPI HDC     WINAPI CreateDummyWindow(int,int,int,int);
-WINGDIAPI VOID    WINAPI DestroyDummyWindow(HWND,HDC);
-WINGDIAPI VOID    WINAPI NativeEventLoop();
+// Routines for creation of a dummy window, device context and OpenGL
+// context for the purposes of getting wglChoosePixelFormatARB and
+// associated routines
+HDC                    CreateDummyWindow(int,int,int,int);
+WINUSERAPI BOOL WINAPI ShowWindow(HWND hWnd, int nCmdShow);
+WINUSERAPI HDC  WINAPI GetDC(HWND);
+WINUSERAPI int  WINAPI ReleaseDC(HWND hWnd, HDC hDC);
+WINUSERAPI BOOL WINAPI DestroyWindow(HWND hWnd);
