@@ -161,11 +161,11 @@ public abstract class MacOSXGLContext extends GLContextImpl
       if (!CGL.deleteContext(nsContext, 0)) {
         throw new GLException("Unable to delete OpenGL context");
       }
-      nsContext = 0;
-      GLContextShareSet.contextDestroyed(this);
       if (DEBUG) {
         System.err.println("!!! Destroyed OpenGL context " + nsContext);
       }
+      nsContext = 0;
+      GLContextShareSet.contextDestroyed(this);
     }
   }
 

@@ -106,4 +106,13 @@ public abstract class GLContextFactory {
   // GLJPanel support
   public abstract GLDrawableImpl createOffscreenDrawable(GLCapabilities capabilities,
                                                          GLCapabilitiesChooser chooser);
+
+  public abstract boolean canCreateGLPbuffer(GLCapabilities capabilities,
+                                             int initialWidth,
+                                             int initialHeight);
+
+  public abstract GLPbuffer createGLPbuffer(GLCapabilities capabilities,
+                                            int initialWidth,
+                                            int initialHeight,
+                                            GLContext shareWith);
 }

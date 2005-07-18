@@ -211,8 +211,9 @@ public class GLDrawableFactory {
   public boolean canCreateGLPbuffer(GLCapabilities capabilities,
                                     int initialWidth,
                                     int initialHeight) {
-    // FIXME
-    throw new GLException("Not yet implemented");
+    return GLContextFactory.getFactory().canCreateGLPbuffer(capabilities,
+                                                            initialWidth,
+                                                            initialHeight);
   }
 
 
@@ -223,7 +224,9 @@ public class GLDrawableFactory {
                                    int initialWidth,
                                    int initialHeight,
                                    GLContext shareWith) {
-    // FIXME
-    throw new GLException("Not yet implemented");
+    return GLContextFactory.getFactory().createGLPbuffer(capabilities,
+                                                         initialWidth,
+                                                         initialHeight,
+                                                         shareWith);
   }
 }

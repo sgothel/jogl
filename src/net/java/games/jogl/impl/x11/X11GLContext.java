@@ -171,12 +171,12 @@ public abstract class X11GLContext extends GLContextImpl {
     lockAWT();
     if (context != 0) {
       GLX.glXDestroyContext(mostRecentDisplay, context);
-      context = 0;
-      mostRecentDisplay = 0;
-      GLContextShareSet.contextDestroyed(this);
       if (DEBUG) {
         System.err.println("!!! Destroyed OpenGL context " + context);
       }
+      context = 0;
+      mostRecentDisplay = 0;
+      GLContextShareSet.contextDestroyed(this);
     }
     unlockAWT();
   }

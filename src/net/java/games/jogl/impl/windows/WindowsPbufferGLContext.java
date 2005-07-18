@@ -43,6 +43,8 @@ import net.java.games.jogl.*;
 import net.java.games.jogl.impl.*;
 
 public class WindowsPbufferGLContext extends WindowsGLContext {
+  private static final boolean DEBUG = Debug.debug("WindowsPbufferGLContext");
+
   // State for render-to-texture and render-to-texture-rectangle support
   private WindowsPbufferGLDrawable drawable;
   private boolean rtt;       // render-to-texture?
@@ -98,7 +100,7 @@ public class WindowsPbufferGLContext extends WindowsGLContext {
 
     int res = super.makeCurrentImpl();
     if (DEBUG && VERBOSE) {
-      System.err.println("super.makeCurrent() = " + res);
+      System.err.println("WindowsPbufferGLContext: super.makeCurrentImpl() = " + res);
     }
     if (res == CONTEXT_CURRENT_NEW) {
       GLCapabilities capabilities = drawable.getCapabilities();

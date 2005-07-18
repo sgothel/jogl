@@ -54,7 +54,11 @@ public class WindowsPbufferGLDrawable extends WindowsGLDrawable {
 
   private int floatMode;
 
-  public WindowsPbufferGLDrawable(GLCapabilities capabilities, int initialWidth, int initialHeight) {
+  public WindowsPbufferGLDrawable(GLCapabilities capabilities,
+                                  int initialWidth,
+                                  int initialHeight,
+                                  WindowsGLDrawable dummyDrawable,
+                                  GL gl) {
     super(null, capabilities, null);
     this.initWidth  = initialWidth;
     this.initHeight = initialHeight;
@@ -69,6 +73,8 @@ public class WindowsPbufferGLDrawable extends WindowsGLDrawable {
                          (capabilities.getOffscreenRenderToTextureRectangle() ? " [rect]" : "") +
                          (capabilities.getOffscreenFloatingPointBuffers() ? " [float]" : ""));
     }
+
+    createPbuffer(dummyDrawable.getHDC(), gl);
   }
 
   public GLContext createContext(GLContext shareWith) {
@@ -106,7 +112,36 @@ public class WindowsPbufferGLDrawable extends WindowsGLDrawable {
     return height;
   }
 
-  public void createPbuffer(GL gl, long parentHdc) {
+  public GLCapabilities getCapabilities() {
+    return capabilities;
+  }
+
+  public long getPbuffer() {
+    return buffer;
+  }
+
+  public int getFloatingPointMode() {
+    return floatMode;
+  }
+
+  public void swapBuffers() throws GLException {
+    // FIXME: this doesn't make sense any more because we don't have
+    // access to our OpenGL context here
+    /*
+    // FIXME: do we need to do anything if the pbuffer is double-buffered?
+    // For now, just grab the pixels for the render-to-texture support.
+    if (rtt && !hasRTT) {
+      if (DEBUG) {
+        System.err.println("Copying pbuffer data to GL_TEXTURE_2D state");
+      }
+
+      GL gl = getGL();
+      gl.glCopyTexSubImage2D(textureTarget, 0, 0, 0, 0, 0, width, height);
+    }
+    */
+  }
+
+  private void createPbuffer(long parentHdc, GL gl) {
     int[]   iattributes = new int  [2*MAX_ATTRIBS];
     float[] fattributes = new float[2*MAX_ATTRIBS];
     int nfattribs = 0;
@@ -356,35 +391,6 @@ public class WindowsPbufferGLDrawable extends WindowsGLDrawable {
     if (DEBUG) {
       System.err.println("Created pbuffer " + width + " x " + height);
     }
-  }
-
-  public GLCapabilities getCapabilities() {
-    return capabilities;
-  }
-
-  public long getPbuffer() {
-    return buffer;
-  }
-
-  public int getFloatingPointMode() {
-    return floatMode;
-  }
-
-  public void swapBuffers() throws GLException {
-    // FIXME: this doesn't make sense any more because we don't have
-    // access to our OpenGL context here
-    /*
-    // FIXME: do we need to do anything if the pbuffer is double-buffered?
-    // For now, just grab the pixels for the render-to-texture support.
-    if (rtt && !hasRTT) {
-      if (DEBUG) {
-        System.err.println("Copying pbuffer data to GL_TEXTURE_2D state");
-      }
-
-      GL gl = getGL();
-      gl.glCopyTexSubImage2D(textureTarget, 0, 0, 0, 0, 0, width, height);
-    }
-    */
   }
 
   private static String wglGetLastError() {

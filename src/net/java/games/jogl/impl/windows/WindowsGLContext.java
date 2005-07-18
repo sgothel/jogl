@@ -179,11 +179,11 @@ public class WindowsGLContext extends GLContextImpl {
       if (!WGL.wglDeleteContext(hglrc)) {
         throw new GLException("Unable to delete OpenGL context");
       }
-      hglrc = 0;
-      GLContextShareSet.contextDestroyed(this);
       if (DEBUG) {
         System.err.println(getThreadName() + ": !!! Destroyed OpenGL context " + toHexString(hglrc));
       }
+      hglrc = 0;
+      GLContextShareSet.contextDestroyed(this);
     }
   }
 

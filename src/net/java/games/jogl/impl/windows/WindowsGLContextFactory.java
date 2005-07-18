@@ -40,18 +40,16 @@
 package net.java.games.jogl.impl.windows;
 
 import java.awt.Component;
+import java.awt.EventQueue;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.awt.Rectangle;
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.Collection;
-import java.util.Iterator;
+import java.util.ArrayList;
+import java.util.List;
 import net.java.games.jogl.*;
 import net.java.games.jogl.impl.*;
 
@@ -63,21 +61,6 @@ public class WindowsGLContextFactory extends GLContextFactory {
     NativeLibLoader.load();
   }
 
-  // On Windows we want to be able to use some extension routines like
-  // wglChoosePixelFormatARB during the creation of the user's first
-  // GLContext. However, this and other routines' function pointers
-  // aren't loaded by the driver until the first OpenGL context is
-  // created. The standard way of working around this chicken-and-egg
-  // problem is to create a dummy window, show it, send it a paint
-  // message, create an OpenGL context, fetch the needed function
-  // pointers, and then destroy the dummy window and context. It turns
-  // out that ATI cards need the dummy context to be current while
-  // wglChoosePixelFormatARB is called, so we cache the extension
-  // strings the dummy context reports as being available.
-  private static Map/*<GraphicsDevice, GL>*/     dummyContextMap    = new HashMap();
-  private static Map/*<GraphicsDevice, String>*/ dummyExtensionsMap = new HashMap();
-  private static Set/*<GraphicsDevice    >*/     pendingContextSet  = new HashSet();
-  
   public WindowsGLContextFactory() {
     AccessController.doPrivileged( new PrivilegedAction() {
       public Object run() {
@@ -159,6 +142,79 @@ public class WindowsGLContextFactory extends GLContextFactory {
     return new WindowsOffscreenGLDrawable(capabilities, chooser);
   }
 
+  private boolean pbufferSupportInitialized = false;
+  private boolean canCreateGLPbuffer = false;
+  public boolean canCreateGLPbuffer(GLCapabilities capabilities,
+                                    int initialWidth,
+                                    int initialHeight) {
+    if (!pbufferSupportInitialized) {
+      Runnable r = new Runnable() {
+          public void run() {
+            WindowsDummyGLDrawable dummyDrawable = new WindowsDummyGLDrawable();
+            GLContext dummyContext  = dummyDrawable.createContext(null);
+            if (dummyContext != null) {
+              GLContext lastContext = GLContext.getCurrent();
+              if (lastContext != null) {
+                lastContext.release();
+              }
+              dummyContext.makeCurrent();
+              GL dummyGL = dummyContext.getGL();
+              canCreateGLPbuffer = dummyGL.isExtensionAvailable("GL_ARB_pbuffer");
+              pbufferSupportInitialized = true;
+              dummyContext.release();
+              dummyContext.destroy();
+              dummyDrawable.destroy();
+              if (lastContext != null) {
+                lastContext.makeCurrent();
+              }
+            }
+          }
+        };
+      maybeDoSingleThreadedWorkaround(r);
+    }
+    return canCreateGLPbuffer;
+  }
+
+  public GLPbuffer createGLPbuffer(final GLCapabilities capabilities,
+                                   final int initialWidth,
+                                   final int initialHeight,
+                                   final GLContext shareWith) {
+    if (!canCreateGLPbuffer) {
+      throw new GLException("Pbuffer support not available with current graphics card");
+    }
+    final List returnList = new ArrayList();
+    Runnable r = new Runnable() {
+        public void run() {
+          WindowsDummyGLDrawable dummyDrawable = new WindowsDummyGLDrawable();
+          GLContext dummyContext  = dummyDrawable.createContext(null);
+          GLContext lastContext = GLContext.getCurrent();
+          if (lastContext != null) {
+            lastContext.release();
+          }
+          dummyContext.makeCurrent();
+          GL dummyGL = dummyContext.getGL();
+          try {
+            WindowsPbufferGLDrawable pbufferDrawable = new WindowsPbufferGLDrawable(capabilities,
+                                                                                    initialWidth,
+                                                                                    initialHeight,
+                                                                                    dummyDrawable,
+                                                                                    dummyGL);
+            GLPbufferImpl pbuffer = new GLPbufferImpl(pbufferDrawable, shareWith);
+            returnList.add(pbuffer);
+            dummyContext.release();
+            dummyContext.destroy();
+            dummyDrawable.destroy();
+          } finally {
+            if (lastContext != null) {
+              lastContext.makeCurrent();
+            }
+          }
+        }
+      };
+    maybeDoSingleThreadedWorkaround(r);
+    return (GLPbuffer) returnList.get(0);
+  }
+
   static String wglGetLastError() {
     int err = WGL.GetLastError();
     String detail = null;
@@ -171,5 +227,19 @@ public class WindowsGLContextFactory extends GLContextFactory {
       default:                             detail = "(Unknown error code " + err + ")"; break;
     }
     return detail;
+  }
+
+  private void maybeDoSingleThreadedWorkaround(Runnable action) {
+    if (SingleThreadedWorkaround.doWorkaround() && !EventQueue.isDispatchThread()) {
+      try {
+        EventQueue.invokeAndWait(action);
+      } catch (InvocationTargetException e) {
+        throw new GLException(e.getTargetException());
+      } catch (InterruptedException e) {
+        throw new GLException(e);
+      }
+    } else {
+      action.run();
+    }
   }
 }

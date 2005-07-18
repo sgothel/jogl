@@ -56,15 +56,21 @@ public class WindowsOnscreenGLContext extends WindowsGLContext {
   }
   
   public boolean canCreatePbufferContext() {
+    return false;
+    /*
     return haveWGLARBPbuffer();
+    */
   }
 
   public GLDrawableImpl createPbufferDrawable(GLCapabilities capabilities,
                                               int initialWidth,
                                               int initialHeight) {
+    throw new GLException("No longer supported");
+    /*
     WindowsPbufferGLDrawable buf = new WindowsPbufferGLDrawable(capabilities, initialWidth, initialHeight);
     pbuffersToInstantiate.add(buf);
     return buf;
+    */
   }
 
   protected int makeCurrentImpl() throws GLException {
@@ -86,6 +92,7 @@ public class WindowsOnscreenGLContext extends WindowsGLContext {
         }
       }
       int ret = super.makeCurrentImpl();
+      /*
       if ((ret == CONTEXT_CURRENT) ||
           (ret == CONTEXT_CURRENT_NEW)) {
         // Instantiate any pending pbuffers
@@ -104,6 +111,7 @@ public class WindowsOnscreenGLContext extends WindowsGLContext {
           }
         }
       }
+      */
       return ret;
     } catch (RuntimeException e) {
       try {

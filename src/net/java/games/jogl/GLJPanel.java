@@ -83,6 +83,7 @@ public final class GLJPanel extends JPanel implements GLAutoDrawable {
 
   private GLDrawableHelper drawableHelper = new GLDrawableHelper();
   private volatile boolean isInitialized;
+  private volatile boolean shouldInitialize = false;
 
   // Data used for either pbuffers or pixmap-based offscreen surfaces
   private GLCapabilities        offscreenCaps;
@@ -109,12 +110,9 @@ public final class GLJPanel extends JPanel implements GLAutoDrawable {
   // Implementation using pbuffers
   private static boolean hardwareAccelerationDisabled =
     Debug.isPropertyDefined("jogl.gljpanel.nohw");
-  private boolean   pbufferInitializationCompleted;
   private GLPbuffer pbuffer;
   private int       pbufferWidth  = 256;
   private int       pbufferHeight = 256;
-  private GLCanvas  heavyweight;
-  private Frame     toplevel;
 
   // Implementation using software rendering
   private GLDrawableImpl offscreenDrawable;
@@ -139,10 +137,6 @@ public final class GLJPanel extends JPanel implements GLAutoDrawable {
   }
 
   public void display() {
-    if (!isInitialized) {
-      return;
-    }
-
     if (EventQueue.isDispatchThread()) {
       // Want display() to be synchronous, so call paintImmediately()
       paintImmediately(0, 0, getWidth(), getHeight());
@@ -161,32 +155,17 @@ public final class GLJPanel extends JPanel implements GLAutoDrawable {
       GLEventListener#display}. Should not be invoked by applications
       directly. */
   public void paintComponent(Graphics g) {
+    if (shouldInitialize) {
+      initialize();
+    }
+
     if (!isInitialized) {
       return;
     }
 
     updater.setGraphics(g);
     if (!hardwareAccelerationDisabled) {
-      if (!pbufferInitializationCompleted) {
-        try {
-          heavyweight.display();
-          pbuffer.display();
-        } catch (GLException e) {
-          if (DEBUG) {
-            e.printStackTrace();
-          }
-          // We consider any exception thrown during updating of the
-          // heavyweight or pbuffer during the initialization phases
-          // to be an indication that there was a problem
-          // instantiating the pbuffer, regardless of whether the
-          // exception originated in the user's GLEventListener. In
-          // these cases we immediately back off and use software
-          // rendering.
-          disableHardwareRendering();
-        }
-      } else {
-        pbuffer.display();
-      }
+      pbuffer.display();
     } else {
       drawableHelper.invokeGL(offscreenDrawable, offscreenContext, displayAction, initAction);
     }
@@ -194,7 +173,7 @@ public final class GLJPanel extends JPanel implements GLAutoDrawable {
 
   public void addNotify() {
     super.addNotify();
-    initialize();
+    shouldInitialize = true;
     if (DEBUG) {
       System.err.println("GLJPanel.addNotify()");
     }
@@ -210,11 +189,6 @@ public final class GLJPanel extends JPanel implements GLAutoDrawable {
       if (pbuffer != null) {
         pbuffer.destroy();
         pbuffer = null;
-      }
-      if (toplevel != null) {
-        toplevel.dispose();
-        toplevel = null;
-        heavyweight = null;
       }
     } else {
       if (offscreenContext != null) {
@@ -237,10 +211,6 @@ public final class GLJPanel extends JPanel implements GLAutoDrawable {
   public void reshape(int x, int y, int width, int height) {
     super.reshape(x, y, width, height);
 
-    if (!isInitialized) {
-      return;
-    }
-
     // Move all reshape requests onto AWT EventQueue thread
     final int fx = x;
     final int fy = y;
@@ -251,6 +221,19 @@ public final class GLJPanel extends JPanel implements GLAutoDrawable {
         public void run() {
           readBackWidthInPixels = 0;
           readBackHeightInPixels = 0;
+
+          panelWidth  = fwidth;
+          panelHeight = fheight;
+
+          sendReshape = true;
+
+          if (shouldInitialize) {
+            initialize();
+          }
+
+          if (!isInitialized) {
+            return;
+          }
 
           if (!hardwareAccelerationDisabled) {
             // Use factor larger than 2 during shrinks for some hysteresis
@@ -287,19 +270,14 @@ public final class GLJPanel extends JPanel implements GLAutoDrawable {
           } else {
             offscreenContext.destroy();
             offscreenDrawable.setSize(Math.max(1, fwidth), Math.max(1, fheight));
-            readBackWidthInPixels  = fwidth;
-            readBackHeightInPixels = fheight;
+            readBackWidthInPixels  = Math.max(1, fwidth);
+            readBackHeightInPixels = Math.max(1, fheight);
           }
 
           if (offscreenImage != null) {
             offscreenImage.flush();
             offscreenImage = null;
           }
-
-          panelWidth  = fwidth;
-          panelHeight = fheight;
-          
-          sendReshape = true;
         }
       };
     if (EventQueue.isDispatchThread()) {
@@ -430,68 +408,35 @@ public final class GLJPanel extends JPanel implements GLAutoDrawable {
   // Internals only below this point
   //
 
-  private void disableHardwareRendering() {
-    if (VERBOSE) {
-      System.err.println("GLJPanel: Falling back on software rendering due to pbuffer problems");
-    }
-    hardwareAccelerationDisabled = true;
-    pbufferInitializationCompleted = false;
-    EventQueue.invokeLater(new Runnable() {
-        public void run() {
-          if (toplevel != null) {
-            toplevel.setVisible(false);
-            toplevel.dispose();
-            toplevel = null;
-            heavyweight = null;
-          }
-        }
-      });
-    initialize();
-  }
-
   private void initialize() {
+    if (panelWidth == 0 ||
+        panelHeight == 0) {
+      // Not sized to non-zero size yet
+      return;
+    }
+
     // Initialize either the hardware-accelerated rendering path or
     // the lightweight rendering path
     if (!hardwareAccelerationDisabled) {
-      boolean firstTime = false;
-      if (heavyweight == null) {
-        // Make the heavyweight share with the "shareWith" parameter.
-        // The pbuffer shares textures and display lists with the
-        // heavyweight, so by transitivity the pbuffer will share with
-        // it as well.
-        heavyweight = GLDrawableFactory.getFactory().createGLCanvas(new GLCapabilities(), null, shareWith, null);
-        firstTime = true;
-      }
-      // FIXME: or'ing in true is a hack for lazy determination of
-      // canCreateOffscreenDrawable() on X11
-      // This will go away once pbuffer creation is more eager
-      if (heavyweight.canCreateOffscreenDrawable() || true) {
-        if (firstTime) {
-          toplevel = new Frame();
-          toplevel.setUndecorated(true);
+      if (GLDrawableFactory.getFactory().canCreateGLPbuffer(offscreenCaps,
+                                                            pbufferWidth,
+                                                            pbufferHeight)) {
+        if (pbuffer != null) {
+          throw new InternalError("Creating pbuffer twice without destroying it (memory leak / correctness bug)");
         }
-        pbuffer = heavyweight.createOffscreenDrawable(offscreenCaps, pbufferWidth, pbufferHeight);
-        updater = new Updater();
-        pbuffer.addGLEventListener(updater);
-        pbufferInitializationCompleted = false;
-        if (firstTime) {
-          toplevel.add(heavyweight);
-          toplevel.setSize(1, 1);
+        try {
+          pbuffer = GLDrawableFactory.getFactory().createGLPbuffer(offscreenCaps,
+                                                                   pbufferWidth,
+                                                                   pbufferHeight,
+                                                                   shareWith);
+          updater = new Updater();
+          pbuffer.addGLEventListener(updater);
+          shouldInitialize = false;
+          isInitialized = true;
+          return;
+        } catch (GLException e) {
+          hardwareAccelerationDisabled = true;
         }
-        EventQueue.invokeLater(new Runnable() {
-            public void run() {
-              try {
-                toplevel.setVisible(true);
-              } catch (GLException e) {
-                if (DEBUG) {
-                  e.printStackTrace();
-                }
-                disableHardwareRendering();
-              }
-            }
-          });
-        isInitialized = true;
-        return;
       } else {
         if (VERBOSE) {
           System.err.println("GLJPanel: Falling back on software rendering because no pbuffer support");
@@ -504,13 +449,14 @@ public final class GLJPanel extends JPanel implements GLAutoDrawable {
       }
     }
 
-    // Create an offscreen context instead
+    // Fall-through path: create an offscreen context instead
     offscreenDrawable = GLContextFactory.getFactory().createOffscreenDrawable(offscreenCaps, chooser);
     offscreenDrawable.setSize(Math.max(1, panelWidth), Math.max(1, panelHeight));
     offscreenContext = (GLContextImpl) offscreenDrawable.createContext(shareWith);
     offscreenContext.setSynchronized(true);
 
     updater = new Updater();
+    shouldInitialize = false;
     isInitialized = true;
   }
 
@@ -525,20 +471,6 @@ public final class GLJPanel extends JPanel implements GLAutoDrawable {
     }
 
     public void init(GLAutoDrawable drawable) {
-      if (!hardwareAccelerationDisabled) {
-        if (DEBUG) {
-          System.err.println("GLJPanel$Updater.init(): pbufferInitializationCompleted = true");
-        }
-        pbufferInitializationCompleted = true;
-        EventQueue.invokeLater(new Runnable() {
-            public void run() {
-              // Race conditions might dispose of this before now
-              if (toplevel != null) {
-                toplevel.setVisible(false);
-              }
-            }
-          });
-      }
       drawableHelper.init(GLJPanel.this);
     }
 
@@ -628,6 +560,9 @@ public final class GLJPanel extends JPanel implements GLAutoDrawable {
         if (readBackBytes != null) {
           gl.glReadPixels(0, 0, readBackWidthInPixels, readBackHeightInPixels, glFormat, glType, readBackBytes, 0);
         } else if (readBackInts != null) {
+          if (DEBUG && VERBOSE) {
+            System.err.println("GLJPanel$Updater.display(): readBackInts.length == " + readBackInts.length);
+          }
           gl.glReadPixels(0, 0, readBackWidthInPixels, readBackHeightInPixels, glFormat, glType, readBackInts, 0);
         }
 
