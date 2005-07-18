@@ -102,21 +102,4 @@ public interface GLAutoDrawable extends GLDrawable, ComponentEvents {
 
   /** Sets the {@link GLU} pipeline object this GLDrawable uses. */
   public void setGLU(GLU glu);
-
-  /** Indicates whether this drawable is capable of fabricating a
-      subordinate offscreen drawable for advanced rendering techniques
-      which require offscreen hardware-accelerated surfaces. Note that
-      this method is only guaranteed to return a correct result once
-      your GLEventListener's init() method has been called. */
-  public boolean canCreateOffscreenDrawable();
-
-  /** Creates a subordinate offscreen drawable (pbuffer) for this
-      drawable. This routine should only be called if {@link
-      #canCreateOffscreenDrawable} returns true. The passed
-      capabilities are matched according to the platform-dependent
-      pbuffer format selection algorithm, which currently can not be
-      overridden. */
-  public GLPbuffer createOffscreenDrawable(GLCapabilities capabilities,
-                                           int initialWidth,
-                                           int initialHeight);
 }

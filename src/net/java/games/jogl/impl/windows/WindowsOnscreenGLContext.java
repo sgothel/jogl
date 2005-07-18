@@ -46,8 +46,6 @@ import net.java.games.jogl.impl.*;
 
 public class WindowsOnscreenGLContext extends WindowsGLContext {
   protected WindowsOnscreenGLDrawable drawable;
-  // Variables for pbuffer support
-  protected List pbuffersToInstantiate = new ArrayList();
 
   public WindowsOnscreenGLContext(WindowsOnscreenGLDrawable drawable,
                                   GLContext shareWith) {
@@ -55,24 +53,6 @@ public class WindowsOnscreenGLContext extends WindowsGLContext {
     this.drawable = drawable;
   }
   
-  public boolean canCreatePbufferContext() {
-    return false;
-    /*
-    return haveWGLARBPbuffer();
-    */
-  }
-
-  public GLDrawableImpl createPbufferDrawable(GLCapabilities capabilities,
-                                              int initialWidth,
-                                              int initialHeight) {
-    throw new GLException("No longer supported");
-    /*
-    WindowsPbufferGLDrawable buf = new WindowsPbufferGLDrawable(capabilities, initialWidth, initialHeight);
-    pbuffersToInstantiate.add(buf);
-    return buf;
-    */
-  }
-
   protected int makeCurrentImpl() throws GLException {
     try {
       int lockRes = drawable.lockSurface();
@@ -92,26 +72,6 @@ public class WindowsOnscreenGLContext extends WindowsGLContext {
         }
       }
       int ret = super.makeCurrentImpl();
-      /*
-      if ((ret == CONTEXT_CURRENT) ||
-          (ret == CONTEXT_CURRENT_NEW)) {
-        // Instantiate any pending pbuffers
-        // NOTE that we supply the drawable a GL instance for our
-        // context and that we eliminate all pipelines for it -- see
-        // WindowsPbufferGLDrawable.destroy()
-        if (!pbuffersToInstantiate.isEmpty()) {
-          GL tmpGL = createGL();
-          while (!pbuffersToInstantiate.isEmpty()) {
-            WindowsPbufferGLDrawable buf =
-              (WindowsPbufferGLDrawable) pbuffersToInstantiate.remove(pbuffersToInstantiate.size() - 1);
-            buf.createPbuffer(tmpGL, drawable.getHDC());
-            if (DEBUG) {
-              System.err.println(getThreadName() + ": created pbuffer " + buf);
-            }
-          }
-        }
-      }
-      */
       return ret;
     } catch (RuntimeException e) {
       try {

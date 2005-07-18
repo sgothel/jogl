@@ -233,16 +233,6 @@ public abstract class MacOSXGLContext extends GLContextImpl
     throw new GLException("Should not call this");
   }
 
-  public boolean canCreatePbufferContext() {
-    return false;
-  }
-
-  public GLDrawableImpl createPbufferDrawable(GLCapabilities capabilities,
-                                              int initialWidth,
-                                              int initialHeight) {
-    throw new GLException("Not supported");
-  }
-
   public void bindPbufferToTexture() {
     throw new GLException("Should not call this");
   }

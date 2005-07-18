@@ -46,8 +46,6 @@ import net.java.games.jogl.impl.*;
 
 public class X11OnscreenGLContext extends X11GLContext {
   protected X11OnscreenGLDrawable drawable;
-  // Variables for pbuffer support
-  List pbuffersToInstantiate = new ArrayList();
 
   public X11OnscreenGLContext(X11OnscreenGLDrawable drawable,
                               GLContext shareWith) {
@@ -55,24 +53,6 @@ public class X11OnscreenGLContext extends X11GLContext {
     this.drawable = drawable;
   }
   
-  public boolean canCreatePbufferContext() {
-    return false;
-    /*
-    return isExtensionAvailable("GL_ARB_pbuffer");
-    */
-  }
-
-  public GLDrawableImpl createPbufferDrawable(GLCapabilities capabilities,
-                                              int initialWidth,
-                                              int initialHeight) {
-    throw new GLException("No longer supported");
-    /*
-    X11PbufferGLDrawable buf = new X11PbufferGLDrawable(capabilities, initialWidth, initialHeight);
-    pbuffersToInstantiate.add(buf);
-    return buf;
-    */
-  }
-
   protected int makeCurrentImpl() throws GLException {
     try {
       int lockRes = drawable.lockSurface();
@@ -90,20 +70,6 @@ public class X11OnscreenGLContext extends X11GLContext {
         }
       }
       int ret = super.makeCurrentImpl();
-      /*
-      if ((ret == CONTEXT_CURRENT) ||
-          (ret == CONTEXT_CURRENT_NEW)) {
-        // Instantiate any pending pbuffers
-        while (!pbuffersToInstantiate.isEmpty()) {
-          X11PbufferGLDrawable buf =
-            (X11PbufferGLDrawable) pbuffersToInstantiate.remove(pbuffersToInstantiate.size() - 1);
-          buf.createPbuffer(getGL(), drawable.getDisplay());
-          if (DEBUG) {
-            System.err.println(getThreadName() + ": created pbuffer " + buf);
-          }
-        }
-      }
-      */
       return ret;
     } catch (RuntimeException e) {
       try {

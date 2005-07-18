@@ -173,17 +173,6 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
     maybeDoSingleThreadedWorkaround(swapBuffersOnEventDispatchThreadAction, swapBuffersAction, false);
   }
 
-  public boolean canCreateOffscreenDrawable() {
-    return context.canCreatePbufferContext();
-  }
-
-  public GLPbuffer createOffscreenDrawable(GLCapabilities capabilities,
-                                           int initialWidth,
-                                           int initialHeight) {
-    // FIXME: add option to not share textures and display lists with parent context
-    return new GLPbufferImpl(context.createPbufferDrawable(capabilities, initialWidth, initialHeight), getContext());
-  }
-
   //----------------------------------------------------------------------
   // Internals only below this point
   //

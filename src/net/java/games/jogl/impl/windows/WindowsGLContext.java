@@ -56,7 +56,6 @@ public class WindowsGLContext extends GLContextImpl {
   private GLProcAddressTable glProcAddressTable;
   // Handle to GLU32.dll
   private long hglu32;
-  private boolean haveWGLARBPbuffer = true;
 
   static {
     functionNameMap = new HashMap();
@@ -159,8 +158,6 @@ public class WindowsGLContext extends GLContextImpl {
 
     if (created) {
       resetGLFunctionAvailability();
-      haveWGLARBPbuffer = (isExtensionAvailable("WGL_ARB_pbuffer") &&
-                           isExtensionAvailable("WGL_ARB_pixel_format"));
       return CONTEXT_CURRENT_NEW;
     }
     return CONTEXT_CURRENT;
@@ -263,16 +260,6 @@ public class WindowsGLContext extends GLContextImpl {
     throw new GLException("Should not call this");
   }
 
-  public boolean canCreatePbufferContext() {
-    return false;
-  }
-
-  public GLDrawableImpl createPbufferDrawable(GLCapabilities capabilities,
-                                              int initialWidth,
-                                              int initialHeight) {
-    throw new GLException("Not supported");
-  }
-
   public void bindPbufferToTexture() {
     throw new GLException("Should not call this");
   }
@@ -287,9 +274,5 @@ public class WindowsGLContext extends GLContextImpl {
 
   protected long getHGLRC() {
     return hglrc;
-  }
-
-  protected boolean haveWGLARBPbuffer() {
-    return haveWGLARBPbuffer;
   }
 }

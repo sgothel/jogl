@@ -135,16 +135,6 @@ public class GLPbufferImpl implements GLPbuffer {
     maybeDoSingleThreadedWorkaround(swapBuffersOnEventDispatchThreadAction, swapBuffersAction, false);
   }
 
-  public boolean canCreateOffscreenDrawable() {
-    return false;
-  }
-
-  public GLPbuffer createOffscreenDrawable(GLCapabilities capabilities,
-                                           int initialWidth,
-                                           int initialHeight) {
-    throw new GLException("Not supported");
-  }
-
   public void bindTexture() {
     // Doesn't make much sense to try to do this on the event dispatch
     // thread given that it has to be called while the context is current

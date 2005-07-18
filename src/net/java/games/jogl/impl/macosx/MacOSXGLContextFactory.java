@@ -40,8 +40,12 @@
 package net.java.games.jogl.impl.macosx;
 
 import java.awt.Component;
+import java.awt.EventQueue;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.List;
 import net.java.games.jogl.*;
 import net.java.games.jogl.impl.*;
 
@@ -72,5 +76,43 @@ public class MacOSXGLContextFactory extends GLContextFactory {
   public GLDrawableImpl createOffscreenDrawable(GLCapabilities capabilities,
                                                 GLCapabilitiesChooser chooser) {
     return new MacOSXOffscreenGLDrawable(capabilities);
+  }
+
+  public boolean canCreateGLPbuffer(GLCapabilities capabilities,
+                                    int initialWidth,
+                                    int initialHeight) {
+    return true;
+  }
+
+  public GLPbuffer createGLPbuffer(final GLCapabilities capabilities,
+                                   final int initialWidth,
+                                   final int initialHeight,
+                                   final GLContext shareWith) {
+    final List returnList = new ArrayList();
+    Runnable r = new Runnable() {
+        public void run() {
+          MacOSXPbufferGLDrawable pbufferDrawable = new MacOSXPbufferGLDrawable(capabilities,
+										initialWidth,
+										initialHeight);
+          GLPbufferImpl pbuffer = new GLPbufferImpl(pbufferDrawable, shareWith);
+          returnList.add(pbuffer);
+        }
+      };
+    maybeDoSingleThreadedWorkaround(r);
+    return (GLPbuffer) returnList.get(0);
+  }
+
+  private void maybeDoSingleThreadedWorkaround(Runnable action) {
+    if (SingleThreadedWorkaround.doWorkaround() && !EventQueue.isDispatchThread()) {
+      try {
+        EventQueue.invokeAndWait(action);
+      } catch (InvocationTargetException e) {
+        throw new GLException(e.getTargetException());
+      } catch (InterruptedException e) {
+        throw new GLException(e);
+      }
+    } else {
+      action.run();
+    }
   }
 }

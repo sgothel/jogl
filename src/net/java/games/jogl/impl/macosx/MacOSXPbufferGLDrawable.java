@@ -61,6 +61,8 @@ public class MacOSXPbufferGLDrawable extends MacOSXGLDrawable {
     super(capabilities, null);
     this.initWidth  = initialWidth;
     this.initHeight = initialHeight;
+
+    createPbuffer();
   }
 
   public GLContext createContext(GLContext shareWith) {
@@ -91,7 +93,19 @@ public class MacOSXPbufferGLDrawable extends MacOSXGLDrawable {
     return height;
   }
 
-  public void createPbuffer(GL gl) {
+  public GLCapabilities getCapabilities() {
+    return capabilities;
+  }
+
+  public long getPbuffer() {
+    return pBuffer;
+  }
+  
+  public void swapBuffers() throws GLException {
+    // FIXME: do we need to do anything if the pbuffer is double-buffered?
+  }
+
+  protected void createPbuffer() {
     int renderTarget;
     if (capabilities.getOffscreenRenderToTextureRectangle()) {
       width = initWidth;
@@ -105,9 +119,15 @@ public class MacOSXPbufferGLDrawable extends MacOSXGLDrawable {
 
     int internalFormat = GL.GL_RGBA;
     if (capabilities.getOffscreenFloatingPointBuffers()) {
+      // FIXME: want to check availability of GL_APPLE_float_pixels
+      // extension, but need valid OpenGL context in order to do so --
+      // in worst case would need to create dummy window / GLCanvas
+      // (undesirable) -- could maybe also do this with pbuffers
+      /*
       if (!gl.isExtensionAvailable("GL_APPLE_float_pixels")) {
 	throw new GLException("Floating-point support (GL_APPLE_float_pixels) not available");
       }
+      */
       switch (capabilities.getRedBits()) {
         case 16: internalFormat = GL.GL_RGBA_FLOAT16_APPLE; break;
         case 32: internalFormat = GL.GL_RGBA_FLOAT32_APPLE; break;
@@ -123,18 +143,6 @@ public class MacOSXPbufferGLDrawable extends MacOSXGLDrawable {
     if (DEBUG) {
       System.err.println("Created pbuffer 0x" + toHexString(pBuffer) + ", " + width + " x " + height + " for " + this);
     }
-  }
-
-  public GLCapabilities getCapabilities() {
-    return capabilities;
-  }
-
-  public long getPbuffer() {
-    return pBuffer;
-  }
-  
-  public void swapBuffers() throws GLException {
-    // FIXME: do we need to do anything if the pbuffer is double-buffered?
   }
 
   private int getNextPowerOf2(int number) {

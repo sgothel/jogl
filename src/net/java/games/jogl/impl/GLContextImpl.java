@@ -145,22 +145,6 @@ public abstract class GLContextImpl extends GLContext {
   protected abstract GL createGL();
   
   /**
-   * Pbuffer support; indicates whether this context is capable of
-   * creating a subordinate pbuffer context (distinct from an
-   * "offscreen context", which is typically software-rendered on all
-   * platforms).
-   */
-  public abstract boolean canCreatePbufferContext();
-
-  /**
-   * Pbuffer support; creates a subordinate GLDrawable for a pbuffer
-   * associated with this context.
-   */
-  public abstract GLDrawableImpl createPbufferDrawable(GLCapabilities capabilities,
-                                                       int initialWidth,
-                                                       int initialHeight);
-
-  /**
    * Pbuffer support; given that this is a GLContext associated with a
    * pbuffer, binds this pbuffer to its texture target.
    */

@@ -46,8 +46,6 @@ import net.java.games.jogl.impl.*;
 
 public class MacOSXOnscreenGLContext extends MacOSXGLContext {
   protected MacOSXOnscreenGLDrawable drawable;
-  // Variables for pbuffer support
-  List pbuffersToInstantiate = new ArrayList();
 
   public MacOSXOnscreenGLContext(MacOSXOnscreenGLDrawable drawable,
                                  GLContext shareWith) {
@@ -55,18 +53,6 @@ public class MacOSXOnscreenGLContext extends MacOSXGLContext {
     this.drawable = drawable;
   }
 
-  public boolean canCreatePbufferContext() {
-    return true;
-  }
-    
-  public GLDrawableImpl createPbufferDrawable(GLCapabilities capabilities,
-                                              int initialWidth,
-                                              int initialHeight) {
-    MacOSXPbufferGLDrawable buf = new MacOSXPbufferGLDrawable(capabilities, initialWidth, initialHeight);
-    pbuffersToInstantiate.add(buf);
-    return buf;
-  }
-    
   protected int makeCurrentImpl() throws GLException {
     try {
       int lockRes = drawable.lockSurface();
@@ -87,12 +73,6 @@ public class MacOSXOnscreenGLContext extends MacOSXGLContext {
         // of an ancestor, but this also wasn't sufficient and left garbage on the
         // screen in some situations.
         CGL.updateContext(nsContext, drawable.getView());
-        // Instantiate any pending pbuffers
-        while (!pbuffersToInstantiate.isEmpty()) {
-          MacOSXPbufferGLDrawable buf =
-            (MacOSXPbufferGLDrawable) pbuffersToInstantiate.remove(pbuffersToInstantiate.size() - 1);
-          buf.createPbuffer(getGL());
-        }
       } else {
         // View might not have been ready
         drawable.unlockSurface();

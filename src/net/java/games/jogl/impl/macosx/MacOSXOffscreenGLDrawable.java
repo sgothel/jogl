@@ -56,8 +56,6 @@ public class MacOSXOffscreenGLDrawable extends MacOSXPbufferGLDrawable {
     destroy();
     initWidth = width;
     initHeight = height;
-    // Floating-point frame buffers are never used with offscreen
-    // drawables (in GLJPanel) so don't need a GL object here
-    createPbuffer(null);
+    createPbuffer();
   }
 }

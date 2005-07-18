@@ -392,18 +392,6 @@ public final class GLJPanel extends JPanel implements GLAutoDrawable {
     }
   }
 
-  public boolean canCreateOffscreenDrawable() {
-    // For now let's say no, although we could using the heavyweight
-    // if hardware acceleration is still enabled
-    return false;
-  }
-
-  public GLPbuffer createOffscreenDrawable(GLCapabilities capabilities,
-                                           int initialWidth,
-                                           int initialHeight) {
-    throw new GLException("Not supported");
-  }
-
   //----------------------------------------------------------------------
   // Internals only below this point
   //
