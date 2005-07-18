@@ -52,7 +52,6 @@ public abstract class X11GLContext extends GLContextImpl {
   private boolean glXQueryExtensionsStringInitialized;
   private boolean glXQueryExtensionsStringAvailable;
   private static final Map/*<String, String>*/ functionNameMap;
-  private boolean isGLX13;
   // Table that holds the addresses of the native C-language entry points for
   // OpenGL functions.
   private GLProcAddressTable glProcAddressTable;
@@ -207,34 +206,6 @@ public abstract class X11GLContext extends GLContextImpl {
     if (!haveResetGLXProcAddressTable) {
       resetProcAddressTable(GLX.getGLXProcAddressTable());
     }
-
-    // Figure out whether we are running GLX version 1.3 or above and
-    // therefore have pbuffer support
-    if (drawable.getDisplay() == 0) {
-      throw new GLException("Expected non-null DISPLAY for querying GLX version");
-    }
-    int[] major = new int[1];
-    int[] minor = new int[1];
-    if (!GLX.glXQueryVersion(drawable.getDisplay(), major, 0, minor, 0)) {
-      throw new GLException("glXQueryVersion failed");
-    }
-    if (DEBUG) {
-      System.err.println("!!! GLX version: major " + major[0] +
-                         ", minor " + minor[0]);
-    }
-
-    // Work around bugs in ATI's Linux drivers where they report they
-    // only implement GLX version 1.2 but actually do support pbuffers
-    if (major[0] == 1 && minor[0] == 2) {
-      GL gl = getGL();
-      String str = gl.glGetString(GL.GL_VENDOR);
-      if (str != null && str.indexOf("ATI") >= 0) {
-        isGLX13 = true;
-        return;
-      }
-    }
-
-    isGLX13 = ((major[0] > 1) || (minor[0] > 2));
   }
   
   public GLProcAddressTable getGLProcAddressTable() {
@@ -289,7 +260,7 @@ public abstract class X11GLContext extends GLContextImpl {
   public boolean isExtensionAvailable(String glExtensionName) {
     if (glExtensionName.equals("GL_ARB_pbuffer") ||
         glExtensionName.equals("GL_ARB_pixel_format")) {
-      return isGLX13;
+      return X11GLContextFactory.getFactory().canCreateGLPbuffer(null, 0, 0);
     }
     return super.isExtensionAvailable(glExtensionName);
   }

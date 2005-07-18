@@ -69,6 +69,8 @@ public class X11PbufferGLDrawable extends X11GLDrawable {
                          (capabilities.getOffscreenRenderToTextureRectangle() ? " [rect]" : "") +
                          (capabilities.getOffscreenFloatingPointBuffers() ? " [float]" : ""));
     }
+
+    createPbuffer(X11GLContextFactory.getDisplayConnection());
   }
 
   public GLContext createContext(GLContext shareWith) {
@@ -97,141 +99,150 @@ public class X11PbufferGLDrawable extends X11GLDrawable {
     return height;
   }
 
-  public void createPbuffer(GL gl, long display) {
-    if (display == 0) {
-      throw new GLException("Null display");
-    }
-    
-    if (capabilities.getOffscreenRenderToTexture()) {
-      throw new GLException("Render-to-texture pbuffers not supported yet on X11");
-    }
-
-    if (capabilities.getOffscreenRenderToTextureRectangle()) {
-      throw new GLException("Render-to-texture-rectangle pbuffers not supported yet on X11");
-    }
-
-    int[]   iattributes = new int  [2*MAX_ATTRIBS];
-    float[] fattributes = new float[2*MAX_ATTRIBS];
-    int nfattribs = 0;
-    int niattribs = 0;
-
-    // Since we are trying to create a pbuffer, the GLXFBConfig we
-    // request (and subsequently use) must be "p-buffer capable".
-    iattributes[niattribs++] = GL.GLX_DRAWABLE_TYPE;
-    iattributes[niattribs++] = GL.GLX_PBUFFER_BIT;
-
-    iattributes[niattribs++] = GL.GLX_RENDER_TYPE;
-    iattributes[niattribs++] = GL.GLX_RGBA_BIT;
-
-    iattributes[niattribs++] = GLX.GLX_DOUBLEBUFFER;
-    if (capabilities.getDoubleBuffered()) {
-      iattributes[niattribs++] = GL.GL_TRUE;
-    } else {
-      iattributes[niattribs++] = GL.GL_FALSE;
-    }
-
-    iattributes[niattribs++] = GLX.GLX_DEPTH_SIZE;
-    iattributes[niattribs++] = capabilities.getDepthBits();
-
-    iattributes[niattribs++] = GLX.GLX_RED_SIZE;
-    iattributes[niattribs++] = capabilities.getRedBits();
-
-    iattributes[niattribs++] = GLX.GLX_GREEN_SIZE;
-    iattributes[niattribs++] = capabilities.getGreenBits();
-
-    iattributes[niattribs++] = GLX.GLX_BLUE_SIZE;
-    iattributes[niattribs++] = capabilities.getBlueBits();
-
-    iattributes[niattribs++] = GLX.GLX_ALPHA_SIZE;
-    iattributes[niattribs++] = capabilities.getAlphaBits();
-
-    if (capabilities.getStencilBits() > 0) {
-      iattributes[niattribs++] = GLX.GLX_STENCIL_SIZE;
-      iattributes[niattribs++] = capabilities.getStencilBits();
-    }
-
-    if (capabilities.getAccumRedBits()   > 0 ||
-        capabilities.getAccumGreenBits() > 0 ||
-        capabilities.getAccumBlueBits()  > 0) {
-      iattributes[niattribs++] = GLX.GLX_ACCUM_RED_SIZE;
-      iattributes[niattribs++] = capabilities.getAccumRedBits();
-      iattributes[niattribs++] = GLX.GLX_ACCUM_GREEN_SIZE;
-      iattributes[niattribs++] = capabilities.getAccumGreenBits();
-      iattributes[niattribs++] = GLX.GLX_ACCUM_BLUE_SIZE;
-      iattributes[niattribs++] = capabilities.getAccumBlueBits();
-    }
-
-    if (capabilities.getOffscreenFloatingPointBuffers()) {
-      if (!gl.isExtensionAvailable("GLX_NV_float_buffer")) {
-        throw new GLException("Floating-point pbuffers on X11 currently require NVidia hardware");
+  public void createPbuffer(long display) {
+    lockAWT();
+    try {
+      if (display == 0) {
+        throw new GLException("Null display");
       }
-      iattributes[niattribs++] = GLX.GLX_FLOAT_COMPONENTS_NV;
-      iattributes[niattribs++] = GL.GL_TRUE;
-    }
+    
+      if (capabilities.getOffscreenRenderToTexture()) {
+        throw new GLException("Render-to-texture pbuffers not supported yet on X11");
+      }
 
-    // FIXME: add FSAA support? Don't want to get into a situation
-    // where we have to retry the glXChooseFBConfig call if it fails
-    // due to a lack of an antialiased visual...
+      if (capabilities.getOffscreenRenderToTextureRectangle()) {
+        throw new GLException("Render-to-texture-rectangle pbuffers not supported yet on X11");
+      }
 
-    iattributes[niattribs++] = 0; // null-terminate
+      int[]   iattributes = new int  [2*MAX_ATTRIBS];
+      float[] fattributes = new float[2*MAX_ATTRIBS];
+      int nfattribs = 0;
+      int niattribs = 0;
 
-    int screen = 0; // FIXME: provide way to specify this?
-    int[] nelementsTmp = new int[1];
-    GLXFBConfig[] fbConfigs = GLX.glXChooseFBConfig(display, screen, iattributes, 0, nelementsTmp, 0);
-    if (fbConfigs == null || fbConfigs.length == 0 || fbConfigs[0] == null) {
-      throw new GLException("pbuffer creation error: glXChooseFBConfig() failed");
-    }
-    // Note that we currently don't allow selection of anything but
-    // the first GLXFBConfig in the returned list
-    GLXFBConfig fbConfig = fbConfigs[0];
-    int nelements = nelementsTmp[0];
-    if (nelements <= 0) {
-      throw new GLException("pbuffer creation error: couldn't find a suitable frame buffer configuration");
-    }
+      // Since we are trying to create a pbuffer, the GLXFBConfig we
+      // request (and subsequently use) must be "p-buffer capable".
+      iattributes[niattribs++] = GL.GLX_DRAWABLE_TYPE;
+      iattributes[niattribs++] = GL.GLX_PBUFFER_BIT;
 
-    if (DEBUG) {
-      System.err.println("Found " + fbConfigs.length + " matching GLXFBConfigs");
-      System.err.println("Parameters of default one:");
-      System.err.println("render type: 0x" + Integer.toHexString(queryFBConfig(display, fbConfig, GLX.GLX_RENDER_TYPE)));
-      System.err.println("rgba: " + ((queryFBConfig(display, fbConfig, GLX.GLX_RENDER_TYPE) & GLX.GLX_RGBA_BIT) != 0));
-      System.err.println("r: " + queryFBConfig(display, fbConfig, GLX.GLX_RED_SIZE));
-      System.err.println("g: " + queryFBConfig(display, fbConfig, GLX.GLX_GREEN_SIZE));
-      System.err.println("b: " + queryFBConfig(display, fbConfig, GLX.GLX_BLUE_SIZE));
-      System.err.println("a: " + queryFBConfig(display, fbConfig, GLX.GLX_ALPHA_SIZE));
-      System.err.println("depth: " + queryFBConfig(display, fbConfig, GLX.GLX_DEPTH_SIZE));
-      System.err.println("double buffered: " + queryFBConfig(display, fbConfig, GLX.GLX_DOUBLEBUFFER));
-    }
+      iattributes[niattribs++] = GL.GLX_RENDER_TYPE;
+      iattributes[niattribs++] = GL.GLX_RGBA_BIT;
 
-    // Create the p-buffer.
-    niattribs = 0;
+      iattributes[niattribs++] = GLX.GLX_DOUBLEBUFFER;
+      if (capabilities.getDoubleBuffered()) {
+        iattributes[niattribs++] = GL.GL_TRUE;
+      } else {
+        iattributes[niattribs++] = GL.GL_FALSE;
+      }
 
-    iattributes[niattribs++] = GL.GLX_PBUFFER_WIDTH;
-    iattributes[niattribs++] = initWidth;
-    iattributes[niattribs++] = GL.GLX_PBUFFER_HEIGHT;
-    iattributes[niattribs++] = initHeight;
+      iattributes[niattribs++] = GLX.GLX_DEPTH_SIZE;
+      iattributes[niattribs++] = capabilities.getDepthBits();
 
-    iattributes[niattribs++] = 0;
+      iattributes[niattribs++] = GLX.GLX_RED_SIZE;
+      iattributes[niattribs++] = capabilities.getRedBits();
 
-    long tmpBuffer = GLX.glXCreatePbuffer(display, fbConfig, iattributes, 0);
-    if (tmpBuffer == 0) {
-      // FIXME: query X error code for detail error message
-      throw new GLException("pbuffer creation error: glXCreatePbuffer() failed");
-    }
+      iattributes[niattribs++] = GLX.GLX_GREEN_SIZE;
+      iattributes[niattribs++] = capabilities.getGreenBits();
 
-    // Set up instance variables
-    this.display = display;
-    drawable = tmpBuffer;
-    this.fbConfig = fbConfig;
+      iattributes[niattribs++] = GLX.GLX_BLUE_SIZE;
+      iattributes[niattribs++] = capabilities.getBlueBits();
 
-    // Determine the actual width and height we were able to create.
-    int[] tmp = new int[1];
-    GLX.glXQueryDrawable(display, drawable, GL.GLX_WIDTH, tmp, 0);
-    width = tmp[0];
-    GLX.glXQueryDrawable(display, drawable, GL.GLX_HEIGHT, tmp, 0);
-    height = tmp[0];
+      iattributes[niattribs++] = GLX.GLX_ALPHA_SIZE;
+      iattributes[niattribs++] = capabilities.getAlphaBits();
 
-    if (DEBUG) {
-      System.err.println("Created pbuffer " + width + " x " + height);
+      if (capabilities.getStencilBits() > 0) {
+        iattributes[niattribs++] = GLX.GLX_STENCIL_SIZE;
+        iattributes[niattribs++] = capabilities.getStencilBits();
+      }
+
+      if (capabilities.getAccumRedBits()   > 0 ||
+          capabilities.getAccumGreenBits() > 0 ||
+          capabilities.getAccumBlueBits()  > 0) {
+        iattributes[niattribs++] = GLX.GLX_ACCUM_RED_SIZE;
+        iattributes[niattribs++] = capabilities.getAccumRedBits();
+        iattributes[niattribs++] = GLX.GLX_ACCUM_GREEN_SIZE;
+        iattributes[niattribs++] = capabilities.getAccumGreenBits();
+        iattributes[niattribs++] = GLX.GLX_ACCUM_BLUE_SIZE;
+        iattributes[niattribs++] = capabilities.getAccumBlueBits();
+      }
+
+      int screen = 0; // FIXME: provide way to specify this?
+
+      if (capabilities.getOffscreenFloatingPointBuffers()) {
+        // FIXME: 
+        String glXExtensions = GLX.glXQueryExtensionsString(display, screen);
+        if (glXExtensions == null ||
+            glXExtensions.indexOf("GLX_NV_float_buffer") < 0) {
+          throw new GLException("Floating-point pbuffers on X11 currently require NVidia hardware");
+        }
+        iattributes[niattribs++] = GLX.GLX_FLOAT_COMPONENTS_NV;
+        iattributes[niattribs++] = GL.GL_TRUE;
+      }
+
+      // FIXME: add FSAA support? Don't want to get into a situation
+      // where we have to retry the glXChooseFBConfig call if it fails
+      // due to a lack of an antialiased visual...
+
+      iattributes[niattribs++] = 0; // null-terminate
+
+      int[] nelementsTmp = new int[1];
+      GLXFBConfig[] fbConfigs = GLX.glXChooseFBConfig(display, screen, iattributes, 0, nelementsTmp, 0);
+      if (fbConfigs == null || fbConfigs.length == 0 || fbConfigs[0] == null) {
+        throw new GLException("pbuffer creation error: glXChooseFBConfig() failed");
+      }
+      // Note that we currently don't allow selection of anything but
+      // the first GLXFBConfig in the returned list
+      GLXFBConfig fbConfig = fbConfigs[0];
+      int nelements = nelementsTmp[0];
+      if (nelements <= 0) {
+        throw new GLException("pbuffer creation error: couldn't find a suitable frame buffer configuration");
+      }
+
+      if (DEBUG) {
+        System.err.println("Found " + fbConfigs.length + " matching GLXFBConfigs");
+        System.err.println("Parameters of default one:");
+        System.err.println("render type: 0x" + Integer.toHexString(queryFBConfig(display, fbConfig, GLX.GLX_RENDER_TYPE)));
+        System.err.println("rgba: " + ((queryFBConfig(display, fbConfig, GLX.GLX_RENDER_TYPE) & GLX.GLX_RGBA_BIT) != 0));
+        System.err.println("r: " + queryFBConfig(display, fbConfig, GLX.GLX_RED_SIZE));
+        System.err.println("g: " + queryFBConfig(display, fbConfig, GLX.GLX_GREEN_SIZE));
+        System.err.println("b: " + queryFBConfig(display, fbConfig, GLX.GLX_BLUE_SIZE));
+        System.err.println("a: " + queryFBConfig(display, fbConfig, GLX.GLX_ALPHA_SIZE));
+        System.err.println("depth: " + queryFBConfig(display, fbConfig, GLX.GLX_DEPTH_SIZE));
+        System.err.println("double buffered: " + queryFBConfig(display, fbConfig, GLX.GLX_DOUBLEBUFFER));
+      }
+
+      // Create the p-buffer.
+      niattribs = 0;
+
+      iattributes[niattribs++] = GL.GLX_PBUFFER_WIDTH;
+      iattributes[niattribs++] = initWidth;
+      iattributes[niattribs++] = GL.GLX_PBUFFER_HEIGHT;
+      iattributes[niattribs++] = initHeight;
+
+      iattributes[niattribs++] = 0;
+
+      long tmpBuffer = GLX.glXCreatePbuffer(display, fbConfig, iattributes, 0);
+      if (tmpBuffer == 0) {
+        // FIXME: query X error code for detail error message
+        throw new GLException("pbuffer creation error: glXCreatePbuffer() failed");
+      }
+
+      // Set up instance variables
+      this.display = display;
+      drawable = tmpBuffer;
+      this.fbConfig = fbConfig;
+
+      // Determine the actual width and height we were able to create.
+      int[] tmp = new int[1];
+      GLX.glXQueryDrawable(display, drawable, GL.GLX_WIDTH, tmp, 0);
+      width = tmp[0];
+      GLX.glXQueryDrawable(display, drawable, GL.GLX_HEIGHT, tmp, 0);
+      height = tmp[0];
+
+      if (DEBUG) {
+        System.err.println("Created pbuffer " + width + " x " + height);
+      }
+    } finally {
+      unlockAWT();
     }
   }
 

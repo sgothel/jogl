@@ -56,15 +56,21 @@ public class X11OnscreenGLContext extends X11GLContext {
   }
   
   public boolean canCreatePbufferContext() {
+    return false;
+    /*
     return isExtensionAvailable("GL_ARB_pbuffer");
+    */
   }
 
   public GLDrawableImpl createPbufferDrawable(GLCapabilities capabilities,
                                               int initialWidth,
                                               int initialHeight) {
+    throw new GLException("No longer supported");
+    /*
     X11PbufferGLDrawable buf = new X11PbufferGLDrawable(capabilities, initialWidth, initialHeight);
     pbuffersToInstantiate.add(buf);
     return buf;
+    */
   }
 
   protected int makeCurrentImpl() throws GLException {
@@ -84,6 +90,7 @@ public class X11OnscreenGLContext extends X11GLContext {
         }
       }
       int ret = super.makeCurrentImpl();
+      /*
       if ((ret == CONTEXT_CURRENT) ||
           (ret == CONTEXT_CURRENT_NEW)) {
         // Instantiate any pending pbuffers
@@ -96,6 +103,7 @@ public class X11OnscreenGLContext extends X11GLContext {
           }
         }
       }
+      */
       return ret;
     } catch (RuntimeException e) {
       try {

@@ -179,7 +179,7 @@ public class WindowsGLContextFactory extends GLContextFactory {
                                    final int initialWidth,
                                    final int initialHeight,
                                    final GLContext shareWith) {
-    if (!canCreateGLPbuffer) {
+    if (!canCreateGLPbuffer(capabilities, initialWidth, initialHeight)) {
       throw new GLException("Pbuffer support not available with current graphics card");
     }
     final List returnList = new ArrayList();

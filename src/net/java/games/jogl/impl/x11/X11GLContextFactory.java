@@ -40,12 +40,18 @@
 package net.java.games.jogl.impl.x11;
 
 import java.awt.Component;
+import java.awt.EventQueue;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.List;
 import net.java.games.jogl.*;
 import net.java.games.jogl.impl.*;
 
 public class X11GLContextFactory extends GLContextFactory {
+  private static final boolean DEBUG = Debug.debug("X11GLContextFactory");
+
   static {
     NativeLibLoader.load();
   }
@@ -135,6 +141,72 @@ public class X11GLContextFactory extends GLContextFactory {
   public GLDrawableImpl createOffscreenDrawable(GLCapabilities capabilities,
                                                 GLCapabilitiesChooser chooser) {
     return new X11OffscreenGLDrawable(capabilities, chooser);
+  }
+
+  private boolean pbufferSupportInitialized = false;
+  private boolean canCreateGLPbuffer = false;
+  public boolean canCreateGLPbuffer(GLCapabilities capabilities,
+                                    int initialWidth,
+                                    int initialHeight) {
+    if (!pbufferSupportInitialized) {
+      Runnable r = new Runnable() {
+          public void run() {
+            long display = getDisplayConnection();
+            lockAWT();
+            try {
+              int[] major = new int[1];
+              int[] minor = new int[1];
+              if (!GLX.glXQueryVersion(display, major, 0, minor, 0)) {
+                throw new GLException("glXQueryVersion failed");
+              }
+              if (DEBUG) {
+                System.err.println("!!! GLX version: major " + major[0] +
+                                   ", minor " + minor[0]);
+              }
+
+              int screen = 0; // FIXME: provide way to specify this?
+
+              // Work around bugs in ATI's Linux drivers where they report they
+              // only implement GLX version 1.2 but actually do support pbuffers
+              if (major[0] == 1 && minor[0] == 2) {
+                String str = GLX.glXQueryServerString(display, screen, GLX.GLX_VENDOR);
+                if (str != null && str.indexOf("ATI") >= 0) {
+                  canCreateGLPbuffer = true;
+                }
+              } else {
+                canCreateGLPbuffer = ((major[0] > 1) || (minor[0] > 2));
+              }
+        
+              pbufferSupportInitialized = true;        
+            } finally {
+              unlockAWT();
+            }
+          }
+        };
+      maybeDoSingleThreadedWorkaround(r);
+    }
+    return canCreateGLPbuffer;
+  }
+
+  public GLPbuffer createGLPbuffer(final GLCapabilities capabilities,
+                                   final int initialWidth,
+                                   final int initialHeight,
+                                   final GLContext shareWith) {
+    if (!canCreateGLPbuffer(capabilities, initialWidth, initialHeight)) {
+      throw new GLException("Pbuffer support not available with current graphics card");
+    }
+    final List returnList = new ArrayList();
+    Runnable r = new Runnable() {
+        public void run() {
+          X11PbufferGLDrawable pbufferDrawable = new X11PbufferGLDrawable(capabilities,
+                                                                          initialWidth,
+                                                                          initialHeight);
+          GLPbufferImpl pbuffer = new GLPbufferImpl(pbufferDrawable, shareWith);
+          returnList.add(pbuffer);
+        }
+      };
+    maybeDoSingleThreadedWorkaround(r);
+    return (GLPbuffer) returnList.get(0);
   }
 
   public static GLCapabilities xvi2GLCapabilities(long display, XVisualInfo info) {
@@ -291,5 +363,19 @@ public class X11GLContextFactory extends GLContextFactory {
       throw new GLException("glXGetConfig failed: error code " + glXGetConfigErrorCode(res));
     }
     return tmp[tmp_offset];
+  }
+
+  private void maybeDoSingleThreadedWorkaround(Runnable action) {
+    if (SingleThreadedWorkaround.doWorkaround() && !EventQueue.isDispatchThread()) {
+      try {
+        EventQueue.invokeAndWait(action);
+      } catch (InvocationTargetException e) {
+        throw new GLException(e.getTargetException());
+      } catch (InterruptedException e) {
+        throw new GLException(e);
+      }
+    } else {
+      action.run();
+    }
   }
 }
