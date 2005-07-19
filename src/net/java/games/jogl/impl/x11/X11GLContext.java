@@ -260,7 +260,7 @@ public abstract class X11GLContext extends GLContextImpl {
   public boolean isExtensionAvailable(String glExtensionName) {
     if (glExtensionName.equals("GL_ARB_pbuffer") ||
         glExtensionName.equals("GL_ARB_pixel_format")) {
-      return X11GLContextFactory.getFactory().canCreateGLPbuffer(null, 0, 0);
+      return GLDrawableFactory.getFactory().canCreateGLPbuffer(null, 0, 0);
     }
     return super.isExtensionAvailable(glExtensionName);
   }
@@ -296,10 +296,10 @@ public abstract class X11GLContext extends GLContextImpl {
   // These synchronization primitives prevent the AWT from making
   // requests from the X server asynchronously to this code.
   protected void lockAWT() {
-    X11GLContextFactory.lockAWT();
+    X11GLDrawableFactory.lockAWT();
   }
 
   protected void unlockAWT() {
-    X11GLContextFactory.unlockAWT();
+    X11GLDrawableFactory.unlockAWT();
   }
 }

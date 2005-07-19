@@ -134,7 +134,7 @@ public abstract class X11GLDrawable extends GLDrawableImpl {
         }
         caps = new GLCapabilities[infos.length];
         for (int i = 0; i < infos.length; i++) {
-          caps[i] = X11GLContextFactory.xvi2GLCapabilities(display, infos[i]);
+          caps[i] = X11GLDrawableFactory.xvi2GLCapabilities(display, infos[i]);
         }
       } finally {
         unlockAWT();
@@ -163,10 +163,10 @@ public abstract class X11GLDrawable extends GLDrawableImpl {
   // These synchronization primitives prevent the AWT from making
   // requests from the X server asynchronously to this code.
   protected void lockAWT() {
-    X11GLContextFactory.lockAWT();
+    X11GLDrawableFactory.lockAWT();
   }
 
   protected void unlockAWT() {
-    X11GLContextFactory.unlockAWT();
+    X11GLDrawableFactory.unlockAWT();
   }
 }

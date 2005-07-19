@@ -70,7 +70,7 @@ public class X11PbufferGLDrawable extends X11GLDrawable {
                          (capabilities.getOffscreenFloatingPointBuffers() ? " [float]" : ""));
     }
 
-    createPbuffer(X11GLContextFactory.getDisplayConnection());
+    createPbuffer(X11GLDrawableFactory.getDisplayConnection());
   }
 
   public GLContext createContext(GLContext shareWith) {

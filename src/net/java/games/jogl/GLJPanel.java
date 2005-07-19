@@ -438,7 +438,7 @@ public final class GLJPanel extends JPanel implements GLAutoDrawable {
     }
 
     // Fall-through path: create an offscreen context instead
-    offscreenDrawable = GLContextFactory.getFactory().createOffscreenDrawable(offscreenCaps, chooser);
+    offscreenDrawable = GLDrawableFactoryImpl.getFactoryImpl().createOffscreenDrawable(offscreenCaps, chooser);
     offscreenDrawable.setSize(Math.max(1, panelWidth), Math.max(1, panelHeight));
     offscreenContext = (GLContextImpl) offscreenDrawable.createContext(shareWith);
     offscreenContext.setSynchronized(true);

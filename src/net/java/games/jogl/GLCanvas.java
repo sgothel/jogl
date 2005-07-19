@@ -60,7 +60,7 @@ import net.java.games.jogl.impl.*;
 
 public class GLCanvas extends Canvas implements GLAutoDrawable {
 
-  protected static final boolean DEBUG = Debug.debug("GLCanvas");
+  private static final boolean DEBUG = Debug.debug("GLCanvas");
 
   private GLDrawableHelper drawableHelper = new GLDrawableHelper();
   private GLDrawable drawable;
@@ -68,10 +68,31 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
   private boolean autoSwapBufferMode = true;
   private boolean sendReshape = false;
 
-  public GLCanvas(GLCapabilities capabilities,
-                  GLCapabilitiesChooser chooser,
-                  GLContext shareWith,
-                  GraphicsDevice device) {
+  /** Creates a new GLCanvas object. The passed GLCapabilities must be
+      non-null and specifies the OpenGL capabilities for the
+      component. The GLCapabilitiesChooser must be non-null and
+      specifies the algorithm for selecting one of the available
+      GLCapabilities for the component; the GLDrawableFactory uses a
+      DefaultGLCapabilitesChooser if the user does not provide
+      one. The passed GLContext may be null and specifies an OpenGL
+      context with which to share textures, display lists and other
+      OpenGL state. The passed GraphicsDevice must be non-null and
+      indicates the screen on which to create the GLCanvas; the
+      GLDrawableFactory uses the default screen device of the local
+      GraphicsEnvironment if the user does not provide one. */
+  protected GLCanvas(GLCapabilities capabilities,
+                     GLCapabilitiesChooser chooser,
+                     GLContext shareWith,
+                     GraphicsDevice device) {
+    // The platform-specific GLDrawableFactory will only provide a
+    // non-null GraphicsConfiguration on platforms where this is
+    // necessary (currently only X11, as Windows allows the pixel
+    // format of the window to be set later and Mac OS X seems to
+    // handle this very differently than all other platforms). On
+    // other platforms this method returns null; it is the case (at
+    // least in the Sun AWT implementation) that this will result in
+    // equivalent behavior to calling the no-arg super() constructor
+    // for Canvas.
     super(GLDrawableFactory.getFactory().chooseGraphicsConfiguration(capabilities, chooser, device));
     drawable = GLDrawableFactory.getFactory().getGLDrawable(this, capabilities, chooser);
     context = (GLContextImpl) drawable.createContext(shareWith);

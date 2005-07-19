@@ -394,6 +394,6 @@ public class WindowsPbufferGLDrawable extends WindowsGLDrawable {
   }
 
   private static String wglGetLastError() {
-    return WindowsGLContextFactory.wglGetLastError();
+    return WindowsGLDrawableFactory.wglGetLastError();
   }
 }

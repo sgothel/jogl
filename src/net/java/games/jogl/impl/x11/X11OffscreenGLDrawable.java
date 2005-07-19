@@ -76,7 +76,7 @@ public class X11OffscreenGLDrawable extends X11GLDrawable {
   }
   
   private void create() {
-    display = X11GLContextFactory.getDisplayConnection();
+    display = X11GLDrawableFactory.getDisplayConnection();
     XVisualInfo vis = chooseVisual(false);
     int bitsPerPixel = vis.depth();
 
@@ -93,7 +93,7 @@ public class X11OffscreenGLDrawable extends X11GLDrawable {
         pixmap = 0;
         throw new GLException("glXCreateGLXPixmap failed");
       }
-      isDoubleBuffered = (X11GLContextFactory.glXGetConfig(display, vis, GLX.GLX_DOUBLEBUFFER, new int[1], 0) != 0);
+      isDoubleBuffered = (X11GLDrawableFactory.glXGetConfig(display, vis, GLX.GLX_DOUBLEBUFFER, new int[1], 0) != 0);
       if (DEBUG) {
         System.err.println("Created pixmap " + toHexString(pixmap) +
                            ", GLXPixmap " + toHexString(drawable) +

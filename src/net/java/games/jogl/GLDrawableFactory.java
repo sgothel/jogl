@@ -69,13 +69,46 @@ import net.java.games.jogl.impl.*;
     GLJPanel} if the capabilities can not be met. </P>
 */
 
-public class GLDrawableFactory {
-  private static GLDrawableFactory factory = new GLDrawableFactory();
-
-  private GLDrawableFactory() {}
+public abstract class GLDrawableFactory {
+  private static GLDrawableFactory factory;
 
   /** Returns the sole GLDrawableFactory instance. */
   public static GLDrawableFactory getFactory() {
+    if (factory == null) {
+      try {
+        String osName = System.getProperty("os.name");
+        String osNameLowerCase = osName.toLowerCase();
+        Class factoryClass = null;
+
+        // Because there are some complications with generating all
+        // platforms' Java glue code on all platforms (among them that we
+        // would have to include jawt.h and jawt_md.h in the jogl
+        // sources, which we currently don't have to do) we break the only
+        // static dependencies with platform-specific code here using reflection.
+
+        if (osNameLowerCase.startsWith("wind")) {
+          factoryClass = Class.forName("net.java.games.jogl.impl.windows.WindowsGLDrawableFactory");
+        } else if (osNameLowerCase.startsWith("mac os x")) {
+          factoryClass = Class.forName("net.java.games.jogl.impl.macosx.MacOSXGLDrawableFactory");
+        } else {
+          // Assume Linux, Solaris, etc. Should probably test for these explicitly.
+          factoryClass = Class.forName("net.java.games.jogl.impl.x11.X11GLDrawableFactory");
+        }
+
+        if (factoryClass == null) {
+          throw new GLException("OS " + osName + " not yet supported");
+        }
+
+        factory = (GLDrawableFactory) factoryClass.newInstance();
+      } catch (ClassNotFoundException e) {
+        throw new GLException(e);
+      } catch (InstantiationException e) {
+        throw new GLException(e);
+      } catch (IllegalAccessException e) {
+        throw new GLException(e);
+      }
+    }
+
     return factory;
   }
 
@@ -92,12 +125,10 @@ public class GLDrawableFactory {
    *
    * @see java.awt.Canvas(java.awt.GraphicsConfiguration)
    */
-  public GraphicsConfiguration
+  public abstract GraphicsConfiguration
     chooseGraphicsConfiguration(GLCapabilities capabilities,
                                 GLCapabilitiesChooser chooser,
-                                GraphicsDevice device) {
-    return GLContextFactory.getFactory().chooseGraphicsConfiguration(capabilities, chooser, device);
-  }
+                                GraphicsDevice device);
 
   /**
    * Returns a GLDrawable that wraps a platform-specific window system
@@ -114,12 +145,10 @@ public class GLDrawableFactory {
    * @throw GLException if any window system-specific errors caused
    *        the creation of the GLDrawable to fail.
    */
-  public GLDrawable getGLDrawable(Object target,
-                                  GLCapabilities capabilities,
-                                  GLCapabilitiesChooser chooser)
-    throws IllegalArgumentException, GLException {
-    return GLContextFactory.getFactory().getGLDrawable(target, capabilities, chooser);
-  }
+  public abstract GLDrawable getGLDrawable(Object target,
+                                           GLCapabilities capabilities,
+                                           GLCapabilitiesChooser chooser)
+    throws IllegalArgumentException, GLException;
   
   //----------------------------------------------------------------------
   // Methods to create high-level objects
@@ -150,15 +179,6 @@ public class GLDrawableFactory {
     if (device == null) {
       device = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
     }
-    // The platform-specific GLContextFactory will only provide a
-    // non-null GraphicsConfiguration on platforms where this is
-    // necessary (currently only X11, as Windows allows the pixel
-    // format of the window to be set later and Mac OS X seems to
-    // handle this very differently than all other platforms). On
-    // other platforms this method returns null; it is the case (at
-    // least in the Sun AWT implementation) that this will result in
-    // equivalent behavior to calling the no-arg super() constructor
-    // for Canvas.
     return new GLCanvas(capabilities,
                         chooser,
                         shareWith,
@@ -208,25 +228,15 @@ public class GLDrawableFactory {
    * Returns true if it is possible to create a GLPbuffer with the
    * given capabilites and dimensions.
    */
-  public boolean canCreateGLPbuffer(GLCapabilities capabilities,
-                                    int initialWidth,
-                                    int initialHeight) {
-    return GLContextFactory.getFactory().canCreateGLPbuffer(capabilities,
-                                                            initialWidth,
-                                                            initialHeight);
-  }
-
+  public abstract boolean canCreateGLPbuffer(GLCapabilities capabilities,
+                                             int initialWidth,
+                                             int initialHeight);
 
   /**
    * Creates a GLPbuffer with the given capabilites and dimensions.
    */
-  public GLPbuffer createGLPbuffer(GLCapabilities capabilities,
-                                   int initialWidth,
-                                   int initialHeight,
-                                   GLContext shareWith) {
-    return GLContextFactory.getFactory().createGLPbuffer(capabilities,
-                                                         initialWidth,
-                                                         initialHeight,
-                                                         shareWith);
-  }
+  public abstract GLPbuffer createGLPbuffer(GLCapabilities capabilities,
+                                            int initialWidth,
+                                            int initialHeight,
+                                            GLContext shareWith);
 }

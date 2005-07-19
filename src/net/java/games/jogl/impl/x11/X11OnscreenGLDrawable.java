@@ -169,6 +169,6 @@ public class X11OnscreenGLDrawable extends X11GLDrawable {
   //
 
   private JAWT getJAWT() {
-    return X11GLContextFactory.getJAWT();
+    return X11GLDrawableFactory.getJAWT();
   }
 }
