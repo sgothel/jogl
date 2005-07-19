@@ -967,7 +967,7 @@ public int gluScaleImage(int format, int wIn, int hIn, int typeIn, java.nio.Buff
  * these situations correctly should confirm availability after a display
  * change before calling a questionable OpenGL function. To detect a change in
  * the display device, please see {@link
- * GLEventListener#displayChanged(GLDrawable,boolean,boolean)}.
+ * GLEventListener#displayChanged(GLAutoDrawable,boolean,boolean)}.
  *
  * @param gluFunctionName the name of the OpenGL function (e.g., use
  * "gluNurbsCallbackDataEXT" to check if the <code>

@@ -39,12 +39,13 @@
 
 package net.java.games.jogl;
 
-/** Offscreen rendering support via pbuffers. This class adds very
-    little functionality over the GLDrawable class; the only methods
-    are those which allow access to the pbuffer's contents as a
-    texture map and which enable offscreen rendering to floating-point
-    buffers. These methods are currently highly experimental and may
-    be removed in a future release. */
+/** Provides offscreen rendering support via pbuffers. The principal
+    addition of this interface is a {@link #destroy} method to
+    deallocate the pbuffer and its associated resources. It also
+    contains experimental methods for accessing the pbuffer's contents
+    as a texture map and enabling rendering to floating-point frame
+    buffers. These methods are not guaranteed to be supported on all
+    platforms and may change or be removed in a future release. */
 
 public interface GLPbuffer extends GLAutoDrawable {
   /** Indicates the GL_APPLE_float_pixels extension is being used for this pbuffer. */
@@ -71,12 +72,12 @@ public interface GLPbuffer extends GLAutoDrawable {
   /** Unbinds the pbuffer from its internal texture target. */
   public void releaseTexture();
 
-  /** Queries initialization status of this pBuffer. */
-  public boolean isInitialized();
-
   /** Destroys the native resources associated with this pbuffer. It
       is not valid to call display() or any other routines on this
-      pbuffer after it has been destroyed. */
+      pbuffer after it has been destroyed. Before destroying the
+      pbuffer, the application must destroy any additional OpenGL
+      contexts which have been created for the pbuffer via {@link
+      #createContext}. */
   public void destroy();
 
   /** Indicates which vendor's extension is being used to support

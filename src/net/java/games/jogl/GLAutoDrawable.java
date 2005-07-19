@@ -39,6 +39,17 @@
 
 package net.java.games.jogl;
 
+/** A higher-level abstraction than {@link GLDrawable} which supplies
+    an event based mechanism ({@link GLEventListener}) for performing
+    OpenGL rendering. A GLAutoDrawable automatically creates a primary
+    rendering context which is associated with the GLAutoDrawable for
+    the lifetime of the object. This context has the {@link
+    GLContext#setSynchronized synchronized} property enabled so that
+    calls to {@link GLContext#makeCurrent makeCurrent} will block if
+    the context is current on another thread. This allows the internal
+    GLContext for the GLAutoDrawable to be used both by the event
+    based rendering mechanism as well by end users directly. */
+
 public interface GLAutoDrawable extends GLDrawable, ComponentEvents {
   /**
    * Returns the context associated with this drawable. The returned
@@ -59,12 +70,13 @@ public interface GLAutoDrawable extends GLDrawable, ComponentEvents {
   public void removeGLEventListener(GLEventListener listener);
 
   /** Causes OpenGL rendering to be performed for this GLAutoDrawable
-      by calling {@link GLEventListener#display} for all registered
-      {@link GLEventListener}s. Called automatically by the window
-      system toolkit upon receiving a repaint() request. this routine
-      may be called manually for better control over the rendering
-      process. It is legal to call another GLAutoDrawable's display
-      method from within {@link GLEventListener#display}. */
+      by calling {@link GLEventListener#display display} for all
+      registered {@link GLEventListener}s. Called automatically by the
+      window system toolkit upon receiving a repaint() request. this
+      routine may be called manually for better control over the
+      rendering process. It is legal to call another GLAutoDrawable's
+      display method from within the {@link GLEventListener#display
+      display} callback. */
   public void display();
 
   /** Enables or disables automatic buffer swapping for this drawable.
@@ -79,27 +91,29 @@ public interface GLAutoDrawable extends GLDrawable, ComponentEvents {
       drawable. See {@link #setAutoSwapBufferMode}. */
   public boolean getAutoSwapBufferMode();
 
-  /** Returns the {@link GL} pipeline object this GLDrawable uses.  If
-      this method is called outside of the {@link GLEventListener}'s
-      callback methods (init, display, etc.) it may return null. Users
-      should not rely on the identity of the returned GL object; for
-      example, users should not maintain a hash table with the GL
-      object as the key. Additionally, the GL object should not be
-      cached in client code, but should be re-fetched from the
-      GLDrawable at the beginning of each call to init, display,
-      etc. */
+  /** Returns the {@link GL} pipeline object this GLAutoDrawable uses.
+      If this method is called outside of the {@link
+      GLEventListener}'s callback methods (init, display, etc.) it may
+      return null. Users should not rely on the identity of the
+      returned GL object; for example, users should not maintain a
+      hash table with the GL object as the key. Additionally, the GL
+      object should not be cached in client code, but should be
+      re-fetched from the GLAutoDrawable at the beginning of each call
+      to init, display, etc. */
   public GL getGL();
 
-  /** Sets the {@link GL} pipeline object this GLDrawable uses. This
-      should only be called from within the GLEventListener's callback
-      methods, and usually only from within the init() method, in
-      order to install a composable pipeline. See the JOGL demos for
-      examples. */
+  /** Sets the {@link GL} pipeline object this GLAutoDrawable uses.
+      This should only be called from within the GLEventListener's
+      callback methods, and usually only from within the init()
+      method, in order to install a composable pipeline. See the JOGL
+      demos for examples. */
   public void setGL(GL gl);
 
-  /** Returns the {@link GLU} pipeline object this GLDrawable uses. */
+  /** Returns the {@link GLU} pipeline object this GLAutoDrawable
+      uses. */
   public GLU getGLU();
 
-  /** Sets the {@link GLU} pipeline object this GLDrawable uses. */
+  /** Sets the {@link GLU} pipeline object this GLAutoDrawable
+      uses. */
   public void setGLU(GLU glu);
 }

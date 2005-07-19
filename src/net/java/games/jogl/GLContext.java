@@ -39,9 +39,25 @@
 
 package net.java.games.jogl;
 
+/** Abstraction for an OpenGL rendering context. In order to perform
+    OpenGL rendering, a context must be "made current" on the current
+    thread. OpenGL rendering semantics specify that only one context
+    may be current on the current thread at any given time, and also
+    that a given context may be current on only one thread at any
+    given time. Because components can be added to and removed from
+    the component hierarchy at any time, it is possible that the
+    underlying OpenGL context may need to be destroyed and recreated
+    multiple times over the lifetime of a given component. This
+    process is handled by the implementation, and the GLContext
+    abstraction provides a stable object which clients can use to
+    refer to a given context. */
+
 public abstract class GLContext {
+  /** Indicates that the context was not made current during the last call to {@link #makeCurrent makeCurrent}. */
   public static final int CONTEXT_NOT_CURRENT = 0;
+  /** Indicates that the context was made current during the last call to {@link #makeCurrent makeCurrent}. */
   public static final int CONTEXT_CURRENT     = 1;
+  /** Indicates that a newly-created context was made current during the last call to {@link #makeCurrent makeCurrent}. */
   public static final int CONTEXT_CURRENT_NEW = 2;
 
   private static ThreadLocal currentContext = new ThreadLocal();
@@ -90,7 +106,7 @@ public abstract class GLContext {
   /**
    * Releases control of this GLContext from the current thread.
    *
-   * @throw GLException if the context had not previously been made
+   * @throws GLException if the context had not previously been made
    * current on the current thread
    */
   public abstract void release() throws GLException;
@@ -118,10 +134,6 @@ public abstract class GLContext {
   
   /**
    * Destroys this OpenGL context and frees its associated resources.
-   * <P>
-   * For onscreen GLDrawables, should be used to indicate to the
-   * GLContext implementation that the underlying window has been
-   * destroyed.
    */
   public abstract void destroy();
 
@@ -135,14 +147,23 @@ public abstract class GLContext {
    */
   public abstract void setSynchronized(boolean isSynchronized);
 
-  // 'GL' and 'GLU' pipelines allow instrumenting the actual
-  // pipeline for debugging, tracing, etc.
-
+  /**
+   * Returns the GL pipeline object for this GLContext.
+   */
   public abstract GL getGL();
 
+  /**
+   * Returns the GLU pipeline object for this GLContext.
+   */
   public abstract GLU getGLU();
 
+  /**
+   * Sets the GL pipeline object for this GLContext.
+   */
   public abstract void setGL(GL gl);
 
+  /**
+   * Sets the GLU pipeline object for this GLContext.
+   */
   public abstract void setGLU(GLU glu);
 }

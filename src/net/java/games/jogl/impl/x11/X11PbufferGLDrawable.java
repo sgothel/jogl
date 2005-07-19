@@ -168,7 +168,6 @@ public class X11PbufferGLDrawable extends X11GLDrawable {
       int screen = 0; // FIXME: provide way to specify this?
 
       if (capabilities.getOffscreenFloatingPointBuffers()) {
-        // FIXME: 
         String glXExtensions = GLX.glXQueryExtensionsString(display, screen);
         if (glXExtensions == null ||
             glXExtensions.indexOf("GLX_NV_float_buffer") < 0) {

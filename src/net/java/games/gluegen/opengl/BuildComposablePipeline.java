@@ -511,7 +511,7 @@ public class BuildComposablePipeline
     {
       output.println("/** <P> Composable pipline which wraps an underlying {@link GL} implementation,");
       output.println("    providing tracing information to a user-specified {@link java.io.PrintStream}");
-      output.println("    before after each OpenGL method call. Sample code which installs this pipeline: </P>");
+      output.println("    before and after each OpenGL method call. Sample code which installs this pipeline: </P>");
       output.println();
       output.println("<PRE>");
       output.println("     drawable.setGL(new TraceGL(drawable.getGL(), System.err));");

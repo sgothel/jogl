@@ -61,6 +61,12 @@ package net.java.games.jogl;
 // context whenever the displayChanged() function is called on our
 // GLEventListeners
 
+/** An abstraction for an OpenGL rendering target. A GLDrawable's
+    primary functionality is to create OpenGL contexts which can be
+    used to perform rendering. A GLDrawable does not automatically
+    create an OpenGL context, but all implementations of {@link
+    GLAutoDrawable} do so upon creation. */
+
 public interface GLDrawable {
   /**
    * Creates a new context for drawing to this drawable that will

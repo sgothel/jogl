@@ -68,8 +68,8 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
   private boolean autoSwapBufferMode = true;
   private boolean sendReshape = false;
 
-  /** Creates a new GLCanvas object. The passed GLCapabilities must be
-      non-null and specifies the OpenGL capabilities for the
+  /** Creates a new GLCanvas component. The passed GLCapabilities must
+      be non-null and specifies the OpenGL capabilities for the
       component. The GLCapabilitiesChooser must be non-null and
       specifies the algorithm for selecting one of the available
       GLCapabilities for the component; the GLDrawableFactory uses a
@@ -167,19 +167,19 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
   }
 
   public GL getGL() {
-    return context.getGL();
+    return getContext().getGL();
   }
 
   public void setGL(GL gl) {
-    context.setGL(gl);
+    getContext().setGL(gl);
   }
 
   public GLU getGLU() {
-    return context.getGLU();
+    return getContext().getGLU();
   }
   
   public void setGLU(GLU glu) {
-    context.setGLU(glu);
+    getContext().setGLU(glu);
   }
   
   public void setAutoSwapBufferMode(boolean onOrOff) {

@@ -55,7 +55,6 @@ public class GLPbufferImpl implements GLPbuffer {
   private GLDrawableImpl pbufferDrawable;
   private GLContextImpl context;
   private GLDrawableHelper drawableHelper = new GLDrawableHelper();
-  private boolean isInitialized=false;
   private int floatMode;
 
   public GLPbufferImpl(GLDrawableImpl pbufferDrawable,
@@ -108,19 +107,19 @@ public class GLPbufferImpl implements GLPbuffer {
   }
 
   public GL getGL() {
-    return context.getGL();
+    return getContext().getGL();
   }
 
   public void setGL(GL gl) {
-    context.setGL(gl);
+    getContext().setGL(gl);
   }
 
   public GLU getGLU() {
-    return context.getGLU();
+    return getContext().getGLU();
   }
   
   public void setGLU(GLU glu) {
-    context.setGLU(glu);
+    getContext().setGLU(glu);
   }
   
   public void setAutoSwapBufferMode(boolean onOrOff) {
@@ -176,13 +175,6 @@ public class GLPbufferImpl implements GLPbuffer {
   public void removePropertyChangeListener(String propertyName,
                                            PropertyChangeListener listener) {}
 
-    /** Queries initialization status of this pBuffer.
-     * @return true if initialized
-     * */
-  public boolean isInitialized(){
-    return isInitialized;
-  }
-
   public void destroy() {
     context.destroy();
     pbufferDrawable.destroy();
@@ -225,7 +217,6 @@ public class GLPbufferImpl implements GLPbuffer {
 
   class InitAction implements Runnable {
     public void run() {
-      isInitialized=true;
       floatMode = context.getFloatingPointMode();
       drawableHelper.init(GLPbufferImpl.this);
     }

@@ -74,12 +74,17 @@ import net.java.games.jogl.impl.*;
     This behavior is correct, as the textures and display lists for
     the GLJPanel will have been lost during the resize operation. The
     application should attempt to make its GLEventListener.init()
-    methods as side-effect-free as possible.
+    methods as side-effect-free as possible. <P>
+
+    The GLJPanel can be made transparent by creating it with a
+    GLCapabilities object with alpha bits specified and calling {@link
+    #setOpaque}(false). Pixels with resulting OpenGL alpha values less
+    than 1.0 will be overlaid on any underlying Java2D rendering.
 */
 
 public class GLJPanel extends JPanel implements GLAutoDrawable {
-  protected static final boolean DEBUG = Debug.debug("GLJPanel");
-  protected static final boolean VERBOSE = Debug.verbose();
+  private static final boolean DEBUG = Debug.debug("GLJPanel");
+  private static final boolean VERBOSE = Debug.verbose();
 
   private GLDrawableHelper drawableHelper = new GLDrawableHelper();
   private volatile boolean isInitialized;
@@ -162,9 +167,9 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
     }
   }
 
-  /** Overridden from JComponent; calls {@link
-      GLEventListener#display}. Should not be invoked by applications
-      directly. */
+  /** Overridden from JComponent; calls event listeners' {@link
+      GLEventListener#display display} methods. Should not be invoked
+      by applications directly. */
   public void paintComponent(Graphics g) {
     if (shouldInitialize) {
       initialize();
@@ -182,6 +187,8 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
     }
   }
 
+  /** Overridden from JPanel; used to indicate that an OpenGL context
+      may be created for the component. */
   public void addNotify() {
     super.addNotify();
     shouldInitialize = true;
@@ -215,10 +222,10 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
     super.removeNotify();
   }
 
-  /** Overridden from Canvas; causes {@link GLDrawableHelper#reshape}
-      to be called on all registered {@link GLEventListener}s. Called
-      automatically by the AWT; should not be invoked by applications
-      directly. */
+  /** Overridden from Canvas; causes {@link GLEventListener#reshape
+      reshape} to be called on all registered {@link
+      GLEventListener}s. Called automatically by the AWT; should not
+      be invoked by applications directly. */
   public void reshape(int x, int y, int width, int height) {
     super.reshape(x, y, width, height);
 
@@ -338,44 +345,26 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
   }
 
   public GL getGL() {
-    if (!hardwareAccelerationDisabled) {
-      if (pbuffer == null) {
-        return null;
-      }
-      return pbuffer.getGL();
-    } else {
-      if (offscreenContext == null) {
-        return null;
-      }
-      return offscreenContext.getGL();
-    }
+    GLContext context = getContext();
+    return (context == null) ? null : context.getGL();
   }
 
   public void setGL(GL gl) {
-    if (!hardwareAccelerationDisabled) {
-      if (pbuffer != null) {
-        pbuffer.setGL(gl);
-      }
-    } else {
-      if (offscreenContext != null) {
-        offscreenContext.setGL(gl);
-      }
+    GLContext context = getContext();
+    if (context != null) {
+      context.setGL(gl);
     }
   }
 
   public GLU getGLU() {
-    if (!hardwareAccelerationDisabled) {
-      return pbuffer.getGLU();
-    } else {
-      return offscreenContext.getGLU();
-    }
+    GLContext context = getContext();
+    return (context == null) ? null : context.getGLU();
   }
   
   public void setGLU(GLU glu) {
-    if (!hardwareAccelerationDisabled) {
-      pbuffer.setGLU(glu);
-    } else {
-      offscreenContext.setGLU(glu);
+    GLContext context = getContext();
+    if (context != null) {
+      context.setGLU(glu);
     }
   }
   

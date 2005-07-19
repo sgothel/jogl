@@ -42,25 +42,26 @@ package net.java.games.jogl;
 import java.util.EventListener;
 
 /** Declares events which client code can use to manage OpenGL
-    rendering into a {@link GLDrawable}. At the time any of these
+    rendering into a {@link GLAutoDrawable}. At the time any of these
     methods is called, the drawable has made its associated OpenGL
     context current, so it is valid to make OpenGL calls. */
 
 public interface GLEventListener extends EventListener {
   /** Called by the drawable immediately after the OpenGL context is
       initialized. Can be used to perform one-time OpenGL
-      initialization such as setup of lights and display lists.  Note
+      initialization such as setup of lights and display lists. Note
       that this method may be called more than once if the underlying
-      OpenGL context for the GLAutoDrawable is destroyed and recreated,
-      for example if a GLCanvas is removed from the widget hierarchy
-      and later added again.
+      OpenGL context for the GLAutoDrawable is destroyed and
+      recreated, for example if a GLCanvas is removed from the widget
+      hierarchy and later added again.
   */
   public void init(GLAutoDrawable drawable);
   
   /** Called by the drawable to initiate OpenGL rendering by the
       client. After all GLEventListeners have been notified of a
-      display event, the drawable will swap its buffers if necessary.
-  */
+      display event, the drawable will swap its buffers if {@link
+      GLAutoDrawable#setAutoSwapBufferMode setAutoSwapBufferMode} is
+      enabled. */
   public void display(GLAutoDrawable drawable);
 
   /** Called by the drawable during the first repaint after the

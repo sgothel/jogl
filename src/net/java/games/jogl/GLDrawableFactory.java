@@ -45,8 +45,7 @@ import java.awt.GraphicsEnvironment;
 import net.java.games.jogl.impl.*;
 
 /** <P> Provides a virtual machine- and operating system-independent
-    mechanism for creating {@link net.java.games.jogl.GLCanvas} and {@link
-    net.java.games.jogl.GLJPanel} objects. </P>
+    mechanism for creating {@link GLDrawable}s. </P>
 
     <P> The {@link net.java.games.jogl.GLCapabilities} objects passed in to the
     various factory methods are used as a hint for the properties of
@@ -66,7 +65,9 @@ import net.java.games.jogl.impl.*;
     process are (unfortunately) left unspecified for now. The current
     implementation will cause a {@link GLException} to be raised
     during the first repaint of the {@link GLCanvas} or {@link
-    GLJPanel} if the capabilities can not be met. </P>
+    GLJPanel} if the capabilities can not be met. Pbuffers are always
+    created immediately and their creation will fail with a {@link
+    GLException} if errors occur. </P>
 */
 
 public abstract class GLDrawableFactory {
@@ -123,7 +124,7 @@ public abstract class GLDrawableFactory {
    * returns null on platforms on which the OpenGL pixel format
    * selection process is performed later.
    *
-   * @see java.awt.Canvas(java.awt.GraphicsConfiguration)
+   * @see java.awt.Canvas#Canvas(java.awt.GraphicsConfiguration)
    */
   public abstract GraphicsConfiguration
     chooseGraphicsConfiguration(GLCapabilities capabilities,
@@ -140,10 +141,10 @@ public abstract class GLDrawableFactory {
    * passed GLCapabilitiesChooser object is null, uses a
    * DefaultGLCapabilitiesChooser instance.
    *
-   * @throw IllegalArgumentException if the passed target is either
-   *        null or its data type is not supported by this GLDrawableFactory.
-   * @throw GLException if any window system-specific errors caused
-   *        the creation of the GLDrawable to fail.
+   * @throws IllegalArgumentException if the passed target is either
+   *         null or its data type is not supported by this GLDrawableFactory.
+   * @throws GLException if any window system-specific errors caused
+   *         the creation of the GLDrawable to fail.
    */
   public abstract GLDrawable getGLDrawable(Object target,
                                            GLCapabilities capabilities,
