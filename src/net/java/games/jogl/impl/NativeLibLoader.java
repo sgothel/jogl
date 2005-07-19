@@ -39,6 +39,7 @@
 
 package net.java.games.jogl.impl;
 
+import java.awt.Toolkit;
 import java.security.*;
 
 public class NativeLibLoader {
@@ -60,6 +61,10 @@ public class NativeLibLoader {
             boolean isOSX = System.getProperty("os.name").equals("Mac OS X");
             if (!isOSX) {
               try {
+                // On X11 systems, toolkit must be loaded before
+                // trying to resolve JAWT in order for libmawt.so to
+                // be found properly
+                Toolkit.getDefaultToolkit();
                 System.loadLibrary("jawt");
               } catch (UnsatisfiedLinkError e) {
                 // Accessibility technologies load JAWT themselves; safe to continue

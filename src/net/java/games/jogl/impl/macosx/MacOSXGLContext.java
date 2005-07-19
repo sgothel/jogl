@@ -41,7 +41,6 @@ package net.java.games.jogl.impl.macosx;
 
 import java.awt.Component;
 import java.util.*;
-import net.java.games.gluegen.runtime.*; // for PROCADDRESS_VAR_PREFIX
 import net.java.games.jogl.*;
 import net.java.games.jogl.impl.*;
 
@@ -167,10 +166,6 @@ public abstract class MacOSXGLContext extends GLContextImpl
       nsContext = 0;
       GLContextShareSet.contextDestroyed(this);
     }
-  }
-
-  protected long dynamicLookupFunction(String glFuncName) {
-    return CGL.getProcAddress(glFuncName);
   }
 
   public boolean isCreated() {

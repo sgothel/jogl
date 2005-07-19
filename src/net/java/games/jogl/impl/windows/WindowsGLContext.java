@@ -40,7 +40,6 @@
 package net.java.games.jogl.impl.windows;
 
 import java.util.*;
-import net.java.games.gluegen.runtime.*; // for PROCADDRESS_VAR_PREFIX
 import net.java.games.jogl.*;
 import net.java.games.jogl.impl.*;
 
@@ -54,8 +53,6 @@ public class WindowsGLContext extends GLContextImpl {
   // Table that holds the addresses of the native C-language entry points for
   // OpenGL functions.
   private GLProcAddressTable glProcAddressTable;
-  // Handle to GLU32.dll
-  private long hglu32;
 
   static {
     functionNameMap = new HashMap();
@@ -182,21 +179,6 @@ public class WindowsGLContext extends GLContextImpl {
       hglrc = 0;
       GLContextShareSet.contextDestroyed(this);
     }
-  }
-
-  protected long dynamicLookupFunction(String glFuncName) {
-    long res = WGL.wglGetProcAddress(glFuncName);
-    if (res == 0) {
-      // GLU routines aren't known to the OpenGL function lookup
-      if (hglu32 == 0) {
-        hglu32 = WGL.LoadLibraryA("GLU32");
-        if (hglu32 == 0) {
-          throw new GLException("Error loading GLU32.DLL");
-        }
-      }
-      res = WGL.GetProcAddress(hglu32, glFuncName);
-    }
-    return res;
   }
 
   public boolean isCreated() {

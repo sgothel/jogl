@@ -57,6 +57,10 @@ public class WindowsGLDrawableFactory extends GLDrawableFactoryImpl {
   private static final boolean DEBUG = Debug.debug("WindowsGLDrawableFactory");
   private static final boolean VERBOSE = Debug.verbose();
 
+  // Handle to GLU32.dll
+  // FIXME: this should go away once we delete support for the C GLU library
+  private long hglu32;
+
   static {
     NativeLibLoader.load();
 
@@ -211,6 +215,21 @@ public class WindowsGLDrawableFactory extends GLDrawableFactoryImpl {
       };
     maybeDoSingleThreadedWorkaround(r);
     return (GLPbuffer) returnList.get(0);
+  }
+
+  public long dynamicLookupFunction(String glFuncName) {
+    long res = WGL.wglGetProcAddress(glFuncName);
+    if (res == 0) {
+      // GLU routines aren't known to the OpenGL function lookup
+      if (hglu32 == 0) {
+        hglu32 = WGL.LoadLibraryA("GLU32");
+        if (hglu32 == 0) {
+          throw new GLException("Error loading GLU32.DLL");
+        }
+      }
+      res = WGL.GetProcAddress(hglu32, glFuncName);
+    }
+    return res;
   }
 
   static String wglGetLastError() {

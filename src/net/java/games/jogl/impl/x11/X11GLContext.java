@@ -40,9 +40,7 @@
 package net.java.games.jogl.impl.x11;
 
 import java.awt.Component;
-import java.security.*;
 import java.util.*;
-import net.java.games.gluegen.runtime.*; // for PROCADDRESS_VAR_PREFIX
 import net.java.games.jogl.*;
 import net.java.games.jogl.impl.*;
 
@@ -55,30 +53,16 @@ public abstract class X11GLContext extends GLContextImpl {
   // Table that holds the addresses of the native C-language entry points for
   // OpenGL functions.
   private GLProcAddressTable glProcAddressTable;
-  private static boolean haveResetGLXProcAddressTable;
   // Cache the most recent value of the "display" variable (which we
   // only guarantee to be valid in between makeCurrent / free pairs)
   // so that we can implement displayImpl() (which must be done when
   // the context is not current)
   protected long mostRecentDisplay;
-  // There is currently a bug on Linux/AMD64 distributions in glXGetProcAddressARB
-  protected static boolean isLinuxAMD64;
 
   static {
     functionNameMap = new HashMap();
     functionNameMap.put("glAllocateMemoryNV", "glXAllocateMemoryNV");
     functionNameMap.put("glFreeMemoryNV", "glXFreeMemoryNV");
-
-    AccessController.doPrivileged(new PrivilegedAction() {
-        public Object run() {
-          String os   = System.getProperty("os.name").toLowerCase();
-          String arch = System.getProperty("os.arch").toLowerCase();
-          if (os.startsWith("linux") && arch.equals("amd64")) {
-            isLinuxAMD64 = true;
-          }
-          return null;
-        }
-      });
   }
 
   public X11GLContext(X11GLDrawable drawable,
@@ -180,18 +164,6 @@ public abstract class X11GLContext extends GLContextImpl {
     unlockAWT();
   }
 
-  protected long dynamicLookupFunction(String glFuncName) {
-    long res = 0;
-    if (!isLinuxAMD64) {
-      res = GLX.glXGetProcAddressARB(glFuncName);
-    }
-    if (res == 0) {
-      // GLU routines aren't known to the OpenGL function lookup
-      res = GLX.dlsym(glFuncName);
-    }
-    return res;
-  }
-
   public boolean isCreated() {
     return (context != 0);
   }
@@ -202,10 +174,6 @@ public abstract class X11GLContext extends GLContextImpl {
       System.err.println("!!! Initializing OpenGL extension address table");
     }
     resetProcAddressTable(getGLProcAddressTable());
-
-    if (!haveResetGLXProcAddressTable) {
-      resetProcAddressTable(GLX.getGLXProcAddressTable());
-    }
   }
   
   public GLProcAddressTable getGLProcAddressTable() {
@@ -222,7 +190,8 @@ public abstract class X11GLContext extends GLContextImpl {
       throw new GLException("Context not current");
     }
     if (!glXQueryExtensionsStringInitialized) {
-      glXQueryExtensionsStringAvailable = (dynamicLookupFunction("glXQueryExtensionsString") != 0);
+      glXQueryExtensionsStringAvailable =
+        (GLDrawableFactoryImpl.getFactoryImpl().dynamicLookupFunction("glXQueryExtensionsString") != 0);
       glXQueryExtensionsStringInitialized = true;
     }
     if (glXQueryExtensionsStringAvailable) {

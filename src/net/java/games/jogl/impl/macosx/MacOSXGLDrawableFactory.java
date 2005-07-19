@@ -102,6 +102,10 @@ public class MacOSXGLDrawableFactory extends GLDrawableFactoryImpl {
     return (GLPbuffer) returnList.get(0);
   }
 
+  public long dynamicLookupFunction(String glFuncName) {
+    return CGL.getProcAddress(glFuncName);
+  }
+
   private void maybeDoSingleThreadedWorkaround(Runnable action) {
     if (SingleThreadedWorkaround.doWorkaround() && !EventQueue.isDispatchThread()) {
       try {

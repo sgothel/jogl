@@ -110,6 +110,8 @@ public final class GLJPanel extends JPanel implements GLAutoDrawable {
   // Implementation using pbuffers
   private static boolean hardwareAccelerationDisabled =
     Debug.isPropertyDefined("jogl.gljpanel.nohw");
+  private static boolean softwareRenderingDisabled =
+    Debug.isPropertyDefined("jogl.gljpanel.nosw");
   private GLPbuffer pbuffer;
   private int       pbufferWidth  = 256;
   private int       pbufferHeight = 256;
@@ -423,18 +425,26 @@ public final class GLJPanel extends JPanel implements GLAutoDrawable {
           isInitialized = true;
           return;
         } catch (GLException e) {
+          if (DEBUG) {
+            e.printStackTrace();
+            System.err.println("GLJPanel: Falling back on software rendering because of problems creating pbuffer");
+          }
           hardwareAccelerationDisabled = true;
         }
       } else {
-        if (VERBOSE) {
+        if (DEBUG) {
           System.err.println("GLJPanel: Falling back on software rendering because no pbuffer support");
         }
 
-        // If the heavyweight reports that it can't create an
-        // offscreen drawable (pbuffer), don't try again the next
-        // time, and fall through to the software rendering path
+        // If the factory reports that it can't create a pbuffer,
+        // don't try again the next time, and fall through to the
+        // software rendering path
         hardwareAccelerationDisabled = true;
       }
+    }
+
+    if (softwareRenderingDisabled) {
+      throw new GLException("Fallback to software rendering disabled by user");
     }
 
     // Fall-through path: create an offscreen context instead

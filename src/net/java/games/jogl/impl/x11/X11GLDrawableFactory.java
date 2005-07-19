@@ -44,6 +44,7 @@ import java.awt.EventQueue;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.lang.reflect.InvocationTargetException;
+import java.security.*;
 import java.util.ArrayList;
 import java.util.List;
 import net.java.games.jogl.*;
@@ -52,8 +53,28 @@ import net.java.games.jogl.impl.*;
 public class X11GLDrawableFactory extends GLDrawableFactoryImpl {
   private static final boolean DEBUG = Debug.debug("X11GLDrawableFactory");
 
+  // There is currently a bug on Linux/AMD64 distributions in glXGetProcAddressARB
+  private static boolean isLinuxAMD64;
+
   static {
     NativeLibLoader.load();
+
+    AccessController.doPrivileged(new PrivilegedAction() {
+        public Object run() {
+          String os   = System.getProperty("os.name").toLowerCase();
+          String arch = System.getProperty("os.arch").toLowerCase();
+          if (os.startsWith("linux") && arch.equals("amd64")) {
+            isLinuxAMD64 = true;
+          }
+          return null;
+        }
+      });
+  }
+
+  public X11GLDrawableFactory() {
+    // Must initialize GLX support eagerly in case a pbuffer is the
+    // first thing instantiated
+    resetProcAddressTable(GLX.getGLXProcAddressTable());
   }
 
   private static final int MAX_ATTRIBS = 128;
@@ -207,6 +228,18 @@ public class X11GLDrawableFactory extends GLDrawableFactoryImpl {
       };
     maybeDoSingleThreadedWorkaround(r);
     return (GLPbuffer) returnList.get(0);
+  }
+
+  public long dynamicLookupFunction(String glFuncName) {
+    long res = 0;
+    if (!isLinuxAMD64) {
+      res = GLX.glXGetProcAddressARB(glFuncName);
+    }
+    if (res == 0) {
+      // GLU routines aren't known to the OpenGL function lookup
+      res = GLX.dlsym(glFuncName);
+    }
+    return res;
   }
 
   public static GLCapabilities xvi2GLCapabilities(long display, XVisualInfo info) {
