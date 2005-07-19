@@ -75,6 +75,10 @@ public class WindowsGLContext extends GLContextImpl {
     return new WindowsGLImpl(this);
   }
   
+  public GLDrawable getGLDrawable() {
+    return drawable;
+  }
+
   protected String mapToRealGLFunctionName(String glFunctionName) {
     String lookup = (String) functionNameMap.get(glFunctionName);
     if (lookup != null) {

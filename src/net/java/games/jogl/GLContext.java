@@ -50,8 +50,7 @@ public abstract class GLContext {
    * Returns the GLDrawable to which this context may be used to
    * draw.
    */
-  // FIXME
-  //  public abstract GLDrawable getGLDrawable();
+  public abstract GLDrawable getGLDrawable();
 
   /**
    * Makes this GLContext current on the calling thread.

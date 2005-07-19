@@ -64,6 +64,10 @@ public abstract class MacOSXGLContext extends GLContextImpl
     return new MacOSXGLImpl(this);
   }
   
+  public GLDrawable getGLDrawable() {
+    return drawable;
+  }
+
   protected String mapToRealGLFunctionName(String glFunctionName)
   {
     return glFunctionName;

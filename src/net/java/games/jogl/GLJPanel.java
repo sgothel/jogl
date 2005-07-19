@@ -77,7 +77,7 @@ import net.java.games.jogl.impl.*;
     methods as side-effect-free as possible.
 */
 
-public final class GLJPanel extends JPanel implements GLAutoDrawable {
+public class GLJPanel extends JPanel implements GLAutoDrawable {
   protected static final boolean DEBUG = Debug.debug("GLJPanel");
   protected static final boolean VERBOSE = Debug.verbose();
 
@@ -127,7 +127,16 @@ public final class GLJPanel extends JPanel implements GLAutoDrawable {
   private int[] skippixels   = new int[1];
   private int[] alignment    = new int[1];
 
-  GLJPanel(GLCapabilities capabilities, GLCapabilitiesChooser chooser, GLContext shareWith) {
+  /** Creates a new GLJPanel component. The passed GLCapabilities must
+      be non-null and specifies the OpenGL capabilities for the
+      component. The GLCapabilitiesChooser must be non-null and
+      specifies the algorithm for selecting one of the available
+      GLCapabilities for the component; the GLDrawableFactory uses a
+      DefaultGLCapabilitesChooser if the user does not provide
+      one. The passed GLContext may be null and specifies an OpenGL
+      context with which to share textures, display lists and other
+      OpenGL state. */
+  protected GLJPanel(GLCapabilities capabilities, GLCapabilitiesChooser chooser, GLContext shareWith) {
     super();
 
     // Works around problems on many vendors' cards; we don't need a

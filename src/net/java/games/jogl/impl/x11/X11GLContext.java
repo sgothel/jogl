@@ -76,6 +76,10 @@ public abstract class X11GLContext extends GLContextImpl {
     return new X11GLImpl(this);
   }
   
+  public GLDrawable getGLDrawable() {
+    return drawable;
+  }
+
   protected String mapToRealGLFunctionName(String glFunctionName) {
     String lookup = (String) functionNameMap.get(glFunctionName);
     if (lookup != null) {
