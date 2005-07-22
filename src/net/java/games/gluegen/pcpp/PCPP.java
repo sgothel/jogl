@@ -125,6 +125,19 @@ public class PCPP {
     }
   }
 
+  public String findFile(String filename) {
+    String sep = File.separator;
+    for (Iterator iter = includePaths.iterator(); iter.hasNext(); ) {
+      String inclPath = (String) iter.next();
+      String fullPath = inclPath + sep + filename;
+      File file = new File(fullPath);
+      if (file.exists()) {
+        return fullPath;
+      }
+    }
+    return null;
+  }
+
   //----------------------------------------------------------------------
   // Internals only below this point
   //
@@ -746,19 +759,6 @@ public class PCPP {
     {
       //System.out.println("INACTIVE BLOCK, SKIPPING " + filename);      
     }
-  }
-
-  private String findFile(String filename) {
-    String sep = System.getProperty("file.separator");
-    for (Iterator iter = includePaths.iterator(); iter.hasNext(); ) {
-      String inclPath = (String) iter.next();
-      String fullPath = inclPath + sep + filename;
-      File file = new File(fullPath);
-      if (file.exists()) {
-        return fullPath;
-      }
-    }
-    return null;
   }
 
   ////////////

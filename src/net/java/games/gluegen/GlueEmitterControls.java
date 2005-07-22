@@ -46,4 +46,8 @@ public interface GlueEmitterControls {
   /** Requests emission of an accessor for a struct that will not be
       referenced by any functions or other structs. */
   public void forceStructEmission(String typedefName);
+
+  /** Finds the full path name of the specified header file based on
+      the include directories specified on the command line. */
+  public String findHeaderFile(String headerFileName);
 }

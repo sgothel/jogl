@@ -52,9 +52,14 @@ import net.java.games.gluegen.pcpp.*;
 
 public class GlueGen implements GlueEmitterControls {
   private java.util.List forcedStructNames = new ArrayList();
+  private PCPP preprocessor;
 
   public void forceStructEmission(String typedefName) {
     forcedStructNames.add(typedefName);
+  }
+
+  public String findHeaderFile(String headerFileName) {
+    return preprocessor.findFile(headerFileName);
   }
 
   public void run(String[] args) {
@@ -99,7 +104,7 @@ public class GlueGen implements GlueEmitterControls {
         }
       }
 
-      final PCPP preprocessor = new PCPP(includePaths);
+      preprocessor = new PCPP(includePaths);
       PipedInputStream ppIn   = new PipedInputStream();
       final PipedOutputStream ppOut = new PipedOutputStream(ppIn);
       preprocessor.setOut(ppOut);

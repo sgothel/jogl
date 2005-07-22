@@ -261,7 +261,7 @@
         <property name="java.includes.dir.platform"             value="${java.includes.dir.win32}" />
         <property name="java.lib.dir.platform"                  value="${java.lib.dir.win32}" />
         <property name="java.excludes.platform"                 value="${java.excludes.win32}" />
-        <property name="stub.includes.fileset.platform.params"  value="${stub.includes.dir}/win32/** ${stub.includes.dir}/common/**" />
+        <property name="stub.includes.fileset.platform.params"  value="${stub.includes.dir}/win32/** ${stub.includes.dir}/common/** ${stub.includes.dir}/opengl/**" />
 
         <!-- Set Javadoc properties. -->
         <property name="javadoc.dev.packagenames.platform"      value="${javadoc.dev.packagenames.win32}" />
@@ -363,7 +363,7 @@
         <property name="java.includes.dir.platform"           value="${java.includes.dir.macosx}" />
         <property name="java.lib.dir.platform"                value="${java.lib.dir.macosx}" />
         <property name="java.excludes.platform"               value="${java.excludes.macosx}" />
-	<property name="stub.includes.fileset.platform.params" value="${stub.includes.dir}/macosx/** ${stub.includes.dir}/common/**" />
+	<property name="stub.includes.fileset.platform.params" value="${stub.includes.dir}/macosx/** ${stub.includes.dir}/common/** ${stub.includes.dir}/opengl/**" />
 
         <!-- Set Javadoc properties. -->
         <property name="javadoc.dev.packagenames.platform" value="${javadoc.dev.packagenames.macosx}" />

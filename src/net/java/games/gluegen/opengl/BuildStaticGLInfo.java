@@ -197,6 +197,7 @@ public class BuildStaticGLInfo
         //System.err.println("FOUND NEW ASSOCIATION BLOCK: " + activeAssociation);
       }
     }
+    reader.close();
   }
 
   public void dump() {

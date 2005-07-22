@@ -61,6 +61,12 @@ public class GLEmitter extends JavaEmitter
   private String tableClassName;
   private int numProcAddressEntries;
   
+  public void beginEmission(GlueEmitterControls controls) throws IOException
+  {
+    getGLConfig().parseGLHeaders(controls);
+    super.beginEmission(controls);
+  }
+
   public void beginFunctions(TypeDictionary typedefDictionary,
                              TypeDictionary structDictionary,
                              Map            canonMap) throws Exception
@@ -361,6 +367,10 @@ public class GLEmitter extends JavaEmitter
     private String  contextVariableName = "context";
     private String  defaultGetProcAddressTableExpr = ".getGLProcAddressTable()";
     private String  getProcAddressTableExpr;
+    // The following data members support ignoring an entire extension at a time
+    private List/*<String>*/ glHeaders = new ArrayList();
+    private Set/*<String>*/ ignoredExtensions = new HashSet();
+    private BuildStaticGLInfo glInfo;
 
     protected void dispatch(String cmd, StringTokenizer tok, File file, String filename, int lineNo) throws IOException {
       if (cmd.equalsIgnoreCase("EmitProcAddressTable"))
@@ -394,6 +404,16 @@ public class GLEmitter extends JavaEmitter
       {
         getProcAddressTableExpr = readGetProcAddressTableExpr(tok, filename, lineNo);
       }
+      else if (cmd.equalsIgnoreCase("IgnoreExtension"))
+      {
+        String sym = readString("IgnoreExtension", tok, filename, lineNo);
+        ignoredExtensions.add(sym);
+      }
+      else if (cmd.equalsIgnoreCase("GLHeader"))
+      {
+        String sym = readString("GLHeader", tok, filename, lineNo);
+        glHeaders.add(sym);
+      }
       else
       {
         super.dispatch(cmd,tok,file,filename,lineNo);
@@ -422,6 +442,34 @@ public class GLEmitter extends JavaEmitter
       }
       return getProcAddressTableExpr;
     }
+
+    public boolean shouldIgnore(String symbol) {
+      // Check ignored extensions based on our knowledge of the static GL info
+      if (glInfo != null) {
+        String extension = glInfo.getExtension(symbol);
+        if (extension != null &&
+            ignoredExtensions.contains(extension)) {
+          return true;
+        }
+      }
+
+      return super.shouldIgnore(symbol);
+    }
+
+    /** Parses any GL headers specified in the configuration file for
+        the purpose of being able to ignore an extension at a time. */
+    public void parseGLHeaders(GlueEmitterControls controls) throws IOException {
+      if (!glHeaders.isEmpty()) {
+        glInfo = new BuildStaticGLInfo();
+        for (Iterator iter = glHeaders.iterator(); iter.hasNext(); ) {
+          String file = (String) iter.next();
+          String fullPath = controls.findHeaderFile(file);
+          if (fullPath == null) {
+            throw new IOException("Unable to locate header file \"" + file + "\"");
+          }
+          glInfo.parse(fullPath);
+        }
+      }
+    }
   } // end class GLConfiguration
 }
-  
