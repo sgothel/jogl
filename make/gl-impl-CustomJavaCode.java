@@ -1,3 +1,33 @@
+public GLImpl(GLContextImpl context) {
+  this._context = context; 
+}
+
+public boolean isFunctionAvailable(String glFunctionName) {
+  return _context.isFunctionAvailable(glFunctionName);
+}
+
+public boolean isExtensionAvailable(String glExtensionName) {
+  return _context.isExtensionAvailable(glExtensionName);
+}
+
+private GLContextImpl _context;
+
+/**
+ * Provides platform-independent access to the wglAllocateMemoryNV /
+ * glXAllocateMemoryNV extension.
+ */
+public java.nio.ByteBuffer glAllocateMemoryNV(int arg0, float arg1, float arg2, float arg3) {
+  return _context.glAllocateMemoryNV(arg0, arg1, arg2, arg3);
+}
+
+public void setSwapInterval(int interval) {
+  _context.setSwapInterval(interval);
+}
+
+public Object getPlatformGLExtensions() {
+  return _context.getPlatformGLExtensions();
+}
+
 // Attempt to return the same ByteBuffer object from glMapBufferARB if
 // the vertex buffer object's base address and size haven't changed
 private static class ARBVBOKey {

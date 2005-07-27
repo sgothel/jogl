@@ -137,7 +137,7 @@ public class X11PbufferGLContext extends X11GLContext {
         throw new GLException("GLContextShareSet returned an invalid OpenGL context");
       }
     }
-    context = GLX.glXCreateNewContext(drawable.getDisplay(), drawable.getFBConfig(), GL.GLX_RGBA_TYPE, share, true);
+    context = GLX.glXCreateNewContext(drawable.getDisplay(), drawable.getFBConfig(), GLXExt.GLX_RGBA_TYPE, share, true);
     if (context == 0) {
       throw new GLException("pbuffer creation error: glXCreateNewContext() failed");
     }

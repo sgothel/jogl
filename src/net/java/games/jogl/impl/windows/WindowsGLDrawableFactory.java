@@ -188,19 +188,19 @@ public class WindowsGLDrawableFactory extends GLDrawableFactoryImpl {
     Runnable r = new Runnable() {
         public void run() {
           WindowsDummyGLDrawable dummyDrawable = new WindowsDummyGLDrawable();
-          GLContext dummyContext  = dummyDrawable.createContext(null);
+          WindowsGLContext       dummyContext  = (WindowsGLContext) dummyDrawable.createContext(null);
           GLContext lastContext = GLContext.getCurrent();
           if (lastContext != null) {
             lastContext.release();
           }
           dummyContext.makeCurrent();
-          GL dummyGL = dummyContext.getGL();
+          WGLExt dummyWGLExt = dummyContext.getWGLExt();
           try {
             WindowsPbufferGLDrawable pbufferDrawable = new WindowsPbufferGLDrawable(capabilities,
                                                                                     initialWidth,
                                                                                     initialHeight,
                                                                                     dummyDrawable,
-                                                                                    dummyGL);
+                                                                                    dummyWGLExt);
             GLPbufferImpl pbuffer = new GLPbufferImpl(pbufferDrawable, shareWith);
             returnList.add(pbuffer);
             dummyContext.release();

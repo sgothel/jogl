@@ -94,6 +94,8 @@ public class WindowsOnscreenGLDrawable extends WindowsGLDrawable {
   }
 
   public void swapBuffers() throws GLException {
+    // FIXME: currently must do this while the surface is locked
+    // (i.e., a context is current); fix and/or specify this?
     if (!WGL.SwapBuffers(hdc) && (WGL.GetLastError() != 0)) {
       throw new GLException("Error swapping buffers");
     }

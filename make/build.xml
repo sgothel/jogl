@@ -251,10 +251,14 @@
         <!-- Set platform configuration files. -->
         <property name="gl.cfg"                                 value="${config}/gl-win32.cfg" />
         <property name="gl.impl.cfg"                            value="${config}/gl-impl-win32.cfg" />
+        <property name="glext.platform.cfg"                     value="${config}/wglext.cfg" />
         <property name="glu.cfg"                                value="${config}/glu.cfg" />
         <property name="glu.impl.cfg"                           value="${config}/glu-impl-win32.cfg" />
         <property name="jawt.cfg"                               value="${config}/jawt-win32.cfg" />
         <property name="window.cfg"                             value="${config}/wingdi-win32.cfg" />
+
+        <!-- Set platform headers. -->
+        <property name="glext.platform.header"                  value="${stub.includes.dir}/win32/wglext.c" />
 
         <!-- Set platform directories. -->
         <property name="stub.includes.platform"                 value="${stub.includes}/win32" />
@@ -292,10 +296,14 @@
         <!-- Set platform configuration files. -->
         <property name="gl.cfg"                               value="${config}/gl-x11.cfg" />
         <property name="gl.impl.cfg"                          value="${config}/gl-impl-x11.cfg" />
+        <property name="glext.platform.cfg"                   value="${config}/glxext.cfg" />
         <property name="glu.cfg"                              value="${config}/glu.cfg" />
         <property name="glu.impl.cfg"                         value="${config}/glu-impl-x11.cfg" />
         <property name="jawt.cfg"                             value="${config}/jawt-x11.cfg" />
         <property name="window.cfg"                           value="${config}/glx-x11.cfg" />
+
+        <!-- Set platform headers. -->
+        <property name="glext.platform.header"                value="${stub.includes.dir}/x11/glxext.c" />
 
         <!-- Set platform directories. -->
         <property name="stub.includes.platform"               value="${stub.includes.x11}" />
@@ -353,10 +361,14 @@
         <!-- Set platform configuration files. -->
         <property name="gl.cfg"                               value="${config}/gl-macosx.cfg" />
         <property name="gl.impl.cfg"                          value="${config}/gl-impl-macosx.cfg" />
+        <property name="glext.platform.cfg"                   value="${config}/cglext.cfg" />
         <property name="glu.cfg"                              value="${config}/glu.cfg" />
         <property name="glu.impl.cfg"                         value="${config}/glu-impl-macosx.cfg" />
         <property name="jawt.cfg"                             value="${config}/jawt-macosx.cfg" />
         <property name="window.cfg"                           value="${config}/cgl-macosx.cfg" />
+
+        <!-- Set platform headers. -->
+        <property name="glext.platform.header"                value="${stub.includes.dir}/macosx/cglext.c" />
 
         <!-- Set platform directories. -->
         <property name="stub.includes.platform"               value="${stub.includes}/macosx" />
@@ -473,35 +485,17 @@
 
         <!-- Generate GL implementation class -->
         <echo message="Generating GL implementation class" />
-        <gluegen src="${stub.includes.common}/gl-impl.c" 
+        <gluegen src="${stub.includes.common}/gl.c" 
                  config="${gl.impl.cfg}"
                  includeRefid="stub.includes.fileset.all"
                  emitter="net.java.games.gluegen.opengl.GLEmitter">
             <classpath refid="gen.classpath" />
         </gluegen>
 
-        <!-- Generate WGL interface class -->
-        <echo message="Generating WGL interface class" />
-        <gluegen src="${stub.includes.common}/gl-impl.c" 
-                 config="${config}/gl-wgl-win32.cfg"
-                 includeRefid="stub.includes.fileset.all"
-                 emitter="net.java.games.gluegen.opengl.GLEmitter">
-            <classpath refid="gen.classpath" />
-        </gluegen>
-
-        <!-- Generate GLX interface class -->
-        <echo message="Generating GLX interface class" />
-        <gluegen src="${stub.includes.common}/gl-impl.c" 
-                 config="${config}/gl-glx-x11.cfg"
-                 includeRefid="stub.includes.fileset.all"
-                 emitter="net.java.games.gluegen.opengl.GLEmitter">
-            <classpath refid="gen.classpath" />
-        </gluegen>
-
-        <!-- Generate CGL interface class -->
-        <echo message="Generating CGL interface class" />
-        <gluegen src="${stub.includes.common}/gl-impl.c" 
-                 config="${config}/gl-cgl-macosx.cfg"
+	<!-- Generate platform-specific extension class (WGLExt, GLXExt, etc.) -->
+        <echo message="Generating platform-specific OpenGL extension class" />
+        <gluegen src="${glext.platform.header}" 
+                 config="${glext.platform.cfg}"
                  includeRefid="stub.includes.fileset.all"
                  emitter="net.java.games.gluegen.opengl.GLEmitter">
             <classpath refid="gen.classpath" />

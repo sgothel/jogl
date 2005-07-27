@@ -40,6 +40,7 @@
 package net.java.games.jogl.impl;
 
 import java.awt.Component;
+import java.nio.*;
 
 import net.java.games.jogl.*;
 import net.java.games.gluegen.runtime.*;
@@ -53,6 +54,9 @@ public abstract class GLContextImpl extends GLContext {
   // Cache of the functions that are available to be called at the current
   // moment in time
   protected FunctionAvailabilityCache functionAvailability;
+  // Table that holds the addresses of the native C-language entry points for
+  // OpenGL functions.
+  private GLProcAddressTable glProcAddressTable;
 
   protected GL gl;
   protected GLU glu = new GLUImpl(gluProcAddressTable);
@@ -137,12 +141,25 @@ public abstract class GLContextImpl extends GLContext {
     this.glu = glu;
   }
 
+  public abstract Object getPlatformGLExtensions();
+
   //----------------------------------------------------------------------
   // Helpers for various context implementations
   //
 
   /** Create the GL for this context. */
-  protected abstract GL createGL();
+  protected GL createGL() {
+    return new GLImpl(this);
+  }
+  
+  public GLProcAddressTable getGLProcAddressTable() {
+    if (glProcAddressTable == null) {
+      // FIXME: cache ProcAddressTables by capability bits so we can
+      // share them among contexts with the same capabilities
+      glProcAddressTable = new GLProcAddressTable();
+    }          
+    return glProcAddressTable;
+  }
   
   /**
    * Pbuffer support; given that this is a GLContext associated with a
@@ -155,6 +172,8 @@ public abstract class GLContextImpl extends GLContext {
    * pbuffer, releases this pbuffer from its texture target.
    */
   public abstract void releasePbufferFromTexture();
+
+  public abstract ByteBuffer glAllocateMemoryNV(int arg0, float arg1, float arg2, float arg3);
 
   /*
    * Sets the swap interval for onscreen OpenGL contexts. Has no
@@ -204,6 +223,10 @@ public abstract class GLContextImpl extends GLContext {
     setGL(createGL());
 
     functionAvailability.flush();
+    if (DEBUG) {
+      System.err.println(getThreadName() + ": !!! Initializing OpenGL extension address table");
+    }
+    resetProcAddressTable(getGLProcAddressTable());
     if (!haveResetGLUProcAddressTable) {
       if (DEBUG) {
         System.err.println(getThreadName() + ": !!! Initializing GLU extension address table");

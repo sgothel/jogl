@@ -121,11 +121,11 @@ public class X11PbufferGLDrawable extends X11GLDrawable {
 
       // Since we are trying to create a pbuffer, the GLXFBConfig we
       // request (and subsequently use) must be "p-buffer capable".
-      iattributes[niattribs++] = GL.GLX_DRAWABLE_TYPE;
-      iattributes[niattribs++] = GL.GLX_PBUFFER_BIT;
+      iattributes[niattribs++] = GLXExt.GLX_DRAWABLE_TYPE;
+      iattributes[niattribs++] = GLXExt.GLX_PBUFFER_BIT;
 
-      iattributes[niattribs++] = GL.GLX_RENDER_TYPE;
-      iattributes[niattribs++] = GL.GLX_RGBA_BIT;
+      iattributes[niattribs++] = GLXExt.GLX_RENDER_TYPE;
+      iattributes[niattribs++] = GLXExt.GLX_RGBA_BIT;
 
       iattributes[niattribs++] = GLX.GLX_DOUBLEBUFFER;
       if (capabilities.getDoubleBuffered()) {
@@ -212,9 +212,9 @@ public class X11PbufferGLDrawable extends X11GLDrawable {
       // Create the p-buffer.
       niattribs = 0;
 
-      iattributes[niattribs++] = GL.GLX_PBUFFER_WIDTH;
+      iattributes[niattribs++] = GLXExt.GLX_PBUFFER_WIDTH;
       iattributes[niattribs++] = initWidth;
-      iattributes[niattribs++] = GL.GLX_PBUFFER_HEIGHT;
+      iattributes[niattribs++] = GLXExt.GLX_PBUFFER_HEIGHT;
       iattributes[niattribs++] = initHeight;
 
       iattributes[niattribs++] = 0;
@@ -232,9 +232,9 @@ public class X11PbufferGLDrawable extends X11GLDrawable {
 
       // Determine the actual width and height we were able to create.
       int[] tmp = new int[1];
-      GLX.glXQueryDrawable(display, drawable, GL.GLX_WIDTH, tmp, 0);
+      GLX.glXQueryDrawable(display, drawable, GLXExt.GLX_WIDTH, tmp, 0);
       width = tmp[0];
-      GLX.glXQueryDrawable(display, drawable, GL.GLX_HEIGHT, tmp, 0);
+      GLX.glXQueryDrawable(display, drawable, GLXExt.GLX_HEIGHT, tmp, 0);
       height = tmp[0];
 
       if (DEBUG) {

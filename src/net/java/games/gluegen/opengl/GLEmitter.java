@@ -365,7 +365,6 @@ public class GLEmitter extends JavaEmitter
     private Set/*<String>*/ skipProcAddressGen  = new HashSet();
     private List/*<String>*/ forceProcAddressGen  = new ArrayList();
     private String  contextVariableName = "context";
-    private String  defaultGetProcAddressTableExpr = ".getGLProcAddressTable()";
     private String  getProcAddressTableExpr;
     // The following data members support ignoring an entire extension at a time
     private List/*<String>*/ glHeaders = new ArrayList();
@@ -438,7 +437,7 @@ public class GLEmitter extends JavaEmitter
     public String  contextVariableName()            { return contextVariableName;                }
     public String  getProcAddressTableExpr() {
       if (getProcAddressTableExpr == null) {
-        getProcAddressTableExpr = contextVariableName + defaultGetProcAddressTableExpr;
+        getProcAddressTableExpr = contextVariableName + ".get" + tableClassName + "()";
       }
       return getProcAddressTableExpr;
     }

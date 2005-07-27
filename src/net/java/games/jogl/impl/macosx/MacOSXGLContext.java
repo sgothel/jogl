@@ -39,7 +39,7 @@
 
 package net.java.games.jogl.impl.macosx;
 
-import java.awt.Component;
+import java.nio.*;
 import java.util.*;
 import net.java.games.jogl.*;
 import net.java.games.jogl.impl.*;
@@ -48,9 +48,10 @@ public abstract class MacOSXGLContext extends GLContextImpl
 {	
   protected MacOSXGLDrawable drawable;
   protected long nsContext; // NSOpenGLContext
+  private CGLExt cglExt;
   // Table that holds the addresses of the native C-language entry points for
-  // OpenGL functions.
-  private GLProcAddressTable glProcAddressTable;
+  // CGL extension functions.
+  private CGLExtProcAddressTable cglExtProcAddressTable;
   
   public MacOSXGLContext(MacOSXGLDrawable drawable,
                          GLContext shareWith)
@@ -59,11 +60,17 @@ public abstract class MacOSXGLContext extends GLContextImpl
     this.drawable = drawable;
   }
 	
-  protected GL createGL()
-  {
-    return new MacOSXGLImpl(this);
+  public Object getPlatformGLExtensions() {
+    return getCGLExt();
   }
-  
+
+  public CGLExt getCGLExt() {
+    if (cglExt == null) {
+      cglExt = new CGLExtImpl(this);
+    }
+    return cglExt;
+  }
+
   public GLDrawable getGLDrawable() {
     return drawable;
   }
@@ -180,21 +187,20 @@ public abstract class MacOSXGLContext extends GLContextImpl
   {
     super.resetGLFunctionAvailability();
     if (DEBUG) {
-      System.err.println("!!! Initializing OpenGL extension address table");
+      System.err.println("!!! Initializing CGL extension address table");
     }
-    resetProcAddressTable(getGLProcAddressTable());
+    resetProcAddressTable(getCGLProcAddressTable());
   }
 	
-  public GLProcAddressTable getGLProcAddressTable()
-  {
-    if (glProcAddressTable == null) {
+  public CGLExtProcAddressTable getCGLExtProcAddressTable() {
+    if (cglExtProcAddressTable == null) {
       // FIXME: cache ProcAddressTables by capability bits so we can
       // share them among contexts with the same capabilities
-      glProcAddressTable = new GLProcAddressTable();
+      cglExtProcAddressTable = new CGLExtProcAddressTable();
     }          
-    return glProcAddressTable;
+    return cglExtProcAddressTable;
   }
-	
+
   public String getPlatformExtensionsString()
   {
     return "";
@@ -205,6 +211,11 @@ public abstract class MacOSXGLContext extends GLContextImpl
       throw new GLException("OpenGL context not current");
     }
     CGL.setSwapInterval(nsContext, interval);
+  }
+
+  public ByteBuffer glAllocateMemoryNV(int arg0, float arg1, float arg2, float arg3) {
+    // FIXME: apparently the Apple extension doesn't require a custom memory allocator
+    throw new GLException("Not yet implemented");
   }
 
   protected boolean isFunctionAvailable(String glFunctionName)

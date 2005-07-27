@@ -12,12 +12,3 @@
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <GL/glxext.h>
-
-// Bring in the wgl extensions
-#define WGL_WGLEXT_PROTOTYPES
-#define SKIP_WGL_HANDLE_DEFINITIONS
-#include <windows.h>
-#include <GL/wglext.h>
-
-// Bring in the Mac OS X cgl extensions
-#include <GL/cglext.h>

@@ -49,17 +49,10 @@ import net.java.games.jogl.impl.*;
     function lookup is supported in this configuration by having this
     object provide the FunctionAvailabilityTable. */
 
-class MacOSXDummyGLContext extends MacOSXGLContext
+public class MacOSXDummyGLContext extends MacOSXGLContext
 {
-  private MacOSXGLImpl gl;
-
-  MacOSXDummyGLContext(MacOSXGLImpl gl) {
+  public MacOSXDummyGLContext() {
     super(null, null);
-    this.gl = gl;
-  }
-	
-  protected GL createGL() {
-    return gl;
   }
 	
   public int getOffscreenContextReadBuffer() {

@@ -315,9 +315,9 @@ public class X11GLDrawableFactory extends GLDrawableFactoryImpl {
     res[idx++] = GLX.GLX_ACCUM_BLUE_SIZE;
     res[idx++] = caps.getAccumBlueBits();
     if (isMultisampleAvailable && caps.getSampleBuffers()) {
-      res[idx++] = GL.GLX_SAMPLE_BUFFERS_ARB;
+      res[idx++] = GLXExt.GLX_SAMPLE_BUFFERS_ARB;
       res[idx++] = GL.GL_TRUE;
-      res[idx++] = GL.GLX_SAMPLES_ARB;
+      res[idx++] = GLXExt.GLX_SAMPLES_ARB;
       res[idx++] = caps.getNumSamples();
     }
     res[idx++] = 0;

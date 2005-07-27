@@ -39,7 +39,7 @@
 
 package net.java.games.jogl.impl.x11;
 
-import java.awt.Component;
+import java.nio.*;
 import java.util.*;
 import net.java.games.jogl.*;
 import net.java.games.jogl.impl.*;
@@ -50,9 +50,10 @@ public abstract class X11GLContext extends GLContextImpl {
   private boolean glXQueryExtensionsStringInitialized;
   private boolean glXQueryExtensionsStringAvailable;
   private static final Map/*<String, String>*/ functionNameMap;
+  private GLXExt glXExt;
   // Table that holds the addresses of the native C-language entry points for
-  // OpenGL functions.
-  private GLProcAddressTable glProcAddressTable;
+  // GLX extension functions.
+  private GLXExtProcAddressTable glXExtProcAddressTable;
   // Cache the most recent value of the "display" variable (which we
   // only guarantee to be valid in between makeCurrent / free pairs)
   // so that we can implement displayImpl() (which must be done when
@@ -71,11 +72,17 @@ public abstract class X11GLContext extends GLContextImpl {
     this.drawable = drawable;
   }
   
-  protected GL createGL()
-  {
-    return new X11GLImpl(this);
+  public Object getPlatformGLExtensions() {
+    return getGLXExt();
   }
-  
+
+  public GLXExt getGLXExt() {
+    if (glXExt == null) {
+      glXExt = new GLXExtImpl(this);
+    }
+    return glXExt;
+  }
+
   public GLDrawable getGLDrawable() {
     return drawable;
   }
@@ -175,20 +182,20 @@ public abstract class X11GLContext extends GLContextImpl {
   protected void resetGLFunctionAvailability() {
     super.resetGLFunctionAvailability();
     if (DEBUG) {
-      System.err.println("!!! Initializing OpenGL extension address table");
+      System.err.println(getThreadName() + ": !!! Initializing GLX extension address table");
     }
-    resetProcAddressTable(getGLProcAddressTable());
+    resetProcAddressTable(getGLXExtProcAddressTable());
   }
   
-  public GLProcAddressTable getGLProcAddressTable() {
-    if (glProcAddressTable == null) {
+  public GLXExtProcAddressTable getGLXExtProcAddressTable() {
+    if (glXExtProcAddressTable == null) {
       // FIXME: cache ProcAddressTables by capability bits so we can
       // share them among contexts with the same capabilities
-      glProcAddressTable = new GLProcAddressTable();
+      glXExtProcAddressTable = new GLXExtProcAddressTable();
     }          
-    return glProcAddressTable;
+    return glXExtProcAddressTable;
   }
-  
+
   public synchronized String getPlatformExtensionsString() {
     if (drawable.getDisplay() == 0) {
       throw new GLException("Context not current");
@@ -236,6 +243,20 @@ public abstract class X11GLContext extends GLContextImpl {
       return GLDrawableFactory.getFactory().canCreateGLPbuffer(null, 0, 0);
     }
     return super.isExtensionAvailable(glExtensionName);
+  }
+
+
+  public void setSwapInterval(int interval) {
+    // FIXME: make the context current first? Currently assumes that
+    // will not be necessary. Make the caller do this?
+    GLXExt glXExt = getGLXExt();
+    if (glXExt.isExtensionAvailable("GLX_SGI_swap_control")) {
+      glXExt.glXSwapIntervalSGI(interval);
+    }
+  }
+
+  public ByteBuffer glAllocateMemoryNV(int arg0, float arg1, float arg2, float arg3) {
+    return getGLXExt().glXAllocateMemoryNV(arg0, arg1, arg2, arg3);
   }
 
   public int getOffscreenContextPixelDataType() {

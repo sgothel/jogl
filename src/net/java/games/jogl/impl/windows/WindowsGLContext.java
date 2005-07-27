@@ -39,6 +39,7 @@
 
 package net.java.games.jogl.impl.windows;
 
+import java.nio.*;
 import java.util.*;
 import net.java.games.jogl.*;
 import net.java.games.jogl.impl.*;
@@ -50,9 +51,10 @@ public class WindowsGLContext extends GLContextImpl {
   private boolean wglGetExtensionsStringEXTAvailable;
   private static final Map/*<String, String>*/ functionNameMap;
   private static final Map/*<String, String>*/ extensionNameMap;
+  private WGLExt wglExt;
   // Table that holds the addresses of the native C-language entry points for
-  // OpenGL functions.
-  private GLProcAddressTable glProcAddressTable;
+  // WGL extension functions.
+  private WGLExtProcAddressTable wglExtProcAddressTable;
 
   static {
     functionNameMap = new HashMap();
@@ -70,11 +72,17 @@ public class WindowsGLContext extends GLContextImpl {
     this.drawable = drawable;
   }
   
-  protected GL createGL()
-  {
-    return new WindowsGLImpl(this);
+  public Object getPlatformGLExtensions() {
+    return getWGLExt();
   }
-  
+
+  public WGLExt getWGLExt() {
+    if (wglExt == null) {
+      wglExt = new WGLExtImpl(this);
+    }
+    return wglExt;
+  }
+
   public GLDrawable getGLDrawable() {
     return drawable;
   }
@@ -192,18 +200,18 @@ public class WindowsGLContext extends GLContextImpl {
   protected void resetGLFunctionAvailability() {
     super.resetGLFunctionAvailability();
     if (DEBUG) {
-      System.err.println(getThreadName() + ": !!! Initializing OpenGL extension address table");
+      System.err.println(getThreadName() + ": !!! Initializing WGL extension address table");
     }
-    resetProcAddressTable(getGLProcAddressTable());
+    resetProcAddressTable(getWGLExtProcAddressTable());
   }
   
-  public GLProcAddressTable getGLProcAddressTable() {
-    if (glProcAddressTable == null) {
+  public WGLExtProcAddressTable getWGLExtProcAddressTable() {
+    if (wglExtProcAddressTable == null) {
       // FIXME: cache ProcAddressTables by capability bits so we can
       // share them among contexts with the same capabilities
-      glProcAddressTable = new GLProcAddressTable();
+      wglExtProcAddressTable = new WGLExtProcAddressTable();
     }          
-    return glProcAddressTable;
+    return wglExtProcAddressTable;
   }
   
   public String getPlatformExtensionsString() {
@@ -212,7 +220,7 @@ public class WindowsGLContext extends GLContextImpl {
       wglGetExtensionsStringEXTInitialized = true;
     }
     if (wglGetExtensionsStringEXTAvailable) {
-      return gl.wglGetExtensionsStringEXT();
+      return getWGLExt().wglGetExtensionsStringEXT();
     } else {
       return "";
     }
@@ -234,6 +242,19 @@ public class WindowsGLContext extends GLContextImpl {
     return available;
   }
   
+  public void setSwapInterval(int interval) {
+    // FIXME: make the context current first? Currently assumes that
+    // will not be necessary. Make the caller do this?
+    WGLExt wglExt = getWGLExt();
+    if (wglExt.isExtensionAvailable("WGL_EXT_swap_control")) {
+      wglExt.wglSwapIntervalEXT(interval);
+    }
+  }
+
+  public ByteBuffer glAllocateMemoryNV(int arg0, float arg1, float arg2, float arg3) {
+    return getWGLExt().wglAllocateMemoryNV(arg0, arg1, arg2, arg3);
+  }
+
   public int getOffscreenContextPixelDataType() {
     throw new GLException("Should not call this");
   }
