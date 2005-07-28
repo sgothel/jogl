@@ -189,7 +189,7 @@ public abstract class MacOSXGLContext extends GLContextImpl
     if (DEBUG) {
       System.err.println("!!! Initializing CGL extension address table");
     }
-    resetProcAddressTable(getCGLProcAddressTable());
+    resetProcAddressTable(getCGLExtProcAddressTable());
   }
 	
   public CGLExtProcAddressTable getCGLExtProcAddressTable() {
