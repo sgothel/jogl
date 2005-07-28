@@ -250,7 +250,6 @@
     <target name="declare.win32" depends="init">
         <!-- Set platform configuration files. -->
         <property name="gl.cfg"                                 value="${config}/gl-win32.cfg" />
-        <property name="gl.impl.cfg"                            value="${config}/gl-impl-win32.cfg" />
         <property name="glext.platform.cfg"                     value="${config}/wglext.cfg" />
         <property name="glu.cfg"                                value="${config}/glu.cfg" />
         <property name="glu.impl.cfg"                           value="${config}/glu-impl-win32.cfg" />
@@ -295,7 +294,6 @@
     <target name="declare.x11" depends="init">
         <!-- Set platform configuration files. -->
         <property name="gl.cfg"                               value="${config}/gl-x11.cfg" />
-        <property name="gl.impl.cfg"                          value="${config}/gl-impl-x11.cfg" />
         <property name="glext.platform.cfg"                   value="${config}/glxext.cfg" />
         <property name="glu.cfg"                              value="${config}/glu.cfg" />
         <property name="glu.impl.cfg"                         value="${config}/glu-impl-x11.cfg" />
@@ -360,7 +358,6 @@
     <target name="declare.macosx" depends="init">
         <!-- Set platform configuration files. -->
         <property name="gl.cfg"                               value="${config}/gl-macosx.cfg" />
-        <property name="gl.impl.cfg"                          value="${config}/gl-impl-macosx.cfg" />
         <property name="glext.platform.cfg"                   value="${config}/cglext.cfg" />
         <property name="glu.cfg"                              value="${config}/glu.cfg" />
         <property name="glu.impl.cfg"                         value="${config}/glu-impl-macosx.cfg" />
@@ -474,19 +471,10 @@
         <!-- Use the GlueGen and BuildStaticGLInfo tasks to generate the 
            - Java files -->
 
-        <!-- Generate GL interface class -->
-        <echo message="Generating GL interface class" />
+        <!-- Generate GL interface and implementation -->
+        <echo message="Generating GL interface and implementation" />
         <gluegen src="${stub.includes.common}/gl.c" 
                  config="${gl.cfg}"
-                 includeRefid="stub.includes.fileset.all"
-                 emitter="net.java.games.gluegen.opengl.GLEmitter">
-            <classpath refid="gen.classpath" />
-        </gluegen>
-
-        <!-- Generate GL implementation class -->
-        <echo message="Generating GL implementation class" />
-        <gluegen src="${stub.includes.common}/gl.c" 
-                 config="${gl.impl.cfg}"
                  includeRefid="stub.includes.fileset.all"
                  emitter="net.java.games.gluegen.opengl.GLEmitter">
             <classpath refid="gen.classpath" />
