@@ -123,8 +123,8 @@ public class WindowsGLContext extends GLContextImpl {
         throw new GLException("GLContextShareSet returned an invalid OpenGL context");
       }
       if (!WGL.wglShareLists(hglrc2, hglrc)) {
-        throw new GLException("wglShareLists(0x" + Long.toHexString(hglrc2) +
-                              ", 0x" + Long.toHexString(hglrc) + ") failed: error code " +
+        throw new GLException("wglShareLists(" + toHexString(hglrc2) +
+                              ", " + toHexString(hglrc) + ") failed: error code " +
                               WGL.GetLastError());
       }
     }
@@ -200,7 +200,7 @@ public class WindowsGLContext extends GLContextImpl {
   protected void resetGLFunctionAvailability() {
     super.resetGLFunctionAvailability();
     if (DEBUG) {
-      System.err.println(getThreadName() + ": !!! Initializing WGL extension address table");
+      System.err.println(getThreadName() + ": !!! Initializing WGL extension address table for " + this);
     }
     resetProcAddressTable(getWGLExtProcAddressTable());
   }
