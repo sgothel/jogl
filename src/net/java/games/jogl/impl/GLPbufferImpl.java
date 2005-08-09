@@ -90,6 +90,10 @@ public class GLPbufferImpl implements GLPbuffer {
                                     false);
   }
 
+  public void repaint() {
+    display();
+  }
+
   public void addGLEventListener(GLEventListener listener) {
     drawableHelper.addGLEventListener(listener);
   }
