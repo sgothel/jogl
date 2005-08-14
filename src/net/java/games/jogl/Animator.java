@@ -40,34 +40,124 @@
 package net.java.games.jogl;
 
 import java.awt.EventQueue;
-import net.java.games.jogl.impl.SingleThreadedWorkaround;
+import java.util.*;
 
-/** <P> An Animator can be attached to a GLDrawable to drive its
-    display() method in a loop. For efficiency, it sets up the
-    rendering thread for the drawable to be its own internal thread,
-    so it can not be combined with manual repaints of the
-    surface. </P>
+/** <P> An Animator can be attached to one or more {@link
+    GLAutoDrawable}s to drive their display() methods in a loop. </P>
 
-    <P> The Animator currently contains a workaround for a bug in
-    NVidia's drivers (80174). The current semantics are that once an
-    Animator is created with a given GLDrawable as a target, repaints
-    will likely be suspended for that GLDrawable until the Animator is
-    started. This prevents multithreaded access to the context (which
-    can be problematic) when the application's intent is for
-    single-threaded access within the Animator. It is not guaranteed
-    that repaints will be prevented during this time and applications
-    should not rely on this behavior for correctness. </P>
+    <P> The Animator class creates a background thread in which the
+    calls to <code>display()</code> are performed. After each drawable
+    has been redrawn, {@link #sync} is called to cause a brief pause.
+    The default implementation of {@link #sync} calls
+    <code>Thread.sleep(1)</code> to yield the CPU briefly. Subclasses
+    may override this behavior to cause different animation behavior.
+    </P>
 */
 
 public class Animator {
-  private GLAutoDrawable drawable;
+  private volatile ArrayList/*<GLAutoDrawable>*/ drawables = new ArrayList();
   private Runnable runnable;
   private Thread thread;
-  private boolean shouldStop;
+  private volatile boolean shouldStop;
+  protected boolean ignoreExceptions;
+  protected boolean printExceptions;
+
+  /** Creates a new, empty Animator. */
+  public Animator() {
+  }
 
   /** Creates a new Animator for a particular drawable. */
   public Animator(GLAutoDrawable drawable) {
-    this.drawable = drawable;
+    add(drawable);
+  }
+
+  /** Adds a drawable to the list managed by this Animator. */
+  public synchronized void add(GLAutoDrawable drawable) {
+    ArrayList newList = (ArrayList) drawables.clone();
+    newList.add(drawable);
+    drawables = newList;
+    notifyAll();
+  }
+
+  /** Removes a drawable from the list managed by this Animator. */
+  public synchronized void remove(GLAutoDrawable drawable) {
+    ArrayList newList = (ArrayList) drawables.clone();
+    newList.remove(drawable);
+    drawables = newList;
+  }
+
+  /** Returns an iterator over the drawables managed by this
+      Animator. */
+  public Iterator/*<GLAutoDrawable>*/ drawableIterator() {
+    return drawables.iterator();
+  }
+
+  /** Sets a flag causing this Animator to ignore exceptions produced
+      while redrawing the drawables. By default this flag is set to
+      false, causing any exception thrown to halt the Animator. */
+  public void setIgnoreExceptions(boolean ignoreExceptions) {
+    this.ignoreExceptions = ignoreExceptions;
+  }
+
+  /** Sets a flag indicating that when exceptions are being ignored by
+      this Animator (see {@link #setIgnoreExceptions}), to print the
+      exceptions' stack traces for diagnostic information. Defaults to
+      false. */
+  public void setPrintExceptions(boolean printExceptions) {
+    this.printExceptions = printExceptions;
+  }
+
+  /** Called every frame after redrawing all drawables to cause a
+      brief pause in animation. Subclasses may override this to cause
+      different behavior in animation. The default implementation
+      calls <code>Thread.sleep(1)</code>. */
+  protected void sync() {
+    try {
+      Thread.sleep(1);
+    } catch (InterruptedException e) {
+    }
+  }
+
+  class MainLoop implements Runnable {
+    public void run() {
+      try {
+        while (!shouldStop) {
+          // Don't consume CPU unless there is work to be done
+          if (drawables.size() == 0) {
+            synchronized (Animator.this) {
+              while (drawables.size() == 0 && !shouldStop) {
+                try {
+                  Animator.this.wait();
+                } catch (InterruptedException e) {
+                }
+              }
+            }
+          }
+          Iterator iter = drawableIterator();
+          while (iter.hasNext()) {
+            GLAutoDrawable drawable = (GLAutoDrawable) iter.next();
+            try {
+              drawable.display();
+            } catch (RuntimeException e) {
+              if (ignoreExceptions) {
+                if (printExceptions) {
+                  e.printStackTrace();
+                }
+              } else {
+                throw(e);
+              }
+            }
+          }
+          sync();
+        }
+      } finally {
+        shouldStop = false;
+        synchronized (Animator.this) {
+          thread = null;
+          Animator.this.notify();
+        }
+      }
+    }
   }
 
   /** Starts this animator. */
@@ -76,33 +166,19 @@ public class Animator {
       throw new GLException("Already started");
     }
     if (runnable == null) {
-      runnable = new Runnable() {
-          public void run() {
-            boolean noException = false;
-            try {
-              while (!shouldStop) {
-                noException = false;
-                drawable.display();
-                noException = true;
-              }
-            } finally {
-              shouldStop = false;
-              synchronized (Animator.this) {
-                thread = null;
-                Animator.this.notify();
-              }
-            }
-          }
-        };
+      runnable = new MainLoop();
     }
     thread = new Thread(runnable);
     thread.start();
   }
 
-  /** Stops this animator, blocking until the animation thread has
-      finished. */
+  /** Stops this animator. In most situations this method blocks until
+      completion, except when called from the animation thread itself
+      or in some cases from an implementation-internal thread like the
+      AWT event queue thread. */
   public synchronized void stop() {
     shouldStop = true;
+    notifyAll();
     // It's hard to tell whether the thread which calls stop() has
     // dependencies on the Animator's internal thread. Currently we
     // use a couple of heuristics to determine whether we should do
