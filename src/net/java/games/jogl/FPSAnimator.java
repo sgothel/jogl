@@ -68,6 +68,7 @@ public class FPSAnimator extends Animator {
     if (timer != null) {
       throw new GLException("Already started");
     }
+    timer = new Timer();
     long delay = (long) (1000.0f / (float) fps);
     timer.schedule(new TimerTask() {
         public void run() {
