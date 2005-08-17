@@ -102,6 +102,20 @@ public class MacOSXGLDrawableFactory extends GLDrawableFactoryImpl {
     return (GLPbuffer) returnList.get(0);
   }
 
+  public GLContext createExternalGLContext() {
+    // FIXME
+    throw new GLException("Not yet implemented");
+  }
+
+  public boolean canCreateExternalGLDrawable() {
+    return false;
+  }
+
+  public GLDrawable createExternalGLDrawable() {
+    // FIXME
+    throw new GLException("Not yet implemented");
+  }
+
   public long dynamicLookupFunction(String glFuncName) {
     return CGL.getProcAddress(glFuncName);
   }

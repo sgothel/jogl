@@ -240,4 +240,69 @@ public abstract class GLDrawableFactory {
                                             int initialWidth,
                                             int initialHeight,
                                             GLContext shareWith);
+
+  //----------------------------------------------------------------------
+  // Methods for interacting with third-party OpenGL libraries
+
+  /**
+   * <P> Creates a GLContext object representing an existing OpenGL
+   * context in an external (third-party) OpenGL-based library. This
+   * GLContext object may be used to draw into this preexisting
+   * context using its {@link GL} and {@link GLU} objects. New
+   * contexts created through {@link GLDrawable}s may share textures
+   * and display lists with this external context. </P>
+   *
+   * <P> The underlying OpenGL context must be current on the current
+   * thread at the time this method is called. The user is responsible
+   * for the maintenance of the underlying OpenGL context; calls to
+   * <code>makeCurrent</code> and <code>release</code> on the returned
+   * GLContext object have no effect. If the underlying OpenGL context
+   * is destroyed, the <code>destroy</code> method should be called on
+   * the <code>GLContext</code>. A new <code>GLContext</code> object
+   * should be created for each newly-created underlying OpenGL
+   * context.
+   */
+  public abstract GLContext createExternalGLContext();
+
+  /**
+   * Returns true if it is possible to create an external GLDrawable
+   * object via {@link #createExternalGLDrawable}.
+   */
+  public abstract boolean canCreateExternalGLDrawable();
+
+  /**
+   * <P> Creates a {@link GLDrawable} object representing an existing
+   * OpenGL drawable in an external (third-party) OpenGL-based
+   * library. This GLDrawable object may be used to create new,
+   * fully-functional {@link GLContext}s on the OpenGL drawable. This
+   * is useful when interoperating with a third-party OpenGL-based
+   * library and it is essential to not perturb the state of the
+   * library's existing context, even to the point of not sharing
+   * textures or display lists with that context. </P>
+   *
+   * <P> An underlying OpenGL context must be current on the desired
+   * drawable and the current thread at the time this method is
+   * called. The user is responsible for the maintenance of the
+   * underlying drawable. If one or more contexts are created on the
+   * drawable using {@link GLDrawable#createContext}, and the drawable
+   * is deleted by the third-party library, the user is responsible
+   * for calling {@link GLContext#destroy} on these contexts. </P>
+   *
+   * <P> Calls to <code>setSize</code>, <code>getWidth</code> and
+   * <code>getHeight</code> are illegal on the returned GLDrawable. If
+   * these operations are required by the user, they must be performed
+   * by the third-party library. </P>
+   *
+   * <P> It is legal to create both an external GLContext and
+   * GLDrawable representing the same third-party OpenGL entities.
+   * This can be used, for example, to query current state information
+   * using the external GLContext and then create and set up new
+   * GLContexts using the external GLDrawable. </P>
+   *
+   * <P> This functionality may not be available on all platforms and
+   * {@link #canCreateExternalGLDrawable} should be called first to
+   * see if it is present. For example, on X11 platforms, this API
+   * requires the presence of GLX 1.3 or later.
+   */
+  public abstract GLDrawable createExternalGLDrawable();
 }

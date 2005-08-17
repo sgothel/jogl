@@ -217,6 +217,18 @@ public class WindowsGLDrawableFactory extends GLDrawableFactoryImpl {
     return (GLPbuffer) returnList.get(0);
   }
 
+  public GLContext createExternalGLContext() {
+    return new WindowsExternalGLContext();
+  }
+
+  public boolean canCreateExternalGLDrawable() {
+    return true;
+  }
+
+  public GLDrawable createExternalGLDrawable() {
+    return new WindowsExternalGLDrawable();
+  }
+
   public long dynamicLookupFunction(String glFuncName) {
     long res = WGL.wglGetProcAddress(glFuncName);
     if (res == 0) {
