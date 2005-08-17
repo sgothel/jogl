@@ -57,6 +57,7 @@ public class WindowsExternalGLContext extends WindowsGLContext {
 
   protected int makeCurrentImpl() throws GLException {
     if (firstMakeCurrent) {
+      firstMakeCurrent = false;
       return CONTEXT_CURRENT_NEW;
     }
     return CONTEXT_CURRENT;
