@@ -92,8 +92,25 @@ public class X11OnscreenGLDrawable extends X11GLDrawable {
 
   public void swapBuffers() throws GLException {
     lockAWT();
-    GLX.glXSwapBuffers(display, drawable);
+    try {    
+      boolean didLock = false;
+      
+      if (drawable == 0) {
+        if (lockSurface() == LOCK_SURFACE_NOT_READY) {
+          return;
+        }
+
+        didLock = true;
+      }
+
+      GLX.glXSwapBuffers(display, drawable);
+
+      if (didLock) {
+        unlockSurface();
+      }
+    } finally {
     unlockAWT();
+    }
   }
 
   public int lockSurface() throws GLException {
