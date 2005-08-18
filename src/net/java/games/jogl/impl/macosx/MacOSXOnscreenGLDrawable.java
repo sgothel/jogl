@@ -123,14 +123,6 @@ public class MacOSXOnscreenGLDrawable extends MacOSXGLDrawable {
       // FIXME: clear out unreachable contexts
       if (ctx != null) {
         ctx.swapBuffers();
-        // FIXME: it isn't clear how to produce the same functionality
-        // as swapping an HDC's or GLXDrawable's buffers using the
-        // NSOpenGLContext API flushBuffer. Other platforms would
-        // associate the swapBuffer / flushBuffer API with the NSView
-        // rather than the NSOpenGLContext. For now, assume that
-        // calling flushBuffer on one context is the same as calling a
-        // "swapBuffers" function for the NSView.
-        return;
       }
     }
   }
