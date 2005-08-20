@@ -72,11 +72,7 @@ public class FPSAnimator extends Animator {
     long delay = (long) (1000.0f / (float) fps);
     timer.schedule(new TimerTask() {
         public void run() {
-          Iterator iter = drawableIterator();
-          while (iter.hasNext()) {
-            GLAutoDrawable drawable = (GLAutoDrawable) iter.next();
-            drawable.display();
-          }
+          display();
         }
       }, 0, delay);
   }

@@ -137,7 +137,7 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
       component. The GLCapabilitiesChooser must be non-null and
       specifies the algorithm for selecting one of the available
       GLCapabilities for the component; the GLDrawableFactory uses a
-      DefaultGLCapabilitesChooser if the user does not provide
+      DefaultGLCapabilitiesChooser if the user does not provide
       one. The passed GLContext may be null and specifies an OpenGL
       context with which to share textures, display lists and other
       OpenGL state. */

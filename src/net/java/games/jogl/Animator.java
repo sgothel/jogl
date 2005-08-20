@@ -39,8 +39,13 @@
 
 package net.java.games.jogl;
 
+import java.awt.Component;
 import java.awt.EventQueue;
+import java.awt.Rectangle;
 import java.util.*;
+import javax.swing.*;
+
+import net.java.games.jogl.impl.*;
 
 /** <P> An Animator can be attached to one or more {@link
     GLAutoDrawable}s to drive their display() methods in a loop. </P>
@@ -55,12 +60,19 @@ import java.util.*;
 */
 
 public class Animator {
+  private static final boolean DEBUG = Debug.debug("Animator");
   private volatile ArrayList/*<GLAutoDrawable>*/ drawables = new ArrayList();
   private Runnable runnable;
   private Thread thread;
   private volatile boolean shouldStop;
   protected boolean ignoreExceptions;
   protected boolean printExceptions;
+
+  // For efficient rendering of Swing components, in particular when
+  // they overlap one another
+  private List lightweights    = new ArrayList();
+  private Map  repaintManagers = new IdentityHashMap();
+  private Map  dirtyRegions    = new IdentityHashMap();
 
   /** Creates a new, empty Animator. */
   public Animator() {
@@ -107,14 +119,42 @@ public class Animator {
     this.printExceptions = printExceptions;
   }
 
-  /** Called every frame after redrawing all drawables to cause a
-      brief pause in animation. Subclasses may override this to cause
-      different behavior in animation. The default implementation
-      calls <code>Thread.sleep(1)</code>. */
-  protected void sync() {
-    try {
-      Thread.sleep(1);
-    } catch (InterruptedException e) {
+  /** Called every frame to cause redrawing of all of the
+      GLAutoDrawables this Animator manages. Subclasses should call
+      this to get the most optimized painting behavior for the set of
+      components this Animator manages, in particular when multiple
+      lightweight widgets are continually being redrawn. */
+  protected void display() {
+    Iterator iter = drawableIterator();
+    while (iter.hasNext()) {
+      GLAutoDrawable drawable = (GLAutoDrawable) iter.next();
+      if (drawable instanceof JComponent) {
+        // Lightweight components need a more efficient drawing
+        // scheme than simply forcing repainting of each one in
+        // turn since drawing one can force another one to be
+        // drawn in turn
+        lightweights.add(drawable);
+      } else {
+        try {
+          drawable.display();
+        } catch (RuntimeException e) {
+          if (ignoreExceptions) {
+            if (printExceptions) {
+              e.printStackTrace();
+            }
+          } else {
+            throw(e);
+          }
+        }
+      }
+    }
+    if (lightweights.size() > 0) {
+      try {
+        SwingUtilities.invokeAndWait(drawWithRepaintManagerRunnable);
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+      lightweights.clear();
     }
   }
 
@@ -133,22 +173,12 @@ public class Animator {
               }
             }
           }
-          Iterator iter = drawableIterator();
-          while (iter.hasNext()) {
-            GLAutoDrawable drawable = (GLAutoDrawable) iter.next();
-            try {
-              drawable.display();
-            } catch (RuntimeException e) {
-              if (ignoreExceptions) {
-                if (printExceptions) {
-                  e.printStackTrace();
-                }
-              } else {
-                throw(e);
-              }
-            }
+          display();
+          // Avoid swamping the CPU
+          try {
+            Thread.sleep(1);
+          } catch (InterruptedException e) {
           }
-          sync();
         }
       } finally {
         shouldStop = false;
@@ -193,4 +223,77 @@ public class Animator {
       }
     }
   }
+
+  // Uses RepaintManager APIs to implement more efficient redrawing of
+  // the Swing widgets we're animating
+  private Runnable drawWithRepaintManagerRunnable = new Runnable() {
+      public void run() {
+        if (DEBUG) {
+          System.err.println("Drawing " + lightweights.size() + " with RepaintManager");
+        }
+        for (Iterator iter = lightweights.iterator(); iter.hasNext(); ) {
+          JComponent comp = (JComponent) iter.next();
+          RepaintManager rm = RepaintManager.currentManager(comp);
+          rm.markCompletelyDirty(comp);
+          repaintManagers.put(rm, rm);
+
+          // RepaintManagers don't currently optimize the case of
+          // overlapping sibling components. If we have two
+          // JInternalFrames in a JDesktopPane, the redraw of the
+          // bottom one will cause the top one to be redrawn as
+          // well. The top one will then be redrawn separately. In
+          // order to optimize this case we need to compute the union
+          // of all of the dirty regions on a particular JComponent if
+          // optimized drawing isn't enabled for it.
+
+          // Walk up the hierarchy trying to find a non-optimizable
+          // ancestor
+          Rectangle visible = comp.getVisibleRect();
+          int x = visible.x;
+          int y = visible.y;
+          while (comp != null) {
+            x += comp.getX();
+            y += comp.getY();
+            Component c = comp.getParent();
+            if ((c == null) || (!(c instanceof JComponent))) {
+              comp = null;
+            } else {
+              comp = (JComponent) c;
+              if (!comp.isOptimizedDrawingEnabled()) {
+                rm = RepaintManager.currentManager(comp);
+                repaintManagers.put(rm, rm);
+                // Need to dirty this region
+                Rectangle dirty = (Rectangle) dirtyRegions.get(comp);
+                if (dirty == null) {
+                  dirty = new Rectangle(x, y, visible.width, visible.height);
+                  dirtyRegions.put(comp, dirty);
+                } else {
+                  // Compute union with already dirty region
+                  // Note we could compute multiple non-overlapping
+                  // regions: might want to do that in the future
+                  // (prob. need more complex algorithm -- dynamic
+                  // programming?)
+                  dirty.add(new Rectangle(x, y, visible.width, visible.height));
+                }
+              }
+            }
+          }
+        }
+
+        // Dirty any needed regions on non-optimizable components
+        for (Iterator iter = dirtyRegions.keySet().iterator(); iter.hasNext(); ) {
+          JComponent comp = (JComponent) iter.next();
+          Rectangle  rect = (Rectangle) dirtyRegions.get(comp);
+          RepaintManager rm = RepaintManager.currentManager(comp);
+          rm.addDirtyRegion(comp, rect.x, rect.y, rect.width, rect.height);
+        }
+
+        // Draw all dirty regions
+        for (Iterator iter = repaintManagers.keySet().iterator(); iter.hasNext(); ) {
+          ((RepaintManager) iter.next()).paintDirtyRegions();
+        }
+        dirtyRegions.clear();
+        repaintManagers.clear();
+      }
+    };
 }
