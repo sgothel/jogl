@@ -86,7 +86,7 @@ public class BufferFactory {
       account the Buffer position and the underlying type.  This is
       the total offset for Direct Buffers.  */
 
-  public static int getPositionByteOffset(Buffer buf) {
+  public static int getDirectBufferByteOffset(Buffer buf) {
       if(buf == null) {
         return 0;
       }
@@ -140,7 +140,7 @@ public class BufferFactory {
       object.  The array offset also includes the position offset 
       within the buffer, in addition to any array offset. */
 
-  public static int getTotalByteOffset(Buffer buf) {
+  public static int getIndirectBufferByteOffset(Buffer buf) {
     if(buf == null) {
       return 0;
     }

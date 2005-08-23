@@ -74,6 +74,8 @@ public class CGLPAWrapperEmitter extends CMethodBindingEmitter
 //    if(binding.signatureUsesPrimitiveArrays())
 //          arrayImplRoutine = true;
 
+     indirectBufferInterface = methodToWrap.isIndirectBufferInterface();
+
     if (methodToWrap.getReturnValueCapacityExpression() != null) {
       setReturnValueCapacityExpression(methodToWrap.getReturnValueCapacityExpression());
     }
@@ -237,7 +239,9 @@ public class CGLPAWrapperEmitter extends CMethodBindingEmitter
     StringBuffer buf = new StringBuffer();
     buf.append(jniMangle(binding.getName()));
 
-    if(binding.signatureUsesPrimitiveArrays())
+    if( isIndirectBufferInterface() )
+        buf.append("2");
+    else if(binding.signatureUsesPrimitiveArrays())
         buf.append("1");
 
     buf.append("__");

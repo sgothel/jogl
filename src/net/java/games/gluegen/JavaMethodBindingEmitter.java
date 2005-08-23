@@ -71,6 +71,8 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
 
   protected boolean prefixedMethod = false;
 
+  protected boolean indirectBufferInterface = false;
+
   // A non-null value indicates that rather than returning a compound
   // type accessor we are returning an array of such accessors; this
   // expression is a MessageFormat string taking the names of the
@@ -109,6 +111,15 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
     return binding.getName();
   }
 
+  public boolean isIndirectBufferInterface() {
+    return indirectBufferInterface;
+  }
+
+
+  public void setIndirectBufferInterface(boolean indirect) {
+     indirectBufferInterface = indirect;
+  }
+
 
   /** The type of exception (must subclass
       <code>java.lang.RuntimeException</code>) raised if runtime
@@ -134,7 +145,8 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
   }
 
   protected String getReturnTypeString(boolean skipArray) {
-    if (skipArray || (getReturnedArrayLengthExpression() == null && !binding.getJavaReturnType().isArrayOfCompoundTypeWrappers())) {
+    if (skipArray || (getReturnedArrayLengthExpression() == null && 
+                 !binding.getJavaReturnType().isArrayOfCompoundTypeWrappers())) {
       return binding.getJavaReturnType().getName();
     }
     return binding.getJavaReturnType().getName() + "[]";
@@ -186,10 +198,18 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
       if (needComma) {
         writer.print(", ");
       }
-      
+
+     //  indirect buffer array sent down as object
+     if(isIndirectBufferInterface() && type.isNIOBuffer() )     {
+         writer.print("  Object ");
+     } else {
       writer.print(type.getName());
+     }
+
       writer.print(" ");
       writer.print(binding.getArgumentName(i));
+
+
       ++numEmitted;
       needComma = true;
 
@@ -218,10 +238,12 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
 
   protected String getImplMethodName()
   {
-    if(!forArrayImplementingMethodCall)
-       return binding.getName() + "0";
+    if( isIndirectBufferInterface() )
+       return binding.getName() + "2";
+    else if(!forArrayImplementingMethodCall)
+         return binding.getName() + "0";
     else
-       return binding.getName() + "1";
+         return binding.getName() + "1";
   }
 
 

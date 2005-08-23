@@ -69,7 +69,9 @@ public class CMethodBindingImplEmitter extends CMethodBindingEmitter
   {
     super.emitName(writer);
     if (!getIsOverloadedBinding()) {
-      if(!arrayImplRoutine)
+      if( isIndirectBufferInterface() )
+          writer.print("2");
+      else if(!arrayImplRoutine)
          writer.print("0");
       else
          writer.print("1");
@@ -84,7 +86,9 @@ public class CMethodBindingImplEmitter extends CMethodBindingEmitter
     StringBuffer buf = new StringBuffer();
     buf.append(jniMangle(binding.getName()));
 
-    if(!arrayImplRoutine)
+    if( isIndirectBufferInterface() )
+        buf.append("2");
+    else if(!arrayImplRoutine)
         buf.append("0");
     else
         buf.append("1");
@@ -92,6 +96,7 @@ public class CMethodBindingImplEmitter extends CMethodBindingEmitter
     buf.append("__");
     for (int i = 0; i < binding.getNumArguments(); i++) {
       JavaType type = binding.getJavaArgumentType(i);
+
       Class c = type.getJavaClass();
       if (c != null) {
         jniMangle(c, buf);

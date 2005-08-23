@@ -57,6 +57,8 @@ public class CMethodBindingEmitter extends FunctionEmitter
   
   protected MethodBinding binding;
 
+  protected boolean indirectBufferInterface = false;
+
   /** Name of the package in which the corresponding Java method resides.*/
   private String packageName;
 
@@ -136,6 +138,17 @@ public class CMethodBindingEmitter extends FunctionEmitter
   }
 
   public final MethodBinding getBinding() { return binding; }
+
+
+  public boolean isIndirectBufferInterface() {
+    return indirectBufferInterface;
+  }
+                                                                                                                                     
+                                                                                                                                     
+  public void setIndirectBufferInterface(boolean indirect) {
+     indirectBufferInterface = indirect;
+  }
+
 
   public String getName() {
     return binding.getName();
@@ -343,8 +356,10 @@ public class CMethodBindingEmitter extends FunctionEmitter
       writer.print(" ");
       writer.print(binding.getArgumentName(i));
       ++numEmitted;
-      // Add Buffer offset argument immediately after any Buffer arguments
-      if(javaArgType.isNIOBuffer() || javaArgType.isNIOBufferArray()) {
+
+     //  Replace following for indirect buffer case
+     //    if(javaArgType.isNIOBuffer() || javaArgType.isNIOBufferArray()) {
+      if((javaArgType.isNIOBuffer() && !isIndirectBufferInterface()) || javaArgType.isNIOBufferArray()) {
              if(!javaArgType.isArray()) {
                  numBufferOffsetArgs++;
                  writer.print(", jint " + byteOffsetConversionArgName(numBufferOffsetArgs));
@@ -354,6 +369,10 @@ public class CMethodBindingEmitter extends FunctionEmitter
                                 byteOffsetArrayConversionArgName(numBufferOffsetArrayArgs));
            }
        }
+
+      // indirect buffer case needs same offset syntax as arrays
+      if(javaArgType.isNIOBuffer() && isIndirectBufferInterface())
+             writer.print(", jint " + binding.getArgumentName(i) + "_offset");
 
        // Add array primitive index/offset parameter
        if(javaArgType.isArray() && !javaArgType.isNIOBufferArray() && !javaArgType.isStringArray()) {
@@ -499,7 +518,8 @@ public class CMethodBindingEmitter extends FunctionEmitter
       // Convert all Buffers to pointers first so we don't have to
       // call ReleasePrimitiveArrayCritical for any arrays if any
       // incoming buffers aren't direct
-      if (binding.hasContainingType()) {
+      // we don't want to fall in here for indirectBuffer case, since its an array
+      if (binding.hasContainingType() && !isIndirectBufferInterface()) {
         byteOffsetCounter++;
         emitPointerConversion(writer, binding,
                               binding.getContainingType(),
@@ -514,7 +534,8 @@ public class CMethodBindingEmitter extends FunctionEmitter
         if (type.isJNIEnv() || binding.isArgumentThisPointer(i)) {
           continue;
         }
-        if (type.isNIOBuffer()) {
+
+        if (type.isNIOBuffer() && !isIndirectBufferInterface()) {
           byteOffsetCounter++;
           emitPointerConversion(writer, binding, type,
                                 binding.getCArgumentType(i),
@@ -531,6 +552,12 @@ public class CMethodBindingEmitter extends FunctionEmitter
 
       if (javaArgType.isJNIEnv() || binding.isArgumentThisPointer(i)) {
         continue;
+      }
+
+      // create array replacement type for Buffer for indirect Buffer case
+      if(isIndirectBufferInterface() && javaArgType.isNIOBuffer()) {
+            float[] c = new float[1];
+            javaArgType = JavaType.createForClass(c.getClass());
       }
 
       if (javaArgType.isArray()) {
@@ -755,6 +782,14 @@ public class CMethodBindingEmitter extends FunctionEmitter
       if (javaArgType.isJNIEnv() || binding.isArgumentThisPointer(i)) {
         continue;
       }
+
+
+       // create array type for Indirect Buffer case
+      if(isIndirectBufferInterface() && javaArgType.isNIOBuffer()) {
+          float[] c = new float[1];
+          javaArgType = JavaType.createForClass(c.getClass());
+      }
+
       if (javaArgType.isArray()) {
         boolean needsDataCopy = javaArgTypeNeedsDataCopy(javaArgType);
         Class subArrayElementJavaType = javaArgType.getJavaClass().getComponentType();
@@ -936,7 +971,10 @@ public class CMethodBindingEmitter extends FunctionEmitter
             // For mapping from byte primitive array type to type* case produces code:
             //    (GLtype*)((char*)_ptr0 + varName_offset)
             // where varName_offset is the number of bytes offset as calculated in Java code
-            if(javaArgType.isArray() && !javaArgType.isNIOBufferArray() && !javaArgType.isStringArray()) {
+            //  also, output same for indirect buffer as for array
+            if(javaArgType.isNIOBuffer() && isIndirectBufferInterface())
+                    writer.print("( (char*)");
+            else if(javaArgType.isArray() && !javaArgType.isNIOBufferArray() && !javaArgType.isStringArray()) {
                     writer.print("( (char*)");
             } 
             /* End of this section of new code for array offsets */    
@@ -947,7 +985,9 @@ public class CMethodBindingEmitter extends FunctionEmitter
             }
 
             /* Continuation of special code for accounting for array offsets */
-            if(javaArgType.isArray() && !javaArgType.isNIOBufferArray() && !javaArgType.isStringArray()) {
+            if(javaArgType.isNIOBuffer() && isIndirectBufferInterface())
+                      writer.print(" + " + binding.getArgumentName(i) + "_offset)");     
+            else if(javaArgType.isArray() && !javaArgType.isNIOBufferArray() && !javaArgType.isStringArray()) {
                       writer.print(" + " + binding.getArgumentName(i) + "_offset)");     
             }  
             /* End of this section of new code for array offsets */
@@ -1148,9 +1188,15 @@ public class CMethodBindingEmitter extends FunctionEmitter
       else if (c == Double.TYPE)    res.append("D");
       else throw new InternalError("Illegal primitive type");
     } else {
-      res.append("L");
-      res.append(c.getName().replace('.', '_'));
-      res.append("_2");
+           if(!isIndirectBufferInterface())  {
+                res.append("L");
+                res.append(c.getName().replace('.', '_'));
+                res.append("_2");
+           } else {   // indirect buffer sends array as object
+                res.append("L");
+                res.append("java_lang_Object");
+                res.append("_2");
+           }
     }
   }
 

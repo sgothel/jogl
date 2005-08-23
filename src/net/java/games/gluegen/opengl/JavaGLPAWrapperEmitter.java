@@ -174,8 +174,8 @@ public class JavaGLPAWrapperEmitter extends JavaMethodBindingImplEmitter
     writer.println("    }");
   }
 
-  protected int emitCallArguments(MethodBinding binding, PrintWriter writer) {
-    int numEmitted = super.emitCallArguments(binding, writer);
+  protected int emitCallArguments(MethodBinding binding, PrintWriter writer, boolean indirect) {
+    int numEmitted = super.emitCallArguments(binding, writer, indirect);
     if (numEmitted > 0) {
       writer.print(", ");
     }

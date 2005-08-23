@@ -351,7 +351,8 @@ public class JavaEmitter implements GlueEmitter {
         // the binding like any normal binding because no special binding
         // generation (wrapper methods, etc) will be necessary.
         MethodBinding specialBinding = binding.createNIOBufferVariant();     
-        
+       
+ 
         if (cfg.allStatic() && binding.hasContainingType()) {
           // This should not currently happen since structs are emitted using a different mechanism
           throw new IllegalArgumentException("Cannot create binding in AllStatic mode because method has containing type: \"" +
@@ -359,7 +360,8 @@ public class JavaEmitter implements GlueEmitter {
         }
 
         boolean isUnimplemented = cfg.isUnimplemented(binding.getName());
-        
+       JavaMethodBindingImplEmitter entryPoint=null;
+ 
         if (cfg.emitImpl()) {
           // Generate the emitter for the method which may do conversion
           // from type wrappers to NIO Buffers or which may call the
@@ -371,8 +373,7 @@ public class JavaEmitter implements GlueEmitter {
                       arrayImplMethod = true;
               }
 
-          JavaMethodBindingImplEmitter entryPoint =
-            new JavaMethodBindingImplEmitter(binding,
+           entryPoint = new JavaMethodBindingImplEmitter(binding,
                                              (cfg.allStatic() ? javaWriter() : javaImplWriter()),
                                              cfg.runtimeExceptionType(),
                                              isUnimplemented,
@@ -419,8 +420,24 @@ public class JavaEmitter implements GlueEmitter {
               wrappedEntryPoint.addModifier(JavaMethodBindingEmitter.STATIC); // Doesn't really matter
               wrappedEntryPoint.addModifier(JavaMethodBindingEmitter.NATIVE);
               allEmitters.add(wrappedEntryPoint); 
+
+              String bindingName = specialBinding.getName();
+              if(binding != specialBinding && bindingName.contains("gl") && !bindingName.contains("glX")
+                        && !bindingName.contains("wgl") && !bindingName.contains("CGL"))  {
+                   JavaMethodBindingEmitter wrappedEntryPoint2 =
+                       new JavaMethodBindingEmitter(specialBinding, output, cfg.runtimeExceptionType(), 
+                                      true, arrayImplMethod);
+                   wrappedEntryPoint2.addModifier(JavaMethodBindingEmitter.PRIVATE);
+                   wrappedEntryPoint2.addModifier(JavaMethodBindingEmitter.STATIC); // Doesn't really matter
+                   wrappedEntryPoint2.addModifier(JavaMethodBindingEmitter.NATIVE);
+
+                   entryPoint.setGenerateIndirectBufferInterface(true);
+                   wrappedEntryPoint2.setIndirectBufferInterface(true);
+                   allEmitters.add(wrappedEntryPoint2); 
+              }
+
             }
-        
+
             CMethodBindingEmitter cEmitter =
               makeCEmitter(specialBinding, 
                            overloaded,
@@ -429,6 +446,23 @@ public class JavaEmitter implements GlueEmitter {
                            cfg.implPackageName(), cfg.implClassName(),
                            cWriter());
             allEmitters.add(cEmitter);
+
+            String bindingName = specialBinding.getName();
+            if(binding != specialBinding && bindingName.contains("gl")  && !bindingName.contains("glX") 
+                   && !bindingName.contains("wgl") && !bindingName.contains("CGL") ) {
+
+                CMethodBindingEmitter cEmitter2 =
+                   makeCEmitter(specialBinding, 
+                               //overloaded,
+                               true,
+                               true,
+                               arrayImplMethod,
+                               cfg.implPackageName(), cfg.implClassName(),
+                               cWriter());
+                cEmitter2.setIndirectBufferInterface(true);
+                allEmitters.add(cEmitter2);
+             }
+
           }
         }
       } // end iteration over expanded bindings
@@ -1350,6 +1384,7 @@ public class JavaEmitter implements GlueEmitter {
               if (! result.contains(variant)) result.add(variant);
             }
           }
+
 
           // NIO variants for non-void* C primitive pointer types
           if ((cfg.nioMode() == JavaConfiguration.NIO_MODE_ALL_POINTERS && 
