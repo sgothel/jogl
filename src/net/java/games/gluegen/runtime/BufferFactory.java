@@ -87,25 +87,25 @@ public class BufferFactory {
       the total offset for Direct Buffers.  */
 
   public static int getDirectBufferByteOffset(Buffer buf) {
-      if(buf == null) {
-        return 0;
-      }
-      if(buf instanceof ByteBuffer) {
-          return (buf.position());
-      } else if (buf instanceof FloatBuffer) {
-          return (buf.position() * BufferUtils.SIZEOF_FLOAT);
-      } else if (buf instanceof IntBuffer) {
-          return (buf.position() * BufferUtils.SIZEOF_INT);
-      } else if (buf instanceof ShortBuffer) {
-          return (buf.position() * BufferUtils.SIZEOF_SHORT);
-      } else if (buf instanceof DoubleBuffer) {
-          return (buf.position() * BufferUtils.SIZEOF_DOUBLE);
-      } else if (buf instanceof LongBuffer) {
-          return (buf.position() * BufferUtils.SIZEOF_LONG);
-      } 
+    if(buf == null) {
+      return 0;
+    }
+    if(buf instanceof ByteBuffer) {
+      return (buf.position());
+    } else if (buf instanceof FloatBuffer) {
+      return (buf.position() * BufferUtils.SIZEOF_FLOAT);
+    } else if (buf instanceof IntBuffer) {
+      return (buf.position() * BufferUtils.SIZEOF_INT);
+    } else if (buf instanceof ShortBuffer) {
+      return (buf.position() * BufferUtils.SIZEOF_SHORT);
+    } else if (buf instanceof DoubleBuffer) {
+      return (buf.position() * BufferUtils.SIZEOF_DOUBLE);
+    } else if (buf instanceof LongBuffer) {
+      return (buf.position() * BufferUtils.SIZEOF_LONG);
+    } 
 
-      throw new RuntimeException("Disallowed array backing store type in buffer "
-                            + buf.getClass().getName());
+    throw new RuntimeException("Disallowed array backing store type in buffer "
+                               + buf.getClass().getName());
   }
 
 
@@ -113,25 +113,25 @@ public class BufferFactory {
       a Buffer object.  */
 
    public static Object getArray(Buffer buf) {
-      if (buf == null) {
-          return null;
-      }
-      if(buf instanceof ByteBuffer) {
-          return ((ByteBuffer) buf).array();
-      } else if (buf instanceof FloatBuffer) {
-          return ((FloatBuffer) buf).array();
-      } else if (buf instanceof IntBuffer) {
-          return ((IntBuffer) buf).array();
-      } else if (buf instanceof ShortBuffer) { 
-          return ((ShortBuffer) buf).array();
-      } else if (buf instanceof DoubleBuffer) {
-          return ((DoubleBuffer) buf).array();
-      } else if (buf instanceof LongBuffer) {
-          return ((LongBuffer) buf).array();
-      }
+     if (buf == null) {
+       return null;
+     }
+     if(buf instanceof ByteBuffer) {
+       return ((ByteBuffer) buf).array();
+     } else if (buf instanceof FloatBuffer) {
+       return ((FloatBuffer) buf).array();
+     } else if (buf instanceof IntBuffer) {
+       return ((IntBuffer) buf).array();
+     } else if (buf instanceof ShortBuffer) { 
+       return ((ShortBuffer) buf).array();
+     } else if (buf instanceof DoubleBuffer) {
+       return ((DoubleBuffer) buf).array();
+     } else if (buf instanceof LongBuffer) {
+       return ((LongBuffer) buf).array();
+     }
 
-      throw new RuntimeException("Disallowed array backing store type in buffer "
-                            + buf.getClass().getName());
+     throw new RuntimeException("Disallowed array backing store type in buffer "
+                                + buf.getClass().getName());
    } 
 
 
@@ -161,5 +161,4 @@ public class BufferFactory {
 
     throw new RuntimeException("Unknown buffer type " + buf.getClass().getName());
   }
-
 }

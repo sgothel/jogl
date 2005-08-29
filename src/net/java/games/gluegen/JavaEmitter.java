@@ -300,170 +300,288 @@ public class JavaEmitter implements GlueEmitter {
   }
 
   /**
+   * Generates the public emitters for this MethodBinding which will
+   * produce either simply signatures (for the interface class, if
+   * any) or function definitions with or without a body (depending on
+   * whether or not the implementing function can go directly to
+   * native code because it doesn't need any processing of the
+   * outgoing arguments).
+   */
+  protected void generatePublicEmitters(MethodBinding binding,
+                                        List allEmitters,
+                                        boolean signatureOnly) {
+    PrintWriter writer = ((signatureOnly || cfg.allStatic()) ? javaWriter() : javaImplWriter());
+
+    if (cfg.manuallyImplement(binding.getName()) && !signatureOnly) {
+      // We only generate signatures for manually-implemented methods;
+      // user provides the implementation
+      return;
+    }
+
+    // It's possible we may not need a body even if signatureOnly is
+    // set to false; for example, if the routine doesn't take any
+    // arrays or buffers as arguments
+    boolean isUnimplemented = cfg.isUnimplemented(binding.getName());
+    boolean needsBody = (isUnimplemented ||
+                         (binding.needsNIOWrappingOrUnwrapping() ||
+                          binding.signatureUsesJavaPrimitiveArrays()));
+
+    JavaMethodBindingEmitter emitter =
+      new JavaMethodBindingEmitter(binding,
+                                   writer,
+                                   cfg.runtimeExceptionType(),
+                                   !signatureOnly && needsBody,
+                                   false,
+                                   cfg.nioDirectOnly(binding.getName()),
+                                   false,
+                                   false,
+                                   false,
+                                   isUnimplemented);
+    emitter.addModifier(JavaMethodBindingEmitter.PUBLIC);
+    if (cfg.allStatic()) {
+      emitter.addModifier(JavaMethodBindingEmitter.STATIC);
+    }
+    if (!isUnimplemented && !needsBody && !signatureOnly) {
+      emitter.addModifier(JavaMethodBindingEmitter.NATIVE);
+    }
+    emitter.setReturnedArrayLengthExpression(cfg.returnedArrayLength(binding.getName()));
+    allEmitters.add(emitter);
+  }
+
+  /**
+   * Generates the private emitters for this MethodBinding. On the
+   * Java side these will simply produce signatures for native
+   * methods. On the C side these will create the emitters which will
+   * write the JNI code to interface to the functions. We need to be
+   * careful to make the signatures all match up and not produce too
+   * many emitters which would lead to compilation errors from
+   * creating duplicated methods / functions.
+   */
+  protected void generatePrivateEmitters(MethodBinding binding,
+                                         List allEmitters) {
+    if (cfg.manuallyImplement(binding.getName())) {
+      // Don't produce emitters for the implementation class
+      return;
+    }
+
+    // If we already generated a public native entry point for this
+    // method, don't emit another one
+    if (!cfg.isUnimplemented(binding.getName()) &&
+        (binding.needsNIOWrappingOrUnwrapping() ||
+         binding.signatureUsesJavaPrimitiveArrays())) {
+      PrintWriter writer = (cfg.allStatic() ? javaWriter() : javaImplWriter());
+
+      // If the binding uses primitive arrays, we are going to emit
+      // the private native entry point for it along with the version
+      // taking only NIO buffers
+      if (!binding.signatureUsesJavaPrimitiveArrays()) {
+        // (Always) emit the entry point taking only direct buffers
+        JavaMethodBindingEmitter emitter =
+          new JavaMethodBindingEmitter(binding,
+                                       writer,
+                                       cfg.runtimeExceptionType(),
+                                       false,
+                                       true,
+                                       cfg.nioDirectOnly(binding.getName()),
+                                       true,
+                                       true,
+                                       false,
+                                       false);
+        emitter.addModifier(JavaMethodBindingEmitter.PRIVATE);
+        if (cfg.allStatic()) {
+          emitter.addModifier(JavaMethodBindingEmitter.STATIC);
+        }
+        emitter.addModifier(JavaMethodBindingEmitter.NATIVE);
+        emitter.setReturnedArrayLengthExpression(cfg.returnedArrayLength(binding.getName()));
+        allEmitters.add(emitter);
+
+        // Optionally emit the entry point taking arrays which handles
+        // both the public entry point taking arrays as well as the
+        // indirect buffer case
+        if (!cfg.nioDirectOnly(binding.getName()) &&
+            binding.signatureCanUseIndirectNIO()) {
+          emitter =
+            new JavaMethodBindingEmitter(binding,
+                                         writer,
+                                         cfg.runtimeExceptionType(),
+                                         false,
+                                         true,
+                                         false,
+                                         true,
+                                         false,
+                                         true,
+                                         false);
+
+          emitter.addModifier(JavaMethodBindingEmitter.PRIVATE);
+          if (cfg.allStatic()) {
+            emitter.addModifier(JavaMethodBindingEmitter.STATIC);
+          }
+          emitter.addModifier(JavaMethodBindingEmitter.NATIVE);
+          emitter.setReturnedArrayLengthExpression(cfg.returnedArrayLength(binding.getName()));
+          allEmitters.add(emitter);
+        }
+      }
+    }
+
+    // Now generate the C emitter(s). We need to produce one for every
+    // Java native entry point (public or private). The only
+    // situations where we don't produce one are (a) when the method
+    // is unimplemented, and (b) when the signature contains primitive
+    // arrays, since the latter is handled by the method binding
+    // variant taking only NIO Buffers.
+    if (!cfg.isUnimplemented(binding.getName()) &&
+        !binding.signatureUsesJavaPrimitiveArrays()) {
+      // See whether we need an expression to help calculate the
+      // length of any return type
+      MessageFormat returnValueCapacityFormat = null;         
+      MessageFormat returnValueLengthFormat = null;         
+      JavaType javaReturnType = binding.getJavaReturnType();
+      if (javaReturnType.isNIOBuffer() ||
+          javaReturnType.isCompoundTypeWrapper()) {
+        // See whether capacity has been specified
+        String capacity = cfg.returnValueCapacity(binding.getName());
+        if (capacity != null) {
+          returnValueCapacityFormat = new MessageFormat(capacity);
+        }
+      } else if (javaReturnType.isArray() ||
+                 javaReturnType.isArrayOfCompoundTypeWrappers()) {
+        // NOTE: adding a check here because the CMethodBindingEmitter
+        // also doesn't yet handle returning scalar arrays. In order
+        // to implement this, return the type as a Buffer instead
+        // (i.e., IntBuffer, FloatBuffer) and add code as necessary.
+        if (javaReturnType.isPrimitiveArray()) {
+          throw new RuntimeException("Primitive array return types not yet supported");
+        }
+
+        // See whether length has been specified
+        String len = cfg.returnValueLength(binding.getName());
+        if (len != null) {
+          returnValueLengthFormat = new MessageFormat(len);
+        }
+      }
+
+      CMethodBindingEmitter cEmitter =
+        new CMethodBindingEmitter(binding,
+                                  cWriter(),
+                                  cfg.implPackageName(),
+                                  cfg.implClassName(),
+                                  true, /* NOTE: we always disambiguate with a suffix now, so this is optional */
+                                  cfg.allStatic(),
+                                  binding.needsNIOWrappingOrUnwrapping(),
+                                  false);
+      if (returnValueCapacityFormat != null) {
+        cEmitter.setReturnValueCapacityExpression(returnValueCapacityFormat);
+      }
+      if (returnValueLengthFormat != null) {
+        cEmitter.setReturnValueLengthExpression(returnValueLengthFormat);
+      }
+      cEmitter.setTemporaryCVariableDeclarations(cfg.temporaryCVariableDeclarations(binding.getName()));
+      cEmitter.setTemporaryCVariableAssignments(cfg.temporaryCVariableAssignments(binding.getName()));
+      allEmitters.add(cEmitter);
+
+      // Now see if we have to emit another entry point to handle the
+      // indirect buffer and array case
+      if (binding.argumentsUseNIO() &&
+          binding.signatureCanUseIndirectNIO() &&
+          !cfg.nioDirectOnly(binding.getName())) {
+        cEmitter =
+          new CMethodBindingEmitter(binding,
+                                    cWriter(),
+                                    cfg.implPackageName(),
+                                    cfg.implClassName(),
+                                    true, /* NOTE: we always disambiguate with a suffix now, so this is optional */
+                                    cfg.allStatic(),
+                                    binding.needsNIOWrappingOrUnwrapping(),
+                                    true);
+        if (returnValueCapacityFormat != null) {
+          cEmitter.setReturnValueCapacityExpression(returnValueCapacityFormat);
+        }
+        if (returnValueLengthFormat != null) {
+          cEmitter.setReturnValueLengthExpression(returnValueLengthFormat);
+        }
+        cEmitter.setTemporaryCVariableDeclarations(cfg.temporaryCVariableDeclarations(binding.getName()));
+        cEmitter.setTemporaryCVariableAssignments(cfg.temporaryCVariableAssignments(binding.getName()));
+        allEmitters.add(cEmitter);
+      }
+    }
+  }
+
+  /**
    * Generate all appropriate Java bindings for the specified C function
    * symbols.
    */
   protected List generateMethodBindingEmitters(FunctionSymbol sym) throws Exception {
 
-    ArrayList/*<FunctionEmitter>*/ allEmitters = new ArrayList(1);
+    ArrayList/*<FunctionEmitter>*/ allEmitters = new ArrayList();
 
     try {
       // Get Java binding for the function
       MethodBinding mb = bindFunction(sym, null, null);
       
-      // Expand all void* arguments
+      // JavaTypes representing C pointers in the initial
+      // MethodBinding have not been lowered yet to concrete types
       List bindings = expandMethodBinding(mb);
-      boolean overloaded = (bindings.size() > 1);
-      if (overloaded) {
-        // resize ahead of time for speed
-        allEmitters.ensureCapacity(bindings.size());
-      }
-      
-      // List of the indices of the arguments in this function that should be
-      // expanded to the same type when binding functions with multiple void*
-      // arguments
-      List mirrorIdxs = cfg.mirroredArgs(sym.getName());
       
       for (Iterator iter = bindings.iterator(); iter.hasNext(); ) {
         MethodBinding binding = (MethodBinding) iter.next();        
 
-        // Honor the MirrorExpandedBindingArgs directive in .cfg files
-        if (mirrorIdxs != null) {
-          assert(mirrorIdxs.size() >= 2); // sanity check.
-          boolean typesMatch = true;
-          int argIndex = ((Integer)mirrorIdxs.get(0)).intValue();
-          JavaType leftArgType = binding.getJavaArgumentType(argIndex);
-          for (int i = 1; i < mirrorIdxs.size(); ++i) {
-            argIndex = ((Integer)mirrorIdxs.get(i)).intValue();
-            JavaType rightArgType = binding.getJavaArgumentType(argIndex);
-            if (!(leftArgType.equals(rightArgType))) {
-              typesMatch = false;
-              break;
-            }
-            leftArgType = rightArgType;
-          }
-          // Don't emit the binding if the specified args aren't the same type
-          if (!typesMatch) { continue; } // skip this binding
-        }
-
-        // Try to create an NIOBuffer variant for this expanded binding. If
-        // it's the same as the original binding, then we'll be able to emit
-        // the binding like any normal binding because no special binding
-        // generation (wrapper methods, etc) will be necessary.
-        MethodBinding specialBinding = binding.createNIOBufferVariant();     
-       
- 
         if (cfg.allStatic() && binding.hasContainingType()) {
           // This should not currently happen since structs are emitted using a different mechanism
           throw new IllegalArgumentException("Cannot create binding in AllStatic mode because method has containing type: \"" +
                                              binding + "\"");
         }
 
-        boolean isUnimplemented = cfg.isUnimplemented(binding.getName());
-       JavaMethodBindingImplEmitter entryPoint=null;
- 
-        if (cfg.emitImpl()) {
-          // Generate the emitter for the method which may do conversion
-          // from type wrappers to NIO Buffers or which may call the
-          // underlying function directly
-
-            boolean arrayImplMethod = false;
-              if(binding.signatureUsesPrimitiveArrays()) {
-                      //overloaded = true;  
-                      arrayImplMethod = true;
-              }
-
-           entryPoint = new JavaMethodBindingImplEmitter(binding,
-                                             (cfg.allStatic() ? javaWriter() : javaImplWriter()),
-                                             cfg.runtimeExceptionType(),
-                                             isUnimplemented,
-                                             arrayImplMethod);
-          entryPoint.addModifier(JavaMethodBindingEmitter.PUBLIC);
-          if (cfg.allStatic()) {
-            entryPoint.addModifier(JavaMethodBindingEmitter.STATIC);
-          }
-          if (!isUnimplemented && !bindingNeedsBody(binding)) {
-            entryPoint.addModifier(JavaMethodBindingEmitter.NATIVE);
-          }
-          entryPoint.setReturnedArrayLengthExpression(cfg.returnedArrayLength(binding.getName()));
-          allEmitters.add(entryPoint);
-        }
+        // The structure of the generated glue code looks something like this:
+        // Simple method (no arrays, void pointers, etc.):
+        //   Interface class:
+        //     public void fooMethod();
+        //   Implementation class:
+        //     public native void fooMethod();
+        //
+        // Method taking void* argument:
+        //   Interface class:
+        //     public void fooMethod(Buffer arg);
+        //   Implementation class:
+        //     public void fooMethod(Buffer arg) {
+        //       ... bounds checks, etc. ...
+        //       if (arg.isDirect()) {
+        //         fooMethod0(arg, computeDirectBufferByteOffset(arg));
+        //       } else {
+        //         fooMethod1(getIndirectBufferArray(arg), computeIndirectBufferByteOffset(arg));
+        //       }
+        //     }
+        //     private native void fooMethod0(Object arg, int arg_byte_offset);
+        //     private native void fooMethod1(Object arg, int arg_byte_offset);
+        //
+        // Method taking primitive array argument:
+        //   Interface class:
+        //     public void fooMethod(int[] arg, int arg_offset);
+        //     public void fooMethod(IntBuffer arg);
+        //   Implementing class:
+        //     public void fooMethod(int[] arg, int arg_offset) {
+        //       ... range checks, etc. ...
+        //       fooMethod1(arg, SIZEOF_INT * arg_offset);
+        //     }
+        //     public void fooMethod(IntBuffer arg) {
+        //       ... bounds checks, etc. ...
+        //       if (arg.isDirect()) {
+        //         fooMethod0(arg, computeDirectBufferByteOffset(arg));
+        //       } else {
+        //         fooMethod1(getIndirectBufferArray(arg), computeIndirectBufferByteOffset(arg));
+        //       }
+        //     }
+        //     private native void fooMethod0(Object arg, int arg_byte_offset);
+        //     private native void fooMethod1(Object arg, int arg_byte_offset);
+        //
+        // Note in particular that the public entry point taking an
+        // array is merely a special case of the indirect buffer case.
 
         if (cfg.emitInterface()) {
-          // Generate an emitter that will emit just the interface to the function
-          JavaMethodBindingEmitter entryPointInterface =
-            new JavaMethodBindingEmitter(binding, javaWriter(), cfg.runtimeExceptionType());
-          entryPointInterface.addModifier(JavaMethodBindingEmitter.PUBLIC);
-          entryPointInterface.setReturnedArrayLengthExpression(cfg.returnedArrayLength(binding.getName()));
-          allEmitters.add(entryPointInterface);           
+          generatePublicEmitters(binding, allEmitters, true);
         }
-
         if (cfg.emitImpl()) {
-          // If the user has stated that the function will be
-          // manually implemented, then don't auto-generate a function body.
-          if (!cfg.manuallyImplement(sym.getName()) && !isUnimplemented) {
-            // need to check if should create CMethodBindingImplEmitter instead of just 
-            // CMethodBindingEmitter.  Basically adds a "0" to JNI method name
-            boolean arrayImplMethod = false;
-
-            if (bindingNeedsBody(binding)) {
-              // Generate the method which calls the underlying C function
-              // after unboxing has occurred
-              PrintWriter output = cfg.allStatic() ? javaWriter() : javaImplWriter();
-              if(binding.signatureUsesPrimitiveArrays()) {
-                      arrayImplMethod = true;
-              }
-              JavaMethodBindingEmitter wrappedEntryPoint =
-                new JavaMethodBindingEmitter(specialBinding, output, cfg.runtimeExceptionType(), true, 
-                                              arrayImplMethod);
-              wrappedEntryPoint.addModifier(JavaMethodBindingEmitter.PRIVATE);
-              wrappedEntryPoint.addModifier(JavaMethodBindingEmitter.STATIC); // Doesn't really matter
-              wrappedEntryPoint.addModifier(JavaMethodBindingEmitter.NATIVE);
-              allEmitters.add(wrappedEntryPoint); 
-
-              String bindingName = specialBinding.getName();
-              if(binding != specialBinding && bindingName.contains("gl") && !bindingName.contains("glX")
-                        && !bindingName.contains("wgl") && !bindingName.contains("CGL"))  {
-                   JavaMethodBindingEmitter wrappedEntryPoint2 =
-                       new JavaMethodBindingEmitter(specialBinding, output, cfg.runtimeExceptionType(), 
-                                      true, arrayImplMethod);
-                   wrappedEntryPoint2.addModifier(JavaMethodBindingEmitter.PRIVATE);
-                   wrappedEntryPoint2.addModifier(JavaMethodBindingEmitter.STATIC); // Doesn't really matter
-                   wrappedEntryPoint2.addModifier(JavaMethodBindingEmitter.NATIVE);
-
-                   entryPoint.setGenerateIndirectBufferInterface(true);
-                   wrappedEntryPoint2.setIndirectBufferInterface(true);
-                   allEmitters.add(wrappedEntryPoint2); 
-              }
-
-            }
-
-            CMethodBindingEmitter cEmitter =
-              makeCEmitter(specialBinding, 
-                           overloaded,
-                           (binding != specialBinding),
-                           arrayImplMethod,
-                           cfg.implPackageName(), cfg.implClassName(),
-                           cWriter());
-            allEmitters.add(cEmitter);
-
-            String bindingName = specialBinding.getName();
-            if(binding != specialBinding && bindingName.contains("gl")  && !bindingName.contains("glX") 
-                   && !bindingName.contains("wgl") && !bindingName.contains("CGL") ) {
-
-                CMethodBindingEmitter cEmitter2 =
-                   makeCEmitter(specialBinding, 
-                               //overloaded,
-                               true,
-                               true,
-                               arrayImplMethod,
-                               cfg.implPackageName(), cfg.implClassName(),
-                               cWriter());
-                cEmitter2.setIndirectBufferInterface(true);
-                allEmitters.add(cEmitter2);
-             }
-
-          }
+          generatePublicEmitters(binding, allEmitters, false);
+          generatePrivateEmitters(binding, allEmitters);
         }
       } // end iteration over expanded bindings
     } catch (Exception e) {
@@ -615,29 +733,49 @@ public class JavaEmitter implements GlueEmitter {
             FunctionSymbol funcSym      = new FunctionSymbol(field.getName(), funcType);
             MethodBinding  binding      = bindFunction(funcSym, containingType, containingCType);
             binding.findThisPointer(); // FIXME: need to provide option to disable this on per-function basis
-            MethodBinding  specialBinding    = binding.createNIOBufferVariant();
             writer.println();
 
-            JavaMethodBindingEmitter entryPoint = new JavaMethodBindingImplEmitter(binding, writer, cfg.runtimeExceptionType());
-            entryPoint.addModifier(JavaMethodBindingEmitter.PUBLIC);
-            if (!bindingNeedsBody(binding) && !binding.hasContainingType()) {
-              entryPoint.addModifier(JavaMethodBindingEmitter.NATIVE);
-            }
-            entryPoint.emit();
+            // Emit public Java entry point for calling this function pointer
+            JavaMethodBindingEmitter emitter =
+              new JavaMethodBindingEmitter(binding,
+                                           writer,
+                                           cfg.runtimeExceptionType(),
+                                           true,
+                                           false,
+                                           true, // FIXME: should unify this with the general emission code
+                                           false,
+                                           false, // FIXME: should unify this with the general emission code
+                                           false, // FIXME: should unify this with the general emission code
+                                           false);
+            emitter.addModifier(JavaMethodBindingEmitter.PUBLIC);
+            emitter.emit();
 
-            JavaMethodBindingEmitter wrappedEntryPoint = new JavaMethodBindingEmitter(specialBinding, writer, cfg.runtimeExceptionType(), true, false);
-            wrappedEntryPoint.addModifier(JavaMethodBindingEmitter.PRIVATE);
-            wrappedEntryPoint.addModifier(JavaMethodBindingEmitter.NATIVE);
-            wrappedEntryPoint.emit();
+            // Emit private native Java entry point for calling this function pointer
+            emitter =
+              new JavaMethodBindingEmitter(binding,
+                                           writer,
+                                           cfg.runtimeExceptionType(),
+                                           false,
+                                           true,
+                                           true, // FIXME: should unify this with the general emission code
+                                           true,
+                                           true, // FIXME: should unify this with the general emission code
+                                           false, // FIXME: should unify this with the general emission code
+                                           false);
+            emitter.addModifier(JavaMethodBindingEmitter.PRIVATE);
+            emitter.addModifier(JavaMethodBindingEmitter.NATIVE);
+            emitter.emit();
 
+            // Emit (private) C entry point for calling this function pointer
             CMethodBindingEmitter cEmitter =
-              makeCEmitter(specialBinding,
-                           false, // overloaded
-                           true, // doing NIO impl routine?
-                           false, // array impl method ?
-                           structClassPkg,
-                           containingTypeName,
-                           cWriter);
+              new CMethodBindingEmitter(binding,
+                                        cWriter,
+                                        structClassPkg,
+                                        containingTypeName,
+                                        true, // FIXME: this is optional at this point
+                                        false,
+                                        true,
+                                        false); // FIXME: should unify this with the general emission code
             cEmitter.emit();
           } catch (Exception e) {
             System.err.println("While processing field " + field + " of type " + name + ":");
@@ -725,59 +863,6 @@ public class JavaEmitter implements GlueEmitter {
   //----------------------------------------------------------------------
   // Internals only below this point
   //
-
-  protected boolean bindingNeedsBody(MethodBinding binding) {
-    // We need to perform NIO checks and conversions and array length
-    // checks
-    return binding.signatureUsesNIO() || binding.signatureUsesCArrays() || binding.signatureUsesPrimitiveArrays();
-  }
-
-  private CMethodBindingEmitter makeCEmitter(MethodBinding binding,
-                                             boolean overloaded,
-                                             boolean doingNIOImplRoutine,
-                                             boolean doingArrayImplRoutine,
-                                             String bindingJavaPackageName,
-                                             String bindingJavaClassName,
-                                             PrintWriter output) {
-    MessageFormat returnValueCapacityFormat = null;         
-    MessageFormat returnValueLengthFormat = null;         
-    JavaType javaReturnType = binding.getJavaReturnType();
-    if (javaReturnType.isNIOBuffer()) {
-      // See whether capacity has been specified
-      String capacity = cfg.returnValueCapacity(binding.getName());
-      if (capacity != null) {
-        returnValueCapacityFormat = new MessageFormat(capacity);
-      }
-    } else if (javaReturnType.isArray()) {
-      // See whether length has been specified
-      String len = cfg.returnValueLength(binding.getName());
-      if (len != null) {
-        returnValueLengthFormat = new MessageFormat(len);
-      }
-    }
-    CMethodBindingEmitter cEmitter;
-    if (doingNIOImplRoutine || doingArrayImplRoutine) {
-      cEmitter = new CMethodBindingImplEmitter(binding, overloaded,
-                                               doingArrayImplRoutine,
-                                               bindingJavaPackageName,
-                                               bindingJavaClassName,
-                                               cfg.allStatic(), output);
-    } else {
-      cEmitter = new CMethodBindingEmitter(binding, overloaded,
-                                           bindingJavaPackageName,
-                                           bindingJavaClassName,
-                                           cfg.allStatic(), output);
-    }
-    if (returnValueCapacityFormat != null) {
-      cEmitter.setReturnValueCapacityExpression(returnValueCapacityFormat);
-    }
-    if (returnValueLengthFormat != null) {
-      cEmitter.setReturnValueLengthExpression(returnValueLengthFormat);
-    }
-    cEmitter.setTemporaryCVariableDeclarations(cfg.temporaryCVariableDeclarations(binding.getName()));
-    cEmitter.setTemporaryCVariableAssignments(cfg.temporaryCVariableAssignments(binding.getName()));
-    return cEmitter;
-  }
 
   private JavaType typeToJavaType(Type cType, boolean outgoingArgument) {
     // Recognize JNIEnv* case up front
@@ -1233,6 +1318,12 @@ public class JavaEmitter implements GlueEmitter {
     return JavaType.createForClass(c);
   }
 
+  /** Maps the C types in the specified function to Java types through
+      the MethodBinding interface. Note that the JavaTypes in the
+      returned MethodBinding are "intermediate" JavaTypes (some
+      potentially representing C pointers rather than true Java types)
+      and must be lowered to concrete Java types before creating
+      emitters for them. */
   private MethodBinding bindFunction(FunctionSymbol sym,
                                      JavaType containingType,
                                      Type containingCType) {
@@ -1292,207 +1383,119 @@ public class JavaEmitter implements GlueEmitter {
     return binding;
   }
   
+
+  private MethodBinding lowerMethodBindingPointerTypes(MethodBinding inputBinding,
+                                                       boolean convertToArrays,
+                                                       boolean[] canProduceArrayVariant) {
+    MethodBinding result = inputBinding;
+    boolean arrayPossible = false;
+    
+    for (int i = 0; i < inputBinding.getNumArguments(); i++) {
+      JavaType t = inputBinding.getJavaArgumentType(i);
+      if (t.isCPrimitivePointerType()) {
+        if (t.isCVoidPointerType()) {
+          // These are always bound to java.nio.Buffer
+          result = result.replaceJavaArgumentType(i, JavaType.forNIOBufferClass());
+        } else if (t.isCCharPointerType()) {
+          arrayPossible = true;
+          if (convertToArrays) {
+            result = result.replaceJavaArgumentType(i, javaType(ArrayTypes.byteArrayClass));
+          } else {
+            result = result.replaceJavaArgumentType(i, JavaType.forNIOByteBufferClass());
+          }
+        } else if (t.isCShortPointerType()) {
+          arrayPossible = true;
+          if (convertToArrays) {
+            result = result.replaceJavaArgumentType(i, javaType(ArrayTypes.shortArrayClass));
+          } else {
+            result = result.replaceJavaArgumentType(i, JavaType.forNIOShortBufferClass());
+          }
+        } else if (t.isCInt32PointerType()) {
+          arrayPossible = true;
+          if (convertToArrays) {
+            result = result.replaceJavaArgumentType(i, javaType(ArrayTypes.intArrayClass));
+          } else {
+            result = result.replaceJavaArgumentType(i, JavaType.forNIOIntBufferClass());
+          }
+        } else if (t.isCInt64PointerType()) {
+          arrayPossible = true;
+          if (convertToArrays) {
+            result = result.replaceJavaArgumentType(i, javaType(ArrayTypes.longArrayClass));
+          } else {
+            result = result.replaceJavaArgumentType(i, JavaType.forNIOLongBufferClass());
+          }
+        } else if (t.isCFloatPointerType()) {
+          arrayPossible = true;
+          if (convertToArrays) {
+            result = result.replaceJavaArgumentType(i, javaType(ArrayTypes.floatArrayClass));
+          } else {
+            result = result.replaceJavaArgumentType(i, JavaType.forNIOFloatBufferClass());
+          }
+        } else if (t.isCDoublePointerType()) {
+          arrayPossible = true;
+          if (convertToArrays) {
+            result = result.replaceJavaArgumentType(i, javaType(ArrayTypes.doubleArrayClass));
+          } else {
+            result = result.replaceJavaArgumentType(i, JavaType.forNIODoubleBufferClass());
+          }
+        } else {
+          throw new RuntimeException("Unknown C pointer type " + t);
+        }
+      }
+    }
+
+    // Always return primitive pointer types as NIO buffers
+    JavaType t = result.getJavaReturnType();
+    if (t.isCPrimitivePointerType()) {
+      if (t.isCVoidPointerType()) {
+        result = result.replaceJavaArgumentType(-1, JavaType.forNIOByteBufferClass());
+      } else if (t.isCCharPointerType()) {
+        result = result.replaceJavaArgumentType(-1, JavaType.forNIOByteBufferClass());
+      } else if (t.isCShortPointerType()) {
+        result = result.replaceJavaArgumentType(-1, JavaType.forNIOShortBufferClass());
+      } else if (t.isCInt32PointerType()) {
+        result = result.replaceJavaArgumentType(-1, JavaType.forNIOIntBufferClass());
+      } else if (t.isCInt64PointerType()) {
+        result = result.replaceJavaArgumentType(-1, JavaType.forNIOLongBufferClass());
+      } else if (t.isCFloatPointerType()) {
+        result = result.replaceJavaArgumentType(-1, JavaType.forNIOFloatBufferClass());
+      } else if (t.isCDoublePointerType()) {
+        result = result.replaceJavaArgumentType(-1, JavaType.forNIODoubleBufferClass());
+      } else {
+        throw new RuntimeException("Unknown C pointer type " + t);
+      }
+    }
+
+    if (canProduceArrayVariant != null) {
+      canProduceArrayVariant[0] = arrayPossible;
+    }
+
+    return result;
+  }
+
   // Expands a MethodBinding containing C primitive pointer types into
   // multiple variants taking Java primitive arrays and NIO buffers, subject
   // to the per-function "NIO only" rule in the configuration file
   private List/*<MethodBinding>*/ expandMethodBinding(MethodBinding binding) {
     List result = new ArrayList();
-    result.add(binding);
-    int i = 0;
-    while (i < result.size()) {
-      MethodBinding mb = (MethodBinding) result.get(i);
-      boolean shouldRemoveCurrent = false;
-      for (int j = 0; j < mb.getNumArguments(); j++) {
-        JavaType t = mb.getJavaArgumentType(j);
-        if (t.isCPrimitivePointerType()) {
-          // Remove original from list
-          shouldRemoveCurrent = true;
-          MethodBinding variant = null;
+    // Indicates whether it is possible to produce an array variant
+    // Prevents e.g. char* -> String conversions from emitting two entry points
+    boolean[] canProduceArrayVariant = new boolean[1];
 
-          // Non-NIO variants for non-void C primitive pointer types 
-          if (!cfg.nioDirectOnly(mb.getCSymbol().getName()) && !t.isCVoidPointerType() 
-                             && !cfg.isPrimArrayExpModeNoPtrs()) {
-            if (t.isCCharPointerType()) {
-              variant = mb.createCPrimitivePointerVariant(j, javaType(ArrayTypes.byteArrayClass));
-              if (! result.contains(variant)) result.add(variant);
-            }
-            if (t.isCShortPointerType()) {
-              variant = mb.createCPrimitivePointerVariant(j, javaType(ArrayTypes.shortArrayClass));
-              if (! result.contains(variant)) result.add(variant);
-            }
-            if (t.isCInt32PointerType()) {
-              variant = mb.createCPrimitivePointerVariant(j, javaType(ArrayTypes.intArrayClass));
-              if (! result.contains(variant)) result.add(variant);
-            }
-            if (t.isCInt64PointerType()) {
-              variant = mb.createCPrimitivePointerVariant(j, javaType(ArrayTypes.longArrayClass));
-              if (! result.contains(variant)) result.add(variant);
-            }
-            if (t.isCFloatPointerType()) {
-              variant = mb.createCPrimitivePointerVariant(j, javaType(ArrayTypes.floatArrayClass));
-              if (! result.contains(variant)) result.add(variant);
-            }
-            if (t.isCDoublePointerType()) {
-              variant = mb.createCPrimitivePointerVariant(j, javaType(ArrayTypes.doubleArrayClass));
-              if (! result.contains(variant)) result.add(variant);
-            }
-          }
+    if (binding.signatureUsesCPrimitivePointers() ||
+        binding.signatureUsesCVoidPointers() ||
+        binding.signatureUsesCArrays()) {
+      result.add(lowerMethodBindingPointerTypes(binding, false, canProduceArrayVariant));
 
-
-          // Non-NIO variants for void* C primitive pointer type
-          if (!cfg.nioDirectOnly(mb.getCSymbol().getName()) && t.isCVoidPointerType()  
-                            && cfg.isPrimArrayExpModeAllPtrs()) {
-            if (cfg.voidPointerExpansionToBoolean()) {
-              variant = mb.createCPrimitivePointerVariant(j, javaType(ArrayTypes.booleanArrayClass));
-              if (! result.contains(variant)) result.add(variant);
-            }
-            if (cfg.voidPointerExpansionToChar()) {
-              variant = mb.createCPrimitivePointerVariant(j, javaType(ArrayTypes.charArrayClass));
-              if (! result.contains(variant)) result.add(variant);
-            }
-            if (cfg.voidPointerExpansionToByte()) {
-              variant = mb.createCPrimitivePointerVariant(j, javaType(ArrayTypes.byteArrayClass));
-              if (! result.contains(variant)) result.add(variant);
-            }
-            if (cfg.voidPointerExpansionToShort()) {
-              variant = mb.createCPrimitivePointerVariant(j, javaType(ArrayTypes.shortArrayClass));
-              if (! result.contains(variant)) result.add(variant);
-            }
-            if (cfg.voidPointerExpansionToInt()) {
-              variant = mb.createCPrimitivePointerVariant(j, javaType(ArrayTypes.intArrayClass));
-              if (! result.contains(variant)) result.add(variant);
-            }
-            if (cfg.voidPointerExpansionToLong()) {
-              variant = mb.createCPrimitivePointerVariant(j, javaType(ArrayTypes.longArrayClass));
-              if (! result.contains(variant)) result.add(variant);
-            }
-            if (cfg.voidPointerExpansionToFloat()) {
-              variant = mb.createCPrimitivePointerVariant(j, javaType(ArrayTypes.floatArrayClass));
-              if (! result.contains(variant)) result.add(variant);
-            }
-            if (cfg.voidPointerExpansionToDouble()) {
-              variant = mb.createCPrimitivePointerVariant(j, javaType(ArrayTypes.doubleArrayClass));
-              if (! result.contains(variant)) result.add(variant);
-            }
-          }
-
-
-          // NIO variant for void* C primitive pointer type
-          if (!cfg.noNio(mb.getCSymbol().getName())) {
-            if (t.isCVoidPointerType()) {
-              variant = mb.createCPrimitivePointerVariant(j, JavaType.forNIOBufferClass());
-              if (! result.contains(variant)) result.add(variant);
-            }
-          }
-
-
-          // NIO variants for non-void* C primitive pointer types
-          if ((cfg.nioMode() == JavaConfiguration.NIO_MODE_ALL_POINTERS && 
-                                    !cfg.noNio(mb.getCSymbol().getName())) ||
-              (cfg.nioMode() == JavaConfiguration.NIO_MODE_VOID_ONLY    && 
-                                    cfg.forcedNio(mb.getCSymbol().getName()))) {
-            if (t.isCCharPointerType()) {
-              variant = mb.createCPrimitivePointerVariant(j, JavaType.forNIOByteBufferClass());
-              if (! result.contains(variant)) result.add(variant);
-            }
-
-            if (t.isCShortPointerType()) {
-              variant = mb.createCPrimitivePointerVariant(j, JavaType.forNIOShortBufferClass());
-              if (! result.contains(variant)) result.add(variant);
-            }
-
-            if (t.isCInt32PointerType()) {
-              variant = mb.createCPrimitivePointerVariant(j, JavaType.forNIOIntBufferClass());
-              if (! result.contains(variant)) result.add(variant);
-            }
-
-            if (t.isCInt64PointerType()) {
-              variant = mb.createCPrimitivePointerVariant(j, JavaType.forNIOLongBufferClass());
-              if (! result.contains(variant)) result.add(variant);
-            }
-
-            if (t.isCFloatPointerType()) {
-              variant = mb.createCPrimitivePointerVariant(j, JavaType.forNIOFloatBufferClass());
-              if (! result.contains(variant)) result.add(variant);
-            }
-
-            if (t.isCDoublePointerType()) {
-              variant = mb.createCPrimitivePointerVariant(j, JavaType.forNIODoubleBufferClass());
-              if (! result.contains(variant)) result.add(variant);
-            }
-          }
-        }
+      // FIXME: should add new configuration flag for this
+      if (canProduceArrayVariant[0] &&
+          (binding.signatureUsesCPrimitivePointers() ||
+           binding.signatureUsesCArrays()) &&
+          !cfg.nioDirectOnly(binding.getName())) {
+        result.add(lowerMethodBindingPointerTypes(binding, true, null));
       }
-
-      if (mb.getJavaReturnType().isCPrimitivePointerType()) {
-        MethodBinding variant = null;
-        if (mb.getJavaReturnType().isCVoidPointerType()) {
-          variant = mb.createCPrimitivePointerVariant(-1, JavaType.forNIOByteBufferClass());
-          if (! result.contains(variant)) result.add(variant); 
-        } else if (mb.getJavaReturnType().isCCharPointerType()) {
-          variant = mb.createCPrimitivePointerVariant(-1, javaType(ArrayTypes.byteArrayClass));
-          if (! result.contains(variant)) result.add(variant); 
-        } else if (mb.getJavaReturnType().isCShortPointerType()) {
-          variant = mb.createCPrimitivePointerVariant(-1, javaType(ArrayTypes.shortArrayClass));
-          if (! result.contains(variant)) result.add(variant); 
-        } else if (mb.getJavaReturnType().isCInt32PointerType()) {
-          variant = mb.createCPrimitivePointerVariant(-1, javaType(ArrayTypes.intArrayClass));
-          if (! result.contains(variant)) result.add(variant); 
-        } else if (mb.getJavaReturnType().isCInt64PointerType()) {
-          variant = mb.createCPrimitivePointerVariant(-1, javaType(ArrayTypes.longArrayClass));
-          if (! result.contains(variant)) result.add(variant); 
-        } else if (mb.getJavaReturnType().isCFloatPointerType()) {
-          variant = mb.createCPrimitivePointerVariant(-1, javaType(ArrayTypes.floatArrayClass));
-          if (! result.contains(variant)) result.add(variant); 
-        } else if (mb.getJavaReturnType().isCDoublePointerType()) {
-          variant = mb.createCPrimitivePointerVariant(-1, javaType(ArrayTypes.doubleArrayClass));
-          if (! result.contains(variant)) result.add(variant); 
-        }
-        shouldRemoveCurrent = true;
-      }
-      if (shouldRemoveCurrent) {
-        result.remove(i);
-        --i;
-      }
-      ++i;
-    }
-
-    // Honor the flattenNIOVariants directive in the configuration file
-    // FlattenNIOVariants <boolean>
-    // true: If there are multiple arguments in a method signature that map
-    //       to NIO buffer, do not pair an NIO buffer argument with a primitive
-    //       array argument
-    // false: Allow cross-pairing of nio and primitive array arguments in a
-    //       single method signature.
-    if (cfg.flattenNIOVariants()) {
-      i = 0;
-      while (i < result.size()) {
-        boolean shouldRemoveCurrent = false;
-        MethodBinding mb = (MethodBinding) result.get(i);
-        for (int j = 0; j < binding.getNumArguments() && !shouldRemoveCurrent; j++) {
-          JavaType t1 = binding.getJavaArgumentType(j);
-          if (t1.isCPrimitivePointerType() && !t1.isCVoidPointerType()) {
-            for (int k = j + 1; k < binding.getNumArguments() && !shouldRemoveCurrent; k++) {
-              JavaType t2 = binding.getJavaArgumentType(k);
-              if (t2.isCPrimitivePointerType() && !t2.isCVoidPointerType()) {
-                // The "NIO-ness" of the converted arguments in the
-                // new binding must match
-                JavaType nt1 = mb.getJavaArgumentType(j);
-                JavaType nt2 = mb.getJavaArgumentType(k);
-                if (nt1.isNIOBuffer() != nt2.isNIOBuffer()) {
-                  shouldRemoveCurrent = true;
-                }
-              }
-            }
-          }
-        }
-        if (shouldRemoveCurrent) {
-          result.remove(i);
-          --i;
-        }
-
-        ++i;
-      }
+    } else {
+      result.add(binding);
     }
 
     return result;

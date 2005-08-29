@@ -67,6 +67,7 @@ public class Animator {
   private volatile boolean shouldStop;
   protected boolean ignoreExceptions;
   protected boolean printExceptions;
+  private boolean runAsFastAsPossible;
 
   // For efficient rendering of Swing components, in particular when
   // they overlap one another
@@ -117,6 +118,14 @@ public class Animator {
       false. */
   public void setPrintExceptions(boolean printExceptions) {
     this.printExceptions = printExceptions;
+  }
+
+  /** Sets a flag in this Animator indicating that it is to run as
+      fast as possible. By default there is a brief pause in the
+      animation loop which prevents the CPU from getting swamped.
+      This method may not have an effect on subclasses. */
+  public final void setRunAsFastAsPossible(boolean runFast) {
+    runAsFastAsPossible = runFast;
   }
 
   /** Called every frame to cause redrawing of all of the
@@ -174,10 +183,12 @@ public class Animator {
             }
           }
           display();
-          // Avoid swamping the CPU
-          try {
-            Thread.sleep(1);
-          } catch (InterruptedException e) {
+          if (!runAsFastAsPossible) {
+            // Avoid swamping the CPU
+            try {
+              Thread.sleep(1);
+              } catch (InterruptedException e) {
+              }
           }
         }
       } finally {

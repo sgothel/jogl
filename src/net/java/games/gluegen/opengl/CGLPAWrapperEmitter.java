@@ -44,37 +44,29 @@ import java.util.*;
 import net.java.games.gluegen.*;
 import net.java.games.gluegen.cgram.types.*;
 
-public class CGLPAWrapperEmitter extends CMethodBindingEmitter
-{
+public class CGLPAWrapperEmitter extends CMethodBindingEmitter {
   private static final CommentEmitter defaultCommentEmitter =
     new CGLPAWrapperCommentEmitter();
 
-  private CMethodBindingEmitter emitterBeingWrapped;
   private String glFuncPtrTypedefValue;
   private static String procAddressJavaTypeName =
     JavaType.createForClass(Long.TYPE).jniTypeName();
 
-  protected boolean arrayImplRoutine = false;
-
-  public CGLPAWrapperEmitter(CMethodBindingEmitter methodToWrap)
-  {  
+  public CGLPAWrapperEmitter(CMethodBindingEmitter methodToWrap) {  
     super(
       new MethodBinding(methodToWrap.getBinding()) {
         public String getName() {
           return GLEmitter.WRAP_PREFIX + super.getName();
         }
       },
-      methodToWrap.getIsOverloadedBinding(),
+      methodToWrap.getDefaultOutput(),
       methodToWrap.getJavaPackageName(),
       methodToWrap.getJavaClassName(),
+      methodToWrap.getIsOverloadedBinding(),
       methodToWrap.getIsJavaMethodStatic(),
-      methodToWrap.getDefaultOutput()
-      );
-
-//    if(binding.signatureUsesPrimitiveArrays())
-//          arrayImplRoutine = true;
-
-     indirectBufferInterface = methodToWrap.isIndirectBufferInterface();
+      true,
+      methodToWrap.forIndirectBufferAndArrayImplementation()
+    );
 
     if (methodToWrap.getReturnValueCapacityExpression() != null) {
       setReturnValueCapacityExpression(methodToWrap.getReturnValueCapacityExpression());
@@ -88,8 +80,7 @@ public class CGLPAWrapperEmitter extends CMethodBindingEmitter
     setCommentEmitter(defaultCommentEmitter);
   }
   
-  protected int emitArguments(PrintWriter writer)
-  {
+  protected int emitArguments(PrintWriter writer) {
     int numEmitted = super.emitArguments(writer);
     if (numEmitted > 0)
     {
@@ -103,8 +94,7 @@ public class CGLPAWrapperEmitter extends CMethodBindingEmitter
     return numEmitted;
   }
 
-  protected void emitBodyVariableDeclarations(PrintWriter writer)
-  {
+  protected void emitBodyVariableDeclarations(PrintWriter writer) {
     // create variable for the function pointer with the right type, and set
     // it to the value of the passed-in glProcAddress 
     FunctionSymbol cSym = getBinding().getCSymbol();
@@ -121,8 +111,7 @@ public class CGLPAWrapperEmitter extends CMethodBindingEmitter
   }
 
   protected void emitBodyVariablePreCallSetup(PrintWriter writer,
-                                              boolean emittingPrimitiveArrayCritical)
-  {
+                                              boolean emittingPrimitiveArrayCritical) {
     super.emitBodyVariablePreCallSetup(writer, emittingPrimitiveArrayCritical);
 
     if (!emittingPrimitiveArrayCritical) {
@@ -143,23 +132,17 @@ public class CGLPAWrapperEmitter extends CMethodBindingEmitter
     }
   }
 
-  // FIXME: refactor this and the superclass version so we don't have to copy
-  // the whole function
-  protected void emitBodyCallCFunction(PrintWriter writer)
-  {
+  protected void emitBodyCallCFunction(PrintWriter writer) {
     // Make the call to the actual C function
     writer.print("  ");
 
     // WARNING: this code assumes that the return type has already been
     // typedef-resolved.
-    Type cReturnType = getBinding().getCReturnType();
+    Type cReturnType = binding.getCReturnType();
 
     if (!cReturnType.isVoid()) {
       writer.print("_res = ");
     }
-
-    // !!!!!!!!! BEGIN CHANGES FROM SUPERCLASS METHOD
-
     MethodBinding binding = getBinding();
     if (binding.hasContainingType()) {
       // Cannot call GL func through function pointer
@@ -171,106 +154,16 @@ public class CGLPAWrapperEmitter extends CMethodBindingEmitter
     writer.print("(* ptr_");
     writer.print(binding.getCSymbol().getName());
     writer.print(") ");
-    
-    // !!!!!!!!! END CHANGES FROM SUPERCLASS METHOD 
-  
-    
     writer.print("(");
-    for (int i = 0; i < binding.getNumArguments(); i++) {
-      if (i != 0) {
-        writer.print(", ");
-      }
-      JavaType javaType = binding.getJavaArgumentType(i);
-      // Handle case where only param is void.
-      if (javaType.isVoid()) {
-        // Make sure this is the only param to the method; if it isn't,
-        // there's something wrong with our parsing of the headers.
-        assert(binding.getNumArguments() == 1);
-        continue;
-      } 
-
-      if (javaType.isJNIEnv()) {
-        writer.print("env");
-      } else if (binding.isArgumentThisPointer(i)) {
-        writer.print(CMethodBindingEmitter.cThisArgumentName());
-      } else {
-        writer.print("(");
-        writer.print(binding.getCSymbol().getArgumentType(i).getName());
-        writer.print(") ");
-        if (binding.getCArgumentType(i).isPointer() && binding.getJavaArgumentType(i).isPrimitive()) {
-          writer.print("(intptr_t) ");
-        }
-        if (javaType.isArray() || javaType.isNIOBuffer()) {
-
-            Type cArgType = binding.getCSymbol().getArgumentType(i); 
-            boolean containsVoid = false;
-            // Add special code for accounting for array offsets
-            //
-            // For mapping from byte primitive array type to type* case produces code:
-            //    (GLtype*)((char*)_ptr0 + varName_offset)
-            // where varName_offset is the number of bytes offset as calculated in Java code
-
-            if(javaType.isArray() && !javaType.isNIOBufferArray() && !javaType.isStringArray()) {
-                    writer.print("( (char*)");
-            }
-            /* End of special code section for accounting for array offsets */
-
-           writer.print(pointerConversionArgumentName(i));
-           if (javaArgTypeNeedsDataCopy(javaType)) {
-              writer.print("_copy");
-           }
-
-            /* Add special code for accounting for array offsets */
-            if(javaType.isArray() && !javaType.isNIOBufferArray() && !javaType.isStringArray()) {
-                      writer.print(" + " + binding.getArgumentName(i) + "_offset)");
-            }
-            /* End of special code section for accounting for array offsets */
-
-        } else {
-          if (javaType.isString()) { writer.print("_UTF8"); }
-          writer.print(binding.getArgumentName(i));          
-        }
-      }
-    }
+    emitBodyPassCArguments(writer);
     writer.println(");");
   }
 
   protected String jniMangle(MethodBinding binding) {
-    StringBuffer buf = new StringBuffer();
-    buf.append(jniMangle(binding.getName()));
-
-    if( isIndirectBufferInterface() )
-        buf.append("2");
-    else if(binding.signatureUsesPrimitiveArrays())
-        buf.append("1");
-
-    buf.append("__");
-    for (int i = 0; i < binding.getNumArguments(); i++) {
-      JavaType type = binding.getJavaArgumentType(i);
-      Class c = type.getJavaClass();
-      if (c != null) {
-        jniMangle(c, buf);
-         // If Buffer offset arguments were added, we need to mangle the JNI for the
-         // extra arguments
-         if(type.isNIOBuffer()) {
-                 jniMangle(Integer.TYPE, buf);
-         } else if (type.isNIOBufferArray())   {
-                       int[] intArrayType = new int[0];
-                       c = intArrayType.getClass();
-                       jniMangle(c , buf);
-         }
-         if(type.isArray() && !type.isNIOBufferArray() && !type.isStringArray())  {
-                 jniMangle(Integer.TYPE, buf);
-         }
-      } else {
-        // FIXME: add support for char* -> String conversion
-        throw new RuntimeException("Unknown kind of JavaType: name="+type.getName());
-      }
-    }
-
-    jniMangle(Long.TYPE, buf);  // to account for the additional _addr_ parameter
+    StringBuffer buf = new StringBuffer(super.jniMangle(binding));
+    jniMangle(Long.TYPE, buf, false);  // to account for the additional _addr_ parameter
     return buf.toString();
-  }
+  }    
 
   /** This class emits the comment for the wrapper method */
   private static class CGLPAWrapperCommentEmitter extends CMethodBindingEmitter.DefaultCommentEmitter {

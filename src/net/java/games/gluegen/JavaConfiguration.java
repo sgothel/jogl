@@ -50,28 +50,6 @@ import net.java.games.gluegen.cgram.types.*;
 
 public class JavaConfiguration {
 
-  /* possible PrimitiveArrayExpansionMode states */
-  private int ALL_POINTERS = 1;
-  private int NON_VOID_ONLY = 2;
-  private int NO_POINTERS = 3;
-
-  /* Default primitive array expansion mode is ALL_POINTERS, meaning all C 
-     pointers, including void pointers, will have Java primitive array 
-     expansions */
-  private int primitiveArrayExpansionMode = ALL_POINTERS;  
-
-  /* Determines which primitive array types void * C signatures are 
-     expanded into (assuming PrimitiveArrayExpansionMode = ALL_POINTERS). */
-  private boolean voidPointerExpansionToBoolean = true;
-  private boolean voidPointerExpansionToChar = true;
-  private boolean voidPointerExpansionToByte = true;
-  private boolean voidPointerExpansionToShort = true;
-  private boolean voidPointerExpansionToInt = true;
-  private boolean voidPointerExpansionToLong = true;
-  private boolean voidPointerExpansionToFloat = true;
-  private boolean voidPointerExpansionToDouble = true;
-
-
   private int nestedReads;
   private String packageName;
   private String implPackageName;
@@ -120,21 +98,12 @@ public class JavaConfiguration {
   private Set/*<Pattern>*/ ignoreNots = new HashSet();
   private Set/*<Pattern>*/ unimplemented = new HashSet();
   private Set/*<String>*/ nioDirectOnly = new HashSet();
-  /** See {@link #nioMode} */
-  public static final int NIO_MODE_VOID_ONLY = 1;
-  /** See {@link #nioMode} */
-  public static final int NIO_MODE_ALL_POINTERS = 2;
-  private int nioMode = NIO_MODE_VOID_ONLY;
-  private Set/*<String>*/ noNio = new HashSet();
-  private Set/*<String>*/ forcedNio = new HashSet();
-  private boolean flattenNIOVariants = true;
   private Set/*<String>*/ manuallyImplement = new HashSet();
   private Map/*<String,List<String>>*/ customJavaCode = new HashMap();
   private Map/*<String,List<String>>*/ classJavadoc = new HashMap();
   private Map/*<String,String>*/ structPackages = new HashMap();
   private List/*<String>*/ customCCode = new ArrayList();
   private List/*<String>*/ forcedStructs = new ArrayList();
-  private Map/*<String,List<Integer>>*/ mirroredArgs = new HashMap(); 
   private Map/*<String, String>*/ returnValueCapacities = new HashMap(); 
   private Map/*<String, String>*/ returnValueLengths = new HashMap(); 
   private Map/*<String, List<String>>*/ temporaryCVariableDeclarations = new HashMap();
@@ -253,30 +222,6 @@ public class JavaConfiguration {
   /** Returns the list of imports that should be emitted at the top of each .java file. */
   public List/*<String>*/ imports()                  { return imports; }
 
-
-  /* Return Primitive Array Expansion Mode state */
-  public boolean isPrimArrayExpModeAllPtrs() {
-       return (primitiveArrayExpansionMode == ALL_POINTERS);
-  }
-  public boolean isPrimArrayExpModeNonVoidPtrs() {
-       return (primitiveArrayExpansionMode == NON_VOID_ONLY);
-  }
-  public boolean isPrimArrayExpModeNoPtrs() {
-       return (primitiveArrayExpansionMode == NO_POINTERS);
-  }
-
-
-  /** Returns VoidPointerExpansion values */
-  public boolean voidPointerExpansionToBoolean() { return voidPointerExpansionToBoolean; }
-  public boolean voidPointerExpansionToChar() { return voidPointerExpansionToChar; }
-  public boolean voidPointerExpansionToByte() { return voidPointerExpansionToByte; }
-  public boolean voidPointerExpansionToShort() { return voidPointerExpansionToShort; }
-  public boolean voidPointerExpansionToInt() { return voidPointerExpansionToInt; }
-  public boolean voidPointerExpansionToLong() { return voidPointerExpansionToLong; }
-  public boolean voidPointerExpansionToFloat() { return voidPointerExpansionToFloat; }
-  public boolean voidPointerExpansionToDouble() { return voidPointerExpansionToDouble; }
-
-
   /** If this type should be considered opaque, returns the TypeInfo
       describing the replacement type. Returns null if this type
       should not be considered opaque. */
@@ -367,40 +312,6 @@ public class JavaConfiguration {
     return nioDirectOnly.contains(functionName);
   }
 
-  /** Returns true if the user requested that the given function
-      should only create array variants, and no java.nio variant, for
-      <code>void*</code> and other C primitive pointers, overriding
-      the NIO mode default. */
-  public boolean noNio(String functionName) {
-    return noNio.contains(functionName);
-  }
-
-  /** Returns true if the user requested that the given function
-      should create a java.nio variant for the given function's
-      <code>void*</code> and other C primitive pointers, overriding
-      the NIO mode default. */
-  public boolean forcedNio(String functionName) {
-    return forcedNio.contains(functionName);
-  }
-
-  /** Returns the default NIO generation mode for C primitive pointer
-      arguments. NIO_MODE_VOID_ONLY is the default and specifies
-      that only void* arguments will have java.nio variants generated
-      for them. NIO_MODE_ALL_POINTERS specifies that all C
-      primitive arguments will have java.nio variants generated. */
-  public int nioMode() {
-    return nioMode;
-  }
-
-  /** Returns true if, for the plethora of java.nio variants generated
-      for primitive C pointer types, the emitter should flatten the
-      output down to two variants: one taking only Java primitive
-      arrays as arguments, and one taking only java.nio.Buffers as
-      arguments. */
-  public boolean flattenNIOVariants() {
-    return flattenNIOVariants;
-  }
-
   /** Returns true if the glue code for the given function will be
       manually implemented by the end user. */
   public boolean manuallyImplement(String functionName) {
@@ -454,14 +365,6 @@ public class JavaConfiguration {
       emission should be forced. */
   public List/*<String>*/ forcedStructs() {
     return forcedStructs;
-  }
-
-  /** Returns a List of Integers indicating the indices of arguments
-      in this function that should be expanded to the same type when
-      binding functions with multiple void* arguments. Returns null if
-      no such indices were specified. */
-  public List/*<Integer>*/ mirroredArgs(String functionName) {
-    return (List) mirroredArgs.get(functionName);
   }
 
   /** Returns a MessageFormat string of the C expression calculating
@@ -676,22 +579,8 @@ public class JavaConfiguration {
       // because readClassJavadoc changes them.
     } else if (cmd.equalsIgnoreCase("NioDirectOnly")) {
       nioDirectOnly.add(readString("NioDirectOnly", tok, filename, lineNo));
-    } else if (cmd.equalsIgnoreCase("NoNio")) {
-      noNio.add(readString("NoNio", tok, filename, lineNo));
-    } else if (cmd.equalsIgnoreCase("ForcedNio")) {
-      forcedNio.add(readString("ForcedNio", tok, filename, lineNo));
-    } else if (cmd.equalsIgnoreCase("NioMode")) {
-      readNioMode(tok, filename, lineNo);
-    } else if (cmd.equalsIgnoreCase("FlattenNIOVariants")) {
-      flattenNIOVariants = readBoolean("FlattenNIOVariants", tok, filename, lineNo).booleanValue();
-    } else if (cmd.equalsIgnoreCase("PrimitiveArrayExpansionMode")) {
-      readPrimitiveExpMode(tok, filename, lineNo);
-    } else if (cmd.equalsIgnoreCase("VoidPointerExpansion")) {
-      readVoidPointerExpansionSet(tok, filename, lineNo);
     } else if (cmd.equalsIgnoreCase("EmitStruct")) {
       forcedStructs.add(readString("EmitStruct", tok, filename, lineNo));
-    } else if (cmd.equalsIgnoreCase("MirrorExpandedBindingArgs")) {
-      readMirrorExpandedBindingArgs(tok, filename, lineNo);
     } else if (cmd.equalsIgnoreCase("StructPackage")) {
       readStructPackage(tok, filename, lineNo);
     } else if (cmd.equalsIgnoreCase("TemporaryCVariableDeclaration")) {
@@ -897,226 +786,6 @@ public class JavaConfiguration {
   protected void addClassJavadoc(String className, String code) {
     List codeList = javadocForClass(className);
     codeList.add(code);
-  }
-
-  /**
-   * Sets the default NIO generation mode for C primitive
-   * pointers. Options are VOID_ONLY or ALL_POINTERS. When the mode is
-   * set to VOID_ONLY, java.nio variants of methods are only generated
-   * for C primitive pointers of type <code>void*</code>. All other
-   * pointers are translated by default into Java primitive arrays.
-   * When the mode is set to ALL_POINTERS, C primitive pointers of
-   * other types (i.e., <code>int*</code>) will have java.nio variants
-   * generated for them (i.e., <code>IntBuffer</code> as opposed to
-   * merely <code>int[]</code>). This default mode can be overridden
-   * with the NioDirectOnly and NoNio directives. The default for this mode
-   * is currently VOID_ONLY.
-   */
-  protected void readNioMode(StringTokenizer tok, String filename, int lineNo) {
-    try {
-      String mode = tok.nextToken();
-      if (mode.equalsIgnoreCase("VOID_ONLY")) {
-        nioMode = NIO_MODE_VOID_ONLY;
-      } else if (mode.equalsIgnoreCase("ALL_POINTERS")) {
-        nioMode = NIO_MODE_ALL_POINTERS;
-      } else {
-        throw new RuntimeException("Error parsing \"NioMode\" command at line " + lineNo +
-                                   " in file \"" + filename + "\"; expected VOID_ONLY or ALL_POINTERS");
-      }
-    } catch (NoSuchElementException e) {
-      throw new RuntimeException(
-                                 "Error parsing \"NioMode\" command at line " + lineNo +
-                                 " in file \"" + filename + "\"", e);
-    }
-  }
-
-
- /**
-   * Sets the Primitive Array Expansion Mode.  Options are ALL_POINTERS (default),
-   * NON_VOID_ONLY, and NO_POINTERS.  ALL_POINTERS means that all Primitive array
-   * C pointers (float*, int*, void*, etc.) get expanded into non-NIO buffer
-   * targets.  The setting has no bearing on whether NIO buffer targets happen.
-   * So float * goes to float[], int* goes to int[], and void* gets expanded to 
-   * (by default) double[], float[], long[], int[], short[], byte[], char[], and
-   * boolean[].  NON_VOID_ONLY means that all Primitive array pointers except
-   * for void * get expanded, and NO_POINTERS means that no C Primitive array
-   * pointers get expanded.  
-   * For void * expansion the default is all 8 primitive types as listed above. 
-   * However, the types can be restricted by use of the VoidPointerExpansion
-   * attribute defined elsewhere in this file.
-   */
-
-  protected void readPrimitiveExpMode(StringTokenizer tok, String filename, int lineNo) {
-    try {
-      String mode = tok.nextToken();
-      if (mode.equalsIgnoreCase("ALL_POINTERS")) {
-        primitiveArrayExpansionMode = ALL_POINTERS;
-      } else if (mode.equalsIgnoreCase("NON_VOID_ONLY")) {
-        primitiveArrayExpansionMode = NON_VOID_ONLY;
-      } else if (mode.equalsIgnoreCase("NO_POINTERS")) {
-        primitiveArrayExpansionMode = NO_POINTERS;
-      } else {
-        throw new RuntimeException("Error parsing \"PrimitiveArrayExpansionMode\" command at line " + lineNo +
-                                   " in file \"" + filename 
-                                + "\"; expected NO_POINTERS, NON_VOID_ONLY or ALL_POINTERS");
-      }
-    } catch (NoSuchElementException e) {
-      throw new RuntimeException(
-                                 "Error parsing \"PrimitiveArrayExpansionMode\" command at line " + lineNo +
-                                 " in file \"" + filename + "\"", e);
-    }
-  }
-
-
-
-  /**
-   *   readVoidPointerExpansionSet:
-   *   Parses VoidPointerExpansion arguments.  Expecting subset of boolean, char, byte,
-   *   short, int, long,float, double.  Example grammar file syntax:
-   *   VoidPointerExpansion  short int float  byte double
-   *   If PrimitiveArrayExpansionMode is set to NON_VOID_ONLY or NO_POINTERS, then 
-   *   the VoidPointerExpansion attribute has no effect, since in that case void 
-   *   pointers are not expanded.
-   */
-
-  protected void readVoidPointerExpansionSet(StringTokenizer tok, String filename, int lineNo) {
-      int number_passes=0;
-      boolean finished = false;
-
-      voidPointerExpansionToBoolean = false;
-      voidPointerExpansionToChar = false;
-      voidPointerExpansionToByte = false;
-      voidPointerExpansionToShort = false;
-      voidPointerExpansionToInt = false;
-      voidPointerExpansionToLong = false;
-      voidPointerExpansionToFloat = false;
-      voidPointerExpansionToDouble = false;
-
-    while(!finished) {
-      try {
-        String mode = tok.nextToken();
-        if (mode.equalsIgnoreCase("float")) {
-          voidPointerExpansionToFloat = true;
-          number_passes++;
-        } else if (mode.equalsIgnoreCase("int")) {
-          voidPointerExpansionToInt = true;
-          number_passes++;
-        } else if (mode.equalsIgnoreCase("byte")) {
-          voidPointerExpansionToByte = true;
-          number_passes++;
-        } else if (mode.equalsIgnoreCase("short")) {
-          voidPointerExpansionToShort = true;
-          number_passes++;
-        } else if (mode.equalsIgnoreCase("boolean")) {
-          voidPointerExpansionToBoolean = true;
-          number_passes++;
-        } else if (mode.equalsIgnoreCase("char")) {
-          voidPointerExpansionToChar = true;
-          number_passes++;
-        } else if (mode.equalsIgnoreCase("long")) {
-          voidPointerExpansionToLong = true;
-          number_passes++;
-        } else if (mode.equalsIgnoreCase("double")) {
-          voidPointerExpansionToDouble = true;
-          number_passes++;
-        } else {
-          throw new RuntimeException("Error parsing \"VoidPointerExpansion\" command at line " + lineNo +
-                                     " in file \"" + filename +
-               "\"; expected some combination of boolean, char, byte, short, int, long, float, double");
-          }
-      } catch (NoSuchElementException e) {
-          if(number_passes == 0) {
-        throw new RuntimeException(
-                                 "Error parsing \"VoidPointerExpansion\" command at line " + lineNo +
-                                 " in file \"" + filename + "\"", e);
-          }
-          finished = true;
-      }
-    }
-  }
-
-
-
-  /**
-   * When void* arguments in the C function prototypes are encountered, the
-   * emitter will try to expand the binding and create Java entry points for
-   * all possible array types. If there are 2 or more void* arguments in the C
-   * prototype, this directive lets you specify which of those arguments
-   * should always be expanded to the same type. <p>
-   *
-   * For example, given the C prototype:
-   * <pre>
-   * void FuncName(void *foo, void *bar);
-   * </pre>
-   *
-   * The emitter will normally emit multiple Java entry points:
-   * <pre>
-   * public abstract void FuncName(boolean[] foo, java.nio.Buffer bar);
-   * public abstract void FuncName(boolean[] foo, boolean[] bar);
-   * public abstract void FuncName(boolean[] foo, byte[] bar);
-   * public abstract void FuncName(boolean[] foo, char[] bar);
-   * public abstract void FuncName(boolean[] foo, short[] bar);
-   * public abstract void FuncName(boolean[] foo, int[] bar);
-   * public abstract void FuncName(boolean[] foo, long[] bar);
-   * public abstract void FuncName(boolean[] foo, float[] bar);
-   * public abstract void FuncName(boolean[] foo, double[] bar);
-   * 
-   * public abstract void FuncName(byte[] foo, java.nio.Buffer bar);
-   * public abstract void FuncName(byte[] foo, boolean[] bar);
-   * public abstract void FuncName(byte[] foo, byte[] bar);
-   * <...etc for all variants on the second parameter...>
-   * 
-   * public abstract void FuncName(char[] foo, java.nio.Buffer bar);
-   * public abstract void FuncName(char[] foo, boolean[] bar);
-   * public abstract void FuncName(char[] foo, byte[] bar);
-   * <...etc for all variants on the second parameter...>
-   * <...and so on for all remaining variants on the first parameter...>
-   * </pre>
-   * 
-   * This directive lets you specify that arguments at a particular index
-   * should always be expanded to the same type. For example, the directive: 
-   * <pre>
-   * MirrorExpandedBindingArgs FuncName 0 1
-   * </pre>
-   * will force the first and second arguments in function FuncName to be
-   * expanded identically. This would result in the emission of the following
-   * entry points only:
-   * <pre>
-   * public abstract void FuncName(java.nio.Buffer[] foo, java.nio.Buffer bar);
-   * public abstract void FuncName(boolean[] foo, boolean[] bar);
-   * public abstract void FuncName(byte[] foo, byte[] bar);
-   * public abstract void FuncName(char[] foo, char[] bar);
-   * public abstract void FuncName(short[] foo, short[] bar);
-   * public abstract void FuncName(int[] foo, int[] bar);
-   * public abstract void FuncName(long[] foo, long[] bar);
-   * public abstract void FuncName(float[] foo, float[] bar);
-   * public abstract void FuncName(double[] foo, double[] bar);
-   * </pre>
-   */
-   protected void readMirrorExpandedBindingArgs(StringTokenizer tok, String filename, int lineNo) {
-     try {
-      String methodName = tok.nextToken();
-      ArrayList argIndices = new ArrayList(2);
-      while (tok.hasMoreTokens())
-      {
-        Integer idx = Integer.valueOf(tok.nextToken());
-        argIndices.add(idx);
-      }
-
-      if(argIndices.size() > 1)
-      {
-        mirroredArgs.put(methodName, argIndices);
-      }
-      else
-      {
-        throw new RuntimeException("ERROR: Error parsing \"MirrorExpandedBindingArgs\" command at line " + lineNo +
-          " in file \"" + filename + "\": directive requires at least 2 argument indices");
-      }
-    } catch (NoSuchElementException e) {
-      throw new RuntimeException(
-        "Error parsing \"MirrorExpandedBindingArgs\" command at line " + lineNo +
-        " in file \"" + filename + "\"", e);
-    }
   }
 
  /**

@@ -53,9 +53,14 @@ public class MethodBinding {
   private JavaType       javaReturnType;
   private List           javaArgumentTypes;
   private boolean        computedSignatureProperties;
+  private boolean        argumentsUseNIO;
   private boolean        signatureUsesNIO;
+  private boolean        signatureCanUseIndirectNIO;
+  private boolean        signatureUsesCompoundTypeWrappers;
+  private boolean        signatureUsesCVoidPointers;
+  private boolean        signatureUsesCPrimitivePointers;
   private boolean        signatureUsesCArrays;
-  private boolean        signatureUsesPrimitiveArrays;
+  private boolean        signatureUsesJavaPrimitiveArrays;
   private JavaType       containingType;
   private Type           containingCType;
   private int            thisPointerIndex = -1;
@@ -68,15 +73,20 @@ public class MethodBinding {
   public MethodBinding(MethodBinding bindingToCopy) {  
     this.sym = bindingToCopy.sym;
 
-    this.containingType               = bindingToCopy.containingType;
-    this.containingCType              = bindingToCopy.containingCType;
-    this.javaReturnType               = bindingToCopy.javaReturnType;
-    this.javaArgumentTypes            = (List)((ArrayList)bindingToCopy.javaArgumentTypes).clone();
-    this.computedSignatureProperties  = bindingToCopy.computedSignatureProperties;
-    this.signatureUsesNIO             = bindingToCopy.signatureUsesNIO;
-    this.signatureUsesCArrays         = bindingToCopy.signatureUsesCArrays;
-    this.signatureUsesPrimitiveArrays = bindingToCopy.signatureUsesPrimitiveArrays;
-    this.thisPointerIndex             = bindingToCopy.thisPointerIndex;
+    this.containingType                   = bindingToCopy.containingType;
+    this.containingCType                  = bindingToCopy.containingCType;
+    this.javaReturnType                   = bindingToCopy.javaReturnType;
+    this.javaArgumentTypes                = (List)((ArrayList)bindingToCopy.javaArgumentTypes).clone();
+    this.computedSignatureProperties      = bindingToCopy.computedSignatureProperties;
+    this.argumentsUseNIO                  = bindingToCopy.argumentsUseNIO;
+    this.signatureUsesNIO                 = bindingToCopy.signatureUsesNIO;
+    this.signatureCanUseIndirectNIO       = bindingToCopy.signatureCanUseIndirectNIO;
+    this.signatureUsesCompoundTypeWrappers = bindingToCopy.signatureUsesCompoundTypeWrappers;
+    this.signatureUsesCVoidPointers       = bindingToCopy.signatureUsesCVoidPointers;
+    this.signatureUsesCPrimitivePointers  = bindingToCopy.signatureUsesCPrimitivePointers;
+    this.signatureUsesCArrays             = bindingToCopy.signatureUsesCArrays;
+    this.signatureUsesJavaPrimitiveArrays = bindingToCopy.signatureUsesJavaPrimitiveArrays;
+    this.thisPointerIndex                 = bindingToCopy.thisPointerIndex;
   }
   
   /** Constructor for calling a C function. */
@@ -146,11 +156,11 @@ public class MethodBinding {
     return sym.getName();
   }
 
-  /** Replaces the C primitive pointer argument at slot <i>argumentNumber</i>
-      (0..getNumArguments() - 1) with the specified type. If
-      argumentNumber is less than 0 then replaces the return type. */
-  public MethodBinding  createCPrimitivePointerVariant(int argumentNumber,
-                                                       JavaType newArgType) {
+  /** Creates a new MethodBinding replacing the specified Java
+      argument type with a new argument type. If argumentNumber is
+      less than 0 then replaces the return type. */
+  public MethodBinding replaceJavaArgumentType(int argumentNumber,
+                                               JavaType newArgType) {
     MethodBinding binding = new MethodBinding(sym);
     if (argumentNumber < 0) {
       binding.setJavaReturnType(newArgType);
@@ -168,6 +178,16 @@ public class MethodBinding {
   }
 
   /**
+   * Returns true if any of the outgoing arguments in the method's
+   * signature require conversion or checking due to the use of New
+   * I/O.
+   */
+  public boolean argumentsUseNIO() {
+    computeSignatureProperties();
+    return argumentsUseNIO;
+  }
+
+  /**
    * Returns true if the return type or any of the outgoing arguments
    * in the method's signature require conversion or checking due to
    * the use of New I/O.
@@ -178,9 +198,55 @@ public class MethodBinding {
   }
 
   /**
-   * Returns true if any of the outgoing arguments in the method's
-   * signature represent fixed-length C arrays which require length
-   * checking during the call.
+   * Returns true if it is possible for any of the outgoing arguments
+   * to be indirect NIO buffers.
+   */
+  public boolean signatureCanUseIndirectNIO() {
+    computeSignatureProperties();
+    return signatureCanUseIndirectNIO;
+  }
+
+  /**
+   * Returns true if the return type or any of the outgoing arguments
+   * in the method's signature use "compound type wrappers", or
+   * NIO-based wrappers for C data structures.
+   */
+  public boolean signatureUsesCompoundTypeWrappers() {
+    computeSignatureProperties();
+    return signatureUsesCompoundTypeWrappers;
+  }
+
+  /**
+   * Returns true if the function needs NIO-related
+   * wrapping/unwrapping or conversion of various arguments. Currently
+   * this returns the logical OR of signatureUsesNIO() and
+   * signatureUsesCompoundTypeWrappers().
+   */
+  public boolean needsNIOWrappingOrUnwrapping() {
+    return (signatureUsesNIO() || signatureUsesCompoundTypeWrappers());
+  }
+
+  /**
+   * Returns true if the return type or any of the outgoing arguments
+   * in the method's signature represent C void* pointers.
+   */
+  public boolean signatureUsesCVoidPointers() {
+    computeSignatureProperties();
+    return signatureUsesCVoidPointers;
+  }
+
+  /**
+   * Returns true if the return type or any of the outgoing arguments
+   * in the method's signature represent C primitive pointers.
+   */
+  public boolean signatureUsesCPrimitivePointers() {
+    computeSignatureProperties();
+    return signatureUsesCPrimitivePointers;
+  }
+
+  /**
+   * Returns true if the return type or any of the outgoing arguments
+   * in the method's signature represent C arrays.
    */
   public boolean signatureUsesCArrays() {
     computeSignatureProperties();
@@ -188,13 +254,12 @@ public class MethodBinding {
   }
 
   /**
-   * Returns true if any of the outgoing arguments in the method's
-   * signature represent primitive arrays which require a
-   * GetPrimitiveArrayCritical or similar operation during the call.
+   * Returns true if the return type or any of the outgoing arguments
+   * in the method's signature represent Java primitive arrays.
    */
-  public boolean signatureUsesPrimitiveArrays() {
+  public boolean signatureUsesJavaPrimitiveArrays() {
     computeSignatureProperties();
-    return signatureUsesPrimitiveArrays;
+    return signatureUsesJavaPrimitiveArrays;
   }
 
   /**
@@ -205,66 +270,89 @@ public class MethodBinding {
     if (computedSignatureProperties)
       return;
     
+    argumentsUseNIO = false;
     signatureUsesNIO = false;
+    signatureCanUseIndirectNIO = false;
+    signatureUsesCompoundTypeWrappers = false;
+    signatureUsesCVoidPointers = false;
+    signatureUsesCPrimitivePointers = false;
     signatureUsesCArrays = false;
-    signatureUsesPrimitiveArrays = false;
+    signatureUsesJavaPrimitiveArrays = false;
 
-    if (javaReturnType.isCompoundTypeWrapper() ||
-        javaReturnType.isNIOByteBuffer() ||
+    if (javaReturnType.isCompoundTypeWrapper()) {
+      // Needs wrapping and/or setting of byte order (neither of which
+      // can be done easily from native code)
+      signatureUsesCompoundTypeWrappers = true;
+    }
+
+    if (javaReturnType.isNIOByteBuffer() ||
         javaReturnType.isArrayOfCompoundTypeWrappers()) {
-      // Needs wrapping and/or setting of byte order (neither of
-      // which can be done easily from native code)
+      // Needs setting of byte order which can't be done easily from
+      // native code
       signatureUsesNIO = true;
+    }
+
+    Type cRetType = sym.getReturnType();
+    if (cRetType.isArray()) {
+      // Needs checking of array lengths
+      signatureUsesCArrays = true;
+      if (cRetType.asArray().getElementType().isPrimitive()) {
+        signatureUsesCPrimitivePointers = true;
+      }
+    }
+
+    if (cRetType.isPointer()) {
+      if (cRetType.asPointer().getTargetType().isPrimitive()) {
+        signatureUsesCPrimitivePointers = true;
+      } else if (cRetType.asPointer().getTargetType().isVoid()) {
+        signatureUsesCVoidPointers = true;
+      }
     }
 
     for (int i = 0; i < getNumArguments(); i++) {
       JavaType javaArgType = getJavaArgumentType(i);
       Type cArgType = getCArgumentType(i);
-      if (javaArgType.isCompoundTypeWrapper() ||
-          javaArgType.isNIOBuffer() ||
+      if (javaArgType.isCompoundTypeWrapper()) {
+        // Needs unwrapping of accessors
+        signatureUsesCompoundTypeWrappers = true;
+      }
+
+      if (javaArgType.isNIOBuffer() ||
           javaArgType.isNIOBufferArray()) {
-        // Needs unwrapping of accessors or checking of direct
-        // buffer property
+        // Needs checking of direct buffer property
         signatureUsesNIO = true;
+        argumentsUseNIO = true;
+
+        if (javaArgType.isNIOBuffer()) {
+          // Potential conversion to indirect buffer
+          signatureCanUseIndirectNIO = true;
+        }
       }
 
       if (cArgType.isArray()) {
         // Needs checking of array lengths
         signatureUsesCArrays = true;
+        if (cArgType.asArray().getElementType().isPrimitive()) {
+          signatureUsesCPrimitivePointers = true;
+        }
       }
 
-      if (javaArgType.isPrimitiveArray() && !javaArgType.isStringArray() ) {
+      if (cArgType.isPointer()) {
+        if (cArgType.asPointer().getTargetType().isPrimitive()) {
+          signatureUsesCPrimitivePointers = true;
+        } else if (cArgType.asPointer().getTargetType().isVoid()) {
+          signatureUsesCVoidPointers = true;
+        }
+      }
+
+      if (javaArgType.isPrimitiveArray()) {
         // Needs getPrimitiveArrayCritical or similar construct
         // depending on native code calling convention
-        signatureUsesPrimitiveArrays = true;
+        signatureUsesJavaPrimitiveArrays = true;
       }
     }
 
     computedSignatureProperties = true;
-  }
-
-
-  public MethodBinding  createNIOBufferVariant() {
-    if (!signatureUsesNIO()) {
-      return this;
-    }
-    MethodBinding binding = new MethodBinding(sym, containingType, containingCType);
-    binding.thisPointerIndex = thisPointerIndex;
-    if (javaReturnType.isCompoundTypeWrapper()) {
-      binding.setJavaReturnType(JavaType.forNIOByteBufferClass());
-    } else if (javaReturnType.isArrayOfCompoundTypeWrappers()) {
-      binding.setJavaReturnType(JavaType.forNIOByteBufferArrayClass());
-    } else {
-      binding.setJavaReturnType(javaReturnType);
-    }
-    for (int i = 0; i < getNumArguments(); i++) {
-      JavaType type = getJavaArgumentType(i);
-      if (type.isCompoundTypeWrapper()) {
-        type = JavaType.forNIOBufferClass();
-      }
-      binding.addJavaArgumentType(type);
-    }
-    return binding;
   }
 
   /** Indicates whether this MethodBinding is for a function pointer

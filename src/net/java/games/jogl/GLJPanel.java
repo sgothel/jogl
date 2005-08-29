@@ -48,6 +48,7 @@ import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.awt.image.DataBufferInt;
+import java.nio.*;
 import java.security.*;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -98,8 +99,8 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
   private BufferedImage         offscreenImage;
   // One of these is used to store the read back pixels before storing
   // in the BufferedImage
-  private byte[]                readBackBytes;
-  private int[]                 readBackInts;
+  private ByteBuffer            readBackBytes;
+  private IntBuffer             readBackInts;
   private int                   readBackWidthInPixels;
   private int                   readBackHeightInPixels;
   // Width of the actual GLJPanel
@@ -514,7 +515,7 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
             case BufferedImage.TYPE_3BYTE_BGR:
               glFormat = GL.GL_BGR;
               glType   = GL.GL_UNSIGNED_BYTE;
-              readBackBytes = new byte[readBackWidthInPixels * readBackHeightInPixels * 3];
+              readBackBytes = ByteBuffer.allocate(readBackWidthInPixels * readBackHeightInPixels * 3);
               break;
 
             case BufferedImage.TYPE_INT_RGB:
@@ -523,7 +524,7 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
               glType   = (hardwareAccelerationDisabled
                             ? offscreenContext.getOffscreenContextPixelDataType()
                             : hwGLFormat);
-              readBackInts = new int[readBackWidthInPixels * readBackHeightInPixels];
+              readBackInts = IntBuffer.allocate(readBackWidthInPixels * readBackHeightInPixels);
               break;
 
             default:
@@ -554,12 +555,9 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
         // Actually read the pixels.
         gl.glReadBuffer(GL.GL_FRONT);
         if (readBackBytes != null) {
-          gl.glReadPixels(0, 0, readBackWidthInPixels, readBackHeightInPixels, glFormat, glType, readBackBytes, 0);
+          gl.glReadPixels(0, 0, readBackWidthInPixels, readBackHeightInPixels, glFormat, glType, readBackBytes);
         } else if (readBackInts != null) {
-          if (DEBUG && VERBOSE) {
-            System.err.println("GLJPanel$Updater.display(): readBackInts.length == " + readBackInts.length);
-          }
-          gl.glReadPixels(0, 0, readBackWidthInPixels, readBackHeightInPixels, glFormat, glType, readBackInts, 0);
+          gl.glReadPixels(0, 0, readBackWidthInPixels, readBackHeightInPixels, glFormat, glType, readBackInts);
         }
 
         // Restore saved modes.
@@ -581,12 +579,12 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
           int    destIncr = 0;
 
           if (readBackBytes != null) {
-            src = readBackBytes;
+            src = readBackBytes.array();
             dest = ((DataBufferByte) offscreenImage.getRaster().getDataBuffer()).getData();
             srcIncr = readBackWidthInPixels * 3;
             destIncr = offscreenImage.getWidth() * 3;
           } else {
-            src = readBackInts;
+            src = readBackInts.array();
             dest = ((DataBufferInt) offscreenImage.getRaster().getDataBuffer()).getData();
             srcIncr = readBackWidthInPixels;
             destIncr = offscreenImage.getWidth();

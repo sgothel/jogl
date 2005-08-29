@@ -145,16 +145,11 @@ public class GLEmitter extends JavaEmitter
       FunctionEmitter emitter = (FunctionEmitter) iter.next();
       if (emitter instanceof JavaMethodBindingEmitter)
       {
-        JavaMethodBindingEmitter newEmitter =
-          generateModifiedEmitter((JavaMethodBindingEmitter)emitter);
-        if (newEmitter != null) {
-          modifiedEmitters.add(newEmitter);
-        }
+        generateModifiedEmitters((JavaMethodBindingEmitter) emitter, modifiedEmitters);
       }
       else if (emitter instanceof CMethodBindingEmitter)
       {
-        modifiedEmitters.add(
-          generateModifiedEmitter((CMethodBindingEmitter)emitter));
+        generateModifiedEmitters((CMethodBindingEmitter) emitter, modifiedEmitters);
       }
       else
       {
@@ -187,9 +182,40 @@ public class GLEmitter extends JavaEmitter
   // Internals only below this point
   //
   
-  protected JavaMethodBindingEmitter generateModifiedEmitter(JavaMethodBindingEmitter baseJavaEmitter)
-  {    
-    if (!(baseJavaEmitter instanceof JavaMethodBindingImplEmitter)) {
+  protected void generateModifiedEmitters(JavaMethodBindingEmitter baseJavaEmitter, List emitters) {
+    if (getGLConfig().manuallyImplement(baseJavaEmitter.getName())) {
+      // User will provide Java-side implementation of this routine;
+      // pass through any emitters which will produce signatures for
+      // it unmodified
+      emitters.add(baseJavaEmitter);
+      return;
+    }
+    
+    JavaGLPAWrapperEmitter emitter =
+      new JavaGLPAWrapperEmitter(baseJavaEmitter,
+                                 getGLConfig().getProcAddressTableExpr(),
+                                 baseJavaEmitter.hasModifier(JavaMethodBindingEmitter.PRIVATE));
+    emitters.add(emitter);
+
+    // If this emitter doesn't have a body (i.e., is a public native
+    // call), we need to force it to emit a body, and produce another
+    // one to act as the entry point
+    if (baseJavaEmitter.signatureOnly() &&
+        baseJavaEmitter.hasModifier(JavaMethodBindingEmitter.PUBLIC) &&
+        baseJavaEmitter.hasModifier(JavaMethodBindingEmitter.NATIVE)) {
+      emitter.setEmitBody(true);
+      emitter.removeModifier(JavaMethodBindingEmitter.NATIVE);
+      emitter = new JavaGLPAWrapperEmitter(baseJavaEmitter,
+                                           getGLConfig().getProcAddressTableExpr(),
+                                           true);
+      emitter.setForImplementingMethodCall(true);
+      emitters.add(emitter);
+    }
+
+    /*****
+          FIXME: OLD CODE (DELETE)
+
+    if (baseJavaEmitter.signatureOnly()) {
       // We only want to wrap the native entry point in the implementation
       // class, not the public interface in the interface class.
       //
@@ -201,14 +227,11 @@ public class GLEmitter extends JavaEmitter
         return null;
       return baseJavaEmitter;
     }
-    if (getGLConfig().manuallyImplement(baseJavaEmitter.getName())) {
-      // User will provide Java-side implementation of this routine
-      return null;
-    }
     return new JavaGLPAWrapperEmitter(baseJavaEmitter, getGLConfig().getProcAddressTableExpr());
+    ****/
   }
 
-  protected CMethodBindingEmitter generateModifiedEmitter(CMethodBindingEmitter baseCEmitter)
+  protected void generateModifiedEmitters(CMethodBindingEmitter baseCEmitter, List emitters)
   {    
     // The C-side JNI binding for this particular function will have an
     // extra final argument, which is the address (the OpenGL procedure
@@ -218,7 +241,7 @@ public class GLEmitter extends JavaEmitter
     if (exp != null) {
       res.setReturnValueCapacityExpression(exp);
     }
-    return res;
+    emitters.add(res);
   }
     
   protected boolean needsProcAddressWrapper(FunctionSymbol sym)

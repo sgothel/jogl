@@ -221,6 +221,10 @@ public void gluPickMatrix(double x, double y, double delX, double delY, int[] vi
   project.gluPickMatrix(gl, x, y, delX, delY, viewport, viewport_offset);
 }
 
+public void gluPickMatrix(double x, double y, double delX, double delY, IntBuffer viewport) {
+  project.gluPickMatrix(gl, x, y, delX, delY, viewport);
+}
+
 //----------------------------------------------------------------------
 // Mipmap and image scaling functionality
 

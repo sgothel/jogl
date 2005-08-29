@@ -222,8 +222,7 @@ public class JavaType {
   }
 
   /**
-   * Returns the name corresponding to this type. Returns null when this
-   * object does not represent a C-language "struct" type.
+   * Returns the Java type name corresponding to this type.
    */
   public String getName() {
     if (clazz != null) {
@@ -242,6 +241,16 @@ public class JavaType {
       or NULL if it can't be represented (i.e., it's a boxing class
       that we need to call getBuffer() on.) */
   public String jniTypeName() {
+    if (isCompoundTypeWrapper()) {
+      // These are sent down as Buffers (e.g., jobject)
+      return "jobject";
+    }
+
+    if (isArrayOfCompoundTypeWrappers()) {
+      // These are returned as arrays of ByteBuffers (e.g., jobjectArray)
+      return "jobjectArray /* of ByteBuffer */";
+    }
+
     if (clazz == null) {
       return null;
     }
@@ -250,48 +259,41 @@ public class JavaType {
       return "void";
     }
 
-    if (clazz.isPrimitive()) {
+    if (isPrimitive()) {
       return "j" + clazz.getName();
     }
 
-    if (clazz.isArray()) {
-      Class elementType = clazz.getComponentType();
-      if (elementType.isPrimitive())
-      {
-        // Type is array-of-primitive
-        return "j" + elementType.getName() + "Array";
-      }
-      else if (elementType == java.lang.String.class)
-      {
-        // Type is array-of-string
+    if (isPrimitiveArray() || isNIOBuffer()) {
+      // We now pass primitive arrays and buffers uniformly down to native code as java.lang.Object.
+      return "jobject";
+    }
+
+    if (isArray()) {
+      if (isStringArray()) {
         return "jobjectArray /*elements are String*/";
-        //return "jobjectArray";
       }
-      else if (java.nio.Buffer.class.isAssignableFrom(elementType))
-      {
+
+      Class elementType = clazz.getComponentType();
+
+      if (isNIOBufferArray()) {
         return "jobjectArray /*elements are " + elementType.getName() + "*/";
       }
-      else if (elementType.isArray())
-      {
+
+      if (elementType.isArray()) {
         // Type is array-of-arrays-of-something
         
-        if (elementType.getComponentType().isPrimitive())
-        {          
+        if (elementType.getComponentType().isPrimitive()) {          
           // Type is an array-of-arrays-of-primitive          
           return "jobjectArray /* elements are " + elementType.getComponentType() + "[]*/";
           //return "jobjectArray";
-        }
-        else
-        {
+        } else {
           throw new RuntimeException("Multi-dimensional arrays of types that are not primitives or Strings are not supported.");          
         }
       }
-      else
-      {
-        // Some unusual type that we don't handle
-        throw new RuntimeException("Unexpected and unsupported type: \"" + this + "\"");          
-      }
-    } // end array type case
+
+      // Some unusual type that we don't handle
+      throw new RuntimeException("Unexpected and unsupported array type: \"" + this + "\"");
+    }
 
     if (isString()) {
       return "jstring";
@@ -451,6 +453,11 @@ public class JavaType {
   //----------------------------------------------------------------------
   // Internals only below this point
   //
+
+  // For debugging
+  public void dump() {
+    System.err.println("[clazz = " + clazz + " , name = " + name + " , elementType = " + elementType + " , primitivePointerType = " + primitivePointerType + "]");
+  }
 
   /**
    * Constructs a representation for a type corresponding to the given Class

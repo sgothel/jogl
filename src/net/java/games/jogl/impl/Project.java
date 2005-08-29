@@ -104,10 +104,10 @@
  */
 package net.java.games.jogl.impl;
 
+import java.nio.*;
+
 import net.java.games.jogl.*;
 import net.java.games.jogl.util.*;
-
-import java.nio.DoubleBuffer;
 
 /**
  * Project.java
@@ -583,6 +583,33 @@ class Project {
    * @param deltaX
    * @param deltaY
    * @param viewport
+   */
+  public void gluPickMatrix(GL gl,
+                            double x,
+                            double y,
+                            double deltaX,
+                            double deltaY,
+                            IntBuffer viewport) {
+    if (deltaX <= 0 || deltaY <= 0) {
+      return;
+    }
+
+    /* Translate and scale the picked region to the entire window */
+    gl.glTranslated((viewport.get(2) - 2 * (x - viewport.get(0))) / deltaX,
+                    (viewport.get(3) - 2 * (y - viewport.get(1))) / deltaY,
+                    0);
+    gl.glScaled(viewport.get(2) / deltaX, viewport.get(3) / deltaY, 1.0);
+  }
+
+  /**
+   * Method gluPickMatrix
+   * 
+   * @param x
+   * @param y
+   * @param deltaX
+   * @param deltaY
+   * @param viewport
+   * @param viewport_offset
    */
   public void gluPickMatrix(GL gl,
                             double x,

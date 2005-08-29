@@ -263,7 +263,7 @@ public class Mipmap {
           if( target == GL.GL_TEXTURE_2D || target == GL.GL_PROXY_TEXTURE_2D ) {
             proxyTarget = GL.GL_PROXY_TEXTURE_2D;
             gl.glTexImage2D( proxyTarget, 1, internalFormat, widthAtLevelOne,
-                             heightAtLevelOne, 0, format, type, (double[])null, 0 );
+                             heightAtLevelOne, 0, format, type, null );
           } else if( (target == GL.GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB) || 
                      (target == GL.GL_TEXTURE_CUBE_MAP_NEGATIVE_X_ARB) || 
                      (target == GL.GL_TEXTURE_CUBE_MAP_POSITIVE_Y_ARB) || 
@@ -272,12 +272,12 @@ public class Mipmap {
                      (target == GL.GL_TEXTURE_CUBE_MAP_NEGATIVE_Z_ARB) ) {
             proxyTarget = GL.GL_PROXY_TEXTURE_CUBE_MAP_ARB;
             gl.glTexImage2D( proxyTarget, 1, internalFormat, widthAtLevelOne,
-                             heightAtLevelOne, 0, format, type, (double[])null, 0 );
+                             heightAtLevelOne, 0, format, type, null );
           } else {
             assert( target == GL.GL_TEXTURE_1D || target == GL.GL_PROXY_TEXTURE_1D );
             proxyTarget = GL.GL_PROXY_TEXTURE_1D;
             gl.glTexImage1D( proxyTarget, 1, internalFormat, widthAtLevelOne, 
-                             0, format, type, (double[])null, 0 );
+                             0, format, type, null );
           }
           gl.glGetTexLevelParameteriv( proxyTarget, 1, GL.GL_TEXTURE_WIDTH, proxyWidth, 0 );
           // does it fit?
@@ -342,7 +342,7 @@ public class Mipmap {
       if( target == GL.GL_TEXTURE_3D || target == GL.GL_PROXY_TEXTURE_3D ) {
         proxyTarget = GL.GL_PROXY_TEXTURE_3D;
         gl.glTexImage3D( proxyTarget, 1, internalFormat, widthAtLevelOne,
-                heightAtLevelOne, depthAtLevelOne, 0, format, type, (double[])null, 0 );
+                heightAtLevelOne, depthAtLevelOne, 0, format, type, null );
       }
       gl.glGetTexLevelParameteriv( proxyTarget, 1, GL.GL_TEXTURE_WIDTH, proxyWidth, 0 );
       // does it fit

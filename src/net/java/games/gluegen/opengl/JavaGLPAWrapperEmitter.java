@@ -44,18 +44,20 @@ import java.util.*;
 import net.java.games.gluegen.*;
 import net.java.games.gluegen.cgram.types.*;
 
-public class JavaGLPAWrapperEmitter extends JavaMethodBindingImplEmitter
-{
-  private static final CommentEmitter commentEmitterForWrappedMethod =
+public class JavaGLPAWrapperEmitter extends JavaMethodBindingEmitter {
+  private final CommentEmitter commentEmitterForWrappedMethod =
     new WrappedMethodCommentEmitter();
 
-  private JavaMethodBindingEmitter emitterBeingWrapped;
+  private boolean changeNameAndArguments;
   private String getProcAddressTableExpr;
   
-  public JavaGLPAWrapperEmitter(JavaMethodBindingEmitter methodToWrap, String getProcAddressTableExpr)
-  {    
-    super(methodToWrap.getBinding(), methodToWrap.getDefaultOutput(), methodToWrap.getRuntimeExceptionType());
+  public JavaGLPAWrapperEmitter(JavaMethodBindingEmitter methodToWrap,
+                                String getProcAddressTableExpr,
+                                boolean changeNameAndArguments) {
+    super(methodToWrap);
+    this.changeNameAndArguments = changeNameAndArguments;
     this.getProcAddressTableExpr = getProcAddressTableExpr;
+    setCommentEmitter(new WrappedMethodCommentEmitter());
 
     if (methodToWrap.getBinding().hasContainingType())
     {
@@ -63,111 +65,39 @@ public class JavaGLPAWrapperEmitter extends JavaMethodBindingImplEmitter
         "Cannot create OpenGL proc. address wrapper; method has containing type: \"" +
         methodToWrap.getBinding() + "\"");
     }
+  }
 
-    // make a new emitter that will emit the original method's binding, but
-    // with WRAP_PREFIX before its name. If a body is needed (for array
-    // length checking, unwrapping of wrapper objects to java.nio.Buffers,
-    // etc.) then it will be generated; therefore the emitter being wrapped
-    // should be an "NIO buffer variant" (i.e., after all unpacking has
-    // occurred).
-    emitterBeingWrapped =
-      new JavaMethodBindingEmitter(methodToWrap.getBinding().createNIOBufferVariant(),
-                                   methodToWrap.getDefaultOutput(),
-                                   methodToWrap.getRuntimeExceptionType())
-      {
+  public String getName() {
+    String res = super.getName();
+    if (changeNameAndArguments) {
+      return GLEmitter.WRAP_PREFIX + res;
+    }
+    return res;
+  }
 
-        protected void emitName(PrintWriter writer)
-        {
-          writer.print(GLEmitter.WRAP_PREFIX);
-          super.emitName(writer);
+  protected int emitArguments(PrintWriter writer) {
+    int numEmitted = super.emitArguments(writer);
+    if (changeNameAndArguments) {
+      if (numEmitted > 0) {
+        writer.print(", ");
+      }
 
-          if(getBinding().signatureUsesPrimitiveArrays())
-               writer.print("1");
-
-        }       
-        protected int emitArguments(PrintWriter writer)
-        {
-          // following is set to true so that Buffer offset parameters are generated
-          // in parent class method, when appropriate
-          prefixedMethod = true;
-          int numEmitted = super.emitArguments(writer);
-          if (numEmitted > 0)
-          {
-            writer.print(", ");
-          }
-
-          writer.print("long glProcAddress");
-          ++numEmitted;
+      writer.print("long glProcAddress");
+      ++numEmitted;
+    }
           
-          return numEmitted;
-        }
-      };
-        
-    // copy the modifiers from the original emitter
-    emitterBeingWrapped.addModifiers(methodToWrap.getModifiers());
-    
-    // Change the access of the method we're wrapping to PRIVATE
-    EmissionModifier origAccess = null; // null is equivalent if package access
-    if (emitterBeingWrapped.hasModifier(PUBLIC))
-    {
-      origAccess = PUBLIC;
-    }
-    else if (emitterBeingWrapped.hasModifier(PROTECTED))
-    {
-      origAccess = PROTECTED;
-    }
-    else if (emitterBeingWrapped.hasModifier(PRIVATE))
-    {
-      origAccess = PRIVATE;
-    }
-
-    if (origAccess != null)
-    {
-      emitterBeingWrapped.removeModifier(origAccess);
-    }
-    emitterBeingWrapped.addModifier(PRIVATE);
-    emitterBeingWrapped.addModifier(NATIVE);
-
-    // Now make our binding use the original access of the wrapped method
-    this.addModifier(origAccess);
-    if (emitterBeingWrapped.hasModifier(STATIC)) {
-      this.addModifier(STATIC);
-    }
+    return numEmitted;
   }
 
-  protected boolean needsBody() {
-    return true;
-  }
-
-  protected String getImplMethodName() {
-    if(getBinding().signatureUsesPrimitiveArrays())
-         return GLEmitter.WRAP_PREFIX + getBinding().getName() + "1";
-    else
-         return GLEmitter.WRAP_PREFIX + getBinding().getName();
-  }
-
-  public void emit(PrintWriter writer)
-  {
-    // Emit a wrapper that will call the method we want to wrap
-    //writer.println("  // Emitter being wrapped = " + emitterBeingWrapped.getClass().getName());
-    super.emit(writer);
-    writer.println();
-    
-    // emit the wrapped method
-    CommentEmitter origComment = emitterBeingWrapped.getCommentEmitter();
-    emitterBeingWrapped.setCommentEmitter(commentEmitterForWrappedMethod);
-    emitterBeingWrapped.emit(writer);
-    emitterBeingWrapped.setCommentEmitter(origComment);
-    writer.println();    
+  protected String getImplMethodName(boolean direct) {
+    return GLEmitter.WRAP_PREFIX + super.getImplMethodName(direct);
   }
 
   protected void emitPreCallSetup(MethodBinding binding, PrintWriter writer) {
     super.emitPreCallSetup(binding, writer);
 
-    MethodBinding wrappedBinding = emitterBeingWrapped.getBinding();
     String procAddressVariable =
-      GLEmitter.PROCADDRESS_VAR_PREFIX + wrappedBinding.getName();
-
+      GLEmitter.PROCADDRESS_VAR_PREFIX + binding.getName();
     writer.println("    final long __addr_ = " + getProcAddressTableExpr + "." + procAddressVariable + ";");
     writer.println("    if (__addr_ == 0) {");
     writer.println("      throw new GLException(\"Method \\\"" + binding.getName() + "\\\" not available\");");
@@ -184,7 +114,7 @@ public class JavaGLPAWrapperEmitter extends JavaMethodBindingImplEmitter
   }
 
   /** This class emits the comment for the wrapper method */
-  private static class WrappedMethodCommentEmitter extends JavaMethodBindingEmitter.DefaultCommentEmitter {
+  private class WrappedMethodCommentEmitter extends JavaMethodBindingEmitter.DefaultCommentEmitter {
     protected void emitBeginning(FunctionEmitter methodEmitter, PrintWriter writer) {
       writer.print("Encapsulates function pointer for OpenGL function <br>: ");
     }
