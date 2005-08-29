@@ -213,6 +213,14 @@ public class Animator {
     thread.start();
   }
 
+  /** Indicates whether this animator is currently running. This
+      should only be used as a heuristic to applications because in
+      some circumstances the Animator may be in the process of
+      shutting down and this method will still return true. */
+  public synchronized boolean isAnimating() {
+    return (thread != null);
+  }
+
   /** Stops this animator. In most situations this method blocks until
       completion, except when called from the animation thread itself
       or in some cases from an implementation-internal thread like the

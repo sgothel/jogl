@@ -77,6 +77,14 @@ public class FPSAnimator extends Animator {
       }, 0, delay);
   }
 
+  /** Indicates whether this FPSAnimator is currently running. This
+      should only be used as a heuristic to applications because in
+      some circumstances the FPSAnimator may be in the process of
+      shutting down and this method will still return true. */
+  public synchronized boolean isAnimating() {
+    return (timer != null);
+  }
+
   /** Stops this FPSAnimator. Due to the implementation of the
       FPSAnimator it is not guaranteed that the FPSAnimator will be
       completely stopped by the time this method returns. */
