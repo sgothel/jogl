@@ -40,10 +40,8 @@
 package net.java.games.jogl.impl.x11;
 
 import java.awt.Component;
-import java.awt.EventQueue;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
-import java.lang.reflect.InvocationTargetException;
 import java.security.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -411,14 +409,9 @@ public class X11GLDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   private void maybeDoSingleThreadedWorkaround(Runnable action) {
-    if (SingleThreadedWorkaround.doWorkaround() && !EventQueue.isDispatchThread()) {
-      try {
-        EventQueue.invokeAndWait(action);
-      } catch (InvocationTargetException e) {
-        throw new GLException(e.getTargetException());
-      } catch (InterruptedException e) {
-        throw new GLException(e);
-      }
+    if (SingleThreadedWorkaround.doWorkaround() &&
+        !SingleThreadedWorkaround.isOpenGLThread()) {
+      SingleThreadedWorkaround.invokeOnOpenGLThread(action);
     } else {
       action.run();
     }

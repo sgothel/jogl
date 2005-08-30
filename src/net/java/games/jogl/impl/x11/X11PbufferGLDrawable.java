@@ -188,13 +188,13 @@ public class X11PbufferGLDrawable extends X11GLDrawable {
       if (fbConfigs == null || fbConfigs.length == 0 || fbConfigs[0] == null) {
         throw new GLException("pbuffer creation error: glXChooseFBConfig() failed");
       }
-      // Note that we currently don't allow selection of anything but
-      // the first GLXFBConfig in the returned list
-      GLXFBConfig fbConfig = fbConfigs[0];
       int nelements = nelementsTmp[0];
       if (nelements <= 0) {
         throw new GLException("pbuffer creation error: couldn't find a suitable frame buffer configuration");
       }
+      // Note that we currently don't allow selection of anything but
+      // the first GLXFBConfig in the returned list
+      GLXFBConfig fbConfig = fbConfigs[0];
 
       if (DEBUG) {
         System.err.println("Found " + fbConfigs.length + " matching GLXFBConfigs");

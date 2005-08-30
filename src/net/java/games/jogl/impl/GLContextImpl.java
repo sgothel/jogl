@@ -224,7 +224,7 @@ public abstract class GLContextImpl extends GLContext {
 
     functionAvailability.flush();
     if (DEBUG) {
-      System.err.println(getThreadName() + ": !!! Initializing OpenGL extension address table");
+      System.err.println(getThreadName() + ": !!! Initializing OpenGL extension address table for " + this);
     }
     resetProcAddressTable(getGLProcAddressTable());
     if (!haveResetGLUProcAddressTable) {

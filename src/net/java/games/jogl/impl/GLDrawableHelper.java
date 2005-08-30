@@ -127,7 +127,9 @@ public class GLDrawableHelper {
         }
         runnable.run();
         if (autoSwapBufferMode) {
-          drawable.swapBuffers();
+          if (drawable != null) {
+            drawable.swapBuffers();
+          }
         }
       }
     } finally {

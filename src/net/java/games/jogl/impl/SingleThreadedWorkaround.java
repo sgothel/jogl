@@ -39,8 +39,12 @@
 
 package net.java.games.jogl.impl;
 
+import java.awt.EventQueue;
+import java.lang.reflect.InvocationTargetException;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+
+import net.java.games.jogl.*;
 
 /** Encapsulates the workaround of running all display operations on
     the AWT event queue thread for the purposes of working around
@@ -105,6 +109,20 @@ public class SingleThreadedWorkaround {
 
   public static boolean doWorkaround() {
     return singleThreadedWorkaround;
+  }
+
+  public static boolean isOpenGLThread() {
+    return EventQueue.isDispatchThread();
+  }
+
+  public static void invokeOnOpenGLThread(Runnable r) throws GLException {
+    try {
+      EventQueue.invokeAndWait(r);
+    } catch (InvocationTargetException e) {
+      throw new GLException(e.getTargetException());
+    } catch (InterruptedException e) {
+      throw new GLException(e);
+    }
   }
 
   private static void printWorkaroundNotice() {

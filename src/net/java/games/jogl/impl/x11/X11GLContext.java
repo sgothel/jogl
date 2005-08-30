@@ -128,6 +128,8 @@ public abstract class X11GLContext extends GLContextImpl {
   }
 
   protected int makeCurrentImpl() throws GLException {
+    // FIXME: in offscreen (non-pbuffer) case this is run without the
+    // AWT lock held
     boolean created = false;
     if (context == 0) {
       create();
