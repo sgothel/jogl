@@ -27,12 +27,12 @@
         </path>
     
         <!-- The location of the GlueGen source and the C grammar files. -->
-        <property name="gluegen" value="${src}/net/java/games/gluegen" />
+        <property name="gluegen" value="${src.java}/com/sun/gluegen" />
         <property name="c.grammar" value="${gluegen}/cgram" />
         
         <!-- The resulting location of the generated Java files from the
            - C grammar via ANTLR. -->
-        <property name="gluegen.build" value="${src.generated.java}/net/java/games/gluegen" />
+        <property name="gluegen.build" value="${src.generated.java}/com/sun/gluegen" />
         <property name="generated.java.from.grammar" value="${gluegen.build}/cgram" />
 
     </target>
@@ -89,7 +89,7 @@
            -        a separate task.  -->
         <javac destdir="${classes}" includes="**/gluegen/**" excludes="**/GlueGenTask.java"
                source="1.4" debug="true" debuglevel="source,lines">
-            <src path="${src}" />
+            <src path="${src.java}" />
             <src path="${src.generated.java}" />
             <classpath refid="antlr.classpath" />
         </javac>
@@ -141,7 +141,7 @@
            - NOTE:  ONLY the GlueGenTask is built at this time.  GlueGen 
            -        itself is built in a separate task.  -->
         <javac destdir="${classes}" includes="**/GlueGenTask.java" source="1.4" debug="true" debuglevel="source,lines">
-            <src path="${src}" />
+            <src path="${src.java}" />
             <classpath refid="antlr.classpath" />
         </javac>
         

@@ -49,6 +49,6 @@
 #endif
 
 JNIEXPORT jobject JNICALL
-Java_net_java_games_jogl_impl_InternalBufferUtils_newDirectByteBuffer(JNIEnv* env, jclass unused, jlong address, jint capacity) {
+Java_com_sun_opengl_impl_InternalBufferUtils_newDirectByteBuffer(JNIEnv* env, jclass unused, jlong address, jint capacity) {
   return (*env)->NewDirectByteBuffer(env, (void*) (intptr_t) address, capacity);
 }

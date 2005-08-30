@@ -41,13 +41,13 @@
 
 #ifdef WIN32
   #define PLATFORM_DSI_SIZE sizeof(JAWT_Win32DrawingSurfaceInfo)
-  static const char* platformDSIClassName = "net/java/games/jogl/impl/windows/JAWT_Win32DrawingSurfaceInfo";
+  static const char* platformDSIClassName = "com/sun/opengl/impl/windows/JAWT_Win32DrawingSurfaceInfo";
 #elif defined(linux) || defined(__sun) || defined(__FreeBSD__)
   #define PLATFORM_DSI_SIZE sizeof(JAWT_X11DrawingSurfaceInfo)
-  static const char* platformDSIClassName = "net/java/games/jogl/impl/x11/JAWT_X11DrawingSurfaceInfo";
+  static const char* platformDSIClassName = "com/sun/opengl/impl/x11/JAWT_X11DrawingSurfaceInfo";
 #elif defined(macosx)
   #define PLATFORM_DSI_SIZE sizeof(JAWT_MacOSXDrawingSurfaceInfo)
-  static const char* platformDSIClassName = "net/java/games/jogl/impl/macosx/JAWT_MacOSXDrawingSurfaceInfo";
+  static const char* platformDSIClassName = "com/sun/opengl/impl/macosx/JAWT_MacOSXDrawingSurfaceInfo";
 #else
   ERROR: port JAWT_DrawingSurfaceInfo.c to your platform
 #endif
@@ -56,7 +56,7 @@ static jclass    platformDSIClass = NULL;
 static jmethodID constructor   = NULL;
 
 JNIEXPORT jobject JNICALL
-Java_net_java_games_jogl_impl_JAWT_1DrawingSurfaceInfo_platformInfo0(JNIEnv* env, jobject unused, jobject jthis0) {
+Java_com_sun_opengl_impl_JAWT_1DrawingSurfaceInfo_platformInfo0(JNIEnv* env, jobject unused, jobject jthis0) {
   JAWT_DrawingSurfaceInfo* dsi;
   jobject dirbuf;
   jclass clazz;

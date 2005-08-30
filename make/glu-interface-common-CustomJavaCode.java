@@ -47,78 +47,78 @@ public boolean gluUnProject4(double winX, double winY, double winZ, double clipW
 //
 
 /*****************************************************************************
- * <b>gluBeginPolygon</b> and {@link net.java.games.jogl.GLU#gluEndPolygon
+ * <b>gluBeginPolygon</b> and {@link javax.media.opengl.GLU#gluEndPolygon
  * gluEndPolygon} delimit the definition of a nonconvex polygon. To define
  * such a polygon, first call <b>gluBeginPolygon</b>. Then define the contours
- * of the polygon by calling {@link net.java.games.jogl.GLU#gluTessVertex
+ * of the polygon by calling {@link javax.media.opengl.GLU#gluTessVertex
  * gluTessVertex} for each vertex and
- * {@link net.java.games.jogl.GLU#gluNextContour gluNextContour} to start each
- * new contour. Finally, call {@link net.java.games.jogl.GLU#gluEndPolygon
+ * {@link javax.media.opengl.GLU#gluNextContour gluNextContour} to start each
+ * new contour. Finally, call {@link javax.media.opengl.GLU#gluEndPolygon
  * gluEndPolygon} to signal the end of the definition. See the
- * {@link net.java.games.jogl.GLU#gluTessVertex gluTessVertex} and
- * {@link net.java.games.jogl.GLU#gluNextContour gluNextContour} reference
+ * {@link javax.media.opengl.GLU#gluTessVertex gluTessVertex} and
+ * {@link javax.media.opengl.GLU#gluNextContour gluNextContour} reference
  * pages for more details.<P>
  *
- * Once {@link net.java.games.jogl.GLU#gluEndPolygon gluEndPolygon} is called,
+ * Once {@link javax.media.opengl.GLU#gluEndPolygon gluEndPolygon} is called,
  * the polygon is tessellated, and the resulting triangles are described
- * through callbacks. See {@link net.java.games.jogl.GLU#gluTessCallback
+ * through callbacks. See {@link javax.media.opengl.GLU#gluTessCallback
  * gluTessCallback} for descriptions of the callback methods.
  *
  * @param tesselator
  *        Specifies the tessellation object (created with
- *        {@link net.java.games.jogl.GLU#gluNewTess gluNewTess}).
+ *        {@link javax.media.opengl.GLU#gluNewTess gluNewTess}).
  *
- * @see net.java.games.jogl.GLU#gluNewTess          gluNewTess
- * @see net.java.games.jogl.GLU#gluNextContour      gluNextContour
- * @see net.java.games.jogl.GLU#gluTessCallback     gluTessCallback
- * @see net.java.games.jogl.GLU#gluTessVertex       gluTessVertex
- * @see net.java.games.jogl.GLU#gluTessBeginPolygon gluTessBeginPolygon
- * @see net.java.games.jogl.GLU#gluTessBeginContour gluTessBeginContour
+ * @see javax.media.opengl.GLU#gluNewTess          gluNewTess
+ * @see javax.media.opengl.GLU#gluNextContour      gluNextContour
+ * @see javax.media.opengl.GLU#gluTessCallback     gluTessCallback
+ * @see javax.media.opengl.GLU#gluTessVertex       gluTessVertex
+ * @see javax.media.opengl.GLU#gluTessBeginPolygon gluTessBeginPolygon
+ * @see javax.media.opengl.GLU#gluTessBeginContour gluTessBeginContour
  ****************************************************************************/
 public void gluBeginPolygon(GLUtesselator tesselator);
 
 
 /*****************************************************************************
  * <b>gluDeleteTess</b> destroys the indicated tessellation object (which was
- * created with {@link net.java.games.jogl.GLU#gluNewTess gluNewTess}).
+ * created with {@link javax.media.opengl.GLU#gluNewTess gluNewTess}).
  *
  * @param tesselator
  *        Specifies the tessellation object to destroy.
  *
- * @see net.java.games.jogl.GLU#gluBeginPolygon gluBeginPolygon
- * @see net.java.games.jogl.GLU#gluNewTess      gluNewTess
- * @see net.java.games.jogl.GLU#gluTessCallback gluTessCallback
+ * @see javax.media.opengl.GLU#gluBeginPolygon gluBeginPolygon
+ * @see javax.media.opengl.GLU#gluNewTess      gluNewTess
+ * @see javax.media.opengl.GLU#gluTessCallback gluTessCallback
  ****************************************************************************/
 public void gluDeleteTess(GLUtesselator tesselator);
 
 
 /*****************************************************************************
- * <b>gluEndPolygon</b> and {@link net.java.games.jogl.GLU#gluBeginPolygon
+ * <b>gluEndPolygon</b> and {@link javax.media.opengl.GLU#gluBeginPolygon
  * gluBeginPolygon} delimit the definition of a nonconvex polygon. To define
- * such a polygon, first call {@link net.java.games.jogl.GLU#gluBeginPolygon
+ * such a polygon, first call {@link javax.media.opengl.GLU#gluBeginPolygon
  * gluBeginPolygon}. Then define the contours of the polygon by calling
- * {@link net.java.games.jogl.GLU#gluTessVertex gluTessVertex} for each vertex
- * and {@link net.java.games.jogl.GLU#gluNextContour gluNextContour} to start
+ * {@link javax.media.opengl.GLU#gluTessVertex gluTessVertex} for each vertex
+ * and {@link javax.media.opengl.GLU#gluNextContour gluNextContour} to start
  * each new contour. Finally, call <b>gluEndPolygon</b> to signal the end of
- * the definition. See the {@link net.java.games.jogl.GLU#gluTessVertex
- * gluTessVertex} and {@link net.java.games.jogl.GLU#gluNextContour
+ * the definition. See the {@link javax.media.opengl.GLU#gluTessVertex
+ * gluTessVertex} and {@link javax.media.opengl.GLU#gluNextContour
  * gluNextContour} reference pages for more details.<P>
  *
  * Once <b>gluEndPolygon</b> is called, the polygon is tessellated, and the
  * resulting triangles are described through callbacks. See
- * {@link net.java.games.jogl.GLU#gluTessCallback gluTessCallback} for
+ * {@link javax.media.opengl.GLU#gluTessCallback gluTessCallback} for
  * descriptions of the callback methods.
  *
  * @param tesselator
  *        Specifies the tessellation object (created with
- *        {@link net.java.games.jogl.GLU#gluNewTess gluNewTess}).
+ *        {@link javax.media.opengl.GLU#gluNewTess gluNewTess}).
  *
- * @see net.java.games.jogl.GLU#gluNewTess          gluNewTess
- * @see net.java.games.jogl.GLU#gluNextContour      gluNextContour
- * @see net.java.games.jogl.GLU#gluTessCallback     gluTessCallback
- * @see net.java.games.jogl.GLU#gluTessVertex       gluTessVertex
- * @see net.java.games.jogl.GLU#gluTessBeginPolygon gluTessBeginPolygon
- * @see net.java.games.jogl.GLU#gluTessBeginContour gluTessBeginContour
+ * @see javax.media.opengl.GLU#gluNewTess          gluNewTess
+ * @see javax.media.opengl.GLU#gluNextContour      gluNextContour
+ * @see javax.media.opengl.GLU#gluTessCallback     gluTessCallback
+ * @see javax.media.opengl.GLU#gluTessVertex       gluTessVertex
+ * @see javax.media.opengl.GLU#gluTessBeginPolygon gluTessBeginPolygon
+ * @see javax.media.opengl.GLU#gluTessBeginContour gluTessBeginContour
  ****************************************************************************/
 public void gluEndPolygon(GLUtesselator tesselator);
 
@@ -127,12 +127,12 @@ public void gluEndPolygon(GLUtesselator tesselator);
  * <b>gluGetTessProperty</b> retrieves properties stored in a tessellation
  * object.  These properties affect the way that tessellation objects are
  * interpreted and rendered.  See the
- * {@link net.java.games.jogl.GLU#gluTessProperty gluTessProperty} reference
+ * {@link javax.media.opengl.GLU#gluTessProperty gluTessProperty} reference
  * page for information about the properties and what they do.
  *
  * @param tesselator
  *        Specifies the tessellation object (created with
- *        {@link net.java.games.jogl.GLU#gluNewTess gluNewTess}).
+ *        {@link javax.media.opengl.GLU#gluNewTess gluNewTess}).
  * @param which
  *        Specifies the property whose value is to be fetched. Valid values
  *        are <b>GLU_TESS_WINDING_RULE</b>, <b>GLU_TESS_BOUNDARY_ONLY</b>,
@@ -141,8 +141,8 @@ public void gluEndPolygon(GLUtesselator tesselator);
  *        Specifices an array into which the value of the named property is
  *        written.
  *
- * @see net.java.games.jogl.GLU#gluNewTess      gluNewTess
- * @see net.java.games.jogl.GLU#gluTessProperty gluTessProperty
+ * @see javax.media.opengl.GLU#gluNewTess      gluNewTess
+ * @see javax.media.opengl.GLU#gluTessProperty gluTessProperty
  ****************************************************************************/
 public void gluGetTessProperty(GLUtesselator tesselator, int which, double[] value, int value_offset);
 
@@ -155,9 +155,9 @@ public void gluGetTessProperty(GLUtesselator tesselator, int which, double[] val
  *
  * @return A new tessellation object.
  *
- * @see net.java.games.jogl.GLU#gluTessBeginPolygon gluTessBeginPolygon
- * @see net.java.games.jogl.GLU#gluDeleteTess       gluDeleteTess
- * @see net.java.games.jogl.GLU#gluTessCallback     gluTessCallback
+ * @see javax.media.opengl.GLU#gluTessBeginPolygon gluTessBeginPolygon
+ * @see javax.media.opengl.GLU#gluDeleteTess       gluDeleteTess
+ * @see javax.media.opengl.GLU#gluTessCallback     gluTessCallback
  ****************************************************************************/
 public GLUtesselator gluNewTess();
 
@@ -165,10 +165,10 @@ public GLUtesselator gluNewTess();
 /*****************************************************************************
  * <b>gluNextContour</b> is used to describe polygons with multiple
  * contours. After you describe the first contour through a series of
- * {@link net.java.games.jogl.GLU#gluTessVertex gluTessVertex} calls, a
+ * {@link javax.media.opengl.GLU#gluTessVertex gluTessVertex} calls, a
  * <b>gluNextContour</b> call indicates that the previous contour is complete
  * and that the next contour is about to begin. Perform another series of
- * {@link net.java.games.jogl.GLU#gluTessVertex gluTessVertex} calls to
+ * {@link javax.media.opengl.GLU#gluTessVertex gluTessVertex} calls to
  * describe the new contour. Repeat this process until all contours have been
  * described.<P>
  *
@@ -210,99 +210,99 @@ public GLUtesselator gluNewTess();
  * <UL>
  *   <b>Note:</b>  The <b>gluNextContour</b> function is obsolete and is
  *   provided for backward compatibility only. The <b>gluNextContour</b>
- *   function is mapped to {@link net.java.games.jogl.GLU#gluTessEndContour
+ *   function is mapped to {@link javax.media.opengl.GLU#gluTessEndContour
  *   gluTessEndContour} followed by
- *   {@link net.java.games.jogl.GLU#gluTessBeginContour gluTessBeginContour}.
+ *   {@link javax.media.opengl.GLU#gluTessBeginContour gluTessBeginContour}.
  * </UL>
  *
  * @param tesselator
  *        Specifies the tessellation object (created with
- *        {@link net.java.games.jogl.GLU#gluNewTess gluNewTess}).
+ *        {@link javax.media.opengl.GLU#gluNewTess gluNewTess}).
  * @param type
  *        The type of the contour being defined.
  *
- * @see net.java.games.jogl.GLU#gluNewTess          gluNewTess
- * @see net.java.games.jogl.GLU#gluTessBeginContour gluTessBeginContour
- * @see net.java.games.jogl.GLU#gluTessBeginPolygon gluTessBeginPolygon
- * @see net.java.games.jogl.GLU#gluTessCallback     gluTessCallback
- * @see net.java.games.jogl.GLU#gluTessEndContour   gluTessEndContour
- * @see net.java.games.jogl.GLU#gluTessVertex       gluTessVertex
+ * @see javax.media.opengl.GLU#gluNewTess          gluNewTess
+ * @see javax.media.opengl.GLU#gluTessBeginContour gluTessBeginContour
+ * @see javax.media.opengl.GLU#gluTessBeginPolygon gluTessBeginPolygon
+ * @see javax.media.opengl.GLU#gluTessCallback     gluTessCallback
+ * @see javax.media.opengl.GLU#gluTessEndContour   gluTessEndContour
+ * @see javax.media.opengl.GLU#gluTessVertex       gluTessVertex
  ****************************************************************************/
 public void gluNextContour(GLUtesselator tesselator, int type);
 
 
 /*****************************************************************************
  * <b>gluTessBeginContour</b> and
- * {@link net.java.games.jogl.GLU#gluTessEndContour gluTessEndContour} delimit
+ * {@link javax.media.opengl.GLU#gluTessEndContour gluTessEndContour} delimit
  * the definition of a polygon contour. Within each
  * <b>gluTessBeginContour</b>/
- * {@link net.java.games.jogl.GLU#gluTessEndContour gluTessEndContour} pair,
+ * {@link javax.media.opengl.GLU#gluTessEndContour gluTessEndContour} pair,
  * there can be zero or more calls to
- * {@link net.java.games.jogl.GLU#gluTessVertex gluTessVertex}. The vertices
+ * {@link javax.media.opengl.GLU#gluTessVertex gluTessVertex}. The vertices
  * specify a closed contour (the last vertex of each contour is automatically
- * linked to the first). See the {@link net.java.games.jogl.GLU#gluTessVertex
+ * linked to the first). See the {@link javax.media.opengl.GLU#gluTessVertex
  * gluTessVertex} reference page for more details. <b>gluTessBeginContour</b>
  * can only be called between
- * {@link net.java.games.jogl.GLU#gluTessBeginPolygon gluTessBeginPolygon} and
- * {@link net.java.games.jogl.GLU#gluTessEndPolygon gluTessEndPolygon}.
+ * {@link javax.media.opengl.GLU#gluTessBeginPolygon gluTessBeginPolygon} and
+ * {@link javax.media.opengl.GLU#gluTessEndPolygon gluTessEndPolygon}.
  *
  * @param tesselator
  *        Specifies the tessellation object (created with
- *        {@link net.java.games.jogl.GLU#gluNewTess gluNewTess}).
+ *        {@link javax.media.opengl.GLU#gluNewTess gluNewTess}).
  *
- * @see net.java.games.jogl.GLU#gluNewTess          gluNewTess
- * @see net.java.games.jogl.GLU#gluTessBeginPolygon gluTessBeginPolygon
- * @see net.java.games.jogl.GLU#gluTessVertex       gluTessVertex
- * @see net.java.games.jogl.GLU#gluTessCallback     gluTessCallback
- * @see net.java.games.jogl.GLU#gluTessProperty     gluTessProperty
- * @see net.java.games.jogl.GLU#gluTessNormal       gluTessNormal
- * @see net.java.games.jogl.GLU#gluTessEndPolygon   gluTessEndPolygon
+ * @see javax.media.opengl.GLU#gluNewTess          gluNewTess
+ * @see javax.media.opengl.GLU#gluTessBeginPolygon gluTessBeginPolygon
+ * @see javax.media.opengl.GLU#gluTessVertex       gluTessVertex
+ * @see javax.media.opengl.GLU#gluTessCallback     gluTessCallback
+ * @see javax.media.opengl.GLU#gluTessProperty     gluTessProperty
+ * @see javax.media.opengl.GLU#gluTessNormal       gluTessNormal
+ * @see javax.media.opengl.GLU#gluTessEndPolygon   gluTessEndPolygon
  ****************************************************************************/
 public void gluTessBeginContour(GLUtesselator tesselator);
 
 
 /*****************************************************************************
  * <b>gluTessBeginPolygon</b> and
- * {@link net.java.games.jogl.GLU#gluTessEndPolygon gluTessEndPolygon} delimit
+ * {@link javax.media.opengl.GLU#gluTessEndPolygon gluTessEndPolygon} delimit
  * the definition of a convex, concave or self-intersecting polygon. Within
  * each <b>gluTessBeginPolygon</b>/
- * {@link net.java.games.jogl.GLU#gluTessEndPolygon gluTessEndPolygon} pair,
+ * {@link javax.media.opengl.GLU#gluTessEndPolygon gluTessEndPolygon} pair,
  * there must be one or more calls to
- * {@link net.java.games.jogl.GLU#gluTessBeginContour gluTessBeginContour}/
- * {@link net.java.games.jogl.GLU#gluTessEndContour gluTessEndContour}. Within
+ * {@link javax.media.opengl.GLU#gluTessBeginContour gluTessBeginContour}/
+ * {@link javax.media.opengl.GLU#gluTessEndContour gluTessEndContour}. Within
  * each contour, there are zero or more calls to
- * {@link net.java.games.jogl.GLU#gluTessVertex gluTessVertex}. The vertices
+ * {@link javax.media.opengl.GLU#gluTessVertex gluTessVertex}. The vertices
  * specify a closed contour (the last vertex of each contour is automatically
- * linked to the first). See the {@link net.java.games.jogl.GLU#gluTessVertex
- * gluTessVertex}, {@link net.java.games.jogl.GLU#gluTessBeginContour
- * gluTessBeginContour}, and {@link net.java.games.jogl.GLU#gluTessEndContour
+ * linked to the first). See the {@link javax.media.opengl.GLU#gluTessVertex
+ * gluTessVertex}, {@link javax.media.opengl.GLU#gluTessBeginContour
+ * gluTessBeginContour}, and {@link javax.media.opengl.GLU#gluTessEndContour
  * gluTessEndContour} reference pages for more details.<P>
  *
  * <b>data</b> is a reference to a user-defined data structure. If the
  * appropriate callback(s) are specified (see
- * {@link net.java.games.jogl.GLU#gluTessCallback gluTessCallback}), then this
+ * {@link javax.media.opengl.GLU#gluTessCallback gluTessCallback}), then this
  * reference is returned to the callback method(s). Thus, it is a convenient
  * way to store per-polygon information.<P>
  *
- * Once {@link net.java.games.jogl.GLU#gluTessEndPolygon gluTessEndPolygon} is
+ * Once {@link javax.media.opengl.GLU#gluTessEndPolygon gluTessEndPolygon} is
  * called, the polygon is tessellated, and the resulting triangles are
  * described through callbacks. See
- * {@link net.java.games.jogl.GLU#gluTessCallback gluTessCallback} for
+ * {@link javax.media.opengl.GLU#gluTessCallback gluTessCallback} for
  * descriptions of the callback methods.
  *
  * @param tesselator
  *        Specifies the tessellation object (created with
- *        {@link net.java.games.jogl.GLU#gluNewTess gluNewTess}).
+ *        {@link javax.media.opengl.GLU#gluNewTess gluNewTess}).
  * @param data
  *        Specifies a reference to user polygon data.
  *
- * @see net.java.games.jogl.GLU#gluNewTess          gluNewTess
- * @see net.java.games.jogl.GLU#gluTessBeginContour gluTessBeginContour
- * @see net.java.games.jogl.GLU#gluTessVertex       gluTessVertex
- * @see net.java.games.jogl.GLU#gluTessCallback     gluTessCallback
- * @see net.java.games.jogl.GLU#gluTessProperty     gluTessProperty
- * @see net.java.games.jogl.GLU#gluTessNormal       gluTessNormal
- * @see net.java.games.jogl.GLU#gluTessEndPolygon   gluTessEndPolygon
+ * @see javax.media.opengl.GLU#gluNewTess          gluNewTess
+ * @see javax.media.opengl.GLU#gluTessBeginContour gluTessBeginContour
+ * @see javax.media.opengl.GLU#gluTessVertex       gluTessVertex
+ * @see javax.media.opengl.GLU#gluTessCallback     gluTessCallback
+ * @see javax.media.opengl.GLU#gluTessProperty     gluTessProperty
+ * @see javax.media.opengl.GLU#gluTessNormal       gluTessNormal
+ * @see javax.media.opengl.GLU#gluTessEndPolygon   gluTessEndPolygon
  ****************************************************************************/
 public void gluTessBeginPolygon(GLUtesselator tesselator, Object data);
 
@@ -320,12 +320,12 @@ public void gluTessBeginPolygon(GLUtesselator tesselator, Object data);
  * callback with user-specified polygon data will be used. Note that the
  * polygonData parameter used by some of the methods is a copy of the
  * reference that was specified when
- * {@link net.java.games.jogl.GLU#gluTessBeginPolygon gluTessBeginPolygon}
+ * {@link javax.media.opengl.GLU#gluTessBeginPolygon gluTessBeginPolygon}
  * was called. The legal callbacks are as follows:<P>
  *
  * <b>GLU_TESS_BEGIN</b>
  * <UL>
- *   The begin callback is invoked like {@link net.java.games.jogl.GL#glBegin
+ *   The begin callback is invoked like {@link javax.media.opengl.GL#glBegin
  *   glBegin} to indicate the start of a (triangle) primitive. The method
  *   takes a single argument of type int. If the
  *   <b>GLU_TESS_BOUNDARY_ONLY</b> property is set to <b>GL_FALSE</b>, then
@@ -344,7 +344,7 @@ public void gluTessBeginPolygon(GLUtesselator tesselator, Object data);
  *   The same as the <b>GLU_TESS_BEGIN</b> callback except
  *   that it takes an additional reference argument. This reference is
  *   identical to the opaque reference provided when
- *   {@link net.java.games.jogl.GLU#gluTessBeginPolygon gluTessBeginPolygon}
+ *   {@link javax.media.opengl.GLU#gluTessBeginPolygon gluTessBeginPolygon}
  *   was called. The method prototype for this callback is:
  * </UL>
  *
@@ -354,7 +354,7 @@ public void gluTessBeginPolygon(GLUtesselator tesselator, Object data);
  * <b>GLU_TESS_EDGE_FLAG</b>
  * <UL>
  *   The edge flag callback is similar to
- *   {@link net.java.games.jogl.GL#glEdgeFlag glEdgeFlag}. The method takes
+ *   {@link javax.media.opengl.GL#glEdgeFlag glEdgeFlag}. The method takes
  *   a single boolean boundaryEdge that indicates which edges lie on the
  *   polygon boundary. If the boundaryEdge is <b>GL_TRUE</b>, then each vertex
  *   that follows begins an edge that lies on the polygon boundary, that is,
@@ -379,7 +379,7 @@ public void gluTessBeginPolygon(GLUtesselator tesselator, Object data);
  *   The same as the <b>GLU_TESS_EDGE_FLAG</b> callback except that it takes
  *   an additional reference argument. This reference is identical to the
  *   opaque reference provided when
- *   {@link net.java.games.jogl.GLU#gluTessBeginPolygon gluTessBeginPolygon}
+ *   {@link javax.media.opengl.GLU#gluTessBeginPolygon gluTessBeginPolygon}
  *   was called. The method prototype for this callback is:
  * </UL>
  *
@@ -389,12 +389,12 @@ public void gluTessBeginPolygon(GLUtesselator tesselator, Object data);
  * <b>GLU_TESS_VERTEX</b>
  * <UL>
  *   The vertex callback is invoked between the begin and end callbacks. It is
- *   similar to {@link net.java.games.jogl.GL#glVertex3f glVertex3f}, and it
+ *   similar to {@link javax.media.opengl.GL#glVertex3f glVertex3f}, and it
  *   defines the vertices of the triangles created by the tessellation
  *   process. The method takes a reference as its only argument. This
  *   reference is identical to the opaque reference provided by the user when
  *   the vertex was described (see
- *   {@link net.java.games.jogl.GLU#gluTessVertex gluTessVertex}). The method
+ *   {@link javax.media.opengl.GLU#gluTessVertex gluTessVertex}). The method
  *   prototype for this callback is:
  * </UL>
  *
@@ -406,7 +406,7 @@ public void gluTessBeginPolygon(GLUtesselator tesselator, Object data);
  *   The same as the <b>GLU_TESS_VERTEX</b> callback except that it takes an
  *   additional reference argument. This reference is identical to the opaque
  *   reference provided when
- *   {@link net.java.games.jogl.GLU#gluTessBeginPolygon gluTessBeginPolygon}
+ *   {@link javax.media.opengl.GLU#gluTessBeginPolygon gluTessBeginPolygon}
  *   was called. The method prototype for this callback is:
  * </UL>
  *
@@ -416,7 +416,7 @@ public void gluTessBeginPolygon(GLUtesselator tesselator, Object data);
  * <b>GLU_TESS_END</b>
  * <UL>
  *   The end callback serves the same purpose as
- *   {@link net.java.games.jogl.GL#glEnd glEnd}. It indicates the end of a
+ *   {@link javax.media.opengl.GL#glEnd glEnd}. It indicates the end of a
  *   primitive and it takes no arguments. The method prototype for this
  *   callback is:
  * </UL>
@@ -429,7 +429,7 @@ public void gluTessBeginPolygon(GLUtesselator tesselator, Object data);
  *   The same as the <b>GLU_TESS_END</b> callback except that it takes an
  *   additional reference argument. This reference is identical to the opaque
  *   reference provided when
- *   {@link net.java.games.jogl.GLU#gluTessBeginPolygon gluTessBeginPolygon}
+ *   {@link javax.media.opengl.GLU#gluTessBeginPolygon gluTessBeginPolygon}
  *   was called. The method prototype for this callback is:
  * </UL>
  *
@@ -460,7 +460,7 @@ public void gluTessBeginPolygon(GLUtesselator tesselator, Object data);
  *   <i>data</i> and <i>weight</i>, and return the new vertex pointer
  *   in <i>outData</i>. This handle is supplied during rendering callbacks.
  *   The user is responsible for freeing the memory some time after
- *   {@link net.java.games.jogl.GLU#gluTessEndPolygon gluTessEndPolygon} is
+ *   {@link javax.media.opengl.GLU#gluTessEndPolygon gluTessEndPolygon} is
  *   called.<P>
  *
  *   For example, if the polygon lies in an arbitrary plane in 3-space, and a
@@ -508,7 +508,7 @@ public void gluTessBeginPolygon(GLUtesselator tesselator, Object data);
  *   The same as the <b>GLU_TESS_COMBINE</b> callback except that it takes an
  *   additional reference argument. This reference is identical to the opaque
  *   reference provided when
- *   {@link net.java.games.jogl.GLU#gluTessBeginPolygon gluTessBeginPolygon}
+ *   {@link javax.media.opengl.GLU#gluTessBeginPolygon gluTessBeginPolygon}
  *   was called. The method prototype for this callback is:
  * </UL>
  *
@@ -527,7 +527,7 @@ public void gluTessBeginPolygon(GLUtesselator tesselator, Object data);
  *   <b>GLU_TESS_MISSING_END_CONTOUR</b>, <b>GLU_TESS_COORD_TOO_LARGE</b>,
  *   <b>GLU_TESS_NEED_COMBINE_CALLBACK</b> or <b>GLU_OUT_OF_MEMORY</b>.
  *   Character strings describing these errors can be retrieved with the
- *   {@link net.java.games.jogl.GLU#gluErrorString gluErrorString} call. The
+ *   {@link javax.media.opengl.GLU#gluErrorString gluErrorString} call. The
  *   method prototype for this callback is:
  * </UL>
  *
@@ -553,7 +553,7 @@ public void gluTessBeginPolygon(GLUtesselator tesselator, Object data);
  *   The same as the GLU_TESS_ERROR callback except that it takes an
  *   additional reference argument. This reference is identical to the opaque
  *   reference provided when
- *   {@link net.java.games.jogl.GLU#gluTessBeginPolygon gluTessBeginPolygon}
+ *   {@link javax.media.opengl.GLU#gluTessBeginPolygon gluTessBeginPolygon}
  *   was called. The method prototype for this callback is:
  * </UL>
  *
@@ -562,7 +562,7 @@ public void gluTessBeginPolygon(GLUtesselator tesselator, Object data);
  *
  * @param tesselator
  *        Specifies the tessellation object (created with
- *        {@link net.java.games.jogl.GLU#gluNewTess gluNewTess}).
+ *        {@link javax.media.opengl.GLU#gluNewTess gluNewTess}).
  * @param which
  *        Specifies the callback being defined. The following values are
  *        valid: <b>GLU_TESS_BEGIN</b>, <b>GLU_TESS_BEGIN_DATA</b>,
@@ -574,16 +574,16 @@ public void gluTessBeginPolygon(GLUtesselator tesselator, Object data);
  * @param aCallback
  *        Specifies the callback object to be called.
  *
- * @see net.java.games.jogl.GL#glBegin              glBegin
- * @see net.java.games.jogl.GL#glEdgeFlag           glEdgeFlag
- * @see net.java.games.jogl.GL#glVertex3f           glVertex3f
- * @see net.java.games.jogl.GLU#gluNewTess          gluNewTess
- * @see net.java.games.jogl.GLU#gluErrorString      gluErrorString
- * @see net.java.games.jogl.GLU#gluTessVertex       gluTessVertex
- * @see net.java.games.jogl.GLU#gluTessBeginPolygon gluTessBeginPolygon
- * @see net.java.games.jogl.GLU#gluTessBeginContour gluTessBeginContour
- * @see net.java.games.jogl.GLU#gluTessProperty     gluTessProperty
- * @see net.java.games.jogl.GLU#gluTessNormal       gluTessNormal
+ * @see javax.media.opengl.GL#glBegin              glBegin
+ * @see javax.media.opengl.GL#glEdgeFlag           glEdgeFlag
+ * @see javax.media.opengl.GL#glVertex3f           glVertex3f
+ * @see javax.media.opengl.GLU#gluNewTess          gluNewTess
+ * @see javax.media.opengl.GLU#gluErrorString      gluErrorString
+ * @see javax.media.opengl.GLU#gluTessVertex       gluTessVertex
+ * @see javax.media.opengl.GLU#gluTessBeginPolygon gluTessBeginPolygon
+ * @see javax.media.opengl.GLU#gluTessBeginContour gluTessBeginContour
+ * @see javax.media.opengl.GLU#gluTessProperty     gluTessProperty
+ * @see javax.media.opengl.GLU#gluTessNormal       gluTessNormal
  ****************************************************************************/
 public void gluTessCallback(GLUtesselator tesselator, int which,
                             GLUtesselatorCallback aCallback);
@@ -591,66 +591,66 @@ public void gluTessCallback(GLUtesselator tesselator, int which,
 
 /*****************************************************************************
  *  <b>gluTessEndContour</b> and
- * {@link net.java.games.jogl.GLU#gluTessBeginContour gluTessBeginContour}
+ * {@link javax.media.opengl.GLU#gluTessBeginContour gluTessBeginContour}
  * delimit the definition of a polygon contour. Within each
- * {@link net.java.games.jogl.GLU#gluTessBeginContour gluTessBeginContour}/
+ * {@link javax.media.opengl.GLU#gluTessBeginContour gluTessBeginContour}/
  * <b>gluTessEndContour</b> pair, there can be zero or more calls to
- * {@link net.java.games.jogl.GLU#gluTessVertex gluTessVertex}. The vertices
+ * {@link javax.media.opengl.GLU#gluTessVertex gluTessVertex}. The vertices
  * specify a closed contour (the last vertex of each contour is automatically
- * linked to the first). See the {@link net.java.games.jogl.GLU#gluTessVertex
+ * linked to the first). See the {@link javax.media.opengl.GLU#gluTessVertex
  * gluTessVertex} reference page for more details.
- * {@link net.java.games.jogl.GLU#gluTessBeginContour gluTessBeginContour} can
- * only be called between {@link net.java.games.jogl.GLU#gluTessBeginPolygon
+ * {@link javax.media.opengl.GLU#gluTessBeginContour gluTessBeginContour} can
+ * only be called between {@link javax.media.opengl.GLU#gluTessBeginPolygon
  * gluTessBeginPolygon} and
- * {@link net.java.games.jogl.GLU#gluTessEndPolygon gluTessEndPolygon}.
+ * {@link javax.media.opengl.GLU#gluTessEndPolygon gluTessEndPolygon}.
  *
  * @param tesselator
  *        Specifies the tessellation object (created with
- *        {@link net.java.games.jogl.GLU#gluNewTess gluNewTess}).
+ *        {@link javax.media.opengl.GLU#gluNewTess gluNewTess}).
  *
- * @see net.java.games.jogl.GLU#gluNewTess          gluNewTess
- * @see net.java.games.jogl.GLU#gluTessBeginPolygon gluTessBeginPolygon
- * @see net.java.games.jogl.GLU#gluTessVertex       gluTessVertex
- * @see net.java.games.jogl.GLU#gluTessCallback     gluTessCallback
- * @see net.java.games.jogl.GLU#gluTessProperty     gluTessProperty
- * @see net.java.games.jogl.GLU#gluTessNormal       gluTessNormal
- * @see net.java.games.jogl.GLU#gluTessEndPolygon   gluTessEndPolygon
+ * @see javax.media.opengl.GLU#gluNewTess          gluNewTess
+ * @see javax.media.opengl.GLU#gluTessBeginPolygon gluTessBeginPolygon
+ * @see javax.media.opengl.GLU#gluTessVertex       gluTessVertex
+ * @see javax.media.opengl.GLU#gluTessCallback     gluTessCallback
+ * @see javax.media.opengl.GLU#gluTessProperty     gluTessProperty
+ * @see javax.media.opengl.GLU#gluTessNormal       gluTessNormal
+ * @see javax.media.opengl.GLU#gluTessEndPolygon   gluTessEndPolygon
  ****************************************************************************/
 public void gluTessEndContour(GLUtesselator tesselator);
 
 
 /*****************************************************************************
  * <b>gluTessEndPolygon</b> and
- * {@link net.java.games.jogl.GLU#gluTessBeginPolygon gluTessBeginPolygon}
+ * {@link javax.media.opengl.GLU#gluTessBeginPolygon gluTessBeginPolygon}
  * delimit the definition of a convex, concave or self-intersecting polygon.
- * Within each {@link net.java.games.jogl.GLU#gluTessBeginPolygon
+ * Within each {@link javax.media.opengl.GLU#gluTessBeginPolygon
  * gluTessBeginPolygon}/<b>gluTessEndPolygon</b> pair, there must be one or
- * more calls to {@link net.java.games.jogl.GLU#gluTessBeginContour
- * gluTessBeginContour}/{@link net.java.games.jogl.GLU#gluTessEndContour
+ * more calls to {@link javax.media.opengl.GLU#gluTessBeginContour
+ * gluTessBeginContour}/{@link javax.media.opengl.GLU#gluTessEndContour
  * gluTessEndContour}. Within each contour, there are zero or more calls to
- * {@link net.java.games.jogl.GLU#gluTessVertex gluTessVertex}. The vertices
+ * {@link javax.media.opengl.GLU#gluTessVertex gluTessVertex}. The vertices
  * specify a closed contour (the last vertex of each contour is automatically
- * linked to the first). See the {@link net.java.games.jogl.GLU#gluTessVertex
- * gluTessVertex}, {@link net.java.games.jogl.GLU#gluTessBeginContour
- * gluTessBeginContour} and {@link net.java.games.jogl.GLU#gluTessEndContour
+ * linked to the first). See the {@link javax.media.opengl.GLU#gluTessVertex
+ * gluTessVertex}, {@link javax.media.opengl.GLU#gluTessBeginContour
+ * gluTessBeginContour} and {@link javax.media.opengl.GLU#gluTessEndContour
  * gluTessEndContour} reference pages for more details.<P>
  *
  * Once <b>gluTessEndPolygon</b> is called, the polygon is tessellated, and
  * the resulting triangles are described through callbacks. See
- * {@link net.java.games.jogl.GLU#gluTessCallback gluTessCallback} for
+ * {@link javax.media.opengl.GLU#gluTessCallback gluTessCallback} for
  * descriptions of the callback functions.
  *
  * @param tesselator
  *        Specifies the tessellation object (created with
- *        {@link net.java.games.jogl.GLU#gluNewTess gluNewTess}).
+ *        {@link javax.media.opengl.GLU#gluNewTess gluNewTess}).
  *
- * @see net.java.games.jogl.GLU#gluNewTess          gluNewTess
- * @see net.java.games.jogl.GLU#gluTessBeginContour gluTessBeginContour
- * @see net.java.games.jogl.GLU#gluTessVertex       gluTessVertex
- * @see net.java.games.jogl.GLU#gluTessCallback     gluTessCallback
- * @see net.java.games.jogl.GLU#gluTessProperty     gluTessProperty
- * @see net.java.games.jogl.GLU#gluTessNormal       gluTessNormal
- * @see net.java.games.jogl.GLU#gluTessBeginPolygon gluTessBeginPolygon
+ * @see javax.media.opengl.GLU#gluNewTess          gluNewTess
+ * @see javax.media.opengl.GLU#gluTessBeginContour gluTessBeginContour
+ * @see javax.media.opengl.GLU#gluTessVertex       gluTessVertex
+ * @see javax.media.opengl.GLU#gluTessCallback     gluTessCallback
+ * @see javax.media.opengl.GLU#gluTessProperty     gluTessProperty
+ * @see javax.media.opengl.GLU#gluTessNormal       gluTessNormal
+ * @see javax.media.opengl.GLU#gluTessBeginPolygon gluTessBeginPolygon
  ****************************************************************************/
 public void gluTessEndPolygon(GLUtesselator tesselator);
 
@@ -678,7 +678,7 @@ public void gluTessEndPolygon(GLUtesselator tesselator);
  *
  * @param tesselator
  *        Specifies the tessellation object (created by
- *        {@link net.java.games.jogl.GLU#gluNewTess gluNewTess}).
+ *        {@link javax.media.opengl.GLU#gluNewTess gluNewTess}).
  * @param x
  *        Specifies the first component of the normal.
  * @param y
@@ -686,8 +686,8 @@ public void gluTessEndPolygon(GLUtesselator tesselator);
  * @param z
  *        Specifies the third component of the normal.
  *
- * @see net.java.games.jogl.GLU#gluTessBeginPolygon gluTessBeginPolygon
- * @see net.java.games.jogl.GLU#gluTessEndPolygon   gluTessEndPolygon
+ * @see javax.media.opengl.GLU#gluTessBeginPolygon gluTessBeginPolygon
+ * @see javax.media.opengl.GLU#gluTessEndPolygon   gluTessEndPolygon
  ****************************************************************************/
 public void gluTessNormal(GLUtesselator tesselator, double x, double y, double z);
 
@@ -758,7 +758,7 @@ public void gluTessNormal(GLUtesselator tesselator, double x, double y, double z
  *
  * @param tesselator
  *        Specifies the tessellation object created with
- *        {@link net.java.games.jogl.GLU#gluNewTess gluNewTess}
+ *        {@link javax.media.opengl.GLU#gluNewTess gluNewTess}
  * @param which
  *        Specifies the property to be set.  Valid values are
  *        <b>GLU_TESS_WINDING_RULE</b>, <b>GLU_TESS_BOUNDARDY_ONLY</b>,
@@ -766,8 +766,8 @@ public void gluTessNormal(GLUtesselator tesselator, double x, double y, double z
  * @param value
  *        Specifices the value of the indicated property.
  *
- * @see net.java.games.jogl.GLU#gluGetTessProperty gluGetTessProperty
- * @see net.java.games.jogl.GLU#gluNewTess         gluNewTess
+ * @see javax.media.opengl.GLU#gluGetTessProperty gluGetTessProperty
+ * @see javax.media.opengl.GLU#gluNewTess         gluNewTess
  ****************************************************************************/
 public void gluTessProperty(GLUtesselator tesselator, int which, double value);
 
@@ -777,33 +777,33 @@ public void gluTessProperty(GLUtesselator tesselator, int which, double value);
  * defines. Successive <b>gluTessVertex</b> calls describe a closed contour.
  * For example, to describe a quadrilateral <b>gluTessVertex</b> should be
  * called four times. <b>gluTessVertex</b> can only be called between
- * {@link net.java.games.jogl.GLU#gluTessBeginContour gluTessBeginContour} and
- * {@link net.java.games.jogl.GLU#gluTessBeginContour gluTessEndContour}.<P>
+ * {@link javax.media.opengl.GLU#gluTessBeginContour gluTessBeginContour} and
+ * {@link javax.media.opengl.GLU#gluTessBeginContour gluTessEndContour}.<P>
  *
  * <b>data</b> normally references to a structure containing the vertex
  * location, as well as other per-vertex attributes such as color and normal.
  * This reference is passed back to the user through the
  * <b>GLU_TESS_VERTEX</b> or <b>GLU_TESS_VERTEX_DATA</b> callback after
- * tessellation (see the {@link net.java.games.jogl.GLU#gluTessCallback
+ * tessellation (see the {@link javax.media.opengl.GLU#gluTessCallback
  * gluTessCallback} reference page).
  *
  * @param tesselator
  *        Specifies the tessellation object (created with
- *        {@link net.java.games.jogl.GLU#gluNewTess gluNewTess}).
+ *        {@link javax.media.opengl.GLU#gluNewTess gluNewTess}).
  * @param coords
  *        Specifies the coordinates of the vertex.
  * @param data
  *        Specifies an opaque reference passed back to the program with the
  *        vertex callback (as specified by
- *        {@link net.java.games.jogl.GLU#gluTessCallback gluTessCallback}).
+ *        {@link javax.media.opengl.GLU#gluTessCallback gluTessCallback}).
  *
- * @see net.java.games.jogl.GLU#gluTessBeginPolygon gluTessBeginPolygon
- * @see net.java.games.jogl.GLU#gluNewTess          gluNewTess
- * @see net.java.games.jogl.GLU#gluTessBeginContour gluTessBeginContour
- * @see net.java.games.jogl.GLU#gluTessCallback     gluTessCallback
- * @see net.java.games.jogl.GLU#gluTessProperty     gluTessProperty
- * @see net.java.games.jogl.GLU#gluTessNormal       gluTessNormal
- * @see net.java.games.jogl.GLU#gluTessEndPolygon   gluTessEndPolygon
+ * @see javax.media.opengl.GLU#gluTessBeginPolygon gluTessBeginPolygon
+ * @see javax.media.opengl.GLU#gluNewTess          gluNewTess
+ * @see javax.media.opengl.GLU#gluTessBeginContour gluTessBeginContour
+ * @see javax.media.opengl.GLU#gluTessCallback     gluTessCallback
+ * @see javax.media.opengl.GLU#gluTessProperty     gluTessProperty
+ * @see javax.media.opengl.GLU#gluTessNormal       gluTessNormal
+ * @see javax.media.opengl.GLU#gluTessEndPolygon   gluTessEndPolygon
  ****************************************************************************/
 public void gluTessVertex(GLUtesselator tesselator, double[] coords, int coords_offset, Object data);
 

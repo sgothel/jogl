@@ -123,8 +123,8 @@
              Some of these are used in FileMappers later for dependence information
              and need exact string matching, which is why they use file.separator
              instead of "/". -->
-        <property name="rootrel.src" value="src" />
-        <property name="rootrel.src.c.jogl" value="${rootrel.src}${sep}native${sep}jogl" />
+        <property name="rootrel.src.java" value="src${sep}classes" />
+        <property name="rootrel.src.c.jogl" value="src${sep}native${sep}jogl" />
         <property name="rootrel.build" value="build" />
         <property name="rootrel.src.generated" value="${rootrel.build}${sep}gensrc" />
         <property name="rootrel.generated.java" value="${rootrel.src.generated}${sep}classes" />
@@ -135,19 +135,19 @@
         <property name="rootrel.obj.cg" value="${rootrel.obj}${sep}jogl_cg" />
 
         <!-- The source directories. -->
-        <property name="src"   value="${project.root}/${rootrel.src}" />
-        <property name="src.c" value="${project.root}/${rootrel.src.c}" />
-        <property name="build" value="${project.root}/${rootrel.build}" />
+        <property name="src.java" value="${project.root}/${rootrel.src.java}" />
+        <property name="src.c"    value="${project.root}/${rootrel.src.c}" />
+        <property name="build"    value="${project.root}/${rootrel.build}" />
         
         <!-- The generated source directories. -->
         <property name="src.generated" value="${build}/gensrc" />
         <property name="src.generated.java" value="${src.generated}/classes" />
-        <property name="src.generated.java.cg" value="${src.generated}/classes/net/java/games/cg" />
+        <property name="src.generated.java.cg" value="${src.generated}/classes/com/sun/opengl/cg" />
         <property name="src.generated.c" value="${src.generated}/native/jogl" />
         <property name="src.generated.c.cg" value="${src.generated}/native/jogl_cg" />
         <!-- The composable pipeline source files -->
         <property name="src.generated.java.pipeline"
-                  value="net/java/games/jogl/DebugGL.java,net/java/games/jogl/TraceGL.java" />
+                  value="javax/media/opengl/DebugGL.java,javax/media/opengl/TraceGL.java" />
         
         <!-- The compiler output directories. -->
         <property name="classes" value="${build}/classes" />
@@ -214,10 +214,10 @@
         <property name="java.lib.dir.macosx" value="/System/Library/Frameworks/JavaVM.framework/Libraries" />
         <property name="gl.headers" value="${stub.includes.dir}/opengl/**/*.h" /> <!-- NOTE:  this MUST be relative for FileSet --> <!-- CHECK:  this may need to be pruned for each platform -->
 
-        <!-- Java files to exclude based on platform (relative to "src") -->
-        <property name="java.excludes.win32" value="net/java/games/jogl/impl/x11/**, net/java/games/jogl/impl/macosx/**" />
-        <property name="java.excludes.x11" value="net/java/games/jogl/impl/windows/**, net/java/games/jogl/impl/macosx/**" />
-        <property name="java.excludes.macosx" value="net/java/games/jogl/impl/x11/**, net/java/games/jogl/impl/windows/**" />
+        <!-- Java files to exclude based on platform (relative to "src.java") -->
+        <property name="java.excludes.win32" value="com/sun/opengl/impl/x11/**, com/sun/opengl/impl/macosx/**" />
+        <property name="java.excludes.x11" value="com/sun/opengl/impl/windows/**, com/sun/opengl/impl/macosx/**" />
+        <property name="java.excludes.macosx" value="com/sun/opengl/impl/x11/**, com/sun/opengl/impl/windows/**" />
 
         <!-- Create the classpath for that includes ANTLR and any already 
            - compiled classes.  This requires the user-defined "antlr.jar" 
@@ -235,11 +235,11 @@
         <property name="javadoc" value="${project.root}/javadoc_public" />
         <property name="javadoc.dev" value="${project.root}/javadoc_jogl_dev" />
         <property name="javadoc.link" value="http://java.sun.com/j2se/1.4.2/docs/api/" />
-        <property name="javadoc.packagenames" value="net.java.games.jogl,net.java.games.gluegen.runtime,net.java.games.jogl.util" />
-        <property name="javadoc.dev.packagenames.win32"  value="net.java.games.jogl.impl.windows" />
-        <property name="javadoc.dev.packagenames.x11"    value="net.java.games.jogl.impl.x11" />
-        <property name="javadoc.dev.packagenames.macosx" value="net.java.games.jogl.impl.macosx" />
-        <property name="javadoc.dev.packagenames" value="net.java.games.jogl,net.java.games.jogl.impl,net.java.games.jogl.util,net.java.games.gluegen" />
+        <property name="javadoc.packagenames" value="javax.media.opengl,com.sun.opengl.utils" />
+        <property name="javadoc.dev.packagenames.win32"  value="com.sun.opengl.impl.windows" />
+        <property name="javadoc.dev.packagenames.x11"    value="com.sun.opengl.impl.x11" />
+        <property name="javadoc.dev.packagenames.macosx" value="com.sun.opengl.impl.macosx" />
+        <property name="javadoc.dev.packagenames" value="javax.media.opengl,com.sun.opengl.impl,com.sun.opengl.utils,com.sun.gluegen,com.sun.gluegen.runtime" />
         
     </target>
     
@@ -432,7 +432,7 @@
         <dependset>
             <srcfileset refid="stub.includes.dependencies.fileset" />
             <srcfileset dir=".">
-	        <include name="${classes}/net/java/games/gluegen/**/*.class" />
+	        <include name="${classes}/com/sun/gluegen/**/*.class" />
             </srcfileset>
             <targetfileset dir=".">
                 <include name="${src.generated.java}/**/*.java" />
@@ -443,7 +443,7 @@
         <!-- Now check for the presence of one well-known file -->
         <uptodate property="java.generate.skip">
             <srcfiles refid="stub.includes.dependencies.fileset" />
-            <mapper type="merge" to="${src.generated.java}/net/java/games/jogl/GL.java" />
+            <mapper type="merge" to="${src.generated.java}/javax/media/opengl/GL.java" />
         </uptodate>
     </target>
 
@@ -463,9 +463,9 @@
         </path>
     
         <!-- Add the GlueGen and BuildStaticGLInfo tasks to ANT -->
-        <taskdef name="gluegen" classname="net.java.games.gluegen.ant.GlueGenTask"
+        <taskdef name="gluegen" classname="com.sun.gluegen.ant.GlueGenTask"
                  classpathref="gen.classpath" />
-        <taskdef name="staticglgen" classname="net.java.games.gluegen.ant.StaticGLGenTask"
+        <taskdef name="staticglgen" classname="com.sun.gluegen.ant.StaticGLGenTask"
                  classpathref="gen.classpath" />
                  
         <!-- Use the GlueGen and BuildStaticGLInfo tasks to generate the 
@@ -476,7 +476,7 @@
         <gluegen src="${stub.includes.common}/gl.c" 
                  config="${gl.cfg}"
                  includeRefid="stub.includes.fileset.all"
-                 emitter="net.java.games.gluegen.opengl.GLEmitter">
+                 emitter="com.sun.gluegen.opengl.GLEmitter">
             <classpath refid="gen.classpath" />
         </gluegen>
 
@@ -485,7 +485,7 @@
         <gluegen src="${glext.platform.header}" 
                  config="${glext.platform.cfg}"
                  includeRefid="stub.includes.fileset.all"
-                 emitter="net.java.games.gluegen.opengl.GLEmitter">
+                 emitter="com.sun.gluegen.opengl.GLEmitter">
             <classpath refid="gen.classpath" />
         </gluegen>
 
@@ -500,7 +500,7 @@
                  config="${jawt.cfg}"
                  literalInclude="${java.includes.dir}"
                  includeRefid="stub.includes.fileset.platform"
-                 emitter="net.java.games.gluegen.JavaEmitter">
+                 emitter="com.sun.gluegen.JavaEmitter">
             <classpath refid="gen.classpath" />
         </gluegen>
 
@@ -509,15 +509,15 @@
         <gluegen src="${stub.includes.platform}/window-system.c" 
                  config="${window.cfg}"
                  includeRefid="stub.includes.fileset.platform"
-                 emitter="net.java.games.gluegen.opengl.GLEmitter">
+                 emitter="com.sun.gluegen.opengl.GLEmitter">
             <classpath refid="gen.classpath" />
         </gluegen>
 
 	<!-- Generate StaticGLInfo class -->
         <echo message="Generating StaticGLInfo class" />
-        <staticglgen package="net.java.games.jogl.impl"
+        <staticglgen package="com.sun.opengl.impl"
                      headers="${gl.headers}"
-                     outputdir="${src.generated.java}/net/java/games/jogl/impl">
+                     outputdir="${src.generated.java}/com/sun/opengl/impl">
             <classpath refid="gen.classpath" />
         </staticglgen>
 
@@ -526,7 +526,7 @@
         <gluegen src="${stub.includes.common}/glu.c" 
                  config="${glu.cfg}"
                  includeRefid="stub.includes.fileset.all"
-                 emitter="net.java.games.gluegen.opengl.GLEmitter">
+                 emitter="com.sun.gluegen.opengl.GLEmitter">
             <classpath refid="gen.classpath" />
         </gluegen>
 
@@ -535,7 +535,7 @@
         <gluegen src="${stub.includes.common}/glu-impl.c" 
                  config="${glu.impl.cfg}"
                  includeRefid="stub.includes.fileset.all"
-                 emitter="net.java.games.gluegen.opengl.GLEmitter">
+                 emitter="com.sun.gluegen.opengl.GLEmitter">
             <classpath refid="gen.classpath" />
         </gluegen>
 
@@ -560,7 +560,7 @@
         <!-- Now check for the presence of one well-known file -->
         <uptodate property="java.generate.cg.skip">
             <srcfiles refid="stub.includes.cg.dependencies.fileset" />
-            <mapper type="merge" to="${src.generated.java}/net/java/games/cg/CgGL.java" />
+            <mapper type="merge" to="${src.generated.java}/com/sun/opengl/cg/CgGL.java" />
         </uptodate>
     </target>
 
@@ -580,16 +580,16 @@
         </path>
     
         <!-- Add the GlueGen and BuildStaticGLInfo tasks to ANT -->
-        <taskdef name="gluegen" classname="net.java.games.gluegen.ant.GlueGenTask"
+        <taskdef name="gluegen" classname="com.sun.gluegen.ant.GlueGenTask"
                  classpathref="gen.classpath" />
-        <taskdef name="staticglgen" classname="net.java.games.gluegen.ant.StaticGLGenTask"
+        <taskdef name="staticglgen" classname="com.sun.gluegen.ant.StaticGLGenTask"
                  classpathref="gen.classpath" />
 
         <!-- Generate CgGL interface class -->
         <gluegen src="${stub.includes.common}/cg.c" 
                  config="cg-common.cfg"
                  includeRefid="stub.includes.cg.fileset.all"
-                 emitter="net.java.games.gluegen.JavaEmitter">
+                 emitter="com.sun.gluegen.JavaEmitter">
             <classpath refid="gen.classpath" />
         </gluegen>
     </target>
@@ -602,28 +602,28 @@
         <!-- Blow away the DebugGL.java and TraceGL.java sources if GL.class has changed
              (the uptodate element doesn't support arbitrary source and destination files) -->
         <dependset>
-            <srcfilelist dir="${classes}/net/java/games/jogl" files="GL.class" />
-            <srcfilelist dir="${classes}/net/java/games/gluegen/opengl" files="BuildComposablePipeline.class" />
-            <targetfileset dir="${src.generated.java}/net/java/games/jogl"
+            <srcfilelist dir="${classes}/javax/media/opengl" files="GL.class" />
+            <srcfilelist dir="${classes}/com/sun/gluegen/opengl" files="BuildComposablePipeline.class" />
+            <targetfileset dir="${src.generated.java}/javax/media/opengl"
                            includes="DebugGL.java,TraceGL.java" />
         </dependset>
                            
         <!-- Now choose one of the two to test to see if we have to regenerate -->
         <uptodate property="java.compile.composable.pipeline.skip"
-                  srcfile="${classes}/net/java/games/jogl/GL.class"
-                  targetfile="${src.generated.java}/net/java/games/jogl/DebugGL.java" />
+                  srcfile="${classes}/javax/media/opengl/GL.class"
+                  targetfile="${src.generated.java}/javax/media/opengl/DebugGL.java" />
     </target>        
 
     <target name="java.compile.composable.pipeline" depends="java.compile.composable.pipeline.check" unless="java.compile.composable.pipeline.skip">
-        <java classname="net.java.games.gluegen.opengl.BuildComposablePipeline" fork="yes">
-            <arg value="net.java.games.jogl.GL" />
-            <arg value="${src.generated.java}/net/java/games/jogl" />
+        <java classname="com.sun.gluegen.opengl.BuildComposablePipeline" fork="yes">
+            <arg value="javax.media.opengl.GL" />
+            <arg value="${src.generated.java}/javax/media/opengl" />
             <classpath refid="antlr.classpath" />
         </java>
 
         <!-- Perform the second pass Java compile which compiles the composable pipelines. -->
         <javac destdir="${classes}" includes="${src.generated.java.pipeline}" source="1.4" debug="true" debuglevel="source,lines">
-            <src path="${src}" />
+            <src path="${src.java}" />
             <src path="${src.generated.java}" />
             <classpath refid="antlr.classpath" />
         </javac>
@@ -638,8 +638,8 @@
     <target name="java.compile" depends="java.generate,java.generate.cg">
         <!-- Perform the first pass Java compile. -->
         <javac destdir="${classes}"
-               excludes="${java.excludes.platform},net/java/games/jogl/impl/nurbs/**" source="1.4" debug="true" debuglevel="source,lines">
-            <src path="${src}" />
+               excludes="${java.excludes.platform},com/sun/opengl/impl/nurbs/**" source="1.4" debug="true" debuglevel="source,lines">
+            <src path="${src.java}" />
             <src path="${src.generated.java}" />
             <classpath refid="antlr.classpath" />
         </javac>
@@ -890,9 +890,11 @@
         <!-- Build the jar excluding any build specific classes. -->
         <jar destfile="${jogl.jar}">
             <fileset dir="${classes}">
-                <include name="net/java/games/jogl/**" />
-                <include name="net/java/games/gluegen/runtime/**" />
-                <include name="net/java/games/cg/**" />
+                <include name="javax/media/opengl/**" />
+                <include name="com/sun/gluegen/runtime/**" />
+                <include name="com/sun/opengl/impl/**" />
+                <include name="com/sun/opengl/utils/**" />
+                <include name="com/sun/opengl/cg/**" />
             </fileset>
         </jar>
 
@@ -908,7 +910,7 @@
     <target name="javadoc.nocg" depends="setup.java.home.dir,init" unless="jogl.cg">
         <!-- Build the general Javadoc -->
         <javadoc packagenames="${javadoc.packagenames}"
-                 sourcepath="${src};${src.generated.java}"        
+                 sourcepath="${src.java};${src.generated.java}"        
                  destdir="${javadoc}" windowtitle="JOGL API"
                  source="1.4"
                  link="${javadoc.link}" />
@@ -917,8 +919,8 @@
     <!-- Same as above but with Cg directories added -->
     <target name="javadoc.cg" depends="setup.java.home.dir,init" if="jogl.cg">
         <!-- Build the general Javadoc -->
-        <javadoc packagenames="${javadoc.packagenames},net.java.games.cg"
-                 sourcepath="${src};${src.generated.java}"        
+        <javadoc packagenames="${javadoc.packagenames},com.sun.opengl.cg"
+                 sourcepath="${src.java};${src.generated.java}"        
                  destdir="${javadoc}" windowtitle="JOGL API"
                  source="1.4"
                  link="${javadoc.link}" />
@@ -929,7 +931,7 @@
     <target name="javadoc.dev.nocg" depends="init" unless="jogl.cg">
         <!-- Build the internal developer Javadoc -->
         <javadoc packagenames="${javadoc.dev.packagenames},${javadoc.dev.packagenames.platform}"
-                 sourcepath="${src};${src.generated.java}"        
+                 sourcepath="${src.java};${src.generated.java}"        
                  destdir="${javadoc.dev}" windowtitle="JOGL API"
                  source="1.4"
                  link="${javadoc.link}" />
@@ -938,8 +940,8 @@
     <!-- Same as above but with Cg directories added -->
     <target name="javadoc.dev.cg" depends="init" if="jogl.cg">
         <!-- Build the internal developer Javadoc -->
-        <javadoc packagenames="${javadoc.dev.packagenames},${javadoc.dev.packagenames.platform},net.java.games.cg"
-                 sourcepath="${src};${src.generated.java}"        
+        <javadoc packagenames="${javadoc.dev.packagenames},${javadoc.dev.packagenames.platform},com.sun.opengl.cg"
+                 sourcepath="${src.java};${src.generated.java}"        
                  destdir="${javadoc.dev}" windowtitle="JOGL API"
                  source="1.4"
                  link="${javadoc.link}" />

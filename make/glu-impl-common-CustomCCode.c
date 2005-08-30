@@ -7,7 +7,7 @@
  *     C function: GLint gluBuild1DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data);
  */
 JNIEXPORT jint JNICALL 
-Java_net_java_games_jogl_impl_GLUImpl_dispatch_1gluBuild1DMipmapLevels__IIIIIIII_3BJ(JNIEnv *env, jobject _unused, jint target, jint internalFormat, jint width, jint format, jint type, jint level, jint base, jint max, jbyteArray data, jlong glProcAddress) {
+Java_com_sun_opengl_impl_GLUImpl_dispatch_1gluBuild1DMipmapLevels__IIIIIIII_3BJ(JNIEnv *env, jobject _unused, jint target, jint internalFormat, jint width, jint format, jint type, jint level, jint base, jint max, jbyteArray data, jlong glProcAddress) {
   PFNGLUBUILD1DMIPMAPLEVELSPROC ptr_gluBuild1DMipmapLevels;
   void * _ptr8 = NULL;
   GLint _res;
@@ -30,7 +30,7 @@ Java_net_java_games_jogl_impl_GLUImpl_dispatch_1gluBuild1DMipmapLevels__IIIIIIII
  *     C function: GLint gluBuild1DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data);
  */
 JNIEXPORT jint JNICALL 
-Java_net_java_games_jogl_impl_GLUImpl_dispatch_1gluBuild1DMipmapLevels__IIIIIIII_3SJ(JNIEnv *env, jobject _unused, jint target, jint internalFormat, jint width, jint format, jint type, jint level, jint base, jint max, jshortArray data, jlong glProcAddress) {
+Java_com_sun_opengl_impl_GLUImpl_dispatch_1gluBuild1DMipmapLevels__IIIIIIII_3SJ(JNIEnv *env, jobject _unused, jint target, jint internalFormat, jint width, jint format, jint type, jint level, jint base, jint max, jshortArray data, jlong glProcAddress) {
   PFNGLUBUILD1DMIPMAPLEVELSPROC ptr_gluBuild1DMipmapLevels;
   void * _ptr8 = NULL;
   GLint _res;
@@ -53,7 +53,7 @@ Java_net_java_games_jogl_impl_GLUImpl_dispatch_1gluBuild1DMipmapLevels__IIIIIIII
  *     C function: GLint gluBuild1DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data);
  */
 JNIEXPORT jint JNICALL 
-Java_net_java_games_jogl_impl_GLUImpl_dispatch_1gluBuild1DMipmapLevels__IIIIIIII_3IJ(JNIEnv *env, jobject _unused, jint target, jint internalFormat, jint width, jint format, jint type, jint level, jint base, jint max, jintArray data, jlong glProcAddress) {
+Java_com_sun_opengl_impl_GLUImpl_dispatch_1gluBuild1DMipmapLevels__IIIIIIII_3IJ(JNIEnv *env, jobject _unused, jint target, jint internalFormat, jint width, jint format, jint type, jint level, jint base, jint max, jintArray data, jlong glProcAddress) {
   PFNGLUBUILD1DMIPMAPLEVELSPROC ptr_gluBuild1DMipmapLevels;
   void * _ptr8 = NULL;
   GLint _res;
@@ -76,7 +76,7 @@ Java_net_java_games_jogl_impl_GLUImpl_dispatch_1gluBuild1DMipmapLevels__IIIIIIII
  *     C function: GLint gluBuild1DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data);
  */
 JNIEXPORT jint JNICALL 
-Java_net_java_games_jogl_impl_GLUImpl_dispatch_1gluBuild1DMipmapLevels__IIIIIIII_3FJ(JNIEnv *env, jobject _unused, jint target, jint internalFormat, jint width, jint format, jint type, jint level, jint base, jint max, jfloatArray data, jlong glProcAddress) {
+Java_com_sun_opengl_impl_GLUImpl_dispatch_1gluBuild1DMipmapLevels__IIIIIIII_3FJ(JNIEnv *env, jobject _unused, jint target, jint internalFormat, jint width, jint format, jint type, jint level, jint base, jint max, jfloatArray data, jlong glProcAddress) {
   PFNGLUBUILD1DMIPMAPLEVELSPROC ptr_gluBuild1DMipmapLevels;
   void * _ptr8 = NULL;
   GLint _res;
@@ -99,7 +99,7 @@ Java_net_java_games_jogl_impl_GLUImpl_dispatch_1gluBuild1DMipmapLevels__IIIIIIII
  *     C function: GLint gluBuild1DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data);
  */
 JNIEXPORT jint JNICALL 
-Java_net_java_games_jogl_impl_GLUImpl_dispatch_1gluBuild1DMipmapLevels__IIIIIIIILjava_nio_Buffer_2J(JNIEnv *env, jobject _unused, jint target, jint internalFormat, jint width, jint format, jint type, jint level, jint base, jint max, jobject data, jlong glProcAddress) {
+Java_com_sun_opengl_impl_GLUImpl_dispatch_1gluBuild1DMipmapLevels__IIIIIIIILjava_nio_Buffer_2J(JNIEnv *env, jobject _unused, jint target, jint internalFormat, jint width, jint format, jint type, jint level, jint base, jint max, jobject data, jlong glProcAddress) {
   PFNGLUBUILD1DMIPMAPLEVELSPROC ptr_gluBuild1DMipmapLevels;
   void * _ptr8 = NULL;
   GLint _res;
@@ -121,7 +121,7 @@ Java_net_java_games_jogl_impl_GLUImpl_dispatch_1gluBuild1DMipmapLevels__IIIIIIII
  *     C function: GLint gluBuild1DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLenum format, GLenum type, const void *  data);
  */
 JNIEXPORT jint JNICALL 
-Java_net_java_games_jogl_impl_GLUImpl_dispatch_1gluBuild1DMipmaps__IIIII_3BJ(JNIEnv *env, jobject _unused, jint target, jint internalFormat, jint width, jint format, jint type, jbyteArray data, jlong glProcAddress) {
+Java_com_sun_opengl_impl_GLUImpl_dispatch_1gluBuild1DMipmaps__IIIII_3BJ(JNIEnv *env, jobject _unused, jint target, jint internalFormat, jint width, jint format, jint type, jbyteArray data, jlong glProcAddress) {
   PFNGLUBUILD1DMIPMAPSPROC ptr_gluBuild1DMipmaps;
   void * _ptr5 = NULL;
   GLint _res;
@@ -144,7 +144,7 @@ Java_net_java_games_jogl_impl_GLUImpl_dispatch_1gluBuild1DMipmaps__IIIII_3BJ(JNI
  *     C function: GLint gluBuild1DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLenum format, GLenum type, const void *  data);
  */
 JNIEXPORT jint JNICALL 
-Java_net_java_games_jogl_impl_GLUImpl_dispatch_1gluBuild1DMipmaps__IIIII_3SJ(JNIEnv *env, jobject _unused, jint target, jint internalFormat, jint width, jint format, jint type, jshortArray data, jlong glProcAddress) {
+Java_com_sun_opengl_impl_GLUImpl_dispatch_1gluBuild1DMipmaps__IIIII_3SJ(JNIEnv *env, jobject _unused, jint target, jint internalFormat, jint width, jint format, jint type, jshortArray data, jlong glProcAddress) {
   PFNGLUBUILD1DMIPMAPSPROC ptr_gluBuild1DMipmaps;
   void * _ptr5 = NULL;
   GLint _res;
@@ -167,7 +167,7 @@ Java_net_java_games_jogl_impl_GLUImpl_dispatch_1gluBuild1DMipmaps__IIIII_3SJ(JNI
  *     C function: GLint gluBuild1DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLenum format, GLenum type, const void *  data);
  */
 JNIEXPORT jint JNICALL 
-Java_net_java_games_jogl_impl_GLUImpl_dispatch_1gluBuild1DMipmaps__IIIII_3IJ(JNIEnv *env, jobject _unused, jint target, jint internalFormat, jint width, jint format, jint type, jintArray data, jlong glProcAddress) {
+Java_com_sun_opengl_impl_GLUImpl_dispatch_1gluBuild1DMipmaps__IIIII_3IJ(JNIEnv *env, jobject _unused, jint target, jint internalFormat, jint width, jint format, jint type, jintArray data, jlong glProcAddress) {
   PFNGLUBUILD1DMIPMAPSPROC ptr_gluBuild1DMipmaps;
   void * _ptr5 = NULL;
   GLint _res;
@@ -190,7 +190,7 @@ Java_net_java_games_jogl_impl_GLUImpl_dispatch_1gluBuild1DMipmaps__IIIII_3IJ(JNI
  *     C function: GLint gluBuild1DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLenum format, GLenum type, const void *  data);
  */
 JNIEXPORT jint JNICALL 
-Java_net_java_games_jogl_impl_GLUImpl_dispatch_1gluBuild1DMipmaps__IIIII_3FJ(JNIEnv *env, jobject _unused, jint target, jint internalFormat, jint width, jint format, jint type, jfloatArray data, jlong glProcAddress) {
+Java_com_sun_opengl_impl_GLUImpl_dispatch_1gluBuild1DMipmaps__IIIII_3FJ(JNIEnv *env, jobject _unused, jint target, jint internalFormat, jint width, jint format, jint type, jfloatArray data, jlong glProcAddress) {
   PFNGLUBUILD1DMIPMAPSPROC ptr_gluBuild1DMipmaps;
   void * _ptr5 = NULL;
   GLint _res;
@@ -213,7 +213,7 @@ Java_net_java_games_jogl_impl_GLUImpl_dispatch_1gluBuild1DMipmaps__IIIII_3FJ(JNI
  *     C function: GLint gluBuild1DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLenum format, GLenum type, const void *  data);
  */
 JNIEXPORT jint JNICALL 
-Java_net_java_games_jogl_impl_GLUImpl_dispatch_1gluBuild1DMipmaps__IIIIILjava_nio_Buffer_2J(JNIEnv *env, jobject _unused, jint target, jint internalFormat, jint width, jint format, jint type, jobject data, jlong glProcAddress) {
+Java_com_sun_opengl_impl_GLUImpl_dispatch_1gluBuild1DMipmaps__IIIIILjava_nio_Buffer_2J(JNIEnv *env, jobject _unused, jint target, jint internalFormat, jint width, jint format, jint type, jobject data, jlong glProcAddress) {
   PFNGLUBUILD1DMIPMAPSPROC ptr_gluBuild1DMipmaps;
   void * _ptr5 = NULL;
   GLint _res;
@@ -235,7 +235,7 @@ Java_net_java_games_jogl_impl_GLUImpl_dispatch_1gluBuild1DMipmaps__IIIIILjava_ni
  *     C function: GLint gluBuild2DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data);
  */
 JNIEXPORT jint JNICALL 
-Java_net_java_games_jogl_impl_GLUImpl_dispatch_1gluBuild2DMipmapLevels__IIIIIIIII_3BJ(JNIEnv *env, jobject _unused, jint target, jint internalFormat, jint width, jint height, jint format, jint type, jint level, jint base, jint max, jbyteArray data, jlong glProcAddress) {
+Java_com_sun_opengl_impl_GLUImpl_dispatch_1gluBuild2DMipmapLevels__IIIIIIIII_3BJ(JNIEnv *env, jobject _unused, jint target, jint internalFormat, jint width, jint height, jint format, jint type, jint level, jint base, jint max, jbyteArray data, jlong glProcAddress) {
   PFNGLUBUILD2DMIPMAPLEVELSPROC ptr_gluBuild2DMipmapLevels;
   void * _ptr9 = NULL;
   GLint _res;
@@ -258,7 +258,7 @@ Java_net_java_games_jogl_impl_GLUImpl_dispatch_1gluBuild2DMipmapLevels__IIIIIIII
  *     C function: GLint gluBuild2DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data);
  */
 JNIEXPORT jint JNICALL 
-Java_net_java_games_jogl_impl_GLUImpl_dispatch_1gluBuild2DMipmapLevels__IIIIIIIII_3SJ(JNIEnv *env, jobject _unused, jint target, jint internalFormat, jint width, jint height, jint format, jint type, jint level, jint base, jint max, jshortArray data, jlong glProcAddress) {
+Java_com_sun_opengl_impl_GLUImpl_dispatch_1gluBuild2DMipmapLevels__IIIIIIIII_3SJ(JNIEnv *env, jobject _unused, jint target, jint internalFormat, jint width, jint height, jint format, jint type, jint level, jint base, jint max, jshortArray data, jlong glProcAddress) {
   PFNGLUBUILD2DMIPMAPLEVELSPROC ptr_gluBuild2DMipmapLevels;
   void * _ptr9 = NULL;
   GLint _res;
@@ -281,7 +281,7 @@ Java_net_java_games_jogl_impl_GLUImpl_dispatch_1gluBuild2DMipmapLevels__IIIIIIII
  *     C function: GLint gluBuild2DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data);
  */
 JNIEXPORT jint JNICALL 
-Java_net_java_games_jogl_impl_GLUImpl_dispatch_1gluBuild2DMipmapLevels__IIIIIIIII_3IJ(JNIEnv *env, jobject _unused, jint target, jint internalFormat, jint width, jint height, jint format, jint type, jint level, jint base, jint max, jintArray data, jlong glProcAddress) {
+Java_com_sun_opengl_impl_GLUImpl_dispatch_1gluBuild2DMipmapLevels__IIIIIIIII_3IJ(JNIEnv *env, jobject _unused, jint target, jint internalFormat, jint width, jint height, jint format, jint type, jint level, jint base, jint max, jintArray data, jlong glProcAddress) {
   PFNGLUBUILD2DMIPMAPLEVELSPROC ptr_gluBuild2DMipmapLevels;
   void * _ptr9 = NULL;
   GLint _res;
@@ -304,7 +304,7 @@ Java_net_java_games_jogl_impl_GLUImpl_dispatch_1gluBuild2DMipmapLevels__IIIIIIII
  *     C function: GLint gluBuild2DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data);
  */
 JNIEXPORT jint JNICALL 
-Java_net_java_games_jogl_impl_GLUImpl_dispatch_1gluBuild2DMipmapLevels__IIIIIIIII_3FJ(JNIEnv *env, jobject _unused, jint target, jint internalFormat, jint width, jint height, jint format, jint type, jint level, jint base, jint max, jfloatArray data, jlong glProcAddress) {
+Java_com_sun_opengl_impl_GLUImpl_dispatch_1gluBuild2DMipmapLevels__IIIIIIIII_3FJ(JNIEnv *env, jobject _unused, jint target, jint internalFormat, jint width, jint height, jint format, jint type, jint level, jint base, jint max, jfloatArray data, jlong glProcAddress) {
   PFNGLUBUILD2DMIPMAPLEVELSPROC ptr_gluBuild2DMipmapLevels;
   void * _ptr9 = NULL;
   GLint _res;
@@ -327,7 +327,7 @@ Java_net_java_games_jogl_impl_GLUImpl_dispatch_1gluBuild2DMipmapLevels__IIIIIIII
  *     C function: GLint gluBuild2DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data);
  */
 JNIEXPORT jint JNICALL 
-Java_net_java_games_jogl_impl_GLUImpl_dispatch_1gluBuild2DMipmapLevels__IIIIIIIIILjava_nio_Buffer_2J(JNIEnv *env, jobject _unused, jint target, jint internalFormat, jint width, jint height, jint format, jint type, jint level, jint base, jint max, jobject data, jlong glProcAddress) {
+Java_com_sun_opengl_impl_GLUImpl_dispatch_1gluBuild2DMipmapLevels__IIIIIIIIILjava_nio_Buffer_2J(JNIEnv *env, jobject _unused, jint target, jint internalFormat, jint width, jint height, jint format, jint type, jint level, jint base, jint max, jobject data, jlong glProcAddress) {
   PFNGLUBUILD2DMIPMAPLEVELSPROC ptr_gluBuild2DMipmapLevels;
   void * _ptr9 = NULL;
   GLint _res;
@@ -349,7 +349,7 @@ Java_net_java_games_jogl_impl_GLUImpl_dispatch_1gluBuild2DMipmapLevels__IIIIIIII
  *     C function: GLint gluBuild2DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *  data);
  */
 JNIEXPORT jint JNICALL 
-Java_net_java_games_jogl_impl_GLUImpl_dispatch_1gluBuild2DMipmaps__IIIIII_3BJ(JNIEnv *env, jobject _unused, jint target, jint internalFormat, jint width, jint height, jint format, jint type, jbyteArray data, jlong glProcAddress) {
+Java_com_sun_opengl_impl_GLUImpl_dispatch_1gluBuild2DMipmaps__IIIIII_3BJ(JNIEnv *env, jobject _unused, jint target, jint internalFormat, jint width, jint height, jint format, jint type, jbyteArray data, jlong glProcAddress) {
   PFNGLUBUILD2DMIPMAPSPROC ptr_gluBuild2DMipmaps;
   void * _ptr6 = NULL;
   GLint _res;
@@ -372,7 +372,7 @@ Java_net_java_games_jogl_impl_GLUImpl_dispatch_1gluBuild2DMipmaps__IIIIII_3BJ(JN
  *     C function: GLint gluBuild2DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *  data);
  */
 JNIEXPORT jint JNICALL 
-Java_net_java_games_jogl_impl_GLUImpl_dispatch_1gluBuild2DMipmaps__IIIIII_3SJ(JNIEnv *env, jobject _unused, jint target, jint internalFormat, jint width, jint height, jint format, jint type, jshortArray data, jlong glProcAddress) {
+Java_com_sun_opengl_impl_GLUImpl_dispatch_1gluBuild2DMipmaps__IIIIII_3SJ(JNIEnv *env, jobject _unused, jint target, jint internalFormat, jint width, jint height, jint format, jint type, jshortArray data, jlong glProcAddress) {
   PFNGLUBUILD2DMIPMAPSPROC ptr_gluBuild2DMipmaps;
   void * _ptr6 = NULL;
   GLint _res;
@@ -395,7 +395,7 @@ Java_net_java_games_jogl_impl_GLUImpl_dispatch_1gluBuild2DMipmaps__IIIIII_3SJ(JN
  *     C function: GLint gluBuild2DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *  data);
  */
 JNIEXPORT jint JNICALL 
-Java_net_java_games_jogl_impl_GLUImpl_dispatch_1gluBuild2DMipmaps__IIIIII_3IJ(JNIEnv *env, jobject _unused, jint target, jint internalFormat, jint width, jint height, jint format, jint type, jintArray data, jlong glProcAddress) {
+Java_com_sun_opengl_impl_GLUImpl_dispatch_1gluBuild2DMipmaps__IIIIII_3IJ(JNIEnv *env, jobject _unused, jint target, jint internalFormat, jint width, jint height, jint format, jint type, jintArray data, jlong glProcAddress) {
   PFNGLUBUILD2DMIPMAPSPROC ptr_gluBuild2DMipmaps;
   void * _ptr6 = NULL;
   GLint _res;
@@ -418,7 +418,7 @@ Java_net_java_games_jogl_impl_GLUImpl_dispatch_1gluBuild2DMipmaps__IIIIII_3IJ(JN
  *     C function: GLint gluBuild2DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *  data);
  */
 JNIEXPORT jint JNICALL 
-Java_net_java_games_jogl_impl_GLUImpl_dispatch_1gluBuild2DMipmaps__IIIIII_3FJ(JNIEnv *env, jobject _unused, jint target, jint internalFormat, jint width, jint height, jint format, jint type, jfloatArray data, jlong glProcAddress) {
+Java_com_sun_opengl_impl_GLUImpl_dispatch_1gluBuild2DMipmaps__IIIIII_3FJ(JNIEnv *env, jobject _unused, jint target, jint internalFormat, jint width, jint height, jint format, jint type, jfloatArray data, jlong glProcAddress) {
   PFNGLUBUILD2DMIPMAPSPROC ptr_gluBuild2DMipmaps;
   void * _ptr6 = NULL;
   GLint _res;
@@ -441,7 +441,7 @@ Java_net_java_games_jogl_impl_GLUImpl_dispatch_1gluBuild2DMipmaps__IIIIII_3FJ(JN
  *     C function: GLint gluBuild2DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *  data);
  */
 JNIEXPORT jint JNICALL 
-Java_net_java_games_jogl_impl_GLUImpl_dispatch_1gluBuild2DMipmaps__IIIIIILjava_nio_Buffer_2J(JNIEnv *env, jobject _unused, jint target, jint internalFormat, jint width, jint height, jint format, jint type, jobject data, jlong glProcAddress) {
+Java_com_sun_opengl_impl_GLUImpl_dispatch_1gluBuild2DMipmaps__IIIIIILjava_nio_Buffer_2J(JNIEnv *env, jobject _unused, jint target, jint internalFormat, jint width, jint height, jint format, jint type, jobject data, jlong glProcAddress) {
   PFNGLUBUILD2DMIPMAPSPROC ptr_gluBuild2DMipmaps;
   void * _ptr6 = NULL;
   GLint _res;
@@ -463,7 +463,7 @@ Java_net_java_games_jogl_impl_GLUImpl_dispatch_1gluBuild2DMipmaps__IIIIIILjava_n
  *     C function: GLint gluBuild3DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data);
  */
 JNIEXPORT jint JNICALL 
-Java_net_java_games_jogl_impl_GLUImpl_dispatch_1gluBuild3DMipmapLevels__IIIIIIIIII_3BJ(JNIEnv *env, jobject _unused, jint target, jint internalFormat, jint width, jint height, jint depth, jint format, jint type, jint level, jint base, jint max, jbyteArray data, jlong glProcAddress) {
+Java_com_sun_opengl_impl_GLUImpl_dispatch_1gluBuild3DMipmapLevels__IIIIIIIIII_3BJ(JNIEnv *env, jobject _unused, jint target, jint internalFormat, jint width, jint height, jint depth, jint format, jint type, jint level, jint base, jint max, jbyteArray data, jlong glProcAddress) {
   PFNGLUBUILD3DMIPMAPLEVELSPROC ptr_gluBuild3DMipmapLevels;
   void * _ptr10 = NULL;
   GLint _res;
@@ -486,7 +486,7 @@ Java_net_java_games_jogl_impl_GLUImpl_dispatch_1gluBuild3DMipmapLevels__IIIIIIII
  *     C function: GLint gluBuild3DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data);
  */
 JNIEXPORT jint JNICALL 
-Java_net_java_games_jogl_impl_GLUImpl_dispatch_1gluBuild3DMipmapLevels__IIIIIIIIII_3SJ(JNIEnv *env, jobject _unused, jint target, jint internalFormat, jint width, jint height, jint depth, jint format, jint type, jint level, jint base, jint max, jshortArray data, jlong glProcAddress) {
+Java_com_sun_opengl_impl_GLUImpl_dispatch_1gluBuild3DMipmapLevels__IIIIIIIIII_3SJ(JNIEnv *env, jobject _unused, jint target, jint internalFormat, jint width, jint height, jint depth, jint format, jint type, jint level, jint base, jint max, jshortArray data, jlong glProcAddress) {
   PFNGLUBUILD3DMIPMAPLEVELSPROC ptr_gluBuild3DMipmapLevels;
   void * _ptr10 = NULL;
   GLint _res;
@@ -509,7 +509,7 @@ Java_net_java_games_jogl_impl_GLUImpl_dispatch_1gluBuild3DMipmapLevels__IIIIIIII
  *     C function: GLint gluBuild3DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data);
  */
 JNIEXPORT jint JNICALL 
-Java_net_java_games_jogl_impl_GLUImpl_dispatch_1gluBuild3DMipmapLevels__IIIIIIIIII_3IJ(JNIEnv *env, jobject _unused, jint target, jint internalFormat, jint width, jint height, jint depth, jint format, jint type, jint level, jint base, jint max, jintArray data, jlong glProcAddress) {
+Java_com_sun_opengl_impl_GLUImpl_dispatch_1gluBuild3DMipmapLevels__IIIIIIIIII_3IJ(JNIEnv *env, jobject _unused, jint target, jint internalFormat, jint width, jint height, jint depth, jint format, jint type, jint level, jint base, jint max, jintArray data, jlong glProcAddress) {
   PFNGLUBUILD3DMIPMAPLEVELSPROC ptr_gluBuild3DMipmapLevels;
   void * _ptr10 = NULL;
   GLint _res;
@@ -532,7 +532,7 @@ Java_net_java_games_jogl_impl_GLUImpl_dispatch_1gluBuild3DMipmapLevels__IIIIIIII
  *     C function: GLint gluBuild3DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data);
  */
 JNIEXPORT jint JNICALL 
-Java_net_java_games_jogl_impl_GLUImpl_dispatch_1gluBuild3DMipmapLevels__IIIIIIIIII_3FJ(JNIEnv *env, jobject _unused, jint target, jint internalFormat, jint width, jint height, jint depth, jint format, jint type, jint level, jint base, jint max, jfloatArray data, jlong glProcAddress) {
+Java_com_sun_opengl_impl_GLUImpl_dispatch_1gluBuild3DMipmapLevels__IIIIIIIIII_3FJ(JNIEnv *env, jobject _unused, jint target, jint internalFormat, jint width, jint height, jint depth, jint format, jint type, jint level, jint base, jint max, jfloatArray data, jlong glProcAddress) {
   PFNGLUBUILD3DMIPMAPLEVELSPROC ptr_gluBuild3DMipmapLevels;
   void * _ptr10 = NULL;
   GLint _res;
@@ -555,7 +555,7 @@ Java_net_java_games_jogl_impl_GLUImpl_dispatch_1gluBuild3DMipmapLevels__IIIIIIII
  *     C function: GLint gluBuild3DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data);
  */
 JNIEXPORT jint JNICALL 
-Java_net_java_games_jogl_impl_GLUImpl_dispatch_1gluBuild3DMipmapLevels__IIIIIIIIIILjava_nio_Buffer_2J(JNIEnv *env, jobject _unused, jint target, jint internalFormat, jint width, jint height, jint depth, jint format, jint type, jint level, jint base, jint max, jobject data, jlong glProcAddress) {
+Java_com_sun_opengl_impl_GLUImpl_dispatch_1gluBuild3DMipmapLevels__IIIIIIIIIILjava_nio_Buffer_2J(JNIEnv *env, jobject _unused, jint target, jint internalFormat, jint width, jint height, jint depth, jint format, jint type, jint level, jint base, jint max, jobject data, jlong glProcAddress) {
   PFNGLUBUILD3DMIPMAPLEVELSPROC ptr_gluBuild3DMipmapLevels;
   void * _ptr10 = NULL;
   GLint _res;
@@ -577,7 +577,7 @@ Java_net_java_games_jogl_impl_GLUImpl_dispatch_1gluBuild3DMipmapLevels__IIIIIIII
  *     C function: GLint gluBuild3DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *  data);
  */
 JNIEXPORT jint JNICALL 
-Java_net_java_games_jogl_impl_GLUImpl_dispatch_1gluBuild3DMipmaps__IIIIIII_3BJ(JNIEnv *env, jobject _unused, jint target, jint internalFormat, jint width, jint height, jint depth, jint format, jint type, jbyteArray data, jlong glProcAddress) {
+Java_com_sun_opengl_impl_GLUImpl_dispatch_1gluBuild3DMipmaps__IIIIIII_3BJ(JNIEnv *env, jobject _unused, jint target, jint internalFormat, jint width, jint height, jint depth, jint format, jint type, jbyteArray data, jlong glProcAddress) {
   PFNGLUBUILD3DMIPMAPSPROC ptr_gluBuild3DMipmaps;
   void * _ptr7 = NULL;
   GLint _res;
@@ -600,7 +600,7 @@ Java_net_java_games_jogl_impl_GLUImpl_dispatch_1gluBuild3DMipmaps__IIIIIII_3BJ(J
  *     C function: GLint gluBuild3DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *  data);
  */
 JNIEXPORT jint JNICALL 
-Java_net_java_games_jogl_impl_GLUImpl_dispatch_1gluBuild3DMipmaps__IIIIIII_3SJ(JNIEnv *env, jobject _unused, jint target, jint internalFormat, jint width, jint height, jint depth, jint format, jint type, jshortArray data, jlong glProcAddress) {
+Java_com_sun_opengl_impl_GLUImpl_dispatch_1gluBuild3DMipmaps__IIIIIII_3SJ(JNIEnv *env, jobject _unused, jint target, jint internalFormat, jint width, jint height, jint depth, jint format, jint type, jshortArray data, jlong glProcAddress) {
   PFNGLUBUILD3DMIPMAPSPROC ptr_gluBuild3DMipmaps;
   void * _ptr7 = NULL;
   GLint _res;
@@ -623,7 +623,7 @@ Java_net_java_games_jogl_impl_GLUImpl_dispatch_1gluBuild3DMipmaps__IIIIIII_3SJ(J
  *     C function: GLint gluBuild3DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *  data);
  */
 JNIEXPORT jint JNICALL 
-Java_net_java_games_jogl_impl_GLUImpl_dispatch_1gluBuild3DMipmaps__IIIIIII_3IJ(JNIEnv *env, jobject _unused, jint target, jint internalFormat, jint width, jint height, jint depth, jint format, jint type, jintArray data, jlong glProcAddress) {
+Java_com_sun_opengl_impl_GLUImpl_dispatch_1gluBuild3DMipmaps__IIIIIII_3IJ(JNIEnv *env, jobject _unused, jint target, jint internalFormat, jint width, jint height, jint depth, jint format, jint type, jintArray data, jlong glProcAddress) {
   PFNGLUBUILD3DMIPMAPSPROC ptr_gluBuild3DMipmaps;
   void * _ptr7 = NULL;
   GLint _res;
@@ -646,7 +646,7 @@ Java_net_java_games_jogl_impl_GLUImpl_dispatch_1gluBuild3DMipmaps__IIIIIII_3IJ(J
  *     C function: GLint gluBuild3DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *  data);
  */
 JNIEXPORT jint JNICALL 
-Java_net_java_games_jogl_impl_GLUImpl_dispatch_1gluBuild3DMipmaps__IIIIIII_3FJ(JNIEnv *env, jobject _unused, jint target, jint internalFormat, jint width, jint height, jint depth, jint format, jint type, jfloatArray data, jlong glProcAddress) {
+Java_com_sun_opengl_impl_GLUImpl_dispatch_1gluBuild3DMipmaps__IIIIIII_3FJ(JNIEnv *env, jobject _unused, jint target, jint internalFormat, jint width, jint height, jint depth, jint format, jint type, jfloatArray data, jlong glProcAddress) {
   PFNGLUBUILD3DMIPMAPSPROC ptr_gluBuild3DMipmaps;
   void * _ptr7 = NULL;
   GLint _res;
@@ -669,7 +669,7 @@ Java_net_java_games_jogl_impl_GLUImpl_dispatch_1gluBuild3DMipmaps__IIIIIII_3FJ(J
  *     C function: GLint gluBuild3DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *  data);
  */
 JNIEXPORT jint JNICALL 
-Java_net_java_games_jogl_impl_GLUImpl_dispatch_1gluBuild3DMipmaps__IIIIIIILjava_nio_Buffer_2J(JNIEnv *env, jobject _unused, jint target, jint internalFormat, jint width, jint height, jint depth, jint format, jint type, jobject data, jlong glProcAddress) {
+Java_com_sun_opengl_impl_GLUImpl_dispatch_1gluBuild3DMipmaps__IIIIIIILjava_nio_Buffer_2J(JNIEnv *env, jobject _unused, jint target, jint internalFormat, jint width, jint height, jint depth, jint format, jint type, jobject data, jlong glProcAddress) {
   PFNGLUBUILD3DMIPMAPSPROC ptr_gluBuild3DMipmaps;
   void * _ptr7 = NULL;
   GLint _res;
@@ -691,7 +691,7 @@ Java_net_java_games_jogl_impl_GLUImpl_dispatch_1gluBuild3DMipmaps__IIIIIIILjava_
  *     C function: GLint gluScaleImage(GLenum format, GLsizei wIn, GLsizei hIn, GLenum typeIn, const void *  dataIn, GLsizei wOut, GLsizei hOut, GLenum typeOut, GLvoid *  dataOut);
  */
 JNIEXPORT jint JNICALL 
-Java_net_java_games_jogl_impl_GLUImpl_dispatch_1gluScaleImage__IIII_3BIII_3BJ(JNIEnv *env, jobject _unused, jint format, jint wIn, jint hIn, jint typeIn, jbyteArray dataIn, jint wOut, jint hOut, jint typeOut, jbyteArray dataOut, jlong glProcAddress) {
+Java_com_sun_opengl_impl_GLUImpl_dispatch_1gluScaleImage__IIII_3BIII_3BJ(JNIEnv *env, jobject _unused, jint format, jint wIn, jint hIn, jint typeIn, jbyteArray dataIn, jint wOut, jint hOut, jint typeOut, jbyteArray dataOut, jlong glProcAddress) {
   PFNGLUSCALEIMAGEPROC ptr_gluScaleImage;
   void * _ptr4 = NULL;
   GLvoid * _ptr8 = NULL;
@@ -721,7 +721,7 @@ Java_net_java_games_jogl_impl_GLUImpl_dispatch_1gluScaleImage__IIII_3BIII_3BJ(JN
  *     C function: GLint gluScaleImage(GLenum format, GLsizei wIn, GLsizei hIn, GLenum typeIn, const void *  dataIn, GLsizei wOut, GLsizei hOut, GLenum typeOut, GLvoid *  dataOut);
  */
 JNIEXPORT jint JNICALL 
-Java_net_java_games_jogl_impl_GLUImpl_dispatch_1gluScaleImage__IIII_3SIII_3SJ(JNIEnv *env, jobject _unused, jint format, jint wIn, jint hIn, jint typeIn, jshortArray dataIn, jint wOut, jint hOut, jint typeOut, jshortArray dataOut, jlong glProcAddress) {
+Java_com_sun_opengl_impl_GLUImpl_dispatch_1gluScaleImage__IIII_3SIII_3SJ(JNIEnv *env, jobject _unused, jint format, jint wIn, jint hIn, jint typeIn, jshortArray dataIn, jint wOut, jint hOut, jint typeOut, jshortArray dataOut, jlong glProcAddress) {
   PFNGLUSCALEIMAGEPROC ptr_gluScaleImage;
   void * _ptr4 = NULL;
   GLvoid * _ptr8 = NULL;
@@ -751,7 +751,7 @@ Java_net_java_games_jogl_impl_GLUImpl_dispatch_1gluScaleImage__IIII_3SIII_3SJ(JN
  *     C function: GLint gluScaleImage(GLenum format, GLsizei wIn, GLsizei hIn, GLenum typeIn, const void *  dataIn, GLsizei wOut, GLsizei hOut, GLenum typeOut, GLvoid *  dataOut);
  */
 JNIEXPORT jint JNICALL 
-Java_net_java_games_jogl_impl_GLUImpl_dispatch_1gluScaleImage__IIII_3IIII_3IJ(JNIEnv *env, jobject _unused, jint format, jint wIn, jint hIn, jint typeIn, jintArray dataIn, jint wOut, jint hOut, jint typeOut, jintArray dataOut, jlong glProcAddress) {
+Java_com_sun_opengl_impl_GLUImpl_dispatch_1gluScaleImage__IIII_3IIII_3IJ(JNIEnv *env, jobject _unused, jint format, jint wIn, jint hIn, jint typeIn, jintArray dataIn, jint wOut, jint hOut, jint typeOut, jintArray dataOut, jlong glProcAddress) {
   PFNGLUSCALEIMAGEPROC ptr_gluScaleImage;
   void * _ptr4 = NULL;
   GLvoid * _ptr8 = NULL;
@@ -781,7 +781,7 @@ Java_net_java_games_jogl_impl_GLUImpl_dispatch_1gluScaleImage__IIII_3IIII_3IJ(JN
  *     C function: GLint gluScaleImage(GLenum format, GLsizei wIn, GLsizei hIn, GLenum typeIn, const void *  dataIn, GLsizei wOut, GLsizei hOut, GLenum typeOut, GLvoid *  dataOut);
  */
 JNIEXPORT jint JNICALL 
-Java_net_java_games_jogl_impl_GLUImpl_dispatch_1gluScaleImage__IIII_3FIII_3FJ(JNIEnv *env, jobject _unused, jint format, jint wIn, jint hIn, jint typeIn, jfloatArray dataIn, jint wOut, jint hOut, jint typeOut, jfloatArray dataOut, jlong glProcAddress) {
+Java_com_sun_opengl_impl_GLUImpl_dispatch_1gluScaleImage__IIII_3FIII_3FJ(JNIEnv *env, jobject _unused, jint format, jint wIn, jint hIn, jint typeIn, jfloatArray dataIn, jint wOut, jint hOut, jint typeOut, jfloatArray dataOut, jlong glProcAddress) {
   PFNGLUSCALEIMAGEPROC ptr_gluScaleImage;
   void * _ptr4 = NULL;
   GLvoid * _ptr8 = NULL;
@@ -811,7 +811,7 @@ Java_net_java_games_jogl_impl_GLUImpl_dispatch_1gluScaleImage__IIII_3FIII_3FJ(JN
  *     C function: GLint gluScaleImage(GLenum format, GLsizei wIn, GLsizei hIn, GLenum typeIn, const void *  dataIn, GLsizei wOut, GLsizei hOut, GLenum typeOut, GLvoid *  dataOut);
  */
 JNIEXPORT jint JNICALL 
-Java_net_java_games_jogl_impl_GLUImpl_dispatch_1gluScaleImage__IIIILjava_nio_Buffer_2IIILjava_nio_Buffer_2J(JNIEnv *env, jobject _unused, jint format, jint wIn, jint hIn, jint typeIn, jobject dataIn, jint wOut, jint hOut, jint typeOut, jobject dataOut, jlong glProcAddress) {
+Java_com_sun_opengl_impl_GLUImpl_dispatch_1gluScaleImage__IIIILjava_nio_Buffer_2IIILjava_nio_Buffer_2J(JNIEnv *env, jobject _unused, jint format, jint wIn, jint hIn, jint typeIn, jobject dataIn, jint wOut, jint hOut, jint typeOut, jobject dataOut, jlong glProcAddress) {
   PFNGLUSCALEIMAGEPROC ptr_gluScaleImage;
   void * _ptr4 = NULL;
   GLvoid * _ptr8 = NULL;

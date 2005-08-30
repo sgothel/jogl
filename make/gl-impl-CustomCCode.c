@@ -4,7 +4,7 @@
  *     C function: LPVOID glMapBuffer(GLenum target, GLenum access);
  */
 JNIEXPORT jlong JNICALL 
-Java_net_java_games_jogl_impl_GLImpl_dispatch_1glMapBuffer(JNIEnv *env, jobject _unused, jint target, jint access, jlong glProcAddress) {
+Java_com_sun_opengl_impl_GLImpl_dispatch_1glMapBuffer(JNIEnv *env, jobject _unused, jint target, jint access, jlong glProcAddress) {
   PFNGLMAPBUFFERPROC ptr_glMapBuffer;
   LPVOID _res;
   ptr_glMapBuffer = (PFNGLMAPBUFFERPROC) (intptr_t) glProcAddress;
@@ -19,7 +19,7 @@ Java_net_java_games_jogl_impl_GLImpl_dispatch_1glMapBuffer(JNIEnv *env, jobject 
  *     C function: LPVOID glMapBufferARB(GLenum target, GLenum access);
  */
 JNIEXPORT jlong JNICALL 
-Java_net_java_games_jogl_impl_GLImpl_dispatch_1glMapBufferARB(JNIEnv *env, jobject _unused, jint target, jint access, jlong glProcAddress) {
+Java_com_sun_opengl_impl_GLImpl_dispatch_1glMapBufferARB(JNIEnv *env, jobject _unused, jint target, jint access, jlong glProcAddress) {
   PFNGLMAPBUFFERARBPROC ptr_glMapBufferARB;
   LPVOID _res;
   ptr_glMapBufferARB = (PFNGLMAPBUFFERARBPROC) (intptr_t) glProcAddress;
