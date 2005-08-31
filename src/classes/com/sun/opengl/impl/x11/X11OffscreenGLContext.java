@@ -52,7 +52,7 @@ public class X11OffscreenGLContext extends X11GLContext {
   }
 
   public int getOffscreenContextPixelDataType() {
-    return GL.GL_UNSIGNED_BYTE;
+    return GL.GL_UNSIGNED_INT_8_8_8_8_REV;
   }
   
   public int getOffscreenContextReadBuffer() {
