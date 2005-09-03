@@ -176,7 +176,6 @@ public class BuildStaticGLInfo
       // see if we're inside a #ifndef GL_XXX block and matching a function
       if (activeAssociation != null) {
         String identifier = null;
-        // FIXME: NOT FINISHED
         if ((m = funcPattern.matcher(line)).matches()) {
           identifier = m.group(8);
         } else if ((m = definePattern.matcher(line)).matches()) {

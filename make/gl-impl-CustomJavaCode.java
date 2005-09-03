@@ -1,3 +1,7 @@
+// Tracks glBegin/glEnd calls to determine whether it is legal to
+// query Vertex Buffer Object state
+private boolean inBeginEndPair;
+
 public GLImpl(GLContextImpl context) {
   this._context = context; 
 }
@@ -26,6 +30,100 @@ public void setSwapInterval(int interval) {
 
 public Object getPlatformGLExtensions() {
   return _context.getPlatformGLExtensions();
+}
+
+private void checkBufferObject(String extension1,
+                               String extension2,
+                               boolean enabled,
+                               int state,
+                               String kind) {
+  if (inBeginEndPair) {
+    throw new GLException("May not call this between glBegin and glEnd");
+  }
+  boolean avail = ((extension1 != null && isExtensionAvailable(extension1)) ||
+                   (extension2 != null && isExtensionAvailable(extension2)));
+  if (!avail) {
+    if (!enabled)
+      return;
+    throw new GLException("Required extensions not available to call this function");
+  }
+  int[] val = new int[1];
+  glGetIntegerv(state, val, 0);
+  if (enabled) {
+    if (val[0] == 0) {
+      throw new GLException(kind + " must be enabled to call this method");
+    }
+  } else {
+    if (val[0] != 0) {
+      throw new GLException(kind + " must be disabled to call this method");
+    }
+  }
+}  
+
+private void checkUnpackPBODisabled() { 
+  checkBufferObject("GL_ARB_pixel_buffer_object",
+                    "GL_EXT_pixel_buffer_object",
+                    false,
+                    GL.GL_PIXEL_UNPACK_BUFFER_BINDING_ARB,
+                    "unpack pixel_buffer_object");
+}
+
+private void checkUnpackPBOEnabled() { 
+  checkBufferObject("GL_ARB_pixel_buffer_object",
+                    "GL_EXT_pixel_buffer_object",
+                    true,
+                    GL.GL_PIXEL_UNPACK_BUFFER_BINDING_ARB,
+                    "unpack pixel_buffer_object");
+}
+
+private void checkPackPBODisabled() { 
+  checkBufferObject("GL_ARB_pixel_buffer_object",
+                    "GL_EXT_pixel_buffer_object",
+                    false,
+                    GL.GL_PIXEL_PACK_BUFFER_BINDING_ARB,
+                    "pack pixel_buffer_object");
+}
+
+private void checkPackPBOEnabled() { 
+  checkBufferObject("GL_ARB_pixel_buffer_object",
+                    "GL_EXT_pixel_buffer_object",
+                    true,
+                    GL.GL_PIXEL_PACK_BUFFER_BINDING_ARB,
+                    "pack pixel_buffer_object");
+}
+
+
+private void checkArrayVBODisabled() { 
+  checkBufferObject("GL_VERSION_1_5",
+                    "GL_ARB_vertex_buffer_object",
+                    false,
+                    GL.GL_ARRAY_BUFFER_BINDING,
+                    "array vertex_buffer_object");
+}
+
+private void checkArrayVBOEnabled() { 
+  checkBufferObject("GL_VERSION_1_5",
+                    "GL_ARB_vertex_buffer_object",
+                    true,
+                    GL.GL_ARRAY_BUFFER_BINDING,
+                    "array vertex_buffer_object");
+}
+
+// FIXME: should we use the ELEMENT_ARRAY_BUFFER_BINDING_ARB state here instead?
+private void checkElementVBODisabled() { 
+  checkBufferObject("GL_VERSION_1_5",
+                    "GL_ARB_vertex_buffer_object",
+                    false,
+                    GL.GL_ARRAY_BUFFER_BINDING,
+                    "element vertex_buffer_object");
+}
+
+private void checkElementVBOEnabled() { 
+  checkBufferObject("GL_VERSION_1_5",
+                    "GL_ARB_vertex_buffer_object",
+                    true,
+                    GL.GL_ARRAY_BUFFER_BINDING,
+                    "element vertex_buffer_object");
 }
 
 // Attempt to return the same ByteBuffer object from glMapBufferARB if

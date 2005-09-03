@@ -60,6 +60,18 @@ public class GLEmitter extends JavaEmitter
   private String tableClassPackage;
   private String tableClassName;
   private int numProcAddressEntries;
+  // Keeps track of which MethodBindings were created for handling
+  // Buffer Object variants. Used as a Set rather than a Map.
+  private Map/*<MethodBinding>*/ bufferObjectMethodBindings = new IdentityHashMap();
+
+  static class BufferObjectKind {
+    private BufferObjectKind() {}
+
+    static final BufferObjectKind UNPACK_PIXEL = new BufferObjectKind();
+    static final BufferObjectKind PACK_PIXEL   = new BufferObjectKind();
+    static final BufferObjectKind ARRAY        = new BufferObjectKind();
+    static final BufferObjectKind ELEMENT      = new BufferObjectKind();
+  }
   
   public void beginEmission(GlueEmitterControls controls) throws IOException
   {
@@ -99,17 +111,64 @@ public class GLEmitter extends JavaEmitter
     return new GLConfiguration();
   }
 
+  /** In order to implement Buffer Object variants of certain
+      functions we generate another MethodBinding which maps the void*
+      argument to a Java long. The generation of emitters then takes
+      place as usual. We do however need to keep track of the modified
+      MethodBinding object so that we can also modify the emitters
+      later to inform them that their argument has changed. We might
+      want to push this functionality down into the MethodBinding
+      (i.e., mutators for argument names). We also would need to
+      inform the CMethodBindingEmitter that it is overloaded in this
+      case (though we default to true currently). */
+  protected List/*<MethodBinding>*/ expandMethodBinding(MethodBinding binding) {
+    List/*<MethodBinding>*/ bindings = super.expandMethodBinding(binding);
+    
+    if (!getGLConfig().isBufferObjectFunction(binding.getName())) {
+      return bindings;
+    }
+
+    List/*<MethodBinding>*/ newBindings = new ArrayList();
+    newBindings.addAll(bindings);
+
+    // Need to expand each one of the generated bindings to take a
+    // Java long instead of a Buffer for each void* argument
+    for (Iterator iter = bindings.iterator(); iter.hasNext(); ) {
+      MethodBinding cur = (MethodBinding) iter.next();
+      
+      // Some of these routines (glBitmap) take strongly-typed
+      // primitive pointers as arguments which are expanded into
+      // non-void* arguments
+      // This test (rather than !signatureUsesNIO) is used to catch
+      // more unexpected situations
+      if (cur.signatureUsesJavaPrimitiveArrays()) {
+        continue;
+      }
+
+      MethodBinding result = cur;
+      for (int i = 0; i < cur.getNumArguments(); i++) {
+        if (cur.getJavaArgumentType(i).isNIOBuffer()) {
+          result = result.replaceJavaArgumentType(i, JavaType.createForClass(Long.TYPE));
+        }
+      }
+
+      if (result == cur) {
+        throw new RuntimeException("Error: didn't find any void* arguments for BufferObject function " +
+                                   binding.getName());
+      }
+
+      newBindings.add(result);
+      // Now need to flag this MethodBinding so that we generate the
+      // correct flags in the emitters later
+      bufferObjectMethodBindings.put(result, result);
+    }
+
+    return newBindings;
+  }
+
   protected List generateMethodBindingEmitters(FunctionSymbol sym) throws Exception
   {
     return generateMethodBindingEmittersImpl(sym);
-  }
-
-  protected List generateMethodBindingEmitters(FunctionSymbol sym, boolean skipProcessing) throws Exception {
-    if (skipProcessing) {
-      return super.generateMethodBindingEmitters(sym);
-    } else {
-      return generateMethodBindingEmittersImpl(sym);
-    }
   }
 
   private List generateMethodBindingEmittersImpl(FunctionSymbol sym) throws Exception
@@ -124,20 +183,21 @@ public class GLEmitter extends JavaEmitter
       return defaultEmitters;
     }
     
-    // Don't do anything special if this symbol doesn't require passing of
-    // Opengl procedure addresses in order to function correctly.
-    if (!needsProcAddressWrapper(sym) || getConfig().isUnimplemented(sym.getName()))
+    // Don't do anything special if this symbol doesn't require
+    // OpenGL-related modifications
+    if ((!needsProcAddressWrapper(sym) && !needsBufferObjectVariant(sym)) ||
+        getConfig().isUnimplemented(sym.getName()))
     {
       return defaultEmitters;
     }
 
-    // 9 is default # expanded bindings for void*
-    ArrayList modifiedEmitters = new ArrayList(9); 
+    ArrayList modifiedEmitters = new ArrayList(defaultEmitters.size());
 
-    if (getGLConfig().emitProcAddressTable())
-    {
-      // emit an entry in the GL proc address table for this method.
-      emitGLProcAddressTableEntryForSymbol(sym);
+    if (needsProcAddressWrapper(sym)) {
+      if (getGLConfig().emitProcAddressTable()) {
+        // emit an entry in the GL proc address table for this method.
+        emitGLProcAddressTableEntryForSymbol(sym);
+      }
     }
     
     for (Iterator iter = defaultEmitters.iterator(); iter.hasNext(); )
@@ -191,10 +251,17 @@ public class GLEmitter extends JavaEmitter
       return;
     }
     
-    JavaGLPAWrapperEmitter emitter =
-      new JavaGLPAWrapperEmitter(baseJavaEmitter,
-                                 getGLConfig().getProcAddressTableExpr(),
-                                 baseJavaEmitter.hasModifier(JavaMethodBindingEmitter.PRIVATE));
+    // See whether we need a proc address entry for this one
+    boolean callThroughProcAddress = needsProcAddressWrapper(baseJavaEmitter.getBinding().getCSymbol());
+    // See whether this is one of the Buffer Object variants
+    boolean bufferObjectVariant = bufferObjectMethodBindings.containsKey(baseJavaEmitter.getBinding());
+
+    GLJavaMethodBindingEmitter emitter =
+      new GLJavaMethodBindingEmitter(baseJavaEmitter,
+                                     callThroughProcAddress,
+                                     getGLConfig().getProcAddressTableExpr(),
+                                     baseJavaEmitter.hasModifier(JavaMethodBindingEmitter.PRIVATE),
+                                     bufferObjectVariant);
     emitters.add(emitter);
 
     // If this emitter doesn't have a body (i.e., is a public native
@@ -202,41 +269,32 @@ public class GLEmitter extends JavaEmitter
     // one to act as the entry point
     if (baseJavaEmitter.signatureOnly() &&
         baseJavaEmitter.hasModifier(JavaMethodBindingEmitter.PUBLIC) &&
-        baseJavaEmitter.hasModifier(JavaMethodBindingEmitter.NATIVE)) {
+        baseJavaEmitter.hasModifier(JavaMethodBindingEmitter.NATIVE) &&
+        callThroughProcAddress) {
       emitter.setEmitBody(true);
       emitter.removeModifier(JavaMethodBindingEmitter.NATIVE);
-      emitter = new JavaGLPAWrapperEmitter(baseJavaEmitter,
-                                           getGLConfig().getProcAddressTableExpr(),
-                                           true);
+      emitter = new GLJavaMethodBindingEmitter(baseJavaEmitter,
+                                               callThroughProcAddress,
+                                               getGLConfig().getProcAddressTableExpr(),
+                                               true,
+                                               bufferObjectVariant);
       emitter.setForImplementingMethodCall(true);
       emitters.add(emitter);
     }
-
-    /*****
-          FIXME: OLD CODE (DELETE)
-
-    if (baseJavaEmitter.signatureOnly()) {
-      // We only want to wrap the native entry point in the implementation
-      // class, not the public interface in the interface class.
-      //
-      // If the superclass has generated a "0" emitter for this routine because
-      // it needs argument conversion or similar, filter that out since we will
-      // be providing such an emitter ourselves. Otherwise return the emitter
-      // unmodified.
-      if (baseJavaEmitter.isForImplementingMethodCall())
-        return null;
-      return baseJavaEmitter;
-    }
-    return new JavaGLPAWrapperEmitter(baseJavaEmitter, getGLConfig().getProcAddressTableExpr());
-    ****/
   }
 
   protected void generateModifiedEmitters(CMethodBindingEmitter baseCEmitter, List emitters)
   {    
+    // See whether we need a proc address entry for this one
+    boolean callThroughProcAddress = needsProcAddressWrapper(baseCEmitter.getBinding().getCSymbol());
+    // Note that we don't care much about the naming of the C argument
+    // variables so to keep things simple we ignore the buffer object
+    // property for the binding
+
     // The C-side JNI binding for this particular function will have an
     // extra final argument, which is the address (the OpenGL procedure
     // address) of the function it needs to call
-    CGLPAWrapperEmitter res = new CGLPAWrapperEmitter(baseCEmitter);
+    GLCMethodBindingEmitter res = new GLCMethodBindingEmitter(baseCEmitter, callThroughProcAddress);
     MessageFormat exp = baseCEmitter.getReturnValueCapacityExpression();
     if (exp != null) {
       res.setReturnValueCapacityExpression(exp);
@@ -278,6 +336,10 @@ public class GLEmitter extends JavaEmitter
     }
     
     return shouldWrap;
+  }
+
+  protected boolean needsBufferObjectVariant(FunctionSymbol sym) {
+    return getGLConfig().isBufferObjectFunction(sym.getName());
   }
   
   private void beginGLProcAddressTable() throws Exception
@@ -380,7 +442,7 @@ public class GLEmitter extends JavaEmitter
     return (GLConfiguration) getConfig();
   }
 
-  protected static class GLConfiguration extends JavaConfiguration
+  protected class GLConfiguration extends JavaConfiguration
   {
     private boolean emitProcAddressTable = false;
     private String  tableClassPackage;
@@ -393,6 +455,8 @@ public class GLEmitter extends JavaEmitter
     private List/*<String>*/ glHeaders = new ArrayList();
     private Set/*<String>*/ ignoredExtensions = new HashSet();
     private BuildStaticGLInfo glInfo;
+    // Maps function names to the kind of buffer object it deals with
+    private Map/*<String,BufferObjectKind>*/ bufferObjectKinds = new HashMap();
 
     protected void dispatch(String cmd, StringTokenizer tok, File file, String filename, int lineNo) throws IOException {
       if (cmd.equalsIgnoreCase("EmitProcAddressTable"))
@@ -436,6 +500,10 @@ public class GLEmitter extends JavaEmitter
         String sym = readString("GLHeader", tok, filename, lineNo);
         glHeaders.add(sym);
       }
+      else if (cmd.equalsIgnoreCase("BufferObjectKind"))
+      {
+        readBufferObjectKind(tok, filename, lineNo);
+      }
       else
       {
         super.dispatch(cmd,tok,file,filename,lineNo);
@@ -448,6 +516,32 @@ public class GLEmitter extends JavaEmitter
         return restOfLine.trim();
       } catch (NoSuchElementException e) {
         throw new RuntimeException("Error parsing \"GetProcAddressTableExpr\" command at line " + lineNo +
+                                   " in file \"" + filename + "\"", e);
+      }
+    }
+
+    protected void readBufferObjectKind(StringTokenizer tok, String filename, int lineNo) {
+      try {
+        String kindString = tok.nextToken();
+        BufferObjectKind kind = null;
+        String target = tok.nextToken();
+        if (kindString.equalsIgnoreCase("UnpackPixel")) {
+          kind = BufferObjectKind.UNPACK_PIXEL;
+        } else if (kindString.equalsIgnoreCase("PackPixel")) {
+          kind = BufferObjectKind.PACK_PIXEL;
+        } else if (kindString.equalsIgnoreCase("Array")) {
+          kind = BufferObjectKind.ARRAY;
+        } else if (kindString.equalsIgnoreCase("Element")) {
+          kind = BufferObjectKind.ELEMENT;
+        } else {
+          throw new RuntimeException("Error parsing \"BufferObjectKind\" command at line " + lineNo +
+                                     " in file \"" + filename + "\": illegal BufferObjectKind \"" +
+                                     kindString + "\", expected one of UnpackPixel, PackPixel, Array, or Element");
+        }
+
+        bufferObjectKinds.put(target, kind);
+      } catch (NoSuchElementException e) {
+        throw new RuntimeException("Error parsing \"BufferObjectKind\" command at line " + lineNo +
                                    " in file \"" + filename + "\"", e);
       }
     }
@@ -476,6 +570,62 @@ public class GLEmitter extends JavaEmitter
       }
 
       return super.shouldIgnore(symbol);
+    }
+
+    /** Overrides javaPrologueForMethod in superclass and
+        automatically generates prologue code for functions associated
+        with buffer objects. */
+    public List/*<String>*/ javaPrologueForMethod(MethodBinding binding,
+                                                  boolean forImplementingMethodCall,
+                                                  boolean eraseBufferAndArrayTypes) {
+      List/*<String>*/ res = super.javaPrologueForMethod(binding,
+                                                         forImplementingMethodCall,
+                                                         eraseBufferAndArrayTypes);
+      BufferObjectKind kind = getBufferObjectKind(binding.getName());
+      if (kind != null) {
+        // Need to generate appropriate prologue based on both buffer
+        // object kind and whether this variant of the MethodBinding
+        // is the one accepting a "long" as argument
+        if (res == null) {
+          res = new ArrayList();
+        }
+
+        String prologue = "check";
+
+        if (kind == BufferObjectKind.UNPACK_PIXEL) {
+          prologue = prologue + "UnpackPBO";
+        } else if (kind == BufferObjectKind.PACK_PIXEL) {
+          prologue = prologue + "PackPBO";
+        } else if (kind == BufferObjectKind.ARRAY) {
+          prologue = prologue + "ArrayVBO";
+        } else if (kind == BufferObjectKind.ELEMENT) {
+          prologue = prologue + "ElementVBO";
+        } else {
+          throw new RuntimeException("Unknown BufferObjectKind " + kind);
+        }
+
+        if (bufferObjectMethodBindings.containsKey(binding)) {
+          prologue = prologue + "Enabled";
+        } else {
+          prologue = prologue + "Disabled";
+        }
+
+        prologue = prologue + "();";
+
+        res.add(0, prologue);
+      }
+
+      return res;
+    }
+
+    /** Returns the kind of buffer object this function deals with, or
+        null if none. */
+    public BufferObjectKind getBufferObjectKind(String name) {
+      return (BufferObjectKind) bufferObjectKinds.get(name);
+    }
+
+    public boolean isBufferObjectFunction(String name) {
+      return (getBufferObjectKind(name) != null);
     }
 
     /** Parses any GL headers specified in the configuration file for

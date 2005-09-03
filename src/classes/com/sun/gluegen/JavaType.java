@@ -237,6 +237,23 @@ public class JavaType {
     return name;
   }
 
+  /**
+   * Returns the descriptor (internal type signature) corresponding to
+   * this type.
+   */
+  public String getDescriptor() {
+    // FIXME: this is not completely accurate at this point (for
+    // example, it knows nothing about the packages for compound
+    // types)
+    if (clazz != null) {
+      return descriptor(clazz);
+    }
+    if (elementType != null) {
+      return "[" + descriptor(elementType.getName());
+    }
+    return descriptor(name);
+  }
+
   /** Returns the String corresponding to the JNI type for this type,
       or NULL if it can't be represented (i.e., it's a boxing class
       that we need to call getBuffer() on.) */
@@ -496,5 +513,37 @@ public class JavaType {
     }
     return buf.toString();
   }
-  
+
+  private String arrayDescriptor(Class clazz) {
+    StringBuffer buf = new StringBuffer();
+    int arrayCount = 0;
+    while (clazz.isArray()) {
+      buf.append("[");
+      clazz = clazz.getComponentType();
+    }
+    buf.append(descriptor(clazz));
+    return buf.toString();
+  }
+
+  private String descriptor(Class clazz) {
+    if (clazz.isPrimitive()) {
+      if (clazz == Boolean.TYPE) return "Z";
+      if (clazz == Byte.TYPE)    return "B";
+      if (clazz == Double.TYPE)  return "D";
+      if (clazz == Float.TYPE)   return "F";
+      if (clazz == Integer.TYPE) return "I";
+      if (clazz == Long.TYPE)    return "J";
+      if (clazz == Short.TYPE)   return "S";
+      if (clazz == Void.TYPE)    return "V";
+      throw new RuntimeException("Unexpected primitive type " + clazz.getName());
+    }
+    if (clazz.isArray()) {
+      return arrayDescriptor(clazz);
+    }
+    return descriptor(clazz.getName());
+  }
+
+  private String descriptor(String referenceTypeName) {
+    return "L" + referenceTypeName.replace('.', '/') + ";";
+  }
 }

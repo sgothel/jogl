@@ -99,25 +99,4 @@ public class BufferUtils {
     dest.put(orig);
     return dest;
   }
-
-  private static Map bufferOffsetCache = Collections.synchronizedMap(new HashMap());
-
-  /** Creates an "offset buffer" for use with the
-      ARB_vertex_buffer_object extension. The resulting Buffers are
-      suitable for use with routines such as glVertexPointer <em>when
-      used in conjunction with that extension</em>. They have no
-      capacity and are not suitable for passing to OpenGL routines
-      that do not support buffer offsets, or to non-OpenGL
-      routines. */
-  public static ByteBuffer bufferOffset(int offset) {
-    Integer key = new Integer(offset);
-    ByteBuffer buf = (ByteBuffer) bufferOffsetCache.get(key);
-    if (buf == null) {
-      buf = bufferOffset0(offset);
-      bufferOffsetCache.put(key, buf);
-    }
-    return buf;
-  }
-
-  private static native ByteBuffer bufferOffset0(int offset);
 }

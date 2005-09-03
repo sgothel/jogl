@@ -111,6 +111,8 @@ public class JavaConfiguration {
   private Map/*<String,List<String>>*/ extendedInterfaces = new HashMap();
   private Map/*<String,List<String>>*/ implementedInterfaces = new HashMap();
   private Map/*<String,String>*/ javaTypeRenames = new HashMap();
+  private Map/*<String,List<String>>*/ javaPrologues = new HashMap();
+  private Map/*<String,List<String>>*/ javaEpilogues = new HashMap();
 
   /** Reads the configuration file.
       @param filename path to file that should be read
@@ -508,6 +510,38 @@ public class JavaConfiguration {
             emissionStyle() == JavaEmitter.IMPL_ONLY);
   }
 
+  /** Returns a list of Strings which should be emitted as a prologue
+      to the body for the Java-side glue code for the given method.
+      Returns null if no prologue was specified. */
+  public List/*<String>*/ javaPrologueForMethod(MethodBinding binding,
+                                                boolean forImplementingMethodCall,
+                                                boolean eraseBufferAndArrayTypes) {
+    List/*<String>*/ res = (List/*<String>*/) javaPrologues.get(binding.getName());
+    if (res == null) {
+      // Try again with method name and descriptor
+      res = (List/*<String>*/) javaPrologues.get(binding.getName() +
+                                                 binding.getDescriptor(forImplementingMethodCall,
+                                                                       eraseBufferAndArrayTypes));
+    }
+    return res;
+  }
+
+  /** Returns a list of Strings which should be emitted as an epilogue
+      to the body for the Java-side glue code for the given method.
+      Returns null if no epilogue was specified. */
+  public List/*<String>*/ javaEpilogueForMethod(MethodBinding binding,
+                                                boolean forImplementingMethodCall,
+                                                boolean eraseBufferAndArrayTypes) {
+    List/*<String>*/ res = (List/*<String>*/) javaEpilogues.get(binding.getName());
+    if (res == null) {
+      // Try again with method name and descriptor
+      res = (List/*<String>*/) javaEpilogues.get(binding.getName() +
+                                                 binding.getDescriptor(forImplementingMethodCall,
+                                                                       eraseBufferAndArrayTypes));
+    }
+    return res;
+  }
+
   //----------------------------------------------------------------------
   // Internals only below this point
   //
@@ -611,6 +645,14 @@ public class JavaConfiguration {
       readRenameJavaType(tok, filename, lineNo);
     } else if (cmd.equalsIgnoreCase("RuntimeExceptionType")) {
       runtimeExceptionType = readString("RuntimeExceptionType", tok, filename, lineNo);
+    } else if (cmd.equalsIgnoreCase("JavaPrologue")) {
+      readJavaPrologueOrEpilogue(tok, filename, lineNo, true);
+      // Warning: make sure delimiters are reset at the top of this loop
+      // because readJavaPrologueOrEpilogue changes them.
+    } else if (cmd.equalsIgnoreCase("JavaEpilogue")) {
+      readJavaPrologueOrEpilogue(tok, filename, lineNo, false);
+      // Warning: make sure delimiters are reset at the top of this loop
+      // because readJavaPrologueOrEpilogue changes them.
     } else {
       throw new RuntimeException("Unknown command \"" + cmd +
                                  "\" in command file " + filename +
@@ -977,6 +1019,35 @@ public class JavaConfiguration {
     }
   }
 
+  protected void readJavaPrologueOrEpilogue(StringTokenizer tok, String filename, int lineNo, boolean prologue) {
+    try {
+      String methodName = tok.nextToken();
+      String restOfLine = tok.nextToken("\n\r\f");
+      restOfLine = restOfLine.trim();
+      if (startsWithDescriptor(restOfLine)) {
+        // Assume it starts with signature for disambiguation
+        int spaceIdx = restOfLine.indexOf(' ');
+        if (spaceIdx > 0) {
+          String descriptor = restOfLine.substring(0, spaceIdx);
+          restOfLine = restOfLine.substring(spaceIdx + 1, restOfLine.length());
+          methodName = methodName + descriptor;
+        }
+      }
+      Map code = (prologue ? javaPrologues : javaEpilogues);
+      List/*<String>*/ data = (List/*<String>*/) code.get(methodName);
+      if (data == null) {
+        data = new ArrayList/*<String>*/();
+        code.put(methodName, data);
+      }
+      data.add(restOfLine);
+    } catch (NoSuchElementException e) {
+      throw new RuntimeException("Error parsing \"" + 
+                                 (prologue ? "JavaPrologue" : "JavaEpilogue") +
+                                 "\" command at line " + lineNo +
+                                 " in file \"" + filename + "\"", e);
+    }
+  }
+
   protected static TypeInfo parseTypeInfo(String cType, JavaType javaType) {
     String typeName = null;
     int pointerDepth = 0;
@@ -1007,5 +1078,72 @@ public class JavaConfiguration {
       tmp = tmp.next();
     }
     tmp.setNext(info);
+  }
+
+  private static int nextIndexAfterType(String s, int idx) {
+    int len = s.length();
+    while (idx < len) {
+      char c = s.charAt(idx);
+
+      if (Character.isJavaIdentifierStart(c) ||
+          Character.isJavaIdentifierPart(c) ||
+          (c == '/')) {
+        idx++;
+      } else if (c == ';') {
+        return (idx + 1);
+      } else {
+        return -1;
+      }
+    }
+    return -1;
+  }
+
+  private static int nextIndexAfterDescriptor(String s, int idx) {
+    char c = s.charAt(idx);
+    switch (c) {
+      case 'B':
+      case 'C':
+      case 'D':
+      case 'F':
+      case 'I':
+      case 'J':
+      case 'S':
+      case 'Z':
+      case 'V': return (1 + idx);
+      case 'L': return nextIndexAfterType(s, idx + 1);
+      case ')': return idx;
+      default: break;
+    }
+    return -1;
+  }
+
+  protected static boolean startsWithDescriptor(String s) {
+    // Try to see whether the String s starts with a valid Java
+    // descriptor.
+
+    int idx = 0;
+    int len = s.length();
+    while ((idx < len) && s.charAt(idx) == ' ') {
+      ++idx;
+    }
+
+    if (idx >= len) return false;
+    if (s.charAt(idx++) != '(')  return false;
+    while (idx < len) {
+      int nextIdx = nextIndexAfterDescriptor(s, idx);
+      if (nextIdx < 0) {
+        return false;
+      }
+      if (nextIdx == idx) {
+        // ')'
+        break;
+      }
+      idx = nextIdx;
+    }
+    int nextIdx = nextIndexAfterDescriptor(s, idx + 1);
+    if (nextIdx < 0) {
+      return false;
+    }
+    return true;
   }
 }

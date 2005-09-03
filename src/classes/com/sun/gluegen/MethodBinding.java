@@ -474,5 +474,82 @@ public class MethodBinding {
     return new MethodBinding(this);
   }
 
+  /** Returns a String containing the descriptor (signature in
+      internal format) of this MethodBinding as it will be
+      emitted. This is used to disambiguate between overloadings when
+      manually specifying prologue and epilogue code, for example. */
+  public String getDescriptor(boolean forImplementingMethodCall,
+                              boolean eraseBufferAndArrayTypes) {
+    StringBuffer buf = new StringBuffer();
+
+    buf.append("(");
+
+    if (forImplementingMethodCall && hasContainingType()) {
+      // Always emit outgoing "this" argument
+      buf.append("Ljava/nio/ByteBuffer;");
+    }
+
+    for (int i = 0; i < getNumArguments(); i++) {
+      JavaType type = getJavaArgumentType(i);
+      if (type.isVoid()) { 
+        // Make sure this is the only param to the method; if it isn't,
+        // there's something wrong with our parsing of the headers.
+        if (getNumArguments() != 1) {
+          throw new InternalError(
+            "\"void\" argument type found in " +
+            "multi-argument function \"" + this + "\"");
+        }
+        continue;
+      } 
+
+      if (type.isJNIEnv() || isArgumentThisPointer(i)) {
+        // Don't need to expose these at the Java level
+        continue;
+      }
+
+      buf.append(erasedTypeDescriptor(type, eraseBufferAndArrayTypes, false));
+
+      // Add Buffer and array index offset arguments after each associated argument
+      if (forImplementingMethodCall) {
+        if (type.isNIOBuffer()) {
+          buf.append("I");
+        } else if (type.isNIOBufferArray()) {
+          buf.append("[I");
+        }
+      }
+
+      // Add offset argument after each primitive array
+      if (type.isPrimitiveArray()) {
+        buf.append("I");
+      }
+    }
+
+    buf.append(")");
+
+    // Emit return type for completeness even though we can't overload
+    // based solely on return type
+    buf.append(erasedTypeDescriptor(getJavaReturnType(), eraseBufferAndArrayTypes, false));
+
+    return buf.toString();
+  }
+
+  protected String erasedTypeDescriptor(JavaType type, boolean eraseBufferAndArrayTypes, boolean skipBuffers) {
+    if (eraseBufferAndArrayTypes) {
+      if (type.isNIOBuffer() ||
+          type.isPrimitiveArray()) {
+        if (!skipBuffers) {
+          // Direct buffers and arrays sent down as Object (but
+          // returned as e.g. ByteBuffer)
+          return "Ljava/lang/Object;";
+        }
+      } else if (type.isCompoundTypeWrapper()) {
+        // Compound type wrappers are unwrapped to ByteBuffer
+        return "Ljava/nio/ByteBuffer;";
+      } else if (type.isArrayOfCompoundTypeWrappers()) {
+        return "Ljava/nio/ByteBuffer;";
+      }
+    }
+    return type.getDescriptor();
+  }
 }
 

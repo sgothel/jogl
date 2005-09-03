@@ -128,6 +128,28 @@ public final class FunctionAvailabilityCache {
         }
       }
 
+      // Put GL version strings in the table as well
+      Version version = new Version(gl.glGetString(GL.GL_VERSION));
+      int major = version.getMajor();
+      int minor = version.getMinor();
+      // FIXME: this needs to be adjusted when the major and minor
+      // revs change beyond the known ones
+      switch (major) {
+        default:
+          if (major < 2)
+            break;
+        case 2: availableExtensionCache.add("GL_VERSION_2_0"); minor = 5;
+        case 1:
+          switch (minor) {
+            case 5: availableExtensionCache.add("GL_VERSION_1_5");
+            case 4: availableExtensionCache.add("GL_VERSION_1_4");
+            case 3: availableExtensionCache.add("GL_VERSION_1_3");
+            case 2: availableExtensionCache.add("GL_VERSION_1_2");
+            case 1: availableExtensionCache.add("GL_VERSION_1_1");
+            case 0: availableExtensionCache.add("GL_VERSION_1_0");
+          }
+      }
+
       // put a dummy var in here so that the cache is no longer empty even if
       // no extensions are in the GL_EXTENSIONS string
       availableExtensionCache.add("<INTERNAL_DUMMY_PLACEHOLDER>");
@@ -308,6 +330,14 @@ public final class FunctionAvailabilityCache {
       else if (sub < vo.sub) return -1; 
 
       return 0; // they are equal
+    }
+
+    public int getMajor() {
+      return major;
+    }
+
+    public int getMinor() {
+      return minor;
     }
     
   } // end class Version

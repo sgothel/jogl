@@ -264,13 +264,13 @@ public class Mipmap {
             proxyTarget = GL.GL_PROXY_TEXTURE_2D;
             gl.glTexImage2D( proxyTarget, 1, internalFormat, widthAtLevelOne,
                              heightAtLevelOne, 0, format, type, null );
-          } else if( (target == GL.GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB) || 
-                     (target == GL.GL_TEXTURE_CUBE_MAP_NEGATIVE_X_ARB) || 
-                     (target == GL.GL_TEXTURE_CUBE_MAP_POSITIVE_Y_ARB) || 
-                     (target == GL.GL_TEXTURE_CUBE_MAP_NEGATIVE_Y_ARB) || 
-                     (target == GL.GL_TEXTURE_CUBE_MAP_POSITIVE_Z_ARB) || 
-                     (target == GL.GL_TEXTURE_CUBE_MAP_NEGATIVE_Z_ARB) ) {
-            proxyTarget = GL.GL_PROXY_TEXTURE_CUBE_MAP_ARB;
+          } else if( (target == GL.GL_TEXTURE_CUBE_MAP_POSITIVE_X) || 
+                     (target == GL.GL_TEXTURE_CUBE_MAP_NEGATIVE_X) || 
+                     (target == GL.GL_TEXTURE_CUBE_MAP_POSITIVE_Y) || 
+                     (target == GL.GL_TEXTURE_CUBE_MAP_NEGATIVE_Y) || 
+                     (target == GL.GL_TEXTURE_CUBE_MAP_POSITIVE_Z) || 
+                     (target == GL.GL_TEXTURE_CUBE_MAP_NEGATIVE_Z) ) {
+            proxyTarget = GL.GL_PROXY_TEXTURE_CUBE_MAP;
             gl.glTexImage2D( proxyTarget, 1, internalFormat, widthAtLevelOne,
                              heightAtLevelOne, 0, format, type, null );
           } else {

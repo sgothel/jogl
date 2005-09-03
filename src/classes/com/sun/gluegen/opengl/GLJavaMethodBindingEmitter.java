@@ -44,20 +44,28 @@ import java.util.*;
 import com.sun.gluegen.*;
 import com.sun.gluegen.cgram.types.*;
 
-public class JavaGLPAWrapperEmitter extends JavaMethodBindingEmitter {
+public class GLJavaMethodBindingEmitter extends JavaMethodBindingEmitter {
   private final CommentEmitter commentEmitterForWrappedMethod =
     new WrappedMethodCommentEmitter();
 
+  private boolean callThroughProcAddress;
   private boolean changeNameAndArguments;
   private String getProcAddressTableExpr;
+  private boolean bufferObjectVariant;
   
-  public JavaGLPAWrapperEmitter(JavaMethodBindingEmitter methodToWrap,
-                                String getProcAddressTableExpr,
-                                boolean changeNameAndArguments) {
+  public GLJavaMethodBindingEmitter(JavaMethodBindingEmitter methodToWrap,
+                                    boolean callThroughProcAddress,
+                                    String  getProcAddressTableExpr,
+                                    boolean changeNameAndArguments,
+                                    boolean bufferObjectVariant) {
     super(methodToWrap);
-    this.changeNameAndArguments = changeNameAndArguments;
+    this.callThroughProcAddress = callThroughProcAddress;
     this.getProcAddressTableExpr = getProcAddressTableExpr;
-    setCommentEmitter(new WrappedMethodCommentEmitter());
+    this.changeNameAndArguments = changeNameAndArguments;
+    this.bufferObjectVariant = bufferObjectVariant;
+    if (callThroughProcAddress) {
+      setCommentEmitter(new WrappedMethodCommentEmitter());
+    }
 
     if (methodToWrap.getBinding().hasContainingType())
     {
@@ -75,42 +83,75 @@ public class JavaGLPAWrapperEmitter extends JavaMethodBindingEmitter {
     return res;
   }
 
+  protected String getArgumentName(int i) {
+    String name = super.getArgumentName(i);
+
+    if (!bufferObjectVariant) {
+      return name;
+    }
+
+    // Emitters for VBO/PBO-related routines change the outgoing
+    // argument name for the buffer
+    if (binding.getJavaArgumentType(i).isLong()) {
+      Type cType = binding.getCArgumentType(i);
+      if (cType.isPointer() &&
+          (cType.asPointer().getTargetType().isVoid() ||
+           cType.asPointer().getTargetType().isPrimitive())) {
+        return name + "_buffer_offset";
+      }
+    }
+
+    return name;
+  }
+
   protected int emitArguments(PrintWriter writer) {
     int numEmitted = super.emitArguments(writer);
-    if (changeNameAndArguments) {
-      if (numEmitted > 0) {
-        writer.print(", ");
-      }
+    if (callThroughProcAddress) {
+      if (changeNameAndArguments) {
+        if (numEmitted > 0) {
+          writer.print(", ");
+        }
 
-      writer.print("long glProcAddress");
-      ++numEmitted;
+        writer.print("long glProcAddress");
+        ++numEmitted;
+      }
     }
           
     return numEmitted;
   }
 
   protected String getImplMethodName(boolean direct) {
-    return GLEmitter.WRAP_PREFIX + super.getImplMethodName(direct);
+    String name = super.getImplMethodName(direct);
+    if (callThroughProcAddress) {
+      return GLEmitter.WRAP_PREFIX + name;
+    }
+    return name;
   }
 
   protected void emitPreCallSetup(MethodBinding binding, PrintWriter writer) {
     super.emitPreCallSetup(binding, writer);
 
-    String procAddressVariable =
-      GLEmitter.PROCADDRESS_VAR_PREFIX + binding.getName();
-    writer.println("    final long __addr_ = " + getProcAddressTableExpr + "." + procAddressVariable + ";");
-    writer.println("    if (__addr_ == 0) {");
-    writer.println("      throw new GLException(\"Method \\\"" + binding.getName() + "\\\" not available\");");
-    writer.println("    }");
+    if (callThroughProcAddress) {
+      String procAddressVariable =
+        GLEmitter.PROCADDRESS_VAR_PREFIX + binding.getName();
+      writer.println("    final long __addr_ = " + getProcAddressTableExpr + "." + procAddressVariable + ";");
+      writer.println("    if (__addr_ == 0) {");
+      writer.println("      throw new GLException(\"Method \\\"" + binding.getName() + "\\\" not available\");");
+      writer.println("    }");
+    }
   }
 
   protected int emitCallArguments(MethodBinding binding, PrintWriter writer, boolean indirect) {
     int numEmitted = super.emitCallArguments(binding, writer, indirect);
-    if (numEmitted > 0) {
-      writer.print(", ");
+    if (callThroughProcAddress) {
+      if (numEmitted > 0) {
+        writer.print(", ");
+      }
+      writer.print("__addr_");
+      ++numEmitted;
     }
-    writer.print("__addr_");
-    return 1 + numEmitted;
+
+    return numEmitted;
   }
 
   /** This class emits the comment for the wrapper method */
@@ -119,4 +160,4 @@ public class JavaGLPAWrapperEmitter extends JavaMethodBindingEmitter {
       writer.print("Encapsulates function pointer for OpenGL function <br>: ");
     }
   }
-} // end class JavaGLPAWrapperEmitter
+} // end class GLJavaMethodBindingEmitter

@@ -322,9 +322,13 @@ public class JavaEmitter implements GlueEmitter {
     // set to false; for example, if the routine doesn't take any
     // arrays or buffers as arguments
     boolean isUnimplemented = cfg.isUnimplemented(binding.getName());
+    List/*<String>*/ prologue = cfg.javaPrologueForMethod(binding, false, false);
+    List/*<String>*/ epilogue = cfg.javaEpilogueForMethod(binding, false, false);
     boolean needsBody = (isUnimplemented ||
                          (binding.needsNIOWrappingOrUnwrapping() ||
-                          binding.signatureUsesJavaPrimitiveArrays()));
+                          binding.signatureUsesJavaPrimitiveArrays()) ||
+                         (prologue != null) ||
+                         (epilogue != null));
 
     JavaMethodBindingEmitter emitter =
       new JavaMethodBindingEmitter(binding,
@@ -345,6 +349,8 @@ public class JavaEmitter implements GlueEmitter {
       emitter.addModifier(JavaMethodBindingEmitter.NATIVE);
     }
     emitter.setReturnedArrayLengthExpression(cfg.returnedArrayLength(binding.getName()));
+    emitter.setPrologue(prologue);
+    emitter.setEpilogue(epilogue);
     allEmitters.add(emitter);
   }
 
@@ -364,11 +370,16 @@ public class JavaEmitter implements GlueEmitter {
       return;
     }
 
+    boolean hasPrologueOrEpilogue =
+        ((cfg.javaPrologueForMethod(binding, false, false) != null) ||
+         (cfg.javaEpilogueForMethod(binding, false, false) != null));
+
     // If we already generated a public native entry point for this
     // method, don't emit another one
     if (!cfg.isUnimplemented(binding.getName()) &&
         (binding.needsNIOWrappingOrUnwrapping() ||
-         binding.signatureUsesJavaPrimitiveArrays())) {
+         binding.signatureUsesJavaPrimitiveArrays() ||
+         hasPrologueOrEpilogue)) {
       PrintWriter writer = (cfg.allStatic() ? javaWriter() : javaImplWriter());
 
       // If the binding uses primitive arrays, we are going to emit
@@ -467,7 +478,7 @@ public class JavaEmitter implements GlueEmitter {
                                   cfg.implClassName(),
                                   true, /* NOTE: we always disambiguate with a suffix now, so this is optional */
                                   cfg.allStatic(),
-                                  binding.needsNIOWrappingOrUnwrapping(),
+                                  (binding.needsNIOWrappingOrUnwrapping() || hasPrologueOrEpilogue),
                                   false);
       if (returnValueCapacityFormat != null) {
         cEmitter.setReturnValueCapacityExpression(returnValueCapacityFormat);
@@ -1476,7 +1487,7 @@ public class JavaEmitter implements GlueEmitter {
   // Expands a MethodBinding containing C primitive pointer types into
   // multiple variants taking Java primitive arrays and NIO buffers, subject
   // to the per-function "NIO only" rule in the configuration file
-  private List/*<MethodBinding>*/ expandMethodBinding(MethodBinding binding) {
+  protected List/*<MethodBinding>*/ expandMethodBinding(MethodBinding binding) {
     List result = new ArrayList();
     // Indicates whether it is possible to produce an array variant
     // Prevents e.g. char* -> String conversions from emitting two entry points

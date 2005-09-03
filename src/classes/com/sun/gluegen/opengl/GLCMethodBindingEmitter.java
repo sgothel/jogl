@@ -44,19 +44,25 @@ import java.util.*;
 import com.sun.gluegen.*;
 import com.sun.gluegen.cgram.types.*;
 
-public class CGLPAWrapperEmitter extends CMethodBindingEmitter {
+public class GLCMethodBindingEmitter extends CMethodBindingEmitter {
   private static final CommentEmitter defaultCommentEmitter =
     new CGLPAWrapperCommentEmitter();
 
+  private boolean callThroughProcAddress;
   private String glFuncPtrTypedefValue;
   private static String procAddressJavaTypeName =
     JavaType.createForClass(Long.TYPE).jniTypeName();
 
-  public CGLPAWrapperEmitter(CMethodBindingEmitter methodToWrap) {  
+  public GLCMethodBindingEmitter(CMethodBindingEmitter methodToWrap,
+                                 final boolean callThroughProcAddress) {  
     super(
       new MethodBinding(methodToWrap.getBinding()) {
         public String getName() {
-          return GLEmitter.WRAP_PREFIX + super.getName();
+          if (callThroughProcAddress) {
+            return GLEmitter.WRAP_PREFIX + super.getName();
+          } else {
+            return super.getName();
+          }
         }
       },
       methodToWrap.getDefaultOutput(),
@@ -78,34 +84,39 @@ public class CGLPAWrapperEmitter extends CMethodBindingEmitter {
     setTemporaryCVariableAssignments (methodToWrap.getTemporaryCVariableAssignments ());
     
     setCommentEmitter(defaultCommentEmitter);
+    this.callThroughProcAddress = callThroughProcAddress;
   }
   
   protected int emitArguments(PrintWriter writer) {
     int numEmitted = super.emitArguments(writer);
-    if (numEmitted > 0)
-    {
-      writer.print(", ");
+    if (callThroughProcAddress) {
+      if (numEmitted > 0)
+        {
+          writer.print(", ");
+        }
+      //writer.print("long glProcAddress");
+      writer.print(procAddressJavaTypeName);
+      writer.print(" glProcAddress");
+      ++numEmitted;
     }
-    //writer.print("long glProcAddress");
-    writer.print(procAddressJavaTypeName);
-    writer.print(" glProcAddress");
-    ++numEmitted;
 
     return numEmitted;
   }
 
   protected void emitBodyVariableDeclarations(PrintWriter writer) {
-    // create variable for the function pointer with the right type, and set
-    // it to the value of the passed-in glProcAddress 
-    FunctionSymbol cSym = getBinding().getCSymbol();
-    String funcPointerTypedefName =
-      GLEmitter.getGLFunctionPointerTypedefName(cSym);
+    if (callThroughProcAddress) {
+      // create variable for the function pointer with the right type, and set
+      // it to the value of the passed-in glProcAddress 
+      FunctionSymbol cSym = getBinding().getCSymbol();
+      String funcPointerTypedefName =
+        GLEmitter.getGLFunctionPointerTypedefName(cSym);
     
-    writer.print("  ");
-    writer.print(funcPointerTypedefName);
-    writer.print(" ptr_");
-    writer.print(cSym.getName());
-    writer.println(";");
+      writer.print("  ");
+      writer.print(funcPointerTypedefName);
+      writer.print(" ptr_");
+      writer.print(cSym.getName());
+      writer.println(";");
+    }
 
     super.emitBodyVariableDeclarations(writer);
   }
@@ -114,54 +125,62 @@ public class CGLPAWrapperEmitter extends CMethodBindingEmitter {
                                               boolean emittingPrimitiveArrayCritical) {
     super.emitBodyVariablePreCallSetup(writer, emittingPrimitiveArrayCritical);
 
-    if (!emittingPrimitiveArrayCritical) {
-      // set the function pointer to the value of the passed-in glProcAddress
-      FunctionSymbol cSym = getBinding().getCSymbol();
-      String funcPointerTypedefName =
-        GLEmitter.getGLFunctionPointerTypedefName(cSym);
+    if (callThroughProcAddress) {
+      if (!emittingPrimitiveArrayCritical) {
+        // set the function pointer to the value of the passed-in glProcAddress
+        FunctionSymbol cSym = getBinding().getCSymbol();
+        String funcPointerTypedefName =
+          GLEmitter.getGLFunctionPointerTypedefName(cSym);
 
-      String ptrVarName = "ptr_" + cSym.getName();
+        String ptrVarName = "ptr_" + cSym.getName();
     
-      writer.print("  ");
-      writer.print(ptrVarName);
-      writer.print(" = (");
-      writer.print(funcPointerTypedefName);
-      writer.println(") (intptr_t) glProcAddress;");
+        writer.print("  ");
+        writer.print(ptrVarName);
+        writer.print(" = (");
+        writer.print(funcPointerTypedefName);
+        writer.println(") (intptr_t) glProcAddress;");
 
-      writer.println("  assert(" + ptrVarName + " != NULL);");
+        writer.println("  assert(" + ptrVarName + " != NULL);");
+      }
     }
   }
 
   protected void emitBodyCallCFunction(PrintWriter writer) {
-    // Make the call to the actual C function
-    writer.print("  ");
+    if (!callThroughProcAddress) {
+      super.emitBodyCallCFunction(writer);
+    } else {
+      // Make the call to the actual C function
+      writer.print("  ");
 
-    // WARNING: this code assumes that the return type has already been
-    // typedef-resolved.
-    Type cReturnType = binding.getCReturnType();
+      // WARNING: this code assumes that the return type has already been
+      // typedef-resolved.
+      Type cReturnType = binding.getCReturnType();
 
-    if (!cReturnType.isVoid()) {
-      writer.print("_res = ");
+      if (!cReturnType.isVoid()) {
+        writer.print("_res = ");
+      }
+      MethodBinding binding = getBinding();
+      if (binding.hasContainingType()) {
+        // Cannot call GL func through function pointer
+        throw new IllegalStateException(
+                                        "Cannot call GL func through function pointer: " + binding);
+      }
+
+      // call throught the run-time function pointer
+      writer.print("(* ptr_");
+      writer.print(binding.getCSymbol().getName());
+      writer.print(") ");
+      writer.print("(");
+      emitBodyPassCArguments(writer);
+      writer.println(");");
     }
-    MethodBinding binding = getBinding();
-    if (binding.hasContainingType()) {
-      // Cannot call GL func through function pointer
-      throw new IllegalStateException(
-        "Cannot call GL func through function pointer: " + binding);
-    }
-
-    // call throught the run-time function pointer
-    writer.print("(* ptr_");
-    writer.print(binding.getCSymbol().getName());
-    writer.print(") ");
-    writer.print("(");
-    emitBodyPassCArguments(writer);
-    writer.println(");");
   }
 
   protected String jniMangle(MethodBinding binding) {
     StringBuffer buf = new StringBuffer(super.jniMangle(binding));
-    jniMangle(Long.TYPE, buf, false);  // to account for the additional _addr_ parameter
+    if (callThroughProcAddress) {
+      jniMangle(Long.TYPE, buf, false);  // to account for the additional _addr_ parameter
+    }
     return buf.toString();
   }    
 
@@ -171,4 +190,4 @@ public class CGLPAWrapperEmitter extends CMethodBindingEmitter {
       writer.print(" -- FIXME: IMPLEMENT COMMENT FOR CGLPAWrapperCommentEmitter -- ");
     }
   }
-} // end class CGLPAWrapperEmitter
+} // end class GLCMethodBindingEmitter
