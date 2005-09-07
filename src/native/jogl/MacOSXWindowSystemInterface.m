@@ -43,7 +43,19 @@ void* createContext(void* shareContext, void* view,
   NSView *nsView = (NSView*)view;
 	
   if (nsView != NULL) {
+    Bool viewReady = true;
+    
     if ([nsView lockFocusIfCanDraw] == NO) {
+      viewReady = false;
+    } else {
+      NSRect frame = [nsView frame];
+      if ((frame.size.width == 0) || (frame.size.height == 0)) {
+        [nsView unlockFocus];		
+        viewReady = false;
+      }
+    }
+
+    if (!viewReady) {
       if (viewNotReady != NULL) {
         *viewNotReady = 1;
       }
