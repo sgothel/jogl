@@ -73,6 +73,8 @@ import com.sun.opengl.impl.*;
 public abstract class GLDrawableFactory {
   private static GLDrawableFactory factory;
 
+  protected GLDrawableFactory() {}
+
   /** Returns the sole GLDrawableFactory instance. */
   public static GLDrawableFactory getFactory() {
     if (factory == null) {

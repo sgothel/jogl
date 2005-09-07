@@ -52,11 +52,8 @@ import javax.media.opengl.*;
 
     <P> The Animator class creates a background thread in which the
     calls to <code>display()</code> are performed. After each drawable
-    has been redrawn, {@link #sync} is called to cause a brief pause.
-    The default implementation of {@link #sync} calls
-    <code>Thread.sleep(1)</code> to yield the CPU briefly. Subclasses
-    may override this behavior to cause different animation behavior.
-    </P>
+    has been redrawn, a brief pause is performed to avoid swamping the
+    CPU, unless {@link #setRunAsFastAsPossible} has been called.  </P>
 */
 
 public class Animator {
@@ -186,8 +183,8 @@ public class Animator {
             // Avoid swamping the CPU
             try {
               Thread.sleep(1);
-              } catch (InterruptedException e) {
-              }
+            } catch (InterruptedException e) {
+            }
           }
         }
       } finally {
