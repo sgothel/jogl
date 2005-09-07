@@ -181,10 +181,7 @@ public class Animator {
           display();
           if (!runAsFastAsPossible) {
             // Avoid swamping the CPU
-            try {
-              Thread.sleep(1);
-            } catch (InterruptedException e) {
-            }
+            Thread.yield();
           }
         }
       } finally {
