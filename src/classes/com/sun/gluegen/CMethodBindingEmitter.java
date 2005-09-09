@@ -1175,7 +1175,10 @@ public class CMethodBindingEmitter extends FunctionEmitter
           res.append("_2");
         }
       } else {
-        if (c == java.lang.String.class) {
+        if (c.isArray()) {
+          res.append("_3");
+          jniMangle(c.getComponentType(), res, false);
+        } else if (c == java.lang.String.class) {
           res.append("L");
           res.append(c.getName().replace('.', '_'));
           res.append("_2");
