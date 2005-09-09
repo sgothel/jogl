@@ -108,8 +108,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
 
   public void display() {
     maybeDoSingleThreadedWorkaround(displayOnEventDispatchThreadAction,
-                                    displayAction,
-                                    false);
+                                    displayAction);
   }
 
   /** Overridden from Canvas; calls {@link #display}. Should not be
@@ -191,7 +190,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
   }
 
   public void swapBuffers() {
-    maybeDoSingleThreadedWorkaround(swapBuffersOnEventDispatchThreadAction, swapBuffersAction, false);
+    maybeDoSingleThreadedWorkaround(swapBuffersOnEventDispatchThreadAction, swapBuffersAction);
   }
 
   //----------------------------------------------------------------------
@@ -199,24 +198,10 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
   //
 
   private void maybeDoSingleThreadedWorkaround(Runnable eventDispatchThreadAction,
-                                               Runnable invokeGLAction,
-                                               boolean  isReshape) {
-    if (SingleThreadedWorkaround.doWorkaround() && !EventQueue.isDispatchThread()) {
-      try {
-        // Reshape events must not block on the event queue due to the
-        // possibility of deadlocks during initial component creation.
-        // This solution is not optimal, because it changes the
-        // semantics of reshape() to have some of the processing being
-        // done asynchronously, but at least it preserves the
-        // semantics of the single-threaded workaround.
-        if (!isReshape) {
-          EventQueue.invokeAndWait(eventDispatchThreadAction);
-        } else {
-          EventQueue.invokeLater(eventDispatchThreadAction);
-        }
-      } catch (Exception e) {
-        throw new GLException(e);
-      }
+                                               Runnable invokeGLAction) {
+    if (SingleThreadedWorkaround.doWorkaround() &&
+        !SingleThreadedWorkaround.isOpenGLThread()) {
+      SingleThreadedWorkaround.invokeOnOpenGLThread(eventDispatchThreadAction);
     } else {
       drawableHelper.invokeGL(drawable, context, invokeGLAction, initAction);
     }

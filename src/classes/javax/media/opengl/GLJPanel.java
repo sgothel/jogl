@@ -111,6 +111,7 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
   private int glFormat;
   private int glType;
   // Lazy reshape notification
+  private boolean handleReshape = false;
   private boolean sendReshape = true;
 
   // Implementation using pbuffers
@@ -125,6 +126,12 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
   // Implementation using software rendering
   private GLDrawableImpl offscreenDrawable;
   private GLContextImpl offscreenContext;
+
+  // For handling reshape events lazily
+  private int reshapeX;
+  private int reshapeY;
+  private int reshapeWidth;
+  private int reshapeHeight;
 
   // For saving/restoring of OpenGL state during ReadPixels
   private int[] swapbytes    = new int[1];
@@ -180,6 +187,14 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
       return;
     }
 
+    // NOTE: must do this when the context is not current as it may
+    // involve destroying the pbuffer (current context) and
+    // re-creating it -- tricky to do properly while the context is
+    // current
+    if (handleReshape) {
+      handleReshape();
+    }
+
     updater.setGraphics(g);
     if (!hardwareAccelerationDisabled) {
       pbuffer.display();
@@ -230,82 +245,11 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
   public void reshape(int x, int y, int width, int height) {
     super.reshape(x, y, width, height);
 
-    // Move all reshape requests onto AWT EventQueue thread
-    final int fx = x;
-    final int fy = y;
-    final int fwidth = width;
-    final int fheight = height;
-
-    Runnable r = new Runnable() {
-        public void run() {
-          readBackWidthInPixels = 0;
-          readBackHeightInPixels = 0;
-
-          panelWidth  = fwidth;
-          panelHeight = fheight;
-
-          sendReshape = true;
-
-          if (shouldInitialize) {
-            initialize();
-          }
-
-          if (!isInitialized) {
-            return;
-          }
-
-          if (!hardwareAccelerationDisabled) {
-            // Use factor larger than 2 during shrinks for some hysteresis
-            float shrinkFactor = 2.5f;
-            if ((fwidth > pbufferWidth           )       || (fheight > pbufferHeight) ||
-                (fwidth < (pbufferWidth / shrinkFactor)) || (fheight < (pbufferWidth / shrinkFactor))) {
-              if (DEBUG) {
-                System.err.println("Resizing pbuffer from (" + pbufferWidth + ", " + pbufferHeight + ") " +
-                                   " to fit (" + fwidth + ", " + fheight + ")");
-              }
-              // Must destroy and recreate pbuffer to fit
-              if (pbuffer != null) {
-                pbuffer.destroy();
-              }
-              pbuffer = null;
-              isInitialized = false;
-              pbufferWidth = getNextPowerOf2(fwidth);
-              pbufferHeight = getNextPowerOf2(fheight);
-              if (DEBUG) {
-                System.err.println("New pbuffer size is (" + pbufferWidth + ", " + pbufferHeight + ")");
-              }
-              initialize();
-            }
-
-            // It looks like NVidia's drivers (at least the ones on my
-            // notebook) are buggy and don't allow a rectangle of less than
-            // the pbuffer's width to be read...this doesn't really matter
-            // because it's the Graphics.drawImage() calls that are the
-            // bottleneck. Should probably make the size of the offscreen
-            // image be the exact size of the pbuffer to save some work on
-            // resize operations...
-            readBackWidthInPixels  = pbufferWidth;
-            readBackHeightInPixels = fheight;
-          } else {
-            offscreenContext.destroy();
-            offscreenDrawable.setSize(Math.max(1, fwidth), Math.max(1, fheight));
-            readBackWidthInPixels  = Math.max(1, fwidth);
-            readBackHeightInPixels = Math.max(1, fheight);
-          }
-
-          if (offscreenImage != null) {
-            offscreenImage.flush();
-            offscreenImage = null;
-          }
-        }
-      };
-    if (EventQueue.isDispatchThread()) {
-      r.run();
-    } else {
-      // Avoid blocking EventQueue thread due to possible deadlocks
-      // during component creation
-      EventQueue.invokeLater(r);
-    }
+    reshapeX = x;
+    reshapeY = y;
+    reshapeWidth = width;
+    reshapeHeight = height;
+    handleReshape = true;
   }
 
   public void setOpaque(boolean opaque) {
@@ -400,8 +344,18 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
   private void initialize() {
     if (panelWidth == 0 ||
         panelHeight == 0) {
-      // Not sized to non-zero size yet
-      return;
+      // See whether we have a non-zero size yet and can go ahead with
+      // initialization
+      if (reshapeWidth == 0 ||
+          reshapeHeight == 0) {
+        return;
+      }
+
+      // Pull down reshapeWidth and reshapeHeight into panelWidth and
+      // panelHeight eagerly in order to complete initialization, and
+      // force a reshape later
+      panelWidth = reshapeWidth;
+      panelHeight = reshapeHeight;
     }
 
     // Initialize either the hardware-accelerated rendering path or
@@ -455,6 +409,67 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
     updater = new Updater();
     shouldInitialize = false;
     isInitialized = true;
+  }
+
+  private void handleReshape() {
+    readBackWidthInPixels = 0;
+    readBackHeightInPixels = 0;
+
+    panelWidth  = reshapeWidth;
+    panelHeight = reshapeHeight;
+
+    if (DEBUG) {
+      System.err.println("GLJPanel.handleReshape: (w,h) = (" +
+                         panelWidth + "," + panelHeight + ")");
+    }
+
+    sendReshape = true;
+
+    if (!hardwareAccelerationDisabled) {
+      // Use factor larger than 2 during shrinks for some hysteresis
+      float shrinkFactor = 2.5f;
+      if ((panelWidth > pbufferWidth           )       || (panelHeight > pbufferHeight) ||
+          (panelWidth < (pbufferWidth / shrinkFactor)) || (panelHeight < (pbufferWidth / shrinkFactor))) {
+        if (DEBUG) {
+          System.err.println("Resizing pbuffer from (" + pbufferWidth + ", " + pbufferHeight + ") " +
+                             " to fit (" + panelWidth + ", " + panelHeight + ")");
+        }
+        // Must destroy and recreate pbuffer to fit
+        if (pbuffer != null) {
+          pbuffer.destroy();
+        }
+        pbuffer = null;
+        isInitialized = false;
+        pbufferWidth = getNextPowerOf2(panelWidth);
+        pbufferHeight = getNextPowerOf2(panelHeight);
+        if (DEBUG) {
+          System.err.println("New pbuffer size is (" + pbufferWidth + ", " + pbufferHeight + ")");
+        }
+        initialize();
+      }
+
+      // It looks like NVidia's drivers (at least the ones on my
+      // notebook) are buggy and don't allow a rectangle of less than
+      // the pbuffer's width to be read...this doesn't really matter
+      // because it's the Graphics.drawImage() calls that are the
+      // bottleneck. Should probably make the size of the offscreen
+      // image be the exact size of the pbuffer to save some work on
+      // resize operations...
+      readBackWidthInPixels  = pbufferWidth;
+      readBackHeightInPixels = panelHeight;
+    } else {
+      offscreenContext.destroy();
+      offscreenDrawable.setSize(Math.max(1, panelWidth), Math.max(1, panelHeight));
+      readBackWidthInPixels  = Math.max(1, panelWidth);
+      readBackHeightInPixels = Math.max(1, panelHeight);
+    }
+
+    if (offscreenImage != null) {
+      offscreenImage.flush();
+      offscreenImage = null;
+    }
+
+    handleReshape = false;
   }
 
   // FIXME: it isn't clear whether this works any more given that
