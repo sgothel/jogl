@@ -349,11 +349,22 @@ public class X11GLDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   public static void lockAWT() {
-    getJAWT().Lock();
+    if (!Java2D.isOGLPipelineActive() || !Java2D.isQueueFlusherThread()) {
+      getJAWT().Lock();
+    }
   }
 
   public static void unlockAWT() {
-    getJAWT().Unlock();
+    if (!Java2D.isOGLPipelineActive() || !Java2D.isQueueFlusherThread()) {
+      getJAWT().Unlock();
+    }
+  }
+
+  public void lockAWTForJava2D() {
+    lockAWT();
+  }
+  public void unlockAWTForJava2D() {
+    unlockAWT();
   }
 
   // Display connection for use by visual selection algorithm and by all offscreen surfaces

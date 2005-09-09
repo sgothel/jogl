@@ -88,6 +88,16 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
   /** Dynamically looks up the given function. */
   public abstract long dynamicLookupFunction(String glFuncName);
 
+  /** Locks the AWT for the purposes of Java2D/JOGL integration. This
+   * is not necessary on some platforms.
+   */
+  public abstract void lockAWTForJava2D();
+
+  /** Unlocks the AWT for the purposes of Java2D/JOGL integration.
+   * This is not necessary on some platforms.
+   */
+  public abstract void unlockAWTForJava2D();
+
   public static GLDrawableFactoryImpl getFactoryImpl() {
     return (GLDrawableFactoryImpl) getFactory();
   }

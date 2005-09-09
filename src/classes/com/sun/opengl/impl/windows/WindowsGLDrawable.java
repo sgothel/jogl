@@ -85,6 +85,17 @@ public abstract class WindowsGLDrawable extends GLDrawableImpl {
     PIXELFORMATDESCRIPTOR pfd = null;
     int pixelFormat = 0;
     if (onscreen) {
+      if (WGL.GetPixelFormat(hdc) != 0) {
+        // The Java2D/OpenGL pipeline probably already set a pixel
+        // format for this canvas.
+        if (DEBUG) {
+          System.err.println("NOTE: pixel format already chosen (by Java2D/OpenGL pipeline?) for window: " + 
+                             WGL.GetPixelFormat(hdc));
+        }
+        pixelFormatChosen = true;
+        return;
+      }
+
       GLCapabilities[] availableCaps = null;
       int numFormats = 0;
       pfd = newPixelFormatDescriptor();

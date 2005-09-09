@@ -128,4 +128,10 @@ public class MacOSXGLDrawableFactory extends GLDrawableFactoryImpl {
       action.run();
     }
   }
+
+  public void lockAWTForJava2D() {
+  }
+
+  public void unlockAWTForJava2D() {
+  }
 }

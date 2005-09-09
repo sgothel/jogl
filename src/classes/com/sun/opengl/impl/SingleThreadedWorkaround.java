@@ -112,10 +112,29 @@ public class SingleThreadedWorkaround {
   }
 
   public static boolean isOpenGLThread() {
-    return EventQueue.isDispatchThread();
+      if (Java2D.isOGLPipelineActive()) {
+        // FIXME: ideally only the QFT would be considered to be the
+        // "OpenGL thread", but we can not currently run all of JOGL's
+        // OpenGL work on that thread. For now, run the GLJPanel's
+        // Java2D/JOGL bridge on the QFT but everything else on the
+        // EDT, except when we're already on the QFT.
+        return (Java2D.isQueueFlusherThread() ||
+                EventQueue.isDispatchThread());
+      } else {
+          return EventQueue.isDispatchThread();
+      }
   }
 
   public static void invokeOnOpenGLThread(Runnable r) throws GLException {
+    // FIXME: ideally should run all OpenGL work on the Java2D QFT
+    // thread when it's enabled, but there are issues with this when
+    // the GLJPanel is not using the Java2D bridge; would like to run
+    // its OpenGL work on the QFT, but do the image drawing from the
+    // EDT. Other issues still remain with the GLCanvas as well.
+
+    //    if (Java2D.isOGLPipelineActive()) {
+    //      Java2D.invokeWithOGLContextCurrent(null, r);
+    //    } else {
     try {
       EventQueue.invokeAndWait(r);
     } catch (InvocationTargetException e) {
@@ -123,6 +142,7 @@ public class SingleThreadedWorkaround {
     } catch (InterruptedException e) {
       throw new GLException(e);
     }
+    //    }    
   }
 
   private static void printWorkaroundNotice() {
