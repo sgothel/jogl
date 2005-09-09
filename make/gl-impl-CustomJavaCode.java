@@ -109,12 +109,11 @@ private void checkArrayVBOEnabled() {
                     "array vertex_buffer_object");
 }
 
-// FIXME: should we use the ELEMENT_ARRAY_BUFFER_BINDING_ARB state here instead?
 private void checkElementVBODisabled() { 
   checkBufferObject("GL_VERSION_1_5",
                     "GL_ARB_vertex_buffer_object",
                     false,
-                    GL.GL_ARRAY_BUFFER_BINDING,
+                    GL.GL_ELEMENT_ARRAY_BUFFER_BINDING,
                     "element vertex_buffer_object");
 }
 
@@ -122,7 +121,7 @@ private void checkElementVBOEnabled() {
   checkBufferObject("GL_VERSION_1_5",
                     "GL_ARB_vertex_buffer_object",
                     true,
-                    GL.GL_ARRAY_BUFFER_BINDING,
+                    GL.GL_ELEMENT_ARRAY_BUFFER_BINDING,
                     "element vertex_buffer_object");
 }
 
