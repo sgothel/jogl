@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<jnlp codebase="https://jogl.dev.java.net/webstart/"
+      href="jogl-jsr-231.jnlp">
+  <information>
+    <title>JOGL</title>
+    <vendor>Sun Microsystems, Inc.</vendor>
+    <homepage href="http://jogl.dev.java.net/"/>
+    <description>JOGL - JSR-231 Test Build</description>
+    <description kind="short">Java programming language binding for the OpenGL 3D graphics API. (Test build of JSR-231 APIs)</description>
+    <offline-allowed/>
+  </information>
+  <security>
+      <all-permissions/>
+  </security>
+
+    <resources>
+      <jar href="jogl-jsr-231.jar" />
+    </resources>
+    <resources os="Windows">
+      <nativelib href = "jogl-natives-win32-jsr-231.jar" />
+    </resources>
+    <resources os="SunOS" arch="sparc">
+      <nativelib href = "jogl-natives-solsparc-jsr-231.jar" />
+    </resources>
+    <resources os="SunOS" arch="x86">
+      <nativelib href = "jogl-natives-solx86-jsr-231.jar" />
+    </resources>
+    <resources os="Linux">
+      <nativelib href = "jogl-natives-linux-jsr-231.jar" />
+    </resources>
+    <resources os="Mac OS X">
+      <nativelib href = "jogl-natives-macosx-jsr-231.jar" />
+    </resources>
+
+  <component-desc />
+</jnlp>
