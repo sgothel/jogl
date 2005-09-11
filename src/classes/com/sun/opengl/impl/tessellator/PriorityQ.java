@@ -40,24 +40,51 @@
 ** Java Port: Pepijn Van Eeckhoudt, July 2003
 ** Java Port: Nathan Parker Burg, August 2003
 */
-package com.sun.opengl.impl.tesselator;
+package com.sun.opengl.impl.tessellator;
 
+abstract class PriorityQ {
+    public static final int INIT_SIZE = 32;
 
-
-class GLUhalfEdge {
-    public GLUhalfEdge next;		/* doubly-linked list (prev==Sym->next) */
-    public GLUhalfEdge Sym;		/* same edge, opposite direction */
-    public GLUhalfEdge Onext;		/* next edge CCW around origin */
-    public GLUhalfEdge Lnext;		/* next edge CCW around left face */
-    public GLUvertex Org;		/* origin vertex (Overtex too long) */
-    public com.sun.opengl.impl.tesselator.GLUface Lface;		/* left face */
-
-    /* Internal data (keep hidden) */
-    public com.sun.opengl.impl.tesselator.ActiveRegion activeRegion;	/* a region with this upper edge (sweep.c) */
-    public int winding;	/* change in winding number when crossing */
-    public boolean first;
-
-    public GLUhalfEdge(boolean first) {
-        this.first = first;
+    public static class PQnode {
+        int handle;
     }
+
+    public static class PQhandleElem {
+        Object key;
+        int node;
+    }
+
+    public static interface Leq {
+        boolean leq(Object key1, Object key2);
+    }
+
+    //    #ifdef FOR_TRITE_TEST_PROGRAM
+//    private static boolean LEQ(PriorityQCommon.Leq leq, Object x,Object y) {
+//        return pq.leq.leq(x,y);
+//    }
+//    #else
+/* Violates modularity, but a little faster */
+//    #include "geom.h"
+    public static boolean LEQ(Leq leq, Object x, Object y) {
+        return com.sun.opengl.impl.tessellator.Geom.VertLeq((com.sun.opengl.impl.tessellator.GLUvertex) x, (com.sun.opengl.impl.tessellator.GLUvertex) y);
+    }
+
+    static PriorityQ pqNewPriorityQ(Leq leq) {
+        return new PriorityQSort(leq);
+    }
+
+    abstract void pqDeletePriorityQ();
+
+    abstract boolean pqInit();
+
+    abstract int pqInsert(Object keyNew);
+
+    abstract Object pqExtractMin();
+
+    abstract void pqDelete(int hCurr);
+
+    abstract Object pqMinimum();
+
+    abstract boolean pqIsEmpty();
+//    #endif
 }

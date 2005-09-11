@@ -40,27 +40,27 @@
 ** Java Port: Pepijn Van Eeckhoudt, July 2003
 ** Java Port: Nathan Parker Burg, August 2003
 */
-package com.sun.opengl.impl.tesselator;
+package com.sun.opengl.impl.tessellator;
 
 
 
-class PriorityQHeap extends com.sun.opengl.impl.tesselator.PriorityQ {
-    com.sun.opengl.impl.tesselator.PriorityQ.PQnode[] nodes;
-    com.sun.opengl.impl.tesselator.PriorityQ.PQhandleElem[] handles;
+class PriorityQHeap extends com.sun.opengl.impl.tessellator.PriorityQ {
+    com.sun.opengl.impl.tessellator.PriorityQ.PQnode[] nodes;
+    com.sun.opengl.impl.tessellator.PriorityQ.PQhandleElem[] handles;
     int size, max;
     int freeList;
     boolean initialized;
-    com.sun.opengl.impl.tesselator.PriorityQ.Leq leq;
+    com.sun.opengl.impl.tessellator.PriorityQ.Leq leq;
 
 /* really __gl_pqHeapNewPriorityQ */
-    public PriorityQHeap(com.sun.opengl.impl.tesselator.PriorityQ.Leq leq) {
+    public PriorityQHeap(com.sun.opengl.impl.tessellator.PriorityQ.Leq leq) {
         size = 0;
-        max = com.sun.opengl.impl.tesselator.PriorityQ.INIT_SIZE;
-        nodes = new com.sun.opengl.impl.tesselator.PriorityQ.PQnode[com.sun.opengl.impl.tesselator.PriorityQ.INIT_SIZE + 1];
+        max = com.sun.opengl.impl.tessellator.PriorityQ.INIT_SIZE;
+        nodes = new com.sun.opengl.impl.tessellator.PriorityQ.PQnode[com.sun.opengl.impl.tessellator.PriorityQ.INIT_SIZE + 1];
         for (int i = 0; i < nodes.length; i++) {
             nodes[i] = new PQnode();
         }
-        handles = new com.sun.opengl.impl.tesselator.PriorityQ.PQhandleElem[com.sun.opengl.impl.tesselator.PriorityQ.INIT_SIZE + 1];
+        handles = new com.sun.opengl.impl.tessellator.PriorityQ.PQhandleElem[com.sun.opengl.impl.tessellator.PriorityQ.INIT_SIZE + 1];
         for (int i = 0; i < handles.length; i++) {
             handles[i] = new PQhandleElem();
         }
@@ -79,8 +79,8 @@ class PriorityQHeap extends com.sun.opengl.impl.tesselator.PriorityQ {
     }
 
     void FloatDown(int curr) {
-        com.sun.opengl.impl.tesselator.PriorityQ.PQnode[] n = nodes;
-        com.sun.opengl.impl.tesselator.PriorityQ.PQhandleElem[] h = handles;
+        com.sun.opengl.impl.tessellator.PriorityQ.PQnode[] n = nodes;
+        com.sun.opengl.impl.tessellator.PriorityQ.PQhandleElem[] h = handles;
         int hCurr, hChild;
         int child;
 
@@ -108,8 +108,8 @@ class PriorityQHeap extends com.sun.opengl.impl.tesselator.PriorityQ {
 
 
     void FloatUp(int curr) {
-        com.sun.opengl.impl.tesselator.PriorityQ.PQnode[] n = nodes;
-        com.sun.opengl.impl.tesselator.PriorityQ.PQhandleElem[] h = handles;
+        com.sun.opengl.impl.tessellator.PriorityQ.PQnode[] n = nodes;
+        com.sun.opengl.impl.tessellator.PriorityQ.PQhandleElem[] h = handles;
         int hCurr, hParent;
         int parent;
 
@@ -150,8 +150,8 @@ class PriorityQHeap extends com.sun.opengl.impl.tesselator.PriorityQ {
 
         curr = ++size;
         if ((curr * 2) > max) {
-            com.sun.opengl.impl.tesselator.PriorityQ.PQnode[] saveNodes = nodes;
-            com.sun.opengl.impl.tesselator.PriorityQ.PQhandleElem[] saveHandles = handles;
+            com.sun.opengl.impl.tessellator.PriorityQ.PQnode[] saveNodes = nodes;
+            com.sun.opengl.impl.tessellator.PriorityQ.PQhandleElem[] saveHandles = handles;
 
             /* If the heap overflows, double its size. */
             max <<= 1;
@@ -200,8 +200,8 @@ class PriorityQHeap extends com.sun.opengl.impl.tesselator.PriorityQ {
 
 /* really __gl_pqHeapExtractMin */
     Object pqExtractMin() {
-        com.sun.opengl.impl.tesselator.PriorityQ.PQnode[] n = nodes;
-        com.sun.opengl.impl.tesselator.PriorityQ.PQhandleElem[] h = handles;
+        com.sun.opengl.impl.tessellator.PriorityQ.PQnode[] n = nodes;
+        com.sun.opengl.impl.tessellator.PriorityQ.PQhandleElem[] h = handles;
         int hMin = n[1].handle;
         Object min = h[hMin].key;
 
@@ -222,8 +222,8 @@ class PriorityQHeap extends com.sun.opengl.impl.tesselator.PriorityQ {
 
 /* really __gl_pqHeapDelete */
     void pqDelete(int hCurr) {
-        com.sun.opengl.impl.tesselator.PriorityQ.PQnode[] n = nodes;
-        com.sun.opengl.impl.tesselator.PriorityQ.PQhandleElem[] h = handles;
+        com.sun.opengl.impl.tessellator.PriorityQ.PQnode[] n = nodes;
+        com.sun.opengl.impl.tessellator.PriorityQ.PQhandleElem[] h = handles;
         int curr;
 
         assert (hCurr >= 1 && hCurr <= max && h[hCurr].key != null);

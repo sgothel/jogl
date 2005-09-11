@@ -40,10 +40,13 @@
 ** Java Port: Pepijn Van Eeckhoudt, July 2003
 ** Java Port: Nathan Parker Burg, August 2003
 */
-package com.sun.opengl.impl.tesselator;
+package com.sun.opengl.impl.tessellator;
 
-class DictNode {
-    Object key;
-    DictNode next;
-    DictNode prev;
+
+
+class GLUmesh {
+    GLUvertex vHead = new GLUvertex();		/* dummy header for vertex list */
+    com.sun.opengl.impl.tessellator.GLUface fHead = new GLUface();		/* dummy header for face list */
+    com.sun.opengl.impl.tessellator.GLUhalfEdge eHead = new GLUhalfEdge(true);		/* dummy header for edge list */
+    com.sun.opengl.impl.tessellator.GLUhalfEdge eHeadSym = new GLUhalfEdge(false);	/* and its symmetric counterpart */
 }

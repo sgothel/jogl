@@ -40,7 +40,7 @@
 ** Java Port: Pepijn Van Eeckhoudt, July 2003
 ** Java Port: Nathan Parker Burg, August 2003
 */
-package com.sun.opengl.impl.tesselator;
+package com.sun.opengl.impl.tessellator;
 
 class TessMono {
 /* __gl_meshTessellateMonoRegion( face ) tessellates a monotone region

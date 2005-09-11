@@ -40,7 +40,7 @@
 ** Java Port: Pepijn Van Eeckhoudt, July 2003
 ** Java Port: Nathan Parker Burg, August 2003
 */
-package com.sun.opengl.impl.tesselator;
+package com.sun.opengl.impl.tessellator;
 
 import javax.media.opengl.*;
 
@@ -98,18 +98,18 @@ class Normal {
         return i;
     }
 
-    static void ComputeNormal(GLUtesselatorImpl tess, double[] norm) {
-        com.sun.opengl.impl.tesselator.GLUvertex v, v1, v2;
+    static void ComputeNormal(GLUtessellatorImpl tess, double[] norm) {
+        com.sun.opengl.impl.tessellator.GLUvertex v, v1, v2;
         double c, tLen2, maxLen2;
         double[] maxVal, minVal, d1, d2, tNorm;
-        com.sun.opengl.impl.tesselator.GLUvertex[] maxVert, minVert;
-        com.sun.opengl.impl.tesselator.GLUvertex vHead = tess.mesh.vHead;
+        com.sun.opengl.impl.tessellator.GLUvertex[] maxVert, minVert;
+        com.sun.opengl.impl.tessellator.GLUvertex vHead = tess.mesh.vHead;
         int i;
 
         maxVal = new double[3];
         minVal = new double[3];
-        minVert = new com.sun.opengl.impl.tesselator.GLUvertex[3];
-        maxVert = new com.sun.opengl.impl.tesselator.GLUvertex[3];
+        minVert = new com.sun.opengl.impl.tessellator.GLUvertex[3];
+        maxVert = new com.sun.opengl.impl.tessellator.GLUvertex[3];
         d1 = new double[3];
         d2 = new double[3];
         tNorm = new double[3];
@@ -181,11 +181,11 @@ class Normal {
         }
     }
 
-    static void CheckOrientation(GLUtesselatorImpl tess) {
+    static void CheckOrientation(GLUtessellatorImpl tess) {
         double area;
-        com.sun.opengl.impl.tesselator.GLUface f, fHead = tess.mesh.fHead;
-        com.sun.opengl.impl.tesselator.GLUvertex v, vHead = tess.mesh.vHead;
-        com.sun.opengl.impl.tesselator.GLUhalfEdge e;
+        com.sun.opengl.impl.tessellator.GLUface f, fHead = tess.mesh.fHead;
+        com.sun.opengl.impl.tessellator.GLUvertex v, vHead = tess.mesh.vHead;
+        com.sun.opengl.impl.tessellator.GLUhalfEdge e;
 
 /* When we compute the normal automatically, we choose the orientation
  * so that the the sum of the signed areas of all contours is non-negative.
@@ -213,8 +213,8 @@ class Normal {
 /* Determine the polygon normal and project vertices onto the plane
  * of the polygon.
  */
-    public static void __gl_projectPolygon(GLUtesselatorImpl tess) {
-        com.sun.opengl.impl.tesselator.GLUvertex v, vHead = tess.mesh.vHead;
+    public static void __gl_projectPolygon(GLUtessellatorImpl tess) {
+        com.sun.opengl.impl.tessellator.GLUvertex v, vHead = tess.mesh.vHead;
         double w;
         double[] norm = new double[3];
         double[] sUnit, tUnit;

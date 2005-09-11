@@ -40,19 +40,24 @@
 ** Java Port: Pepijn Van Eeckhoudt, July 2003
 ** Java Port: Nathan Parker Burg, August 2003
 */
-package com.sun.opengl.impl.tesselator;
+package com.sun.opengl.impl.tessellator;
 
-class ActiveRegion {
-    GLUhalfEdge eUp;		/* upper edge, directed right to left */
-    DictNode nodeUp;	/* dictionary node corresponding to eUp */
-    int windingNumber;	/* used to determine which regions are
-                                 * inside the polygon */
-    boolean inside;		/* is this region inside the polygon? */
-    boolean sentinel;	/* marks fake edges at t = +/-infinity */
-    boolean dirty;		/* marks regions where the upper or lower
-                                 * edge has changed, but we haven't checked
-                                 * whether they intersect yet */
-    boolean fixUpperEdge;	/* marks temporary edges introduced when
-                                 * we process a "right vertex" (one without
-                                 * any edges leaving to the right) */
+
+
+class GLUhalfEdge {
+    public GLUhalfEdge next;		/* doubly-linked list (prev==Sym->next) */
+    public GLUhalfEdge Sym;		/* same edge, opposite direction */
+    public GLUhalfEdge Onext;		/* next edge CCW around origin */
+    public GLUhalfEdge Lnext;		/* next edge CCW around left face */
+    public GLUvertex Org;		/* origin vertex (Overtex too long) */
+    public com.sun.opengl.impl.tessellator.GLUface Lface;		/* left face */
+
+    /* Internal data (keep hidden) */
+    public com.sun.opengl.impl.tessellator.ActiveRegion activeRegion;	/* a region with this upper edge (sweep.c) */
+    public int winding;	/* change in winding number when crossing */
+    public boolean first;
+
+    public GLUhalfEdge(boolean first) {
+        this.first = first;
+    }
 }

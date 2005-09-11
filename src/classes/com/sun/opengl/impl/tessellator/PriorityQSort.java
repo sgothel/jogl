@@ -35,12 +35,12 @@
 ** Java Port: Pepijn Van Eeckhoudt, July 2003
 ** Java Port: Nathan Parker Burg, August 2003
 */
-package com.sun.opengl.impl.tesselator;
+package com.sun.opengl.impl.tessellator;
 
 
 
-class PriorityQSort extends com.sun.opengl.impl.tesselator.PriorityQ {
-    com.sun.opengl.impl.tesselator.PriorityQHeap heap;
+class PriorityQSort extends com.sun.opengl.impl.tessellator.PriorityQ {
+    com.sun.opengl.impl.tessellator.PriorityQHeap heap;
     Object[] keys;
 
     // JAVA: 'order' contains indices into the keys array.
@@ -49,15 +49,15 @@ class PriorityQSort extends com.sun.opengl.impl.tesselator.PriorityQ {
     int[] order;
     int size, max;
     boolean initialized;
-    com.sun.opengl.impl.tesselator.PriorityQ.Leq leq;
+    com.sun.opengl.impl.tessellator.PriorityQ.Leq leq;
 
-    public PriorityQSort(com.sun.opengl.impl.tesselator.PriorityQ.Leq leq) {
-        heap = new com.sun.opengl.impl.tesselator.PriorityQHeap(leq);
+    public PriorityQSort(com.sun.opengl.impl.tessellator.PriorityQ.Leq leq) {
+        heap = new com.sun.opengl.impl.tessellator.PriorityQHeap(leq);
 
-        keys = new Object[com.sun.opengl.impl.tesselator.PriorityQ.INIT_SIZE];
+        keys = new Object[com.sun.opengl.impl.tessellator.PriorityQ.INIT_SIZE];
 
         size = 0;
-        max = com.sun.opengl.impl.tesselator.PriorityQ.INIT_SIZE;
+        max = com.sun.opengl.impl.tessellator.PriorityQ.INIT_SIZE;
         initialized = false;
         this.leq = leq;
     }
@@ -69,12 +69,12 @@ class PriorityQSort extends com.sun.opengl.impl.tesselator.PriorityQ {
         keys = null;
     }
 
-    private static boolean LT(com.sun.opengl.impl.tesselator.PriorityQ.Leq leq, Object x, Object y) {
-        return (!com.sun.opengl.impl.tesselator.PriorityQHeap.LEQ(leq, y, x));
+    private static boolean LT(com.sun.opengl.impl.tessellator.PriorityQ.Leq leq, Object x, Object y) {
+        return (!com.sun.opengl.impl.tessellator.PriorityQHeap.LEQ(leq, y, x));
     }
 
-    private static boolean GT(com.sun.opengl.impl.tesselator.PriorityQ.Leq leq, Object x, Object y) {
-        return (!com.sun.opengl.impl.tesselator.PriorityQHeap.LEQ(leq, x, y));
+    private static boolean GT(com.sun.opengl.impl.tessellator.PriorityQ.Leq leq, Object x, Object y) {
+        return (!com.sun.opengl.impl.tessellator.PriorityQHeap.LEQ(leq, x, y));
     }
 
     private static void Swap(int[] array, int a, int b) {
@@ -241,7 +241,7 @@ class PriorityQSort extends com.sun.opengl.impl.tesselator.PriorityQ {
         sortMin = keys[order[size - 1]];
         if (!heap.pqIsEmpty()) {
             heapMin = heap.pqMinimum();
-            if (com.sun.opengl.impl.tesselator.PriorityQHeap.LEQ(leq, heapMin, sortMin)) {
+            if (com.sun.opengl.impl.tessellator.PriorityQHeap.LEQ(leq, heapMin, sortMin)) {
                 return heapMin;
             }
         }

@@ -40,17 +40,19 @@
 ** Java Port: Pepijn Van Eeckhoudt, July 2003
 ** Java Port: Nathan Parker Burg, August 2003
 */
-package javax.media.opengl;
+package com.sun.opengl.impl.tessellator;
 
-/**
- * The <b>GLUtesselator</b> object is used to hold the data, such as the
- * vertices, edges and callback objects, to describe and tessellate complex
- * polygons.  A <b>GLUtesselator</b> object is used with the
- * {@link javax.media.opengl.GLU GLU} tesselator methods and
- * {@link javax.media.opengl.GLUtesselatorCallback GLU callbacks}.
- *
- * @author Eric Veach, July 1994
- * @author Java Port: Pepijn Van Eechhoudt, July 2003
- * @author Java Port: Nathan Parker Burg, August 2003
- */
-public interface GLUtesselator {}
+class ActiveRegion {
+    GLUhalfEdge eUp;		/* upper edge, directed right to left */
+    DictNode nodeUp;	/* dictionary node corresponding to eUp */
+    int windingNumber;	/* used to determine which regions are
+                                 * inside the polygon */
+    boolean inside;		/* is this region inside the polygon? */
+    boolean sentinel;	/* marks fake edges at t = +/-infinity */
+    boolean dirty;		/* marks regions where the upper or lower
+                                 * edge has changed, but we haven't checked
+                                 * whether they intersect yet */
+    boolean fixUpperEdge;	/* marks temporary edges introduced when
+                                 * we process a "right vertex" (one without
+                                 * any edges leaving to the right) */
+}

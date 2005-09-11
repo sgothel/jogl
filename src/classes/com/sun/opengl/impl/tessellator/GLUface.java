@@ -40,37 +40,16 @@
 ** Java Port: Pepijn Van Eeckhoudt, July 2003
 ** Java Port: Nathan Parker Burg, August 2003
 */
-package javax.media.opengl;
+package com.sun.opengl.impl.tessellator;
 
-import javax.media.opengl.GLUtesselatorCallback;
+class GLUface {
+    public GLUface next;		/* next face (never NULL) */
+    public GLUface prev;		/* previous face (never NULL) */
+    public GLUhalfEdge anEdge;	/* a half edge with this left face */
+    public Object data;		/* room for client's data */
 
-/**
- * The <b>GLUtesselatorCallbackAdapter</b> provides a default implementation of
- * {@link javax.media.opengl.GLUtesselatorCallback GLUtesselatorCallback}
- * with empty callback methods.  This class can be extended to provide user
- * defined callback methods.
- *
- * @author Eric Veach, July 1994
- * @author Java Port: Pepijn Van Eechhoudt, July 2003
- * @author Java Port: Nathan Parker Burg, August 2003
- */
-
-public class GLUtesselatorCallbackAdapter implements GLUtesselatorCallback {
-    public void begin(int type) {}
-    public void edgeFlag(boolean boundaryEdge) {}
-    public void vertex(Object vertexData) {}
-    public void end() {}
-//  public void mesh(com.sun.opengl.impl.tesselator.GLUmesh mesh) {}
-    public void error(int errnum) {}
-    public void combine(double[] coords, Object[] data,
-                            float[] weight, Object[] outData) {}
-    public void beginData(int type, Object polygonData) {}
-    public void edgeFlagData(boolean boundaryEdge,
-                                 Object polygonData) {}
-    public void vertexData(Object vertexData, Object polygonData) {}
-    public void endData(Object polygonData) {}
-    public void errorData(int errnum, Object polygonData) {}
-    public void combineData(double[] coords, Object[] data,
-                                float[] weight, Object[] outData,
-                                Object polygonData) {}
+    /* Internal data (keep hidden) */
+    public GLUface trail;		/* "stack" for conversion to strips */
+    public boolean marked;		/* flag for conversion to strips */
+    public boolean inside;		/* this face is in the polygon interior */
 }

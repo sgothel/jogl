@@ -40,16 +40,37 @@
 ** Java Port: Pepijn Van Eeckhoudt, July 2003
 ** Java Port: Nathan Parker Burg, August 2003
 */
-package com.sun.opengl.impl.tesselator;
+package javax.media.opengl;
 
-class GLUvertex {
-    public GLUvertex next;		/* next vertex (never NULL) */
-    public GLUvertex prev;		/* previous vertex (never NULL) */
-    public com.sun.opengl.impl.tesselator.GLUhalfEdge anEdge;	/* a half-edge with this origin */
-    public Object data;		/* client's data */
+import javax.media.opengl.GLUtessellatorCallback;
 
-    /* Internal data (keep hidden) */
-    public double[] coords = new double[3];	/* vertex location in 3D */
-    public double s, t;		/* projection onto the sweep plane */
-    public int pqHandle;	/* to allow deletion from priority queue */
+/**
+ * The <b>GLUtessellatorCallbackAdapter</b> provides a default implementation of
+ * {@link javax.media.opengl.GLUtessellatorCallback GLUtessellatorCallback}
+ * with empty callback methods.  This class can be extended to provide user
+ * defined callback methods.
+ *
+ * @author Eric Veach, July 1994
+ * @author Java Port: Pepijn Van Eechhoudt, July 2003
+ * @author Java Port: Nathan Parker Burg, August 2003
+ */
+
+public class GLUtessellatorCallbackAdapter implements GLUtessellatorCallback {
+    public void begin(int type) {}
+    public void edgeFlag(boolean boundaryEdge) {}
+    public void vertex(Object vertexData) {}
+    public void end() {}
+//  public void mesh(com.sun.opengl.impl.tessellator.GLUmesh mesh) {}
+    public void error(int errnum) {}
+    public void combine(double[] coords, Object[] data,
+                            float[] weight, Object[] outData) {}
+    public void beginData(int type, Object polygonData) {}
+    public void edgeFlagData(boolean boundaryEdge,
+                                 Object polygonData) {}
+    public void vertexData(Object vertexData, Object polygonData) {}
+    public void endData(Object polygonData) {}
+    public void errorData(int errnum, Object polygonData) {}
+    public void combineData(double[] coords, Object[] data,
+                                float[] weight, Object[] outData,
+                                Object polygonData) {}
 }

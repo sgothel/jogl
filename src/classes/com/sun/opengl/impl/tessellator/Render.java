@@ -40,7 +40,7 @@
 ** Java Port: Pepijn Van Eeckhoudt, July 2003
 ** Java Port: Nathan Parker Burg, August 2003
 */
-package com.sun.opengl.impl.tesselator;
+package com.sun.opengl.impl.tessellator;
 
 import javax.media.opengl.*;
 
@@ -62,19 +62,19 @@ class Render {
         public FaceCount() {
         }
 
-        public FaceCount(long size, com.sun.opengl.impl.tesselator.GLUhalfEdge eStart, renderCallBack render) {
+        public FaceCount(long size, com.sun.opengl.impl.tessellator.GLUhalfEdge eStart, renderCallBack render) {
             this.size = size;
             this.eStart = eStart;
             this.render = render;
         }
 
         long size;		/* number of triangles used */
-        com.sun.opengl.impl.tesselator.GLUhalfEdge eStart;	/* edge where this primitive starts */
+        com.sun.opengl.impl.tessellator.GLUhalfEdge eStart;	/* edge where this primitive starts */
         renderCallBack render;
     };
 
     private static interface renderCallBack {
-        void render(GLUtesselatorImpl tess, com.sun.opengl.impl.tesselator.GLUhalfEdge e, long size);
+        void render(GLUtessellatorImpl tess, com.sun.opengl.impl.tessellator.GLUhalfEdge e, long size);
     }
 
     /************************ Strips and Fans decomposition ******************/
@@ -86,8 +86,8 @@ class Render {
  *
  * The rendering output is provided as callbacks (see the api).
  */
-    public static void __gl_renderMesh(GLUtesselatorImpl tess, com.sun.opengl.impl.tesselator.GLUmesh mesh) {
-        com.sun.opengl.impl.tesselator.GLUface f;
+    public static void __gl_renderMesh(GLUtessellatorImpl tess, com.sun.opengl.impl.tessellator.GLUmesh mesh) {
+        com.sun.opengl.impl.tessellator.GLUface f;
 
         /* Make a list of separate triangles so we can render them all at once */
         tess.lonelyTriList = null;
@@ -113,7 +113,7 @@ class Render {
     }
 
 
-    static void RenderMaximumFaceGroup(GLUtesselatorImpl tess, com.sun.opengl.impl.tesselator.GLUface fOrig) {
+    static void RenderMaximumFaceGroup(GLUtessellatorImpl tess, com.sun.opengl.impl.tessellator.GLUface fOrig) {
         /* We want to find the largest triangle fan or strip of unmarked faces
          * which includes the given face fOrig.  There are 3 possible fans
          * passing through fOrig (one centered at each vertex), and 3 possible
@@ -121,7 +121,7 @@ class Render {
          * is to try all of these, and take the primitive which uses the most
          * triangles (a greedy approach).
          */
-        com.sun.opengl.impl.tesselator.GLUhalfEdge e = fOrig.anEdge;
+        com.sun.opengl.impl.tessellator.GLUhalfEdge e = fOrig.anEdge;
         FaceCount max = new FaceCount();
         FaceCount newFace = new FaceCount();
 
@@ -167,17 +167,17 @@ class Render {
  * more complicated, and we need a general tracking method like the
  * one here.
  */
-    private static boolean Marked(com.sun.opengl.impl.tesselator.GLUface f) {
+    private static boolean Marked(com.sun.opengl.impl.tessellator.GLUface f) {
         return !f.inside || f.marked;
     }
 
-    private static GLUface AddToTrail(com.sun.opengl.impl.tesselator.GLUface f, com.sun.opengl.impl.tesselator.GLUface t) {
+    private static GLUface AddToTrail(com.sun.opengl.impl.tessellator.GLUface f, com.sun.opengl.impl.tessellator.GLUface t) {
         f.trail = t;
         f.marked = true;
         return f;
     }
 
-    private static void FreeTrail(com.sun.opengl.impl.tesselator.GLUface t) {
+    private static void FreeTrail(com.sun.opengl.impl.tessellator.GLUface t) {
         if (true) {
             while (t != null) {
                 t.marked = false;
@@ -188,14 +188,14 @@ class Render {
         }
     }
 
-    static FaceCount MaximumFan(com.sun.opengl.impl.tesselator.GLUhalfEdge eOrig) {
+    static FaceCount MaximumFan(com.sun.opengl.impl.tessellator.GLUhalfEdge eOrig) {
         /* eOrig.Lface is the face we want to render.  We want to find the size
          * of a maximal fan around eOrig.Org.  To do this we just walk around
          * the origin vertex as far as possible in both directions.
          */
         FaceCount newFace = new FaceCount(0, null, renderFan);
-        com.sun.opengl.impl.tesselator.GLUface trail = null;
-        com.sun.opengl.impl.tesselator.GLUhalfEdge e;
+        com.sun.opengl.impl.tessellator.GLUface trail = null;
+        com.sun.opengl.impl.tessellator.GLUhalfEdge e;
 
         for (e = eOrig; !Marked(e.Lface); e = e.Onext) {
             trail = AddToTrail(e.Lface, trail);
@@ -216,7 +216,7 @@ class Render {
         return (n & 0x1L) == 0;
     }
 
-    static FaceCount MaximumStrip(com.sun.opengl.impl.tesselator.GLUhalfEdge eOrig) {
+    static FaceCount MaximumStrip(com.sun.opengl.impl.tessellator.GLUhalfEdge eOrig) {
         /* Here we are looking for a maximal strip that contains the vertices
          * eOrig.Org, eOrig.Dst, eOrig.Lnext.Dst (in that order or the
          * reverse, such that all triangles are oriented CCW).
@@ -229,8 +229,8 @@ class Render {
          */
         FaceCount newFace = new FaceCount(0, null, renderStrip);
         long headSize = 0, tailSize = 0;
-        com.sun.opengl.impl.tesselator.GLUface trail = null;
-        com.sun.opengl.impl.tesselator.GLUhalfEdge e, eTail, eHead;
+        com.sun.opengl.impl.tessellator.GLUface trail = null;
+        com.sun.opengl.impl.tessellator.GLUhalfEdge e, eTail, eHead;
 
         for (e = eOrig; !Marked(e.Lface); ++tailSize, e = e.Onext) {
             trail = AddToTrail(e.Lface, trail);
@@ -268,7 +268,7 @@ class Render {
     }
 
     private static class RenderTriangle implements renderCallBack {
-        public void render(GLUtesselatorImpl tess, com.sun.opengl.impl.tesselator.GLUhalfEdge e, long size) {
+        public void render(GLUtessellatorImpl tess, com.sun.opengl.impl.tessellator.GLUhalfEdge e, long size) {
             /* Just add the triangle to a triangle list, so we can render all
              * the separate triangles at once.
              */
@@ -278,11 +278,11 @@ class Render {
     }
 
 
-    static void RenderLonelyTriangles(GLUtesselatorImpl tess, com.sun.opengl.impl.tesselator.GLUface f) {
+    static void RenderLonelyTriangles(GLUtessellatorImpl tess, com.sun.opengl.impl.tessellator.GLUface f) {
         /* Now we render all the separate triangles which could not be
          * grouped into a triangle fan or strip.
          */
-        com.sun.opengl.impl.tesselator.GLUhalfEdge e;
+        com.sun.opengl.impl.tessellator.GLUhalfEdge e;
         int newState;
         int edgeState = -1;	/* force edge state output for first vertex */
 
@@ -312,7 +312,7 @@ class Render {
     }
 
     private static class RenderFan implements renderCallBack {
-        public void render(GLUtesselatorImpl tess, com.sun.opengl.impl.tesselator.GLUhalfEdge e, long size) {
+        public void render(GLUtessellatorImpl tess, com.sun.opengl.impl.tessellator.GLUhalfEdge e, long size) {
             /* Render as many CCW triangles as possible in a fan starting from
              * edge "e".  The fan *should* contain exactly "size" triangles
              * (otherwise we've goofed up somewhere).
@@ -334,7 +334,7 @@ class Render {
     }
 
     private static class RenderStrip implements renderCallBack {
-        public void render(GLUtesselatorImpl tess, com.sun.opengl.impl.tesselator.GLUhalfEdge e, long size) {
+        public void render(GLUtessellatorImpl tess, com.sun.opengl.impl.tessellator.GLUhalfEdge e, long size) {
             /* Render as many CCW triangles as possible in a strip starting from
              * edge "e".  The strip *should* contain exactly "size" triangles
              * (otherwise we've goofed up somewhere).
@@ -367,9 +367,9 @@ class Render {
  * contour for each face marked "inside".  The rendering output is
  * provided as callbacks (see the api).
  */
-    public static void __gl_renderBoundary(GLUtesselatorImpl tess, com.sun.opengl.impl.tesselator.GLUmesh mesh) {
-        com.sun.opengl.impl.tesselator.GLUface f;
-        com.sun.opengl.impl.tesselator.GLUhalfEdge e;
+    public static void __gl_renderBoundary(GLUtessellatorImpl tess, com.sun.opengl.impl.tessellator.GLUmesh mesh) {
+        com.sun.opengl.impl.tessellator.GLUface f;
+        com.sun.opengl.impl.tessellator.GLUhalfEdge e;
 
         for (f = mesh.fHead.next; f != mesh.fHead; f = f.next) {
             if (f.inside) {
@@ -389,7 +389,7 @@ class Render {
 
     private static final int SIGN_INCONSISTENT = 2;
 
-    static int ComputeNormal(GLUtesselatorImpl tess, double[] norm, boolean check)
+    static int ComputeNormal(GLUtessellatorImpl tess, double[] norm, boolean check)
 /*
  * If check==false, we compute the polygon normal and place it in norm[].
  * If check==true, we check that each triangle in the fan from v0 has a
@@ -398,7 +398,7 @@ class Render {
  * are degenerate return 0; otherwise (no consistent orientation) return
  * SIGN_INCONSISTENT.
  */ {
-        com.sun.opengl.impl.tesselator.CachedVertex[] v = tess.cache;
+        com.sun.opengl.impl.tessellator.CachedVertex[] v = tess.cache;
 //            CachedVertex vn = v0 + tess.cacheCount;
         int vn = tess.cacheCount;
 //            CachedVertex vc;
@@ -476,8 +476,8 @@ class Render {
  * Returns true if the polygon was successfully rendered.  The rendering
  * output is provided as callbacks (see the api).
  */
-    public static boolean __gl_renderCache(GLUtesselatorImpl tess) {
-        com.sun.opengl.impl.tesselator.CachedVertex[] v = tess.cache;
+    public static boolean __gl_renderCache(GLUtessellatorImpl tess) {
+        com.sun.opengl.impl.tessellator.CachedVertex[] v = tess.cache;
 //            CachedVertex vn = v0 + tess.cacheCount;
         int vn = tess.cacheCount;
 //            CachedVertex vc;

@@ -36,72 +36,72 @@ public void setGL(GL gl) {
 // Tesselator functionality
 //
 
-public GLUtesselator gluNewTess() {
-    return GLUtesselatorImpl.gluNewTess();
+public GLUtessellator gluNewTess() {
+    return GLUtessellatorImpl.gluNewTess();
 }
 
-public void gluDeleteTess(GLUtesselator tesselator) {
-    GLUtesselatorImpl tess = (GLUtesselatorImpl) tesselator;
+public void gluDeleteTess(GLUtessellator tessellator) {
+    GLUtessellatorImpl tess = (GLUtessellatorImpl) tessellator;
     tess.gluDeleteTess();
 }
 
-public void gluTessProperty(GLUtesselator tesselator, int which, double value) {
-    GLUtesselatorImpl tess = (GLUtesselatorImpl) tesselator;
+public void gluTessProperty(GLUtessellator tessellator, int which, double value) {
+    GLUtessellatorImpl tess = (GLUtessellatorImpl) tessellator;
     tess.gluTessProperty(which, value);
 }
 
-public void gluGetTessProperty(GLUtesselator tesselator, int which, double[] value, int value_offset) {
-    GLUtesselatorImpl tess = (GLUtesselatorImpl) tesselator;
+public void gluGetTessProperty(GLUtessellator tessellator, int which, double[] value, int value_offset) {
+    GLUtessellatorImpl tess = (GLUtessellatorImpl) tessellator;
     tess.gluGetTessProperty(which, value, value_offset);
 }
 
-public void gluTessNormal(GLUtesselator tesselator, double x, double y, double z) {
-    GLUtesselatorImpl tess = (GLUtesselatorImpl) tesselator;
+public void gluTessNormal(GLUtessellator tessellator, double x, double y, double z) {
+    GLUtessellatorImpl tess = (GLUtessellatorImpl) tessellator;
     tess.gluTessNormal(x, y, z);
 }
 
-public void gluTessCallback(GLUtesselator tesselator, int which, GLUtesselatorCallback aCallback) {
-    GLUtesselatorImpl tess = (GLUtesselatorImpl) tesselator;
+public void gluTessCallback(GLUtessellator tessellator, int which, GLUtessellatorCallback aCallback) {
+    GLUtessellatorImpl tess = (GLUtessellatorImpl) tessellator;
     tess.gluTessCallback(which, aCallback);
 }
 
-public void gluTessVertex(GLUtesselator tesselator, double[] coords, int coords_offset, Object data) {
-    GLUtesselatorImpl tess = (GLUtesselatorImpl) tesselator;
+public void gluTessVertex(GLUtessellator tessellator, double[] coords, int coords_offset, Object data) {
+    GLUtessellatorImpl tess = (GLUtessellatorImpl) tessellator;
     tess.gluTessVertex(coords, coords_offset, data);
 }
 
-public void gluTessBeginPolygon(GLUtesselator tesselator, Object data) {
-    GLUtesselatorImpl tess = (GLUtesselatorImpl) tesselator;
+public void gluTessBeginPolygon(GLUtessellator tessellator, Object data) {
+    GLUtessellatorImpl tess = (GLUtessellatorImpl) tessellator;
     tess.gluTessBeginPolygon(data);
 }
 
-public void gluTessBeginContour(GLUtesselator tesselator) {
-    GLUtesselatorImpl tess = (GLUtesselatorImpl) tesselator;
+public void gluTessBeginContour(GLUtessellator tessellator) {
+    GLUtessellatorImpl tess = (GLUtessellatorImpl) tessellator;
     tess.gluTessBeginContour();
 }
 
-public void gluTessEndContour(GLUtesselator tesselator) {
-    GLUtesselatorImpl tess = (GLUtesselatorImpl) tesselator;
+public void gluTessEndContour(GLUtessellator tessellator) {
+    GLUtessellatorImpl tess = (GLUtessellatorImpl) tessellator;
     tess.gluTessEndContour();
 }
 
-public void gluTessEndPolygon(GLUtesselator tesselator) {
-    GLUtesselatorImpl tess = (GLUtesselatorImpl) tesselator;
+public void gluTessEndPolygon(GLUtessellator tessellator) {
+    GLUtessellatorImpl tess = (GLUtessellatorImpl) tessellator;
     tess.gluTessEndPolygon();
 }
 
-public void gluBeginPolygon(GLUtesselator tesselator) {
-    GLUtesselatorImpl tess = (GLUtesselatorImpl) tesselator;
+public void gluBeginPolygon(GLUtessellator tessellator) {
+    GLUtessellatorImpl tess = (GLUtessellatorImpl) tessellator;
     tess.gluBeginPolygon();
 }
 
-public void gluNextContour(GLUtesselator tesselator, int type) {
-    GLUtesselatorImpl tess = (GLUtesselatorImpl) tesselator;
+public void gluNextContour(GLUtessellator tessellator, int type) {
+    GLUtessellatorImpl tess = (GLUtessellatorImpl) tessellator;
     tess.gluNextContour(type);
 }
 
-public void gluEndPolygon(GLUtesselator tesselator) {
-    GLUtesselatorImpl tess = (GLUtesselatorImpl) tesselator;
+public void gluEndPolygon(GLUtessellator tessellator) {
+    GLUtessellatorImpl tess = (GLUtessellatorImpl) tessellator;
     tess.gluEndPolygon();
 }
 

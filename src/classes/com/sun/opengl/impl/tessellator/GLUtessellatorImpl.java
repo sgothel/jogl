@@ -40,12 +40,12 @@
 ** Java Port: Pepijn Van Eeckhoudt, July 2003
 ** Java Port: Nathan Parker Burg, August 2003
 */
-package com.sun.opengl.impl.tesselator;
+package com.sun.opengl.impl.tessellator;
 
 import javax.media.opengl.*;
-import com.sun.opengl.impl.tesselator.*;
+import com.sun.opengl.impl.tessellator.*;
 
-public class GLUtesselatorImpl implements GLUtesselator {
+public class GLUtessellatorImpl implements GLUtessellator {
     public static final int TESS_MAX_CACHE = 100;
 
     private int state;		/* what begin/end calls have we seen? */
@@ -88,30 +88,30 @@ public class GLUtesselatorImpl implements GLUtesselator {
     /*** rendering callbacks that also pass polygon data  ***/
     private Object polygonData;		/* client data for current polygon */
 
-    private GLUtesselatorCallback callBegin;
-    private GLUtesselatorCallback callEdgeFlag;
-    private GLUtesselatorCallback callVertex;
-    private GLUtesselatorCallback callEnd;
-//    private GLUtesselatorCallback callMesh;
-    private GLUtesselatorCallback callError;
-    private GLUtesselatorCallback callCombine;
+    private GLUtessellatorCallback callBegin;
+    private GLUtessellatorCallback callEdgeFlag;
+    private GLUtessellatorCallback callVertex;
+    private GLUtessellatorCallback callEnd;
+//    private GLUtessellatorCallback callMesh;
+    private GLUtessellatorCallback callError;
+    private GLUtessellatorCallback callCombine;
 
-    private GLUtesselatorCallback callBeginData;
-    private GLUtesselatorCallback callEdgeFlagData;
-    private GLUtesselatorCallback callVertexData;
-    private GLUtesselatorCallback callEndData;
-//    private GLUtesselatorCallback callMeshData;
-    private GLUtesselatorCallback callErrorData;
-    private GLUtesselatorCallback callCombineData;
+    private GLUtessellatorCallback callBeginData;
+    private GLUtessellatorCallback callEdgeFlagData;
+    private GLUtessellatorCallback callVertexData;
+    private GLUtessellatorCallback callEndData;
+//    private GLUtessellatorCallback callMeshData;
+    private GLUtessellatorCallback callErrorData;
+    private GLUtessellatorCallback callCombineData;
 
     private static final double GLU_TESS_DEFAULT_TOLERANCE = 0.0;
 //    private static final int GLU_TESS_MESH = 100112;	/* void (*)(GLUmesh *mesh)	    */
-    private static GLUtesselatorCallback NULL_CB = new GLUtesselatorCallbackAdapter();
+    private static GLUtessellatorCallback NULL_CB = new GLUtessellatorCallbackAdapter();
 
 //    #define MAX_FAST_ALLOC	(MAX(sizeof(EdgePair), \
 //                 MAX(sizeof(GLUvertex),sizeof(GLUface))))
 
-    private GLUtesselatorImpl() {
+    private GLUtessellatorImpl() {
         state = TessState.T_DORMANT;
 
         normal[0] = 0;
@@ -145,9 +145,9 @@ public class GLUtesselatorImpl implements GLUtesselator {
         }
     }
 
-    static public GLUtesselator gluNewTess()
+    static public GLUtessellator gluNewTess()
     {
-        return new GLUtesselatorImpl();
+        return new GLUtessellatorImpl();
     }
 
 
@@ -263,7 +263,7 @@ public class GLUtesselatorImpl implements GLUtesselator {
         normal[2] = z;
     }
 
-    public void gluTessCallback(int which, GLUtesselatorCallback aCallback) {
+    public void gluTessCallback(int which, GLUtessellatorCallback aCallback) {
         switch (which) {
             case GLU.GLU_TESS_BEGIN:
                 callBegin = aCallback == null ? NULL_CB : aCallback;

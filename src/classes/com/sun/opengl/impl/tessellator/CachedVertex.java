@@ -40,16 +40,9 @@
 ** Java Port: Pepijn Van Eeckhoudt, July 2003
 ** Java Port: Nathan Parker Burg, August 2003
 */
-package com.sun.opengl.impl.tesselator;
+package com.sun.opengl.impl.tessellator;
 
-class GLUface {
-    public GLUface next;		/* next face (never NULL) */
-    public GLUface prev;		/* previous face (never NULL) */
-    public GLUhalfEdge anEdge;	/* a half edge with this left face */
-    public Object data;		/* room for client's data */
-
-    /* Internal data (keep hidden) */
-    public GLUface trail;		/* "stack" for conversion to strips */
-    public boolean marked;		/* flag for conversion to strips */
-    public boolean inside;		/* this face is in the polygon interior */
+class CachedVertex {
+    public double[] coords = new double[3];
+    public Object data;
 }

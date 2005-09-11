@@ -64,7 +64,7 @@ public boolean gluUnProject4(double winX, double winY, double winZ, double clipW
  * through callbacks. See {@link javax.media.opengl.GLU#gluTessCallback
  * gluTessCallback} for descriptions of the callback methods.
  *
- * @param tesselator
+ * @param tessellator
  *        Specifies the tessellation object (created with
  *        {@link javax.media.opengl.GLU#gluNewTess gluNewTess}).
  *
@@ -75,21 +75,21 @@ public boolean gluUnProject4(double winX, double winY, double winZ, double clipW
  * @see javax.media.opengl.GLU#gluTessBeginPolygon gluTessBeginPolygon
  * @see javax.media.opengl.GLU#gluTessBeginContour gluTessBeginContour
  ****************************************************************************/
-public void gluBeginPolygon(GLUtesselator tesselator);
+public void gluBeginPolygon(GLUtessellator tessellator);
 
 
 /*****************************************************************************
  * <b>gluDeleteTess</b> destroys the indicated tessellation object (which was
  * created with {@link javax.media.opengl.GLU#gluNewTess gluNewTess}).
  *
- * @param tesselator
+ * @param tessellator
  *        Specifies the tessellation object to destroy.
  *
  * @see javax.media.opengl.GLU#gluBeginPolygon gluBeginPolygon
  * @see javax.media.opengl.GLU#gluNewTess      gluNewTess
  * @see javax.media.opengl.GLU#gluTessCallback gluTessCallback
  ****************************************************************************/
-public void gluDeleteTess(GLUtesselator tesselator);
+public void gluDeleteTess(GLUtessellator tessellator);
 
 
 /*****************************************************************************
@@ -109,7 +109,7 @@ public void gluDeleteTess(GLUtesselator tesselator);
  * {@link javax.media.opengl.GLU#gluTessCallback gluTessCallback} for
  * descriptions of the callback methods.
  *
- * @param tesselator
+ * @param tessellator
  *        Specifies the tessellation object (created with
  *        {@link javax.media.opengl.GLU#gluNewTess gluNewTess}).
  *
@@ -120,7 +120,7 @@ public void gluDeleteTess(GLUtesselator tesselator);
  * @see javax.media.opengl.GLU#gluTessBeginPolygon gluTessBeginPolygon
  * @see javax.media.opengl.GLU#gluTessBeginContour gluTessBeginContour
  ****************************************************************************/
-public void gluEndPolygon(GLUtesselator tesselator);
+public void gluEndPolygon(GLUtessellator tessellator);
 
 
 /*****************************************************************************
@@ -130,7 +130,7 @@ public void gluEndPolygon(GLUtesselator tesselator);
  * {@link javax.media.opengl.GLU#gluTessProperty gluTessProperty} reference
  * page for information about the properties and what they do.
  *
- * @param tesselator
+ * @param tessellator
  *        Specifies the tessellation object (created with
  *        {@link javax.media.opengl.GLU#gluNewTess gluNewTess}).
  * @param which
@@ -144,7 +144,7 @@ public void gluEndPolygon(GLUtesselator tesselator);
  * @see javax.media.opengl.GLU#gluNewTess      gluNewTess
  * @see javax.media.opengl.GLU#gluTessProperty gluTessProperty
  ****************************************************************************/
-public void gluGetTessProperty(GLUtesselator tesselator, int which, double[] value, int value_offset);
+public void gluGetTessProperty(GLUtessellator tessellator, int which, double[] value, int value_offset);
 
 
 /*****************************************************************************
@@ -159,7 +159,7 @@ public void gluGetTessProperty(GLUtesselator tesselator, int which, double[] val
  * @see javax.media.opengl.GLU#gluDeleteTess       gluDeleteTess
  * @see javax.media.opengl.GLU#gluTessCallback     gluTessCallback
  ****************************************************************************/
-public GLUtesselator gluNewTess();
+public GLUtessellator gluNewTess();
 
 
 /*****************************************************************************
@@ -215,7 +215,7 @@ public GLUtesselator gluNewTess();
  *   {@link javax.media.opengl.GLU#gluTessBeginContour gluTessBeginContour}.
  * </UL>
  *
- * @param tesselator
+ * @param tessellator
  *        Specifies the tessellation object (created with
  *        {@link javax.media.opengl.GLU#gluNewTess gluNewTess}).
  * @param type
@@ -228,7 +228,7 @@ public GLUtesselator gluNewTess();
  * @see javax.media.opengl.GLU#gluTessEndContour   gluTessEndContour
  * @see javax.media.opengl.GLU#gluTessVertex       gluTessVertex
  ****************************************************************************/
-public void gluNextContour(GLUtesselator tesselator, int type);
+public void gluNextContour(GLUtessellator tessellator, int type);
 
 
 /*****************************************************************************
@@ -246,7 +246,7 @@ public void gluNextContour(GLUtesselator tesselator, int type);
  * {@link javax.media.opengl.GLU#gluTessBeginPolygon gluTessBeginPolygon} and
  * {@link javax.media.opengl.GLU#gluTessEndPolygon gluTessEndPolygon}.
  *
- * @param tesselator
+ * @param tessellator
  *        Specifies the tessellation object (created with
  *        {@link javax.media.opengl.GLU#gluNewTess gluNewTess}).
  *
@@ -258,7 +258,7 @@ public void gluNextContour(GLUtesselator tesselator, int type);
  * @see javax.media.opengl.GLU#gluTessNormal       gluTessNormal
  * @see javax.media.opengl.GLU#gluTessEndPolygon   gluTessEndPolygon
  ****************************************************************************/
-public void gluTessBeginContour(GLUtesselator tesselator);
+public void gluTessBeginContour(GLUtessellator tessellator);
 
 
 /*****************************************************************************
@@ -290,7 +290,7 @@ public void gluTessBeginContour(GLUtesselator tesselator);
  * {@link javax.media.opengl.GLU#gluTessCallback gluTessCallback} for
  * descriptions of the callback methods.
  *
- * @param tesselator
+ * @param tessellator
  *        Specifies the tessellation object (created with
  *        {@link javax.media.opengl.GLU#gluNewTess gluNewTess}).
  * @param data
@@ -304,7 +304,7 @@ public void gluTessBeginContour(GLUtesselator tesselator);
  * @see javax.media.opengl.GLU#gluTessNormal       gluTessNormal
  * @see javax.media.opengl.GLU#gluTessEndPolygon   gluTessEndPolygon
  ****************************************************************************/
-public void gluTessBeginPolygon(GLUtesselator tesselator, Object data);
+public void gluTessBeginPolygon(GLUtessellator tessellator, Object data);
 
 
 /*****************************************************************************
@@ -560,7 +560,7 @@ public void gluTessBeginPolygon(GLUtesselator tesselator, Object data);
  * <PRE>
  *         void errorData(int errnum, Object polygonData);</PRE>
  *
- * @param tesselator
+ * @param tessellator
  *        Specifies the tessellation object (created with
  *        {@link javax.media.opengl.GLU#gluNewTess gluNewTess}).
  * @param which
@@ -585,8 +585,8 @@ public void gluTessBeginPolygon(GLUtesselator tesselator, Object data);
  * @see javax.media.opengl.GLU#gluTessProperty     gluTessProperty
  * @see javax.media.opengl.GLU#gluTessNormal       gluTessNormal
  ****************************************************************************/
-public void gluTessCallback(GLUtesselator tesselator, int which,
-                            GLUtesselatorCallback aCallback);
+public void gluTessCallback(GLUtessellator tessellator, int which,
+                            GLUtessellatorCallback aCallback);
 
 
 /*****************************************************************************
@@ -604,7 +604,7 @@ public void gluTessCallback(GLUtesselator tesselator, int which,
  * gluTessBeginPolygon} and
  * {@link javax.media.opengl.GLU#gluTessEndPolygon gluTessEndPolygon}.
  *
- * @param tesselator
+ * @param tessellator
  *        Specifies the tessellation object (created with
  *        {@link javax.media.opengl.GLU#gluNewTess gluNewTess}).
  *
@@ -616,7 +616,7 @@ public void gluTessCallback(GLUtesselator tesselator, int which,
  * @see javax.media.opengl.GLU#gluTessNormal       gluTessNormal
  * @see javax.media.opengl.GLU#gluTessEndPolygon   gluTessEndPolygon
  ****************************************************************************/
-public void gluTessEndContour(GLUtesselator tesselator);
+public void gluTessEndContour(GLUtessellator tessellator);
 
 
 /*****************************************************************************
@@ -640,7 +640,7 @@ public void gluTessEndContour(GLUtesselator tesselator);
  * {@link javax.media.opengl.GLU#gluTessCallback gluTessCallback} for
  * descriptions of the callback functions.
  *
- * @param tesselator
+ * @param tessellator
  *        Specifies the tessellation object (created with
  *        {@link javax.media.opengl.GLU#gluNewTess gluNewTess}).
  *
@@ -652,7 +652,7 @@ public void gluTessEndContour(GLUtesselator tesselator);
  * @see javax.media.opengl.GLU#gluTessNormal       gluTessNormal
  * @see javax.media.opengl.GLU#gluTessBeginPolygon gluTessBeginPolygon
  ****************************************************************************/
-public void gluTessEndPolygon(GLUtesselator tesselator);
+public void gluTessEndPolygon(GLUtessellator tessellator);
 
 
 /*****************************************************************************
@@ -676,7 +676,7 @@ public void gluTessEndPolygon(GLUtesselator tesselator);
  * The supplied normal persists until it is changed by another call to
  * <b>gluTessNormal</b>.
  *
- * @param tesselator
+ * @param tessellator
  *        Specifies the tessellation object (created by
  *        {@link javax.media.opengl.GLU#gluNewTess gluNewTess}).
  * @param x
@@ -689,7 +689,7 @@ public void gluTessEndPolygon(GLUtesselator tesselator);
  * @see javax.media.opengl.GLU#gluTessBeginPolygon gluTessBeginPolygon
  * @see javax.media.opengl.GLU#gluTessEndPolygon   gluTessEndPolygon
  ****************************************************************************/
-public void gluTessNormal(GLUtesselator tesselator, double x, double y, double z);
+public void gluTessNormal(GLUtessellator tessellator, double x, double y, double z);
 
 
 /*****************************************************************************
@@ -721,7 +721,7 @@ public void gluTessNormal(GLUtesselator tesselator, double x, double y, double z
  *
  *   The winding rule classifies a region as "inside" if its winding number
  *   belongs to the chosen category (odd, nonzero, positive, negative, or
- *   absolute value of at least two).  The previous GLU tesselator (prior to
+ *   absolute value of at least two).  The previous GLU tessellator (prior to
  *   GLU 1.2) used the "odd" rule.  The "nonzero" rule is another common way
  *   to define the interior.  The other three rules are useful for polygon CSG
  *   operations.
@@ -756,7 +756,7 @@ public void gluTessNormal(GLUtesselator tesselator, double x, double y, double z
  *   endpoints are identical.
  * </UL>
  *
- * @param tesselator
+ * @param tessellator
  *        Specifies the tessellation object created with
  *        {@link javax.media.opengl.GLU#gluNewTess gluNewTess}
  * @param which
@@ -769,7 +769,7 @@ public void gluTessNormal(GLUtesselator tesselator, double x, double y, double z
  * @see javax.media.opengl.GLU#gluGetTessProperty gluGetTessProperty
  * @see javax.media.opengl.GLU#gluNewTess         gluNewTess
  ****************************************************************************/
-public void gluTessProperty(GLUtesselator tesselator, int which, double value);
+public void gluTessProperty(GLUtessellator tessellator, int which, double value);
 
 
 /*****************************************************************************
@@ -787,7 +787,7 @@ public void gluTessProperty(GLUtesselator tesselator, int which, double value);
  * tessellation (see the {@link javax.media.opengl.GLU#gluTessCallback
  * gluTessCallback} reference page).
  *
- * @param tesselator
+ * @param tessellator
  *        Specifies the tessellation object (created with
  *        {@link javax.media.opengl.GLU#gluNewTess gluNewTess}).
  * @param coords
@@ -805,7 +805,7 @@ public void gluTessProperty(GLUtesselator tesselator, int which, double value);
  * @see javax.media.opengl.GLU#gluTessNormal       gluTessNormal
  * @see javax.media.opengl.GLU#gluTessEndPolygon   gluTessEndPolygon
  ****************************************************************************/
-public void gluTessVertex(GLUtesselator tesselator, double[] coords, int coords_offset, Object data);
+public void gluTessVertex(GLUtessellator tessellator, double[] coords, int coords_offset, Object data);
 
 
 //----------------------------------------------------------------------

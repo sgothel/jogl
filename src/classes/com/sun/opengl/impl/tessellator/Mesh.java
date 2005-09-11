@@ -40,7 +40,7 @@
 ** Java Port: Pepijn Van Eeckhoudt, July 2003
 ** Java Port: Nathan Parker Burg, August 2003
 */
-package com.sun.opengl.impl.tesselator;
+package com.sun.opengl.impl.tessellator;
 
 class Mesh {
     private Mesh() {
@@ -51,19 +51,19 @@ class Mesh {
  * No vertex or face structures are allocated, but these must be assigned
  * before the current edge operation is completed.
  */
-    static com.sun.opengl.impl.tesselator.GLUhalfEdge MakeEdge(com.sun.opengl.impl.tesselator.GLUhalfEdge eNext) {
-        com.sun.opengl.impl.tesselator.GLUhalfEdge e;
-        com.sun.opengl.impl.tesselator.GLUhalfEdge eSym;
-        com.sun.opengl.impl.tesselator.GLUhalfEdge ePrev;
+    static com.sun.opengl.impl.tessellator.GLUhalfEdge MakeEdge(com.sun.opengl.impl.tessellator.GLUhalfEdge eNext) {
+        com.sun.opengl.impl.tessellator.GLUhalfEdge e;
+        com.sun.opengl.impl.tessellator.GLUhalfEdge eSym;
+        com.sun.opengl.impl.tessellator.GLUhalfEdge ePrev;
 
 //        EdgePair * pair = (EdgePair *)
 //        memAlloc(sizeof(EdgePair));
 //        if (pair == NULL) return NULL;
 //
 //        e = &pair - > e;
-        e = new com.sun.opengl.impl.tesselator.GLUhalfEdge(true);
+        e = new com.sun.opengl.impl.tessellator.GLUhalfEdge(true);
 //        eSym = &pair - > eSym;
-        eSym = new com.sun.opengl.impl.tesselator.GLUhalfEdge(false);
+        eSym = new com.sun.opengl.impl.tessellator.GLUhalfEdge(false);
 
 
         /* Make sure eNext points to the first edge of the edge pair */
@@ -105,9 +105,9 @@ class Mesh {
  * depending on whether a and b belong to different face or vertex rings.
  * For more explanation see __gl_meshSplice() below.
  */
-    static void Splice(com.sun.opengl.impl.tesselator.GLUhalfEdge a, com.sun.opengl.impl.tesselator.GLUhalfEdge b) {
-        com.sun.opengl.impl.tesselator.GLUhalfEdge aOnext = a.Onext;
-        com.sun.opengl.impl.tesselator.GLUhalfEdge bOnext = b.Onext;
+    static void Splice(com.sun.opengl.impl.tessellator.GLUhalfEdge a, com.sun.opengl.impl.tessellator.GLUhalfEdge b) {
+        com.sun.opengl.impl.tessellator.GLUhalfEdge aOnext = a.Onext;
+        com.sun.opengl.impl.tessellator.GLUhalfEdge bOnext = b.Onext;
 
         aOnext.Sym.Lnext = b;
         bOnext.Sym.Lnext = a;
@@ -121,11 +121,11 @@ class Mesh {
  * the new vertex *before* vNext so that algorithms which walk the vertex
  * list will not see the newly created vertices.
  */
-    static void MakeVertex(com.sun.opengl.impl.tesselator.GLUvertex newVertex,
-                           com.sun.opengl.impl.tesselator.GLUhalfEdge eOrig, com.sun.opengl.impl.tesselator.GLUvertex vNext) {
-        com.sun.opengl.impl.tesselator.GLUhalfEdge e;
-        com.sun.opengl.impl.tesselator.GLUvertex vPrev;
-        com.sun.opengl.impl.tesselator.GLUvertex vNew = newVertex;
+    static void MakeVertex(com.sun.opengl.impl.tessellator.GLUvertex newVertex,
+                           com.sun.opengl.impl.tessellator.GLUhalfEdge eOrig, com.sun.opengl.impl.tessellator.GLUvertex vNext) {
+        com.sun.opengl.impl.tessellator.GLUhalfEdge e;
+        com.sun.opengl.impl.tessellator.GLUvertex vPrev;
+        com.sun.opengl.impl.tessellator.GLUvertex vNew = newVertex;
 
         assert (vNew != null);
 
@@ -154,10 +154,10 @@ class Mesh {
  * the new face *before* fNext so that algorithms which walk the face
  * list will not see the newly created faces.
  */
-    static void MakeFace(com.sun.opengl.impl.tesselator.GLUface newFace, com.sun.opengl.impl.tesselator.GLUhalfEdge eOrig, com.sun.opengl.impl.tesselator.GLUface fNext) {
-        com.sun.opengl.impl.tesselator.GLUhalfEdge e;
-        com.sun.opengl.impl.tesselator.GLUface fPrev;
-        com.sun.opengl.impl.tesselator.GLUface fNew = newFace;
+    static void MakeFace(com.sun.opengl.impl.tessellator.GLUface newFace, com.sun.opengl.impl.tessellator.GLUhalfEdge eOrig, com.sun.opengl.impl.tessellator.GLUface fNext) {
+        com.sun.opengl.impl.tessellator.GLUhalfEdge e;
+        com.sun.opengl.impl.tessellator.GLUface fPrev;
+        com.sun.opengl.impl.tessellator.GLUface fNew = newFace;
 
         assert (fNew != null);
 
@@ -189,8 +189,8 @@ class Mesh {
 /* KillEdge( eDel ) destroys an edge (the half-edges eDel and eDel->Sym),
  * and removes from the global edge list.
  */
-    static void KillEdge(com.sun.opengl.impl.tesselator.GLUhalfEdge eDel) {
-        com.sun.opengl.impl.tesselator.GLUhalfEdge ePrev, eNext;
+    static void KillEdge(com.sun.opengl.impl.tessellator.GLUhalfEdge eDel) {
+        com.sun.opengl.impl.tessellator.GLUhalfEdge ePrev, eNext;
 
         /* Half-edges are allocated in pairs, see EdgePair above */
         if (!eDel.first) {
@@ -208,9 +208,9 @@ class Mesh {
 /* KillVertex( vDel ) destroys a vertex and removes it from the global
  * vertex list.  It updates the vertex loop to point to a given new vertex.
  */
-    static void KillVertex(com.sun.opengl.impl.tesselator.GLUvertex vDel, com.sun.opengl.impl.tesselator.GLUvertex newOrg) {
-        com.sun.opengl.impl.tesselator.GLUhalfEdge e, eStart = vDel.anEdge;
-        com.sun.opengl.impl.tesselator.GLUvertex vPrev, vNext;
+    static void KillVertex(com.sun.opengl.impl.tessellator.GLUvertex vDel, com.sun.opengl.impl.tessellator.GLUvertex newOrg) {
+        com.sun.opengl.impl.tessellator.GLUhalfEdge e, eStart = vDel.anEdge;
+        com.sun.opengl.impl.tessellator.GLUvertex vPrev, vNext;
 
         /* change the origin of all affected edges */
         e = eStart;
@@ -229,9 +229,9 @@ class Mesh {
 /* KillFace( fDel ) destroys a face and removes it from the global face
  * list.  It updates the face loop to point to a given new face.
  */
-    static void KillFace(com.sun.opengl.impl.tesselator.GLUface fDel, com.sun.opengl.impl.tesselator.GLUface newLface) {
-        com.sun.opengl.impl.tesselator.GLUhalfEdge e, eStart = fDel.anEdge;
-        com.sun.opengl.impl.tesselator.GLUface fPrev, fNext;
+    static void KillFace(com.sun.opengl.impl.tessellator.GLUface fDel, com.sun.opengl.impl.tessellator.GLUface newLface) {
+        com.sun.opengl.impl.tessellator.GLUhalfEdge e, eStart = fDel.anEdge;
+        com.sun.opengl.impl.tessellator.GLUface fPrev, fNext;
 
         /* change the left face of all affected edges */
         e = eStart;
@@ -253,11 +253,11 @@ class Mesh {
 /* __gl_meshMakeEdge creates one edge, two vertices, and a loop (face).
  * The loop consists of the two new half-edges.
  */
-    public static com.sun.opengl.impl.tesselator.GLUhalfEdge __gl_meshMakeEdge(com.sun.opengl.impl.tesselator.GLUmesh mesh) {
-        com.sun.opengl.impl.tesselator.GLUvertex newVertex1 = new com.sun.opengl.impl.tesselator.GLUvertex();
-        com.sun.opengl.impl.tesselator.GLUvertex newVertex2 = new com.sun.opengl.impl.tesselator.GLUvertex();
-        com.sun.opengl.impl.tesselator.GLUface newFace = new com.sun.opengl.impl.tesselator.GLUface();
-        com.sun.opengl.impl.tesselator.GLUhalfEdge e;
+    public static com.sun.opengl.impl.tessellator.GLUhalfEdge __gl_meshMakeEdge(com.sun.opengl.impl.tessellator.GLUmesh mesh) {
+        com.sun.opengl.impl.tessellator.GLUvertex newVertex1 = new com.sun.opengl.impl.tessellator.GLUvertex();
+        com.sun.opengl.impl.tessellator.GLUvertex newVertex2 = new com.sun.opengl.impl.tessellator.GLUvertex();
+        com.sun.opengl.impl.tessellator.GLUface newFace = new com.sun.opengl.impl.tessellator.GLUface();
+        com.sun.opengl.impl.tessellator.GLUhalfEdge e;
 
         e = MakeEdge(mesh.eHead);
         if (e == null) return null;
@@ -292,7 +292,7 @@ class Mesh {
  * If eDst == eOrg->Onext, the new vertex will have a single edge.
  * If eDst == eOrg->Oprev, the old vertex will have a single edge.
  */
-    public static boolean __gl_meshSplice(com.sun.opengl.impl.tesselator.GLUhalfEdge eOrg, com.sun.opengl.impl.tesselator.GLUhalfEdge eDst) {
+    public static boolean __gl_meshSplice(com.sun.opengl.impl.tessellator.GLUhalfEdge eOrg, com.sun.opengl.impl.tessellator.GLUhalfEdge eDst) {
         boolean joiningLoops = false;
         boolean joiningVertices = false;
 
@@ -313,7 +313,7 @@ class Mesh {
         Splice(eDst, eOrg);
 
         if (!joiningVertices) {
-            com.sun.opengl.impl.tesselator.GLUvertex newVertex = new com.sun.opengl.impl.tesselator.GLUvertex();
+            com.sun.opengl.impl.tessellator.GLUvertex newVertex = new com.sun.opengl.impl.tessellator.GLUvertex();
 
             /* We split one vertex into two -- the new vertex is eDst.Org.
              * Make sure the old vertex points to a valid half-edge.
@@ -322,7 +322,7 @@ class Mesh {
             eOrg.Org.anEdge = eOrg;
         }
         if (!joiningLoops) {
-            com.sun.opengl.impl.tesselator.GLUface newFace = new com.sun.opengl.impl.tesselator.GLUface();
+            com.sun.opengl.impl.tessellator.GLUface newFace = new com.sun.opengl.impl.tessellator.GLUface();
 
             /* We split one loop into two -- the new loop is eDst.Lface.
              * Make sure the old face points to a valid half-edge.
@@ -345,8 +345,8 @@ class Mesh {
  * plus a few calls to memFree, but this would allocate and delete
  * unnecessary vertices and faces.
  */
-    static boolean __gl_meshDelete(com.sun.opengl.impl.tesselator.GLUhalfEdge eDel) {
-        com.sun.opengl.impl.tesselator.GLUhalfEdge eDelSym = eDel.Sym;
+    static boolean __gl_meshDelete(com.sun.opengl.impl.tessellator.GLUhalfEdge eDel) {
+        com.sun.opengl.impl.tessellator.GLUhalfEdge eDelSym = eDel.Sym;
         boolean joiningLoops = false;
 
         /* First step: disconnect the origin vertex eDel.Org.  We make all
@@ -367,7 +367,7 @@ class Mesh {
 
             Splice(eDel, eDel.Sym.Lnext);
             if (!joiningLoops) {
-                com.sun.opengl.impl.tesselator.GLUface newFace = new com.sun.opengl.impl.tesselator.GLUface();
+                com.sun.opengl.impl.tessellator.GLUface newFace = new com.sun.opengl.impl.tessellator.GLUface();
 
                 /* We are splitting one loop into two -- create a new loop for eDel. */
                 MakeFace(newFace, eDel, eDel.Lface);
@@ -405,9 +405,9 @@ class Mesh {
  * eNew == eOrg.Lnext, and eNew.Dst is a newly created vertex.
  * eOrg and eNew will have the same left face.
  */
-    static com.sun.opengl.impl.tesselator.GLUhalfEdge __gl_meshAddEdgeVertex(com.sun.opengl.impl.tesselator.GLUhalfEdge eOrg) {
-        com.sun.opengl.impl.tesselator.GLUhalfEdge eNewSym;
-        com.sun.opengl.impl.tesselator.GLUhalfEdge eNew = MakeEdge(eOrg);
+    static com.sun.opengl.impl.tessellator.GLUhalfEdge __gl_meshAddEdgeVertex(com.sun.opengl.impl.tessellator.GLUhalfEdge eOrg) {
+        com.sun.opengl.impl.tessellator.GLUhalfEdge eNewSym;
+        com.sun.opengl.impl.tessellator.GLUhalfEdge eNew = MakeEdge(eOrg);
 
         eNewSym = eNew.Sym;
 
@@ -417,7 +417,7 @@ class Mesh {
         /* Set the vertex and face information */
         eNew.Org = eOrg.Sym.Org;
         {
-            com.sun.opengl.impl.tesselator.GLUvertex newVertex = new com.sun.opengl.impl.tesselator.GLUvertex();
+            com.sun.opengl.impl.tessellator.GLUvertex newVertex = new com.sun.opengl.impl.tessellator.GLUvertex();
 
             MakeVertex(newVertex, eNewSym, eNew.Org);
         }
@@ -431,9 +431,9 @@ class Mesh {
  * such that eNew == eOrg.Lnext.  The new vertex is eOrg.Sym.Org == eNew.Org.
  * eOrg and eNew will have the same left face.
  */
-    public static com.sun.opengl.impl.tesselator.GLUhalfEdge __gl_meshSplitEdge(com.sun.opengl.impl.tesselator.GLUhalfEdge eOrg) {
-        com.sun.opengl.impl.tesselator.GLUhalfEdge eNew;
-        com.sun.opengl.impl.tesselator.GLUhalfEdge tempHalfEdge = __gl_meshAddEdgeVertex(eOrg);
+    public static com.sun.opengl.impl.tessellator.GLUhalfEdge __gl_meshSplitEdge(com.sun.opengl.impl.tessellator.GLUhalfEdge eOrg) {
+        com.sun.opengl.impl.tessellator.GLUhalfEdge eNew;
+        com.sun.opengl.impl.tessellator.GLUhalfEdge tempHalfEdge = __gl_meshAddEdgeVertex(eOrg);
 
         eNew = tempHalfEdge.Sym;
 
@@ -462,10 +462,10 @@ class Mesh {
  * If (eOrg.Lnext == eDst), the old face is reduced to a single edge.
  * If (eOrg.Lnext.Lnext == eDst), the old face is reduced to two edges.
  */
-    static com.sun.opengl.impl.tesselator.GLUhalfEdge __gl_meshConnect(com.sun.opengl.impl.tesselator.GLUhalfEdge eOrg, com.sun.opengl.impl.tesselator.GLUhalfEdge eDst) {
-        com.sun.opengl.impl.tesselator.GLUhalfEdge eNewSym;
+    static com.sun.opengl.impl.tessellator.GLUhalfEdge __gl_meshConnect(com.sun.opengl.impl.tessellator.GLUhalfEdge eOrg, com.sun.opengl.impl.tessellator.GLUhalfEdge eDst) {
+        com.sun.opengl.impl.tessellator.GLUhalfEdge eNewSym;
         boolean joiningLoops = false;
-        com.sun.opengl.impl.tesselator.GLUhalfEdge eNew = MakeEdge(eOrg);
+        com.sun.opengl.impl.tessellator.GLUhalfEdge eNew = MakeEdge(eOrg);
 
         eNewSym = eNew.Sym;
 
@@ -488,7 +488,7 @@ class Mesh {
         eOrg.Lface.anEdge = eNewSym;
 
         if (!joiningLoops) {
-            com.sun.opengl.impl.tesselator.GLUface newFace = new com.sun.opengl.impl.tesselator.GLUface();
+            com.sun.opengl.impl.tessellator.GLUface newFace = new com.sun.opengl.impl.tessellator.GLUface();
 
             /* We split one loop into two -- the new loop is eNew.Lface */
             MakeFace(newFace, eNew, eOrg.Lface);
@@ -506,10 +506,10 @@ class Mesh {
  * An entire mesh can be deleted by zapping its faces, one at a time,
  * in any order.  Zapped faces cannot be used in further mesh operations!
  */
-    static void __gl_meshZapFace(com.sun.opengl.impl.tesselator.GLUface fZap) {
-        com.sun.opengl.impl.tesselator.GLUhalfEdge eStart = fZap.anEdge;
-        com.sun.opengl.impl.tesselator.GLUhalfEdge e, eNext, eSym;
-        com.sun.opengl.impl.tesselator.GLUface fPrev, fNext;
+    static void __gl_meshZapFace(com.sun.opengl.impl.tessellator.GLUface fZap) {
+        com.sun.opengl.impl.tessellator.GLUhalfEdge eStart = fZap.anEdge;
+        com.sun.opengl.impl.tessellator.GLUhalfEdge e, eNext, eSym;
+        com.sun.opengl.impl.tessellator.GLUface fPrev, fNext;
 
         /* walk around face, deleting edges whose right face is also null */
         eNext = eStart.Lnext;
@@ -551,12 +551,12 @@ class Mesh {
 /* __gl_meshNewMesh() creates a new mesh with no edges, no vertices,
  * and no loops (what we usually call a "face").
  */
-    public static com.sun.opengl.impl.tesselator.GLUmesh __gl_meshNewMesh() {
-        com.sun.opengl.impl.tesselator.GLUvertex v;
-        com.sun.opengl.impl.tesselator.GLUface f;
-        com.sun.opengl.impl.tesselator.GLUhalfEdge e;
-        com.sun.opengl.impl.tesselator.GLUhalfEdge eSym;
-        com.sun.opengl.impl.tesselator.GLUmesh mesh = new com.sun.opengl.impl.tesselator.GLUmesh();
+    public static com.sun.opengl.impl.tessellator.GLUmesh __gl_meshNewMesh() {
+        com.sun.opengl.impl.tessellator.GLUvertex v;
+        com.sun.opengl.impl.tessellator.GLUface f;
+        com.sun.opengl.impl.tessellator.GLUhalfEdge e;
+        com.sun.opengl.impl.tessellator.GLUhalfEdge eSym;
+        com.sun.opengl.impl.tessellator.GLUmesh mesh = new com.sun.opengl.impl.tessellator.GLUmesh();
 
         v = mesh.vHead;
         f = mesh.fHead;
@@ -599,13 +599,13 @@ class Mesh {
 /* __gl_meshUnion( mesh1, mesh2 ) forms the union of all structures in
  * both meshes, and returns the new mesh (the old meshes are destroyed).
  */
-    static com.sun.opengl.impl.tesselator.GLUmesh __gl_meshUnion(com.sun.opengl.impl.tesselator.GLUmesh mesh1, com.sun.opengl.impl.tesselator.GLUmesh mesh2) {
-        com.sun.opengl.impl.tesselator.GLUface f1 = mesh1.fHead;
-        com.sun.opengl.impl.tesselator.GLUvertex v1 = mesh1.vHead;
-        com.sun.opengl.impl.tesselator.GLUhalfEdge e1 = mesh1.eHead;
-        com.sun.opengl.impl.tesselator.GLUface f2 = mesh2.fHead;
-        com.sun.opengl.impl.tesselator.GLUvertex v2 = mesh2.vHead;
-        com.sun.opengl.impl.tesselator.GLUhalfEdge e2 = mesh2.eHead;
+    static com.sun.opengl.impl.tessellator.GLUmesh __gl_meshUnion(com.sun.opengl.impl.tessellator.GLUmesh mesh1, com.sun.opengl.impl.tessellator.GLUmesh mesh2) {
+        com.sun.opengl.impl.tessellator.GLUface f1 = mesh1.fHead;
+        com.sun.opengl.impl.tessellator.GLUvertex v1 = mesh1.vHead;
+        com.sun.opengl.impl.tessellator.GLUhalfEdge e1 = mesh1.eHead;
+        com.sun.opengl.impl.tessellator.GLUface f2 = mesh2.fHead;
+        com.sun.opengl.impl.tessellator.GLUvertex v2 = mesh2.vHead;
+        com.sun.opengl.impl.tessellator.GLUhalfEdge e2 = mesh2.eHead;
 
         /* Add the faces, vertices, and edges of mesh2 to those of mesh1 */
         if (f2.next != f2) {
@@ -635,8 +635,8 @@ class Mesh {
 
 /* __gl_meshDeleteMesh( mesh ) will free all storage for any valid mesh.
  */
-    static void __gl_meshDeleteMeshZap(com.sun.opengl.impl.tesselator.GLUmesh mesh) {
-        com.sun.opengl.impl.tesselator.GLUface fHead = mesh.fHead;
+    static void __gl_meshDeleteMeshZap(com.sun.opengl.impl.tessellator.GLUmesh mesh) {
+        com.sun.opengl.impl.tessellator.GLUface fHead = mesh.fHead;
 
         while (fHead.next != fHead) {
             __gl_meshZapFace(fHead.next);
@@ -646,10 +646,10 @@ class Mesh {
 
 /* __gl_meshDeleteMesh( mesh ) will free all storage for any valid mesh.
  */
-    public static void __gl_meshDeleteMesh(com.sun.opengl.impl.tesselator.GLUmesh mesh) {
-        com.sun.opengl.impl.tesselator.GLUface f, fNext;
-        com.sun.opengl.impl.tesselator.GLUvertex v, vNext;
-        com.sun.opengl.impl.tesselator.GLUhalfEdge e, eNext;
+    public static void __gl_meshDeleteMesh(com.sun.opengl.impl.tessellator.GLUmesh mesh) {
+        com.sun.opengl.impl.tessellator.GLUface f, fNext;
+        com.sun.opengl.impl.tessellator.GLUvertex v, vNext;
+        com.sun.opengl.impl.tessellator.GLUhalfEdge e, eNext;
 
         for (f = mesh.fHead.next; f != mesh.fHead; f = fNext) {
             fNext = f.next;
@@ -667,13 +667,13 @@ class Mesh {
 
 /* __gl_meshCheckMesh( mesh ) checks a mesh for self-consistency.
  */
-    public static void __gl_meshCheckMesh(com.sun.opengl.impl.tesselator.GLUmesh mesh) {
-        com.sun.opengl.impl.tesselator.GLUface fHead = mesh.fHead;
-        com.sun.opengl.impl.tesselator.GLUvertex vHead = mesh.vHead;
-        com.sun.opengl.impl.tesselator.GLUhalfEdge eHead = mesh.eHead;
-        com.sun.opengl.impl.tesselator.GLUface f, fPrev;
-        com.sun.opengl.impl.tesselator.GLUvertex v, vPrev;
-        com.sun.opengl.impl.tesselator.GLUhalfEdge e, ePrev;
+    public static void __gl_meshCheckMesh(com.sun.opengl.impl.tessellator.GLUmesh mesh) {
+        com.sun.opengl.impl.tessellator.GLUface fHead = mesh.fHead;
+        com.sun.opengl.impl.tessellator.GLUvertex vHead = mesh.vHead;
+        com.sun.opengl.impl.tessellator.GLUhalfEdge eHead = mesh.eHead;
+        com.sun.opengl.impl.tessellator.GLUface f, fPrev;
+        com.sun.opengl.impl.tessellator.GLUvertex v, vPrev;
+        com.sun.opengl.impl.tessellator.GLUhalfEdge e, ePrev;
 
         fPrev = fHead;
         for (fPrev = fHead; (f = fPrev.next) != fHead; fPrev = f) {
