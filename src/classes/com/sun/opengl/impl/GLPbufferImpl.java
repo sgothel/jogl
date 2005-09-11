@@ -45,6 +45,7 @@ import java.awt.event.*;
 import java.beans.PropertyChangeListener;
 
 import javax.media.opengl.*;
+import javax.media.opengl.glu.*;
 
 /** Platform-independent class exposing pbuffer functionality to
     applications. This class is not exposed in the public API as it

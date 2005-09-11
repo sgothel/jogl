@@ -34,8 +34,8 @@
 
 package com.sun.opengl.impl.mipmap;
 
-import javax.media.opengl.GLU;
 import javax.media.opengl.GL;
+import javax.media.opengl.glu.GLU;
 import java.nio.*;
 
 /**

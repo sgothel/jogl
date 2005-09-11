@@ -78,10 +78,14 @@ public interface GLDrawable {
   public GLContext createContext(GLContext shareWith);
 
   /**
+
    * Indicates to on-screen GLDrawable implementations whether the
    * underlying window has been created and can be drawn into. This
-   * must typically be called with an argument of <code>true</code> in
-   * the <code>addNotify</code> method of components performing OpenGL
+   * method must be called from GLDrawables obtained from the
+   * GLDrawableFactory via the {@link GLDrawableFactory#getGLDrawable
+   * GLDrawableFactory.getGLDrawable()} method. It must typically be
+   * called with an argument of <code>true</code> in the
+   * <code>addNotify</code> method of components performing OpenGL
    * rendering and with an argument of <code>false</code> in the
    * <code>removeNotify</code> method. Calling this method has no
    * other effects. For example, if <code>removeNotify</code> is
@@ -89,7 +93,9 @@ public interface GLDrawable {
    * created, it is also necessary to destroy all OpenGL contexts
    * associated with that GLDrawable. This is not done automatically
    * by the implementation. It is not necessary to call
-   * <code>setRealized</code> on either a GLCanvas or a GLJPanel.
+   * <code>setRealized</code> on a GLCanvas, a GLJPanel, or a
+   * GLPbuffer, as these perform the appropriate calls on their
+   * underlying GLDrawables internally..
    */
   public void setRealized(boolean realized);
 

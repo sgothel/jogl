@@ -40,6 +40,7 @@
 package com.sun.opengl.utils;
 
 import javax.media.opengl.*;
+import javax.media.opengl.glu.*;
 
 /** Subset of the routines provided by the GLUT interface. Note the
     signatures of many of the methods are necessarily different than

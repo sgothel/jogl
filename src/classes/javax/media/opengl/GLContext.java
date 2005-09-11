@@ -39,6 +39,8 @@
 
 package javax.media.opengl;
 
+import javax.media.opengl.glu.*;
+
 /** Abstraction for an OpenGL rendering context. In order to perform
     OpenGL rendering, a context must be "made current" on the current
     thread. OpenGL rendering semantics specify that only one context

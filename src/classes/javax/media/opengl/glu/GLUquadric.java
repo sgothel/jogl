@@ -1,4 +1,4 @@
-package javax.media.opengl;
+package javax.media.opengl.glu;
 
 /**
  * Wrapper for a GLU quadric object.

@@ -40,17 +40,35 @@
 ** Java Port: Pepijn Van Eeckhoudt, July 2003
 ** Java Port: Nathan Parker Burg, August 2003
 */
-package javax.media.opengl;
+package javax.media.opengl.glu;
 
 /**
- * The <b>GLUtessellator</b> object is used to hold the data, such as the
- * vertices, edges and callback objects, to describe and tessellate complex
- * polygons.  A <b>GLUtessellator</b> object is used with the
- * {@link javax.media.opengl.GLU GLU} tessellator methods and
- * {@link javax.media.opengl.GLUtessellatorCallback GLU callbacks}.
+ * The <b>GLUtessellatorCallbackAdapter</b> provides a default implementation of
+ * {@link GLUtessellatorCallback GLUtessellatorCallback}
+ * with empty callback methods.  This class can be extended to provide user
+ * defined callback methods.
  *
  * @author Eric Veach, July 1994
  * @author Java Port: Pepijn Van Eechhoudt, July 2003
  * @author Java Port: Nathan Parker Burg, August 2003
  */
-public interface GLUtessellator {}
+
+public class GLUtessellatorCallbackAdapter implements GLUtessellatorCallback {
+    public void begin(int type) {}
+    public void edgeFlag(boolean boundaryEdge) {}
+    public void vertex(Object vertexData) {}
+    public void end() {}
+//  public void mesh(com.sun.opengl.impl.tessellator.GLUmesh mesh) {}
+    public void error(int errnum) {}
+    public void combine(double[] coords, Object[] data,
+                            float[] weight, Object[] outData) {}
+    public void beginData(int type, Object polygonData) {}
+    public void edgeFlagData(boolean boundaryEdge,
+                                 Object polygonData) {}
+    public void vertexData(Object vertexData, Object polygonData) {}
+    public void endData(Object polygonData) {}
+    public void errorData(int errnum, Object polygonData) {}
+    public void combineData(double[] coords, Object[] data,
+                                float[] weight, Object[] outData,
+                                Object polygonData) {}
+}

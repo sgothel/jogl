@@ -35,7 +35,7 @@
 package com.sun.opengl.impl.registry;
 
 import java.util.regex.*;
-import javax.media.opengl.GLU;
+import javax.media.opengl.glu.GLU;
 
 /**
  *

@@ -43,6 +43,7 @@ import java.awt.Component;
 import java.nio.*;
 
 import javax.media.opengl.*;
+import javax.media.opengl.glu.*;
 import com.sun.gluegen.runtime.*;
 
 public abstract class GLContextImpl extends GLContext {

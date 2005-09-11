@@ -40,7 +40,7 @@
 package com.sun.opengl.impl;
 
 import java.security.*;
-import javax.media.opengl.Version;
+import com.sun.opengl.utils.Version;
 
 /** Helper routines for logging and debugging. */
 

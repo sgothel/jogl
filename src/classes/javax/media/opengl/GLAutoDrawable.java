@@ -39,6 +39,8 @@
 
 package javax.media.opengl;
 
+import javax.media.opengl.glu.*;
+
 /** A higher-level abstraction than {@link GLDrawable} which supplies
     an event based mechanism ({@link GLEventListener}) for performing
     OpenGL rendering. A GLAutoDrawable automatically creates a primary

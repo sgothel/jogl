@@ -235,11 +235,11 @@
         <property name="javadoc" value="${project.root}/javadoc_public" />
         <property name="javadoc.dev" value="${project.root}/javadoc_jogl_dev" />
         <property name="javadoc.link" value="http://java.sun.com/j2se/1.4.2/docs/api/" />
-        <property name="javadoc.packagenames" value="javax.media.opengl,com.sun.opengl.utils" />
+        <property name="javadoc.packagenames" value="javax.media.opengl,javax.media.opengl.glu,com.sun.opengl.utils" />
         <property name="javadoc.dev.packagenames.win32"  value="com.sun.opengl.impl.windows" />
         <property name="javadoc.dev.packagenames.x11"    value="com.sun.opengl.impl.x11" />
         <property name="javadoc.dev.packagenames.macosx" value="com.sun.opengl.impl.macosx" />
-        <property name="javadoc.dev.packagenames" value="javax.media.opengl,com.sun.opengl.impl,com.sun.opengl.utils,com.sun.gluegen,com.sun.gluegen.runtime" />
+        <property name="javadoc.dev.packagenames" value="javax.media.opengl,javax.media.opengl.glu,com.sun.opengl.impl,com.sun.opengl.utils,com.sun.gluegen,com.sun.gluegen.runtime" />
         
     </target>
     

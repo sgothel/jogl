@@ -31,7 +31,7 @@
 * design, construction, operation or maintenance of any nuclear facility.
 */
 
-package javax.media.opengl;
+package com.sun.opengl.utils;
 
 /**
  * The version and build number of this implementation.

@@ -40,7 +40,7 @@
 ** Java Port: Pepijn Van Eeckhoudt, July 2003
 ** Java Port: Nathan Parker Burg, August 2003
 */
-package javax.media.opengl;
+package javax.media.opengl.glu;
 
 /**
  * <b>GLUtessellatorCallback</b> interface provides methods that the user will
@@ -66,18 +66,17 @@ public interface GLUtessellatorCallback {
    *        values are valid:  <b>GL_TRIANGLE_FAN</b>, <b>GL_TRIANGLE_STRIP</b>,
    *        <b>GL_TRIANGLES</b> or <b>GL_LINE_LOOP</b>.
    *
-   * @see javax.media.opengl.GLU#gluTessCallback           gluTessCallback
-   * @see javax.media.opengl.GLUtessellatorCallback#end     end
-   * @see javax.media.opengl.GLUtessellatorCallback#begin   begin
+   * @see GLU#gluTessCallback           gluTessCallback
+   * @see #end     end
+   * @see #begin   begin
    */
   public void begin(int type);
 
   /**
-   * The same as the {@link javax.media.opengl.GLUtessellatorCallback#begin
-   * begin} callback method except that it takes an additional reference
-   * argument. This reference is identical to the opaque reference provided when
-   * {@link javax.media.opengl.GLU#gluTessBeginPolygon gluTessBeginPolygon} was
-   * called.
+   * The same as the {@link #begin begin} callback method except that
+   * it takes an additional reference argument. This reference is
+   * identical to the opaque reference provided when {@link
+   * GLU#gluTessBeginPolygon gluTessBeginPolygon} was called.
    *
    * @param type
    *        Specifics the type of begin/end pair being defined.  The following
@@ -86,9 +85,9 @@ public interface GLUtessellatorCallback {
    * @param polygonData
    *        Specifics a reference to user-defined data.
    *
-   * @see javax.media.opengl.GLU#gluTessCallback           gluTessCallback
-   * @see javax.media.opengl.GLUtessellatorCallback#endData endData
-   * @see javax.media.opengl.GLUtessellatorCallback#begin   begin
+   * @see GLU#gluTessCallback           gluTessCallback
+   * @see #endData endData
+   * @see #begin   begin
    */
   public void beginData(int type, Object polygonData);
 
@@ -114,57 +113,54 @@ public interface GLUtessellatorCallback {
    * @param boundaryEdge
    *        Specifics which edges lie on the polygon boundary.
    *
-   * @see javax.media.opengl.GLU#gluTessCallback gluTessCallback
-   * @see javax.media.opengl.GLUtessellatorCallback#edgeFlagData edgeFlagData
+   * @see GLU#gluTessCallback gluTessCallback
+   * @see #edgeFlagData edgeFlagData
    */
   public void edgeFlag(boolean boundaryEdge);
 
 
   /**
-   * The same as the {@link javax.media.opengl.GLUtessellatorCallback#edgeFlag
-   * edgeFlage} callback method except that it takes an additional reference
-   * argument. This reference is identical to the opaque reference provided when
-   * {@link javax.media.opengl.GLU#gluTessBeginPolygon gluTessBeginPolygon} was
-   * called.
+   * The same as the {@link #edgeFlag edgeFlage} callback method
+   * except that it takes an additional reference argument. This
+   * reference is identical to the opaque reference provided when
+   * {@link GLU#gluTessBeginPolygon gluTessBeginPolygon} was called.
    *
    * @param boundaryEdge
    *        Specifics which edges lie on the polygon boundary.
    * @param polygonData
    *        Specifics a reference to user-defined data.
    *
-   * @see javax.media.opengl.GLU#gluTessCallback            gluTessCallback
-   * @see javax.media.opengl.GLUtessellatorCallback#edgeFlag edgeFlag
+   * @see GLU#gluTessCallback            gluTessCallback
+   * @see #edgeFlag edgeFlag
    */
   public void edgeFlagData(boolean boundaryEdge, Object polygonData);
 
 
   /**
-   * The <b>vertex</b> callback method is invoked between the
-   * {@link javax.media.opengl.GLUtessellatorCallback#begin begin} and
-   * {@link javax.media.opengl.GLUtessellatorCallback#end end} callback methods.
-   * It is similar to {@link javax.media.opengl.GL#glVertex3f glVertex3f}, and it
-   * defines the vertices of the triangles created by the tessellation process.
-   * The method takes a reference as its only argument. This reference is
-   * identical to the opaque reference provided by the user when the vertex was
-   * described (see {@link javax.media.opengl.GLU#gluTessVertex
-   * gluTessVertex}).
+   * The <b>vertex</b> callback method is invoked between the {@link
+   * #begin begin} and {@link #end end} callback methods.  It is
+   * similar to {@link javax.media.opengl.GL#glVertex3f glVertex3f},
+   * and it defines the vertices of the triangles created by the
+   * tessellation process.  The method takes a reference as its only
+   * argument. This reference is identical to the opaque reference
+   * provided by the user when the vertex was described (see {@link
+   * GLU#gluTessVertex gluTessVertex}).
    *
    * @param vertexData
    *        Specifics a reference to the vertices of the triangles created
    *        byt the tessellatin process.
    *
-   * @see javax.media.opengl.GLU#gluTessCallback              gluTessCallback
-   * @see javax.media.opengl.GLUtessellatorCallback#vertexData vertexData
+   * @see GLU#gluTessCallback              gluTessCallback
+   * @see #vertexData vertexData
    */
   public void vertex(Object vertexData);
 
 
   /**
-   * The same as the {@link javax.media.opengl.GLUtessellatorCallback#vertex
-   * vertex} callback method except that it takes an additional reference
-   * argument. This reference is identical to the opaque reference provided when
-   * {@link javax.media.opengl.GLU#gluTessBeginPolygon gluTessBeginPolygon} was
-   * called.
+   * The same as the {@link #vertex vertex} callback method except
+   * that it takes an additional reference argument. This reference is
+   * identical to the opaque reference provided when {@link
+   * GLU#gluTessBeginPolygon gluTessBeginPolygon} was called.
    *
    * @param vertexData
    *        Specifics a reference to the vertices of the triangles created
@@ -172,8 +168,8 @@ public interface GLUtessellatorCallback {
    * @param polygonData
    *        Specifics a reference to user-defined data.
    *
-   * @see javax.media.opengl.GLU#gluTessCallback          gluTessCallback
-   * @see javax.media.opengl.GLUtessellatorCallback#vertex vertex
+   * @see GLU#gluTessCallback          gluTessCallback
+   * @see #vertex vertex
    */
   public void vertexData(Object vertexData, Object polygonData);
 
@@ -183,26 +179,25 @@ public interface GLUtessellatorCallback {
    * {@link javax.media.opengl.GL#glEnd glEnd}. It indicates the end of a
    * primitive and it takes no arguments.
    *
-   * @see javax.media.opengl.GLU#gluTessCallback           gluTessCallback
-   * @see javax.media.opengl.GLUtessellatorCallback#begin   begin
-   * @see javax.media.opengl.GLUtessellatorCallback#endData endData
+   * @see GLU#gluTessCallback           gluTessCallback
+   * @see #begin   begin
+   * @see #endData endData
    */
   public void end();
 
 
   /**
-   * The same as the {@link javax.media.opengl.GLUtessellatorCallback#end end}
-   * callback method except that it takes an additional reference argument. This
-   * reference is identical to the opaque reference provided when
-   * {@link javax.media.opengl.GLU#gluTessBeginPolygon gluTessBeginPolygon} was
-   * called.
+   * The same as the {@link #end end} callback method except that it
+   * takes an additional reference argument. This reference is
+   * identical to the opaque reference provided when {@link
+   * GLU#gluTessBeginPolygon gluTessBeginPolygon} was called.
    *
    * @param polygonData
    *        Specifics a reference to user-defined data.
    *
-   * @see javax.media.opengl.GLU#gluTessCallback             gluTessCallback
-   * @see javax.media.opengl.GLUtessellatorCallback#beginData beginData
-   * @see javax.media.opengl.GLUtessellatorCallback#end       end
+   * @see GLU#gluTessCallback             gluTessCallback
+   * @see #beginData beginData
+   * @see #end       end
    */
   public void endData(Object polygonData);
 
@@ -224,7 +219,7 @@ public interface GLUtessellatorCallback {
    * <i>data</i> and <i>weight</i>, and return the new vertex pointer in
    * <i>outData</i>. This handle is supplied during rendering callbacks. The
    * user is responsible for freeing the memory some time after
-   * {@link javax.media.opengl.GLU#gluTessEndPolygon gluTessEndPolygon} is
+   * {@link GLU#gluTessEndPolygon gluTessEndPolygon} is
    * called.<P>
    *
    * For example, if the polygon lies in an arbitrary plane in 3-space, and a
@@ -268,19 +263,18 @@ public interface GLUtessellatorCallback {
    * @param outData
    *        Reference user the put the coodinates of the new vertex.
    *
-   * @see javax.media.opengl.GLU#gluTessCallback               gluTessCallback
-   * @see javax.media.opengl.GLUtessellatorCallback#combineData combineData
+   * @see GLU#gluTessCallback               gluTessCallback
+   * @see #combineData combineData
    */
   public void combine(double[] coords, Object[] data,
                       float[] weight, Object[] outData);
 
 
   /**
-   * The same as the {@link javax.media.opengl.GLUtessellatorCallback#combine
-   * combine} callback method except that it takes an additional reference
-   * argument. This reference is identical to the opaque reference provided when
-   * {@link javax.media.opengl.GLU#gluTessBeginPolygon gluTessBeginPolygon} was
-   * called.
+   * The same as the {@link #combine combine} callback method except
+   * that it takes an additional reference argument. This reference is
+   * identical to the opaque reference provided when {@link
+   * GLU#gluTessBeginPolygon gluTessBeginPolygon} was called.
    *
    * @param coords
    *        Specifics the location of the new vertex.
@@ -293,8 +287,8 @@ public interface GLUtessellatorCallback {
    * @param polygonData
    *        Specifics a reference to user-defined data.
    *
-   * @see javax.media.opengl.GLU#gluTessCallback           gluTessCallback
-   * @see javax.media.opengl.GLUtessellatorCallback#combine combine
+   * @see GLU#gluTessCallback           gluTessCallback
+   * @see #combine combine
    */
   public void combineData(double[] coords, Object[] data,
                           float[] weight, Object[] outData,
@@ -309,7 +303,7 @@ public interface GLUtessellatorCallback {
    * <b>GLU_TESS_MISSING_END_CONTOUR</b>, <b>GLU_TESS_COORD_TOO_LARGE</b>,
    * <b>GLU_TESS_NEED_COMBINE_CALLBACK</b> or <b>GLU_OUT_OF_MEMORY</b>.
    * Character strings describing these errors can be retrieved with the
-   * {@link javax.media.opengl.GLU#gluErrorString gluErrorString} call.<P>
+   * {@link GLU#gluErrorString gluErrorString} call.<P>
    *
    * The GLU library will recover from the first four errors by inserting the
    * missing call(s). <b>GLU_TESS_COORD_TOO_LARGE</b> indicates that some
@@ -326,26 +320,25 @@ public interface GLUtessellatorCallback {
    * @param errnum
    *        Specifics the error number code.
    *
-   * @see javax.media.opengl.GLU#gluTessCallback             gluTessCallback
-   * @see javax.media.opengl.GLUtessellatorCallback#errorData errorData
+   * @see GLU#gluTessCallback             gluTessCallback
+   * @see #errorData errorData
    */
   public void error(int errnum);
 
 
   /**
-   * The same as the {@link javax.media.opengl.GLUtessellatorCallback#error
-   * error} callback method except that it takes an additional reference
-   * argument. This reference is identical to the opaque reference provided when
-   * {@link javax.media.opengl.GLU#gluTessBeginPolygon gluTessBeginPolygon} was
-   * called.
+   * The same as the {@link #error error} callback method except that
+   * it takes an additional reference argument. This reference is
+   * identical to the opaque reference provided when {@link
+   * GLU#gluTessBeginPolygon gluTessBeginPolygon} was called.
    *
    * @param errnum
    *        Specifics the error number code.
    * @param polygonData
    *        Specifics a reference to user-defined data.
    *
-   * @see javax.media.opengl.GLU#gluTessCallback         gluTessCallback
-   * @see javax.media.opengl.GLUtessellatorCallback#error error
+   * @see GLU#gluTessCallback         gluTessCallback
+   * @see #error error
    */
   public void errorData(int errnum, Object polygonData);
 

@@ -43,6 +43,7 @@
 package com.sun.opengl.impl.tessellator;
 
 import javax.media.opengl.*;
+import javax.media.opengl.glu.*;
 import com.sun.opengl.impl.tessellator.*;
 
 public class GLUtessellatorImpl implements GLUtessellator {

@@ -44,6 +44,7 @@ import java.awt.EventQueue;
 import java.awt.Graphics;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
+import javax.media.opengl.glu.*;
 import com.sun.opengl.impl.*;
 
 // FIXME: Subclasses need to call resetGLFunctionAvailability() on their

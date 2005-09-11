@@ -106,6 +106,7 @@
 package com.sun.opengl.impl;
 
 import javax.media.opengl.*;
+import javax.media.opengl.glu.*;
 
 /**
  * GLUquadricImpl.java

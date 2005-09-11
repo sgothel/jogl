@@ -43,6 +43,7 @@
 package com.sun.opengl.impl.tessellator;
 
 import javax.media.opengl.*;
+import javax.media.opengl.glu.*;
 
 class Render {
     private static final boolean USE_OPTIMIZED_CODE_PATH = false;

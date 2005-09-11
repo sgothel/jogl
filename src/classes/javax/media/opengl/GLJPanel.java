@@ -47,6 +47,7 @@ import java.nio.*;
 import java.security.*;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
+import javax.media.opengl.glu.*;
 import com.sun.opengl.impl.*;
 
 // FIXME: Subclasses need to call resetGLFunctionAvailability() on their

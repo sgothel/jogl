@@ -43,6 +43,7 @@
 package com.sun.opengl.impl.tessellator;
 
 import javax.media.opengl.*;
+import javax.media.opengl.glu.*;
 
 class Sweep {
     private Sweep() {

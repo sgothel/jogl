@@ -250,9 +250,10 @@ public abstract class GLDrawableFactory {
    * <P> Creates a GLContext object representing an existing OpenGL
    * context in an external (third-party) OpenGL-based library. This
    * GLContext object may be used to draw into this preexisting
-   * context using its {@link GL} and {@link GLU} objects. New
-   * contexts created through {@link GLDrawable}s may share textures
-   * and display lists with this external context. </P>
+   * context using its {@link GL} and {@link
+   * javax.media.opengl.glu.GLU} objects. New contexts created through
+   * {@link GLDrawable}s may share textures and display lists with
+   * this external context. </P>
    *
    * <P> The underlying OpenGL context must be current on the current
    * thread at the time this method is called. The user is responsible
