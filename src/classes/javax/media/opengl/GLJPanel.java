@@ -488,7 +488,19 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
     }
   }
 
-  public boolean isOGLPipelineEnabled() {
+  /** For a translucent GLJPanel (one for which {@link #setOpaque
+      setOpaque}(false) has been called), indicates whether the
+      application should preserve the OpenGL color buffer
+      (GL_COLOR_BUFFER_BIT) for correct rendering of the GLJPanel and
+      underlying widgets which may show through portions of the
+      GLJPanel with alpha values less than 1.  Most Swing
+      implementations currently expect the GLJPanel to be completely
+      cleared (e.g., by <code>glClear(GL_COLOR_BUFFER_BIT |
+      GL_DEPTH_BUFFER_BIT)</code>), but for certain optimized Java2D
+      and Swing implementations which use OpenGL internally, it may be
+      possible to perform OpenGL rendering using the GLJPanel into the
+      same OpenGL drawable as the Java2D implementation. */
+  public boolean shouldPreserveColorBufferIfTranslucent() {
     return oglPipelineEnabled;
   }
 
