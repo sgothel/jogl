@@ -376,20 +376,25 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
         ArrayType arrayType = type.asArray();
         writer.println("    if (" + getArgumentName(i) + ".length < " +
                        arrayType.getLength() + ")");
-        writer.println("      throw new " + getRuntimeExceptionType() + "();");
+        writer.println("      throw new " + getRuntimeExceptionType() +
+                       "(\"Length of array \\\"" + getArgumentName(i) +
+                       "\\\" was less than the required " + arrayType.getLength() + "\");");
       } else {
         JavaType javaType = binding.getJavaArgumentType(i);
         if (javaType.isNIOBuffer()) {
           if (directNIOOnly) {
             writer.println("    if (!BufferFactory.isDirect(" + getArgumentName(i) + "))");
-            writer.println("      throw new " + getRuntimeExceptionType() + "();");
+            writer.println("      throw new " + getRuntimeExceptionType() + "(\"Argument \\\"" +
+                           getArgumentName(i) + "\\\" was not a direct buffer\");");
           } else {
             if(firstBuffer) {
               firstBuffer = false;
               writer.println("    boolean _direct = BufferFactory.isDirect(" + getArgumentName(i) + ");");
             } else {
               writer.println("    if (_direct != BufferFactory.isDirect(" + getArgumentName(i) + "))");
-              writer.println("      throw new " + getRuntimeExceptionType() + "();");
+              writer.println("      throw new " + getRuntimeExceptionType() +
+                             "(\"Argument \\\"" + getArgumentName(i) +
+                             "\\\" : Buffers passed to this method must all be either direct or indirect\");");
             }
           }
         } else if (javaType.isNIOBufferArray()) {
@@ -401,7 +406,9 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
           writer.println("    if (" + argName + " != null) {");
           writer.println("      for (int _ctr = 0; _ctr < " + argName + ".length; _ctr++) {");
           writer.println("        if (!BufferFactory.isDirect(" + argName + "[_ctr])) {");
-          writer.println("          throw new " + getRuntimeExceptionType() + "();");
+          writer.println("          throw new " + getRuntimeExceptionType() + 
+                         "(\"Element \" + _ctr + \" of argument \\\"" +
+                         getArgumentName(i) + "\\\" was not a direct buffer\");");
           writer.println("        }");
           // get the Buffer Array offset values and save them into another array to send down to JNI
           writer.print  ("        " + arrayName + "[_ctr] = BufferFactory.getDirectBufferByteOffset(");
@@ -412,7 +419,9 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
           String argName = getArgumentName(i);
           String offsetArg = offsetArgName(i);
           writer.println("    if(" + argName + " != null && " + argName + ".length <= " + offsetArg + ")");
-          writer.println("      throw new " + getRuntimeExceptionType() + "();");
+          writer.print  ("      throw new " + getRuntimeExceptionType()); 
+          writer.println("(\"array offset argument \\\"" + offsetArg + "\\\" (\" + " + offsetArg +
+                         " + \") equals or exceeds array length (\" + " + argName + ".length + \")\");");
         }
       }
     }

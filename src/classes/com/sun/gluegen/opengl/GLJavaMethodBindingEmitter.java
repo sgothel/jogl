@@ -136,7 +136,7 @@ public class GLJavaMethodBindingEmitter extends JavaMethodBindingEmitter {
         GLEmitter.PROCADDRESS_VAR_PREFIX + binding.getName();
       writer.println("    final long __addr_ = " + getProcAddressTableExpr + "." + procAddressVariable + ";");
       writer.println("    if (__addr_ == 0) {");
-      writer.println("      throw new GLException(\"Method not available\");");
+      writer.println("      throw new GLException(\"Method \\\"" + binding.getName() + "\\\" not available\");");
       writer.println("    }");
     }
   }
