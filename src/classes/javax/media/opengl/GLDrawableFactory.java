@@ -176,12 +176,6 @@ public abstract class GLDrawableFactory {
                                  GLCapabilitiesChooser chooser,
                                  GLContext shareWith,
                                  GraphicsDevice device) {
-    if (chooser == null) {
-      chooser = new DefaultGLCapabilitiesChooser();
-    }
-    if (device == null) {
-      device = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
-    }
     return new GLCanvas(capabilities,
                         chooser,
                         shareWith,
@@ -195,23 +189,6 @@ public abstract class GLDrawableFactory {
   }
 
   /** Creates a {@link GLJPanel} with the specified capabilities using
-      the default capabilities selection algorithm. The panel will
-      share textures and display lists with the specified {@link
-      GLContext}; the context must either be null or have been
-      fabricated by classes in this package. A null context indicates
-      no sharing. */
-  public GLJPanel createGLJPanel(GLCapabilities capabilities, GLContext shareWith) {
-    return createGLJPanel(capabilities, null, shareWith);
-  }
-
-  /** Creates a {@link GLJPanel} with the specified capabilities using
-      the supplied capabilities selection algorithm. A null chooser is
-      equivalent to using the {@link DefaultGLCapabilitiesChooser}. */
-  public GLJPanel createGLJPanel(GLCapabilities capabilities, GLCapabilitiesChooser chooser) {
-    return createGLJPanel(capabilities, chooser, null);
-  }
-
-  /** Creates a {@link GLJPanel} with the specified capabilities using
       the supplied capabilities selection algorithm. A null chooser is
       equivalent to using the {@link DefaultGLCapabilitiesChooser}.
       The panel will share textures and display lists with the
@@ -221,9 +198,6 @@ public abstract class GLDrawableFactory {
   public GLJPanel createGLJPanel(GLCapabilities capabilities,
                                  GLCapabilitiesChooser chooser,
                                  GLContext shareWith) {
-    if (chooser == null) {
-      chooser = new DefaultGLCapabilitiesChooser();
-    }
     return new GLJPanel(capabilities, chooser, shareWith);
   }
 

@@ -135,6 +135,12 @@ public class WindowsGLDrawableFactory extends GLDrawableFactoryImpl {
       throw new IllegalArgumentException("GLDrawables not supported for objects of type " +
                                          target.getClass().getName() + " (only Components are supported in this implementation)");
     }
+    if (capabilities == null) {
+      capabilities = new GLCapabilities();
+    }
+    if (chooser == null) {
+      chooser = new DefaultGLCapabilitiesChooser();
+    }
     return new WindowsOnscreenGLDrawable((Component) target, capabilities, chooser);
   }
 

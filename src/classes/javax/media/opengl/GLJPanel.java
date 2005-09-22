@@ -181,9 +181,13 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
 
     // Works around problems on many vendors' cards; we don't need a
     // back buffer for the offscreen surface anyway
-    offscreenCaps = (GLCapabilities) capabilities.clone();
+    if (capabilities != null) {
+        offscreenCaps = (GLCapabilities) capabilities.clone();
+    } else {
+        offscreenCaps = new GLCapabilities();
+    }
     offscreenCaps.setDoubleBuffered(false);
-    this.chooser = chooser;
+    this.chooser = ((chooser != null) ? chooser : new DefaultGLCapabilitiesChooser());
     this.shareWith = shareWith;
   }
 

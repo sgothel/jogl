@@ -80,6 +80,16 @@ public class X11GLDrawableFactory extends GLDrawableFactoryImpl {
   public GraphicsConfiguration chooseGraphicsConfiguration(GLCapabilities capabilities,
                                                            GLCapabilitiesChooser chooser,
                                                            GraphicsDevice device) {
+    if (capabilities == null) {
+      capabilities = new GLCapabilities();
+    }
+    if (chooser == null) {
+      chooser = new DefaultGLCapabilitiesChooser();
+    }
+    if (device == null) {
+      device = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+    }
+
     int screen = X11SunJDKReflection.graphicsDeviceGetScreen(device);
     // Until we have a rock-solid visual selection algorithm written
     // in pure Java, we're going to provide the underlying window
