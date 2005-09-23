@@ -41,7 +41,6 @@ package javax.media.opengl;
 
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
-import java.awt.GraphicsEnvironment;
 import com.sun.opengl.impl.*;
 
 /** <P> Provides a virtual machine- and operating system-independent

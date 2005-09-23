@@ -42,6 +42,7 @@ package com.sun.opengl.impl.x11;
 import java.awt.Component;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
 import java.security.*;
 import java.util.ArrayList;
 import java.util.List;
