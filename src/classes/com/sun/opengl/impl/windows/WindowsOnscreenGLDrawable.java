@@ -79,6 +79,10 @@ public class WindowsOnscreenGLDrawable extends WindowsGLDrawable {
 
   public void setRealized(boolean realized) {
     this.realized = realized;
+    if (!realized) {
+      // Assume heavyweight widget was destroyed
+      pixelFormatChosen = false;
+    }
   }
 
   public void setSize(int width, int height) {
