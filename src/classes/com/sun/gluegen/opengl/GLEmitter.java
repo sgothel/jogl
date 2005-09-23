@@ -260,7 +260,7 @@ public class GLEmitter extends JavaEmitter
       new GLJavaMethodBindingEmitter(baseJavaEmitter,
                                      callThroughProcAddress,
                                      getGLConfig().getProcAddressTableExpr(),
-                                     baseJavaEmitter.hasModifier(JavaMethodBindingEmitter.PRIVATE),
+                                     baseJavaEmitter.isForImplementingMethodCall(),
                                      bufferObjectVariant);
     emitters.add(emitter);
 

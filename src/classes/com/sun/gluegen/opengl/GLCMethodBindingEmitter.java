@@ -64,6 +64,14 @@ public class GLCMethodBindingEmitter extends CMethodBindingEmitter {
             return super.getName();
           }
         }
+
+        public String getRenamedMethodName() {
+          if (callThroughProcAddress) {
+            return GLEmitter.WRAP_PREFIX + super.getRenamedMethodName();
+          } else {
+            return super.getRenamedMethodName();
+          }
+        }
       },
       methodToWrap.getDefaultOutput(),
       methodToWrap.getJavaPackageName(),

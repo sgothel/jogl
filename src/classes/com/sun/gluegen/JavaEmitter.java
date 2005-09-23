@@ -68,10 +68,18 @@ public class JavaEmitter implements GlueEmitter {
    * (InterfaceAndImpl), only the interface (InterfaceOnly), or only
    * the implementation (ImplOnly).
    */
-  static final int ALL_STATIC = 1;
-  static final int INTERFACE_AND_IMPL = 2;
-  static final int INTERFACE_ONLY = 3;
-  static final int IMPL_ONLY = 4;
+  public static final int ALL_STATIC = 1;
+  public static final int INTERFACE_AND_IMPL = 2;
+  public static final int INTERFACE_ONLY = 3;
+  public static final int IMPL_ONLY = 4;
+
+  /**
+   * Access control for emitted Java methods.
+   */
+  public static final int ACC_PUBLIC = 1;
+  public static final int ACC_PROTECTED = 2;
+  public static final int ACC_PRIVATE = 3;
+  public static final int ACC_PACKAGE_PRIVATE = 4;
 
   private PrintWriter javaWriter; // Emits either interface or, in AllStatic mode, everything
   private PrintWriter javaImplWriter; // Only used in non-AllStatic modes for impl class
@@ -341,7 +349,12 @@ public class JavaEmitter implements GlueEmitter {
                                    false,
                                    false,
                                    isUnimplemented);
-    emitter.addModifier(JavaMethodBindingEmitter.PUBLIC);
+    switch (cfg.accessControl(binding.getName())) {
+      case ACC_PUBLIC:     emitter.addModifier(JavaMethodBindingEmitter.PUBLIC); break;
+      case ACC_PROTECTED:  emitter.addModifier(JavaMethodBindingEmitter.PROTECTED); break;
+      case ACC_PRIVATE:    emitter.addModifier(JavaMethodBindingEmitter.PRIVATE); break;
+      default: break; // package-private adds no modifiers
+    }
     if (cfg.allStatic()) {
       emitter.addModifier(JavaMethodBindingEmitter.STATIC);
     }
@@ -1265,9 +1278,15 @@ public class JavaEmitter implements GlueEmitter {
         String[] interfaces;
         List userSpecifiedInterfaces = null;
         userSpecifiedInterfaces = cfg.implementedInterfaces(cfg.implClassName());
-        interfaces = new String[1 + userSpecifiedInterfaces.size()];
+        int additionalNum = 0;
+        if (cfg.className() != null) {
+          additionalNum = 1;
+        }
+        interfaces = new String[additionalNum + userSpecifiedInterfaces.size()];
         userSpecifiedInterfaces.toArray(interfaces);
-        interfaces[userSpecifiedInterfaces.size()] = cfg.className();
+        if (additionalNum == 1) {
+          interfaces[userSpecifiedInterfaces.size()] = cfg.className();
+        }
 
         CodeGenUtils.emitJavaHeaders(
           javaImplWriter,
@@ -1340,6 +1359,8 @@ public class JavaEmitter implements GlueEmitter {
                                      Type containingCType) {
 
     MethodBinding binding = new MethodBinding(sym, containingType, containingCType);
+    
+    binding.setRenamedMethodName(cfg.getJavaMethodRename(sym.getName()));
     
     if (cfg.returnsString(binding.getName())) {
       PointerType prt = sym.getReturnType().asPointer();

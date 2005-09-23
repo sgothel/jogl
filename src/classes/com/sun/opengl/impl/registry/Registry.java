@@ -56,7 +56,7 @@ public class Registry {
     return( null );
   }
   
-  public static boolean gluCheckExtensions( String extName, String extString ) {
+  public static boolean gluCheckExtension( String extName, String extString ) {
     if( extName == null || extString == null ) {
       return( false );
     }

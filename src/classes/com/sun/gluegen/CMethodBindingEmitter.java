@@ -148,7 +148,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
   public final MethodBinding getBinding() { return binding; }
 
   public String getName() {
-    return binding.getName();
+    return binding.getRenamedMethodName();
   }
 
   /**
@@ -309,14 +309,14 @@ public class CMethodBindingEmitter extends FunctionEmitter
     if (isOverloadedBinding)
     {
       writer.print(jniMangle(binding));
-      //System.err.println("OVERLOADED MANGLING FOR " + binding.getName() +
+      //System.err.println("OVERLOADED MANGLING FOR " + getName() +
       //                   " = " + jniMangle(binding));
     }
     else
     {
-      writer.print(jniMangle(binding.getName()));
+      writer.print(jniMangle(getName()));
       //System.err.println("    NORMAL MANGLING FOR " + binding.getName() +
-      //                   " = " + jniMangle(binding.getName()));
+      //                   " = " + jniMangle(getName()));
     }
   }
 
@@ -1098,7 +1098,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
 
   protected String jniMangle(MethodBinding binding) {
     StringBuffer buf = new StringBuffer();
-    buf.append(jniMangle(binding.getName()));
+    buf.append(jniMangle(getName()));
     buf.append(getImplSuffix());
     buf.append("__");
     if (binding.hasContainingType()) {
@@ -1114,7 +1114,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
         // We should only see "void" as the first argument of a 1-argument function
         // FIXME: should normalize this in the parser
         if ((i != 0) || (binding.getNumArguments() > 1)) {
-          throw new RuntimeException("Saw illegal \"void\" argument while emitting \"" + binding.getName() + "\"");
+          throw new RuntimeException("Saw illegal \"void\" argument while emitting \"" + getName() + "\"");
         }
       } else {
         Class c = type.getJavaClass();
@@ -1200,7 +1200,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
     writer.println("      (*env)->ThrowNew(env, (*env)->FindClass(env, \"java/lang/OutOfMemoryError\"),");
     writer.print("                       \"" + errorMessage);
     writer.print(" in native dispatcher for \\\"");
-    writer.print(binding.getName());
+    writer.print(getName());
     writer.println("\\\"\");");
     writer.print("      return");
     if (!binding.getJavaReturnType().isVoid()) {

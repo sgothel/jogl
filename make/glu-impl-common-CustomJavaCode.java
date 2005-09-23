@@ -33,6 +33,29 @@ public void setGL(GL gl) {
 }
 
 //----------------------------------------------------------------------
+// Utility functionality
+//
+
+public String gluErrorString(int errorCode) {
+  return Error.gluErrorString(errorCode);
+}
+
+/* extName is an extension name.
+ * extString is a string of extensions separated by blank(s). There may or 
+ * may not be leading or trailing blank(s) in extString.
+ * This works in cases of extensions being prefixes of another like
+ * GL_EXT_texture and GL_EXT_texture3D.
+ * Returns true if extName is found otherwise it returns false.
+ */
+public boolean gluCheckExtension(java.lang.String extName, java.lang.String extString) {
+  return Registry.gluCheckExtension(extName, extString);
+}
+
+public String gluGetString(int name) {
+  return Registry.gluGetString(name);
+}
+
+//----------------------------------------------------------------------
 // Tesselator functionality
 //
 
@@ -917,137 +940,3 @@ public int gluScaleImage(int format, int wIn, int hIn, int typeIn, java.nio.Buff
     return gluScaleImageC(format, wIn, hIn, typeIn, dataIn, wOut, hOut, typeOut, dataOut);
   }
 }
-
-
-
-//----------------------------------------------------------------------
-// Wrappers for C entry points for mipmap and scaling functionality.
-// (These are only used as a fallback and will be removed in a future release)
-
-
-  /** Entry point to C language function: <br> <code> GLint gluBuild1DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
-  public int gluBuild1DMipmapLevelsC(int target, int internalFormat, int width, int format, int type, int level, int base, int max, java.nio.Buffer data)
-  {
-    if (!BufferFactory.isDirect(data))
-      throw new GLException("Argument \"data\" was not a direct buffer");
-    final long __addr_ = gluProcAddressTable._addressof_gluBuild1DMipmapLevels;
-    if (__addr_ == 0) {
-      throw new GLException("Method \"gluBuild1DMipmapLevels\" not available");
-    }
-    return dispatch_gluBuild1DMipmapLevels(target, internalFormat, width, format, type, level, base, max, data, __addr_);
-  }
-
-  /** Encapsulates function pointer for OpenGL function <br>: <code> GLint gluBuild1DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
-  native private int dispatch_gluBuild1DMipmapLevels(int target, int internalFormat, int width, int format, int type, int level, int base, int max, java.nio.Buffer data, long glProcAddress);
-
-
-
-  /** Entry point to C language function: <br> <code> GLint gluBuild1DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLenum format, GLenum type, const void *  data); </code>    */
-  public int gluBuild1DMipmapsC(int target, int internalFormat, int width, int format, int type, java.nio.Buffer data)
-  {
-    if (!BufferFactory.isDirect(data))
-      throw new GLException("Argument \"data\" was not a direct buffer");
-    final long __addr_ = gluProcAddressTable._addressof_gluBuild1DMipmaps;
-    if (__addr_ == 0) {
-      throw new GLException("Method \"gluBuild1DMipmaps\" not available");
-    }
-    return dispatch_gluBuild1DMipmaps(target, internalFormat, width, format, type, data, __addr_);
-  }
-
-  /** Encapsulates function pointer for OpenGL function <br>: <code> GLint gluBuild1DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLenum format, GLenum type, const void *  data); </code>    */
-  native private int dispatch_gluBuild1DMipmaps(int target, int internalFormat, int width, int format, int type, java.nio.Buffer data, long glProcAddress);
-
-
-
-
-  /** Entry point to C language function: <br> <code> GLint gluBuild2DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
-  public int gluBuild2DMipmapLevelsC(int target, int internalFormat, int width, int height, int format, int type, int level, int base, int max, java.nio.Buffer data)
-  {
-    if (!BufferFactory.isDirect(data))
-      throw new GLException("Argument \"data\" was not a direct buffer");
-    final long __addr_ = gluProcAddressTable._addressof_gluBuild2DMipmapLevels;
-    if (__addr_ == 0) {
-      throw new GLException("Method \"gluBuild2DMipmapLevels\" not available");
-    }
-    return dispatch_gluBuild2DMipmapLevels(target, internalFormat, width, height, format, type, level, base, max, data, __addr_);
-  }
-
-  /** Encapsulates function pointer for OpenGL function <br>: <code> GLint gluBuild2DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
-  native private int dispatch_gluBuild2DMipmapLevels(int target, int internalFormat, int width, int height, int format, int type, int level, int base, int max, java.nio.Buffer data, long glProcAddress);
-
-
-
-
-  /** Entry point to C language function: <br> <code> GLint gluBuild2DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *  data); </code>    */
-  public int gluBuild2DMipmapsC(int target, int internalFormat, int width, int height, int format, int type, java.nio.Buffer data)
-  {
-    if (!BufferFactory.isDirect(data))
-      throw new GLException("Argument \"data\" was not a direct buffer");
-    final long __addr_ = gluProcAddressTable._addressof_gluBuild2DMipmaps;
-    if (__addr_ == 0) {
-      throw new GLException("Method \"gluBuild2DMipmaps\" not available");
-    }
-    return dispatch_gluBuild2DMipmaps(target, internalFormat, width, height, format, type, data, __addr_);
-  }
-
-  /** Encapsulates function pointer for OpenGL function <br>: <code> GLint gluBuild2DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *  data); </code>    */
-  native private int dispatch_gluBuild2DMipmaps(int target, int internalFormat, int width, int height, int format, int type, java.nio.Buffer data, long glProcAddress);
-
-
-  /** Entry point to C language function: <br> <code> GLint gluBuild3DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
-  public int gluBuild3DMipmapLevelsC(int target, int internalFormat, int width, int height, int depth, int format, int type, int level, int base, int max, java.nio.Buffer data)
-  {
-    if (!BufferFactory.isDirect(data))
-      throw new GLException("Argument \"data\" was not a direct buffer");
-    final long __addr_ = gluProcAddressTable._addressof_gluBuild3DMipmapLevels;
-    if (__addr_ == 0) {
-      throw new GLException("Method \"gluBuild3DMipmapLevels\" not available");
-    }
-    return dispatch_gluBuild3DMipmapLevels(target, internalFormat, width, height, depth, format, type, level, base, max, data, __addr_);
-  }
-
-  /** Encapsulates function pointer for OpenGL function <br>: <code> GLint gluBuild3DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
-  native private int dispatch_gluBuild3DMipmapLevels(int target, int internalFormat, int width, int height, int depth, int format, int type, int level, int base, int max, java.nio.Buffer data, long glProcAddress);
-
-
-
-
-
-
-  /** Entry point to C language function: <br> <code> GLint gluBuild3DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *  data); </code>    */
-  public int gluBuild3DMipmapsC(int target, int internalFormat, int width, int height, int depth, int format, int type, java.nio.Buffer data)
-  {
-    if (!BufferFactory.isDirect(data))
-      throw new GLException("Argument \"data\" was not a direct buffer");
-    final long __addr_ = gluProcAddressTable._addressof_gluBuild3DMipmaps;
-    if (__addr_ == 0) {
-      throw new GLException("Method \"gluBuild3DMipmaps\" not available");
-    }
-    return dispatch_gluBuild3DMipmaps(target, internalFormat, width, height, depth, format, type, data, __addr_);
-  }
-
-  /** Encapsulates function pointer for OpenGL function <br>: <code> GLint gluBuild3DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *  data); </code>    */
-  native private int dispatch_gluBuild3DMipmaps(int target, int internalFormat, int width, int height, int depth, int format, int type, java.nio.Buffer data, long glProcAddress);
-
-
-
-
-  /** Entry point to C language function: <br> <code> GLint gluScaleImage(GLenum format, GLsizei wIn, GLsizei hIn, GLenum typeIn, const void *  dataIn, GLsizei wOut, GLsizei hOut, GLenum typeOut, GLvoid *  dataOut); </code>    */
-  public int gluScaleImageC(int format, int wIn, int hIn, int typeIn, java.nio.Buffer dataIn, int wOut, int hOut, int typeOut, java.nio.Buffer dataOut)
-  {
-    if (!BufferFactory.isDirect(dataIn))
-      throw new GLException("Argument \"dataIn\" was not a direct buffer");
-    if (!BufferFactory.isDirect(dataOut))
-      throw new GLException("Argument \"dataOut\" was not a direct buffer");
-    final long __addr_ = gluProcAddressTable._addressof_gluScaleImage;
-    if (__addr_ == 0) {
-      throw new GLException("Method \"gluScaleImage\" not available");
-    }
-    return dispatch_gluScaleImage(format, wIn, hIn, typeIn, dataIn, wOut, hOut, typeOut, dataOut, __addr_);
-  }
-
-  /** Encapsulates function pointer for OpenGL function <br>: <code> GLint gluScaleImage(GLenum format, GLsizei wIn, GLsizei hIn, GLenum typeIn, const void *  dataIn, GLsizei wOut, GLsizei hOut, GLenum typeOut, GLvoid *  dataOut); </code>    */
-  native private int dispatch_gluScaleImage(int format, int wIn, int hIn, int typeIn, java.nio.Buffer dataIn, int wOut, int hOut, int typeOut, java.nio.Buffer dataOut, long glProcAddress);
-
-
-

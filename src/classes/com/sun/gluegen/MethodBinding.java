@@ -50,6 +50,7 @@ import com.sun.gluegen.cgram.types.*;
 public class MethodBinding {
 
   private FunctionSymbol sym;
+  private String         renamedMethodName;
   private JavaType       javaReturnType;
   private List           javaArgumentTypes;
   private boolean        computedSignatureProperties;
@@ -73,6 +74,7 @@ public class MethodBinding {
   public MethodBinding(MethodBinding bindingToCopy) {  
     this.sym = bindingToCopy.sym;
 
+    this.renamedMethodName                = bindingToCopy.renamedMethodName;
     this.containingType                   = bindingToCopy.containingType;
     this.containingCType                  = bindingToCopy.containingCType;
     this.javaReturnType                   = bindingToCopy.javaReturnType;
@@ -156,12 +158,26 @@ public class MethodBinding {
     return sym.getName();
   }
 
+  public String         getRenamedMethodName() {
+    // Defaults to same as C symbol unless renamed
+    if (renamedMethodName != null) {
+      return renamedMethodName;
+    }
+    return sym.getName();
+  }
+
+  /** Supports renaming C function in Java binding. */
+  public void           setRenamedMethodName(String name) {
+    renamedMethodName = name;
+  }
+
   /** Creates a new MethodBinding replacing the specified Java
       argument type with a new argument type. If argumentNumber is
       less than 0 then replaces the return type. */
   public MethodBinding replaceJavaArgumentType(int argumentNumber,
                                                JavaType newArgType) {
-    MethodBinding binding = new MethodBinding(sym);
+    MethodBinding binding = (MethodBinding) clone();
+    binding.javaArgumentTypes = null;
     if (argumentNumber < 0) {
       binding.setJavaReturnType(newArgType);
     } else {
@@ -441,7 +457,7 @@ public class MethodBinding {
     StringBuffer buf = new StringBuffer(200);
     buf.append(getJavaReturnType().getName());
     buf.append(" ");
-    buf.append(getName());
+    buf.append(getRenamedMethodName());
     buf.append("(");
     boolean needComma = false;
     for (int i = 0; i < getNumArguments(); i++) {

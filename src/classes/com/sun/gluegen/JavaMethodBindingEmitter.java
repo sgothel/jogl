@@ -136,7 +136,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
   public boolean isForImplementingMethodCall() { return forImplementingMethodCall; }
 
   public String getName() {
-    return binding.getName();
+    return binding.getRenamedMethodName();
   }
 
   protected String getArgumentName(int i) {
@@ -311,9 +311,9 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
 
   protected String getImplMethodName(boolean direct) {
     if (direct) {
-      return binding.getName() + "0";
+      return binding.getRenamedMethodName() + "0";
     } else {
-      return binding.getName() + "1";
+      return binding.getRenamedMethodName() + "1";
     }
   }
 
@@ -579,7 +579,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
         } else {
           throw new RuntimeException("Unsupported type for calculating array offset argument for " +
                                      getArgumentName(i) +
-                                     "-- error occurred while processing Java glue code for " + binding.getName());
+                                     "-- error occurred while processing Java glue code for " + getName());
         }
         writer.print(offsetArgName(i));
       }
@@ -609,7 +609,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
         }
         if (cReturnType == null) {
           throw new RuntimeException("ReturnedArrayLength directive currently only supported for pointers to compound types " +
-                                     "(error occurred while generating Java glue code for " + binding.getName() + ")");
+                                     "(error occurred while generating Java glue code for " + getName() + ")");
         }
         writer.println("    " + getReturnTypeString(false) + " _retarray = new " + getReturnTypeString(true) + "[" + expr + "];");
         writer.println("    for (int _count = 0; _count < " + expr + "; _count++) {");

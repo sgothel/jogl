@@ -86,6 +86,7 @@ public class JavaConfiguration {
    * checks fail. Defaults to RuntimeException.
    */
   private String runtimeExceptionType = "RuntimeException";
+  private Map/*<String,Integer>*/ accessControl = new HashMap();
   private Map/*<String,TypeInfo>*/ typeInfoMap = new HashMap();
   private Set/*<String>*/ returnsString = new HashSet();
   private Map/*<String, String>*/ returnedArrayLengths = new HashMap();
@@ -95,6 +96,7 @@ public class JavaConfiguration {
    */
   private Map/*<String,List<Integer>>*/ argumentsAreString = new HashMap();
   private Set/*<Pattern>*/ ignores = new HashSet();
+  private Map/*<String,Pattern>*/ ignoreMap = new HashMap();
   private Set/*<Pattern>*/ ignoreNots = new HashSet();
   private Set/*<Pattern>*/ unimplemented = new HashSet();
   private Set/*<String>*/ nioDirectOnly = new HashSet();
@@ -111,6 +113,7 @@ public class JavaConfiguration {
   private Map/*<String,List<String>>*/ extendedInterfaces = new HashMap();
   private Map/*<String,List<String>>*/ implementedInterfaces = new HashMap();
   private Map/*<String,String>*/ javaTypeRenames = new HashMap();
+  private Map/*<String,String>*/ javaMethodRenames = new HashMap();
   private Map/*<String,List<String>>*/ javaPrologues = new HashMap();
   private Map/*<String,List<String>>*/ javaEpilogues = new HashMap();
 
@@ -176,7 +179,7 @@ public class JavaConfiguration {
                                         "\"Style AllStatic\"");
       }
 
-      if (className == null) {
+      if (className == null && (emissionStyle() != JavaEmitter.IMPL_ONLY)) {
         throw new RuntimeException("Output class name was not specified in configuration file");
       }
       if (packageName == null) {
@@ -192,6 +195,9 @@ public class JavaConfiguration {
         if (implClassName == null) {
           // implClassName defaults to "<className>Impl" if ImplJavaClass
           // directive is not used
+          if (className == null) {
+            throw new RuntimeException("If ImplJavaClass is not specified, must specify JavaClass");
+          }
           implClassName = className + "Impl";
         }
         if (implPackageName == null) {
@@ -219,6 +225,16 @@ public class JavaConfiguration {
   public boolean     nativeOutputUsesJavaHierarchy() { return nativeOutputUsesJavaHierarchy; }
   /** Returns the code emission style (constants in JavaEmitter) parsed from the configuration file. */
   public int         emissionStyle()                 { return emissionStyle; }
+  /** Returns the access control for the emitted Java method. Returns one of JavaEmitter.ACC_PUBLIC, JavaEmitter.ACC_PROTECTED, JavaEmitter.ACC_PRIVATE, or JavaEmitter.ACC_PACKAGE_PRIVATE. */
+  public int         accessControl(String methodName) {
+    Integer ret = (Integer) accessControl.get(methodName);
+    if (ret != null) {
+      return ret.intValue();
+    }
+    // Default access control is public
+    return JavaEmitter.ACC_PUBLIC;
+  }
+
   /** Returns the kind of exception to raise if run-time checks fail in the generated code. */
   public String      runtimeExceptionType()          { return runtimeExceptionType; }
   /** Returns the list of imports that should be emitted at the top of each .java file. */
@@ -492,6 +508,14 @@ public class JavaConfiguration {
     return javaTypeName;
   }
 
+  /** Returns a replacement name for this function which should be
+      used as the Java name for the bound method. It still calls the
+      originally-named C function under the hood. Returns null if this
+      function has not been explicitly renamed. */
+  public String getJavaMethodRename(String functionName) {
+    return (String) javaMethodRenames.get(functionName);
+  }
+
   /** Returns true if the emission style is AllStatic. */
   public boolean allStatic() {
     return (emissionStyle == JavaEmitter.ALL_STATIC);
@@ -577,6 +601,8 @@ public class JavaConfiguration {
         System.err.println("WARNING: Error parsing \"style\" command at line " + lineNo +
                            " in file \"" + filename + "\"");
       }
+    } else if (cmd.equalsIgnoreCase("AccessControl")) {
+      readAccessControl(tok, filename, lineNo);
     } else if (cmd.equalsIgnoreCase("Import")) {
       imports.add(readString("Import", tok, filename, lineNo));
     } else if (cmd.equalsIgnoreCase("Opaque")) {
@@ -591,6 +617,8 @@ public class JavaConfiguration {
       readArgumentIsString(tok, filename, lineNo);
     } else if (cmd.equalsIgnoreCase("Ignore")) {
       readIgnore(tok, filename, lineNo);
+    } else if (cmd.equalsIgnoreCase("Unignore")) {
+      readUnignore(tok, filename, lineNo);
     } else if (cmd.equalsIgnoreCase("IgnoreNot")) {
       readIgnoreNot(tok, filename, lineNo);
     } else if (cmd.equalsIgnoreCase("Unimplemented")) {
@@ -643,6 +671,8 @@ public class JavaConfiguration {
       readImplements(tok, filename, lineNo);
     } else if (cmd.equalsIgnoreCase("RenameJavaType")) {
       readRenameJavaType(tok, filename, lineNo);
+    } else if (cmd.equalsIgnoreCase("RenameJavaMethod")) {
+      readRenameJavaMethod(tok, filename, lineNo);
     } else if (cmd.equalsIgnoreCase("RuntimeExceptionType")) {
       runtimeExceptionType = readString("RuntimeExceptionType", tok, filename, lineNo);
     } else if (cmd.equalsIgnoreCase("JavaPrologue")) {
@@ -688,6 +718,30 @@ public class JavaConfiguration {
     if (type.equals("float"))   return Float.TYPE;
     if (type.equals("double"))  return Double.TYPE;
     throw new RuntimeException("Only primitive types are supported here");
+  }
+
+  protected void readAccessControl(StringTokenizer tok, String filename, int lineNo) {
+    try {
+      String methodName = tok.nextToken();
+      String style = tok.nextToken();
+      int acc = 0;
+      if (style.equalsIgnoreCase("PUBLIC")) {
+        acc = JavaEmitter.ACC_PUBLIC;
+      } else if (style.equalsIgnoreCase("PROTECTED")) {
+        acc = JavaEmitter.ACC_PROTECTED;
+      } else if (style.equalsIgnoreCase("PRIVATE")) {
+        acc = JavaEmitter.ACC_PRIVATE;
+      } else if (style.equalsIgnoreCase("PACKAGE_PRIVATE")) {
+        acc = JavaEmitter.ACC_PRIVATE;
+      } else {
+        throw new RuntimeException("Error parsing \"AccessControl\" command at line " + lineNo +
+                           " in file \"" + filename + "\"");
+      }
+      accessControl.put(methodName, new Integer(acc));
+    } catch (Exception e) {
+      throw new RuntimeException("Error parsing \"AccessControl\" command at line " + lineNo +
+        " in file \"" + filename + "\"", e);
+    }
   }
 
   protected void readOpaque(StringTokenizer tok, String filename, int lineNo) {
@@ -738,10 +792,25 @@ public class JavaConfiguration {
   protected void readIgnore(StringTokenizer tok, String filename, int lineNo) {
     try {
       String regex = tok.nextToken();
-      ignores.add(Pattern.compile(regex));
+      Pattern pattern = Pattern.compile(regex);
+      ignores.add(pattern);
+      ignoreMap.put(regex, pattern);
       //System.err.println("IGNORING " + regex + " / " + ignores.get(regex));
     } catch (NoSuchElementException e) {
       throw new RuntimeException("Error parsing \"Ignore\" command at line " + lineNo +
+        " in file \"" + filename + "\"", e);
+    }
+  }
+
+  protected void readUnignore(StringTokenizer tok, String filename, int lineNo) {
+    try {
+      String regex = tok.nextToken();
+      Pattern pattern = (Pattern) ignoreMap.get(regex);
+      ignoreMap.remove(regex);
+      ignores.remove(pattern);
+      //System.err.println("UN-IGNORING " + regex + " / " + ignores.get(regex));
+    } catch (NoSuchElementException e) {
+      throw new RuntimeException("Error parsing \"Unignore\" command at line " + lineNo +
         " in file \"" + filename + "\"", e);
     }
   }
@@ -1015,6 +1084,17 @@ public class JavaConfiguration {
       javaTypeRenames.put(fromName, toName);
     } catch (NoSuchElementException e) {
       throw new RuntimeException("Error parsing \"RenameJavaType\" command at line " + lineNo +
+        " in file \"" + filename + "\": missing expected parameter", e);
+    }
+  }
+
+  protected void readRenameJavaMethod(StringTokenizer tok, String filename, int lineNo) {
+    try {
+      String fromName = tok.nextToken();
+      String toName   = tok.nextToken();
+      javaMethodRenames.put(fromName, toName);
+    } catch (NoSuchElementException e) {
+      throw new RuntimeException("Error parsing \"RenameJavaMethod\" command at line " + lineNo +
         " in file \"" + filename + "\": missing expected parameter", e);
     }
   }
