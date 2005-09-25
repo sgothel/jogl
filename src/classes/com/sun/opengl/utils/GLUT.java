@@ -208,8 +208,6 @@ public class GLUT {
    * Renders the teapot as a solid shape of the specified size. The teapot is
    * created in a way that replicates the C GLUT implementation.
    * 
-   * @param gl
-   *        the OpenGL context in which to render the teapot
    * @param scale
    *        the factor by which to scale the teapot
    */
@@ -226,8 +224,6 @@ public class GLUT {
    * for the teapot are generated. The teapot is generated with OpenGL
    * evaluators.
    * 
-   * @param gl
-   *        the OpenGL context in which to render the teapot
    * @param scale
    *        the factor by which to scale the teapot
    * @param cStyle
@@ -242,8 +238,6 @@ public class GLUT {
    * Renders the teapot as a wireframe shape of the specified size. The teapot
    * is created in a way that replicates the C GLUT implementation.
    * 
-   * @param gl
-   *        the OpenGL context in which to render the teapot
    * @param scale
    *        the factor by which to scale the teapot
    */
@@ -260,8 +254,6 @@ public class GLUT {
    * coordinates for the teapot are generated. The teapot is generated with
    * OpenGL evaluators.
    * 
-   * @param gl
-   *        the OpenGL context in which to render the teapot
    * @param scale
    *        the factor by which to scale the teapot
    * @param cStyle

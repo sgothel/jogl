@@ -52,13 +52,12 @@ import com.sun.opengl.impl.*;
     <P>
 
     OpenGL is specified as a thread-safe API, but in practice there
-    are multithreading-related issues on most, if not all of the
+    are multithreading-related issues on most, if not all, of the
     platforms which support it. For example, some OpenGL
-    implementations do not handle the situation in which one context
-    is made current first on one thread, released, and then made
-    current on a second thread, although this is legal according to
-    the OpenGL specification. On other platforms there are other
-    problems.
+    implementations do not behave well when one context is made
+    current first on one thread, released, and then made current on a
+    second thread, although this is legal according to the OpenGL
+    specification. On other platforms there are other problems.
 
     <P>
 
@@ -122,6 +121,9 @@ public class Threading {
         }
       });
   }
+
+  /** No reason to ever instantiate this class */
+  private Threading() {}
 
   /** Provides a mechanism for end users to disable the default
       single-threading of the JOGL implementation. Users are strongly

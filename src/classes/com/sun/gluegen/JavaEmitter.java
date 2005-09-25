@@ -1267,7 +1267,7 @@ public class JavaEmitter implements GlueEmitter {
       }
     
       if (!cfg.allStatic() && cfg.emitImpl()) {
-        final List/*<String>*/ implDocs = cfg.javadocForClass(cfg.className());
+        final List/*<String>*/ implDocs = cfg.javadocForClass(cfg.implClassName());
         CodeGenUtils.EmissionCallback docEmitter =
           new CodeGenUtils.EmissionCallback() {
             public void emit(PrintWriter w) {
