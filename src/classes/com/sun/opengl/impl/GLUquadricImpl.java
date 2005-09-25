@@ -117,13 +117,13 @@ import javax.media.opengl.glu.*;
  * @author Kenneth Russell
  */
 
-class GLUquadricImpl implements GLUquadric {
+public class GLUquadricImpl implements GLUquadric {
   private int drawStyle;
   private int orientation;
   private boolean textureFlag;
   private int normals;
 
-  GLUquadricImpl() {
+  public GLUquadricImpl() {
     drawStyle = GLU.GLU_FILL;
     orientation = GLU.GLU_OUTSIDE;
     textureFlag = false;
@@ -148,7 +148,7 @@ class GLUquadricImpl implements GLUquadric {
    * 
    * @param drawStyle The drawStyle to set
    */
-  void setDrawStyle(int drawStyle) {
+  public void setDrawStyle(int drawStyle) {
     this.drawStyle = drawStyle;
   }
 
@@ -165,7 +165,7 @@ class GLUquadricImpl implements GLUquadric {
    * 
    * @param normals The normals to set
    */
-  void setNormals(int normals) {
+  public void setNormals(int normals) {
     this.normals = normals;
   }
 
@@ -182,7 +182,7 @@ class GLUquadricImpl implements GLUquadric {
    * 
    * @param orientation The orientation to set
    */
-  void setOrientation(int orientation) {
+  public void setOrientation(int orientation) {
     this.orientation = orientation;
   }
 
@@ -197,7 +197,7 @@ class GLUquadricImpl implements GLUquadric {
    * 
    * @param textureFlag The textureFlag to set
    */
-  void setTextureFlag(boolean textureFlag) {
+  public void setTextureFlag(boolean textureFlag) {
     this.textureFlag = textureFlag;
   }
 
@@ -205,7 +205,7 @@ class GLUquadricImpl implements GLUquadric {
    * Returns the drawStyle.
    * @return int
    */
-  int getDrawStyle() {
+  public int getDrawStyle() {
     return drawStyle;
   }
 
@@ -213,7 +213,7 @@ class GLUquadricImpl implements GLUquadric {
    * Returns the normals.
    * @return int
    */
-  int getNormals() {
+  public int getNormals() {
     return normals;
   }
 
@@ -221,7 +221,7 @@ class GLUquadricImpl implements GLUquadric {
    * Returns the orientation.
    * @return int
    */
-  int getOrientation() {
+  public int getOrientation() {
     return orientation;
   }
 
@@ -229,7 +229,7 @@ class GLUquadricImpl implements GLUquadric {
    * Returns the textureFlag.
    * @return boolean
    */
-  boolean getTextureFlag() {
+  public boolean getTextureFlag() {
     return textureFlag;
   }
 
@@ -258,7 +258,7 @@ class GLUquadricImpl implements GLUquadric {
    * @param slices      Specifies the number of subdivisions around the z axis.
    * @param stacks      Specifies the number of subdivisions along the z axis.
    */
-  void drawCylinder(GL gl, float baseRadius, float topRadius, float height, int slices, int stacks) {
+  public void drawCylinder(GL gl, float baseRadius, float topRadius, float height, int slices, int stacks) {
 
     float da, r, dr, dz;
     float x, y, z, nz, nsign;

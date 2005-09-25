@@ -45,7 +45,6 @@ import java.awt.event.*;
 import java.beans.PropertyChangeListener;
 
 import javax.media.opengl.*;
-import javax.media.opengl.glu.*;
 
 /** Platform-independent class exposing pbuffer functionality to
     applications. This class is not exposed in the public API as it
@@ -119,14 +118,6 @@ public class GLPbufferImpl implements GLPbuffer {
     getContext().setGL(gl);
   }
 
-  public GLU getGLU() {
-    return getContext().getGLU();
-  }
-  
-  public void setGLU(GLU glu) {
-    getContext().setGLU(glu);
-  }
-  
   public void setAutoSwapBufferMode(boolean onOrOff) {
     drawableHelper.setAutoSwapBufferMode(onOrOff);
   }

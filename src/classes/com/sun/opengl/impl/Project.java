@@ -118,7 +118,7 @@ import com.sun.opengl.utils.*;
  * @author Erik Duijs
  * @author Kenneth Russell
  */
-class Project {
+public class Project {
   private static final double[] IDENTITY_MATRIX =
     new double[] {
       1.0, 0.0, 0.0, 0.0,

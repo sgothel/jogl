@@ -47,7 +47,6 @@ import java.nio.*;
 import java.security.*;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
-import javax.media.opengl.glu.*;
 import com.sun.opengl.impl.*;
 
 // FIXME: Subclasses need to call resetGLFunctionAvailability() on their
@@ -456,18 +455,6 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
     }
   }
 
-  public GLU getGLU() {
-    GLContext context = getContext();
-    return (context == null) ? null : context.getGLU();
-  }
-  
-  public void setGLU(GLU glu) {
-    GLContext context = getContext();
-    if (context != null) {
-      context.setGLU(glu);
-    }
-  }
-  
   public void setAutoSwapBufferMode(boolean onOrOff) {
     if (!hardwareAccelerationDisabled) {
       pbuffer.setAutoSwapBufferMode(onOrOff);

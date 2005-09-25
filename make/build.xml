@@ -251,8 +251,7 @@
         <!-- Set platform configuration files. -->
         <property name="gl.cfg"                                 value="${config}/gl-win32.cfg" />
         <property name="glext.platform.cfg"                     value="${config}/wglext.cfg" />
-        <property name="glu.cfg"                                value="${config}/glu.cfg" />
-        <property name="glu.impl.cfg"                           value="${config}/glu-impl-win32.cfg" />
+        <property name="glu.cfg"                                value="${config}/glu-win32.cfg" />
         <property name="jawt.cfg"                               value="${config}/jawt-win32.cfg" />
         <property name="window.cfg"                             value="${config}/wingdi-win32.cfg" />
 
@@ -295,8 +294,7 @@
         <!-- Set platform configuration files. -->
         <property name="gl.cfg"                               value="${config}/gl-x11.cfg" />
         <property name="glext.platform.cfg"                   value="${config}/glxext.cfg" />
-        <property name="glu.cfg"                              value="${config}/glu.cfg" />
-        <property name="glu.impl.cfg"                         value="${config}/glu-impl-x11.cfg" />
+        <property name="glu.cfg"                              value="${config}/glu-x11.cfg" />
         <property name="jawt.cfg"                             value="${config}/jawt-x11.cfg" />
         <property name="window.cfg"                           value="${config}/glx-x11.cfg" />
 
@@ -359,8 +357,7 @@
         <!-- Set platform configuration files. -->
         <property name="gl.cfg"                               value="${config}/gl-macosx.cfg" />
         <property name="glext.platform.cfg"                   value="${config}/cglext.cfg" />
-        <property name="glu.cfg"                              value="${config}/glu.cfg" />
-        <property name="glu.impl.cfg"                         value="${config}/glu-impl-macosx.cfg" />
+        <property name="glu.cfg"                              value="${config}/glu-macosx.cfg" />
         <property name="jawt.cfg"                             value="${config}/jawt-macosx.cfg" />
         <property name="window.cfg"                           value="${config}/cgl-macosx.cfg" />
 
@@ -521,19 +518,10 @@
             <classpath refid="gen.classpath" />
         </staticglgen>
 
-	<!-- Generate GLU interface class -->
-        <echo message="Generating GLU interface class" />
+	<!-- Generate GLU class -->
+        <echo message="Generating GLU class" />
         <gluegen src="${stub.includes.common}/glu.c" 
                  config="${glu.cfg}"
-                 includeRefid="stub.includes.fileset.all"
-                 emitter="com.sun.gluegen.opengl.GLEmitter">
-            <classpath refid="gen.classpath" />
-        </gluegen>
-
-	<!-- Generate GLU implementation class -->
-        <echo message="Generating GLU implementation class" />
-        <gluegen src="${stub.includes.common}/glu-impl.c" 
-                 config="${glu.impl.cfg}"
                  includeRefid="stub.includes.fileset.all"
                  emitter="com.sun.gluegen.opengl.GLEmitter">
             <classpath refid="gen.classpath" />

@@ -39,8 +39,6 @@
 
 package javax.media.opengl;
 
-import javax.media.opengl.glu.*;
-
 /** Abstraction for an OpenGL rendering context. In order to perform
     OpenGL rendering, a context must be "made current" on the current
     thread. OpenGL rendering semantics specify that only one context
@@ -155,17 +153,7 @@ public abstract class GLContext {
   public abstract GL getGL();
 
   /**
-   * Returns the GLU pipeline object for this GLContext.
-   */
-  public abstract GLU getGLU();
-
-  /**
    * Sets the GL pipeline object for this GLContext.
    */
   public abstract void setGL(GL gl);
-
-  /**
-   * Sets the GLU pipeline object for this GLContext.
-   */
-  public abstract void setGLU(GLU glu);
 }

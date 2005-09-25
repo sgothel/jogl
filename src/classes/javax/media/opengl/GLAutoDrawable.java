@@ -114,12 +114,4 @@ public interface GLAutoDrawable extends GLDrawable, ComponentEvents {
       method, in order to install a composable pipeline. See the JOGL
       demos for examples. */
   public void setGL(GL gl);
-
-  /** Returns the {@link GLU} pipeline object this GLAutoDrawable
-      uses. */
-  public GLU getGLU();
-
-  /** Sets the {@link GLU} pipeline object this GLAutoDrawable
-      uses. */
-  public void setGLU(GLU glu);
 }

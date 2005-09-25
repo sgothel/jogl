@@ -102,11 +102,13 @@ public class GLUT {
   public static final int BITMAP_HELVETICA_12 = 7;
   public static final int BITMAP_HELVETICA_18 = 8;
 
+  private GLU glu = new GLU();
+
   //----------------------------------------------------------------------
   // Shapes
   //
 
-  public void glutWireSphere(GLU glu, double radius, int slices, int stacks) {
+  public void glutWireSphere(double radius, int slices, int stacks) {
     quadObjInit(glu);
     glu.gluQuadricDrawStyle(quadObj, GLU.GLU_LINE);
     glu.gluQuadricNormals(quadObj, GLU.GLU_SMOOTH);
@@ -116,7 +118,7 @@ public class GLUT {
     glu.gluSphere(quadObj, radius, slices, stacks);
   }
 
-  public void glutSolidSphere(GLU glu, double radius, int slices, int stacks) {
+  public void glutSolidSphere(double radius, int slices, int stacks) {
     quadObjInit(glu);
     glu.gluQuadricDrawStyle(quadObj, GLU.GLU_FILL);
     glu.gluQuadricNormals(quadObj, GLU.GLU_SMOOTH);
@@ -126,8 +128,7 @@ public class GLUT {
     glu.gluSphere(quadObj, radius, slices, stacks);
   }
 
-  public void glutWireCone(GLU glu,
-                           double base, double height,
+  public void glutWireCone(double base, double height,
                            int slices, int stacks) {
     quadObjInit(glu);
     glu.gluQuadricDrawStyle(quadObj, GLU.GLU_LINE);
@@ -138,8 +139,7 @@ public class GLUT {
     glu.gluCylinder(quadObj, base, 0.0, height, slices, stacks);
   }
 
-  public void glutSolidCone(GLU glu,
-                            double base, double height,
+  public void glutSolidCone(double base, double height,
                             int slices, int stacks) {
     quadObjInit(glu);
     glu.gluQuadricDrawStyle(quadObj, GLU.GLU_FILL);
@@ -150,59 +150,58 @@ public class GLUT {
     glu.gluCylinder(quadObj, base, 0.0, height, slices, stacks);
   }
 
-  public void glutWireCube(GL gl, float size) {
-    drawBox(gl, size, GL.GL_LINE_LOOP);
+  public void glutWireCube(float size) {
+    drawBox(GLU.getCurrentGL(), size, GL.GL_LINE_LOOP);
   }
 
-  public void glutSolidCube(GL gl, float size) {
-    drawBox(gl, size, GL.GL_QUADS);
+  public void glutSolidCube(float size) {
+    drawBox(GLU.getCurrentGL(), size, GL.GL_QUADS);
   }
 
-  public void glutWireTorus(GL gl,
-                            double innerRadius, double outerRadius,
+  public void glutWireTorus(double innerRadius, double outerRadius,
                             int nsides, int rings) {
+    GL gl = GLU.getCurrentGL();
     gl.glPushAttrib(GL.GL_POLYGON_BIT);
     gl.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_LINE);
     doughnut(gl, innerRadius, outerRadius, nsides, rings);
     gl.glPopAttrib();
   }
 
-  public void glutSolidTorus(GL gl,
-                             double innerRadius, double outerRadius,
+  public void glutSolidTorus(double innerRadius, double outerRadius,
                              int nsides, int rings) {
-    doughnut(gl, innerRadius, outerRadius, nsides, rings);
+    doughnut(GLU.getCurrentGL(), innerRadius, outerRadius, nsides, rings);
   }
 
-  public void glutWireDodecahedron(GL gl) {
-    dodecahedron(gl, GL.GL_LINE_LOOP);
+  public void glutWireDodecahedron() {
+    dodecahedron(GLU.getCurrentGL(), GL.GL_LINE_LOOP);
   }
 
-  public void glutSolidDodecahedron(GL gl) {
-    dodecahedron(gl, GL.GL_TRIANGLE_FAN);
+  public void glutSolidDodecahedron() {
+    dodecahedron(GLU.getCurrentGL(), GL.GL_TRIANGLE_FAN);
   }
 
-  public void glutWireOctahedron(GL gl) {
-    octahedron(gl, GL.GL_LINE_LOOP);
+  public void glutWireOctahedron() {
+    octahedron(GLU.getCurrentGL(), GL.GL_LINE_LOOP);
   }
 
-  public void glutSolidOctahedron(GL gl) {
-    octahedron(gl, GL.GL_TRIANGLES);
+  public void glutSolidOctahedron() {
+    octahedron(GLU.getCurrentGL(), GL.GL_TRIANGLES);
   }
 
-  public void glutWireIcosahedron(GL gl) {
-    icosahedron(gl, GL.GL_LINE_LOOP);
+  public void glutWireIcosahedron() {
+    icosahedron(GLU.getCurrentGL(), GL.GL_LINE_LOOP);
   }
 
-  public void glutSolidIcosahedron(GL gl) {
-    icosahedron(gl, GL.GL_TRIANGLES);
+  public void glutSolidIcosahedron() {
+    icosahedron(GLU.getCurrentGL(), GL.GL_TRIANGLES);
   }
 
-  public void glutWireTetrahedron(GL gl) {
-    tetrahedron(gl, GL.GL_LINE_LOOP);
+  public void glutWireTetrahedron() {
+    tetrahedron(GLU.getCurrentGL(), GL.GL_LINE_LOOP);
   }
 
-  public void glutSolidTetrahedron(GL gl) {
-    tetrahedron(gl, GL.GL_TRIANGLES);
+  public void glutSolidTetrahedron() {
+    tetrahedron(GLU.getCurrentGL(), GL.GL_TRIANGLES);
   }
 
 /**
@@ -214,8 +213,8 @@ public class GLUT {
    * @param scale
    *        the factor by which to scale the teapot
    */
-  public void glutSolidTeapot(GL gl, double scale) {
-    glutSolidTeapot(gl, scale, true);
+  public void glutSolidTeapot(double scale) {
+    glutSolidTeapot(scale, true);
   }
 
   /**
@@ -235,8 +234,8 @@ public class GLUT {
    *        whether to create the teapot in exactly the same way as in the C
    *        implementation of GLUT
    */
-  public void glutSolidTeapot(GL gl, double scale, boolean cStyle) {
-    teapot(gl, 14, scale, GL.GL_FILL, cStyle);
+  public void glutSolidTeapot(double scale, boolean cStyle) {
+    teapot(GLU.getCurrentGL(), 14, scale, GL.GL_FILL, cStyle);
   }
 
   /**
@@ -248,8 +247,8 @@ public class GLUT {
    * @param scale
    *        the factor by which to scale the teapot
    */
-  public void glutWireTeapot(GL gl, double scale) {
-    glutWireTeapot(gl, scale, true);
+  public void glutWireTeapot(double scale) {
+    glutWireTeapot(scale, true);
   }
   
   /**
@@ -269,22 +268,23 @@ public class GLUT {
    *        whether to create the teapot in exactly the same way as in the C
    *        implementation of GLUT
    */
-  public void glutWireTeapot(GL gl, double scale, boolean cStyle) {
-    teapot(gl, 10, scale, GL.GL_LINE, cStyle);
+  public void glutWireTeapot(double scale, boolean cStyle) {
+    teapot(GLU.getCurrentGL(), 10, scale, GL.GL_LINE, cStyle);
   }
 
   //----------------------------------------------------------------------
   // Fonts
   //
 
-  public void glutBitmapCharacter(GL gl, int font, char character) {
+  public void glutBitmapCharacter(int font, char character) {
+    GL gl = GLU.getCurrentGL();
     int[] swapbytes  = new int[1];
     int[] lsbfirst   = new int[1];
     int[] rowlength  = new int[1];
     int[] skiprows   = new int[1];
     int[] skippixels = new int[1];
     int[] alignment  = new int[1];
-    beginBitmap(gl, 
+    beginBitmap(gl,
                 swapbytes,
                 lsbfirst,
                 rowlength,
@@ -292,7 +292,7 @@ public class GLUT {
                 skippixels,
                 alignment);
     bitmapCharacterImpl(gl, font, character);
-    endBitmap(gl, 
+    endBitmap(gl,
               swapbytes,
               lsbfirst,
               rowlength,
@@ -301,7 +301,8 @@ public class GLUT {
               alignment);
   }
 
-  public void glutBitmapString   (GL gl, int font, String string) {
+  public void glutBitmapString   (int font, String string) {
+    GL gl = GLU.getCurrentGL();
     int[] swapbytes  = new int[1];
     int[] lsbfirst   = new int[1];
     int[] rowlength  = new int[1];
@@ -340,7 +341,8 @@ public class GLUT {
       return 0;
   }
 
-  public void glutStrokeCharacter(GL gl, int font, char character) {
+  public void glutStrokeCharacter(int font, char character) {
+    GL gl = GLU.getCurrentGL();
     StrokeFontRec fontinfo = getStrokeFont(font);
     int c = character & 0xFFFF;
     if (c < 0 || c >= fontinfo.num_chars)
@@ -360,7 +362,8 @@ public class GLUT {
     }
   }
 
-  public void glutStrokeString(GL gl, int font, String string) {
+  public void glutStrokeString(int font, String string) {
+    GL gl = GLU.getCurrentGL();
     StrokeFontRec fontinfo = getStrokeFont(font);
     int len = string.length();
     for (int pos = 0; pos < len; pos++) {

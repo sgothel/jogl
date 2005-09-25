@@ -36,7 +36,6 @@ package com.sun.opengl.impl.error;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.glu.GLU;
-import com.sun.opengl.impl.GLUImpl;
 
 /**
  *
@@ -75,14 +74,14 @@ public class Error {
     if( errorCode == GL.GL_TABLE_TOO_LARGE ) {
       return( "table too large" );
     }
-    if( (errorCode >= GLUImpl.GLU_INVALID_ENUM) && (errorCode <= GLUImpl.GLU_INVALID_OPERATION) ) {
-      return( gluErrorStrings[ errorCode - GLUImpl.GLU_INVALID_ENUM ] );
+    if( (errorCode >= GLU.GLU_INVALID_ENUM) && (errorCode <= GLU.GLU_INVALID_OPERATION) ) {
+      return( gluErrorStrings[ errorCode - GLU.GLU_INVALID_ENUM ] );
     }
-    if( (errorCode >= GLUImpl.GLU_NURBS_ERROR1) && (errorCode <= GLUImpl.GLU_NURBS_ERROR37) ) {
-      return( gluErrorStrings[ errorCode - (GLUImpl.GLU_NURBS_ERROR1 - 1) ] );
+    if( (errorCode >= GLU.GLU_NURBS_ERROR1) && (errorCode <= GLU.GLU_NURBS_ERROR37) ) {
+      return( gluErrorStrings[ errorCode - (GLU.GLU_NURBS_ERROR1 - 1) ] );
     }
-    if( (errorCode >= GLUImpl.GLU_TESS_ERROR1) && (errorCode <= GLUImpl.GLU_TESS_ERROR8) ) {
-      return( gluErrorStrings[ errorCode - (GLUImpl.GLU_TESS_ERROR1 - 1) ] );
+    if( (errorCode >= GLU.GLU_TESS_ERROR1) && (errorCode <= GLU.GLU_TESS_ERROR8) ) {
+      return( gluErrorStrings[ errorCode - (GLU.GLU_TESS_ERROR1 - 1) ] );
     }
     return( null );
   }

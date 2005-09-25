@@ -1105,9 +1105,11 @@ public class JavaEmitter implements GlueEmitter {
   }
 
   private void openWriters() throws IOException {
-    String jRoot =
-      cfg.javaOutputDir() + File.separator +
-      CodeGenUtils.packageAsPath(cfg.packageName());
+    String jRoot = null;
+    if (cfg.allStatic() || cfg.emitInterface()) {
+      jRoot = cfg.javaOutputDir() + File.separator +
+        CodeGenUtils.packageAsPath(cfg.packageName());
+    }
     String jImplRoot = null;
     if (!cfg.allStatic()) {
       jImplRoot =

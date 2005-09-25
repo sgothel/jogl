@@ -182,7 +182,7 @@ public class JavaConfiguration {
       if (className == null && (emissionStyle() != JavaEmitter.IMPL_ONLY)) {
         throw new RuntimeException("Output class name was not specified in configuration file");
       }
-      if (packageName == null) {
+      if (packageName == null && (emissionStyle() != JavaEmitter.IMPL_ONLY)) {
         throw new RuntimeException("Output package name was not specified in configuration file");
       }
 
@@ -203,6 +203,9 @@ public class JavaConfiguration {
         if (implPackageName == null) {
           // implPackageName defaults to "<packageName>.impl" if ImplPackage
           // directive is not used
+          if (packageName == null) {
+            throw new RuntimeException("If ImplPackageName is not specified, must specify PackageName");
+          }
           implPackageName = packageName + ".impl";
         }
       }

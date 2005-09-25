@@ -43,7 +43,6 @@ import java.awt.Component;
 import java.nio.*;
 
 import javax.media.opengl.*;
-import javax.media.opengl.glu.*;
 import com.sun.gluegen.runtime.*;
 
 public abstract class GLContextImpl extends GLContext {
@@ -60,10 +59,6 @@ public abstract class GLContextImpl extends GLContext {
   private GLProcAddressTable glProcAddressTable;
 
   protected GL gl;
-  protected GLU glu = new GLUImpl(gluProcAddressTable);
-  protected static final GLUProcAddressTable gluProcAddressTable = new GLUProcAddressTable();
-  protected static boolean haveResetGLUProcAddressTable;
-
   public GLContextImpl(GLContext shareWith) {
     setGL(createGL());
     functionAvailability = new FunctionAvailabilityCache(this);
@@ -130,16 +125,6 @@ public abstract class GLContextImpl extends GLContext {
 
   public void setGL(GL gl) {
     this.gl = gl;
-    // Also reset the GL object for the pure-Java GLU implementation
-    ((GLUImpl) glu).setGL(gl);
-  }
-
-  public GLU getGLU() {    
-    return glu;
-  }
-  
-  public void setGLU(GLU glu) {
-    this.glu = glu;
   }
 
   public abstract Object getPlatformGLExtensions();
@@ -228,13 +213,6 @@ public abstract class GLContextImpl extends GLContext {
       System.err.println(getThreadName() + ": !!! Initializing OpenGL extension address table for " + this);
     }
     resetProcAddressTable(getGLProcAddressTable());
-    if (!haveResetGLUProcAddressTable) {
-      if (DEBUG) {
-        System.err.println(getThreadName() + ": !!! Initializing GLU extension address table");
-      }
-      resetProcAddressTable(gluProcAddressTable);
-      haveResetGLUProcAddressTable = true; // Only need to do this once globally
-    }
   }
 
   /**
