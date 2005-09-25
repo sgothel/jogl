@@ -127,9 +127,9 @@ public class MacOSXGLDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   private void maybeDoSingleThreadedWorkaround(Runnable action) {
-    if (SingleThreadedWorkaround.doWorkaround() &&
-        !SingleThreadedWorkaround.isOpenGLThread()) {
-      SingleThreadedWorkaround.invokeOnOpenGLThread(action);
+    if (Threading.isSingleThreaded() &&
+        !Threading.isOpenGLThread()) {
+      Threading.invokeOnOpenGLThread(action);
     } else {
       action.run();
     }

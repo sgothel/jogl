@@ -191,9 +191,9 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
 
   private void maybeDoSingleThreadedWorkaround(Runnable eventDispatchThreadAction,
                                                Runnable invokeGLAction) {
-    if (SingleThreadedWorkaround.doWorkaround() &&
-        !SingleThreadedWorkaround.isOpenGLThread()) {
-      SingleThreadedWorkaround.invokeOnOpenGLThread(eventDispatchThreadAction);
+    if (Threading.isSingleThreaded() &&
+        !Threading.isOpenGLThread()) {
+      Threading.invokeOnOpenGLThread(eventDispatchThreadAction);
     } else {
       drawableHelper.invokeGL(drawable, context, invokeGLAction, initAction);
     }

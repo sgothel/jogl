@@ -62,61 +62,6 @@ public class WindowsGLDrawableFactory extends GLDrawableFactoryImpl {
 
   static {
     NativeLibLoader.load();
-
-    AccessController.doPrivileged(new PrivilegedAction() {
-        public Object run() {
-          // Test for whether we should enable the single-threaded
-          // workaround for ATI cards. It appears that if we make any
-          // OpenGL context current on more than one thread on ATI cards
-          // on Windows then we see random failures like the inability
-          // to create more OpenGL contexts, or having just the next
-          // OpenGL SetPixelFormat operation fail with a GetNextError()
-          // code of 0 (but subsequent ones on subsequently-created
-          // windows succeed). These kinds of failures are obviously due
-          // to bugs in ATI's OpenGL drivers. Through trial and error it
-          // was found that specifying
-          // -DJOGL_SINGLE_THREADED_WORKAROUND=true on the command line
-          // caused these problems to completely disappear. Therefore at
-          // least on Windows we try to enable the single-threaded
-          // workaround before creating any OpenGL contexts. In the
-          // future, if problems are encountered on other platforms and
-          // -DJOGL_SINGLE_THREADED_WORKAROUND=true works around them,
-          // we may want to implement a workaround like this on other
-          // platforms.
-        
-          // The algorithm here is to try to find the system directory
-          // (assuming it is on the same drive as TMPDIR, exposed
-          // through the system property java.io.tmpdir) and see whether
-          // a known file in the ATI drivers is present; if it is, we
-          // enable the single-threaded workaround.
-
-          // If any path down this code fails, we simply bail out -- we
-          // don't go to great lengths to figure out if the ATI drivers
-          // are present. We could add more checks here in the future if
-          // these appear to be insufficient.
-
-          String tmpDirProp = System.getProperty("java.io.tmpdir");
-          if (tmpDirProp != null) {
-            File file = new File(tmpDirProp);
-            if (file.isAbsolute()) {
-              File parent = null;
-              do {
-                parent = file.getParentFile();
-                if (parent != null) {
-                  file = parent;
-                }
-              } while (parent != null);
-              // Now the file contains just the drive letter
-              file = new File(new File(new File(file, "windows"), "system32"), "atioglxx.dll");
-              if (file.exists()) {
-                SingleThreadedWorkaround.shouldDoWorkaround();
-              }
-            }
-          }
-
-          return( null );
-        }
-      }); 
   }
   
   public GraphicsConfiguration chooseGraphicsConfiguration(GLCapabilities capabilities,
@@ -264,9 +209,9 @@ public class WindowsGLDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   private void maybeDoSingleThreadedWorkaround(Runnable action) {
-    if (SingleThreadedWorkaround.doWorkaround() &&
-        !SingleThreadedWorkaround.isOpenGLThread()) {
-      SingleThreadedWorkaround.invokeOnOpenGLThread(action);
+    if (Threading.isSingleThreaded() &&
+        !Threading.isOpenGLThread()) {
+      Threading.invokeOnOpenGLThread(action);
     } else {
       action.run();
     }

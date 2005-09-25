@@ -190,9 +190,9 @@ public class GLPbufferImpl implements GLPbuffer {
   private void maybeDoSingleThreadedWorkaround(Runnable eventDispatchThreadAction,
                                                Runnable invokeGLAction,
                                                boolean  isReshape) {
-    if (SingleThreadedWorkaround.doWorkaround() &&
-        !SingleThreadedWorkaround.isOpenGLThread()) {
-      SingleThreadedWorkaround.invokeOnOpenGLThread(eventDispatchThreadAction);
+    if (Threading.isSingleThreaded() &&
+        !Threading.isOpenGLThread()) {
+      Threading.invokeOnOpenGLThread(eventDispatchThreadAction);
     } else {
       drawableHelper.invokeGL(pbufferDrawable, context, invokeGLAction, initAction);
     }
