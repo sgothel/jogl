@@ -14,6 +14,11 @@ public boolean isExtensionAvailable(String glExtensionName) {
   return _context.isExtensionAvailable(glExtensionName);
 }
 
+public Object getExtension(String extensionName) {
+  // At this point we don't expose any extensions using this mechanism
+  return null;
+}
+
 private GLContextImpl _context;
 
 /**
