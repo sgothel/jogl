@@ -84,9 +84,7 @@ public class MacOSXGLDrawableFactory extends GLDrawableFactoryImpl {
     return new MacOSXOffscreenGLDrawable(capabilities);
   }
 
-  public boolean canCreateGLPbuffer(GLCapabilities capabilities,
-                                    int initialWidth,
-                                    int initialHeight) {
+  public boolean canCreateGLPbuffer() {
     return true;
   }
 

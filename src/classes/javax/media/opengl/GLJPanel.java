@@ -520,9 +520,7 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
       // Initialize either the hardware-accelerated rendering path or
       // the lightweight rendering path
       if (!hardwareAccelerationDisabled) {
-        if (GLDrawableFactory.getFactory().canCreateGLPbuffer(offscreenCaps,
-                                                              pbufferWidth,
-                                                              pbufferHeight)) {
+        if (GLDrawableFactory.getFactory().canCreateGLPbuffer()) {
           if (pbuffer != null) {
             throw new InternalError("Creating pbuffer twice without destroying it (memory leak / correctness bug)");
           }

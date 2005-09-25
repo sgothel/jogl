@@ -201,12 +201,10 @@ public abstract class GLDrawableFactory {
   }
 
   /**
-   * Returns true if it is possible to create a GLPbuffer with the
-   * given capabilites and dimensions.
+   * Returns true if it is possible to create a GLPbuffer. Some older
+   * graphics cards do not have this capability.
    */
-  public abstract boolean canCreateGLPbuffer(GLCapabilities capabilities,
-                                             int initialWidth,
-                                             int initialHeight);
+  public abstract boolean canCreateGLPbuffer();
 
   /**
    * Creates a GLPbuffer with the given capabilites and dimensions.

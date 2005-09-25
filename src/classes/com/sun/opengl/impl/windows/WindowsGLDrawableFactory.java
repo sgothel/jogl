@@ -96,9 +96,7 @@ public class WindowsGLDrawableFactory extends GLDrawableFactoryImpl {
 
   private boolean pbufferSupportInitialized = false;
   private boolean canCreateGLPbuffer = false;
-  public boolean canCreateGLPbuffer(GLCapabilities capabilities,
-                                    int initialWidth,
-                                    int initialHeight) {
+  public boolean canCreateGLPbuffer() {
     if (!pbufferSupportInitialized) {
       Runnable r = new Runnable() {
           public void run() {
@@ -131,7 +129,7 @@ public class WindowsGLDrawableFactory extends GLDrawableFactoryImpl {
                                    final int initialWidth,
                                    final int initialHeight,
                                    final GLContext shareWith) {
-    if (!canCreateGLPbuffer(capabilities, initialWidth, initialHeight)) {
+    if (!canCreateGLPbuffer()) {
       throw new GLException("Pbuffer support not available with current graphics card");
     }
     final List returnList = new ArrayList();

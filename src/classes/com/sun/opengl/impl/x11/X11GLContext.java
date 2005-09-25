@@ -242,7 +242,7 @@ public abstract class X11GLContext extends GLContextImpl {
   public boolean isExtensionAvailable(String glExtensionName) {
     if (glExtensionName.equals("GL_ARB_pbuffer") ||
         glExtensionName.equals("GL_ARB_pixel_format")) {
-      return GLDrawableFactory.getFactory().canCreateGLPbuffer(null, 0, 0);
+      return GLDrawableFactory.getFactory().canCreateGLPbuffer();
     }
     return super.isExtensionAvailable(glExtensionName);
   }
