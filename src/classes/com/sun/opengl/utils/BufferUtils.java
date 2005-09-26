@@ -51,52 +51,215 @@ public class BufferUtils {
   public static final int SIZEOF_LONG = 8;
   public static final int SIZEOF_SHORT = 2;
 
-  public static DoubleBuffer newDoubleBuffer(int numElements) {
-    ByteBuffer bb = newByteBuffer(numElements * SIZEOF_DOUBLE);
-    return bb.asDoubleBuffer();
-  }
+  //----------------------------------------------------------------------
+  // Allocation routines
+  //
 
-  public static FloatBuffer newFloatBuffer(int numElements) {
-    ByteBuffer bb = newByteBuffer(numElements * SIZEOF_FLOAT);
-    return bb.asFloatBuffer();
-  }
-
-  public static IntBuffer newIntBuffer(int numElements) {
-    ByteBuffer bb = newByteBuffer(numElements * SIZEOF_INT);
-    return bb.asIntBuffer();
-  }
-
+  /** Allocates a new direct ByteBuffer with the specified number of
+      elements. The returned buffer will have its byte order set to
+      the host platform's native byte order. */
   public static ByteBuffer newByteBuffer(int numElements) {
     ByteBuffer bb = ByteBuffer.allocateDirect(numElements);
     bb.order(ByteOrder.nativeOrder());
     return bb;
   }
 
-  public static DoubleBuffer copyDoubleBuffer(DoubleBuffer orig) {
-    DoubleBuffer dest = newDoubleBuffer(orig.capacity());
-    orig.rewind();
-    dest.put(orig);
-    return dest;
+  /** Allocates a new direct DoubleBuffer with the specified number of
+      elements. The returned buffer will have its byte order set to
+      the host platform's native byte order. */
+  public static DoubleBuffer newDoubleBuffer(int numElements) {
+    ByteBuffer bb = newByteBuffer(numElements * SIZEOF_DOUBLE);
+    return bb.asDoubleBuffer();
   }
 
-  public static FloatBuffer copyFloatBuffer(FloatBuffer orig) {
-    FloatBuffer dest = newFloatBuffer(orig.capacity());
-    orig.rewind();
-    dest.put(orig);
-    return dest;
+  /** Allocates a new direct FloatBuffer with the specified number of
+      elements. The returned buffer will have its byte order set to
+      the host platform's native byte order. */
+  public static FloatBuffer newFloatBuffer(int numElements) {
+    ByteBuffer bb = newByteBuffer(numElements * SIZEOF_FLOAT);
+    return bb.asFloatBuffer();
   }
 
-  public static IntBuffer copyIntBuffer(IntBuffer orig) {
-    IntBuffer dest = newIntBuffer(orig.capacity());
-    orig.rewind();
-    dest.put(orig);
-    return dest;
+  /** Allocates a new direct IntBuffer with the specified number of
+      elements. The returned buffer will have its byte order set to
+      the host platform's native byte order. */
+  public static IntBuffer newIntBuffer(int numElements) {
+    ByteBuffer bb = newByteBuffer(numElements * SIZEOF_INT);
+    return bb.asIntBuffer();
   }
 
+  /** Allocates a new direct LongBuffer with the specified number of
+      elements. The returned buffer will have its byte order set to
+      the host platform's native byte order. */
+  public static LongBuffer newLongBuffer(int numElements) {
+    ByteBuffer bb = newByteBuffer(numElements * SIZEOF_LONG);
+    return bb.asLongBuffer();
+  }
+
+  /** Allocates a new direct ShortBuffer with the specified number of
+      elements. The returned buffer will have its byte order set to
+      the host platform's native byte order. */
+  public static ShortBuffer newShortBuffer(int numElements) {
+    ByteBuffer bb = newByteBuffer(numElements * SIZEOF_SHORT);
+    return bb.asShortBuffer();
+  }
+
+  //----------------------------------------------------------------------
+  // Copy routines (type-to-type)
+  //
+
+  /** Copies the <i>remaining</i> elements (as defined by
+      <code>limit() - position()</code>) in the passed ByteBuffer into
+      a newly-allocated direct ByteBuffer. The returned buffer will
+      have its byte order set to the host platform's native byte
+      order. The position of the newly-allocated buffer will be zero,
+      and the position of the passed buffer is unchanged (though its
+      mark is changed). */
   public static ByteBuffer copyByteBuffer(ByteBuffer orig) {
-    ByteBuffer dest = newByteBuffer(orig.capacity());
-    orig.rewind();
+    ByteBuffer dest = newByteBuffer(orig.remaining());
+    orig.mark();
     dest.put(orig);
+    orig.reset();
+    dest.rewind();
+    return dest;
+  }
+
+  /** Copies the <i>remaining</i> elements (as defined by
+      <code>limit() - position()</code>) in the passed DoubleBuffer
+      into a newly-allocated direct DoubleBuffer. The returned buffer
+      will have its byte order set to the host platform's native byte
+      order. The position of the newly-allocated buffer will be zero,
+      and the position of the passed buffer is unchanged (though its
+      mark is changed). */
+  public static DoubleBuffer copyDoubleBuffer(DoubleBuffer orig) {
+    return copyDoubleBufferAsByteBuffer(orig).asDoubleBuffer();
+  }
+
+  /** Copies the <i>remaining</i> elements (as defined by
+      <code>limit() - position()</code>) in the passed FloatBuffer
+      into a newly-allocated direct FloatBuffer. The returned buffer
+      will have its byte order set to the host platform's native byte
+      order. The position of the newly-allocated buffer will be zero,
+      and the position of the passed buffer is unchanged (though its
+      mark is changed). */
+  public static FloatBuffer copyFloatBuffer(FloatBuffer orig) {
+    return copyFloatBufferAsByteBuffer(orig).asFloatBuffer();
+  }
+
+  /** Copies the <i>remaining</i> elements (as defined by
+      <code>limit() - position()</code>) in the passed IntBuffer
+      into a newly-allocated direct IntBuffer. The returned buffer
+      will have its byte order set to the host platform's native byte
+      order. The position of the newly-allocated buffer will be zero,
+      and the position of the passed buffer is unchanged (though its
+      mark is changed). */
+  public static IntBuffer copyIntBuffer(IntBuffer orig) {
+    return copyIntBufferAsByteBuffer(orig).asIntBuffer();
+  }
+
+  /** Copies the <i>remaining</i> elements (as defined by
+      <code>limit() - position()</code>) in the passed LongBuffer
+      into a newly-allocated direct LongBuffer. The returned buffer
+      will have its byte order set to the host platform's native byte
+      order. The position of the newly-allocated buffer will be zero,
+      and the position of the passed buffer is unchanged (though its
+      mark is changed). */
+  public static LongBuffer copyLongBuffer(LongBuffer orig) {
+    return copyLongBufferAsByteBuffer(orig).asLongBuffer();
+  }
+
+  /** Copies the <i>remaining</i> elements (as defined by
+      <code>limit() - position()</code>) in the passed ShortBuffer
+      into a newly-allocated direct ShortBuffer. The returned buffer
+      will have its byte order set to the host platform's native byte
+      order. The position of the newly-allocated buffer will be zero,
+      and the position of the passed buffer is unchanged (though its
+      mark is changed). */
+  public static ShortBuffer copyShortBuffer(ShortBuffer orig) {
+    return copyShortBufferAsByteBuffer(orig).asShortBuffer();
+  }
+
+  //----------------------------------------------------------------------
+  // Copy routines (type-to-ByteBuffer)
+  //
+
+  /** Copies the <i>remaining</i> elements (as defined by
+      <code>limit() - position()</code>) in the passed DoubleBuffer
+      into a newly-allocated direct ByteBuffer. The returned buffer
+      will have its byte order set to the host platform's native byte
+      order. The position of the newly-allocated buffer will be zero,
+      and the position of the passed buffer is unchanged (though its
+      mark is changed). */
+  public static ByteBuffer copyDoubleBufferAsByteBuffer(DoubleBuffer orig) {
+    ByteBuffer dest = newByteBuffer(orig.remaining() * SIZEOF_DOUBLE);
+    orig.mark();
+    dest.asDoubleBuffer().put(orig);
+    orig.reset();
+    dest.rewind();
+    return dest;
+  }
+
+  /** Copies the <i>remaining</i> elements (as defined by
+      <code>limit() - position()</code>) in the passed FloatBuffer
+      into a newly-allocated direct ByteBuffer. The returned buffer
+      will have its byte order set to the host platform's native byte
+      order. The position of the newly-allocated buffer will be zero,
+      and the position of the passed buffer is unchanged (though its
+      mark is changed). */
+  public static ByteBuffer copyFloatBufferAsByteBuffer(FloatBuffer orig) {
+    ByteBuffer dest = newByteBuffer(orig.remaining() * SIZEOF_FLOAT);
+    orig.mark();
+    dest.asFloatBuffer().put(orig);
+    orig.reset();
+    dest.rewind();
+    return dest;
+  }
+
+  /** Copies the <i>remaining</i> elements (as defined by
+      <code>limit() - position()</code>) in the passed IntBuffer into
+      a newly-allocated direct ByteBuffer. The returned buffer will
+      have its byte order set to the host platform's native byte
+      order. The position of the newly-allocated buffer will be zero,
+      and the position of the passed buffer is unchanged (though its
+      mark is changed). */
+  public static ByteBuffer copyIntBufferAsByteBuffer(IntBuffer orig) {
+    ByteBuffer dest = newByteBuffer(orig.remaining() * SIZEOF_INT);
+    orig.mark();
+    dest.asIntBuffer().put(orig);
+    orig.reset();
+    dest.rewind();
+    return dest;
+  }
+
+  /** Copies the <i>remaining</i> elements (as defined by
+      <code>limit() - position()</code>) in the passed LongBuffer into
+      a newly-allocated direct ByteBuffer. The returned buffer will
+      have its byte order set to the host platform's native byte
+      order. The position of the newly-allocated buffer will be zero,
+      and the position of the passed buffer is unchanged (though its
+      mark is changed). */
+  public static ByteBuffer copyLongBufferAsByteBuffer(LongBuffer orig) {
+    ByteBuffer dest = newByteBuffer(orig.remaining() * SIZEOF_LONG);
+    orig.mark();
+    dest.asLongBuffer().put(orig);
+    orig.reset();
+    dest.rewind();
+    return dest;
+  }
+
+  /** Copies the <i>remaining</i> elements (as defined by
+      <code>limit() - position()</code>) in the passed ShortBuffer
+      into a newly-allocated direct ByteBuffer. The returned buffer
+      will have its byte order set to the host platform's native byte
+      order. The position of the newly-allocated buffer will be zero,
+      and the position of the passed buffer is unchanged (though its
+      mark is changed). */
+  public static ByteBuffer copyShortBufferAsByteBuffer(ShortBuffer orig) {
+    ByteBuffer dest = newByteBuffer(orig.remaining() * SIZEOF_SHORT);
+    orig.mark();
+    dest.asShortBuffer().put(orig);
+    orig.reset();
+    dest.rewind();
     return dest;
   }
 }
