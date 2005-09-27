@@ -242,7 +242,7 @@ public class X11GLDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   public boolean canCreateExternalGLDrawable() {
-    return canCreateGLPbuffer(null, 0, 0);
+    return canCreateGLPbuffer();
   }
 
   public GLDrawable createExternalGLDrawable() {
