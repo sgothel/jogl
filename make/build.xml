@@ -235,6 +235,7 @@
         <property name="javadoc" value="${project.root}/javadoc_public" />
         <property name="javadoc.dev" value="${project.root}/javadoc_jogl_dev" />
         <property name="javadoc.link" value="http://java.sun.com/j2se/1.4.2/docs/api/" />
+        <property name="javadoc.windowtitle" value="JOGL API -- JSR-231 Early Draft Review Specification" />
         <property name="javadoc.packagenames" value="javax.media.opengl,javax.media.opengl.glu,com.sun.opengl.utils" />
         <property name="javadoc.dev.packagenames.win32"  value="com.sun.opengl.impl.windows" />
         <property name="javadoc.dev.packagenames.x11"    value="com.sun.opengl.impl.x11" />
@@ -899,7 +900,7 @@
         <!-- Build the general Javadoc -->
         <javadoc packagenames="${javadoc.packagenames}"
                  sourcepath="${src.java};${src.generated.java}"        
-                 destdir="${javadoc}" windowtitle="JOGL API"
+                 destdir="${javadoc}" windowtitle="${javadoc.windowtitle}"
                  source="1.4"
                  linkoffline="${javadoc.link} 142-packages" />
     </target>
@@ -909,7 +910,7 @@
         <!-- Build the general Javadoc -->
         <javadoc packagenames="${javadoc.packagenames},com.sun.opengl.cg"
                  sourcepath="${src.java};${src.generated.java}"        
-                 destdir="${javadoc}" windowtitle="JOGL API"
+                 destdir="${javadoc}" windowtitle="${javadoc.windowtitle}"
                  source="1.4"
                  linkoffline="${javadoc.link} 142-packages" />
     </target>
@@ -920,7 +921,7 @@
         <!-- Build the internal developer Javadoc -->
         <javadoc packagenames="${javadoc.dev.packagenames},${javadoc.dev.packagenames.platform}"
                  sourcepath="${src.java};${src.generated.java}"        
-                 destdir="${javadoc.dev}" windowtitle="JOGL API"
+                 destdir="${javadoc.dev}" windowtitle="${javadoc.windowtitle}"
                  source="1.4"
                  linkoffline="${javadoc.link} 142-packages" />
     </target>
@@ -930,7 +931,7 @@
         <!-- Build the internal developer Javadoc -->
         <javadoc packagenames="${javadoc.dev.packagenames},${javadoc.dev.packagenames.platform},com.sun.opengl.cg"
                  sourcepath="${src.java};${src.generated.java}"        
-                 destdir="${javadoc.dev}" windowtitle="JOGL API"
+                 destdir="${javadoc.dev}" windowtitle="${javadoc.windowtitle}"
                  source="1.4"
                  linkoffline="${javadoc.link} 142-packages" />
     </target>
