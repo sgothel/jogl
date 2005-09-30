@@ -43,6 +43,25 @@ author of the grammar as having been investigated completely and
 harmless, and the warnings about our modifications are also 
 harmless. <P>
 
+<h2> Common build problems </h2>
+
+<OL>
+
+<LI> <B>Your CLASSPATH environment variable appears to be set (some JOGL classes are currently visible to the build.)</B>, and $CLASSPATH isn't set.
+
+<DL>
+<DD> An older version of JOGL was installed into the extension directory of the JDK you're using to build the current JOGL. On Windows and Linux, delete any ANTLR jars from jre/lib/ext, and on Mac OS X, delete them from /Library/Java/Extensions. It is generally not a good idea to drop JOGL directly into the extensions directory, as this can interfere with upgrades via Java Web Start.
+</DL>
+
+<LI> <B>CharScanner; panic: ClassNotFoundException: com.sun.gluegen.cgram.CToken</B>
+
+<DL>
+<DD> This occurs because ANTLR was dropped into the Extensions
+directory of the JRE/JDK. On Windows and Linux, delete any ANTLR jars from jre/lib/ext, and on Mac OS X, delete them from /Library/Java/Extensions. Use the antlr.jar property in the build.xml to point to a JRE-external location of this jar file.
+</DL>
+
+</OL>
+
 - Christopher Kline and Kenneth Russell, June 2003
 
 </body>
