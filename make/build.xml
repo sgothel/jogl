@@ -643,7 +643,7 @@
       -->
 
     <!-- import cpptasks -->
-    <typedef resource="net/sf/antcontrib/cpptasks/antlib.xml" classpath="${basedir}/lib/cpptasks-cvs-040628.jar"/>
+    <typedef resource="net/sf/antcontrib/cpptasks/antlib.xml" classpath="${basedir}/lib/cpptasks.jar"/>
     <!--typedef resource="net/sf/antcontrib/cpptasks/antlib.xml"/-->
 
     <target name="c.configure">
