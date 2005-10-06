@@ -25,6 +25,7 @@
    - Public targets:
    -   linux
    -   macosx
+   -   macosxfat (ppc & i386 - requires Intel Transition Development Kit or fat Mac OS X)
    -   solaris
    -   win32.vc6
    -   win32.vc7
@@ -694,6 +695,10 @@
       </compiler>
 
       <compiler id="compiler.cfg.macosx" name="gcc">
+        <compilerarg value="-arch" if="macosxfat"/>
+        <compilerarg value="ppc" if="macosxfat"/>
+        <compilerarg value="-arch" if="macosxfat"/>
+        <compilerarg value="i386" if="macosxfat"/>
         <compilerarg value="-Wmost" />
         <compilerarg value="-ObjC" />
         <defineset>
@@ -738,6 +743,10 @@
       </linker>
 
       <linker id="linker.cfg.macosx" name="gcc">
+        <linkerarg value="-arch" if="macosxfat"/>
+        <linkerarg value="ppc" if="macosxfat"/>
+        <linkerarg value="-arch" if="macosxfat"/>
+        <linkerarg value="i386" if="macosxfat"/>
         <linkerarg value="-framework" />
         <linkerarg value="Cocoa" />
         <linkerarg value="-framework" />
@@ -1111,6 +1120,10 @@ Use a platform specific target:  linux, linux.amd64, linux.ia64, macosx, solaris
         
         <!-- Compile the native C sources and build the jogl lib. -->
         <antcall target="c.compile.jogl.macosx" />
+    </target>
+    <target name="macosxfat" depends="macosx">
+        <property name="macosxfat" value="true" />
+        <antcall target="macosx" inheritRefs="true" />
     </target>
 
     <!--
