@@ -1057,7 +1057,7 @@
     <target name="all">
         <fail>
         
-Use a platform specific target:  linux, linux.amd64, linux.ia64, macosx, solaris, win32.vc6, win32.vc7, win32.mingw
+Use a platform specific target:  linux, linux.amd64, linux.ia64, macosx, macosxfat (ppc and i386), solaris, win32.vc6, win32.vc7, win32.mingw
         </fail>
     </target>      
 
