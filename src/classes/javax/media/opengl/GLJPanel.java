@@ -226,6 +226,11 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
     if ((viewportX != oglViewport.x) ||
         (viewportY != oglViewport.y)) {
       sendReshape = true;
+      if (DEBUG) {
+        System.err.println("Sending reshape because viewport changed");
+        System.err.println("  viewportX (" + viewportX + ") ?= oglViewport.x (" + oglViewport.x + ")");
+        System.err.println("  viewportY (" + viewportY + ") ?= oglViewport.y (" + oglViewport.y + ")");
+      }
     }
     viewportX = oglViewport.x;
     viewportY = oglViewport.y;
@@ -314,6 +319,10 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
                     joglContext = null;
                     joglDrawable = null;
                     sendReshape = true;
+                    if (DEBUG) {
+                      System.err.println("Sending reshape because surface changed");
+                      System.err.println("New surface = " + curSurface);
+                    }
                   }
                   j2dSurface = curSurface;
                 }
@@ -795,6 +804,12 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
             g.drawImage(offscreenImage, 0, 0, offscreenImage.getWidth(), offscreenImage.getHeight(), GLJPanel.this);
           }
         }
+      } else {
+        // Cause OpenGL pipeline to flush its results because
+        // otherwise it's possible we will buffer up multiple frames'
+        // rendering results, resulting in apparent mouse lag
+        GL gl = getGL();
+        gl.glFinish();
       }
     }
 
