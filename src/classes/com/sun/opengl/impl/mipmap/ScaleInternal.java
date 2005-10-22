@@ -334,6 +334,13 @@ public class ScaleInternal {
           highx_float -= 1.0f;
           highx_int++;
         }
+
+        // Clamp to make sure we don't run off the right edge
+        if (highx_int > widthin - 1) {
+          int delta = (highx_int - widthin + 1);
+          lowx_int -= delta;
+          highx_int -= delta;
+        }
       }
       lowy_int = highy_int;
       lowy_float = highy_float;
@@ -544,6 +551,13 @@ public class ScaleInternal {
         if( highx_float > 1.0f ) {
           highx_float -= 1.0f;
           highx_int++;
+        }
+
+        // Clamp to make sure we don't run off the right edge
+        if (highx_int > widthin - 1) {
+          int delta = (highx_int - widthin + 1);
+          lowx_int -= delta;
+          highx_int -= delta;
         }
       }
       lowy_int = highy_int;
@@ -818,6 +832,13 @@ public class ScaleInternal {
         if( highx_float > 1.0f ) {
           highx_float -= 1.0f;
           highx_int++;
+        }
+
+        // Clamp to make sure we don't run off the right edge
+        if (highx_int > widthin - 1) {
+          int delta = (highx_int - widthin + 1);
+          lowx_int -= delta;
+          highx_int -= delta;
         }
       }
       lowy_int = highy_int;
@@ -1109,6 +1130,13 @@ public class ScaleInternal {
           highx_float -= 1.0f;
           highx_int++;
         }
+
+        // Clamp to make sure we don't run off the right edge
+        if (highx_int > widthin - 1) {
+          int delta = (highx_int - widthin + 1);
+          lowx_int -= delta;
+          highx_int -= delta;
+        }
       }
       lowy_int = highy_int;
       lowy_float = highy_float;
@@ -1389,6 +1417,13 @@ public class ScaleInternal {
         if( highx_float > 1.0f ) {
           highx_float -= 1.0f;
           highx_int++;
+        }
+
+        // Clamp to make sure we don't run off the right edge
+        if (highx_int > widthin - 1) {
+          int delta = (highx_int - widthin + 1);
+          lowx_int -= delta;
+          highx_int -= delta;
         }
       }
       lowy_int = highy_int;
@@ -1680,6 +1715,13 @@ public class ScaleInternal {
           highx_float -= 1.0f;
           highx_int++;
         }
+
+        // Clamp to make sure we don't run off the right edge
+        if (highx_int > widthin - 1) {
+          int delta = (highx_int - widthin + 1);
+          lowx_int -= delta;
+          highx_int -= delta;
+        }
       }
       lowy_int = highy_int;
       lowy_float = highy_float;
@@ -1970,6 +2012,13 @@ public class ScaleInternal {
           highx_float -= 1.0f;
           highx_int++;
         }
+
+        // Clamp to make sure we don't run off the right edge
+        if (highx_int > widthin - 1) {
+          int delta = (highx_int - widthin + 1);
+          lowx_int -= delta;
+          highx_int -= delta;
+        }
       }
       lowy_int = highy_int;
       lowy_float = highy_float;
@@ -2195,6 +2244,13 @@ public class ScaleInternal {
         if( highx_float > 1.0f ) {
           highx_float -= 1.0f;
           highx_int++;
+        }
+
+        // Clamp to make sure we don't run off the right edge
+        if (highx_int > widthIn - 1) {
+          int delta = (highx_int - widthIn + 1);
+          lowx_int -= delta;
+          highx_int -= delta;
         }
       }
       lowy_int = highy_int;
