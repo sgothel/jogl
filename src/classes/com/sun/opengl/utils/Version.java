@@ -89,7 +89,7 @@ public final class Version {
   /**
    * Version string of this build.
    */
-  private static final String version = "1.1.1";
+  private static final String version = "jsr231-1.0-beta1-b01";
 
   /**
    * Returns the version string and build number of
