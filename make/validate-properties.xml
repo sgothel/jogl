@@ -63,11 +63,25 @@
         </fail>
     </target>
 
+    <target name="fail.because.closed">
+        <fail>
+        
+    ******************************************************************
+    ** The JSR-231 branch of the JOGL source tree is now closed.    **
+    ** Ongoing development of the JSR-231 Reference Implementation  **
+    ** is now being done on the main trunk of the JOGL source tree. **
+    ** Please either check out a fresh source tree without the      **
+    ** "-r JSR-231" argument to cvs or use cvs update -A to change  **
+    ** over your source tree to the main trunk.                     **
+    ******************************************************************
+        </fail>
+    </target>
+
     <!-- ================================================================== -->
     <!-- 
        - Validate the required properties 
       -->
-    <target name="validate" depends="antlr.jar.validate, java.home.dir.validate, java.class.path.validate" 
+    <target name="validate" depends="antlr.jar.validate, java.home.dir.validate, java.class.path.validate, fail.because.closed" 
             description="Validate required properties" />
 
 </project>
