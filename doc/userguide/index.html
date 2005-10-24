@@ -702,16 +702,17 @@ following steps should be taken:
 <UL>
 
 <LI> Instantiate a
-<CODE>net.java.games.jogl.impl.macosx.MacOSXGLImpl</CODE> using the
+<CODE>net.java.games.jogl.impl.macosx.MacOSXDummyGLContext</CODE> using the
 public constructor taking no arguments.
 
 <LI> Upon the first render of your application, or whenever the
 available OpenGL routines might have changed (because a window moved
 from one screen to another) call the publicly-accessible method 
-<CODE>MacOSXGLImpl.resetGLFunctionAvailability()</CODE>.
+<CODE>MacOSXDummyGLContext.resetGLFunctionAvailability()</CODE>.
 
-<LI> Only use the GL instance when the OpenGL context from the
-NSOpenGLView is current.
+<LI> Fetch the GL instance out of the context using getGL() as usual.
+Only use the GL instance when the OpenGL context from the NSOpenGLView
+is current.
 
 </UL>
 

@@ -4,6 +4,7 @@
 #define FAR
 #define WINBASEAPI
 #define WINGDIAPI
+#define WINUSERAPI
 #define WINAPI
 #define APIENTRY
 #define CONST const

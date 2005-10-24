@@ -1,0 +1,4 @@
+Current cpptasks is from CVS repository at
+:pserver:anonymous@cvs.sourceforge.net:/cvsroot/ant-contrib
+as of 10/5/2005 with patches applied for Forte C compiler (Bug
+1314266) and fat binary generation on Mac OS X (Bug 1313421).

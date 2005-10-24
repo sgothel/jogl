@@ -43,7 +43,19 @@ void* createContext(void* shareContext, void* view,
   NSView *nsView = (NSView*)view;
 	
   if (nsView != NULL) {
+    Bool viewReady = true;
+    
     if ([nsView lockFocusIfCanDraw] == NO) {
+      viewReady = false;
+    } else {
+      NSRect frame = [nsView frame];
+      if ((frame.size.width == 0) || (frame.size.height == 0)) {
+        [nsView unlockFocus];		
+        viewReady = false;
+      }
+    }
+
+    if (!viewReady) {
       if (viewNotReady != NULL) {
         *viewNotReady = 1;
       }
@@ -163,13 +175,17 @@ void* createPBuffer(int renderTarget, int internalFormat, int width, int height)
 }
 
 Bool destroyPBuffer(void* context, void* buffer) {
-  NSOpenGLContext *nsContext = (NSOpenGLContext*)context;
+  /* FIXME: not clear whether we need to perform the clearDrawable below */
+  /* FIXME: remove the context argument -- don't need it any more */
+  /*  NSOpenGLContext *nsContext = (NSOpenGLContext*)context; */
   NSOpenGLPixelBuffer *pBuffer = (NSOpenGLPixelBuffer*)buffer;
 	
   NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+  /*
   if (nsContext != NULL) {
     [nsContext clearDrawable];
   }
+  */
   [pBuffer release];
   [pool release];
 	
