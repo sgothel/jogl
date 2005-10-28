@@ -240,9 +240,13 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
     return true;
   }
 
-  /** Overridden from JComponent; calls event listeners' {@link
-      GLEventListener#display display} methods. Should not be invoked
-      by applications directly. */
+  /** Overridden to cause OpenGL rendering to be performed during
+      repaint cycles. Subclasses which override this method must call
+      super.paintComponent() in their paintComponent() method in order
+      to function properly. <P>
+
+      <B>Overrides:</B>
+      <DL><DD><CODE>paintComponent</CODE> in class <CODE>javax.swing.JComponent</CODE></DD></DL> */
   protected void paintComponent(final Graphics g) {
     if (shouldInitialize) {
       initialize();
@@ -346,8 +350,13 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
     }
   }
 
-  /** Overridden from JPanel; used to indicate that an OpenGL context
-      may be created for the component. */
+  /** Overridden to track when this component is added to a container.
+      Subclasses which override this method must call
+      super.addNotify() in their addNotify() method in order to
+      function properly. <P>
+
+      <B>Overrides:</B>
+      <DL><DD><CODE>addNotify</CODE> in class <CODE>java.awt.Component</CODE></DD></DL> */
   public void addNotify() {
     super.addNotify();
     shouldInitialize = true;
@@ -356,8 +365,13 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
     }
   }
 
-  /** Overridden from JPanel; used to indicate that it's no longer
-      safe to have an OpenGL context for the component. */
+  /** Overridden to track when this component is removed from a
+      container. Subclasses which override this method must call
+      super.removeNotify() in their removeNotify() method in order to
+      function properly. <P>
+
+      <B>Overrides:</B>
+      <DL><DD><CODE>removeNotify</CODE> in class <CODE>java.awt.Component</CODE></DD></DL> */
   public void removeNotify() {
     if (DEBUG) {
       System.err.println("GLJPanel.removeNotify()");
@@ -397,10 +411,13 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
     super.removeNotify();
   }
 
-  /** Overridden from Canvas; causes {@link GLEventListener#reshape
-      reshape} to be called on all registered {@link
-      GLEventListener}s. Called automatically by the AWT; should not
-      be invoked by applications directly. */
+  /** Overridden to cause {@link GLDrawableHelper#reshape} to be
+      called on all registered {@link GLEventListener}s. Subclasses
+      which override this method must call super.reshape() in
+      their reshape() method in order to function properly. <P>
+
+      <B>Overrides:</B>
+      <DL><DD><CODE>reshape</CODE> in class <CODE>java.awt.Component</CODE></DD></DL> */
   public void reshape(int x, int y, int width, int height) {
     super.reshape(x, y, width, height);
 

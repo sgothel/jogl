@@ -113,14 +113,24 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
                                     displayAction);
   }
 
-  /** Overridden from Canvas; calls {@link #display}. Should not be
-      invoked by applications directly. */
+  /** Overridden to cause OpenGL rendering to be performed during
+      repaint cycles. Subclasses which override this method must call
+      super.paint() in their paint() method in order to function
+      properly. <P>
+
+      <B>Overrides:</B>
+      <DL><DD><CODE>paint</CODE> in class <CODE>java.awt.Component</CODE></DD></DL> */
   public void paint(Graphics g) {
     display();
   }
 
-  /** Overridden from Canvas; used to indicate when it's safe to
-      create an OpenGL context for the component. */
+  /** Overridden to track when this component is added to a container.
+      Subclasses which override this method must call
+      super.addNotify() in their addNotify() method in order to
+      function properly. <P>
+
+      <B>Overrides:</B>
+      <DL><DD><CODE>addNotify</CODE> in class <CODE>java.awt.Component</CODE></DD></DL> */
   public void addNotify() {
     super.addNotify();
     disableBackgroundErase();
@@ -130,8 +140,13 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
     }
   }
 
-  /** Overridden from Canvas; used to indicate that it's no longer
-      safe to have an OpenGL context for the component. */
+  /** Overridden to track when this component is removed from a
+      container. Subclasses which override this method must call
+      super.removeNotify() in their removeNotify() method in order to
+      function properly. <P>
+
+      <B>Overrides:</B>
+      <DL><DD><CODE>removeNotify</CODE> in class <CODE>java.awt.Component</CODE></DD></DL> */
   public void removeNotify() {
     context.destroy();
     drawable.setRealized(false);
@@ -141,17 +156,22 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
     }
   }
 
-  /** Overridden from Canvas; causes {@link GLDrawableHelper#reshape}
-      to be called on all registered {@link GLEventListener}s. Called
-      automatically by the AWT; should not be invoked by applications
-      directly. */
+  /** Overridden to cause {@link GLDrawableHelper#reshape} to be
+      called on all registered {@link GLEventListener}s. Subclasses
+      which override this method must call super.reshape() in
+      their reshape() method in order to function properly. <P>
+
+      <B>Overrides:</B>
+      <DL><DD><CODE>reshape</CODE> in class <CODE>java.awt.Component</CODE></DD></DL> */
   public void reshape(int x, int y, int width, int height) {
     super.reshape(x, y, width, height);
     sendReshape = true;
   }
 
-  /** Overridden from Canvas to prevent the AWT's clearing of the
-      canvas from interfering with the OpenGL rendering. */
+  /** <B>Overrides:</B>
+      <DL><DD><CODE>update</CODE> in class <CODE>java.awt.Component</CODE></DD></DL> */
+  // Overridden from Canvas to prevent the AWT's clearing of the
+  // canvas from interfering with the OpenGL rendering.
   public void update(Graphics g) {
     paint(g);
   }
