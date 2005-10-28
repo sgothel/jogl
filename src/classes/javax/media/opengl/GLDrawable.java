@@ -70,10 +70,12 @@ package javax.media.opengl;
 public interface GLDrawable {
   /**
    * Creates a new context for drawing to this drawable that will
-   * share display lists with the given GLContext.
+   * optionally share display lists and other server-side OpenGL
+   * objects with the specified GLContext.
    *
    * The GLContext <code>share</code> need not be associated with this
-   * GLDrawable.
+   * GLDrawable and may be null if sharing of display lists and other
+   * objects is not desired.
    */
   public GLContext createContext(GLContext shareWith);
 
@@ -112,7 +114,7 @@ public interface GLDrawable {
 
   /** Swaps the front and back buffers of this drawable. For {@link
       GLAutoDrawable} implementations, when automatic buffer swapping
-      is enabled (as is the default), it is not necessary to call this
-      method and doing so may have undefined results. */
+      is enabled (as is the default), this method is called
+      automatically and should not be called by the end user. */
   public void swapBuffers() throws GLException;
 }

@@ -133,7 +133,9 @@ public abstract class GLContext {
   }
   
   /**
-   * Destroys this OpenGL context and frees its associated resources.
+   * Destroys this OpenGL context and frees its associated
+   * resources. The context should have been released before this
+   * method is called.
    */
   public abstract void destroy();
 

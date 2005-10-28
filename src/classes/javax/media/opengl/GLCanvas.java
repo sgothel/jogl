@@ -44,6 +44,8 @@ import java.awt.EventQueue;
 import java.awt.Graphics;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
+import java.lang.reflect.*;
+import java.security.*;
 import com.sun.opengl.impl.*;
 
 // FIXME: Subclasses need to call resetGLFunctionAvailability() on their
@@ -121,6 +123,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
       create an OpenGL context for the component. */
   public void addNotify() {
     super.addNotify();
+    disableBackgroundErase();
     drawable.setRealized(true);
     if (DEBUG) {
       System.err.println("GLCanvas.addNotify()");
@@ -247,4 +250,39 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
   }
   private SwapBuffersOnEventDispatchThreadAction swapBuffersOnEventDispatchThreadAction =
     new SwapBuffersOnEventDispatchThreadAction();
+
+  // Disables the AWT's erasing of this Canvas's background on Windows
+  // in Java SE 6. This internal API is not available in previous
+  // releases, but the system property
+  // -Dsun.awt.noerasebackground=true can be specified to get similar
+  // results globally in previous releases.
+  private static boolean disableBackgroundEraseInitialized;
+  private static Method  disableBackgroundEraseMethod;
+  private void disableBackgroundErase() {
+    if (!disableBackgroundEraseInitialized) {
+      try {
+        AccessController.doPrivileged(new PrivilegedAction() {
+            public Object run() {
+              try {
+                disableBackgroundEraseMethod =
+                  getToolkit().getClass().getDeclaredMethod("disableBackgroundErase",
+                                                            new Class[] { Canvas.class });
+                disableBackgroundEraseMethod.setAccessible(true);
+              } catch (Exception e) {
+              }
+              return null;
+            }
+          });
+      } catch (Exception e) {
+      }
+      disableBackgroundEraseInitialized = true;
+    }
+    if (disableBackgroundEraseMethod != null) {
+      try {
+        disableBackgroundEraseMethod.invoke(getToolkit(), new Object[] { this });
+      } catch (Exception e) {
+        throw new GLException(e);
+      }
+    }
+  }
 }
