@@ -75,7 +75,7 @@ import com.sun.opengl.impl.*;
     The GLJPanel can be made transparent by creating it with a
     GLCapabilities object with alpha bits specified and calling {@link
     #setOpaque}(false). Pixels with resulting OpenGL alpha values less
-    than 1.0 will be overlaid on any underlying Java2D rendering.
+    than 1.0 will be overlaid on any underlying Swing rendering.
 */
 
 public class GLJPanel extends JPanel implements GLAutoDrawable {
@@ -243,7 +243,7 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
   /** Overridden from JComponent; calls event listeners' {@link
       GLEventListener#display display} methods. Should not be invoked
       by applications directly. */
-  public void paintComponent(final Graphics g) {
+  protected void paintComponent(final Graphics g) {
     if (shouldInitialize) {
       initialize();
     }
@@ -496,10 +496,10 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
       GLJPanel with alpha values less than 1.  Most Swing
       implementations currently expect the GLJPanel to be completely
       cleared (e.g., by <code>glClear(GL_COLOR_BUFFER_BIT |
-      GL_DEPTH_BUFFER_BIT)</code>), but for certain optimized Java2D
-      and Swing implementations which use OpenGL internally, it may be
-      possible to perform OpenGL rendering using the GLJPanel into the
-      same OpenGL drawable as the Java2D implementation. */
+      GL_DEPTH_BUFFER_BIT)</code>), but for certain optimized Swing
+      implementations which use OpenGL internally, it may be possible
+      to perform OpenGL rendering using the GLJPanel into the same
+      OpenGL drawable as the Swing implementation uses. */
   public boolean shouldPreserveColorBufferIfTranslucent() {
     return oglPipelineEnabled;
   }

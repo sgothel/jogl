@@ -150,7 +150,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
     sendReshape = true;
   }
 
-  /** Overridden from Canvas to prevent Java2D's clearing of the
+  /** Overridden from Canvas to prevent the AWT's clearing of the
       canvas from interfering with the OpenGL rendering. */
   public void update(Graphics g) {
     paint(g);
