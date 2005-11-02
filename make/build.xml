@@ -242,7 +242,7 @@
         <property name="javadoc.dev.packagenames.x11"    value="com.sun.opengl.impl.x11" />
         <property name="javadoc.dev.packagenames.macosx" value="com.sun.opengl.impl.macosx" />
         <property name="javadoc.dev.packagenames" value="javax.media.opengl,javax.media.opengl.glu,com.sun.opengl.impl,com.sun.opengl.utils,com.sun.gluegen,com.sun.gluegen.runtime" />
-	<property name="javadoc.footer" value="Copyright 2005 Sun Microsystems, Inc. All rights reserved. Use is subject to &lt;a href=&quot;http://jcp.org/en/jsr/detail?id=231&quot;&gt;license terms&lt;/a&gt;." />
+	<property name="javadoc.bottom" value="Copyright 2005 Sun Microsystems, Inc. All rights reserved. Use is subject to &lt;a href=&quot;http://jcp.org/en/jsr/detail?id=231&quot;&gt;license terms&lt;/a&gt;." />
     </target>
     
     <!-- ================================================================== -->
@@ -912,7 +912,7 @@
                  destdir="${javadoc}" windowtitle="${javadoc.windowtitle}"
                  source="1.4"
                  linkoffline="${javadoc.link} 142-packages"
-		 footer="${javadoc.footer}" />
+		 bottom="${javadoc.bottom}" />
     </target>
 
     <!-- Same as above but with Cg directories added -->
@@ -923,7 +923,7 @@
                  destdir="${javadoc}" windowtitle="${javadoc.windowtitle}"
                  source="1.4"
                  linkoffline="${javadoc.link} 142-packages"
-		 footer="${javadoc.footer}" />
+		 bottom="${javadoc.bottom}" />
     </target>
 
     <target name="javadoc" depends="javadoc.nocg,javadoc.cg" />
@@ -935,7 +935,7 @@
                  destdir="${javadoc.dev}" windowtitle="${javadoc.windowtitle}"
                  source="1.4"
                  linkoffline="${javadoc.link} 142-packages"
-		 footer="${javadoc.footer}" />
+		 bottom="${javadoc.bottom}" />
     </target>
 
     <!-- Same as above but with Cg directories added -->
@@ -946,7 +946,7 @@
                  destdir="${javadoc.dev}" windowtitle="${javadoc.windowtitle}"
                  source="1.4"
                  linkoffline="${javadoc.link} 142-packages"
-		 footer="${javadoc.footer}" />
+		 bottom="${javadoc.bottom}" />
     </target>
 
     <target name="javadoc.dev.win32"  depends="setup.java.home.dir,declare.win32,javadoc.dev.nocg,javadoc.dev.cg" />
