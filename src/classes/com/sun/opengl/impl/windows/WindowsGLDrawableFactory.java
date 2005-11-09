@@ -61,7 +61,7 @@ public class WindowsGLDrawableFactory extends GLDrawableFactoryImpl {
   private long hglu32;
 
   static {
-    NativeLibLoader.load();
+    NativeLibLoader.loadCore();
   }
   
   public GraphicsConfiguration chooseGraphicsConfiguration(GLCapabilities capabilities,

@@ -72,7 +72,7 @@ public class X11PbufferGLContext extends X11GLContext {
 
     // Note that we have to completely override makeCurrentImpl
     // because the underlying makeCurrent call differs for pbuffers
-    lockAWT();
+    lockToolkit();
     try {
       boolean created = false;
       if (context == 0) {
@@ -103,18 +103,18 @@ public class X11PbufferGLContext extends X11GLContext {
       }
       return CONTEXT_CURRENT;
     } finally {
-      unlockAWT();
+      unlockToolkit();
     }
   }
 
   protected void releaseImpl() throws GLException {
-    lockAWT();
+    lockToolkit();
     try {
       if (!GLX.glXMakeContextCurrent(drawable.getDisplay(), 0, 0, 0)) {
         throw new GLException("Error freeing OpenGL context");
       }
     } finally {
-      unlockAWT();
+      unlockToolkit();
     }
   }
 

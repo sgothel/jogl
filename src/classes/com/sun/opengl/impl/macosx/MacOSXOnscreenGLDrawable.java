@@ -52,7 +52,6 @@ public class MacOSXOnscreenGLDrawable extends MacOSXGLDrawable {
   public static final int LOCK_SURFACE_CHANGED = 2;
   public static final int LOCK_SUCCESS = 3;
 
-  private static JAWT jawt;
   protected Component component;
 
   private List/*<WeakReference<GLContext>>*/ createdContexts =
@@ -134,7 +133,7 @@ public class MacOSXOnscreenGLDrawable extends MacOSXGLDrawable {
     if (nsView != 0) {
       throw new GLException("Surface already locked");
     }
-    ds = getJAWT().GetDrawingSurface(component);
+    ds = JAWT.getJAWT().GetDrawingSurface(component);
     if (ds == null) {
       // Widget not yet realized
       return LOCK_SURFACE_NOT_READY;
@@ -165,7 +164,7 @@ public class MacOSXOnscreenGLDrawable extends MacOSXGLDrawable {
     if (dsi == null) {
       // Widget not yet realized
       ds.Unlock();
-      getJAWT().FreeDrawingSurface(ds);
+      JAWT.getJAWT().FreeDrawingSurface(ds);
       ds = null;
       return LOCK_SURFACE_NOT_READY;
     }
@@ -175,7 +174,7 @@ public class MacOSXOnscreenGLDrawable extends MacOSXGLDrawable {
       // Widget not yet realized
       ds.FreeDrawingSurfaceInfo(dsi);
       ds.Unlock();
-      getJAWT().FreeDrawingSurface(ds);
+      JAWT.getJAWT().FreeDrawingSurface(ds);
       ds = null;
       dsi = null;
       return LOCK_SURFACE_NOT_READY;
@@ -185,7 +184,7 @@ public class MacOSXOnscreenGLDrawable extends MacOSXGLDrawable {
       // Widget not yet realized
       ds.FreeDrawingSurfaceInfo(dsi);
       ds.Unlock();
-      getJAWT().FreeDrawingSurface(ds);
+      JAWT.getJAWT().FreeDrawingSurface(ds);
       ds = null;
       dsi = null;
       macosxdsi = null;
@@ -200,29 +199,10 @@ public class MacOSXOnscreenGLDrawable extends MacOSXGLDrawable {
     }
     ds.FreeDrawingSurfaceInfo(dsi);
     ds.Unlock();
-    getJAWT().FreeDrawingSurface(ds);
+    JAWT.getJAWT().FreeDrawingSurface(ds);
     ds = null;
     dsi = null;
     macosxdsi = null;
     nsView = 0;
-  }
-
-  //----------------------------------------------------------------------
-  // Internals only below this point
-  //
-
-  private JAWT getJAWT()
-  {
-    if (jawt == null)
-      {
-	JAWT j = JAWT.create();
-	j.version(JAWTFactory.JAWT_VERSION_1_4);
-	if (!JAWTFactory.JAWT_GetAWT(j))
-	  {
-	    throw new RuntimeException("Unable to initialize JAWT");
-	  }
-	jawt = j;
-      }
-    return jawt;
   }
 }

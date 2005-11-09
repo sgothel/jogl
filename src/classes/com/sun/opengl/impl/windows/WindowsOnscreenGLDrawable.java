@@ -48,7 +48,6 @@ public class WindowsOnscreenGLDrawable extends WindowsGLDrawable {
   public static final int LOCK_SURFACE_NOT_READY = 1;
   public static final int LOCK_SURFACE_CHANGED = 2;
   public static final int LOCK_SUCCESS = 3;
-  private static JAWT jawt;
 
   // Variables for lockSurface/unlockSurface
   private JAWT_DrawingSurface ds;
@@ -123,7 +122,7 @@ public class WindowsOnscreenGLDrawable extends WindowsGLDrawable {
     if (hdc != 0) {
       throw new GLException("Surface already locked");
     }
-    ds = getJAWT().GetDrawingSurface(component);
+    ds = JAWT.getJAWT().GetDrawingSurface(component);
     if (ds == null) {
       // Widget not yet realized
       return LOCK_SURFACE_NOT_READY;
@@ -145,7 +144,7 @@ public class WindowsOnscreenGLDrawable extends WindowsGLDrawable {
     if (dsi == null) {
       // Widget not yet realized
       ds.Unlock();
-      getJAWT().FreeDrawingSurface(ds);
+      JAWT.getJAWT().FreeDrawingSurface(ds);
       ds = null;
       return LOCK_SURFACE_NOT_READY;
     }
@@ -155,7 +154,7 @@ public class WindowsOnscreenGLDrawable extends WindowsGLDrawable {
       // Widget not yet realized
       ds.FreeDrawingSurfaceInfo(dsi);
       ds.Unlock();
-      getJAWT().FreeDrawingSurface(ds);
+      JAWT.getJAWT().FreeDrawingSurface(ds);
       ds = null;
       dsi = null;
       win32dsi = null;
@@ -173,26 +172,10 @@ public class WindowsOnscreenGLDrawable extends WindowsGLDrawable {
     }
     ds.FreeDrawingSurfaceInfo(dsi);
     ds.Unlock();
-    getJAWT().FreeDrawingSurface(ds);
+    JAWT.getJAWT().FreeDrawingSurface(ds);
     ds = null;
     dsi = null;
     win32dsi = null;
     hdc = 0;
-  }
-
-  //----------------------------------------------------------------------
-  // Internals only below this point
-  //
-
-  private JAWT getJAWT() {
-    if (jawt == null) {
-      JAWT j = JAWT.create();
-      j.version(JAWTFactory.JAWT_VERSION_1_4);
-      if (!JAWTFactory.JAWT_GetAWT(j)) {
-        throw new RuntimeException("Unable to initialize JAWT");
-      }
-      jawt = j;
-    }
-    return jawt;
   }
 }

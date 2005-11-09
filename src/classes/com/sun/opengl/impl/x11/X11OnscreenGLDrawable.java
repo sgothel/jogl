@@ -91,7 +91,7 @@ public class X11OnscreenGLDrawable extends X11GLDrawable {
   }
 
   public void swapBuffers() throws GLException {
-    lockAWT();
+    lockToolkit();
     try {    
       boolean didLock = false;
       
@@ -109,7 +109,7 @@ public class X11OnscreenGLDrawable extends X11GLDrawable {
         unlockSurface();
       }
     } finally {
-    unlockAWT();
+      unlockToolkit();
     }
   }
 
@@ -120,7 +120,7 @@ public class X11OnscreenGLDrawable extends X11GLDrawable {
     if (drawable != 0) {
       throw new GLException("Surface already locked");
     }
-    ds = getJAWT().GetDrawingSurface(component);
+    ds = JAWT.getJAWT().GetDrawingSurface(component);
     if (ds == null) {
       // Widget not yet realized
       return LOCK_SURFACE_NOT_READY;
@@ -142,7 +142,7 @@ public class X11OnscreenGLDrawable extends X11GLDrawable {
     if (dsi == null) {
       // Widget not yet realized
       ds.Unlock();
-      getJAWT().FreeDrawingSurface(ds);
+      JAWT.getJAWT().FreeDrawingSurface(ds);
       ds = null;
       return LOCK_SURFACE_NOT_READY;
     }
@@ -154,7 +154,7 @@ public class X11OnscreenGLDrawable extends X11GLDrawable {
       // Widget not yet realized
       ds.FreeDrawingSurfaceInfo(dsi);
       ds.Unlock();
-      getJAWT().FreeDrawingSurface(ds);
+      JAWT.getJAWT().FreeDrawingSurface(ds);
       ds = null;
       dsi = null;
       x11dsi = null;
@@ -172,20 +172,12 @@ public class X11OnscreenGLDrawable extends X11GLDrawable {
     }
     ds.FreeDrawingSurfaceInfo(dsi);
     ds.Unlock();
-    getJAWT().FreeDrawingSurface(ds);
+    JAWT.getJAWT().FreeDrawingSurface(ds);
     ds = null;
     dsi = null;
     x11dsi = null;
     display = 0;
     drawable = 0;
     visualID = 0;
-  }
-
-  //----------------------------------------------------------------------
-  // Internals only below this point
-  //
-
-  private JAWT getJAWT() {
-    return X11GLDrawableFactory.getJAWT();
   }
 }

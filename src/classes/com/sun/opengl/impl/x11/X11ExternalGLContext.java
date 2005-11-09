@@ -48,11 +48,11 @@ public class X11ExternalGLContext extends X11GLContext {
 
   public X11ExternalGLContext() {
     super(null, null);
-    lockAWT();
+    lockToolkit();
     try {
       context = GLX.glXGetCurrentContext();
     } finally {
-      unlockAWT();
+      unlockToolkit();
     }
     GLContextShareSet.contextCreated(this);
     resetGLFunctionAvailability();

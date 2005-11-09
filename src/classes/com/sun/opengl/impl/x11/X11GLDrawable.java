@@ -103,9 +103,9 @@ public abstract class X11GLDrawable extends GLDrawableImpl {
       XVisualInfo template = XVisualInfo.create();
       // FIXME: probably not 64-bit clean
       template.visualid((int) visualID);
-      lockAWT();
+      lockToolkit();
       XVisualInfo[] infos = GLX.XGetVisualInfo(display, GLX.VisualIDMask, template, count, 0);
-      unlockAWT();
+      unlockToolkit();
       if (infos == null || infos.length == 0) {
         throw new GLException("Error while getting XVisualInfo for visual ID " + visualID);
       }
@@ -126,7 +126,7 @@ public abstract class X11GLDrawable extends GLDrawableImpl {
       template.screen(screen);
       XVisualInfo[] infos = null;
       GLCapabilities[] caps = null;
-      lockAWT();
+      lockToolkit();
       try {
         infos = GLX.XGetVisualInfo(display, GLX.VisualScreenMask, template, count, 0);
         if (infos == null) {
@@ -137,7 +137,7 @@ public abstract class X11GLDrawable extends GLDrawableImpl {
           caps[i] = X11GLDrawableFactory.xvi2GLCapabilities(display, infos[i]);
         }
       } finally {
-        unlockAWT();
+        unlockToolkit();
       }
       int chosen = chooser.chooseCapabilities(capabilities, caps, -1);
       if (chosen < 0 || chosen >= caps.length) {
@@ -162,11 +162,11 @@ public abstract class X11GLDrawable extends GLDrawableImpl {
 
   // These synchronization primitives prevent the AWT from making
   // requests from the X server asynchronously to this code.
-  protected void lockAWT() {
-    X11GLDrawableFactory.lockAWT();
+  protected void lockToolkit() {
+    X11GLDrawableFactory.lockToolkit();
   }
 
-  protected void unlockAWT() {
-    X11GLDrawableFactory.unlockAWT();
+  protected void unlockToolkit() {
+    X11GLDrawableFactory.unlockToolkit();
   }
 }

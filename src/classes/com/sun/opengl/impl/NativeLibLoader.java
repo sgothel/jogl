@@ -44,7 +44,6 @@ import java.security.*;
 
 public class NativeLibLoader {
   private static volatile boolean doLoading   = true;
-  private static volatile boolean doneLoading = false;
 
   public static void disableLoading() {
     doLoading = false;
@@ -54,38 +53,55 @@ public class NativeLibLoader {
     doLoading = true;
   }
 
-  public static synchronized void load() {
-    if (doLoading && !doneLoading) {
-      AccessController.doPrivileged(new PrivilegedAction() {
-          public Object run() {
-            boolean isOSX = System.getProperty("os.name").equals("Mac OS X");
-            if (!isOSX) {
-              try {
-                // On X11 systems, toolkit must be loaded before
-                // trying to resolve JAWT in order for libmawt.so to
-                // be found properly
-                Toolkit.getDefaultToolkit();
-                System.loadLibrary("jawt");
-              } catch (UnsatisfiedLinkError e) {
-                // Accessibility technologies load JAWT themselves; safe to continue
-                // as long as JAWT is loaded by any loader
-                if (e.getMessage().indexOf("already loaded") == -1) {
-                  throw e;
-                }
+  private static volatile boolean loadedCore = false;
+  private static volatile boolean loadedAWTImpl = false;
+
+  public static void loadCore() {
+    if (doLoading && !loadedCore) {
+      synchronized (NativeLibLoader.class) {
+        if (!loadedCore) {
+          AccessController.doPrivileged(new PrivilegedAction() {
+              public Object run() {
+                System.loadLibrary("jogl");
+                return null;
               }
-            }
-            System.loadLibrary("jogl");
+            });
+          loadedCore = true;
+        }
+      }
+    }
+  }
 
-            // Workaround for 4845371.
-            // Make sure the first reference to the JNI GetDirectBufferAddress is done
-            // from a privileged context so the VM's internal class lookups will succeed.
-            JAWT jawt = JAWT.create();
-            JAWTFactory.JAWT_GetAWT(jawt);
+  public static void loadAWTImpl() {
+    if (doLoading && !loadedAWTImpl) {
+      synchronized (NativeLibLoader.class) {
+        if (!loadedAWTImpl) {
+          AccessController.doPrivileged(new PrivilegedAction() {
+              public Object run() {
+                boolean isOSX = System.getProperty("os.name").equals("Mac OS X");
+                if (!isOSX) {
+                  // Must pre-load JAWT on all non-Mac platforms to
+                  // ensure references from jogl_awt shared object
+                  // will succeed since JAWT shared object isn't in
+                  // default library path
+                  try {
+                    System.loadLibrary("jawt");
+                  } catch (UnsatisfiedLinkError e) {
+                    // Accessibility technologies load JAWT themselves; safe to continue
+                    // as long as JAWT is loaded by any loader
+                    if (e.getMessage().indexOf("already loaded") == -1) {
+                      throw e;
+                    }
+                  }
+                }
+                System.loadLibrary("jogl_awt");
 
-            return null;
-          }
-        });
-      doneLoading = true;
+                return null;
+              }
+            });
+          loadedAWTImpl = true;
+        }
+      }
     }
   }
 }

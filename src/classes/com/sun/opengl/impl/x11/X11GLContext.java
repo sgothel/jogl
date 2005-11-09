@@ -164,7 +164,7 @@ public abstract class X11GLContext extends GLContextImpl {
   }
 
   protected void destroyImpl() throws GLException {
-    lockAWT();
+    lockToolkit();
     if (context != 0) {
       GLX.glXDestroyContext(mostRecentDisplay, context);
       if (DEBUG) {
@@ -174,7 +174,7 @@ public abstract class X11GLContext extends GLContextImpl {
       mostRecentDisplay = 0;
       GLContextShareSet.contextDestroyed(this);
     }
-    unlockAWT();
+    unlockToolkit();
   }
 
   public boolean isCreated() {
@@ -208,7 +208,7 @@ public abstract class X11GLContext extends GLContextImpl {
       glXQueryExtensionsStringInitialized = true;
     }
     if (glXQueryExtensionsStringAvailable) {
-      lockAWT();
+      lockToolkit();
       try {
         String ret = GLX.glXQueryExtensionsString(drawable.getDisplay(), GLX.DefaultScreen(drawable.getDisplay()));
         if (DEBUG) {
@@ -216,7 +216,7 @@ public abstract class X11GLContext extends GLContextImpl {
         }
         return ret;
       } finally {
-        unlockAWT();
+        unlockToolkit();
       }
     } else {
       return "";
@@ -291,11 +291,11 @@ public abstract class X11GLContext extends GLContextImpl {
 
   // These synchronization primitives prevent the AWT from making
   // requests from the X server asynchronously to this code.
-  protected void lockAWT() {
-    X11GLDrawableFactory.lockAWT();
+  protected void lockToolkit() {
+    X11GLDrawableFactory.lockToolkit();
   }
 
-  protected void unlockAWT() {
-    X11GLDrawableFactory.unlockAWT();
+  protected void unlockToolkit() {
+    X11GLDrawableFactory.unlockToolkit();
   }
 }

@@ -78,11 +78,11 @@ public class X11PbufferGLDrawable extends X11GLDrawable {
   }
 
   public void destroy() {
-    lockAWT();
+    lockToolkit();
     if (drawable != 0) {
       GLX.glXDestroyPbuffer(display, drawable);
     }
-    unlockAWT();
+    unlockToolkit();
     display = 0;
   }
 
@@ -100,7 +100,7 @@ public class X11PbufferGLDrawable extends X11GLDrawable {
   }
 
   public void createPbuffer(long display) {
-    lockAWT();
+    lockToolkit();
     try {
       if (display == 0) {
         throw new GLException("Null display");
@@ -241,7 +241,7 @@ public class X11PbufferGLDrawable extends X11GLDrawable {
         System.err.println("Created pbuffer " + width + " x " + height);
       }
     } finally {
-      unlockAWT();
+      unlockToolkit();
     }
   }
 

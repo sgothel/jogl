@@ -80,7 +80,7 @@ public class X11OffscreenGLDrawable extends X11GLDrawable {
     XVisualInfo vis = chooseVisual(false);
     int bitsPerPixel = vis.depth();
 
-    lockAWT();
+    lockToolkit();
     try {
       int screen = GLX.DefaultScreen(display);
       pixmap = GLX.XCreatePixmap(display, (int) GLX.RootWindow(display, screen), width, height, bitsPerPixel);
@@ -100,7 +100,7 @@ public class X11OffscreenGLDrawable extends X11GLDrawable {
                            ", display " + toHexString(display));
       }
     } finally {
-      unlockAWT();
+      unlockToolkit();
     }
   }
 
@@ -113,7 +113,7 @@ public class X11OffscreenGLDrawable extends X11GLDrawable {
       }
 
       // Must destroy pixmap and GLXPixmap
-      lockAWT();
+      lockToolkit();
 
       if (DEBUG) {
         long cur = GLX.glXGetCurrentContext();
@@ -130,7 +130,7 @@ public class X11OffscreenGLDrawable extends X11GLDrawable {
 
       GLX.glXDestroyGLXPixmap(display, drawable);
       GLX.XFreePixmap(display, pixmap);
-      unlockAWT();
+      unlockToolkit();
       drawable = 0;
       pixmap = 0;
       display = 0;

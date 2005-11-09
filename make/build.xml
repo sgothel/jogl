@@ -756,9 +756,14 @@
       </linker>
 
       <patternset id="c.src.files.jogl">
-        <include name="${rootrel.src.c.jogl}/*.c"/>
+        <include name="${rootrel.src.c.jogl}/InternalBufferUtils.c"/>
         <include name="${rootrel.src.c.jogl}/*.m" if="os.isMacOSX"/>
-        <include name="${rootrel.generated.c.jogl}/*.c"/>
+        <include name="${rootrel.generated.c.jogl}/*GL*.c"/>
+      </patternset>
+
+      <patternset id="c.src.files.jogl_awt">
+        <include name="${rootrel.src.c.jogl}/JAWT*.c"/>
+        <include name="${rootrel.generated.c.jogl}/JAWT*.c"/>
       </patternset>
       
       <patternset id="c.src.files.cg">
@@ -809,7 +814,7 @@
         </compiler>
 
         <linker extends="${linker.cfg.id}">
-          <syslibset dir="${java.lib.dir.platform}" libs="jawt"/>            
+          <syslibset dir="${java.lib.dir.platform}" libs="jawt" if="c.compiler.use-jawt"/>
         </linker>
       </cc>
     </target>  
@@ -827,57 +832,72 @@
       <move file="${obj}/libjogl.dylib" tofile="${obj}/libjogl.jnilib" />
     </target>
 
+    <target name="c.rename.jogl_awt.lib.macosx" if="os.isMacOSX">
+      <!-- FIXME: this is a hack; the cpptask should have an option to change the
+           suffix or at least understand the override from dylib to jnilib -->
+      <move file="${obj}/libjogl_awt.dylib" tofile="${obj}/libjogl_awt.jnilib" />
+    </target>
+
     <target name="c.rename.jogl_cg.lib.macosx" if="os.isMacOSX">
       <!-- FIXME: this is a hack; the cpptask should have an option to change the
            suffix or at least understand the override from dylib to jnilib -->
       <move file="${obj}/libjogl_cg.dylib" tofile="${obj}/libjogl_cg.jnilib" />
     </target>
 
-    <target name="c.build.jogl">
+    <target name="c.build.jogl.core">
       <antcall target="c.build" inheritRefs="true">
         <param name="c.compiler.src.files" value="c.src.files.jogl"/>
-        <param name="output.lib.name" value="jogl"/>      
+        <param name="output.lib.name" value="jogl"/>
       </antcall>
       <antcall target="c.rename.jogl.lib.macosx" inheritRefs="true" />
     </target>
 
+    <target name="c.build.jogl.awt">
+      <antcall target="c.build" inheritRefs="true">
+        <param name="c.compiler.src.files" value="c.src.files.jogl_awt"/>
+        <param name="c.compiler.use-jawt" value="true"/>
+        <param name="output.lib.name" value="jogl_awt"/>
+      </antcall>
+      <antcall target="c.rename.jogl_awt.lib.macosx" inheritRefs="true" />
+    </target>
+
     <target name="c.build.cg" if="jogl.cg">
       <antcall target="c.build" inheritRefs="true">
-        <param name="c.compiler.src.files" value="c.src.files.cg"/>      
-        <param name="c.compiler.use-cglib" value="XXX"/>      
-        <param name="output.lib.name" value="jogl_cg"/>      
+        <param name="c.compiler.src.files" value="c.src.files.cg"/>
+        <param name="c.compiler.use-cglib" value="true"/>
+        <param name="output.lib.name" value="jogl_cg"/>
       </antcall>
       <antcall target="c.rename.jogl_cg.lib.macosx" inheritRefs="true" />
     </target>
 
 
-    <target name="c.compile.jogl.win32.vc6" depends="declare.win32.vc6, c.build.jogl, c.build.cg" >
+    <target name="c.compile.jogl.win32.vc6" depends="declare.win32.vc6, c.build.jogl.core, c.build.jogl.awt, c.build.cg" >
     </target>
 
-    <target name="c.compile.jogl.win32.vc7" depends="declare.win32.vc7, c.build.jogl, c.build.cg">
+    <target name="c.compile.jogl.win32.vc7" depends="declare.win32.vc7, c.build.jogl.core, c.build.jogl.awt, c.build.cg">
      <property name="c.compiler.use-msvc7" value="true"/>
     </target>
 
-    <target name="c.compile.jogl.win32.mingw" depends="declare.win32.mingw, c.build.jogl, c.build.cg">
+    <target name="c.compile.jogl.win32.mingw" depends="declare.win32.mingw, c.build.jogl.core, c.build.jogl.awt, c.build.cg">
       <antcall target="c.rename.jogl.libs.mingw" inheritrefs="true" />
     </target>
     
-    <target name="c.compile.jogl.linux" depends="declare.linux, c.build.jogl, c.build.cg" >
+    <target name="c.compile.jogl.linux" depends="declare.linux, c.build.jogl.core, c.build.jogl.awt, c.build.cg" >
     </target>
     
-    <target name="c.compile.jogl.linux.amd64" depends="declare.linux.amd64, c.build.jogl, c.build.cg" >
+    <target name="c.compile.jogl.linux.amd64" depends="declare.linux.amd64, c.build.jogl.core, c.build.jogl.awt, c.build.cg" >
     </target>
     
-    <target name="c.compile.jogl.linux.ia64" depends="declare.linux.ia64, c.build.jogl, c.build.cg" >
+    <target name="c.compile.jogl.linux.ia64" depends="declare.linux.ia64, c.build.jogl.core, c.build.jogl.awt, c.build.cg" >
     </target>
 
-    <target name="c.compile.jogl.solaris" depends="declare.solaris, c.build.jogl">
+    <target name="c.compile.jogl.solaris" depends="declare.solaris, c.build.jogl.core, c.build.jogl.awt">
     </target>
     
-    <target name="c.compile.jogl.macosx" depends="declare.macosx, c.build.jogl, c.build.cg">
+    <target name="c.compile.jogl.macosx" depends="declare.macosx, c.build.jogl.core, c.build.jogl.awt, c.build.cg">
     </target>
     
-    <target name="c.compile.jogl.freebsd" depends="declare.freebsd, c.build.jogl, c.build.cg" >
+    <target name="c.compile.jogl.freebsd" depends="declare.freebsd, c.build.jogl.core, c.build.jogl.awt, c.build.cg" >
     </target>
 
     <!-- ================================================================== -->
@@ -983,6 +1003,7 @@
 	  <and>
 	    <available file="${jogl.dist.dir}/jogl-win32/jogl.jar" />
 	    <available file="${jogl.dist.dir}/jogl-win32/jogl.dll" />
+	    <available file="${jogl.dist.dir}/jogl-win32/jogl_awt.dll" />
 	    <available file="${jogl.dist.dir}/jogl-win32/jogl_cg.dll" />
 	  </and>
 	</condition>
@@ -1000,6 +1021,7 @@
 	  <and>
 	    <available file="${jogl.dist.dir}/jogl-linux/jogl.jar" />
 	    <available file="${jogl.dist.dir}/jogl-linux/libjogl.so" />
+	    <available file="${jogl.dist.dir}/jogl-linux/libjogl_awt.so" />
 	    <available file="${jogl.dist.dir}/jogl-linux/libjogl_cg.so" />
 	  </and>
 	</condition>
@@ -1017,6 +1039,7 @@
 	  <and>
 	    <available file="${jogl.dist.dir}/jogl-macosx/jogl.jar" />
 	    <available file="${jogl.dist.dir}/jogl-macosx/libjogl.jnilib" />
+	    <available file="${jogl.dist.dir}/jogl-macosx/libjogl_awt.jnilib" />
 	    <available file="${jogl.dist.dir}/jogl-macosx/libjogl_cg.jnilib" />
 	  </and>
 	</condition>
@@ -1034,6 +1057,7 @@
 	  <and>
 	    <available file="${jogl.dist.dir}/jogl-solsparc/jogl.jar" />
 	    <available file="${jogl.dist.dir}/jogl-solsparc/libjogl.so" />
+	    <available file="${jogl.dist.dir}/jogl-solsparc/libjogl_awt.so" />
 	  </and>
 	</condition>
 	<fail unless="solsparc.complete">
@@ -1050,6 +1074,7 @@
 	  <and>
 	    <available file="${jogl.dist.dir}/jogl-solx86/jogl.jar" />
 	    <available file="${jogl.dist.dir}/jogl-solx86/libjogl.so" />
+	    <available file="${jogl.dist.dir}/jogl-solx86/libjogl_awt.so" />
 	  </and>
 	</condition>
 	<fail unless="solx86.complete">

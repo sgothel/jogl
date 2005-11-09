@@ -56,7 +56,7 @@ public class X11GLDrawableFactory extends GLDrawableFactoryImpl {
   private static boolean isLinuxAMD64;
 
   static {
-    NativeLibLoader.load();
+    NativeLibLoader.loadCore();
 
     AccessController.doPrivileged(new PrivilegedAction() {
         public Object run() {
@@ -100,7 +100,7 @@ public class X11GLDrawableFactory extends GLDrawableFactoryImpl {
     XVisualInfo[] infos = null;
     GLCapabilities[] caps = null;
     int recommendedIndex = -1;
-    lockAWT();
+    lockToolkit();
     try {
       long display = getDisplayConnection();
       XVisualInfo recommendedVis = GLX.glXChooseVisual(display, screen, attribs, 0);
@@ -120,7 +120,7 @@ public class X11GLDrawableFactory extends GLDrawableFactoryImpl {
         }
       }
     } finally {
-      unlockAWT();
+      unlockToolkit();
     }
     int chosen = chooser.chooseCapabilities(capabilities, caps, recommendedIndex);
     if (chosen < 0 || chosen >= caps.length) {
@@ -180,7 +180,7 @@ public class X11GLDrawableFactory extends GLDrawableFactoryImpl {
       Runnable r = new Runnable() {
           public void run() {
             long display = getDisplayConnection();
-            lockAWT();
+            lockToolkit();
             try {
               int[] major = new int[1];
               int[] minor = new int[1];
@@ -207,7 +207,7 @@ public class X11GLDrawableFactory extends GLDrawableFactoryImpl {
         
               pbufferSupportInitialized = true;        
             } finally {
-              unlockAWT();
+              unlockToolkit();
             }
           }
         };
@@ -343,48 +343,34 @@ public class X11GLDrawableFactory extends GLDrawableFactoryImpl {
     return res;
   }
 
-  // JAWT access
-  private static JAWT jawt;
-  public static JAWT getJAWT() {
-    if (jawt == null) {
-      JAWT j = JAWT.create();
-      j.version(JAWTFactory.JAWT_VERSION_1_4);
-      if (!JAWTFactory.JAWT_GetAWT(j)) {
-        throw new RuntimeException("Unable to initialize JAWT");
-      }
-      jawt = j;
-    }
-    return jawt;
-  }
-
-  public static void lockAWT() {
+  public static void lockToolkit() {
     if (!Java2D.isOGLPipelineActive() || !Java2D.isQueueFlusherThread()) {
-      getJAWT().Lock();
+      JAWT.getJAWT().Lock();
     }
   }
 
-  public static void unlockAWT() {
+  public static void unlockToolkit() {
     if (!Java2D.isOGLPipelineActive() || !Java2D.isQueueFlusherThread()) {
-      getJAWT().Unlock();
+      JAWT.getJAWT().Unlock();
     }
   }
 
-  public void lockAWTForJava2D() {
-    lockAWT();
+  public void lockToolkitForJava2D() {
+    lockToolkit();
   }
-  public void unlockAWTForJava2D() {
-    unlockAWT();
+  public void unlockToolkitForJava2D() {
+    unlockToolkit();
   }
 
   // Display connection for use by visual selection algorithm and by all offscreen surfaces
   private static long staticDisplay;
   public static long getDisplayConnection() {
     if (staticDisplay == 0) {
-      lockAWT();
+      lockToolkit();
       try {
         staticDisplay = GLX.XOpenDisplay(null);
       } finally {
-        unlockAWT();
+        unlockToolkit();
       }
       if (staticDisplay == 0) {
         throw new GLException("Unable to open default display, needed for visual selection and offscreen surface handling");

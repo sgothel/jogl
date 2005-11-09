@@ -51,7 +51,7 @@ import com.sun.opengl.impl.*;
 
 public class MacOSXGLDrawableFactory extends GLDrawableFactoryImpl {
   static {
-    NativeLibLoader.load();
+    NativeLibLoader.loadCore();
   }
 
   public GraphicsConfiguration chooseGraphicsConfiguration(GLCapabilities capabilities,

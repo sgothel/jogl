@@ -50,7 +50,7 @@ public class X11ExternalGLDrawable extends X11GLDrawable {
 
   public X11ExternalGLDrawable() {
     super(null, null, null);
-    lockAWT();
+    lockToolkit();
     try {
       display = GLX.glXGetCurrentDisplay();
       drawable = GLX.glXGetCurrentDrawable();
@@ -72,7 +72,7 @@ public class X11ExternalGLDrawable extends X11GLDrawable {
       GLX.glXQueryContext(display, context, GLX.GLX_SCREEN, val, 0);
       screen = val[0];
     } finally {
-      unlockAWT();
+      unlockToolkit();
     }
   }
 
@@ -113,7 +113,7 @@ public class X11ExternalGLDrawable extends X11GLDrawable {
 
       // Note that we have to completely override makeCurrentImpl
       // because the underlying makeCurrent call differs from the norm
-      lockAWT();
+      lockToolkit();
       try {
         boolean created = false;
         if (context == 0) {
@@ -144,18 +144,18 @@ public class X11ExternalGLDrawable extends X11GLDrawable {
         }
         return CONTEXT_CURRENT;
       } finally {
-        unlockAWT();
+        unlockToolkit();
       }
     }
 
     protected void releaseImpl() throws GLException {
-      lockAWT();
+      lockToolkit();
       try {
         if (!GLX.glXMakeContextCurrent(drawable.getDisplay(), 0, 0, 0)) {
           throw new GLException("Error freeing OpenGL context");
         }
       } finally {
-        unlockAWT();
+        unlockToolkit();
       }
     }
 
