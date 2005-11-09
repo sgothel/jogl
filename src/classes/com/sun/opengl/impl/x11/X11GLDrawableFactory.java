@@ -343,22 +343,22 @@ public class X11GLDrawableFactory extends GLDrawableFactoryImpl {
     return res;
   }
 
-  public static void lockToolkit() {
+  public void lockToolkit() {
     if (!Java2D.isOGLPipelineActive() || !Java2D.isQueueFlusherThread()) {
       JAWT.getJAWT().Lock();
     }
   }
 
-  public static void unlockToolkit() {
+  public void unlockToolkit() {
     if (!Java2D.isOGLPipelineActive() || !Java2D.isQueueFlusherThread()) {
       JAWT.getJAWT().Unlock();
     }
   }
 
-  public void lockToolkitForJava2D() {
+  public void lockAWTForJava2D() {
     lockToolkit();
   }
-  public void unlockToolkitForJava2D() {
+  public void unlockAWTForJava2D() {
     unlockToolkit();
   }
 
@@ -366,11 +366,11 @@ public class X11GLDrawableFactory extends GLDrawableFactoryImpl {
   private static long staticDisplay;
   public static long getDisplayConnection() {
     if (staticDisplay == 0) {
-      lockToolkit();
+      getX11Factory().lockToolkit();
       try {
         staticDisplay = GLX.XOpenDisplay(null);
       } finally {
-        unlockToolkit();
+        getX11Factory().unlockToolkit();
       }
       if (staticDisplay == 0) {
         throw new GLException("Unable to open default display, needed for visual selection and offscreen surface handling");
@@ -412,6 +412,10 @@ public class X11GLDrawableFactory extends GLDrawableFactoryImpl {
       throw new GLException("glXGetConfig failed: error code " + glXGetConfigErrorCode(res));
     }
     return tmp[tmp_offset];
+  }
+
+  public static X11GLDrawableFactory getX11Factory() {
+    return (X11GLDrawableFactory) getFactory();
   }
 
   private void maybeDoSingleThreadedWorkaround(Runnable action) {

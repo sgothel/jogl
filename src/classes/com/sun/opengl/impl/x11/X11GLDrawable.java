@@ -163,10 +163,10 @@ public abstract class X11GLDrawable extends GLDrawableImpl {
   // These synchronization primitives prevent the AWT from making
   // requests from the X server asynchronously to this code.
   protected void lockToolkit() {
-    X11GLDrawableFactory.lockToolkit();
+    X11GLDrawableFactory.getX11Factory().lockToolkit();
   }
 
   protected void unlockToolkit() {
-    X11GLDrawableFactory.unlockToolkit();
+    X11GLDrawableFactory.getX11Factory().unlockToolkit();
   }
 }
