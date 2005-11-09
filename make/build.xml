@@ -966,7 +966,7 @@
        - libjogl.jnilib). Also builds jars containing the native code for
        - Windows, Linux, Mac OS X, Solaris/SPARC and Solaris/x86.
       -->
-    <target name="dist.check" unless="jogl.dist.dir">
+    <target name="dist.dir.check" unless="jogl.dist.dir">
         <fail>
   
     ******************************************************************
@@ -978,7 +978,90 @@
         </fail>
     </target>
 
-    <target name="dist" depends="dist.check">
+    <target name="dist.check.windows" if="jogl.dist.dir">
+        <condition property="windows.complete">
+	  <and>
+	    <available file="${jogl.dist.dir}/jogl-win32/jogl.jar" />
+	    <available file="${jogl.dist.dir}/jogl-win32/jogl.dll" />
+	    <available file="${jogl.dist.dir}/jogl-win32/jogl_cg.dll" />
+	  </and>
+	</condition>
+	<fail unless="windows.complete">
+    ******************************************************************
+    ** Files are missing from the Windows build. This will cause    **	
+    ** the distribution to be incomplete. Please check the status   **
+    ** of the Windows build and try again.                          **
+    ******************************************************************
+        </fail>
+    </target>
+
+    <target name="dist.check.linux" if="jogl.dist.dir">
+        <condition property="linux.complete">
+	  <and>
+	    <available file="${jogl.dist.dir}/jogl-linux/jogl.jar" />
+	    <available file="${jogl.dist.dir}/jogl-linux/libjogl.so" />
+	    <available file="${jogl.dist.dir}/jogl-linux/libjogl_cg.so" />
+	  </and>
+	</condition>
+	<fail unless="linux.complete">
+    ******************************************************************
+    ** Files are missing from the Linux build. This will cause      **	
+    ** the distribution to be incomplete. Please check the status   **
+    ** of the Linux build and try again.                            **
+    ******************************************************************
+        </fail>
+    </target>
+
+    <target name="dist.check.macosx" if="jogl.dist.dir">
+        <condition property="macosx.complete">
+	  <and>
+	    <available file="${jogl.dist.dir}/jogl-macosx/jogl.jar" />
+	    <available file="${jogl.dist.dir}/jogl-macosx/libjogl.jnilib" />
+	    <available file="${jogl.dist.dir}/jogl-macosx/libjogl_cg.jnilib" />
+	  </and>
+	</condition>
+	<fail unless="macosx.complete">
+    ******************************************************************
+    ** Files are missing from the Mac OS X build. This will cause   **	
+    ** the distribution to be incomplete. Please check the status   **
+    ** of the Mac OS X build and try again.                         **
+    ******************************************************************
+        </fail>
+    </target>
+
+    <target name="dist.check.solsparc" if="jogl.dist.dir">
+        <condition property="solsparc.complete">
+	  <and>
+	    <available file="${jogl.dist.dir}/jogl-solsparc/jogl.jar" />
+	    <available file="${jogl.dist.dir}/jogl-solsparc/libjogl.so" />
+	  </and>
+	</condition>
+	<fail unless="solsparc.complete">
+    ******************************************************************
+    ** Files are missing from the Solaris/SPARC build. This will    **	
+    ** cause the distribution to be incomplete. Please check the    **
+    ** status of the Solaris/SPARC build and try again.             **
+    ******************************************************************
+        </fail>
+    </target>
+
+    <target name="dist.check.solx86" if="jogl.dist.dir">
+        <condition property="solx86.complete">
+	  <and>
+	    <available file="${jogl.dist.dir}/jogl-solx86/jogl.jar" />
+	    <available file="${jogl.dist.dir}/jogl-solx86/libjogl.so" />
+	  </and>
+	</condition>
+	<fail unless="solx86.complete">
+    ******************************************************************
+    ** Files are missing from the Solaris/x86 build. This will      **	
+    ** cause the distribution to be incomplete. Please check the    **
+    ** status of the Solaris/x86 build and try again.               **
+    ******************************************************************
+        </fail>
+    </target>
+
+    <target name="dist" depends="dist.dir.check,dist.check.windows,dist.check.linux,dist.check.macosx,dist.check.solsparc,dist.check.solx86">
         <delete file="${jogl.dist.dir}/jogl.jar" />
         <delete>
             <fileset dir="${jogl.dist.dir}" includes="jogl-natives-*.jar" />
