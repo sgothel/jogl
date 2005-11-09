@@ -53,13 +53,14 @@
 #endif
 
 static jclass    platformDSIClass = NULL;
-static jmethodID constructor   = NULL;
+static jmethodID factoryMethod    = NULL;
 
 JNIEXPORT jobject JNICALL
 Java_com_sun_opengl_impl_JAWT_1DrawingSurfaceInfo_platformInfo0(JNIEnv* env, jobject unused, jobject jthis0) {
   JAWT_DrawingSurfaceInfo* dsi;
   jobject dirbuf;
   jclass clazz;
+  char sig[512];
   dsi = (*env)->GetDirectBufferAddress(env, jthis0);
   if (dsi == NULL) {
     (*env)->ThrowNew(env, (*env)->FindClass(env, "java/lang/RuntimeException"),
@@ -81,14 +82,15 @@ Java_com_sun_opengl_impl_JAWT_1DrawingSurfaceInfo_platformInfo0(JNIEnv* env, job
       return NULL;
     }
     clazz         = (jclass) (*env)->NewGlobalRef(env, clazz);
-    constructor   = (*env)->GetMethodID(env, clazz, "<init>", "(Ljava/nio/ByteBuffer;)V");
-    if (constructor == NULL) {
+    sprintf(sig, "(Ljava/nio/ByteBuffer;)L%s;", platformDSIClassName);
+    factoryMethod = (*env)->GetStaticMethodID(env, clazz, "create", sig);
+    if (factoryMethod == NULL) {
       (*env)->DeleteGlobalRef(env, clazz);
       return NULL;
     }
     platformDSIClass = clazz;
   }
-  return (*env)->NewObject(env, platformDSIClass, constructor, dirbuf);
+  return (*env)->CallStaticObjectMethod(env, platformDSIClass, factoryMethod, dirbuf);
 }
 
 #ifdef __sun

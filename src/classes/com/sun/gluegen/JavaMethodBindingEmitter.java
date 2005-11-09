@@ -89,6 +89,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
 
   public JavaMethodBindingEmitter(MethodBinding binding,
                                   PrintWriter output,
+                                  MachineDescription defaultMachDesc,
                                   String runtimeExceptionType,
                                   boolean emitBody,
                                   boolean eraseBufferAndArrayTypes,
@@ -98,7 +99,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
                                   boolean forIndirectBufferAndArrayImplementation,
                                   boolean isUnimplemented)
   {
-    super(output);
+    super(output, defaultMachDesc);
     this.binding = binding;
     this.runtimeExceptionType = runtimeExceptionType;
     this.emitBody = emitBody;
@@ -333,7 +334,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
     return getArgumentName(i) + "_offset";
   }
 
-  protected void emitBody(PrintWriter writer)
+  protected void emitBody(PrintWriter writer, MachineDescription machDesc)
   {
     if (!emitBody) {
       writer.println(';');
@@ -347,7 +348,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
         emitPrologueOrEpilogue(prologue, writer);
         emitPreCallSetup(binding, writer);
         //emitReturnVariableSetup(binding, writer);
-        emitReturnVariableSetupAndCall(binding, writer);
+        emitReturnVariableSetupAndCall(binding, writer, machDesc);
         emitPrologueOrEpilogue(epilogue, writer);
       }
       writer.println("  }");
@@ -435,7 +436,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
   }
 
 
-  protected void emitReturnVariableSetupAndCall(MethodBinding binding, PrintWriter writer) {
+  protected void emitReturnVariableSetupAndCall(MethodBinding binding, PrintWriter writer, MachineDescription machDesc) {
     writer.print("    ");
     JavaType returnType = binding.getJavaReturnType();
     boolean needsResultAssignment = false;
@@ -502,7 +503,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
       writer.println();
     }
     if (needsResultAssignment) {
-      emitCallResultReturn(binding, writer);
+      emitCallResultReturn(binding, writer, machDesc);
     }
   }
     
@@ -587,14 +588,14 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
     return numArgsEmitted;
   }
 
-  protected void emitCallResultReturn(MethodBinding binding, PrintWriter writer) {
+  protected void emitCallResultReturn(MethodBinding binding, PrintWriter writer, MachineDescription machDesc) {
     JavaType returnType = binding.getJavaReturnType();
 
     if (returnType.isCompoundTypeWrapper()) {
       String fmt = getReturnedArrayLengthExpression();
       writer.println("    if (_res == null) return null;");
       if (fmt == null) {
-        writer.print("    return new " + returnType.getName() + "(_res.order(ByteOrder.nativeOrder()))");
+        writer.print("    return " + returnType.getName() + ".create(_res.order(ByteOrder.nativeOrder()))");
       } else {
         writer.println("    _res.order(ByteOrder.nativeOrder());");
         String[] argumentNames = new String[binding.getNumArguments()];
@@ -616,13 +617,13 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
         // Create temporary ByteBuffer slice
         // FIXME: probably need Type.getAlignedSize() for arrays of
         // compound types (rounding up to machine-dependent alignment)
-        writer.println("      _res.position(_count * " + cReturnType.getSize() + ");");
-        writer.println("      _res.limit   ((1 + _count) * " + cReturnType.getSize() + ");");
+        writer.println("      _res.position(_count * " + cReturnType.getSize(machDesc) + ");");
+        writer.println("      _res.limit   ((1 + _count) * " + cReturnType.getSize(machDesc) + ");");
         writer.println("      ByteBuffer _tmp = _res.slice();");
         writer.println("      _tmp.order(ByteOrder.nativeOrder());");
         writer.println("      _res.position(0);");
         writer.println("      _res.limit(_res.capacity());");
-        writer.println("      _retarray[_count] = new " + getReturnTypeString(true) + "(_tmp);");
+        writer.println("      _retarray[_count] = " + getReturnTypeString(true) + ".create(_tmp);");
         writer.println("    }");
         writer.print  ("    return _retarray");
       }
@@ -634,7 +635,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
       writer.println("    if (_res == null) return null;");
       writer.println("    " + getReturnTypeString(false) + " _retarray = new " + getReturnTypeString(true) + "[_res.length];");
       writer.println("    for (int _count = 0; _count < _res.length; _count++) {");
-      writer.println("      _retarray[_count] = new " + getReturnTypeString(true) + "(_res[_count]);");
+      writer.println("      _retarray[_count] = " + getReturnTypeString(true) + ".create(_res[_count]);");
       writer.println("    }");
       writer.println("    return _retarray;");
     }

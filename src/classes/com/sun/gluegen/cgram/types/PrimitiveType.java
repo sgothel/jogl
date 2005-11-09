@@ -40,7 +40,7 @@
 package com.sun.gluegen.cgram.types;
 
 public abstract class PrimitiveType extends Type {
-  protected PrimitiveType(String name, int size, int cvAttributes) {
+  protected PrimitiveType(String name, SizeThunk size, int cvAttributes) {
     super(name, size, cvAttributes);
   }
 

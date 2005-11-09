@@ -120,6 +120,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
    */
   public CMethodBindingEmitter(MethodBinding binding,
                                PrintWriter output,
+                               MachineDescription defaultMachDesc,
                                String javaPackageName,
                                String javaClassName,                   
                                boolean isOverloadedBinding,
@@ -127,7 +128,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
                                boolean forImplementingMethodCall,
                                boolean forIndirectBufferAndArrayImplementation)
   {
-    super(output);
+    super(output, defaultMachDesc);
 
     assert(binding != null);
     assert(javaClassName != null);
@@ -381,7 +382,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
   }
 
   
-  protected void emitBody(PrintWriter writer)
+  protected void emitBody(PrintWriter writer, MachineDescription machDesc)
   {    
     writer.println(" {");
     emitBodyVariableDeclarations(writer);
@@ -392,7 +393,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
     emitBodyUserVariableAssignments(writer);
     emitBodyVariablePostCallCleanup(writer, true);
     emitBodyVariablePostCallCleanup(writer, false);
-    emitBodyReturnResult(writer);
+    emitBodyReturnResult(writer, machDesc);
     writer.println("}");
     writer.println();
   }
@@ -965,7 +966,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
     }
   }
 
-  protected void emitBodyReturnResult(PrintWriter writer)
+  protected void emitBodyReturnResult(PrintWriter writer, MachineDescription machDesc)
   {
     // WARNING: this code assumes that the return type has already been
     // typedef-resolved.
@@ -996,11 +997,11 @@ public class CMethodBindingEmitter extends FunctionEmitter
           writer.print(
             returnValueCapacityExpression.format(argumentNames));
         } else {
-          int sz = 0;
+          SizeThunk sz = null;
           if (cReturnType.isPointer() &&
               cReturnType.asPointer().getTargetType().isCompound()) {
             sz = cReturnType.asPointer().getTargetType().getSize();
-            if (sz == -1) {
+            if (sz == null) {
               throw new RuntimeException(
                 "Error emitting code for compound return type "+
                 "for function \"" + binding + "\": " +
@@ -1012,7 +1013,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
           } else {
             sz = cReturnType.getSize();
           }
-          writer.print(sz);
+          writer.print(sz.compute(machDesc));
           System.err.println(
             "WARNING: No capacity specified for java.nio.Buffer return " +
             "value for function \"" + binding + "\";" +
@@ -1043,11 +1044,11 @@ public class CMethodBindingEmitter extends FunctionEmitter
         } else {
           baseType = retType.asArray().getElementType().asPointer().getTargetType();
         }
-        int sz = baseType.getSize();
-        if (sz < 0)
-          sz = 0;
+        SizeThunk sz = baseType.getSize();
+        if (sz == null)
+          sz = SizeThunk.constant(0);
         writer.println("    (*env)->SetObjectArrayElement(env, " + arrayRes + ", " + arrayIdx +
-                       ", (*env)->NewDirectByteBuffer(env, _res[" + arrayIdx + "], " + sz + "));");
+                       ", (*env)->NewDirectByteBuffer(env, _res[" + arrayIdx + "], " + sz.compute(machDesc) + "));");
         writer.println("  }");
         writer.println("  return " + arrayRes + ";");
       } else if (javaReturnType.isArray()) {

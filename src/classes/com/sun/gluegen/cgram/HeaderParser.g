@@ -56,17 +56,6 @@ options {
     /** Name assigned to a anonymous EnumType (e.g., "enum { ... }"). */
     public static final String ANONYMOUS_ENUM_NAME = "<anonymous>";
 
-    /** Set the machine description for this HeaderParser. Must be
-        done before parsing. */
-    public void setMachineDescription(MachineDescription machDesc) {
-        this.machDesc = machDesc;
-    }
-
-    /** Returns the MachineDescription this HeaderParser uses. */
-    public MachineDescription machineDescription() {
-        return machDesc;
-    }
-
     /** Set the dictionary mapping typedef names to types for this
         HeaderParser. Must be done before parsing. */
     public void setTypedefDictionary(TypeDictionary dict) {
@@ -130,7 +119,7 @@ options {
                                                   int cvAttrs) {
         CompoundType t = (CompoundType) structDictionary.get(typeName);
         if (t == null) {
-            t = new CompoundType(null, -1, kind, cvAttrs);
+            t = new CompoundType(null, null, kind, cvAttrs);
             t.setStructName(typeName);
             structDictionary.put(typeName, t);
         }
@@ -207,7 +196,6 @@ options {
 	    }
     }
 
-    private MachineDescription machDesc;
     private boolean doDeclaration;   // Used to only process function typedefs
     private String  declId;
     private List    parameters;
@@ -242,7 +230,7 @@ options {
 
     private void processDeclaration(Type returnType) {
         if (doDeclaration) {
-            FunctionSymbol sym = new FunctionSymbol(declId, new FunctionType(null, -1, returnType, 0));
+            FunctionSymbol sym = new FunctionSymbol(declId, new FunctionType(null, null, returnType, 0));
 	        if (parameters != null) { // handle funcs w/ empty parameter lists (e.g., "foo()")
                 for (Iterator iter = parameters.iterator(); iter.hasNext(); ) {
                     ParameterDeclaration pd = (ParameterDeclaration) iter.next();
@@ -272,13 +260,13 @@ options {
                 // FIXME: this doesn't take into account struct alignment, which may be necessary
                 // See also FIXMEs in ArrayType.java
                 int len = parseIntConstExpr(t);
-                tb.setType(canonicalize(new ArrayType(tb.type(), len * tb.type().getSize(), len, 0)));
+                tb.setType(canonicalize(new ArrayType(tb.type(), SizeThunk.mul(SizeThunk.constant(len), tb.type().getSize()), len, 0)));
                 return;
             } catch (RecognitionException e) {
                 // Fall through
             }
         }
-        tb.setType(canonicalize(new PointerType(machDesc.pointerSizeInBytes(),
+        tb.setType(canonicalize(new PointerType(SizeThunk.POINTER,
                                                 tb.type(),
                                                 0)));
     }
@@ -301,7 +289,7 @@ options {
 	}
 	
 	if (enumType == null) {
-	  enumType = new EnumType(enumTypeName, machDesc.longSizeInBytes());
+	  enumType = new EnumType(enumTypeName, SizeThunk.LONG);
 	}  
 	
 	return enumType;
@@ -348,7 +336,7 @@ declarator[TypeBox tb] returns [String s] {
                                doDeclaration();
                            } else if ( funcPointerName != null ) {
                                /* TypeBox becomes function pointer in this case */
-                               FunctionType ft = new FunctionType(null, -1, tb.type(), 0);
+                               FunctionType ft = new FunctionType(null, null, tb.type(), 0);
                                if (params == null) {
 			  	                   // If the function pointer has no declared parameters, it's a 
 			                       // void function. I'm not sure if the parameter name is 
@@ -362,7 +350,7 @@ declarator[TypeBox tb] returns [String s] {
                                      ft.addArgument(pd.type(), pd.id());
 				                   }
                                }
-                               tb.setType(canonicalize(new PointerType(machDesc.pointerSizeInBytes(),
+                               tb.setType(canonicalize(new PointerType(SizeThunk.POINTER,
                                                                        ft,
                                                                        0)));
                                s = funcPointerName;
@@ -431,7 +419,7 @@ declSpecifiers returns [TypeBox tb] {
 {
             if (t == null &&
                 (x & (SIGNED | UNSIGNED)) != 0) {
-                t = new IntType("int", machDesc.intSizeInBytes(), ((x & UNSIGNED) != 0), attrs2CVAttrs(x));
+                t = new IntType("int", SizeThunk.INT, ((x & UNSIGNED) != 0), attrs2CVAttrs(x));
             }
             tb = new TypeBox(t, ((x & TYPEDEF) != 0));
 }
@@ -465,13 +453,13 @@ typeSpecifier[int attributes] returns [Type t] {
     boolean unsigned = ((attributes & UNSIGNED) != 0);
 }
         :       "void"     { t = new VoidType(cvAttrs); }
-        |       "char"     { t = new IntType("char" , machDesc.charSizeInBytes(),  unsigned, cvAttrs); }
-        |       "short"    { t = new IntType("short", machDesc.shortSizeInBytes(), unsigned, cvAttrs); }
-        |       "int"      { t = new IntType("int"  , machDesc.intSizeInBytes(),   unsigned, cvAttrs); }
-        |       "long"     { t = new IntType("long" , machDesc.longSizeInBytes(),  unsigned, cvAttrs); }
-        |       "__int64"  { t = new IntType("__int64", machDesc.int64SizeInBytes(), unsigned, cvAttrs); }
-        |       "float"    { t = new FloatType("float", machDesc.floatSizeInBytes(), cvAttrs); }
-        |       "double"   { t = new DoubleType("double", machDesc.doubleSizeInBytes(), cvAttrs); }
+        |       "char"     { t = new IntType("char" , SizeThunk.CHAR,  unsigned, cvAttrs); }
+        |       "short"    { t = new IntType("short", SizeThunk.SHORT, unsigned, cvAttrs); }
+        |       "int"      { t = new IntType("int"  , SizeThunk.INT,   unsigned, cvAttrs); }
+        |       "long"     { t = new IntType("long" , SizeThunk.LONG,  unsigned, cvAttrs); }
+        |       "__int64"  { t = new IntType("__int64", SizeThunk.INT64, unsigned, cvAttrs); }
+        |       "float"    { t = new FloatType("float", SizeThunk.FLOAT, cvAttrs); }
+        |       "double"   { t = new DoubleType("double", SizeThunk.DOUBLE, cvAttrs); }
         |       t = structSpecifier[cvAttrs] ( attributeDecl )*
         |       t = unionSpecifier [cvAttrs] ( attributeDecl )*
         |       t = enumSpecifier  [cvAttrs] 
@@ -507,7 +495,7 @@ structOrUnionBody[CompoundTypeKind kind, int cvAttrs] returns [CompoundType t] {
                     t = (CompoundType) canonicalize(lookupInStructDictionary(id.getText(), kind, cvAttrs));
                   } ( structDeclarationList[t] )?
                     RCURLY { t.setBodyParsed(); }
-                |   LCURLY { t = new CompoundType(null, -1, kind, cvAttrs); }
+                |   LCURLY { t = new CompoundType(null, null, kind, cvAttrs); }
                     ( structDeclarationList[t] )?
                     RCURLY { t.setBodyParsed(); }
                 | id2:ID { t = (CompoundType) canonicalize(lookupInStructDictionary(id2.getText(), kind, cvAttrs)); }
@@ -528,7 +516,7 @@ structDeclaration[CompoundType containingType] {
                             CompoundType ct = t.asCompound();
                             if (ct.isUnion()) {
                                 // Anonymous union
-                                containingType.addField(new Field(null, t, -1));
+                                containingType.addField(new Field(null, t, null));
                             }
                         }
                     }
@@ -544,7 +532,7 @@ specifierQualifierList returns [Type t] {
                 )+ {
             if (t == null &&
                 (x & (SIGNED | UNSIGNED)) != 0) {
-                t = new IntType("int", machDesc.intSizeInBytes(), ((x & UNSIGNED) != 0), attrs2CVAttrs(x));
+                t = new IntType("int", SizeThunk.INT, ((x & UNSIGNED) != 0), attrs2CVAttrs(x));
             }
 }
         ;
@@ -563,7 +551,7 @@ structDeclarator[CompoundType containingType, Type t] returns [boolean addedAny]
 }
         :
         #( NStructDeclarator      
-            ( s = declarator[tb] { containingType.addField(new Field(s, tb.type(), -1)); addedAny = true; } )?
+            ( s = declarator[tb] { containingType.addField(new Field(s, tb.type(), null)); addedAny = true; } )?
             ( COLON expr     { /* FIXME: bit types not handled yet */ }        ) ?
             ( attributeDecl )*
         )
@@ -659,7 +647,7 @@ pointerGroup[TypeBox tb] { int x = 0; int y = 0; }
                                     {
 		  																	//System.err.println("IN PTR GROUP: TB=" + tb);
                                         if (tb != null) {
-                                            tb.setType(canonicalize(new PointerType(machDesc.pointerSizeInBytes(),
+                                            tb.setType(canonicalize(new PointerType(SizeThunk.POINTER,
                                                                                     tb.type(),
                                                                                     attrs2CVAttrs(x))));
                                         }

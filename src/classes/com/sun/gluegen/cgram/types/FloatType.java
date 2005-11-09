@@ -42,7 +42,7 @@ package com.sun.gluegen.cgram.types;
 /** Represents a single-word floating-point type (C type "float".) */
 
 public class FloatType extends PrimitiveType {
-  public FloatType(String name, int size, int cvAttributes) {
+  public FloatType(String name, SizeThunk size, int cvAttributes) {
     super(name, size, cvAttributes);
   }
 

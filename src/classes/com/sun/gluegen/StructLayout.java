@@ -41,6 +41,13 @@ package com.sun.gluegen;
 
 import com.sun.gluegen.cgram.types.*;
 
+/** Encapsulates algorithm for laying out data structures. Note that
+    this ends up embedding code in various places via SizeThunks. If
+    the 32-bit and 64-bit ports on a given platform differ
+    fundamentally in their handling of struct layout then this code
+    will need to be updated and, most likely, two versions of the
+    SizeThunks maintained in various places. */
+
 public class StructLayout {
   private int baseOffset;
   private int structAlignment;
@@ -53,32 +60,28 @@ public class StructLayout {
 
   public void layout(CompoundType t) {
     int n = t.getNumFields();
-    int curOffset = baseOffset;
-    int maxSize   = 0;
+    SizeThunk curOffset = SizeThunk.constant(baseOffset);
+    SizeThunk maxSize   = SizeThunk.constant(0);
     for (int i = 0; i < n; i++) {
       Field f = t.getField(i);
       Type ft = f.getType();
       if (ft.isInt() || ft.isFloat() || ft.isDouble() || ft.isPointer()) {
-        int sz = ft.getSize();
-        if ((curOffset % sz) != 0) {
-          curOffset += sz - (curOffset % sz);
-        }
+        SizeThunk sz = ft.getSize();
+        curOffset = SizeThunk.roundUp(curOffset, sz);
         f.setOffset(curOffset);
         if (t.isUnion()) {
-          maxSize = Math.max(maxSize, sz);
+          maxSize = SizeThunk.max(maxSize, sz);
         } else {
-          curOffset += sz;
+          curOffset = SizeThunk.add(curOffset, sz);
         }
       } else if (ft.isCompound()) {
         new StructLayout(0, structAlignment).layout(ft.asCompound());
-        if ((curOffset % structAlignment) != 0) {
-          curOffset += structAlignment - (curOffset % structAlignment);
-        }
+        curOffset = SizeThunk.roundUp(curOffset, SizeThunk.constant(structAlignment));
         f.setOffset(curOffset);
         if (t.isUnion()) {
-          maxSize = Math.max(maxSize, ft.getSize());
+          maxSize = SizeThunk.max(maxSize, ft.getSize());
         } else {
-          curOffset += ft.getSize();
+          curOffset = SizeThunk.add(curOffset, ft.getSize());
         }
       } else if (ft.isArray()) {
         ArrayType arrayType = ft.asArray();
@@ -88,11 +91,9 @@ public class StructLayout {
           arrayType.recomputeSize();
         }
         // Note: not sure how this rounding is done
-        if ((curOffset % structAlignment) != 0) {
-          curOffset += structAlignment - (curOffset % structAlignment);
-        }
+        curOffset = SizeThunk.roundUp(curOffset, SizeThunk.constant(structAlignment));
         f.setOffset(curOffset);
-        curOffset += ft.getSize();
+        curOffset = SizeThunk.add(curOffset, ft.getSize());
       } else {
         // FIXME
         String name = t.getName();
@@ -119,6 +120,7 @@ public class StructLayout {
   
 
   public static StructLayout createForCurrentPlatform() {
+    // Note: this code is replicated in CPU.java
     String os = System.getProperty("os.name").toLowerCase();
     String cpu = System.getProperty("os.arch").toLowerCase();
     if ((os.startsWith("windows") && cpu.equals("x86")) ||
@@ -128,6 +130,7 @@ public class StructLayout {
         (os.startsWith("linux") && cpu.equals("ia64")) ||
         (os.startsWith("sunos") && cpu.equals("sparc")) ||
         (os.startsWith("sunos") && cpu.equals("x86")) ||
+        (os.startsWith("sunos") && cpu.equals("amd64")) ||
         (os.startsWith("mac os") && cpu.equals("ppc")) ||
         (os.startsWith("freebsd") && cpu.equals("i386"))
 	) {

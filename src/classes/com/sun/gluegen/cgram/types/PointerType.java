@@ -44,13 +44,13 @@ public class PointerType extends Type {
   private String computedName;
   private boolean hasTypedefedName;
 
-  public PointerType(int size, Type targetType, int cvAttributes) {
+  public PointerType(SizeThunk size, Type targetType, int cvAttributes) {
     // can pass null for the final name parameter because the PointerType's getName() 
     // completely replaces superclass behavior
-		this(size, targetType, cvAttributes, false, null);
+    this(size, targetType, cvAttributes, false, null);
   }
 
-  private PointerType(int size, Type targetType, int cvAttributes, boolean hasTypedefedName, String typedefedName) {
+  private PointerType(SizeThunk size, Type targetType, int cvAttributes, boolean hasTypedefedName, String typedefedName) {
     super(targetType.getName() + " *", size, cvAttributes);
     this.hasTypedefedName = false;
     this.targetType = targetType;

@@ -105,7 +105,7 @@ public class X11GLDrawableFactory extends GLDrawableFactoryImpl {
       long display = getDisplayConnection();
       XVisualInfo recommendedVis = GLX.glXChooseVisual(display, screen, attribs, 0);
       int[] count = new int[1];
-      XVisualInfo template = new XVisualInfo();
+      XVisualInfo template = XVisualInfo.create();
       template.screen(screen);
       infos = GLX.XGetVisualInfo(display, GLX.VisualScreenMask, template, count, 0);
       if (infos == null) {
@@ -347,7 +347,7 @@ public class X11GLDrawableFactory extends GLDrawableFactoryImpl {
   private static JAWT jawt;
   public static JAWT getJAWT() {
     if (jawt == null) {
-      JAWT j = new JAWT();
+      JAWT j = JAWT.create();
       j.version(JAWTFactory.JAWT_VERSION_1_4);
       if (!JAWTFactory.JAWT_GetAWT(j)) {
         throw new RuntimeException("Unable to initialize JAWT");

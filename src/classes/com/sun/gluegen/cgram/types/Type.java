@@ -48,12 +48,12 @@ import java.util.List;
 
 public abstract class Type {
   private String name;
-  private int    size;
+  private SizeThunk size;
   private int    cvAttributes;
   private int    typedefedCVAttributes;
   private boolean hasTypedefName;
 
-  protected Type(String name, int size, int cvAttributes) {
+  protected Type(String name, SizeThunk size, int cvAttributes) {
     setName(name);
     this.size = size;
     this.cvAttributes = cvAttributes;
@@ -88,10 +88,18 @@ public abstract class Type {
     hasTypedefName = true;
   }
 
-  /** Size of this type in bytes. */
-  public int          getSize()    { return size; }
+  /** SizeThunk which computes size of this type in bytes. */
+  public SizeThunk    getSize()    { return size; }
+  /** Size of this type in bytes according to the given MachineDescription. */
+  public long         getSize(MachineDescription machDesc) {
+    SizeThunk thunk = getSize();
+    if (thunk == null) {
+      throw new RuntimeException("No size set for type \"" + getName() + "\"");
+    }
+    return thunk.compute(machDesc);
+  }
   /** Set the size of this type; only available for CompoundTypes. */
-  void                setSize(int size) { this.size = size; }
+  void                setSize(SizeThunk size) { this.size = size; }
 
   /** Casts this to a BitType or returns null if not a BitType. */
   public BitType      asBit()      { return null; }

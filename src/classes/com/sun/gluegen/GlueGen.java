@@ -146,16 +146,6 @@ public class GlueGen implements GlueEmitterControls {
       }
 
       HeaderParser headerParser = new HeaderParser();
-      MachineDescription machDesc;
-      String os = System.getProperty("os.name").toLowerCase();
-      String cpu = System.getProperty("os.arch").toLowerCase();
-      if ((os.startsWith("linux") && cpu.equals("amd64")) ||
-          (os.startsWith("linux") && cpu.equals("ia64"))) {
-           machDesc = new MachineDescription64Bit();
-      } else {
-           machDesc = new MachineDescription32Bit();
-      }
-      headerParser.setMachineDescription(machDesc);
       TypeDictionary td = new TypeDictionary();
       headerParser.setTypedefDictionary(td);
       TypeDictionary sd = new TypeDictionary();
@@ -190,8 +180,10 @@ public class GlueGen implements GlueEmitterControls {
         emit.readConfigurationFile((String) iter.next());
       }
 
-      // provide MachineDescription to emitter if it needs it
-      emit.setMachineDescription(machDesc);
+      // Provide MachineDescriptions to emitter
+      MachineDescription md32 = new MachineDescription32Bit();
+      MachineDescription md64 = new MachineDescription64Bit();
+      emit.setMachineDescription(md32, md64);
 
       // begin emission of glue code
       emit.beginEmission(this);

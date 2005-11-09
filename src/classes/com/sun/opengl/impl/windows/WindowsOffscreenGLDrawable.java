@@ -76,7 +76,7 @@ public class WindowsOffscreenGLDrawable extends WindowsGLDrawable {
   }
   
   private void create() {
-    BITMAPINFO info = new BITMAPINFO();
+    BITMAPINFO info = BITMAPINFO.create();
     BITMAPINFOHEADER header = info.bmiHeader();
     int bitsPerPixel = (capabilities.getRedBits() +
                         capabilities.getGreenBits() +

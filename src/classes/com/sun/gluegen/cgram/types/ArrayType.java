@@ -49,7 +49,7 @@ public class ArrayType extends Type {
   private int length;
   private String computedName;
 
-  public ArrayType(Type elementType, int sizeInBytes, int length, int cvAttributes) {
+  public ArrayType(Type elementType, SizeThunk sizeInBytes, int length, int cvAttributes) {
     super(elementType.getName() + " *", sizeInBytes, cvAttributes);
     this.elementType = elementType;
     this.length      = length;
@@ -100,7 +100,7 @@ public class ArrayType extends Type {
     }
     // FIXME: this doesn't take into account struct alignment, which may be necessary
     // See also FIXME below and in HeaderParser.g
-    super.setSize(getLength() * elementType.getSize());
+    super.setSize(SizeThunk.mul(SizeThunk.constant(getLength()), elementType.getSize()));
   }
 
   public String toString() {

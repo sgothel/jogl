@@ -50,8 +50,25 @@ public interface GlueEmitter {
 
   public void readConfigurationFile(String filename) throws Exception;
 
-  /** Set the description of the underlying hardware. */
-  public void setMachineDescription(MachineDescription md);
+  /** Sets the description of the underlying hardware. "md32"
+      specifies the description of a 32-bit version of the underlying
+      CPU architecture. "md64" specifies the description of a 64-bit
+      version of the underlying CPU architecture. At least one must be
+      specified. When both are specified, the bulk of the glue code is
+      generated using the 32-bit machine description, but structs are
+      laid out twice and the base class delegates between the 32-bit
+      and 64-bit implementation at run time. This allows Java code
+      which can access both 32-bit and 64-bit versions of the data
+      structures to be included in the same jar file. <P>
+
+      It is up to the end user to provide the appropriate opaque
+      definitions to ensure that types of varying size (longs and
+      pointers in particular) are exposed to Java in such a way that
+      changing the machine description does not cause different shared
+      glue code to be generated for the 32- and 64-bit ports.
+  */
+  public void setMachineDescription(MachineDescription md32,
+                                    MachineDescription md64);
 
   /**
    * Begin the emission of glue code. This might include opening files,

@@ -49,7 +49,7 @@ public class FunctionType extends Type {
   private ArrayList argumentTypes;
   private ArrayList argumentNames;
 
-  public FunctionType(String name, int size, Type returnType, int cvAttributes) {
+  public FunctionType(String name, SizeThunk size, Type returnType, int cvAttributes) {
     super(name, size, cvAttributes);
     this.returnType = returnType;
   }

@@ -43,11 +43,11 @@ public class IntType extends PrimitiveType {
   private boolean unsigned;
   private boolean typedefedUnsigned;
 
-  public IntType(String name, int size, boolean unsigned, int cvAttributes) {
+  public IntType(String name, SizeThunk size, boolean unsigned, int cvAttributes) {
     this(name, size, unsigned, cvAttributes, false);
   }
 
-  private IntType(String name, int size, boolean unsigned, int cvAttributes, boolean typedefedUnsigned) {
+  private IntType(String name, SizeThunk size, boolean unsigned, int cvAttributes, boolean typedefedUnsigned) {
     super(name, size, cvAttributes);
     this.unsigned = unsigned;
     this.typedefedUnsigned = typedefedUnsigned;

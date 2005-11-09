@@ -79,7 +79,7 @@ public class NativeLibLoader {
             // Workaround for 4845371.
             // Make sure the first reference to the JNI GetDirectBufferAddress is done
             // from a privileged context so the VM's internal class lookups will succeed.
-            JAWT jawt = new JAWT();
+            JAWT jawt = JAWT.create();
             JAWTFactory.JAWT_GetAWT(jawt);
 
             return null;

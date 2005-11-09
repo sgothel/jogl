@@ -42,7 +42,7 @@ package com.sun.gluegen.cgram.types;
 /** Represents a double-word floating-point type (C type "double".) */
 
 public class DoubleType extends PrimitiveType {
-  public DoubleType(String name, int size, int cvAttributes) {
+  public DoubleType(String name, SizeThunk size, int cvAttributes) {
     super(name, size, cvAttributes);
   }
 

@@ -42,11 +42,11 @@ package com.sun.gluegen.cgram.types;
 /** Represents a field in a struct or union. */
 
 public class Field {
-  private String  name;
-  private Type    type;
-  private long    offset;
+  private String    name;
+  private Type      type;
+  private SizeThunk offset;
 
-  public Field(String name, Type type, long offset) {
+  public Field(String name, Type type, SizeThunk offset) {
     this.name = name;
     this.type = type;
     this.offset = offset;
@@ -62,10 +62,11 @@ public class Field {
     }
 
     Field f = (Field) arg;
+    // Note: don't know how to examine offset any more since it's
+    // implemented in terms of code and they're not canonicalized
     return (((name != null && name.equals(f.name)) ||
              (name == null && f.name == null)) &&
-            type.equals(f.type) &&
-            offset == f.offset);
+            type.equals(f.type));
   }
 
   /** Name of this field in the containing data structure. */
@@ -74,11 +75,15 @@ public class Field {
   /** Type of this field. */
   public Type    getType()   { return type; }
 
-  /** Offset, in bytes, of this field in the containing data structure. */
-  public long    getOffset() { return offset; }
+  /** SizeThunk computing offset, in bytes, of this field in the containing data structure. */
+  public SizeThunk getOffset() { return offset; }
+
+  /** Offset, in bytes, of this field in the containing data structure
+      given the specified MachineDescription. */
+  public long    getOffset(MachineDescription machDesc) { return offset.compute(machDesc); }
 
   /** Sets the offset of this field in the containing data structure. */
-  public void    setOffset(long offset) { this.offset = offset; }
+  public void    setOffset(SizeThunk offset) { this.offset = offset; }
 
   public String toString() {
     if (!getType().isFunctionPointer()) {

@@ -215,7 +215,7 @@ public class MacOSXOnscreenGLDrawable extends MacOSXGLDrawable {
   {
     if (jawt == null)
       {
-	JAWT j = new JAWT();
+	JAWT j = JAWT.create();
 	j.version(JAWTFactory.JAWT_VERSION_1_4);
 	if (!JAWTFactory.JAWT_GetAWT(j))
 	  {

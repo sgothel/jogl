@@ -55,11 +55,11 @@ public class CompoundType extends Type {
   private boolean computedHashcode;
   private int     hashcode;
 
-  public CompoundType(String name, int size, CompoundTypeKind kind, int cvAttributes) {
+  public CompoundType(String name, SizeThunk size, CompoundTypeKind kind, int cvAttributes) {
     this(name, size, kind, cvAttributes, null);
   }
 
-  private CompoundType(String name, int size, CompoundTypeKind kind, int cvAttributes, String structName) {
+  private CompoundType(String name, SizeThunk size, CompoundTypeKind kind, int cvAttributes, String structName) {
     super(name, size, cvAttributes);
     assert kind != null;
     this.kind = kind;
@@ -107,7 +107,7 @@ public class CompoundType extends Type {
     this.structName = structName;
   }
 
-  public void setSize(int size) {
+  public void setSize(SizeThunk size) {
     super.setSize(size);
   }
 

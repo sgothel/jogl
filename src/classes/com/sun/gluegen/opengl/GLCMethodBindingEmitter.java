@@ -74,6 +74,7 @@ public class GLCMethodBindingEmitter extends CMethodBindingEmitter {
         }
       },
       methodToWrap.getDefaultOutput(),
+      methodToWrap.getDefaultMachineDescription(),
       methodToWrap.getJavaPackageName(),
       methodToWrap.getJavaClassName(),
       methodToWrap.getIsOverloadedBinding(),

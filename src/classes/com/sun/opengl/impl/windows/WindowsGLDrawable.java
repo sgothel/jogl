@@ -379,7 +379,7 @@ public abstract class WindowsGLDrawable extends GLDrawableImpl {
   }
 
   static PIXELFORMATDESCRIPTOR newPixelFormatDescriptor() {
-    PIXELFORMATDESCRIPTOR pfd = new PIXELFORMATDESCRIPTOR();
+    PIXELFORMATDESCRIPTOR pfd = PIXELFORMATDESCRIPTOR.create();
     pfd.nSize((short) pfd.size());
     pfd.nVersion((short) 1);
     return pfd;

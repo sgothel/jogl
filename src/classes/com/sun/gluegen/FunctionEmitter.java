@@ -41,6 +41,7 @@ package com.sun.gluegen;
 
 import java.util.*;
 import java.io.*;
+import com.sun.gluegen.cgram.types.MachineDescription;
 
 public abstract class FunctionEmitter
 {
@@ -49,14 +50,16 @@ public abstract class FunctionEmitter
   private HashSet modifiers = new HashSet(4);
   private CommentEmitter commentEmitter = null;
   private PrintWriter defaultOutput;
+  private MachineDescription defaultMachDesc;
 
   /**
    * Constructs the FunctionEmitter with a CommentEmitter that emits nothing.
    */
-  public FunctionEmitter(PrintWriter defaultOutput)
+  public FunctionEmitter(PrintWriter defaultOutput, MachineDescription defaultMachDesc)
   {
     assert(defaultOutput != null);
     this.defaultOutput = defaultOutput;
+    this.defaultMachDesc = defaultMachDesc;
   }
   
   /**
@@ -66,9 +69,12 @@ public abstract class FunctionEmitter
     modifiers      = (HashSet) arg.modifiers.clone();
     commentEmitter = arg.commentEmitter;
     defaultOutput  = arg.defaultOutput;
+    defaultMachDesc  = arg.defaultMachDesc;
   }
 
   public PrintWriter getDefaultOutput() { return defaultOutput; }
+
+  public MachineDescription getDefaultMachineDescription() { return defaultMachDesc; }
   
   public void addModifiers(Iterator/*<EmissionModifier>*/ mi)
   {
@@ -93,29 +99,35 @@ public abstract class FunctionEmitter
    * Emit the function to the specified output (instead of the default
    * output).
    */
-  public void emit(PrintWriter output)
+  public void emit(PrintWriter output, MachineDescription machDesc)
   {
     emitDocComment(output);
     //output.println("  // Emitter: " + getClass().getName());
     emitSignature(output);
-    emitBody(output);
+    emitBody(output, machDesc);
   }
 
   /**
    * Emit the function to the default output (the output that was passed to
    * the constructor)
    */
-  public final void emit()
+  public final void emit(MachineDescription machDesc)
   {
-    emit(getDefaultOutput());
+    emit(getDefaultOutput(), machDesc);
   }
 
   /** Returns, as a String, whatever {@link #emit} would output. */
   public String toString()
   {
+    return toString(getDefaultMachineDescription());
+  }
+
+  /** Returns, as a String, whatever {@link #emit} would output. */
+  public String toString(MachineDescription machDesc)
+  {
     StringWriter sw = new StringWriter(500);
     PrintWriter w = new PrintWriter(sw);
-    emit(w);
+    emit(w, machDesc);
     return sw.toString();
   }
 
@@ -195,7 +207,7 @@ public abstract class FunctionEmitter
   protected abstract void emitName(PrintWriter writer); 
   /** Returns the number of arguments emitted. */
   protected abstract int emitArguments(PrintWriter writer);  
-  protected abstract void emitBody(PrintWriter writer);
+  protected abstract void emitBody(PrintWriter writer, MachineDescription machDesc);
   
   public static class EmissionModifier
   {    

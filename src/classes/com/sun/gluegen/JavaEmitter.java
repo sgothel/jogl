@@ -85,14 +85,27 @@ public class JavaEmitter implements GlueEmitter {
   private PrintWriter javaImplWriter; // Only used in non-AllStatic modes for impl class
   private PrintWriter cWriter;
   private MachineDescription machDesc;
+  private MachineDescription machDesc32;
+  private MachineDescription machDesc64;
   
   public void readConfigurationFile(String filename) throws Exception {
     cfg = createConfig();
     cfg.read(filename);
   }
 
-  public void setMachineDescription(MachineDescription md) {
-    machDesc = md;
+  public void setMachineDescription(MachineDescription md32,
+                                    MachineDescription md64) {
+    if ((md32 == null) && (md64 == null)) {
+      throw new RuntimeException("Must specify at least one MachineDescription");
+    }
+
+    machDesc32 = md32;
+    machDesc64 = md64;
+    if (machDesc32 == null) {
+      machDesc = machDesc64;
+    } else {
+      machDesc = machDesc32;
+    }
   }
 
   public void beginEmission(GlueEmitterControls controls) throws IOException
@@ -280,7 +293,7 @@ public class JavaEmitter implements GlueEmitter {
     for (int i = 0; i < methodBindingEmitters.size(); ++i) {
       FunctionEmitter emitter = (FunctionEmitter)methodBindingEmitters.get(i);      
       try {
-        emitter.emit();
+        emitter.emit(machDesc);
       } catch (Exception e) {
         throw new RuntimeException(
             "Error while emitting binding for \"" + emitter.getName() + "\"", e);
@@ -341,6 +354,7 @@ public class JavaEmitter implements GlueEmitter {
     JavaMethodBindingEmitter emitter =
       new JavaMethodBindingEmitter(binding,
                                    writer,
+                                   machDesc,
                                    cfg.runtimeExceptionType(),
                                    !signatureOnly && needsBody,
                                    false,
@@ -403,6 +417,7 @@ public class JavaEmitter implements GlueEmitter {
         JavaMethodBindingEmitter emitter =
           new JavaMethodBindingEmitter(binding,
                                        writer,
+                                       machDesc,
                                        cfg.runtimeExceptionType(),
                                        false,
                                        true,
@@ -427,6 +442,7 @@ public class JavaEmitter implements GlueEmitter {
           emitter =
             new JavaMethodBindingEmitter(binding,
                                          writer,
+                                         machDesc,
                                          cfg.runtimeExceptionType(),
                                          false,
                                          true,
@@ -487,6 +503,7 @@ public class JavaEmitter implements GlueEmitter {
       CMethodBindingEmitter cEmitter =
         new CMethodBindingEmitter(binding,
                                   cWriter(),
+                                  machDesc,
                                   cfg.implPackageName(),
                                   cfg.implClassName(),
                                   true, /* NOTE: we always disambiguate with a suffix now, so this is optional */
@@ -511,6 +528,7 @@ public class JavaEmitter implements GlueEmitter {
         cEmitter =
           new CMethodBindingEmitter(binding,
                                     cWriter(),
+                                    machDesc,
                                     cfg.implPackageName(),
                                     cfg.implClassName(),
                                     true, /* NOTE: we always disambiguate with a suffix now, so this is optional */
@@ -642,6 +660,22 @@ public class JavaEmitter implements GlueEmitter {
   }
 
   public void emitStruct(CompoundType structType, String alternateName) throws Exception {
+    // Emit abstract base class delegating to 32-bit or 64-bit implementations
+    emitStructImpl(structType, alternateName, true, machDesc32, machDesc64);
+    // Emit concrete implementing class for each variant
+    if (machDesc32 != null) {
+      emitStructImpl(structType, alternateName, false, machDesc32, null);
+    }
+    if (machDesc64 != null) {
+      emitStructImpl(structType, alternateName, false, null, machDesc64);
+    }
+  }
+
+  public void emitStructImpl(CompoundType structType,
+                             String alternateName,
+                             boolean isAbstractBaseClass,
+                             MachineDescription md32,
+                             MachineDescription md64) throws Exception {
     String name = structType.getName();
     if (name == null && alternateName != null) {
       name = alternateName;
@@ -656,18 +690,42 @@ public class JavaEmitter implements GlueEmitter {
       return;
     }
 
-    Type containingCType = canonicalize(new PointerType(machDesc.pointerSizeInBytes(), structType, 0));
+    Type containingCType = canonicalize(new PointerType(SizeThunk.POINTER, structType, 0));
     JavaType containingType = typeToJavaType(containingCType, false);
     if (!containingType.isCompoundTypeWrapper()) {
       return;
     }
     String containingTypeName = containingType.getName();
 
+    if ((md32 == null) && (md64 == null)) {
+      throw new RuntimeException("Must supply at least one MachineDescription to emitStructImpl");
+    }
+    String suffix = "";
+    MachineDescription curMachDesc = null;
+    if (!isAbstractBaseClass) {
+      if ((md32 != null) && (md64 != null)) {
+        throw new RuntimeException("Must supply at most one MachineDescription to emitStructImpl when emitting concrete classes");
+      }
+
+      if (md32 != null) {
+        suffix = "32";
+        curMachDesc = md32;
+      } else {
+        suffix = "64";
+        curMachDesc = md64;
+      }
+    }
+
     boolean needsNativeCode = false;
-    for (int i = 0; i < structType.getNumFields(); i++) {
-      if (structType.getField(i).getType().isFunctionPointer()) {
-        needsNativeCode = true;
-        break;
+    // Native code for calls through function pointers gets emitted
+    // into the abstract base class; Java code which accesses fields
+    // gets emitted into the concrete classes
+    if (isAbstractBaseClass) {
+      for (int i = 0; i < structType.getNumFields(); i++) {
+        if (structType.getField(i).getType().isFunctionPointer()) {
+          needsNativeCode = true;
+          break;
+        }
       }
     }
 
@@ -679,7 +737,7 @@ public class JavaEmitter implements GlueEmitter {
       writer = openFile(
         cfg.javaOutputDir() + File.separator +
         CodeGenUtils.packageAsPath(structClassPkg) +
-        File.separator + containingTypeName + ".java");
+        File.separator + containingTypeName + suffix + ".java");
       CodeGenUtils.emitAutogeneratedWarning(writer, this);
       if (needsNativeCode) {
         String nRoot = cfg.nativeOutputDir();
@@ -717,7 +775,10 @@ public class JavaEmitter implements GlueEmitter {
       writer.println((String) iter.next());
     }
     writer.println();
-    writer.print("public class " + containingTypeName + " ");
+    writer.print((isAbstractBaseClass ? "public " : "") + (isAbstractBaseClass ? "abstract " : "") + "class " + containingTypeName + suffix + " ");
+    if (!isAbstractBaseClass) {
+      writer.print("extends " + containingTypeName + " ");
+    }
     boolean firstIteration = true;
     List/*<String>*/ userSpecifiedInterfaces = cfg.implementedInterfaces(containingTypeName);
     for (Iterator iter = userSpecifiedInterfaces.iterator(); iter.hasNext(); ) {
@@ -729,81 +790,127 @@ public class JavaEmitter implements GlueEmitter {
       writer.print(" ");
     }
     writer.println("{");
-    writer.println("  private StructAccessor accessor;");
-    writer.println();
+    if (isAbstractBaseClass) {
+      writer.println("  StructAccessor accessor;");
+      writer.println();
+    }
     writer.println("  public static int size() {");
-    writer.println("    return " + structType.getSize() + ";");
+    if (isAbstractBaseClass) {
+      writer.println("    if (CPU.is32Bit()) {");
+      if (md32 == null) {
+        writer.println("      throw new " + cfg.runtimeExceptionType() + "(\"32-bit architectures not supported with this autogenerated code\");");
+      } else {
+        writer.println("      return " + containingTypeName + "32" + ".size();");
+      }
+      writer.println("    } else {");
+      if (md64 == null) {
+        writer.println("      throw new " + cfg.runtimeExceptionType() + "(\"64-bit architectures not supported with this autogenerated code\");");
+      } else {
+        writer.println("      return " + containingTypeName + "64" + ".size();");
+      }
+      writer.println("    }");
+    } else {
+      writer.println("    return " + structType.getSize(curMachDesc) + ";");
+    }
     writer.println("  }");
     writer.println();
-    writer.println("  public " + containingTypeName + "() {");
-    writer.println("    this(BufferFactory.newDirectByteBuffer(size()));");
-    writer.println("  }");
-    writer.println();
-    writer.println("  public " + containingTypeName + "(ByteBuffer buf) {");
-    writer.println("    accessor = new StructAccessor(buf);");
-    writer.println("  }");
-    writer.println();
-    writer.println("  public ByteBuffer getBuffer() {");
-    writer.println("    return accessor.getBuffer();");
-    writer.println("  }");
+    if (isAbstractBaseClass) {
+      writer.println("  public static " + containingTypeName + " create() {");
+      writer.println("    return create(BufferFactory.newDirectByteBuffer(size()));");
+      writer.println("  }");
+      writer.println();
+      writer.println("  public static " + containingTypeName + " create(ByteBuffer buf) {");
+      writer.println("    if (CPU.is32Bit()) {");
+      if (md32 == null) {
+        writer.println("      throw new " + cfg.runtimeExceptionType() + "(\"32-bit architectures not supported with this autogenerated code\");");
+      } else {
+        writer.println("      return new " + containingTypeName + "32(buf);");
+      }
+      writer.println("    } else {");
+      if (md64 == null) {
+        writer.println("      throw new " + cfg.runtimeExceptionType() + "(\"64-bit architectures not supported with this autogenerated code\");");
+      } else {
+        writer.println("      return new " + containingTypeName + "64(buf);");
+      }
+      writer.println("    }");
+      writer.println("  }");
+      writer.println();
+      writer.println("  " + containingTypeName + "(ByteBuffer buf) {");
+      writer.println("    accessor = new StructAccessor(buf);");
+      writer.println("  }");
+      writer.println();
+      writer.println("  public ByteBuffer getBuffer() {");
+      writer.println("    return accessor.getBuffer();");
+      writer.println("  }");
+    } else {
+      writer.println("  " + containingTypeName + suffix + "(ByteBuffer buf) {");
+      writer.println("    super(buf);");
+      writer.println("  }");
+      writer.println();
+    }
     for (int i = 0; i < structType.getNumFields(); i++) {
       Field field = structType.getField(i);
       Type fieldType = field.getType();
       if (!cfg.shouldIgnore(name + " " + field.getName())) {
         if (fieldType.isFunctionPointer()) {
-          try {
-            // Emit method call and associated native code
-            FunctionType   funcType     = fieldType.asPointer().getTargetType().asFunction();
-            FunctionSymbol funcSym      = new FunctionSymbol(field.getName(), funcType);
-            MethodBinding  binding      = bindFunction(funcSym, containingType, containingCType);
-            binding.findThisPointer(); // FIXME: need to provide option to disable this on per-function basis
-            writer.println();
+          if (isAbstractBaseClass) {
+            try {
+              // Emit method call and associated native code
+              FunctionType   funcType     = fieldType.asPointer().getTargetType().asFunction();
+              FunctionSymbol funcSym      = new FunctionSymbol(field.getName(), funcType);
+              MethodBinding  binding      = bindFunction(funcSym, containingType, containingCType);
+              binding.findThisPointer(); // FIXME: need to provide option to disable this on per-function basis
+              writer.println();
 
-            // Emit public Java entry point for calling this function pointer
-            JavaMethodBindingEmitter emitter =
-              new JavaMethodBindingEmitter(binding,
-                                           writer,
-                                           cfg.runtimeExceptionType(),
-                                           true,
-                                           false,
-                                           true, // FIXME: should unify this with the general emission code
-                                           false,
-                                           false, // FIXME: should unify this with the general emission code
-                                           false, // FIXME: should unify this with the general emission code
-                                           false);
-            emitter.addModifier(JavaMethodBindingEmitter.PUBLIC);
-            emitter.emit();
+              // Emit public Java entry point for calling this function pointer
+              JavaMethodBindingEmitter emitter =
+                new JavaMethodBindingEmitter(binding,
+                                             writer,
+                                             machDesc,
+                                             cfg.runtimeExceptionType(),
+                                             true,
+                                             false,
+                                             true, // FIXME: should unify this with the general emission code
+                                             false,
+                                             false, // FIXME: should unify this with the general emission code
+                                             false, // FIXME: should unify this with the general emission code
+                                             false);
+              emitter.addModifier(JavaMethodBindingEmitter.PUBLIC);
+              emitter.emit(machDesc);
 
-            // Emit private native Java entry point for calling this function pointer
-            emitter =
-              new JavaMethodBindingEmitter(binding,
-                                           writer,
-                                           cfg.runtimeExceptionType(),
-                                           false,
-                                           true,
-                                           true, // FIXME: should unify this with the general emission code
-                                           true,
-                                           true, // FIXME: should unify this with the general emission code
-                                           false, // FIXME: should unify this with the general emission code
-                                           false);
-            emitter.addModifier(JavaMethodBindingEmitter.PRIVATE);
-            emitter.addModifier(JavaMethodBindingEmitter.NATIVE);
-            emitter.emit();
+              // Emit private native Java entry point for calling this function pointer
+              emitter =
+                new JavaMethodBindingEmitter(binding,
+                                             writer,
+                                             machDesc,
+                                             cfg.runtimeExceptionType(),
+                                             false,
+                                             true,
+                                             true, // FIXME: should unify this with the general emission code
+                                             true,
+                                             true, // FIXME: should unify this with the general emission code
+                                             false, // FIXME: should unify this with the general emission code
+                                             false);
+              emitter.addModifier(JavaMethodBindingEmitter.PRIVATE);
+              emitter.addModifier(JavaMethodBindingEmitter.NATIVE);
+              emitter.emit(machDesc);
 
-            // Emit (private) C entry point for calling this function pointer
-            CMethodBindingEmitter cEmitter =
-              new CMethodBindingEmitter(binding,
-                                        cWriter,
-                                        structClassPkg,
-                                        containingTypeName,
-                                        true, // FIXME: this is optional at this point
-                                        false,
-                                        true,
-                                        false); // FIXME: should unify this with the general emission code
-            cEmitter.emit();
-          } catch (Exception e) {
-            System.err.println("While processing field " + field + " of type " + name + ":");
-            throw(e);
+              // Emit (private) C entry point for calling this function pointer
+              CMethodBindingEmitter cEmitter =
+                new CMethodBindingEmitter(binding,
+                                          cWriter,
+                                          machDesc,
+                                          structClassPkg,
+                                          containingTypeName,
+                                          true, // FIXME: this is optional at this point
+                                          false,
+                                          true,
+                                          false); // FIXME: should unify this with the general emission code
+              cEmitter.emit(machDesc);
+            } catch (Exception e) {
+              System.err.println("While processing field " + field + " of type " + name + ":");
+              throw(e);
+            }
           }
         } else if (fieldType.isCompound()) {
           // FIXME: will need to support this at least in order to
@@ -815,15 +922,21 @@ public class JavaEmitter implements GlueEmitter {
           }
         
           writer.println();
-          writer.println("  public " + fieldType.getName() + " " + field.getName() + "() {");
-          writer.println("    return new " + fieldType.getName() + "(accessor.slice(" +
-                         field.getOffset() + ", " + fieldType.getSize() + "));");
-          writer.println("  }");
-
+          writer.print("  public " + (isAbstractBaseClass ? "abstract " : "") + fieldType.getName() + " " + field.getName() + "()");
+          if (isAbstractBaseClass) {
+            writer.println(";");
+          } else {
+            writer.println(" {");
+            writer.println("    return " + fieldType.getName() + ".create(accessor.slice(" +
+                           field.getOffset(machDesc) + ", " + fieldType.getSize(machDesc) + "));");
+            writer.println("  }");
+          }
           // FIXME: add setter by autogenerating "copyTo" for all compound type wrappers
         } else if (fieldType.isArray()) {
-          System.err.println("WARNING: Array fields (field \"" + field + "\" of type \"" + name +
-                             "\") not implemented yet");
+          if (!isAbstractBaseClass) {
+            System.err.println("WARNING: Array fields (field \"" + field + "\" of type \"" + name +
+                               "\") not implemented yet");
+          }
         } else {
           JavaType javaType = null;
           try {
@@ -843,26 +956,36 @@ public class JavaEmitter implements GlueEmitter {
             }
             String capitalized =
               "" + Character.toUpperCase(internalJavaTypeName.charAt(0)) + internalJavaTypeName.substring(1);
-            int slot = slot(fieldType, (int) field.getOffset());
+            int slot = slot(fieldType, (int) field.getOffset(machDesc));
             // Setter
             writer.println();
-            writer.println("  public " + containingTypeName + " " + field.getName() + "(" + externalJavaTypeName + " val) {");
-            writer.print  ("    accessor.set" + capitalized + "At(" + slot + ", ");
-            if (!externalJavaTypeName.equals(internalJavaTypeName)) {
-              writer.print("(" + internalJavaTypeName + ") ");
+            writer.print("  public " + (isAbstractBaseClass ? "abstract " : "") + containingTypeName + " " + field.getName() + "(" + externalJavaTypeName + " val)");
+            if (isAbstractBaseClass) {
+              writer.println(";");
+            } else {
+              writer.println(" {");
+              writer.print  ("    accessor.set" + capitalized + "At(" + slot + ", ");
+              if (!externalJavaTypeName.equals(internalJavaTypeName)) {
+                writer.print("(" + internalJavaTypeName + ") ");
+              }
+              writer.println("val);");
+              writer.println("    return this;");
+              writer.println("  }");
             }
-            writer.println("val);");
-            writer.println("    return this;");
-            writer.println("  }");
-            // Getter
             writer.println();
-            writer.println("  public " + externalJavaTypeName + " " + field.getName() + "() {");
-            writer.print  ("    return ");
-            if (!externalJavaTypeName.equals(internalJavaTypeName)) {
-              writer.print("(" + externalJavaTypeName + ") ");
+            // Getter
+            writer.print("  public " + (isAbstractBaseClass ? "abstract " : "") + externalJavaTypeName + " " + field.getName() + "()");
+            if (isAbstractBaseClass) {
+              writer.println(";");
+            } else {
+              writer.println(" {");
+              writer.print  ("    return ");
+              if (!externalJavaTypeName.equals(internalJavaTypeName)) {
+                writer.print("(" + externalJavaTypeName + ") ");
+              }
+              writer.println("accessor.get" + capitalized + "At(" + slot + ");");
+              writer.println("  }");
             }
-            writer.println("accessor.get" + capitalized + "At(" + slot + ");");
-            writer.println("  }");
           } else {
             // FIXME
             System.err.println("WARNING: Complicated fields (field \"" + field + "\" of type \"" + name +
@@ -873,7 +996,9 @@ public class JavaEmitter implements GlueEmitter {
         }
       }
     }
-    emitCustomJavaCode(writer, containingTypeName);
+    if (isAbstractBaseClass) {
+      emitCustomJavaCode(writer, containingTypeName);
+    }
     writer.println("}");
     writer.flush();
     writer.close();
@@ -904,13 +1029,13 @@ public class JavaEmitter implements GlueEmitter {
     }
     Type t = cType;
     if (t.isInt() || t.isEnum()) {
-      switch (t.getSize()) {
+      switch ((int) t.getSize(machDesc)) {
        case 1:  return javaType(Byte.TYPE);
        case 2:  return javaType(Short.TYPE);
        case 4:  return javaType(Integer.TYPE);
        case 8:  return javaType(Long.TYPE);
        default: throw new RuntimeException("Unknown integer type of size " +
-                                           t.getSize() + " and name " + t.getName());
+                                           t.getSize(machDesc) + " and name " + t.getName());
       }
     } else if (t.isFloat()) {
       return javaType(Float.TYPE);
@@ -936,13 +1061,13 @@ public class JavaEmitter implements GlueEmitter {
           if (targetType.isVoid()) {
             return JavaType.createForVoidPointer();
           } else if (targetType.isInt()) {
-            switch (targetType.getSize()) {
+            switch ((int) targetType.getSize(machDesc)) {
               case 1:  return JavaType.createForCCharPointer();
               case 2:  return JavaType.createForCShortPointer();
               case 4:  return JavaType.createForCInt32Pointer();
               case 8:  return JavaType.createForCInt64Pointer();
               default: throw new RuntimeException("Unknown integer array type of size " +
-                                                  t.getSize() + " and name " + t.getName());
+                                                  t.getSize(machDesc) + " and name " + t.getName());
             }
           } else if (targetType.isFloat()) {
             return JavaType.createForCFloatPointer();
@@ -990,13 +1115,13 @@ public class JavaEmitter implements GlueEmitter {
 
           if (bottomType.isPrimitive()) {
             if (bottomType.isInt()) {
-              switch (bottomType.getSize()) {
+              switch ((int) bottomType.getSize(machDesc)) {
                 case 1: return javaType(ArrayTypes.byteBufferArrayClass);
                 case 2: return javaType(ArrayTypes.shortBufferArrayClass);
                 case 4: return javaType(ArrayTypes.intBufferArrayClass);
                 case 8: return javaType(ArrayTypes.longBufferArrayClass);
                 default: throw new RuntimeException("Unknown two-dimensional integer array type of element size " +
-                                                    bottomType.getSize() + " and name " + bottomType.getName());
+                                                    bottomType.getSize(machDesc) + " and name " + bottomType.getName());
               }
             } else if (bottomType.isFloat()) {
               return javaType(ArrayTypes.floatBufferArrayClass);
@@ -1047,11 +1172,11 @@ public class JavaEmitter implements GlueEmitter {
 
   private int slot(Type t, int byteOffset) {
     if (t.isInt()) {
-      switch (t.getSize()) {
+      switch ((int) t.getSize(machDesc)) {
        case 1:  
        case 2:  
        case 4:  
-       case 8:  return byteOffset / t.getSize();
+       case 8:  return byteOffset / (int) t.getSize(machDesc);
        default: throw new RuntimeException("Illegal type");
       }
     } else if (t.isFloat()) {
@@ -1095,7 +1220,7 @@ public class JavaEmitter implements GlueEmitter {
       // FIXME
       throw new RuntimeException("Can't yet handle opaque definitions of structs' fields to non-integer types (byte, short, int, long, etc.)");
     }
-    switch (fieldType.getSize()) {
+    switch ((int) fieldType.getSize(machDesc)) {
       case 1:  return "byte";
       case 2:  return "short";
       case 4:  return "int";
@@ -1368,7 +1493,7 @@ public class JavaEmitter implements GlueEmitter {
       PointerType prt = sym.getReturnType().asPointer();
       if (prt == null ||
           prt.getTargetType().asInt() == null ||
-          prt.getTargetType().getSize() != 1) {
+          prt.getTargetType().getSize(machDesc) != 1) {
         throw new RuntimeException(
           "Cannot apply ReturnsString configuration directive to \"" + sym +
           "\". ReturnsString requires native method to have return type \"char *\"");

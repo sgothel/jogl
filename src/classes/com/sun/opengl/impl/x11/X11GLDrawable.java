@@ -100,7 +100,7 @@ public abstract class X11GLDrawable extends GLDrawableImpl {
       // use XGetVisualInfo with a VisualIDMask to get the
       // corresponding XVisualInfo to pass into glXChooseVisual.
       int[] count = new int[1];
-      XVisualInfo template = new XVisualInfo();
+      XVisualInfo template = XVisualInfo.create();
       // FIXME: probably not 64-bit clean
       template.visualid((int) visualID);
       lockAWT();
@@ -122,7 +122,7 @@ public abstract class X11GLDrawable extends GLDrawableImpl {
       int screen = 0; // FIXME: provide way to specify this?
       XVisualInfo vis = null;
       int[] count = new int[1];
-      XVisualInfo template = new XVisualInfo();
+      XVisualInfo template = XVisualInfo.create();
       template.screen(screen);
       XVisualInfo[] infos = null;
       GLCapabilities[] caps = null;

@@ -60,16 +60,14 @@ public class EnumType extends IntType {
   }
   private List/*<Enum>*/ enums;
   
-  private static final int longSizeBytes = 8;
-
   public EnumType(String name) {
-    super(name, longSizeBytes, false, CVAttributes.CONST ); 
-    this.underlyingType = new IntType(name, longSizeBytes, false, CVAttributes.CONST);
+    super(name, SizeThunk.LONG, false, CVAttributes.CONST ); 
+    this.underlyingType = new IntType(name, SizeThunk.LONG, false, CVAttributes.CONST);
   }
 
-  public EnumType(String name, int enumSizeBytes) {
-    super(name, enumSizeBytes, false, CVAttributes.CONST );
-    this.underlyingType = new IntType(name, enumSizeBytes, false, CVAttributes.CONST);
+  public EnumType(String name, SizeThunk enumSizeInBytes) {
+    super(name, enumSizeInBytes, false, CVAttributes.CONST );
+    this.underlyingType = new IntType(name, enumSizeInBytes, false, CVAttributes.CONST);
   }
 
   protected EnumType(String name, IntType underlyingType, int cvAttributes) {
