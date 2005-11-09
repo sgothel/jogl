@@ -166,16 +166,30 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
   private int   viewportX;
   private int   viewportY;
 
-  /** Creates a new GLJPanel component. The passed GLCapabilities must
-      be non-null and specifies the OpenGL capabilities for the
-      component. The GLCapabilitiesChooser must be non-null and
+  /** Creates a new GLJPanel component with a default set of OpenGL
+      capabilities and using the default OpenGL capabilities selection
+      mechanism. */
+  public GLJPanel() {
+    this(null);
+  }
+
+  /** Creates a new GLJPanel component with the requested set of
+      OpenGL capabilities, using the default OpenGL capabilities
+      selection mechanism. */
+  public GLJPanel(GLCapabilities capabilities) {
+    this(capabilities, null, null);
+  }
+
+  /** Creates a new GLJPanel component. The passed GLCapabilities
+      specifies the OpenGL capabilities for the component; if null, a
+      default set of capabilities is used. The GLCapabilitiesChooser
       specifies the algorithm for selecting one of the available
-      GLCapabilities for the component; the GLDrawableFactory uses a
-      DefaultGLCapabilitiesChooser if the user does not provide
-      one. The passed GLContext may be null and specifies an OpenGL
-      context with which to share textures, display lists and other
-      OpenGL state. */
-  protected GLJPanel(GLCapabilities capabilities, GLCapabilitiesChooser chooser, GLContext shareWith) {
+      GLCapabilities for the component; a DefaultGLCapabilitesChooser
+      is used if null is passed for this argument. The passed
+      GLContext specifies an OpenGL context with which to share
+      textures, display lists and other OpenGL state, and may be null
+      if sharing is not desired. */
+  public GLJPanel(GLCapabilities capabilities, GLCapabilitiesChooser chooser, GLContext shareWith) {
     super();
 
     // Works around problems on many vendors' cards; we don't need a

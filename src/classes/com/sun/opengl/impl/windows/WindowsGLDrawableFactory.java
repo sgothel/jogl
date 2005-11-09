@@ -40,8 +40,6 @@
 package com.sun.opengl.impl.windows;
 
 import java.awt.Component;
-import java.awt.GraphicsConfiguration;
-import java.awt.GraphicsDevice;
 import java.awt.Rectangle;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
@@ -64,9 +62,9 @@ public class WindowsGLDrawableFactory extends GLDrawableFactoryImpl {
     NativeLibLoader.loadCore();
   }
   
-  public GraphicsConfiguration chooseGraphicsConfiguration(GLCapabilities capabilities,
-                                                           GLCapabilitiesChooser chooser,
-                                                           GraphicsDevice device) {
+  public AbstractGraphicsConfiguration chooseGraphicsConfiguration(GLCapabilities capabilities,
+                                                                   GLCapabilitiesChooser chooser,
+                                                                   AbstractGraphicsDevice device) {
     return null;
   }
 

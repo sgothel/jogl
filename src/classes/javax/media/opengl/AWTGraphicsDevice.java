@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -20,7 +20,7 @@
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
  * PARTICULAR PURPOSE OR NON-INFRINGEMENT, ARE HEREBY EXCLUDED. SUN
- * MIDROSYSTEMS, INC. ("SUN") AND ITS LICENSORS SHALL NOT BE LIABLE FOR
+ * MICROSYSTEMS, INC. ("SUN") AND ITS LICENSORS SHALL NOT BE LIABLE FOR
  * ANY DAMAGES SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR
  * DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES. IN NO EVENT WILL SUN OR
  * ITS LICENSORS BE LIABLE FOR ANY LOST REVENUE, PROFIT OR DATA, OR FOR
@@ -37,27 +37,21 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-#include <jni.h>
+package javax.media.opengl;
 
-#ifdef _MSC_VER
- /* This typedef seems to be needed at least for VC6 and Visual Studio 2003 */
- #if _MSC_VER <= 1400
- typedef int intptr_t;
- #endif
-#else
- #include <inttypes.h>
-#endif
+import java.awt.GraphicsDevice;
 
-JNIEXPORT jobject JNICALL
-Java_com_sun_opengl_impl_InternalBufferUtils_newDirectByteBuffer(JNIEnv* env, jclass unused, jlong address, jint capacity) {
-  return (*env)->NewDirectByteBuffer(env, (void*) (intptr_t) address, capacity);
+/** A wrapper for an AWT GraphicsDevice allowing it to be
+    handled in a toolkit-independent manner. */
+
+public class AWTGraphicsDevice implements AbstractGraphicsDevice {
+  private GraphicsDevice device;
+
+  public AWTGraphicsDevice(GraphicsDevice device) {
+    this.device = device;
+  }
+
+  public GraphicsDevice getGraphicsDevice() {
+    return device;
+  }
 }
-
-#ifdef __sun
-#include <dlfcn.h>
-/* Sun's GLX implementation doesn't have glXGetProcAddressARB (or
-   glXGetProcAddress) so we implement it here */
-void (*glXGetProcAddressARB(const char *procname))() {
-  return (void (*)()) dlsym(RTLD_DEFAULT, procname);
-}
-#endif /* __ sun */

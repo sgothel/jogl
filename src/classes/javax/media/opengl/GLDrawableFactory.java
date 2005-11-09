@@ -39,8 +39,7 @@
 
 package javax.media.opengl;
 
-import java.awt.GraphicsConfiguration;
-import java.awt.GraphicsDevice;
+import java.security.*;
 import com.sun.opengl.impl.*;
 
 /** <P> Provides a virtual machine- and operating system-independent
@@ -67,6 +66,11 @@ import com.sun.opengl.impl.*;
     GLJPanel} if the capabilities can not be met. Pbuffers are always
     created immediately and their creation will fail with a {@link
     GLException} if errors occur. </P>
+
+    <P> The concrete GLDrawableFactory subclass instantiated by {@link
+    #getFactory getFactory} can be changed by setting the system
+    property <code>opengl.factory.class.name</code> to the
+    fully-qualified name of the desired class. </P>
 */
 
 public abstract class GLDrawableFactory {
@@ -78,6 +82,12 @@ public abstract class GLDrawableFactory {
   public static GLDrawableFactory getFactory() {
     if (factory == null) {
       try {
+        String factoryClassName =
+          (String) AccessController.doPrivileged(new PrivilegedAction() {
+              public Object run() {
+                return System.getProperty("opengl.factory.class.name");
+              }
+            });
         String osName = System.getProperty("os.name");
         String osNameLowerCase = osName.toLowerCase();
         Class factoryClass = null;
@@ -88,7 +98,9 @@ public abstract class GLDrawableFactory {
         // sources, which we currently don't have to do) we break the only
         // static dependencies with platform-specific code here using reflection.
 
-        if (osNameLowerCase.startsWith("wind")) {
+        if (factoryClassName != null) {
+          factoryClass = Class.forName(factoryClassName);
+        } else if (osNameLowerCase.startsWith("wind")) {
           factoryClass = Class.forName("com.sun.opengl.impl.windows.WindowsGLDrawableFactory");
         } else if (osNameLowerCase.startsWith("mac os x")) {
           factoryClass = Class.forName("com.sun.opengl.impl.macosx.MacOSXGLDrawableFactory");
@@ -102,11 +114,7 @@ public abstract class GLDrawableFactory {
         }
 
         factory = (GLDrawableFactory) factoryClass.newInstance();
-      } catch (ClassNotFoundException e) {
-        throw new GLException(e);
-      } catch (InstantiationException e) {
-        throw new GLException(e);
-      } catch (IllegalAccessException e) {
+      } catch (Exception e) {
         throw new GLException(e);
       }
     }
@@ -115,22 +123,28 @@ public abstract class GLDrawableFactory {
   }
 
   /**
-   * Selects an AWT GraphicsConfiguration on the specified
-   * GraphicsDevice compatible with the supplied GLCapabilities. This
-   * method is intended to be used by applications which do not use
-   * the supplied GLCanvas class but instead wrap their own Canvas
-   * with a GLDrawable. Some platforms (specifically X11) require the
-   * GraphicsConfiguration to be specified when the platform-specific
-   * window system object, such as a Canvas, is created. This method
-   * returns null on platforms on which the OpenGL pixel format
-   * selection process is performed later.
+   * <P> Selects a graphics configuration on the specified graphics
+   * device compatible with the supplied GLCapabilities. This method
+   * is intended to be used by applications which do not use the
+   * supplied GLCanvas class but instead wrap their own Canvas or
+   * other window toolkit-specific object with a GLDrawable. Some
+   * platforms (specifically X11) require the graphics configuration
+   * to be specified when the window toolkit object is created. This
+   * method returns null on platforms on which the OpenGL pixel format
+   * selection process is performed later. </P>
    *
-   * @see java.awt.Canvas#Canvas(java.awt.GraphicsConfiguration)
-   */
-  public abstract GraphicsConfiguration
+   * <P> The concrete data type of the passed graphics device and
+   * returned graphics configuration must be specified in the
+   * documentation binding this particular API to the underlying
+   * window toolkit. The Reference Implementation accepts {@link
+   * AWTGraphicsDevice AWTGraphicsDevice} objects and returns {@link
+   * AWTGraphicsConfiguration AWTGraphicsConfiguration} objects.
+   *
+   * @see java.awt.Canvas#Canvas(java.awt.GraphicsConfiguration) */
+  public abstract AbstractGraphicsConfiguration
     chooseGraphicsConfiguration(GLCapabilities capabilities,
                                 GLCapabilitiesChooser chooser,
-                                GraphicsDevice device);
+                                AbstractGraphicsDevice device);
 
   /**
    * Returns a GLDrawable that wraps a platform-specific window system
@@ -154,51 +168,6 @@ public abstract class GLDrawableFactory {
   
   //----------------------------------------------------------------------
   // Methods to create high-level objects
-
-  /** Creates a {@link GLCanvas} on the default graphics device with
-      the specified capabilities using the default capabilities
-      selection algorithm. */
-  public GLCanvas createGLCanvas(GLCapabilities capabilities) {
-    return createGLCanvas(capabilities, null, null, null);
-  }
-
-  /** Creates a {@link GLCanvas} on the specified graphics device with
-      the specified capabilities using the supplied capabilities
-      selection algorithm. A null chooser is equivalent to using the
-      {@link DefaultGLCapabilitiesChooser}.  The canvas will share
-      textures and display lists with the specified {@link GLContext};
-      the context must either be null or have been fabricated by
-      classes in this package. A null context indicates no sharing. A
-      null GraphicsDevice is equivalent to using that returned from
-      <code>GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice()</code>. */
-  public GLCanvas createGLCanvas(GLCapabilities capabilities,
-                                 GLCapabilitiesChooser chooser,
-                                 GLContext shareWith,
-                                 GraphicsDevice device) {
-    return new GLCanvas(capabilities,
-                        chooser,
-                        shareWith,
-                        device);
-  }
-
-  /** Creates a {@link GLJPanel} with the specified capabilities using
-      the default capabilities selection algorithm. */
-  public GLJPanel createGLJPanel(GLCapabilities capabilities) {
-    return createGLJPanel(capabilities, null, null);
-  }
-
-  /** Creates a {@link GLJPanel} with the specified capabilities using
-      the supplied capabilities selection algorithm. A null chooser is
-      equivalent to using the {@link DefaultGLCapabilitiesChooser}.
-      The panel will share textures and display lists with the
-      specified {@link GLContext}; the context must either be null or
-      have been fabricated by classes in this package. A null context
-      indicates no sharing. */
-  public GLJPanel createGLJPanel(GLCapabilities capabilities,
-                                 GLCapabilitiesChooser chooser,
-                                 GLContext shareWith) {
-    return new GLJPanel(capabilities, chooser, shareWith);
-  }
 
   /**
    * Returns true if it is possible to create a GLPbuffer. Some older

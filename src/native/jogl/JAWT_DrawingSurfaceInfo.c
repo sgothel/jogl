@@ -92,12 +92,3 @@ Java_com_sun_opengl_impl_JAWT_1DrawingSurfaceInfo_platformInfo0(JNIEnv* env, job
   }
   return (*env)->CallStaticObjectMethod(env, platformDSIClass, factoryMethod, dirbuf);
 }
-
-#ifdef __sun
-#include <dlfcn.h>
-/* Sun's GLX implementation doesn't have glXGetProcAddressARB (or
-   glXGetProcAddress) so we implement it here */
-void (*glXGetProcAddressARB(const char *procname))() {
-  return (void (*)()) dlsym(RTLD_DEFAULT, procname);
-}
-#endif /* __ sun */

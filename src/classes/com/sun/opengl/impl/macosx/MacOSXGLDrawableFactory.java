@@ -41,8 +41,6 @@ package com.sun.opengl.impl.macosx;
 
 import java.awt.Component;
 import java.awt.EventQueue;
-import java.awt.GraphicsConfiguration;
-import java.awt.GraphicsDevice;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
@@ -54,9 +52,9 @@ public class MacOSXGLDrawableFactory extends GLDrawableFactoryImpl {
     NativeLibLoader.loadCore();
   }
 
-  public GraphicsConfiguration chooseGraphicsConfiguration(GLCapabilities capabilities,
-                                                           GLCapabilitiesChooser chooser,
-                                                           GraphicsDevice device) {
+  public AbstractGraphicsConfiguration chooseGraphicsConfiguration(GLCapabilities capabilities,
+                                                                   GLCapabilitiesChooser chooser,
+                                                                   AbstractGraphicsDevice device) {
     return null;
   }
 

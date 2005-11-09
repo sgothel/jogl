@@ -78,17 +78,26 @@ public class X11GLDrawableFactory extends GLDrawableFactoryImpl {
 
   private static final int MAX_ATTRIBS = 128;
 
-  public GraphicsConfiguration chooseGraphicsConfiguration(GLCapabilities capabilities,
-                                                           GLCapabilitiesChooser chooser,
-                                                           GraphicsDevice device) {
+  public AbstractGraphicsConfiguration chooseGraphicsConfiguration(GLCapabilities capabilities,
+                                                                   GLCapabilitiesChooser chooser,
+                                                                   AbstractGraphicsDevice absDevice) {
     if (capabilities == null) {
       capabilities = new GLCapabilities();
     }
     if (chooser == null) {
       chooser = new DefaultGLCapabilitiesChooser();
     }
-    if (device == null) {
+    GraphicsDevice device = null;
+    if (absDevice != null &&
+        !(absDevice instanceof AWTGraphicsDevice)) {
+      throw new GLException("This GLDrawableFactory accepts only AWTGraphicsDevice objects");
+    }
+
+    if ((absDevice == null) ||
+        (((AWTGraphicsDevice) absDevice).getGraphicsDevice() == null)) {
       device = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+    } else {
+      device = ((AWTGraphicsDevice) absDevice).getGraphicsDevice();
     }
 
     int screen = X11SunJDKReflection.graphicsDeviceGetScreen(device);
@@ -142,7 +151,7 @@ public class X11GLDrawableFactory extends GLDrawableFactoryImpl {
       GraphicsConfiguration config = configs[i];
       if (config != null) {
         if (X11SunJDKReflection.graphicsConfigurationGetVisualID(config) == visualID) {
-          return config;
+          return new AWTGraphicsConfiguration(config);
         }
       }
     }
