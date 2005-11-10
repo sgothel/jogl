@@ -37,6 +37,7 @@ public Object getPlatformGLExtensions() {
   return _context.getPlatformGLExtensions();
 }
 
+private int[] bufTmp = new int[1];
 private void checkBufferObject(String extension1,
                                String extension2,
                                boolean enabled,
@@ -52,14 +53,13 @@ private void checkBufferObject(String extension1,
       return;
     throw new GLException("Required extensions not available to call this function");
   }
-  int[] val = new int[1];
-  glGetIntegerv(state, val, 0);
+  glGetIntegerv(state, bufTmp, 0);
   if (enabled) {
-    if (val[0] == 0) {
+    if (bufTmp[0] == 0) {
       throw new GLException(kind + " must be enabled to call this method");
     }
   } else {
-    if (val[0] != 0) {
+    if (bufTmp[0] != 0) {
       throw new GLException(kind + " must be disabled to call this method");
     }
   }
