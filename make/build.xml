@@ -1098,19 +1098,19 @@
         </jar>
         <jar destfile="${jogl.dist.dir}/jogl-natives-win32.jar"
              basedir="${jogl.dist.dir}/jogl-win32"
-             includes="jogl.dll,jogl_cg.dll" />
+             includes="jogl.dll,jogl_awt.dlljogl_cg.dll" />
         <jar destfile="${jogl.dist.dir}/jogl-natives-linux.jar"
              basedir="${jogl.dist.dir}/jogl-linux"
-             includes="libjogl.so,libjogl_cg.so" />
+             includes="libjogl.so,libjogl_awt.so,libjogl_cg.so" />
         <jar destfile="${jogl.dist.dir}/jogl-natives-macosx.jar"
              basedir="${jogl.dist.dir}/jogl-macosx"
-             includes="libjogl.jnilib,libjogl_cg.jnilib" />
+             includes="libjogl.jnilib,libjogl_awt.jnilib,libjogl_cg.jnilib" />
         <jar destfile="${jogl.dist.dir}/jogl-natives-solsparc.jar"
              basedir="${jogl.dist.dir}/jogl-solsparc"
-             includes="libjogl.so" />
+             includes="libjogl.so,libjogl_awt.so" />
         <jar destfile="${jogl.dist.dir}/jogl-natives-solx86.jar"
              basedir="${jogl.dist.dir}/jogl-solx86"
-             includes="libjogl.so" />
+             includes="libjogl.so,libjogl_awt.so" />
 	<!-- Build a source archive as well -->
         <zip destfile="${jogl.dist.dir}/jogl-src.zip"
 	     basedir="../.."
