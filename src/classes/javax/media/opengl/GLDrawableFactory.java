@@ -130,17 +130,24 @@ public abstract class GLDrawableFactory {
    * other window toolkit-specific object with a GLDrawable. Some
    * platforms (specifically X11) require the graphics configuration
    * to be specified when the window toolkit object is created. This
-   * method returns null on platforms on which the OpenGL pixel format
-   * selection process is performed later. </P>
+   * method may return null on platforms on which the OpenGL pixel
+   * format selection process is performed later. </P>
    *
    * <P> The concrete data type of the passed graphics device and
    * returned graphics configuration must be specified in the
    * documentation binding this particular API to the underlying
    * window toolkit. The Reference Implementation accepts {@link
    * AWTGraphicsDevice AWTGraphicsDevice} objects and returns {@link
-   * AWTGraphicsConfiguration AWTGraphicsConfiguration} objects.
+   * AWTGraphicsConfiguration AWTGraphicsConfiguration} objects. </P>
    *
-   * @see java.awt.Canvas#Canvas(java.awt.GraphicsConfiguration) */
+   * @see java.awt.Canvas#Canvas(java.awt.GraphicsConfiguration)
+   *
+   * @throws IllegalArgumentException if the data type of the passed
+   *         AbstractGraphicsDevice is not supported by this
+   *         GLDrawableFactory.
+   * @throws GLException if any window system-specific errors caused
+   *         the selection of the graphics configuration to fail.
+   */
   public abstract AbstractGraphicsConfiguration
     chooseGraphicsConfiguration(GLCapabilities capabilities,
                                 GLCapabilitiesChooser chooser,

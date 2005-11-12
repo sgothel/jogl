@@ -90,7 +90,7 @@ public class X11GLDrawableFactory extends GLDrawableFactoryImpl {
     GraphicsDevice device = null;
     if (absDevice != null &&
         !(absDevice instanceof AWTGraphicsDevice)) {
-      throw new GLException("This GLDrawableFactory accepts only AWTGraphicsDevice objects");
+      throw new IllegalArgumentException("This GLDrawableFactory accepts only AWTGraphicsDevice objects");
     }
 
     if ((absDevice == null) ||
