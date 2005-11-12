@@ -58,9 +58,7 @@ import com.sun.opengl.impl.*;
     when adding a heavyweight doesn't work either because of
     Z-ordering or LayoutManager problems. This component attempts to
     use hardware-accelerated rendering via pbuffers and falls back on
-    to software rendering if problems occur. This class can not be
-    instantiated directly; use {@link GLDrawableFactory} to construct
-    them. <P>
+    to software rendering if problems occur. <P>
 
     Note that because this component attempts to use pbuffers for
     rendering, and because pbuffers can not be resized, somewhat

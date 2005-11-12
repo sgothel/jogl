@@ -56,9 +56,7 @@ import com.sun.opengl.impl.*;
     support. This is the primary implementation of {@link GLDrawable};
     {@link GLJPanel} is provided for compatibility with Swing user
     interfaces when adding a heavyweight doesn't work either because
-    of Z-ordering or LayoutManager problems. This class can not be
-    instantiated directly; use {@link GLDrawableFactory} to construct
-    them. */
+    of Z-ordering or LayoutManager problems. */
 
 public class GLCanvas extends Canvas implements GLAutoDrawable {
 
