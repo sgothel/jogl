@@ -41,6 +41,7 @@ package com.sun.opengl.impl;
 
 import javax.media.opengl.*;
 import java.util.*;
+import java.util.regex.*;
 import java.awt.Canvas;
 import java.awt.Graphics;
 import java.awt.GraphicsConfiguration;
@@ -310,12 +311,36 @@ public final class FunctionAvailabilityCache {
           StringTokenizer tok = new StringTokenizer(versionString, ". ");
           major = Integer.valueOf(tok.nextToken()).intValue();
           minor = Integer.valueOf(tok.nextToken()).intValue();
+
+          // See if there's version-specific information which might
+          // imply a more recent OpenGL version
+          tok = new StringTokenizer(versionString, " ");
+          if (tok.hasMoreTokens()) {
+            tok.nextToken();
+            if (tok.hasMoreTokens()) {
+              Pattern p = Pattern.compile("\\D*(\\d+)\\.(\\d+)\\.?(\\d*).*");
+              Matcher m = p.matcher(tok.nextToken());
+              if (m.matches()) {
+                int altMajor = Integer.valueOf(m.group(1)).intValue();
+                int altMinor = Integer.valueOf(m.group(2)).intValue();
+                // Avoid possibly confusing situations by requiring
+                // major version to match
+                if (altMajor == major &&
+                    altMinor >  minor) {
+                  minor = altMinor;
+                }
+              }
+            }
+          }
         }
       }
       catch (Exception e)
       {
-        throw new IllegalArgumentException(
-          "Illegally formatted version identifier: \"" + versionString + "\"");
+        e.printStackTrace();
+        throw (IllegalArgumentException)
+          new IllegalArgumentException(
+            "Illegally formatted version identifier: \"" + versionString + "\"")
+              .initCause(e);
       }
     }
 
