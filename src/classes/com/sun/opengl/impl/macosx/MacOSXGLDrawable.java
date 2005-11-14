@@ -39,8 +39,6 @@
 
 package com.sun.opengl.impl.macosx;
 
-import java.awt.Component;
-
 import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
 
