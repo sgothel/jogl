@@ -81,7 +81,7 @@ public abstract class WindowsGLDrawable extends GLDrawableImpl {
     return hdc;
   }
 
-  public void choosePixelFormat(boolean onscreen) {
+  protected void choosePixelFormat(boolean onscreen) {
     PIXELFORMATDESCRIPTOR pfd = null;
     int pixelFormat = 0;
     if (onscreen) {
@@ -337,7 +337,7 @@ public abstract class WindowsGLDrawable extends GLDrawableImpl {
     pixelFormatChosen = true;
   }
 
-  static PIXELFORMATDESCRIPTOR glCapabilities2PFD(GLCapabilities caps, boolean onscreen) {
+  protected static PIXELFORMATDESCRIPTOR glCapabilities2PFD(GLCapabilities caps, boolean onscreen) {
     int colorDepth = (caps.getRedBits() +
                       caps.getGreenBits() +
                       caps.getBlueBits());
@@ -376,14 +376,14 @@ public abstract class WindowsGLDrawable extends GLDrawableImpl {
     return pfd;
   }
 
-  static PIXELFORMATDESCRIPTOR newPixelFormatDescriptor() {
+  protected static PIXELFORMATDESCRIPTOR newPixelFormatDescriptor() {
     PIXELFORMATDESCRIPTOR pfd = PIXELFORMATDESCRIPTOR.create();
     pfd.nSize((short) pfd.size());
     pfd.nVersion((short) 1);
     return pfd;
   }
 
-  static GLCapabilities pfd2GLCapabilities(PIXELFORMATDESCRIPTOR pfd) {
+  protected static GLCapabilities pfd2GLCapabilities(PIXELFORMATDESCRIPTOR pfd) {
     if ((pfd.dwFlags() & WGL.PFD_SUPPORT_OPENGL) == 0) {
       return null;
     }
@@ -405,10 +405,10 @@ public abstract class WindowsGLDrawable extends GLDrawableImpl {
     return res;
   }
 
-  static GLCapabilities iattributes2GLCapabilities(int[] iattribs,
-                                                   int[] iresults,
-                                                   int   niattribs,
-                                                   boolean requireRenderToWindow) {
+  protected static GLCapabilities iattributes2GLCapabilities(int[] iattribs,
+                                                             int[] iresults,
+                                                             int   niattribs,
+                                                             boolean requireRenderToWindow) {
     GLCapabilities res = new GLCapabilities();
     for (int i = 0; i < niattribs; i++) {
       switch (iattribs[i]) {
