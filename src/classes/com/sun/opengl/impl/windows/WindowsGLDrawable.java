@@ -39,10 +39,6 @@
 
 package com.sun.opengl.impl.windows;
 
-import java.awt.Component;
-import java.awt.GraphicsConfiguration;
-import java.awt.GraphicsDevice;
-
 import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
 
@@ -50,7 +46,6 @@ public abstract class WindowsGLDrawable extends GLDrawableImpl {
   protected static final boolean DEBUG = Debug.debug("WindowsGLDrawable");
 
   protected long hdc;
-  protected Component component;
   protected GLCapabilities capabilities;
   protected GLCapabilitiesChooser chooser;
   protected boolean pixelFormatChosen;
@@ -58,10 +53,8 @@ public abstract class WindowsGLDrawable extends GLDrawableImpl {
   protected static final int MAX_PFORMATS = 256;
   protected static final int MAX_ATTRIBS  = 256;
 
-  public WindowsGLDrawable(Component component,
-                           GLCapabilities capabilities,
+  public WindowsGLDrawable(GLCapabilities capabilities,
                            GLCapabilitiesChooser chooser) {
-    this.component = component;
     this.capabilities = (GLCapabilities) capabilities.clone();
     this.chooser = chooser;
   }

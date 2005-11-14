@@ -44,7 +44,7 @@ import com.sun.opengl.impl.*;
 
 public class WindowsExternalGLDrawable extends WindowsGLDrawable {
   public WindowsExternalGLDrawable() {
-    super(null, new GLCapabilities(), null);
+    super(new GLCapabilities(), null);
     hdc = WGL.wglGetCurrentDC();
   }
 

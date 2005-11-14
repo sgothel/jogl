@@ -49,7 +49,7 @@ public class X11ExternalGLDrawable extends X11GLDrawable {
   private long readDrawable;
 
   public X11ExternalGLDrawable() {
-    super(null, null, null);
+    super(null, null);
     lockToolkit();
     try {
       display = GLX.glXGetCurrentDisplay();

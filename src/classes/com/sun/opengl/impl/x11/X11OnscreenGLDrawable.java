@@ -49,6 +49,8 @@ public class X11OnscreenGLDrawable extends X11GLDrawable {
   public static final int LOCK_SURFACE_CHANGED = 2;
   public static final int LOCK_SUCCESS = 3;
 
+  protected Component component;
+
   // Variables for lockSurface/unlockSurface
   private JAWT_DrawingSurface ds;
   private JAWT_DrawingSurfaceInfo dsi;
@@ -67,7 +69,8 @@ public class X11OnscreenGLDrawable extends X11GLDrawable {
   protected boolean realized;
 
   public X11OnscreenGLDrawable(Component component) {
-    super(component, null, null);
+    super(null, null);
+    this.component = component;
   }
 
   public GLContext createContext(GLContext shareWith) {

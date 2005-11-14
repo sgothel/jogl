@@ -39,8 +39,6 @@
 
 package com.sun.opengl.impl.x11;
 
-import java.awt.Component;
-
 import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
 
@@ -50,14 +48,11 @@ public abstract class X11GLDrawable extends GLDrawableImpl {
   protected long display;
   protected long drawable;
   protected long visualID;
-  protected Component component;
   protected GLCapabilities capabilities;
   protected GLCapabilitiesChooser chooser;
 
-  public X11GLDrawable(Component component,
-                       GLCapabilities capabilities,
+  public X11GLDrawable(GLCapabilities capabilities,
                        GLCapabilitiesChooser chooser) {
-    this.component = component;
     this.capabilities = (capabilities == null) ? null :
       ((GLCapabilities) capabilities.clone());
     this.chooser = chooser;

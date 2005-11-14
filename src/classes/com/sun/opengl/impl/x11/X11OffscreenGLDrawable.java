@@ -51,7 +51,7 @@ public class X11OffscreenGLDrawable extends X11GLDrawable {
 
   public X11OffscreenGLDrawable(GLCapabilities capabilities,
                                 GLCapabilitiesChooser chooser) {
-    super(null, capabilities, chooser);
+    super(capabilities, chooser);
   }
 
   public GLContext createContext(GLContext shareWith) {

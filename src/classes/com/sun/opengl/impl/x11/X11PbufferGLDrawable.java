@@ -55,7 +55,7 @@ public class X11PbufferGLDrawable extends X11GLDrawable {
   protected static final int MAX_ATTRIBS  = 256;
 
   public X11PbufferGLDrawable(GLCapabilities capabilities, int initialWidth, int initialHeight) {
-    super(null, capabilities, null);
+    super(capabilities, null);
     this.initWidth  = initialWidth;
     this.initHeight = initialHeight;
     if (initWidth <= 0 || initHeight <= 0) {

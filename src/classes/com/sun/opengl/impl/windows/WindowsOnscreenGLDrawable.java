@@ -49,6 +49,8 @@ public class WindowsOnscreenGLDrawable extends WindowsGLDrawable {
   public static final int LOCK_SURFACE_CHANGED = 2;
   public static final int LOCK_SUCCESS = 3;
 
+  protected Component component;
+
   // Variables for lockSurface/unlockSurface
   private JAWT_DrawingSurface ds;
   private JAWT_DrawingSurfaceInfo dsi;
@@ -69,7 +71,8 @@ public class WindowsOnscreenGLDrawable extends WindowsGLDrawable {
   public WindowsOnscreenGLDrawable(Component component,
                                    GLCapabilities capabilities,
                                    GLCapabilitiesChooser chooser) {
-    super(component, capabilities, chooser);
+    super(capabilities, chooser);
+    this.component = component;
   }
 
   public GLContext createContext(GLContext shareWith) {

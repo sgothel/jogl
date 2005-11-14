@@ -59,7 +59,7 @@ public class WindowsPbufferGLDrawable extends WindowsGLDrawable {
                                   int initialHeight,
                                   WindowsGLDrawable dummyDrawable,
                                   WGLExt wglExt) {
-    super(null, capabilities, null);
+    super(capabilities, null);
     this.initWidth  = initialWidth;
     this.initHeight = initialHeight;
     if (initWidth <= 0 || initHeight <= 0) {

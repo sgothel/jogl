@@ -46,7 +46,7 @@ public class WindowsDummyGLDrawable extends WindowsGLDrawable {
   private long hwnd;
 
   public WindowsDummyGLDrawable() {
-    super(null, new GLCapabilities(), null);
+    super(new GLCapabilities(), null);
     // All entries to CreateDummyWindow must synchronize on one object
     // to avoid accidentally registering the dummy window class twice
     synchronized (WindowsDummyGLDrawable.class) {

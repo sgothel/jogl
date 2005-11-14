@@ -51,7 +51,7 @@ public class WindowsOffscreenGLDrawable extends WindowsGLDrawable {
 
   public WindowsOffscreenGLDrawable(GLCapabilities capabilities,
                                     GLCapabilitiesChooser chooser) {
-    super(null, capabilities, chooser);
+    super(capabilities, chooser);
   }
 
   public GLContext createContext(GLContext shareWith) {
