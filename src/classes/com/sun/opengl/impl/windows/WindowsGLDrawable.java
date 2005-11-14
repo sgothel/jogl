@@ -99,8 +99,6 @@ public abstract class WindowsGLDrawable extends GLDrawableImpl {
       GLCapabilities[] availableCaps = null;
       int numFormats = 0;
       pfd = newPixelFormatDescriptor();
-      GraphicsConfiguration config = component.getGraphicsConfiguration();
-      GraphicsDevice device = config.getDevice();
       // Produce a recommended pixel format selection for the GLCapabilitiesChooser.
       // Use wglChoosePixelFormatARB if user requested multisampling and if we have it available
       WindowsGLDrawable dummyDrawable = null;
