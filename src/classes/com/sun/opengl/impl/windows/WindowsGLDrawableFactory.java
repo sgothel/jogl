@@ -124,6 +124,7 @@ public class WindowsGLDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   public GLPbuffer createGLPbuffer(final GLCapabilities capabilities,
+                                   final GLCapabilitiesChooser chooser,
                                    final int initialWidth,
                                    final int initialHeight,
                                    final GLContext shareWith) {

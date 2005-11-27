@@ -564,6 +564,7 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
           }
           try {
             pbuffer = GLDrawableFactory.getFactory().createGLPbuffer(offscreenCaps,
+                                                                     null,
                                                                      pbufferWidth,
                                                                      pbufferHeight,
                                                                      shareWith);

@@ -45,15 +45,17 @@ import com.sun.opengl.impl.*;
 /** <P> Provides a virtual machine- and operating system-independent
     mechanism for creating {@link GLDrawable}s. </P>
 
-    <P> The {@link javax.media.opengl.GLCapabilities} objects passed in to the
-    various factory methods are used as a hint for the properties of
-    the returned drawable. The default capabilities selection
-    algorithm (equivalent to passing in a null {@link
+    <P> The {@link javax.media.opengl.GLCapabilities} objects passed
+    in to the various factory methods are used as a hint for the
+    properties of the returned drawable. The default capabilities
+    selection algorithm (equivalent to passing in a null {@link
     GLCapabilitiesChooser}) is described in {@link
     DefaultGLCapabilitiesChooser}. Sophisticated applications needing
     to change the selection algorithm may pass in their own {@link
     GLCapabilitiesChooser} which can select from the available pixel
-    formats. </P>
+    formats. The GLCapabilitiesChooser mechanism may not be supported
+    by all implementations or on all platforms, in which case any
+    passed GLCapabilitiesChooser will be ignored. </P>
 
     <P> Because of the multithreaded nature of the Java platform's
     window system toolkit, it is typically not possible to immediately
@@ -186,6 +188,7 @@ public abstract class GLDrawableFactory {
    * Creates a GLPbuffer with the given capabilites and dimensions.
    */
   public abstract GLPbuffer createGLPbuffer(GLCapabilities capabilities,
+                                            GLCapabilitiesChooser chooser,
                                             int initialWidth,
                                             int initialHeight,
                                             GLContext shareWith);
