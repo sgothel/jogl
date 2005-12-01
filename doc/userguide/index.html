@@ -16,6 +16,7 @@
   <UL>
     <LI> Local installation for development
     <LI> Java Web Start integration
+    <LI> Applet support
   </UL>
   <LI> Creating a GLDrawable
   <LI> Writing a GLEventListener
@@ -156,6 +157,38 @@ JNLP file is
 <PRE>
   &lt;extension name="jogl" href="https://jogl.dev.java.net/webstart/jogl-1-1.jnlp" /&gt;
 </PRE>
+
+</P>
+
+<H3> Applet support </H3>
+
+<P>
+
+Lilian Chamontin, in conjunction with several other members of the
+JOGL community, has contributed a JOGL applet installer. This
+installer uses some clever tricks to allow deployment of unsigned
+applets which use JOGL into existing web browsers and JREs as far back
+as 1.4.2, which is the earliest version of Java supported by JOGL.
+
+</P>
+<P>
+
+The JOGLAppletInstaller is distributed inside jogl.jar as a utility
+class in com.sun.opengl.utils. It requires that the developer host a
+local, signed copy of jogl.jar and all of the jogl-natives jars; the
+certificates must be the same on all of these jars. Note that in the
+release builds of JOGL all of these jars are signed by Sun
+Microsystems, so the developer can deploy applets without needing any
+certificates.
+
+</P>
+<P>
+
+The JOGLAppletInstaller javadoc describes the basic steps for
+deployment of an applet utilizing JOGL. Please refer to this
+documentation for more information. A live example of deploying an
+unsigned JOGL applet will be added to this documentation shortly once
+the first signed build of the JOGLAppletInstaller has been shipped.
 
 </P>
 
