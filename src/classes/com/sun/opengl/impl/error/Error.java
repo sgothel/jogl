@@ -77,9 +77,9 @@ public class Error {
     if( (errorCode >= GLU.GLU_INVALID_ENUM) && (errorCode <= GLU.GLU_INVALID_OPERATION) ) {
       return( gluErrorStrings[ errorCode - GLU.GLU_INVALID_ENUM ] );
     }
-    if( (errorCode >= GLU.GLU_NURBS_ERROR1) && (errorCode <= GLU.GLU_NURBS_ERROR37) ) {
-      return( gluErrorStrings[ errorCode - (GLU.GLU_NURBS_ERROR1 - 1) ] );
-    }
+//    if( (errorCode >= GLU.GLU_NURBS_ERROR1) && (errorCode <= GLU.GLU_NURBS_ERROR37) ) {
+//      return( gluErrorStrings[ errorCode - (GLU.GLU_NURBS_ERROR1 - 1) ] );
+//    }
     if( (errorCode >= GLU.GLU_TESS_ERROR1) && (errorCode <= GLU.GLU_TESS_ERROR8) ) {
       return( gluErrorStrings[ errorCode - (GLU.GLU_TESS_ERROR1 - 1) ] );
     }
