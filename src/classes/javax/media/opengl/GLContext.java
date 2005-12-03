@@ -123,12 +123,11 @@ public abstract class GLContext {
   }
 
   /**
-   * Sets the current context object on the current thread. This
-   * method is called by GLContext implementations during {@link
-   * #makeCurrent} and does not need to be called by end users.
-   *
+   * Sets the thread-local variable returned by {@link #getCurrent}
+   * and has no other side-effects. For use by third parties adding
+   * new GLContext implementations; not for use by end users.
    */
-  public static void setCurrent(GLContext cur) {
+  protected static void setCurrent(GLContext cur) {
     currentContext.set(cur);
   }
   
