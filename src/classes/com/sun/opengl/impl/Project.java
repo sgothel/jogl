@@ -126,8 +126,16 @@ public class Project {
       0.0, 0.0, 1.0, 0.0,
       0.0, 0.0, 0.0, 1.0 };
 
-  private final DoubleBuffer matrix = BufferUtils.newDoubleBuffer(16);
-  private final double[] finalMatrix = new double[16];
+  // Note that we have cloned parts of the implementation in order to
+  // support incoming Buffers. The reason for this is to avoid loading
+  // non-direct buffer subclasses unnecessarily, because doing so can
+  // cause performance decreases on direct buffer operations, at least
+  // on the current HotSpot JVM. It would be nicer (and make the code
+  // simpler) to simply have the array-based entry points delegate to
+  // the versions taking Buffers by wrapping the arrays.
+
+  // Array-based implementation
+  private final double[] matrix = new double[16];
 
   private final double[][] tempMatrix = new double[4][4];
   private final double[] in = new double[4];
@@ -136,6 +144,49 @@ public class Project {
   private final double[] forward = new double[3];
   private final double[] side = new double[3];
   private final double[] up = new double[3];
+  
+  // Buffer-based implementation
+  private final DoubleBuffer matrixBuf;
+
+  private final DoubleBuffer tempMatrixBuf;
+  private final DoubleBuffer inBuf;
+  private final DoubleBuffer outBuf;
+
+  private final DoubleBuffer forwardBuf;
+  private final DoubleBuffer sideBuf;
+  private final DoubleBuffer upBuf;
+
+  public Project() {
+    // Use direct buffers to avoid loading indirect buffer
+    // implementations for applications trying to avoid doing so.
+    // Slice up one big buffer because some NIO implementations
+    // allocate a huge amount of memory to back even the smallest of
+    // buffers.
+    DoubleBuffer buf = BufferUtils.newDoubleBuffer(128);
+    int pos = 0;
+    int sz = 16;
+    matrixBuf = slice(buf, pos, sz);
+    pos += sz;
+    tempMatrixBuf = slice(buf, pos, sz);
+    pos += sz;
+    sz = 4;
+    inBuf = slice(buf, pos, sz);
+    pos += sz;
+    outBuf = slice(buf, pos, sz);
+    pos += sz;
+    sz = 3;
+    forwardBuf = slice(buf, pos, sz);
+    pos += sz;
+    sideBuf = slice(buf, pos, sz);
+    pos += sz;
+    upBuf = slice(buf, pos, sz);
+  }
+
+  private static DoubleBuffer slice(DoubleBuffer buf, int pos, int len) {
+    buf.position(pos);
+    buf.limit(pos + len);
+    return buf.slice();
+  }
 
   /**
    * Make matrix an identity matrix
@@ -146,6 +197,9 @@ public class Project {
     m.position(oldPos);
   }
 
+  /**
+   * Make matrix an identity matrix
+   */
   private void __gluMakeIdentityd(double[] m) {
     for (int i = 0; i < 16; i++) {
       m[i] = IDENTITY_MATRIX[i];
@@ -170,6 +224,26 @@ public class Project {
   }
 
   /**
+   * Method __gluMultMatrixVecd
+   * 
+   * @param matrix
+   * @param in
+   * @param out
+   */
+  private void __gluMultMatrixVecd(DoubleBuffer matrix, DoubleBuffer in, DoubleBuffer out) {
+    int inPos = in.position();
+    int outPos = out.position();
+    int matrixPos = matrix.position();
+    for (int i = 0; i < 4; i++) {
+      out.put(i + outPos,
+              in.get(0+inPos) * matrix.get(0*4+i+matrixPos) +
+              in.get(1+inPos) * matrix.get(1*4+i+matrixPos) +
+              in.get(2+inPos) * matrix.get(2*4+i+matrixPos) +
+              in.get(3+inPos) * matrix.get(3*4+i+matrixPos));
+    }
+  }
+
+  /**
    * @param src
    * @param inverse
    * 
@@ -188,9 +262,9 @@ public class Project {
     __gluMakeIdentityd(inverse);
 
     for (i = 0; i < 4; i++) {
-      /*
-       * * Look for largest element in column
-       */
+      //
+      // Look for largest element in column
+      //
       swap = i;
       for (j = i + 1; j < 4; j++) {
         if (Math.abs(temp[j][i]) > Math.abs(temp[i][i])) {
@@ -199,9 +273,9 @@ public class Project {
       }
 
       if (swap != i) {
-        /*
-         * * Swap rows.
-         */
+        //
+        // Swap rows.
+        //
         for (k = 0; k < 4; k++) {
           t = temp[i][k];
           temp[i][k] = temp[swap][k];
@@ -214,10 +288,10 @@ public class Project {
       }
 
       if (temp[i][i] == 0) {
-        /*
-         * No non-zero pivot. The matrix is singular, which shouldn't
-         * happen. This means the user gave us a bad matrix.
-         */
+        //
+        // No non-zero pivot. The matrix is singular, which shouldn't
+        // happen. This means the user gave us a bad matrix.
+        //
         return false;
       }
 
@@ -240,6 +314,81 @@ public class Project {
   }
 
   /**
+   * @param src
+   * @param inverse
+   * 
+   * @return
+   */
+  private boolean __gluInvertMatrixd(DoubleBuffer src, DoubleBuffer inverse) {
+    int i, j, k, swap;
+    double t;
+
+    int srcPos = src.position();
+    int invPos = inverse.position();
+
+    DoubleBuffer temp = tempMatrixBuf;
+
+    for (i = 0; i < 4; i++) {
+      for (j = 0; j < 4; j++) {
+        temp.put(i*4+j, src.get(i*4+j + srcPos));
+      }
+    }
+    __gluMakeIdentityd(inverse);
+
+    for (i = 0; i < 4; i++) {
+      //
+      // Look for largest element in column
+      //
+      swap = i;
+      for (j = i + 1; j < 4; j++) {
+        if (Math.abs(temp.get(j*4+i)) > Math.abs(temp.get(i*4+i))) {
+          swap = j;
+        }
+      }
+
+      if (swap != i) {
+        //
+        // Swap rows.
+        //
+        for (k = 0; k < 4; k++) {
+          t = temp.get(i*4+k);
+          temp.put(i*4+k, temp.get(swap*4+k));
+          temp.put(swap*4+k, t);
+
+          t = inverse.get(i*4+k + invPos);
+          inverse.put(i*4+k + invPos, inverse.get(swap*4+k + invPos));
+          inverse.put(swap*4+k + invPos, t);
+        }
+      }
+
+      if (temp.get(i*4+i) == 0) {
+        //
+        // No non-zero pivot. The matrix is singular, which shouldn't
+        // happen. This means the user gave us a bad matrix.
+        //
+        return false;
+      }
+
+      t = temp.get(i*4+i);
+      for (k = 0; k < 4; k++) {
+        temp.put(i*4+k, temp.get(i*4+k) / t);
+        inverse.put(i*4+k + invPos, inverse.get(i*4+k + invPos) / t);
+      }
+      for (j = 0; j < 4; j++) {
+        if (j != i) {
+          t = temp.get(j*4+i);
+          for (k = 0; k < 4; k++) {
+            temp.put(j*4+k, temp.get(j*4+k) - temp.get(i*4+k) * t);
+            inverse.put(j*4+k + invPos, inverse.get(j*4+k + invPos) - inverse.get(i*4+k + invPos) * t);
+          }
+        }
+      }
+    }
+    return true;
+  }
+
+
+  /**
    * @param a
    * @param b
    * @param r
@@ -252,6 +401,28 @@ public class Project {
           a[i*4+1+a_offset]*b[1*4+j+b_offset] +
           a[i*4+2+a_offset]*b[2*4+j+b_offset] +
           a[i*4+3+a_offset]*b[3*4+j+b_offset];
+      }
+    }
+  }
+
+
+  /**
+   * @param a
+   * @param b
+   * @param r
+   */
+  private void __gluMultMatricesd(DoubleBuffer a, DoubleBuffer b, DoubleBuffer r) {
+    int aPos = a.position();
+    int bPos = b.position();
+    int rPos = r.position();
+
+    for (int i = 0; i < 4; i++) {
+      for (int j = 0; j < 4; j++) {
+        r.put(i*4+j + rPos,
+          a.get(i*4+0+aPos)*b.get(0*4+j+bPos) +
+          a.get(i*4+1+aPos)*b.get(1*4+j+bPos) +
+          a.get(i*4+2+aPos)*b.get(2*4+j+bPos) +
+          a.get(i*4+3+aPos)*b.get(3*4+j+bPos));
       }
     }
   }
@@ -278,6 +449,32 @@ public class Project {
   }
 
   /**
+   * Normalize vector
+   *
+   * @param v
+   */
+  private static void normalize(DoubleBuffer v) {
+    double r;
+
+    int vPos = v.position();
+
+    r = Math.sqrt(v.get(0+vPos) * v.get(0+vPos) +
+                  v.get(1+vPos) * v.get(1+vPos) +
+                  v.get(2+vPos) * v.get(2+vPos));
+    if ( r == 0.0 )
+      return;
+
+    r = 1.0 / r;
+
+    v.put(0+vPos, v.get(0+vPos) * r);
+    v.put(1+vPos, v.get(1+vPos) * r);
+    v.put(2+vPos, v.get(2+vPos) * r);
+
+    return;
+  }
+
+
+  /**
    * Calculate cross-product
    *
    * @param v1
@@ -288,6 +485,23 @@ public class Project {
     result[0] = v1[1] * v2[2] - v1[2] * v2[1];
     result[1] = v1[2] * v2[0] - v1[0] * v2[2];
     result[2] = v1[0] * v2[1] - v1[1] * v2[0];
+  }
+
+  /**
+   * Calculate cross-product
+   *
+   * @param v1
+   * @param v2
+   * @param result
+   */
+  private static void cross(DoubleBuffer v1, DoubleBuffer v2, DoubleBuffer result) {
+    int v1Pos = v1.position();
+    int v2Pos = v2.position();
+    int rPos  = result.position();
+
+    result.put(0+rPos, v1.get(1+v1Pos) * v2.get(2+v2Pos) - v1.get(2+v1Pos) * v2.get(1+v2Pos));
+    result.put(1+rPos, v1.get(2+v1Pos) * v2.get(0+v2Pos) - v1.get(0+v1Pos) * v2.get(2+v2Pos));
+    result.put(2+rPos, v1.get(0+v1Pos) * v2.get(1+v2Pos) - v1.get(1+v1Pos) * v2.get(0+v2Pos));
   }
 
   /**
@@ -323,16 +537,16 @@ public class Project {
 
     cotangent = Math.cos(radians) / sine;
 
-    __gluMakeIdentityd(matrix);
+    __gluMakeIdentityd(matrixBuf);
 
-    matrix.put(0 * 4 + 0, cotangent / aspect);
-    matrix.put(1 * 4 + 1, cotangent);
-    matrix.put(2 * 4 + 2, - (zFar + zNear) / deltaZ);
-    matrix.put(2 * 4 + 3, -1);
-    matrix.put(3 * 4 + 2, -2 * zNear * zFar / deltaZ);
-    matrix.put(3 * 4 + 3, 0);
+    matrixBuf.put(0 * 4 + 0, cotangent / aspect);
+    matrixBuf.put(1 * 4 + 1, cotangent);
+    matrixBuf.put(2 * 4 + 2, - (zFar + zNear) / deltaZ);
+    matrixBuf.put(2 * 4 + 3, -1);
+    matrixBuf.put(3 * 4 + 2, -2 * zNear * zFar / deltaZ);
+    matrixBuf.put(3 * 4 + 3, 0);
 
-    gl.glMultMatrixd(matrix);
+    gl.glMultMatrixd(matrixBuf);
   }
 
   /**
@@ -358,17 +572,17 @@ public class Project {
                         double upx,
                         double upy,
                         double upz) {
-    double[] forward = this.forward;
-    double[] side = this.side;
-    double[] up = this.up;
+    DoubleBuffer forward = this.forwardBuf;
+    DoubleBuffer side = this.sideBuf;
+    DoubleBuffer up = this.upBuf;
 
-    forward[0] = centerx - eyex;
-    forward[1] = centery - eyey;
-    forward[2] = centerz - eyez;
+    forward.put(0, centerx - eyex);
+    forward.put(1, centery - eyey);
+    forward.put(2, centerz - eyez);
 
-    up[0] = upx;
-    up[1] = upy;
-    up[2] = upz;
+    up.put(0, upx);
+    up.put(1, upy);
+    up.put(2, upz);
 
     normalize(forward);
 
@@ -379,20 +593,20 @@ public class Project {
     /* Recompute up as: up = side x forward */
     cross(side, forward, up);
 
-    __gluMakeIdentityd(matrix);
-    matrix.put(0 * 4 + 0, side[0]);
-    matrix.put(1 * 4 + 0, side[1]);
-    matrix.put(2 * 4 + 0, side[2]);
+    __gluMakeIdentityd(matrixBuf);
+    matrixBuf.put(0 * 4 + 0, side.get(0));
+    matrixBuf.put(1 * 4 + 0, side.get(1));
+    matrixBuf.put(2 * 4 + 0, side.get(2));
 
-    matrix.put(0 * 4 + 1, up[0]);
-    matrix.put(1 * 4 + 1, up[1]);
-    matrix.put(2 * 4 + 1, up[2]);
+    matrixBuf.put(0 * 4 + 1, up.get(0));
+    matrixBuf.put(1 * 4 + 1, up.get(1));
+    matrixBuf.put(2 * 4 + 1, up.get(2));
 
-    matrix.put(0 * 4 + 2, -forward[0]);
-    matrix.put(1 * 4 + 2, -forward[1]);
-    matrix.put(2 * 4 + 2, -forward[2]);
+    matrixBuf.put(0 * 4 + 2, -forward.get(0));
+    matrixBuf.put(1 * 4 + 2, -forward.get(1));
+    matrixBuf.put(2 * 4 + 2, -forward.get(2));
 
-    gl.glMultMatrixd(matrix);
+    gl.glMultMatrixd(matrixBuf);
     gl.glTranslated(-eyex, -eyey, -eyez);
   }
 
@@ -451,6 +665,59 @@ public class Project {
   }
 
   /**
+   * Method gluProject
+   * 
+   * @param objx
+   * @param objy
+   * @param objz
+   * @param modelMatrix
+   * @param projMatrix
+   * @param viewport
+   * @param win_pos
+   * 
+   * @return
+   */
+  public boolean gluProject(double objx,
+                            double objy,
+                            double objz,
+                            DoubleBuffer modelMatrix,
+                            DoubleBuffer projMatrix,
+                            IntBuffer viewport,
+                            DoubleBuffer win_pos) {
+
+    DoubleBuffer in = this.inBuf;
+    DoubleBuffer out = this.outBuf;
+
+    in.put(0, objx);
+    in.put(1, objy);
+    in.put(2, objz);
+    in.put(3, 1.0);
+
+    __gluMultMatrixVecd(modelMatrix, in, out);
+    __gluMultMatrixVecd(projMatrix, out, in);
+
+    if (in.get(3) == 0.0)
+      return false;
+
+    in.put(3, (1.0 / in.get(3)) * 0.5);
+
+    // Map x, y and z to range 0-1
+    in.put(0, in.get(0) * in.get(3) + 0.5f);
+    in.put(1, in.get(1) * in.get(3) + 0.5f);
+    in.put(2, in.get(2) * in.get(3) + 0.5f);
+
+    // Map x,y to viewport
+    int vPos = viewport.position();
+    int wPos = win_pos.position();
+    win_pos.put(0+wPos, in.get(0) * viewport.get(2+vPos) + viewport.get(0+vPos));
+    win_pos.put(1+wPos, in.get(1) * viewport.get(3+vPos) + viewport.get(1+vPos));
+    win_pos.put(2+wPos, in.get(2));
+
+    return true;
+  }
+
+
+  /**
    * Method gluUnproject
    * 
    * @param winx
@@ -477,9 +744,9 @@ public class Project {
     double[] in = this.in;
     double[] out = this.out;
 
-    __gluMultMatricesd(modelMatrix, modelMatrix_offset, projMatrix, projMatrix_offset, finalMatrix);
+    __gluMultMatricesd(modelMatrix, modelMatrix_offset, projMatrix, projMatrix_offset, matrix);
 
-    if (!__gluInvertMatrixd(finalMatrix, finalMatrix))
+    if (!__gluInvertMatrixd(matrix, matrix))
       return false;
 
     in[0] = winx;
@@ -496,7 +763,7 @@ public class Project {
     in[1] = in[1] * 2 - 1;
     in[2] = in[2] * 2 - 1;
 
-    __gluMultMatrixVecd(finalMatrix, 0, in, out);
+    __gluMultMatrixVecd(matrix, 0, in, out);
 
     if (out[3] == 0.0)
       return false;
@@ -509,6 +776,66 @@ public class Project {
 
     return true;
   }
+
+
+  /**
+   * Method gluUnproject
+   * 
+   * @param winx
+   * @param winy
+   * @param winz
+   * @param modelMatrix
+   * @param projMatrix
+   * @param viewport
+   * @param obj_pos
+   * 
+   * @return
+   */
+  public boolean gluUnProject(double winx,
+                              double winy,
+                              double winz,
+                              DoubleBuffer modelMatrix,
+                              DoubleBuffer projMatrix,
+                              IntBuffer viewport,
+                              DoubleBuffer obj_pos) {
+    DoubleBuffer in = this.inBuf;
+    DoubleBuffer out = this.outBuf;
+
+    __gluMultMatricesd(modelMatrix, projMatrix, matrixBuf);
+
+    if (!__gluInvertMatrixd(matrixBuf, matrixBuf))
+      return false;
+
+    in.put(0, winx);
+    in.put(1, winy);
+    in.put(2, winz);
+    in.put(3, 1.0);
+
+    // Map x and y from window coordinates
+    int vPos = viewport.position();
+    int oPos = obj_pos.position();
+    in.put(0, (in.get(0) - viewport.get(0+vPos)) / viewport.get(2+vPos));
+    in.put(1, (in.get(1) - viewport.get(1+vPos)) / viewport.get(3+vPos));
+
+    // Map to range -1 to 1
+    in.put(0, in.get(0) * 2 - 1);
+    in.put(1, in.get(1) * 2 - 1);
+    in.put(2, in.get(2) * 2 - 1);
+
+    __gluMultMatrixVecd(matrixBuf, in, out);
+
+    if (out.get(3) == 0.0)
+      return false;
+
+    out.put(3, 1.0 / out.get(3));
+
+    obj_pos.put(0+oPos, out.get(0) * out.get(3));
+    obj_pos.put(1+oPos, out.get(1) * out.get(3));
+    obj_pos.put(2+oPos, out.get(2) * out.get(3));
+
+    return true;
+  }
+
 
   /**
    * Method gluUnproject4
@@ -543,9 +870,9 @@ public class Project {
     double[] in = this.in;
     double[] out = this.out;
 
-    __gluMultMatricesd(modelMatrix, modelMatrix_offset, projMatrix, projMatrix_offset, finalMatrix);
+    __gluMultMatricesd(modelMatrix, modelMatrix_offset, projMatrix, projMatrix_offset, matrix);
 
-    if (!__gluInvertMatrixd(finalMatrix, finalMatrix))
+    if (!__gluInvertMatrixd(matrix, matrix))
       return false;
 
     in[0] = winx;
@@ -563,7 +890,7 @@ public class Project {
     in[1] = in[1] * 2 - 1;
     in[2] = in[2] * 2 - 1;
 
-    __gluMultMatrixVecd(finalMatrix, 0, in, out);
+    __gluMultMatrixVecd(matrix, 0, in, out);
 
     if (out[3] == 0.0)
       return false;
@@ -574,6 +901,70 @@ public class Project {
     obj_pos[3+obj_pos_offset] = out[3];
     return true;
   }
+
+  /**
+   * Method gluUnproject4
+   * 
+   * @param winx
+   * @param winy
+   * @param winz
+   * @param clipw
+   * @param modelMatrix
+   * @param projMatrix
+   * @param viewport
+   * @param near
+   * @param far
+   * @param obj_pos
+   * 
+   * @return
+   */
+  public boolean gluUnProject4(double winx,
+                               double winy,
+                               double winz,
+                               double clipw,
+                               DoubleBuffer modelMatrix,
+                               DoubleBuffer projMatrix,
+                               IntBuffer viewport,
+                               double near,
+                               double far,
+                               DoubleBuffer obj_pos) {
+    DoubleBuffer in = this.inBuf;
+    DoubleBuffer out = this.outBuf;
+
+    __gluMultMatricesd(modelMatrix, projMatrix, matrixBuf);
+
+    if (!__gluInvertMatrixd(matrixBuf, matrixBuf))
+      return false;
+
+    in.put(0, winx);
+    in.put(1, winy);
+    in.put(2, winz);
+    in.put(3, clipw);
+
+    // Map x and y from window coordinates
+    int vPos = viewport.position();
+    in.put(0, (in.get(0) - viewport.get(0+vPos)) / viewport.get(2+vPos));
+    in.put(1, (in.get(1) - viewport.get(1+vPos)) / viewport.get(3+vPos));
+    in.put(2, (in.get(2) - near) / (far - near));
+
+    // Map to range -1 to 1
+    in.put(0, in.get(0) * 2 - 1);
+    in.put(1, in.get(1) * 2 - 1);
+    in.put(2, in.get(2) * 2 - 1);
+
+    __gluMultMatrixVecd(matrixBuf, in, out);
+
+    if (out.get(3) == 0.0)
+      return false;
+
+    int oPos = obj_pos.position();
+    obj_pos.put(0+oPos, out.get(0));
+    obj_pos.put(1+oPos, out.get(1));
+    obj_pos.put(2+oPos, out.get(2));
+    obj_pos.put(3+oPos, out.get(3));
+    return true;
+  }
+
 
   /**
    * Method gluPickMatrix
@@ -595,8 +986,9 @@ public class Project {
     }
 
     /* Translate and scale the picked region to the entire window */
-    gl.glTranslated((viewport.get(2) - 2 * (x - viewport.get(0))) / deltaX,
-                    (viewport.get(3) - 2 * (y - viewport.get(1))) / deltaY,
+    int vPos = viewport.position();
+    gl.glTranslated((viewport.get(2+vPos) - 2 * (x - viewport.get(0+vPos))) / deltaX,
+                    (viewport.get(3+vPos) - 2 * (y - viewport.get(1+vPos))) / deltaY,
                     0);
     gl.glScaled(viewport.get(2) / deltaX, viewport.get(3) / deltaY, 1.0);
   }

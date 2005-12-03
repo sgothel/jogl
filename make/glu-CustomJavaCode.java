@@ -1018,12 +1018,30 @@ public boolean gluProject(double objX, double objY, double objZ, double[] model,
   return res;
 }
 
+/** Interface to C language function: <br> <code> GLint gluProject(GLdouble objX, GLdouble objY, GLdouble objZ, const GLdouble *  model, const GLdouble *  proj, const GLint *  view, GLdouble *  winX, GLdouble *  winY, GLdouble *  winZ); </code>    */
+public boolean gluProject(double objX, double objY, double objZ, DoubleBuffer model, DoubleBuffer proj, IntBuffer view, DoubleBuffer winX, DoubleBuffer winY, DoubleBuffer winZ) {
+  DoubleBuffer tmp = BufferUtils.newDoubleBuffer(3);
+  boolean res = project.gluProject(objX, objY, objZ, model, proj, view, tmp);
+  winX.put(winX.position(), tmp.get(0));
+  winY.put(winY.position(), tmp.get(1));
+  winZ.put(winZ.position(), tmp.get(2));
+  return res;
+}
+
 /**
  * Convenience routine for gluProject that accepts the outgoing window
  * coordinates as a single array.
  */
 public boolean gluProject(double objX, double objY, double objZ, double[] model, int model_offset, double[] proj, int proj_offset, int[] view, int view_offset, double[] winPos, int winPos_offset) {
   return project.gluProject(objX, objY, objZ, model, model_offset, proj, proj_offset, view, view_offset, winPos, winPos_offset);
+}
+
+/**
+ * Convenience routine for gluProject that accepts the outgoing window
+ * coordinates as a single buffer.
+ */
+public boolean gluProject(double objX, double objY, double objZ, DoubleBuffer model, DoubleBuffer proj, IntBuffer view, DoubleBuffer winPos) {
+  return project.gluProject(objX, objY, objZ, model, proj, view, winPos);
 }
 
 /** Interface to C language function: <br> <code> GLint gluUnProject(GLdouble winX, GLdouble winY, GLdouble winZ, const GLdouble *  model, const GLdouble *  proj, const GLint *  view, GLdouble *  objX, GLdouble *  objY, GLdouble *  objZ); </code>    */
@@ -1036,12 +1054,30 @@ public boolean gluUnProject(double winX, double winY, double winZ, double[] mode
   return res;
 }
 
+/** Interface to C language function: <br> <code> GLint gluUnProject(GLdouble winX, GLdouble winY, GLdouble winZ, const GLdouble *  model, const GLdouble *  proj, const GLint *  view, GLdouble *  objX, GLdouble *  objY, GLdouble *  objZ); </code>    */
+public boolean gluUnProject(double winX, double winY, double winZ, DoubleBuffer model, int model_offset, DoubleBuffer proj, IntBuffer view, DoubleBuffer objX, DoubleBuffer objY, DoubleBuffer objZ) {
+  DoubleBuffer tmp = BufferUtils.newDoubleBuffer(3);
+  boolean res = project.gluUnProject(winX, winY, winZ, model, proj, view, tmp);
+  objX.put(objX.position(), tmp.get(0));
+  objY.put(objY.position(), tmp.get(1));
+  objZ.put(objZ.position(), tmp.get(2));
+  return res;
+}
+
 /**
  * Convenience routine for gluUnProject that accepts the outgoing
  * object coordinates (a 3-vector) as a single array.
  */
 public boolean gluUnProject(double winX, double winY, double winZ, double[] model, int model_offset, double[] proj, int proj_offset, int[] view, int view_offset, double[] objPos, int objPos_offset) {
   return project.gluUnProject(winX, winY, winZ, model, model_offset, proj, proj_offset, view, view_offset, objPos, objPos_offset);
+}
+
+/**
+ * Convenience routine for gluUnProject that accepts the outgoing
+ * object coordinates (a 3-vector) as a single buffer.
+ */
+public boolean gluUnProject(double winX, double winY, double winZ, DoubleBuffer model, DoubleBuffer proj, IntBuffer view, DoubleBuffer objPos) {
+  return project.gluUnProject(winX, winY, winZ, model, proj, view, objPos);
 }
 
 /** Interface to C language function: <br> <code> GLint gluUnProject4(GLdouble winX, GLdouble winY, GLdouble winZ, GLdouble clipW, const GLdouble *  model, const GLdouble *  proj, const GLint *  view, GLdouble nearVal, GLdouble farVal, GLdouble *  objX, GLdouble *  objY, GLdouble *  objZ, GLdouble *  objW); </code>    */
@@ -1056,12 +1092,32 @@ public boolean gluUnProject4(double winX, double winY, double winZ, double clipW
   return res;
 }
 
+/** Interface to C language function: <br> <code> GLint gluUnProject4(GLdouble winX, GLdouble winY, GLdouble winZ, GLdouble clipW, const GLdouble *  model, const GLdouble *  proj, const GLint *  view, GLdouble nearVal, GLdouble farVal, GLdouble *  objX, GLdouble *  objY, GLdouble *  objZ, GLdouble *  objW); </code>    */
+public boolean gluUnProject4(double winX, double winY, double winZ, double clipW, DoubleBuffer model, DoubleBuffer proj, IntBuffer view, double nearVal, double farVal, DoubleBuffer objX, DoubleBuffer objY, DoubleBuffer objZ, DoubleBuffer objW) {
+  DoubleBuffer tmp = BufferUtils.newDoubleBuffer(4);
+  boolean res = project.gluUnProject4(winX, winY, winZ, clipW, model, proj,
+                    view, nearVal, farVal, tmp);
+  objX.put(objX.position(), tmp.get(0));
+  objY.put(objY.position(), tmp.get(1));
+  objZ.put(objZ.position(), tmp.get(2));
+  objW.put(objW.position(), tmp.get(3));
+  return res;
+}
+
 /**
  * Convenience routine for gluUnProject4 that accepts the outgoing
  * object coordinates (a 4-vector) as a single array.
  */
 public boolean gluUnProject4(double winX, double winY, double winZ, double clipW, double[] model, int model_offset, double[] proj, int proj_offset, int[] view, int view_offset, double nearVal, double farVal, double[] objPos, int objPos_offset) {
   return project.gluUnProject4(winX, winY, winZ, clipW, model, model_offset, proj, proj_offset, view, view_offset, nearVal, farVal, objPos, objPos_offset);
+}
+
+/**
+ * Convenience routine for gluUnProject4 that accepts the outgoing
+ * object coordinates (a 4-vector) as a single buffer.
+ */
+public boolean gluUnProject4(double winX, double winY, double winZ, double clipW, DoubleBuffer model, DoubleBuffer proj, IntBuffer view, double nearVal, double farVal, DoubleBuffer objPos) {
+  return project.gluUnProject4(winX, winY, winZ, clipW, model, proj, view, nearVal, farVal, objPos);
 }
 
 public void gluPickMatrix(double x, double y, double delX, double delY, int[] viewport, int viewport_offset) {
