@@ -153,7 +153,8 @@ public abstract class GLDrawableFactory {
   public abstract AbstractGraphicsConfiguration
     chooseGraphicsConfiguration(GLCapabilities capabilities,
                                 GLCapabilitiesChooser chooser,
-                                AbstractGraphicsDevice device);
+                                AbstractGraphicsDevice device)
+    throws IllegalArgumentException, GLException;
 
   /**
    * Returns a GLDrawable that wraps a platform-specific window system
