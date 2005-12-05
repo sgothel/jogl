@@ -106,8 +106,7 @@ public class MacOSXGLDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   public GLContext createExternalGLContext() {
-    // FIXME
-    throw new GLException("Not yet implemented");
+    return new MacOSXExternalGLContext();
   }
 
   public boolean canCreateExternalGLDrawable() {

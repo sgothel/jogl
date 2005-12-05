@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -39,70 +39,58 @@
 
 package com.sun.opengl.impl.macosx;
 
-import java.util.*;
-
 import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
 
-public class MacOSXOnscreenGLContext extends MacOSXGLContext {
-  protected MacOSXOnscreenGLDrawable drawable;
+public class MacOSXExternalGLContext extends MacOSXGLContext {
+  private boolean firstMakeCurrent = true;
+  private boolean created = true;
 
-  public MacOSXOnscreenGLContext(MacOSXOnscreenGLDrawable drawable,
-                                 GLContext shareWith) {
-    super(drawable, shareWith);
-    this.drawable = drawable;
+  public MacOSXExternalGLContext() {
+    super(null, null);
+
+    // FIXME: we don't have a "current context" primitive implemented
+    // yet on OS X. In the current implementation this would need to
+    // return an NSOpenGLContext*, but "external" toolkits are not
+    // guaranteed to be using the Cocoa OpenGL API. Additionally, if
+    // we switched this implementation to use the low-level CGL APIs,
+    // we would lose the ability to share textures and display lists
+    // between contexts since you need an NSOpenGLContext, not a
+    // CGLContextObj, in order to share textures and display lists
+    // between two NSOpenGLContexts.
+    //
+    // The ramifications here are that it is not currently possible to
+    // share textures and display lists between an OpenGL context
+    // created by JOGL and one created by a third-party library on OS
+    // X.
+
+    // context = CGL.CGLGetCurrentContext();
+
+    GLContextShareSet.contextCreated(this);
+    resetGLFunctionAvailability();
   }
 
   protected boolean create() {
-    return create(true, false);
+    return true;
   }
 
   protected int makeCurrentImpl() throws GLException {
-    try {
-      int lockRes = drawable.lockSurface();
-      if (lockRes == MacOSXOnscreenGLDrawable.LOCK_SURFACE_NOT_READY) {
-        return CONTEXT_NOT_CURRENT;
-      }
-      if (lockRes == MacOSXOnscreenGLDrawable.LOCK_SURFACE_CHANGED) {
-        super.destroy();
-      }
-      int ret = super.makeCurrentImpl();
-      if ((ret == CONTEXT_CURRENT) ||
-          (ret == CONTEXT_CURRENT_NEW)) {
-        // Assume the canvas might have been resized or moved and tell the OpenGL
-        // context to update itself. This used to be done only upon receiving a
-        // reshape event but that doesn't appear to be sufficient. An experiment
-        // was also done to add a HierarchyBoundsListener to the GLCanvas and
-        // do this updating only upon reshape of this component or reshape or movement
-        // of an ancestor, but this also wasn't sufficient and left garbage on the
-        // screen in some situations.
-        CGL.updateContext(nsContext, drawable.getView());
-      } else {
-        // View might not have been ready
-        drawable.unlockSurface();
-      }
-      return ret;
-    } catch (RuntimeException e) {
-      try {
-        drawable.unlockSurface();
-      } catch (Exception e2) {
-        // do nothing if unlockSurface throws
-      }
-      throw(e); 
+    if (firstMakeCurrent) {
+      firstMakeCurrent = false;
+      return CONTEXT_CURRENT_NEW;
     }
+    return CONTEXT_CURRENT;
   }
-    
+
   protected void releaseImpl() throws GLException {
-    try {
-      super.releaseImpl();
-    } finally {
-      drawable.unlockSurface();
-    }
   }
-    
-  public void swapBuffers() throws GLException {
-    if (!CGL.flushBuffer(nsContext, drawable.getView())) {
-      throw new GLException("Error swapping buffers");
-    }
+
+  protected void destroyImpl() throws GLException {
+    created = false;
+    GLContextShareSet.contextDestroyed(this);
+  }
+
+  public boolean isCreated() {
+    return created;
   }
 }
