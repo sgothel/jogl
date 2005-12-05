@@ -187,12 +187,16 @@ public abstract class GLDrawableFactory {
 
   /**
    * Creates a GLPbuffer with the given capabilites and dimensions.
+   *
+   * @throws GLException if any window system-specific errors caused
+   *         the creation of the GLPbuffer to fail.
    */
   public abstract GLPbuffer createGLPbuffer(GLCapabilities capabilities,
                                             GLCapabilitiesChooser chooser,
                                             int initialWidth,
                                             int initialHeight,
-                                            GLContext shareWith);
+                                            GLContext shareWith)
+    throws GLException;
 
   //----------------------------------------------------------------------
   // Methods for interacting with third-party OpenGL libraries
@@ -215,8 +219,12 @@ public abstract class GLDrawableFactory {
    * the <code>GLContext</code>. A new <code>GLContext</code> object
    * should be created for each newly-created underlying OpenGL
    * context.
+   *
+   * @throws GLException if any window system-specific errors caused
+   *         the creation of the external GLContext to fail.
    */
-  public abstract GLContext createExternalGLContext();
+  public abstract GLContext createExternalGLContext()
+    throws GLException;
 
   /**
    * Returns true if it is possible to create an external GLDrawable
@@ -257,6 +265,10 @@ public abstract class GLDrawableFactory {
    * {@link #canCreateExternalGLDrawable} should be called first to
    * see if it is present. For example, on X11 platforms, this API
    * requires the presence of GLX 1.3 or later.
+   *
+   * @throws GLException if any window system-specific errors caused
+   *         the creation of the external GLDrawable to fail.
    */
-  public abstract GLDrawable createExternalGLDrawable();
+  public abstract GLDrawable createExternalGLDrawable()
+    throws GLException;
 }
