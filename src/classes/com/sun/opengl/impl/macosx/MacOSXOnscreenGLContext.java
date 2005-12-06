@@ -53,10 +53,6 @@ public class MacOSXOnscreenGLContext extends MacOSXGLContext {
     this.drawable = drawable;
   }
 
-  protected boolean create() {
-    return create(true, false);
-  }
-
   protected int makeCurrentImpl() throws GLException {
     try {
       int lockRes = drawable.lockSurface();
