@@ -80,8 +80,10 @@ void* createContext(void* shareContext, void* view,
   attribs[idx++] = NSOpenGLPFADepthSize;     attribs[idx++] = depthBits;
   attribs[idx++] = NSOpenGLPFAStencilSize;   attribs[idx++] = stencilBits;
   attribs[idx++] = NSOpenGLPFAAccumSize;     attribs[idx++] = accumSize;
-  attribs[idx++] = NSOpenGLPFASampleBuffers; attribs[idx++] = sampleBuffers;
-  attribs[idx++] = NSOpenGLPFASamples;       attribs[idx++] = numSamples;
+  if (sampleBuffers != 0) {
+    attribs[idx++] = NSOpenGLPFASampleBuffers; attribs[idx++] = sampleBuffers;
+    attribs[idx++] = NSOpenGLPFASamples;       attribs[idx++] = numSamples;
+  }
   attribs[idx++] = 0;
 	
   NSOpenGLPixelFormat* fmt = [[NSOpenGLPixelFormat alloc]

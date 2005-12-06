@@ -105,7 +105,7 @@ public class X11GLDrawableFactory extends GLDrawableFactoryImpl {
     // in pure Java, we're going to provide the underlying window
     // system's selection to the chooser as a hint
 
-    int[] attribs = glCapabilities2AttribList(capabilities, isMultisampleAvailable());
+    int[] attribs = glCapabilities2AttribList(capabilities, isMultisampleAvailable(), false, 0, 0);
     XVisualInfo[] infos = null;
     GLCapabilities[] caps = null;
     int recommendedIndex = -1;
@@ -309,7 +309,10 @@ public class X11GLDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   public static int[] glCapabilities2AttribList(GLCapabilities caps,
-                                                boolean isMultisampleAvailable) {
+                                                boolean isMultisampleAvailable,
+                                                boolean pbuffer,
+                                                long display,
+                                                int screen) {
     int colorDepth = (caps.getRedBits() +
                       caps.getGreenBits() +
                       caps.getBlueBits());
@@ -318,7 +321,15 @@ public class X11GLDrawableFactory extends GLDrawableFactoryImpl {
     }
     int[] res = new int[MAX_ATTRIBS];
     int idx = 0;
-    res[idx++] = GLX.GLX_RGBA;
+    if (pbuffer) {
+      res[idx++] = GLXExt.GLX_DRAWABLE_TYPE;
+      res[idx++] = GLXExt.GLX_PBUFFER_BIT;
+
+      res[idx++] = GLXExt.GLX_RENDER_TYPE;
+      res[idx++] = GLXExt.GLX_RGBA_BIT;
+    } else {
+      res[idx++] = GLX.GLX_RGBA;
+    }
     if (caps.getDoubleBuffered()) {
       res[idx++] = GLX.GLX_DOUBLEBUFFER;
     }
@@ -335,19 +346,39 @@ public class X11GLDrawableFactory extends GLDrawableFactoryImpl {
     res[idx++] = caps.getAlphaBits();
     res[idx++] = GLX.GLX_DEPTH_SIZE;
     res[idx++] = caps.getDepthBits();
-    res[idx++] = GLX.GLX_STENCIL_SIZE;
-    res[idx++] = caps.getStencilBits();
-    res[idx++] = GLX.GLX_ACCUM_RED_SIZE;
-    res[idx++] = caps.getAccumRedBits();
-    res[idx++] = GLX.GLX_ACCUM_GREEN_SIZE;
-    res[idx++] = caps.getAccumGreenBits();
-    res[idx++] = GLX.GLX_ACCUM_BLUE_SIZE;
-    res[idx++] = caps.getAccumBlueBits();
+    if (caps.getStencilBits() > 0) {
+      res[idx++] = GLX.GLX_STENCIL_SIZE;
+      res[idx++] = caps.getStencilBits();
+    }
+    if (caps.getAccumRedBits()   > 0 ||
+        caps.getAccumGreenBits() > 0 ||
+        caps.getAccumBlueBits()  > 0 ||
+        caps.getAccumAlphaBits() > 0) {
+      res[idx++] = GLX.GLX_ACCUM_RED_SIZE;
+      res[idx++] = caps.getAccumRedBits();
+      res[idx++] = GLX.GLX_ACCUM_GREEN_SIZE;
+      res[idx++] = caps.getAccumGreenBits();
+      res[idx++] = GLX.GLX_ACCUM_BLUE_SIZE;
+      res[idx++] = caps.getAccumBlueBits();
+      res[idx++] = GLX.GLX_ACCUM_ALPHA_SIZE;
+      res[idx++] = caps.getAccumAlphaBits();
+    }
     if (isMultisampleAvailable && caps.getSampleBuffers()) {
       res[idx++] = GLXExt.GLX_SAMPLE_BUFFERS_ARB;
       res[idx++] = GL.GL_TRUE;
       res[idx++] = GLXExt.GLX_SAMPLES_ARB;
       res[idx++] = caps.getNumSamples();
+    }
+    if (pbuffer) {
+      if (caps.getOffscreenFloatingPointBuffers()) {
+        String glXExtensions = GLX.glXQueryExtensionsString(display, screen);
+        if (glXExtensions == null ||
+            glXExtensions.indexOf("GLX_NV_float_buffer") < 0) {
+          throw new GLException("Floating-point pbuffers on X11 currently require NVidia hardware");
+        }
+        res[idx++] = GLX.GLX_FLOAT_COMPONENTS_NV;
+        res[idx++] = GL.GL_TRUE;
+      }
     }
     res[idx++] = 0;
     return res;

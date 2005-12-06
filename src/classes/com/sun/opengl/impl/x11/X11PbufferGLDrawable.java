@@ -114,74 +114,10 @@ public class X11PbufferGLDrawable extends X11GLDrawable {
         throw new GLException("Render-to-texture-rectangle pbuffers not supported yet on X11");
       }
 
-      int[]   iattributes = new int  [2*MAX_ATTRIBS];
-      float[] fattributes = new float[2*MAX_ATTRIBS];
-      int nfattribs = 0;
-      int niattribs = 0;
-
-      // Since we are trying to create a pbuffer, the GLXFBConfig we
-      // request (and subsequently use) must be "p-buffer capable".
-      iattributes[niattribs++] = GLXExt.GLX_DRAWABLE_TYPE;
-      iattributes[niattribs++] = GLXExt.GLX_PBUFFER_BIT;
-
-      iattributes[niattribs++] = GLXExt.GLX_RENDER_TYPE;
-      iattributes[niattribs++] = GLXExt.GLX_RGBA_BIT;
-
-      iattributes[niattribs++] = GLX.GLX_DOUBLEBUFFER;
-      if (capabilities.getDoubleBuffered()) {
-        iattributes[niattribs++] = GL.GL_TRUE;
-      } else {
-        iattributes[niattribs++] = GL.GL_FALSE;
-      }
-
-      iattributes[niattribs++] = GLX.GLX_DEPTH_SIZE;
-      iattributes[niattribs++] = capabilities.getDepthBits();
-
-      iattributes[niattribs++] = GLX.GLX_RED_SIZE;
-      iattributes[niattribs++] = capabilities.getRedBits();
-
-      iattributes[niattribs++] = GLX.GLX_GREEN_SIZE;
-      iattributes[niattribs++] = capabilities.getGreenBits();
-
-      iattributes[niattribs++] = GLX.GLX_BLUE_SIZE;
-      iattributes[niattribs++] = capabilities.getBlueBits();
-
-      iattributes[niattribs++] = GLX.GLX_ALPHA_SIZE;
-      iattributes[niattribs++] = capabilities.getAlphaBits();
-
-      if (capabilities.getStencilBits() > 0) {
-        iattributes[niattribs++] = GLX.GLX_STENCIL_SIZE;
-        iattributes[niattribs++] = capabilities.getStencilBits();
-      }
-
-      if (capabilities.getAccumRedBits()   > 0 ||
-          capabilities.getAccumGreenBits() > 0 ||
-          capabilities.getAccumBlueBits()  > 0) {
-        iattributes[niattribs++] = GLX.GLX_ACCUM_RED_SIZE;
-        iattributes[niattribs++] = capabilities.getAccumRedBits();
-        iattributes[niattribs++] = GLX.GLX_ACCUM_GREEN_SIZE;
-        iattributes[niattribs++] = capabilities.getAccumGreenBits();
-        iattributes[niattribs++] = GLX.GLX_ACCUM_BLUE_SIZE;
-        iattributes[niattribs++] = capabilities.getAccumBlueBits();
-      }
-
       int screen = 0; // FIXME: provide way to specify this?
-
-      if (capabilities.getOffscreenFloatingPointBuffers()) {
-        String glXExtensions = GLX.glXQueryExtensionsString(display, screen);
-        if (glXExtensions == null ||
-            glXExtensions.indexOf("GLX_NV_float_buffer") < 0) {
-          throw new GLException("Floating-point pbuffers on X11 currently require NVidia hardware");
-        }
-        iattributes[niattribs++] = GLX.GLX_FLOAT_COMPONENTS_NV;
-        iattributes[niattribs++] = GL.GL_TRUE;
-      }
-
-      // FIXME: add FSAA support? Don't want to get into a situation
-      // where we have to retry the glXChooseFBConfig call if it fails
-      // due to a lack of an antialiased visual...
-
-      iattributes[niattribs++] = 0; // null-terminate
+      int[] iattributes = X11GLDrawableFactory.glCapabilities2AttribList(capabilities,
+                                                                         X11GLDrawableFactory.isMultisampleAvailable(),
+                                                                         true, display, screen);
 
       int[] nelementsTmp = new int[1];
       GLXFBConfig[] fbConfigs = GLX.glXChooseFBConfig(display, screen, iattributes, 0, nelementsTmp, 0);
@@ -210,7 +146,7 @@ public class X11PbufferGLDrawable extends X11GLDrawable {
       }
 
       // Create the p-buffer.
-      niattribs = 0;
+      int niattribs = 0;
 
       iattributes[niattribs++] = GLXExt.GLX_PBUFFER_WIDTH;
       iattributes[niattribs++] = initWidth;

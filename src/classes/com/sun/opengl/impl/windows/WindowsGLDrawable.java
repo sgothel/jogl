@@ -110,73 +110,16 @@ public abstract class WindowsGLDrawable extends GLDrawableImpl {
       boolean haveWGLARBMultisample = false;
       boolean gotAvailableCaps = false;
       if (dummyWGLExt != null) {
-        haveWGLChoosePixelFormatARB = dummyWGLExt.isExtensionAvailable("WGL_ARB_pixel_format");
-        haveWGLARBMultisample       = dummyWGLExt.isExtensionAvailable("WGL_ARB_multisample");
-
         try {
-          if (haveWGLChoosePixelFormatARB) {
-            int[]   iattributes = new int  [2 * MAX_ATTRIBS];
-            int[]   iresults    = new int  [2 * MAX_ATTRIBS];
-            float[] fattributes = new float[2 * MAX_ATTRIBS];
-            int niattribs = 0;
-            int nfattribs = 0;
-            iattributes[niattribs++] = WGLExt.WGL_SUPPORT_OPENGL_ARB;
-            iattributes[niattribs++] = GL.GL_TRUE;
-            iattributes[niattribs++] = WGLExt.WGL_DRAW_TO_WINDOW_ARB;
-            iattributes[niattribs++] = GL.GL_TRUE;
-            iattributes[niattribs++] = WGLExt.WGL_PIXEL_TYPE_ARB;
-            iattributes[niattribs++] = WGLExt.WGL_TYPE_RGBA_ARB;
-            iattributes[niattribs++] = WGLExt.WGL_DOUBLE_BUFFER_ARB;
-            if (capabilities.getDoubleBuffered()) {
-              iattributes[niattribs++] = GL.GL_TRUE;
-            } else {
-              iattributes[niattribs++] = GL.GL_FALSE;
-            }
-            iattributes[niattribs++] = WGLExt.WGL_STEREO_ARB;
-            if (capabilities.getStereo()) {
-              iattributes[niattribs++] = GL.GL_TRUE;
-            } else {
-              iattributes[niattribs++] = GL.GL_FALSE;
-            }
-            iattributes[niattribs++] = WGLExt.WGL_DEPTH_BITS_ARB;
-            iattributes[niattribs++] = capabilities.getDepthBits();
-            iattributes[niattribs++] = WGLExt.WGL_RED_BITS_ARB;
-            iattributes[niattribs++] = capabilities.getRedBits();
-            iattributes[niattribs++] = WGLExt.WGL_GREEN_BITS_ARB;
-            iattributes[niattribs++] = capabilities.getGreenBits();
-            iattributes[niattribs++] = WGLExt.WGL_BLUE_BITS_ARB;
-            iattributes[niattribs++] = capabilities.getBlueBits();
-            iattributes[niattribs++] = WGLExt.WGL_ALPHA_BITS_ARB;
-            iattributes[niattribs++] = capabilities.getAlphaBits();
-            iattributes[niattribs++] = WGLExt.WGL_STENCIL_BITS_ARB;
-            iattributes[niattribs++] = capabilities.getStencilBits();
-            if (capabilities.getAccumRedBits()   > 0 ||
-                capabilities.getAccumGreenBits() > 0 ||
-                capabilities.getAccumBlueBits()  > 0 ||
-                capabilities.getAccumAlphaBits()  > 0) {
-              iattributes[niattribs++] = WGLExt.WGL_ACCUM_BITS_ARB;
-              iattributes[niattribs++] = (capabilities.getAccumRedBits() +
-                                          capabilities.getAccumGreenBits() +
-                                          capabilities.getAccumBlueBits() +
-                                          capabilities.getAccumAlphaBits());
-              iattributes[niattribs++] = WGLExt.WGL_ACCUM_RED_BITS_ARB;
-              iattributes[niattribs++] = capabilities.getAccumRedBits();
-              iattributes[niattribs++] = WGLExt.WGL_ACCUM_GREEN_BITS_ARB;
-              iattributes[niattribs++] = capabilities.getAccumGreenBits();
-              iattributes[niattribs++] = WGLExt.WGL_ACCUM_BLUE_BITS_ARB;
-              iattributes[niattribs++] = capabilities.getAccumBlueBits();
-              iattributes[niattribs++] = WGLExt.WGL_ACCUM_ALPHA_BITS_ARB;
-              iattributes[niattribs++] = capabilities.getAccumAlphaBits();
-            }
-            if (haveWGLARBMultisample) {
-              if (capabilities.getSampleBuffers()) {
-                iattributes[niattribs++] = WGLExt.WGL_SAMPLE_BUFFERS_ARB;
-                iattributes[niattribs++] = GL.GL_TRUE;
-                iattributes[niattribs++] = WGLExt.WGL_SAMPLES_ARB;
-                iattributes[niattribs++] = capabilities.getNumSamples();
-              }
-            }
-          
+          int[]   iattributes = new int  [2 * MAX_ATTRIBS];
+          int[]   iresults    = new int  [2 * MAX_ATTRIBS];
+          float[] fattributes = new float[1];
+
+          if (glCapabilities2iattributes(capabilities,
+                                         iattributes,
+                                         dummyWGLExt,
+                                         false,
+                                         null)) {
             int[] pformats = new int[MAX_PFORMATS];
             int[] numFormatsTmp = new int[1];
             if (dummyWGLExt.wglChoosePixelFormatARB(hdc,
@@ -218,7 +161,7 @@ public abstract class WindowsGLDrawable extends GLDrawableImpl {
             // "HardwareAccelerated" bit, which is basically
             // meaningless, and put in whether it can render to a
             // window, to a pbuffer, or to a pixmap)
-            niattribs = 0;
+            int niattribs = 0;
             iattributes[0] = WGLExt.WGL_NUMBER_PIXEL_FORMATS_ARB;
             if (dummyWGLExt.wglGetPixelFormatAttribivARB(hdc, 0, 0, 1, iattributes, 0, iresults, 0)) {
               numFormats = iresults[0];
@@ -252,7 +195,7 @@ public abstract class WindowsGLDrawable extends GLDrawableImpl {
                 if (!dummyWGLExt.wglGetPixelFormatAttribivARB(hdc, i+1, 0, niattribs, iattributes, 0, iresults, 0)) {
                   throw new GLException("Error getting pixel format attributes for pixel format " + (i + 1) + " of device context");
                 }
-                availableCaps[i] = iattributes2GLCapabilities(iattributes, iresults, niattribs, true);
+                availableCaps[i] = iattributes2GLCapabilities(iattributes, iresults, true);
               }
               gotAvailableCaps = true;
             } else {
@@ -398,13 +341,169 @@ public abstract class WindowsGLDrawable extends GLDrawableImpl {
     return res;
   }
 
+  protected static boolean glCapabilities2iattributes(GLCapabilities capabilities,
+                                                      int[] iattributes,
+                                                      WGLExt wglExt,
+                                                      boolean pbuffer,
+                                                      int[] floatMode) throws GLException {
+    if (!wglExt.isExtensionAvailable("WGL_ARB_pixel_format")) {
+      return false;
+    }
+
+    int niattribs = 0;
+
+    iattributes[niattribs++] = WGLExt.WGL_SUPPORT_OPENGL_ARB;
+    iattributes[niattribs++] = GL.GL_TRUE;
+    if (pbuffer) {
+      iattributes[niattribs++] = WGLExt.WGL_DRAW_TO_PBUFFER_ARB;
+      iattributes[niattribs++] = GL.GL_TRUE;
+    } else {
+      iattributes[niattribs++] = WGLExt.WGL_DRAW_TO_WINDOW_ARB;
+      iattributes[niattribs++] = GL.GL_TRUE;
+    }
+
+    iattributes[niattribs++] = WGLExt.WGL_DOUBLE_BUFFER_ARB;
+    if (capabilities.getDoubleBuffered()) {
+      iattributes[niattribs++] = GL.GL_TRUE;
+    } else {
+      iattributes[niattribs++] = GL.GL_FALSE;
+    }
+
+    iattributes[niattribs++] = WGLExt.WGL_STEREO_ARB;
+    if (capabilities.getStereo()) {
+      iattributes[niattribs++] = GL.GL_TRUE;
+    } else {
+      iattributes[niattribs++] = GL.GL_FALSE;
+    }
+    
+    iattributes[niattribs++] = WGLExt.WGL_DEPTH_BITS_ARB;
+    iattributes[niattribs++] = capabilities.getDepthBits();
+    iattributes[niattribs++] = WGLExt.WGL_RED_BITS_ARB;
+    iattributes[niattribs++] = capabilities.getRedBits();
+    iattributes[niattribs++] = WGLExt.WGL_GREEN_BITS_ARB;
+    iattributes[niattribs++] = capabilities.getGreenBits();
+    iattributes[niattribs++] = WGLExt.WGL_BLUE_BITS_ARB;
+    iattributes[niattribs++] = capabilities.getBlueBits();
+    iattributes[niattribs++] = WGLExt.WGL_ALPHA_BITS_ARB;
+    iattributes[niattribs++] = capabilities.getAlphaBits();
+    iattributes[niattribs++] = WGLExt.WGL_STENCIL_BITS_ARB;
+    iattributes[niattribs++] = capabilities.getStencilBits();
+    if (capabilities.getAccumRedBits()   > 0 ||
+        capabilities.getAccumGreenBits() > 0 ||
+        capabilities.getAccumBlueBits()  > 0 ||
+        capabilities.getAccumAlphaBits() > 0) {
+      iattributes[niattribs++] = WGLExt.WGL_ACCUM_BITS_ARB;
+      iattributes[niattribs++] = (capabilities.getAccumRedBits() +
+                                  capabilities.getAccumGreenBits() +
+                                  capabilities.getAccumBlueBits() +
+                                  capabilities.getAccumAlphaBits());
+      iattributes[niattribs++] = WGLExt.WGL_ACCUM_RED_BITS_ARB;
+      iattributes[niattribs++] = capabilities.getAccumRedBits();
+      iattributes[niattribs++] = WGLExt.WGL_ACCUM_GREEN_BITS_ARB;
+      iattributes[niattribs++] = capabilities.getAccumGreenBits();
+      iattributes[niattribs++] = WGLExt.WGL_ACCUM_BLUE_BITS_ARB;
+      iattributes[niattribs++] = capabilities.getAccumBlueBits();
+      iattributes[niattribs++] = WGLExt.WGL_ACCUM_ALPHA_BITS_ARB;
+      iattributes[niattribs++] = capabilities.getAccumAlphaBits();
+    }
+
+    if (wglExt.isExtensionAvailable("WGL_ARB_multisample")) {
+      if (capabilities.getSampleBuffers()) {
+        iattributes[niattribs++] = WGLExt.WGL_SAMPLE_BUFFERS_ARB;
+        iattributes[niattribs++] = GL.GL_TRUE;
+        iattributes[niattribs++] = WGLExt.WGL_SAMPLES_ARB;
+        iattributes[niattribs++] = capabilities.getNumSamples();
+      }
+    }
+
+    boolean rtt      = capabilities.getOffscreenRenderToTexture();
+    boolean rect     = capabilities.getOffscreenRenderToTextureRectangle();
+    boolean useFloat = capabilities.getOffscreenFloatingPointBuffers();
+    boolean ati      = false;
+    if (pbuffer) {
+      // Check some invariants and set up some state
+      if (rtt && !rect) {
+        throw new GLException("Render-to-texture-rectangle requires render-to-texture to be specified");
+      }
+
+      if (rect) {
+        if (!wglExt.isExtensionAvailable("GL_NV_texture_rectangle")) {
+          throw new GLException("Render-to-texture-rectangle requires GL_NV_texture_rectangle extension");
+        }
+      }
+
+      if (useFloat) {
+        if (!wglExt.isExtensionAvailable("WGL_ATI_pixel_format_float") &&
+            !wglExt.isExtensionAvailable("WGL_NV_float_buffer")) {
+          throw new GLException("Floating-point pbuffers not supported by this hardware");
+        }
+
+        // Prefer NVidia extension over ATI
+        if (wglExt.isExtensionAvailable("WGL_NV_float_buffer")) {
+          ati = false;
+          floatMode[0] = GLPbuffer.NV_FLOAT;
+        } else {
+          ati = true;
+          floatMode[0] = GLPbuffer.ATI_FLOAT;
+        }
+        if (DEBUG) {
+          System.err.println("Using " + (ati ? "ATI" : "NVidia") + " floating-point extension");
+        }
+      }
+
+      // See whether we need to change the pixel type to support ATI's
+      // floating-point pbuffers
+      if (useFloat && ati) {
+        if (rtt) {
+          throw new GLException("Render-to-floating-point-texture not supported on ATI hardware");
+        } else {
+          iattributes[niattribs++] = WGLExt.WGL_PIXEL_TYPE_ARB;
+          iattributes[niattribs++] = WGLExt.WGL_TYPE_RGBA_FLOAT_ATI;
+        }
+      } else {
+        if (!rtt) {
+          // Currently we don't support non-truecolor visuals in the
+          // GLCapabilities, so we don't offer the option of making
+          // color-index pbuffers.
+          iattributes[niattribs++] = WGLExt.WGL_PIXEL_TYPE_ARB;
+          iattributes[niattribs++] = WGLExt.WGL_TYPE_RGBA_ARB;
+        }
+      }
+
+      if (useFloat && !ati) {
+        iattributes[niattribs++] = WGLExt.WGL_FLOAT_COMPONENTS_NV;
+        iattributes[niattribs++] = GL.GL_TRUE;
+      }
+
+      if (rtt) {
+        if (useFloat) {
+          assert(!ati);
+          if (!rect) {
+            throw new GLException("Render-to-floating-point-texture only supported on NVidia hardware with render-to-texture-rectangle");
+          }
+          iattributes[niattribs++] = WGLExt.WGL_BIND_TO_TEXTURE_RECTANGLE_FLOAT_RGB_NV;
+          iattributes[niattribs++] = GL.GL_TRUE;
+        } else {
+          iattributes[niattribs++] = rect ? WGLExt.WGL_BIND_TO_TEXTURE_RECTANGLE_RGB_NV : WGLExt.WGL_BIND_TO_TEXTURE_RGB_ARB;
+          iattributes[niattribs++] = GL.GL_TRUE;
+        }
+      }
+    } else {
+      iattributes[niattribs++] = WGLExt.WGL_PIXEL_TYPE_ARB;
+      iattributes[niattribs++] = WGLExt.WGL_TYPE_RGBA_ARB;
+    }
+
+    return true;
+  }
+
   protected static GLCapabilities iattributes2GLCapabilities(int[] iattribs,
                                                              int[] iresults,
-                                                             int   niattribs,
                                                              boolean requireRenderToWindow) {
     GLCapabilities res = new GLCapabilities();
-    for (int i = 0; i < niattribs; i++) {
-      switch (iattribs[i]) {
+    int attr = 0;
+    int i = 0;
+    while ((attr = iattribs[i]) != 0) {
+      switch (attr) {
         case WGLExt.WGL_DRAW_TO_WINDOW_ARB:
           if (iresults[i] != GL.GL_TRUE)
             return null;
@@ -483,6 +582,7 @@ public abstract class WindowsGLDrawable extends GLDrawableImpl {
         default:
           throw new GLException("Unknown pixel format attribute " + iattribs[i]);
       }
+      i++;
     }
     return res;
   }
