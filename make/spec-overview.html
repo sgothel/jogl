@@ -64,7 +64,9 @@ become float and all 64-bit floating-point types become double.<br>
  <br>
  Integer return values that can only be GL_TRUE or GL_FALSE are mapped to
 boolean.<br>
- 
+<br>
+An outgoing C char* pointer, if representing a null-terminated, read-only C string, maps to a Java String. An outgoing C char** pointer, if similarly representing an array of read-only C strings, maps to a Java String[] (array of String objects). All other char* pointers, including those representing mutable C strings as used in some Get methods, are mapped to byte[] and ByteBuffer. 
+<br> 
 <h4>Mapping of Pointer Arguments</h4>
  OpenGL functions that take pointer arguments fall into several categories:<br>
  
