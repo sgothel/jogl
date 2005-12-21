@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2003-2005 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -43,44 +43,33 @@ import java.io.*;
 import java.util.*;
 import com.sun.gluegen.*;
 import com.sun.gluegen.cgram.types.*;
+import com.sun.gluegen.procaddress.*;
 
-public class GLJavaMethodBindingEmitter extends JavaMethodBindingEmitter {
-  private final CommentEmitter commentEmitterForWrappedMethod =
-    new WrappedMethodCommentEmitter();
+/** A specialization of the proc address emitter which knows how to
+    change argument names to take into account Vertex Buffer Object /
+    Pixel Buffer Object variants. */
 
-  private boolean callThroughProcAddress;
-  private boolean changeNameAndArguments;
-  private String getProcAddressTableExpr;
+public class GLJavaMethodBindingEmitter extends ProcAddressJavaMethodBindingEmitter {
   private boolean bufferObjectVariant;
   
   public GLJavaMethodBindingEmitter(JavaMethodBindingEmitter methodToWrap,
                                     boolean callThroughProcAddress,
                                     String  getProcAddressTableExpr,
                                     boolean changeNameAndArguments,
-                                    boolean bufferObjectVariant) {
-    super(methodToWrap);
-    this.callThroughProcAddress = callThroughProcAddress;
-    this.getProcAddressTableExpr = getProcAddressTableExpr;
-    this.changeNameAndArguments = changeNameAndArguments;
+                                    boolean bufferObjectVariant,
+                                    GLEmitter emitter) {
+    super(methodToWrap,
+          callThroughProcAddress,
+          getProcAddressTableExpr,
+          changeNameAndArguments,
+          emitter);
     this.bufferObjectVariant = bufferObjectVariant;
-    if (callThroughProcAddress) {
-      setCommentEmitter(new WrappedMethodCommentEmitter());
-    }
-
-    if (methodToWrap.getBinding().hasContainingType())
-    {
-      throw new IllegalArgumentException(
-        "Cannot create OpenGL proc. address wrapper; method has containing type: \"" +
-        methodToWrap.getBinding() + "\"");
-    }
   }
 
-  public String getName() {
-    String res = super.getName();
-    if (changeNameAndArguments) {
-      return GLEmitter.WRAP_PREFIX + res;
-    }
-    return res;
+  public GLJavaMethodBindingEmitter(ProcAddressJavaMethodBindingEmitter methodToWrap,
+                                    boolean bufferObjectVariant) {
+    super(methodToWrap);
+    this.bufferObjectVariant = bufferObjectVariant;
   }
 
   protected String getArgumentName(int i) {
@@ -103,61 +92,4 @@ public class GLJavaMethodBindingEmitter extends JavaMethodBindingEmitter {
 
     return name;
   }
-
-  protected int emitArguments(PrintWriter writer) {
-    int numEmitted = super.emitArguments(writer);
-    if (callThroughProcAddress) {
-      if (changeNameAndArguments) {
-        if (numEmitted > 0) {
-          writer.print(", ");
-        }
-
-        writer.print("long glProcAddress");
-        ++numEmitted;
-      }
-    }
-          
-    return numEmitted;
-  }
-
-  protected String getImplMethodName(boolean direct) {
-    String name = super.getImplMethodName(direct);
-    if (callThroughProcAddress) {
-      return GLEmitter.WRAP_PREFIX + name;
-    }
-    return name;
-  }
-
-  protected void emitPreCallSetup(MethodBinding binding, PrintWriter writer) {
-    super.emitPreCallSetup(binding, writer);
-
-    if (callThroughProcAddress) {
-      String procAddressVariable =
-        GLEmitter.PROCADDRESS_VAR_PREFIX + binding.getName();
-      writer.println("    final long __addr_ = " + getProcAddressTableExpr + "." + procAddressVariable + ";");
-      writer.println("    if (__addr_ == 0) {");
-      writer.println("      throw new GLException(\"Method \\\"" + binding.getName() + "\\\" not available\");");
-      writer.println("    }");
-    }
-  }
-
-  protected int emitCallArguments(MethodBinding binding, PrintWriter writer, boolean indirect) {
-    int numEmitted = super.emitCallArguments(binding, writer, indirect);
-    if (callThroughProcAddress) {
-      if (numEmitted > 0) {
-        writer.print(", ");
-      }
-      writer.print("__addr_");
-      ++numEmitted;
-    }
-
-    return numEmitted;
-  }
-
-  /** This class emits the comment for the wrapper method */
-  private class WrappedMethodCommentEmitter extends JavaMethodBindingEmitter.DefaultCommentEmitter {
-    protected void emitBeginning(FunctionEmitter methodEmitter, PrintWriter writer) {
-      writer.print("Encapsulates function pointer for OpenGL function <br>: ");
-    }
-  }
-} // end class GLJavaMethodBindingEmitter
+}

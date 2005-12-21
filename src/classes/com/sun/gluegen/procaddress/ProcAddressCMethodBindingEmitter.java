@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2003-2005 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -37,29 +37,27 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.sun.gluegen.opengl;
+package com.sun.gluegen.procaddress;
 
 import java.io.*;
 import java.util.*;
 import com.sun.gluegen.*;
 import com.sun.gluegen.cgram.types.*;
 
-public class GLCMethodBindingEmitter extends CMethodBindingEmitter {
-  private static final CommentEmitter defaultCommentEmitter =
-    new CGLPAWrapperCommentEmitter();
-
+public class ProcAddressCMethodBindingEmitter extends CMethodBindingEmitter {
   private boolean callThroughProcAddress;
-  private String glFuncPtrTypedefValue;
   private static String procAddressJavaTypeName =
     JavaType.createForClass(Long.TYPE).jniTypeName();
+  private ProcAddressEmitter emitter;
 
-  public GLCMethodBindingEmitter(CMethodBindingEmitter methodToWrap,
-                                 final boolean callThroughProcAddress) {  
+  public ProcAddressCMethodBindingEmitter(CMethodBindingEmitter methodToWrap,
+                                          final boolean callThroughProcAddress,
+                                          ProcAddressEmitter emitter) {
     super(
       new MethodBinding(methodToWrap.getBinding()) {
         public String getName() {
           if (callThroughProcAddress) {
-            return GLEmitter.WRAP_PREFIX + super.getName();
+            return ProcAddressEmitter.WRAP_PREFIX + super.getName();
           } else {
             return super.getName();
           }
@@ -67,7 +65,7 @@ public class GLCMethodBindingEmitter extends CMethodBindingEmitter {
 
         public String getRenamedMethodName() {
           if (callThroughProcAddress) {
-            return GLEmitter.WRAP_PREFIX + super.getRenamedMethodName();
+            return ProcAddressEmitter.WRAP_PREFIX + super.getRenamedMethodName();
           } else {
             return super.getRenamedMethodName();
           }
@@ -94,6 +92,7 @@ public class GLCMethodBindingEmitter extends CMethodBindingEmitter {
     
     setCommentEmitter(defaultCommentEmitter);
     this.callThroughProcAddress = callThroughProcAddress;
+    this.emitter = emitter;
   }
   
   protected int emitArguments(PrintWriter writer) {
@@ -103,9 +102,8 @@ public class GLCMethodBindingEmitter extends CMethodBindingEmitter {
         {
           writer.print(", ");
         }
-      //writer.print("long glProcAddress");
       writer.print(procAddressJavaTypeName);
-      writer.print(" glProcAddress");
+      writer.print(" procAddress");
       ++numEmitted;
     }
 
@@ -118,7 +116,7 @@ public class GLCMethodBindingEmitter extends CMethodBindingEmitter {
       // it to the value of the passed-in glProcAddress 
       FunctionSymbol cSym = getBinding().getCSymbol();
       String funcPointerTypedefName =
-        GLEmitter.getGLFunctionPointerTypedefName(cSym);
+        emitter.getFunctionPointerTypedefName(cSym);
     
       writer.print("  ");
       writer.print(funcPointerTypedefName);
@@ -138,8 +136,7 @@ public class GLCMethodBindingEmitter extends CMethodBindingEmitter {
       if (!emittingPrimitiveArrayCritical) {
         // set the function pointer to the value of the passed-in glProcAddress
         FunctionSymbol cSym = getBinding().getCSymbol();
-        String funcPointerTypedefName =
-          GLEmitter.getGLFunctionPointerTypedefName(cSym);
+        String funcPointerTypedefName = emitter.getFunctionPointerTypedefName(cSym);
 
         String ptrVarName = "ptr_" + cSym.getName();
     
@@ -147,7 +144,7 @@ public class GLCMethodBindingEmitter extends CMethodBindingEmitter {
         writer.print(ptrVarName);
         writer.print(" = (");
         writer.print(funcPointerTypedefName);
-        writer.println(") (intptr_t) glProcAddress;");
+        writer.println(") (intptr_t) procAddress;");
 
         writer.println("  assert(" + ptrVarName + " != NULL);");
       }
@@ -170,9 +167,9 @@ public class GLCMethodBindingEmitter extends CMethodBindingEmitter {
       }
       MethodBinding binding = getBinding();
       if (binding.hasContainingType()) {
-        // Cannot call GL func through function pointer
-        throw new IllegalStateException(
-                                        "Cannot call GL func through function pointer: " + binding);
+        // FIXME: this can and should be handled and unified with the
+        // associated code in the CMethodBindingEmitter
+        throw new IllegalStateException("Cannot call through function pointer because binding has containing type: " + binding);
       }
 
       // call throught the run-time function pointer
@@ -191,12 +188,5 @@ public class GLCMethodBindingEmitter extends CMethodBindingEmitter {
       jniMangle(Long.TYPE, buf, false);  // to account for the additional _addr_ parameter
     }
     return buf.toString();
-  }    
-
-  /** This class emits the comment for the wrapper method */
-  private static class CGLPAWrapperCommentEmitter extends CMethodBindingEmitter.DefaultCommentEmitter {
-    protected void emitBeginning(FunctionEmitter methodEmitter, PrintWriter writer) {
-      writer.print(" -- FIXME: IMPLEMENT COMMENT FOR CGLPAWrapperCommentEmitter -- ");
-    }
   }
-} // end class GLCMethodBindingEmitter
+}

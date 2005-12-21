@@ -180,10 +180,10 @@ public class JavaConfiguration {
       }
 
       if (className == null && (emissionStyle() != JavaEmitter.IMPL_ONLY)) {
-        throw new RuntimeException("Output class name was not specified in configuration file");
+        throw new RuntimeException("Output class name was not specified in configuration file \"" + filename + "\"");
       }
       if (packageName == null && (emissionStyle() != JavaEmitter.IMPL_ONLY)) {
-        throw new RuntimeException("Output package name was not specified in configuration file");
+        throw new RuntimeException("Output package name was not specified in configuration file \"" + filename + "\"");
       }
 
       if (allStatic()) {
@@ -735,7 +735,7 @@ public class JavaConfiguration {
       } else if (style.equalsIgnoreCase("PRIVATE")) {
         acc = JavaEmitter.ACC_PRIVATE;
       } else if (style.equalsIgnoreCase("PACKAGE_PRIVATE")) {
-        acc = JavaEmitter.ACC_PRIVATE;
+        acc = JavaEmitter.ACC_PACKAGE_PRIVATE;
       } else {
         throw new RuntimeException("Error parsing \"AccessControl\" command at line " + lineNo +
                            " in file \"" + filename + "\"");

@@ -349,7 +349,6 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
         emitPreCallSetup(binding, writer);
         //emitReturnVariableSetup(binding, writer);
         emitReturnVariableSetupAndCall(binding, writer, machDesc);
-        emitPrologueOrEpilogue(epilogue, writer);
       }
       writer.println("  }");
     }
@@ -449,6 +448,10 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
       } else if (returnType.isArrayOfCompoundTypeWrappers()) {
         writer.println("ByteBuffer[] _res;");
         needsResultAssignment = true;
+      } else if ((epilogue != null) && (epilogue.size() > 0)) {
+        emitReturnType(writer);
+        writer.println(" _res;");
+        needsResultAssignment = true;
       }
     }
 
@@ -502,6 +505,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
     } else {
       writer.println();
     }
+    emitPrologueOrEpilogue(epilogue, writer);
     if (needsResultAssignment) {
       emitCallResultReturn(binding, writer, machDesc);
     }
@@ -638,6 +642,10 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
       writer.println("      _retarray[_count] = " + getReturnTypeString(true) + ".create(_res[_count]);");
       writer.println("    }");
       writer.println("    return _retarray;");
+    } else {
+      // Assume it's a primitive type or other type we don't have to
+      // do any conversion on
+      writer.println("    return _res;");
     }
   }
 

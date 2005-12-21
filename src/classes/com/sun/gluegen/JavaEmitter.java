@@ -339,6 +339,12 @@ public class JavaEmitter implements GlueEmitter {
       return;
     }
 
+    int accessControl = cfg.accessControl(binding.getName());
+    // We should not emit anything except public APIs into interfaces
+    if (signatureOnly && (accessControl != ACC_PUBLIC)) {
+      return;
+    }
+
     // It's possible we may not need a body even if signatureOnly is
     // set to false; for example, if the routine doesn't take any
     // arrays or buffers as arguments
@@ -363,7 +369,7 @@ public class JavaEmitter implements GlueEmitter {
                                    false,
                                    false,
                                    isUnimplemented);
-    switch (cfg.accessControl(binding.getName())) {
+    switch (accessControl) {
       case ACC_PUBLIC:     emitter.addModifier(JavaMethodBindingEmitter.PUBLIC); break;
       case ACC_PROTECTED:  emitter.addModifier(JavaMethodBindingEmitter.PROTECTED); break;
       case ACC_PRIVATE:    emitter.addModifier(JavaMethodBindingEmitter.PRIVATE); break;

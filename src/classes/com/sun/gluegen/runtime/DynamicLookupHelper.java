@@ -39,36 +39,12 @@
 
 package com.sun.gluegen.runtime;
 
-/** Helper class containing constants and methods to assist with the
-    manipulation of auto-generated ProcAddressTables. */
+/** Interface callers may use to use the ProcAddressHelper's {@link
+    ProcAddressHelper#resetProcAddressTable resetProcAddressTable}
+    helper method to install function pointers into a
+    ProcAddressTable. This must typically be written with native
+    code. */
 
-public class ProcAddressHelper {
-  public static final String PROCADDRESS_VAR_PREFIX = "_addressof_";
-
-  public static void resetProcAddressTable(Object table,
-                                           DynamicLookupHelper lookup) throws RuntimeException {
-    Class tableClass = table.getClass();
-    java.lang.reflect.Field[] fields = tableClass.getDeclaredFields();
-    
-    for (int i = 0; i < fields.length; ++i) {
-      String addressFieldName = fields[i].getName();
-      if (!addressFieldName.startsWith(ProcAddressHelper.PROCADDRESS_VAR_PREFIX)) {
-        // not a proc address variable
-        continue;
-      }
-      int startOfMethodName = ProcAddressHelper.PROCADDRESS_VAR_PREFIX.length();
-      String funcName = addressFieldName.substring(startOfMethodName);
-      try {
-        java.lang.reflect.Field addressField = tableClass.getDeclaredField(addressFieldName);
-        assert(addressField.getType() == Long.TYPE);
-        long newProcAddress = lookup.dynamicLookupFunction(funcName);
-        // set the current value of the proc address variable in the table object
-        addressField.setLong(table, newProcAddress); 
-      } catch (Exception e) {
-        throw new RuntimeException("Can not get proc address for method \"" +
-                                   funcName + "\": Couldn't set value of field \"" + addressFieldName +
-                                   "\" in class " + tableClass.getName(), e);
-      }
-    }
-  }
+public interface DynamicLookupHelper {
+  public long dynamicLookupFunction(String funcName);
 }

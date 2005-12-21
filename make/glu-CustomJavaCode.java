@@ -1436,7 +1436,7 @@ private static GLUProcAddressTable gluProcAddressTable;
 private static GLUProcAddressTable getGLUProcAddressTable() {
   if (gluProcAddressTable == null) {
     GLUProcAddressTable tmp = new GLUProcAddressTable();
-    GLDrawableFactoryImpl.getFactoryImpl().resetProcAddressTable(tmp);
+    ProcAddressHelper.resetProcAddressTable(tmp, GLDrawableFactoryImpl.getFactoryImpl());
     gluProcAddressTable = tmp;
   }
   return gluProcAddressTable;
