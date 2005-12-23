@@ -341,7 +341,6 @@
         <property name="linker.cfg.id"                        value="linker.cfg.linux" /> 
     </target>
 
-
     <target name="declare.freebsd" depends="declare.x11">
         <property name="java.includes.dir.platform"           value="${java.includes.dir.freebsd}" />
         <property name="java.lib.dir.platform"                value="${java.lib.dir.linux}" />

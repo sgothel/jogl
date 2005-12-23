@@ -422,7 +422,7 @@ public abstract class WindowsGLDrawable extends GLDrawableImpl {
     boolean ati      = false;
     if (pbuffer) {
       // Check some invariants and set up some state
-      if (rtt && !rect) {
+      if (rect && !rtt) {
         throw new GLException("Render-to-texture-rectangle requires render-to-texture to be specified");
       }
 
