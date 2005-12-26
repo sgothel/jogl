@@ -47,6 +47,7 @@ import java.security.*;
 import java.util.ArrayList;
 import java.util.List;
 import javax.media.opengl.*;
+import com.sun.gluegen.runtime.*;
 import com.sun.opengl.impl.*;
 
 public class X11GLDrawableFactory extends GLDrawableFactoryImpl {
@@ -73,7 +74,7 @@ public class X11GLDrawableFactory extends GLDrawableFactoryImpl {
   public X11GLDrawableFactory() {
     // Must initialize GLX support eagerly in case a pbuffer is the
     // first thing instantiated
-    resetProcAddressTable(GLX.getGLXProcAddressTable());
+    ProcAddressHelper.resetProcAddressTable(GLX.getGLXProcAddressTable(), this);
   }
 
   private static final int MAX_ATTRIBS = 128;
