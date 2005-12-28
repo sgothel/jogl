@@ -64,7 +64,7 @@ import com.sun.opengl.impl.*;
     Due to these limitations, and due to the inherent multithreading
     in the Java platform (in particular, in the Abstract Window
     Toolkit), it is necessary to limit the multithreading occurring in
-    the typical application using the JOGL API. This has been done by
+    the typical application using the OpenGL API. This has been done by
     forcing all OpenGL-related work for GLAutoDrawables on to a single
     thread. In other words, if an application uses only the
     GLAutoDrawable and GLEventListener callback mechanism, it is
@@ -78,11 +78,12 @@ import com.sun.opengl.impl.*;
     require that the OpenGL context be made current on the current
     thread immediately. For applications wishing to integrate better
     with the single-threaded model, this class provides public access
-    to the mechanism used by the JOGL implementation. Users can
-    execute Runnables on the internal thread used for performing
-    OpenGL work, and query whether the current thread is already this
-    thread. Using these mechanisms the user can move work from the
-    current thread on to the internal OpenGL thread if desired.
+    to the mechanism used by this implementation of the
+    javax.media.opengl APIs. Users can execute Runnables on the
+    internal thread used for performing OpenGL work, and query whether
+    the current thread is already this thread. Using these mechanisms
+    the user can move work from the current thread on to the internal
+    OpenGL thread if desired.
 
     <P>
 
@@ -96,13 +97,13 @@ import com.sun.opengl.impl.*;
 
     In addition to specifying programmatically whether the single
     thread for OpenGL work is enabled, users may switch it on and off
-    using the system property <code>jogl.1thread</code>. Valid values
+    using the system property <code>opengl.1thread</code>. Valid values
     for this system property are:
 
     <PRE>
-    -Djogl.1thread=false     Disable single-threading of OpenGL work
-    -Djogl.1thread=true      Enable single-threading of OpenGL work (default)
-    -Djogl.1thread=auto      Select default single-threading behavior (currently on)
+    -Dopengl.1thread=false     Disable single-threading of OpenGL work
+    -Dopengl.1thread=true      Enable single-threading of OpenGL work (default)
+    -Dopengl.1thread=auto      Select default single-threading behavior (currently on)
     </PRE>    
 */
 
@@ -112,7 +113,7 @@ public class Threading {
   static {
     AccessController.doPrivileged(new PrivilegedAction() {
         public Object run() {
-          String workaround = System.getProperty("jogl.1thread");
+          String workaround = System.getProperty("opengl.1thread");
           if (workaround != null && (!workaround.equals("auto"))) {
             singleThreaded = Boolean.valueOf(workaround).booleanValue();
           }
@@ -126,10 +127,11 @@ public class Threading {
   private Threading() {}
 
   /** Provides a mechanism for end users to disable the default
-      single-threading of the JOGL implementation. Users are strongly
-      discouraged from calling this method unless they are aware of
-      all of the consequences and are prepared to enforce some amount
-      of threading restrictions in their applications. Disabling this
+      single-threading of this implementation of the
+      javax.media.opengl APIs. Users are strongly discouraged from
+      calling this method unless they are aware of all of the
+      consequences and are prepared to enforce some amount of
+      threading restrictions in their applications. Disabling this
       single-threading, for example, will have unintended consequences
       on GLAutoDrawable implementations such as GLCanvas, GLJPanel and
       GLPbuffer. Currently there is no supported way to re-enable it
@@ -138,20 +140,20 @@ public class Threading {
   public static void disableSingleThreading() {
     singleThreaded = false;
     if (Debug.verbose()) {
-      System.err.println("Application forced disabling of single-threading of JOGL implementation");
+      System.err.println("Application forced disabling of single-threading of javax.media.opengl implementation");
     }
   }
 
   /** Indicates whether OpenGL work is being automatically forced to a
-      single thread by the JOGL implementation. */
+      single thread. */
   public static boolean isSingleThreaded() {
     return singleThreaded;
   }
 
   /** Indicates whether the current thread is the single thread on
-      which the JOGL implementation performs all of its OpenGL-related
-      work. This method should only be called if the single-thread
-      model is in effect. */
+      which this implementation of the javax.media.opengl APIs
+      performs all of its OpenGL-related work. This method should only
+      be called if the single-thread model is in effect. */
   public static boolean isOpenGLThread() throws GLException {
     if (!isSingleThreaded()) {
       throw new GLException("Should only call this in single-threaded mode");
@@ -171,14 +173,14 @@ public class Threading {
   }
 
   /** Executes the passed Runnable on the single thread used for all
-      OpenGL work in the JOGL implementation. It is not specified
-      exactly which thread is used for this purpose. This method
-      should only be called if the single-thread model is in use and
-      if the current thread is not the OpenGL thread (i.e., if
-      <code>isOpenGLThread()</code> returns false). It is up to the
-      end user to check to see whether the current thread is the
-      OpenGL thread and either execute the Runnable directly or
-      perform the work inside it. */
+      OpenGL work in this javax.media.opengl API implementation. It is
+      not specified exactly which thread is used for this
+      purpose. This method should only be called if the single-thread
+      model is in use and if the current thread is not the OpenGL
+      thread (i.e., if <code>isOpenGLThread()</code> returns
+      false). It is up to the end user to check to see whether the
+      current thread is the OpenGL thread and either execute the
+      Runnable directly or perform the work inside it. */
   public static void invokeOnOpenGLThread(Runnable r) throws GLException {
     if (!isSingleThreaded()) {
       throw new GLException ("Should only call this in single-threaded mode");
@@ -209,7 +211,7 @@ public class Threading {
 
   private static void printWorkaroundNotice() {
     if (singleThreaded && Debug.verbose()) {
-      System.err.println("Using single thread for performing OpenGL work in JOGL implementation");
+      System.err.println("Using single thread for performing OpenGL work in javax.media.opengl implementation");
     }
   }
 }
