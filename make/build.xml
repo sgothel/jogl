@@ -491,6 +491,15 @@
             <classpath refid="gen.classpath" />
         </gluegen>
 
+	<!-- Generate WGL/GLX/CGL implementation class -->
+        <echo message="Generating WGL/GLX/CGL implementation class" />
+        <gluegen src="${stub.includes.platform}/window-system.c" 
+                 config="${window.cfg}"
+                 includeRefid="stub.includes.fileset.platform"
+                 emitter="com.sun.gluegen.opengl.GLEmitter">
+            <classpath refid="gen.classpath" />
+        </gluegen>
+
 	<!-- Generate JAWT class -->
         <!-- NOTE:  the "literalInclude" in this GlueGen call is simply to
            -        get around the fact that neither FileSet nor DirSet can
@@ -503,15 +512,6 @@
                  literalInclude="${java.includes.dir}"
                  includeRefid="stub.includes.fileset.platform"
                  emitter="com.sun.gluegen.JavaEmitter">
-            <classpath refid="gen.classpath" />
-        </gluegen>
-
-	<!-- Generate WGL/GLX/CGL implementation class -->
-        <echo message="Generating WGL/GLX/CGL implementation class" />
-        <gluegen src="${stub.includes.platform}/window-system.c" 
-                 config="${window.cfg}"
-                 includeRefid="stub.includes.fileset.platform"
-                 emitter="com.sun.gluegen.opengl.GLEmitter">
             <classpath refid="gen.classpath" />
         </gluegen>
 

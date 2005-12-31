@@ -667,21 +667,18 @@ public class JavaEmitter implements GlueEmitter {
 
   public void emitStruct(CompoundType structType, String alternateName) throws Exception {
     // Emit abstract base class delegating to 32-bit or 64-bit implementations
-    emitStructImpl(structType, alternateName, true, machDesc32, machDesc64);
+    emitStructImpl(structType, alternateName, machDesc32, machDesc64, true, false);
     // Emit concrete implementing class for each variant
-    if (machDesc32 != null) {
-      emitStructImpl(structType, alternateName, false, machDesc32, null);
-    }
-    if (machDesc64 != null) {
-      emitStructImpl(structType, alternateName, false, null, machDesc64);
-    }
+    emitStructImpl(structType, alternateName, machDesc32, machDesc64, false, true);
+    emitStructImpl(structType, alternateName, machDesc32, machDesc64, false, false);
   }
 
   public void emitStructImpl(CompoundType structType,
                              String alternateName,
-                             boolean isAbstractBaseClass,
                              MachineDescription md32,
-                             MachineDescription md64) throws Exception {
+                             MachineDescription md64,
+                             boolean doBaseClass,
+                             boolean do32Bit) throws Exception {
     String name = structType.getName();
     if (name == null && alternateName != null) {
       name = alternateName;
@@ -697,28 +694,43 @@ public class JavaEmitter implements GlueEmitter {
     }
 
     Type containingCType = canonicalize(new PointerType(SizeThunk.POINTER, structType, 0));
-    JavaType containingType = typeToJavaType(containingCType, false);
+    JavaType containingType = typeToJavaType(containingCType, false, machDesc);
     if (!containingType.isCompoundTypeWrapper()) {
       return;
     }
     String containingTypeName = containingType.getName();
 
-    if ((md32 == null) && (md64 == null)) {
-      throw new RuntimeException("Must supply at least one MachineDescription to emitStructImpl");
+    if ((md32 == null) || (md64 == null)) {
+      throw new RuntimeException("Must supply both 32- and 64-bit MachineDescriptions to emitStructImpl");
     }
     String suffix = "";
-    MachineDescription curMachDesc = null;
-    if (!isAbstractBaseClass) {
-      if ((md32 != null) && (md64 != null)) {
-        throw new RuntimeException("Must supply at most one MachineDescription to emitStructImpl when emitting concrete classes");
-      }
 
-      if (md32 != null) {
+    // The "external" MachineDescription is the one used to determine
+    // the sizes of the primitive types seen in the public API. For
+    // example, if a C long is an element of a struct, it is the size
+    // of a Java int on a 32-bit machine but the size of a Java long
+    // on a 64-bit machine. To support both of these sizes with the
+    // same API, the abstract base class must take and return a Java
+    // long from the setter and getter for this field. However the
+    // implementation on a 32-bit platform must downcast this to an
+    // int and set only an int's worth of data in the struct. The
+    // "internal" MachineDescription is the one used to determine how
+    // much data to set in or get from the struct and exactly from
+    // where it comes.
+    //
+    // Note that the 64-bit MachineDescription is always used as the
+    // external MachineDescription.
+
+    MachineDescription extMachDesc = md64;
+    MachineDescription intMachDesc = null;
+
+    if (!doBaseClass) {
+      if (do32Bit) {
+        intMachDesc = md32;
         suffix = "32";
-        curMachDesc = md32;
       } else {
+        intMachDesc = md64;
         suffix = "64";
-        curMachDesc = md64;
       }
     }
 
@@ -726,7 +738,7 @@ public class JavaEmitter implements GlueEmitter {
     // Native code for calls through function pointers gets emitted
     // into the abstract base class; Java code which accesses fields
     // gets emitted into the concrete classes
-    if (isAbstractBaseClass) {
+    if (doBaseClass) {
       for (int i = 0; i < structType.getNumFields(); i++) {
         if (structType.getField(i).getType().isFunctionPointer()) {
           needsNativeCode = true;
@@ -781,8 +793,8 @@ public class JavaEmitter implements GlueEmitter {
       writer.println((String) iter.next());
     }
     writer.println();
-    writer.print((isAbstractBaseClass ? "public " : "") + (isAbstractBaseClass ? "abstract " : "") + "class " + containingTypeName + suffix + " ");
-    if (!isAbstractBaseClass) {
+    writer.print((doBaseClass ? "public " : "") + (doBaseClass ? "abstract " : "") + "class " + containingTypeName + suffix + " ");
+    if (!doBaseClass) {
       writer.print("extends " + containingTypeName + " ");
     }
     boolean firstIteration = true;
@@ -796,48 +808,32 @@ public class JavaEmitter implements GlueEmitter {
       writer.print(" ");
     }
     writer.println("{");
-    if (isAbstractBaseClass) {
+    if (doBaseClass) {
       writer.println("  StructAccessor accessor;");
       writer.println();
     }
     writer.println("  public static int size() {");
-    if (isAbstractBaseClass) {
+    if (doBaseClass) {
       writer.println("    if (CPU.is32Bit()) {");
-      if (md32 == null) {
-        writer.println("      throw new " + cfg.runtimeExceptionType() + "(\"32-bit architectures not supported with this autogenerated code\");");
-      } else {
-        writer.println("      return " + containingTypeName + "32" + ".size();");
-      }
+      writer.println("      return " + containingTypeName + "32" + ".size();");
       writer.println("    } else {");
-      if (md64 == null) {
-        writer.println("      throw new " + cfg.runtimeExceptionType() + "(\"64-bit architectures not supported with this autogenerated code\");");
-      } else {
-        writer.println("      return " + containingTypeName + "64" + ".size();");
-      }
+      writer.println("      return " + containingTypeName + "64" + ".size();");
       writer.println("    }");
     } else {
-      writer.println("    return " + structType.getSize(curMachDesc) + ";");
+      writer.println("    return " + structType.getSize(intMachDesc) + ";");
     }
     writer.println("  }");
     writer.println();
-    if (isAbstractBaseClass) {
+    if (doBaseClass) {
       writer.println("  public static " + containingTypeName + " create() {");
       writer.println("    return create(BufferFactory.newDirectByteBuffer(size()));");
       writer.println("  }");
       writer.println();
       writer.println("  public static " + containingTypeName + " create(ByteBuffer buf) {");
       writer.println("    if (CPU.is32Bit()) {");
-      if (md32 == null) {
-        writer.println("      throw new " + cfg.runtimeExceptionType() + "(\"32-bit architectures not supported with this autogenerated code\");");
-      } else {
-        writer.println("      return new " + containingTypeName + "32(buf);");
-      }
+      writer.println("      return new " + containingTypeName + "32(buf);");
       writer.println("    } else {");
-      if (md64 == null) {
-        writer.println("      throw new " + cfg.runtimeExceptionType() + "(\"64-bit architectures not supported with this autogenerated code\");");
-      } else {
-        writer.println("      return new " + containingTypeName + "64(buf);");
-      }
+      writer.println("      return new " + containingTypeName + "64(buf);");
       writer.println("    }");
       writer.println("  }");
       writer.println();
@@ -859,7 +855,7 @@ public class JavaEmitter implements GlueEmitter {
       Type fieldType = field.getType();
       if (!cfg.shouldIgnore(name + " " + field.getName())) {
         if (fieldType.isFunctionPointer()) {
-          if (isAbstractBaseClass) {
+          if (doBaseClass) {
             try {
               // Emit method call and associated native code
               FunctionType   funcType     = fieldType.asPointer().getTargetType().asFunction();
@@ -928,45 +924,63 @@ public class JavaEmitter implements GlueEmitter {
           }
         
           writer.println();
-          writer.print("  public " + (isAbstractBaseClass ? "abstract " : "") + fieldType.getName() + " " + field.getName() + "()");
-          if (isAbstractBaseClass) {
+          writer.print("  public " + (doBaseClass ? "abstract " : "") + fieldType.getName() + " " + field.getName() + "()");
+          if (doBaseClass) {
             writer.println(";");
           } else {
             writer.println(" {");
             writer.println("    return " + fieldType.getName() + ".create(accessor.slice(" +
-                           field.getOffset(machDesc) + ", " + fieldType.getSize(machDesc) + "));");
+                           field.getOffset(intMachDesc) + ", " + fieldType.getSize(intMachDesc) + "));");
             writer.println("  }");
           }
           // FIXME: add setter by autogenerating "copyTo" for all compound type wrappers
         } else if (fieldType.isArray()) {
-          if (!isAbstractBaseClass) {
+          if (!doBaseClass) {
             System.err.println("WARNING: Array fields (field \"" + field + "\" of type \"" + name +
                                "\") not implemented yet");
           }
         } else {
-          JavaType javaType = null;
+          JavaType internalJavaType = null;
+          JavaType externalJavaType = null;
+
           try {
-            javaType = typeToJavaType(fieldType, false);
+            externalJavaType = typeToJavaType(fieldType, false, extMachDesc);
+            if (!doBaseClass) {
+              internalJavaType = typeToJavaType(fieldType, false, intMachDesc);
+            }
           } catch (Exception e) {
             System.err.println("Error occurred while creating accessor for field \"" +
                                field.getName() + "\" in type \"" + name + "\"");
             e.printStackTrace();
             throw(e);
           }
-          if (javaType.isPrimitive()) {
+          if (externalJavaType.isPrimitive()) {
             // Primitive type
-            String externalJavaTypeName = javaType.getName();
-            String internalJavaTypeName = externalJavaTypeName;
-            if (isOpaque(fieldType)) {
-              internalJavaTypeName = compatiblePrimitiveJavaTypeName(fieldType, javaType);
+            String externalJavaTypeName = null;
+            String internalJavaTypeName = null;
+            externalJavaTypeName = externalJavaType.getName();
+            if (!doBaseClass) {
+              internalJavaTypeName = internalJavaType.getName();
             }
-            String capitalized =
-              "" + Character.toUpperCase(internalJavaTypeName.charAt(0)) + internalJavaTypeName.substring(1);
-            int slot = slot(fieldType, (int) field.getOffset(machDesc));
+            if (isOpaque(fieldType)) {
+              externalJavaTypeName = compatiblePrimitiveJavaTypeName(fieldType, externalJavaType, extMachDesc);
+              if (!doBaseClass) {
+                internalJavaTypeName = compatiblePrimitiveJavaTypeName(fieldType, internalJavaType, intMachDesc);
+              }
+            }
+            String capitalized = null;
+            if (!doBaseClass) {
+              capitalized =
+                "" + Character.toUpperCase(internalJavaTypeName.charAt(0)) + internalJavaTypeName.substring(1);
+            }
+            int slot = -1;
+            if (!doBaseClass) {
+              slot = slot(fieldType, (int) field.getOffset(intMachDesc), intMachDesc);
+            }
             // Setter
             writer.println();
-            writer.print("  public " + (isAbstractBaseClass ? "abstract " : "") + containingTypeName + " " + field.getName() + "(" + externalJavaTypeName + " val)");
-            if (isAbstractBaseClass) {
+            writer.print("  public " + (doBaseClass ? "abstract " : "") + containingTypeName + " " + field.getName() + "(" + externalJavaTypeName + " val)");
+            if (doBaseClass) {
               writer.println(";");
             } else {
               writer.println(" {");
@@ -980,8 +994,8 @@ public class JavaEmitter implements GlueEmitter {
             }
             writer.println();
             // Getter
-            writer.print("  public " + (isAbstractBaseClass ? "abstract " : "") + externalJavaTypeName + " " + field.getName() + "()");
-            if (isAbstractBaseClass) {
+            writer.print("  public " + (doBaseClass ? "abstract " : "") + externalJavaTypeName + " " + field.getName() + "()");
+            if (doBaseClass) {
               writer.println(";");
             } else {
               writer.println(" {");
@@ -1002,7 +1016,7 @@ public class JavaEmitter implements GlueEmitter {
         }
       }
     }
-    if (isAbstractBaseClass) {
+    if (doBaseClass) {
       emitCustomJavaCode(writer, containingTypeName);
     }
     writer.println("}");
@@ -1019,7 +1033,7 @@ public class JavaEmitter implements GlueEmitter {
   // Internals only below this point
   //
 
-  private JavaType typeToJavaType(Type cType, boolean outgoingArgument) {
+  private JavaType typeToJavaType(Type cType, boolean outgoingArgument, MachineDescription curMachDesc) {
     // Recognize JNIEnv* case up front
     PointerType opt = cType.asPointer();
     if ((opt != null) &&
@@ -1035,13 +1049,13 @@ public class JavaEmitter implements GlueEmitter {
     }
     Type t = cType;
     if (t.isInt() || t.isEnum()) {
-      switch ((int) t.getSize(machDesc)) {
+      switch ((int) t.getSize(curMachDesc)) {
        case 1:  return javaType(Byte.TYPE);
        case 2:  return javaType(Short.TYPE);
        case 4:  return javaType(Integer.TYPE);
        case 8:  return javaType(Long.TYPE);
        default: throw new RuntimeException("Unknown integer type of size " +
-                                           t.getSize(machDesc) + " and name " + t.getName());
+                                           t.getSize(curMachDesc) + " and name " + t.getName());
       }
     } else if (t.isFloat()) {
       return javaType(Float.TYPE);
@@ -1067,13 +1081,13 @@ public class JavaEmitter implements GlueEmitter {
           if (targetType.isVoid()) {
             return JavaType.createForVoidPointer();
           } else if (targetType.isInt()) {
-            switch ((int) targetType.getSize(machDesc)) {
+            switch ((int) targetType.getSize(curMachDesc)) {
               case 1:  return JavaType.createForCCharPointer();
               case 2:  return JavaType.createForCShortPointer();
               case 4:  return JavaType.createForCInt32Pointer();
               case 8:  return JavaType.createForCInt64Pointer();
               default: throw new RuntimeException("Unknown integer array type of size " +
-                                                  t.getSize(machDesc) + " and name " + t.getName());
+                                                  t.getSize(curMachDesc) + " and name " + t.getName());
             }
           } else if (targetType.isFloat()) {
             return JavaType.createForCFloatPointer();
@@ -1121,13 +1135,13 @@ public class JavaEmitter implements GlueEmitter {
 
           if (bottomType.isPrimitive()) {
             if (bottomType.isInt()) {
-              switch ((int) bottomType.getSize(machDesc)) {
+              switch ((int) bottomType.getSize(curMachDesc)) {
                 case 1: return javaType(ArrayTypes.byteBufferArrayClass);
                 case 2: return javaType(ArrayTypes.shortBufferArrayClass);
                 case 4: return javaType(ArrayTypes.intBufferArrayClass);
                 case 8: return javaType(ArrayTypes.longBufferArrayClass);
                 default: throw new RuntimeException("Unknown two-dimensional integer array type of element size " +
-                                                    bottomType.getSize(machDesc) + " and name " + bottomType.getName());
+                                                    bottomType.getSize(curMachDesc) + " and name " + bottomType.getName());
               }
             } else if (bottomType.isFloat()) {
               return javaType(ArrayTypes.floatBufferArrayClass);
@@ -1176,13 +1190,13 @@ public class JavaEmitter implements GlueEmitter {
             (c == Long.TYPE));
   }
 
-  private int slot(Type t, int byteOffset) {
+  private int slot(Type t, int byteOffset, MachineDescription curMachDesc) {
     if (t.isInt()) {
-      switch ((int) t.getSize(machDesc)) {
+      switch ((int) t.getSize(curMachDesc)) {
        case 1:  
        case 2:  
        case 4:  
-       case 8:  return byteOffset / (int) t.getSize(machDesc);
+       case 8:  return byteOffset / (int) t.getSize(curMachDesc);
        default: throw new RuntimeException("Illegal type");
       }
     } else if (t.isFloat()) {
@@ -1190,7 +1204,7 @@ public class JavaEmitter implements GlueEmitter {
     } else if (t.isDouble()) {
       return byteOffset / 8;
     } else if (t.isPointer()) {
-      return byteOffset / machDesc.pointerSizeInBytes();
+      return byteOffset / curMachDesc.pointerSizeInBytes();
     } else {
       throw new RuntimeException("Illegal type " + t);
     }
@@ -1220,13 +1234,14 @@ public class JavaEmitter implements GlueEmitter {
   }
 
   private String compatiblePrimitiveJavaTypeName(Type fieldType,
-                                                 JavaType javaType) {
+                                                 JavaType javaType,
+                                                 MachineDescription curMachDesc) {
     Class c = javaType.getJavaClass();
     if (!isIntegerType(c)) {
       // FIXME
       throw new RuntimeException("Can't yet handle opaque definitions of structs' fields to non-integer types (byte, short, int, long, etc.)");
     }
-    switch ((int) fieldType.getSize(machDesc)) {
+    switch ((int) fieldType.getSize(curMachDesc)) {
       case 1:  return "byte";
       case 2:  return "short";
       case 4:  return "int";
@@ -1506,7 +1521,7 @@ public class JavaEmitter implements GlueEmitter {
       }
       binding.setJavaReturnType(javaType(java.lang.String.class));
     } else {
-      binding.setJavaReturnType(typeToJavaType(sym.getReturnType(), false));
+      binding.setJavaReturnType(typeToJavaType(sym.getReturnType(), false, machDesc));
     }
 
     // List of the indices of the arguments in this function that should be
@@ -1515,7 +1530,7 @@ public class JavaEmitter implements GlueEmitter {
 
     for (int i = 0; i < sym.getNumArguments(); i++) {
       Type cArgType = sym.getArgumentType(i);
-      JavaType mappedType = typeToJavaType(cArgType, true);
+      JavaType mappedType = typeToJavaType(cArgType, true, machDesc);
       //System.out.println("C arg type -> \"" + cArgType + "\"" );
       //System.out.println("      Java -> \"" + mappedType + "\"" );
      
