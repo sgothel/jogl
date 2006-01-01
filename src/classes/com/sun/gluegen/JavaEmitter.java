@@ -84,7 +84,6 @@ public class JavaEmitter implements GlueEmitter {
   private PrintWriter javaWriter; // Emits either interface or, in AllStatic mode, everything
   private PrintWriter javaImplWriter; // Only used in non-AllStatic modes for impl class
   private PrintWriter cWriter;
-  private MachineDescription machDesc;
   private MachineDescription machDesc32;
   private MachineDescription machDesc64;
   
@@ -101,11 +100,6 @@ public class JavaEmitter implements GlueEmitter {
 
     machDesc32 = md32;
     machDesc64 = md64;
-    if (machDesc32 == null) {
-      machDesc = machDesc64;
-    } else {
-      machDesc = machDesc32;
-    }
   }
 
   public void beginEmission(GlueEmitterControls controls) throws IOException
@@ -293,7 +287,7 @@ public class JavaEmitter implements GlueEmitter {
     for (int i = 0; i < methodBindingEmitters.size(); ++i) {
       FunctionEmitter emitter = (FunctionEmitter)methodBindingEmitters.get(i);      
       try {
-        emitter.emit(machDesc);
+        emitter.emit();
       } catch (Exception e) {
         throw new RuntimeException(
             "Error while emitting binding for \"" + emitter.getName() + "\"", e);
@@ -360,7 +354,6 @@ public class JavaEmitter implements GlueEmitter {
     JavaMethodBindingEmitter emitter =
       new JavaMethodBindingEmitter(binding,
                                    writer,
-                                   machDesc,
                                    cfg.runtimeExceptionType(),
                                    !signatureOnly && needsBody,
                                    false,
@@ -423,7 +416,6 @@ public class JavaEmitter implements GlueEmitter {
         JavaMethodBindingEmitter emitter =
           new JavaMethodBindingEmitter(binding,
                                        writer,
-                                       machDesc,
                                        cfg.runtimeExceptionType(),
                                        false,
                                        true,
@@ -448,7 +440,6 @@ public class JavaEmitter implements GlueEmitter {
           emitter =
             new JavaMethodBindingEmitter(binding,
                                          writer,
-                                         machDesc,
                                          cfg.runtimeExceptionType(),
                                          false,
                                          true,
@@ -509,7 +500,6 @@ public class JavaEmitter implements GlueEmitter {
       CMethodBindingEmitter cEmitter =
         new CMethodBindingEmitter(binding,
                                   cWriter(),
-                                  machDesc,
                                   cfg.implPackageName(),
                                   cfg.implClassName(),
                                   true, /* NOTE: we always disambiguate with a suffix now, so this is optional */
@@ -534,7 +524,6 @@ public class JavaEmitter implements GlueEmitter {
         cEmitter =
           new CMethodBindingEmitter(binding,
                                     cWriter(),
-                                    machDesc,
                                     cfg.implPackageName(),
                                     cfg.implClassName(),
                                     true, /* NOTE: we always disambiguate with a suffix now, so this is optional */
@@ -564,7 +553,7 @@ public class JavaEmitter implements GlueEmitter {
 
     try {
       // Get Java binding for the function
-      MethodBinding mb = bindFunction(sym, null, null);
+      MethodBinding mb = bindFunction(sym, null, null, machDesc64);
       
       // JavaTypes representing C pointers in the initial
       // MethodBinding have not been lowered yet to concrete types
@@ -694,7 +683,7 @@ public class JavaEmitter implements GlueEmitter {
     }
 
     Type containingCType = canonicalize(new PointerType(SizeThunk.POINTER, structType, 0));
-    JavaType containingType = typeToJavaType(containingCType, false, machDesc);
+    JavaType containingType = typeToJavaType(containingCType, false, null);
     if (!containingType.isCompoundTypeWrapper()) {
       return;
     }
@@ -860,7 +849,7 @@ public class JavaEmitter implements GlueEmitter {
               // Emit method call and associated native code
               FunctionType   funcType     = fieldType.asPointer().getTargetType().asFunction();
               FunctionSymbol funcSym      = new FunctionSymbol(field.getName(), funcType);
-              MethodBinding  binding      = bindFunction(funcSym, containingType, containingCType);
+              MethodBinding  binding      = bindFunction(funcSym, containingType, containingCType, machDesc64);
               binding.findThisPointer(); // FIXME: need to provide option to disable this on per-function basis
               writer.println();
 
@@ -868,7 +857,6 @@ public class JavaEmitter implements GlueEmitter {
               JavaMethodBindingEmitter emitter =
                 new JavaMethodBindingEmitter(binding,
                                              writer,
-                                             machDesc,
                                              cfg.runtimeExceptionType(),
                                              true,
                                              false,
@@ -878,13 +866,12 @@ public class JavaEmitter implements GlueEmitter {
                                              false, // FIXME: should unify this with the general emission code
                                              false);
               emitter.addModifier(JavaMethodBindingEmitter.PUBLIC);
-              emitter.emit(machDesc);
+              emitter.emit();
 
               // Emit private native Java entry point for calling this function pointer
               emitter =
                 new JavaMethodBindingEmitter(binding,
                                              writer,
-                                             machDesc,
                                              cfg.runtimeExceptionType(),
                                              false,
                                              true,
@@ -895,20 +882,19 @@ public class JavaEmitter implements GlueEmitter {
                                              false);
               emitter.addModifier(JavaMethodBindingEmitter.PRIVATE);
               emitter.addModifier(JavaMethodBindingEmitter.NATIVE);
-              emitter.emit(machDesc);
+              emitter.emit();
 
               // Emit (private) C entry point for calling this function pointer
               CMethodBindingEmitter cEmitter =
                 new CMethodBindingEmitter(binding,
                                           cWriter,
-                                          machDesc,
                                           structClassPkg,
                                           containingTypeName,
                                           true, // FIXME: this is optional at this point
                                           false,
                                           true,
                                           false); // FIXME: should unify this with the general emission code
-              cEmitter.emit(machDesc);
+              cEmitter.emit();
             } catch (Exception e) {
               System.err.println("While processing field " + field + " of type " + name + ":");
               throw(e);
@@ -1504,7 +1490,8 @@ public class JavaEmitter implements GlueEmitter {
       emitters for them. */
   private MethodBinding bindFunction(FunctionSymbol sym,
                                      JavaType containingType,
-                                     Type containingCType) {
+                                     Type containingCType,
+                                     MachineDescription curMachDesc) {
 
     MethodBinding binding = new MethodBinding(sym, containingType, containingCType);
     
@@ -1514,14 +1501,14 @@ public class JavaEmitter implements GlueEmitter {
       PointerType prt = sym.getReturnType().asPointer();
       if (prt == null ||
           prt.getTargetType().asInt() == null ||
-          prt.getTargetType().getSize(machDesc) != 1) {
+          prt.getTargetType().getSize(curMachDesc) != 1) {
         throw new RuntimeException(
           "Cannot apply ReturnsString configuration directive to \"" + sym +
           "\". ReturnsString requires native method to have return type \"char *\"");
       }
       binding.setJavaReturnType(javaType(java.lang.String.class));
     } else {
-      binding.setJavaReturnType(typeToJavaType(sym.getReturnType(), false, machDesc));
+      binding.setJavaReturnType(typeToJavaType(sym.getReturnType(), false, curMachDesc));
     }
 
     // List of the indices of the arguments in this function that should be
@@ -1530,7 +1517,7 @@ public class JavaEmitter implements GlueEmitter {
 
     for (int i = 0; i < sym.getNumArguments(); i++) {
       Type cArgType = sym.getArgumentType(i);
-      JavaType mappedType = typeToJavaType(cArgType, true, machDesc);
+      JavaType mappedType = typeToJavaType(cArgType, true, curMachDesc);
       //System.out.println("C arg type -> \"" + cArgType + "\"" );
       //System.out.println("      Java -> \"" + mappedType + "\"" );
      

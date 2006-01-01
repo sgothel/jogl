@@ -41,6 +41,6 @@ package com.sun.gluegen.cgram.types;
 
 public class MachineDescription32Bit extends MachineDescription {
   public MachineDescription32Bit() {
-    super(1, 2, 4, 4, 8, 4, 8, 4);
+    super(1, 2, 4, 4, 8, 4, 8, 4, 8);
   }
 }

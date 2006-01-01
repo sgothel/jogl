@@ -192,9 +192,9 @@ public class WindowsGLDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   static String wglGetLastError() {
-    int err = WGL.GetLastError();
+    long err = WGL.GetLastError();
     String detail = null;
-    switch (err) {
+    switch ((int) err) {
       case WGL.ERROR_INVALID_PIXEL_FORMAT: detail = "ERROR_INVALID_PIXEL_FORMAT";       break;
       case WGL.ERROR_NO_SYSTEM_RESOURCES:  detail = "ERROR_NO_SYSTEM_RESOURCES";        break;
       case WGL.ERROR_INVALID_DATA:         detail = "ERROR_INVALID_DATA";               break;

@@ -199,7 +199,7 @@ public abstract class WindowsGLDrawable extends GLDrawableImpl {
               }
               gotAvailableCaps = true;
             } else {
-              int lastErr = WGL.GetLastError();
+              long lastErr = WGL.GetLastError();
               // Intel Extreme graphics fails with a zero error code
               if (lastErr != 0) {
                 throw new GLException("Unable to enumerate pixel formats of window using wglGetPixelFormatAttribivARB: error code " + WGL.GetLastError());
@@ -262,7 +262,7 @@ public abstract class WindowsGLDrawable extends GLDrawableImpl {
       pixelFormat = WGL.ChoosePixelFormat(hdc, pfd);
     }
     if (!WGL.SetPixelFormat(hdc, pixelFormat, pfd)) {
-      int lastError = WGL.GetLastError();
+      long lastError = WGL.GetLastError();
       if (DEBUG) {
         System.err.println(getThreadName() + ": SetPixelFormat failed: current context = " + WGL.wglGetCurrentContext() +
                            ", current DC = " + WGL.wglGetCurrentDC());

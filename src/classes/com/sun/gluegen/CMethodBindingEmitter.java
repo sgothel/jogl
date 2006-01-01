@@ -120,7 +120,6 @@ public class CMethodBindingEmitter extends FunctionEmitter
    */
   public CMethodBindingEmitter(MethodBinding binding,
                                PrintWriter output,
-                               MachineDescription defaultMachDesc,
                                String javaPackageName,
                                String javaClassName,                   
                                boolean isOverloadedBinding,
@@ -128,7 +127,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
                                boolean forImplementingMethodCall,
                                boolean forIndirectBufferAndArrayImplementation)
   {
-    super(output, defaultMachDesc);
+    super(output);
 
     assert(binding != null);
     assert(javaClassName != null);
@@ -382,7 +381,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
   }
 
   
-  protected void emitBody(PrintWriter writer, MachineDescription machDesc)
+  protected void emitBody(PrintWriter writer)
   {    
     writer.println(" {");
     emitBodyVariableDeclarations(writer);
@@ -393,7 +392,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
     emitBodyUserVariableAssignments(writer);
     emitBodyVariablePostCallCleanup(writer, true);
     emitBodyVariablePostCallCleanup(writer, false);
-    emitBodyReturnResult(writer, machDesc);
+    emitBodyReturnResult(writer);
     writer.println("}");
     writer.println();
   }
@@ -966,7 +965,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
     }
   }
 
-  protected void emitBodyReturnResult(PrintWriter writer, MachineDescription machDesc)
+  protected void emitBodyReturnResult(PrintWriter writer)
   {
     // WARNING: this code assumes that the return type has already been
     // typedef-resolved.
@@ -997,11 +996,9 @@ public class CMethodBindingEmitter extends FunctionEmitter
           writer.print(
             returnValueCapacityExpression.format(argumentNames));
         } else {
-          SizeThunk sz = null;
           if (cReturnType.isPointer() &&
               cReturnType.asPointer().getTargetType().isCompound()) {
-            sz = cReturnType.asPointer().getTargetType().getSize();
-            if (sz == null) {
+            if (cReturnType.asPointer().getTargetType().getSize() == null) {
               throw new RuntimeException(
                 "Error emitting code for compound return type "+
                 "for function \"" + binding + "\": " +
@@ -1010,14 +1007,12 @@ public class CMethodBindingEmitter extends FunctionEmitter
                 cReturnType.asPointer().getTargetType() + " was not)"
               );
             }
-          } else {
-            sz = cReturnType.getSize();
           }
-          writer.print(sz.compute(machDesc));
+          writer.print("sizeof(" + cReturnType.getName() + ")");
           System.err.println(
             "WARNING: No capacity specified for java.nio.Buffer return " +
             "value for function \"" + binding + "\";" +
-            " assuming size of equivalent C return type (" + sz + " bytes): " + binding); 
+            " assuming size of equivalent C return type (sizeof(" + cReturnType.getName() + ")): " + binding); 
         }
         writer.println(");");
       } else if (javaReturnType.isString()) {
@@ -1044,11 +1039,8 @@ public class CMethodBindingEmitter extends FunctionEmitter
         } else {
           baseType = retType.asArray().getElementType().asPointer().getTargetType();
         }
-        SizeThunk sz = baseType.getSize();
-        if (sz == null)
-          sz = SizeThunk.constant(0);
         writer.println("    (*env)->SetObjectArrayElement(env, " + arrayRes + ", " + arrayIdx +
-                       ", (*env)->NewDirectByteBuffer(env, _res[" + arrayIdx + "], " + sz.compute(machDesc) + "));");
+                       ", (*env)->NewDirectByteBuffer(env, _res[" + arrayIdx + "], sizeof(" + baseType.getName() + ")));");
         writer.println("  }");
         writer.println("  return " + arrayRes + ";");
       } else if (javaReturnType.isArray()) {

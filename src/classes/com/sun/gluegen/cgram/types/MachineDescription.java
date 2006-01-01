@@ -48,6 +48,7 @@ public class MachineDescription {
   private int floatSizeInBytes;
   private int doubleSizeInBytes;
   private int pointerSizeInBytes;
+  private int structAlignmentInBytes;
 
   public MachineDescription(int charSizeInBytes,
                             int shortSizeInBytes,
@@ -56,7 +57,8 @@ public class MachineDescription {
                             int int64SizeInBytes,
                             int floatSizeInBytes,
                             int doubleSizeInBytes,
-                            int pointerSizeInBytes) {
+                            int pointerSizeInBytes,
+                            int structAlignmentInBytes) {
     this.charSizeInBytes    = charSizeInBytes;
     this.shortSizeInBytes   = shortSizeInBytes;
     this.intSizeInBytes     = intSizeInBytes;
@@ -65,6 +67,7 @@ public class MachineDescription {
     this.floatSizeInBytes   = floatSizeInBytes;
     this.doubleSizeInBytes  = doubleSizeInBytes;
     this.pointerSizeInBytes = pointerSizeInBytes;
+    this.structAlignmentInBytes = structAlignmentInBytes;
   }
 
   public int charSizeInBytes()    { return charSizeInBytes;   }
@@ -75,4 +78,5 @@ public class MachineDescription {
   public int floatSizeInBytes()   { return floatSizeInBytes;  }
   public int doubleSizeInBytes()  { return doubleSizeInBytes; }
   public int pointerSizeInBytes() { return pointerSizeInBytes; }
+  public int structAlignmentInBytes() { return structAlignmentInBytes; }
 }

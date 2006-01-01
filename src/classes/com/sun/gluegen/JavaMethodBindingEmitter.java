@@ -89,7 +89,6 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
 
   public JavaMethodBindingEmitter(MethodBinding binding,
                                   PrintWriter output,
-                                  MachineDescription defaultMachDesc,
                                   String runtimeExceptionType,
                                   boolean emitBody,
                                   boolean eraseBufferAndArrayTypes,
@@ -99,7 +98,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
                                   boolean forIndirectBufferAndArrayImplementation,
                                   boolean isUnimplemented)
   {
-    super(output, defaultMachDesc);
+    super(output);
     this.binding = binding;
     this.runtimeExceptionType = runtimeExceptionType;
     this.emitBody = emitBody;
@@ -334,7 +333,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
     return getArgumentName(i) + "_offset";
   }
 
-  protected void emitBody(PrintWriter writer, MachineDescription machDesc)
+  protected void emitBody(PrintWriter writer)
   {
     if (!emitBody) {
       writer.println(';');
@@ -348,7 +347,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
         emitPrologueOrEpilogue(prologue, writer);
         emitPreCallSetup(binding, writer);
         //emitReturnVariableSetup(binding, writer);
-        emitReturnVariableSetupAndCall(binding, writer, machDesc);
+        emitReturnVariableSetupAndCall(binding, writer);
       }
       writer.println("  }");
     }
@@ -435,7 +434,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
   }
 
 
-  protected void emitReturnVariableSetupAndCall(MethodBinding binding, PrintWriter writer, MachineDescription machDesc) {
+  protected void emitReturnVariableSetupAndCall(MethodBinding binding, PrintWriter writer) {
     writer.print("    ");
     JavaType returnType = binding.getJavaReturnType();
     boolean needsResultAssignment = false;
@@ -507,7 +506,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
     }
     emitPrologueOrEpilogue(epilogue, writer);
     if (needsResultAssignment) {
-      emitCallResultReturn(binding, writer, machDesc);
+      emitCallResultReturn(binding, writer);
     }
   }
     
@@ -592,7 +591,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
     return numArgsEmitted;
   }
 
-  protected void emitCallResultReturn(MethodBinding binding, PrintWriter writer, MachineDescription machDesc) {
+  protected void emitCallResultReturn(MethodBinding binding, PrintWriter writer) {
     JavaType returnType = binding.getJavaReturnType();
 
     if (returnType.isCompoundTypeWrapper()) {
@@ -621,8 +620,8 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
         // Create temporary ByteBuffer slice
         // FIXME: probably need Type.getAlignedSize() for arrays of
         // compound types (rounding up to machine-dependent alignment)
-        writer.println("      _res.position(_count * " + cReturnType.getSize(machDesc) + ");");
-        writer.println("      _res.limit   ((1 + _count) * " + cReturnType.getSize(machDesc) + ");");
+        writer.println("      _res.position(_count * " + getReturnTypeString(true) + ".size());");
+        writer.println("      _res.limit   ((1 + _count) * " + getReturnTypeString(true) + ".size());");
         writer.println("      ByteBuffer _tmp = _res.slice();");
         writer.println("      _tmp.order(ByteOrder.nativeOrder());");
         writer.println("      _res.position(0);");
