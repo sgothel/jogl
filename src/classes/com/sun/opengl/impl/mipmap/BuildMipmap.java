@@ -187,6 +187,7 @@ public class BuildMipmap {
     
     for( level = 0; level < levels; level++ ) {
       if( newImage_width == newwidth[0] && newImage_height == newheight[0] ) {
+        newImage.rewind();
         gl.glTexImage2D( target, level, internalFormat, newImage_width,
             newImage_height, 0, format, GL.GL_UNSIGNED_SHORT, newImage );
       } else {
@@ -212,6 +213,7 @@ public class BuildMipmap {
         
         newImage_width = newwidth[0];
         newImage_height = newheight[0];
+        newImage.rewind();
         gl.glTexImage2D( target, level, internalFormat, newImage_width, newImage_height,
                                     0, format, GL.GL_UNSIGNED_SHORT, newImage );
       }
@@ -305,6 +307,7 @@ public class BuildMipmap {
     if( width == newwidth && height == newheight ) {
       // use usersImage for level userLevel
       if( baseLevel <= level && level <= maxLevel ) {
+        data.rewind();
         gl.glTexImage2D( target, level, internalFormat, width, height, 0, format, type, data );
       }
       if( levels == 0 ) { /* we're done. clean up and return */
@@ -658,24 +661,14 @@ public class BuildMipmap {
     gl.glPixelStorei( GL.GL_UNPACK_SWAP_BYTES, GL.GL_FALSE );
     if( baseLevel <= level && level <= maxLevel ) {
       srcImage.rewind();
-      if (DEBUG) {
-        System.err.println("GL Error(" + level + "): " + gl.glGetError() );
-      }
       gl.glTexImage2D( target, level, internalFormat, newwidth, newheight, 0, format, type, srcImage );
       if (DEBUG) {
         System.err.println("GL Error(" + level + "): " + gl.glGetError() );
         if (VERBOSE) {
-          try {
-            File file = new File( "glu2DMipmapJ" + level + ".bin" );
-            FileOutputStream fos = new FileOutputStream( file );
-            srcImage.limit( Mipmap.image_size( newwidth, newheight, format, type ) );
-            fos.getChannel().write( srcImage );
-            srcImage.clear();
-            fos.close();
-          } catch( IOException e ) {
-            System.err.println("IOException");
-            System.err.println(e.getMessage());
-          }
+          srcImage.limit( Mipmap.image_size( newwidth, newheight, format, type ) );
+          writeTargaFile("glu2DMipmapJ" + level + ".tga",
+                         srcImage, newwidth, newheight);
+          srcImage.clear();
         }
       }
     }
@@ -773,16 +766,10 @@ public class BuildMipmap {
           if (DEBUG) {
             System.err.println("GL Error(" + level + "): " + gl.glGetError() );
             if (VERBOSE) {
-              try {
-                File file = new File( "glu2DMipmapJ" + level + ".bin" );
-                FileOutputStream fos = new FileOutputStream( file );
-                srcImage.limit( Mipmap.image_size( newwidth, newheight, format, type ) );
-                fos.getChannel().write( srcImage );
-                srcImage.clear();
-              } catch( IOException e ) {
-                System.err.println("IOException");
-                System.err.println(e.getMessage());
-              }
+              srcImage.limit( Mipmap.image_size( newwidth, newheight, format, type ) );
+              writeTargaFile("glu2DMipmapJ" + level + ".tga",
+                             srcImage, newwidth, newheight);
+              srcImage.clear();
             }
           }
         }
@@ -808,11 +795,9 @@ public class BuildMipmap {
         srcImage.rewind();
         // copy image from srcImage into newMipmapImage by rows
         for( ii = 0; ii < newheight; ii++ ) {
+          newMipmapImage.position(newRowLength * ii);
           for( jj = 0; jj < rowsize; jj++ ) {
             newMipmapImage.put( srcImage.get() );
-          }
-          if( jj < rowsize - 1 ) {
-            newMipmapImage.position( newMipmapImage.position() + rowPad );
           }
         }
         
@@ -821,18 +806,10 @@ public class BuildMipmap {
           newMipmapImage.rewind();
           gl.glTexImage2D( target, level, internalFormat, newwidth, newheight, 0, format, type, newMipmapImage );
           if (DEBUG) {
-            System.err.println("GL Error: " + gl.glGetError() );
+            System.err.println("GL Error(" + level + " padded): " + gl.glGetError() );
             if (VERBOSE) {
-              try {
-                File file = new File( "glu2DMipmapJ" + level + ".bin" );
-                FileOutputStream fos = new FileOutputStream( file );
-                srcImage.limit( Mipmap.image_size( newwidth, newheight, format, type ) );
-                fos.getChannel().write( newMipmapImage );
-                srcImage.clear();
-              } catch( IOException e ) {
-                System.err.println("IOException");
-                System.err.println(e.getMessage());
-              }
+              writeTargaFile("glu2DMipmapJ" + level + ".tga",
+                             newMipmapImage, newwidth, newheight);
             }
           }
         }
@@ -927,6 +904,7 @@ public class BuildMipmap {
     for( level = 0; level <= levels; level++ ) {
       if( newImage_width == newwidth[0] && newImage_height == newheight[0] ) {
         // use newImage for this level
+        newImage.rewind();
         gl.glTexImage2D( target, level, components, newImage_width, newImage_height,
                 0, format, GL.GL_UNSIGNED_BYTE, newImage );
       } else {
@@ -950,6 +928,7 @@ public class BuildMipmap {
         
         newImage_width = newwidth[0];
         newImage_height = newheight[0];
+        newImage.rewind();
         gl.glTexImage2D( target, level, components, newImage_width, newImage_height,
                 0, format, GL.GL_UNSIGNED_BYTE, newImage );
       }
@@ -1579,5 +1558,27 @@ public class BuildMipmap {
     gl.glPixelStorei( GL.GL_UNPACK_SKIP_IMAGES, psm.getUnpackSkipImages() );
     gl.glPixelStorei( GL.GL_UNPACK_IMAGE_HEIGHT, psm.getUnpackImageHeight() );
     return( 0 );
+  }
+
+  private static final int TARGA_HEADER_SIZE = 18;
+  private static void writeTargaFile(String filename, ByteBuffer data,
+                                     int width, int height) {
+    try {
+      FileOutputStream fos = new FileOutputStream(new File(filename));
+      ByteBuffer header = ByteBuffer.allocate(TARGA_HEADER_SIZE);
+      header.put(0, (byte) 0).put(1, (byte) 0);
+      header.put(2, (byte) 2); // uncompressed type
+      header.put(12, (byte) (width & 0xFF)); // width
+      header.put(13, (byte) (width >> 8)); // width
+      header.put(14, (byte) (height & 0xFF)); // height
+      header.put(15, (byte) (height >> 8)); // height
+      header.put(16, (byte) 24); // pixel size
+      fos.getChannel().write(header);
+      fos.getChannel().write(data);
+      data.clear();
+      fos.close();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
   }
 }
