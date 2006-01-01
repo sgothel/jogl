@@ -1033,14 +1033,15 @@ public class CMethodBindingEmitter extends FunctionEmitter
         writer.println("  " + arrayRes + " = (*env)->NewObjectArray(env, " + arrayResLength + ", (*env)->FindClass(env, \"java/nio/ByteBuffer\"), NULL);");
         writer.println("  for (" + arrayIdx + " = 0; " + arrayIdx + " < " + arrayResLength + "; " + arrayIdx + "++) {");
         Type retType = binding.getCSymbol().getReturnType();
-        Type baseType;
+	Type pointerType;
         if (retType.isPointer()) {
-          baseType = retType.asPointer().getTargetType().asPointer().getTargetType();
+	  pointerType = retType.asPointer().getTargetType();
         } else {
-          baseType = retType.asArray().getElementType().asPointer().getTargetType();
+	  pointerType = retType.asArray().getElementType();
         }
+        Type baseType = pointerType.asPointer().getTargetType();
         writer.println("    (*env)->SetObjectArrayElement(env, " + arrayRes + ", " + arrayIdx +
-                       ", (*env)->NewDirectByteBuffer(env, _res[" + arrayIdx + "], sizeof(" + baseType.getName() + ")));");
+                       ", (*env)->NewDirectByteBuffer(env, _res[" + arrayIdx + "], sizeof(" + pointerType.getName() + ")));");
         writer.println("  }");
         writer.println("  return " + arrayRes + ";");
       } else if (javaReturnType.isArray()) {
