@@ -289,7 +289,12 @@ options {
 	}
 	
 	if (enumType == null) {
-	  enumType = new EnumType(enumTypeName, SizeThunk.LONG);
+      // This isn't quite correct. In theory the enum should expand to
+      // the size of the largest element, so if there were a long long
+      // entry the enum should expand to e.g. int64. However, using
+      // "long" here (which is what used to be the case) was 
+      // definitely incorrect and caused problems.
+	  enumType = new EnumType(enumTypeName, SizeThunk.INT);
 	}  
 	
 	return enumType;
