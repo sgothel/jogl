@@ -37,6 +37,102 @@ public Object getPlatformGLExtensions() {
   return _context.getPlatformGLExtensions();
 }
 
+//
+// Helpers for ensuring the correct amount of texture data
+//
+
+/** Returns the number of bytes required to fill in the appropriate
+    texture. This is regrettably a lower bound as in certain
+    circumstances OpenGL state such as unpack alignment can cause more
+    data to be required. However this should be close enough that it
+    should catch most crashes. The logic in this routine is based on
+    code in the SGI OpenGL sample implementation. */
+
+private int imageSizeInBytes(int format, int type, int w, int h, int d) {
+  int elements = 0;
+  int esize = 0;
+  
+  if (w < 0) return 0;
+  if (h < 0) return 0;
+  if (d < 0) return 0;
+  switch (format) {
+  case GL_COLOR_INDEX:
+  case GL_STENCIL_INDEX:
+    elements = 1;
+    break;
+  case GL_RED:
+  case GL_GREEN:
+  case GL_BLUE:
+  case GL_ALPHA:
+  case GL_LUMINANCE:
+  case GL_DEPTH_COMPONENT:
+    elements = 1;
+    break;
+  case GL_LUMINANCE_ALPHA:
+    elements = 2;
+    break;
+  case GL_RGB:
+  case GL_BGR:
+    elements = 3;
+    break;
+  case GL_RGBA:
+  case GL_BGRA:
+  case GL_ABGR_EXT:
+    elements = 4;
+    break;
+  case GL_HILO_NV:
+    elements = 2;
+    break;
+  default:
+    return 0;
+  }
+  switch (type) {
+  case GL_BITMAP:
+    if (format == GL_COLOR_INDEX) {
+      return (d * (h * ((w+7)/8)));
+    } else {
+      return 0;
+    }
+  case GL_BYTE:
+  case GL_UNSIGNED_BYTE:
+    esize = 1;
+    break;
+  case GL_UNSIGNED_BYTE_3_3_2:
+  case GL_UNSIGNED_BYTE_2_3_3_REV:
+    esize = 1;
+    elements = 1;
+    break;
+  case GL_SHORT:
+  case GL_UNSIGNED_SHORT:
+    esize = 2;
+    break;
+  case GL_UNSIGNED_SHORT_5_6_5:
+  case GL_UNSIGNED_SHORT_5_6_5_REV:
+  case GL_UNSIGNED_SHORT_4_4_4_4:
+  case GL_UNSIGNED_SHORT_4_4_4_4_REV:
+  case GL_UNSIGNED_SHORT_5_5_5_1:
+  case GL_UNSIGNED_SHORT_1_5_5_5_REV:
+    esize = 2;
+    elements = 1;
+    break;
+  case GL_INT:
+  case GL_UNSIGNED_INT:
+  case GL_FLOAT:
+    esize = 4;
+    break;
+  case GL_UNSIGNED_INT_8_8_8_8:
+  case GL_UNSIGNED_INT_8_8_8_8_REV:
+  case GL_UNSIGNED_INT_10_10_10_2:
+  case GL_UNSIGNED_INT_2_10_10_10_REV:
+    esize = 4;
+    elements = 1;
+    break;
+  default:
+    return 0;
+  }
+  return (elements * esize * w * h * d);
+}
+
 private int[] bufTmp = new int[1];
 private void checkBufferObject(String extension1,
                                String extension2,

@@ -161,4 +161,81 @@ public class BufferFactory {
 
     throw new RuntimeException("Unknown buffer type " + buf.getClass().getName());
   }
+
+  public static void rangeCheck(byte[] array, int offset, int minElementsRemaining) {
+    if (array.length < offset + minElementsRemaining) {
+      throw new ArrayIndexOutOfBoundsException("Required " + minElementsRemaining + " elements in array, only had " + (array.length - offset));
+    }
+  }
+
+  public static void rangeCheck(char[] array, int offset, int minElementsRemaining) {
+    if (array.length < offset + minElementsRemaining) {
+      throw new ArrayIndexOutOfBoundsException("Required " + minElementsRemaining + " elements in array, only had " + (array.length - offset));
+    }
+  }
+
+  public static void rangeCheck(short[] array, int offset, int minElementsRemaining) {
+    if (array.length < offset + minElementsRemaining) {
+      throw new ArrayIndexOutOfBoundsException("Required " + minElementsRemaining + " elements in array, only had " + (array.length - offset));
+    }
+  }
+
+  public static void rangeCheck(int[] array, int offset, int minElementsRemaining) {
+    if (array.length < offset + minElementsRemaining) {
+      throw new ArrayIndexOutOfBoundsException("Required " + minElementsRemaining + " elements in array, only had " + (array.length - offset));
+    }
+  }
+
+  public static void rangeCheck(long[] array, int offset, int minElementsRemaining) {
+    if (array.length < offset + minElementsRemaining) {
+      throw new ArrayIndexOutOfBoundsException("Required " + minElementsRemaining + " elements in array, only had " + (array.length - offset));
+    }
+  }
+
+  public static void rangeCheck(float[] array, int offset, int minElementsRemaining) {
+    if (array.length < offset + minElementsRemaining) {
+      throw new ArrayIndexOutOfBoundsException("Required " + minElementsRemaining + " elements in array, only had " + (array.length - offset));
+    }
+  }
+
+  public static void rangeCheck(double[] array, int offset, int minElementsRemaining) {
+    if (array.length < offset + minElementsRemaining) {
+      throw new ArrayIndexOutOfBoundsException("Required " + minElementsRemaining + " elements in array, only had " + (array.length - offset));
+    }
+  }
+
+  public static void rangeCheck(Buffer buffer, int minElementsRemaining) {
+    if (buffer == null) {
+      return;
+    }
+
+    if (buffer.remaining() < minElementsRemaining) {
+      throw new IndexOutOfBoundsException("Required " + minElementsRemaining + " remaining elements in buffer, only had " + buffer.remaining());
+    }
+  }
+
+  public static void rangeCheckBytes(Buffer buffer, int minBytesRemaining) {
+    if (buffer == null) {
+      return;
+    }
+
+    int elementsRemaining = buffer.remaining();
+    int bytesRemaining = 0;
+    if (buffer instanceof ByteBuffer) {
+      bytesRemaining = elementsRemaining;
+    } else if (buffer instanceof FloatBuffer) {
+      bytesRemaining = elementsRemaining * SIZEOF_FLOAT;
+    } else if (buffer instanceof IntBuffer) {
+      bytesRemaining = elementsRemaining * SIZEOF_INT;
+    } else if (buffer instanceof ShortBuffer) {
+      bytesRemaining = elementsRemaining * SIZEOF_SHORT;
+    } else if (buffer instanceof DoubleBuffer) {
+      bytesRemaining = elementsRemaining * SIZEOF_DOUBLE;
+    } else if (buffer instanceof LongBuffer) {
+      bytesRemaining = elementsRemaining * SIZEOF_LONG;
+    }
+    if (bytesRemaining < minBytesRemaining) {
+      throw new IndexOutOfBoundsException("Required " + minBytesRemaining + " remaining bytes in buffer, only had " + bytesRemaining);
+    }
+  }
 }

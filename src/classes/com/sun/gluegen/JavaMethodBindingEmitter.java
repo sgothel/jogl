@@ -87,6 +87,10 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
   // number of elements of the returned array.
   private String returnedArrayLengthExpression;
 
+  // Range-check expressions for various Buffer arguments
+  private Map/*<Integer, String>*/ rangeCheckExpressions;
+  private Map/*<Integer, String>*/ byteRangeCheckExpressions;
+
   public JavaMethodBindingEmitter(MethodBinding binding,
                                   PrintWriter output,
                                   String runtimeExceptionType,
@@ -126,9 +130,11 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
     forDirectBufferImplementation = arg.forDirectBufferImplementation;
     forIndirectBufferAndArrayImplementation = arg.forIndirectBufferAndArrayImplementation;
     isUnimplemented               = arg.isUnimplemented;
-    returnedArrayLengthExpression = arg.returnedArrayLengthExpression;
     prologue                      = arg.prologue;
     epilogue                      = arg.epilogue;
+    returnedArrayLengthExpression = arg.returnedArrayLengthExpression;
+    rangeCheckExpressions         = arg.rangeCheckExpressions;
+    byteRangeCheckExpressions     = arg.byteRangeCheckExpressions;    
   }
 
   public final MethodBinding getBinding() { return binding; }
@@ -191,6 +197,14 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
   /** Accessor for subclasses. */
   public void setForImplementingMethodCall(boolean impl) {
     this.forImplementingMethodCall = impl;
+  }
+
+  public void setRangeCheckExpressions(Map/*<Integer, String>*/ rangeChecks) {
+    this.rangeCheckExpressions = rangeChecks;
+  }
+
+  public void setByteRangeCheckExpressions(Map/*<Integer, String>*/ rangeChecks) {
+    this.byteRangeCheckExpressions = rangeChecks;
   }
 
   protected void emitReturnType(PrintWriter writer)
@@ -424,6 +438,44 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
         }
       }
     }
+
+    emitManuallySpecifiedRangeChecks(rangeCheckExpressions, false, writer);
+    emitManuallySpecifiedRangeChecks(byteRangeCheckExpressions, true, writer);
+  }
+
+  protected void emitManuallySpecifiedRangeChecks(Map/*<Integer, String>*/ rangeChecks,
+                                                  boolean inBytes,
+                                                  PrintWriter writer) {
+    if (rangeChecks == null) {
+      return;
+    }
+
+    // Check lengths of arrays and buffers with user-specified checks
+    for (Iterator iter = rangeChecks.keySet().iterator(); iter.hasNext(); ) {
+      Integer argNumBox = (Integer) iter.next();
+      int argNum = argNumBox.intValue();
+      JavaType type = binding.getJavaArgumentType(argNum);
+      String argName = getArgumentName(argNum);
+      if (type.isPrimitiveArray()) {
+        String offsetArg = offsetArgName(argNum);
+        if (inBytes) {
+          throw new RuntimeException("Can not specify RangeCheckBytes for primitive array arguments (failed on function " +
+                                     binding.getName() + ", argument " + argName + ")");
+        }
+        writer.println("    BufferFactory.rangeCheck(" + argName + ", " + offsetArg + ", " +
+                       new MessageFormat((String) rangeChecks.get(argNumBox)).format(argumentNameArray()) +
+                       ");");
+      } else if (!type.isPrimitive()) {
+        // Assume it's a Buffer
+        writer.print("    BufferFactory.rangeCheck");
+        if (inBytes) {
+          writer.print("Bytes");
+        }
+        writer.println("(" + argName + ", " +
+                       new MessageFormat((String) rangeChecks.get(argNumBox)).format(argumentNameArray()) +
+                       ");");
+      }
+    }
   }
 
   protected void emitCall(MethodBinding binding, PrintWriter writer, boolean direct) {
@@ -601,11 +653,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
         writer.print("    return " + returnType.getName() + ".create(_res.order(ByteOrder.nativeOrder()))");
       } else {
         writer.println("    _res.order(ByteOrder.nativeOrder());");
-        String[] argumentNames = new String[binding.getNumArguments()];
-        for (int i = 0; i < binding.getNumArguments(); i++) {
-          argumentNames[i] = getArgumentName(i);
-        }
-        String expr = new MessageFormat(fmt).format(argumentNames);
+        String expr = new MessageFormat(fmt).format(argumentNameArray());
         PointerType cReturnTypePointer = binding.getCReturnType().asPointer();
         CompoundType cReturnType = null;
         if (cReturnTypePointer != null) {
@@ -646,6 +694,14 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
       // do any conversion on
       writer.println("    return _res;");
     }
+  }
+
+  protected String[] argumentNameArray() {
+    String[] argumentNames = new String[binding.getNumArguments()];
+    for (int i = 0; i < binding.getNumArguments(); i++) {
+      argumentNames[i] = getArgumentName(i);
+    }
+    return argumentNames;
   }
 
   public static String javaThisArgumentName() {
