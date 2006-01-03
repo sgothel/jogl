@@ -275,20 +275,19 @@
         <property name="javadoc.dev.packagenames.platform"      value="${javadoc.dev.packagenames.win32}" />
     </target>          
 
-    <target name="declare.win32.vc6" depends="declare.win32">    
-      <property name="c.compiler.include.root"                value="${vc6.root}" />
-      <property name="c.linker.lib.root"                      value="${vc6.root}" />
-
-      <property name="compiler.cfg.id"                      value="compiler.cfg.win32.msvc" /> 
-      <property name="linker.cfg.id"                        value="linker.cfg.win32.msvc" />     
+    <target name="declare.win32.vc6" depends="declare.win32">
+      <property name="compiler.cfg.id"                      value="compiler.cfg.win32.msvc" />
+      <property name="linker.cfg.id"                        value="linker.cfg.win32.msvc" />
     </target>
     
     <target name="declare.win32.vc7" depends="declare.win32">
-      <property name="c.compiler.include.root"                value="${vc7.root}" />
-      <property name="c.linker.lib.root"                      value="${vc7.root}" />
-
-      <property name="compiler.cfg.id"                      value="compiler.cfg.win32.msvc" /> 
-      <property name="linker.cfg.id"                        value="linker.cfg.win32.msvc" />     
+      <property name="compiler.cfg.id"                      value="compiler.cfg.win32.msvc" />
+      <property name="linker.cfg.id"                        value="linker.cfg.win32.msvc" />
+    </target>
+    
+    <target name="declare.win32.vc8" depends="declare.win32">
+      <property name="compiler.cfg.id"                      value="compiler.cfg.win32.msvc" />
+      <property name="linker.cfg.id"                        value="linker.cfg.win32.msvc" />
     </target>
     
     <target name="declare.win32.mingw" depends="declare.win32">  
@@ -686,9 +685,9 @@
 	<!-- Note: previous compiler options for VC7 were:
 	     Debug:     /MDd /Yd /GS /RTCs /RTCu /RTCc /W3 /Od /GF /EHsc /Zi /GS /Gy /Wp64 /Zi /D &quot;_DEBUG&quot;
              Optimized: /MD /W3 /O2 /Ob1 /GF /EHsc /GS /Gy /Wp64 /D &quot;NDEBUG&quot; -->
-
-        <sysincludepath path="${c.compiler.include.root}/PlatformSDK/Include"/>
-        <sysincludepath path="${c.compiler.include.root}/include"/>
+        <compilerarg value="/GS"      if="c.compiler.use-msvc8"/>  <!-- buffer security checks -->
+        <compilerarg value="/Wp64"    if="c.compiler.use-msvc8"/>  <!-- detect 64-bit port problems -->
+        <compilerarg value="/RTCcsu"  if="c.compiler.use-msvc8"/>  <!-- various runtime checks -->
 
         <defineset>
           <define name="_DEBUG"   if="c.compiler.use-debug"/>        
@@ -739,9 +738,9 @@
         <linkerarg value="/OPT:REF,ICF" />        <!-- enable link-time optimisations -->
         <linkerarg value="/SUBSYSTEM:WINDOWS" />  <!-- output is not a console app as uses WinMain entry point -->
         <linkerarg value="/MACHINE:IX86" />       <!-- explicity set target platform -->
+
+        <syslibset libs="opengl32, glu32, gdi32, user32, kernel32"/>
         
-        <syslibset dir="${c.linker.lib.root}/lib" libs="opengl32, glu32, gdi32, user32, kernel32" unless="c.compiler.use-msvc7"/>
-        <syslibset dir="${c.linker.lib.root}/PlatformSDK/lib" libs="opengl32, glu32, gdi32, user32, kernel32" if="c.compiler.use-msvc7"/>
         <syslibset dir="${windows.cg.lib}" libs="cg, cgGL" if="c.compiler.use-cglib"/>
       </linker>
 
@@ -872,13 +871,30 @@
       </antcall>
       <antcall target="c.rename.jogl_cg.lib.macosx" inheritRefs="true" />
     </target>
-
+    
+    <target name="c.manifest">
+      <!-- exec mt, the Microsoft Manifest Tool, to include DLL manifests in order to resolve the location of msvcr80.dll -->
+      <exec executable="mt">
+        <arg value="-manifest"/>
+        <arg value="${obj}/jogl.dll.manifest"/>
+        <arg value="-outputresource:${obj}/jogl.dll;#2"/>
+      </exec>
+      <exec executable="mt">
+        <arg value="-manifest"/>
+        <arg value="${obj}/jogl_awt.dll.manifest"/>
+        <arg value="-outputresource:${obj}/jogl_awt.dll;#2"/>
+      </exec>
+    </target>
 
     <target name="c.compile.jogl.win32.vc6" depends="declare.win32.vc6, c.build.jogl.core, c.build.jogl.awt, c.build.cg" >
     </target>
 
     <target name="c.compile.jogl.win32.vc7" depends="declare.win32.vc7, c.build.jogl.core, c.build.jogl.awt, c.build.cg">
      <property name="c.compiler.use-msvc7" value="true"/>
+    </target>
+
+    <target name="c.compile.jogl.win32.vc8" depends="declare.win32.vc8, c.build.jogl.core, c.build.jogl.awt, c.build.cg, c.manifest">
+     <property name="c.compiler.use-msvc8" value="true"/>
     </target>
 
     <target name="c.compile.jogl.win32.mingw" depends="declare.win32.mingw, c.build.jogl.core, c.build.jogl.awt, c.build.cg">
@@ -1175,7 +1191,7 @@
     <target name="all">
         <fail>
         
-Use a platform specific target:  linux, linux.amd64, linux.ia64, macosx, macosxfat (ppc and i386), solaris, win32.vc6, win32.vc7, win32.mingw
+Use a platform specific target:  linux, linux.amd64, linux.ia64, macosx, macosxfat (ppc and i386), solaris, win32.vc6, win32.vc7, win32.vc8, win32.mingw
         </fail>
     </target>      
 
@@ -1199,6 +1215,17 @@ Use a platform specific target:  linux, linux.amd64, linux.ia64, macosx, macosxf
         
         <!-- Compile the native C sources and build the jogl.dll. -->
         <antcall target="c.compile.jogl.win32.vc7" />
+    </target>
+    
+    <!--
+       - Win32 with MS VC8
+      -->
+    <target name="win32.vc8" depends="setup.java.home.dir, declare.win32">
+        <!-- Generate, compile, and build the jar for the Java sources. -->
+        <antcall target="jar" inheritRefs="true" />
+        
+        <!-- Compile the native C sources and build the jogl.dll. -->
+        <antcall target="c.compile.jogl.win32.vc8" />
     </target>
 
     <!--
