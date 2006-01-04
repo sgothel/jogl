@@ -75,17 +75,17 @@ import javax.media.opengl.*;
  *
  * Sample applet code:
  * <pre>
- * <applet code="com.sun.opengl.utils.JOGLAppletInstaller"
+ * &lt;applet code="com.sun.opengl.utils.JOGLAppletInstaller"
  *      width=600
  *      height=400
  *      codebase="/lib"
- *      archive="jogl.jar,your_applet.jar">
- *   <param name="subapplet.classname" VALUE="untrusted.JOGLApplet">
- *   <param name="subapplet.displayname" VALUE="My JOGL Applet">
- *   <param name="progressbar" value="true">
- *   <param name="cache_archive" VALUE="jogl.jar,your_applet.jar">
- *   <param name="cache_archive_ex" VALUE="jogl.jar;preload,your_applet.jar;preload">
- * </applet>
+ *      archive="jogl.jar,your_applet.jar"&gt;
+ *   &lt;param name="subapplet.classname" VALUE="untrusted.JOGLApplet"&gt;
+ *   &lt;param name="subapplet.displayname" VALUE="My JOGL Applet"&gt;
+ *   &lt;param name="progressbar" value="true"&gt;
+ *   &lt;param name="cache_archive" VALUE="jogl.jar,your_applet.jar"&gt;
+ *   &lt;param name="cache_archive_ex" VALUE="jogl.jar;preload,your_applet.jar;preload"&gt;
+ * &lt;/applet&gt;
  * </pre>
  * <p>
  * 
