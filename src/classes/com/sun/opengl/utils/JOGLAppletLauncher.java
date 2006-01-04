@@ -75,7 +75,7 @@ import javax.media.opengl.*;
  *
  * Sample applet code:
  * <pre>
- * &lt;applet code="com.sun.opengl.utils.JOGLAppletInstaller"
+ * &lt;applet code="com.sun.opengl.utils.JOGLAppletLauncher"
  *      width=600
  *      height=400
  *      codebase="/lib"
