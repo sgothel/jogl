@@ -825,24 +825,15 @@
       <!-- FIXME: this is a hack; the cpptask should have an option to change the
            suffix or at least understand the override from .so to .dll -->
       <move file="${obj}/libjogl.so" tofile="${obj}/jogl.dll" />
+      <move file="${obj}/libjogl_awt.so" tofile="${obj}/jogl_awt.dll" />
       <move file="${obj}/libjogl_cg.so" tofile="${obj}/jogl_cg.dll" failonerror="false" />
     </target>
 
-    <target name="c.rename.jogl.lib.macosx" if="os.isMacOSX">
+    <target name="c.rename.jogl.libs.macosx" if="os.isMacOSX">
       <!-- FIXME: this is a hack; the cpptask should have an option to change the
            suffix or at least understand the override from dylib to jnilib -->
       <move file="${obj}/libjogl.dylib" tofile="${obj}/libjogl.jnilib" />
-    </target>
-
-    <target name="c.rename.jogl_awt.lib.macosx" if="os.isMacOSX">
-      <!-- FIXME: this is a hack; the cpptask should have an option to change the
-           suffix or at least understand the override from dylib to jnilib -->
       <move file="${obj}/libjogl_awt.dylib" tofile="${obj}/libjogl_awt.jnilib" />
-    </target>
-
-    <target name="c.rename.jogl_cg.lib.macosx" if="os.isMacOSX">
-      <!-- FIXME: this is a hack; the cpptask should have an option to change the
-           suffix or at least understand the override from dylib to jnilib -->
       <move file="${obj}/libjogl_cg.dylib" tofile="${obj}/libjogl_cg.jnilib" />
     </target>
 
@@ -851,7 +842,6 @@
         <param name="c.compiler.src.files" value="c.src.files.jogl"/>
         <param name="output.lib.name" value="jogl"/>
       </antcall>
-      <antcall target="c.rename.jogl.lib.macosx" inheritRefs="true" />
     </target>
 
     <target name="c.build.jogl.awt">
@@ -860,7 +850,6 @@
         <param name="c.compiler.use-jawt" value="true"/>
         <param name="output.lib.name" value="jogl_awt"/>
       </antcall>
-      <antcall target="c.rename.jogl_awt.lib.macosx" inheritRefs="true" />
     </target>
 
     <target name="c.build.cg" if="jogl.cg">
@@ -869,7 +858,6 @@
         <param name="c.compiler.use-cglib" value="true"/>
         <param name="output.lib.name" value="jogl_cg"/>
       </antcall>
-      <antcall target="c.rename.jogl_cg.lib.macosx" inheritRefs="true" />
     </target>
     
     <target name="c.manifest">
@@ -914,6 +902,7 @@
     </target>
     
     <target name="c.compile.jogl.macosx" depends="declare.macosx, c.build.jogl.core, c.build.jogl.awt, c.build.cg">
+      <antcall target="c.rename.jogl.libs.macosx" inheritrefs="true" />
     </target>
     
     <target name="c.compile.jogl.freebsd" depends="declare.freebsd, c.build.jogl.core, c.build.jogl.awt, c.build.cg" >
