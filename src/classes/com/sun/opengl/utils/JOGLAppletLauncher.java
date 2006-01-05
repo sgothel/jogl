@@ -173,7 +173,7 @@ public class JOGLAppletLauncher extends Applet {
     new NativeLibInfo("mac",   null,    "jogl-natives-macosx.jar",   "lib", ".jnilib"),
     new NativeLibInfo("linux", null,    "jogl-natives-linux.jar",    "lib", ".so"),
     new NativeLibInfo("sunos", "sparc", "jogl-natives-solsparc.jar", "lib", ".so"),
-    new NativeLibInfo("sunos", "x86",   "jogl-natives-solsparc.jar", "lib", ".so")
+    new NativeLibInfo("sunos", "x86",   "jogl-natives-solx86.jar",   "lib", ".so")
   };
 
   private NativeLibInfo nativeLibInfo;
