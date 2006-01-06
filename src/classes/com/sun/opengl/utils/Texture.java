@@ -36,8 +36,6 @@
 
 package com.sun.opengl.utils;
 
-import java.awt.geom.*;
-
 import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
 
@@ -70,13 +68,9 @@ public class Texture {
       the texture coords. */
   private boolean mustFlipVertically;
 
-  /** The texture coordinate corresponding to the lower left corner
-      of the texture when properly oriented. */
-  private Point2D lowerLeftTexCoord = new Point2D.Float();
-
-  /** The texture coordinate corresponding to the upper right corner
-      of the texture when properly oriented. */
-  private Point2D upperRightTexCoord = new Point2D.Float();
+  /** The texture coordinates corresponding to the entire texture
+      image. */
+  private TextureCoords coords;
 
   private static final boolean DEBUG = Debug.debug("Texture");
 
@@ -238,89 +232,50 @@ public class Texture {
   }
 
   /**
-   * Returns the texture coordinate corresponding to the lower-left
-   * point of this texture when oriented properly. If the TextureData
-   * indicated that the texture coordinates must be flipped
-   * vertically, the returned Point will take that into account.
-   *
-   * @return the texture coordinate of the lower-left point of the
-   * texture
+   * Returns the set of texture coordinates corresponding to the
+   * entire image. If the TextureData indicated that the texture
+   * coordinates must be flipped vertically, the returned
+   * TextureCoords will take that into account.
+   * 
+   * @return the texture coordinates corresponding to the entire image
    */
-  public Point2D getImageLowerLeftTexCoord() {
-    return (Point2D) lowerLeftTexCoord.clone();
+  public TextureCoords getImageTexCoords() {
+    return coords;
   }
 
   /**
-   * Returns the texture coordinate corresponding to the upper-right
-   * point of this texture when oriented properly. If the TextureData
-   * indicated that the texture coordinates must be flipped
-   * vertically, the returned Point will take that into account.
-   *
-   * @return the texture coordinates of the upper-right point of the
-   * texture
+   * Returns the set of texture coordinates corresponding to the
+   * specified sub-image. The (x1, y1) and (x2, y2) points are
+   * specified in terms of pixels starting from the lower-left of the
+   * image. (x1, y1) should specify the lower-left corner of the
+   * sub-image and (x2, y2) the upper-right corner of the sub-image.
+   * If the TextureData indicated that the texture coordinates must be
+   * flipped vertically, the returned TextureCoords will take that
+   * into account; this should not be handled by the end user in the
+   * specification of the y1 and y2 coordinates.
+   * 
+   * @return the texture coordinates corresponding to the specified sub-image
    */
-  public Point2D getImageUpperRightTexCoord() {
-    return (Point2D) upperRightTexCoord.clone();
-  }
-
-
-  /**
-   * Returns the texture coordinate corresponding to the lower-left
-   * point of the specified sub-image of this texture when oriented
-   * properly. If the TextureData indicated that the texture
-   * coordinates must be flipped vertically, the returned Point will
-   * take that into account.
-   *
-   * @return the texture coordinate of the lower-left point of the
-   * texture
-   */
-  public Point2D getSubImageLowerLeftTexCoord(int x1, int y1, int x2, int y2) {
+  public TextureCoords getSubImageTexCoords(int x1, int y1, int x2, int y2) {
     if (target == GL.GL_TEXTURE_RECTANGLE_ARB) {
       if (mustFlipVertically) {
-        return new Point2D.Float(x1, texHeight - y1);
+        return new TextureCoords(x1, texHeight - y1, x2, texHeight - y2);
       } else {
-        return new Point2D.Float(x1, y1);
+        return new TextureCoords(x1, y1, x2, y2);
       }
     } else {
-      float tx = (float)x1 / (float)texWidth;
-      float ty = (float)y1 / (float)texHeight;
-
+      float tx1 = (float)x1 / (float)texWidth;
+      float ty1 = (float)y1 / (float)texHeight;
+      float tx2 = (float)x2 / (float)texWidth;
+      float ty2 = (float)y2 / (float)texHeight;
       if (mustFlipVertically) {
-        return new Point2D.Float(tx, 1.0f - ty);
+        return new TextureCoords(tx1, 1.0f - ty1, tx2, 1.0f - ty2);
       } else {
-        return new Point2D.Float(tx, ty);
+        return new TextureCoords(tx1, ty1, tx2, ty2);
       }
     }
   }
 
-  /**
-   * Returns the texture coordinate corresponding to the upper-right
-   * point of the specified sub-image of this texture when oriented
-   * properly. If the TextureData indicated that the texture
-   * coordinates must be flipped vertically, the returned Point will
-   * take that into account.
-   *
-   * @return the texture coordinate of the upper-right point of the
-   * texture
-   */
-  public Point2D getSubImageUpperRightTexCoord(int x1, int y1, int x2, int y2) {
-    if (target == GL.GL_TEXTURE_RECTANGLE_ARB) {
-      if (mustFlipVertically) {
-        return new Point2D.Float(x2, texHeight - y2);
-      } else {
-        return new Point2D.Float(x2, y2);
-      }
-    } else {
-      float tx = (float)x2 / (float)texWidth;
-      float ty = (float)y2 / (float)texHeight;
-
-      if (mustFlipVertically) {
-        return new Point2D.Float(tx, 1.0f - ty);
-      } else {
-        return new Point2D.Float(tx, ty);
-      }
-    }
-  }
 
   /**
    * Updates a subregion of the content area of this texture using the
@@ -408,20 +363,18 @@ public class Texture {
     imgHeight = height;
     if (target == GL.GL_TEXTURE_RECTANGLE_ARB) {
       if (mustFlipVertically) {
-        lowerLeftTexCoord  = new Point2D.Float(0, imgHeight);
-        upperRightTexCoord = new Point2D.Float(imgWidth, 0);
+        coords = new TextureCoords(0, imgHeight, imgWidth, 0);
       } else {
-        lowerLeftTexCoord  = new Point2D.Float(0, 0);
-        upperRightTexCoord = new Point2D.Float(imgWidth, imgHeight);
+        coords = new TextureCoords(0, 0, imgWidth, imgHeight);
       }
     } else {
       if (mustFlipVertically) {
-        lowerLeftTexCoord  = new Point2D.Float(0, (float) imgHeight / (float) texHeight);
-        upperRightTexCoord = new Point2D.Float((float) imgWidth / (float) texWidth, 0);
+        coords = new TextureCoords(0, (float) imgHeight / (float) texHeight,
+                                   (float) imgWidth / (float) texWidth, 0);
       } else {
-        lowerLeftTexCoord  = new Point2D.Float(0, 0);
-        upperRightTexCoord = new Point2D.Float((float) imgWidth / (float) texWidth,
-                                               (float) imgHeight / (float) texHeight);
+        coords = new TextureCoords(0, 0,
+                                   (float) imgWidth / (float) texWidth,
+                                   (float) imgHeight / (float) texHeight);
       }
     }
   }
