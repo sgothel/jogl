@@ -80,89 +80,17 @@ public class Texture {
   // number of public APIs we commit to
   Texture(TextureData data) throws GLException {
     GL gl = getCurrentGL();
-
-    imgWidth = data.getWidth();
-    imgHeight = data.getHeight();
-    mustFlipVertically = data.getMustFlipVertically();
-
-    if (data.getMipmap()) {
-      // GLU always targets GL_TEXTURE_2D and scales the texture to be
-      // a power of two. It also doesn't really matter exactly what
-      // the texture width and height are because the texture coords
-      // are always between 0.0 and 1.0.
-      imgWidth = nextPowerOfTwo(imgWidth);
-      imgHeight = nextPowerOfTwo(imgHeight);
-      texWidth = imgWidth;
-      texHeight = imgHeight;
-      target = GL.GL_TEXTURE_2D;
-    } else if ((isPowerOfTwo(imgWidth) && isPowerOfTwo(imgHeight)) ||
-               gl.isExtensionAvailable("GL_ARB_texture_non_power_of_two")) {
-      if (DEBUG) {
-        if (isPowerOfTwo(imgWidth) && isPowerOfTwo(imgHeight)) {
-          System.err.println("Power-of-two texture");
-        } else {
-          System.err.println("Using GL_ARB_texture_non_power_of_two");
-        }
-      }
-
-      texWidth = imgWidth;
-      texHeight = imgHeight;
-      target = GL.GL_TEXTURE_2D;
-    } else if (gl.isExtensionAvailable("GL_ARB_texture_rectangle")) {
-      if (DEBUG) {
-        System.err.println("Using GL_ARB_texture_rectangle");
-      }
-
-      texWidth = imgWidth;
-      texHeight = imgHeight;
-      target = GL.GL_TEXTURE_RECTANGLE_ARB;
-    } else {
-      if (DEBUG) {
-        System.err.println("Expanding texture to power-of-two dimensions");
-      }
-
-      if (data.getBorder() != 0) {
-        throw new RuntimeException("Scaling up a non-power-of-two texture which has a border won't work");
-      }
-      texWidth = nextPowerOfTwo(imgWidth);
-      texHeight = nextPowerOfTwo(imgHeight);
-      target = GL.GL_TEXTURE_2D;
-    }
-
-    // REMIND: let the user specify these, optionally
-    int minFilter = GL.GL_LINEAR;
-    int magFilter = GL.GL_LINEAR;
-    int wrapMode = GL.GL_CLAMP_TO_EDGE;
-
     texID = createTextureID(gl); 
-    setImageSize(imgWidth, imgHeight);
-    gl.glBindTexture(target, texID);
-    // REMIND: figure out what to do for GL_TEXTURE_RECTANGLE_ARB
-    if (target == GL.GL_TEXTURE_2D) {
-      gl.glTexParameteri(target, GL.GL_TEXTURE_MIN_FILTER, minFilter);
-      gl.glTexParameteri(target, GL.GL_TEXTURE_MAG_FILTER, magFilter);
-      gl.glTexParameteri(target, GL.GL_TEXTURE_WRAP_S, wrapMode);
-      gl.glTexParameteri(target, GL.GL_TEXTURE_WRAP_T, wrapMode);
-    }
 
-    if (data.getMipmap()) {
-      GLU glu = new GLU();
-      glu.gluBuild2DMipmaps(target, data.getInternalFormat(),
-                            data.getWidth(), data.getHeight(),
-                            data.getPixelFormat(), data.getPixelType(), data.getBuffer());
-    } else {
-      gl.glTexImage2D(target, 0, data.getInternalFormat(),
-                      texWidth, texHeight, data.getBorder(),
-                      data.getPixelFormat(), data.getPixelType(), null);
-      Buffer[] mipmapData = data.getMipmapData();
-      if (mipmapData != null) {
-        for (int i = 0; i < mipmapData.length; i++) {
-          updateSubImage(data, i, 0, 0);
-        }
-      } else {
-        updateSubImage(data, 0, 0, 0);
-      }
-    }
+    updateImage(data);
+  }
+
+  // Constructor for use when creating e.g. cube maps, where there is
+  // no initial texture data
+  Texture(int target) throws GLException {
+    GL gl = getCurrentGL();
+    texID = createTextureID(gl); 
+    this.target = target;
   }
 
   /**
@@ -173,7 +101,7 @@ public class Texture {
    * OpenGL-related errors occurred
    */
   public void enable() throws GLException {
-    getCurrentGL().glEnable(target); 
+    getCurrentGL().glEnable(target);
   }
 
   /**
@@ -205,6 +133,7 @@ public class Texture {
    */
   public void dispose() throws GLException {
     getCurrentGL().glDeleteTextures(1, new int[] {texID}, 0);
+    texID = 0;
   }
 
   /**
@@ -301,6 +230,135 @@ public class Texture {
     }
   }
 
+  /**
+   * Updates the entire content area of this texture using the data in
+   * the given image.
+   * 
+   * @throws GLException if no OpenGL context was current or if any
+   * OpenGL-related errors occurred
+   */
+  public void updateImage(TextureData data) throws GLException {
+    updateImage(data, 0);
+  }
+
+  /**
+   * Updates the content area of the specified target of this texture
+   * using the data in the given image. In general this is intended
+   * for construction of cube maps.
+   * 
+   * @throws GLException if no OpenGL context was current or if any
+   * OpenGL-related errors occurred
+   */
+  public void updateImage(TextureData data, int target) throws GLException {
+    GL gl = getCurrentGL();
+
+    imgWidth = data.getWidth();
+    imgHeight = data.getHeight();
+    mustFlipVertically = data.getMustFlipVertically();
+
+    int newTarget = 0;
+
+    if (data.getMipmap()) {
+      // GLU always scales the texture's dimensions to be powers of
+      // two. It also doesn't really matter exactly what the texture
+      // width and height are because the texture coords are always
+      // between 0.0 and 1.0.
+      imgWidth = nextPowerOfTwo(imgWidth);
+      imgHeight = nextPowerOfTwo(imgHeight);
+      texWidth = imgWidth;
+      texHeight = imgHeight;
+      newTarget = GL.GL_TEXTURE_2D;
+    } else if ((isPowerOfTwo(imgWidth) && isPowerOfTwo(imgHeight)) ||
+               gl.isExtensionAvailable("GL_ARB_texture_non_power_of_two")) {
+      if (DEBUG) {
+        if (isPowerOfTwo(imgWidth) && isPowerOfTwo(imgHeight)) {
+          System.err.println("Power-of-two texture");
+        } else {
+          System.err.println("Using GL_ARB_texture_non_power_of_two");
+        }
+      }
+
+      texWidth = imgWidth;
+      texHeight = imgHeight;
+      newTarget = GL.GL_TEXTURE_2D;
+    } else if (gl.isExtensionAvailable("GL_ARB_texture_rectangle")) {
+      if (DEBUG) {
+        System.err.println("Using GL_ARB_texture_rectangle");
+      }
+
+      texWidth = imgWidth;
+      texHeight = imgHeight;
+      newTarget = GL.GL_TEXTURE_RECTANGLE_ARB;
+    } else {
+      if (DEBUG) {
+        System.err.println("Expanding texture to power-of-two dimensions");
+      }
+
+      if (data.getBorder() != 0) {
+        throw new RuntimeException("Scaling up a non-power-of-two texture which has a border won't work");
+      }
+      texWidth = nextPowerOfTwo(imgWidth);
+      texHeight = nextPowerOfTwo(imgHeight);
+      newTarget = GL.GL_TEXTURE_2D;
+    }
+
+    setImageSize(imgWidth, imgHeight);
+
+    if (target != 0) {
+      // Allow user to override auto detection and skip bind step (for
+      // cubemap construction)
+      newTarget = target;
+      if (this.target == 0) {
+        throw new GLException("Override of target failed; no target specified yet");
+      }
+      gl.glBindTexture(this.target, texID);
+    } else {
+      gl.glBindTexture(newTarget, texID);
+    }
+
+    // REMIND: let the user specify these, optionally
+    int minFilter = (data.getMipmap() ? GL.GL_LINEAR_MIPMAP_LINEAR : GL.GL_LINEAR);
+    int magFilter = GL.GL_LINEAR;
+    int wrapMode = GL.GL_CLAMP_TO_EDGE;
+
+    // REMIND: figure out what to do for GL_TEXTURE_RECTANGLE_ARB
+    if (newTarget != GL.GL_TEXTURE_RECTANGLE_ARB) {
+      gl.glTexParameteri(newTarget, GL.GL_TEXTURE_MIN_FILTER, minFilter);
+      gl.glTexParameteri(newTarget, GL.GL_TEXTURE_MAG_FILTER, magFilter);
+      gl.glTexParameteri(newTarget, GL.GL_TEXTURE_WRAP_S, wrapMode);
+      gl.glTexParameteri(newTarget, GL.GL_TEXTURE_WRAP_T, wrapMode);
+      if (newTarget == GL.GL_TEXTURE_CUBE_MAP) {
+        gl.glTexParameteri(newTarget, GL.GL_TEXTURE_WRAP_R, wrapMode);
+      }
+    }
+
+    if (data.getMipmap()) {
+      GLU glu = new GLU();
+      glu.gluBuild2DMipmaps(newTarget, data.getInternalFormat(),
+                            data.getWidth(), data.getHeight(),
+                            data.getPixelFormat(), data.getPixelType(), data.getBuffer());
+    } else {
+      gl.glTexImage2D(newTarget, 0, data.getInternalFormat(),
+                      texWidth, texHeight, data.getBorder(),
+                      data.getPixelFormat(), data.getPixelType(), null);
+      Buffer[] mipmapData = data.getMipmapData();
+      if (mipmapData != null) {
+        for (int i = 0; i < mipmapData.length; i++) {
+          updateSubImageImpl(data, newTarget, i, 0, 0);
+        }
+      } else {
+        updateSubImageImpl(data, newTarget, 0, 0, 0);
+      }
+    }
+
+    // Don't overwrite target if we're loading e.g. faces of a cube
+    // map
+    if ((this.target == 0) ||
+        (this.target == GL.GL_TEXTURE_2D) ||
+        (this.target == GL.GL_TEXTURE_RECTANGLE_ARB)) {
+      this.target = newTarget;
+    }
+  }
 
   /**
    * Updates a subregion of the content area of this texture using the
@@ -321,52 +379,33 @@ public class Texture {
    * OpenGL-related errors occurred
    */
   public void updateSubImage(TextureData data, int mipmapLevel, int x, int y) throws GLException {
-    GL gl = getCurrentGL();
+    updateSubImageImpl(data, target, mipmapLevel, x, y);
+  }
+
+  /**
+   * Sets the OpenGL integer texture parameter for the texture's
+   * target. This gives control over parameters such as
+   * GL_TEXTURE_WRAP_S and GL_TEXTURE_WRAP_T, which by default are set
+   * to GL_CLAMP_TO_EDGE. Causes this texture to be bound to the
+   * current texture state.
+   * 
+   * @throws GLException if no OpenGL context was current or if any
+   * OpenGL-related errors occurred
+   */
+  public void setTexParameteri(int parameterName,
+                               int value) {
     bind();
-    int width = data.getWidth();
-    int height = data.getHeight();
-    Buffer buffer = data.getBuffer();
-    if (data.getMipmapData() != null) {
-      // Compute the width and height at the specified mipmap level
-      for (int i = 0; i < mipmapLevel; i++) {
-        width /= 2;
-        height /= 2;
-      }
-      buffer = data.getMipmapData()[mipmapLevel];
-    }
+    GL gl = getCurrentGL();
+    gl.glTexParameteri(target, parameterName, value);
+  }
 
-    if (data.isDataCompressed()) {
-      switch (data.getInternalFormat()) {
-        case GL.GL_COMPRESSED_RGB_S3TC_DXT1_EXT:
-        case GL.GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
-        case GL.GL_COMPRESSED_RGBA_S3TC_DXT3_EXT:
-        case GL.GL_COMPRESSED_RGBA_S3TC_DXT5_EXT:
-          if (!gl.isExtensionAvailable("GL_EXT_texture_compression_s3tc") &&
-              !gl.isExtensionAvailable("GL_NV_texture_compression_vtc")) {
-            throw new GLException("DXTn compressed textures not supported by this graphics card");
-          }
-          break;
-        default:
-          // FIXME: should test availability of more texture
-          // compression extensions here
-          break;
-      }
-
-      gl.glCompressedTexSubImage2D(target, mipmapLevel,
-                                   x, y, width, height,
-                                   data.getInternalFormat(),
-                                   buffer.remaining(), buffer);
-    } else {
-      int[] align = new int[1];
-      gl.glGetIntegerv(GL.GL_UNPACK_ALIGNMENT, align, 0); // save alignment
-      gl.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, data.getAlignment());
-
-      gl.glTexSubImage2D(target, mipmapLevel,
-                         x, y, width, height,
-                         data.getPixelFormat(), data.getPixelType(),
-                         buffer);
-      gl.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, align[0]); // restore align
-    }
+  /**
+   * Returns the underlying OpenGL texture object for this texture.
+   * Most applications will not need to access this, since it is
+   * handled automatically by the bind() and dispose() APIs.
+   */
+  public int getTextureObject() {
+    return texID;
   }
 
   //----------------------------------------------------------------------
@@ -432,6 +471,55 @@ public class Texture {
                                    (float) imgWidth / (float) texWidth,
                                    (float) imgHeight / (float) texHeight);
       }
+    }
+  }
+
+  private void updateSubImageImpl(TextureData data, int newTarget, int mipmapLevel, int x, int y) throws GLException {
+    GL gl = getCurrentGL();
+    gl.glBindTexture(newTarget, texID); 
+    int width = data.getWidth();
+    int height = data.getHeight();
+    Buffer buffer = data.getBuffer();
+    if (data.getMipmapData() != null) {
+      // Compute the width and height at the specified mipmap level
+      for (int i = 0; i < mipmapLevel; i++) {
+        width /= 2;
+        height /= 2;
+      }
+      buffer = data.getMipmapData()[mipmapLevel];
+    }
+
+    if (data.isDataCompressed()) {
+      switch (data.getInternalFormat()) {
+        case GL.GL_COMPRESSED_RGB_S3TC_DXT1_EXT:
+        case GL.GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
+        case GL.GL_COMPRESSED_RGBA_S3TC_DXT3_EXT:
+        case GL.GL_COMPRESSED_RGBA_S3TC_DXT5_EXT:
+          if (!gl.isExtensionAvailable("GL_EXT_texture_compression_s3tc") &&
+              !gl.isExtensionAvailable("GL_NV_texture_compression_vtc")) {
+            throw new GLException("DXTn compressed textures not supported by this graphics card");
+          }
+          break;
+        default:
+          // FIXME: should test availability of more texture
+          // compression extensions here
+          break;
+      }
+
+      gl.glCompressedTexSubImage2D(newTarget, mipmapLevel,
+                                   x, y, width, height,
+                                   data.getInternalFormat(),
+                                   buffer.remaining(), buffer);
+    } else {
+      int[] align = new int[1];
+      gl.glGetIntegerv(GL.GL_UNPACK_ALIGNMENT, align, 0); // save alignment
+      gl.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, data.getAlignment());
+
+      gl.glTexSubImage2D(newTarget, mipmapLevel,
+                         x, y, width, height,
+                         data.getPixelFormat(), data.getPixelType(),
+                         buffer);
+      gl.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, align[0]); // restore align
     }
   }
 

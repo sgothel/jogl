@@ -439,12 +439,17 @@ public class TextureIO {
    *                   support multiple mipmaps in a single file in
    *                   which case those mipmaps will be used rather
    *                   than generating them.
+   * @param fileSuffix the suffix of the file name to be used as a
+   *                   hint of the file format to the underlying
+   *                   texture provider, or null if none and should be
+   *                   auto-detected (some texture providers do not
+   *                   support this)
    * @throws IOException if an error occurred while reading the stream
    * @throws GLException if no OpenGL context is current or if an
    *                     OpenGL error occurred
    */
-  public static Texture newTexture(InputStream stream, boolean mipmap) throws IOException, GLException {
-    TextureData data = newTextureData(stream, mipmap, null);
+  public static Texture newTexture(InputStream stream, boolean mipmap, String fileSuffix) throws IOException, GLException {
+    TextureData data = newTextureData(stream, mipmap, fileSuffix);
     Texture texture = newTexture(data);
     data.flush();
     return texture;
@@ -462,12 +467,17 @@ public class TextureIO {
    *                   support multiple mipmaps in a single file in
    *                   which case those mipmaps will be used rather
    *                   than generating them.
+   * @param fileSuffix the suffix of the file name to be used as a
+   *                   hint of the file format to the underlying
+   *                   texture provider, or null if none and should be
+   *                   auto-detected (some texture providers do not
+   *                   support this)
    * @throws IOException if an error occurred while reading the URL
    * @throws GLException if no OpenGL context is current or if an
    *                     OpenGL error occurred
    */
-  public static Texture newTexture(URL url, boolean mipmap) throws IOException, GLException {
-    TextureData data = newTextureData(url, mipmap, null);
+  public static Texture newTexture(URL url, boolean mipmap, String fileSuffix) throws IOException, GLException {
+    TextureData data = newTextureData(url, mipmap, fileSuffix);
     Texture texture = newTexture(data);
     data.flush();
     return texture;
@@ -488,6 +498,46 @@ public class TextureIO {
     Texture texture = newTexture(data);
     data.flush();
     return texture;
+  }
+
+  /** 
+   * Creates an OpenGL texture object associated with the given OpenGL
+   * texture target using the current OpenGL context. The texture has
+   * no initial data. This is used, for example, to construct cube
+   * maps out of multiple TextureData objects.
+   *
+   * @throws GLException if no OpenGL context is current or if an
+   *                     OpenGL error occurred
+   */
+  public static Texture newTexture(int target) throws GLException {
+    return new Texture(target);
+  }
+
+  //----------------------------------------------------------------------
+  // Helper function for above TextureProviders
+  /**
+   * Returns the suffix of the given file name for identifying the
+   * file to the configured TextureProviders.
+   *
+   * @param file name of the file
+   */
+
+  public static String getFileSuffix(File file) {
+    return getFileSuffix(file.getName());
+  }
+
+  /**
+   * Returns the suffix of the given file name for identifying the
+   * file to the configured TextureProviders.
+   *
+   * @param filename name of the file
+   */
+  public static String getFileSuffix(String filename) {
+    int lastDot = filename.lastIndexOf('.');
+    if (lastDot < 0) {
+      return null;
+    }
+    return toLowerCase(filename.substring(lastDot + 1));
   }
 
   // FIXME: add texture writing capabilities
@@ -528,6 +578,12 @@ public class TextureIO {
                                                 int pixelFormat,
                                                 boolean mipmap,
                                                 String fileSuffix) throws IOException {
+    if (file == null) {
+      throw new IOException("File was null");
+    }
+
+    fileSuffix = toLowerCase(fileSuffix);
+
     for (Iterator iter = textureProviders.iterator(); iter.hasNext(); ) {
       TextureProvider provider = (TextureProvider) iter.next();
       TextureData data = provider.newTextureData(file,
@@ -547,6 +603,17 @@ public class TextureIO {
                                                 int pixelFormat,
                                                 boolean mipmap,
                                                 String fileSuffix) throws IOException {
+    if (stream == null) {
+      throw new IOException("Stream was null");
+    }
+
+    fileSuffix = toLowerCase(fileSuffix);
+
+    // Note: use of BufferedInputStream works around 4764639/4892246
+    if (!(stream instanceof BufferedInputStream)) {
+      stream = new BufferedInputStream(stream);
+    }
+
     for (Iterator iter = textureProviders.iterator(); iter.hasNext(); ) {
       TextureProvider provider = (TextureProvider) iter.next();
       TextureData data = provider.newTextureData(stream,
@@ -567,6 +634,12 @@ public class TextureIO {
                                                 int pixelFormat,
                                                 boolean mipmap,
                                                 String fileSuffix) throws IOException {
+    if (url == null) {
+      throw new IOException("URL was null");
+    }
+
+    fileSuffix = toLowerCase(fileSuffix);
+
     for (Iterator iter = textureProviders.iterator(); iter.hasNext(); ) {
       TextureProvider provider = (TextureProvider) iter.next();
       TextureData data = provider.newTextureData(url,
@@ -767,7 +840,7 @@ public class TextureIO {
                                       int pixelFormat,
                                       boolean mipmap,
                                       String fileSuffix) throws IOException {
-      InputStream stream = url.openStream();
+      InputStream stream = new BufferedInputStream(url.openStream());
       try {
         return newTextureData(stream, internalFormat, pixelFormat, mipmap, fileSuffix);
       } finally {
@@ -845,14 +918,14 @@ public class TextureIO {
   }
 
   //----------------------------------------------------------------------
-  // Helper function for above TextureProviders
-  private static String getFileSuffix(File file) {
-    String name = file.getName().toLowerCase();
+  // Helper routines
+  //
 
-    int lastDot = name.lastIndexOf('.');
-    if (lastDot < 0) {
+  private static String toLowerCase(String arg) {
+    if (arg == null) {
       return null;
     }
-    return name.substring(lastDot + 1);
+
+    return arg.toLowerCase();
   }
 }
