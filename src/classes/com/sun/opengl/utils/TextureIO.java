@@ -129,12 +129,15 @@ public class TextureIO {
   // i.e., reading from a file as opposed to a stream.
 
   /**
-   * Creates a TextureData representing the specified mipmap level of
-   * a texture from the given file. Does no OpenGL work.
+   * Creates a TextureData from the given file. Does no OpenGL work.
    *
    * @param file the file from which to read the texture data
-   * @param mipmapLevel the mipmap level this data represents (FIXME:
-   *                    not currently used, needs to be rethought)
+   * @param mipmap     whether mipmaps should be produced for this
+   *                   texture either by autogenerating them or
+   *                   reading them from the file. Some file formats
+   *                   support multiple mipmaps in a single file in
+   *                   which case those mipmaps will be used rather
+   *                   than generating them.
    * @param fileSuffix the suffix of the file name to be used as a
    *                   hint of the file format to the underlying
    *                   texture provider, or null if none and should be
@@ -145,18 +148,21 @@ public class TextureIO {
    * @throws IOException if an error occurred while reading the file
    */
   public static TextureData newTextureData(File file,
-                                           int mipmapLevel,
+                                           boolean mipmap,
                                            String fileSuffix) throws IOException {
-    return newTextureDataImpl(file, mipmapLevel, 0, 0, fileSuffix);
+    return newTextureDataImpl(file, 0, 0, mipmap, fileSuffix);
   }
 
   /**
-   * Creates a TextureData representing the specified mipmap level of
-   * a texture from the given stream. Does no OpenGL work.
+   * Creates a TextureData from the given stream. Does no OpenGL work.
    *
    * @param stream the stream from which to read the texture data
-   * @param mipmapLevel the mipmap level this data represents (FIXME:
-   *                    not currently used, needs to be rethought)
+   * @param mipmap     whether mipmaps should be produced for this
+   *                   texture either by autogenerating them or
+   *                   reading them from the file. Some file formats
+   *                   support multiple mipmaps in a single file in
+   *                   which case those mipmaps will be used rather
+   *                   than generating them.
    * @param fileSuffix the suffix of the file name to be used as a
    *                   hint of the file format to the underlying
    *                   texture provider, or null if none and should be
@@ -167,18 +173,21 @@ public class TextureIO {
    * @throws IOException if an error occurred while reading the stream
    */
   public static TextureData newTextureData(InputStream stream,
-                                           int mipmapLevel,
+                                           boolean mipmap,
                                            String fileSuffix) throws IOException {
-    return newTextureDataImpl(stream, mipmapLevel, 0, 0, fileSuffix);
+    return newTextureDataImpl(stream, 0, 0, mipmap, fileSuffix);
   }
 
   /**
-   * Creates a TextureData representing the specified mipmap level of
-   * a texture from the given URL. Does no OpenGL work.
+   * Creates a TextureData from the given URL. Does no OpenGL work.
    *
    * @param url the URL from which to read the texture data
-   * @param mipmapLevel the mipmap level this data represents (FIXME:
-   *                    not currently used, needs to be rethought)
+   * @param mipmap     whether mipmaps should be produced for this
+   *                   texture either by autogenerating them or
+   *                   reading them from the file. Some file formats
+   *                   support multiple mipmaps in a single file in
+   *                   which case those mipmaps will be used rather
+   *                   than generating them.
    * @param fileSuffix the suffix of the file name to be used as a
    *                   hint of the file format to the underlying
    *                   texture provider, or null if none and should be
@@ -189,23 +198,23 @@ public class TextureIO {
    * @throws IOException if an error occurred while reading the URL
    */
   public static TextureData newTextureData(URL url,
-                                           int mipmapLevel,
+                                           boolean mipmap,
                                            String fileSuffix) throws IOException {
-    return newTextureDataImpl(url, mipmapLevel, 0, 0, fileSuffix);
+    return newTextureDataImpl(url, 0, 0, mipmap, fileSuffix);
   }
 
   /**
-   * Creates a TextureData representing the specified mipmap level of
-   * a texture from the given BufferedImage. Does no OpenGL work.
+   * Creates a TextureData from the given BufferedImage. Does no
+   * OpenGL work.
    *
    * @param image the BufferedImage containing the texture data
-   * @param mipmapLevel the mipmap level this data represents (FIXME:
-   *                    not currently used, needs to be rethought)
+   * @param mipmap     whether mipmaps should be produced for this
+   *                   texture by autogenerating them
    * @return the texture data from the image
    */
   public static TextureData newTextureData(BufferedImage image,
-                                           int mipmapLevel) {
-    return newTextureDataImpl(image, mipmapLevel, 0, 0);
+                                           boolean mipmap) {
+    return newTextureDataImpl(image, 0, 0, mipmap);
   }
 
   //----------------------------------------------------------------------
@@ -216,21 +225,24 @@ public class TextureIO {
   // IllegalArgumentException will be thrown in this case.
 
   /**
-   * Creates a TextureData representing the specified mipmap level of
-   * a texture from the given file, using the specified OpenGL
-   * internal format and pixel format for the texture which will
-   * eventually result. The internalFormat and pixelFormat must be
-   * specified and may not be zero; to use default values, use the
+   * Creates a TextureData from the given file, using the specified
+   * OpenGL internal format and pixel format for the texture which
+   * will eventually result. The internalFormat and pixelFormat must
+   * be specified and may not be zero; to use default values, use the
    * variant of this method which does not take these arguments. Does
    * no OpenGL work.
    *
    * @param file the file from which to read the texture data
-   * @param mipmapLevel the mipmap level this data represents (FIXME:
-   *                    not currently used, needs to be rethought)
    * @param internalFormat the OpenGL internal format of the texture
    *                   which will eventually result from the TextureData
    * @param pixelFormat the OpenGL pixel format of the texture
    *                    which will eventually result from the TextureData
+   * @param mipmap     whether mipmaps should be produced for this
+   *                   texture either by autogenerating them or
+   *                   reading them from the file. Some file formats
+   *                   support multiple mipmaps in a single file in
+   *                   which case those mipmaps will be used rather
+   *                   than generating them.
    * @param fileSuffix the suffix of the file name to be used as a
    *                   hint of the file format to the underlying
    *                   texture provider, or null if none and should be
@@ -243,33 +255,36 @@ public class TextureIO {
    * @throws IOException if an error occurred while reading the file
    */
   public static TextureData newTextureData(File file,
-                                           int mipmapLevel,
                                            int internalFormat,
                                            int pixelFormat,
+                                           boolean mipmap,
                                            String fileSuffix) throws IOException, IllegalArgumentException {
     if ((internalFormat == 0) || (pixelFormat == 0)) {
       throw new IllegalArgumentException("internalFormat and pixelFormat must be non-zero");
     }
 
-    return newTextureDataImpl(file, mipmapLevel, internalFormat, pixelFormat, fileSuffix);
+    return newTextureDataImpl(file, internalFormat, pixelFormat, mipmap, fileSuffix);
   }
 
   /**
-   * Creates a TextureData representing the specified mipmap level of
-   * a texture from the given stream, using the specified OpenGL
-   * internal format and pixel format for the texture which will
-   * eventually result. The internalFormat and pixelFormat must be
-   * specified and may not be zero; to use default values, use the
+   * Creates a TextureData from the given stream, using the specified
+   * OpenGL internal format and pixel format for the texture which
+   * will eventually result. The internalFormat and pixelFormat must
+   * be specified and may not be zero; to use default values, use the
    * variant of this method which does not take these arguments. Does
    * no OpenGL work.
    *
    * @param stream the stream from which to read the texture data
-   * @param mipmapLevel the mipmap level this data represents (FIXME:
-   *                    not currently used, needs to be rethought)
    * @param internalFormat the OpenGL internal format of the texture
    *                   which will eventually result from the TextureData
    * @param pixelFormat the OpenGL pixel format of the texture
    *                    which will eventually result from the TextureData
+   * @param mipmap     whether mipmaps should be produced for this
+   *                   texture either by autogenerating them or
+   *                   reading them from the file. Some file formats
+   *                   support multiple mipmaps in a single file in
+   *                   which case those mipmaps will be used rather
+   *                   than generating them.
    * @param fileSuffix the suffix of the file name to be used as a
    *                   hint of the file format to the underlying
    *                   texture provider, or null if none and should be
@@ -282,33 +297,36 @@ public class TextureIO {
    * @throws IOException if an error occurred while reading the stream
    */
   public static TextureData newTextureData(InputStream stream,
-                                           int mipmapLevel,
                                            int internalFormat,
                                            int pixelFormat,
+                                           boolean mipmap,
                                            String fileSuffix) throws IOException, IllegalArgumentException {
     if ((internalFormat == 0) || (pixelFormat == 0)) {
       throw new IllegalArgumentException("internalFormat and pixelFormat must be non-zero");
     }
 
-    return newTextureDataImpl(stream, mipmapLevel, internalFormat, pixelFormat, fileSuffix);
+    return newTextureDataImpl(stream, internalFormat, pixelFormat, mipmap, fileSuffix);
   }
 
   /**
-   * Creates a TextureData representing the specified mipmap level of
-   * a texture from the given URL, using the specified OpenGL
-   * internal format and pixel format for the texture which will
-   * eventually result. The internalFormat and pixelFormat must be
-   * specified and may not be zero; to use default values, use the
+   * Creates a TextureData from the given URL, using the specified
+   * OpenGL internal format and pixel format for the texture which
+   * will eventually result. The internalFormat and pixelFormat must
+   * be specified and may not be zero; to use default values, use the
    * variant of this method which does not take these arguments. Does
    * no OpenGL work.
    *
    * @param url the URL from which to read the texture data
-   * @param mipmapLevel the mipmap level this data represents (FIXME:
-   *                    not currently used, needs to be rethought)
    * @param internalFormat the OpenGL internal format of the texture
    *                   which will eventually result from the TextureData
    * @param pixelFormat the OpenGL pixel format of the texture
    *                    which will eventually result from the TextureData
+   * @param mipmap     whether mipmaps should be produced for this
+   *                   texture either by autogenerating them or
+   *                   reading them from the file. Some file formats
+   *                   support multiple mipmaps in a single file in
+   *                   which case those mipmaps will be used rather
+   *                   than generating them.
    * @param fileSuffix the suffix of the file name to be used as a
    *                   hint of the file format to the underlying
    *                   texture provider, or null if none and should be
@@ -321,46 +339,49 @@ public class TextureIO {
    * @throws IOException if an error occurred while reading the URL
    */
   public static TextureData newTextureData(URL url,
-                                           int mipmapLevel,
                                            int internalFormat,
                                            int pixelFormat,
+                                           boolean mipmap,
                                            String fileSuffix) throws IOException, IllegalArgumentException {
     if ((internalFormat == 0) || (pixelFormat == 0)) {
       throw new IllegalArgumentException("internalFormat and pixelFormat must be non-zero");
     }
 
-    return newTextureDataImpl(url, mipmapLevel, internalFormat, pixelFormat, fileSuffix);
+    return newTextureDataImpl(url, internalFormat, pixelFormat, mipmap, fileSuffix);
   }
 
   /**
-   * Creates a TextureData representing the specified mipmap level of
-   * a texture from the given BufferedImage, using the specified
-   * OpenGL internal format and pixel format for the texture which
-   * will eventually result. The internalFormat and pixelFormat must
-   * be specified and may not be zero; to use default values, use the
-   * variant of this method which does not take these arguments. Does
-   * no OpenGL work.
+   * Creates a TextureData from the given BufferedImage, using the
+   * specified OpenGL internal format and pixel format for the texture
+   * which will eventually result. The internalFormat and pixelFormat
+   * must be specified and may not be zero; to use default values, use
+   * the variant of this method which does not take these
+   * arguments. Does no OpenGL work.
    *
    * @param image the BufferedImage containing the texture data
-   * @param mipmapLevel the mipmap level this data represents (FIXME:
-   *                    not currently used, needs to be rethought)
    * @param internalFormat the OpenGL internal format of the texture
    *                   which will eventually result from the TextureData
    * @param pixelFormat the OpenGL pixel format of the texture
    *                    which will eventually result from the TextureData
+   * @param mipmap     whether mipmaps should be produced for this
+   *                   texture either by autogenerating them or
+   *                   reading them from the file. Some file formats
+   *                   support multiple mipmaps in a single file in
+   *                   which case those mipmaps will be used rather
+   *                   than generating them.
    * @return the texture data from the image
    * @throws IllegalArgumentException if either internalFormat or
    *                                  pixelFormat was 0
    */
   public static TextureData newTextureData(BufferedImage image,
-                                           int mipmapLevel,
                                            int internalFormat,
-                                           int pixelFormat) throws IllegalArgumentException {
+                                           int pixelFormat,
+                                           boolean mipmap) throws IllegalArgumentException {
     if ((internalFormat == 0) || (pixelFormat == 0)) {
       throw new IllegalArgumentException("internalFormat and pixelFormat must be non-zero");
     }
 
-    return newTextureDataImpl(image, mipmapLevel, internalFormat, pixelFormat);
+    return newTextureDataImpl(image, internalFormat, pixelFormat, mipmap);
   }
 
   //----------------------------------------------------------------------
@@ -369,7 +390,8 @@ public class TextureIO {
 
   /** 
    * Creates an OpenGL texture object from the specified TextureData
-   * using the current OpenGL context.
+   * using the current OpenGL context. Does not automatically generate
+   * mipmaps for the resulting texture.
    *
    * @param data the texture data to turn into an OpenGL texture
    * @throws GLException if no OpenGL context is current or if an
@@ -384,15 +406,22 @@ public class TextureIO {
 
   /** 
    * Creates an OpenGL texture object from the specified file using
-   * the current OpenGL context.
+   * the current OpenGL context. Does not automatically generate
+   * mipmaps for the resulting texture.
    *
    * @param file the file from which to read the texture data
+   * @param mipmap     whether mipmaps should be produced for this
+   *                   texture either by autogenerating them or
+   *                   reading them from the file. Some file formats
+   *                   support multiple mipmaps in a single file in
+   *                   which case those mipmaps will be used rather
+   *                   than generating them.
    * @throws IOException if an error occurred while reading the file
    * @throws GLException if no OpenGL context is current or if an
    *                     OpenGL error occurred
    */
-  public static Texture newTexture(File file) throws IOException, GLException {
-    TextureData data = newTextureData(file, 0, getFileSuffix(file));
+  public static Texture newTexture(File file, boolean mipmap) throws IOException, GLException {
+    TextureData data = newTextureData(file, mipmap, getFileSuffix(file));
     Texture texture = newTexture(data);
     data.flush();
     return texture;
@@ -400,31 +429,45 @@ public class TextureIO {
 
   /** 
    * Creates an OpenGL texture object from the specified stream using
-   * the current OpenGL context.
+   * the current OpenGL context. Does not automatically generate
+   * mipmaps for the resulting texture.
    *
    * @param stream the stream from which to read the texture data
+   * @param mipmap     whether mipmaps should be produced for this
+   *                   texture either by autogenerating them or
+   *                   reading them from the file. Some file formats
+   *                   support multiple mipmaps in a single file in
+   *                   which case those mipmaps will be used rather
+   *                   than generating them.
    * @throws IOException if an error occurred while reading the stream
    * @throws GLException if no OpenGL context is current or if an
    *                     OpenGL error occurred
    */
-  public static Texture newTexture(InputStream stream) throws IOException, GLException {
-    TextureData data = newTextureData(stream, 0, null);
+  public static Texture newTexture(InputStream stream, boolean mipmap) throws IOException, GLException {
+    TextureData data = newTextureData(stream, mipmap, null);
     Texture texture = newTexture(data);
     data.flush();
     return texture;
   }
 
   /** 
-   * Creates an OpenGL texture object from the specified URL using
-   * the current OpenGL context.
+   * Creates an OpenGL texture object from the specified URL using the
+   * current OpenGL context. Does not automatically generate mipmaps
+   * for the resulting texture.
    *
    * @param url the URL from which to read the texture data
+   * @param mipmap     whether mipmaps should be produced for this
+   *                   texture either by autogenerating them or
+   *                   reading them from the file. Some file formats
+   *                   support multiple mipmaps in a single file in
+   *                   which case those mipmaps will be used rather
+   *                   than generating them.
    * @throws IOException if an error occurred while reading the URL
    * @throws GLException if no OpenGL context is current or if an
    *                     OpenGL error occurred
    */
-  public static Texture newTexture(URL url) throws IOException, GLException {
-    TextureData data = newTextureData(url, 0, null);
+  public static Texture newTexture(URL url, boolean mipmap) throws IOException, GLException {
+    TextureData data = newTextureData(url, mipmap, null);
     Texture texture = newTexture(data);
     data.flush();
     return texture;
@@ -435,11 +478,13 @@ public class TextureIO {
    * using the current OpenGL context.
    *
    * @param image the BufferedImage from which to read the texture data
+   * @param mipmap     whether mipmaps should be produced for this
+   *                   texture by autogenerating them
    * @throws GLException if no OpenGL context is current or if an
    *                     OpenGL error occurred
    */
-  public static Texture newTexture(BufferedImage image) throws GLException {
-    TextureData data = newTextureData(image, 0);
+  public static Texture newTexture(BufferedImage image, boolean mipmap) throws GLException {
+    TextureData data = newTextureData(image, mipmap);
     Texture texture = newTexture(data);
     data.flush();
     return texture;
@@ -479,16 +524,16 @@ public class TextureIO {
 
   // Implementation methods
   private static TextureData newTextureDataImpl(File file,
-                                                int mipmapLevel,
                                                 int internalFormat,
                                                 int pixelFormat,
+                                                boolean mipmap,
                                                 String fileSuffix) throws IOException {
     for (Iterator iter = textureProviders.iterator(); iter.hasNext(); ) {
       TextureProvider provider = (TextureProvider) iter.next();
       TextureData data = provider.newTextureData(file,
-                                                 mipmapLevel,
                                                  internalFormat,
                                                  pixelFormat,
+                                                 mipmap,
                                                  fileSuffix);
       if (data != null) {
         return data;
@@ -498,16 +543,16 @@ public class TextureIO {
   }
 
   private static TextureData newTextureDataImpl(InputStream stream,
-                                                int mipmapLevel,
                                                 int internalFormat,
                                                 int pixelFormat,
+                                                boolean mipmap,
                                                 String fileSuffix) throws IOException {
     for (Iterator iter = textureProviders.iterator(); iter.hasNext(); ) {
       TextureProvider provider = (TextureProvider) iter.next();
       TextureData data = provider.newTextureData(stream,
-                                                 mipmapLevel,
                                                  internalFormat,
                                                  pixelFormat,
+                                                 mipmap,
                                                  fileSuffix);
       if (data != null) {
         return data;
@@ -518,16 +563,16 @@ public class TextureIO {
   }
 
   private static TextureData newTextureDataImpl(URL url,
-                                                int mipmapLevel,
                                                 int internalFormat,
                                                 int pixelFormat,
+                                                boolean mipmap,
                                                 String fileSuffix) throws IOException {
     for (Iterator iter = textureProviders.iterator(); iter.hasNext(); ) {
       TextureProvider provider = (TextureProvider) iter.next();
       TextureData data = provider.newTextureData(url,
-                                                 mipmapLevel,
                                                  internalFormat,
                                                  pixelFormat,
+                                                 mipmap,
                                                  fileSuffix);
       if (data != null) {
         return data;
@@ -538,47 +583,47 @@ public class TextureIO {
   }
 
   private static TextureData newTextureDataImpl(BufferedImage image,
-                                                int mipmapLevel,
                                                 int internalFormat,
-                                                int pixelFormat) {
-    return new TextureData(mipmapLevel, internalFormat, pixelFormat, image);
+                                                int pixelFormat,
+                                                boolean mipmap) {
+    return new TextureData(internalFormat, pixelFormat, mipmap, image);
   }
 
   //----------------------------------------------------------------------
   // Base provider - used last
   static class IIOTextureProvider implements TextureProvider {
     public TextureData newTextureData(File file,
-                                      int mipmapLevel,
                                       int internalFormat,
                                       int pixelFormat,
+                                      boolean mipmap,
                                       String fileSuffix) throws IOException {
       BufferedImage img = ImageIO.read(file);
       if (img == null) {
         return null;
       }
-      return new TextureData(mipmapLevel, internalFormat, pixelFormat, img);
+      return new TextureData(internalFormat, pixelFormat, mipmap, img);
     }
 
     public TextureData newTextureData(InputStream stream,
-                                      int mipmapLevel,
                                       int internalFormat,
                                       int pixelFormat,
+                                      boolean mipmap,
                                       String fileSuffix) throws IOException {
       BufferedImage img = ImageIO.read(stream);
       if (img == null) {
         return null;
       }
-      return new TextureData(mipmapLevel, internalFormat, pixelFormat, img);
+      return new TextureData(internalFormat, pixelFormat, mipmap, img);
     }
 
     public TextureData newTextureData(URL url,
-                                      int mipmapLevel,
                                       int internalFormat,
                                       int pixelFormat,
+                                      boolean mipmap,
                                       String fileSuffix) throws IOException {
       InputStream stream = url.openStream();
       try {
-        return newTextureData(stream, mipmapLevel, internalFormat, pixelFormat, fileSuffix);
+        return newTextureData(stream, internalFormat, pixelFormat, mipmap, fileSuffix);
       } finally {
         stream.close();
       }
@@ -589,17 +634,15 @@ public class TextureIO {
   // DDS provider -- supports files only for now
   static class DDSTextureProvider implements TextureProvider {
     public TextureData newTextureData(File file,
-                                      int mipmapLevel,
                                       int internalFormat,
                                       int pixelFormat,
+                                      boolean mipmap,
                                       String fileSuffix) throws IOException {
       if (DDS.equals(fileSuffix) ||
           DDS.equals(getFileSuffix(file))) {
         final DDSReader reader = new DDSReader();
         reader.loadFile(file);
-        // FIXME: handle case where all mipmaps are requested -- this
-        // will require API changes
-        DDSReader.ImageInfo info = reader.getMipMap(mipmapLevel);
+        DDSReader.ImageInfo info = reader.getMipMap(0);
         if (pixelFormat == 0) {
           switch (reader.getPixelFormat()) {
             case DDSReader.D3DFMT_R8G8B8:
@@ -641,17 +684,38 @@ public class TextureIO {
               reader.close();
             }
           };
-        TextureData data = new TextureData(mipmapLevel,
-                                           internalFormat,
-                                           info.getWidth(),
-                                           info.getHeight(),
-                                           0,
-                                           pixelFormat,
-                                           GL.GL_UNSIGNED_BYTE,
-                                           info.isCompressed(),
-                                           true,
-                                           info.getData(),
-                                           flusher);
+        TextureData data;
+        if (mipmap && reader.getNumMipMaps() > 0) {
+          Buffer[] mipmapData = new Buffer[reader.getNumMipMaps()];
+          for (int i = 0; i < reader.getNumMipMaps(); i++) {
+            mipmapData[i] = reader.getMipMap(i).getData();
+          }
+          data = new TextureData(internalFormat,
+                                 info.getWidth(),
+                                 info.getHeight(),
+                                 0,
+                                 pixelFormat,
+                                 GL.GL_UNSIGNED_BYTE,
+                                 info.isCompressed(),
+                                 true,
+                                 mipmapData,
+                                 flusher);
+        } else {
+          // Fix this up for the end user because we can't generate
+          // mipmaps for compressed textures
+          mipmap = false;
+          data = new TextureData(internalFormat,
+                                 info.getWidth(),
+                                 info.getHeight(),
+                                 0,
+                                 pixelFormat,
+                                 GL.GL_UNSIGNED_BYTE,
+                                 mipmap,
+                                 info.isCompressed(),
+                                 true,
+                                 info.getData(),
+                                 flusher);
+        }
         return data;
       }
 
@@ -659,17 +723,17 @@ public class TextureIO {
     }
 
     public TextureData newTextureData(InputStream stream,
-                                      int mipmapLevel,
                                       int internalFormat,
                                       int pixelFormat,
+                                      boolean mipmap,
                                       String fileSuffix) throws IOException {
       return null;
     }
 
     public TextureData newTextureData(URL url,
-                                      int mipmapLevel,
                                       int internalFormat,
                                       int pixelFormat,
+                                      boolean mipmap,
                                       String fileSuffix) throws IOException {
       return null;
     }
@@ -679,9 +743,9 @@ public class TextureIO {
   // Base class for SGI RGB and TGA image providers
   static abstract class StreamBasedTextureProvider implements TextureProvider {
     public TextureData newTextureData(File file,
-                                      int mipmapLevel,
                                       int internalFormat,
                                       int pixelFormat,
+                                      boolean mipmap,
                                       String fileSuffix) throws IOException {
       InputStream inStream = new BufferedInputStream(new FileInputStream(file));
       try {
@@ -689,9 +753,9 @@ public class TextureIO {
         // anyway so there isn't much point in having a separate code
         // path for files
         return newTextureData(inStream,
-                              mipmapLevel,
                               internalFormat,
                               pixelFormat,
+                              mipmap,
                               ((fileSuffix != null) ? fileSuffix : getFileSuffix(file)));
       } finally {
         inStream.close();
@@ -699,13 +763,13 @@ public class TextureIO {
     }
 
     public TextureData newTextureData(URL url,
-                                      int mipmapLevel,
                                       int internalFormat,
                                       int pixelFormat,
+                                      boolean mipmap,
                                       String fileSuffix) throws IOException {
       InputStream stream = url.openStream();
       try {
-        return newTextureData(stream, mipmapLevel, internalFormat, pixelFormat, fileSuffix);
+        return newTextureData(stream, internalFormat, pixelFormat, mipmap, fileSuffix);
       } finally {
         stream.close();
       }
@@ -716,9 +780,9 @@ public class TextureIO {
   // SGI RGB image provider
   static class SGITextureProvider extends StreamBasedTextureProvider {
     public TextureData newTextureData(InputStream stream,
-                                      int mipmapLevel,
                                       int internalFormat,
                                       int pixelFormat,
+                                      boolean mipmap,
                                       String fileSuffix) throws IOException {
       if (SGI.equals(fileSuffix) ||
           SGI_RGB.equals(fileSuffix) ||
@@ -730,13 +794,13 @@ public class TextureIO {
         if (internalFormat == 0) {
           internalFormat = image.getFormat();
         }
-        return new TextureData(mipmapLevel,
-                               internalFormat,
+        return new TextureData(internalFormat,
                                image.getWidth(),
                                image.getHeight(),
                                0,
                                pixelFormat,
                                GL.GL_UNSIGNED_BYTE,
+                               mipmap,
                                false,
                                false,
                                ByteBuffer.wrap(image.getData()),
@@ -751,9 +815,9 @@ public class TextureIO {
   // TGA (Targa) image provider
   static class TGATextureProvider extends StreamBasedTextureProvider {
     public TextureData newTextureData(InputStream stream,
-                                      int mipmapLevel,
                                       int internalFormat,
                                       int pixelFormat,
+                                      boolean mipmap,
                                       String fileSuffix) throws IOException {
       if (TGA.equals(fileSuffix)) {
         TGAImage image = TGAImage.read(stream);
@@ -763,13 +827,13 @@ public class TextureIO {
         if (internalFormat == 0) {
           internalFormat = GL.GL_RGBA8;
         }
-        return new TextureData(mipmapLevel,
-                               internalFormat,
+        return new TextureData(internalFormat,
                                image.getWidth(),
                                image.getHeight(),
                                0,
                                pixelFormat,
                                GL.GL_UNSIGNED_BYTE,
+                               mipmap,
                                false,
                                false,
                                ByteBuffer.wrap(image.getData()),

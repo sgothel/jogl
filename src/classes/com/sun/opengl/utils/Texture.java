@@ -36,7 +36,10 @@
 
 package com.sun.opengl.utils;
 
+import java.nio.*;
+
 import javax.media.opengl.*;
+import javax.media.opengl.glu.*;
 import com.sun.opengl.impl.*;
 
 /**
@@ -68,8 +71,7 @@ public class Texture {
       the texture coords. */
   private boolean mustFlipVertically;
 
-  /** The texture coordinates corresponding to the entire texture
-      image. */
+  /** The texture coordinates corresponding to the entire image. */
   private TextureCoords coords;
 
   private static final boolean DEBUG = Debug.debug("Texture");
@@ -83,8 +85,18 @@ public class Texture {
     imgHeight = data.getHeight();
     mustFlipVertically = data.getMustFlipVertically();
 
-    if ((isPowerOfTwo(imgWidth) && isPowerOfTwo(imgHeight)) ||
-        gl.isExtensionAvailable("GL_ARB_texture_non_power_of_two")) {
+    if (data.getMipmap()) {
+      // GLU always targets GL_TEXTURE_2D and scales the texture to be
+      // a power of two. It also doesn't really matter exactly what
+      // the texture width and height are because the texture coords
+      // are always between 0.0 and 1.0.
+      imgWidth = nextPowerOfTwo(imgWidth);
+      imgHeight = nextPowerOfTwo(imgHeight);
+      texWidth = imgWidth;
+      texHeight = imgHeight;
+      target = GL.GL_TEXTURE_2D;
+    } else if ((isPowerOfTwo(imgWidth) && isPowerOfTwo(imgHeight)) ||
+               gl.isExtensionAvailable("GL_ARB_texture_non_power_of_two")) {
       if (DEBUG) {
         if (isPowerOfTwo(imgWidth) && isPowerOfTwo(imgHeight)) {
           System.err.println("Power-of-two texture");
@@ -125,10 +137,6 @@ public class Texture {
     texID = createTextureID(gl); 
     setImageSize(imgWidth, imgHeight);
     gl.glBindTexture(target, texID);
-    gl.glTexImage2D(target, 0, data.getInternalFormat(),
-                    texWidth, texHeight, data.getBorder(),
-                    data.getPixelFormat(), data.getPixelType(), null);
-
     // REMIND: figure out what to do for GL_TEXTURE_RECTANGLE_ARB
     if (target == GL.GL_TEXTURE_2D) {
       gl.glTexParameteri(target, GL.GL_TEXTURE_MIN_FILTER, minFilter);
@@ -137,7 +145,24 @@ public class Texture {
       gl.glTexParameteri(target, GL.GL_TEXTURE_WRAP_T, wrapMode);
     }
 
-    updateSubImage(data, 0, 0);
+    if (data.getMipmap()) {
+      GLU glu = new GLU();
+      glu.gluBuild2DMipmaps(target, data.getInternalFormat(),
+                            data.getWidth(), data.getHeight(),
+                            data.getPixelFormat(), data.getPixelType(), data.getBuffer());
+    } else {
+      gl.glTexImage2D(target, 0, data.getInternalFormat(),
+                      texWidth, texHeight, data.getBorder(),
+                      data.getPixelFormat(), data.getPixelType(), null);
+      Buffer[] mipmapData = data.getMipmapData();
+      if (mipmapData != null) {
+        for (int i = 0; i < mipmapData.length; i++) {
+          updateSubImage(data, i, 0, 0);
+        }
+      } else {
+        updateSubImage(data, 0, 0, 0);
+      }
+    }
   }
 
   /**
@@ -279,9 +304,14 @@ public class Texture {
 
   /**
    * Updates a subregion of the content area of this texture using the
-   * data in the given image.
+   * data in the given image. Only updates the specified mipmap level
+   * and does not re-generate mipmaps if they were originally produced
+   * or loaded.
    *
    * @param data the image data to be uploaded to this texture
+   * @param mipmapLevel the mipmap level of the texture to set. If
+   * this is non-zero and the TextureData contains mipmap data, the
+   * appropriate mipmap level will be selected.
    * @param x the x offset (in pixels) relative to the lower-left corner
    * of this texture
    * @param y the y offset (in pixels) relative to the lower-left corner
@@ -290,25 +320,51 @@ public class Texture {
    * @throws GLException if no OpenGL context was current or if any
    * OpenGL-related errors occurred
    */
-  public void updateSubImage(TextureData data, int x, int y) throws GLException {
+  public void updateSubImage(TextureData data, int mipmapLevel, int x, int y) throws GLException {
     GL gl = getCurrentGL();
     bind();
+    int width = data.getWidth();
+    int height = data.getHeight();
+    Buffer buffer = data.getBuffer();
+    if (data.getMipmapData() != null) {
+      // Compute the width and height at the specified mipmap level
+      for (int i = 0; i < mipmapLevel; i++) {
+        width /= 2;
+        height /= 2;
+      }
+      buffer = data.getMipmapData()[mipmapLevel];
+    }
+
     if (data.isDataCompressed()) {
-      // FIXME: should test availability of appropriate texture
-      // compression extension here
-      gl.glCompressedTexSubImage2D(target, data.getMipmapLevel(),
-                                   x, y, data.getWidth(), data.getHeight(),
-                                   data.getInternalFormat(), data.getBuffer().remaining(),
-                                   data.getBuffer());
+      switch (data.getInternalFormat()) {
+        case GL.GL_COMPRESSED_RGB_S3TC_DXT1_EXT:
+        case GL.GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
+        case GL.GL_COMPRESSED_RGBA_S3TC_DXT3_EXT:
+        case GL.GL_COMPRESSED_RGBA_S3TC_DXT5_EXT:
+          if (!gl.isExtensionAvailable("GL_EXT_texture_compression_s3tc") &&
+              !gl.isExtensionAvailable("GL_NV_texture_compression_vtc")) {
+            throw new GLException("DXTn compressed textures not supported by this graphics card");
+          }
+          break;
+        default:
+          // FIXME: should test availability of more texture
+          // compression extensions here
+          break;
+      }
+
+      gl.glCompressedTexSubImage2D(target, mipmapLevel,
+                                   x, y, width, height,
+                                   data.getInternalFormat(),
+                                   buffer.remaining(), buffer);
     } else {
       int[] align = new int[1];
       gl.glGetIntegerv(GL.GL_UNPACK_ALIGNMENT, align, 0); // save alignment
       gl.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, data.getAlignment());
 
-      gl.glTexSubImage2D(target, data.getMipmapLevel(),
-                         x, y, data.getWidth(), data.getHeight(),
+      gl.glTexSubImage2D(target, mipmapLevel,
+                         x, y, width, height,
                          data.getPixelFormat(), data.getPixelType(),
-                         data.getBuffer());
+                         buffer);
       gl.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, align[0]); // restore align
     }
   }

@@ -58,9 +58,6 @@ public interface TextureProvider {
    *
    * @param file         the file from which to read the texture data
    *
-   * @param mipmapLevel  the mipmap level of the resulting texture being
-   *                     read (FIXME: needs rethinking, not yet working)
-   *
    * @param internalFormat the OpenGL internal format to be used for
    *                       the texture, or 0 if it should be inferred
    *                       from the file's contents
@@ -68,6 +65,13 @@ public interface TextureProvider {
    * @param pixelFormat    the OpenGL pixel format to be used for
    *                       the texture, or 0 if it should be inferred
    *                       from the file's contents
+   *
+   * @param mipmap     whether mipmaps should be produced for this
+   *                   texture either by autogenerating them or
+   *                   reading them from the file. Some file formats
+   *                   support multiple mipmaps in a single file in
+   *                   which case those mipmaps will be used rather
+   *                   than generating them.
    *
    * @param fileSuffix     the file suffix to be used as a hint to the
    *                       provider to more quickly decide whether it
@@ -78,9 +82,9 @@ public interface TextureProvider {
    * @throws IOException if an error occurred while reading the file
    */
   public TextureData newTextureData(File file,
-                                    int mipmapLevel,
                                     int internalFormat,
                                     int pixelFormat,
+                                    boolean mipmap,
                                     String fileSuffix) throws IOException;
 
   /**
@@ -91,9 +95,6 @@ public interface TextureProvider {
    *
    * @param stream       the stream from which to read the texture data
    *
-   * @param mipmapLevel  the mipmap level of the resulting texture being
-   *                     read (FIXME: needs rethinking, not yet working)
-   *
    * @param internalFormat the OpenGL internal format to be used for
    *                       the texture, or 0 if it should be inferred
    *                       from the file's contents
@@ -101,6 +102,13 @@ public interface TextureProvider {
    * @param pixelFormat    the OpenGL pixel format to be used for
    *                       the texture, or 0 if it should be inferred
    *                       from the file's contents
+   *
+   * @param mipmap     whether mipmaps should be produced for this
+   *                   texture either by autogenerating them or
+   *                   reading them from the file. Some file formats
+   *                   support multiple mipmaps in a single file in
+   *                   which case those mipmaps will be used rather
+   *                   than generating them.
    *
    * @param fileSuffix     the file suffix to be used as a hint to the
    *                       provider to more quickly decide whether it
@@ -111,9 +119,9 @@ public interface TextureProvider {
    * @throws IOException if an error occurred while reading the stream
    */
   public TextureData newTextureData(InputStream stream,
-                                    int mipmapLevel,
                                     int internalFormat,
                                     int pixelFormat,
+                                    boolean mipmap,
                                     String fileSuffix) throws IOException;
 
   /**
@@ -124,9 +132,6 @@ public interface TextureProvider {
    *
    * @param url          the URL from which to read the texture data
    *
-   * @param mipmapLevel  the mipmap level of the resulting texture being
-   *                     read (FIXME: needs rethinking, not yet working)
-   *
    * @param internalFormat the OpenGL internal format to be used for
    *                       the texture, or 0 if it should be inferred
    *                       from the file's contents
@@ -134,6 +139,13 @@ public interface TextureProvider {
    * @param pixelFormat    the OpenGL pixel format to be used for
    *                       the texture, or 0 if it should be inferred
    *                       from the file's contents
+   *
+   * @param mipmap     whether mipmaps should be produced for this
+   *                   texture either by autogenerating them or
+   *                   reading them from the file. Some file formats
+   *                   support multiple mipmaps in a single file in
+   *                   which case those mipmaps will be used rather
+   *                   than generating them.
    *
    * @param fileSuffix     the file suffix to be used as a hint to the
    *                       provider to more quickly decide whether it
@@ -144,8 +156,8 @@ public interface TextureProvider {
    * @throws IOException if an error occurred while reading the URL
    */
   public TextureData newTextureData(URL url,
-                                    int mipmapLevel,
                                     int internalFormat,
                                     int pixelFormat,
+                                    boolean mipmap,
                                     String fileSuffix) throws IOException;
 }
