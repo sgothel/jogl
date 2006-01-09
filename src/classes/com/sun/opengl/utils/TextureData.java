@@ -500,7 +500,6 @@ public class TextureData {
     g.drawImage(image,
                 0, height, width, 0,
                 0, 0, width, height,
-                Color.BLACK,
                 null);
     g.dispose();
 
