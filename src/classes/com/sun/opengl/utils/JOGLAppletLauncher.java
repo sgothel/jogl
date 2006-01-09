@@ -435,7 +435,7 @@ public class JOGLAppletLauncher extends Applet {
     loadNativesAndStart(installDir);
   }
   
-  public long getTimestamp(File installDir, long timestamp) {
+  private long getTimestamp(File installDir, long timestamp) {
     // Avoid returning valid value if timestamp file doesn't exist
     try {
       BufferedReader reader = new BufferedReader(new FileReader(new File(installDir, "timestamp")));
