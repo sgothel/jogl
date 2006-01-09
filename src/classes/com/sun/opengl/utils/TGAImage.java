@@ -40,11 +40,13 @@
 package com.sun.opengl.utils;
 
 import java.io.*;
+import java.nio.*;
+import java.nio.channels.*;
 import javax.media.opengl.*;
 import com.sun.opengl.utils.*;
 
 /**
- * Targa image reader adapted from sources of the <a href =
+ * Targa image reader and writer adapted from sources of the <a href =
  * "http://java.sun.com/products/jimi/">Jimi</a> image I/O class library.
  *
  * <P>
@@ -70,7 +72,7 @@ import com.sun.opengl.utils.*;
 public class TGAImage {
   private Header header;
   private int    format;
-  private byte[] data;
+  private ByteBuffer data;
 
   private TGAImage(Header header) {
     this.header = header;
@@ -100,7 +102,7 @@ public class TGAImage {
 
     /** Field image descriptor bitfield values definitions */
     public final static int ID_ATTRIBPERPIXEL = 0xF;
-    public final static int ID_LEFTTORIGHT = 0x10;
+    public final static int ID_RIGHTTOLEFT = 0x10;
     public final static int ID_TOPTOBOTTOM = 0x20;
     public final static int ID_INTERLEAVE  = 0xC0;
 
@@ -130,14 +132,13 @@ public class TGAImage {
     private byte pixelDepth;
     private byte imageDescriptor;
 
-    /** bitfields in imageDescriptor */
-    private byte attribPerPixel;    // how many attribute bits per pixel
-    private boolean leftToRight;    // order of data on scan line
-    private boolean topToBottom;    // order scan lines stored
-    private byte interleave;        // how rows are stored in image data
-
     private byte[] imageIDbuf;
     private String imageID;
+
+    // For construction from user data
+    Header() {
+      tgaType = TYPE_OLD; // dont try and get footer.
+    }
 
     Header(LEDataInputStream in) throws IOException {
       int ret;
@@ -146,7 +147,7 @@ public class TGAImage {
 
       // initial header fields
       idLength = in.readUnsignedByte();    
-      colorMapType = in.readUnsignedByte();    
+      colorMapType = in.readUnsignedByte();
       imageType = in.readUnsignedByte();    
 
       // color map header fields
@@ -161,11 +162,6 @@ public class TGAImage {
       height = in.readUnsignedShort();
       pixelDepth = in.readByte();
       imageDescriptor = in.readByte();
-
-      attribPerPixel = (byte)(imageDescriptor & ID_ATTRIBPERPIXEL);
-      leftToRight = (imageDescriptor & ID_LEFTTORIGHT) != 0;    // not used ?
-      topToBottom = (imageDescriptor & ID_TOPTOBOTTOM) != 0;
-      interleave  = (byte)((imageDescriptor & ID_INTERLEAVE) >> 6);
 
       if (idLength > 0) {
         imageIDbuf = new byte[idLength];
@@ -195,10 +191,10 @@ public class TGAImage {
     public byte imageDescriptor()        { return imageDescriptor; }
 
     /** bitfields in imageDescriptor */
-    public byte attribPerPixel()         { return attribPerPixel; }
-    public boolean leftToRight()         { return leftToRight; }
-    public boolean topToBottom()         { return topToBottom; }
-    public byte interleave()             { return interleave; }
+    public byte attribPerPixel()         { return (byte)(imageDescriptor & ID_ATTRIBPERPIXEL); }
+    public boolean rightToLeft()         { return ((imageDescriptor & ID_RIGHTTOLEFT) != 0); }
+    public boolean topToBottom()         { return ((imageDescriptor & ID_TOPTOBOTTOM) != 0); }
+    public byte interleave()             { return (byte)((imageDescriptor & ID_INTERLEAVE) >> 6); }
 
     public byte[] imageIDbuf()           { return imageIDbuf; }
     public String imageID()              { return imageID; }
@@ -218,6 +214,32 @@ public class TGAImage {
         " pixel depth: "+ pixelDepth +
         " image descriptor: "+ imageDescriptor +
         (imageIDbuf == null ? "" : (" ID String: " + imageID));
+    }
+
+    public int size() { return 18 + idLength; }
+
+    // buf must be in little-endian byte order
+    private void write(ByteBuffer buf) {
+      buf.put((byte) idLength);
+      buf.put((byte) colorMapType);
+      buf.put((byte) imageType);
+      buf.putShort((short) firstEntryIndex);
+      buf.putShort((short) colorMapLength);
+      buf.put((byte) colorMapEntrySize);
+      buf.putShort((short) xOrigin);
+      buf.putShort((short) yOrigin);
+      buf.putShort((short) width);
+      buf.putShort((short) height);
+      buf.put((byte) pixelDepth);
+      buf.put((byte) imageDescriptor);
+      if (idLength > 0) {
+        try {
+          byte[] chars = imageID.getBytes("US-ASCII");
+          buf.put(chars);
+        } catch (UnsupportedEncodingException e) {
+          throw new RuntimeException(e);
+        }
+      }
     }
   }
 
@@ -269,7 +291,7 @@ public class TGAImage {
     int raw;  // index through the raw input buffer
     int rawWidth = header.width() * (header.pixelDepth() / 8);
     byte[] rawBuf = new byte[rawWidth];
-    data = new byte[rawWidth * header.height()];
+    byte[] tmpData = new byte[rawWidth * header.height()];
 
     if (header.pixelDepth() == 24) {
       format = GL.GL_BGR;
@@ -281,13 +303,15 @@ public class TGAImage {
     for (i = 0; i < header.height(); ++i) {
       dIn.readFully(rawBuf, 0, rawWidth);
 
-      if (header.topToBottom)
+      if (header.topToBottom())
         y = header.height - i - 1; // range 0 to (header.height - 1)
       else
         y = i;
 
-      System.arraycopy(rawBuf, 0, data, y * rawWidth, rawBuf.length);
+      System.arraycopy(rawBuf, 0, tmpData, y * rawWidth, rawBuf.length);
     }
+
+    data = ByteBuffer.wrap(tmpData);
   }
 
   /** Returns the width of the image. */
@@ -301,7 +325,7 @@ public class TGAImage {
 
   /** Returns the raw data for this texture in the correct
       (bottom-to-top) order for calls to glTexImage2D. */
-  public byte[] getData()  { return data; }
+  public ByteBuffer getData()  { return data; }
 
   /** Reads a Targa image from the specified file. */
   public static TGAImage read(String filename) throws IOException {
@@ -316,5 +340,47 @@ public class TGAImage {
     TGAImage res = new TGAImage(header);
     res.decodeImage(dIn);
     return res;
+  }
+
+  /** Writes the image in Targa format to the specified file name. */
+  public void write(String filename) throws IOException {
+    write(new File(filename));
+  }
+
+  /** Writes the image in Targa format to the specified file. */
+  public void write(File file) throws IOException {
+    FileOutputStream stream = new FileOutputStream(file);
+    FileChannel chan = stream.getChannel();
+    ByteBuffer buf = ByteBuffer.allocate(header.size());
+    buf.order(ByteOrder.LITTLE_ENDIAN);
+    header.write(buf);
+    buf.rewind();
+    chan.write(buf);
+    chan.write(data);
+    data.rewind();
+    chan.force(true);
+    chan.close();
+    stream.close();
+  }
+
+  /** Creates a TGAImage from data supplied by the end user. Shares
+      data with the passed ByteBuffer. Assumes the data is already in
+      the correct byte order for writing to disk, i.e., BGR or
+      BGRA. */
+  public static TGAImage createFromData(int width,
+                                        int height,
+                                        boolean hasAlpha,
+                                        boolean topToBottom,
+                                        ByteBuffer data) {
+    Header header = new Header();
+    header.imageType = Header.UTRUECOLOR;
+    header.width = width;
+    header.height = height;
+    header.pixelDepth = (byte) (hasAlpha ? 32 : 24);
+    header.imageDescriptor = (byte) (topToBottom ? Header.ID_TOPTOBOTTOM : 0);
+    // Note ID not supported
+    TGAImage ret = new TGAImage(header);
+    ret.data = data;
+    return ret;
   }
 }

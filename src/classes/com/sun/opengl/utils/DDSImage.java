@@ -43,12 +43,12 @@ import java.io.*;
 import java.nio.*;
 import java.nio.channels.*;
 
-/** A reader for DirectDraw Surface (.dds) files, which are used to
-    describe textures. These files can contain multiple mipmap levels
-    in one file. This reader is currently minimal and does not support
-    all of the possible file formats. */
+/** A reader and writer for DirectDraw Surface (.dds) files, which are
+    used to describe textures. These files can contain multiple mipmap
+    levels in one file. This class is currently minimal and does not
+    support all of the possible file formats. */
 
-public class DDSReader {
+public class DDSImage {
 
   /** Simple class describing images and data; does not encapsulate
       image format information. User is responsible for transmitting
@@ -134,28 +134,88 @@ public class DDSReader {
   public static final int D3DFMT_DXT4      =  0x34545844;
   public static final int D3DFMT_DXT5      =  0x35545844;
 
-  public void loadFile(String filename) throws IOException {
-    loadFile(new File(filename));
+  /** Reads a DirectDraw surface from the specified file name,
+      returning the resulting DDSImage. */
+  public static DDSImage read(String filename) throws IOException {
+    return read(new File(filename));
+  }
+  
+  /** Reads a DirectDraw surface from the specified file, returning
+      the resulting DDSImage. */
+  public static DDSImage read(File file) throws IOException {
+    DDSImage image = new DDSImage();
+    image.readFromFile(file);
+    return image;
   }
 
-  public void loadFile(File file) throws IOException {
-    fis = new FileInputStream(file);
-    chan = fis.getChannel();
-    buf = chan.map(FileChannel.MapMode.READ_ONLY,
-                   0, (int) file.length());
-    buf.order(ByteOrder.LITTLE_ENDIAN);
-    header = new Header();
-    header.read(buf);
-    fixupHeader();
-  }
-
+  /** Closes open files and resources associated with the open
+      DDSImage. No other methods may be called on this object once
+      this is called. */
   public void close() {
     try {
-      chan.close();
-      fis.close();
+      if (chan != null) {
+        chan.close();
+        chan = null;
+      }
+      if (fis != null) {
+        fis.close();
+        fis = null;
+      }
+      buf = null;
     } catch (IOException e) {
       e.printStackTrace();
     }
+  }
+
+  /** 
+   * Creates a new DDSImage from data supplied by the user. The
+   * resulting DDSImage can be written to disk using the write()
+   * method.
+   *
+   * @param d3dFormat the D3DFMT_ constant describing the data; it is
+   *                  assumed that it is packed tightly
+   * @param width  the width in pixels of the topmost mipmap image
+   * @param height the height in pixels of the topmost mipmap image
+   * @param mipmapData the data for each mipmap level of the resulting
+   *                   DDSImage; either only one mipmap level should
+   *                   be specified, or they all must be
+   * @throws IllegalArgumentException if the data does not match the
+   *   specified arguments
+   */
+  public static DDSImage createFromData(int d3dFormat,
+                                        int width,
+                                        int height,
+                                        ByteBuffer[] mipmapData) throws IllegalArgumentException {
+    DDSImage image = new DDSImage();
+    image.initFromData(d3dFormat, width, height, mipmapData);
+    return image;
+  }
+
+  /**
+   * Writes this DDSImage to the specified file name.
+   */
+  public void write(String filename) throws IOException {
+    write(new File(filename));
+  }
+
+  /**
+   * Writes this DDSImage to the specified file name.
+   */
+  public void write(File file) throws IOException {
+    FileOutputStream stream = new FileOutputStream(file);
+    FileChannel chan = stream.getChannel();
+    // Create ByteBuffer for header in case the start of our
+    // ByteBuffer isn't actually memory-mapped
+    ByteBuffer hdr = ByteBuffer.allocate(Header.writtenSize());
+    hdr.order(ByteOrder.LITTLE_ENDIAN);
+    header.write(hdr);
+    hdr.rewind();
+    chan.write(hdr);
+    buf.position(Header.writtenSize());
+    chan.write(buf);
+    chan.force(true);
+    chan.close();
+    stream.close();
   }
 
   /** Test for presence/absence of surface description flags (DDSD_*) */
@@ -246,7 +306,7 @@ public class DDSReader {
     }
 
     // Figure out how far to seek
-    int seek = 4 + header.size;
+    int seek = Header.writtenSize();
     for (int i = 0; i < map; i++) {
       seek += mipMapSizeInBytes(i);
     }
@@ -439,6 +499,152 @@ public class DDSReader {
       ddsCapsReserved2              = buf.getInt();
       textureStage                  = buf.getInt();
     }
+
+    // buf must be in little-endian byte order
+    void write(ByteBuffer buf) {
+      buf.putInt(MAGIC);
+      buf.putInt(size);
+      buf.putInt(flags);
+      buf.putInt(height);
+      buf.putInt(width);
+      buf.putInt(pitchOrLinearSize);
+      buf.putInt(backBufferCountOrDepth);
+      buf.putInt(mipMapCountOrAux);
+      buf.putInt(alphaBitDepth);
+      buf.putInt(reserved1);
+      buf.putInt(surface);
+      buf.putInt(colorSpaceLowValue);
+      buf.putInt(colorSpaceHighValue);
+      buf.putInt(destBltColorSpaceLowValue);
+      buf.putInt(destBltColorSpaceHighValue);
+      buf.putInt(srcOverlayColorSpaceLowValue);
+      buf.putInt(srcOverlayColorSpaceHighValue);
+      buf.putInt(srcBltColorSpaceLowValue);
+      buf.putInt(srcBltColorSpaceHighValue);
+      buf.putInt(pfSize);
+      buf.putInt(pfFlags);
+      buf.putInt(pfFourCC);
+      buf.putInt(pfRGBBitCount);
+      buf.putInt(pfRBitMask);
+      buf.putInt(pfGBitMask);
+      buf.putInt(pfBBitMask);
+      buf.putInt(pfABitMask);
+      buf.putInt(ddsCaps1);
+      buf.putInt(ddsCaps2);
+      buf.putInt(ddsCapsReserved1);
+      buf.putInt(ddsCapsReserved2);
+      buf.putInt(textureStage);
+    }
+
+    private static final int size() {
+      return 124;
+    }
+
+    private static final int pfSize() {
+      return 32;
+    }
+
+    private static final int writtenSize() {
+      return 128;
+    }
+  }
+
+  private DDSImage() {
+  }
+
+  private void readFromFile(File file) throws IOException {
+    fis = new FileInputStream(file);
+    chan = fis.getChannel();
+    buf = chan.map(FileChannel.MapMode.READ_ONLY,
+                   0, (int) file.length());
+    buf.order(ByteOrder.LITTLE_ENDIAN);
+    header = new Header();
+    header.read(buf);
+    fixupHeader();
+  }
+
+  private void initFromData(int d3dFormat,
+                            int width,
+                            int height,
+                            ByteBuffer[] mipmapData) throws IllegalArgumentException {
+    // Check size of mipmap data compared against format, width and
+    // height
+    int topmostMipmapSize = width * height;
+    int pitchOrLinearSize = width;
+    boolean isCompressed = false;
+    switch (d3dFormat) {
+      case D3DFMT_R8G8B8:   topmostMipmapSize *= 3; pitchOrLinearSize *= 3; break;
+      case D3DFMT_A8R8G8B8: topmostMipmapSize *= 4; pitchOrLinearSize *= 4; break;
+      case D3DFMT_X8R8G8B8: topmostMipmapSize *= 4; pitchOrLinearSize *= 4; break;
+      case D3DFMT_DXT1:
+      case D3DFMT_DXT2:
+      case D3DFMT_DXT3:
+      case D3DFMT_DXT4:
+      case D3DFMT_DXT5:
+        topmostMipmapSize = computeCompressedBlockSize(width, height, 1, d3dFormat);
+        pitchOrLinearSize = topmostMipmapSize;
+        isCompressed = true;
+        break;
+      default:
+        throw new IllegalArgumentException("d3dFormat must be one of the known formats");
+    }
+    
+    // Now check the mipmaps against this size
+    int curSize = topmostMipmapSize;
+    int totalSize = 0;
+    for (int i = 0; i < mipmapData.length; i++) {
+      if (mipmapData[i].remaining() != curSize) {
+        throw new IllegalArgumentException("Mipmap level " + i +
+                                           " didn't match expected data size (expected " + curSize + ", got " +
+                                           mipmapData[i].remaining() + ")");
+      }
+      curSize /= 4;
+      totalSize += mipmapData[i].remaining();
+    }
+
+    // OK, create one large ByteBuffer to hold all of the mipmap data
+    totalSize += Header.writtenSize();
+    ByteBuffer buf = ByteBuffer.allocate(totalSize);
+    buf.position(Header.writtenSize());
+    for (int i = 0; i < mipmapData.length; i++) {
+      buf.put(mipmapData[i]);
+    }
+    this.buf = buf;
+    
+    // Allocate and initialize a Header
+    header = new Header();
+    header.size = Header.size();
+    header.flags = DDSD_CAPS | DDSD_HEIGHT | DDSD_WIDTH | DDSD_PIXELFORMAT;
+    if (mipmapData.length > 1) {
+      header.flags |= DDSD_MIPMAPCOUNT;
+      header.mipMapCountOrAux = mipmapData.length;
+    }
+    header.width = width;
+    header.height = height;
+    if (isCompressed) {
+      header.flags |= DDSD_LINEARSIZE;
+      header.pfFlags |= DDPF_FOURCC;
+      header.pfFourCC = d3dFormat;
+    } else {
+      header.flags |= DDSD_PITCH;
+      // Figure out the various settings from the pixel format
+      header.pfFlags |= DDPF_RGB;
+      switch (d3dFormat) {
+        case D3DFMT_R8G8B8:   header.pfRGBBitCount = 24; break;
+        case D3DFMT_A8R8G8B8: header.pfRGBBitCount = 32; header.pfFlags |= DDPF_ALPHAPIXELS; break;
+        case D3DFMT_X8R8G8B8: header.pfRGBBitCount = 32; break;
+      }
+      header.pfRBitMask = 0x00FF0000;
+      header.pfGBitMask = 0x0000FF00;
+      header.pfBBitMask = 0x000000FF;
+      if (d3dFormat == D3DFMT_A8R8G8B8) {
+        header.pfABitMask = 0xFF000000;
+      }
+    }
+    header.pitchOrLinearSize = pitchOrLinearSize;
+    header.pfSize = Header.pfSize();
+    // Not sure whether we can get away with leaving the rest of the
+    // header blank
   }
 
   // Microsoft doesn't follow their own specifications and the
@@ -454,15 +660,23 @@ public class DDSReader {
         depth = 1;
       }
 
-      int blockSize = ((getWidth() + 3)/4) * ((getHeight() + 3)/4) * ((depth + 3)/4);
-      switch (getCompressionFormat()) {
-        case D3DFMT_DXT1:  blockSize *=  8; break;
-        default:           blockSize *= 16; break;
-      }
+      int blockSize = computeCompressedBlockSize(getWidth(), getHeight(), depth, getCompressionFormat());
 
       header.pitchOrLinearSize = blockSize;
       header.flags |= DDSD_LINEARSIZE;
     }
+  }
+
+  private static int computeCompressedBlockSize(int width,
+                                                int height,
+                                                int depth,
+                                                int compressionFormat) {
+    int blockSize = ((width + 3)/4) * ((height + 3)/4) * ((depth + 3)/4);
+    switch (compressionFormat) {
+      case D3DFMT_DXT1:  blockSize *=  8; break;
+      default:           blockSize *= 16; break;
+    }
+    return blockSize;
   }
 
   private int mipMapWidth(int map) {

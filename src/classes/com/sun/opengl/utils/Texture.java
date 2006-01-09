@@ -79,7 +79,7 @@ public class Texture {
   // For now make Texture constructor package-private to limit the
   // number of public APIs we commit to
   Texture(TextureData data) throws GLException {
-    GL gl = getCurrentGL();
+    GL gl = GLU.getCurrentGL();
     texID = createTextureID(gl); 
 
     updateImage(data);
@@ -88,7 +88,7 @@ public class Texture {
   // Constructor for use when creating e.g. cube maps, where there is
   // no initial texture data
   Texture(int target) throws GLException {
-    GL gl = getCurrentGL();
+    GL gl = GLU.getCurrentGL();
     texID = createTextureID(gl); 
     this.target = target;
   }
@@ -101,7 +101,7 @@ public class Texture {
    * OpenGL-related errors occurred
    */
   public void enable() throws GLException {
-    getCurrentGL().glEnable(target);
+    GLU.getCurrentGL().glEnable(target);
   }
 
   /**
@@ -112,7 +112,7 @@ public class Texture {
    * OpenGL-related errors occurred
    */
   public void disable() throws GLException {
-    getCurrentGL().glDisable(target); 
+    GLU.getCurrentGL().glDisable(target); 
   }
 
   /**
@@ -122,7 +122,7 @@ public class Texture {
    * OpenGL-related errors occurred
    */
   public void bind() throws GLException {
-    getCurrentGL().glBindTexture(target, texID); 
+    GLU.getCurrentGL().glBindTexture(target, texID); 
   }
 
   /**
@@ -132,7 +132,7 @@ public class Texture {
    * OpenGL-related errors occurred
    */
   public void dispose() throws GLException {
-    getCurrentGL().glDeleteTextures(1, new int[] {texID}, 0);
+    GLU.getCurrentGL().glDeleteTextures(1, new int[] {texID}, 0);
     texID = 0;
   }
 
@@ -242,6 +242,17 @@ public class Texture {
   }
 
   /**
+   * Indicates whether this texture's texture coordinates must be
+   * flipped vertically in order to properly display the texture. This
+   * is handled automatically by {@link #getImageTexCoords} and {@link
+   * #getSubImageTexCoords}, but applications may generate or
+   * otherwise produce texture coordinates which must be corrected.
+   */
+  public boolean getMustFlipVertically() {
+    return mustFlipVertically;
+  }
+
+  /**
    * Updates the content area of the specified target of this texture
    * using the data in the given image. In general this is intended
    * for construction of cube maps.
@@ -250,7 +261,7 @@ public class Texture {
    * OpenGL-related errors occurred
    */
   public void updateImage(TextureData data, int target) throws GLException {
-    GL gl = getCurrentGL();
+    GL gl = GLU.getCurrentGL();
 
     imgWidth = data.getWidth();
     imgHeight = data.getHeight();
@@ -395,7 +406,7 @@ public class Texture {
   public void setTexParameteri(int parameterName,
                                int value) {
     bind();
-    GL gl = getCurrentGL();
+    GL gl = GLU.getCurrentGL();
     gl.glTexParameteri(target, parameterName, value);
   }
 
@@ -411,18 +422,6 @@ public class Texture {
   //----------------------------------------------------------------------
   // Internals only below this point
   //
-
-  /**
-   * Returns the current GL object. Throws GLException if no OpenGL
-   * context was current.
-   */
-  private static GL getCurrentGL() throws GLException {
-    GLContext context = GLContext.getCurrent();
-    if (context == null) {
-      throw new GLException("No OpenGL context current on current thread");
-    }
-    return context.getGL();
-  }
 
   /**
    * Returns true if the given value is a power of two.
@@ -475,7 +474,7 @@ public class Texture {
   }
 
   private void updateSubImageImpl(TextureData data, int newTarget, int mipmapLevel, int x, int y) throws GLException {
-    GL gl = getCurrentGL();
+    GL gl = GLU.getCurrentGL();
     gl.glBindTexture(newTarget, texID); 
     int width = data.getWidth();
     int height = data.getHeight();

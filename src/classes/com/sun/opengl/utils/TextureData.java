@@ -316,16 +316,7 @@ public class TextureData {
 
   private void createNIOBufferFromImage(BufferedImage image, boolean flipVertically) {
     if (flipVertically) {
-      WritableRaster raster = image.getRaster();
-      Object scanline1 = null;
-      Object scanline2 = null;
-      
-      for (int i = 0; i < image.getHeight() / 2; i++) {
-        scanline1 = raster.getDataElements(0, i, image.getWidth(), 1, scanline1);
-        scanline2 = raster.getDataElements(0, image.getHeight() - i - 1, image.getWidth(), 1, scanline2);
-        raster.setDataElements(0, i, image.getWidth(), 1, scanline2);
-        raster.setDataElements(0, image.getHeight() - i - 1, image.getWidth(), 1, scanline1);
-      }
+      TextureIO.flipImageVertically(image);
     }
 
     //

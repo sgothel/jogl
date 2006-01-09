@@ -47,7 +47,7 @@ import com.sun.opengl.utils.*;
 import java.awt.image.*;
 import javax.swing.*;
 
-/** <p> Reads SGI RGB/RGBA images. </p>
+/** <p> Reads and writes SGI RGB/RGBA images. </p>
 
     <p> Written from <a href =
     "http://astronomy.swin.edu.au/~pbourke/dataformats/sgirgb/">Paul
@@ -104,6 +104,10 @@ public class SGIImage {
     // 404 bytes  char    DUMMY      Ignored
     // Should be set to 0, makes the header 512 bytes.
 
+    Header() {
+      magic = MAGIC;
+    }
+
     Header(DataInputStream in) throws IOException {
       magic      = in.readShort();
       storage    = in.readByte();
@@ -157,6 +161,35 @@ public class SGIImage {
     SGIImage res = new SGIImage(header);
     res.decodeImage(dIn);
     return res;
+  }
+
+  /** Writes this SGIImage to the specified file name. If
+      flipVertically is set, outputs the scanlines from top to bottom
+      rather than the default bottom to top order. */
+  public void write(String filename, boolean flipVertically) throws IOException {
+    write(new File(filename), flipVertically);
+  }
+
+  /** Writes this SGIImage to the specified file. If flipVertically is
+      set, outputs the scanlines from top to bottom rather than the
+      default bottom to top order. */
+  public void write(File file, boolean flipVertically) throws IOException {
+    writeImage(file, data, header.xsize, header.ysize, header.zsize, flipVertically);
+  }
+
+  /** Creates an SGIImage from the specified data in either RGB or
+      RGBA format. */
+  public static SGIImage createFromData(int width,
+                                        int height,
+                                        boolean hasAlpha,
+                                        byte[] data) {
+    Header header = new Header();
+    header.xsize = (short) width;
+    header.ysize = (short) height;
+    header.zsize = (short) (hasAlpha ? 4 : 3);
+    SGIImage image = new SGIImage(header);
+    image.data = data;
+    return image;
   }
 
   /** Determines from the magic number whether the given InputStream
@@ -258,6 +291,7 @@ public class SGIImage {
     tmpData  = null;
     tmpRead  = null;
     format   = GL.GL_RGBA;
+    header.zsize = 4;
   }
 
   private void getRow(byte[] buf, int y, int z) {
@@ -325,6 +359,250 @@ public class SGIImage {
     }
   }
 
+  private static byte imgref(byte[] i,
+                             int x,
+                             int y,
+                             int z,
+                             int xs,
+                             int ys,
+                             int zs) {
+    return i[(xs*ys*z)+(xs*y)+x];
+  }
+
+
+  private void writeHeader(DataOutputStream stream,
+                           int xsize, int ysize, int zsize, boolean rle) throws IOException {
+    // effects: outputs the 512-byte IRIS RGB header to STREAM, using xsize,
+    //          ysize, and depth as the dimensions of the image. NOTE that
+    //          the following defaults are used:
+    //              STORAGE = 1     (storage format = RLE)
+    //              BPC = 1         (# bytes/channel)
+    //              DIMENSION = 3
+    //              PIXMIN = 0
+    //              PIXMAX = 255
+    //              IMAGENAME = <80 nulls>
+    //              COLORMAP = 0
+    //          See ftp://ftp.sgi.com/pub/sgi/SGIIMAGESPEC for more details.
+
+    // write out MAGIC, STORAGE, BPC
+    stream.writeShort(474);
+    stream.write((rle ? 1 : 0));
+    stream.write(1);
+
+    // write out DIMENSION
+    stream.writeShort(3);
+
+    // write XSIZE, YSIZE, ZSIZE
+    stream.writeShort(xsize);
+    stream.writeShort(ysize);
+    stream.writeShort(zsize);
+
+    // write PIXMIN, PIXMAX
+    stream.writeInt(0);
+    stream.writeInt(255);
+
+    // write DUMMY
+    stream.writeInt(0);
+
+    // write IMAGENAME
+    for (int i = 0; i < 80; i++)
+      stream.write(0);
+
+    // write COLORMAP
+    stream.writeInt(0);
+
+    // write DUMMY (404 bytes)
+    for (int i = 0; i < 404; i++)
+      stream.write(0);
+  }
+
+  private void writeImage(File file,
+                          byte[] data,
+                          int xsize,
+                          int ysize,
+                          int zsize,
+                          boolean yflip) throws IOException {
+    // Input data is in RGBRGBRGB or RGBARGBARGBA format; first unswizzle it
+    byte[] tmpData = new byte[xsize * ysize * zsize];
+    int dest = 0;
+    for (int i = 0; i < zsize; i++) {
+      for (int j = i; j < (xsize * ysize * zsize); j += zsize) {
+        tmpData[dest++] = data[j];
+      }
+    }
+    data = tmpData;
+
+    // requires: DATA must be an array of size XSIZE * YSIZE * ZSIZE,
+    //           indexed in the following manner:
+    //             data[0]    ...data[xsize-1] == first row of first channel
+    //             data[xsize]...data[2*xsize-1]   == second row of first channel
+    //         ... data[(ysize - 1) * xsize]...data[(ysize * xsize) - 1] ==
+    //                                            last row of first channel
+    //           Later channels follow the same format.
+    //           *** NOTE that "first row" is defined by the BOTTOM ROW of
+    //           the image. That is, the origin is in the lower left corner.
+    // effects: writes out an SGI image to FILE, RLE-compressed, INCLUDING
+    //          header, of dimensions (xsize, ysize, zsize), and containing
+    //          the data in DATA. If YFLIP is set, outputs the data in DATA
+    //          in reverse order vertically (equivalent to a flip about the
+    //          x axis).
+
+    // Build the offset tables
+    int[] starttab  = new int[ysize * zsize];
+    int[] lengthtab = new int[ysize * zsize];
+
+    // Temporary buffer for holding RLE data.
+    // Note that this makes the assumption that RLE-compressed data will
+    // never exceed twice the size of the input data.
+    // There are surely formal proofs about how big the RLE buffer should
+    // be, as well as what the optimal look-ahead size is (i.e. don't switch
+    // copy/repeat modes for less than N repeats). However, I'm going from
+    // empirical evidence here; the break-even point seems to be a look-
+    // ahead of 3. (That is, if the three values following this one are all
+    // the same as the current value, switch to repeat mode.)
+    int lookahead = 3;
+    byte[] rlebuf = new byte[2 * xsize * ysize * zsize];
+
+    int cur_loc = 0;   // current offset location.
+    int ptr = 0;
+    int total_size = 0;
+    int ystart = 0;
+    int yincr = 1;
+    int yend = ysize;
+
+    if (yflip) {
+      ystart = ysize - 1;
+      yend = -1;
+      yincr = -1;
+    }
+
+    boolean DEBUG = false;
+
+    for (int z = 0; z < zsize; z++) {
+      for (int y = ystart; y != yend; y += yincr) {
+        // RLE-compress each row.
+	  
+        int x = 0;
+        byte count = 0;
+        boolean repeat_mode = false;
+        boolean should_switch = false;
+        int start_ptr = ptr;
+        int num_ptr = ptr++;
+        byte repeat_val = 0;
+	  
+        while (x < xsize) {
+          // see if we should switch modes
+          should_switch = false;
+          if (repeat_mode) {
+            if (imgref(data, x, y, z, xsize, ysize, zsize) != repeat_val) {
+              should_switch = true;
+            }
+          } else {
+            // look ahead to see if we should switch to repeat mode.
+            // stay within the scanline for the lookahead
+            if ((x + lookahead) < xsize) {
+              should_switch = true;
+              for (int i = 1; i <= lookahead; i++) {
+                if (DEBUG)
+                  System.err.println("left side was " + ((int) imgref(data, x, y, z, xsize, ysize, zsize)) +
+                                     ", right side was " + (int)imgref(data, x+i, y, z, xsize, ysize, zsize));
+			  
+                if (imgref(data, x, y, z, xsize, ysize, zsize) !=
+                    imgref(data, x+i, y, z, xsize, ysize, zsize))
+                  should_switch = false;
+              }
+            }
+          }
+
+          if (should_switch || (count == 127)) {
+            // update the number of elements we repeated/copied
+            if (x > 0) {
+              if (repeat_mode)
+                rlebuf[num_ptr] = count;
+              else
+                rlebuf[num_ptr] = (byte) (count | 0x80);
+            }
+            // perform mode switch if necessary; output repeat_val if
+            // switching FROM repeat mode, and set it if switching
+            // TO repeat mode.
+            if (repeat_mode) {
+              if (should_switch)
+                repeat_mode = false;
+              rlebuf[ptr++] = repeat_val;
+            } else {
+              if (should_switch)
+                repeat_mode = true;
+              repeat_val = imgref(data, x, y, z, xsize, ysize, zsize);
+            }
+		  
+            if (x > 0) {
+              // reset the number pointer
+              num_ptr = ptr++;
+              // reset number of bytes copied
+              count = 0;
+            }
+          }
+		    
+          // if not in repeat mode, copy element to ptr
+          if (!repeat_mode) {
+            rlebuf[ptr++] = imgref(data, x, y, z, xsize, ysize, zsize);
+          }
+          count++;
+
+          if (x == xsize - 1) {
+            // Need to store the number of pixels we copied/repeated.
+            if (repeat_mode) {
+              rlebuf[num_ptr] = count;
+              // If we ended the row in repeat mode, store the
+              // repeated value
+              rlebuf[ptr++] = repeat_val;
+            }
+            else
+              rlebuf[num_ptr] = (byte) (count | 0x80);
+
+            // output zero counter for the last value in the row
+            rlebuf[ptr++] = 0;
+          }
+
+          x++;
+        }
+        // output this row's length into the length table
+        int rowlen = ptr - start_ptr;
+        if (yflip)
+          lengthtab[ysize*z+(ysize-y-1)] = rowlen;
+        else
+          lengthtab[ysize*z+y] = rowlen;
+        // add to the start table, and update the current offset
+        if (yflip)
+          starttab[ysize*z+(ysize-y-1)] = cur_loc;
+        else
+          starttab[ysize*z+y] = cur_loc;
+        cur_loc += rowlen;
+      }
+    }
+
+    // Now we have the offset tables computed, as well as the RLE data.
+    // Output this information to the file.
+    total_size = ptr;
+  
+    if (DEBUG) 
+      System.err.println("total_size was " + total_size);
+
+    DataOutputStream stream = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(file)));
+
+    writeHeader(stream, xsize, ysize, zsize, true);
+
+    int SIZEOF_INT = 4;
+    for (int i = 0; i < (ysize * zsize); i++)
+      stream.writeInt(starttab[i] + 512 + (2 * ysize * zsize * SIZEOF_INT));
+    for (int i = 0; i < (ysize * zsize); i++)
+      stream.writeInt(lengthtab[i]);
+    for (int i = 0; i < total_size; i++)
+      stream.write(rlebuf[i]);
+
+    stream.close();
+  }
+
   private byte[] readAll(DataInputStream in) throws IOException {
     byte[] dest = new byte[16384];
     int pos = 0;
@@ -357,6 +635,8 @@ public class SGIImage {
     return dest;
   }
 
+  // Test case
+  /*
   public static void main(String[] args) {
     for (int i = 0; i < args.length; i++) {
       try {
@@ -387,4 +667,5 @@ public class SGIImage {
       }
     }
   }
+  */
 }
