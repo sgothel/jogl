@@ -51,6 +51,7 @@ public class X11ExternalGLContext extends X11GLContext {
     lockToolkit();
     try {
       context = GLX.glXGetCurrentContext();
+      drawable = new Drawable(GLX.glXGetCurrentDisplay());
     } finally {
       unlockToolkit();
     }
@@ -79,5 +80,29 @@ public class X11ExternalGLContext extends X11GLContext {
 
   public boolean isCreated() {
     return created;
+  }
+
+  // Need to provide the display connection to extension querying APIs
+  class Drawable extends X11GLDrawable {
+    Drawable(long display) {
+      super(null, null);
+      this.display = display;
+    }
+
+    public GLContext createContext(GLContext shareWith) {
+      throw new GLException("Should not call this");
+    }
+
+    public int getWidth() {
+      throw new GLException("Should not call this");
+    }
+
+    public int getHeight() {
+      throw new GLException("Should not call this");
+    }
+
+    public void setSize(int width, int height) {
+      throw new GLException("Should not call this");
+    }
   }
 }
