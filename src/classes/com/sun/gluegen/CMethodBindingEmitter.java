@@ -785,7 +785,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
           writer.print(binding.getArgumentName(i));
           writer.print(", ");
           writer.print(convName);
-          writer.println(", JNI_ABORT);");
+          writer.println(", 0);");
         } else {
           // clean up the case where the array elements are of a type that needed
           // a data copy operation to convert from the java memory model to the
