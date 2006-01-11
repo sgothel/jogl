@@ -29,7 +29,8 @@ support. Alex Radeski contributed the cpptasks support in the build
 process.
 
 Pepijn Van Eeckhoudt and Nathan Parker Burg contributed the Java port
-of the GLU tessellator.
+of the GLU tessellator. Pepijn also contributed the initial version of
+the FPSAnimator utility class.
 
 User GKW on the javagaming.org forums contributed the substantial port
 of the GLU mipmap generation code to Java, as well as robustness fixes
