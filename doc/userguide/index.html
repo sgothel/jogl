@@ -342,6 +342,17 @@ be skipped when the <CODE>init()</CODE> callback is called.
 </P>
 <P>
 
+Note also that the GLEventListener should be added to the
+GLAutoDrawable before the GLAutoDrawable is shown or rendered to for
+the first time. If this is not done, it is possible that the init()
+method will not be called on the GLEventListener. JOGL does not
+maintain internal state to keep track of whether init() has been
+called on a particular GLEventListener since the last time an OpenGL
+context was created for that GLAutoDrawable.
+
+</P>
+<P>
+
 The <CODE>display()</CODE> method is called to perform per-frame
 rendering. The <CODE>reshape()</CODE> method is called when the
 drawable has been resized; the default implementation automatically
