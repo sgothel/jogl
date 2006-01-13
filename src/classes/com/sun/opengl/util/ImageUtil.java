@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2005 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -37,55 +37,28 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.sun.opengl.impl;
+package com.sun.opengl.util;
 
-import java.security.*;
-import com.sun.opengl.util.Version;
+import java.awt.image.*;
 
-/** Helper routines for logging and debugging. */
+/** Utilities for dealing with images. */
 
-public class Debug {
-  // Some common properties
-  private static boolean verbose;
-  private static boolean debugAll;
-  
-  static {
-    verbose = isPropertyDefined("jogl.verbose");
-    debugAll = isPropertyDefined("jogl.debug");
-    if (verbose) {
-      System.err.println("JOGL version " + Version.getVersion());
+public class ImageUtil {
+  private ImageUtil() {}
+
+  /** Flips the supplied BufferedImage vertically. This is often a
+      necessary conversion step to display a Java2D image correctly
+      with OpenGL and vice versa. */
+  public static void flipImageVertically(BufferedImage image) {
+    WritableRaster raster = image.getRaster();
+    Object scanline1 = null;
+    Object scanline2 = null;
+      
+    for (int i = 0; i < image.getHeight() / 2; i++) {
+      scanline1 = raster.getDataElements(0, i, image.getWidth(), 1, scanline1);
+      scanline2 = raster.getDataElements(0, image.getHeight() - i - 1, image.getWidth(), 1, scanline2);
+      raster.setDataElements(0, i, image.getWidth(), 1, scanline2);
+      raster.setDataElements(0, image.getHeight() - i - 1, image.getWidth(), 1, scanline1);
     }
-  }
-
-  public static boolean getBooleanProperty(final String property) {
-    Boolean b = (Boolean) AccessController.doPrivileged(new PrivilegedAction() {
-        public Object run() {
-          boolean val = Boolean.getBoolean(property);
-          return (val ? Boolean.TRUE : Boolean.FALSE);
-        }
-      });
-    return b.booleanValue();
-  }
-
-  public static boolean isPropertyDefined(final String property) {
-    Boolean b = (Boolean) AccessController.doPrivileged(new PrivilegedAction() {
-        public Object run() {
-          String val = System.getProperty(property);
-          return (val != null ? Boolean.TRUE : Boolean.FALSE);
-        }
-      });
-    return b.booleanValue();
-  }
-
-  public static boolean verbose() {
-    return verbose;
-  }
-
-  public static boolean debugAll() {
-    return debugAll;
-  }
-
-  public static boolean debug(String subcomponent) {
-    return debugAll() || isPropertyDefined("jogl.debug." + subcomponent);
   }
 }

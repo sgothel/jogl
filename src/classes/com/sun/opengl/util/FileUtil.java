@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2005 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -37,55 +37,45 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.sun.opengl.impl;
+package com.sun.opengl.util;
 
-import java.security.*;
-import com.sun.opengl.util.Version;
+import java.io.*;
 
-/** Helper routines for logging and debugging. */
+/** Utilities for dealing with files. */
 
-public class Debug {
-  // Some common properties
-  private static boolean verbose;
-  private static boolean debugAll;
-  
-  static {
-    verbose = isPropertyDefined("jogl.verbose");
-    debugAll = isPropertyDefined("jogl.debug");
-    if (verbose) {
-      System.err.println("JOGL version " + Version.getVersion());
+public class FileUtil {
+  private FileUtil() {}
+
+  /**
+   * Returns the suffix of the given file name for identifying the
+   * file to the configured TextureProviders.
+   *
+   * @param file name of the file
+   */
+
+  public static String getFileSuffix(File file) {
+    return getFileSuffix(file.getName());
+  }
+
+  /**
+   * Returns the suffix of the given file name for identifying the
+   * file to the configured TextureProviders.
+   *
+   * @param filename name of the file
+   */
+  public static String getFileSuffix(String filename) {
+    int lastDot = filename.lastIndexOf('.');
+    if (lastDot < 0) {
+      return null;
     }
+    return toLowerCase(filename.substring(lastDot + 1));
   }
 
-  public static boolean getBooleanProperty(final String property) {
-    Boolean b = (Boolean) AccessController.doPrivileged(new PrivilegedAction() {
-        public Object run() {
-          boolean val = Boolean.getBoolean(property);
-          return (val ? Boolean.TRUE : Boolean.FALSE);
-        }
-      });
-    return b.booleanValue();
-  }
+  private static String toLowerCase(String arg) {
+    if (arg == null) {
+      return null;
+    }
 
-  public static boolean isPropertyDefined(final String property) {
-    Boolean b = (Boolean) AccessController.doPrivileged(new PrivilegedAction() {
-        public Object run() {
-          String val = System.getProperty(property);
-          return (val != null ? Boolean.TRUE : Boolean.FALSE);
-        }
-      });
-    return b.booleanValue();
-  }
-
-  public static boolean verbose() {
-    return verbose;
-  }
-
-  public static boolean debugAll() {
-    return debugAll;
-  }
-
-  public static boolean debug(String subcomponent) {
-    return debugAll() || isPropertyDefined("jogl.debug." + subcomponent);
+    return arg.toLowerCase();
   }
 }

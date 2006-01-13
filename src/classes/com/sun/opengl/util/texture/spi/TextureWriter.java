@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2005 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -37,55 +37,21 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.sun.opengl.impl;
+package com.sun.opengl.util.texture.spi;
 
-import java.security.*;
-import com.sun.opengl.util.Version;
+import java.io.*;
 
-/** Helper routines for logging and debugging. */
+import com.sun.opengl.util.texture.*;
 
-public class Debug {
-  // Some common properties
-  private static boolean verbose;
-  private static boolean debugAll;
-  
-  static {
-    verbose = isPropertyDefined("jogl.verbose");
-    debugAll = isPropertyDefined("jogl.debug");
-    if (verbose) {
-      System.err.println("JOGL version " + Version.getVersion());
-    }
-  }
+/** Plug-in interface to TextureIO to support writing OpenGL textures
+    to new file formats. */
 
-  public static boolean getBooleanProperty(final String property) {
-    Boolean b = (Boolean) AccessController.doPrivileged(new PrivilegedAction() {
-        public Object run() {
-          boolean val = Boolean.getBoolean(property);
-          return (val ? Boolean.TRUE : Boolean.FALSE);
-        }
-      });
-    return b.booleanValue();
-  }
-
-  public static boolean isPropertyDefined(final String property) {
-    Boolean b = (Boolean) AccessController.doPrivileged(new PrivilegedAction() {
-        public Object run() {
-          String val = System.getProperty(property);
-          return (val != null ? Boolean.TRUE : Boolean.FALSE);
-        }
-      });
-    return b.booleanValue();
-  }
-
-  public static boolean verbose() {
-    return verbose;
-  }
-
-  public static boolean debugAll() {
-    return debugAll;
-  }
-
-  public static boolean debug(String subcomponent) {
-    return debugAll() || isPropertyDefined("jogl.debug." + subcomponent);
-  }
+public interface TextureWriter {
+  /** Writes the given TextureData to the passed file. Returns true if
+      this TextureWriter successfully handled the writing of the file,
+      otherwise false. May throw IOException if either this writer did
+      not support certain parameters of the TextureData or if an I/O
+      error occurred. */
+  public boolean write(File file,
+                       TextureData data) throws IOException;
 }

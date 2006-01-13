@@ -240,12 +240,12 @@
         <property name="javadoc.link" value="http://java.sun.com/j2se/1.4.2/docs/api/" />
         <property name="javadoc.windowtitle" value="JOGL API -- JSR-231 Draft Public Review Specification" />
         <property name="javadoc.overview" value="spec-overview.html" />
-        <property name="javadoc.packagenames" value="javax.media.opengl,javax.media.opengl.glu,com.sun.opengl.utils" />
         <property name="javadoc.spec.packagenames" value="javax.media.opengl,javax.media.opengl.glu" />
+        <property name="javadoc.packagenames" value="${javadoc.spec.packagenames},com.sun.opengl.util,com.sun.opengl.util.texture,com.sun.opengl.util.texture.spi" />
         <property name="javadoc.dev.packagenames.win32"  value="com.sun.opengl.impl.windows" />
         <property name="javadoc.dev.packagenames.x11"    value="com.sun.opengl.impl.x11" />
         <property name="javadoc.dev.packagenames.macosx" value="com.sun.opengl.impl.macosx" />
-        <property name="javadoc.dev.packagenames" value="javax.media.opengl,javax.media.opengl.glu,com.sun.opengl.impl,com.sun.opengl.utils,com.sun.gluegen,com.sun.gluegen.runtime" />
+        <property name="javadoc.dev.packagenames" value="javax.media.opengl,javax.media.opengl.glu,com.sun.opengl.impl,com.sun.opengl.util,com.sun.gluegen,com.sun.gluegen.runtime" />
 	<property name="javadoc.bottom" value="Copyright 2005 Sun Microsystems, Inc. All rights reserved. Use is subject to &lt;a href=&quot;http://jcp.org/en/jsr/detail?id=231&quot;&gt;license terms&lt;/a&gt;." />
     </target>
     
@@ -918,9 +918,7 @@
             <fileset dir="${classes}">
                 <include name="javax/media/opengl/**" />
                 <include name="com/sun/gluegen/runtime/**" />
-                <include name="com/sun/opengl/impl/**" />
-                <include name="com/sun/opengl/utils/**" />
-                <include name="com/sun/opengl/cg/**" />
+                <include name="com/sun/opengl/**" />
             </fileset>
         </jar>
 

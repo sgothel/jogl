@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2005 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -37,55 +37,63 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.sun.opengl.impl;
+package com.sun.opengl.util;
 
-import java.security.*;
-import com.sun.opengl.util.Version;
+import java.util.*;
+import javax.media.opengl.*;
 
-/** Helper routines for logging and debugging. */
+/** An Animator subclass which attempts to achieve a target
+    frames-per-second rate to avoid using all CPU time. The target FPS
+    is only an estimate and is not guaranteed. */
 
-public class Debug {
-  // Some common properties
-  private static boolean verbose;
-  private static boolean debugAll;
-  
-  static {
-    verbose = isPropertyDefined("jogl.verbose");
-    debugAll = isPropertyDefined("jogl.debug");
-    if (verbose) {
-      System.err.println("JOGL version " + Version.getVersion());
+public class FPSAnimator extends Animator {
+  private Timer timer;
+  private int   fps;
+
+  /** Creates an FPSAnimator with a given target frames-per-second value. */
+  public FPSAnimator(int fps) {
+    this(null, fps);
+  }
+
+  /** Creates an FPSAnimator with a given target frames-per-second
+      value and an initial drawable to animate. */
+  public FPSAnimator(GLAutoDrawable drawable, int fps) {
+    this.fps = fps;
+    if (drawable != null) {
+      add(drawable);
     }
   }
 
-  public static boolean getBooleanProperty(final String property) {
-    Boolean b = (Boolean) AccessController.doPrivileged(new PrivilegedAction() {
-        public Object run() {
-          boolean val = Boolean.getBoolean(property);
-          return (val ? Boolean.TRUE : Boolean.FALSE);
+  /** Starts this FPSAnimator. */
+  public synchronized void start() {
+    if (timer != null) {
+      throw new GLException("Already started");
+    }
+    timer = new Timer();
+    long delay = (long) (1000.0f / (float) fps);
+    timer.schedule(new TimerTask() {
+        public void run() {
+          display();
         }
-      });
-    return b.booleanValue();
+      }, 0, delay);
   }
 
-  public static boolean isPropertyDefined(final String property) {
-    Boolean b = (Boolean) AccessController.doPrivileged(new PrivilegedAction() {
-        public Object run() {
-          String val = System.getProperty(property);
-          return (val != null ? Boolean.TRUE : Boolean.FALSE);
-        }
-      });
-    return b.booleanValue();
+  /** Indicates whether this FPSAnimator is currently running. This
+      should only be used as a heuristic to applications because in
+      some circumstances the FPSAnimator may be in the process of
+      shutting down and this method will still return true. */
+  public synchronized boolean isAnimating() {
+    return (timer != null);
   }
 
-  public static boolean verbose() {
-    return verbose;
-  }
-
-  public static boolean debugAll() {
-    return debugAll;
-  }
-
-  public static boolean debug(String subcomponent) {
-    return debugAll() || isPropertyDefined("jogl.debug." + subcomponent);
+  /** Stops this FPSAnimator. Due to the implementation of the
+      FPSAnimator it is not guaranteed that the FPSAnimator will be
+      completely stopped by the time this method returns. */
+  public synchronized void stop() {
+    if (timer == null) {
+      throw new GLException("Already stopped");
+    }
+    timer.cancel();
+    timer = null;
   }
 }

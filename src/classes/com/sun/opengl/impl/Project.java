@@ -107,7 +107,7 @@ package com.sun.opengl.impl;
 import java.nio.*;
 
 import javax.media.opengl.*;
-import com.sun.opengl.utils.*;
+import com.sun.opengl.util.*;
 
 /**
  * Project.java
@@ -162,7 +162,7 @@ public class Project {
     // Slice up one big buffer because some NIO implementations
     // allocate a huge amount of memory to back even the smallest of
     // buffers.
-    DoubleBuffer buf = BufferUtils.newDoubleBuffer(128);
+    DoubleBuffer buf = BufferUtil.newDoubleBuffer(128);
     int pos = 0;
     int sz = 16;
     matrixBuf = slice(buf, pos, sz);

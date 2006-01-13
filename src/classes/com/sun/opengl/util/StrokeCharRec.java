@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2005 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -37,55 +37,27 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.sun.opengl.impl;
+package com.sun.opengl.util;
 
-import java.security.*;
-import com.sun.opengl.util.Version;
+/* Copyright (c) Mark J. Kilgard, 1994, 1998. */
 
-/** Helper routines for logging and debugging. */
+/* This program is freely distributable without licensing fees 
+   and is provided without guarantee or warrantee expressed or 
+   implied. This program is -not- in the public domain. */
 
-public class Debug {
-  // Some common properties
-  private static boolean verbose;
-  private static boolean debugAll;
-  
-  static {
-    verbose = isPropertyDefined("jogl.verbose");
-    debugAll = isPropertyDefined("jogl.debug");
-    if (verbose) {
-      System.err.println("JOGL version " + Version.getVersion());
-    }
-  }
+class StrokeCharRec {
+  int num_strokes;
+  StrokeRec[] stroke;
+  float center;
+  float right;
 
-  public static boolean getBooleanProperty(final String property) {
-    Boolean b = (Boolean) AccessController.doPrivileged(new PrivilegedAction() {
-        public Object run() {
-          boolean val = Boolean.getBoolean(property);
-          return (val ? Boolean.TRUE : Boolean.FALSE);
-        }
-      });
-    return b.booleanValue();
-  }
-
-  public static boolean isPropertyDefined(final String property) {
-    Boolean b = (Boolean) AccessController.doPrivileged(new PrivilegedAction() {
-        public Object run() {
-          String val = System.getProperty(property);
-          return (val != null ? Boolean.TRUE : Boolean.FALSE);
-        }
-      });
-    return b.booleanValue();
-  }
-
-  public static boolean verbose() {
-    return verbose;
-  }
-
-  public static boolean debugAll() {
-    return debugAll;
-  }
-
-  public static boolean debug(String subcomponent) {
-    return debugAll() || isPropertyDefined("jogl.debug." + subcomponent);
+  StrokeCharRec(int num_strokes,
+                StrokeRec[] stroke,
+                float center,
+                float right) {
+    this.num_strokes = num_strokes;
+    this.stroke = stroke;
+    this.center = center;
+    this.right = right;
   }
 }

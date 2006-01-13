@@ -40,15 +40,14 @@
 package com.sun.gluegen.runtime;
 
 import java.nio.*;
-import com.sun.opengl.utils.BufferUtils;
 
 public class BufferFactory {
-
-  public static int SIZEOF_FLOAT = BufferUtils.SIZEOF_FLOAT;
-  public static int SIZEOF_DOUBLE = BufferUtils.SIZEOF_DOUBLE;
-  public static int SIZEOF_INT = BufferUtils.SIZEOF_INT;
-  public static int SIZEOF_SHORT = BufferUtils.SIZEOF_SHORT;
-  public static int SIZEOF_LONG = BufferUtils.SIZEOF_LONG;
+  public static final int SIZEOF_BYTE = 1;
+  public static final int SIZEOF_SHORT = 2;
+  public static final int SIZEOF_INT = 4;
+  public static final int SIZEOF_FLOAT = 4;
+  public static final int SIZEOF_LONG = 8;
+  public static final int SIZEOF_DOUBLE = 8;
 
   public static ByteBuffer newDirectByteBuffer(int size) {
     ByteBuffer buf = ByteBuffer.allocateDirect(size);
@@ -93,15 +92,15 @@ public class BufferFactory {
     if(buf instanceof ByteBuffer) {
       return (buf.position());
     } else if (buf instanceof FloatBuffer) {
-      return (buf.position() * BufferUtils.SIZEOF_FLOAT);
+      return (buf.position() * SIZEOF_FLOAT);
     } else if (buf instanceof IntBuffer) {
-      return (buf.position() * BufferUtils.SIZEOF_INT);
+      return (buf.position() * SIZEOF_INT);
     } else if (buf instanceof ShortBuffer) {
-      return (buf.position() * BufferUtils.SIZEOF_SHORT);
+      return (buf.position() * SIZEOF_SHORT);
     } else if (buf instanceof DoubleBuffer) {
-      return (buf.position() * BufferUtils.SIZEOF_DOUBLE);
+      return (buf.position() * SIZEOF_DOUBLE);
     } else if (buf instanceof LongBuffer) {
-      return (buf.position() * BufferUtils.SIZEOF_LONG);
+      return (buf.position() * SIZEOF_LONG);
     } 
 
     throw new RuntimeException("Disallowed array backing store type in buffer "
@@ -148,15 +147,15 @@ public class BufferFactory {
     if(buf instanceof ByteBuffer) {
       return (((ByteBuffer)buf).arrayOffset() + pos);
     } else if(buf instanceof FloatBuffer) {
-      return (BufferUtils.SIZEOF_FLOAT*(((FloatBuffer)buf).arrayOffset() + pos));
+      return (SIZEOF_FLOAT*(((FloatBuffer)buf).arrayOffset() + pos));
     } else if(buf instanceof IntBuffer) {
-      return (BufferUtils.SIZEOF_INT*(((IntBuffer)buf).arrayOffset() + pos));
+      return (SIZEOF_INT*(((IntBuffer)buf).arrayOffset() + pos));
     } else if(buf instanceof ShortBuffer) {
-      return (BufferUtils.SIZEOF_SHORT*(((ShortBuffer)buf).arrayOffset() + pos));
+      return (SIZEOF_SHORT*(((ShortBuffer)buf).arrayOffset() + pos));
     } else if(buf instanceof DoubleBuffer) {
-      return (BufferUtils.SIZEOF_DOUBLE*(((DoubleBuffer)buf).arrayOffset() + pos));
+      return (SIZEOF_DOUBLE*(((DoubleBuffer)buf).arrayOffset() + pos));
     } else if(buf instanceof LongBuffer) {
-      return (BufferUtils.SIZEOF_LONG*(((LongBuffer)buf).arrayOffset() + pos));
+      return (SIZEOF_LONG*(((LongBuffer)buf).arrayOffset() + pos));
     } 
 
     throw new RuntimeException("Unknown buffer type " + buf.getClass().getName());

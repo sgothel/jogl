@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2005 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -32,60 +32,48 @@
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
- * Sun gratefully acknowledges that this software was originally authored
- * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.sun.opengl.impl;
+package com.sun.opengl.util.texture;
 
-import java.security.*;
-import com.sun.opengl.util.Version;
+/** Specifies texture coordinates for a rectangular area of a
+    texture. Note that some textures are inherently flipped vertically
+    from OpenGL's standard coordinate system. This class takes care of
+    this vertical flip so that the "bottom" and "top" coordinates may
+    sometimes be reversed. From the point of view of code rendering
+    textured polygons, it can always map the bottom and left texture
+    coordinates from the TextureCoords to the lower left point of the
+    textured polygon and achieve correct results. */
 
-/** Helper routines for logging and debugging. */
+public class TextureCoords {
+  // These represent the lower-left point
+  private float left;
+  private float bottom;
+  // These represent the upper-right point
+  private float right;
+  private float top;
 
-public class Debug {
-  // Some common properties
-  private static boolean verbose;
-  private static boolean debugAll;
-  
-  static {
-    verbose = isPropertyDefined("jogl.verbose");
-    debugAll = isPropertyDefined("jogl.debug");
-    if (verbose) {
-      System.err.println("JOGL version " + Version.getVersion());
-    }
+  public TextureCoords(float left, float bottom,
+                       float right, float top) {
+    this.left = left;
+    this.bottom = bottom;
+    this.right = right;
+    this.top = top;
   }
 
-  public static boolean getBooleanProperty(final String property) {
-    Boolean b = (Boolean) AccessController.doPrivileged(new PrivilegedAction() {
-        public Object run() {
-          boolean val = Boolean.getBoolean(property);
-          return (val ? Boolean.TRUE : Boolean.FALSE);
-        }
-      });
-    return b.booleanValue();
-  }
+  /** Returns the leftmost (x) texture coordinate of this
+      rectangle. */
+  public float left() { return left; }
 
-  public static boolean isPropertyDefined(final String property) {
-    Boolean b = (Boolean) AccessController.doPrivileged(new PrivilegedAction() {
-        public Object run() {
-          String val = System.getProperty(property);
-          return (val != null ? Boolean.TRUE : Boolean.FALSE);
-        }
-      });
-    return b.booleanValue();
-  }
+  /** Returns the rightmost (x) texture coordinate of this
+      rectangle. */
+  public float right() { return right; }
 
-  public static boolean verbose() {
-    return verbose;
-  }
+  /** Returns the bottommost (y) texture coordinate of this
+      rectangle. */
+  public float bottom() { return bottom; }
 
-  public static boolean debugAll() {
-    return debugAll;
-  }
-
-  public static boolean debug(String subcomponent) {
-    return debugAll() || isPropertyDefined("jogl.debug." + subcomponent);
-  }
+  /** Returns the topmost (y) texture coordinate of this
+      rectangle. */
+  public float top() { return top; }
 }
