@@ -17,21 +17,11 @@
    -        the "make" directory. This also means that this build.xml MUST
    -        be run from the "make" directory.
    -
-   - All targets do the following:
-   -   Build the ancillary Ant tasks.
-   -   Generate the Java and C files.
-   -   Compile all sources.
-   -   Create the jogl.jar and platform library.
    - Public targets:
-   -   linux
-   -   macosx
-   -   macosxfat (ppc & i386 - requires Intel Transition Development Kit or fat Mac OS X)
-   -   solaris
-   -   win32.vc6
-   -   win32.vc7
-   -   win32.mingw:  build everything (jar, DSOs) for the current platform
+   -   all: (default; autodetects OS and chooses C compiler from jogl.properties)
    -   clean:        clean all built
    -   javadoc:      create the standard developer Javadoc (recommended)
+   -                 (Note: should build all first - may be dependence in the future)
    -   javadoc.spec:   create the standard developer Javadoc but exclude com.sun.* classes
    -   javadoc.dev.win32:
    -   javadoc.dev.x11:
@@ -39,6 +29,18 @@
    -                       Java and C file generators. Note that it is only supported
    -                       to create the Javadoc for the platform on which you are
    -                       currently running.
+   - Optional targets (NOTE, FIXME, may be deleted in the future):
+   -   freebsd
+   -   linux
+   -   linux.amd64
+   -   linux.ia64
+   -   macosx
+   -   macosxfat (ppc & i386 - requires Intel Transition Development Kit or fat Mac OS X)
+   -   solaris
+   -   win32.vc6
+   -   win32.vc7
+   -   win32.vc8
+   -   win32.mingw:  build everything (jar, DSOs) for the current platform
    -
    - Optional properties:
    -   -Djogl.cg=1 when combined with the build or javadoc targets will cause
@@ -48,24 +50,88 @@
    - ANT build, including the GlueGen and StaticGLInfo tasks, the building of
    - the Java generated sources, the first and second phase Java compiles, and
    - the building of the jar file. Thanks to Alex Radeski for the bulk of the
-   - port to the ant-contrib CPPTask framework.
+   - port to the ant-contrib CPPTask framework. Thanks to Athomas Goldberg for
+   - the original OS detection code.
    -->
 <project name="JOGL" basedir="." default="all">
     
     <!-- ================================================================== -->
     <!-- 
-       - Base initialization.
+       - Base initialization and detection of operating system.
       -->
-    <target name="base.init" >
-        <condition property="os.isMacOSX"><os name="Mac OS X"/></condition>
-
+    <target name="base.init">
         <!-- Set the project root directory to be up one directory. -->
-        <property name="project.root" value="${basedir}/.." />
+        <property name="project.root" value=".." />
     
         <!-- Set the configuration and build files to this directory. -->
-        <property name="make" value="${basedir}" />
-    </target>
+        <property name="make" value="." />
 
+        <!-- Detection of operating system. -->
+        <condition property="isOSX">
+	    <and>
+	        <os family="mac"/>
+		<os family="unix"/>
+	    </and>
+	</condition>
+	<condition property="isUnix">
+	    <and>
+	        <os family="unix" />
+		<not>
+		    <os family="mac" />
+		</not>
+  	    </and>
+	</condition>
+	<condition property="isLinux">
+	    <os name="Linux" />
+        </condition>
+	<condition property="isSolaris">
+	    <os name="SunOS" />
+        </condition>
+	<condition property="isWindows">
+	    <os family="windows" />
+	</condition>
+	<condition property="isFreeBSD">
+	    <os name="FreeBSD" />
+        </condition>
+	<condition property="isLinuxX86">
+	    <and>
+              <istrue value="${isLinux}" />
+              <os arch="x86" />
+            </and>
+        </condition>
+	<condition property="isLinuxAMD64">
+	    <and>
+              <istrue value="${isLinux}" />
+              <os arch="AMD64" />
+            </and>
+        </condition>
+	<condition property="isLinuxIA64">
+	    <and>
+              <istrue value="${isLinux}" />
+              <os arch="IA64" />
+            </and>
+        </condition>
+	<condition property="isIA64">
+	    <os arch="IA64" />
+        </condition>
+	<!-- Note: assumes X11 platform by default -->
+	<condition property="isX11">
+	    <and>
+              <isfalse value="${isWindows}" />
+              <isfalse value="${isOSX}" />
+            </and>
+        </condition>
+        <echo message="OS X=${isOSX}" />
+        <echo message="Windows=${isWindows}" />
+        <echo message="Unix=${isUnix}" />
+        <echo message="Linux=${isLinux}" />
+        <echo message="Solaris=${isSolaris}" />
+        <echo message="FreeBSD=${isFreeBSD}" />
+        <echo message="LinuxAMD64=${isLinuxAMD64}" />
+        <echo message="LinuxIA64=${isLinuxIA64}" />
+        <echo message="IA64=${isIA64}" />
+        <echo message="X11=${isX11}" />
+    </target>
 
     <!-- ================================================================== -->
     <!-- 
@@ -77,30 +143,60 @@
            - exist. -->
         <property name="user.properties.file" value="${user.home}/jogl.properties" />
         <property file="${user.properties.file}" />
-
         <echo message="Loaded ${user.properties.file}." />
+        <fail message="antlr.jar was not specified in joal.properties. Please see README.txt for instructions" unless="antlr.jar"/>
         <echo message="antlr.jar=${antlr.jar}" />
-    </target>
-    <target name="load.user.properties.macosx" depends="base.init" unless="user.properties.file">
-        <!-- Load the user specified properties file that defines various host
-           - specific paths.  The user will be notified if this is does not
-           - exist. -->
-        <property name="user.properties.file" value="${user.home}/jogl.properties" />
-        <property file="${user.properties.file}" />
 
-        <echo message="Loaded ${user.properties.file}." />
-        <echo message="antlr.jar=${antlr.jar}" />
+	<!-- Set up certain compiler properties -->
+        <condition property="isVC6">
+            <and>
+              <istrue value="${isWindows}" />
+              <equals arg1="${win32.c.compiler}" arg2="vc6" />
+            </and>
+        </condition>
+        <condition property="isVC7">
+            <and>
+              <istrue value="${isWindows}" />
+              <equals arg1="${win32.c.compiler}" arg2="vc7" />
+            </and>
+        </condition>
+        <condition property="isVC8">
+            <and>
+              <istrue value="${isWindows}" />
+              <equals arg1="${win32.c.compiler}" arg2="vc8" />
+            </and>
+        </condition>
+        <condition property="isMingw">
+            <and>
+              <istrue value="${isWindows}" />
+              <equals arg1="${win32.c.compiler}" arg2="mingw" />
+            </and>
+        </condition>
+        <condition property="WindowsFailure">
+          <and>
+            <istrue  value="${isWindows}" />
+            <isfalse value="${isVC6}" />
+            <isfalse value="${isVC7}" />
+            <isfalse value="${isVC8}" />
+            <isfalse value="${isMingw}" />
+          </and>
+        </condition>
+        <fail message="Must specify either win32.c.compiler in jogl.properties or use e.g. win32.vc6 build target" if="WindowsFailure" />
+        <echo message="VC6=${isVC6}" />
+        <echo message="VC7=${isVC7}" />
+        <echo message="VC8=${isVC8}" />
+        <echo message="MingW=${isMingw}" />
     </target>
 
     <!-- ================================================================== -->
     <!-- 
        - Set up java.home.dir appropriately on all platforms.
       -->
-    <target name="setup.java.home.dir.nonmacosx" depends="load.user.properties" unless="os.isMacOSX">
+    <target name="setup.java.home.dir.nonmacosx" depends="load.user.properties" unless="isOSX">
       <!-- java home dir is up one directory as java.home points to '<java-install-dir>/jre' -->
       <property name="java.home.dir" value="${java.home}/.." />
     </target>
-    <target name="setup.java.home.dir.macosx" depends="load.user.properties.macosx" if="os.isMacOSX">
+    <target name="setup.java.home.dir.macosx" depends="load.user.properties" if="isOSX">
       <property name="java.home.dir" value="/System/Library/Frameworks/JavaVM.framework/Home" />
     </target>
     <target name="setup.java.home.dir" depends="setup.java.home.dir.nonmacosx,setup.java.home.dir.macosx"/>
@@ -109,7 +205,7 @@
     <!-- 
        - Declare all paths and user defined variables.
       -->
-    <target name="declare" description="Declare properties" depends="setup.java.home.dir, base.init">
+    <target name="declare.common" description="Declare properties" depends="setup.java.home.dir, base.init">
         <!-- Shorthand for file.separator -->
         <property name="sep" value="${file.separator}" />
 
@@ -253,7 +349,31 @@
     <!--
        - Platform specific declares.
       -->
-    <target name="declare.win32" depends="init">
+    <target name="declare.win32.vc6" if="isVC6">
+      <echo message="Win32.VC6" />
+      <property name="compiler.cfg.id"                      value="compiler.cfg.win32.msvc" />
+      <property name="linker.cfg.id"                        value="linker.cfg.win32.msvc" />
+    </target>
+    
+    <target name="declare.win32.vc7" if="isVC7">
+      <echo message="Win32.VC7" />
+      <property name="compiler.cfg.id"                      value="compiler.cfg.win32.msvc" />
+      <property name="linker.cfg.id"                        value="linker.cfg.win32.msvc" />
+    </target>
+    
+    <target name="declare.win32.vc8" if="isVC8">
+      <echo message="Win32.VC8" />
+      <property name="compiler.cfg.id"                      value="compiler.cfg.win32.msvc" />
+      <property name="linker.cfg.id"                        value="linker.cfg.win32.msvc" />
+    </target>
+    
+    <target name="declare.win32.mingw" if="isMingw">
+      <echo message="Win32.MingW" />
+      <property name="compiler.cfg.id"                      value="compiler.cfg.win32.mingw" /> 
+      <property name="linker.cfg.id"                        value="linker.cfg.win32.mingw" />     
+    </target>
+
+    <target name="declare.win32" depends="declare.win32.vc6,declare.win32.vc7,declare.win32.vc8,declare.win32.mingw" if="isWindows">
         <!-- Set platform configuration files. -->
         <property name="gl.cfg"                                 value="${config}/gl-win32.cfg" />
         <property name="glext.platform.cfg"                     value="${config}/wglext.cfg" />
@@ -275,27 +395,7 @@
         <property name="javadoc.dev.packagenames.platform"      value="${javadoc.dev.packagenames.win32}" />
     </target>          
 
-    <target name="declare.win32.vc6" depends="declare.win32">
-      <property name="compiler.cfg.id"                      value="compiler.cfg.win32.msvc" />
-      <property name="linker.cfg.id"                        value="linker.cfg.win32.msvc" />
-    </target>
-    
-    <target name="declare.win32.vc7" depends="declare.win32">
-      <property name="compiler.cfg.id"                      value="compiler.cfg.win32.msvc" />
-      <property name="linker.cfg.id"                        value="linker.cfg.win32.msvc" />
-    </target>
-    
-    <target name="declare.win32.vc8" depends="declare.win32">
-      <property name="compiler.cfg.id"                      value="compiler.cfg.win32.msvc" />
-      <property name="linker.cfg.id"                        value="linker.cfg.win32.msvc" />
-    </target>
-    
-    <target name="declare.win32.mingw" depends="declare.win32">  
-        <property name="compiler.cfg.id"                      value="compiler.cfg.win32.mingw" /> 
-        <property name="linker.cfg.id"                        value="linker.cfg.win32.mingw" />     
-    </target>
-
-    <target name="declare.x11" depends="init">
+    <target name="declare.x11" depends="init" if="isX11">
         <!-- Set platform configuration files. -->
         <property name="gl.cfg"                               value="${config}/gl-x11.cfg" />
         <property name="glext.platform.cfg"                   value="${config}/glxext.cfg" />
@@ -316,79 +416,85 @@
         <property name="javadoc.dev.packagenames.platform" value="${javadoc.dev.packagenames.x11}" />
     </target>
 
-    <target name="declare.linux" depends="declare.x11">
-        <property name="java.includes.dir.platform"           value="${java.includes.dir.linux}" />
-        <property name="java.lib.dir.platform"                value="${java.lib.dir.linux}" />       
+    <target name="declare.linux.x86" if="isLinuxX86">
+      <echo message="Linux.x86" />
+      <property name="java.includes.dir.platform"           value="${java.includes.dir.linux}" />
+      <property name="java.lib.dir.platform"                value="${java.lib.dir.linux}" />       
 
-        <property name="compiler.cfg.id"                      value="compiler.cfg.linux" /> 
-        <property name="linker.cfg.id"                        value="linker.cfg.linux" /> 
+      <property name="compiler.cfg.id"                      value="compiler.cfg.linux" /> 
+      <property name="linker.cfg.id"                        value="linker.cfg.linux" /> 
     </target>
     
-    <target name="declare.linux.amd64" depends="declare.x11">
-        <property name="java.includes.dir.platform"           value="${java.includes.dir.linux}" />
-        <property name="java.lib.dir.platform"                value="${java.lib.dir.linux.amd64}" />       
+    <target name="declare.linux.amd64" if="isLinuxAMD64">
+      <echo message="Linux.AMD64" />
+      <property name="java.includes.dir.platform"           value="${java.includes.dir.linux}" />
+      <property name="java.lib.dir.platform"                value="${java.lib.dir.linux.amd64}" />       
 
-        <property name="compiler.cfg.id"                      value="compiler.cfg.linux.amd64" /> 
-        <property name="linker.cfg.id"                        value="linker.cfg.linux.amd64" /> 
+      <property name="compiler.cfg.id"                      value="compiler.cfg.linux.amd64" /> 
+      <property name="linker.cfg.id"                        value="linker.cfg.linux.amd64" /> 
     </target>
     
-    <target name="declare.linux.ia64" depends="declare.x11">
-        <property name="java.includes.dir.platform"           value="${java.includes.dir.linux}" />
-        <property name="java.lib.dir.platform"                value="${java.lib.dir.linux.ia64}" />       
+    <target name="declare.linux.ia64" if="isLinuxIA64">
+      <echo message="Linux.IA64" />
+      <property name="java.includes.dir.platform"           value="${java.includes.dir.linux}" />
+      <property name="java.lib.dir.platform"                value="${java.lib.dir.linux.ia64}" />       
 
-        <property name="compiler.cfg.id"                      value="compiler.cfg.linux" /> 
-        <property name="linker.cfg.id"                        value="linker.cfg.linux" /> 
+      <property name="compiler.cfg.id"                      value="compiler.cfg.linux" /> 
+      <property name="linker.cfg.id"                        value="linker.cfg.linux" /> 
     </target>
 
-    <target name="declare.freebsd" depends="declare.x11">
-        <property name="java.includes.dir.platform"           value="${java.includes.dir.freebsd}" />
-        <property name="java.lib.dir.platform"                value="${java.lib.dir.linux}" />
+    <target name="declare.linux" depends="declare.linux.x86,declare.linux.amd64,declare.linux.ia64,declare.x11" if="isLinux" />
 
-        <property name="compiler.cfg.id"                      value="compiler.cfg.freebsd" />
-        <property name="linker.cfg.id"                        value="linker.cfg.linux" />
-    </target>
+    <target name="declare.solaris" depends="declare.x11" if="isSolaris">
+      <echo message="Solaris" />
+      <property name="java.includes.dir.platform"           value="${java.includes.dir.solaris}" />
+      <property name="java.lib.dir.platform"                value="${java.lib.dir.solaris}" />
 
-    <target name="declare.solaris" depends="declare.x11">
-        <property name="java.includes.dir.platform"           value="${java.includes.dir.solaris}" />
-        <property name="java.lib.dir.platform"                value="${java.lib.dir.solaris}" />
-
-        <property name="compiler.cfg.id"                      value="compiler.cfg.solaris" /> 
-        <property name="linker.cfg.id"                        value="linker.cfg.solaris" /> 
+      <property name="compiler.cfg.id"                      value="compiler.cfg.solaris" /> 
+      <property name="linker.cfg.id"                        value="linker.cfg.solaris" /> 
     </target>
     
-    
-    <target name="declare.macosx" depends="init">
-        <!-- Set platform configuration files. -->
-        <property name="gl.cfg"                               value="${config}/gl-macosx.cfg" />
-        <property name="glext.platform.cfg"                   value="${config}/cglext.cfg" />
-        <property name="glu.cfg"                              value="${config}/glu-macosx.cfg" />
-        <property name="jawt.cfg"                             value="${config}/jawt-macosx.cfg" />
-        <property name="window.cfg"                           value="${config}/cgl-macosx.cfg" />
+    <target name="declare.macosx" if="isOSX">
+      <echo message="MacOSX" />
+      <!-- Set platform configuration files. -->
+      <property name="gl.cfg"                               value="${config}/gl-macosx.cfg" />
+      <property name="glext.platform.cfg"                   value="${config}/cglext.cfg" />
+      <property name="glu.cfg"                              value="${config}/glu-macosx.cfg" />
+      <property name="jawt.cfg"                             value="${config}/jawt-macosx.cfg" />
+      <property name="window.cfg"                           value="${config}/cgl-macosx.cfg" />
 
-        <!-- Set platform headers. -->
-        <property name="glext.platform.header"                value="${stub.includes.dir}/macosx/cglext.c" />
+      <!-- Set platform headers. -->
+      <property name="glext.platform.header"                value="${stub.includes.dir}/macosx/cglext.c" />
 
-        <!-- Set platform directories. -->
-        <property name="stub.includes.platform"               value="${stub.includes}/macosx" />
-        <property name="java.includes.dir.platform"           value="${java.includes.dir.macosx}" />
-        <property name="java.lib.dir.platform"                value="${java.lib.dir.macosx}" />
-        <property name="java.excludes.platform"               value="${java.excludes.macosx}" />
-	<property name="stub.includes.fileset.platform.params" value="${stub.includes.dir}/macosx/** ${stub.includes.dir}/common/** ${stub.includes.dir}/opengl/**" />
+      <!-- Set platform directories. -->
+      <property name="stub.includes.platform"               value="${stub.includes}/macosx" />
+      <property name="java.includes.dir.platform"           value="${java.includes.dir.macosx}" />
+      <property name="java.lib.dir.platform"                value="${java.lib.dir.macosx}" />
+      <property name="java.excludes.platform"               value="${java.excludes.macosx}" />
+      <property name="stub.includes.fileset.platform.params" value="${stub.includes.dir}/macosx/** ${stub.includes.dir}/common/** ${stub.includes.dir}/opengl/**" />
 
-        <!-- Set Javadoc properties. -->
-        <property name="javadoc.dev.packagenames.platform" value="${javadoc.dev.packagenames.macosx}" />
+      <!-- Set Javadoc properties. -->
+      <property name="javadoc.dev.packagenames.platform" value="${javadoc.dev.packagenames.macosx}" />
 
-        <property name="compiler.cfg.id"                      value="compiler.cfg.macosx" /> 
-        <property name="linker.cfg.id"                        value="linker.cfg.macosx" /> 
+      <property name="compiler.cfg.id"                      value="compiler.cfg.macosx" /> 
+      <property name="linker.cfg.id"                        value="linker.cfg.macosx" /> 
     </target>
     
-    
+    <target name="declare.freebsd" depends="declare.x11" if="isFreeBSD">
+      <echo message="FreeBSD" />
+      <property name="java.includes.dir.platform"           value="${java.includes.dir.freebsd}" />
+      <property name="java.lib.dir.platform"                value="${java.lib.dir.linux}" />
+
+      <property name="compiler.cfg.id"                      value="compiler.cfg.freebsd" />
+      <property name="linker.cfg.id"                        value="linker.cfg.linux" />
+    </target>
+
     <!-- ================================================================== -->
     <!-- 
        - Initialize all parameters required for the build and create any
        - required directories.
       -->
-    <target name="init" depends="declare">
+    <target name="init" depends="declare.common">
         <!-- Call the external config validator script to make sure the config is ok and consistent -->
         <ant antfile="${validate.user.properties}" inheritall="true"/>
         
@@ -400,6 +506,8 @@
         <mkdir dir="${obj.jogl}" />
         <mkdir dir="${obj.cg}" />
     </target>
+
+    <target name="declare" depends="init,declare.win32,declare.linux,declare.solaris,declare.macosx,declare.freebsd" />
 
     <!-- ================================================================== -->
     <!-- GlueGen and BuildStaticGLInfo creation, task setup and Java file generation -->
@@ -679,20 +787,20 @@
         <compilerarg value="/Ob1"/>     <!-- inline only functions marked inline -->
         <compilerarg value="/GF"/>      <!-- enable string pooling -->
         <compilerarg value="/Gy"/>      <!-- enable function level linking -->
-        <compilerarg value="/GS"      if="c.compiler.use-msvc7"/>  <!-- buffer security checks -->
-        <compilerarg value="/Wp64"    if="c.compiler.use-msvc7"/>  <!-- detect 64-bit port problems -->
-        <compilerarg value="/RTCcsu"  if="c.compiler.use-msvc7"/>  <!-- various runtime checks -->
+        <compilerarg value="/GS"      if="isVC7"/>  <!-- buffer security checks -->
+        <compilerarg value="/Wp64"    if="isVC7"/>  <!-- detect 64-bit port problems -->
+        <compilerarg value="/RTCcsu"  if="isVC7"/>  <!-- various runtime checks -->
 	<!-- Note: previous compiler options for VC7 were:
 	     Debug:     /MDd /Yd /GS /RTCs /RTCu /RTCc /W3 /Od /GF /EHsc /Zi /GS /Gy /Wp64 /Zi /D &quot;_DEBUG&quot;
              Optimized: /MD /W3 /O2 /Ob1 /GF /EHsc /GS /Gy /Wp64 /D &quot;NDEBUG&quot; -->
-        <compilerarg value="/GS"      if="c.compiler.use-msvc8"/>  <!-- buffer security checks -->
-        <compilerarg value="/Wp64"    if="c.compiler.use-msvc8"/>  <!-- detect 64-bit port problems -->
-        <compilerarg value="/RTCcsu"  if="c.compiler.use-msvc8"/>  <!-- various runtime checks -->
+        <compilerarg value="/GS"      if="isVC8"/>  <!-- buffer security checks -->
+        <compilerarg value="/Wp64"    if="isVC8"/>  <!-- detect 64-bit port problems -->
+        <compilerarg value="/RTCcsu"  if="isVC8"/>  <!-- various runtime checks -->
 
         <defineset>
-          <define name="_DEBUG"   if="c.compiler.use-debug"/>        
-          <define name="DEBUG"    if="c.compiler.use-debug"/>        
-          <define name="NDEBUG"   unless="c.compiler.use-debug"/>        
+          <define name="_DEBUG"   if="c.compiler.use-debug"/>
+          <define name="DEBUG"    if="c.compiler.use-debug"/>
+          <define name="NDEBUG"   unless="c.compiler.use-debug"/>
         </defineset>
       </compiler>
 
@@ -739,7 +847,7 @@
         <linkerarg value="/SUBSYSTEM:WINDOWS" />  <!-- output is not a console app as uses WinMain entry point -->
         <linkerarg value="/MACHINE:IX86" />       <!-- explicity set target platform -->
 
-        <syslibset libs="opengl32, glu32, gdi32, user32, kernel32"/>
+        <syslibset libs="opengl32, glu32, gdi32, user32, kernel32" />
         
         <syslibset dir="${windows.cg.lib}" libs="cg, cgGL" if="c.compiler.use-cglib"/>
       </linker>
@@ -759,7 +867,7 @@
 
       <patternset id="c.src.files.jogl">
         <include name="${rootrel.src.c.jogl}/InternalBufferUtils.c"/>
-        <include name="${rootrel.src.c.jogl}/*.m" if="os.isMacOSX"/>
+        <include name="${rootrel.src.c.jogl}/*.m" if="isOSX"/>
         <include name="${rootrel.generated.c.jogl}/*GL*.c"/>
       </patternset>
 
@@ -821,7 +929,7 @@
       </cc>
     </target>  
 
-    <target name="c.rename.jogl.libs.mingw">
+    <target name="c.rename.jogl.libs.mingw" if="isMingw">
       <!-- FIXME: this is a hack; the cpptask should have an option to change the
            suffix or at least understand the override from .so to .dll -->
       <move file="${obj}/libjogl.so" tofile="${obj}/jogl.dll" />
@@ -829,12 +937,12 @@
       <move file="${obj}/libjogl_cg.so" tofile="${obj}/jogl_cg.dll" failonerror="false" />
     </target>
 
-    <target name="c.rename.jogl.libs.macosx" if="os.isMacOSX">
+    <target name="c.rename.jogl.libs.macosx" if="isOSX">
       <!-- FIXME: this is a hack; the cpptask should have an option to change the
            suffix or at least understand the override from dylib to jnilib -->
       <move file="${obj}/libjogl.dylib" tofile="${obj}/libjogl.jnilib" />
       <move file="${obj}/libjogl_awt.dylib" tofile="${obj}/libjogl_awt.jnilib" />
-      <move file="${obj}/libjogl_cg.dylib" tofile="${obj}/libjogl_cg.jnilib" />
+      <move file="${obj}/libjogl_cg.dylib" tofile="${obj}/libjogl_cg.jnilib" failonerror="false" />
     </target>
 
     <target name="c.build.jogl.core">
@@ -850,9 +958,10 @@
         <param name="c.compiler.use-jawt" value="true"/>
         <param name="output.lib.name" value="jogl_awt"/>
       </antcall>
+      <antcall target="c.manifest" inheritRefs="true" />
     </target>
 
-    <target name="c.build.cg" if="jogl.cg">
+    <target name="c.build.jogl.cg" if="jogl.cg">
       <antcall target="c.build" inheritRefs="true">
         <param name="c.compiler.src.files" value="c.src.files.cg"/>
         <param name="c.compiler.use-cglib" value="true"/>
@@ -860,7 +969,7 @@
       </antcall>
     </target>
     
-    <target name="c.manifest">
+    <target name="c.manifest" if="isVC8">
       <!-- exec mt, the Microsoft Manifest Tool, to include DLL manifests in order to resolve the location of msvcr80.dll -->
       <exec executable="mt">
         <arg value="-manifest"/>
@@ -874,38 +983,10 @@
       </exec>
     </target>
 
-    <target name="c.compile.jogl.win32.vc6" depends="declare.win32.vc6, c.build.jogl.core, c.build.jogl.awt, c.build.cg" >
-    </target>
-
-    <target name="c.compile.jogl.win32.vc7" depends="declare.win32.vc7, c.build.jogl.core, c.build.jogl.awt, c.build.cg">
-     <property name="c.compiler.use-msvc7" value="true"/>
-    </target>
-
-    <target name="c.compile.jogl.win32.vc8" depends="declare.win32.vc8, c.build.jogl.core, c.build.jogl.awt, c.build.cg, c.manifest">
-     <property name="c.compiler.use-msvc8" value="true"/>
-    </target>
-
-    <target name="c.compile.jogl.win32.mingw" depends="declare.win32.mingw, c.build.jogl.core, c.build.jogl.awt, c.build.cg">
-      <antcall target="c.rename.jogl.libs.mingw" inheritrefs="true" />
-    </target>
-    
-    <target name="c.compile.jogl.linux" depends="declare.linux, c.build.jogl.core, c.build.jogl.awt, c.build.cg" >
-    </target>
-    
-    <target name="c.compile.jogl.linux.amd64" depends="declare.linux.amd64, c.build.jogl.core, c.build.jogl.awt, c.build.cg" >
-    </target>
-    
-    <target name="c.compile.jogl.linux.ia64" depends="declare.linux.ia64, c.build.jogl.core, c.build.jogl.awt, c.build.cg" >
-    </target>
-
-    <target name="c.compile.jogl.solaris" depends="declare.solaris, c.build.jogl.core, c.build.jogl.awt">
-    </target>
-    
-    <target name="c.compile.jogl.macosx" depends="declare.macosx, c.build.jogl.core, c.build.jogl.awt, c.build.cg">
-      <antcall target="c.rename.jogl.libs.macosx" inheritrefs="true" />
-    </target>
-    
-    <target name="c.compile.jogl.freebsd" depends="declare.freebsd, c.build.jogl.core, c.build.jogl.awt, c.build.cg" >
+    <target name="c.build.jogl" depends="c.build.jogl.core,c.build.jogl.awt,c.build.jogl.cg">
+      <antcall target="c.rename.jogl.libs.mingw" inheritRefs="true" />
+      <antcall target="c.rename.jogl.libs.macosx" inheritRefs="true" />
+      <antcall target="c.manifest" inheritRefs="true" />
     </target>
 
     <!-- ================================================================== -->
@@ -1158,7 +1239,7 @@
     <!--
        - Clean up all that is built.
       -->
-    <target name="clean" depends="declare">
+    <target name="clean" depends="declare.common">
         <!-- Let GlueGen clean itself up. -->
         <ant antfile="${gluegen.build.xml}" target="clean" inheritAll="true" />
     
@@ -1173,126 +1254,100 @@
 
     <!-- ================================================================== -->
     <!--
-       - Inform the user that one of the platform targets should be used.
+       - Build everything.
       -->
-    <target name="all">
-        <fail>
+    <target name="all" depends="setup.java.home.dir,init,declare">
+        <!-- Generate, compile, and build the jar for the Java sources. -->
+        <antcall target="jar" inheritRefs="true" />
         
-Use a platform specific target:  linux, linux.amd64, linux.ia64, macosx, macosxfat (ppc and i386), solaris, win32.vc6, win32.vc7, win32.vc8, win32.mingw
-        </fail>
-    </target>      
+        <!-- Compile the native C sources . -->
+        <antcall target="c.build.jogl" inheritRefs="true" />
+    </target>
+
+    <!-- ================================================================== -->
+    <!--
+       - Platform-specific targets intended both for backward compatibility as well
+       - as to allow the end user to not have to override the C compiler in jogl.properties
+       - (FIXME: should rethink the presence of all of these targets once the
+       - nightly builds have been updated to not use them)
+      -->
 
     <!--
        - Win32 with MS VC6
       -->
-    <target name="win32.vc6" depends="setup.java.home.dir, declare.win32">
-        <!-- Generate, compile, and build the jar for the Java sources. -->
-        <antcall target="jar" inheritRefs="true" />
-        
-        <!-- Compile the native C sources and build the jogl.dll. -->
-        <antcall target="c.compile.jogl.win32.vc6" />
+    <target name="win32.vc6">
+      <property name="win32.c.compiler" value="vc6" />
+      <antcall target="all" />
     </target>
 
     <!--
        - Win32 with MS VC7
       -->
-    <target name="win32.vc7" depends="setup.java.home.dir, declare.win32">
-        <!-- Generate, compile, and build the jar for the Java sources. -->
-        <antcall target="jar" inheritRefs="true" />
-        
-        <!-- Compile the native C sources and build the jogl.dll. -->
-        <antcall target="c.compile.jogl.win32.vc7" />
+    <target name="win32.vc7">
+      <property name="win32.c.compiler" value="vc7" />
+      <antcall target="all" />
     </target>
     
     <!--
        - Win32 with MS VC8
       -->
-    <target name="win32.vc8" depends="setup.java.home.dir, declare.win32">
-        <!-- Generate, compile, and build the jar for the Java sources. -->
-        <antcall target="jar" inheritRefs="true" />
-        
-        <!-- Compile the native C sources and build the jogl.dll. -->
-        <antcall target="c.compile.jogl.win32.vc8" />
+    <target name="win32.vc8">
+      <property name="win32.c.compiler" value="vc8" />
+      <antcall target="all" />
     </target>
 
     <!--
        - Win32 with mingw32
       -->
-    <target name="win32.mingw" depends="setup.java.home.dir, declare.win32">
-        <!-- Generate, compile, and build the jar for the Java sources. -->
-        <antcall target="jar" inheritRefs="true" />
-        
-        <!-- Compile the native C sources and build the jogl.dll. -->
-        <antcall target="c.compile.jogl.win32.mingw" />
+    <target name="win32.mingw">
+      <property name="win32.c.compiler" value="mingw" />
+      <antcall target="all" />
     </target>
 
     <!--
        - Linux (assuming GCC)
       -->
-    <target name="linux" depends="declare.linux">
-        <!-- Generate, compile, and build the jar for the Java sources. -->
-        <antcall target="jar" inheritRefs="true" />
-
-        <!-- Compile the native C sources and build the jogl lib. -->
-        <antcall target="c.compile.jogl.linux" />
+    <target name="linux">
+      <antcall target="all" />
     </target>
 
     <!--
        - Linux on AMD64 (assuming GCC)
       -->
-    <target name="linux.amd64" depends="setup.java.home.dir.nonmacosx, declare.linux.amd64">
-        <!-- Generate, compile, and build the jar for the Java sources. -->
-        <antcall target="jar" inheritRefs="true" />
-
-        <!-- Compile the native C sources and build the jogl lib. -->
-        <antcall target="c.compile.jogl.linux.amd64" />
+    <target name="linux.amd64">
+      <antcall target="all" />
     </target>
 
      <!--
        - Linux on IA64 (assuming GCC)
       -->
-    <target name="linux.ia64" depends="setup.java.home.dir.nonmacosx, declare.linux.ia64">
-        <!-- Generate, compile, and build the jar for the Java sources. -->
-        <antcall target="jar" inheritRefs="true" />
-
-        <!-- Compile the native C sources and build the jogl lib. -->
-        <antcall target="c.compile.jogl.linux.ia64" />
+    <target name="linux.ia64">
+      <antcall target="all" />
     </target>
 
     <!--
         - Solaris (assuming Solaris CC)
       -->
-    <target name="solaris" depends="setup.java.home.dir, declare.solaris">
-        <!-- Generate, compile, and build the jar for the Java sources. -->
-        <antcall target="jar" inheritRefs="true" />
-
-        <!-- Compile the native C sources and build the jogl lib. -->
-        <antcall target="c.compile.jogl.solaris" />
+    <target name="solaris">
+      <antcall target="all" />
     </target>
 
     <!--
        - Mac OSX
       -->
-    <target name="macosx" depends="setup.java.home.dir, declare.macosx">
-        <!-- Generate, compile, and build the jar for the Java sources. -->
-        <antcall target="jar" inheritRefs="true" />
-        
-        <!-- Compile the native C sources and build the jogl lib. -->
-        <antcall target="c.compile.jogl.macosx" />
+    <target name="macosx">
+      <antcall target="all" />
     </target>
+    <!-- FIXME: should specify this in the property file as well -->
     <target name="macosxfat" depends="macosx">
-        <property name="macosxfat" value="true" />
-        <antcall target="macosx" inheritRefs="true" />
+      <property name="macosxfat" value="true" />
+      <antcall target="all" />
     </target>
 
     <!--
        - FreeBSD (assuming GCC)
       -->
-    <target name="freebsd" depends="declare.freebsd">
-        <!-- Generate, compile, and build the jar for the Java sources. -->
-        <antcall target="jar" inheritRefs="true" />
-
-        <!-- Compile the native C sources and build the jogl lib. -->
-        <antcall target="c.compile.jogl.freebsd" />
+    <target name="freebsd">
+      <antcall target="all" />
     </target>
 </project>
