@@ -55,82 +55,20 @@
    -->
 <project name="JOGL" basedir="." default="all">
     
+  <!-- Pull in GlueGen cpptasks build file -->
+  <property name="gluegen.root" value="../../gluegen" />
+  <import file="${gluegen.root}/make/gluegen-cpptasks.xml" />
+
     <!-- ================================================================== -->
     <!-- 
        - Base initialization and detection of operating system.
       -->
-    <target name="base.init">
+    <target name="base.init" depends="gluegen.cpptasks.detect.os">
         <!-- Set the project root directory to be up one directory. -->
         <property name="project.root" value=".." />
     
         <!-- Set the configuration and build files to this directory. -->
         <property name="make" value="." />
-
-        <!-- Detection of operating system. -->
-        <condition property="isOSX">
-	    <and>
-	        <os family="mac"/>
-		<os family="unix"/>
-	    </and>
-	</condition>
-	<condition property="isUnix">
-	    <and>
-	        <os family="unix" />
-		<not>
-		    <os family="mac" />
-		</not>
-  	    </and>
-	</condition>
-	<condition property="isLinux">
-	    <os name="Linux" />
-        </condition>
-	<condition property="isSolaris">
-	    <os name="SunOS" />
-        </condition>
-	<condition property="isWindows">
-	    <os family="windows" />
-	</condition>
-	<condition property="isFreeBSD">
-	    <os name="FreeBSD" />
-        </condition>
-	<condition property="isLinuxX86">
-	    <and>
-              <istrue value="${isLinux}" />
-              <os arch="x86" />
-            </and>
-        </condition>
-	<condition property="isLinuxAMD64">
-	    <and>
-              <istrue value="${isLinux}" />
-              <os arch="AMD64" />
-            </and>
-        </condition>
-	<condition property="isLinuxIA64">
-	    <and>
-              <istrue value="${isLinux}" />
-              <os arch="IA64" />
-            </and>
-        </condition>
-	<condition property="isIA64">
-	    <os arch="IA64" />
-        </condition>
-	<!-- Note: assumes X11 platform by default -->
-	<condition property="isX11">
-	    <and>
-              <isfalse value="${isWindows}" />
-              <isfalse value="${isOSX}" />
-            </and>
-        </condition>
-        <echo message="OS X=${isOSX}" />
-        <echo message="Windows=${isWindows}" />
-        <echo message="Unix=${isUnix}" />
-        <echo message="Linux=${isLinux}" />
-        <echo message="Solaris=${isSolaris}" />
-        <echo message="FreeBSD=${isFreeBSD}" />
-        <echo message="LinuxAMD64=${isLinuxAMD64}" />
-        <echo message="LinuxIA64=${isLinuxIA64}" />
-        <echo message="IA64=${isIA64}" />
-        <echo message="X11=${isX11}" />
     </target>
 
     <!-- ================================================================== -->
@@ -144,48 +82,10 @@
         <property name="user.properties.file" value="${user.home}/jogl.properties" />
         <property file="${user.properties.file}" />
         <echo message="Loaded ${user.properties.file}." />
-        <fail message="antlr.jar was not specified in joal.properties. Please see README.txt for instructions" unless="antlr.jar"/>
+        <property file="${user.home}/gluegen.properties" />
+        <echo message="Loaded ${user.home}/gluegen.properties." />
+        <fail message="antlr.jar was not specified in jogl.properties or gluegen.properties. Please see README.txt for instructions" unless="antlr.jar"/>
         <echo message="antlr.jar=${antlr.jar}" />
-
-	<!-- Set up certain compiler properties -->
-        <condition property="isVC6">
-            <and>
-              <istrue value="${isWindows}" />
-              <equals arg1="${win32.c.compiler}" arg2="vc6" />
-            </and>
-        </condition>
-        <condition property="isVC7">
-            <and>
-              <istrue value="${isWindows}" />
-              <equals arg1="${win32.c.compiler}" arg2="vc7" />
-            </and>
-        </condition>
-        <condition property="isVC8">
-            <and>
-              <istrue value="${isWindows}" />
-              <equals arg1="${win32.c.compiler}" arg2="vc8" />
-            </and>
-        </condition>
-        <condition property="isMingw">
-            <and>
-              <istrue value="${isWindows}" />
-              <equals arg1="${win32.c.compiler}" arg2="mingw" />
-            </and>
-        </condition>
-        <condition property="WindowsFailure">
-          <and>
-            <istrue  value="${isWindows}" />
-            <isfalse value="${isVC6}" />
-            <isfalse value="${isVC7}" />
-            <isfalse value="${isVC8}" />
-            <isfalse value="${isMingw}" />
-          </and>
-        </condition>
-        <fail message="Must specify either win32.c.compiler in jogl.properties or use e.g. win32.vc6 build target" if="WindowsFailure" />
-        <echo message="VC6=${isVC6}" />
-        <echo message="VC7=${isVC7}" />
-        <echo message="VC8=${isVC8}" />
-        <echo message="MingW=${isMingw}" />
     </target>
 
     <!-- ================================================================== -->
@@ -205,32 +105,32 @@
     <!-- 
        - Declare all paths and user defined variables.
       -->
-    <target name="declare.common" description="Declare properties" depends="setup.java.home.dir, base.init">
-        <!-- Shorthand for file.separator -->
-        <property name="sep" value="${file.separator}" />
-
+    <target name="declare.common" description="Declare properties" depends="setup.java.home.dir, gluegen.cpptasks.detect.compiler">
         <!-- The location and name of the configuration ANT file that will 
            - validate to ensure that all user-define variables are set. -->
         <property name="validate.user.properties" value="${make}/validate-properties.xml" />
            
-        <!-- The GlueGen and BuildStaticGLInfo build files. -->
-        <property name="gluegen.build.xml" value="${make}/build-gluegen.xml" />
-        <property name="static.gl.build.xml" value="${make}/build-staticglgen.xml" />
+        <!-- GlueGen properties. -->
+        <!-- NOTE that these require a checked-out GlueGen workspace as a -->
+        <!-- sibling of the JOGL workspace. -->
+        <property name="gluegen.make.dir" value="../../gluegen/make" />
+        <property name="gluegen.build.xml" value="${gluegen.make.dir}/build.xml" />
+        <property name="gluegen.jar" value="../../gluegen/build/gluegen.jar" />
+        <property name="gluegen-rt.jar" value="../../gluegen/build/gluegen-rt.jar" />
                                                 
         <!-- Names of directories relative to the project root.
              Some of these are used in FileMappers later for dependence information
              and need exact string matching, which is why they use file.separator
              instead of "/". -->
-        <property name="rootrel.src.java" value="src${sep}classes" />
-        <property name="rootrel.src.c.jogl" value="src${sep}native${sep}jogl" />
+        <property name="rootrel.src.java" value="src/classes" />
+        <property name="rootrel.src.c.jogl" value="src/native/jogl" />
         <property name="rootrel.build" value="build" />
-        <property name="rootrel.src.generated" value="${rootrel.build}${sep}gensrc" />
-        <property name="rootrel.generated.java" value="${rootrel.src.generated}${sep}classes" />
-        <property name="rootrel.generated.c.jogl" value="${rootrel.src.generated}${sep}native${sep}jogl" />
-        <property name="rootrel.generated.c.cg" value="${rootrel.src.generated}${sep}native${sep}jogl_cg" />
-        <property name="rootrel.obj" value="${rootrel.build}${sep}obj" />
-        <property name="rootrel.obj.jogl" value="${rootrel.obj}${sep}jogl" />
-        <property name="rootrel.obj.cg" value="${rootrel.obj}${sep}jogl_cg" />
+        <property name="rootrel.src.generated" value="${rootrel.build}/gensrc" />
+        <property name="rootrel.generated.c.jogl" value="${rootrel.src.generated}/native/jogl" />
+        <property name="rootrel.generated.c.cg" value="${rootrel.src.generated}/native/jogl_cg" />
+        <property name="rootrel.obj" value="${rootrel.build}/obj" />
+        <property name="rootrel.obj.jogl" value="${rootrel.obj}/jogl" />
+        <property name="rootrel.obj.cg" value="${rootrel.obj}/jogl_cg" />
 
         <!-- The source directories. -->
         <property name="src.java" value="${project.root}/${rootrel.src.java}" />
@@ -317,13 +217,20 @@
         <property name="java.excludes.x11" value="com/sun/opengl/impl/windows/**, com/sun/opengl/impl/macosx/**" />
         <property name="java.excludes.macosx" value="com/sun/opengl/impl/x11/**, com/sun/opengl/impl/windows/**" />
 
-        <!-- Create the classpath for that includes ANTLR and any already 
-           - compiled classes.  This requires the user-defined "antlr.jar" 
+        <!-- Create the classpath that includes GlueGen and
+           - ANTLR. This requires the user-defined "antlr.jar"
            - property. -->
-        <path id="antlr.classpath">
-            <pathelement path="${classpath}" />
-            <pathelement path="${classes}" />
-            <pathelement location="${antlr.jar}" />
+        <path id="gluegen.classpath">
+          <pathelement location="${gluegen.jar}" />
+          <pathelement location="${antlr.jar}" />
+        </path>
+
+        <!-- Create the classpath that includes GlueGen and
+           - the current classes for building the composable pipelines.
+           -->
+        <path id="pipeline.classpath">
+          <pathelement location="${gluegen.jar}" />
+          <pathelement location="${classes}" />
         </path>
 
         <!-- The resulting jogl.jar. -->
@@ -367,7 +274,7 @@
       <property name="linker.cfg.id"                        value="linker.cfg.win32.msvc" />
     </target>
     
-    <target name="declare.win32.mingw" if="isMingw">
+    <target name="declare.win32.mingw" if="isMingW">
       <echo message="Win32.MingW" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.win32.mingw" /> 
       <property name="linker.cfg.id"                        value="linker.cfg.win32.mingw" />     
@@ -517,32 +424,29 @@
     <target name="build.gluegen" depends="init">
         <!-- Run the GlueGen build to ensure that the GlueGen ANT task
            - has been built. -->
-        <ant antfile="${gluegen.build.xml}" target="all" inheritAll="true" />
-    
+        <!-- FIXME: remove passing down of antlr.jar when gluegen.properties is on all
+             nightly build machines -->
+        <ant antfile="${gluegen.build.xml}" dir="${gluegen.make.dir}" target="all" inheritAll="false">
+          <propertyset>
+            <propertyref name="antlr.jar" />
+          </propertyset>
+        </ant>
+
+        <!-- Extract the GlueGen runtime classes into our build directory.
+           - We currently bundle them into jogl.jar; they could be kept in
+           - a separate jar, but this makes deployment simpler.
+           -->
+        <unjar src="${gluegen-rt.jar}" dest="${classes}" />
     </target>
 
-    <!--
-       - Build BuildStaticGLInfo
-      -->
-    <target name="build.static.gl" depends="init">
-        <!-- Run the BuildStaticGLInfo build to ensure that the BuildStaticGLInfo
-           - ANT task has been built. -->
-        <ant antfile="${static.gl.build.xml}" target="all" inheritAll="true" />
-    
-    </target>
-    
     <!--
        - Check to see whether we need to rebuild the generated sources.
       -->
-
     <target name="java.generate.check">
         <!-- Blow away all target files if any dependencies are violated
              (the uptodate task doesn't allow arbitrary source and target filesets but should) -->
         <dependset>
             <srcfileset refid="stub.includes.dependencies.fileset" />
-            <srcfileset dir=".">
-	        <include name="${classes}/com/sun/gluegen/**/*.class" />
-            </srcfileset>
             <targetfileset dir=".">
                 <include name="${src.generated.java}/**/*.java" />
                 <include name="${src.generated.c}/**/*.c" />
@@ -561,21 +465,12 @@
        - from the C GL headers.  This involves setting the taskdef and creating
        - the classpath reference id then running the task on each header.
       -->
-    <target name="java.generate" depends="build.gluegen, build.static.gl, java.generate.check" unless="java.generate.skip">
-        <!-- Create the classpath for the ANT tasks.  This requires 
-           - the user-defined "antlr.jar" property (as GlueGen depends on
-           - ANTLR at runtime).-->
-        <path id="gen.classpath">
-            <pathelement path="${classpath}" />
-            <pathelement location="${classes}" />
-            <pathelement location="${antlr.jar}" />
-        </path>
-    
+    <target name="java.generate" depends="build.gluegen, java.generate.check" unless="java.generate.skip">
         <!-- Add the GlueGen and BuildStaticGLInfo tasks to ANT -->
         <taskdef name="gluegen" classname="com.sun.gluegen.ant.GlueGenTask"
-                 classpathref="gen.classpath" />
+                 classpathref="gluegen.classpath" />
         <taskdef name="staticglgen" classname="com.sun.gluegen.ant.StaticGLGenTask"
-                 classpathref="gen.classpath" />
+                 classpathref="gluegen.classpath" />
                  
         <!-- Use the GlueGen and BuildStaticGLInfo tasks to generate the 
            - Java files -->
@@ -586,7 +481,7 @@
                  config="${gl.cfg}"
                  includeRefid="stub.includes.fileset.all"
                  emitter="com.sun.gluegen.opengl.GLEmitter">
-            <classpath refid="gen.classpath" />
+            <classpath refid="gluegen.classpath" />
         </gluegen>
 
 	<!-- Generate platform-specific extension class (WGLExt, GLXExt, etc.) -->
@@ -595,7 +490,7 @@
                  config="${glext.platform.cfg}"
                  includeRefid="stub.includes.fileset.all"
                  emitter="com.sun.gluegen.opengl.GLEmitter">
-            <classpath refid="gen.classpath" />
+            <classpath refid="gluegen.classpath" />
         </gluegen>
 
 	<!-- Generate WGL/GLX/CGL implementation class -->
@@ -604,7 +499,7 @@
                  config="${window.cfg}"
                  includeRefid="stub.includes.fileset.platform"
                  emitter="com.sun.gluegen.opengl.GLEmitter">
-            <classpath refid="gen.classpath" />
+            <classpath refid="gluegen.classpath" />
         </gluegen>
 
 	<!-- Generate JAWT class -->
@@ -619,7 +514,7 @@
                  literalInclude="${java.includes.dir}"
                  includeRefid="stub.includes.fileset.platform"
                  emitter="com.sun.gluegen.JavaEmitter">
-            <classpath refid="gen.classpath" />
+            <classpath refid="gluegen.classpath" />
         </gluegen>
 
 	<!-- Generate StaticGLInfo class -->
@@ -627,7 +522,7 @@
         <staticglgen package="com.sun.opengl.impl"
                      headers="${gl.headers}"
                      outputdir="${src.generated.java}/com/sun/opengl/impl">
-            <classpath refid="gen.classpath" />
+            <classpath refid="gluegen.classpath" />
         </staticglgen>
 
 	<!-- Generate GLU class -->
@@ -636,7 +531,7 @@
                  config="${glu.cfg}"
                  includeRefid="stub.includes.fileset.all"
                  emitter="com.sun.gluegen.opengl.GLEmitter">
-            <classpath refid="gen.classpath" />
+            <classpath refid="gluegen.classpath" />
         </gluegen>
 
         <!-- Inform the user that the generators have successfully created 
@@ -670,27 +565,18 @@
        - the classpath reference id then running the task on each header.
       -->
     <target name="java.generate.cg" depends="java.generate.cg.check" if="jogl.cg" unless="java.generate.cg.skip">
-        <!-- Create the classpath for the ANT tasks.  This requires 
-           - the user-defined "antlr.jar" property (as GlueGen depends on
-           - ANTLR at runtime).-->
-        <path id="gen.classpath">
-            <pathelement path="${classpath}" />
-            <pathelement location="${classes}" />
-            <pathelement location="${antlr.jar}" />
-        </path>
-    
         <!-- Add the GlueGen and BuildStaticGLInfo tasks to ANT -->
         <taskdef name="gluegen" classname="com.sun.gluegen.ant.GlueGenTask"
-                 classpathref="gen.classpath" />
+                 classpathref="gluegen.classpath" />
         <taskdef name="staticglgen" classname="com.sun.gluegen.ant.StaticGLGenTask"
-                 classpathref="gen.classpath" />
+                 classpathref="gluegen.classpath" />
 
         <!-- Generate CgGL interface class -->
         <gluegen src="${stub.includes.common}/cg.c" 
                  config="cg-common.cfg"
                  includeRefid="stub.includes.cg.fileset.all"
                  emitter="com.sun.gluegen.JavaEmitter">
-            <classpath refid="gen.classpath" />
+            <classpath refid="gluegen.classpath" />
         </gluegen>
     </target>
 
@@ -715,20 +601,18 @@
     </target>        
 
     <target name="java.compile.composable.pipeline" depends="java.compile.composable.pipeline.check" unless="java.compile.composable.pipeline.skip">
-        <java classname="com.sun.gluegen.opengl.BuildComposablePipeline" fork="yes">
+        <java classname="com.sun.gluegen.opengl.BuildComposablePipeline" fork="yes" failonerror="true">
             <arg value="javax.media.opengl.GL" />
             <arg value="${src.generated.java}/javax/media/opengl" />
-            <classpath refid="antlr.classpath" />
+            <classpath refid="pipeline.classpath" />
         </java>
 
         <!-- Perform the second pass Java compile which compiles the composable pipelines. -->
         <javac destdir="${classes}" includes="${src.generated.java.pipeline}" source="1.4" debug="true" debuglevel="source,lines">
             <src path="${src.java}" />
             <src path="${src.generated.java}" />
-            <classpath refid="antlr.classpath" />
         </javac>
     </target>          
-
 
     <!-- ================================================================== -->
     <!-- 
@@ -741,7 +625,6 @@
                excludes="${java.excludes.platform},com/sun/opengl/impl/nurbs/**" source="1.4" debug="true" debuglevel="source,lines">
             <src path="${src.java}" />
             <src path="${src.generated.java}" />
-            <classpath refid="antlr.classpath" />
         </javac>
 
         <!-- Generate and build the composable pipeline Java source. -->
@@ -753,12 +636,7 @@
        - Compile the native C code for JOGL (and optionally the Cg binding).
       -->
 
-    <!-- import cpptasks -->
-    <typedef resource="net/sf/antcontrib/cpptasks/antlib.xml" classpath="${basedir}/lib/cpptasks.jar"/>
-    <!--typedef resource="net/sf/antcontrib/cpptasks/antlib.xml"/-->
-
     <target name="c.configure">
-    
       <!-- compiler configuration -->
       <compiler id="compiler.cfg.linux" name="gcc" />
 
@@ -929,7 +807,7 @@
       </cc>
     </target>  
 
-    <target name="c.rename.jogl.libs.mingw" if="isMingw">
+    <target name="c.rename.jogl.libs.mingw" if="isMingW">
       <!-- FIXME: this is a hack; the cpptask should have an option to change the
            suffix or at least understand the override from .so to .dll -->
       <move file="${obj}/libjogl.so" tofile="${obj}/jogl.dll" />
@@ -1240,16 +1118,12 @@
        - Clean up all that is built.
       -->
     <target name="clean" depends="declare.common">
-        <!-- Let GlueGen clean itself up. -->
-        <ant antfile="${gluegen.build.xml}" target="clean" inheritAll="true" />
-    
         <delete includeEmptyDirs="true" quiet="true">
             <fileset dir="${build}" />
             <fileset dir="${javadoc}" />
             <fileset dir="${javadoc.spec}" />
             <fileset dir="${javadoc.dev}" />
         </delete>
-
     </target>
 
     <!-- ================================================================== -->

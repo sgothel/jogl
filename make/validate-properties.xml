@@ -48,11 +48,9 @@
        - builds to fail since if this Java process has the jar file open
        - we can not overwrite it.
       -->
-    <target name="test.for.jogl.jar">
-        <available property="jogl.jar.on.class.path" classname="net.java.games.jogl.GL" />
-    </target>
-    <target name="java.class.path.validate" depends="test.for.jogl.jar" if="jogl.jar.on.class.path">
-        <fail>
+    <target name="java.class.path.validate">
+      <available property="jogl.jar.on.class.path" classname="javax.media.opengl.GL" />
+      <fail if="jogl.jar.on.class.path">
         
     ******************************************************************
     ** Your CLASSPATH environment variable appears to be set (some  **
@@ -60,7 +58,7 @@
     ** cause the build to fail. Please unset your CLASSPATH         **
     ** variable and restart the build.                              **
     ******************************************************************
-        </fail>
+      </fail>
     </target>
 
     <!-- ================================================================== -->
