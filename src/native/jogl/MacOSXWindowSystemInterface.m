@@ -1,3 +1,14 @@
+#include <AvailabilityMacros.h>
+
+#ifndef MAC_OS_X_VERSION_10_3
+	#error building JOGL requires Mac OS X 10.3 or greater
+#endif
+
+#ifndef MAC_OS_X_VERSION_10_4
+  #define NSOpenGLPFAColorFloat kCGLPFAColorFloat
+  #define kCGLNoError 0
+#endif
+
 #import <Cocoa/Cocoa.h>
 #import <OpenGL/gl.h>
 #import <OpenGL/CGLTypes.h>
@@ -33,21 +44,21 @@ void getRendererInfo()
 		CGLRendererInfoObj info;
 		long numRenderers = 0;
 		CGLError err = CGLQueryRendererInfo(CGDisplayIDToOpenGLDisplayMask(kCGDirectMainDisplay), &info, &numRenderers);
-		if (err == 0 /* kCGLNoError not available on 10.3 */)
+		if (err == kCGLNoError)
 		{
 			CGLDescribeRenderer(info, 0, kCGLRPRendererCount, &numRenderers);
 			long j;
 			for (j=0; j<numRenderers; j++)
 			{
-				unsigned long accRenderer = 0;
-				CGLDescribeRenderer (info, j, kCGLRPAccelerated, &accRenderer);
+				long accRenderer = 0;
+				CGLDescribeRenderer(info, j, kCGLRPAccelerated, &accRenderer);
 				if (accRenderer != 0)
 				{
 					// get the accelerated renderer ID
 					CGLDescribeRenderer(info, j, kCGLRPRendererID, &accRenderID);
 					
 					// get the max color buffer depth
-					unsigned long colorModes = 0;
+					long colorModes = 0;
 					CGLDescribeRenderer(info, j, kCGLRPColorModes, &colorModes);
 					int i;
 					for (i=0; i<bufferDepthsLength; i++)
@@ -60,7 +71,7 @@ void getRendererInfo()
 					}
 					
 					// get the max depth buffer depth
-					unsigned long depthModes = 0;
+					long depthModes = 0;
 					CGLDescribeRenderer(info, j, kCGLRPDepthModes, &depthModes);
 					for (i=0; i<bufferDepthsLength; i++)
 					{
@@ -72,7 +83,7 @@ void getRendererInfo()
 					}
 					
 					// get the max accum buffer depth
-					unsigned long accumModes = 0;
+					long accumModes = 0;
 					CGLDescribeRenderer(info, j, kCGLRPAccumModes, &accumModes);
 					for (i=0; i<bufferDepthsLength; i++)
 					{
@@ -84,7 +95,7 @@ void getRendererInfo()
 					}
 					
 					// get the max stencil buffer depth
-					unsigned long stencilModes = 0;
+					long stencilModes = 0;
 					CGLDescribeRenderer(info, j, kCGLRPStencilModes, &stencilModes);
 					for (i=0; i<bufferDepthsLength; i++)
 					{
@@ -178,10 +189,7 @@ void* createContext(void* shareContext, void* view,
   NSOpenGLPixelFormatAttribute attribs[256];
   int idx = 0;
   if (pbuffer)       attribs[idx++] = NSOpenGLPFAPixelBuffer;
-  // kCGLPFAColorFloat is equivalent to NSOpenGLPFAColorFloat, but the
-  // latter is only available on 10.4 and we need to compile under
-  // 10.3
-  if (floatingPoint) attribs[idx++] = kCGLPFAColorFloat;
+  if (floatingPoint) attribs[idx++] = NSOpenGLPFAColorFloat;
   if (doubleBuffer)  attribs[idx++] = NSOpenGLPFADoubleBuffer;
   if (stereo)        attribs[idx++] = NSOpenGLPFAStereo;
   attribs[idx++] = NSOpenGLPFAColorSize;     attribs[idx++] = colorSize;
