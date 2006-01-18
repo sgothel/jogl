@@ -13,21 +13,13 @@
     #endif
 #endif
 
-// kCGLPFAColorFloat is equivalent to NSOpenGLPFAColorFloat, but the
-// latter is only available on 10.4 and we need to compile under
-// 10.3
-#ifndef NSOpenGLPFAColorFloat
-    #define NSOpenGLPFAColorFloat kCGLPFAColorFloat
-#endif
-
-
 typedef int Bool;
 
 static Bool rendererInfoInitialized = false;
 static int bufferDepthsLength = 17;
 static int bufferDepths[] = {kCGL128Bit, kCGL96Bit, kCGL64Bit, kCGL48Bit, kCGL32Bit, kCGL24Bit, kCGL16Bit, kCGL12Bit, kCGL10Bit, kCGL8Bit, kCGL6Bit, kCGL5Bit, kCGL4Bit, kCGL3Bit, kCGL2Bit, kCGL1Bit, kCGL0Bit};
 static int bufferDepthsBits[] = {128, 96, 64, 48, 32, 24, 16, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0};
-static int accRenderID = 0; // the ID of the accelerated renderer
+static long accRenderID = 0; // the ID of the accelerated renderer
 static int maxColorSize = kCGL128Bit; // max depth of color buffer
 static int maxDepthSize = kCGL128Bit; // max depth of depth buffer
 static int maxAccumSize = kCGL128Bit; // max depth of accum buffer
@@ -41,7 +33,7 @@ void getRendererInfo()
 		CGLRendererInfoObj info;
 		long numRenderers = 0;
 		CGLError err = CGLQueryRendererInfo(CGDisplayIDToOpenGLDisplayMask(kCGDirectMainDisplay), &info, &numRenderers);
-		if (err == kCGLNoError)
+		if (err == 0 /* kCGLNoError not available on 10.3 */)
 		{
 			CGLDescribeRenderer(info, 0, kCGLRPRendererCount, &numRenderers);
 			long j;
@@ -186,7 +178,10 @@ void* createContext(void* shareContext, void* view,
   NSOpenGLPixelFormatAttribute attribs[256];
   int idx = 0;
   if (pbuffer)       attribs[idx++] = NSOpenGLPFAPixelBuffer;
-  if (floatingPoint) attribs[idx++] = NSOpenGLPFAColorFloat;
+  // kCGLPFAColorFloat is equivalent to NSOpenGLPFAColorFloat, but the
+  // latter is only available on 10.4 and we need to compile under
+  // 10.3
+  if (floatingPoint) attribs[idx++] = kCGLPFAColorFloat;
   if (doubleBuffer)  attribs[idx++] = NSOpenGLPFADoubleBuffer;
   if (stereo)        attribs[idx++] = NSOpenGLPFAStereo;
   attribs[idx++] = NSOpenGLPFAColorSize;     attribs[idx++] = colorSize;
