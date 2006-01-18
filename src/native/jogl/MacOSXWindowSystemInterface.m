@@ -13,7 +13,107 @@
     #endif
 #endif
 
+// kCGLPFAColorFloat is equivalent to NSOpenGLPFAColorFloat, but the
+// latter is only available on 10.4 and we need to compile under
+// 10.3
+#ifndef NSOpenGLPFAColorFloat
+    #define NSOpenGLPFAColorFloat kCGLPFAColorFloat
+#endif
+
+
 typedef int Bool;
+
+static Bool rendererInfoInitialized = false;
+static int bufferDepthsLength = 17;
+static int bufferDepths[] = {kCGL128Bit, kCGL96Bit, kCGL64Bit, kCGL48Bit, kCGL32Bit, kCGL24Bit, kCGL16Bit, kCGL12Bit, kCGL10Bit, kCGL8Bit, kCGL6Bit, kCGL5Bit, kCGL4Bit, kCGL3Bit, kCGL2Bit, kCGL1Bit, kCGL0Bit};
+static int bufferDepthsBits[] = {128, 96, 64, 48, 32, 24, 16, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0};
+static int accRenderID = 0; // the ID of the accelerated renderer
+static int maxColorSize = kCGL128Bit; // max depth of color buffer
+static int maxDepthSize = kCGL128Bit; // max depth of depth buffer
+static int maxAccumSize = kCGL128Bit; // max depth of accum buffer
+static int maxStencilSize = kCGL128Bit; // max depth of stencil buffer
+void getRendererInfo()
+{
+	if (rendererInfoInitialized == false)
+	{
+		rendererInfoInitialized = true;
+		
+		CGLRendererInfoObj info;
+		long numRenderers = 0;
+		CGLError err = CGLQueryRendererInfo(CGDisplayIDToOpenGLDisplayMask(kCGDirectMainDisplay), &info, &numRenderers);
+		if (err == kCGLNoError)
+		{
+			CGLDescribeRenderer(info, 0, kCGLRPRendererCount, &numRenderers);
+			long j;
+			for (j=0; j<numRenderers; j++)
+			{
+				unsigned long accRenderer = 0;
+				CGLDescribeRenderer (info, j, kCGLRPAccelerated, &accRenderer);
+				if (accRenderer != 0)
+				{
+					// get the accelerated renderer ID
+					CGLDescribeRenderer(info, j, kCGLRPRendererID, &accRenderID);
+					
+					// get the max color buffer depth
+					unsigned long colorModes = 0;
+					CGLDescribeRenderer(info, j, kCGLRPColorModes, &colorModes);
+					int i;
+					for (i=0; i<bufferDepthsLength; i++)
+					{
+						if ((colorModes & bufferDepths[i]) != 0)
+						{
+							maxColorSize = bufferDepthsBits[i];
+							break;
+						}
+					}
+					
+					// get the max depth buffer depth
+					unsigned long depthModes = 0;
+					CGLDescribeRenderer(info, j, kCGLRPDepthModes, &depthModes);
+					for (i=0; i<bufferDepthsLength; i++)
+					{
+						if ((depthModes & bufferDepths[i]) != 0)
+						{
+							maxDepthSize = bufferDepthsBits[i];
+							break;
+						}
+					}
+					
+					// get the max accum buffer depth
+					unsigned long accumModes = 0;
+					CGLDescribeRenderer(info, j, kCGLRPAccumModes, &accumModes);
+					for (i=0; i<bufferDepthsLength; i++)
+					{
+						if ((accumModes & bufferDepths[i]) != 0)
+						{
+							maxAccumSize = bufferDepthsBits[i];
+							break;
+						}
+					}
+					
+					// get the max stencil buffer depth
+					unsigned long stencilModes = 0;
+					CGLDescribeRenderer(info, j, kCGLRPStencilModes, &stencilModes);
+					for (i=0; i<bufferDepthsLength; i++)
+					{
+						if ((stencilModes & bufferDepths[i]) != 0)
+						{
+							maxStencilSize = bufferDepthsBits[i];
+							break;
+						}
+					}
+					
+					break;
+				}
+			}
+			//fprintf(stderr, "maxColorSize=%d\n", maxColorSize);
+			//fprintf(stderr, "maxDepthSize=%d\n", maxDepthSize);
+			//fprintf(stderr, "maxAccumSize=%d\n", maxAccumSize);
+			//fprintf(stderr, "maxStencilSize=%d\n", maxStencilSize);
+		}
+		CGLDestroyRendererInfo (info);
+	}
+}
 
 void* createContext(void* shareContext, void* view,
                     int doubleBuffer,
@@ -34,8 +134,25 @@ void* createContext(void* shareContext, void* view,
                     int floatingPoint,
                     int* viewNotReady)
 {
+  getRendererInfo();
+  
   int colorSize = redBits + greenBits + blueBits;
+  if (colorSize > maxColorSize) {
+	colorSize = maxColorSize;
+  }
+  
   int accumSize = accumRedBits + accumGreenBits + accumBlueBits;
+  if (accumSize > maxAccumSize) {
+	accumSize = maxAccumSize;
+  }
+  
+  if (depthBits > maxDepthSize) {
+	depthBits = maxDepthSize;
+  }
+  
+  if (stencilBits > maxStencilSize) {
+	stencilBits = maxStencilSize;
+  }
   
   NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
 
@@ -69,10 +186,7 @@ void* createContext(void* shareContext, void* view,
   NSOpenGLPixelFormatAttribute attribs[256];
   int idx = 0;
   if (pbuffer)       attribs[idx++] = NSOpenGLPFAPixelBuffer;
-  // kCGLPFAColorFloat is equivalent to NSOpenGLPFAColorFloat, but the
-  // latter is only available on 10.4 and we need to compile under
-  // 10.3
-  if (floatingPoint) attribs[idx++] = kCGLPFAColorFloat;
+  if (floatingPoint) attribs[idx++] = NSOpenGLPFAColorFloat;
   if (doubleBuffer)  attribs[idx++] = NSOpenGLPFADoubleBuffer;
   if (stereo)        attribs[idx++] = NSOpenGLPFAStereo;
   attribs[idx++] = NSOpenGLPFAColorSize;     attribs[idx++] = colorSize;
