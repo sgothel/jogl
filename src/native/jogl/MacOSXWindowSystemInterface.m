@@ -1,3 +1,7 @@
+/* Note: usage of AvailabilityMacros.h to detect whether we're
+   building on OS X 10.3 does not work because the header #defines
+   MAC_OS_X_VERSION_10_4 even though the machine is a 10.3 machine
+
 #include <AvailabilityMacros.h>
 
 #ifndef MAC_OS_X_VERSION_10_3
@@ -5,9 +9,14 @@
 #endif
 
 #ifndef MAC_OS_X_VERSION_10_4
+*/
+
   #define NSOpenGLPFAColorFloat kCGLPFAColorFloat
   #define kCGLNoError 0
+
+/*
 #endif
+*/
 
 #import <Cocoa/Cocoa.h>
 #import <OpenGL/gl.h>
