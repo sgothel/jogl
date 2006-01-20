@@ -195,7 +195,7 @@ public abstract class WindowsGLDrawable extends GLDrawableImpl {
                 if (!dummyWGLExt.wglGetPixelFormatAttribivARB(hdc, i+1, 0, niattribs, iattributes, 0, iresults, 0)) {
                   throw new GLException("Error getting pixel format attributes for pixel format " + (i + 1) + " of device context");
                 }
-                availableCaps[i] = iattributes2GLCapabilities(iattributes, iresults, true);
+                availableCaps[i] = iattributes2GLCapabilities(iattributes, niattribs, iresults, true);
               }
               gotAvailableCaps = true;
             } else {
@@ -497,12 +497,12 @@ public abstract class WindowsGLDrawable extends GLDrawableImpl {
   }
 
   protected static GLCapabilities iattributes2GLCapabilities(int[] iattribs,
+                                                             int niattribs,
                                                              int[] iresults,
                                                              boolean requireRenderToWindow) {
     GLCapabilities res = new GLCapabilities();
-    int attr = 0;
-    int i = 0;
-    while ((attr = iattribs[i]) != 0) {
+    for (int i = 0; i < niattribs; i++) {
+      int attr = iattribs[i];
       switch (attr) {
         case WGLExt.WGL_DRAW_TO_WINDOW_ARB:
           if (iresults[i] != GL.GL_TRUE)
