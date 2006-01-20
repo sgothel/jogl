@@ -111,98 +111,108 @@ public abstract class WindowsGLDrawable extends GLDrawableImpl {
       boolean gotAvailableCaps = false;
       if (dummyWGLExt != null) {
         try {
-          int[]   iattributes = new int  [2 * MAX_ATTRIBS];
-          int[]   iresults    = new int  [2 * MAX_ATTRIBS];
-          float[] fattributes = new float[1];
+          haveWGLChoosePixelFormatARB = dummyWGLExt.isExtensionAvailable("WGL_ARB_pixel_format");
+          if (haveWGLChoosePixelFormatARB) {
+            haveWGLARBMultisample = dummyWGLExt.isExtensionAvailable("WGL_ARB_multisample");
 
-          if (glCapabilities2iattributes(capabilities,
-                                         iattributes,
-                                         dummyWGLExt,
-                                         false,
-                                         null)) {
-            int[] pformats = new int[MAX_PFORMATS];
-            int[] numFormatsTmp = new int[1];
-            if (dummyWGLExt.wglChoosePixelFormatARB(hdc,
-                                                    iattributes, 0,
-                                                    fattributes, 0,
-                                                    MAX_PFORMATS,
-                                                    pformats, 0,
-                                                    numFormatsTmp, 0)) {
-              numFormats = numFormatsTmp[0];
-              if (numFormats > 0) {
-                // Remove one-basing of pixel format (added on later)
-                recommendedPixelFormat = pformats[0] - 1;
+            int[]   iattributes = new int  [2 * MAX_ATTRIBS];
+            int[]   iresults    = new int  [2 * MAX_ATTRIBS];
+            float[] fattributes = new float[1];
+
+            if (glCapabilities2iattributes(capabilities,
+                                           iattributes,
+                                           dummyWGLExt,
+                                           false,
+                                           null)) {
+              int[] pformats = new int[MAX_PFORMATS];
+              int[] numFormatsTmp = new int[1];
+              if (dummyWGLExt.wglChoosePixelFormatARB(hdc,
+                                                      iattributes, 0,
+                                                      fattributes, 0,
+                                                      MAX_PFORMATS,
+                                                      pformats, 0,
+                                                      numFormatsTmp, 0)) {
+                numFormats = numFormatsTmp[0];
+                if (numFormats > 0) {
+                  // Remove one-basing of pixel format (added on later)
+                  recommendedPixelFormat = pformats[0] - 1;
+                  if (DEBUG) {
+                    System.err.println(getThreadName() + ": Used wglChoosePixelFormatARB to recommend pixel format " + recommendedPixelFormat);
+                  }
+                }
+              } else {
                 if (DEBUG) {
-                  System.err.println(getThreadName() + ": Used wglChoosePixelFormatARB to recommend pixel format " + recommendedPixelFormat);
+                  System.err.println(getThreadName() + ": wglChoosePixelFormatARB failed: " + WGL.GetLastError() );
+                  Thread.dumpStack();
                 }
               }
-            } else {
               if (DEBUG) {
-                System.err.println(getThreadName() + ": wglChoosePixelFormatARB failed: " + WGL.GetLastError() );
-                Thread.dumpStack();
-              }
-            }
-            if (DEBUG) {
-              if (recommendedPixelFormat < 0) {
-                System.err.print(getThreadName() + ": wglChoosePixelFormatARB didn't recommend a pixel format");
-                if (capabilities.getSampleBuffers()) {
-                  System.err.print(" for multisampled GLCapabilities");
+                if (recommendedPixelFormat < 0) {
+                  System.err.print(getThreadName() + ": wglChoosePixelFormatARB didn't recommend a pixel format");
+                  if (capabilities.getSampleBuffers()) {
+                    System.err.print(" for multisampled GLCapabilities");
+                  }
+                  System.err.println();
                 }
-                System.err.println();
-              }
-            }
-
-            // Produce a list of GLCapabilities to give to the
-            // GLCapabilitiesChooser.
-            // Use wglGetPixelFormatAttribivARB instead of
-            // DescribePixelFormat to get higher-precision information
-            // about the pixel format (should make the GLCapabilities
-            // more precise as well...i.e., remove the
-            // "HardwareAccelerated" bit, which is basically
-            // meaningless, and put in whether it can render to a
-            // window, to a pbuffer, or to a pixmap)
-            int niattribs = 0;
-            iattributes[0] = WGLExt.WGL_NUMBER_PIXEL_FORMATS_ARB;
-            if (dummyWGLExt.wglGetPixelFormatAttribivARB(hdc, 0, 0, 1, iattributes, 0, iresults, 0)) {
-              numFormats = iresults[0];
-              // Should we be filtering out the pixel formats which aren't
-              // applicable, as we are doing here?
-              // We don't have enough information in the GLCapabilities to
-              // represent those that aren't...
-              iattributes[niattribs++] = WGLExt.WGL_DRAW_TO_WINDOW_ARB;
-              iattributes[niattribs++] = WGLExt.WGL_ACCELERATION_ARB;
-              iattributes[niattribs++] = WGLExt.WGL_SUPPORT_OPENGL_ARB;
-              iattributes[niattribs++] = WGLExt.WGL_DEPTH_BITS_ARB;
-              iattributes[niattribs++] = WGLExt.WGL_STENCIL_BITS_ARB;
-              iattributes[niattribs++] = WGLExt.WGL_DOUBLE_BUFFER_ARB;
-              iattributes[niattribs++] = WGLExt.WGL_STEREO_ARB;
-              iattributes[niattribs++] = WGLExt.WGL_PIXEL_TYPE_ARB;
-              iattributes[niattribs++] = WGLExt.WGL_RED_BITS_ARB;
-              iattributes[niattribs++] = WGLExt.WGL_GREEN_BITS_ARB;
-              iattributes[niattribs++] = WGLExt.WGL_BLUE_BITS_ARB;
-              iattributes[niattribs++] = WGLExt.WGL_ALPHA_BITS_ARB;
-              iattributes[niattribs++] = WGLExt.WGL_ACCUM_RED_BITS_ARB;
-              iattributes[niattribs++] = WGLExt.WGL_ACCUM_GREEN_BITS_ARB;
-              iattributes[niattribs++] = WGLExt.WGL_ACCUM_BLUE_BITS_ARB;
-              iattributes[niattribs++] = WGLExt.WGL_ACCUM_ALPHA_BITS_ARB;
-              if (haveWGLARBMultisample) {
-                iattributes[niattribs++] = WGLExt.WGL_SAMPLE_BUFFERS_ARB;
-                iattributes[niattribs++] = WGLExt.WGL_SAMPLES_ARB;
               }
 
-              availableCaps = new GLCapabilities[numFormats];
-              for (int i = 0; i < numFormats; i++) {
-                if (!dummyWGLExt.wglGetPixelFormatAttribivARB(hdc, i+1, 0, niattribs, iattributes, 0, iresults, 0)) {
-                  throw new GLException("Error getting pixel format attributes for pixel format " + (i + 1) + " of device context");
+              // Produce a list of GLCapabilities to give to the
+              // GLCapabilitiesChooser.
+              // Use wglGetPixelFormatAttribivARB instead of
+              // DescribePixelFormat to get higher-precision information
+              // about the pixel format (should make the GLCapabilities
+              // more precise as well...i.e., remove the
+              // "HardwareAccelerated" bit, which is basically
+              // meaningless, and put in whether it can render to a
+              // window, to a pbuffer, or to a pixmap)
+              int niattribs = 0;
+              iattributes[0] = WGLExt.WGL_NUMBER_PIXEL_FORMATS_ARB;
+              if (dummyWGLExt.wglGetPixelFormatAttribivARB(hdc, 0, 0, 1, iattributes, 0, iresults, 0)) {
+                numFormats = iresults[0];
+
+                if (DEBUG) {
+                  System.err.println("wglGetPixelFormatAttribivARB reported WGL_NUMBER_PIXEL_FORMATS_ARB = " + numFormats);
                 }
-                availableCaps[i] = iattributes2GLCapabilities(iattributes, niattribs, iresults, true);
-              }
-              gotAvailableCaps = true;
-            } else {
-              long lastErr = WGL.GetLastError();
-              // Intel Extreme graphics fails with a zero error code
-              if (lastErr != 0) {
-                throw new GLException("Unable to enumerate pixel formats of window using wglGetPixelFormatAttribivARB: error code " + WGL.GetLastError());
+
+                // Should we be filtering out the pixel formats which aren't
+                // applicable, as we are doing here?
+                // We don't have enough information in the GLCapabilities to
+                // represent those that aren't...
+                iattributes[niattribs++] = WGLExt.WGL_DRAW_TO_WINDOW_ARB;
+                iattributes[niattribs++] = WGLExt.WGL_ACCELERATION_ARB;
+                iattributes[niattribs++] = WGLExt.WGL_SUPPORT_OPENGL_ARB;
+                iattributes[niattribs++] = WGLExt.WGL_DEPTH_BITS_ARB;
+                iattributes[niattribs++] = WGLExt.WGL_STENCIL_BITS_ARB;
+                iattributes[niattribs++] = WGLExt.WGL_DOUBLE_BUFFER_ARB;
+                iattributes[niattribs++] = WGLExt.WGL_STEREO_ARB;
+                iattributes[niattribs++] = WGLExt.WGL_PIXEL_TYPE_ARB;
+                iattributes[niattribs++] = WGLExt.WGL_RED_BITS_ARB;
+                iattributes[niattribs++] = WGLExt.WGL_GREEN_BITS_ARB;
+                iattributes[niattribs++] = WGLExt.WGL_BLUE_BITS_ARB;
+                iattributes[niattribs++] = WGLExt.WGL_ALPHA_BITS_ARB;
+                iattributes[niattribs++] = WGLExt.WGL_ACCUM_RED_BITS_ARB;
+                iattributes[niattribs++] = WGLExt.WGL_ACCUM_GREEN_BITS_ARB;
+                iattributes[niattribs++] = WGLExt.WGL_ACCUM_BLUE_BITS_ARB;
+                iattributes[niattribs++] = WGLExt.WGL_ACCUM_ALPHA_BITS_ARB;
+                if (haveWGLARBMultisample) {
+                  iattributes[niattribs++] = WGLExt.WGL_SAMPLE_BUFFERS_ARB;
+                  iattributes[niattribs++] = WGLExt.WGL_SAMPLES_ARB;
+                }
+
+                availableCaps = new GLCapabilities[numFormats];
+                for (int i = 0; i < numFormats; i++) {
+                  if (!dummyWGLExt.wglGetPixelFormatAttribivARB(hdc, i+1, 0, niattribs, iattributes, 0, iresults, 0)) {
+                    throw new GLException("Error getting pixel format attributes for pixel format " + (i + 1) + " of device context");
+                  }
+                  availableCaps[i] = iattributes2GLCapabilities(iattributes, niattribs, iresults, true);
+                }
+                gotAvailableCaps = true;
+              } else {
+                long lastErr = WGL.GetLastError();
+                // Intel Extreme graphics fails with a zero error code
+                if (lastErr != 0) {
+                  throw new GLException("Unable to enumerate pixel formats of window using wglGetPixelFormatAttribivARB: error code " + WGL.GetLastError());
+                }
               }
             }
           }
@@ -572,7 +582,7 @@ public abstract class WindowsGLDrawable extends GLDrawableImpl {
           break;
 
         case WGLExt.WGL_SAMPLE_BUFFERS_ARB:
-          res.setSampleBuffers(iresults[i] == GL.GL_TRUE);
+          res.setSampleBuffers(iresults[i] != 0);
           break;
 
         case WGLExt.WGL_SAMPLES_ARB:
@@ -582,7 +592,6 @@ public abstract class WindowsGLDrawable extends GLDrawableImpl {
         default:
           throw new GLException("Unknown pixel format attribute " + iattribs[i]);
       }
-      i++;
     }
     return res;
   }

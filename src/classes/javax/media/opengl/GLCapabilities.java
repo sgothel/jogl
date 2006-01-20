@@ -337,6 +337,8 @@ public class GLCapabilities implements Cloneable {
 	    ", Green Accum: " + accumGreenBits +
 	    ", Blue Accum: " + accumBlueBits +
 	    ", Alpha Accum: " + accumAlphaBits +
+            ", Multisample: " + sampleBuffers +
+            (sampleBuffers ? ", Num samples: " + numSamples : "") +
 	    " ]");
   }
 }
