@@ -9,12 +9,8 @@
 #endif
 
 #ifndef MAC_OS_X_VERSION_10_4
-*/
-
   #define NSOpenGLPFAColorFloat kCGLPFAColorFloat
   #define kCGLNoError 0
-
-/*
 #endif
 */
 
@@ -53,7 +49,7 @@ void getRendererInfo()
 		CGLRendererInfoObj info;
 		long numRenderers = 0;
 		CGLError err = CGLQueryRendererInfo(CGDisplayIDToOpenGLDisplayMask(kCGDirectMainDisplay), &info, &numRenderers);
-		if (err == kCGLNoError)
+		if (err == 0 /* kCGLNoError */)
 		{
 			CGLDescribeRenderer(info, 0, kCGLRPRendererCount, &numRenderers);
 			long j;
@@ -198,7 +194,7 @@ void* createContext(void* shareContext, void* view,
   NSOpenGLPixelFormatAttribute attribs[256];
   int idx = 0;
   if (pbuffer)       attribs[idx++] = NSOpenGLPFAPixelBuffer;
-  if (floatingPoint) attribs[idx++] = NSOpenGLPFAColorFloat;
+  if (floatingPoint) attribs[idx++] = kCGLPFAColorFloat /* NSOpenGLPFAColorFloat */;
   if (doubleBuffer)  attribs[idx++] = NSOpenGLPFADoubleBuffer;
   if (stereo)        attribs[idx++] = NSOpenGLPFAStereo;
   attribs[idx++] = NSOpenGLPFAColorSize;     attribs[idx++] = colorSize;
