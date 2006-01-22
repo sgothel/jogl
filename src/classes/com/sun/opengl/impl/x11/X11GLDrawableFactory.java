@@ -43,9 +43,9 @@ import java.awt.Component;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
+import java.nio.*;
 import java.security.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import javax.media.opengl.*;
 import com.sun.gluegen.runtime.*;
 import com.sun.opengl.impl.*;
@@ -467,5 +467,104 @@ public class X11GLDrawableFactory extends GLDrawableFactoryImpl {
     } else {
       action.run();
     }
+  }
+
+  //----------------------------------------------------------------------
+  // Gamma-related functionality
+  //
+
+  boolean gotGammaRampLength;
+  int gammaRampLength;
+  protected synchronized int getGammaRampLength() {
+    if (gotGammaRampLength) {
+      return gammaRampLength;
+    }
+
+    int[] size = new int[1];
+    lockToolkit();
+    long display = getDisplayConnection();
+    boolean res = GLX.XF86VidModeGetGammaRampSize(display,
+                                                  GLX.DefaultScreen(display),
+                                                  size, 0);
+    unlockToolkit();
+    if (!res)
+      return 0;
+    gotGammaRampLength = true;
+    gammaRampLength = size[0];
+    return gammaRampLength;
+  }
+
+  protected boolean setGammaRamp(float[] ramp) {
+    int len = ramp.length;
+    short[] rampData = new short[len];
+    for (int i = 0; i < len; i++) {
+      rampData[i] = (short) (ramp[i] * 65535);
+    }
+
+    lockToolkit();
+    long display = getDisplayConnection();
+    boolean res = GLX.XF86VidModeSetGammaRamp(display,
+                                              GLX.DefaultScreen(display),
+                                              rampData.length,
+                                              rampData, 0,
+                                              rampData, 0,
+                                              rampData, 0);
+    unlockToolkit();
+    return res;
+  }
+
+  protected Buffer getGammaRamp() {
+    int size = getGammaRampLength();
+    ShortBuffer rampData = ShortBuffer.allocate(3 * size);
+    rampData.position(0);
+    rampData.limit(size);
+    ShortBuffer redRampData = rampData.slice();
+    rampData.position(size);
+    rampData.limit(2 * size);
+    ShortBuffer greenRampData = rampData.slice();
+    rampData.position(2 * size);
+    rampData.limit(3 * size);
+    ShortBuffer blueRampData = rampData.slice();
+    lockToolkit();
+    long display = getDisplayConnection();
+    boolean res = GLX.XF86VidModeGetGammaRamp(display,
+                                              GLX.DefaultScreen(display),
+                                              size,
+                                              redRampData,
+                                              greenRampData,
+                                              blueRampData);
+    unlockToolkit();
+    if (!res)
+      return null;
+    return rampData;
+  }
+
+  protected void resetGammaRamp(Buffer originalGammaRamp) {
+    if (originalGammaRamp == null)
+      return; // getGammaRamp failed originally
+    ShortBuffer rampData = (ShortBuffer) originalGammaRamp;
+    int capacity = rampData.capacity();
+    if ((capacity % 3) != 0) {
+      throw new IllegalArgumentException("Must not be the original gamma ramp");
+    }
+    int size = capacity / 3;
+    rampData.position(0);
+    rampData.limit(size);
+    ShortBuffer redRampData = rampData.slice();
+    rampData.position(size);
+    rampData.limit(2 * size);
+    ShortBuffer greenRampData = rampData.slice();
+    rampData.position(2 * size);
+    rampData.limit(3 * size);
+    ShortBuffer blueRampData = rampData.slice();
+    lockToolkit();
+    long display = getDisplayConnection();
+    GLX.XF86VidModeSetGammaRamp(display,
+                                GLX.DefaultScreen(display),
+                                size,
+                                redRampData,
+                                greenRampData,
+                                blueRampData);
+    unlockToolkit();
   }
 }

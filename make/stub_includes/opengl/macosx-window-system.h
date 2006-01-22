@@ -44,3 +44,7 @@ void setContextTextureImageToPBuffer(void* nsContext, void* pBuffer, int colorBu
 void* getProcAddress(const char *procName);
 
 void setSwapInterval(void* nsContext, int interval);
+
+/* Gamma-related functionality */
+Bool setGammaRamp(int tableSize, float* redRamp, float* greenRamp, float* blueRamp);
+void resetGammaRamp();

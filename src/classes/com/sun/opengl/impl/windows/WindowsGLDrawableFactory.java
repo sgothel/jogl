@@ -41,14 +41,11 @@ package com.sun.opengl.impl.windows;
 
 import java.awt.Component;
 import java.awt.Rectangle;
-import java.io.File;
-import java.lang.reflect.InvocationTargetException;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
-import java.util.ArrayList;
-import java.util.List;
+import java.nio.*;
+import java.util.*;
 import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
+import com.sun.opengl.util.BufferUtil;
 
 public class WindowsGLDrawableFactory extends GLDrawableFactoryImpl {
   private static final boolean DEBUG = Debug.debug("WindowsGLDrawableFactory");
@@ -218,5 +215,51 @@ public class WindowsGLDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   public void unlockAWTForJava2D() {
+  }
+
+  //------------------------------------------------------
+  // Gamma-related functionality
+  //
+
+  private static final int GAMMA_RAMP_LENGTH = 256;
+
+  protected int getGammaRampLength() {
+    return GAMMA_RAMP_LENGTH;
+  }
+
+  protected boolean setGammaRamp(float[] ramp) {
+    short[] rampData = new short[3 * GAMMA_RAMP_LENGTH];
+    for (int i = 0; i < GAMMA_RAMP_LENGTH; i++) {
+      short scaledValue = (short) (ramp[i] * 65535);
+      rampData[i] = scaledValue;
+      rampData[i +     GAMMA_RAMP_LENGTH] = scaledValue;
+      rampData[i + 2 * GAMMA_RAMP_LENGTH] = scaledValue;
+    }
+
+    long screenDC = WGL.GetDC(0);
+    boolean res = WGL.SetDeviceGammaRamp(screenDC, ShortBuffer.wrap(rampData));
+    WGL.ReleaseDC(0, screenDC);
+    return res;
+  }
+
+  protected Buffer getGammaRamp() {
+    ShortBuffer rampData = ShortBuffer.allocate(3 * GAMMA_RAMP_LENGTH);
+    long screenDC = WGL.GetDC(0);
+    boolean res = WGL.GetDeviceGammaRamp(screenDC, rampData);
+    WGL.ReleaseDC(0, screenDC);
+    if (!res) {
+      return null;
+    }
+    return rampData;
+  }
+
+  protected void resetGammaRamp(Buffer originalGammaRamp) {
+    if (originalGammaRamp == null) {
+      // getGammaRamp failed earlier
+      return;
+    }
+    long screenDC = WGL.GetDC(0);
+    WGL.SetDeviceGammaRamp(screenDC, originalGammaRamp);
+    WGL.ReleaseDC(0, screenDC);
   }
 }

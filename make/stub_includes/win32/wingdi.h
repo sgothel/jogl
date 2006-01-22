@@ -210,3 +210,7 @@ WINUSERAPI BOOL WINAPI ShowWindow(HWND hWnd, int nCmdShow);
 WINUSERAPI HDC  WINAPI GetDC(HWND);
 WINUSERAPI int  WINAPI ReleaseDC(HWND hWnd, HDC hDC);
 WINUSERAPI BOOL WINAPI DestroyWindow(HWND hWnd);
+
+// Routines for changing gamma ramp of display device
+WINGDIAPI BOOL        WINAPI GetDeviceGammaRamp(HDC,LPVOID);
+WINGDIAPI BOOL        WINAPI SetDeviceGammaRamp(HDC,LPVOID);

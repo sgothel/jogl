@@ -702,11 +702,13 @@
  
       <linker id="linker.cfg.linux" name="gcc">
         <syslibset dir="/usr/X11R6/lib" libs="GL, GLU, X11"/>
+        <syslibset dir="/usr/X11R6/lib" libs="Xxf86vm" type="static"/>
         <syslibset dir="${x11.cg.lib}" libs="Cg, CgGL" if="c.compiler.use-cglib"/>
       </linker>
 
       <linker id="linker.cfg.linux.amd64" name="gcc">
-        <syslibset dir="/usr/X11R6/lib64" libs="GL, GLU, X11"/>
+        <syslibset dir="/usr/X11R6/lib64" libs="GL, GLU, X11, Xxf86vm"/>
+        <syslibset dir="/usr/X11R6/lib64" libs="Xxf86vm" type="static"/>
         <syslibset dir="${x11.cg.lib}" libs="Cg, CgGL" if="c.compiler.use-cglib"/>
       </linker>
 

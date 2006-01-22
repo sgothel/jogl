@@ -379,3 +379,12 @@ void setSwapInterval(void* context, int interval) {
   long swapInterval = interval;
   [nsContext setValues: &swapInterval forParameter: NSOpenGLCPSwapInterval];
 }
+
+Bool setGammaRamp(int tableSize, float* redRamp, float* greenRamp, float* blueRamp) {
+  CGDisplayErr err = CGSetDisplayTransferByTable(kCGDirectMainDisplay, tableSize, redRamp, greenRamp, blueRamp);
+  return (err == CGDisplayNoErr);
+}
+
+void resetGammaRamp() {
+  CGDisplayRestoreColorSyncSettings();
+}

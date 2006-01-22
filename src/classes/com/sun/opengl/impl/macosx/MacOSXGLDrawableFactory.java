@@ -42,8 +42,8 @@ package com.sun.opengl.impl.macosx;
 import java.awt.Component;
 import java.awt.EventQueue;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.List;
+import java.nio.*;
+import java.util.*;
 import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
 
@@ -135,5 +135,32 @@ public class MacOSXGLDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   public void unlockAWTForJava2D() {
+  }
+
+  //------------------------------------------------------
+  // Gamma-related functionality
+  //
+
+  private static final int GAMMA_RAMP_LENGTH = 256;
+
+  /** Returns the length of the computed gamma ramp for this OS and
+      hardware. Returns 0 if gamma changes are not supported. */
+  protected int getGammaRampLength() {
+    return GAMMA_RAMP_LENGTH;
+  }
+
+  protected boolean setGammaRamp(float[] ramp) {
+    return CGL.setGammaRamp(ramp.length,
+                            ramp, 0,
+                            ramp, 0,
+                            ramp, 0);
+  }
+
+  protected Buffer getGammaRamp() {
+    return null;
+  }
+
+  protected void resetGammaRamp(Buffer originalGammaRamp) {
+    CGL.resetGammaRamp();
   }
 }

@@ -35,3 +35,26 @@ extern int XFreePixmap(
     Display*		/* display */,
     Pixmap		/* pixmap */
 );
+
+// Routines for changing gamma settings.
+// Note that these are not currently supported on Solaris.
+Bool XF86VidModeGetGammaRampSize(
+    Display *display,
+    int screen,
+    int* size);
+
+Bool XF86VidModeGetGammaRamp(
+    Display *display,
+    int screen,
+    int size,
+    unsigned short *red_array,
+    unsigned short *green_array,
+    unsigned short *blue_array);
+
+Bool XF86VidModeSetGammaRamp(
+    Display *display,
+    int screen,
+    int size,
+    unsigned short *red_array,
+    unsigned short *green_array,
+    unsigned short *blue_array);
