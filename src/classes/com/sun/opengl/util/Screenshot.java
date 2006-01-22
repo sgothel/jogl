@@ -57,7 +57,9 @@ public class Screenshot {
    * file. Requires the OpenGL context for the desired drawable to be
    * current. This is the fastest mechanism for taking a screenshot of
    * an application. Contributed by Carsten Weisse of Bytonic Software
-   * (http://bytonic.de/).
+   * (http://bytonic.de/). <p>
+   *
+   * No alpha channel is written with this variant.
    *
    * @param file the file to write containing the screenshot
    * @param width the width of the current drawable
@@ -71,9 +73,41 @@ public class Screenshot {
   public static void writeToTargaFile(File file,
                                       int width,
                                       int height) throws GLException, IOException {
+    writeToTargaFile(file, width, height, false);
+  }
+
+  /** 
+   * Takes a fast screenshot of the current OpenGL drawable to a Targa
+   * file. Requires the OpenGL context for the desired drawable to be
+   * current. This is the fastest mechanism for taking a screenshot of
+   * an application. Contributed by Carsten Weisse of Bytonic Software
+   * (http://bytonic.de/).
+   *
+   * @param file the file to write containing the screenshot
+   * @param width the width of the current drawable
+   * @param height the height of the current drawable
+   * @param alpha whether the alpha channel should be saved. If true,
+   *   requires GL_EXT_abgr extension to be present.
+   *
+   * @throws GLException if an OpenGL context was not current or
+   *   another OpenGL-related error occurred
+   * @throws IOException if an I/O error occurred while writing the
+   *   file
+   */
+  public static void writeToTargaFile(File file,
+                                      int width,
+                                      int height,
+                                      boolean alpha) throws GLException, IOException {
     RandomAccessFile out = new RandomAccessFile(file, "rw");
     FileChannel ch = out.getChannel();
-    int fileLength = TARGA_HEADER_SIZE + width * height * 3;
+    int pixelSize = (alpha ? 32 : 24);
+    int numChannels = (alpha ? 4 : 3);
+    int readbackType = (alpha ? GL.GL_ABGR_EXT : GL.GL_BGR);
+    if (alpha) {
+      checkExtABGR();
+    }
+
+    int fileLength = TARGA_HEADER_SIZE + width * height * numChannels;
     out.setLength(fileLength);
     MappedByteBuffer image = ch.map(FileChannel.MapMode.READ_WRITE, 0, fileLength);
 
@@ -84,7 +118,7 @@ public class Screenshot {
     image.put(13, (byte) (width >> 8)); // width
     image.put(14, (byte) (height & 0xFF)); // height
     image.put(15, (byte) (height >> 8)); // height
-    image.put(16, (byte) 24); // pixel size
+    image.put(16, (byte) pixelSize); // pixel size
              
     // go to image data position
     image.position(TARGA_HEADER_SIZE);
@@ -98,7 +132,7 @@ public class Screenshot {
     psm.save(gl);
 
     // read the BGR values into the image buffer
-    gl.glReadPixels(0, 0, width, height, GL.GL_BGR,
+    gl.glReadPixels(0, 0, width, height, readbackType,
                     GL.GL_UNSIGNED_BYTE, bgr);
 
     // Restore pixel storage modes
@@ -114,7 +148,9 @@ public class Screenshot {
    * drawable to be current. Note that the scanlines of the resulting
    * image are flipped vertically in order to correctly match the
    * OpenGL contents, which takes time and is therefore not as fast as
-   * the Targa screenshot function.
+   * the Targa screenshot function. <P>
+   *
+   * No alpha channel is read back with this variant.
    *
    * @param width the width of the current drawable
    * @param height the height of the current drawable
@@ -124,8 +160,37 @@ public class Screenshot {
    */
   public static BufferedImage readToBufferedImage(int width,
                                                   int height) throws GLException {
+    return readToBufferedImage(width, height, false);
+  }
+
+  /**
+   * Takes a screenshot of the current OpenGL drawable to a
+   * BufferedImage. Requires the OpenGL context for the desired
+   * drawable to be current. Note that the scanlines of the resulting
+   * image are flipped vertically in order to correctly match the
+   * OpenGL contents, which takes time and is therefore not as fast as
+   * the Targa screenshot function.
+   *
+   * @param width the width of the current drawable
+   * @param height the height of the current drawable
+   * @param alpha whether the alpha channel should be read back. If
+   *   true, requires GL_EXT_abgr extension to be present.
+   *
+   * @throws GLException if an OpenGL context was not current or
+   *   another OpenGL-related error occurred
+   */
+  public static BufferedImage readToBufferedImage(int width,
+                                                  int height,
+                                                  boolean alpha) throws GLException {
+    int bufImgType = (alpha ? BufferedImage.TYPE_4BYTE_ABGR : BufferedImage.TYPE_3BYTE_BGR);
+    int readbackType = (alpha ? GL.GL_ABGR_EXT : GL.GL_BGR);
+
+    if (alpha) {
+      checkExtABGR();
+    }
+
     // Allocate necessary storage
-    BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_3BYTE_BGR);
+    BufferedImage image = new BufferedImage(width, height, bufImgType);
 
     GL gl = GLU.getCurrentGL();
 
@@ -134,7 +199,7 @@ public class Screenshot {
     psm.save(gl);
 
     // read the BGR values into the image
-    gl.glReadPixels(0, 0, width, height, GL.GL_BGR,
+    gl.glReadPixels(0, 0, width, height, readbackType,
                     GL.GL_UNSIGNED_BYTE,
                     ByteBuffer.wrap(((DataBufferByte) image.getRaster().getDataBuffer()).getData()));
 
@@ -153,7 +218,9 @@ public class Screenshot {
    * not the fastest mechanism for taking a screenshot but may be more
    * convenient than others for getting images for consumption by
    * other packages. The file format is inferred from the suffix of
-   * the given file.
+   * the given file. <P>
+   *
+   * No alpha channel is saved with this variant.
    *
    * @throws GLException if an OpenGL context was not current or
    *   another OpenGL-related error occurred
@@ -165,16 +232,61 @@ public class Screenshot {
   public static void writeToFile(File file,
                                  int width,
                                  int height) throws IOException, GLException {
-    BufferedImage image = readToBufferedImage(width, height);
-    if (!ImageIO.write(image, FileUtil.getFileSuffix(file), file)) {
-      throw new IOException("Unsupported file format " +
-                            FileUtil.getFileSuffix(file));
+    writeToFile(file, width, height, false);
+  }
+
+  /**
+   * Takes a screenshot of the current OpenGL drawable to the
+   * specified file on disk using the ImageIO package. Requires the
+   * OpenGL context for the desired drawable to be current. This is
+   * not the fastest mechanism for taking a screenshot but may be more
+   * convenient than others for getting images for consumption by
+   * other packages. The file format is inferred from the suffix of
+   * the given file. <P>
+   *
+   * Note that some file formats, in particular JPEG, can not handle
+   * an alpha channel properly. If the "alpha" argument is specified
+   * as true for such a file format it will be silently ignored.
+   *
+   * @param file the file name to which to save the image
+   * @param file width the width of the image to read back and save
+   * @param file height the width of the image to read back and save
+   * @param alpha whether an alpha channel should be saved. If true,
+   *   requires GL_EXT_abgr extension to be present.
+   *
+   * @throws GLException if an OpenGL context was not current or
+   *   another OpenGL-related error occurred
+   *
+   * @throws IOException if an I/O error occurred or if the file could
+   *   not be written to disk due to the requested file format being
+   *   unsupported by ImageIO
+   */
+  public static void writeToFile(File file,
+                                 int width,
+                                 int height,
+                                 boolean alpha) throws IOException, GLException {
+    String fileSuffix = FileUtil.getFileSuffix(file);
+    if (alpha && (fileSuffix.equals("jpg") || fileSuffix.equals("jpeg"))) {
+      // JPEGs can't deal properly with alpha channels
+      alpha = false;
+    }
+
+    BufferedImage image = readToBufferedImage(width, height, alpha);
+    if (!ImageIO.write(image, fileSuffix, file)) {
+      throw new IOException("Unsupported file format " + fileSuffix);
     }
   }
 
   private static int glGetInteger(GL gl, int pname, int[] tmp) {
     gl.glGetIntegerv(pname, tmp, 0);
     return tmp[0];
+  }
+
+  private static void checkExtABGR() {
+    GL gl = GLU.getCurrentGL();
+    if (!gl.isExtensionAvailable("GL_EXT_abgr")) {
+      throw new IllegalArgumentException("Saving alpha channel requires GL_EXT_abgr");
+    }
   }
 
   static class PixelStorageModes {
