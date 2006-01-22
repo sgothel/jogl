@@ -74,6 +74,9 @@ public class Texture {
   /** The texture coordinates corresponding to the entire image. */
   private TextureCoords coords;
 
+  /** An estimate of the amount of texture memory this texture consumes. */
+  private int estimatedMemorySize;
+
   private static final boolean DEBUG = Debug.debug("Texture");
 
   // For now make Texture constructor package-private to limit the
@@ -369,6 +372,9 @@ public class Texture {
         (this.target == GL.GL_TEXTURE_RECTANGLE_ARB)) {
       this.target = newTarget;
     }
+
+    // This estimate will be wrong for cube maps
+    estimatedMemorySize = data.getEstimatedMemorySize();
   }
 
   /**
@@ -394,6 +400,52 @@ public class Texture {
   }
 
   /**
+   * Sets the OpenGL floating-point texture parameter for the
+   * texture's target. This gives control over parameters such as
+   * GL_TEXTURE_MAX_ANISOTROPY_EXT. Causes this texture to be bound to
+   * the current texture state.
+   * 
+   * @throws GLException if no OpenGL context was current or if any
+   * OpenGL-related errors occurred
+   */
+  public void setTexParameterf(int parameterName,
+                               float value) {
+    bind();
+    GL gl = GLU.getCurrentGL();
+    gl.glTexParameterf(target, parameterName, value);
+  }
+
+  /**
+   * Sets the OpenGL multi-floating-point texture parameter for the
+   * texture's target. Causes this texture to be bound to the current
+   * texture state.
+   * 
+   * @throws GLException if no OpenGL context was current or if any
+   * OpenGL-related errors occurred
+   */
+  public void setTexParameterfv(int parameterName,
+                                FloatBuffer params) {
+    bind();
+    GL gl = GLU.getCurrentGL();
+    gl.glTexParameterfv(target, parameterName, params);
+  }
+
+  /**
+   * Sets the OpenGL multi-floating-point texture parameter for the
+   * texture's target. Causes this texture to be bound to the current
+   * texture state.
+   * 
+   * @throws GLException if no OpenGL context was current or if any
+   * OpenGL-related errors occurred
+   */
+  public void setTexParameterfv(int parameterName,
+                                float[] params, int params_offset) {
+    bind();
+    GL gl = GLU.getCurrentGL();
+    gl.glTexParameterfv(target, parameterName, params, params_offset);
+  }
+
+  /**
    * Sets the OpenGL integer texture parameter for the texture's
    * target. This gives control over parameters such as
    * GL_TEXTURE_WRAP_S and GL_TEXTURE_WRAP_T, which by default are set
@@ -411,12 +463,51 @@ public class Texture {
   }
 
   /**
+   * Sets the OpenGL multi-integer texture parameter for the texture's
+   * target. Causes this texture to be bound to the current texture
+   * state.
+   * 
+   * @throws GLException if no OpenGL context was current or if any
+   * OpenGL-related errors occurred
+   */
+  public void setTexParameteriv(int parameterName,
+                                IntBuffer params) {
+    bind();
+    GL gl = GLU.getCurrentGL();
+    gl.glTexParameteriv(target, parameterName, params);
+  }
+
+  /**
+   * Sets the OpenGL multi-integer texture parameter for the texture's
+   * target. Causes this texture to be bound to the current texture
+   * state.
+   * 
+   * @throws GLException if no OpenGL context was current or if any
+   * OpenGL-related errors occurred
+   */
+  public void setTexParameteriv(int parameterName,
+                                int[] params, int params_offset) {
+    bind();
+    GL gl = GLU.getCurrentGL();
+    gl.glTexParameteriv(target, parameterName, params, params_offset);
+  }
+
+  /**
    * Returns the underlying OpenGL texture object for this texture.
    * Most applications will not need to access this, since it is
    * handled automatically by the bind() and dispose() APIs.
    */
   public int getTextureObject() {
     return texID;
+  }
+
+  /** Returns an estimate of the amount of texture memory in bytes
+      this Texture consumes. It should only be treated as an estimate;
+      most applications should not need to query this but instead let
+      the OpenGL implementation page textures in and out as
+      necessary. */
+  public int getEstimatedMemorySize() {
+    return estimatedMemorySize;
   }
 
   //----------------------------------------------------------------------

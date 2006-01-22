@@ -74,6 +74,7 @@ public class TextureData {
   private Buffer[] mipmapData; // ...or a series of mipmaps
   private Flusher flusher;
   private int alignment; // 1, 2, or 4 bytes
+  private int estimatedMemorySize;
 
   private static final ColorModel rgbaColorModel =
     new ComponentColorModel(ColorSpace.getInstance(ColorSpace.CS_sRGB),
@@ -151,6 +152,7 @@ public class TextureData {
     this.buffer = buffer;
     this.flusher = flusher;
     alignment = 1;  // FIXME: is this correct enough in all situations?
+    estimatedMemorySize = estimatedMemorySize(buffer);
   }
 
   /** 
@@ -211,6 +213,9 @@ public class TextureData {
     this.mipmapData = (Buffer[]) mipmapData.clone();
     this.flusher = flusher;
     alignment = 1;  // FIXME: is this correct enough in all situations?
+    for (int i = 0; i < mipmapData.length; i++) {
+      estimatedMemorySize += estimatedMemorySize(mipmapData[i]);
+    }
   }
 
   /** 
@@ -240,6 +245,7 @@ public class TextureData {
     }
     createFromImage(image);
     this.mipmap = mipmap;
+    estimatedMemorySize = estimatedMemorySize(buffer);
   }
 
   /** Returns the width in pixels of the texture data. */
@@ -292,6 +298,15 @@ public class TextureData {
   public void setBuffer(Buffer buffer) { this.buffer = buffer; }
   /** Sets the required byte alignment for the texture data. */
   public void setAlignment(int alignment) { this.alignment = alignment; }
+
+  /** Returns an estimate of the amount of memory in bytes this
+      TextureData will consume once uploaded to the graphics card. It
+      should only be treated as an estimate; most applications should
+      not need to query this but instead let the OpenGL implementation
+      page textures in and out as necessary. */
+  public int getEstimatedMemorySize() {
+    return estimatedMemorySize;
+  }
 
   /** Flushes resources associated with this TextureData by calling
       Flusher.flush(). */
@@ -508,5 +523,27 @@ public class TextureData {
     createNIOBufferFromImage(texImage, false);
     pixelFormat = hasAlpha ? GL.GL_RGBA : GL.GL_RGB;
     alignment = 1; // FIXME: do we need better?
+  }
+
+  private int estimatedMemorySize(Buffer buffer) {
+    if (buffer == null) {
+      return 0;
+    }
+    int capacity = buffer.capacity();
+    if (buffer instanceof ByteBuffer) {
+      return capacity;
+    } else if (buffer instanceof IntBuffer) {
+      return capacity * BufferUtil.SIZEOF_INT;
+    } else if (buffer instanceof FloatBuffer) {
+      return capacity * BufferUtil.SIZEOF_FLOAT;
+    } else if (buffer instanceof ShortBuffer) {
+      return capacity * BufferUtil.SIZEOF_SHORT;
+    } else if (buffer instanceof LongBuffer) {
+      return capacity * BufferUtil.SIZEOF_LONG;
+    } else if (buffer instanceof DoubleBuffer) {
+      return capacity * BufferUtil.SIZEOF_DOUBLE;
+    }
+    throw new RuntimeException("Unexpected buffer type " +
+                               buffer.getClass().getName());
   }
 }
