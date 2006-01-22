@@ -799,6 +799,8 @@
           <sysincludepath path="${java.includes.dir.platform}"/>
           <includepath path="stub_includes/opengl"/>
           <includepath path="stub_includes/cg" if="c.compiler.use-cglib"/>        
+          <!-- This must come last to not override real include paths -->
+          <!-- includepath path="stub_includes/macosx" if="isOSX" / -->
         </compiler>
 
         <linker extends="${linker.cfg.id}">
