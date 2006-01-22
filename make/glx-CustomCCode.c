@@ -26,18 +26,18 @@ Bool XF86VidModeGetGammaRamp(
     Display *display,
     int screen,
     int size,
-    unsigned short *red array,
-    unsigned short *green array,
-    unsigned short *blue array) {
+    unsigned short *red_array,
+    unsigned short *green_array,
+    unsigned short *blue_array) {
   return False;
 }
 Bool XF86VidModeSetGammaRamp(
     Display *display,
     int screen,
     int size,
-    unsigned short *red array,
-    unsigned short *green array,
-    unsigned short *blue array) {
+    unsigned short *red_array,
+    unsigned short *green_array,
+    unsigned short *blue_array) {
   return False;
 }
 #endif
