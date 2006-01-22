@@ -135,6 +135,20 @@ all Buffer types.<br>
 all non-direct Buffers.  Direct and non-direct buffers should never be mixed
 within an API call by an application.<br>
  
+<h4>Byte ordering of Buffers</h4>
+ When allocating a New I/O Buffer (in particular, a direct ByteBuffer)
+to be passed to the APIs in these packages, it is essential to set the
+<em>byte ordering</em> of the newly-allocated ByteBuffer to the
+<em>native</em> byte ordering of the platform:
+e.g. <code>ByteBuffer.allocateDirect(...).order(ByteOrder.nativeOrder());</code>.
+The byte order of the ByteBuffer indicates how multi-byte values such
+as int and float are stored in the Buffer either using methods like
+putInt and putFloat or views such as IntBuffer or FloatBuffer. The
+Java bindings perform no conversion or byte swapping on the outgoing
+data to OpenGL, and the native OpenGL implementation expects data in
+the host CPU's byte order, so it is essential to always match the byte
+order of the underlying platform when filling Buffers with data. <br>
+
 <h4>Auto-slicing of Buffers</h4>
  When a Buffer object is passed to an OpenGL function binding, the actual
 pointer argument that is passed down to the OpenGL C implementation is equal
