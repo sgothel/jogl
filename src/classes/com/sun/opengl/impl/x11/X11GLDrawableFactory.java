@@ -331,8 +331,11 @@ public class X11GLDrawableFactory extends GLDrawableFactoryImpl {
     } else {
       res[idx++] = GLX.GLX_RGBA;
     }
+    res[idx++] = GLX.GLX_DOUBLEBUFFER;
     if (caps.getDoubleBuffered()) {
-      res[idx++] = GLX.GLX_DOUBLEBUFFER;
+      res[idx++] = GL.GL_TRUE;
+    } else {
+      res[idx++] = GL.GL_FALSE;
     }
     if (caps.getStereo()) {
       res[idx++] = GLX.GLX_STEREO;
