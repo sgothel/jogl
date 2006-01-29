@@ -313,6 +313,12 @@ public class JOGLAppletLauncher extends Applet {
   }
 
 
+  /** Helper method to make it easier to call methods on the
+      sub-applet from JavaScript. */
+  public Applet getSubApplet() {
+    return subApplet;
+  }
+
   private boolean checkOSAndArch(String osName, String osArch) {
     for (int i = 0; i < allNativeLibInfo.length; i++) {
       NativeLibInfo info = allNativeLibInfo[i];
