@@ -365,6 +365,9 @@ CGGLDLL_API GLenum cgGLGetTextureEnum(CGparameter param);
 CGGLDLL_API void cgGLSetManageTextureParameters(CGcontext ctx, CGbool flag);
 CGGLDLL_API CGbool cgGLGetManageTextureParameters(CGcontext ctx);
 
+CGGLDLL_API void cgGLSetupSampler(CGparameter param, GLuint texobj);
+CGGLDLL_API void cgGLRegisterStates(CGcontext);
+
 #endif
 
 #ifdef __cplusplus

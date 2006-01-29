@@ -224,6 +224,7 @@ CGDLL_API void cgCompileProgram(CGprogram program);
 CGDLL_API CGbool cgIsProgramCompiled(CGprogram program); 
 CGDLL_API const char *cgGetProgramString(CGprogram prog, CGenum pname); 
 CGDLL_API CGprofile cgGetProgramProfile(CGprogram prog); 
+CGDLL_API char const * const *cgGetProgramOptions(CGprogram prog);
 CGDLL_API void cgSetProgramProfile(CGprogram prog, CGprofile profile);
 
 CGDLL_API void cgSetPassProgramParameters(CGprogram);

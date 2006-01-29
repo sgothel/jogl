@@ -343,5 +343,10 @@ CG_NON_NUMERIC_PARAMETER_ERROR=
                CG_NON_NUMERIC_PARAMETER_ERROR,
                "The parameter is not of a numeric type.")*/
 
+CG_ARRAY_SIZE_MISMATCH_ERROR=
+/*CG_ERROR_MACRO(*/53,/*
+               CG_ARRAY_SIZE_MISMATCH_ERROR,
+               "The specified array sizes are not compatible with the given array.")*/
+
 //#undef CG_ERROR_MACRO
 
