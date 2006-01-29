@@ -68,6 +68,15 @@ public class WindowsOnscreenGLDrawable extends WindowsGLDrawable {
   // addNotify() is called on the component.
   protected boolean realized;
 
+  private static final boolean PROFILING = Debug.debug("WindowsOnscreenGLDrawable.profiling");
+  private static final int PROFILING_TICKS = 200;
+  private int  profilingLockSurfaceTicks;
+  private long profilingLockSurfaceTime;
+  private int  profilingUnlockSurfaceTicks;
+  private long profilingUnlockSurfaceTime;
+  private int  profilingSwapBuffersTicks;
+  private long profilingSwapBuffersTime;
+
   public WindowsOnscreenGLDrawable(Component component,
                                    GLCapabilities capabilities,
                                    GLCapabilitiesChooser chooser) {
@@ -109,8 +118,25 @@ public class WindowsOnscreenGLDrawable extends WindowsGLDrawable {
       didLock = true;
     }
 
+    long startTime = 0;
+    if (PROFILING) {
+      startTime = System.currentTimeMillis();
+    }
+
     if (!WGL.SwapBuffers(hdc) && (WGL.GetLastError() != 0)) {
       throw new GLException("Error swapping buffers");
+    }
+
+    if (PROFILING) {
+      long endTime = System.currentTimeMillis();
+      profilingSwapBuffersTime += (endTime - startTime);
+      int ticks = PROFILING_TICKS;
+      if (++profilingSwapBuffersTicks == ticks) {
+        System.err.println("SwapBuffers calls: " + profilingSwapBuffersTime + " ms / " + ticks + "  calls (" +
+                           ((float) profilingSwapBuffersTime / (float) ticks) + " ms/call)");
+        profilingSwapBuffersTime = 0;
+        profilingSwapBuffersTicks = 0;
+      }
     }
 
     if (didLock) {
@@ -124,6 +150,10 @@ public class WindowsOnscreenGLDrawable extends WindowsGLDrawable {
     }
     if (hdc != 0) {
       throw new GLException("Surface already locked");
+    }
+    long startTime = 0;
+    if (PROFILING) {
+      startTime = System.currentTimeMillis();
     }
     ds = JAWT.getJAWT().GetDrawingSurface(component);
     if (ds == null) {
@@ -166,12 +196,27 @@ public class WindowsOnscreenGLDrawable extends WindowsGLDrawable {
     if (!pixelFormatChosen) {
       choosePixelFormat(true);
     }
+    if (PROFILING) {
+      long endTime = System.currentTimeMillis();
+      profilingLockSurfaceTime += (endTime - startTime);
+      int ticks = PROFILING_TICKS;
+      if (++profilingLockSurfaceTicks == ticks) {
+        System.err.println("LockSurface calls: " + profilingLockSurfaceTime + " ms / " + ticks + " calls (" +
+                           ((float) profilingLockSurfaceTime / (float) ticks) + " ms/call)");
+        profilingLockSurfaceTime = 0;
+        profilingLockSurfaceTicks = 0;
+      }
+    }
     return ret;
   }
 
   public void unlockSurface() {
     if (hdc == 0) {
       throw new GLException("Surface already unlocked");
+    }
+    long startTime = 0;
+    if (PROFILING) {
+      startTime = System.currentTimeMillis();
     }
     ds.FreeDrawingSurfaceInfo(dsi);
     ds.Unlock();
@@ -180,5 +225,16 @@ public class WindowsOnscreenGLDrawable extends WindowsGLDrawable {
     dsi = null;
     win32dsi = null;
     hdc = 0;
+    if (PROFILING) {
+      long endTime = System.currentTimeMillis();
+      profilingUnlockSurfaceTime += (endTime - startTime);
+      int ticks = PROFILING_TICKS;
+      if (++profilingUnlockSurfaceTicks == ticks) {
+        System.err.println("UnlockSurface calls: " + profilingUnlockSurfaceTime + " ms / " + ticks + " calls (" +
+                           ((float) profilingUnlockSurfaceTime / (float) ticks) + " ms/call)");
+        profilingUnlockSurfaceTime = 0;
+        profilingUnlockSurfaceTicks = 0;
+      }
+    }
   }
 }
