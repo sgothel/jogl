@@ -41,7 +41,7 @@
    -   win32.vc7
    -   win32.vc8
    -   win32.mingw:  build everything (jar, DSOs) for the current platform
-   -
+   -   
    - Optional properties:
    -   -Djogl.cg=1 when combined with the build or javadoc targets will cause
    -   the experimental binding to NVidia's Cg language to be built.
@@ -875,17 +875,37 @@
     <!--
        - Build the jogl.jar file.
       -->
-    <target name="jar" depends="java.compile">
-        <!-- Build the jar excluding any build specific classes. -->
-        <jar destfile="${jogl.jar}">
+    <target name="jar" depends="java.compile,cond-if-RImanifest,cond-else-RImanifest"/>
+
+    <target name="check-RIcond">
+      <condition property="RIcond-is-true">
+         <isset property="RImanifestfile"/>
+      </condition>
+    </target>
+
+    <target name="cond-if-RImanifest" depends="check-RIcond" if="RIcond-is-true">
+        <jar manifest="joglRIversion" destfile="${jogl.jar}">
             <fileset dir="${classes}">
                 <include name="javax/media/opengl/**" />
                 <include name="com/sun/gluegen/runtime/**" />
                 <include name="com/sun/opengl/**" />
             </fileset>
         </jar>
-
     </target>
+  
+ 
+    <target name="cond-else-RImanifest" depends="check-RIcond" unless="RIcond-is-true">
+        <jar manifest="joglversion" destfile="${jogl.jar}">
+            <fileset dir="${classes}">
+                <include name="javax/media/opengl/**" />
+                <include name="com/sun/gluegen/runtime/**" />
+                <include name="com/sun/opengl/**" />
+            </fileset>
+        </jar>
+    </target>
+   
+
+ 
 
     <!-- ================================================================== -->
     <!--
@@ -1090,7 +1110,7 @@
             <fileset dir="${jogl.dist.dir}" includes="jogl-natives-*.jar" />
         </delete>
         <delete file="${jogl.dist.dir}/jogl-src.zip" />
-        <jar destfile="${jogl.dist.dir}/jogl.jar" duplicate="preserve">
+        <jar manifest="joglversion" destfile="${jogl.dist.dir}/jogl.jar" duplicate="preserve">
 	    <zipgroupfileset dir="${jogl.dist.dir}"
 	                     includes="jogl-win32/*.jar, jogl-linux/*.jar, jogl-macosx/*.jar" />
         </jar>
@@ -1142,6 +1162,22 @@
         <antcall target="c.build.jogl" inheritRefs="true" />
     </target>
 
+
+    <!-- ================================================================== -->
+    <!--
+       - Build everything and use Sun's Implementation tag in the manifest to
+       - indicate this is the Reference Implementation.
+      -->
+    <target name="RI">
+        <!-- Set property for using the RI manifest file so jogl.jar is versioned
+           - properly
+          -->
+          <property name="RImanifestfile" value="joglRIversion" />
+          <antcall target="all" inheritRefs="true" />
+    </target>
+
+
+    
     <!-- ================================================================== -->
     <!--
        - Platform-specific targets intended both for backward compatibility as well
