@@ -48,8 +48,6 @@ import javax.media.opengl.glu.*;
 /** Utilities for taking screenshots of OpenGL applications. */
 
 public class Screenshot {
-  private static final int TARGA_HEADER_SIZE = 18;
-
   private Screenshot() {}
 
   /** 
@@ -98,38 +96,21 @@ public class Screenshot {
                                       int width,
                                       int height,
                                       boolean alpha) throws GLException, IOException {
-    RandomAccessFile out = new RandomAccessFile(file, "rw");
-    FileChannel ch = out.getChannel();
-    int pixelSize = (alpha ? 32 : 24);
-    int numChannels = (alpha ? 4 : 3);
-    int readbackType = (alpha ? GL.GL_ABGR_EXT : GL.GL_BGR);
     if (alpha) {
       checkExtABGR();
     }
 
-    int fileLength = TARGA_HEADER_SIZE + width * height * numChannels;
-    out.setLength(fileLength);
-    MappedByteBuffer image = ch.map(FileChannel.MapMode.READ_WRITE, 0, fileLength);
-
-    // write the TARGA header
-    image.put(0, (byte) 0).put(1, (byte) 0);
-    image.put(2, (byte) 2); // uncompressed type
-    image.put(12, (byte) (width & 0xFF)); // width
-    image.put(13, (byte) (width >> 8)); // width
-    image.put(14, (byte) (height & 0xFF)); // height
-    image.put(15, (byte) (height >> 8)); // height
-    image.put(16, (byte) pixelSize); // pixel size
-             
-    // go to image data position
-    image.position(TARGA_HEADER_SIZE);
-    // jogl needs a sliced buffer
-    ByteBuffer bgr = image.slice();
+    TGAWriter writer = new TGAWriter();
+    writer.open(file, width, height, alpha);
+    ByteBuffer bgr = writer.getImageData();
 
     GL gl = GLU.getCurrentGL();
 
     // Set up pixel storage modes
     PixelStorageModes psm = new PixelStorageModes();
     psm.save(gl);
+
+    int readbackType = (alpha ? GL.GL_ABGR_EXT : GL.GL_BGR);
 
     // read the BGR values into the image buffer
     gl.glReadPixels(0, 0, width, height, readbackType,
@@ -138,8 +119,8 @@ public class Screenshot {
     // Restore pixel storage modes
     psm.restore(gl);
 
-    // close the file channel
-    ch.close();
+    // close the file
+    writer.close();
   }
 
   /**
