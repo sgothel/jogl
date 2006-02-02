@@ -205,10 +205,11 @@ public class X11GLDrawableFactory extends GLDrawableFactoryImpl {
               int screen = 0; // FIXME: provide way to specify this?
 
               // Work around bugs in ATI's Linux drivers where they report they
-              // only implement GLX version 1.2 but actually do support pbuffers
+              // only implement GLX version 1.2 on the server side
               if (major[0] == 1 && minor[0] == 2) {
-                String str = GLX.glXQueryServerString(display, screen, GLX.GLX_VENDOR);
-                if (str != null && str.indexOf("ATI") >= 0) {
+                String str = GLX.glXGetClientString(display, GLX.GLX_VERSION);
+                if (str != null && str.startsWith("1.") &&
+		    (str.charAt(2) >= '3')) {
                   canCreateGLPbuffer = true;
                 }
               } else {
