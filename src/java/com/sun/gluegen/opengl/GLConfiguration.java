@@ -125,9 +125,14 @@ public class GLConfiguration extends ProcAddressConfiguration {
       // Need to generate appropriate prologue based on both buffer
       // object kind and whether this variant of the MethodBinding
       // is the one accepting a "long" as argument
-      if (res == null) {
-        res = new ArrayList();
+      //
+      // NOTE we MUST NOT mutate the array returned from the super
+      // call!
+      ArrayList res2 = new ArrayList();
+      if (res != null) {
+        res2.addAll(res);
       }
+      res = res2;
 
       String prologue = "check";
 
@@ -152,6 +157,17 @@ public class GLConfiguration extends ProcAddressConfiguration {
       prologue = prologue + "();";
 
       res.add(0, prologue);
+
+      // Must also filter out bogus rangeCheck directives for VBO/PBO
+      // variants
+      if (emitter.isBufferObjectMethodBinding(binding)) {
+        for (Iterator iter = res.iterator(); iter.hasNext(); ) {
+          String line = (String) iter.next();
+          if (line.indexOf("BufferFactory.rangeCheck") >= 0) {
+            iter.remove();
+          }
+        }
+      }
     }
 
     return res;
