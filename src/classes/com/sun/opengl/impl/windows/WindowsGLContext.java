@@ -129,7 +129,7 @@ public class WindowsGLContext extends GLContextImpl {
                               WGL.GetLastError());
       }
     }
-    GLContextShareSet.contextCreated(this);      
+    GLContextShareSet.contextCreated(this);
     if (DEBUG) {
       System.err.println(getThreadName() + ": !!! Created OpenGL context " + toHexString(hglrc) + " for " + this + ", device context " + toHexString(drawable.getHDC()) + ", sharing with " + toHexString(hglrc2));
     }

@@ -48,17 +48,30 @@ import javax.media.opengl.*;
     context creation as is inherent in the AWT and Swing. */
 
 public class GLContextShareSet {
+  private static boolean forceTracking = Debug.isPropertyDefined("jogl.glcontext.forcetracking");
+
   // This class is implemented with a WeakHashMap that goes from the
   // contexts as keys to a complex data structure as value that tracks
   // context creation and deletion.
 
-  private static Map/*<GLContext, WeakReference<ShareSet>>*/ shareMap = new WeakHashMap();
+  private static Map/*<GLContext, ShareSet>*/ shareMap = new WeakHashMap();
   private static Object dummyValue = new Object();
 
   private static class ShareSet {
     private Map allShares       = new WeakHashMap();
     private Map createdShares   = new WeakHashMap();
     private Map destroyedShares = new WeakHashMap();
+
+    // When the Java2D/OpenGL pipeline is active and using FBOs to
+    // render, we need to track the creation and destruction of
+    // server-side OpenGL objects among contexts sharing these objects
+    private GLObjectTracker tracker;
+
+    public ShareSet() {
+      if (isObjectTrackingEnabled()) {
+        tracker = new GLObjectTracker();
+      }
+    }
 
     public void add(GLContext ctx) {
       if (allShares.put(ctx, dummyValue) == null) {
@@ -98,23 +111,57 @@ public class GLContextShareSet {
       assert res == null : "State of ShareSet corrupted; thought context " +
         ctx + " shouldn't have been in destroyed set but was";
     }
+
+    public GLObjectTracker getObjectTracker() {
+      return tracker;
+    }
   }
 
+  private static boolean isObjectTrackingEnabled() {
+    return (Java2D.isOGLPipelineActive() && Java2D.isFBOEnabled());
+  }
+
+  /** Indicates to callers whether sharing must be registered even for
+      contexts which don't share textures and display lists with any
+      others. */
+  public static boolean isObjectTrackingDebuggingEnabled() {
+    return forceTracking;
+  }
 
   /** Indicate that contexts <code>share1</code> and
       <code>share2</code> will share textures and display lists. */
   public static synchronized void registerSharing(GLContext share1, GLContext share2) {
     ShareSet share = entryFor(share1);
-    if (share == null) {
+    if (share == null && (share2 != null)) {
       share = entryFor(share2);
     }
     if (share == null) {
       share = new ShareSet();
     }
     share.add(share1);
-    share.add(share2);
+    if (share2 != null) {
+      share.add(share2);
+    }
     addEntry(share1, share);
-    addEntry(share2, share);
+    if (share2 != null) {
+      addEntry(share2, share);
+    }
+    GLObjectTracker tracker = share.getObjectTracker();
+    if (tracker != null) {
+      // FIXME: downcast to GLContextImpl undesirable
+      GLContextImpl impl1 = (GLContextImpl) share1;
+      GLContextImpl impl2 = (GLContextImpl) share2;
+      if (impl1.getObjectTracker() == null) {
+        impl1.setObjectTracker(tracker);
+      }
+      if ((impl2 != null) && (impl2.getObjectTracker() == null)) {
+        impl2.setObjectTracker(tracker);
+      }
+      assert impl1.getObjectTracker() == tracker : "State of ShareSet corrupted; " +
+        "got different-than-expected GLObjectTracker for context 1";
+      assert (impl2 == null) || (impl2.getObjectTracker() == tracker) : "State of ShareSet corrupted; " +
+        "got different-than-expected GLObjectTracker for context 2";
+    }
   }
 
   public static synchronized GLContext getShareContext(GLContext contextToCreate) {

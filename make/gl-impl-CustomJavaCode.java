@@ -2,6 +2,11 @@
 // query Vertex Buffer Object state
 private boolean inBeginEndPair;
 
+// Tracks creation and destruction of server-side OpenGL objects when
+// the Java2D/OpenGL pipeline is enabled and it is using frame buffer
+// objects (FBOs) to do its rendering
+private GLObjectTracker tracker;
+
 public GLImpl(GLContextImpl context) {
   this._context = context; 
 }
@@ -35,6 +40,10 @@ public void setSwapInterval(int interval) {
 
 public Object getPlatformGLExtensions() {
   return _context.getPlatformGLExtensions();
+}
+
+public void setObjectTracker(GLObjectTracker tracker) {
+  this.tracker = tracker;
 }
 
 //

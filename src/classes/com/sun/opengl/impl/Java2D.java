@@ -52,6 +52,7 @@ public class Java2D {
   private static boolean DEBUG = Debug.debug("Java2D");
   private static boolean VERBOSE = Debug.verbose();
   private static boolean isOGLPipelineActive;
+  private static boolean isFBOEnabled;
   private static Method invokeWithOGLContextCurrentMethod;
   private static Method isQueueFlusherThreadMethod;
   private static Method getOGLViewportMethod;
@@ -110,6 +111,9 @@ public class Java2D {
                                                                         Graphics.class
                                                                       });
               getOGLSurfaceIdentifierMethod.setAccessible(true);
+
+              String fbo = System.getProperty("sun.java2d.opengl.fbobject");
+              isFBOEnabled = (fbo != null) && "true".equals(fbo);
             } catch (Exception e) {
               if (DEBUG && VERBOSE) {
                 e.printStackTrace();
@@ -128,6 +132,10 @@ public class Java2D {
 
   public static boolean isOGLPipelineActive() {
     return isOGLPipelineActive;
+  }
+
+  public static boolean isFBOEnabled() {
+    return isFBOEnabled;
   }
 
   public static boolean isQueueFlusherThread() {

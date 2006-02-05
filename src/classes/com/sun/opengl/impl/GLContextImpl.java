@@ -58,11 +58,15 @@ public abstract class GLContextImpl extends GLContext {
   // OpenGL functions.
   private GLProcAddressTable glProcAddressTable;
 
+  // Tracks creation and deletion of server-side OpenGL objects when
+  // the Java2D/OpenGL pipeline is active and using FBOs to render
+  private GLObjectTracker tracker;
+
   protected GL gl;
   public GLContextImpl(GLContext shareWith) {
     setGL(createGL());
     functionAvailability = new FunctionAvailabilityCache(this);
-    if (shareWith != null) {
+    if (shareWith != null || GLContextShareSet.isObjectTrackingDebuggingEnabled()) {
       GLContextShareSet.registerSharing(this, shareWith);
     }
   }
@@ -72,6 +76,11 @@ public abstract class GLContextImpl extends GLContext {
     int res = 0;
     try {
       res = makeCurrentImpl();
+      if ((tracker != null) &&
+          (res == CONTEXT_CURRENT_NEW)) {
+        // Increase reference count of GLObjectTracker
+        tracker.ref();
+      }
     } catch (GLException e) {
       lock.unlock();
       throw(e);
@@ -104,8 +113,27 @@ public abstract class GLContextImpl extends GLContext {
     if (lock.isHeld()) {
       throw new GLException("Can not destroy context while it is current");
     }
-    // Should we check the lock state? It should not be current on any
-    // thread.
+
+    if (tracker != null) {
+      // Don't need to do anything for contexts that haven't been
+      // created yet
+      if (isCreated()) {
+        // If we are tracking creation and destruction of server-side
+        // OpenGL objects, we must decrement the reference count of the
+        // GLObjectTracker upon context destruction.
+        int res = makeCurrent();
+        if (res != CONTEXT_CURRENT) {
+          // FIXME: we really need to behave better than this
+          throw new GLException("Unable to make context current to destroy tracked server-side OpenGL objects");
+        }
+        try {
+          tracker.unref(getGL());
+        } finally {
+          release();
+        }
+      }
+    }
+
     destroyImpl();
   }
 
@@ -135,7 +163,11 @@ public abstract class GLContextImpl extends GLContext {
 
   /** Create the GL for this context. */
   protected GL createGL() {
-    return new GLImpl(this);
+    GLImpl gl = new GLImpl(this);
+    if (tracker != null) {
+      gl.setObjectTracker(tracker);
+    }
+    return gl;
   }
   
   public GLProcAddressTable getGLProcAddressTable() {
@@ -266,5 +298,13 @@ public abstract class GLContextImpl extends GLContext {
 
   public static String toHexString(long hex) {
     return "0x" + Long.toHexString(hex);
+  }
+
+  public void setObjectTracker(GLObjectTracker tracker) {
+    this.tracker = tracker;
+  }
+  
+  public GLObjectTracker getObjectTracker() {
+    return tracker;
   }
 }
