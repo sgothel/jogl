@@ -62,17 +62,6 @@ public class GLContextShareSet {
     private Map createdShares   = new WeakHashMap();
     private Map destroyedShares = new WeakHashMap();
 
-    // When the Java2D/OpenGL pipeline is active and using FBOs to
-    // render, we need to track the creation and destruction of
-    // server-side OpenGL objects among contexts sharing these objects
-    private GLObjectTracker tracker;
-
-    public ShareSet() {
-      if (isObjectTrackingEnabled()) {
-        tracker = new GLObjectTracker();
-      }
-    }
-
     public void add(GLContext ctx) {
       if (allShares.put(ctx, dummyValue) == null) {
         // FIXME: downcast to GLContextImpl undesirable
@@ -111,57 +100,26 @@ public class GLContextShareSet {
       assert res == null : "State of ShareSet corrupted; thought context " +
         ctx + " shouldn't have been in destroyed set but was";
     }
-
-    public GLObjectTracker getObjectTracker() {
-      return tracker;
-    }
-  }
-
-  private static boolean isObjectTrackingEnabled() {
-    return (Java2D.isOGLPipelineActive() && Java2D.isFBOEnabled());
-  }
-
-  /** Indicates to callers whether sharing must be registered even for
-      contexts which don't share textures and display lists with any
-      others. */
-  public static boolean isObjectTrackingDebuggingEnabled() {
-    return forceTracking;
   }
 
   /** Indicate that contexts <code>share1</code> and
-      <code>share2</code> will share textures and display lists. */
+      <code>share2</code> will share textures and display lists. Both
+      must be non-null. */
   public static synchronized void registerSharing(GLContext share1, GLContext share2) {
+    if (share1 == null || share2 == null) {
+      throw new IllegalArgumentException("Both share1 and share2 must be non-null");
+    }
     ShareSet share = entryFor(share1);
-    if (share == null && (share2 != null)) {
+    if (share == null) {
       share = entryFor(share2);
     }
     if (share == null) {
       share = new ShareSet();
     }
     share.add(share1);
-    if (share2 != null) {
-      share.add(share2);
-    }
+    share.add(share2);
     addEntry(share1, share);
-    if (share2 != null) {
-      addEntry(share2, share);
-    }
-    GLObjectTracker tracker = share.getObjectTracker();
-    if (tracker != null) {
-      // FIXME: downcast to GLContextImpl undesirable
-      GLContextImpl impl1 = (GLContextImpl) share1;
-      GLContextImpl impl2 = (GLContextImpl) share2;
-      if (impl1.getObjectTracker() == null) {
-        impl1.setObjectTracker(tracker);
-      }
-      if ((impl2 != null) && (impl2.getObjectTracker() == null)) {
-        impl2.setObjectTracker(tracker);
-      }
-      assert impl1.getObjectTracker() == tracker : "State of ShareSet corrupted; " +
-        "got different-than-expected GLObjectTracker for context 1";
-      assert (impl2 == null) || (impl2.getObjectTracker() == tracker) : "State of ShareSet corrupted; " +
-        "got different-than-expected GLObjectTracker for context 2";
-    }
+    addEntry(share2, share);
   }
 
   public static synchronized GLContext getShareContext(GLContext contextToCreate) {
@@ -186,6 +144,49 @@ public class GLContextShareSet {
     }
   }
 
+  /** Indicates that the two supplied contexts (which must be able to
+      share textures and display lists) should be in the same
+      namespace for tracking of server-side object creation and
+      deletion. Because the sharing necessary behind the scenes is
+      different than that requested at the user level, the two notions
+      are different. This must be called immediately after the
+      creation of the new context (which is the second argument)
+      before any server-side OpenGL objects have been created in that
+      context. */
+  public static synchronized void registerForObjectTracking(GLContext olderContextOrNull,
+                                                            GLContext newContext) {
+    if (isObjectTrackingEnabled() || isObjectTrackingDebuggingEnabled()) {
+      if (olderContextOrNull != null &&
+          newContext != null) {
+        if (entryFor(olderContextOrNull) != entryFor(newContext)) {
+          throw new IllegalArgumentException("old and new contexts must be able to share textures and display lists");
+        }
+      }
+
+      // FIXME: downcast to GLContextImpl undesirable
+      GLContextImpl impl1 = (GLContextImpl) olderContextOrNull;
+      GLContextImpl impl2 = (GLContextImpl) newContext;
+      GLObjectTracker tracker = null;
+      // Don't share object trackers with the primordial share context from Java2D
+      GLContext j2dShareContext = Java2D.getShareContext();
+      if (impl1 != null && impl1 == j2dShareContext) {
+        impl1 = null;
+      }
+      if (impl1 != null) {
+        tracker = impl1.getObjectTracker();
+        assert (tracker != null)
+          : "registerForObjectTracking was not called properly for the older context";
+      }
+      if (tracker == null) {
+        tracker = new GLObjectTracker();
+      }
+      // Note that we don't assert that the tracker is non-null for
+      // impl2 because the way we use this functionality we actually
+      // overwrite the initially-set object tracker in the new context
+      impl2.setObjectTracker(tracker);
+    }
+  }
+
   //----------------------------------------------------------------------
   // Internals only below this point
   //
@@ -198,5 +199,14 @@ public class GLContextShareSet {
     if (shareMap.get(context) == null) {
       shareMap.put(context, share);
     }
+  }
+
+  private static boolean isObjectTrackingEnabled() {
+    return ((Java2D.isOGLPipelineActive() && Java2D.isFBOEnabled()) ||
+            isObjectTrackingDebuggingEnabled());
+  }
+
+  private static boolean isObjectTrackingDebuggingEnabled() {
+    return forceTracking;
   }
 }

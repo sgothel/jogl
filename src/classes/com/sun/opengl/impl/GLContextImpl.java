@@ -66,9 +66,11 @@ public abstract class GLContextImpl extends GLContext {
   public GLContextImpl(GLContext shareWith) {
     setGL(createGL());
     functionAvailability = new FunctionAvailabilityCache(this);
-    if (shareWith != null || GLContextShareSet.isObjectTrackingDebuggingEnabled()) {
-      GLContextShareSet.registerSharing(this, shareWith);
+    GLContext shareContext = Java2D.filterShareContext(shareWith);
+    if (shareContext != null) {
+      GLContextShareSet.registerSharing(this, shareContext);
     }
+    GLContextShareSet.registerForObjectTracking(shareWith, this);
   }
 
   public int makeCurrent() throws GLException {

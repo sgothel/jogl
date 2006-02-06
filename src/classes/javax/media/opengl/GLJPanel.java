@@ -80,6 +80,10 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
   private static final boolean DEBUG = Debug.debug("GLJPanel");
   private static final boolean VERBOSE = Debug.verbose();
 
+  // FIXME: remove these once debugging is done
+  private static final boolean HACK1 = Debug.debug("GLJPanel.hack1");
+  private static final boolean HACK2 = Debug.debug("GLJPanel.hack2");
+
   private GLDrawableHelper drawableHelper = new GLDrawableHelper();
   private volatile boolean isInitialized;
   private volatile boolean shouldInitialize = false;
@@ -159,10 +163,22 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
   // properly render into Java2D back buffer
   private int[] drawBuffer   = new int[1];
   private int[] readBuffer   = new int[1];
+  // This is required when the FBO option of the Java2D / OpenGL
+  // pipeline is active
+  private int[] frameBuffer  = new int[1];
   // These are always set to (0, 0) except when the Java2D / OpenGL
   // pipeline is active
   private int   viewportX;
   private int   viewportY;
+
+  static {
+    // Force eager initialization of part of the Java2D class since
+    // otherwise it's likely it will try to be initialized while on
+    // the Queue Flusher Thread, which is not allowed
+    if (Java2D.isOGLPipelineActive() && Java2D.isFBOEnabled()) {
+      Java2D.getShareContext();
+    }
+  }
 
   /** Creates a new GLJPanel component with a default set of OpenGL
       capabilities and using the default OpenGL capabilities selection
@@ -220,6 +236,9 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
   private void captureJ2DState(GL gl) {
     gl.glGetIntegerv(GL.GL_DRAW_BUFFER, drawBuffer, 0);
     gl.glGetIntegerv(GL.GL_READ_BUFFER, readBuffer, 0);
+    if (Java2D.isFBOEnabled()) {
+      gl.glGetIntegerv(GL.GL_FRAMEBUFFER_BINDING_EXT, frameBuffer, 0);
+    }
   }
 
   private boolean preGL(Graphics g) {
@@ -249,6 +268,22 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
 
     gl.glDrawBuffer(drawBuffer[0]);
     gl.glReadBuffer(readBuffer[0]);
+
+    // If the FBO option is active, bind to the FBO from the Java2D
+    // context.
+    // Note that all of the plumbing in the context sharing stuff will
+    // allow us to bind to this object since it's in our namespace.
+    if (Java2D.isFBOEnabled()) {
+      if (DEBUG && VERBOSE) {
+        System.err.println("Binding to framebuffer object " + frameBuffer[0]);
+      }
+
+      gl.glBindTexture(GL.GL_TEXTURE_2D, 0);
+      gl.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, frameBuffer[0]);
+      // FIXME: do we need to do anything else? Bind Texture2D state
+      // or something else?
+    }
+
     return true;
   }
 
@@ -346,6 +381,28 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
                   joglDrawable = GLDrawableFactory.getFactory().createExternalGLDrawable();
                   joglContext = joglDrawable.createContext(shareWith);
                 }
+
+                // FIXME: remove these once debugging is done
+                if (HACK1) {
+                  // Skip all GLContext manipulation This fixes the
+                  // display of the icons and text (done with Java2D)
+                  // in the JGears demo when FBO is active
+                  return;
+                }
+                if (HACK2) {
+                  // Do a little GLContext manipulation but skip all
+                  // FBO-related manipulation and other stuff (as well
+                  // as the user rendering).
+
+                  // Note that the icons and text in the JGears demo
+                  // disappear when this flag is used, so clearly any
+                  // OpenGL context manipulation is messing up the
+                  // Java2D context state when FBO is active.
+                  joglContext.makeCurrent();
+                  joglContext.release();
+                  return;
+                }
+
                 drawableHelper.invokeGL(joglDrawable, joglContext, displayAction, initAction);
               }
             } finally {

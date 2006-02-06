@@ -40,6 +40,7 @@
 package com.sun.opengl.impl;
 
 import java.awt.*;
+import java.awt.image.*;
 import java.lang.reflect.*;
 import java.security.*;
 
@@ -58,6 +59,18 @@ public class Java2D {
   private static Method getOGLViewportMethod;
   private static Method getOGLScissorBoxMethod;
   private static Method getOGLSurfaceIdentifierMethod;
+
+  // If FBOs are enabled in the Java2D/OpenGL pipeline, all contexts
+  // created by JOGL must share textures and display lists with the
+  // Java2D contexts in order to access the frame buffer object for
+  // potential rendering, and to simultaneously support sharing of
+  // textures and display lists with one another. Java2D has the
+  // notion of a single shared context with which all other contexts
+  // (on the same display device?) share textures and display lists;
+  // this is an approximation to that notion which will be refined
+  // later.
+  private static VolatileImage j2dFBOVolatileImage; // just a dummy image
+  private static GLContext j2dFBOShareContext;
 
   static {
     AccessController.doPrivileged(new PrivilegedAction() {
@@ -174,6 +187,12 @@ public class Java2D {
     }
   }
 
+  /** Returns the OpenGL viewport associated with the given Graphics
+      object, assuming that the Graphics object is associated with a
+      component of the specified width and height. The user should
+      call glViewport() with the returned rectangle's bounds in order
+      to get correct rendering results. Should only be called from the
+      Queue Flusher Thread. */
   public static Rectangle getOGLViewport(Graphics g,
                                          int componentWidth,
                                          int componentHeight) {
@@ -192,6 +211,12 @@ public class Java2D {
     }
   }
 
+  /** Returns the OpenGL scissor region associated with the given
+      Graphics object, taking into account all clipping regions, etc.
+      To avoid destroying Java2D's previous rendering results, this
+      method should be called and the resulting rectangle's bounds
+      passed to a call to glScissor(). Should only be called from the
+      Queue Flusher Thread. */
   public static Rectangle getOGLScissorBox(Graphics g) {
     if (!isOGLPipelineActive()) {
       throw new GLException("Java2D OpenGL pipeline not active (or necessary support not present)");
@@ -206,7 +231,12 @@ public class Java2D {
     }
   }
 
-
+  /** Returns an opaque "surface identifier" associated with the given
+      Graphics object. If this changes from invocation to invocation,
+      the underlying OpenGL drawable for the Graphics object has
+      changed and a new external GLDrawable and GLContext should be
+      created (and the old ones destroyed). Should only be called from
+      the Queue Flusher Thread.*/
   public static Object getOGLSurfaceIdentifier(Graphics g) {
     if (!isOGLPipelineActive()) {
       throw new GLException("Java2D OpenGL pipeline not active (or necessary support not present)");
@@ -218,6 +248,78 @@ public class Java2D {
       throw new GLException(e.getTargetException());
     } catch (Exception e) {
       throw (InternalError) new InternalError().initCause(e);
+    }
+  }
+
+  /** Returns either the given GLContext or a substitute one with
+      which clients should share textures and display lists. Needed
+      when the Java2D/OpenGL pipeline is active and FBOs are being
+      used for rendering. FIXME: may need to alter the API in the
+      future to indicate which GraphicsDevice the source context is
+      associated with. */
+  public static GLContext filterShareContext(GLContext shareContext) {
+    initFBOShareContext();
+    if (j2dFBOShareContext != null) {
+      return j2dFBOShareContext;
+    }
+    return shareContext;
+  }
+
+  /** Returns the GLContext associated with the Java2D "share
+      context", with which all contexts created by JOGL must share
+      textures and display lists when the FBO option is enabled for
+      the Java2D/OpenGL pipeline. */
+  public static GLContext getShareContext() {
+    initFBOShareContext();
+    return j2dFBOShareContext;
+  }
+
+  //----------------------------------------------------------------------
+  // Internals only below this point
+  //
+
+  private static void initFBOShareContext() {
+    // Note 1: this must not be done in the static initalizer due to
+    // deadlock problems.
+
+    // Note 2: the first execution of this method must not be from the
+    // Java2D Queue Flusher Thread.
+
+    // Note that at this point it's basically impossible that we're
+    // executing on the Queue Flusher Thread since all calls (even
+    // from end users) should be going through this interface and
+    // we're still in the static initializer
+    if (isOGLPipelineActive() &&
+        isFBOEnabled() &&
+        j2dFBOVolatileImage == null) {
+      // Create a compatible VolatileImage (FIXME: may need one per
+      // display device, and may need to create them lazily, which may
+      // cause problems) and create a JOGL GLContext to wrap its
+      // GLContext.
+      //
+      // FIXME: this technique is not really adequate. The
+      // VolatileImage may be punted at any time, meaning that its
+      // OpenGL context will be destroyed and any shares of
+      // server-side objects with it will be gone. This context is
+      // currently the "pinch point" through which all of the shares
+      // with the set of contexts created by JOGL go through. Java2D
+      // has the notion of its own share context with which all of the
+      // contexts it creates internally share server-side objects;
+      // what is really needed is another API in OGLUtilities to
+      // invoke a Runnable with that share context current rather than
+      // the context associated with a particular Graphics object, so
+      // that JOGL can grab a handle to that persistent context.
+      j2dFBOVolatileImage =
+        GraphicsEnvironment.
+          getLocalGraphicsEnvironment().
+          getDefaultScreenDevice().
+          getDefaultConfiguration().
+          createCompatibleVolatileImage(2, 2);
+      invokeWithOGLContextCurrent(j2dFBOVolatileImage.getGraphics(), new Runnable() {
+          public void run() {
+            j2dFBOShareContext = GLDrawableFactory.getFactory().createExternalGLContext();
+          }
+        });
     }
   }
 }
