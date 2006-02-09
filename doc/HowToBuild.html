@@ -12,8 +12,9 @@ Here are the steps that are required in order to build the JOGL
 OpenGL binding from a fresh copy of the source distribution:
 
 <OL>
-  <LI> <B>Install Ant:</B> <br> Download and unpack Ant 1.6.1 or later from <a href="http://ant.apache.org/">http://ant.apache.org</a> and add the <code>bin/</code> subdirectory to your PATH environment variable. (Later versions of Ant should work; 1.6.2 has been tested successfully.)
-  <LI> <B>Install ANTLR:</B> <br> Download and unpack ANTLR 2.7.2 from <a href="http://www.antlr.org">http://www.antlr.org</a>. (Later versions of ANTLR should work; ANTLR 2.7.3 has been tested successfully.)
+  <LI> <B>Install the JDK:</B> <br> the JOGL build requires JDK 1.4.2 or later. On AMD64 platforms such as Linux/AMD64, Solaris/AMD64 and Windows/AMD64, the build requires the Sun JDK 5.0 or later, as the 1.4.2 releases did not have an AMD64-specific JVM. On these platforms, it is also currently necessary to have e.g. <code>bin/amd64/java</code> in your PATH, although from a technical standpoint this could be worked around in the build process.
+  <LI> <B>Install Ant:</B> <br> Download and unpack the latest version of Ant from <a href="http://ant.apache.org/">http://ant.apache.org</a> and add the <code>bin/</code> subdirectory to your PATH environment variable.
+  <LI> <B>Install ANTLR:</B> <br> Download and unpack the latest version of ANTLR from <a href="http://www.antlr.org">http://www.antlr.org</a>. Only the jar file is needed.
 
   <LI> <B>Unset your CLASSPATH environment variable:</B> <br> The Ant build requires that the JOGL jars not be visible on the classpath. On Unix, type <code> unsetenv CLASSPATH </code> into a csh or tcsh shell, or <code> unset CLASSPATH </code> into a Bourne shell. On Windows, type <code> set CLASSPATH= </code> into a command prompt.
 
