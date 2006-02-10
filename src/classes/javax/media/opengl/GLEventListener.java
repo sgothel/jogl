@@ -76,8 +76,7 @@ public interface GLEventListener extends EventListener {
 
   /** Called by the drawable when the display mode or the display device
       associated with the GLAutoDrawable has changed. The two boolean parameters
-      indicate the types of change(s) that have occurred. (<b> !!! CURRENTLY
-      UNIMPLEMENTED !!! </b>)
+      indicate the types of change(s) that have occurred. 
       <P>
 
       An example of a display <i>mode</i> change is when the bit depth changes (e.g.,
@@ -90,10 +89,13 @@ public interface GLEventListener extends EventListener {
 
       The reason that this function handles both types of changes (instead of
       handling mode and device changes in separate methods) is so that
-      applications have the opportunity to respond to display changes the most
+      applications have the opportunity to respond to display changes in the most
       efficient manner. For example, the application may need make fewer
       adjustments to compensate for a device change if it knows that the mode
-      on the new device is identical the previous mode.
+      on the new device is identical the previous mode.<p>
+
+      <b>NOTE: Implementations are not required to implement this method.  The
+        Reference Implementation DOES NOT IMPLEMENT this method.</b>
   */
   public void displayChanged(GLAutoDrawable drawable, boolean modeChanged, boolean deviceChanged);
 }

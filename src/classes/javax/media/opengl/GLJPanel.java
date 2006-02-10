@@ -56,10 +56,16 @@ import com.sun.opengl.impl.*;
 /** A lightweight Swing component which provides OpenGL rendering
     support. Provided for compatibility with Swing user interfaces
     when adding a heavyweight doesn't work either because of
-    Z-ordering or LayoutManager problems. This component attempts to
-    use hardware-accelerated rendering via pbuffers and falls back on
-    to software rendering if problems occur. <P>
+    Z-ordering or LayoutManager problems. <P>
 
+    The GLJPanel can be made transparent by creating it with a
+    GLCapabilities object with alpha bits specified and calling {@link
+    #setOpaque}(false). Pixels with resulting OpenGL alpha values less
+    than 1.0 will be overlaid on any underlying Swing rendering. <P>
+
+    Notes specific to the Reference Implementation: This component 
+    attempts to use hardware-accelerated rendering via pbuffers and 
+    falls back on to software rendering if problems occur. 
     Note that because this component attempts to use pbuffers for
     rendering, and because pbuffers can not be resized, somewhat
     surprising behavior may occur during resize operations; the {@link
@@ -70,10 +76,6 @@ import com.sun.opengl.impl.*;
     application should attempt to make its GLEventListener.init()
     methods as side-effect-free as possible. <P>
 
-    The GLJPanel can be made transparent by creating it with a
-    GLCapabilities object with alpha bits specified and calling {@link
-    #setOpaque}(false). Pixels with resulting OpenGL alpha values less
-    than 1.0 will be overlaid on any underlying Swing rendering.
 */
 
 public class GLJPanel extends JPanel implements GLAutoDrawable {

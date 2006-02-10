@@ -45,7 +45,7 @@ package javax.media.opengl;
     contains experimental methods for accessing the pbuffer's contents
     as a texture map and enabling rendering to floating-point frame
     buffers. These methods are not guaranteed to be supported on all
-    platforms and may change or be removed in a future release. */
+    platforms and may be deprecated in a future release. */
 
 public interface GLPbuffer extends GLAutoDrawable {
   /** Indicates the GL_APPLE_float_pixels extension is being used for this pbuffer. */
