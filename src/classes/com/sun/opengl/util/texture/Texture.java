@@ -347,10 +347,18 @@ public class Texture {
     }
 
     if (data.getMipmap()) {
-      GLU glu = new GLU();
-      glu.gluBuild2DMipmaps(newTarget, data.getInternalFormat(),
-                            data.getWidth(), data.getHeight(),
-                            data.getPixelFormat(), data.getPixelType(), data.getBuffer());
+      int[] align = new int[1];
+      gl.glGetIntegerv(GL.GL_UNPACK_ALIGNMENT, align, 0); // save alignment
+      gl.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, data.getAlignment());
+
+      try {
+        GLU glu = new GLU();
+        glu.gluBuild2DMipmaps(newTarget, data.getInternalFormat(),
+                              data.getWidth(), data.getHeight(),
+                              data.getPixelFormat(), data.getPixelType(), data.getBuffer());
+      } finally {
+        gl.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, align[0]); // restore align
+      }
     } else {
       gl.glTexImage2D(newTarget, 0, data.getInternalFormat(),
                       texWidth, texHeight, data.getBorder(),
