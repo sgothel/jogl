@@ -261,6 +261,10 @@ public class X11GLDrawableFactory extends GLDrawableFactoryImpl {
     return new X11ExternalGLDrawable();
   }
 
+  public void loadGLULibrary() {
+    GLX.dlopen("/usr/lib/libGLU.so");
+  }
+
   public long dynamicLookupFunction(String glFuncName) {
     long res = 0;
     if (!isLinuxAMD64) {

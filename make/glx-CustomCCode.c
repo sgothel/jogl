@@ -51,6 +51,17 @@ JNIEXPORT jlong JNICALL
 Java_com_sun_opengl_impl_x11_GLX_RootWindow(JNIEnv *env, jclass _unused, jlong display, jint screen) {
   return RootWindow((Display*) (intptr_t) display, screen);
 }
+
+JNIEXPORT jlong JNICALL 
+Java_com_sun_opengl_impl_x11_GLX_dlopen(JNIEnv *env, jclass _unused, jstring name) {
+  const jbyte* chars;
+  void* res;
+  chars = (*env)->GetStringUTFChars(env, name, NULL);
+  res = dlopen(chars, RTLD_LAZY | RTLD_GLOBAL);
+  (*env)->ReleaseStringUTFChars(env, name, chars);
+  return (jlong) ((intptr_t) res);
+}
+
 JNIEXPORT jlong JNICALL 
 Java_com_sun_opengl_impl_x11_GLX_dlsym(JNIEnv *env, jclass _unused, jstring name) {
   const jbyte* chars;

@@ -1432,12 +1432,23 @@ public int gluScaleImage(int format, int wIn, int hIn, int typeIn, java.nio.Buff
 //
 
 private static GLUProcAddressTable gluProcAddressTable;
+private static volatile boolean gluLibraryLoaded;
 
 private static GLUProcAddressTable getGLUProcAddressTable() {
+  if (!gluLibraryLoaded) {
+    loadGLULibrary();
+  }
   if (gluProcAddressTable == null) {
     GLUProcAddressTable tmp = new GLUProcAddressTable();
     ProcAddressHelper.resetProcAddressTable(tmp, GLDrawableFactoryImpl.getFactoryImpl());
     gluProcAddressTable = tmp;
   }
   return gluProcAddressTable;
+}
+
+private static synchronized void loadGLULibrary() {
+  if (!gluLibraryLoaded) {
+    GLDrawableFactoryImpl.getFactoryImpl().loadGLULibrary();
+    gluLibraryLoaded = true;
+  }
 }

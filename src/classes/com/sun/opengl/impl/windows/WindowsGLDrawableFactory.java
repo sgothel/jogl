@@ -173,17 +173,22 @@ public class WindowsGLDrawableFactory extends GLDrawableFactoryImpl {
     return new WindowsExternalGLDrawable();
   }
 
+  public void loadGLULibrary() {
+    if (hglu32 == 0) {
+      hglu32 = WGL.LoadLibraryA("GLU32");
+      if (hglu32 == 0) {
+        throw new GLException("Error loading GLU32.DLL");
+      }
+    }
+  }
+
   public long dynamicLookupFunction(String glFuncName) {
     long res = WGL.wglGetProcAddress(glFuncName);
     if (res == 0) {
       // GLU routines aren't known to the OpenGL function lookup
-      if (hglu32 == 0) {
-        hglu32 = WGL.LoadLibraryA("GLU32");
-        if (hglu32 == 0) {
-          throw new GLException("Error loading GLU32.DLL");
-        }
+      if (hglu32 != 0) {
+        res = WGL.GetProcAddress(hglu32, glFuncName);
       }
-      res = WGL.GetProcAddress(hglu32, glFuncName);
     }
     return res;
   }

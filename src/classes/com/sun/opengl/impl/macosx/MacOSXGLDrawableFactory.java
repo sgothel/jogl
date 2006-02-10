@@ -118,6 +118,11 @@ public class MacOSXGLDrawableFactory extends GLDrawableFactoryImpl {
     throw new GLException("Not yet implemented");
   }
 
+  public void loadGLULibrary() {
+    // Nothing to do; already loaded by native code; not much point in
+    // making it lazier on this platform
+  }
+
   public long dynamicLookupFunction(String glFuncName) {
     return CGL.getProcAddress(glFuncName);
   }

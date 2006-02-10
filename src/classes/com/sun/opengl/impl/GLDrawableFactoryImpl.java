@@ -75,6 +75,11 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory implements
     return (GLDrawableFactoryImpl) getFactory();
   }
 
+  // Helper function for more lazily loading the GLU library;
+  // apparently can't use System.loadLibrary on UNIX because it uses
+  // RTLD_LOCAL and we need to call dlsym(RTLD_DEFAULT)
+  public abstract void loadGLULibrary();
+
   //----------------------------------------------------------------------
   // Gamma adjustment support
   // Thanks to the LWJGL team for illustrating how to make these

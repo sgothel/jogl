@@ -701,19 +701,19 @@
       <!-- linker configuration -->
  
       <linker id="linker.cfg.linux" name="gcc">
-        <syslibset dir="/usr/X11R6/lib" libs="GL, GLU, X11"/>
+        <syslibset dir="/usr/X11R6/lib" libs="GL, X11"/>
         <syslibset dir="/usr/X11R6/lib" libs="Xxf86vm" />
         <syslibset dir="${x11.cg.lib}" libs="Cg, CgGL" if="c.compiler.use-cglib"/>
       </linker>
 
       <linker id="linker.cfg.linux.amd64" name="gcc">
-        <syslibset dir="/usr/X11R6/lib64" libs="GL, GLU, X11"/>
+        <syslibset dir="/usr/X11R6/lib64" libs="GL, X11"/>
         <syslibset dir="/usr/X11R6/lib64" libs="Xxf86vm" />
         <syslibset dir="${x11.cg.lib}" libs="Cg, CgGL" if="c.compiler.use-cglib"/>
       </linker>
 
       <linker id="linker.cfg.solaris" name="suncc">
-        <syslibset libs="GL, GLU, X11"/>
+        <syslibset libs="GL, X11"/>
       </linker>
 
       <linker id="linker.cfg.win32.mingw" name="gcc" incremental="false">
@@ -727,7 +727,7 @@
         <linkerarg value="/SUBSYSTEM:WINDOWS" />  <!-- output is not a console app as uses WinMain entry point -->
         <linkerarg value="/MACHINE:IX86" />       <!-- explicity set target platform -->
 
-        <syslibset libs="opengl32, glu32, gdi32, user32, kernel32" />
+        <syslibset libs="opengl32, gdi32, user32, kernel32" />
         
         <syslibset dir="${windows.cg.lib}" libs="cg, cgGL" if="c.compiler.use-cglib"/>
       </linker>
