@@ -114,6 +114,14 @@ public class X11GLDrawableFactory extends GLDrawableFactoryImpl {
     try {
       long display = getDisplayConnection();
       XVisualInfo recommendedVis = GLX.glXChooseVisual(display, screen, attribs, 0);
+      if (DEBUG) {
+        System.err.print("!!! glXChooseVisual recommended ");
+        if (recommendedVis == null) {
+          System.err.println("null visual");
+        } else {
+          System.err.println("visual id 0x" + Long.toHexString(recommendedVis.visualid()));
+        }
+      }
       int[] count = new int[1];
       XVisualInfo template = XVisualInfo.create();
       template.screen(screen);
@@ -194,6 +202,8 @@ public class X11GLDrawableFactory extends GLDrawableFactoryImpl {
             try {
               int[] major = new int[1];
               int[] minor = new int[1];
+              int screen = 0; // FIXME: provide way to specify this?
+
               if (!GLX.glXQueryVersion(display, major, 0, minor, 0)) {
                 throw new GLException("glXQueryVersion failed");
               }
@@ -201,8 +211,6 @@ public class X11GLDrawableFactory extends GLDrawableFactoryImpl {
                 System.err.println("!!! GLX version: major " + major[0] +
                                    ", minor " + minor[0]);
               }
-
-              int screen = 0; // FIXME: provide way to specify this?
 
               // Work around bugs in ATI's Linux drivers where they report they
               // only implement GLX version 1.2 on the server side
@@ -419,6 +427,18 @@ public class X11GLDrawableFactory extends GLDrawableFactoryImpl {
       getX11Factory().lockToolkit();
       try {
         staticDisplay = GLX.XOpenDisplay(null);
+        if (DEBUG && (staticDisplay != 0)) {
+          long display = staticDisplay;
+          int screen = 0; // FIXME
+          System.err.println("!!! GLX server vendor : " +
+                             GLX.glXQueryServerString(display, screen, GLX.GLX_VENDOR));
+          System.err.println("!!! GLX server version: " +
+                             GLX.glXQueryServerString(display, screen, GLX.GLX_VERSION));
+          System.err.println("!!! GLX client vendor : " +
+                             GLX.glXGetClientString(display, GLX.GLX_VENDOR));
+          System.err.println("!!! GLX client version: " +
+                             GLX.glXGetClientString(display, GLX.GLX_VERSION));
+        }
       } finally {
         getX11Factory().unlockToolkit();
       }

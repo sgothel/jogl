@@ -104,6 +104,11 @@ public abstract class X11GLDrawable extends GLDrawableImpl {
       if (infos == null || infos.length == 0) {
         throw new GLException("Error while getting XVisualInfo for visual ID " + visualID);
       }
+      if (DEBUG) {
+        System.err.println("!!! Fetched XVisualInfo for visual ID 0x" + Long.toHexString(visualID));
+        System.err.println("!!! Resulting XVisualInfo: visualid = 0x" + Long.toHexString(infos[0].visualid()));
+      }
+
       // FIXME: the storage for the infos array is leaked (should
       // clean it up somehow when we're done with the visual we're
       // returning)
