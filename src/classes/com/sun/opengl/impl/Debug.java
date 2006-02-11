@@ -40,7 +40,6 @@
 package com.sun.opengl.impl;
 
 import java.security.*;
-import com.sun.opengl.util.Version;
 
 /** Helper routines for logging and debugging. */
 
@@ -53,7 +52,10 @@ public class Debug {
     verbose = isPropertyDefined("jogl.verbose");
     debugAll = isPropertyDefined("jogl.debug");
     if (verbose) {
-      System.err.println("JOGL version " + Version.getVersion());
+       Package p = Package.getPackage("javax.media.opengl");
+       System.err.println("JOGL specification version " + p.getSpecificationVersion());
+       System.err.println("JOGL implementation version " + p.getImplementationVersion());
+       System.err.println("JOGL implementation vendor " + p.getImplementationVendor());
     }
   }
 

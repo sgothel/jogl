@@ -1,8 +1,8 @@
 Specification-Title: Java Bindings for OpenGL API Specification
-Specification-Version: 1.0
+Specification-Version: 1.0 Public Review plus
 Specification-Vendor: Sun Microsystems, Inc.
 Implementation-Title: Java Bindings for OpenGL Runtime Environment
-Implementation-Version: 1.0 Beta2
+Implementation-Version: 1.0 Beta2 plus
 Implementation-Vendor: java.net JOGL community
 Extension-Name: javax.media.opengl
 Implementation-Vendor-Id: com.sun
