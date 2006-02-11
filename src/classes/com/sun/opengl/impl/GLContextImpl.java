@@ -64,9 +64,16 @@ public abstract class GLContextImpl extends GLContext {
 
   protected GL gl;
   public GLContextImpl(GLContext shareWith) {
+    this(shareWith, false);
+  }
+
+  public GLContextImpl(GLContext shareWith, boolean dontShareWithJava2D) {
     setGL(createGL());
     functionAvailability = new FunctionAvailabilityCache(this);
-    GLContext shareContext = Java2D.filterShareContext(shareWith);
+    GLContext shareContext = shareWith;
+    if (!dontShareWithJava2D) {
+      shareContext = Java2D.filterShareContext(shareWith);
+    }
     if (shareContext != null) {
       GLContextShareSet.registerSharing(this, shareContext);
     }

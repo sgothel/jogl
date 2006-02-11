@@ -49,7 +49,7 @@ public class WindowsExternalGLContext extends WindowsGLContext {
   private boolean created = true;
 
   public WindowsExternalGLContext() {
-    super(null, null);
+    super(null, null, true);
     hglrc = WGL.wglGetCurrentContext();
     if (hglrc == 0) {
       throw new GLException("Error: attempted to make an external GLContext without a drawable/context current");

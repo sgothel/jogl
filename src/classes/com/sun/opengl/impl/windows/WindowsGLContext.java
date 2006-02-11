@@ -68,7 +68,13 @@ public class WindowsGLContext extends GLContextImpl {
 
   public WindowsGLContext(WindowsGLDrawable drawable,
                           GLContext shareWith) {
-    super(shareWith);
+    this(drawable, shareWith, false);
+  }
+
+  public WindowsGLContext(WindowsGLDrawable drawable,
+                          GLContext shareWith,
+                          boolean dontShareWithJava2D) {
+    super(shareWith, dontShareWithJava2D);
     this.drawable = drawable;
   }
   

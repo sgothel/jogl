@@ -143,9 +143,6 @@
         <property name="src.generated.java.cg" value="${src.generated}/classes/com/sun/opengl/cg" />
         <property name="src.generated.c" value="${src.generated}/native/jogl" />
         <property name="src.generated.c.cg" value="${src.generated}/native/jogl_cg" />
-        <!-- The composable pipeline source files -->
-        <property name="src.generated.java.pipeline"
-                  value="javax/media/opengl/DebugGL.java,javax/media/opengl/TraceGL.java" />
         
         <!-- The compiler output directories. -->
         <property name="classes" value="${build}/classes" />
@@ -584,34 +581,27 @@
     <!-- 
        - Build and dependency rules for the composable pipeline
       -->
-    <target name="java.compile.composable.pipeline.check">
+    <target name="java.generate.composable.pipeline.check">
         <!-- Blow away the DebugGL.java and TraceGL.java sources if GL.class has changed
              (the uptodate element doesn't support arbitrary source and destination files) -->
         <dependset>
             <srcfilelist dir="${classes}/javax/media/opengl" files="GL.class" />
-            <srcfilelist dir="${classes}/com/sun/gluegen/opengl" files="BuildComposablePipeline.class" />
             <targetfileset dir="${src.generated.java}/javax/media/opengl"
                            includes="DebugGL.java,TraceGL.java" />
         </dependset>
                            
         <!-- Now choose one of the two to test to see if we have to regenerate -->
-        <uptodate property="java.compile.composable.pipeline.skip"
+        <uptodate property="java.generate.composable.pipeline.skip"
                   srcfile="${classes}/javax/media/opengl/GL.class"
                   targetfile="${src.generated.java}/javax/media/opengl/DebugGL.java" />
     </target>        
 
-    <target name="java.compile.composable.pipeline" depends="java.compile.composable.pipeline.check" unless="java.compile.composable.pipeline.skip">
-        <java classname="com.sun.gluegen.opengl.BuildComposablePipeline" fork="yes" failonerror="true">
+    <target name="java.generate.composable.pipeline" depends="java.generate.composable.pipeline.check" unless="java.generate.composable.pipeline.skip">
+        <java classname="com.sun.gluegen.opengl.BuildComposablePipeline" fork="no" failonerror="true">
             <arg value="javax.media.opengl.GL" />
             <arg value="${src.generated.java}/javax/media/opengl" />
             <classpath refid="pipeline.classpath" />
         </java>
-
-        <!-- Perform the second pass Java compile which compiles the composable pipelines. -->
-        <javac destdir="${classes}" includes="${src.generated.java.pipeline}" source="1.4" debug="true" debuglevel="source,lines">
-            <src path="${src.java}" />
-            <src path="${src.generated.java}" />
-        </javac>
     </target>          
 
     <!-- ================================================================== -->
@@ -619,17 +609,26 @@
        - Compile the original and generated source.  The composable pipelines
        - will be generated.
       -->
-    <target name="java.compile" depends="java.generate,java.generate.cg">
+    <target name="java.compile.firstpass" depends="java.generate,java.generate.cg">
         <!-- Perform the first pass Java compile. -->
+        <javac srcdir="${src.generated.java}"
+               destdir="${classes}"
+               includes="javax/media/opengl/GL.java"
+               source="1.4" debug="true" debuglevel="source,lines">
+        </javac>
+    </target>
+
+    <target name="java.compile.secondpass" depends="java.generate.composable.pipeline">
+        <!-- Perform the second pass Java compile; everything. -->
         <javac destdir="${classes}"
                excludes="${java.excludes.platform},com/sun/opengl/impl/nurbs/**" source="1.4" debug="true" debuglevel="source,lines">
             <src path="${src.java}" />
             <src path="${src.generated.java}" />
         </javac>
-
-        <!-- Generate and build the composable pipeline Java source. -->
-        <antcall target="java.compile.composable.pipeline" inheritRefs="true" />
     </target>
+
+
+    <target name="java.compile" depends="java.compile.firstpass,java.compile.secondpass" />
 
     <!-- ================================================================== -->
     <!-- 

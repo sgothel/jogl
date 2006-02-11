@@ -80,7 +80,7 @@ public class WindowsDummyGLDrawable extends WindowsGLDrawable {
       // Construction failed
       return null;
     }
-    return new WindowsGLContext(this, shareWith);
+    return new WindowsGLContext(this, shareWith, true);
   }
 
   public void destroy() {

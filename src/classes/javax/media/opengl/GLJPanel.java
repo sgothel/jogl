@@ -82,10 +82,6 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
   private static final boolean DEBUG = Debug.debug("GLJPanel");
   private static final boolean VERBOSE = Debug.verbose();
 
-  // FIXME: remove these once debugging is done
-  private static final boolean HACK1 = Debug.debug("GLJPanel.hack1");
-  private static final boolean HACK2 = Debug.debug("GLJPanel.hack2");
-
   private GLDrawableHelper drawableHelper = new GLDrawableHelper();
   private volatile boolean isInitialized;
   private volatile boolean shouldInitialize = false;
@@ -168,6 +164,16 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
   // This is required when the FBO option of the Java2D / OpenGL
   // pipeline is active
   private int[] frameBuffer  = new int[1];
+  // We apparently also need to track the attachment points of the
+  // framebuffer
+  // Because it looks like this might be just a bug, controlling it
+  // under a flag for now
+  private boolean frameBufferAttachmentWorkaround = !Debug.isPropertyDefined("jogl.gljpanel.fbobject.noworkaround");
+  private boolean frameBufferDepthBufferWorkaround = !Debug.isPropertyDefined("jogl.gljpanel.fbobject.nodepthworkaround");
+  private int[] frameBufferDepthBuffer = new int[1];
+  private int[] frameBufferTexture = new int[1];
+  private boolean createNewDepthBuffer = false;
+
   // These are always set to (0, 0) except when the Java2D / OpenGL
   // pipeline is active
   private int   viewportX;
@@ -244,13 +250,30 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
     if (Java2D.isFBOEnabled() &&
         Java2D.getOGLSurfaceType(g) == Java2D.FBOBJECT) {
       if (DEBUG && VERBOSE) {
-        System.err.println("-- Fetching GL_FRAMEBUFFER_BINDING_EXT");
+        System.err.println("GLJPanel: Fetching GL_FRAMEBUFFER_BINDING_EXT");
       }
       gl.glGetIntegerv(GL.GL_FRAMEBUFFER_BINDING_EXT, frameBuffer, 0);
 
-      // Unbind the framebuffer from this context before attempting to
-      // bind it to ours (may not be necessary)
-      //      gl.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, 0);
+      if (frameBufferAttachmentWorkaround) {
+        // Query the framebuffer for its color and depth buffers so we
+        // can hook them up (unclear how this is supposed to work
+        // according to the spec -- hope we don't damage Java2D's
+        // attachments)
+        gl.glGetFramebufferAttachmentParameterivEXT(GL.GL_FRAMEBUFFER_EXT,
+                                                    GL.GL_COLOR_ATTACHMENT0_EXT,
+                                                    GL.GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME_EXT,
+                                                    frameBufferTexture, 0);
+        if (!frameBufferDepthBufferWorkaround) {
+          gl.glGetFramebufferAttachmentParameterivEXT(GL.GL_FRAMEBUFFER_EXT,
+                                                      GL.GL_DEPTH_ATTACHMENT_EXT,
+                                                      GL.GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME_EXT,
+                                                      frameBufferDepthBuffer, 0);
+        }
+        if (DEBUG && VERBOSE) {
+          System.err.println("GLJPanel: FBO COLOR_ATTACHMENT0: " + frameBufferTexture[0]);
+          System.err.println("GLJPanel: FBO DEPTH_ATTACHMENT : " + frameBufferDepthBuffer[0]);
+        }
+      }
     }
   }
 
@@ -260,8 +283,15 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
     gl.glEnable(GL.GL_SCISSOR_TEST);
     Rectangle r = Java2D.getOGLScissorBox(g);
     if (r == null) {
+      if (DEBUG && VERBOSE) {
+        System.err.println("Java2D.getOGLScissorBox() returned null");
+      }
       return false;
     }
+    if (DEBUG && VERBOSE) {
+      System.err.println("GLJPanel: gl.glScissor(" + r.x + ", " + r.y + ", " + r.width + ", " + r.height + ")");
+    }
+
     gl.glScissor(r.x, r.y, r.width, r.height);
     Rectangle oglViewport = Java2D.getOGLViewport(g, panelWidth, panelHeight);
     // If the viewport X or Y changes, in addition to the panel's
@@ -286,16 +316,72 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
     if (Java2D.isFBOEnabled() &&
         Java2D.getOGLSurfaceType(g) == Java2D.FBOBJECT) {
       if (DEBUG && VERBOSE) {
-        System.err.println("Binding to framebuffer object " + frameBuffer[0]);
+        System.err.println("GLJPanel: Binding to framebuffer object " + frameBuffer[0]);
+      }
+
+      if (frameBufferAttachmentWorkaround &&
+          frameBufferDepthBufferWorkaround &&
+          createNewDepthBuffer) {
+        // Create our own depth renderbuffer and associated storage
+        // If we have an old one, delete it
+        if (frameBufferDepthBuffer[0] != 0) {
+          gl.glDeleteRenderbuffersEXT(1, frameBufferDepthBuffer, 0);
+          frameBufferDepthBuffer[0] = 0;
+        }
+
+        gl.glBindTexture(GL.GL_TEXTURE_2D, frameBufferTexture[0]);
+        int[] width = new int[1];
+        int[] height = new int[1];
+        gl.glGetTexLevelParameteriv(GL.GL_TEXTURE_2D, 0, GL.GL_TEXTURE_WIDTH, width, 0);
+        gl.glGetTexLevelParameteriv(GL.GL_TEXTURE_2D, 0, GL.GL_TEXTURE_HEIGHT, height, 0);
+                    
+        gl.glGenRenderbuffersEXT(1, frameBufferDepthBuffer, 0);
+        if (DEBUG) {
+          System.err.println("GLJPanel: Generated frameBufferDepthBuffer " + frameBufferDepthBuffer[0] +
+                             " with width " + width[0] + ", height " + height[0]);
+        }
+                    
+        gl.glBindRenderbufferEXT(GL.GL_RENDERBUFFER_EXT, frameBufferDepthBuffer[0]);
+        // FIXME: may need a loop here like in Java2D
+        gl.glRenderbufferStorageEXT(GL.GL_RENDERBUFFER_EXT, GL.GL_DEPTH_COMPONENT24, width[0], height[0]);
+
+        gl.glBindRenderbufferEXT(GL.GL_RENDERBUFFER_EXT, 0);
+        createNewDepthBuffer = false;
       }
 
       gl.glBindTexture(GL.GL_TEXTURE_2D, 0);
       gl.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, frameBuffer[0]);
-      // FIXME: do we need to do anything else? Bind Texture2D state
-      // or something else?
+
+      if (frameBufferAttachmentWorkaround) {
+        // Hook up the color and depth buffer attachment points for this framebuffer
+
+        // (FIXME: thought this would be automatic due to the fact that
+        // the framebuffer is shared between contexts, but apparently not --
+        // hope we don't damage Java2D's notion of the attachment points)
+        gl.glFramebufferTexture2DEXT(GL.GL_FRAMEBUFFER_EXT,
+                                     GL.GL_COLOR_ATTACHMENT0_EXT,
+                                     GL.GL_TEXTURE_2D,
+                                     frameBufferTexture[0],
+                                     0);
+        if (DEBUG && VERBOSE) {
+          System.err.println("GLJPanel: frameBufferDepthBuffer: " + frameBufferDepthBuffer[0]);
+        }
+        gl.glFramebufferRenderbufferEXT(GL.GL_FRAMEBUFFER_EXT,
+                                        GL.GL_DEPTH_ATTACHMENT_EXT,
+                                        GL.GL_RENDERBUFFER_EXT,
+                                        frameBufferDepthBuffer[0]);
+      }
+
+      if (DEBUG) {
+        int status = gl.glCheckFramebufferStatusEXT(GL.GL_FRAMEBUFFER_EXT);
+        if (status != GL.GL_FRAMEBUFFER_COMPLETE_EXT) {
+          throw new GLException("Error: framebuffer was incomplete: status = 0x" +
+                                Integer.toHexString(status));
+        }
+      }
     } else {
       if (DEBUG && VERBOSE) {
-        System.err.println("Setting up drawBuffer " + drawBuffer[0] +
+        System.err.println("GLJPanel: Setting up drawBuffer " + drawBuffer[0] +
                            " and readBuffer " + readBuffer[0]);
       }
 
@@ -338,6 +424,9 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
             // Create no-op context representing Java2D context
             if (j2dContext == null) {
               j2dContext = GLDrawableFactory.getFactory().createExternalGLContext();
+              if (DEBUG) {
+                j2dContext.setGL(new DebugGL(j2dContext.getGL()));
+              }
 
               // Check to see whether we can support the requested
               // capabilities or need to fall back to a pbuffer
@@ -399,27 +488,16 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
                 if (joglContext == null) {
                   joglDrawable = GLDrawableFactory.getFactory().createExternalGLDrawable();
                   joglContext = joglDrawable.createContext(shareWith);
-                }
+                  if (DEBUG) {
+                    joglContext.setGL(new DebugGL(joglContext.getGL()));
+                  }
 
-                // FIXME: remove these once debugging is done
-                if (HACK1) {
-                  // Skip all GLContext manipulation This fixes the
-                  // display of the icons and text (done with Java2D)
-                  // in the JGears demo when FBO is active
-                  return;
-                }
-                if (HACK2) {
-                  // Do a little GLContext manipulation but skip all
-                  // FBO-related manipulation and other stuff (as well
-                  // as the user rendering).
-
-                  // Note that the icons and text in the JGears demo
-                  // disappear when this flag is used, so clearly any
-                  // OpenGL context manipulation is messing up the
-                  // Java2D context state when FBO is active.
-                  joglContext.makeCurrent();
-                  joglContext.release();
-                  return;
+                  if (Java2D.isFBOEnabled() &&
+                      Java2D.getOGLSurfaceType(g) == Java2D.FBOBJECT &&
+                      frameBufferAttachmentWorkaround &&
+                      frameBufferDepthBufferWorkaround) {
+                    createNewDepthBuffer = true;
+                  }
                 }
 
                 drawableHelper.invokeGL(joglDrawable, joglContext, displayAction, initAction);
