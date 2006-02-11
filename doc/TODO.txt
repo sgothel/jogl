@@ -1,34 +1,8 @@
-
------------------
-  HIGH PRIORITY
------------------
-
-- Make pixel format selection more robust. Provide access to the
-  selected GLCapabilities so applications can see whether they got the
-  pixel format they expected. Check the GLJPanel implementation after
-  the most recent DefaultGLCapabilitiesChooser changes and see whether
-  it is still working.
-
-- Fully expose ARB_vertex_buffer_object APIs.
-
-- Fix addNotify()/removeNotify() handling so that adding and removing
-  a canvas from a window, etc. works properly.
-
-- Test Cg binding on Linux. Find out if Cg is available on Mac OS X.
-
-- Finish implementation in GlueGen of <type>** arguments (currently
-  only works for "const char**". This is needed for
-  glMultiDrawElements and one Cg routine.
+Random, somewhat old to-do list:
+(See Issue Tracker on http://jogl.dev.java.net/ for current high-priority issues)
 
 - Non-const array types must be properly released with JNI_COMMIT in
   order to see side effects if the array was copied.
-
------------------
- MEDIUM PRIORITY
------------------
-
-- Look into providing built-in full-screen support on all supported
-  platforms.
 
 - Figure out how to implement GLEventListener.displayChanged(bool,bool). 
   I believe we need additional support in J2SE before this will be possible
@@ -41,20 +15,7 @@
   into GLEventListener.displayChanged() and also be sure to reset the
   GLDrawable's glProcAddress table as appropriate.
 
------------------
- LOW PRIORITY
------------------
-
-- Hardware acceleration for GLJPanel via pbuffers
-
-- Think about making StructAccessors for e.g. GLUquadric "more opaque"
-
 - Think about e.g. protected access for Impl classes
-
-- Find a way to limit the expansion of void* types to only certain
-  java array types. For example, glCallLists(..., GLenum type, void*)
-  only accepts certain values in its type parameter; it would be nice
-  to limit the expansion to those types.
 
 - Fix glProgramStringARB and glGetProgramString{NV,ARB} so that they
   use Strings and/or StringBuffers insteead of GLUbyte* and void*
@@ -86,4 +47,3 @@
   code, the sort function can check the last substring that's all caps,
   and treat this as the extension owner. Be careful though, some end
   in "3D" and that's not an extension.
-
