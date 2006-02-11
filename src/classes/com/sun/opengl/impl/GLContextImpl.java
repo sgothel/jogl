@@ -123,15 +123,22 @@ public abstract class GLContextImpl extends GLContext {
         // If we are tracking creation and destruction of server-side
         // OpenGL objects, we must decrement the reference count of the
         // GLObjectTracker upon context destruction.
-        int res = makeCurrent();
-        if (res != CONTEXT_CURRENT) {
-          // FIXME: we really need to behave better than this
-          throw new GLException("Unable to make context current to destroy tracked server-side OpenGL objects");
-        }
         try {
-          tracker.unref(getGL());
-        } finally {
-          release();
+          int res = makeCurrent();
+          if (res != CONTEXT_CURRENT) {
+            // FIXME: we really need to behave better than this
+            throw new GLException("Unable to make context current to destroy tracked server-side OpenGL objects");
+          }
+          try {
+            tracker.unref(getGL());
+          } finally {
+            release();
+          }
+        } catch (GLException e) {
+          // FIXME: should probably do something more intelligent here
+          if (DEBUG) {
+            e.printStackTrace();
+          }
         }
       }
     }

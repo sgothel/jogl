@@ -51,6 +51,9 @@ public class X11ExternalGLContext extends X11GLContext {
     lockToolkit();
     try {
       context = GLX.glXGetCurrentContext();
+      if (context == 0) {
+        throw new GLException("Error: attempted to make an external GLContext without a drawable/context current");
+      }
       drawable = new Drawable(GLX.glXGetCurrentDisplay());
     } finally {
       unlockToolkit();

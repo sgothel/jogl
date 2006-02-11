@@ -39,6 +39,9 @@
 
 package com.sun.opengl.impl;
 
+import java.awt.GraphicsConfiguration;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
 import java.lang.ref.*;
 import java.util.*;
 import javax.media.opengl.*;
@@ -168,10 +171,20 @@ public class GLContextShareSet {
       GLContextImpl impl2 = (GLContextImpl) newContext;
       GLObjectTracker tracker = null;
       // Don't share object trackers with the primordial share context from Java2D
-      GLContext j2dShareContext = Java2D.getShareContext();
-      if (impl1 != null && impl1 == j2dShareContext) {
-        impl1 = null;
+      if (Java2D.isOGLPipelineActive()) {
+        // FIXME: probably need to do something different here
+        // Need to be able to figure out the GraphicsDevice for the
+        // older context if it's on-screen
+        GraphicsConfiguration gc = GraphicsEnvironment.
+          getLocalGraphicsEnvironment().
+          getDefaultScreenDevice().
+          getDefaultConfiguration();
+        GLContext j2dShareContext = Java2D.getShareContext(gc);
+        if (impl1 != null && impl1 == j2dShareContext) {
+          impl1 = null;
+        }
       }
+
       if (impl1 != null) {
         tracker = impl1.getObjectTracker();
         assert (tracker != null)

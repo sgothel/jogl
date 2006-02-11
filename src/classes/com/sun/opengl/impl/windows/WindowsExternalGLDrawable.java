@@ -46,6 +46,9 @@ public class WindowsExternalGLDrawable extends WindowsGLDrawable {
   public WindowsExternalGLDrawable() {
     super(new GLCapabilities(), null);
     hdc = WGL.wglGetCurrentDC();
+    if (hdc == 0) {
+      throw new GLException("Error: attempted to make an external GLDrawable without a drawable/context current");
+    }
   }
 
   public GLContext createContext(GLContext shareWith) {

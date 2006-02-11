@@ -178,7 +178,10 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
     // otherwise it's likely it will try to be initialized while on
     // the Queue Flusher Thread, which is not allowed
     if (Java2D.isOGLPipelineActive() && Java2D.isFBOEnabled()) {
-      Java2D.getShareContext();
+      Java2D.getShareContext(GraphicsEnvironment.
+                             getLocalGraphicsEnvironment().
+                             getDefaultScreenDevice().
+                             getDefaultConfiguration());
     }
   }
 
@@ -235,11 +238,19 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
     }
   }
 
-  private void captureJ2DState(GL gl) {
+  private void captureJ2DState(GL gl, Graphics g) {
     gl.glGetIntegerv(GL.GL_DRAW_BUFFER, drawBuffer, 0);
     gl.glGetIntegerv(GL.GL_READ_BUFFER, readBuffer, 0);
-    if (Java2D.isFBOEnabled()) {
+    if (Java2D.isFBOEnabled() &&
+        Java2D.getOGLSurfaceType(g) == Java2D.FBOBJECT) {
+      if (DEBUG && VERBOSE) {
+        System.err.println("-- Fetching GL_FRAMEBUFFER_BINDING_EXT");
+      }
       gl.glGetIntegerv(GL.GL_FRAMEBUFFER_BINDING_EXT, frameBuffer, 0);
+
+      // Unbind the framebuffer from this context before attempting to
+      // bind it to ours (may not be necessary)
+      //      gl.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, 0);
     }
   }
 
@@ -268,14 +279,12 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
     viewportX = oglViewport.x;
     viewportY = oglViewport.y;
 
-    gl.glDrawBuffer(drawBuffer[0]);
-    gl.glReadBuffer(readBuffer[0]);
-
     // If the FBO option is active, bind to the FBO from the Java2D
     // context.
     // Note that all of the plumbing in the context sharing stuff will
     // allow us to bind to this object since it's in our namespace.
-    if (Java2D.isFBOEnabled()) {
+    if (Java2D.isFBOEnabled() &&
+        Java2D.getOGLSurfaceType(g) == Java2D.FBOBJECT) {
       if (DEBUG && VERBOSE) {
         System.err.println("Binding to framebuffer object " + frameBuffer[0]);
       }
@@ -284,6 +293,14 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
       gl.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, frameBuffer[0]);
       // FIXME: do we need to do anything else? Bind Texture2D state
       // or something else?
+    } else {
+      if (DEBUG && VERBOSE) {
+        System.err.println("Setting up drawBuffer " + drawBuffer[0] +
+                           " and readBuffer " + readBuffer[0]);
+      }
+
+      gl.glDrawBuffer(drawBuffer[0]);
+      gl.glReadBuffer(readBuffer[0]);
     }
 
     return true;
@@ -363,7 +380,7 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
 
             j2dContext.makeCurrent();
             try {
-              captureJ2DState(j2dContext.getGL());
+              captureJ2DState(j2dContext.getGL(), g);
               Object curSurface = Java2D.getOGLSurfaceIdentifier(g);
               if (curSurface != null) {
                 if (j2dSurface != curSurface) {

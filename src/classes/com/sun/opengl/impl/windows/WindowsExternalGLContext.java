@@ -51,6 +51,9 @@ public class WindowsExternalGLContext extends WindowsGLContext {
   public WindowsExternalGLContext() {
     super(null, null);
     hglrc = WGL.wglGetCurrentContext();
+    if (hglrc == 0) {
+      throw new GLException("Error: attempted to make an external GLContext without a drawable/context current");
+    }
     if (DEBUG) {
       System.err.println(getThreadName() + ": !!! Created external OpenGL context " + toHexString(hglrc) + " for " + this);
     }

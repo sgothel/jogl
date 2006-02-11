@@ -55,6 +55,9 @@ public class X11ExternalGLDrawable extends X11GLDrawable {
       display = GLX.glXGetCurrentDisplay();
       drawable = GLX.glXGetCurrentDrawable();
       readDrawable = GLX.glXGetCurrentReadDrawable();
+      if (drawable == 0) {
+        throw new GLException("Error: attempted to make an external GLDrawable without a drawable/context current");
+      }
 
       // Need GLXFBConfig ID in order to properly create new contexts
       // on this drawable
