@@ -307,6 +307,11 @@ public class BuildComposablePipeline
       output.println("    }");
       output.print(  "    this." + getDownstreamObjectName());
       output.println(" = " + getDownstreamObjectName() + ";");
+      output.println("    // Fetch GLContext object for better error checking (if possible)");
+      output.println("    // FIXME: should probably put this method in GL rather than GLImpl");
+      output.println("    if (" + getDownstreamObjectName() + " instanceof com.sun.opengl.impl.GLImpl) {");
+      output.println("      _context = ((com.sun.opengl.impl.GLImpl) " + getDownstreamObjectName() + ").getContext();");
+      output.println("    }");
       output.println("  }");
       output.println();
     }
@@ -398,8 +403,18 @@ public class BuildComposablePipeline
       output.println("  /** True if the pipeline is inside a glBegin/glEnd pair.*/");
       output.println("  private boolean insideBeginEndPair = false;");
       output.println();
-
+      output.println("  private void checkContext() {");
+      output.println("    GLContext currentContext = GLContext.getCurrent();");
+      output.println("    if (currentContext == null) {");
+      output.println("      throw new GLException(\"No OpenGL context is current on this thread\");");
+      output.println("    }");
+      output.println("    if ((_context != null) && (_context != currentContext)) {");
+      output.println("      throw new GLException(\"This GL object is being incorrectly used with a different GLContext than that which created it\");");
+      output.println("    }");
+      output.println("  }");
+      output.println("  private GLContext _context;");
     }
+
     protected void emitClassDocComment(PrintWriter output)
     {
       output.println("/** <P> Composable pipline which wraps an underlying {@link GL} implementation,");
@@ -415,6 +430,7 @@ public class BuildComposablePipeline
     
     protected void preDownstreamCallHook(PrintWriter output, Method m)
     {
+      output.println("    checkContext();");
     }
 
     protected void postDownstreamCallHook(PrintWriter output, Method m)
