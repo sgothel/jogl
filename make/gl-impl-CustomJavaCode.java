@@ -24,6 +24,12 @@ public Object getExtension(String extensionName) {
   return null;
 }
 
+/** Returns the context this GL object is associated with for better
+    error checking by DebugGL. */
+public GLContext getContext() {
+  return _context;
+}
+
 private GLContextImpl _context;
 
 /**

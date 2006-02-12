@@ -164,12 +164,15 @@
             <include name="${stub.includes.dir}/x11/**" />
             <include name="${stub.includes.dir}/common/**" />
         </dirset>
-        <fileset id="stub.includes.dependencies.fileset" dir=".">
-            <include name="${stub.includes.dir}/opengl/**" />
-            <include name="${stub.includes.dir}/macosx/**" />
-            <include name="${stub.includes.dir}/win32/**" />
-            <include name="${stub.includes.dir}/x11/**" />
-            <include name="${stub.includes.dir}/common/**" />
+        <fileset id="stub.includes.dependencies.fileset.1" dir="${stub.includes.dir}">
+            <include name="opengl/**" />
+            <include name="macosx/**" />
+            <include name="win32/**" />
+            <include name="x11/**" />
+            <include name="common/**" />
+        </fileset>
+        <fileset id="stub.includes.dependencies.fileset.2" file="${gluegen.jar}" />
+        <fileset id="stub.includes.dependencies.fileset.3" dir=".">
             <include name="*.cfg" />
             <include name="gl*.java" />
             <include name="*.c" />
@@ -443,17 +446,21 @@
         <!-- Blow away all target files if any dependencies are violated
              (the uptodate task doesn't allow arbitrary source and target filesets but should) -->
         <dependset>
-            <srcfileset refid="stub.includes.dependencies.fileset" />
-            <targetfileset dir=".">
-                <include name="${src.generated.java}/**/*.java" />
-                <include name="${src.generated.c}/**/*.c" />
+            <srcfileset refid="stub.includes.dependencies.fileset.1" />
+            <srcfileset refid="stub.includes.dependencies.fileset.2" />
+            <srcfileset refid="stub.includes.dependencies.fileset.3" />
+            <targetfileset dir="${src.generated}">
+                <include name="**/*.java" />
+                <include name="**/*.c" />
             </targetfileset>
         </dependset>
 
         <!-- Now check for the presence of one well-known file -->
-        <uptodate property="java.generate.skip">
-            <srcfiles refid="stub.includes.dependencies.fileset" />
-            <mapper type="merge" to="${src.generated.java}/javax/media/opengl/GL.java" />
+        <uptodate property="java.generate.skip"
+                  targetfile="${src.generated.java}/javax/media/opengl/GL.java">
+            <srcfiles refid="stub.includes.dependencies.fileset.1" />
+            <srcfiles refid="stub.includes.dependencies.fileset.2" />
+            <srcfiles refid="stub.includes.dependencies.fileset.3" />
         </uptodate>
     </target>
 
