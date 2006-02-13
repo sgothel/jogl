@@ -421,6 +421,10 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
     if (oglPipelineEnabled) {
       Java2D.invokeWithOGLContextCurrent(g, new Runnable() {
           public void run() {
+            if (DEBUG && VERBOSE) {
+              System.err.println("-- In invokeWithOGLContextCurrent");
+            }
+
             // Create no-op context representing Java2D context
             if (j2dContext == null) {
               j2dContext = GLDrawableFactory.getFactory().createExternalGLContext();
@@ -497,6 +501,26 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
                       frameBufferAttachmentWorkaround &&
                       frameBufferDepthBufferWorkaround) {
                     createNewDepthBuffer = true;
+                  }
+                }
+
+                if (DEBUG && VERBOSE && Java2D.isFBOEnabled()) {
+                  System.err.print("-- Surface type: ");
+                  int surfaceType = Java2D.getOGLSurfaceType(g);
+                  if (surfaceType == Java2D.UNDEFINED) {
+                    System.err.println("UNDEFINED");
+                  } else if (surfaceType == Java2D.WINDOW) {
+                    System.err.println("WINDOW");
+                  } else if (surfaceType == Java2D.PBUFFER) {
+                    System.err.println("PBUFFER");
+                  } else if (surfaceType == Java2D.TEXTURE) {
+                    System.err.println("TEXTURE");
+                  } else if (surfaceType == Java2D.FLIP_BACKBUFFER) {
+                    System.err.println("FLIP_BACKBUFFER");
+                  } else if (surfaceType == Java2D.FBOBJECT) {
+                    System.err.println("FBOBJECT");
+                  } else {
+                    System.err.println("(Unknown surface type " + surfaceType + ")");
                   }
                 }
 
