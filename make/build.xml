@@ -1138,7 +1138,7 @@
 	<!-- Build a source archive as well -->
         <zip destfile="${jogl.dist.dir}/jogl-src.zip"
 	     basedir="../.."
-	     includes="jogl/doc/**,jogl/make/**,jogl/src/**"
+	     includes="gluegen/LICENCE.txt,gluegen/doc/**,gluegen/make/**,gluegen/src/**,jogl/LICENSE.txt,jogl/README.txt,jogl/doc/**,jogl/make/**,jogl/src/**"
 	     excludes="**/*.class,**/*~"
 	     />
     </target>
