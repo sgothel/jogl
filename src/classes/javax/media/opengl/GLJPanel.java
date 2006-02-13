@@ -392,6 +392,17 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
     return true;
   }
 
+  private void postGL(Graphics g) {
+    if (Java2D.isFBOEnabled() &&
+        Java2D.getOGLSurfaceType(g) == Java2D.FBOBJECT) {
+      // Unbind the framebuffer from our context to work around
+      // apparent driver bugs or at least unspecified behavior causing
+      // OpenGL to run out of memory with certain cards and drivers
+      GL gl = joglContext.getGL();
+      gl.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, 0);
+    }
+  }
+
   /** Overridden to cause OpenGL rendering to be performed during
       repaint cycles. Subclasses which override this method must call
       super.paintComponent() in their paintComponent() method in order
@@ -865,6 +876,9 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
         }
       }
       drawableHelper.init(GLJPanel.this);
+      if (oglPipelineEnabled) {
+        postGL(g);
+      }
     }
 
     public void display(GLAutoDrawable drawable) {
@@ -1018,6 +1032,8 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
         // rendering results, resulting in apparent mouse lag
         GL gl = getGL();
         gl.glFinish();
+
+        postGL(g);
       }
     }
 
