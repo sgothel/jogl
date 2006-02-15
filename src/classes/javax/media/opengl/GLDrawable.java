@@ -71,11 +71,13 @@ public interface GLDrawable {
   /**
    * Creates a new context for drawing to this drawable that will
    * optionally share display lists and other server-side OpenGL
-   * objects with the specified GLContext.
+   * objects with the specified GLContext. <P>
    *
    * The GLContext <code>share</code> need not be associated with this
    * GLDrawable and may be null if sharing of display lists and other
-   * objects is not desired.
+   * objects is not desired. See the note in the overview
+   * documentation on
+   * <a href="../../../overview-summary.html#SHARING">context sharing</a>.
    */
   public GLContext createContext(GLContext shareWith);
 

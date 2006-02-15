@@ -213,7 +213,9 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
       is used if null is passed for this argument. The passed
       GLContext specifies an OpenGL context with which to share
       textures, display lists and other OpenGL state, and may be null
-      if sharing is not desired. */
+      if sharing is not desired. See the note in the overview documentation on
+      <a href="../../../overview-summary.html#SHARING">context sharing</a>.
+  */
   public GLJPanel(GLCapabilities capabilities, GLCapabilitiesChooser chooser, GLContext shareWith) {
     super();
 

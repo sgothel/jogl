@@ -90,10 +90,13 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
       is used if null is passed for this argument. The passed
       GLContext specifies an OpenGL context with which to share
       textures, display lists and other OpenGL state, and may be null
-      if sharing is not desired. The passed GraphicsDevice indicates
-      the screen on which to create the GLCanvas; the
-      GLDrawableFactory uses the default screen device of the local
-      GraphicsEnvironment if null is passed for this argument. */
+      if sharing is not desired. See the note in the overview
+      documentation on <a
+      href="../../../overview-summary.html#SHARING">context
+      sharing</a>. The passed GraphicsDevice indicates the screen on
+      which to create the GLCanvas; the GLDrawableFactory uses the
+      default screen device of the local GraphicsEnvironment if null
+      is passed for this argument. */
   public GLCanvas(GLCapabilities capabilities,
                   GLCapabilitiesChooser chooser,
                   GLContext shareWith,

@@ -186,7 +186,10 @@ public abstract class GLDrawableFactory {
   public abstract boolean canCreateGLPbuffer();
 
   /**
-   * Creates a GLPbuffer with the given capabilites and dimensions.
+   * Creates a GLPbuffer with the given capabilites and dimensions. <P>
+   *
+   * See the note in the overview documentation on
+   * <a href="../../../overview-summary.html#SHARING">context sharing</a>.
    *
    * @throws GLException if any window system-specific errors caused
    *         the creation of the GLPbuffer to fail.
