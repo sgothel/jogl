@@ -20,6 +20,8 @@
 #import <jni.h>
 #import "ContextUpdater.h"
 
+#import "macosx-window-system.h"
+
 // see MacOSXPbufferGLContext.java createPbuffer
 #define USE_GL_TEXTURE_RECTANGLE_EXT
 
@@ -29,98 +31,336 @@
     #endif
 #endif
 
-typedef int Bool;
+struct _RendererInfo
+{
+	long id;				// kCGLRPRendererID
+	long displayMask;		// kCGLRPDisplayMask
+	
+	long accelerated;		// kCGLRPAccelerated
+	
+	long window;			// kCGLRPWindow
+	long fullscreen;		// kCGLRPFullScreen
+	long multiscreen;		// kCGLRPMultiScreen
+	long offscreen;			// kCGLRPOffScreen
+	long floatPixels;		// see kCGLRPColorModes
+	long stereo;			// kCGLRPBufferModes
+	
+	long auxBuffers;		// kCGLRPMaxAuxBuffers
+	long sampleBuffers;		// kCGLRPMaxSampleBuffers
+	long samples;			// kCGLRPMaxSamples
+	long samplesModes;		// kCGLRPSampleModes
+	long multiSample;		// see kCGLRPSampleModes
+	long superSample;		// see kCGLRPSampleModes
+	long alphaSample;		// kCGLRPSampleAlpha
+	
+	long colorModes;		// kCGLRPColorModes
+	long colorRGBSizeMAX;
+	long colorASizeMAX;
+	long colorFloatRGBSizeMAX;
+	long colorFloatASizeMAX;
+	long colorFloatRGBSizeMIN;
+	long colorFloatASizeMIN;
+	long colorModesCount;
+	long colorFloatModesCount;
+	long depthModes;		// kCGLRPDepthModes
+	long depthSizeMAX;
+	long depthModesCount;
+	long stencilModes;		// kCGLRPStencilModes
+	long stencilSizeMAX;
+	long stencilModesCount;
+	long accumModes;		// kCGLRPAccumModes
+	long accumRGBSizeMAX;
+	long accumASizeMAX;
+	long accumModesCount;
+}
+typedef RendererInfo;
 
-static Bool rendererInfoInitialized = false;
-static int bufferDepthsLength = 17;
-static int bufferDepths[] = {kCGL128Bit, kCGL96Bit, kCGL64Bit, kCGL48Bit, kCGL32Bit, kCGL24Bit, kCGL16Bit, kCGL12Bit, kCGL10Bit, kCGL8Bit, kCGL6Bit, kCGL5Bit, kCGL4Bit, kCGL3Bit, kCGL2Bit, kCGL1Bit, kCGL0Bit};
-static int bufferDepthsBits[] = {128, 96, 64, 48, 32, 24, 16, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0};
-static long accRenderID = 0; // the ID of the accelerated renderer
-static int maxColorSize = kCGL128Bit; // max depth of color buffer
-static int maxDepthSize = kCGL128Bit; // max depth of depth buffer
-static int maxAccumSize = kCGL128Bit; // max depth of accum buffer
-static int maxStencilSize = kCGL128Bit; // max depth of stencil buffer
+RendererInfo *gRenderers = NULL;
+long gRenderersCount = 0;
+
+long depthModes[] = {
+					kCGL0Bit,
+					kCGL1Bit,
+					kCGL2Bit,
+					kCGL3Bit,
+					kCGL4Bit,
+					kCGL5Bit,
+					kCGL6Bit,
+					kCGL8Bit,
+					kCGL10Bit,
+					kCGL12Bit,
+					kCGL16Bit,
+					kCGL24Bit,
+					kCGL32Bit,
+					kCGL48Bit,
+					kCGL64Bit,
+					kCGL96Bit,
+					kCGL128Bit
+					};
+long depthModesBits[] = {0, 1, 2, 3, 4, 5, 6, 8, 10, 12, 16, 24, 32, 48, 64, 96, 128};
+long colorModes[] = {
+					kCGLRGB444Bit,
+					kCGLARGB4444Bit,
+					kCGLRGB444A8Bit,
+					kCGLRGB555Bit,
+					kCGLARGB1555Bit,
+					kCGLRGB555A8Bit,
+					kCGLRGB565Bit,
+					kCGLRGB565A8Bit,
+					kCGLRGB888Bit,
+					kCGLARGB8888Bit,
+					kCGLRGB888A8Bit,
+					kCGLRGB101010Bit,
+					kCGLARGB2101010Bit,
+					kCGLRGB101010_A8Bit,
+					kCGLRGB121212Bit,
+					kCGLARGB12121212Bit,
+					kCGLRGB161616Bit,
+					kCGLRGBA16161616Bit,
+					kCGLRGBFloat64Bit,
+					kCGLRGBAFloat64Bit,
+					kCGLRGBFloat128Bit,
+					kCGLRGBAFloat128Bit,
+					kCGLRGBFloat256Bit,
+					kCGLRGBAFloat256Bit
+					};
+long colorModesBitsRGB[] =	{4, 4, 4, 5, 5, 5, 5, 5, 8, 8, 8, 10, 10, 10, 12, 12, 16, 16, 16, 16, 32, 32, 64, 64};
+long colorModesBitsA[] =	{0, 4, 8, 0, 1, 8, 0, 8, 0, 8, 8,  0,  2,  8,  0, 12,  0, 16,  0, 16,  0, 32,  0, 64};
+
 void getRendererInfo()
 {
-	if (rendererInfoInitialized == false)
-	{
-		rendererInfoInitialized = true;
-		
+	if (gRenderersCount == 0)
+	{		
 		CGLRendererInfoObj info;
-		long numRenderers = 0;
-		CGLError err = CGLQueryRendererInfo(CGDisplayIDToOpenGLDisplayMask(kCGDirectMainDisplay), &info, &numRenderers);
+		CGLError err = CGLQueryRendererInfo(CGDisplayIDToOpenGLDisplayMask(kCGDirectMainDisplay), &info, &gRenderersCount);
 		if (err == 0 /* kCGLNoError */)
 		{
-			CGLDescribeRenderer(info, 0, kCGLRPRendererCount, &numRenderers);
+			// how many renderers are available?
+			CGLDescribeRenderer(info, 0, kCGLRPRendererCount, &gRenderersCount);
+			
+			// allocate our global renderers info
+			gRenderers = (RendererInfo*)malloc(gRenderersCount*sizeof(RendererInfo));
+			memset(gRenderers, 0x00, gRenderersCount*sizeof(RendererInfo));
+			
+			// iterate through the renderers checking for their features
 			long j;
-			for (j=0; j<numRenderers; j++)
+			for (j=0; j<gRenderersCount; j++)
 			{
-				long accRenderer = 0;
-				CGLDescribeRenderer(info, j, kCGLRPAccelerated, &accRenderer);
-				if (accRenderer != 0)
+				RendererInfo *renderer = &gRenderers[j];
+				int i;
+				
+				CGLDescribeRenderer(info, j, kCGLRPRendererID, &(renderer->id));
+				CGLDescribeRenderer(info, j, kCGLRPDisplayMask, &(renderer->displayMask));
+				
+				CGLDescribeRenderer(info, j, kCGLRPAccelerated, &(renderer->accelerated));
+				
+				CGLDescribeRenderer(info, j, kCGLRPWindow, &(renderer->window));
+				CGLDescribeRenderer(info, j, kCGLRPFullScreen, &(renderer->fullscreen));
+				CGLDescribeRenderer(info, j, kCGLRPMultiScreen, &(renderer->multiscreen));
+				CGLDescribeRenderer(info, j, kCGLRPOffScreen, &(renderer->offscreen));
+				CGLDescribeRenderer(info, j, kCGLRPColorModes, &(renderer->floatPixels));
+				if ((renderer->floatPixels >= kCGLRGBFloat64Bit) != 0)
 				{
-					// get the accelerated renderer ID
-					CGLDescribeRenderer(info, j, kCGLRPRendererID, &accRenderID);
-					
-					// get the max color buffer depth
-					long colorModes = 0;
-					CGLDescribeRenderer(info, j, kCGLRPColorModes, &colorModes);
-					int i;
-					for (i=0; i<bufferDepthsLength; i++)
+					renderer->floatPixels = 1;
+				}
+				else
+				{
+					renderer->floatPixels = 0;
+				}
+				CGLDescribeRenderer(info, j, kCGLRPBufferModes, &(renderer->stereo));
+				if ((renderer->stereo & kCGLStereoscopicBit) != 0)
+				{
+					renderer->stereo = 1;
+				}
+				else
+				{
+					renderer->stereo = 0;
+				}
+				
+				CGLDescribeRenderer(info, j, kCGLRPMaxAuxBuffers, &(renderer->auxBuffers));
+				CGLDescribeRenderer(info, j, kCGLRPMaxSampleBuffers, &(renderer->sampleBuffers));
+				CGLDescribeRenderer(info, j, kCGLRPMaxSamples, &(renderer->samples));
+				CGLDescribeRenderer(info, j, kCGLRPSampleModes, &(renderer->samplesModes));
+				if ((renderer->samplesModes & kCGLSupersampleBit) != 0)
+				{
+					renderer->multiSample = 1;
+				}
+				if ((renderer->samplesModes & kCGLMultisampleBit) != 0)
+				{
+					renderer->superSample = 1;
+				}
+				CGLDescribeRenderer(info, j, kCGLRPSampleAlpha, &(renderer->alphaSample));
+				
+				CGLDescribeRenderer(info, j, kCGLRPColorModes, &(renderer->colorModes));
+				i=0;
+				int floatPixelFormatInitialized = 0;
+				while (colorModes[i] != 0)
+				{
+					if ((renderer->colorModes & colorModes[i]) != 0)
 					{
-						if ((colorModes & bufferDepths[i]) != 0)
+						// non-float color model
+						if (colorModes[i] < kCGLRGBFloat64Bit)
 						{
-							maxColorSize = bufferDepthsBits[i];
-							break;
+							// look for max color and alpha values - prefer color models that have alpha
+							if ((colorModesBitsRGB[i] >= renderer->colorRGBSizeMAX) && (colorModesBitsA[i] >= renderer->colorASizeMAX))
+							{
+								renderer->colorRGBSizeMAX = colorModesBitsRGB[i];
+								renderer->colorASizeMAX = colorModesBitsA[i];
+							}
+							renderer->colorModesCount++;
+						}
+						// float-color model
+						if (colorModes[i] >= kCGLRGBFloat64Bit)
+						{
+							if (floatPixelFormatInitialized == 0)
+							{
+								floatPixelFormatInitialized = 1;
+								
+								renderer->colorFloatASizeMAX = colorModesBitsA[i];
+								renderer->colorFloatRGBSizeMAX = colorModesBitsRGB[i];
+								renderer->colorFloatASizeMIN = colorModesBitsA[i];
+								renderer->colorFloatRGBSizeMIN = colorModesBitsRGB[i];
+							}
+							// look for max color and alpha values - prefer color models that have alpha
+							if ((colorModesBitsRGB[i] >= renderer->colorFloatRGBSizeMAX) && (colorModesBitsA[i] >= renderer->colorFloatASizeMAX))
+							{
+								renderer->colorFloatRGBSizeMAX = colorModesBitsRGB[i];
+								renderer->colorFloatASizeMAX = colorModesBitsA[i];
+							}
+							// find min color
+							if (colorModesBitsA[i] < renderer->colorFloatASizeMIN)
+							{
+								renderer->colorFloatASizeMIN = colorModesBitsA[i];
+							}
+							// find min alpha color
+							if (colorModesBitsA[i] < renderer->colorFloatRGBSizeMIN)
+							{
+								renderer->colorFloatRGBSizeMIN = colorModesBitsRGB[i];
+							}
+							renderer->colorFloatModesCount++;
 						}
 					}
-					
-					// get the max depth buffer depth
-					long depthModes = 0;
-					CGLDescribeRenderer(info, j, kCGLRPDepthModes, &depthModes);
-					for (i=0; i<bufferDepthsLength; i++)
+					i++;
+				}
+				CGLDescribeRenderer(info, j, kCGLRPDepthModes, &(renderer->depthModes));
+				i=0;
+				while (depthModes[i] != 0)
+				{
+					if ((renderer->depthModes & depthModes[i]) != 0)
 					{
-						if ((depthModes & bufferDepths[i]) != 0)
-						{
-							maxDepthSize = bufferDepthsBits[i];
-							break;
-						}
+						renderer->depthSizeMAX = depthModesBits[i];
+						renderer->depthModesCount++;
 					}
-					
-					// get the max accum buffer depth
-					long accumModes = 0;
-					CGLDescribeRenderer(info, j, kCGLRPAccumModes, &accumModes);
-					for (i=0; i<bufferDepthsLength; i++)
+					i++;
+				}
+				CGLDescribeRenderer(info, j, kCGLRPStencilModes, &(renderer->stencilModes));
+				i=0;
+				while (depthModes[i] != 0)
+				{
+					if ((renderer->stencilModes & depthModes[i]) != 0)
 					{
-						if ((accumModes & bufferDepths[i]) != 0)
-						{
-							maxAccumSize = bufferDepthsBits[i];
-							break;
-						}
+						renderer->stencilSizeMAX = depthModesBits[i];
+						renderer->stencilModesCount++;
 					}
-					
-					// get the max stencil buffer depth
-					long stencilModes = 0;
-					CGLDescribeRenderer(info, j, kCGLRPStencilModes, &stencilModes);
-					for (i=0; i<bufferDepthsLength; i++)
+					i++;
+				}
+				CGLDescribeRenderer(info, j, kCGLRPAccumModes, &(renderer->accumModes));
+				i=0;
+				while (colorModes[i] != 0)
+				{
+					if ((renderer->accumModes & colorModes[i]) != 0)
 					{
-						if ((stencilModes & bufferDepths[i]) != 0)
+						if ((colorModesBitsRGB[i] >= renderer->accumRGBSizeMAX) && (colorModesBitsA[i] >= renderer->accumASizeMAX))
 						{
-							maxStencilSize = bufferDepthsBits[i];
-							break;
+							renderer->accumRGBSizeMAX = colorModesBitsRGB[i];
+							renderer->accumASizeMAX = colorModesBitsA[i];
 						}
+						renderer->accumModesCount++;
 					}
-					
-					break;
+					i++;
 				}
 			}
-			//fprintf(stderr, "maxColorSize=%d\n", maxColorSize);
-			//fprintf(stderr, "maxDepthSize=%d\n", maxDepthSize);
-			//fprintf(stderr, "maxAccumSize=%d\n", maxAccumSize);
-			//fprintf(stderr, "maxStencilSize=%d\n", maxStencilSize);
 		}
 		CGLDestroyRendererInfo (info);
 	}
+	
+#if 0
+	fprintf(stderr, "gRenderersCount=%ld\n", gRenderersCount);
+	int j;
+	for (j=0; j<gRenderersCount; j++)
+	{
+		RendererInfo *renderer = &gRenderers[j];
+		fprintf(stderr, "	id=%ld\n", renderer->id);
+		fprintf(stderr, "	displayMask=%ld\n", renderer->displayMask);
+		
+		fprintf(stderr, "		accelerated=%ld\n", renderer->accelerated);
+		
+		fprintf(stderr, "		window=%ld\n", renderer->window);
+		fprintf(stderr, "		fullscreen=%ld\n", renderer->fullscreen);
+		fprintf(stderr, "		multiscreen=%ld\n", renderer->multiscreen);
+		fprintf(stderr, "		offscreen=%ld\n", renderer->offscreen);
+		fprintf(stderr, "		floatPixels=%ld\n", renderer->floatPixels);
+		fprintf(stderr, "		stereo=%ld\n", renderer->stereo);
+		
+		fprintf(stderr, "		auxBuffers=%ld\n", renderer->auxBuffers);
+		fprintf(stderr, "		sampleBuffers=%ld\n", renderer->sampleBuffers);
+		fprintf(stderr, "		samples=%ld\n", renderer->samples);
+		fprintf(stderr, "		samplesModes=%ld\n", renderer->samplesModes);
+		fprintf(stderr, "		multiSample=%ld\n", renderer->superSample);
+		fprintf(stderr, "		superSample=%ld\n", renderer->superSample);
+		fprintf(stderr, "		alphaSample=%ld\n", renderer->alphaSample);
+		
+		fprintf(stderr, "		colorModes=%ld\n", renderer->colorModes);
+		fprintf(stderr, "			colorRGBSizeMAX=%ld\n", renderer->colorRGBSizeMAX);
+		fprintf(stderr, "			colorASizeMAX=%ld\n", renderer->colorASizeMAX);
+		fprintf(stderr, "			colorFloatRGBSizeMAX=%ld\n", renderer->colorFloatRGBSizeMAX);
+		fprintf(stderr, "			colorFloatASizeMAX=%ld\n", renderer->colorFloatASizeMAX);
+		fprintf(stderr, "			colorFloatRGBSizeMIN=%ld\n", renderer->colorFloatRGBSizeMIN);
+		fprintf(stderr, "			colorFloatASizeMIN=%ld\n", renderer->colorFloatASizeMIN);
+		fprintf(stderr, "			colorModesCount=%ld\n", renderer->colorModesCount);
+		fprintf(stderr, "			colorFloatModesCount=%ld\n", renderer->colorFloatModesCount);
+		fprintf(stderr, "		depthModes=%ld\n", renderer->depthModes);
+		fprintf(stderr, "			depthSizeMAX=%ld\n", renderer->depthSizeMAX);
+		fprintf(stderr, "			depthModesCount=%ld\n", renderer->depthModesCount);
+		fprintf(stderr, "		stencilModes=%ld\n", renderer->stencilModes);
+		fprintf(stderr, "			stencilSizeMAX=%ld\n", renderer->stencilSizeMAX);
+		fprintf(stderr, "			stencilModesCount=%ld\n", renderer->stencilModesCount);
+		fprintf(stderr, "		accumModes=%ld\n", renderer->accumModes);
+		fprintf(stderr, "			accumRGBSizeMAX=%ld\n", renderer->accumRGBSizeMAX);
+		fprintf(stderr, "			accumASizeMAX=%ld\n", renderer->accumASizeMAX);
+		fprintf(stderr, "			accumModesCount=%ld\n", renderer->accumModesCount);
+		fprintf(stderr, "\n");
+	}
+#endif
+}
+
+long validateParameter(NSOpenGLPixelFormatAttribute atttribute, long value)
+{
+	bool done = false;
+	int i;
+	for (i=0; i<gRenderersCount; i++)
+	{
+		RendererInfo renderer = gRenderers[i];
+		if (renderer.accelerated != 0)
+		{
+			switch (atttribute)
+			{
+				case NSOpenGLPFAStencilSize:
+					value = MIN(value, renderer.stencilSizeMAX);
+					done = true;
+					break;
+				default:
+					break;
+			}
+		}
+		
+		if (done == true)
+		{
+			break;
+		}
+	}
+	
+	return value;
 }
 
 void* createContext(void* shareContext, void* view,
@@ -142,86 +382,96 @@ void* createContext(void* shareContext, void* view,
                     int floatingPoint,
                     int* viewNotReady)
 {
-  getRendererInfo();
-  
-  int colorSize = redBits + greenBits + blueBits;
-  if (colorSize > maxColorSize) {
-	colorSize = maxColorSize;
-  }
-  
-  int accumSize = accumRedBits + accumGreenBits + accumBlueBits;
-  if (accumSize > maxAccumSize) {
-	accumSize = maxAccumSize;
-  }
-  
-  if (depthBits > maxDepthSize) {
-	depthBits = maxDepthSize;
-  }
-  
-  if (stencilBits > maxStencilSize) {
-	stencilBits = maxStencilSize;
-  }
-  
-  NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-
-  NSOpenGLContext *nsChareCtx = (NSOpenGLContext*)shareContext;
-  NSView *nsView = (NSView*)view;
+	getRendererInfo();
 	
-  if (nsView != NULL) {
-    Bool viewReady = true;
-    
-    if ([nsView lockFocusIfCanDraw] == NO) {
-      viewReady = false;
-    } else {
-      NSRect frame = [nsView frame];
-      if ((frame.size.width == 0) || (frame.size.height == 0)) {
-        [nsView unlockFocus];		
-        viewReady = false;
-      }
-    }
-
-    if (!viewReady) {
-      if (viewNotReady != NULL) {
-        *viewNotReady = 1;
-      }
-            
-      // the view is not ready yet
-      [pool release];
-      return NULL;
-    }
-  }
-
-  NSOpenGLPixelFormatAttribute attribs[256];
-  int idx = 0;
-  if (pbuffer)       attribs[idx++] = NSOpenGLPFAPixelBuffer;
-  if (floatingPoint) attribs[idx++] = kCGLPFAColorFloat /* NSOpenGLPFAColorFloat */;
-  if (doubleBuffer)  attribs[idx++] = NSOpenGLPFADoubleBuffer;
-  if (stereo)        attribs[idx++] = NSOpenGLPFAStereo;
-  attribs[idx++] = NSOpenGLPFAColorSize;     attribs[idx++] = colorSize;
-  attribs[idx++] = NSOpenGLPFAAlphaSize;     attribs[idx++] = alphaBits;
-  attribs[idx++] = NSOpenGLPFADepthSize;     attribs[idx++] = depthBits;
-  attribs[idx++] = NSOpenGLPFAStencilSize;   attribs[idx++] = stencilBits;
-  attribs[idx++] = NSOpenGLPFAAccumSize;     attribs[idx++] = accumSize;
-  if (sampleBuffers != 0) {
-    attribs[idx++] = NSOpenGLPFASampleBuffers; attribs[idx++] = sampleBuffers;
-    attribs[idx++] = NSOpenGLPFASamples;       attribs[idx++] = numSamples;
-  }
-  attribs[idx++] = 0;
+	int colorSize = alphaBits + redBits + greenBits + blueBits;
+	int accumSize = accumAlphaBits + accumRedBits + accumGreenBits + accumBlueBits;
 	
-  NSOpenGLPixelFormat* fmt = [[NSOpenGLPixelFormat alloc]
-                               initWithAttributes:attribs];
-  NSOpenGLContext* nsContext = [[NSOpenGLContext alloc]
-                                 initWithFormat:fmt
-                                 shareContext:nsChareCtx];
-  [fmt release];
-        
-  if (nsView != nil) {
-    [nsContext setView:nsView];
-    [nsView unlockFocus];		
-  }
+	NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
 
-  [pool release];
-  return nsContext;
+	NSOpenGLContext *nsChareCtx = (NSOpenGLContext*)shareContext;
+	NSView *nsView = (NSView*)view;
+
+	if (nsView != NULL)
+	{
+		Bool viewReady = true;
+
+		if ([nsView lockFocusIfCanDraw] == NO)
+		{
+			viewReady = false;
+		}
+		else
+		{
+			NSRect frame = [nsView frame];
+			if ((frame.size.width == 0) || (frame.size.height == 0))
+			{
+				[nsView unlockFocus];		
+				viewReady = false;
+			}
+		}
+
+		if (!viewReady)
+		{
+			if (viewNotReady != NULL)
+			{
+				*viewNotReady = 1;
+			}
+
+			// the view is not ready yet
+			[pool release];
+			return NULL;
+		}
+	}
+
+	// http://developer.apple.com/documentation/Cocoa/Reference/ApplicationKit/ObjC_classic/Classes/NSOpenGLPixelFormat.html
+	NSOpenGLPixelFormatAttribute attribs[256];
+	int idx = 0;
+	if (pbuffer != 0)
+	{
+		attribs[idx++] =	NSOpenGLPFAPixelBuffer;
+	}
+	if (floatingPoint != 0)
+	{
+		attribs[idx++] =	kCGLPFAColorFloat /* NSOpenGLPFAColorFloat */;
+	}
+	if (doubleBuffer != 0)
+	{
+		attribs[idx++] =	NSOpenGLPFADoubleBuffer;
+	}
+	if (stereo != 0)
+	{
+		attribs[idx++] =	NSOpenGLPFAStereo;
+	}
+	attribs[idx++] =		NSOpenGLPFAColorSize;     attribs[idx++] = colorSize;
+	attribs[idx++] =		NSOpenGLPFAAlphaSize;     attribs[idx++] = alphaBits;
+	attribs[idx++] =		NSOpenGLPFADepthSize;     attribs[idx++] = depthBits;
+	attribs[idx++] =		NSOpenGLPFAStencilSize;   attribs[idx++] = validateParameter(NSOpenGLPFAStencilSize, stencilBits);
+	attribs[idx++] =		NSOpenGLPFAAccumSize;     attribs[idx++] = accumSize;
+	if (sampleBuffers != 0)
+	{
+		attribs[idx++] =	NSOpenGLPFASampleBuffers; attribs[idx++] = sampleBuffers;
+		attribs[idx++] =	NSOpenGLPFASamples;       attribs[idx++] = numSamples;
+	}
+	attribs[idx++] = 0;
+
+	NSOpenGLPixelFormat* fmt = [[NSOpenGLPixelFormat alloc] initWithAttributes:attribs];
+	if (fmt == nil)
+	{
+		// should we fallback to defaults or not?
+		fmt = [NSOpenGLView defaultPixelFormat];
+	}
+	
+	NSOpenGLContext* nsContext = [[NSOpenGLContext alloc] initWithFormat:fmt shareContext:nsChareCtx];
+	[fmt release];
+		
+	if (nsView != nil)
+	{
+		[nsContext setView:nsView];
+		[nsView unlockFocus];		
+	}
+
+	[pool release];
+	return nsContext;
 }
 
 Bool makeCurrentContext(void* context, void* view) {
