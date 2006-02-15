@@ -48,12 +48,12 @@ public abstract class MacOSXGLDrawable extends GLDrawableImpl {
   protected long nsView; // NSView
   protected GLCapabilities capabilities;
   protected GLCapabilitiesChooser chooser;
-
+  
   public MacOSXGLDrawable(GLCapabilities capabilities,
                           GLCapabilitiesChooser chooser) {
     this.capabilities = (GLCapabilities) capabilities.clone();
     this.chooser = chooser;
-  }
+ }
 
   public void setRealized(boolean val) {
     throw new GLException("Should not call this (should only be called for onscreen GLDrawables)");
@@ -67,10 +67,27 @@ public abstract class MacOSXGLDrawable extends GLDrawableImpl {
   }
 
   public GLCapabilities getCapabilities() {
-    return capabilities;
+	int numFormats = 1;
+	GLCapabilities availableCaps[] = new GLCapabilities[numFormats];
+	availableCaps[0] = capabilities;
+	int pixelFormat = chooser.chooseCapabilities(capabilities, availableCaps, 0);
+	if ((pixelFormat < 0) || (pixelFormat >= numFormats)) {
+      throw new GLException("Invalid result " + pixelFormat +
+							  " from GLCapabilitiesChooser (should be between 0 and " +
+							  (numFormats - 1) + ")");
+	}
+	if (DEBUG) {
+      System.err.println(getThreadName() + ": Chosen pixel format (" + pixelFormat + "):");
+      System.err.println(availableCaps[pixelFormat]);
+	}
+    return availableCaps[pixelFormat];
   }
 
   public long getView() {
     return nsView;
+  }
+  
+  protected static String getThreadName() {
+    return Thread.currentThread().getName();
   }
 }
