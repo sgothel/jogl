@@ -107,8 +107,8 @@ public class WindowsPbufferGLContext extends WindowsGLContext {
       GLCapabilities capabilities = drawable.getCapabilities();
 
       // Initialize render-to-texture support if requested
-      rtt  = capabilities.getOffscreenRenderToTexture();
-      rect = capabilities.getOffscreenRenderToTextureRectangle();
+      rtt  = capabilities.getPbufferRenderToTexture();
+      rect = capabilities.getPbufferRenderToTextureRectangle();
       GL gl = getGL();
 
       if (rtt) {

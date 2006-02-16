@@ -66,9 +66,9 @@ public class GLCapabilities implements Cloneable {
   private int     numSamples    = 2;
 
   // Bits for pbuffer creation
-  private boolean offscreenFloatingPointBuffers;
-  private boolean offscreenRenderToTexture;
-  private boolean offscreenRenderToTextureRectangle;
+  private boolean pbufferFloatingPointBuffers;
+  private boolean pbufferRenderToTexture;
+  private boolean pbufferRenderToTextureRectangle;
 
   /** Creates a GLCapabilities object. All attributes are in a default
       state.
@@ -279,45 +279,41 @@ public class GLCapabilities implements Cloneable {
     return numSamples;
   }
 
-  /** For offscreen surfaces only (pbuffers), indicates whether
-      floating-point buffers should be used if available. Defaults to
-      false. */
-  public void setOffscreenFloatingPointBuffers(boolean onOrOff) {
-    offscreenFloatingPointBuffers = onOrOff;
+  /** For pbuffers only, indicates whether floating-point buffers
+      should be used if available. Defaults to false. */
+  public void setPbufferFloatingPointBuffers(boolean onOrOff) {
+    pbufferFloatingPointBuffers = onOrOff;
   }
 
-  /** For offscreen surfaces only (pbuffers), returns whether
-      floating-point buffers should be used if available. Defaults to
-      false. */
-  public boolean getOffscreenFloatingPointBuffers() {
-    return offscreenFloatingPointBuffers;
+  /** For pbuffers only, returns whether floating-point buffers should
+      be used if available. Defaults to false. */
+  public boolean getPbufferFloatingPointBuffers() {
+    return pbufferFloatingPointBuffers;
   }
 
-  /** For offscreen surfaces only (pbuffers), indicates whether the
-      render-to-texture extension should be used if available.
-      Defaults to false. */
-  public void setOffscreenRenderToTexture(boolean onOrOff) {
-    offscreenRenderToTexture = onOrOff;
+  /** For pbuffers only, indicates whether the render-to-texture
+      extension should be used if available.  Defaults to false. */
+  public void setPbufferRenderToTexture(boolean onOrOff) {
+    pbufferRenderToTexture = onOrOff;
   }
 
-  /** For offscreen surfaces only (pbuffers), returns whether the
-      render-to-texture extension should be used if available.
-      Defaults to false. */
-  public boolean getOffscreenRenderToTexture() {
-    return offscreenRenderToTexture;
+  /** For pbuffers only, returns whether the render-to-texture
+      extension should be used if available.  Defaults to false. */
+  public boolean getPbufferRenderToTexture() {
+    return pbufferRenderToTexture;
   }
 
-  /** For offscreen surfaces only (pbuffers), indicates whether the
+  /** For pbuffers only, indicates whether the
       render-to-texture-rectangle extension should be used if
       available. Defaults to false. */
-  public void setOffscreenRenderToTextureRectangle(boolean onOrOff) {
-    offscreenRenderToTextureRectangle = onOrOff;
+  public void setPbufferRenderToTextureRectangle(boolean onOrOff) {
+    pbufferRenderToTextureRectangle = onOrOff;
   }
 
-  /** For offscreen surfaces only (pbuffers), returns whether the
-      render-to-texture extension should be used. Defaults to false. */
-  public boolean getOffscreenRenderToTextureRectangle() {
-    return offscreenRenderToTextureRectangle;
+  /** For pbuffers only, returns whether the render-to-texture
+      extension should be used. Defaults to false. */
+  public boolean getPbufferRenderToTextureRectangle() {
+    return pbufferRenderToTextureRectangle;
   }
 
   /** Returns a textual representation of this GLCapabilities

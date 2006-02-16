@@ -69,9 +69,9 @@ public class WindowsPbufferGLDrawable extends WindowsGLDrawable {
 
     if (DEBUG) {
       System.out.println("Pbuffer caps on init: " + capabilities +
-                         (capabilities.getOffscreenRenderToTexture() ? " [rtt]" : "") +
-                         (capabilities.getOffscreenRenderToTextureRectangle() ? " [rect]" : "") +
-                         (capabilities.getOffscreenFloatingPointBuffers() ? " [float]" : ""));
+                         (capabilities.getPbufferRenderToTexture() ? " [rtt]" : "") +
+                         (capabilities.getPbufferRenderToTextureRectangle() ? " [rect]" : "") +
+                         (capabilities.getPbufferFloatingPointBuffers() ? " [float]" : ""));
     }
 
     createPbuffer(dummyDrawable.getHDC(), wglExt);
@@ -150,9 +150,9 @@ public class WindowsPbufferGLDrawable extends WindowsGLDrawable {
     if (DEBUG) {
       System.out.println("Pbuffer parentHdc = " + toHexString(parentHdc));
       System.out.println("Pbuffer caps: " + capabilities +
-                         (capabilities.getOffscreenRenderToTexture() ? " [rtt]" : "") +
-                         (capabilities.getOffscreenRenderToTextureRectangle() ? " [rect]" : "") +
-                         (capabilities.getOffscreenFloatingPointBuffers() ? " [float]" : ""));
+                         (capabilities.getPbufferRenderToTexture() ? " [rtt]" : "") +
+                         (capabilities.getPbufferRenderToTextureRectangle() ? " [rect]" : "") +
+                         (capabilities.getPbufferFloatingPointBuffers() ? " [float]" : ""));
     }
 
     if (!glCapabilities2iattributes(capabilities,
@@ -164,9 +164,9 @@ public class WindowsPbufferGLDrawable extends WindowsGLDrawable {
     }
 
     floatMode = floatModeTmp[0];
-    boolean rtt      = capabilities.getOffscreenRenderToTexture();
-    boolean rect     = capabilities.getOffscreenRenderToTextureRectangle();
-    boolean useFloat = capabilities.getOffscreenFloatingPointBuffers();
+    boolean rtt      = capabilities.getPbufferRenderToTexture();
+    boolean rect     = capabilities.getPbufferRenderToTextureRectangle();
+    boolean useFloat = capabilities.getPbufferFloatingPointBuffers();
     boolean ati      = false;
 
     if (useFloat) {

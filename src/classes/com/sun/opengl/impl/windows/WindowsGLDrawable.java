@@ -426,9 +426,9 @@ public abstract class WindowsGLDrawable extends GLDrawableImpl {
       }
     }
 
-    boolean rtt      = capabilities.getOffscreenRenderToTexture();
-    boolean rect     = capabilities.getOffscreenRenderToTextureRectangle();
-    boolean useFloat = capabilities.getOffscreenFloatingPointBuffers();
+    boolean rtt      = capabilities.getPbufferRenderToTexture();
+    boolean rect     = capabilities.getPbufferRenderToTextureRectangle();
+    boolean useFloat = capabilities.getPbufferFloatingPointBuffers();
     boolean ati      = false;
     if (pbuffer) {
       // Check some invariants and set up some state

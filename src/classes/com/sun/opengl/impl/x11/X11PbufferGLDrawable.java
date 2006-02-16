@@ -65,9 +65,9 @@ public class X11PbufferGLDrawable extends X11GLDrawable {
 
     if (DEBUG) {
       System.out.println("Pbuffer caps on init: " + capabilities +
-                         (capabilities.getOffscreenRenderToTexture() ? " [rtt]" : "") +
-                         (capabilities.getOffscreenRenderToTextureRectangle() ? " [rect]" : "") +
-                         (capabilities.getOffscreenFloatingPointBuffers() ? " [float]" : ""));
+                         (capabilities.getPbufferRenderToTexture() ? " [rtt]" : "") +
+                         (capabilities.getPbufferRenderToTextureRectangle() ? " [rect]" : "") +
+                         (capabilities.getPbufferFloatingPointBuffers() ? " [float]" : ""));
     }
 
     createPbuffer(X11GLDrawableFactory.getDisplayConnection());
@@ -106,11 +106,11 @@ public class X11PbufferGLDrawable extends X11GLDrawable {
         throw new GLException("Null display");
       }
     
-      if (capabilities.getOffscreenRenderToTexture()) {
+      if (capabilities.getPbufferRenderToTexture()) {
         throw new GLException("Render-to-texture pbuffers not supported yet on X11");
       }
 
-      if (capabilities.getOffscreenRenderToTextureRectangle()) {
+      if (capabilities.getPbufferRenderToTextureRectangle()) {
         throw new GLException("Render-to-texture-rectangle pbuffers not supported yet on X11");
       }
 

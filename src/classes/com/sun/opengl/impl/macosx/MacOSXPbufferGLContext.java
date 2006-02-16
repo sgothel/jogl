@@ -58,7 +58,7 @@ public class MacOSXPbufferGLContext extends MacOSXGLContext {
     int res = super.makeCurrentImpl();
     if (res == CONTEXT_CURRENT_NEW) {
       // Initialize render-to-texture support if requested
-      boolean rect = drawable.getCapabilities().getOffscreenRenderToTextureRectangle();
+      boolean rect = drawable.getCapabilities().getPbufferRenderToTextureRectangle();
       GL gl = getGL();
       if (rect) {
         if (!gl.isExtensionAvailable("GL_EXT_texture_rectangle")) {
@@ -87,11 +87,11 @@ public class MacOSXPbufferGLContext extends MacOSXGLContext {
 
   protected boolean create() {
     GLCapabilities capabilities = drawable.getCapabilities();
-    if (capabilities.getOffscreenFloatingPointBuffers() &&
+    if (capabilities.getPbufferFloatingPointBuffers() &&
 	!isTigerOrLater) {
       throw new GLException("Floating-point pbuffers supported only on OS X 10.4 or later");
     }
-    if (!super.create(true, capabilities.getOffscreenFloatingPointBuffers())) {
+    if (!super.create(true, capabilities.getPbufferFloatingPointBuffers())) {
       return false;
     }
     // Must now associate the pbuffer with our newly-created context

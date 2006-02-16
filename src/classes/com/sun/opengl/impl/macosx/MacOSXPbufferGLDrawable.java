@@ -107,7 +107,7 @@ public class MacOSXPbufferGLDrawable extends MacOSXGLDrawable {
 
   protected void createPbuffer() {
     int renderTarget;
-    if (capabilities.getOffscreenRenderToTextureRectangle()) {
+    if (capabilities.getPbufferRenderToTextureRectangle()) {
       width = initWidth;
       height = initHeight;
       renderTarget = GL.GL_TEXTURE_RECTANGLE_EXT;
@@ -118,7 +118,7 @@ public class MacOSXPbufferGLDrawable extends MacOSXGLDrawable {
     }
 
     int internalFormat = GL.GL_RGBA;
-    if (capabilities.getOffscreenFloatingPointBuffers()) {
+    if (capabilities.getPbufferFloatingPointBuffers()) {
       // FIXME: want to check availability of GL_APPLE_float_pixels
       // extension, but need valid OpenGL context in order to do so --
       // in worst case would need to create dummy window / GLCanvas

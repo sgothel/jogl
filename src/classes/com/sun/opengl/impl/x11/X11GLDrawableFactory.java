@@ -392,7 +392,7 @@ public class X11GLDrawableFactory extends GLDrawableFactoryImpl {
       res[idx++] = caps.getNumSamples();
     }
     if (pbuffer) {
-      if (caps.getOffscreenFloatingPointBuffers()) {
+      if (caps.getPbufferFloatingPointBuffers()) {
         String glXExtensions = GLX.glXQueryExtensionsString(display, screen);
         if (glXExtensions == null ||
             glXExtensions.indexOf("GLX_NV_float_buffer") < 0) {
