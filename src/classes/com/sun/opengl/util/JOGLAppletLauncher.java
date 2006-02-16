@@ -280,18 +280,31 @@ public class JOGLAppletLauncher extends Applet {
       if (firstStart) {
         firstStart = false;
         String userHome = System.getProperty("user.home");
-        String installDirName = userHome + File.separator + ".jogl_ext"
-          + File.separator + installDirectory + File.separator + Version.getVersion();
 
-        final File installDir = new File(installDirName);
+        try {
+            // We need to load in the jogl package so that we can query the version information
+            ClassLoader classloader = getClass().getClassLoader();
+            classloader.loadClass("javax.media.opengl.GL");
+            Package p = Package.getPackage("javax.media.opengl");
 
-        Thread refresher = new Thread() {
-            public void run() {
-              refreshJOGL(installDir);
-            }
-          };
-        refresher.setPriority(Thread.NORM_PRIORITY - 1);
-        refresher.start();
+            String installDirName = userHome + File.separator + ".jogl_ext"
+              + File.separator + installDirectory + File.separator + p.getImplementationVersion();
+
+            final File installDir = new File(installDirName);
+ 
+            Thread refresher = new Thread() {
+                public void run() {
+                  refreshJOGL(installDir);
+                }
+            };
+            refresher.setPriority(Thread.NORM_PRIORITY - 1);
+            refresher.start();
+        }  
+        catch (ClassNotFoundException e) {
+            System.err.println("Unable to load javax.media.opengl package");
+            System.exit(0);
+        }
+
       } else if (joglStarted) {
         // we have to start again the applet (start can be called multiple times,
         // e.g once per tabbed browsing
