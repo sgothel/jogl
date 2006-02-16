@@ -181,6 +181,10 @@ public class JOGLAppletLauncher extends Applet {
   // The signatures of these native libraries are checked before
   // installing them.
   private String[] nativeLibNames;
+  // Whether the "DRI hack" native library is present and whether we
+  // therefore might need to run the DRIHack during loading of the
+  // native libraries
+  private boolean driHackPresent;
 
   /** The applet we have to start */
   private Applet subApplet;
@@ -524,6 +528,9 @@ public class JOGLAppletLauncher extends Applet {
       JarEntry entry = (JarEntry) e.nextElement();
       if (nativeLibInfo.matchesNativeLib(entry.getName())) {
         list.add(entry.getName());
+        if (entry.getName().indexOf("jogl_drihack") >= 0) {
+          driHackPresent = true;
+        }
       }
     }
     if (list.isEmpty()) {
@@ -615,8 +622,32 @@ public class JOGLAppletLauncher extends Applet {
         public void run() {
           displayMessage("Loading native libraries");
 
+          // disable JOGL loading from elsewhere
+          com.sun.opengl.impl.NativeLibLoader.disableLoading();
+
+          Class driHackClass = null;
+          if (driHackPresent) {
+            // Load DRI hack library and run the DRI hack itself
+            loadLibrary(nativeLibDir, "jogl_drihack");
+            try {
+              driHackClass = Class.forName("com.sun.opengl.impl.x11.DRIHack");
+              driHackClass.getMethod("begin", new Class[] {}).invoke(null, new Object[] {});
+            } catch (Exception e) {
+              e.printStackTrace();
+            }
+          }
+
           // Load core JOGL native library
           loadLibrary(nativeLibDir, "jogl");
+
+          if (driHackPresent) {
+            // End DRI hack
+            try {
+              driHackClass.getMethod("end", new Class[] {}).invoke(null, new Object[] {});
+            } catch (Exception e) {
+              e.printStackTrace();
+            }
+          }
 
           if (!nativeLibInfo.isMacOS()) { // borrowed from NativeLibLoader
             // Must pre-load JAWT on all non-Mac platforms to
@@ -637,9 +668,6 @@ public class JOGLAppletLauncher extends Applet {
 
           // Load AWT-specific native code
           loadLibrary(nativeLibDir, "jogl_awt");
-
-          // disable JOGL loading from elsewhere
-          com.sun.opengl.impl.NativeLibLoader.disableLoading();
 
           displayMessage("Starting applet " + subAppletDisplayName);
 

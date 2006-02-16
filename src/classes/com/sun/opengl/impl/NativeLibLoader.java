@@ -55,6 +55,7 @@ public class NativeLibLoader {
 
   private static volatile boolean loadedCore = false;
   private static volatile boolean loadedAWTImpl = false;
+  private static volatile boolean loadedDRIHack = false;
 
   public static void loadCore() {
     if (doLoading && !loadedCore) {
@@ -100,6 +101,24 @@ public class NativeLibLoader {
               }
             });
           loadedAWTImpl = true;
+        }
+      }
+    }
+  }
+
+  // See DRIHack.java in com/sun/opengl/impl/x11/ for description of
+  // why this is needed
+  public static void loadDRIHack() {
+    if (doLoading && !loadedDRIHack) {
+      synchronized (NativeLibLoader.class) {
+        if (!loadedDRIHack) {
+          AccessController.doPrivileged(new PrivilegedAction() {
+              public Object run() {
+                System.loadLibrary("jogl_drihack");
+                return null;
+              }
+            });
+          loadedDRIHack = true;
         }
       }
     }

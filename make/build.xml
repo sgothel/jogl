@@ -262,25 +262,25 @@
     <target name="declare.win32.vc6" if="isVC6">
       <echo message="Win32.VC6" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.win32.msvc" />
-      <property name="linker.cfg.id"                        value="linker.cfg.win32.msvc" />
+      <property name="linker.cfg.id.core"                   value="linker.cfg.win32.msvc" />
     </target>
     
     <target name="declare.win32.vc7" if="isVC7">
       <echo message="Win32.VC7" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.win32.msvc" />
-      <property name="linker.cfg.id"                        value="linker.cfg.win32.msvc" />
+      <property name="linker.cfg.id.core"                   value="linker.cfg.win32.msvc" />
     </target>
     
     <target name="declare.win32.vc8" if="isVC8">
       <echo message="Win32.VC8" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.win32.msvc" />
-      <property name="linker.cfg.id"                        value="linker.cfg.win32.msvc" />
+      <property name="linker.cfg.id.core"                   value="linker.cfg.win32.msvc" />
     </target>
     
     <target name="declare.win32.mingw" if="isMingW">
       <echo message="Win32.MingW" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.win32.mingw" /> 
-      <property name="linker.cfg.id"                        value="linker.cfg.win32.mingw" />     
+      <property name="linker.cfg.id.core"                   value="linker.cfg.win32.mingw" />     
     </target>
 
     <target name="declare.win32" depends="declare.win32.vc6,declare.win32.vc7,declare.win32.vc8,declare.win32.mingw" if="isWindows">
@@ -332,7 +332,8 @@
       <property name="java.lib.dir.platform"                value="${java.lib.dir.linux}" />       
 
       <property name="compiler.cfg.id"                      value="compiler.cfg.linux" /> 
-      <property name="linker.cfg.id"                        value="linker.cfg.linux" /> 
+      <property name="linker.cfg.id.core"                   value="linker.cfg.linux" /> 
+      <property name="linker.cfg.id.drihack"                value="linker.cfg.linux.drihack" /> 
     </target>
     
     <target name="declare.linux.amd64" if="isLinuxAMD64">
@@ -341,7 +342,8 @@
       <property name="java.lib.dir.platform"                value="${java.lib.dir.linux.amd64}" />       
 
       <property name="compiler.cfg.id"                      value="compiler.cfg.linux.amd64" /> 
-      <property name="linker.cfg.id"                        value="linker.cfg.linux.amd64" /> 
+      <property name="linker.cfg.id.core"                   value="linker.cfg.linux.amd64" /> 
+      <property name="linker.cfg.id.drihack"                value="linker.cfg.linux.drihack" /> 
     </target>
     
     <target name="declare.linux.ia64" if="isLinuxIA64">
@@ -350,7 +352,8 @@
       <property name="java.lib.dir.platform"                value="${java.lib.dir.linux.ia64}" />       
 
       <property name="compiler.cfg.id"                      value="compiler.cfg.linux" /> 
-      <property name="linker.cfg.id"                        value="linker.cfg.linux" /> 
+      <property name="linker.cfg.id.core"                   value="linker.cfg.linux" /> 
+      <property name="linker.cfg.id.drihack"                value="linker.cfg.linux.drihack" /> 
     </target>
 
     <target name="declare.linux" depends="declare.linux.x86,declare.linux.amd64,declare.linux.ia64,declare.x11" if="isLinux" />
@@ -361,7 +364,8 @@
       <property name="java.lib.dir.platform"                value="${java.lib.dir.solaris}" />
 
       <property name="compiler.cfg.id"                      value="compiler.cfg.solaris" /> 
-      <property name="linker.cfg.id"                        value="linker.cfg.solaris" /> 
+      <property name="linker.cfg.id.core"                   value="linker.cfg.solaris" /> 
+      <property name="linker.cfg.id.drihack"                value="linker.cfg.solaris.drihack" /> 
     </target>
     
     <target name="declare.macosx" if="isOSX">
@@ -387,7 +391,7 @@
       <property name="javadoc.dev.packagenames.platform" value="${javadoc.dev.packagenames.macosx}" />
 
       <property name="compiler.cfg.id"                      value="compiler.cfg.macosx" /> 
-      <property name="linker.cfg.id"                        value="linker.cfg.macosx" /> 
+      <property name="linker.cfg.id.core"                   value="linker.cfg.macosx" /> 
     </target>
     
     <target name="declare.freebsd" depends="declare.x11" if="isFreeBSD">
@@ -396,7 +400,8 @@
       <property name="java.lib.dir.platform"                value="${java.lib.dir.linux}" />
 
       <property name="compiler.cfg.id"                      value="compiler.cfg.freebsd" />
-      <property name="linker.cfg.id"                        value="linker.cfg.linux" />
+      <property name="linker.cfg.id.core"                   value="linker.cfg.linux" />
+      <property name="linker.cfg.id.drihack"                value="linker.cfg.linux.drihack" /> 
     </target>
 
     <!-- ================================================================== -->
@@ -715,6 +720,8 @@
         <syslibset dir="${x11.cg.lib}" libs="Cg, CgGL" if="c.compiler.use-cglib"/>
       </linker>
 
+      <linker id="linker.cfg.linux.drihack" name="gcc" />
+
       <linker id="linker.cfg.linux.amd64" name="gcc">
         <syslibset dir="/usr/X11R6/lib64" libs="GL, X11"/>
         <syslibset dir="/usr/X11R6/lib64" libs="Xxf86vm" />
@@ -724,6 +731,8 @@
       <linker id="linker.cfg.solaris" name="suncc">
         <syslibset libs="GL, X11"/>
       </linker>
+
+      <linker id="linker.cfg.solaris.drihack" name="suncc" />
 
       <linker id="linker.cfg.win32.mingw" name="gcc" incremental="false">
         <linkerarg value="-Wl,--kill-at" />        <!-- remove @ from function names -->
@@ -765,6 +774,10 @@
         <include name="${rootrel.generated.c.jogl}/JAWT*.c"/>
       </patternset>
       
+      <patternset id="c.src.files.jogl.drihack">
+        <include name="${rootrel.src.c.jogl}/drihack.c"/>
+      </patternset>
+
       <patternset id="c.src.files.cg">
         <include name="${rootrel.generated.c.cg}/*.c"/>
       </patternset>
@@ -840,6 +853,7 @@
       <antcall target="c.build" inheritRefs="true">
         <param name="c.compiler.src.files" value="c.src.files.jogl"/>
         <param name="output.lib.name" value="jogl"/>
+        <param name="linker.cfg.id" value="${linker.cfg.id.core}"/>
       </antcall>
     </target>
 
@@ -848,6 +862,7 @@
         <param name="c.compiler.src.files" value="c.src.files.jogl_awt"/>
         <param name="c.compiler.use-jawt" value="true"/>
         <param name="output.lib.name" value="jogl_awt"/>
+        <param name="linker.cfg.id" value="${linker.cfg.id.core}"/>
       </antcall>
       <antcall target="c.manifest" inheritRefs="true" />
     </target>
@@ -857,9 +872,18 @@
         <param name="c.compiler.src.files" value="c.src.files.cg"/>
         <param name="c.compiler.use-cglib" value="true"/>
         <param name="output.lib.name" value="jogl_cg"/>
+        <param name="linker.cfg.id" value="${linker.cfg.id.core}"/>
       </antcall>
     </target>
     
+    <target name="c.build.jogl.drihack" if="isX11">
+      <antcall target="c.build" inheritRefs="true">
+        <param name="c.compiler.src.files" value="c.src.files.jogl.drihack"/>
+        <param name="output.lib.name" value="jogl_drihack"/>
+        <param name="linker.cfg.id" value="${linker.cfg.id.drihack}"/>
+      </antcall>
+    </target>
+
     <target name="c.manifest" if="isVC8">
       <!-- exec mt, the Microsoft Manifest Tool, to include DLL manifests in order to resolve the location of msvcr80.dll -->
       <exec executable="mt">
@@ -874,7 +898,7 @@
       </exec>
     </target>
 
-    <target name="c.build.jogl" depends="c.build.jogl.core,c.build.jogl.awt,c.build.jogl.cg">
+    <target name="c.build.jogl" depends="c.build.jogl.core,c.build.jogl.awt,c.build.jogl.drihack,c.build.jogl.cg">
       <antcall target="c.rename.jogl.libs.mingw" inheritRefs="true" />
       <antcall target="c.rename.jogl.libs.macosx" inheritRefs="true" />
       <antcall target="c.manifest" inheritRefs="true" />

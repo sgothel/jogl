@@ -57,7 +57,12 @@ public class X11GLDrawableFactory extends GLDrawableFactoryImpl {
   private static boolean isLinuxAMD64;
 
   static {
+    // See DRIHack.java for an explanation of why this is necessary
+    DRIHack.begin();
+
     NativeLibLoader.loadCore();
+
+    DRIHack.end();
 
     AccessController.doPrivileged(new PrivilegedAction() {
         public Object run() {
