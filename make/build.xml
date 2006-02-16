@@ -1163,16 +1163,16 @@
              includes="jogl.dll,jogl_awt.dll,jogl_cg.dll" />
         <jar destfile="${jogl.dist.dir}/jogl-natives-linux.jar"
              basedir="${jogl.dist.dir}/jogl-linux"
-             includes="libjogl.so,libjogl_awt.so,libjogl_cg.so" />
+             includes="libjogl.so,libjogl_awt.so,libjogl_cg.so,libjogl_drihack.so" />
         <jar destfile="${jogl.dist.dir}/jogl-natives-macosx.jar"
              basedir="${jogl.dist.dir}/jogl-macosx"
              includes="libjogl.jnilib,libjogl_awt.jnilib,libjogl_cg.jnilib" />
         <jar destfile="${jogl.dist.dir}/jogl-natives-solsparc.jar"
              basedir="${jogl.dist.dir}/jogl-solsparc"
-             includes="libjogl.so,libjogl_awt.so" />
+             includes="libjogl.so,libjogl_awt.so,libjogl_drihack.so" />
         <jar destfile="${jogl.dist.dir}/jogl-natives-solx86.jar"
              basedir="${jogl.dist.dir}/jogl-solx86"
-             includes="libjogl.so,libjogl_awt.so" />
+             includes="libjogl.so,libjogl_awt.so,libjogl_drihack.so" />
 	<!-- Build a source archive as well -->
         <zip destfile="${jogl.dist.dir}/jogl-src.zip"
 	     basedir="../.."
