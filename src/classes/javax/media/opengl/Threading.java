@@ -46,8 +46,8 @@ import java.security.PrivilegedAction;
 
 import com.sun.opengl.impl.*;
 
-/** Defines the threading model for the implementation of the classes
-    in this package.
+/** This API provides access to the threading model for the implementation of 
+    the classes in this package.
 
     <P>
 
@@ -63,8 +63,13 @@ import com.sun.opengl.impl.*;
 
     Due to these limitations, and due to the inherent multithreading
     in the Java platform (in particular, in the Abstract Window
-    Toolkit), it is necessary to limit the multithreading occurring in
-    the typical application using the OpenGL API. This has been done by
+    Toolkit), it is often necessary to limit the multithreading 
+    occurring in the typical application using the OpenGL API. 
+
+    <P>
+
+    In the current reference implementation, for instance, multithreading 
+    has been limited by
     forcing all OpenGL-related work for GLAutoDrawables on to a single
     thread. In other words, if an application uses only the
     GLAutoDrawable and GLEventListener callback mechanism, it is
@@ -77,9 +82,12 @@ import com.sun.opengl.impl.*;
     will inherently break this single-threaded model, as these methods
     require that the OpenGL context be made current on the current
     thread immediately. For applications wishing to integrate better
-    with the single-threaded model, this class provides public access
-    to the mechanism used by this implementation of the
-    javax.media.opengl APIs. Users can execute Runnables on the
+    with an implementation that uses the single-threaded model, this
+    class provides public access to the mechanism used by the implementation.
+
+    <P>
+
+    Users can execute Runnables on the
     internal thread used for performing OpenGL work, and query whether
     the current thread is already this thread. Using these mechanisms
     the user can move work from the current thread on to the internal
@@ -89,9 +97,10 @@ import com.sun.opengl.impl.*;
 
     This class also provides mechanisms for querying whether this
     internal serialization of OpenGL work is in effect, and a
-    programmatic way of disabling it. Currently it is enabled by
-    default, although it could be disabled in the future if OpenGL
-    drivers become more robust on all platforms.
+    programmatic way of disabling it.  In the current reference 
+    implementation it is enabled by default, although it could be 
+    disabled in the future if OpenGL drivers become more robust on 
+    all platforms.
 
     <P>
 
@@ -126,17 +135,19 @@ public class Threading {
   /** No reason to ever instantiate this class */
   private Threading() {}
 
-  /** Provides a mechanism for end users to disable the default
-      single-threading of this implementation of the
-      javax.media.opengl APIs. Users are strongly discouraged from
+  /** If an implementation of the javax.media.opengl APIs offers a 
+      multithreading option but the default behavior is single-threading, 
+      this API provides a mechanism for end users to disable single-threading 
+      in this implementation.  Users are strongly discouraged from
       calling this method unless they are aware of all of the
       consequences and are prepared to enforce some amount of
-      threading restrictions in their applications. Disabling this
-      single-threading, for example, will have unintended consequences
+      threading restrictions in their applications. Disabling
+      single-threading, for example, may have unintended consequences
       on GLAutoDrawable implementations such as GLCanvas, GLJPanel and
       GLPbuffer. Currently there is no supported way to re-enable it
       once disabled, partly to discourage careless use of this
-      method. */ 
+      method. This method should be called as early as possible in an
+      application. */ 
   public static void disableSingleThreading() {
     singleThreaded = false;
     if (Debug.verbose()) {
@@ -145,7 +156,7 @@ public class Threading {
   }
 
   /** Indicates whether OpenGL work is being automatically forced to a
-      single thread. */
+      single thread in this implementation. */
   public static boolean isSingleThreaded() {
     return singleThreaded;
   }
