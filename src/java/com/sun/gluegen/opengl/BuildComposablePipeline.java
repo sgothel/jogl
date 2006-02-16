@@ -417,7 +417,7 @@ public class BuildComposablePipeline
 
     protected void emitClassDocComment(PrintWriter output)
     {
-      output.println("/** <P> Composable pipline which wraps an underlying {@link GL} implementation,");
+      output.println("/** <P> Composable pipeline which wraps an underlying {@link GL} implementation,");
       output.println("    providing error checking after each OpenGL method call. If an error occurs,");
       output.println("    causes a {@link GLException} to be thrown at exactly the point of failure.");
       output.println("    Sample code which installs this pipeline: </P>");
@@ -525,7 +525,7 @@ public class BuildComposablePipeline
     }
     protected void emitClassDocComment(PrintWriter output)
     {
-      output.println("/** <P> Composable pipline which wraps an underlying {@link GL} implementation,");
+      output.println("/** <P> Composable pipeline which wraps an underlying {@link GL} implementation,");
       output.println("    providing tracing information to a user-specified {@link java.io.PrintStream}");
       output.println("    before and after each OpenGL method call. Sample code which installs this pipeline: </P>");
       output.println();
