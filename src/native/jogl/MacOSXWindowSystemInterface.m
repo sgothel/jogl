@@ -31,6 +31,17 @@
     #endif
 #endif
 
+// Workarounds for compiling on 10.3
+#ifndef kCGLRGBA16161616Bit
+#define kCGLRGBA16161616Bit 0x00800000  /* 64 argb bit/pixel,   R=63:48, G=47:32, B=31:16, A=15:0 */
+#define kCGLRGBFloat64Bit   0x01000000  /* 64 rgb bit/pixel,    half float                        */
+#define kCGLRGBAFloat64Bit  0x02000000  /* 64 argb bit/pixel,   half float                        */
+#define kCGLRGBFloat128Bit  0x04000000  /* 128 rgb bit/pixel,   ieee float                        */
+#define kCGLRGBAFloat128Bit 0x08000000  /* 128 argb bit/pixel,  ieee float                        */
+#define kCGLRGBFloat256Bit  0x10000000  /* 256 rgb bit/pixel,   ieee double                       */
+#define kCGLRGBAFloat256Bit 0x20000000  /* 256 argb bit/pixel,  ieee double                       */
+#endif
+
 struct _RendererInfo
 {
 	long id;				// kCGLRPRendererID
@@ -95,7 +106,8 @@ long depthModes[] = {
 					kCGL48Bit,
 					kCGL64Bit,
 					kCGL96Bit,
-					kCGL128Bit
+					kCGL128Bit,
+					0
 					};
 long depthModesBits[] = {0, 1, 2, 3, 4, 5, 6, 8, 10, 12, 16, 24, 32, 48, 64, 96, 128};
 long colorModes[] = {
@@ -122,7 +134,8 @@ long colorModes[] = {
 					kCGLRGBFloat128Bit,
 					kCGLRGBAFloat128Bit,
 					kCGLRGBFloat256Bit,
-					kCGLRGBAFloat256Bit
+					kCGLRGBAFloat256Bit,
+					0
 					};
 long colorModesBitsRGB[] =	{4, 4, 4, 5, 5, 5, 5, 5, 8, 8, 8, 10, 10, 10, 12, 12, 16, 16, 16, 16, 32, 32, 64, 64};
 long colorModesBitsA[] =	{0, 4, 8, 0, 1, 8, 0, 8, 0, 8, 8,  0,  2,  8,  0, 12,  0, 16,  0, 16,  0, 32,  0, 64};
@@ -180,6 +193,9 @@ void getRendererInfo()
 				CGLDescribeRenderer(info, j, kCGLRPMaxAuxBuffers, &(renderer->auxBuffers));
 				CGLDescribeRenderer(info, j, kCGLRPMaxSampleBuffers, &(renderer->sampleBuffers));
 				CGLDescribeRenderer(info, j, kCGLRPMaxSamples, &(renderer->samples));
+				// The following queries are only legal on 10.4
+				// FIXME: should figure out a way to enable them dynamically
+#ifdef kCGLRPSampleModes
 				CGLDescribeRenderer(info, j, kCGLRPSampleModes, &(renderer->samplesModes));
 				if ((renderer->samplesModes & kCGLSupersampleBit) != 0)
 				{
@@ -190,7 +206,7 @@ void getRendererInfo()
 					renderer->superSample = 1;
 				}
 				CGLDescribeRenderer(info, j, kCGLRPSampleAlpha, &(renderer->alphaSample));
-				
+#endif
 				CGLDescribeRenderer(info, j, kCGLRPColorModes, &(renderer->colorModes));
 				i=0;
 				int floatPixelFormatInitialized = 0;
