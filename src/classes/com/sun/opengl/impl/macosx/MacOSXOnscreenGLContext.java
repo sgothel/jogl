@@ -54,13 +54,14 @@ public class MacOSXOnscreenGLContext extends MacOSXGLContext {
   }
 
   protected int makeCurrentImpl() throws GLException {
+    int lockRes = 0;
     try {
-      int lockRes = drawable.lockSurface();
+      lockRes = drawable.lockSurface();
       if (lockRes == MacOSXOnscreenGLDrawable.LOCK_SURFACE_NOT_READY) {
         return CONTEXT_NOT_CURRENT;
       }
       if (lockRes == MacOSXOnscreenGLDrawable.LOCK_SURFACE_CHANGED) {
-        super.destroy();
+        destroyImpl();
       }
       int ret = super.makeCurrentImpl();
       if ((ret == CONTEXT_CURRENT) ||
@@ -72,32 +73,18 @@ public class MacOSXOnscreenGLContext extends MacOSXGLContext {
         // do this updating only upon reshape of this component or reshape or movement
         // of an ancestor, but this also wasn't sufficient and left garbage on the
         // screen in some situations.
-        CGL.updateContext(nsContext, drawable.getView());
-      } else {
-        // View might not have been ready
-        drawable.unlockSurface();
+        CGL.updateContext(nsContext);
       }
       return ret;
-    } catch (RuntimeException e) {
-      try {
-        drawable.unlockSurface();
-      } catch (Exception e2) {
-        // do nothing if unlockSurface throws
-      }
-      throw(e); 
-    }
-  }
-    
-  protected void releaseImpl() throws GLException {
-    try {
-      super.releaseImpl();
     } finally {
-      drawable.unlockSurface();
+      if (lockRes != MacOSXOnscreenGLDrawable.LOCK_SURFACE_NOT_READY) {
+        drawable.unlockSurface();
+      }
     }
   }
     
   public void swapBuffers() throws GLException {
-    if (!CGL.flushBuffer(nsContext, drawable.getView())) {
+    if (!CGL.flushBuffer(nsContext)) {
       throw new GLException("Error swapping buffers");
     }
   }

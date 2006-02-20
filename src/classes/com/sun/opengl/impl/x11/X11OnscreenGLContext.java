@@ -54,38 +54,19 @@ public class X11OnscreenGLContext extends X11GLContext {
   }
   
   protected int makeCurrentImpl() throws GLException {
+    int lockRes = drawable.lockSurface();
     try {
-      int lockRes = drawable.lockSurface();
       if (lockRes == X11OnscreenGLDrawable.LOCK_SURFACE_NOT_READY) {
         return CONTEXT_NOT_CURRENT;
       }
       if (lockRes == X11OnscreenGLDrawable.LOCK_SURFACE_CHANGED) {
-        if (context != 0) {
-          GLX.glXDestroyContext(mostRecentDisplay, context);
-          GLContextShareSet.contextDestroyed(this);
-          if (DEBUG) {
-            System.err.println(getThreadName() + ": !!! Destroyed OpenGL context " + toHexString(context) + " due to JAWT_LOCK_SURFACE_CHANGED");
-          }
-          context = 0;
-        }
+        destroyImpl();
       }
-      int ret = super.makeCurrentImpl();
-      return ret;
-    } catch (RuntimeException e) {
-      try {
-        drawable.unlockSurface();
-      } catch (Exception e2) {
-        // do nothing if unlockSurface throws
-      }
-      throw(e); 
-    }
-  }
-
-  protected void releaseImpl() throws GLException {
-    try {
-      super.releaseImpl();
+      return super.makeCurrentImpl();
     } finally {
-      drawable.unlockSurface();
+      if (lockRes != X11OnscreenGLDrawable.LOCK_SURFACE_NOT_READY) {
+        drawable.unlockSurface();
+      }
     }
   }
 

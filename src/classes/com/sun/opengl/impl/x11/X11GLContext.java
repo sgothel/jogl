@@ -128,8 +128,6 @@ public abstract class X11GLContext extends GLContextImpl {
   }
 
   protected int makeCurrentImpl() throws GLException {
-    // FIXME: in offscreen (non-pbuffer) case this is run without the
-    // AWT lock held
     boolean created = false;
     if (context == 0) {
       create();
@@ -143,7 +141,7 @@ public abstract class X11GLContext extends GLContextImpl {
       throw new GLException("Error making context current");
     } else {
       mostRecentDisplay = drawable.getDisplay();
-      if (DEBUG && VERBOSE) {
+      if (DEBUG && (VERBOSE || created)) {
         System.err.println(getThreadName() + ": glXMakeCurrent(display " + toHexString(drawable.getDisplay()) +
                            ", drawable " + toHexString(drawable.getDrawable()) +
                            ", context " + toHexString(context) + ") succeeded");
@@ -158,14 +156,25 @@ public abstract class X11GLContext extends GLContextImpl {
   }
 
   protected void releaseImpl() throws GLException {
-    if (!GLX.glXMakeCurrent(drawable.getDisplay(), 0, 0)) {
-      throw new GLException("Error freeing OpenGL context");
+    lockToolkit();
+    try {
+      if (!GLX.glXMakeCurrent(mostRecentDisplay, 0, 0)) {
+        throw new GLException("Error freeing OpenGL context");
+      }
+    } finally {
+      unlockToolkit();
     }
   }
 
   protected void destroyImpl() throws GLException {
     lockToolkit();
     if (context != 0) {
+      if (DEBUG) {
+        System.err.println("glXDestroyContext(0x" +
+                           Long.toHexString(mostRecentDisplay) +
+                           ", 0x" +
+                           Long.toHexString(context) + ")");
+      }
       GLX.glXDestroyContext(mostRecentDisplay, context);
       if (DEBUG) {
         System.err.println("!!! Destroyed OpenGL context " + context);
@@ -199,7 +208,7 @@ public abstract class X11GLContext extends GLContextImpl {
   }
 
   public synchronized String getPlatformExtensionsString() {
-    if (drawable.getDisplay() == 0) {
+    if (mostRecentDisplay == 0) {
       throw new GLException("Context not current");
     }
     if (!glXQueryExtensionsStringInitialized) {
@@ -210,7 +219,7 @@ public abstract class X11GLContext extends GLContextImpl {
     if (glXQueryExtensionsStringAvailable) {
       lockToolkit();
       try {
-        String ret = GLX.glXQueryExtensionsString(drawable.getDisplay(), GLX.DefaultScreen(drawable.getDisplay()));
+        String ret = GLX.glXQueryExtensionsString(mostRecentDisplay, GLX.DefaultScreen(mostRecentDisplay));
         if (DEBUG) {
           System.err.println("!!! GLX extensions: " + ret);
         }
@@ -249,11 +258,16 @@ public abstract class X11GLContext extends GLContextImpl {
 
 
   public void setSwapInterval(int interval) {
-    // FIXME: make the context current first? Currently assumes that
-    // will not be necessary. Make the caller do this?
-    GLXExt glXExt = getGLXExt();
-    if (glXExt.isExtensionAvailable("GLX_SGI_swap_control")) {
-      glXExt.glXSwapIntervalSGI(interval);
+    lockToolkit();
+    try {
+      // FIXME: make the context current first? Currently assumes that
+      // will not be necessary. Make the caller do this?
+      GLXExt glXExt = getGLXExt();
+      if (glXExt.isExtensionAvailable("GLX_SGI_swap_control")) {
+        glXExt.glXSwapIntervalSGI(interval);
+      }
+    } finally {
+      unlockToolkit();
     }
   }
 

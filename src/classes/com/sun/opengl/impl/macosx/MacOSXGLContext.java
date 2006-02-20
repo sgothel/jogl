@@ -153,7 +153,7 @@ public abstract class MacOSXGLContext extends GLContextImpl
       created = true;
     }
             
-    if (!CGL.makeCurrentContext(nsContext, drawable.getView())) {
+    if (!CGL.makeCurrentContext(nsContext)) {
       throw new GLException("Error making nsContext current");
     }
             
@@ -165,14 +165,14 @@ public abstract class MacOSXGLContext extends GLContextImpl
   }
 	
   protected void releaseImpl() throws GLException {
-    if (!CGL.clearCurrentContext(nsContext, drawable.getView())) {
+    if (!CGL.clearCurrentContext(nsContext)) {
       throw new GLException("Error freeing OpenGL nsContext");
     }
   }
 	
   protected void destroyImpl() throws GLException {
     if (nsContext != 0) {
-      if (!CGL.deleteContext(nsContext, 0)) {
+      if (!CGL.deleteContext(nsContext)) {
         throw new GLException("Unable to delete OpenGL context");
       }
       if (DEBUG) {

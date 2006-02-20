@@ -68,6 +68,15 @@ public class X11OffscreenGLContext extends X11GLContext {
     return true;
   }
 
+  protected int makeCurrentImpl() throws GLException {
+    lockToolkit();
+    try {
+      return super.makeCurrentImpl();
+    } finally {
+      unlockToolkit();
+    }
+  }
+
   protected void create() {
     createContext(false);
   }

@@ -54,40 +54,21 @@ public class WindowsOnscreenGLContext extends WindowsGLContext {
   }
   
   protected int makeCurrentImpl() throws GLException {
+    int lockRes = 0;
     try {
-      int lockRes = drawable.lockSurface();
+      lockRes = drawable.lockSurface();
       if (lockRes == WindowsOnscreenGLDrawable.LOCK_SURFACE_NOT_READY) {
         return CONTEXT_NOT_CURRENT;
       }
       if (lockRes == WindowsOnscreenGLDrawable.LOCK_SURFACE_CHANGED) {
-        if (hglrc != 0) {
-          if (!WGL.wglDeleteContext(hglrc)) {
-            throw new GLException("Unable to delete old GL context after surface changed");
-          }
-          GLContextShareSet.contextDestroyed(this);
-          if (DEBUG) {
-            System.err.println(getThreadName() + ": !!! Destroyed OpenGL context " + toHexString(hglrc) + " due to JAWT_LOCK_SURFACE_CHANGED");
-          }
-          hglrc = 0;
-        }
+        destroyImpl();
       }
       int ret = super.makeCurrentImpl();
       return ret;
-    } catch (RuntimeException e) {
-      try {
-        drawable.unlockSurface();
-      } catch (Exception e2) {
-        // do nothing if unlockSurface throws
-      }
-      throw(e); 
-    }
-  }
-
-  protected void releaseImpl() throws GLException {
-    try {
-      super.releaseImpl();
     } finally {
-      drawable.unlockSurface();
+      if (lockRes != WindowsOnscreenGLDrawable.LOCK_SURFACE_NOT_READY) {
+        drawable.unlockSurface();
+      }
     }
   }
 }

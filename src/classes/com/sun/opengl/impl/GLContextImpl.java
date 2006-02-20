@@ -150,7 +150,14 @@ public abstract class GLContextImpl extends GLContext {
       }
     }
 
-    destroyImpl();
+    // Must hold the lock around the destroy operation to make sure we
+    // don't destroy the context out from under another thread rendering to it
+    lock.lock();
+    try {
+      destroyImpl();
+    } finally {
+      lock.unlock();
+    }
   }
 
   protected abstract void destroyImpl() throws GLException;

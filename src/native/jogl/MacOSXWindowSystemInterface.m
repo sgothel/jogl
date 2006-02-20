@@ -490,7 +490,7 @@ void* createContext(void* shareContext, void* view,
 	return nsContext;
 }
 
-Bool makeCurrentContext(void* context, void* view) {
+Bool makeCurrentContext(void* context) {
   NSOpenGLContext *nsContext = (NSOpenGLContext*)context;
 	
   NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
@@ -499,14 +499,14 @@ Bool makeCurrentContext(void* context, void* view) {
   return true;
 }
 
-Bool clearCurrentContext(void* context, void* view) {
+Bool clearCurrentContext(void* context) {
   NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
   [NSOpenGLContext clearCurrentContext];
   [pool release];
   return true;
 }
 
-Bool deleteContext(void* context, void* view) {
+Bool deleteContext(void* context) {
   NSOpenGLContext *nsContext = (NSOpenGLContext*)context;
 	
   NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
@@ -516,7 +516,7 @@ Bool deleteContext(void* context, void* view) {
   return true;
 }
 
-Bool flushBuffer(void* context, void* view) {
+Bool flushBuffer(void* context) {
   NSOpenGLContext *nsContext = (NSOpenGLContext*)context;
 	
   NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
@@ -525,7 +525,7 @@ Bool flushBuffer(void* context, void* view) {
   return true;
 }
 
-void updateContext(void* context, void* view) {
+void updateContext(void* context) {
   NSOpenGLContext *nsContext = (NSOpenGLContext*)context;
 	
   NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];

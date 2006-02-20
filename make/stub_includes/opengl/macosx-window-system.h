@@ -27,11 +27,11 @@ void* createContext(void* shareContext, void* nsView,
                     int pbuffer,
                     int floatingPoint,
                     int* viewNotReady);
-Bool  makeCurrentContext(void* nsContext, void* nsView);
-Bool  clearCurrentContext(void* nsContext, void* nsView);
-Bool  deleteContext(void* nsContext, void* nsView);
-Bool  flushBuffer(void* nsContext, void* nsView);
-void  updateContext(void* nsContext, void* nsView);
+Bool  makeCurrentContext(void* nsContext);
+Bool  clearCurrentContext(void* nsContext);
+Bool  deleteContext(void* nsContext);
+Bool  flushBuffer(void* nsContext);
+void  updateContext(void* nsContext);
 
 void* updateContextRegister(void* nsContext, void* nsView);
 void  updateContextUnregister(void* nsContext, void* nsView, void* updater);

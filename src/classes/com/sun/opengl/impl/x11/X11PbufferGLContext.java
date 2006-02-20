@@ -90,7 +90,7 @@ public class X11PbufferGLContext extends X11GLContext {
         throw new GLException("Error making context current");
       } else {
         mostRecentDisplay = drawable.getDisplay();
-        if (DEBUG && VERBOSE) {
+        if (DEBUG && (VERBOSE || created)) {
           System.err.println(getThreadName() + ": glXMakeCurrent(display " + toHexString(drawable.getDisplay()) +
                              ", drawable " + toHexString(drawable.getDrawable()) +
                              ", context " + toHexString(context) + ") succeeded");
