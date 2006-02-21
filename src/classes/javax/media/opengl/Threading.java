@@ -118,13 +118,26 @@ import com.sun.opengl.impl.*;
 
 public class Threading {
   private static boolean singleThreaded = true;
+  private static final int AWT    = 1;
+  private static final int WORKER = 2;
+  private static int mode = AWT;
   
   static {
     AccessController.doPrivileged(new PrivilegedAction() {
         public Object run() {
           String workaround = System.getProperty("opengl.1thread");
-          if (workaround != null && (!workaround.equals("auto"))) {
-            singleThreaded = Boolean.valueOf(workaround).booleanValue();
+          if (workaround != null) {
+            workaround = workaround.toLowerCase();
+            if (workaround.equals("true") ||
+                workaround.equals("auto") ||
+                workaround.equals("awt")) {
+              // Nothing to do; default = singleThreaded, mode = AWT
+            } else if (workaround.equals("worker")) {
+              singleThreaded = true;
+              mode = WORKER;
+            } else {
+              singleThreaded = false;
+            }
           }
           printWorkaroundNotice();
           return null;
@@ -170,16 +183,23 @@ public class Threading {
       throw new GLException("Should only call this in single-threaded mode");
     }
 
-    if (Java2D.isOGLPipelineActive()) {
-      // FIXME: ideally only the QFT would be considered to be the
-      // "OpenGL thread", but we can not currently run all of JOGL's
-      // OpenGL work on that thread. For now, run the GLJPanel's
-      // Java2D/JOGL bridge on the QFT but everything else on the
-      // EDT, except when we're already on the QFT.
-      return (Java2D.isQueueFlusherThread() ||
-              EventQueue.isDispatchThread());
-    } else {
-      return EventQueue.isDispatchThread();
+    switch (mode) {
+      case AWT:
+        if (Java2D.isOGLPipelineActive()) {
+          // FIXME: ideally only the QFT would be considered to be the
+          // "OpenGL thread", but we can not currently run all of JOGL's
+          // OpenGL work on that thread. For now, run the GLJPanel's
+          // Java2D/JOGL bridge on the QFT but everything else on the
+          // EDT, except when we're already on the QFT.
+          return (Java2D.isQueueFlusherThread() ||
+                  EventQueue.isDispatchThread());
+        } else {
+          return EventQueue.isDispatchThread();
+        }
+      case WORKER:
+        return GLWorkerThread.isWorkerThread();
+      default:
+        throw new InternalError("Illegal single-threading mode " + mode);
     }
   }
 
@@ -201,28 +221,48 @@ public class Threading {
       throw new GLException ("Should only call this from other threads than the OpenGL thread");
     }    
 
-    // FIXME: ideally should run all OpenGL work on the Java2D QFT
-    // thread when it's enabled, but there are issues with this when
-    // the GLJPanel is not using the Java2D bridge; would like to run
-    // its OpenGL work on the QFT, but do the image drawing from the
-    // EDT. Other issues still remain with the GLCanvas as well.
+    switch (mode) {
+      case AWT:
+        // FIXME: ideally should run all OpenGL work on the Java2D QFT
+        // thread when it's enabled, but there are issues with this when
+        // the GLJPanel is not using the Java2D bridge; would like to run
+        // its OpenGL work on the QFT, but do the image drawing from the
+        // EDT. Other issues still remain with the GLCanvas as well.
 
-    //    if (Java2D.isOGLPipelineActive()) {
-    //      Java2D.invokeWithOGLContextCurrent(null, r);
-    //    } else {
-    try {
-      EventQueue.invokeAndWait(r);
-    } catch (InvocationTargetException e) {
-      throw new GLException(e.getTargetException());
-    } catch (InterruptedException e) {
-      throw new GLException(e);
+        //    if (Java2D.isOGLPipelineActive()) {
+        //      Java2D.invokeWithOGLContextCurrent(null, r);
+        //    } else {
+        try {
+          EventQueue.invokeAndWait(r);
+        } catch (InvocationTargetException e) {
+          throw new GLException(e.getTargetException());
+        } catch (InterruptedException e) {
+          throw new GLException(e);
+        }
+        //    }    
+        break;
+
+      case WORKER:
+        if (!GLWorkerThread.isStarted()) {
+          synchronized (GLWorkerThread.class) {
+            if (!GLWorkerThread.isStarted()) {
+              GLWorkerThread.start();
+            }
+          }
+        }
+        GLWorkerThread.invokeAndWait(r);
+        break;
+
+      default:
+        throw new InternalError("Illegal single-threading mode " + mode);
     }
-    //    }    
   }
 
   private static void printWorkaroundNotice() {
     if (singleThreaded && Debug.verbose()) {
-      System.err.println("Using single thread for performing OpenGL work in javax.media.opengl implementation");
+      System.err.println("Using " +
+                         (mode == AWT ? "AWT" : "OpenGL worker") +
+                         " thread for performing OpenGL work in javax.media.opengl implementation");
     }
   }
 }
