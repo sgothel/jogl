@@ -166,11 +166,19 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
       <B>Overrides:</B>
       <DL><DD><CODE>removeNotify</CODE> in class <CODE>java.awt.Component</CODE></DD></DL> */
   public void removeNotify() {
-    context.destroy();
-    drawable.setRealized(false);
-    super.removeNotify();
-    if (DEBUG) {
-      System.err.println("GLCanvas.removeNotify()");
+    try {
+      if (Threading.isSingleThreaded() &&
+          !Threading.isOpenGLThread()) {
+        Threading.invokeOnOpenGLThread(destroyAction);
+      } else {
+        context.destroy();
+      }
+    } finally {
+      drawable.setRealized(false);
+      super.removeNotify();
+      if (DEBUG) {
+        System.err.println("GLCanvas.removeNotify()");
+      }
     }
   }
 
@@ -288,6 +296,17 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
   }
   private SwapBuffersOnEventDispatchThreadAction swapBuffersOnEventDispatchThreadAction =
     new SwapBuffersOnEventDispatchThreadAction();
+
+  class DestroyAction implements Runnable {
+    public void run() {
+      GLContext current = GLContext.getCurrent();
+      if (current == context) {
+        context.release();
+      }
+      context.destroy();
+    }
+  }
+  private DestroyAction destroyAction = new DestroyAction();
 
   // Disables the AWT's erasing of this Canvas's background on Windows
   // in Java SE 6. This internal API is not available in previous

@@ -197,7 +197,17 @@ public class Threading {
           return EventQueue.isDispatchThread();
         }
       case WORKER:
-        return GLWorkerThread.isWorkerThread();
+        if (Java2D.isOGLPipelineActive()) {
+          // FIXME: ideally only the QFT would be considered to be the
+          // "OpenGL thread", but we can not currently run all of JOGL's
+          // OpenGL work on that thread. For now, run the GLJPanel's
+          // Java2D/JOGL bridge on the QFT but everything else on the
+          // worker thread, except when we're already on the QFT.
+          return (Java2D.isQueueFlusherThread() ||
+                  GLWorkerThread.isWorkerThread());
+        } else {
+          return GLWorkerThread.isWorkerThread();
+        }
       default:
         throw new InternalError("Illegal single-threading mode " + mode);
     }

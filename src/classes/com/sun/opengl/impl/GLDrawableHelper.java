@@ -49,6 +49,7 @@ public class GLDrawableHelper {
   private volatile List listeners = new ArrayList();
   private static final boolean DEBUG = Debug.debug("GLDrawableHelper");
   private static final boolean VERBOSE = Debug.verbose();
+  private static final boolean NVIDIA_CRASH_WORKAROUND = Debug.isPropertyDefined("jogl.nvidia.crash.workaround");
   private boolean autoSwapBufferMode = true;
 
   public GLDrawableHelper() {
@@ -104,46 +105,106 @@ public class GLDrawableHelper {
                        GLContext context,
                        Runnable  runnable,
                        Runnable  initAction) {
-    // Support for recursive makeCurrent() calls as well as calling
-    // other drawables' display() methods from within another one's
-    GLContext lastContext    = GLContext.getCurrent();
-    Runnable  lastInitAction = (Runnable) perThreadInitAction.get();
-    if (lastContext != null) {
-      lastContext.release();
-    }
-    
-    int res = 0;
-    try {
-      res = context.makeCurrent();
-      if (res != GLContext.CONTEXT_NOT_CURRENT) {
-        perThreadInitAction.set(initAction);
-        if (res == GLContext.CONTEXT_CURRENT_NEW) {
-          if (DEBUG) {
-            System.err.println("GLDrawableHelper " + this + ".invokeGL(): Running initAction");
-          }
-          initAction.run();
-        }
-        if (DEBUG && VERBOSE) {
-          System.err.println("GLDrawableHelper " + this + ".invokeGL(): Running runnable");
-        }
-        runnable.run();
-        if (autoSwapBufferMode) {
-          if (drawable != null) {
-            drawable.swapBuffers();
-          }
-        }
+    if (GLWorkerThread.isStarted() &&
+        GLWorkerThread.isWorkerThread()) {
+      // We're going to allow a context to be left current on the
+      // GLWorkerThread for optimization purposes
+      GLContext lastContext    = GLContext.getCurrent();
+      Runnable  lastInitAction = (Runnable) perThreadInitAction.get();
+      if (lastContext != null && lastContext != context) {
+        lastContext.release();
+      } else {
+        lastContext = null;
       }
-    } finally {
+
+      // FIXME: probably need to handle the case where the user is
+      // waiting for this context to be released; need to periodically
+      // release the context? See if anybody is waiting to make it
+      // current on another thread? (The latter would require the use
+      // of internal APIs...)
+
+      int res = 0;
       try {
+        res = context.makeCurrent();
         if (res != GLContext.CONTEXT_NOT_CURRENT) {
-          context.release();
+          perThreadInitAction.set(initAction);
+          if (res == GLContext.CONTEXT_CURRENT_NEW) {
+            if (DEBUG) {
+              System.err.println("GLDrawableHelper " + this + ".invokeGL(): Running initAction");
+            }
+            initAction.run();
+          }
+          if (DEBUG && VERBOSE) {
+            System.err.println("GLDrawableHelper " + this + ".invokeGL(): Running runnable");
+          }
+          runnable.run();
+          if (autoSwapBufferMode) {
+            if (drawable != null) {
+              drawable.swapBuffers();
+            }
+          }
         }
-      } catch (Exception e) {
+      } finally {
+
+        // FIXME: take this out as soon as possible
+        if (NVIDIA_CRASH_WORKAROUND) {
+          try {
+            if (res != GLContext.CONTEXT_NOT_CURRENT) {
+              context.release();
+            }
+          } catch (Exception e) {
+          }
+        }
+
+        if (lastContext != null) {
+          int res2 = lastContext.makeCurrent();
+          if (res2 == GLContext.CONTEXT_CURRENT_NEW) {
+            lastInitAction.run();
+          }
+        }
       }
+    } else {
+      // Support for recursive makeCurrent() calls as well as calling
+      // other drawables' display() methods from within another one's
+      GLContext lastContext    = GLContext.getCurrent();
+      Runnable  lastInitAction = (Runnable) perThreadInitAction.get();
       if (lastContext != null) {
-        int res2 = lastContext.makeCurrent();
-        if (res2 == GLContext.CONTEXT_CURRENT_NEW) {
-          lastInitAction.run();
+        lastContext.release();
+      }
+    
+      int res = 0;
+      try {
+        res = context.makeCurrent();
+        if (res != GLContext.CONTEXT_NOT_CURRENT) {
+          perThreadInitAction.set(initAction);
+          if (res == GLContext.CONTEXT_CURRENT_NEW) {
+            if (DEBUG) {
+              System.err.println("GLDrawableHelper " + this + ".invokeGL(): Running initAction");
+            }
+            initAction.run();
+          }
+          if (DEBUG && VERBOSE) {
+            System.err.println("GLDrawableHelper " + this + ".invokeGL(): Running runnable");
+          }
+          runnable.run();
+          if (autoSwapBufferMode) {
+            if (drawable != null) {
+              drawable.swapBuffers();
+            }
+          }
+        }
+      } finally {
+        try {
+          if (res != GLContext.CONTEXT_NOT_CURRENT) {
+            context.release();
+          }
+        } catch (Exception e) {
+        }
+        if (lastContext != null) {
+          int res2 = lastContext.makeCurrent();
+          if (res2 == GLContext.CONTEXT_CURRENT_NEW) {
+            lastInitAction.run();
+          }
         }
       }
     }

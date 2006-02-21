@@ -40,6 +40,8 @@
 package com.sun.opengl.impl;
 
 import java.lang.reflect.InvocationTargetException;
+import java.security.*;
+import javax.media.opengl.*;
 
 /** Singleton thread upon which all OpenGL work is performed by
     default. Unfortunately many vendors' OpenGL drivers are not really
@@ -73,6 +75,7 @@ public class GLWorkerThread {
           lock = new Object();
           thread = new Thread(new WorkerRunnable(),
                               "JOGL GLWorkerThread");
+          thread.setDaemon(true);
           started = true;
           synchronized (lock) {
             thread.start();
@@ -81,6 +84,59 @@ public class GLWorkerThread {
             } catch (InterruptedException e) {
             }
           }
+
+          /*
+
+          // Note: it appears that there is a bug in NVidia's current
+          // drivers where if a context was ever made current on a
+          // given thread and that thread has exited before program
+          // exit, a crash occurs in the drivers. Releasing the
+          // context from the given thread does not work around the
+          // problem.
+          //
+          // For the time being, we're going to work around this
+          // problem by not terminating the GLWorkerThread. In theory,
+          // shutting down the GLWorkerThread cleanly could be a good
+          // general solution to the problem of needing to
+          // cooperatively terminate all Animators at program exit.
+          //
+          // It appears that this doesn't even work around all of the
+          // kinds of crashes. Causing the context to be unilaterally
+          // released from the GLWorkerThread after each invocation
+          // seems to work around all of the kinds of crashes seen.
+          //
+          // These appear to be similar to the kinds of crashes seen
+          // when the Java2D/OpenGL pipeline terminates, and those are
+          // a known issue being fixed, so presumably these will be
+          // fixed in NVidia's next driver set.
+
+          // Install shutdown hook to terminate daemon thread more or
+          // less cooperatively
+          AccessController.doPrivileged(new PrivilegedAction() {
+              public Object run() {
+                Runtime.getRuntime().addShutdownHook(new Thread() {
+                    public void run() {
+                      Object lockTemp = lock;
+                      if (lockTemp == null) {
+                        // Already terminating (?)
+                        return;
+                      }
+                      synchronized (lockTemp) {
+                        shouldTerminate = true;
+                        lockTemp.notifyAll();
+                        try {
+                          lockTemp.wait(500);
+                        } catch (InterruptedException e) {
+                        }
+                      }
+                    }
+                  });
+                return null;
+              }
+            });
+
+          */
+
         } else {
           throw new RuntimeException("Should not start GLWorkerThread twice");
         }
@@ -143,6 +199,7 @@ public class GLWorkerThread {
           }
           
           if (shouldTerminate) {
+            lock.notifyAll();
             thread = null;
             lock = null;
             return;

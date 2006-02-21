@@ -172,8 +172,12 @@ public class GLPbufferImpl implements GLPbuffer {
                                            PropertyChangeListener listener) {}
 
   public void destroy() {
-    context.destroy();
-    pbufferDrawable.destroy();
+    if (Threading.isSingleThreaded() &&
+        !Threading.isOpenGLThread()) {
+      Threading.invokeOnOpenGLThread(destroyAction);
+    } else {
+      destroyAction.run();
+    }
   }
 
   public int getFloatingPointMode() {
@@ -238,4 +242,16 @@ public class GLPbufferImpl implements GLPbuffer {
   }
   private SwapBuffersOnEventDispatchThreadAction swapBuffersOnEventDispatchThreadAction =
     new SwapBuffersOnEventDispatchThreadAction();
+
+  class DestroyAction implements Runnable {
+    public void run() {
+      GLContext current = GLContext.getCurrent();
+      if (current == context) {
+        context.release();
+      }
+      context.destroy();
+      pbufferDrawable.destroy();
+    }
+  }
+  private DestroyAction destroyAction = new DestroyAction();
 }
