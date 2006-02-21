@@ -49,19 +49,38 @@ import javax.media.opengl.*;
 public class FPSAnimator extends Animator {
   private Timer timer;
   private int   fps;
+  private boolean scheduleAtFixedRate;
 
-  /** Creates an FPSAnimator with a given target frames-per-second value. */
+  /** Creates an FPSAnimator with a given target frames-per-second
+      value. Equivalent to <code>FPSAnimator(null, fps)</code>. */
   public FPSAnimator(int fps) {
     this(null, fps);
   }
 
   /** Creates an FPSAnimator with a given target frames-per-second
-      value and an initial drawable to animate. */
+      value and a flag indicating whether to use fixed-rate
+      scheduling. Equivalent to <code>FPSAnimator(null, fps,
+      scheduleAtFixedRate)</code>. */
+  public FPSAnimator(int fps, boolean scheduleAtFixedRate) {
+    this(null, fps, scheduleAtFixedRate);
+  }
+
+  /** Creates an FPSAnimator with a given target frames-per-second
+      value and an initial drawable to animate. Equivalent to
+      <code>FPSAnimator(null, fps, false)</code>. */
   public FPSAnimator(GLAutoDrawable drawable, int fps) {
+    this(drawable, fps, false);
+  }
+
+  /** Creates an FPSAnimator with a given target frames-per-second
+      value, an initial drawable to animate, and a flag indicating
+      whether to use fixed-rate scheduling. */
+  public FPSAnimator(GLAutoDrawable drawable, int fps, boolean scheduleAtFixedRate) {
     this.fps = fps;
     if (drawable != null) {
       add(drawable);
     }
+    this.scheduleAtFixedRate = scheduleAtFixedRate;
   }
 
   /** Starts this FPSAnimator. */
@@ -71,11 +90,16 @@ public class FPSAnimator extends Animator {
     }
     timer = new Timer();
     long delay = (long) (1000.0f / (float) fps);
-    timer.schedule(new TimerTask() {
+    TimerTask task = new TimerTask() {
         public void run() {
           display();
         }
-      }, 0, delay);
+      };
+    if (scheduleAtFixedRate) {
+      timer.scheduleAtFixedRate(task, 0, delay);
+    } else {
+      timer.schedule(task, 0, delay);
+    }
   }
 
   /** Indicates whether this FPSAnimator is currently running. This
