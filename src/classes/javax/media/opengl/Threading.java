@@ -250,7 +250,13 @@ public class Threading {
             }
           }
         }
-        GLWorkerThread.invokeAndWait(r);
+        try {
+          GLWorkerThread.invokeAndWait(r);
+        } catch (InvocationTargetException e) {
+          throw new GLException(e.getTargetException());
+        } catch (InterruptedException e) {
+          throw new GLException(e);
+        }
         break;
 
       default:

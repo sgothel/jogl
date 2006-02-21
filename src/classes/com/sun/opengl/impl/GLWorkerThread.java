@@ -39,6 +39,8 @@
 
 package com.sun.opengl.impl;
 
+import java.lang.reflect.InvocationTargetException;
+
 /** Singleton thread upon which all OpenGL work is performed by
     default. Unfortunately many vendors' OpenGL drivers are not really
     thread-safe and stability is much improved by performing OpenGL
@@ -55,6 +57,7 @@ public class GLWorkerThread {
   private static volatile Thread thread;
   private static Object lock;
   private static volatile boolean shouldTerminate;
+  private static volatile Throwable exception;
 
   // The Runnable to execute on the worker thread -- no need for a
   // queue since we don't have an invokeLater() primitive
@@ -85,7 +88,8 @@ public class GLWorkerThread {
     }
   }
 
-  public static void invokeAndWait(Runnable runnable) {
+  public static void invokeAndWait(Runnable runnable)
+    throws InvocationTargetException, InterruptedException {
     if (!started) {
       throw new RuntimeException("May not invokeAndWait on worker thread without starting it first");
     }
@@ -103,10 +107,9 @@ public class GLWorkerThread {
 
       work = runnable;
       lock.notifyAll();
-      try {
-        lock.wait();
-      } catch (InterruptedException e) {
-        throw new RuntimeException(e);
+      lock.wait();
+      if (exception != null) {
+        throw new InvocationTargetException(exception);
       }
     }
   }
@@ -145,9 +148,14 @@ public class GLWorkerThread {
             return;
           }
 
-          work.run();
-          work = null;
-          lock.notifyAll();
+          try {
+            work.run();
+          } catch (Throwable t) {
+            exception = t;
+          } finally {
+            work = null;
+            lock.notifyAll();
+          }
         }
       }
     }
