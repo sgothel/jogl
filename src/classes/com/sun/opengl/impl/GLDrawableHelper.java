@@ -116,6 +116,7 @@ public class GLDrawableHelper {
     try {
       res = context.makeCurrent();
       if (res != GLContext.CONTEXT_NOT_CURRENT) {
+        perThreadInitAction.set(initAction);
         if (res == GLContext.CONTEXT_CURRENT_NEW) {
           if (DEBUG) {
             System.err.println("GLDrawableHelper " + this + ".invokeGL(): Running initAction");
