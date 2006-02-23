@@ -66,6 +66,7 @@ public class X11ExternalGLContext extends X11GLContext {
   }
 
   protected int makeCurrentImpl() throws GLException {
+    mostRecentDisplay = drawable.getDisplay();
     if (firstMakeCurrent) {
       firstMakeCurrent = false;
       return CONTEXT_CURRENT_NEW;
