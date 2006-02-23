@@ -52,6 +52,7 @@ public class GLContextLock {
   private Object lock = new Object();
   private Thread owner;
   private boolean failFastMode = true;
+  private volatile int waiters;
 
   /** Locks this GLContextLock on the current thread. If fail fast
       mode is enabled and the GLContextLock is already owned by
@@ -68,9 +69,12 @@ public class GLContextLock {
                                   " which is already current on thread " + owner);
           } else {
             try {
+              ++waiters;
               lock.wait();
             } catch (InterruptedException e) {
               throw new GLException(e);
+            } finally {
+              --waiters;
             }
           }
         }
@@ -114,5 +118,9 @@ public class GLContextLock {
 
   public boolean getFailFastMode() {
     return failFastMode;
+  }
+
+  public boolean hasWaiters() {
+    return (waiters != 0);
   }
 }

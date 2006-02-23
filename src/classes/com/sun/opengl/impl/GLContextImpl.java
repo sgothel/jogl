@@ -96,6 +96,12 @@ public abstract class GLContextImpl extends GLContext {
       }
     }
 
+    if (GLWorkerThread.isStarted() &&
+        !GLWorkerThread.isWorkerThread()) {
+      // Kick the GLWorkerThread off its current context
+      GLWorkerThread.invokeLater(new Runnable() { public void run() {} });
+    }
+
     lock.lock();
     int res = 0;
     try {
@@ -344,5 +350,9 @@ public abstract class GLContextImpl extends GLContext {
   
   public GLObjectTracker getObjectTracker() {
     return tracker;
+  }
+
+  public boolean hasWaiters() {
+    return lock.hasWaiters();
   }
 }
