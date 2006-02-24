@@ -149,16 +149,31 @@ private int imageSizeInBytes(int format, int type, int w, int h, int d) {
 }
 
 private int[] bufTmp = new int[1];
-private void checkBufferObject(String extension1,
-                               String extension2,
+private boolean bufferObjectExtensionsInitialized = false;
+private boolean haveARBPixelBufferObject;
+private boolean haveEXTPixelBufferObject;
+private boolean haveGL15;
+private boolean haveARBVertexBufferObject;
+
+private void initBufferObjectExtensionChecks() {
+  if (bufferObjectExtensionsInitialized)
+    return;
+  bufferObjectExtensionsInitialized = true;
+  haveARBPixelBufferObject  = isExtensionAvailable("GL_ARB_pixel_buffer_object");
+  haveEXTPixelBufferObject  = isExtensionAvailable("GL_EXT_pixel_buffer_object");
+  haveGL15                  = isExtensionAvailable("GL_VERSION_1_5");
+  haveARBVertexBufferObject = isExtensionAvailable("GL_ARB_vertex_buffer_object");
+}
+
+private void checkBufferObject(boolean extension1,
+                               boolean extension2,
                                boolean enabled,
                                int state,
                                String kind) {
   if (inBeginEndPair) {
     throw new GLException("May not call this between glBegin and glEnd");
   }
-  boolean avail = ((extension1 != null && isExtensionAvailable(extension1)) ||
-                   (extension2 != null && isExtensionAvailable(extension2)));
+  boolean avail = (extension1 || extension2);
   if (!avail) {
     if (!enabled)
       return;
@@ -177,32 +192,36 @@ private void checkBufferObject(String extension1,
 }  
 
 private void checkUnpackPBODisabled() { 
-  checkBufferObject("GL_ARB_pixel_buffer_object",
-                    "GL_EXT_pixel_buffer_object",
+  initBufferObjectExtensionChecks();
+  checkBufferObject(haveARBPixelBufferObject,
+                    haveEXTPixelBufferObject,
                     false,
                     GL.GL_PIXEL_UNPACK_BUFFER_BINDING_ARB,
                     "unpack pixel_buffer_object");
 }
 
 private void checkUnpackPBOEnabled() { 
-  checkBufferObject("GL_ARB_pixel_buffer_object",
-                    "GL_EXT_pixel_buffer_object",
+  initBufferObjectExtensionChecks();
+  checkBufferObject(haveARBPixelBufferObject,
+                    haveEXTPixelBufferObject,
                     true,
                     GL.GL_PIXEL_UNPACK_BUFFER_BINDING_ARB,
                     "unpack pixel_buffer_object");
 }
 
 private void checkPackPBODisabled() { 
-  checkBufferObject("GL_ARB_pixel_buffer_object",
-                    "GL_EXT_pixel_buffer_object",
+  initBufferObjectExtensionChecks();
+  checkBufferObject(haveARBPixelBufferObject,
+                    haveEXTPixelBufferObject,
                     false,
                     GL.GL_PIXEL_PACK_BUFFER_BINDING_ARB,
                     "pack pixel_buffer_object");
 }
 
 private void checkPackPBOEnabled() { 
-  checkBufferObject("GL_ARB_pixel_buffer_object",
-                    "GL_EXT_pixel_buffer_object",
+  initBufferObjectExtensionChecks();
+  checkBufferObject(haveARBPixelBufferObject,
+                    haveEXTPixelBufferObject,
                     true,
                     GL.GL_PIXEL_PACK_BUFFER_BINDING_ARB,
                     "pack pixel_buffer_object");
@@ -210,32 +229,36 @@ private void checkPackPBOEnabled() {
 
 
 private void checkArrayVBODisabled() { 
-  checkBufferObject("GL_VERSION_1_5",
-                    "GL_ARB_vertex_buffer_object",
+  initBufferObjectExtensionChecks();
+  checkBufferObject(haveGL15,
+                    haveARBVertexBufferObject,
                     false,
                     GL.GL_ARRAY_BUFFER_BINDING,
                     "array vertex_buffer_object");
 }
 
 private void checkArrayVBOEnabled() { 
-  checkBufferObject("GL_VERSION_1_5",
-                    "GL_ARB_vertex_buffer_object",
+  initBufferObjectExtensionChecks();
+  checkBufferObject(haveGL15,
+                    haveARBVertexBufferObject,
                     true,
                     GL.GL_ARRAY_BUFFER_BINDING,
                     "array vertex_buffer_object");
 }
 
 private void checkElementVBODisabled() { 
-  checkBufferObject("GL_VERSION_1_5",
-                    "GL_ARB_vertex_buffer_object",
+  initBufferObjectExtensionChecks();
+  checkBufferObject(haveGL15,
+                    haveARBVertexBufferObject,
                     false,
                     GL.GL_ELEMENT_ARRAY_BUFFER_BINDING,
                     "element vertex_buffer_object");
 }
 
 private void checkElementVBOEnabled() { 
-  checkBufferObject("GL_VERSION_1_5",
-                    "GL_ARB_vertex_buffer_object",
+  initBufferObjectExtensionChecks();
+  checkBufferObject(haveGL15,
+                    haveARBVertexBufferObject,
                     true,
                     GL.GL_ELEMENT_ARRAY_BUFFER_BINDING,
                     "element vertex_buffer_object");
