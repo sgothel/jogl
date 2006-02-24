@@ -111,8 +111,10 @@ import com.sun.opengl.impl.*;
 
     <PRE>
     -Dopengl.1thread=false     Disable single-threading of OpenGL work
-    -Dopengl.1thread=true      Enable single-threading of OpenGL work (default)
+    -Dopengl.1thread=true      Enable single-threading of OpenGL work (default -- on a newly-created worker thread)
     -Dopengl.1thread=auto      Select default single-threading behavior (currently on)
+    -Dopengl.1thread=worker    Enable single-threading of OpenGL work on newly-created worker thread (default)
+    -Dopengl.1thread=awt       Enable single-threading of OpenGL work on AWT event dispatch thread (the default behavior in older releases)
     </PRE>    
 */
 
@@ -120,7 +122,7 @@ public class Threading {
   private static boolean singleThreaded = true;
   private static final int AWT    = 1;
   private static final int WORKER = 2;
-  private static int mode = AWT;
+  private static int mode = WORKER;
   
   static {
     AccessController.doPrivileged(new PrivilegedAction() {
@@ -130,11 +132,11 @@ public class Threading {
             workaround = workaround.toLowerCase();
             if (workaround.equals("true") ||
                 workaround.equals("auto") ||
-                workaround.equals("awt")) {
-              // Nothing to do; default = singleThreaded, mode = AWT
-            } else if (workaround.equals("worker")) {
+                workaround.equals("worker")) {
+              // Nothing to do; default = singleThreaded, mode = WORKER
+            } else if (workaround.equals("awt")) {
               singleThreaded = true;
-              mode = WORKER;
+              mode = AWT;
             } else {
               singleThreaded = false;
             }
