@@ -573,11 +573,16 @@ public class Texture {
   }
 
   private void updateSubImageImpl(TextureData data, int newTarget, int mipmapLevel, int x, int y) throws GLException {
+    Buffer buffer = data.getBuffer();
+    if (buffer == null) {
+      // Assume user just wanted to get the Texture object allocated
+      return;
+    }
+
     GL gl = GLU.getCurrentGL();
     gl.glBindTexture(newTarget, texID); 
     int width = data.getWidth();
     int height = data.getHeight();
-    Buffer buffer = data.getBuffer();
     if (data.getMipmapData() != null) {
       // Compute the width and height at the specified mipmap level
       for (int i = 0; i < mipmapLevel; i++) {
