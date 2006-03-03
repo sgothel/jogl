@@ -506,10 +506,13 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
               if (curSurface != null) {
                 if (j2dSurface != curSurface) {
                   if (joglContext != null) {
+                    // Note that the following operation may make the
+                    // joglContext current briefly
                     joglContext.destroy();
                     joglContext = null;
                     joglDrawable = null;
                     sendReshape = true;
+                    j2dContext.makeCurrent();
                     if (DEBUG) {
                       System.err.println("Sending reshape because surface changed");
                       System.err.println("New surface = " + curSurface);
