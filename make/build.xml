@@ -74,11 +74,19 @@
         <property name="make" value="." />
     </target>
 
+    <target name="base.init.sourcelevel.1" unless="gluegen.nsig">
+        <property name="jogl.sourcelevel" value="1.4" />
+    </target>
+
+    <target name="base.init.sourcelevel.2" if="gluegen.nsig">
+        <property name="jogl.sourcelevel" value="1.5" />
+    </target>
+
     <!-- ================================================================== -->
     <!-- 
        - Load user properties which override build defaults.
       -->
-    <target name="load.user.properties" depends="base.init" unless="user.properties.file">
+    <target name="load.user.properties" depends="base.init,base.init.sourcelevel.1,base.init.sourcelevel.2" unless="user.properties.file">
         <!-- Load the user specified properties file that defines various host
            - specific paths.  The user will be notified if this is does not
            - exist. -->
@@ -286,6 +294,7 @@
     <target name="declare.win32" depends="declare.win32.vc6,declare.win32.vc7,declare.win32.vc8,declare.win32.mingw" if="isWindows">
         <!-- Set platform configuration files. -->
         <property name="gl.cfg"                                 value="${config}/gl-win32.cfg" />
+        <property name="gl.cfg.nsig"                            value="${config}/gl-win32-nsig.cfg" />
         <property name="glext.platform.cfg"                     value="${config}/wglext.cfg" />
         <property name="glu.cfg"                                value="${config}/glu-win32.cfg" />
         <property name="jawt.cfg"                               value="${config}/jawt-win32.cfg" />
@@ -308,6 +317,7 @@
     <target name="declare.x11" depends="init" if="isX11">
         <!-- Set platform configuration files. -->
         <property name="gl.cfg"                               value="${config}/gl-x11.cfg" />
+        <property name="gl.cfg.nsig"                          value="${config}/gl-x11-nsig.cfg" />
         <property name="glext.platform.cfg"                   value="${config}/glxext.cfg" />
         <property name="glu.cfg"                              value="${config}/glu-x11.cfg" />
         <property name="jawt.cfg"                             value="${config}/jawt-x11.cfg" />
@@ -372,6 +382,7 @@
       <echo message="MacOSX" />
       <!-- Set platform configuration files. -->
       <property name="gl.cfg"                               value="${config}/gl-macosx.cfg" />
+      <property name="gl.cfg.nsig"                          value="${config}/gl-macosx-nsig.cfg" />
       <property name="glext.platform.cfg"                   value="${config}/cglext.cfg" />
       <property name="glu.cfg"                              value="${config}/glu-macosx.cfg" />
       <property name="jawt.cfg"                             value="${config}/jawt-macosx.cfg" />
@@ -437,6 +448,7 @@
         <ant antfile="${gluegen.build.xml}" dir="${gluegen.make.dir}" target="all" inheritAll="false">
           <propertyset>
             <propertyref name="antlr.jar" />
+            <propertyref name="gluegen.nsig" />
           </propertyset>
         </ant>
 
@@ -472,6 +484,28 @@
         </uptodate>
     </target>
 
+    <target name="java.generate.gl" unless="gluegen.nsig">
+        <!-- Generate GL interface and implementation -->
+        <echo message="Generating GL interface and implementation" />
+        <gluegen src="${stub.includes.common}/gl.c" 
+                 config="${gl.cfg}"
+                 includeRefid="stub.includes.fileset.all"
+                 emitter="com.sun.gluegen.opengl.GLEmitter">
+            <classpath refid="gluegen.classpath" />
+        </gluegen>
+    </target>
+
+    <target name="java.generate.gl.nsig" if="gluegen.nsig">
+        <!-- Generate GL interface and implementation -->
+        <echo message="Generating GL interface and implementation" />
+        <gluegen src="${stub.includes.common}/gl.c" 
+                 config="${gl.cfg.nsig}"
+                 includeRefid="stub.includes.fileset.all"
+                 emitter="com.sun.gluegen.nativesig.NativeSignatureEmitter">
+            <classpath refid="gluegen.classpath" />
+        </gluegen>
+    </target>
+
     <!--
        - Setup the generating ANT tasks and use it to generate the Java files 
        - from the C GL headers.  This involves setting the taskdef and creating
@@ -488,13 +522,8 @@
            - Java files -->
 
         <!-- Generate GL interface and implementation -->
-        <echo message="Generating GL interface and implementation" />
-        <gluegen src="${stub.includes.common}/gl.c" 
-                 config="${gl.cfg}"
-                 includeRefid="stub.includes.fileset.all"
-                 emitter="com.sun.gluegen.opengl.GLEmitter">
-            <classpath refid="gluegen.classpath" />
-        </gluegen>
+        <antcall target="java.generate.gl"      inheritRefs="true" />
+        <antcall target="java.generate.gl.nsig" inheritRefs="true" />
 
 	<!-- Generate platform-specific extension class (WGLExt, GLXExt, etc.) -->
         <echo message="Generating platform-specific OpenGL extension class" />
@@ -636,7 +665,7 @@
     <target name="java.compile.secondpass" depends="java.generate.composable.pipeline">
         <!-- Perform the second pass Java compile; everything. -->
         <javac destdir="${classes}"
-               excludes="${java.excludes.platform},com/sun/opengl/impl/nurbs/**" source="1.4" debug="true" debuglevel="source,lines">
+               excludes="${java.excludes.platform},com/sun/opengl/impl/nurbs/**" source="${jogl.sourcelevel}" debug="true" debuglevel="source,lines">
             <src path="${src.java}" />
             <src path="${src.generated.java}" />
         </javac>
