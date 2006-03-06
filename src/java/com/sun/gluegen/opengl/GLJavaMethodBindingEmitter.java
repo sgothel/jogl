@@ -50,7 +50,7 @@ import com.sun.gluegen.procaddress.*;
     Pixel Buffer Object variants. */
 
 public class GLJavaMethodBindingEmitter extends ProcAddressJavaMethodBindingEmitter {
-  private boolean bufferObjectVariant;
+  protected boolean bufferObjectVariant;
   
   public GLJavaMethodBindingEmitter(JavaMethodBindingEmitter methodToWrap,
                                     boolean callThroughProcAddress,
@@ -70,6 +70,10 @@ public class GLJavaMethodBindingEmitter extends ProcAddressJavaMethodBindingEmit
                                     boolean bufferObjectVariant) {
     super(methodToWrap);
     this.bufferObjectVariant = bufferObjectVariant;
+  }
+
+  public GLJavaMethodBindingEmitter(GLJavaMethodBindingEmitter methodToWrap) {
+    this(methodToWrap, methodToWrap.bufferObjectVariant);
   }
 
   protected String getArgumentName(int i) {
