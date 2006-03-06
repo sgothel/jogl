@@ -168,22 +168,25 @@ public abstract class X11GLContext extends GLContextImpl {
 
   protected void destroyImpl() throws GLException {
     lockToolkit();
-    if (context != 0) {
-      if (DEBUG) {
-        System.err.println("glXDestroyContext(0x" +
-                           Long.toHexString(mostRecentDisplay) +
-                           ", 0x" +
-                           Long.toHexString(context) + ")");
+    try {
+      if (context != 0) {
+        if (DEBUG) {
+          System.err.println("glXDestroyContext(0x" +
+                             Long.toHexString(mostRecentDisplay) +
+                             ", 0x" +
+                             Long.toHexString(context) + ")");
+        }
+        GLX.glXDestroyContext(mostRecentDisplay, context);
+        if (DEBUG) {
+          System.err.println("!!! Destroyed OpenGL context " + context);
+        }
+        context = 0;
+        mostRecentDisplay = 0;
+        GLContextShareSet.contextDestroyed(this);
       }
-      GLX.glXDestroyContext(mostRecentDisplay, context);
-      if (DEBUG) {
-        System.err.println("!!! Destroyed OpenGL context " + context);
-      }
-      context = 0;
-      mostRecentDisplay = 0;
-      GLContextShareSet.contextDestroyed(this);
+    } finally {
+      unlockToolkit();
     }
-    unlockToolkit();
   }
 
   public boolean isCreated() {
