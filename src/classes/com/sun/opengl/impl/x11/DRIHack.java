@@ -79,7 +79,7 @@ import com.sun.opengl.impl.*;
 public class DRIHack {
   public static native long dlopen(String name);
   public static native int  dlclose(long handle);
-
+ 
   private static final boolean DEBUG = Debug.debug("DRIHack");
   private static boolean driHackNeeded;
   private static long libGLHandle;
