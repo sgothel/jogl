@@ -61,6 +61,9 @@ public abstract class GLContextImpl extends GLContext {
   // Tracks creation and deletion of server-side OpenGL objects when
   // the Java2D/OpenGL pipeline is active and using FBOs to render
   private GLObjectTracker tracker;
+  // Supports deletion of these objects when no other context is
+  // current which can support immediate deletion of them
+  private GLObjectTracker deletedObjectTracker;
 
   protected GL gl;
   public GLContextImpl(GLContext shareWith) {
@@ -77,7 +80,11 @@ public abstract class GLContextImpl extends GLContext {
     if (shareContext != null) {
       GLContextShareSet.registerSharing(this, shareContext);
     }
-    GLContextShareSet.registerForObjectTracking(shareWith, this);
+    // Always indicate real behind-the-scenes sharing to track deleted objects
+    if (shareContext == null) {
+      shareContext = Java2D.filterShareContext(shareWith);
+    }
+    GLContextShareSet.registerForObjectTracking(shareWith, this, shareContext);
   }
 
   public int makeCurrent() throws GLException {
@@ -119,6 +126,12 @@ public abstract class GLContextImpl extends GLContext {
       lock.unlock();
     } else {
       setCurrent(this);
+
+      // Try cleaning up any stale server-side OpenGL objects
+      // FIXME: not sure what to do here if this throws
+      if (deletedObjectTracker != null) {
+        deletedObjectTracker.clean(getGL());
+      }
     }
     return res;
   }
@@ -151,23 +164,11 @@ public abstract class GLContextImpl extends GLContext {
         // If we are tracking creation and destruction of server-side
         // OpenGL objects, we must decrement the reference count of the
         // GLObjectTracker upon context destruction.
-        try {
-          int res = makeCurrent();
-          if (res != CONTEXT_CURRENT) {
-            // FIXME: we really need to behave better than this
-            throw new GLException("Unable to make context current to destroy tracked server-side OpenGL objects");
-          }
-          try {
-            tracker.unref(getGL());
-          } finally {
-            release();
-          }
-        } catch (GLException e) {
-          // FIXME: should probably do something more intelligent here
-          if (DEBUG) {
-            e.printStackTrace();
-          }
-        }
+        //
+        // Note that we can only eagerly delete these server-side
+        // objects if there is another context currrent right now
+        // which shares textures and display lists with this one.
+        tracker.unref(deletedObjectTracker);
       }
     }
 
@@ -350,6 +351,14 @@ public abstract class GLContextImpl extends GLContext {
   
   public GLObjectTracker getObjectTracker() {
     return tracker;
+  }
+
+  public void setDeletedObjectTracker(GLObjectTracker deletedObjectTracker) {
+    this.deletedObjectTracker = deletedObjectTracker;
+  }
+
+  public GLObjectTracker getDeletedObjectTracker() {
+    return deletedObjectTracker;
   }
 
   public boolean hasWaiters() {

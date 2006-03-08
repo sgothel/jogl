@@ -52,6 +52,7 @@ import javax.media.opengl.*;
 
 public class GLContextShareSet {
   private static boolean forceTracking = Debug.isPropertyDefined("jogl.glcontext.forcetracking");
+  private static final boolean DEBUG = Debug.debug("GLContextShareSet");
 
   // This class is implemented with a WeakHashMap that goes from the
   // contexts as keys to a complex data structure as value that tracks
@@ -157,7 +158,8 @@ public class GLContextShareSet {
       before any server-side OpenGL objects have been created in that
       context. */
   public static synchronized void registerForObjectTracking(GLContext olderContextOrNull,
-                                                            GLContext newContext) {
+                                                            GLContext newContext,
+                                                            GLContext realShareContext) {
     if (isObjectTrackingEnabled() || isObjectTrackingDebuggingEnabled()) {
       if (olderContextOrNull != null &&
           newContext != null) {
@@ -170,6 +172,36 @@ public class GLContextShareSet {
       GLContextImpl impl1 = (GLContextImpl) olderContextOrNull;
       GLContextImpl impl2 = (GLContextImpl) newContext;
       GLObjectTracker tracker = null;
+
+      GLObjectTracker deletedObjectTracker = null;
+      GLContextImpl shareImpl = (GLContextImpl) realShareContext;
+      // Before we zap the "user-level" object trackers, make sure
+      // that all contexts in the share set share the destroyed object
+      // tracker
+      if (shareImpl != null) {
+        deletedObjectTracker = shareImpl.getDeletedObjectTracker();
+      }
+      if (deletedObjectTracker == null) {
+        // Must create one and possibly set it up in the older context
+        deletedObjectTracker = new GLObjectTracker();
+        if (DEBUG) {
+          System.err.println("Created deletedObjectTracker " + deletedObjectTracker + " because " +
+                             ((shareImpl == null) ? "shareImpl was null" : "shareImpl's (" + shareImpl + ") deletedObjectTracker was null"));
+        }
+
+        if (shareImpl != null) {
+          // FIXME: think should really assert in this case
+          shareImpl.setDeletedObjectTracker(deletedObjectTracker);
+          if (DEBUG) {
+            System.err.println("Set deletedObjectTracker " + deletedObjectTracker + " in shareImpl context " + shareImpl);
+          }
+        }
+      }
+      impl2.setDeletedObjectTracker(deletedObjectTracker);
+      if (DEBUG) {
+        System.err.println("Set deletedObjectTracker " + deletedObjectTracker + " in impl2 context " + impl2);
+      }
+
       // Don't share object trackers with the primordial share context from Java2D
       if (Java2D.isOGLPipelineActive()) {
         // FIXME: probably need to do something different here

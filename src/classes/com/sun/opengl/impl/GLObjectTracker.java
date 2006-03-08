@@ -402,21 +402,95 @@ public class GLObjectTracker {
     remove(getList(VERTEX_SHADERS_EXT), obj, 1);
   }
 
+  //----------------------------------------------------------------------
+  // Reference count maintenance and manual deletion
+  //
+
+  public synchronized void transferAll(GLObjectTracker other) {
+    for (int i = 0; i < lists.length; i++) {
+      getList(i).addAll(other.lists[i]);
+      if (other.lists[i] != null) {
+        other.lists[i].clear();
+      }
+    }
+    dirty = true;
+  }
+
   public synchronized void ref() {
     ++refCount;
   }
 
-  public synchronized void unref(GL gl) {
-    if (--refCount == 0) {
-      for (int i = 0; i < lists.length; i++) {
-        ObjectList list = lists[i];
-        if (list != null) {
-          list.delete(gl);
-          lists[i] = null;
+  public void unref(GLObjectTracker deletedObjectPool) {
+    boolean tryDelete = false;
+    synchronized (this) {
+      if (--refCount == 0) {
+        tryDelete = true;
+      }
+    }
+    if (tryDelete) {
+      // See whether we should try to do the work now or whether we
+      // have to postpone
+      GLContext cur = GLContext.getCurrent();
+      if ((cur != null) &&
+          (cur instanceof GLContextImpl)) {
+        GLContextImpl curImpl = (GLContextImpl) cur;
+        if (deletedObjectPool != null &&
+            deletedObjectPool == curImpl.getDeletedObjectTracker()) {
+          // Should be safe to delete these objects now
+          try {
+            delete(curImpl.getGL());
+            return;
+          } catch (GLException e) {
+            // Shouldn't happen, but if it does, transfer all objects
+            // to the deleted object pool hoping we can later clean
+            // them up
+            deletedObjectPool.transferAll(this);
+            throw(e);
+          }
         }
+      }
+      // If we get here, we couldn't attempt to delete the objects
+      // right now; instead try to transfer them to the
+      // deletedObjectPool for later cleanup (FIXME: should consider
+      // throwing an exception if deletedObjectPool is null, since
+      // that shouldn't happen)
+      if (DEBUG) {
+        String s = null;
+        if (cur == null) {
+          s = "current context was null";
+        } else if (!(cur instanceof GLContextImpl)) {
+          s = "current context was not a GLContextImpl";
+        } else if (deletedObjectPool == null) {
+          s = "no current deletedObjectPool";
+        } else if (deletedObjectPool != ((GLContextImpl) cur).getDeletedObjectTracker()) {
+          s = "deletedObjectTracker didn't match";
+          if (((GLContextImpl) cur).getDeletedObjectTracker() == null) {
+            s += " (other was null)";
+          }
+        } else {
+          s = "unknown reason";
+        }
+        System.err.println("Deferred destruction of server-side OpenGL objects into " + deletedObjectPool + ": " + s);
+      }
+
+      if (deletedObjectPool != null) {
+        deletedObjectPool.transferAll(this);
       }
     }
   }
+
+  public void clean(GL gl) {
+    if (dirty) {
+      try {
+        delete(gl);
+        dirty = false;
+      } catch (GLException e) {
+        // FIXME: not sure what to do here; probably a bad idea to be
+        // throwing exceptions during an otherwise-successful makeCurrent
+      }
+    }
+  }
+
 
   //----------------------------------------------------------------------
   // Internals only below this point
@@ -459,8 +533,7 @@ public class GLObjectTracker {
 
     public ObjectList(Deleter deleter) {
       this.deleter = deleter;
-      capacity = MIN_CAPACITY;
-      data = new int[capacity];
+      clear();
     }
 
     public void add(int obj) {
@@ -473,6 +546,15 @@ public class GLObjectTracker {
       }
 
       data[size++] = obj;
+    }
+
+    public void addAll(ObjectList other) {
+      if (other == null) {
+        return;
+      }
+      for (int i = 0; i < other.size; i++) {
+        add(other.data[i]);
+      }
     }
 
     public boolean remove(int value) {
@@ -506,19 +588,30 @@ public class GLObjectTracker {
     }
 
     public void delete(GL gl) {
-      for (int i = 0; i < size; i++) {
+      // Just in case we start throwing exceptions during deletion,
+      // make sure we make progress rather than going into an infinite
+      // loop
+      while (size > 0) {
+        int obj = data[size - 1];
+        --size;
         if (DEBUG) {
-          System.err.println("Deleting server-side OpenGL object " + data[i] +
+          System.err.println("Deleting server-side OpenGL object " + obj +
                              ((name != null) ? (" (" + name + ")") : ""));
         }
-        deleter.delete(gl, data[i]);
+        deleter.delete(gl, obj);
       }
+    }
+
+    public void clear() {
       size = 0;
+      capacity = MIN_CAPACITY;
+      data = new int[capacity];
     }
   }
 
   private ObjectList[] lists = new ObjectList[NUM_OBJECT_TYPES];
   private int refCount;
+  private boolean dirty;
 
   private void add(ObjectList list, int n, IntBuffer ids) {
     int pos = ids.position();
@@ -726,5 +819,15 @@ public class GLObjectTracker {
       lists[which] = list;
     }
     return list;
+  }
+
+  private void delete(GL gl) {
+    for (int i = 0; i < lists.length; i++) {
+      ObjectList list = lists[i];
+      if (list != null) {
+        list.delete(gl);
+        lists[i] = null;
+      }
+    }
   }
 }
