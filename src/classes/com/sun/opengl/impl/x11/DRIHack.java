@@ -80,19 +80,24 @@ public class DRIHack {
   public static native long dlopen(String name);
   public static native int  dlclose(long handle);
 
+  private static final boolean DEBUG = Debug.debug("DRIHack");
   private static boolean driHackNeeded;
   private static long libGLHandle;
 
   public static void begin() {
     AccessController.doPrivileged(new PrivilegedAction() {
         public Object run() {
-          driHackNeeded = new File("/usr/lib/dri").exists();
+          driHackNeeded =
+            (new File("/usr/lib/dri").exists() ||
+             new File("/usr/X11R6/lib/modules/dri").exists());
           return null;
         }
       });
 
     if (driHackNeeded) {
-      System.err.println("Beginning DRI hack");
+      if (DEBUG) {
+        System.err.println("Beginning DRI hack");
+      }
 
       NativeLibLoader.loadDRIHack();
       libGLHandle = dlopen("/usr/lib/libGL.so.1");
@@ -101,7 +106,9 @@ public class DRIHack {
 
   public static void end() {
     if (libGLHandle != 0) {
-      System.err.println("Ending DRI hack");
+      if (DEBUG) {
+        System.err.println("Ending DRI hack");
+      }
 
       dlclose(libGLHandle);
     }
