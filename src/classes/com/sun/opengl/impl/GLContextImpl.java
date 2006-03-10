@@ -97,6 +97,8 @@ public abstract class GLContextImpl extends GLContext {
     if (current != null) {
       if (current == this) {
         // Assume we don't need to make this context current again
+        // For Mac OS X, however, we need to update the context to track resizes
+        update();
         return CONTEXT_CURRENT;
       } else {
         current.release();
@@ -183,6 +185,10 @@ public abstract class GLContextImpl extends GLContext {
   }
 
   protected abstract void destroyImpl() throws GLException;
+
+  // This is only needed for Mac OS X on-screen contexts
+  protected void update() throws GLException {
+  }
 
   public boolean isSynchronized() {
     return !lock.getFailFastMode();

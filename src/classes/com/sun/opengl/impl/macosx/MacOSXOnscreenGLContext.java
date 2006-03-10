@@ -88,4 +88,11 @@ public class MacOSXOnscreenGLContext extends MacOSXGLContext {
       throw new GLException("Error swapping buffers");
     }
   }
+
+  protected void update() throws GLException {
+    if (nsContext == 0) {
+      throw new GLException("Context not created");
+    }
+    CGL.updateContext(nsContext);
+  }
 }
