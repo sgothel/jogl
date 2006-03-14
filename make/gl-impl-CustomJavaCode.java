@@ -311,6 +311,7 @@ public java.nio.ByteBuffer glMapBuffer(int target, int access) {
     _res.order(ByteOrder.nativeOrder());
     arbVBOCache.put(key, _res);
   }
+  _res.position(0);
   return _res;
 }
 
@@ -334,6 +335,7 @@ public java.nio.ByteBuffer glMapBufferARB(int target, int access) {
     _res.order(ByteOrder.nativeOrder());
     arbVBOCache.put(key, _res);
   }
+  _res.position(0);
   return _res;
 }
 
