@@ -105,8 +105,13 @@ public class GLDrawableHelper {
                        GLContext context,
                        Runnable  runnable,
                        Runnable  initAction) {
+    // FIXME: downcast to GLContextImpl undesirable
+    boolean isOptimizable = ((context instanceof GLContextImpl) &&
+                             ((GLContextImpl) context).isOptimizable());
+
     if (GLWorkerThread.isStarted() &&
-        GLWorkerThread.isWorkerThread()) {
+        GLWorkerThread.isWorkerThread() &&
+        isOptimizable) {
       // We're going to allow a context to be left current on the
       // GLWorkerThread for optimization purposes
       GLContext lastContext    = GLContext.getCurrent();

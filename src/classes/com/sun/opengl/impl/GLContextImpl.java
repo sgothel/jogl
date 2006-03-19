@@ -50,6 +50,7 @@ public abstract class GLContextImpl extends GLContext {
   protected static final boolean DEBUG = Debug.debug("GLContextImpl");
   protected static final boolean VERBOSE = Debug.verbose();
   protected static final boolean NO_FREE = Debug.isPropertyDefined("jogl.GLContext.nofree");
+  protected boolean optimizationEnabled = !Debug.isPropertyDefined("jogl.GLContext.noopt");
 
   // Cache of the functions that are available to be called at the current
   // moment in time
@@ -351,6 +352,11 @@ public abstract class GLContextImpl extends GLContext {
     return "0x" + Long.toHexString(hex);
   }
 
+  //---------------------------------------------------------------------------
+  // Helpers for integration with Java2D/OpenGL pipeline when FBOs are
+  // being used
+  //
+
   public void setObjectTracker(GLObjectTracker tracker) {
     this.tracker = tracker;
   }
@@ -365,6 +371,15 @@ public abstract class GLContextImpl extends GLContext {
 
   public GLObjectTracker getDeletedObjectTracker() {
     return deletedObjectTracker;
+  }
+
+  //---------------------------------------------------------------------------
+  // Helpers for context optimization where the last context is left
+  // current on the OpenGL worker thread
+  //
+
+  public boolean isOptimizable() {
+    return optimizationEnabled;
   }
 
   public boolean hasWaiters() {

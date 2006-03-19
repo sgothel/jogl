@@ -46,6 +46,10 @@ import com.sun.opengl.impl.*;
 
 public class X11OnscreenGLContext extends X11GLContext {
   protected X11OnscreenGLDrawable drawable;
+  // This indicates whether the context we have created is indirect
+  // and therefore requires the toolkit to be locked around all GL
+  // calls rather than just all GLX calls
+  protected boolean isIndirect;
 
   public X11OnscreenGLContext(X11OnscreenGLDrawable drawable,
                               GLContext shareWith) {
@@ -64,13 +68,30 @@ public class X11OnscreenGLContext extends X11GLContext {
       }
       return super.makeCurrentImpl();
     } finally {
-      if (lockRes != X11OnscreenGLDrawable.LOCK_SURFACE_NOT_READY) {
+      if (optimizationEnabled) {
+        if (lockRes != X11OnscreenGLDrawable.LOCK_SURFACE_NOT_READY) {
+          drawable.unlockSurface();
+        }
+      }
+    }
+  }
+
+  protected void releaseImpl() throws GLException {
+    if (!optimizationEnabled) {
+      try {
+        super.releaseImpl();
+      } finally {
         drawable.unlockSurface();
       }
     }
   }
 
+  public boolean isOptimizable() {
+    return super.isOptimizable() && !isIndirect;
+  }
+
   protected void create() {
     createContext(true);
+    isIndirect = !GLX.glXIsDirect(drawable.getDisplay(), context);
   }
 }
