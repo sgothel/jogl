@@ -564,6 +564,11 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
       } else {
         drawableHelper.invokeGL(offscreenDrawable, offscreenContext, displayAction, initAction);
       }
+
+      if (offscreenImage != null) {
+        // Draw resulting image in one shot
+        g.drawImage(offscreenImage, 0, 0, offscreenImage.getWidth(), offscreenImage.getHeight(), this);
+      }
     }
   }
 
@@ -1038,8 +1043,8 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
               }
             }
 
-            // Draw resulting image in one shot
-            g.drawImage(offscreenImage, 0, 0, offscreenImage.getWidth(), offscreenImage.getHeight(), GLJPanel.this);
+	    // Note: image will be drawn back in paintComponent() for
+	    // correctness on all platforms
           }
         }
       } else {
