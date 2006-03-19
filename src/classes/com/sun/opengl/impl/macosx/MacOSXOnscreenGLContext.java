@@ -77,12 +77,24 @@ public class MacOSXOnscreenGLContext extends MacOSXGLContext {
       }
       return ret;
     } finally {
-      if (lockRes != MacOSXOnscreenGLDrawable.LOCK_SURFACE_NOT_READY) {
-        drawable.unlockSurface();
+      if (optimizationEnabled) {
+        if (lockRes != MacOSXOnscreenGLDrawable.LOCK_SURFACE_NOT_READY) {
+          drawable.unlockSurface();
+        }
       }
     }
   }
     
+  protected void releaseImpl() throws GLException {
+    if (!optimizationEnabled) {
+      try {
+        super.releaseImpl();
+      } finally {
+        drawable.unlockSurface();
+      }
+    }
+  }
+
   public void swapBuffers() throws GLException {
     if (!CGL.flushBuffer(nsContext)) {
       throw new GLException("Error swapping buffers");
