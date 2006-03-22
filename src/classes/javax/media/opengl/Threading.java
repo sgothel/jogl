@@ -122,18 +122,25 @@ public class Threading {
   private static boolean singleThreaded = true;
   private static final int AWT    = 1;
   private static final int WORKER = 2;
-  private static int mode = WORKER;
+  private static int mode;
   
   static {
     AccessController.doPrivileged(new PrivilegedAction() {
         public Object run() {
           String workaround = System.getProperty("opengl.1thread");
+          // Default to using the AWT thread on OS X due to apparent
+          // instability with using JAWT on non-AWT threads
+          boolean isOSX = System.getProperty("os.name").equals("Mac OS X");
+          int defaultMode = (isOSX ? AWT : WORKER);
+          mode = defaultMode;
           if (workaround != null) {
             workaround = workaround.toLowerCase();
             if (workaround.equals("true") ||
-                workaround.equals("auto") ||
-                workaround.equals("worker")) {
-              // Nothing to do; default = singleThreaded, mode = WORKER
+                workaround.equals("auto")) {
+              // Nothing to do; singleThreaded and mode already set up
+            } else if (workaround.equals("worker")) {
+              singleThreaded = true;
+              mode = WORKER;
             } else if (workaround.equals("awt")) {
               singleThreaded = true;
               mode = AWT;
