@@ -174,6 +174,18 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
   private int[] frameBufferDepthBuffer;
   private int[] frameBufferTexture;
   private boolean createNewDepthBuffer;
+  // Current (as of this writing) ATI drivers have problems when the
+  // same FBO is bound in two different contexts. Here we check for
+  // this case and explicitly release the FBO from Java2D's context
+  // before switching to ours. Java2D will re-bind the FBO when it
+  // makes its context current the next time. Interestingly, if we run
+  // this code path on NVidia hardware, it breaks the rendering
+  // results -- no output is generated. This doesn't appear to be an
+  // interaction with the abovementioned NVidia-specific workarounds,
+  // as even if we disable that code the FBO is still reported as
+  // incomplete in our context.
+  private boolean checkedGLVendor;
+  private boolean vendorIsATI;
 
   // These are always set to (0, 0) except when the Java2D / OpenGL
   // pipeline is active
@@ -272,6 +284,25 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
         if (DEBUG && VERBOSE) {
           System.err.println("GLJPanel: FBO COLOR_ATTACHMENT0: " + frameBufferTexture[0]);
         }
+      }
+
+      if (!checkedGLVendor) {
+        checkedGLVendor = true;
+        String vendor = gl.glGetString(GL.GL_VENDOR);
+
+        if ((vendor != null) &&
+            vendor.startsWith("ATI")) {
+          vendorIsATI = true;
+        }
+      }
+
+      if (vendorIsATI) {
+        // Unbind the FBO from Java2D's context as it appears that
+        // driver bugs on ATI's side are causing problems if the FBO is
+        // simultaneously bound to more than one context. Java2D will
+        // re-bind the FBO during the next validation of its context.
+        // Note: this breaks rendering at least on NVidia hardware
+        gl.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, 0);
       }
     }
   }
