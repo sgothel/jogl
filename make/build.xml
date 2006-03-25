@@ -1183,7 +1183,14 @@
             <fileset dir="${jogl.dist.dir}" includes="jogl-natives-*.jar" />
         </delete>
         <delete file="${jogl.dist.dir}/jogl-src.zip" />
-        <jar manifest="joglversion" destfile="${jogl.dist.dir}/jogl.jar" duplicate="preserve">
+        <delete dir="${jogl.dist.dir}/META-INF" failonerror="false" />
+        <!-- Extract manifest from one of the jars to re-use it in the dist jar -->
+        <unjar src="${jogl.dist.dir}/jogl-win32/jogl.jar" dest="${jogl.dist.dir}" >
+            <patternset>
+                <include name="META-INF/MANIFEST.MF" />
+            </patternset>
+        </unjar>
+        <jar manifest="${jogl.dist.dir}/META-INF/MANIFEST.MF" destfile="${jogl.dist.dir}/jogl.jar" duplicate="preserve">
 	    <zipgroupfileset dir="${jogl.dist.dir}"
 	                     includes="jogl-win32/*.jar, jogl-linux/*.jar, jogl-macosx/*.jar" />
         </jar>
@@ -1205,7 +1212,7 @@
 	<!-- Build a source archive as well -->
         <zip destfile="${jogl.dist.dir}/jogl-src.zip"
 	     basedir="../.."
-	     includes="gluegen/LICENCE.txt,gluegen/doc/**,gluegen/make/**,gluegen/src/**,jogl/LICENSE.txt,jogl/README.txt,jogl/doc/**,jogl/make/**,jogl/src/**"
+	     includes="gluegen/LICENSE.txt,gluegen/doc/**,gluegen/make/**,gluegen/src/**,jogl/LICENSE.txt,jogl/README.txt,jogl/doc/**,jogl/make/**,jogl/src/**"
 	     excludes="**/*.class,**/*~"
 	     />
     </target>
