@@ -96,6 +96,35 @@ public class Screenshot {
                                       int width,
                                       int height,
                                       boolean alpha) throws GLException, IOException {
+    writeToTargaFile(file, 0, 0, width, height, alpha);
+  }
+
+  /** 
+   * Takes a fast screenshot of the current OpenGL drawable to a Targa
+   * file. Requires the OpenGL context for the desired drawable to be
+   * current. This is the fastest mechanism for taking a screenshot of
+   * an application. Contributed by Carsten Weisse of Bytonic Software
+   * (http://bytonic.de/).
+   *
+   * @param file the file to write containing the screenshot
+   * @param x the starting x coordinate of the screenshot, measured from the lower-left
+   * @param y the starting y coordinate of the screenshot, measured from the lower-left
+   * @param width the width of the desired screenshot area
+   * @param height the height of the desired screenshot area
+   * @param alpha whether the alpha channel should be saved. If true,
+   *   requires GL_EXT_abgr extension to be present.
+   *
+   * @throws GLException if an OpenGL context was not current or
+   *   another OpenGL-related error occurred
+   * @throws IOException if an I/O error occurred while writing the
+   *   file
+   */
+  public static void writeToTargaFile(File file,
+                                      int x,
+                                      int y,
+                                      int width,
+                                      int height,
+                                      boolean alpha) throws GLException, IOException {
     if (alpha) {
       checkExtABGR();
     }
@@ -113,7 +142,7 @@ public class Screenshot {
     int readbackType = (alpha ? GL.GL_ABGR_EXT : GL.GL_BGR);
 
     // read the BGR values into the image buffer
-    gl.glReadPixels(0, 0, width, height, readbackType,
+    gl.glReadPixels(x, y, width, height, readbackType,
                     GL.GL_UNSIGNED_BYTE, bgr);
 
     // Restore pixel storage modes
@@ -163,6 +192,32 @@ public class Screenshot {
   public static BufferedImage readToBufferedImage(int width,
                                                   int height,
                                                   boolean alpha) throws GLException {
+    return readToBufferedImage(0, 0, width, height, alpha);
+  }
+
+  /**
+   * Takes a screenshot of the current OpenGL drawable to a
+   * BufferedImage. Requires the OpenGL context for the desired
+   * drawable to be current. Note that the scanlines of the resulting
+   * image are flipped vertically in order to correctly match the
+   * OpenGL contents, which takes time and is therefore not as fast as
+   * the Targa screenshot function.
+   *
+   * @param x the starting x coordinate of the screenshot, measured from the lower-left
+   * @param y the starting y coordinate of the screenshot, measured from the lower-left
+   * @param width the width of the desired screenshot area
+   * @param height the height of the desired screenshot area
+   * @param alpha whether the alpha channel should be read back. If
+   *   true, requires GL_EXT_abgr extension to be present.
+   *
+   * @throws GLException if an OpenGL context was not current or
+   *   another OpenGL-related error occurred
+   */
+  public static BufferedImage readToBufferedImage(int x,
+                                                  int y,
+                                                  int width,
+                                                  int height,
+                                                  boolean alpha) throws GLException {
     int bufImgType = (alpha ? BufferedImage.TYPE_4BYTE_ABGR : BufferedImage.TYPE_3BYTE_BGR);
     int readbackType = (alpha ? GL.GL_ABGR_EXT : GL.GL_BGR);
 
@@ -180,7 +235,7 @@ public class Screenshot {
     psm.save(gl);
 
     // read the BGR values into the image
-    gl.glReadPixels(0, 0, width, height, readbackType,
+    gl.glReadPixels(x, y, width, height, readbackType,
                     GL.GL_UNSIGNED_BYTE,
                     ByteBuffer.wrap(((DataBufferByte) image.getRaster().getDataBuffer()).getData()));
 
@@ -202,6 +257,10 @@ public class Screenshot {
    * the given file. <P>
    *
    * No alpha channel is saved with this variant.
+   *
+   * @param file the file to write containing the screenshot
+   * @param width the width of the current drawable
+   * @param height the height of the current drawable
    *
    * @throws GLException if an OpenGL context was not current or
    *   another OpenGL-related error occurred
@@ -229,9 +288,9 @@ public class Screenshot {
    * an alpha channel properly. If the "alpha" argument is specified
    * as true for such a file format it will be silently ignored.
    *
-   * @param file the file name to which to save the image
-   * @param file width the width of the image to read back and save
-   * @param file height the width of the image to read back and save
+   * @param file the file to write containing the screenshot
+   * @param width the width of the current drawable
+   * @param height the height of the current drawable
    * @param alpha whether an alpha channel should be saved. If true,
    *   requires GL_EXT_abgr extension to be present.
    *
@@ -246,13 +305,50 @@ public class Screenshot {
                                  int width,
                                  int height,
                                  boolean alpha) throws IOException, GLException {
+    writeToFile(file, 0, 0, width, height, alpha);
+  }
+
+  /**
+   * Takes a screenshot of the current OpenGL drawable to the
+   * specified file on disk using the ImageIO package. Requires the
+   * OpenGL context for the desired drawable to be current. This is
+   * not the fastest mechanism for taking a screenshot but may be more
+   * convenient than others for getting images for consumption by
+   * other packages. The file format is inferred from the suffix of
+   * the given file. <P>
+   *
+   * Note that some file formats, in particular JPEG, can not handle
+   * an alpha channel properly. If the "alpha" argument is specified
+   * as true for such a file format it will be silently ignored.
+   *
+   * @param file the file to write containing the screenshot
+   * @param x the starting x coordinate of the screenshot, measured from the lower-left
+   * @param y the starting y coordinate of the screenshot, measured from the lower-left
+   * @param width the width of the current drawable
+   * @param height the height of the current drawable
+   * @param alpha whether an alpha channel should be saved. If true,
+   *   requires GL_EXT_abgr extension to be present.
+   *
+   * @throws GLException if an OpenGL context was not current or
+   *   another OpenGL-related error occurred
+   *
+   * @throws IOException if an I/O error occurred or if the file could
+   *   not be written to disk due to the requested file format being
+   *   unsupported by ImageIO
+   */
+  public static void writeToFile(File file,
+                                 int x,
+                                 int y,
+                                 int width,
+                                 int height,
+                                 boolean alpha) throws IOException, GLException {
     String fileSuffix = FileUtil.getFileSuffix(file);
     if (alpha && (fileSuffix.equals("jpg") || fileSuffix.equals("jpeg"))) {
       // JPEGs can't deal properly with alpha channels
       alpha = false;
     }
 
-    BufferedImage image = readToBufferedImage(width, height, alpha);
+    BufferedImage image = readToBufferedImage(x, y, width, height, alpha);
     if (!ImageIO.write(image, fileSuffix, file)) {
       throw new IOException("Unsupported file format " + fileSuffix);
     }
@@ -269,7 +365,7 @@ public class Screenshot {
       throw new IllegalArgumentException("Saving alpha channel requires GL_EXT_abgr");
     }
   }
-
+ 
   static class PixelStorageModes {
     int packAlignment;
     int packRowLength;
