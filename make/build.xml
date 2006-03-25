@@ -1037,7 +1037,7 @@
 
     <target name="javadoc.spec" depends="javadoc.spec.nocg,javadoc.spec.cg" />
 
-    <target name="javadoc.dev.nocg" depends="init" unless="jogl.cg">
+    <target name="javadoc.dev.nocg" unless="jogl.cg">
         <!-- Build the internal developer Javadoc -->
         <javadoc packagenames="${javadoc.dev.packagenames},${javadoc.dev.packagenames.platform}"
                  sourcepath="${src.java};${src.generated.java}"        
@@ -1049,7 +1049,7 @@
     </target>
 
     <!-- Same as above but with Cg directories added -->
-    <target name="javadoc.dev.cg" depends="init" if="jogl.cg">
+    <target name="javadoc.dev.cg" if="jogl.cg">
         <!-- Build the internal developer Javadoc -->
         <javadoc packagenames="${javadoc.dev.packagenames},${javadoc.dev.packagenames.platform},com.sun.opengl.cg"
                  sourcepath="${src.java};${src.generated.java}"        
@@ -1060,9 +1060,9 @@
 		 bottom="${javadoc.bottom}" />
     </target>
 
-    <target name="javadoc.dev.win32"  depends="setup.java.home.dir,declare.win32,javadoc.dev.nocg,javadoc.dev.cg" />
-    <target name="javadoc.dev.x11"    depends="setup.java.home.dir,declare.x11,javadoc.dev.nocg,javadoc.dev.cg" />
-    <target name="javadoc.dev.macosx" depends="setup.java.home.dir,declare.macosx,javadoc.dev.nocg,javadoc.dev.cg" />
+    <target name="javadoc.dev.win32"  depends="setup.java.home.dir,init,declare.win32,javadoc.dev.nocg,javadoc.dev.cg" />
+    <target name="javadoc.dev.x11"    depends="setup.java.home.dir,init,declare.x11,javadoc.dev.nocg,javadoc.dev.cg" />
+    <target name="javadoc.dev.macosx" depends="setup.java.home.dir,init,declare.macosx,javadoc.dev.nocg,javadoc.dev.cg" />
 
     <!-- ================================================================== -->
     <!--
