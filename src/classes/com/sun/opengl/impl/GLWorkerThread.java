@@ -167,7 +167,9 @@ public class GLWorkerThread {
       lockTemp.notifyAll();
       lockTemp.wait();
       if (exception != null) {
-        throw new InvocationTargetException(exception);
+        Throwable localException = exception;
+        exception = null;
+        throw new InvocationTargetException(localException);
       }
     }
   }
