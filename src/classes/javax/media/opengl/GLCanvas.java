@@ -171,7 +171,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
           !Threading.isOpenGLThread()) {
         Threading.invokeOnOpenGLThread(destroyAction);
       } else {
-        context.destroy();
+        destroyAction.run();
       }
     } finally {
       drawable.setRealized(false);
