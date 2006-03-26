@@ -77,7 +77,7 @@ public class MacOSXOnscreenGLContext extends MacOSXGLContext {
       }
       return ret;
     } finally {
-      if (optimizationEnabled) {
+      if (isOptimizable()) {
         if (lockRes != MacOSXOnscreenGLDrawable.LOCK_SURFACE_NOT_READY) {
           drawable.unlockSurface();
         }
@@ -86,10 +86,10 @@ public class MacOSXOnscreenGLContext extends MacOSXGLContext {
   }
     
   protected void releaseImpl() throws GLException {
-    if (!optimizationEnabled) {
-      try {
-        super.releaseImpl();
-      } finally {
+    try {
+      super.releaseImpl();
+    } finally {
+      if (!isOptimizable()) {
         drawable.unlockSurface();
       }
     }

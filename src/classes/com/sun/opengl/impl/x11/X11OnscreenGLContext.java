@@ -68,7 +68,7 @@ public class X11OnscreenGLContext extends X11GLContext {
       }
       return super.makeCurrentImpl();
     } finally {
-      if (optimizationEnabled) {
+      if (isOptimizable()) {
         if (lockRes != X11OnscreenGLDrawable.LOCK_SURFACE_NOT_READY) {
           drawable.unlockSurface();
         }
@@ -77,10 +77,10 @@ public class X11OnscreenGLContext extends X11GLContext {
   }
 
   protected void releaseImpl() throws GLException {
-    if (!optimizationEnabled) {
-      try {
-        super.releaseImpl();
-      } finally {
+    try {
+      super.releaseImpl();
+    } finally {
+      if (!isOptimizable()) {
         drawable.unlockSurface();
       }
     }

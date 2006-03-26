@@ -66,7 +66,19 @@ public class WindowsOnscreenGLContext extends WindowsGLContext {
       int ret = super.makeCurrentImpl();
       return ret;
     } finally {
-      if (lockRes != WindowsOnscreenGLDrawable.LOCK_SURFACE_NOT_READY) {
+      if (isOptimizable()) {
+        if (lockRes != WindowsOnscreenGLDrawable.LOCK_SURFACE_NOT_READY) {
+          drawable.unlockSurface();
+        }
+      }
+    }
+  }
+
+  protected void releaseImpl() throws GLException {
+    try {
+      super.releaseImpl();
+    } finally {
+      if (!isOptimizable()) {
         drawable.unlockSurface();
       }
     }
