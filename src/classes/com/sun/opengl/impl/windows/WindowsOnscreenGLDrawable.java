@@ -77,6 +77,10 @@ public class WindowsOnscreenGLDrawable extends WindowsGLDrawable {
   private int  profilingSwapBuffersTicks;
   private long profilingSwapBuffersTime;
 
+  // Workaround for problems on Intel 82855 cards
+  private int  setPixelFormatFailCount;
+  private static final int MAX_SET_PIXEL_FORMAT_FAIL_COUNT = 5;
+
   public WindowsOnscreenGLDrawable(Component component,
                                    GLCapabilities capabilities,
                                    GLCapabilitiesChooser chooser) {
@@ -196,10 +200,16 @@ public class WindowsOnscreenGLDrawable extends WindowsGLDrawable {
     if (!pixelFormatChosen) {
       try {
         choosePixelFormat(true);
+        setPixelFormatFailCount = 0;
       } catch (RuntimeException e) {
+        // Workaround for problems seen on Intel 82855 cards in particular
         // Make it look like the lockSurface() call didn't succeed
         unlockSurface();
-        throw e;
+        if (++setPixelFormatFailCount == MAX_SET_PIXEL_FORMAT_FAIL_COUNT) {
+          setPixelFormatFailCount = 0;
+          throw e;
+        }
+        return LOCK_SURFACE_NOT_READY;
       }
     }
     if (PROFILING) {
