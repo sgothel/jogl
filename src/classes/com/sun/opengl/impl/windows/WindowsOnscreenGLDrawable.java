@@ -194,7 +194,13 @@ public class WindowsOnscreenGLDrawable extends WindowsGLDrawable {
       return LOCK_SURFACE_NOT_READY;
     }
     if (!pixelFormatChosen) {
-      choosePixelFormat(true);
+      try {
+        choosePixelFormat(true);
+      } catch (RuntimeException e) {
+        // Make it look like the lockSurface() call didn't succeed
+        unlockSurface();
+        throw e;
+      }
     }
     if (PROFILING) {
       long endTime = System.currentTimeMillis();

@@ -54,9 +54,8 @@ public class MacOSXOnscreenGLContext extends MacOSXGLContext {
   }
 
   protected int makeCurrentImpl() throws GLException {
-    int lockRes = 0;
+    int lockRes = drawable.lockSurface();
     try {
-      lockRes = drawable.lockSurface();
       if (lockRes == MacOSXOnscreenGLDrawable.LOCK_SURFACE_NOT_READY) {
         return CONTEXT_NOT_CURRENT;
       }
