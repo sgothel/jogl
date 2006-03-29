@@ -106,4 +106,8 @@ public class MacOSXOnscreenGLContext extends MacOSXGLContext {
     }
     CGL.updateContext(nsContext);
   }
+
+  protected boolean create() {
+    return create(false, false);
+  }
 }

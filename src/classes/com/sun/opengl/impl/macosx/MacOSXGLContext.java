@@ -85,13 +85,7 @@ public abstract class MacOSXGLContext extends GLContextImpl
     return glExtensionName;
   }
 	
-  protected boolean create() {
-    // Note that we specify pbuffer support for all contexts by
-    // default; workaround for problem on Mac OS X 10.4.3 where could
-    // not share textures and display lists between pbuffers and
-    // on-screen contexts
-    return create(true, false);
-  }
+  protected abstract boolean create();
 
   /**
    * Creates and initializes an appropriate OpenGl nsContext. Should only be
