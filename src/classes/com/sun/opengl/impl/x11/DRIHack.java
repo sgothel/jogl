@@ -87,8 +87,11 @@ public class DRIHack {
   public static void begin() {
     AccessController.doPrivileged(new PrivilegedAction() {
         public Object run() {
+          String os = System.getProperty("os.name").toLowerCase();
+          // Do DRI hack on all Linux distributions for best robustness
           driHackNeeded =
-            (new File("/usr/lib/dri").exists() ||
+            (os.startsWith("linux") ||
+             new File("/usr/lib/dri").exists() ||
              new File("/usr/X11R6/lib/modules/dri").exists());
           return null;
         }
