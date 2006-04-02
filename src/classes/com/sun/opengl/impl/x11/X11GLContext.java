@@ -302,7 +302,7 @@ public abstract class X11GLContext extends GLContextImpl {
   // Internals only below this point
   //
 
-  protected long getContext() {
+  public long getContext() {
     return context;
   }
 

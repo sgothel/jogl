@@ -286,7 +286,7 @@ public class WindowsGLContext extends GLContextImpl {
   // Internals only below this point
   //
 
-  protected long getHGLRC() {
+  public long getHGLRC() {
     return hglrc;
   }
 }

@@ -253,7 +253,7 @@ public abstract class MacOSXGLContext extends GLContextImpl
   // Internals only below this point
   //
 	
-  protected long getNSContext() {
+  public long getNSContext() {
     return nsContext;
   }
 }
