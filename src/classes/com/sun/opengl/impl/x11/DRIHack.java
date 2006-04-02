@@ -103,7 +103,23 @@ public class DRIHack {
       }
 
       NativeLibLoader.loadDRIHack();
-      libGLHandle = dlopen("/usr/lib/libGL.so.1");
+      // Try a few different variants for best robustness
+      // In theory probably only the first is necessary
+      libGLHandle = dlopen("libGL.so.1");
+      if (DEBUG && libGLHandle != 0) System.err.println(" Found libGL.so.1");
+      if (libGLHandle == 0) {
+        libGLHandle = dlopen("libGL.so.1.2");
+        if (DEBUG && libGLHandle != 0) System.err.println(" Found libGL.so.1.2");
+      }
+      // Allow ATI's fglrx to supersede version in /usr/lib
+      if (libGLHandle == 0) {
+        libGLHandle = dlopen("/usr/lib/ati-fglrx/libGL.so.1.2");
+        if (DEBUG && libGLHandle != 0) System.err.println(" Found /usr/lib/ati-fglrx/libGL.so.1.2");
+      }
+      if (libGLHandle == 0) {
+        libGLHandle = dlopen("/usr/lib/libGL.so.1");
+        if (DEBUG && libGLHandle != 0) System.err.println(" Found /usr/lib/libGL.so.1");
+      }
     }
   }
 
