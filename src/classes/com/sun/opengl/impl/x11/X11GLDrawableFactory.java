@@ -56,6 +56,11 @@ public class X11GLDrawableFactory extends GLDrawableFactoryImpl {
   // There is currently a bug on Linux/AMD64 distributions in glXGetProcAddressARB
   private static boolean isLinuxAMD64;
 
+  // ATI's proprietary drivers apparently send GLX tokens even for
+  // direct contexts, so we need to disable the context optimizations
+  // in this case
+  private static boolean isVendorATI;
+
   static {
     // See DRIHack.java for an explanation of why this is necessary
     DRIHack.begin();
@@ -444,6 +449,13 @@ public class X11GLDrawableFactory extends GLDrawableFactoryImpl {
           System.err.println("!!! GLX client version: " +
                              GLX.glXGetClientString(display, GLX.GLX_VERSION));
         }
+
+        if (staticDisplay != 0) {
+          String vendor = GLX.glXGetClientString(staticDisplay, GLX.GLX_VENDOR);
+          if (vendor != null && vendor.startsWith("ATI")) {
+            isVendorATI = true;
+          }
+        }
       } finally {
         getX11Factory().unlockToolkit();
       }
@@ -491,6 +503,12 @@ public class X11GLDrawableFactory extends GLDrawableFactoryImpl {
 
   public static X11GLDrawableFactory getX11Factory() {
     return (X11GLDrawableFactory) getFactory();
+  }
+
+  /** Workaround for apparent issue with ATI's proprietary drivers
+      where direct contexts still send GLX tokens for GL calls */
+  public static boolean isVendorATI() {
+    return isVendorATI;
   }
 
   private void maybeDoSingleThreadedWorkaround(Runnable action) {

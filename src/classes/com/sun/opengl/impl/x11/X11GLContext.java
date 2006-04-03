@@ -298,6 +298,11 @@ public abstract class X11GLContext extends GLContextImpl {
     throw new GLException("Should not call this");
   }
 
+  public boolean isOptimizable() {
+    return (super.isOptimizable() &&
+            !X11GLDrawableFactory.getX11Factory().isVendorATI());
+  }
+
   //----------------------------------------------------------------------
   // Internals only below this point
   //
