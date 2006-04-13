@@ -316,7 +316,7 @@ public class Texture {
       newTarget = GL.GL_TEXTURE_2D;
     }
 
-    setImageSize(imgWidth, imgHeight);
+    setImageSize(imgWidth, imgHeight, newTarget);
 
     if (target != 0) {
       // Allow user to override auto detection and skip bind step (for
@@ -551,7 +551,7 @@ public class Texture {
    * Updates the actual image dimensions; usually only called from
    * <code>updateImage</code>.
    */
-  private void setImageSize(int width, int height) {
+  private void setImageSize(int width, int height, int target) {
     imgWidth = width;
     imgHeight = height;
     if (target == GL.GL_TEXTURE_RECTANGLE_ARB) {
