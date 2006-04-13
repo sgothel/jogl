@@ -42,7 +42,7 @@
 #ifdef WIN32
   #define PLATFORM_DSI_SIZE sizeof(JAWT_Win32DrawingSurfaceInfo)
   static const char* platformDSIClassName = "com/sun/opengl/impl/windows/JAWT_Win32DrawingSurfaceInfo";
-#elif defined(linux) || defined(__sun) || defined(__FreeBSD__)
+#elif defined(linux) || defined(__sun) || defined(__FreeBSD__) || defined(_HPUX)
   #define PLATFORM_DSI_SIZE sizeof(JAWT_X11DrawingSurfaceInfo)
   static const char* platformDSIClassName = "com/sun/opengl/impl/x11/JAWT_X11DrawingSurfaceInfo";
 #elif defined(macosx)

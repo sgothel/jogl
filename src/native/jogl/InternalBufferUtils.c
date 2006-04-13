@@ -53,11 +53,17 @@ Java_com_sun_opengl_impl_InternalBufferUtils_newDirectByteBuffer(JNIEnv* env, jc
   return (*env)->NewDirectByteBuffer(env, (void*) (intptr_t) address, capacity);
 }
 
-#ifdef __sun
+#if defined(__sun) || defined(_HPUX)
 #include <dlfcn.h>
+
+/* HP-UX doesn't define RTLD_DEFAULT. */
+#if defined(_HPUX) && !defined(RTLD_DEFAULT)
+#define RTLD_DEFAULT NULL
+#endif
+
 /* Sun's GLX implementation doesn't have glXGetProcAddressARB (or
    glXGetProcAddress) so we implement it here */
 void (*glXGetProcAddressARB(const char *procname))() {
   return (void (*)()) dlsym(RTLD_DEFAULT, procname);
 }
-#endif /* __ sun */
+#endif /* __ sun || _HPUX */

@@ -209,10 +209,12 @@
         <property name="java.includes.dir.solaris" value="${java.includes.dir}/solaris" />
         <property name="java.includes.dir.macosx" value="/System/Library/Frameworks/JavaVM.framework/Versions/CurrentJDK/Headers" />
         <property name="java.includes.dir.freebsd" value="${java.includes.dir}/freebsd" />
+        <property name="java.includes.dir.hpux" value="${java.includes.dir}/hp-ux" />
         <property name="java.lib.dir.win32" value="${java.home.dir}/lib" />
         <property name="java.lib.dir.linux" value="${java.home.dir}/jre/lib/i386" />
         <property name="java.lib.dir.linux.amd64" value="${java.home.dir}/jre/lib/amd64" />
         <property name="java.lib.dir.linux.ia64" value="${java.home.dir}/jre/lib/ia64" />
+        <property name="java.lib.dir.hpux" value="${java.home.dir}/jre/lib/PA_RISC2.0" />
 	<condition property="cpu" value="sparc">
             <os name="SunOS" arch="sparc" />
         </condition>
@@ -415,6 +417,15 @@
       <property name="linker.cfg.id.drihack"                value="linker.cfg.linux.drihack" /> 
     </target>
 
+    <target name="declare.hpux" depends="declare.x11" if="isHPUX">
+      <echo message="HP-UX" />
+      <property name="java.includes.dir.platform"           value="${java.includes.dir.hpux}" />
+      <property name="java.lib.dir.platform"                value="${java.lib.dir.hpux}" />
+      <property name="compiler.cfg.id"                      value="compiler.cfg.hpux" />
+      <property name="linker.cfg.id.core"                   value="linker.cfg.hpux" />
+      <property name="linker.cfg.id.drihack"                value="linker.cfg.hpux.drihack" /> 
+    </target>
+
     <!-- ================================================================== -->
     <!-- 
        - Initialize all parameters required for the build and create any
@@ -433,7 +444,7 @@
         <mkdir dir="${obj.cg}" />
     </target>
 
-    <target name="declare" depends="init,declare.win32,declare.linux,declare.solaris,declare.macosx,declare.freebsd" />
+    <target name="declare" depends="init,declare.win32,declare.linux,declare.solaris,declare.macosx,declare.freebsd,declare.hpux" />
 
     <!-- ================================================================== -->
     <!-- GlueGen and BuildStaticGLInfo creation, task setup and Java file generation -->
@@ -741,6 +752,27 @@
         <includepath path="/usr/X11R6/include" />
       </compiler>
 
+      <compiler id="compiler.cfg.hpux" name="aCC">
+        <!-- Interpret source as ANSI C89 (not C++) -->
+        <compilerarg value="-Ae"/> 
+        <!-- Dereferences are performed with four-byte loads and stores. -->
+        <compilerarg value="+u4"/>
+        <!-- Suppress warnings: 
+                 942: signed/unsigned assignment compatibility
+                 129: redeclarations in stub_includes -->
+        <compilerarg value="+W942,129"/>
+        <defineset>
+           <!-- aCC doesn't seem to define a generic system macro, a la 
+               "__sun". The documentation claims it defines the following,
+               but don't seem to work: __HP_aCC, __LP64__, __RISC_0__. 
+               HP-UX docs on JNI say to use the defs below 
+               (http://www.hp.com/products1/unix/java/infolibrary/prog_guide/JNI_java2.html) -->
+           <!-- Single underscore prefix, as recommended by aCC docs... -->
+           <define name="_HPUX"/> 
+           <define name="_POSIX_C_SOURCE" value="199506L"/>
+        </defineset>
+      </compiler>
+ 
       <!-- linker configuration -->
  
       <linker id="linker.cfg.linux" name="gcc">
@@ -792,6 +824,13 @@
         <linkerarg value="Cg" if="c.compiler.use-cglib" />
       </linker>
 
+      <linker id="linker.cfg.hpux" name="aCC">
+        <syslibset dir="/opt/graphics/OpenGL/lib" libs="GL, GLU"/>
+        <syslibset dir="/usr/lib" libs="X11"/>
+      </linker>
+
+      <linker id="linker.cfg.hpux.drihack" name="aCC" />
+
       <patternset id="c.src.files.jogl">
         <include name="${rootrel.src.c.jogl}/InternalBufferUtils.c"/>
         <include name="${rootrel.src.c.jogl}/*.m" if="isOSX"/>
@@ -828,6 +867,13 @@
 
       <condition property="c.compiler.use-debug"><istrue value="${c.compiler.debug}"/></condition>
 
+      <condition property="c.compiler.needs-libjvm">
+        <and>
+          <isset property="isHPUX"/>
+          <isset property="c.compiler.use-jawt"/>
+        </and>
+      </condition>
+
       <cc outtype="shared" 
           objdir="${obj.jogl}" 
           outfile="${obj}/${output.lib.name}"
@@ -858,6 +904,7 @@
 
         <linker extends="${linker.cfg.id}">
           <syslibset dir="${java.lib.dir.platform}" libs="jawt" if="c.compiler.use-jawt"/>
+          <syslibset dir="${java.lib.dir.platform}/server" libs="jvm" if="c.compiler.needs-libjvm"/>
         </linker>
       </cc>
     </target>  
@@ -1218,7 +1265,7 @@
     <!--
        - Clean up all that is built.
       -->
-    <target name="clean" depends="declare.common">
+    <target name="clean" description="Remove all build products" depends="declare.common">
         <delete includeEmptyDirs="true" quiet="true">
             <fileset dir="${build}" />
             <fileset dir="${javadoc}" />
@@ -1231,7 +1278,7 @@
     <!--
        - Build everything.
       -->
-    <target name="all" depends="setup.java.home.dir,init,declare">
+    <target name="all" description="Build JOGL JAR file(s) and native libraries." depends="setup.java.home.dir,init,declare">
         <!-- Generate, compile, and build the jar for the Java sources. -->
         <antcall target="jar" inheritRefs="true" />
         

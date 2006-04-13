@@ -10,7 +10,7 @@
 /* Current versions of Solaris don't expose the XF86 extensions,
    although with the recent transition to Xorg this will probably
    happen in an upcoming release */
-#ifndef __sun
+#if !defined(__sun) && !defined(_HPUX)
 #include <X11/extensions/xf86vmode.h>
 #else
 /* Need to provide stubs for these */
@@ -40,6 +40,11 @@ Bool XF86VidModeSetGammaRamp(
     unsigned short *blue_array) {
   return False;
 }
+#endif
+
+/* HP-UX doesn't define RTLD_DEFAULT. */
+#if defined(_HPUX) && !defined(RTLD_DEFAULT)
+#define RTLD_DEFAULT NULL
 #endif
 
 /* Need to expose DefaultScreen and RootWindow macros to Java */
