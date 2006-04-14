@@ -287,13 +287,19 @@
       <property name="linker.cfg.id.core"                   value="linker.cfg.win32.msvc" />
     </target>
     
+    <target name="declare.win32.vc8_x64" if="isVC8_X64">
+      <echo message="Win32.VC8_X64" />
+      <property name="compiler.cfg.id"                      value="compiler.cfg.win32.msvc" />
+      <property name="linker.cfg.id.core"                   value="linker.cfg.win32.msvc" />
+    </target>
+    
     <target name="declare.win32.mingw" if="isMingW">
       <echo message="Win32.MingW" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.win32.mingw" /> 
       <property name="linker.cfg.id.core"                   value="linker.cfg.win32.mingw" />     
     </target>
 
-    <target name="declare.win32" depends="declare.win32.vc6,declare.win32.vc7,declare.win32.vc8,declare.win32.mingw" if="isWindows">
+    <target name="declare.win32" depends="declare.win32.vc6,declare.win32.vc7,declare.win32.vc8,declare.win32.vc8_x64,declare.win32.mingw" if="isWindows">
         <!-- Set platform configuration files. -->
         <property name="gl.cfg"                                 value="${config}/gl-win32.cfg" />
         <property name="gl.cfg.nsig"                            value="${config}/gl-win32-nsig.cfg" />
@@ -804,7 +810,10 @@
       <linker id="linker.cfg.win32.msvc" name="msvc" incremental="false">
         <linkerarg value="/OPT:REF,ICF" />        <!-- enable link-time optimisations -->
         <linkerarg value="/SUBSYSTEM:WINDOWS" />  <!-- output is not a console app as uses WinMain entry point -->
-        <linkerarg value="/MACHINE:IX86" />       <!-- explicity set target platform -->
+        <linkerarg value="/MACHINE:X86" if="isVC6" />       <!-- explicity set target platform -->
+        <linkerarg value="/MACHINE:X86" if="isVC7" />       <!-- explicity set target platform -->
+        <linkerarg value="/MACHINE:X86" if="isVC8" />       <!-- explicity set target platform -->
+        <linkerarg value="/MACHINE:X64" if="isVC8_X64"/>    <!-- explicity set target platform (IX64) -->
 
         <syslibset libs="opengl32, gdi32, user32, kernel32" />
         
@@ -960,7 +969,7 @@
       </antcall>
     </target>
 
-    <target name="c.manifest" if="isVC8">
+    <target name="c.manifest" if="isVC8Family">
       <!-- exec mt, the Microsoft Manifest Tool, to include DLL manifests in order to resolve the location of msvcr80.dll -->
       <exec executable="mt">
         <arg value="-manifest"/>

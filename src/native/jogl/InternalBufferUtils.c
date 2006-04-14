@@ -41,7 +41,7 @@
 
 #ifdef _MSC_VER
  /* This typedef seems to be needed at least for VC6 and Visual Studio 2003 */
- #if _MSC_VER <= 1400
+ #if _MSC_VER <= 1300
  typedef int intptr_t;
  #endif
 #else

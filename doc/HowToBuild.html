@@ -26,7 +26,7 @@ OpenGL binding from a fresh copy of the source distribution:
 
   <LI> <B>Copy and edit jogl.properties:</B> <br>
     Copy <b>make/jogl.properties</b> into your home directory (pointed to by the Java system property <b>user.home</b>). <br>
-    Edit the copy to change any settings that are necessary, in particular the setting of win32.c.compiler on Windows platforms (one of "vc6", "vc7", "vc8", or "mingw").
+    Edit the copy to change any settings that are necessary, in particular the setting of win32.c.compiler on Windows platforms (one of "vc6", "vc7", "vc8", "vc8_x64", or "mingw"). Note that on Windows 64-bit platforms the Professional edition of the Microsoft compilers is required.
     <UL>
       <LI>The Windows build requires one of Microsoft Visual C++ 6, 7 (Visual Studio .NET), 8 (Microsoft Visual C++ 2005) or the free MinGW (<a href="http://www.mingw.org/">http://www.mingw.org/</a>) compilers to be installed. Choose the appropriate setting of win32.c.compiler for the compiler being used. The C compiler executable (cl.exe, gcc.exe) must be in your PATH; see below.
       <LI> When building with VC6, VC7, or VC8, you must first run the <code>vcvars32.bat</code> environment variable setup script from the appropriate version of Visual C++. The Windows C compiler you choose in jogl.properties (i.e., <code>win32.c.compiler=vc6</code>) must match the version of the compiler from which you executed <code>vcvars32.bat</code>. No error checking is done on the compiler version used, so please be careful.

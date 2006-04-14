@@ -11,7 +11,7 @@
 #define VOID void
 typedef int                 BOOL;
 typedef unsigned char       BYTE;
-typedef unsigned long       DWORD;
+typedef unsigned int        DWORD;
 typedef int                 INT;
 typedef int                 INT32;
 typedef __int64             INT64;
