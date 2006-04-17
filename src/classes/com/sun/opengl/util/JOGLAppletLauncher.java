@@ -292,7 +292,7 @@ public class JOGLAppletLauncher extends Applet {
             Package p = Package.getPackage("javax.media.opengl");
 
             String installDirName = userHome + File.separator + ".jogl_ext"
-              + File.separator + installDirectory + File.separator + p.getImplementationVersion();
+              + File.separator + installDirectory + File.separator + p.getImplementationVersion().replace(':', '_');
 
             final File installDir = new File(installDirName);
  
