@@ -1048,7 +1048,9 @@
                  overview="${javadoc.overview}" 
                  source="1.4"
                  linkoffline="${javadoc.link} 142-packages"
-		 bottom="${javadoc.bottom}" />
+		 bottom="${javadoc.bottom}" >
+          <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.root}/make/lib/native-taglet-1.0.jar" />
+        </javadoc>
     </target>
 
     <!-- Same as above but with Cg directories added -->
@@ -1060,7 +1062,9 @@
                  overview="${javadoc.overview}" 
                  source="1.4"
                  linkoffline="${javadoc.link} 142-packages"
-		 bottom="${javadoc.bottom}" />
+		 bottom="${javadoc.bottom}" >
+          <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.root}/make/lib/native-taglet-1.0.jar" />
+        </javadoc>
     </target>
 
     <target name="javadoc" depends="javadoc.nocg,javadoc.cg" />
@@ -1073,7 +1077,9 @@
                  overview="${javadoc.overview}"
                  source="1.4"
                  linkoffline="${javadoc.link} 142-packages"
-                 bottom="${javadoc.bottom}" />
+                 bottom="${javadoc.bottom}" >
+          <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.root}/make/lib/native-taglet-1.0.jar" />
+        </javadoc>
     </target>
                                                                                                                                    
     <!-- Same as above since Cg directories are not part of spec -->
@@ -1085,7 +1091,9 @@
                  overview="${javadoc.overview}"
                  source="1.4"
                  linkoffline="${javadoc.link} 142-packages"
-                 bottom="${javadoc.bottom}" />
+                 bottom="${javadoc.bottom}" >
+          <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.root}/make/lib/native-taglet-1.0.jar" />
+        </javadoc>
     </target>
 
     <target name="javadoc.spec" depends="javadoc.spec.nocg,javadoc.spec.cg" />
@@ -1098,7 +1106,9 @@
                  overview="${javadoc.overview}" 
                  source="1.4"
                  linkoffline="${javadoc.link} 142-packages"
-		 bottom="${javadoc.bottom}" />
+		 bottom="${javadoc.bottom}" >
+          <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.root}/make/lib/native-taglet-1.0.jar" />
+        </javadoc>
     </target>
 
     <!-- Same as above but with Cg directories added -->
@@ -1110,7 +1120,9 @@
                  overview="${javadoc.overview}" 
                  source="1.4"
                  linkoffline="${javadoc.link} 142-packages"
-		 bottom="${javadoc.bottom}" />
+		 bottom="${javadoc.bottom}" >
+          <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.root}/make/lib/native-taglet-1.0.jar" />
+        </javadoc>
     </target>
 
     <target name="javadoc.dev.win32"  depends="setup.java.home.dir,init,declare.win32,javadoc.dev.nocg,javadoc.dev.cg" />
