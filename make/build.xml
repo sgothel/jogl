@@ -1256,7 +1256,7 @@
         <jar destfile="${jogl.dist.dir}/jogl-natives-macosx-ppc.jar"
              basedir="${jogl.dist.dir}/jogl-macosx/ppc"
              includes="libjogl.jnilib,libjogl_awt.jnilib,libjogl_cg.jnilib" />
-        <jar destfile="${jogl.dist.dir}/jogl-natives-solaris-sparc32.jar"
+        <jar destfile="${jogl.dist.dir}/jogl-natives-solaris-sparc.jar"
              basedir="${jogl.dist.dir}/jogl-solsparc/32"
              includes="libjogl.so,libjogl_awt.so,libjogl_drihack.so" />
         <jar destfile="${jogl.dist.dir}/jogl-natives-solaris-i586.jar"
