@@ -40,87 +40,117 @@
 package com.sun.opengl.impl;
 
 import java.awt.Toolkit;
-import java.security.*;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+import java.util.HashSet;
 
 public class NativeLibLoader {
-  private static volatile boolean doLoading   = true;
+  public interface LoaderAction {
+    /**
+     * Loads the library specified by libname. Optionally preloads the libraries specified by
+     * preload. The implementation should ignore, if the preload-libraries have already been
+     * loaded.
+     * @param libname the library to load
+     * @param preload the libraries to load before loading the main library
+     * @param doPreload true, iff the preload-libraries should be loaded 
+     * @param ignoreError true, iff errors during loading the preload-libraries should be ignored 
+     */
+    void loadLibrary(String libname, String[] preload, 
+        boolean doPreload, boolean ignoreError);
+  }
+  
+  private static class DefaultAction implements LoaderAction {
+    public void loadLibrary(String libname, String[] preload,
+        boolean doPreload, boolean ignoreError) {
+      if (doPreload) {
+        for (int i=0; i<preload.length; i++) {
+          try {
+            System.loadLibrary(preload[i]);
+          }
+          catch (UnsatisfiedLinkError e) {
+            if (!ignoreError && e.getMessage().indexOf("already loaded") < 0) {
+              throw e;
+            }
+          }
+        }
+      }
+      
+      System.loadLibrary(libname);
+    }
+  }
+  
+  private static final HashSet loaded = new HashSet();
+  private static LoaderAction loaderAction = new DefaultAction();
 
   public static void disableLoading() {
-    doLoading = false;
+    setLoadingAction(null);
   }
 
   public static void enableLoading() {
-    doLoading = true;
+    setLoadingAction(new DefaultAction());
+  }
+  
+  public static synchronized void setLoadingAction(LoaderAction action) {
+    loaderAction = action;
   }
 
-  private static volatile boolean loadedCore = false;
-  private static volatile boolean loadedAWTImpl = false;
-  private static volatile boolean loadedDRIHack = false;
-
-  public static void loadCore() {
-    if (doLoading && !loadedCore) {
-      synchronized (NativeLibLoader.class) {
-        if (!loadedCore) {
-          AccessController.doPrivileged(new PrivilegedAction() {
-              public Object run() {
-                System.loadLibrary("jogl");
-                return null;
-              }
-            });
-          loadedCore = true;
-        }
-      }
+  private static synchronized void loadLibrary(String libname, String[] preload, 
+      boolean doPreload, boolean ignoreError) {
+    if (loaderAction != null && !loaded.contains(libname))
+    {
+      loaderAction.loadLibrary(libname, preload, doPreload, ignoreError);    
+      loaded.add(libname);
     }
+  }
+  
+  public static void loadCore() {
+    AccessController.doPrivileged(new PrivilegedAction() {
+      public Object run() {
+        loadLibrary("jogl", null, false, false);
+        return null;
+      }
+    });
   }
 
   public static void loadAWTImpl() {
-    if (doLoading && !loadedAWTImpl) {
-      synchronized (NativeLibLoader.class) {
-        if (!loadedAWTImpl) {
-          AccessController.doPrivileged(new PrivilegedAction() {
-              public Object run() {
-                boolean isOSX = System.getProperty("os.name").equals("Mac OS X");
-                if (!isOSX) {
-                  // Must pre-load JAWT on all non-Mac platforms to
-                  // ensure references from jogl_awt shared object
-                  // will succeed since JAWT shared object isn't in
-                  // default library path
-                  try {
-                    System.loadLibrary("jawt");
-                  } catch (UnsatisfiedLinkError e) {
-                    // Accessibility technologies load JAWT themselves; safe to continue
-                    // as long as JAWT is loaded by any loader
-                    if (e.getMessage().indexOf("already loaded") == -1) {
-                      throw e;
-                    }
-                  }
-                }
-                System.loadLibrary("jogl_awt");
+    AccessController.doPrivileged(new PrivilegedAction() {
+      public Object run() {
+        // Make sure that awt.dll is loaded before loading jawt.dll. Otherwise
+        // a Dialog with "awt.dll not found" might pop up.
+        // See http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4481947.
+        Toolkit.getDefaultToolkit();
+        
+        // Must pre-load JAWT on all non-Mac platforms to
+        // ensure references from jogl_awt shared object
+        // will succeed since JAWT shared object isn't in
+        // default library path
+        boolean isOSX = System.getProperty("os.name").equals("Mac OS X");
+        String[] preload = { "jawt" };
 
-                return null;
-              }
-            });
-          loadedAWTImpl = true;
-        }
+        loadLibrary("jogl_awt", preload, !isOSX, false);
+        return null;
       }
-    }
+    });
   }
 
   // See DRIHack.java in com/sun/opengl/impl/x11/ for description of
   // why this is needed
   public static void loadDRIHack() {
-    if (doLoading && !loadedDRIHack) {
-      synchronized (NativeLibLoader.class) {
-        if (!loadedDRIHack) {
-          AccessController.doPrivileged(new PrivilegedAction() {
-              public Object run() {
-                System.loadLibrary("jogl_drihack");
-                return null;
-              }
-            });
-          loadedDRIHack = true;
-        }
+    AccessController.doPrivileged(new PrivilegedAction() {
+      public Object run() {
+        loadLibrary("jogl_drihack", null, false, false);
+        return null;
       }
-    }
+    });
+  }
+  
+  public static void loadCgImpl() {
+    AccessController.doPrivileged(new PrivilegedAction() {
+      public Object run() {
+        String[] preload = { "cg", "cgGL" };
+        loadLibrary("jogl_cg", preload, true, true);
+        return null;
+      }
+    });
   }
 }

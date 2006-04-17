@@ -1,20 +1,5 @@
 static {
-  AccessController.doPrivileged(new PrivilegedAction() {
-    public Object run() {
-      try {
-        // Workaround so that these don't need to be in the system
-        // path but can be referenced from java.library.path
-        // (this is intended to help with Webstarted applications)
-        System.loadLibrary("cg");
-        System.loadLibrary("cgGL");
-      } catch (UnsatisfiedLinkError e) {
-        // Consider this non-fatal
-      }
-      // Load the actual Cg binding
-      System.loadLibrary("jogl_cg");
-      return null;
-    }
-  });
+  NativeLibLoader.loadCgImpl();
 }
 
 /** A convenience method which reads all available data from the InputStream and then calls cgCreateProgram. */
