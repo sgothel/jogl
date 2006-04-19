@@ -169,11 +169,13 @@ public class JOGLAppletLauncher extends Applet {
   }
 
   private static final NativeLibInfo[] allNativeLibInfo = {
-    new NativeLibInfo("win",   null,    "jogl-natives-win32.jar",    "",    ".dll"),
-    new NativeLibInfo("mac",   null,    "jogl-natives-macosx.jar",   "lib", ".jnilib"),
-    new NativeLibInfo("linux", null,    "jogl-natives-linux.jar",    "lib", ".so"),
-    new NativeLibInfo("sunos", "sparc", "jogl-natives-solsparc.jar", "lib", ".so"),
-    new NativeLibInfo("sunos", "x86",   "jogl-natives-solx86.jar",   "lib", ".so")
+    new NativeLibInfo("win",   "x86",   "jogl-natives-windows-i586.jar",     "",    ".dll"),
+    new NativeLibInfo("mac",   "ppc",   "jogl-natives-macosx-ppc.jar",       "lib", ".jnilib"),
+    new NativeLibInfo("mac",   "i386",  "jogl-natives-macosx-universal.jar", "lib", ".jnilib"),
+    new NativeLibInfo("linux", "i386",  "jogl-natives-linux-i586.jar",       "lib", ".so"),
+    new NativeLibInfo("linux", "x86",   "jogl-natives-linux-i586.jar",       "lib", ".so"),
+    new NativeLibInfo("sunos", "sparc", "jogl-natives-solaris-sparc.jar",    "lib", ".so"),
+    new NativeLibInfo("sunos", "x86",   "jogl-natives-solaris-i586.jar",     "lib", ".so")
   };
 
   private NativeLibInfo nativeLibInfo;

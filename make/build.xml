@@ -1305,7 +1305,7 @@
            includes="*/**" />
       <delete dir="${jogl.dist.dir}/tmp" />
       <!-- Apply Pack200 repacking to allow later compression by that mechanism -->
-      <apply executable="pack200" >
+      <apply executable="pack200" verbose="true" >
         <arg value="--repack" />
         <fileset file="${jogl.dist.dir}/jogl.jar" />
       </apply>
