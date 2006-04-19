@@ -455,6 +455,14 @@ public class JOGLAppletLauncher extends Applet {
         displayError("Error opening jar file " + localJarFile.getName() + " for reading");
         return;
       }
+    } else {
+      // Still need to discover whether DRI hack is installed
+      File[] files = installDir.listFiles();
+      for (int i = 0; i < files.length; i++) {
+        if (files[i].getName().indexOf("jogl_drihack") >= 0) {
+          driHackPresent = true;
+        }
+      }
     }
 
     loadNativesAndStart(installDir);

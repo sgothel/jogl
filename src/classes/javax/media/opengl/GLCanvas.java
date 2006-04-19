@@ -169,7 +169,18 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
     try {
       if (Threading.isSingleThreaded() &&
           !Threading.isOpenGLThread()) {
-        Threading.invokeOnOpenGLThread(destroyAction);
+        // Workaround for termination issues with applets --
+        // sun.applet.AppletPanel should probably be performing the
+        // remove() call on the EDT rather than on its own thread
+        if (Threading.isAWTMode() &&
+            Thread.holdsLock(getTreeLock())) {
+          // The user really should not be invoking remove() from this
+          // thread -- but since he/she is, we can not go over to the
+          // EDT at this point. Try to destroy the context from here.
+          destroyAction.run();
+        } else {
+          Threading.invokeOnOpenGLThread(destroyAction);
+        }
       } else {
         destroyAction.run();
       }
