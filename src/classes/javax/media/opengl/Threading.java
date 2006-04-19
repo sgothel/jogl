@@ -113,8 +113,10 @@ import com.sun.opengl.impl.*;
     -Dopengl.1thread=false     Disable single-threading of OpenGL work
     -Dopengl.1thread=true      Enable single-threading of OpenGL work (default -- on a newly-created worker thread)
     -Dopengl.1thread=auto      Select default single-threading behavior (currently on)
-    -Dopengl.1thread=worker    Enable single-threading of OpenGL work on newly-created worker thread (default)
-    -Dopengl.1thread=awt       Enable single-threading of OpenGL work on AWT event dispatch thread (the default behavior in older releases)
+    -Dopengl.1thread=awt       Enable single-threading of OpenGL work on AWT event dispatch thread (current default on all
+                                 platforms, and also the default behavior older releases)
+    -Dopengl.1thread=worker    Enable single-threading of OpenGL work on newly-created worker thread (not suitable for Mac
+                                 OS X or X11 platforms, and risky on Windows in applet environments)
     </PRE>    
 */
 
@@ -128,10 +130,17 @@ public class Threading {
     AccessController.doPrivileged(new PrivilegedAction() {
         public Object run() {
           String workaround = System.getProperty("opengl.1thread");
-          // Default to using the AWT thread on OS X due to apparent
-          // instability with using JAWT on non-AWT threads
-          boolean isOSX = System.getProperty("os.name").equals("Mac OS X");
-          int defaultMode = (isOSX ? AWT : WORKER);
+          // Default to using the AWT thread on all platforms except
+          // Windows. On OS X there is instability apparently due to
+          // using the JAWT on non-AWT threads. On X11 platforms there
+          // are potential deadlocks which can be caused if the AWT
+          // EventQueue thread hands work off to the GLWorkerThread
+          // while holding the AWT lock. The optimization of
+          // makeCurrent / release calls isn't worth these stability
+          // problems.
+          boolean isWindows = System.getProperty("os.name").startsWith("Windows");
+          // int defaultMode = (isWindows ? WORKER : AWT);
+          int defaultMode = AWT;
           mode = defaultMode;
           if (workaround != null) {
             workaround = workaround.toLowerCase();
