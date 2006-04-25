@@ -218,6 +218,9 @@
 	<condition property="cpu" value="sparc">
             <os name="SunOS" arch="sparc" />
         </condition>
+	<condition property="cpu" value="sparcv9">
+            <os name="SunOS" arch="sparcv9" />
+        </condition>
 	<condition property="cpu" value="i386">
             <os name="SunOS" arch="x86" />
         </condition>
@@ -385,7 +388,20 @@
       <property name="linker.cfg.id.core"                   value="linker.cfg.solaris" /> 
       <property name="linker.cfg.id.drihack"                value="linker.cfg.solaris.drihack" /> 
     </target>
-    
+  
+ 
+    <target name="declare.solarisSparcv9" depends="declare.x11" if="isSolarisSparcv9">
+      <echo message="SolarisSparcv9" />
+      <property name="java.includes.dir.platform"           value="${java.includes.dir.solaris}" />
+      <property name="java.lib.dir.platform"                value="${java.lib.dir.solaris}" />
+
+      <property name="compiler.cfg.id"                      value="compiler.cfg.solarisSparcv9" /> 
+      <property name="linker.cfg.id.core"                   value="linker.cfg.solarisSparcv9" /> 
+      <property name="linker.cfg.id.drihack"                value="linker.cfg.solarisSparcv9.drihack" /> 
+    </target>
+   
+
+ 
     <target name="declare.macosx" if="isOSX">
       <echo message="MacOSX" />
       <!-- Set platform configuration files. -->
@@ -450,7 +466,7 @@
         <mkdir dir="${obj.cg}" />
     </target>
 
-    <target name="declare" depends="init,declare.win32,declare.linux,declare.solaris,declare.macosx,declare.freebsd,declare.hpux" />
+    <target name="declare" depends="init,declare.win32,declare.linux,declare.solaris,declare.solarisSparcv9,declare.macosx,declare.freebsd,declare.hpux" />
 
     <!-- ================================================================== -->
     <!-- GlueGen and BuildStaticGLInfo creation, task setup and Java file generation -->
@@ -675,6 +691,8 @@
         <javac srcdir="${src.generated.java}"
                destdir="${classes}"
                includes="javax/media/opengl/GL.java"
+               fork="yes"
+               memoryMaximumSize="128m"
                source="1.4" debug="true" debuglevel="source,lines">
         </javac>
     </target>
@@ -682,7 +700,10 @@
     <target name="java.compile.secondpass" depends="java.generate.composable.pipeline">
         <!-- Perform the second pass Java compile; everything. -->
         <javac destdir="${classes}"
-               excludes="${java.excludes.platform},com/sun/opengl/impl/nurbs/**" source="${jogl.sourcelevel}" debug="true" debuglevel="source,lines">
+               excludes="${java.excludes.platform},com/sun/opengl/impl/nurbs/**"               source="${jogl.sourcelevel}" 
+               fork="yes"
+               memoryMaximumSize="128m"
+               debug="true" debuglevel="source,lines">
             <src path="${src.java}" />
             <src path="${src.generated.java}" />
         </javac>
@@ -706,6 +727,13 @@
 
       <compiler id="compiler.cfg.solaris" name="suncc">
       </compiler>
+
+      <compiler id="compiler.cfg.solarisSparcv9" name="suncc">
+        <compilerarg value="-xchip=ultra" />
+        <compilerarg value="-xarch=v9a" />
+        <compilerarg value="-xcode=32" />
+      </compiler>
+
 
       <compiler id="compiler.cfg.win32.mingw" name="gcc">
         <defineset>
@@ -799,7 +827,23 @@
         <syslibset libs="GL, X11"/>
       </linker>
 
+
       <linker id="linker.cfg.solaris.drihack" name="suncc" />
+
+      <linker id="linker.cfg.solarisSparcv9" name="suncc">
+        <linkerarg value="-xarch=v9a" />
+        <syslibset dir="/usr/openwin/lib/sparcv9" libs="GL"/>
+        <syslibset dir="/usr/lib/sparcv9" libs="X11"/>
+      </linker>
+
+
+      <linker id="linker.cfg.solarisSparcv9.drihack" name="suncc" >
+       <linkerarg value="-xarch=v9a" />
+       <syslibset dir="/usr/openwin/lib/sparcv9" libs="GL"/>
+       <syslibset dir="/usr/openwin/lib/sparcv9" libs="GLU"/>
+       <syslibset dir="/usr/lib/sparcv9" libs="X11"/>
+      </linker>
+
 
       <linker id="linker.cfg.win32.mingw" name="gcc" incremental="false">
         <linkerarg value="-Wl,--kill-at" />        <!-- remove @ from function names -->
@@ -1415,8 +1459,17 @@
 
     <!--
         - Solaris (assuming Solaris CC)
+        - builds 32 bit sparc or 32 bit x86
       -->
     <target name="solaris">
+      <antcall target="all" />
+    </target>
+
+
+    <!--
+        - Solaris Sparcv9 (assuming Solaris CC)
+      -->
+    <target name="solarisSparcv9">
       <antcall target="all" />
     </target>
 
