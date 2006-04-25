@@ -81,6 +81,7 @@ public class X11PbufferGLDrawable extends X11GLDrawable {
     lockToolkit();
     if (drawable != 0) {
       GLX.glXDestroyPbuffer(display, drawable);
+      drawable = 0;
     }
     unlockToolkit();
     display = 0;
