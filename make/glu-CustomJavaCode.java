@@ -1292,14 +1292,16 @@ private int gluScaleImageJava( int format, int widthin, int heightin,
             widthout, heightout, typeout, out );
   if( errno == 0 ) {
     out.rewind();
-    if( dataout instanceof ShortBuffer ) {
-      ((ShortBuffer) dataout).put(out.asShortBuffer());
-    } else if( dataout instanceof IntBuffer ) {
-      ((IntBuffer) dataout).put(out.asIntBuffer());
-    } else if( dataout instanceof FloatBuffer ) {
-      ((FloatBuffer) dataout).put(out.asFloatBuffer());
-    } else {
-      throw new RuntimeException("Should not reach here");
+    if (out != dataout) {
+      if( dataout instanceof ShortBuffer ) {
+        ((ShortBuffer) dataout).put(out.asShortBuffer());
+      } else if( dataout instanceof IntBuffer ) {
+        ((IntBuffer) dataout).put(out.asIntBuffer());
+      } else if( dataout instanceof FloatBuffer ) {
+        ((FloatBuffer) dataout).put(out.asFloatBuffer());
+      } else {
+        throw new RuntimeException("Should not reach here");
+      }
     }
   }
   return( errno );
