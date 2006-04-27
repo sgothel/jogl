@@ -1093,7 +1093,7 @@
                  source="1.4"
                  linkoffline="${javadoc.link} 142-packages"
 		 bottom="${javadoc.bottom}" >
-          <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.root}/make/lib/native-taglet-1.0.jar" />
+          <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.jar}" />
         </javadoc>
     </target>
 
@@ -1107,7 +1107,7 @@
                  source="1.4"
                  linkoffline="${javadoc.link} 142-packages"
 		 bottom="${javadoc.bottom}" >
-          <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.root}/make/lib/native-taglet-1.0.jar" />
+          <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.jar}" />
         </javadoc>
     </target>
 
@@ -1122,7 +1122,7 @@
                  source="1.4"
                  linkoffline="${javadoc.link} 142-packages"
                  bottom="${javadoc.bottom}" >
-          <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.root}/make/lib/native-taglet-1.0.jar" />
+          <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.jar}" />
         </javadoc>
     </target>
                                                                                                                                    
@@ -1136,7 +1136,7 @@
                  source="1.4"
                  linkoffline="${javadoc.link} 142-packages"
                  bottom="${javadoc.bottom}" >
-          <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.root}/make/lib/native-taglet-1.0.jar" />
+          <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.jar}" />
         </javadoc>
     </target>
 
@@ -1151,7 +1151,7 @@
                  source="1.4"
                  linkoffline="${javadoc.link} 142-packages"
 		 bottom="${javadoc.bottom}" >
-          <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.root}/make/lib/native-taglet-1.0.jar" />
+          <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.jar}" />
         </javadoc>
     </target>
 
@@ -1165,7 +1165,7 @@
                  source="1.4"
                  linkoffline="${javadoc.link} 142-packages"
 		 bottom="${javadoc.bottom}" >
-          <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.root}/make/lib/native-taglet-1.0.jar" />
+          <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.jar}" />
         </javadoc>
     </target>
 
