@@ -1234,6 +1234,23 @@
         </fail>
     </target>
 
+    <target name="dist.check.linux-amd64" if="jogl.dist.dir">
+        <condition property="linux.complete">
+	  <and>
+	    <available file="${jogl.dist.dir}/jogl-linux/64/libjogl.so" />
+	    <available file="${jogl.dist.dir}/jogl-linux/64/libjogl_awt.so" />
+	    <available file="${jogl.dist.dir}/jogl-linux/64/libjogl_cg.so" />
+	  </and>
+	</condition>
+	<fail unless="linux.complete">
+    ******************************************************************
+    ** Files are missing from the Linux build. This will cause      **	
+    ** the distribution to be incomplete. Please check the status   **
+    ** of the Linux build and try again.                            **
+    ******************************************************************
+        </fail>
+    </target>
+
     <target name="dist.check.macosx" if="jogl.dist.dir">
         <condition property="macosx.complete">
 	  <and>
@@ -1286,7 +1303,7 @@
         </fail>
     </target>
 
-    <target name="dist" depends="dist.dir.check,dist.check.windows,dist.check.linux,dist.check.macosx,dist.check.solsparc,dist.check.solx86">
+    <target name="dist" depends="dist.dir.check,dist.check.windows,dist.check.linux,dist.check.linux-amd64,dist.check.macosx,dist.check.solsparc,dist.check.solx86">
         <delete file="${jogl.dist.dir}/jogl.jar" />
         <delete>
             <fileset dir="${jogl.dist.dir}" includes="jogl-natives-*.jar" />
@@ -1308,6 +1325,9 @@
              includes="jogl.dll,jogl_awt.dll,jogl_cg.dll" />
         <jar destfile="${jogl.dist.dir}/jogl-natives-linux-i586.jar"
              basedir="${jogl.dist.dir}/jogl-linux/32"
+             includes="libjogl.so,libjogl_awt.so,libjogl_cg.so,libjogl_drihack.so" />
+        <jar destfile="${jogl.dist.dir}/jogl-natives-linux-amd64.jar"
+             basedir="${jogl.dist.dir}/jogl-linux/64"
              includes="libjogl.so,libjogl_awt.so,libjogl_cg.so,libjogl_drihack.so" />
         <jar destfile="${jogl.dist.dir}/jogl-natives-macosx-ppc.jar"
              basedir="${jogl.dist.dir}/jogl-macosx/ppc"
