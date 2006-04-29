@@ -1286,6 +1286,23 @@
         </fail>
     </target>
 
+    <target name="dist.check.solsparcv9" if="jogl.dist.dir">
+        <condition property="solsparcv9.complete">
+	  <and>
+	    <available file="${jogl.dist.dir}/jogl-solsparc/jogl.jar" />
+	    <available file="${jogl.dist.dir}/jogl-solsparc/64/libjogl.so" />
+	    <available file="${jogl.dist.dir}/jogl-solsparc/64/libjogl_awt.so" />
+	  </and>
+	</condition>
+	<fail unless="solsparcv9.complete">
+    ******************************************************************
+    ** Files are missing from the Solaris/SPARC build. This will    **	
+    ** cause the distribution to be incomplete. Please check the    **
+    ** status of the Solaris/SPARC build and try again.             **
+    ******************************************************************
+        </fail>
+    </target>
+
     <target name="dist.check.solx86" if="jogl.dist.dir">
         <condition property="solx86.complete">
 	  <and>
@@ -1303,7 +1320,7 @@
         </fail>
     </target>
 
-    <target name="dist" depends="dist.dir.check,dist.check.windows,dist.check.linux,dist.check.linux-amd64,dist.check.macosx,dist.check.solsparc,dist.check.solx86">
+    <target name="dist" depends="dist.dir.check,dist.check.windows,dist.check.linux,dist.check.linux-amd64,dist.check.macosx,dist.check.solsparc,dist.check.solsparcv9,dist.check.solx86">
         <delete file="${jogl.dist.dir}/jogl.jar" />
         <delete>
             <fileset dir="${jogl.dist.dir}" includes="jogl-natives-*.jar" />
@@ -1334,6 +1351,9 @@
              includes="libjogl.jnilib,libjogl_awt.jnilib,libjogl_cg.jnilib" />
         <jar destfile="${jogl.dist.dir}/jogl-natives-solaris-sparc.jar"
              basedir="${jogl.dist.dir}/jogl-solsparc/32"
+             includes="libjogl.so,libjogl_awt.so,libjogl_drihack.so" />
+        <jar destfile="${jogl.dist.dir}/jogl-natives-solaris-sparcv9.jar"
+             basedir="${jogl.dist.dir}/jogl-solsparc/64"
              includes="libjogl.so,libjogl_awt.so,libjogl_drihack.so" />
         <jar destfile="${jogl.dist.dir}/jogl-natives-solaris-i586.jar"
              basedir="${jogl.dist.dir}/jogl-solx86/32"
