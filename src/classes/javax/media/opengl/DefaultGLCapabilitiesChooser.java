@@ -86,9 +86,11 @@ public class DefaultGLCapabilitiesChooser implements GLCapabilitiesChooser {
                                 GLCapabilities[] available,
                                 int windowSystemRecommendedChoice) {
     if (DEBUG) {
+      System.err.println("Desired: " + desired);
       for (int i = 0; i < available.length; i++) {
         System.err.println("Available " + i + ": " + available[i]);
       }
+      System.err.println("Window system's recommended choice: " + windowSystemRecommendedChoice);
     }
 
     if (windowSystemRecommendedChoice >= 0 &&
