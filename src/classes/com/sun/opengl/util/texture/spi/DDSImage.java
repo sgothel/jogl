@@ -148,6 +148,14 @@ public class DDSImage {
     return image;
   }
 
+  /** Reads a DirectDraw surface from the specified ByteBuffer, returning
+      the resulting DDSImage. */
+  public static DDSImage read(ByteBuffer buf) throws IOException {
+    DDSImage image = new DDSImage();
+    image.readFromBuffer(buf);
+    return image;
+  }
+
   /** Closes open files and resources associated with the open
       DDSImage. No other methods may be called on this object once
       this is called. */
@@ -189,6 +197,31 @@ public class DDSImage {
     DDSImage image = new DDSImage();
     image.initFromData(d3dFormat, width, height, mipmapData);
     return image;
+  }
+
+  /** Determines from the magic number whether the given InputStream
+      points to a DDS image. The given InputStream must return true
+      from markSupported() and support a minimum of four bytes of
+      read-ahead. */
+  public static boolean isDDSImage(InputStream in) throws IOException {
+    if (!(in instanceof BufferedInputStream)) {
+      in = new BufferedInputStream(in);
+    }
+    if (!in.markSupported()) {
+      throw new IOException("Can not test non-destructively whether given InputStream is a DDS image");
+    }
+    in.mark(4);
+    int magic = 0;
+    for (int i = 0; i < 4; i++) {
+      int tmp = in.read();
+      if (tmp < 0) {
+        in.reset();
+        return false;
+      }
+      magic = ((magic >>> 8) | (tmp << 24));
+    }
+    in.reset();
+    return (magic == MAGIC);
   }
 
   /**
@@ -555,8 +588,13 @@ public class DDSImage {
   private void readFromFile(File file) throws IOException {
     fis = new FileInputStream(file);
     chan = fis.getChannel();
-    buf = chan.map(FileChannel.MapMode.READ_ONLY,
-                   0, (int) file.length());
+    ByteBuffer buf = chan.map(FileChannel.MapMode.READ_ONLY,
+                              0, (int) file.length());
+    readFromBuffer(buf);
+  }
+
+  private void readFromBuffer(ByteBuffer buf) throws IOException {
+    this.buf = buf;
     buf.order(ByteOrder.LITTLE_ENDIAN);
     header = new Header();
     header.read(buf);
