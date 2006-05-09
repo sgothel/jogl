@@ -301,6 +301,9 @@ public abstract class WindowsGLDrawable extends GLDrawableImpl {
     } else {
       pfdFlags |= WGL.PFD_DRAW_TO_BITMAP;
     }
+    if (caps.getStereo()) {
+      pfdFlags |= WGL.PFD_STEREO;
+    }
     pfd.dwFlags(pfdFlags);
     pfd.iPixelType((byte) WGL.PFD_TYPE_RGBA);
     pfd.cColorBits((byte) colorDepth);
