@@ -157,51 +157,57 @@ public class GLContextShareSet {
       creation of the new context (which is the second argument)
       before any server-side OpenGL objects have been created in that
       context. */
-  public static synchronized void registerForObjectTracking(GLContext olderContextOrNull,
-                                                            GLContext newContext,
-                                                            GLContext realShareContext) {
+  public static void registerForObjectTracking(GLContext olderContextOrNull,
+                                               GLContext newContext,
+                                               GLContext realShareContext) {
     if (isObjectTrackingEnabled() || isObjectTrackingDebuggingEnabled()) {
-      if (olderContextOrNull != null &&
-          newContext != null) {
-        if (entryFor(olderContextOrNull) != entryFor(newContext)) {
-          throw new IllegalArgumentException("old and new contexts must be able to share textures and display lists");
-        }
-      }
-
-      // FIXME: downcast to GLContextImpl undesirable
-      GLContextImpl impl1 = (GLContextImpl) olderContextOrNull;
-      GLContextImpl impl2 = (GLContextImpl) newContext;
+      GLContextImpl impl1 = null;      
+      GLContextImpl impl2 = null;      
       GLObjectTracker tracker = null;
 
-      GLObjectTracker deletedObjectTracker = null;
-      GLContextImpl shareImpl = (GLContextImpl) realShareContext;
-      // Before we zap the "user-level" object trackers, make sure
-      // that all contexts in the share set share the destroyed object
-      // tracker
-      if (shareImpl != null) {
-        deletedObjectTracker = shareImpl.getDeletedObjectTracker();
-      }
-      if (deletedObjectTracker == null) {
-        // Must create one and possibly set it up in the older context
-        deletedObjectTracker = new GLObjectTracker();
-        if (DEBUG) {
-          System.err.println("Created deletedObjectTracker " + deletedObjectTracker + " because " +
-                             ((shareImpl == null) ? "shareImpl was null" : "shareImpl's (" + shareImpl + ") deletedObjectTracker was null"));
-        }
-
-        if (shareImpl != null) {
-          // FIXME: think should really assert in this case
-          shareImpl.setDeletedObjectTracker(deletedObjectTracker);
-          if (DEBUG) {
-            System.err.println("Set deletedObjectTracker " + deletedObjectTracker + " in shareImpl context " + shareImpl);
+      synchronized (GLContextShareSet.class) {
+        if (olderContextOrNull != null &&
+            newContext != null) {
+          if (entryFor(olderContextOrNull) != entryFor(newContext)) {
+            throw new IllegalArgumentException("old and new contexts must be able to share textures and display lists");
           }
         }
-      }
-      impl2.setDeletedObjectTracker(deletedObjectTracker);
-      if (DEBUG) {
-        System.err.println("Set deletedObjectTracker " + deletedObjectTracker + " in impl2 context " + impl2);
+
+        // FIXME: downcast to GLContextImpl undesirable
+        impl1 = (GLContextImpl) olderContextOrNull;
+        impl2 = (GLContextImpl) newContext;
+
+        GLObjectTracker deletedObjectTracker = null;
+        GLContextImpl shareImpl = (GLContextImpl) realShareContext;
+        // Before we zap the "user-level" object trackers, make sure
+        // that all contexts in the share set share the destroyed object
+        // tracker
+        if (shareImpl != null) {
+          deletedObjectTracker = shareImpl.getDeletedObjectTracker();
+        }
+        if (deletedObjectTracker == null) {
+          // Must create one and possibly set it up in the older context
+          deletedObjectTracker = new GLObjectTracker();
+          if (DEBUG) {
+            System.err.println("Created deletedObjectTracker " + deletedObjectTracker + " because " +
+                               ((shareImpl == null) ? "shareImpl was null" : "shareImpl's (" + shareImpl + ") deletedObjectTracker was null"));
+          }
+
+          if (shareImpl != null) {
+            // FIXME: think should really assert in this case
+            shareImpl.setDeletedObjectTracker(deletedObjectTracker);
+            if (DEBUG) {
+              System.err.println("Set deletedObjectTracker " + deletedObjectTracker + " in shareImpl context " + shareImpl);
+            }
+          }
+        }
+        impl2.setDeletedObjectTracker(deletedObjectTracker);
+        if (DEBUG) {
+          System.err.println("Set deletedObjectTracker " + deletedObjectTracker + " in impl2 context " + impl2);
+        }
       }
 
+      // Must not hold lock around this operation
       // Don't share object trackers with the primordial share context from Java2D
       if (Java2D.isOGLPipelineActive()) {
         // FIXME: probably need to do something different here
@@ -217,18 +223,20 @@ public class GLContextShareSet {
         }
       }
 
-      if (impl1 != null) {
-        tracker = impl1.getObjectTracker();
-        assert (tracker != null)
-          : "registerForObjectTracking was not called properly for the older context";
+      synchronized (GLContextShareSet.class) {
+        if (impl1 != null) {
+          tracker = impl1.getObjectTracker();
+          assert (tracker != null)
+            : "registerForObjectTracking was not called properly for the older context";
+        }
+        if (tracker == null) {
+          tracker = new GLObjectTracker();
+        }
+        // Note that we don't assert that the tracker is non-null for
+        // impl2 because the way we use this functionality we actually
+        // overwrite the initially-set object tracker in the new context
+        impl2.setObjectTracker(tracker);
       }
-      if (tracker == null) {
-        tracker = new GLObjectTracker();
-      }
-      // Note that we don't assert that the tracker is non-null for
-      // impl2 because the way we use this functionality we actually
-      // overwrite the initially-set object tracker in the new context
-      impl2.setObjectTracker(tracker);
     }
   }
 
