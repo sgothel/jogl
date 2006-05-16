@@ -205,6 +205,16 @@ public class Java2D {
     checkActive();
 
     try {
+      // FIXME: this may need adjustment
+      // This seems to be needed in many applications which don't
+      // initialize an OpenGL context before this and which would
+      // otherwise cause initFBOShareContext to be called from the
+      // Queue Flusher Thread, which isn't allowed
+      initFBOShareContext(GraphicsEnvironment.
+                          getLocalGraphicsEnvironment().
+                          getDefaultScreenDevice().
+                          getDefaultConfiguration());
+
       GLDrawableFactoryImpl.getFactoryImpl().lockAWTForJava2D();
       try {
         invokeWithOGLContextCurrentMethod.invoke(null, new Object[] {g, r});
