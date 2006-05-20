@@ -137,6 +137,8 @@ public class TextureIO {
       file. */
   public static final String TIFF    = "tiff";
 
+  private static final boolean DEBUG = Debug.debug("TextureIO");
+
   //----------------------------------------------------------------------
   // methods that *do not* require a current context
   // These methods assume RGB or RGBA textures.
@@ -636,8 +638,10 @@ public class TextureIO {
       ByteBuffer res = ByteBuffer.allocate((width + (2 * border)) *
                                            (height + (2 * border)) *
                                            bytesPerPixel);
-      System.err.println("Allocated buffer of size " + res.remaining() + " for fetched image (" +
-                         ((fetchedFormat == GL.GL_RGB) ? "GL_RGB" : "GL_RGBA") + ")");
+      if (DEBUG) {
+        System.err.println("Allocated buffer of size " + res.remaining() + " for fetched image (" +
+                           ((fetchedFormat == GL.GL_RGB) ? "GL_RGB" : "GL_RGBA") + ")");
+      }
       gl.glGetTexImage(GL.GL_TEXTURE_2D, 0, fetchedFormat, GL.GL_UNSIGNED_BYTE, res);
 
       gl.glPixelStorei(GL.GL_PACK_ALIGNMENT, packAlignment);
@@ -649,8 +653,10 @@ public class TextureIO {
       data = new TextureData(internalFormat, width, height, border, fetchedFormat, GL.GL_UNSIGNED_BYTE,
                              false, false, false, res, null);
 
-      System.out.println("data.getPixelFormat() = " +
-                         ((data.getPixelFormat() == GL.GL_RGB) ? "GL_RGB" : "GL_RGBA"));
+      if (DEBUG) {
+        System.out.println("data.getPixelFormat() = " +
+                           ((data.getPixelFormat() == GL.GL_RGB) ? "GL_RGB" : "GL_RGBA"));
+      }
     }
 
     for (Iterator iter = textureWriters.iterator(); iter.hasNext(); ) {
