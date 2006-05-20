@@ -734,18 +734,12 @@ public class DDSImage {
   }
 
   private int mipMapSizeInBytes(int map) {
+    int width  = mipMapWidth(map);
+    int height = mipMapHeight(map);
     if (isCompressed()) {
-      if (!isSurfaceDescFlagSet(DDSD_LINEARSIZE)) {
-        throw new RuntimeException("Illegal compressed texture: DDSD_LINEARSIZE not specified in texture header");
-      }
-      int bytes = header.pitchOrLinearSize;
-      for (int i = 0; i < map; i++) {
-        bytes >>= 2;
-      }
-      return bytes;
+      int blockSize = (getCompressionFormat() == D3DFMT_DXT1 ? 8 : 16);
+      return ((width+3)/4)*((height+3)/4)*blockSize;
     } else {
-      int width  = mipMapWidth(map);
-      int height = mipMapHeight(map);
       return width * height * (getDepth() / 8);
     }
   }

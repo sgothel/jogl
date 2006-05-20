@@ -360,15 +360,23 @@ public class Texture {
         gl.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, align[0]); // restore align
       }
     } else {
-      gl.glTexImage2D(newTarget, 0, data.getInternalFormat(),
-                      texWidth, texHeight, data.getBorder(),
-                      data.getPixelFormat(), data.getPixelType(), null);
       Buffer[] mipmapData = data.getMipmapData();
       if (mipmapData != null) {
+        int width = texWidth;
+        int height = texHeight;
         for (int i = 0; i < mipmapData.length; i++) {
+          // Allocate texture image at this level
+          gl.glTexImage2D(newTarget, i, data.getInternalFormat(),
+                          width, height, data.getBorder(),
+                          data.getPixelFormat(), data.getPixelType(), null);
           updateSubImageImpl(data, newTarget, i, 0, 0);
+          width /= 2;
+          height /= 2;
         }
       } else {
+        gl.glTexImage2D(newTarget, 0, data.getInternalFormat(),
+                        texWidth, texHeight, data.getBorder(),
+                        data.getPixelFormat(), data.getPixelType(), null);
         updateSubImageImpl(data, newTarget, 0, 0, 0);
       }
     }
@@ -574,7 +582,7 @@ public class Texture {
 
   private void updateSubImageImpl(TextureData data, int newTarget, int mipmapLevel, int x, int y) throws GLException {
     Buffer buffer = data.getBuffer();
-    if (buffer == null) {
+    if (buffer == null && data.getMipmapData() == null) {
       // Assume user just wanted to get the Texture object allocated
       return;
     }

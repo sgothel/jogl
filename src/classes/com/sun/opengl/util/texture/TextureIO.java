@@ -940,7 +940,6 @@ public class TextureIO {
         for (int i = 0; i < image.getNumMipMaps(); i++) {
           mipmapData[i] = image.getMipMap(i).getData();
         }
-        System.err.println("Creating from mipmapped data");
         data = new TextureData(internalFormat,
                                info.getWidth(),
                                info.getHeight(),
