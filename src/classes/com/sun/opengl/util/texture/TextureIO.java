@@ -49,6 +49,7 @@ import javax.imageio.*;
 
 import javax.media.opengl.*;
 import javax.media.opengl.glu.*;
+import com.sun.opengl.impl.Debug;
 import com.sun.opengl.util.*;
 import com.sun.opengl.util.texture.spi.*;
 
