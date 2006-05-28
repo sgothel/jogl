@@ -51,6 +51,7 @@ typedef Status XineramaGetCenterHintFunc(Display* display, int screen_number,
                                          int* x, int* y);
 
 XineramaGetCenterHintFunc* XineramaSolarisCenterFunc = NULL;
+#include <dlfcn.h>
 
 #elif defined(__linux__)
 
@@ -61,11 +62,13 @@ XineramaGetCenterHintFunc* XineramaSolarisCenterFunc = NULL;
 Bool XineramaEnabled(Display* display) {
 #ifdef __sun
 
+#define MAXFRAMEBUFFERS 16
   char* XinExtName = "XINERAMA";
   int32_t major_opcode, first_event, first_error;
   Bool gotXinExt = False;
   void* libHandle = 0;
   unsigned char fbhints[MAXFRAMEBUFFERS];
+  XRectangle fbrects[MAXFRAMEBUFFERS];
   int locNumScr = 0;
   Bool usingXinerama = False;
 
@@ -74,7 +77,7 @@ Bool XineramaEnabled(Display* display) {
   char* XineramaGetCenterHintName = "XineramaGetCenterHint";
   XineramaGetInfoFunc* XineramaSolarisFunc = NULL;
 
-  gotXinExt = XQueryExtension(awt_display, XinExtName, &major_opcode,
+  gotXinExt = XQueryExtension(display, XinExtName, &major_opcode,
                               &first_event, &first_error);
 
   if (gotXinExt) {
@@ -86,12 +89,10 @@ Bool XineramaEnabled(Display* display) {
         (XineramaGetCenterHintFunc*)dlsym(libHandle,
                                           XineramaGetCenterHintName);
       if (XineramaSolarisFunc != NULL) {
-        if ((*XineramaSolarisFunc)(awt_display, 0, &fbrects[0],
+        if ((*XineramaSolarisFunc)(display, 0, &fbrects[0],
                                    &fbhints[0], &locNumScr) != 0) {
 
           usingXinerama = True;
-          /* set global number of screens */
-          awt_numScreens = locNumScr;
         }
       }
       dlclose(libHandle);
@@ -112,14 +113,11 @@ Bool XineramaEnabled(Display* display) {
                               &first_event, &first_error);
 
   if (gotXinExt) {
-    printf("Have Xinerama extension\n");
     xinInfo = XineramaQueryScreens(display, &locNumScr);
     if (xinInfo != NULL) {
-      printf("Xinerama extension active\n");
       return True;
     }
   }
-  printf("Xinerama extension not present or inactive\n");
   return False;
 
 #else
