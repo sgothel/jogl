@@ -45,6 +45,7 @@ import com.sun.opengl.impl.*;
 public class MacOSXExternalGLContext extends MacOSXGLContext {
   private boolean firstMakeCurrent = true;
   private boolean created = true;
+  private GLContext lastContext;
 
   public MacOSXExternalGLContext() {
     super(null, null);
@@ -72,6 +73,23 @@ public class MacOSXExternalGLContext extends MacOSXGLContext {
 
   protected boolean create() {
     return true;
+  }
+
+  public int makeCurrent() throws GLException {
+    // Save last context if necessary to allow external GLContexts to
+    // talk to other GLContexts created by this library
+    GLContext cur = getCurrent();
+    if (cur != null && cur != this) {
+      lastContext = cur;
+      setCurrent(null);
+    }
+    return super.makeCurrent();
+  }  
+
+  public void release() throws GLException {
+    super.release();
+    setCurrent(lastContext);
+    lastContext = null;
   }
 
   protected int makeCurrentImpl() throws GLException {
