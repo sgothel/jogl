@@ -36,6 +36,9 @@ extern int XFreePixmap(
     Pixmap		/* pixmap */
 );
 
+// Helper routine for querying whether Xinerama is enabled.
+Bool XineramaEnabled(Display* display);
+
 // Routines for changing gamma settings.
 // Note that these are not currently supported on Solaris.
 Bool XF86VidModeGetGammaRampSize(

@@ -111,7 +111,13 @@ public class X11GLDrawableFactory extends GLDrawableFactoryImpl {
       device = ((AWTGraphicsDevice) absDevice).getGraphicsDevice();
     }
 
-    int screen = X11SunJDKReflection.graphicsDeviceGetScreen(device);
+    int screen;
+    if (isXineramaEnabled()) {
+      screen = 0;
+    } else {
+      screen = X11SunJDKReflection.graphicsDeviceGetScreen(device);
+    }
+
     // Until we have a rock-solid visual selection algorithm written
     // in pure Java, we're going to provide the underlying window
     // system's selection to the chooser as a hint
@@ -520,12 +526,29 @@ public class X11GLDrawableFactory extends GLDrawableFactoryImpl {
     }
   }
 
+  //---------------------------------------------------------------------------
+  // Xinerama-related functionality
+  //
+
+  private boolean checkedXinerama;
+  private boolean xineramaEnabled;
+  protected synchronized boolean isXineramaEnabled() {
+    if (!checkedXinerama) {
+      checkedXinerama = true;
+      lockToolkit();
+      long display = getDisplayConnection();
+      xineramaEnabled = GLX.XineramaEnabled(display);
+      unlockToolkit();
+    }
+    return xineramaEnabled;
+  }
+
   //----------------------------------------------------------------------
   // Gamma-related functionality
   //
 
-  boolean gotGammaRampLength;
-  int gammaRampLength;
+  private boolean gotGammaRampLength;
+  private int gammaRampLength;
   protected synchronized int getGammaRampLength() {
     if (gotGammaRampLength) {
       return gammaRampLength;

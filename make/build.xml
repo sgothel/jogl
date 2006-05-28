@@ -888,6 +888,10 @@
         <include name="${rootrel.src.c.jogl}/InternalBufferUtils.c"/>
         <include name="${rootrel.src.c.jogl}/*.m" if="isOSX"/>
         <include name="${rootrel.generated.c.jogl}/*GL*.c"/>
+        <include name="${rootrel.src.c.jogl}/XineramaHelper.c" if="isX11"/>
+        <!-- Xinerama supporting functions for Linux only (for now) -->
+        <!-- Also supported on Solaris, but works differently -->
+        <include name="${rootrel.src.c.jogl}/Xinerama.c" if="isLinux"/>
       </patternset>
 
       <patternset id="c.src.files.jogl_awt">
