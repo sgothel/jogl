@@ -136,10 +136,6 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
   private int[] alignment    = new int[1];
 
   // Implementation using Java2D OpenGL pipeline's back buffer
-  private static boolean swingBufferPerWindow =
-    Debug.isPropertyDefined("swing.bufferPerWindow") ?
-    Debug.getBooleanProperty("swing.bufferPerWindow") :
-      true;
   private boolean oglPipelineEnabled =
     Java2D.isOGLPipelineActive() &&
     !Debug.isPropertyDefined("jogl.gljpanel.noogl");

@@ -121,6 +121,9 @@ public class WindowsGLContext extends GLContextImpl {
     if (hglrc == 0) {
       throw new GLException("Unable to create OpenGL context for device context " + toHexString(drawable.getHDC()));
     }
+    if (DEBUG) {
+      System.err.println(getThreadName() + ": !!! Created OpenGL context " + toHexString(hglrc) + " for " + this + ", device context " + toHexString(drawable.getHDC()) + ", not yet sharing");
+    }
     // Windows can set up sharing of display lists after creation time
     WindowsGLContext other = (WindowsGLContext) GLContextShareSet.getShareContext(this);
     long hglrc2 = 0;

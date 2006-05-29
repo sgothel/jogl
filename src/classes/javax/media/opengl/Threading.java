@@ -125,6 +125,9 @@ public class Threading {
   private static final int AWT    = 1;
   private static final int WORKER = 2;
   private static int mode;
+  // We need to know whether we're running on X11 platforms to change
+  // our behavior when the Java2D/JOGL bridge is active
+  private static boolean isX11;
   
   static {
     AccessController.doPrivileged(new PrivilegedAction() {
@@ -138,7 +141,9 @@ public class Threading {
           // while holding the AWT lock. The optimization of
           // makeCurrent / release calls isn't worth these stability
           // problems.
-          boolean isWindows = System.getProperty("os.name").startsWith("Windows");
+          String osName = System.getProperty("os.name");
+          boolean isWindows = osName.startsWith("Windows");
+          isX11 = !(isWindows || osName.startsWith("Mac OS"));
           // int defaultMode = (isWindows ? WORKER : AWT);
           int defaultMode = AWT;
           mode = defaultMode;
@@ -205,24 +210,22 @@ public class Threading {
       case AWT:
         if (Java2D.isOGLPipelineActive()) {
           // FIXME: ideally only the QFT would be considered to be the
-          // "OpenGL thread", but we can not currently run all of JOGL's
-          // OpenGL work on that thread. For now, run the GLJPanel's
-          // Java2D/JOGL bridge on the QFT but everything else on the
-          // EDT, except when we're already on the QFT.
+          // "OpenGL thread", but we can not currently run all of
+          // JOGL's OpenGL work on that thread. See the FIXME in
+          // invokeOnOpenGLThread.
           return (Java2D.isQueueFlusherThread() ||
-                  EventQueue.isDispatchThread());
+                  (isX11 && EventQueue.isDispatchThread()));
         } else {
           return EventQueue.isDispatchThread();
         }
       case WORKER:
         if (Java2D.isOGLPipelineActive()) {
           // FIXME: ideally only the QFT would be considered to be the
-          // "OpenGL thread", but we can not currently run all of JOGL's
-          // OpenGL work on that thread. For now, run the GLJPanel's
-          // Java2D/JOGL bridge on the QFT but everything else on the
-          // worker thread, except when we're already on the QFT.
+          // "OpenGL thread", but we can not currently run all of
+          // JOGL's OpenGL work on that thread. See the FIXME in
+          // invokeOnOpenGLThread.
           return (Java2D.isQueueFlusherThread() ||
-                  GLWorkerThread.isWorkerThread());
+                  (isX11 && GLWorkerThread.isWorkerThread()));
         } else {
           return GLWorkerThread.isWorkerThread();
         }
@@ -252,22 +255,24 @@ public class Threading {
     switch (mode) {
       case AWT:
         // FIXME: ideally should run all OpenGL work on the Java2D QFT
-        // thread when it's enabled, but there are issues with this when
-        // the GLJPanel is not using the Java2D bridge; would like to run
-        // its OpenGL work on the QFT, but do the image drawing from the
-        // EDT. Other issues still remain with the GLCanvas as well.
-
-        //    if (Java2D.isOGLPipelineActive()) {
-        //      Java2D.invokeWithOGLContextCurrent(null, r);
-        //    } else {
-        try {
-          EventQueue.invokeAndWait(r);
-        } catch (InvocationTargetException e) {
-          throw new GLException(e.getTargetException());
-        } catch (InterruptedException e) {
-          throw new GLException(e);
-        }
-        //    }    
+        // thread when it's enabled, but unfortunately there are
+        // deadlock issues on X11 platforms when making our
+        // heavyweight OpenGL contexts current on the QFT because we
+        // perform the JAWT lock inside the makeCurrent()
+        // implementation, which attempts to grab the AWT lock on the
+        // QFT which is not allowed. For now, on X11 platforms,
+        // continue to perform this work on the EDT.
+        if (Java2D.isOGLPipelineActive() && !isX11) {
+          Java2D.invokeWithOGLContextCurrent(null, r);
+        } else {
+          try {
+            EventQueue.invokeAndWait(r);
+          } catch (InvocationTargetException e) {
+            throw new GLException(e.getTargetException());
+          } catch (InterruptedException e) {
+            throw new GLException(e);
+          }
+        }    
         break;
 
       case WORKER:
