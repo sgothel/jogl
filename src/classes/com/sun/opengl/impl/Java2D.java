@@ -412,13 +412,17 @@ public class Java2D {
       // similar rather than keeping one share context in a global
       // variable.
       initializedJ2DFBOShareContext = true;
-      System.err.println("Starting initialization of J2D FBO share context");
+      if (DEBUG) {
+        System.err.println("Starting initialization of J2D FBO share context");
+      }
       invokeWithOGLSharedContextCurrent(gc, new Runnable() {
           public void run() {
             j2dFBOShareContext = GLDrawableFactory.getFactory().createExternalGLContext();
           }
         });
-      System.err.println("Ending initialization of J2D FBO share context");
+      if (DEBUG) {
+        System.err.println("Ending initialization of J2D FBO share context");
+      }
     }
   }
 }
