@@ -1300,9 +1300,9 @@
 	</condition>
 	<fail unless="solsparcv9.complete">
     ******************************************************************
-    ** Files are missing from the Solaris/SPARC build. This will    **	
+    ** Files are missing from the Solaris/SPARCv9 build. This will  **	
     ** cause the distribution to be incomplete. Please check the    **
-    ** status of the Solaris/SPARC build and try again.             **
+    ** status of the Solaris/SPARCv9 build and try again.           **
     ******************************************************************
         </fail>
     </target>
