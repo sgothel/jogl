@@ -1273,6 +1273,27 @@
         </fail>
     </target>
 
+
+    <target name="dist.check.macosxfat" if="jogl.dist.dir">
+        <condition property="macosxfat.complete">
+	  <and>
+	    <available file="${jogl.dist.dir}/jogl-macosx/jogl.jar" />
+	    <available file="${jogl.dist.dir}/jogl-macosx/fat/libjogl.jnilib" />
+	    <available file="${jogl.dist.dir}/jogl-macosx/fat/libjogl_awt.jnilib" />
+	    <available file="${jogl.dist.dir}/jogl-macosx/fat/libjogl_cg.jnilib" />
+	  </and>
+	</condition>
+	<fail unless="macosxfat.complete">
+    ******************************************************************
+    ** Files are missing from the Mac OS X build. This will cause   **	
+    ** the distribution to be incomplete. Please check the status   **
+    ** of the Mac OS X build and try again.                         **
+    ******************************************************************
+        </fail>
+    </target>
+
+
+
     <target name="dist.check.solsparc" if="jogl.dist.dir">
         <condition property="solsparc.complete">
 	  <and>
@@ -1324,7 +1345,7 @@
         </fail>
     </target>
 
-    <target name="dist" depends="dist.dir.check,dist.check.windows,dist.check.linux,dist.check.linux-amd64,dist.check.macosx,dist.check.solsparc,dist.check.solsparcv9,dist.check.solx86">
+    <target name="dist" depends="dist.dir.check,dist.check.windows,dist.check.linux,dist.check.linux-amd64,dist.check.macosx,dist.check.macosxfat,dist.check.solsparc,dist.check.solsparcv9,dist.check.solx86">
         <delete file="${jogl.dist.dir}/jogl.jar" />
         <delete>
             <fileset dir="${jogl.dist.dir}" includes="jogl-natives-*.jar" />
@@ -1352,6 +1373,9 @@
              includes="libjogl.so,libjogl_awt.so,libjogl_cg.so,libjogl_drihack.so" />
         <jar destfile="${jogl.dist.dir}/jogl-natives-macosx-ppc.jar"
              basedir="${jogl.dist.dir}/jogl-macosx/ppc"
+             includes="libjogl.jnilib,libjogl_awt.jnilib,libjogl_cg.jnilib" />
+        <jar destfile="${jogl.dist.dir}/jogl-natives-macosx-universal.jar"
+             basedir="${jogl.dist.dir}/jogl-macosx/fat"
              includes="libjogl.jnilib,libjogl_awt.jnilib,libjogl_cg.jnilib" />
         <jar destfile="${jogl.dist.dir}/jogl-natives-solaris-sparc.jar"
              basedir="${jogl.dist.dir}/jogl-solsparc/32"
