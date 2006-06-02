@@ -351,6 +351,10 @@ public class Texture {
       gl.glGetIntegerv(GL.GL_UNPACK_ALIGNMENT, align, 0); // save alignment
       gl.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, data.getAlignment());
 
+      if (data.isDataCompressed()) {
+        throw new GLException("May not request mipmap generation for compressed textures");
+      }
+
       try {
         GLU glu = new GLU();
         glu.gluBuild2DMipmaps(newTarget, data.getInternalFormat(),
@@ -360,24 +364,40 @@ public class Texture {
         gl.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, align[0]); // restore align
       }
     } else {
+      checkCompressedTextureExtensions(data);
       Buffer[] mipmapData = data.getMipmapData();
       if (mipmapData != null) {
         int width = texWidth;
         int height = texHeight;
         for (int i = 0; i < mipmapData.length; i++) {
-          // Allocate texture image at this level
-          gl.glTexImage2D(newTarget, i, data.getInternalFormat(),
-                          width, height, data.getBorder(),
-                          data.getPixelFormat(), data.getPixelType(), null);
-          updateSubImageImpl(data, newTarget, i, 0, 0);
+          if (data.isDataCompressed()) {
+            // Need to use glCompressedTexImage2D directly to allocate and fill this image
+            gl.glCompressedTexImage2D(newTarget, i, data.getInternalFormat(),
+                                      width, height, data.getBorder(),
+                                      mipmapData[i].remaining(), mipmapData[i]);
+          } else {
+            // Allocate texture image at this level
+            gl.glTexImage2D(newTarget, i, data.getInternalFormat(),
+                            width, height, data.getBorder(),
+                            data.getPixelFormat(), data.getPixelType(), null);
+            updateSubImageImpl(data, newTarget, i, 0, 0);
+          }
+
           width /= 2;
           height /= 2;
         }
       } else {
-        gl.glTexImage2D(newTarget, 0, data.getInternalFormat(),
-                        texWidth, texHeight, data.getBorder(),
-                        data.getPixelFormat(), data.getPixelType(), null);
-        updateSubImageImpl(data, newTarget, 0, 0, 0);
+        if (data.isDataCompressed()) {
+          // Need to use glCompressedTexImage2D directly to allocate and fill this image
+          gl.glCompressedTexImage2D(newTarget, 0, data.getInternalFormat(),
+                                    texWidth, texHeight, data.getBorder(),
+                                    data.getBuffer().capacity(), data.getBuffer());
+        } else {
+          gl.glTexImage2D(newTarget, 0, data.getInternalFormat(),
+                          texWidth, texHeight, data.getBorder(),
+                          data.getPixelFormat(), data.getPixelType(), null);
+          updateSubImageImpl(data, newTarget, 0, 0, 0);
+        }
       }
     }
 
@@ -600,6 +620,28 @@ public class Texture {
       buffer = data.getMipmapData()[mipmapLevel];
     }
 
+    checkCompressedTextureExtensions(data);
+
+    if (data.isDataCompressed()) {
+      gl.glCompressedTexSubImage2D(newTarget, mipmapLevel,
+                                   x, y, width, height,
+                                   data.getInternalFormat(),
+                                   buffer.remaining(), buffer);
+    } else {
+      int[] align = new int[1];
+      gl.glGetIntegerv(GL.GL_UNPACK_ALIGNMENT, align, 0); // save alignment
+      gl.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, data.getAlignment());
+
+      gl.glTexSubImage2D(newTarget, mipmapLevel,
+                         x, y, width, height,
+                         data.getPixelFormat(), data.getPixelType(),
+                         buffer);
+      gl.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, align[0]); // restore align
+    }
+  }
+
+  private void checkCompressedTextureExtensions(TextureData data) {
+    GL gl = GLU.getCurrentGL();
     if (data.isDataCompressed()) {
       switch (data.getInternalFormat()) {
         case GL.GL_COMPRESSED_RGB_S3TC_DXT1_EXT:
@@ -616,21 +658,6 @@ public class Texture {
           // compression extensions here
           break;
       }
-
-      gl.glCompressedTexSubImage2D(newTarget, mipmapLevel,
-                                   x, y, width, height,
-                                   data.getInternalFormat(),
-                                   buffer.remaining(), buffer);
-    } else {
-      int[] align = new int[1];
-      gl.glGetIntegerv(GL.GL_UNPACK_ALIGNMENT, align, 0); // save alignment
-      gl.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, data.getAlignment());
-
-      gl.glTexSubImage2D(newTarget, mipmapLevel,
-                         x, y, width, height,
-                         data.getPixelFormat(), data.getPixelType(),
-                         buffer);
-      gl.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, align[0]); // restore align
     }
   }
 
