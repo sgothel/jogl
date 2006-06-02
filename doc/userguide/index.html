@@ -846,7 +846,27 @@ hardware.
 
 <P>
 
-No outstanding issues at this time.
+Support has been added to the JOGL library for allowing multiple
+threads to each have an OpenGL context current simultaneously, for
+example to implement multi-head CAVE-like environments. Normally a
+global AWT lock is held between calls to GLContext.makeCurrent() /
+release() for on-screen heavyweight contexts (for example, those
+associated with a Canvas or GLCanvas). We have found this to be
+necessary for stability purposes on all supported X11 platforms, even
+with relatively robust drivers such as those from NVidia.
+
+</P>
+<P>
+
+To enable multiple GLContexts to be made current simultaneously on X11
+platforms, specify the command line argument
+<CODE>-Djogl.GLContext.optimize</CODE> when starting the JVM. Note
+that this may incur robustness problems, in particular when resizing
+or moving windows. We have also found that ATI's proprietary drivers
+do not work at all with this flag, apparently because they cause GLX
+tokens to be sent to the X server for various GL calls even for direct
+contexts. For this reason if the GLX vendor is ATI then this flag
+currently has no effect.
 
 </P>
 

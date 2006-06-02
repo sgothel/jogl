@@ -50,7 +50,16 @@ public abstract class GLContextImpl extends GLContext {
   protected static final boolean DEBUG = Debug.debug("GLContextImpl");
   protected static final boolean VERBOSE = Debug.verbose();
   protected static final boolean NO_FREE = Debug.isPropertyDefined("jogl.GLContext.nofree");
-  protected boolean optimizationEnabled = !Debug.isPropertyDefined("jogl.GLContext.noopt");
+  // NOTE: default sense of GLContext optimization disabled in JSR-231
+  // 1.0 beta 5 due to problems on X11 platforms (both Linux and
+  // Solaris) when moving and resizing windows. Apparently GLX tokens
+  // get sent to the X server under the hood (and out from under the
+  // cover of the AWT lock) in these situations. Users requiring
+  // multi-screen X11 applications can manually enable this flag. It
+  // basically had no tangible effect on the Windows or Mac OS X
+  // platforms anyway in particular with the disabling of the
+  // GLWorkerThread which we found to be necessary in 1.0 beta 4.
+  protected boolean optimizationEnabled = Debug.isPropertyDefined("jogl.GLContext.optimize");
 
   // Cache of the functions that are available to be called at the current
   // moment in time
