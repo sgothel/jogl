@@ -224,6 +224,11 @@
 	<condition property="cpu" value="i386">
             <os name="SunOS" arch="x86" />
         </condition>
+
+	<condition property="cpu" value="amd64">
+            <os name="SunOS" arch="amd64" />
+        </condition>
+
         <property name="java.lib.dir.solaris" value="${java.home.dir}/jre/lib/${cpu}" />
         <property name="java.lib.dir.macosx" value="/System/Library/Frameworks/JavaVM.framework/Libraries" />
         <property name="gl.headers" value="${stub.includes.dir}/opengl/**/*.h" /> <!-- NOTE:  this MUST be relative for FileSet --> <!-- CHECK:  this may need to be pruned for each platform -->
@@ -401,6 +406,16 @@
     </target>
    
 
+    <target name="declare.solarisAMD64" depends="declare.x11" if="isSolarisAMD64">
+      <echo message="SolarisAMD64" />
+      <property name="java.includes.dir.platform"           value="${java.includes.dir.solaris}" />
+      <property name="java.lib.dir.platform"                value="${java.lib.dir.solaris}" />
+
+      <property name="compiler.cfg.id"                      value="compiler.cfg.solarisAMD64" /> 
+      <property name="linker.cfg.id.core"                   value="linker.cfg.solarisAMD64" /> 
+      <property name="linker.cfg.id.drihack"                value="linker.cfg.solarisAMD64.drihack" /> 
+    </target>
+   
  
     <target name="declare.macosx" if="isOSX">
       <echo message="MacOSX" />
@@ -466,7 +481,7 @@
         <mkdir dir="${obj.cg}" />
     </target>
 
-    <target name="declare" depends="init,declare.win32,declare.linux,declare.solaris,declare.solarisSparcv9,declare.macosx,declare.freebsd,declare.hpux" />
+    <target name="declare" depends="init,declare.win32,declare.linux,declare.solaris,declare.solarisSparcv9,declare.solarisAMD64,declare.macosx,declare.freebsd,declare.hpux" />
 
     <!-- ================================================================== -->
     <!-- GlueGen and BuildStaticGLInfo creation, task setup and Java file generation -->
@@ -729,11 +744,18 @@
       </compiler>
 
       <compiler id="compiler.cfg.solarisSparcv9" name="suncc">
+        <compilerarg value="-fast" />
         <compilerarg value="-xchip=ultra" />
         <compilerarg value="-xarch=v9a" />
         <compilerarg value="-xcode=32" />
       </compiler>
 
+      <compiler id="compiler.cfg.solarisAMD64" name="suncc">
+        <compilerarg value="-fast" />
+        <compilerarg value="-xchip=opteron" />
+        <compilerarg value="-xarch=amd64" />
+  <!--      <compilerarg value="-xcache=64/64/2:1024/64/16" />   -->
+      </compiler>
 
       <compiler id="compiler.cfg.win32.mingw" name="gcc">
         <defineset>
@@ -836,12 +858,25 @@
         <syslibset dir="/usr/lib/sparcv9" libs="X11"/>
       </linker>
 
+      <linker id="linker.cfg.solarisAMD64" name="suncc">
+        <linkerarg value="-xarch=amd64" />
+        <syslibset dir="/usr/lib/amd64" libs="GL"/>
+        <syslibset dir="/usr/lib/amd64" libs="X11"/>
+      </linker>
+
 
       <linker id="linker.cfg.solarisSparcv9.drihack" name="suncc" >
        <linkerarg value="-xarch=v9a" />
        <syslibset dir="/usr/openwin/lib/sparcv9" libs="GL"/>
        <syslibset dir="/usr/openwin/lib/sparcv9" libs="GLU"/>
        <syslibset dir="/usr/lib/sparcv9" libs="X11"/>
+      </linker>
+
+      <linker id="linker.cfg.solarisAMD64.drihack" name="suncc" >
+       <linkerarg value="-xarch=amd64" />
+        <syslibset dir="/usr/lib/amd64" libs="GL"/>
+        <syslibset dir="/usr/lib/amd64" libs="GLU"/>
+        <syslibset dir="/usr/lib/amd64" libs="X11"/>
       </linker>
 
 
@@ -1540,6 +1575,15 @@
     <target name="solarisSparcv9">
       <antcall target="all" />
     </target>
+
+
+    <!--
+        - Solaris AMD64 (assuming Solaris CC)
+      -->
+    <target name="solarisAMD64">
+      <antcall target="all" />
+    </target>
+
 
     <!--
        - Mac OSX
