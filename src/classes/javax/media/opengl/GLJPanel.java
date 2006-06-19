@@ -182,9 +182,6 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
   // incomplete in our context.
   private boolean checkedGLVendor;
   private boolean vendorIsATI;
-  // The texture target for Java2D's OpenGL pipeline when using FBOs
-  // -- either GL_TEXTURE_2D or GL_TEXTURE_RECTANGLE_ARB
-  private int fboTextureTarget;
 
   // These are always set to (0, 0) except when the Java2D / OpenGL
   // pipeline is active
@@ -311,6 +308,7 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
     // Set up needed state in JOGL context from Java2D context
     gl.glEnable(GL.GL_SCISSOR_TEST);
     Rectangle r = Java2D.getOGLScissorBox(g);
+
     if (r == null) {
       if (DEBUG && VERBOSE) {
         System.err.println("Java2D.getOGLScissorBox() returned null");
@@ -348,7 +346,9 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
         System.err.println("GLJPanel: Binding to framebuffer object " + frameBuffer[0]);
       }
 
-      fboTextureTarget = Java2D.getOGLTextureType(g);
+      // The texture target for Java2D's OpenGL pipeline when using FBOs
+      // -- either GL_TEXTURE_2D or GL_TEXTURE_RECTANGLE_ARB
+      int fboTextureTarget = Java2D.getOGLTextureType(g);
 
       if (!checkedForFBObjectWorkarounds) {
         checkedForFBObjectWorkarounds = true;
