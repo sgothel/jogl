@@ -58,6 +58,8 @@ public class Java2D {
   private static Method getOGLViewportMethod;
   private static Method getOGLScissorBoxMethod;
   private static Method getOGLSurfaceIdentifierMethod;
+  // This one is currently optional and is only in very recent Mustang builds
+  private static Method getOGLTextureTypeMethod;
 
   // The following methods and fields are needed for proper support of
   // Frame Buffer Objects in the Java2D/OpenGL pipeline
@@ -159,6 +161,20 @@ public class Java2D {
                 if (DEBUG && VERBOSE) {
                   e.printStackTrace();
                   System.err.println("Disabling Java2D/JOGL FBO support");
+                }
+              }
+
+              // Try to get an additional method for FBO support in recent Mustang builds
+              try {
+                getOGLTextureTypeMethod = utils.getDeclaredMethod("getOGLTextureType",
+                                                                  new Class[] {
+                                                                    Graphics.class
+                                                                  });
+                getOGLTextureTypeMethod.setAccessible(true);
+              } catch (Exception e) {
+                if (DEBUG && VERBOSE) {
+                  e.printStackTrace();
+                  System.err.println("GL_ARB_texture_rectangle FBO support disabled");
                 }
               }
             } catch (Exception e) {
@@ -325,6 +341,25 @@ public class Java2D {
       }
 
       return ((Integer) getOGLSurfaceTypeMethod.invoke(null, new Object[] { g })).intValue();
+    } catch (InvocationTargetException e) {
+      throw new GLException(e.getTargetException());
+    } catch (Exception e) {
+      throw (InternalError) new InternalError().initCause(e);
+    }
+  }
+
+  /** Returns the underlying texture target of the given Graphics
+      object assuming it is rendering to an FBO. Returns either
+      GL_TEXTURE_2D or GL_TEXTURE_RECTANGLE_ARB. */
+  public static int getOGLTextureType(Graphics g) {
+    checkActive();
+
+    if (getOGLTextureTypeMethod == null) {
+      return GL.GL_TEXTURE_2D;
+    }
+
+    try {
+      return ((Integer) getOGLTextureTypeMethod.invoke(null, new Object[] { g })).intValue();
     } catch (InvocationTargetException e) {
       throw new GLException(e.getTargetException());
     } catch (Exception e) {

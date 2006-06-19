@@ -182,6 +182,9 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
   // incomplete in our context.
   private boolean checkedGLVendor;
   private boolean vendorIsATI;
+  // The texture target for Java2D's OpenGL pipeline when using FBOs
+  // -- either GL_TEXTURE_2D or GL_TEXTURE_RECTANGLE_ARB
+  private int fboTextureTarget;
 
   // These are always set to (0, 0) except when the Java2D / OpenGL
   // pipeline is active
@@ -345,9 +348,11 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
         System.err.println("GLJPanel: Binding to framebuffer object " + frameBuffer[0]);
       }
 
+      fboTextureTarget = Java2D.getOGLTextureType(g);
+
       if (!checkedForFBObjectWorkarounds) {
         checkedForFBObjectWorkarounds = true;
-        gl.glBindTexture(GL.GL_TEXTURE_2D, 0);
+        gl.glBindTexture(fboTextureTarget, 0);
         gl.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, frameBuffer[0]);
         if (gl.glCheckFramebufferStatusEXT(GL.GL_FRAMEBUFFER_EXT) !=
             GL.GL_FRAMEBUFFER_COMPLETE_EXT) {
@@ -374,11 +379,11 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
           frameBufferDepthBuffer[0] = 0;
         }
 
-        gl.glBindTexture(GL.GL_TEXTURE_2D, frameBufferTexture[0]);
+        gl.glBindTexture(fboTextureTarget, frameBufferTexture[0]);
         int[] width = new int[1];
         int[] height = new int[1];
-        gl.glGetTexLevelParameteriv(GL.GL_TEXTURE_2D, 0, GL.GL_TEXTURE_WIDTH, width, 0);
-        gl.glGetTexLevelParameteriv(GL.GL_TEXTURE_2D, 0, GL.GL_TEXTURE_HEIGHT, height, 0);
+        gl.glGetTexLevelParameteriv(fboTextureTarget, 0, GL.GL_TEXTURE_WIDTH, width, 0);
+        gl.glGetTexLevelParameteriv(fboTextureTarget, 0, GL.GL_TEXTURE_HEIGHT, height, 0);
                     
         gl.glGenRenderbuffersEXT(1, frameBufferDepthBuffer, 0);
         if (DEBUG) {
@@ -394,14 +399,14 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
         createNewDepthBuffer = false;
       }
 
-      gl.glBindTexture(GL.GL_TEXTURE_2D, 0);
+      gl.glBindTexture(fboTextureTarget, 0);
       gl.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, frameBuffer[0]);
 
       if (fbObjectWorkarounds) {
         // Hook up the color and depth buffer attachment points for this framebuffer
         gl.glFramebufferTexture2DEXT(GL.GL_FRAMEBUFFER_EXT,
                                      GL.GL_COLOR_ATTACHMENT0_EXT,
-                                     GL.GL_TEXTURE_2D,
+                                     fboTextureTarget,
                                      frameBufferTexture[0],
                                      0);
         if (DEBUG && VERBOSE) {
