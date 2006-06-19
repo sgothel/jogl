@@ -42,6 +42,7 @@ package javax.media.opengl;
 import java.awt.*;
 import java.awt.geom.*;
 import java.awt.image.*;
+import java.beans.*;
 import javax.swing.*;
 import java.nio.*;
 import java.security.*;
@@ -716,6 +717,10 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
       return joglContext;
     } else {
       if (!hardwareAccelerationDisabled) {
+        // Workaround for crashes in NetBeans GUI builder
+        if (pbuffer == null && Beans.isDesignTime()) {
+          return null;
+        }
         return pbuffer.getContext();
       } else {
         return offscreenContext;
@@ -737,6 +742,10 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
 
   public void setAutoSwapBufferMode(boolean onOrOff) {
     if (!hardwareAccelerationDisabled) {
+      // Workaround for crashes in NetBeans GUI builder
+      if (pbuffer == null && Beans.isDesignTime()) {
+        return;
+      }
       pbuffer.setAutoSwapBufferMode(onOrOff);
     } else {
       drawableHelper.setAutoSwapBufferMode(onOrOff);
