@@ -983,6 +983,7 @@ public class GLUT {
     gl.glEnable(GL.GL_NORMALIZE);
     gl.glEnable(GL.GL_MAP2_VERTEX_3);
     gl.glEnable(GL.GL_MAP2_TEXTURE_COORD_2);
+    gl.glPushMatrix();
     if (!backCompatible) {
       // The time has come to have the teapot no longer be inside out
       gl.glFrontFace(GL.GL_CW);
@@ -990,7 +991,6 @@ public class GLUT {
     } else {
       // We want the teapot in it's backward compatible position and
       // orientation
-      gl.glPushMatrix();
       gl.glRotatef(270.0f, 1, 0, 0);
       gl.glScalef((float)(0.5 * scale),
                   (float)(0.5 * scale),
@@ -1033,9 +1033,7 @@ public class GLUT {
         evaluateTeapotMesh(gl, grid, type, i, !backCompatible);
       }
     }
-    if (backCompatible) {
-      gl.glPopMatrix();
-    }
+    gl.glPopMatrix();
     gl.glPopAttrib();
   }
   
