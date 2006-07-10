@@ -40,6 +40,7 @@
 package com.sun.opengl.impl;
 
 import java.awt.Component;
+import java.awt.Graphics;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.nio.*;
@@ -79,6 +80,17 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory implements
   // apparently can't use System.loadLibrary on UNIX because it uses
   // RTLD_LOCAL and we need to call dlsym(RTLD_DEFAULT)
   public abstract void loadGLULibrary();
+
+  //---------------------------------------------------------------------------
+  // Support for Java2D/JOGL bridge on Mac OS X; the external
+  // GLDrawable mechanism in the public API is sufficienit to
+  // implement this functionality on all other platforms
+  //
+
+  public abstract boolean canCreateContextOnJava2DSurface();
+
+  public abstract GLContext createContextOnJava2DSurface(Graphics g)
+    throws GLException;
 
   //----------------------------------------------------------------------
   // Gamma adjustment support

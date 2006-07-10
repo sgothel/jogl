@@ -551,8 +551,13 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
                   j2dSurface = curSurface;
                 }
                 if (joglContext == null) {
-                  joglDrawable = GLDrawableFactory.getFactory().createExternalGLDrawable();
-                  joglContext = joglDrawable.createContext(shareWith);
+                  if (GLDrawableFactory.getFactory().canCreateExternalGLDrawable()) {
+                    joglDrawable = GLDrawableFactory.getFactory().createExternalGLDrawable();
+                    joglContext = joglDrawable.createContext(shareWith);
+                  } else if (GLDrawableFactoryImpl.getFactoryImpl().canCreateContextOnJava2DSurface()) {
+                    // Mac OS X code path
+                    joglContext = GLDrawableFactoryImpl.getFactoryImpl().createContextOnJava2DSurface(g);
+                  }
                   if (DEBUG) {
                     joglContext.setGL(new DebugGL(joglContext.getGL()));
                   }
@@ -562,6 +567,10 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
                       fbObjectWorkarounds) {
                     createNewDepthBuffer = true;
                   }
+                }
+                if (joglContext instanceof Java2DGLContext) {
+                  // Mac OS X code path
+                  ((Java2DGLContext) joglContext).setGraphics(g);
                 }
 
                 if (DEBUG && VERBOSE && Java2D.isFBOEnabled()) {

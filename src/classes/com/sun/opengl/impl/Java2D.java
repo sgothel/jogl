@@ -88,6 +88,15 @@ public class Java2D {
   private static boolean initializedJ2DFBOShareContext;
   private static GLContext j2dFBOShareContext;
 
+  // Accessors for new methods in sun.java2d.opengl.CGLSurfaceData
+  // class on OS X for enabling bridge
+  //  public static long    createOGLContextOnSurface(Graphics g);
+  //  public static boolean makeOGLContextCurrentOnSurface(Graphics g, long ctx);
+  //  public static void    destroyOGLContext(long ctx);
+  private static Method createOGLContextOnSurfaceMethod;
+  private static Method makeOGLContextCurrentOnSurfaceMethod;
+  private static Method destroyOGLContextMethod;
+
   static {
     AccessController.doPrivileged(new PrivilegedAction() {
         public Object run() {
@@ -176,6 +185,40 @@ public class Java2D {
                   e.printStackTrace();
                   System.err.println("GL_ARB_texture_rectangle FBO support disabled");
                 }
+              }
+
+              // Try to set up APIs for enabling the bridge on OS X,
+              // where it isn't possible to create generalized
+              // external GLDrawables
+              Class cglSurfaceData = null;
+              try {
+                cglSurfaceData = Class.forName("sun.java2d.opengl.CGLSurfaceData");
+              } catch (Exception e) {
+                if (DEBUG && VERBOSE) {
+                  e.printStackTrace();
+                  System.err.println("Unable to find class sun.java2d.opengl.CGLSurfaceData for OS X");
+                }
+              }
+              if (cglSurfaceData != null) {
+                // We need to find these methods in order to make the bridge work on OS X
+                createOGLContextOnSurfaceMethod = cglSurfaceData.getDeclaredMethod("createOGLContextOnSurface",
+                                                                                   new Class[] {
+                                                                                     Graphics.class
+                                                                                   });
+                createOGLContextOnSurfaceMethod.setAccessible(true);
+
+                makeOGLContextCurrentOnSurfaceMethod = cglSurfaceData.getDeclaredMethod("makeOGLContextCurrentOnSurface",
+                                                                                        new Class[] {
+                                                                                          Graphics.class,
+                                                                                          Long.TYPE
+                                                                                        });
+                makeOGLContextCurrentOnSurfaceMethod.setAccessible(true);
+
+                destroyOGLContextMethod = cglSurfaceData.getDeclaredMethod("destroyOGLContext",
+                                                                           new Class[] {
+                                                                             Long.TYPE
+                                                                           });
+                destroyOGLContextMethod.setAccessible(true);
               }
             } catch (Exception e) {
               if (DEBUG && VERBOSE) {
@@ -394,6 +437,51 @@ public class Java2D {
     // FIXME: for full generality probably need to have multiple of
     // these, one per GraphicsConfiguration seen?
     return j2dFBOShareContext;
+  }
+
+  //----------------------------------------------------------------------
+  // Mac OS X-specific methods
+  //
+
+  /** (Mac OS X-specific) Creates a new OpenGL context on the surface associated with the
+      given Graphics object. */
+  public static long createOGLContextOnSurface(Graphics g) {
+    checkActive();
+
+    try {
+      return ((Long) createOGLContextOnSurfaceMethod.invoke(null, new Object[] { g })).longValue();
+    } catch (InvocationTargetException e) {
+      throw new GLException(e.getTargetException());
+    } catch (Exception e) {
+      throw (InternalError) new InternalError().initCause(e);
+    }
+  }
+
+  /** (Mac OS X-specific) Makes the given OpenGL context current on
+      the surface associated with the given Graphics object. */
+  public static boolean makeOGLContextCurrentOnSurface(Graphics g, long ctx) {
+    checkActive();
+
+    try {
+      return ((Boolean) makeOGLContextCurrentOnSurfaceMethod.invoke(null, new Object[] { g, new Long(ctx) })).booleanValue();
+    } catch (InvocationTargetException e) {
+      throw new GLException(e.getTargetException());
+    } catch (Exception e) {
+      throw (InternalError) new InternalError().initCause(e);
+    }
+  }
+
+  /** (Mac OS X-specific) Destroys the given OpenGL context. */
+  public static void destroyOGLContext(long ctx) {
+    checkActive();
+
+    try {
+      destroyOGLContextMethod.invoke(null, new Object[] { new Long(ctx) });
+    } catch (InvocationTargetException e) {
+      throw new GLException(e.getTargetException());
+    } catch (Exception e) {
+      throw (InternalError) new InternalError().initCause(e);
+    }
   }
 
   //----------------------------------------------------------------------

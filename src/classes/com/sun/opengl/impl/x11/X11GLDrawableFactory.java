@@ -40,6 +40,7 @@
 package com.sun.opengl.impl.x11;
 
 import java.awt.Component;
+import java.awt.Graphics;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
@@ -524,6 +525,15 @@ public class X11GLDrawableFactory extends GLDrawableFactoryImpl {
     } else {
       action.run();
     }
+  }
+
+  public boolean canCreateContextOnJava2DSurface() {
+    return false;
+  }
+
+  public GLContext createContextOnJava2DSurface(Graphics g)
+    throws GLException {
+    throw new GLException("Unimplemented on this platform");
   }
 
   //---------------------------------------------------------------------------

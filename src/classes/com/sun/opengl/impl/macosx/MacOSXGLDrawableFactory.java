@@ -41,6 +41,7 @@ package com.sun.opengl.impl.macosx;
 
 import java.awt.Component;
 import java.awt.EventQueue;
+import java.awt.Graphics;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.*;
 import java.util.*;
@@ -141,6 +142,16 @@ public class MacOSXGLDrawableFactory extends GLDrawableFactoryImpl {
 
   public void unlockAWTForJava2D() {
   }
+
+  public boolean canCreateContextOnJava2DSurface() {
+    return true;
+  }
+
+  public GLContext createContextOnJava2DSurface(Graphics g)
+    throws GLException {
+    return new MacOSXJava2DGLContext();
+  }
+  
 
   //------------------------------------------------------
   // Gamma-related functionality

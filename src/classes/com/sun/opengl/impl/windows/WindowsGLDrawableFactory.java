@@ -40,6 +40,7 @@
 package com.sun.opengl.impl.windows;
 
 import java.awt.Component;
+import java.awt.Graphics;
 import java.awt.Rectangle;
 import java.nio.*;
 import java.util.*;
@@ -220,6 +221,15 @@ public class WindowsGLDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   public void unlockAWTForJava2D() {
+  }
+
+  public boolean canCreateContextOnJava2DSurface() {
+    return false;
+  }
+
+  public GLContext createContextOnJava2DSurface(Graphics g)
+    throws GLException {
+    throw new GLException("Unimplemented on this platform");
   }
 
   //------------------------------------------------------
