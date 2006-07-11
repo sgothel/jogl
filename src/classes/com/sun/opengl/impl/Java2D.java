@@ -200,6 +200,9 @@ public class Java2D {
                 }
               }
               if (cglSurfaceData != null) {
+                // FIXME: for now, assume that FBO support is not enabled on OS X
+                fbObjectSupportInitialized = false;
+
                 // We need to find these methods in order to make the bridge work on OS X
                 createOGLContextOnSurfaceMethod = cglSurfaceData.getDeclaredMethod("createOGLContextOnSurface",
                                                                                    new Class[] {
