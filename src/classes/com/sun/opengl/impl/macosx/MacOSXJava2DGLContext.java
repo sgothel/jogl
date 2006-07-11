@@ -116,7 +116,8 @@ public class MacOSXJava2DGLContext extends MacOSXGLContext implements Java2DGLCo
       // GLContextShareSet.contextDestroyed(this);
     }
   }
-  
 
-  
+  public void setSwapInterval(int interval) {
+    // Not supported in this context implementation
+  }
 }
