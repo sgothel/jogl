@@ -73,6 +73,12 @@ public class MacOSXOnscreenGLContext extends MacOSXGLContext {
         // of an ancestor, but this also wasn't sufficient and left garbage on the
         // screen in some situations.
         CGL.updateContext(nsContext);
+      } else {
+        if (!isOptimizable()) {
+          // This can happen if the window currently is zero-sized, for example.
+          // Make sure we don't leave the surface locked in this case.
+          drawable.unlockSurface();
+        }
       }
       return ret;
     } finally {
