@@ -220,7 +220,12 @@ public class TextureData {
 
   /** 
    * Constructs a new TextureData object with the specified parameters
-   * and data contained in the given BufferedImage.
+   * and data contained in the given BufferedImage. Note that
+   * subsequent modifications to the BufferedImage after the
+   * construction of the TextureData object are not guaranteed to be
+   * visible in any Texture object created from the TextureData (and,
+   * in fact, the expectation should be that they will not be visible,
+   * although this behavior is explicitly left undefined).
    *
    * @param internalFormat the OpenGL internal format for the
    *                       resulting texture; may be 0, in which case
@@ -335,40 +340,83 @@ public class TextureData {
       ImageUtil.flipImageVertically(image);
     }
 
-    //
-    // Note: Grabbing the DataBuffer will defeat Java2D's image
-    // management mechanism (as of JDK 5/6, at least).  This shouldn't
-    // be a problem for most JOGL apps, but those that try to upload
-    // the image into an OpenGL texture and then use the same image in
-    // Java2D rendering might find the 2D rendering is not as fast as
-    // it could be.
-    //
+    try {
+      //
+      // Note: Grabbing the DataBuffer will defeat Java2D's image
+      // management mechanism (as of JDK 5/6, at least).  This shouldn't
+      // be a problem for most JOGL apps, but those that try to upload
+      // the image into an OpenGL texture and then use the same image in
+      // Java2D rendering might find the 2D rendering is not as fast as
+      // it could be.
+      //
 
-    // Allow previously-selected pixelType (if any) to override that
-    // we can infer from the DataBuffer
-    DataBuffer data = image.getRaster().getDataBuffer();
-    if (data instanceof DataBufferByte) {
-      if (pixelType == 0) pixelType = GL.GL_UNSIGNED_BYTE;
-      buffer = ByteBuffer.wrap(((DataBufferByte) data).getData());
-    } else if (data instanceof DataBufferDouble) {
-      throw new RuntimeException("DataBufferDouble rasters not supported by OpenGL");
-    } else if (data instanceof DataBufferFloat) {
-      if (pixelType == 0) pixelType = GL.GL_FLOAT;
-      buffer = FloatBuffer.wrap(((DataBufferFloat) data).getData());
-    } else if (data instanceof DataBufferInt) {
-      // FIXME: should we support signed ints?
-      if (pixelType == 0) pixelType = GL.GL_UNSIGNED_INT;
-      buffer = IntBuffer.wrap(((DataBufferInt) data).getData());
-    } else if (data instanceof DataBufferShort) {
-      if (pixelType == 0) pixelType = GL.GL_SHORT;
-      buffer = ShortBuffer.wrap(((DataBufferShort) data).getData());
-    } else if (data instanceof DataBufferUShort) {
-      if (pixelType == 0) pixelType = GL.GL_UNSIGNED_SHORT;
-      buffer = ShortBuffer.wrap(((DataBufferShort) data).getData());
-    } else {
-      throw new RuntimeException("Unexpected DataBuffer type?");
+      // Allow previously-selected pixelType (if any) to override that
+      // we can infer from the DataBuffer
+      DataBuffer data = image.getRaster().getDataBuffer();
+      if (data instanceof DataBufferByte) {
+        if (pixelType == 0) pixelType = GL.GL_UNSIGNED_BYTE;
+        buffer = ByteBuffer.wrap(copyIfNecessary(((DataBufferByte) data).getData(), flipVertically));
+      } else if (data instanceof DataBufferDouble) {
+        throw new RuntimeException("DataBufferDouble rasters not supported by OpenGL");
+      } else if (data instanceof DataBufferFloat) {
+        if (pixelType == 0) pixelType = GL.GL_FLOAT;
+        buffer = FloatBuffer.wrap(copyIfNecessary(((DataBufferFloat) data).getData(), flipVertically));
+      } else if (data instanceof DataBufferInt) {
+        // FIXME: should we support signed ints?
+        if (pixelType == 0) pixelType = GL.GL_UNSIGNED_INT;
+        buffer = IntBuffer.wrap(copyIfNecessary(((DataBufferInt) data).getData(), flipVertically));
+      } else if (data instanceof DataBufferShort) {
+        if (pixelType == 0) pixelType = GL.GL_SHORT;
+        buffer = ShortBuffer.wrap(copyIfNecessary(((DataBufferShort) data).getData(), flipVertically));
+      } else if (data instanceof DataBufferUShort) {
+        if (pixelType == 0) pixelType = GL.GL_UNSIGNED_SHORT;
+        buffer = ShortBuffer.wrap(copyIfNecessary(((DataBufferShort) data).getData(), flipVertically));
+      } else {
+        throw new RuntimeException("Unexpected DataBuffer type?");
+      }
+    } finally {
+      // Put image back right-side up if necessary
+      if (flipVertically) {
+        ImageUtil.flipImageVertically(image);
+      }
     }
   }
+
+  private byte[] copyIfNecessary(byte[] data, boolean needsCopy) {
+    if (needsCopy) {
+      return (byte[]) data.clone();
+    }
+    return data;
+  }
+
+  private short[] copyIfNecessary(short[] data, boolean needsCopy) {
+    if (needsCopy) {
+      return (short[]) data.clone();
+    }
+    return data;
+  }
+
+  private int[] copyIfNecessary(int[] data, boolean needsCopy) {
+    if (needsCopy) {
+      return (int[]) data.clone();
+    }
+    return data;
+  }
+
+  private float[] copyIfNecessary(float[] data, boolean needsCopy) {
+    if (needsCopy) {
+      return (float[]) data.clone();
+    }
+    return data;
+  }
+
+  private double[] copyIfNecessary(double[] data, boolean needsCopy) {
+    if (needsCopy) {
+      return (double[]) data.clone();
+    }
+    return data;
+  }
+
 
   private void createFromImage(BufferedImage image) {
     pixelType = 0; // Determine from image
