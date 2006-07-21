@@ -14,6 +14,16 @@
 ** DISCLAIMED, INCLUDING, WITHOUT LIMITATION, ANY IMPLIED WARRANTIES AND
 ** CONDITIONS OF MERCHANTABILITY, SATISFACTORY QUALITY, FITNESS FOR A
 ** PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
+**
+** NOTE:  The Original Code (as defined below) has been licensed to Sun
+** Microsystems, Inc. ("Sun") under the SGI Free Software License B
+** (Version 1.1), shown above ("SGI License").   Pursuant to Section
+** 3.2(3) of the SGI License, Sun is distributing the Covered Code to
+** you under an alternative license ("Alternative License").  This
+** Alternative License includes all of the provisions of the SGI License
+** except that Section 2.2 and 11 are omitted.  Any differences between
+** the Alternative License and the SGI License are offered solely by Sun
+** and not by SGI.
 ** 
 ** Original Code. The Original Code is: OpenGL Sample Implementation,
 ** Version 1.2.1, released January 26, 2000, developed by Silicon Graphics,

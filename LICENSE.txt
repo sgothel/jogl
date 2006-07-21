@@ -36,7 +36,9 @@ JOGL is released under the BSD license. The full license terms follow:
 
 The JOGL source tree contains code ported from the OpenGL sample
 implementation by Silicon Graphics, Inc. This code is licensed under
-the SGI Free Software License B:
+the SGI Free Software License B (Sun is redistributing the modified code 
+under a slightly modified, alternative license, which is described two
+paragraphs below after "NOTE:"):
 
    License Applicability. Except to the extent portions of this file are
    made subject to an alternative license as permitted in the SGI Free
@@ -53,6 +55,16 @@ the SGI Free Software License B:
    DISCLAIMED, INCLUDING, WITHOUT LIMITATION, ANY IMPLIED WARRANTIES AND
    CONDITIONS OF MERCHANTABILITY, SATISFACTORY QUALITY, FITNESS FOR A
    PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
+
+   NOTE:  The Original Code (as defined below) has been licensed to Sun 
+   Microsystems, Inc. ("Sun") under the SGI Free Software License B 
+   (Version 1.1), shown above ("SGI License").   Pursuant to Section  
+   3.2(3) of the SGI License, Sun is distributing the Covered Code to 
+   you under an alternative license ("Alternative License").  This 
+   Alternative License includes all of the provisions of the SGI License 
+   except that Section 2.2 and 11 are omitted.  Any differences between 
+   the Alternative License and the SGI License are offered solely by Sun 
+   and not by SGI.
    
    Original Code. The Original Code is: OpenGL Sample Implementation,
    Version 1.2.1, released January 26, 2000, developed by Silicon Graphics,
@@ -69,6 +81,7 @@ the SGI Free Software License B:
    was created using the OpenGL(R) version 1.2.1 Sample Implementation
    published by SGI, but has not been independently verified as being
    compliant with the OpenGL(R) version 1.2.1 Specification.
+
 
 The JOGL source tree contains code from the LWJGL project which is
 similarly covered by the BSD license:
