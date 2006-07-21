@@ -48,3 +48,11 @@ void setSwapInterval(void* nsContext, int interval);
 /* Gamma-related functionality */
 Bool setGammaRamp(int tableSize, float* redRamp, float* greenRamp, float* blueRamp);
 void resetGammaRamp();
+
+/****************************************************************************************/
+/* Java2D/JOGL bridge support; need to be able to create pbuffers and
+   contexts using the CGL APIs to be able to share textures, etc. with
+   contexts created by Java2D/JOGL bridge, which are CGLContextObjs */
+
+/* Pick up copies of CGL signatures from Mac OS X stub_includes/window-system-build directory */
+#include <OpenGL/OpenGL.h>

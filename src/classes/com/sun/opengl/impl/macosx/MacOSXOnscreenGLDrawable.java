@@ -53,6 +53,7 @@ public class MacOSXOnscreenGLDrawable extends MacOSXGLDrawable {
   public static final int LOCK_SUCCESS = 3;
 
   protected Component component;
+  protected long nsView; // NSView
 
   private List/*<WeakReference<GLContext>>*/ createdContexts =
     new ArrayList();
@@ -126,6 +127,10 @@ public class MacOSXOnscreenGLDrawable extends MacOSXGLDrawable {
     }
   }
   
+  public long getView() {
+    return nsView;
+  }
+
   public int lockSurface() throws GLException {
     if (!realized) {
       return LOCK_SURFACE_NOT_READY;
@@ -204,5 +209,14 @@ public class MacOSXOnscreenGLDrawable extends MacOSXGLDrawable {
     dsi = null;
     macosxdsi = null;
     nsView = 0;
+  }
+
+  public void setOpenGLMode(int mode) {
+    if (mode != NSOPENGL_MODE)
+      throw new GLException("OpenGL mode switching not supported for on-screen GLDrawables");
+  }
+
+  public int  getOpenGLMode() {
+    return NSOPENGL_MODE;
   }
 }

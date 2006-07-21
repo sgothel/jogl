@@ -116,4 +116,13 @@ public class MacOSXOnscreenGLContext extends MacOSXGLContext {
   protected boolean create() {
     return create(false, false);
   }
+
+  public void setOpenGLMode(int mode) {
+    if (mode != MacOSXGLDrawable.NSOPENGL_MODE)
+      throw new GLException("OpenGL mode switching not supported for on-screen GLContexts");
+  }
+    
+  public int  getOpenGLMode() {
+    return MacOSXGLDrawable.NSOPENGL_MODE;
+  }
 }

@@ -43,13 +43,15 @@ import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
 
 public class MacOSXPbufferGLDrawable extends MacOSXGLDrawable {
-  private static final boolean DEBUG = Debug.debug("MacOSXPbufferGLContext");
+  private static final boolean DEBUG = Debug.debug("MacOSXPbufferGLDrawable");
   
   protected int  initWidth;
   protected int  initHeight;
 
+  // NSOpenGLPbuffer (for normal mode)
+  // CGLPbufferObj (for CGL_MODE situation, i.e., when Java2D/JOGL bridge is active)
   protected long pBuffer;
-  
+
   protected int  width;
   protected int  height;
 
@@ -61,7 +63,7 @@ public class MacOSXPbufferGLDrawable extends MacOSXGLDrawable {
     super(capabilities, null);
     this.initWidth  = initialWidth;
     this.initHeight = initialHeight;
-
+    initOpenGLImpl();
     createPbuffer();
   }
 
@@ -71,7 +73,7 @@ public class MacOSXPbufferGLDrawable extends MacOSXGLDrawable {
 
   public void destroy() {
     if (this.pBuffer != 0) {
-      CGL.destroyPBuffer(0, pBuffer);
+      impl.destroy(pBuffer);
       this.pBuffer = 0;
     
       if (DEBUG) {
@@ -135,13 +137,13 @@ public class MacOSXPbufferGLDrawable extends MacOSXGLDrawable {
       }
     }
 		
-    pBuffer = CGL.createPBuffer(renderTarget, internalFormat, width, height);
+    pBuffer = impl.create(renderTarget, internalFormat, width, height);
     if (pBuffer == 0) {
       throw new GLException("pbuffer creation error: CGL.createPBuffer() failed");
     }
 	
     if (DEBUG) {
-      System.err.println("Created pbuffer 0x" + toHexString(pBuffer) + ", " + width + " x " + height + " for " + this);
+      System.err.println("Created pbuffer " + toHexString(pBuffer) + ", " + width + " x " + height + " for " + this);
     }
   }
 
@@ -156,5 +158,89 @@ public class MacOSXPbufferGLDrawable extends MacOSXGLDrawable {
       power++;
     }
     return (1<<power);
+  }
+
+  //---------------------------------------------------------------------------
+  // OpenGL "mode switching" functionality
+  //
+  private boolean haveSetOpenGLMode = false;
+  // FIXME: should consider switching the default mode based on
+  // whether the Java2D/JOGL bridge is active -- need to ask ourselves
+  // whether it's more likely that we will share with a GLCanvas or a
+  // GLJPanel when the bridge is turned on
+  private int     openGLMode = NSOPENGL_MODE;
+  // Implementation object (either NSOpenGL-based or CGL-based)
+  protected Impl impl;
+
+  public void setOpenGLMode(int mode) {
+    if (mode == openGLMode) {
+      return;
+    }
+    if (haveSetOpenGLMode) {
+      throw new GLException("Can't switch between using NSOpenGLPixelBuffer and CGLPBufferObj more than once");
+    }
+    destroy();
+    openGLMode = mode;
+    haveSetOpenGLMode = true;
+    if (DEBUG) {
+      System.err.println("Switching PBuffer drawable mode to " +
+                         ((mode == MacOSXGLDrawable.NSOPENGL_MODE) ? "NSOPENGL_MODE" : "CGL_MODE"));
+    }
+    initOpenGLImpl();
+    createPbuffer();
+  }
+
+  public int getOpenGLMode() {
+    return openGLMode;
+  }
+
+  private void initOpenGLImpl() {
+    switch (openGLMode) {
+      case NSOPENGL_MODE:
+        impl = new NSOpenGLImpl();
+        break;
+      case CGL_MODE:
+        impl = new CGLImpl();
+        break;
+      default:
+        throw new InternalError("Illegal implementation mode " + openGLMode);
+    }
+  }
+
+  // Abstract interface for implementation of this drawable (either
+  // NSOpenGL-based or CGL-based)
+  interface Impl {
+    public long create(int renderTarget, int internalFormat, int width, int height);
+    public void destroy(long pbuffer);
+  }
+
+  // NSOpenGLPixelBuffer implementation
+  class NSOpenGLImpl implements Impl {
+    public long create(int renderTarget, int internalFormat, int width, int height) {
+      return CGL.createPBuffer(renderTarget, internalFormat, width, height);
+    }
+
+    public void destroy(long pbuffer) {
+      CGL.destroyPBuffer(0, pbuffer);
+    }
+  }
+
+  // CGL implementation
+  class CGLImpl implements Impl {
+    public long create(int renderTarget, int internalFormat, int width, int height) {
+      long[] pbuffer = new long[1];
+      int res = CGL.CGLCreatePBuffer(width, height, renderTarget, internalFormat, 0, pbuffer, 0);
+      if (res != CGL.kCGLNoError) {
+        throw new GLException("Error creating CGL-based pbuffer: error code " + res);
+      }
+      return pbuffer[0];
+    }
+
+    public void destroy(long pbuffer) {
+      int res = CGL.CGLDestroyPBuffer(pbuffer);
+      if (res != CGL.kCGLNoError) {
+        throw new GLException("Error destroying CGL-based pbuffer: error code " + res);
+      }
+    }
   }
 }

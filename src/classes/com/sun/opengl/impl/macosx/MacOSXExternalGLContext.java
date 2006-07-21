@@ -111,4 +111,13 @@ public class MacOSXExternalGLContext extends MacOSXGLContext {
   public boolean isCreated() {
     return created;
   }
+
+  public void setOpenGLMode(int mode) {
+    if (mode != MacOSXGLDrawable.NSOPENGL_MODE)
+      throw new GLException("OpenGL mode switching not supported for external GLContexts");
+  }
+    
+  public int  getOpenGLMode() {
+    return MacOSXGLDrawable.NSOPENGL_MODE;
+  }
 }

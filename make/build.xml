@@ -584,6 +584,7 @@
 
 	<!-- Generate WGL/GLX/CGL implementation class -->
         <echo message="Generating WGL/GLX/CGL implementation class" />
+	<dirset id="stub.includes.fileset.platform" dir="." includes="${stub.includes.fileset.platform.params}" />
         <gluegen src="${stub.includes.platform}/window-system.c" 
                  config="${window.cfg}"
                  includeRefid="stub.includes.fileset.platform"
@@ -597,7 +598,6 @@
            -        handle different drives in an effective manner. -->
         <echo message="Generating JAWT interface class" />
         <echo message="java.home.dir=${java.home.dir}" />
-	<dirset id="stub.includes.fileset.platform" dir="." includes="${stub.includes.fileset.platform.params}" />
         <gluegen src="${java.includes.dir.platform}/jawt_md.h" 
                  config="${jawt.cfg}"
                  literalInclude="${java.includes.dir}"

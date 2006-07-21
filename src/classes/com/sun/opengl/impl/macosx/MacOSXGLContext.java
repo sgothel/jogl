@@ -142,7 +142,7 @@ public abstract class MacOSXGLContext extends GLContextImpl
         return CONTEXT_NOT_CURRENT;
       }
       if (DEBUG) {
-        System.err.println("!!! Created GL nsContext for " + getClass().getName());
+        System.err.println("!!! Created OpenGL context " + toHexString(nsContext) + " for " + getClass().getName());
       }
       created = true;
     }
@@ -249,6 +249,10 @@ public abstract class MacOSXGLContext extends GLContextImpl
     throw new GLException("Should not call this");
   }
     
+  // Support for "mode switching" as described in MacOSXGLDrawable
+  public abstract void setOpenGLMode(int mode);
+  public abstract int  getOpenGLMode();
+
   //----------------------------------------------------------------------
   // Internals only below this point
   //
