@@ -1017,6 +1017,21 @@
       <move file="${obj}/libjogl.dylib" tofile="${obj}/libjogl.jnilib" />
       <move file="${obj}/libjogl_awt.dylib" tofile="${obj}/libjogl_awt.jnilib" />
       <move file="${obj}/libjogl_cg.dylib" tofile="${obj}/libjogl_cg.jnilib" failonerror="false" />
+      <antcall target="c.fixup.jawt.version.macosx" inheritrefs="true" />
+    </target>
+
+    <target name="c.fixup.jawt.version.macosx" if="macosxfat">
+      <!-- Edit the link to the JAWT version in the resulting jnilib
+           file; this isn't strictly needed but seems to allow the
+           universal binaries to work on 10.3 machines as well, which
+           is desirable for some end users -->
+      <apply executable="install_name_tool">
+        <arg value="-change" />
+        <arg value="/System/Library/Frameworks/JavaVM.framework/Versions/1.5.0/Libraries/libjawt.dylib" />
+        <arg value="/System/Library/Frameworks/JavaVM.framework/Libraries/libjawt.dylib" />
+        <srcfile />
+        <fileset dir="${obj}" includes="libjogl_awt.jnilib" />
+      </apply>
     </target>
 
     <target name="c.build.jogl.core">
