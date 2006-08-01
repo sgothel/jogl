@@ -384,7 +384,7 @@
 
     <target name="declare.linux" depends="declare.linux.x86,declare.linux.amd64,declare.linux.ia64,declare.x11" if="isLinux" />
 
-    <target name="declare.solaris" depends="declare.x11" if="isSolaris">
+    <target name="declare.solaris32" depends="declare.x11" if="isSolaris32Bit">
       <echo message="Solaris" />
       <property name="java.includes.dir.platform"           value="${java.includes.dir.solaris}" />
       <property name="java.lib.dir.platform"                value="${java.lib.dir.solaris}" />
@@ -481,7 +481,7 @@
         <mkdir dir="${obj.cg}" />
     </target>
 
-    <target name="declare" depends="init,declare.win32,declare.linux,declare.solaris,declare.solarisSparcv9,declare.solarisAMD64,declare.macosx,declare.freebsd,declare.hpux" />
+    <target name="declare" depends="init,declare.win32,declare.linux,declare.solaris32,declare.solarisSparcv9,declare.solarisAMD64,declare.macosx,declare.freebsd,declare.hpux" />
 
     <!-- ================================================================== -->
     <!-- GlueGen and BuildStaticGLInfo creation, task setup and Java file generation -->
