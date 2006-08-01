@@ -58,8 +58,8 @@ public class MacOSXJava2DGLContext extends MacOSXGLContext implements Java2DGLCo
   // rethink this in particular if using FBOs to implement the
   // Java2D/OpenGL pipeline on Mac OS X
 
-  public MacOSXJava2DGLContext() {
-    super(null, null);
+  public MacOSXJava2DGLContext(GLContext shareWith) {
+    super(null, shareWith);
   }
 
   public void setGraphics(Graphics g) {
@@ -90,7 +90,30 @@ public class MacOSXJava2DGLContext extends MacOSXGLContext implements Java2DGLCo
   }
 
   protected boolean create() {
-    long ctx = Java2D.createOGLContextOnSurface(graphics);
+    // Find and configure share context
+    MacOSXGLContext other = (MacOSXGLContext) GLContextShareSet.getShareContext(this);
+    long share = 0;
+    if (other != null) {
+      // Reconfigure pbuffer-based GLContexts
+      if (other instanceof MacOSXPbufferGLContext) {
+        MacOSXPbufferGLContext ctx = (MacOSXPbufferGLContext) other;
+        ctx.setOpenGLMode(MacOSXGLDrawable.CGL_MODE);
+      } else {
+        if (other.getOpenGLMode() != MacOSXGLDrawable.CGL_MODE) {
+          throw new GLException("Can't share between NSOpenGLContexts and CGLContextObjs");
+        }
+      }
+      share = other.getNSContext();
+      // Note we don't check for a 0 return value, since switching
+      // the context's mode causes it to be destroyed and not
+      // re-initialized until the next makeCurrent
+    }
+
+    if (DEBUG) {
+      System.err.println("!!! Share context is " + toHexString(share) + " for " + getClass().getName());
+    }
+
+    long ctx = Java2D.createOGLContextOnSurface(graphics, share);
     if (ctx == 0) {
       return false;
     }

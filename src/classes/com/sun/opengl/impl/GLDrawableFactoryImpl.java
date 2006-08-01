@@ -89,7 +89,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory implements
 
   public abstract boolean canCreateContextOnJava2DSurface();
 
-  public abstract GLContext createContextOnJava2DSurface(Graphics g)
+  public abstract GLContext createContextOnJava2DSurface(Graphics g, GLContext shareWith)
     throws GLException;
 
   //----------------------------------------------------------------------

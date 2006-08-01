@@ -90,7 +90,7 @@ public class Java2D {
 
   // Accessors for new methods in sun.java2d.opengl.CGLSurfaceData
   // class on OS X for enabling bridge
-  //  public static long    createOGLContextOnSurface(Graphics g);
+  //  public static long    createOGLContextOnSurface(Graphics g, long ctx);
   //  public static boolean makeOGLContextCurrentOnSurface(Graphics g, long ctx);
   //  public static void    destroyOGLContext(long ctx);
   private static Method createOGLContextOnSurfaceMethod;
@@ -206,7 +206,8 @@ public class Java2D {
                 // We need to find these methods in order to make the bridge work on OS X
                 createOGLContextOnSurfaceMethod = cglSurfaceData.getDeclaredMethod("createOGLContextOnSurface",
                                                                                    new Class[] {
-                                                                                     Graphics.class
+                                                                                     Graphics.class,
+                                                                                     Long.TYPE
                                                                                    });
                 createOGLContextOnSurfaceMethod.setAccessible(true);
 
@@ -446,13 +447,14 @@ public class Java2D {
   // Mac OS X-specific methods
   //
 
-  /** (Mac OS X-specific) Creates a new OpenGL context on the surface associated with the
-      given Graphics object. */
-  public static long createOGLContextOnSurface(Graphics g) {
+  /** (Mac OS X-specific) Creates a new OpenGL context on the surface
+      associated with the given Graphics object, sharing textures and
+      display lists with the specified (CGLContextObj) share context. */
+  public static long createOGLContextOnSurface(Graphics g, long shareCtx) {
     checkActive();
 
     try {
-      return ((Long) createOGLContextOnSurfaceMethod.invoke(null, new Object[] { g })).longValue();
+      return ((Long) createOGLContextOnSurfaceMethod.invoke(null, new Object[] { g, new Long(shareCtx) })).longValue();
     } catch (InvocationTargetException e) {
       throw new GLException(e.getTargetException());
     } catch (Exception e) {

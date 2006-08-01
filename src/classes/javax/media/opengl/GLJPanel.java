@@ -556,7 +556,7 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
                     joglContext = joglDrawable.createContext(shareWith);
                   } else if (GLDrawableFactoryImpl.getFactoryImpl().canCreateContextOnJava2DSurface()) {
                     // Mac OS X code path
-                    joglContext = GLDrawableFactoryImpl.getFactoryImpl().createContextOnJava2DSurface(g);
+                    joglContext = GLDrawableFactoryImpl.getFactoryImpl().createContextOnJava2DSurface(g, shareWith);
                   }
                   if (DEBUG) {
                     joglContext.setGL(new DebugGL(joglContext.getGL()));

@@ -531,7 +531,7 @@ public class X11GLDrawableFactory extends GLDrawableFactoryImpl {
     return false;
   }
 
-  public GLContext createContextOnJava2DSurface(Graphics g)
+  public GLContext createContextOnJava2DSurface(Graphics g, GLContext shareWith)
     throws GLException {
     throw new GLException("Unimplemented on this platform");
   }

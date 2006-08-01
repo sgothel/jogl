@@ -147,9 +147,9 @@ public class MacOSXGLDrawableFactory extends GLDrawableFactoryImpl {
     return true;
   }
 
-  public GLContext createContextOnJava2DSurface(Graphics g)
+  public GLContext createContextOnJava2DSurface(Graphics g, GLContext shareWith)
     throws GLException {
-    return new MacOSXJava2DGLContext();
+    return new MacOSXJava2DGLContext(shareWith);
   }
   
 
