@@ -110,6 +110,10 @@ public class X11PbufferGLContext extends X11GLContext {
   protected void releaseImpl() throws GLException {
     lockToolkit();
     try {
+      if (drawable.getDisplay() == 0) {
+        throw new GLException("Pbuffer destroyed out from under application-created context");
+      }
+
       if (!GLX.glXMakeContextCurrent(drawable.getDisplay(), 0, 0, 0)) {
         throw new GLException("Error freeing OpenGL context");
       }
