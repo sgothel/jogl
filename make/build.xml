@@ -280,31 +280,31 @@
     <target name="declare.win32.vc6" if="isVC6">
       <echo message="Win32.VC6" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.win32.msvc" />
-      <property name="linker.cfg.id.core"                   value="linker.cfg.win32.msvc" />
+      <property name="linker.cfg.id.core"                   value="linker.cfg.win32.msvc.jogl" />
     </target>
     
     <target name="declare.win32.vc7" if="isVC7">
       <echo message="Win32.VC7" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.win32.msvc" />
-      <property name="linker.cfg.id.core"                   value="linker.cfg.win32.msvc" />
+      <property name="linker.cfg.id.core"                   value="linker.cfg.win32.msvc.jogl" />
     </target>
     
     <target name="declare.win32.vc8" if="isVC8">
       <echo message="Win32.VC8" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.win32.msvc" />
-      <property name="linker.cfg.id.core"                   value="linker.cfg.win32.msvc" />
+      <property name="linker.cfg.id.core"                   value="linker.cfg.win32.msvc.jogl" />
     </target>
     
     <target name="declare.win32.vc8_x64" if="isVC8_X64">
       <echo message="Win32.VC8_X64" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.win32.msvc" />
-      <property name="linker.cfg.id.core"                   value="linker.cfg.win32.msvc" />
+      <property name="linker.cfg.id.core"                   value="linker.cfg.win32.msvc.jogl" />
     </target>
     
     <target name="declare.win32.mingw" if="isMingW">
       <echo message="Win32.MingW" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.win32.mingw" /> 
-      <property name="linker.cfg.id.core"                   value="linker.cfg.win32.mingw" />     
+      <property name="linker.cfg.id.core"                   value="linker.cfg.win32.mingw.jogl" />
     </target>
 
     <target name="declare.win32" depends="declare.win32.vc6,declare.win32.vc7,declare.win32.vc8,declare.win32.vc8_x64,declare.win32.mingw" if="isWindows">
@@ -358,8 +358,8 @@
       <property name="java.lib.dir.platform"                value="${java.lib.dir.linux}" />       
 
       <property name="compiler.cfg.id"                      value="compiler.cfg.linux" /> 
-      <property name="linker.cfg.id.core"                   value="linker.cfg.linux" /> 
-      <property name="linker.cfg.id.drihack"                value="linker.cfg.linux.drihack" /> 
+      <property name="linker.cfg.id.core"                   value="linker.cfg.linux.jogl" /> 
+      <property name="linker.cfg.id.drihack"                value="linker.cfg.linux" /> 
     </target>
     
     <target name="declare.linux.amd64" if="isLinuxAMD64">
@@ -368,8 +368,8 @@
       <property name="java.lib.dir.platform"                value="${java.lib.dir.linux.amd64}" />       
 
       <property name="compiler.cfg.id"                      value="compiler.cfg.linux.amd64" /> 
-      <property name="linker.cfg.id.core"                   value="linker.cfg.linux.amd64" /> 
-      <property name="linker.cfg.id.drihack"                value="linker.cfg.linux.drihack" /> 
+      <property name="linker.cfg.id.core"                   value="linker.cfg.linux.amd64.jogl" /> 
+      <property name="linker.cfg.id.drihack"                value="linker.cfg.linux" /> 
     </target>
     
     <target name="declare.linux.ia64" if="isLinuxIA64">
@@ -378,8 +378,8 @@
       <property name="java.lib.dir.platform"                value="${java.lib.dir.linux.ia64}" />       
 
       <property name="compiler.cfg.id"                      value="compiler.cfg.linux" /> 
-      <property name="linker.cfg.id.core"                   value="linker.cfg.linux" /> 
-      <property name="linker.cfg.id.drihack"                value="linker.cfg.linux.drihack" /> 
+      <property name="linker.cfg.id.core"                   value="linker.cfg.linux.jogl" /> 
+      <property name="linker.cfg.id.drihack"                value="linker.cfg.linux" /> 
     </target>
 
     <target name="declare.linux" depends="declare.linux.x86,declare.linux.amd64,declare.linux.ia64,declare.x11" if="isLinux" />
@@ -390,30 +390,30 @@
       <property name="java.lib.dir.platform"                value="${java.lib.dir.solaris}" />
 
       <property name="compiler.cfg.id"                      value="compiler.cfg.solaris" /> 
-      <property name="linker.cfg.id.core"                   value="linker.cfg.solaris" /> 
-      <property name="linker.cfg.id.drihack"                value="linker.cfg.solaris.drihack" /> 
+      <property name="linker.cfg.id.core"                   value="linker.cfg.solaris.jogl" /> 
+      <property name="linker.cfg.id.drihack"                value="linker.cfg.solaris" /> 
     </target>
   
  
-    <target name="declare.solarisSparcv9" depends="declare.x11" if="isSolarisSparcv9">
+    <target name="declare.solaris.sparcv9" depends="declare.x11" if="isSolarisSparcv9">
       <echo message="SolarisSparcv9" />
       <property name="java.includes.dir.platform"           value="${java.includes.dir.solaris}" />
       <property name="java.lib.dir.platform"                value="${java.lib.dir.solaris}" />
 
-      <property name="compiler.cfg.id"                      value="compiler.cfg.solarisSparcv9" /> 
-      <property name="linker.cfg.id.core"                   value="linker.cfg.solarisSparcv9" /> 
-      <property name="linker.cfg.id.drihack"                value="linker.cfg.solarisSparcv9.drihack" /> 
+      <property name="compiler.cfg.id"                      value="compiler.cfg.solaris.sparcv9" /> 
+      <property name="linker.cfg.id.core"                   value="linker.cfg.solaris.sparcv9.jogl" /> 
+      <property name="linker.cfg.id.drihack"                value="linker.cfg.solaris.sparcv9" /> 
     </target>
    
 
-    <target name="declare.solarisAMD64" depends="declare.x11" if="isSolarisAMD64">
+    <target name="declare.solaris.amd64" depends="declare.x11" if="isSolarisAMD64">
       <echo message="SolarisAMD64" />
       <property name="java.includes.dir.platform"           value="${java.includes.dir.solaris}" />
       <property name="java.lib.dir.platform"                value="${java.lib.dir.solaris}" />
 
-      <property name="compiler.cfg.id"                      value="compiler.cfg.solarisAMD64" /> 
-      <property name="linker.cfg.id.core"                   value="linker.cfg.solarisAMD64" /> 
-      <property name="linker.cfg.id.drihack"                value="linker.cfg.solarisAMD64.drihack" /> 
+      <property name="compiler.cfg.id"                      value="compiler.cfg.solaris.amd64" /> 
+      <property name="linker.cfg.id.core"                   value="linker.cfg.solaris.amd64.jogl" /> 
+      <property name="linker.cfg.id.drihack"                value="linker.cfg.solaris.amd64" /> 
     </target>
    
  
@@ -441,7 +441,7 @@
       <property name="javadoc.dev.packagenames.platform" value="${javadoc.dev.packagenames.macosx}" />
 
       <property name="compiler.cfg.id"                      value="compiler.cfg.macosx" /> 
-      <property name="linker.cfg.id.core"                   value="linker.cfg.macosx" /> 
+      <property name="linker.cfg.id.core"                   value="linker.cfg.macosx.jogl" /> 
     </target>
     
     <target name="declare.freebsd" depends="declare.x11" if="isFreeBSD">
@@ -449,9 +449,9 @@
       <property name="java.includes.dir.platform"           value="${java.includes.dir.freebsd}" />
       <property name="java.lib.dir.platform"                value="${java.lib.dir.linux}" />
 
-      <property name="compiler.cfg.id"                      value="compiler.cfg.freebsd" />
-      <property name="linker.cfg.id.core"                   value="linker.cfg.linux" />
-      <property name="linker.cfg.id.drihack"                value="linker.cfg.linux.drihack" /> 
+      <property name="compiler.cfg.id"                      value="compiler.cfg.freebsd.jogl" />
+      <property name="linker.cfg.id.core"                   value="linker.cfg.linux.jogl" />
+      <property name="linker.cfg.id.drihack"                value="linker.cfg.linux" /> 
     </target>
 
     <target name="declare.hpux" depends="declare.x11" if="isHPUX">
@@ -459,8 +459,8 @@
       <property name="java.includes.dir.platform"           value="${java.includes.dir.hpux}" />
       <property name="java.lib.dir.platform"                value="${java.lib.dir.hpux}" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.hpux" />
-      <property name="linker.cfg.id.core"                   value="linker.cfg.hpux" />
-      <property name="linker.cfg.id.drihack"                value="linker.cfg.hpux.drihack" /> 
+      <property name="linker.cfg.id.core"                   value="linker.cfg.hpux.jogl" />
+      <property name="linker.cfg.id.drihack"                value="linker.cfg.hpux" /> 
     </target>
 
     <!-- ================================================================== -->
@@ -481,7 +481,7 @@
         <mkdir dir="${obj.cg}" />
     </target>
 
-    <target name="declare" depends="init,declare.win32,declare.linux,declare.solaris32,declare.solarisSparcv9,declare.solarisAMD64,declare.macosx,declare.freebsd,declare.hpux" />
+    <target name="declare" depends="init,declare.win32,declare.linux,declare.solaris32,declare.solaris.sparcv9,declare.solaris.amd64,declare.macosx,declare.freebsd,declare.hpux" />
 
     <!-- ================================================================== -->
     <!-- GlueGen and BuildStaticGLInfo creation, task setup and Java file generation -->
@@ -732,180 +732,58 @@
        - Compile the native C code for JOGL (and optionally the Cg binding).
       -->
 
-    <target name="c.configure">
+    <target name="c.configure" depends="gluegen.cpptasks.configure.compiler">
       <!-- compiler configuration -->
-      <compiler id="compiler.cfg.linux" name="gcc" />
+      <!-- Note that we can use the base setups in the gluegen-cpptasks for most of these -->
 
-      <compiler id="compiler.cfg.linux.amd64" name="gcc">
-        <compilerarg value="-fPIC"/>
-      </compiler>
-
-      <compiler id="compiler.cfg.solaris" name="suncc">
-      </compiler>
-
-      <compiler id="compiler.cfg.solarisSparcv9" name="suncc">
-        <compilerarg value="-fast" />
-        <compilerarg value="-xchip=ultra" />
-        <compilerarg value="-xarch=v9a" />
-        <compilerarg value="-xcode=32" />
-      </compiler>
-
-      <compiler id="compiler.cfg.solarisAMD64" name="suncc">
-        <compilerarg value="-fast" />
-        <compilerarg value="-xchip=opteron" />
-        <compilerarg value="-xarch=amd64" />
-  <!--      <compilerarg value="-xcache=64/64/2:1024/64/16" />   -->
-      </compiler>
-
-      <compiler id="compiler.cfg.win32.mingw" name="gcc">
-        <defineset>
-          <define name="_DEBUG"   if="c.compiler.use-debug"/>        
-          <define name="DEBUG"    if="c.compiler.use-debug"/>        
-          <define name="NDEBUG"   unless="c.compiler.use-debug"/>        
-
-          <define name="DBUILD_DLL" />
-          <define name="_WINGDI_" /> 
-          <define name="_STRICT_ANSI" /> 
-          <define name="_JNI_IMPLEMENTATION_" />
-        </defineset>
-      </compiler>
-
-      <compiler id="compiler.cfg.win32.msvc" name="msvc">
-        <compilerarg value="/W3"/>      <!-- set warning level -->
-        <compilerarg value="/Ob1"/>     <!-- inline only functions marked inline -->
-        <compilerarg value="/GF"/>      <!-- enable string pooling -->
-        <compilerarg value="/Gy"/>      <!-- enable function level linking -->
-        <compilerarg value="/GS"      if="isVC7"/>  <!-- buffer security checks -->
-        <compilerarg value="/Wp64"    if="isVC7"/>  <!-- detect 64-bit port problems -->
-        <compilerarg value="/RTCcsu"  if="isVC7"/>  <!-- various runtime checks -->
-	<!-- Note: previous compiler options for VC7 were:
-	     Debug:     /MDd /Yd /GS /RTCs /RTCu /RTCc /W3 /Od /GF /EHsc /Zi /GS /Gy /Wp64 /Zi /D &quot;_DEBUG&quot;
-             Optimized: /MD /W3 /O2 /Ob1 /GF /EHsc /GS /Gy /Wp64 /D &quot;NDEBUG&quot; -->
-        <compilerarg value="/GS"      if="isVC8"/>  <!-- buffer security checks -->
-        <compilerarg value="/Wp64"    if="isVC8"/>  <!-- detect 64-bit port problems -->
-        <compilerarg value="/RTCcsu"  if="isVC8"/>  <!-- various runtime checks -->
-
-        <defineset>
-          <define name="_DEBUG"   if="c.compiler.use-debug"/>
-          <define name="DEBUG"    if="c.compiler.use-debug"/>
-          <define name="NDEBUG"   unless="c.compiler.use-debug"/>
-        </defineset>
-      </compiler>
-
-      <compiler id="compiler.cfg.macosx" name="gcc">
-        <compilerarg value="-arch" if="macosxfat"/>
-        <compilerarg value="ppc" if="macosxfat"/>
-        <compilerarg value="-arch" if="macosxfat"/>
-        <compilerarg value="i386" if="macosxfat"/>
-        <compilerarg value="-Wmost" />
-        <compilerarg value="-ObjC" />
-        <defineset>
-          <define name="macosx" />
-        </defineset>
-      </compiler>
-
-      <compiler id="compiler.cfg.freebsd" name="gcc">
+      <compiler id="compiler.cfg.freebsd.jogl" extends="compiler.cfg.freebsd">
         <!-- Need to force X11R6 headers on to include path after stub_includes -->
         <includepath path="stub_includes/opengl"/>
         <includepath path="/usr/X11R6/include" />
       </compiler>
 
-      <compiler id="compiler.cfg.hpux" name="aCC">
-        <!-- Interpret source as ANSI C89 (not C++) -->
-        <compilerarg value="-Ae"/> 
-        <!-- Dereferences are performed with four-byte loads and stores. -->
-        <compilerarg value="+u4"/>
-        <!-- Suppress warnings: 
-                 942: signed/unsigned assignment compatibility
-                 129: redeclarations in stub_includes -->
-        <compilerarg value="+W942,129"/>
-        <defineset>
-           <!-- aCC doesn't seem to define a generic system macro, a la 
-               "__sun". The documentation claims it defines the following,
-               but don't seem to work: __HP_aCC, __LP64__, __RISC_0__. 
-               HP-UX docs on JNI say to use the defs below 
-               (http://www.hp.com/products1/unix/java/infolibrary/prog_guide/JNI_java2.html) -->
-           <!-- Single underscore prefix, as recommended by aCC docs... -->
-           <define name="_HPUX"/> 
-           <define name="_POSIX_C_SOURCE" value="199506L"/>
-        </defineset>
-      </compiler>
- 
       <!-- linker configuration -->
  
-      <linker id="linker.cfg.linux" name="gcc">
+      <linker id="linker.cfg.linux.jogl" extends="linker.cfg.linux">
         <syslibset dir="/usr/X11R6/lib" libs="GL, X11"/>
         <syslibset dir="/usr/X11R6/lib" libs="Xxf86vm" />
         <syslibset dir="${x11.cg.lib}" libs="Cg, CgGL" if="c.compiler.use-cglib"/>
       </linker>
 
-      <linker id="linker.cfg.linux.drihack" name="gcc" />
-
-      <linker id="linker.cfg.linux.amd64" name="gcc">
+      <linker id="linker.cfg.linux.amd64.jogl" name="gcc">
         <syslibset dir="/usr/X11R6/lib64" libs="GL, X11"/>
         <syslibset dir="/usr/X11R6/lib64" libs="Xxf86vm" />
         <syslibset dir="${x11.cg.lib}" libs="Cg, CgGL" if="c.compiler.use-cglib"/>
       </linker>
 
-      <linker id="linker.cfg.solaris" name="suncc">
+      <linker id="linker.cfg.solaris.jogl" extends="linker.cfg.solaris">
         <syslibset libs="GL, X11"/>
       </linker>
 
-
-      <linker id="linker.cfg.solaris.drihack" name="suncc" />
-
-      <linker id="linker.cfg.solarisSparcv9" name="suncc">
+      <linker id="linker.cfg.solaris.sparcv9.jogl" extends="linker.cfg.solaris.sparcv9">
         <linkerarg value="-xarch=v9a" />
         <syslibset dir="/usr/openwin/lib/sparcv9" libs="GL"/>
         <syslibset dir="/usr/lib/sparcv9" libs="X11"/>
       </linker>
 
-      <linker id="linker.cfg.solarisAMD64" name="suncc">
+      <linker id="linker.cfg.solaris.amd64.jogl" extends="linker.cfg.solaris.amd64">
         <linkerarg value="-xarch=amd64" />
         <syslibset dir="/usr/lib/amd64" libs="GL"/>
         <syslibset dir="/usr/lib/amd64" libs="X11"/>
       </linker>
 
-
-      <linker id="linker.cfg.solarisSparcv9.drihack" name="suncc" >
-       <linkerarg value="-xarch=v9a" />
-       <syslibset dir="/usr/openwin/lib/sparcv9" libs="GL"/>
-       <syslibset dir="/usr/openwin/lib/sparcv9" libs="GLU"/>
-       <syslibset dir="/usr/lib/sparcv9" libs="X11"/>
-      </linker>
-
-      <linker id="linker.cfg.solarisAMD64.drihack" name="suncc" >
-       <linkerarg value="-xarch=amd64" />
-        <syslibset dir="/usr/lib/amd64" libs="GL"/>
-        <syslibset dir="/usr/lib/amd64" libs="GLU"/>
-        <syslibset dir="/usr/lib/amd64" libs="X11"/>
-      </linker>
-
-
-      <linker id="linker.cfg.win32.mingw" name="gcc" incremental="false">
+      <linker id="linker.cfg.win32.mingw.jogl" extends="linker.cfg.win32.mingw">
         <linkerarg value="-Wl,--kill-at" />        <!-- remove @ from function names -->
         <syslibset libs="opengl32, glu32, gdi32, kernel32"/>
         <syslibset dir="${windows.cg.lib}" libs="cg, cgGL" if="c.compiler.use-cglib"/>
       </linker>
 
-      <linker id="linker.cfg.win32.msvc" name="msvc" incremental="false">
-        <linkerarg value="/OPT:REF,ICF" />        <!-- enable link-time optimisations -->
-        <linkerarg value="/SUBSYSTEM:WINDOWS" />  <!-- output is not a console app as uses WinMain entry point -->
-        <linkerarg value="/MACHINE:X86" if="isVC6" />       <!-- explicity set target platform -->
-        <linkerarg value="/MACHINE:X86" if="isVC7" />       <!-- explicity set target platform -->
-        <linkerarg value="/MACHINE:X86" if="isVC8" />       <!-- explicity set target platform -->
-        <linkerarg value="/MACHINE:X64" if="isVC8_X64"/>    <!-- explicity set target platform (IX64) -->
-
+      <linker id="linker.cfg.win32.msvc.jogl" extends="linker.cfg.win32.msvc">
         <syslibset libs="opengl32, gdi32, user32, kernel32" />
-        
         <syslibset dir="${windows.cg.lib}" libs="cg, cgGL" if="c.compiler.use-cglib"/>
       </linker>
 
-      <linker id="linker.cfg.macosx" name="gcc">
-        <linkerarg value="-arch" if="macosxfat"/>
-        <linkerarg value="ppc" if="macosxfat"/>
-        <linkerarg value="-arch" if="macosxfat"/>
-        <linkerarg value="i386" if="macosxfat"/>
+      <linker id="linker.cfg.macosx.jogl" extends="linker.cfg.macosx">
         <linkerarg value="-framework" />
         <linkerarg value="Cocoa" />
         <linkerarg value="-framework" />
@@ -914,12 +792,10 @@
         <linkerarg value="Cg" if="c.compiler.use-cglib" />
       </linker>
 
-      <linker id="linker.cfg.hpux" name="aCC">
+      <linker id="linker.cfg.hpux.jogl" extends="linker.cfg.hpux">
         <syslibset dir="/opt/graphics/OpenGL/lib" libs="GL, GLU"/>
         <syslibset dir="/usr/lib" libs="X11"/>
       </linker>
-
-      <linker id="linker.cfg.hpux.drihack" name="aCC" />
 
       <patternset id="c.src.files.jogl">
         <include name="${rootrel.src.c.jogl}/InternalBufferUtils.c"/>
