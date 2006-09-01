@@ -758,6 +758,7 @@
 
       <linker id="linker.cfg.solaris.jogl" extends="linker.cfg.solaris">
         <syslibset libs="GL, X11"/>
+        <syslibset dir="${x11.cg.lib}" libs="Cg, CgGL" if="c.compiler.use-cglib"/>
       </linker>
 
       <linker id="linker.cfg.solaris.sparcv9.jogl" extends="linker.cfg.solaris.sparcv9">
