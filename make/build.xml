@@ -56,7 +56,7 @@
 <project name="JOGL" basedir="." default="all">
 
   <!-- This is the version of JOGL you are building -->
-  <property name="base_version" value="1.0.0"/>
+  <property name="base_version" value="1.0.1"/>
     
   <!-- Pull in GlueGen cpptasks build file -->
   <property name="gluegen.root" value="../../gluegen" />
