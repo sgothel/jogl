@@ -59,7 +59,8 @@ public class Error {
     "invalid operation",
     "stack overflow",
     "stack underflow",
-    "out of memory"
+    "out of memory",
+    "invalid framebuffer operation"
   };
   
   private static String[] gluErrorStrings = {
@@ -78,7 +79,7 @@ public class Error {
     if( errorCode == 0 ) {
       return( "no error" );
     }
-    if( (errorCode >= GL.GL_INVALID_ENUM) && (errorCode <= GL.GL_OUT_OF_MEMORY) ) {
+    if( (errorCode >= GL.GL_INVALID_ENUM) && (errorCode <= GL.GL_INVALID_FRAMEBUFFER_OPERATION_EXT) ) {
       return( glErrorStrings[ errorCode - GL.GL_INVALID_ENUM ] );
     }
     if( errorCode == GL.GL_TABLE_TOO_LARGE ) {
