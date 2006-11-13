@@ -336,7 +336,7 @@ public final class FunctionAvailabilityCache {
       }
       catch (Exception e)
       {
-        e.printStackTrace();
+        //        e.printStackTrace();
         throw (IllegalArgumentException)
           new IllegalArgumentException(
             "Illegally formatted version identifier: \"" + versionString + "\"")
