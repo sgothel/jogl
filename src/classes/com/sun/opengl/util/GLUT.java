@@ -150,6 +150,60 @@ public class GLUT {
     glu.gluCylinder(quadObj, base, 0.0, height, slices, stacks);
   }
 
+  public void glutWireCylinder(double radius, double height, int slices, int stacks) {
+    quadObjInit(glu);
+    glu.gluQuadricDrawStyle(quadObj, GLU.GLU_LINE);
+    glu.gluQuadricNormals(quadObj, GLU.GLU_SMOOTH);
+    /* If we ever changed/used the texture or orientation state
+       of quadObj, we'd need to change it to the defaults here
+       with gluQuadricTexture and/or gluQuadricOrientation. */
+    glu.gluCylinder(quadObj, radius, radius, height, slices, stacks);
+  }
+
+  public void glutSolidCylinder(double radius, double height, int slices, int stacks) {
+    GL gl = glu.getCurrentGL();
+  	
+    // Prepare table of points for drawing end caps
+    double [] x = new double[slices];
+    double [] y = new double[slices];
+    double angleDelta = Math.PI * 2 / slices;
+    double angle = 0;
+    for (int i = 0 ; i < slices ; i ++) {
+      angle = i * angleDelta;
+      x[i] = Math.cos(angle) * radius;
+      y[i] = Math.sin(angle) * radius;
+    }
+  	
+    // Draw bottom cap
+    gl.glBegin(GL.GL_TRIANGLE_FAN);
+    gl.glNormal3d(0,0,-1);
+    gl.glVertex3d(0,0,0);
+    for (int i = 0 ; i < slices ; i ++) {
+      gl.glVertex3d(x[i], y[i], 0);
+    }
+    gl.glVertex3d(x[0], y[0], 0);
+    gl.glEnd();
+  	
+    // Draw top cap
+    gl.glBegin(GL.GL_TRIANGLE_FAN);
+    gl.glNormal3d(0,0,1);
+    gl.glVertex3d(0,0,height);
+    for (int i = 0 ; i < slices ; i ++) {
+      gl.glVertex3d(x[i], y[i], height);
+    }
+    gl.glVertex3d(x[0], y[0], height);
+    gl.glEnd();
+  	
+    // Draw walls
+    quadObjInit(glu);
+    glu.gluQuadricDrawStyle(quadObj, GLU.GLU_FILL);
+    glu.gluQuadricNormals(quadObj, GLU.GLU_SMOOTH);
+    /* If we ever changed/used the texture or orientation state
+       of quadObj, we'd need to change it to the defaults here
+       with gluQuadricTexture and/or gluQuadricOrientation. */
+    glu.gluCylinder(quadObj, radius, radius, height, slices, stacks);
+  }
+
   public void glutWireCube(float size) {
     drawBox(GLU.getCurrentGL(), size, GL.GL_LINE_LOOP);
   }
@@ -428,6 +482,46 @@ public class GLUT {
     return length;
   }
 
+  /**
+     This function draws a wireframe dodecahedron whose
+     facets are rhombic and
+     whose vertices are at unit radius.
+     No facet lies normal to any coordinate axes.
+     The polyhedron is centered at the origin.
+  */
+  public void glutWireRhombicDodecahedron() {
+    GL gl = glu.getCurrentGL();
+    for( int i = 0; i < 12; i++ ) {
+      gl.glBegin( GL.GL_LINE_LOOP );
+      gl.glNormal3dv( rdod_n[ i ],0 );
+      gl.glVertex3dv( rdod_r[ rdod_v[ i ][ 0 ] ],0 );
+      gl.glVertex3dv( rdod_r[ rdod_v[ i ][ 1 ] ],0 );
+      gl.glVertex3dv( rdod_r[ rdod_v[ i ][ 2 ] ],0 );
+      gl.glVertex3dv( rdod_r[ rdod_v[ i ][ 3 ] ],0 );
+      gl.glEnd( );
+    }
+  }
+  
+  /**
+   This function draws a solid-shaded dodecahedron
+   whose facets are rhombic and
+   whose vertices are at unit radius.
+   No facet lies normal to any coordinate axes.
+   The polyhedron is centered at the origin.
+   */
+  public void glutSolidRhombicDodecahedron() {
+    GL gl = glu.getCurrentGL();
+    gl.glBegin( GL.GL_QUADS );
+    for( int i = 0; i < 12; i++ ) {
+      gl.glNormal3dv( rdod_n[ i ],0 );
+      gl.glVertex3dv( rdod_r[ rdod_v[ i ][ 0 ] ],0 );
+      gl.glVertex3dv( rdod_r[ rdod_v[ i ][ 1 ] ],0 );
+      gl.glVertex3dv( rdod_r[ rdod_v[ i ][ 2 ] ],0 );
+      gl.glVertex3dv( rdod_r[ rdod_v[ i ][ 3 ] ],0 );
+    }
+    gl.glEnd( );
+  }
+  
   //----------------------------------------------------------------------
   // Internals only below this point
   //
@@ -783,6 +877,58 @@ public class GLUT {
     }
   }
 
+  /* rhombic dodecahedron data: */
+  
+  private static final double rdod_r[][] =
+  {
+    { 0.0, 0.0, 1.0 },
+    {  0.707106781187,  0.000000000000,  0.5 },
+    {  0.000000000000,  0.707106781187,  0.5 },
+    { -0.707106781187,  0.000000000000,  0.5 },
+    {  0.000000000000, -0.707106781187,  0.5 },
+    {  0.707106781187,  0.707106781187,  0.0 },
+    { -0.707106781187,  0.707106781187,  0.0 },
+    { -0.707106781187, -0.707106781187,  0.0 },
+    {  0.707106781187, -0.707106781187,  0.0 },
+    {  0.707106781187,  0.000000000000, -0.5 },
+    {  0.000000000000,  0.707106781187, -0.5 },
+    { -0.707106781187,  0.000000000000, -0.5 },
+    {  0.000000000000, -0.707106781187, -0.5 },
+    {  0.0, 0.0, -1.0 }
+  };
+  
+  private static final int rdod_v[][] =
+  {
+    { 0,  1,  5,  2 },
+    { 0,  2,  6,  3 },
+    { 0,  3,  7,  4 },
+    { 0,  4,  8,  1 },
+    { 5, 10,  6,  2 },
+    { 6, 11,  7,  3 },
+    { 7, 12,  8,  4 },
+    { 8,  9,  5,  1 },
+    { 5,  9, 13, 10 },
+    { 6, 10, 13, 11 },
+    { 7, 11, 13, 12 },
+    { 8, 12, 13,  9 }
+  };
+  
+  private static final double rdod_n[][] =
+  {
+    {  0.353553390594,  0.353553390594,  0.5 },
+    { -0.353553390594,  0.353553390594,  0.5 },
+    { -0.353553390594, -0.353553390594,  0.5 },
+    {  0.353553390594, -0.353553390594,  0.5 },
+    {  0.000000000000,  1.000000000000,  0.0 },
+    { -1.000000000000,  0.000000000000,  0.0 },
+    {  0.000000000000, -1.000000000000,  0.0 },
+    {  1.000000000000,  0.000000000000,  0.0 },
+    {  0.353553390594,  0.353553390594, -0.5 },
+    { -0.353553390594,  0.353553390594, -0.5 },
+    { -0.353553390594, -0.353553390594, -0.5 },
+    {  0.353553390594, -0.353553390594, -0.5 }
+  };
+  
   /* tetrahedron data: */
 
   private static final float T = 1.73205080756887729f;
