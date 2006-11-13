@@ -205,11 +205,18 @@ public class WindowsOnscreenGLDrawable extends WindowsGLDrawable {
         // Workaround for problems seen on Intel 82855 cards in particular
         // Make it look like the lockSurface() call didn't succeed
         unlockSurface();
-        if (++setPixelFormatFailCount == MAX_SET_PIXEL_FORMAT_FAIL_COUNT) {
-          setPixelFormatFailCount = 0;
-          throw e;
+        if (e instanceof GLException) {
+          if (++setPixelFormatFailCount == MAX_SET_PIXEL_FORMAT_FAIL_COUNT) {
+            setPixelFormatFailCount = 0;
+            throw e;
+          }
+          return LOCK_SURFACE_NOT_READY;
+        } else {
+          // Probably a user error in the GLCapabilitiesChooser or similar.
+          // Don't propagate non-GLExceptions out because calling code
+          // expects to catch only that exception type
+          throw new GLException(e);
         }
-        return LOCK_SURFACE_NOT_READY;
       }
     }
     if (PROFILING) {
