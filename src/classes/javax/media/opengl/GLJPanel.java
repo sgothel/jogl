@@ -893,13 +893,24 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
           }
           // Must destroy and recreate pbuffer to fit
           if (pbuffer != null) {
-            pbuffer.destroy();
+            // Watch for errors during pbuffer destruction (due to
+            // buggy / bad OpenGL drivers, in particular SiS) and fall
+            // back to software rendering
+            try {
+              pbuffer.destroy();
+            } catch (GLException e) {
+              hardwareAccelerationDisabled = true;
+              if (DEBUG) {
+                System.err.println("WARNING: falling back to software rendering due to bugs in OpenGL drivers");
+                e.printStackTrace();
+              }
+            }
           }
           pbuffer = null;
           isInitialized = false;
           pbufferWidth = getNextPowerOf2(panelWidth);
           pbufferHeight = getNextPowerOf2(panelHeight);
-          if (DEBUG) {
+          if (DEBUG && !hardwareAccelerationDisabled) {
             System.err.println("New pbuffer size is (" + pbufferWidth + ", " + pbufferHeight + ")");
           }
           initialize();
@@ -912,8 +923,14 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
         // bottleneck. Should probably make the size of the offscreen
         // image be the exact size of the pbuffer to save some work on
         // resize operations...
-        readBackWidthInPixels  = pbufferWidth;
-        readBackHeightInPixels = panelHeight;
+        if (!hardwareAccelerationDisabled) {
+          readBackWidthInPixels  = pbufferWidth;
+          readBackHeightInPixels = panelHeight;
+        } else {
+          // Just disabled hardware acceleration during this resize operation; do a fixup
+          readBackWidthInPixels  = Math.max(1, panelWidth);
+          readBackHeightInPixels = Math.max(1, panelHeight);
+        }
       } else {
         offscreenContext.destroy();
         offscreenDrawable.setSize(Math.max(1, panelWidth), Math.max(1, panelHeight));
