@@ -330,10 +330,9 @@ public class Texture {
       gl.glBindTexture(newTarget, texID);
     }
 
-    // REMIND: let the user specify these, optionally
     int minFilter = (data.getMipmap() ? GL.GL_LINEAR_MIPMAP_LINEAR : GL.GL_LINEAR);
     int magFilter = GL.GL_LINEAR;
-    int wrapMode = GL.GL_CLAMP_TO_EDGE;
+    int wrapMode = (gl.isExtensionAvailable("GL_VERSION_1_2") ? GL.GL_CLAMP_TO_EDGE : GL.GL_CLAMP);
 
     // REMIND: figure out what to do for GL_TEXTURE_RECTANGLE_ARB
     if (newTarget != GL.GL_TEXTURE_RECTANGLE_ARB) {
@@ -485,8 +484,9 @@ public class Texture {
    * Sets the OpenGL integer texture parameter for the texture's
    * target. This gives control over parameters such as
    * GL_TEXTURE_WRAP_S and GL_TEXTURE_WRAP_T, which by default are set
-   * to GL_CLAMP_TO_EDGE. Causes this texture to be bound to the
-   * current texture state.
+   * to GL_CLAMP_TO_EDGE if OpenGL 1.2 is supported on the current
+   * platform and GL_CLAMP if not. Causes this texture to be bound to
+   * the current texture state.
    * 
    * @throws GLException if no OpenGL context was current or if any
    * OpenGL-related errors occurred
