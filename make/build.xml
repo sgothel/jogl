@@ -1151,6 +1151,13 @@
 	    <available file="${jogl.dist.dir}/jogl-linux/32/libjogl.so" />
 	    <available file="${jogl.dist.dir}/jogl-linux/32/libjogl_awt.so" />
 	    <available file="${jogl.dist.dir}/jogl-linux/32/libjogl_cg.so" />
+	    <!-- Assume we also copy over these generated files in the Linux build -->
+	    <!-- in order to satisfy requests from end users that we provide these -->
+	    <!-- files for easier source browsing in IDEs                          -->
+	    <available file="${jogl.dist.dir}/jogl-linux/DebugGL.java" />
+	    <available file="${jogl.dist.dir}/jogl-linux/TraceGL.java" />
+	    <available file="${jogl.dist.dir}/jogl-linux/GL.java" />
+	    <available file="${jogl.dist.dir}/jogl-linux/GLU.java" />
 	  </and>
 	</condition>
 	<fail unless="linux.complete">
@@ -1224,6 +1231,7 @@
 	    <available file="${jogl.dist.dir}/jogl-solsparc/jogl.jar" />
 	    <available file="${jogl.dist.dir}/jogl-solsparc/32/libjogl.so" />
 	    <available file="${jogl.dist.dir}/jogl-solsparc/32/libjogl_awt.so" />
+	    <available file="${jogl.dist.dir}/jogl-solsparc/32/libjogl_drihack.so" />
 	  </and>
 	</condition>
 	<fail unless="solsparc.complete">
@@ -1241,6 +1249,7 @@
 	    <available file="${jogl.dist.dir}/jogl-solsparc/jogl.jar" />
 	    <available file="${jogl.dist.dir}/jogl-solsparc/64/libjogl.so" />
 	    <available file="${jogl.dist.dir}/jogl-solsparc/64/libjogl_awt.so" />
+	    <available file="${jogl.dist.dir}/jogl-solsparc/64/libjogl_drihack.so" />
 	  </and>
 	</condition>
 	<fail unless="solsparcv9.complete">
@@ -1258,6 +1267,7 @@
 	    <available file="${jogl.dist.dir}/jogl-solx86/jogl.jar" />
 	    <available file="${jogl.dist.dir}/jogl-solx86/32/libjogl.so" />
 	    <available file="${jogl.dist.dir}/jogl-solx86/32/libjogl_awt.so" />
+	    <available file="${jogl.dist.dir}/jogl-solx86/32/libjogl_drihack.so" />
 	  </and>
 	</condition>
 	<fail unless="solx86.complete">
@@ -1274,6 +1284,7 @@
 	  <and>
 	    <available file="${jogl.dist.dir}/jogl-solx86/64/libjogl.so" />
 	    <available file="${jogl.dist.dir}/jogl-solx86/64/libjogl_awt.so" />
+	    <available file="${jogl.dist.dir}/jogl-solx86/64/libjogl_drihack.so" />
 	  </and>
 	</condition>
 	<fail unless="solamd64.complete">
@@ -1286,20 +1297,59 @@
         </fail>
     </target>
 
+    <!-- Helper task for dist target below -->
+    <!-- Required parameters: -->
+    <!--   zip.os.arch    = the os/arch combination for this zip file (i.e., "windows-i586") -->
+    <!--   zip.src.so.dir = the directory containing the .so's / .dll's / .jnilib's for this platform-->
+    <target name="dist.build.zip">
+        <property name="jogl.tmp.version" value="jogl-${tmp.version}-${zip.os.arch}" />
+        <!-- Create all needed directories -->
+        <mkdir dir="${jogl.dist.dir}/tmp/${jogl.tmp.version}/lib" />
+        <!-- Copy in files -->
+        <copy todir="${jogl.dist.dir}/tmp/${jogl.tmp.version}/lib">
+            <fileset dir="${zip.src.so.dir}" includes="*" />
+        </copy>
+        <copy file="${jogl.dist.dir}/jogl.jar" todir="${jogl.dist.dir}/tmp/${jogl.tmp.version}/lib" />
+        <copy file="../COPYRIGHT.txt"          todir="${jogl.dist.dir}/tmp/${jogl.tmp.version}" />
+        <copy file="../LICENSE.txt"            tofile="${jogl.dist.dir}/tmp/${jogl.tmp.version}/LICENSE-JOGL-${tmp.version}.txt" />
+        <copy file="README-zip-bundles.txt"
+          tofile="${jogl.dist.dir}/tmp/${jogl.tmp.version}/README.txt"
+          overwrite="true">
+          <filterset>
+              <filter token="VERSION" value="${tmp.version}"/>
+          </filterset>
+        </copy>
+        <copy file="../doc/userguide/index.html" tofile="${jogl.dist.dir}/tmp/${jogl.tmp.version}/Userguide.html" />
+        <!-- zip it up -->
+        <zip destfile="${jogl.dist.dir}/${jogl.tmp.version}.zip"
+	     basedir="${jogl.dist.dir}/tmp"
+	     includes="${jogl.tmp.version}/**" />
+    </target>
 
     <target name="dist" depends="dist.dir.check,dist.check.windows,dist.check.linux,dist.check.linux-amd64,dist.check.macosx,dist.check.macosxfat,dist.check.solsparc,dist.check.solsparcv9,dist.check.solx86, dist.check.solamd64">
         <delete file="${jogl.dist.dir}/jogl.jar" />
         <delete>
             <fileset dir="${jogl.dist.dir}" includes="jogl-natives-*.jar" />
         </delete>
-        <delete file="${jogl.dist.dir}/jogl-src.zip" />
+        <delete>
+            <fileset dir="${jogl.dist.dir}" includes="*.zip" />
+        </delete>
+        <delete dir="${jogl.dist.dir}/tmp" failonerror="false" />
         <delete dir="${jogl.dist.dir}/META-INF" failonerror="false" />
+        <!-- Set up a property needed later -->
+        <!-- FIXME: this is only suitable for nightly builds; need to factor this out -->
+        <!-- for release builds -->
+        <tstamp>
+             <format property="timestamp" pattern="yyyyMMdd"/>
+        </tstamp>
+        <property name="tmp.version" value="${base_version}-pre-${timestamp}" />
         <!-- Extract manifest from one of the jars to re-use it in the dist jar -->
         <unjar src="${jogl.dist.dir}/jogl-win/jogl.jar" dest="${jogl.dist.dir}" >
             <patternset>
                 <include name="META-INF/MANIFEST.MF" />
             </patternset>
         </unjar>
+        <!-- Build jar files suitable for Java Web Start -->
         <jar manifest="${jogl.dist.dir}/META-INF/MANIFEST.MF" destfile="${jogl.dist.dir}/jogl.jar" duplicate="preserve">
 	    <zipgroupfileset dir="${jogl.dist.dir}"
 	                     includes="jogl-win/*.jar, jogl-linux/*.jar, jogl-macosx/*.jar" />
@@ -1332,11 +1382,65 @@
              basedir="${jogl.dist.dir}/jogl-solx86/64"
              includes="libjogl.so,libjogl_awt.so,libjogl_drihack.so" />
 	<!-- Build a source archive as well -->
-        <zip destfile="${jogl.dist.dir}/jogl-src.zip"
+	<!-- First copy the generated files out of the Linux build results into the appropriate -->
+	<!-- directory of this source tree (so that they'll be blown away properly with an -->
+	<!-- "ant clean") -->
+	<mkdir dir="../build/gensrc/classes/javax/media/opengl/glu" />
+	<copy file="${jogl.dist.dir}/jogl-linux/DebugGL.java" todir="../build/gensrc/classes/javax/media/opengl" />
+	<copy file="${jogl.dist.dir}/jogl-linux/TraceGL.java" todir="../build/gensrc/classes/javax/media/opengl" />
+	<copy file="${jogl.dist.dir}/jogl-linux/GL.java"      todir="../build/gensrc/classes/javax/media/opengl" />
+	<copy file="${jogl.dist.dir}/jogl-linux/GLU.java"     todir="../build/gensrc/classes/javax/media/opengl/glu" />
+        <zip destfile="${jogl.dist.dir}/jogl-${tmp.version}-src.zip"
 	     basedir="../.."
-	     includes="gluegen/LICENSE.txt,gluegen/doc/**,gluegen/make/**,gluegen/src/**,jogl/LICENSE.txt,jogl/README.txt,jogl/doc/**,jogl/make/**,jogl/src/**"
+	     includes="gluegen/LICENSE.txt,gluegen/doc/**,gluegen/make/**,gluegen/src/**,jogl/LICENSE.txt,jogl/README.txt,jogl/build/gensrc/classes/javax/media/opengl/**,jogl/doc/**,jogl/make/**,jogl/src/**"
 	     excludes="**/*.class,**/*~"
 	     />
+        <!-- Create zip archives suitable for developers -->
+        <!-- Unfortunately, we have to replicate the os/arch name combinations from
+             gluegen-cpptasks.xml. The reason for this is that we can't generate these
+             zip archives on the platform where the builds run; we have to run the dist
+             target in order to get the platform-independent jogl.jar. -->
+        <antcall target="dist.build.zip" inheritAll="true">
+            <param name="zip.os.arch"    value="linux-i586" />
+            <param name="zip.src.so.dir" value="${jogl.dist.dir}/jogl-linux/32" />
+        </antcall>
+        <antcall target="dist.build.zip" inheritAll="true">
+            <param name="zip.os.arch"    value="linux-amd64" />
+            <param name="zip.src.so.dir" value="${jogl.dist.dir}/jogl-linux/64" />
+        </antcall>
+        <antcall target="dist.build.zip" inheritAll="true">
+            <param name="zip.os.arch"    value="macosx-ppc" />
+            <param name="zip.src.so.dir" value="${jogl.dist.dir}/jogl-macosx/ppc" />
+        </antcall>
+        <antcall target="dist.build.zip" inheritAll="true">
+            <param name="zip.os.arch"    value="macosx-universal" />
+            <param name="zip.src.so.dir" value="${jogl.dist.dir}/jogl-macosx/fat" />
+        </antcall>
+        <antcall target="dist.build.zip" inheritAll="true">
+            <param name="zip.os.arch"    value="solaris-i586" />
+            <param name="zip.src.so.dir" value="${jogl.dist.dir}/jogl-solx86/32" />
+        </antcall>
+        <antcall target="dist.build.zip" inheritAll="true">
+            <param name="zip.os.arch"    value="solaris-amd64" />
+            <param name="zip.src.so.dir" value="${jogl.dist.dir}/jogl-solx86/64" />
+        </antcall>
+        <antcall target="dist.build.zip" inheritAll="true">
+            <param name="zip.os.arch"    value="solaris-sparc" />
+            <param name="zip.src.so.dir" value="${jogl.dist.dir}/jogl-solsparc/32" />
+        </antcall>
+        <antcall target="dist.build.zip" inheritAll="true">
+            <param name="zip.os.arch"    value="solaris-sparcv9" />
+            <param name="zip.src.so.dir" value="${jogl.dist.dir}/jogl-solsparc/64" />
+        </antcall>
+        <antcall target="dist.build.zip" inheritAll="true">
+            <param name="zip.os.arch"    value="windows-i586" />
+            <param name="zip.src.so.dir" value="${jogl.dist.dir}/jogl-win/32" />
+        </antcall>
+        <!-- Create one last zip archive by hand, this one containing all of the -->
+        <!-- Java Web Start jar files (for easier redistribution) -->
+        <zip destfile="${jogl.dist.dir}/jogl-${tmp.version}-webstart.zip"
+	     basedir="${jogl.dist.dir}"
+	     includes="*.jar" />
     </target>
 
     <!-- unjar and re-jar the platform-independent jogl.jar with the official manifest -->
