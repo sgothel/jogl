@@ -48,8 +48,54 @@ import com.sun.opengl.impl.*;
  * and computing texture coordinates for both the entire image as well
  * as a sub-image. 
  * 
- * <br> REMIND: document GL_TEXTURE_2D/GL_TEXTURE_RECTANGLE_ARB issues...
- * <br> REMIND: translucent images will have premultiplied comps by default...
+ * <p><a name="nonpow2"><b>Non-power-of-two restrictions</b></a>
+ * <br> When creating an OpenGL texture object, the Texture class will
+ * attempt to leverage the <a
+ * href="http://www.opengl.org/registry/specs/ARB/texture_non_power_of_two.txt">GL_ARB_texture_non_power_of_two</a>
+ * and <a
+ * href="http://www.opengl.org/registry/specs/ARB/texture_rectangle.txt">GL_ARB_texture_rectangle</a>
+ * extensions (in that order) whenever possible.  If neither extension
+ * is available, the Texture class will simply upload a non-pow2-sized
+ * image into a standard pow2-sized texture (without any special
+ * scaling).  Since the choice of extension (or whether one is used at
+ * all) depends on the user's machine configuration, developers are
+ * recommended to use {@link #getImageTexCoords} and {@link
+ * #getSubImageTexCoords}, as those methods will calculate the
+ * appropriate texture coordinates for the situation.
+ *
+ * <p>One caveat in this approach is that certain texture wrap modes
+ * (e.g.  GL_REPEAT) are not legal when the GL_ARB_texture_rectangle
+ * extension is in use.  Another issue to be aware of is that in the
+ * default pow2 scenario, if the original image does not have pow2
+ * dimensions, then wrapping may not work as one might expect since
+ * the image does not extend to the edges of the pow2 texture.  If
+ * texture wrapping is important, it is recommended to use only
+ * pow2-sized images with the Texture class.
+ *
+ * <p><a name="premult"><b>Alpha premultiplication and blending</b></a>
+ * <br> The mathematically correct way to perform blending in OpenGL
+ * (with the SrcOver "source over destination" mode, or any other
+ * Porter-Duff rule) is to use "premultiplied color components", which
+ * means the R/G/ B color components have already been multiplied by
+ * the alpha value.  To make things easier for developers, the Texture
+ * class will automatically convert non-premultiplied image data into
+ * premultiplied data when storing it into an OpenGL texture.  As a
+ * result, it is important to use the correct blending function; for
+ * example, the SrcOver rule is expressed as:
+<pre>
+    gl.glBlendFunc(GL.GL_ONE, GL.GL_ONE_MINUS_SRC_ALPHA);
+</pre>
+ * Also, when using a texture function like {@code GL_MODULATE} where
+ * the current color plays a role, it is important to remember to make
+ * sure that the color is specified in a premultiplied form, for
+ * example:
+<pre>
+    float a = ...;
+    float r = r * a;
+    float g = g * a;
+    float b = b * a;
+    gl.glColor4f(r, g, b, a);
+</pre> 
  *
  * @author Chris Campbell
  * @author Kenneth Russell
