@@ -118,6 +118,9 @@ public class WindowsGLDrawableFactory extends GLDrawableFactoryImpl {
         };
       maybeDoSingleThreadedWorkaround(r);
     }
+    if (DEBUG) {
+      System.err.println("WindowsGLDrawableFactory.canCreateGLPbuffer() = " + canCreateGLPbuffer);
+    }
     return canCreateGLPbuffer;
   }
 

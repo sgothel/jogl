@@ -9,23 +9,13 @@
 
 typedef int Bool;
 
-void* createContext(void* shareContext, void* nsView,
-                    int doubleBuffer,
-                    int stereo,
-                    int redBits,
-                    int greenBits,
-                    int blueBits,
-                    int alphaBits,
-                    int depthBits,
-                    int stencilBits,
-                    int accumRedBits,
-                    int accumGreenBits,
-                    int accumBlueBits,
-                    int accumAlphaBits,
-                    int sampleBuffers,
-                    int numSamples,
-                    int pbuffer,
-                    int floatingPoint,
+void* createPixelFormat(int* iattrs, int niattrs, int* ivalues);
+void queryPixelFormat(void* pixelFormat, int* iattrs, int niattrs, int* ivalues);
+void deletePixelFormat(void* pixelFormat);
+
+void* createContext(void* shareContext,
+                    void* nsView,
+                    void* pixelFormat,
                     int* viewNotReady);
 Bool  makeCurrentContext(void* nsContext);
 Bool  clearCurrentContext(void* nsContext);

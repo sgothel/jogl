@@ -96,6 +96,7 @@ public class WindowsOnscreenGLDrawable extends WindowsGLDrawable {
     this.realized = realized;
     if (!realized) {
       // Assume heavyweight widget was destroyed
+      setChosenGLCapabilities(null);
       pixelFormatChosen = false;
     }
   }

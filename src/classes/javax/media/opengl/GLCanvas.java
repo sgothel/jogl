@@ -245,6 +245,13 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
     maybeDoSingleThreadedWorkaround(swapBuffersOnEventDispatchThreadAction, swapBuffersAction);
   }
 
+  public GLCapabilities getChosenGLCapabilities() {
+    if (drawable == null)
+      return null;
+
+    return drawable.getChosenGLCapabilities();
+  }
+
   //----------------------------------------------------------------------
   // Internals only below this point
   //

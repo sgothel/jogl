@@ -42,11 +42,25 @@ package com.sun.opengl.impl;
 import javax.media.opengl.*;
 
 public abstract class GLDrawableImpl implements GLDrawable {
+  private GLCapabilities chosenCapabilities;
+
   /** For offscreen GLDrawables (pbuffers and "pixmap" drawables),
       indicates that native resources should be reclaimed. */
   public abstract void destroy() throws GLException;
 
   public static String toHexString(long hex) {
     return GLContextImpl.toHexString(hex);
+  }
+
+  public GLCapabilities getChosenGLCapabilities() {
+    if (chosenCapabilities == null)
+      return null;
+
+    // Must return a new copy to avoid mutation by end user
+    return (GLCapabilities) chosenCapabilities.clone();
+  }
+
+  public void setChosenGLCapabilities(GLCapabilities caps) {
+    chosenCapabilities = caps;
   }
 }

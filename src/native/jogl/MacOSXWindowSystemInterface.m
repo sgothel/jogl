@@ -379,33 +379,110 @@ long validateParameter(NSOpenGLPixelFormatAttribute atttribute, long value)
 	return value;
 }
 
-void* createContext(void* shareContext, void* view,
-                    int doubleBuffer,
-                    int stereo,
-                    int redBits,
-                    int greenBits,
-                    int blueBits,
-                    int alphaBits,
-                    int depthBits,
-                    int stencilBits,
-                    int accumRedBits,
-                    int accumGreenBits,
-                    int accumBlueBits,
-                    int accumAlphaBits,
-                    int sampleBuffers,
-                    int numSamples,
-                    int pbuffer,
-                    int floatingPoint,
+void* createPixelFormat(int* iattrs, int niattrs, int* ivalues) {
+  NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+
+  getRendererInfo();
+
+  // http://developer.apple.com/documentation/Cocoa/Reference/ApplicationKit/ObjC_classic/Classes/NSOpenGLPixelFormat.html
+  NSOpenGLPixelFormatAttribute attribs[256];
+
+  int idx = 0;
+  int i;
+  for (i = 0; i < niattrs; i++) {
+    int attr = iattrs[i];
+    switch (attr) {
+      case NSOpenGLPFAPixelBuffer:
+        if (ivalues[i] != 0) {
+          attribs[idx++] = NSOpenGLPFAPixelBuffer;
+        }
+        break;
+
+      case kCGLPFAColorFloat:
+        if (ivalues[i] != 0) {
+          attribs[idx++] = kCGLPFAColorFloat;
+        }
+        break;
+        
+      case NSOpenGLPFADoubleBuffer:
+        if (ivalues[i] != 0) {
+          attribs[idx++] = NSOpenGLPFADoubleBuffer;
+        }
+        break;
+
+      case NSOpenGLPFAStereo:
+        if (ivalues[i] != 0) {
+          attribs[idx++] = NSOpenGLPFAStereo;
+        }
+        break;
+
+      case NSOpenGLPFAColorSize:
+      case NSOpenGLPFAAlphaSize:
+      case NSOpenGLPFADepthSize:
+      case NSOpenGLPFAAccumSize:
+      case NSOpenGLPFASampleBuffers:
+      case NSOpenGLPFASamples:
+        attribs[idx++] = attr;
+        attribs[idx++] = ivalues[i];
+        break;
+
+      case NSOpenGLPFAStencilSize:
+        attribs[idx++] = attr;
+        attribs[idx++] = validateParameter(NSOpenGLPFAStencilSize, ivalues[i]);
+        break;
+
+      default:
+        // Need better way to signal to caller
+        return nil;
+    }
+  }
+
+  // Zero-terminate
+  attribs[idx++] = 0;
+
+  NSOpenGLPixelFormat* fmt = [[NSOpenGLPixelFormat alloc] initWithAttributes:attribs];
+  if (fmt == nil) {
+    // should we fallback to defaults or not?
+    fmt = [NSOpenGLView defaultPixelFormat];
+  }
+
+  [pool release];
+  return fmt;
+}
+
+void queryPixelFormat(void* pixelFormat, int* iattrs, int niattrs, int* ivalues) {
+  NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+  NSOpenGLPixelFormat* fmt = (NSOpenGLPixelFormat*) pixelFormat;
+  long tmp;
+  // FIXME: think about how specifying this might affect the API
+  int virtualScreen = 0;
+
+  int i;
+  for (i = 0; i < niattrs; i++) {
+    [fmt getValues: &tmp
+         forAttribute: (NSOpenGLPixelFormatAttribute) iattrs[i]
+         forVirtualScreen: virtualScreen];
+    ivalues[i] = (int) tmp;
+  }
+  [pool release];
+}
+  
+void deletePixelFormat(void* pixelFormat) {
+  NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+  NSOpenGLPixelFormat* fmt = (NSOpenGLPixelFormat*) pixelFormat;
+  [fmt release];
+  [pool release];
+}
+
+void* createContext(void* shareContext,
+                    void* view,
+                    void* pixelFormat,
                     int* viewNotReady)
 {
 	getRendererInfo();
 	
-	int colorSize = alphaBits + redBits + greenBits + blueBits;
-	int accumSize = accumAlphaBits + accumRedBits + accumGreenBits + accumBlueBits;
-	
 	NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
 
-	NSOpenGLContext *nsChareCtx = (NSOpenGLContext*)shareContext;
 	NSView *nsView = (NSView*)view;
 
 	if (nsView != NULL)
@@ -438,47 +515,10 @@ void* createContext(void* shareContext, void* view,
 			return NULL;
 		}
 	}
-
-	// http://developer.apple.com/documentation/Cocoa/Reference/ApplicationKit/ObjC_classic/Classes/NSOpenGLPixelFormat.html
-	NSOpenGLPixelFormatAttribute attribs[256];
-	int idx = 0;
-	if (pbuffer != 0)
-	{
-		attribs[idx++] =	NSOpenGLPFAPixelBuffer;
-	}
-	if (floatingPoint != 0)
-	{
-		attribs[idx++] =	kCGLPFAColorFloat /* NSOpenGLPFAColorFloat */;
-	}
-	if (doubleBuffer != 0)
-	{
-		attribs[idx++] =	NSOpenGLPFADoubleBuffer;
-	}
-	if (stereo != 0)
-	{
-		attribs[idx++] =	NSOpenGLPFAStereo;
-	}
-	attribs[idx++] =		NSOpenGLPFAColorSize;     attribs[idx++] = colorSize;
-	attribs[idx++] =		NSOpenGLPFAAlphaSize;     attribs[idx++] = alphaBits;
-	attribs[idx++] =		NSOpenGLPFADepthSize;     attribs[idx++] = depthBits;
-	attribs[idx++] =		NSOpenGLPFAStencilSize;   attribs[idx++] = validateParameter(NSOpenGLPFAStencilSize, stencilBits);
-	attribs[idx++] =		NSOpenGLPFAAccumSize;     attribs[idx++] = accumSize;
-	if (sampleBuffers != 0)
-	{
-		attribs[idx++] =	NSOpenGLPFASampleBuffers; attribs[idx++] = sampleBuffers;
-		attribs[idx++] =	NSOpenGLPFASamples;       attribs[idx++] = numSamples;
-	}
-	attribs[idx++] = 0;
-
-	NSOpenGLPixelFormat* fmt = [[NSOpenGLPixelFormat alloc] initWithAttributes:attribs];
-	if (fmt == nil)
-	{
-		// should we fallback to defaults or not?
-		fmt = [NSOpenGLView defaultPixelFormat];
-	}
 	
-	NSOpenGLContext* nsContext = [[NSOpenGLContext alloc] initWithFormat:fmt shareContext:nsChareCtx];
-	[fmt release];
+	NSOpenGLContext* nsContext = [[NSOpenGLContext alloc]
+                                       initWithFormat: (NSOpenGLPixelFormat*) pixelFormat
+                                       shareContext:   (NSOpenGLContext*) shareContext];
 		
 	if (nsView != nil)
 	{

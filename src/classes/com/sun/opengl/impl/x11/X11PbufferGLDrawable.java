@@ -166,6 +166,34 @@ public class X11PbufferGLDrawable extends X11GLDrawable {
       this.display = display;
       drawable = tmpBuffer;
       this.fbConfig = fbConfig;
+      
+      // Pick innocent query values if multisampling or floating point buffers not available
+      int sbAttrib      = X11GLDrawableFactory.isMultisampleAvailable() ? GLXExt.GLX_SAMPLE_BUFFERS_ARB : GLX.GLX_RED_SIZE;
+      int samplesAttrib = X11GLDrawableFactory.isMultisampleAvailable() ? GLXExt.GLX_SAMPLES_ARB : GLX.GLX_RED_SIZE;
+      int floatNV       = capabilities.getPbufferFloatingPointBuffers() ? GLX.GLX_FLOAT_COMPONENTS_NV : GLX.GLX_RED_SIZE;
+
+      // Query the fbconfig to determine its GLCapabilities
+      int[] iattribs = {
+        GLX.GLX_DOUBLEBUFFER,
+        GLX.GLX_STEREO,
+        GLX.GLX_RED_SIZE,
+        GLX.GLX_GREEN_SIZE,
+        GLX.GLX_BLUE_SIZE,
+        GLX.GLX_ALPHA_SIZE,
+        GLX.GLX_DEPTH_SIZE,
+        GLX.GLX_STENCIL_SIZE,
+        GLX.GLX_ACCUM_RED_SIZE,
+        GLX.GLX_ACCUM_GREEN_SIZE,
+        GLX.GLX_ACCUM_BLUE_SIZE,
+        GLX.GLX_ACCUM_ALPHA_SIZE,
+        sbAttrib,
+        samplesAttrib,        
+        floatNV
+      };
+
+      int[] ivalues = new int[iattribs.length];
+      queryFBConfig(display, fbConfig, iattribs, iattribs.length, ivalues);
+      setChosenGLCapabilities(X11GLDrawableFactory.attribList2GLCapabilities(iattribs, iattribs.length, ivalues, true));
 
       // Determine the actual width and height we were able to create.
       int[] tmp = new int[1];
@@ -197,5 +225,15 @@ public class X11PbufferGLDrawable extends X11GLDrawable {
       throw new GLException("glXGetFBConfigAttrib failed");
     }
     return tmp[0];
+  }
+
+  private void queryFBConfig(long display, GLXFBConfig fbConfig, int[] attribs, int nattribs, int[] values) {
+    int[] tmp = new int[1];
+    for (int i = 0; i < nattribs; i++) {
+      if (GLX.glXGetFBConfigAttrib(display, fbConfig, attribs[i], tmp, 0) != 0) {
+        throw new GLException("glXGetFBConfigAttrib failed");
+      }
+      values[i] = tmp[0];
+    }
   }
 }

@@ -128,6 +128,7 @@ public class WindowsOffscreenGLDrawable extends WindowsGLDrawable {
       origbitmap = 0;
       hbitmap = 0;
       hdc = 0;
+      setChosenGLCapabilities(null);
     }
   }
 }

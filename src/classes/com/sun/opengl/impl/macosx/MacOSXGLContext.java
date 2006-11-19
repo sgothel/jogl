@@ -102,34 +102,130 @@ public abstract class MacOSXGLContext extends GLContextImpl
     }
     int[] viewNotReady = new int[1];
     GLCapabilities capabilities = drawable.getCapabilities();
-    nsContext = CGL.createContext(share,
-                                  drawable.getView(),
-                                  capabilities.getDoubleBuffered() ? 1 : 0,
-                                  capabilities.getStereo() ? 1 : 0,
-                                  capabilities.getRedBits(),
-                                  capabilities.getGreenBits(),
-                                  capabilities.getBlueBits(),
-                                  capabilities.getAlphaBits(),
-                                  capabilities.getDepthBits(),
-                                  capabilities.getStencilBits(),
-                                  capabilities.getAccumRedBits(),
-                                  capabilities.getAccumGreenBits(),
-                                  capabilities.getAccumBlueBits(),
-                                  capabilities.getAccumAlphaBits(),
-                                  capabilities.getSampleBuffers() ? 1 : 0,
-                                  capabilities.getNumSamples(),
-                                  (pbuffer ? 1 : 0),
-                                  (floatingPoint ? 1 : 0),
-                                  viewNotReady, 0);
-    if (nsContext == 0) {
-      if (viewNotReady[0] == 1) {
-        if (DEBUG) {
-          System.err.println("!!! View not ready for " + getClass().getName());
+    int[] iattribs = new int[128];
+    int[] ivalues = new int[128];
+    int idx = 0;
+    if (pbuffer) {
+      iattribs[idx] = CGL.NSOpenGLPFAPixelBuffer;   ivalues[idx] = 1;  idx++;
+    }
+    if (floatingPoint) {
+      iattribs[idx] = CGL.kCGLPFAColorFloat;        ivalues[idx] = 1;  idx++;
+    }
+    iattribs[idx] = CGL.NSOpenGLPFADoubleBuffer;  ivalues[idx] = (capabilities.getDoubleBuffered() ? 1 : 0);  idx++;
+    iattribs[idx] = CGL.NSOpenGLPFAStereo;        ivalues[idx] = (capabilities.getStereo() ? 1 : 0);          idx++;
+    iattribs[idx] = CGL.NSOpenGLPFAColorSize;     ivalues[idx] = (capabilities.getRedBits() +
+                                                              capabilities.getGreenBits() +
+                                                              capabilities.getBlueBits());                    idx++;
+    iattribs[idx] = CGL.NSOpenGLPFAAlphaSize;     ivalues[idx] = capabilities.getAlphaBits();                 idx++;
+    iattribs[idx] = CGL.NSOpenGLPFADepthSize;     ivalues[idx] = capabilities.getDepthBits();                 idx++;
+    iattribs[idx] = CGL.NSOpenGLPFAAccumSize;     ivalues[idx] = (capabilities.getAccumRedBits() +
+                                                              capabilities.getAccumGreenBits() +
+                                                              capabilities.getAccumBlueBits() +
+                                                              capabilities.getAccumAlphaBits());              idx++;
+    iattribs[idx] = CGL.NSOpenGLPFAStencilSize;   ivalues[idx] = capabilities.getStencilBits();               idx++;
+    if (capabilities.getSampleBuffers()) {
+      iattribs[idx] = CGL.NSOpenGLPFASampleBuffers; ivalues[idx] = 1;                             idx++;
+      iattribs[idx] = CGL.NSOpenGLPFASamples;       ivalues[idx] = capabilities.getNumSamples();  idx++;
+    }
+
+    long pixelFormat = CGL.createPixelFormat(iattribs, 0, idx, ivalues, 0);
+    if (pixelFormat == 0) {
+      throw new GLException("Unable to allocate pixel format with requested GLCapabilities");
+    }
+    try {
+      // Try to allocate a context with this
+      nsContext = CGL.createContext(share,
+                                    drawable.getView(),
+                                    pixelFormat,
+                                    viewNotReady, 0);
+      if (nsContext == 0) {
+        if (viewNotReady[0] == 1) {
+          if (DEBUG) {
+            System.err.println("!!! View not ready for " + getClass().getName());
+          }
+          // View not ready at the window system level -- this is OK
+          return false;
         }
-        // View not ready at the window system level -- this is OK
-        return false;
+        throw new GLException("Error creating NSOpenGLContext with requested pixel format");
       }
-      throw new GLException("Error creating nsContext");
+
+      // On this platform the pixel format is associated with the
+      // context and not the drawable. However it's a reasonable
+      // approximation to just store the chosen pixel format up in the
+      // drawable since the public API doesn't provide for a different
+      // GLCapabilities per context.
+      if (drawable.getChosenGLCapabilities() == null) {
+        // Figure out what attributes we really got
+        GLCapabilities caps = new GLCapabilities();
+        CGL.queryPixelFormat(pixelFormat, iattribs, 0, idx, ivalues, 0);
+        for (int i = 0; i < idx; i++) {
+          int attr = iattribs[i];
+          switch (attr) {
+          case CGL.kCGLPFAColorFloat:
+            caps.setPbufferFloatingPointBuffers(ivalues[i] != 0);
+            break;
+
+          case CGL.NSOpenGLPFADoubleBuffer:
+            caps.setDoubleBuffered(ivalues[i] != 0);
+            break;
+
+          case CGL.NSOpenGLPFAStereo:
+            caps.setStereo(ivalues[i] != 0);
+            break;
+
+          case CGL.NSOpenGLPFAColorSize:
+            {
+              int bitSize = ivalues[i];
+              if (bitSize == 32)
+                bitSize = 24;
+              bitSize /= 3;
+              caps.setRedBits(bitSize);
+              caps.setGreenBits(bitSize);
+              caps.setBlueBits(bitSize);
+            }
+            break;
+
+          case CGL.NSOpenGLPFAAlphaSize:
+            caps.setAlphaBits(ivalues[i]);
+            break;
+
+          case CGL.NSOpenGLPFADepthSize:
+            caps.setDepthBits(ivalues[i]);
+            break;
+
+          case CGL.NSOpenGLPFAAccumSize:
+            {
+              int bitSize = ivalues[i] / 4;
+              caps.setAccumRedBits(bitSize);
+              caps.setAccumGreenBits(bitSize);
+              caps.setAccumBlueBits(bitSize);
+              caps.setAccumAlphaBits(bitSize);
+            }
+            break;
+
+          case CGL.NSOpenGLPFAStencilSize:
+            caps.setStencilBits(ivalues[i]);
+            break;
+
+          case CGL.NSOpenGLPFASampleBuffers:
+            caps.setSampleBuffers(ivalues[i] != 0);
+            break;
+
+          case CGL.NSOpenGLPFASamples:
+            caps.setNumSamples(ivalues[i]);
+            break;
+
+          default:
+            break;
+          }
+        }
+
+        drawable.setChosenGLCapabilities(caps);
+      }
+      
+      
+    } finally {
+      CGL.deletePixelFormat(pixelFormat);
     }
     GLContextShareSet.contextCreated(this);
     return true;

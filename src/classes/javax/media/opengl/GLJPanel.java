@@ -793,6 +793,23 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
     return oglPipelineEnabled;
   }
 
+  public GLCapabilities getChosenGLCapabilities() {
+    if (oglPipelineEnabled) {
+      // FIXME: should do better than this; is it possible to using only platform-independent code?
+      return new GLCapabilities();
+    }
+
+    if (hardwareAccelerationDisabled) {
+      if (offscreenDrawable != null)
+        return offscreenDrawable.getChosenGLCapabilities();
+    } else {
+      if (pbuffer != null)
+        return pbuffer.getChosenGLCapabilities();
+    }
+    
+    return null;
+  }
+
   //----------------------------------------------------------------------
   // Internals only below this point
   //

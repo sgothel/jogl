@@ -62,6 +62,38 @@ public class X11GLDrawableFactory extends GLDrawableFactoryImpl {
   // in this case
   private static boolean isVendorATI;
 
+  // Map for rediscovering the GLCapabilities associated with a
+  // particular screen and visualID after the fact
+  private static Map visualToGLCapsMap = Collections.synchronizedMap(new HashMap());
+  
+  static class ScreenAndVisualIDKey {
+    private int screen;
+    private long visualID;
+
+    ScreenAndVisualIDKey(int screen,
+                         long visualID) {
+      this.screen = screen;
+      this.visualID = visualID;
+    }
+
+    public int hashCode() {
+      return (int) (screen + 13 * visualID);
+    }
+
+    public boolean equals(Object obj) {
+      if ((obj == null) || (!(obj instanceof ScreenAndVisualIDKey))) {
+        return false;
+      }
+
+      ScreenAndVisualIDKey key = (ScreenAndVisualIDKey) obj;
+      return (screen == key.screen &&
+              visualID == key.visualID);
+    }
+
+    int  screen()   { return screen; }
+    long visualID() { return visualID; }
+  }
+
   static {
     // See DRIHack.java for an explanation of why this is necessary
     DRIHack.begin();
@@ -157,6 +189,11 @@ public class X11GLDrawableFactory extends GLDrawableFactoryImpl {
     } finally {
       unlockToolkit();
     }
+    // Store these away for later
+    for (int i = 0; i < infos.length; i++) {
+      visualToGLCapsMap.put(new ScreenAndVisualIDKey(screen, infos[i].visualid()),
+                            caps[i].clone());
+    }
     int chosen = chooser.chooseCapabilities(capabilities, caps, recommendedIndex);
     if (chosen < 0 || chosen >= caps.length) {
       throw new GLException("GLCapabilitiesChooser specified invalid index (expected 0.." + (caps.length - 1) + ")");
@@ -200,7 +237,22 @@ public class X11GLDrawableFactory extends GLDrawableFactoryImpl {
       throw new IllegalArgumentException("GLDrawables not supported for objects of type " +
                                          target.getClass().getName() + " (only Components are supported in this implementation)");
     }
-    return new X11OnscreenGLDrawable((Component) target);
+    Component comp = (Component) target;
+    X11OnscreenGLDrawable drawable = new X11OnscreenGLDrawable(comp);
+    // Figure out the GLCapabilities of this component
+    GraphicsConfiguration config = comp.getGraphicsConfiguration();
+    if (config == null) {
+      throw new IllegalArgumentException("GLDrawableFactory.chooseGraphicsConfiguration() was not used when creating this Component");
+    }
+    int visualID = X11SunJDKReflection.graphicsConfigurationGetVisualID(config);
+    int screen; 
+    if (isXineramaEnabled()) {
+      screen = 0;
+    } else {
+      screen = X11SunJDKReflection.graphicsDeviceGetScreen(config.getDevice());
+    }
+    drawable.setChosenGLCapabilities((GLCapabilities) visualToGLCapsMap.get(new ScreenAndVisualIDKey(screen, visualID)));
+    return drawable;
   }
 
   public GLDrawableImpl createOffscreenDrawable(GLCapabilities capabilities,
@@ -429,6 +481,83 @@ public class X11GLDrawableFactory extends GLDrawableFactoryImpl {
     }
     res[idx++] = 0;
     return res;
+  }
+
+  public static GLCapabilities attribList2GLCapabilities(int[] iattribs,
+                                                         int niattribs,
+                                                         int[] ivalues,
+                                                         boolean pbuffer) {
+    GLCapabilities caps = new GLCapabilities();
+
+    for (int i = 0; i < niattribs; i++) {
+      int attr = iattribs[i];
+      switch (attr) {
+        case GLX.GLX_DOUBLEBUFFER:
+          caps.setDoubleBuffered(ivalues[i] != GL.GL_FALSE);
+          break;
+
+        case GLX.GLX_STEREO:
+          caps.setStereo(ivalues[i] != GL.GL_FALSE);
+          break;
+
+        case GLX.GLX_RED_SIZE:
+          caps.setRedBits(ivalues[i]);
+          break;
+
+        case GLX.GLX_GREEN_SIZE:
+          caps.setGreenBits(ivalues[i]);
+          break;
+
+        case GLX.GLX_BLUE_SIZE:
+          caps.setBlueBits(ivalues[i]);
+          break;
+
+        case GLX.GLX_ALPHA_SIZE:
+          caps.setAlphaBits(ivalues[i]);
+          break;
+
+        case GLX.GLX_DEPTH_SIZE:
+          caps.setDepthBits(ivalues[i]);
+          break;
+
+        case GLX.GLX_STENCIL_SIZE:
+          caps.setStencilBits(ivalues[i]);
+          break;
+
+        case GLX.GLX_ACCUM_RED_SIZE:
+          caps.setAccumRedBits(ivalues[i]);
+          break;
+
+        case GLX.GLX_ACCUM_GREEN_SIZE:
+          caps.setAccumGreenBits(ivalues[i]);
+          break;
+
+        case GLX.GLX_ACCUM_BLUE_SIZE:
+          caps.setAccumBlueBits(ivalues[i]);
+          break;
+
+        case GLX.GLX_ACCUM_ALPHA_SIZE:
+          caps.setAccumAlphaBits(ivalues[i]);
+          break;
+
+        case GLXExt.GLX_SAMPLE_BUFFERS_ARB:
+          caps.setSampleBuffers(ivalues[i] != GL.GL_FALSE);
+          break;
+
+        case GLXExt.GLX_SAMPLES_ARB:
+          caps.setNumSamples(ivalues[i]);
+          break;
+
+        case GLX.GLX_FLOAT_COMPONENTS_NV:
+          caps.setPbufferFloatingPointBuffers(ivalues[i] != GL.GL_FALSE);
+          break;
+
+        default:
+          break;
+      }
+    }
+
+    return caps;
   }
 
   public void lockToolkit() {

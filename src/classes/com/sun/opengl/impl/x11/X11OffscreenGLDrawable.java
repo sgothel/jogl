@@ -99,6 +99,7 @@ public class X11OffscreenGLDrawable extends X11GLDrawable {
                            ", GLXPixmap " + toHexString(drawable) +
                            ", display " + toHexString(display));
       }
+      setChosenGLCapabilities(X11GLDrawableFactory.xvi2GLCapabilities(display, vis));
     } finally {
       unlockToolkit();
     }
@@ -134,6 +135,7 @@ public class X11OffscreenGLDrawable extends X11GLDrawable {
       drawable = 0;
       pixmap = 0;
       display = 0;
+      setChosenGLCapabilities(null);
     }
   }
 

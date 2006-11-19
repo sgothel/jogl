@@ -142,6 +142,13 @@ public class GLPbufferImpl implements GLPbuffer {
     context.releasePbufferFromTexture();
   }
 
+  public GLCapabilities getChosenGLCapabilities() {
+    if (pbufferDrawable == null)
+      return null;
+
+    return pbufferDrawable.getChosenGLCapabilities();
+  }
+
   //----------------------------------------------------------------------
   // No-ops for ComponentEvents
   //

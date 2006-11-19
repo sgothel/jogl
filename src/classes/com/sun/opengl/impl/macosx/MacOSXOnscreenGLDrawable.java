@@ -102,6 +102,9 @@ public class MacOSXOnscreenGLDrawable extends MacOSXGLDrawable {
 
   public void setRealized(boolean realized) {
     this.realized = realized;
+    // Might as well clear out the "chosen" pixel format, though it's
+    // associated with the GLContext on this platform and not the drawable
+    setChosenGLCapabilities(null);
   }
 
   public void setSize(int width, int height) {

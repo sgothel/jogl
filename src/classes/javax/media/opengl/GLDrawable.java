@@ -119,4 +119,14 @@ public interface GLDrawable {
       is enabled (as is the default), this method is called
       automatically and should not be called by the end user. */
   public void swapBuffers() throws GLException;
+
+  /** Fetches the {@link GLCapabilities} corresponding to the chosen
+      OpenGL capabilities (pixel format / visual) for this drawable.
+      Some drawables, in particular on-screen drawables, may be
+      created lazily; null is returned if the drawable is not
+      currently created or if its pixel format has not been set yet.
+      On some platforms, the pixel format is not directly associated
+      with the drawable; a best attempt is made to return a reasonable
+      value in this case. */
+  public GLCapabilities getChosenGLCapabilities();
 }

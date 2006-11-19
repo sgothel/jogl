@@ -96,6 +96,7 @@ public class WindowsPbufferGLDrawable extends WindowsGLDrawable {
         throw new GLException("Error destroying pbuffer: error code " + WGL.GetLastError());
       }
       buffer = 0;
+      setChosenGLCapabilities(null);
     }
   }
 
@@ -198,8 +199,8 @@ public class WindowsPbufferGLDrawable extends WindowsGLDrawable {
       iattributes[3] = WGLExt.WGL_ALPHA_BITS_ARB;
       iattributes[4] = WGLExt.WGL_DEPTH_BITS_ARB;
       iattributes[5] = (useFloat ? (ati ? WGLExt.WGL_PIXEL_TYPE_ARB : WGLExt.WGL_FLOAT_COMPONENTS_NV) : WGLExt.WGL_RED_BITS_ARB);
-      iattributes[6] = WGLExt.WGL_SAMPLE_BUFFERS_EXT;
-      iattributes[7] = WGLExt.WGL_SAMPLES_EXT;
+      iattributes[6] = WGLExt.WGL_SAMPLE_BUFFERS_ARB;
+      iattributes[7] = WGLExt.WGL_SAMPLES_ARB;
       iattributes[8] = WGLExt.WGL_DRAW_TO_PBUFFER_ARB;
       int[] ivalues = new int[9];
       for (int i = 0; i < nformats; i++) {
@@ -237,9 +238,9 @@ public class WindowsPbufferGLDrawable extends WindowsGLDrawable {
     }
 
     long tmpBuffer = 0;
-    int whichFormat = 0;
+    int whichFormat = -1;
     // Loop is a workaround for bugs in NVidia's recent drivers
-    do {
+    for (whichFormat = 0; whichFormat < nformats; whichFormat++) {
       int format = pformats[whichFormat];
 
       // Create the p-buffer.
@@ -266,8 +267,11 @@ public class WindowsPbufferGLDrawable extends WindowsGLDrawable {
       iattributes[niattribs++] = 0;
 
       tmpBuffer = wglExt.wglCreatePbufferARB(parentHdc, format, initWidth, initHeight, iattributes, 0);
-      ++whichFormat;
-    } while ((tmpBuffer == 0) && (whichFormat < nformats));
+      if (tmpBuffer != 0) {
+        // Done
+        break;
+      }
+    }
 
     if (tmpBuffer == 0) {
       throw new GLException("pbuffer creation error: wglCreatePbufferARB() failed: tried " + nformats +
@@ -284,6 +288,33 @@ public class WindowsPbufferGLDrawable extends WindowsGLDrawable {
     buffer = tmpBuffer;
     hdc    = tmpHdc;
     cachedWGLExt = wglExt;
+
+    // Re-query chosen pixel format
+    {
+      niattribs = 0;
+      iattributes[niattribs++] = WGLExt.WGL_ACCELERATION_ARB;
+      iattributes[niattribs++] = WGLExt.WGL_RED_BITS_ARB;
+      iattributes[niattribs++] = WGLExt.WGL_GREEN_BITS_ARB;
+      iattributes[niattribs++] = WGLExt.WGL_BLUE_BITS_ARB;
+      iattributes[niattribs++] = WGLExt.WGL_ALPHA_BITS_ARB;
+      iattributes[niattribs++] = WGLExt.WGL_DEPTH_BITS_ARB;
+      iattributes[niattribs++] = WGLExt.WGL_STENCIL_BITS_ARB;
+      iattributes[niattribs++] = WGLExt.WGL_DOUBLE_BUFFER_ARB;
+      iattributes[niattribs++] = WGLExt.WGL_STEREO_ARB;
+      iattributes[niattribs++] = WGLExt.WGL_ACCUM_RED_BITS_ARB;
+      iattributes[niattribs++] = WGLExt.WGL_ACCUM_GREEN_BITS_ARB;
+      iattributes[niattribs++] = WGLExt.WGL_ACCUM_BLUE_BITS_ARB;
+      iattributes[niattribs++] = WGLExt.WGL_ACCUM_ALPHA_BITS_ARB;
+      iattributes[niattribs++] = (useFloat ? (ati ? WGLExt.WGL_PIXEL_TYPE_ARB : WGLExt.WGL_FLOAT_COMPONENTS_NV) : WGLExt.WGL_RED_BITS_ARB);
+      iattributes[niattribs++] = WGLExt.WGL_SAMPLE_BUFFERS_ARB;
+      iattributes[niattribs++] = WGLExt.WGL_SAMPLES_ARB;
+      iattributes[niattribs++] = WGLExt.WGL_DRAW_TO_PBUFFER_ARB;
+      int[] ivalues = new int[niattribs];
+      // FIXME: usually prefer to throw exceptions, but failure here is not critical
+      if (wglExt.wglGetPixelFormatAttribivARB(parentHdc, pformats[whichFormat], 0, niattribs, iattributes, 0, ivalues, 0)) {
+        setChosenGLCapabilities(iattributes2GLCapabilities(iattributes, niattribs, ivalues, false));
+      }
+    }
 
     // Determine the actual width and height we were able to create.
     int[] tmp = new int[1];

@@ -78,13 +78,20 @@ public abstract class WindowsGLDrawable extends GLDrawableImpl {
     PIXELFORMATDESCRIPTOR pfd = null;
     int pixelFormat = 0;
     if (onscreen) {
-      if (WGL.GetPixelFormat(hdc) != 0) {
+      if ((pixelFormat = WGL.GetPixelFormat(hdc)) != 0) {
         // The Java2D/OpenGL pipeline probably already set a pixel
         // format for this canvas.
         if (DEBUG) {
           System.err.println("NOTE: pixel format already chosen (by Java2D/OpenGL pipeline?) for window: " + 
                              WGL.GetPixelFormat(hdc));
         }
+        pfd = newPixelFormatDescriptor();
+        if (WGL.DescribePixelFormat(hdc, pixelFormat, pfd.size(), pfd) == 0) {
+          // FIXME: should this just be a warning? Not really critical...
+          throw new GLException("Unable to describe pixel format " + pixelFormat +
+                                " of window set by Java2D/OpenGL pipeline");
+        }
+        setChosenGLCapabilities(pfd2GLCapabilities(pfd));
         pixelFormatChosen = true;
         return;
       }
@@ -280,6 +287,7 @@ public abstract class WindowsGLDrawable extends GLDrawableImpl {
       }
       throw new GLException("Unable to set pixel format " + pixelFormat + " for device context " + toHexString(hdc) + ": error code " + lastError);
     }
+    setChosenGLCapabilities(pfd2GLCapabilities(pfd));
     pixelFormatChosen = true;
   }
 
@@ -518,8 +526,11 @@ public abstract class WindowsGLDrawable extends GLDrawableImpl {
       int attr = iattribs[i];
       switch (attr) {
         case WGLExt.WGL_DRAW_TO_WINDOW_ARB:
-          if (iresults[i] != GL.GL_TRUE)
+          if (requireRenderToWindow && iresults[i] != GL.GL_TRUE)
             return null;
+          break;
+
+        case WGLExt.WGL_DRAW_TO_PBUFFER_ARB:
           break;
 
         case WGLExt.WGL_ACCELERATION_ARB:
@@ -548,8 +559,17 @@ public abstract class WindowsGLDrawable extends GLDrawableImpl {
           break;
 
         case WGLExt.WGL_PIXEL_TYPE_ARB:
-          if (iresults[i] != WGLExt.WGL_TYPE_RGBA_ARB)
-            return null;
+          // Fail softly with unknown results here
+          if (iresults[i] == WGLExt.WGL_TYPE_RGBA_ARB ||
+              iresults[i] == WGLExt.WGL_TYPE_RGBA_FLOAT_ATI) {
+            res.setPbufferFloatingPointBuffers(true);
+          }
+          break;
+
+        case WGLExt.WGL_FLOAT_COMPONENTS_NV:
+          if (iresults[i] != 0) {
+            res.setPbufferFloatingPointBuffers(true);
+          }
           break;
 
         case WGLExt.WGL_RED_BITS_ARB:
