@@ -62,9 +62,9 @@ extern "C" {
 /*************************************************************/
 
 /* Header file version number */
-/* wglext.h last updated 2005/01/07 */
-/* Current version at http://oss.sgi.com/projects/ogl-sample/registry/ */
-#define WGL_WGLEXT_VERSION 6
+/* wglext.h last updated 2006/08/17 */
+/* Current version at http://www.opengl.org/registry/ */
+#define WGL_WGLEXT_VERSION 8
 
 #ifndef WGL_ARB_buffer_region
 #define WGL_FRONT_COLOR_BUFFER_BIT_ARB 0x00000001
@@ -315,6 +315,8 @@ extern "C" {
 
 #ifndef WGL_ATI_pixel_format_float
 #define WGL_TYPE_RGBA_FLOAT_ATI        0x21A0
+#define WGL_RGBA_FLOAT_MODE_ATI        0x8820
+#define WGL_COLOR_CLEAR_UNCLAMPED_VALUE_ATI 0x8835
 #endif
 
 #ifndef WGL_NV_float_buffer
@@ -329,6 +331,20 @@ extern "C" {
 #define WGL_TEXTURE_FLOAT_RGBA_NV      0x20B8
 #endif
 
+#ifndef WGL_3DL_stereo_control
+#define WGL_STEREO_EMITTER_ENABLE_3DL  0x2055
+#define WGL_STEREO_EMITTER_DISABLE_3DL 0x2056
+#define WGL_STEREO_POLARITY_NORMAL_3DL 0x2057
+#define WGL_STEREO_POLARITY_INVERT_3DL 0x2058
+#endif
+
+#ifndef WGL_NV_swap_group
+#endif
+
+#ifndef WGL_NV_gpu_affinity 
+#define WGL_ERROR_INCOMPATIBLE_AFFINITY_MASKS_NV 0x20D0
+#define WGL_ERROR_MISSING_AFFINITY_MASK_NV 0x20D1
+#endif
 
 /*************************************************************/
 
@@ -342,6 +358,19 @@ DECLARE_HANDLE(HPBUFFERARB);
 DECLARE_HANDLE(HPBUFFEREXT);
 #endif
 #endif /* !SKIP_WGL_HANDLE_DEFINITIONS */
+
+#ifndef WGL_NV_gpu_affinity
+#ifndef SKIP_WGL_HANDLE_DEFINITIONS
+DECLARE_HANDLE(HGPUNV);
+#endif /* !SKIP_WGL_HANDLE_DEFINITIONS */
+typedef struct _GPU_DEVICE {
+    DWORD  cb;
+    CHAR   DeviceName[32];
+    CHAR   DeviceString[128];
+    DWORD  Flags;
+    RECT   rcVirtualScreen;
+} GPU_DEVICE, *PGPU_DEVICE;
+#endif
 
 #ifndef WGL_ARB_buffer_region
 #define WGL_ARB_buffer_region 1
@@ -497,8 +526,8 @@ typedef int (WINAPI * PFNWGLGETSWAPINTERVALEXTPROC) (void);
 #define WGL_EXT_depth_float 1
 #endif
 
-#ifndef GL_NV_vertex_array_range
-#define GL_NV_vertex_array_range 1
+#ifndef WGL_NV_vertex_array_range
+#define WGL_NV_vertex_array_range 1
 #ifdef WGL_WGLEXT_PROTOTYPES
 extern void* WINAPI wglAllocateMemoryNV (GLsizei, GLfloat, GLfloat, GLfloat);
 extern void WINAPI wglFreeMemoryNV (void *);
@@ -506,8 +535,6 @@ extern void WINAPI wglFreeMemoryNV (void *);
 typedef void* (WINAPI * PFNWGLALLOCATEMEMORYNVPROC) (GLsizei size, GLfloat readfreq, GLfloat writefreq, GLfloat priority);
 typedef void (WINAPI * PFNWGLFREEMEMORYNVPROC) (void *pointer);
 #endif
-/* Hack to allow the platform-independent routines to be picked up from other headers */
-#undef GL_NV_vertex_array_range
 
 #ifndef WGL_3DFX_multisample
 #define WGL_3DFX_multisample 1
@@ -639,6 +666,40 @@ typedef BOOL (WINAPI * PFNWGLQUERYFRAMETRACKINGI3DPROC) (DWORD *pFrameCount, DWO
 #define WGL_NV_float_buffer 1
 #endif
 
+#ifndef WGL_NV_swap_group
+#define WGL_NV_swap_group 1
+#ifdef WGL_WGLEXT_PROTOTYPES
+extern BOOL WINAPI wglJoinSwapGroupNV(HDC hDC, GLuint group);
+extern BOOL WINAPI wglBindSwapBarrierNV(GLuint group, GLuint barrier);
+extern BOOL WINAPI wglQuerySwapGroupNV(HDC hDC, GLuint *group, GLuint *barrier);
+extern BOOL WINAPI wglQueryMaxSwapGroupsNV(HDC hDC, GLuint *maxGroups, GLuint *maxBarriers);
+extern BOOL WINAPI wglQueryFrameCountNV(HDC hDC, GLuint *count);
+extern BOOL WINAPI wglResetFrameCountNV(HDC hDC);
+#endif /* WGL_WGLEXT_PROTOTYPES */
+typedef BOOL (WINAPI * PFNWGLJOINSWAPGROUPNVPROC) (HDC hDC, GLuint group);
+typedef BOOL (WINAPI * PFNWGLBINDSWAPBARRIERNVPROC) (GLuint group, GLuint barrier);
+typedef BOOL (WINAPI * PFNWGLQUERYSWAPGROUPNVPROC) (HDC hDC, GLuint *group, GLuint *barrier);
+typedef BOOL (WINAPI * PFNWGLQUERYMAXSWAPGROUPSNVPROC) (HDC hDC, GLuint *maxGroups, GLuint *maxBarriers);
+typedef BOOL (WINAPI * PFNWGLQUERYFRAMECOUNTNVPROC) (HDC hDC, GLuint *count);
+typedef BOOL (WINAPI * PFNWGLRESETFRAMECOUNTNVPROC) (HDC hDC);
+#endif
+
+#ifndef WGL_NV_gpu_affinity
+#define WGL_NV_gpu_affinity 1
+#ifdef WGL_WGLEXT_PROTOTYPES
+extern BOOL WINAPI wglEnumGpusNV (UINT iIndex, HGPUNV *hGpu);
+extern BOOL WINAPI wglEnumGpuDevicesNV (HGPUNV hGpu, UINT iIndex, PGPU_DEVICE pGpuDevice);
+extern HDC WINAPI wglCreateAffinityDCNV (const HGPUNV *pGpuList);
+extern BOOL WINAPI wglEnumGpusFromAffinityDCNV (HDC hAffinityDC, UINT iIndex, HGPUNV *hGpu);
+extern BOOL WINAPI wglDeleteDCNV (HDC hAffinityDC);
+#endif /* WGL_WGLEXT_PROTOTYPES */
+typedef BOOL (WINAPI * PFNWGLENUMGPUSNVPROC) (UINT iIndex, HGPUNV *hGpu);
+typedef BOOL (WINAPI * PFNWGLENUMGPUDEVICESNVPROC) (HGPUNV hGpu, UINT iIndex, PGPU_DEVICE pGpuDevice);
+typedef HDC (WINAPI * PFNWGLCREATEAFFINITYDCNVPROC) (const HGPUNV *pGpuList);
+typedef BOOL (WINAPI * PFNWGLENUMGPUSFROMAFFINITYDCNVPROC) (HDC hAffinityDC, UINT iIndex, HGPUNV *hGpu);
+typedef BOOL (WINAPI * PFNWGLDELETEDCNVPROC) (HDC hAffinityDC);
+#endif
+
 /*
  * -----------------------------------------------------------
  * Everything here and below was added manually
@@ -655,7 +716,7 @@ typedef BOOL (WINAPI * PFNWGLQUERYFRAMETRACKINGI3DPROC) (DWORD *pFrameCount, DWO
 #define WGL_NV_render_depth_texture 1
 #endif
 
-  
+
 #ifdef __cplusplus
 }
 #endif

@@ -11,6 +11,7 @@
 #define VOID void
 typedef int                 BOOL;
 typedef unsigned char       BYTE;
+typedef char                CHAR;
 typedef unsigned int        DWORD;
 typedef int                 INT;
 typedef int                 INT32;
@@ -33,7 +34,16 @@ typedef unsigned int        UINT;
 typedef unsigned short      USHORT;
 typedef unsigned short      WORD;
 
+typedef struct tagRECT
+    {
+    LONG left;
+    LONG top;
+    LONG right;
+    LONG bottom;
+    } 	RECT;
+
 /* Necessary handle typedefs for parsing wglext.h */
 
 typedef HANDLE              HPBUFFERARB;
 typedef HANDLE              HPBUFFEREXT;
+typedef HANDLE              HGPUNV;
