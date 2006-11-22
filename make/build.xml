@@ -1304,6 +1304,7 @@
     <target name="dist.build.zip">
         <property name="jogl.tmp.version" value="jogl-${tmp.version}-${zip.os.arch}" />
         <!-- Create all needed directories -->
+        <delete dir="${jogl.dist.dir}/tmp" failonerror="false" />
         <mkdir dir="${jogl.dist.dir}/tmp/${jogl.tmp.version}/lib" />
         <!-- Copy in files -->
         <copy todir="${jogl.dist.dir}/tmp/${jogl.tmp.version}/lib">
