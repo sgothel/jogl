@@ -41,6 +41,7 @@ package com.sun.opengl.impl.x11;
 
 import java.io.*;
 import java.security.*;
+import com.sun.gluegen.runtime.*;
 import com.sun.opengl.impl.*;
 
 /**
@@ -70,19 +71,15 @@ import com.sun.opengl.impl.*;
  * necessary in any other situation than with the DRI drivers. Another
  * solution is to force the first load of libGL.so.1.2 to be done
  * dynamically with RTLD_GLOBAL before libjogl.so is loaded and causes
- * libGL.so.1.2 to be loaded again. This requires the C APIs dlopen
- * and dlclose to be made available before libjogl.so is loaded. This
- * is the solution currently chosen and is called the "DRI hack"
- * because again it is needed only in this situation.
+ * libGL.so.1.2 to be loaded again. The NativeLibrary class in the
+ * GlueGen runtime has this property, and we use it to implement this
+ * workaround.
  */
 
 public class DRIHack {
-  public static native long dlopen(String name);
-  public static native int  dlclose(long handle);
- 
   private static final boolean DEBUG = Debug.debug("DRIHack");
   private static boolean driHackNeeded;
-  private static long libGLHandle;
+  private static NativeLibrary oglLib;
 
   public static void begin() {
     AccessController.doPrivileged(new PrivilegedAction() {
@@ -102,34 +99,30 @@ public class DRIHack {
         System.err.println("Beginning DRI hack");
       }
 
-      NativeLibLoader.loadDRIHack();
       // Try a few different variants for best robustness
       // In theory probably only the first is necessary
-      libGLHandle = dlopen("libGL.so.1");
-      if (DEBUG && libGLHandle != 0) System.err.println(" Found libGL.so.1");
-      if (libGLHandle == 0) {
-        libGLHandle = dlopen("libGL.so.1.2");
-        if (DEBUG && libGLHandle != 0) System.err.println(" Found libGL.so.1.2");
-      }
+      oglLib = NativeLibrary.open("GL", null);
+      if (DEBUG && oglLib != null) System.err.println(" Found libGL.so");
       // Allow ATI's fglrx to supersede version in /usr/lib
-      if (libGLHandle == 0) {
-        libGLHandle = dlopen("/usr/lib/ati-fglrx/libGL.so.1.2");
-        if (DEBUG && libGLHandle != 0) System.err.println(" Found /usr/lib/ati-fglrx/libGL.so.1.2");
+      if (oglLib == null) {
+        oglLib = NativeLibrary.open("/usr/lib/ati-fglrx/libGL.so.1.2", null);
+        if (DEBUG && oglLib != null) System.err.println(" Found /usr/lib/ati-fglrx/libGL.so.1.2");
       }
-      if (libGLHandle == 0) {
-        libGLHandle = dlopen("/usr/lib/libGL.so.1");
-        if (DEBUG && libGLHandle != 0) System.err.println(" Found /usr/lib/libGL.so.1");
+      if (oglLib == null) {
+        oglLib = NativeLibrary.open("/usr/lib/libGL.so.1", null);
+        if (DEBUG && oglLib != null) System.err.println(" Found /usr/lib/libGL.so.1");
       }
     }
   }
 
   public static void end() {
-    if (libGLHandle != 0) {
+    if (oglLib != null) {
       if (DEBUG) {
         System.err.println("Ending DRI hack");
       }
 
-      dlclose(libGLHandle);
+      oglLib.close();
+      oglLib = null;
     }
   }
 }

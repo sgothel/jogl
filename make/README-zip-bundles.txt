@@ -24,7 +24,7 @@ and the following subdirectory:
 
   lib                         contains JOGL implementation
 
-All of the JOGL implementation files (jar file plus native 
+All of the JOGL implementation files (jar files and native 
 libraries) are in the lib subdirectory.  For instructions on 
 how to use these implementation files to build or run a JOGL 
 program see the enclosed JOGL user guide (Userguide.html).

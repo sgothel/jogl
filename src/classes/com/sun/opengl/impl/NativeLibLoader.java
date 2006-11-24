@@ -133,17 +133,6 @@ public class NativeLibLoader {
     });
   }
 
-  // See DRIHack.java in com/sun/opengl/impl/x11/ for description of
-  // why this is needed
-  public static void loadDRIHack() {
-    AccessController.doPrivileged(new PrivilegedAction() {
-      public Object run() {
-        loadLibrary("jogl_drihack", null, false, false);
-        return null;
-      }
-    });
-  }
-  
   public static void loadCgImpl() {
     AccessController.doPrivileged(new PrivilegedAction() {
       public Object run() {

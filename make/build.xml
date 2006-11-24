@@ -354,7 +354,6 @@
 
       <property name="compiler.cfg.id"                      value="compiler.cfg.linux" /> 
       <property name="linker.cfg.id.core"                   value="linker.cfg.linux.jogl" /> 
-      <property name="linker.cfg.id.drihack"                value="linker.cfg.linux" /> 
     </target>
     
     <target name="declare.linux.amd64" if="isLinuxAMD64">
@@ -364,7 +363,6 @@
 
       <property name="compiler.cfg.id"                      value="compiler.cfg.linux.amd64" /> 
       <property name="linker.cfg.id.core"                   value="linker.cfg.linux.amd64.jogl" /> 
-      <property name="linker.cfg.id.drihack"                value="linker.cfg.linux" /> 
     </target>
     
     <target name="declare.linux.ia64" if="isLinuxIA64">
@@ -374,7 +372,6 @@
 
       <property name="compiler.cfg.id"                      value="compiler.cfg.linux" /> 
       <property name="linker.cfg.id.core"                   value="linker.cfg.linux.jogl" /> 
-      <property name="linker.cfg.id.drihack"                value="linker.cfg.linux" /> 
     </target>
 
     <target name="declare.linux" depends="declare.linux.x86,declare.linux.amd64,declare.linux.ia64,declare.x11" if="isLinux" />
@@ -386,7 +383,6 @@
 
       <property name="compiler.cfg.id"                      value="compiler.cfg.solaris" /> 
       <property name="linker.cfg.id.core"                   value="linker.cfg.solaris.jogl" /> 
-      <property name="linker.cfg.id.drihack"                value="linker.cfg.solaris" /> 
     </target>
   
  
@@ -397,7 +393,6 @@
 
       <property name="compiler.cfg.id"                      value="compiler.cfg.solaris.sparcv9" /> 
       <property name="linker.cfg.id.core"                   value="linker.cfg.solaris.sparcv9.jogl" /> 
-      <property name="linker.cfg.id.drihack"                value="linker.cfg.solaris.sparcv9" /> 
     </target>
    
 
@@ -408,7 +403,6 @@
 
       <property name="compiler.cfg.id"                      value="compiler.cfg.solaris.amd64" /> 
       <property name="linker.cfg.id.core"                   value="linker.cfg.solaris.amd64.jogl" /> 
-      <property name="linker.cfg.id.drihack"                value="linker.cfg.solaris.amd64" /> 
     </target>
    
  
@@ -446,7 +440,6 @@
 
       <property name="compiler.cfg.id"                      value="compiler.cfg.freebsd.jogl" />
       <property name="linker.cfg.id.core"                   value="linker.cfg.linux.jogl" />
-      <property name="linker.cfg.id.drihack"                value="linker.cfg.linux" /> 
     </target>
 
     <target name="declare.hpux" depends="declare.x11" if="isHPUX">
@@ -455,7 +448,6 @@
       <property name="java.lib.dir.platform"                value="${java.lib.dir.hpux}" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.hpux" />
       <property name="linker.cfg.id.core"                   value="linker.cfg.hpux.jogl" />
-      <property name="linker.cfg.id.drihack"                value="linker.cfg.hpux" /> 
     </target>
 
     <!-- ================================================================== -->
@@ -494,12 +486,6 @@
             <propertyref name="gluegen.nsig" />
           </propertyset>
         </ant>
-
-        <!-- Extract the GlueGen runtime classes into our build directory.
-           - We currently bundle them into jogl.jar; they could be kept in
-           - a separate jar, but this makes deployment simpler.
-           -->
-        <unjar src="${gluegen-rt.jar}" dest="${classes}" />
     </target>
 
     <!--
@@ -700,6 +686,7 @@
         <!-- Perform the first pass Java compile. -->
         <javac srcdir="${src.generated.java}"
                destdir="${classes}"
+               classpath="${gluegen-rt.jar}"
                includes="javax/media/opengl/GL.java"
                fork="yes"
                memoryMaximumSize="128m"
@@ -711,6 +698,7 @@
         <!-- Perform the second pass Java compile; everything. -->
         <javac destdir="${classes}"
                excludes="${java.excludes.platform},com/sun/opengl/impl/nurbs/**"               source="${jogl.sourcelevel}" 
+               classpath="${gluegen-rt.jar}"
                fork="yes"
                memoryMaximumSize="128m"
                debug="true" debuglevel="source,lines">
@@ -808,10 +796,6 @@
         <include name="${rootrel.generated.c.jogl}/JAWT*.c"/>
       </patternset>
       
-      <patternset id="c.src.files.jogl.drihack">
-        <include name="${rootrel.src.c.jogl}/drihack.c"/>
-      </patternset>
-
       <patternset id="c.src.files.cg">
         <include name="${rootrel.generated.c.cg}/*.c"/>
       </patternset>
@@ -933,14 +917,6 @@
       </antcall>
     </target>
     
-    <target name="c.build.jogl.drihack" if="isX11">
-      <antcall target="c.build" inheritRefs="true">
-        <param name="c.compiler.src.files" value="c.src.files.jogl.drihack"/>
-        <param name="output.lib.name" value="jogl_drihack"/>
-        <param name="linker.cfg.id" value="${linker.cfg.id.drihack}"/>
-      </antcall>
-    </target>
-
     <target name="c.manifest" if="isVC8Family">
       <!-- exec mt, the Microsoft Manifest Tool, to include DLL manifests in order to resolve the location of msvcr80.dll -->
       <exec executable="mt">
@@ -955,7 +931,7 @@
       </exec>
     </target>
 
-    <target name="c.build.jogl" depends="c.build.jogl.core,c.build.jogl.awt,c.build.jogl.drihack,c.build.jogl.cg">
+    <target name="c.build.jogl" depends="c.build.jogl.core,c.build.jogl.awt,c.build.jogl.cg">
       <antcall target="c.rename.jogl.libs.mingw" inheritRefs="true" />
       <antcall target="c.rename.jogl.libs.macosx" inheritRefs="true" />
       <antcall target="c.manifest" inheritRefs="true" />
@@ -1133,6 +1109,8 @@
 	    <available file="${jogl.dist.dir}/jogl-win/32/jogl.dll" />
 	    <available file="${jogl.dist.dir}/jogl-win/32/jogl_awt.dll" />
 	    <available file="${jogl.dist.dir}/jogl-win/32/jogl_cg.dll" />
+	    <available file="${jogl.dist.dir}/jogl-win/32/gluegen-rt.dll" />
+	    <available file="${jogl.dist.dir}/jogl-win/32/gluegen-rt-natives-windows-i586.jar" />
 	  </and>
 	</condition>
 	<fail unless="windows.complete">
@@ -1151,6 +1129,8 @@
 	    <available file="${jogl.dist.dir}/jogl-linux/32/libjogl.so" />
 	    <available file="${jogl.dist.dir}/jogl-linux/32/libjogl_awt.so" />
 	    <available file="${jogl.dist.dir}/jogl-linux/32/libjogl_cg.so" />
+	    <available file="${jogl.dist.dir}/jogl-linux/32/libgluegen-rt.so" />
+	    <available file="${jogl.dist.dir}/jogl-linux/32/gluegen-rt-natives-linux-i586.jar" />
 	    <!-- Assume we also copy over these generated files in the Linux build -->
 	    <!-- in order to satisfy requests from end users that we provide these -->
 	    <!-- files for easier source browsing in IDEs                          -->
@@ -1175,6 +1155,8 @@
 	    <available file="${jogl.dist.dir}/jogl-linux/64/libjogl.so" />
 	    <available file="${jogl.dist.dir}/jogl-linux/64/libjogl_awt.so" />
 	    <available file="${jogl.dist.dir}/jogl-linux/64/libjogl_cg.so" />
+	    <available file="${jogl.dist.dir}/jogl-linux/64/libgluegen-rt.so" />
+	    <available file="${jogl.dist.dir}/jogl-linux/64/gluegen-rt-natives-linux-amd64.jar" />
 	  </and>
 	</condition>
 	<fail unless="linux.complete">
@@ -1193,6 +1175,8 @@
 	    <available file="${jogl.dist.dir}/jogl-macosx/ppc/libjogl.jnilib" />
 	    <available file="${jogl.dist.dir}/jogl-macosx/ppc/libjogl_awt.jnilib" />
 	    <available file="${jogl.dist.dir}/jogl-macosx/ppc/libjogl_cg.jnilib" />
+	    <available file="${jogl.dist.dir}/jogl-macosx/ppc/libgluegen-rt.jnilib" />
+	    <available file="${jogl.dist.dir}/jogl-macosx/ppc/gluegen-rt-natives-macosx-ppc.jar" />
 	  </and>
 	</condition>
 	<fail unless="macosx.complete">
@@ -1212,6 +1196,8 @@
 	    <available file="${jogl.dist.dir}/jogl-macosx/fat/libjogl.jnilib" />
 	    <available file="${jogl.dist.dir}/jogl-macosx/fat/libjogl_awt.jnilib" />
 	    <available file="${jogl.dist.dir}/jogl-macosx/fat/libjogl_cg.jnilib" />
+	    <available file="${jogl.dist.dir}/jogl-macosx/fat/libgluegen-rt.jnilib" />
+	    <available file="${jogl.dist.dir}/jogl-macosx/fat/gluegen-rt-natives-macosx-universal.jar" />
 	  </and>
 	</condition>
 	<fail unless="macosxfat.complete">
@@ -1231,7 +1217,8 @@
 	    <available file="${jogl.dist.dir}/jogl-solsparc/jogl.jar" />
 	    <available file="${jogl.dist.dir}/jogl-solsparc/32/libjogl.so" />
 	    <available file="${jogl.dist.dir}/jogl-solsparc/32/libjogl_awt.so" />
-	    <available file="${jogl.dist.dir}/jogl-solsparc/32/libjogl_drihack.so" />
+	    <available file="${jogl.dist.dir}/jogl-solsparc/32/libgluegen-rt.so" />
+	    <available file="${jogl.dist.dir}/jogl-solsparc/32/gluegen-rt-natives-solaris-sparc.jar" />
 	  </and>
 	</condition>
 	<fail unless="solsparc.complete">
@@ -1249,7 +1236,8 @@
 	    <available file="${jogl.dist.dir}/jogl-solsparc/jogl.jar" />
 	    <available file="${jogl.dist.dir}/jogl-solsparc/64/libjogl.so" />
 	    <available file="${jogl.dist.dir}/jogl-solsparc/64/libjogl_awt.so" />
-	    <available file="${jogl.dist.dir}/jogl-solsparc/64/libjogl_drihack.so" />
+	    <available file="${jogl.dist.dir}/jogl-solsparc/64/libgluegen-rt.so" />
+	    <available file="${jogl.dist.dir}/jogl-solsparc/64/gluegen-rt-natives-solaris-sparcv9.jar" />
 	  </and>
 	</condition>
 	<fail unless="solsparcv9.complete">
@@ -1267,7 +1255,8 @@
 	    <available file="${jogl.dist.dir}/jogl-solx86/jogl.jar" />
 	    <available file="${jogl.dist.dir}/jogl-solx86/32/libjogl.so" />
 	    <available file="${jogl.dist.dir}/jogl-solx86/32/libjogl_awt.so" />
-	    <available file="${jogl.dist.dir}/jogl-solx86/32/libjogl_drihack.so" />
+	    <available file="${jogl.dist.dir}/jogl-solx86/32/libgluegen-rt.so" />
+	    <available file="${jogl.dist.dir}/jogl-solx86/32/gluegen-rt-natives-solaris-i586.jar" />
 	  </and>
 	</condition>
 	<fail unless="solx86.complete">
@@ -1284,7 +1273,8 @@
 	  <and>
 	    <available file="${jogl.dist.dir}/jogl-solx86/64/libjogl.so" />
 	    <available file="${jogl.dist.dir}/jogl-solx86/64/libjogl_awt.so" />
-	    <available file="${jogl.dist.dir}/jogl-solx86/64/libjogl_drihack.so" />
+	    <available file="${jogl.dist.dir}/jogl-solx86/64/libgluegen-rt.so" />
+	    <available file="${jogl.dist.dir}/jogl-solx86/64/gluegen-rt-natives-solaris-amd64.jar" />
 	  </and>
 	</condition>
 	<fail unless="solamd64.complete">
@@ -1308,9 +1298,10 @@
         <mkdir dir="${jogl.dist.dir}/tmp/${jogl.tmp.version}/lib" />
         <!-- Copy in files -->
         <copy todir="${jogl.dist.dir}/tmp/${jogl.tmp.version}/lib">
-            <fileset dir="${zip.src.so.dir}" includes="*" />
+            <fileset dir="${zip.src.so.dir}" includes="*${zip.so.suffix}" />
         </copy>
         <copy file="${jogl.dist.dir}/jogl.jar" todir="${jogl.dist.dir}/tmp/${jogl.tmp.version}/lib" />
+        <copy file="${jogl.dist.dir}/gluegen-rt.jar" todir="${jogl.dist.dir}/tmp/${jogl.tmp.version}/lib" />
         <copy file="../COPYRIGHT.txt"          todir="${jogl.dist.dir}/tmp/${jogl.tmp.version}" />
         <copy file="../LICENSE.txt"            tofile="${jogl.dist.dir}/tmp/${jogl.tmp.version}/LICENSE-JOGL-${tmp.version}.txt" />
         <copy file="README-zip-bundles.txt"
@@ -1328,9 +1319,8 @@
     </target>
 
     <target name="dist" depends="dist.dir.check,dist.check.windows,dist.check.linux,dist.check.linux-amd64,dist.check.macosx,dist.check.macosxfat,dist.check.solsparc,dist.check.solsparcv9,dist.check.solx86, dist.check.solamd64">
-        <delete file="${jogl.dist.dir}/jogl.jar" />
         <delete>
-            <fileset dir="${jogl.dist.dir}" includes="jogl-natives-*.jar" />
+            <fileset dir="${jogl.dist.dir}" includes="*.jar" />
         </delete>
         <delete>
             <fileset dir="${jogl.dist.dir}" includes="*.zip" />
@@ -1360,10 +1350,10 @@
              includes="jogl.dll,jogl_awt.dll,jogl_cg.dll" />
         <jar destfile="${jogl.dist.dir}/jogl-natives-linux-i586.jar"
              basedir="${jogl.dist.dir}/jogl-linux/32"
-             includes="libjogl.so,libjogl_awt.so,libjogl_cg.so,libjogl_drihack.so" />
+             includes="libjogl.so,libjogl_awt.so,libjogl_cg.so" />
         <jar destfile="${jogl.dist.dir}/jogl-natives-linux-amd64.jar"
              basedir="${jogl.dist.dir}/jogl-linux/64"
-             includes="libjogl.so,libjogl_awt.so,libjogl_cg.so,libjogl_drihack.so" />
+             includes="libjogl.so,libjogl_awt.so,libjogl_cg.so" />
         <jar destfile="${jogl.dist.dir}/jogl-natives-macosx-ppc.jar"
              basedir="${jogl.dist.dir}/jogl-macosx/ppc"
              includes="libjogl.jnilib,libjogl_awt.jnilib,libjogl_cg.jnilib" />
@@ -1372,16 +1362,47 @@
              includes="libjogl.jnilib,libjogl_awt.jnilib,libjogl_cg.jnilib" />
         <jar destfile="${jogl.dist.dir}/jogl-natives-solaris-sparc.jar"
              basedir="${jogl.dist.dir}/jogl-solsparc/32"
-             includes="libjogl.so,libjogl_awt.so,libjogl_drihack.so" />
+             includes="libjogl.so,libjogl_awt.so" />
         <jar destfile="${jogl.dist.dir}/jogl-natives-solaris-sparcv9.jar"
              basedir="${jogl.dist.dir}/jogl-solsparc/64"
-             includes="libjogl.so,libjogl_awt.so,libjogl_drihack.so" />
+             includes="libjogl.so,libjogl_awt.so" />
         <jar destfile="${jogl.dist.dir}/jogl-natives-solaris-i586.jar"
              basedir="${jogl.dist.dir}/jogl-solx86/32"
-             includes="libjogl.so,libjogl_awt.so,libjogl_drihack.so" />
+             includes="libjogl.so,libjogl_awt.so" />
         <jar destfile="${jogl.dist.dir}/jogl-natives-solaris-amd64.jar"
              basedir="${jogl.dist.dir}/jogl-solx86/64"
-             includes="libjogl.so,libjogl_awt.so,libjogl_drihack.so" />
+             includes="libjogl.so,libjogl_awt.so" />
+        <!-- Copy gluegen-rt.jar from Linux build (arbitrary; this jar is platform-independent) -->
+        <copy file="${jogl.dist.dir}/jogl-linux/gluegen-rt.jar" todir="${jogl.dist.dir}" />
+        <!-- Copy gluegen-rt native jars out of platform-specific subdirectories -->
+        <copy todir="${jogl.dist.dir}">
+            <fileset dir="${jogl.dist.dir}/jogl-win/32" includes="gluegen-natives-*.jar" />
+        </copy>
+        <copy todir="${jogl.dist.dir}">
+            <fileset dir="${jogl.dist.dir}/jogl-linux/32" includes="gluegen-natives-*.jar" />
+        </copy>
+        <copy todir="${jogl.dist.dir}">
+            <fileset dir="${jogl.dist.dir}/jogl-linux/64" includes="gluegen-natives-*.jar" />
+        </copy>
+        <copy todir="${jogl.dist.dir}">
+            <fileset dir="${jogl.dist.dir}/jogl-macosx/ppc" includes="gluegen-natives-*.jar" />
+        </copy>
+        <copy todir="${jogl.dist.dir}">
+            <fileset dir="${jogl.dist.dir}/jogl-macosx/fat" includes="gluegen-natives-*.jar" />
+        </copy>
+        <copy todir="${jogl.dist.dir}">
+            <fileset dir="${jogl.dist.dir}/jogl-solsparc/32" includes="gluegen-natives-*.jar" />
+        </copy>
+        <copy todir="${jogl.dist.dir}">
+            <fileset dir="${jogl.dist.dir}/jogl-solsparc/64" includes="gluegen-natives-*.jar" />
+        </copy>
+        <copy todir="${jogl.dist.dir}">
+            <fileset dir="${jogl.dist.dir}/jogl-solx86/32" includes="gluegen-natives-*.jar" />
+        </copy>
+        <copy todir="${jogl.dist.dir}">
+            <fileset dir="${jogl.dist.dir}/jogl-solx86/64" includes="gluegen-natives-*.jar" />
+        </copy>
+
 	<!-- Build a source archive as well -->
 	<!-- First copy the generated files out of the Linux build results into the appropriate -->
 	<!-- directory of this source tree (so that they'll be blown away properly with an -->
@@ -1403,38 +1424,47 @@
              target in order to get the platform-independent jogl.jar. -->
         <antcall target="dist.build.zip" inheritAll="true">
             <param name="zip.os.arch"    value="linux-i586" />
+            <param name="zip.so.suffix"  value=".so" />
             <param name="zip.src.so.dir" value="${jogl.dist.dir}/jogl-linux/32" />
         </antcall>
         <antcall target="dist.build.zip" inheritAll="true">
             <param name="zip.os.arch"    value="linux-amd64" />
+            <param name="zip.so.suffix"  value=".so" />
             <param name="zip.src.so.dir" value="${jogl.dist.dir}/jogl-linux/64" />
         </antcall>
         <antcall target="dist.build.zip" inheritAll="true">
             <param name="zip.os.arch"    value="macosx-ppc" />
+            <param name="zip.so.suffix"  value=".jnilib" />
             <param name="zip.src.so.dir" value="${jogl.dist.dir}/jogl-macosx/ppc" />
         </antcall>
         <antcall target="dist.build.zip" inheritAll="true">
             <param name="zip.os.arch"    value="macosx-universal" />
+            <param name="zip.so.suffix"  value=".jnilib" />
             <param name="zip.src.so.dir" value="${jogl.dist.dir}/jogl-macosx/fat" />
         </antcall>
         <antcall target="dist.build.zip" inheritAll="true">
             <param name="zip.os.arch"    value="solaris-i586" />
+            <param name="zip.so.suffix"  value=".so" />
             <param name="zip.src.so.dir" value="${jogl.dist.dir}/jogl-solx86/32" />
         </antcall>
         <antcall target="dist.build.zip" inheritAll="true">
             <param name="zip.os.arch"    value="solaris-amd64" />
+            <param name="zip.so.suffix"  value=".so" />
             <param name="zip.src.so.dir" value="${jogl.dist.dir}/jogl-solx86/64" />
         </antcall>
         <antcall target="dist.build.zip" inheritAll="true">
             <param name="zip.os.arch"    value="solaris-sparc" />
+            <param name="zip.so.suffix"  value=".so" />
             <param name="zip.src.so.dir" value="${jogl.dist.dir}/jogl-solsparc/32" />
         </antcall>
         <antcall target="dist.build.zip" inheritAll="true">
             <param name="zip.os.arch"    value="solaris-sparcv9" />
+            <param name="zip.so.suffix"  value=".so" />
             <param name="zip.src.so.dir" value="${jogl.dist.dir}/jogl-solsparc/64" />
         </antcall>
         <antcall target="dist.build.zip" inheritAll="true">
             <param name="zip.os.arch"    value="windows-i586" />
+            <param name="zip.so.suffix"  value=".dll" />
             <param name="zip.src.so.dir" value="${jogl.dist.dir}/jogl-win/32" />
         </antcall>
         <!-- Create one last zip archive by hand, this one containing all of the -->

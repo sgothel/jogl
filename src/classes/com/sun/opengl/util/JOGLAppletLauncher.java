@@ -53,6 +53,7 @@ import java.applet.AppletContext;
 import java.io.*;
 import java.net.*;
 import java.security.cert.*;
+import java.text.*;
 import java.util.*;
 import java.util.jar.*;
 import javax.swing.*;
@@ -65,13 +66,15 @@ import javax.media.opengl.*;
  *  It may also be used to deploy signed applets in which case
  *  multiple security dialogs will be displayed. <p>
  *
- *  On the server side the codebase must contain jogl.jar and all of
- *  the jogl-natives-*.jar files from the standard JOGL distribution.
- *  This is the location from which the JOGL library used by the
- *  applet is downloaded. The codebase additionally contains the jar
- *  file of the user's potentially untrusted applet. The jogl.jar and
- *  all jogl-natives jars must be signed by the same entity, which is
- *  typically Sun Microsystems, Inc.
+ *  On the server side the codebase must contain jogl.jar ,
+ *  gluegen-rt.jar, and all of the jogl-natives-*.jar and
+ *  gluegen-rt-natives-*.jar files from the standard JOGL distribution
+ *  (provided in jogl-[version]-webstart.zip).  This is the location
+ *  from which the JOGL library used by the applet is downloaded. The
+ *  codebase additionally contains the jar file of the user's
+ *  potentially untrusted applet. All of the JOGL and GlueGen-related
+ *  jars must be signed by the same entity, which is typically Sun
+ *  Microsystems, Inc.
  *
  * Sample applet code:
  * <pre>
@@ -79,12 +82,12 @@ import javax.media.opengl.*;
  *      width=600
  *      height=400
  *      codebase="/lib"
- *      archive="jogl.jar,your_applet.jar"&gt;
+ *      archive="jogl.jar,gluegen-rt.jar,your_applet.jar"&gt;
  *   &lt;param name="subapplet.classname" VALUE="untrusted.JOGLApplet"&gt;
  *   &lt;param name="subapplet.displayname" VALUE="My JOGL Applet"&gt;
  *   &lt;param name="progressbar" value="true"&gt;
- *   &lt;param name="cache_archive" VALUE="jogl.jar,your_applet.jar"&gt;
- *   &lt;param name="cache_archive_ex" VALUE="jogl.jar;preload,your_applet.jar;preload"&gt;
+ *   &lt;param name="cache_archive" VALUE="jogl.jar,gluegen-rt.jar,your_applet.jar"&gt;
+ *   &lt;param name="cache_archive_ex" VALUE="jogl.jar;preload,gluegen-rt.jar;preload,your_applet.jar;preload"&gt;
  * &lt;/applet&gt;
  * </pre>
  * <p>
@@ -108,8 +111,8 @@ import javax.media.opengl.*;
  * this applet launcher, the first question to ask the end user is
  * whether jogl.jar and any associated DLLs, .so's, etc. are installed
  * directly in to the JRE. The applet launcher has been tested
- * primarily under Mozilla and Firefox; there may be problems when
- * running under, for example, Opera. <p>
+ * primarily under Mozilla, Firefox and Internet Explorer; there may
+ * be problems when running under, for example, Opera. <p>
  *
  * @author Lilian Chamontin
  * @author Kenneth Russell
@@ -126,37 +129,37 @@ public class JOGLAppletLauncher extends Applet {
   private static class NativeLibInfo {
     private String osName;
     private String osArch;
-    private String nativeJar;
+    private String osNameAndArchPair;
     private String nativePrefix;
     private String nativeSuffix;
 
-    public NativeLibInfo(String osName, String osArch, String nativeJar, String nativePrefix, String nativeSuffix) {
+    public NativeLibInfo(String osName, String osArch, String osNameAndArchPair, String nativePrefix, String nativeSuffix) {
       this.osName       = osName;
       this.osArch       = osArch;
-      this.nativeJar    = nativeJar;
+      this.osNameAndArchPair = osNameAndArchPair;
       this.nativePrefix = nativePrefix;
       this.nativeSuffix = nativeSuffix;
     }
 
     public boolean matchesOSAndArch(String osName, String osArch) {
-      if (osName.startsWith(this.osName)) {
+      if (osName.toLowerCase().startsWith(this.osName)) {
         if ((this.osArch == null) ||
-            (osArch.startsWith(this.osArch))) {
+            (osArch.toLowerCase().startsWith(this.osArch))) {
           return true;
         }
       }
       return false;
     }
 
-    public boolean matchesNativeLib(String nativeLibraryName) {
-      if (nativeLibraryName.toLowerCase().endsWith(nativeSuffix)) {
+    public boolean matchesNativeLib(String fileName) {
+      if (fileName.toLowerCase().endsWith(nativeSuffix)) {
         return true;
       }
       return false;
     }
 
-    public String getNativeJarName() {
-      return nativeJar;
+    public String formatNativeJarName(String nativeJarPattern) {
+      return MessageFormat.format(nativeJarPattern, new Object[] { osNameAndArchPair });
     }
 
     public String getNativeLibName(String baseName) {
@@ -166,16 +169,20 @@ public class JOGLAppletLauncher extends Applet {
     public boolean isMacOS() {
       return (osName.equals("mac"));
     }
+
+    public boolean mayNeedDRIHack() {
+      return (!isMacOS() && !osName.equals("win"));
+    }
   }
 
   private static final NativeLibInfo[] allNativeLibInfo = {
-    new NativeLibInfo("win",   "x86",   "jogl-natives-windows-i586.jar",     "",    ".dll"),
-    new NativeLibInfo("mac",   "ppc",   "jogl-natives-macosx-ppc.jar",       "lib", ".jnilib"),
-    new NativeLibInfo("mac",   "i386",  "jogl-natives-macosx-universal.jar", "lib", ".jnilib"),
-    new NativeLibInfo("linux", "i386",  "jogl-natives-linux-i586.jar",       "lib", ".so"),
-    new NativeLibInfo("linux", "x86",   "jogl-natives-linux-i586.jar",       "lib", ".so"),
-    new NativeLibInfo("sunos", "sparc", "jogl-natives-solaris-sparc.jar",    "lib", ".so"),
-    new NativeLibInfo("sunos", "x86",   "jogl-natives-solaris-i586.jar",     "lib", ".so")
+    new NativeLibInfo("win",   "x86",   "windows-i586",     "",    ".dll"),
+    new NativeLibInfo("mac",   "ppc",   "macosx-ppc",       "lib", ".jnilib"),
+    new NativeLibInfo("mac",   "i386",  "macosx-universal", "lib", ".jnilib"),
+    new NativeLibInfo("linux", "i386",  "linux-i586",       "lib", ".so"),
+    new NativeLibInfo("linux", "x86",   "linux-i586",       "lib", ".so"),
+    new NativeLibInfo("sunos", "sparc", "solaris-sparc",    "lib", ".so"),
+    new NativeLibInfo("sunos", "x86",   "solaris-i586",     "lib", ".so")
   };
 
   private NativeLibInfo nativeLibInfo;
@@ -183,10 +190,6 @@ public class JOGLAppletLauncher extends Applet {
   // The signatures of these native libraries are checked before
   // installing them.
   private String[] nativeLibNames;
-  // Whether the "DRI hack" native library is present and whether we
-  // therefore might need to run the DRIHack during loading of the
-  // native libraries
-  private boolean driHackPresent;
 
   /** The applet we have to start */
   private Applet subApplet;
@@ -236,8 +239,8 @@ public class JOGLAppletLauncher extends Applet {
     this.installDirectory = codeBase.replace(':', '_')
       .replace('.', '_').replace('/', '_').replace('~','_'); // clean up the name
 
-    String osName = System.getProperty("os.name").toLowerCase();
-    String osArch = System.getProperty("os.arch").toLowerCase();
+    String osName = System.getProperty("os.name");
+    String osArch = System.getProperty("os.arch");
     if (checkOSAndArch(osName, osArch)) {
       this.isInitOk = true;
     } else {
@@ -245,12 +248,30 @@ public class JOGLAppletLauncher extends Applet {
     }
   }
 
-  private void displayMessage(String message){
-    progressBar.setString(message);
+  private void displayMessage(final String message){
+    SwingUtilities.invokeLater(new Runnable() {
+	public void run() {
+	  progressBar.setString(message);
+	}
+      });
   }
 
-  private void displayError(String errorMessage){
-    progressBar.setString("Error : " + errorMessage);
+  private void displayError(final String errorMessage){
+    // Print message to Java console too in case it's truncated in the applet's display
+    System.err.println(errorMessage);
+    SwingUtilities.invokeLater(new Runnable() {
+	public void run() {
+	  progressBar.setString("Error : " + errorMessage);
+	}
+      });
+  }
+
+  private void setProgress(final int value) {
+    SwingUtilities.invokeLater(new Runnable() {
+	public void run() {
+	  progressBar.setValue(value);
+	}
+      });
   }
 
   private void initLoaderLayout(){
@@ -368,110 +389,110 @@ public class JOGLAppletLauncher extends Applet {
       }
     }
 
-    String nativeJarName = nativeLibInfo.getNativeJarName();
+    String[] nativeJarNames = new String[] {
+      nativeLibInfo.formatNativeJarName("jogl-natives-{0}.jar"),
+      nativeLibInfo.formatNativeJarName("gluegen-rt-natives-{0}.jar")
+    };
 
-    URL nativeLibURL;
-    URLConnection urlConnection;
-    String path = getCodeBase().toExternalForm() + nativeJarName;
-    try {
-      nativeLibURL = new URL(path);
-      urlConnection = nativeLibURL.openConnection();
-    } catch (Exception e){
-      e.printStackTrace();
-      displayError("Couldn't access the native lib URL : " + path);
-      return;
-    }
+    for (int n = 0; n < nativeJarNames.length; n++) {
+      String nativeJarName = nativeJarNames[n];
 
-    // the timestamp used to determine if we have to download the native jar again
-    // don't rely on the OS's timestamp to cache this
-    long lastModified = getTimestamp(installDir, urlConnection.getLastModified());
-    if (lastModified != urlConnection.getLastModified()) {
-      displayMessage("Updating local version of the native libraries");
-      // first download the full jar locally
-      File localJarFile = new File(installDir, nativeJarName);
+      URL nativeLibURL;
+      URLConnection urlConnection;
+      String path = getCodeBase().toExternalForm() + nativeJarName;
       try {
-        saveNativesJarLocally(localJarFile, urlConnection);
-      } catch (IOException ioe) {
-        ioe.printStackTrace();
-        displayError("Unable to install the native file locally");
-        return;
+	nativeLibURL = new URL(path);
+	urlConnection = nativeLibURL.openConnection();
+      } catch (Exception e){
+	e.printStackTrace();
+	displayError("Couldn't access the native lib URL : " + path);
+	return;
       }
 
-      try {
-        JarFile jf = new JarFile(localJarFile);
+      // the timestamp used to determine if we have to download the native jar again
+      // don't rely on the OS's timestamp to cache this
+      long lastModified = getTimestamp(installDir, nativeJarName, urlConnection.getLastModified());
+      if (lastModified != urlConnection.getLastModified()) {
+	displayMessage("Updating local version of the native libraries");
+	// first download the full jar locally
+	File localJarFile = new File(installDir, nativeJarName);
+	try {
+	  saveNativesJarLocally(localJarFile, urlConnection);
+	} catch (IOException ioe) {
+	  ioe.printStackTrace();
+	  displayError("Unable to install the native file locally");
+	  return;
+	}
 
-        // Iterate the entries finding all candidate libraries that need
-        // to have their signatures verified
-        if (!findNativeEntries(jf)) {
-          displayError("native libraries not found in jar file");
-          return;
-        }
+	try {
+	  JarFile jf = new JarFile(localJarFile);
 
-        byte[] buf = new byte[8192];
+	  // Iterate the entries finding all candidate libraries that need
+	  // to have their signatures verified
+	  if (!findNativeEntries(jf)) {
+	    displayError("native libraries not found in jar file");
+	    return;
+	  }
 
-        // Go back and verify the signatures
-        for (int i = 0; i < nativeLibNames.length; i++) {
-          JarEntry entry = jf.getJarEntry(nativeLibNames[i]);
-          if (entry == null) {
-            displayError("error looking up jar entry " + nativeLibNames[i]);
-            return;
-          }
-          if (!checkNativeCertificates(jf, entry, buf)) {
-            displayError("Native library " + nativeLibNames[i] + " isn't properly signed or has other errors");
-            return;
-          }
-        }
+	  byte[] buf = new byte[8192];
 
-        // Now install the native library files
-        progressBar.setValue(0);
-        for (int i = 0; i < nativeLibNames.length; i++) {
-          displayMessage("Installing native files");
-          if (!installFile(installDir, jf, nativeLibNames[i], buf)) {
-            return;
-          }
-          int percent = (100 * (i + 1) / nativeLibNames.length);
-          progressBar.setValue(percent);
-        }
+	  // Go back and verify the signatures
+	  for (int i = 0; i < nativeLibNames.length; i++) {
+	    JarEntry entry = jf.getJarEntry(nativeLibNames[i]);
+	    if (entry == null) {
+	      displayError("error looking up jar entry " + nativeLibNames[i]);
+	      return;
+	    }
+	    if (!checkNativeCertificates(jf, entry, buf)) {
+	      displayError("Native library " + nativeLibNames[i] + " isn't properly signed or has other errors");
+	      return;
+	    }
+	  }
 
-        // At this point we can delete the jar file we just downloaded
-        jf.close();
-        localJarFile.delete();
+	  // Now install the native library files
+	  setProgress(0);
+	  for (int i = 0; i < nativeLibNames.length; i++) {
+	    displayMessage("Installing native files from " + nativeJarName);
+	    if (!installFile(installDir, jf, nativeLibNames[i], buf)) {
+	      return;
+	    }
+	    int percent = (100 * (i + 1) / nativeLibNames.length);
+	    setProgress(percent);
+	  }
 
-        // If installation succeeded, write a timestamp for all of the
-        // files to be checked next time
-        try {
-          File timestampFile = new File(installDir, "timestamp");
-          timestampFile.delete();
-          BufferedWriter writer = new BufferedWriter(new FileWriter(timestampFile));
-          writer.write("" + urlConnection.getLastModified());
-          writer.flush();
-          writer.close();
-        } catch (Exception e) {
-          displayError("Error writing time stamp for native libraries");
-          return;
-        }
+	  // At this point we can delete the jar file we just downloaded
+	  jf.close();
+	  localJarFile.delete();
 
-      } catch (Exception e) {
-        displayError("Error opening jar file " + localJarFile.getName() + " for reading");
-        return;
-      }
-    } else {
-      // Still need to discover whether DRI hack is installed
-      File[] files = installDir.listFiles();
-      for (int i = 0; i < files.length; i++) {
-        if (files[i].getName().indexOf("jogl_drihack") >= 0) {
-          driHackPresent = true;
-        }
+	  // If installation succeeded, write a timestamp for all of the
+	  // files to be checked next time
+	  try {
+	    File timestampFile = new File(installDir, "timestamp");
+	    timestampFile.delete();
+	    BufferedWriter writer = new BufferedWriter(new FileWriter(timestampFile));
+	    writer.write("" + urlConnection.getLastModified());
+	    writer.flush();
+	    writer.close();
+	  } catch (Exception e) {
+	    displayError("Error writing time stamp for native libraries");
+	    return;
+	  }
+
+	} catch (Exception e) {
+	  displayError("Error opening jar file " + localJarFile.getName() + " for reading");
+	  return;
+	}
       }
     }
 
     loadNativesAndStart(installDir);
   }
   
-  private long getTimestamp(File installDir, long timestamp) {
+  private long getTimestamp(File installDir, String nativeJarName, long timestamp) {
     // Avoid returning valid value if timestamp file doesn't exist
     try {
-      BufferedReader reader = new BufferedReader(new FileReader(new File(installDir, "timestamp")));
+      String timestampName = "timestamp-" + nativeJarName.replace('.', '-');
+      BufferedReader reader = new BufferedReader(new FileReader(new File(installDir, timestampName)));
       try {
         StreamTokenizer tokenizer = new StreamTokenizer(reader);
         // Avoid screwing up by not being able to read full longs
@@ -497,7 +518,7 @@ public class JOGLAppletLauncher extends Applet {
     BufferedOutputStream out = null;;
     InputStream in = null;
     displayMessage("Downloading native library");
-    progressBar.setValue(0);
+    setProgress(0);
     try {
       out = new BufferedOutputStream(new
                                      FileOutputStream(localJarFile));
@@ -510,7 +531,7 @@ public class JOGLAppletLauncher extends Applet {
         out.write(buffer, 0, len);
         sum += len;
         int percent = (100 * sum / totalLength);
-        progressBar.setValue(percent);
+        setProgress(percent);
       }
       out.close();
       in.close();
@@ -538,9 +559,6 @@ public class JOGLAppletLauncher extends Applet {
       JarEntry entry = (JarEntry) e.nextElement();
       if (nativeLibInfo.matchesNativeLib(entry.getName())) {
         list.add(entry.getName());
-        if (entry.getName().indexOf("jogl_drihack") >= 0) {
-          driHackPresent = true;
-        }
       }
     }
     if (list.isEmpty()) {
@@ -632,13 +650,21 @@ public class JOGLAppletLauncher extends Applet {
         public void run() {
           displayMessage("Loading native libraries");
 
-          // disable JOGL loading from elsewhere
+          // disable JOGL and GlueGen runtime library loading from elsewhere
           com.sun.opengl.impl.NativeLibLoader.disableLoading();
+          com.sun.gluegen.runtime.NativeLibLoader.disableLoading();
+
+	  // Open GlueGen runtime library optimistically. Note that
+	  // currently we do not need this on any platform except X11
+	  // ones, because JOGL doesn't use the GlueGen NativeLibrary
+	  // class anywhere except the DRIHack class, but if for
+	  // example we add JOAL support then we will need this on
+	  // every platform.
+	  loadLibrary(nativeLibDir, "gluegen-rt");
 
           Class driHackClass = null;
-          if (driHackPresent) {
-            // Load DRI hack library and run the DRI hack itself
-            loadLibrary(nativeLibDir, "jogl_drihack");
+          if (nativeLibInfo.mayNeedDRIHack()) {
+            // Run the DRI hack
             try {
               driHackClass = Class.forName("com.sun.opengl.impl.x11.DRIHack");
               driHackClass.getMethod("begin", new Class[] {}).invoke(null, new Object[] {});
@@ -650,7 +676,7 @@ public class JOGLAppletLauncher extends Applet {
           // Load core JOGL native library
           loadLibrary(nativeLibDir, "jogl");
 
-          if (driHackPresent) {
+          if (nativeLibInfo.mayNeedDRIHack()) {
             // End DRI hack
             try {
               driHackClass.getMethod("end", new Class[] {}).invoke(null, new Object[] {});
