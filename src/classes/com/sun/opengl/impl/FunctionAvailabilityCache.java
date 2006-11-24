@@ -102,7 +102,7 @@ public final class FunctionAvailabilityCache {
 
   public boolean isExtensionAvailable(String glExtensionName) {
     initAvailableExtensions();
-    return availableExtensionCache.contains(glExtensionName);
+    return availableExtensionCache.contains(mapGLExtensionName(glExtensionName));
   }
 
   protected void initAvailableExtensions() {
@@ -133,22 +133,27 @@ public final class FunctionAvailabilityCache {
       Version version = new Version(gl.glGetString(GL.GL_VERSION));
       int major = version.getMajor();
       int minor = version.getMinor();
-      // FIXME: this needs to be adjusted when the major and minor
-      // revs change beyond the known ones
-      switch (major) {
-        default:
-          if (major < 2)
-            break;
-        case 2: availableExtensionCache.add("GL_VERSION_2_0"); minor = 5;
-        case 1:
-          switch (minor) {
-            case 5: availableExtensionCache.add("GL_VERSION_1_5");
-            case 4: availableExtensionCache.add("GL_VERSION_1_4");
-            case 3: availableExtensionCache.add("GL_VERSION_1_3");
-            case 2: availableExtensionCache.add("GL_VERSION_1_2");
-            case 1: availableExtensionCache.add("GL_VERSION_1_1");
-            case 0: availableExtensionCache.add("GL_VERSION_1_0");
+      // FIXME: this needs to be adjusted when the major rev changes
+      // beyond the known ones
+      while (major > 0) {
+        while (minor >= 0) {
+          availableExtensionCache.add("GL_VERSION_" + major + "_" + minor);
+          if (DEBUG) {
+            System.err.println("!!! Added GL_VERSION_" + major + "_" + minor + " to known extensions");
           }
+          --minor;
+        }
+
+        switch (major) {
+          case 2:
+            // Restart loop at version 1.5
+            minor = 5;
+            break;
+          case 1:
+            break;
+        }
+
+        --major;
       }
 
       // put a dummy var in here so that the cache is no longer empty even if
@@ -255,9 +260,17 @@ public final class FunctionAvailabilityCache {
    */
   protected static String getExtensionCorrespondingToFunction(String glFunctionName)
   {
-    // HACK: FIXME!!! return something I know is supported so I can test other
-    // functions. 
-    return StaticGLInfo.getFunctionAssociation(glFunctionName);
+    return mapGLExtensionName(StaticGLInfo.getFunctionAssociation(glFunctionName));
+  }
+
+  // FIXME: hack to re-enable GL_NV_vertex_array_range extension after
+  // recent upgrade to new wglext.h and glxext.h headers
+  private static String mapGLExtensionName(String extensionName) {
+    if (extensionName != null &&
+        (extensionName.equals("WGL_NV_vertex_array_range") ||
+         extensionName.equals("GLX_NV_vertex_array_range"))) 
+      return "GL_NV_vertex_array_range";
+    return extensionName;
   }
 
   //----------------------------------------------------------------------
