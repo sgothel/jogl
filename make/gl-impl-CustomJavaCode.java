@@ -9,6 +9,7 @@ private GLObjectTracker tracker;
 
 public GLImpl(GLContextImpl context) {
   this._context = context; 
+  this.bufferSizeTracker = context.getBufferSizeTracker();
 }
 
 public boolean isFunctionAvailable(String glFunctionName) {
@@ -148,15 +149,14 @@ private int imageSizeInBytes(int format, int type, int w, int h, int d) {
   return (elements * esize * w * h * d);
 }
 
-private int[] bufTmp = new int[1];
 private boolean bufferObjectExtensionsInitialized = false;
 private boolean haveARBPixelBufferObject;
 private boolean haveEXTPixelBufferObject;
 private boolean haveGL15;
 private boolean haveGL21;
 private boolean haveARBVertexBufferObject;
-private boolean[] bufferBindingsKnown = new boolean[4];
-private int[]     bufferBindings      = new int[4];
+private GLBufferStateTracker bufferStateTracker = new GLBufferStateTracker();
+private GLBufferSizeTracker  bufferSizeTracker;
 
 private void initBufferObjectExtensionChecks() {
   if (bufferObjectExtensionsInitialized)
@@ -167,79 +167,6 @@ private void initBufferObjectExtensionChecks() {
   haveGL15                  = isExtensionAvailable("GL_VERSION_1_5");
   haveGL21                  = isExtensionAvailable("GL_VERSION_2_1");
   haveARBVertexBufferObject = isExtensionAvailable("GL_ARB_vertex_buffer_object");
-}
-
-// Might want to call this from GLContext.makeCurrent() in the future
-// to possibly increase the robustness of these caches
-private void clearBufferObjectState() {
-  for (int i = 0; i < bufferBindingsKnown.length; i++) {
-    bufferBindingsKnown[i] = false;
-  }
-}
-
-// Called by glBindBuffer
-private void setBoundBufferObject(int state, int buffer) {
-  switch (state) {
-    case GL.GL_ARRAY_BUFFER:
-      bufferBindingsKnown[0] = true;
-      bufferBindings[0] = buffer;
-      break;
-      
-    case GL.GL_ELEMENT_ARRAY_BUFFER:
-      bufferBindingsKnown[1] = true;
-      bufferBindings[1] = buffer;
-      break;
-
-    case GL.GL_PIXEL_PACK_BUFFER:
-      bufferBindingsKnown[2] = true;
-      bufferBindings[2] = buffer;
-      break;
-
-    case GL.GL_PIXEL_UNPACK_BUFFER:
-      bufferBindingsKnown[3] = true;
-      bufferBindings[3] = buffer;
-      break;
-
-    default:
-      // There are other enumerants now supported as arguments to
-      // glBindBuffer(); e.g., GL_TRANSFORM_FEEDBACK_BUFFER_NV. It is
-      // likely this code will need to be updated in the future, but
-      // for now it is believed that there are no other enumerants
-      // that need to be supported in order to support the buffer
-      // object checking necessary for class GL.
-      break;
-  }
-}
-
-private int getBoundBufferObject(int state) {
-  // Compute the index we need
-  int index = -1;
-  switch (state) {
-    case GL.GL_ARRAY_BUFFER_BINDING:
-      index = 0;
-      break;
-    case GL.GL_ELEMENT_ARRAY_BUFFER_BINDING:
-      index = 1;
-      break;
-    case GL.GL_PIXEL_PACK_BUFFER_BINDING:
-      index = 2;
-      break;
-    case GL.GL_PIXEL_UNPACK_BUFFER_BINDING:
-      index = 3;
-      break;
-    default:
-      // No other currently supported enumerants; return early
-      break;
-  }
-  if (index < 0)
-    return 0;
-  if (!bufferBindingsKnown[index]) {
-    // Get the state and cache it
-    glGetIntegerv(state, bufTmp, 0);
-    bufferBindingsKnown[index] = true;
-    bufferBindings[index] = bufTmp[0];
-  }
-  return bufferBindings[index];
 }
 
 private void checkBufferObject(boolean extension1,
@@ -257,7 +184,7 @@ private void checkBufferObject(boolean extension1,
       return;
     throw new GLException("Required extensions not available to call this function");
   }
-  int buffer = getBoundBufferObject(state);
+  int buffer = bufferStateTracker.getBoundBufferObject(state, this);
   if (enabled) {
     if (buffer == 0) {
       throw new GLException(kind + " must be enabled to call this method");
@@ -275,7 +202,7 @@ private void checkUnpackPBODisabled() {
                     haveEXTPixelBufferObject,
                     haveGL21,
                     false,
-                    GL.GL_PIXEL_UNPACK_BUFFER_BINDING_ARB,
+                    GL.GL_PIXEL_UNPACK_BUFFER,
                     "unpack pixel_buffer_object");
 }
 
@@ -285,7 +212,7 @@ private void checkUnpackPBOEnabled() {
                     haveEXTPixelBufferObject,
                     haveGL21,
                     true,
-                    GL.GL_PIXEL_UNPACK_BUFFER_BINDING_ARB,
+                    GL.GL_PIXEL_UNPACK_BUFFER,
                     "unpack pixel_buffer_object");
 }
 
@@ -295,7 +222,7 @@ private void checkPackPBODisabled() {
                     haveEXTPixelBufferObject,
                     haveGL21,
                     false,
-                    GL.GL_PIXEL_PACK_BUFFER_BINDING_ARB,
+                    GL.GL_PIXEL_PACK_BUFFER,
                     "pack pixel_buffer_object");
 }
 
@@ -305,7 +232,7 @@ private void checkPackPBOEnabled() {
                     haveEXTPixelBufferObject,
                     haveGL21,
                     true,
-                    GL.GL_PIXEL_PACK_BUFFER_BINDING_ARB,
+                    GL.GL_PIXEL_PACK_BUFFER,
                     "pack pixel_buffer_object");
 }
 
@@ -316,7 +243,7 @@ private void checkArrayVBODisabled() {
                     haveARBVertexBufferObject,
                     false,
                     false,
-                    GL.GL_ARRAY_BUFFER_BINDING,
+                    GL.GL_ARRAY_BUFFER,
                     "array vertex_buffer_object");
 }
 
@@ -326,7 +253,7 @@ private void checkArrayVBOEnabled() {
                     haveARBVertexBufferObject,
                     false,
                     true,
-                    GL.GL_ARRAY_BUFFER_BINDING,
+                    GL.GL_ARRAY_BUFFER,
                     "array vertex_buffer_object");
 }
 
@@ -336,7 +263,7 @@ private void checkElementVBODisabled() {
                     haveARBVertexBufferObject,
                     false,
                     false,
-                    GL.GL_ELEMENT_ARRAY_BUFFER_BINDING,
+                    GL.GL_ELEMENT_ARRAY_BUFFER,
                     "element vertex_buffer_object");
 }
 
@@ -346,7 +273,7 @@ private void checkElementVBOEnabled() {
                     haveARBVertexBufferObject,
                     false,
                     true,
-                    GL.GL_ELEMENT_ARRAY_BUFFER_BINDING,
+                    GL.GL_ELEMENT_ARRAY_BUFFER,
                     "element vertex_buffer_object");
 }
 
@@ -383,17 +310,18 @@ public java.nio.ByteBuffer glMapBuffer(int target, int access) {
   if (__addr_ == 0) {
     throw new GLException("Method \"glMapBuffer\" not available");
   }
-  int[] sz = new int[1];
-  glGetBufferParameteriv(target, GL_BUFFER_SIZE_ARB, sz, 0);
+  int sz = bufferSizeTracker.getBufferSize(bufferStateTracker,
+                                           target,
+                                           this);
   long addr;
   addr = dispatch_glMapBuffer(target, access, __addr_);
-  if (addr == 0 || sz[0] == 0) {
+  if (addr == 0 || sz == 0) {
     return null;
   }
-  ARBVBOKey key = new ARBVBOKey(addr, sz[0]);
+  ARBVBOKey key = new ARBVBOKey(addr, sz);
   ByteBuffer _res = (ByteBuffer) arbVBOCache.get(key);
   if (_res == null) {
-    _res = InternalBufferUtils.newDirectByteBuffer(addr, sz[0]);
+    _res = InternalBufferUtils.newDirectByteBuffer(addr, sz);
     _res.order(ByteOrder.nativeOrder());
     arbVBOCache.put(key, _res);
   }
@@ -407,17 +335,18 @@ public java.nio.ByteBuffer glMapBufferARB(int target, int access) {
   if (__addr_ == 0) {
     throw new GLException("Method \"glMapBufferARB\" not available");
   }
-  int[] sz = new int[1];
-  glGetBufferParameterivARB(target, GL_BUFFER_SIZE_ARB, sz, 0);
+  int sz = bufferSizeTracker.getBufferSize(bufferStateTracker,
+                                           target,
+                                           this);
   long addr;
   addr = dispatch_glMapBufferARB(target, access, __addr_);
-  if (addr == 0 || sz[0] == 0) {
+  if (addr == 0 || sz == 0) {
     return null;
   }
-  ARBVBOKey key = new ARBVBOKey(addr, sz[0]);
+  ARBVBOKey key = new ARBVBOKey(addr, sz);
   ByteBuffer _res = (ByteBuffer) arbVBOCache.get(key);
   if (_res == null) {
-    _res = InternalBufferUtils.newDirectByteBuffer(addr, sz[0]);
+    _res = InternalBufferUtils.newDirectByteBuffer(addr, sz);
     _res.order(ByteOrder.nativeOrder());
     arbVBOCache.put(key, _res);
   }

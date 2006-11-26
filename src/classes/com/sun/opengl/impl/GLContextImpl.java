@@ -68,6 +68,10 @@ public abstract class GLContextImpl extends GLContext {
   // OpenGL functions.
   private GLProcAddressTable glProcAddressTable;
 
+  // Tracks creation and initialization of buffer objects to avoid
+  // repeated glGet calls upon glMapBuffer operations
+  private GLBufferSizeTracker bufferSizeTracker;
+
   // Tracks creation and deletion of server-side OpenGL objects when
   // the Java2D/OpenGL pipeline is active and using FBOs to render
   private GLObjectTracker tracker;
@@ -81,7 +85,6 @@ public abstract class GLContextImpl extends GLContext {
   }
 
   public GLContextImpl(GLContext shareWith, boolean dontShareWithJava2D) {
-    setGL(createGL());
     functionAvailability = new FunctionAvailabilityCache(this);
     GLContext shareContext = shareWith;
     if (!dontShareWithJava2D) {
@@ -95,6 +98,10 @@ public abstract class GLContextImpl extends GLContext {
       shareContext = Java2D.filterShareContext(shareWith);
     }
     GLContextShareSet.registerForObjectTracking(shareWith, this, shareContext);
+    GLContextShareSet.registerForBufferObjectSharing(shareWith, this);
+    // This must occur after the above calls into the
+    // GLContextShareSet, which set up state needed by the GL object
+    setGL(createGL());
   }
 
   public int makeCurrent() throws GLException {
@@ -183,6 +190,13 @@ public abstract class GLContextImpl extends GLContext {
         tracker.unref(deletedObjectTracker);
       }
     }
+
+    // Because we don't know how many other contexts we might be
+    // sharing with (and it seems too complicated to implement the
+    // GLObjectTracker's ref/unref scheme for the buffer-related
+    // optimizations), simply clear the cache of known buffers' sizes
+    // when we destroy contexts
+    bufferSizeTracker.clearCachedBufferSizes();
 
     // Must hold the lock around the destroy operation to make sure we
     // don't destroy the context out from under another thread rendering to it
@@ -359,6 +373,17 @@ public abstract class GLContextImpl extends GLContext {
 
   public static String toHexString(long hex) {
     return "0x" + Long.toHexString(hex);
+  }
+
+  //----------------------------------------------------------------------
+  // Helpers for buffer object optimizations
+  
+  public void setBufferSizeTracker(GLBufferSizeTracker bufferSizeTracker) {
+    this.bufferSizeTracker = bufferSizeTracker;
+  }
+
+  public GLBufferSizeTracker getBufferSizeTracker() {
+    return bufferSizeTracker;
   }
 
   //---------------------------------------------------------------------------
