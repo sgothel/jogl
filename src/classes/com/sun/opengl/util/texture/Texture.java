@@ -64,7 +64,7 @@ import com.sun.opengl.impl.*;
  * appropriate texture coordinates for the situation.
  *
  * <p>One caveat in this approach is that certain texture wrap modes
- * (e.g.  GL_REPEAT) are not legal when the GL_ARB_texture_rectangle
+ * (e.g.  <code>GL_REPEAT</code>) are not legal when the GL_ARB_texture_rectangle
  * extension is in use.  Another issue to be aware of is that in the
  * default pow2 scenario, if the original image does not have pow2
  * dimensions, then wrapping may not work as one might expect since
@@ -85,7 +85,7 @@ import com.sun.opengl.impl.*;
 <pre>
     gl.glBlendFunc(GL.GL_ONE, GL.GL_ONE_MINUS_SRC_ALPHA);
 </pre>
- * Also, when using a texture function like {@code GL_MODULATE} where
+ * Also, when using a texture function like <code>GL_MODULATE</code> where
  * the current color plays a role, it is important to remember to make
  * sure that the color is specified in a premultiplied form, for
  * example:
