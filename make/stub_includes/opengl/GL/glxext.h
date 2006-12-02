@@ -923,8 +923,8 @@ typedef int ( * PFNGLXGETVIDEOINFONVPROC) (Display *dpy, int screen,
 #ifdef GLX_GLXEXT_PROTOTYPES
 extern void glXBindTexImageEXT(Display *dpy, GLXDrawable drawable,
                                int buffer, const int *attrib_list);
-extern void glXReleaseTextImageEXT(Display *dpy, GLXDrawable drawable,
-                                   int buffer);
+extern void glXReleaseTexImageEXT(Display *dpy, GLXDrawable drawable,
+                                  int buffer);
 #endif
 typedef void ( * PFNGLXBINDTEXIMAGEEXTPROC) (Display *dpy,
                                              GLXDrawable drawable,
