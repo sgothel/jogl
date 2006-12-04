@@ -213,6 +213,14 @@ public class JOGLAppletLauncher extends Applet {
   /** true if start() has passed successfully */
   private boolean joglStarted = false;
 
+  /** Indicates whether JOAL is present */
+  private boolean haveJOAL = false;
+
+  // Helpers for question about whether to update deployment.properties
+  private static final String JRE_PREFIX = "deployment.javapi.jre.";
+  private static final String NODDRAW_PROP = "-Dsun.java2d.noddraw=true";
+  private static final String DONT_ASK = ".dont_ask";
+
   public JOGLAppletLauncher() {
   }
 
@@ -333,6 +341,7 @@ public class JOGLAppletLauncher extends Applet {
         }
 
       } else if (joglStarted) {
+        checkNoDDrawAndUpdateDeploymentProperties();
         // we have to start again the applet (start can be called multiple times,
         // e.g once per tabbed browsing
         subApplet.start();
@@ -370,6 +379,123 @@ public class JOGLAppletLauncher extends Applet {
     return false;
   }
 
+  private void checkNoDDrawAndUpdateDeploymentProperties() {
+    if (System.getProperty("os.name").toLowerCase().startsWith("windows") &&
+        !"true".equalsIgnoreCase(System.getProperty("sun.java2d.noddraw"))) {
+      if (!SwingUtilities.isEventDispatchThread()) {
+        try {
+          SwingUtilities.invokeAndWait(new Runnable() {
+              public void run() {
+                updateDeploymentPropertiesImpl();
+              }
+            });
+        } catch (Exception e) {
+        }
+      } else {
+        updateDeploymentPropertiesImpl();
+      }
+    }
+  }
+
+  private void updateDeploymentPropertiesImpl() {
+    String userHome = System.getProperty("user.home");
+    File dontAskFile = new File(userHome + File.separator + ".jogl_ext" +
+                                File.separator + DONT_ASK);
+    if (dontAskFile.exists())
+      return; // User asked us not to prompt again
+
+    int option = JOptionPane.showOptionDialog(null,
+                                              "For best robustness of JOGL applets on Windows,\n" +
+                                              "we recommend disabling Java2D's use of DirectDraw.\n" +
+                                              "This setting will affect all applets, but is unlikely\n" +
+                                              "to slow other applets down significantly. May we update\n" +
+                                              "your deployment.properties to turn off DirectDraw for\n" +
+                                              "applets? You can change this back later if necessary\n" +
+                                              "using the Java Control Panel, Java tab, under Java\n" +
+                                              "Applet Runtime Settings.",
+                                              "Update deployment.properties?",
+                                              JOptionPane.YES_NO_CANCEL_OPTION,
+                                              JOptionPane.QUESTION_MESSAGE,
+                                              null,
+                                              new Object[] {
+                                                "Yes",
+                                                "No",
+                                                "No, Don't Ask Again"
+                                              },
+                                              "Yes");
+    if (option < 0 ||
+        option == 1)
+      return; // No
+
+    if (option == 2) {
+      try {
+        dontAskFile.createNewFile();
+      } catch (IOException e) {
+      }
+      return; // No, Don't Ask Again
+    }
+
+    try {
+      // Must update deployment.properties
+      File propsDir = new File(System.getProperty("user.home") + File.separator +
+                               "Application Data/Sun/Java/Deployment");
+      if (!propsDir.exists())
+        // Don't know what's going on or how to set this permanently
+        return;
+
+      File propsFile = new File(propsDir, "deployment.properties");
+      if (!propsFile.exists())
+        // Don't know what's going on or how to set this permanently
+        return;
+
+      Properties props = new Properties();
+      InputStream input = new BufferedInputStream(new FileInputStream(propsFile));
+      props.load(input);
+      input.close();
+      // Search through the keys looking for JRE versions
+      Set/*<String>*/ jreVersions = new HashSet/*<String>*/();
+      for (Iterator/*<String>*/ iter = props.keySet().iterator(); iter.hasNext(); ) {
+        String key = (String) iter.next();
+        if (key.startsWith(JRE_PREFIX)) {
+          int idx = key.lastIndexOf(".");
+          if (idx >= 0 && idx > JRE_PREFIX.length()) {
+            String jreVersion = key.substring(JRE_PREFIX.length(), idx);
+            jreVersions.add(jreVersion);
+          }
+        }
+      }
+
+      // OK, now that we know all JRE versions covered by the
+      // deployment.properties, check out the args for each and update
+      // them
+      for (Iterator/*<String>*/ iter = jreVersions.iterator(); iter.hasNext(); ) {
+        String version = (String) iter.next();
+        String argKey = JRE_PREFIX + version + ".args";
+        String argVal = props.getProperty(argKey);
+        if (argVal == null) {
+          argVal = NODDRAW_PROP;
+        } else if (argVal.indexOf(NODDRAW_PROP) < 0) {
+          argVal = argVal + " " + NODDRAW_PROP;
+        }
+        props.setProperty(argKey, argVal);
+      }
+
+      OutputStream output = new BufferedOutputStream(new FileOutputStream(propsFile));
+      props.store(output, null);
+      output.close();
+
+      // Tell user we're done
+      JOptionPane.showMessageDialog(null,
+                                    "For best robustness, we recommend you now exit and\n" +
+                                    "restart your web browser. (Note: clicking \"OK\" will\n" +
+                                    "not exit your browser.)",
+                                    "Browser Restart Recommended",
+                                    JOptionPane.INFORMATION_MESSAGE);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+
   /** This method is executed from outside the Event Dispatch Thread, and installs
    *  the required native libraries in the local folder.
    */
@@ -389,13 +515,24 @@ public class JOGLAppletLauncher extends Applet {
       }
     }
 
+    // See whether JOAL is present
+    try {
+      Class alClass = Class.forName("net.java.games.joal.AL", false, this.getClass().getClassLoader());
+      haveJOAL = true;
+    } catch (ClassNotFoundException cnfe) {
+    }
+
     String[] nativeJarNames = new String[] {
       nativeLibInfo.formatNativeJarName("jogl-natives-{0}.jar"),
-      nativeLibInfo.formatNativeJarName("gluegen-rt-natives-{0}.jar")
+      nativeLibInfo.formatNativeJarName("gluegen-rt-natives-{0}.jar"),
+      (haveJOAL ? nativeLibInfo.formatNativeJarName("joal-natives-{0}.jar") : null)
     };
 
     for (int n = 0; n < nativeJarNames.length; n++) {
       String nativeJarName = nativeJarNames[n];
+
+      if (nativeJarName == null)
+        continue;
 
       URL nativeLibURL;
       URLConnection urlConnection;
@@ -467,7 +604,7 @@ public class JOGLAppletLauncher extends Applet {
 	  // If installation succeeded, write a timestamp for all of the
 	  // files to be checked next time
 	  try {
-	    File timestampFile = new File(installDir, "timestamp");
+            File timestampFile = new File(installDir, getTimestampFileName(nativeJarName));
 	    timestampFile.delete();
 	    BufferedWriter writer = new BufferedWriter(new FileWriter(timestampFile));
 	    writer.write("" + urlConnection.getLastModified());
@@ -488,10 +625,14 @@ public class JOGLAppletLauncher extends Applet {
     loadNativesAndStart(installDir);
   }
   
+  private String getTimestampFileName(String nativeJarName) {
+    return "timestamp-" + nativeJarName.replace('.', '-');
+  }
+
   private long getTimestamp(File installDir, String nativeJarName, long timestamp) {
     // Avoid returning valid value if timestamp file doesn't exist
     try {
-      String timestampName = "timestamp-" + nativeJarName.replace('.', '-');
+      String timestampName = getTimestampFileName(nativeJarName);
       BufferedReader reader = new BufferedReader(new FileReader(new File(installDir, timestampName)));
       try {
         StreamTokenizer tokenizer = new StreamTokenizer(reader);
@@ -616,11 +757,20 @@ public class JOGLAppletLauncher extends Applet {
       int totalLength = (int) entry.getSize();
       BufferedOutputStream out = null;
       File outputFile = new File(installDir, fileName);
+      boolean exists = false;
       try {
+        exists = outputFile.exists();
         out = new BufferedOutputStream(new FileOutputStream(outputFile));
       } catch (Exception e) {
-        displayError("Error opening file " + fileName + " for writing");
-        return false;
+        if (exists) {
+          // It's possible the files were updated on the web server
+          // but we still have them loaded in this process; skip this
+          // update
+          return true;
+        } else {
+          displayError("Error opening file " + fileName + " for writing");
+          return false;
+        }
       }      
       int len;
       try {
@@ -635,6 +785,7 @@ public class JOGLAppletLauncher extends Applet {
       }
       out.flush();
       out.close();
+      is.close();
       return true;
     } catch (Exception e2) {
       e2.printStackTrace();
@@ -705,6 +856,39 @@ public class JOGLAppletLauncher extends Applet {
           // Load AWT-specific native code
           loadLibrary(nativeLibDir, "jogl_awt");
 
+          if (haveJOAL) {
+            // Turn off the System.loadLibrary call of the joal_native
+            // library. It will still need to load the OpenAL library
+            // internally via another mechanism.
+            try {
+              Class c = Class.forName("net.java.games.joal.impl.NativeLibLoader");
+              c.getMethod("disableLoading", new Class[] {}).invoke(null, new Object[] {});
+            } catch (Exception e) {
+              e.printStackTrace();
+            }
+
+            // Append the installed native library directory to
+            // java.library.path. This is the most convenient way to
+            // make this directory available to the NativeLibrary code,
+            // which needs it for loading OpenAL if present.
+            String javaLibPath = System.getProperty("java.library.path");
+            String absPath = nativeLibDir.getAbsolutePath();
+            boolean shouldSet = false;
+            if (javaLibPath == null) {
+              javaLibPath = absPath;
+              shouldSet = true;
+            } else if (javaLibPath.indexOf(absPath) < 0) {
+              javaLibPath = javaLibPath + File.pathSeparator + absPath;
+              shouldSet = true;
+            }
+            if (shouldSet) {
+              System.setProperty("java.library.path", javaLibPath);
+            }
+
+            // Load core JOAL native library
+            loadLibrary(nativeLibDir, "joal_native");
+          }
+
           displayMessage("Starting applet " + subAppletDisplayName);
 
           // start the subapplet
@@ -747,6 +931,7 @@ public class JOGLAppletLauncher extends Applet {
       subApplet.init();
       remove(loaderPanel);
       validate();
+      checkNoDDrawAndUpdateDeploymentProperties();
       subApplet.start();
       joglStarted = true;
     } catch (Exception ex){
