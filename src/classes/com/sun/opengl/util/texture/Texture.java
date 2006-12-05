@@ -72,6 +72,20 @@ import com.sun.opengl.impl.*;
  * texture wrapping is important, it is recommended to use only
  * pow2-sized images with the Texture class.
  *
+ * <p><a name="perftips"><b>Performance Tips</b></a>
+ * <br> For best performance, try to avoid calling {@link #enable} /
+ * {@link #bind} / {@link #disable} any more than necessary. For
+ * example, applications using many Texture objects in the same scene
+ * may want to reduce the number of calls to both {@link #enable} and
+ * {@link #disable}. To do this it is necessary to call {@link
+ * #getTarget} to make sure the OpenGL texture target is the same for
+ * all of the Texture objects in use; non-power-of-two textures using
+ * the GL_ARB_texture_rectangle extension use a different target than
+ * power-of-two textures using the GL_TEXTURE_2D target. Note that
+ * when switching between textures it is necessary to call {@link
+ * #bind}, but when drawing many triangles all using the same texture,
+ * for best performance only one call to {@link #bind} should be made.
+ *
  * <p><a name="premult"><b>Alpha premultiplication and blending</b></a>
  * <br> The mathematically correct way to perform blending in OpenGL
  * (with the SrcOver "source over destination" mode, or any other
@@ -144,7 +158,14 @@ public class Texture {
 
   /**
    * Enables this texture's target (e.g., GL_TEXTURE_2D) in the
-   * current GL context's state.
+   * current GL context's state. This method is a shorthand equivalent
+   * of the following OpenGL code:
+<pre>
+    gl.glEnable(texture.getTarget());
+</pre>
+   *
+   * See the <a href="#perftips">performance tips</a> above for hints
+   * on how to maximize performance when using many Texture objects.
    *
    * @throws GLException if no OpenGL context was current or if any
    * OpenGL-related errors occurred
@@ -155,7 +176,14 @@ public class Texture {
 
   /**
    * Disables this texture's target (e.g., GL_TEXTURE_2D) in the
-   * current GL context's state.
+   * current GL context's state. This method is a shorthand equivalent
+   * of the following OpenGL code:
+<pre>
+    gl.glDisable(texture.getTarget());
+</pre>
+   *
+   * See the <a href="#perftips">performance tips</a> above for hints
+   * on how to maximize performance when using many Texture objects.
    *
    * @throws GLException if no OpenGL context was current or if any
    * OpenGL-related errors occurred
@@ -165,7 +193,14 @@ public class Texture {
   }
 
   /**
-   * Binds this texture to the current GL context.
+   * Binds this texture to the current GL context. This method is a
+   * shorthand equivalent of the following OpenGL code:
+<pre>
+    gl.glBindTexture(texture.getTarget(), texture.getTextureObject());
+</pre>
+   *
+   * See the <a href="#perftips">performance tips</a> above for hints
+   * on how to maximize performance when using many Texture objects.
    *
    * @throws GLException if no OpenGL context was current or if any
    * OpenGL-related errors occurred
@@ -197,8 +232,9 @@ public class Texture {
   }
 
   /**
-   * Returns the width of the texture.  Note that the texture width will
-   * be greater than or equal to the width of the image contained within.
+   * Returns the width of the allocated OpenGL texture in pixels.
+   * Note that the texture width will be greater than or equal to the
+   * width of the image contained within.
    *
    * @return the width of the texture
    */
@@ -207,8 +243,9 @@ public class Texture {
   }
     
   /**
-   * Returns the height of the texture.  Note that the texture height will
-   * be greater than or equal to the height of the image contained within.
+   * Returns the height of the allocated OpenGL texture in pixels.
+   * Note that the texture height will be greater than or equal to the
+   * height of the image contained within.
    *
    * @return the height of the texture
    */
@@ -218,6 +255,11 @@ public class Texture {
     
   /** 
    * Returns the width of the image contained within this texture.
+   * Note that for non-power-of-two textures in particular this may
+   * not be equal to the result of {@link #getWidth}. It is
+   * recommended that applications call {@link #getImageTexCoords} and
+   * {@link #getSubImageTexCoords} rather than using this API
+   * directly.
    *
    * @return the width of the image
    */
@@ -227,6 +269,11 @@ public class Texture {
 
   /**
    * Returns the height of the image contained within this texture.
+   * Note that for non-power-of-two textures in particular this may
+   * not be equal to the result of {@link #getHeight}. It is
+   * recommended that applications call {@link #getImageTexCoords} and
+   * {@link #getSubImageTexCoords} rather than using this API
+   * directly.
    *
    * @return the height of the image
    */
