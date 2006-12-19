@@ -191,8 +191,10 @@ public class X11GLDrawableFactory extends GLDrawableFactoryImpl {
     }
     // Store these away for later
     for (int i = 0; i < infos.length; i++) {
-      visualToGLCapsMap.put(new ScreenAndVisualIDKey(screen, infos[i].visualid()),
-                            caps[i].clone());
+      if (caps[i] != null) {
+        visualToGLCapsMap.put(new ScreenAndVisualIDKey(screen, infos[i].visualid()),
+                              caps[i].clone());
+      }
     }
     int chosen = chooser.chooseCapabilities(capabilities, caps, recommendedIndex);
     if (chosen < 0 || chosen >= caps.length) {
