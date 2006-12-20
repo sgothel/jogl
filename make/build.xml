@@ -1130,6 +1130,25 @@
         </fail>
     </target>
 
+    <target name="dist.check.windows-amd64" if="jogl.dist.dir">
+        <condition property="windows-amd64.complete">
+	  <and>
+	    <available file="${jogl.dist.dir}/jogl-win/64/jogl.dll" />
+	    <available file="${jogl.dist.dir}/jogl-win/64/jogl_awt.dll" />
+	    <available file="${jogl.dist.dir}/jogl-win/64/jogl_cg.dll" />
+	    <available file="${jogl.dist.dir}/jogl-win/64/gluegen-rt.dll" />
+	    <available file="${jogl.dist.dir}/jogl-win/64/gluegen-rt-natives-windows-amd64.jar" />
+	  </and>
+	</condition>
+	<fail unless="windows-amd64.complete">
+    *********************************************************************
+    ** Files are missing from the Windows/AMD64 build. This will cause **	
+    ** the distribution to be incomplete. Please check the status      **
+    ** of the Windows/AMD64 build and try again.                       **
+    *********************************************************************
+        </fail>
+    </target>
+
     <target name="dist.check.linux" if="jogl.dist.dir">
         <condition property="linux.complete">
 	  <and>
@@ -1158,7 +1177,7 @@
     </target>
 
     <target name="dist.check.linux-amd64" if="jogl.dist.dir">
-        <condition property="linux.complete">
+        <condition property="linux-amd64.complete">
 	  <and>
 	    <available file="${jogl.dist.dir}/jogl-linux/64/libjogl.so" />
 	    <available file="${jogl.dist.dir}/jogl-linux/64/libjogl_awt.so" />
@@ -1167,12 +1186,12 @@
 	    <available file="${jogl.dist.dir}/jogl-linux/64/gluegen-rt-natives-linux-amd64.jar" />
 	  </and>
 	</condition>
-	<fail unless="linux.complete">
-    ******************************************************************
-    ** Files are missing from the Linux build. This will cause      **	
-    ** the distribution to be incomplete. Please check the status   **
-    ** of the Linux build and try again.                            **
-    ******************************************************************
+	<fail unless="linux-amd64.complete">
+    *******************************************************************
+    ** Files are missing from the Linux/AMD64 build. This will cause **	
+    ** the distribution to be incomplete. Please check the status    **
+    ** of the Linux/AMD64 build and try again.                       **
+    *******************************************************************
         </fail>
     </target>
 
@@ -1326,7 +1345,7 @@
 	     includes="${jogl.tmp.version}/**" />
     </target>
 
-    <target name="dist" depends="dist.dir.check,dist.check.windows,dist.check.linux,dist.check.linux-amd64,dist.check.macosx,dist.check.macosxfat,dist.check.solsparc,dist.check.solsparcv9,dist.check.solx86, dist.check.solamd64">
+    <target name="dist" depends="dist.dir.check,dist.check.windows,dist.check.windows-amd64,dist.check.linux,dist.check.linux-amd64,dist.check.macosx,dist.check.macosxfat,dist.check.solsparc,dist.check.solsparcv9,dist.check.solx86, dist.check.solamd64">
         <delete>
             <fileset dir="${jogl.dist.dir}" includes="*.jar" />
         </delete>
@@ -1355,6 +1374,9 @@
         </jar>
         <jar destfile="${jogl.dist.dir}/jogl-natives-windows-i586.jar"
              basedir="${jogl.dist.dir}/jogl-win/32"
+             includes="jogl.dll,jogl_awt.dll,jogl_cg.dll" />
+        <jar destfile="${jogl.dist.dir}/jogl-natives-windows-amd64.jar"
+             basedir="${jogl.dist.dir}/jogl-win/64"
              includes="jogl.dll,jogl_awt.dll,jogl_cg.dll" />
         <jar destfile="${jogl.dist.dir}/jogl-natives-linux-i586.jar"
              basedir="${jogl.dist.dir}/jogl-linux/32"
@@ -1385,6 +1407,9 @@
         <!-- Copy gluegen-rt native jars out of platform-specific subdirectories -->
         <copy todir="${jogl.dist.dir}">
             <fileset dir="${jogl.dist.dir}/jogl-win/32" includes="gluegen-natives-*.jar" />
+        </copy>
+        <copy todir="${jogl.dist.dir}">
+            <fileset dir="${jogl.dist.dir}/jogl-win/64" includes="gluegen-natives-*.jar" />
         </copy>
         <copy todir="${jogl.dist.dir}">
             <fileset dir="${jogl.dist.dir}/jogl-linux/32" includes="gluegen-natives-*.jar" />
@@ -1474,6 +1499,11 @@
             <param name="zip.os.arch"    value="windows-i586" />
             <param name="zip.so.suffix"  value=".dll" />
             <param name="zip.src.so.dir" value="${jogl.dist.dir}/jogl-win/32" />
+        </antcall>
+        <antcall target="dist.build.zip" inheritAll="true">
+            <param name="zip.os.arch"    value="windows-amd64" />
+            <param name="zip.so.suffix"  value=".dll" />
+            <param name="zip.src.so.dir" value="${jogl.dist.dir}/jogl-win/64" />
         </antcall>
         <!-- Create one last zip archive by hand, this one containing all of the -->
         <!-- Java Web Start jar files (for easier redistribution) -->
