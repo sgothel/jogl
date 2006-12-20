@@ -350,33 +350,26 @@ void getRendererInfo()
 #endif
 }
 
-long validateParameter(NSOpenGLPixelFormatAttribute atttribute, long value)
+long validateParameter(NSOpenGLPixelFormatAttribute attribute, long value)
 {
-	bool done = false;
-	int i;
-	for (i=0; i<gRenderersCount; i++)
-	{
-		RendererInfo renderer = gRenderers[i];
-		if (renderer.accelerated != 0)
-		{
-			switch (atttribute)
-			{
-				case NSOpenGLPFAStencilSize:
-					value = MIN(value, renderer.stencilSizeMAX);
-					done = true;
-					break;
-				default:
-					break;
-			}
-		}
-		
-		if (done == true)
-		{
-			break;
-		}
-	}
+  int i;
+  for (i=0; i<gRenderersCount; i++) {
+    RendererInfo* renderer = &gRenderers[i];
+    if (renderer->accelerated != 0) {
+      switch (attribute) {
+        case NSOpenGLPFAStereo:
+          return renderer->stereo;
+
+        case NSOpenGLPFAStencilSize:
+          return MIN(value, renderer->stencilSizeMAX);
+
+        default:
+          break;
+      }
+    }
+  }
 	
-	return value;
+  return value;
 }
 
 void* createPixelFormat(int* iattrs, int niattrs, int* ivalues) {
@@ -411,7 +404,7 @@ void* createPixelFormat(int* iattrs, int niattrs, int* ivalues) {
         break;
 
       case NSOpenGLPFAStereo:
-        if (ivalues[i] != 0) {
+        if (ivalues[i] != 0 && (validateParameter(NSOpenGLPFAStereo, 0 /* dummy */) != 0)) {
           attribs[idx++] = NSOpenGLPFAStereo;
         }
         break;
@@ -520,11 +513,12 @@ void* createContext(void* shareContext,
                                        initWithFormat: (NSOpenGLPixelFormat*) pixelFormat
                                        shareContext:   (NSOpenGLContext*) shareContext];
 		
-	if (nsView != nil)
-	{
-		[nsContext setView:nsView];
-		[nsView unlockFocus];		
-	}
+        if (nsContext != nil) {
+          if (nsView != nil) {
+            [nsContext setView:nsView];
+            [nsView unlockFocus];		
+          }
+        }
 
 	[pool release];
 	return nsContext;
