@@ -1343,7 +1343,7 @@
         <!-- Build jar files suitable for Java Web Start -->
         <jar manifest="${jogl.dist.dir}/META-INF/MANIFEST.MF" destfile="${jogl.dist.dir}/jogl.jar" duplicate="preserve">
 	    <zipgroupfileset dir="${jogl.dist.dir}"
-	                     includes="jogl-win/*.jar, jogl-linux/*.jar, jogl-macosx/*.jar" />
+	                     includes="jogl-win/jogl.jar, jogl-linux/jogl.jar, jogl-macosx/jogl.jar" />
         </jar>
         <jar destfile="${jogl.dist.dir}/jogl-natives-windows-i586.jar"
              basedir="${jogl.dist.dir}/jogl-win/32"
