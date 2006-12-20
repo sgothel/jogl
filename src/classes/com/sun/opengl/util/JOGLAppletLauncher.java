@@ -52,6 +52,8 @@ import java.applet.AppletStub;
 import java.applet.AppletContext;
 import java.io.*;
 import java.net.*;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.security.cert.*;
 import java.text.*;
 import java.util.*;
@@ -224,6 +226,30 @@ public class JOGLAppletLauncher extends Applet {
   public JOGLAppletLauncher() {
   }
 
+  private static String md2Hash(String str) {
+    // Helps hash the jars in the "archive" tag into a hex value to
+    // avoid having too-long path names in the install directory's
+    // path name but also to have unique directories for each
+    // different archive set used (also meaning for each class loader
+    // loading something via the JOGLAppletLauncher) -- note that this
+    // is somewhat dependent on the Sun implementation of applets and
+    // their class loaders
+    MessageDigest md2 = null;
+    try {
+      md2 = MessageDigest.getInstance("MD2");
+    } catch (NoSuchAlgorithmException e) {
+      return "";
+    }
+    byte[] digest = md2.digest(str.getBytes());
+    if (digest == null || (digest.length == 0))
+      return "";
+    StringBuffer res = new StringBuffer();
+    for (int i = 0; i < digest.length; i++) {
+      res.append(Integer.toHexString(digest[i] & 0xFF));
+    }
+    return res.toString();
+  }
+
   /** Applet initialization */
   public void init()  {
 
@@ -242,10 +268,12 @@ public class JOGLAppletLauncher extends Applet {
     initLoaderLayout();
     validate();
 
-    String codeBase = getCodeBase().toExternalForm().substring(7); // minus http://
+    String extForm = getCodeBase().toExternalForm();
+    String codeBase = extForm.substring(extForm.indexOf(":") + 3);  // minus http:// or https://
 
     this.installDirectory = codeBase.replace(':', '_')
-      .replace('.', '_').replace('/', '_').replace('~','_'); // clean up the name
+      .replace('.', '_').replace('/', '_').replace('~','_') // clean up the name
+      + md2Hash(getParameter("archive")); // make it unique across different applet class loaders
 
     String osName = System.getProperty("os.name");
     String osArch = System.getProperty("os.arch");
@@ -902,11 +930,13 @@ public class JOGLAppletLauncher extends Applet {
     try {
       System.load(new File(installDir, nativeLibName).getPath());
     } catch (UnsatisfiedLinkError ex) {
-      // should be safe to continue as long as the native is loaded by any loader
-      if (ex.getMessage().indexOf("already loaded") == -1) {
-        displayError("Unable to load " + nativeLibName);
-        throw ex;
-      }
+      // Note: if we have loaded this particular copy of the
+      // JOGL-related native library in another class loader, the
+      // steps taken above to ensure the installation directory name
+      // was unique have failed. We can't continue properly in this
+      // case, so just print and re-throw the exception.
+      ex.printStackTrace();
+      throw ex;
     }
   }
 
