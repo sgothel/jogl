@@ -1,5 +1,5 @@
 Specification-Title: Java Bindings for OpenGL API Specification
-Specification-Version: 1.0.0 
+Specification-Version: @BASEVERSION@
 Specification-Vendor: Sun Microsystems, Inc.
 Implementation-Title: Java Bindings for OpenGL Runtime Environment
 Implementation-Version: @VERSION@

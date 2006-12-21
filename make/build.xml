@@ -51,8 +51,12 @@
 <project name="JOGL" basedir="." default="all">
 
   <!-- This is the version of JOGL you are building -->
-  <property name="base_version" value="1.1.0"/>
+  <property name="base_version" value="1.1.0-rc1"/>
     
+  <!-- Uncomment this property definition to cause a full release build to be done -->
+  <!-- without needing to specify the RI target on the command line  -->
+  <!-- property name="RImanifestfile" value="joglRIversion" / -->
+
   <!-- Pull in GlueGen cpptasks build file -->
   <property name="gluegen.root" value="../../gluegen" />
   <import file="${gluegen.root}/make/gluegen-cpptasks.xml" />
@@ -958,13 +962,22 @@
     </target>
 
     <target name="cond-if-RImanifest" depends="check-RIcond" if="RIcond-is-true">
-        <jar manifest="joglRIversion" destfile="${jogl.jar}">
+        <copy file="joglRIversion"
+          tofile="tempversion"
+          overwrite="true">
+          <filterset>
+              <filter token="VERSION" value="${base_version}-pre-${timestamp}"/>
+              <filter token="BASEVERSION" value="${base_version}"/>
+          </filterset>
+        </copy>
+        <jar manifest="tempversion" destfile="${jogl.jar}">
             <fileset dir="${classes}">
                 <include name="javax/media/opengl/**" />
                 <include name="com/sun/gluegen/runtime/**" />
                 <include name="com/sun/opengl/**" />
             </fileset>
         </jar>
+        <delete file="tempversion"/>
     </target>
   
  
@@ -977,6 +990,7 @@
           overwrite="true">
           <filterset>
               <filter token="VERSION" value="${base_version}-pre-${timestamp}"/>
+              <filter token="BASEVERSION" value="${base_version}"/>
           </filterset>
         </copy>
         <jar manifest="tempversion" destfile="${jogl.jar}">
@@ -1345,7 +1359,18 @@
 	     includes="${jogl.tmp.version}/**" />
     </target>
 
-    <target name="dist" depends="dist.dir.check,dist.check.windows,dist.check.windows-amd64,dist.check.linux,dist.check.linux-amd64,dist.check.macosx,dist.check.macosxfat,dist.check.solsparc,dist.check.solsparcv9,dist.check.solx86, dist.check.solamd64">
+    <target name="setup-version-RI" if="RImanifestfile">
+        <property name="tmp.version" value="${base_version}" />
+    </target>
+
+    <target name="setup-version-non-RI" unless="RImanifestfile">
+        <tstamp>
+             <format property="timestamp" pattern="yyyyMMdd"/>
+        </tstamp>
+        <property name="tmp.version" value="${base_version}-pre-${timestamp}" />
+    </target>
+
+    <target name="dist" depends="dist.dir.check,dist.check.windows,dist.check.windows-amd64,dist.check.linux,dist.check.linux-amd64,dist.check.macosx,dist.check.macosxfat,dist.check.solsparc,dist.check.solsparcv9,dist.check.solx86,dist.check.solamd64,setup-version-RI,setup-version-non-RI">
         <delete>
             <fileset dir="${jogl.dist.dir}" includes="*.jar" />
         </delete>
@@ -1354,13 +1379,6 @@
         </delete>
         <delete dir="${jogl.dist.dir}/tmp" failonerror="false" />
         <delete dir="${jogl.dist.dir}/META-INF" failonerror="false" />
-        <!-- Set up a property needed later -->
-        <!-- FIXME: this is only suitable for nightly builds; need to factor this out -->
-        <!-- for release builds -->
-        <tstamp>
-             <format property="timestamp" pattern="yyyyMMdd"/>
-        </tstamp>
-        <property name="tmp.version" value="${base_version}-pre-${timestamp}" />
         <!-- Extract manifest from one of the jars to re-use it in the dist jar -->
         <unjar src="${jogl.dist.dir}/jogl-win/jogl.jar" dest="${jogl.dist.dir}" >
             <patternset>
