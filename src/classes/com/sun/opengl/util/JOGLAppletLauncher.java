@@ -146,7 +146,7 @@ public class JOGLAppletLauncher extends Applet {
     public boolean matchesOSAndArch(String osName, String osArch) {
       if (osName.toLowerCase().startsWith(this.osName)) {
         if ((this.osArch == null) ||
-            (osArch.toLowerCase().startsWith(this.osArch))) {
+            (osArch.toLowerCase().equals(this.osArch))) {
           return true;
         }
       }
@@ -179,12 +179,19 @@ public class JOGLAppletLauncher extends Applet {
 
   private static final NativeLibInfo[] allNativeLibInfo = {
     new NativeLibInfo("win",   "x86",   "windows-i586",     "",    ".dll"),
+    new NativeLibInfo("win",   "amd64", "windows-amd64",    "",    ".dll"),
+    new NativeLibInfo("win",   "x86_64","windows-amd64",    "",    ".dll"),
     new NativeLibInfo("mac",   "ppc",   "macosx-ppc",       "lib", ".jnilib"),
     new NativeLibInfo("mac",   "i386",  "macosx-universal", "lib", ".jnilib"),
     new NativeLibInfo("linux", "i386",  "linux-i586",       "lib", ".so"),
     new NativeLibInfo("linux", "x86",   "linux-i586",       "lib", ".so"),
+    new NativeLibInfo("linux", "amd64", "linux-amd64",      "lib", ".so"),
+    new NativeLibInfo("linux", "x86_64","linux-amd64",      "lib", ".so"),
     new NativeLibInfo("sunos", "sparc", "solaris-sparc",    "lib", ".so"),
-    new NativeLibInfo("sunos", "x86",   "solaris-i586",     "lib", ".so")
+    new NativeLibInfo("sunos", "sparcv9","solaris-sparcv9", "lib", ".so"),
+    new NativeLibInfo("sunos", "x86",   "solaris-i586",     "lib", ".so"),
+    new NativeLibInfo("sunos", "amd64", "solaris-amd64",    "lib", ".so"),
+    new NativeLibInfo("sunos", "x86_64","solaris-amd64",    "lib", ".so")
   };
 
   private NativeLibInfo nativeLibInfo;
