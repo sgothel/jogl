@@ -1343,6 +1343,7 @@
         </copy>
         <copy file="${jogl.dist.dir}/jogl.jar" todir="${jogl.dist.dir}/tmp/${jogl.tmp.version}/lib" />
         <copy file="${jogl.dist.dir}/gluegen-rt.jar" todir="${jogl.dist.dir}/tmp/${jogl.tmp.version}/lib" />
+        <copy file="../CHANGELOG.txt"          todir="${jogl.dist.dir}/tmp/${jogl.tmp.version}" />
         <copy file="../COPYRIGHT.txt"          todir="${jogl.dist.dir}/tmp/${jogl.tmp.version}" />
         <copy file="../LICENSE.txt"            tofile="${jogl.dist.dir}/tmp/${jogl.tmp.version}/LICENSE-JOGL-${tmp.version}.txt" />
         <copy file="README-zip-bundles.txt"
@@ -1465,7 +1466,7 @@
 	<copy file="${jogl.dist.dir}/jogl-linux/GLU.java"     todir="../build/gensrc/classes/javax/media/opengl/glu" />
         <zip destfile="${jogl.dist.dir}/jogl-${tmp.version}-src.zip"
 	     basedir="../.."
-	     includes="gluegen/LICENSE.txt,gluegen/doc/**,gluegen/make/**,gluegen/src/**,jogl/LICENSE.txt,jogl/README.txt,jogl/build/gensrc/classes/javax/media/opengl/**,jogl/doc/**,jogl/make/**,jogl/src/**"
+	     includes="gluegen/LICENSE.txt,gluegen/doc/**,gluegen/make/**,gluegen/src/**,jogl/CHANGELOG.txt,jogl/COPYRIGHT.txt,jogl/LICENSE.txt,jogl/README.txt,jogl/build/gensrc/classes/javax/media/opengl/**,jogl/doc/**,jogl/make/**,jogl/src/**"
 	     excludes="**/*.class,**/*~"
 	     />
         <!-- Create zip archives suitable for developers -->
