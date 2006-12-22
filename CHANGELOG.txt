@@ -47,3 +47,6 @@ Changes between JOGL 1.0.0 and 1.1.0:
 
  - Various bug fixes and robustness improvements were made to the
    GlueGen runtime and JOGL implementation.
+
+ - Windows/AMD64 binaries, including the JOGL Cg binding, are now
+   supplied.
