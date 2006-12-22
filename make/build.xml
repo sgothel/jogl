@@ -1466,7 +1466,7 @@
 	<copy file="${jogl.dist.dir}/jogl-linux/GLU.java"     todir="../build/gensrc/classes/javax/media/opengl/glu" />
         <zip destfile="${jogl.dist.dir}/jogl-${tmp.version}-src.zip"
 	     basedir="../.."
-	     includes="gluegen/LICENSE.txt,gluegen/doc/**,gluegen/make/**,gluegen/src/**,jogl/CHANGELOG.txt,jogl/COPYRIGHT.txt,jogl/LICENSE.txt,jogl/README.txt,jogl/build/gensrc/classes/javax/media/opengl/**,jogl/doc/**,jogl/make/**,jogl/src/**"
+	     includes="gluegen/LICENSE.txt,gluegen/doc/**,gluegen/make/**,gluegen/src/**,jogl/*.txt,jogl/build/gensrc/classes/javax/media/opengl/**,jogl/doc/**,jogl/make/**,jogl/src/**"
 	     excludes="**/*.class,**/*~"
 	     />
         <!-- Create zip archives suitable for developers -->
