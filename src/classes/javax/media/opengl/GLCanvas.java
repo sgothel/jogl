@@ -356,7 +356,8 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
       try {
         disableBackgroundEraseMethod.invoke(getToolkit(), new Object[] { this });
       } catch (Exception e) {
-        throw new GLException(e);
+        // FIXME: workaround for 6504460 (incorrect backport of 6333613 in 5.0u10)
+        // throw new GLException(e);
       }
     }
   }

@@ -50,3 +50,6 @@ Changes between JOGL 1.0.0 and 1.1.0:
 
  - Windows/AMD64 binaries, including the JOGL Cg binding, are now
    supplied.
+
+ - Worked around breakage of JOGL with 5.0u10; see Sun bug IDs 6504460
+   and 6333613.
