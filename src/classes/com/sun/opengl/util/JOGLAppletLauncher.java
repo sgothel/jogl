@@ -63,20 +63,40 @@ import javax.swing.*;
 import javax.media.opengl.*;
 
 
-/** Basic JOGL installer for Applets. The key functionality this class
- *  supplies is the ability to deploy unsigned applets which use JOGL.
- *  It may also be used to deploy signed applets in which case
- *  multiple security dialogs will be displayed. <p>
+/** This class enables deployment of high-end applets which use OpenGL
+ *  for 3D graphics via JOGL and (optionally) OpenAL for spatialized
+ *  audio via JOAL. The applet being deployed may be either signed or
+ *  unsigned; if it is unsigned, it runs inside the security sandbox,
+ *  and if it is signed, the user receives a security dialog to accept
+ *  the certificate for the applet as well as for JOGL and JOAL. <P>
  *
- *  On the server side the codebase must contain jogl.jar ,
- *  gluegen-rt.jar, and all of the jogl-natives-*.jar and
- *  gluegen-rt-natives-*.jar files from the standard JOGL distribution
- *  (provided in jogl-[version]-webstart.zip).  This is the location
- *  from which the JOGL library used by the applet is downloaded. The
- *  codebase additionally contains the jar file of the user's
- *  potentially untrusted applet. All of the JOGL and GlueGen-related
+ *  The steps for deploying such applets are straightforward. First,
+ *  the "archive" parameter to the applet tag must contain jogl.jar
+ *  and gluegen-rt.jar, as well as any jar files associated with your
+ *  applet (in this case, "your_applet.jar"). <P>
+ *
+ *  Second, the codebase directory on the server, which contains the
+ *  applet's jar files, must also contain jogl.jar, gluegen-rt.jar,
+ *  and all of the jogl-natives-*.jar and gluegen-rt-natives-*.jar
+ *  files from the standard JOGL and GlueGen runtime distributions
+ *  (provided in jogl-[version]-webstart.zip from the <a
+ *  href="http://jogl.dev.java.net/servlets/ProjectDocumentList">JOGL
+ *  release builds</a> and gluegen-rt-[version]-webstart.zip from the
+ *  <a
+ *  href="http://gluegen.dev.java.net/servlets/ProjectDocumentList">GlueGen
+ *  runtime release builds</a>). Note that the codebase of the applet
+ *  is currently the location from which the JOGL native library used
+ *  by the applet is downloaded. All of the JOGL and GlueGen-related
  *  jars must be signed by the same entity, which is typically Sun
- *  Microsystems, Inc.
+ *  Microsystems, Inc. <P>
+ *
+ *  To deploy an applet using both JOGL and JOAL, simply add joal.jar
+ *  to the list of jars in the archive tag of the applet, and put
+ *  joal.jar and the joal-natives-*.jar signed jars into the same
+ *  codebase directory on the web server. These signed jars are
+ *  supplied in the joal-[version]-webstart.zip archive from the <a
+ *  href="http://joal.dev.java.net/servlets/ProjectDocumentList">JOAL
+ *  release builds</a>. <P>
  *
  * Sample applet code:
  * <pre>
@@ -97,16 +117,21 @@ import javax.media.opengl.*;
  * There are some limitations with this approach. It is not possible
  * to specify e.g. -Dsun.java2d.noddraw=true or
  * -Dsun.java2d.opengl=true for better control over the Java2D
- * pipeline as it is with Java Web Start. There appear to be issues
- * with multiple JOGL-based applets on the same web page, though
- * multiple instances of the same applet appear to work. The latter
- * may simply be a bug which needs to be fixed. <p>
+ * pipeline as it is with Java Web Start. However, the
+ * JOGLAppletLauncher tries to force the use of
+ * -Dsun.java2d.noddraw=true on Windows platforms for best robustness
+ * by detecting if it has not been set and asking the user whether it
+ * can update the Java Plug-In configuration automatically. If the
+ * user agrees to this, a browser restart is required in order for the
+ * change to take effect, though it is permanent for subsequent
+ * browser restarts. <P>
  * 
- * The JOGL natives are cached in the user's home directory (the value
- * of the "user.home" system property in Java) under the directory
- * .jogl_ext. The Java Plug-In is responsible for performing all other
- * jar caching. If the JOGL installation is updated on the server, the
- * .jogl_ext cache will automatically be updated. <p>
+ * The JOGL (and optionally JOAL) natives are cached in the user's
+ * home directory (the value of the "user.home" system property in
+ * Java) under the directory .jogl_ext. The Java Plug-In is
+ * responsible for performing all other jar caching. If the JOGL
+ * installation is updated on the server, the .jogl_ext cache will
+ * automatically be updated. <p>
  * 
  * This technique requires that JOGL has not been installed in to the
  * JRE under e.g. jre/lib/ext. If problems are seen when deploying
