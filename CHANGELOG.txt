@@ -26,15 +26,24 @@ Changes between JOGL 1.0.0 and 1.1.0:
    have been factored out into gluegen-rt.jar and are referenced by
    both the JOGL and JOAL projects.
 
+ - Thanks to John Burkey some optimizations have been made to the
+   buffer object-related validity checks in glVertexPointer, etc. as
+   well as a buffer size query that was being made in the glMapBuffer
+   implementation. This improves performance for applications
+   performing a lot of VBO- or vertex array-based rendering, in
+   particular with the multithreaded OpenGL implementation on Mac OS
+   X.
+
  - The JOGL applet launcher now supports deployment of applets which
    use both OpenGL for 3D graphics via JOGL as well as OpenAL for
-   spatialized audio via JOAL. It has been updated for the changes in
-   the GlueGen runtime classes and native library structure. Some bugs
-   have been fixed, some of which were preventing different JOGL-based
-   applets from being deployed from the same codebase. The applet
-   launcher has been updated for the change in native library
-   structure. The documentation and on-line examples have been updated
+   spatialized audio via JOAL. It now prompts the user on Windows
+   platforms to allow it to enable the -Dsun.java2d.noddraw=true
+   system property for best robustness. It has been updated for the
+   changes in the GlueGen runtime classes and native library
+   structure. Some bugs have been fixed, some of which were preventing
+   different JOGL-based applets from being deployed from the same
+   codebase. The documentation and on-line examples have been updated
    as well.
 
- - Various bug fixes were made to the GlueGen runtime and JOGL
-   implementation.
+ - Various bug fixes and robustness improvements were made to the
+   GlueGen runtime and JOGL implementation.
