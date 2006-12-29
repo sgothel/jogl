@@ -73,8 +73,17 @@ public class TextureData {
   private Buffer buffer; // the actual data...
   private Buffer[] mipmapData; // ...or a series of mipmaps
   private Flusher flusher;
+  private int rowLength;
   private int alignment; // 1, 2, or 4 bytes
   private int estimatedMemorySize;
+
+  // Mechanism for lazily converting input BufferedImages with custom
+  // ColorModels to standard ones for uploading to OpenGL, as well as
+  // backing off from the optimization of hoping that GL_EXT_abgr is
+  // present
+  private BufferedImage imageForLazyCustomConversion;
+  private boolean expectingEXTABGR;
+  private boolean haveEXTABGR;
 
   private static final ColorModel rgbaColorModel =
     new ComponentColorModel(ColorSpace.getInstance(ColorSpace.CS_sRGB),
@@ -220,12 +229,12 @@ public class TextureData {
 
   /** 
    * Constructs a new TextureData object with the specified parameters
-   * and data contained in the given BufferedImage. Note that
-   * subsequent modifications to the BufferedImage after the
-   * construction of the TextureData object are not guaranteed to be
-   * visible in any Texture object created from the TextureData (and,
-   * in fact, the expectation should be that they will not be visible,
-   * although this behavior is explicitly left undefined).
+   * and data contained in the given BufferedImage. The resulting
+   * TextureData "wraps" the contents of the BufferedImage, so if a
+   * modification is made to the BufferedImage between the time the
+   * TextureData is constructed and when a Texture is made from the
+   * TextureData, that modification will be visible in the resulting
+   * Texture.
    *
    * @param internalFormat the OpenGL internal format for the
    *                       resulting texture; may be 0, in which case
@@ -273,12 +282,26 @@ public class TextureData {
       vertically for proper display. */
   public boolean getMustFlipVertically() { return mustFlipVertically; }
   /** Returns the texture data, or null if it is specified as a set of mipmaps. */
-  public Buffer getBuffer() { return buffer; }
+  public Buffer getBuffer() {
+    if (imageForLazyCustomConversion != null) {
+      if (!expectingEXTABGR ||
+          (expectingEXTABGR && !haveEXTABGR)) {
+        // Must present the illusion to the end user that we are simply
+        // wrapping the input BufferedImage
+        createFromCustom(imageForLazyCustomConversion);
+      }
+    }
+    return buffer;
+  }
   /** Returns all mipmap levels for the texture data, or null if it is
       specified as a single image. */
   public Buffer[] getMipmapData() { return mipmapData; }
   /** Returns the required byte alignment for the texture data. */
   public int getAlignment() { return alignment; }
+  /** Returns the row length needed for correct GL_UNPACK_ROW_LENGTH
+      specification. This is currently only supported for
+      non-mipmapped, non-compressed textures. */
+  public int getRowLength() { return rowLength; }
 
   /** Sets the width in pixels of the texture data. */
   public void setWidth(int width) { this.width = width; }
@@ -303,6 +326,16 @@ public class TextureData {
   public void setBuffer(Buffer buffer) { this.buffer = buffer; }
   /** Sets the required byte alignment for the texture data. */
   public void setAlignment(int alignment) { this.alignment = alignment; }
+  /** Sets the row length needed for correct GL_UNPACK_ROW_LENGTH
+      specification. This is currently only supported for
+      non-mipmapped, non-compressed textures. */
+  public void setRowLength(int rowLength) { this.rowLength = rowLength; }
+  /** Indicates to this TextureData whether the GL_EXT_abgr extension
+      is available. Used for optimization along some code paths to
+      avoid data copies. */
+  public void setHaveEXTABGR(boolean haveEXTABGR) {
+    this.haveEXTABGR = haveEXTABGR;
+  }
 
   /** Returns an estimate of the amount of memory in bytes this
       TextureData will consume once uploaded to the graphics card. It
@@ -335,176 +368,145 @@ public class TextureData {
   // Internals only below this point
   //
 
-  private void createNIOBufferFromImage(BufferedImage image, boolean flipVertically) {
-    if (flipVertically) {
-      ImageUtil.flipImageVertically(image);
-    }
+  private void createNIOBufferFromImage(BufferedImage image) {
+    //
+    // Note: Grabbing the DataBuffer will defeat Java2D's image
+    // management mechanism (as of JDK 5/6, at least).  This shouldn't
+    // be a problem for most JOGL apps, but those that try to upload
+    // the image into an OpenGL texture and then use the same image in
+    // Java2D rendering might find the 2D rendering is not as fast as
+    // it could be.
+    //
 
-    try {
-      //
-      // Note: Grabbing the DataBuffer will defeat Java2D's image
-      // management mechanism (as of JDK 5/6, at least).  This shouldn't
-      // be a problem for most JOGL apps, but those that try to upload
-      // the image into an OpenGL texture and then use the same image in
-      // Java2D rendering might find the 2D rendering is not as fast as
-      // it could be.
-      //
-
-      // Allow previously-selected pixelType (if any) to override that
-      // we can infer from the DataBuffer
-      DataBuffer data = image.getRaster().getDataBuffer();
-      if (data instanceof DataBufferByte) {
-        if (pixelType == 0) pixelType = GL.GL_UNSIGNED_BYTE;
-        buffer = ByteBuffer.wrap(copyIfNecessary(((DataBufferByte) data).getData(), flipVertically));
-      } else if (data instanceof DataBufferDouble) {
-        throw new RuntimeException("DataBufferDouble rasters not supported by OpenGL");
-      } else if (data instanceof DataBufferFloat) {
-        if (pixelType == 0) pixelType = GL.GL_FLOAT;
-        buffer = FloatBuffer.wrap(copyIfNecessary(((DataBufferFloat) data).getData(), flipVertically));
-      } else if (data instanceof DataBufferInt) {
-        // FIXME: should we support signed ints?
-        if (pixelType == 0) pixelType = GL.GL_UNSIGNED_INT;
-        buffer = IntBuffer.wrap(copyIfNecessary(((DataBufferInt) data).getData(), flipVertically));
-      } else if (data instanceof DataBufferShort) {
-        if (pixelType == 0) pixelType = GL.GL_SHORT;
-        buffer = ShortBuffer.wrap(copyIfNecessary(((DataBufferShort) data).getData(), flipVertically));
-      } else if (data instanceof DataBufferUShort) {
-        if (pixelType == 0) pixelType = GL.GL_UNSIGNED_SHORT;
-        buffer = ShortBuffer.wrap(copyIfNecessary(((DataBufferShort) data).getData(), flipVertically));
-      } else {
-        throw new RuntimeException("Unexpected DataBuffer type?");
-      }
-    } finally {
-      // Put image back right-side up if necessary
-      if (flipVertically) {
-        ImageUtil.flipImageVertically(image);
-      }
+    DataBuffer data = image.getRaster().getDataBuffer();
+    if (data instanceof DataBufferByte) {
+      buffer = ByteBuffer.wrap(((DataBufferByte) data).getData());
+    } else if (data instanceof DataBufferDouble) {
+      throw new RuntimeException("DataBufferDouble rasters not supported by OpenGL");
+    } else if (data instanceof DataBufferFloat) {
+      buffer = FloatBuffer.wrap(((DataBufferFloat) data).getData());
+    } else if (data instanceof DataBufferInt) {
+      buffer = IntBuffer.wrap(((DataBufferInt) data).getData());
+    } else if (data instanceof DataBufferShort) {
+      buffer = ShortBuffer.wrap(((DataBufferShort) data).getData());
+    } else if (data instanceof DataBufferUShort) {
+      buffer = ShortBuffer.wrap(((DataBufferUShort) data).getData());
+    } else {
+      throw new RuntimeException("Unexpected DataBuffer type?");
     }
   }
-
-  private byte[] copyIfNecessary(byte[] data, boolean needsCopy) {
-    if (needsCopy) {
-      return (byte[]) data.clone();
-    }
-    return data;
-  }
-
-  private short[] copyIfNecessary(short[] data, boolean needsCopy) {
-    if (needsCopy) {
-      return (short[]) data.clone();
-    }
-    return data;
-  }
-
-  private int[] copyIfNecessary(int[] data, boolean needsCopy) {
-    if (needsCopy) {
-      return (int[]) data.clone();
-    }
-    return data;
-  }
-
-  private float[] copyIfNecessary(float[] data, boolean needsCopy) {
-    if (needsCopy) {
-      return (float[]) data.clone();
-    }
-    return data;
-  }
-
-  private double[] copyIfNecessary(double[] data, boolean needsCopy) {
-    if (needsCopy) {
-      return (double[]) data.clone();
-    }
-    return data;
-  }
-
 
   private void createFromImage(BufferedImage image) {
     pixelType = 0; // Determine from image
+    mustFlipVertically = true;
 
     width = image.getWidth();
     height = image.getHeight();
+
+    int scanlineStride;
+    SampleModel sm = image.getRaster().getSampleModel();
+    if (sm instanceof SinglePixelPackedSampleModel) {
+      scanlineStride =
+        ((SinglePixelPackedSampleModel)sm).getScanlineStride();
+    } else if (sm instanceof MultiPixelPackedSampleModel) {
+      scanlineStride =
+        ((MultiPixelPackedSampleModel)sm).getScanlineStride();
+    } else if (sm instanceof ComponentSampleModel) {
+      scanlineStride =
+        ((ComponentSampleModel)sm).getScanlineStride();
+    } else {
+      // This will only happen for TYPE_CUSTOM anyway
+      setupLazyCustomConversion(image);
+      return;
+    }
 
     switch (image.getType()) {
       case BufferedImage.TYPE_INT_RGB:
         pixelFormat = GL.GL_BGRA;
         pixelType = GL.GL_UNSIGNED_INT_8_8_8_8_REV;
+        rowLength = scanlineStride;
         alignment = 4;
         break;
+      case BufferedImage.TYPE_INT_ARGB:
       case BufferedImage.TYPE_INT_ARGB_PRE:
         pixelFormat = GL.GL_BGRA;
         pixelType = GL.GL_UNSIGNED_INT_8_8_8_8_REV;
+        rowLength = scanlineStride;
         alignment = 4;
         break;
       case BufferedImage.TYPE_INT_BGR:
         pixelFormat = GL.GL_RGBA;
         pixelType = GL.GL_UNSIGNED_INT_8_8_8_8_REV;
+        rowLength = scanlineStride;
         alignment = 4;
         break;
       case BufferedImage.TYPE_3BYTE_BGR:
         {
-          Raster raster = image.getRaster();
-          ComponentSampleModel csm =
-            (ComponentSampleModel)raster.getSampleModel();
           // we can pass the image data directly to OpenGL only if
-          // the raster is tightly packed (i.e. there is no extra
-          // space at the end of each scanline)
-          if ((csm.getScanlineStride() / 3) == csm.getWidth()) {
+          // we have an integral number of pixels in each scanline
+          if ((scanlineStride % 3) == 0) {
             pixelFormat = GL.GL_BGR;
             pixelType = GL.GL_UNSIGNED_BYTE;
+            rowLength = scanlineStride / 3;
             alignment = 1;
           } else {
-            createFromCustom(image);
+            setupLazyCustomConversion(image);
             return;
           }
         }
         break;
+      case BufferedImage.TYPE_4BYTE_ABGR:
       case BufferedImage.TYPE_4BYTE_ABGR_PRE:
         {
-          Raster raster = image.getRaster();
-          ComponentSampleModel csm =
-            (ComponentSampleModel)raster.getSampleModel();
           // we can pass the image data directly to OpenGL only if
-          // the raster is tightly packed (i.e. there is no extra
-          // space at the end of each scanline) and only if the
-          // GL_EXT_abgr extension is present
+          // we have an integral number of pixels in each scanline
+          // and only if the GL_EXT_abgr extension is present
 
-          // FIXME: with the way this is currently organized we can't
-          // probe for the existence of the GL_EXT_abgr extension
-          // here; disable this code path for now
-          if (((csm.getScanlineStride() / 4) == csm.getWidth()) &&
-              /* gl.isExtensionAvailable("GL_EXT_abgr") */ false)
-            {
-              pixelFormat = GL.GL_ABGR_EXT;
-              pixelType = GL.GL_UNSIGNED_BYTE;
-              alignment = 4;
-            } else {
-              createFromCustom(image);
-              return;
-            }
+          // NOTE: disabling this code path for now as it appears it's
+          // buggy at least on some NVidia drivers and doesn't perform
+          // the necessary byte swapping (FIXME: needs more
+          // investigation)
+          if ((scanlineStride % 4) == 0 && false) {
+            pixelFormat = GL.GL_ABGR_EXT;
+            pixelType = GL.GL_UNSIGNED_BYTE;
+            rowLength = scanlineStride / 4;
+            alignment = 4;
+
+            // Store a reference to the original image for later in
+            // case it turns out that we don't have GL_EXT_abgr at the
+            // time we're going to do the texture upload to OpenGL
+            setupLazyCustomConversion(image);
+            expectingEXTABGR = true;
+            break;
+          } else {
+            setupLazyCustomConversion(image);
+            return;
+          }
         }
-        break;
       case BufferedImage.TYPE_USHORT_565_RGB:
         pixelFormat = GL.GL_RGB;
         pixelType = GL.GL_UNSIGNED_SHORT_5_6_5;
+        rowLength = scanlineStride;
         alignment = 2;
         break;
       case BufferedImage.TYPE_USHORT_555_RGB:
         pixelFormat = GL.GL_BGRA;
         pixelType = GL.GL_UNSIGNED_SHORT_1_5_5_5_REV;
+        rowLength = scanlineStride;
         alignment = 2;
         break;
       case BufferedImage.TYPE_BYTE_GRAY:
         pixelFormat = GL.GL_LUMINANCE;
         pixelType = GL.GL_UNSIGNED_BYTE;
+        rowLength = scanlineStride;
         alignment = 1;
         break;
       case BufferedImage.TYPE_USHORT_GRAY:
         pixelFormat = GL.GL_LUMINANCE;
         pixelType = GL.GL_UNSIGNED_SHORT;
+        rowLength = scanlineStride;
         alignment = 2;
         break;
-      case BufferedImage.TYPE_INT_ARGB:
-      case BufferedImage.TYPE_4BYTE_ABGR:
       case BufferedImage.TYPE_BYTE_BINARY:
       case BufferedImage.TYPE_BYTE_INDEXED:
       case BufferedImage.TYPE_CUSTOM:
@@ -513,19 +515,49 @@ public class TextureData {
         if (cm.equals(rgbColorModel)) {
           pixelFormat = GL.GL_RGB;
           pixelType = GL.GL_UNSIGNED_BYTE;
+          rowLength = scanlineStride / 4; // FIXME: correct?
           alignment = 1;
         } else if (cm.equals(rgbaColorModel)) {
           pixelFormat = GL.GL_RGBA;
           pixelType = GL.GL_UNSIGNED_BYTE;
+          rowLength = scanlineStride / 4; // FIXME: correct?
           alignment = 4;
         } else {
-          createFromCustom(image);
+          setupLazyCustomConversion(image);
           return;
         }
         break;
     }
 
-    createNIOBufferFromImage(image, true);
+    createNIOBufferFromImage(image);
+  }
+
+  private void setupLazyCustomConversion(BufferedImage image) {
+    imageForLazyCustomConversion = image;
+    boolean hasAlpha = image.getColorModel().hasAlpha();
+    pixelFormat = hasAlpha ? GL.GL_RGBA : GL.GL_RGB;
+    alignment = 1; // FIXME: do we need better?
+    rowLength = width; // FIXME: correct in all cases?
+
+    // Allow previously-selected pixelType (if any) to override that
+    // we can infer from the DataBuffer
+    DataBuffer data = image.getRaster().getDataBuffer();
+    if (data instanceof DataBufferByte) {
+      if (pixelType == 0) pixelType = GL.GL_UNSIGNED_BYTE;
+    } else if (data instanceof DataBufferDouble) {
+      throw new RuntimeException("DataBufferDouble rasters not supported by OpenGL");
+    } else if (data instanceof DataBufferFloat) {
+      if (pixelType == 0) pixelType = GL.GL_FLOAT;
+    } else if (data instanceof DataBufferInt) {
+      // FIXME: should we support signed ints?
+      if (pixelType == 0) pixelType = GL.GL_UNSIGNED_INT;
+    } else if (data instanceof DataBufferShort) {
+      if (pixelType == 0) pixelType = GL.GL_SHORT;
+    } else if (data instanceof DataBufferUShort) {
+      if (pixelType == 0) pixelType = GL.GL_UNSIGNED_SHORT;
+    } else {
+      throw new RuntimeException("Unexpected DataBuffer type?");
+    }
   }
 
   private void createFromCustom(BufferedImage image) {
@@ -560,17 +592,11 @@ public class TextureData {
     // copy the source image into the temporary image
     Graphics2D g = texImage.createGraphics();
     g.setComposite(AlphaComposite.Src);
-    // Flip image vertically as long as we're at it
-    g.drawImage(image,
-                0, height, width, 0,
-                0, 0, width, height,
-                null);
+    g.drawImage(image, 0, 0, null);
     g.dispose();
 
     // Wrap the buffer from the temporary image
-    createNIOBufferFromImage(texImage, false);
-    pixelFormat = hasAlpha ? GL.GL_RGBA : GL.GL_RGB;
-    alignment = 1; // FIXME: do we need better?
+    createNIOBufferFromImage(texImage);
   }
 
   private int estimatedMemorySize(Buffer buffer) {

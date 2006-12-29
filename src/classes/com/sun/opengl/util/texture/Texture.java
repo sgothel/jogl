@@ -138,6 +138,7 @@ public class Texture {
   private int estimatedMemorySize;
 
   private static final boolean DEBUG = Debug.debug("Texture");
+  private static final boolean VERBOSE = Debug.verbose();
 
   // For now make Texture constructor package-private to limit the
   // number of public APIs we commit to
@@ -453,7 +454,7 @@ public class Texture {
                               data.getWidth(), data.getHeight(),
                               data.getPixelFormat(), data.getPixelType(), data.getBuffer());
       } finally {
-        gl.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, align[0]); // restore align
+        gl.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, align[0]); // restore alignment
       }
     } else {
       checkCompressedTextureExtensions(data);
@@ -472,7 +473,7 @@ public class Texture {
             gl.glTexImage2D(newTarget, i, data.getInternalFormat(),
                             width, height, data.getBorder(),
                             data.getPixelFormat(), data.getPixelType(), null);
-            updateSubImageImpl(data, newTarget, i, 0, 0);
+            updateSubImageImpl(data, newTarget, i, 0, 0, 0, 0, data.getWidth(), data.getHeight());
           }
 
           width /= 2;
@@ -488,7 +489,7 @@ public class Texture {
           gl.glTexImage2D(newTarget, 0, data.getInternalFormat(),
                           texWidth, texHeight, data.getBorder(),
                           data.getPixelFormat(), data.getPixelType(), null);
-          updateSubImageImpl(data, newTarget, 0, 0, 0);
+          updateSubImageImpl(data, newTarget, 0, 0, 0, 0, 0, data.getWidth(), data.getHeight());
         }
       }
     }
@@ -507,9 +508,8 @@ public class Texture {
 
   /**
    * Updates a subregion of the content area of this texture using the
-   * data in the given image. Only updates the specified mipmap level
-   * and does not re-generate mipmaps if they were originally produced
-   * or loaded.
+   * given data. Only updates the specified mipmap level and does not
+   * re-generate mipmaps if they were originally produced or loaded.
    *
    * @param data the image data to be uploaded to this texture
    * @param mipmapLevel the mipmap level of the texture to set. If
@@ -524,7 +524,42 @@ public class Texture {
    * OpenGL-related errors occurred
    */
   public void updateSubImage(TextureData data, int mipmapLevel, int x, int y) throws GLException {
-    updateSubImageImpl(data, target, mipmapLevel, x, y);
+    updateSubImageImpl(data, target, mipmapLevel, x, y, 0, 0, data.getWidth(), data.getHeight());
+  }
+
+  /**
+   * Updates a subregion of the content area of this texture using the
+   * specified sub-region of the given data. Only updates the
+   * specified mipmap level and does not re-generate mipmaps if they
+   * were originally produced or loaded. This method is only supported
+   * for uncompressed TextureData sources.
+   *
+   * @param data the image data to be uploaded to this texture
+   * @param mipmapLevel the mipmap level of the texture to set. If
+   * this is non-zero and the TextureData contains mipmap data, the
+   * appropriate mipmap level will be selected.
+   * @param dstx the x offset (in pixels) relative to the lower-left corner
+   * of this texture where the update will be applied
+   * @param dsty the y offset (in pixels) relative to the lower-left corner
+   * of this texture where the update will be applied
+   * @param srcx the x offset (in pixels) relative to the lower-left corner
+   * of the supplied TextureData from which to fetch the update rectangle
+   * @param srcy the y offset (in pixels) relative to the lower-left corner
+   * of the supplied TextureData from which to fetch the update rectangle
+   * @param width the width (in pixels) of the rectangle to be updated
+   * @param height the height (in pixels) of the rectangle to be updated
+   *
+   * @throws GLException if no OpenGL context was current or if any
+   * OpenGL-related errors occurred
+   */
+  public void updateSubImage(TextureData data, int mipmapLevel,
+                             int dstx, int dsty,
+                             int srcx, int srcy,
+                             int width, int height) throws GLException {
+    if (data.isDataCompressed()) {
+      throw new GLException("updateSubImage specifying a sub-rectangle is not supported for compressed TextureData");
+    }
+    updateSubImageImpl(data, target, mipmapLevel, dstx, dsty, srcx, srcy, width, height);
   }
 
   /**
@@ -693,23 +728,31 @@ public class Texture {
     }
   }
 
-  private void updateSubImageImpl(TextureData data, int newTarget, int mipmapLevel, int x, int y) throws GLException {
+  private void updateSubImageImpl(TextureData data, int newTarget, int mipmapLevel,
+                                  int dstx, int dsty,
+                                  int srcx, int srcy, int width, int height) throws GLException {
+    GL gl = GLU.getCurrentGL();
+    if (gl.isExtensionAvailable("GL_EXT_abgr")) {
+      data.setHaveEXTABGR(true);
+    }
+
     Buffer buffer = data.getBuffer();
     if (buffer == null && data.getMipmapData() == null) {
       // Assume user just wanted to get the Texture object allocated
       return;
     }
 
-    GL gl = GLU.getCurrentGL();
     gl.glBindTexture(newTarget, texID); 
-    int width = data.getWidth();
-    int height = data.getHeight();
+    int rowlen = data.getRowLength();
     if (data.getMipmapData() != null) {
-      // Compute the width and height at the specified mipmap level
+      // Compute the width, height and row length at the specified mipmap level
+      // Note we do not support specification of the row length for
+      // mipmapped textures at this point
       for (int i = 0; i < mipmapLevel; i++) {
         width /= 2;
         height /= 2;
       }
+      rowlen = 0;
       buffer = data.getMipmapData()[mipmapLevel];
     }
 
@@ -717,19 +760,40 @@ public class Texture {
 
     if (data.isDataCompressed()) {
       gl.glCompressedTexSubImage2D(newTarget, mipmapLevel,
-                                   x, y, width, height,
+                                   dstx, dsty, width, height,
                                    data.getInternalFormat(),
                                    buffer.remaining(), buffer);
     } else {
       int[] align = new int[1];
-      gl.glGetIntegerv(GL.GL_UNPACK_ALIGNMENT, align, 0); // save alignment
+      int[] rowLength = new int[1];
+      int[] skipRows = new int[1];
+      int[] skipPixels = new int[1];
+      gl.glGetIntegerv(GL.GL_UNPACK_ALIGNMENT,   align,      0); // save alignment
+      gl.glGetIntegerv(GL.GL_UNPACK_ROW_LENGTH,  rowLength,  0); // save row length
+      gl.glGetIntegerv(GL.GL_UNPACK_SKIP_ROWS,   skipRows,   0); // save skipped rows
+      gl.glGetIntegerv(GL.GL_UNPACK_SKIP_PIXELS, skipPixels, 0); // save skipped pixels
       gl.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, data.getAlignment());
+      if (DEBUG && VERBOSE) {
+        System.out.println("Row length  = " + rowlen);
+        System.out.println("skip pixels = " + srcx);
+        System.out.println("skip rows   = " + srcy);
+        System.out.println("dstx        = " + dstx);
+        System.out.println("dsty        = " + dsty);
+        System.out.println("width       = " + width);
+        System.out.println("height      = " + height);
+      }
+      gl.glPixelStorei(GL.GL_UNPACK_ROW_LENGTH, rowlen);
+      gl.glPixelStorei(GL.GL_UNPACK_SKIP_ROWS, srcy);
+      gl.glPixelStorei(GL.GL_UNPACK_SKIP_PIXELS, srcx);
 
       gl.glTexSubImage2D(newTarget, mipmapLevel,
-                         x, y, width, height,
+                         dstx, dsty, width, height,
                          data.getPixelFormat(), data.getPixelType(),
                          buffer);
-      gl.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, align[0]); // restore align
+      gl.glPixelStorei(GL.GL_UNPACK_ALIGNMENT,   align[0]);      // restore alignment
+      gl.glPixelStorei(GL.GL_UNPACK_ROW_LENGTH,  rowLength[0]);  // restore row length
+      gl.glPixelStorei(GL.GL_UNPACK_SKIP_ROWS,   skipRows[0]);   // restore skipped rows
+      gl.glPixelStorei(GL.GL_UNPACK_SKIP_PIXELS, skipPixels[0]); // restore skipped pixels
     }
   }
 
