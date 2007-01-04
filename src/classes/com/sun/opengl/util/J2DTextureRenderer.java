@@ -41,6 +41,7 @@ package com.sun.opengl.util;
 
 import java.awt.Dimension;
 import java.awt.Graphics2D;
+import java.awt.Image;
 import java.awt.image.*;
 
 import javax.media.opengl.*;
@@ -163,6 +164,12 @@ public class J2DTextureRenderer {
     return image.createGraphics();
   }
 
+  /** Returns the underlying Java 2D {@link java.awt.Image Image}
+      being rendered into. */
+  public Image getImage() {
+    return image;
+  }
+
   /** Synchronizes the specified region of the backing store down to
       the underlying OpenGL texture.
 
@@ -245,6 +252,24 @@ public class J2DTextureRenderer {
     texture.enable();
     texture.bind();
     gl.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE, GL.GL_REPLACE);
+  }
+
+  /** Draws an orthographically projected rectangle containing all of
+      the underlying texture to the specified location on the
+      screen. All (x, y) coordinates are specified relative to the
+      lower left corner of either the texture image or the current
+      OpenGL drawable. This method is equivalent to
+      <code>drawOrthoRect(screenx, screeny, 0, 0, getWidth(),
+      getHeight());</code>.
+
+      @param screenx the on-screen x coordinate at which to draw the rectangle
+      @param screeny the on-screen y coordinate (relative to lower left) at
+        which to draw the rectangle
+      
+      @throws GLException If an OpenGL context is not current when this method is called
+  */
+  public void drawOrthoRect(int screenx, int screeny) throws GLException {
+    drawOrthoRect(screenx, screeny, 0, 0, getWidth(), getHeight());
   }
 
   /** Draws an orthographically projected rectangle of the underlying
