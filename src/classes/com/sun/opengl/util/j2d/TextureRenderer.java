@@ -37,7 +37,7 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.sun.opengl.util;
+package com.sun.opengl.util.j2d;
 
 import java.awt.Dimension;
 import java.awt.Graphics2D;
@@ -55,7 +55,7 @@ import com.sun.opengl.util.texture.*;
     that image to an OpenGL texture on demand. The resulting OpenGL
     texture can then be mapped on to a polygon for display. */
 
-public class J2DTextureRenderer {
+public class TextureRenderer {
   // For now, we supply only a BufferedImage back-end for this
   // renderer. In theory we could use the Java 2D/JOGL bridge to fully
   // accelerate the rendering paths, but there are restrictions on
@@ -81,7 +81,7 @@ public class J2DTextureRenderer {
       @param height the height of the texture to render into
       @param alpha whether to allocate an alpha channel for the texture
   */
-  public J2DTextureRenderer(int width, int height, boolean alpha) {
+  public TextureRenderer(int width, int height, boolean alpha) {
     this.alpha = alpha;
     init(width, height);
   }

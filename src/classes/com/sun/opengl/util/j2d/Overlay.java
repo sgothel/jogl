@@ -37,7 +37,7 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.sun.opengl.util;
+package com.sun.opengl.util.j2d;
 
 import java.awt.Graphics2D;
 
@@ -48,17 +48,17 @@ import com.sun.opengl.util.texture.*;
     making it easier to do things like draw text and images on top of
     an OpenGL scene while still maintaining reasonably good
     efficiency. For correct operation, the drawable should be
-    allocated with alpha bits enabled, as the J2DOverlay uses alpha
+    allocated with alpha bits enabled, as the Overlay uses alpha
     blending to make portions of itself transparent. */
 
-public class J2DOverlay {
+public class Overlay {
   private GLDrawable drawable;
-  private J2DTextureRenderer renderer;
+  private TextureRenderer renderer;
   private boolean contentsLost;
 
   /** Creates a new Java 2D overlay on top of the specified
       GLDrawable. */
-  public J2DOverlay(GLDrawable drawable) {
+  public Overlay(GLDrawable drawable) {
     this.drawable = drawable;
   }
 
@@ -198,9 +198,9 @@ public class J2DOverlay {
 
   private void validateRenderer() {
     if (renderer == null) {
-      renderer = new J2DTextureRenderer(drawable.getWidth(),
-                                        drawable.getHeight(),
-                                        true);
+      renderer = new TextureRenderer(drawable.getWidth(),
+                                     drawable.getHeight(),
+                                     true);
       contentsLost = true;
     } else if (renderer.getWidth() != drawable.getWidth() ||
                renderer.getHeight() != drawable.getHeight()) {
