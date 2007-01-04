@@ -64,7 +64,18 @@ public class TextureRenderer {
   // OpenGL-related work must be. This implies that the user's code
   // would need to be split up into multiple callbacks run from the
   // appropriate threads, which would be somewhat unfortunate.
+
+  // Whether we have an alpha channel in the (RGB/A) backing store
   private boolean alpha;
+
+  // Whether we're using only a GL_INTENSITY backing store
+  private boolean intensity;
+
+  // Whether smoothing is enabled for the OpenGL texture (switching
+  // between GL_LINEAR and GL_NEAREST filtering)
+  private boolean smoothing = true;
+
+  // The backing store itself
   private BufferedImage image;
 
   private Texture texture;
@@ -82,8 +93,22 @@ public class TextureRenderer {
       @param alpha whether to allocate an alpha channel for the texture
   */
   public TextureRenderer(int width, int height, boolean alpha) {
+    this(width, height, alpha, false);
+  }
+
+  // Internal constructor to avoid confusion since alpha only makes
+  // sense when intensity is not set
+  private TextureRenderer(int width, int height, boolean alpha, boolean intensity) {
     this.alpha = alpha;
+    this.intensity = intensity;
     init(width, height);
+  }
+
+  /** Creates a new renderer with a special kind of backing store
+      which acts only as an alpha channel. Internally, this associates
+      a GL_INTENSITY OpenGL texture with the backing store. */
+  public static TextureRenderer createAlphaOnlyRenderer(int width, int height) {
+    return new TextureRenderer(width, height, false, true);
   }
 
   /** Returns the width of the backing store of this renderer.
@@ -135,20 +160,52 @@ public class TextureRenderer {
 
       @param width the new width of the backing store of this renderer
       @param height the new height of the backing store of this renderer
+      @throws GLException If an OpenGL context is not current when this method is called
   */
-  public void setSize(int width, int height) {
+  public void setSize(int width, int height) throws GLException {
     init(width, height);
   }
-  
 
   /** Sets the size of the backing store of this renderer. This may
       cause the OpenGL texture object associated with this renderer to
       be invalidated.
 
       @param d the new size of the backing store of this renderer
+      @throws GLException If an OpenGL context is not current when this method is called
   */
-  public void setSize(Dimension d) {
+  public void setSize(Dimension d) throws GLException {
     setSize(d.width, d.height);
+  }
+
+  /** Sets whether smoothing is enabled for the OpenGL texture; if so,
+      uses GL_LINEAR interpolation for the minification and
+      magnification filters. Defaults to true.
+
+      @param smoothing whether smoothing is enabled for the OpenGL texture
+      @throws GLException If an OpenGL context is not current when this method is called
+  */
+  public void setSmoothing(boolean smoothing) throws GLException {
+    this.smoothing = smoothing;
+    // This can be set lazily
+    if (texture != null) {
+      GL gl = GLU.getCurrentGL();
+      if (smoothing) {
+        texture.setTexParameteri(GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR);
+        texture.setTexParameteri(GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR);
+      } else {
+        texture.setTexParameteri(GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST);
+        texture.setTexParameteri(GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST);
+      }
+    }
+  }
+
+  /** Returns whether smoothing is enabled for the OpenGL texture; see
+      {@link #setSmoothing setSmoothing}. Defaults to true.
+
+      @return whether smoothing is enabled for the OpenGL texture
+  */
+  public boolean getSmoothing() {
+    return smoothing;
   }
 
   /** Creates a {@link java.awt.Graphics2D Graphics2D} instance for
@@ -340,13 +397,17 @@ public class TextureRenderer {
       image = null;
     }
 
-    int imageType = (alpha ?  BufferedImage.TYPE_INT_ARGB_PRE : BufferedImage.TYPE_INT_RGB);
+    // Infer the internal format if not an intensity texture
+    int internalFormat = (intensity ? GL.GL_INTENSITY : 0);
+    int imageType = 
+      (intensity ? BufferedImage.TYPE_BYTE_GRAY :
+       (alpha ?  BufferedImage.TYPE_INT_ARGB_PRE : BufferedImage.TYPE_INT_RGB));
     image = new BufferedImage(width, height, imageType);
     // Always realllocate the TextureData associated with this
     // BufferedImage; it's just a reference to the contents but we
     // need it in order to update sub-regions of the underlying
     // texture
-    textureData = TextureIO.newTextureData(image, false);
+    textureData = new TextureData(internalFormat, 0, false, image);
     // For now, always reallocate the underlying OpenGL texture when
     // the backing store size changes
     mustReallocateTexture = true;
@@ -363,6 +424,11 @@ public class TextureRenderer {
 
     if (texture == null) {
       texture = TextureIO.newTexture(textureData);
+      if (!smoothing) {
+        // The TextureIO classes default to GL_LINEAR filtering
+        texture.setTexParameteri(GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST);
+        texture.setTexParameteri(GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST);
+      }
       return true;
     }
 
