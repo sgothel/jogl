@@ -744,6 +744,8 @@ public class Texture {
 
     gl.glBindTexture(newTarget, texID); 
     int rowlen = data.getRowLength();
+    int dataWidth = data.getWidth();
+    int dataHeight = data.getHeight();
     if (data.getMipmapData() != null) {
       // Compute the width, height and row length at the specified mipmap level
       // Note we do not support specification of the row length for
@@ -751,9 +753,45 @@ public class Texture {
       for (int i = 0; i < mipmapLevel; i++) {
         width /= 2;
         height /= 2;
+
+        dataWidth /= 2;
+        dataHeight /= 2;
       }
       rowlen = 0;
       buffer = data.getMipmapData()[mipmapLevel];
+    }
+
+    // Clip incoming rectangles to what is available both on this
+    // texture and in the incoming TextureData
+    if (srcx < 0) {
+      width += srcx;
+      srcx = 0;
+    }
+    if (srcy < 0) {
+      height += srcy;
+      srcy = 0;
+    }
+    // NOTE: not sure whether the following two are the correct thing to do
+    if (dstx < 0) {
+      width += dstx;
+      dstx = 0;
+    }
+    if (dsty < 0) {
+      height += dsty;
+      dsty = 0;
+    }
+
+    if (srcx + width > dataWidth) {
+      width = dataWidth - srcx;
+    }
+    if (srcy + height > dataHeight) {
+      height = dataHeight - srcy;
+    }
+    if (dstx + width > texWidth) {
+      width = texWidth - dstx;
+    }
+    if (dsty + height > texHeight) {
+      height = texHeight - dsty;
     }
 
     checkCompressedTextureExtensions(data);

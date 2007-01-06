@@ -244,7 +244,12 @@ public class TextureRenderer {
     boolean canSkipUpdate = ensureTexture();
 
     if (!canSkipUpdate) {
-      // Update specified region
+      // Update specified region.
+      // NOTE that because BufferedImage-based TextureDatas now don't
+      // do anything to their contents, the coordinate systems for
+      // OpenGL and Java 2D actually line up correctly for
+      // updateSubImage calls, so we don't need to do any argument
+      // conversion here (i.e., flipping the Y coordinate).
       texture.updateSubImage(textureData, 0, x, y, x, y, width, height);
     }
   }
@@ -420,6 +425,7 @@ public class TextureRenderer {
         texture.dispose();
         texture = null;
       }
+      mustReallocateTexture = false;
     }
 
     if (texture == null) {

@@ -310,6 +310,8 @@ public class TextRenderer {
           g.setColor(Color.WHITE);
           // Draw the string
           g.drawString(curStr, strx, stry);
+          // Sync to the OpenGL texture
+          getBackingStore().sync(rect.x(), rect.y(), rect.w(), rect.h());
         }
 
         // OK, now draw the portion of the backing store to the screen
