@@ -365,6 +365,19 @@ public class TextRenderer {
     }
   }
 
+  /** Disposes of all resources this TextRenderer is using. It is not
+      valid to use the TextRenderer after this method is called.
+
+      @throws GLException If an OpenGL context is not current when this method is called
+  */
+  public void dispose() throws GLException {
+    packer.dispose();
+    packer = null;
+    cachedBackingStore = null;
+    cachedGraphics = null;
+    cachedFontRenderContext = null;
+  }
+  
   //----------------------------------------------------------------------
   // Internals only below this point
   //
@@ -466,7 +479,6 @@ public class TextRenderer {
       // store (i.e., non-default Paint, foreground color, etc.), but
       // for now, let's just be more efficient
       TextureRenderer renderer = TextureRenderer.createAlphaOnlyRenderer(w, h);
-      renderer.setSmoothing(false);
       return renderer;
     }
 

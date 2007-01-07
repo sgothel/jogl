@@ -74,6 +74,7 @@ public class TextureRenderer {
   // Whether smoothing is enabled for the OpenGL texture (switching
   // between GL_LINEAR and GL_NEAREST filtering)
   private boolean smoothing = true;
+  private boolean smoothingChanged;
 
   // The backing store itself
   private BufferedImage image;
@@ -179,24 +180,15 @@ public class TextureRenderer {
 
   /** Sets whether smoothing is enabled for the OpenGL texture; if so,
       uses GL_LINEAR interpolation for the minification and
-      magnification filters. Defaults to true.
+      magnification filters. Defaults to true. Changes to this setting
+      will not take effect until the next call to {@link
+      #beginOrthoRendering beginOrthoRendering}.
 
       @param smoothing whether smoothing is enabled for the OpenGL texture
-      @throws GLException If an OpenGL context is not current when this method is called
   */
-  public void setSmoothing(boolean smoothing) throws GLException {
+  public void setSmoothing(boolean smoothing) {
     this.smoothing = smoothing;
-    // This can be set lazily
-    if (texture != null) {
-      GL gl = GLU.getCurrentGL();
-      if (smoothing) {
-        texture.setTexParameteri(GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR);
-        texture.setTexParameteri(GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR);
-      } else {
-        texture.setTexParameteri(GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST);
-        texture.setTexParameteri(GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST);
-      }
-    }
+    smoothingChanged = true;
   }
 
   /** Returns whether smoothing is enabled for the OpenGL texture; see
@@ -308,12 +300,25 @@ public class TextureRenderer {
     gl.glMatrixMode(GL.GL_MODELVIEW);
     gl.glPushMatrix();
     gl.glLoadIdentity();
+    gl.glMatrixMode(GL.GL_TEXTURE);
+    gl.glPushMatrix();
+    gl.glLoadIdentity();
     gl.glEnable(GL.GL_BLEND);
     gl.glBlendFunc(GL.GL_ONE, GL.GL_ONE_MINUS_SRC_ALPHA);
     Texture texture = getTexture();
     texture.enable();
     texture.bind();
     gl.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE, GL.GL_REPLACE);
+    if (smoothingChanged) {
+      smoothingChanged = false;
+      if (smoothing) {
+        texture.setTexParameteri(GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR);
+        texture.setTexParameteri(GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR);
+      } else {
+        texture.setTexParameteri(GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST);
+        texture.setTexParameteri(GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST);
+      }
+    }
   }
 
   /** Draws an orthographically projected rectangle containing all of
@@ -387,6 +392,8 @@ public class TextureRenderer {
     gl.glMatrixMode(GL.GL_PROJECTION);
     gl.glPopMatrix();
     gl.glMatrixMode(GL.GL_MODELVIEW);
+    gl.glPopMatrix();
+    gl.glMatrixMode(GL.GL_TEXTURE);
     gl.glPopMatrix();
     gl.glPopAttrib();
   }
