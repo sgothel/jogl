@@ -207,6 +207,20 @@ public class WindowsGLContext extends GLContextImpl {
     return (hglrc != 0);
   }
 
+  public void copy(GLContext source, int mask) throws GLException {
+    long dst = getHGLRC();
+    long src = ((WindowsGLContext) source).getHGLRC();
+    if (src == 0) {
+      throw new GLException("Source OpenGL context has not been created");
+    }
+    if (dst == 0) {
+      throw new GLException("Destination OpenGL context has not been created");
+    }
+    if (!WGL.wglCopyContext(src, dst, mask)) {
+      throw new GLException("wglCopyContext failed");
+    }
+  }
+
   protected void resetGLFunctionAvailability() {
     super.resetGLFunctionAvailability();
     if (DEBUG) {

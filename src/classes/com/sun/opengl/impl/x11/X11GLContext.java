@@ -193,6 +193,27 @@ public abstract class X11GLContext extends GLContextImpl {
     return (context != 0);
   }
 
+  public void copy(GLContext source, int mask) throws GLException {
+    long dst = getContext();
+    long src = ((X11GLContext) source).getContext();
+    if (src == 0) {
+      throw new GLException("Source OpenGL context has not been created");
+    }
+    if (dst == 0) {
+      throw new GLException("Destination OpenGL context has not been created");
+    }
+    if (mostRecentDisplay == 0) {
+      throw new GLException("Connection to X display not yet set up");
+    }
+    lockToolkit();
+    try {
+      GLX.glXCopyContext(mostRecentDisplay, src, dst, mask);
+      // Should check for X errors and raise GLException
+    } finally {
+      unlockToolkit();
+    }
+  }
+
   protected void resetGLFunctionAvailability() {
     super.resetGLFunctionAvailability();
     if (DEBUG) {

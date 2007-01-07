@@ -112,6 +112,36 @@ public abstract class GLContext {
   public abstract void release() throws GLException;
 
   /**
+   * Copies selected groups of OpenGL state variables from the
+   * supplied source context into this one. The <code>mask</code>
+   * parameter indicates which groups of state variables are to be
+   * copied. <code>mask</code> contains the bitwise OR of the same
+   * symbolic names that are passed to the GL command {@link
+   * GL#glPushAttrib glPushAttrib}. The single symbolic constant
+   * {@link GL#GL_ALL_ATTRIB_BITS GL_ALL_ATTRIB_BITS} can be used to
+   * copy the maximum possible portion of rendering state. <P>
+   *
+   * Not all values for GL state can be copied. For example, pixel
+   * pack and unpack state, render mode state, and select and feedback
+   * state are not copied. The state that can be copied is exactly the
+   * state that is manipulated by the GL command {@link
+   * GL#glPushAttrib glPushAttrib}. <P>
+   *
+   * On most platforms, this context may not be current to any thread,
+   * including the calling thread, when this method is called. Some
+   * platforms have additional requirements such as whether this
+   * context or the source context must occasionally be made current
+   * in order for the results of the copy to be seen; these
+   * requirements are beyond the scope of this specification.
+   *
+   * @param source the source OpenGL context from which to copy state
+   * @param mask a mask of symbolic names indicating which groups of state to copy
+
+   * @throws GLException if an OpenGL-related error occurred
+   */
+  public abstract void copy(GLContext source, int mask) throws GLException;
+
+  /**
    * Returns the context which is current on the current thread. If no
    * context is current, returns null.
    *

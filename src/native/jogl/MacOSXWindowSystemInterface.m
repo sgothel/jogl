@@ -567,6 +567,12 @@ void updateContext(void* context) {
   [pool release];
 }
 
+void copyContext(void* destContext, void* srcContext, int mask) {
+  NSOpenGLContext *src = (NSOpenGLContext*) srcContext;
+  NSOpenGLContext *dst = (NSOpenGLContext*) destContext;
+  [dst copyAttributesFromContext: src withMask: mask];
+}
+
 void* updateContextRegister(void* context, void* view) {
   NSOpenGLContext *nsContext = (NSOpenGLContext*)context;
   NSView *nsView = (NSView*)view;

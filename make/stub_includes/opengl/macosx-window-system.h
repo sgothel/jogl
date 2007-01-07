@@ -22,6 +22,7 @@ Bool  clearCurrentContext(void* nsContext);
 Bool  deleteContext(void* nsContext);
 Bool  flushBuffer(void* nsContext);
 void  updateContext(void* nsContext);
+void  copyContext(void* destContext, void* srcContext, int mask);
 
 void* updateContextRegister(void* nsContext, void* nsView);
 void  updateContextUnregister(void* nsContext, void* nsView, void* updater);

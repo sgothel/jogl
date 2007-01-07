@@ -277,6 +277,18 @@ public abstract class MacOSXGLContext extends GLContextImpl
     return (nsContext != 0);
   }
 	
+  public void copy(GLContext source, int mask) throws GLException {
+    long dst = getNSContext();
+    long src = ((MacOSXGLContext) source).getNSContext();
+    if (src == 0) {
+      throw new GLException("Source OpenGL context has not been created");
+    }
+    if (dst == 0) {
+      throw new GLException("Destination OpenGL context has not been created");
+    }
+    CGL.copyContext(dst, src, mask);
+  }
+
   protected void resetGLFunctionAvailability()
   {
     super.resetGLFunctionAvailability();
