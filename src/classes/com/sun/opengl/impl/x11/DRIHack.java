@@ -90,6 +90,11 @@ public class DRIHack {
             (os.startsWith("linux") ||
              new File("/usr/lib/dri").exists() ||
              new File("/usr/X11R6/lib/modules/dri").exists());
+          // Allow manual overriding for now as a workaround for
+          // problems seen in some situations -- needs more investigation
+          if (System.getProperty("jogl.drihack.disable") != null) {
+            driHackNeeded = false;
+          }
           return null;
         }
       });
