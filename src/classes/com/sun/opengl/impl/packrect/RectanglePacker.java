@@ -52,6 +52,13 @@ public class RectanglePacker {
   private Object backingStore;
   private LevelSet levels;
   private float EXPANSION_FACTOR = 0.5f;
+  private float SHRINK_FACTOR = 0.3f;
+
+  private int initialWidth;
+  private int initialHeight;
+
+  private int maxWidth  = -1;
+  private int maxHeight = -1;
 
   static class RectHComparator implements Comparator {
     public int compare(Object o1, Object o2) {
@@ -71,6 +78,8 @@ public class RectanglePacker {
                          int initialHeight) {
     this.manager = manager;
     levels = new LevelSet(initialWidth, initialHeight);
+    this.initialWidth = initialWidth;
+    this.initialHeight = initialHeight;
   }
 
   public Object getBackingStore() {
@@ -81,6 +90,16 @@ public class RectanglePacker {
     return backingStore;
   }
 
+  /** Sets up a maximum width and height for the backing store. These
+      are optional and if not specified the backing store will grow as
+      necessary. Setting up a maximum width and height introduces the
+      possibility that additions will fail; these are handled with the
+      BackingStoreManager's allocationFailed notification. */
+  public void setMaxSize(int maxWidth, int maxHeight) {
+    this.maxWidth  = maxWidth;
+    this.maxHeight = maxHeight;
+  }
+
   /** Decides upon an (x, y) position for the given rectangle (leaving
       its width and height unchanged) and places it on the backing
       store. May provoke re-layout of other Rects already added. */
@@ -89,29 +108,89 @@ public class RectanglePacker {
     if (backingStore == null)
       backingStore = manager.allocateBackingStore(levels.w(), levels.h());
 
-    // Try to allocate
-    if (levels.add(rect))
-      return;
+    int attemptNumber = 0;
+    boolean tryAgain = false;
 
-    // Try to allocate with compaction
-    if (levels.compactAndAdd(rect, backingStore, manager))
-      return;
+    do {
+      // Try to allocate
+      if (levels.add(rect))
+        return;
 
-    // Have to expand. Need to figure out what direction to go. Prefer
-    // to expand vertically. Expand horizontally only if rectangle
-    // being added is too wide. FIXME: may want to consider
-    // rebalancing the width and height to be more equal if it turns
-    // out we keep expanding in the vertical direction.
+      // Try to allocate with horizontal compaction
+      if (levels.compactAndAdd(rect, backingStore, manager))
+        return;
+
+      // Let the manager have a chance at potentially evicting some entries
+      tryAgain = manager.preExpand(rect, attemptNumber++);
+    } while (tryAgain);
+
+    compactImpl(rect);
+
+    // Retry the addition of the incoming rectangle
+    add(rect);
+    // Done
+  }
+
+  /** Removes the given rectangle from this RectanglePacker. */
+  public void remove(Rect rect) {
+    levels.remove(rect);
+  }
+
+  /** Visits all Rects contained in this RectanglePacker. */
+  public void visit(RectVisitor visitor) {
+    levels.visit(visitor);
+  }
+
+  /** Returns the vertical fragmentation ratio of this
+      RectanglePacker. This is defined as the ratio of the sum of the
+      heights of all completely empty Levels divided by the overall
+      used height of the LevelSet. A high vertical fragmentation ratio
+      indicates that it may be profitable to perform a compaction. */
+  public float verticalFragmentationRatio() {
+    return levels.verticalFragmentationRatio();
+  }
+
+  /** Forces a compaction cycle, which typically results in allocating
+      a new backing store and copying all entries to it. */
+  public void compact() {
+    compactImpl(null);
+  }
+
+  // The "cause" rect may be null
+  private void compactImpl(Rect cause) {
+    // Have to either expand, compact or both. Need to figure out what
+    // direction to go. Prefer to expand vertically. Expand
+    // horizontally only if rectangle being added is too wide. FIXME:
+    // may want to consider rebalancing the width and height to be
+    // more equal if it turns out we keep expanding in the vertical
+    // direction.
     boolean done = false;
     int newWidth = levels.w();
     int newHeight = levels.h();
     LevelSet nextLevelSet = null;
+    int attemptNumber = 0;
+    boolean needAdditionFailureNotification = false;
+
     while (!done) {
-      if (rect.w() > newWidth) {
-        newWidth = rect.w();
-      } else {
-        newHeight = (int) (newHeight * (1.0f + EXPANSION_FACTOR));
+      if (cause != null) {
+        if (cause.w() > newWidth) {
+          newWidth = cause.w();
+        } else {
+          newHeight = (int) (newHeight * (1.0f + EXPANSION_FACTOR));
+        }
       }
+
+      // Clamp to maximum values
+      needAdditionFailureNotification = false;
+      if (maxWidth > 0 && newWidth > maxWidth) {
+        newWidth = maxWidth;
+        needAdditionFailureNotification = true;
+      }
+      if (maxHeight > 0 && newHeight > maxHeight) {
+        newHeight = maxHeight;
+        needAdditionFailureNotification = true;
+      }
+
       nextLevelSet = new LevelSet(newWidth, newHeight);
       
       // Make copies of all existing rectangles
@@ -138,7 +217,42 @@ public class RectanglePacker {
           break;
         }
       }
+
+      if (done && cause != null) {
+        // Try to add the new rectangle as well
+        if (nextLevelSet.add(cause)) {
+          // We're OK
+        } else {
+          done = false;
+        }
+      }
+
+      // Don't send addition failure notifications if we're only doing
+      // a compaction
+      if (!done && needAdditionFailureNotification && cause != null) {
+        manager.additionFailed(cause, attemptNumber);
+      }
+      ++attemptNumber;
     }
+
+    // See whether the implicit compaction that just occurred has
+    // yielded excess empty space.
+    if (nextLevelSet.getUsedHeight() > 0 &&
+        nextLevelSet.getUsedHeight() < nextLevelSet.h() * SHRINK_FACTOR) {
+      int shrunkHeight = Math.max(initialHeight,
+                                  (int) (nextLevelSet.getUsedHeight() * (1.0f + EXPANSION_FACTOR)));
+      if (maxHeight > 0 && shrunkHeight > maxHeight) {
+        shrunkHeight = maxHeight;
+      }
+      nextLevelSet.setHeight(shrunkHeight);
+    }
+
+    // If we temporarily added the new rectangle to the new LevelSet,
+    // take it out since we don't "really" add it here but in add(), above
+    if (cause != null) {
+      nextLevelSet.remove(cause);
+    }
+
     // OK, now we have a new layout and a mapping from the old to the
     // new locations of rectangles on the backing store. Allocate a
     // new backing store, move the contents over and deallocate the
@@ -162,19 +276,11 @@ public class RectanglePacker {
     // Update to new versions of backing store and LevelSet
     backingStore = newBackingStore;
     levels = nextLevelSet;
-    // Retry the addition of the incoming rectangle
-    add(rect);
-    // Done
   }
 
-  /** Removes the given rectangle from this RectanglePacker. */
-  public void remove(Rect rect) {
-    levels.remove(rect);
-  }
-
-  /** Visits all Rects contained in this RectanglePacker. */
-  public void visit(RectVisitor visitor) {
-    levels.visit(visitor);
+  /** Clears all Rects contained in this RectanglePacker. */
+  public void clear() {
+    levels.clear();
   }
 
   /** Disposes the backing store allocated by the

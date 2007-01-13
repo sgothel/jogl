@@ -129,8 +129,7 @@ public class Level {
           freeList.add(candidate);
         }
         
-        if (freeList.isEmpty())
-          freeList = null;
+        coalesceFreeList();
 
         return true;
       }
@@ -148,36 +147,20 @@ public class Level {
     // to the free list, we can just decrease the nextAddX
     if (rect.maxX() + 1 == nextAddX) {
       nextAddX -= rect.w();
-
-      // Now try to coalesce additional free space at the end of the
-      // free list
-      if (freeList != null) {
-        boolean found = true;
-        while (found) {
-          found = false;
-          for (Iterator iter = freeList.iterator(); iter.hasNext(); ) {
-            Rect cur = (Rect) iter.next();
-            if (cur.maxX() + 1 == nextAddX) {
-              nextAddX -= cur.w();
-              found = true;
-              freeList.remove(cur);
-              break;
-            }
-          }
-        }
-        if (freeList.isEmpty())
-          freeList = null;
+    } else {
+      if (freeList == null) {
+        freeList = new ArrayList/*<Rect>*/();
       }
-
-      return true;
+      freeList.add(new Rect(rect.x(), rect.y(), rect.w(), height, null));
+      coalesceFreeList();
     }
 
-    // Else, add the space consumed by this rectangle to the free list
-    if (freeList == null) {
-      freeList = new ArrayList/*<Rect>*/();
-    }
-    freeList.add(new Rect(rect.x(), rect.y(), rect.w(), height, null));
     return true;
+  }
+
+  /** Indicates whether this Level contains no rectangles. */
+  public boolean isEmpty() {
+    return rects.isEmpty();
   }
 
   /** Indicates whether this Level could satisfy an allocation request
@@ -211,6 +194,7 @@ public class Level {
       nextCompactionDest += cur.w();
     }
     nextAddX = nextCompactionDest;
+    freeList.clear();
     manager.endMovement(backingStore, backingStore);
   }
 
@@ -239,5 +223,53 @@ public class Level {
         throw new RuntimeException("Unexpected disparity in rectangle sizes during updateRectangleReferences");
       rects.set(i, next);
     }
+  }
+
+  private void coalesceFreeList() {
+    if (freeList == null)
+      return;
+    if (freeList.isEmpty())
+      return;
+
+    // Try to coalesce adjacent free blocks in the free list
+    Collections.sort(freeList, rectXComparator);
+    int i = 0;
+    while (i < freeList.size() - 1) {
+      Rect r1 = (Rect) freeList.get(i);
+      Rect r2 = (Rect) freeList.get(i+1);
+      if (r1.maxX() + 1 == r2.x()) {
+        // Coalesce r1 and r2 into one block
+        freeList.remove(i+1);
+        r1.setSize(r1.w() + r2.w(), r1.h());
+      } else {
+        ++i;
+      }
+    }
+    // See whether the last block bumps up against the addition point
+    Rect last = (Rect) freeList.get(freeList.size() - 1);
+    if (last.maxX() + 1 == nextAddX) {
+      nextAddX -= last.w();
+      freeList.remove(freeList.size() - 1);
+    }
+    if (freeList.isEmpty()) {
+      freeList = null;
+    }
+  }
+
+  //----------------------------------------------------------------------
+  // Debugging functionality
+  //
+
+  public void dumpFreeSpace() {
+    int freeListWidth = 0;
+    for (Iterator iter = freeList.iterator(); iter.hasNext(); ) {
+      Rect cur = (Rect) iter.next();
+      System.err.println(" Free rectangle at " + cur);
+      freeListWidth += cur.w();
+    }
+    // Add on the remaining space at the end
+    System.err.println(" Remaining free space " + (width - nextAddX));
+    freeListWidth += (width - nextAddX);
+    System.err.println(" Total free space " + freeListWidth);
   }
 }

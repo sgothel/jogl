@@ -149,6 +149,39 @@ public class LevelSet {
     nextAddY += (newHeight - oldHeight);
   }
 
+  /** Gets the used height of the levels in this LevelSet. */
+  public int getUsedHeight() {
+    return nextAddY;
+  }
+
+  /** Sets the height of this LevelSet. It is only legal to reduce the
+      height to greater than or equal to the currently used height. */
+  public void setHeight(int height) throws IllegalArgumentException {
+    if (height < getUsedHeight()) {
+      throw new IllegalArgumentException("May not reduce height below currently used height");
+    }
+    h = height;
+  }
+
+  /** Returns the vertical fragmentation ratio of this LevelSet. This
+      is defined as the ratio of the sum of the heights of all
+      completely empty Levels divided by the overall used height of
+      the LevelSet. A high vertical fragmentation ratio indicates that
+      it may be profitable to perform a compaction. */
+  public float verticalFragmentationRatio() {
+    int freeHeight = 0;
+    int usedHeight = getUsedHeight();
+    if (usedHeight == 0)
+      return 0.0f;
+    for (Iterator iter = iterator(); iter.hasNext(); ) {
+      Level level = (Level) iter.next();
+      if (level.isEmpty()) {
+        freeHeight += level.h();
+      }
+    }
+    return (float) freeHeight / (float) usedHeight;
+  }
+
   public Iterator iterator() {
     return levels.iterator();
   }
@@ -170,5 +203,11 @@ public class LevelSet {
       Level level = (Level) iter.next();
       level.updateRectangleReferences();
     }
+  }
+
+  /** Clears out all Levels stored in this LevelSet. */
+  public void clear() {
+    levels.clear();
+    nextAddY = 0;
   }
 }

@@ -54,6 +54,13 @@ import javax.media.opengl.*;
 import javax.media.opengl.glu.*;
 import com.sun.opengl.impl.packrect.*;
 
+// For debugging purposes
+import java.awt.EventQueue;
+import java.awt.Frame;
+import java.awt.event.*;
+import com.sun.opengl.impl.*;
+import com.sun.opengl.util.*;
+
 /** Renders bitmapped Java 2D text into an OpenGL window with high
     performance, full Unicode support, and a simple API. Performs
     appropriate caching of text rendering results in an OpenGL texture
@@ -94,11 +101,14 @@ import com.sun.opengl.impl.packrect.*;
 */
 
 public class TextRenderer {
+  private static final boolean DEBUG = Debug.debug("TextRenderer");
+
   private Font font;
   private boolean antialiased;
   private boolean useFractionalMetrics;
 
   private RectanglePacker packer;
+  private boolean haveMaxSize;
   private TextureRenderer cachedBackingStore;
   private Graphics2D cachedGraphics;
   private FontRenderContext cachedFontRenderContext;
@@ -116,8 +126,11 @@ public class TextRenderer {
 
   // Every certain number of render cycles, flush the strings which
   // haven't been used recently
-  private static final int CYCLES_PER_FLUSH = 200;
+  private static final int CYCLES_PER_FLUSH = 100;
   private int numRenderCycles;
+  // The amount of vertical dead space on the backing store before we
+  // force a compaction
+  private static final float MAX_VERTICAL_FRAGMENTATION = 0.7f;
 
   // Current text color
   private float r = 1.0f;
@@ -147,6 +160,9 @@ public class TextRenderer {
     void markUsed()  { used = true;   }
     void clearUsed() { used = false;  }
   }
+
+  // Debugging purposes only
+  private boolean debugged;
 
   /** Creates a new TextRenderer with the given font, using no
       antialiasing or fractional metrics. Equivalent to
@@ -214,6 +230,23 @@ public class TextRenderer {
     return normalize(gv.getPixelBounds(frc, 0, 0));
   }
 
+  /** Returns the Font this renderer is using. */
+  public Font getFont() {
+    return font;
+  }
+
+  /** Returns a FontRenderContext which can be used for external
+      text-related size computations. This object should be considered
+      transient and may become invalidated between {@link
+      #beginRendering beginRendering} / {@link #endRendering
+      endRendering} pairs. */
+  public FontRenderContext getFontRenderContext() {
+    if (cachedFontRenderContext == null) {
+      cachedFontRenderContext = getGraphics2D().getFontRenderContext();
+    }
+    return cachedFontRenderContext;
+  }
+
   /** Begins rendering with this {@link TextRenderer TextRenderer}
       into the current OpenGL drawable, pushing the projection and
       modelview matrices and some state bits and setting up a
@@ -229,8 +262,22 @@ public class TextRenderer {
       @throws GLException If an OpenGL context is not current when this method is called
   */
   public void beginRendering(int width, int height) throws GLException {
+    if (DEBUG && !debugged) {
+      debug();
+    }
+
     getBackingStore().beginOrthoRendering(width, height);
     GL gl = GLU.getCurrentGL();
+
+    if (!haveMaxSize) {
+      // Query OpenGL for the maximum texture size and set it in the
+      // RectanglePacker to keep it from expanding too large
+      int[] sz = new int[1];
+      gl.glGetIntegerv(GL.GL_MAX_TEXTURE_SIZE, sz, 0);
+      packer.setMaxSize(sz[0], sz[0]);
+      haveMaxSize = true;
+    }
+
     // Change texture environment mode to MODULATE
     gl.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE, GL.GL_MODULATE);
     // Change text color to last saved
@@ -344,24 +391,10 @@ public class TextRenderer {
     getBackingStore().endOrthoRendering();
     if (++numRenderCycles >= CYCLES_PER_FLUSH) {
       numRenderCycles = 0;
-      final List/*<Rect>*/ deadRects = new ArrayList/*<Rect>*/();
-      // Iterate through the contents of the backing store, removing
-      // text strings that haven't been used recently
-      packer.visit(new RectVisitor() {
-          public void visit(Rect rect) {
-            TextData data = (TextData) rect.getUserData();
-            if (data.used()) {
-              data.clearUsed();
-            } else {
-              deadRects.add(rect);
-            }
-          }
-        });
-      for (Iterator iter = deadRects.iterator(); iter.hasNext(); ) {
-        Rect r = (Rect) iter.next();
-        packer.remove(r);
-        stringLocations.remove(((TextData) r.getUserData()).string());
+      if (DEBUG) {
+        System.err.println("Clearing unused entries in endRendering()");
       }
+      clearUnusedEntries();
     }
   }
 
@@ -421,13 +454,6 @@ public class TextRenderer {
     return cachedGraphics;
   }
 
-  private FontRenderContext getFontRenderContext() {
-    if (cachedFontRenderContext == null) {
-      cachedFontRenderContext = getGraphics2D().getFontRenderContext();
-    }
-    return cachedFontRenderContext;
-  }
-
   private int getSpaceWidth() {
     if (spaceWidth < 0) {
       Graphics2D g = getGraphics2D();
@@ -470,7 +496,48 @@ public class TextRenderer {
     }
   }
 
-  static class Manager implements BackingStoreManager {
+  private void clearUnusedEntries() {
+    final List/*<Rect>*/ deadRects = new ArrayList/*<Rect>*/();
+    // Iterate through the contents of the backing store, removing
+    // text strings that haven't been used recently
+    packer.visit(new RectVisitor() {
+        public void visit(Rect rect) {
+          TextData data = (TextData) rect.getUserData();
+          if (data.used()) {
+            data.clearUsed();
+          } else {
+            deadRects.add(rect);
+          }
+        }
+      });
+    for (Iterator iter = deadRects.iterator(); iter.hasNext(); ) {
+      Rect r = (Rect) iter.next();
+      packer.remove(r);
+      stringLocations.remove(((TextData) r.getUserData()).string());
+
+      if (DEBUG) {
+        Graphics2D g = getGraphics2D();
+        g.setColor(TRANSPARENT_BLACK);
+        g.fillRect(r.x(), r.y(), r.w(), r.h());
+        g.setColor(Color.WHITE);
+      }
+    }
+
+    // If we removed dead rectangles this cycle, try to do a compaction
+    float frag = packer.verticalFragmentationRatio();
+    if (!deadRects.isEmpty() && frag > MAX_VERTICAL_FRAGMENTATION) {
+      if (DEBUG) {
+        System.err.println("Compacting TextRenderer backing store due to vertical fragmentation " + frag);
+      }
+      packer.compact();
+    }
+
+    if (DEBUG) {
+      getBackingStore().sync(0, 0, getBackingStore().getWidth(), getBackingStore().getHeight());
+    }
+  }
+
+  class Manager implements BackingStoreManager {
     private Graphics2D g;
 
     public Object allocateBackingStore(int w, int h) {
@@ -479,11 +546,51 @@ public class TextRenderer {
       // store (i.e., non-default Paint, foreground color, etc.), but
       // for now, let's just be more efficient
       TextureRenderer renderer = TextureRenderer.createAlphaOnlyRenderer(w, h);
+      if (DEBUG) {
+        System.err.println(" TextRenderer allocating backing store " + w + " x " + h);
+      }
       return renderer;
     }
 
     public void deleteBackingStore(Object backingStore) {
       ((TextureRenderer) backingStore).dispose();
+    }
+
+    public boolean preExpand(Rect cause, int attemptNumber) {
+      // Only try this one time; clear out potentially obsolete entries
+
+      // NOTE: this heuristic and the fact that it clears the used bit
+      // of all entries seems to cause cycling of entries in some
+      // situations, where the backing store becomes small compared to
+      // the amount of text on the screen (see the TextFlow demo) and
+      // the entries continually cycle in and out of the backing
+      // store, decreasing performance. If we added a little age
+      // information to the entries, and only cleared out entries
+      // above a certain age, this behavior would be eliminated.
+      // However, it seems the system usually stabilizes itself, so
+      // for now we'll just keep things simple. Note that if we don't
+      // clear the used bit here, the backing store tends to increase
+      // very quickly to its maximum size, at least with the TextFlow
+      // demo when the text is being continually re-laid out.
+      if (attemptNumber == 0) {
+        if (DEBUG) {
+          System.err.println("Clearing unused entries in preExpand(): attempt number " + attemptNumber);
+        }
+        clearUnusedEntries();
+        return true;
+      }
+
+      return false;
+    }
+
+    public void additionFailed(Rect cause, int attemptNumber) {
+      // Heavy hammer -- might consider doing something different
+      packer.clear();
+      stringLocations.clear();
+
+      if (DEBUG) {
+        System.err.println(" *** Cleared all text because addition failed ***");
+      }
     }
 
     public void beginMovement(Object oldBackingStore, Object newBackingStore) {
@@ -522,5 +629,66 @@ public class TextRenderer {
       TextureRenderer newRenderer = (TextureRenderer) newBackingStore;
       newRenderer.sync(0, 0, newRenderer.getWidth(), newRenderer.getHeight());
     }
+  }
+
+  //----------------------------------------------------------------------
+  // Debugging functionality
+  //
+
+  private void debug() {
+    Frame dbgFrame = new Frame("TextRenderer Debug Output");
+    GLCanvas dbgCanvas = new GLCanvas(new GLCapabilities(), null, GLContext.getCurrent(), null);
+    dbgCanvas.addGLEventListener(new DebugListener(dbgFrame));
+    dbgFrame.add(dbgCanvas);
+    final FPSAnimator anim = new FPSAnimator(dbgCanvas, 10);
+    dbgFrame.addWindowListener(new WindowAdapter() {
+        public void windowClosing(WindowEvent e) {
+          // Run this on another thread than the AWT event queue to
+          // make sure the call to Animator.stop() completes before
+          // exiting
+          new Thread(new Runnable() {
+              public void run() {
+                anim.stop();
+              }
+            }).start();
+        }
+      });
+    dbgFrame.setSize(256, 256);
+    dbgFrame.setVisible(true);
+    anim.start();
+    debugged = true;
+  }
+
+  class DebugListener implements GLEventListener {
+    private GLU glu = new GLU();
+    private Frame frame;
+
+    DebugListener(Frame frame) {
+      this.frame = frame;
+    }
+
+    public void display(GLAutoDrawable drawable) {
+      GL gl = drawable.getGL();
+      gl.glClear(GL.GL_DEPTH_BUFFER_BIT | GL.GL_COLOR_BUFFER_BIT);
+      TextureRenderer rend = getBackingStore();
+      final int w = rend.getWidth();
+      final int h = rend.getHeight();
+      rend.beginOrthoRendering(w, h);
+      rend.drawOrthoRect(0, 0);
+      rend.endOrthoRendering();
+      if (frame.getWidth() != w ||
+          frame.getHeight() != h) {
+        EventQueue.invokeLater(new Runnable() {
+            public void run() {
+              frame.setSize(w, h);
+            }
+          });
+      }
+    }
+
+    // Unused methods
+    public void init(GLAutoDrawable drawable) {}
+    public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {}
+    public void displayChanged(GLAutoDrawable drawable, boolean modeChanged, boolean deviceChanged) {}
   }
 }

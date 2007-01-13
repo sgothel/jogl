@@ -49,16 +49,37 @@ public interface BackingStoreManager {
   public Object allocateBackingStore(int w, int h);
   public void   deleteBackingStore(Object backingStore);
 
-  // Notification that movement is starting
+  /** Notification that expansion of the backing store is about to be
+      done due to addition of the given rectangle. Gives the manager a
+      chance to do some compaction and potentially remove old entries
+      from the backing store, if it acts like a least-recently-used
+      cache. This method receives as argument the number of attempts
+      so far to add the given rectangle. Manager should return true if
+      the RectanglePacker should retry the addition (which may result
+      in this method being called again, with an increased attempt
+      number) or false if the RectanglePacker should just expand the
+      backing store. The caller should not call RectanglePacker.add()
+      in its preExpand() method. */
+  public boolean preExpand(Rect cause, int attemptNumber);
+
+  /** Notification that addition of the given Rect failed because a
+      maximum size was set in the RectanglePacker and the backing
+      store could not be expanded. */
+  public void additionFailed(Rect cause, int attemptNumber);
+
+  /** Notification that movement is starting. */
   public void beginMovement(Object oldBackingStore, Object newBackingStore);
 
-  // Can the backing stores be identical? I think so, in the case of
-  // compacting the existing backing store as opposed to reallocating it...
+  /** Tells the manager to move the contents of the given rect from
+      the old location on the old backing store to the new location on
+      the new backing store. The backing stores can be identical in
+      the case of compacting the existing backing store instead of
+      reallocating it. */
   public void move(Object oldBackingStore,
                    Rect   oldLocation,
                    Object newBackingStore,
                    Rect   newLocation);
 
-  // Notification that movement is ending
+  /** Notification that movement is ending. */
   public void endMovement(Object oldBackingStore, Object newBackingStore);
 }
