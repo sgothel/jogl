@@ -55,6 +55,7 @@ public class WindowsOnscreenGLContext extends WindowsGLContext {
   
   protected int makeCurrentImpl() throws GLException {
     int lockRes = drawable.lockSurface();
+    boolean exceptionOccurred = false;
     try {
       if (lockRes == WindowsOnscreenGLDrawable.LOCK_SURFACE_NOT_READY) {
         return CONTEXT_NOT_CURRENT;
@@ -64,11 +65,13 @@ public class WindowsOnscreenGLContext extends WindowsGLContext {
       }
       int ret = super.makeCurrentImpl();
       return ret;
+    } catch (RuntimeException e) {
+      exceptionOccurred = true;
+      throw e;
     } finally {
-      if (isOptimizable()) {
-        if (lockRes != WindowsOnscreenGLDrawable.LOCK_SURFACE_NOT_READY) {
-          drawable.unlockSurface();
-        }
+      if (exceptionOccurred ||
+          (isOptimizable() && lockRes != WindowsOnscreenGLDrawable.LOCK_SURFACE_NOT_READY)) {
+        drawable.unlockSurface();
       }
     }
   }

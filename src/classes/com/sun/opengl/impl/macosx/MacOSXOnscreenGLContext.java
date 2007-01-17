@@ -55,6 +55,7 @@ public class MacOSXOnscreenGLContext extends MacOSXGLContext {
 
   protected int makeCurrentImpl() throws GLException {
     int lockRes = drawable.lockSurface();
+    boolean exceptionOccurred = false;
     try {
       if (lockRes == MacOSXOnscreenGLDrawable.LOCK_SURFACE_NOT_READY) {
         return CONTEXT_NOT_CURRENT;
@@ -81,11 +82,13 @@ public class MacOSXOnscreenGLContext extends MacOSXGLContext {
         }
       }
       return ret;
+    } catch (RuntimeException e) {
+      exceptionOccurred = true;
+      throw e;
     } finally {
-      if (isOptimizable()) {
-        if (lockRes != MacOSXOnscreenGLDrawable.LOCK_SURFACE_NOT_READY) {
-          drawable.unlockSurface();
-        }
+      if (exceptionOccurred ||
+          (isOptimizable() && lockRes != MacOSXOnscreenGLDrawable.LOCK_SURFACE_NOT_READY)) {
+        drawable.unlockSurface();
       }
     }
   }

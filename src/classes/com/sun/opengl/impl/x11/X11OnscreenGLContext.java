@@ -59,6 +59,7 @@ public class X11OnscreenGLContext extends X11GLContext {
   
   protected int makeCurrentImpl() throws GLException {
     int lockRes = drawable.lockSurface();
+    boolean exceptionOccurred = false;
     try {
       if (lockRes == X11OnscreenGLDrawable.LOCK_SURFACE_NOT_READY) {
         return CONTEXT_NOT_CURRENT;
@@ -67,11 +68,13 @@ public class X11OnscreenGLContext extends X11GLContext {
         destroyImpl();
       }
       return super.makeCurrentImpl();
+    } catch (RuntimeException e) {
+      exceptionOccurred = true;
+      throw e;
     } finally {
-      if (isOptimizable()) {
-        if (lockRes != X11OnscreenGLDrawable.LOCK_SURFACE_NOT_READY) {
-          drawable.unlockSurface();
-        }
+      if (exceptionOccurred ||
+          (isOptimizable() && lockRes != X11OnscreenGLDrawable.LOCK_SURFACE_NOT_READY)) {
+        drawable.unlockSurface();
       }
     }
   }
