@@ -274,13 +274,14 @@ public class TextureRenderer {
 
   /** Convenience method which assists in rendering portions of the
       OpenGL texture to the screen, if the application intends to draw
-      them as a flat overlay on to the screen. Sets up the viewing
-      matrices, for orthographic rendering where the coordinates go
+      them as a flat overlay on to the screen. Pushes OpenGL state
+      bits (GL_ENABLE_BIT, GL_DEPTH_BUFFER_BIT and GL_TRANSFORM_BIT);
+      disables the depth test, back-face culling, and lighting;
+      enables the texture in this renderer; and sets up the viewing
+      matrices for orthographic rendering where the coordinates go
       from (0, 0) at the lower left to (width, height) at the upper
-      right; disables the depth test and lighting; and enables the
-      texture in this renderer. {@link #endOrthoRendering} must be
-      used in conjunction with this method to restore all OpenGL
-      states.
+      right. {@link #endOrthoRendering} must be used in conjunction
+      with this method to restore all OpenGL states.
 
       @param width the width of the current on-screen OpenGL drawable
       @param height the height of the current on-screen OpenGL drawable
@@ -288,37 +289,24 @@ public class TextureRenderer {
       @throws GLException If an OpenGL context is not current when this method is called
   */
   public void beginOrthoRendering(int width, int height) throws GLException {
-    GL gl = GLU.getCurrentGL();
-    gl.glPushAttrib(GL.GL_ENABLE_BIT | GL.GL_DEPTH_BUFFER_BIT | GL.GL_TRANSFORM_BIT);
-    gl.glDisable(GL.GL_DEPTH_TEST);
-    gl.glDisable(GL.GL_CULL_FACE);
-    gl.glDisable(GL.GL_LIGHTING);
-    gl.glMatrixMode(GL.GL_PROJECTION);
-    gl.glPushMatrix();
-    gl.glLoadIdentity();
-    glu.gluOrtho2D(0, width, 0, height);
-    gl.glMatrixMode(GL.GL_MODELVIEW);
-    gl.glPushMatrix();
-    gl.glLoadIdentity();
-    gl.glMatrixMode(GL.GL_TEXTURE);
-    gl.glPushMatrix();
-    gl.glLoadIdentity();
-    gl.glEnable(GL.GL_BLEND);
-    gl.glBlendFunc(GL.GL_ONE, GL.GL_ONE_MINUS_SRC_ALPHA);
-    Texture texture = getTexture();
-    texture.enable();
-    texture.bind();
-    gl.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE, GL.GL_REPLACE);
-    if (smoothingChanged) {
-      smoothingChanged = false;
-      if (smoothing) {
-        texture.setTexParameteri(GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR);
-        texture.setTexParameteri(GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR);
-      } else {
-        texture.setTexParameteri(GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST);
-        texture.setTexParameteri(GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST);
-      }
-    }
+    beginRendering(true, width, height);
+  }
+
+  /** Convenience method which assists in rendering portions of the
+      OpenGL texture to the screen as 2D quads in 3D space. Pushes
+      OpenGL state (GL_ENABLE_BIT); disables lighting; and enables the
+      texture in this renderer. Unlike {@link #beginOrthoRendering
+      beginOrthoRendering}, does not modify the depth test, back-face
+      culling, lighting, or the modelview or projection matrices. The
+      user is responsible for setting up the view matrices for correct
+      results of {@link #draw3DRect draw3DRect}. {@link
+      #end3DRendering} must be used in conjunction with this method to
+      restore all OpenGL states.
+
+      @throws GLException If an OpenGL context is not current when this method is called
+  */
+  public void begin3DRendering() throws GLException {
+    beginRendering(false, 0, 0);
   }
 
   /** Draws an orthographically projected rectangle containing all of
@@ -360,6 +348,38 @@ public class TextureRenderer {
   public void drawOrthoRect(int screenx, int screeny,
                             int texturex, int texturey,
                             int width, int height) throws GLException {
+    draw3DRect(screenx, screeny, 0, texturex, texturey, width, height, 1);
+  }
+
+  /** Draws a rectangle of the underlying texture to the specified 3D
+      location. In the current coordinate system, the lower left
+      corner of the rectangle is placed at (x, y, z), and the upper
+      right corner is placed at (x + width * scaleFactor, y + height *
+      scaleFactor, z). The lower left corner of the sub-rectangle of
+      the texture is (texturex, texturey) and the upper right corner
+      is (texturex + width, texturey + height). For back-face culling
+      purposes, the rectangle is drawn with counterclockwise
+      orientation of the vertices when viewed from the front.
+
+      @param x the x coordinate at which to draw the rectangle
+      @param y the y coordinate at which to draw the rectangle
+      @param z the z coordinate at which to draw the rectangle
+      @param texturex the x coordinate of the pixel in the texture of
+        the lower left portion of the rectangle to draw
+      @param texturey the y coordinate of the pixel in the texture
+        (relative to lower left) of the lower left portion of the
+        rectangle to draw
+      @param width the width in texels of the rectangle to draw
+      @param height the height in texels of the rectangle to draw
+      @param scaleFactor the scale factor to apply (multiplicatively)
+        to the size of the drawn rectangle
+      
+      @throws GLException If an OpenGL context is not current when this method is called
+  */
+  public void draw3DRect(float x, float y, float z,
+                         int texturex, int texturey,
+                         int width, int height,
+                         float scaleFactor) throws GLException {
     GL gl = GLU.getCurrentGL();
     Texture texture = getTexture();
     TextureCoords coords = texture.getSubImageTexCoords(texturex, texturey,
@@ -367,13 +387,13 @@ public class TextureRenderer {
                                                         texturey + height);
     gl.glBegin(GL.GL_QUADS);
     gl.glTexCoord2f(coords.left(), coords.bottom());
-    gl.glVertex3f(screenx, screeny, 0);
+    gl.glVertex3f(x, y, z);
     gl.glTexCoord2f(coords.right(), coords.bottom());
-    gl.glVertex3f(screenx + width, screeny, 0);
+    gl.glVertex3f(x + width * scaleFactor, y, z);
     gl.glTexCoord2f(coords.right(), coords.top());
-    gl.glVertex3f(screenx + width, screeny + height, 0);
+    gl.glVertex3f(x + width * scaleFactor, y + height * scaleFactor, z);
     gl.glTexCoord2f(coords.left(), coords.top());
-    gl.glVertex3f(screenx, screeny + height, 0);
+    gl.glVertex3f(x, y + height * scaleFactor, z);
     gl.glEnd();
   }
 
@@ -386,21 +406,76 @@ public class TextureRenderer {
       @throws GLException If an OpenGL context is not current when this method is called
   */
   public void endOrthoRendering() throws GLException {
-    GL gl = GLU.getCurrentGL();
-    Texture texture = getTexture();
-    texture.disable();
-    gl.glMatrixMode(GL.GL_PROJECTION);
-    gl.glPopMatrix();
-    gl.glMatrixMode(GL.GL_MODELVIEW);
-    gl.glPopMatrix();
-    gl.glMatrixMode(GL.GL_TEXTURE);
-    gl.glPopMatrix();
-    gl.glPopAttrib();
+    endRendering(true);
+  }
+
+  /** Convenience method which assists in rendering portions of the
+      OpenGL texture to the screen as 2D quads in 3D space. Must be
+      used if {@link #begin3DRendering} is used to set up the
+      rendering stage for this overlay.
+
+      @throws GLException If an OpenGL context is not current when this method is called
+  */
+  public void end3DRendering() throws GLException {
+    endRendering(false);
   }
 
   //----------------------------------------------------------------------
   // Internals only below this point
   //
+
+  private void beginRendering(boolean ortho, int width, int height) {
+    GL gl = GLU.getCurrentGL();
+    int attribBits = 
+      GL.GL_ENABLE_BIT | (ortho ? (GL.GL_DEPTH_BUFFER_BIT | GL.GL_TRANSFORM_BIT) : 0);
+    gl.glPushAttrib(attribBits);
+    gl.glDisable(GL.GL_LIGHTING);
+    if (ortho) {
+      gl.glDisable(GL.GL_DEPTH_TEST);
+      gl.glDisable(GL.GL_CULL_FACE);
+      gl.glMatrixMode(GL.GL_PROJECTION);
+      gl.glPushMatrix();
+      gl.glLoadIdentity();
+      glu.gluOrtho2D(0, width, 0, height);
+      gl.glMatrixMode(GL.GL_MODELVIEW);
+      gl.glPushMatrix();
+      gl.glLoadIdentity();
+      gl.glMatrixMode(GL.GL_TEXTURE);
+      gl.glPushMatrix();
+      gl.glLoadIdentity();
+    }
+    gl.glEnable(GL.GL_BLEND);
+    gl.glBlendFunc(GL.GL_ONE, GL.GL_ONE_MINUS_SRC_ALPHA);
+    Texture texture = getTexture();
+    texture.enable();
+    texture.bind();
+    gl.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE, GL.GL_REPLACE);
+    if (smoothingChanged) {
+      smoothingChanged = false;
+      if (smoothing) {
+        texture.setTexParameteri(GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR);
+        texture.setTexParameteri(GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR);
+      } else {
+        texture.setTexParameteri(GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST);
+        texture.setTexParameteri(GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST);
+      }
+    }
+  }
+
+  private void endRendering(boolean ortho) {
+    GL gl = GLU.getCurrentGL();
+    Texture texture = getTexture();
+    texture.disable();
+    if (ortho) {
+      gl.glMatrixMode(GL.GL_PROJECTION);
+      gl.glPopMatrix();
+      gl.glMatrixMode(GL.GL_MODELVIEW);
+      gl.glPopMatrix();
+      gl.glMatrixMode(GL.GL_TEXTURE);
+      gl.glPopMatrix();
+    }
+    gl.glPopAttrib();
+  }
 
   private void init(int width, int height) {
     // Discard previous BufferedImage if any

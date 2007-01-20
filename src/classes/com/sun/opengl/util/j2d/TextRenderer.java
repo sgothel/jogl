@@ -262,26 +262,23 @@ public class TextRenderer {
       @throws GLException If an OpenGL context is not current when this method is called
   */
   public void beginRendering(int width, int height) throws GLException {
-    if (DEBUG && !debugged) {
-      debug();
-    }
+    beginRendering(true, width, height);
+  }
 
-    getBackingStore().beginOrthoRendering(width, height);
-    GL gl = GLU.getCurrentGL();
+  /** Begins rendering of 2D text in 3D with this {@link TextRenderer
+      TextRenderer} into the current OpenGL drawable. Assumes the end
+      user is responsible for setting up the modelview and projection
+      matrices, and will render text using the {@link #draw3D draw3D}
+      method. This method pushes some OpenGL state bits, binds and
+      enables the internal OpenGL texture object, sets the texture
+      environment mode to GL_MODULATE, and changes the current color
+      to the last color set with this TextRenderer via {@link
+      #setColor setColor}.
 
-    if (!haveMaxSize) {
-      // Query OpenGL for the maximum texture size and set it in the
-      // RectanglePacker to keep it from expanding too large
-      int[] sz = new int[1];
-      gl.glGetIntegerv(GL.GL_MAX_TEXTURE_SIZE, sz, 0);
-      packer.setMaxSize(sz[0], sz[0]);
-      haveMaxSize = true;
-    }
-
-    // Change texture environment mode to MODULATE
-    gl.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE, GL.GL_MODULATE);
-    // Change text color to last saved
-    gl.glColor4f(r, g, b, a);
+      @throws GLException If an OpenGL context is not current when this method is called
+  */
+  public void begin3DRendering() throws GLException {
+    beginRendering(false, 0, 0);
   }
 
   /** Changes the current color of this TextRenderer to the supplied
@@ -320,6 +317,23 @@ public class TextRenderer {
       @throws GLException If an OpenGL context is not current when this method is called
   */
   public void draw(String str, int x, int y) throws GLException {
+    draw3D(str, x, y, 0, 1);
+  }
+
+  /** Draws the supplied String at the desired 3D location using the
+      renderer's current color. The baseline of the leftmost character
+      is placed at position (x, y, z) in the current coordinate system.
+
+      @param str the string to draw
+      @param x the x coordinate at which to draw
+      @param y the y coordinate at which to draw
+      @param z the z coordinate at which to draw
+      @param scaleFactor a uniform scale factor applied to the width and height of the drawn rectangle
+      @throws GLException If an OpenGL context is not current when this method is called
+  */
+  public void draw3D(String str,
+                     float x, float y, float z,
+                     float scaleFactor) {
     // Split up the string into space-separated pieces
     tokenize(str);
     int xOffset = 0;
@@ -369,33 +383,39 @@ public class TextRenderer {
         TextData data = (TextData) rect.getUserData();
         data.markUsed();
 
-        // Align the leftmost point of the baseline to the (x, y) coordinate requested
-        renderer.drawOrthoRect(x - data.origin().x + xOffset,
-                               y - (rect.h() - data.origin().y),
-                               rect.x(),
-                               renderer.getHeight() - rect.y() - rect.h(),
-                               rect.w(), rect.h());
-        xOffset += rect.w();
+        // Align the leftmost point of the baseline to the (x, y, z) coordinate requested
+        renderer.draw3DRect(x - scaleFactor * (data.origin().x + xOffset),
+                            y - scaleFactor * ((rect.h() - data.origin().y)),
+                            z,
+                            rect.x(),
+                            renderer.getHeight() - rect.y() - rect.h(),
+                            rect.w(), rect.h(),
+                            scaleFactor);
+        xOffset += rect.w() * scaleFactor;
       }
-      xOffset += getSpaceWidth();
+      xOffset += getSpaceWidth() * scaleFactor;
     }
   }
 
   /** Ends a render cycle with this {@link TextRenderer TextRenderer}.
       Restores the projection and modelview matrices as well as
-      several OpenGL state bits.
+      several OpenGL state bits. Should be paired with {@link
+      #beginRendering beginRendering}.
 
       @throws GLException If an OpenGL context is not current when this method is called
   */
   public void endRendering() throws GLException {
-    getBackingStore().endOrthoRendering();
-    if (++numRenderCycles >= CYCLES_PER_FLUSH) {
-      numRenderCycles = 0;
-      if (DEBUG) {
-        System.err.println("Clearing unused entries in endRendering()");
-      }
-      clearUnusedEntries();
-    }
+    endRendering(true);
+  }
+
+  /** Ends a 3D render cycle with this {@link TextRenderer TextRenderer}.
+      Restores several OpenGL state bits. Should be paired with {@link
+      #begin3DRendering begin3DRendering}.
+
+      @throws GLException If an OpenGL context is not current when this method is called
+  */
+  public void end3DRendering() throws GLException {
+    endRendering(false);
   }
 
   /** Disposes of all resources this TextRenderer is using. It is not
@@ -416,10 +436,13 @@ public class TextRenderer {
   //
 
   private static Rectangle2D normalize(Rectangle2D src) {
-    return new Rectangle2D.Double((int) Math.floor(src.getMinX()),
-                                  (int) Math.floor(src.getMinY()),
-                                  (int) Math.ceil(src.getWidth()),
-                                  (int) Math.ceil(src.getHeight()));
+    // Give ourselves a one-pixel boundary around each string in order
+    // to prevent bleeding of nearby Strings due to the fact that we
+    // use linear filtering
+    return new Rectangle2D.Double((int) Math.floor(src.getMinX() - 1),
+                                  (int) Math.floor(src.getMinY() - 1),
+                                  (int) Math.ceil(src.getWidth() + 2),
+                                  (int) Math.ceil(src.getHeight()) + 2);
   }
 
   private TextureRenderer getBackingStore() {
@@ -452,6 +475,48 @@ public class TextRenderer {
                                                             : RenderingHints.VALUE_FRACTIONALMETRICS_OFF));
     }
     return cachedGraphics;
+  }
+
+  private void beginRendering(boolean ortho, int width, int height) {
+    if (DEBUG && !debugged) {
+      debug();
+    }
+
+    if (ortho) {
+      getBackingStore().beginOrthoRendering(width, height);
+    } else {
+      getBackingStore().begin3DRendering();
+    }
+    GL gl = GLU.getCurrentGL();
+
+    if (!haveMaxSize) {
+      // Query OpenGL for the maximum texture size and set it in the
+      // RectanglePacker to keep it from expanding too large
+      int[] sz = new int[1];
+      gl.glGetIntegerv(GL.GL_MAX_TEXTURE_SIZE, sz, 0);
+      packer.setMaxSize(sz[0], sz[0]);
+      haveMaxSize = true;
+    }
+
+    // Change texture environment mode to MODULATE
+    gl.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE, GL.GL_MODULATE);
+    // Change text color to last saved
+    gl.glColor4f(r, g, b, a);
+  }
+
+  private void endRendering(boolean ortho) throws GLException {
+    if (ortho) {
+      getBackingStore().endOrthoRendering();
+    } else {
+      getBackingStore().end3DRendering();
+    }
+    if (++numRenderCycles >= CYCLES_PER_FLUSH) {
+      numRenderCycles = 0;
+      if (DEBUG) {
+        System.err.println("Clearing unused entries in endRendering()");
+      }
+      clearUnusedEntries();
+    }
   }
 
   private int getSpaceWidth() {
