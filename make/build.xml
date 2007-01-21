@@ -51,11 +51,11 @@
 <project name="JOGL" basedir="." default="all">
 
   <!-- This is the version of JOGL you are building -->
-  <property name="base_version" value="1.1.0"/>
+  <property name="base_version" value="1.1.0-rc2"/>
     
   <!-- Uncomment this property definition to cause a full release build to be done -->
   <!-- without needing to specify the RI target on the command line  -->
-  <!-- property name="RImanifestfile" value="joglRIversion" / -->
+  <property name="RImanifestfile" value="joglRIversion" />
 
   <!-- Pull in GlueGen cpptasks build file -->
   <property name="gluegen.root" value="../../gluegen" />
