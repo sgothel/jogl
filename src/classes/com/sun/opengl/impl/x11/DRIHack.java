@@ -106,13 +106,8 @@ public class DRIHack {
 
       // Try a few different variants for best robustness
       // In theory probably only the first is necessary
-      oglLib = NativeLibrary.open("GL", null);
-      if (DEBUG && oglLib != null) System.err.println(" Found libGL.so");
-      // Allow ATI's fglrx to supersede version in /usr/lib
-      if (oglLib == null) {
-        oglLib = NativeLibrary.open("/usr/lib/ati-fglrx/libGL.so.1.2", null);
-        if (DEBUG && oglLib != null) System.err.println(" Found /usr/lib/ati-fglrx/libGL.so.1.2");
-      }
+      oglLib = NativeLibrary.open("libGL.so.1", null);
+      if (DEBUG && oglLib != null) System.err.println(" Found libGL.so.1");
       if (oglLib == null) {
         oglLib = NativeLibrary.open("/usr/lib/libGL.so.1", null);
         if (DEBUG && oglLib != null) System.err.println(" Found /usr/lib/libGL.so.1");
