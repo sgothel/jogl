@@ -588,7 +588,11 @@ public class JOGLAppletLauncher extends Applet {
     try {
       Class alClass = Class.forName("net.java.games.joal.AL", false, this.getClass().getClassLoader());
       haveJOAL = true;
-    } catch (ClassNotFoundException cnfe) {
+      // Note: it seems that some JRE implementations can throw
+      // SecurityException as well as ClassNotFoundException, at least
+      // if the OpenAL classes are not present and the web server
+      // redirects elsewhere
+    } catch (Exception e) {
     }
 
     String[] nativeJarNames = new String[] {
