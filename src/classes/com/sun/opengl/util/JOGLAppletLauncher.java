@@ -141,6 +141,15 @@ import javax.media.opengl.*;
  * primarily under Mozilla, Firefox and Internet Explorer; there may
  * be problems when running under, for example, Opera. <p>
  *
+ * It has been discovered that the Talkback agent in Mozilla / Firefox
+ * has bad interactions with OpenGL applets. For highest performance,
+ * we recommend disabling the Talkback agent; find talkback.exe, run
+ * it, and follow the directions for turning it off. Please see
+ * <a href="http://www.javagaming.org/forums/index.php?topic=12200.30">this
+ * thread</a> on the javagaming.org forums and
+ * <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=326381">this
+ * thread</a> on the Mozilla bug reporting database. <p>
+ *
  * @author Lilian Chamontin
  * @author Kenneth Russell
  */
