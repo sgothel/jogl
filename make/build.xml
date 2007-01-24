@@ -1391,6 +1391,11 @@
 	    <zipgroupfileset dir="${jogl.dist.dir}"
 	                     includes="jogl-win/jogl.jar, jogl-linux/jogl.jar, jogl-macosx/jogl.jar" />
         </jar>
+        <!-- Apply Pack200 repacking to allow later compression by that mechanism -->
+        <apply executable="pack200" verbose="true" >
+            <arg value="--repack" />
+            <fileset file="${jogl.dist.dir}/jogl.jar" />
+        </apply>
         <jar destfile="${jogl.dist.dir}/jogl-natives-windows-i586.jar"
              basedir="${jogl.dist.dir}/jogl-win/32"
              includes="jogl.dll,jogl_awt.dll,jogl_cg.dll" />
@@ -1529,35 +1534,6 @@
         <zip destfile="${jogl.dist.dir}/jogl-${tmp.version}-webstart.zip"
 	     basedir="${jogl.dist.dir}"
 	     includes="*.jar" />
-    </target>
-
-    <!-- unjar and re-jar the platform-independent jogl.jar with the official manifest -->
-    <target name="redist" depends="dist.dir.check">
-      <condition property="dist.complete">
-        <available file="${jogl.dist.dir}/jogl.jar" />
-      </condition>
-      <fail unless="dist.complete">
-    ******************************************************************
-    ** It appears the dist command did not complete; the platform-  **
-    ** independent jogl.jar is missing. Please check the status of  **
-    ** the dist build and try again.                                **
-    ******************************************************************
-      </fail>
-      <delete dir="${jogl.dist.dir}/tmp" failonerror="false" />
-      <mkdir dir="${jogl.dist.dir}/tmp" />
-      <unjar src="${jogl.dist.dir}/jogl.jar" dest="${jogl.dist.dir}/tmp" />
-      <delete dir="${jogl.dist.dir}/tmp/META-INF" />
-      <delete file="${jogl.dist.dir}/jogl.jar" />
-      <jar manifest="joglRIversion"
-           destfile="${jogl.dist.dir}/jogl.jar"
-           basedir="${jogl.dist.dir}/tmp"
-           includes="*/**" />
-      <delete dir="${jogl.dist.dir}/tmp" />
-      <!-- Apply Pack200 repacking to allow later compression by that mechanism -->
-      <apply executable="pack200" verbose="true" >
-        <arg value="--repack" />
-        <fileset file="${jogl.dist.dir}/jogl.jar" />
-      </apply>
     </target>
 
     <!-- ================================================================== -->
