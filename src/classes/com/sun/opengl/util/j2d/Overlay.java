@@ -47,9 +47,7 @@ import com.sun.opengl.util.texture.*;
 /** Provides a Java 2D overlay on top of an arbitrary GLDrawable,
     making it easier to do things like draw text and images on top of
     an OpenGL scene while still maintaining reasonably good
-    efficiency. For correct operation, the drawable should be
-    allocated with alpha bits enabled, as the Overlay uses alpha
-    blending to make portions of itself transparent. */
+    efficiency. */
 
 public class Overlay {
   private GLDrawable drawable;
