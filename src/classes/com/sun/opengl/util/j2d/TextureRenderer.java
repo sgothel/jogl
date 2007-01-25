@@ -427,7 +427,8 @@ public class TextureRenderer {
   private void beginRendering(boolean ortho, int width, int height) {
     GL gl = GLU.getCurrentGL();
     int attribBits = 
-      GL.GL_ENABLE_BIT | (ortho ? (GL.GL_DEPTH_BUFFER_BIT | GL.GL_TRANSFORM_BIT) : 0);
+      GL.GL_ENABLE_BIT | GL.GL_TEXTURE_BIT | GL.GL_COLOR_BUFFER_BIT |
+      (ortho ? (GL.GL_DEPTH_BUFFER_BIT | GL.GL_TRANSFORM_BIT) : 0);
     gl.glPushAttrib(attribBits);
     gl.glDisable(GL.GL_LIGHTING);
     if (ortho) {
