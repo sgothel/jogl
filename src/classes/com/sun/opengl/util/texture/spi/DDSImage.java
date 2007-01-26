@@ -722,7 +722,7 @@ public class DDSImage {
     for (int i = 0; i < map; i++) {
       width >>= 1;
     }
-    return width;
+    return Math.max(width, 1);
   }
 
   private int mipMapHeight(int map) {
@@ -730,7 +730,7 @@ public class DDSImage {
     for (int i = 0; i < map; i++) {
       height >>= 1;
     }
-    return height;
+    return Math.max(height, 1);
   }
 
   private int mipMapSizeInBytes(int map) {
