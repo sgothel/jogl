@@ -1,0 +1,543 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=windows-1252">
+	<TITLE></TITLE>
+	<META NAME="GENERATOR" CONTENT="StarOffice 8  (Win32)">
+	<META NAME="CREATED" CONTENT="20070130;15551000">
+	<META NAME="CHANGED" CONTENT="20070131;17122065">
+	<STYLE>
+	<!--
+		@page { size: 8.5in 11in; margin: 0.79in }
+		P { margin-bottom: 0.08in }
+		H1 { margin-bottom: 0.08in }
+		H1.western { font-family: "Albany", sans-serif; font-size: 16pt }
+		H1.cjk { font-family: "Andale Sans UI"; font-size: 16pt }
+		H1.ctl { font-family: "Tahoma"; font-size: 16pt }
+		H2 { margin-bottom: 0.08in }
+		H2.western { font-family: "Albany", sans-serif; font-size: 14pt; font-style: italic }
+		H2.cjk { font-size: 14pt; font-style: italic }
+		H2.ctl { font-size: 14pt; font-style: italic }
+	-->
+	</STYLE>
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<P STYLE="margin-top: 0.17in; page-break-after: avoid"><FONT FACE="Thorndale, serif"><FONT SIZE=4><B><FONT SIZE=6 STYLE="font-size: 22pt">Java
+Binding for OpenGL &reg; 1.1.0 API Change Log</FONT></B></FONT></FONT></P>
+<P STYLE="font-weight: medium"><FONT FACE="Thorndale, serif"><FONT SIZE=3 STYLE="font-size: 13pt">This
+change log document contains the proposed changes for the Java
+Binding for OpenGL 1.1.0 API.  These changes are the result of
+discussion on the <A href="http://www.javagaming.org/forums/index.php?board=25.0">JOGL forum</A>. </FONT></FONT></P>
+<P><SPAN STYLE="font-weight: medium"><FONT SIZE=3 STYLE="font-size: 13pt"><FONT FACE="Thorndale, serif">The
+changes have already been integrated into the daily and milestone
+implementation builds that can be found at the <A href="https://jogl.dev.java.net">JOGL java.net site</A>.  The latest version of the proposed 1.1.0 specification that integrates all of the proposed changes found in this document can also be found there.
+ </FONT></FONT></SPAN><A HREF="http://jogl.dev.java.net/"><SPAN STYLE="font-weight: medium"><FONT SIZE=3 STYLE="font-size: 13pt"><FONT FACE="Thorndale, serif"></FONT></FONT></SPAN></A></P>
+<P STYLE="font-weight: medium"><BR><BR>
+</P>
+<H1 CLASS="western"><FONT FACE="Thorndale, serif">I. Proposed Changes</FONT></H1>
+<PRE></PRE><P>
+<FONT FACE="Thorndale, serif"><FONT SIZE=3 STYLE="font-size: 13pt">Here
+is the list of our proposed changes for the Java Binding for OpenGL
+version 1.1.0 API.  All of these changes are within the
+javax.media.opengl package:</FONT></FONT></P>
+<P><FONT FACE="Thorndale, serif"><ol><li><a href="#getChosenGLCapabilities">Add getChosenGLCapabilities to
+the API drawables</a></li></FONT></P>
+<P><FONT FACE="Thorndale, serif"><li><a href="#copyContext">Add copy context functionality to
+the GLContext class</a></li></FONT></P>
+<P><FONT FACE="Thorndale, serif"><li><a href="#opengl2.1GL">Changes to GL class for the
+OpenGL 2.1 binding</a></li></FONT></P>
+<P><FONT FACE="Thorndale, serif"><li><a href="#opengl2.1DebugGLTraceGL">Changes to DebugGL and TraceGL
+classes for the OpenGL 2.1 binding</a></li></ol></FONT></P>
+<P><BR><BR>
+</P>
+<H2 CLASS="western" STYLE="font-style: normal"><FONT FACE="Thorndale, serif"><a name="getChosenGLCapabilities"></a>1.
+Add getChosenGLCapabilities to the API drawables</FONT></H2>
+<PRE></PRE><P>
+<FONT FACE="Thorndale, serif"><FONT SIZE=3 STYLE="font-size: 13pt">We
+propose to add a method for querying the chosen capabilities (i.e.,
+pixel format, visual) for each of the drawables in the
+javax.media.opengl package.</FONT></FONT></P>
+<PRE><FONT FACE="Cumberland, monospace"><U><B>GLDrawable:</B></U></FONT>
+<FONT FACE="Cumberland, monospace">new method:</FONT>
+<FONT FACE="Cumberland, monospace">	public GLCapabilities  getChosenGLCapabilities()</FONT>
+
+<FONT FACE="Cumberland, monospace"><U><B>GLCanvas:</B></U></FONT>
+<FONT FACE="Cumberland, monospace">new method:</FONT>
+<FONT FACE="Cumberland, monospace">	public GLCapabilities  getChosenGLCapabilities()</FONT>
+
+<FONT FACE="Cumberland, monospace"><U><B>GLJPanel:</B></U></FONT>
+<FONT FACE="Cumberland, monospace">new method:</FONT>
+<FONT FACE="Cumberland, monospace">	public GLCapabilities  getChosenGLCapabilities()</FONT>
+</PRE><P>
+<BR><BR>
+</P>
+<H2 CLASS="western" STYLE="font-style: normal"><FONT FACE="Thorndale, serif"><a name="copyContext"></a>2.
+We propose to add the ability to copy a context in the GLContext
+class</FONT></H2>
+<PRE>
+
+<FONT FACE="Cumberland, monospace"><U><B>GLContext:</B></U></FONT>
+<FONT FACE="Cumberland, monospace">new method:</FONT>
+<FONT FACE="Cumberland, monospace">	public abstract  void  copy(GLContext source, int mask)</FONT>
+
+
+</PRE><H2 CLASS="western">
+<FONT FACE="Thorndale, serif"><SPAN STYLE="font-style: normal"><a name="opengl2.1GL"></a>3. We
+propose the following changes to the GL class which are required for
+the OpenGL 2.1 binding</SPAN></FONT></H2>
+<P><FONT FACE="Thorndale, serif"><FONT SIZE=3 STYLE="font-size: 13pt">
+These changes incorporate both the necessary additions for the standard OpenGL 2.1 binding as well as the latest Nvidia GeForce 8 series OpenGL extensions.</FONT></FONT></P><PRE>
+<U><B>GL:</B></U>
+
+change field value:
+	public static final int GL_GLEXT_VERSION = 36;
+
+Remove fields:
+	public static final int GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENTS_EXT = 0x8CD6;
+	public static final int GL_FRAMEBUFFER_STATUS_ERROR_EXT = 0x8CDE;
+	public static final int GL_STENCIL_INDEX_EXT = 0x8D45;
+
+
+Add fields:
+	public static final int GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT_EXT = 0x8CD6;
+	public static final int GL_CURRENT_RASTER_SECONDARY_COLOR = 0x845F;
+	public static final int GL_PIXEL_PACK_BUFFER = 0x88EB;
+	public static final int GL_PIXEL_UNPACK_BUFFER = 0x88EC;
+	public static final int GL_PIXEL_PACK_BUFFER_BINDING = 0x88ED;
+	public static final int GL_PIXEL_UNPACK_BUFFER_BINDING = 0x88EF;
+	public static final int GL_FLOAT_MAT2x3 = 0x8B65;
+	public static final int GL_FLOAT_MAT2x4 = 0x8B66;
+	public static final int GL_FLOAT_MAT3x2 = 0x8B67;
+	public static final int GL_FLOAT_MAT3x4 = 0x8B68;
+	public static final int GL_FLOAT_MAT4x2 = 0x8B69;
+	public static final int GL_FLOAT_MAT4x3 = 0x8B6A;
+	public static final int GL_SRGB = 0x8C40;
+	public static final int GL_SRGB8 = 0x8C41;
+	public static final int GL_SRGB_ALPHA = 0x8C42;
+	public static final int GL_SRGB8_ALPHA8 = 0x8C43;
+	public static final int GL_SLUMINANCE_ALPHA = 0x8C44;
+	public static final int GL_SLUMINANCE8_ALPHA8 = 0x8C45;
+	public static final int GL_SLUMINANCE = 0x8C46;
+	public static final int GL_SLUMINANCE8 = 0x8C47;
+	public static final int GL_COMPRESSED_SRGB = 0x8C48;
+	public static final int GL_COMPRESSED_SRGB_ALPHA = 0x8C49;
+	public static final int GL_COMPRESSED_SLUMINANCE = 0x8C4A;
+	public static final int GL_COMPRESSED_SLUMINANCE_ALPHA = 0x8C4B;
+	public static final int GL_RENDERBUFFER_RED_SIZE_EXT = 0x8D50;
+	public static final int GL_RENDERBUFFER_GREEN_SIZE_EXT = 0x8D51;
+	public static final int GL_RENDERBUFFER_BLUE_SIZE_EXT = 0x8D52;
+	public static final int GL_RENDERBUFFER_ALPHA_SIZE_EXT = 0x8D53;
+	public static final int GL_RENDERBUFFER_DEPTH_SIZE_EXT = 0x8D54;
+	public static final int GL_RENDERBUFFER_STENCIL_SIZE_EXT = 0x8D55;
+	public static final int GL_DEPTH_STENCIL_EXT = 0x84F9;
+	public static final int GL_UNSIGNED_INT_24_8_EXT = 0x84FA;
+	public static final int GL_DEPTH24_STENCIL8_EXT = 0x88F0;
+	public static final int GL_TEXTURE_STENCIL_SIZE_EXT = 0x88F1;
+	public static final int GL_STENCIL_TAG_BITS_EXT = 0x88F2;
+	public static final int GL_STENCIL_CLEAR_TAG_VALUE_EXT = 0x88F3;
+	public static final int GL_SRGB_EXT = 0x8C40;
+	public static final int GL_SRGB8_EXT = 0x8C41;
+	public static final int GL_SRGB_ALPHA_EXT = 0x8C42;
+	public static final int GL_SRGB8_ALPHA8_EXT = 0x8C43;
+	public static final int GL_SLUMINANCE_ALPHA_EXT = 0x8C44;
+	public static final int GL_SLUMINANCE8_ALPHA8_EXT = 0x8C45;
+	public static final int GL_SLUMINANCE_EXT = 0x8C46;
+	public static final int GL_SLUMINANCE8_EXT = 0x8C47;
+	public static final int GL_COMPRESSED_SRGB_EXT = 0x8C48;
+	public static final int GL_COMPRESSED_SRGB_ALPHA_EXT = 0x8C49;
+	public static final int GL_COMPRESSED_SLUMINANCE_EXT = 0x8C4A;
+	public static final int GL_COMPRESSED_SLUMINANCE_ALPHA_EXT = 0x8C4B;
+	public static final int GL_COMPRESSED_SRGB_S3TC_DXT1_EXT = 0x8C4C;
+	public static final int GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT = 0x8C4D;
+	public static final int GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT = 0x8C4E;
+	public static final int GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT = 0x8C4F;
+	public static final int GL_READ_FRAMEBUFFER_EXT = 0x8CA8;
+	public static final int GL_DRAW_FRAMEBUFFER_EXT = 0x8CA9;
+	public static final int GL_READ_FRAMEBUFFER_BINDING_EXT = 0x8CA6;
+	public static final int GL_DRAW_FRAMEBUFFER_BINDING_EXT = 0x8CAA;
+	public static final int GL_RENDERBUFFER_SAMPLES_EXT = 0x8CAB;
+	public static final int GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE_EXT = 0x8D56;
+	public static final int GL_MAX_SAMPLES_EXT = 0x8D57;
+	public static final int GL_TEXTURE_1D_STACK_MESAX = 0x8759;
+	public static final int GL_TEXTURE_2D_STACK_MESAX = 0x875A;
+	public static final int GL_PROXY_TEXTURE_1D_STACK_MESAX = 0x875B;
+	public static final int GL_PROXY_TEXTURE_2D_STACK_MESAX = 0x875C;
+	public static final int GL_TEXTURE_1D_STACK_BINDING_MESAX = 0x875D;
+	public static final int GL_TEXTURE_2D_STACK_BINDING_MESAX = 0x875E;
+	public static final int GL_TIME_ELAPSED_EXT = 0x88BF;
+	public static final int GL_BUFFER_SERIALIZED_MODIFY_APPLE = 0x8A12;
+	public static final int GL_BUFFER_FLUSHING_UNMAP_APPLE = 0x8A13;
+	public static final int GL_CG_VERTEX_SHADER_EXT = 0x890E;
+	public static final int GL_CG_FRAGMENT_SHADER_EXT = 0x890F;
+	public static final int GL_TEXTURE_BUFFER_EXT = 0x8C2A;
+	public static final int GL_MAX_TEXTURE_BUFFER_SIZE_EXT = 0x8C2B;
+	public static final int GL_TEXTURE_BINDING_BUFFER_EXT = 0x8C2C;
+	public static final int GL_TEXTURE_BUFFER_DATA_STORE_BINDING_EXT = 0x8C2D;
+	public static final int GL_TEXTURE_BUFFER_FORMAT_EXT = 0x8C2E;
+	public static final int GL_SAMPLER_1D_ARRAY_EXT = 0x8DC0;
+	public static final int GL_SAMPLER_2D_ARRAY_EXT = 0x8DC1;
+	public static final int GL_SAMPLER_BUFFER_EXT = 0x8DC2;
+	public static final int GL_SAMPLER_1D_ARRAY_SHADOW_EXT = 0x8DC3;
+	public static final int GL_SAMPLER_2D_ARRAY_SHADOW_EXT = 0x8DC4;
+	public static final int GL_SAMPLER_CUBE_SHADOW_EXT = 0x8DC5;
+	public static final int GL_UNSIGNED_INT_VEC2_EXT = 0x8DC6;
+	public static final int GL_UNSIGNED_INT_VEC3_EXT = 0x8DC7;
+	public static final int GL_UNSIGNED_INT_VEC4_EXT = 0x8DC8;
+	public static final int GL_INT_SAMPLER_1D_EXT = 0x8DC9;
+	public static final int GL_INT_SAMPLER_2D_EXT = 0x8DCA;
+	public static final int GL_INT_SAMPLER_3D_EXT = 0x8DCB;
+	public static final int GL_INT_SAMPLER_CUBE_EXT = 0x8DCC;
+	public static final int GL_INT_SAMPLER_2D_RECT_EXT = 0x8DCD;
+	public static final int GL_INT_SAMPLER_1D_ARRAY_EXT = 0x8DCE;
+	public static final int GL_INT_SAMPLER_2D_ARRAY_EXT = 0x8DCF;
+	public static final int GL_INT_SAMPLER_BUFFER_EXT = 0x8DD0;
+	public static final int GL_UNSIGNED_INT_SAMPLER_1D_EXT = 0x8DD1;
+	public static final int GL_UNSIGNED_INT_SAMPLER_2D_EXT = 0x8DD2;
+	public static final int GL_UNSIGNED_INT_SAMPLER_3D_EXT = 0x8DD3;
+	public static final int GL_UNSIGNED_INT_SAMPLER_CUBE_EXT = 0x8DD4;
+	public static final int GL_UNSIGNED_INT_SAMPLER_2D_RECT_EXT = 0x8DD5;
+	public static final int GL_UNSIGNED_INT_SAMPLER_1D_ARRAY_EXT = 0x8DD6;
+	public static final int GL_UNSIGNED_INT_SAMPLER_2D_ARRAY_EXT = 0x8DD7;
+	public static final int GL_UNSIGNED_INT_SAMPLER_BUFFER_EXT = 0x8DD8;
+	public static final int GL_VERTEX_ATTRIB_ARRAY_INTEGER_EXT = 0x88FD;
+	public static final int GL_GEOMETRY_SHADER_EXT = 0x8DD9;
+	public static final int GL_MAX_GEOMETRY_VARYING_COMPONENTS_EXT = 0x8DDD;
+	public static final int GL_MAX_VERTEX_VARYING_COMPONENTS_EXT = 0x8DDE;
+	public static final int GL_MAX_VARYING_COMPONENTS_EXT = 0x8B4B;
+	public static final int GL_MAX_GEOMETRY_UNIFORM_COMPONENTS_EXT = 0x8DDF;
+	public static final int GL_MAX_GEOMETRY_OUTPUT_VERTICES_EXT = 0x8DE0;
+	public static final int GL_MAX_GEOMETRY_TOTAL_OUTPUT_COMPONENTS_EXT = 0x8DE1;
+	public static final int GL_GEOMETRY_VERTICES_OUT_EXT = 0x8DDA;
+	public static final int GL_GEOMETRY_INPUT_TYPE_EXT = 0x8DDB;
+	public static final int GL_GEOMETRY_OUTPUT_TYPE_EXT = 0x8DDC;
+	public static final int GL_MAX_GEOMETRY_TEXTURE_IMAGE_UNITS_EXT = 0x8C29;
+	public static final int GL_LINES_ADJACENCY_EXT = 0xA;
+	public static final int GL_LINE_STRIP_ADJACENCY_EXT = 0xB;
+	public static final int GL_TRIANGLES_ADJACENCY_EXT = 0xC;
+	public static final int GL_TRIANGLE_STRIP_ADJACENCY_EXT = 0xD;
+	public static final int GL_FRAMEBUFFER_ATTACHMENT_LAYERED_EXT = 0x8DA7;
+	public static final int GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS_EXT = 0x8DA8;
+	public static final int GL_FRAMEBUFFER_INCOMPLETE_LAYER_COUNT_EXT = 0x8DA9;
+	public static final int GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_LAYER_EXT = 0x8CD4;
+	public static final int GL_PROGRAM_POINT_SIZE_EXT = 0x8642;
+	public static final int GL_MAX_VERTEX_BINDABLE_UNIFORMS_EXT = 0x8DE2;
+	public static final int GL_MAX_FRAGMENT_BINDABLE_UNIFORMS_EXT = 0x8DE3;
+	public static final int GL_MAX_GEOMETRY_BINDABLE_UNIFORMS_EXT = 0x8DE4;
+	public static final int GL_MAX_BINDABLE_UNIFORM_SIZE_EXT = 0x8DED;
+	public static final int GL_UNIFORM_BUFFER_EXT = 0x8DEE;
+	public static final int GL_UNIFORM_BUFFER_BINDING_EXT = 0x8DEF;
+	public static final int GL_FRAMEBUFFER_SRGB_EXT = 0x8DB9;
+	public static final int GL_FRAMEBUFFER_SRGB_CAPABLE_EXT = 0x8DBA;
+	public static final int GL_RGB9_E5_EXT = 0x8C3D;
+	public static final int GL_UNSIGNED_INT_5_9_9_9_REV_EXT = 0x8C3E;
+	public static final int GL_TEXTURE_SHARED_SIZE_EXT = 0x8C3F;
+	public static final int GL_R11F_G11F_B10F_EXT = 0x8C3A;
+	public static final int GL_UNSIGNED_INT_10F_11F_11F_REV_EXT = 0x8C3B;
+	public static final int GL_RGBA_SIGNED_COMPONENTS_EXT = 0x8C3C;
+	public static final int GL_TEXTURE_1D_ARRAY_EXT = 0x8C18;
+	public static final int GL_PROXY_TEXTURE_1D_ARRAY_EXT = 0x8C19;
+	public static final int GL_TEXTURE_2D_ARRAY_EXT = 0x8C1A;
+	public static final int GL_PROXY_TEXTURE_2D_ARRAY_EXT = 0x8C1B;
+	public static final int GL_TEXTURE_BINDING_1D_ARRAY_EXT = 0x8C1C;
+	public static final int GL_TEXTURE_BINDING_2D_ARRAY_EXT = 0x8C1D;
+	public static final int GL_MAX_ARRAY_TEXTURE_LAYERS_EXT = 0x88FF;
+	public static final int GL_COMPARE_REF_DEPTH_TO_TEXTURE_EXT = 0x884E;
+	public static final int GL_RGBA32UI_EXT = 0x8D70;
+	public static final int GL_RGB32UI_EXT = 0x8D71;
+	public static final int GL_ALPHA32UI_EXT = 0x8D72;
+	public static final int GL_INTENSITY32UI_EXT = 0x8D73;
+	public static final int GL_LUMINANCE32UI_EXT = 0x8D74;
+	public static final int GL_LUMINANCE_ALPHA32UI_EXT = 0x8D75;
+	public static final int GL_RGBA16UI_EXT = 0x8D76;
+	public static final int GL_RGB16UI_EXT = 0x8D77;
+	public static final int GL_ALPHA16UI_EXT = 0x8D78;
+	public static final int GL_INTENSITY16UI_EXT = 0x8D79;
+	public static final int GL_LUMINANCE16UI_EXT = 0x8D7A;
+	public static final int GL_LUMINANCE_ALPHA16UI_EXT = 0x8D7B;
+	public static final int GL_RGBA8UI_EXT = 0x8D7C;
+	public static final int GL_RGB8UI_EXT = 0x8D7D;
+	public static final int GL_ALPHA8UI_EXT = 0x8D7E;
+	public static final int GL_INTENSITY8UI_EXT = 0x8D7F;
+	public static final int GL_LUMINANCE8UI_EXT = 0x8D80;
+	public static final int GL_LUMINANCE_ALPHA8UI_EXT = 0x8D81;
+	public static final int GL_RGBA32I_EXT = 0x8D82;
+	public static final int GL_RGB32I_EXT = 0x8D83;
+	public static final int GL_ALPHA32I_EXT = 0x8D84;
+	public static final int GL_INTENSITY32I_EXT = 0x8D85;
+	public static final int GL_LUMINANCE32I_EXT = 0x8D86;
+	public static final int GL_LUMINANCE_ALPHA32I_EXT = 0x8D87;
+	public static final int GL_RGBA16I_EXT = 0x8D88;
+	public static final int GL_RGB16I_EXT = 0x8D89;
+	public static final int GL_ALPHA16I_EXT = 0x8D8A;
+	public static final int GL_INTENSITY16I_EXT = 0x8D8B;
+	public static final int GL_LUMINANCE16I_EXT = 0x8D8C;
+	public static final int GL_LUMINANCE_ALPHA16I_EXT = 0x8D8D;
+	public static final int GL_RGBA8I_EXT = 0x8D8E;
+	public static final int GL_RGB8I_EXT = 0x8D8F;
+	public static final int GL_ALPHA8I_EXT = 0x8D90;
+	public static final int GL_INTENSITY8I_EXT = 0x8D91;
+	public static final int GL_LUMINANCE8I_EXT = 0x8D92;
+	public static final int GL_LUMINANCE_ALPHA8I_EXT = 0x8D93;
+	public static final int GL_RED_INTEGER_EXT = 0x8D94;
+	public static final int GL_GREEN_INTEGER_EXT = 0x8D95;
+	public static final int GL_BLUE_INTEGER_EXT = 0x8D96;
+	public static final int GL_ALPHA_INTEGER_EXT = 0x8D97;
+	public static final int GL_RGB_INTEGER_EXT = 0x8D98;
+	public static final int GL_RGBA_INTEGER_EXT = 0x8D99;
+	public static final int GL_BGR_INTEGER_EXT = 0x8D9A;
+	public static final int GL_BGRA_INTEGER_EXT = 0x8D9B;
+	public static final int GL_LUMINANCE_INTEGER_EXT = 0x8D9C;
+	public static final int GL_LUMINANCE_ALPHA_INTEGER_EXT = 0x8D9D;
+	public static final int GL_RGBA_INTEGER_MODE_EXT = 0x8D9E;
+	public static final int GL_DEPTH_COMPONENT32F_NV = 0x8DAB;
+	public static final int GL_DEPTH32F_STENCIL8_NV = 0x8DAC;
+	public static final int GL_FLOAT_32_UNSIGNED_INT_24_8_REV_NV = 0x8DAD;
+	public static final int GL_DEPTH_BUFFER_FLOAT_MODE_NV = 0x8DAF;
+	public static final int GL_COMPRESSED_LUMINANCE_LATC1_EXT = 0x8C70;
+	public static final int GL_COMPRESSED_SIGNED_LUMINANCE_LATC1_EXT = 0x8C71;
+	public static final int GL_COMPRESSED_LUMINANCE_ALPHA_LATC2_EXT = 0x8C72;
+	public static final int GL_COMPRESSED_SIGNED_LUMINANCE_ALPHA_LATC2_EXT = 0x8C73;
+	public static final int GL_BACK_PRIMARY_COLOR_NV = 0x8C77;
+	public static final int GL_BACK_SECONDARY_COLOR_NV = 0x8C78;
+	public static final int GL_TEXTURE_COORD_NV = 0x8C79;
+	public static final int GL_CLIP_DISTANCE_NV = 0x8C7A;
+	public static final int GL_VERTEX_ID_NV = 0x8C7B;
+	public static final int GL_PRIMITIVE_ID_NV = 0x8C7C;
+	public static final int GL_GENERIC_ATTRIB_NV = 0x8C7D;
+	public static final int GL_TRANSFORM_FEEDBACK_ATTRIBS_NV = 0x8C7E;
+	public static final int GL_TRANSFORM_FEEDBACK_BUFFER_MODE_NV = 0x8C7F;
+	public static final int GL_MAX_TRANSFORM_FEEDBACK_SEPARATE_COMPONENTS_NV = 0x8C80;
+	public static final int GL_ACTIVE_VARYINGS_NV = 0x8C81;
+	public static final int GL_ACTIVE_VARYING_MAX_LENGTH_NV = 0x8C82;
+	public static final int GL_TRANSFORM_FEEDBACK_VARYINGS_NV = 0x8C83;
+	public static final int GL_TRANSFORM_FEEDBACK_BUFFER_START_NV = 0x8C84;
+	public static final int GL_TRANSFORM_FEEDBACK_BUFFER_SIZE_NV = 0x8C85;
+	public static final int GL_TRANSFORM_FEEDBACK_RECORD_NV = 0x8C86;
+	public static final int GL_PRIMITIVES_GENERATED_NV = 0x8C87;
+	public static final int GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN_NV = 0x8C88;
+	public static final int GL_RASTERIZER_DISCARD_NV = 0x8C89;
+	public static final int GL_MAX_TRANSFORM_FEEDBACK_INTERLEAVED_ATTRIBS_NV = 0x8C8A;
+	public static final int GL_MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS_NV = 0x8C8B;
+	public static final int GL_INTERLEAVED_ATTRIBS_NV = 0x8C8C;
+	public static final int GL_SEPARATE_ATTRIBS_NV = 0x8C8D;
+	public static final int GL_TRANSFORM_FEEDBACK_BUFFER_NV = 0x8C8E;
+	public static final int GL_TRANSFORM_FEEDBACK_BUFFER_BINDING_NV = 0x8C8F;
+	public static final int GL_GEOMETRY_PROGRAM_NV = 0x8C26;
+	public static final int GL_MAX_PROGRAM_OUTPUT_VERTICES_NV = 0x8C27;
+	public static final int GL_MAX_PROGRAM_TOTAL_OUTPUT_COMPONENTS_NV = 0x8C28;
+	public static final int GL_MIN_PROGRAM_TEXEL_OFFSET_NV = 0x8904;
+	public static final int GL_MAX_PROGRAM_TEXEL_OFFSET_NV = 0x8905;
+	public static final int GL_PROGRAM_ATTRIB_COMPONENTS_NV = 0x8906;
+	public static final int GL_PROGRAM_RESULT_COMPONENTS_NV = 0x8907;
+	public static final int GL_MAX_PROGRAM_ATTRIB_COMPONENTS_NV = 0x8908;
+	public static final int GL_MAX_PROGRAM_RESULT_COMPONENTS_NV = 0x8909;
+	public static final int GL_MAX_PROGRAM_GENERIC_ATTRIBS_NV = 0x8DA5;
+	public static final int GL_MAX_PROGRAM_GENERIC_RESULTS_NV = 0x8DA6;
+	public static final int GL_RENDERBUFFER_COVERAGE_SAMPLES_NV = 0x8CAB;
+	public static final int GL_RENDERBUFFER_COLOR_SAMPLES_NV = 0x8E10;
+	public static final int GL_MAX_RENDERBUFFER_COVERAGE_SAMPLES_NV = 0x8D57;
+	public static final int GL_MAX_RENDERBUFFER_COLOR_SAMPLES_NV = 0x8E11;
+	public static final int GL_MAX_MULTISAMPLE_COVERAGE_MODES_NV = 0x8E12;
+	public static final int GL_MULTISAMPLE_COVERAGE_MODES_NV = 0x8E13;
+	public static final int GL_COMPRESSED_RED_RGTC1_EXT = 0x8DBB;
+	public static final int GL_COMPRESSED_SIGNED_RED_RGTC1_EXT = 0x8DBC;
+	public static final int GL_COMPRESSED_RED_GREEN_RGTC2_EXT = 0x8DBD;
+	public static final int GL_COMPRESSED_SIGNED_RED_GREEN_RGTC2_EXT = 0x8DBE;
+	public static final int GL_MESAX_texture_stack = 1;
+
+
+
+Add methods:
+	public void glActiveVaryingNV(int program, java.nio.ByteBuffer name);
+	public void glActiveVaryingNV(int program, byte[] name, int name_offset);
+	public void glBeginTransformFeedbackNV(int primitiveMode);
+	public void glBindBufferBaseNV(int target, int index, int buffer);
+	public void glBindBufferOffsetNV(int target, int index, int buffer, int offset);
+	public void glBindBufferRangeNV(int target, int index, int buffer, int offset, int size);
+	public void glBindFragDataLocationEXT(int program, int color, java.nio.ByteBuffer name);
+	public void glBindFragDataLocationEXT(int program, int color, byte[] name, int name_offset);
+	public void glBlitFramebufferEXT(int srcX0, int srcY0, int srcX1, int srcY1, int dstX0, int dstY0, int dstX1, int dstY1, int mask, int filter);
+	public void glBufferParameteriAPPLE(int target, int pname, int params);
+	public void glClearColorIiEXT(int red, int green, int blue, int alpha);
+	public void glClearColorIuiEXT(int red, int green, int blue, int alpha);
+	public void glClearDepthdNV(double depth);
+	public void glColorMaskIndexedEXT(int index, boolean r, boolean g, boolean b, boolean a);
+	public void glDepthBoundsdNV(double zmin, double zmax);
+	public void glDepthRangedNV(double zNear, double zFar);
+	public void glDisableIndexedEXT(int target, int index);
+	public void glDrawArraysInstancedEXT(int mode, int start, int count, int primcount);
+	public void glDrawElementsInstancedEXT(int mode, int count, int type, java.nio.Buffer indices, int primcount);
+	public void glEnableIndexedEXT(int target, int index);
+	public void glEndTransformFeedbackNV();
+	public void glFlushMappedBufferRangeAPPLE(int target, int s, int t);
+	public void glFramebufferTextureEXT(int target, int attachment, int texture, int level);
+	public void glFramebufferTextureFaceEXT(int target, int attachment, int texture, int level, int face);
+	public void glFramebufferTextureLayerEXT(int target, int attachment, int texture, int level, int layer);
+	public void glGetActiveVaryingNV(int program, int index, int bufSize, java.nio.IntBuffer length, java.nio.IntBuffer size, java.nio.IntBuffer type, java.nio.ByteBuffer name);
+	public void glGetActiveVaryingNV(int program, int index, int bufSize, int[] length, int length_offset, int[] size, int size_offset, int[] type, int type_offset, byte[] name, int name_offset);
+	public void glGetBooleanIndexedvEXT(int target, int index, java.nio.ByteBuffer data);
+	public void glGetBooleanIndexedvEXT(int target, int index, byte[] data, int data_offset);
+	public int glGetFragDataLocationEXT(int program, java.nio.ByteBuffer name);
+	public int glGetFragDataLocationEXT(int program, byte[] name, int name_offset);
+	public void glGetIntegerIndexedvEXT(int target, int index, java.nio.IntBuffer data);
+	public void glGetIntegerIndexedvEXT(int target, int index, int[] data, int data_offset);
+	public void glGetProgramEnvParameterIivNV(int target, int index, java.nio.IntBuffer params);
+	public void glGetProgramEnvParameterIivNV(int target, int index, int[] params, int params_offset);
+	public void glGetProgramEnvParameterIuivNV(int target, int index, java.nio.IntBuffer params);
+	public void glGetProgramEnvParameterIuivNV(int target, int index, int[] params, int params_offset);
+	public void glGetProgramLocalParameterIivNV(int target, int index, java.nio.IntBuffer params);
+	public void glGetProgramLocalParameterIivNV(int target, int index, int[] params, int params_offset);
+	public void glGetProgramLocalParameterIuivNV(int target, int index, java.nio.IntBuffer params);
+	public void glGetProgramLocalParameterIuivNV(int target, int index, int[] params, int params_offset);
+	public void glGetQueryObjecti64vEXT(int id, int pname, java.nio.LongBuffer params);
+	public void glGetQueryObjecti64vEXT(int id, int pname, long[] params, int params_offset);
+	public void glGetQueryObjectui64vEXT(int id, int pname, java.nio.LongBuffer params);
+	public void glGetQueryObjectui64vEXT(int id, int pname, long[] params, int params_offset);
+	public void glGetTexParameterIivEXT(int target, int pname, java.nio.IntBuffer params);
+	public void glGetTexParameterIivEXT(int target, int pname, int[] params, int params_offset);
+	public void glGetTexParameterIuivEXT(int target, int pname, java.nio.IntBuffer params);
+	public void glGetTexParameterIuivEXT(int target, int pname, int[] params, int params_offset);
+	public void glGetTransformFeedbackVaryingNV(int program, int index, java.nio.IntBuffer location);
+	public void glGetTransformFeedbackVaryingNV(int program, int index, int[] location, int location_offset);
+	public int glGetUniformBufferSizeEXT(int program, int location);
+	public int glGetUniformOffsetEXT(int program, int location);
+	public void glGetUniformuivEXT(int program, int location, java.nio.IntBuffer params);
+	public void glGetUniformuivEXT(int program, int location, int[] params, int params_offset);
+	public int glGetVaryingLocationNV(int program, java.nio.ByteBuffer name);
+	public int glGetVaryingLocationNV(int program, byte[] name, int name_offset);
+	public void glGetVertexAttribIivEXT(int index, int pname, java.nio.IntBuffer params);
+	public void glGetVertexAttribIivEXT(int index, int pname, int[] params, int params_offset);
+	public void glGetVertexAttribIuivEXT(int index, int pname, java.nio.IntBuffer params);
+	public void glGetVertexAttribIuivEXT(int index, int pname, int[] params, int params_offset);
+	public boolean glIsEnabledIndexedEXT(int target, int index);
+	public void glProgramBufferParametersIivNV(int target, int buffer, int index, int count, java.nio.IntBuffer params);
+	public void glProgramBufferParametersIivNV(int target, int buffer, int index, int count, int[] params, int params_offset);
+	public void glProgramBufferParametersIuivNV(int target, int buffer, int index, int count, java.nio.IntBuffer params);
+	public void glProgramBufferParametersIuivNV(int target, int buffer, int index, int count, int[] params, int params_offset);
+	public void glProgramBufferParametersfvNV(int target, int buffer, int index, int count, java.nio.FloatBuffer params);
+	public void glProgramBufferParametersfvNV(int target, int buffer, int index, int count, float[] params, int params_offset);
+	public void glProgramEnvParameterI4iNV(int target, int index, int x, int y, int z, int w);
+	public void glProgramEnvParameterI4ivNV(int target, int index, java.nio.IntBuffer params);
+	public void glProgramEnvParameterI4ivNV(int target, int index, int[] params, int params_offset);
+	public void glProgramEnvParameterI4uiNV(int target, int index, int x, int y, int z, int w);
+	public void glProgramEnvParameterI4uivNV(int target, int index, java.nio.IntBuffer params);
+	public void glProgramEnvParameterI4uivNV(int target, int index, int[] params, int params_offset);
+	public void glProgramEnvParameters4fvEXT(int target, int filter, int n, java.nio.FloatBuffer weights);
+	public void glProgramEnvParameters4fvEXT(int target, int filter, int n, float[] weights, int weights_offset);
+	public void glProgramEnvParametersI4ivNV(int target, int index, int count, java.nio.IntBuffer params);
+	public void glProgramEnvParametersI4ivNV(int target, int index, int count, int[] params, int params_offset);
+	public void glProgramEnvParametersI4uivNV(int target, int index, int count, java.nio.IntBuffer params);
+	public void glProgramEnvParametersI4uivNV(int target, int index, int count, int[] params, int params_offset);
+	public void glProgramLocalParameterI4iNV(int target, int index, int x, int y, int z, int w);
+	public void glProgramLocalParameterI4ivNV(int target, int index, java.nio.IntBuffer params);
+	public void glProgramLocalParameterI4ivNV(int target, int index, int[] params, int params_offset);
+	public void glProgramLocalParameterI4uiNV(int target, int index, int x, int y, int z, int w);
+	public void glProgramLocalParameterI4uivNV(int target, int index, java.nio.IntBuffer params);
+	public void glProgramLocalParameterI4uivNV(int target, int index, int[] params, int params_offset);
+	public void glProgramLocalParameters4fvEXT(int target, int filter, int n, java.nio.FloatBuffer weights);
+	public void glProgramLocalParameters4fvEXT(int target, int filter, int n, float[] weights, int weights_offset);
+	public void glProgramLocalParametersI4ivNV(int target, int index, int count, java.nio.IntBuffer params);
+	public void glProgramLocalParametersI4ivNV(int target, int index, int count, int[] params, int params_offset);
+	public void glProgramLocalParametersI4uivNV(int target, int index, int count, java.nio.IntBuffer params);
+	public void glProgramLocalParametersI4uivNV(int target, int index, int count, int[] params, int params_offset);
+	public void glProgramParameteriEXT(int program, int pname, int value);
+	public void glProgramVertexLimitNV(int target, int limit);
+	public void glRenderbufferStorageMultisampleCoverageNV(int target, int coverageSamples, int colorSamples, int internalformat, int width, int height);
+	public void glRenderbufferStorageMultisampleEXT(int target, int samples, int internalformat, int width, int height);
+	public void glStencilClearTagEXT(int stencilTagBits, int stencilClearTag);
+	public void glTexBufferEXT(int target, int internalformat, int buffer);
+	public void glTexParameterIivEXT(int target, int pname, java.nio.IntBuffer params);
+	public void glTexParameterIivEXT(int target, int pname, int[] params, int params_offset);
+	public void glTexParameterIuivEXT(int target, int pname, java.nio.IntBuffer params);
+	public void glTexParameterIuivEXT(int target, int pname, int[] params, int params_offset);
+	public void glTransformFeedbackAttribsNV(int count, java.nio.IntBuffer attribs, int bufferMode);
+	public void glTransformFeedbackAttribsNV(int count, int[] attribs, int attribs_offset, int bufferMode);
+	public void glTransformFeedbackVaryingsNV(int program, int count, java.nio.IntBuffer locations, int bufferMode);
+	public void glTransformFeedbackVaryingsNV(int program, int count, int[] locations, int locations_offset, int bufferMode);
+	public void glUniform1uiEXT(int location, int v0);
+	public void glUniform1uivEXT(int location, int count, java.nio.IntBuffer value);
+	public void glUniform1uivEXT(int location, int count, int[] value, int value_offset);
+	public void glUniform2uiEXT(int location, int v0, int v1);
+	public void glUniform2uivEXT(int location, int count, java.nio.IntBuffer value);
+	public void glUniform2uivEXT(int location, int count, int[] value, int value_offset);
+	public void glUniform3uiEXT(int location, int v0, int v1, int v2);
+	public void glUniform3uivEXT(int location, int count, java.nio.IntBuffer value);
+	public void glUniform3uivEXT(int location, int count, int[] value, int value_offset);
+	public void glUniform4uiEXT(int location, int v0, int v1, int v2, int v3);
+	public void glUniform4uivEXT(int location, int count, java.nio.IntBuffer value);
+	public void glUniform4uivEXT(int location, int count, int[] value, int value_offset);
+	public void glUniformBufferEXT(int program, int location, int buffer);
+	public void glUniformMatrix2x3fv(int location, int count, boolean transpose, java.nio.FloatBuffer value);
+	public void glUniformMatrix2x3fv(int location, int count, boolean transpose, float[] value, int value_offset);
+	public void glUniformMatrix2x4fv(int location, int count, boolean transpose, java.nio.FloatBuffer value);
+	public void glUniformMatrix2x4fv(int location, int count, boolean transpose, float[] value, int value_offset);
+	public void glUniformMatrix3x2fv(int location, int count, boolean transpose, java.nio.FloatBuffer value);
+	public void glUniformMatrix3x2fv(int location, int count, boolean transpose, float[] value, int value_offset);
+	public void glUniformMatrix3x4fv(int location, int count, boolean transpose, java.nio.FloatBuffer value);
+	public void glUniformMatrix3x4fv(int location, int count, boolean transpose, float[] value, int value_offset);
+	public void glUniformMatrix4x2fv(int location, int count, boolean transpose, java.nio.FloatBuffer value);
+	public void glUniformMatrix4x2fv(int location, int count, boolean transpose, float[] value, int value_offset);
+	public void glUniformMatrix4x3fv(int location, int count, boolean transpose, java.nio.FloatBuffer value);
+	public void glUniformMatrix4x3fv(int location, int count, boolean transpose, float[] value, int value_offset);
+	public void glVertexAttribI1iEXT(int index, int x);
+	public void glVertexAttribI1ivEXT(int index, java.nio.IntBuffer v);
+	public void glVertexAttribI1ivEXT(int index, int[] v, int v_offset);
+	public void glVertexAttribI1uiEXT(int index, int x);
+	public void glVertexAttribI1uivEXT(int index, java.nio.IntBuffer v);
+	public void glVertexAttribI1uivEXT(int index, int[] v, int v_offset);
+	public void glVertexAttribI2iEXT(int index, int x, int y);
+	public void glVertexAttribI2ivEXT(int index, java.nio.IntBuffer v);
+	public void glVertexAttribI2ivEXT(int index, int[] v, int v_offset);
+	public void glVertexAttribI2uiEXT(int index, int x, int y);
+	public void glVertexAttribI2uivEXT(int index, java.nio.IntBuffer v);
+	public void glVertexAttribI2uivEXT(int index, int[] v, int v_offset);
+	public void glVertexAttribI3iEXT(int index, int x, int y, int z);
+	public void glVertexAttribI3ivEXT(int index, java.nio.IntBuffer v);
+	public void glVertexAttribI3ivEXT(int index, int[] v, int v_offset);
+	public void glVertexAttribI3uiEXT(int index, int x, int y, int z);
+	public void glVertexAttribI3uivEXT(int index, java.nio.IntBuffer v);
+	public void glVertexAttribI3uivEXT(int index, int[] v, int v_offset);
+	public void glVertexAttribI4bvEXT(int index, java.nio.ByteBuffer v);
+	public void glVertexAttribI4bvEXT(int index, byte[] v, int v_offset);
+	public void glVertexAttribI4iEXT(int index, int x, int y, int z, int w);
+	public void glVertexAttribI4ivEXT(int index, java.nio.IntBuffer v);
+	public void glVertexAttribI4ivEXT(int index, int[] v, int v_offset);
+	public void glVertexAttribI4svEXT(int index, java.nio.ShortBuffer v);
+	public void glVertexAttribI4svEXT(int index, short[] v, int v_offset);
+	public void glVertexAttribI4ubvEXT(int index, java.nio.ByteBuffer v);
+	public void glVertexAttribI4ubvEXT(int index, byte[] v, int v_offset);
+	public void glVertexAttribI4uiEXT(int index, int x, int y, int z, int w);
+	public void glVertexAttribI4uivEXT(int index, java.nio.IntBuffer v);
+	public void glVertexAttribI4uivEXT(int index, int[] v, int v_offset);
+	public void glVertexAttribI4usvEXT(int index, java.nio.ShortBuffer v);
+	public void glVertexAttribI4usvEXT(int index, short[] v, int v_offset);
+	public void glVertexAttribIPointerEXT(int index, int size, int type, int stride, java.nio.Buffer pointer);</PRE><P STYLE="margin-bottom: 0in">
+<BR>
+</P>
+<H2 CLASS="western" STYLE="font-style: normal"><FONT FACE="Thorndale, serif"><a name="opengl2.1DebugGLTraceGL"></a>4.
+We propose the following changes to the DebugGL and TraceGL classes
+which are required for the OpenGL 2.1 binding</FONT></H2>
+<P STYLE="margin-bottom: 0in"><FONT SIZE=3 STYLE="font-size: 13pt">The
+list of added methods for the TraceGL and DebugGL classes is exactly
+the same as the list above for GL.  There are no field additions to
+TraceGL and DebugGL, however, just method additions.</FONT></P>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<H1 CLASS="western"><FONT FACE="Thorndale, serif"><FONT SIZE=4 STYLE="font-size: 16pt">II.
+Accepted Changes</FONT></FONT></H1>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<H1 CLASS="western"><FONT FACE="Thorndale, serif">III. Deferred
+Changes</FONT></H1>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+</BODY>
+</HTML>
