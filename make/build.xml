@@ -674,7 +674,7 @@
     </target>        
 
     <target name="java.generate.composable.pipeline" depends="java.generate.composable.pipeline.check" unless="java.generate.composable.pipeline.skip">
-        <java classname="com.sun.gluegen.opengl.BuildComposablePipeline" fork="no" failonerror="true">
+        <java classname="com.sun.gluegen.opengl.BuildComposablePipeline" fork="yes" failonerror="true">
             <arg value="javax.media.opengl.GL" />
             <arg value="${src.generated.java}/javax/media/opengl" />
             <classpath refid="pipeline.classpath" />
