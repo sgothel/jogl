@@ -301,8 +301,9 @@ public class TextRenderer {
       one, where each component ranges from 0.0f - 1.0f. The alpha
       component, if used, does not need to be premultiplied into the
       color channels as described in the documentation for {@link
-      Texture Texture}, although premultiplied colors are used
-      internally. The default color is opaque white.
+      com.sun.opengl.util.texture.Texture Texture}, although
+      premultiplied colors are used internally. The default color is
+      opaque white.
 
       @param r the red component of the new color
       @param g the green component of the new color
