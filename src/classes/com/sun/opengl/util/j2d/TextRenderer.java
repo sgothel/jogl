@@ -281,6 +281,22 @@ public class TextRenderer {
     beginRendering(false, 0, 0);
   }
 
+  private float[] compArray;
+  /** Changes the current color of this TextRenderer to the supplied
+      one. The default color is opaque white.
+
+      @param color the new color to use for rendering text
+      @throws GLException If an OpenGL context is not current when this method is called
+  */
+  public void setColor(Color color) throws GLException {
+    // Get color's RGBA components as floats in the range [0,1].
+    if (compArray == null) {
+      compArray = new float[4];
+    }
+    color.getRGBComponents(compArray);
+    setColor(compArray[0], compArray[1], compArray[2], compArray[3]);
+  }
+
   /** Changes the current color of this TextRenderer to the supplied
       one, where each component ranges from 0.0f - 1.0f. The alpha
       component, if used, does not need to be premultiplied into the
