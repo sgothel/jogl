@@ -109,11 +109,11 @@ public class TextRenderer {
 
   private RectanglePacker packer;
   private boolean haveMaxSize;
+  private RenderDelegate renderDelegate;
   private TextureRenderer cachedBackingStore;
   private Graphics2D cachedGraphics;
   private FontRenderContext cachedFontRenderContext;
   private Map/*<String,Rect>*/ stringLocations = new HashMap/*<String,Rect>*/();
-  private static final Color TRANSPARENT_BLACK = new Color(0.0f, 0.0f, 0.0f, 0.0f);
 
   // Support tokenization of space-separated words
   // NOTE: not exposing this at the present time as we aren't
@@ -161,12 +161,48 @@ public class TextRenderer {
     void clearUsed() { used = false;  }
   }
 
+  /** Class supporting more full control over the process of rendering
+      the bitmapped text. Allows customization of whether the backing
+      store text bitmap is full-color or intensity only, the size of
+      each individual rendered text rectangle, and the contents of
+      each individual rendered text string. The default implementation
+      of this interface uses an intensity-only texture, a
+      closely-cropped rectangle around the text, and renders text
+      using the color white, which is modulated by the set color
+      during the rendering process. */
+  public static interface RenderDelegate {
+    /** Indicates whether the backing store of this TextRenderer
+        should be intensity-only (the default) or full-color. */
+    public boolean intensityOnly();
+
+    /** Computes the bounds of the given text string relative to the
+        origin. */
+    public Rectangle2D getBounds(String str,
+                                 Font font,
+                                 FontRenderContext frc);
+
+    /** Render the passed String at the designated location using the
+        supplied Graphics2D instance. The surrounding region will
+        already have been cleared to the RGB color (0, 0, 0) with zero
+        alpha. The initial drawing context of the passed Graphics2D
+        will be set to use AlphaComposite.Src, the color white, the
+        Font specified in the TextRenderer's constructor, and the
+        rendering hints specified in the TextRenderer constructor.
+        Changes made by the end user may be visible in successive
+        calls to this method, but are not guaranteed to be preserved.
+        Implementors of this method should reset the Graphics2D's
+        state to that desired each time this method is called, in
+        particular those states which are not the defaults. */
+    public void draw(Graphics2D graphics, String str, int x, int y);
+ }
+
   // Debugging purposes only
   private boolean debugged;
 
   /** Creates a new TextRenderer with the given font, using no
-      antialiasing or fractional metrics. Equivalent to
-      <code>TextRenderer(font, false, false)</code>.
+      antialiasing or fractional metrics, and the default
+      RenderDelegate. Equivalent to <code>TextRenderer(font, false,
+      false)</code>.
 
       @param font the font to render with
   */      
@@ -174,10 +210,12 @@ public class TextRenderer {
     this(font, false, false);
   }
 
-  /** Creates a new TextRenderer with the given Font and specified
-      font properties. The <code>antialiased</code> and
-      <code>useFractionalMetrics</code> flags provide control over the
-      same properties at the Java 2D level.
+  /** Creates a new TextRenderer with the given Font, specified font
+      properties, and default RenderDelegate. The
+      <code>antialiased</code> and <code>useFractionalMetrics</code>
+      flags provide control over the same properties at the Java 2D
+      level. Equivalent to <code>TextRenderer(font, antialiased,
+      useFractionalMetrics, null)</code>.
 
       @param font the font to render with
       @param antialiased whether to use antialiased fonts
@@ -187,6 +225,27 @@ public class TextRenderer {
   public TextRenderer(Font font,
                       boolean antialiased,
                       boolean useFractionalMetrics) {
+    this(font, antialiased, useFractionalMetrics, null);
+  }
+
+  /** Creates a new TextRenderer with the given Font, specified font
+      properties, and given RenderDelegate. The
+      <code>antialiased</code> and <code>useFractionalMetrics</code>
+      flags provide control over the same properties at the Java 2D
+      level. The <code>renderDelegate</code> provides more control
+      over the text rendered.
+
+      @param font the font to render with
+      @param antialiased whether to use antialiased fonts
+      @param useFractionalMetrics whether to use fractional font
+        metrics at the Java 2D level
+      @param renderDelegate the render delegate to use to draw the
+        text's bitmap, or null to use the default one
+  */
+  public TextRenderer(Font font,
+                      boolean antialiased,
+                      boolean useFractionalMetrics,
+                      RenderDelegate renderDelegate) {
     this.font = font;
     this.antialiased = antialiased;
     this.useFractionalMetrics = useFractionalMetrics;
@@ -194,6 +253,11 @@ public class TextRenderer {
     // FIXME: consider adjusting the size based on font size
     // (it will already automatically resize if necessary)
     packer = new RectanglePacker(new Manager(), 256, 256);
+
+    if (renderDelegate == null) {
+      renderDelegate = new DefaultRenderDelegate();
+    }
+    this.renderDelegate = renderDelegate;
   }
 
   /** Returns the bounding rectangle of the given String, assuming it
@@ -223,11 +287,9 @@ public class TextRenderer {
                                     r.w(), r.h());
     }
 
-    FontRenderContext frc = getFontRenderContext();
-    GlyphVector gv = font.createGlyphVector(frc, str);
     // Must return a Rectangle compatible with the layout algorithm --
     // must be idempotent
-    return normalize(gv.getPixelBounds(frc, 0, 0));
+    return normalize(renderDelegate.getBounds(str, font, getFontRenderContext()));
   }
 
   /** Returns the Font this renderer is using. */
@@ -362,9 +424,9 @@ public class TextRenderer {
         if (rect == null) {
           // Rasterize this string and place it on the backing store
           Graphics2D g = getGraphics2D();
-          FontRenderContext frc = getFontRenderContext();
-          GlyphVector gv = font.createGlyphVector(frc, curStr);
-          Rectangle2D bbox = normalize(gv.getPixelBounds(frc, 0, 0));
+          Rectangle2D bbox =
+            normalize(renderDelegate.getBounds(curStr, font,
+                                               getFontRenderContext()));
           Point origin = new Point((int) -bbox.getMinX(),
                                    (int) -bbox.getMinY());
           rect = new Rect(0, 0,
@@ -383,11 +445,11 @@ public class TextRenderer {
           int strx = rect.x() + origin.x;
           int stry = rect.y() + origin.y;
           // Clear out the area we're going to draw into
-          g.setColor(TRANSPARENT_BLACK);
+          g.setComposite(AlphaComposite.Clear);
           g.fillRect(rect.x(), rect.y(), rect.w(), rect.h());
-          g.setColor(Color.WHITE);
+          g.setComposite(AlphaComposite.Src);
           // Draw the string
-          g.drawString(curStr, strx, stry);
+          renderDelegate.draw(g, curStr, strx, stry);
           // Sync to the OpenGL texture
           getBackingStore().sync(rect.x(), rect.y(), rect.w(), rect.h());
         }
@@ -599,9 +661,9 @@ public class TextRenderer {
 
       if (DEBUG) {
         Graphics2D g = getGraphics2D();
-        g.setColor(TRANSPARENT_BLACK);
+        g.setComposite(AlphaComposite.Clear);
         g.fillRect(r.x(), r.y(), r.w(), r.h());
-        g.setColor(Color.WHITE);
+        g.setComposite(AlphaComposite.Src);
       }
     }
 
@@ -627,7 +689,12 @@ public class TextRenderer {
       // whether we're likely to need to support a full RGBA backing
       // store (i.e., non-default Paint, foreground color, etc.), but
       // for now, let's just be more efficient
-      TextureRenderer renderer = TextureRenderer.createAlphaOnlyRenderer(w, h);
+      TextureRenderer renderer;
+      if (renderDelegate.intensityOnly()) {
+        renderer = TextureRenderer.createAlphaOnlyRenderer(w, h);
+      } else {
+        renderer = new TextureRenderer(w, h, true);
+      }
       if (DEBUG) {
         System.err.println(" TextRenderer allocating backing store " + w + " x " + h);
       }
@@ -710,6 +777,23 @@ public class TextRenderer {
       // Sync the whole surface
       TextureRenderer newRenderer = (TextureRenderer) newBackingStore;
       newRenderer.sync(0, 0, newRenderer.getWidth(), newRenderer.getHeight());
+    }
+  }
+
+  class DefaultRenderDelegate implements RenderDelegate {
+    public boolean intensityOnly() {
+      return true;
+    }
+
+    public Rectangle2D getBounds(String str,
+                                 Font font,
+                                 FontRenderContext frc) {
+      GlyphVector gv = font.createGlyphVector(frc, str);
+      return gv.getPixelBounds(frc, 0, 0);
+    }
+    
+    public void draw(Graphics2D graphics, String str, int x, int y) {
+      graphics.drawString(str, x, y);
     }
   }
 
