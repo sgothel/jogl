@@ -126,6 +126,16 @@ import javax.media.opengl.*;
  * change to take effect, though it is permanent for subsequent
  * browser restarts. <P>
  * 
+ * The behavior of the noddraw-related dialog box can be changed via
+ * two applet parameters. The <CODE>jogl.silent.noddraw.check</CODE>
+ * parameter, if set to <CODE>"true"</CODE>, silences the two dialog
+ * boxes associated with this check, forcing it to always be performed
+ * and deployment.properties to be silently updated if necessary
+ * (unless the user previously saw such a dialog box and dismissed it
+ * by saying "No, Don't Ask Again"). The noddraw check can be disabled
+ * completely by setting the <CODE>jogl.disable.noddraw.check</CODE>
+ * applet parameter to <CODE>"true"</CODE>. <P>
+ * 
  * The JOGL (and optionally JOAL) natives are cached in the user's
  * home directory (the value of the "user.home" system property in
  * Java) under the directory .jogl_ext. The Java Plug-In is
@@ -448,7 +458,18 @@ public class JOGLAppletLauncher extends Applet {
     return false;
   }
 
+  // Get a "boolean" parameter, assuming that anything non-null aside
+  // from "false" is true
+  private boolean getBooleanParameter(String parameterName) {
+    String val = getParameter(parameterName);
+    if (val == null)
+      return false;
+    return !val.toLowerCase().equals("false");
+  }
+
   private void checkNoDDrawAndUpdateDeploymentProperties() {
+    if (getBooleanParameter("jogl.disable.noddraw.check"))
+      return;
     if (System.getProperty("os.name").toLowerCase().startsWith("windows") &&
         !"true".equalsIgnoreCase(System.getProperty("sun.java2d.noddraw"))) {
       if (!SwingUtilities.isEventDispatchThread()) {
@@ -473,25 +494,30 @@ public class JOGLAppletLauncher extends Applet {
     if (dontAskFile.exists())
       return; // User asked us not to prompt again
 
-    int option = JOptionPane.showOptionDialog(null,
-                                              "For best robustness of JOGL applets on Windows,\n" +
-                                              "we recommend disabling Java2D's use of DirectDraw.\n" +
-                                              "This setting will affect all applets, but is unlikely\n" +
-                                              "to slow other applets down significantly. May we update\n" +
-                                              "your deployment.properties to turn off DirectDraw for\n" +
-                                              "applets? You can change this back later if necessary\n" +
-                                              "using the Java Control Panel, Java tab, under Java\n" +
-                                              "Applet Runtime Settings.",
-                                              "Update deployment.properties?",
-                                              JOptionPane.YES_NO_CANCEL_OPTION,
-                                              JOptionPane.QUESTION_MESSAGE,
-                                              null,
-                                              new Object[] {
-                                                "Yes",
-                                                "No",
-                                                "No, Don't Ask Again"
-                                              },
-                                              "Yes");
+    int option = 0;
+
+    if (!getBooleanParameter("jogl.silent.noddraw.check")) {
+      option = JOptionPane.showOptionDialog(null,
+                                            "For best robustness of JOGL applets on Windows,\n" +
+                                            "we recommend disabling Java2D's use of DirectDraw.\n" +
+                                            "This setting will affect all applets, but is unlikely\n" +
+                                            "to slow other applets down significantly. May we update\n" +
+                                            "your deployment.properties to turn off DirectDraw for\n" +
+                                            "applets? You can change this back later if necessary\n" +
+                                            "using the Java Control Panel, Java tab, under Java\n" +
+                                            "Applet Runtime Settings.",
+                                            "Update deployment.properties?",
+                                            JOptionPane.YES_NO_CANCEL_OPTION,
+                                            JOptionPane.QUESTION_MESSAGE,
+                                            null,
+                                            new Object[] {
+                                              "Yes",
+                                              "No",
+                                              "No, Don't Ask Again"
+                                            },
+                                            "Yes");
+    }
+
     if (option < 0 ||
         option == 1)
       return; // No
@@ -534,6 +560,13 @@ public class JOGLAppletLauncher extends Applet {
         }
       }
 
+      // Make sure the currently-running JRE shows up in this set to
+      // avoid repeated displays of the dialog. It might not in some
+      // upgrade scenarios where there was a pre-existing
+      // deployment.properties and the new Java Control Panel hasn't
+      // been run yet.
+      jreVersions.add(System.getProperty("java.version"));
+
       // OK, now that we know all JRE versions covered by the
       // deployment.properties, check out the args for each and update
       // them
@@ -553,13 +586,15 @@ public class JOGLAppletLauncher extends Applet {
       props.store(output, null);
       output.close();
 
-      // Tell user we're done
-      JOptionPane.showMessageDialog(null,
-                                    "For best robustness, we recommend you now exit and\n" +
-                                    "restart your web browser. (Note: clicking \"OK\" will\n" +
-                                    "not exit your browser.)",
-                                    "Browser Restart Recommended",
-                                    JOptionPane.INFORMATION_MESSAGE);
+      if (!getBooleanParameter("jogl.silent.noddraw.check")) {
+        // Tell user we're done
+        JOptionPane.showMessageDialog(null,
+                                      "For best robustness, we recommend you now exit and\n" +
+                                      "restart your web browser. (Note: clicking \"OK\" will\n" +
+                                      "not exit your browser.)",
+                                      "Browser Restart Recommended",
+                                      JOptionPane.INFORMATION_MESSAGE);
+      }
     } catch (IOException e) {
       e.printStackTrace();
     }
