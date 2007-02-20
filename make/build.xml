@@ -1296,6 +1296,7 @@
 	    <available file="${jogl.dist.dir}/jogl-solx86/jogl.jar" />
 	    <available file="${jogl.dist.dir}/jogl-solx86/32/libjogl.so" />
 	    <available file="${jogl.dist.dir}/jogl-solx86/32/libjogl_awt.so" />
+	    <available file="${jogl.dist.dir}/jogl-solx86/32/libjogl_cg.so" />
 	    <available file="${jogl.dist.dir}/jogl-solx86/32/libgluegen-rt.so" />
 	    <available file="${jogl.dist.dir}/jogl-solx86/32/gluegen-rt-natives-solaris-i586.jar" />
 	  </and>
@@ -1422,7 +1423,7 @@
              includes="libjogl.so,libjogl_awt.so" />
         <jar destfile="${jogl.dist.dir}/jogl-natives-solaris-i586.jar"
              basedir="${jogl.dist.dir}/jogl-solx86/32"
-             includes="libjogl.so,libjogl_awt.so" />
+             includes="libjogl.so,libjogl_awt.so,libjogl_cg.so" />
         <jar destfile="${jogl.dist.dir}/jogl-natives-solaris-amd64.jar"
              basedir="${jogl.dist.dir}/jogl-solx86/64"
              includes="libjogl.so,libjogl_awt.so" />
