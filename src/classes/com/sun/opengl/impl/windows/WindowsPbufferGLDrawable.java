@@ -202,7 +202,7 @@ public class WindowsPbufferGLDrawable extends WindowsGLDrawable {
       iattributes[4] = WGLExt.WGL_DEPTH_BITS_ARB;
       iattributes[5] = (useFloat ? (ati ? WGLExt.WGL_PIXEL_TYPE_ARB : WGLExt.WGL_FLOAT_COMPONENTS_NV) : WGLExt.WGL_RED_BITS_ARB);
       iattributes[6] = (haveMultisample ? WGLExt.WGL_SAMPLE_BUFFERS_ARB : WGLExt.WGL_RED_BITS_ARB);
-      iattributes[7] = WGLExt.WGL_SAMPLES_ARB;
+      iattributes[7] = (haveMultisample ? WGLExt.WGL_SAMPLES_ARB : WGLExt.WGL_RED_BITS_ARB);
       iattributes[8] = WGLExt.WGL_DRAW_TO_PBUFFER_ARB;
       int[] ivalues = new int[9];
       for (int i = 0; i < nformats; i++) {
