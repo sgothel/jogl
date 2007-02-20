@@ -190,6 +190,8 @@ public class WindowsPbufferGLDrawable extends WindowsGLDrawable {
       throw new GLException("pbuffer creation error: Couldn't find a suitable pixel format");
     }
 
+    boolean haveMultisample = wglExt.isExtensionAvailable("WGL_ARB_multisample");
+
     if (DEBUG) {
       System.err.println("" + nformats + " suitable pixel formats found");
       // query pixel format
@@ -199,7 +201,7 @@ public class WindowsPbufferGLDrawable extends WindowsGLDrawable {
       iattributes[3] = WGLExt.WGL_ALPHA_BITS_ARB;
       iattributes[4] = WGLExt.WGL_DEPTH_BITS_ARB;
       iattributes[5] = (useFloat ? (ati ? WGLExt.WGL_PIXEL_TYPE_ARB : WGLExt.WGL_FLOAT_COMPONENTS_NV) : WGLExt.WGL_RED_BITS_ARB);
-      iattributes[6] = WGLExt.WGL_SAMPLE_BUFFERS_ARB;
+      iattributes[6] = (haveMultisample ? WGLExt.WGL_SAMPLE_BUFFERS_ARB : WGLExt.WGL_RED_BITS_ARB);
       iattributes[7] = WGLExt.WGL_SAMPLES_ARB;
       iattributes[8] = WGLExt.WGL_DRAW_TO_PBUFFER_ARB;
       int[] ivalues = new int[9];
@@ -214,7 +216,9 @@ public class WindowsPbufferGLDrawable extends WindowsGLDrawable {
         System.err.print(" b: " + ivalues[2]);
         System.err.print(" a: " + ivalues[3]);
         System.err.print(" depth: " + ivalues[4]);
-        System.err.print(" multisample: " + ivalues[6]);
+        if (haveMultisample) {
+          System.err.print(" multisample: " + ivalues[6]);
+        }
         System.err.print(" samples: " + ivalues[7]);
         if (useFloat) {
           if (ati) {
@@ -306,8 +310,8 @@ public class WindowsPbufferGLDrawable extends WindowsGLDrawable {
       iattributes[niattribs++] = WGLExt.WGL_ACCUM_BLUE_BITS_ARB;
       iattributes[niattribs++] = WGLExt.WGL_ACCUM_ALPHA_BITS_ARB;
       iattributes[niattribs++] = (useFloat ? (ati ? WGLExt.WGL_PIXEL_TYPE_ARB : WGLExt.WGL_FLOAT_COMPONENTS_NV) : WGLExt.WGL_RED_BITS_ARB);
-      iattributes[niattribs++] = WGLExt.WGL_SAMPLE_BUFFERS_ARB;
-      iattributes[niattribs++] = WGLExt.WGL_SAMPLES_ARB;
+      iattributes[niattribs++] = (haveMultisample ? WGLExt.WGL_SAMPLE_BUFFERS_ARB : WGLExt.WGL_RED_BITS_ARB);
+      iattributes[niattribs++] = (haveMultisample ? WGLExt.WGL_SAMPLES_ARB : WGLExt.WGL_RED_BITS_ARB);
       iattributes[niattribs++] = WGLExt.WGL_DRAW_TO_PBUFFER_ARB;
       int[] ivalues = new int[niattribs];
       // FIXME: usually prefer to throw exceptions, but failure here is not critical
