@@ -39,6 +39,7 @@
 
 package com.sun.opengl.util.j2d;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Image;
@@ -84,6 +85,12 @@ public class TextureRenderer {
   private boolean mustReallocateTexture;
 
   private GLU glu = new GLU();
+
+  // Current color
+  private float r = 1.0f;
+  private float g = 1.0f;
+  private float b = 1.0f;
+  private float a = 1.0f;
 
   /** Creates a new renderer with backing store of the specified width
       and height. If alpha is true, allocates an alpha channel in the
@@ -309,6 +316,56 @@ public class TextureRenderer {
     beginRendering(false, 0, 0);
   }
 
+  /** Changes the color of the polygons, and therefore the drawn
+      images, this TextureRenderer produces. Use of this method is
+      optional. The TextureRenderer uses the GL_MODULATE texture
+      environment mode, which causes the portions of the rendered
+      texture to be multiplied by the color of the rendered
+      polygons. The polygon color can be varied to achieve effects
+      like tinting of the overall output or fading in and out by
+      changing the alpha of the color. <P>
+
+      Each component ranges from 0.0f - 1.0f. The alpha component, if
+      used, does not need to be premultiplied into the color channels
+      as described in the documentation for {@link
+      com.sun.opengl.util.texture.Texture Texture}, although
+      premultiplied colors are used internally. The default color is
+      opaque white.
+
+      @param r the red component of the new color
+      @param g the green component of the new color
+      @param b the blue component of the new color
+      @param a the alpha component of the new color, 0.0f = completely
+        transparent, 1.0f = completely opaque
+      @throws GLException If an OpenGL context is not current when this method is called
+  */
+  public void setColor(float r, float g, float b, float a) throws GLException {
+    GL gl = GLU.getCurrentGL();
+    this.r = r * a;
+    this.g = g * a;
+    this.b = b * a;
+    this.a = a;
+
+    gl.glColor4f(this.r, this.g, this.b, this.a);
+  }  
+
+  private float[] compArray;
+  /** Changes the current color of this TextureRenderer to the
+      supplied one. The default color is opaque white. See {@link
+      #setColor(float,float,float,float) setColor} for more details.
+
+      @param color the new color to use for rendering
+      @throws GLException If an OpenGL context is not current when this method is called
+  */
+  public void setColor(Color color) throws GLException {
+    // Get color's RGBA components as floats in the range [0,1].
+    if (compArray == null) {
+      compArray = new float[4];
+    }
+    color.getRGBComponents(compArray);
+    setColor(compArray[0], compArray[1], compArray[2], compArray[3]);
+  }
+
   /** Draws an orthographically projected rectangle containing all of
       the underlying texture to the specified location on the
       screen. All (x, y) coordinates are specified relative to the
@@ -450,7 +507,9 @@ public class TextureRenderer {
     Texture texture = getTexture();
     texture.enable();
     texture.bind();
-    gl.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE, GL.GL_REPLACE);
+    gl.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE, GL.GL_MODULATE);
+    // Change polygon color to last saved
+    gl.glColor4f(r, g, b, a);
     if (smoothingChanged) {
       smoothingChanged = false;
       if (smoothing) {

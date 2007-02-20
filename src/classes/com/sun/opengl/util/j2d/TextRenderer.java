@@ -132,12 +132,6 @@ public class TextRenderer {
   // force a compaction
   private static final float MAX_VERTICAL_FRAGMENTATION = 0.7f;
 
-  // Current text color
-  private float r = 1.0f;
-  private float g = 1.0f;
-  private float b = 1.0f;
-  private float a = 1.0f;
-
   // Data associated with each rectangle of text
   static class TextData {
     private String str;    // Back-pointer to String this TextData describes
@@ -343,7 +337,6 @@ public class TextRenderer {
     beginRendering(false, 0, 0);
   }
 
-  private float[] compArray;
   /** Changes the current color of this TextRenderer to the supplied
       one. The default color is opaque white.
 
@@ -351,12 +344,7 @@ public class TextRenderer {
       @throws GLException If an OpenGL context is not current when this method is called
   */
   public void setColor(Color color) throws GLException {
-    // Get color's RGBA components as floats in the range [0,1].
-    if (compArray == null) {
-      compArray = new float[4];
-    }
-    color.getRGBComponents(compArray);
-    setColor(compArray[0], compArray[1], compArray[2], compArray[3]);
+    getBackingStore().setColor(color);
   }
 
   /** Changes the current color of this TextRenderer to the supplied
@@ -370,18 +358,12 @@ public class TextRenderer {
       @param r the red component of the new color
       @param g the green component of the new color
       @param b the blue component of the new color
-      @param alpha the alpha component of the new color, 0.0f =
-        completely transparent, 1.0f = completely opaque
+      @param a the alpha component of the new color, 0.0f = completely
+        transparent, 1.0f = completely opaque
       @throws GLException If an OpenGL context is not current when this method is called
   */
   public void setColor(float r, float g, float b, float a) throws GLException {
-    GL gl = GLU.getCurrentGL();
-    this.r = r * a;
-    this.g = g * a;
-    this.b = b * a;
-    this.a = a;
-
-    gl.glColor4f(this.r, this.g, this.b, this.a);
+    getBackingStore().setColor(r, g, b, a);
   }
 
   /** Draws the supplied String at the desired location using the
@@ -576,11 +558,6 @@ public class TextRenderer {
       packer.setMaxSize(sz[0], sz[0]);
       haveMaxSize = true;
     }
-
-    // Change texture environment mode to MODULATE
-    gl.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE, GL.GL_MODULATE);
-    // Change text color to last saved
-    gl.glColor4f(r, g, b, a);
   }
 
   private void endRendering(boolean ortho) throws GLException {
