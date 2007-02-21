@@ -121,6 +121,16 @@ public class DDSImage {
   // Selected bits in DDS capabilities flags
   public static final int DDSCAPS_TEXTURE      = 0x00001000; // Can be used as a texture
   public static final int DDSCAPS_MIPMAP       = 0x00400000; // Is one level of a mip-map
+  public static final int DDSCAPS_COMPLEX      = 0x00000008; // Complex surface structure, such as a cube map
+
+  // Selected bits in DDS extended capabilities flags
+  public static final int DDSCAPS2_CUBEMAP           = 0x00000200;
+  public static final int DDSCAPS2_CUBEMAP_POSITIVEX = 0x00000400;
+  public static final int DDSCAPS2_CUBEMAP_NEGATIVEX = 0x00000800;
+  public static final int DDSCAPS2_CUBEMAP_POSITIVEY = 0x00001000;
+  public static final int DDSCAPS2_CUBEMAP_NEGATIVEY = 0x00002000;
+  public static final int DDSCAPS2_CUBEMAP_POSITIVEZ = 0x00004000;
+  public static final int DDSCAPS2_CUBEMAP_NEGATIVEZ = 0x00008000;
 
   // Known pixel formats
   public static final int D3DFMT_UNKNOWN   =  0;
@@ -135,13 +145,23 @@ public class DDSImage {
   public static final int D3DFMT_DXT5      =  0x35545844;
 
   /** Reads a DirectDraw surface from the specified file name,
-      returning the resulting DDSImage. */
+      returning the resulting DDSImage.
+
+      @param filename File name
+      @return DDS image object
+      @throws java.io.IOException if an I/O exception occurred
+  */
   public static DDSImage read(String filename) throws IOException {
     return read(new File(filename));
   }
   
   /** Reads a DirectDraw surface from the specified file, returning
-      the resulting DDSImage. */
+      the resulting DDSImage.
+
+      @param file File object
+      @return DDS image object
+      @throws java.io.IOException if an I/O exception occurred
+  */
   public static DDSImage read(File file) throws IOException {
     DDSImage image = new DDSImage();
     image.readFromFile(file);
@@ -149,7 +169,12 @@ public class DDSImage {
   }
 
   /** Reads a DirectDraw surface from the specified ByteBuffer, returning
-      the resulting DDSImage. */
+      the resulting DDSImage.
+
+      @param buf Input data
+      @return DDS image object
+      @throws java.io.IOException if an I/O exception occurred
+  */
   public static DDSImage read(ByteBuffer buf) throws IOException {
     DDSImage image = new DDSImage();
     image.readFromBuffer(buf);
@@ -189,6 +214,7 @@ public class DDSImage {
    *                   be specified, or they all must be
    * @throws IllegalArgumentException if the data does not match the
    *   specified arguments
+   * @return DDS image object
    */
   public static DDSImage createFromData(int d3dFormat,
                                         int width,
@@ -202,7 +228,12 @@ public class DDSImage {
   /** Determines from the magic number whether the given InputStream
       points to a DDS image. The given InputStream must return true
       from markSupported() and support a minimum of four bytes of
-      read-ahead. */
+      read-ahead.
+
+      @param in Stream to check
+      @return true if input stream is DDS image or false otherwise
+      @throws java.io.IOException if an I/O exception occurred
+  */
   public static boolean isDDSImage(InputStream in) throws IOException {
     if (!(in instanceof BufferedInputStream)) {
       in = new BufferedInputStream(in);
@@ -226,6 +257,8 @@ public class DDSImage {
 
   /**
    * Writes this DDSImage to the specified file name.
+   * @param filename File name to write to
+   * @throws java.io.IOException if an I/O exception occurred
    */
   public void write(String filename) throws IOException {
     write(new File(filename));
@@ -233,6 +266,8 @@ public class DDSImage {
 
   /**
    * Writes this DDSImage to the specified file name.
+   * @param file File object to write to
+   * @throws java.io.IOException if an I/O exception occurred
    */
   public void write(File file) throws IOException {
     FileOutputStream stream = new FileOutputStream(file);
@@ -251,7 +286,10 @@ public class DDSImage {
     stream.close();
   }
 
-  /** Test for presence/absence of surface description flags (DDSD_*) */
+  /** Test for presence/absence of surface description flags (DDSD_*)
+   * @param flag DDSD_* flags set to test
+   * @return true if flag present or false otherwise
+   */
   public boolean isSurfaceDescFlagSet(int flag) {
     return ((header.flags & flag) != 0);
   }
@@ -294,6 +332,23 @@ public class DDSImage {
     return D3DFMT_UNKNOWN;
   }
 
+  /**
+   * Indicates whether this texture is cubemap
+   * @return true if cubemap or false otherwise
+   */
+  public boolean isCubemap() {
+    return ((header.ddsCaps1 & DDSCAPS_COMPLEX) != 0) && ((header.ddsCaps2 & DDSCAPS2_CUBEMAP) != 0);
+  }
+
+  /**
+   * Indicates whethe this cubemap side present
+   * @param side Side to test
+   * @return true if side present or false otherwise
+   */
+  public boolean isCubemapSidePresent(int side) {
+    return isCubemap() && (header.ddsCaps2 & side) != 0;
+  }
+
   /** Indicates whether this texture is compressed. */
   public boolean isCompressed() {
     return (isPixelFormatFlagSet(DDPF_FOURCC));
@@ -331,8 +386,27 @@ public class DDSImage {
     return header.mipMapCountOrAux;
   }
 
-  /** Gets the <i>i</i>th mipmap data (0..getNumMipMaps() - 1) */
+  /** Gets the <i>i</i>th mipmap data (0..getNumMipMaps() - 1)
+   * @param map Mipmap index
+   * @return Image object
+   */
   public ImageInfo getMipMap(int map) {
+    return getMipMap( 0, map );
+  }
+
+  /**
+   * Gets the <i>i</i>th mipmap data (0..getNumMipMaps() - 1)
+   * @param side Cubemap side or 0 for 2D texture
+   * @param map Mipmap index
+   * @return Image object
+   */
+  public ImageInfo getMipMap(int side, int map) {
+    if (!isCubemap() && (side != 0)) {
+      throw new RuntimeException( "Illegal side for 2D texture: " + side );
+    }
+    if (isCubemap() && !isCubemapSidePresent(side)) {
+      throw new RuntimeException( "Illegal side, side not present: " + side );
+    }
     if (getNumMipMaps() > 0 &&
         ((map < 0) || (map >= getNumMipMaps()))) {
       throw new RuntimeException("Illegal mipmap number " + map + " (0.." + (getNumMipMaps() - 1) + ")");
@@ -340,6 +414,9 @@ public class DDSImage {
 
     // Figure out how far to seek
     int seek = Header.writtenSize();
+    if (isCubemap()) {
+      seek += sideShiftInBytes(side);
+    }
     for (int i = 0; i < map; i++) {
       seek += mipMapSizeInBytes(i);
     }
@@ -352,21 +429,36 @@ public class DDSImage {
   }
 
   /** Returns an array of ImageInfos corresponding to all mipmap
-      levels of this DDS file. */
+      levels of this DDS file.
+      @return Mipmap image objects set
+  */
   public ImageInfo[] getAllMipMaps() {
+    return getAllMipMaps(0);
+  }
+
+  /**
+   * Returns an array of ImageInfos corresponding to all mipmap
+   * levels of this DDS file.
+   * @param side Cubemap side or 0 for 2D texture
+   * @return Mipmap image objects set
+   */
+  public ImageInfo[] getAllMipMaps( int side ) {
     int numLevels = getNumMipMaps();
     if (numLevels == 0) {
       numLevels = 1;
     }
     ImageInfo[] result = new ImageInfo[numLevels];
     for (int i = 0; i < numLevels; i++) {
-      result[i] = getMipMap(i);
+      result[i] = getMipMap(side, i);
     }
     return result;
   }
 
   /** Converts e.g. DXT1 compression format constant (see {@link
-      #getCompressionFormat}) into "DXT1". */
+      #getCompressionFormat}) into "DXT1".
+      @param compressionFormat Compression format constant
+      @return String format code
+  */
   public static String getCompressionFormatName(int compressionFormat) {
     StringBuffer buf = new StringBuffer();
     for (int i = 0; i < 4; i++) {
@@ -487,7 +579,7 @@ public class DDSImage {
     int pfBBitMask;             // mask for blue bits
     int pfABitMask;             // mask for alpha channel
     int ddsCaps1;               // Texture and mip-map flags
-    int ddsCaps2;               // Advanced capabilities, not yet used 
+    int ddsCaps2;               // Advanced capabilities including cubemap support
     int ddsCapsReserved1;
     int ddsCapsReserved2;
     int textureStage;           // stage in multitexture cascade
@@ -569,15 +661,15 @@ public class DDSImage {
       buf.putInt(textureStage);
     }
 
-    private static final int size() {
+    private static int size() {
       return 124;
     }
 
-    private static final int pfSize() {
+    private static int pfSize() {
       return 32;
     }
 
-    private static final int writtenSize() {
+    private static int writtenSize() {
       return 128;
     }
   }
@@ -698,9 +790,7 @@ public class DDSImage {
         depth = 1;
       }
 
-      int blockSize = computeCompressedBlockSize(getWidth(), getHeight(), depth, getCompressionFormat());
-
-      header.pitchOrLinearSize = blockSize;
+      header.pitchOrLinearSize = computeCompressedBlockSize(getWidth(), getHeight(), depth, getCompressionFormat());
       header.flags |= DDSD_LINEARSIZE;
     }
   }
@@ -742,6 +832,44 @@ public class DDSImage {
     } else {
       return width * height * (getDepth() / 8);
     }
+  }
+
+  private int sideSizeInBytes() {
+    int numLevels = getNumMipMaps();
+    if (numLevels == 0) {
+      numLevels = 1;
+    }
+
+    int size = 0;
+    for (int i = 0; i < numLevels; i++) {
+      size += mipMapSizeInBytes(i);
+    }
+
+    return size;
+  }
+
+  private int sideShiftInBytes(int side) {
+    int[] sides = {
+      DDSCAPS2_CUBEMAP_POSITIVEX,
+      DDSCAPS2_CUBEMAP_NEGATIVEX,
+      DDSCAPS2_CUBEMAP_POSITIVEY,
+      DDSCAPS2_CUBEMAP_NEGATIVEY,
+      DDSCAPS2_CUBEMAP_POSITIVEZ,
+      DDSCAPS2_CUBEMAP_NEGATIVEZ
+    };
+
+    int shift = 0;
+    int sideSize = sideSizeInBytes();
+    for (int i = 0; i < sides.length; i++) {
+      int temp = sides[i];
+      if ((temp & side) != 0) {
+        return shift;
+      }
+
+      shift += sideSize;
+    }
+
+    throw new RuntimeException("Illegal side: " + side);
   }
 
   private boolean printIfRecognized(PrintStream tty, int flags, int flag, String what) {
