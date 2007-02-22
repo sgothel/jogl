@@ -515,7 +515,7 @@ public class TextureData {
         if (cm.equals(rgbColorModel)) {
           pixelFormat = GL.GL_RGB;
           pixelType = GL.GL_UNSIGNED_BYTE;
-          rowLength = scanlineStride / 4; // FIXME: correct?
+          rowLength = scanlineStride / 3;
           alignment = 1;
         } else if (cm.equals(rgbaColorModel)) {
           pixelFormat = GL.GL_RGBA;
