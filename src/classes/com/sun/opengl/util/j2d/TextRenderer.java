@@ -155,6 +155,17 @@ public class TextRenderer {
     void clearUsed() { used = false;  }
   }
 
+  // Need to keep track of whether we're in a beginRendering() /
+  // endRendering() cycle so we can re-enter the exact same state if
+  // we have to reallocate the backing store
+  private boolean inBeginEndPair;
+  private boolean isOrthoMode;
+  private int beginRenderingWidth;
+  private int beginRenderingHeight;
+
+  // For debugging only
+  private Frame dbgFrame;
+
   /** Class supporting more full control over the process of rendering
       the bitmapped text. Allows customization of whether the backing
       store text bitmap is full-color or intensity only, the size of
@@ -490,6 +501,9 @@ public class TextRenderer {
     cachedBackingStore = null;
     cachedGraphics = null;
     cachedFontRenderContext = null;
+    if (dbgFrame != null) {
+      dbgFrame.dispose();
+    }
   }
   
   //----------------------------------------------------------------------
@@ -543,6 +557,10 @@ public class TextRenderer {
       debug();
     }
 
+    inBeginEndPair = true;
+    isOrthoMode = ortho;
+    beginRenderingWidth = width;
+    beginRenderingHeight = height;
     if (ortho) {
       getBackingStore().beginOrthoRendering(width, height);
     } else {
@@ -561,6 +579,7 @@ public class TextRenderer {
   }
 
   private void endRendering(boolean ortho) throws GLException {
+    inBeginEndPair = false;
     if (ortho) {
       getBackingStore().endOrthoRendering();
     } else {
@@ -720,6 +739,14 @@ public class TextRenderer {
     }
 
     public void beginMovement(Object oldBackingStore, Object newBackingStore) {
+      // Exit the begin / end pair if necessary
+      if (inBeginEndPair) {
+        if (isOrthoMode) {
+          ((TextureRenderer) oldBackingStore).endOrthoRendering();
+        } else {
+          ((TextureRenderer) oldBackingStore).end3DRendering();
+        }
+      }
       TextureRenderer newRenderer = (TextureRenderer) newBackingStore;
       g = newRenderer.createGraphics();
     }
@@ -754,6 +781,14 @@ public class TextRenderer {
       // Sync the whole surface
       TextureRenderer newRenderer = (TextureRenderer) newBackingStore;
       newRenderer.sync(0, 0, newRenderer.getWidth(), newRenderer.getHeight());
+      // Re-enter the begin / end pair if necessary
+      if (inBeginEndPair) {
+        if (isOrthoMode) {
+          ((TextureRenderer) newBackingStore).beginOrthoRendering(beginRenderingWidth, beginRenderingHeight);
+        } else {
+          ((TextureRenderer) newBackingStore).begin3DRendering();
+        }
+      }
     }
   }
 
@@ -779,7 +814,7 @@ public class TextRenderer {
   //
 
   private void debug() {
-    Frame dbgFrame = new Frame("TextRenderer Debug Output");
+    dbgFrame = new Frame("TextRenderer Debug Output");
     GLCanvas dbgCanvas = new GLCanvas(new GLCapabilities(), null, GLContext.getCurrent(), null);
     dbgCanvas.addGLEventListener(new DebugListener(dbgFrame));
     dbgFrame.add(dbgCanvas);
@@ -813,6 +848,8 @@ public class TextRenderer {
     public void display(GLAutoDrawable drawable) {
       GL gl = drawable.getGL();
       gl.glClear(GL.GL_DEPTH_BUFFER_BIT | GL.GL_COLOR_BUFFER_BIT);
+      if (packer == null)
+        return;
       TextureRenderer rend = getBackingStore();
       final int w = rend.getWidth();
       final int h = rend.getHeight();
