@@ -88,6 +88,12 @@ import com.sun.opengl.util.*;
     renderer.endRendering();
 </PRE>
 
+    Unless you are sharing textures and display lists between OpenGL
+    contexts, you do not need to call the {@link #dispose dispose}
+    method of the TextRenderer; the OpenGL resources it uses
+    internally will be cleaned up automatically when the OpenGL
+    context is destroyed. <P>
+
     Internally, the renderer uses a rectangle packing algorithm to
     pack multiple full Strings' rendering results (which are variable
     size) onto a larger OpenGL texture. The internal backing store is
@@ -162,6 +168,14 @@ public class TextRenderer {
   private boolean isOrthoMode;
   private int beginRenderingWidth;
   private int beginRenderingHeight;
+  // For resetting the color after disposal of the old backing store
+  private boolean haveCachedColor;
+  private float cachedR;
+  private float cachedG;
+  private float cachedB;
+  private float cachedA;
+  private Color cachedColor;
+  private boolean needToResetColor;
 
   // For debugging only
   private Frame dbgFrame;
@@ -356,6 +370,8 @@ public class TextRenderer {
   */
   public void setColor(Color color) throws GLException {
     getBackingStore().setColor(color);
+    haveCachedColor = true;
+    cachedColor = color;
   }
 
   /** Changes the current color of this TextRenderer to the supplied
@@ -375,6 +391,12 @@ public class TextRenderer {
   */
   public void setColor(float r, float g, float b, float a) throws GLException {
     getBackingStore().setColor(r, g, b, a);
+    haveCachedColor = true;
+    cachedR = r;
+    cachedG = g;
+    cachedB = b;
+    cachedA = a;
+    cachedColor = null;
   }
 
   /** Draws the supplied String at the desired location using the
@@ -575,6 +597,15 @@ public class TextRenderer {
       gl.glGetIntegerv(GL.GL_MAX_TEXTURE_SIZE, sz, 0);
       packer.setMaxSize(sz[0], sz[0]);
       haveMaxSize = true;
+    }
+
+    if (needToResetColor && haveCachedColor) {
+      if (cachedColor == null) {
+        getBackingStore().setColor(cachedR, cachedG, cachedB, cachedA);
+      } else {
+        getBackingStore().setColor(cachedColor);
+      }
+      needToResetColor = false;
     }
   }
 
@@ -788,6 +819,15 @@ public class TextRenderer {
         } else {
           ((TextureRenderer) newBackingStore).begin3DRendering();
         }
+        if (haveCachedColor) {
+          if (cachedColor == null) {
+            ((TextureRenderer) newBackingStore).setColor(cachedR, cachedG, cachedB, cachedA);
+          } else {
+            ((TextureRenderer) newBackingStore).setColor(cachedColor);
+          }
+        }
+      } else {
+        needToResetColor = true;
       }
     }
   }

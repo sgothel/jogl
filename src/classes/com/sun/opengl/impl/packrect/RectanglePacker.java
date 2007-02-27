@@ -287,7 +287,8 @@ public class RectanglePacker {
       BackingStoreManager. This RectanglePacker may no longer be used
       after calling this method. */
   public void dispose() {
-    manager.deleteBackingStore(backingStore);
+    if (backingStore != null)
+      manager.deleteBackingStore(backingStore);
     backingStore = null;
     levels = null;
   }
