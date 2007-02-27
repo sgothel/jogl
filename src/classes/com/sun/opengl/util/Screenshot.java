@@ -53,9 +53,12 @@ public class Screenshot {
   /** 
    * Takes a fast screenshot of the current OpenGL drawable to a Targa
    * file. Requires the OpenGL context for the desired drawable to be
-   * current. This is the fastest mechanism for taking a screenshot of
-   * an application. Contributed by Carsten Weisse of Bytonic Software
-   * (http://bytonic.de/). <p>
+   * current. Takes the screenshot from the last assigned read buffer,
+   * or the OpenGL default read buffer if none has been specified by
+   * the user (GL_FRONT for single-buffered configurations and GL_BACK
+   * for double-buffered configurations). This is the fastest
+   * mechanism for taking a screenshot of an application. Contributed
+   * by Carsten Weisse of Bytonic Software (http://bytonic.de/). <p>
    *
    * No alpha channel is written with this variant.
    *
@@ -77,9 +80,12 @@ public class Screenshot {
   /** 
    * Takes a fast screenshot of the current OpenGL drawable to a Targa
    * file. Requires the OpenGL context for the desired drawable to be
-   * current. This is the fastest mechanism for taking a screenshot of
-   * an application. Contributed by Carsten Weisse of Bytonic Software
-   * (http://bytonic.de/).
+   * current. Takes the screenshot from the last assigned read buffer,
+   * or the OpenGL default read buffer if none has been specified by
+   * the user (GL_FRONT for single-buffered configurations and GL_BACK
+   * for double-buffered configurations). This is the fastest
+   * mechanism for taking a screenshot of an application. Contributed
+   * by Carsten Weisse of Bytonic Software (http://bytonic.de/).
    *
    * @param file the file to write containing the screenshot
    * @param width the width of the current drawable
@@ -102,9 +108,12 @@ public class Screenshot {
   /** 
    * Takes a fast screenshot of the current OpenGL drawable to a Targa
    * file. Requires the OpenGL context for the desired drawable to be
-   * current. This is the fastest mechanism for taking a screenshot of
-   * an application. Contributed by Carsten Weisse of Bytonic Software
-   * (http://bytonic.de/).
+   * current. Takes the screenshot from the last assigned read buffer,
+   * or the OpenGL default read buffer if none has been specified by
+   * the user (GL_FRONT for single-buffered configurations and GL_BACK
+   * for double-buffered configurations). This is the fastest
+   * mechanism for taking a screenshot of an application. Contributed
+   * by Carsten Weisse of Bytonic Software (http://bytonic.de/).
    *
    * @param file the file to write containing the screenshot
    * @param x the starting x coordinate of the screenshot, measured from the lower-left
@@ -155,10 +164,14 @@ public class Screenshot {
   /**
    * Takes a screenshot of the current OpenGL drawable to a
    * BufferedImage. Requires the OpenGL context for the desired
-   * drawable to be current. Note that the scanlines of the resulting
-   * image are flipped vertically in order to correctly match the
-   * OpenGL contents, which takes time and is therefore not as fast as
-   * the Targa screenshot function. <P>
+   * drawable to be current. Takes the screenshot from the last
+   * assigned read buffer, or the OpenGL default read buffer if none
+   * has been specified by the user (GL_FRONT for single-buffered
+   * configurations and GL_BACK for double-buffered configurations).
+   * Note that the scanlines of the resulting image are flipped
+   * vertically in order to correctly match the OpenGL contents, which
+   * takes time and is therefore not as fast as the Targa screenshot
+   * function. <P>
    *
    * No alpha channel is read back with this variant.
    *
@@ -176,10 +189,14 @@ public class Screenshot {
   /**
    * Takes a screenshot of the current OpenGL drawable to a
    * BufferedImage. Requires the OpenGL context for the desired
-   * drawable to be current. Note that the scanlines of the resulting
-   * image are flipped vertically in order to correctly match the
-   * OpenGL contents, which takes time and is therefore not as fast as
-   * the Targa screenshot function.
+   * drawable to be current. Takes the screenshot from the last
+   * assigned read buffer, or the OpenGL default read buffer if none
+   * has been specified by the user (GL_FRONT for single-buffered
+   * configurations and GL_BACK for double-buffered configurations).
+   * Note that the scanlines of the resulting image are flipped
+   * vertically in order to correctly match the OpenGL contents, which
+   * takes time and is therefore not as fast as the Targa screenshot
+   * function.
    *
    * @param width the width of the current drawable
    * @param height the height of the current drawable
@@ -198,10 +215,14 @@ public class Screenshot {
   /**
    * Takes a screenshot of the current OpenGL drawable to a
    * BufferedImage. Requires the OpenGL context for the desired
-   * drawable to be current. Note that the scanlines of the resulting
-   * image are flipped vertically in order to correctly match the
-   * OpenGL contents, which takes time and is therefore not as fast as
-   * the Targa screenshot function.
+   * drawable to be current. Takes the screenshot from the last
+   * assigned read buffer, or the OpenGL default read buffer if none
+   * has been specified by the user (GL_FRONT for single-buffered
+   * configurations and GL_BACK for double-buffered configurations).
+   * Note that the scanlines of the resulting image are flipped
+   * vertically in order to correctly match the OpenGL contents, which
+   * takes time and is therefore not as fast as the Targa screenshot
+   * function.
    *
    * @param x the starting x coordinate of the screenshot, measured from the lower-left
    * @param y the starting y coordinate of the screenshot, measured from the lower-left
@@ -250,11 +271,14 @@ public class Screenshot {
   /**
    * Takes a screenshot of the current OpenGL drawable to the
    * specified file on disk using the ImageIO package. Requires the
-   * OpenGL context for the desired drawable to be current. This is
-   * not the fastest mechanism for taking a screenshot but may be more
-   * convenient than others for getting images for consumption by
-   * other packages. The file format is inferred from the suffix of
-   * the given file. <P>
+   * OpenGL context for the desired drawable to be current. Takes the
+   * screenshot from the last assigned read buffer, or the OpenGL
+   * default read buffer if none has been specified by the user
+   * (GL_FRONT for single-buffered configurations and GL_BACK for
+   * double-buffered configurations). This is not the fastest
+   * mechanism for taking a screenshot but may be more convenient than
+   * others for getting images for consumption by other packages. The
+   * file format is inferred from the suffix of the given file. <P>
    *
    * No alpha channel is saved with this variant.
    *
@@ -278,11 +302,14 @@ public class Screenshot {
   /**
    * Takes a screenshot of the current OpenGL drawable to the
    * specified file on disk using the ImageIO package. Requires the
-   * OpenGL context for the desired drawable to be current. This is
-   * not the fastest mechanism for taking a screenshot but may be more
-   * convenient than others for getting images for consumption by
-   * other packages. The file format is inferred from the suffix of
-   * the given file. <P>
+   * OpenGL context for the desired drawable to be current. Takes the
+   * screenshot from the last assigned read buffer, or the OpenGL
+   * default read buffer if none has been specified by the user
+   * (GL_FRONT for single-buffered configurations and GL_BACK for
+   * double-buffered configurations). This is not the fastest
+   * mechanism for taking a screenshot but may be more convenient than
+   * others for getting images for consumption by other packages. The
+   * file format is inferred from the suffix of the given file. <P>
    *
    * Note that some file formats, in particular JPEG, can not handle
    * an alpha channel properly. If the "alpha" argument is specified
@@ -311,11 +338,14 @@ public class Screenshot {
   /**
    * Takes a screenshot of the current OpenGL drawable to the
    * specified file on disk using the ImageIO package. Requires the
-   * OpenGL context for the desired drawable to be current. This is
-   * not the fastest mechanism for taking a screenshot but may be more
-   * convenient than others for getting images for consumption by
-   * other packages. The file format is inferred from the suffix of
-   * the given file. <P>
+   * OpenGL context for the desired drawable to be current. Takes the
+   * screenshot from the last assigned read buffer, or the OpenGL
+   * default read buffer if none has been specified by the user
+   * (GL_FRONT for single-buffered configurations and GL_BACK for
+   * double-buffered configurations). This is not the fastest
+   * mechanism for taking a screenshot but may be more convenient than
+   * others for getting images for consumption by other packages. The
+   * file format is inferred from the suffix of the given file. <P>
    *
    * Note that some file formats, in particular JPEG, can not handle
    * an alpha channel properly. If the "alpha" argument is specified
