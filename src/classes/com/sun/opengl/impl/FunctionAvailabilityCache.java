@@ -336,10 +336,12 @@ public final class FunctionAvailabilityCache {
               if (m.matches()) {
                 int altMajor = Integer.valueOf(m.group(1)).intValue();
                 int altMinor = Integer.valueOf(m.group(2)).intValue();
-                // Avoid possibly confusing situations by requiring
-                // major version to match
-                if (altMajor == major &&
-                    altMinor >  minor) {
+                // Avoid possibly confusing situations by putting some
+                // constraints on the upgrades we do to the major and
+                // minor versions
+                if ((altMajor == major && altMinor > minor) ||
+                    altMajor == major + 1) {
+                  major = altMajor;
                   minor = altMinor;
                 }
               }
@@ -379,4 +381,3 @@ public final class FunctionAvailabilityCache {
     
   } // end class Version
 }
-
