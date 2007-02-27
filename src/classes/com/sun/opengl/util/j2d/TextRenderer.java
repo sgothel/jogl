@@ -168,6 +168,7 @@ public class TextRenderer {
   private boolean isOrthoMode;
   private int beginRenderingWidth;
   private int beginRenderingHeight;
+  private boolean beginRenderingDepthTestDisabled;
   // For resetting the color after disposal of the old backing store
   private boolean haveCachedColor;
   private float cachedR;
@@ -336,14 +337,36 @@ public class TextRenderer {
       coordinate. Binds and enables the internal OpenGL texture
       object, sets the texture environment mode to GL_MODULATE, and
       changes the current color to the last color set with this
-      TextRenderer via {@link #setColor setColor}.
+      TextRenderer via {@link #setColor setColor}. This method
+      disables the depth test and is equivalent to
+      beginRendering(width, height, true).
 
       @param width the width of the current on-screen OpenGL drawable
       @param height the height of the current on-screen OpenGL drawable
       @throws GLException If an OpenGL context is not current when this method is called
   */
   public void beginRendering(int width, int height) throws GLException {
-    beginRendering(true, width, height);
+    beginRendering(width, height, true);
+  }
+
+  /** Begins rendering with this {@link TextRenderer TextRenderer}
+      into the current OpenGL drawable, pushing the projection and
+      modelview matrices and some state bits and setting up a
+      two-dimensional orthographic projection with (0, 0) as the
+      lower-left coordinate and (width, height) as the upper-right
+      coordinate. Binds and enables the internal OpenGL texture
+      object, sets the texture environment mode to GL_MODULATE, and
+      changes the current color to the last color set with this
+      TextRenderer via {@link #setColor setColor}. Disables the depth
+      test if the disableDepthTest argument is true.
+
+      @param width the width of the current on-screen OpenGL drawable
+      @param height the height of the current on-screen OpenGL drawable
+      @param disableDepthTest whether to disable the depth test
+      @throws GLException If an OpenGL context is not current when this method is called
+  */
+  public void beginRendering(int width, int height, boolean disableDepthTest) throws GLException {
+    beginRendering(true, width, height, disableDepthTest);
   }
 
   /** Begins rendering of 2D text in 3D with this {@link TextRenderer
@@ -359,7 +382,7 @@ public class TextRenderer {
       @throws GLException If an OpenGL context is not current when this method is called
   */
   public void begin3DRendering() throws GLException {
-    beginRendering(false, 0, 0);
+    beginRendering(false, 0, 0, false);
   }
 
   /** Changes the current color of this TextRenderer to the supplied
@@ -574,7 +597,7 @@ public class TextRenderer {
     return cachedGraphics;
   }
 
-  private void beginRendering(boolean ortho, int width, int height) {
+  private void beginRendering(boolean ortho, int width, int height, boolean disableDepthTestForOrtho) {
     if (DEBUG && !debugged) {
       debug();
     }
@@ -583,8 +606,9 @@ public class TextRenderer {
     isOrthoMode = ortho;
     beginRenderingWidth = width;
     beginRenderingHeight = height;
+    beginRenderingDepthTestDisabled = disableDepthTestForOrtho;
     if (ortho) {
-      getBackingStore().beginOrthoRendering(width, height);
+      getBackingStore().beginOrthoRendering(width, height, disableDepthTestForOrtho);
     } else {
       getBackingStore().begin3DRendering();
     }
@@ -815,7 +839,9 @@ public class TextRenderer {
       // Re-enter the begin / end pair if necessary
       if (inBeginEndPair) {
         if (isOrthoMode) {
-          ((TextureRenderer) newBackingStore).beginOrthoRendering(beginRenderingWidth, beginRenderingHeight);
+          ((TextureRenderer) newBackingStore).beginOrthoRendering(beginRenderingWidth,
+                                                                  beginRenderingHeight,
+                                                                  beginRenderingDepthTestDisabled);
         } else {
           ((TextureRenderer) newBackingStore).begin3DRendering();
         }

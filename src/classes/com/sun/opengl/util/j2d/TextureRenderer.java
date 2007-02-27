@@ -287,8 +287,9 @@ public class TextureRenderer {
       enables the texture in this renderer; and sets up the viewing
       matrices for orthographic rendering where the coordinates go
       from (0, 0) at the lower left to (width, height) at the upper
-      right. {@link #endOrthoRendering} must be used in conjunction
-      with this method to restore all OpenGL states.
+      right. Equivalent to beginOrthoRendering(width, height, true).
+      {@link #endOrthoRendering} must be used in conjunction with this
+      method to restore all OpenGL states.
 
       @param width the width of the current on-screen OpenGL drawable
       @param height the height of the current on-screen OpenGL drawable
@@ -296,7 +297,29 @@ public class TextureRenderer {
       @throws GLException If an OpenGL context is not current when this method is called
   */
   public void beginOrthoRendering(int width, int height) throws GLException {
-    beginRendering(true, width, height);
+    beginOrthoRendering(width, height, true);
+  }
+
+  /** Convenience method which assists in rendering portions of the
+      OpenGL texture to the screen, if the application intends to draw
+      them as a flat overlay on to the screen. Pushes OpenGL state
+      bits (GL_ENABLE_BIT, GL_DEPTH_BUFFER_BIT and GL_TRANSFORM_BIT);
+      disables the depth test (if the "disableDepthTest" argument is
+      true), back-face culling, and lighting; enables the texture in
+      this renderer; and sets up the viewing matrices for orthographic
+      rendering where the coordinates go from (0, 0) at the lower left
+      to (width, height) at the upper right. {@link
+      #endOrthoRendering} must be used in conjunction with this method
+      to restore all OpenGL states.
+
+      @param width the width of the current on-screen OpenGL drawable
+      @param height the height of the current on-screen OpenGL drawable
+      @param disableDepthTest whether the depth test should be disabled
+
+      @throws GLException If an OpenGL context is not current when this method is called
+  */
+  public void beginOrthoRendering(int width, int height, boolean disableDepthTest) throws GLException {
+    beginRendering(true, width, height, disableDepthTest);
   }
 
   /** Convenience method which assists in rendering portions of the
@@ -313,7 +336,7 @@ public class TextureRenderer {
       @throws GLException If an OpenGL context is not current when this method is called
   */
   public void begin3DRendering() throws GLException {
-    beginRendering(false, 0, 0);
+    beginRendering(false, 0, 0, false);
   }
 
   /** Changes the color of the polygons, and therefore the drawn
@@ -481,7 +504,7 @@ public class TextureRenderer {
   // Internals only below this point
   //
 
-  private void beginRendering(boolean ortho, int width, int height) {
+  private void beginRendering(boolean ortho, int width, int height, boolean disableDepthTestForOrtho) {
     GL gl = GLU.getCurrentGL();
     int attribBits = 
       GL.GL_ENABLE_BIT | GL.GL_TEXTURE_BIT | GL.GL_COLOR_BUFFER_BIT |
@@ -489,7 +512,9 @@ public class TextureRenderer {
     gl.glPushAttrib(attribBits);
     gl.glDisable(GL.GL_LIGHTING);
     if (ortho) {
-      gl.glDisable(GL.GL_DEPTH_TEST);
+      if (disableDepthTestForOrtho) {
+        gl.glDisable(GL.GL_DEPTH_TEST);
+      }
       gl.glDisable(GL.GL_CULL_FACE);
       gl.glMatrixMode(GL.GL_PROJECTION);
       gl.glPushMatrix();
