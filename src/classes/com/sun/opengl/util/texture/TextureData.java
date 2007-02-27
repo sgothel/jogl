@@ -427,7 +427,6 @@ public class TextureData {
         rowLength = scanlineStride;
         alignment = 4;
         break;
-      case BufferedImage.TYPE_INT_ARGB:
       case BufferedImage.TYPE_INT_ARGB_PRE:
         pixelFormat = GL.GL_BGRA;
         pixelType = GL.GL_UNSIGNED_INT_8_8_8_8_REV;
@@ -455,7 +454,6 @@ public class TextureData {
           }
         }
         break;
-      case BufferedImage.TYPE_4BYTE_ABGR:
       case BufferedImage.TYPE_4BYTE_ABGR_PRE:
         {
           // we can pass the image data directly to OpenGL only if
@@ -507,6 +505,11 @@ public class TextureData {
         rowLength = scanlineStride;
         alignment = 2;
         break;
+      // Note: TYPE_INT_ARGB and TYPE_4BYTE_ABGR images go down the
+      // custom code path to satisfy the invariant that images with an
+      // alpha channel always go down with premultiplied alpha.
+      case BufferedImage.TYPE_INT_ARGB:
+      case BufferedImage.TYPE_4BYTE_ABGR:
       case BufferedImage.TYPE_BYTE_BINARY:
       case BufferedImage.TYPE_BYTE_INDEXED:
       case BufferedImage.TYPE_CUSTOM:
@@ -538,11 +541,13 @@ public class TextureData {
     pixelFormat = hasAlpha ? GL.GL_RGBA : GL.GL_RGB;
     alignment = 1; // FIXME: do we need better?
     rowLength = width; // FIXME: correct in all cases?
+    // Don't use GL_UNSIGNED_INT for TYPE_INT_ARGB images
+    boolean isIntRGBA = (image.getType() == BufferedImage.TYPE_INT_ARGB);
 
     // Allow previously-selected pixelType (if any) to override that
     // we can infer from the DataBuffer
     DataBuffer data = image.getRaster().getDataBuffer();
-    if (data instanceof DataBufferByte) {
+    if (data instanceof DataBufferByte || isIntRGBA) {
       if (pixelType == 0) pixelType = GL.GL_UNSIGNED_BYTE;
     } else if (data instanceof DataBufferDouble) {
       throw new RuntimeException("DataBufferDouble rasters not supported by OpenGL");
@@ -568,6 +573,10 @@ public class TextureData {
     boolean hasAlpha = image.getColorModel().hasAlpha();
     ColorModel cm = null;
     int dataBufferType = image.getRaster().getDataBuffer().getDataType();
+    // Don't use integer components for TYPE_INT_ARGB images
+    if (image.getType() == BufferedImage.TYPE_INT_ARGB) {
+      dataBufferType = DataBuffer.TYPE_BYTE;
+    }
     if (dataBufferType == DataBuffer.TYPE_BYTE) {
       cm = hasAlpha ? rgbaColorModel : rgbColorModel;
     } else {
