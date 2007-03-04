@@ -32,6 +32,7 @@
   <UL>
     <LI> All Platforms
     <LI> Windows
+    <LI> Linux
     <LI> Solaris, Linux (X11 platforms)
     <LI> Macintosh OS X
   </UL>
@@ -139,6 +140,13 @@ Dropping the JOGL jar and native library into the extension directory
 of the JRE is <b>strongly discouraged</b>. Doing so can cause
 conflicts with third-party applications launched via Java Web Start,
 and causes confusion later when upgrading the distribution.
+
+</P>
+<P>
+
+If you are on the Linux platform, please see the Linux-specific
+platform notes, below, with information on incompatibility between the
+JPackage Java RPMs and JOGL.
 
 </P>
 
@@ -855,6 +863,41 @@ system property <CODE>-Djogl.GLContext.nofree</CODE> on the command
 line when launching your JOGL applications. There is no good
 general-purpose workaround for this bug which behaves well on all
 hardware.
+
+</P>
+
+<H3> Linux </H3>
+
+<P>
+
+The Sun JDK "compatibility" RPMs (java-1.5.0-sun-compat,
+java-1.6.0-sun-compat) provided by jpackage.org are incompatible with
+JOGL. These RPMs symlink an internal JDK directory to /usr/lib, which
+overrides how both NVidia and ATI currently provide their drivers to
+some Linux distributions, which is through an override in
+/etc/ld.so.conf (actually, in /etc/ld.so.conf.d). The implicit
+presence of /usr/lib on LD_LIBRARY_PATH forces the /usr/lib/libGL.so.1
+version of OpenGL to be used, which is typically Mesa and which will
+provide only software rendering.
+
+</P>
+<P>
+
+Unfortunately the JPackage maintainers have so far been unreceptive to
+changing their installation mechanism; see <a
+href="https://www.zarb.org/pipermail/jpackage-discuss/2007-January/010871.html">this
+mailing list posting</a>. Until this is resolved, we strongly
+discourage the use of the JPackage installers for the Sun JDK.
+Instead, download the JRE or JDK installers directly from Sun's
+website.
+
+</P>
+<P>
+
+Archived forum postings illustrating this problem are <a
+href="http://www.javagaming.org/forums/index.php?topic=15610.0">here</a>
+and <a
+href="http://www.javagaming.org/forums/index.php?topic=16105.0">here</a>.
 
 </P>
 
