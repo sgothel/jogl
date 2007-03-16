@@ -1535,6 +1535,8 @@
         <zip destfile="${jogl.dist.dir}/jogl-${tmp.version}-webstart.zip"
 	     basedir="${jogl.dist.dir}"
 	     includes="*.jar" />
+        <!-- Create a version.txt file indicating which version we just built -->
+        <echo message="${tmp.version}" file="${jogl.dist.dir}/version.txt" />
     </target>
 
     <!-- ================================================================== -->
