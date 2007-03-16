@@ -140,6 +140,10 @@ public class Texture {
   private static final boolean DEBUG = Debug.debug("Texture");
   private static final boolean VERBOSE = Debug.verbose();
 
+  // For testing alternate code paths on more capable hardware
+  private static final boolean disableNPOT    = Debug.isPropertyDefined("jogl.texture.nonpot");
+  private static final boolean disableTexRect = Debug.isPropertyDefined("jogl.texture.notexrect");
+
   // For now make Texture constructor package-private to limit the
   // number of public APIs we commit to
   Texture(TextureData data) throws GLException {
@@ -320,7 +324,8 @@ public class Texture {
       float tx2 = (float)x2 / (float)texWidth;
       float ty2 = (float)y2 / (float)texHeight;
       if (mustFlipVertically) {
-        return new TextureCoords(tx1, 1.0f - ty1, tx2, 1.0f - ty2);
+        float yOffset = 1.0f - ((float) imgHeight / (float) texHeight);
+        return new TextureCoords(tx1, 1.0f - yOffset - ty1, tx2, 1.0f - yOffset - ty2);
       } else {
         return new TextureCoords(tx1, ty1, tx2, ty2);
       }
@@ -377,7 +382,7 @@ public class Texture {
       texHeight = imgHeight;
       newTarget = GL.GL_TEXTURE_2D;
     } else if ((isPowerOfTwo(imgWidth) && isPowerOfTwo(imgHeight)) ||
-               gl.isExtensionAvailable("GL_ARB_texture_non_power_of_two")) {
+               haveNPOT(gl)) {
       if (DEBUG) {
         if (isPowerOfTwo(imgWidth) && isPowerOfTwo(imgHeight)) {
           System.err.println("Power-of-two texture");
@@ -389,7 +394,7 @@ public class Texture {
       texWidth = imgWidth;
       texHeight = imgHeight;
       newTarget = GL.GL_TEXTURE_2D;
-    } else if (gl.isExtensionAvailable("GL_ARB_texture_rectangle")) {
+    } else if (haveTexRect(gl)) {
       if (DEBUG) {
         System.err.println("Using GL_ARB_texture_rectangle");
       }
@@ -866,5 +871,14 @@ public class Texture {
     int[] tmp = new int[1];
     gl.glGenTextures(1, tmp, 0);
     return tmp[0];
+  }
+
+  // Helper routines for disabling certain codepaths
+  private static boolean haveNPOT(GL gl) {
+    return (!disableNPOT && gl.isExtensionAvailable("GL_ARB_texture_non_power_of_two"));
+  }
+
+  private static boolean haveTexRect(GL gl) {
+    return (!disableTexRect && gl.isExtensionAvailable("GL_ARB_texture_rectangle"));
   }
 }
