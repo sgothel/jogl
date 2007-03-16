@@ -324,8 +324,8 @@ public class Texture {
       float tx2 = (float)x2 / (float)texWidth;
       float ty2 = (float)y2 / (float)texHeight;
       if (mustFlipVertically) {
-        float yOffset = 1.0f - ((float) imgHeight / (float) texHeight);
-        return new TextureCoords(tx1, 1.0f - yOffset - ty1, tx2, 1.0f - yOffset - ty2);
+        float yMax = (float) imgHeight / (float) texHeight;
+        return new TextureCoords(tx1, yMax - ty1, tx2, yMax - ty2);
       } else {
         return new TextureCoords(tx1, ty1, tx2, ty2);
       }
