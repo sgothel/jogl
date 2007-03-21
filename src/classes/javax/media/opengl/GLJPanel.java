@@ -184,6 +184,11 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
   private boolean checkedGLVendor;
   private boolean vendorIsATI;
 
+  // Holding on to this GraphicsConfiguration is a workaround for a
+  // problem in the Java 2D / JOGL bridge when FBOs are enabled; see
+  // comment related to Issue 274 below
+  private GraphicsConfiguration workaroundConfig;
+
   // These are always set to (0, 0) except when the Java2D / OpenGL
   // pipeline is active
   private int   viewportX;
@@ -477,6 +482,34 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
     updater.setGraphics(g);
 
     if (oglPipelineEnabled) {
+
+      // This is a workaround for an issue in the Java 2D / JOGL
+      // bridge (reported by an end user as JOGL Issue 274) where Java
+      // 2D can occasionally leave its internal OpenGL context current
+      // to the on-screen window rather than its internal "scratch"
+      // pbuffer surface to which the FBO is attached. JOGL expects to
+      // find a stable OpenGL drawable (on Windows, an HDC) upon which
+      // it can create another OpenGL context. It turns out that, on
+      // Windows, when Java 2D makes its internal OpenGL context
+      // current against the window in order to put pixels on the
+      // screen, it gets the device context for the window, makes its
+      // context current, and releases the device context. This means
+      // that when JOGL's Runnable gets to run below, the HDC is
+      // already invalid. The workaround for this is to force Java 2D
+      // to make its context current to the scratch surface, which we
+      // can do by executing an empty Runnable with the "shared"
+      // context current. This will be fixed in a Java SE 6 update
+      // release, hopefully 6u2.
+      if (Java2D.isFBOEnabled()) {
+        if (workaroundConfig == null) {
+          workaroundConfig = GraphicsEnvironment.
+            getLocalGraphicsEnvironment().
+            getDefaultScreenDevice().
+            getDefaultConfiguration();
+        }
+        Java2D.invokeWithOGLSharedContextCurrent(workaroundConfig, new Runnable() { public void run() {}});
+      }
+
       Java2D.invokeWithOGLContextCurrent(g, new Runnable() {
           public void run() {
             if (DEBUG && VERBOSE) {
