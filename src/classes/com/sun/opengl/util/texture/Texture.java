@@ -127,6 +127,9 @@ public class Texture {
   private int imgWidth;
   /** The height of the image. */
   private int imgHeight;
+  /** The original aspect ratio of the image, before any rescaling
+      that might have occurred due to using the GLU mipmap routines. */
+  private float aspectRatio;
   /** Indicates whether the TextureData requires a vertical flip of
       the texture coords. */
   private boolean mustFlipVertically;
@@ -287,6 +290,15 @@ public class Texture {
   }
 
   /**
+   * Returns the original aspect ratio of the image, defined as (image
+   * width) / (image height), before any scaling that might have
+   * occurred as a result of using the GLU mipmap routines.
+   */
+  public float getAspectRatio() {
+    return aspectRatio;
+  }
+
+  /**
    * Returns the set of texture coordinates corresponding to the
    * entire image. If the TextureData indicated that the texture
    * coordinates must be flipped vertically, the returned
@@ -367,6 +379,7 @@ public class Texture {
 
     imgWidth = data.getWidth();
     imgHeight = data.getHeight();
+    aspectRatio = (float) imgWidth / (float) imgHeight;
     mustFlipVertically = data.getMustFlipVertically();
 
     int newTarget = 0;
