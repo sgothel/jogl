@@ -89,8 +89,12 @@ public class Overlay {
     return contentsLost;
   }
 
-  /** Synchronizes the contents of the Java 2D rendering down to the
-      OpenGL texture.
+  /** Marks the given region of the overlay as dirty. This region, and
+      any previously set dirty regions, will be automatically
+      synchronized with the underlying Texture during the next {@link
+      #getTexture getTexture} operation, at which point the dirty
+      region will be cleared. It is not necessary for an OpenGL
+      context to be current when this method is called.
 
       @param x the x coordinate (in Java 2D coordinates -- relative to
         upper left) of the region to update
@@ -101,8 +105,8 @@ public class Overlay {
 
       @throws GLException If an OpenGL context is not current when this method is called
   */
-  public void sync(int x, int y, int width, int height) throws GLException {
-    renderer.sync(x, y, width, height);
+  public void markDirty(int x, int y, int width, int height) {
+    renderer.markDirty(x, y, width, height);
   }
 
   /** Draws the entire contents of the overlay on top of the OpenGL

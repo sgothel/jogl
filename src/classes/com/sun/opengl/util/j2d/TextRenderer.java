@@ -488,8 +488,8 @@ public class TextRenderer {
           g.setComposite(AlphaComposite.Src);
           // Draw the string
           renderDelegate.draw(g, curStr, strx, stry);
-          // Sync to the OpenGL texture
-          getBackingStore().sync(rect.x(), rect.y(), rect.w(), rect.h());
+          // Mark this region of the TextureRenderer as dirty
+          getBackingStore().markDirty(rect.x(), rect.y(), rect.w(), rect.h());
         }
 
         // OK, now draw the portion of the backing store to the screen
@@ -728,7 +728,7 @@ public class TextRenderer {
     }
 
     if (DEBUG) {
-      getBackingStore().sync(0, 0, getBackingStore().getWidth(), getBackingStore().getHeight());
+      getBackingStore().markDirty(0, 0, getBackingStore().getWidth(), getBackingStore().getHeight());
     }
   }
 
@@ -835,7 +835,7 @@ public class TextRenderer {
       g.dispose();
       // Sync the whole surface
       TextureRenderer newRenderer = (TextureRenderer) newBackingStore;
-      newRenderer.sync(0, 0, newRenderer.getWidth(), newRenderer.getHeight());
+      newRenderer.markDirty(0, 0, newRenderer.getWidth(), newRenderer.getHeight());
       // Re-enter the begin / end pair if necessary
       if (inBeginEndPair) {
         if (isOrthoMode) {

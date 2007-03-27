@@ -43,6 +43,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.Rectangle;
 import java.awt.image.*;
 
 import javax.media.opengl.*;
@@ -83,6 +84,7 @@ public class TextureRenderer {
   private Texture texture;
   private TextureData textureData;
   private boolean mustReallocateTexture;
+  private Rectangle dirtyRegion;
 
   private GLU glu = new GLU();
 
@@ -226,8 +228,12 @@ public class TextureRenderer {
     return image;
   }
 
-  /** Synchronizes the specified region of the backing store down to
-      the underlying OpenGL texture.
+  /** Marks the given region of the TextureRenderer as dirty. This
+      region, and any previously set dirty regions, will be
+      automatically synchronized with the underlying Texture during
+      the next {@link #getTexture getTexture} operation, at which
+      point the dirty region will be cleared. It is not necessary for
+      an OpenGL context to be current when this method is called.
 
       @param x the x coordinate (in Java 2D coordinates -- relative to
         upper left) of the region to update
@@ -235,30 +241,28 @@ public class TextureRenderer {
         upper left) of the region to update
       @param width the width of the region to update
       @param height the height of the region to update
-
-      @throws GLException If an OpenGL context is not current when this method is called
   */
-  public void sync(int x, int y, int width, int height) throws GLException {
-    // Force allocation if necessary
-    boolean canSkipUpdate = ensureTexture();
-
-    if (!canSkipUpdate) {
-      // Update specified region.
-      // NOTE that because BufferedImage-based TextureDatas now don't
-      // do anything to their contents, the coordinate systems for
-      // OpenGL and Java 2D actually line up correctly for
-      // updateSubImage calls, so we don't need to do any argument
-      // conversion here (i.e., flipping the Y coordinate).
-      texture.updateSubImage(textureData, 0, x, y, x, y, width, height);
+  public void markDirty(int x, int y, int width, int height) {
+    Rectangle curRegion = new Rectangle(x, y, width, height);
+    if (dirtyRegion == null) {
+      dirtyRegion = curRegion;
+    } else {
+      dirtyRegion.add(curRegion);
     }
   }
 
   /** Returns the underlying OpenGL Texture object associated with
-      this renderer.
+      this renderer, synchronizing any dirty regions of the
+      TextureRenderer with the underlying OpenGL texture.
 
       @throws GLException If an OpenGL context is not current when this method is called
   */
   public Texture getTexture() throws GLException {
+    if (dirtyRegion != null) {
+      sync(dirtyRegion.x, dirtyRegion.y, dirtyRegion.width, dirtyRegion.height);
+      dirtyRegion = null;
+    }
+
     ensureTexture();
     return texture;
   }
@@ -583,6 +587,35 @@ public class TextureRenderer {
     // For now, always reallocate the underlying OpenGL texture when
     // the backing store size changes
     mustReallocateTexture = true;
+  }
+
+  /** Synchronizes the specified region of the backing store down to
+      the underlying OpenGL texture. If {@link #markDirty markDirty}
+      is used instead to indicate the regions that are out of sync,
+      this method does not need to be called.
+
+      @param x the x coordinate (in Java 2D coordinates -- relative to
+        upper left) of the region to update
+      @param y the y coordinate (in Java 2D coordinates -- relative to
+        upper left) of the region to update
+      @param width the width of the region to update
+      @param height the height of the region to update
+
+      @throws GLException If an OpenGL context is not current when this method is called
+  */
+  private void sync(int x, int y, int width, int height) throws GLException {
+    // Force allocation if necessary
+    boolean canSkipUpdate = ensureTexture();
+
+    if (!canSkipUpdate) {
+      // Update specified region.
+      // NOTE that because BufferedImage-based TextureDatas now don't
+      // do anything to their contents, the coordinate systems for
+      // OpenGL and Java 2D actually line up correctly for
+      // updateSubImage calls, so we don't need to do any argument
+      // conversion here (i.e., flipping the Y coordinate).
+      texture.updateSubImage(textureData, 0, x, y, x, y, width, height);
+    }
   }
 
   // Returns true if the texture was newly allocated, false if not
