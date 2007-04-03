@@ -140,6 +140,12 @@ public class TextureIO {
 
   private static final boolean DEBUG = Debug.debug("TextureIO");
 
+  // For manually disabling the use of the texture rectangle
+  // extensions so you know the texture target is GL_TEXTURE_2D; this
+  // is useful for shader writers (thanks to Chris Campbell for this
+  // observation)
+  private static boolean texRectEnabled = true;
+
   //----------------------------------------------------------------------
   // methods that *do not* require a current context
   // These methods assume RGB or RGBA textures.
@@ -690,6 +696,35 @@ public class TextureIO {
     // so we don't accidentally use it instead of a user's possibly
     // more optimal writer
     textureWriters.add(0, writer);
+  }
+
+  //---------------------------------------------------------------------------
+  // Global disabling of texture rectangle extension
+  //
+
+  /** Toggles the use of the GL_ARB_texture_rectangle extension by the
+      TextureIO classes. By default, on hardware supporting this
+      extension, the TextureIO classes may use the
+      GL_ARB_texture_rectangle extension for non-power-of-two
+      textures. (If the hardware supports the
+      GL_ARB_texture_non_power_of_two extension, that one is
+      preferred.) In some situations, for example when writing
+      shaders, it is advantageous to force the texture target to
+      always be GL_TEXTURE_2D in order to have one version of the
+      shader, even at the expense of texture memory in the case where
+      NPOT textures are not supported. This method allows the use of
+      the GL_ARB_texture_rectangle extension to be turned off globally
+      for this purpose. The default is that the use of the extension
+      is enabled. */
+  public static void setTexRectEnabled(boolean enabled) {
+    texRectEnabled = enabled;
+  }
+
+  /** Indicates whether the GL_ARB_texture_rectangle extension is
+      allowed to be used for non-power-of-two textures; see {@link
+      #setTexRectEnabled setTexRectEnabled}. */
+  public static boolean isTexRectEnabled() {
+    return texRectEnabled;
   }
 
   //----------------------------------------------------------------------

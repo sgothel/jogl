@@ -892,6 +892,8 @@ public class Texture {
   }
 
   private static boolean haveTexRect(GL gl) {
-    return (!disableTexRect && gl.isExtensionAvailable("GL_ARB_texture_rectangle"));
+    return (!disableTexRect &&
+            TextureIO.isTexRectEnabled() &&
+            gl.isExtensionAvailable("GL_ARB_texture_rectangle"));
   }
 }
