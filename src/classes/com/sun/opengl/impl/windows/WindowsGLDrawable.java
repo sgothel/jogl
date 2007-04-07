@@ -77,6 +77,7 @@ public abstract class WindowsGLDrawable extends GLDrawableImpl {
   protected void choosePixelFormat(boolean onscreen) {
     PIXELFORMATDESCRIPTOR pfd = null;
     int pixelFormat = 0;
+    GLCapabilities chosenCaps = null;
     if (onscreen) {
       if ((pixelFormat = WGL.GetPixelFormat(hdc)) != 0) {
         // The Java2D/OpenGL pipeline probably already set a pixel
@@ -256,6 +257,11 @@ public abstract class WindowsGLDrawable extends GLDrawableImpl {
         }
       }
 
+      // NOTE: officially, should make a copy of all of these
+      // GLCapabilities to avoid mutation by the end user during the
+      // chooseCapabilities call, but for the time being, assume they
+      // won't be changed
+
       // Supply information to chooser
       pixelFormat = chooser.chooseCapabilities(capabilities, availableCaps, recommendedPixelFormat);
       if ((pixelFormat < 0) || (pixelFormat >= numFormats)) {
@@ -267,6 +273,7 @@ public abstract class WindowsGLDrawable extends GLDrawableImpl {
         System.err.println(getThreadName() + ": Chosen pixel format (" + pixelFormat + "):");
         System.err.println(availableCaps[pixelFormat]);
       }
+      chosenCaps = availableCaps[pixelFormat];
       pixelFormat += 1; // one-base the index
       if (WGL.DescribePixelFormat(hdc, pixelFormat, pfd.size(), pfd) == 0) {
         throw new GLException("Error re-describing the chosen pixel format: " + WGL.GetLastError());
@@ -287,7 +294,15 @@ public abstract class WindowsGLDrawable extends GLDrawableImpl {
       }
       throw new GLException("Unable to set pixel format " + pixelFormat + " for device context " + toHexString(hdc) + ": error code " + lastError);
     }
-    setChosenGLCapabilities(pfd2GLCapabilities(pfd));
+    // Reuse the previously-constructed GLCapabilities because it
+    // turns out that using DescribePixelFormat on some pixel formats
+    // (which, for example, support full-scene antialiasing) for some
+    // reason return that they are not OpenGL-capable
+    if (chosenCaps != null) {
+      setChosenGLCapabilities(chosenCaps);
+    } else {
+      setChosenGLCapabilities(pfd2GLCapabilities(pfd));
+    }
     pixelFormatChosen = true;
   }
 
