@@ -133,6 +133,9 @@ public class Texture {
   /** Indicates whether the TextureData requires a vertical flip of
       the texture coords. */
   private boolean mustFlipVertically;
+  /** Indicates whether we're using automatic mipmap generation
+      support (GL_GENERATE_MIPMAP). */
+  private boolean usingAutoMipmapGeneration;
 
   /** The texture coordinates corresponding to the entire image. */
   private TextureCoords coords;
@@ -358,9 +361,10 @@ public class Texture {
   /**
    * Indicates whether this texture's texture coordinates must be
    * flipped vertically in order to properly display the texture. This
-   * is handled automatically by {@link #getImageTexCoords} and {@link
-   * #getSubImageTexCoords}, but applications may generate or
-   * otherwise produce texture coordinates which must be corrected.
+   * is handled automatically by {@link #getImageTexCoords
+   * getImageTexCoords} and {@link #getSubImageTexCoords
+   * getSubImageTexCoords}, but applications may generate or otherwise
+   * produce texture coordinates which must be corrected.
    */
   public boolean getMustFlipVertically() {
     return mustFlipVertically;
@@ -384,7 +388,12 @@ public class Texture {
 
     int newTarget = 0;
 
-    if (data.getMipmap()) {
+    // See whether we have automatic mipmap generation support
+    boolean haveAutoMipmapGeneration =
+        (gl.isExtensionAvailable("GL_VERSION_1_4") ||
+         gl.isExtensionAvailable("GL_SGIS_generate_mipmap"));
+
+    if (data.getMipmap() && !haveAutoMipmapGeneration) {
       // GLU always scales the texture's dimensions to be powers of
       // two. It also doesn't really matter exactly what the texture
       // width and height are because the texture coords are always
@@ -457,7 +466,7 @@ public class Texture {
       }
     }
 
-    if (data.getMipmap()) {
+    if (data.getMipmap() && !haveAutoMipmapGeneration) {
       int[] align = new int[1];
       gl.glGetIntegerv(GL.GL_UNPACK_ALIGNMENT, align, 0); // save alignment
       gl.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, data.getAlignment());
@@ -504,6 +513,15 @@ public class Texture {
                                     texWidth, texHeight, data.getBorder(),
                                     data.getBuffer().capacity(), data.getBuffer());
         } else {
+          if (data.getMipmap() && haveAutoMipmapGeneration) {
+            // For now, only use hardware mipmapping for uncompressed 2D
+            // textures where the user hasn't explicitly specified
+            // mipmap data; don't know about interactions between
+            // GL_GENERATE_MIPMAP and glCompressedTexImage2D
+            gl.glTexParameteri(newTarget, GL.GL_GENERATE_MIPMAP, GL.GL_TRUE);
+            usingAutoMipmapGeneration = true;
+          }
+
           gl.glTexImage2D(newTarget, 0, data.getInternalFormat(),
                           texWidth, texHeight, data.getBorder(),
                           data.getPixelFormat(), data.getPixelType(), null);
@@ -526,7 +544,12 @@ public class Texture {
 
   /**
    * Updates a subregion of the content area of this texture using the
-   * given data. Only updates the specified mipmap level and does not
+   * given data. If automatic mipmap generation is in use (see {@link
+   * #isUsingAutoMipmapGeneration isUsingAutoMipmapGeneration}),
+   * updates to the base (level 0) mipmap will cause the lower-level
+   * mipmaps to be regenerated, and updates to other mipmap levels
+   * will be ignored. Otherwise, if automatic mipmap generation is not
+   * in use, only updates the specified mipmap level and does not
    * re-generate mipmaps if they were originally produced or loaded.
    *
    * @param data the image data to be uploaded to this texture
@@ -542,12 +565,22 @@ public class Texture {
    * OpenGL-related errors occurred
    */
   public void updateSubImage(TextureData data, int mipmapLevel, int x, int y) throws GLException {
+    if (usingAutoMipmapGeneration && mipmapLevel != 0) {
+      // When we're using mipmap generation via GL_GENERATE_MIPMAP, we
+      // don't need to update other mipmap levels
+      return;
+    }
     updateSubImageImpl(data, target, mipmapLevel, x, y, 0, 0, data.getWidth(), data.getHeight());
   }
 
   /**
    * Updates a subregion of the content area of this texture using the
-   * specified sub-region of the given data. Only updates the
+   * specified sub-region of the given data.  If automatic mipmap
+   * generation is in use (see {@link #isUsingAutoMipmapGeneration
+   * isUsingAutoMipmapGeneration}), updates to the base (level 0)
+   * mipmap will cause the lower-level mipmaps to be regenerated, and
+   * updates to other mipmap levels will be ignored. Otherwise, if
+   * automatic mipmap generation is not in use, only updates the
    * specified mipmap level and does not re-generate mipmaps if they
    * were originally produced or loaded. This method is only supported
    * for uncompressed TextureData sources.
@@ -576,6 +609,11 @@ public class Texture {
                              int width, int height) throws GLException {
     if (data.isDataCompressed()) {
       throw new GLException("updateSubImage specifying a sub-rectangle is not supported for compressed TextureData");
+    }
+    if (usingAutoMipmapGeneration && mipmapLevel != 0) {
+      // When we're using mipmap generation via GL_GENERATE_MIPMAP, we
+      // don't need to update other mipmap levels
+      return;
     }
     updateSubImageImpl(data, target, mipmapLevel, dstx, dsty, srcx, srcy, width, height);
   }
@@ -690,6 +728,19 @@ public class Texture {
       necessary. */
   public int getEstimatedMemorySize() {
     return estimatedMemorySize;
+  }
+
+  /** Indicates whether this Texture is using automatic mipmap
+      generation (via the OpenGL texture parameter
+      GL_GENERATE_MIPMAP). This will automatically be used when
+      mipmapping is requested via the TextureData and either OpenGL
+      1.4 or the GL_SGIS_generate_mipmap extension is available. If
+      so, updates to the base image (mipmap level 0) will
+      automatically propagate down to the lower mipmap levels. Manual
+      updates of the mipmap data at these lower levels will be
+      ignored. */
+  public boolean isUsingAutoMipmapGeneration() {
+    return usingAutoMipmapGeneration;
   }
 
   //----------------------------------------------------------------------

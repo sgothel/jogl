@@ -113,6 +113,9 @@ public class TextRenderer {
   private boolean antialiased;
   private boolean useFractionalMetrics;
 
+  // Whether we're attempting to use automatic mipmap generation support
+  private boolean mipmap;
+
   private RectanglePacker packer;
   private boolean haveMaxSize;
   private RenderDelegate renderDelegate;
@@ -227,15 +230,30 @@ public class TextRenderer {
       @param font the font to render with
   */      
   public TextRenderer(Font font) {
-    this(font, false, false);
+    this(font, false, false, null, false);
+  }
+
+  /** Creates a new TextRenderer with the given font, using no
+      antialiasing or fractional metrics, and the default
+      RenderDelegate. If <CODE>mipmap</CODE> is true, attempts to use
+      OpenGL's automatic mipmap generation for better smoothing when
+      rendering the TextureRenderer's contents at a distance.
+      Equivalent to <code>TextRenderer(font, false, false)</code>.
+
+      @param font the font to render with
+      @param mipmap whether to attempt use of automatic mipmap generation
+  */      
+  public TextRenderer(Font font, boolean mipmap) {
+    this(font, false, false, null, mipmap);
   }
 
   /** Creates a new TextRenderer with the given Font, specified font
       properties, and default RenderDelegate. The
       <code>antialiased</code> and <code>useFractionalMetrics</code>
       flags provide control over the same properties at the Java 2D
-      level. Equivalent to <code>TextRenderer(font, antialiased,
-      useFractionalMetrics, null)</code>.
+      level. No mipmap support is requested. Equivalent to
+      <code>TextRenderer(font, antialiased, useFractionalMetrics,
+      null)</code>.
 
       @param font the font to render with
       @param antialiased whether to use antialiased fonts
@@ -245,7 +263,7 @@ public class TextRenderer {
   public TextRenderer(Font font,
                       boolean antialiased,
                       boolean useFractionalMetrics) {
-    this(font, antialiased, useFractionalMetrics, null);
+    this(font, antialiased, useFractionalMetrics, null, false);
   }
 
   /** Creates a new TextRenderer with the given Font, specified font
@@ -253,7 +271,7 @@ public class TextRenderer {
       <code>antialiased</code> and <code>useFractionalMetrics</code>
       flags provide control over the same properties at the Java 2D
       level. The <code>renderDelegate</code> provides more control
-      over the text rendered.
+      over the text rendered. No mipmap support is requested.
 
       @param font the font to render with
       @param antialiased whether to use antialiased fonts
@@ -266,9 +284,35 @@ public class TextRenderer {
                       boolean antialiased,
                       boolean useFractionalMetrics,
                       RenderDelegate renderDelegate) {
+    this(font, antialiased, useFractionalMetrics, renderDelegate, false);
+  }
+
+  /** Creates a new TextRenderer with the given Font, specified font
+      properties, and given RenderDelegate. The
+      <code>antialiased</code> and <code>useFractionalMetrics</code>
+      flags provide control over the same properties at the Java 2D
+      level. The <code>renderDelegate</code> provides more control
+      over the text rendered. If <CODE>mipmap</CODE> is true, attempts
+      to use OpenGL's automatic mipmap generation for better smoothing
+      when rendering the TextureRenderer's contents at a distance.
+
+      @param font the font to render with
+      @param antialiased whether to use antialiased fonts
+      @param useFractionalMetrics whether to use fractional font
+        metrics at the Java 2D level
+      @param renderDelegate the render delegate to use to draw the
+        text's bitmap, or null to use the default one
+      @param mipmap whether to attempt use of automatic mipmap generation
+  */
+  public TextRenderer(Font font,
+                      boolean antialiased,
+                      boolean useFractionalMetrics,
+                      RenderDelegate renderDelegate,
+                      boolean mipmap) {
     this.font = font;
     this.antialiased = antialiased;
     this.useFractionalMetrics = useFractionalMetrics;
+    this.mipmap = mipmap;
 
     // FIXME: consider adjusting the size based on font size
     // (it will already automatically resize if necessary)
@@ -631,6 +675,15 @@ public class TextRenderer {
       }
       needToResetColor = false;
     }
+
+    // Disable future attempts to use mipmapping if TextureRenderer
+    // doesn't support it
+    if (mipmap && !getBackingStore().isUsingAutoMipmapGeneration()) {
+      if (DEBUG) {
+        System.err.println("Disabled mipmapping in TextRenderer");
+      }
+      mipmap = false;
+    }
   }
 
   private void endRendering(boolean ortho) throws GLException {
@@ -741,10 +794,11 @@ public class TextRenderer {
       // store (i.e., non-default Paint, foreground color, etc.), but
       // for now, let's just be more efficient
       TextureRenderer renderer;
+
       if (renderDelegate.intensityOnly()) {
-        renderer = TextureRenderer.createAlphaOnlyRenderer(w, h);
+        renderer = TextureRenderer.createAlphaOnlyRenderer(w, h, mipmap);
       } else {
-        renderer = new TextureRenderer(w, h, true);
+        renderer = new TextureRenderer(w, h, true, mipmap);
       }
       if (DEBUG) {
         System.err.println(" TextRenderer allocating backing store " + w + " x " + h);

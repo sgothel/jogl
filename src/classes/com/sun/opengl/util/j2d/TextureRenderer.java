@@ -73,6 +73,9 @@ public class TextureRenderer {
   // Whether we're using only a GL_INTENSITY backing store
   private boolean intensity;
 
+  // Whether we're attempting to use automatic mipmap generation support
+  private boolean mipmap;
+
   // Whether smoothing is enabled for the OpenGL texture (switching
   // between GL_LINEAR and GL_NEAREST filtering)
   private boolean smoothing = true;
@@ -95,8 +98,9 @@ public class TextureRenderer {
   private float a = 1.0f;
 
   /** Creates a new renderer with backing store of the specified width
-      and height. If alpha is true, allocates an alpha channel in the
-      backing store image.
+      and height. If <CODE>alpha</CODE> is true, allocates an alpha
+      channel in the backing store image. No mipmap support is
+      requested.
 
       @param width the width of the texture to render into
       @param height the height of the texture to render into
@@ -106,19 +110,46 @@ public class TextureRenderer {
     this(width, height, alpha, false);
   }
 
+  /** Creates a new renderer with backing store of the specified width
+      and height. If <CODE>alpha</CODE> is true, allocates an alpha channel in the
+      backing store image. If <CODE>mipmap</CODE> is true, attempts to use OpenGL's
+      automatic mipmap generation for better smoothing when rendering
+      the TextureRenderer's contents at a distance.
+
+      @param width the width of the texture to render into
+      @param height the height of the texture to render into
+      @param alpha whether to allocate an alpha channel for the texture
+      @param mipmap whether to attempt use of automatic mipmap generation
+  */
+  public TextureRenderer(int width, int height, boolean alpha, boolean mipmap) {
+    this(width, height, alpha, false, mipmap);
+  }
+
   // Internal constructor to avoid confusion since alpha only makes
   // sense when intensity is not set
-  private TextureRenderer(int width, int height, boolean alpha, boolean intensity) {
+  private TextureRenderer(int width, int height, boolean alpha, boolean intensity, boolean mipmap) {
     this.alpha = alpha;
     this.intensity = intensity;
+    this.mipmap = mipmap;
     init(width, height);
   }
 
   /** Creates a new renderer with a special kind of backing store
-      which acts only as an alpha channel. Internally, this associates
-      a GL_INTENSITY OpenGL texture with the backing store. */
+      which acts only as an alpha channel. No mipmap support is
+      requested. Internally, this associates a GL_INTENSITY OpenGL
+      texture with the backing store. */
   public static TextureRenderer createAlphaOnlyRenderer(int width, int height) {
-    return new TextureRenderer(width, height, false, true);
+    return createAlphaOnlyRenderer(width, height, false);
+  }
+
+  /** Creates a new renderer with a special kind of backing store
+      which acts only as an alpha channel. If <CODE>mipmap</CODE> is
+      true, attempts to use OpenGL's automatic mipmap generation for
+      better smoothing when rendering the TextureRenderer's contents
+      at a distance. Internally, this associates a GL_INTENSITY OpenGL
+      texture with the backing store. */
+  public static TextureRenderer createAlphaOnlyRenderer(int width, int height, boolean mipmap) {
+    return new TextureRenderer(width, height, false, true, mipmap);
   }
 
   /** Returns the width of the backing store of this renderer.
@@ -504,6 +535,15 @@ public class TextureRenderer {
     endRendering(false);
   }
 
+  /** Indicates whether automatic mipmap generation is in use for this
+      TextureRenderer. The result of this method may change from true
+      to false if it is discovered during allocation of the
+      TextureRenderer's backing store that automatic mipmap generation
+      is not supported at the OpenGL level. */
+  public boolean isUsingAutoMipmapGeneration() {
+    return mipmap;
+  }
+
   //----------------------------------------------------------------------
   // Internals only below this point
   //
@@ -542,8 +582,12 @@ public class TextureRenderer {
     if (smoothingChanged) {
       smoothingChanged = false;
       if (smoothing) {
-        texture.setTexParameteri(GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR);
         texture.setTexParameteri(GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR);
+        if (mipmap) {
+          texture.setTexParameteri(GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR_MIPMAP_LINEAR);
+        } else {
+          texture.setTexParameteri(GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR);
+        }
       } else {
         texture.setTexParameteri(GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST);
         texture.setTexParameteri(GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST);
@@ -583,7 +627,7 @@ public class TextureRenderer {
     // BufferedImage; it's just a reference to the contents but we
     // need it in order to update sub-regions of the underlying
     // texture
-    textureData = new TextureData(internalFormat, 0, false, image);
+    textureData = new TextureData(internalFormat, 0, mipmap, image);
     // For now, always reallocate the underlying OpenGL texture when
     // the backing store size changes
     mustReallocateTexture = true;
@@ -630,6 +674,14 @@ public class TextureRenderer {
 
     if (texture == null) {
       texture = TextureIO.newTexture(textureData);
+      if (mipmap && !texture.isUsingAutoMipmapGeneration()) {
+        // Only try this once
+        texture.dispose();
+        mipmap = false;
+        textureData.setMipmap(false);
+        texture = TextureIO.newTexture(textureData);
+      }
+
       if (!smoothing) {
         // The TextureIO classes default to GL_LINEAR filtering
         texture.setTexParameteri(GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST);
