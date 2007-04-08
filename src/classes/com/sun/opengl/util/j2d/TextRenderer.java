@@ -129,7 +129,7 @@ public class TextRenderer {
   // producing identical (or even vaguely similar) rendering results;
   // may ultimately yield more efficient use of the backing store, but
   // also seems to have performance issues due to rendering more quads
-  private boolean splitAtSpaces;
+  private boolean splitAtSpaces = !Debug.isPropertyDefined("jogl.TextRenderer.nosplit");
   private int spaceWidth = -1;
   private List/*<String>*/ tokenizationResults = new ArrayList/*<String>*/();
 
@@ -545,7 +545,7 @@ public class TextRenderer {
         data.markUsed();
 
         // Align the leftmost point of the baseline to the (x, y, z) coordinate requested
-        renderer.draw3DRect(x - scaleFactor * (data.origin().x + xOffset),
+        renderer.draw3DRect(x + xOffset - scaleFactor * data.origin().x,
                             y - scaleFactor * ((rect.h() - data.origin().y)),
                             z,
                             rect.x(),
@@ -567,6 +567,23 @@ public class TextRenderer {
   */
   public void endRendering() throws GLException {
     endRendering(true);
+  }
+
+  /** Returns the width of the ASCII space character, in pixels, drawn
+      in this TextRenderer's font when no scaling or rotation has been
+      applied. This is the horizontal advance of the space character.
+
+      @return the width of the space character in the TextRenderer's font
+  */
+  public int getSpaceWidth() {
+    if (spaceWidth < 0) {
+      Graphics2D g = getGraphics2D();
+      FontRenderContext frc = getFontRenderContext();
+      GlyphVector gv = font.createGlyphVector(frc, " ");
+      GlyphMetrics metrics = gv.getGlyphMetrics(0);
+      spaceWidth = (int) metrics.getAdvanceX();
+    }
+    return spaceWidth;
   }
 
   /** Ends a 3D render cycle with this {@link TextRenderer TextRenderer}.
@@ -700,17 +717,6 @@ public class TextRenderer {
       }
       clearUnusedEntries();
     }
-  }
-
-  private int getSpaceWidth() {
-    if (spaceWidth < 0) {
-      Graphics2D g = getGraphics2D();
-      FontRenderContext frc = getFontRenderContext();
-      GlyphVector gv = font.createGlyphVector(frc, " ");
-      Rectangle2D bbox = gv.getLogicalBounds();
-      spaceWidth = (int) bbox.getWidth();
-    }
-    return spaceWidth;
   }
 
   private void tokenize(String str) {
