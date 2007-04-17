@@ -795,7 +795,7 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
   }
 
   public boolean getAutoSwapBufferMode() {
-    if (!hardwareAccelerationDisabled) {
+    if (!hardwareAccelerationDisabled && !oglPipelineEnabled) {
       return pbuffer.getAutoSwapBufferMode();
     } else {
       return drawableHelper.getAutoSwapBufferMode();
@@ -803,7 +803,15 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
   }
 
   public void swapBuffers() {
-    if (!hardwareAccelerationDisabled) {
+    // In the current implementation this is basically a no-op. Both
+    // the pbuffer and pixmap based rendering paths use a single-
+    // buffered surface so swapping the buffers doesn't do anything.
+    // We also don't currently have the provision to skip copying the
+    // data to the Swing portion of the GLJPanel in any of the
+    // rendering paths.
+    if (oglPipelineEnabled) {
+      // Do nothing
+    } else if (!hardwareAccelerationDisabled) {
       pbuffer.swapBuffers();
     } else {
       drawableHelper.invokeGL(offscreenDrawable, offscreenContext, swapBuffersAction, initAction);
