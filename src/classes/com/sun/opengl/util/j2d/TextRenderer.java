@@ -125,11 +125,11 @@ public class TextRenderer {
   private Map/*<String,Rect>*/ stringLocations = new HashMap/*<String,Rect>*/();
 
   // Support tokenization of space-separated words
-  // NOTE: not exposing this at the present time as we aren't
-  // producing identical (or even vaguely similar) rendering results;
-  // may ultimately yield more efficient use of the backing store, but
-  // also seems to have performance issues due to rendering more quads
-  private boolean splitAtSpaces = !Debug.isPropertyDefined("jogl.TextRenderer.nosplit");
+  // NOTE: not using this at the present time as we aren't producing
+  // identical rendering results; may ultimately yield more efficient
+  // use of the backing store
+  // private boolean splitAtSpaces = !Debug.isPropertyDefined("jogl.TextRenderer.nosplit");
+  private boolean splitAtSpaces = false;
   private int spaceWidth = -1;
   private List/*<String>*/ tokenizationResults = new ArrayList/*<String>*/();
 
@@ -575,7 +575,7 @@ public class TextRenderer {
 
       @return the width of the space character in the TextRenderer's font
   */
-  public int getSpaceWidth() {
+  private int getSpaceWidth() {
     if (spaceWidth < 0) {
       Graphics2D g = getGraphics2D();
       FontRenderContext frc = getFontRenderContext();
