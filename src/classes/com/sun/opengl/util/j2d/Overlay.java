@@ -92,9 +92,9 @@ public class Overlay {
   /** Marks the given region of the overlay as dirty. This region, and
       any previously set dirty regions, will be automatically
       synchronized with the underlying Texture during the next {@link
-      #getTexture getTexture} operation, at which point the dirty
-      region will be cleared. It is not necessary for an OpenGL
-      context to be current when this method is called.
+      #draw draw} or {@link #drawAll drawAll} operation, at which
+      point the dirty region will be cleared. It is not necessary for
+      an OpenGL context to be current when this method is called.
 
       @param x the x coordinate (in Java 2D coordinates -- relative to
         upper left) of the region to update
@@ -103,8 +103,7 @@ public class Overlay {
       @param width the width of the region to update
       @param height the height of the region to update
 
-      @throws GLException If an OpenGL context is not current when this method is called
-  */
+      @throws GLException If an OpenGL context is not current when this method is called */
   public void markDirty(int x, int y, int width, int height) {
     renderer.markDirty(x, y, width, height);
   }
