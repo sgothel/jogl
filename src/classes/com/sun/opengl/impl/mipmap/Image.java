@@ -220,63 +220,63 @@ public class Image {
             case( GL.GL_UNSIGNED_BYTE_3_3_2 ):
               extract.extract( false, userdata /*userdata[iter]*/, extractComponents );
               for( k = 0; k < 3; k++ ) {
-                newimage.put( (short)(extractComponents[k] * 65535 ) );
+                newimage.put( iter2++, (short)(extractComponents[k] * 65535 ) );
               }
               break;
             case( GL.GL_UNSIGNED_BYTE_2_3_3_REV ):
               extract.extract( false, userdata /*userdata[iter]*/, extractComponents );
               for( k = 0; k < 3; k++ ) {
-                newimage.put( (short)(extractComponents[k] * 65535 ) );
+                newimage.put( iter2++, (short)(extractComponents[k] * 65535 ) );
               }
               break;
             case( GL.GL_UNSIGNED_BYTE ):
               if( index_format ) {
-                newimage.put( (short)( 0x000000FF & userdata.get() ) );//userdata[iter];
+                newimage.put( iter2++, (short)( 0x000000FF & userdata.get() ) );//userdata[iter];
               } else {
-                newimage.put( (short)( 0x000000FF & userdata.get()/*userdata[iter]*/ * 257 ) );
+                newimage.put( iter2++, (short)( 0x000000FF & userdata.get()/*userdata[iter]*/ * 257 ) );
               }
               break;
             case( GL.GL_BYTE ):
               if( index_format ) {
-                newimage.put( userdata.get() ); //userdata[iter];
+                newimage.put( iter2++, userdata.get() ); //userdata[iter];
               } else {
-                newimage.put( (short)(userdata.get()/*userdata[iter]*/ * 516 ) );
+                newimage.put( iter2++, (short)(userdata.get()/*userdata[iter]*/ * 516 ) );
               }
               break;
             case( GL.GL_UNSIGNED_SHORT_5_6_5 ):
               extract.extract( myswap_bytes, userdata/*userdata[iter]*/, extractComponents );
               for( k = 0; k < 3; k++ ) {
-                newimage.put( (short)(extractComponents[k] * 65535) );
+                newimage.put( iter2++, (short)(extractComponents[k] * 65535) );
               }
               break;
             case( GL.GL_UNSIGNED_SHORT_5_6_5_REV ):
               extract.extract( myswap_bytes, userdata, extractComponents );
               for( k = 0; k < 3; k++ ) {
-                newimage.put( (short)(extractComponents[k] * 65535 ) );
+                newimage.put( iter2++, (short)(extractComponents[k] * 65535 ) );
               }
               break;
             case( GL.GL_UNSIGNED_SHORT_4_4_4_4 ):
               extract.extract( myswap_bytes, userdata, extractComponents );
               for( k = 0; k < 4; k++ ) {
-                newimage.put( (short)(extractComponents[k] * 65535 ) );
+                newimage.put( iter2++, (short)(extractComponents[k] * 65535 ) );
               }
               break;
             case( GL.GL_UNSIGNED_SHORT_4_4_4_4_REV ):
               extract.extract( myswap_bytes, userdata, extractComponents );
               for( k = 0; k < 4; k++ ) {
-                newimage.put( (short)( extractComponents[k] * 65535 ) );
+                newimage.put( iter2++, (short)( extractComponents[k] * 65535 ) );
               }
               break;
             case( GL.GL_UNSIGNED_SHORT_5_5_5_1 ):
               extract.extract( myswap_bytes, userdata, extractComponents );
               for( k = 0; k < 4; k++ ) {
-                newimage.put( (short)(extractComponents[k] * 65535 ) );
+                newimage.put( iter2++, (short)(extractComponents[k] * 65535 ) );
               }
               break;
             case( GL.GL_UNSIGNED_SHORT_1_5_5_5_REV ):
               extract.extract( myswap_bytes, userdata, extractComponents );
               for( k = 0; k < 4; k++ ) {
-                newimage.put( (short)( extractComponents[k] * 65535 ) );
+                newimage.put( iter2++, (short)( extractComponents[k] * 65535 ) );
               }
               break;
             case( GL.GL_UNSIGNED_SHORT ):
@@ -290,36 +290,36 @@ public class Image {
               }
               if( type == GL.GL_SHORT ) {
                 if( index_format ) {
-                  newimage.put( widget.getS0() );
+                  newimage.put( iter2++, widget.getS0() );
                 } else {
-                  newimage.put( (short)(widget.getS0() * 2) );
+                  newimage.put( iter2++, (short)(widget.getS0() * 2) );
                 }
               } else {
-                newimage.put( widget.getUS0() );
+                newimage.put( iter2++, widget.getUS0() );
               }
               break;
             case( GL.GL_UNSIGNED_INT_8_8_8_8 ):
               extract.extract( myswap_bytes, userdata, extractComponents );
               for( k = 0; k < 4; k++ ) {
-                newimage.put( (short)( extractComponents[k] * 65535 ) );
+                newimage.put( iter2++, (short)( extractComponents[k] * 65535 ) );
               }
               break;
             case( GL.GL_UNSIGNED_INT_8_8_8_8_REV ):
               extract.extract( myswap_bytes, userdata, extractComponents );
               for( k = 0; k < 4; k++ ) {
-                newimage.put( (short)( extractComponents[k] * 65535 ) );
+                newimage.put( iter2++, (short)( extractComponents[k] * 65535 ) );
               }
               break;
             case( GL.GL_UNSIGNED_INT_10_10_10_2 ):
               extract.extract( myswap_bytes, userdata, extractComponents );
               for( k = 0; k < 4; k++ ) {
-                newimage.put( (short)( extractComponents[k] * 65535 ) );
+                newimage.put( iter2++, (short)( extractComponents[k] * 65535 ) );
               }
               break;
             case( GL.GL_UNSIGNED_INT_2_10_10_10_REV ):
               extract.extract( myswap_bytes, userdata, extractComponents );
               for( k = 0; k < 4; k++ ) {
-                newimage.put( (short)( extractComponents[k] * 65535 ) );
+                newimage.put( iter2++, (short)( extractComponents[k] * 65535 ) );
               }
               break;
             case( GL.GL_INT ):
@@ -338,21 +338,21 @@ public class Image {
               }
               if( type == GL.GL_FLOAT ) {
                 if( index_format ) {
-                  newimage.put( (short)widget.getF() );
+                  newimage.put( iter2++, (short)widget.getF() );
                 } else {
-                  newimage.put( (short)(widget.getF() * 65535 ) );
+                  newimage.put( iter2++, (short)(widget.getF() * 65535 ) );
                 }
               } else if( type == GL.GL_UNSIGNED_INT ) {
                 if( index_format ) {
-                  newimage.put( (short)( widget.getUI() ) );
+                  newimage.put( iter2++, (short)( widget.getUI() ) );
                 } else {
-                  newimage.put( (short)( widget.getUI() >> 16 ) );
+                  newimage.put( iter2++, (short)( widget.getUI() >> 16 ) );
                 }
               } else {
                 if( index_format ) {
-                  newimage.put( (short)( widget.getI() ) );
+                  newimage.put( iter2++, (short)( widget.getI() ) );
                 } else {
-                  newimage.put( (short)( widget.getI() >> 15 ) );
+                  newimage.put( iter2++, (short)( widget.getI() >> 15 ) );
                 }
               }
               break;

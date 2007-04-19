@@ -72,8 +72,8 @@ public class ScaleInternal {
       HalveImage.halveImage( components, widthin, heightin, datain, dataout );
       return;
     }
-    convx = (float)heightin / heightout;
-    convy = (float)widthin / widthout;
+    convy = (float)heightin / heightout;
+    convx = (float)widthin / widthout;
     halfconvx = convx / 2;
     halfconvy = convy / 2;
     for( i = 0; i < heightout; i++ ) {
