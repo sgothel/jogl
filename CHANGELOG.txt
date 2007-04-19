@@ -21,6 +21,10 @@ Changes between JOGL 1.0.0 and 1.1.0:
  - The native code for the "DRI hack" (to support the open-source DRI
    drivers on Linux and other X11 platforms) has been removed; JOGL
    now uses the GlueGen NativeLibrary class for this purpose.
+   Reliability improvements have been made to the implementation of
+   this class; it has been confirmed as working again with ATI's
+   proprietary drivers on Linux and should also work better with
+   NVidia's drivers.
 
  - The GlueGen runtime classes have been removed from jogl.jar. These
    have been factored out into gluegen-rt.jar and are referenced by
@@ -45,8 +49,29 @@ Changes between JOGL 1.0.0 and 1.1.0:
    codebase. The documentation and on-line examples have been updated
    as well.
 
+ - The TextureIO implementation has been changed to no longer copy the
+   data associated with BufferedImage TextureData objects. Instead,
+   the necessary vertical flip is now implemented by flipping the
+   texture coordinates vertically.
+
+ - An API for updating a sub-image of a Texture object from a
+   sub-portion of a TextureData object has been added.
+
+ - A GLContext.copy() operation has been added based on community
+   feedback.
+
+ - Three helper classes have been added to the com.sun.opengl.util.j2d
+   package to improve interoperability between JOGL and Java 2D:
+   TextureRenderer, Overlay and TextRenderer. The TextureRenderer
+   supports drawing into an OpenGL texture using Java 2D. The Overlay
+   class provides a convenient Java 2D-based overlay on top of an
+   arbitrary GLDrawable. The TextRenderer class supports drawing of
+   Java 2D text into an OpenGL context. Thanks to Chris Campbell of
+   the Java 2D team for collaboration and to the JOGL community for
+   feedback on the functionality of these new classes.
+
  - Various bug fixes and robustness improvements were made to the
-   GlueGen runtime and JOGL implementation.
+   GlueGen runtime, JOGL and GLU implementations.
 
  - Windows/AMD64 binaries, including the JOGL Cg binding, are now
    supplied.
