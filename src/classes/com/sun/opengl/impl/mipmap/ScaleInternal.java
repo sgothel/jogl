@@ -392,8 +392,8 @@ public class ScaleInternal {
                         element_size, ysize, group_size );
       return;
     }
-    convx = (float)heightin / heightout;
-    convy = (float)widthin / widthout;
+    convy = (float)heightin / heightout;
+    convx = (float)widthin / widthout;
     convy_int = (int)Math.floor( convy );
     convy_float = convy - convy_int;
     convx_int = (int)Math.floor( convx );
@@ -610,8 +610,8 @@ public class ScaleInternal {
                         element_size, ysize, group_size, myswap_bytes );
       return;
     }
-    convx = (float)heightin / heightout;
-    convy = (float)widthin / widthout;
+    convy = (float)heightin / heightout;
+    convx = (float)widthin / widthout;
     convy_int = (int)Math.floor( convy );
     convy_float = convy - convy_int;
     convx_int = (int)Math.floor( convx );
@@ -893,8 +893,8 @@ public class ScaleInternal {
                         element_size, ysize, group_size, myswap_bytes );
       return;
     }
-    convx = (float)heightin / heightout;
-    convy = (float)widthin / widthout;
+    convy = (float)heightin / heightout;
+    convx = (float)widthin / widthout;
     convy_int = (int)Math.floor( convy );
     convy_float = convy - convy_int;
     convx_int = (int)Math.floor( convx );
@@ -1188,8 +1188,8 @@ public class ScaleInternal {
                         element_size, ysize, group_size, myswap_bytes );
       return;
     }
-    convx = (float)heightin / heightout;
-    convy = (float)widthin / widthout;
+    convy = (float)heightin / heightout;
+    convx = (float)widthin / widthout;
     convy_int = (int)Math.floor( convy );
     convy_float = convy - convy_int;
     convx_int = (int)Math.floor( convx );
@@ -1478,8 +1478,8 @@ public class ScaleInternal {
                         element_size, ysize, group_size, myswap_bytes );
       return;
     }
-    convx = (float)heightin / heightout;
-    convy = (float)widthin / widthout;
+    convy = (float)heightin / heightout;
+    convx = (float)widthin / widthout;
     convy_int = (int)Math.floor( convy );
     convy_float = convy - convy_int;
     convx_int = (int)Math.floor( convx );
@@ -1775,8 +1775,8 @@ public class ScaleInternal {
                         element_size, ysize, group_size, myswap_bytes );
       return;
     }
-    convx = (float)heightin / heightout;
-    convy = (float)widthin / widthout;
+    convy = (float)heightin / heightout;
+    convx = (float)widthin / widthout;
     convy_int = (int)Math.floor( convy );
     convy_float = convy - convy_int;
     convx_int = (int)Math.floor( convx );
