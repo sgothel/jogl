@@ -68,10 +68,26 @@ Changes between JOGL 1.0.0 and 1.1.0:
    arbitrary GLDrawable. The TextRenderer class supports drawing of
    Java 2D text into an OpenGL context. Thanks to Chris Campbell of
    the Java 2D team for collaboration and to the JOGL community for
-   feedback on the functionality of these new classes.
+   extensive feedback and testing assistance.
 
  - Various bug fixes and robustness improvements were made to the
    GlueGen runtime, JOGL and GLU implementations.
+
+ - Fixes to the DDSImage class were contributed by the community: a
+   bug fix to mipmap handling and support for cubemap textures. Thanks
+   to java.net user bandures.
+
+ - TextureIO.setTexRectEnabled() and isTexRectEnabled() were added
+   based on feedback from Chris Campbell, in order to simplify the
+   writing of pixel shaders which have different samplers for
+   GL_TEXTURE_2D and GL_TEXTURE_RECTANGLE_ARB targets.
+
+ - Thanks to Erik Tollerud, the links to the OpenGL documentation in
+   the JOGL javadoc were revised to point to the new on-line man pages
+   in the OpenGL SDK.
+
+ - Support for automatic mipmap generation via GL_GENERATE_MIPMAP was
+   added to the TextureIO, TextureRenderer and TextRenderer classes.
 
  - Windows/AMD64 binaries, including the JOGL Cg binding, are now
    supplied.
