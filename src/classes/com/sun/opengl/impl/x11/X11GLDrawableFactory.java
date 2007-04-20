@@ -54,8 +54,9 @@ import com.sun.opengl.impl.*;
 public class X11GLDrawableFactory extends GLDrawableFactoryImpl {
   private static final boolean DEBUG = Debug.debug("X11GLDrawableFactory");
 
-  // There is currently a bug on Linux/AMD64 distributions in glXGetProcAddressARB
-  private static boolean isLinuxAMD64;
+  // There is currently a bug on Linux/AMD64 and Solaris/AMD64
+  // distributions in glXGetProcAddressARB
+  private static boolean isAMD64;
 
   // ATI's proprietary drivers apparently send GLX tokens even for
   // direct contexts, so we need to disable the context optimizations
@@ -104,10 +105,9 @@ public class X11GLDrawableFactory extends GLDrawableFactoryImpl {
 
     AccessController.doPrivileged(new PrivilegedAction() {
         public Object run() {
-          String os   = System.getProperty("os.name").toLowerCase();
           String arch = System.getProperty("os.arch").toLowerCase();
-          if (os.startsWith("linux") && arch.equals("amd64")) {
-            isLinuxAMD64 = true;
+          if (arch.equals("amd64") || arch.equals("x86_64")) {
+            isAMD64 = true;
           }
           return null;
         }
@@ -346,7 +346,7 @@ public class X11GLDrawableFactory extends GLDrawableFactoryImpl {
 
   public long dynamicLookupFunction(String glFuncName) {
     long res = 0;
-    if (!isLinuxAMD64) {
+    if (!isAMD64) {
       res = GLX.glXGetProcAddressARB(glFuncName);
     }
     if (res == 0) {
