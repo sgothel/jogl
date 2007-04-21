@@ -76,3 +76,9 @@ Java_com_sun_opengl_impl_x11_GLX_dlsym(JNIEnv *env, jclass _unused, jstring name
   (*env)->ReleaseStringUTFChars(env, name, chars);
   return (jlong) ((intptr_t) res);
 }
+
+/* We expect glXGetProcAddressARB to be defined */
+extern __GLXextFuncPtr glXGetProcAddressARB (const GLubyte *);
+
+/* Need to pull this in as we don't have a stub header for it */
+extern Bool XineramaEnabled(Display* display);
