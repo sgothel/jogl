@@ -646,7 +646,7 @@ public class TextureIO {
                                            (height + (2 * border)) *
                                            bytesPerPixel);
       if (DEBUG) {
-        System.err.println("Allocated buffer of size " + res.remaining() + " for fetched image (" +
+        System.out.println("Allocated buffer of size " + res.remaining() + " for fetched image (" +
                            ((fetchedFormat == GL.GL_RGB) ? "GL_RGB" : "GL_RGBA") + ")");
       }
       gl.glGetTexImage(GL.GL_TEXTURE_2D, 0, fetchedFormat, GL.GL_UNSIGNED_BYTE, res);
@@ -855,6 +855,10 @@ public class TextureIO {
       if (img == null) {
         return null;
       }
+      if (DEBUG) {
+        System.out.println("TextureIO.newTextureData(): BufferedImage type for " + file + " = " +
+                           img.getType());
+      }
       return new TextureData(internalFormat, pixelFormat, mipmap, img);
     }
 
@@ -866,6 +870,10 @@ public class TextureIO {
       BufferedImage img = ImageIO.read(stream);
       if (img == null) {
         return null;
+      }
+      if (DEBUG) {
+        System.out.println("TextureIO.newTextureData(): BufferedImage type for stream = " +
+                           img.getType());
       }
       return new TextureData(internalFormat, pixelFormat, mipmap, img);
     }

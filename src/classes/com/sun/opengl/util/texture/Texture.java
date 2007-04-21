@@ -386,12 +386,20 @@ public class Texture {
     aspectRatio = (float) imgWidth / (float) imgHeight;
     mustFlipVertically = data.getMustFlipVertically();
 
-    int newTarget = 0;
+    int texTarget = 0;
+    int texParamTarget = this.target;
 
     // See whether we have automatic mipmap generation support
     boolean haveAutoMipmapGeneration =
         (gl.isExtensionAvailable("GL_VERSION_1_4") ||
          gl.isExtensionAvailable("GL_SGIS_generate_mipmap"));
+
+    // Note that automatic mipmap generation doesn't work for
+    // GL_ARB_texture_rectangle
+    if ((!isPowerOfTwo(imgWidth) || !isPowerOfTwo(imgHeight)) &&
+        !haveNPOT(gl)) {
+      haveAutoMipmapGeneration = false;
+    }
 
     if (data.getMipmap() && !haveAutoMipmapGeneration) {
       // GLU always scales the texture's dimensions to be powers of
@@ -402,7 +410,7 @@ public class Texture {
       imgHeight = nextPowerOfTwo(imgHeight);
       texWidth = imgWidth;
       texHeight = imgHeight;
-      newTarget = GL.GL_TEXTURE_2D;
+      texTarget = GL.GL_TEXTURE_2D;
     } else if ((isPowerOfTwo(imgWidth) && isPowerOfTwo(imgHeight)) ||
                haveNPOT(gl)) {
       if (DEBUG) {
@@ -415,7 +423,7 @@ public class Texture {
 
       texWidth = imgWidth;
       texHeight = imgHeight;
-      newTarget = GL.GL_TEXTURE_2D;
+      texTarget = GL.GL_TEXTURE_2D;
     } else if (haveTexRect(gl)) {
       if (DEBUG) {
         System.err.println("Using GL_ARB_texture_rectangle");
@@ -423,7 +431,7 @@ public class Texture {
 
       texWidth = imgWidth;
       texHeight = imgHeight;
-      newTarget = GL.GL_TEXTURE_RECTANGLE_ARB;
+      texTarget = GL.GL_TEXTURE_RECTANGLE_ARB;
     } else {
       if (DEBUG) {
         System.err.println("Expanding texture to power-of-two dimensions");
@@ -434,36 +442,23 @@ public class Texture {
       }
       texWidth = nextPowerOfTwo(imgWidth);
       texHeight = nextPowerOfTwo(imgHeight);
-      newTarget = GL.GL_TEXTURE_2D;
+      texTarget = GL.GL_TEXTURE_2D;
     }
 
-    setImageSize(imgWidth, imgHeight, newTarget);
+    texParamTarget = texTarget;
+    setImageSize(imgWidth, imgHeight, texTarget);
 
     if (target != 0) {
       // Allow user to override auto detection and skip bind step (for
       // cubemap construction)
-      newTarget = target;
+      texTarget = target;
       if (this.target == 0) {
         throw new GLException("Override of target failed; no target specified yet");
       }
-      gl.glBindTexture(this.target, texID);
+      texParamTarget = this.target;
+      gl.glBindTexture(texParamTarget, texID);
     } else {
-      gl.glBindTexture(newTarget, texID);
-    }
-
-    int minFilter = (data.getMipmap() ? GL.GL_LINEAR_MIPMAP_LINEAR : GL.GL_LINEAR);
-    int magFilter = GL.GL_LINEAR;
-    int wrapMode = (gl.isExtensionAvailable("GL_VERSION_1_2") ? GL.GL_CLAMP_TO_EDGE : GL.GL_CLAMP);
-
-    // REMIND: figure out what to do for GL_TEXTURE_RECTANGLE_ARB
-    if (newTarget != GL.GL_TEXTURE_RECTANGLE_ARB) {
-      gl.glTexParameteri(newTarget, GL.GL_TEXTURE_MIN_FILTER, minFilter);
-      gl.glTexParameteri(newTarget, GL.GL_TEXTURE_MAG_FILTER, magFilter);
-      gl.glTexParameteri(newTarget, GL.GL_TEXTURE_WRAP_S, wrapMode);
-      gl.glTexParameteri(newTarget, GL.GL_TEXTURE_WRAP_T, wrapMode);
-      if (newTarget == GL.GL_TEXTURE_CUBE_MAP) {
-        gl.glTexParameteri(newTarget, GL.GL_TEXTURE_WRAP_R, wrapMode);
-      }
+      gl.glBindTexture(texTarget, texID);
     }
 
     if (data.getMipmap() && !haveAutoMipmapGeneration) {
@@ -477,7 +472,7 @@ public class Texture {
 
       try {
         GLU glu = new GLU();
-        glu.gluBuild2DMipmaps(newTarget, data.getInternalFormat(),
+        glu.gluBuild2DMipmaps(texTarget, data.getInternalFormat(),
                               data.getWidth(), data.getHeight(),
                               data.getPixelFormat(), data.getPixelType(), data.getBuffer());
       } finally {
@@ -492,15 +487,15 @@ public class Texture {
         for (int i = 0; i < mipmapData.length; i++) {
           if (data.isDataCompressed()) {
             // Need to use glCompressedTexImage2D directly to allocate and fill this image
-            gl.glCompressedTexImage2D(newTarget, i, data.getInternalFormat(),
+            gl.glCompressedTexImage2D(texTarget, i, data.getInternalFormat(),
                                       width, height, data.getBorder(),
                                       mipmapData[i].remaining(), mipmapData[i]);
           } else {
             // Allocate texture image at this level
-            gl.glTexImage2D(newTarget, i, data.getInternalFormat(),
+            gl.glTexImage2D(texTarget, i, data.getInternalFormat(),
                             width, height, data.getBorder(),
                             data.getPixelFormat(), data.getPixelType(), null);
-            updateSubImageImpl(data, newTarget, i, 0, 0, 0, 0, data.getWidth(), data.getHeight());
+            updateSubImageImpl(data, texTarget, i, 0, 0, 0, 0, data.getWidth(), data.getHeight());
           }
 
           width /= 2;
@@ -509,7 +504,7 @@ public class Texture {
       } else {
         if (data.isDataCompressed()) {
           // Need to use glCompressedTexImage2D directly to allocate and fill this image
-          gl.glCompressedTexImage2D(newTarget, 0, data.getInternalFormat(),
+          gl.glCompressedTexImage2D(texTarget, 0, data.getInternalFormat(),
                                     texWidth, texHeight, data.getBorder(),
                                     data.getBuffer().capacity(), data.getBuffer());
         } else {
@@ -518,15 +513,30 @@ public class Texture {
             // textures where the user hasn't explicitly specified
             // mipmap data; don't know about interactions between
             // GL_GENERATE_MIPMAP and glCompressedTexImage2D
-            gl.glTexParameteri(newTarget, GL.GL_GENERATE_MIPMAP, GL.GL_TRUE);
+            gl.glTexParameteri(texParamTarget, GL.GL_GENERATE_MIPMAP, GL.GL_TRUE);
             usingAutoMipmapGeneration = true;
           }
 
-          gl.glTexImage2D(newTarget, 0, data.getInternalFormat(),
+          gl.glTexImage2D(texTarget, 0, data.getInternalFormat(),
                           texWidth, texHeight, data.getBorder(),
                           data.getPixelFormat(), data.getPixelType(), null);
-          updateSubImageImpl(data, newTarget, 0, 0, 0, 0, 0, data.getWidth(), data.getHeight());
+          updateSubImageImpl(data, texTarget, 0, 0, 0, 0, 0, data.getWidth(), data.getHeight());
         }
+      }
+    }
+
+    int minFilter = (data.getMipmap() ? GL.GL_LINEAR_MIPMAP_LINEAR : GL.GL_LINEAR);
+    int magFilter = GL.GL_LINEAR;
+    int wrapMode = (gl.isExtensionAvailable("GL_VERSION_1_2") ? GL.GL_CLAMP_TO_EDGE : GL.GL_CLAMP);
+
+    // REMIND: figure out what to do for GL_TEXTURE_RECTANGLE_ARB
+    if (texTarget != GL.GL_TEXTURE_RECTANGLE_ARB) {
+      gl.glTexParameteri(texParamTarget, GL.GL_TEXTURE_MIN_FILTER, minFilter);
+      gl.glTexParameteri(texParamTarget, GL.GL_TEXTURE_MAG_FILTER, magFilter);
+      gl.glTexParameteri(texParamTarget, GL.GL_TEXTURE_WRAP_S, wrapMode);
+      gl.glTexParameteri(texParamTarget, GL.GL_TEXTURE_WRAP_T, wrapMode);
+      if (this.target == GL.GL_TEXTURE_CUBE_MAP) {
+        gl.glTexParameteri(texParamTarget, GL.GL_TEXTURE_WRAP_R, wrapMode);
       }
     }
 
@@ -535,7 +545,7 @@ public class Texture {
     if ((this.target == 0) ||
         (this.target == GL.GL_TEXTURE_2D) ||
         (this.target == GL.GL_TEXTURE_RECTANGLE_ARB)) {
-      this.target = newTarget;
+      this.target = texTarget;
     }
 
     // This estimate will be wrong for cube maps
@@ -570,6 +580,7 @@ public class Texture {
       // don't need to update other mipmap levels
       return;
     }
+    bind();
     updateSubImageImpl(data, target, mipmapLevel, x, y, 0, 0, data.getWidth(), data.getHeight());
   }
 
@@ -615,6 +626,7 @@ public class Texture {
       // don't need to update other mipmap levels
       return;
     }
+    bind();
     updateSubImageImpl(data, target, mipmapLevel, dstx, dsty, srcx, srcy, width, height);
   }
 
@@ -811,7 +823,6 @@ public class Texture {
       return;
     }
 
-    gl.glBindTexture(newTarget, texID); 
     int rowlen = data.getRowLength();
     int dataWidth = data.getWidth();
     int dataHeight = data.getHeight();
@@ -939,7 +950,8 @@ public class Texture {
 
   // Helper routines for disabling certain codepaths
   private static boolean haveNPOT(GL gl) {
-    return (!disableNPOT && gl.isExtensionAvailable("GL_ARB_texture_non_power_of_two"));
+    return (!disableNPOT &&
+            gl.isExtensionAvailable("GL_ARB_texture_non_power_of_two"));
   }
 
   private static boolean haveTexRect(GL gl) {
