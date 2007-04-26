@@ -1,3 +1,8 @@
+Changes between JOGL 1.1.0 and 1.1.1:
+
+ - Fixed a bug in the checking of incoming buffers' sizes to
+   glTexImage1D, glTexImage2D, and glTexImage3D.
+
 Changes between JOGL 1.0.0 and 1.1.0:
 
  - The glext.h and associated header files JOGL uses have been updated
