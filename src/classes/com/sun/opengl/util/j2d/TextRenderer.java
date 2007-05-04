@@ -94,6 +94,15 @@ import com.sun.opengl.util.*;
     internally will be cleaned up automatically when the OpenGL
     context is destroyed. <P>
 
+    The TextRenderer can be used with the {@link
+    com.sun.opengl.util.TileRenderer TileRenderer} to produce
+    high-resolution screen shots. In this scenario, the TextRenderer's
+    {@link #begin3DRendering begin3DRendering}, {@link #draw3D draw3D}
+    and {@link #end3DRendering end3DRendering} methods must be used to
+    draw the text since the TileRenderer requires that the modelview
+    and projection matrices not be modified during the rendering
+    process. <P>
+
     Internally, the renderer uses a rectangle packing algorithm to
     pack multiple full Strings' rendering results (which are variable
     size) onto a larger OpenGL texture. The internal backing store is
