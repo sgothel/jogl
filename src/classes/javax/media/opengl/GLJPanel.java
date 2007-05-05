@@ -463,6 +463,27 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
       <B>Overrides:</B>
       <DL><DD><CODE>paintComponent</CODE> in class <CODE>javax.swing.JComponent</CODE></DD></DL> */
   protected void paintComponent(final Graphics g) {
+    if (Beans.isDesignTime()) {
+      // Make GLJPanel behave better in NetBeans GUI builder
+      g.setColor(Color.BLACK);
+      g.fillRect(0, 0, getWidth(), getHeight());
+      FontMetrics fm = g.getFontMetrics();
+      String name = getName();
+      if (name == null) {
+        name = getClass().getName();
+        int idx = name.lastIndexOf('.');
+        if (idx >= 0) {
+          name = name.substring(idx + 1);
+        }
+      }
+      Rectangle2D bounds = fm.getStringBounds(name, g);
+      g.setColor(Color.WHITE);
+      g.drawString(name,
+                   (int) ((getWidth()  - bounds.getWidth())  / 2),
+                   (int) ((getHeight() + bounds.getHeight()) / 2));
+      return;
+    }
+
     if (shouldInitialize) {
       initialize();
     }

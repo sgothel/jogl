@@ -40,10 +40,14 @@
 package javax.media.opengl;
 
 import java.awt.Canvas;
+import java.awt.Color;
 import java.awt.EventQueue;
+import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
+import java.awt.geom.*;
+import java.beans.*;
 import java.lang.reflect.*;
 import java.security.*;
 import com.sun.opengl.impl.*;
@@ -139,6 +143,27 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
       <B>Overrides:</B>
       <DL><DD><CODE>paint</CODE> in class <CODE>java.awt.Component</CODE></DD></DL> */
   public void paint(Graphics g) {
+    if (Beans.isDesignTime()) {
+      // Make GLCanvas behave better in NetBeans GUI builder
+      g.setColor(Color.BLACK);
+      g.fillRect(0, 0, getWidth(), getHeight());
+      FontMetrics fm = g.getFontMetrics();
+      String name = getName();
+      if (name == null) {
+        name = getClass().getName();
+        int idx = name.lastIndexOf('.');
+        if (idx >= 0) {
+          name = name.substring(idx + 1);
+        }
+      }
+      Rectangle2D bounds = fm.getStringBounds(name, g);
+      g.setColor(Color.WHITE);
+      g.drawString(name,
+                   (int) ((getWidth()  - bounds.getWidth())  / 2),
+                   (int) ((getHeight() + bounds.getHeight()) / 2));
+      return;
+    }
+
     display();
   }
 
