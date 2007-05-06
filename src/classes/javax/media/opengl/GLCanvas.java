@@ -118,9 +118,11 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
                  GLDrawableFactory.getFactory().chooseGraphicsConfiguration(capabilities,
                                                                             chooser,
                                                                             new AWTGraphicsDevice(device))));
-    drawable = GLDrawableFactory.getFactory().getGLDrawable(this, capabilities, chooser);
-    context = (GLContextImpl) drawable.createContext(shareWith);
-    context.setSynchronized(true);
+    if (!Beans.isDesignTime()) {
+      drawable = GLDrawableFactory.getFactory().getGLDrawable(this, capabilities, chooser);
+      context = (GLContextImpl) drawable.createContext(shareWith);
+      context.setSynchronized(true);
+    }
   }
   
   public GLContext createContext(GLContext shareWith) {
@@ -176,8 +178,10 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
       <DL><DD><CODE>addNotify</CODE> in class <CODE>java.awt.Component</CODE></DD></DL> */
   public void addNotify() {
     super.addNotify();
-    disableBackgroundErase();
-    drawable.setRealized(true);
+    if (!Beans.isDesignTime()) {
+      disableBackgroundErase();
+      drawable.setRealized(true);
+    }
     if (DEBUG) {
       System.err.println("GLCanvas.addNotify()");
     }
@@ -191,29 +195,33 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
       <B>Overrides:</B>
       <DL><DD><CODE>removeNotify</CODE> in class <CODE>java.awt.Component</CODE></DD></DL> */
   public void removeNotify() {
-    try {
-      if (Threading.isSingleThreaded() &&
-          !Threading.isOpenGLThread()) {
-        // Workaround for termination issues with applets --
-        // sun.applet.AppletPanel should probably be performing the
-        // remove() call on the EDT rather than on its own thread
-        if (Threading.isAWTMode() &&
-            Thread.holdsLock(getTreeLock())) {
-          // The user really should not be invoking remove() from this
-          // thread -- but since he/she is, we can not go over to the
-          // EDT at this point. Try to destroy the context from here.
-          destroyAction.run();
-        } else {
-          Threading.invokeOnOpenGLThread(destroyAction);
-        }
-      } else {
-        destroyAction.run();
-      }
-    } finally {
-      drawable.setRealized(false);
+    if (Beans.isDesignTime()) {
       super.removeNotify();
-      if (DEBUG) {
-        System.err.println("GLCanvas.removeNotify()");
+    } else {
+      try {
+        if (Threading.isSingleThreaded() &&
+            !Threading.isOpenGLThread()) {
+          // Workaround for termination issues with applets --
+          // sun.applet.AppletPanel should probably be performing the
+          // remove() call on the EDT rather than on its own thread
+          if (Threading.isAWTMode() &&
+              Thread.holdsLock(getTreeLock())) {
+            // The user really should not be invoking remove() from this
+            // thread -- but since he/she is, we can not go over to the
+            // EDT at this point. Try to destroy the context from here.
+            destroyAction.run();
+          } else {
+            Threading.invokeOnOpenGLThread(destroyAction);
+          }
+        } else {
+          destroyAction.run();
+        }
+      } finally {
+        drawable.setRealized(false);
+        super.removeNotify();
+        if (DEBUG) {
+          System.err.println("GLCanvas.removeNotify()");
+        }
       }
     }
   }
@@ -251,11 +259,17 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
   }
 
   public GL getGL() {
+    if (Beans.isDesignTime()) {
+      return null;
+    }
+
     return getContext().getGL();
   }
 
   public void setGL(GL gl) {
-    getContext().setGL(gl);
+    if (!Beans.isDesignTime()) {
+      getContext().setGL(gl);
+    }
   }
 
   public void setAutoSwapBufferMode(boolean onOrOff) {
