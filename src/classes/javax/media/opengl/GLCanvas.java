@@ -114,10 +114,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
     // least in the Sun AWT implementation) that this will result in
     // equivalent behavior to calling the no-arg super() constructor
     // for Canvas.
-    super(unwrap((AWTGraphicsConfiguration)
-                 GLDrawableFactory.getFactory().chooseGraphicsConfiguration(capabilities,
-                                                                            chooser,
-                                                                            new AWTGraphicsDevice(device))));
+    super(chooseGraphicsConfiguration(capabilities, chooser, device));
     if (!Beans.isDesignTime()) {
       drawable = GLDrawableFactory.getFactory().getGLDrawable(this, capabilities, chooser);
       context = (GLContextImpl) drawable.createContext(shareWith);
@@ -401,10 +398,22 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
     }
   }
 
-  private static GraphicsConfiguration unwrap(AWTGraphicsConfiguration config) {
+  private static GraphicsConfiguration chooseGraphicsConfiguration(GLCapabilities capabilities,
+                                                                   GLCapabilitiesChooser chooser,
+                                                                   GraphicsDevice device) {
+    // Make GLCanvas behave better in NetBeans GUI builder
+    if (Beans.isDesignTime()) {
+      return null;
+    }
+
+    AWTGraphicsConfiguration config = (AWTGraphicsConfiguration)
+      GLDrawableFactory.getFactory().chooseGraphicsConfiguration(capabilities,
+                                                                 chooser,
+                                                                 new AWTGraphicsDevice(device));
     if (config == null) {
       return null;
     }
+
     return config.getGraphicsConfiguration();
   }
 }
