@@ -79,11 +79,13 @@ public class TextureData {
 
   // Mechanism for lazily converting input BufferedImages with custom
   // ColorModels to standard ones for uploading to OpenGL, as well as
-  // backing off from the optimization of hoping that GL_EXT_abgr is
-  // present
+  // backing off from the optimizations of hoping that either
+  // GL_EXT_abgr or OpenGL 1.2 are present
   private BufferedImage imageForLazyCustomConversion;
   private boolean expectingEXTABGR;
   private boolean haveEXTABGR;
+  private boolean expectingGL12;
+  private boolean haveGL12;
 
   private static final ColorModel rgbaColorModel =
     new ComponentColorModel(ColorSpace.getInstance(ColorSpace.CS_sRGB),
@@ -269,9 +271,25 @@ public class TextureData {
   /** Returns the border in pixels of the texture data. */
   public int getBorder() { return border; }
   /** Returns the intended OpenGL pixel format of the texture data. */
-  public int getPixelFormat() { return pixelFormat; }
+  public int getPixelFormat() {
+    if (imageForLazyCustomConversion != null) {
+      if (!((expectingEXTABGR && haveEXTABGR) ||
+            (expectingGL12    && haveGL12))) {
+        revertPixelFormatAndType();
+      }
+    }
+    return pixelFormat;
+  }
   /** Returns the intended OpenGL pixel type of the texture data. */
-  public int getPixelType() { return pixelType; }
+  public int getPixelType() {
+    if (imageForLazyCustomConversion != null) {
+      if (!((expectingEXTABGR && haveEXTABGR) ||
+            (expectingGL12    && haveGL12))) {
+        revertPixelFormatAndType();
+      }
+    }
+    return pixelType;
+  }
   /** Returns the intended OpenGL internal format of the texture data. */
   public int getInternalFormat() { return internalFormat; }
   /** Returns whether mipmaps should be generated for the texture data. */
@@ -284,8 +302,9 @@ public class TextureData {
   /** Returns the texture data, or null if it is specified as a set of mipmaps. */
   public Buffer getBuffer() {
     if (imageForLazyCustomConversion != null) {
-      if (!expectingEXTABGR ||
-          (expectingEXTABGR && !haveEXTABGR)) {
+      if (!((expectingEXTABGR && haveEXTABGR) ||
+            (expectingGL12    && haveGL12))) {
+        revertPixelFormatAndType();
         // Must present the illusion to the end user that we are simply
         // wrapping the input BufferedImage
         createFromCustom(imageForLazyCustomConversion);
@@ -335,6 +354,13 @@ public class TextureData {
       avoid data copies. */
   public void setHaveEXTABGR(boolean haveEXTABGR) {
     this.haveEXTABGR = haveEXTABGR;
+  }
+  /** Indicates to this TextureData whether OpenGL version 1.2 is
+      available. If not, falls back to relatively inefficient code
+      paths for several input data types (several kinds of packed
+      pixel formats, in particular). */
+  public void setHaveGL12(boolean haveGL12) {
+    this.haveGL12 = haveGL12;
   }
 
   /** Returns an estimate of the amount of memory in bytes this
@@ -426,18 +452,24 @@ public class TextureData {
         pixelType = GL.GL_UNSIGNED_INT_8_8_8_8_REV;
         rowLength = scanlineStride;
         alignment = 4;
+        expectingGL12 = true;
+        setupLazyCustomConversion(image);
         break;
       case BufferedImage.TYPE_INT_ARGB_PRE:
         pixelFormat = GL.GL_BGRA;
         pixelType = GL.GL_UNSIGNED_INT_8_8_8_8_REV;
         rowLength = scanlineStride;
         alignment = 4;
+        expectingGL12 = true;
+        setupLazyCustomConversion(image);
         break;
       case BufferedImage.TYPE_INT_BGR:
         pixelFormat = GL.GL_RGBA;
         pixelType = GL.GL_UNSIGNED_INT_8_8_8_8_REV;
         rowLength = scanlineStride;
         alignment = 4;
+        expectingGL12 = true;
+        setupLazyCustomConversion(image);
         break;
       case BufferedImage.TYPE_3BYTE_BGR:
         {
@@ -486,12 +518,16 @@ public class TextureData {
         pixelType = GL.GL_UNSIGNED_SHORT_5_6_5;
         rowLength = scanlineStride;
         alignment = 2;
+        expectingGL12 = true;
+        setupLazyCustomConversion(image);
         break;
       case BufferedImage.TYPE_USHORT_555_RGB:
         pixelFormat = GL.GL_BGRA;
         pixelType = GL.GL_UNSIGNED_SHORT_1_5_5_5_REV;
         rowLength = scanlineStride;
         alignment = 2;
+        expectingGL12 = true;
+        setupLazyCustomConversion(image);
         break;
       case BufferedImage.TYPE_BYTE_GRAY:
         pixelFormat = GL.GL_LUMINANCE;
@@ -538,16 +574,17 @@ public class TextureData {
   private void setupLazyCustomConversion(BufferedImage image) {
     imageForLazyCustomConversion = image;
     boolean hasAlpha = image.getColorModel().hasAlpha();
-    pixelFormat = hasAlpha ? GL.GL_RGBA : GL.GL_RGB;
+    if (pixelFormat == 0) {
+        pixelFormat = hasAlpha ? GL.GL_RGBA : GL.GL_RGB;
+    }
     alignment = 1; // FIXME: do we need better?
     rowLength = width; // FIXME: correct in all cases?
-    // Don't use GL_UNSIGNED_INT for TYPE_INT_ARGB images
-    boolean isIntRGBA = (image.getType() == BufferedImage.TYPE_INT_ARGB);
 
     // Allow previously-selected pixelType (if any) to override that
     // we can infer from the DataBuffer
     DataBuffer data = image.getRaster().getDataBuffer();
-    if (data instanceof DataBufferByte || isIntRGBA) {
+    if (data instanceof DataBufferByte || isPackedInt(image)) {
+      // Don't use GL_UNSIGNED_INT for BufferedImage packed int images
       if (pixelType == 0) pixelType = GL.GL_UNSIGNED_BYTE;
     } else if (data instanceof DataBufferDouble) {
       throw new RuntimeException("DataBufferDouble rasters not supported by OpenGL");
@@ -573,8 +610,8 @@ public class TextureData {
     boolean hasAlpha = image.getColorModel().hasAlpha();
     ColorModel cm = null;
     int dataBufferType = image.getRaster().getDataBuffer().getDataType();
-    // Don't use integer components for TYPE_INT_ARGB images
-    if (image.getType() == BufferedImage.TYPE_INT_ARGB) {
+    // Don't use integer components for packed int images
+    if (isPackedInt(image)) {
       dataBufferType = DataBuffer.TYPE_BYTE;
     }
     if (dataBufferType == DataBuffer.TYPE_BYTE) {
@@ -606,6 +643,24 @@ public class TextureData {
 
     // Wrap the buffer from the temporary image
     createNIOBufferFromImage(texImage);
+  }
+
+  private boolean isPackedInt(BufferedImage image) {
+    int imgType = image.getType();
+    return (imgType == BufferedImage.TYPE_INT_RGB ||
+            imgType == BufferedImage.TYPE_INT_BGR ||
+            imgType == BufferedImage.TYPE_INT_ARGB ||
+            imgType == BufferedImage.TYPE_INT_ARGB_PRE);
+  }
+
+  private void revertPixelFormatAndType() {
+    // Knowing we don't have e.g. OpenGL 1.2 functionality available,
+    // and knowing we're in the process of doing the fallback code
+    // path, re-infer a vanilla pixel format and type compatible with
+    // OpenGL 1.1
+    pixelFormat = 0;
+    pixelType = 0;
+    setupLazyCustomConversion(imageForLazyCustomConversion);
   }
 
   private int estimatedMemorySize(Buffer buffer) {

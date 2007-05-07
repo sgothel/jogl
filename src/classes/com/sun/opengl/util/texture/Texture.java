@@ -394,6 +394,10 @@ public class Texture {
         (gl.isExtensionAvailable("GL_VERSION_1_4") ||
          gl.isExtensionAvailable("GL_SGIS_generate_mipmap"));
 
+    // Indicate to the TextureData what functionality is available
+    data.setHaveEXTABGR(gl.isExtensionAvailable("GL_EXT_abgr"));
+    data.setHaveGL12(gl.isExtensionAvailable("GL_VERSION_1_2"));
+
     // Note that automatic mipmap generation doesn't work for
     // GL_ARB_texture_rectangle
     if ((!isPowerOfTwo(imgWidth) || !isPowerOfTwo(imgHeight)) &&
@@ -813,9 +817,8 @@ public class Texture {
                                   int dstx, int dsty,
                                   int srcx, int srcy, int width, int height) throws GLException {
     GL gl = GLU.getCurrentGL();
-    if (gl.isExtensionAvailable("GL_EXT_abgr")) {
-      data.setHaveEXTABGR(true);
-    }
+    data.setHaveEXTABGR(gl.isExtensionAvailable("GL_EXT_abgr"));
+    data.setHaveGL12(gl.isExtensionAvailable("GL_VERSION_1_2"));
 
     Buffer buffer = data.getBuffer();
     if (buffer == null && data.getMipmapData() == null) {
