@@ -41,6 +41,7 @@ package com.sun.opengl.util.j2d;
 
 import java.awt.AlphaComposite;
 import java.awt.Color;
+import java.awt.Composite;
 import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.Image;
@@ -217,8 +218,8 @@ public class TextRenderer {
         supplied Graphics2D instance. The surrounding region will
         already have been cleared to the RGB color (0, 0, 0) with zero
         alpha. The initial drawing context of the passed Graphics2D
-        will be set to use AlphaComposite.Src, the color white, the
-        Font specified in the TextRenderer's constructor, and the
+        will be set to use AlphaComposite.SrcOver, the color white,
+        the Font specified in the TextRenderer's constructor, and the
         rendering hints specified in the TextRenderer constructor.
         Changes made by the end user may be visible in successive
         calls to this method, but are not guaranteed to be preserved.
@@ -536,9 +537,10 @@ public class TextRenderer {
           int strx = rect.x() + origin.x;
           int stry = rect.y() + origin.y;
           // Clear out the area we're going to draw into
+          Composite composite = g.getComposite();
           g.setComposite(AlphaComposite.Clear);
           g.fillRect(rect.x(), rect.y(), rect.w(), rect.h());
-          g.setComposite(AlphaComposite.Src);
+          g.setComposite(composite);
           // Draw the string
           renderDelegate.draw(g, curStr, strx, stry);
           // Mark this region of the TextureRenderer as dirty
@@ -654,7 +656,7 @@ public class TextRenderer {
     if (cachedGraphics == null) {
       cachedGraphics = renderer.createGraphics();
       // Set up composite, font and rendering hints
-      cachedGraphics.setComposite(AlphaComposite.Src);
+      cachedGraphics.setComposite(AlphaComposite.SrcOver);
       cachedGraphics.setColor(Color.WHITE);
       cachedGraphics.setFont(font);
       cachedGraphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
@@ -780,9 +782,10 @@ public class TextRenderer {
 
       if (DEBUG) {
         Graphics2D g = getGraphics2D();
+        Composite composite = g.getComposite();
         g.setComposite(AlphaComposite.Clear);
         g.fillRect(r.x(), r.y(), r.w(), r.h());
-        g.setComposite(AlphaComposite.Src);
+        g.setComposite(composite);
       }
     }
 
@@ -873,6 +876,10 @@ public class TextRenderer {
       }
       TextureRenderer newRenderer = (TextureRenderer) newBackingStore;
       g = newRenderer.createGraphics();
+      // This is needed in particular for the case where the
+      // RenderDelegate is using a non-intensity texture and therefore
+      // has an alpha channel
+      g.setComposite(AlphaComposite.Src);
     }
 
     public void move(Object oldBackingStore,
@@ -881,14 +888,6 @@ public class TextRenderer {
                      Rect   newLocation) {
       TextureRenderer oldRenderer = (TextureRenderer) oldBackingStore;
       TextureRenderer newRenderer = (TextureRenderer) newBackingStore;
-
-      if (!renderDelegate.intensityOnly()) {
-        // Transparent pixels in the source image will not overwrite
-        // the contents of the backing store
-        g.setComposite(AlphaComposite.Clear);
-        g.fillRect(newLocation.x(), newLocation.y(), newLocation.w(), newLocation.h());
-        g.setComposite(AlphaComposite.Src);
-      }
 
       if (oldRenderer == newRenderer) {
         // Movement on the same backing store -- easy case
