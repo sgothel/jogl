@@ -882,6 +882,14 @@ public class TextRenderer {
       TextureRenderer oldRenderer = (TextureRenderer) oldBackingStore;
       TextureRenderer newRenderer = (TextureRenderer) newBackingStore;
 
+      if (!renderDelegate.intensityOnly()) {
+        // Transparent pixels in the source image will not overwrite
+        // the contents of the backing store
+        g.setComposite(AlphaComposite.Clear);
+        g.fillRect(newLocation.x(), newLocation.y(), newLocation.w(), newLocation.h());
+        g.setComposite(AlphaComposite.Src);
+      }
+
       if (oldRenderer == newRenderer) {
         // Movement on the same backing store -- easy case
         g.copyArea(oldLocation.x(), oldLocation.y(),
