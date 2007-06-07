@@ -159,6 +159,7 @@ public class BuildComposablePipeline
       CodeGenUtils.emitJavaHeaders(output, 
 		  basePackage,
 		  pipelineClassName,
+                  "com.sun.gluegen.runtime", // FIXME: should make configurable
 		  true,
 		  new String[] { "java.io.*" },
 		  new String[] { "public" },
