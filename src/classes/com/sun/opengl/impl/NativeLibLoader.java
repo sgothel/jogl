@@ -40,6 +40,7 @@
 package com.sun.opengl.impl;
 
 import java.awt.Toolkit;
+import java.lang.reflect.Method;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.HashSet;
@@ -65,7 +66,7 @@ public class NativeLibLoader {
       if (doPreload) {
         for (int i=0; i<preload.length; i++) {
           try {
-            System.loadLibrary(preload[i]);
+            loadLibraryInternal(preload[i]);
           }
           catch (UnsatisfiedLinkError e) {
             if (!ignoreError && e.getMessage().indexOf("already loaded") < 0) {
@@ -75,7 +76,7 @@ public class NativeLibLoader {
         }
       }
       
-      System.loadLibrary(libname);
+      loadLibraryInternal(libname);
     }
   }
   
@@ -141,5 +142,40 @@ public class NativeLibLoader {
         return null;
       }
     });
+  }
+
+  //----------------------------------------------------------------------
+  // Support for the new JNLPAppletLauncher
+  //
+
+  private static boolean usingJNLPAppletLauncher;
+  private static Method  jnlpLoadLibraryMethod;
+
+  static {
+    AccessController.doPrivileged(new PrivilegedAction() {
+        public Object run() {
+          String sunAppletLauncher = System.getProperty("sun.jnlp.applet.launcher");
+          usingJNLPAppletLauncher = Boolean.valueOf(sunAppletLauncher).booleanValue();
+          return null;
+        }
+      });
+  }
+
+  // I hate the amount of delegation currently in this class
+  private static void loadLibraryInternal(String libraryName) {
+    // Note: special-casing JAWT which is built in to the JDK
+    if (usingJNLPAppletLauncher && !libraryName.equals("jawt")) {
+        try {
+          if (jnlpLoadLibraryMethod == null) {
+            Class jnlpAppletLauncherClass = Class.forName("org.jdesktop.applet.util.JNLPAppletLauncher");
+            jnlpLoadLibraryMethod = jnlpAppletLauncherClass.getDeclaredMethod("loadLibrary", new Class[] { String.class });
+          }
+          jnlpLoadLibraryMethod.invoke(null, new Object[] { libraryName });
+        } catch (Exception e) {
+          throw new RuntimeException(e);
+        }
+    } else {
+      System.loadLibrary(libraryName);
+    }
   }
 }
