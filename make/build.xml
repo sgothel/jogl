@@ -55,7 +55,7 @@
     
   <!-- Uncomment this property definition to cause a full release build to be done -->
   <!-- without needing to specify the RI target on the command line  -->
-  <property name="RImanifestfile" value="joglRIversion">
+  <property name="RImanifestfile" value="joglRIversion" />
 
   <!-- Pull in GlueGen cpptasks build file -->
   <property name="gluegen.root" value="../../gluegen" />
