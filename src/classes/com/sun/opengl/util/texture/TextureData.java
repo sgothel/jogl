@@ -261,7 +261,14 @@ public class TextureData {
     }
     createFromImage(image);
     this.mipmap = mipmap;
-    estimatedMemorySize = estimatedMemorySize(buffer);
+    if (buffer != null) {
+      estimatedMemorySize = estimatedMemorySize(buffer);
+    } else {
+      // In the lazy custom conversion case we don't yet have a buffer
+      if (imageForLazyCustomConversion != null) {
+        estimatedMemorySize = estimatedMemorySize(wrapImageDataBuffer(imageForLazyCustomConversion));
+      }
+    }
   }
 
   /** Returns the width in pixels of the texture data. */
@@ -342,7 +349,10 @@ public class TextureData {
       for proper display. */
   public void setMustFlipVertically(boolean mustFlipVertically) { this.mustFlipVertically = mustFlipVertically; }
   /** Sets the texture data. */
-  public void setBuffer(Buffer buffer) { this.buffer = buffer; }
+  public void setBuffer(Buffer buffer) {
+    this.buffer = buffer;
+    estimatedMemorySize = estimatedMemorySize(buffer);
+  }
   /** Sets the required byte alignment for the texture data. */
   public void setAlignment(int alignment) { this.alignment = alignment; }
   /** Sets the row length needed for correct GL_UNPACK_ROW_LENGTH
@@ -395,6 +405,10 @@ public class TextureData {
   //
 
   private void createNIOBufferFromImage(BufferedImage image) {
+    buffer = wrapImageDataBuffer(image);
+  }
+
+  private Buffer wrapImageDataBuffer(BufferedImage image) {
     //
     // Note: Grabbing the DataBuffer will defeat Java2D's image
     // management mechanism (as of JDK 5/6, at least).  This shouldn't
@@ -406,17 +420,17 @@ public class TextureData {
 
     DataBuffer data = image.getRaster().getDataBuffer();
     if (data instanceof DataBufferByte) {
-      buffer = ByteBuffer.wrap(((DataBufferByte) data).getData());
+      return ByteBuffer.wrap(((DataBufferByte) data).getData());
     } else if (data instanceof DataBufferDouble) {
       throw new RuntimeException("DataBufferDouble rasters not supported by OpenGL");
     } else if (data instanceof DataBufferFloat) {
-      buffer = FloatBuffer.wrap(((DataBufferFloat) data).getData());
+      return FloatBuffer.wrap(((DataBufferFloat) data).getData());
     } else if (data instanceof DataBufferInt) {
-      buffer = IntBuffer.wrap(((DataBufferInt) data).getData());
+      return IntBuffer.wrap(((DataBufferInt) data).getData());
     } else if (data instanceof DataBufferShort) {
-      buffer = ShortBuffer.wrap(((DataBufferShort) data).getData());
+      return ShortBuffer.wrap(((DataBufferShort) data).getData());
     } else if (data instanceof DataBufferUShort) {
-      buffer = ShortBuffer.wrap(((DataBufferUShort) data).getData());
+      return ShortBuffer.wrap(((DataBufferUShort) data).getData());
     } else {
       throw new RuntimeException("Unexpected DataBuffer type?");
     }
