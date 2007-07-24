@@ -59,6 +59,9 @@ public class X11GLDrawableFactory extends GLDrawableFactoryImpl {
   // in this case
   private static boolean isVendorATI;
 
+  // See whether we're running in headless mode
+  private static boolean isHeadless;
+
   // Map for rediscovering the GLCapabilities associated with a
   // particular screen and visualID after the fact
   private static Map visualToGLCapsMap = Collections.synchronizedMap(new HashMap());
@@ -98,6 +101,8 @@ public class X11GLDrawableFactory extends GLDrawableFactoryImpl {
     com.sun.opengl.impl.NativeLibLoader.loadCore();
 
     DRIHack.end();
+
+    isHeadless = GraphicsEnvironment.isHeadless();
   }
 
   public X11GLDrawableFactory() {
@@ -415,12 +420,10 @@ public class X11GLDrawableFactory extends GLDrawableFactoryImpl {
       if (pbuffer) {
         res[idx++] = GL.GL_TRUE;
       }
-    } else {
-      if (pbuffer) {
-        res[idx++] = GLX.GLX_STEREO;
-        res[idx++] = GL.GL_FALSE;
-      }
     }
+    // NOTE: don't set (GLX_STEREO, GL_FALSE) in "else" branch for
+    // pbuffer case to work around Mesa bug
+
     res[idx++] = GLX.GLX_RED_SIZE;
     res[idx++] = caps.getRedBits();
     res[idx++] = GLX.GLX_GREEN_SIZE;
@@ -547,12 +550,26 @@ public class X11GLDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   public void lockToolkit() {
+    if (isHeadless) {
+      // Workaround for running (to some degree) in headless
+      // environments but still supporting rendering via pbuffers
+      // For full correctness, would need to implement a Lock class
+      return;
+    }
+
     if (!Java2D.isOGLPipelineActive() || !Java2D.isQueueFlusherThread()) {
       JAWT.getJAWT().Lock();
     }
   }
 
   public void unlockToolkit() {
+    if (isHeadless) {
+      // Workaround for running (to some degree) in headless
+      // environments but still supporting rendering via pbuffers
+      // For full correctness, would need to implement a Lock class
+      return;
+    }
+
     if (!Java2D.isOGLPipelineActive() || !Java2D.isQueueFlusherThread()) {
       JAWT.getJAWT().Unlock();
     }
