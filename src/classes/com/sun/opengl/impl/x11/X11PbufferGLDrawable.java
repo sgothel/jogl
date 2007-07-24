@@ -115,7 +115,7 @@ public class X11PbufferGLDrawable extends X11GLDrawable {
         throw new GLException("Render-to-texture-rectangle pbuffers not supported yet on X11");
       }
 
-      int screen = 0; // FIXME: provide way to specify this?
+      int screen = GLX.DefaultScreen(display);
       int[] iattributes = X11GLDrawableFactory.glCapabilities2AttribList(capabilities,
                                                                          X11GLDrawableFactory.isMultisampleAvailable(),
                                                                          true, display, screen);
