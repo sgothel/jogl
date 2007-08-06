@@ -502,8 +502,8 @@ public class Texture {
             updateSubImageImpl(data, texTarget, i, 0, 0, 0, 0, data.getWidth(), data.getHeight());
           }
 
-          width /= 2;
-          height /= 2;
+          width = Math.max(width / 2, 1);
+          height = Math.max(height / 2, 1);
         }
       } else {
         if (data.isDataCompressed()) {
@@ -834,11 +834,11 @@ public class Texture {
       // Note we do not support specification of the row length for
       // mipmapped textures at this point
       for (int i = 0; i < mipmapLevel; i++) {
-        width /= 2;
-        height /= 2;
+        width = Math.max(width / 2, 1);
+        height = Math.max(height / 2, 1);
 
-        dataWidth /= 2;
-        dataHeight /= 2;
+        dataWidth = Math.max(dataWidth / 2, 1);
+        dataHeight = Math.max(dataHeight / 2, 1);
       }
       rowlen = 0;
       buffer = data.getMipmapData()[mipmapLevel];
