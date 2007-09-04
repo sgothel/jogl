@@ -41,6 +41,7 @@ import java.nio.*;
 import javax.media.opengl.*;
 import javax.media.opengl.glu.*;
 import com.sun.opengl.impl.*;
+import com.sun.opengl.util.texture.spi.*;
 
 /**
  * Represents an OpenGL texture object. Contains convenience routines
@@ -405,6 +406,7 @@ public class Texture {
       haveAutoMipmapGeneration = false;
     }
 
+    boolean expandingCompressedTexture = false;
     if (data.getMipmap() && !haveAutoMipmapGeneration) {
       // GLU always scales the texture's dimensions to be powers of
       // two. It also doesn't really matter exactly what the texture
@@ -428,7 +430,8 @@ public class Texture {
       texWidth = imgWidth;
       texHeight = imgHeight;
       texTarget = GL.GL_TEXTURE_2D;
-    } else if (haveTexRect(gl)) {
+    } else if (haveTexRect(gl) && !data.isDataCompressed()) {
+      // GL_ARB_texture_rectangle does not work for compressed textures
       if (DEBUG) {
         System.err.println("Using GL_ARB_texture_rectangle");
       }
@@ -437,6 +440,25 @@ public class Texture {
       texHeight = imgHeight;
       texTarget = GL.GL_TEXTURE_RECTANGLE_ARB;
     } else {
+      // If we receive non-power-of-two compressed texture data and
+      // don't have true hardware support for compressed textures, we
+      // can fake this support by producing an empty "compressed"
+      // texture image, using glCompressedTexImage2D with that to
+      // allocate the texture, and glCompressedTexSubImage2D with the
+      // incoming data.
+      if (data.isDataCompressed()) {
+        if (data.getMipmapData() != null) {
+
+          // We don't currently support expanding of compressed,
+          // mipmapped non-power-of-two textures to the nearest power
+          // of two; the obvious port of the non-mipmapped code didn't
+          // work
+          throw new GLException("Mipmapped non-power-of-two compressed textures only supported on OpenGL 2.0 hardware (GL_ARB_texture_non_power_of_two)");
+        }
+
+        expandingCompressedTexture = true;
+      }
+
       if (DEBUG) {
         System.err.println("Expanding texture to power-of-two dimensions");
       }
@@ -491,6 +513,7 @@ public class Texture {
         for (int i = 0; i < mipmapData.length; i++) {
           if (data.isDataCompressed()) {
             // Need to use glCompressedTexImage2D directly to allocate and fill this image
+            // Avoid spurious memory allocation when possible
             gl.glCompressedTexImage2D(texTarget, i, data.getInternalFormat(),
                                       width, height, data.getBorder(),
                                       mipmapData[i].remaining(), mipmapData[i]);
@@ -507,10 +530,21 @@ public class Texture {
         }
       } else {
         if (data.isDataCompressed()) {
-          // Need to use glCompressedTexImage2D directly to allocate and fill this image
-          gl.glCompressedTexImage2D(texTarget, 0, data.getInternalFormat(),
-                                    texWidth, texHeight, data.getBorder(),
-                                    data.getBuffer().capacity(), data.getBuffer());
+          if (!expandingCompressedTexture) {
+            // Need to use glCompressedTexImage2D directly to allocate and fill this image
+            // Avoid spurious memory allocation when possible
+            gl.glCompressedTexImage2D(texTarget, 0, data.getInternalFormat(),
+                                      texWidth, texHeight, data.getBorder(),
+                                      data.getBuffer().capacity(), data.getBuffer());
+          } else {
+            ByteBuffer buf = DDSImage.allocateBlankBuffer(texWidth,
+                                                          texHeight,
+                                                          data.getInternalFormat());
+            gl.glCompressedTexImage2D(texTarget, 0, data.getInternalFormat(),
+                                      texWidth, texHeight, data.getBorder(),
+                                      buf.capacity(), buf);
+            updateSubImageImpl(data, texTarget, 0, 0, 0, 0, 0, data.getWidth(), data.getHeight());
+          }
         } else {
           if (data.getMipmap() && haveAutoMipmapGeneration) {
             // For now, only use hardware mipmapping for uncompressed 2D
