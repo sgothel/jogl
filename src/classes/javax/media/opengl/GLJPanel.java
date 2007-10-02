@@ -965,7 +965,7 @@ public class GLJPanel extends JPanel implements GLAutoDrawable {
         // Use factor larger than 2 during shrinks for some hysteresis
         float shrinkFactor = 2.5f;
         if ((panelWidth > pbufferWidth           )       || (panelHeight > pbufferHeight) ||
-            (panelWidth < (pbufferWidth / shrinkFactor)) || (panelHeight < (pbufferWidth / shrinkFactor))) {
+            (panelWidth < (pbufferWidth / shrinkFactor)) || (panelHeight < (pbufferHeight / shrinkFactor))) {
           if (DEBUG) {
             System.err.println("Resizing pbuffer from (" + pbufferWidth + ", " + pbufferHeight + ") " +
                                " to fit (" + panelWidth + ", " + panelHeight + ")");
