@@ -49,6 +49,8 @@ import java.awt.Point;
 import java.awt.RenderingHints;
 import java.awt.font.*;
 import java.awt.geom.*;
+import java.nio.*;
+import java.text.*;
 import java.util.*;
 
 import javax.media.opengl.*;
@@ -61,6 +63,7 @@ import java.awt.Frame;
 import java.awt.event.*;
 import com.sun.opengl.impl.*;
 import com.sun.opengl.util.*;
+import com.sun.opengl.util.texture.*;
 
 /** Renders bitmapped Java 2D text into an OpenGL window with high
     performance, full Unicode support, and a simple API. Performs
@@ -71,23 +74,23 @@ import com.sun.opengl.util.*;
 
     Using the {@link TextRenderer TextRenderer} is simple. Add a
     "<code>TextRenderer renderer;</code>" field to your {@link
-    GLEventListener GLEventListener}. In your {@link
-    GLEventListener#init init} method, add:
+    javax.media.opengl.GLEventListener GLEventListener}. In your {@link
+    javax.media.opengl.GLEventListener#init init} method, add:
 
-<PRE>
+    <PRE>
     renderer = new TextRenderer(new Font("SansSerif", Font.BOLD, 36));
-</PRE>
+    </PRE>
 
-    <P> In the {@link GLEventListener#display display} method of your
-    {@link GLEventListener GLEventListener}, add:
-<PRE>
+    <P> In the {@link javax.media.opengl.GLEventListener#display display} method of your
+    {@link javax.media.opengl.GLEventListener GLEventListener}, add:
+    <PRE>
     renderer.beginRendering(drawable.getWidth(), drawable.getHeight());
     // optionally set the color
     renderer.setColor(1.0f, 0.2f, 0.2f, 0.8f);
     renderer.draw("Text to draw", xPosition, yPosition);
     // ... more draw commands, color changes, etc.
     renderer.endRendering();
-</PRE>
+    </PRE>
 
     Unless you are sharing textures and display lists between OpenGL
     contexts, you do not need to call the {@link #dispose dispose}
@@ -95,29 +98,27 @@ import com.sun.opengl.util.*;
     internally will be cleaned up automatically when the OpenGL
     context is destroyed. <P>
 
-    The TextRenderer can be used with the {@link
-    com.sun.opengl.util.TileRenderer TileRenderer} to produce
-    high-resolution screen shots. In this scenario, the TextRenderer's
-    {@link #begin3DRendering begin3DRendering}, {@link #draw3D draw3D}
-    and {@link #end3DRendering end3DRendering} methods must be used to
-    draw the text since the TileRenderer requires that the modelview
-    and projection matrices not be modified during the rendering
-    process. <P>
-
     Internally, the renderer uses a rectangle packing algorithm to
-    pack multiple full Strings' rendering results (which are variable
-    size) onto a larger OpenGL texture. The internal backing store is
-    maintained using a {@link TextureRenderer TextureRenderer}. A
-    least recently used (LRU) algorithm is used to discard previously
+    pack both glyphs and full Strings' rendering results (which are
+    variable size) onto a larger OpenGL texture. The internal backing
+    store is maintained using a {@link
+    com.sun.opengl.util.j2d.TextureRenderer TextureRenderer}. A least
+    recently used (LRU) algorithm is used to discard previously
     rendered strings; the specific algorithm is undefined, but is
     currently implemented by flushing unused Strings' rendering
     results every few hundred rendering cycles, where a rendering
     cycle is defined as a pair of calls to {@link #beginRendering
     beginRendering} / {@link #endRendering endRendering}.
+
+    @author John Burkey
+    @author Kenneth Russell
 */
 
-public class TextRenderer {
+public class TextRenderer
+{
   private static final boolean DEBUG = Debug.debug("TextRenderer");
+
+  static final int kSize = 256;
 
   private Font font;
   private boolean antialiased;
@@ -134,6 +135,8 @@ public class TextRenderer {
   private FontRenderContext cachedFontRenderContext;
   private Map/*<String,Rect>*/ stringLocations = new HashMap/*<String,Rect>*/();
 
+  private GlyphProducer mGlyphProducer;
+
   // Support tokenization of space-separated words
   // NOTE: not using this at the present time as we aren't producing
   // identical rendering results; may ultimately yield more efficient
@@ -141,7 +144,7 @@ public class TextRenderer {
   // private boolean splitAtSpaces = !Debug.isPropertyDefined("jogl.TextRenderer.nosplit");
   private boolean splitAtSpaces = false;
   private int spaceWidth = -1;
-  private List/*<String>*/ tokenizationResults = new ArrayList/*<String>*/();
+  private java.util.List/*<String>*/ tokenizationResults = new ArrayList/*<String>*/();
 
   // Every certain number of render cycles, flush the strings which
   // haven't been used recently
@@ -151,8 +154,102 @@ public class TextRenderer {
   // force a compaction
   private static final float MAX_VERTICAL_FRAGMENTATION = 0.7f;
 
+  private static class MapCharSequenceToGlyphVector
+    implements CharacterIterator
+  {
+    CharSequence mSequence;
+    int mLength;
+    int mCurrentIndex;
+
+    MapCharSequenceToGlyphVector()
+    {
+
+    }
+
+    MapCharSequenceToGlyphVector(CharSequence sequence)
+    {
+      initFromCharSequence(sequence);
+    }
+
+    public void initFromCharSequence(CharSequence sequence)
+    {
+      mSequence = sequence;
+      mLength = mSequence.length ();
+      mCurrentIndex = 0;
+    }
+
+    public char last ()
+    {
+      mCurrentIndex = Math.max(0,mLength-1);
+      return current();
+    }
+
+    public char current ()
+    {
+      if (mLength == 0 || mCurrentIndex >= mLength)
+        {
+          return CharacterIterator.DONE;
+        }
+
+      return mSequence.charAt (mCurrentIndex);
+    }
+
+    public char next ()
+    {
+      mCurrentIndex++;
+      return current();
+    }
+
+    public char previous ()
+    {
+      mCurrentIndex = Math.max(mCurrentIndex-1, 0);
+
+      return current();
+    }
+
+    public char setIndex ( int position )
+    {
+      mCurrentIndex = position;
+      return current();
+    }
+
+    public int getBeginIndex ()
+    {
+      return 0;
+    }
+
+    public int getEndIndex ()
+    {
+      return mLength;
+    }
+
+    public int getIndex ()
+    {
+      return mCurrentIndex;
+    }
+
+    public Object clone ()
+    {
+      MapCharSequenceToGlyphVector iter = new MapCharSequenceToGlyphVector(mSequence);
+      iter.mCurrentIndex = mCurrentIndex;
+      return iter;
+    }
+
+    public char first ()
+    {
+      if (mLength == 0)
+        {
+          return CharacterIterator.DONE;
+        }
+
+      mCurrentIndex = 0;
+      return current();
+    }
+  }
+    
   // Data associated with each rectangle of text
   static class TextData {
+    int unicodeID;
     private String str;    // Back-pointer to String this TextData describes
     // The following must be defined and used VERY precisely. This is
     // the offset from the upper-left corner of this rectangle (Java
@@ -162,9 +259,10 @@ public class TextRenderer {
     private Point origin;
     private boolean used;  // Whether this text was used recently
 
-    TextData(String str, Point origin) {
+    TextData(String str, Point origin, int unicodeID) {
       this.str = str;
       this.origin = origin;
+      this.unicodeID = unicodeID;
     }
 
     String string()  { return str;    }
@@ -208,26 +306,47 @@ public class TextRenderer {
         should be intensity-only (the default) or full-color. */
     public boolean intensityOnly();
 
-    /** Computes the bounds of the given text string relative to the
+    /** Computes the bounds of the given String relative to the
         origin. */
     public Rectangle2D getBounds(String str,
                                  Font font,
                                  FontRenderContext frc);
 
-    /** Render the passed String at the designated location using the
-        supplied Graphics2D instance. The surrounding region will
+    /** Computes the bounds of the given character sequence relative
+        to the origin. */
+    public Rectangle2D getBounds(CharSequence str,
+                                 Font font,
+                                 FontRenderContext frc);
+
+    /** Render the passed character sequence at the designated
+        location using the supplied Graphics2D instance. The
+        surrounding region will already have been cleared to the RGB
+        color (0, 0, 0) with zero alpha. The initial drawing context
+        of the passed Graphics2D will be set to use
+        AlphaComposite.Src, the color white, the Font specified in the
+        TextRenderer's constructor, and the rendering hints specified
+        in the TextRenderer constructor.  Changes made by the end user
+        may be visible in successive calls to this method, but are not
+        guaranteed to be preserved.  Implementors of this method
+        should reset the Graphics2D's state to that desired each time
+        this method is called, in particular those states which are
+        not the defaults. */
+    public void draw(Graphics2D graphics, String str, int x, int y);
+
+    /** Render the passed GlyphVector at the designated location using
+        the supplied Graphics2D instance. The surrounding region will
         already have been cleared to the RGB color (0, 0, 0) with zero
         alpha. The initial drawing context of the passed Graphics2D
-        will be set to use AlphaComposite.SrcOver, the color white,
-        the Font specified in the TextRenderer's constructor, and the
+        will be set to use AlphaComposite.Src, the color white, the
+        Font specified in the TextRenderer's constructor, and the
         rendering hints specified in the TextRenderer constructor.
         Changes made by the end user may be visible in successive
         calls to this method, but are not guaranteed to be preserved.
         Implementors of this method should reset the Graphics2D's
         state to that desired each time this method is called, in
         particular those states which are not the defaults. */
-    public void draw(Graphics2D graphics, String str, int x, int y);
- }
+    public void drawGlyphVector(Graphics2D graphics, GlyphVector str, int x, int y);
+  }
 
   // Debugging purposes only
   private boolean debugged;
@@ -238,8 +357,8 @@ public class TextRenderer {
       false)</code>.
 
       @param font the font to render with
-  */      
-  public TextRenderer(Font font) {
+  */
+  public TextRenderer (Font font) {
     this(font, false, false, null, false);
   }
 
@@ -252,8 +371,8 @@ public class TextRenderer {
 
       @param font the font to render with
       @param mipmap whether to attempt use of automatic mipmap generation
-  */      
-  public TextRenderer(Font font, boolean mipmap) {
+  */
+  public TextRenderer (Font font, boolean mipmap) {
     this(font, false, false, null, mipmap);
   }
 
@@ -268,11 +387,11 @@ public class TextRenderer {
       @param font the font to render with
       @param antialiased whether to use antialiased fonts
       @param useFractionalMetrics whether to use fractional font
-        metrics at the Java 2D level
+      metrics at the Java 2D level
   */
-  public TextRenderer(Font font,
-                      boolean antialiased,
-                      boolean useFractionalMetrics) {
+  public TextRenderer (Font font,
+                       boolean antialiased,
+                       boolean useFractionalMetrics) {
     this(font, antialiased, useFractionalMetrics, null, false);
   }
 
@@ -286,14 +405,14 @@ public class TextRenderer {
       @param font the font to render with
       @param antialiased whether to use antialiased fonts
       @param useFractionalMetrics whether to use fractional font
-        metrics at the Java 2D level
+      metrics at the Java 2D level
       @param renderDelegate the render delegate to use to draw the
-        text's bitmap, or null to use the default one
+      text's bitmap, or null to use the default one
   */
-  public TextRenderer(Font font,
-                      boolean antialiased,
-                      boolean useFractionalMetrics,
-                      RenderDelegate renderDelegate) {
+  public TextRenderer (Font font,
+                       boolean antialiased,
+                       boolean useFractionalMetrics,
+                       RenderDelegate renderDelegate) {
     this(font, antialiased, useFractionalMetrics, renderDelegate, false);
   }
 
@@ -309,16 +428,16 @@ public class TextRenderer {
       @param font the font to render with
       @param antialiased whether to use antialiased fonts
       @param useFractionalMetrics whether to use fractional font
-        metrics at the Java 2D level
+      metrics at the Java 2D level
       @param renderDelegate the render delegate to use to draw the
-        text's bitmap, or null to use the default one
+      text's bitmap, or null to use the default one
       @param mipmap whether to attempt use of automatic mipmap generation
   */
-  public TextRenderer(Font font,
-                      boolean antialiased,
-                      boolean useFractionalMetrics,
-                      RenderDelegate renderDelegate,
-                      boolean mipmap) {
+  public TextRenderer (Font font,
+                       boolean antialiased,
+                       boolean useFractionalMetrics,
+                       RenderDelegate renderDelegate,
+                       boolean mipmap) {
     this.font = font;
     this.antialiased = antialiased;
     this.useFractionalMetrics = useFractionalMetrics;
@@ -326,29 +445,42 @@ public class TextRenderer {
 
     // FIXME: consider adjusting the size based on font size
     // (it will already automatically resize if necessary)
-    packer = new RectanglePacker(new Manager(), 256, 256);
+    packer = new RectanglePacker(new Manager(), kSize, kSize);
 
-    if (renderDelegate == null) {
-      renderDelegate = new DefaultRenderDelegate();
-    }
+    if (renderDelegate == null)
+      {
+        renderDelegate = new DefaultRenderDelegate();
+      }
+
     this.renderDelegate = renderDelegate;
+
+    mGlyphProducer = new GlyphProducer (getFontRenderContext(),font.getNumGlyphs ());
   }
 
   /** Returns the bounding rectangle of the given String, assuming it
-      was rendered at the origin. The coordinate system of the
-      returned rectangle is Java 2D's, with increasing Y coordinates
-      in the downward direction. The relative coordinate (0, 0) in the
-      returned rectangle corresponds to the baseline of the leftmost
-      character of the rendered string, in similar fashion to the
-      results returned by, for example, {@link
-      GlyphVector#getVisualBounds}. Most applications will use only
-      the width and height of the returned Rectangle for the purposes
-      of centering or justifying the String. It is not specified which
-      Java 2D bounds ({@link GlyphVector#getVisualBounds
-      getVisualBounds}, {@link GlyphVector#getPixelBounds
-      getPixelBounds}, etc.) the returned bounds correspond to,
-      although every effort is made to ensure an accurate bound. */
-  public Rectangle2D getBounds(String str) {
+      was rendered at the origin. See {@link #getBounds(CharSequence)
+      getBounds(CharSequence)}. */
+  public Rectangle2D getBounds(String str)
+  {
+    return getBounds((CharSequence) str);
+  }
+
+  /** Returns the bounding rectangle of the given CharSequence,
+      assuming it was rendered at the origin. The coordinate system of
+      the returned rectangle is Java 2D's, with increasing Y
+      coordinates in the downward direction. The relative coordinate
+      (0, 0) in the returned rectangle corresponds to the baseline of
+      the leftmost character of the rendered string, in similar
+      fashion to the results returned by, for example, {@link
+      java.awt.font.GlyphVector#getVisualBounds}. Most applications
+      will use only the width and height of the returned Rectangle for
+      the purposes of centering or justifying the String. It is not
+      specified which Java 2D bounds ({@link
+      java.awt.font.GlyphVector#getVisualBounds getVisualBounds},
+      {@link java.awt.font.GlyphVector#getPixelBounds getPixelBounds},
+      etc.) the returned bounds correspond to, although every effort
+      is made to ensure an accurate bound. */
+  public Rectangle2D getBounds(CharSequence str) {
     // FIXME: this doesn't hit the cache if tokenization is enabled --
     // needs more work
     // Prefer a more optimized approach
@@ -397,9 +529,10 @@ public class TextRenderer {
 
       @param width the width of the current on-screen OpenGL drawable
       @param height the height of the current on-screen OpenGL drawable
-      @throws GLException If an OpenGL context is not current when this method is called
+      @throws javax.media.opengl.GLException If an OpenGL context is not current when this method is called
   */
-  public void beginRendering(int width, int height) throws GLException {
+  public void beginRendering(int width, int height) throws GLException
+  {
     beginRendering(width, height, true);
   }
 
@@ -445,7 +578,15 @@ public class TextRenderer {
       @param color the new color to use for rendering text
       @throws GLException If an OpenGL context is not current when this method is called
   */
-  public void setColor(Color color) throws GLException {
+
+  public void setColor(Color color) throws GLException
+  {
+    boolean noNeedForFlush = (haveCachedColor && cachedColor != null && color.equals ( cachedColor));
+    if (!noNeedForFlush)
+      {
+        flushGlyphPipeline ();
+      }
+
     getBackingStore().setColor(color);
     haveCachedColor = true;
     cachedColor = color;
@@ -463,10 +604,21 @@ public class TextRenderer {
       @param g the green component of the new color
       @param b the blue component of the new color
       @param a the alpha component of the new color, 0.0f = completely
-        transparent, 1.0f = completely opaque
+      transparent, 1.0f = completely opaque
       @throws GLException If an OpenGL context is not current when this method is called
   */
-  public void setColor(float r, float g, float b, float a) throws GLException {
+  public void setColor(float r, float g, float b, float a) throws GLException
+  {
+    boolean noNeedForFlush = (haveCachedColor &&
+                              r == cachedR &&
+                              g == cachedG &&
+                              b == cachedB &&
+                              a == cachedA);
+    if (!noNeedForFlush)
+      {
+        flushGlyphPipeline ();
+      }
+
     getBackingStore().setColor(r, g, b, a);
     haveCachedColor = true;
     cachedR = r;
@@ -476,24 +628,32 @@ public class TextRenderer {
     cachedColor = null;
   }
 
-  /** Draws the supplied String at the desired location using the
-      renderer's current color. The baseline of the leftmost character
-      is at position (x, y) specified in OpenGL coordinates, where the
-      origin is at the lower-left of the drawable and the Y coordinate
-      increases in the upward direction.
+  /** Draws the supplied CharSequence at the desired location using
+      the renderer's current color. The baseline of the leftmost
+      character is at position (x, y) specified in OpenGL coordinates,
+      where the origin is at the lower-left of the drawable and the Y
+      coordinate increases in the upward direction.
 
       @param str the string to draw
       @param x the x coordinate at which to draw
       @param y the y coordinate at which to draw
       @throws GLException If an OpenGL context is not current when this method is called
   */
+  public void draw(CharSequence str, int x, int y) throws GLException {
+    draw3D(str, x, y, 0, 1);
+  }
+
+  /** Draws the supplied String at the desired location using the
+      renderer's current color. See {@link #draw(CharSequence, int,
+      int) draw(CharSequence, int, int)}. */
   public void draw(String str, int x, int y) throws GLException {
     draw3D(str, x, y, 0, 1);
   }
 
-  /** Draws the supplied String at the desired 3D location using the
-      renderer's current color. The baseline of the leftmost character
-      is placed at position (x, y, z) in the current coordinate system.
+  /** Draws the supplied CharSequence at the desired 3D location using
+      the renderer's current color. The baseline of the leftmost
+      character is placed at position (x, y, z) in the current
+      coordinate system.
 
       @param str the string to draw
       @param x the x coordinate at which to draw
@@ -502,71 +662,33 @@ public class TextRenderer {
       @param scaleFactor a uniform scale factor applied to the width and height of the drawn rectangle
       @throws GLException If an OpenGL context is not current when this method is called
   */
-  public void draw3D(String str,
-                     float x, float y, float z,
-                     float scaleFactor) {
-    // Split up the string into space-separated pieces
-    tokenize(str);
-    int xOffset = 0;
-    for (Iterator iter = tokenizationResults.iterator(); iter.hasNext(); ) {
-      String curStr = (String) iter.next();
-      if (curStr != null) {
-        // Look up the string on the backing store
-        Rect rect = (Rect) stringLocations.get(curStr);
-        if (rect == null) {
-          // Rasterize this string and place it on the backing store
-          Graphics2D g = getGraphics2D();
-          Rectangle2D bbox =
-            normalize(renderDelegate.getBounds(curStr, font,
-                                               getFontRenderContext()));
-          Point origin = new Point((int) -bbox.getMinX(),
-                                   (int) -bbox.getMinY());
-          rect = new Rect(0, 0,
-                          (int) bbox.getWidth(),
-                          (int) bbox.getHeight(),
-                          new TextData(curStr, origin));
-          packer.add(rect);
-          stringLocations.put(curStr, rect);
-          // Re-fetch the Graphics2D in case the addition of the rectangle
-          // caused the old backing store to be thrown away
-          g = getGraphics2D();
-          // OK, should now have an (x, y) for this rectangle; rasterize
-          // the String
-          // FIXME: need to verify that this causes the String to be
-          // rasterized fully into the bounding rectangle
-          int strx = rect.x() + origin.x;
-          int stry = rect.y() + origin.y;
-          // Clear out the area we're going to draw into
-          Composite composite = g.getComposite();
-          g.setComposite(AlphaComposite.Clear);
-          g.fillRect(rect.x(), rect.y(), rect.w(), rect.h());
-          g.setComposite(composite);
-          // Draw the string
-          renderDelegate.draw(g, curStr, strx, stry);
-          // Mark this region of the TextureRenderer as dirty
-          getBackingStore().markDirty(rect.x(), rect.y(), rect.w(), rect.h());
-        }
+  public void draw3D(CharSequence str,float x, float y, float z,float scaleFactor)
+  {
+    internal_draw3D(str,x, y, z,scaleFactor);
+  }
 
-        // OK, now draw the portion of the backing store to the screen
-        TextureRenderer renderer = getBackingStore();
-        // NOTE that the rectangles managed by the packer have their
-        // origin at the upper-left but the TextureRenderer's origin is
-        // at its lower left!!!
-        TextData data = (TextData) rect.getUserData();
-        data.markUsed();
+  /** Draws the supplied String at the desired 3D location using the
+      renderer's current color. See {@link #draw3D(CharSequence,
+      float, float, float, float) draw3D(CharSequence, float, float,
+      float, float)}. */
+  public void draw3D(String str,float x, float y, float z,float scaleFactor)
+  {
+    internal_draw3D(str,x, y, z,scaleFactor);
+  }
 
-        // Align the leftmost point of the baseline to the (x, y, z) coordinate requested
-        renderer.draw3DRect(x + xOffset - scaleFactor * data.origin().x,
-                            y - scaleFactor * ((rect.h() - data.origin().y)),
-                            z,
-                            rect.x(),
-                            renderer.getHeight() - rect.y() - rect.h(),
-                            rect.w(), rect.h(),
-                            scaleFactor);
-        xOffset += rect.w() * scaleFactor;
-      }
-      xOffset += getSpaceWidth() * scaleFactor;
-    }
+  /** Returns the pixel width of the given character. */
+  public float getCharWidth(char inChar)
+  {
+    return mGlyphProducer.getGlyphPixelWidth ( inChar);
+  }
+
+  /** Causes the TextRenderer to flush any internal caches it may be
+      maintaining and draw its rendering results to the screen. This
+      should be called after each call to draw() if you are setting
+      OpenGL state such as the modelview matrix between calls to
+      draw(). */
+  public void flush() {
+    flushGlyphPipeline();
   }
 
   /** Ends a render cycle with this {@link TextRenderer TextRenderer}.
@@ -589,6 +711,7 @@ public class TextRenderer {
   private int getSpaceWidth() {
     if (spaceWidth < 0) {
       Graphics2D g = getGraphics2D();
+
       FontRenderContext frc = getFontRenderContext();
       GlyphVector gv = font.createGlyphVector(frc, " ");
       GlyphMetrics metrics = gv.getGlyphMetrics(0);
@@ -622,7 +745,7 @@ public class TextRenderer {
       dbgFrame.dispose();
     }
   }
-  
+
   //----------------------------------------------------------------------
   // Internals only below this point
   //
@@ -656,15 +779,15 @@ public class TextRenderer {
     if (cachedGraphics == null) {
       cachedGraphics = renderer.createGraphics();
       // Set up composite, font and rendering hints
-      cachedGraphics.setComposite(AlphaComposite.SrcOver);
+      cachedGraphics.setComposite(AlphaComposite.Src);
       cachedGraphics.setColor(Color.WHITE);
       cachedGraphics.setFont(font);
       cachedGraphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
                                       (antialiased ? RenderingHints.VALUE_TEXT_ANTIALIAS_ON
-                                                   : RenderingHints.VALUE_TEXT_ANTIALIAS_OFF));
+                                       : RenderingHints.VALUE_TEXT_ANTIALIAS_OFF));
       cachedGraphics.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS,
                                       (useFractionalMetrics ? RenderingHints.VALUE_FRACTIONALMETRICS_ON
-                                                            : RenderingHints.VALUE_FRACTIONALMETRICS_OFF));
+                                       : RenderingHints.VALUE_FRACTIONALMETRICS_OFF));
     }
     return cachedGraphics;
   }
@@ -715,6 +838,8 @@ public class TextRenderer {
   }
 
   private void endRendering(boolean ortho) throws GLException {
+    flushGlyphPipeline ();
+
     inBeginEndPair = false;
     if (ortho) {
       getBackingStore().endOrthoRendering();
@@ -730,11 +855,11 @@ public class TextRenderer {
     }
   }
 
-  private void tokenize(String str) {
+  private void tokenize(CharSequence str) {
     // Avoid lots of little allocations per render
     tokenizationResults.clear();
     if (!splitAtSpaces) {
-      tokenizationResults.add(str);
+      tokenizationResults.add(str.toString());
     } else {
       int startChar = 0;
       char c = (char) 0;
@@ -744,7 +869,7 @@ public class TextRenderer {
         if (str.charAt(i) == ' ') {
           // Terminate any substring
           if (startChar < i) {
-            tokenizationResults.add(str.substring(startChar, i));
+            tokenizationResults.add(str.subSequence(startChar, i).toString());
           } else {
             tokenizationResults.add(null);
           }
@@ -756,13 +881,13 @@ public class TextRenderer {
       if (startChar == 0) {
         tokenizationResults.add(str);
       } else if (startChar < len) {
-        tokenizationResults.add(str.substring(startChar, len));
+        tokenizationResults.add(str.subSequence(startChar, len).toString());
       }
     }
   }
 
   private void clearUnusedEntries() {
-    final List/*<Rect>*/ deadRects = new ArrayList/*<Rect>*/();
+    final java.util.List/*<Rect>*/ deadRects = new ArrayList/*<Rect>*/();
     // Iterate through the contents of the backing store, removing
     // text strings that haven't been used recently
     packer.visit(new RectVisitor() {
@@ -779,14 +904,18 @@ public class TextRenderer {
       Rect r = (Rect) iter.next();
       packer.remove(r);
       stringLocations.remove(((TextData) r.getUserData()).string());
+      int unicodeToClearFromCache = ((TextData) r.getUserData()).unicodeID;
+      if (unicodeToClearFromCache > 0)
+        {
+          mGlyphProducer.clearCacheEntry(unicodeToClearFromCache);
+        }
 
-      if (DEBUG) {
-        Graphics2D g = getGraphics2D();
-        Composite composite = g.getComposite();
-        g.setComposite(AlphaComposite.Clear);
-        g.fillRect(r.x(), r.y(), r.w(), r.h());
-        g.setComposite(composite);
-      }
+      //      if (DEBUG) {
+      //        Graphics2D g = getGraphics2D();
+      //        g.setComposite(AlphaComposite.Clear);
+      //        g.fillRect(r.x(), r.y(), r.w(), r.h());
+      //        g.setComposite(AlphaComposite.Src);
+      //      }
     }
 
     // If we removed dead rectangles this cycle, try to do a compaction
@@ -803,7 +932,8 @@ public class TextRenderer {
     }
   }
 
-  class Manager implements BackingStoreManager {
+  class Manager implements BackingStoreManager
+  {
     private Graphics2D g;
 
     public Object allocateBackingStore(int w, int h) {
@@ -876,10 +1006,6 @@ public class TextRenderer {
       }
       TextureRenderer newRenderer = (TextureRenderer) newBackingStore;
       g = newRenderer.createGraphics();
-      // This is needed in particular for the case where the
-      // RenderDelegate is using a non-intensity texture and therefore
-      // has an alpha channel
-      g.setComposite(AlphaComposite.Src);
     }
 
     public void move(Object oldBackingStore,
@@ -939,16 +1065,571 @@ public class TextRenderer {
       return true;
     }
 
+    public Rectangle2D getBounds(CharSequence str,
+                                 Font font,
+                                 FontRenderContext frc) {
+      GlyphVector gv = font.createGlyphVector(frc, new MapCharSequenceToGlyphVector(str));
+      return gv.getPixelBounds(frc, 0, 0);
+    }
+
     public Rectangle2D getBounds(String str,
                                  Font font,
                                  FontRenderContext frc) {
       GlyphVector gv = font.createGlyphVector(frc, str);
       return gv.getPixelBounds(frc, 0, 0);
     }
-    
+
+    public void drawGlyphVector(Graphics2D graphics, GlyphVector str, int x, int y) {
+      graphics.drawGlyphVector(str, x, y);
+    }
+
     public void draw(Graphics2D graphics, String str, int x, int y) {
       graphics.drawString(str, x, y);
     }
+  }
+
+  //----------------------------------------------------------------------
+  // Glyph-by-glyph rendering support
+  //
+
+  private void internal_draw3D(CharSequence str,float x, float y, float z,float scaleFactor)
+  {
+    GlyphsList glyphs = mGlyphProducer.getGlyphs ( str);
+
+    if (glyphs != null) {
+      drawGlyphs(glyphs,x,y,z,scaleFactor);
+    } else {
+      this.draw3D_ROBUST ( str,x,y,z,scaleFactor);
+    }
+  }
+
+  static final int kQuadsPerBuffer                 = 100;
+  static final int kCoordsPerVertVerts             = 3;
+  static final int kCoordsPerVertTex                 = 2;
+  static final int kVertsPerQuad                     = 4;
+
+  static final int kTotalBufferSizeVerts             = kQuadsPerBuffer*kVertsPerQuad;
+
+  static final int kTotalBufferSizeCoordsVerts     = kQuadsPerBuffer*kVertsPerQuad*kCoordsPerVertVerts;
+  static final int kTotalBufferSizeCoordsTex         = kQuadsPerBuffer*kVertsPerQuad*kCoordsPerVertTex;
+  static final int kTotalBufferSizeBytesVerts     = kTotalBufferSizeCoordsVerts*4;
+  static final int kTotalBufferSizeBytesTex         = kTotalBufferSizeCoordsTex*4;
+
+  static final int kSizeInBytes_OneVertices_VertexData     = kCoordsPerVertVerts*4;
+  static final int kSizeInBytes_OneVertices_TexData         = kCoordsPerVertTex*4;
+
+  class GlyphsUploadList
+  {
+    int                 numberOfNewGlyphs;
+    GlyphVector[]         glyphVector;
+    Rectangle2D[]        glyphBounds;
+    int[]                renderIndex;
+    int[]                 newGlyphs;
+    char[]                 newUnicodes;
+
+    void prepGlyphForUpload ( char inUnicodeID, int inGlyphID, Rectangle2D inBounds, int inI, GlyphVector inGv )
+    {
+      int     slot         = this.numberOfNewGlyphs;
+
+      this.newUnicodes[ slot ]             = inUnicodeID;
+      this.newGlyphs[ slot ]                 = inGlyphID;
+      this.glyphBounds[ slot ]             = inBounds;
+      this.renderIndex[ slot ]             = inI;
+      this.glyphVector[ slot ]             = inGv;
+      this.numberOfNewGlyphs++;
+    }
+
+    void uploadAnyNewGlyphs ( GlyphsList outList, GlyphProducer mapper )
+    {
+      for (int i=0;i<this.numberOfNewGlyphs;i++)
+        {
+          if (mapper.unicodes2Glyphs[this.newUnicodes[i]] == mapper.undefined)
+            {
+              Rectangle2D bbox     = normalize(this.glyphBounds[i]);
+              Point origin         = new Point((int) -bbox.getMinX(),(int) -bbox.getMinY());
+              Rect rect             = new Rect(0, 0,(int) bbox.getWidth(), (int) bbox.getHeight(),new TextData(null, origin,this.newUnicodes[i]));
+              GlyphVector gv        = this.glyphVector[i];
+              this.glyphVector[i] = null;                            // <--- dont need this anymore, so null it
+
+              packer.add(rect);
+
+              mapper.glyphRectForTextureMapping[this.newGlyphs[i]] = rect;
+              outList.textureSourceRect[this.renderIndex[i]]          = rect;
+              mapper.unicodes2Glyphs[this.newUnicodes[i]]          = this.newGlyphs[i];    // i do this here, so if i get two upload requests for same glyph, we handle it correctly
+
+              Graphics2D g = getGraphics2D();
+              // OK, should now have an (x, y) for this rectangle; rasterize
+              // the String
+              // FIXME: need to verify that this causes the String to be
+              // rasterized fully into the bounding rectangle
+              int strx = rect.x() + origin.x;
+              int stry = rect.y() + origin.y;
+
+              // ---1st frame performance gating factor---
+              // Clear out the area we're going to draw into
+              // //-- only if we reuse backing store.  Do we do this?  If so, we should have a flag that says we need to clear? or do it in clearSpace itself
+
+              g.setComposite(AlphaComposite.Clear);
+              g.fillRect(rect.x(), rect.y(), rect.w(), rect.h());
+              g.setComposite(AlphaComposite.Src);
+              // Draw the string
+
+              renderDelegate.drawGlyphVector(g, gv, strx, stry);
+              // Mark this region of the TextureRenderer as dirty
+              getBackingStore().markDirty(rect.x(), rect.y(), rect.w(), rect.h());
+            }
+          else
+            {
+              outList.textureSourceRect[this.renderIndex[i]]  = mapper.glyphRectForTextureMapping[this.newGlyphs[i]];
+            }
+
+        }
+    }
+
+    public void allocateSpace ( int inLength )
+    {
+      int allocLength = Math.max(inLength,100);
+
+      if (glyphVector == null || glyphVector.length < allocLength)
+        {
+          glyphVector         = new GlyphVector[allocLength];
+          glyphBounds            = new Rectangle2D[allocLength];
+          renderIndex            = new int[allocLength];
+          newGlyphs             = new int[allocLength];
+          newUnicodes         = new char[allocLength];
+        }
+    }
+  }
+
+  static class GlyphsList
+  {
+    float[]             advances;
+    Rect[]                textureSourceRect;
+    int                 length;
+
+    public void allocateSpace ( int inLength )
+    {
+      int allocLength = Math.max(inLength,100);
+
+      if (advances == null || advances.length < allocLength)
+        {
+          advances            = new float[allocLength];
+          textureSourceRect    = new Rect[allocLength];
+        }
+    }
+  }
+
+  class GlyphProducer
+  {
+    final int undefined     = -2;
+    final int needComplex     = -1;
+
+    FontRenderContext fontRenderContext;
+    GlyphsList glyphsOutput = new GlyphsList();
+    GlyphsUploadList    glyphsToUpload     = new GlyphsUploadList();
+
+    char[]         unicodes;
+    int[]         unicodes2Glyphs;
+    char[]        singleUnicode;
+    Rect[]        glyphRectForTextureMapping;
+    float[]        advances;
+
+    GlyphProducer (FontRenderContext frc, int fontLengthInGlyphs)
+    {
+      fontRenderContext = frc;
+
+      if (advances == null)
+        {
+          advances                     = new float[fontLengthInGlyphs];
+          glyphRectForTextureMapping     = new Rect[fontLengthInGlyphs];
+          unicodes2Glyphs             = new int[512];
+          singleUnicode                = new char[1];
+
+          for (int i=0;i<unicodes2Glyphs.length;i++)
+            {
+              unicodes2Glyphs[i] = undefined;
+            }
+        }
+    }
+
+    public void clearCacheEntry(int unicodeID)
+    {
+      unicodes2Glyphs[unicodeID] = undefined;
+    }
+
+    public void allocateSpace(int length)
+    {
+      length = Math.max(length, 100);
+
+      if (unicodes == null || unicodes.length < length)
+        {
+          unicodes                     = new char[length];
+        }
+
+      glyphsToUpload.allocateSpace(length);
+      glyphsOutput.allocateSpace(length);
+    }
+
+    MapCharSequenceToGlyphVector iter = new MapCharSequenceToGlyphVector();
+
+    char [] tempChars = new char[1];
+    float getGlyphPixelWidth(char unicodeID)
+    {
+      int     glyphID     = undefined;
+
+      if (unicodeID < unicodes2Glyphs.length)        // <--- could support the rare high unicode better later
+        {
+          glyphID     = unicodes2Glyphs[unicodeID];    // Check to see if we have already encountered this unicode
+        }
+
+      if (glyphID != undefined)                           // if we haven't, we must get some its attributes, and prep for upload
+        {
+          return advances[glyphID];
+        }
+      else
+        {
+          tempChars[0]  = unicodeID;
+          GlyphVector fullRunGlyphVector     = font.createGlyphVector(fontRenderContext,tempChars);
+          return fullRunGlyphVector.getGlyphMetrics(0).getAdvance ();
+
+        }
+
+      //            return -1;
+    }
+
+    GlyphsList getGlyphs(CharSequence inString)
+    {
+      glyphsToUpload.numberOfNewGlyphs = 0;
+
+      int length = inString.length ();
+      allocateSpace(length);
+
+      iter.initFromCharSequence ( inString);
+           
+      GlyphVector fullRunGlyphVector     = font.createGlyphVector(fontRenderContext,iter);
+      boolean     complex             = (fullRunGlyphVector.getLayoutFlags () != 0);
+      int            lengthInGlyphs        = fullRunGlyphVector.getNumGlyphs ();
+
+      if (complex)
+        {
+          return null;
+        }
+
+      for (int i=0;i<lengthInGlyphs;i++)
+        {
+          char     unicodeID     = inString.charAt (i);
+
+          if (unicodeID >= unicodes2Glyphs.length)        // <-- -could support these better
+            {
+              return null;
+            }
+
+          int     glyphID     = unicodes2Glyphs[unicodeID];    // Check to see if we have already encountered this unicode
+
+          if (glyphID == undefined)                           // if we haven't, we must get some its attributes, and prep for upload
+            {
+              GlyphMetrics metrics                             = fullRunGlyphVector.getGlyphMetrics(i);
+              singleUnicode[0]                                 = unicodeID;
+              GlyphVector gv                                     = font.createGlyphVector(fontRenderContext, singleUnicode);    // need this to get single bitmaps
+              glyphID                                         = gv.getGlyphCode ( 0);
+
+              glyphsToUpload.prepGlyphForUpload ( unicodeID, gv.getGlyphCode ( 0), gv.getVisualBounds (), i, gv );
+
+              advances[glyphID]                                = metrics.getAdvance ();
+            }
+          else
+            {
+              glyphsOutput.textureSourceRect[i]                 = glyphRectForTextureMapping[glyphID];
+            }
+
+          glyphsOutput.advances[i]                            = advances[glyphID];
+        }
+
+      glyphsOutput.length = length;
+
+      glyphsToUpload.uploadAnyNewGlyphs( glyphsOutput,this);
+
+      return glyphsOutput;
+    }
+  }
+
+  class Pipelined_QuadRenderer
+  {
+    int mOutstandingGlyphsVerticesPipeline = 0;
+
+    FloatBuffer     mTexCoords;
+    FloatBuffer     mVertCoords;
+    int             mVBO_For_ResuableTileVertices;
+    int             mVBO_For_ResuableTileTexCoords;
+
+    Pipelined_QuadRenderer ()
+    {
+      GL gl        = GLU.getCurrentGL();
+      mVertCoords = BufferUtil.newFloatBuffer( kTotalBufferSizeCoordsVerts);
+      mTexCoords  = BufferUtil.newFloatBuffer( kTotalBufferSizeCoordsTex);
+
+      int[] vbos = new int[2];
+      gl.glGenBuffersARB( 2, IntBuffer.wrap(vbos ));
+
+      mVBO_For_ResuableTileVertices     =  vbos[0];
+      mVBO_For_ResuableTileTexCoords     =  vbos[1];
+
+      gl.glBindBuffer( GL.GL_ARRAY_BUFFER, mVBO_For_ResuableTileVertices);
+      gl.glBufferData( GL.GL_ARRAY_BUFFER, kTotalBufferSizeBytesVerts,null, GL.GL_STREAM_DRAW);  // stream draw because this is a single quad use pipeline
+
+      gl.glBindBuffer( GL.GL_ARRAY_BUFFER, mVBO_For_ResuableTileTexCoords);
+      gl.glBufferData( GL.GL_ARRAY_BUFFER, kTotalBufferSizeBytesTex,null, GL.GL_STREAM_DRAW);    // stream draw because this is a single quad use pipeline
+    }
+
+    public void glTexCoord2f ( float v, float v1 )
+    {
+      mTexCoords.put(v);
+      mTexCoords.put(v1);
+    }
+
+    public void glVertex3f ( float inX, float inY, float inZ )
+    {
+      mVertCoords.put(inX);
+      mVertCoords.put(inY);
+      mVertCoords.put(inZ);
+
+      mOutstandingGlyphsVerticesPipeline++;
+
+      if ( mOutstandingGlyphsVerticesPipeline >= kTotalBufferSizeVerts)
+        {
+          this.draw();
+        }
+    }
+
+    private void draw()
+    {
+      if ( mOutstandingGlyphsVerticesPipeline > 0)
+        {
+          GL gl = GLU.getCurrentGL();
+
+          TextureRenderer renderer = getBackingStore ();
+          Texture         texture     = renderer.getTexture();        // triggers texture uploads.  Maybe this should be more obvious?
+
+          mVertCoords.rewind();
+          mTexCoords.rewind();
+
+          gl.glBindBuffer( GL.GL_ARRAY_BUFFER, mVBO_For_ResuableTileVertices);
+          gl.glBufferSubData( GL.GL_ARRAY_BUFFER, 0, mOutstandingGlyphsVerticesPipeline * kSizeInBytes_OneVertices_VertexData, mVertCoords );  // upload only the new stuff
+          gl.glEnableClientState(GL.GL_VERTEX_ARRAY);
+          gl.glVertexPointer(3, GL.GL_FLOAT, 0, 0);
+
+          gl.glClientActiveTexture(GL.GL_TEXTURE0);
+          gl.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY);
+
+          gl.glBindBuffer( GL.GL_ARRAY_BUFFER, mVBO_For_ResuableTileTexCoords);
+          gl.glBufferSubData( GL.GL_ARRAY_BUFFER,0, mOutstandingGlyphsVerticesPipeline * kSizeInBytes_OneVertices_TexData, mTexCoords );    // upload only the new stuff
+          gl.glTexCoordPointer(2, GL.GL_FLOAT, 0, 0);
+
+          gl.glDrawArrays(GL.GL_QUADS,0, mOutstandingGlyphsVerticesPipeline );
+
+          mVertCoords.rewind();
+          mTexCoords.rewind();
+          mOutstandingGlyphsVerticesPipeline = 0;
+        }
+    }
+
+    private void drawIMMEDIATE()
+    {
+      if ( mOutstandingGlyphsVerticesPipeline > 0)
+        {
+          TextureRenderer renderer     = getBackingStore();
+          Texture         texture     = renderer.getTexture();        // triggers texture uploads.  Maybe this should be more obvious?
+
+          GL gl = GLU.getCurrentGL();
+          gl.glBegin ( GL.GL_QUADS);
+
+          try
+            {
+              int numberOfQuads = mOutstandingGlyphsVerticesPipeline /4;
+              mVertCoords.rewind();
+              mTexCoords.rewind();
+
+              for (int i=0;i<numberOfQuads;i++)
+                {
+                  gl.glTexCoord2f( mTexCoords.get (), mTexCoords.get ());
+                  gl.glVertex3f( mVertCoords.get (), mVertCoords.get (), mVertCoords.get());
+
+                  gl.glTexCoord2f( mTexCoords.get (), mTexCoords.get ());
+                  gl.glVertex3f( mVertCoords.get (), mVertCoords.get (), mVertCoords.get());
+
+                  gl.glTexCoord2f( mTexCoords.get (), mTexCoords.get ());
+                  gl.glVertex3f( mVertCoords.get (), mVertCoords.get (), mVertCoords.get());
+
+                  gl.glTexCoord2f( mTexCoords.get (), mTexCoords.get ());
+                  gl.glVertex3f( mVertCoords.get (), mVertCoords.get (), mVertCoords.get());
+                }
+            }
+          catch(Exception e)
+            {
+              e.printStackTrace ();
+            }
+          finally
+            {
+              gl.glEnd();
+              mVertCoords.rewind();
+              mTexCoords.rewind();
+              mOutstandingGlyphsVerticesPipeline = 0;
+            }
+        }
+    }
+
+  }
+
+  Pipelined_QuadRenderer mPipelinedQuadRenderer;
+
+
+  private void flushGlyphPipeline ()
+  {
+    if (mPipelinedQuadRenderer != null) mPipelinedQuadRenderer.draw ();
+  }
+    
+  private void drawGlyphs ( GlyphsList inGlyphs, float inX, float inY, float z,float scaleFactor )
+  {
+    try
+      {
+        if (mPipelinedQuadRenderer == null)
+          {
+            mPipelinedQuadRenderer = new Pipelined_QuadRenderer ();
+          }
+           
+        TextureRenderer renderer = getBackingStore();
+        float xOffset = 0;
+
+        for (int i=0;i<inGlyphs.length;i++)
+          {
+            Rect         rect = inGlyphs.textureSourceRect[i];
+
+            TextData     data = (TextData) rect.getUserData();
+            data.markUsed();
+
+            float     x             = inX + xOffset - scaleFactor * data.origin().x;
+            float     y             = inY - scaleFactor * ((rect.h() - data.origin().y));
+
+            int     texturex     = rect.x();  // avoid overpump of textureUpload path by not triggering sync every quad, instead doing it on flushGlyphPipeline
+            int     texturey     = renderer.getHeight() - rect.y() - rect.h();
+            int     width        = rect.w();
+            int     height        = rect.h();
+
+            float     tx1         = ( float ) texturex / ( float ) kSize;
+            float     ty1         = 1.0f- (( float ) texturey / ( float ) kSize);
+            float     tx2         = ( float ) (texturex + width) / ( float ) kSize;
+            float     ty2         = 1.0f- (( float ) (texturey + height) / ( float ) kSize);
+
+            mPipelinedQuadRenderer.glTexCoord2f(tx1,ty1);
+            mPipelinedQuadRenderer.glVertex3f(x, y, z);
+            mPipelinedQuadRenderer.glTexCoord2f(tx2,ty1);
+            mPipelinedQuadRenderer.glVertex3f(x + width * scaleFactor, y, z);
+            mPipelinedQuadRenderer.glTexCoord2f(tx2,ty2);
+            mPipelinedQuadRenderer.glVertex3f(x + width * scaleFactor, y + height * scaleFactor, z);
+            mPipelinedQuadRenderer.glTexCoord2f(tx1,ty2);
+            mPipelinedQuadRenderer.glVertex3f(x, y + height * scaleFactor, z);
+
+            xOffset += (inGlyphs.advances[i] * scaleFactor);       // note the advances.. I had to use this to get proper kerning.
+          }
+      }
+    catch(Exception e)
+      {
+        e.printStackTrace ();
+      }
+  }
+
+  private void drawGlyphsSIMPLE ( GlyphsList inGlyphs, float x, float y, float z,float scaleFactor ) // unused, for reference, debugging
+  {
+    TextureRenderer renderer = getBackingStore();
+    int xOffset = 0;
+
+    GL gl = GLU.getCurrentGL();
+
+
+    for (int i=0;i<inGlyphs.length;i++)
+      {
+        Rect rect = inGlyphs.textureSourceRect[i];
+        if (rect != null)
+          {
+            TextData data = (TextData) rect.getUserData();
+            data.markUsed();
+
+            renderer.draw3DRect(x + xOffset - scaleFactor * data.origin().x,      // forces upload every new glyph
+                                y - scaleFactor * ((rect.h() - data.origin().y)),
+                                z,
+                                rect.x(),
+                                renderer.getHeight() - rect.y() - rect.h(),
+                                rect.w(), rect.h(),
+                                scaleFactor);
+
+            xOffset += (int) (((inGlyphs.advances[i]) * scaleFactor)+ 0.5f);       // note the advances.. I had to use this to get proper kerning.
+          }
+      }
+  }
+
+  private void draw3D_ROBUST (CharSequence str,
+                              float x, float y, float z,
+                              float scaleFactor)
+  {
+    // Split up the string into space-separated pieces
+    tokenize(str);
+    int xOffset = 0;
+    for (Iterator iter = tokenizationResults.iterator(); iter.hasNext(); )
+      {
+        String curStr = (String) iter.next();    // no tokenization needed, because it was done to shrink # of uniques
+        if (curStr != null)
+          {
+            // Look up the string on the backing store
+            Rect rect = (Rect) stringLocations.get(curStr);
+            if (rect == null)
+              {
+                // Rasterize this string and place it on the backing store
+                Graphics2D g         = getGraphics2D();
+                Rectangle2D bbox     = normalize(renderDelegate.getBounds(curStr, font,getFontRenderContext()));
+                Point origin         = new Point((int) -bbox.getMinX(),(int) -bbox.getMinY());
+                rect                 = new Rect(0, 0,(int) bbox.getWidth(), (int) bbox.getHeight(),new TextData(curStr, origin,-1));
+
+                packer.add(rect);
+                stringLocations.put(curStr, rect);
+                // Re-fetch the Graphics2D in case the addition of the rectangle
+                // caused the old backing store to be thrown away
+                g = getGraphics2D();
+                // OK, should now have an (x, y) for this rectangle; rasterize
+                // the String
+                // FIXME: need to verify that this causes the String to be
+                // rasterized fully into the bounding rectangle
+                int strx = rect.x() + origin.x;
+                int stry = rect.y() + origin.y;
+                // Clear out the area we're going to draw into
+                g.setComposite(AlphaComposite.Clear);
+                g.fillRect(rect.x(), rect.y(), rect.w(), rect.h());
+                g.setComposite(AlphaComposite.Src);
+                // Draw the string
+                renderDelegate.draw(g, curStr, strx, stry);
+                // Mark this region of the TextureRenderer as dirty
+                getBackingStore().markDirty(rect.x(), rect.y(), rect.w(), rect.h());
+              }
+
+            // OK, now draw the portion of the backing store to the screen
+            TextureRenderer renderer = getBackingStore();
+            // NOTE that the rectangles managed by the packer have their
+            // origin at the upper-left but the TextureRenderer's origin is
+            // at its lower left!!!
+            TextData data = (TextData) rect.getUserData();
+            data.markUsed();
+
+            // Align the leftmost point of the baseline to the (x, y, z) coordinate requested
+            renderer.draw3DRect(x + xOffset - scaleFactor * data.origin().x,
+                                y - scaleFactor * ((rect.h() - data.origin().y)),
+                                z,
+                                rect.x(),
+                                renderer.getHeight() - rect.y() - rect.h(),
+                                rect.w(), rect.h(),
+                                scaleFactor);
+            xOffset += rect.w() * scaleFactor;
+          }
+        xOffset += getSpaceWidth() * scaleFactor;
+      }
   }
 
   //----------------------------------------------------------------------
@@ -957,12 +1638,12 @@ public class TextRenderer {
 
   private void debug() {
     dbgFrame = new Frame("TextRenderer Debug Output");
-    GLCanvas dbgCanvas = new GLCanvas(new GLCapabilities(), null, GLContext.getCurrent(), null);
+    GLCanvas dbgCanvas = new GLCanvas(new GLCapabilities (), null, GLContext.getCurrent(), null);
     dbgCanvas.addGLEventListener(new DebugListener(dbgFrame));
     dbgFrame.add(dbgCanvas);
     final FPSAnimator anim = new FPSAnimator(dbgCanvas, 10);
     dbgFrame.addWindowListener(new WindowAdapter() {
-        public void windowClosing(WindowEvent e) {
+        public void windowClosing( WindowEvent e) {
           // Run this on another thread than the AWT event queue to
           // make sure the call to Animator.stop() completes before
           // exiting
@@ -973,7 +1654,7 @@ public class TextRenderer {
             }).start();
         }
       });
-    dbgFrame.setSize(256, 256);
+    dbgFrame.setSize(kSize, kSize);
     dbgFrame.setVisible(true);
     anim.start();
     debugged = true;
