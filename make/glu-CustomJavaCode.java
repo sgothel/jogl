@@ -1430,6 +1430,149 @@ public int gluScaleImage(int format, int wIn, int hIn, int typeIn, java.nio.Buff
 }
 
 //----------------------------------------------------------------------
+// NURBS functionality
+//
+
+/**
+ * Sets a property on a NURBS object. (NOTE: this function is not currently implemented.)
+ * 
+ * @param r
+ *            GLUnurbs object holding NURBS to which a property should be
+ *            set
+ * @param property
+ *            property id
+ * @param value
+ *            property value
+ */
+public void gluNurbsProperty(GLUnurbs r, int property, float value) {
+  // TODO glunurbsproperty
+  float nurbsValue;
+  switch (property) {
+  default:
+    //				System.out.println("TODO gluwnurbs.glunurbsproperty");
+    break;
+  }
+}
+
+/**
+ * Creates a new GLUnurbs object.
+ * 
+ * @return GLUnurbs object
+ */
+public GLUnurbs gluNewNurbsRenderer() {
+  // DONE
+  return new GLUnurbsImpl();
+}
+
+/**
+ * Begins a curve definition.
+ * 
+ * @param r
+ *            GLUnurbs object to specify curve to
+ */
+public void gluBeginCurve(GLUnurbs r) {
+  // DONE
+  ((GLUnurbsImpl) r).bgncurve();
+}
+
+/**
+ * Begins a surface definition.
+ * 
+ * @param r
+ *            GLUnurbs object to specify surface to
+ */
+public void gluBeginSurface(GLUnurbs r) {
+  // DONE
+  ((GLUnurbsImpl) r).bgnsurface();
+}
+
+/**
+ * Ends a surface.
+ * 
+ * @param r
+ *            GLUnurbs object holding surface
+ */
+public void gluEndSurface(GLUnurbs r) {
+  // DONE
+  ((GLUnurbsImpl) r).endsurface();
+}
+
+/**
+ * Makes a NURBS surface.
+ * 
+ * @param r
+ *            GLUnurbs object holding the surface
+ * @param sknot_count
+ *            number of knots in s direction
+ * @param sknot
+ *            knots in s direction
+ * @param tknot_count
+ *            number of knots in t direction
+ * @param tknot
+ *            knots in t direction
+ * @param s_stride
+ *            number of control points coordinates in s direction
+ * @param t_stride
+ *            number of control points coordinates in t direction
+ * @param ctlarray
+ *            control points
+ * @param sorder
+ *            order of surface in s direction
+ * @param torder
+ *            order of surface in t direction
+ * @param type
+ *            surface type
+ */
+public void gluNurbsSurface(GLUnurbs r, int sknot_count, float[] sknot,
+                            int tknot_count, float[] tknot, int s_stride, int t_stride,
+                            float[] ctlarray, int sorder, int torder, int type) {
+  // DONE
+  ((GLUnurbsImpl) r).nurbssurface(sknot_count, sknot, tknot_count, tknot, s_stride,
+                                  t_stride, ctlarray, sorder, torder, type);
+}
+
+/**
+ * Make a NURBS curve.
+ * 
+ * @param r
+ *            GLUnurbs object holding the curve
+ * @param nknots
+ *            number of knots
+ * @param knot
+ *            knot vector
+ * @param stride
+ *            number of control point coordinates
+ * @param ctlarray
+ *            control points
+ * @param order
+ *            order of the curve
+ * @param type
+ *            curve type
+ */
+public void gluNurbsCurve(GLUnurbs r, int nknots, float[] knot, int stride,
+                          float[] ctlarray, int order, int type) {
+  int realType;
+  switch (type) {
+    // TODO GLU_MAP1_TRIM_2 etc.
+  default:
+    realType = type;
+    break;
+  }
+  ((GLUnurbsImpl) r).nurbscurve(nknots, knot, stride, ctlarray, order, realType);
+}
+
+/**
+ * Ends a curve definition.
+ * 
+ * @param r
+ *            GLUnurbs object holding the curve
+ */
+public void gluEndCurve(GLUnurbs r) {
+  //DONE
+  ((GLUnurbsImpl) r).endcurve();
+}
+
+//----------------------------------------------------------------------
 // GLUProcAddressTable handling
 //
 

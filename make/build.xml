@@ -701,7 +701,8 @@
     <target name="java.compile.secondpass" depends="java.generate.composable.pipeline">
         <!-- Perform the second pass Java compile; everything. -->
         <javac destdir="${classes}"
-               excludes="${java.excludes.platform},com/sun/opengl/impl/nurbs/**"               source="${jogl.sourcelevel}" 
+               excludes="${java.excludes.platform}"
+               source="${jogl.sourcelevel}"
                classpath="${gluegen-rt.jar}"
                fork="yes"
                memoryMaximumSize="128m"
