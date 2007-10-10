@@ -98,6 +98,11 @@ import com.sun.opengl.util.texture.*;
     internally will be cleaned up automatically when the OpenGL
     context is destroyed. <P>
 
+    <b>Note</b> that the TextRenderer may cause the vertex and texture
+    coordinate array buffer bindings to change, or to be unbound. This
+    is important to note if you are using Vertex Buffer Objects (VBOs)
+    in your application. <P>
+
     Internally, the renderer uses a rectangle packing algorithm to
     pack both glyphs and full Strings' rendering results (which are
     variable size) onto a larger OpenGL texture. The internal backing
@@ -610,6 +615,7 @@ public class TextRenderer
   public void setColor(float r, float g, float b, float a) throws GLException
   {
     boolean noNeedForFlush = (haveCachedColor &&
+                              cachedColor == null &&
                               r == cachedR &&
                               g == cachedG &&
                               b == cachedB &&
@@ -809,6 +815,9 @@ public class TextRenderer
     }
     GL gl = GLU.getCurrentGL();
 
+    // Push client attrib bits used by the pipelined quad renderer
+    gl.glPushClientAttrib((int) GL.GL_ALL_CLIENT_ATTRIB_BITS);
+
     if (!haveMaxSize) {
       // Query OpenGL for the maximum texture size and set it in the
       // RectanglePacker to keep it from expanding too large
@@ -841,6 +850,10 @@ public class TextRenderer
     flushGlyphPipeline ();
 
     inBeginEndPair = false;
+    
+    GL gl = GLU.getCurrentGL();
+    // Pop client attrib bits used by the pipelined quad renderer
+    gl.glPopClientAttrib();
     if (ortho) {
       getBackingStore().endOrthoRendering();
     } else {
@@ -998,6 +1011,9 @@ public class TextRenderer
     public void beginMovement(Object oldBackingStore, Object newBackingStore) {
       // Exit the begin / end pair if necessary
       if (inBeginEndPair) {
+        GL gl = GLU.getCurrentGL();
+        // Pop client attrib bits used by the pipelined quad renderer
+        gl.glPopClientAttrib();
         if (isOrthoMode) {
           ((TextureRenderer) oldBackingStore).endOrthoRendering();
         } else {
@@ -1047,6 +1063,9 @@ public class TextRenderer
         } else {
           ((TextureRenderer) newBackingStore).begin3DRendering();
         }
+        // Push client attrib bits used by the pipelined quad renderer
+        GL gl = GLU.getCurrentGL();
+        gl.glPushClientAttrib((int) GL.GL_ALL_CLIENT_ATTRIB_BITS);
         if (haveCachedColor) {
           if (cachedColor == null) {
             ((TextureRenderer) newBackingStore).setColor(cachedR, cachedG, cachedB, cachedA);
