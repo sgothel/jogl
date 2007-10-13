@@ -854,9 +854,6 @@ public class TextRenderer
     GL gl = GLU.getCurrentGL();
     // Pop client attrib bits used by the pipelined quad renderer
     gl.glPopClientAttrib();
-    // It's unclear whether this changes the buffer bindings, so
-    // preemptively zero out the GL_ARRAY_BUFFER binding
-    gl.glBindBuffer(GL.GL_ARRAY_BUFFER, 0);
     if (ortho) {
       getBackingStore().endOrthoRendering();
     } else {
@@ -1017,9 +1014,6 @@ public class TextRenderer
         GL gl = GLU.getCurrentGL();
         // Pop client attrib bits used by the pipelined quad renderer
         gl.glPopClientAttrib();
-        // It's unclear whether this changes the buffer bindings, so
-        // preemptively zero out the GL_ARRAY_BUFFER binding
-        gl.glBindBuffer(GL.GL_ARRAY_BUFFER, 0);
         if (isOrthoMode) {
           ((TextureRenderer) oldBackingStore).endOrthoRendering();
         } else {
