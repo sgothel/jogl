@@ -1364,7 +1364,7 @@ public class TextRenderer
               GlyphVector gv                                     = font.createGlyphVector(fontRenderContext, singleUnicode);    // need this to get single bitmaps
               glyphID                                         = gv.getGlyphCode ( 0);
 
-              glyphsToUpload.prepGlyphForUpload ( unicodeID, gv.getGlyphCode ( 0), gv.getVisualBounds (), i, gv );
+              glyphsToUpload.prepGlyphForUpload ( unicodeID, gv.getGlyphCode ( 0), gv.getPixelBounds (fontRenderContext, 0, 0), i, gv );
 
               advances[glyphID]                                = metrics.getAdvance ();
             }
