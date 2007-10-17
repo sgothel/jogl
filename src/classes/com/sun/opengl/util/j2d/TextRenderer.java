@@ -854,6 +854,12 @@ public class TextRenderer
     GL gl = GLU.getCurrentGL();
     // Pop client attrib bits used by the pipelined quad renderer
     gl.glPopClientAttrib();
+    // The OpenGL spec is unclear about whether this changes the
+    // buffer bindings, so preemptively zero out the GL_ARRAY_BUFFER
+    // binding
+    if (gl.isExtensionAvailable("GL_VERSION_1_5")) {
+      gl.glBindBuffer(GL.GL_ARRAY_BUFFER, 0);
+    }
     if (ortho) {
       getBackingStore().endOrthoRendering();
     } else {
@@ -1014,6 +1020,12 @@ public class TextRenderer
         GL gl = GLU.getCurrentGL();
         // Pop client attrib bits used by the pipelined quad renderer
         gl.glPopClientAttrib();
+        // The OpenGL spec is unclear about whether this changes the
+        // buffer bindings, so preemptively zero out the GL_ARRAY_BUFFER
+        // binding
+        if (gl.isExtensionAvailable("GL_VERSION_1_5")) {
+          gl.glBindBuffer(GL.GL_ARRAY_BUFFER, 0);
+        }
         if (isOrthoMode) {
           ((TextureRenderer) oldBackingStore).endOrthoRendering();
         } else {
@@ -1378,6 +1390,7 @@ public class TextRenderer
 
     FloatBuffer     mTexCoords;
     FloatBuffer     mVertCoords;
+    boolean         usingVBOs;
     int             mVBO_For_ResuableTileVertices;
     int             mVBO_For_ResuableTileTexCoords;
 
@@ -1387,17 +1400,21 @@ public class TextRenderer
       mVertCoords = BufferUtil.newFloatBuffer( kTotalBufferSizeCoordsVerts);
       mTexCoords  = BufferUtil.newFloatBuffer( kTotalBufferSizeCoordsTex);
 
-      int[] vbos = new int[2];
-      gl.glGenBuffersARB( 2, IntBuffer.wrap(vbos ));
+      usingVBOs = (gl.isExtensionAvailable("GL_VERSION_1_5"));
 
-      mVBO_For_ResuableTileVertices     =  vbos[0];
-      mVBO_For_ResuableTileTexCoords     =  vbos[1];
+      if (usingVBOs) {
+        int[] vbos = new int[2];
+        gl.glGenBuffers( 2, IntBuffer.wrap(vbos ));
 
-      gl.glBindBuffer( GL.GL_ARRAY_BUFFER, mVBO_For_ResuableTileVertices);
-      gl.glBufferData( GL.GL_ARRAY_BUFFER, kTotalBufferSizeBytesVerts,null, GL.GL_STREAM_DRAW);  // stream draw because this is a single quad use pipeline
+        mVBO_For_ResuableTileVertices     =  vbos[0];
+        mVBO_For_ResuableTileTexCoords     =  vbos[1];
 
-      gl.glBindBuffer( GL.GL_ARRAY_BUFFER, mVBO_For_ResuableTileTexCoords);
-      gl.glBufferData( GL.GL_ARRAY_BUFFER, kTotalBufferSizeBytesTex,null, GL.GL_STREAM_DRAW);    // stream draw because this is a single quad use pipeline
+        gl.glBindBuffer( GL.GL_ARRAY_BUFFER, mVBO_For_ResuableTileVertices);
+        gl.glBufferData( GL.GL_ARRAY_BUFFER, kTotalBufferSizeBytesVerts,null, GL.GL_STREAM_DRAW);  // stream draw because this is a single quad use pipeline
+
+        gl.glBindBuffer( GL.GL_ARRAY_BUFFER, mVBO_For_ResuableTileTexCoords);
+        gl.glBufferData( GL.GL_ARRAY_BUFFER, kTotalBufferSizeBytesTex,null, GL.GL_STREAM_DRAW);    // stream draw because this is a single quad use pipeline
+      }
     }
 
     public void glTexCoord2f ( float v, float v1 )
@@ -1432,17 +1449,25 @@ public class TextRenderer
           mVertCoords.rewind();
           mTexCoords.rewind();
 
-          gl.glBindBuffer( GL.GL_ARRAY_BUFFER, mVBO_For_ResuableTileVertices);
-          gl.glBufferSubData( GL.GL_ARRAY_BUFFER, 0, mOutstandingGlyphsVerticesPipeline * kSizeInBytes_OneVertices_VertexData, mVertCoords );  // upload only the new stuff
           gl.glEnableClientState(GL.GL_VERTEX_ARRAY);
-          gl.glVertexPointer(3, GL.GL_FLOAT, 0, 0);
+          if (usingVBOs) {
+            gl.glBindBuffer( GL.GL_ARRAY_BUFFER, mVBO_For_ResuableTileVertices);
+            gl.glBufferSubData( GL.GL_ARRAY_BUFFER, 0, mOutstandingGlyphsVerticesPipeline * kSizeInBytes_OneVertices_VertexData, mVertCoords );  // upload only the new stuff
+            gl.glVertexPointer(3, GL.GL_FLOAT, 0, 0);
+          } else {
+            gl.glVertexPointer(3, GL.GL_FLOAT, 0, mVertCoords);
+          }
 
           gl.glClientActiveTexture(GL.GL_TEXTURE0);
           gl.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY);
 
-          gl.glBindBuffer( GL.GL_ARRAY_BUFFER, mVBO_For_ResuableTileTexCoords);
-          gl.glBufferSubData( GL.GL_ARRAY_BUFFER,0, mOutstandingGlyphsVerticesPipeline * kSizeInBytes_OneVertices_TexData, mTexCoords );    // upload only the new stuff
-          gl.glTexCoordPointer(2, GL.GL_FLOAT, 0, 0);
+          if (usingVBOs) {
+            gl.glBindBuffer( GL.GL_ARRAY_BUFFER, mVBO_For_ResuableTileTexCoords);
+            gl.glBufferSubData( GL.GL_ARRAY_BUFFER,0, mOutstandingGlyphsVerticesPipeline * kSizeInBytes_OneVertices_TexData, mTexCoords );    // upload only the new stuff
+            gl.glTexCoordPointer(2, GL.GL_FLOAT, 0, 0);
+          } else {
+            gl.glTexCoordPointer(2, GL.GL_FLOAT, 0, mTexCoords);
+          }
 
           gl.glDrawArrays(GL.GL_QUADS,0, mOutstandingGlyphsVerticesPipeline );
 
