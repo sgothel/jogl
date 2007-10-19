@@ -1091,7 +1091,7 @@ public class TextRenderer
     }
   }
 
-  class DefaultRenderDelegate implements RenderDelegate {
+  public static class DefaultRenderDelegate implements RenderDelegate {
     public boolean intensityOnly() {
       return true;
     }
