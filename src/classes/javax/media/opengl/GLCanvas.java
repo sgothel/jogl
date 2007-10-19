@@ -71,6 +71,10 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
   private GLContextImpl context;
   private boolean autoSwapBufferMode = true;
   private boolean sendReshape = false;
+  
+  private GraphicsConfiguration chosen;
+  private GLCapabilities glCaps;
+  private GLCapabilitiesChooser glCapChooser;
 
   /** Creates a new GLCanvas component with a default set of OpenGL
       capabilities, using the default OpenGL capabilities selection
@@ -114,12 +118,119 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
     // least in the Sun AWT implementation) that this will result in
     // equivalent behavior to calling the no-arg super() constructor
     // for Canvas.
-    super(chooseGraphicsConfiguration(capabilities, chooser, device));
+    /*
+     * Workaround for Xinerama, always pass null so we can detect whether
+     * super.getGraphicsConfiguration() is returning the Canvas' GC (null),
+     * or an ancestor component's GC (non-null) in the overridden version
+     * below.
+     */
+    super();
+    /*
+     * Save the chosen capabilities for use in getGraphicsConfiguration().
+     */
+    chosen = chooseGraphicsConfiguration(capabilities, chooser, device);
+    if (chosen != null) {
+      /*
+       * If we are running on a platform that
+       * must select a GraphicsConfiguration now,
+       * save these for later use in getGraphicsConfiguration().
+       */
+      this.glCapChooser = chooser;
+      this.glCaps = capabilities;
+    }
     if (!Beans.isDesignTime()) {
       drawable = GLDrawableFactory.getFactory().getGLDrawable(this, capabilities, chooser);
       context = (GLContextImpl) drawable.createContext(shareWith);
       context.setSynchronized(true);
     }
+  }
+  
+  /**
+   * Overridden to choose a GraphicsConfiguration on a parent container's
+   * GraphicsDevice because both devices
+   */
+  public GraphicsConfiguration getGraphicsConfiguration() {
+    /*
+     * Workaround for problems with Xinerama and java.awt.Component.checkGD
+     * when adding to a container on a different graphics device than the
+     * one that this Canvas is associated with.
+     * 
+     * GC will be null unless:
+     *   - A native peer has assigned it. This means we have a native
+     *     peer, and are already comitted to a graphics configuration.
+     *   - This canvas has been added to a component hierarchy and has
+     *     an ancestor with a non-null GC, but the native peer has not
+     *     yet been created. This means we can still choose the GC on
+     *     all platforms since the peer hasn't been created.
+     */
+    final GraphicsConfiguration gc = super.getGraphicsConfiguration();
+    /*
+     * chosen is only non-null on platforms where the GLDrawableFactory
+     * returns a non-null GraphicsConfiguration (in the GLCanvas
+     * constructor).
+     * 
+     * if gc is from this Canvas' native peer then it should equal chosen,
+     * otherwise it is from an ancestor component that this Canvas is being
+     * added to, and we go into this block.
+     */
+    if (gc != null && chosen != null && !chosen.equals(gc)) {
+      /*
+       * Check for compatibility with gc. If they differ by only the
+       * device then return a new GCconfig with the super-class' GDevice
+       * (and presumably the same visual ID in Xinerama).
+       * 
+       */
+      if (!chosen.getDevice().getIDstring().equals(gc.getDevice().getIDstring())) {
+        /*
+         * Here we select a GraphicsConfiguration on the alternate
+         * device that is presumably identical to the chosen
+         * configuration, but on the other device.
+         * 
+         * Should really check to ensure that we select a configuration
+         * with the same X visual ID for Xinerama screens, otherwise the
+         * GLDrawable may have the wrong visual ID (I don't think this
+         * ever gets updated). May need to add a method to
+         * X11GLDrawableFactory to do this in a platform specific
+         * manner.
+         * 
+         * However, on platforms where we can actually get into this
+         * block, both devices should have the same visual list, and the
+         * same configuration should be selected here.
+         */
+        final GraphicsConfiguration compatible = chooseGraphicsConfiguration(glCaps, glCapChooser, gc.getDevice());
+
+        if (compatible != null) {
+          /*
+           * Save the new GC for equals test above, and to return to
+           * any outside callers of this method.
+           */
+          chosen = compatible;
+        }
+      }
+
+      /*
+       * If a compatible GC was not found in the block above, this will
+       * return the GC that was selected in the constructor (and might
+       * cause an exception in Component.checkGD when adding to a
+       * container, but in this case that would be the desired behavior).
+       * 
+       */
+      return chosen;
+    } else if (gc == null) {
+      /*
+       * The GC is null, which means we have no native peer, and are not
+       * part of a (realized) component hierarchy. So we return the
+       * desired visual that was selected in the constructor (possibly
+       * null).
+       */
+      return chosen;
+    }
+
+    /*
+     * Otherwise we have not explicitly selected a GC in the constructor, so
+     * just return what Canvas would have.
+     */
+    return gc;
   }
   
   public GLContext createContext(GLContext shareWith) {
