@@ -816,17 +816,21 @@ public class TextRenderer {
         }
     }
 
-    //----------------------------------------------------------------------
-    // Glyph-by-glyph rendering support
-    //
     private void internal_draw3D(CharSequence str, float x, float y, float z,
                                  float scaleFactor) {
-        GlyphsList glyphs = mGlyphProducer.getGlyphs(str);
+        int drawingState = DrawingState.fast;
 
-        if (glyphs != null) {
-            drawGlyphs(glyphs, x, y, z, scaleFactor);
-        } else {
-            this.draw3D_ROBUST(str, x, y, z, scaleFactor);
+        while (drawingState != DrawingState.finished) {
+            GlyphsList glyphs = mGlyphProducer.getGlyphs(str);
+
+            if (drawingState == DrawingState.fast) {
+                x += drawGlyphs(glyphs, x, y, z, scaleFactor);
+                str = glyphs.remaining;
+                drawingState = glyphs.nextState;
+            } else if (drawingState == DrawingState.robust) {
+                this.draw3D_ROBUST(str, x, y, z, scaleFactor);
+                drawingState = DrawingState.finished;
+            }
         }
     }
 
@@ -836,19 +840,19 @@ public class TextRenderer {
         }
     }
 
-    private void drawGlyphs(GlyphsList inGlyphs, float inX, float inY, float z,
-                            float scaleFactor) {
+    private float drawGlyphs(GlyphsList inGlyphs, float inX, float inY,
+                             float z, float scaleFactor) {
+        float xOffset = 0;
+
         try {
             if (mPipelinedQuadRenderer == null) {
                 mPipelinedQuadRenderer = new Pipelined_QuadRenderer();
             }
 
             TextureRenderer renderer = getBackingStore();
-            float xOffset = 0;
 
             for (int i = 0; i < inGlyphs.length; i++) {
                 Rect rect = inGlyphs.textureSourceRect[i];
-
                 TextData data = (TextData) rect.getUserData();
                 data.markUsed();
 
@@ -860,11 +864,12 @@ public class TextRenderer {
                 int width = rect.w();
                 int height = rect.h();
 
-                float tx1 = (float) texturex / (float) kSize;
-                float ty1 = 1.0f - ((float) texturey / (float) kSize);
-                float tx2 = (float) (texturex + width) / (float) kSize;
+                float tx1 = (float) texturex / (float) renderer.getWidth();
+                float ty1 = 1.0f -
+                    ((float) texturey / (float) renderer.getHeight());
+                float tx2 = (float) (texturex + width) / (float) renderer.getWidth();
                 float ty2 = 1.0f -
-                    ((float) (texturey + height) / (float) kSize);
+                    ((float) (texturey + height) / (float) renderer.getHeight());
 
                 mPipelinedQuadRenderer.glTexCoord2f(tx1, ty1);
                 mPipelinedQuadRenderer.glVertex3f(x, y, z);
@@ -883,15 +888,16 @@ public class TextRenderer {
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        return xOffset;
     }
 
-    private void drawGlyphsSIMPLE(GlyphsList inGlyphs, float x, float y,
-                                  float z, float scaleFactor) { // unused, for reference, debugging
-
+    private float drawGlyphsSIMPLE(GlyphsList inGlyphs, float x, float y,
+                                   float z, float scaleFactor) // unused, for reference, debugging
+    {
         TextureRenderer renderer = getBackingStore();
-        int xOffset = 0;
 
-        GL gl = GLU.getCurrentGL();
+        int xOffset = 0;
 
         for (int i = 0; i < inGlyphs.length; i++) {
             Rect rect = inGlyphs.textureSourceRect[i];
@@ -910,6 +916,8 @@ public class TextRenderer {
                                   0.5f); // note the advances.. I had to use this to get proper kerning.
             }
         }
+
+        return xOffset;
     }
 
     private void draw3D_ROBUST(CharSequence str, float x, float y, float z,
@@ -929,8 +937,7 @@ public class TextRenderer {
                 if (rect == null) {
                     // Rasterize this string and place it on the backing store
                     Graphics2D g = getGraphics2D();
-                    Rectangle2D bbox = normalize(renderDelegate.getBounds(
-                                                                          curStr, font, getFontRenderContext()));
+                    Rectangle2D bbox = normalize(renderDelegate.getBounds(curStr, font, getFontRenderContext()));
                     Point origin = new Point((int) -bbox.getMinX(),
                                              (int) -bbox.getMinY());
                     rect = new Rect(0, 0, (int) bbox.getWidth(),
@@ -1254,6 +1261,7 @@ public class TextRenderer {
             // Heavy hammer -- might consider doing something different
             packer.clear();
             stringLocations.clear();
+            mGlyphProducer.clearAllCacheEntries();
 
             if (DEBUG) {
                 System.err.println(
@@ -1264,6 +1272,9 @@ public class TextRenderer {
         public void beginMovement(Object oldBackingStore, Object newBackingStore) {
             // Exit the begin / end pair if necessary
             if (inBeginEndPair) {
+                // Draw any outstanding glyphs
+                flush();
+
                 GL gl = GLU.getCurrentGL();
 
                 // Pop client attrib bits used by the pipelined quad renderer
@@ -1373,6 +1384,15 @@ public class TextRenderer {
         }
     }
 
+    //----------------------------------------------------------------------
+    // Glyph-by-glyph rendering support
+    //
+    private static class DrawingState {
+        public static final int fast = 1;
+        public static final int robust = 2;
+        public static final int finished = 3;
+    }
+
     class GlyphsUploadList {
         int numberOfNewGlyphs;
         GlyphVector[] glyphVector;
@@ -1437,6 +1457,8 @@ public class TextRenderer {
                     outList.textureSourceRect[this.renderIndex[i]] = mapper.glyphRectForTextureMapping[this.newGlyphs[i]];
                 }
             }
+
+            this.numberOfNewGlyphs = 0;
         }
 
         public void allocateSpace(int inLength) {
@@ -1453,7 +1475,10 @@ public class TextRenderer {
     }
 
     static class GlyphsList {
+        int /* DrawingState */ nextState;
+        CharSequence remaining;
         float[] advances;
+        float totalAdvance;
         Rect[] textureSourceRect;
         int length;
 
@@ -1489,15 +1514,18 @@ public class TextRenderer {
                 glyphRectForTextureMapping = new Rect[fontLengthInGlyphs];
                 unicodes2Glyphs = new int[512];
                 singleUnicode = new char[1];
-
-                for (int i = 0; i < unicodes2Glyphs.length; i++) {
-                    unicodes2Glyphs[i] = undefined;
-                }
+                clearAllCacheEntries();
             }
         }
 
         public void clearCacheEntry(int unicodeID) {
             unicodes2Glyphs[unicodeID] = undefined;
+        }
+
+        public void clearAllCacheEntries() {
+            for (int i = 0; i < unicodes2Glyphs.length; i++) {
+                unicodes2Glyphs[i] = undefined;
+            }
         }
 
         public void allocateSpace(int length) {
@@ -1514,27 +1542,40 @@ public class TextRenderer {
         float getGlyphPixelWidth(char unicodeID) {
             int glyphID = undefined;
 
-            if (unicodeID < unicodes2Glyphs.length) { // <--- could support the rare high unicode better later
-                glyphID = unicodes2Glyphs[unicodeID]; // Check to see if we have already encountered this unicode
-            }
+            if (unicodeID < unicodes2Glyphs.length) // <--- could support the rare high unicode better later
+                {
+                    glyphID = unicodes2Glyphs[unicodeID]; // Check to see if we have already encountered this unicode
+                }
 
-            if (glyphID != undefined) { // if we haven't, we must get some its attributes, and prep for upload
+            if (glyphID != undefined) // if we haven't, we must get some its attributes, and prep for upload
+                {
+                    return advances[glyphID];
+                } else {
+                    tempChars[0] = unicodeID;
 
-                return advances[glyphID];
-            } else {
-                tempChars[0] = unicodeID;
+                    GlyphVector fullRunGlyphVector = font.createGlyphVector(fontRenderContext,
+                                                                            tempChars);
 
-                GlyphVector fullRunGlyphVector = font.createGlyphVector(fontRenderContext,
-                                                                        tempChars);
-
-                return fullRunGlyphVector.getGlyphMetrics(0).getAdvance();
-            }
+                    return fullRunGlyphVector.getGlyphMetrics(0).getAdvance();
+                }
 
             //            return -1;
         }
 
+        GlyphsList puntToRobust(CharSequence inString) {
+            glyphsOutput.nextState = DrawingState.robust;
+            glyphsOutput.remaining = inString;
+
+            return glyphsOutput;
+        }
+
         GlyphsList getGlyphs(CharSequence inString) {
-            glyphsToUpload.numberOfNewGlyphs = 0;
+            float fontSize = font.getSize();
+
+            if (fontSize > 128) {
+                glyphsOutput.nextState = DrawingState.robust;
+                glyphsOutput.remaining = inString;
+            }
 
             int length = inString.length();
             allocateSpace(length);
@@ -1547,43 +1588,66 @@ public class TextRenderer {
             int lengthInGlyphs = fullRunGlyphVector.getNumGlyphs();
 
             if (complex) {
-                return null;
+                return puntToRobust(inString);
             }
 
+            TextureRenderer renderer = getBackingStore();
+
+            float totalAdvanceUploaded = 0;
+            float cacheSize = renderer.getWidth() * renderer.getHeight();
+
             for (int i = 0; i < lengthInGlyphs; i++) {
+                float advance;
+
                 char unicodeID = inString.charAt(i);
 
                 if (unicodeID >= unicodes2Glyphs.length) { // <-- -could support these better
-
-                    return null;
+                    return puntToRobust(inString);
                 }
 
                 int glyphID = unicodes2Glyphs[unicodeID]; // Check to see if we have already encountered this unicode
 
                 if (glyphID == undefined) { // if we haven't, we must get some its attributes, and prep for upload
-
                     GlyphMetrics metrics = fullRunGlyphVector.getGlyphMetrics(i);
                     singleUnicode[0] = unicodeID;
 
                     GlyphVector gv = font.createGlyphVector(fontRenderContext,
                                                             singleUnicode); // need this to get single bitmaps
                     glyphID = gv.getGlyphCode(0);
+                    advance = metrics.getAdvance();
+                    advances[glyphID] = advance;
 
-                    glyphsToUpload.prepGlyphForUpload(unicodeID,
-                                                      gv.getGlyphCode(0),
-                                                      gv.getPixelBounds(fontRenderContext, 0, 0), i, gv);
+                    glyphsToUpload.prepGlyphForUpload(unicodeID, glyphID,
+                                                      gv.getVisualBounds(), i, gv);
 
-                    advances[glyphID] = metrics.getAdvance();
+                    totalAdvanceUploaded += advance;
                 } else {
-                    glyphsOutput.textureSourceRect[i] = glyphRectForTextureMapping[glyphID];
+                    Rect r = glyphRectForTextureMapping[glyphID];
+                    glyphsOutput.textureSourceRect[i] = r;
+
+                    TextData data = (TextData) r.getUserData();
+                    data.markUsed();
+
+                    advance = advances[glyphID];
                 }
 
-                glyphsOutput.advances[i] = advances[glyphID];
+                glyphsOutput.advances[i] = advance;
+                glyphsOutput.totalAdvance += advance;
+
+                if ((totalAdvanceUploaded * fontSize) > (0.25f * cacheSize)) // note -- if the incoming string is bigger than 1/4 the total font cache, start segmenting glyph stream into bite sized pieces
+                    {
+                        glyphsToUpload.uploadAnyNewGlyphs(glyphsOutput, this);
+                        glyphsOutput.length = i + 1;
+                        glyphsOutput.remaining = inString.subSequence(i + 1, length);
+                        glyphsOutput.nextState = DrawingState.fast;
+
+                        return glyphsOutput;
+                    }
             }
 
-            glyphsOutput.length = length;
-
+            glyphsOutput.length = lengthInGlyphs;
             glyphsToUpload.uploadAnyNewGlyphs(glyphsOutput, this);
+            glyphsOutput.nextState = DrawingState.finished;
 
             return glyphsOutput;
         }
