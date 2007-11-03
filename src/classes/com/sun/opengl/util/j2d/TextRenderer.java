@@ -1047,6 +1047,11 @@ public class TextRenderer {
         public Rectangle2D getBounds(CharSequence str, Font font,
                                      FontRenderContext frc);
 
+        /** Computes the bounds of the given GlyphVector, already
+            assumed to have been created for a particular Font,
+            relative to the origin. */
+        public Rectangle2D getBounds(GlyphVector gv, FontRenderContext frc);
+
         /** Render the passed character sequence at the designated
             location using the supplied Graphics2D instance. The
             surrounding region will already have been cleared to the RGB
@@ -1361,16 +1366,17 @@ public class TextRenderer {
 
         public Rectangle2D getBounds(CharSequence str, Font font,
                                      FontRenderContext frc) {
-            GlyphVector gv = font.createGlyphVector(frc,
-                                                    new MapCharSequenceToGlyphVector(str));
-
-            return gv.getPixelBounds(frc, 0, 0);
+            return getBounds(font.createGlyphVector(frc,
+                                                    new MapCharSequenceToGlyphVector(str)),
+                             frc);
         }
 
         public Rectangle2D getBounds(String str, Font font,
                                      FontRenderContext frc) {
-            GlyphVector gv = font.createGlyphVector(frc, str);
+            return getBounds(font.createGlyphVector(frc, str), frc);
+        }
 
+        public Rectangle2D getBounds(GlyphVector gv, FontRenderContext frc) {
             return gv.getPixelBounds(frc, 0, 0);
         }
 
@@ -1618,7 +1624,7 @@ public class TextRenderer {
                     advances[glyphID] = advance;
 
                     glyphsToUpload.prepGlyphForUpload(unicodeID, glyphID,
-                                                      gv.getVisualBounds(), i, gv);
+                                                      renderDelegate.getBounds(gv, fontRenderContext), i, gv);
 
                     totalAdvanceUploaded += advance;
                 } else {
