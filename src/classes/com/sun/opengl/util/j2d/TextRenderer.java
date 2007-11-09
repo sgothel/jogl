@@ -850,6 +850,10 @@ public class TextRenderer {
             }
 
             TextureRenderer renderer = getBackingStore();
+            // Handles case where NPOT texture is used for backing store
+            TextureCoords wholeImageTexCoords = renderer.getTexture().getImageTexCoords();
+            float xScale = wholeImageTexCoords.right();
+            float yScale = wholeImageTexCoords.bottom();
 
             for (int i = 0; i < inGlyphs.length; i++) {
                 Rect rect = inGlyphs.textureSourceRect[i];
@@ -864,12 +868,12 @@ public class TextRenderer {
                 int width = rect.w();
                 int height = rect.h();
 
-                float tx1 = (float) texturex / (float) renderer.getWidth();
-                float ty1 = 1.0f -
-                    ((float) texturey / (float) renderer.getHeight());
-                float tx2 = (float) (texturex + width) / (float) renderer.getWidth();
-                float ty2 = 1.0f -
-                    ((float) (texturey + height) / (float) renderer.getHeight());
+                float tx1 = xScale * (float) texturex / (float) renderer.getWidth();
+                float ty1 = yScale * (1.0f -
+                                      ((float) texturey / (float) renderer.getHeight()));
+                float tx2 = xScale * (float) (texturex + width) / (float) renderer.getWidth();
+                float ty2 = yScale * (1.0f -
+                                      ((float) (texturey + height) / (float) renderer.getHeight()));
 
                 mPipelinedQuadRenderer.glTexCoord2f(tx1, ty1);
                 mPipelinedQuadRenderer.glVertex3f(x, y, z);
@@ -1571,6 +1575,11 @@ public class TextRenderer {
         GlyphsList puntToRobust(CharSequence inString) {
             glyphsOutput.nextState = DrawingState.robust;
             glyphsOutput.remaining = inString;
+            // Reset the glyph uploader
+            glyphsToUpload.numberOfNewGlyphs = 0;
+            // Reset the glyph list
+            glyphsOutput.length = 0;
+            glyphsOutput.totalAdvance = 0;
 
             return glyphsOutput;
         }
@@ -1620,6 +1629,10 @@ public class TextRenderer {
                     GlyphVector gv = font.createGlyphVector(fontRenderContext,
                                                             singleUnicode); // need this to get single bitmaps
                     glyphID = gv.getGlyphCode(0);
+                    // Have seen huge glyph codes (65536) coming out of some fonts in some Unicode situations
+                    if (glyphID >= advances.length) {
+                        return puntToRobust(inString);
+                    }
                     advance = metrics.getAdvance();
                     advances[glyphID] = advance;
 
