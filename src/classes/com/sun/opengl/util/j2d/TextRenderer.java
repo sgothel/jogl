@@ -1746,7 +1746,6 @@ public class TextRenderer {
                     gl.glVertexPointer(3, GL.GL_FLOAT, 0, mVertCoords);
                 }
 
-                gl.glClientActiveTexture(GL.GL_TEXTURE0);
                 gl.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY);
 
                 if (usingVBOs) {
