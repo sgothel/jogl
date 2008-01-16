@@ -431,8 +431,7 @@ public class TextureIO {
 
   /** 
    * Creates an OpenGL texture object from the specified TextureData
-   * using the current OpenGL context. Does not automatically generate
-   * mipmaps for the resulting texture.
+   * using the current OpenGL context.
    *
    * @param data the texture data to turn into an OpenGL texture
    * @throws GLException if no OpenGL context is current or if an
@@ -448,8 +447,7 @@ public class TextureIO {
 
   /** 
    * Creates an OpenGL texture object from the specified file using
-   * the current OpenGL context. Does not automatically generate
-   * mipmaps for the resulting texture.
+   * the current OpenGL context.
    *
    * @param file the file from which to read the texture data
    * @param mipmap     whether mipmaps should be produced for this
@@ -471,8 +469,7 @@ public class TextureIO {
 
   /** 
    * Creates an OpenGL texture object from the specified stream using
-   * the current OpenGL context. Does not automatically generate
-   * mipmaps for the resulting texture.
+   * the current OpenGL context.
    *
    * @param stream the stream from which to read the texture data
    * @param mipmap     whether mipmaps should be produced for this
@@ -499,8 +496,7 @@ public class TextureIO {
 
   /** 
    * Creates an OpenGL texture object from the specified URL using the
-   * current OpenGL context. Does not automatically generate mipmaps
-   * for the resulting texture.
+   * current OpenGL context.
    *
    * @param url the URL from which to read the texture data
    * @param mipmap     whether mipmaps should be produced for this
