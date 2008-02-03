@@ -41,26 +41,17 @@
 
 #ifdef WIN32
   #define PLATFORM_DSI_SIZE sizeof(JAWT_Win32DrawingSurfaceInfo)
-  static const char* platformDSIClassName = "com/sun/opengl/impl/windows/JAWT_Win32DrawingSurfaceInfo";
 #elif defined(linux) || defined(__sun) || defined(__FreeBSD__) || defined(_HPUX)
   #define PLATFORM_DSI_SIZE sizeof(JAWT_X11DrawingSurfaceInfo)
-  static const char* platformDSIClassName = "com/sun/opengl/impl/x11/JAWT_X11DrawingSurfaceInfo";
 #elif defined(macosx)
   #define PLATFORM_DSI_SIZE sizeof(JAWT_MacOSXDrawingSurfaceInfo)
-  static const char* platformDSIClassName = "com/sun/opengl/impl/macosx/JAWT_MacOSXDrawingSurfaceInfo";
 #else
   ERROR: port JAWT_DrawingSurfaceInfo.c to your platform
 #endif
 
-static jclass    platformDSIClass = NULL;
-static jmethodID factoryMethod    = NULL;
-
 JNIEXPORT jobject JNICALL
 Java_com_sun_opengl_impl_JAWT_1DrawingSurfaceInfo_platformInfo0(JNIEnv* env, jobject unused, jobject jthis0) {
   JAWT_DrawingSurfaceInfo* dsi;
-  jobject dirbuf;
-  jclass clazz;
-  char sig[512];
   dsi = (*env)->GetDirectBufferAddress(env, jthis0);
   if (dsi == NULL) {
     (*env)->ThrowNew(env, (*env)->FindClass(env, "java/lang/RuntimeException"),
@@ -70,25 +61,5 @@ Java_com_sun_opengl_impl_JAWT_1DrawingSurfaceInfo_platformInfo0(JNIEnv* env, job
   if (dsi->platformInfo == NULL) {
     return NULL;
   }
-  dirbuf = (*env)->NewDirectByteBuffer(env, dsi->platformInfo, PLATFORM_DSI_SIZE);
-  if (dirbuf == NULL) {
-    return NULL;
-  }
-  if (platformDSIClass == NULL) {
-    /* Note: possible race condition here but we will only leak a few
-       global JNI handles at worst */
-    clazz = (*env)->FindClass(env, platformDSIClassName);
-    if (clazz == NULL) {
-      return NULL;
-    }
-    clazz         = (jclass) (*env)->NewGlobalRef(env, clazz);
-    sprintf(sig, "(Ljava/nio/ByteBuffer;)L%s;", platformDSIClassName);
-    factoryMethod = (*env)->GetStaticMethodID(env, clazz, "create", sig);
-    if (factoryMethod == NULL) {
-      (*env)->DeleteGlobalRef(env, clazz);
-      return NULL;
-    }
-    platformDSIClass = clazz;
-  }
-  return (*env)->CallStaticObjectMethod(env, platformDSIClass, factoryMethod, dirbuf);
+  return (*env)->NewDirectByteBuffer(env, dsi->platformInfo, PLATFORM_DSI_SIZE);
 }
