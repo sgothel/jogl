@@ -193,6 +193,13 @@ public class TextRenderer {
     // Debugging purposes only
     private boolean debugged;
     Pipelined_QuadRenderer mPipelinedQuadRenderer;
+    
+    //emzic: added boolean flag
+    private boolean useVertexArrays = true;
+    
+    //emzic: added boolean flag
+    private boolean isExtensionAvailable_GL_VERSION_1_5;
+    private boolean checkFor_isExtensionAvailable_GL_VERSION_1_5;
 
     /** Creates a new TextRenderer with the given font, using no
         antialiasing or fractional metrics, and the default
@@ -689,6 +696,13 @@ public class TextRenderer {
         }
     }
 
+    /**
+     * emzic: here the call to glBindBuffer crashes on certain graphicscard/driver combinations
+     * this is why the ugly try-catch block has been added, which falls back to the old textrenderer
+     * 
+     * @param ortho
+     * @throws GLException
+     */
     private void endRendering(boolean ortho) throws GLException {
         flushGlyphPipeline();
 
@@ -702,8 +716,12 @@ public class TextRenderer {
         // The OpenGL spec is unclear about whether this changes the
         // buffer bindings, so preemptively zero out the GL_ARRAY_BUFFER
         // binding
-        if (gl.isExtensionAvailable("GL_VERSION_1_5")) {
-            gl.glBindBuffer(GL.GL_ARRAY_BUFFER, 0);
+        if (is15Available(gl)) {
+            try {
+                gl.glBindBuffer(GL.GL_ARRAY_BUFFER, 0);
+            } catch (Exception e) {
+                isExtensionAvailable_GL_VERSION_1_5 = false;
+            }
         }
 
         if (ortho) {
@@ -1292,8 +1310,12 @@ public class TextRenderer {
                 // The OpenGL spec is unclear about whether this changes the
                 // buffer bindings, so preemptively zero out the GL_ARRAY_BUFFER
                 // binding
-                if (gl.isExtensionAvailable("GL_VERSION_1_5")) {
-                    gl.glBindBuffer(GL.GL_ARRAY_BUFFER, 0);
+                if (is15Available(gl)) {
+                    try {
+                        gl.glBindBuffer(GL.GL_ARRAY_BUFFER, 0);
+                    } catch (Exception e) {
+                        isExtensionAvailable_GL_VERSION_1_5 = false;
+                    }
                 }
 
                 if (isOrthoMode) {
@@ -1685,24 +1707,29 @@ public class TextRenderer {
             mVertCoords = BufferUtil.newFloatBuffer(kTotalBufferSizeCoordsVerts);
             mTexCoords = BufferUtil.newFloatBuffer(kTotalBufferSizeCoordsTex);
 
-            usingVBOs = (gl.isExtensionAvailable("GL_VERSION_1_5"));
+            usingVBOs = is15Available(gl);
 
             if (usingVBOs) {
-                int[] vbos = new int[2];
-                gl.glGenBuffers(2, IntBuffer.wrap(vbos));
+                try {
+                    int[] vbos = new int[2];
+                    gl.glGenBuffers(2, IntBuffer.wrap(vbos));
 
-                mVBO_For_ResuableTileVertices = vbos[0];
-                mVBO_For_ResuableTileTexCoords = vbos[1];
+                    mVBO_For_ResuableTileVertices = vbos[0];
+                    mVBO_For_ResuableTileTexCoords = vbos[1];
 
-                gl.glBindBuffer(GL.GL_ARRAY_BUFFER,
-                                mVBO_For_ResuableTileVertices);
-                gl.glBufferData(GL.GL_ARRAY_BUFFER, kTotalBufferSizeBytesVerts,
-                                null, GL.GL_STREAM_DRAW); // stream draw because this is a single quad use pipeline
+                    gl.glBindBuffer(GL.GL_ARRAY_BUFFER,
+                                    mVBO_For_ResuableTileVertices);
+                    gl.glBufferData(GL.GL_ARRAY_BUFFER, kTotalBufferSizeBytesVerts,
+                                    null, GL.GL_STREAM_DRAW); // stream draw because this is a single quad use pipeline
 
-                gl.glBindBuffer(GL.GL_ARRAY_BUFFER,
-                                mVBO_For_ResuableTileTexCoords);
-                gl.glBufferData(GL.GL_ARRAY_BUFFER, kTotalBufferSizeBytesTex,
-                                null, GL.GL_STREAM_DRAW); // stream draw because this is a single quad use pipeline
+                    gl.glBindBuffer(GL.GL_ARRAY_BUFFER,
+                                    mVBO_For_ResuableTileTexCoords);
+                    gl.glBufferData(GL.GL_ARRAY_BUFFER, kTotalBufferSizeBytesTex,
+                                    null, GL.GL_STREAM_DRAW); // stream draw because this is a single quad use pipeline
+                } catch (Exception e) {
+                    isExtensionAvailable_GL_VERSION_1_5 = false;
+                    usingVBOs = false;
+                }
             }
         }
 
@@ -1724,6 +1751,14 @@ public class TextRenderer {
         }
 
         private void draw() {
+        	if (useVertexArrays) {
+        		drawVertexArrays();
+        	} else {
+        		drawIMMEDIATE();
+        	}
+        }
+
+        private void drawVertexArrays() {
             if (mOutstandingGlyphsVerticesPipeline > 0) {
                 GL gl = GLU.getCurrentGL();
 
@@ -1853,5 +1888,33 @@ public class TextRenderer {
         public void displayChanged(GLAutoDrawable drawable,
                                    boolean modeChanged, boolean deviceChanged) {
         }
+    }
+
+    /**
+     * Indicates whether vertex arrays are being used internally for
+     * rendering, or whether text is rendered using the OpenGL
+     * immediate mode commands. Defaults to true.
+     */
+    public boolean getUseVertexArrays() {
+        return useVertexArrays;
+    }
+
+    /**
+     * Sets whether vertex arrays are being used internally for
+     * rendering, or whether text is rendered using the OpenGL
+     * immediate mode commands. This is provided as a concession for
+     * certain graphics cards which have poor vertex array
+     * performance. Defaults to true.
+     */
+    public void setUseVertexArrays(boolean useVertexArrays) {
+        this.useVertexArrays = useVertexArrays;
+    }
+
+    private boolean is15Available(GL gl) {
+        if (!checkFor_isExtensionAvailable_GL_VERSION_1_5) {
+            isExtensionAvailable_GL_VERSION_1_5 = gl.isExtensionAvailable("GL_VERSION_1_5");
+            checkFor_isExtensionAvailable_GL_VERSION_1_5 = true;
+        }
+        return isExtensionAvailable_GL_VERSION_1_5;
     }
 }
