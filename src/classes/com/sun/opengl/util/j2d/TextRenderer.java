@@ -201,6 +201,9 @@ public class TextRenderer {
     private boolean isExtensionAvailable_GL_VERSION_1_5;
     private boolean checkFor_isExtensionAvailable_GL_VERSION_1_5;
 
+    // Whether GL_LINEAR filtering is enabled for the backing store
+    private boolean smoothing = true;
+
     /** Creates a new TextRenderer with the given font, using no
         antialiasing or fractional metrics, and the default
         RenderDelegate. Equivalent to <code>TextRenderer(font, false,
@@ -1241,6 +1244,7 @@ public class TextRenderer {
             } else {
                 renderer = new TextureRenderer(w, h, true, mipmap);
             }
+            renderer.setSmoothing(smoothing);
 
             if (DEBUG) {
                 System.err.println(" TextRenderer allocating backing store " +
@@ -1891,6 +1895,17 @@ public class TextRenderer {
     }
 
     /**
+     * Sets whether vertex arrays are being used internally for
+     * rendering, or whether text is rendered using the OpenGL
+     * immediate mode commands. This is provided as a concession for
+     * certain graphics cards which have poor vertex array
+     * performance. Defaults to true.
+     */
+    public void setUseVertexArrays(boolean useVertexArrays) {
+        this.useVertexArrays = useVertexArrays;
+    }
+
+    /**
      * Indicates whether vertex arrays are being used internally for
      * rendering, or whether text is rendered using the OpenGL
      * immediate mode commands. Defaults to true.
@@ -1900,14 +1915,24 @@ public class TextRenderer {
     }
 
     /**
-     * Sets whether vertex arrays are being used internally for
-     * rendering, or whether text is rendered using the OpenGL
-     * immediate mode commands. This is provided as a concession for
-     * certain graphics cards which have poor vertex array
-     * performance. Defaults to true.
+     * Sets whether smoothing (i.e., GL_LINEAR filtering) is enabled
+     * in the backing TextureRenderer of this TextRenderer. A few
+     * graphics cards do not behave well when this is enabled,
+     * resulting in fuzzy text. Defaults to true.
      */
-    public void setUseVertexArrays(boolean useVertexArrays) {
-        this.useVertexArrays = useVertexArrays;
+    public void setSmoothing(boolean smoothing) {
+        this.smoothing = smoothing;
+        getBackingStore().setSmoothing(smoothing);
+    }
+
+    /**
+     * Indicates whether smoothing is enabled in the backing
+     * TextureRenderer of this TextRenderer. A few graphics cards do
+     * not behave well when this is enabled, resulting in fuzzy text.
+     * Defaults to true.
+     */
+    public boolean getSmoothing() {
+        return smoothing;
     }
 
     private boolean is15Available(GL gl) {
