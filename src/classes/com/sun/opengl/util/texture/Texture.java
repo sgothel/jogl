@@ -112,6 +112,28 @@ import com.sun.opengl.util.texture.spi.*;
     gl.glColor4f(r, g, b, a);
 </pre> 
  *
+ * For reference, here is a list of the Porter-Duff compositing rules
+ * and the associated OpenGL blend functions (source and destination
+ * factors) to use in the face of premultiplied alpha:
+ *
+<CENTER>
+<TABLE WIDTH="75%">
+<TR> <TD> Rule     <TD> Source                  <TD> Dest
+<TR> <TD> Clear    <TD> GL_ZERO                 <TD> GL_ZERO
+<TR> <TD> Src      <TD> GL_ONE                  <TD> GL_ZERO
+<TR> <TD> SrcOver  <TD> GL_ONE                  <TD> GL_ONE_MINUS_SRC_ALPHA
+<TR> <TD> DstOver  <TD> GL_ONE_MINUS_DST_ALPHA  <TD> GL_ONE
+<TR> <TD> SrcIn    <TD> GL_DST_ALPHA            <TD> GL_ZERO
+<TR> <TD> DstIn    <TD> GL_ZERO                 <TD> GL_SRC_ALPHA
+<TR> <TD> SrcOut   <TD> GL_ONE_MINUS_DST_ALPHA  <TD> GL_ZERO
+<TR> <TD> DstOut   <TD> GL_ZERO                 <TD> GL_ONE_MINUS_SRC_ALPHA
+<TR> <TD> Dst      <TD> GL_ZERO                 <TD> GL_ONE
+<TR> <TD> SrcAtop  <TD> GL_DST_ALPHA            <TD> GL_ONE_MINUS_SRC_ALPHA
+<TR> <TD> DstAtop  <TD> GL_ONE_MINUS_DST_ALPHA  <TD> GL_SRC_ALPHA
+<TR> <TD> AlphaXor <TD> GL_ONE_MINUS_DST_ALPHA  <TD> GL_ONE_MINUS_SRC_ALPHA
+</TABLE>
+</CENTER>
+ *
  * @author Chris Campbell
  * @author Kenneth Russell
  */
