@@ -1584,7 +1584,7 @@ public class TextRenderer {
                     }
                     glyphsOutput.add(new Glyph(buf.toString(),
                                                // Any more glyphs after this run?
-                                               i < lengthInGlyphs - 1));
+                                               i < lengthInGlyphs));
                 }
             }
             return glyphsOutput;
