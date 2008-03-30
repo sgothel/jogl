@@ -175,11 +175,7 @@
             <include name="${stub.includes.dir}/common/**" />
         </dirset>
         <fileset id="stub.includes.dependencies.fileset.1" dir="${stub.includes.dir}">
-            <include name="opengl/**" />
-            <include name="macosx/**" />
-            <include name="win32/**" />
-            <include name="x11/**" />
-            <include name="common/**" />
+            <include name="opengl/**,macosx/**,win32/**,x11/**,common/**" />
         </fileset>
         <fileset id="stub.includes.dependencies.fileset.2" file="${gluegen.jar}" />
         <fileset id="stub.includes.dependencies.fileset.3" dir=".">
