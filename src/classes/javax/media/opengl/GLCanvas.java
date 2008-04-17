@@ -68,7 +68,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
 
   private GLDrawableHelper drawableHelper = new GLDrawableHelper();
   private GLDrawable drawable;
-  private GLContextImpl context;
+  private GLContext context;
   private boolean autoSwapBufferMode = true;
   private boolean sendReshape = false;
   
@@ -140,7 +140,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
     }
     if (!Beans.isDesignTime()) {
       drawable = GLDrawableFactory.getFactory().getGLDrawable(this, capabilities, chooser);
-      context = (GLContextImpl) drawable.createContext(shareWith);
+      context = drawable.createContext(shareWith);
       context.setSynchronized(true);
     }
   }
