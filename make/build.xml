@@ -81,6 +81,10 @@
         <property name="jogl.sourcelevel" value="1.5" />
     </target>
 
+   <!-- On jpackage.org-compatible systems, antlr.jar can be found in /usr/share/java -->
+   <available property="antlr.jar" file="/usr/share/java/antlr.jar"
+              value="/usr/share/java/antlr.jar"/>
+
     <!-- ================================================================== -->
     <!-- 
        - Load user properties which override build defaults.
