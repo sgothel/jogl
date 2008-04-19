@@ -247,10 +247,10 @@ public class NativeSignatureJavaMethodBindingEmitter extends GLJavaMethodBinding
     if (!returnType.isVoid()) {
       if (returnType.isCompoundTypeWrapper() ||
           returnType.isNIOByteBuffer()) {
-        writer.println("ByteBuffer _res;");
+        writer.println("java.nio.ByteBuffer _res;");
         needsResultAssignment = true;
       } else if (returnType.isArrayOfCompoundTypeWrappers()) {
-        writer.println("ByteBuffer[] _res;");
+        writer.println("java.nio.ByteBuffer[] _res;");
         needsResultAssignment = true;
       } else if (returnType.isString() || returnType.isNIOByteBuffer()) {
         writer.print(returnType);
