@@ -1018,7 +1018,7 @@ public boolean gluProject(double objX, double objY, double objZ, double[] model,
 /** Interface to C language function: <br> <code> GLint gluProject(GLdouble objX, GLdouble objY, GLdouble objZ, const GLdouble *  model, const GLdouble *  proj, const GLint *  view, GLdouble *  winX, GLdouble *  winY, GLdouble *  winZ); </code>
  * <P> Accepts the outgoing window coordinates as a single buffer.
  */
-public boolean gluProject(double objX, double objY, double objZ, DoubleBuffer model, DoubleBuffer proj, IntBuffer view, DoubleBuffer winPos) {
+public boolean gluProject(double objX, double objY, double objZ, java.nio.DoubleBuffer model, java.nio.DoubleBuffer proj, java.nio.IntBuffer view, java.nio.DoubleBuffer winPos) {
   return project.gluProject(objX, objY, objZ, model, proj, view, winPos);
 }
 
@@ -1032,7 +1032,7 @@ public boolean gluUnProject(double winX, double winY, double winZ, double[] mode
 /** Interface to C language function: <br> <code> GLint gluUnProject(GLdouble winX, GLdouble winY, GLdouble winZ, const GLdouble *  model, const GLdouble *  proj, const GLint *  view, GLdouble *  objX, GLdouble *  objY, GLdouble *  objZ); </code>
  * <P> Accepts the outgoing object coordinates (a 3-vector) as a single buffer.
  */
-public boolean gluUnProject(double winX, double winY, double winZ, DoubleBuffer model, DoubleBuffer proj, IntBuffer view, DoubleBuffer objPos) {
+public boolean gluUnProject(double winX, double winY, double winZ, java.nio.DoubleBuffer model, java.nio.DoubleBuffer proj, java.nio.IntBuffer view, java.nio.DoubleBuffer objPos) {
   return project.gluUnProject(winX, winY, winZ, model, proj, view, objPos);
 }
 
@@ -1046,7 +1046,7 @@ public boolean gluUnProject4(double winX, double winY, double winZ, double clipW
 /** Interface to C language function: <br> <code> GLint gluUnProject4(GLdouble winX, GLdouble winY, GLdouble winZ, GLdouble clipW, const GLdouble *  model, const GLdouble *  proj, const GLint *  view, GLdouble nearVal, GLdouble farVal, GLdouble *  objX, GLdouble *  objY, GLdouble *  objZ, GLdouble *  objW); </code>
  * <P> Accepts the outgoing object coordinates (a 4-vector) as a single buffer.
  */
-public boolean gluUnProject4(double winX, double winY, double winZ, double clipW, DoubleBuffer model, DoubleBuffer proj, IntBuffer view, double nearVal, double farVal, DoubleBuffer objPos) {
+public boolean gluUnProject4(double winX, double winY, double winZ, double clipW, java.nio.DoubleBuffer model, java.nio.DoubleBuffer proj, java.nio.IntBuffer view, double nearVal, double farVal, java.nio.DoubleBuffer objPos) {
   return project.gluUnProject4(winX, winY, winZ, clipW, model, proj, view, nearVal, farVal, objPos);
 }
 
@@ -1054,7 +1054,7 @@ public void gluPickMatrix(double x, double y, double delX, double delY, int[] vi
   project.gluPickMatrix(getCurrentGL(), x, y, delX, delY, viewport, viewport_offset);
 }
 
-public void gluPickMatrix(double x, double y, double delX, double delY, IntBuffer viewport) {
+public void gluPickMatrix(double x, double y, double delX, double delY, java.nio.IntBuffer viewport) {
   project.gluPickMatrix(getCurrentGL(), x, y, delX, delY, viewport);
 }
 
@@ -1254,36 +1254,36 @@ public static final int GLU_TESS_WINDING_NEGATIVE = 100133;
 public static final int GLU_TESS_WINDING_ABS_GEQ_TWO = 100134;
 public static final double GLU_TESS_MAX_COORD = 1.0e150;
 
-private ByteBuffer copyToByteBuffer(Buffer buf) {
-  if (buf instanceof ByteBuffer) {
+private java.nio.ByteBuffer copyToByteBuffer(java.nio.Buffer buf) {
+  if (buf instanceof java.nio.ByteBuffer) {
     if (buf.position() == 0) {
-      return (ByteBuffer) buf;
+      return (java.nio.ByteBuffer) buf;
     }
-    return BufferUtil.copyByteBuffer((ByteBuffer) buf);
-  } else if (buf instanceof ShortBuffer) {
-    return BufferUtil.copyShortBufferAsByteBuffer((ShortBuffer) buf);
-  } else if (buf instanceof IntBuffer) {
-    return BufferUtil.copyIntBufferAsByteBuffer((IntBuffer) buf);
-  } else if (buf instanceof FloatBuffer) {
-    return BufferUtil.copyFloatBufferAsByteBuffer((FloatBuffer) buf);
+    return BufferUtil.copyByteBuffer((java.nio.ByteBuffer) buf);
+  } else if (buf instanceof java.nio.ShortBuffer) {
+    return BufferUtil.copyShortBufferAsByteBuffer((java.nio.ShortBuffer) buf);
+  } else if (buf instanceof java.nio.IntBuffer) {
+    return BufferUtil.copyIntBufferAsByteBuffer((java.nio.IntBuffer) buf);
+  } else if (buf instanceof java.nio.FloatBuffer) {
+    return BufferUtil.copyFloatBufferAsByteBuffer((java.nio.FloatBuffer) buf);
   } else {
     throw new IllegalArgumentException("Unsupported buffer type (must be one of byte, short, int, or float)");
   }
 }
 
 private int gluScaleImageJava( int format, int widthin, int heightin,
-                               int typein, Buffer datain, int widthout, int heightout,
-                               int typeout, Buffer dataout ) {
-  ByteBuffer in = null;
-  ByteBuffer out = null;
+                               int typein, java.nio.Buffer datain, int widthout, int heightout,
+                               int typeout, java.nio.Buffer dataout ) {
+  java.nio.ByteBuffer in = null;
+  java.nio.ByteBuffer out = null;
   in = copyToByteBuffer(datain);
-  if( dataout instanceof ByteBuffer ) {
-    out = (ByteBuffer)dataout;
-  } else if( dataout instanceof ShortBuffer ) {
+  if( dataout instanceof java.nio.ByteBuffer ) {
+    out = (java.nio.ByteBuffer)dataout;
+  } else if( dataout instanceof java.nio.ShortBuffer ) {
     out = BufferUtil.newByteBuffer(dataout.remaining() * BufferUtil.SIZEOF_SHORT);
-  } else if ( dataout instanceof IntBuffer ) {
+  } else if ( dataout instanceof java.nio.IntBuffer ) {
     out = BufferUtil.newByteBuffer(dataout.remaining() * BufferUtil.SIZEOF_INT);
-  } else if ( dataout instanceof FloatBuffer ) {
+  } else if ( dataout instanceof java.nio.FloatBuffer ) {
     out = BufferUtil.newByteBuffer(dataout.remaining() * BufferUtil.SIZEOF_FLOAT);
   } else {
     throw new IllegalArgumentException("Unsupported destination buffer type (must be byte, short, int, or float)");
@@ -1293,12 +1293,12 @@ private int gluScaleImageJava( int format, int widthin, int heightin,
   if( errno == 0 ) {
     out.rewind();
     if (out != dataout) {
-      if( dataout instanceof ShortBuffer ) {
-        ((ShortBuffer) dataout).put(out.asShortBuffer());
-      } else if( dataout instanceof IntBuffer ) {
-        ((IntBuffer) dataout).put(out.asIntBuffer());
-      } else if( dataout instanceof FloatBuffer ) {
-        ((FloatBuffer) dataout).put(out.asFloatBuffer());
+      if( dataout instanceof java.nio.ShortBuffer ) {
+        ((java.nio.ShortBuffer) dataout).put(out.asShortBuffer());
+      } else if( dataout instanceof java.nio.IntBuffer ) {
+        ((java.nio.IntBuffer) dataout).put(out.asIntBuffer());
+      } else if( dataout instanceof java.nio.FloatBuffer ) {
+        ((java.nio.FloatBuffer) dataout).put(out.asFloatBuffer());
       } else {
         throw new RuntimeException("Should not reach here");
       }
@@ -1310,16 +1310,16 @@ private int gluScaleImageJava( int format, int widthin, int heightin,
 
 private int gluBuild1DMipmapLevelsJava( int target, int internalFormat, int width,
                                         int format, int type, int userLevel, int baseLevel, int maxLevel,
-                                        Buffer data ) {
-  ByteBuffer buffer = copyToByteBuffer(data);
+                                        java.nio.Buffer data ) {
+  java.nio.ByteBuffer buffer = copyToByteBuffer(data);
   return( Mipmap.gluBuild1DMipmapLevels( getCurrentGL(), target, internalFormat, width,
           format, type, userLevel, baseLevel, maxLevel, buffer ) );
 }
 
 
 private int gluBuild1DMipmapsJava( int target, int internalFormat, int width,
-                                   int format, int type, Buffer data ) {
-  ByteBuffer buffer = copyToByteBuffer(data);
+                                   int format, int type, java.nio.Buffer data ) {
+  java.nio.ByteBuffer buffer = copyToByteBuffer(data);
   return( Mipmap.gluBuild1DMipmaps( getCurrentGL(), target, internalFormat, width, format,
           type, buffer ) );
 }
@@ -1327,7 +1327,7 @@ private int gluBuild1DMipmapsJava( int target, int internalFormat, int width,
 
 private int gluBuild2DMipmapLevelsJava( int target, int internalFormat, int width,
                                         int height, int format, int type, int userLevel, int baseLevel,
-                                        int maxLevel, Buffer data ) {
+                                        int maxLevel, java.nio.Buffer data ) {
   // While the code below handles other data types, it doesn't handle non-ByteBuffers
   data = copyToByteBuffer(data);
   return( Mipmap.gluBuild2DMipmapLevels( getCurrentGL(), target, internalFormat, width,
@@ -1335,7 +1335,7 @@ private int gluBuild2DMipmapLevelsJava( int target, int internalFormat, int widt
 }
 
 private int gluBuild2DMipmapsJava( int target, int internalFormat, int width,
-                                   int height, int format, int type, Buffer data ) {
+                                   int height, int format, int type, java.nio.Buffer data ) {
   // While the code below handles other data types, it doesn't handle non-ByteBuffers
   data = copyToByteBuffer(data);
   return( Mipmap.gluBuild2DMipmaps( getCurrentGL(), target, internalFormat, width, height,
@@ -1344,15 +1344,15 @@ private int gluBuild2DMipmapsJava( int target, int internalFormat, int width,
 
 private int gluBuild3DMipmapLevelsJava( int target, int internalFormat, int width,
                                         int height, int depth, int format, int type, int userLevel, int baseLevel,
-                                        int maxLevel, Buffer data) {
-  ByteBuffer buffer = copyToByteBuffer(data);
+                                        int maxLevel, java.nio.Buffer data) {
+  java.nio.ByteBuffer buffer = copyToByteBuffer(data);
   return( Mipmap.gluBuild3DMipmapLevels( getCurrentGL(), target, internalFormat, width,
           height, depth, format, type, userLevel, baseLevel, maxLevel, buffer) );
 }
 
 private int gluBuild3DMipmapsJava( int target, int internalFormat, int width,
-                                   int height, int depth, int format, int type, Buffer data ) {
-  ByteBuffer buffer = copyToByteBuffer(data);
+                                   int height, int depth, int format, int type, java.nio.Buffer data ) {
+  java.nio.ByteBuffer buffer = copyToByteBuffer(data);
   return( Mipmap.gluBuild3DMipmaps( getCurrentGL(), target, internalFormat, width, height,
           depth, format, type, buffer ) );
 }

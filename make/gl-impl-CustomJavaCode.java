@@ -319,10 +319,10 @@ public java.nio.ByteBuffer glMapBuffer(int target, int access) {
     return null;
   }
   ARBVBOKey key = new ARBVBOKey(addr, sz);
-  ByteBuffer _res = (ByteBuffer) arbVBOCache.get(key);
+  java.nio.ByteBuffer _res = (java.nio.ByteBuffer) arbVBOCache.get(key);
   if (_res == null) {
     _res = InternalBufferUtils.newDirectByteBuffer(addr, sz);
-    _res.order(ByteOrder.nativeOrder());
+    _res.order(java.nio.ByteOrder.nativeOrder());
     arbVBOCache.put(key, _res);
   }
   _res.position(0);
@@ -344,10 +344,10 @@ public java.nio.ByteBuffer glMapBufferARB(int target, int access) {
     return null;
   }
   ARBVBOKey key = new ARBVBOKey(addr, sz);
-  ByteBuffer _res = (ByteBuffer) arbVBOCache.get(key);
+  java.nio.ByteBuffer _res = (java.nio.ByteBuffer) arbVBOCache.get(key);
   if (_res == null) {
     _res = InternalBufferUtils.newDirectByteBuffer(addr, sz);
-    _res.order(ByteOrder.nativeOrder());
+    _res.order(java.nio.ByteOrder.nativeOrder());
     arbVBOCache.put(key, _res);
   }
   _res.position(0);
