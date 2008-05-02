@@ -547,6 +547,9 @@ public class TextureIO {
    * no initial data. This is used, for example, to construct cube
    * maps out of multiple TextureData objects.
    *
+   * @param target the OpenGL target type, eg GL.GL_TEXTURE_2D, 
+   *               GL.GL_TEXTURE_RECTANGLE_ARB
+   *
    * @throws GLException if no OpenGL context is current or if an
    *                     OpenGL error occurred
    */
