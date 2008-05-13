@@ -50,7 +50,13 @@ public class BuildComposablePipeline
 {
   private String outputDirectory;
   private Class classToComposeAround;
-  
+
+  // Only desktop OpenGL has immediate mode glBegin / glEnd
+  private boolean hasImmediateMode;
+
+  // Desktop OpenGL and GLES1 have GL_STACK_OVERFLOW and GL_STACK_UNDERFLOW errors
+  private boolean hasStackOverflow;
+
   public static void main(String[] args)
   {
     String nameOfClassToComposeAround = args[0];
@@ -88,6 +94,18 @@ public class BuildComposablePipeline
       throw new IllegalArgumentException(
 	classToComposeAround.getName() + " is not an interface class");
     }    
+
+    try {
+      hasImmediateMode =
+        (classToComposeAround.getMethod("glBegin", new Class[] { Integer.TYPE }) != null);
+    } catch (Exception e) {
+    }
+
+    try {
+      hasStackOverflow =
+        (classToComposeAround.getField("GL_STACK_OVERFLOW") != null);
+    } catch (Exception e) {
+    }
   }
 
   /**
@@ -110,7 +128,7 @@ public class BuildComposablePipeline
    * Emits a Java source file that represents one element of the composable
    * pipeline. 
    */
-  protected static abstract class PipelineEmitter
+  protected abstract class PipelineEmitter
   {
     private File file;
     private String basePackage;
@@ -364,10 +382,12 @@ public class BuildComposablePipeline
     {
       output.println("  private void checkGLGetError(String caller)");
       output.println("  {");
-      output.println("    if (insideBeginEndPair) {");
-      output.println("      return;");
-      output.println("    }");
-      output.println();
+      if (hasImmediateMode) {
+        output.println("    if (insideBeginEndPair) {");
+        output.println("      return;");
+        output.println("    }");
+        output.println();
+      }
       output.println("    // Debug code to make sure the pipeline is working; leave commented out unless testing this class");
       output.println("    //System.err.println(\"Checking for GL errors " +
 		     "after call to \" + caller + \"()\");");
@@ -389,8 +409,10 @@ public class BuildComposablePipeline
       output.println("        case GL_INVALID_ENUM: buf.append(\"GL_INVALID_ENUM \"); break;");
       output.println("        case GL_INVALID_VALUE: buf.append(\"GL_INVALID_VALUE \"); break;");
       output.println("        case GL_INVALID_OPERATION: buf.append(\"GL_INVALID_OPERATION \"); break;");
-      output.println("        case GL_STACK_OVERFLOW: buf.append(\"GL_STACK_OVERFLOW \"); break;");
-      output.println("        case GL_STACK_UNDERFLOW: buf.append(\"GL_STACK_UNDERFLOW \"); break;");
+      if (hasStackOverflow) {
+        output.println("        case GL_STACK_OVERFLOW: buf.append(\"GL_STACK_OVERFLOW \"); break;");
+        output.println("        case GL_STACK_UNDERFLOW: buf.append(\"GL_STACK_UNDERFLOW \"); break;");
+      }
       output.println("        case GL_OUT_OF_MEMORY: buf.append(\"GL_OUT_OF_MEMORY \"); break;");
       output.println("        case GL_NO_ERROR: throw new InternalError(\"Should not be treating GL_NO_ERROR as error\");");
       output.println("        default: throw new InternalError(\"Unknown glGetError() return value: \" + err);");
@@ -400,10 +422,11 @@ public class BuildComposablePipeline
 		     ".glGetError()) != GL_NO_ERROR);");
       output.println("    throw new GLException(buf.toString());");
       output.println("  }");
-
-      output.println("  /** True if the pipeline is inside a glBegin/glEnd pair.*/");
-      output.println("  private boolean insideBeginEndPair = false;");
-      output.println();
+      if (hasImmediateMode) {
+        output.println("  /** True if the pipeline is inside a glBegin/glEnd pair.*/");
+        output.println("  private boolean insideBeginEndPair = false;");
+        output.println();
+      }
       output.println("  private void checkContext() {");
       output.println("    GLContext currentContext = GLContext.getCurrent();");
       output.println("    if (currentContext == null) {");
