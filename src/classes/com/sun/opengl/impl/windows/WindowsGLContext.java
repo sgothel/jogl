@@ -66,18 +66,12 @@ public class WindowsGLContext extends GLContextImpl {
     extensionNameMap.put("GL_ARB_pixel_format", "WGL_ARB_pixel_format");
   }
 
+  // FIXME: figure out how to hook back in the Java 2D / JOGL bridge
   public WindowsGLContext(WindowsGLDrawable drawable,
                           GLContext shareWith) {
-    this(drawable, shareWith, false);
+    super(shareWith);
   }
 
-  public WindowsGLContext(WindowsGLDrawable drawable,
-                          GLContext shareWith,
-                          boolean dontShareWithJava2D) {
-    super(shareWith, dontShareWithJava2D);
-    this.drawable = drawable;
-  }
-  
   public Object getPlatformGLExtensions() {
     return getWGLExt();
   }

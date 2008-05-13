@@ -39,10 +39,6 @@
 
 package com.sun.opengl.impl;
 
-import java.awt.Component;
-import java.awt.Graphics;
-import java.awt.GraphicsConfiguration;
-import java.awt.GraphicsDevice;
 import java.nio.*;
 import javax.media.opengl.*;
 import com.sun.gluegen.runtime.*;
@@ -87,10 +83,12 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory implements
   // implement this functionality on all other platforms
   //
 
+  /* FIXME: refactor dependencies on Java SE
   public abstract boolean canCreateContextOnJava2DSurface();
 
   public abstract GLContext createContextOnJava2DSurface(Graphics g, GLContext shareWith)
     throws GLException;
+  */
 
   //----------------------------------------------------------------------
   // Gamma adjustment support

@@ -39,9 +39,10 @@
 
 package com.sun.opengl.impl;
 
-import java.awt.GraphicsConfiguration;
-import java.awt.GraphicsDevice;
-import java.awt.GraphicsEnvironment;
+// FIXME: refactor Java SE dependencies
+// import java.awt.GraphicsConfiguration;
+// import java.awt.GraphicsDevice;
+// import java.awt.GraphicsEnvironment;
 import java.lang.ref.*;
 import java.util.*;
 import javax.media.opengl.*;
@@ -51,7 +52,8 @@ import javax.media.opengl.*;
     context creation as is inherent in the AWT and Swing. */
 
 public class GLContextShareSet {
-  private static boolean forceTracking = Debug.isPropertyDefined("jogl.glcontext.forcetracking");
+  // FIXME: refactor Java SE dependencies
+  //  private static boolean forceTracking = Debug.isPropertyDefined("jogl.glcontext.forcetracking");
   private static final boolean DEBUG = Debug.debug("GLContextShareSet");
 
   // This class is implemented with a WeakHashMap that goes from the
@@ -148,122 +150,123 @@ public class GLContextShareSet {
     }
   }
 
-  /** Indicates that the two supplied contexts (which must be able to
-      share textures and display lists) should be in the same
-      namespace for tracking of server-side object creation and
-      deletion. Because the sharing necessary behind the scenes is
-      different than that requested at the user level, the two notions
-      are different. This must be called immediately after the
-      creation of the new context (which is the second argument)
-      before any server-side OpenGL objects have been created in that
-      context. */
-  public static void registerForObjectTracking(GLContext olderContextOrNull,
-                                               GLContext newContext,
-                                               GLContext realShareContext) {
-    if (isObjectTrackingEnabled() || isObjectTrackingDebuggingEnabled()) {
-      GLContextImpl impl1 = null;      
-      GLContextImpl impl2 = null;      
-      GLObjectTracker tracker = null;
-
-      synchronized (GLContextShareSet.class) {
-        if (olderContextOrNull != null &&
-            newContext != null) {
-          if (entryFor(olderContextOrNull) != entryFor(newContext)) {
-            throw new IllegalArgumentException("old and new contexts must be able to share textures and display lists");
-          }
-        }
-
-        // FIXME: downcast to GLContextImpl undesirable
-        impl1 = (GLContextImpl) olderContextOrNull;
-        impl2 = (GLContextImpl) newContext;
-
-        GLObjectTracker deletedObjectTracker = null;
-        GLContextImpl shareImpl = (GLContextImpl) realShareContext;
-        // Before we zap the "user-level" object trackers, make sure
-        // that all contexts in the share set share the destroyed object
-        // tracker
-        if (shareImpl != null) {
-          deletedObjectTracker = shareImpl.getDeletedObjectTracker();
-        }
-        if (deletedObjectTracker == null) {
-          // Must create one and possibly set it up in the older context
-          deletedObjectTracker = new GLObjectTracker();
-          if (DEBUG) {
-            System.err.println("Created deletedObjectTracker " + deletedObjectTracker + " because " +
-                               ((shareImpl == null) ? "shareImpl was null" : "shareImpl's (" + shareImpl + ") deletedObjectTracker was null"));
-          }
-
-          if (shareImpl != null) {
-            // FIXME: think should really assert in this case
-            shareImpl.setDeletedObjectTracker(deletedObjectTracker);
-            if (DEBUG) {
-              System.err.println("Set deletedObjectTracker " + deletedObjectTracker + " in shareImpl context " + shareImpl);
-            }
-          }
-        }
-        impl2.setDeletedObjectTracker(deletedObjectTracker);
-        if (DEBUG) {
-          System.err.println("Set deletedObjectTracker " + deletedObjectTracker + " in impl2 context " + impl2);
-        }
-      }
-
-      // Must not hold lock around this operation
-      // Don't share object trackers with the primordial share context from Java2D
-      if (Java2D.isOGLPipelineActive()) {
-        // FIXME: probably need to do something different here
-        // Need to be able to figure out the GraphicsDevice for the
-        // older context if it's on-screen
-        GraphicsConfiguration gc = GraphicsEnvironment.
-          getLocalGraphicsEnvironment().
-          getDefaultScreenDevice().
-          getDefaultConfiguration();
-        GLContext j2dShareContext = Java2D.getShareContext(gc);
-        if (impl1 != null && impl1 == j2dShareContext) {
-          impl1 = null;
-        }
-      }
-
-      synchronized (GLContextShareSet.class) {
-        if (impl1 != null) {
-          tracker = impl1.getObjectTracker();
-          assert (tracker != null)
-            : "registerForObjectTracking was not called properly for the older context";
-        }
-        if (tracker == null) {
-          tracker = new GLObjectTracker();
-        }
-        // Note that we don't assert that the tracker is non-null for
-        // impl2 because the way we use this functionality we actually
-        // overwrite the initially-set object tracker in the new context
-        impl2.setObjectTracker(tracker);
-      }
-    }
-  }
-
-  /** In order to avoid glGet calls for buffer object checks related
-      to glVertexPointer, etc. calls as well as glMapBuffer calls, we
-      need to share the same GLBufferSizeTracker object between
-      contexts sharing textures and display lists. For now we keep
-      this mechanism orthogonal to the GLObjectTracker to hopefully
-      keep things easier to understand. (The GLObjectTracker is
-      currently only needed in a fairly esoteric case, when the
-      Java2D/JOGL bridge is active, but the GLBufferSizeTracker
-      mechanism is now always required.) */
-  public static void registerForBufferObjectSharing(GLContext olderContextOrNull, GLContext newContext) {
-    // FIXME: downcasts to GLContextImpl undesirable
-    GLContextImpl older = (GLContextImpl) olderContextOrNull;
-    GLContextImpl newer = (GLContextImpl) newContext;
-    GLBufferSizeTracker tracker = null;
-    if (older != null) {
-      tracker = older.getBufferSizeTracker();
-      assert (tracker != null)
-        : "registerForBufferObjectSharing was not called properly for the older context, or has a bug in it";
-    }
-    if (tracker == null) {
-      tracker = new GLBufferSizeTracker();
-    }
-    newer.setBufferSizeTracker(tracker);
-  }
+  // FIXME: refactor Java SE dependencies
+  //  /** Indicates that the two supplied contexts (which must be able to
+  //      share textures and display lists) should be in the same
+  //      namespace for tracking of server-side object creation and
+  //      deletion. Because the sharing necessary behind the scenes is
+  //      different than that requested at the user level, the two notions
+  //      are different. This must be called immediately after the
+  //      creation of the new context (which is the second argument)
+  //      before any server-side OpenGL objects have been created in that
+  //      context. */
+  //  public static void registerForObjectTracking(GLContext olderContextOrNull,
+  //                                               GLContext newContext,
+  //                                               GLContext realShareContext) {
+  //    if (isObjectTrackingEnabled() || isObjectTrackingDebuggingEnabled()) {
+  //      GLContextImpl impl1 = null;      
+  //      GLContextImpl impl2 = null;      
+  //      GLObjectTracker tracker = null;
+  //
+  //      synchronized (GLContextShareSet.class) {
+  //        if (olderContextOrNull != null &&
+  //            newContext != null) {
+  //          if (entryFor(olderContextOrNull) != entryFor(newContext)) {
+  //            throw new IllegalArgumentException("old and new contexts must be able to share textures and display lists");
+  //          }
+  //        }
+  //
+  //        // FIXME: downcast to GLContextImpl undesirable
+  //        impl1 = (GLContextImpl) olderContextOrNull;
+  //        impl2 = (GLContextImpl) newContext;
+  //
+  //        GLObjectTracker deletedObjectTracker = null;
+  //        GLContextImpl shareImpl = (GLContextImpl) realShareContext;
+  //        // Before we zap the "user-level" object trackers, make sure
+  //        // that all contexts in the share set share the destroyed object
+  //        // tracker
+  //        if (shareImpl != null) {
+  //          deletedObjectTracker = shareImpl.getDeletedObjectTracker();
+  //        }
+  //        if (deletedObjectTracker == null) {
+  //          // Must create one and possibly set it up in the older context
+  //          deletedObjectTracker = new GLObjectTracker();
+  //          if (DEBUG) {
+  //            System.err.println("Created deletedObjectTracker " + deletedObjectTracker + " because " +
+  //                               ((shareImpl == null) ? "shareImpl was null" : "shareImpl's (" + shareImpl + ") deletedObjectTracker was null"));
+  //          }
+  //
+  //          if (shareImpl != null) {
+  //            // FIXME: think should really assert in this case
+  //            shareImpl.setDeletedObjectTracker(deletedObjectTracker);
+  //            if (DEBUG) {
+  //              System.err.println("Set deletedObjectTracker " + deletedObjectTracker + " in shareImpl context " + shareImpl);
+  //            }
+  //          }
+  //        }
+  //        impl2.setDeletedObjectTracker(deletedObjectTracker);
+  //        if (DEBUG) {
+  //          System.err.println("Set deletedObjectTracker " + deletedObjectTracker + " in impl2 context " + impl2);
+  //        }
+  //      }
+  //
+  //      // Must not hold lock around this operation
+  //      // Don't share object trackers with the primordial share context from Java2D
+  //      if (Java2D.isOGLPipelineActive()) {
+  //        // FIXME: probably need to do something different here
+  //        // Need to be able to figure out the GraphicsDevice for the
+  //        // older context if it's on-screen
+  //        GraphicsConfiguration gc = GraphicsEnvironment.
+  //          getLocalGraphicsEnvironment().
+  //          getDefaultScreenDevice().
+  //          getDefaultConfiguration();
+  //        GLContext j2dShareContext = Java2D.getShareContext(gc);
+  //        if (impl1 != null && impl1 == j2dShareContext) {
+  //          impl1 = null;
+  //        }
+  //      }
+  //
+  //      synchronized (GLContextShareSet.class) {
+  //        if (impl1 != null) {
+  //          tracker = impl1.getObjectTracker();
+  //          assert (tracker != null)
+  //            : "registerForObjectTracking was not called properly for the older context";
+  //        }
+  //        if (tracker == null) {
+  //          tracker = new GLObjectTracker();
+  //        }
+  //        // Note that we don't assert that the tracker is non-null for
+  //        // impl2 because the way we use this functionality we actually
+  //        // overwrite the initially-set object tracker in the new context
+  //        impl2.setObjectTracker(tracker);
+  //      }
+  //    }
+  //  }
+  //
+  //  /** In order to avoid glGet calls for buffer object checks related
+  //      to glVertexPointer, etc. calls as well as glMapBuffer calls, we
+  //      need to share the same GLBufferSizeTracker object between
+  //      contexts sharing textures and display lists. For now we keep
+  //      this mechanism orthogonal to the GLObjectTracker to hopefully
+  //      keep things easier to understand. (The GLObjectTracker is
+  //      currently only needed in a fairly esoteric case, when the
+  //      Java2D/JOGL bridge is active, but the GLBufferSizeTracker
+  //      mechanism is now always required.) */
+  //  public static void registerForBufferObjectSharing(GLContext olderContextOrNull, GLContext newContext) {
+  //    // FIXME: downcasts to GLContextImpl undesirable
+  //    GLContextImpl older = (GLContextImpl) olderContextOrNull;
+  //    GLContextImpl newer = (GLContextImpl) newContext;
+  //    GLBufferSizeTracker tracker = null;
+  //    if (older != null) {
+  //      tracker = older.getBufferSizeTracker();
+  //      assert (tracker != null)
+  //        : "registerForBufferObjectSharing was not called properly for the older context, or has a bug in it";
+  //    }
+  //    if (tracker == null) {
+  //      tracker = new GLBufferSizeTracker();
+  //    }
+  //    newer.setBufferSizeTracker(tracker);
+  //  }
 
   //----------------------------------------------------------------------
   // Internals only below this point
@@ -279,12 +282,13 @@ public class GLContextShareSet {
     }
   }
 
-  private static boolean isObjectTrackingEnabled() {
-    return ((Java2D.isOGLPipelineActive() && Java2D.isFBOEnabled()) ||
-            isObjectTrackingDebuggingEnabled());
-  }
-
-  private static boolean isObjectTrackingDebuggingEnabled() {
-    return forceTracking;
-  }
+  // FIXME: refactor Java SE dependencies
+  //  private static boolean isObjectTrackingEnabled() {
+  //    return ((Java2D.isOGLPipelineActive() && Java2D.isFBOEnabled()) ||
+  //            isObjectTrackingDebuggingEnabled());
+  //  }
+  //
+  //  private static boolean isObjectTrackingDebuggingEnabled() {
+  //    return forceTracking;
+  //  }
 }

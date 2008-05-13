@@ -66,6 +66,27 @@
        - Base initialization and detection of operating system.
       -->
     <target name="base.init" depends="gluegen.cpptasks.detect.os">
+        <condition property="isGLES">
+          <or>
+            <isset property="jogl.es1" />
+            <isset property="jogl.es2" />
+          </or>
+        </condition>
+
+        <!-- Also set isCDCFP for the GlueGen build.xml to keep GL
+             references there to a minimum -->
+        <condition property="isCDCFP">
+            <isset property="isGLES" />
+        </condition>
+
+        <condition property="isGLES1">
+            <isset property="jogl.es1" />
+        </condition>
+
+        <condition property="isGLES2">
+            <isset property="jogl.es2" />
+        </condition>
+
         <!-- Set the project root directory to be up one directory. -->
         <property name="project.root" value=".." />
     
@@ -115,7 +136,27 @@
     <!-- 
        - Declare all paths and user defined variables.
       -->
-    <target name="declare.common" description="Declare properties" depends="setup.java.home.dir, gluegen.cpptasks.detect.compiler">
+    <target name="declare.gl.gles1" if="isGLES1">
+        <property name="gl.headers" value="${stub.includes.dir}/opengl/GLES/*.h" /> <!-- NOTE:  this MUST be relative for FileSet --> <!-- CHECK:  this may need to be pruned for each platform -->
+        <property name="java.excludes.gles" value="javax/media/opengl/AWTGraphicsConfiguration.java, javax/media/opengl/AWTGraphicsDevice.java, javax/media/opengl/ComponentEvents.java, javax/media/opengl/GLCanvas.java, javax/media/opengl/GLJPanel.java, com/sun/opengl/util/j2d/**, com/sun/opengl/util/texture/**, com/sun/opengl/util/Animator.java, com/sun/opengl/util/FPSAnimator.java, com/sun/opengl/util/*Rec.java, com/sun/opengl/util/GLUT*.java, com/sun/opengl/util/Gamma.java, com/sun/opengl/util/ImageUtil.java, com/sun/opengl/util/JOGLAppletLauncher.java, com/sun/opengl/util/Screenshot.java, com/sun/opengl/util/TGAWriter.java, com/sun/opengl/util/TileRenderer.java, com/sun/opengl/impl/GLObjectTracker.java, com/sun/opengl/impl/GLPbufferImpl.java, com/sun/opengl/impl/GLUquadricImpl.java, com/sun/opengl/impl/Java2D.java, com/sun/opengl/impl/Java2DGLContext.java, com/sun/opengl/impl/JAWT_PlatformInfo.java, com/sun/opengl/impl/Project.java, com/sun/opengl/impl/Util.java, com/sun/opengl/impl/error/**, com/sun/opengl/impl/glue/**, com/sun/opengl/impl/mipmap/**, com/sun/opengl/impl/nurbs/**, com/sun/opengl/impl/packrect/**, com/sun/opengl/impl/registry/**, com/sun/opengl/impl/tessellator/**, com/sun/opengl/impl/windows/**, com/sun/opengl/impl/x11/**, com/sun/opengl/impl/macosx/**" />
+    </target>
+
+    <target name="declare.gl.gles2" if="isGLES2">
+        <property name="gl.headers" value="${stub.includes.dir}/opengl/GLES2/*.h" /> <!-- NOTE:  this MUST be relative for FileSet --> <!-- CHECK:  this may need to be pruned for each platform -->
+        <property name="java.excludes.gles" value="javax/media/opengl/AWTGraphicsConfiguration.java, javax/media/opengl/AWTGraphicsDevice.java, javax/media/opengl/ComponentEvents.java, javax/media/opengl/GLCanvas.java, javax/media/opengl/GLJPanel.java, com/sun/opengl/util/j2d/**, com/sun/opengl/util/texture/**, com/sun/opengl/util/Animator.java, com/sun/opengl/util/FPSAnimator.java, com/sun/opengl/util/*Rec.java, com/sun/opengl/util/GLUT*.java, com/sun/opengl/util/Gamma.java, com/sun/opengl/util/ImageUtil.java, com/sun/opengl/util/JOGLAppletLauncher.java, com/sun/opengl/util/Screenshot.java, com/sun/opengl/util/TGAWriter.java, com/sun/opengl/util/TileRenderer.java, com/sun/opengl/impl/GLObjectTracker.java, com/sun/opengl/impl/GLPbufferImpl.java, com/sun/opengl/impl/GLUquadricImpl.java, com/sun/opengl/impl/Java2D.java, com/sun/opengl/impl/Java2DGLContext.java, com/sun/opengl/impl/JAWT_PlatformInfo.java, com/sun/opengl/impl/Project.java, com/sun/opengl/impl/ProjectES1.java, com/sun/opengl/impl/Util.java, com/sun/opengl/impl/error/**, com/sun/opengl/impl/glue/**, com/sun/opengl/impl/mipmap/**, com/sun/opengl/impl/nurbs/**, com/sun/opengl/impl/packrect/**, com/sun/opengl/impl/registry/**, com/sun/opengl/impl/tessellator/**, com/sun/opengl/impl/windows/**, com/sun/opengl/impl/x11/**, com/sun/opengl/impl/macosx/**" />
+    </target>
+
+    <target name="declare.gl.gles" if="isGLES" depends="declare.gl.gles1, declare.gl.gles2">
+        <!-- Use the CDC / FP classes only if we're building for the embedded system -->
+        <property name="javac.bootclasspath.jar" value="../../gluegen/make/lib/cdc_fp.jar" />
+    </target>
+
+    <target name="declare.gl.desktop" unless="isGLES">
+        <property name="gl.headers" value="${stub.includes.dir}/opengl/GL/*.h" /> <!-- NOTE:  this MUST be relative for FileSet --> <!-- CHECK:  this may need to be pruned for each platform -->
+        <property name="java.excludes.gles" value="com/sun/opengl/impl/egl/**, com/sun/opengl/impl/ProjectES1.java" />
+    </target>
+
+    <target name="declare.common" description="Declare properties" depends="setup.java.home.dir, gluegen.cpptasks.detect.compiler, declare.gl.gles, declare.gl.desktop">
         <!-- The location and name of the configuration ANT file that will 
            - validate to ensure that all user-define variables are set. -->
         <property name="validate.user.properties" value="${make}/validate-properties.xml" />
@@ -230,12 +271,13 @@
 
         <property name="java.lib.dir.solaris" value="${java.home.dir}/jre/lib/${cpu}" />
         <property name="java.lib.dir.macosx" value="/System/Library/Frameworks/JavaVM.framework/Libraries" />
-        <property name="gl.headers" value="${stub.includes.dir}/opengl/**/*.h" /> <!-- NOTE:  this MUST be relative for FileSet --> <!-- CHECK:  this may need to be pruned for each platform -->
 
         <!-- Java files to exclude based on platform (relative to "src.java") -->
-        <property name="java.excludes.win32" value="com/sun/opengl/impl/x11/**, com/sun/opengl/impl/macosx/**" />
-        <property name="java.excludes.x11" value="com/sun/opengl/impl/windows/**, com/sun/opengl/impl/macosx/**" />
-        <property name="java.excludes.macosx" value="com/sun/opengl/impl/x11/**, com/sun/opengl/impl/windows/**" />
+	<!-- NOTE: the OpenGL ES exclusions are due to references to unsupported APIs -->
+        <property name="java.excludes.win32.gles" value="com/sun/opengl/impl/windows/*.java" />
+        <property name="java.excludes.win32" value="com/sun/opengl/impl/x11/**, com/sun/opengl/impl/macosx/**, ${java.excludes.gles}, ${java.excludes.win32.gles}" />
+        <property name="java.excludes.x11" value="com/sun/opengl/impl/windows/**, com/sun/opengl/impl/macosx/**, ${java.excludes.gles}" />
+        <property name="java.excludes.macosx" value="com/sun/opengl/impl/x11/**, com/sun/opengl/impl/windows/**, ${java.excludes.gles}" />
 
         <!-- Create the classpath that includes GlueGen and
            - ANTLR. This requires the user-defined "antlr.jar"
@@ -306,12 +348,29 @@
       <property name="linker.cfg.id.core"                   value="linker.cfg.win32.mingw.jogl" />
     </target>
 
-    <target name="declare.win32" depends="declare.win32.vc6,declare.win32.vc7,declare.win32.vc8,declare.win32.vc8_x64,declare.win32.mingw" if="isWindows">
-        <!-- Set platform configuration files. -->
+    <target name="declare.win32.gles1" if="isGLES1">
+        <property name="gl.cfg"                                 value="${config}/gl-es1.cfg" />
+        <property name="gl.c"                                   value="${stub.includes.common}/gles1.c" />
+        <property name="glu.cfg"                                value="${config}/glu-es1.cfg" />
+    </target>
+
+    <target name="declare.win32.gles2" if="isGLES2">
+        <property name="gl.cfg"                                 value="${config}/gl-es2.cfg" />
+        <property name="gl.c"                                   value="${stub.includes.common}/gles2.c" />
+    </target>
+
+    <target name="declare.win32.gles" depends="declare.win32.gles1, declare.win32.gles2" />
+
+    <target name="declare.win32.desktop" unless="isGLES">
         <property name="gl.cfg"                                 value="${config}/gl-win32.cfg" />
+        <property name="gl.c"                                   value="${stub.includes.common}/gl.c" />
+        <property name="glu.cfg"                                value="${config}/glu-win32.cfg" />
+    </target>
+
+    <target name="declare.win32" depends="declare.win32.vc6,declare.win32.vc7,declare.win32.vc8,declare.win32.vc8_x64,declare.win32.mingw,declare.win32.gles,declare.win32.desktop" if="isWindows">
+        <!-- Set platform configuration files. -->
         <property name="gl.cfg.nsig"                            value="${config}/gl-win32-nsig.cfg" />
         <property name="glext.platform.cfg"                     value="${config}/wglext.cfg" />
-        <property name="glu.cfg"                                value="${config}/glu-win32.cfg" />
         <property name="jawt.cfg"                               value="${config}/jawt-win32.cfg" />
         <property name="window.cfg"                             value="${config}/wingdi-win32.cfg" />
 
@@ -488,6 +547,7 @@
           <propertyset>
             <propertyref name="antlr.jar" />
             <propertyref name="gluegen.nsig" />
+            <propertyref name="isCDCFP" />
           </propertyset>
         </ant>
     </target>
@@ -520,7 +580,7 @@
     <target name="java.generate.gl" unless="gluegen.nsig">
         <!-- Generate GL interface and implementation -->
         <echo message="Generating GL interface and implementation" />
-        <gluegen src="${stub.includes.common}/gl.c" 
+        <gluegen src="${gl.c}" 
                  config="${gl.cfg}"
                  includeRefid="stub.includes.fileset.all"
                  emitter="com.sun.gluegen.opengl.GLEmitter">
@@ -531,10 +591,59 @@
     <target name="java.generate.gl.nsig" if="gluegen.nsig">
         <!-- Generate GL interface and implementation -->
         <echo message="Generating GL interface and implementation" />
-        <gluegen src="${stub.includes.common}/gl.c" 
+        <gluegen src="${gl.c}" 
                  config="${gl.cfg.nsig}"
                  includeRefid="stub.includes.fileset.all"
                  emitter="com.sun.gluegen.nativesig.NativeSignatureEmitter">
+            <classpath refid="gluegen.classpath" />
+        </gluegen>
+    </target>
+
+    <target name="java.generate.glu" unless="isGLES2">
+        <echo message="Generating GLU class" />
+        <gluegen src="${stub.includes.common}/glu.c" 
+                 config="${glu.cfg}"
+                 includeRefid="stub.includes.fileset.all"
+                 emitter="com.sun.gluegen.opengl.GLEmitter">
+            <classpath refid="gluegen.classpath" />
+        </gluegen>
+    </target>
+
+
+    <target name="java.generate.platform.glext" unless="isGLES">
+	<!-- Generate platform-specific extension class (WGLExt, GLXExt, etc.) -->
+        <echo message="Generating platform-specific OpenGL extension class" />
+        <gluegen src="${glext.platform.header}" 
+                 config="${glext.platform.cfg}"
+                 includeRefid="stub.includes.fileset.all"
+                 emitter="com.sun.gluegen.opengl.GLEmitter">
+            <classpath refid="gluegen.classpath" />
+        </gluegen>
+    </target>
+
+    <target name="java.generate.window.system" unless="isGLES">
+	<!-- Generate WGL/GLX/CGL implementation class -->
+        <echo message="Generating WGL/GLX/CGL implementation class" />
+	<dirset id="stub.includes.fileset.platform" dir="." includes="${stub.includes.fileset.platform.params}" />
+        <gluegen src="${stub.includes.platform}/window-system.c" 
+                 config="${window.cfg}"
+                 includeRefid="stub.includes.fileset.platform"
+                 emitter="com.sun.gluegen.opengl.GLEmitter">
+            <classpath refid="gluegen.classpath" />
+        </gluegen>
+    </target>
+
+    <target name="java.generate.jawt" unless="isGLES">
+        <!-- NOTE:  the "literalInclude" in this GlueGen call is simply to
+           -        get around the fact that neither FileSet nor DirSet can
+           -        handle different drives in an effective manner. -->
+        <echo message="Generating JAWT interface class" />
+        <echo message="java.home.dir=${java.home.dir}" />
+        <gluegen src="${java.includes.dir.platform}/jawt_md.h" 
+                 config="${jawt.cfg}"
+                 literalInclude="${java.includes.dir}"
+                 includeRefid="stub.includes.fileset.platform"
+                 emitter="com.sun.gluegen.JavaEmitter">
             <classpath refid="gluegen.classpath" />
         </gluegen>
     </target>
@@ -559,37 +668,13 @@
         <antcall target="java.generate.gl.nsig" inheritRefs="true" />
 
 	<!-- Generate platform-specific extension class (WGLExt, GLXExt, etc.) -->
-        <echo message="Generating platform-specific OpenGL extension class" />
-        <gluegen src="${glext.platform.header}" 
-                 config="${glext.platform.cfg}"
-                 includeRefid="stub.includes.fileset.all"
-                 emitter="com.sun.gluegen.opengl.GLEmitter">
-            <classpath refid="gluegen.classpath" />
-        </gluegen>
+        <antcall target="java.generate.platform.glext" inheritRefs="true" />
 
 	<!-- Generate WGL/GLX/CGL implementation class -->
-        <echo message="Generating WGL/GLX/CGL implementation class" />
-	<dirset id="stub.includes.fileset.platform" dir="." includes="${stub.includes.fileset.platform.params}" />
-        <gluegen src="${stub.includes.platform}/window-system.c" 
-                 config="${window.cfg}"
-                 includeRefid="stub.includes.fileset.platform"
-                 emitter="com.sun.gluegen.opengl.GLEmitter">
-            <classpath refid="gluegen.classpath" />
-        </gluegen>
+        <antcall target="java.generate.window.system" inheritRefs="true" />
 
 	<!-- Generate JAWT class -->
-        <!-- NOTE:  the "literalInclude" in this GlueGen call is simply to
-           -        get around the fact that neither FileSet nor DirSet can
-           -        handle different drives in an effective manner. -->
-        <echo message="Generating JAWT interface class" />
-        <echo message="java.home.dir=${java.home.dir}" />
-        <gluegen src="${java.includes.dir.platform}/jawt_md.h" 
-                 config="${jawt.cfg}"
-                 literalInclude="${java.includes.dir}"
-                 includeRefid="stub.includes.fileset.platform"
-                 emitter="com.sun.gluegen.JavaEmitter">
-            <classpath refid="gluegen.classpath" />
-        </gluegen>
+        <antcall target="java.generate.jawt" inheritRefs="true" />
 
 	<!-- Generate StaticGLInfo class -->
         <echo message="Generating StaticGLInfo class" />
@@ -599,14 +684,11 @@
             <classpath refid="gluegen.classpath" />
         </staticglgen>
 
-	<!-- Generate GLU class -->
-        <echo message="Generating GLU class" />
-        <gluegen src="${stub.includes.common}/glu.c" 
-                 config="${glu.cfg}"
-                 includeRefid="stub.includes.fileset.all"
-                 emitter="com.sun.gluegen.opengl.GLEmitter">
-            <classpath refid="gluegen.classpath" />
-        </gluegen>
+        <!-- Generate GLU class -->
+	<!-- NOTE: massively stripped down for embedded OpenGL
+	     because the implementation uses immediate mode calls not
+	     available on GLES1 or GLES2 -->
+	<antcall target="java.generate.glu" inheritrefs="true" />
 
         <!-- Inform the user that the generators have successfully created 
            - the necessary Java files -->
@@ -704,6 +786,7 @@
                excludes="${java.excludes.platform}"
                source="${jogl.sourcelevel}"
                classpath="${gluegen-rt.jar}"
+               bootclasspath="${javac.bootclasspath.jar}"
                fork="yes"
                memoryMaximumSize="128m"
                debug="true" debuglevel="source,lines">
@@ -770,6 +853,8 @@
       <linker id="linker.cfg.win32.msvc.jogl" extends="linker.cfg.win32.msvc">
         <syslibset libs="opengl32, gdi32, user32, kernel32" />
         <syslibset dir="${windows.cg.lib}" libs="cg, cgGL" if="c.compiler.use-cglib"/>
+	<!-- This is temporary -->
+        <syslibset libs="winmm" />
       </linker>
 
       <linker id="linker.cfg.macosx.jogl" extends="linker.cfg.macosx">
@@ -789,7 +874,9 @@
       <patternset id="c.src.files.jogl">
         <include name="${rootrel.src.c.jogl}/InternalBufferUtils.c"/>
         <include name="${rootrel.src.c.jogl}/*.m" if="isOSX"/>
-        <include name="${rootrel.generated.c.jogl}/*GL*.c"/>
+        <!-- FIXME: the Mixer should be moved to another library -->
+        <include name="${rootrel.src.c.jogl}/Mixer.cpp" if="isWindows"/>
+        <include name="${rootrel.generated.c.jogl}/*GL*.c" unless="jogl.noglnatives"/>
         <include name="${rootrel.src.c.jogl}/XineramaHelper.c" if="isX11"/>
         <!-- Xinerama supporting functions for Linux only (for now) -->
         <!-- Also supported on Solaris, but works differently -->
@@ -853,6 +940,10 @@
           <sysincludepath path="${java.includes.dir.platform}"/>
           <includepath path="stub_includes/opengl"/>
           <includepath path="stub_includes/cg" if="c.compiler.use-cglib"/>        
+
+          <!-- This is for the generated headers for handwritten C code -->
+          <includepath path="${src.generated.c}" />
+
           <!-- This must come last to not override real include paths -->
           <!-- includepath path="stub_includes/macosx" if="isOSX" / -->
         </compiler>
@@ -896,6 +987,14 @@
     </target>
 
     <target name="c.build.jogl.core">
+      <!-- Generate the EGLDrawableFactory header -->
+      <!-- FIXME: this is temporary until we fully autogenerate the EGL interface -->
+      <javah destdir="../build/gensrc/native/jogl" classpath="${jogl.jar}" class="com.sun.opengl.impl.egl.EGLDrawableFactory" />
+      <!-- Generate the waveout Mixer header -->
+      <!-- FIXME: this is temporary until we move this to another workspace -->
+      <javah destdir="../build/gensrc/native/jogl" classpath="${jogl.jar}" class="com.sun.javafx.audio.windows.waveout.Mixer" />
+
+      <!-- Compile stuff -->
       <antcall target="c.build" inheritRefs="true">
         <param name="c.compiler.src.files" value="c.src.files.jogl"/>
         <param name="output.lib.name" value="jogl"/>
@@ -976,6 +1075,8 @@
                 <include name="javax/media/opengl/**" />
                 <include name="com/sun/gluegen/runtime/**" />
                 <include name="com/sun/opengl/**" />
+                <!-- FIXME: this is temporary until we move these classes to another workspace -->
+                <include name="com/sun/javafx/**" />
             </fileset>
         </jar>
         <delete file="tempversion"/>
@@ -999,6 +1100,7 @@
                 <include name="javax/media/opengl/**" />
                 <include name="com/sun/gluegen/runtime/**" />
                 <include name="com/sun/opengl/**" />
+                <include name="com/sun/javafx/**" />
             </fileset>
         </jar>
         <delete file="tempversion"/>

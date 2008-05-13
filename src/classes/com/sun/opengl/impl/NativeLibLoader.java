@@ -39,7 +39,8 @@
 
 package com.sun.opengl.impl;
 
-import java.awt.Toolkit;
+// FIXME: refactor Java SE dependencies
+//import java.awt.Toolkit;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.security.AccessController;
@@ -114,6 +115,7 @@ public class NativeLibLoader {
     });
   }
 
+  /* FIXME: refactor Java SE dependencies
   public static void loadAWTImpl() {
     AccessController.doPrivileged(new PrivilegedAction() {
       public Object run() {
@@ -134,6 +136,7 @@ public class NativeLibLoader {
       }
     });
   }
+  */
 
   public static void loadCgImpl() {
     AccessController.doPrivileged(new PrivilegedAction() {
@@ -186,6 +189,8 @@ public class NativeLibLoader {
           throw (UnsatisfiedLinkError) new UnsatisfiedLinkError().initCause(e);
         }
     } else {
+      // FIXME: remove
+      // System.out.println("sun.boot.library.path=" + System.getProperty("sun.boot.library.path"));
       System.loadLibrary(libraryName);
     }
   }

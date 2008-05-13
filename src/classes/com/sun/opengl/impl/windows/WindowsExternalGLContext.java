@@ -50,7 +50,8 @@ public class WindowsExternalGLContext extends WindowsGLContext {
   private GLContext lastContext;
 
   public WindowsExternalGLContext() {
-    super(null, null, true);
+    // FIXME: figure out how to hook back in the Java 2D / JOGL bridge
+    super(null, null);
     hglrc = WGL.wglGetCurrentContext();
     if (hglrc == 0) {
       throw new GLException("Error: attempted to make an external GLContext without a drawable/context current");

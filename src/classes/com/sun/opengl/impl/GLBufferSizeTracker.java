@@ -151,10 +151,10 @@ public class GLBufferSizeTracker {
       if (sz == null) {
         // For robustness, try to query this value from the GL as we used to
         int[] tmp = new int[1];
-        caller.glGetBufferParameterivARB(target, GL.GL_BUFFER_SIZE_ARB, tmp, 0);
+        caller.glGetBufferParameteriv(target, GL.GL_BUFFER_SIZE, tmp, 0);
         if (tmp[0] == 0) {
           // Assume something is wrong rather than silently going along
-          throw new GLException("Error: buffer size returned by glGetBufferParameterivARB was zero; probably application error");
+          throw new GLException("Error: buffer size returned by glGetBufferParameteriv was zero; probably application error");
         }
         // Assume we just don't know what's happening
         sz = new Integer(tmp[0]);
@@ -170,7 +170,7 @@ public class GLBufferSizeTracker {
     }
     // We don't know what's going on in this case; query the GL for an answer
     int[] tmp = new int[1];
-    caller.glGetBufferParameterivARB(target, GL.GL_BUFFER_SIZE_ARB, tmp, 0);
+    caller.glGetBufferParameteriv(target, GL.GL_BUFFER_SIZE, tmp, 0);
     if (DEBUG) {
       System.err.println("GLBufferSizeTracker.getBufferSize(): no cached buffer information");
     }

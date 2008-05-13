@@ -39,7 +39,8 @@
 
 package javax.media.opengl;
 
-import java.awt.EventQueue;
+// FIXME: refactor Java SE dependencies
+//import java.awt.EventQueue;
 import java.lang.reflect.InvocationTargetException;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
@@ -125,14 +126,17 @@ public class Threading {
   private static final int AWT    = 1;
   private static final int WORKER = 2;
   private static int mode;
+  /* FIXME: refactor Java SE dependencies
   // We need to know whether we're running on X11 platforms to change
   // our behavior when the Java2D/JOGL bridge is active
   private static boolean isX11;
+  */
   
   static {
     AccessController.doPrivileged(new PrivilegedAction() {
         public Object run() {
           String workaround = System.getProperty("opengl.1thread");
+          /* FIXME: refactor Java SE dependencies
           // Default to using the AWT thread on all platforms except
           // Windows. On OS X there is instability apparently due to
           // using the JAWT on non-AWT threads. On X11 platforms there
@@ -144,6 +148,7 @@ public class Threading {
           String osName = System.getProperty("os.name");
           boolean isWindows = osName.startsWith("Windows");
           isX11 = !(isWindows || osName.startsWith("Mac OS"));
+          */
           // int defaultMode = (isWindows ? WORKER : AWT);
           int defaultMode = AWT;
           mode = defaultMode;
@@ -208,6 +213,7 @@ public class Threading {
 
     switch (mode) {
       case AWT:
+        /* FIXME: refactor Java SE dependencies
         if (Java2D.isOGLPipelineActive()) {
           // FIXME: ideally only the QFT would be considered to be the
           // "OpenGL thread", but we can not currently run all of
@@ -218,7 +224,10 @@ public class Threading {
         } else {
           return EventQueue.isDispatchThread();
         }
+        */
+        return true;
       case WORKER:
+        /* FIXME: refactor Java SE dependencies
         if (Java2D.isOGLPipelineActive()) {
           // FIXME: ideally only the QFT would be considered to be the
           // "OpenGL thread", but we can not currently run all of
@@ -229,6 +238,8 @@ public class Threading {
         } else {
           return GLWorkerThread.isWorkerThread();
         }
+        */
+        return GLWorkerThread.isWorkerThread();
       default:
         throw new InternalError("Illegal single-threading mode " + mode);
     }
@@ -254,6 +265,7 @@ public class Threading {
 
     switch (mode) {
       case AWT:
+        /* FIXME: refactor Java SE dependencies
         // FIXME: ideally should run all OpenGL work on the Java2D QFT
         // thread when it's enabled, but unfortunately there are
         // deadlock issues on X11 platforms when making our
@@ -272,7 +284,9 @@ public class Threading {
           } catch (InterruptedException e) {
             throw new GLException(e);
           }
-        }    
+        }
+        */
+        r.run();
         break;
 
       case WORKER:

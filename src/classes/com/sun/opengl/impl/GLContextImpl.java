@@ -39,7 +39,8 @@
 
 package com.sun.opengl.impl;
 
-import java.awt.Component;
+// FIXME: refactor
+// import java.awt.Component;
 import java.nio.*;
 
 import javax.media.opengl.*;
@@ -72,6 +73,8 @@ public abstract class GLContextImpl extends GLContext {
   // repeated glGet calls upon glMapBuffer operations
   private GLBufferSizeTracker bufferSizeTracker;
 
+  /* FIXME: needed only by the Java 2D / JOGL bridge; refactor
+
   // Tracks creation and deletion of server-side OpenGL objects when
   // the Java2D/OpenGL pipeline is active and using FBOs to render
   private GLObjectTracker tracker;
@@ -79,11 +82,16 @@ public abstract class GLContextImpl extends GLContext {
   // current which can support immediate deletion of them
   private GLObjectTracker deletedObjectTracker;
 
+  */
+
   protected GL gl;
+
+  /* FIXME: refactor these dependencies on the Java 2D / JOGL bridge
+
   public GLContextImpl(GLContext shareWith) {
     this(shareWith, false);
   }
-
+  
   public GLContextImpl(GLContext shareWith, boolean dontShareWithJava2D) {
     functionAvailability = new FunctionAvailabilityCache(this);
     GLContext shareContext = shareWith;
@@ -99,6 +107,18 @@ public abstract class GLContextImpl extends GLContext {
     }
     GLContextShareSet.registerForObjectTracking(shareWith, this, shareContext);
     GLContextShareSet.registerForBufferObjectSharing(shareWith, this);
+    // This must occur after the above calls into the
+    // GLContextShareSet, which set up state needed by the GL object
+    setGL(createGL());
+  }
+
+  */
+
+  public GLContextImpl(GLContext shareWith) {
+    functionAvailability = new FunctionAvailabilityCache(this);
+    if (shareWith != null) {
+      GLContextShareSet.registerSharing(this, shareWith);
+    }
     // This must occur after the above calls into the
     // GLContextShareSet, which set up state needed by the GL object
     setGL(createGL());
@@ -132,11 +152,13 @@ public abstract class GLContextImpl extends GLContext {
     int res = 0;
     try {
       res = makeCurrentImpl();
+      /* FIXME: refactor dependence on Java 2D / JOGL bridge
       if ((tracker != null) &&
           (res == CONTEXT_CURRENT_NEW)) {
         // Increase reference count of GLObjectTracker
         tracker.ref();
       }
+      */
     } catch (GLException e) {
       lock.unlock();
       throw(e);
@@ -146,11 +168,14 @@ public abstract class GLContextImpl extends GLContext {
     } else {
       setCurrent(this);
 
+      /* FIXME: refactor dependence on Java 2D / JOGL bridge
+
       // Try cleaning up any stale server-side OpenGL objects
       // FIXME: not sure what to do here if this throws
       if (deletedObjectTracker != null) {
         deletedObjectTracker.clean(getGL());
       }
+      */
     }
     return res;
   }
@@ -176,6 +201,7 @@ public abstract class GLContextImpl extends GLContext {
       throw new GLException("Can not destroy context while it is current");
     }
 
+    /* FIXME: refactor dependence on Java 2D / JOGL bridge
     if (tracker != null) {
       // Don't need to do anything for contexts that haven't been
       // created yet
@@ -190,6 +216,7 @@ public abstract class GLContextImpl extends GLContext {
         tracker.unref(deletedObjectTracker);
       }
     }
+    */
 
     // Because we don't know how many other contexts we might be
     // sharing with (and it seems too complicated to implement the
@@ -239,9 +266,11 @@ public abstract class GLContextImpl extends GLContext {
   /** Create the GL for this context. */
   protected GL createGL() {
     GLImpl gl = new GLImpl(this);
+    /* FIXME: refactor dependence on Java 2D / JOGL bridge
     if (tracker != null) {
       gl.setObjectTracker(tracker);
     }
+    */
     return gl;
   }
   
@@ -386,6 +415,8 @@ public abstract class GLContextImpl extends GLContext {
     return bufferSizeTracker;
   }
 
+  /* FIXME: refactor dependence on Java 2D / JOGL bridge
+
   //---------------------------------------------------------------------------
   // Helpers for integration with Java2D/OpenGL pipeline when FBOs are
   // being used
@@ -406,6 +437,8 @@ public abstract class GLContextImpl extends GLContext {
   public GLObjectTracker getDeletedObjectTracker() {
     return deletedObjectTracker;
   }
+
+  */
 
   //---------------------------------------------------------------------------
   // Helpers for context optimization where the last context is left

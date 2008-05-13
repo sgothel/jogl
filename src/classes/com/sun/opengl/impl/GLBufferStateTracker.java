@@ -81,8 +81,9 @@ public class GLBufferStateTracker {
 
   private static final Integer arrayBufferEnum        = new Integer(GL.GL_ARRAY_BUFFER);
   private static final Integer elementArrayBufferEnum = new Integer(GL.GL_ELEMENT_ARRAY_BUFFER);
-  private static final Integer pixelPackBufferEnum    = new Integer(GL.GL_PIXEL_PACK_BUFFER);
-  private static final Integer pixelUnpackBufferEnum  = new Integer(GL.GL_PIXEL_UNPACK_BUFFER);
+  // FIXME: refactor dependencies on desktop OpenGL
+  //  private static final Integer pixelPackBufferEnum    = new Integer(GL.GL_PIXEL_PACK_BUFFER);
+  //  private static final Integer pixelUnpackBufferEnum  = new Integer(GL.GL_PIXEL_UNPACK_BUFFER);
   private static final Integer zero                   = new Integer(0);
 
   // Maps binding targets to buffer objects. A null value indicates
@@ -96,8 +97,9 @@ public class GLBufferStateTracker {
     // Start with known unbound targets for known keys
     bindingMap.put(arrayBufferEnum,        zero);
     bindingMap.put(elementArrayBufferEnum, zero);
-    bindingMap.put(pixelPackBufferEnum,    zero);
-    bindingMap.put(pixelUnpackBufferEnum,  zero);
+    // FIXME: refactor dependencies on desktop OpenGL
+    //    bindingMap.put(pixelPackBufferEnum,    zero);
+    //    bindingMap.put(pixelUnpackBufferEnum,  zero);
   }
 
   public void setBoundBufferObject(int target, int buffer) {
@@ -121,8 +123,9 @@ public class GLBufferStateTracker {
       switch (target) {
         case GL.GL_ARRAY_BUFFER:          queryTarget = GL.GL_ARRAY_BUFFER_BINDING;         break;
         case GL.GL_ELEMENT_ARRAY_BUFFER:  queryTarget = GL.GL_ELEMENT_ARRAY_BUFFER_BINDING; break;
-        case GL.GL_PIXEL_PACK_BUFFER:     queryTarget = GL.GL_PIXEL_PACK_BUFFER_BINDING;    break;
-        case GL.GL_PIXEL_UNPACK_BUFFER:   queryTarget = GL.GL_PIXEL_UNPACK_BUFFER_BINDING;  break;
+        // FIXME: refactor dependencies on desktop OpenGL
+        // case GL.GL_PIXEL_PACK_BUFFER:     queryTarget = GL.GL_PIXEL_PACK_BUFFER_BINDING;    break;
+        // case GL.GL_PIXEL_UNPACK_BUFFER:   queryTarget = GL.GL_PIXEL_UNPACK_BUFFER_BINDING;  break;
         default:                          gotQueryTarget = false; break;
       }
       if (gotQueryTarget) {
@@ -165,8 +168,9 @@ public class GLBufferStateTracker {
       case 0:                          return zero;
       case GL.GL_ARRAY_BUFFER:         return arrayBufferEnum;
       case GL.GL_ELEMENT_ARRAY_BUFFER: return elementArrayBufferEnum;
-      case GL.GL_PIXEL_PACK_BUFFER:    return pixelPackBufferEnum;
-      case GL.GL_PIXEL_UNPACK_BUFFER:  return pixelUnpackBufferEnum;
+      // FIXME: refactor dependencies on desktop OpenGL
+      // case GL.GL_PIXEL_PACK_BUFFER:    return pixelPackBufferEnum;
+      // case GL.GL_PIXEL_UNPACK_BUFFER:  return pixelUnpackBufferEnum;
       default:                         return new Integer(key);
     }
   }

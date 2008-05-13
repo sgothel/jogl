@@ -83,6 +83,12 @@ public abstract class GLDrawableFactory {
   /** Returns the sole GLDrawableFactory instance. */
   public static GLDrawableFactory getFactory() {
     if (factory == null) {
+
+        // FIXME: hook this in to the normal reflective mechanism
+        factory = new com.sun.opengl.impl.egl.EGLDrawableFactory();
+
+        /*
+
       try {
         String factoryClassName =
           (String) AccessController.doPrivileged(new PrivilegedAction() {
@@ -119,6 +125,8 @@ public abstract class GLDrawableFactory {
       } catch (Exception e) {
         throw new GLException(e);
       }
+
+        */
     }
 
     return factory;

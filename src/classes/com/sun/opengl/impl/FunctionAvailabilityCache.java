@@ -41,10 +41,8 @@ package com.sun.opengl.impl;
 
 import javax.media.opengl.*;
 import java.util.*;
-import java.util.regex.*;
-import java.awt.Canvas;
-import java.awt.Graphics;
-import java.awt.GraphicsConfiguration;
+// FIXME: refactor Java SE dependencies
+//import java.util.regex.*;
 import java.lang.reflect.*;
 
 /**
@@ -325,6 +323,7 @@ public final class FunctionAvailabilityCache {
           major = Integer.valueOf(tok.nextToken()).intValue();
           minor = Integer.valueOf(tok.nextToken()).intValue();
 
+          /*
           // See if there's version-specific information which might
           // imply a more recent OpenGL version
           tok = new StringTokenizer(versionString, " ");
@@ -347,14 +346,22 @@ public final class FunctionAvailabilityCache {
               }
             }
           }
+          */
         }
       }
       catch (Exception e)
       {
+        // FIXME: refactor desktop OpenGL dependencies and make this
+        // class work properly for OpenGL ES
+        e.printStackTrace();
+        major = 1;
+        minor = 0;
+        /*
         throw (IllegalArgumentException)
           new IllegalArgumentException(
             "Illegally formatted version identifier: \"" + versionString + "\"")
               .initCause(e);
+        */
       }
     }
 
