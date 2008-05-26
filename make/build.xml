@@ -136,27 +136,7 @@
     <!-- 
        - Declare all paths and user defined variables.
       -->
-    <target name="declare.gl.gles1" if="isGLES1">
-        <property name="gl.headers" value="${stub.includes.dir}/opengl/GLES/*.h" /> <!-- NOTE:  this MUST be relative for FileSet --> <!-- CHECK:  this may need to be pruned for each platform -->
-        <property name="java.excludes.gles" value="javax/media/opengl/AWTGraphicsConfiguration.java, javax/media/opengl/AWTGraphicsDevice.java, javax/media/opengl/ComponentEvents.java, javax/media/opengl/GLCanvas.java, javax/media/opengl/GLJPanel.java, com/sun/opengl/util/j2d/**, com/sun/opengl/util/texture/**, com/sun/opengl/util/Animator.java, com/sun/opengl/util/FPSAnimator.java, com/sun/opengl/util/*Rec.java, com/sun/opengl/util/GLUT*.java, com/sun/opengl/util/Gamma.java, com/sun/opengl/util/ImageUtil.java, com/sun/opengl/util/JOGLAppletLauncher.java, com/sun/opengl/util/Screenshot.java, com/sun/opengl/util/TGAWriter.java, com/sun/opengl/util/TileRenderer.java, com/sun/opengl/impl/GLObjectTracker.java, com/sun/opengl/impl/GLPbufferImpl.java, com/sun/opengl/impl/GLUquadricImpl.java, com/sun/opengl/impl/Java2D.java, com/sun/opengl/impl/Java2DGLContext.java, com/sun/opengl/impl/JAWT_PlatformInfo.java, com/sun/opengl/impl/Project.java, com/sun/opengl/impl/Util.java, com/sun/opengl/impl/error/**, com/sun/opengl/impl/glue/**, com/sun/opengl/impl/mipmap/**, com/sun/opengl/impl/nurbs/**, com/sun/opengl/impl/packrect/**, com/sun/opengl/impl/registry/**, com/sun/opengl/impl/tessellator/**, com/sun/opengl/impl/windows/**, com/sun/opengl/impl/x11/**, com/sun/opengl/impl/macosx/**" />
-    </target>
-
-    <target name="declare.gl.gles2" if="isGLES2">
-        <property name="gl.headers" value="${stub.includes.dir}/opengl/GLES2/*.h" /> <!-- NOTE:  this MUST be relative for FileSet --> <!-- CHECK:  this may need to be pruned for each platform -->
-        <property name="java.excludes.gles" value="javax/media/opengl/AWTGraphicsConfiguration.java, javax/media/opengl/AWTGraphicsDevice.java, javax/media/opengl/ComponentEvents.java, javax/media/opengl/GLCanvas.java, javax/media/opengl/GLJPanel.java, com/sun/opengl/util/j2d/**, com/sun/opengl/util/texture/**, com/sun/opengl/util/Animator.java, com/sun/opengl/util/FPSAnimator.java, com/sun/opengl/util/*Rec.java, com/sun/opengl/util/GLUT*.java, com/sun/opengl/util/Gamma.java, com/sun/opengl/util/ImageUtil.java, com/sun/opengl/util/JOGLAppletLauncher.java, com/sun/opengl/util/Screenshot.java, com/sun/opengl/util/TGAWriter.java, com/sun/opengl/util/TileRenderer.java, com/sun/opengl/impl/GLObjectTracker.java, com/sun/opengl/impl/GLPbufferImpl.java, com/sun/opengl/impl/GLUquadricImpl.java, com/sun/opengl/impl/Java2D.java, com/sun/opengl/impl/Java2DGLContext.java, com/sun/opengl/impl/JAWT_PlatformInfo.java, com/sun/opengl/impl/Project.java, com/sun/opengl/impl/ProjectES1.java, com/sun/opengl/impl/Util.java, com/sun/opengl/impl/error/**, com/sun/opengl/impl/glue/**, com/sun/opengl/impl/mipmap/**, com/sun/opengl/impl/nurbs/**, com/sun/opengl/impl/packrect/**, com/sun/opengl/impl/registry/**, com/sun/opengl/impl/tessellator/**, com/sun/opengl/impl/windows/**, com/sun/opengl/impl/x11/**, com/sun/opengl/impl/macosx/**" />
-    </target>
-
-    <target name="declare.gl.gles" if="isGLES" depends="declare.gl.gles1, declare.gl.gles2">
-        <!-- Use the CDC / FP classes only if we're building for the embedded system -->
-        <property name="javac.bootclasspath.jar" value="../../gluegen/make/lib/cdc_fp.jar" />
-    </target>
-
-    <target name="declare.gl.desktop" unless="isGLES">
-        <property name="gl.headers" value="${stub.includes.dir}/opengl/GL/*.h" /> <!-- NOTE:  this MUST be relative for FileSet --> <!-- CHECK:  this may need to be pruned for each platform -->
-        <property name="java.excludes.gles" value="com/sun/opengl/impl/egl/**, com/sun/opengl/impl/ProjectES1.java" />
-    </target>
-
-    <target name="declare.common" description="Declare properties" depends="setup.java.home.dir, gluegen.cpptasks.detect.compiler, declare.gl.gles, declare.gl.desktop">
+    <target name="declare.common" description="Declare properties" depends="setup.java.home.dir, gluegen.cpptasks.detect.compiler">
         <!-- The location and name of the configuration ANT file that will 
            - validate to ensure that all user-define variables are set. -->
         <property name="validate.user.properties" value="${make}/validate-properties.xml" />
@@ -272,13 +252,6 @@
         <property name="java.lib.dir.solaris" value="${java.home.dir}/jre/lib/${cpu}" />
         <property name="java.lib.dir.macosx" value="/System/Library/Frameworks/JavaVM.framework/Libraries" />
 
-        <!-- Java files to exclude based on platform (relative to "src.java") -->
-	<!-- NOTE: the OpenGL ES exclusions are due to references to unsupported APIs -->
-        <property name="java.excludes.win32.gles" value="com/sun/opengl/impl/windows/*.java" />
-        <property name="java.excludes.win32" value="com/sun/opengl/impl/x11/**, com/sun/opengl/impl/macosx/**, ${java.excludes.gles}, ${java.excludes.win32.gles}" />
-        <property name="java.excludes.x11" value="com/sun/opengl/impl/windows/**, com/sun/opengl/impl/macosx/**, ${java.excludes.gles}" />
-        <property name="java.excludes.macosx" value="com/sun/opengl/impl/x11/**, com/sun/opengl/impl/windows/**, ${java.excludes.gles}" />
-
         <!-- Create the classpath that includes GlueGen and
            - ANTLR. This requires the user-defined "antlr.jar"
            - property. -->
@@ -314,6 +287,41 @@
 	<property name="javadoc.bottom" value="Copyright 2005 Sun Microsystems, Inc. All rights reserved. Use is subject to &lt;a href=&quot;http://jcp.org/en/jsr/detail?id=231&quot;&gt;license terms&lt;/a&gt;." />
     </target>
     
+    <target name="declare.gl.gles1" if="isGLES1">
+        <property name="gl.headers" value="${stub.includes.dir}/opengl/GLES/*.h" /> <!-- NOTE:  this MUST be relative for FileSet --> <!-- CHECK:  this may need to be pruned for each platform -->
+        <property name="java.excludes.gles" value="javax/media/opengl/AWTGraphicsConfiguration.java, javax/media/opengl/AWTGraphicsDevice.java, javax/media/opengl/ComponentEvents.java, javax/media/opengl/GLCanvas.java, javax/media/opengl/GLJPanel.java, com/sun/opengl/util/j2d/**, com/sun/opengl/util/texture/**, com/sun/opengl/util/Animator.java, com/sun/opengl/util/FPSAnimator.java, com/sun/opengl/util/*Rec.java, com/sun/opengl/util/GLUT*.java, com/sun/opengl/util/Gamma.java, com/sun/opengl/util/ImageUtil.java, com/sun/opengl/util/JOGLAppletLauncher.java, com/sun/opengl/util/Screenshot.java, com/sun/opengl/util/TGAWriter.java, com/sun/opengl/util/TileRenderer.java, com/sun/opengl/impl/GLObjectTracker.java, com/sun/opengl/impl/GLPbufferImpl.java, com/sun/opengl/impl/GLUquadricImpl.java, com/sun/opengl/impl/Java2D.java, com/sun/opengl/impl/Java2DGLContext.java, com/sun/opengl/impl/JAWT_PlatformInfo.java, com/sun/opengl/impl/Project.java, com/sun/opengl/impl/Util.java, com/sun/opengl/impl/error/**, com/sun/opengl/impl/glue/**, com/sun/opengl/impl/mipmap/**, com/sun/opengl/impl/nurbs/**, com/sun/opengl/impl/packrect/**, com/sun/opengl/impl/registry/**, com/sun/opengl/impl/tessellator/**, com/sun/opengl/impl/windows/**, com/sun/opengl/impl/x11/**, com/sun/opengl/impl/macosx/**" />
+    </target>
+
+    <target name="declare.gl.gles2" if="isGLES2">
+        <property name="gl.headers" value="${stub.includes.dir}/opengl/GLES2/*.h" /> <!-- NOTE:  this MUST be relative for FileSet --> <!-- CHECK:  this may need to be pruned for each platform -->
+        <property name="java.excludes.gles" value="javax/media/opengl/AWTGraphicsConfiguration.java, javax/media/opengl/AWTGraphicsDevice.java, javax/media/opengl/ComponentEvents.java, javax/media/opengl/GLCanvas.java, javax/media/opengl/GLJPanel.java, com/sun/opengl/util/j2d/**, com/sun/opengl/util/texture/**, com/sun/opengl/util/Animator.java, com/sun/opengl/util/FPSAnimator.java, com/sun/opengl/util/*Rec.java, com/sun/opengl/util/GLUT*.java, com/sun/opengl/util/Gamma.java, com/sun/opengl/util/ImageUtil.java, com/sun/opengl/util/JOGLAppletLauncher.java, com/sun/opengl/util/Screenshot.java, com/sun/opengl/util/TGAWriter.java, com/sun/opengl/util/TileRenderer.java, com/sun/opengl/impl/GLObjectTracker.java, com/sun/opengl/impl/GLPbufferImpl.java, com/sun/opengl/impl/GLUquadricImpl.java, com/sun/opengl/impl/Java2D.java, com/sun/opengl/impl/Java2DGLContext.java, com/sun/opengl/impl/JAWT_PlatformInfo.java, com/sun/opengl/impl/Project.java, com/sun/opengl/impl/ProjectES1.java, com/sun/opengl/impl/Util.java, com/sun/opengl/impl/error/**, com/sun/opengl/impl/glue/**, com/sun/opengl/impl/mipmap/**, com/sun/opengl/impl/nurbs/**, com/sun/opengl/impl/packrect/**, com/sun/opengl/impl/registry/**, com/sun/opengl/impl/tessellator/**, com/sun/opengl/impl/windows/**, com/sun/opengl/impl/x11/**, com/sun/opengl/impl/macosx/**" />
+    </target>
+
+    <target name="declare.gl.gles" if="isGLES" depends="declare.gl.gles1, declare.gl.gles2">
+        <!-- Use the CDC / FP classes only if we're building for the embedded system -->
+        <property name="javac.bootclasspath.jar" value="../../gluegen/make/lib/cdc_fp.jar" />
+        <!-- Set platform directories. -->
+        <property name="stub.includes.platform"                 value="${stub.includes.dir}/gluegen_egl" />
+        <!-- Prepare to build the EGL interface -->
+        <property name="stub.includes.fileset.platform.params"  value="${stub.includes.dir}/gluegen_egl/**" />
+        <property name="window.cfg"                             value="${config}/egl.cfg" />
+    </target>
+
+    <target name="declare.gl.desktop" unless="isGLES">
+        <property name="gl.headers" value="${stub.includes.dir}/opengl/GL/*.h" /> <!-- NOTE:  this MUST be relative for FileSet --> <!-- CHECK:  this may need to be pruned for each platform -->
+        <property name="java.excludes.gles" value="com/sun/opengl/impl/egl/**, com/sun/opengl/impl/ProjectES1.java" />
+    </target>
+
+    <!-- Declarations that have to come after both the common setup and the GLES tests -->
+    <target name="declare.common.2">
+        <!-- Java files to exclude based on platform (relative to "src.java") -->
+	<!-- NOTE: the OpenGL ES exclusions are due to references to unsupported APIs -->
+        <property name="java.excludes.win32.gles" value="com/sun/opengl/impl/windows/*.java" />
+        <property name="java.excludes.win32" value="com/sun/opengl/impl/x11/**, com/sun/opengl/impl/macosx/**, ${java.excludes.gles}, ${java.excludes.win32.gles}" />
+        <property name="java.excludes.x11" value="com/sun/opengl/impl/windows/**, com/sun/opengl/impl/macosx/**, ${java.excludes.gles}" />
+        <property name="java.excludes.macosx" value="com/sun/opengl/impl/x11/**, com/sun/opengl/impl/windows/**, ${java.excludes.gles}" />
+    </target>
+
     <!-- ================================================================== -->
     <!--
        - Platform specific declares.
@@ -365,6 +373,11 @@
         <property name="gl.cfg"                                 value="${config}/gl-win32.cfg" />
         <property name="gl.c"                                   value="${stub.includes.common}/gl.c" />
         <property name="glu.cfg"                                value="${config}/glu-win32.cfg" />
+        <!-- Set platform directories. -->
+        <property name="stub.includes.platform"                 value="${stub.includes}/win32" />
+        <!-- Prepare to build the Windows class for access to the window system -->
+        <property name="stub.includes.fileset.platform.params"  value="${stub.includes.dir}/win32/** ${stub.includes.dir}/common/** ${stub.includes.dir}/opengl/**" />
+        <property name="window.cfg"                             value="${config}/wingdi-win32.cfg" />
     </target>
 
     <target name="declare.win32" depends="declare.win32.vc6,declare.win32.vc7,declare.win32.vc8,declare.win32.vc8_x64,declare.win32.mingw,declare.win32.gles,declare.win32.desktop" if="isWindows">
@@ -372,17 +385,14 @@
         <property name="gl.cfg.nsig"                            value="${config}/gl-win32-nsig.cfg" />
         <property name="glext.platform.cfg"                     value="${config}/wglext.cfg" />
         <property name="jawt.cfg"                               value="${config}/jawt-win32.cfg" />
-        <property name="window.cfg"                             value="${config}/wingdi-win32.cfg" />
 
         <!-- Set platform headers. -->
         <property name="glext.platform.header"                  value="${stub.includes.dir}/win32/wglext.c" />
 
         <!-- Set platform directories. -->
-        <property name="stub.includes.platform"                 value="${stub.includes}/win32" />
         <property name="java.includes.dir.platform"             value="${java.includes.dir.win32}" />
         <property name="java.lib.dir.platform"                  value="${java.lib.dir.win32}" />
         <property name="java.excludes.platform"                 value="${java.excludes.win32}" />
-        <property name="stub.includes.fileset.platform.params"  value="${stub.includes.dir}/win32/** ${stub.includes.dir}/common/** ${stub.includes.dir}/opengl/**" />
 
         <!-- Set Javadoc properties. -->
         <property name="javadoc.dev.packagenames.platform"      value="${javadoc.dev.packagenames.win32}" />
@@ -518,7 +528,7 @@
        - Initialize all parameters required for the build and create any
        - required directories.
       -->
-    <target name="init" depends="declare.common">
+    <target name="init" depends="declare.common, declare.gl.gles, declare.gl.desktop, declare.common.2">
         <!-- Call the external config validator script to make sure the config is ok and consistent -->
         <ant antfile="${validate.user.properties}" inheritall="true"/>
         
@@ -609,7 +619,6 @@
         </gluegen>
     </target>
 
-
     <target name="java.generate.platform.glext" unless="isGLES">
 	<!-- Generate platform-specific extension class (WGLExt, GLXExt, etc.) -->
         <echo message="Generating platform-specific OpenGL extension class" />
@@ -621,11 +630,11 @@
         </gluegen>
     </target>
 
-    <target name="java.generate.window.system" unless="isGLES">
-	<!-- Generate WGL/GLX/CGL implementation class -->
-        <echo message="Generating WGL/GLX/CGL implementation class" />
+    <target name="java.generate.window.system">
+	<!-- Generate WGL/GLX/CGL/EGL implementation class -->
+        <echo message="Generating WGL/GLX/CGL/EGL implementation class" />
 	<dirset id="stub.includes.fileset.platform" dir="." includes="${stub.includes.fileset.platform.params}" />
-        <gluegen src="${stub.includes.platform}/window-system.c" 
+        <gluegen src="${stub.includes.platform}/window-system.c"
                  config="${window.cfg}"
                  includeRefid="stub.includes.fileset.platform"
                  emitter="com.sun.gluegen.opengl.GLEmitter">
@@ -668,7 +677,7 @@
         <antcall target="java.generate.gl.nsig" inheritRefs="true" />
 
 	<!-- Generate platform-specific extension class (WGLExt, GLXExt, etc.) -->
-        <antcall target="java.generate.platform.glext" inheritRefs="true" />
+         <antcall target="java.generate.platform.glext" inheritRefs="true" />
 
 	<!-- Generate WGL/GLX/CGL implementation class -->
         <antcall target="java.generate.window.system" inheritRefs="true" />
@@ -939,6 +948,7 @@
           <sysincludepath path="${java.includes.dir}"/>
           <sysincludepath path="${java.includes.dir.platform}"/>
           <includepath path="stub_includes/opengl"/>
+          <includepath path="stub_includes/egl" if="isGLES"/>
           <includepath path="stub_includes/cg" if="c.compiler.use-cglib"/>        
 
           <!-- This is for the generated headers for handwritten C code -->
