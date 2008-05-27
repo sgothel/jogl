@@ -61,6 +61,9 @@
   <property name="gluegen.root" value="../../gluegen" />
   <import file="${gluegen.root}/make/gluegen-cpptasks.xml" />
 
+  <available file="${user.home}/jogl.compiler.xml" property="jogl.compiler.present"/>
+  <import file="${user.home}/jogl.compiler.xml" optional="true" />
+
     <!-- ================================================================== -->
     <!-- 
        - Base initialization and detection of operating system.
@@ -812,7 +815,7 @@
        - Compile the native C code for JOGL (and optionally the Cg binding).
       -->
 
-    <target name="c.configure" depends="gluegen.cpptasks.configure.compiler">
+    <target name="c.configure" depends="gluegen.cpptasks.configure.compiler" unless="jogl.compiler.present">
       <!-- compiler configuration -->
       <!-- Note that we can use the base setups in the gluegen-cpptasks for most of these -->
 
