@@ -635,6 +635,7 @@
 
     <target name="java.generate.window.system">
 	<!-- Generate WGL/GLX/CGL/EGL implementation class -->
+        <!-- FIXME: should probably always generate the EGL binding at this point -->
         <echo message="Generating WGL/GLX/CGL/EGL implementation class" />
 	<dirset id="stub.includes.fileset.platform" dir="." includes="${stub.includes.fileset.platform.params}" />
         <gluegen src="${stub.includes.platform}/window-system.c"

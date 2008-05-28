@@ -53,6 +53,10 @@ public class MacOSXGLDrawableFactory extends GLDrawableFactoryImpl {
     NativeLibLoader.loadCore();
   }
 
+  public MacOSXGLDrawableFactory(String profile) {
+    super(profile);
+  }
+
   public AbstractGraphicsConfiguration chooseGraphicsConfiguration(GLCapabilities capabilities,
                                                                    GLCapabilitiesChooser chooser,
                                                                    AbstractGraphicsDevice device) {

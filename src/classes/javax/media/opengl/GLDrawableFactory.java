@@ -39,6 +39,7 @@
 
 package javax.media.opengl;
 
+import java.lang.reflect.*;
 import java.security.*;
 import com.sun.opengl.impl.*;
 
@@ -78,58 +79,96 @@ import com.sun.opengl.impl.*;
 public abstract class GLDrawableFactory {
   private static GLDrawableFactory factory;
 
-  protected GLDrawableFactory() {}
+  /** The desktop (OpenGL 2.0) profile */
+  public static final String PROFILE_GL_20 = "GL20";
 
-  /** Returns the sole GLDrawableFactory instance. */
-  public static GLDrawableFactory getFactory() {
-    if (factory == null) {
+  /** The OpenGL ES 1 (really, 1.1) profile */
+  public static final String PROFILE_GLES1 = "GLES1";
 
-        // FIXME: hook this in to the normal reflective mechanism
-        factory = new com.sun.opengl.impl.egl.EGLDrawableFactory();
+  /** The OpenGL ES 2 (really, 2.0) profile */
+  public static final String PROFILE_GLES2 = "GLES2";
 
-        /*
+  private String profile;
 
+  /** Initializes the sole GLDrawableFactory instance for the given profile. */
+  public static void initialize(String profile) throws GLException {
+    if (factory != null) {
+      throw new GLException("Already initialized");
+    }
+
+    // See if the user is requesting one of the embedded profiles,
+    // and if so, try to instantiate the EGLDrawableFactory
+    if (PROFILE_GLES1.equals(profile) ||
+        PROFILE_GLES2.equals(profile)) {
       try {
-        String factoryClassName =
-          (String) AccessController.doPrivileged(new PrivilegedAction() {
-              public Object run() {
-                return System.getProperty("opengl.factory.class.name");
-              }
-            });
-        String osName = System.getProperty("os.name");
-        String osNameLowerCase = osName.toLowerCase();
-        Class factoryClass = null;
-
-        // Because there are some complications with generating all
-        // platforms' Java glue code on all platforms (among them that we
-        // would have to include jawt.h and jawt_md.h in the jogl
-        // sources, which we currently don't have to do) we break the only
-        // static dependencies with platform-specific code here using reflection.
-
-        if (factoryClassName != null) {
-          factoryClass = Class.forName(factoryClassName);
-        } else if (osNameLowerCase.startsWith("wind")) {
-          factoryClass = Class.forName("com.sun.opengl.impl.windows.WindowsGLDrawableFactory");
-        } else if (osNameLowerCase.startsWith("mac os x")) {
-          factoryClass = Class.forName("com.sun.opengl.impl.macosx.MacOSXGLDrawableFactory");
-        } else {
-          // Assume Linux, Solaris, etc. Should probably test for these explicitly.
-          factoryClass = Class.forName("com.sun.opengl.impl.x11.X11GLDrawableFactory");
-        }
-
-        if (factoryClass == null) {
-          throw new GLException("OS " + osName + " not yet supported");
-        }
-
-        factory = (GLDrawableFactory) factoryClass.newInstance();
+        Class clazz = Class.forName("com.sun.opengl.impl.egl.EGLDrawableFactory");
+        Constructor c = clazz.getDeclaredConstructor(new Class[] { String.class });
+        factory = (GLDrawableFactory) c.newInstance(new Object[] { profile });
       } catch (Exception e) {
-        throw new GLException(e);
+      }
+    } else if (!PROFILE_GL_20.equals(profile)) {
+      // We require that the user passes in one of the known profiles
+      throw new GLException("Unknown or unsupported profile \"" + profile + "\"");
+    }
+
+    // Use the desktop OpenGL as the fallback always
+    try {
+      String factoryClassName =
+        (String) AccessController.doPrivileged(new PrivilegedAction() {
+            public Object run() {
+              return System.getProperty("opengl.factory.class.name");
+            }
+          });
+      String osName = System.getProperty("os.name");
+      String osNameLowerCase = osName.toLowerCase();
+      Class factoryClass = null;
+
+      // Because there are some complications with generating all
+      // platforms' Java glue code on all platforms (among them that we
+      // would have to include jawt.h and jawt_md.h in the jogl
+      // sources, which we currently don't have to do) we break the only
+      // static dependencies with platform-specific code here using reflection.
+
+      if (factoryClassName != null) {
+        factoryClass = Class.forName(factoryClassName);
+      } else if (osNameLowerCase.startsWith("wind")) {
+        factoryClass = Class.forName("com.sun.opengl.impl.windows.WindowsGLDrawableFactory");
+      } else if (osNameLowerCase.startsWith("mac os x")) {
+        factoryClass = Class.forName("com.sun.opengl.impl.macosx.MacOSXGLDrawableFactory");
+      } else {
+        // Assume Linux, Solaris, etc. Should probably test for these explicitly.
+        factoryClass = Class.forName("com.sun.opengl.impl.x11.X11GLDrawableFactory");
       }
 
-        */
+      if (factoryClass == null) {
+        throw new GLException("OS " + osName + " not yet supported");
+      }
+
+      Constructor c = factoryClass.getDeclaredConstructor(new Class[] { String.class });
+      factory = (GLDrawableFactory) c.newInstance(new Object[] { profile });
+    } catch (Exception e) {
+      throw new GLException(e);
+    }
+  }
+
+  /** Creates a new GLDrawableFactory instance. End users do not need
+      to call this method. */
+  protected GLDrawableFactory(String profile) {
+    this.profile = profile;
+  }
+
+  /** Returns the sole GLDrawableFactory instance for the specified profile. */
+  public static GLDrawableFactory getFactory() {
+    if (factory == null) {
+      throw new GLException("Must call initialize() first");
     }
 
     return factory;
+  }
+
+  /** Indicates which profile this GLDrawableFactory was created for. */
+  public String getProfile() {
+    return profile;
   }
 
   /**

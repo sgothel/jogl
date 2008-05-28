@@ -60,6 +60,10 @@ public class WindowsGLDrawableFactory extends GLDrawableFactoryImpl {
     NativeLibLoader.loadCore();
   }
   
+  public WindowsGLDrawableFactory(String profile) {
+    super(profile);
+  }
+
   public AbstractGraphicsConfiguration chooseGraphicsConfiguration(GLCapabilities capabilities,
                                                                    GLCapabilitiesChooser chooser,
                                                                    AbstractGraphicsDevice device) {

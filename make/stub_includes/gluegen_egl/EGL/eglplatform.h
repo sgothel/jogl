@@ -46,9 +46,12 @@ extern "C" {
 #define EGLAPI
 
 // Define native window system types
-typedef int   EGLNativeDisplayType;
-typedef void* EGLNativeWindowType;
-typedef void* EGLNativePixmapType;
+typedef struct {} _EGLNativeDisplayType;
+typedef struct {} _EGLNativeWindowType;
+typedef struct {} _EGLNativePixmapType;
+typedef _EGLNativeDisplayType* EGLNativeDisplayType;
+typedef _EGLNativeWindowType* EGLNativeWindowType;
+typedef _EGLNativePixmapType* EGLNativePixmapType;
 
 #ifdef __cplusplus
 }

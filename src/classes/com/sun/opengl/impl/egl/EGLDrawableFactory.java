@@ -43,6 +43,28 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         NativeLibLoader.loadCore();
     }
   
+    // FIXME: this state should probably not be here
+    private long display;
+    private _EGLConfig config;
+
+    public EGLDrawableFactory(String profile) {
+        super(profile);
+
+        // FIXME: this initialization sequence needs to be refactored
+        // at least for X11 platforms to allow a little window
+        // system-specific code to run (to open the display, in
+        // particular)
+
+        display = EGL.eglGetDisplay(EGL.EGL_DEFAULT_DISPLAY);
+        if (display == EGL.EGL_NO_DISPLAY) {
+            throw new GLException("eglGetDisplay failed");
+        }
+        if (!EGL.eglInitialize(display, null, null)) {
+            throw new GLException("eglInitialize failed");
+        }
+    }
+
+
     public AbstractGraphicsConfiguration chooseGraphicsConfiguration(GLCapabilities capabilities,
                                                                      GLCapabilitiesChooser chooser,
                                                                      AbstractGraphicsDevice device) {
@@ -52,7 +74,9 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     public GLDrawable getGLDrawable(Object target,
                                     GLCapabilities capabilities,
                                     GLCapabilitiesChooser chooser) {
-        throw new GLException("Not yet implemented");
+        return new EGLDrawable(((Long) target).longValue(),
+                               capabilities,
+                               chooser);
     }
 
     public GLDrawableImpl createOffscreenDrawable(GLCapabilities capabilities,
@@ -111,6 +135,37 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         return false;
     }
 
+    public long getDisplay() {
+        return display;
+    }
+
+    public int[] glCapabilities2AttribList(GLCapabilities caps) {
+        int renderBit;
+
+        if (PROFILE_GLES1.equals(getProfile())) {
+            renderBit = EGL.EGL_OPENGL_ES_BIT;
+        } else if (PROFILE_GLES2.equals(getProfile())) {
+            renderBit = EGL.EGL_OPENGL_ES2_BIT;
+        } else {
+            throw new GLException("Unknown profile \"" + getProfile() + "\" (expected OpenGL ES 1 or OpenGL ES 2)");
+        }
+
+        return new int[] {
+            EGL.EGL_RENDERABLE_TYPE, renderBit,
+            EGL.EGL_DEPTH_SIZE,      caps.getDepthBits(),
+            // FIXME: does this need to be configurable?
+            EGL.EGL_SURFACE_TYPE,    EGL.EGL_WINDOW_BIT,
+            EGL.EGL_RED_SIZE,        caps.getRedBits(),
+            EGL.EGL_GREEN_SIZE,      caps.getGreenBits(),
+            EGL.EGL_BLUE_SIZE,       caps.getBlueBits(),
+            EGL.EGL_ALPHA_SIZE,      caps.getAlphaBits(),
+            EGL.EGL_STENCIL_SIZE,    (caps.getStencilBits() > 0 ? caps.getStencilBits() : EGL.EGL_DONT_CARE),
+            EGL.EGL_NONE
+        };
+    }
+
+    /*
+
     // FIXME: this is the OpenGL ES 2 initialization order
 
     // Initialize everything
@@ -158,6 +213,8 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         System.out.println("EGLDrawableFactory.updateWindowSize()");
         updateWindowSize();
     }
+
+    */
 
     /*
 
@@ -214,6 +271,8 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
 
     */
 
+    /*
+
     // Process incoming events -- must be called every frame
     public void processEvents() {
         if (shouldExit()) {
@@ -249,6 +308,8 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         System.out.println("Direct FloatBuffer's address: 0x" + Integer.toHexString(addr));
     }
     public native int getDirectBufferAddress(java.nio.Buffer buf);
+
+    */
 
     /*
     public GLContext createContextOnJava2DSurface(Graphics g, GLContext shareWith)

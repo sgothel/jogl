@@ -68,6 +68,10 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory implements
    */
   public abstract void unlockAWTForJava2D();
 
+  protected GLDrawableFactoryImpl(String profile) {
+    super(profile);
+  }
+
   public static GLDrawableFactoryImpl getFactoryImpl() {
     return (GLDrawableFactoryImpl) getFactory();
   }

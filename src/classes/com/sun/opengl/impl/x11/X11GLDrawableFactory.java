@@ -105,7 +105,8 @@ public class X11GLDrawableFactory extends GLDrawableFactoryImpl {
     isHeadless = GraphicsEnvironment.isHeadless();
   }
 
-  public X11GLDrawableFactory() {
+  public X11GLDrawableFactory(String profile) {
+    super(profile);
     // Must initialize GLX support eagerly in case a pbuffer is the
     // first thing instantiated
     ProcAddressHelper.resetProcAddressTable(GLX.getGLXProcAddressTable(), this);

@@ -39,16 +39,117 @@ import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
 import java.nio.*;
 
-public abstract class EGLContext extends GLContextImpl {
+public class EGLContext extends GLContextImpl {
+    private EGLDrawable drawable;
+    private long context;
+
     public EGLContext(EGLDrawable drawable, GLContext shareWith) {
         super(shareWith);
-    }
-
-    public Object getPlatformGLExtensions() {
-        return null;
+        this.drawable = drawable;
     }
 
     public GLDrawable getGLDrawable() {
+        return drawable;
+    }
+
+    public long getContext() {
+        return context;
+    }
+
+    protected int makeCurrentImpl() throws GLException {
+        boolean created = false;
+        if (context == 0) {
+            create();
+            if (DEBUG) {
+                System.err.println(getThreadName() + ": !!! Created GL context 0x" +
+                                   Long.toHexString(context) + " for " + getClass().getName());
+            }
+            created = true;
+        }
+
+        if (!EGL.eglMakeCurrent(drawable.getDisplay(),
+                                drawable.getSurface(),
+                                drawable.getSurface(),
+                                context)) {
+            throw new GLException("Error making context 0x" +
+                                  Long.toHexString(context) + " current: error code " + EGL.eglGetError());
+        }
+
+        if (created) {
+            resetGLFunctionAvailability();
+            return CONTEXT_CURRENT_NEW;
+        }
+        return CONTEXT_CURRENT;
+    }
+
+    protected void releaseImpl() throws GLException {
+        if (!EGL.eglMakeCurrent(drawable.getDisplay(),
+                                EGL.EGL_NO_SURFACE,
+                                EGL.EGL_NO_SURFACE,
+                                EGL.EGL_NO_CONTEXT)) {
+            throw new GLException("Error freeing OpenGL context 0x" +
+                                  Long.toHexString(context) + ": error code " + EGL.eglGetError());
+        }
+    }
+
+    protected void destroyImpl() throws GLException {
+        if (context != 0) {
+            if (!EGL.eglDestroyContext(drawable.getDisplay(), context)) {
+                throw new GLException("Error destroying OpenGL context 0x" +
+                                      Long.toHexString(context) + ": error code " + EGL.eglGetError());
+            }
+            context = 0;
+            GLContextShareSet.contextDestroyed(this);
+        }
+    }
+
+    protected void create() throws GLException {
+        long display = drawable.getDisplay();
+        _EGLConfig config = drawable.getConfig();
+        long shareWith = 0;
+
+        if (display == 0) {
+            throw new GLException("Error: attempted to create an OpenGL context without a display connection");
+        }
+        if (config == null) {
+            throw new GLException("Error: attempted to create an OpenGL context without a graphics configuration");
+        }
+        EGLContext other = (EGLContext) GLContextShareSet.getShareContext(this);
+        if (other != null) {
+            shareWith = other.getContext();
+            if (shareWith == 0) {
+                throw new GLException("GLContextShareSet returned an invalid OpenGL context");
+            }
+        }
+
+        EGLDrawableFactory factory = (EGLDrawableFactory) GLDrawableFactory.getFactory();
+        int clientVersion = (EGLDrawableFactory.PROFILE_GLES2.equals(factory.getProfile()) ? 2 : 1);
+        int[] contextAttrs = new int[] {
+            EGL.EGL_CONTEXT_CLIENT_VERSION, clientVersion,
+            EGL.EGL_NONE
+        };
+        context = EGL.eglCreateContext(display, config, shareWith, contextAttrs, 0);
+        if (context == 0) {
+            throw new GLException("Error creating OpenGL context");
+        }
+        GLContextShareSet.contextCreated(this);
+        if (DEBUG) {
+            System.err.println(getThreadName() + ": !!! Created OpenGL context 0x" +
+                               Long.toHexString(context) + " for " + this +
+                               ", surface 0x" + Long.toHexString(drawable.getSurface()) +
+                               ", sharing with 0x" + Long.toHexString(shareWith));
+        }
+    }
+
+    public boolean isCreated() {
+        return (context != 0);
+    }
+
+    //----------------------------------------------------------------------
+    // Currently unimplemented stuff
+    //
+
+    public Object getPlatformGLExtensions() {
         return null;
     }
 
