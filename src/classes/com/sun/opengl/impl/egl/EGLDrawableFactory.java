@@ -35,20 +35,28 @@
 
 package com.sun.opengl.impl.egl;
 
+import java.util.*;
 import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
+import com.sun.gluegen.runtime.NativeLibrary;
 
 public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     static {
         NativeLibLoader.loadCore();
     }
   
+    // We need more than one of these on certain devices (the NVidia APX 2500 in particular)
+    private List/*<NativeLibrary>*/ glesLibraries;
+
     // FIXME: this state should probably not be here
     private long display;
     private _EGLConfig config;
 
     public EGLDrawableFactory(String profile) {
         super(profile);
+
+        loadGLESLibrary();
+        EGL.resetProcAddressTable(this);
 
         // FIXME: this initialization sequence needs to be refactored
         // at least for X11 platforms to allow a little window
@@ -64,6 +72,46 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         }
     }
 
+    private void loadGLESLibrary() {
+        List/*<NativeLibrary>*/ libs = new ArrayList();
+
+        // Try several variants
+        List/*<String>*/ glesLibNames = new ArrayList();
+        // Windows
+        glesLibNames.add("libGLES_CM");
+        glesLibNames.add("libGLES_CL");
+        // Unix
+        glesLibNames.add("GLES_CM");
+        glesLibNames.add("GLES_CL");
+        // NVidia APX 2500
+        if (PROFILE_GLES2.equals(getProfile())) {
+            glesLibNames.add("libGLESv2_CM");
+            glesLibNames.add("GLESv2_CM");
+        } else {
+            glesLibNames.add("libGLESv1_CM");
+            glesLibNames.add("GLESv1_CM");
+        }
+
+        ClassLoader loader = getClass().getClassLoader();
+        for (Iterator iter = glesLibNames.iterator(); iter.hasNext(); ) {
+            NativeLibrary lib = NativeLibrary.open((String) iter.next(), loader);
+            if (lib != null) {
+                libs.add(lib);
+                break;
+            }
+        }
+
+        if (libs.isEmpty()) {
+            throw new GLException("Unable to dynamically load OpenGL ES library for profile \"" + getProfile() + "\"");
+        }
+
+        // On the NVidia APX 2500 we need to separately load the EGL library
+        NativeLibrary eglLib = NativeLibrary.open("libEGL", loader);
+        if (eglLib != null) {
+            libs.add(eglLib);
+        }
+        glesLibraries = libs;
+    }
 
     public AbstractGraphicsConfiguration chooseGraphicsConfiguration(GLCapabilities capabilities,
                                                                      GLCapabilitiesChooser chooser,
@@ -112,17 +160,19 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     }
 
     public long dynamicLookupFunction(String glFuncName) {
-        return 0;
-        /*
-        long res = WGL.wglGetProcAddress(glFuncName);
-        if (res == 0) {
-            // GLU routines aren't known to the OpenGL function lookup
-            if (hglu32 != 0) {
-                res = WGL.GetProcAddress(hglu32, glFuncName);
+        // Look up this function name in all known libraries
+        // 
+        // Note that we aren't using eglGetProcAddress; maybe we
+        // should once it's bootstrapped (FIXME)
+        for (Iterator iter = glesLibraries.iterator(); iter.hasNext(); ) {
+            NativeLibrary lib = (NativeLibrary) iter.next();
+            long addr = lib.lookupFunction(glFuncName);
+            if (addr != 0) {
+                return addr;
             }
         }
-        return res;
-        */
+
+        return 0;
     }
 
     public void lockAWTForJava2D() {
