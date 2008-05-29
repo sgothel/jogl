@@ -123,11 +123,16 @@ public class EGLContext extends GLContextImpl {
         }
 
         EGLDrawableFactory factory = (EGLDrawableFactory) GLDrawableFactory.getFactory();
-        int clientVersion = (EGLDrawableFactory.PROFILE_GLES2.equals(factory.getProfile()) ? 2 : 1);
-        int[] contextAttrs = new int[] {
-            EGL.EGL_CONTEXT_CLIENT_VERSION, clientVersion,
-            EGL.EGL_NONE
-        };
+        boolean isGLES2 = EGLDrawableFactory.PROFILE_GLES2.equals(factory.getProfile());
+        int[] contextAttrs = null;
+        // FIXME: need to determine whether to specify the context
+        // attributes based on the EGL version
+        if (isGLES2) {
+            contextAttrs = new int[] {
+                EGL.EGL_CONTEXT_CLIENT_VERSION, 2,
+                EGL.EGL_NONE
+            };
+        }
         context = EGL.eglCreateContext(display, config, shareWith, contextAttrs, 0);
         if (context == 0) {
             throw new GLException("Error creating OpenGL context");

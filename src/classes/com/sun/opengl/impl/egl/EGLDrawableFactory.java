@@ -190,18 +190,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     }
 
     public int[] glCapabilities2AttribList(GLCapabilities caps) {
-        int renderBit;
-
-        if (PROFILE_GLES1.equals(getProfile())) {
-            renderBit = EGL.EGL_OPENGL_ES_BIT;
-        } else if (PROFILE_GLES2.equals(getProfile())) {
-            renderBit = EGL.EGL_OPENGL_ES2_BIT;
-        } else {
-            throw new GLException("Unknown profile \"" + getProfile() + "\" (expected OpenGL ES 1 or OpenGL ES 2)");
-        }
-
-        return new int[] {
-            EGL.EGL_RENDERABLE_TYPE, renderBit,
+        int[] attrs = new int[] {
             EGL.EGL_DEPTH_SIZE,      caps.getDepthBits(),
             // FIXME: does this need to be configurable?
             EGL.EGL_SURFACE_TYPE,    EGL.EGL_WINDOW_BIT,
@@ -210,8 +199,19 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
             EGL.EGL_BLUE_SIZE,       caps.getBlueBits(),
             EGL.EGL_ALPHA_SIZE,      caps.getAlphaBits(),
             EGL.EGL_STENCIL_SIZE,    (caps.getStencilBits() > 0 ? caps.getStencilBits() : EGL.EGL_DONT_CARE),
+            EGL.EGL_NONE, EGL.EGL_NONE,
             EGL.EGL_NONE
         };
+
+        // FIXME: we need to query the EGL version to determine
+        // whether we are allowed to specify the renderable type
+
+        if (PROFILE_GLES2.equals(getProfile())) {
+            attrs[attrs.length - 3] = EGL.EGL_RENDERABLE_TYPE;
+            attrs[attrs.length - 2] = EGL.EGL_OPENGL_ES2_BIT;
+        }
+
+        return attrs;
     }
 
     /*

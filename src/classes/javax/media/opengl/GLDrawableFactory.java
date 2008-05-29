@@ -104,7 +104,9 @@ public abstract class GLDrawableFactory {
         Class clazz = Class.forName("com.sun.opengl.impl.egl.EGLDrawableFactory");
         Constructor c = clazz.getDeclaredConstructor(new Class[] { String.class });
         factory = (GLDrawableFactory) c.newInstance(new Object[] { profile });
+        return;
       } catch (Exception e) {
+          e.printStackTrace();
       }
     } else if (!PROFILE_GL_20.equals(profile)) {
       // We require that the user passes in one of the known profiles

@@ -92,7 +92,7 @@ public class EGLDrawable implements GLDrawable {
         if (realized) {
             // Create the window surface
             surface = EGL.eglCreateWindowSurface(display, config, nativeWindow, null);
-            if (surface == 0) {
+            if (surface == EGL.EGL_NO_SURFACE) {
                 throw new GLException("Creation of window surface (eglCreateWindowSurface) failed");
             }
         }

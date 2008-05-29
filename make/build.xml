@@ -368,6 +368,7 @@
     <target name="declare.win32.gles2" if="isGLES2">
         <property name="gl.cfg"                                 value="${config}/gl-es2.cfg" />
         <property name="gl.c"                                   value="${stub.includes.common}/gles2.c" />
+        <property name="glu.cfg"                                value="${config}/glu-es2.cfg" />
     </target>
 
     <target name="declare.win32.gles" depends="declare.win32.gles1, declare.win32.gles2" />
@@ -612,7 +613,7 @@
         </gluegen>
     </target>
 
-    <target name="java.generate.glu" unless="isGLES2">
+    <target name="java.generate.glu">
         <echo message="Generating GLU class" />
         <gluegen src="${stub.includes.common}/glu.c" 
                  config="${glu.cfg}"
@@ -889,6 +890,8 @@
         <include name="${rootrel.src.c.jogl}/*.m" if="isOSX"/>
         <!-- FIXME: the Mixer should be moved to another library -->
         <include name="${rootrel.src.c.jogl}/Mixer.cpp" if="isWindows"/>
+        <!-- FIXME: the WindowsWindow should be moved to another library -->
+        <include name="${rootrel.src.c.jogl}/WindowsWindow.c" if="isWindows"/>
         <include name="${rootrel.generated.c.jogl}/*GL*.c" unless="jogl.noglnatives"/>
         <include name="${rootrel.src.c.jogl}/XineramaHelper.c" if="isX11"/>
         <!-- Xinerama supporting functions for Linux only (for now) -->
@@ -1007,6 +1010,8 @@
       <!-- Generate the waveout Mixer header -->
       <!-- FIXME: this is temporary until we move this to another workspace -->
       <javah destdir="../build/gensrc/native/jogl" classpath="${jogl.jar}" class="com.sun.javafx.audio.windows.waveout.Mixer" />
+      <!-- FIXME: this is temporary until we move this to another workspace -->
+      <javah destdir="../build/gensrc/native/jogl" classpath="${jogl.jar}" class="com.sun.javafx.newt.windows.WindowsWindow" />
 
       <!-- Compile stuff -->
       <antcall target="c.build" inheritRefs="true">
