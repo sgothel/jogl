@@ -224,11 +224,13 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_CreateWin
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_DispatchMessages
-  (JNIEnv *env, jclass clazz, jlong window)
+  (JNIEnv *_env, jclass clazz, jlong window)
 {
     int i = 0;
     MSG msg;
     BOOL gotOne;
+
+    env = _env;
 
     // Periodically take a break
     do {
@@ -239,6 +241,8 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_DispatchMe
             DispatchMessage(&msg);
         }
     } while (gotOne && i < 100);
+
+    env = NULL;
 }
 
 /*

@@ -42,6 +42,8 @@ package com.sun.opengl.util;
 import java.nio.*;
 import java.util.*;
 
+import java.lang.reflect.*;
+
 /** Utility routines for dealing with direct buffers. */
 
 public class BufferUtil {
@@ -82,8 +84,7 @@ public class BufferUtil {
       the host platform's native byte order. */
   public static ByteBuffer newByteBuffer(int numElements) {
     ByteBuffer bb = ByteBuffer.allocateDirect(numElements);
-    // FIXME: refactor dependencies on Java SE buffer classes
-    //  bb.order(ByteOrder.nativeOrder());
+    nativeOrder(bb);
     return bb;
   }
     
@@ -228,4 +229,38 @@ public class BufferUtil {
   //    dest.rewind();
   //    return dest;
   //  }
+
+  //----------------------------------------------------------------------
+  // Internals only below this point
+  //
+
+  // NOTE that this work must be done reflectively at the present time
+  // because this code must compile and run correctly on both CDC/FP and J2SE
+  private static boolean isCDCFP;
+  private static Class byteOrderClass;
+  private static Object nativeOrderObject;
+  private static Method orderMethod;
+
+  private static void nativeOrder(ByteBuffer buf) {
+    if (!isCDCFP) {
+      try {
+        if (byteOrderClass == null) {
+          byteOrderClass = Class.forName("java.nio.ByteOrder");
+          orderMethod = ByteBuffer.class.getMethod("order", new Class[] { byteOrderClass });
+          Method nativeOrderMethod = byteOrderClass.getMethod("nativeOrder", null);
+          nativeOrderObject = nativeOrderMethod.invoke(null, null);
+        }
+      } catch (Throwable t) {
+        // Must be running on CDC / FP
+        isCDCFP = true;
+      }
+
+      if (!isCDCFP) {
+        try {
+          orderMethod.invoke(buf, new Object[] { nativeOrderObject });
+        } catch (Throwable t) {
+        }
+      }
+    }
+  }
 }
