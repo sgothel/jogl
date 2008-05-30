@@ -197,7 +197,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
             EGL.EGL_RED_SIZE,        caps.getRedBits(),
             EGL.EGL_GREEN_SIZE,      caps.getGreenBits(),
             EGL.EGL_BLUE_SIZE,       caps.getBlueBits(),
-            EGL.EGL_ALPHA_SIZE,      caps.getAlphaBits(),
+            EGL.EGL_ALPHA_SIZE,      (caps.getAlphaBits() > 0 ? caps.getAlphaBits() : EGL.EGL_DONT_CARE),
             EGL.EGL_STENCIL_SIZE,    (caps.getStencilBits() > 0 ? caps.getStencilBits() : EGL.EGL_DONT_CARE),
             EGL.EGL_NONE, EGL.EGL_NONE,
             EGL.EGL_NONE

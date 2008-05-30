@@ -33,9 +33,13 @@
 
 #include <windows.h>
 #include <stdlib.h>
+#ifdef UNDER_CE
+#include "aygshell.h"
+#endif
 
-/* This typedef is apparently needed for Microsoft compilers before VC8 */
-#if _MSC_VER < 1400
+/* This typedef is apparently needed for Microsoft compilers before VC8,
+   and on Windows CE */
+#if (_MSC_VER < 1400) || defined(UNDER_CE)
 #ifdef _WIN64
 typedef long long intptr_t;
 #else
@@ -72,7 +76,11 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
     int useDefWindowProc = 0;
     jobject window = NULL;
 
+#ifdef UNDER_CE
+    window = (jobject) GetWindowLong(wnd, GWL_USERDATA);
+#else
     window = (jobject) GetWindowLongPtr(wnd, GWLP_USERDATA);
+#endif
     if (window == NULL || env == NULL) {
         // Shouldn't happen
         return DefWindowProc(wnd, message, wParam, lParam);
@@ -212,7 +220,11 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_CreateWin
                            (HINSTANCE) hInstance,
                            NULL);
     if (window != NULL) {
+#ifdef UNDER_CE
+        SetWindowLong(window, GWL_USERDATA, (intptr_t) (*env)->NewGlobalRef(env, obj));
+#else
         SetWindowLongPtr(window, GWLP_USERDATA, (intptr_t) (*env)->NewGlobalRef(env, obj));
+#endif
         ShowWindow(window, SW_SHOWNORMAL);
     }
     return (jlong) (intptr_t) window;
