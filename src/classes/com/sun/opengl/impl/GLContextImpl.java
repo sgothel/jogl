@@ -223,7 +223,9 @@ public abstract class GLContextImpl extends GLContext {
     // GLObjectTracker's ref/unref scheme for the buffer-related
     // optimizations), simply clear the cache of known buffers' sizes
     // when we destroy contexts
-    bufferSizeTracker.clearCachedBufferSizes();
+    if (bufferSizeTracker != null) {
+        bufferSizeTracker.clearCachedBufferSizes();
+    }
 
     // Must hold the lock around the destroy operation to make sure we
     // don't destroy the context out from under another thread rendering to it

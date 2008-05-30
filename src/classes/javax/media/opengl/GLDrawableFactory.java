@@ -173,6 +173,14 @@ public abstract class GLDrawableFactory {
     return profile;
   }
 
+  /** Shuts down this GLDrawableFactory, releasing resources
+      associated with it. Before calling this method you should first
+      destroy any GLContexts and GLDrawables that have been created
+      and are still in use. No further OpenGL calls may be made after
+      shutting down the GLDrawableFactory. */
+  public void shutdown() {
+  }
+
   /**
    * <P> Selects a graphics configuration on the specified graphics
    * device compatible with the supplied GLCapabilities. This method

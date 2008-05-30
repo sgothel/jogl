@@ -95,6 +95,16 @@ public class EGLDrawable implements GLDrawable {
             if (surface == EGL.EGL_NO_SURFACE) {
                 throw new GLException("Creation of window surface (eglCreateWindowSurface) failed");
             }
+        } else {
+            // Destroy the window surface
+            // FIXME: we should expose a destroy() method on
+            // GLDrawable and get rid of setRealized(), instead
+            // destroying and re-creating the GLDrawable associated
+            // with for example a GLCanvas each time
+            if (!EGL.eglDestroySurface(display, surface)) {
+                throw new GLException("Error destroying window surface (eglDestroySurface)");
+            }
+            surface = EGL.EGL_NO_SURFACE;
         }
     }
 

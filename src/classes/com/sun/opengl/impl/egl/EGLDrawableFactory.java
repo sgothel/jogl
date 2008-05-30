@@ -113,6 +113,10 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         glesLibraries = libs;
     }
 
+    public void shutdown() {
+        EGL.eglTerminate(display);
+    }
+
     public AbstractGraphicsConfiguration chooseGraphicsConfiguration(GLCapabilities capabilities,
                                                                      GLCapabilitiesChooser chooser,
                                                                      AbstractGraphicsDevice device) {
