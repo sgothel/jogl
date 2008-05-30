@@ -37,6 +37,9 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 public abstract class Window {
+    public static final boolean DEBUG_MOUSE_EVENT = false;
+    public static final boolean DEBUG_KEY_EVENT = false;
+    
     /** OpenKODE window type */
     public static final String KD = "KD";
 
@@ -50,7 +53,7 @@ public abstract class Window {
     public static final String MACOSX = "MacOSX";
 
     /** Creates a Window of the default type for the current operating system. */
-    public static Window create(long visualID) {
+    public static Window create(Screen screen, long visualID) {
       String osName = System.getProperty("os.name");
       String osNameLowerCase = osName.toLowerCase();
       String windowType;
@@ -62,7 +65,7 @@ public abstract class Window {
           windowType = X11;
       }
       Window window = create(windowType);
-      window.initNative(visualID);
+      window.initNative(screen, visualID);
       return window;
     }
 
@@ -87,7 +90,19 @@ public abstract class Window {
         }
     }
 
-    protected abstract void initNative(long visualID);
+
+    /**
+     * [ display, screen, window ]
+     */
+    public long[]  getHandles() {
+        long[] handles = new long[3];
+        handles[0] = getScreen().getDisplay().getHandle();
+        handles[1] = getScreen().getHandle();
+        handles[2] = getWindowHandle();
+        return handles;
+    }
+
+    protected abstract void initNative(Screen screen, long visualID);
 
     public abstract void    setVisible(boolean visible);
     public abstract void    setSize(int width, int height);
@@ -101,8 +116,17 @@ public abstract class Window {
     public abstract boolean isFullscreen();
     public abstract int     getDisplayWidth();
     public abstract int     getDisplayHeight();
+
+    public abstract Screen  getScreen();
     public abstract long    getWindowHandle();
+
     public abstract void    pumpMessages();
+
+    public String toString() {
+        return "Window[handle "+getWindowHandle()+
+                    ", pos "+getX()+"/"+getY()+", size "+getWidth()+"x"+getHeight()+
+                    ", visible "+isVisible()+"]";
+    }
 
     //
     // MouseListener Support
@@ -132,6 +156,10 @@ public abstract class Window {
     public  static final int ClickTimeout = 200;
 
     private void sendMouseEvent(int eventType, int modifiers, int x, int y, int button) {
+        if(DEBUG_MOUSE_EVENT) {
+            System.out.println("sendMouseEvent: "+MouseEvent.getEventTypeString(eventType)+
+                               ", mod "+modifiers+", pos "+x+"/"+y+", button "+button);
+        }
         long when = System.currentTimeMillis();
         MouseEvent eClicked = null;
         MouseEvent e = null;
@@ -151,16 +179,24 @@ public abstract class Window {
             if(when-lastMousePressed<ClickTimeout) {
                 eClicked = new MouseEvent(true, MouseEvent.EVENT_MOUSE_CLICKED, this, when,
                                           modifiers, x, y, lastMouseClickCount, button);
+            } else {
+                lastMouseClickCount=0;
+                lastMousePressed=0;
             }
-            lastMouseClickCount=0;
-            lastMousePressed=0;
         } else if(MouseEvent.EVENT_MOUSE_MOVED==eventType &&
                   1==lastMouseClickCount) {
-            e = new MouseEvent(true, eventType, this, when,
+            e = new MouseEvent(true, MouseEvent.EVENT_MOUSE_DRAGGED, this, when,
                                modifiers, x, y, 1, button);
         } else {
             e = new MouseEvent(true, eventType, this, when,
                                modifiers, x, y, 0, button);
+        }
+
+        if(DEBUG_MOUSE_EVENT) {
+            System.out.println("sendMouseEvent: event:         "+e);
+            if(null!=eClicked) {
+                System.out.println("sendMouseEvent: event Clicked: "+eClicked);
+            }
         }
 
         for(Iterator i = mouseListener.iterator(); i.hasNext(); ) {
@@ -175,9 +211,10 @@ public abstract class Window {
                     ((MouseListener)i.next()).mousePressed(e);
                     break;
                 case MouseEvent.EVENT_MOUSE_RELEASED:
-                    ((MouseListener)i.next()).mouseReleased(e);
+                    MouseListener ml = (MouseListener)i.next();
+                    ml.mouseReleased(e);
                     if(null!=eClicked) {
-                        ((MouseListener)i.next()).mouseClicked(eClicked);
+                        ml.mouseClicked(eClicked);
                     }
                     break;
                 case MouseEvent.EVENT_MOUSE_MOVED:
@@ -217,6 +254,9 @@ public abstract class Window {
     private void sendKeyEvent(int eventType, int modifiers, int keyCode, char keyChar) {
         KeyEvent e = new KeyEvent(true, eventType, this, System.currentTimeMillis(), 
                                       modifiers, keyCode, keyChar);
+        if(DEBUG_KEY_EVENT) {
+            System.out.println("sendKeyEvent: "+e);
+        }
         for(Iterator i = keyListener.iterator(); i.hasNext(); ) {
             switch(eventType) {
                 case KeyEvent.EVENT_KEY_PRESSED:

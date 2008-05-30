@@ -37,8 +37,10 @@ import com.sun.javafx.newt.*;
 import com.sun.opengl.impl.*;
 
 public class X11Window extends Window {
+    private Screen screen;
     private long visualID;
-    private long dpy, screen, window;
+    private long dpy, scrn, window;
+    private int  scrn_idx;
     private static final String WINDOW_CLASS_NAME = "NewtWindow";
     // Default width and height -- will likely be re-set immediately by user
     private int width  = 100;
@@ -57,16 +59,24 @@ public class X11Window extends Window {
         }
     }
 
-    protected X11Window() {
+    public X11Window() {
     }
 
-    protected void initNative(long visualID) {
+    public void initNative(Screen screen, long visualID) {
+        this.screen = screen;
+        this.visualID = visualID;
         fullscreen=false;
         visible=false;
         long w = CreateWindow(visualID, x, y, width, height);
         if (w == 0 || w!=window) {
             throw new RuntimeException("Error creating window: "+w);
         }
+        screen.setHandle(scrn);
+        screen.getDisplay().setHandle(dpy);
+    }
+
+    public Screen getScreen() {
+        return screen;
     }
 
     public void setVisible(boolean visible) {
@@ -110,8 +120,8 @@ public class X11Window extends Window {
             this.fullscreen=fullscreen;
             if(this.fullscreen) {
                 x = 0; y = 0;
-                w = getDisplayWidth0(dpy, screen);
-                h = getDisplayHeight0(dpy, screen);
+                w = getDisplayWidth0(dpy, scrn_idx)/2;
+                h = getDisplayHeight0(dpy, scrn_idx)/2;
             } else {
                 x = nfs_x;
                 y = nfs_y;
@@ -137,11 +147,11 @@ public class X11Window extends Window {
     }
 
     public int getDisplayWidth() {
-        return getDisplayWidth0(dpy, screen);
+        return getDisplayWidth0(dpy, scrn_idx);
     }
 
     public int getDisplayHeight() {
-        return getDisplayHeight0(dpy, screen);
+        return getDisplayHeight0(dpy, scrn_idx);
     }
 
     //----------------------------------------------------------------------
@@ -154,8 +164,8 @@ public class X11Window extends Window {
     private        native void DispatchMessages(long display, long window);
     private        native void setSize0(long display, long window, int width, int height);
     private        native void setPosition0(long display, long window, int x, int y);
-    private        native int  getDisplayWidth0(long display, long screen);
-    private        native int  getDisplayHeight0(long display, long screen);
+    private        native int  getDisplayWidth0(long display, int scrn_idx);
+    private        native int  getDisplayHeight0(long display, int scrn_idx);
 
     private void sizeChanged(int newWidth, int newHeight) {
         width = newWidth;
@@ -175,9 +185,10 @@ public class X11Window extends Window {
         }
     }
 
-    private void windowCreated(long dpy, long scrn, long window) {
+    private void windowCreated(long dpy, int scrn_idx, long scrn, long window) {
         this.dpy = dpy;
-        this.screen = scrn;
+        this.scrn_idx = scrn_idx;
+        this.scrn = scrn;
         this.window = window;
     }
 

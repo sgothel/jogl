@@ -37,8 +37,9 @@ import com.sun.javafx.newt.*;
 import com.sun.opengl.impl.*;
 
 public class WindowsWindow extends Window {
-    private boolean fullscreen, visible;
+    private Screen screen;
     private long visualID;
+    private boolean fullscreen, visible;
     private long window;
     // Default width and height -- will likely be re-set immediately by user
     private int width  = 100;
@@ -55,10 +56,12 @@ public class WindowsWindow extends Window {
         }
     }
 
-    protected WindowsWindow() {
+    public WindowsWindow() {
     }
 
-    protected void initNative(long visualID) {
+    public void initNative(Screen screen, long visualID) {
+        this.screen = screen;
+        this.visualID = visualID;
         long wndClass = getWindowClass();
         fullscreen=false;
         visible=false;
@@ -66,6 +69,12 @@ public class WindowsWindow extends Window {
         if (window == 0) {
             throw new RuntimeException("Error creating window");
         }
+        screen.setHandle(0); // dummy
+        screen.getDisplay().setHandle(0); // dummy
+    }
+
+    public Screen getScreen() {
+        return screen;
     }
 
     public void setVisible(boolean visible) {

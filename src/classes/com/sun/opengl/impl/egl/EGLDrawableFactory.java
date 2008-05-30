@@ -48,28 +48,11 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     // We need more than one of these on certain devices (the NVidia APX 2500 in particular)
     private List/*<NativeLibrary>*/ glesLibraries;
 
-    // FIXME: this state should probably not be here
-    private long display;
-    private _EGLConfig config;
-
     public EGLDrawableFactory(String profile) {
         super(profile);
 
         loadGLESLibrary();
         EGL.resetProcAddressTable(this);
-
-        // FIXME: this initialization sequence needs to be refactored
-        // at least for X11 platforms to allow a little window
-        // system-specific code to run (to open the display, in
-        // particular)
-
-        display = EGL.eglGetDisplay(EGL.EGL_DEFAULT_DISPLAY);
-        if (display == EGL.EGL_NO_DISPLAY) {
-            throw new GLException("eglGetDisplay failed");
-        }
-        if (!EGL.eglInitialize(display, null, null)) {
-            throw new GLException("eglInitialize failed");
-        }
     }
 
     private void loadGLESLibrary() {
@@ -113,10 +96,6 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         glesLibraries = libs;
     }
 
-    public void shutdown() {
-        EGL.eglTerminate(display);
-    }
-
     public AbstractGraphicsConfiguration chooseGraphicsConfiguration(GLCapabilities capabilities,
                                                                      GLCapabilitiesChooser chooser,
                                                                      AbstractGraphicsDevice device) {
@@ -126,7 +105,14 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     public GLDrawable getGLDrawable(Object target,
                                     GLCapabilities capabilities,
                                     GLCapabilitiesChooser chooser) {
-        return new EGLDrawable(((Long) target).longValue(),
+        if( !(target instanceof long[]) ) {
+            throw new GLException("target is not instanceof long[]");
+        }
+        long[] targetHandles = (long[])target;
+        if(targetHandles.length!=3) {
+            throw new GLException("target handle array != 3 [display, screen, window]");
+        }
+        return new EGLDrawable(targetHandles[0], targetHandles[1], targetHandles[2],
                                capabilities,
                                chooser);
     }
@@ -187,10 +173,6 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
 
     public boolean canCreateContextOnJava2DSurface() {
         return false;
-    }
-
-    public long getDisplay() {
-        return display;
     }
 
     public int[] glCapabilities2AttribList(GLCapabilities caps) {

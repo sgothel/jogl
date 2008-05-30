@@ -56,7 +56,17 @@ public class KeyEvent extends InputEvent
  }
 
  public String toString() {
-    return "KeyEvent[code "+keyCode+", char "+keyChar+", "+super.toString();
+    return "KeyEvent["+getEventTypeString(eventType)+
+                     ", code "+keyCode+", char "+keyChar+", "+super.toString();
+ }
+
+ public static String getEventTypeString(int type) {
+    switch(type) {
+        case EVENT_KEY_PRESSED: return "EVENT_KEY_PRESSED";
+        case EVENT_KEY_RELEASED: return "EVENT_KEY_RELEASED";
+        case EVENT_KEY_TYPED: return "EVENT_KEY_TYPED";
+        default: return "unknown";
+    }
  }
 
  public boolean   isActionKey() {

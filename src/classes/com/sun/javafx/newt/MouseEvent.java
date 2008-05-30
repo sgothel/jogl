@@ -69,7 +69,21 @@ public class MouseEvent extends InputEvent
  }
  
  public String toString() {
-    return "MouseEvent["+x+"/"+y+", button "+button+", count "+clickCount+", "+super.toString();
+    return "MouseEvent["+getEventTypeString(eventType)+
+                       ", "+x+"/"+y+", button "+button+", count "+clickCount+", "+super.toString();
+ }
+
+ public static String getEventTypeString(int type) {
+    switch(type) {
+        case EVENT_MOUSE_CLICKED: return "EVENT_MOUSE_CLICKED";
+        case EVENT_MOUSE_ENTERED: return "EVENT_MOUSE_ENTERED";
+        case EVENT_MOUSE_EXITED: return "EVENT_MOUSE_EXITED";
+        case EVENT_MOUSE_PRESSED: return "EVENT_MOUSE_PRESSED";
+        case EVENT_MOUSE_RELEASED: return "EVENT_MOUSE_RELEASED";
+        case EVENT_MOUSE_MOVED: return "EVENT_MOUSE_MOVED";
+        case EVENT_MOUSE_DRAGGED: return "EVENT_MOUSE_DRAGGED";
+        default: return "unknown";
+    }
  }
 
  private int eventType, x, y, clickCount, button;

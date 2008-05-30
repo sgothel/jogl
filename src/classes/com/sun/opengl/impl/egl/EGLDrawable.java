@@ -38,7 +38,9 @@ package com.sun.opengl.impl.egl;
 import javax.media.opengl.*;
 
 public class EGLDrawable implements GLDrawable {
-    private long nativeWindow;
+    private long windowHandle;
+    private long screenHandle;
+    private long displayHandle;
     private long display;
     private GLCapabilities capabilities;
     private GLCapabilitiesChooser chooser;
@@ -46,17 +48,27 @@ public class EGLDrawable implements GLDrawable {
     private long surface;
     private int[] tmp = new int[1];
 
-    public EGLDrawable(long nativeWindow,
+    public EGLDrawable(long displayHandle,
+                       long screenHandle,
+                       long windowHandle,
                        GLCapabilities capabilities,
                        GLCapabilitiesChooser chooser) throws GLException {
-        this.nativeWindow = nativeWindow;
+        this.displayHandle = displayHandle;
+        this.screenHandle = screenHandle;
+        this.windowHandle = windowHandle;
         this.capabilities = capabilities;
         this.chooser = chooser;
 
         // Set things up
         EGLDrawableFactory factory = (EGLDrawableFactory) GLDrawableFactory.getFactory();
-        // FIXME: need to ultimately fetch this from the native window, at least on X11 platforms
-        display = factory.getDisplay();
+
+        display = EGL.eglGetDisplay((displayHandle>0)?displayHandle:EGL.EGL_DEFAULT_DISPLAY);
+        if (display == EGL.EGL_NO_DISPLAY) {
+            throw new GLException("eglGetDisplay failed");
+        }
+        if (!EGL.eglInitialize(display, null, null)) {
+            throw new GLException("eglInitialize failed");
+        }
         int[] attrs = factory.glCapabilities2AttribList(capabilities);
         _EGLConfig[] configs = new _EGLConfig[1];
         int[] numConfigs = new int[1];
@@ -76,6 +88,10 @@ public class EGLDrawable implements GLDrawable {
         return display;
     }
 
+    public void shutdown() {
+        EGL.eglTerminate(display);
+    }
+
     public _EGLConfig getConfig() {
         return config;
     }
@@ -91,7 +107,7 @@ public class EGLDrawable implements GLDrawable {
     public void setRealized(boolean realized) {
         if (realized) {
             // Create the window surface
-            surface = EGL.eglCreateWindowSurface(display, config, nativeWindow, null);
+            surface = EGL.eglCreateWindowSurface(display, config, windowHandle, null);
             if (surface == EGL.EGL_NO_SURFACE) {
                 throw new GLException("Creation of window surface (eglCreateWindowSurface) failed");
             }
@@ -133,5 +149,15 @@ public class EGLDrawable implements GLDrawable {
     public GLCapabilities getChosenGLCapabilities() {
         // FIXME
         return null;
+    }
+
+    public String toString() {
+        return "EGLDrawable[ displayHandle " + displayHandle +
+                           ", screenHandle "+ screenHandle +
+                           ", windowHandle "+ windowHandle +
+                           ", display " + display +
+                           ", config " + config +
+                           ", surface " + surface +
+                           "]";
     }
 }
