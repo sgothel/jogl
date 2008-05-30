@@ -103,6 +103,13 @@ public interface GLDrawable {
    */
   public void setRealized(boolean realized);
 
+  /**
+   * Cleanup the complete association to the native Canvas's display,
+   * and releases all ressources.
+   * This implies a call to <code>setRealized(false)</code>
+   */
+  public void destroy();
+
   /** Requests a new width and height for this GLDrawable. Not all
       drawables are able to respond to this request and may silently
       ignore it. */

@@ -88,7 +88,8 @@ public class EGLDrawable implements GLDrawable {
         return display;
     }
 
-    public void shutdown() {
+    public void destroy() {
+        setRealized(false);
         EGL.eglTerminate(display);
     }
 
@@ -111,7 +112,7 @@ public class EGLDrawable implements GLDrawable {
             if (surface == EGL.EGL_NO_SURFACE) {
                 throw new GLException("Creation of window surface (eglCreateWindowSurface) failed");
             }
-        } else {
+        } else if( surface != EGL.EGL_NO_SURFACE ) {
             // Destroy the window surface
             // FIXME: we should expose a destroy() method on
             // GLDrawable and get rid of setRealized(), instead
