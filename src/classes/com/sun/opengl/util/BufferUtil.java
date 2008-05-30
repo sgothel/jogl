@@ -88,6 +88,13 @@ public class BufferUtil {
     return bb;
   }
     
+  public static ByteBuffer newByteBuffer(byte[] values) {
+    ByteBuffer bb = newByteBuffer(values.length);
+    bb.put(values);
+    bb.rewind();
+    return bb;
+  }
+    
   // FIXME: refactor dependencies on Java SE buffer classes
   //  /** Allocates a new direct DoubleBuffer with the specified number of
   //      elements. The returned buffer will have its byte order set to
@@ -105,12 +112,26 @@ public class BufferUtil {
     return bb.asFloatBuffer();
   }
     
+  public static FloatBuffer newFloatBuffer(float[] values) {
+    FloatBuffer bb = newFloatBuffer(values.length);
+    bb.put(values);
+    bb.rewind();
+    return bb;
+  }
+    
   /** Allocates a new direct IntBuffer with the specified number of
       elements. The returned buffer will have its byte order set to
       the host platform's native byte order. */
   public static IntBuffer newIntBuffer(int numElements) {
     ByteBuffer bb = newByteBuffer(numElements * SIZEOF_INT);
     return bb.asIntBuffer();
+  }
+    
+  public static IntBuffer newIntBuffer(int[] values) {
+    IntBuffer bb = newIntBuffer(values.length);
+    bb.put(values);
+    bb.rewind();
+    return bb;
   }
     
   // FIXME: refactor dependencies on Java SE buffer classes
@@ -130,6 +151,13 @@ public class BufferUtil {
     return bb.asShortBuffer();
   }
 
+  public static ShortBuffer newShortBuffer(short[] values) {
+    ShortBuffer bb = newShortBuffer(values.length);
+    bb.put(values);
+    bb.rewind();
+    return bb;
+  }
+    
   // FIXME: refactor dependencies on Java SE buffer classes
   // These are only used by the GLU implementation anyway, which
   // mostly disappears in the embedded OpenGL case

@@ -892,6 +892,8 @@
         <include name="${rootrel.src.c.jogl}/Mixer.cpp" if="isWindows"/>
         <!-- FIXME: the WindowsWindow should be moved to another library -->
         <include name="${rootrel.src.c.jogl}/WindowsWindow.c" if="isWindows"/>
+        <!-- FIXME: the X11Window should be moved to another library -->
+        <include name="${rootrel.src.c.jogl}/X11Window.c" if="isX11"/>
         <include name="${rootrel.generated.c.jogl}/*GL*.c" unless="jogl.noglnatives"/>
         <include name="${rootrel.src.c.jogl}/XineramaHelper.c" if="isX11"/>
         <!-- Xinerama supporting functions for Linux only (for now) -->
@@ -1012,6 +1014,9 @@
       <javah destdir="../build/gensrc/native/jogl" classpath="${jogl.jar}" class="com.sun.javafx.audio.windows.waveout.Mixer" />
       <!-- FIXME: this is temporary until we move this to another workspace -->
       <javah destdir="../build/gensrc/native/jogl" classpath="${jogl.jar}" class="com.sun.javafx.newt.windows.WindowsWindow" />
+
+      <!-- FIXME: this is temporary until we move this to another workspace -->
+      <javah destdir="../build/gensrc/native/jogl" classpath="${jogl.jar}" class="com.sun.javafx.newt.x11.X11Window" />
 
       <!-- Compile stuff -->
       <antcall target="c.build" inheritRefs="true">

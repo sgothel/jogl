@@ -49,11 +49,15 @@ typedef int intptr_t;
 
 #include "com_sun_javafx_newt_windows_WindowsWindow.h"
 
-static jmethodID keyDownID = NULL;
-static jmethodID keyUpID = NULL;
+#include "MouseEvent.h"
+#include "KeyEvent.h"
+
 static jmethodID sizeChangedID = NULL;
+static jmethodID positionChangedID = NULL;
 static jmethodID windowClosedID = NULL;
 static jmethodID windowDestroyedID = NULL;
+static jmethodID sendMouseEventID = NULL;
+static jmethodID sendKeyEventID = NULL;
 
 // This is set by DispatchMessages, below, and cleared when it exits
 static JNIEnv* env = NULL;
@@ -97,12 +101,14 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
         break;
 
     case WM_KEYDOWN:
-        (*env)->CallVoidMethod(env, window, keyDownID, (jlong) wParam);
+        (*env)->CallVoidMethod(env, obj, sendKeyEventID, (jint) EVENT_KEY_PRESSED, 
+                               (jint) 0, (jint) 0x28, (jchar) 0);
         useDefWindowProc = 1;
         break;
 
     case WM_KEYUP:
-        (*env)->CallVoidMethod(env, window, keyUpID, (jlong) wParam);
+        (*env)->CallVoidMethod(env, obj, sendKeyEventID, (jint) EVENT_KEY_PRESSED, 
+                               (jint) 0, (jint) 0x26, (jchar) 0);
         useDefWindowProc = 1;
         break;
 
@@ -111,6 +117,11 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
         (*env)->CallVoidMethod(env, window, sizeChangedID, (jint) rc.right, (jint) rc.bottom);
         break;
 
+    /* FIXME: 
+    case WM_MOUSE_LALA:
+        (*env)->CallVoidMethod(env, obj, sendMouseEventID, (jint) eventType, (jint) mod, 
+                              (jint) x, (jint) y, (jint) button);
+      */
     default:
         useDefWindowProc = 1;
     }
@@ -128,16 +139,18 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
 JNIEXPORT jboolean JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_initIDs
   (JNIEnv *env, jclass clazz)
 {
-    keyDownID = (*env)->GetMethodID(env, clazz, "keyDown", "(J)V");
-    keyUpID   = (*env)->GetMethodID(env, clazz, "keyUp",   "(J)V");
     sizeChangedID = (*env)->GetMethodID(env, clazz, "sizeChanged", "(II)V");
+    positionChangedID = (*env)->GetMethodID(env, clazz, "positionChanged", "(II)V");
     windowClosedID    = (*env)->GetMethodID(env, clazz, "windowClosed",    "()V");
     windowDestroyedID = (*env)->GetMethodID(env, clazz, "windowDestroyed", "()V");
-    if (keyDownID == NULL ||
-        keyUpID == NULL ||
-        sizeChangedID == NULL ||
+    sendMouseEventID = (*env)->GetMethodID(env, clazz, "sendMouseEvent", "(IIIII)V");
+    sendKeyEventID = (*env)->GetMethodID(env, clazz, "sendKeyEvent", "(IIIC)V");
+    if (sizeChangedID == NULL ||
+        positionChangedID == NULL ||
         windowClosedID == NULL ||
-        windowDestroyedID == NULL) {
+        windowDestroyedID == NULL ||
+        sendMouseEventID == NULL ||
+        sendKeyEventID == NULL) {
         return JNI_FALSE;
     }
     return JNI_TRUE;
@@ -192,17 +205,20 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_RegisterW
 /*
  * Class:     com_sun_javafx_newt_windows_WindowsWindow
  * Method:    CreateWindow
- * Signature: (Ljava/lang/String;II)J
+ * Signature: (Ljava/lang/String;JJIIII)J
  */
 JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_CreateWindow
-  (JNIEnv *env, jobject obj, jstring windowClassName, jlong hInstance, jint defaultWidth, jint defaultHeight)
+  (JNIEnv *env, jobject obj, jstring windowClassName, jlong hInstance, jlong visualID,
+                             jint jx, jint jy, jint defaultWidth, jint defaultHeight)
 {
     jchar* wndClassName = GetNullTerminatedStringChars(env, windowClassName);
     DWORD windowStyle = WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_VISIBLE;
-    int x, y;
-    int width, height;
+    int x=(int)x, y=(int)y;
+    int width=(int)defaultWidth, height=(int)defaultHeight;
     HWND window = NULL;
 
+/** FIXME: why ? use setFullscreen() ..
+ *
 #ifdef UNDER_CE
     width = GetSystemMetrics(SM_CXSCREEN);
     height = GetSystemMetrics(SM_CYSCREEN);
@@ -214,6 +230,9 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_CreateWin
     width = defaultWidth;
     height = defaultHeight;
 #endif
+ */
+    (void) visualID; // FIXME: use the visualID ..
+
     window = CreateWindowW(wndClassName, wndClassName, windowStyle,
                            x, y, width, height,
                            NULL, NULL,

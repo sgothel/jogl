@@ -31,22 +31,24 @@
  * 
  */
 
-package com.sun.javafx.newt.windows;
+package com.sun.javafx.newt.x11;
 
 import com.sun.javafx.newt.*;
 import com.sun.opengl.impl.*;
 
-public class WindowsWindow extends Window {
-    private boolean fullscreen, visible;
+public class X11Window extends Window {
     private long visualID;
-    private long window;
+    private long dpy, screen, window;
+    private static final String WINDOW_CLASS_NAME = "NewtWindow";
     // Default width and height -- will likely be re-set immediately by user
     private int width  = 100;
     private int height = 100;
     private int x=0;
     private int y=0;
+    // non fullscreen dimensions ..
+    private boolean fullscreen, visible;
+    private int nfs_width, nfs_height, nfs_x, nfs_y;
 
-    private static final String WINDOW_CLASS_NAME = "NewtWindow";
     static {
         NativeLibLoader.loadCore();
 
@@ -55,31 +57,31 @@ public class WindowsWindow extends Window {
         }
     }
 
-    protected WindowsWindow() {
+    protected X11Window() {
     }
 
     protected void initNative(long visualID) {
-        long wndClass = getWindowClass();
         fullscreen=false;
         visible=false;
-        window = CreateWindow(WINDOW_CLASS_NAME, getHInstance(), visualID, x, y, width, height);
-        if (window == 0) {
-            throw new RuntimeException("Error creating window");
+        long w = CreateWindow(visualID, x, y, width, height);
+        if (w == 0 || w!=window) {
+            throw new RuntimeException("Error creating window: "+w);
         }
     }
 
     public void setVisible(boolean visible) {
         if(this.visible!=visible) {
             this.visible=visible;
-            setVisible0(window, visible);
+            setVisible0(dpy, window, visible);
         }
     }
 
     public void setSize(int width, int height) {
-        setSize0(window, width, height);
+        setSize0(dpy, window, width, height);
     }
 
     public void setPosition(int x, int y) {
+        setPosition0(dpy, window, x, y);
     }
 
     public boolean isVisible() {
@@ -104,8 +106,20 @@ public class WindowsWindow extends Window {
 
     public boolean setFullscreen(boolean fullscreen) {
         if(this.fullscreen!=fullscreen) {
+            int x,y,w,h;
             this.fullscreen=fullscreen;
-            return setFullScreen0(window, fullscreen);
+            if(this.fullscreen) {
+                x = 0; y = 0;
+                w = getDisplayWidth0(dpy, screen);
+                h = getDisplayHeight0(dpy, screen);
+            } else {
+                x = nfs_x;
+                y = nfs_y;
+                w = nfs_width;
+                h = nfs_height;
+            }
+            setPosition0(dpy, window, x, y);
+            setSize0(dpy, window, w, h);
         }
         return true;
     }
@@ -114,72 +128,57 @@ public class WindowsWindow extends Window {
         return fullscreen;
     }
 
-    public int getDisplayWidth() {
-        return 640; // FIXME
-    }
-
-    public int getDisplayHeight() {
-        return 480; // FIXME
-    }
-
     public long getWindowHandle() {
         return window;
     }
 
     public void pumpMessages() {
-        DispatchMessages(window);
+        DispatchMessages(dpy, window);
+    }
+
+    public int getDisplayWidth() {
+        return getDisplayWidth0(dpy, screen);
+    }
+
+    public int getDisplayHeight() {
+        return getDisplayHeight0(dpy, screen);
     }
 
     //----------------------------------------------------------------------
     // Internals only
     //
 
-    private static long windowClass;
-    private static synchronized long getWindowClass() {
-        if (windowClass == 0) {
-            windowClass = RegisterWindowClass(WINDOW_CLASS_NAME, getHInstance());
-            if (windowClass == 0) {
-                throw new RuntimeException("Error while registering window class");
-            }
-        }
-        return windowClass;
-    }
-    private static long hInstance;
-    private static synchronized long getHInstance() {
-        if (hInstance == 0) {
-            // FIXME: will require modification once this is moved into its own DLL ("newt")
-            hInstance = LoadLibraryW("jogl");
-            if (hInstance == 0) {
-                throw new RuntimeException("Error finding HINSTANCE for \"jogl\"");
-            }
-        }
-        return hInstance;
-    }
-
     private static native boolean initIDs();
-    private static native long LoadLibraryW(String libraryName);
-    private static native long RegisterWindowClass(String windowClassName, long hInstance);
-    private        native long CreateWindow(String windowClassName, long hInstance, long visualID,
-                                            int x, int y, int width, int height);
-    private        native void setVisible0(long window, boolean visible);
-    private static native void DispatchMessages(long window);
-    private        native void setSize0(long window, int width, int height);
-    private        native boolean setFullScreen0(long window, boolean fullscreen);
-
-    private void keyDown(long key) {
-    }
-
-    private void keyUp(long key) {
-    }
+    private        native long CreateWindow(long visualID, int x, int y, int width, int height);
+    private        native void setVisible0(long display, long window, boolean visible);
+    private        native void DispatchMessages(long display, long window);
+    private        native void setSize0(long display, long window, int width, int height);
+    private        native void setPosition0(long display, long window, int x, int y);
+    private        native int  getDisplayWidth0(long display, long screen);
+    private        native int  getDisplayHeight0(long display, long screen);
 
     private void sizeChanged(int newWidth, int newHeight) {
         width = newWidth;
         height = newHeight;
+        if(!fullscreen) {
+            nfs_width=width;
+            nfs_height=height;
+        }
     }
 
     private void positionChanged(int newX, int newY) {
         x = newX;
         y = newY;
+        if(!fullscreen) {
+            nfs_x=x;
+            nfs_y=y;
+        }
+    }
+
+    private void windowCreated(long dpy, long scrn, long window) {
+        this.dpy = dpy;
+        this.screen = scrn;
+        this.window = window;
     }
 
     private void windowClosed() {
@@ -187,4 +186,5 @@ public class WindowsWindow extends Window {
 
     private void windowDestroyed() {
     }
+
 }
