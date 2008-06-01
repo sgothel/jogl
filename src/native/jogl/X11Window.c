@@ -44,7 +44,7 @@
 #include "MouseEvent.h"
 #include "KeyEvent.h"
 
-#define VERBOSE_ON 1
+// #define VERBOSE_ON 1
 
 #ifdef VERBOSE_ON
 
@@ -221,27 +221,6 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_x11_X11Window_CreateWindow
         }
 #ifdef VERBOSE_ON
         fprintf(stderr, "trying given (screen %d, visualID: %d) found: %p\n", scrn_idx, visualID, visual);
-#endif
-    }
-    if (visual==NULL)
-    { 
-        // try depth >=15 on screen
-        memset(&visualTemplate, 0, sizeof(XVisualInfo));
-        visualTemplate.class = TrueColor;
-        //visualTemplate.screen = scrn_idx;
-        visualTemplate.depth = 16;
-        visualTemplate.bits_per_rgb = 5;
-        pVisualQuery = XGetVisualInfo(dpy, VisualClassMask|VisualDepthMask|VisualBitsPerRGBMask, &visualTemplate,&n);
-        DUMP_VISUAL_INFO("Given ScreenIdx, depth>=15, bpp:15", pVisualQuery);
-        if(pVisualQuery!=NULL) {
-            visual   = pVisualQuery->visual;
-            depth    = pVisualQuery->depth;
-            visualID = pVisualQuery->visualid;
-            XFree(pVisualQuery);
-            pVisualQuery=NULL;
-        }
-#ifdef VERBOSE_ON
-        fprintf(stderr, "trying (screen %d, depth >= 15, rgb >=15) found: %p, id: %d\n", scrn_idx, visual, visualID);
 #endif
     }
     if (visual==NULL)
