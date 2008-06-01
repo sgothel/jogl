@@ -41,7 +41,7 @@ public abstract class Screen {
             if (NewtFactory.KD.equals(type)) {
                 screenClass = Class.forName("com.sun.javafx.newt.kd.KDScreen");
             } else if (NewtFactory.WINDOWS.equals(type)) {
-                screenClass = Class.forName("com.sun.javafx.newt.screens.WindowsScreen");
+                screenClass = Class.forName("com.sun.javafx.newt.windows.WindowsScreen");
             } else if (NewtFactory.X11.equals(type)) {
                 screenClass = Class.forName("com.sun.javafx.newt.x11.X11Screen");
             } else if (NewtFactory.MACOSX.equals(type)) {

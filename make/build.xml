@@ -54,9 +54,9 @@
        jogl.es2
        jogl.noAWT
        jogl.noX11WindowsMacOsX
-           jogl.noX11
-           jogl.noWindows
-           jogl.noMacOsX
+       jogl.noX11
+       jogl.noWindows
+       jogl.noMacOsX
    -->
 <project name="JOGL" basedir="." default="all">
 
@@ -375,13 +375,12 @@
     <target name="declare.common.2">
         <!-- Java files to exclude based on platform (relative to "src.java") -->
 	<!-- NOTE: the OpenGL ES exclusions are due to references to unsupported APIs -->
-        <property name="java.excludes.win32.gles" value="com/sun/opengl/impl/windows/*.java" />
-        <property name="java.excludes.win32" value="${java.excludes.gles}, ${java.excludes.win32.gles}, ${java.excludes.impl.x11}, ${java.excludes.impl.win}, ${java.excludes.impl.macosx}, ${java.excludes.awt}" />
+        <!-- FIXME: this needs refactoring at this point -->
+        <property name="java.excludes.win32" value="${java.excludes.gles}, ${java.excludes.impl.x11}, ${java.excludes.impl.win}, ${java.excludes.impl.macosx}, ${java.excludes.awt}" />
         <property name="java.excludes.x11" value="${java.excludes.gles}, ${java.excludes.impl.x11}, ${java.excludes.impl.win}, ${java.excludes.impl.macosx}, ${java.excludes.awt}" />
         <property name="java.excludes.macosx" value="${java.excludes.gles}, ${java.excludes.impl.x11}, ${java.excludes.impl.win}, ${java.excludes.impl.macosx}, ${java.excludes.awt}" />
     </target>
 
-    <echo message="java.excludes.win32.gles: ${java.excludes.win32.gles}" />
     <echo message="java.excludes.win32: ${java.excludes.win32}" />
     <echo message="java.excludes.x11: ${java.excludes.x11}" />
     <echo message="java.excludes.macosx: ${java.excludes.macosx}" />

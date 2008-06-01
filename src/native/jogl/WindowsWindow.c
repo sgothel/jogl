@@ -32,6 +32,7 @@
  */
 
 #include <windows.h>
+#include <tchar.h>
 #include <stdlib.h>
 #ifdef UNDER_CE
 #include "aygshell.h"
@@ -79,6 +80,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
     RECT rc;
     int useDefWindowProc = 0;
     jobject window = NULL;
+    BOOL isKeyDown = FALSE;
 
 #ifdef UNDER_CE
     window = (jobject) GetWindowLong(wnd, GWL_USERDATA);
@@ -100,15 +102,34 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
         (*env)->CallVoidMethod(env, window, windowDestroyedID);
         break;
 
+    // Windows does the translation between key codes and key chars by
+    // producing synthetic WM_CHAR messages in response to WM_KEYDOWN
+    // messages. The Java level contains the state machine to assemble
+    // these multiple events into a single event.
+    case WM_CHAR:
+        // NOTE that the (1 << 31) bit is meaningless regardless of
+        // what the docs for WM_CHAR say; we never receive a WM_CHAR
+        // message in response to translating a WM_KEYUP message
+        (*env)->CallVoidMethod(env, window, sendKeyEventID,
+                               (jint) EVENT_KEY_PRESSED,
+                               // FIXME: need to interpret the key events in order to compute the modifiers
+                               (jint) 0,
+                               (jint) -1,
+                               (jchar) wParam);
+        useDefWindowProc = 1;
+        break;
+
     case WM_KEYDOWN:
-        (*env)->CallVoidMethod(env, obj, sendKeyEventID, (jint) EVENT_KEY_PRESSED, 
-                               (jint) 0, (jint) 0x28, (jchar) 0);
+        // FIXME: need to interpret the key events in order to compute the modifiers
+        (*env)->CallVoidMethod(env, window, sendKeyEventID, (jint) EVENT_KEY_PRESSED,
+                               (jint) 0, (jint) wParam, (jchar) -1);
         useDefWindowProc = 1;
         break;
 
     case WM_KEYUP:
-        (*env)->CallVoidMethod(env, obj, sendKeyEventID, (jint) EVENT_KEY_PRESSED, 
-                               (jint) 0, (jint) 0x26, (jchar) 0);
+        // FIXME: need to interpret the key events in order to compute the modifiers
+        (*env)->CallVoidMethod(env, window, sendKeyEventID, (jint) EVENT_KEY_RELEASED,
+                               (jint) 0, (jint) wParam, (jchar) -1);
         useDefWindowProc = 1;
         break;
 
@@ -117,11 +138,50 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
         (*env)->CallVoidMethod(env, window, sizeChangedID, (jint) rc.right, (jint) rc.bottom);
         break;
 
-    /* FIXME: 
-    case WM_MOUSE_LALA:
-        (*env)->CallVoidMethod(env, obj, sendMouseEventID, (jint) eventType, (jint) mod, 
-                              (jint) x, (jint) y, (jint) button);
-      */
+    // FIXME: define constants for the mouse buttons and modifiers
+    case WM_LBUTTONDOWN:
+        (*env)->CallVoidMethod(env, window, sendMouseEventID, (jint) EVENT_MOUSE_PRESSED,
+                               (jint) wParam, (jint) LOWORD(lParam), (jint) HIWORD(lParam), (jint) 1);
+        useDefWindowProc = 1;
+        break;
+
+    case WM_LBUTTONUP:
+        (*env)->CallVoidMethod(env, window, sendMouseEventID, (jint) EVENT_MOUSE_RELEASED,
+                               (jint) wParam, (jint) LOWORD(lParam), (jint) HIWORD(lParam), (jint) 1);
+        useDefWindowProc = 1;
+        break;
+
+    case WM_MBUTTONDOWN:
+        (*env)->CallVoidMethod(env, window, sendMouseEventID, (jint) EVENT_MOUSE_PRESSED,
+                               (jint) wParam, (jint) LOWORD(lParam), (jint) HIWORD(lParam), (jint) 2);
+        useDefWindowProc = 1;
+        break;
+
+    case WM_MBUTTONUP:
+        (*env)->CallVoidMethod(env, window, sendMouseEventID, (jint) EVENT_MOUSE_RELEASED,
+                               (jint) wParam, (jint) LOWORD(lParam), (jint) HIWORD(lParam), (jint) 2);
+        useDefWindowProc = 1;
+        break;
+
+    case WM_RBUTTONDOWN:
+        (*env)->CallVoidMethod(env, window, sendMouseEventID, (jint) EVENT_MOUSE_PRESSED,
+                               (jint) wParam, (jint) LOWORD(lParam), (jint) HIWORD(lParam), (jint) 3);
+        useDefWindowProc = 1;
+        break;
+
+    case WM_RBUTTONUP:
+        (*env)->CallVoidMethod(env, window, sendMouseEventID, (jint) EVENT_MOUSE_RELEASED,
+                               (jint) wParam, (jint) LOWORD(lParam), (jint) HIWORD(lParam), (jint) 3);
+        useDefWindowProc = 1;
+        break;
+
+    case WM_MOUSEMOVE:
+        (*env)->CallVoidMethod(env, window, sendMouseEventID, (jint) EVENT_MOUSE_MOVED,
+                               (jint) wParam, (jint) LOWORD(lParam), (jint) HIWORD(lParam), (jint) 0);
+        useDefWindowProc = 1;
+        break;
+
+    // FIXME: generate EVENT_MOUSE_ENTERED, EVENT_MOUSE_EXITED
     default:
         useDefWindowProc = 1;
     }
@@ -178,10 +238,12 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_LoadLibra
 JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_RegisterWindowClass
   (JNIEnv *env, jclass clazz, jstring appName, jlong hInstance)
 {
-    WNDCLASSW* wc;
+    WNDCLASS* wc;
+#ifndef UNICODE
     const char* _appName = NULL;
+#endif
 
-    wc = calloc(1, sizeof(WNDCLASSW));
+    wc = calloc(1, sizeof(WNDCLASS));
     /* register class */
     wc->style = CS_HREDRAW | CS_VREDRAW;
     wc->lpfnWndProc = (WNDPROC)wndProc;
@@ -191,11 +253,17 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_RegisterW
        its HINSTANCE -- see MSDN docs for DllMain */
     wc->hInstance = (HINSTANCE) hInstance;
     wc->hIcon = NULL;
-    wc->hCursor = 0;
+    wc->hCursor = LoadCursor(NULL, MAKEINTRESOURCE(IDC_ARROW));
     wc->hbrBackground = GetStockObject(BLACK_BRUSH);
     wc->lpszMenuName = NULL;
+#ifdef UNICODE
     wc->lpszClassName = GetNullTerminatedStringChars(env, appName);
-    if (!RegisterClassW(wc)) {
+#else
+    _appName = (*env)->GetStringUTFChars(env, appName, NULL);
+    wc->lpszClassName = strdup(_appName);
+    (*env)->ReleaseStringUTFChars(env, appName, _appName);
+#endif
+    if (!RegisterClass(wc)) {
         free(wc);
         return 0;
     }
@@ -205,39 +273,50 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_RegisterW
 /*
  * Class:     com_sun_javafx_newt_windows_WindowsWindow
  * Method:    CreateWindow
- * Signature: (Ljava/lang/String;JJIIII)J
+ * Signature: (Ljava/lang/String;JIIIII)J
  */
 JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_CreateWindow
-  (JNIEnv *env, jobject obj, jstring windowClassName, jlong hInstance, jlong visualID,
+  (JNIEnv *env, jobject obj, jstring windowClassName, jlong hInstance, jint visualID,
                              jint jx, jint jy, jint defaultWidth, jint defaultHeight)
 {
-    jchar* wndClassName = GetNullTerminatedStringChars(env, windowClassName);
+    const TCHAR* wndClassName = NULL;
     DWORD windowStyle = WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_VISIBLE;
-    int x=(int)x, y=(int)y;
+    int x=(int)jx, y=(int)jy;
     int width=(int)defaultWidth, height=(int)defaultHeight;
     HWND window = NULL;
 
-/** FIXME: why ? use setFullscreen() ..
- *
+#ifdef UNICODE
+    wndClassName = GetNullTerminatedStringChars(env, windowClassName);
+#else
+    wndClassName = (*env)->GetStringUTFChars(env, windowClassName, NULL);
+#endif
+
+    // FIXME: until we have valid values coming down from the
+    // application code, use some default values
 #ifdef UNDER_CE
+    // Prefer to not have any surprises in the initial window sizing or placement
     width = GetSystemMetrics(SM_CXSCREEN);
     height = GetSystemMetrics(SM_CYSCREEN);
     x = y = 0;
 #else
-    windowStyle |= WS_OVERLAPPEDWINDOW;
     x = CW_USEDEFAULT;
     y = 0;
-    width = defaultWidth;
-    height = defaultHeight;
+    windowStyle |= WS_OVERLAPPEDWINDOW;
 #endif
- */
+
     (void) visualID; // FIXME: use the visualID ..
 
-    window = CreateWindowW(wndClassName, wndClassName, windowStyle,
-                           x, y, width, height,
-                           NULL, NULL,
-                           (HINSTANCE) hInstance,
-                           NULL);
+    window = CreateWindow(wndClassName, wndClassName, windowStyle,
+                          x, y, width, height,
+                          NULL, NULL,
+                          (HINSTANCE) hInstance,
+                          NULL);
+#ifdef UNICODE
+    free((void*) wndClassName);
+#else
+    (*env)->ReleaseStringUTFChars(env, windowClassName, wndClassName);
+#endif
+    
     if (window != NULL) {
 #ifdef UNDER_CE
         SetWindowLong(window, GWL_USERDATA, (intptr_t) (*env)->NewGlobalRef(env, obj));
@@ -247,6 +326,22 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_CreateWin
         ShowWindow(window, SW_SHOWNORMAL);
     }
     return (jlong) (intptr_t) window;
+}
+
+/*
+ * Class:     com_sun_javafx_newt_windows_WindowsWindow
+ * Method:    setVisible0
+ * Signature: (JZ)V
+ */
+JNIEXPORT void JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_setVisible0
+  (JNIEnv *_env, jclass clazz, jlong window, jboolean visible)
+{
+    HWND hWnd = (HWND) (intptr_t) window;
+    if (visible) {
+        ShowWindow(hWnd, SW_SHOW);
+    } else {
+        ShowWindow(hWnd, SW_HIDE);
+    }
 }
 
 /*
