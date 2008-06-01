@@ -37,10 +37,7 @@ import com.sun.javafx.newt.*;
 import com.sun.opengl.impl.*;
 
 public class WindowsWindow extends Window {
-    private Screen screen;
-    private long visualID;
     private boolean fullscreen, visible;
-    private long window;
     // Default width and height -- will likely be re-set immediately by user
     private int width  = 100;
     private int height = 100;
@@ -72,12 +69,12 @@ public class WindowsWindow extends Window {
     public void setVisible(boolean visible) {
         if(this.visible!=visible) {
             this.visible=visible;
-            setVisible0(window, visible);
+            setVisible0(windowHandle, visible);
         }
     }
 
     public void setSize(int width, int height) {
-        setSize0(window, width, height);
+        setSize0(windowHandle, width, height);
     }
 
     public void setPosition(int x, int y) {
@@ -106,7 +103,7 @@ public class WindowsWindow extends Window {
     public boolean setFullscreen(boolean fullscreen) {
         if(this.fullscreen!=fullscreen) {
             this.fullscreen=fullscreen;
-            return setFullScreen0(window, fullscreen);
+            return setFullScreen0(windowHandle, fullscreen);
         }
         return true;
     }
@@ -124,7 +121,7 @@ public class WindowsWindow extends Window {
     }
 
     public void pumpMessages() {
-        DispatchMessages(window);
+        DispatchMessages(windowHandle);
     }
 
     //----------------------------------------------------------------------
@@ -156,12 +153,12 @@ public class WindowsWindow extends Window {
     private static native boolean initIDs();
     private static native long LoadLibraryW(String libraryName);
     private static native long RegisterWindowClass(String windowClassName, long hInstance);
-    private        native long CreateWindow(String windowClassName, long hInstance, long visualID,
+    private        native long CreateWindow(String windowClassName, long hInstance, int visualID,
                                             int x, int y, int width, int height);
-    private        native void setVisible0(long window, boolean visible);
-    private static native void DispatchMessages(long window);
-    private        native void setSize0(long window, int width, int height);
-    private        native boolean setFullScreen0(long window, boolean fullscreen);
+    private        native void setVisible0(long windowHandle, boolean visible);
+    private static native void DispatchMessages(long windowHandle);
+    private        native void setSize0(long windowHandle, int width, int height);
+    private        native boolean setFullScreen0(long windowHandle, boolean fullscreen);
 
     private void sizeChanged(int newWidth, int newHeight) {
         width = newWidth;

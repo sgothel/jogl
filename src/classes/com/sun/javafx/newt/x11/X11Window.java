@@ -144,7 +144,7 @@ public class X11Window extends Window {
 
     private static native boolean initIDs();
     private        native long CreateWindow(long display, long screen, int screen_index, 
-                                            long visualID, int x, int y, int width, int height);
+                                            int visualID, int x, int y, int width, int height);
     private        native void setVisible0(long display, long windowHandle, boolean visible);
     private        native void DispatchMessages(long display, long windowHandle);
     private        native void setSize0(long display, long windowHandle, int width, int height);
@@ -170,7 +170,7 @@ public class X11Window extends Window {
         }
     }
 
-    private void windowCreated(long visualID, long windowHandle) {
+    private void windowCreated(int visualID, long windowHandle) {
         this.visualID = visualID;
         this.windowHandle = windowHandle;
     }

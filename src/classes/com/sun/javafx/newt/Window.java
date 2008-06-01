@@ -45,7 +45,7 @@ public abstract class Window implements NativeWindow
     public static final boolean DEBUG_KEY_EVENT = false;
     public static final boolean DEBUG_IMPLEMENTATION = true;
     
-    protected static Window create(String type, Screen screen, long visualID) {
+    protected static Window create(String type, Screen screen, int visualID) {
         try {
             Class windowClass = null;
             if (NewtFactory.KD.equals(type)) {
@@ -89,7 +89,7 @@ public abstract class Window implements NativeWindow
     }
 
     protected Screen screen;
-    protected long   visualID;
+    protected int    visualID;
     protected long   windowHandle;
     protected boolean locked;
 
@@ -132,7 +132,7 @@ public abstract class Window implements NativeWindow
         return windowHandle;
     }
 
-    public long getVisualID() {
+    public int  getVisualID() {
         return visualID;
     }
 

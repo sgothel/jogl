@@ -53,10 +53,10 @@
        jogl.es1
        jogl.es2
        jogl.noAWT
-       jogl.noX11
-       jogl.noWindows
-       jogl.noMacOsX
        jogl.noX11WindowsMacOsX
+           jogl.noX11
+           jogl.noWindows
+           jogl.noMacOsX
    -->
 <project name="JOGL" basedir="." default="all">
 

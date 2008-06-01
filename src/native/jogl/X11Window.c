@@ -44,16 +44,13 @@
 #include "MouseEvent.h"
 #include "KeyEvent.h"
 
-// This is set by DispatchMessages, below, and cleared when it exits
-static JNIEnv* env = NULL;
-
 #define VERBOSE_ON 1
 
 #ifdef VERBOSE_ON
 
 static void _dumpVisualInfo(const char * msg, XVisualInfo *pVisualQuery) {
     if(pVisualQuery!=NULL) {
-        fprintf(stderr, "%s: screen %d, visual: %p, visual-id: 0x%X, depth: %d, class %d, cmap sz: %d, bpp: %d, rgb 0x%X 0x%X 0x%X\n",
+        fprintf(stderr, "%s: screen %d, visual: %p, visual-id: 0x%X, depth: %d, class %d, cmap sz: %d, bpp: 3x%d, rgb 0x%X 0x%X 0x%X\n",
             msg,
             pVisualQuery->screen,
             pVisualQuery->visual,
@@ -155,7 +152,7 @@ JNIEXPORT jboolean JNICALL Java_com_sun_javafx_newt_x11_X11Window_initIDs
     positionChangedID = (*env)->GetMethodID(env, clazz, "positionChanged", "(II)V");
     windowClosedID    = (*env)->GetMethodID(env, clazz, "windowClosed",    "()V");
     windowDestroyedID = (*env)->GetMethodID(env, clazz, "windowDestroyed", "()V");
-    windowCreatedID = (*env)->GetMethodID(env, clazz, "windowCreated", "(JJ)V");
+    windowCreatedID = (*env)->GetMethodID(env, clazz, "windowCreated", "(IJ)V");
     sendMouseEventID = (*env)->GetMethodID(env, clazz, "sendMouseEvent", "(IIIII)V");
     sendKeyEventID = (*env)->GetMethodID(env, clazz, "sendKeyEvent", "(IIIC)V");
     if (sizeChangedID == NULL ||
@@ -173,11 +170,11 @@ JNIEXPORT jboolean JNICALL Java_com_sun_javafx_newt_x11_X11Window_initIDs
 /*
  * Class:     com_sun_javafx_newt_x11_X11Window
  * Method:    CreateWindow
- * Signature: (JJJIIIII)J
+ * Signature: (JJIIIIII)J
  */
 JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_x11_X11Window_CreateWindow
   (JNIEnv *env, jobject obj, jlong display, jlong screen, jint screen_index, 
-                             jlong visualID,
+                             jint visualID,
                              jint x, jint y, jint width, jint height)
 {
     Display * dpy  = NULL;
@@ -208,7 +205,6 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_x11_X11Window_CreateWindow
         return 0;
     }
 
-    visualID=33;
     if(visualID>0) {
         // try given VisualID on screen
         memset(&visualTemplate, 0, sizeof(XVisualInfo));
@@ -224,17 +220,19 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_x11_X11Window_CreateWindow
             pVisualQuery=NULL;
         }
 #ifdef VERBOSE_ON
-        fprintf(stderr, "trying given (screen %d, visualID: %d) found: %d\n", scrn_idx, visualID, (visual!=NULL));
+        fprintf(stderr, "trying given (screen %d, visualID: %d) found: %p\n", scrn_idx, visualID, visual);
 #endif
     }
     if (visual==NULL)
     { 
         // try depth >=15 on screen
         memset(&visualTemplate, 0, sizeof(XVisualInfo));
-        visualTemplate.screen = scrn_idx;
-        visualTemplate.depth = 15;
-        pVisualQuery = XGetVisualInfo(dpy, VisualScreenMask|VisualDepthMask, &visualTemplate,&n);
-        DUMP_VISUAL_INFO("Given VisualID,ScreenIdx", pVisualQuery);
+        visualTemplate.class = TrueColor;
+        //visualTemplate.screen = scrn_idx;
+        visualTemplate.depth = 16;
+        visualTemplate.bits_per_rgb = 5;
+        pVisualQuery = XGetVisualInfo(dpy, VisualClassMask|VisualDepthMask|VisualBitsPerRGBMask, &visualTemplate,&n);
+        DUMP_VISUAL_INFO("Given ScreenIdx, depth>=15, bpp:15", pVisualQuery);
         if(pVisualQuery!=NULL) {
             visual   = pVisualQuery->visual;
             depth    = pVisualQuery->depth;
@@ -243,13 +241,13 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_x11_X11Window_CreateWindow
             pVisualQuery=NULL;
         }
 #ifdef VERBOSE_ON
-        fprintf(stderr, "trying (screen %d, depth >= 15) found: %d, id: %d\n", scrn_idx, (visual!=NULL), visualID);
+        fprintf(stderr, "trying (screen %d, depth >= 15, rgb >=15) found: %p, id: %d\n", scrn_idx, visual, visualID);
 #endif
     }
     if (visual==NULL)
     { 
         // try default ..
-        Visual * visual = XDefaultVisualOfScreen(scrn);
+        visual = XDefaultVisualOfScreen(scrn);
         if(visual!=NULL) {
             visualID = visual->visualid;
             // try given VisualID on screen
@@ -257,6 +255,7 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_x11_X11Window_CreateWindow
             visualTemplate.screen = scrn_idx;
             visualTemplate.visualid = (VisualID)visualID;
             pVisualQuery = XGetVisualInfo(dpy, VisualIDMask|VisualScreenMask, &visualTemplate,&n);
+            DUMP_VISUAL_INFO("Given ScreenIdx, Default VisualID", pVisualQuery);
             if(pVisualQuery!=NULL) {
                 visual   = pVisualQuery->visual;
                 depth    = pVisualQuery->depth;
@@ -268,11 +267,10 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_x11_X11Window_CreateWindow
                 visualID = 0;
             }
 #ifdef VERBOSE_ON
-            fprintf(stderr, "default visual (screen %d, visualID: %d) found: %d\n", scrn_idx, visualID, (visual!=NULL));
+            fprintf(stderr, "default visual (screen %d, visualID: %d) found: %p\n", scrn_idx, visualID, visual);
 #endif
         }
     }
-    DUMP_VISUAL_INFO("Choosen", pVisualQuery);
     if (visual==NULL)
     { 
         fprintf(stderr, "could not query any Visual, bail out!\n");
@@ -308,13 +306,9 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_x11_X11Window_CreateWindow
                            attrMask,
                            &xswa);
     XClearWindow(dpy, window);
-    XMapRaised(dpy, window);
 
-    (*env)->CallVoidMethod(env, obj, windowCreatedID, (jlong) visualID, (jlong) window);
+    (*env)->CallVoidMethod(env, obj, windowCreatedID, visualID, (jlong) window);
 
-    XSelectInput(dpy, window, ExposureMask|ButtonPressMask|ButtonReleaseMask|PointerMotionMask|
-                              KeyPressMask|KeyReleaseMask);
-    XSetInputFocus(dpy, window, RevertToNone, CurrentTime);
     return (jlong) window;
 }
 
@@ -329,14 +323,14 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_x11_X11Window_setVisible0
     Display * dpy = (Display *) (intptr_t) display;
     Window w = (Window)window;
     if(visible==JNI_TRUE) {
-        XMapRaise(dpy, window);
+        XMapRaised(dpy, w);
 
-        XSelectInput(dpy, window, ExposureMask|ButtonPressMask|ButtonReleaseMask|PointerMotionMask|
+        XSelectInput(dpy, w, ExposureMask|ButtonPressMask|ButtonReleaseMask|PointerMotionMask|
                                   KeyPressMask|KeyReleaseMask);
-        XSetInputFocus(dpy, window, RevertToNone, CurrentTime);
+        XSetInputFocus(dpy, w, RevertToNone, CurrentTime);
     } else {
-        XSelectInput(dpy, window, 0);
-        XUnmapWindow(dpy, window);
+        XSelectInput(dpy, w, 0);
+        XUnmapWindow(dpy, w);
     }
 }
 
@@ -350,10 +344,10 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_x11_X11Window_DispatchMessages
 {
     Display * dpy = (Display *) (intptr_t) display;
     Window w = (Window)window;
+    (void) w; // unused for now, might be necessary to verify the event source
 
     // Periodically take a break
     while( XPending(dpy)>0 ) {
-        int eventType;
         XEvent evt;
         KeySym keySym;
         char keyChar;

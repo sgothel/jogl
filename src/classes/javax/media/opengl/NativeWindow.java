@@ -52,7 +52,7 @@ public interface NativeWindow {
   public long getScreenHandle();
   public int  getScreenIndex();
   public long getWindowHandle();
-  public long getVisualID();
+  public int  getVisualID();
 
   public void setSize(int width, int height);
   public void setPosition(int x, int y);

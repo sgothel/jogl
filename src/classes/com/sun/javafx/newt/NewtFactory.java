@@ -72,7 +72,7 @@ public abstract class NewtFactory {
       return Screen.create(getWindowType(), display, index);
     }
 
-    public static Window createWindow(Screen screen, long visualID) {
+    public static Window createWindow(Screen screen, int visualID) {
       return Window.create(getWindowType(), screen, visualID);
     }
 
