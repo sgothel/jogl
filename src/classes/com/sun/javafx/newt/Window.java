@@ -66,8 +66,9 @@ public abstract class Window implements NativeWindow
             window.locked = false;
             window.initNative();
             return window;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        } catch (Throwable t) {
+            t.printStackTrace();
+            throw new RuntimeException(t);
         }
     }
 
@@ -174,7 +175,7 @@ public abstract class Window implements NativeWindow
     private int  lastMouseClickCount = 0;
     public  static final int ClickTimeout = 200;
 
-    private void sendMouseEvent(int eventType, int modifiers, int x, int y, int button) {
+    protected void sendMouseEvent(int eventType, int modifiers, int x, int y, int button) {
         if(DEBUG_MOUSE_EVENT) {
             System.out.println("sendMouseEvent: "+MouseEvent.getEventTypeString(eventType)+
                                ", mod "+modifiers+", pos "+x+"/"+y+", button "+button);
@@ -270,7 +271,7 @@ public abstract class Window implements NativeWindow
 
     private ArrayList keyListener = new ArrayList();
 
-    private void sendKeyEvent(int eventType, int modifiers, int keyCode, char keyChar) {
+    protected void sendKeyEvent(int eventType, int modifiers, int keyCode, char keyChar) {
         KeyEvent e = new KeyEvent(true, eventType, this, System.currentTimeMillis(), 
                                       modifiers, keyCode, keyChar);
         if(DEBUG_KEY_EVENT) {
