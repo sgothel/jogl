@@ -5,7 +5,7 @@ public static JAWT getJAWT() {
   if (jawt == null) {
     synchronized (JAWT.class) {
       if (jawt == null) {
-        NativeLibLoader.loadAWTImpl();
+        AWTNativeLibLoader.loadAWTImpl();
         // Workaround for 4845371.
         // Make sure the first reference to the JNI GetDirectBufferAddress is done
         // from a privileged context so the VM's internal class lookups will succeed.

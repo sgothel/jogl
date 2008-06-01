@@ -47,6 +47,16 @@
    - the building of the jar file. Thanks to Alex Radeski for the bulk of the
    - port to the ant-contrib CPPTask framework. Thanks to Athomas Goldberg for
    - the original OS detection code.
+   -
+   - Some environment defs ..
+       jogl.cdcfp
+       jogl.es1
+       jogl.es2
+       jogl.noAWT
+       jogl.noX11
+       jogl.noWindows
+       jogl.noMacOsX
+       jogl.noX11WindowsMacOsX
    -->
 <project name="JOGL" basedir="." default="all">
 
@@ -79,8 +89,10 @@
         <!-- Also set isCDCFP for the GlueGen build.xml to keep GL
              references there to a minimum -->
         <condition property="isCDCFP">
-            <isset property="isGLES" />
+            <isset property="jogl.cdcfp" />
         </condition>
+
+        <echo message="jogl.cdcfp: ${jogl.cdcfp}" />
 
         <condition property="isGLES1">
             <isset property="jogl.es1" />
@@ -89,6 +101,48 @@
         <condition property="isGLES2">
             <isset property="jogl.es2" />
         </condition>
+
+        <echo message="jogl.es1: ${jogl.es1}" />
+        <echo message="jogl.es2: ${jogl.es2}" />
+
+        <condition property="jogl.noX11">
+            <isset property="jogl.noX11WindowsMacOsX" />
+        </condition>
+        <condition property="jogl.noWindows">
+            <isset property="jogl.noX11WindowsMacOsX" />
+        </condition>
+        <condition property="jogl.noMacOsX">
+            <isset property="jogl.noX11WindowsMacOsX" />
+        </condition>
+
+        <echo message="jogl.noX11WindowsMacOsX: ${jogl.noX11WindowsMacOsX}" />
+        <echo message="jogl.noX11: ${jogl.noX11}" />
+        <echo message="jogl.noWindows: ${jogl.noWindows}" />
+        <echo message="jogl.noMacOsX: ${jogl.noMacOsX}" />
+
+        <condition property="java.excludes.awt"
+                   value="javax/media/opengl/awt/**, com/sun/opengl/util/j2d/**, com/sun/opengl/util/JOGLAppletLauncher.java, com/sun/opengl/impl/awt/**, com/sun/opengl/impl/x11/awt/**, com/sun/opengl/impl/windows/awt/**, com/sun/opengl/impl/macosx/awt/**">
+           <isset property="jogl.noAWT"/> 
+        </condition>
+        <echo message="java.excludes.awt: ${java.excludes.awt}" />
+
+        <condition property="java.excludes.impl.x11"
+                   value="com/sun/opengl/impl/x11/**">
+           <isset property="jogl.noX11"/> 
+        </condition>
+        <echo message="java.excludes.impl.x11: ${java.excludes.impl.x11}" />
+
+        <condition property="java.excludes.impl.win"
+                   value="com/sun/opengl/impl/windows/**">
+           <isset property="jogl.noWindows"/> 
+        </condition>
+        <echo message="java.excludes.impl.win: ${java.excludes.impl.win}" />
+
+        <condition property="java.excludes.impl.macosx"
+                   value="com/sun/opengl/impl/macosx/**">
+           <isset property="jogl.noMacOsX"/> 
+        </condition>
+        <echo message="java.excludes.impl.macosx: ${java.excludes.impl.macosx}" />
 
         <!-- Set the project root directory to be up one directory. -->
         <property name="project.root" value=".." />
@@ -292,12 +346,12 @@
     
     <target name="declare.gl.gles1" if="isGLES1">
         <property name="gl.headers" value="${stub.includes.dir}/opengl/GLES/*.h" /> <!-- NOTE:  this MUST be relative for FileSet --> <!-- CHECK:  this may need to be pruned for each platform -->
-        <property name="java.excludes.gles" value="javax/media/opengl/AWTGraphicsConfiguration.java, javax/media/opengl/AWTGraphicsDevice.java, javax/media/opengl/ComponentEvents.java, javax/media/opengl/GLCanvas.java, javax/media/opengl/GLJPanel.java, com/sun/opengl/util/j2d/**, com/sun/opengl/util/texture/**, com/sun/opengl/util/Animator.java, com/sun/opengl/util/FPSAnimator.java, com/sun/opengl/util/*Rec.java, com/sun/opengl/util/GLUT*.java, com/sun/opengl/util/Gamma.java, com/sun/opengl/util/ImageUtil.java, com/sun/opengl/util/JOGLAppletLauncher.java, com/sun/opengl/util/Screenshot.java, com/sun/opengl/util/TGAWriter.java, com/sun/opengl/util/TileRenderer.java, com/sun/opengl/impl/GLObjectTracker.java, com/sun/opengl/impl/GLPbufferImpl.java, com/sun/opengl/impl/GLUquadricImpl.java, com/sun/opengl/impl/Java2D.java, com/sun/opengl/impl/Java2DGLContext.java, com/sun/opengl/impl/JAWT_PlatformInfo.java, com/sun/opengl/impl/Project.java, com/sun/opengl/impl/Util.java, com/sun/opengl/impl/error/**, com/sun/opengl/impl/glue/**, com/sun/opengl/impl/mipmap/**, com/sun/opengl/impl/nurbs/**, com/sun/opengl/impl/packrect/**, com/sun/opengl/impl/registry/**, com/sun/opengl/impl/tessellator/**, com/sun/opengl/impl/windows/**, com/sun/opengl/impl/x11/**, com/sun/opengl/impl/macosx/**" />
+        <property name="java.excludes.gles" value="com/sun/opengl/util/texture/**, com/sun/opengl/util/Animator.java, com/sun/opengl/util/FPSAnimator.java, com/sun/opengl/util/*Rec.java, com/sun/opengl/util/GLUT*.java, com/sun/opengl/util/Gamma.java, com/sun/opengl/util/ImageUtil.java, com/sun/opengl/util/Screenshot.java, com/sun/opengl/util/TGAWriter.java, com/sun/opengl/util/TileRenderer.java, com/sun/opengl/impl/GLObjectTracker.java, com/sun/opengl/impl/GLPbufferImpl.java, com/sun/opengl/impl/GLUquadricImpl.java, com/sun/opengl/impl/Project.java, com/sun/opengl/impl/Util.java, com/sun/opengl/impl/error/**, com/sun/opengl/impl/glue/**, com/sun/opengl/impl/mipmap/**, com/sun/opengl/impl/nurbs/**, com/sun/opengl/impl/packrect/**, com/sun/opengl/impl/registry/**, com/sun/opengl/impl/tessellator/**" />
     </target>
 
     <target name="declare.gl.gles2" if="isGLES2">
         <property name="gl.headers" value="${stub.includes.dir}/opengl/GLES2/*.h" /> <!-- NOTE:  this MUST be relative for FileSet --> <!-- CHECK:  this may need to be pruned for each platform -->
-        <property name="java.excludes.gles" value="javax/media/opengl/AWTGraphicsConfiguration.java, javax/media/opengl/AWTGraphicsDevice.java, javax/media/opengl/ComponentEvents.java, javax/media/opengl/GLCanvas.java, javax/media/opengl/GLJPanel.java, com/sun/opengl/util/j2d/**, com/sun/opengl/util/texture/**, com/sun/opengl/util/Animator.java, com/sun/opengl/util/FPSAnimator.java, com/sun/opengl/util/*Rec.java, com/sun/opengl/util/GLUT*.java, com/sun/opengl/util/Gamma.java, com/sun/opengl/util/ImageUtil.java, com/sun/opengl/util/JOGLAppletLauncher.java, com/sun/opengl/util/Screenshot.java, com/sun/opengl/util/TGAWriter.java, com/sun/opengl/util/TileRenderer.java, com/sun/opengl/impl/GLObjectTracker.java, com/sun/opengl/impl/GLPbufferImpl.java, com/sun/opengl/impl/GLUquadricImpl.java, com/sun/opengl/impl/Java2D.java, com/sun/opengl/impl/Java2DGLContext.java, com/sun/opengl/impl/JAWT_PlatformInfo.java, com/sun/opengl/impl/Project.java, com/sun/opengl/impl/ProjectES1.java, com/sun/opengl/impl/Util.java, com/sun/opengl/impl/error/**, com/sun/opengl/impl/glue/**, com/sun/opengl/impl/mipmap/**, com/sun/opengl/impl/nurbs/**, com/sun/opengl/impl/packrect/**, com/sun/opengl/impl/registry/**, com/sun/opengl/impl/tessellator/**, com/sun/opengl/impl/windows/**, com/sun/opengl/impl/x11/**, com/sun/opengl/impl/macosx/**" />
+        <property name="java.excludes.gles" value="com/sun/opengl/util/texture/**, com/sun/opengl/util/Animator.java, com/sun/opengl/util/FPSAnimator.java, com/sun/opengl/util/*Rec.java, com/sun/opengl/util/GLUT*.java, com/sun/opengl/util/Gamma.java, com/sun/opengl/util/ImageUtil.java, com/sun/opengl/util/Screenshot.java, com/sun/opengl/util/TGAWriter.java, com/sun/opengl/util/TileRenderer.java, com/sun/opengl/impl/GLObjectTracker.java, com/sun/opengl/impl/GLPbufferImpl.java, com/sun/opengl/impl/GLUquadricImpl.java, com/sun/opengl/impl/Project.java, com/sun/opengl/impl/ProjectES1.java, com/sun/opengl/impl/Util.java, com/sun/opengl/impl/error/**, com/sun/opengl/impl/glue/**, com/sun/opengl/impl/mipmap/**, com/sun/opengl/impl/nurbs/**, com/sun/opengl/impl/packrect/**, com/sun/opengl/impl/registry/**, com/sun/opengl/impl/tessellator/**" />
     </target>
 
     <target name="declare.gl.gles" if="isGLES" depends="declare.gl.gles1, declare.gl.gles2">
@@ -315,15 +369,22 @@
         <property name="java.excludes.gles" value="com/sun/opengl/impl/egl/**, com/sun/opengl/impl/ProjectES1.java" />
     </target>
 
+    <echo message="java.excludes.gles: ${java.excludes.gles}" />
+
     <!-- Declarations that have to come after both the common setup and the GLES tests -->
     <target name="declare.common.2">
         <!-- Java files to exclude based on platform (relative to "src.java") -->
 	<!-- NOTE: the OpenGL ES exclusions are due to references to unsupported APIs -->
         <property name="java.excludes.win32.gles" value="com/sun/opengl/impl/windows/*.java" />
-        <property name="java.excludes.win32" value="com/sun/opengl/impl/x11/**, com/sun/opengl/impl/macosx/**, ${java.excludes.gles}, ${java.excludes.win32.gles}" />
-        <property name="java.excludes.x11" value="com/sun/opengl/impl/windows/**, com/sun/opengl/impl/macosx/**, ${java.excludes.gles}" />
-        <property name="java.excludes.macosx" value="com/sun/opengl/impl/x11/**, com/sun/opengl/impl/windows/**, ${java.excludes.gles}" />
+        <property name="java.excludes.win32" value="${java.excludes.gles}, ${java.excludes.win32.gles}, ${java.excludes.impl.x11}, ${java.excludes.impl.win}, ${java.excludes.impl.macosx}, ${java.excludes.awt}" />
+        <property name="java.excludes.x11" value="${java.excludes.gles}, ${java.excludes.impl.x11}, ${java.excludes.impl.win}, ${java.excludes.impl.macosx}, ${java.excludes.awt}" />
+        <property name="java.excludes.macosx" value="${java.excludes.gles}, ${java.excludes.impl.x11}, ${java.excludes.impl.win}, ${java.excludes.impl.macosx}, ${java.excludes.awt}" />
     </target>
+
+    <echo message="java.excludes.win32.gles: ${java.excludes.win32.gles}" />
+    <echo message="java.excludes.win32: ${java.excludes.win32}" />
+    <echo message="java.excludes.x11: ${java.excludes.x11}" />
+    <echo message="java.excludes.macosx: ${java.excludes.macosx}" />
 
     <!-- ================================================================== -->
     <!--
