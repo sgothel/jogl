@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -29,47 +29,43 @@
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  * 
+ * You acknowledge that this software is not designed or intended for use
+ * in the design, construction, operation or maintenance of any nuclear
+ * facility.
+ * 
+ * Sun gratefully acknowledges that this software was originally authored
+ * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.sun.javafx.newt;
+package com.sun.opengl.impl.awt;
 
-public abstract class Display {
+import com.sun.opengl.impl.*;
 
-    protected static Display create(String type, String name) {
-        try {
-            Class displayClass = null;
-            if (NewtFactory.KD.equals(type)) {
-                displayClass = Class.forName("com.sun.javafx.newt.kd.KDDisplay");
-            } else if (NewtFactory.WINDOWS.equals(type)) {
-                displayClass = Class.forName("com.sun.javafx.newt.displays.WindowsDisplay");
-            } else if (NewtFactory.X11.equals(type)) {
-                displayClass = Class.forName("com.sun.javafx.newt.x11.X11Display");
-            } else if (NewtFactory.MACOSX.equals(type)) {
-                displayClass = Class.forName("com.sun.javafx.newt.macosx.MacOSXDisplay");
-            } else {
-                throw new RuntimeException("Unknown display type \"" + type + "\"");
-            }
-            Display display = (Display) displayClass.newInstance();
-            display.name=name;
-            display.handle=0;
-            display.initNative();
-            return display;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
+import java.awt.Toolkit;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 
-    protected abstract void initNative();
+public class AWTNativeLibLoader extends NativeLibLoader {
+  public static void loadAWTImpl() {
+    AccessController.doPrivileged(new PrivilegedAction() {
+      public Object run() {
+        // Make sure that awt.dll is loaded before loading jawt.dll. Otherwise
+        // a Dialog with "awt.dll not found" might pop up.
+        // See http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4481947.
+        Toolkit.getDefaultToolkit();
+        
+        // Must pre-load JAWT on all non-Mac platforms to
+        // ensure references from jogl_awt shared object
+        // will succeed since JAWT shared object isn't in
+        // default library path
+        boolean isOSX = System.getProperty("os.name").equals("Mac OS X");
+        String[] preload = { "jawt" };
 
-    public String getName() {
-        return name;
-    }
-
-    public long getHandle() {
-        return handle;
-    }
-
-    protected String name;
-    protected long   handle;
+        loadLibrary("jogl_awt", preload, !isOSX, false);
+        return null;
+      }
+    });
+  }
 }
-

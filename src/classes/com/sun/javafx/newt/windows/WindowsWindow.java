@@ -59,22 +59,14 @@ public class WindowsWindow extends Window {
     public WindowsWindow() {
     }
 
-    public void initNative(Screen screen, long visualID) {
-        this.screen = screen;
-        this.visualID = visualID;
+    public void initNative() {
         long wndClass = getWindowClass();
         fullscreen=false;
         visible=false;
-        window = CreateWindow(WINDOW_CLASS_NAME, getHInstance(), visualID, x, y, width, height);
-        if (window == 0) {
+        windowHandle = CreateWindow(WINDOW_CLASS_NAME, getHInstance(), visualID, x, y, width, height);
+        if (windowHandle == 0) {
             throw new RuntimeException("Error creating window");
         }
-        screen.setHandle(0); // dummy
-        screen.getDisplay().setHandle(0); // dummy
-    }
-
-    public Screen getScreen() {
-        return screen;
     }
 
     public void setVisible(boolean visible) {
@@ -131,10 +123,6 @@ public class WindowsWindow extends Window {
         return 480; // FIXME
     }
 
-    public long getWindowHandle() {
-        return window;
-    }
-
     public void pumpMessages() {
         DispatchMessages(window);
     }
@@ -174,12 +162,6 @@ public class WindowsWindow extends Window {
     private static native void DispatchMessages(long window);
     private        native void setSize0(long window, int width, int height);
     private        native boolean setFullScreen0(long window, boolean fullscreen);
-
-    private void keyDown(long key) {
-    }
-
-    private void keyUp(long key) {
-    }
 
     private void sizeChanged(int newWidth, int newHeight) {
         width = newWidth;

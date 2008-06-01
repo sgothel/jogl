@@ -39,11 +39,6 @@
 
 package com.sun.opengl.impl.x11;
 
-import java.awt.Component;
-import java.awt.Graphics;
-import java.awt.GraphicsConfiguration;
-import java.awt.GraphicsDevice;
-import java.awt.GraphicsEnvironment;
 import java.nio.*;
 import java.security.*;
 import java.util.*;
@@ -58,9 +53,6 @@ public class X11GLDrawableFactory extends GLDrawableFactoryImpl {
   // direct contexts, so we need to disable the context optimizations
   // in this case
   private static boolean isVendorATI;
-
-  // See whether we're running in headless mode
-  private static boolean isHeadless;
 
   // Map for rediscovering the GLCapabilities associated with a
   // particular screen and visualID after the fact
@@ -101,8 +93,6 @@ public class X11GLDrawableFactory extends GLDrawableFactoryImpl {
     com.sun.opengl.impl.NativeLibLoader.loadCore();
 
     DRIHack.end();
-
-    isHeadless = GraphicsEnvironment.isHeadless();
   }
 
   public X11GLDrawableFactory(String profile) {
@@ -117,134 +107,18 @@ public class X11GLDrawableFactory extends GLDrawableFactoryImpl {
   public AbstractGraphicsConfiguration chooseGraphicsConfiguration(GLCapabilities capabilities,
                                                                    GLCapabilitiesChooser chooser,
                                                                    AbstractGraphicsDevice absDevice) {
-    if (capabilities == null) {
-      capabilities = new GLCapabilities();
-    }
-    if (chooser == null) {
-      chooser = new DefaultGLCapabilitiesChooser();
-    }
-    GraphicsDevice device = null;
-    if (absDevice != null &&
-        !(absDevice instanceof AWTGraphicsDevice)) {
-      throw new IllegalArgumentException("This GLDrawableFactory accepts only AWTGraphicsDevice objects");
-    }
-
-    if ((absDevice == null) ||
-        (((AWTGraphicsDevice) absDevice).getGraphicsDevice() == null)) {
-      device = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
-    } else {
-      device = ((AWTGraphicsDevice) absDevice).getGraphicsDevice();
-    }
-
-    int screen;
-    if (isXineramaEnabled()) {
-      screen = 0;
-    } else {
-      screen = X11SunJDKReflection.graphicsDeviceGetScreen(device);
-    }
-
-    // Until we have a rock-solid visual selection algorithm written
-    // in pure Java, we're going to provide the underlying window
-    // system's selection to the chooser as a hint
-
-    int[] attribs = glCapabilities2AttribList(capabilities, isMultisampleAvailable(), false, 0, 0);
-    XVisualInfo[] infos = null;
-    GLCapabilities[] caps = null;
-    int recommendedIndex = -1;
-    lockToolkit();
-    try {
-      long display = getDisplayConnection();
-      XVisualInfo recommendedVis = GLX.glXChooseVisual(display, screen, attribs, 0);
-      if (DEBUG) {
-        System.err.print("!!! glXChooseVisual recommended ");
-        if (recommendedVis == null) {
-          System.err.println("null visual");
-        } else {
-          System.err.println("visual id 0x" + Long.toHexString(recommendedVis.visualid()));
-        }
-      }
-      int[] count = new int[1];
-      XVisualInfo template = XVisualInfo.create();
-      template.screen(screen);
-      infos = GLX.XGetVisualInfo(display, GLX.VisualScreenMask, template, count, 0);
-      if (infos == null) {
-        throw new GLException("Error while enumerating available XVisualInfos");
-      }
-      caps = new GLCapabilities[infos.length];
-      for (int i = 0; i < infos.length; i++) {
-        caps[i] = xvi2GLCapabilities(display, infos[i]);
-        // Attempt to find the visual chosen by glXChooseVisual
-        if (recommendedVis != null && recommendedVis.visualid() == infos[i].visualid()) {
-          recommendedIndex = i;
-        }
-      }
-    } finally {
-      unlockToolkit();
-    }
-    // Store these away for later
-    for (int i = 0; i < infos.length; i++) {
-      if (caps[i] != null) {
-        visualToGLCapsMap.put(new ScreenAndVisualIDKey(screen, infos[i].visualid()),
-                              caps[i].clone());
-      }
-    }
-    int chosen = chooser.chooseCapabilities(capabilities, caps, recommendedIndex);
-    if (chosen < 0 || chosen >= caps.length) {
-      throw new GLException("GLCapabilitiesChooser specified invalid index (expected 0.." + (caps.length - 1) + ")");
-    }
-    XVisualInfo vis = infos[chosen];
-    if (vis == null) {
-      throw new GLException("GLCapabilitiesChooser chose an invalid visual");
-    }
-    // FIXME: need to look at glue code and see type of this field
-    long visualID = vis.visualid();
-    // FIXME: the storage for the infos array, as well as that for the
-    // recommended visual, is leaked; should free them here with XFree()
-
-    // Now figure out which GraphicsConfiguration corresponds to this
-    // visual by matching the visual ID
-    GraphicsConfiguration[] configs = device.getConfigurations();
-    for (int i = 0; i < configs.length; i++) {
-      GraphicsConfiguration config = configs[i];
-      if (config != null) {
-        if (X11SunJDKReflection.graphicsConfigurationGetVisualID(config) == visualID) {
-          return new AWTGraphicsConfiguration(config);
-        }
-      }
-    }
-
-    // Either we weren't able to reflectively introspect on the
-    // X11GraphicsConfig or something went wrong in the steps above;
-    // we're going to return null without signaling an error condition
-    // in this case (although we should distinguish between the two
-    // and possibly report more of an error in the latter case)
     return null;
   }
 
-  public GLDrawable getGLDrawable(Object target,
-                                  GLCapabilities capabilities,
-                                  GLCapabilitiesChooser chooser) {
+  public GLDrawable createGLDrawable(NativeWindow target,
+                                     GLCapabilities capabilities,
+                                     GLCapabilitiesChooser chooser) {
     if (target == null) {
       throw new IllegalArgumentException("Null target");
     }
-    if (!(target instanceof Component)) {
-      throw new IllegalArgumentException("GLDrawables not supported for objects of type " +
-                                         target.getClass().getName() + " (only Components are supported in this implementation)");
-    }
-    Component comp = (Component) target;
-    X11OnscreenGLDrawable drawable = new X11OnscreenGLDrawable(comp);
-    // Figure out the GLCapabilities of this component
-    GraphicsConfiguration config = comp.getGraphicsConfiguration();
-    if (config == null) {
-      throw new IllegalArgumentException("GLDrawableFactory.chooseGraphicsConfiguration() was not used when creating this Component");
-    }
-    int visualID = X11SunJDKReflection.graphicsConfigurationGetVisualID(config);
-    int screen; 
-    if (isXineramaEnabled()) {
-      screen = 0;
-    } else {
-      screen = X11SunJDKReflection.graphicsDeviceGetScreen(config.getDevice());
-    }
+    X11OnscreenGLDrawable drawable = new X11OnscreenGLDrawable(getProfile(), target);
+    int visualID = target.getVisualID();
+    int screen = target.getScreenIndex(); 
     drawable.setChosenGLCapabilities((GLCapabilities) visualToGLCapsMap.get(new ScreenAndVisualIDKey(screen, visualID)));
     return drawable;
   }
@@ -551,29 +425,9 @@ public class X11GLDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   public void lockToolkit() {
-    if (isHeadless) {
-      // Workaround for running (to some degree) in headless
-      // environments but still supporting rendering via pbuffers
-      // For full correctness, would need to implement a Lock class
-      return;
-    }
-
-    if (!Java2D.isOGLPipelineActive() || !Java2D.isQueueFlusherThread()) {
-      JAWT.getJAWT().Lock();
-    }
   }
 
   public void unlockToolkit() {
-    if (isHeadless) {
-      // Workaround for running (to some degree) in headless
-      // environments but still supporting rendering via pbuffers
-      // For full correctness, would need to implement a Lock class
-      return;
-    }
-
-    if (!Java2D.isOGLPipelineActive() || !Java2D.isQueueFlusherThread()) {
-      JAWT.getJAWT().Unlock();
-    }
   }
 
   public void lockAWTForJava2D() {
@@ -680,23 +534,6 @@ public class X11GLDrawableFactory extends GLDrawableFactoryImpl {
   public GLContext createContextOnJava2DSurface(Graphics g, GLContext shareWith)
     throws GLException {
     throw new GLException("Unimplemented on this platform");
-  }
-
-  //---------------------------------------------------------------------------
-  // Xinerama-related functionality
-  //
-
-  private boolean checkedXinerama;
-  private boolean xineramaEnabled;
-  protected synchronized boolean isXineramaEnabled() {
-    if (!checkedXinerama) {
-      checkedXinerama = true;
-      lockToolkit();
-      long display = getDisplayConnection();
-      xineramaEnabled = GLX.XineramaEnabled(display);
-      unlockToolkit();
-    }
-    return xineramaEnabled;
   }
 
   //----------------------------------------------------------------------

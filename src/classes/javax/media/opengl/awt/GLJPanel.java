@@ -37,7 +37,9 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package javax.media.opengl;
+package javax.media.opengl.awt;
+
+import javax.media.opengl.*;
 
 import java.awt.*;
 import java.awt.geom.*;
@@ -79,7 +81,7 @@ import com.sun.opengl.impl.*;
 
 */
 
-public class GLJPanel extends JPanel implements GLAutoDrawable {
+public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
   private static final boolean DEBUG = Debug.debug("GLJPanel");
   private static final boolean VERBOSE = Debug.verbose();
 

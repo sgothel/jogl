@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -29,23 +29,31 @@
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  * 
- * You acknowledge that this software is not designed or intended for use
- * in the design, construction, operation or maintenance of any nuclear
- * facility.
- * 
- * Sun gratefully acknowledges that this software was originally authored
- * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.sun.opengl.impl;
+package com.sun.javafx.newt.x11;
 
-import java.awt.Graphics;
+import com.sun.javafx.newt.*;
+import com.sun.opengl.impl.*;
 
-/** Provides a construct by which the shared GLJPanel code can
- * interact with a few methods in the Mac OS X-specific Java2D/JOGL
- * bridge implementation.
- */
+public class X11Screen extends Screen {
+    static {
+        NativeLibLoader.loadCore();
+    }
 
-public interface Java2DGLContext {
-  public void setGraphics(Graphics g);
+    public X11Screen() {
+    }
+
+    public void initNative() {
+        handle = GetScreen(display.getHandle(), index);
+        if (handle == 0 ) {
+            throw new RuntimeException("Error creating screen: "+index);
+        }
+    }
+
+    //----------------------------------------------------------------------
+    // Internals only
+    //
+
+    private native long GetScreen(long dpy, int scrn_idx);
 }

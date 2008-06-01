@@ -33,17 +33,34 @@
 
 package com.sun.javafx.newt;
 
-public class Screen {
+public abstract class Screen {
 
-    public Screen(Display display) {
-        this(display, 0);
+    protected static Screen create(String type, Display display, int idx) {
+        try {
+            Class screenClass = null;
+            if (NewtFactory.KD.equals(type)) {
+                screenClass = Class.forName("com.sun.javafx.newt.kd.KDScreen");
+            } else if (NewtFactory.WINDOWS.equals(type)) {
+                screenClass = Class.forName("com.sun.javafx.newt.screens.WindowsScreen");
+            } else if (NewtFactory.X11.equals(type)) {
+                screenClass = Class.forName("com.sun.javafx.newt.x11.X11Screen");
+            } else if (NewtFactory.MACOSX.equals(type)) {
+                screenClass = Class.forName("com.sun.javafx.newt.macosx.MacOSXScreen");
+            } else {
+                throw new RuntimeException("Unknown window type \"" + type + "\"");
+            }
+            Screen screen  = (Screen) screenClass.newInstance();
+            screen.display = display;
+            screen.index   = idx;
+            screen.handle  = 0;
+            screen.initNative();
+            return screen;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    public Screen(Display display, int idx) {
-        this.display=display;
-        this.index=idx;
-        this.handle=-1;
-    }
+    protected abstract void initNative();
 
     public Display getDisplay() {
         return display;
@@ -55,17 +72,6 @@ public class Screen {
 
     public long getHandle() {
         return handle;
-    }
-
-    /**
-     * native handle
-     *
-     * write once ..
-     */
-    public void setHandle(long handle) {
-        if(this.handle<0) {
-            this.handle=handle;
-        }
     }
 
     protected Display display;

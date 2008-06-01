@@ -37,7 +37,9 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package javax.media.opengl;
+package javax.media.opengl.awt;
+
+import javax.media.opengl.*;
 
 import java.awt.Canvas;
 import java.awt.Color;
@@ -62,7 +64,7 @@ import com.sun.opengl.impl.*;
     interfaces when adding a heavyweight doesn't work either because
     of Z-ordering or LayoutManager problems. */
 
-public class GLCanvas extends Canvas implements GLAutoDrawable {
+public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
 
   private static final boolean DEBUG = Debug.debug("GLCanvas");
 
@@ -105,7 +107,8 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
       which to create the GLCanvas; the GLDrawableFactory uses the
       default screen device of the local GraphicsEnvironment if null
       is passed for this argument. */
-  public GLCanvas(GLCapabilities capabilities,
+  public GLCanvas(String profile, 
+                  GLCapabilities capabilities,
                   GLCapabilitiesChooser chooser,
                   GLContext shareWith,
                   GraphicsDevice device) {
@@ -139,7 +142,9 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
       this.glCaps = capabilities;
     }
     if (!Beans.isDesignTime()) {
-      drawable = GLDrawableFactory.getFactory().getGLDrawable(this, capabilities, chooser);
+      drawable = GLDrawableFactory.getFactory(profile, true).createGLDrawable(profile,
+                                                                              NativeWindowFactory.getNativeWindow(this), 
+                                                                              capabilities, chooser);
       context = (GLContextImpl) drawable.createContext(shareWith);
       context.setSynchronized(true);
     }

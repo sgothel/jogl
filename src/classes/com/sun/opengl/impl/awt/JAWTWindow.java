@@ -37,37 +37,81 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.sun.opengl.impl.x11;
+package com.sun.opengl.impl.awt;
 
+import com.sun.opengl.impl.*;
+
+import java.awt.Component;
 import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
 
-public class X11OnscreenGLDrawable extends X11GLDrawable {
-  protected NativeWindow component;
+public abstract class JAWTWindow implements NativeWindow {
+  protected static final boolean DEBUG = Debug.debug("GLDrawable");
 
-  // Indicates whether the component (if an onscreen context) has been
-  // realized. Plausibly, before the component is realized the JAWT
-  // should return an error or NULL object from some of its
-  // operations; this appears to be the case on Win32 but is not true
-  // at least with Sun's current X11 implementation (1.4.x), which
-  // crashes with no other error reported if the DrawingSurfaceInfo is
-  // fetched from a locked DrawingSurface during the validation as a
-  // result of calling show() on the main thread. To work around this
-  // we prevent any JAWT or OpenGL operations from being done until
-  // addNotify() is called on the component.
-  protected boolean realized;
+  // lifetime: forever
+  protected Component component;
+  protected boolean locked;
 
-  public X11OnscreenGLDrawable(NativeWindow component) {
-    super(null, null);
-    this.component = component;
+  // lifetime: valid while locked
+  protected long display;
+  protected long screen;
+  protected long drawable;
+  // lifetime: valid after lock, forever
+  protected long visualID;
+  protected int  screenIndex;
+
+  public JAWTWindow(Object comp) {
+    init(comp);
   }
 
-  public GLContext createContext(GLContext shareWith) {
-    return new X11OnscreenGLContext(this, shareWith);
+  protected void init(Object windowObject) throws NativeWindowException {
+    this.locked = false;
+    this.component = (Component)comp;
+    this.display= null;
+    this.screen= null;
+    this.screenIndex = -1;
+    this.drawable= null;
+    this.visualID = 0;
+    initNative();
   }
 
-  public void setRealized(boolean realized) {
-    this.realized = realized;
+  public abstract boolean initNative() throws NativeWindowException;
+
+  public boolean lockSurface() throws NativeWindowException {
+    if (locked) {
+      throw new NativeWindowException("Surface already locked");
+    }
+    locked = true;
+  }
+
+  public void unlockSurface() {
+    if (!locked) {
+      throw new NativeWindowException("Surface already locked");
+    }
+    locked = false;
+    display= null;
+    screen= null;
+    drawable= null;
+  }
+
+  public boolean isSurfaceLocked() {
+    return locked;
+  }
+
+  public long getDisplayHandle() {
+    return display;
+  }
+  public long getScreenHandle() {
+    return screen;
+  }
+  public int getScreenIndex() {
+    return screenIndex;
+  }
+  public long getWindowHandle() {
+    return drawable;
+  }
+  public long getVisualID() {
+    return visualID;
   }
 
   public void setSize(int width, int height) {
@@ -82,37 +126,31 @@ public class X11OnscreenGLDrawable extends X11GLDrawable {
     return component.getHeight();
   }
 
-  public void swapBuffers() throws GLException {
-    lockToolkit();
-    try {    
-      boolean didLock = false;
-      
-      if (component.getWindowHandle() == 0) {
-        if (lockSurface() == LOCK_SURFACE_NOT_READY) {
-          return;
-        }
-
-        didLock = true;
-      }
-
-      GLX.glXSwapBuffers(component.getDisplayHandle(), component.getWindowHandle());
-
-      if (didLock) {
-        unlockSurface();
-      }
-    } finally {
-      unlockToolkit();
-    }
+  public int getX() {
+    return component.getX();
+  }
+  public int getY() {
+    return component.getY();
   }
 
-  public int lockSurface() throws GLException {
-    if (!realized) {
-      return LOCK_SURFACE_NOT_READY;
-    }
-    return component.lockSurface();
+  public void setPosition(int x, int y) {
+    component.setLocation(x,y);
   }
 
-  public void unlockSurface() {
-    return component.lockSurface();
+  public void setVisible(boolean visible) {
+    component.setVisible(visible);
   }
+
+  public boolean isVisible() {
+    return component.isVisible();
+  }
+
+  public boolean setFullscreen(boolean fullscreen) {
+    return false; // FIXME
+  }
+
+  public boolean isFullscreen() {
+    return false; // FIXME
+  }
+
 }

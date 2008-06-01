@@ -115,29 +115,6 @@ public class NativeLibLoader {
     });
   }
 
-  /* FIXME: refactor Java SE dependencies
-  public static void loadAWTImpl() {
-    AccessController.doPrivileged(new PrivilegedAction() {
-      public Object run() {
-        // Make sure that awt.dll is loaded before loading jawt.dll. Otherwise
-        // a Dialog with "awt.dll not found" might pop up.
-        // See http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4481947.
-        Toolkit.getDefaultToolkit();
-        
-        // Must pre-load JAWT on all non-Mac platforms to
-        // ensure references from jogl_awt shared object
-        // will succeed since JAWT shared object isn't in
-        // default library path
-        boolean isOSX = System.getProperty("os.name").equals("Mac OS X");
-        String[] preload = { "jawt" };
-
-        loadLibrary("jogl_awt", preload, !isOSX, false);
-        return null;
-      }
-    });
-  }
-  */
-
   public static void loadCgImpl() {
     AccessController.doPrivileged(new PrivilegedAction() {
       public Object run() {

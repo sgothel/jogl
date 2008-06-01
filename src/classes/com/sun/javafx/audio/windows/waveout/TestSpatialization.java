@@ -44,7 +44,9 @@ public class TestSpatialization {
 
         try {
             // FIXME: this is a hack to get the native library loaded
-            GLDrawableFactory.getFactory();
+            try {
+                GLDrawableFactory.getFactory(GLDrawableFactory.PROFILE_GLES1, null);
+            } catch (Exception e) {}
             // Initialize the audio subsystem
             Audio audio = Audio.getInstance();
             // Create a track

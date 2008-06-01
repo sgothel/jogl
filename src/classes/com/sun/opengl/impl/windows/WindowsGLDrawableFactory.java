@@ -70,7 +70,7 @@ public class WindowsGLDrawableFactory extends GLDrawableFactoryImpl {
     return null;
   }
 
-  public GLDrawable getGLDrawable(Object target,
+  public GLDrawable createGLDrawable(NativeWindow target,
                                   GLCapabilities capabilities,
                                   GLCapabilitiesChooser chooser) {
     if (target == null) {
@@ -86,7 +86,7 @@ public class WindowsGLDrawableFactory extends GLDrawableFactoryImpl {
     if (chooser == null) {
       chooser = new DefaultGLCapabilitiesChooser();
     }
-    return new WindowsOnscreenGLDrawable((Component) target, capabilities, chooser);
+    return new WindowsOnscreenGLDrawable(getProfile(), target, capabilities, chooser);
   }
 
   public GLDrawableImpl createOffscreenDrawable(GLCapabilities capabilities,

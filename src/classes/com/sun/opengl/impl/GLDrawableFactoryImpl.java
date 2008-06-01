@@ -72,10 +72,6 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory implements
     super(profile);
   }
 
-  public static GLDrawableFactoryImpl getFactoryImpl() {
-    return (GLDrawableFactoryImpl) getFactory();
-  }
-
   // Helper function for more lazily loading the GLU library;
   // apparently can't use System.loadLibrary on UNIX because it uses
   // RTLD_LOCAL and we need to call dlsym(RTLD_DEFAULT)

@@ -136,4 +136,10 @@ public interface GLDrawable {
       with the drawable; a best attempt is made to return a reasonable
       value in this case. */
   public GLCapabilities getChosenGLCapabilities();
+
+  public NativeWindow getNativeWindow();
+
+  public String getProfile();
+
+  public GLDrawableFactory getFactory();
 }

@@ -37,7 +37,9 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.sun.opengl.impl;
+package com.sun.opengl.impl.awt;
+
+import com.sun.opengl.impl.*;
 
 import java.awt.*;
 import java.awt.image.*;

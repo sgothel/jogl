@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -29,47 +29,40 @@
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  * 
+ * You acknowledge that this software is not designed or intended for use
+ * in the design, construction, operation or maintenance of any nuclear
+ * facility.
+ * 
+ * Sun gratefully acknowledges that this software was originally authored
+ * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.sun.javafx.newt;
+package javax.media.opengl;
 
-public abstract class Display {
+public interface NativeWindow {
+  public static final int LOCK_SURFACE_NOT_READY = 1;
+  public static final int LOCK_SURFACE_CHANGED = 2;
+  public static final int LOCK_SUCCESS = 3;
 
-    protected static Display create(String type, String name) {
-        try {
-            Class displayClass = null;
-            if (NewtFactory.KD.equals(type)) {
-                displayClass = Class.forName("com.sun.javafx.newt.kd.KDDisplay");
-            } else if (NewtFactory.WINDOWS.equals(type)) {
-                displayClass = Class.forName("com.sun.javafx.newt.displays.WindowsDisplay");
-            } else if (NewtFactory.X11.equals(type)) {
-                displayClass = Class.forName("com.sun.javafx.newt.x11.X11Display");
-            } else if (NewtFactory.MACOSX.equals(type)) {
-                displayClass = Class.forName("com.sun.javafx.newt.macosx.MacOSXDisplay");
-            } else {
-                throw new RuntimeException("Unknown display type \"" + type + "\"");
-            }
-            Display display = (Display) displayClass.newInstance();
-            display.name=name;
-            display.handle=0;
-            display.initNative();
-            return display;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
+  public boolean lockSurface() throws NativeWindowException ;
+  public void unlockSurface();
+  public boolean isSurfaceLocked();
 
-    protected abstract void initNative();
+  public long getDisplayHandle();
+  public long getScreenHandle();
+  public int  getScreenIndex();
+  public long getWindowHandle();
+  public long getVisualID();
 
-    public String getName() {
-        return name;
-    }
+  public void setSize(int width, int height);
+  public void setPosition(int x, int y);
+  public int getWidth();
+  public int getHeight();
+  public int getX();
+  public int getY();
 
-    public long getHandle() {
-        return handle;
-    }
-
-    protected String name;
-    protected long   handle;
+  public void setVisible(boolean visible);
+  public boolean setFullscreen(boolean fullscreen);
+  public boolean isVisible();
+  public boolean isFullscreen();
 }
-

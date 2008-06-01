@@ -31,45 +31,16 @@
  * 
  */
 
-package com.sun.javafx.newt;
+package com.sun.javafx.newt.windows;
 
-public abstract class Display {
+import com.sun.javafx.newt.*;
+import com.sun.opengl.impl.*;
 
-    protected static Display create(String type, String name) {
-        try {
-            Class displayClass = null;
-            if (NewtFactory.KD.equals(type)) {
-                displayClass = Class.forName("com.sun.javafx.newt.kd.KDDisplay");
-            } else if (NewtFactory.WINDOWS.equals(type)) {
-                displayClass = Class.forName("com.sun.javafx.newt.displays.WindowsDisplay");
-            } else if (NewtFactory.X11.equals(type)) {
-                displayClass = Class.forName("com.sun.javafx.newt.x11.X11Display");
-            } else if (NewtFactory.MACOSX.equals(type)) {
-                displayClass = Class.forName("com.sun.javafx.newt.macosx.MacOSXDisplay");
-            } else {
-                throw new RuntimeException("Unknown display type \"" + type + "\"");
-            }
-            Display display = (Display) displayClass.newInstance();
-            display.name=name;
-            display.handle=0;
-            display.initNative();
-            return display;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+public class WindowsDisplay extends Display {
+    public WindowsDisplay() {
     }
 
-    protected abstract void initNative();
-
-    public String getName() {
-        return name;
+    public void initNative() {
+        handle = 0;
     }
-
-    public long getHandle() {
-        return handle;
-    }
-
-    protected String name;
-    protected long   handle;
 }
-

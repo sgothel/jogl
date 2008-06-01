@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -29,17 +29,31 @@
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  * 
- * You acknowledge that this software is not designed or intended for use
- * in the design, construction, operation or maintenance of any nuclear
- * facility.
- * 
- * Sun gratefully acknowledges that this software was originally authored
- * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.sun.opengl.impl;
+package com.sun.javafx.newt.x11;
 
-/** Marker class for all window system-specific JAWT data structures. */
+import com.sun.javafx.newt.*;
+import com.sun.opengl.impl.*;
 
-public interface JAWT_PlatformInfo {
+public class X11Display extends Display {
+    static {
+        NativeLibLoader.loadCore();
+    }
+
+    public X11Display() {
+    }
+
+    public void initNative() {
+        handle = CreateDisplay(name);
+        if (handle == 0 ) {
+            throw new RuntimeException("Error creating display: "+name);
+        }
+    }
+
+    //----------------------------------------------------------------------
+    // Internals only
+    //
+
+    private native long CreateDisplay(String name);
 }

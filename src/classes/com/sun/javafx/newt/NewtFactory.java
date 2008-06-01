@@ -33,43 +33,48 @@
 
 package com.sun.javafx.newt;
 
-public abstract class Display {
+import java.util.ArrayList;
+import java.util.Iterator;
 
-    protected static Display create(String type, String name) {
-        try {
-            Class displayClass = null;
-            if (NewtFactory.KD.equals(type)) {
-                displayClass = Class.forName("com.sun.javafx.newt.kd.KDDisplay");
-            } else if (NewtFactory.WINDOWS.equals(type)) {
-                displayClass = Class.forName("com.sun.javafx.newt.displays.WindowsDisplay");
-            } else if (NewtFactory.X11.equals(type)) {
-                displayClass = Class.forName("com.sun.javafx.newt.x11.X11Display");
-            } else if (NewtFactory.MACOSX.equals(type)) {
-                displayClass = Class.forName("com.sun.javafx.newt.macosx.MacOSXDisplay");
-            } else {
-                throw new RuntimeException("Unknown display type \"" + type + "\"");
-            }
-            Display display = (Display) displayClass.newInstance();
-            display.name=name;
-            display.handle=0;
-            display.initNative();
-            return display;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+public abstract class NewtFactory {
+    /** OpenKODE window type */
+    public static final String KD = "KD";
+
+    /** Microsoft Windows window type */
+    public static final String WINDOWS = "Windows";
+
+    /** X11 window type */
+    public static final String X11 = "X11";
+
+    /** Mac OS X window type */
+    public static final String MACOSX = "MacOSX";
+
+    /** Creates a Window of the default type for the current operating system. */
+    public static String getWindowType() {
+      String osName = System.getProperty("os.name");
+      String osNameLowerCase = osName.toLowerCase();
+      String windowType;
+      if (osNameLowerCase.startsWith("wind")) {
+          windowType = WINDOWS;
+      } else if (osNameLowerCase.startsWith("mac os x")) {
+          windowType = MACOSX;
+      } else {
+          windowType = X11;
+      }
+      return windowType;
     }
 
-    protected abstract void initNative();
-
-    public String getName() {
-        return name;
+    public static Display createDisplay(String name) {
+      return Display.create(getWindowType(), name);
     }
 
-    public long getHandle() {
-        return handle;
+    public static Screen createScreen(Display display, int index) {
+      return Screen.create(getWindowType(), display, index);
     }
 
-    protected String name;
-    protected long   handle;
+    public static Window createWindow(Screen screen, long visualID) {
+      return Window.create(getWindowType(), screen, visualID);
+    }
+
 }
 

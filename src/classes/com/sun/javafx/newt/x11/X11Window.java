@@ -37,10 +37,6 @@ import com.sun.javafx.newt.*;
 import com.sun.opengl.impl.*;
 
 public class X11Window extends Window {
-    private Screen screen;
-    private long visualID;
-    private long dpy, scrn, window;
-    private int  scrn_idx;
     private static final String WINDOW_CLASS_NAME = "NewtWindow";
     // Default width and height -- will likely be re-set immediately by user
     private int width  = 100;
@@ -62,36 +58,28 @@ public class X11Window extends Window {
     public X11Window() {
     }
 
-    public void initNative(Screen screen, long visualID) {
-        this.screen = screen;
-        this.visualID = visualID;
+    public void initNative() {
         fullscreen=false;
         visible=false;
-        long w = CreateWindow(visualID, x, y, width, height);
-        if (w == 0 || w!=window) {
+        long w = CreateWindow(getDisplayHandle(), getScreenHandle(), getScreenIndex(), visualID, x, y, width, height);
+        if (w == 0 || w!=windowHandle) {
             throw new RuntimeException("Error creating window: "+w);
         }
-        screen.setHandle(scrn);
-        screen.getDisplay().setHandle(dpy);
-    }
-
-    public Screen getScreen() {
-        return screen;
     }
 
     public void setVisible(boolean visible) {
         if(this.visible!=visible) {
             this.visible=visible;
-            setVisible0(dpy, window, visible);
+            setVisible0(getDisplayHandle(), windowHandle, visible);
         }
     }
 
     public void setSize(int width, int height) {
-        setSize0(dpy, window, width, height);
+        setSize0(getDisplayHandle(), windowHandle, width, height);
     }
 
     public void setPosition(int x, int y) {
-        setPosition0(dpy, window, x, y);
+        setPosition0(getDisplayHandle(), windowHandle, x, y);
     }
 
     public boolean isVisible() {
@@ -120,16 +108,16 @@ public class X11Window extends Window {
             this.fullscreen=fullscreen;
             if(this.fullscreen) {
                 x = 0; y = 0;
-                w = getDisplayWidth0(dpy, scrn_idx)/2;
-                h = getDisplayHeight0(dpy, scrn_idx)/2;
+                w = getDisplayWidth0(getDisplayHandle(), getScreenIndex())/2;
+                h = getDisplayHeight0(getDisplayHandle(), getScreenIndex())/2;
             } else {
                 x = nfs_x;
                 y = nfs_y;
                 w = nfs_width;
                 h = nfs_height;
             }
-            setPosition0(dpy, window, x, y);
-            setSize0(dpy, window, w, h);
+            setPosition0(getDisplayHandle(), windowHandle, x, y);
+            setSize0(getDisplayHandle(), windowHandle, w, h);
         }
         return true;
     }
@@ -138,20 +126,16 @@ public class X11Window extends Window {
         return fullscreen;
     }
 
-    public long getWindowHandle() {
-        return window;
-    }
-
     public void pumpMessages() {
-        DispatchMessages(dpy, window);
+        DispatchMessages(getDisplayHandle(), windowHandle);
     }
 
     public int getDisplayWidth() {
-        return getDisplayWidth0(dpy, scrn_idx);
+        return getDisplayWidth0(getDisplayHandle(), getScreenIndex());
     }
 
     public int getDisplayHeight() {
-        return getDisplayHeight0(dpy, scrn_idx);
+        return getDisplayHeight0(getDisplayHandle(), getScreenIndex());
     }
 
     //----------------------------------------------------------------------
@@ -159,11 +143,12 @@ public class X11Window extends Window {
     //
 
     private static native boolean initIDs();
-    private        native long CreateWindow(long visualID, int x, int y, int width, int height);
-    private        native void setVisible0(long display, long window, boolean visible);
-    private        native void DispatchMessages(long display, long window);
-    private        native void setSize0(long display, long window, int width, int height);
-    private        native void setPosition0(long display, long window, int x, int y);
+    private        native long CreateWindow(long display, long screen, int screen_index, 
+                                            long visualID, int x, int y, int width, int height);
+    private        native void setVisible0(long display, long windowHandle, boolean visible);
+    private        native void DispatchMessages(long display, long windowHandle);
+    private        native void setSize0(long display, long windowHandle, int width, int height);
+    private        native void setPosition0(long display, long windowHandle, int x, int y);
     private        native int  getDisplayWidth0(long display, int scrn_idx);
     private        native int  getDisplayHeight0(long display, int scrn_idx);
 
@@ -185,11 +170,9 @@ public class X11Window extends Window {
         }
     }
 
-    private void windowCreated(long dpy, int scrn_idx, long scrn, long window) {
-        this.dpy = dpy;
-        this.scrn_idx = scrn_idx;
-        this.scrn = scrn;
-        this.window = window;
+    private void windowCreated(long visualID, long windowHandle) {
+        this.visualID = visualID;
+        this.windowHandle = windowHandle;
     }
 
     private void windowClosed() {

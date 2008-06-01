@@ -33,100 +33,119 @@
 
 package com.sun.javafx.newt;
 
+import javax.media.opengl.NativeWindow;
+import javax.media.opengl.NativeWindowException;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 
-public abstract class Window {
+public abstract class Window implements NativeWindow
+{
     public static final boolean DEBUG_MOUSE_EVENT = false;
     public static final boolean DEBUG_KEY_EVENT = false;
+    public static final boolean DEBUG_IMPLEMENTATION = true;
     
-    /** OpenKODE window type */
-    public static final String KD = "KD";
-
-    /** Microsoft Windows window type */
-    public static final String WINDOWS = "Windows";
-
-    /** X11 window type */
-    public static final String X11 = "X11";
-
-    /** Mac OS X window type */
-    public static final String MACOSX = "MacOSX";
-
-    /** Creates a Window of the default type for the current operating system. */
-    public static Window create(Screen screen, long visualID) {
-      String osName = System.getProperty("os.name");
-      String osNameLowerCase = osName.toLowerCase();
-      String windowType;
-      if (osNameLowerCase.startsWith("wind")) {
-          windowType = WINDOWS;
-      } else if (osNameLowerCase.startsWith("mac os x")) {
-          windowType = MACOSX;
-      } else {
-          windowType = X11;
-      }
-      Window window = create(windowType);
-      window.initNative(screen, visualID);
-      return window;
-    }
-
-
-    public static Window create(String type) {
+    protected static Window create(String type, Screen screen, long visualID) {
         try {
             Class windowClass = null;
-            if (KD.equals(type)) {
+            if (NewtFactory.KD.equals(type)) {
                 windowClass = Class.forName("com.sun.javafx.newt.kd.KDWindow");
-            } else if (WINDOWS.equals(type)) {
+            } else if (NewtFactory.WINDOWS.equals(type)) {
                 windowClass = Class.forName("com.sun.javafx.newt.windows.WindowsWindow");
-            } else if (X11.equals(type)) {
+            } else if (NewtFactory.X11.equals(type)) {
                 windowClass = Class.forName("com.sun.javafx.newt.x11.X11Window");
-            } else if (MACOSX.equals(type)) {
+            } else if (NewtFactory.MACOSX.equals(type)) {
                 windowClass = Class.forName("com.sun.javafx.newt.macosx.MacOSXWindow");
             } else {
                 throw new RuntimeException("Unknown window type \"" + type + "\"");
             }
-            return (Window) windowClass.newInstance();
+            Window window = (Window) windowClass.newInstance();
+            window.screen   = screen;
+            window.visualID = visualID;
+            window.windowHandle = 0;
+            window.locked = false;
+            window.initNative();
+            return window;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
+    protected abstract void initNative();
 
-    /**
-     * [ display, screen, window ]
-     */
-    public long[]  getHandles() {
-        long[] handles = new long[3];
-        handles[0] = getScreen().getDisplay().getHandle();
-        handles[1] = getScreen().getHandle();
-        handles[2] = getWindowHandle();
-        return handles;
+    public Screen getScreen() {
+        return screen;
     }
 
-    protected abstract void initNative(Screen screen, long visualID);
-
-    public abstract void    setVisible(boolean visible);
-    public abstract void    setSize(int width, int height);
-    public abstract void    setPosition(int x, int y);
-    public abstract boolean isVisible();
-    public abstract int     getWidth();
-    public abstract int     getHeight();
-    public abstract int     getX();
-    public abstract int     getY();
-    public abstract boolean setFullscreen(boolean fullscreen);
-    public abstract boolean isFullscreen();
     public abstract int     getDisplayWidth();
     public abstract int     getDisplayHeight();
-
-    public abstract Screen  getScreen();
-    public abstract long    getWindowHandle();
 
     public abstract void    pumpMessages();
 
     public String toString() {
-        return "Window[handle "+getWindowHandle()+
+        return "Window[handle "+windowHandle+
                     ", pos "+getX()+"/"+getY()+", size "+getWidth()+"x"+getHeight()+
                     ", visible "+isVisible()+"]";
     }
+
+    protected Screen screen;
+    protected long   visualID;
+    protected long   windowHandle;
+    protected boolean locked;
+
+    //
+    // NativeWindow impl
+    //
+
+    public boolean lockSurface() throws NativeWindowException {
+        if (locked) {
+          throw new NativeWindowException("Surface already locked");
+        }
+        locked = true;
+        return true;
+    }
+
+    public void unlockSurface() {
+        if (!locked) {
+          throw new NativeWindowException("Surface already locked");
+        }
+        locked = false;
+    }
+
+    public boolean isSurfaceLocked() {
+        return locked;
+    }
+
+    public long getDisplayHandle() {
+        return screen.getDisplay().getHandle();
+    }
+
+    public long getScreenHandle() {
+        return screen.getHandle();
+    }
+
+    public int  getScreenIndex() {
+        return screen.getIndex();
+    }
+
+    public long getWindowHandle() {
+        return windowHandle;
+    }
+
+    public long getVisualID() {
+        return visualID;
+    }
+
+    public abstract int     getWidth();
+    public abstract int     getHeight();
+    public abstract int     getX();
+    public abstract int     getY();
+    public abstract void    setVisible(boolean visible);
+    public abstract void    setSize(int width, int height);
+    public abstract void    setPosition(int x, int y);
+    public abstract boolean isVisible();
+    public abstract boolean setFullscreen(boolean fullscreen);
+    public abstract boolean isFullscreen();
 
     //
     // MouseListener Support

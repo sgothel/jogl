@@ -52,7 +52,7 @@ import javax.media.opengl.glu.*;
     GLContext for the GLAutoDrawable to be used both by the event
     based rendering mechanism as well by end users directly. */
 
-public interface GLAutoDrawable extends GLDrawable /*, FIXME: ComponentEvents */ {
+public interface GLAutoDrawable extends GLDrawable {
   /**
    * Returns the context associated with this drawable. The returned
    * context will be synchronized.

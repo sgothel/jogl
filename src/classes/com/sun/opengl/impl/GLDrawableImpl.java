@@ -42,6 +42,8 @@ package com.sun.opengl.impl;
 import javax.media.opengl.*;
 
 public abstract class GLDrawableImpl implements GLDrawable {
+  protected GLDrawableFactory factory;
+  protected NativeWindow component;
   private GLCapabilities chosenCapabilities;
 
   /** For offscreen GLDrawables (pbuffers and "pixmap" drawables),
@@ -62,5 +64,17 @@ public abstract class GLDrawableImpl implements GLDrawable {
 
   public void setChosenGLCapabilities(GLCapabilities caps) {
     chosenCapabilities = caps;
+  }
+
+  public NativeWindow getNativeWindow() {
+    return component;
+  }
+
+  public GLDrawableFactory getFactory() {
+    return factory;
+  }
+
+  public String getProfile() {
+    return factory.getProfile();
   }
 }

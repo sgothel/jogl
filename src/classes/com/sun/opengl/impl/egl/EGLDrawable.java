@@ -35,12 +35,11 @@
 
 package com.sun.opengl.impl.egl;
 
+import com.sun.opengl.impl.GLDrawableImpl;
+
 import javax.media.opengl.*;
 
-public class EGLDrawable implements GLDrawable {
-    private long windowHandle;
-    private long screenHandle;
-    private long displayHandle;
+public class EGLDrawable extends GLDrawableImpl {
     private long display;
     private GLCapabilities capabilities;
     private GLCapabilitiesChooser chooser;
@@ -48,21 +47,16 @@ public class EGLDrawable implements GLDrawable {
     private long surface;
     private int[] tmp = new int[1];
 
-    public EGLDrawable(long displayHandle,
-                       long screenHandle,
-                       long windowHandle,
+    public EGLDrawable(EGLDrawableFactory factory,
+                       NativeWindow component,
                        GLCapabilities capabilities,
                        GLCapabilitiesChooser chooser) throws GLException {
-        this.displayHandle = displayHandle;
-        this.screenHandle = screenHandle;
-        this.windowHandle = windowHandle;
+        this.factory = factory;
+        this.component = component;
         this.capabilities = capabilities;
         this.chooser = chooser;
 
-        // Set things up
-        EGLDrawableFactory factory = (EGLDrawableFactory) GLDrawableFactory.getFactory();
-
-        display = EGL.eglGetDisplay((displayHandle>0)?displayHandle:EGL.EGL_DEFAULT_DISPLAY);
+        display = EGL.eglGetDisplay((component.getDisplayHandle()>0)?component.getDisplayHandle():EGL.EGL_DEFAULT_DISPLAY);
         if (display == EGL.EGL_NO_DISPLAY) {
             throw new GLException("eglGetDisplay failed");
         }
@@ -108,7 +102,7 @@ public class EGLDrawable implements GLDrawable {
     public void setRealized(boolean realized) {
         if (realized) {
             // Create the window surface
-            surface = EGL.eglCreateWindowSurface(display, config, windowHandle, null);
+            surface = EGL.eglCreateWindowSurface(display, config, component.getWindowHandle(), null);
             if (surface == EGL.EGL_NO_SURFACE) {
                 throw new GLException("Creation of window surface (eglCreateWindowSurface) failed");
             }
@@ -153,9 +147,9 @@ public class EGLDrawable implements GLDrawable {
     }
 
     public String toString() {
-        return "EGLDrawable[ displayHandle " + displayHandle +
-                           ", screenHandle "+ screenHandle +
-                           ", windowHandle "+ windowHandle +
+        return "EGLDrawable[ displayHandle " + component.getDisplayHandle() +
+                           ", screenHandle "+ component.getScreenHandle() +
+                           ", windowHandle "+ component.getWindowHandle() +
                            ", display " + display +
                            ", config " + config +
                            ", surface " + surface +

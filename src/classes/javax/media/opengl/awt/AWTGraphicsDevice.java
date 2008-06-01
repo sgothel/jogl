@@ -37,21 +37,22 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package javax.media.opengl;
+package javax.media.opengl.awt;
 
-import java.awt.GraphicsConfiguration;
+import javax.media.opengl.*;
+import java.awt.GraphicsDevice;
 
-/** A wrapper for an AWT GraphicsConfiguration allowing it to be
+/** A wrapper for an AWT GraphicsDevice allowing it to be
     handled in a toolkit-independent manner. */
 
-public class AWTGraphicsConfiguration implements AbstractGraphicsConfiguration {
-  private GraphicsConfiguration config;
+public class AWTGraphicsDevice implements AbstractGraphicsDevice {
+  private GraphicsDevice device;
 
-  public AWTGraphicsConfiguration(GraphicsConfiguration config) {
-    this.config = config;
+  public AWTGraphicsDevice(GraphicsDevice device) {
+    this.device = device;
   }
 
-  public GraphicsConfiguration getGraphicsConfiguration() {
-    return config;
+  public GraphicsDevice getGraphicsDevice() {
+    return device;
   }
 }

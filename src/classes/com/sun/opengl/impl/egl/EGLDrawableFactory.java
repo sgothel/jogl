@@ -102,17 +102,10 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         return null;
     }
 
-    public GLDrawable getGLDrawable(Object target,
+    public GLDrawable createGLDrawable(NativeWindow target,
                                     GLCapabilities capabilities,
                                     GLCapabilitiesChooser chooser) {
-        if( !(target instanceof long[]) ) {
-            throw new GLException("target is not instanceof long[]");
-        }
-        long[] targetHandles = (long[])target;
-        if(targetHandles.length!=3) {
-            throw new GLException("target handle array != 3 [display, screen, window]");
-        }
-        return new EGLDrawable(targetHandles[0], targetHandles[1], targetHandles[2],
+        return new EGLDrawable(this, target,
                                capabilities,
                                chooser);
     }

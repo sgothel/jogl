@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -37,21 +37,16 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package javax.media.opengl;
+package com.sun.opengl.impl.awt;
 
-import java.awt.GraphicsDevice;
+import com.sun.opengl.impl.*;
+import java.awt.Graphics;
 
-/** A wrapper for an AWT GraphicsDevice allowing it to be
-    handled in a toolkit-independent manner. */
+/** Provides a construct by which the shared GLJPanel code can
+ * interact with a few methods in the Mac OS X-specific Java2D/JOGL
+ * bridge implementation.
+ */
 
-public class AWTGraphicsDevice implements AbstractGraphicsDevice {
-  private GraphicsDevice device;
-
-  public AWTGraphicsDevice(GraphicsDevice device) {
-    this.device = device;
-  }
-
-  public GraphicsDevice getGraphicsDevice() {
-    return device;
-  }
+public interface Java2DGLContext {
+  public void setGraphics(Graphics g);
 }

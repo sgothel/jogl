@@ -37,8 +37,9 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package javax.media.opengl;
+package javax.media.opengl.awt;
 
+import javax.media.opengl.*;
 import java.awt.event.*;
 import java.beans.PropertyChangeListener;
 

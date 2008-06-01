@@ -37,7 +37,9 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.sun.opengl.impl.x11;
+package com.sun.opengl.impl.x11.awt;
+
+import com.sun.opengl.impl.x11.*;
 
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
