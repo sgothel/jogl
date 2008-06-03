@@ -115,8 +115,10 @@
 
 package com.sun.opengl.impl;
 
+import com.sun.opengl.util.ImmModeSink;
 import javax.media.opengl.*;
 import javax.media.opengl.glu.*;
+import java.nio.*;
 
 /**
  * GLUquadricImpl.java
@@ -124,7 +126,7 @@ import javax.media.opengl.glu.*;
  * 
  * Created 22-dec-2003 (originally Quadric.java)
  * @author Erik Duijs
- * @author Kenneth Russell
+ * @author Kenneth Russell, Sven Gothel
  */
 
 public class GLUquadricImpl implements GLUquadric {
@@ -132,12 +134,41 @@ public class GLUquadricImpl implements GLUquadric {
   private int orientation;
   private boolean textureFlag;
   private int normals;
+  private boolean vboImmediateDraw;
+
+  public static final boolean USE_NORM_TXT = false;
+
+  private ImmModeSink vboBuffer;
 
   public GLUquadricImpl() {
     drawStyle = GLU.GLU_FILL;
     orientation = GLU.GLU_OUTSIDE;
     textureFlag = false;
     normals = GLU.GLU_SMOOTH;
+    if(USE_NORM_TXT) {
+        vboBuffer = new ImmModeSink(GL.GL_FLOAT, GL.GL_STATIC_DRAW, 3, 3, 0, 3, 32);
+    } else {
+        vboBuffer = new ImmModeSink(GL.GL_FLOAT, GL.GL_STATIC_DRAW, 3, 0, 0, 0, 32);
+    }
+    vboImmediateDraw=true;
+  }
+
+  public void setVBOImmediateMode(boolean val) {
+    this.vboImmediateDraw=val;
+  }
+
+  public ImmModeSink replaceVBOBuffer() {
+    ImmModeSink res = vboBuffer;
+    if(USE_NORM_TXT) {
+        vboBuffer = new ImmModeSink(GL.GL_FLOAT, GL.GL_STATIC_DRAW, 3, 3, 0, 3, 32);
+    } else {
+        vboBuffer = new ImmModeSink(GL.GL_FLOAT, GL.GL_STATIC_DRAW, 3, 0, 0, 0, 32);
+    }
+    return res;
+  }
+
+  public void resetVBOBuffer(GL gl) {
+    vboBuffer.reset(gl);
   }
 
   /**
@@ -243,6 +274,7 @@ public class GLUquadricImpl implements GLUquadric {
     return textureFlag;
   }
 
+
   /**
    * draws a cylinder oriented along the z axis. The base of the
    * cylinder is placed at z = 0, and the top at z=height. Like a sphere, a
@@ -287,69 +319,79 @@ public class GLUquadricImpl implements GLUquadric {
     // Z component of normal vectors
 
     if (drawStyle == GLU.GLU_POINT) {
-      gl.glBegin(GL.GL_POINTS);
+      vboBuffer.glBegin(GL.GL_POINTS);
       for (i = 0; i < slices; i++) {
         x = cos((i * da));
         y = sin((i * da));
-        normal3f(gl, x * nsign, y * nsign, nz * nsign);
+        if(USE_NORM_TXT) {
+            normal3f(gl, x * nsign, y * nsign, nz * nsign);
+        }
 
         z = 0.0f;
         r = baseRadius;
         for (j = 0; j <= stacks; j++) {
-          gl.glVertex3f((x * r), (y * r), z);
+          vboBuffer.glVertex3f((x * r), (y * r), z);
           z += dz;
           r += dr;
         }
       }
-      gl.glEnd();
+      vboBuffer.glEnd(gl, vboImmediateDraw);
     } else if (drawStyle == GLU.GLU_LINE || drawStyle == GLU.GLU_SILHOUETTE) {
       // Draw rings
       if (drawStyle == GLU.GLU_LINE) {
         z = 0.0f;
         r = baseRadius;
         for (j = 0; j <= stacks; j++) {
-          gl.glBegin(GL.GL_LINE_LOOP);
+          vboBuffer.glBegin(GL.GL_LINE_LOOP);
           for (i = 0; i < slices; i++) {
             x = cos((i * da));
             y = sin((i * da));
-            normal3f(gl, x * nsign, y * nsign, nz * nsign);
-            gl.glVertex3f((x * r), (y * r), z);
+            if(USE_NORM_TXT) {
+                normal3f(gl, x * nsign, y * nsign, nz * nsign);
+            }
+            vboBuffer.glVertex3f((x * r), (y * r), z);
           }
-          gl.glEnd();
+          vboBuffer.glEnd(gl, vboImmediateDraw);
           z += dz;
           r += dr;
         }
       } else {
         // draw one ring at each end
         if (baseRadius != 0.0) {
-          gl.glBegin(GL.GL_LINE_LOOP);
+          vboBuffer.glBegin(GL.GL_LINE_LOOP);
           for (i = 0; i < slices; i++) {
             x = cos((i * da));
             y = sin((i * da));
-            normal3f(gl, x * nsign, y * nsign, nz * nsign);
-            gl.glVertex3f((x * baseRadius), (y * baseRadius), 0.0f);
+            if(USE_NORM_TXT) {
+                normal3f(gl, x * nsign, y * nsign, nz * nsign);
+            }
+            vboBuffer.glVertex3f((x * baseRadius), (y * baseRadius), 0.0f);
           }
-          gl.glEnd();
-          gl.glBegin(GL.GL_LINE_LOOP);
+          vboBuffer.glEnd(gl, vboImmediateDraw);
+          vboBuffer.glBegin(GL.GL_LINE_LOOP);
           for (i = 0; i < slices; i++) {
             x = cos((i * da));
             y = sin((i * da));
-            normal3f(gl, x * nsign, y * nsign, nz * nsign);
-            gl.glVertex3f((x * topRadius), (y * topRadius), height);
+            if(USE_NORM_TXT) {
+                normal3f(gl, x * nsign, y * nsign, nz * nsign);
+            }
+            vboBuffer.glVertex3f((x * topRadius), (y * topRadius), height);
           }
-          gl.glEnd();
+          vboBuffer.glEnd(gl, vboImmediateDraw);
         }
       }
       // draw length lines
-      gl.glBegin(GL.GL_LINES);
+      vboBuffer.glBegin(GL.GL_LINES);
       for (i = 0; i < slices; i++) {
         x = cos((i * da));
         y = sin((i * da));
-        normal3f(gl, x * nsign, y * nsign, nz * nsign);
-        gl.glVertex3f((x * baseRadius), (y * baseRadius), 0.0f);
-        gl.glVertex3f((x * topRadius), (y * topRadius), (height));
+        if(USE_NORM_TXT) {
+            normal3f(gl, x * nsign, y * nsign, nz * nsign);
+        }
+        vboBuffer.glVertex3f((x * baseRadius), (y * baseRadius), 0.0f);
+        vboBuffer.glVertex3f((x * topRadius), (y * topRadius), (height));
       }
-      gl.glEnd();
+      vboBuffer.glEnd(gl, vboImmediateDraw);
     } else if (drawStyle == GLU.GLU_FILL) {
       float ds = 1.0f / slices;
       float dt = 1.0f / stacks;
@@ -358,7 +400,7 @@ public class GLUquadricImpl implements GLUquadric {
       r = baseRadius;
       for (j = 0; j < stacks; j++) {
         float s = 0.0f;
-        gl.glBegin(GL.GL_QUAD_STRIP);
+        vboBuffer.glBegin(vboBuffer.GL_QUAD_STRIP);
         for (i = 0; i <= slices; i++) {
           if (i == slices) {
             x = sin(0.0f);
@@ -368,23 +410,31 @@ public class GLUquadricImpl implements GLUquadric {
             y = cos((i * da));
           }
           if (nsign == 1.0f) {
-            normal3f(gl, (x * nsign), (y * nsign), (nz * nsign));
-            TXTR_COORD(gl, s, t);
-            gl.glVertex3f((x * r), (y * r), z);
-            normal3f(gl, (x * nsign), (y * nsign), (nz * nsign));
-            TXTR_COORD(gl, s, t + dt);
-            gl.glVertex3f((x * (r + dr)), (y * (r + dr)), (z + dz));
+            if(USE_NORM_TXT) {
+                normal3f(gl, (x * nsign), (y * nsign), (nz * nsign));
+                TXTR_COORD(vboBuffer, s, t);
+            }
+            vboBuffer.glVertex3f((x * r), (y * r), z);
+            if(USE_NORM_TXT) {
+                normal3f(gl, (x * nsign), (y * nsign), (nz * nsign));
+                TXTR_COORD(vboBuffer, s, t + dt);
+            }
+            vboBuffer.glVertex3f((x * (r + dr)), (y * (r + dr)), (z + dz));
           } else {
-            normal3f(gl, x * nsign, y * nsign, nz * nsign);
-            TXTR_COORD(gl, s, t);
-            gl.glVertex3f((x * r), (y * r), z);
-            normal3f(gl, x * nsign, y * nsign, nz * nsign);
-            TXTR_COORD(gl, s, t + dt);
-            gl.glVertex3f((x * (r + dr)), (y * (r + dr)), (z + dz));
+            if(USE_NORM_TXT) {
+                normal3f(gl, x * nsign, y * nsign, nz * nsign);
+                TXTR_COORD(vboBuffer, s, t);
+            }
+            vboBuffer.glVertex3f((x * r), (y * r), z);
+            if(USE_NORM_TXT) {
+                normal3f(gl, x * nsign, y * nsign, nz * nsign);
+                TXTR_COORD(vboBuffer, s, t + dt);
+            }
+            vboBuffer.glVertex3f((x * (r + dr)), (y * (r + dr)), (z + dz));
           }
           s += ds;
         } // for slices
-        gl.glEnd();
+        vboBuffer.glEnd(gl, vboImmediateDraw);
         r += dr;
         t += dt;
         z += dz;
@@ -417,10 +467,10 @@ public class GLUquadricImpl implements GLUquadric {
     /* Normal vectors */
     if (normals != GLU.GLU_NONE) {
       if (orientation == GLU.GLU_OUTSIDE) {
-        gl.glNormal3f(0.0f, 0.0f, +1.0f);
+        vboBuffer.glNormal3f(0.0f, 0.0f, +1.0f);
       }
       else {
-        gl.glNormal3f(0.0f, 0.0f, -1.0f);
+        vboBuffer.glNormal3f(0.0f, 0.0f, -1.0f);
       }
     }
 	
@@ -442,7 +492,7 @@ public class GLUquadricImpl implements GLUquadric {
           float r2 = r1 + dr;
           if (orientation == GLU.GLU_OUTSIDE) {
             int s;
-            gl.glBegin(gl.GL_QUAD_STRIP);
+            vboBuffer.glBegin(vboBuffer.GL_QUAD_STRIP);
             for (s = 0; s <= slices; s++) {
               float a;
               if (s == slices)
@@ -451,16 +501,16 @@ public class GLUquadricImpl implements GLUquadric {
                 a = s * da;
               sa = sin(a);
               ca = cos(a);
-              TXTR_COORD(gl, 0.5f + sa * r2 / dtc, 0.5f + ca * r2 / dtc);
-              gl.glVertex2f(r2 * sa, r2 * ca);
-              TXTR_COORD(gl, 0.5f + sa * r1 / dtc, 0.5f + ca * r1 / dtc);
-              gl.glVertex2f(r1 * sa, r1 * ca);
+              TXTR_COORD(vboBuffer, 0.5f + sa * r2 / dtc, 0.5f + ca * r2 / dtc);
+              vboBuffer.glVertex2f(r2 * sa, r2 * ca);
+              TXTR_COORD(vboBuffer, 0.5f + sa * r1 / dtc, 0.5f + ca * r1 / dtc);
+              vboBuffer.glVertex2f(r1 * sa, r1 * ca);
             }
-            gl.glEnd();
+            vboBuffer.glEnd(gl, vboImmediateDraw);
           }
           else {
             int s;
-            gl.glBegin(GL.GL_QUAD_STRIP);
+            vboBuffer.glBegin(vboBuffer.GL_QUAD_STRIP);
             for (s = slices; s >= 0; s--) {
               float a;
               if (s == slices)
@@ -469,12 +519,12 @@ public class GLUquadricImpl implements GLUquadric {
                 a = s * da;
               sa = sin(a);
               ca = cos(a);
-              TXTR_COORD(gl, 0.5f - sa * r2 / dtc, 0.5f + ca * r2 / dtc);
-              gl.glVertex2f(r2 * sa, r2 * ca);
-              TXTR_COORD(gl, 0.5f - sa * r1 / dtc, 0.5f + ca * r1 / dtc);
-              gl.glVertex2f(r1 * sa, r1 * ca);
+              TXTR_COORD(vboBuffer, 0.5f - sa * r2 / dtc, 0.5f + ca * r2 / dtc);
+              vboBuffer.glVertex2f(r2 * sa, r2 * ca);
+              TXTR_COORD(vboBuffer, 0.5f - sa * r1 / dtc, 0.5f + ca * r1 / dtc);
+              vboBuffer.glVertex2f(r1 * sa, r1 * ca);
             }
-            gl.glEnd();
+            vboBuffer.glEnd(gl, vboImmediateDraw);
           }
           r1 = r2;
         }
@@ -486,31 +536,31 @@ public class GLUquadricImpl implements GLUquadric {
         /* draw loops */
         for (l = 0; l <= loops; l++) {
           float r = innerRadius + l * dr;
-          gl.glBegin(GL.GL_LINE_LOOP);
+          vboBuffer.glBegin(GL.GL_LINE_LOOP);
           for (s = 0; s < slices; s++) {
             float a = s * da;
-            gl.glVertex2f(r * sin(a), r * cos(a));
+            vboBuffer.glVertex2f(r * sin(a), r * cos(a));
           }
-          gl.glEnd();
+          vboBuffer.glEnd(gl, vboImmediateDraw);
         }
         /* draw spokes */
         for (s = 0; s < slices; s++) {
           float a = s * da;
           float x = sin(a);
           float y = cos(a);
-          gl.glBegin(GL.GL_LINE_STRIP);
+          vboBuffer.glBegin(GL.GL_LINE_STRIP);
           for (l = 0; l <= loops; l++) {
             float r = innerRadius + l * dr;
-            gl.glVertex2f(r * x, r * y);
+            vboBuffer.glVertex2f(r * x, r * y);
           }
-          gl.glEnd();
+          vboBuffer.glEnd(gl, vboImmediateDraw);
         }
         break;
       }
     case GLU.GLU_POINT:
       {
         int s;
-        gl.glBegin(GL.GL_POINTS);
+        vboBuffer.glBegin(GL.GL_POINTS);
         for (s = 0; s < slices; s++) {
           float a = s * da;
           float x = sin(a);
@@ -518,33 +568,33 @@ public class GLUquadricImpl implements GLUquadric {
           int l;
           for (l = 0; l <= loops; l++) {
             float r = innerRadius * l * dr;
-            gl.glVertex2f(r * x, r * y);
+            vboBuffer.glVertex2f(r * x, r * y);
           }
         }
-        gl.glEnd();
+        vboBuffer.glEnd(gl, vboImmediateDraw);
         break;
       }
     case GLU.GLU_SILHOUETTE:
       {
         if (innerRadius != 0.0) {
           float a;
-          gl.glBegin(GL.GL_LINE_LOOP);
+          vboBuffer.glBegin(GL.GL_LINE_LOOP);
           for (a = 0.0f; a < 2.0 * PI; a += da) {
             float x = innerRadius * sin(a);
             float y = innerRadius * cos(a);
-            gl.glVertex2f(x, y);
+            vboBuffer.glVertex2f(x, y);
           }
-          gl.glEnd();
+          vboBuffer.glEnd(gl, vboImmediateDraw);
         }
         {
           float a;
-          gl.glBegin(GL.GL_LINE_LOOP);
+          vboBuffer.glBegin(GL.GL_LINE_LOOP);
           for (a = 0; a < 2.0f * PI; a += da) {
             float x = outerRadius * sin(a);
             float y = outerRadius * cos(a);
-            gl.glVertex2f(x, y);
+            vboBuffer.glVertex2f(x, y);
           }
-          gl.glEnd();
+          vboBuffer.glEnd(gl, vboImmediateDraw);
         }
         break;
       }
@@ -644,9 +694,9 @@ public class GLUquadricImpl implements GLUquadric {
     case GLU.GLU_FLAT :
     case GLU.GLU_SMOOTH :
       if (orientation == GLU.GLU_OUTSIDE) {
-        gl.glNormal3f(0.0f, 0.0f, 1.0f);
+        vboBuffer.glNormal3f(0.0f, 0.0f, 1.0f);
       } else {
-        gl.glNormal3f(0.0f, 0.0f, -1.0f);
+        vboBuffer.glNormal3f(0.0f, 0.0f, -1.0f);
       }
       break;
     default :
@@ -659,11 +709,11 @@ public class GLUquadricImpl implements GLUquadric {
       if (innerRadius == .0f) {
         finish = loops - 1;
         /* Triangle strip for inner polygons */
-        gl.glBegin(GL.GL_TRIANGLE_FAN);
+        vboBuffer.glBegin(GL.GL_TRIANGLE_FAN);
         if (textureFlag) {
-          gl.glTexCoord2f(0.5f, 0.5f);
+          vboBuffer.glTexCoord2f(0.5f, 0.5f);
         }
-        gl.glVertex3f(0.0f, 0.0f, 0.0f);
+        vboBuffer.glVertex3f(0.0f, 0.0f, 0.0f);
         radiusLow = outerRadius - deltaRadius * ((float) (loops - 1) / loops);
         if (textureFlag) {
           texLow = radiusLow / outerRadius / 2;
@@ -672,21 +722,21 @@ public class GLUquadricImpl implements GLUquadric {
         if (orientation == GLU.GLU_OUTSIDE) {
           for (i = slices; i >= 0; i--) {
             if (textureFlag) {
-              gl.glTexCoord2f(texLow * sinCache[i] + 0.5f,
+              vboBuffer.glTexCoord2f(texLow * sinCache[i] + 0.5f,
                               texLow * cosCache[i] + 0.5f);
             }
-            gl.glVertex3f(radiusLow * sinCache[i], radiusLow * cosCache[i], 0.0f);
+            vboBuffer.glVertex3f(radiusLow * sinCache[i], radiusLow * cosCache[i], 0.0f);
           }
         } else {
           for (i = 0; i <= slices; i++) {
             if (textureFlag) {
-              gl.glTexCoord2f(texLow * sinCache[i] + 0.5f,
+              vboBuffer.glTexCoord2f(texLow * sinCache[i] + 0.5f,
                               texLow * cosCache[i] + 0.5f);
             }
-            gl.glVertex3f(radiusLow * sinCache[i], radiusLow * cosCache[i], 0.0f);
+            vboBuffer.glVertex3f(radiusLow * sinCache[i], radiusLow * cosCache[i], 0.0f);
           }
         }
-        gl.glEnd();
+        vboBuffer.glEnd(gl, vboImmediateDraw);
       } else {
         finish = loops;
       }
@@ -698,43 +748,43 @@ public class GLUquadricImpl implements GLUquadric {
           texHigh = radiusHigh / outerRadius / 2;
         }
 
-        gl.glBegin(GL.GL_QUAD_STRIP);
+        vboBuffer.glBegin(vboBuffer.GL_QUAD_STRIP);
         for (i = 0; i <= slices; i++) {
           if (orientation == GLU.GLU_OUTSIDE) {
             if (textureFlag) {
-              gl.glTexCoord2f(texLow * sinCache[i] + 0.5f,
+              vboBuffer.glTexCoord2f(texLow * sinCache[i] + 0.5f,
                               texLow * cosCache[i] + 0.5f);
             }
-            gl.glVertex3f(radiusLow * sinCache[i], radiusLow * cosCache[i], 0.0f);
+            vboBuffer.glVertex3f(radiusLow * sinCache[i], radiusLow * cosCache[i], 0.0f);
 
             if (textureFlag) {
-              gl.glTexCoord2f(texHigh * sinCache[i] + 0.5f,
+              vboBuffer.glTexCoord2f(texHigh * sinCache[i] + 0.5f,
                               texHigh * cosCache[i] + 0.5f);
             }
-            gl.glVertex3f(radiusHigh * sinCache[i],
+            vboBuffer.glVertex3f(radiusHigh * sinCache[i],
                           radiusHigh * cosCache[i],
                           0.0f);
           } else {
             if (textureFlag) {
-              gl.glTexCoord2f(texHigh * sinCache[i] + 0.5f,
+              vboBuffer.glTexCoord2f(texHigh * sinCache[i] + 0.5f,
                               texHigh * cosCache[i] + 0.5f);
             }
-            gl.glVertex3f(radiusHigh * sinCache[i],
+            vboBuffer.glVertex3f(radiusHigh * sinCache[i],
                           radiusHigh * cosCache[i],
                           0.0f);
 
             if (textureFlag) {
-              gl.glTexCoord2f(texLow * sinCache[i] + 0.5f,
+              vboBuffer.glTexCoord2f(texLow * sinCache[i] + 0.5f,
                               texLow * cosCache[i] + 0.5f);
             }
-            gl.glVertex3f(radiusLow * sinCache[i], radiusLow * cosCache[i], 0.0f);
+            vboBuffer.glVertex3f(radiusLow * sinCache[i], radiusLow * cosCache[i], 0.0f);
           }
         }
-        gl.glEnd();
+        vboBuffer.glEnd(gl, vboImmediateDraw);
       }
       break;
     case GLU.GLU_POINT :
-      gl.glBegin(GL.GL_POINTS);
+      vboBuffer.glBegin(GL.GL_POINTS);
       for (i = 0; i < slices2; i++) {
         sintemp = sinCache[i];
         costemp = cosCache[i];
@@ -744,25 +794,25 @@ public class GLUquadricImpl implements GLUquadric {
           if (textureFlag) {
             texLow = radiusLow / outerRadius / 2;
 
-            gl.glTexCoord2f(texLow * sinCache[i] + 0.5f,
+            vboBuffer.glTexCoord2f(texLow * sinCache[i] + 0.5f,
                             texLow * cosCache[i] + 0.5f);
           }
-          gl.glVertex3f(radiusLow * sintemp, radiusLow * costemp, 0.0f);
+          vboBuffer.glVertex3f(radiusLow * sintemp, radiusLow * costemp, 0.0f);
         }
       }
-      gl.glEnd();
+      vboBuffer.glEnd(gl, vboImmediateDraw);
       break;
     case GLU.GLU_LINE :
       if (innerRadius == outerRadius) {
-        gl.glBegin(GL.GL_LINE_STRIP);
+        vboBuffer.glBegin(GL.GL_LINE_STRIP);
 
         for (i = 0; i <= slices; i++) {
           if (textureFlag) {
-            gl.glTexCoord2f(sinCache[i] / 2 + 0.5f, cosCache[i] / 2 + 0.5f);
+            vboBuffer.glTexCoord2f(sinCache[i] / 2 + 0.5f, cosCache[i] / 2 + 0.5f);
           }
-          gl.glVertex3f(innerRadius * sinCache[i], innerRadius * cosCache[i], 0.0f);
+          vboBuffer.glVertex3f(innerRadius * sinCache[i], innerRadius * cosCache[i], 0.0f);
         }
-        gl.glEnd();
+        vboBuffer.glEnd(gl, vboImmediateDraw);
         break;
       }
       for (j = 0; j <= loops; j++) {
@@ -771,20 +821,20 @@ public class GLUquadricImpl implements GLUquadric {
           texLow = radiusLow / outerRadius / 2;
         }
 
-        gl.glBegin(GL.GL_LINE_STRIP);
+        vboBuffer.glBegin(GL.GL_LINE_STRIP);
         for (i = 0; i <= slices; i++) {
           if (textureFlag) {
-            gl.glTexCoord2f(texLow * sinCache[i] + 0.5f,
+            vboBuffer.glTexCoord2f(texLow * sinCache[i] + 0.5f,
                             texLow * cosCache[i] + 0.5f);
           }
-          gl.glVertex3f(radiusLow * sinCache[i], radiusLow * cosCache[i], 0.0f);
+          vboBuffer.glVertex3f(radiusLow * sinCache[i], radiusLow * cosCache[i], 0.0f);
         }
-        gl.glEnd();
+        vboBuffer.glEnd(gl, vboImmediateDraw);
       }
       for (i = 0; i < slices2; i++) {
         sintemp = sinCache[i];
         costemp = cosCache[i];
-        gl.glBegin(GL.GL_LINE_STRIP);
+        vboBuffer.glBegin(GL.GL_LINE_STRIP);
         for (j = 0; j <= loops; j++) {
           radiusLow = outerRadius - deltaRadius * ((float) j / loops);
           if (textureFlag) {
@@ -792,12 +842,12 @@ public class GLUquadricImpl implements GLUquadric {
           }
 
           if (textureFlag) {
-            gl.glTexCoord2f(texLow * sinCache[i] + 0.5f,
+            vboBuffer.glTexCoord2f(texLow * sinCache[i] + 0.5f,
                             texLow * cosCache[i] + 0.5f);
           }
-          gl.glVertex3f(radiusLow * sintemp, radiusLow * costemp, 0.0f);
+          vboBuffer.glVertex3f(radiusLow * sintemp, radiusLow * costemp, 0.0f);
         }
-        gl.glEnd();
+        vboBuffer.glEnd(gl, vboImmediateDraw);
       }
       break;
     case GLU.GLU_SILHOUETTE :
@@ -805,18 +855,18 @@ public class GLUquadricImpl implements GLUquadric {
         for (i = 0; i <= slices; i += slices) {
           sintemp = sinCache[i];
           costemp = cosCache[i];
-          gl.glBegin(GL.GL_LINE_STRIP);
+          vboBuffer.glBegin(GL.GL_LINE_STRIP);
           for (j = 0; j <= loops; j++) {
             radiusLow = outerRadius - deltaRadius * ((float) j / loops);
 
             if (textureFlag) {
               texLow = radiusLow / outerRadius / 2;
-              gl.glTexCoord2f(texLow * sinCache[i] + 0.5f,
+              vboBuffer.glTexCoord2f(texLow * sinCache[i] + 0.5f,
                               texLow * cosCache[i] + 0.5f);
             }
-            gl.glVertex3f(radiusLow * sintemp, radiusLow * costemp, 0.0f);
+            vboBuffer.glVertex3f(radiusLow * sintemp, radiusLow * costemp, 0.0f);
           }
-          gl.glEnd();
+          vboBuffer.glEnd(gl, vboImmediateDraw);
         }
       }
       for (j = 0; j <= loops; j += loops) {
@@ -825,15 +875,15 @@ public class GLUquadricImpl implements GLUquadric {
           texLow = radiusLow / outerRadius / 2;
         }
 
-        gl.glBegin(GL.GL_LINE_STRIP);
+        vboBuffer.glBegin(GL.GL_LINE_STRIP);
         for (i = 0; i <= slices; i++) {
           if (textureFlag) {
-            gl.glTexCoord2f(texLow * sinCache[i] + 0.5f,
+            vboBuffer.glTexCoord2f(texLow * sinCache[i] + 0.5f,
                             texLow * cosCache[i] + 0.5f);
           }
-          gl.glVertex3f(radiusLow * sinCache[i], radiusLow * cosCache[i], 0.0f);
+          vboBuffer.glVertex3f(radiusLow * sinCache[i], radiusLow * cosCache[i], 0.0f);
         }
-        gl.glEnd();
+        vboBuffer.glEnd(gl, vboImmediateDraw);
         if (innerRadius == outerRadius)
           break;
       }
@@ -882,20 +932,24 @@ public class GLUquadricImpl implements GLUquadric {
     if (drawStyle == GLU.GLU_FILL) {
       if (!textureFlag) {
         // draw +Z end as a triangle fan
-        gl.glBegin(GL.GL_TRIANGLE_FAN);
-        gl.glNormal3f(0.0f, 0.0f, 1.0f);
-        gl.glVertex3f(0.0f, 0.0f, nsign * radius);
+        vboBuffer.glBegin(GL.GL_TRIANGLE_FAN);
+        if(USE_NORM_TXT) {
+            vboBuffer.glNormal3f(0.0f, 0.0f, 1.0f);
+        }
+        vboBuffer.glVertex3f(0.0f, 0.0f, nsign * radius);
         for (j = 0; j <= slices; j++) {
           theta = (j == slices) ? 0.0f : j * dtheta;
           x = -sin(theta) * sin(drho);
           y = cos(theta) * sin(drho);
           z = nsign * cos(drho);
-          if (normals) {
-            gl.glNormal3f(x * nsign, y * nsign, z * nsign);
+          if(USE_NORM_TXT) {
+              if (normals) {
+                vboBuffer.glNormal3f(x * nsign, y * nsign, z * nsign);
+              }
           }
-          gl.glVertex3f(x * radius, y * radius, z * radius);
+          vboBuffer.glVertex3f(x * radius, y * radius, z * radius);
         }
-        gl.glEnd();
+        vboBuffer.glEnd(gl, vboImmediateDraw);
       }
 
       ds = 1.0f / slices;
@@ -912,37 +966,43 @@ public class GLUquadricImpl implements GLUquadric {
       // draw intermediate stacks as quad strips
       for (i = imin; i < imax; i++) {
         rho = i * drho;
-        gl.glBegin(GL.GL_QUAD_STRIP);
+        vboBuffer.glBegin(vboBuffer.GL_QUAD_STRIP);
         s = 0.0f;
         for (j = 0; j <= slices; j++) {
           theta = (j == slices) ? 0.0f : j * dtheta;
           x = -sin(theta) * sin(rho);
           y = cos(theta) * sin(rho);
           z = nsign * cos(rho);
-          if (normals) {
-            gl.glNormal3f(x * nsign, y * nsign, z * nsign);
+          if(USE_NORM_TXT) {
+              if (normals) {
+                vboBuffer.glNormal3f(x * nsign, y * nsign, z * nsign);
+              }
+              TXTR_COORD(vboBuffer, s, t);
           }
-          TXTR_COORD(gl, s, t);
-          gl.glVertex3f(x * radius, y * radius, z * radius);
+          vboBuffer.glVertex3f(x * radius, y * radius, z * radius);
           x = -sin(theta) * sin(rho + drho);
           y = cos(theta) * sin(rho + drho);
           z = nsign * cos(rho + drho);
-          if (normals) {
-            gl.glNormal3f(x * nsign, y * nsign, z * nsign);
+          if(USE_NORM_TXT) {
+              if (normals) {
+                vboBuffer.glNormal3f(x * nsign, y * nsign, z * nsign);
+              }
+              TXTR_COORD(vboBuffer, s, t - dt);
           }
-          TXTR_COORD(gl, s, t - dt);
           s += ds;
-          gl.glVertex3f(x * radius, y * radius, z * radius);
+          vboBuffer.glVertex3f(x * radius, y * radius, z * radius);
         }
-        gl.glEnd();
+        vboBuffer.glEnd(gl, vboImmediateDraw);
         t -= dt;
       }
 
       if (!textureFlag) {
         // draw -Z end as a triangle fan
-        gl.glBegin(GL.GL_TRIANGLE_FAN);
-        gl.glNormal3f(0.0f, 0.0f, -1.0f);
-        gl.glVertex3f(0.0f, 0.0f, -radius * nsign);
+        vboBuffer.glBegin(GL.GL_TRIANGLE_FAN);
+        if(USE_NORM_TXT) {
+            vboBuffer.glNormal3f(0.0f, 0.0f, -1.0f);
+        }
+        vboBuffer.glVertex3f(0.0f, 0.0f, -radius * nsign);
         rho = PI - drho;
         s = 1.0f;
         for (j = slices; j >= 0; j--) {
@@ -950,12 +1010,14 @@ public class GLUquadricImpl implements GLUquadric {
           x = -sin(theta) * sin(rho);
           y = cos(theta) * sin(rho);
           z = nsign * cos(rho);
-          if (normals)
-            gl.glNormal3f(x * nsign, y * nsign, z * nsign);
+          if(USE_NORM_TXT) {
+              if (normals)
+                vboBuffer.glNormal3f(x * nsign, y * nsign, z * nsign);
+          }
           s -= ds;
-          gl.glVertex3f(x * radius, y * radius, z * radius);
+          vboBuffer.glVertex3f(x * radius, y * radius, z * radius);
         }
-        gl.glEnd();
+        vboBuffer.glEnd(gl, vboImmediateDraw);
       }
     } else if (
                drawStyle == GLU.GLU_LINE
@@ -965,42 +1027,42 @@ public class GLUquadricImpl implements GLUquadric {
            i < stacks;
            i++) { // stack line at i==stacks-1 was missing here
         rho = i * drho;
-        gl.glBegin(GL.GL_LINE_LOOP);
+        vboBuffer.glBegin(GL.GL_LINE_LOOP);
         for (j = 0; j < slices; j++) {
           theta = j * dtheta;
           x = cos(theta) * sin(rho);
           y = sin(theta) * sin(rho);
           z = cos(rho);
           if (normals)
-            gl.glNormal3f(x * nsign, y * nsign, z * nsign);
-          gl.glVertex3f(x * radius, y * radius, z * radius);
+            vboBuffer.glNormal3f(x * nsign, y * nsign, z * nsign);
+          vboBuffer.glVertex3f(x * radius, y * radius, z * radius);
         }
-        gl.glEnd();
+        vboBuffer.glEnd(gl, vboImmediateDraw);
       }
       // draw slice lines
       for (j = 0; j < slices; j++) {
         theta = j * dtheta;
-        gl.glBegin(GL.GL_LINE_STRIP);
+        vboBuffer.glBegin(GL.GL_LINE_STRIP);
         for (i = 0; i <= stacks; i++) {
           rho = i * drho;
           x = cos(theta) * sin(rho);
           y = sin(theta) * sin(rho);
           z = cos(rho);
           if (normals)
-            gl.glNormal3f(x * nsign, y * nsign, z * nsign);
-          gl.glVertex3f(x * radius, y * radius, z * radius);
+            vboBuffer.glNormal3f(x * nsign, y * nsign, z * nsign);
+          vboBuffer.glVertex3f(x * radius, y * radius, z * radius);
         }
-        gl.glEnd();
+        vboBuffer.glEnd(gl, vboImmediateDraw);
       }
     } else if (drawStyle == GLU.GLU_POINT) {
       // top and bottom-most points
-      gl.glBegin(GL.GL_POINTS);
+      vboBuffer.glBegin(GL.GL_POINTS);
       if (normals)
-        gl.glNormal3f(0.0f, 0.0f, nsign);
-      gl.glVertex3f(0.0f, 0.0f, radius);
+        vboBuffer.glNormal3f(0.0f, 0.0f, nsign);
+      vboBuffer.glVertex3f(0.0f, 0.0f, radius);
       if (normals)
-        gl.glNormal3f(0.0f, 0.0f, -nsign);
-      gl.glVertex3f(0.0f, 0.0f, -radius);
+        vboBuffer.glNormal3f(0.0f, 0.0f, -nsign);
+      vboBuffer.glVertex3f(0.0f, 0.0f, -radius);
 
       // loop over stacks
       for (i = 1; i < stacks - 1; i++) {
@@ -1011,11 +1073,11 @@ public class GLUquadricImpl implements GLUquadric {
           y = sin(theta) * sin(rho);
           z = cos(rho);
           if (normals)
-            gl.glNormal3f(x * nsign, y * nsign, z * nsign);
-          gl.glVertex3f(x * radius, y * radius, z * radius);
+            vboBuffer.glNormal3f(x * nsign, y * nsign, z * nsign);
+          vboBuffer.glVertex3f(x * radius, y * radius, z * radius);
         }
       }
-      gl.glEnd();
+      vboBuffer.glEnd(gl, vboImmediateDraw);
     }
   }
 
@@ -1043,11 +1105,11 @@ public class GLUquadricImpl implements GLUquadric {
       y /= mag;
       z /= mag;
     }
-    gl.glNormal3f(x, y, z);
+    vboBuffer.glNormal3f(x, y, z);
   }
 
-  private void TXTR_COORD(GL gl, float x, float y) {
-    if (textureFlag) gl.glTexCoord2f(x,y);
+  private final void TXTR_COORD(ImmModeSink vboBuffer, float x, float y) {
+    if (textureFlag) vboBuffer.glTexCoord2f(x,y);
   }
 
   private float sin(float r) {

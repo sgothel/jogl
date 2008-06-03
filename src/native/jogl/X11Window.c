@@ -307,6 +307,8 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_x11_X11Window_setVisible0
         XSelectInput(dpy, w, ExposureMask|ButtonPressMask|ButtonReleaseMask|PointerMotionMask|
                                   KeyPressMask|KeyReleaseMask);
         XSetInputFocus(dpy, w, RevertToNone, CurrentTime);
+
+        XSync(dpy, False);
     } else {
         XSelectInput(dpy, w, 0);
         XUnmapWindow(dpy, w);

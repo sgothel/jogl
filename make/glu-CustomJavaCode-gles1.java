@@ -153,6 +153,59 @@ public boolean isFunctionAvailable(String gluFunctionName)
 }
 
 //----------------------------------------------------------------------
+// Quadric functionality
+//
+
+/** Interface to C language function: <br> <code> void gluCylinder(GLUquadric *  quad, GLdouble base, GLdouble top, GLdouble height, GLint slices, GLint stacks); </code>    */
+public void gluCylinder(GLUquadric quad, double base, double top, double height, int slices, int stacks) {
+  ((GLUquadricImpl) quad).drawCylinder(getCurrentGL(), (float) base, (float) top, (float) height, slices, stacks);
+}
+
+/** Interface to C language function: <br> <code> void gluDeleteQuadric(GLUquadric *  quad); </code>    */
+public void gluDeleteQuadric(GLUquadric quad) {
+}
+
+/** Interface to C language function: <br> <code> void gluDisk(GLUquadric *  quad, GLdouble inner, GLdouble outer, GLint slices, GLint loops); </code>    */
+public void gluDisk(GLUquadric quad, double inner, double outer, int slices, int loops) {
+  ((GLUquadricImpl) quad).drawDisk(getCurrentGL(), (float) inner, (float) outer, slices, loops);
+}
+
+/** Interface to C language function: <br> <code> GLUquadric *  gluNewQuadric(void); </code>    */
+public GLUquadric gluNewQuadric() {
+  return new GLUquadricImpl();
+}
+
+/** Interface to C language function: <br> <code> void gluPartialDisk(GLUquadric *  quad, GLdouble inner, GLdouble outer, GLint slices, GLint loops, GLdouble start, GLdouble sweep); </code>    */
+public void gluPartialDisk(GLUquadric quad, double inner, double outer, int slices, int loops, double start, double sweep) {
+  ((GLUquadricImpl) quad).drawPartialDisk(getCurrentGL(), (float) inner, (float) outer, slices, loops, (float) start, (float) sweep);
+}
+
+/** Interface to C language function: <br> <code> void gluQuadricDrawStyle(GLUquadric *  quad, GLenum draw); </code>    */
+public void gluQuadricDrawStyle(GLUquadric quad, int draw) {
+  ((GLUquadricImpl) quad).setDrawStyle(draw);
+}
+
+/** Interface to C language function: <br> <code> void gluQuadricNormals(GLUquadric *  quad, GLenum normal); </code>    */
+public void gluQuadricNormals(GLUquadric quad, int normal) {
+  ((GLUquadricImpl) quad).setNormals(normal);
+}
+
+/** Interface to C language function: <br> <code> void gluQuadricOrientation(GLUquadric *  quad, GLenum orientation); </code>    */
+public void gluQuadricOrientation(GLUquadric quad, int orientation) {
+  ((GLUquadricImpl) quad).setOrientation(orientation);
+}
+
+/** Interface to C language function: <br> <code> void gluQuadricTexture(GLUquadric *  quad, GLboolean texture); </code>    */
+public void gluQuadricTexture(GLUquadric quad, boolean texture) {
+  ((GLUquadricImpl) quad).setTextureFlag(texture);
+}
+
+/** Interface to C language function: <br> <code> void gluSphere(GLUquadric *  quad, GLdouble radius, GLint slices, GLint stacks); </code>    */
+public void gluSphere(GLUquadric quad, double radius, int slices, int stacks) {
+  ((GLUquadricImpl) quad).drawSphere(getCurrentGL(), (float) radius, slices, stacks);
+}
+
+//----------------------------------------------------------------------
 // Projection routines
 //
 
@@ -478,3 +531,22 @@ private static synchronized void loadGLULibrary() {
   }
 }
 */
+
+// QuadricDrawStyle
+public static final int GLU_POINT = 100010;
+public static final int GLU_LINE = 100011;
+public static final int GLU_FILL = 100012;
+public static final int GLU_SILHOUETTE = 100013;
+
+// QuadricCallback
+// GLU_ERROR
+
+// QuadricNormal
+public static final int GLU_SMOOTH = 100000;
+public static final int GLU_FLAT = 100001;
+public static final int GLU_NONE = 100002;
+
+// QuadricOrientation
+public static final int GLU_OUTSIDE = 100020;
+public static final int GLU_INSIDE = 100021;
+

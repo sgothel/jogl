@@ -53,10 +53,10 @@
        jogl.es1
        jogl.es2
        jogl.noAWT
-       jogl.noX11WindowsMacOsX
-       jogl.noX11
-       jogl.noWindows
-       jogl.noMacOsX
+       jogl.noX11WindowsMacOsX, which implies:
+           jogl.noX11
+           jogl.noWindows
+           jogl.noMacOsX
    -->
 <project name="JOGL" basedir="." default="all">
 
@@ -346,7 +346,7 @@
     
     <target name="declare.gl.gles1" if="isGLES1">
         <property name="gl.headers" value="${stub.includes.dir}/opengl/GLES/*.h" /> <!-- NOTE:  this MUST be relative for FileSet --> <!-- CHECK:  this may need to be pruned for each platform -->
-        <property name="java.excludes.gles" value="com/sun/opengl/util/texture/**, com/sun/opengl/util/Animator.java, com/sun/opengl/util/FPSAnimator.java, com/sun/opengl/util/*Rec.java, com/sun/opengl/util/GLUT*.java, com/sun/opengl/util/Gamma.java, com/sun/opengl/util/ImageUtil.java, com/sun/opengl/util/Screenshot.java, com/sun/opengl/util/TGAWriter.java, com/sun/opengl/util/TileRenderer.java, com/sun/opengl/impl/GLObjectTracker.java, com/sun/opengl/impl/GLPbufferImpl.java, com/sun/opengl/impl/GLUquadricImpl.java, com/sun/opengl/impl/Project.java, com/sun/opengl/impl/Util.java, com/sun/opengl/impl/error/**, com/sun/opengl/impl/glue/**, com/sun/opengl/impl/mipmap/**, com/sun/opengl/impl/nurbs/**, com/sun/opengl/impl/packrect/**, com/sun/opengl/impl/registry/**, com/sun/opengl/impl/tessellator/**" />
+        <property name="java.excludes.gles" value="com/sun/opengl/util/texture/**, com/sun/opengl/util/Animator.java, com/sun/opengl/util/FPSAnimator.java, com/sun/opengl/util/*Rec.java, com/sun/opengl/util/GLUT*.java, com/sun/opengl/util/Gamma.java, com/sun/opengl/util/ImageUtil.java, com/sun/opengl/util/Screenshot.java, com/sun/opengl/util/TGAWriter.java, com/sun/opengl/util/TileRenderer.java, com/sun/opengl/impl/GLObjectTracker.java, com/sun/opengl/impl/GLPbufferImpl.java, com/sun/opengl/impl/Project.java, com/sun/opengl/impl/Util.java, com/sun/opengl/impl/error/**, com/sun/opengl/impl/glue/**, com/sun/opengl/impl/mipmap/**, com/sun/opengl/impl/nurbs/**, com/sun/opengl/impl/packrect/**, com/sun/opengl/impl/registry/**, com/sun/opengl/impl/tessellator/**" />
     </target>
 
     <target name="declare.gl.gles2" if="isGLES2">

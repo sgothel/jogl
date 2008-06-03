@@ -57,7 +57,7 @@ public class KeyEvent extends InputEvent
 
  public String toString() {
     return "KeyEvent["+getEventTypeString(eventType)+
-                     ", code "+keyCode+", char "+keyChar+", "+super.toString();
+                     ", code "+keyCode+", char "+keyChar+", isActionKey "+isActionKey()+" "+super.toString();
  }
 
  public static String getEventTypeString(int type) {

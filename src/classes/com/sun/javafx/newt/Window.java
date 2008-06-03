@@ -43,7 +43,7 @@ public abstract class Window implements NativeWindow
 {
     public static final boolean DEBUG_MOUSE_EVENT = false;
     public static final boolean DEBUG_KEY_EVENT = false;
-    public static final boolean DEBUG_IMPLEMENTATION = true;
+    public static final boolean DEBUG_IMPLEMENTATION = false;
     
     protected static Window create(String type, Screen screen, int visualID) {
         try {
