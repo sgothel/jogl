@@ -722,6 +722,16 @@
         </gluegen>
     </target>
 
+    <target name="java.generate.BufferUtil.javame_cdc_fp" if="isCDCFP">
+        <copy file="../src/classes/com/sun/opengl/util/BufferUtil.java.javame_cdc_fp" tofile="../build/gensrc/classes/com/sun/opengl/util/BufferUtil.java" />
+    </target>
+
+    <target name="java.generate.BufferUtil.javase" unless="isCDCFP">
+        <copy file="../src/classes/com/sun/opengl/util/BufferUtil.java.javase" tofile="../build/gensrc/classes/com/sun/opengl/util/BufferUtil.java" />
+    </target>
+
+    <target name="java.generate.BufferUtil" depends="java.generate.BufferUtil.javase, java.generate.BufferUtil.javame_cdc_fp" />
+
     <!--
        - Setup the generating ANT tasks and use it to generate the Java files 
        - from the C GL headers.  This involves setting the taskdef and creating
@@ -763,6 +773,9 @@
 	     because the implementation uses immediate mode calls not
 	     available on GLES1 or GLES2 -->
 	<antcall target="java.generate.glu" inheritrefs="true" />
+
+        <!-- Generate the BufferUtil class for this particular profile -->
+        <antcall target="java.generate.BufferUtil" inheritrefs="true" />
 
         <!-- Inform the user that the generators have successfully created 
            - the necessary Java files -->
