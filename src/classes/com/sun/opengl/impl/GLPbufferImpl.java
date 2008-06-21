@@ -39,9 +39,11 @@
 
 package com.sun.opengl.impl;
 
+/**
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.event.*;
+ */
 import java.beans.PropertyChangeListener;
 
 import javax.media.opengl.*;
@@ -74,6 +76,14 @@ public class GLPbufferImpl implements GLPbuffer {
   public void setSize(int width, int height) {
     // FIXME
     throw new GLException("Not yet implemented");
+  }
+
+  public NativeWindow getNativeWindow() {
+      return pbufferDrawable.getNativeWindow();
+  }
+
+  public GLDrawableFactory getFactory() {
+      return pbufferDrawable.getFactory();
   }
 
   public int getWidth() {
@@ -149,10 +159,52 @@ public class GLPbufferImpl implements GLPbuffer {
     return pbufferDrawable.getChosenGLCapabilities();
   }
 
+  public GLCapabilities getCapabilities() {
+    if (pbufferDrawable == null)
+      return null;
+
+    return pbufferDrawable.getCapabilities();
+  }
+
+  public void setChosenGLCapabilities(GLCapabilities caps) {
+    pbufferDrawable.setChosenGLCapabilities(caps);
+  }
+
+
+  private boolean surfaceLocked = false;
+
+  public int lockSurface() throws GLException {
+    surfaceLocked=true;
+    return NativeWindow.LOCK_SUCCESS;
+  }
+
+  public void unlockSurface() {
+    surfaceLocked=false;
+  }
+
+  public boolean isSurfaceLocked() {
+    return surfaceLocked;
+  }
+
+  private boolean tkLocked = false;
+
+  public void lockToolkit() throws GLException {
+    tkLocked=true;
+  }
+
+  public void unlockToolkit() {
+    tkLocked=false;
+  }
+
+  public boolean isToolkitLocked() {
+    return tkLocked;
+  }
+
   //----------------------------------------------------------------------
   // No-ops for ComponentEvents
   //
 
+  /*
   public void addComponentListener(ComponentListener l) {}
   public void removeComponentListener(ComponentListener l) {}
   public void addFocusListener(FocusListener l) {}
@@ -177,6 +229,7 @@ public class GLPbufferImpl implements GLPbuffer {
                                         PropertyChangeListener listener) {}
   public void removePropertyChangeListener(String propertyName,
                                            PropertyChangeListener listener) {}
+                                           */
 
   public void destroy() {
     if (Threading.isSingleThreaded() &&

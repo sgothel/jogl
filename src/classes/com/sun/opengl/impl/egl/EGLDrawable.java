@@ -41,7 +41,6 @@ import javax.media.opengl.*;
 
 public class EGLDrawable extends GLDrawableImpl {
     private long display;
-    private GLCapabilities capabilities;
     private GLCapabilitiesChooser chooser;
     private _EGLConfig config;
     private long surface;
@@ -51,9 +50,8 @@ public class EGLDrawable extends GLDrawableImpl {
                        NativeWindow component,
                        GLCapabilities capabilities,
                        GLCapabilitiesChooser chooser) throws GLException {
-        this.factory = factory;
-        this.component = component;
-        this.capabilities = capabilities;
+        super(factory, component, true);
+        setChosenGLCapabilities(capabilities);
         this.chooser = chooser;
 
         display = EGL.eglGetDisplay((component.getDisplayHandle()>0)?component.getDisplayHandle():EGL.EGL_DEFAULT_DISPLAY);
@@ -139,11 +137,6 @@ public class EGLDrawable extends GLDrawableImpl {
 
     public void swapBuffers() throws GLException {
         EGL.eglSwapBuffers(display, surface);
-    }
-
-    public GLCapabilities getChosenGLCapabilities() {
-        // FIXME
-        return null;
     }
 
     public String toString() {

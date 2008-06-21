@@ -42,16 +42,27 @@ package com.sun.opengl.impl;
 import javax.media.opengl.*;
 
 public abstract class GLDrawableImpl implements GLDrawable {
-  protected GLDrawableFactory factory;
-  protected NativeWindow component;
-  private GLCapabilities chosenCapabilities;
+  protected GLDrawableImpl(GLDrawableFactory factory, NativeWindow comp, boolean realized) {
+      this.factory = factory;
+      this.component = comp;
+      this.realized = realized;
+      this.chosenCapabilities=null;
+  }
 
   /** For offscreen GLDrawables (pbuffers and "pixmap" drawables),
       indicates that native resources should be reclaimed. */
-  public abstract void destroy() throws GLException;
+  public void destroy() throws GLException {
+  }
+
+  public void swapBuffers() throws GLException {
+  }
 
   public static String toHexString(long hex) {
     return GLContextImpl.toHexString(hex);
+  }
+
+  public GLCapabilities getCapabilities() {
+    return chosenCapabilities;
   }
 
   public GLCapabilities getChosenGLCapabilities() {
@@ -63,7 +74,7 @@ public abstract class GLDrawableImpl implements GLDrawable {
   }
 
   public void setChosenGLCapabilities(GLCapabilities caps) {
-    chosenCapabilities = caps;
+    chosenCapabilities = (caps==null) ? null : (GLCapabilities) caps.clone();
   }
 
   public NativeWindow getNativeWindow() {
@@ -74,7 +85,60 @@ public abstract class GLDrawableImpl implements GLDrawable {
     return factory;
   }
 
-  public String getProfile() {
-    return factory.getProfile();
+  public void setRealized(boolean realized) {
+    this.realized = realized;
+    if(!realized) {
+        setChosenGLCapabilities(null);
+        component.invalidate();
+    }
   }
+
+  public boolean getRealized() {
+    return realized;
+  }
+
+  public void setSize(int width, int height) {
+    component.setSize(width, height);
+  }
+
+  public int getWidth() {
+    return component.getWidth();
+  }
+
+  /** Returns the current height of this GLDrawable. */
+  public int getHeight() {
+    return component.getHeight();
+  }
+
+  public int lockSurface() throws GLException {
+    if (!realized) {
+      return NativeWindow.LOCK_SURFACE_NOT_READY;
+    }
+    return component.lockSurface();
+  }
+
+  public void unlockSurface() {
+    component.unlockSurface();
+  }
+
+  public boolean isSurfaceLocked() {
+    return component.isSurfaceLocked();
+  }
+
+  protected GLDrawableFactory factory;
+  protected NativeWindow component;
+  private GLCapabilities chosenCapabilities;
+
+  // Indicates whether the component (if an onscreen context) has been
+  // realized. Plausibly, before the component is realized the JAWT
+  // should return an error or NULL object from some of its
+  // operations; this appears to be the case on Win32 but is not true
+  // at least with Sun's current X11 implementation (1.4.x), which
+  // crashes with no other error reported if the DrawingSurfaceInfo is
+  // fetched from a locked DrawingSurface during the validation as a
+  // result of calling show() on the main thread. To work around this
+  // we prevent any JAWT or OpenGL operations from being done until
+  // addNotify() is called on the component.
+  protected boolean realized;
+
 }

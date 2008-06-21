@@ -97,7 +97,7 @@ public class NativeLibLoader {
     loaderAction = action;
   }
 
-  private static synchronized void loadLibrary(String libname, String[] preload, 
+  protected static synchronized void loadLibrary(String libname, String[] preload, 
       boolean doPreload, boolean ignoreError) {
     if (loaderAction != null && !loaded.contains(libname))
     {

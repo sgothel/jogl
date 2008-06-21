@@ -122,12 +122,10 @@ public class EGLContext extends GLContextImpl {
             }
         }
 
-        EGLDrawableFactory factory = (EGLDrawableFactory) drawable.getFactory();
-        boolean isGLES2 = EGLDrawableFactory.PROFILE_GLES2.equals(factory.getProfile());
         int[] contextAttrs = null;
         // FIXME: need to determine whether to specify the context
         // attributes based on the EGL version
-        if (isGLES2) {
+        if (GLProfile.isGLES2()) {
             contextAttrs = new int[] {
                 EGL.EGL_CONTEXT_CLIENT_VERSION, 2,
                 EGL.EGL_NONE

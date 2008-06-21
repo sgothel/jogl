@@ -41,6 +41,7 @@ import java.nio.*;
 import javax.media.opengl.*;
 import javax.media.opengl.glu.*;
 import com.sun.opengl.impl.*;
+import com.sun.opengl.util.texture.*;
 import com.sun.opengl.util.texture.spi.*;
 
 /**
@@ -173,9 +174,7 @@ public class Texture {
   private static final boolean disableNPOT    = Debug.isPropertyDefined("jogl.texture.nonpot");
   private static final boolean disableTexRect = Debug.isPropertyDefined("jogl.texture.notexrect");
 
-  // For now make Texture constructor package-private to limit the
-  // number of public APIs we commit to
-  Texture(TextureData data) throws GLException {
+  public Texture(TextureData data) throws GLException {
     GL gl = GLU.getCurrentGL();
     texID = createTextureID(gl); 
 
@@ -184,7 +183,7 @@ public class Texture {
 
   // Constructor for use when creating e.g. cube maps, where there is
   // no initial texture data
-  Texture(int target) throws GLException {
+  public Texture(int target) throws GLException {
     GL gl = GLU.getCurrentGL();
     texID = createTextureID(gl); 
     this.target = target;
@@ -259,7 +258,7 @@ public class Texture {
    *
    * @return the OpenGL target of this texture
    * @see javax.media.opengl.GL#GL_TEXTURE_2D
-   * @see javax.media.opengl.GL#GL_TEXTURE_RECTANGLE_ARB
+   * @see javax.media.opengl.GL2#GL_TEXTURE_RECTANGLE_ARB
    */
   public int getTarget() {
     return target;
@@ -350,7 +349,7 @@ public class Texture {
    * @return the texture coordinates corresponding to the specified sub-image
    */
   public TextureCoords getSubImageTexCoords(int x1, int y1, int x2, int y2) {
-    if (target == GL.GL_TEXTURE_RECTANGLE_ARB) {
+    if (target == GL2.GL_TEXTURE_RECTANGLE_ARB) {
       if (mustFlipVertically) {
         return new TextureCoords(x1, texHeight - y1, x2, texHeight - y2);
       } else {
@@ -452,7 +451,7 @@ public class Texture {
       texWidth = imgWidth;
       texHeight = imgHeight;
       texTarget = GL.GL_TEXTURE_2D;
-    } else if (haveTexRect(gl) && !data.isDataCompressed()) {
+    } else if (haveTexRect(gl) && !data.isDataCompressed() && !gl.isGL2()) {
       // GL_ARB_texture_rectangle does not work for compressed textures
       if (DEBUG) {
         System.err.println("Using GL_ARB_texture_rectangle");
@@ -460,7 +459,7 @@ public class Texture {
 
       texWidth = imgWidth;
       texHeight = imgHeight;
-      texTarget = GL.GL_TEXTURE_RECTANGLE_ARB;
+      texTarget = GL2.GL_TEXTURE_RECTANGLE_ARB;
     } else {
       // If we receive non-power-of-two compressed texture data and
       // don't have true hardware support for compressed textures, we
@@ -519,7 +518,7 @@ public class Texture {
       }
 
       try {
-        GLU glu = new GLU();
+        GLU glu = GLU.createGLU(gl);
         glu.gluBuild2DMipmaps(texTarget, data.getInternalFormat(),
                               data.getWidth(), data.getHeight(),
                               data.getPixelFormat(), data.getPixelType(), data.getBuffer());
@@ -568,12 +567,12 @@ public class Texture {
             updateSubImageImpl(data, texTarget, 0, 0, 0, 0, 0, data.getWidth(), data.getHeight());
           }
         } else {
-          if (data.getMipmap() && haveAutoMipmapGeneration) {
+          if (data.getMipmap() && haveAutoMipmapGeneration && gl.isGL2ES1()) {
             // For now, only use hardware mipmapping for uncompressed 2D
             // textures where the user hasn't explicitly specified
             // mipmap data; don't know about interactions between
             // GL_GENERATE_MIPMAP and glCompressedTexImage2D
-            gl.glTexParameteri(texParamTarget, GL.GL_GENERATE_MIPMAP, GL.GL_TRUE);
+            gl.glTexParameteri(texParamTarget, GL2ES1.GL_GENERATE_MIPMAP, GL.GL_TRUE);
             usingAutoMipmapGeneration = true;
           }
 
@@ -587,16 +586,16 @@ public class Texture {
 
     int minFilter = (data.getMipmap() ? GL.GL_LINEAR_MIPMAP_LINEAR : GL.GL_LINEAR);
     int magFilter = GL.GL_LINEAR;
-    int wrapMode = (gl.isExtensionAvailable("GL_VERSION_1_2") ? GL.GL_CLAMP_TO_EDGE : GL.GL_CLAMP);
+    int wrapMode = (gl.isExtensionAvailable("GL_VERSION_1_2") || !gl.isGL2()) ? GL.GL_CLAMP_TO_EDGE : GL2.GL_CLAMP;
 
     // REMIND: figure out what to do for GL_TEXTURE_RECTANGLE_ARB
-    if (texTarget != GL.GL_TEXTURE_RECTANGLE_ARB) {
+    if (texTarget != GL2.GL_TEXTURE_RECTANGLE_ARB) {
       gl.glTexParameteri(texParamTarget, GL.GL_TEXTURE_MIN_FILTER, minFilter);
       gl.glTexParameteri(texParamTarget, GL.GL_TEXTURE_MAG_FILTER, magFilter);
       gl.glTexParameteri(texParamTarget, GL.GL_TEXTURE_WRAP_S, wrapMode);
       gl.glTexParameteri(texParamTarget, GL.GL_TEXTURE_WRAP_T, wrapMode);
-      if (this.target == GL.GL_TEXTURE_CUBE_MAP) {
-        gl.glTexParameteri(texParamTarget, GL.GL_TEXTURE_WRAP_R, wrapMode);
+      if (this.target == GL2.GL_TEXTURE_CUBE_MAP) {
+        gl.glTexParameteri(texParamTarget, GL2.GL_TEXTURE_WRAP_R, wrapMode);
       }
     }
 
@@ -604,7 +603,7 @@ public class Texture {
     // map
     if ((this.target == 0) ||
         (this.target == GL.GL_TEXTURE_2D) ||
-        (this.target == GL.GL_TEXTURE_RECTANGLE_ARB)) {
+        (this.target == GL2.GL_TEXTURE_RECTANGLE_ARB)) {
       this.target = texTarget;
     }
 
@@ -851,7 +850,7 @@ public class Texture {
   private void setImageSize(int width, int height, int target) {
     imgWidth = width;
     imgHeight = height;
-    if (target == GL.GL_TEXTURE_RECTANGLE_ARB) {
+    if (target == GL2.GL_TEXTURE_RECTANGLE_ARB) {
       if (mustFlipVertically) {
         coords = new TextureCoords(0, imgHeight, imgWidth, 0);
       } else {
@@ -941,14 +940,16 @@ public class Texture {
                                    data.getInternalFormat(),
                                    buffer.remaining(), buffer);
     } else {
-      int[] align = new int[1];
-      int[] rowLength = new int[1];
-      int[] skipRows = new int[1];
-      int[] skipPixels = new int[1];
+      int[] align = { 0 };
+      int[] rowLength = { 0 };
+      int[] skipRows = { 0 };
+      int[] skipPixels = { 0 };
       gl.glGetIntegerv(GL.GL_UNPACK_ALIGNMENT,   align,      0); // save alignment
-      gl.glGetIntegerv(GL.GL_UNPACK_ROW_LENGTH,  rowLength,  0); // save row length
-      gl.glGetIntegerv(GL.GL_UNPACK_SKIP_ROWS,   skipRows,   0); // save skipped rows
-      gl.glGetIntegerv(GL.GL_UNPACK_SKIP_PIXELS, skipPixels, 0); // save skipped pixels
+      if(gl.isGL2()) {
+          gl.glGetIntegerv(GL2.GL_UNPACK_ROW_LENGTH,  rowLength,  0); // save row length
+          gl.glGetIntegerv(GL2.GL_UNPACK_SKIP_ROWS,   skipRows,   0); // save skipped rows
+          gl.glGetIntegerv(GL2.GL_UNPACK_SKIP_PIXELS, skipPixels, 0); // save skipped pixels
+      }
       gl.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, data.getAlignment());
       if (DEBUG && VERBOSE) {
         System.out.println("Row length  = " + rowlen);
@@ -959,18 +960,27 @@ public class Texture {
         System.out.println("width       = " + width);
         System.out.println("height      = " + height);
       }
-      gl.glPixelStorei(GL.GL_UNPACK_ROW_LENGTH, rowlen);
-      gl.glPixelStorei(GL.GL_UNPACK_SKIP_ROWS, srcy);
-      gl.glPixelStorei(GL.GL_UNPACK_SKIP_PIXELS, srcx);
+      if(gl.isGL2()) {
+          gl.glPixelStorei(GL2.GL_UNPACK_ROW_LENGTH, rowlen);
+          gl.glPixelStorei(GL2.GL_UNPACK_SKIP_ROWS, srcy);
+          gl.glPixelStorei(GL2.GL_UNPACK_SKIP_PIXELS, srcx);
+      } else {
+          if ( rowlen!=0 && rowlen!=width &&
+               srcy!=0 && srcx!=0 ) {
+               throw new GLException("rowlen and/or x/y offset only available for GL2");
+          }
+      }
 
       gl.glTexSubImage2D(newTarget, mipmapLevel,
                          dstx, dsty, width, height,
                          data.getPixelFormat(), data.getPixelType(),
                          buffer);
       gl.glPixelStorei(GL.GL_UNPACK_ALIGNMENT,   align[0]);      // restore alignment
-      gl.glPixelStorei(GL.GL_UNPACK_ROW_LENGTH,  rowLength[0]);  // restore row length
-      gl.glPixelStorei(GL.GL_UNPACK_SKIP_ROWS,   skipRows[0]);   // restore skipped rows
-      gl.glPixelStorei(GL.GL_UNPACK_SKIP_PIXELS, skipPixels[0]); // restore skipped pixels
+      if(gl.isGL2()) {
+          gl.glPixelStorei(GL2.GL_UNPACK_ROW_LENGTH,  rowLength[0]);  // restore row length
+          gl.glPixelStorei(GL2.GL_UNPACK_SKIP_ROWS,   skipRows[0]);   // restore skipped rows
+          gl.glPixelStorei(GL2.GL_UNPACK_SKIP_PIXELS, skipPixels[0]); // restore skipped pixels
+      }
     }
   }
 
@@ -988,7 +998,7 @@ public class Texture {
           }
           break;
         default:
-          // FIXME: should test availability of more texture
+          // FI1027GXME: should test availability of more texture
           // compression extensions here
           break;
       }
@@ -1015,7 +1025,7 @@ public class Texture {
 
   private static boolean haveTexRect(GL gl) {
     return (!disableTexRect &&
-            TextureIO.isTexRectEnabled() &&
+            TextureUtil.isTexRectEnabled() &&
             gl.isExtensionAvailable("GL_ARB_texture_rectangle"));
   }
 }

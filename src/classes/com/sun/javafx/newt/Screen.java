@@ -35,32 +35,52 @@ package com.sun.javafx.newt;
 
 public abstract class Screen {
 
+    private static Class getScreenClass(String type) 
+        throws ClassNotFoundException 
+    {
+        Class screenClass = null;
+        if (NewtFactory.KD.equals(type)) {
+            screenClass = Class.forName("com.sun.javafx.newt.kd.KDScreen");
+        } else if (NewtFactory.WINDOWS.equals(type)) {
+            screenClass = Class.forName("com.sun.javafx.newt.windows.WindowsScreen");
+        } else if (NewtFactory.X11.equals(type)) {
+            screenClass = Class.forName("com.sun.javafx.newt.x11.X11Screen");
+        } else if (NewtFactory.MACOSX.equals(type)) {
+            screenClass = Class.forName("com.sun.javafx.newt.macosx.MacOSXScreen");
+        } else {
+            throw new RuntimeException("Unknown window type \"" + type + "\"");
+        }
+        return screenClass;
+    }
+
     protected static Screen create(String type, Display display, int idx) {
         try {
-            Class screenClass = null;
-            if (NewtFactory.KD.equals(type)) {
-                screenClass = Class.forName("com.sun.javafx.newt.kd.KDScreen");
-            } else if (NewtFactory.WINDOWS.equals(type)) {
-                screenClass = Class.forName("com.sun.javafx.newt.windows.WindowsScreen");
-            } else if (NewtFactory.X11.equals(type)) {
-                screenClass = Class.forName("com.sun.javafx.newt.x11.X11Screen");
-            } else if (NewtFactory.MACOSX.equals(type)) {
-                screenClass = Class.forName("com.sun.javafx.newt.macosx.MacOSXScreen");
-            } else {
-                throw new RuntimeException("Unknown window type \"" + type + "\"");
-            }
+            Class screenClass = getScreenClass(type);
             Screen screen  = (Screen) screenClass.newInstance();
             screen.display = display;
             screen.index   = idx;
             screen.handle  = 0;
-            screen.initNative();
+            screen.createNative();
             return screen;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    protected abstract void initNative();
+    protected static Screen wrapHandle(String type, Display display, int idx, long handle) {
+        try {
+            Class screenClass = getScreenClass(type);
+            Screen screen  = (Screen) screenClass.newInstance();
+            screen.display = display;
+            screen.index   = idx;
+            screen.handle  = handle;
+            return screen;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    protected abstract void createNative();
 
     public Display getDisplay() {
         return display;

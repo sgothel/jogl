@@ -39,9 +39,8 @@
 
 package com.sun.opengl.impl;
 
-// FIXME: refactor
-// import java.awt.Component;
 import java.nio.*;
+import java.lang.reflect.*;
 
 import javax.media.opengl.*;
 import com.sun.gluegen.runtime.*;
@@ -67,52 +66,13 @@ public abstract class GLContextImpl extends GLContext {
   protected FunctionAvailabilityCache functionAvailability;
   // Table that holds the addresses of the native C-language entry points for
   // OpenGL functions.
-  private GLProcAddressTable glProcAddressTable;
+  private ProcAddressTable glProcAddressTable;
 
   // Tracks creation and initialization of buffer objects to avoid
   // repeated glGet calls upon glMapBuffer operations
   private GLBufferSizeTracker bufferSizeTracker;
 
-  /* FIXME: needed only by the Java 2D / JOGL bridge; refactor
-
-  // Tracks creation and deletion of server-side OpenGL objects when
-  // the Java2D/OpenGL pipeline is active and using FBOs to render
-  private GLObjectTracker tracker;
-  // Supports deletion of these objects when no other context is
-  // current which can support immediate deletion of them
-  private GLObjectTracker deletedObjectTracker;
-
-  */
-
   protected GL gl;
-
-  /* FIXME: refactor these dependencies on the Java 2D / JOGL bridge
-
-  public GLContextImpl(GLContext shareWith) {
-    this(shareWith, false);
-  }
-  
-  public GLContextImpl(GLContext shareWith, boolean dontShareWithJava2D) {
-    functionAvailability = new FunctionAvailabilityCache(this);
-    GLContext shareContext = shareWith;
-    if (!dontShareWithJava2D) {
-      shareContext = Java2D.filterShareContext(shareWith);
-    }
-    if (shareContext != null) {
-      GLContextShareSet.registerSharing(this, shareContext);
-    }
-    // Always indicate real behind-the-scenes sharing to track deleted objects
-    if (shareContext == null) {
-      shareContext = Java2D.filterShareContext(shareWith);
-    }
-    GLContextShareSet.registerForObjectTracking(shareWith, this, shareContext);
-    GLContextShareSet.registerForBufferObjectSharing(shareWith, this);
-    // This must occur after the above calls into the
-    // GLContextShareSet, which set up state needed by the GL object
-    setGL(createGL());
-  }
-
-  */
 
   public GLContextImpl(GLContext shareWith) {
     functionAvailability = new FunctionAvailabilityCache(this);
@@ -152,6 +112,7 @@ public abstract class GLContextImpl extends GLContext {
     int res = 0;
     try {
       res = makeCurrentImpl();
+
       /* FIXME: refactor dependence on Java 2D / JOGL bridge
       if ((tracker != null) &&
           (res == CONTEXT_CURRENT_NEW)) {
@@ -251,7 +212,7 @@ public abstract class GLContextImpl extends GLContext {
     lock.setFailFastMode(!isSynchronized);
   }
 
-  public GL getGL() {
+  public final GL getGL() {
     return gl;
   }
 
@@ -265,9 +226,40 @@ public abstract class GLContextImpl extends GLContext {
   // Helpers for various context implementations
   //
 
+  private Object createObject(String suffix) {
+    String clazzName = null;
+    Class factoryClass = null;
+    Constructor factory = null;
+
+    try {
+        if(GLProfile.isGL2()) {
+            clazzName="com.sun.opengl.impl.gl2.GL2"+suffix;
+        } else if(GLProfile.isGLES1()) {
+            clazzName="com.sun.opengl.impl.es1.GLES1"+suffix;
+        } else if(GLProfile.isGLES1()) {
+            clazzName="com.sun.opengl.impl.es2.GLES2"+suffix;
+        } else {
+            throw new GLException("uncovered profile");
+        }
+        factoryClass = Class.forName(clazzName);
+        if (factoryClass == null) {
+          throw new GLException(clazzName + " not yet implemented");
+        }
+        try {
+            factory = factoryClass.getDeclaredConstructor(new Class[] { GLContextImpl.class });
+        } catch(NoSuchMethodException nsme) {
+          throw new GLException(clazzName + "(GLContextImpl) not yet implemented / missing cstr");
+        }
+        return factory.newInstance(new Object[] { this });
+    } catch (Exception e) {
+      throw new GLException(e);
+    }
+  }
+
   /** Create the GL for this context. */
   protected GL createGL() {
-    GLImpl gl = new GLImpl(this);
+    GL gl = (GL) createObject("Impl");
+
     /* FIXME: refactor dependence on Java 2D / JOGL bridge
     if (tracker != null) {
       gl.setObjectTracker(tracker);
@@ -276,12 +268,7 @@ public abstract class GLContextImpl extends GLContext {
     return gl;
   }
   
-  public GLProcAddressTable getGLProcAddressTable() {
-    if (glProcAddressTable == null) {
-      // FIXME: cache ProcAddressTables by capability bits so we can
-      // share them among contexts with the same capabilities
-      glProcAddressTable = new GLProcAddressTable();
-    }          
+  public final ProcAddressTable getGLProcAddressTable() {
     return glProcAddressTable;
   }
   
@@ -350,6 +337,11 @@ public abstract class GLContextImpl extends GLContext {
     if (DEBUG) {
       System.err.println(getThreadName() + ": !!! Initializing OpenGL extension address table for " + this);
     }
+    if (glProcAddressTable == null) {
+      glProcAddressTable = (ProcAddressTable) createObject("ProcAddressTable");
+      // FIXME: cache ProcAddressTables by capability bits so we can
+      // share them among contexts with the same capabilities
+    }
     resetProcAddressTable(getGLProcAddressTable());
   }
 
@@ -364,7 +356,7 @@ public abstract class GLContextImpl extends GLContext {
    * "glPolygonOffsetEXT" to check if the {@link
    * javax.media.opengl.GL#glPolygonOffsetEXT(float,float)} is available).
    */
-  protected boolean isFunctionAvailable(String glFunctionName) {
+  public boolean isFunctionAvailable(String glFunctionName) {
     return functionAvailability.isFunctionAvailable(mapToRealGLFunctionName(glFunctionName));
   }
 
@@ -417,7 +409,44 @@ public abstract class GLContextImpl extends GLContext {
     return bufferSizeTracker;
   }
 
-  /* FIXME: refactor dependence on Java 2D / JOGL bridge
+  //---------------------------------------------------------------------------
+  // Helpers for context optimization where the last context is left
+  // current on the OpenGL worker thread
+  //
+
+  public boolean isOptimizable() {
+    return optimizationEnabled;
+  }
+
+  public boolean hasWaiters() {
+    return lock.hasWaiters();
+  }
+
+  /* FIXME: needed only by the Java 2D / JOGL bridge; refactor
+
+  public GLContextImpl(GLContext shareWith) {
+    this(shareWith, false);
+  }
+  
+  public GLContextImpl(GLContext shareWith, boolean dontShareWithJava2D) {
+    functionAvailability = new FunctionAvailabilityCache(this);
+    GLContext shareContext = shareWith;
+    if (!dontShareWithJava2D) {
+      shareContext = Java2D.filterShareContext(shareWith);
+    }
+    if (shareContext != null) {
+      GLContextShareSet.registerSharing(this, shareContext);
+    }
+    // Always indicate real behind-the-scenes sharing to track deleted objects
+    if (shareContext == null) {
+      shareContext = Java2D.filterShareContext(shareWith);
+    }
+    GLContextShareSet.registerForObjectTracking(shareWith, this, shareContext);
+    GLContextShareSet.registerForBufferObjectSharing(shareWith, this);
+    // This must occur after the above calls into the
+    // GLContextShareSet, which set up state needed by the GL object
+    setGL(createGL());
+  }
 
   //---------------------------------------------------------------------------
   // Helpers for integration with Java2D/OpenGL pipeline when FBOs are
@@ -440,18 +469,13 @@ public abstract class GLContextImpl extends GLContext {
     return deletedObjectTracker;
   }
 
+  // Tracks creation and deletion of server-side OpenGL objects when
+  // the Java2D/OpenGL pipeline is active and using FBOs to render
+  private GLObjectTracker tracker;
+  // Supports deletion of these objects when no other context is
+  // current which can support immediate deletion of them
+  private GLObjectTracker deletedObjectTracker;
+
   */
 
-  //---------------------------------------------------------------------------
-  // Helpers for context optimization where the last context is left
-  // current on the OpenGL worker thread
-  //
-
-  public boolean isOptimizable() {
-    return optimizationEnabled;
-  }
-
-  public boolean hasWaiters() {
-    return lock.hasWaiters();
-  }
 }

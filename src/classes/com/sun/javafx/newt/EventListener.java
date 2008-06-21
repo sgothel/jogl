@@ -35,5 +35,9 @@ package com.sun.javafx.newt;
 
 public interface EventListener
 {
+    public static final int WINDOW = 1 << 0;
+    public static final int MOUSE  = 1 << 1;
+    public static final int KEY    = 1 << 2;
+
 }
 

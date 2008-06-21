@@ -44,7 +44,7 @@ public class X11Display extends Display {
     public X11Display() {
     }
 
-    public void initNative() {
+    protected void createNative() {
         handle = CreateDisplay(name);
         if (handle == 0 ) {
             throw new RuntimeException("Error creating display: "+name);

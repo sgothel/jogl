@@ -44,7 +44,7 @@ public class X11Screen extends Screen {
     public X11Screen() {
     }
 
-    public void initNative() {
+    protected void createNative() {
         handle = GetScreen(display.getHandle(), index);
         if (handle == 0 ) {
             throw new RuntimeException("Error creating screen: "+index);

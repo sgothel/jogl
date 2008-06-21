@@ -31,28 +31,23 @@ static {
  * simultaneously.
  */
 
-public GLU()
+public GLUes1()
 {
-  this.project = new ProjectES1();
+  this.project = new ProjectFloat();
 }
 
 //----------------------------------------------------------------------
 // Utility routines
 //
 
-/**
- * Returns the GL object associated with the OpenGL context current on
- * the current thread. Throws GLException if no OpenGL context is
- * current.
- */
-
-public static GL getCurrentGL() throws GLException {
+public static final GL2ES1 getCurrentGL2ES1() throws GLException {
   GLContext curContext = GLContext.getCurrent();
   if (curContext == null) {
     throw new GLException("No OpenGL context current on this thread");
   }
-  return curContext.getGL();
+  return curContext.getGL().getGL2ES1();
 }
+
 
 /*
 public String gluErrorString(int errorCode) {
@@ -79,245 +74,194 @@ public String gluGetString(int name) {
 }
 */
 
-/**
- * Returns true if the specified GLU core- or extension-function can be
- * successfully used through this GLU instance. By "successfully" we mean
- * that the function is both <i>callable</i> on the machine running the
- * program and <i>available</i> on the current display.<P>
- *
- * A GLU function is <i>callable</i> if it is a GLU core- or extension-function
- * that is supported by the underlying GLU implementation. The function is
- * <i>available</i> if the OpenGL implementation on the display meets the
- * requirements of the GLU function being called (because GLU functions utilize
- * OpenGL functions). <P>
- *
- * Whether or not a GLU function is <i>callable</i> is determined as follows:
- * <ul>
- *   <li>If the function is a GLU core function (i.e., not an
- *   extension), <code>gluGetString(GLU_VERSION)</code> is used to determine the
- *   version number of the underlying GLU implementation on the host.
- *   then the function name is cross-referenced with that specification to
- *   see if it is part of that version's specification.
- *
- *   <li> If the function is a GLU extension, the function name is
- *   cross-referenced with the list returned by
- *   <code>gluGetString(GLU_EXTENSIONS)</code> to see if the function is one of
- *   the extensions that is supported by the underlying GLU implementation.
- * </ul>
- *
- * Whether or not a GLU function is <i>available</i> is determined as follows:
- * <ul>
- *   <li>If the function is a GLU core function then the function is first
- *   cross-referenced with the GLU specifications to find the minimum GLU
- *   version required to <i>call</i> that GLU function. Then the following table
- *   is consulted to determine the minimum GL version required for that version
- *   of GLU:
- *   <ul>
- *   <li> GLU 1.0 requires OpenGL 1.0
- *   <li> GLU 1.1 requires OpenGL 1.0
- *   <li> GLU 1.2 requires OpenGL 1.1
- *   <li> GLU 1.3 requires OpenGL 1.2
- *   </ul>
- *   Finally, <code>glGetString(GL_VERSION)</code> is used to determine the
- *   highest OpenGL version that both host and display support, and from that it
- *   is possible to determine if the GL facilities required by the GLU function
- *   are <i>available</i> on the display.
- *
- *   <li> If the function is a GLU extension, the function name is
- *   cross-referenced with the list returned by
- *   <code>gluGetString(GLU_EXTENSIONS)</code> to see if the function is one of
- *   the extensions that is supported by the underlying GLU implementation.
- * </ul>
- *
- * <b>NOTE:</b>The availability of a function may change at runtime in
- * response to changes in the display environment. For example, when a window
- * is dragged from one display to another on a multi-display system, or when
- * the properties of the display device are modified (e.g., changing the color
- * depth of the display). Any application that is concerned with handling
- * these situations correctly should confirm availability after a display
- * change before calling a questionable OpenGL function. To detect a change in
- * the display device, please see {@link
- * GLEventListener#displayChanged(GLAutoDrawable,boolean,boolean)}.
- *
- * @param gluFunctionName the name of the OpenGL function (e.g., use
- * "gluNurbsCallbackDataEXT" to check if the <code>
- * gluNurbsCallbackDataEXT(GLUnurbs, GLvoid)</code> extension is available).
- */
-public boolean isFunctionAvailable(String gluFunctionName)
-{
-    //  if (useJavaMipmapCode) {
-    // All GLU functions are available in Java port
-    return true;
-    //  }
-  //  return (gluProcAddressTable.getAddressFor(gluFunctionName) != 0);
-}
-
 //----------------------------------------------------------------------
 // Quadric functionality
 //
 
 /** Interface to C language function: <br> <code> void gluCylinder(GLUquadric *  quad, GLdouble base, GLdouble top, GLdouble height, GLint slices, GLint stacks); </code>    */
-public void gluCylinder(GLUquadric quad, double base, double top, double height, int slices, int stacks) {
-  ((GLUquadricImpl) quad).drawCylinder(getCurrentGL(), (float) base, (float) top, (float) height, slices, stacks);
+public final void gluCylinder(GLUquadric quad, double base, double top, double height, int slices, int stacks) {
+  ((GLUquadricImpl) quad).drawCylinder(getCurrentGL2ES1(), (float) base, (float) top, (float) height, slices, stacks);
 }
 
 /** Interface to C language function: <br> <code> void gluDeleteQuadric(GLUquadric *  quad); </code>    */
-public void gluDeleteQuadric(GLUquadric quad) {
+public final void gluDeleteQuadric(GLUquadric quad) {
 }
 
 /** Interface to C language function: <br> <code> void gluDisk(GLUquadric *  quad, GLdouble inner, GLdouble outer, GLint slices, GLint loops); </code>    */
-public void gluDisk(GLUquadric quad, double inner, double outer, int slices, int loops) {
-  ((GLUquadricImpl) quad).drawDisk(getCurrentGL(), (float) inner, (float) outer, slices, loops);
+public final void gluDisk(GLUquadric quad, double inner, double outer, int slices, int loops) {
+  ((GLUquadricImpl) quad).drawDisk(getCurrentGL2ES1(), (float) inner, (float) outer, slices, loops);
 }
 
 /** Interface to C language function: <br> <code> GLUquadric *  gluNewQuadric(void); </code>    */
-public GLUquadric gluNewQuadric() {
+public final GLUquadric gluNewQuadric() {
   return new GLUquadricImpl();
 }
 
 /** Interface to C language function: <br> <code> void gluPartialDisk(GLUquadric *  quad, GLdouble inner, GLdouble outer, GLint slices, GLint loops, GLdouble start, GLdouble sweep); </code>    */
-public void gluPartialDisk(GLUquadric quad, double inner, double outer, int slices, int loops, double start, double sweep) {
-  ((GLUquadricImpl) quad).drawPartialDisk(getCurrentGL(), (float) inner, (float) outer, slices, loops, (float) start, (float) sweep);
+public final void gluPartialDisk(GLUquadric quad, double inner, double outer, int slices, int loops, double start, double sweep) {
+  ((GLUquadricImpl) quad).drawPartialDisk(getCurrentGL2ES1(), (float) inner, (float) outer, slices, loops, (float) start, (float) sweep);
 }
 
 /** Interface to C language function: <br> <code> void gluQuadricDrawStyle(GLUquadric *  quad, GLenum draw); </code>    */
-public void gluQuadricDrawStyle(GLUquadric quad, int draw) {
+public final void gluQuadricDrawStyle(GLUquadric quad, int draw) {
   ((GLUquadricImpl) quad).setDrawStyle(draw);
 }
 
 /** Interface to C language function: <br> <code> void gluQuadricNormals(GLUquadric *  quad, GLenum normal); </code>    */
-public void gluQuadricNormals(GLUquadric quad, int normal) {
+public final void gluQuadricNormals(GLUquadric quad, int normal) {
   ((GLUquadricImpl) quad).setNormals(normal);
 }
 
 /** Interface to C language function: <br> <code> void gluQuadricOrientation(GLUquadric *  quad, GLenum orientation); </code>    */
-public void gluQuadricOrientation(GLUquadric quad, int orientation) {
+public final void gluQuadricOrientation(GLUquadric quad, int orientation) {
   ((GLUquadricImpl) quad).setOrientation(orientation);
 }
 
 /** Interface to C language function: <br> <code> void gluQuadricTexture(GLUquadric *  quad, GLboolean texture); </code>    */
-public void gluQuadricTexture(GLUquadric quad, boolean texture) {
+public final void gluQuadricTexture(GLUquadric quad, boolean texture) {
   ((GLUquadricImpl) quad).setTextureFlag(texture);
 }
 
 /** Interface to C language function: <br> <code> void gluSphere(GLUquadric *  quad, GLdouble radius, GLint slices, GLint stacks); </code>    */
-public void gluSphere(GLUquadric quad, double radius, int slices, int stacks) {
-  ((GLUquadricImpl) quad).drawSphere(getCurrentGL(), (float) radius, slices, stacks);
+public final void gluSphere(GLUquadric quad, double radius, int slices, int stacks) {
+  ((GLUquadricImpl) quad).drawSphere(getCurrentGL2ES1(), (float) radius, slices, stacks);
 }
 
 //----------------------------------------------------------------------
 // Projection routines
 //
 
-private ProjectES1 project;
+private ProjectFloat project;
 
-public void gluOrtho2D(float left, float right, float bottom, float top) {
-  project.gluOrtho2D(getCurrentGL(), left, right, bottom, top);
+public final void gluOrtho2D(float left, float right, float bottom, float top) {
+  project.gluOrtho2D(getCurrentGL2ES1(), left, right, bottom, top);
 }
 
-public void gluPerspective(float fovy, float aspect, float zNear, float zFar) {
-  project.gluPerspective(getCurrentGL(), fovy, aspect, zNear, zFar);
+public final void gluPerspective(float fovy, float aspect, float zNear, float zFar) {
+  project.gluPerspective(getCurrentGL2ES1(), fovy, aspect, zNear, zFar);
 }
 
-public void gluLookAt(float eyeX, float eyeY, float eyeZ, float centerX, float centerY, float centerZ, float upX, float upY, float upZ) {
-  project.gluLookAt(getCurrentGL(), eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ);
+public final void gluLookAt(float eyeX, float eyeY, float eyeZ, float centerX, float centerY, float centerZ, float upX, float upY, float upZ) {
+  project.gluLookAt(getCurrentGL2ES1(), eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ);
 }
 
 /** Interface to C language function: <br> <code> GLint gluProject(GLdouble objX, GLdouble objY, GLdouble objZ, const GLdouble *  model, const GLdouble *  proj, const GLint *  view, GLdouble *  winX, GLdouble *  winY, GLdouble *  winZ); </code>
  * <P> Accepts the outgoing window coordinates as a single array.
  */
-public boolean gluProject(float objX, float objY, float objZ, float[] model, int model_offset, float[] proj, int proj_offset, int[] view, int view_offset, float[] winPos, int winPos_offset) {
+public final boolean gluProject(float objX, float objY, float objZ, float[] model, int model_offset, float[] proj, int proj_offset, int[] view, int view_offset, float[] winPos, int winPos_offset) {
   return project.gluProject(objX, objY, objZ, model, model_offset, proj, proj_offset, view, view_offset, winPos, winPos_offset);
 }
 
 /** Interface to C language function: <br> <code> GLint gluProject(GLdouble objX, GLdouble objY, GLdouble objZ, const GLdouble *  model, const GLdouble *  proj, const GLint *  view, GLdouble *  winX, GLdouble *  winY, GLdouble *  winZ); </code>
  * <P> Accepts the outgoing window coordinates as a single buffer.
  */
-public boolean gluProject(float objX, float objY, float objZ, java.nio.FloatBuffer model, java.nio.FloatBuffer proj, java.nio.IntBuffer view, java.nio.FloatBuffer winPos) {
+public final boolean gluProject(float objX, float objY, float objZ, java.nio.FloatBuffer model, java.nio.FloatBuffer proj, java.nio.IntBuffer view, java.nio.FloatBuffer winPos) {
   return project.gluProject(objX, objY, objZ, model, proj, view, winPos);
 }
 
 /** Interface to C language function: <br> <code> GLint gluUnProject(GLdouble winX, GLdouble winY, GLdouble winZ, const GLdouble *  model, const GLdouble *  proj, const GLint *  view, GLdouble *  objX, GLdouble *  objY, GLdouble *  objZ); </code>
  * <P> Accepts the outgoing object coordinates (a 3-vector) as a single array.
  */
-public boolean gluUnProject(float winX, float winY, float winZ, float[] model, int model_offset, float[] proj, int proj_offset, int[] view, int view_offset, float[] objPos, int objPos_offset) {
+public final boolean gluUnProject(float winX, float winY, float winZ, float[] model, int model_offset, float[] proj, int proj_offset, int[] view, int view_offset, float[] objPos, int objPos_offset) {
   return project.gluUnProject(winX, winY, winZ, model, model_offset, proj, proj_offset, view, view_offset, objPos, objPos_offset);
 }
 
 /** Interface to C language function: <br> <code> GLint gluUnProject(GLdouble winX, GLdouble winY, GLdouble winZ, const GLdouble *  model, const GLdouble *  proj, const GLint *  view, GLdouble *  objX, GLdouble *  objY, GLdouble *  objZ); </code>
  * <P> Accepts the outgoing object coordinates (a 3-vector) as a single buffer.
  */
-public boolean gluUnProject(float winX, float winY, float winZ, java.nio.FloatBuffer model, java.nio.FloatBuffer proj, java.nio.IntBuffer view, java.nio.FloatBuffer objPos) {
+public final boolean gluUnProject(float winX, float winY, float winZ, java.nio.FloatBuffer model, java.nio.FloatBuffer proj, java.nio.IntBuffer view, java.nio.FloatBuffer objPos) {
   return project.gluUnProject(winX, winY, winZ, model, proj, view, objPos);
 }
 
 /** Interface to C language function: <br> <code> GLint gluUnProject4(GLdouble winX, GLdouble winY, GLdouble winZ, GLdouble clipW, const GLdouble *  model, const GLdouble *  proj, const GLint *  view, GLdouble nearVal, GLdouble farVal, GLdouble *  objX, GLdouble *  objY, GLdouble *  objZ, GLdouble *  objW); </code>
  * <P> Accepts the outgoing object coordinates (a 4-vector) as a single array.
  */
-public boolean gluUnProject4(float winX, float winY, float winZ, float clipW, float[] model, int model_offset, float[] proj, int proj_offset, int[] view, int view_offset, float nearVal, float farVal, float[] objPos, int objPos_offset) {
+public final boolean gluUnProject4(float winX, float winY, float winZ, float clipW, float[] model, int model_offset, float[] proj, int proj_offset, int[] view, int view_offset, float nearVal, float farVal, float[] objPos, int objPos_offset) {
   return project.gluUnProject4(winX, winY, winZ, clipW, model, model_offset, proj, proj_offset, view, view_offset, nearVal, farVal, objPos, objPos_offset);
 }
 
 /** Interface to C language function: <br> <code> GLint gluUnProject4(GLdouble winX, GLdouble winY, GLdouble winZ, GLdouble clipW, const GLdouble *  model, const GLdouble *  proj, const GLint *  view, GLdouble nearVal, GLdouble farVal, GLdouble *  objX, GLdouble *  objY, GLdouble *  objZ, GLdouble *  objW); </code>
  * <P> Accepts the outgoing object coordinates (a 4-vector) as a single buffer.
  */
-public boolean gluUnProject4(float winX, float winY, float winZ, float clipW, java.nio.FloatBuffer model, java.nio.FloatBuffer proj, java.nio.IntBuffer view, float nearVal, float farVal, java.nio.FloatBuffer objPos) {
+public final boolean gluUnProject4(float winX, float winY, float winZ, float clipW, java.nio.FloatBuffer model, java.nio.FloatBuffer proj, java.nio.IntBuffer view, float nearVal, float farVal, java.nio.FloatBuffer objPos) {
   return project.gluUnProject4(winX, winY, winZ, clipW, model, proj, view, nearVal, farVal, objPos);
 }
 
-public void gluPickMatrix(float x, float y, float delX, float delY, int[] viewport, int viewport_offset) {
-  project.gluPickMatrix(getCurrentGL(), x, y, delX, delY, viewport, viewport_offset);
+public final void gluPickMatrix(float x, float y, float delX, float delY, int[] viewport, int viewport_offset) {
+  project.gluPickMatrix(getCurrentGL2ES1(), x, y, delX, delY, viewport, viewport_offset);
 }
 
-public void gluPickMatrix(float x, float y, float delX, float delY, java.nio.IntBuffer viewport) {
-  project.gluPickMatrix(getCurrentGL(), x, y, delX, delY, viewport);
+public final void gluPickMatrix(float x, float y, float delX, float delY, java.nio.IntBuffer viewport) {
+  project.gluPickMatrix(getCurrentGL2ES1(), x, y, delX, delY, viewport);
 }
 
-// Boolean
-public static final int GLU_FALSE = 0;
-public static final int GLU_TRUE = 1;
+public final void gluOrtho2D(double left, double right, double bottom, double top) {
+  project.gluOrtho2D(getCurrentGL2ES1(), (float)left, (float)right, (float)bottom, (float)top);
+}
 
-// String Name
-public static final int GLU_VERSION = 100800;
-public static final int GLU_EXTENSIONS = 100801;
+public final void gluPerspective(double fovy, double aspect, double zNear, double zFar) {
+  project.gluPerspective(getCurrentGL2ES1(), (float)fovy, (float)aspect, (float)zNear, (float)zFar);
+}
 
-// Extensions
-public static final String versionString = "1.3";
-public static final String extensionString = "GLU_EXT_nurbs_tessellator " +
-                                             "GLU_EXT_object_space_tess ";
+public final void gluLookAt(double eyeX, double eyeY, double eyeZ, double centerX, double centerY, double centerZ, double upX, double upY, double upZ) {
+  project.gluLookAt(getCurrentGL2ES1(), (float)eyeX, (float)eyeY, (float)eyeZ, (float)centerX, (float)centerY, (float)centerZ, (float)upX, (float)upY, (float)upZ);
+}
 
-// ErrorCode
-public static final int GLU_INVALID_ENUM = 100900;
-public static final int GLU_INVALID_VALUE = 100901;
-public static final int GLU_OUT_OF_MEMORY = 100902;
-public static final int GLU_INVALID_OPERATION = 100904;
+/** Interface to C language function: <br> <code> GLint gluProject(GLdouble objX, GLdouble objY, GLdouble objZ, const GLdouble *  model, const GLdouble *  proj, const GLint *  view, GLdouble *  winX, GLdouble *  winY, GLdouble *  winZ); </code>
+ * <P> Accepts the outgoing window coordinates as a single array.
+ */
+public final boolean gluProject(double objX, double objY, double objZ, double[] model, int model_offset, double[] proj, int proj_offset, int[] view, int view_offset, double[] winPos, int winPos_offset) {
+  return project.gluProject((float)objX, (float)objY, (float)objZ, BufferUtil.getFloatArray(model), model_offset, BufferUtil.getFloatArray(proj), proj_offset, view, view_offset, BufferUtil.getFloatArray(winPos), winPos_offset);
+}
 
-/*************
+/** Interface to C language function: <br> <code> GLint gluProject(GLdouble objX, GLdouble objY, GLdouble objZ, const GLdouble *  model, const GLdouble *  proj, const GLint *  view, GLdouble *  winX, GLdouble *  winY, GLdouble *  winZ); </code>
+ * <P> Accepts the outgoing window coordinates as a single buffer.
+ */
+public final boolean gluProject(double objX, double objY, double objZ, DoubleBuffer model, DoubleBuffer proj, IntBuffer view, DoubleBuffer winPos) {
+  return project.gluProject((float)objX, (float)objY, (float)objZ, BufferUtil.getFloatBuffer(model), BufferUtil.getFloatBuffer(proj), view, BufferUtil.getFloatBuffer(winPos));
+}
+
+/** Interface to C language function: <br> <code> GLint gluUnProject(GLdouble winX, GLdouble winY, GLdouble winZ, const GLdouble *  model, const GLdouble *  proj, const GLint *  view, GLdouble *  objX, GLdouble *  objY, GLdouble *  objZ); </code>
+ * <P> Accepts the outgoing object coordinates (a 3-vector) as a single array.
+ */
+public final boolean gluUnProject(double winX, double winY, double winZ, double[] model, int model_offset, double[] proj, int proj_offset, int[] view, int view_offset, double[] objPos, int objPos_offset) {
+  return project.gluUnProject((float)winX, (float)winY, (float)winZ, BufferUtil.getFloatArray(model), model_offset, BufferUtil.getFloatArray(proj), proj_offset, view, view_offset, BufferUtil.getFloatArray(objPos), objPos_offset);
+}
+
+/** Interface to C language function: <br> <code> GLint gluUnProject(GLdouble winX, GLdouble winY, GLdouble winZ, const GLdouble *  model, const GLdouble *  proj, const GLint *  view, GLdouble *  objX, GLdouble *  objY, GLdouble *  objZ); </code>
+ * <P> Accepts the outgoing object coordinates (a 3-vector) as a single buffer.
+ */
+public final boolean gluUnProject(double winX, double winY, double winZ, DoubleBuffer model, DoubleBuffer proj, IntBuffer view, DoubleBuffer objPos) {
+  return project.gluUnProject((float)winX, (float)winY, (float)winZ, BufferUtil.getFloatBuffer(model), BufferUtil.getFloatBuffer(proj), view, BufferUtil.getFloatBuffer(objPos));
+}
+
+/** Interface to C language function: <br> <code> GLint gluUnProject4(GLdouble winX, GLdouble winY, GLdouble winZ, GLdouble clipW, const GLdouble *  model, const GLdouble *  proj, const GLint *  view, GLdouble nearVal, GLdouble farVal, GLdouble *  objX, GLdouble *  objY, GLdouble *  objZ, GLdouble *  objW); </code>
+ * <P> Accepts the outgoing object coordinates (a 4-vector) as a single array.
+ */
+public final boolean gluUnProject4(double winX, double winY, double winZ, double clipW, double[] model, int model_offset, double[] proj, int proj_offset, int[] view, int view_offset, double nearVal, double farVal, double[] objPos, int objPos_offset) {
+  return project.gluUnProject4((float)winX, (float)winY, (float)winZ, (float)clipW, BufferUtil.getFloatArray(model), model_offset, BufferUtil.getFloatArray(proj), proj_offset, view, view_offset, (float)nearVal, (float)farVal, BufferUtil.getFloatArray(objPos), objPos_offset);
+}
+
+/** Interface to C language function: <br> <code> GLint gluUnProject4(GLdouble winX, GLdouble winY, GLdouble winZ, GLdouble clipW, const GLdouble *  model, const GLdouble *  proj, const GLint *  view, GLdouble nearVal, GLdouble farVal, GLdouble *  objX, GLdouble *  objY, GLdouble *  objZ, GLdouble *  objW); </code>
+ * <P> Accepts the outgoing object coordinates (a 4-vector) as a single buffer.
+ */
+public final boolean gluUnProject4(double winX, double winY, double winZ, double clipW, DoubleBuffer model, DoubleBuffer proj, IntBuffer view, double nearVal, double farVal, DoubleBuffer objPos) {
+  return project.gluUnProject4((float)winX, (float)winY, (float)winZ, (float)clipW, BufferUtil.getFloatBuffer(model), BufferUtil.getFloatBuffer(proj), view, (float)nearVal, (float)farVal, BufferUtil.getFloatBuffer(objPos));
+}
+
+public final void gluPickMatrix(double x, double y, double delX, double delY, int[] viewport, int viewport_offset) {
+  project.gluPickMatrix(getCurrentGL2ES1(), (float)x, (float)y, (float)delX, (float)delY, viewport, viewport_offset);
+}
+
+public final void gluPickMatrix(double x, double y, double delX, double delY, IntBuffer viewport) {
+  project.gluPickMatrix(getCurrentGL2ES1(), (float)x, (float)y, (float)delX, (float)delY, viewport);
+}
 
 //----------------------------------------------------------------------
 // Mipmap and image scaling functionality
 
 
-// Boolean
-public static final int GLU_FALSE = 0;
-public static final int GLU_TRUE = 1;
-
-// String Name
-public static final int GLU_VERSION = 100800;
-public static final int GLU_EXTENSIONS = 100801;
-
-// Extensions
-public static final String versionString = "1.3";
-public static final String extensionString = "GLU_EXT_nurbs_tessellator " +
-                                             "GLU_EXT_object_space_tess ";
-
-// ErrorCode
-public static final int GLU_INVALID_ENUM = 100900;
-public static final int GLU_INVALID_VALUE = 100901;
-public static final int GLU_OUT_OF_MEMORY = 100902;
-public static final int GLU_INVALID_OPERATION = 100904;
-
-private java.nio.ByteBuffer copyToByteBuffer(java.nio.Buffer buf) {
+private final java.nio.ByteBuffer copyToByteBuffer(java.nio.Buffer buf) {
   if (buf instanceof java.nio.ByteBuffer) {
     if (buf.position() == 0) {
       return (java.nio.ByteBuffer) buf;
@@ -334,7 +278,7 @@ private java.nio.ByteBuffer copyToByteBuffer(java.nio.Buffer buf) {
   }
 }
 
-private int gluScaleImageJava( int format, int widthin, int heightin,
+public final int gluScaleImage( int format, int widthin, int heightin,
                                int typein, java.nio.Buffer datain, int widthout, int heightout,
                                int typeout, java.nio.Buffer dataout ) {
   java.nio.ByteBuffer in = null;
@@ -351,7 +295,7 @@ private int gluScaleImageJava( int format, int widthin, int heightin,
   } else {
     throw new IllegalArgumentException("Unsupported destination buffer type (must be byte, short, int, or float)");
   }
-  int errno = Mipmap.gluScaleImage( getCurrentGL(), format, widthin, heightin, typein, in, 
+  int errno = Mipmap.gluScaleImage( getCurrentGL2ES1(), format, widthin, heightin, typein, in, 
             widthout, heightout, typeout, out );
   if( errno == 0 ) {
     out.rewind();
@@ -371,138 +315,54 @@ private int gluScaleImageJava( int format, int widthin, int heightin,
 }
 
 
-private int gluBuild1DMipmapLevelsJava( int target, int internalFormat, int width,
+public final int gluBuild1DMipmapLevels( int target, int internalFormat, int width,
                                         int format, int type, int userLevel, int baseLevel, int maxLevel,
                                         java.nio.Buffer data ) {
   java.nio.ByteBuffer buffer = copyToByteBuffer(data);
-  return( Mipmap.gluBuild1DMipmapLevels( getCurrentGL(), target, internalFormat, width,
+  return( Mipmap.gluBuild1DMipmapLevels( getCurrentGL2ES1(), target, internalFormat, width,
           format, type, userLevel, baseLevel, maxLevel, buffer ) );
 }
 
 
-private int gluBuild1DMipmapsJava( int target, int internalFormat, int width,
+public final int gluBuild1DMipmaps( int target, int internalFormat, int width,
                                    int format, int type, java.nio.Buffer data ) {
   java.nio.ByteBuffer buffer = copyToByteBuffer(data);
-  return( Mipmap.gluBuild1DMipmaps( getCurrentGL(), target, internalFormat, width, format,
+  return( Mipmap.gluBuild1DMipmaps( getCurrentGL2ES1(), target, internalFormat, width, format,
           type, buffer ) );
 }
 
 
-private int gluBuild2DMipmapLevelsJava( int target, int internalFormat, int width,
+public final int gluBuild2DMipmapLevels( int target, int internalFormat, int width,
                                         int height, int format, int type, int userLevel, int baseLevel,
                                         int maxLevel, java.nio.Buffer data ) {
   // While the code below handles other data types, it doesn't handle non-ByteBuffers
   data = copyToByteBuffer(data);
-  return( Mipmap.gluBuild2DMipmapLevels( getCurrentGL(), target, internalFormat, width,
+  return( Mipmap.gluBuild2DMipmapLevels( getCurrentGL2ES1(), target, internalFormat, width,
           height, format, type, userLevel, baseLevel, maxLevel, data ) );
 }
 
-private int gluBuild2DMipmapsJava( int target, int internalFormat, int width,
+public final int gluBuild2DMipmaps( int target, int internalFormat, int width,
                                    int height, int format, int type, java.nio.Buffer data ) {
   // While the code below handles other data types, it doesn't handle non-ByteBuffers
   data = copyToByteBuffer(data);
-  return( Mipmap.gluBuild2DMipmaps( getCurrentGL(), target, internalFormat, width, height,
+  return( Mipmap.gluBuild2DMipmaps( getCurrentGL2ES1(), target, internalFormat, width, height,
           format, type, data) );
 }
 
-private int gluBuild3DMipmapLevelsJava( int target, int internalFormat, int width,
+public final int gluBuild3DMipmapLevels( int target, int internalFormat, int width,
                                         int height, int depth, int format, int type, int userLevel, int baseLevel,
                                         int maxLevel, java.nio.Buffer data) {
   java.nio.ByteBuffer buffer = copyToByteBuffer(data);
-  return( Mipmap.gluBuild3DMipmapLevels( getCurrentGL(), target, internalFormat, width,
+  return( Mipmap.gluBuild3DMipmapLevels( getCurrentGL2ES1(), target, internalFormat, width,
           height, depth, format, type, userLevel, baseLevel, maxLevel, buffer) );
 }
 
-private int gluBuild3DMipmapsJava( int target, int internalFormat, int width,
+public final int gluBuild3DMipmaps( int target, int internalFormat, int width,
                                    int height, int depth, int format, int type, java.nio.Buffer data ) {
   java.nio.ByteBuffer buffer = copyToByteBuffer(data);
-  return( Mipmap.gluBuild3DMipmaps( getCurrentGL(), target, internalFormat, width, height,
+  return( Mipmap.gluBuild3DMipmaps( getCurrentGL2ES1(), target, internalFormat, width, height,
           depth, format, type, buffer ) );
 }
-
-*********************/
-
-//----------------------------------------------------------------------
-// Wrappers for mipmap and image scaling entry points which dispatch either
-// to the Java or C versions.
-//
-
-/** Interface to C language function: <br> <code> GLint gluBuild1DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
-/*
-public int gluBuild1DMipmapLevels(int target, int internalFormat, int width, int format, int type, int level, int base, int max, java.nio.Buffer data) {
-  if (useJavaMipmapCode) {
-    return gluBuild1DMipmapLevelsJava(target, internalFormat, width, format, type, level, base, max, data);
-  } else {
-    return gluBuild1DMipmapLevelsC(target, internalFormat, width, format, type, level, base, max, data);
-  }
-}
-*/
-
-/** Interface to C language function: <br> <code> GLint gluBuild1DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLenum format, GLenum type, const void *  data); </code>    */
-/*
-public int gluBuild1DMipmaps(int target, int internalFormat, int width, int format, int type, java.nio.Buffer data) {
-  if (useJavaMipmapCode) {
-    return gluBuild1DMipmapsJava(target, internalFormat, width, format, type, data);
-  } else {
-    return gluBuild1DMipmapsC(target, internalFormat, width, format, type, data);
-  }
-}
-*/
-
-/** Interface to C language function: <br> <code> GLint gluBuild2DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
-/*
-public int gluBuild2DMipmapLevels(int target, int internalFormat, int width, int height, int format, int type, int level, int base, int max, java.nio.Buffer data) {
-  if (useJavaMipmapCode) {
-    return gluBuild2DMipmapLevelsJava(target, internalFormat, width, height, format, type, level, base, max, data);
-  } else {
-    return gluBuild2DMipmapLevelsC(target, internalFormat, width, height, format, type, level, base, max, data);
-  }
-}
-*/
-
-/** Interface to C language function: <br> <code> GLint gluBuild2DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *  data); </code>    */
-/*
-public int gluBuild2DMipmaps(int target, int internalFormat, int width, int height, int format, int type, java.nio.Buffer data) {
-  if (useJavaMipmapCode) {
-    return gluBuild2DMipmapsJava(target, internalFormat, width, height, format, type, data);
-  } else {
-    return gluBuild2DMipmapsC(target, internalFormat, width, height, format, type, data);
-  }
-}
-*/
-
-/** Interface to C language function: <br> <code> GLint gluBuild3DMipmapLevels(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, GLint level, GLint base, GLint max, const void *  data); </code>    */
-/*
-public int gluBuild3DMipmapLevels(int target, int internalFormat, int width, int height, int depth, int format, int type, int level, int base, int max, java.nio.Buffer data) {
-  if (useJavaMipmapCode) {
-    return gluBuild3DMipmapLevelsJava(target, internalFormat, width, height, depth, format, type, level, base, max, data);
-  } else {
-    return gluBuild3DMipmapLevelsC(target, internalFormat, width, height, depth, format, type, level, base, max, data);
-  }
-}
-*/
-
-/** Interface to C language function: <br> <code> GLint gluBuild3DMipmaps(GLenum target, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *  data); </code>    */
-/*
-public int gluBuild3DMipmaps(int target, int internalFormat, int width, int height, int depth, int format, int type, java.nio.Buffer data) {
-  if (useJavaMipmapCode) {
-    return gluBuild3DMipmapsJava(target, internalFormat, width, height, depth, format, type, data);
-  } else {
-    return gluBuild3DMipmapsC(target, internalFormat, width, height, depth, format, type, data);
-  }
-}
-*/
-
-/** Interface to C language function: <br> <code> GLint gluScaleImage(GLenum format, GLsizei wIn, GLsizei hIn, GLenum typeIn, const void *  dataIn, GLsizei wOut, GLsizei hOut, GLenum typeOut, GLvoid *  dataOut); </code>    */
-/*
-public int gluScaleImage(int format, int wIn, int hIn, int typeIn, java.nio.Buffer dataIn, int wOut, int hOut, int typeOut, java.nio.Buffer dataOut) {
-  if (useJavaMipmapCode) {
-    return gluScaleImageJava(format, wIn, hIn, typeIn, dataIn, wOut, hOut, typeOut, dataOut);
-  } else {
-    return gluScaleImageC(format, wIn, hIn, typeIn, dataIn, wOut, hOut, typeOut, dataOut);
-  }
-}
-*/
 
 //----------------------------------------------------------------------
 // GLUProcAddressTable handling
@@ -531,22 +391,3 @@ private static synchronized void loadGLULibrary() {
   }
 }
 */
-
-// QuadricDrawStyle
-public static final int GLU_POINT = 100010;
-public static final int GLU_LINE = 100011;
-public static final int GLU_FILL = 100012;
-public static final int GLU_SILHOUETTE = 100013;
-
-// QuadricCallback
-// GLU_ERROR
-
-// QuadricNormal
-public static final int GLU_SMOOTH = 100000;
-public static final int GLU_FLAT = 100001;
-public static final int GLU_NONE = 100002;
-
-// QuadricOrientation
-public static final int GLU_OUTSIDE = 100020;
-public static final int GLU_INSIDE = 100021;
-

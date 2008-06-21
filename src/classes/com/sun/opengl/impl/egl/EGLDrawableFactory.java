@@ -48,8 +48,8 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     // We need more than one of these on certain devices (the NVidia APX 2500 in particular)
     private List/*<NativeLibrary>*/ glesLibraries;
 
-    public EGLDrawableFactory(String profile) {
-        super(profile);
+    public EGLDrawableFactory() {
+        super();
 
         loadGLESLibrary();
         EGL.resetProcAddressTable(this);
@@ -67,7 +67,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         glesLibNames.add("GLES_CM");
         glesLibNames.add("GLES_CL");
         // NVidia APX 2500
-        if (PROFILE_GLES2.equals(getProfile())) {
+        if (GLProfile.isGLES2()) {
             glesLibNames.add("libGLESv2_CM");
             glesLibNames.add("GLESv2_CM");
         } else {
@@ -85,7 +85,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         }
 
         if (libs.isEmpty()) {
-            throw new GLException("Unable to dynamically load OpenGL ES library for profile \"" + getProfile() + "\"");
+            throw new GLException("Unable to dynamically load OpenGL ES library for profile \"" + GLProfile.getProfile() + "\"");
         }
 
         // On the NVidia APX 2500 we need to separately load the EGL library
@@ -158,12 +158,6 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         return 0;
     }
 
-    public void lockAWTForJava2D() {
-    }
-
-    public void unlockAWTForJava2D() {
-    }
-
     public boolean canCreateContextOnJava2DSurface() {
         return false;
     }
@@ -185,7 +179,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         // FIXME: we need to query the EGL version to determine
         // whether we are allowed to specify the renderable type
 
-        if (PROFILE_GLES2.equals(getProfile())) {
+        if (GLProfile.isGLES2()) {
             attrs[attrs.length - 3] = EGL.EGL_RENDERABLE_TYPE;
             attrs[attrs.length - 2] = EGL.EGL_OPENGL_ES2_BIT;
         }
@@ -340,10 +334,8 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
 
     */
 
-    /*
-    public GLContext createContextOnJava2DSurface(Graphics g, GLContext shareWith)
+    public GLContext createContextOnJava2DSurface(Object graphics, GLContext shareWith)
         throws GLException {
         throw new GLException("Unimplemented on this platform");
     }
-    */
 }

@@ -23,9 +23,7 @@
    -   javadoc:      create the standard developer Javadoc (recommended)
    -                 (Note: should build all first - may be dependence in the future)
    -   javadoc.spec:   create the standard developer Javadoc but exclude com.sun.* classes
-   -   javadoc.dev.win32:
-   -   javadoc.dev.x11:
-   -   javadoc.dev.macosx: create the internal developer Javadoc.  This includes the
+   -   javadoc.dev.all: create the internal developer Javadoc.  This includes the
    -                       Java and C file generators. Note that it is only supported
    -                       to create the Javadoc for the platform on which you are
    -                       currently running.
@@ -50,9 +48,13 @@
    -
    - Some environment defs ..
        jogl.cdcfp
-       jogl.es1
-       jogl.es2
+       jogl.noes1
+       jogl.noes2
+       jogl.nogl2
        jogl.noAWT
+       jogl.noglugl2  - no glu gl2 impl.
+       jogl.noutil    - no com.sun.opengl.util.*
+       jogl.nonewt 
        jogl.noX11WindowsMacOsX, which implies:
            jogl.noX11
            jogl.noWindows
@@ -79,38 +81,50 @@
        - Base initialization and detection of operating system.
       -->
     <target name="base.init" depends="gluegen.cpptasks.detect.os">
-        <condition property="isGLES">
-          <or>
-            <isset property="jogl.es1" />
-            <isset property="jogl.es2" />
-          </or>
+
+        <echo message="isX11: ${isX11}" />
+        <echo message="isWindows: ${isWindows}" />
+        <echo message="isOSX: ${isOSX}" />
+
+        <condition property="jogl.noes">
+           <and>
+               <isset property="jogl.noes1"/> 
+               <isset property="jogl.noes2"/> 
+           </and>
         </condition>
 
-        <!-- Also set isCDCFP for the GlueGen build.xml to keep GL
-             references there to a minimum -->
-        <condition property="isCDCFP">
-            <isset property="jogl.cdcfp" />
-        </condition>
+        <echo message="jogl.noes : ${jogl.noes}" />
+        <echo message="jogl.noes1: ${jogl.noes1}" />
+        <echo message="jogl.noes2: ${jogl.noes2}" />
+        <echo message="jogl.nogl2: ${jogl.nogl2}" />
 
+        <condition property="jogl.noAWT">
+           <isset property="jogl.cdcfp"/> 
+        </condition>
+        <condition property="javac.bootclasspath.jar"
+                   value="../../gluegen/make/lib/cdc_fp.jar">
+           <isset property="jogl.cdcfp"/> 
+        </condition>
         <echo message="jogl.cdcfp: ${jogl.cdcfp}" />
+        <echo message="jogl.noAWT: ${jogl.noAWT}" />
+        <echo message="javac.bootclasspath.jar: ${javac.bootclasspath.jar}" />
 
-        <condition property="isGLES1">
-            <isset property="jogl.es1" />
+        <condition property="jogl.noX11WindowsMacOsX">
+          <and>
+           <isset property="jogl.noX11"/> 
+           <isset property="jogl.noWindows"/> 
+           <isset property="jogl.noMacOsX"/> 
+          </and>
         </condition>
-
-        <condition property="isGLES2">
-            <isset property="jogl.es2" />
-        </condition>
-
-        <echo message="jogl.es1: ${jogl.es1}" />
-        <echo message="jogl.es2: ${jogl.es2}" />
 
         <condition property="jogl.noX11">
-            <isset property="jogl.noX11WindowsMacOsX" />
+            <isset property="jogl.noX11WindowsMacOsX"/>
         </condition>
+
         <condition property="jogl.noWindows">
             <isset property="jogl.noX11WindowsMacOsX" />
         </condition>
+
         <condition property="jogl.noMacOsX">
             <isset property="jogl.noX11WindowsMacOsX" />
         </condition>
@@ -120,29 +134,119 @@
         <echo message="jogl.noWindows: ${jogl.noWindows}" />
         <echo message="jogl.noMacOsX: ${jogl.noMacOsX}" />
 
+        <!-- partitioning -->
+
+        <property name="java.part.egl"
+                  value="com/sun/opengl/impl/egl/**"/>
+
+        <property name="java.part.glugl2"
+                  value="com/sun/opengl/impl/glu/gl2/**, com/sun/opengl/impl/glu/nurbs/**, com/sun/opengl/impl/glu/registry/**, com/sun/opengl/impl/glu/tessellator/**, javax/media/opengl/glu/gl2/**"/>
+
+        <property name="java.part.gl2"
+                  value="javax/media/opengl/GL2.*, javax/media/opengl/TraceGL2.*, javax/media/opengl/DebugGL2.*, com/sun/opengl/impl/**/gl2/**, com/sun/opengl/impl/**/glx/**, com/sun/opengl/impl/**/wgl/**, com/sun/opengl/impl/**/cgl/**"/>
+
+        <property name="java.part.es1"
+                  value="javax/media/opengl/GLES1.*, javax/media/opengl/TraceGLES1.*, javax/media/opengl/DebugGLES1.*, javax/media/opengl/**/es1/**, com/sun/opengl/**/es1/**"/>
+
+        <property name="java.part.es2"
+                  value="javax/media/opengl/GLES2.*, javax/media/opengl/TraceGLES2.*, javax/media/opengl/DebugGLES2.*, javax/media/opengl/**/es2/**, com/sun/opengl/**/es2/**"/>
+
+        <property name="java.part.awt"
+                  value="javax/media/opengl/awt/**, com/sun/opengl/impl/j2d/**"/>
+
+        <property name="java.part.util"
+                  value="com/sun/opengl/util/io/**, com/sun/opengl/util/texture/**"/>
+
+        <property name="java.part.util.awt"
+                  value="com/sun/opengl/util/**/awt/**, com/sun/opengl/util/**/j2d/**"/>
+
+        <property name="java.part.util.gl2"
+                  value="com/sun/opengl/util/glut/**, com/sun/opengl/util/**/gl2/**"/>
+
+        <property name="java.part.x11"
+                  value="com/sun/opengl/**/x11/**"/>
+
+        <property name="java.part.win"
+                  value="com/sun/opengl/**/windows/**"/>
+
+        <property name="java.part.macosx"
+                  value="com/sun/opengl/**/macosx/**"/>
+
+        <property name="java.part.newt"
+                  value="com/sun/javafx/newt/**"/>
+
+        <!-- condition excludes -->
+
+        <condition property="java.excludes.egl"
+                   value="${java.part.egl}">
+          <and>
+           <isset property="jogl.noes1"/> 
+           <isset property="jogl.noes2"/> 
+          </and>
+        </condition>
+
+        <condition property="java.excludes.glugl2"
+                   value="${java.part.glugl2}">
+           <or>
+               <isset property="jogl.noglugl2"/> 
+               <isset property="jogl.nogl2"/> 
+           </or>
+        </condition>
+
+        <condition property="java.excludes.gl2"
+                   value="${java.part.gl2}, ${java.part.util.gl2}">
+           <isset property="jogl.nogl2"/> 
+        </condition>
+
+        <condition property="java.excludes.es1"
+                   value="${java.part.es1}">
+          <isset property="jogl.noes1"/> 
+        </condition>
+
+        <condition property="java.excludes.es2"
+                   value="${java.part.es2}">
+          <isset property="jogl.noes2"/> 
+        </condition>
+
         <condition property="java.excludes.awt"
-                   value="javax/media/opengl/awt/**, com/sun/opengl/util/j2d/**, com/sun/opengl/util/JOGLAppletLauncher.java, com/sun/opengl/impl/awt/**, com/sun/opengl/impl/x11/awt/**, com/sun/opengl/impl/windows/awt/**, com/sun/opengl/impl/macosx/awt/**">
+                   value="${java.part.awt}, ${java.part.util.awt}, com/sun/opengl/impl/awt/**">
            <isset property="jogl.noAWT"/> 
         </condition>
-        <echo message="java.excludes.awt: ${java.excludes.awt}" />
 
-        <condition property="java.excludes.impl.x11"
-                   value="com/sun/opengl/impl/x11/**">
+        <condition property="java.excludes.util"
+                   value="${java.part.util} ${java.part.util.awt} ${java.part.util.gl2}">
+           <isset property="jogl.noutil"/> 
+        </condition>
+
+        <condition property="java.excludes.x11"
+                   value="${java.part.x11}">
            <isset property="jogl.noX11"/> 
         </condition>
-        <echo message="java.excludes.impl.x11: ${java.excludes.impl.x11}" />
 
-        <condition property="java.excludes.impl.win"
-                   value="com/sun/opengl/impl/windows/**">
+        <condition property="java.excludes.win"
+                   value="${java.part.win}">
            <isset property="jogl.noWindows"/> 
         </condition>
-        <echo message="java.excludes.impl.win: ${java.excludes.impl.win}" />
 
-        <condition property="java.excludes.impl.macosx"
-                   value="com/sun/opengl/impl/macosx/**">
+        <condition property="java.excludes.macosx"
+                   value="${java.part.macosx}">
            <isset property="jogl.noMacOsX"/> 
         </condition>
-        <echo message="java.excludes.impl.macosx: ${java.excludes.impl.macosx}" />
+
+        <condition property="java.excludes.newt"
+                   value="${java.part.newt}">
+           <isset property="jogl.nonewt"/> 
+        </condition>
+
+        <property name="java.excludes.javadoc.packagenames"
+                  value="com.sun.opengl.impl.gl2.fixme.*,com.sun.javafx.audio.windows.waveout.TestSpatialization"/>
+
+        <property name="java.excludes.fixme" 
+                  value="com/sun/opengl/impl/gl2/fixme/** com/sun/javafx/audio/windows/waveout/TestSpatialization.java" />
+
+        <property name="java.excludes.all" value="${java.excludes.fixme} ${java.excludes.egl}, ${java.excludes.gl2}, ${java.excludes.es1}, ${java.excludes.es2}, ${java.excludes.awt}, ${java.excludes.glugl2}, ${java.excludes.util}, ${java.excludes.x11}, ${java.excludes.win}, ${java.excludes.macosx}, ${java.excludes.newt}" />
+        <echo message="java.excludes.all: ${java.excludes.all}" />
+
 
         <!-- Set the project root directory to be up one directory. -->
         <property name="project.root" value=".." />
@@ -151,19 +255,19 @@
         <property name="make" value="." />
     </target>
 
-    <target name="base.init.sourcelevel.1" unless="gluegen.nsig">
+    <target name="base.init.sourcelevel.1">
         <property name="jogl.sourcelevel" value="1.4" />
     </target>
 
-    <target name="base.init.sourcelevel.2" if="gluegen.nsig">
+    <!--target name="base.init.sourcelevel.2" if="gluegen.nsig">
         <property name="jogl.sourcelevel" value="1.5" />
-    </target>
+    </target-->
 
     <!-- ================================================================== -->
     <!-- 
        - Load user properties which override build defaults.
       -->
-    <target name="load.user.properties" depends="base.init,base.init.sourcelevel.1,base.init.sourcelevel.2" unless="user.properties.file">
+    <target name="load.user.properties" depends="base.init,base.init.sourcelevel.1" unless="user.properties.file">
         <!-- Load the user specified properties file that defines various host
            - specific paths.  The user will be notified if this is does not
            - exist. -->
@@ -242,15 +346,15 @@
         <property name="config" value="${project.root}/make" />
         <property name="stub.includes" value="${config}/stub_includes" />
         <property name="stub.includes.dir" value="stub_includes" /> <!-- NOTE:  this MUST be relative for FileSet -->
-        <property name="stub.includes.x11" value="${stub.includes}/x11" />
         <property name="stub.includes.opengl" value="${stub.includes}/opengl" />
         <property name="stub.includes.common" value="${stub.includes}/common" />
-        <dirset id="stub.includes.fileset.all" dir=".">
+        <dirset id="stub.includes.fileset.all.gl2" dir=".">
             <include name="${stub.includes.dir}/opengl/**" />
             <include name="${stub.includes.dir}/macosx/**" />
             <include name="${stub.includes.dir}/win32/**" />
             <include name="${stub.includes.dir}/x11/**" />
             <include name="${stub.includes.dir}/common/**" />
+            <include name="${stub.includes.dir}/jni/**" />
         </dirset>
         <fileset id="stub.includes.dependencies.fileset.1" dir="${stub.includes.dir}">
             <include name="opengl/**" />
@@ -258,6 +362,7 @@
             <include name="win32/**" />
             <include name="x11/**" />
             <include name="common/**" />
+            <include name="jni/**" />
         </fileset>
         <fileset id="stub.includes.dependencies.fileset.2" file="${gluegen.jar}" />
         <fileset id="stub.includes.dependencies.fileset.3" dir=".">
@@ -292,17 +397,17 @@
         <property name="java.lib.dir.linux.amd64" value="${java.home.dir}/jre/lib/amd64" />
         <property name="java.lib.dir.linux.ia64" value="${java.home.dir}/jre/lib/ia64" />
         <property name="java.lib.dir.hpux" value="${java.home.dir}/jre/lib/PA_RISC2.0" />
-	<condition property="cpu" value="sparc">
+    <condition property="cpu" value="sparc">
             <os name="SunOS" arch="sparc" />
         </condition>
-	<condition property="cpu" value="sparcv9">
+    <condition property="cpu" value="sparcv9">
             <os name="SunOS" arch="sparcv9" />
         </condition>
-	<condition property="cpu" value="i386">
+    <condition property="cpu" value="i386">
             <os name="SunOS" arch="x86" />
         </condition>
 
-	<condition property="cpu" value="amd64">
+    <condition property="cpu" value="amd64">
             <os name="SunOS" arch="amd64" />
         </condition>
 
@@ -326,7 +431,18 @@
         </path>
 
         <!-- The resulting jogl.jar. -->
-        <property name="jogl.jar" value="${build}/jogl.jar" />
+        <property name="jogl.core.jar" value="${build}/jogl.core.jar" />
+        <property name="jogl.gles1.jar" value="${build}/jogl.gles1.jar" />
+        <property name="jogl.gles2.jar" value="${build}/jogl.gles2.jar" />
+        <property name="jogl.egl.jar" value="${build}/jogl.egl.jar" />
+        <property name="jogl.gl2.jar" value="${build}/jogl.gl2.jar" />
+        <property name="jogl.awt.jar" value="${build}/jogl.awt.jar" />
+        <property name="jogl.newt.jar" value="${build}/jogl.newt.jar" />
+        <property name="jogl.oswin.jar" value="${build}/jogl.oswin.jar" />
+        <property name="jogl.util.jar" value="${build}/jogl.util.jar" />
+        <property name="jogl.util.gl2.jar" value="${build}/jogl.util.gl2.jar" />
+        <property name="jogl.util.awt.jar" value="${build}/jogl.util.awt.jar" />
+        <property name="jogl.all.jar" value="${build}/jogl.all.jar" />
 
         <!-- The javadoc dirs. -->
         <property name="javadoc" value="${project.root}/javadoc_public" />
@@ -335,59 +451,39 @@
         <property name="javadoc.link" value="http://java.sun.com/j2se/1.4.2/docs/api/" />
         <property name="javadoc.windowtitle" value="JOGL API -- JSR-231 ${base_version} Specification" />
         <property name="javadoc.overview" value="spec-overview.html" />
-        <property name="javadoc.spec.packagenames" value="javax.media.opengl,javax.media.opengl.glu" />
-        <property name="javadoc.packagenames" value="${javadoc.spec.packagenames},com.sun.opengl.util,com.sun.opengl.util.j2d,com.sun.opengl.util.texture,com.sun.opengl.util.texture.spi" />
-        <property name="javadoc.dev.packagenames.win32"  value="com.sun.opengl.impl.windows" />
-        <property name="javadoc.dev.packagenames.x11"    value="com.sun.opengl.impl.x11" />
-        <property name="javadoc.dev.packagenames.macosx" value="com.sun.opengl.impl.macosx" />
-        <property name="javadoc.dev.packagenames" value="javax.media.opengl,javax.media.opengl.glu,com.sun.opengl.impl,com.sun.opengl.util,com.sun.gluegen,com.sun.gluegen.runtime" />
-	<property name="javadoc.bottom" value="Copyright 2005 Sun Microsystems, Inc. All rights reserved. Use is subject to &lt;a href=&quot;http://jcp.org/en/jsr/detail?id=231&quot;&gt;license terms&lt;/a&gt;." />
+        <property name="javadoc.spec.packagenames" value="javax.media.opengl,javax.media.opengl.glu,javax.media.opengl.awt" />
+
+        <property name="javadoc.packagenames" value="${javadoc.spec.packagenames},com.sun.opengl.util.*" />
+
+        <property name="javadoc.dev.packagenames" value="javax.media.opengl.*,com.sun.opengl.impl.*,com.sun.opengl.util.*,com.sun.gluegen,com.sun.gluegen.runtime" />
+    <property name="javadoc.bottom" value="Copyright 2005 Sun Microsystems, Inc. All rights reserved. Use is subject to &lt;a href=&quot;http://jcp.org/en/jsr/detail?id=231&quot;&gt;license terms&lt;/a&gt;." />
     </target>
     
-    <target name="declare.gl.gles1" if="isGLES1">
-        <property name="gl.headers" value="${stub.includes.dir}/opengl/GLES/*.h" /> <!-- NOTE:  this MUST be relative for FileSet --> <!-- CHECK:  this may need to be pruned for each platform -->
-        <property name="java.excludes.gles" value="com/sun/opengl/util/texture/**, com/sun/opengl/util/Animator.java, com/sun/opengl/util/FPSAnimator.java, com/sun/opengl/util/*Rec.java, com/sun/opengl/util/GLUT*.java, com/sun/opengl/util/Gamma.java, com/sun/opengl/util/ImageUtil.java, com/sun/opengl/util/Screenshot.java, com/sun/opengl/util/TGAWriter.java, com/sun/opengl/util/TileRenderer.java, com/sun/opengl/impl/GLObjectTracker.java, com/sun/opengl/impl/GLPbufferImpl.java, com/sun/opengl/impl/Project.java, com/sun/opengl/impl/Util.java, com/sun/opengl/impl/error/**, com/sun/opengl/impl/glue/**, com/sun/opengl/impl/mipmap/**, com/sun/opengl/impl/nurbs/**, com/sun/opengl/impl/packrect/**, com/sun/opengl/impl/registry/**, com/sun/opengl/impl/tessellator/**" />
+    <target name="declare.gl.gles1" unless="jogl.noes1">
+        <property name="gles1.headers" value="${stub.includes.dir}/opengl/GLES/*.h" /> <!-- NOTE:  this MUST be relative for FileSet --> <!-- CHECK:  this may need to be pruned for each platform -->
     </target>
 
-    <target name="declare.gl.gles2" if="isGLES2">
-        <property name="gl.headers" value="${stub.includes.dir}/opengl/GLES2/*.h" /> <!-- NOTE:  this MUST be relative for FileSet --> <!-- CHECK:  this may need to be pruned for each platform -->
-        <property name="java.excludes.gles" value="com/sun/opengl/util/texture/**, com/sun/opengl/util/Animator.java, com/sun/opengl/util/FPSAnimator.java, com/sun/opengl/util/*Rec.java, com/sun/opengl/util/GLUT*.java, com/sun/opengl/util/Gamma.java, com/sun/opengl/util/ImageUtil.java, com/sun/opengl/util/Screenshot.java, com/sun/opengl/util/TGAWriter.java, com/sun/opengl/util/TileRenderer.java, com/sun/opengl/impl/GLObjectTracker.java, com/sun/opengl/impl/GLPbufferImpl.java, com/sun/opengl/impl/GLUquadricImpl.java, com/sun/opengl/impl/Project.java, com/sun/opengl/impl/ProjectES1.java, com/sun/opengl/impl/Util.java, com/sun/opengl/impl/error/**, com/sun/opengl/impl/glue/**, com/sun/opengl/impl/mipmap/**, com/sun/opengl/impl/nurbs/**, com/sun/opengl/impl/packrect/**, com/sun/opengl/impl/registry/**, com/sun/opengl/impl/tessellator/**" />
+    <target name="declare.gl.gles2" unless="jogl.noes2">
+        <property name="gles2.headers" value="${stub.includes.dir}/opengl/GLES2/*.h" /> <!-- NOTE:  this MUST be relative for FileSet --> <!-- CHECK:  this may need to be pruned for each platform -->
     </target>
 
-    <target name="declare.gl.gles" if="isGLES" depends="declare.gl.gles1, declare.gl.gles2">
-        <!-- Use the CDC / FP classes only if we're building for the embedded system -->
-        <property name="javac.bootclasspath.jar" value="../../gluegen/make/lib/cdc_fp.jar" />
-        <!-- Set platform directories. -->
-        <property name="stub.includes.platform"                 value="${stub.includes.dir}/gluegen_egl" />
+    <target name="declare.gl.gles" unless="jogl.noes" depends="declare.gl.gles1, declare.gl.gles2">
         <!-- Prepare to build the EGL interface -->
-        <property name="stub.includes.fileset.platform.params"  value="${stub.includes.dir}/gluegen_egl/**" />
-        <property name="window.cfg"                             value="${config}/egl.cfg" />
+        <property name="window.es.cfg"                             value="${config}/egl.cfg" />
+        <property name="window.es.system"                          value="gluegen_egl"/>
     </target>
 
-    <target name="declare.gl.desktop" unless="isGLES">
-        <property name="gl.headers" value="${stub.includes.dir}/opengl/GL/*.h" /> <!-- NOTE:  this MUST be relative for FileSet --> <!-- CHECK:  this may need to be pruned for each platform -->
-        <property name="java.excludes.gles" value="com/sun/opengl/impl/egl/**, com/sun/opengl/impl/ProjectES1.java" />
+    <target name="declare.gl.gl2" unless="jogl.nogl2">
+        <property name="gl2.headers" value="${stub.includes.dir}/opengl/GL/*.h" /> <!-- NOTE:  this MUST be relative for FileSet --> <!-- CHECK:  this may need to be pruned for each platform -->
     </target>
-
-    <echo message="java.excludes.gles: ${java.excludes.gles}" />
 
     <!-- Declarations that have to come after both the common setup and the GLES tests -->
     <target name="declare.common.2">
-        <!-- Java files to exclude based on platform (relative to "src.java") -->
-	<!-- NOTE: the OpenGL ES exclusions are due to references to unsupported APIs -->
-        <!-- FIXME: this needs refactoring at this point -->
-        <property name="java.excludes.win32" value="${java.excludes.gles}, ${java.excludes.impl.x11}, ${java.excludes.impl.win}, ${java.excludes.impl.macosx}, ${java.excludes.awt}" />
-        <property name="java.excludes.x11" value="${java.excludes.gles}, ${java.excludes.impl.x11}, ${java.excludes.impl.win}, ${java.excludes.impl.macosx}, ${java.excludes.awt}" />
-        <property name="java.excludes.macosx" value="${java.excludes.gles}, ${java.excludes.impl.x11}, ${java.excludes.impl.win}, ${java.excludes.impl.macosx}, ${java.excludes.awt}" />
     </target>
-
-    <echo message="java.excludes.win32: ${java.excludes.win32}" />
-    <echo message="java.excludes.x11: ${java.excludes.x11}" />
-    <echo message="java.excludes.macosx: ${java.excludes.macosx}" />
 
     <!-- ================================================================== -->
     <!--
-       - Platform specific declares.
+       - Platform specific declares - COMPILER
       -->
     <target name="declare.win32.vc6" if="isVC6">
       <echo message="Win32.VC6" />
@@ -417,71 +513,6 @@
       <echo message="Win32.MingW" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.win32.mingw" /> 
       <property name="linker.cfg.id.core"                   value="linker.cfg.win32.mingw.jogl" />
-    </target>
-
-    <target name="declare.win32.gles1" if="isGLES1">
-        <property name="gl.cfg"                                 value="${config}/gl-es1.cfg" />
-        <property name="gl.c"                                   value="${stub.includes.common}/gles1.c" />
-        <property name="glu.cfg"                                value="${config}/glu-es1.cfg" />
-    </target>
-
-    <target name="declare.win32.gles2" if="isGLES2">
-        <property name="gl.cfg"                                 value="${config}/gl-es2.cfg" />
-        <property name="gl.c"                                   value="${stub.includes.common}/gles2.c" />
-        <property name="glu.cfg"                                value="${config}/glu-es2.cfg" />
-    </target>
-
-    <target name="declare.win32.gles" depends="declare.win32.gles1, declare.win32.gles2" />
-
-    <target name="declare.win32.desktop" unless="isGLES">
-        <property name="gl.cfg"                                 value="${config}/gl-win32.cfg" />
-        <property name="gl.c"                                   value="${stub.includes.common}/gl.c" />
-        <property name="glu.cfg"                                value="${config}/glu-win32.cfg" />
-        <!-- Set platform directories. -->
-        <property name="stub.includes.platform"                 value="${stub.includes}/win32" />
-        <!-- Prepare to build the Windows class for access to the window system -->
-        <property name="stub.includes.fileset.platform.params"  value="${stub.includes.dir}/win32/** ${stub.includes.dir}/common/** ${stub.includes.dir}/opengl/**" />
-        <property name="window.cfg"                             value="${config}/wingdi-win32.cfg" />
-    </target>
-
-    <target name="declare.win32" depends="declare.win32.vc6,declare.win32.vc7,declare.win32.vc8,declare.win32.vc8_x64,declare.win32.mingw,declare.win32.gles,declare.win32.desktop" if="isWindows">
-        <!-- Set platform configuration files. -->
-        <property name="gl.cfg.nsig"                            value="${config}/gl-win32-nsig.cfg" />
-        <property name="glext.platform.cfg"                     value="${config}/wglext.cfg" />
-        <property name="jawt.cfg"                               value="${config}/jawt-win32.cfg" />
-
-        <!-- Set platform headers. -->
-        <property name="glext.platform.header"                  value="${stub.includes.dir}/win32/wglext.c" />
-
-        <!-- Set platform directories. -->
-        <property name="java.includes.dir.platform"             value="${java.includes.dir.win32}" />
-        <property name="java.lib.dir.platform"                  value="${java.lib.dir.win32}" />
-        <property name="java.excludes.platform"                 value="${java.excludes.win32}" />
-
-        <!-- Set Javadoc properties. -->
-        <property name="javadoc.dev.packagenames.platform"      value="${javadoc.dev.packagenames.win32}" />
-    </target>          
-
-    <target name="declare.x11" depends="init" if="isX11">
-        <!-- Set platform configuration files. -->
-        <property name="gl.cfg"                               value="${config}/gl-x11.cfg" />
-        <property name="gl.cfg.nsig"                          value="${config}/gl-x11-nsig.cfg" />
-        <property name="glext.platform.cfg"                   value="${config}/glxext.cfg" />
-        <property name="glu.cfg"                              value="${config}/glu-x11.cfg" />
-        <property name="jawt.cfg"                             value="${config}/jawt-x11.cfg" />
-        <property name="window.cfg"                           value="${config}/glx-x11.cfg" />
-
-        <!-- Set platform headers. -->
-        <property name="glext.platform.header"                value="${stub.includes.dir}/x11/glxext.c" />
-
-        <!-- Set platform directories. -->
-        <property name="stub.includes.platform"               value="${stub.includes.x11}" />
-        <property name="java.excludes.platform"               value="${java.excludes.x11}" />
-        <property name="stub.includes.fileset.platform.params"  
-                  value="${stub.includes.dir}/opengl/** ${stub.includes.dir}/x11/** ${stub.includes.dir}/common/**" />
-
-        <!-- Set Javadoc properties. -->
-        <property name="javadoc.dev.packagenames.platform" value="${javadoc.dev.packagenames.x11}" />
     </target>
 
     <target name="declare.linux.x86" if="isLinuxX86">
@@ -542,34 +573,6 @@
       <property name="linker.cfg.id.core"                   value="linker.cfg.solaris.amd64.jogl" /> 
     </target>
    
- 
-    <target name="declare.macosx" if="isOSX">
-      <echo message="MacOSX" />
-      <!-- Set platform configuration files. -->
-      <property name="gl.cfg"                               value="${config}/gl-macosx.cfg" />
-      <property name="gl.cfg.nsig"                          value="${config}/gl-macosx-nsig.cfg" />
-      <property name="glext.platform.cfg"                   value="${config}/cglext.cfg" />
-      <property name="glu.cfg"                              value="${config}/glu-macosx.cfg" />
-      <property name="jawt.cfg"                             value="${config}/jawt-macosx.cfg" />
-      <property name="window.cfg"                           value="${config}/cgl-macosx.cfg" />
-
-      <!-- Set platform headers. -->
-      <property name="glext.platform.header"                value="${stub.includes.dir}/macosx/cglext.c" />
-
-      <!-- Set platform directories. -->
-      <property name="stub.includes.platform"               value="${stub.includes}/macosx" />
-      <property name="java.includes.dir.platform"           value="${java.includes.dir.macosx}" />
-      <property name="java.lib.dir.platform"                value="${java.lib.dir.macosx}" />
-      <property name="java.excludes.platform"               value="${java.excludes.macosx}" />
-      <property name="stub.includes.fileset.platform.params" value="${stub.includes.dir}/macosx/** ${stub.includes.dir}/common/** ${stub.includes.dir}/opengl/**" />
-
-      <!-- Set Javadoc properties. -->
-      <property name="javadoc.dev.packagenames.platform" value="${javadoc.dev.packagenames.macosx}" />
-
-      <property name="compiler.cfg.id"                      value="compiler.cfg.macosx" /> 
-      <property name="linker.cfg.id.core"                   value="linker.cfg.macosx.jogl" /> 
-    </target>
-    
     <target name="declare.freebsd" depends="declare.x11" if="isFreeBSD">
       <echo message="FreeBSD" />
       <property name="java.includes.dir.platform"           value="${java.includes.dir.freebsd}" />
@@ -587,12 +590,28 @@
       <property name="linker.cfg.id.core"                   value="linker.cfg.hpux.jogl" />
     </target>
 
+    <target name="declare.win32" depends="declare.win32.vc6,declare.win32.vc7,declare.win32.vc8,declare.win32.vc8_x64,declare.win32.mingw" if="isWindows">
+        <property name="java.includes.dir.platform"             value="${java.includes.dir.win32}" />
+        <property name="java.lib.dir.platform"                  value="${java.lib.dir.win32}" />
+    </target>          
+
+    <target name="declare.x11" depends="init" if="isX11">
+    </target>
+
+    <target name="declare.macosx" depends="init" if="isOSX">
+      <property name="java.includes.dir.platform"           value="${java.includes.dir.macosx}" />
+      <property name="java.lib.dir.platform"                value="${java.lib.dir.macosx}" />
+
+      <property name="compiler.cfg.id"                      value="compiler.cfg.macosx" /> 
+      <property name="linker.cfg.id.core"                   value="linker.cfg.macosx.jogl" /> 
+    </target>
+    
     <!-- ================================================================== -->
     <!-- 
        - Initialize all parameters required for the build and create any
        - required directories.
       -->
-    <target name="init" depends="declare.common, declare.gl.gles, declare.gl.desktop, declare.common.2">
+    <target name="init" depends="declare.common, declare.gl.gles, declare.gl.gl2, declare.common.2">
         <!-- Call the external config validator script to make sure the config is ok and consistent -->
         <ant antfile="${validate.user.properties}" inheritall="true"/>
         
@@ -620,8 +639,8 @@
         <ant antfile="${gluegen.build.xml}" dir="${gluegen.make.dir}" target="all" inheritAll="false">
           <propertyset>
             <propertyref name="antlr.jar" />
-            <propertyref name="gluegen.nsig" />
-            <propertyref name="isCDCFP" />
+            <!--propertyref name="gluegen.nsig" /-->
+            <propertyref name="jogl.cdcfp" />
           </propertyset>
         </ant>
     </target>
@@ -632,6 +651,7 @@
     <target name="java.generate.check">
         <!-- Blow away all target files if any dependencies are violated
              (the uptodate task doesn't allow arbitrary source and target filesets but should) -->
+             <!--
         <dependset>
             <srcfileset refid="stub.includes.dependencies.fileset.1" />
             <srcfileset refid="stub.includes.dependencies.fileset.2" />
@@ -641,96 +661,221 @@
                 <include name="**/*.c" />
             </targetfileset>
         </dependset>
+        -->
 
         <!-- Now check for the presence of one well-known file -->
-        <uptodate property="java.generate.skip"
-                  targetfile="${src.generated.java}/javax/media/opengl/GL.java">
+        <uptodate property="java.generate.skip.es1"
+                  targetfile="${src.generated.java}/javax/media/opengl/GLES1.java">
             <srcfiles refid="stub.includes.dependencies.fileset.1" />
             <srcfiles refid="stub.includes.dependencies.fileset.2" />
             <srcfiles refid="stub.includes.dependencies.fileset.3" />
         </uptodate>
+        <uptodate property="java.generate.skip.es2"
+                  targetfile="${src.generated.java}/javax/media/opengl/GLES2.java">
+            <srcfiles refid="stub.includes.dependencies.fileset.1" />
+            <srcfiles refid="stub.includes.dependencies.fileset.2" />
+            <srcfiles refid="stub.includes.dependencies.fileset.3" />
+        </uptodate>
+        <uptodate property="java.generate.skip.gl2"
+                  targetfile="${src.generated.java}/javax/media/opengl/GL2.java">
+            <srcfiles refid="stub.includes.dependencies.fileset.1" />
+            <srcfiles refid="stub.includes.dependencies.fileset.2" />
+            <srcfiles refid="stub.includes.dependencies.fileset.3" />
+        </uptodate>
+        <uptodate property="java.generate.skip.glu"
+                  targetfile="${src.generated.java}/javax/media/opengl/glu/GLU.java">
+            <srcfiles refid="stub.includes.dependencies.fileset.1" />
+            <srcfiles refid="stub.includes.dependencies.fileset.2" />
+            <srcfiles refid="stub.includes.dependencies.fileset.3" />
+        </uptodate>
+
+        <condition property="java.generate.skip">
+          <and>
+              <isset property="java.generate.skip.es1"/>
+              <isset property="java.generate.skip.es2"/>
+              <isset property="java.generate.skip.gl2"/>
+              <isset property="java.generate.skip.glu"/>
+          </and>
+        </condition>
+
+        <!--property name="java.generate.skip" value="true"/-->
     </target>
 
-    <target name="java.generate.gl" unless="gluegen.nsig">
-        <!-- Generate GL interface and implementation -->
-        <echo message="Generating GL interface and implementation" />
-        <gluegen src="${gl.c}" 
-                 config="${gl.cfg}"
-                 includeRefid="stub.includes.fileset.all"
+    <target name="java.generate.gl_if">
+        <echo message="Generating GL interface" />
+        <gluegen src="${stub.includes.common}/gles2.c"
+                 config="${config}/gl-if-gl.cfg"
+                 includeRefid="stub.includes.fileset.all.gl2"
                  emitter="com.sun.gluegen.opengl.GLEmitter">
             <classpath refid="gluegen.classpath" />
         </gluegen>
     </target>
 
-    <target name="java.generate.gl.nsig" if="gluegen.nsig">
-        <!-- Generate GL interface and implementation -->
+    <target name="java.generate.gl2_es1_if">
+        <echo message="Generating GL2_ES1 interface" />
+        <gluegen src="${stub.includes.common}/gles1.c"
+                 config="${config}/gl-if-gl2_es1.cfg" 
+                 includeRefid="stub.includes.fileset.all.gl2"
+                 emitter="com.sun.gluegen.opengl.GLEmitter">
+            <classpath refid="gluegen.classpath" />
+        </gluegen>
+    </target>
+
+    <target name="java.generate.gl2_es2_if">
+        <echo message="Generating GL2_ES2 interface" />
+        <gluegen src="${stub.includes.common}/gles2.c"
+                 config="${config}/gl-if-gl2_es2.cfg" 
+                 includeRefid="stub.includes.fileset.all.gl2"
+                 emitter="com.sun.gluegen.opengl.GLEmitter">
+            <classpath refid="gluegen.classpath" />
+        </gluegen>
+    </target>
+
+    <target name="java.generate.gl2" unless="jogl.nogl2">
+        <echo message="Generating GL2 interface and implementation" />
+        <gluegen src="${stub.includes.common}/gl.c" 
+                 config="${config}/gl-gl2.cfg"
+                 includeRefid="stub.includes.fileset.all.gl2"
+                 emitter="com.sun.gluegen.opengl.GLEmitter">
+            <classpath refid="gluegen.classpath" />
+        </gluegen>
+    </target>
+
+    <target name="java.generate.gles1" unless="jogl.noes1">
+        <echo message="Generating GLES1 interface and implementation" />
+        <gluegen src="${stub.includes.common}/gles1.c" 
+                 config="${config}/gl-es1.cfg"
+                 includeRefid="stub.includes.fileset.all.gl2"
+                 emitter="com.sun.gluegen.opengl.GLEmitter">
+            <classpath refid="gluegen.classpath" />
+        </gluegen>
+    </target>
+
+    <target name="java.generate.gles2" unless="jogl.noes2">
+        <echo message="Generating GLES2 interface and implementation" />
+        <gluegen src="${stub.includes.common}/gles2.c" 
+                 config="${config}/gl-es2.cfg"
+                 includeRefid="stub.includes.fileset.all.gl2"
+                 emitter="com.sun.gluegen.opengl.GLEmitter">
+            <classpath refid="gluegen.classpath" />
+        </gluegen>
+    </target>
+
+    <target name="java.generate.gl.all" depends="java.generate.gl_if, java.generate.gl2_es1_if, java.generate.gl2_es2_if, java.generate.gl2, java.generate.gles1, java.generate.gles2"/>
+
+    <!-- target name="java.generate.gl.nsig" if="gluegen.nsig">
         <echo message="Generating GL interface and implementation" />
         <gluegen src="${gl.c}" 
                  config="${gl.cfg.nsig}"
-                 includeRefid="stub.includes.fileset.all"
+                 includeRefid="stub.includes.fileset.all.gl2"
                  emitter="com.sun.gluegen.nativesig.NativeSignatureEmitter">
             <classpath refid="gluegen.classpath" />
         </gluegen>
-    </target>
+    </target> -->
 
-    <target name="java.generate.glu">
+    <target name="java.generate.glu.If">
         <echo message="Generating GLU class" />
         <gluegen src="${stub.includes.common}/glu.c" 
-                 config="${glu.cfg}"
-                 includeRefid="stub.includes.fileset.all"
+                 config="${config}/glu-es1_if.cfg"
+                 includeRefid="stub.includes.fileset.all.gl2"
                  emitter="com.sun.gluegen.opengl.GLEmitter">
             <classpath refid="gluegen.classpath" />
         </gluegen>
     </target>
 
-    <target name="java.generate.platform.glext" unless="isGLES">
-	<!-- Generate platform-specific extension class (WGLExt, GLXExt, etc.) -->
+    <target name="java.generate.glu.ES1" unless="jogl.noes1">
+        <echo message="Generating GLU class" />
+        <gluegen src="${stub.includes.common}/glu.c" 
+                 config="${config}/glu-es1.cfg"
+                 includeRefid="stub.includes.fileset.all.gl2"
+                 emitter="com.sun.gluegen.opengl.GLEmitter">
+            <classpath refid="gluegen.classpath" />
+        </gluegen>
+    </target>
+
+    <target name="java.generate.glu.GL2" unless="jogl.nogl2">
+        <echo message="Generating GLU class" />
+        <gluegen src="${stub.includes.common}/glu.c" 
+                 config="${config}/glu-gl2.cfg"
+                 includeRefid="stub.includes.fileset.all.gl2"
+                 emitter="com.sun.gluegen.opengl.GLEmitter">
+            <classpath refid="gluegen.classpath" />
+        </gluegen>
+    </target>
+
+    <target name="java.generate.platform.glext" unless="jogl.nogl2">
         <echo message="Generating platform-specific OpenGL extension class" />
         <gluegen src="${glext.platform.header}" 
                  config="${glext.platform.cfg}"
-                 includeRefid="stub.includes.fileset.all"
+                 includeRefid="stub.includes.fileset.all.gl2"
                  emitter="com.sun.gluegen.opengl.GLEmitter">
             <classpath refid="gluegen.classpath" />
         </gluegen>
     </target>
 
-    <target name="java.generate.window.system">
-	<!-- Generate WGL/GLX/CGL/EGL implementation class -->
-        <!-- FIXME: should probably always generate the EGL binding at this point -->
-        <echo message="Generating WGL/GLX/CGL/EGL implementation class" />
-	<dirset id="stub.includes.fileset.platform" dir="." includes="${stub.includes.fileset.platform.params}" />
-        <gluegen src="${stub.includes.platform}/window-system.c"
-                 config="${window.cfg}"
-                 includeRefid="stub.includes.fileset.platform"
-                 emitter="com.sun.gluegen.opengl.GLEmitter">
-            <classpath refid="gluegen.classpath" />
-        </gluegen>
-    </target>
-
-    <target name="java.generate.jawt" unless="isGLES">
-        <!-- NOTE:  the "literalInclude" in this GlueGen call is simply to
-           -        get around the fact that neither FileSet nor DirSet can
-           -        handle different drives in an effective manner. -->
-        <echo message="Generating JAWT interface class" />
-        <echo message="java.home.dir=${java.home.dir}" />
-        <gluegen src="${java.includes.dir.platform}/jawt_md.h" 
-                 config="${jawt.cfg}"
-                 literalInclude="${java.includes.dir}"
+    <target name="java.generate.window.lib" if="windowlib.os.cfg">
+        <echo message="Generating Windowing Lib implementation class" />
+        <gluegen src="${stub.includes.dir}/${window.os.system}/window-lib.c"
+                 config="${windowlib.os.cfg}"
                  includeRefid="stub.includes.fileset.platform"
                  emitter="com.sun.gluegen.JavaEmitter">
             <classpath refid="gluegen.classpath" />
         </gluegen>
     </target>
 
-    <target name="java.generate.BufferUtil.javame_cdc_fp" if="isCDCFP">
-        <copy file="../src/classes/com/sun/opengl/util/BufferUtil.java.javame_cdc_fp" tofile="../build/gensrc/classes/com/sun/opengl/util/BufferUtil.java" />
+    <target name="java.generate.window.system.es" if="window.es.cfg" unless="jogl.noes">
+        <echo message="Generating EGL implementation class" />
+        <gluegen src="${stub.includes.dir}/${window.es.system}/window-system.c"
+                 config="${window.es.cfg}"
+                 includeRefid="stub.includes.fileset.platform"
+                 emitter="com.sun.gluegen.opengl.GLEmitter">
+            <classpath refid="gluegen.classpath" />
+        </gluegen>
     </target>
 
-    <target name="java.generate.BufferUtil.javase" unless="isCDCFP">
-        <copy file="../src/classes/com/sun/opengl/util/BufferUtil.java.javase" tofile="../build/gensrc/classes/com/sun/opengl/util/BufferUtil.java" />
+    <target name="java.generate.window.system.os" if="window.os.cfg" unless="jogl.nogl2">
+        <echo message="Generating WGL/GLX/CGL/EGL implementation class" />
+        <gluegen src="${stub.includes.dir}/${window.os.system}/window-system.c"
+                 config="${window.os.cfg}"
+                 includeRefid="stub.includes.fileset.platform"
+                 emitter="com.sun.gluegen.opengl.GLEmitter">
+            <classpath refid="gluegen.classpath" />
+        </gluegen>
+    </target>
+
+    <target name="java.generate.jawt" unless="jogl.noAWT">
+        <!-- NOTE:  the "literalInclude" in this GlueGen call is simply to
+           -        get around the fact that neither FileSet nor DirSet can
+           -        handle different drives in an effective manner. -->
+        <echo message="Generating JAWT interface class" />
+        <echo message="java.home.dir=${java.home.dir}" />
+        <gluegen src="${jawt.platform.header}"
+                 config="${jawt.cfg}"
+                 literalInclude="${stub.includes.dir}/jni"
+                 includeRefid="stub.includes.fileset.platform"
+                 emitter="com.sun.gluegen.JavaEmitter">
+            <classpath refid="gluegen.classpath" />
+        </gluegen>
+    </target>
+
+    <target name="java.generate.BufferUtil.javame_cdc_fp" if="jogl.cdcfp">
+        <copy file="../src/classes/javax/media/opengl/util/BufferUtil.java.javame_cdc_fp" tofile="../build/gensrc/classes/javax/media/opengl/util/BufferUtil.java" />
+    </target>
+
+    <target name="java.generate.BufferUtil.javase" unless="jogl.cdcfp">
+        <copy file="../src/classes/javax/media/opengl/util/BufferUtil.java.javase" tofile="../build/gensrc/classes/javax/media/opengl/util/BufferUtil.java" />
     </target>
 
     <target name="java.generate.BufferUtil" depends="java.generate.BufferUtil.javase, java.generate.BufferUtil.javame_cdc_fp" />
+
+    <target name="java.generate.gl.platforms" >
+            <dirset id="stub.includes.fileset.platform" dir="." includes="${stub.includes.dir}/${window.os.system}/** ${stub.includes.dir}/${window.es.system}/** ${stub.includes.dir}/common/** ${stub.includes.dir}/opengl/**" />
+
+            <antcall target="java.generate.platform.glext" inheritRefs="true" />
+            <antcall target="java.generate.window.lib" inheritRefs="true" />
+            <antcall target="java.generate.window.system.os" inheritRefs="true" />
+            <antcall target="java.generate.jawt" inheritRefs="true" />
+    </target>
 
     <!--
        - Setup the generating ANT tasks and use it to generate the Java files 
@@ -747,35 +892,58 @@
         <!-- Use the GlueGen and BuildStaticGLInfo tasks to generate the 
            - Java files -->
 
-        <!-- Generate GL interface and implementation -->
-        <antcall target="java.generate.gl"      inheritRefs="true" />
-        <antcall target="java.generate.gl.nsig" inheritRefs="true" />
+        <echo message="Generating GL interface and implementation" />
+        <antcall target="java.generate.gl.all"      inheritRefs="true" />
+        <!--antcall target="java.generate.gl.nsig" inheritRefs="true" /-->
 
-	<!-- Generate platform-specific extension class (WGLExt, GLXExt, etc.) -->
-         <antcall target="java.generate.platform.glext" inheritRefs="true" />
+        <echo message="Generating EGL implementation class" />
+        <antcall target="java.generate.window.system.es" inheritRefs="true" />
 
-	<!-- Generate WGL/GLX/CGL implementation class -->
-        <antcall target="java.generate.window.system" inheritRefs="true" />
+        <echo message="Generating platform-specifics: X11" />
+        <antcall target="java.generate.gl.platforms" inheritRefs="true">
+            <param name="window.os.system"                       value="x11"/>
+            <param name="window.os.cfg"                          value="${config}/glx-x11.cfg" />
+            <param name="windowlib.os.cfg"                       value="${config}/x11-lib.cfg" />
+            <param name="glext.platform.cfg"                     value="${config}/glxext.cfg" />
+            <param name="glext.platform.header"                  value="${stub.includes.dir}/x11/glxext.c" />
+            <param name="jawt.cfg"                               value="${config}/jawt-x11.cfg" />
+            <param name="jawt.platform.header"                   value="${stub.includes.dir}/jni/x11/jawt_md.h" />
+        </antcall>
 
-	<!-- Generate JAWT class -->
-        <antcall target="java.generate.jawt" inheritRefs="true" />
+        <echo message="Generating platform-specifics: Win32" />
+        <antcall target="java.generate.gl.platforms" inheritRefs="true">
+            <param name="window.os.system"                       value="win32"/>
+            <param name="window.os.cfg"                          value="${config}/wgl-win32.cfg" />
+            <param name="glext.platform.cfg"                     value="${config}/wglext.cfg" />
+            <param name="glext.platform.header"                  value="${stub.includes.dir}/win32/wglext.c" />
+            <param name="jawt.cfg"                               value="${config}/jawt-win32.cfg" />
+            <param name="jawt.platform.header"                   value="${stub.includes.dir}/jni/win32/jawt_md.h" />
+        </antcall>          
 
-	<!-- Generate StaticGLInfo class -->
+        <echo message="Generating platform-specifics: MaxOsX" />
+        <antcall target="java.generate.gl.platforms" inheritRefs="true">
+          <param name="window.os.system"                     value="macosx"/>
+          <param name="window.os.cfg"                        value="${config}/cgl-macosx.cfg" />
+          <param name="glext.platform.cfg"                   value="${config}/cglext.cfg" />
+          <param name="glext.platform.header"                value="${stub.includes.dir}/macosx/cglext.c" />
+          <param name="jawt.cfg"                             value="${config}/jawt-macosx.cfg" />
+          <param name="jawt.platform.header"                 value="${stub.includes.dir}/jni/macosx/jawt_md.h" />
+        </antcall>
+    
         <echo message="Generating StaticGLInfo class" />
         <staticglgen package="com.sun.opengl.impl"
-                     headers="${gl.headers}"
+                     headers="${gl2.headers} ${gles1.headers} ${gles2.headers}"
                      outputdir="${src.generated.java}/com/sun/opengl/impl">
             <classpath refid="gluegen.classpath" />
         </staticglgen>
 
-        <!-- Generate GLU class -->
-	<!-- NOTE: massively stripped down for embedded OpenGL
-	     because the implementation uses immediate mode calls not
-	     available on GLES1 or GLES2 -->
-	<antcall target="java.generate.glu" inheritrefs="true" />
-
         <!-- Generate the BufferUtil class for this particular profile -->
         <antcall target="java.generate.BufferUtil" inheritrefs="true" />
+
+        <!-- Generate GLU class -->
+        <antcall target="java.generate.glu.If" inheritrefs="true" />
+        <antcall target="java.generate.glu.ES1" inheritrefs="true" />
+        <antcall target="java.generate.glu.GL2" inheritrefs="true" />
 
         <!-- Inform the user that the generators have successfully created 
            - the necessary Java files -->
@@ -827,28 +995,90 @@
     <!-- 
        - Build and dependency rules for the composable pipeline
       -->
-    <target name="java.generate.composable.pipeline.check">
-        <!-- Blow away the DebugGL.java and TraceGL.java sources if GL.class has changed
+    <target name="java.generate.composable.pipeline.check.es1" unless="jogl.noes1">
+        <!-- Blow away the DebugGL*.java and TraceGL*.java sources if GL*.class has changed
              (the uptodate element doesn't support arbitrary source and destination files) -->
         <dependset>
-            <srcfilelist dir="${classes}/javax/media/opengl" files="GL.class" />
+            <srcfilelist dir="${classes}/javax/media/opengl" files="GLES1.class" />
             <targetfileset dir="${src.generated.java}/javax/media/opengl"
-                           includes="DebugGL.java,TraceGL.java" />
+                           includes="DebugGLES1.java,TraceGLES1.java" />
         </dependset>
                            
         <!-- Now choose one of the two to test to see if we have to regenerate -->
-        <uptodate property="java.generate.composable.pipeline.skip"
-                  srcfile="${classes}/javax/media/opengl/GL.class"
-                  targetfile="${src.generated.java}/javax/media/opengl/DebugGL.java" />
+        <uptodate property="java.generate.composable.pipeline.skip.es1"
+                  srcfile="${classes}/javax/media/opengl/GLES1.class"
+                  targetfile="${src.generated.java}/javax/media/opengl/DebugGLES1.java" />
+
     </target>        
 
-    <target name="java.generate.composable.pipeline" depends="java.generate.composable.pipeline.check" unless="java.generate.composable.pipeline.skip">
+    <target name="java.generate.composable.pipeline.check.es2" unless="jogl.noes2">
+        <!-- Blow away the DebugGL*.java and TraceGL*.java sources if GL*.class has changed
+             (the uptodate element doesn't support arbitrary source and destination files) -->
+        <dependset>
+            <srcfilelist dir="${classes}/javax/media/opengl" files="GLES2.class" />
+            <targetfileset dir="${src.generated.java}/javax/media/opengl"
+                           includes="DebugGLES2.java,TraceGLES2.java" />
+        </dependset>
+                           
+        <!-- Now choose one of the two to test to see if we have to regenerate -->
+        <uptodate property="java.generate.composable.pipeline.skip.es2"
+                  srcfile="${classes}/javax/media/opengl/GLES2.class"
+                  targetfile="${src.generated.java}/javax/media/opengl/DebugGLES2.java" />
+
+    </target>        
+
+    <target name="java.generate.composable.pipeline.check.gl2" unless="jogl.nogl2">
+        <!-- Blow away the DebugGL*.java and TraceGL*.java sources if GL*.class has changed
+             (the uptodate element doesn't support arbitrary source and destination files) -->
+        <dependset>
+            <srcfilelist dir="${classes}/javax/media/opengl" files="GL2.class" />
+            <targetfileset dir="${src.generated.java}/javax/media/opengl"
+                           includes="DebugGL2.java,TraceGL2.java" />
+        </dependset>
+                           
+        <!-- Now choose one of the two to test to see if we have to regenerate -->
+        <uptodate property="java.generate.composable.pipeline.skip.gl2"
+                  srcfile="${classes}/javax/media/opengl/GL2.class"
+                  targetfile="${src.generated.java}/javax/media/opengl/DebugGL2.java" />
+    </target>        
+
+    <target name="java.generate.composable.pipeline.es1" depends="java.generate.composable.pipeline.check.es1" unless="java.generate.composable.pipeline.skip.es1">
         <java classname="com.sun.gluegen.opengl.BuildComposablePipeline" fork="yes" failonerror="true">
-            <arg value="javax.media.opengl.GL" />
+            <arg value="javax.media.opengl.GLES1" />
             <arg value="${src.generated.java}/javax/media/opengl" />
             <classpath refid="pipeline.classpath" />
         </java>
     </target>          
+
+    <target name="java.generate.composable.pipeline.es2" depends="java.generate.composable.pipeline.check.es2" unless="java.generate.composable.pipeline.skip.es2">
+        <java classname="com.sun.gluegen.opengl.BuildComposablePipeline" fork="yes" failonerror="true">
+            <arg value="javax.media.opengl.GLES2" />
+            <arg value="${src.generated.java}/javax/media/opengl" />
+            <classpath refid="pipeline.classpath" />
+        </java>
+    </target>          
+
+    <target name="java.generate.composable.pipeline.gl2" depends="java.generate.composable.pipeline.check.gl2" unless="java.generate.composable.pipeline.skip.gl2">
+        <java classname="com.sun.gluegen.opengl.BuildComposablePipeline" fork="yes" failonerror="true">
+            <arg value="javax.media.opengl.GL2" />
+            <arg value="${src.generated.java}/javax/media/opengl" />
+            <classpath refid="pipeline.classpath" />
+        </java>
+    </target>          
+
+    <target name="java.generate.composable.pipeline.check">
+        <condition property="java.generate.composable.pipeline.skip.es1">
+          <isset property="jogl.noes1"/>
+        </condition>
+        <condition property="java.generate.composable.pipeline.skip.es2">
+          <isset property="jogl.noes2"/>
+        </condition>
+        <condition property="java.generate.composable.pipeline.skip.gl2">
+          <isset property="jogl.nogl2"/>
+        </condition>
+    </target>
+    <target name="java.generate.composable.pipeline" depends="java.generate.composable.pipeline.check, java.generate.composable.pipeline.es1, java.generate.composable.pipeline.es2, java.generate.composable.pipeline.gl2">
+    </target>
 
     <!-- ================================================================== -->
     <!-- 
@@ -857,20 +1087,21 @@
       -->
     <target name="java.compile.firstpass" depends="java.generate,java.generate.cg">
         <!-- Perform the first pass Java compile. -->
-        <javac srcdir="${src.generated.java}"
-               destdir="${classes}"
+        <javac destdir="${classes}"
                classpath="${gluegen-rt.jar}"
-               includes="javax/media/opengl/GL.java"
+               includes="javax/media/opengl/GLDrawableFactory.java javax/media/opengl/GLDrawable.java javax/media/opengl/GLContext.java javax/media/opengl/GL.java javax/media/opengl/GL2ES1.java javax/media/opengl/GL2ES2.java javax/media/opengl/GL2.java javax/media/opengl/GLES1.java javax/media/opengl/GLES2.java"
                fork="yes"
                memoryMaximumSize="128m"
                source="1.4" debug="true" debuglevel="source,lines">
+            <src path="${src.java}" />
+            <src path="${src.generated.java}" />
         </javac>
     </target>
 
     <target name="java.compile.secondpass" depends="java.generate.composable.pipeline">
         <!-- Perform the second pass Java compile; everything. -->
         <javac destdir="${classes}"
-               excludes="${java.excludes.platform}"
+               excludes="${java.excludes.all}"
                source="${jogl.sourcelevel}"
                classpath="${gluegen-rt.jar}"
                bootclasspath="${javac.bootclasspath.jar}"
@@ -940,7 +1171,7 @@
       <linker id="linker.cfg.win32.msvc.jogl" extends="linker.cfg.win32.msvc">
         <syslibset libs="opengl32, gdi32, user32, kernel32" />
         <syslibset dir="${windows.cg.lib}" libs="cg, cgGL" if="c.compiler.use-cglib"/>
-	<!-- This is temporary -->
+    <!-- This is temporary -->
         <syslibset libs="winmm" />
       </linker>
 
@@ -1030,7 +1261,7 @@
           <sysincludepath path="${java.includes.dir}"/>
           <sysincludepath path="${java.includes.dir.platform}"/>
           <includepath path="stub_includes/opengl"/>
-          <includepath path="stub_includes/egl" if="isGLES"/>
+          <includepath path="stub_includes/egl" if="jogl.es"/>
           <includepath path="stub_includes/cg" if="c.compiler.use-cglib"/>        
 
           <!-- This is for the generated headers for handwritten C code -->
@@ -1081,15 +1312,15 @@
     <target name="c.build.jogl.core">
       <!-- Generate the EGLDrawableFactory header -->
       <!-- FIXME: this is temporary until we fully autogenerate the EGL interface -->
-      <javah destdir="../build/gensrc/native/jogl" classpath="${jogl.jar}" class="com.sun.opengl.impl.egl.EGLDrawableFactory" />
+      <javah destdir="../build/gensrc/native/jogl" classpath="${jogl.all.jar}" class="com.sun.opengl.impl.egl.EGLDrawableFactory" />
       <!-- Generate the waveout Mixer header -->
       <!-- FIXME: this is temporary until we move this to another workspace -->
-      <javah destdir="../build/gensrc/native/jogl" classpath="${jogl.jar}" class="com.sun.javafx.audio.windows.waveout.Mixer" />
+      <javah destdir="../build/gensrc/native/jogl" classpath="${jogl.all.jar}" class="com.sun.javafx.audio.windows.waveout.Mixer" />
       <!-- FIXME: this is temporary until we move this to another workspace -->
-      <javah destdir="../build/gensrc/native/jogl" classpath="${jogl.jar}" class="com.sun.javafx.newt.windows.WindowsWindow" />
+      <javah destdir="../build/gensrc/native/jogl" classpath="${jogl.all.jar}" class="com.sun.javafx.newt.windows.WindowsWindow" />
 
       <!-- FIXME: this is temporary until we move this to another workspace -->
-      <javah destdir="../build/gensrc/native/jogl" classpath="${jogl.jar}" class="com.sun.javafx.newt.x11.X11Window" />
+      <javah destdir="../build/gensrc/native/jogl" classpath="${jogl.all.jar}" class="com.sun.javafx.newt.x11.X11Window" />
 
       <!-- Compile stuff -->
       <antcall target="c.build" inheritRefs="true">
@@ -1148,7 +1379,7 @@
 
     <!-- ================================================================== -->
     <!--
-       - Build the jogl.jar file.
+       - Build the jogl.jar files.
       -->
     <target name="jar" depends="java.compile,cond-if-RImanifest,cond-else-RImanifest"/>
 
@@ -1167,7 +1398,57 @@
               <filter token="BASEVERSION" value="${base_version}"/>
           </filterset>
         </copy>
-        <jar manifest="tempversion" destfile="${jogl.jar}">
+
+        <jar manifest="tempversion" destfile="${jogl.core.jar}">
+            <fileset dir="${classes}"
+                     includes="javax/media/opengl/**, com/sun/gluegen/runtime/**, com/sun/opengl/**"
+                     excludes="${java.excludes.fixme} ${java.part.egl}, ${java.part.gl2}, ${java.part.es1}, ${java.part.es2}, ${java.part.awt}, ${java.part.glugl2}, ${java.part.util} ${java.part.util.awt} ${java.part.util.gl2}, ${java.part.x11}, ${java.part.win}, ${java.part.macosx}, ${java.part.newt}, com/sun/opengl/impl/awt/**"/>
+        </jar>
+        <jar manifest="tempversion" destfile="${jogl.gles1.jar}">
+            <fileset dir="${classes}"
+                     includes="${java.part.es1}"/>
+        </jar>
+        <jar manifest="tempversion" destfile="${jogl.gles2.jar}">
+            <fileset dir="${classes}"
+                     includes="${java.part.es2}"/>
+        </jar>
+        <jar manifest="tempversion" destfile="${jogl.egl.jar}">
+            <fileset dir="${classes}"
+                     includes="${java.part.egl}"/>
+        </jar>
+        <jar manifest="tempversion" destfile="${jogl.gl2.jar}">
+            <fileset dir="${classes}"
+                     includes="${java.part.gl2} ${java.part.glugl2}"/>
+        </jar>
+        <jar manifest="tempversion" destfile="${jogl.awt.jar}">
+            <fileset dir="${classes}"
+                     includes="${java.part.awt}"
+                     excludes="com/sun/opengl/impl/x11/**, com/sun/opengl/impl/windows/**, com/sun/opengl/impl/macosx/**, com/sun/opengl/impl/awt/**"/>
+        </jar>
+        <jar manifest="tempversion" destfile="${jogl.newt.jar}">
+            <fileset dir="${classes}"
+                     includes="${java.part.newt}"/>
+        </jar>
+        <jar manifest="tempversion" destfile="${jogl.oswin.jar}">
+            <fileset dir="${classes}"
+                     includes="${java.part.x11}, ${java.part.win}, ${java.part.macosx}, com/sun/opengl/impl/awt/**"
+                     excludes="com/sun/opengl/impl/**/glx/**, com/sun/opengl/impl/**/wgl/**, com/sun/opengl/impl/**/cgl/**"/>
+        </jar>
+        <jar manifest="tempversion" destfile="${jogl.util.jar}">
+            <fileset dir="${classes}"
+                     includes="${java.part.util}"
+                     excludes="com/sun/opengl/**/awt/**, com/sun/opengl/**/j2d/**, com/sun/opengl/**/gl2/**"/>
+        </jar>
+        <jar manifest="tempversion" destfile="${jogl.util.gl2.jar}">
+            <fileset dir="${classes}"
+                     includes="${java.part.util.gl2}"
+                     excludes="com/sun/opengl/**/awt/**, com/sun/opengl/**/j2d/**"/>
+        </jar>
+        <jar manifest="tempversion" destfile="${jogl.util.awt.jar}">
+            <fileset dir="${classes}"
+                     includes="${java.part.util.awt}"/>
+        </jar>
+        <jar manifest="tempversion" destfile="${jogl.all.jar}">
             <fileset dir="${classes}">
                 <include name="javax/media/opengl/**" />
                 <include name="com/sun/gluegen/runtime/**" />
@@ -1213,12 +1494,14 @@
     <target name="javadoc.nocg" depends="setup.java.home.dir,init" unless="jogl.cg">
         <!-- Build the general Javadoc -->
         <javadoc packagenames="${javadoc.packagenames}"
+                 excludepackagenames="${java.excludes.javadoc.packagenames}"
                  sourcepath="${src.java};${src.generated.java}"        
+                 classpath="${gluegen-rt.jar}"
                  destdir="${javadoc}" windowtitle="${javadoc.windowtitle}"
                  overview="${javadoc.overview}" 
                  source="1.4"
                  linkoffline="${javadoc.link} 142-packages"
-		 bottom="${javadoc.bottom}" >
+         bottom="${javadoc.bottom}" >
           <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.jar}" />
         </javadoc>
     </target>
@@ -1227,12 +1510,14 @@
     <target name="javadoc.cg" depends="setup.java.home.dir,init" if="jogl.cg">
         <!-- Build the general Javadoc -->
         <javadoc packagenames="${javadoc.packagenames},com.sun.opengl.cg"
+                 excludepackagenames="${java.excludes.javadoc.packagenames}"
                  sourcepath="${src.java};${src.generated.java}"        
+                 classpath="${gluegen-rt.jar}"
                  destdir="${javadoc}" windowtitle="${javadoc.windowtitle}"
                  overview="${javadoc.overview}" 
                  source="1.4"
                  linkoffline="${javadoc.link} 142-packages"
-		 bottom="${javadoc.bottom}" >
+         bottom="${javadoc.bottom}" >
           <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.jar}" />
         </javadoc>
     </target>
@@ -1242,7 +1527,9 @@
     <target name="javadoc.spec.nocg" depends="setup.java.home.dir,init" unless="jogl.cg">
         <!-- Build the general Javadoc -->
         <javadoc packagenames="${javadoc.spec.packagenames}"
+                 excludepackagenames="${java.excludes.javadoc.packagenames}"
                  sourcepath="${src.java};${src.generated.java}"
+                 classpath="${gluegen-rt.jar}"
                  destdir="${javadoc.spec}" windowtitle="${javadoc.windowtitle}"
                  overview="${javadoc.overview}"
                  source="1.4"
@@ -1256,7 +1543,9 @@
     <target name="javadoc.spec.cg" depends="setup.java.home.dir,init" if="jogl.cg">
         <!-- Build the general Javadoc -->
         <javadoc packagenames="${javadoc.spec.packagenames}"
+                 excludepackagenames="${java.excludes.javadoc.packagenames}"
                  sourcepath="${src.java};${src.generated.java}"
+                 classpath="${gluegen-rt.jar}"
                  destdir="${javadoc.spec}" windowtitle="${javadoc.windowtitle}"
                  overview="${javadoc.overview}"
                  source="1.4"
@@ -1270,13 +1559,15 @@
 
     <target name="javadoc.dev.nocg" unless="jogl.cg">
         <!-- Build the internal developer Javadoc -->
-        <javadoc packagenames="${javadoc.dev.packagenames},${javadoc.dev.packagenames.platform}"
+        <javadoc packagenames="${javadoc.dev.packagenames}"
+                 excludepackagenames="${java.excludes.javadoc.packagenames}"
                  sourcepath="${src.java};${src.generated.java}"        
+                 classpath="${gluegen-rt.jar}"
                  destdir="${javadoc.dev}" windowtitle="${javadoc.windowtitle}"
                  overview="${javadoc.overview}" 
                  source="1.4"
                  linkoffline="${javadoc.link} 142-packages"
-		 bottom="${javadoc.bottom}" >
+         bottom="${javadoc.bottom}" >
           <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.jar}" />
         </javadoc>
     </target>
@@ -1284,20 +1575,20 @@
     <!-- Same as above but with Cg directories added -->
     <target name="javadoc.dev.cg" if="jogl.cg">
         <!-- Build the internal developer Javadoc -->
-        <javadoc packagenames="${javadoc.dev.packagenames},${javadoc.dev.packagenames.platform},com.sun.opengl.cg"
+        <javadoc packagenames="${javadoc.dev.packagenames},com.sun.opengl.cg"
+                 excludepackagenames="${java.excludes.javadoc.packagenames}"
                  sourcepath="${src.java};${src.generated.java}"        
+                 classpath="${gluegen-rt.jar}"
                  destdir="${javadoc.dev}" windowtitle="${javadoc.windowtitle}"
                  overview="${javadoc.overview}" 
                  source="1.4"
                  linkoffline="${javadoc.link} 142-packages"
-		 bottom="${javadoc.bottom}" >
+         bottom="${javadoc.bottom}" >
           <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.jar}" />
         </javadoc>
     </target>
 
-    <target name="javadoc.dev.win32"  depends="setup.java.home.dir,init,declare.win32,javadoc.dev.nocg,javadoc.dev.cg" />
-    <target name="javadoc.dev.x11"    depends="setup.java.home.dir,init,declare.x11,javadoc.dev.nocg,javadoc.dev.cg" />
-    <target name="javadoc.dev.macosx" depends="setup.java.home.dir,init,declare.macosx,javadoc.dev.nocg,javadoc.dev.cg" />
+    <target name="javadoc.dev.all"  depends="setup.java.home.dir,init,declare,javadoc.dev.nocg,javadoc.dev.cg" />
 
     <!-- ================================================================== -->
     <!--
@@ -1326,18 +1617,18 @@
 
     <target name="dist.check.windows" if="jogl.dist.dir">
         <condition property="windows.complete">
-	  <and>
-	    <available file="${jogl.dist.dir}/jogl-win/jogl.jar" />
-	    <available file="${jogl.dist.dir}/jogl-win/32/jogl.dll" />
-	    <available file="${jogl.dist.dir}/jogl-win/32/jogl_awt.dll" />
-	    <available file="${jogl.dist.dir}/jogl-win/32/jogl_cg.dll" />
-	    <available file="${jogl.dist.dir}/jogl-win/32/gluegen-rt.dll" />
-	    <available file="${jogl.dist.dir}/jogl-win/32/gluegen-rt-natives-windows-i586.jar" />
-	  </and>
-	</condition>
-	<fail unless="windows.complete">
+      <and>
+        <available file="${jogl.dist.dir}/jogl-win/jogl.jar" />
+        <available file="${jogl.dist.dir}/jogl-win/32/jogl.dll" />
+        <available file="${jogl.dist.dir}/jogl-win/32/jogl_awt.dll" />
+        <available file="${jogl.dist.dir}/jogl-win/32/jogl_cg.dll" />
+        <available file="${jogl.dist.dir}/jogl-win/32/gluegen-rt.dll" />
+        <available file="${jogl.dist.dir}/jogl-win/32/gluegen-rt-natives-windows-i586.jar" />
+      </and>
+    </condition>
+    <fail unless="windows.complete">
     ******************************************************************
-    ** Files are missing from the Windows build. This will cause    **	
+    ** Files are missing from the Windows build. This will cause    **    
     ** the distribution to be incomplete. Please check the status   **
     ** of the Windows build and try again.                          **
     ******************************************************************
@@ -1346,17 +1637,17 @@
 
     <target name="dist.check.windows-amd64" if="jogl.dist.dir">
         <condition property="windows-amd64.complete">
-	  <and>
-	    <available file="${jogl.dist.dir}/jogl-win/64/jogl.dll" />
-	    <available file="${jogl.dist.dir}/jogl-win/64/jogl_awt.dll" />
-	    <available file="${jogl.dist.dir}/jogl-win/64/jogl_cg.dll" />
-	    <available file="${jogl.dist.dir}/jogl-win/64/gluegen-rt.dll" />
-	    <available file="${jogl.dist.dir}/jogl-win/64/gluegen-rt-natives-windows-amd64.jar" />
-	  </and>
-	</condition>
-	<fail unless="windows-amd64.complete">
+      <and>
+        <available file="${jogl.dist.dir}/jogl-win/64/jogl.dll" />
+        <available file="${jogl.dist.dir}/jogl-win/64/jogl_awt.dll" />
+        <available file="${jogl.dist.dir}/jogl-win/64/jogl_cg.dll" />
+        <available file="${jogl.dist.dir}/jogl-win/64/gluegen-rt.dll" />
+        <available file="${jogl.dist.dir}/jogl-win/64/gluegen-rt-natives-windows-amd64.jar" />
+      </and>
+    </condition>
+    <fail unless="windows-amd64.complete">
     *********************************************************************
-    ** Files are missing from the Windows/AMD64 build. This will cause **	
+    ** Files are missing from the Windows/AMD64 build. This will cause **    
     ** the distribution to be incomplete. Please check the status      **
     ** of the Windows/AMD64 build and try again.                       **
     *********************************************************************
@@ -1365,25 +1656,25 @@
 
     <target name="dist.check.linux" if="jogl.dist.dir">
         <condition property="linux.complete">
-	  <and>
-	    <available file="${jogl.dist.dir}/jogl-linux/jogl.jar" />
-	    <available file="${jogl.dist.dir}/jogl-linux/32/libjogl.so" />
-	    <available file="${jogl.dist.dir}/jogl-linux/32/libjogl_awt.so" />
-	    <available file="${jogl.dist.dir}/jogl-linux/32/libjogl_cg.so" />
-	    <available file="${jogl.dist.dir}/jogl-linux/32/libgluegen-rt.so" />
-	    <available file="${jogl.dist.dir}/jogl-linux/32/gluegen-rt-natives-linux-i586.jar" />
-	    <!-- Assume we also copy over these generated files in the Linux build -->
-	    <!-- in order to satisfy requests from end users that we provide these -->
-	    <!-- files for easier source browsing in IDEs                          -->
-	    <available file="${jogl.dist.dir}/jogl-linux/DebugGL.java" />
-	    <available file="${jogl.dist.dir}/jogl-linux/TraceGL.java" />
-	    <available file="${jogl.dist.dir}/jogl-linux/GL.java" />
-	    <available file="${jogl.dist.dir}/jogl-linux/GLU.java" />
-	  </and>
-	</condition>
-	<fail unless="linux.complete">
+      <and>
+        <available file="${jogl.dist.dir}/jogl-linux/jogl.jar" />
+        <available file="${jogl.dist.dir}/jogl-linux/32/libjogl.so" />
+        <available file="${jogl.dist.dir}/jogl-linux/32/libjogl_awt.so" />
+        <available file="${jogl.dist.dir}/jogl-linux/32/libjogl_cg.so" />
+        <available file="${jogl.dist.dir}/jogl-linux/32/libgluegen-rt.so" />
+        <available file="${jogl.dist.dir}/jogl-linux/32/gluegen-rt-natives-linux-i586.jar" />
+        <!-- Assume we also copy over these generated files in the Linux build -->
+        <!-- in order to satisfy requests from end users that we provide these -->
+        <!-- files for easier source browsing in IDEs                          -->
+        <available file="${jogl.dist.dir}/jogl-linux/DebugGL2.java" />
+        <available file="${jogl.dist.dir}/jogl-linux/TraceGL2.java" />
+        <available file="${jogl.dist.dir}/jogl-linux/GL.java" />
+        <available file="${jogl.dist.dir}/jogl-linux/GLU.java" />
+      </and>
+    </condition>
+    <fail unless="linux.complete">
     ******************************************************************
-    ** Files are missing from the Linux build. This will cause      **	
+    ** Files are missing from the Linux build. This will cause      **    
     ** the distribution to be incomplete. Please check the status   **
     ** of the Linux build and try again.                            **
     ******************************************************************
@@ -1392,17 +1683,17 @@
 
     <target name="dist.check.linux-amd64" if="jogl.dist.dir">
         <condition property="linux-amd64.complete">
-	  <and>
-	    <available file="${jogl.dist.dir}/jogl-linux/64/libjogl.so" />
-	    <available file="${jogl.dist.dir}/jogl-linux/64/libjogl_awt.so" />
-	    <available file="${jogl.dist.dir}/jogl-linux/64/libjogl_cg.so" />
-	    <available file="${jogl.dist.dir}/jogl-linux/64/libgluegen-rt.so" />
-	    <available file="${jogl.dist.dir}/jogl-linux/64/gluegen-rt-natives-linux-amd64.jar" />
-	  </and>
-	</condition>
-	<fail unless="linux-amd64.complete">
+      <and>
+        <available file="${jogl.dist.dir}/jogl-linux/64/libjogl.so" />
+        <available file="${jogl.dist.dir}/jogl-linux/64/libjogl_awt.so" />
+        <available file="${jogl.dist.dir}/jogl-linux/64/libjogl_cg.so" />
+        <available file="${jogl.dist.dir}/jogl-linux/64/libgluegen-rt.so" />
+        <available file="${jogl.dist.dir}/jogl-linux/64/gluegen-rt-natives-linux-amd64.jar" />
+      </and>
+    </condition>
+    <fail unless="linux-amd64.complete">
     *******************************************************************
-    ** Files are missing from the Linux/AMD64 build. This will cause **	
+    ** Files are missing from the Linux/AMD64 build. This will cause **    
     ** the distribution to be incomplete. Please check the status    **
     ** of the Linux/AMD64 build and try again.                       **
     *******************************************************************
@@ -1411,18 +1702,18 @@
 
     <target name="dist.check.macosx" if="jogl.dist.dir">
         <condition property="macosx.complete">
-	  <and>
-	    <available file="${jogl.dist.dir}/jogl-macosx/jogl.jar" />
-	    <available file="${jogl.dist.dir}/jogl-macosx/ppc/libjogl.jnilib" />
-	    <available file="${jogl.dist.dir}/jogl-macosx/ppc/libjogl_awt.jnilib" />
-	    <available file="${jogl.dist.dir}/jogl-macosx/ppc/libjogl_cg.jnilib" />
-	    <available file="${jogl.dist.dir}/jogl-macosx/ppc/libgluegen-rt.jnilib" />
-	    <available file="${jogl.dist.dir}/jogl-macosx/ppc/gluegen-rt-natives-macosx-ppc.jar" />
-	  </and>
-	</condition>
-	<fail unless="macosx.complete">
+      <and>
+        <available file="${jogl.dist.dir}/jogl-macosx/jogl.jar" />
+        <available file="${jogl.dist.dir}/jogl-macosx/ppc/libjogl.jnilib" />
+        <available file="${jogl.dist.dir}/jogl-macosx/ppc/libjogl_awt.jnilib" />
+        <available file="${jogl.dist.dir}/jogl-macosx/ppc/libjogl_cg.jnilib" />
+        <available file="${jogl.dist.dir}/jogl-macosx/ppc/libgluegen-rt.jnilib" />
+        <available file="${jogl.dist.dir}/jogl-macosx/ppc/gluegen-rt-natives-macosx-ppc.jar" />
+      </and>
+    </condition>
+    <fail unless="macosx.complete">
     ******************************************************************
-    ** Files are missing from the Mac OS X build. This will cause   **	
+    ** Files are missing from the Mac OS X build. This will cause   **    
     ** the distribution to be incomplete. Please check the status   **
     ** of the Mac OS X build and try again.                         **
     ******************************************************************
@@ -1432,18 +1723,18 @@
 
     <target name="dist.check.macosxfat" if="jogl.dist.dir">
         <condition property="macosxfat.complete">
-	  <and>
-	    <available file="${jogl.dist.dir}/jogl-macosx/jogl.jar" />
-	    <available file="${jogl.dist.dir}/jogl-macosx/fat/libjogl.jnilib" />
-	    <available file="${jogl.dist.dir}/jogl-macosx/fat/libjogl_awt.jnilib" />
-	    <available file="${jogl.dist.dir}/jogl-macosx/fat/libjogl_cg.jnilib" />
-	    <available file="${jogl.dist.dir}/jogl-macosx/fat/libgluegen-rt.jnilib" />
-	    <available file="${jogl.dist.dir}/jogl-macosx/fat/gluegen-rt-natives-macosx-universal.jar" />
-	  </and>
-	</condition>
-	<fail unless="macosxfat.complete">
+      <and>
+        <available file="${jogl.dist.dir}/jogl-macosx/jogl.jar" />
+        <available file="${jogl.dist.dir}/jogl-macosx/fat/libjogl.jnilib" />
+        <available file="${jogl.dist.dir}/jogl-macosx/fat/libjogl_awt.jnilib" />
+        <available file="${jogl.dist.dir}/jogl-macosx/fat/libjogl_cg.jnilib" />
+        <available file="${jogl.dist.dir}/jogl-macosx/fat/libgluegen-rt.jnilib" />
+        <available file="${jogl.dist.dir}/jogl-macosx/fat/gluegen-rt-natives-macosx-universal.jar" />
+      </and>
+    </condition>
+    <fail unless="macosxfat.complete">
     ******************************************************************
-    ** Files are missing from the Mac OS X build. This will cause   **	
+    ** Files are missing from the Mac OS X build. This will cause   **    
     ** the distribution to be incomplete. Please check the status   **
     ** of the Mac OS X build and try again.                         **
     ******************************************************************
@@ -1454,17 +1745,17 @@
 
     <target name="dist.check.solsparc" if="jogl.dist.dir">
         <condition property="solsparc.complete">
-	  <and>
-	    <available file="${jogl.dist.dir}/jogl-solsparc/jogl.jar" />
-	    <available file="${jogl.dist.dir}/jogl-solsparc/32/libjogl.so" />
-	    <available file="${jogl.dist.dir}/jogl-solsparc/32/libjogl_awt.so" />
-	    <available file="${jogl.dist.dir}/jogl-solsparc/32/libgluegen-rt.so" />
-	    <available file="${jogl.dist.dir}/jogl-solsparc/32/gluegen-rt-natives-solaris-sparc.jar" />
-	  </and>
-	</condition>
-	<fail unless="solsparc.complete">
+      <and>
+        <available file="${jogl.dist.dir}/jogl-solsparc/jogl.jar" />
+        <available file="${jogl.dist.dir}/jogl-solsparc/32/libjogl.so" />
+        <available file="${jogl.dist.dir}/jogl-solsparc/32/libjogl_awt.so" />
+        <available file="${jogl.dist.dir}/jogl-solsparc/32/libgluegen-rt.so" />
+        <available file="${jogl.dist.dir}/jogl-solsparc/32/gluegen-rt-natives-solaris-sparc.jar" />
+      </and>
+    </condition>
+    <fail unless="solsparc.complete">
     ******************************************************************
-    ** Files are missing from the Solaris/SPARC build. This will    **	
+    ** Files are missing from the Solaris/SPARC build. This will    **    
     ** cause the distribution to be incomplete. Please check the    **
     ** status of the Solaris/SPARC build and try again.             **
     ******************************************************************
@@ -1473,17 +1764,17 @@
 
     <target name="dist.check.solsparcv9" if="jogl.dist.dir">
         <condition property="solsparcv9.complete">
-	  <and>
-	    <available file="${jogl.dist.dir}/jogl-solsparc/jogl.jar" />
-	    <available file="${jogl.dist.dir}/jogl-solsparc/64/libjogl.so" />
-	    <available file="${jogl.dist.dir}/jogl-solsparc/64/libjogl_awt.so" />
-	    <available file="${jogl.dist.dir}/jogl-solsparc/64/libgluegen-rt.so" />
-	    <available file="${jogl.dist.dir}/jogl-solsparc/64/gluegen-rt-natives-solaris-sparcv9.jar" />
-	  </and>
-	</condition>
-	<fail unless="solsparcv9.complete">
+      <and>
+        <available file="${jogl.dist.dir}/jogl-solsparc/jogl.jar" />
+        <available file="${jogl.dist.dir}/jogl-solsparc/64/libjogl.so" />
+        <available file="${jogl.dist.dir}/jogl-solsparc/64/libjogl_awt.so" />
+        <available file="${jogl.dist.dir}/jogl-solsparc/64/libgluegen-rt.so" />
+        <available file="${jogl.dist.dir}/jogl-solsparc/64/gluegen-rt-natives-solaris-sparcv9.jar" />
+      </and>
+    </condition>
+    <fail unless="solsparcv9.complete">
     ******************************************************************
-    ** Files are missing from the Solaris/SPARCv9 build. This will  **	
+    ** Files are missing from the Solaris/SPARCv9 build. This will  **    
     ** cause the distribution to be incomplete. Please check the    **
     ** status of the Solaris/SPARCv9 build and try again.           **
     ******************************************************************
@@ -1492,18 +1783,18 @@
 
     <target name="dist.check.solx86" if="jogl.dist.dir">
         <condition property="solx86.complete">
-	  <and>
-	    <available file="${jogl.dist.dir}/jogl-solx86/jogl.jar" />
-	    <available file="${jogl.dist.dir}/jogl-solx86/32/libjogl.so" />
-	    <available file="${jogl.dist.dir}/jogl-solx86/32/libjogl_awt.so" />
-	    <available file="${jogl.dist.dir}/jogl-solx86/32/libjogl_cg.so" />
-	    <available file="${jogl.dist.dir}/jogl-solx86/32/libgluegen-rt.so" />
-	    <available file="${jogl.dist.dir}/jogl-solx86/32/gluegen-rt-natives-solaris-i586.jar" />
-	  </and>
-	</condition>
-	<fail unless="solx86.complete">
+      <and>
+        <available file="${jogl.dist.dir}/jogl-solx86/jogl.jar" />
+        <available file="${jogl.dist.dir}/jogl-solx86/32/libjogl.so" />
+        <available file="${jogl.dist.dir}/jogl-solx86/32/libjogl_awt.so" />
+        <available file="${jogl.dist.dir}/jogl-solx86/32/libjogl_cg.so" />
+        <available file="${jogl.dist.dir}/jogl-solx86/32/libgluegen-rt.so" />
+        <available file="${jogl.dist.dir}/jogl-solx86/32/gluegen-rt-natives-solaris-i586.jar" />
+      </and>
+    </condition>
+    <fail unless="solx86.complete">
     ******************************************************************
-    ** Files are missing from the Solaris/x86 build. This will      **	
+    ** Files are missing from the Solaris/x86 build. This will      **    
     ** cause the distribution to be incomplete. Please check the    **
     ** status of the Solaris/x86 build and try again.               **
     ******************************************************************
@@ -1512,14 +1803,14 @@
 
     <target name="dist.check.solamd64" if="jogl.dist.dir">
         <condition property="solamd64.complete">
-	  <and>
-	    <available file="${jogl.dist.dir}/jogl-solx86/64/libjogl.so" />
-	    <available file="${jogl.dist.dir}/jogl-solx86/64/libjogl_awt.so" />
-	    <available file="${jogl.dist.dir}/jogl-solx86/64/libgluegen-rt.so" />
-	    <available file="${jogl.dist.dir}/jogl-solx86/64/gluegen-rt-natives-solaris-amd64.jar" />
-	  </and>
-	</condition>
-	<fail unless="solamd64.complete">
+      <and>
+        <available file="${jogl.dist.dir}/jogl-solx86/64/libjogl.so" />
+        <available file="${jogl.dist.dir}/jogl-solx86/64/libjogl_awt.so" />
+        <available file="${jogl.dist.dir}/jogl-solx86/64/libgluegen-rt.so" />
+        <available file="${jogl.dist.dir}/jogl-solx86/64/gluegen-rt-natives-solaris-amd64.jar" />
+      </and>
+    </condition>
+    <fail unless="solamd64.complete">
     ******************************************************************
     ** Files are missing from the Solaris/x86/64 (amd64) build. This * 
     ** will cause the distribution                                  **
@@ -1557,8 +1848,8 @@
         <copy file="../doc/userguide/index.html" tofile="${jogl.dist.dir}/tmp/${jogl.tmp.version}/Userguide.html" />
         <!-- zip it up -->
         <zip destfile="${jogl.dist.dir}/${jogl.tmp.version}.zip"
-	     basedir="${jogl.dist.dir}/tmp"
-	     includes="${jogl.tmp.version}/**" />
+         basedir="${jogl.dist.dir}/tmp"
+         includes="${jogl.tmp.version}/**" />
     </target>
 
     <target name="setup-version-RI" if="RImanifestfile">
@@ -1589,8 +1880,8 @@
         </unjar>
         <!-- Build jar files suitable for Java Web Start -->
         <jar manifest="${jogl.dist.dir}/META-INF/MANIFEST.MF" destfile="${jogl.dist.dir}/jogl.jar" duplicate="preserve">
-	    <zipgroupfileset dir="${jogl.dist.dir}"
-	                     includes="jogl-win/jogl.jar, jogl-linux/jogl.jar, jogl-macosx/jogl.jar" />
+        <zipgroupfileset dir="${jogl.dist.dir}"
+                         includes="jogl-win/jogl.jar, jogl-linux/jogl.jar, jogl-macosx/jogl.jar" />
         </jar>
         <!-- Apply Pack200 repacking to allow later compression by that mechanism -->
         <apply executable="pack200" verbose="true" >
@@ -1661,20 +1952,21 @@
             <fileset dir="${jogl.dist.dir}/jogl-solx86/64" includes="gluegen-natives-*.jar" />
         </copy>
 
-	<!-- Build a source archive as well -->
-	<!-- First copy the generated files out of the Linux build results into the appropriate -->
-	<!-- directory of this source tree (so that they'll be blown away properly with an -->
-	<!-- "ant clean") -->
-	<mkdir dir="../build/gensrc/classes/javax/media/opengl/glu" />
-	<copy file="${jogl.dist.dir}/jogl-linux/DebugGL.java" todir="../build/gensrc/classes/javax/media/opengl" />
-	<copy file="${jogl.dist.dir}/jogl-linux/TraceGL.java" todir="../build/gensrc/classes/javax/media/opengl" />
-	<copy file="${jogl.dist.dir}/jogl-linux/GL.java"      todir="../build/gensrc/classes/javax/media/opengl" />
-	<copy file="${jogl.dist.dir}/jogl-linux/GLU.java"     todir="../build/gensrc/classes/javax/media/opengl/glu" />
+    <!-- Build a source archive as well -->
+    <!-- First copy the generated files out of the Linux build results into the appropriate -->
+    <!-- directory of this source tree (so that they'll be blown away properly with an -->
+    <!-- "ant clean") -->
+    <mkdir dir="../build/gensrc/classes/javax/media/opengl/glu" />
+    <copy file="${jogl.dist.dir}/jogl-linux/DebugGL2.java" todir="../build/gensrc/classes/javax/media/opengl" />
+    <copy file="${jogl.dist.dir}/jogl-linux/TraceGL2.java" todir="../build/gensrc/classes/javax/media/opengl" />
+    <copy file="${jogl.dist.dir}/jogl-linux/GL.java"      todir="../build/gensrc/classes/javax/media/opengl" />
+    <copy file="${jogl.dist.dir}/jogl-linux/GLU.java"     todir="../build/gensrc/classes/javax/media/opengl/glu" />
+    <copy file="${jogl.dist.dir}/jogl-linux/GLUquadric.java"     todir="../build/gensrc/classes/javax/media/opengl/glu" />
         <zip destfile="${jogl.dist.dir}/jogl-${tmp.version}-src.zip"
-	     basedir="../.."
-	     includes="gluegen/LICENSE.txt,gluegen/doc/**,gluegen/make/**,gluegen/src/**,jogl/*.txt,jogl/build/gensrc/classes/javax/media/opengl/**,jogl/doc/**,jogl/make/**,jogl/src/**"
-	     excludes="**/*.class,**/*~"
-	     />
+         basedir="../.."
+         includes="gluegen/LICENSE.txt,gluegen/doc/**,gluegen/make/**,gluegen/src/**,jogl/*.txt,jogl/build/gensrc/classes/javax/media/opengl/**,jogl/doc/**,jogl/make/**,jogl/src/**"
+         excludes="**/*.class,**/*~"
+         />
         <!-- Create zip archives suitable for developers -->
         <!-- Unfortunately, we have to replicate the os/arch name combinations from
              gluegen-cpptasks.xml. The reason for this is that we can't generate these
@@ -1733,8 +2025,8 @@
         <!-- Create one last zip archive by hand, this one containing all of the -->
         <!-- Java Web Start jar files (for easier redistribution) -->
         <zip destfile="${jogl.dist.dir}/jogl-${tmp.version}-webstart.zip"
-	     basedir="${jogl.dist.dir}"
-	     includes="*.jar" />
+         basedir="${jogl.dist.dir}"
+         includes="*.jar" />
         <!-- Create a version.txt file indicating which version we just built -->
         <echo message="${tmp.version}" file="${jogl.dist.dir}/version.txt" />
     </target>

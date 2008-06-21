@@ -40,7 +40,7 @@ public class WindowsDisplay extends Display {
     public WindowsDisplay() {
     }
 
-    public void initNative() {
+    protected void createNative() {
         handle = 0;
     }
 }

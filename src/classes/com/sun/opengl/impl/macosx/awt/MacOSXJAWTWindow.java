@@ -41,28 +41,111 @@ package com.sun.opengl.impl.macosx.awt;
 
 import com.sun.opengl.impl.macosx.*;
 import com.sun.opengl.impl.awt.*;
+import com.sun.opengl.impl.*;
+
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
 
 import javax.media.opengl.*;
-import com.sun.opengl.impl.*;
+import java.security.*;
 
 public class MacOSXJAWTWindow extends JAWTWindow {
 
-  // Variables for lockSurface/unlockSurface
-  //private JAWT_DrawingSurface ds;
-  //private JAWT_DrawingSurfaceInfo dsi;
-  //private JAWT_MacOSXDrawingSurfaceInfo x11dsi;
-  
   public MacOSXJAWTWindow(Object comp) {
     super(comp);
   }
 
-  public int lockSurface() throws NativeWindowException {
-    super.lockSurface();
-    return 0;
+  protected void initNative() throws NativeWindowException {
   }
 
-  public void unlockSurface() {
+  public int lockSurface() throws NativeWindowException {
+    int ret = super.lockSurface();
+    if(NativeWindow.LOCK_SUCCESS != ret) {
+        return ret;
+    }
+    ds = JAWT.getJAWT().GetDrawingSurface(component);
+    if (ds == null) {
+      // Widget not yet realized
+      return NativeWindow.LOCK_SURFACE_NOT_READY;
+    }
+    int res = ds.Lock();
+    if ((res & JAWTFactory.JAWT_LOCK_ERROR) != 0) {
+      throw new GLException("Unable to lock surface");
+    }
+    // See whether the surface changed and if so destroy the old
+    // OpenGL context so it will be recreated (NOTE: removeNotify
+    // should handle this case, but it may be possible that race
+    // conditions can cause this code to be triggered -- should test
+    // more)
+    if ((res & JAWTFactory.JAWT_LOCK_SURFACE_CHANGED) != 0) {
+      ret = NativeWindow.LOCK_SURFACE_CHANGED;
+    }
+    if (firstLock) {
+      AccessController.doPrivileged(new PrivilegedAction() {
+          public Object run() {
+            dsi = ds.GetDrawingSurfaceInfo();
+            return null;
+          }
+        });
+    } else {
+      dsi = ds.GetDrawingSurfaceInfo();
+    }
+    if (dsi == null) {
+      // Widget not yet realized
+      ds.Unlock();
+      JAWT.getJAWT().FreeDrawingSurface(ds);
+      ds = null;
+      return NativeWindow.LOCK_SURFACE_NOT_READY;
+    }
+    firstLock = false;
+    macosxdsi = (JAWT_MacOSXDrawingSurfaceInfo) dsi.platformInfo();
+    if (macosxdsi == null) {
+      // Widget not yet realized
+      ds.FreeDrawingSurfaceInfo(dsi);
+      ds.Unlock();
+      JAWT.getJAWT().FreeDrawingSurface(ds);
+      ds = null;
+      dsi = null;
+      return NativeWindow.LOCK_SURFACE_NOT_READY;
+    }
+    drawable = macosxdsi.cocoaViewRef();
+    // FIXME: Are the followup abstractions available ? would it be usefull ?
+    display  = 0;
+    visualID = 0;
+    screen= 0;
+    screenIndex = 0;
+
+    if (drawable == 0) {
+      // Widget not yet realized
+      ds.FreeDrawingSurfaceInfo(dsi);
+      ds.Unlock();
+      JAWT.getJAWT().FreeDrawingSurface(ds);
+      ds = null;
+      dsi = null;
+      macosxdsi = null;
+      return NativeWindow.LOCK_SURFACE_NOT_READY;
+    }
+    return ret;
+  }
+    
+  public void unlockSurface() throws GLException {
+    if(!isSurfaceLocked()) return;
+    ds.FreeDrawingSurfaceInfo(dsi);
+    ds.Unlock();
+    JAWT.getJAWT().FreeDrawingSurface(ds);
+    ds = null;
+    dsi = null;
+    macosxdsi = null;
     super.unlockSurface();
   }
+
+  // Variables for lockSurface/unlockSurface
+  private JAWT_DrawingSurface ds;
+  private JAWT_DrawingSurfaceInfo dsi;
+  private JAWT_MacOSXDrawingSurfaceInfo macosxdsi;
+
+  // Workaround for instance of 4796548
+  private boolean firstLock = true;
+
 }
 

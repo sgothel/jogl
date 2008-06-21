@@ -47,38 +47,6 @@ Bool XF86VidModeSetGammaRamp(
 #define RTLD_DEFAULT NULL
 #endif
 
-/* Need to expose DefaultScreen and RootWindow macros to Java */
-JNIEXPORT jlong JNICALL 
-Java_com_sun_opengl_impl_x11_GLX_DefaultScreen(JNIEnv *env, jclass _unused, jlong display) {
-  return DefaultScreen((Display*) (intptr_t) display);
-}
-JNIEXPORT jlong JNICALL 
-Java_com_sun_opengl_impl_x11_GLX_RootWindow(JNIEnv *env, jclass _unused, jlong display, jint screen) {
-  return RootWindow((Display*) (intptr_t) display, screen);
-}
-
-JNIEXPORT jlong JNICALL 
-Java_com_sun_opengl_impl_x11_GLX_dlopen(JNIEnv *env, jclass _unused, jstring name) {
-  const jbyte* chars;
-  void* res;
-  chars = (*env)->GetStringUTFChars(env, name, NULL);
-  res = dlopen(chars, RTLD_LAZY | RTLD_GLOBAL);
-  (*env)->ReleaseStringUTFChars(env, name, chars);
-  return (jlong) ((intptr_t) res);
-}
-
-JNIEXPORT jlong JNICALL 
-Java_com_sun_opengl_impl_x11_GLX_dlsym(JNIEnv *env, jclass _unused, jstring name) {
-  const jbyte* chars;
-  void* res;
-  chars = (*env)->GetStringUTFChars(env, name, NULL);
-  res = dlsym(RTLD_DEFAULT, chars);
-  (*env)->ReleaseStringUTFChars(env, name, chars);
-  return (jlong) ((intptr_t) res);
-}
-
 /* We expect glXGetProcAddressARB to be defined */
 extern __GLXextFuncPtr glXGetProcAddressARB (const GLubyte *);
 
-/* Need to pull this in as we don't have a stub header for it */
-extern Bool XineramaEnabled(Display* display);

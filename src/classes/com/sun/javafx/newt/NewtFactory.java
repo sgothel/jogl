@@ -64,17 +64,49 @@ public abstract class NewtFactory {
       return windowType;
     }
 
+    /**
+     * Create a Display entity, incl native creation
+     */
     public static Display createDisplay(String name) {
       return Display.create(getWindowType(), name);
     }
 
+    /**
+     * Create a Screen entity, incl native creation
+     */
     public static Screen createScreen(Display display, int index) {
       return Screen.create(getWindowType(), display, index);
     }
 
-    public static Window createWindow(Screen screen, int visualID) {
+    /**
+     * Create a Window entity, incl native creation
+     */
+    public static Window createWindow(Screen screen, long visualID) {
       return Window.create(getWindowType(), screen, visualID);
     }
 
+    /**
+     * Instantiate a Display entity using the native handle.
+     */
+    public static Display wrapDisplay(String name, long handle) {
+      return Display.wrapHandle(getWindowType(), name, handle);
+    }
+
+    /**
+     * Instantiate a Screen entity using the native handle.
+     */
+    public static Screen wrapScreen(Display display, int index, long handle) {
+      return Screen.wrapHandle(getWindowType(), display, index, handle);
+    }
+
+    /**
+     * Instantiate a Window entity using the native handle.
+     */
+    public static Window wrapWindow(Screen screen, long visualID,
+                                    long windowHandle, boolean fullscreen, boolean visible, 
+                                    int x, int y, int width, int height) {
+      return Window.wrapHandle(getWindowType(), screen, visualID, 
+                               windowHandle, fullscreen, visible, x, y, width, height);
+    }
 }
 

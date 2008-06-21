@@ -32,49 +32,33 @@
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
- * Sun gratefully acknowledges that this software was originally authored
- * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
 package com.sun.opengl.impl.x11.awt;
 
 import com.sun.opengl.impl.x11.*;
 import com.sun.opengl.impl.awt.*;
-
-import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
 
+import javax.media.opengl.*;
+
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
+
 public class X11JAWTWindow extends JAWTWindow {
-
-  // Variables for lockSurface/unlockSurface
-  private JAWT_DrawingSurface ds;
-  private JAWT_DrawingSurfaceInfo dsi;
-  private JAWT_X11DrawingSurfaceInfo x11dsi;
-  
-  //---------------------------------------------------------------------------
-  // Xinerama-related functionality
-  //
-
-  private boolean checkedXinerama;
-  private boolean xineramaEnabled;
-  protected synchronized boolean isXineramaEnabled() {
-    if (!checkedXinerama) {
-      checkedXinerama = true;
-      lockToolkit();
-      long display = getDisplayConnection();
-      xineramaEnabled = GLX.XineramaEnabled(display);
-      unlockToolkit();
-    }
-    return xineramaEnabled;
-  }
 
   public X11JAWTWindow(Object comp) {
     super(comp);
   }
 
+  protected void initNative() throws NativeWindowException {
+  }
+
   public int lockSurface() throws NativeWindowException {
-    super.lockSurface();
+    int ret = super.lockSurface();
+    if(LOCK_SUCCESS != ret) {
+        return ret;
+    }
     ds = JAWT.getJAWT().GetDrawingSurface(component);
     if (ds == null) {
       // Widget not yet realized
@@ -89,7 +73,6 @@ public class X11JAWTWindow extends JAWTWindow {
     // should handle this case, but it may be possible that race
     // conditions can cause this code to be triggered -- should test
     // more)
-    int ret = LOCK_SUCCESS;
     if ((res & JAWTFactory.JAWT_LOCK_SURFACE_CHANGED) != 0) {
       ret = LOCK_SURFACE_CHANGED;
     }
@@ -105,11 +88,12 @@ public class X11JAWTWindow extends JAWTWindow {
     display = x11dsi.display();
     drawable = x11dsi.drawable();
     visualID = x11dsi.visualID();
-    screen= null;
-    if (isXineramaEnabled()) {
+    screen= 0;
+    if (X11Lib.XineramaEnabled(display)) {
       screenIndex = 0;
     } else {
-      screenIndex = X11SunJDKReflection.graphicsDeviceGetScreen(config.getDevice());
+      GraphicsDevice device = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+      screenIndex = X11SunJDKReflection.graphicsDeviceGetScreen(device);
     }
     if (display == 0 || drawable == 0) {
       // Widget not yet realized
@@ -122,7 +106,7 @@ public class X11JAWTWindow extends JAWTWindow {
       display = 0;
       drawable = 0;
       visualID = 0;
-      screen= null;
+      screen= 0;
       screenIndex = -1;
       return LOCK_SURFACE_NOT_READY;
     }
@@ -130,12 +114,19 @@ public class X11JAWTWindow extends JAWTWindow {
   }
 
   public void unlockSurface() {
-    super.unlockSurface();
+    if(!isSurfaceLocked()) return;
     ds.FreeDrawingSurfaceInfo(dsi);
     ds.Unlock();
     JAWT.getJAWT().FreeDrawingSurface(ds);
     ds = null;
     dsi = null;
     x11dsi = null;
+    super.unlockSurface();
   }
+
+  // Variables for lockSurface/unlockSurface
+  private JAWT_DrawingSurface ds;
+  private JAWT_DrawingSurfaceInfo dsi;
+  private JAWT_X11DrawingSurfaceInfo x11dsi;
+  
 }

@@ -32,9 +32,6 @@
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
- * Sun gratefully acknowledges that this software was originally authored
- * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
 package com.sun.opengl.impl.awt;
@@ -42,21 +39,28 @@ package com.sun.opengl.impl.awt;
 import com.sun.opengl.impl.*;
 
 import java.awt.Component;
+import java.awt.GraphicsEnvironment;
 import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
 
 public abstract class JAWTWindow implements NativeWindow {
   protected static final boolean DEBUG = Debug.debug("GLDrawable");
 
+  // See whether we're running in headless mode
+  private static boolean headlessMode;
+
+  static {
+    headlessMode = GraphicsEnvironment.isHeadless();
+  }
+
   // lifetime: forever
   protected Component component;
   protected boolean locked;
 
-  // lifetime: valid while locked
+  // lifetime: valid after lock, forever until invalidate
   protected long display;
   protected long screen;
   protected long drawable;
-  // lifetime: valid after lock, forever
   protected long visualID;
   protected int  screenIndex;
 
@@ -65,36 +69,38 @@ public abstract class JAWTWindow implements NativeWindow {
   }
 
   protected void init(Object windowObject) throws NativeWindowException {
-    this.locked = false;
-    this.component = (Component)comp;
-    this.display= null;
-    this.screen= null;
-    this.screenIndex = -1;
-    this.drawable= null;
-    this.visualID = 0;
+    invalidate();
+    this.component = (Component)windowObject;
     initNative();
   }
 
-  public abstract boolean initNative() throws NativeWindowException;
+  protected abstract void initNative() throws NativeWindowException;
 
-  public boolean lockSurface() throws NativeWindowException {
+  public synchronized void invalidate() {
+    locked = false;
+    component = null;
+    display= 0;
+    screen= 0;
+    screenIndex = -1;
+    drawable= 0;
+    visualID = 0;
+  }
+
+  public synchronized int lockSurface() throws NativeWindowException {
     if (locked) {
       throw new NativeWindowException("Surface already locked");
     }
     locked = true;
+    return LOCK_SUCCESS;
   }
 
-  public void unlockSurface() {
-    if (!locked) {
-      throw new NativeWindowException("Surface already locked");
+  public synchronized void unlockSurface() {
+    if (locked) {
+        locked = false;
     }
-    locked = false;
-    display= null;
-    screen= null;
-    drawable= null;
   }
 
-  public boolean isSurfaceLocked() {
+  public synchronized boolean isSurfaceLocked() {
     return locked;
   }
 

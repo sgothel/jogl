@@ -40,7 +40,7 @@ public class WindowsScreen extends Screen {
     public WindowsScreen() {
     }
 
-    public void initNative() {
+    protected void createNative() {
         handle = 0;
     }
 }

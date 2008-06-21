@@ -58,18 +58,16 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory implements
   /** Dynamically looks up the given function. */
   public abstract long dynamicLookupFunction(String glFuncName);
 
-  /** Locks the AWT for the purposes of Java2D/JOGL integration. This
-   * is not necessary on some platforms.
-   */
-  public abstract void lockAWTForJava2D();
+  protected GLDrawableFactoryImpl() {
+    super();
+  }
 
-  /** Unlocks the AWT for the purposes of Java2D/JOGL integration.
-   * This is not necessary on some platforms.
-   */
-  public abstract void unlockAWTForJava2D();
+  public static GLDrawableFactoryImpl getFactoryImpl(boolean awt) {
+    return (GLDrawableFactoryImpl) getFactory(awt);
+  }
 
-  protected GLDrawableFactoryImpl(String profile) {
-    super(profile);
+  public static GLDrawableFactoryImpl getFactoryImpl(Object target) {
+    return (GLDrawableFactoryImpl) getFactory(target);
   }
 
   // Helper function for more lazily loading the GLU library;
@@ -83,12 +81,10 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory implements
   // implement this functionality on all other platforms
   //
 
-  /* FIXME: refactor dependencies on Java SE
   public abstract boolean canCreateContextOnJava2DSurface();
 
-  public abstract GLContext createContextOnJava2DSurface(Graphics g, GLContext shareWith)
+  public abstract GLContext createContextOnJava2DSurface(Object graphics, GLContext shareWith)
     throws GLException;
-  */
 
   //----------------------------------------------------------------------
   // Gamma adjustment support

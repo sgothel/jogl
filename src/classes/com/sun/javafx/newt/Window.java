@@ -45,26 +45,32 @@ public abstract class Window implements NativeWindow
     public static final boolean DEBUG_KEY_EVENT = false;
     public static final boolean DEBUG_IMPLEMENTATION = false;
     
-    protected static Window create(String type, Screen screen, int visualID) {
+    private static Class getWindowClass(String type) 
+        throws ClassNotFoundException 
+    {
+        Class windowClass = null;
+        if (NewtFactory.KD.equals(type)) {
+            windowClass = Class.forName("com.sun.javafx.newt.kd.KDWindow");
+        } else if (NewtFactory.WINDOWS.equals(type)) {
+            windowClass = Class.forName("com.sun.javafx.newt.windows.WindowsWindow");
+        } else if (NewtFactory.X11.equals(type)) {
+            windowClass = Class.forName("com.sun.javafx.newt.x11.X11Window");
+        } else if (NewtFactory.MACOSX.equals(type)) {
+            windowClass = Class.forName("com.sun.javafx.newt.macosx.MacOSXWindow");
+        } else {
+            throw new RuntimeException("Unknown window type \"" + type + "\"");
+        }
+        return windowClass;
+    }
+
+    protected static Window create(String type, Screen screen, long visualID) {
         try {
-            Class windowClass = null;
-            if (NewtFactory.KD.equals(type)) {
-                windowClass = Class.forName("com.sun.javafx.newt.kd.KDWindow");
-            } else if (NewtFactory.WINDOWS.equals(type)) {
-                windowClass = Class.forName("com.sun.javafx.newt.windows.WindowsWindow");
-            } else if (NewtFactory.X11.equals(type)) {
-                windowClass = Class.forName("com.sun.javafx.newt.x11.X11Window");
-            } else if (NewtFactory.MACOSX.equals(type)) {
-                windowClass = Class.forName("com.sun.javafx.newt.macosx.MacOSXWindow");
-            } else {
-                throw new RuntimeException("Unknown window type \"" + type + "\"");
-            }
+            Class windowClass = getWindowClass(type);
             Window window = (Window) windowClass.newInstance();
+            window.invalidate();
             window.screen   = screen;
             window.visualID = visualID;
-            window.windowHandle = 0;
-            window.locked = false;
-            window.initNative();
+            window.createNative();
             return window;
         } catch (Throwable t) {
             t.printStackTrace();
@@ -72,16 +78,64 @@ public abstract class Window implements NativeWindow
         }
     }
 
-    protected abstract void initNative();
+    protected static Window wrapHandle(String type, Screen screen, long visualID, 
+                                 long windowHandle, boolean fullscreen, boolean visible, 
+                                 int x, int y, int width, int height) 
+    {
+        try {
+            Class windowClass = getWindowClass(type);
+            Window window = (Window) windowClass.newInstance();
+            window.invalidate();
+            window.screen   = screen;
+            window.visualID = visualID;
+            window.windowHandle = windowHandle;
+            window.fullscreen=fullscreen;
+            window.visible=visible;
+            window.x=x;
+            window.y=y;
+            window.width=width;
+            window.height=height;
+            return window;
+        } catch (Throwable t) {
+            t.printStackTrace();
+            throw new RuntimeException(t);
+        }
+    }
+
+    /**
+     * create native windowHandle, ie creates a new native invisible window
+     */
+    protected abstract void createNative();
+
+    protected abstract void closeNative();
 
     public Screen getScreen() {
         return screen;
     }
 
-    public abstract int     getDisplayWidth();
-    public abstract int     getDisplayHeight();
+    public abstract int getDisplayWidth();
+    public abstract int getDisplayHeight();
 
-    public abstract void    pumpMessages();
+    /**
+     * eventMask is a bitfield of EventListener event flags
+     */
+    public void pumpMessages(int eventMask) {
+        if(this.eventMask!=eventMask && eventMask>0) {
+            this.eventMask=eventMask;
+            eventMask*=-1;
+        }
+        dispatchMessages(eventMask);
+    }
+
+    public void pumpMessages() {
+        int em = 0;
+        //if(windowistener.size()>0) em |= EventListener.WINDOW;
+        if(mouseListener.size()>0) em |= EventListener.MOUSE;
+        if(keyListener.size()>0) em |= EventListener.KEY;
+        pumpMessages(em);
+    }
+
+    public abstract void dispatchMessages(int eventMask);
 
     public String toString() {
         return "Window[handle "+windowHandle+
@@ -90,31 +144,60 @@ public abstract class Window implements NativeWindow
     }
 
     protected Screen screen;
-    protected int    visualID;
+    protected long   visualID;
     protected long   windowHandle;
-    protected boolean locked;
+    protected boolean locked=false;
+    protected boolean fullscreen, visible;
+    protected int width, height, x, y;
+    protected int     eventMask;
 
     //
     // NativeWindow impl
     //
 
-    public boolean lockSurface() throws NativeWindowException {
+    public int lockSurface() throws NativeWindowException {
         if (locked) {
           throw new NativeWindowException("Surface already locked");
         }
-        locked = true;
-        return true;
+        // locked = true;
+        // return LOCK_SUCCESS;
+        return LOCK_NOT_SUPPORTED;
     }
 
     public void unlockSurface() {
-        if (!locked) {
-          throw new NativeWindowException("Surface already locked");
+        if (locked) {
+            locked = false;
         }
-        locked = false;
     }
 
     public boolean isSurfaceLocked() {
         return locked;
+    }
+
+    public void close() {
+        closeNative();
+        invalidate();
+    }
+
+    public void invalidate() {
+        unlockSurface();
+        screen   = null;
+        visualID = 0;
+        windowHandle = 0;
+        locked = false;
+        fullscreen=false;
+        visible=false;
+        eventMask = 0;
+
+        // Default position and dimension will be re-set immediately by user
+        width  = 100;
+        height = 100;
+        x=0;
+        y=0;
+    }
+
+    protected void clearEventMask() {
+        eventMask=0;
     }
 
     public long getDisplayHandle() {
@@ -133,20 +216,39 @@ public abstract class Window implements NativeWindow
         return windowHandle;
     }
 
-    public int  getVisualID() {
+    public long getVisualID() {
         return visualID;
     }
 
-    public abstract int     getWidth();
-    public abstract int     getHeight();
-    public abstract int     getX();
-    public abstract int     getY();
+    public boolean isVisible() {
+        return visible;
+    }
+
+    public int getX() {
+        return x;
+    }
+
+    public int getY() {
+        return y;
+    }
+
+    public int getWidth() {
+        return width;
+    }
+
+    public int getHeight() {
+        return height;
+    }
+
+    public boolean isFullscreen() {
+        return fullscreen;
+    }
+
     public abstract void    setVisible(boolean visible);
+
     public abstract void    setSize(int width, int height);
     public abstract void    setPosition(int x, int y);
-    public abstract boolean isVisible();
     public abstract boolean setFullscreen(boolean fullscreen);
-    public abstract boolean isFullscreen();
 
     //
     // MouseListener Support

@@ -2,7 +2,7 @@
 // query Vertex Buffer Object state
 private boolean inBeginEndPair;
 
-public GLImpl(GLContextImpl context) {
+public GLES2Impl(GLContextImpl context) {
   this._context = context; 
   this.bufferSizeTracker = context.getBufferSizeTracker();
 }
@@ -196,10 +196,6 @@ private void checkElementVBOEnabled() {
                     "element vertex_buffer_object");
 }
 
-// FIXME: bind this up to glMapBufferOES
-
-/*
-
 // Attempt to return the same ByteBuffer object from glMapBufferARB if
 // the vertex buffer object's base address and size haven't changed
 private static class ARBVBOKey {
@@ -225,14 +221,11 @@ private static class ARBVBOKey {
   }
 }
 
-*/
-
-//private Map/*<ARBVBOKey, ByteBuffer>*/ arbVBOCache = new HashMap();
+private Map/*<ARBVBOKey, ByteBuffer>*/ arbVBOCache = new HashMap();
 
 /** Entry point to C language function: <br> <code> LPVOID glMapBuffer(GLenum target, GLenum access); </code>    */
-/*
 public java.nio.ByteBuffer glMapBuffer(int target, int access) {
-  final long __addr_ = _context.getGLProcAddressTable()._addressof_glMapBuffer;
+  final long __addr_ = ((GLES2ProcAddressTable)_context.getGLProcAddressTable())._addressof_glMapBufferOES;
   if (__addr_ == 0) {
     throw new GLException("Method \"glMapBuffer\" not available");
   }
@@ -254,37 +247,7 @@ public java.nio.ByteBuffer glMapBuffer(int target, int access) {
   _res.position(0);
   return _res;
 }
-*/
-
-/** Entry point to C language function: <br> <code> LPVOID glMapBufferARB(GLenum target, GLenum access); </code>    */
-/*
-public java.nio.ByteBuffer glMapBufferARB(int target, int access) {
-  final long __addr_ = _context.getGLProcAddressTable()._addressof_glMapBufferARB;
-  if (__addr_ == 0) {
-    throw new GLException("Method \"glMapBufferARB\" not available");
-  }
-  int sz = bufferSizeTracker.getBufferSize(bufferStateTracker,
-                                           target,
-                                           this);
-  long addr;
-  addr = dispatch_glMapBufferARB(target, access, __addr_);
-  if (addr == 0 || sz == 0) {
-    return null;
-  }
-  ARBVBOKey key = new ARBVBOKey(addr, sz);
-  java.nio.ByteBuffer _res = (java.nio.ByteBuffer) arbVBOCache.get(key);
-  if (_res == null) {
-    _res = InternalBufferUtils.newDirectByteBuffer(addr, sz);
-    _res.order(java.nio.ByteOrder.nativeOrder());
-    arbVBOCache.put(key, _res);
-  }
-  _res.position(0);
-  return _res;
-}
-*/
 
 /** Encapsulates function pointer for OpenGL function <br>: <code> LPVOID glMapBuffer(GLenum target, GLenum access); </code>    */
-//native private long dispatch_glMapBuffer(int target, int access, long glProcAddress);
+native private long dispatch_glMapBuffer(int target, int access, long glProcAddress);
 
-/** Encapsulates function pointer for OpenGL function <br>: <code> LPVOID glMapBufferARB(GLenum target, GLenum access); </code>    */
-//native private long dispatch_glMapBufferARB(int target, int access, long glProcAddress);

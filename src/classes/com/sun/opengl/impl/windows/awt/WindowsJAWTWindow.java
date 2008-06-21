@@ -47,22 +47,116 @@ import com.sun.opengl.impl.*;
 
 public class WindowsJAWTWindow extends JAWTWindow {
 
-  // Variables for lockSurface/unlockSurface
-  //private JAWT_DrawingSurface ds;
-  //private JAWT_DrawingSurfaceInfo dsi;
-  //private JAWT_WindowsDrawingSurfaceInfo x11dsi;
-  
+  public static final boolean PROFILING = false; // FIXME
+  public static final int PROFILING_TICKS = 600; // FIXME
+
   public WindowsJAWTWindow(Object comp) {
     super(comp);
   }
 
+  protected void initNative() throws NativeWindowException {
+  }
+
   public int lockSurface() throws NativeWindowException {
-    super.lockSurface();
-    return 0;
+    int ret = super.lockSurface();
+    if(LOCK_SUCCESS != ret) {
+      return ret;
+    }
+
+    long startTime;
+    if (PROFILING) {
+      startTime = System.currentTimeMillis();
+    }
+    ds = JAWT.getJAWT().GetDrawingSurface(component);
+    if (ds == null) {
+      // Widget not yet realized
+      return LOCK_SURFACE_NOT_READY;
+    }
+    int res = ds.Lock();
+    if ((res & JAWTFactory.JAWT_LOCK_ERROR) != 0) {
+      throw new GLException("Unable to lock surface");
+    }
+    // See whether the surface changed and if so destroy the old
+    // OpenGL context so it will be recreated (NOTE: removeNotify
+    // should handle this case, but it may be possible that race
+    // conditions can cause this code to be triggered -- should test
+    // more)
+    if ((res & JAWTFactory.JAWT_LOCK_SURFACE_CHANGED) != 0) {
+      ret = LOCK_SURFACE_CHANGED;
+    }
+    dsi = ds.GetDrawingSurfaceInfo();
+    if (dsi == null) {
+      // Widget not yet realized
+      ds.Unlock();
+      JAWT.getJAWT().FreeDrawingSurface(ds);
+      ds = null;
+      return LOCK_SURFACE_NOT_READY;
+    }
+    win32dsi = (JAWT_Win32DrawingSurfaceInfo) dsi.platformInfo();
+    drawable = win32dsi.hdc();
+    // FIXME: Are the followup abstractions available ? would it be usefull ?
+    display  = 0;
+    visualID = 0;
+    screen= 0;
+    screenIndex = 0;
+
+    if (drawable == 0) {
+      // Widget not yet realized
+      ds.FreeDrawingSurfaceInfo(dsi);
+      ds.Unlock();
+      JAWT.getJAWT().FreeDrawingSurface(ds);
+      ds = null;
+      dsi = null;
+      win32dsi = null;
+      return LOCK_SURFACE_NOT_READY;
+    }
+    if (PROFILING) {
+      long endTime = System.currentTimeMillis();
+      profilingLockSurfaceTime += (endTime - startTime);
+      if (++profilingLockSurfaceTicks == PROFILING_TICKS) {
+        System.err.println("LockSurface calls: " + profilingLockSurfaceTime + " ms / " + PROFILING_TICKS + " calls (" +
+                           ((float) profilingLockSurfaceTime / (float) PROFILING_TICKS) + " ms/call)");
+        profilingLockSurfaceTime = 0;
+        profilingLockSurfaceTicks = 0;
+      }
+    }
+    return ret;
   }
 
   public void unlockSurface() {
+    if(!isSurfaceLocked()) return;
+    long startTime = 0;
+    if (PROFILING) {
+      startTime = System.currentTimeMillis();
+    }
+    ds.FreeDrawingSurfaceInfo(dsi);
+    ds.Unlock();
+    JAWT.getJAWT().FreeDrawingSurface(ds);
+    ds = null;
+    dsi = null;
+    win32dsi = null;
+    drawable = 0;
     super.unlockSurface();
+    if (PROFILING) {
+      long endTime = System.currentTimeMillis();
+      profilingUnlockSurfaceTime += (endTime - startTime);
+      if (++profilingUnlockSurfaceTicks == PROFILING_TICKS) {
+        System.err.println("UnlockSurface calls: " + profilingUnlockSurfaceTime + " ms / " + PROFILING_TICKS + " calls (" +
+                           ((float) profilingUnlockSurfaceTime / (float) PROFILING_TICKS) + " ms/call)");
+        profilingUnlockSurfaceTime = 0;
+        profilingUnlockSurfaceTicks = 0;
+      }
+    }
   }
+
+  // Variables for lockSurface/unlockSurface
+  private JAWT_DrawingSurface ds;
+  private JAWT_DrawingSurfaceInfo dsi;
+  private JAWT_Win32DrawingSurfaceInfo win32dsi;
+  private long profilingLockSurfaceTime = 0;
+  private int  profilingLockSurfaceTicks = 0;
+  private long profilingUnlockSurfaceTime = 0;
+  private int  profilingUnlockSurfaceTicks = 0;
+  
 }
 

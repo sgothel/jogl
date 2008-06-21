@@ -37,12 +37,6 @@ import com.sun.javafx.newt.*;
 import com.sun.opengl.impl.*;
 
 public class WindowsWindow extends Window {
-    private boolean fullscreen, visible;
-    // Default width and height -- will likely be re-set immediately by user
-    private int width  = 100;
-    private int height = 100;
-    private int x=0;
-    private int y=0;
 
     private static final String WINDOW_CLASS_NAME = "NewtWindow";
     static {
@@ -56,14 +50,16 @@ public class WindowsWindow extends Window {
     public WindowsWindow() {
     }
 
-    public void initNative() {
+    protected void createNative() {
         long wndClass = getWindowClass();
-        fullscreen=false;
-        visible=false;
         windowHandle = CreateWindow(WINDOW_CLASS_NAME, getHInstance(), visualID, x, y, width, height);
         if (windowHandle == 0) {
             throw new RuntimeException("Error creating window");
         }
+    }
+
+    protected void closeNative() {
+        CloseWindow(windowHandle);
     }
 
     public void setVisible(boolean visible) {
@@ -80,36 +76,12 @@ public class WindowsWindow extends Window {
     public void setPosition(int x, int y) {
     }
 
-    public boolean isVisible() {
-        return visible;
-    }
-
-    public int getX() {
-        return x;
-    }
-
-    public int getY() {
-        return y;
-    }
-
-    public int getWidth() {
-        return width;
-    }
-
-    public int getHeight() {
-        return height;
-    }
-
     public boolean setFullscreen(boolean fullscreen) {
         if(this.fullscreen!=fullscreen) {
             this.fullscreen=fullscreen;
             return setFullScreen0(windowHandle, fullscreen);
         }
         return true;
-    }
-
-    public boolean isFullscreen() {
-        return fullscreen;
     }
 
     public int getDisplayWidth() {
@@ -120,8 +92,8 @@ public class WindowsWindow extends Window {
         return 480; // FIXME
     }
 
-    public void pumpMessages() {
-        DispatchMessages(windowHandle);
+    public void dispatchMessages(int eventMask) {
+        DispatchMessages(windowHandle, eventMask);
     }
 
     //----------------------------------------------------------------------
@@ -153,10 +125,11 @@ public class WindowsWindow extends Window {
     private static native boolean initIDs();
     private static native long LoadLibraryW(String libraryName);
     private static native long RegisterWindowClass(String windowClassName, long hInstance);
-    private        native long CreateWindow(String windowClassName, long hInstance, int visualID,
+    private        native long CreateWindow(String windowClassName, long hInstance, long visualID,
                                             int x, int y, int width, int height);
+    private        native void CloseWindow(long windowHandle);
     private        native void setVisible0(long windowHandle, boolean visible);
-    private static native void DispatchMessages(long windowHandle);
+    private static native void DispatchMessages(long windowHandle, int eventMask);
     private        native void setSize0(long windowHandle, int width, int height);
     private        native boolean setFullScreen0(long windowHandle, boolean fullscreen);
 
