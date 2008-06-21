@@ -313,7 +313,7 @@ public class Threading {
 
   /** This is a workaround for AWT-related deadlocks which only seem
       to show up in the context of applets */
-  static boolean isAWTMode() {
+  public static boolean isAWTMode() {
     return (mode == AWT);
   }
 

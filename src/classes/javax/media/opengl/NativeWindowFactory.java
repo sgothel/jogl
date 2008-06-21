@@ -95,14 +95,7 @@ public class NativeWindowFactory {
    * hence the independency to the java.awt.* package.
    */
   public static boolean isAWTComponent(Object target) {
-    Class clazz = target.getClass();
-    do {
-        if(clazz.getName().equals("java.awt.Component")) {
-            return true;
-        }
-        clazz = clazz.getSuperclass();
-    } while (clazz!=null);
-    return false;
+    return GLProfile.instanceOf(target, "java.awt.Component");
   }
 
   /**

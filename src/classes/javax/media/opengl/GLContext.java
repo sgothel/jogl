@@ -187,4 +187,10 @@ public abstract class GLContext {
    * Sets the GL pipeline object for this GLContext.
    */
   public abstract void setGL(GL gl);
+
+  public final String toString() {
+    return "GLContext: "+getClass().getName()+
+           "(GL: "+getGL().getClass().getName()+","+
+           " Factory: "+ getGLDrawable().getFactory().getClass().getName()+")";
+  }
 }

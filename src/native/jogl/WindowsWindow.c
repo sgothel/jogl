@@ -50,6 +50,7 @@ typedef int intptr_t;
 
 #include "com_sun_javafx_newt_windows_WindowsWindow.h"
 
+#include "EventListener.h"
 #include "MouseEvent.h"
 #include "KeyEvent.h"
 
@@ -273,10 +274,10 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_RegisterW
 /*
  * Class:     com_sun_javafx_newt_windows_WindowsWindow
  * Method:    CreateWindow
- * Signature: (Ljava/lang/String;JIIIII)J
+ * Signature: (Ljava/lang/String;JJIIII)J
  */
 JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_CreateWindow
-  (JNIEnv *env, jobject obj, jstring windowClassName, jlong hInstance, jint visualID,
+  (JNIEnv *env, jobject obj, jstring windowClassName, jlong hInstance, jlong visualID,
                              jint jx, jint jy, jint defaultWidth, jint defaultHeight)
 {
     const TCHAR* wndClassName = NULL;
@@ -347,10 +348,10 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_setVisible
 /*
  * Class:     com_sun_javafx_newt_windows_WindowsWindow
  * Method:    DispatchMessages
- * Signature: (J)V
+ * Signature: (JI)V
  */
 JNIEXPORT void JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_DispatchMessages
-  (JNIEnv *_env, jclass clazz, jlong window)
+  (JNIEnv *_env, jclass clazz, jlong window, jint eventMask)
 {
     int i = 0;
     MSG msg;
@@ -358,11 +359,60 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_DispatchMe
 
     env = _env;
 
+    if(eventMask<0) {
+        eventMask *= -1;
+        /* FIXME: re-select input mask 
+            long xevent_mask_key = 0;
+            long xevent_mask_ptr = 0;
+            long xevent_mask_win = 0;
+            if( 0 != ( eventMask & EVENT_MOUSE ) ) {
+                xevent_mask_ptr |= ButtonPressMask|ButtonReleaseMask|PointerMotionMask;
+            }
+            if( 0 != ( eventMask & EVENT_KEY ) ) {
+                xevent_mask_key |= KeyPressMask|KeyReleaseMask;
+            }
+            if( 0 != ( eventMask & EVENT_WINDOW ) ) {
+                xevent_mask_win |= ExposureMask;
+            }
+
+            XSelectInput(dpy, w, xevent_mask_win|xevent_mask_key|xevent_mask_ptr);
+        */
+    }
+
     // Periodically take a break
     do {
         gotOne = PeekMessage(&msg, (HWND) window, 0, 0, PM_REMOVE);
         if (gotOne) {
             ++i;
+            switch (msg.message) {
+                case WM_CLOSE:
+                case WM_DESTROY:
+                case WM_SIZE:
+                    if( ! ( eventMask & EVENT_WINDOW ) ) {
+                        continue;
+                    }
+                    break;
+
+                case WM_CHAR:
+                case WM_KEYDOWN:
+                case WM_KEYUP:
+                    if( ! ( eventMask & EVENT_KEY ) ) {
+                        continue;
+                    }
+                    break;
+
+                case WM_LBUTTONDOWN:
+                case WM_LBUTTONUP:
+                case WM_MBUTTONDOWN:
+                case WM_MBUTTONUP:
+                case WM_RBUTTONDOWN:
+                case WM_RBUTTONUP:
+                case WM_MOUSEMOVE:
+                    if( ! ( eventMask & EVENT_MOUSE ) ) {
+                        continue;
+                    }
+                    break;
+            }
             TranslateMessage(&msg);
             DispatchMessage(&msg);
         }

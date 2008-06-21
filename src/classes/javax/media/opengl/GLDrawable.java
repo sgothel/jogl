@@ -134,12 +134,21 @@ public interface GLDrawable {
       currently created or if its pixel format has not been set yet.
       On some platforms, the pixel format is not directly associated
       with the drawable; a best attempt is made to return a reasonable
-      value in this case. */
+      value in this case. 
+      Returns a copy of the passed object.
+    */
   public GLCapabilities getChosenGLCapabilities();
+
+  /**
+   * stores a copy of the passed object
+   */
+  public void setChosenGLCapabilities(GLCapabilities caps);
 
   public NativeWindow getNativeWindow();
 
-  public String getProfile();
-
   public GLDrawableFactory getFactory();
+
+  public int lockSurface() throws GLException;
+  public void unlockSurface();
+  public boolean isSurfaceLocked();
 }

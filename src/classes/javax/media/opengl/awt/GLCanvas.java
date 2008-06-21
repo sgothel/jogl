@@ -107,8 +107,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
       which to create the GLCanvas; the GLDrawableFactory uses the
       default screen device of the local GraphicsEnvironment if null
       is passed for this argument. */
-  public GLCanvas(String profile, 
-                  GLCapabilities capabilities,
+  public GLCanvas(GLCapabilities capabilities,
                   GLCapabilitiesChooser chooser,
                   GLContext shareWith,
                   GraphicsDevice device) {
@@ -142,8 +141,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
       this.glCaps = capabilities;
     }
     if (!Beans.isDesignTime()) {
-      drawable = GLDrawableFactory.getFactory(profile, true).createGLDrawable(profile,
-                                                                              NativeWindowFactory.getNativeWindow(this), 
+      drawable = GLDrawableFactory.getFactory(true).createGLDrawable(NativeWindowFactory.getNativeWindow(this), 
                                                                               capabilities, chooser);
       context = (GLContextImpl) drawable.createContext(shareWith);
       context.setSynchronized(true);
@@ -404,6 +402,34 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
     return drawable.getChosenGLCapabilities();
   }
 
+  public void setChosenGLCapabilities(GLCapabilities caps) {
+    drawable.setChosenGLCapabilities(caps);
+  }
+
+  public NativeWindow getNativeWindow() {
+    return drawable.getNativeWindow();
+  }
+
+  public GLDrawableFactory getFactory() {
+    return drawable.getFactory();
+  }
+
+  public int lockSurface() throws GLException {
+    return drawable.lockSurface();
+  }
+
+  public void unlockSurface() {
+    drawable.unlockSurface();
+  }
+
+  public boolean isSurfaceLocked() {
+    return drawable.isSurfaceLocked();
+  }
+
+  public void destroy() {
+    drawable.destroy();
+  }
+
   //----------------------------------------------------------------------
   // Internals only below this point
   //
@@ -523,7 +549,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
     }
 
     AWTGraphicsConfiguration config = (AWTGraphicsConfiguration)
-      GLDrawableFactory.getFactory().chooseGraphicsConfiguration(capabilities,
+      GLDrawableFactory.getFactory(true).chooseGraphicsConfiguration(capabilities,
                                                                  chooser,
                                                                  new AWTGraphicsDevice(device));
     if (config == null) {

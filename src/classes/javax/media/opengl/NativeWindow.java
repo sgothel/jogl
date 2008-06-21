@@ -40,19 +40,40 @@
 package javax.media.opengl;
 
 public interface NativeWindow {
+  public static final int LOCK_NOT_SUPPORTED = 0;
   public static final int LOCK_SURFACE_NOT_READY = 1;
   public static final int LOCK_SURFACE_CHANGED = 2;
   public static final int LOCK_SUCCESS = 3;
 
-  public boolean lockSurface() throws NativeWindowException ;
+  /**
+   * Lock this surface
+   */
+  public int lockSurface() throws NativeWindowException ;
+
+  /**
+   * Unlock this surface
+   */
   public void unlockSurface();
   public boolean isSurfaceLocked();
 
+  /** 
+   * render all native window information invalid,
+   * as if the native window was destroyed
+   */
+  public void invalidate();
+
+  /**
+   * Lifetime: locked state
+   */
   public long getDisplayHandle();
   public long getScreenHandle();
-  public int  getScreenIndex();
   public long getWindowHandle();
-  public int  getVisualID();
+
+  /**
+   * Lifetime: after 1st lock, until invalidation
+   */
+  public long getVisualID();
+  public int  getScreenIndex();
 
   public void setSize(int width, int height);
   public void setPosition(int x, int y);

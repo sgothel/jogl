@@ -80,38 +80,30 @@ public abstract class GLDrawableFactory {
   private static GLDrawableFactory awtFactory;
   private static GLDrawableFactory nwFactory;
 
-  /** The desktop (OpenGL 2.0) profile */
-  public static final String PROFILE_GL_20 = "GL20";
-
-  /** The OpenGL ES 1 (really, 1.1) profile */
-  public static final String PROFILE_GLES1 = "GLES1";
-
-  /** The OpenGL ES 2 (really, 2.0) profile */
-  public static final String PROFILE_GLES2 = "GLES2";
-
-  private String profile;
-
   /** Initializes the sole GLDrawableFactory instance for the given profile. */
-  public static void initializeAWTFactory(String profile) throws GLException {
+  private static void initializeAWTFactory() throws GLException {
     if (awtFactory != null) {
       return;
     }
 
     // See if the user is requesting one of the embedded profiles,
     // and if so, try to instantiate the EGLDrawableFactory
-    if (PROFILE_GLES1.equals(profile) ||
-        PROFILE_GLES2.equals(profile)) {
+    if (GLProfile.isGLES()) {
       try {
         Class clazz = Class.forName("com.sun.opengl.impl.egl.awt.EGLDrawableFactory");
+        /**
         Constructor c = clazz.getDeclaredConstructor(new Class[] { String.class });
-        awtFactory = (GLDrawableFactory) c.newInstance(new Object[] { profile });
+        awtFactory = (GLDrawableFactory) c.newInstance(new Object[] { GLProfile.getProfile() });
+         */
+        Constructor c = clazz.getDeclaredConstructor(new Class[0]);
+        awtFactory = (GLDrawableFactory) c.newInstance(null);
         return;
       } catch (Exception e) {
           e.printStackTrace();
       }
-    } else if (!PROFILE_GL_20.equals(profile)) {
+    } else if (!GLProfile.isGL2()) {
       // We require that the user passes in one of the known profiles
-      throw new GLException("Unknown or unsupported profile \"" + profile + "\"");
+      throw new GLException("Unknown or unsupported profile \"" + GLProfile.getProfile() + "\"");
     }
 
     // Use the desktop OpenGL as the fallback always
@@ -135,46 +127,53 @@ public abstract class GLDrawableFactory {
       if (factoryClassName != null) {
         factoryClass = Class.forName(factoryClassName);
       } else if (osNameLowerCase.startsWith("wind")) {
-        factoryClass = Class.forName("com.sun.opengl.impl.windows.awt.WindowsAWTGLDrawableFactory");
+        factoryClass = Class.forName("com.sun.opengl.impl.windows.wgl.WindowsWGLDrawableFactory");
       } else if (osNameLowerCase.startsWith("mac os x")) {
-        factoryClass = Class.forName("com.sun.opengl.impl.macosx.awt.MacOSXAWTGLDrawableFactory");
+        factoryClass = Class.forName("com.sun.opengl.impl.macosx.cgl.awt.MacOSXAWTCGLDrawableFactory");
       } else {
         // Assume Linux, Solaris, etc. Should probably test for these explicitly.
-        factoryClass = Class.forName("com.sun.opengl.impl.x11.awt.X11AWTGLDrawableFactory");
+        factoryClass = Class.forName("com.sun.opengl.impl.x11.glx.awt.X11AWTGLXDrawableFactory");
       }
 
       if (factoryClass == null) {
         throw new GLException("OS " + osName + " not yet supported");
       }
 
+      /**
       Constructor c = factoryClass.getDeclaredConstructor(new Class[] { String.class });
-      awtFactory = (GLDrawableFactory) c.newInstance(new Object[] { profile });
+      awtFactory = (GLDrawableFactory) c.newInstance(new Object[] { GLProfile.getProfile() });
+       */
+      Constructor c = factoryClass.getDeclaredConstructor(new Class[0]);
+      awtFactory = (GLDrawableFactory) c.newInstance(null);
     } catch (Exception e) {
       throw new GLException(e);
     }
   }
 
   /** Initializes the sole GLDrawableFactory instance for the given profile. */
-  public static void initializeNWFactory(String profile) throws GLException {
+  private static void initializeNWFactory() throws GLException {
     if (nwFactory != null) {
       return;
     }
 
     // See if the user is requesting one of the embedded profiles,
     // and if so, try to instantiate the EGLDrawableFactory
-    if (PROFILE_GLES1.equals(profile) ||
-        PROFILE_GLES2.equals(profile)) {
+    if (GLProfile.isGLES()) {
       try {
         Class clazz = Class.forName("com.sun.opengl.impl.egl.EGLDrawableFactory");
+        /**
         Constructor c = clazz.getDeclaredConstructor(new Class[] { String.class });
-        nwFactory = (GLDrawableFactory) c.newInstance(new Object[] { profile });
+        nwFactory = (GLDrawableFactory) c.newInstance(new Object[] { GLProfile.getProfile() });
+         */
+        Constructor c = clazz.getDeclaredConstructor(new Class[0]);
+        nwFactory = (GLDrawableFactory) c.newInstance(null);
         return;
       } catch (Exception e) {
           e.printStackTrace();
       }
-    } else if (!PROFILE_GL_20.equals(profile)) {
+    } else if (!GLProfile.isGL2()) {
       // We require that the user passes in one of the known profiles
-      throw new GLException("Unknown or unsupported profile \"" + profile + "\"");
+      throw new GLException("Unknown or unsupported profile \"" + GLProfile.getProfile() + "\"");
     }
 
     // Use the desktop OpenGL as the fallback always
@@ -192,20 +191,24 @@ public abstract class GLDrawableFactory {
       if (factoryClassName != null) {
         factoryClass = Class.forName(factoryClassName);
       } else if (osNameLowerCase.startsWith("wind")) {
-        factoryClass = Class.forName("com.sun.opengl.impl.windows.WindowsGLDrawableFactory");
+        factoryClass = Class.forName("com.sun.opengl.impl.windows.wgl.WindowsWGLDrawableFactory");
       } else if (osNameLowerCase.startsWith("mac os x")) {
-        factoryClass = Class.forName("com.sun.opengl.impl.macosx.MacOSXGLDrawableFactory");
+        factoryClass = Class.forName("com.sun.opengl.impl.macosx.cgl.MacOSXCGLDrawableFactory");
       } else {
         // Assume Linux, Solaris, etc. Should probably test for these explicitly.
-        factoryClass = Class.forName("com.sun.opengl.impl.x11.X11GLDrawableFactory");
+        factoryClass = Class.forName("com.sun.opengl.impl.x11.glx.X11GLXDrawableFactory");
       }
 
       if (factoryClass == null) {
         throw new GLException("OS " + osName + " not yet supported");
       }
 
+      /**
       Constructor c = factoryClass.getDeclaredConstructor(new Class[] { String.class });
-      nwFactory = (GLDrawableFactory) c.newInstance(new Object[] { profile });
+      nwFactory = (GLDrawableFactory) c.newInstance(new Object[] { GLProfile.getProfile() });
+       */
+      Constructor c = factoryClass.getDeclaredConstructor(new Class[0]);
+      nwFactory = (GLDrawableFactory) c.newInstance(null);
       return;
     } catch (Exception e) {
       throw new GLException(e);
@@ -214,44 +217,59 @@ public abstract class GLDrawableFactory {
 
   /** Creates a new GLDrawableFactory instance. End users do not need
       to call this method. */
-  protected GLDrawableFactory(String profile) {
-    this.profile = profile;
+  protected GLDrawableFactory() {
   }
 
   /** Returns the sole GLDrawableFactory instance for the specified profile. */
-  public static GLDrawableFactory getFactory(String profile, Object target) {
+  public static GLDrawableFactory getFactory(String profile, Object target) 
+    throws GLException
+  {
+    GLProfile.setProfile(profile);
+    return getFactory(target);
+  }
+
+  public static GLDrawableFactory getFactory(Object target) 
+    throws GLException
+  {
     if(null==target) {
         throw new IllegalArgumentException("target is null");
     }
     if(target instanceof NativeWindow) {
-      return getFactory(profile, false);
+      return getFactory(false);
     } else if (NativeWindowFactory.isAWTComponent(target)) {
-      return getFactory(profile, true);
+      return getFactory(true);
     }
     throw new IllegalArgumentException("Target type is unsupported. Currently supported: \n"+
                                        "\tjavax.media.opengl.NativeWindow\n"+
                                        "\tjava.awt.Component\n");
   }
 
-  public static GLDrawableFactory getFactory(String profile, boolean awt) {
+  public static GLDrawableFactory getFactory(String profile, boolean awt)
+    throws GLException
+  {
+    GLProfile.setProfile(profile);
+    return getFactory(awt);
+  }
+
+  public static GLDrawableFactory getFactory(boolean awt) 
+    throws GLException
+  {
+    if(null==GLProfile.getProfile()) {
+        throw new GLException("No choosen/preset profile");
+    }
     if(awt) {
-      initializeAWTFactory(profile);
+      initializeAWTFactory();
       if(awtFactory == null) {
           throw new GLException("Could not determine the AWT-GLDrawableFactory");
       }
       return awtFactory;
     } else {
-      initializeNWFactory(profile);
+      initializeNWFactory();
       if(nwFactory == null) {
           throw new GLException("Could not determine the NativeWindow-GLDrawableFactory");
       }
       return nwFactory;
     }
-  }
-
-  /** Indicates which profile this GLDrawableFactory was created for. */
-  public String getProfile() {
-    return profile;
   }
 
   /** Shuts down this GLDrawableFactory, releasing resources
@@ -261,6 +279,25 @@ public abstract class GLDrawableFactory {
       shutting down the GLDrawableFactory. */
   public void shutdown() {
   }
+
+  public void lockToolkit() throws GLException {
+    if(lockedToolkit) {
+        throw new GLException("Toolkit already locked");
+    }
+    lockedToolkit=true;
+  }
+
+  public void unlockToolkit() {
+    if(lockedToolkit) {
+        lockedToolkit=false;
+    }
+  }
+
+  public boolean isToolkitLocked() {
+    return lockedToolkit;
+  }
+
+  protected  static boolean lockedToolkit = false;
 
   /**
    * <P> Selects a graphics configuration on the specified graphics
@@ -411,4 +448,5 @@ public abstract class GLDrawableFactory {
    */
   public abstract GLDrawable createExternalGLDrawable()
     throws GLException;
+
 }

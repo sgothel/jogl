@@ -41,6 +41,7 @@
 
 #include "com_sun_javafx_newt_x11_X11Window.h"
 
+#include "EventListener.h"
 #include "MouseEvent.h"
 #include "KeyEvent.h"
 
@@ -170,11 +171,11 @@ JNIEXPORT jboolean JNICALL Java_com_sun_javafx_newt_x11_X11Window_initIDs
 /*
  * Class:     com_sun_javafx_newt_x11_X11Window
  * Method:    CreateWindow
- * Signature: (JJIIIIII)J
+ * Signature: (JJIJIIII)J
  */
 JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_x11_X11Window_CreateWindow
   (JNIEnv *env, jobject obj, jlong display, jlong screen, jint screen_index, 
-                             jint visualID,
+                             jlong visualID,
                              jint x, jint y, jint width, jint height)
 {
     Display * dpy  = NULL;
@@ -220,7 +221,7 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_x11_X11Window_CreateWindow
             pVisualQuery=NULL;
         }
 #ifdef VERBOSE_ON
-        fprintf(stderr, "trying given (screen %d, visualID: %d) found: %p\n", scrn_idx, visualID, visual);
+        fprintf(stderr, "trying given (screen %d, visualID: %d) found: %p\n", scrn_idx, (int)visualID, visual);
 #endif
     }
     if (visual==NULL)
@@ -246,7 +247,7 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_x11_X11Window_CreateWindow
                 visualID = 0;
             }
 #ifdef VERBOSE_ON
-            fprintf(stderr, "default visual (screen %d, visualID: %d) found: %p\n", scrn_idx, visualID, visual);
+            fprintf(stderr, "default visual (screen %d, visualID: %d) found: %p\n", scrn_idx, (int)visualID, visual);
 #endif
         }
     }
@@ -296,6 +297,24 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_x11_X11Window_CreateWindow
  * Method:    setVisible0
  * Signature: (JJZ)V
  */
+JNIEXPORT void JNICALL Java_com_sun_javafx_newt_x11_X11Window_CloseWindow
+  (JNIEnv *env, jobject obj, jlong display, jlong window)
+{
+    Display * dpy = (Display *) (intptr_t) display;
+    Window w = (Window)window;
+
+    XUngrabPointer(dpy, CurrentTime);
+    XUngrabKeyboard(dpy, CurrentTime);
+    XSelectInput(dpy, w, 0);
+    XUnmapWindow(dpy, w);
+    XDestroyWindow(dpy, w);
+}
+
+/*
+ * Class:     com_sun_javafx_newt_x11_X11Window
+ * Method:    setVisible0
+ * Signature: (JJZ)V
+ */
 JNIEXPORT void JNICALL Java_com_sun_javafx_newt_x11_X11Window_setVisible0
   (JNIEnv *env, jobject obj, jlong display, jlong window, jboolean visible)
 {
@@ -304,12 +323,12 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_x11_X11Window_setVisible0
     if(visible==JNI_TRUE) {
         XMapRaised(dpy, w);
 
-        XSelectInput(dpy, w, ExposureMask|ButtonPressMask|ButtonReleaseMask|PointerMotionMask|
-                                  KeyPressMask|KeyReleaseMask);
         XSetInputFocus(dpy, w, RevertToNone, CurrentTime);
 
         XSync(dpy, False);
     } else {
+        XUngrabPointer(dpy, CurrentTime);
+        XUngrabKeyboard(dpy, CurrentTime);
         XSelectInput(dpy, w, 0);
         XUnmapWindow(dpy, w);
     }
@@ -318,14 +337,40 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_x11_X11Window_setVisible0
 /*
  * Class:     com_sun_javafx_newt_x11_X11Window
  * Method:    DispatchMessages
- * Signature: (JJ)V
+ * Signature: (JJI)V
  */
 JNIEXPORT void JNICALL Java_com_sun_javafx_newt_x11_X11Window_DispatchMessages
-  (JNIEnv *env, jobject obj, jlong display, jlong window)
+  (JNIEnv *env, jobject obj, jlong display, jlong window, jint eventMask)
 {
     Display * dpy = (Display *) (intptr_t) display;
     Window w = (Window)window;
-    (void) w; // unused for now, might be necessary to verify the event source
+
+    if(eventMask<0) {
+        long xevent_mask_key = 0;
+        long xevent_mask_ptr = 0;
+        long xevent_mask_win = 0;
+        eventMask *= -1;
+        if( 0 != ( eventMask & EVENT_MOUSE ) ) {
+            xevent_mask_ptr |= ButtonPressMask|ButtonReleaseMask|PointerMotionMask;
+        }
+        if( 0 != ( eventMask & EVENT_KEY ) ) {
+            xevent_mask_key |= KeyPressMask|KeyReleaseMask;
+        }
+        if( 0 != ( eventMask & EVENT_WINDOW ) ) {
+            xevent_mask_win |= ExposureMask;
+        }
+
+        XSelectInput(dpy, w, xevent_mask_win|xevent_mask_key|xevent_mask_ptr);
+
+        if(0!=xevent_mask_ptr) {
+            XGrabPointer(dpy, w, True, xevent_mask_ptr,
+                        GrabModeAsync, GrabModeAsync, w, None, CurrentTime);
+        } 
+        if(0!=xevent_mask_key) {
+            XGrabKeyboard(dpy, w, True, GrabModeAsync, GrabModeAsync, CurrentTime);
+        }
+
+    }
 
     // Periodically take a break
     while( XPending(dpy)>0 ) {
@@ -338,45 +383,93 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_x11_X11Window_DispatchMessages
 
         switch(evt.type) {
             case ButtonPress:
-                (*env)->CallVoidMethod(env, obj, sendMouseEventID, (jint) EVENT_MOUSE_PRESSED, 
-                                      (jint) evt.xbutton.state, 
-                                      (jint) evt.xbutton.x, (jint) evt.xbutton.y, (jint) evt.xbutton.button);
-                break;
             case ButtonRelease:
-                (*env)->CallVoidMethod(env, obj, sendMouseEventID, (jint) EVENT_MOUSE_RELEASED, 
-                                      (jint) evt.xbutton.state, 
-                                      (jint) evt.xbutton.x, (jint) evt.xbutton.y, (jint) evt.xbutton.button);
-                break;
             case MotionNotify:
-                (*env)->CallVoidMethod(env, obj, sendMouseEventID, (jint) EVENT_MOUSE_MOVED, 
-                                      (jint) evt.xmotion.state, 
-                                      (jint) evt.xmotion.x, (jint) evt.xmotion.y, (jint) 0);
+                if( ! ( eventMask & EVENT_MOUSE ) ) {
+                    continue;
+                }
                 break;
             case KeyPress:
-                if(XLookupString(&evt.xkey,text,255,&keySym,0)==1) {
-                    keyChar=text[0];
-                } else {
-                    keyChar=0;
-                }
-                (*env)->CallVoidMethod(env, obj, sendKeyEventID, (jint) EVENT_KEY_PRESSED, 
-                                      (jint) evt.xkey.state, 
-                                      (jint) keySym, (jchar) keyChar);
-                break;
             case KeyRelease:
-                if(XLookupString(&evt.xkey,text,255,&keySym,0)==1) {
-                    keyChar=text[0];
-                } else {
-                    keyChar=0;
+                if( ! ( eventMask & EVENT_KEY ) ) {
+                    continue;
                 }
-                (*env)->CallVoidMethod(env, obj, sendKeyEventID, (jint) EVENT_KEY_RELEASED, 
-                                      (jint) evt.xkey.state, 
-                                      (jint) keySym, (jchar) keyChar);
                 break;
             case FocusIn:
-                // evt.xfocus
-                break;
             case FocusOut:
-                // evt.xfocus
+            case DestroyNotify:
+            case CreateNotify:
+            case VisibilityNotify:
+                if( ! ( eventMask & EVENT_WINDOW ) ) {
+                    continue;
+                }
+                break;
+        }
+        
+        switch(evt.type) {
+            case ButtonPress:
+                if(evt.xbutton.window==w) {
+                    (*env)->CallVoidMethod(env, obj, sendMouseEventID, (jint) EVENT_MOUSE_PRESSED, 
+                                          (jint) evt.xbutton.state, 
+                                          (jint) evt.xbutton.x, (jint) evt.xbutton.y, (jint) evt.xbutton.button);
+                }
+                break;
+            case ButtonRelease:
+                if(evt.xbutton.window==w) {
+                    (*env)->CallVoidMethod(env, obj, sendMouseEventID, (jint) EVENT_MOUSE_RELEASED, 
+                                          (jint) evt.xbutton.state, 
+                                          (jint) evt.xbutton.x, (jint) evt.xbutton.y, (jint) evt.xbutton.button);
+                }
+                break;
+            case MotionNotify:
+                if(evt.xmotion.window==w) {
+                    (*env)->CallVoidMethod(env, obj, sendMouseEventID, (jint) EVENT_MOUSE_MOVED, 
+                                          (jint) evt.xmotion.state, 
+                                          (jint) evt.xmotion.x, (jint) evt.xmotion.y, (jint) 0);
+                }
+                break;
+            case KeyPress:
+                if(evt.xkey.window==w) {
+                    if(XLookupString(&evt.xkey,text,255,&keySym,0)==1) {
+                        keyChar=text[0];
+                    } else {
+                        keyChar=0;
+                    }
+                    (*env)->CallVoidMethod(env, obj, sendKeyEventID, (jint) EVENT_KEY_PRESSED, 
+                                          (jint) evt.xkey.state, 
+                                          (jint) keySym, (jchar) keyChar);
+                }
+                break;
+            case KeyRelease:
+                if(evt.xkey.window==w) {
+                    if(XLookupString(&evt.xkey,text,255,&keySym,0)==1) {
+                        keyChar=text[0];
+                    } else {
+                        keyChar=0;
+                    }
+                    (*env)->CallVoidMethod(env, obj, sendKeyEventID, (jint) EVENT_KEY_RELEASED, 
+                                          (jint) evt.xkey.state, 
+                                          (jint) keySym, (jchar) keyChar);
+                }
+                break;
+            case FocusIn:
+            case FocusOut:
+                if(evt.xfocus.window==w) {
+                }
+                break;
+            case DestroyNotify:
+                if(evt.xdestroywindow.window==w) {
+                    (*env)->CallVoidMethod(env, obj, windowDestroyedID);
+                }
+                break;
+            case CreateNotify:
+                if(evt.xcreatewindow.window==w) {
+                    (*env)->CallVoidMethod(env, obj, windowCreatedID);
+                }
+                break;
+            case VisibilityNotify:
+                if(evt.xvisibility.window==w) {
+                }
                 break;
         }
     } 
