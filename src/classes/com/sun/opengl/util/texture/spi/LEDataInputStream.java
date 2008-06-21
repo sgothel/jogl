@@ -68,7 +68,7 @@ import java.io.IOException;
  * @author	Robin Luiten
  * @version	1.1	15/Dec/1997
  */
-class LEDataInputStream extends FilterInputStream implements DataInput
+public class LEDataInputStream extends FilterInputStream implements DataInput
 {
 	/**
 	 * To reuse	some of	the	non	endian dependent methods from

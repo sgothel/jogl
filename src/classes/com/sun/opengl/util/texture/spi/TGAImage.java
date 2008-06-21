@@ -44,6 +44,8 @@ import java.nio.*;
 import java.nio.channels.*;
 import javax.media.opengl.*;
 import com.sun.opengl.util.*;
+import com.sun.opengl.util.texture.spi.*;
+import com.sun.opengl.util.texture.*;
 
 /**
  * Targa image reader and writer adapted from sources of the <a href =
@@ -294,10 +296,10 @@ public class TGAImage {
     byte[] tmpData = new byte[rawWidth * header.height()];
 
     if (header.pixelDepth() == 24) {
-      format = GL.GL_BGR;
+      format = GL2.GL_BGR;
     } else {
       assert header.pixelDepth() == 32;
-      format = GL.GL_BGRA;
+      format = GL2.GL_BGRA;
     }
 
     for (i = 0; i < header.height(); ++i) {

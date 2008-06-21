@@ -43,10 +43,6 @@ import java.io.*;
 import javax.media.opengl.*;
 import com.sun.opengl.util.*;
 
-// Test harness
-import java.awt.image.*;
-import javax.swing.*;
-
 /** <p> Reads and writes SGI RGB/RGBA images. </p>
 
     <p> Written from <a href =
@@ -637,6 +633,9 @@ public class SGIImage {
 
   // Test case
   /*
+    import java.awt.image.*;
+    import javax.swing.*;
+
   public static void main(String[] args) {
     for (int i = 0; i < args.length; i++) {
       try {

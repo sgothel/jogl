@@ -44,7 +44,8 @@ import java.nio.*;
 import java.nio.channels.*;
 
 import javax.media.opengl.*;
-import com.sun.opengl.util.*;
+import javax.media.opengl.util.*;
+import com.sun.opengl.util.texture.*;
 
 /** A reader and writer for DirectDraw Surface (.dds) files, which are
     used to describe textures. These files can contain multiple mipmap
