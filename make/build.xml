@@ -143,16 +143,25 @@
                   value="com/sun/opengl/impl/glu/gl2/**, com/sun/opengl/impl/glu/nurbs/**, com/sun/opengl/impl/glu/registry/**, com/sun/opengl/impl/glu/tessellator/**, javax/media/opengl/glu/gl2/**"/>
 
         <property name="java.part.gl2"
-                  value="javax/media/opengl/GL2.*, javax/media/opengl/TraceGL2.*, javax/media/opengl/DebugGL2.*, com/sun/opengl/impl/**/gl2/**, com/sun/opengl/impl/**/glx/**, com/sun/opengl/impl/**/wgl/**, com/sun/opengl/impl/**/cgl/**"/>
+                  value="javax/media/opengl/GL2.*, com/sun/opengl/impl/**/gl2/**, com/sun/opengl/impl/**/glx/**, com/sun/opengl/impl/**/wgl/**, com/sun/opengl/impl/**/cgl/**"/>
+
+        <property name="java.part.gl2.dbg"
+                  value="javax/media/opengl/TraceGL2.*, javax/media/opengl/DebugGL2.*"/>
 
         <property name="java.part.es1"
-                  value="javax/media/opengl/GLES1.*, javax/media/opengl/TraceGLES1.*, javax/media/opengl/DebugGLES1.*, javax/media/opengl/**/es1/**, com/sun/opengl/**/es1/**"/>
+                  value="javax/media/opengl/GLES1.*, javax/media/opengl/**/es1/**, com/sun/opengl/**/es1/**"/>
+
+        <property name="java.part.es1.dbg"
+                  value="javax/media/opengl/TraceGLES1.*, javax/media/opengl/DebugGLES1.*"/>
 
         <property name="java.part.es2"
-                  value="javax/media/opengl/GLES2.*, javax/media/opengl/TraceGLES2.*, javax/media/opengl/DebugGLES2.*, javax/media/opengl/**/es2/**, com/sun/opengl/**/es2/**"/>
+                  value="javax/media/opengl/GLES2.*, javax/media/opengl/**/es2/**, com/sun/opengl/**/es2/**"/>
+
+        <property name="java.part.es2.dbg"
+                  value="javax/media/opengl/TraceGLES2.*, javax/media/opengl/DebugGLES2.*"/>
 
         <property name="java.part.awt"
-                  value="javax/media/opengl/awt/**, com/sun/opengl/impl/j2d/**"/>
+                  value="javax/media/opengl/awt/**, javax/media/opengl/j2d/**, javax/media/opengl/util/swing/**, com/sun/opengl/impl/j2d/**, com/sun/opengl/impl/awt/packrect/**"/>
 
         <property name="java.part.util"
                   value="com/sun/opengl/util/io/**, com/sun/opengl/util/texture/**"/>
@@ -194,17 +203,17 @@
         </condition>
 
         <condition property="java.excludes.gl2"
-                   value="${java.part.gl2}, ${java.part.util.gl2}">
+                   value="${java.part.gl2}, ${java.part.gl2.dbg}, ${java.part.util.gl2}">
            <isset property="jogl.nogl2"/> 
         </condition>
 
         <condition property="java.excludes.es1"
-                   value="${java.part.es1}">
+                   value="${java.part.es1}, ${java.part.es1.dbg}">
           <isset property="jogl.noes1"/> 
         </condition>
 
         <condition property="java.excludes.es2"
-                   value="${java.part.es2}">
+                   value="${java.part.es2}, ${java.part.es2.dbg}">
           <isset property="jogl.noes2"/> 
         </condition>
 
@@ -433,9 +442,12 @@
         <!-- The resulting jogl.jar. -->
         <property name="jogl.core.jar" value="${build}/jogl.core.jar" />
         <property name="jogl.gles1.jar" value="${build}/jogl.gles1.jar" />
+        <property name="jogl.gles1.dbg.jar" value="${build}/jogl.gles1.dbg.jar" />
         <property name="jogl.gles2.jar" value="${build}/jogl.gles2.jar" />
+        <property name="jogl.gles2.dbg.jar" value="${build}/jogl.gles2.dbg.jar" />
         <property name="jogl.egl.jar" value="${build}/jogl.egl.jar" />
         <property name="jogl.gl2.jar" value="${build}/jogl.gl2.jar" />
+        <property name="jogl.gl2.dbg.jar" value="${build}/jogl.gl2.dbg.jar" />
         <property name="jogl.awt.jar" value="${build}/jogl.awt.jar" />
         <property name="jogl.newt.jar" value="${build}/jogl.newt.jar" />
         <property name="jogl.oswin.jar" value="${build}/jogl.oswin.jar" />
@@ -1402,15 +1414,25 @@
         <jar manifest="tempversion" destfile="${jogl.core.jar}">
             <fileset dir="${classes}"
                      includes="javax/media/opengl/**, com/sun/gluegen/runtime/**, com/sun/opengl/**"
-                     excludes="${java.excludes.fixme} ${java.part.egl}, ${java.part.gl2}, ${java.part.es1}, ${java.part.es2}, ${java.part.awt}, ${java.part.glugl2}, ${java.part.util} ${java.part.util.awt} ${java.part.util.gl2}, ${java.part.x11}, ${java.part.win}, ${java.part.macosx}, ${java.part.newt}, com/sun/opengl/impl/awt/**"/>
+                     excludes="${java.excludes.fixme} ${java.part.egl}, ${java.part.gl2}, ${java.part.gl2.dbg}, ${java.part.es1}, ${java.part.es1.dbg}, ${java.part.es2}, ${java.part.es2.dbg}, ${java.part.awt}, ${java.part.glugl2}, ${java.part.util} ${java.part.util.awt} ${java.part.util.gl2}, ${java.part.x11}, ${java.part.win}, ${java.part.macosx}, ${java.part.newt}, com/sun/opengl/impl/awt/**"/>
         </jar>
         <jar manifest="tempversion" destfile="${jogl.gles1.jar}">
             <fileset dir="${classes}"
-                     includes="${java.part.es1}"/>
+                     includes="${java.part.es1}"
+                     excludes="${java.part.es1.dbg}"/>
+        </jar>
+        <jar manifest="tempversion" destfile="${jogl.gles1.dbg.jar}">
+            <fileset dir="${classes}"
+                     includes="${java.part.es1.dbg}"/>
         </jar>
         <jar manifest="tempversion" destfile="${jogl.gles2.jar}">
             <fileset dir="${classes}"
-                     includes="${java.part.es2}"/>
+                     includes="${java.part.es2}"
+                     excludes="${java.part.es2.dbg}"/>
+        </jar>
+        <jar manifest="tempversion" destfile="${jogl.gles2.dbg.jar}">
+            <fileset dir="${classes}"
+                     includes="${java.part.es2.dbg}"/>
         </jar>
         <jar manifest="tempversion" destfile="${jogl.egl.jar}">
             <fileset dir="${classes}"
@@ -1418,12 +1440,17 @@
         </jar>
         <jar manifest="tempversion" destfile="${jogl.gl2.jar}">
             <fileset dir="${classes}"
-                     includes="${java.part.gl2} ${java.part.glugl2}"/>
+                     includes="${java.part.gl2} ${java.part.glugl2}"
+                     excludes="${java.part.gl2.dbg}"/>
+        </jar>
+        <jar manifest="tempversion" destfile="${jogl.gl2.dbg.jar}">
+            <fileset dir="${classes}"
+                     includes="${java.part.gl2.dbg}"/>
         </jar>
         <jar manifest="tempversion" destfile="${jogl.awt.jar}">
             <fileset dir="${classes}"
                      includes="${java.part.awt}"
-                     excludes="com/sun/opengl/impl/x11/**, com/sun/opengl/impl/windows/**, com/sun/opengl/impl/macosx/**, com/sun/opengl/impl/awt/**"/>
+                     excludes="com/sun/opengl/impl/x11/**, com/sun/opengl/impl/windows/**, com/sun/opengl/impl/macosx/**, com/sun/opengl/impl/awt/*"/>
         </jar>
         <jar manifest="tempversion" destfile="${jogl.newt.jar}">
             <fileset dir="${classes}"
@@ -1431,7 +1458,7 @@
         </jar>
         <jar manifest="tempversion" destfile="${jogl.oswin.jar}">
             <fileset dir="${classes}"
-                     includes="${java.part.x11}, ${java.part.win}, ${java.part.macosx}, com/sun/opengl/impl/awt/**"
+                     includes="${java.part.x11}, ${java.part.win}, ${java.part.macosx}, com/sun/opengl/impl/awt/*"
                      excludes="com/sun/opengl/impl/**/glx/**, com/sun/opengl/impl/**/wgl/**, com/sun/opengl/impl/**/cgl/**"/>
         </jar>
         <jar manifest="tempversion" destfile="${jogl.util.jar}">
