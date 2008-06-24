@@ -43,27 +43,37 @@ extern "C" {
  * Definition of GL_APICALL and GL_APIENTRY
  *-----------------------------------------------------------------------*/
 
-/*
-#if defined(_WIN32) || defined(__VC32__)             // Win32
+#if defined(_WIN32) && !defined(__WIN32__) && !defined(__CYGWIN__)
+#define __WIN32__
+#endif
+
+#if !defined(GL_APICALL)
+# if !defined(OPENSTEP) && (defined(__WIN32__) && !defined(__CYGWIN__))
 #   if defined (_DLL_EXPORTS)
 #       define GL_APICALL __declspec(dllexport)
 #   else
 #       define GL_APICALL __declspec(dllimport)
 #   endif
-#elif defined (__ARMCC_VERSION)                      // ADS
+#  define GL_APIENTRY __stdcall
+# elif defined (__ARMCC_VERSION)                      // ADS
 #   define GL_APICALL
-#elif defined (__SYMBIAN32__) && defined (__GCC32__) // Symbian GCC
+#   define GL_APIENTRY 
+# elif defined (__SYMBIAN32__) && defined (__GCC32__) // Symbian GCC
 #   define GL_APICALL __declspec(dllexport)
-#elif defined (__GNUC__)                             // GCC dependencies (kludge)
-#   define GL_APICALL
+#   define GL_APIENTRY 
+# else
+#  define GL_APICALL extern
+#  define GL_APIENTRY
+# endif
 #endif
 
 #if !defined (GL_APICALL)
 #   error Unsupported platform!
 #endif
-*/
 
-#define GL_APIENTRY
+#if (defined(__BEOS__) && defined(__POWERPC__)) || defined(__QUICKDRAW__)
+#  define PRAGMA_EXPORT_SUPPORTED               1
+#endif
 
 /*-------------------------------------------------------------------------
  * Data type definitions

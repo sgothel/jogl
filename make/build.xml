@@ -1204,17 +1204,20 @@
       <patternset id="c.src.files.jogl">
         <include name="${rootrel.src.c.jogl}/InternalBufferUtils.c"/>
         <include name="${rootrel.src.c.jogl}/*.m" if="isOSX"/>
-        <!-- FIXME: the Mixer should be moved to another library -->
-        <include name="${rootrel.src.c.jogl}/Mixer.cpp" if="isWindows"/>
-        <!-- FIXME: the WindowsWindow should be moved to another library -->
-        <include name="${rootrel.src.c.jogl}/WindowsWindow.c" if="isWindows"/>
-        <!-- FIXME: the X11Window should be moved to another library -->
-        <include name="${rootrel.src.c.jogl}/X11Window.c" if="isX11"/>
-        <include name="${rootrel.generated.c.jogl}/*GL*.c" unless="jogl.noglnatives"/>
         <include name="${rootrel.src.c.jogl}/XineramaHelper.c" if="isX11"/>
+        <include name="${rootrel.generated.c.jogl}/*GL*.c" unless="jogl.noglnatives"/>
+        <include name="${rootrel.generated.c.jogl}/X11/*.c" if="isX11"/>
+        <include name="${rootrel.generated.c.jogl}/OSX/*.c" if="isOSX"/>
+        <include name="${rootrel.generated.c.jogl}/Windows/*.c" if="isWindows"/>
         <!-- Xinerama supporting functions for Linux only (for now) -->
         <!-- Also supported on Solaris, but works differently -->
         <include name="${rootrel.src.c.jogl}/Xinerama.c" if="isLinux"/>
+        <!-- FIXME: the Mixer should be moved to another library -->
+        <include name="${rootrel.src.c.jogl}/Mixer.cpp" if="isWindows"/>
+        <!-- FIXME: the NEWT WindowsWindow should be moved to another library -->
+        <include name="${rootrel.src.c.jogl}/WindowsWindow.c" if="isWindows"/>
+        <!-- FIXME: the NEWT X11Window should be moved to another library -->
+        <include name="${rootrel.src.c.jogl}/X11Window.c" if="isX11"/>
       </patternset>
 
       <patternset id="c.src.files.jogl_awt">
@@ -1329,10 +1332,10 @@
       <!-- FIXME: this is temporary until we move this to another workspace -->
       <javah destdir="../build/gensrc/native/jogl" classpath="${jogl.all.jar}" class="com.sun.javafx.audio.windows.waveout.Mixer" />
       <!-- FIXME: this is temporary until we move this to another workspace -->
-      <javah destdir="../build/gensrc/native/jogl" classpath="${jogl.all.jar}" class="com.sun.javafx.newt.windows.WindowsWindow" />
+      <javah destdir="../build/gensrc/native/jogl/Windows" classpath="${jogl.all.jar}" class="com.sun.javafx.newt.windows.WindowsWindow" />
 
       <!-- FIXME: this is temporary until we move this to another workspace -->
-      <javah destdir="../build/gensrc/native/jogl" classpath="${jogl.all.jar}" class="com.sun.javafx.newt.x11.X11Window" />
+      <javah destdir="../build/gensrc/native/jogl/X11" classpath="${jogl.all.jar}" class="com.sun.javafx.newt.x11.X11Window" />
 
       <!-- Compile stuff -->
       <antcall target="c.build" inheritRefs="true">

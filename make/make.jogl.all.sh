@@ -2,4 +2,4 @@
 
 . ../../setenv-build-jogl.sh
 
-ant $* 2>&1 | tee make.jogl.all.log
+ant -v $* 2>&1 | tee make.jogl.all.log
