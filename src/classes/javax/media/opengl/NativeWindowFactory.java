@@ -63,12 +63,12 @@ public class NativeWindowFactory {
           // static dependencies with platform-specific code here using reflection.
 
           if (osNameLowerCase.startsWith("wind")) {
-            factoryClassName = "com.sun.opengl.impl.windows.awt.WindowsJAWTWindow";
+            factoryClassName = "com.sun.opengl.impl.jawt.windows.WindowsJAWTWindow";
           } else if (osNameLowerCase.startsWith("mac os x")) {
-            factoryClassName = "com.sun.opengl.impl.macosx.awt.MacOSXJAWTWindow";
+            factoryClassName = "com.sun.opengl.impl.jawt.macosx.MacOSXJAWTWindow";
           } else {
             // Assume Linux, Solaris, etc. Should probably test for these explicitly.
-            factoryClassName = "com.sun.opengl.impl.x11.awt.X11JAWTWindow";
+            factoryClassName = "com.sun.opengl.impl.jawt.x11.X11JAWTWindow";
           }
 
           if (factoryClassName == null) {

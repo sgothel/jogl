@@ -38,9 +38,9 @@ package com.sun.opengl.impl.x11.glx.awt;
 
 import com.sun.opengl.impl.*;
 import com.sun.opengl.impl.x11.*;
-import com.sun.opengl.impl.x11.awt.*;
 import com.sun.opengl.impl.x11.glx.*;
-import com.sun.opengl.impl.awt.*;
+import com.sun.opengl.impl.jawt.*;
+import com.sun.opengl.impl.jawt.x11.*;
 import java.awt.Graphics;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
@@ -171,11 +171,11 @@ public class X11AWTGLXDrawableFactory extends X11GLXDrawableFactory {
   }
 
   public void lockToolkit() {
-    AWTUtil.lockToolkit();
+    JAWTUtil.lockToolkit();
   }
 
   public void unlockToolkit() {
-    AWTUtil.unlockToolkit();
+    JAWTUtil.unlockToolkit();
   }
 
 }

@@ -161,7 +161,7 @@
                   value="javax/media/opengl/TraceGLES2.*, javax/media/opengl/DebugGLES2.*"/>
 
         <property name="java.part.awt"
-                  value="javax/media/opengl/awt/**, javax/media/opengl/j2d/**, javax/media/opengl/util/swing/**, com/sun/opengl/impl/j2d/**, com/sun/opengl/impl/awt/packrect/**"/>
+                  value="javax/media/opengl/awt/**, javax/media/opengl/j2d/**, javax/media/opengl/util/swing/**, com/sun/opengl/impl/j2d/**, com/sun/opengl/impl/awt/**"/>
 
         <property name="java.part.util"
                   value="com/sun/opengl/util/io/**, com/sun/opengl/util/texture/**"/>
@@ -218,7 +218,7 @@
         </condition>
 
         <condition property="java.excludes.awt"
-                   value="${java.part.awt}, ${java.part.util.awt}, com/sun/opengl/impl/awt/**">
+                   value="${java.part.awt}, ${java.part.util.awt}">
            <isset property="jogl.noAWT"/> 
         </condition>
 
@@ -1417,7 +1417,7 @@
         <jar manifest="tempversion" destfile="${jogl.core.jar}">
             <fileset dir="${classes}"
                      includes="javax/media/opengl/**, com/sun/gluegen/runtime/**, com/sun/opengl/**"
-                     excludes="${java.excludes.fixme} ${java.part.egl}, ${java.part.gl2}, ${java.part.gl2.dbg}, ${java.part.es1}, ${java.part.es1.dbg}, ${java.part.es2}, ${java.part.es2.dbg}, ${java.part.awt}, ${java.part.glugl2}, ${java.part.util} ${java.part.util.awt} ${java.part.util.gl2}, ${java.part.x11}, ${java.part.win}, ${java.part.macosx}, ${java.part.newt}, com/sun/opengl/impl/awt/**"/>
+                     excludes="${java.excludes.fixme} ${java.part.egl}, ${java.part.gl2}, ${java.part.gl2.dbg}, ${java.part.es1}, ${java.part.es1.dbg}, ${java.part.es2}, ${java.part.es2.dbg}, ${java.part.awt}, ${java.part.glugl2}, ${java.part.util} ${java.part.util.awt} ${java.part.util.gl2}, ${java.part.x11}, ${java.part.win}, ${java.part.macosx}, com/sun/opengl/impl/jawt/**, ${java.part.newt}"/>
         </jar>
         <jar manifest="tempversion" destfile="${jogl.gles1.jar}">
             <fileset dir="${classes}"
@@ -1453,7 +1453,7 @@
         <jar manifest="tempversion" destfile="${jogl.awt.jar}">
             <fileset dir="${classes}"
                      includes="${java.part.awt}"
-                     excludes="com/sun/opengl/impl/x11/**, com/sun/opengl/impl/windows/**, com/sun/opengl/impl/macosx/**, com/sun/opengl/impl/awt/*"/>
+                     excludes="com/sun/opengl/impl/x11/**, com/sun/opengl/impl/windows/**, com/sun/opengl/impl/macosx/**"/>
         </jar>
         <jar manifest="tempversion" destfile="${jogl.newt.jar}">
             <fileset dir="${classes}"
@@ -1461,7 +1461,7 @@
         </jar>
         <jar manifest="tempversion" destfile="${jogl.oswin.jar}">
             <fileset dir="${classes}"
-                     includes="${java.part.x11}, ${java.part.win}, ${java.part.macosx}, com/sun/opengl/impl/awt/*"
+                     includes="${java.part.x11}, ${java.part.win}, ${java.part.macosx}, com/sun/opengl/impl/jawt/*"
                      excludes="com/sun/opengl/impl/**/glx/**, com/sun/opengl/impl/**/wgl/**, com/sun/opengl/impl/**/cgl/**"/>
         </jar>
         <jar manifest="tempversion" destfile="${jogl.util.jar}">

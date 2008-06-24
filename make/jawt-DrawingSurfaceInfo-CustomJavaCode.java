@@ -16,12 +16,12 @@ private static JAWT_PlatformInfo newPlatformInfo(ByteBuffer buf) {
     try {
       Class factoryClass;
       if (osName.startsWith("wind")) {
-        factoryClass = Class.forName("com.sun.opengl.impl.windows.JAWT_Win32DrawingSurfaceInfo");
+        factoryClass = Class.forName("com.sun.opengl.impl.jawt.windows.JAWT_Win32DrawingSurfaceInfo");
       } else if (osName.startsWith("mac os x")) {
-        factoryClass = Class.forName("com.sun.opengl.impl.macosx.JAWT_MacOSXDrawingSurfaceInfo");
+        factoryClass = Class.forName("com.sun.opengl.impl.jawt.macosx.JAWT_MacOSXDrawingSurfaceInfo");
       } else {
         // Assume Linux, Solaris, etc. Should probably test for these explicitly.
-        factoryClass = Class.forName("com.sun.opengl.impl.x11.JAWT_X11DrawingSurfaceInfo");
+        factoryClass = Class.forName("com.sun.opengl.impl.jawt.x11.JAWT_X11DrawingSurfaceInfo");
       }
       platformInfoFactoryMethod = factoryClass.getMethod("create",
                                                          new Class[] { ByteBuffer.class });
