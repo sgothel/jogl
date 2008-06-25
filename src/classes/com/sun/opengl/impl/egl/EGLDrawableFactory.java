@@ -57,18 +57,23 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
 
         // Try several variants
         List/*<String>*/ glesLibNames = new ArrayList();
-        // Windows
-        glesLibNames.add("libGLES_CM");
-        glesLibNames.add("libGLES_CL");
-        // Unix
-        glesLibNames.add("GLES_CM");
-        glesLibNames.add("GLES_CL");
-        // NVidia APX 2500
+
         if (GLProfile.isGLES2()) {
+            // Unix
+            glesLibNames.add("libGLESv2");
             glesLibNames.add("libGLESv2_CM");
+            // Windows
+            glesLibNames.add("GLESv2");
             glesLibNames.add("GLESv2_CM");
         } else if (GLProfile.isGLES1()) {
+            // Unix
+            glesLibNames.add("libGLES_CM");
+            glesLibNames.add("libGLES_CL");
             glesLibNames.add("libGLESv1_CM");
+
+            // Windows
+            glesLibNames.add("GLES_CM");
+            glesLibNames.add("GLES_CL");
             glesLibNames.add("GLESv1_CM");
         } else {
             throw new GLException("Invalid GL Profile for EGL: "+GLProfile.getProfile());

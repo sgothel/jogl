@@ -91,19 +91,11 @@ public static final GLU createGLU(GL gl) throws GLException {
   if(gl.isGL2()) {
     clazzName="javax.media.opengl.glu.gl2.GLUgl2";
   } else if(gl.isGLES1()) {
-    clazzName="javax.media.opengl.glu.gl2.GLUgl2";
+    clazzName="javax.media.opengl.glu.es1.GLUes1";
   } else {
     throw new GLException("GLU not supported for GL "+gl);
   }
-  try {
-      Class clazz = Class.forName(clazzName);
-      Constructor c = clazz.getDeclaredConstructor(new Class[0]);
-      glu = (GLU) c.newInstance(null);
-  } catch (Exception e) {
-    throw new GLException(e);
-  }
-
-  return glu;
+  return (GLU) GLReflection.createInstance(clazzName);
 }
 
 public static final GL getCurrentGL() throws GLException {

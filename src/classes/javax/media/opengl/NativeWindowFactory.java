@@ -53,7 +53,6 @@ public class NativeWindowFactory {
         try {
           String osName = System.getProperty("os.name");
           String osNameLowerCase = osName.toLowerCase();
-          Class factoryClass = null;
           String factoryClassName = null;
 
           // Because there are some complications with generating all
@@ -74,15 +73,8 @@ public class NativeWindowFactory {
           if (factoryClassName == null) {
             throw new GLException("OS " + osName + " not yet supported");
           }
-          factoryClass = Class.forName(factoryClassName);
-          if (factoryClass == null) {
-            throw new GLException("Factory " + factoryClassName + " not yet implemented");
-          }
 
-          try {
-              awtFactory = factoryClass.getDeclaredConstructor(new Class[] { Object.class });
-          } catch(NoSuchMethodException nsme) {}
-
+          awtFactory = GLReflection.getConstructor(factoryClassName, new Class[] { Object.class });
         } catch (Exception e) {
           throw new GLException(e);
         }
@@ -95,7 +87,7 @@ public class NativeWindowFactory {
    * hence the independency to the java.awt.* package.
    */
   public static boolean isAWTComponent(Object target) {
-    return GLProfile.instanceOf(target, "java.awt.Component");
+    return GLReflection.instanceOf(target, "java.awt.Component");
   }
 
   /**

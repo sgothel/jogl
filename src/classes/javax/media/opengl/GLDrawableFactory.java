@@ -90,13 +90,7 @@ public abstract class GLDrawableFactory {
     // and if so, try to instantiate the EGLDrawableFactory
     if (GLProfile.isGLES()) {
       try {
-        Class clazz = Class.forName("com.sun.opengl.impl.egl.awt.EGLDrawableFactory");
-        /**
-        Constructor c = clazz.getDeclaredConstructor(new Class[] { String.class });
-        awtFactory = (GLDrawableFactory) c.newInstance(new Object[] { GLProfile.getProfile() });
-         */
-        Constructor c = clazz.getDeclaredConstructor(new Class[0]);
-        awtFactory = (GLDrawableFactory) c.newInstance(null);
+        awtFactory = (GLDrawableFactory) GLReflection.createInstance("com.sun.opengl.impl.egl.awt.EGLDrawableFactory");
         return;
       } catch (Exception e) {
           e.printStackTrace();
@@ -116,7 +110,6 @@ public abstract class GLDrawableFactory {
           });
       String osName = System.getProperty("os.name");
       String osNameLowerCase = osName.toLowerCase();
-      Class factoryClass = null;
 
       // Because there are some complications with generating all
       // platforms' Java glue code on all platforms (among them that we
@@ -124,27 +117,18 @@ public abstract class GLDrawableFactory {
       // sources, which we currently don't have to do) we break the only
       // static dependencies with platform-specific code here using reflection.
 
-      if (factoryClassName != null) {
-        factoryClass = Class.forName(factoryClassName);
-      } else if (osNameLowerCase.startsWith("wind")) {
-        factoryClass = Class.forName("com.sun.opengl.impl.windows.wgl.WindowsWGLDrawableFactory");
-      } else if (osNameLowerCase.startsWith("mac os x")) {
-        factoryClass = Class.forName("com.sun.opengl.impl.macosx.cgl.awt.MacOSXAWTCGLDrawableFactory");
-      } else {
-        // Assume Linux, Solaris, etc. Should probably test for these explicitly.
-        factoryClass = Class.forName("com.sun.opengl.impl.x11.glx.awt.X11AWTGLXDrawableFactory");
+      if (factoryClassName == null) {
+          if (osNameLowerCase.startsWith("wind")) {
+            factoryClassName = "com.sun.opengl.impl.windows.wgl.WindowsWGLDrawableFactory";
+          } else if (osNameLowerCase.startsWith("mac os x")) {
+            factoryClassName = "com.sun.opengl.impl.macosx.cgl.awt.MacOSXAWTCGLDrawableFactory";
+          } else {
+            // Assume Linux, Solaris, etc. Should probably test for these explicitly.
+            factoryClassName = "com.sun.opengl.impl.x11.glx.awt.X11AWTGLXDrawableFactory";
+          }
       }
 
-      if (factoryClass == null) {
-        throw new GLException("OS " + osName + " not yet supported");
-      }
-
-      /**
-      Constructor c = factoryClass.getDeclaredConstructor(new Class[] { String.class });
-      awtFactory = (GLDrawableFactory) c.newInstance(new Object[] { GLProfile.getProfile() });
-       */
-      Constructor c = factoryClass.getDeclaredConstructor(new Class[0]);
-      awtFactory = (GLDrawableFactory) c.newInstance(null);
+      awtFactory = (GLDrawableFactory) GLReflection.createInstance(factoryClassName);
     } catch (Exception e) {
       throw new GLException(e);
     }
@@ -160,13 +144,7 @@ public abstract class GLDrawableFactory {
     // and if so, try to instantiate the EGLDrawableFactory
     if (GLProfile.isGLES()) {
       try {
-        Class clazz = Class.forName("com.sun.opengl.impl.egl.EGLDrawableFactory");
-        /**
-        Constructor c = clazz.getDeclaredConstructor(new Class[] { String.class });
-        nwFactory = (GLDrawableFactory) c.newInstance(new Object[] { GLProfile.getProfile() });
-         */
-        Constructor c = clazz.getDeclaredConstructor(new Class[0]);
-        nwFactory = (GLDrawableFactory) c.newInstance(null);
+        nwFactory = (GLDrawableFactory) GLReflection.createInstance("com.sun.opengl.impl.egl.EGLDrawableFactory");
         return;
       } catch (Exception e) {
           e.printStackTrace();
@@ -186,29 +164,19 @@ public abstract class GLDrawableFactory {
           });
       String osName = System.getProperty("os.name");
       String osNameLowerCase = osName.toLowerCase();
-      Class factoryClass = null;
 
-      if (factoryClassName != null) {
-        factoryClass = Class.forName(factoryClassName);
-      } else if (osNameLowerCase.startsWith("wind")) {
-        factoryClass = Class.forName("com.sun.opengl.impl.windows.wgl.WindowsWGLDrawableFactory");
-      } else if (osNameLowerCase.startsWith("mac os x")) {
-        factoryClass = Class.forName("com.sun.opengl.impl.macosx.cgl.MacOSXCGLDrawableFactory");
-      } else {
-        // Assume Linux, Solaris, etc. Should probably test for these explicitly.
-        factoryClass = Class.forName("com.sun.opengl.impl.x11.glx.X11GLXDrawableFactory");
+      if (factoryClassName == null) {
+          if (osNameLowerCase.startsWith("wind")) {
+            factoryClassName = "com.sun.opengl.impl.windows.wgl.WindowsWGLDrawableFactory";
+          } else if (osNameLowerCase.startsWith("mac os x")) {
+            factoryClassName = "com.sun.opengl.impl.macosx.cgl.MacOSXCGLDrawableFactory";
+          } else {
+            // Assume Linux, Solaris, etc. Should probably test for these explicitly.
+            factoryClassName = "com.sun.opengl.impl.x11.glx.X11GLXDrawableFactory";
+          }
       }
 
-      if (factoryClass == null) {
-        throw new GLException("OS " + osName + " not yet supported");
-      }
-
-      /**
-      Constructor c = factoryClass.getDeclaredConstructor(new Class[] { String.class });
-      nwFactory = (GLDrawableFactory) c.newInstance(new Object[] { GLProfile.getProfile() });
-       */
-      Constructor c = factoryClass.getDeclaredConstructor(new Class[0]);
-      nwFactory = (GLDrawableFactory) c.newInstance(null);
+      nwFactory = (GLDrawableFactory) GLReflection.createInstance(factoryClassName);
       return;
     } catch (Exception e) {
       throw new GLException(e);
@@ -218,14 +186,6 @@ public abstract class GLDrawableFactory {
   /** Creates a new GLDrawableFactory instance. End users do not need
       to call this method. */
   protected GLDrawableFactory() {
-  }
-
-  /** Returns the sole GLDrawableFactory instance for the specified profile. */
-  public static GLDrawableFactory getFactory(String profile, Object target) 
-    throws GLException
-  {
-    GLProfile.setProfile(profile);
-    return getFactory(target);
   }
 
   public static GLDrawableFactory getFactory(Object target) 
@@ -242,13 +202,6 @@ public abstract class GLDrawableFactory {
     throw new IllegalArgumentException("Target type is unsupported. Currently supported: \n"+
                                        "\tjavax.media.opengl.NativeWindow\n"+
                                        "\tjava.awt.Component\n");
-  }
-
-  public static GLDrawableFactory getFactory(String profile, boolean awt)
-    throws GLException
-  {
-    GLProfile.setProfile(profile);
-    return getFactory(awt);
   }
 
   public static GLDrawableFactory getFactory(boolean awt) 

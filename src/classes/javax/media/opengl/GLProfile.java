@@ -53,16 +53,59 @@ public class GLProfile {
   /** The JVM/process wide choosen GL profile **/
   private static String profile = null;
 
-  public static final void setProfile(String profile) 
+  private static final void tryLibrary() 
+  {
+    try {
+        if(GL2.equals(profile)) {
+            NativeLibLoader.loadGL2();
+        } else if(GLES1.equals(profile) || GLES2.equals(profile)) {
+            Object eGLDrawableFactory = GLReflection.createInstance("com.sun.opengl.impl.egl.EGLDrawableFactory");
+            if(null==eGLDrawableFactory) {
+                throw new GLException("com.sun.opengl.impl.egl.EGLDrawableFactory not available");
+            }
+        }
+    } catch (Exception e) {
+        System.out.println("Profile: "+profile+" not available");
+        System.out.println("Exception: "+e);
+        profile=null;
+    }
+  }
+
+  public static synchronized final void setProfile(String profile) 
     throws GLException
   {
     if(null==GLProfile.profile) {
-        // preset profile .. 1st come 1st serve
         GLProfile.profile = profile;
+        tryLibrary();
     } else {
         if(!GLProfile.profile.equals(profile)) {
               throw new GLException("Choosen profile ("+profile+") doesn't match preset one: "+GLProfile.profile);
         }
+    }
+  }
+
+  public static synchronized final void setProfile(String[] profiles) 
+    throws GLException
+  {
+    for(int i=0; profile==null && i<profiles.length; i++) {
+        setProfile(profiles[i]);
+    }
+    if(null==profile) {
+      throw new GLException("Profiles "+profiles+" not available");
+    }
+  }
+
+  public static synchronized final void setProfileGL2ES1() {
+    setProfile(new String[] { GLES1, GL2 });
+    if(null==profile) {
+      throw new GLException("Profiles GLES1 and GL2 not available");
+    }
+  }
+
+  public static synchronized final void setProfileGL2ES2() {
+    setProfile(new String[] { GLES2, GL2 });
+    if(null==profile) {
+      throw new GLException("Profiles GLES2 and GL2 not available");
     }
   }
 
@@ -98,38 +141,16 @@ public class GLProfile {
     return (null==test_profile)?false:test_profile.equals(profile);
   }
 
-  public static final boolean instanceOf(Object obj, String clazzName) {
-    Class clazz = obj.getClass();
-    do {
-        if(clazz.getName().equals(clazzName)) {
-            return true;
-        }
-        clazz = clazz.getSuperclass();
-    } while (clazz!=null);
-    return false;
-  }
-
-  public static final boolean implementationOf(Object obj, String faceName) {
-    Class[] clazzes = obj.getClass().getInterfaces();
-    for(int i=clazzes.length-1; i>=0; i--) {
-        Class face = clazzes[i];
-        if(face.getName().equals(faceName)) {
-            return true;
-        }
-    }
-    return false;
-  }
-
   public static final boolean implementationOfGL2(Object obj) {
-    return implementationOf(obj, "javax.media.opengl.GL2");
+    return GLReflection.implementationOf(obj, "javax.media.opengl.GL2");
   }
 
   public static final boolean implementationOfGLES1(Object obj) {
-    return implementationOf(obj, "javax.media.opengl.GLES1");
+    return GLReflection.implementationOf(obj, "javax.media.opengl.GLES1");
   }
 
   public static final boolean implementationOfGLES2(Object obj) {
-    return implementationOf(obj, "javax.media.opengl.GLES2");
+    return GLReflection.implementationOf(obj, "javax.media.opengl.GLES2");
   }
 
   public static final boolean implementationOfGLES(Object obj) {
@@ -137,11 +158,11 @@ public class GLProfile {
   }
 
   public static final boolean implementationOfGL2ES1(Object obj) {
-    return implementationOf(obj, "javax.media.opengl.GL2ES1");
+    return GLReflection.implementationOf(obj, "javax.media.opengl.GL2ES1");
   }
 
   public static final boolean implementationOfGL2ES2(Object obj) {
-    return implementationOf(obj, "javax.media.opengl.GL2ES2");
+    return GLReflection.implementationOf(obj, "javax.media.opengl.GL2ES2");
   }
 
 }

@@ -1314,16 +1314,8 @@
       </condition>
 
       <patternset id="c.src.files.jogl.awt">
-        <include name="${rootrel.src.c.jogl}/XineramaHelper.c" if="isX11"/>
-        <!-- Xinerama supporting functions for Linux only (for now) -->
-        <!-- Also supported on Solaris, but works differently -->
-        <include name="${rootrel.src.c.jogl}/Xinerama.c" if="isLinux"/>
-
-        <include name="${rootrel.src.c.jogl}/MacOSXWindowSystemInterface.m" if="isOSX"/>
-
         <include name="${rootrel.src.c.jogl}/JAWT*.c"/>
 
-        <include name="${rootrel.generated.c.jogl}/X11/X11Lib_JNI.c" if="isX11"/>
         <include name="${rootrel.generated.c.jogl}/X11/JAWT*.c" if="isX11"/>
 
         <include name="${rootrel.generated.c.jogl}/OSX/JAWT*.c" if="isOSX"/>
@@ -1339,6 +1331,15 @@
       </patternset>
 
       <patternset id="c.src.files.jogl.gl2">
+        <include name="${rootrel.src.c.jogl}/XineramaHelper.c" if="isX11"/>
+        <!-- Xinerama supporting functions for Linux only (for now) -->
+        <!-- Also supported on Solaris, but works differently -->
+        <include name="${rootrel.src.c.jogl}/Xinerama.c" if="isLinux"/>
+
+        <include name="${rootrel.src.c.jogl}/MacOSXWindowSystemInterface.m" if="isOSX"/>
+
+        <include name="${rootrel.generated.c.jogl}/X11/X11Lib_JNI.c" if="isX11"/>
+
         <include name="${rootrel.src.c.jogl}/InternalBufferUtils.c"/>
 
         <include name="${rootrel.src.c.jogl}/ContextUpdater.m" if="isOSX"/>
@@ -1356,6 +1357,15 @@
       </patternset>
 
       <patternset id="c.src.files.jogl.es2">
+        <include name="${rootrel.src.c.jogl}/XineramaHelper.c" if="isX11"/>
+        <!-- Xinerama supporting functions for Linux only (for now) -->
+        <!-- Also supported on Solaris, but works differently -->
+        <include name="${rootrel.src.c.jogl}/Xinerama.c" if="isLinux"/>
+
+        <include name="${rootrel.src.c.jogl}/MacOSXWindowSystemInterface.m" if="isOSX"/>
+
+        <include name="${rootrel.generated.c.jogl}/X11/X11Lib_JNI.c" if="isX11"/>
+
         <include name="${rootrel.generated.c.jogl}/GLES2Impl_JNI.c"/>
 
         <include name="${rootrel.generated.c.jogl}/EGL_JNI.c"/>
@@ -1364,6 +1374,15 @@
       </patternset>
 
       <patternset id="c.src.files.jogl.es1">
+        <include name="${rootrel.src.c.jogl}/XineramaHelper.c" if="isX11"/>
+        <!-- Xinerama supporting functions for Linux only (for now) -->
+        <!-- Also supported on Solaris, but works differently -->
+        <include name="${rootrel.src.c.jogl}/Xinerama.c" if="isLinux"/>
+
+        <include name="${rootrel.src.c.jogl}/MacOSXWindowSystemInterface.m" if="isOSX"/>
+
+        <include name="${rootrel.generated.c.jogl}/X11/X11Lib_JNI.c" if="isX11"/>
+
         <include name="${rootrel.generated.c.jogl}/EGL_JNI.c"/>
         <include name="${rootrel.src.c.jogl}/InternalBufferUtils.c"/>
         <include name="${rootrel.src.c.jogl}/ContextUpdater.m" if="isOSX"/>
