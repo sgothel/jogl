@@ -44,8 +44,6 @@ import com.sun.opengl.impl.*;
 import com.sun.opengl.impl.x11.*;
 
 public class X11OnscreenGLXDrawable extends X11GLXDrawable {
-  protected NativeWindow component;
-
   protected X11OnscreenGLXDrawable(GLDrawableFactory factory, NativeWindow component) {
     super(factory, component, false, null, null);
   }
