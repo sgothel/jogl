@@ -47,7 +47,7 @@ import com.sun.opengl.impl.*;
 
 public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
   static {
-    NativeLibLoader.loadCore();
+    NativeLibLoader.loadGL2();
   }
 
   public MacOSXCGLDrawableFactory() {

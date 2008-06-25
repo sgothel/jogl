@@ -40,7 +40,7 @@ public class WindowsWindow extends Window {
 
     private static final String WINDOW_CLASS_NAME = "NewtWindow";
     static {
-        NativeLibLoader.loadCore();
+        NativeLibLoader.loadNEWT();
 
         if (!initIDs()) {
             throw new RuntimeException("Failed to initialize jmethodIDs");

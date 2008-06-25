@@ -88,7 +88,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     // See DRIHack.java for an explanation of why this is necessary
     DRIHack.begin();
 
-    com.sun.opengl.impl.NativeLibLoader.loadCore();
+    com.sun.opengl.impl.NativeLibLoader.loadGL2();
 
     DRIHack.end();
   }

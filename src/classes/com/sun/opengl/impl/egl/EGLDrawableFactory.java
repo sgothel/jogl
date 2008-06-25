@@ -41,9 +41,6 @@ import com.sun.opengl.impl.*;
 import com.sun.gluegen.runtime.NativeLibrary;
 
 public class EGLDrawableFactory extends GLDrawableFactoryImpl {
-    static {
-        NativeLibLoader.loadCore();
-    }
   
     // We need more than one of these on certain devices (the NVidia APX 2500 in particular)
     private List/*<NativeLibrary>*/ glesLibraries;
@@ -70,9 +67,11 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         if (GLProfile.isGLES2()) {
             glesLibNames.add("libGLESv2_CM");
             glesLibNames.add("GLESv2_CM");
-        } else {
+        } else if (GLProfile.isGLES1()) {
             glesLibNames.add("libGLESv1_CM");
             glesLibNames.add("GLESv1_CM");
+        } else {
+            throw new GLException("Invalid GL Profile for EGL: "+GLProfile.getProfile());
         }
 
         ClassLoader loader = getClass().getClassLoader();
@@ -94,6 +93,12 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
             libs.add(eglLib);
         }
         glesLibraries = libs;
+
+        if (GLProfile.isGLES2()) {
+            NativeLibLoader.loadES2();
+        } else if (GLProfile.isGLES1()) {
+            NativeLibLoader.loadES1();
+        }
     }
 
     public AbstractGraphicsConfiguration chooseGraphicsConfiguration(GLCapabilities capabilities,

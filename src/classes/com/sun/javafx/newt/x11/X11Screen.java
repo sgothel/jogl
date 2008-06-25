@@ -38,7 +38,7 @@ import com.sun.opengl.impl.*;
 
 public class X11Screen extends Screen {
     static {
-        NativeLibLoader.loadCore();
+        NativeLibLoader.loadNEWT();
     }
 
     public X11Screen() {

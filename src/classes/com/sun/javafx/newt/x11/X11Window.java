@@ -42,7 +42,7 @@ public class X11Window extends Window {
     private int nfs_width, nfs_height, nfs_x, nfs_y;
 
     static {
-        NativeLibLoader.loadCore();
+        NativeLibLoader.loadNEWT();
 
         if (!initIDs()) {
             throw new RuntimeException("Failed to initialize jmethodIDs");

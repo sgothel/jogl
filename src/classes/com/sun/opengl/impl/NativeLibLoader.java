@@ -106,10 +106,37 @@ public class NativeLibLoader {
     }
   }
   
-  public static void loadCore() {
+  public static void loadNEWT() {
     AccessController.doPrivileged(new PrivilegedAction() {
       public Object run() {
-        loadLibrary("jogl", null, false, false);
+        loadLibrary("newt", null, false, false);
+        return null;
+      }
+    });
+  }
+
+  public static void loadGL2() {
+    AccessController.doPrivileged(new PrivilegedAction() {
+      public Object run() {
+        loadLibrary("jogl_gl2", null, false, false);
+        return null;
+      }
+    });
+  }
+
+  public static void loadES2() {
+    AccessController.doPrivileged(new PrivilegedAction() {
+      public Object run() {
+        loadLibrary("jogl_es2", null, false, false);
+        return null;
+      }
+    });
+  }
+
+  public static void loadES1() {
+    AccessController.doPrivileged(new PrivilegedAction() {
+      public Object run() {
+        loadLibrary("jogl_es1", null, false, false);
         return null;
       }
     });

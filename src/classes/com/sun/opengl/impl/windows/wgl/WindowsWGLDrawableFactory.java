@@ -54,7 +54,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
   private long hglu32;
 
   static {
-    NativeLibLoader.loadCore();
+    NativeLibLoader.loadGL2();
   }
   
   public WindowsWGLDrawableFactory() {

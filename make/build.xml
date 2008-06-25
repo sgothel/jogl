@@ -325,6 +325,7 @@
              instead of "/". -->
         <property name="rootrel.src.java" value="src/classes" />
         <property name="rootrel.src.c.jogl" value="src/native/jogl" />
+        <property name="rootrel.src.c.newt" value="src/native/newt" />
         <property name="rootrel.build" value="build" />
         <property name="rootrel.src.generated" value="${rootrel.build}/gensrc" />
         <property name="rootrel.generated.c.jogl" value="${rootrel.src.generated}/native/jogl" />
@@ -343,6 +344,7 @@
         <property name="src.generated.java" value="${src.generated}/classes" />
         <property name="src.generated.java.cg" value="${src.generated}/classes/com/sun/opengl/cg" />
         <property name="src.generated.c" value="${src.generated}/native/jogl" />
+        <property name="src.generated.c.newt" value="${src.generated}/native/newt" />
         <property name="src.generated.c.cg" value="${src.generated}/native/jogl_cg" />
         
         <!-- The compiler output directories. -->
@@ -449,7 +451,7 @@
         <property name="jogl.gl2.jar" value="${build}/jogl.gl2.jar" />
         <property name="jogl.gl2.dbg.jar" value="${build}/jogl.gl2.dbg.jar" />
         <property name="jogl.awt.jar" value="${build}/jogl.awt.jar" />
-        <property name="jogl.newt.jar" value="${build}/jogl.newt.jar" />
+        <property name="newt.jar" value="${build}/newt.jar" />
         <property name="jogl.oswin.jar" value="${build}/jogl.oswin.jar" />
         <property name="jogl.util.jar" value="${build}/jogl.util.jar" />
         <property name="jogl.util.gl2.jar" value="${build}/jogl.util.gl2.jar" />
@@ -500,31 +502,51 @@
     <target name="declare.win32.vc6" if="isVC6">
       <echo message="Win32.VC6" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.win32.msvc" />
-      <property name="linker.cfg.id.core"                   value="linker.cfg.win32.msvc.jogl" />
+      <property name="linker.cfg.id.base "                  value="linker.cfg.win32.msvc" /> 
+      <property name="linker.cfg.id.oswin"                  value="linker.cfg.win32.msvc.jogl.x11" /> 
+      <property name="linker.cfg.id.gl2"                    value="linker.cfg.win32.msvc.jogl.gl2" /> 
+      <property name="linker.cfg.id.es2"                    value="linker.cfg.win32.msvc.jogl.es2" /> 
+      <property name="linker.cfg.id.es1"                    value="linker.cfg.win32.msvc.jogl.es1" /> 
     </target>
     
     <target name="declare.win32.vc7" if="isVC7">
       <echo message="Win32.VC7" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.win32.msvc" />
-      <property name="linker.cfg.id.core"                   value="linker.cfg.win32.msvc.jogl" />
+      <property name="linker.cfg.id.base "                  value="linker.cfg.win32.msvc" /> 
+      <property name="linker.cfg.id.oswin"                  value="linker.cfg.win32.msvc.jogl.x11" /> 
+      <property name="linker.cfg.id.gl2"                    value="linker.cfg.win32.msvc.jogl.gl2" /> 
+      <property name="linker.cfg.id.es2"                    value="linker.cfg.win32.msvc.jogl.es2" /> 
+      <property name="linker.cfg.id.es1"                    value="linker.cfg.win32.msvc.jogl.es1" /> 
     </target>
     
     <target name="declare.win32.vc8" if="isVC8">
       <echo message="Win32.VC8" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.win32.msvc" />
-      <property name="linker.cfg.id.core"                   value="linker.cfg.win32.msvc.jogl" />
+      <property name="linker.cfg.id.base "                  value="linker.cfg.win32.msvc" /> 
+      <property name="linker.cfg.id.oswin"                  value="linker.cfg.win32.msvc.jogl.x11" /> 
+      <property name="linker.cfg.id.gl2"                    value="linker.cfg.win32.msvc.jogl.gl2" /> 
+      <property name="linker.cfg.id.es2"                    value="linker.cfg.win32.msvc.jogl.es2" /> 
+      <property name="linker.cfg.id.es1"                    value="linker.cfg.win32.msvc.jogl.es1" /> 
     </target>
     
     <target name="declare.win32.vc8_x64" if="isVC8_X64">
       <echo message="Win32.VC8_X64" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.win32.msvc" />
-      <property name="linker.cfg.id.core"                   value="linker.cfg.win32.msvc.jogl" />
+      <property name="linker.cfg.id.base "                  value="linker.cfg.win32.msvc" /> 
+      <property name="linker.cfg.id.oswin"                  value="linker.cfg.win32.msvc.jogl.x11" /> 
+      <property name="linker.cfg.id.gl2"                    value="linker.cfg.win32.msvc.jogl.gl2" /> 
+      <property name="linker.cfg.id.es2"                    value="linker.cfg.win32.msvc.jogl.es2" /> 
+      <property name="linker.cfg.id.es1"                    value="linker.cfg.win32.msvc.jogl.es1" /> 
     </target>
     
     <target name="declare.win32.mingw" if="isMingW">
       <echo message="Win32.MingW" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.win32.mingw" /> 
-      <property name="linker.cfg.id.core"                   value="linker.cfg.win32.mingw.jogl" />
+      <property name="linker.cfg.id.base "                  value="linker.cfg.win32.mingw" /> 
+      <property name="linker.cfg.id.oswin"                  value="linker.cfg.win32.mingw.jogl.x11" /> 
+      <property name="linker.cfg.id.gl2"                    value="linker.cfg.win32.mingw.jogl.gl2" /> 
+      <property name="linker.cfg.id.es2"                    value="linker.cfg.win32.mingw.jogl.es2" /> 
+      <property name="linker.cfg.id.es1"                    value="linker.cfg.win32.mingw.jogl.es1" /> 
     </target>
 
     <target name="declare.linux.x86" if="isLinuxX86">
@@ -533,7 +555,11 @@
       <property name="java.lib.dir.platform"                value="${java.lib.dir.linux}" />       
 
       <property name="compiler.cfg.id"                      value="compiler.cfg.linux" /> 
-      <property name="linker.cfg.id.core"                   value="linker.cfg.linux.jogl" /> 
+      <property name="linker.cfg.id.base "                  value="linker.cfg.linux" /> 
+      <property name="linker.cfg.id.oswin"                  value="linker.cfg.linux.jogl.x11" /> 
+      <property name="linker.cfg.id.gl2"                    value="linker.cfg.linux.jogl.gl2" /> 
+      <property name="linker.cfg.id.es2"                    value="linker.cfg.linux.jogl.es2" /> 
+      <property name="linker.cfg.id.es1"                    value="linker.cfg.linux.jogl.es1" /> 
     </target>
     
     <target name="declare.linux.amd64" if="isLinuxAMD64">
@@ -542,7 +568,11 @@
       <property name="java.lib.dir.platform"                value="${java.lib.dir.linux.amd64}" />       
 
       <property name="compiler.cfg.id"                      value="compiler.cfg.linux.amd64" /> 
-      <property name="linker.cfg.id.core"                   value="linker.cfg.linux.amd64.jogl" /> 
+      <property name="linker.cfg.id.base "                  value="linker.cfg.linux.amd64" /> 
+      <property name="linker.cfg.id.oswin"                  value="linker.cfg.linux.amd64.jogl.x11" /> 
+      <property name="linker.cfg.id.gl2"                    value="linker.cfg.linux.amd64.jogl.gl2" /> 
+      <property name="linker.cfg.id.es2"                    value="linker.cfg.linux.amd64.jogl.es2" /> 
+      <property name="linker.cfg.id.es1"                    value="linker.cfg.linux.amd64.jogl.es1" /> 
     </target>
     
     <target name="declare.linux.ia64" if="isLinuxIA64">
@@ -551,7 +581,11 @@
       <property name="java.lib.dir.platform"                value="${java.lib.dir.linux.ia64}" />       
 
       <property name="compiler.cfg.id"                      value="compiler.cfg.linux" /> 
-      <property name="linker.cfg.id.core"                   value="linker.cfg.linux.jogl" /> 
+      <property name="linker.cfg.id.base "                  value="linker.cfg.linux" /> 
+      <property name="linker.cfg.id.oswin"                  value="linker.cfg.linux.jogl.x11" /> 
+      <property name="linker.cfg.id.gl2"                    value="linker.cfg.linux.jogl.gl2" /> 
+      <property name="linker.cfg.id.es2"                    value="linker.cfg.linux.jogl.es2" /> 
+      <property name="linker.cfg.id.es1"                    value="linker.cfg.linux.jogl.es1" /> 
     </target>
 
     <target name="declare.linux" depends="declare.linux.x86,declare.linux.amd64,declare.linux.ia64,declare.x11" if="isLinux" />
@@ -562,7 +596,11 @@
       <property name="java.lib.dir.platform"                value="${java.lib.dir.solaris}" />
 
       <property name="compiler.cfg.id"                      value="compiler.cfg.solaris" /> 
-      <property name="linker.cfg.id.core"                   value="linker.cfg.solaris.jogl" /> 
+      <property name="linker.cfg.id.base "                  value="linker.cfg.solaris" /> 
+      <property name="linker.cfg.id.oswin"                  value="linker.cfg.solaris.jogl.x11" /> 
+      <property name="linker.cfg.id.gl2"                    value="linker.cfg.solaris.jogl.gl2" /> 
+      <property name="linker.cfg.id.es2"                    value="linker.cfg.solaris.jogl.es2" /> 
+      <property name="linker.cfg.id.es1"                    value="linker.cfg.solaris.jogl.es1" /> 
     </target>
   
  
@@ -572,7 +610,11 @@
       <property name="java.lib.dir.platform"                value="${java.lib.dir.solaris}" />
 
       <property name="compiler.cfg.id"                      value="compiler.cfg.solaris.sparcv9" /> 
-      <property name="linker.cfg.id.core"                   value="linker.cfg.solaris.sparcv9.jogl" /> 
+      <property name="linker.cfg.id.base "                  value="linker.cfg.solaris.sparcv9" /> 
+      <property name="linker.cfg.id.oswin"                  value="linker.cfg.solaris.sparcv9.jogl.x11" /> 
+      <property name="linker.cfg.id.gl2"                    value="linker.cfg.solaris.sparcv9.jogl.gl2" /> 
+      <property name="linker.cfg.id.es2"                    value="linker.cfg.solaris.sparcv9.jogl.es2" /> 
+      <property name="linker.cfg.id.es1"                    value="linker.cfg.solaris.sparcv9.jogl.es1" /> 
     </target>
    
 
@@ -582,7 +624,11 @@
       <property name="java.lib.dir.platform"                value="${java.lib.dir.solaris}" />
 
       <property name="compiler.cfg.id"                      value="compiler.cfg.solaris.amd64" /> 
-      <property name="linker.cfg.id.core"                   value="linker.cfg.solaris.amd64.jogl" /> 
+      <property name="linker.cfg.id.base "                  value="linker.cfg.solaris.amd64" /> 
+      <property name="linker.cfg.id.oswin"                  value="linker.cfg.solaris.amd64.jogl.x11" /> 
+      <property name="linker.cfg.id.gl2"                    value="linker.cfg.solaris.amd64.jogl.gl2" /> 
+      <property name="linker.cfg.id.es2"                    value="linker.cfg.solaris.amd64.jogl.es2" /> 
+      <property name="linker.cfg.id.es1"                    value="linker.cfg.solaris.amd64.jogl.es1" /> 
     </target>
    
     <target name="declare.freebsd" depends="declare.x11" if="isFreeBSD">
@@ -591,7 +637,11 @@
       <property name="java.lib.dir.platform"                value="${java.lib.dir.linux}" />
 
       <property name="compiler.cfg.id"                      value="compiler.cfg.freebsd.jogl" />
-      <property name="linker.cfg.id.core"                   value="linker.cfg.linux.jogl" />
+      <property name="linker.cfg.id.base "                  value="linker.cfg.linux" /> 
+      <property name="linker.cfg.id.oswin"                  value="linker.cfg.linux.jogl.x11" /> 
+      <property name="linker.cfg.id.gl2"                    value="linker.cfg.linux.jogl.gl2" /> 
+      <property name="linker.cfg.id.es2"                    value="linker.cfg.linux.jogl.es2" /> 
+      <property name="linker.cfg.id.es1"                    value="linker.cfg.linux.jogl.es1" /> 
     </target>
 
     <target name="declare.hpux" depends="declare.x11" if="isHPUX">
@@ -599,7 +649,11 @@
       <property name="java.includes.dir.platform"           value="${java.includes.dir.hpux}" />
       <property name="java.lib.dir.platform"                value="${java.lib.dir.hpux}" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.hpux" />
-      <property name="linker.cfg.id.core"                   value="linker.cfg.hpux.jogl" />
+      <property name="linker.cfg.id.base "                  value="linker.cfg.hpux" /> 
+      <property name="linker.cfg.id.oswin"                  value="linker.cfg.hpux.jogl.x11" /> 
+      <property name="linker.cfg.id.gl2"                    value="linker.cfg.hpux.jogl.gl2" /> 
+      <property name="linker.cfg.id.es2"                    value="linker.cfg.hpux.jogl.es2" /> 
+      <property name="linker.cfg.id.es1"                    value="linker.cfg.hpux.jogl.es1" /> 
     </target>
 
     <target name="declare.win32" depends="declare.win32.vc6,declare.win32.vc7,declare.win32.vc8,declare.win32.vc8_x64,declare.win32.mingw" if="isWindows">
@@ -615,7 +669,11 @@
       <property name="java.lib.dir.platform"                value="${java.lib.dir.macosx}" />
 
       <property name="compiler.cfg.id"                      value="compiler.cfg.macosx" /> 
-      <property name="linker.cfg.id.core"                   value="linker.cfg.macosx.jogl" /> 
+      <property name="linker.cfg.id.base "                  value="linker.cfg.macosx" /> 
+      <property name="linker.cfg.id.oswin"                  value="linker.cfg.macosx.jogl.x11" /> 
+      <property name="linker.cfg.id.gl2"                    value="linker.cfg.macosx.jogl.gl2" /> 
+      <property name="linker.cfg.id.es2"                    value="linker.cfg.macosx.jogl.es2" /> 
+      <property name="linker.cfg.id.es1"                    value="linker.cfg.macosx.jogl.es1" /> 
     </target>
     
     <!-- ================================================================== -->
@@ -630,6 +688,13 @@
         <!-- Create the required output directories. -->
         <mkdir dir="${src.generated.java}" />
         <mkdir dir="${src.generated.c}" />
+        <mkdir dir="${src.generated.c}/OSX" />
+        <mkdir dir="${src.generated.c}/Windows" />
+        <mkdir dir="${src.generated.c}/X11" />
+        <mkdir dir="${src.generated.c.newt}" />
+        <mkdir dir="${src.generated.c.newt}/OSX" />
+        <mkdir dir="${src.generated.c.newt}/Windows" />
+        <mkdir dir="${src.generated.c.newt}/X11" />
         <mkdir dir="${classes}" />
         <mkdir dir="${obj}" />
         <mkdir dir="${obj.jogl}" />
@@ -1145,42 +1210,66 @@
 
       <!-- linker configuration -->
  
-      <linker id="linker.cfg.linux.jogl" extends="linker.cfg.linux">
-        <syslibset dir="/usr/X11R6/lib" libs="GL, X11"/>
+      <linker id="linker.cfg.linux.jogl.x11" extends="linker.cfg.linux">
+        <syslibset dir="/usr/X11R6/lib" libs="X11"/>
         <syslibset dir="/usr/X11R6/lib" libs="Xxf86vm" />
+      </linker>
+
+      <linker id="linker.cfg.linux.jogl.gl2" extends="linker.cfg.linux.jogl.x11">
+        <syslibset dir="/usr/X11R6/lib" libs="GL"/>
         <syslibset dir="${x11.cg.lib}" libs="Cg, CgGL" if="c.compiler.use-cglib"/>
       </linker>
 
-      <linker id="linker.cfg.linux.amd64.jogl" name="gcc">
-        <syslibset dir="/usr/X11R6/lib64" libs="GL, X11"/>
+      <linker id="linker.cfg.linux.jogl.es1" extends="linker.cfg.linux.jogl.x11">
+        <syslibset dir="/usr/X11R6/lib" libs="GLES_CM"/>
+      </linker>
+
+      <linker id="linker.cfg.linux.jogl.es2" extends="linker.cfg.linux.jogl.x11">
+        <syslibset dir="/usr/X11R6/lib" libs="GLESv2"/>
+      </linker>
+
+      <linker id="linker.cfg.linux.amd64.jogl.x11" extends="linker.cfg.linux.amd64">
+        <syslibset dir="/usr/X11R6/lib64" libs="X11"/>
         <syslibset dir="/usr/X11R6/lib64" libs="Xxf86vm" />
+      </linker>
+
+      <linker id="linker.cfg.linux.amd64.jogl.gl2" extends="linker.cfg.linux.amd64.jogl.x11">
+        <syslibset dir="/usr/X11R6/lib64" libs="GL"/>
         <syslibset dir="${x11.cg.lib}" libs="Cg, CgGL" if="c.compiler.use-cglib"/>
       </linker>
 
-      <linker id="linker.cfg.solaris.jogl" extends="linker.cfg.solaris">
+      <linker id="linker.cfg.linux.amd64.jogl.es1" extends="linker.cfg.linux.amd64.jogl.x11">
+        <syslibset dir="/usr/X11R6/lib64" libs="GLES_CM"/>
+      </linker>
+
+      <linker id="linker.cfg.linux.amd64.jogl.es2" extends="linker.cfg.linux.amd64.jogl.x11">
+        <syslibset dir="/usr/X11R6/lib64" libs="GLESv2"/>
+      </linker>
+
+      <linker id="linker.cfg.solaris.jogl.gl2" extends="linker.cfg.solaris">
         <syslibset libs="GL, X11"/>
         <syslibset dir="${x11.cg.lib}" libs="Cg, CgGL" if="c.compiler.use-cglib"/>
       </linker>
 
-      <linker id="linker.cfg.solaris.sparcv9.jogl" extends="linker.cfg.solaris.sparcv9">
+      <linker id="linker.cfg.solaris.sparcv9.jogl.gl2" extends="linker.cfg.solaris.sparcv9">
         <linkerarg value="-xarch=v9a" />
         <syslibset dir="/usr/openwin/lib/sparcv9" libs="GL"/>
         <syslibset dir="/usr/lib/sparcv9" libs="X11"/>
       </linker>
 
-      <linker id="linker.cfg.solaris.amd64.jogl" extends="linker.cfg.solaris.amd64">
+      <linker id="linker.cfg.solaris.amd64.jogl.gl2" extends="linker.cfg.solaris.amd64">
         <linkerarg value="-xarch=amd64" />
         <syslibset dir="/usr/lib/amd64" libs="GL"/>
         <syslibset dir="/usr/lib/amd64" libs="X11"/>
       </linker>
 
-      <linker id="linker.cfg.win32.mingw.jogl" extends="linker.cfg.win32.mingw">
+      <linker id="linker.cfg.win32.mingw.jogl.gl2" extends="linker.cfg.win32.mingw">
         <linkerarg value="-Wl,--kill-at" />        <!-- remove @ from function names -->
         <syslibset libs="opengl32, glu32, gdi32, kernel32"/>
         <syslibset dir="${windows.cg.lib}" libs="cg, cgGL" if="c.compiler.use-cglib"/>
       </linker>
 
-      <linker id="linker.cfg.win32.msvc.jogl" extends="linker.cfg.win32.msvc">
+      <linker id="linker.cfg.win32.msvc.jogl.gl2" extends="linker.cfg.win32.msvc">
         <syslibset libs="opengl32, gdi32, user32, kernel32" />
         <syslibset dir="${windows.cg.lib}" libs="cg, cgGL" if="c.compiler.use-cglib"/>
     <!-- This is temporary -->
@@ -1224,30 +1313,66 @@
         </and>
       </condition>
 
-      <patternset id="c.src.files.jogl">
-        <include name="${rootrel.src.c.jogl}/InternalBufferUtils.c"/>
-        <include name="${rootrel.src.c.jogl}/*.m" if="isOSX"/>
+      <patternset id="c.src.files.jogl.awt">
         <include name="${rootrel.src.c.jogl}/XineramaHelper.c" if="isX11"/>
-        <include name="${rootrel.generated.c.jogl}/*GL*.c" unless="jogl.noglnatives"/>
-        <include name="${rootrel.generated.c.jogl}/X11/*.c" if="isX11"/>
-        <include name="${rootrel.generated.c.jogl}/OSX/*.c" if="isOSX"/>
-        <include name="${rootrel.generated.c.jogl}/Windows/*.c" if="isWindows"/>
         <!-- Xinerama supporting functions for Linux only (for now) -->
         <!-- Also supported on Solaris, but works differently -->
         <include name="${rootrel.src.c.jogl}/Xinerama.c" if="isLinux"/>
-        <!-- FIXME: the Mixer should be moved to another library -->
-        <include name="${rootrel.src.c.jogl}/Mixer.cpp" if="isWindows"/>
-        <!-- FIXME: the NEWT WindowsWindow should be moved to another library -->
-        <include name="${rootrel.src.c.jogl}/WindowsWindow.c" if="isWindows"/>
-        <!-- FIXME: the NEWT X11Window should be moved to another library -->
-        <include name="${rootrel.src.c.jogl}/X11Window.c" if="isX11"/>
+
+        <include name="${rootrel.src.c.jogl}/MacOSXWindowSystemInterface.m" if="isOSX"/>
+
+        <include name="${rootrel.src.c.jogl}/JAWT*.c"/>
+
+        <include name="${rootrel.generated.c.jogl}/X11/X11Lib_JNI.c" if="isX11"/>
+        <include name="${rootrel.generated.c.jogl}/X11/JAWT*.c" if="isX11"/>
+
+        <include name="${rootrel.generated.c.jogl}/OSX/JAWT*.c" if="isOSX"/>
+
+        <include name="${rootrel.generated.c.jogl}/Windows/JAWT*.c" if="isWindows"/>
       </patternset>
 
-      <patternset id="c.src.files.jogl_awt">
-        <include name="${rootrel.src.c.jogl}/JAWT*.c"/>
-        <include name="${rootrel.generated.c.jogl}/JAWT*.c"/>
+      <patternset id="c.src.files.newt">
+        <!-- FIXME: NEWT should be moved to another library -->
+        <include name="${rootrel.src.c.newt}/WindowsWindow.c" if="isWindows"/>
+        <include name="${rootrel.src.c.newt}/X11Window.c" if="isX11"/>
+        <include name="${rootrel.src.c.newt}/OSXWindow.c" if="isOSX"/>
       </patternset>
-      
+
+      <patternset id="c.src.files.jogl.gl2">
+        <include name="${rootrel.src.c.jogl}/InternalBufferUtils.c"/>
+
+        <include name="${rootrel.src.c.jogl}/ContextUpdater.m" if="isOSX"/>
+
+        <include name="${rootrel.generated.c.jogl}/GL2Impl_JNI.c"/>
+        <include name="${rootrel.generated.c.jogl}/GLU_JNI.c"/>
+        <include name="${rootrel.generated.c.jogl}/GLUgl2_JNI.c"/>
+
+        <include name="${rootrel.generated.c.jogl}/X11/GLX*.c" if="isX11"/>
+        <include name="${rootrel.generated.c.jogl}/OSX/CGL*.c" if="isOSX"/>
+        <include name="${rootrel.generated.c.jogl}/Windows/WGL*.c" if="isWindows"/>
+
+        <!-- FIXME: the Mixer should be moved to another library -->
+        <!--include name="${rootrel.src.c.jogl}/Mixer.cpp" if="isWindows"/-->
+      </patternset>
+
+      <patternset id="c.src.files.jogl.es2">
+        <include name="${rootrel.generated.c.jogl}/GLES2Impl_JNI.c"/>
+
+        <include name="${rootrel.generated.c.jogl}/EGL_JNI.c"/>
+        <include name="${rootrel.src.c.jogl}/InternalBufferUtils.c"/>
+        <include name="${rootrel.src.c.jogl}/ContextUpdater.m" if="isOSX"/>
+      </patternset>
+
+      <patternset id="c.src.files.jogl.es1">
+        <include name="${rootrel.generated.c.jogl}/EGL_JNI.c"/>
+        <include name="${rootrel.src.c.jogl}/InternalBufferUtils.c"/>
+        <include name="${rootrel.src.c.jogl}/ContextUpdater.m" if="isOSX"/>
+
+        <include name="${rootrel.generated.c.jogl}/GLES1Impl_JNI.c"/>
+        <include name="${rootrel.generated.c.jogl}/GLU_JNI.c"/>
+        <include name="${rootrel.generated.c.jogl}/GLUes1_JNI.c"/>
+      </patternset>
+
       <patternset id="c.src.files.cg">
         <include name="${rootrel.generated.c.cg}/*.c"/>
       </patternset>
@@ -1283,6 +1408,10 @@
           <includepath path="${src.generated.c}/X11" if="isX11"/>
           <includepath path="${src.generated.c}/OSX" if="isOSX"/>
           <includepath path="${src.generated.c}/Windows" if="isWindows"/>
+          <includepath path="${src.generated.c.newt}" />
+          <includepath path="${src.generated.c.newt}/X11" if="isX11"/>
+          <includepath path="${src.generated.c.newt}/OSX" if="isOSX"/>
+          <includepath path="${src.generated.c.newt}/Windows" if="isWindows"/>
 
           <!-- This must come last to not override real include paths -->
           <!-- includepath path="stub_includes/macosx" if="isOSX" / -->
@@ -1298,16 +1427,22 @@
     <target name="c.rename.jogl.libs.mingw" if="isMingW">
       <!-- FIXME: this is a hack; the cpptask should have an option to change the
            suffix or at least understand the override from .so to .dll -->
-      <move file="${obj}/libjogl.so" tofile="${obj}/jogl.dll" />
       <move file="${obj}/libjogl_awt.so" tofile="${obj}/jogl_awt.dll" />
+      <move file="${obj}/lib_newt.so" tofile="${obj}/newt.dll" />
+      <move file="${obj}/libjogl_gl2.so" tofile="${obj}/jogl_gl2.dll" />
+      <move file="${obj}/libjogl_es2.so" tofile="${obj}/jogl_es2.dll" />
+      <move file="${obj}/libjogl_es1.so" tofile="${obj}/jogl_es1.dll" />
       <move file="${obj}/libjogl_cg.so" tofile="${obj}/jogl_cg.dll" failonerror="false" />
     </target>
 
     <target name="c.rename.jogl.libs.macosx" if="isOSX">
       <!-- FIXME: this is a hack; the cpptask should have an option to change the
            suffix or at least understand the override from dylib to jnilib -->
-      <move file="${obj}/libjogl.dylib" tofile="${obj}/libjogl.jnilib" />
       <move file="${obj}/libjogl_awt.dylib" tofile="${obj}/libjogl_awt.jnilib" />
+      <move file="${obj}/libnewt.dylib" tofile="${obj}/libnewt.jnilib" />
+      <move file="${obj}/libjogl_gl2.dylib" tofile="${obj}/libjogl_gl2.jnilib" />
+      <move file="${obj}/libjogl_es2.dylib" tofile="${obj}/libjogl_es2.jnilib" />
+      <move file="${obj}/libjogl_es1.dylib" tofile="${obj}/libjogl_es1.jnilib" />
       <move file="${obj}/libjogl_cg.dylib" tofile="${obj}/libjogl_cg.jnilib" failonerror="false" />
       <antcall target="c.fixup.jawt.version.macosx" inheritrefs="true" />
     </target>
@@ -1322,37 +1457,67 @@
         <arg value="/System/Library/Frameworks/JavaVM.framework/Versions/1.5.0/Libraries/libjawt.dylib" />
         <arg value="/System/Library/Frameworks/JavaVM.framework/Libraries/libjawt.dylib" />
         <srcfile />
-        <fileset dir="${obj}" includes="libjogl_awt.jnilib" />
+        <fileset dir="${obj}" includes="libjogl_awt.jnilib, libjogl_gl2.jnilib, libjogl_gl2.jnilib, libjogl_es2.jnilib, libjogl_es1.jnilib" />
       </apply>
     </target>
 
-    <target name="c.build.jogl.core">
+    <target name="c.build.newt.prepare">
+      <!-- FIXME: this is temporary until we move this to another workspace -->
+      <javah destdir="../build/gensrc/native/newt/Windows" classpath="${jogl.all.jar}" class="com.sun.javafx.newt.windows.WindowsWindow" />
+      <javah destdir="../build/gensrc/native/newt/X11" classpath="${jogl.all.jar}" class="com.sun.javafx.newt.x11.X11Window" />
+    </target>
+
+    <target name="c.build.jogl.prepare" depends="c.build.newt.prepare">
       <!-- Generate the EGLDrawableFactory header -->
       <!-- FIXME: this is temporary until we fully autogenerate the EGL interface -->
       <javah destdir="../build/gensrc/native/jogl" classpath="${jogl.all.jar}" class="com.sun.opengl.impl.egl.EGLDrawableFactory" />
       <!-- Generate the waveout Mixer header -->
       <!-- FIXME: this is temporary until we move this to another workspace -->
       <javah destdir="../build/gensrc/native/jogl" classpath="${jogl.all.jar}" class="com.sun.javafx.audio.windows.waveout.Mixer" />
-      <!-- FIXME: this is temporary until we move this to another workspace -->
-      <javah destdir="../build/gensrc/native/jogl/Windows" classpath="${jogl.all.jar}" class="com.sun.javafx.newt.windows.WindowsWindow" />
-
-      <!-- FIXME: this is temporary until we move this to another workspace -->
-      <javah destdir="../build/gensrc/native/jogl/X11" classpath="${jogl.all.jar}" class="com.sun.javafx.newt.x11.X11Window" />
-
-      <!-- Compile stuff -->
-      <antcall target="c.build" inheritRefs="true">
-        <param name="c.compiler.src.files" value="c.src.files.jogl"/>
-        <param name="output.lib.name" value="jogl"/>
-        <param name="linker.cfg.id" value="${linker.cfg.id.core}"/>
-      </antcall>
     </target>
 
     <target name="c.build.jogl.awt">
       <antcall target="c.build" inheritRefs="true">
-        <param name="c.compiler.src.files" value="c.src.files.jogl_awt"/>
+        <param name="c.compiler.src.files" value="c.src.files.jogl.awt"/>
         <param name="c.compiler.use-jawt" value="true"/>
         <param name="output.lib.name" value="jogl_awt"/>
-        <param name="linker.cfg.id" value="${linker.cfg.id.core}"/>
+        <param name="linker.cfg.id" value="${linker.cfg.id.oswin}"/>
+      </antcall>
+    </target>
+
+    <target name="c.build.newt">
+      <antcall target="c.build" inheritRefs="true">
+        <param name="c.compiler.src.files" value="c.src.files.newt"/>
+        <param name="c.compiler.use-newt" value="true"/>
+        <param name="output.lib.name" value="newt"/>
+        <param name="linker.cfg.id" value="${linker.cfg.id.oswin}"/>
+      </antcall>
+    </target>
+
+    <target name="c.build.jogl.gl2">
+      <antcall target="c.build" inheritRefs="true">
+        <param name="c.compiler.src.files" value="c.src.files.jogl.gl2"/>
+        <param name="c.compiler.use-gl2" value="true"/>
+        <param name="output.lib.name" value="jogl_gl2"/>
+        <param name="linker.cfg.id" value="${linker.cfg.id.gl2}"/>
+      </antcall>
+    </target>
+
+    <target name="c.build.jogl.es2">
+      <antcall target="c.build" inheritRefs="true">
+        <param name="c.compiler.src.files" value="c.src.files.jogl.es2"/>
+        <param name="c.compiler.use-es2" value="true"/>
+        <param name="output.lib.name" value="jogl_es2"/>
+        <param name="linker.cfg.id" value="${linker.cfg.id.es2}"/>
+      </antcall>
+    </target>
+
+    <target name="c.build.jogl.es1">
+      <antcall target="c.build" inheritRefs="true">
+        <param name="c.compiler.src.files" value="c.src.files.jogl.es1"/>
+        <param name="c.compiler.use-es1" value="true"/>
+        <param name="output.lib.name" value="jogl_es1"/>
+        <param name="linker.cfg.id" value="${linker.cfg.id.es1}"/>
       </antcall>
     </target>
 
@@ -1388,7 +1553,7 @@
       <antcall target="c.manifest.cg" inheritRefs="true" />
     </target>
 
-    <target name="c.build.jogl" depends="c.build.jogl.core,c.build.jogl.awt,c.build.jogl.cg">
+    <target name="c.build.jogl" depends="c.build.jogl.prepare,c.build.jogl.awt,c.build.newt,c.build.jogl.gl2,c.build.jogl.es2,c.build.jogl.es1,c.build.jogl.cg">
       <antcall target="c.rename.jogl.libs.mingw" inheritRefs="true" />
       <antcall target="c.rename.jogl.libs.macosx" inheritRefs="true" />
       <antcall target="c.manifest" inheritRefs="true" />
@@ -1457,7 +1622,7 @@
                      includes="${java.part.awt}"
                      excludes="com/sun/opengl/impl/x11/**, com/sun/opengl/impl/windows/**, com/sun/opengl/impl/macosx/**"/>
         </jar>
-        <jar manifest="tempversion" destfile="${jogl.newt.jar}">
+        <jar manifest="tempversion" destfile="${newt.jar}">
             <fileset dir="${classes}"
                      includes="${java.part.newt}"/>
         </jar>
