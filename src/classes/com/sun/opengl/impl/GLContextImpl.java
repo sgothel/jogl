@@ -226,7 +226,7 @@ public abstract class GLContextImpl extends GLContext {
   // Helpers for various context implementations
   //
 
-  private Object createObject(String suffix) {
+  private Object createObject(String suffix, Class[] cstrArgs) {
     String clazzName = null;
     Class factoryClass = null;
     Constructor factory = null;
@@ -246,11 +246,17 @@ public abstract class GLContextImpl extends GLContext {
           throw new GLException(clazzName + " not yet implemented");
         }
         try {
-            factory = factoryClass.getDeclaredConstructor(new Class[] { GLContextImpl.class });
+            factory = factoryClass.getDeclaredConstructor( cstrArgs );
         } catch(NoSuchMethodException nsme) {
-          throw new GLException(clazzName + "(GLContextImpl) not yet implemented / missing cstr");
+          throw new GLException("Constructor: '" + clazzName + "("+cstrArgs+")' not found");
         }
-        return factory.newInstance(new Object[] { this });
+        if(cstrArgs.length==0) {
+            return factory.newInstance(null);
+        }
+        if(cstrArgs[0].equals(GLContextImpl.class)) {
+            return factory.newInstance(new Object[] { this });
+        }
+        throw new GLException("Constructor: '" + clazzName + "("+cstrArgs[0]+")' not yet supported");
     } catch (Exception e) {
       throw new GLException(e);
     }
@@ -258,7 +264,7 @@ public abstract class GLContextImpl extends GLContext {
 
   /** Create the GL for this context. */
   protected GL createGL() {
-    GL gl = (GL) createObject("Impl");
+    GL gl = (GL) createObject("Impl", new Class[] { GLContextImpl.class } );
 
     /* FIXME: refactor dependence on Java 2D / JOGL bridge
     if (tracker != null) {
@@ -338,7 +344,7 @@ public abstract class GLContextImpl extends GLContext {
       System.err.println(getThreadName() + ": !!! Initializing OpenGL extension address table for " + this);
     }
     if (glProcAddressTable == null) {
-      glProcAddressTable = (ProcAddressTable) createObject("ProcAddressTable");
+      glProcAddressTable = (ProcAddressTable) createObject("ProcAddressTable", new Class[0]);
       // FIXME: cache ProcAddressTables by capability bits so we can
       // share them among contexts with the same capabilities
     }

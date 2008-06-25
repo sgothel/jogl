@@ -24,7 +24,7 @@
 
   public final GL2 getGL2() throws GLException {
     if(!isGL2()) {
-        throw new GLException("Not a GL2implementation");
+        throw new GLException("Not a GL2 implementation");
     }
     return (GL2)this;
   }

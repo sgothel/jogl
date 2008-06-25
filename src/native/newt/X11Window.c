@@ -153,7 +153,7 @@ JNIEXPORT jboolean JNICALL Java_com_sun_javafx_newt_x11_X11Window_initIDs
     positionChangedID = (*env)->GetMethodID(env, clazz, "positionChanged", "(II)V");
     windowClosedID    = (*env)->GetMethodID(env, clazz, "windowClosed",    "()V");
     windowDestroyedID = (*env)->GetMethodID(env, clazz, "windowDestroyed", "()V");
-    windowCreatedID = (*env)->GetMethodID(env, clazz, "windowCreated", "(IJ)V");
+    windowCreatedID = (*env)->GetMethodID(env, clazz, "windowCreated", "(JJ)V");
     sendMouseEventID = (*env)->GetMethodID(env, clazz, "sendMouseEvent", "(IIIII)V");
     sendKeyEventID = (*env)->GetMethodID(env, clazz, "sendKeyEvent", "(IIIC)V");
     if (sizeChangedID == NULL ||
@@ -216,7 +216,7 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_x11_X11Window_CreateWindow
         if(pVisualQuery!=NULL) {
             visual   = pVisualQuery->visual;
             depth    = pVisualQuery->depth;
-            visualID = pVisualQuery->visualid;
+            visualID = (jlong)pVisualQuery->visualid;
             XFree(pVisualQuery);
             pVisualQuery=NULL;
         }
@@ -229,7 +229,7 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_x11_X11Window_CreateWindow
         // try default ..
         visual = XDefaultVisualOfScreen(scrn);
         if(visual!=NULL) {
-            visualID = visual->visualid;
+            visualID = (jlong)visual->visualid;
             // try given VisualID on screen
             memset(&visualTemplate, 0, sizeof(XVisualInfo));
             visualTemplate.screen = scrn_idx;
@@ -239,7 +239,7 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_x11_X11Window_CreateWindow
             if(pVisualQuery!=NULL) {
                 visual   = pVisualQuery->visual;
                 depth    = pVisualQuery->depth;
-                visualID = pVisualQuery->visualid;
+                visualID = (jlong)pVisualQuery->visualid;
                 XFree(pVisualQuery);
                 pVisualQuery=NULL;
             } else {
@@ -362,13 +362,14 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_x11_X11Window_DispatchMessages
 
         XSelectInput(dpy, w, xevent_mask_win|xevent_mask_key|xevent_mask_ptr);
 
+        /**
         if(0!=xevent_mask_ptr) {
             XGrabPointer(dpy, w, True, xevent_mask_ptr,
                         GrabModeAsync, GrabModeAsync, w, None, CurrentTime);
         } 
         if(0!=xevent_mask_key) {
             XGrabKeyboard(dpy, w, True, GrabModeAsync, GrabModeAsync, CurrentTime);
-        }
+        } */
 
     }
 
