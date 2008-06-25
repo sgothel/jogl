@@ -465,7 +465,7 @@
         <property name="javadoc.link" value="http://java.sun.com/j2se/1.4.2/docs/api/" />
         <property name="javadoc.windowtitle" value="JOGL API -- JSR-231 ${base_version} Specification" />
         <property name="javadoc.overview" value="spec-overview.html" />
-        <property name="javadoc.spec.packagenames" value="javax.media.opengl,javax.media.opengl.glu,javax.media.opengl.awt" />
+        <property name="javadoc.spec.packagenames" value="javax.media.opengl.*,com.sun.javafx.newt" />
 
         <property name="javadoc.packagenames" value="${javadoc.spec.packagenames},com.sun.opengl.util.*" />
 
