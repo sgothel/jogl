@@ -1200,6 +1200,29 @@
         <syslibset dir="/opt/graphics/OpenGL/lib" libs="GL, GLU"/>
         <syslibset dir="/usr/lib" libs="X11"/>
       </linker>
+    </target>
+
+    <target name="c.build" depends="c.configure">
+      <fail message="Requires '${c.compiler.src.files}'" unless="c.compiler.src.files"/>
+      <fail message="Requires '${compiler.cfg.id}'"      unless="compiler.cfg.id"/>
+      <fail message="Requires '${linker.cfg.id}'"        unless="linker.cfg.id"/>
+      <fail message="Requires '${output.lib.name}'"      unless="output.lib.name"/>
+
+      <echo message="Output lib name = ${output.lib.name}" />
+
+      <!-- NOTE: the value of the debug and optimise attributes will not be overridden if already set externally -->
+      <property name="c.compiler.debug"     value="false" /> 
+      <!-- Optimise flags one of { none, size, speed, minimal, full, aggressive, extreme, unsafe } --> 
+      <property name="c.compiler.optimise"  value="none" /> 
+
+      <condition property="c.compiler.use-debug"><istrue value="${c.compiler.debug}"/></condition>
+
+      <condition property="c.compiler.needs-libjvm">
+        <and>
+          <isset property="isHPUX"/>
+          <isset property="c.compiler.use-jawt"/>
+        </and>
+      </condition>
 
       <patternset id="c.src.files.jogl">
         <include name="${rootrel.src.c.jogl}/InternalBufferUtils.c"/>
@@ -1229,30 +1252,6 @@
         <include name="${rootrel.generated.c.cg}/*.c"/>
       </patternset>
 
-    </target>
-
-    <target name="c.build" depends="c.configure">
-      <fail message="Requires '${c.compiler.src.files}'" unless="c.compiler.src.files"/>
-      <fail message="Requires '${compiler.cfg.id}'"      unless="compiler.cfg.id"/>
-      <fail message="Requires '${linker.cfg.id}'"        unless="linker.cfg.id"/>
-      <fail message="Requires '${output.lib.name}'"      unless="output.lib.name"/>
-
-      <echo message="Output lib name = ${output.lib.name}" />
-
-      <!-- NOTE: the value of the debug and optimise attributes will not be overridden if already set externally -->
-      <property name="c.compiler.debug"     value="false" /> 
-      <!-- Optimise flags one of { none, size, speed, minimal, full, aggressive, extreme, unsafe } --> 
-      <property name="c.compiler.optimise"  value="none" /> 
-
-      <condition property="c.compiler.use-debug"><istrue value="${c.compiler.debug}"/></condition>
-
-      <condition property="c.compiler.needs-libjvm">
-        <and>
-          <isset property="isHPUX"/>
-          <isset property="c.compiler.use-jawt"/>
-        </and>
-      </condition>
-
       <cc outtype="shared" 
           objdir="${obj.jogl}" 
           outfile="${obj}/${output.lib.name}"
@@ -1276,11 +1275,14 @@
           <sysincludepath path="${java.includes.dir}"/>
           <sysincludepath path="${java.includes.dir.platform}"/>
           <includepath path="stub_includes/opengl"/>
-          <includepath path="stub_includes/egl" if="jogl.es"/>
+          <includepath path="stub_includes/egl"/>
           <includepath path="stub_includes/cg" if="c.compiler.use-cglib"/>        
 
           <!-- This is for the generated headers for handwritten C code -->
           <includepath path="${src.generated.c}" />
+          <includepath path="${src.generated.c}/X11" if="isX11"/>
+          <includepath path="${src.generated.c}/OSX" if="isOSX"/>
+          <includepath path="${src.generated.c}/Windows" if="isWindows"/>
 
           <!-- This must come last to not override real include paths -->
           <!-- includepath path="stub_includes/macosx" if="isOSX" / -->
