@@ -51,6 +51,8 @@ public class BufferUtil {
   public static final int SIZEOF_SHORT = 2;
   public static final int SIZEOF_INT = 4;
   public static final int SIZEOF_FLOAT = 4;
+  public static final int SIZEOF_LONG = -1;    // not supported
+  public static final int SIZEOF_DOUBLE = -1;  // not supported
 
   private BufferUtil() {}
 
@@ -226,14 +228,6 @@ public class BufferUtil {
       while(i>=0) { dest[i]=(float)source[i]; i--; }
       return dest;
   }
-
-  public final static FloatBuffer getFloatBuffer(DoubleBuffer source) {
-      source.rewind();
-      FloatBuffer dest = BufferUtil.newFloatBuffer(source.limit());
-      while(source.hasRemaining()) { dest.put((float)source.get()); }
-      return dest;
-  }
-
 
   //----------------------------------------------------------------------
   // Internals only below this point

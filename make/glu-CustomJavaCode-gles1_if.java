@@ -356,6 +356,8 @@ public abstract void gluPickMatrix(double x, double y, double delX, double delY,
 
 public abstract void gluPickMatrix(double x, double y, double delX, double delY, IntBuffer viewport) ;
 
+/* FIXME n.a. on JSR-239 CDC: java.nio.ByteOrder, used by mipmap
+
 public abstract int gluScaleImage( int format, int widthin, int heightin,
                                int typein, java.nio.Buffer datain, int widthout, int heightout,
                                int typeout, java.nio.Buffer dataout ) ;
@@ -380,3 +382,4 @@ public abstract int gluBuild3DMipmapLevels( int target, int internalFormat, int 
 public abstract int gluBuild3DMipmaps( int target, int internalFormat, int width,
                                    int height, int depth, int format, int type, java.nio.Buffer data ) ;
 
+*/

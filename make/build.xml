@@ -193,6 +193,9 @@
         <property name="java.part.macosx"
                   value="com/sun/opengl/**/macosx/**"/>
 
+        <property name="java.part.oswin"
+                  value="${java.part.x11}, ${java.part.win}, ${java.part.macosx}, com/sun/opengl/impl/jawt/*"/>
+
         <property name="java.part.newt"
                   value="com/sun/javafx/newt/**"/>
 
@@ -259,13 +262,26 @@
            <isset property="jogl.nonewt"/> 
         </condition>
 
+        <condition property="java.excludes.oswin"
+                   value="${java.part.oswin}">
+           <or>
+               <isset property="jogl.cdcfp"/> 
+               <isset property="jogl.noX11WindowsMacOsX"/> 
+           </or>
+        </condition>
+
+        <condition property="java.excludes.cdcfp"
+                   value="com/sun/opengl/util/io/TGAWriter*, com/sun/opengl/impl/glu/mipmap/**, com/sun/opengl/impl/GLPbufferImpl*, com/sun/opengl/util/texture/**">
+           <isset property="jogl.cdcfp"/> 
+        </condition>
+
         <property name="java.excludes.javadoc.packagenames"
                   value="com.sun.opengl.impl.gl2.fixme.*,com.sun.javafx.audio.windows.waveout.TestSpatialization"/>
 
         <property name="java.excludes.fixme" 
                   value="com/sun/opengl/impl/gl2/fixme/** com/sun/javafx/audio/windows/waveout/TestSpatialization.java" />
 
-        <property name="java.excludes.all" value="${java.excludes.fixme} ${java.excludes.egl}, ${java.excludes.gl2}, ${java.excludes.es1}, ${java.excludes.es2}, ${java.excludes.awt}, ${java.excludes.glugl2}, ${java.excludes.util}, ${java.excludes.x11}, ${java.excludes.win}, ${java.excludes.macosx}, ${java.excludes.newt}" />
+        <property name="java.excludes.all" value="${java.excludes.fixme} ${java.excludes.egl}, ${java.excludes.gl2}, ${java.excludes.es1}, ${java.excludes.es2}, ${java.excludes.awt}, ${java.excludes.glugl2}, ${java.excludes.util}, ${java.excludes.x11}, ${java.excludes.win}, ${java.excludes.macosx}, ${java.excludes.newt}, ${java.excludes.oswin}, ${java.excludes.cdcfp}" />
         <echo message="java.excludes.all: ${java.excludes.all}" />
 
 
@@ -1575,7 +1591,7 @@
         <jar manifest="tempversion" destfile="${jogl.core.jar}">
             <fileset dir="${classes}"
                      includes="javax/media/opengl/**, com/sun/gluegen/runtime/**, com/sun/opengl/**"
-                     excludes="${java.excludes.fixme} ${java.part.egl}, ${java.part.gl2}, ${java.part.gl2.dbg}, ${java.part.es1}, ${java.part.es1.dbg}, ${java.part.es2}, ${java.part.es2.dbg}, ${java.part.awt}, ${java.part.glugl2}, ${java.part.util} ${java.part.util.awt} ${java.part.util.gl2}, ${java.part.x11}, ${java.part.win}, ${java.part.macosx}, com/sun/opengl/impl/jawt/**, ${java.part.newt}"/>
+                     excludes="${java.excludes.fixme} ${java.part.egl}, ${java.part.gl2}, ${java.part.gl2.dbg}, ${java.part.es1}, ${java.part.es1.dbg}, ${java.part.es2}, ${java.part.es2.dbg}, ${java.part.awt}, ${java.part.glugl2}, ${java.part.util} ${java.part.util.awt} ${java.part.util.gl2}, ${java.part.oswin}, ${java.part.newt}"/>
         </jar>
         <jar manifest="tempversion" destfile="${jogl.gles1.jar}">
             <fileset dir="${classes}"
@@ -1619,7 +1635,7 @@
         </jar>
         <jar manifest="tempversion" destfile="${jogl.oswin.jar}">
             <fileset dir="${classes}"
-                     includes="${java.part.x11}, ${java.part.win}, ${java.part.macosx}, com/sun/opengl/impl/jawt/*"
+                     includes="${java.part.oswin}"
                      excludes="com/sun/opengl/impl/**/glx/**, com/sun/opengl/impl/**/wgl/**, com/sun/opengl/impl/**/cgl/**"/>
         </jar>
         <jar manifest="tempversion" destfile="${jogl.util.jar}">

@@ -241,7 +241,7 @@ public java.nio.ByteBuffer glMapBuffer(int target, int access) {
   java.nio.ByteBuffer _res = (java.nio.ByteBuffer) arbVBOCache.get(key);
   if (_res == null) {
     _res = InternalBufferUtils.newDirectByteBuffer(addr, sz);
-    _res.order(java.nio.ByteOrder.nativeOrder());
+    // FIXME n.a. on JSR-239 CDC: _res.order(java.nio.ByteOrder.nativeOrder());
     arbVBOCache.put(key, _res);
   }
   _res.position(0);

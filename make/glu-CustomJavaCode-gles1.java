@@ -239,6 +239,7 @@ public final void gluPickMatrix(double x, double y, double delX, double delY, In
 //----------------------------------------------------------------------
 // Mipmap and image scaling functionality
 
+/* FIXME n.a. on JSR-239 CDC: java.nio.ByteOrder, used by mipmap
 
 private final java.nio.ByteBuffer copyToByteBuffer(java.nio.Buffer buf) {
   if (buf instanceof java.nio.ByteBuffer) {
@@ -342,6 +343,8 @@ public final int gluBuild3DMipmaps( int target, int internalFormat, int width,
   return( Mipmap.gluBuild3DMipmaps( getCurrentGL2ES1(), target, internalFormat, width, height,
           depth, format, type, buffer ) );
 }
+
+*/
 
 //----------------------------------------------------------------------
 // GLUProcAddressTable handling
