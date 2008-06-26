@@ -106,7 +106,7 @@ public abstract class WindowsWGLDrawable extends GLDrawableImpl {
     int pixelFormat = 0;
     GLCapabilities chosenCaps = null;
     GLCapabilities capabilities = getCapabilities();
-    long hdc = getNativeWindow().getWindowHandle();
+    long hdc = getNativeWindow().getSurfaceHandle();
     if (onscreen) {
       if ((pixelFormat = WGL.GetPixelFormat(hdc)) != 0) {
         // The Java2D/OpenGL pipeline probably already set a pixel

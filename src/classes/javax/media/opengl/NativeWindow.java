@@ -67,7 +67,24 @@ public interface NativeWindow {
    */
   public long getDisplayHandle();
   public long getScreenHandle();
-  public long getWindowHandle();
+
+  /**
+   * Returns the window handle for this NativeWindow. On X11 this
+   * returns a Window. On Windows platforms this returns an HWND. This
+   * might not be supported by all NativeWindow implementations, in
+   * particular those designed to work only with window surfaces.
+   */
+  public long getWindowHandle() throws NativeWindowException;
+
+  /**
+   * Returns the handle to the surface for this NativeWindow. This
+   * method is in support of platforms on which there is a distinction
+   * between the window handle and window surface, in particular the
+   * Microsoft Windows platform, on which this method returns an HDC.
+   * This might not be supported on all NativeWindow implementations,
+   * in particular those designed to work only with window handles.
+   */
+  public long getSurfaceHandle() throws NativeWindowException;
 
   /**
    * Lifetime: after 1st lock, until invalidation

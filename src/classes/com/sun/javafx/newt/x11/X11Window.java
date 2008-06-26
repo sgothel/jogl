@@ -35,6 +35,7 @@ package com.sun.javafx.newt.x11;
 
 import com.sun.javafx.newt.*;
 import com.sun.opengl.impl.*;
+import javax.media.opengl.NativeWindowException;
 
 public class X11Window extends Window {
     private static final String WINDOW_CLASS_NAME = "NewtWindow";
@@ -50,6 +51,10 @@ public class X11Window extends Window {
     }
 
     public X11Window() {
+    }
+
+    public long getSurfaceHandle() {
+        throw new NativeWindowException("Unsupported and unnecessary on the X11 platform");
     }
 
     protected void createNative() {

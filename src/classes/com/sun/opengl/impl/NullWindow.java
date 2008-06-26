@@ -41,16 +41,12 @@ import javax.media.opengl.*;
 public class NullWindow implements NativeWindow {
   protected boolean locked;
   protected int width, height, scrnIndex;
-  protected long windowHandle, displayHandle;
+  protected long windowHandle, surfaceHandle, displayHandle;
 
 
   public NullWindow() {
     locked=false;
-    width=0;
-    height=0;
     scrnIndex=-1;
-    windowHandle=0;
-    displayHandle=0;
   }
 
   protected void init(Object windowObject) throws NativeWindowException {
@@ -101,6 +97,12 @@ public class NullWindow implements NativeWindow {
   }
   public void setWindowHandle(long handle) {
     windowHandle=handle;
+  }
+  public long getSurfaceHandle() {
+    return surfaceHandle;
+  }
+  public void setSurfaceHandle(long handle) {
+    surfaceHandle=handle;
   }
   public long getVisualID() {
     return 0;

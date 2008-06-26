@@ -331,6 +331,39 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_CreateWin
 
 /*
  * Class:     com_sun_javafx_newt_windows_WindowsWindow
+ * Method:    DestroyWindow
+ * Signature: (J)V
+ */
+JNIEXPORT void JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_DestroyWindow
+  (JNIEnv *env, jobject obj, jlong window)
+{
+    DestroyWindow((HWND) window);
+}
+
+/*
+ * Class:     com_sun_javafx_newt_windows_WindowsWindow
+ * Method:    GetDC
+ * Signature: (J)J
+ */
+JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_GetDC
+  (JNIEnv *env, jobject obj, jlong window)
+{
+    return (jlong) GetDC((HWND) window);
+}
+
+/*
+ * Class:     com_sun_javafx_newt_windows_WindowsWindow
+ * Method:    ReleaseDC
+ * Signature: (JJ)V
+ */
+JNIEXPORT void JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_ReleaseDC
+  (JNIEnv *env, jobject obj, jlong window, jlong dc)
+{
+    ReleaseDC((HWND) window, (HDC) dc);
+}
+
+/*
+ * Class:     com_sun_javafx_newt_windows_WindowsWindow
  * Method:    setVisible0
  * Signature: (JZ)V
  */

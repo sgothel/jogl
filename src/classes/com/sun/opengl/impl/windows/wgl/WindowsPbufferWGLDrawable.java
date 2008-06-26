@@ -71,7 +71,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
                          (capabilities.getPbufferFloatingPointBuffers() ? " [float]" : ""));
     }
 
-    createPbuffer(dummyDrawable.getNativeWindow().getWindowHandle(), wglExt);
+    createPbuffer(dummyDrawable.getNativeWindow().getSurfaceHandle(), wglExt);
   }
 
   public GLContext createContext(GLContext shareWith) {
@@ -82,16 +82,16 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
     getFactory().lockToolkit();
     try {
         NullWindow nw = (NullWindow) getNativeWindow();
-        if (nw.getWindowHandle() != 0) {
+        if (nw.getSurfaceHandle() != 0) {
           // Must release DC and pbuffer
           // NOTE that since the context is not current, glGetError() can
           // not be called here, so we skip the use of any composable
           // pipelines (see WindowsOnscreenWGLContext.makeCurrentImpl)
           WGLExt wglExt = cachedWGLExt;
-          if (wglExt.wglReleasePbufferDCARB(buffer, nw.getWindowHandle()) == 0) {
+          if (wglExt.wglReleasePbufferDCARB(buffer, nw.getSurfaceHandle()) == 0) {
             throw new GLException("Error releasing pbuffer device context: error code " + WGL.GetLastError());
           }
-          nw.setWindowHandle(0);
+          nw.setSurfaceHandle(0);
           if (!wglExt.wglDestroyPbufferARB(buffer)) {
             throw new GLException("Error destroying pbuffer: error code " + WGL.GetLastError());
           }
@@ -290,7 +290,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
         NullWindow nw = (NullWindow) getNativeWindow();
         // Set up instance variables
         buffer = tmpBuffer;
-        nw.setWindowHandle(tmpHdc);
+        nw.setSurfaceHandle(tmpHdc);
         cachedWGLExt = wglExt;
         cachedParentHdc = parentHdc;
 

@@ -116,6 +116,9 @@ public abstract class JAWTWindow implements NativeWindow {
   public long getWindowHandle() {
     return drawable;
   }
+  public long getSurfaceHandle() {
+    return drawable;
+  }
   public long getVisualID() {
     return visualID;
   }

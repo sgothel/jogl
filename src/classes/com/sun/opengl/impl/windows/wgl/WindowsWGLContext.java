@@ -109,15 +109,15 @@ public class WindowsWGLContext extends GLContextImpl {
    * called by {@link #makeCurrentImpl()}.
    */
   protected void create() {
-    if (drawable.getNativeWindow().getWindowHandle() == 0) {
+    if (drawable.getNativeWindow().getSurfaceHandle() == 0) {
       throw new GLException("Internal error: attempted to create OpenGL context without an associated drawable");
     }
-    hglrc = WGL.wglCreateContext(drawable.getNativeWindow().getWindowHandle());
+    hglrc = WGL.wglCreateContext(drawable.getNativeWindow().getSurfaceHandle());
     if (hglrc == 0) {
-      throw new GLException("Unable to create OpenGL context for device context " + toHexString(drawable.getNativeWindow().getWindowHandle()));
+      throw new GLException("Unable to create OpenGL context for device context " + toHexString(drawable.getNativeWindow().getSurfaceHandle()));
     }
     if (DEBUG) {
-      System.err.println(getThreadName() + ": !!! Created OpenGL context " + toHexString(hglrc) + " for " + this + ", device context " + toHexString(drawable.getNativeWindow().getWindowHandle()) + ", not yet sharing");
+      System.err.println(getThreadName() + ": !!! Created OpenGL context " + toHexString(hglrc) + " for " + this + ", device context " + toHexString(drawable.getNativeWindow().getSurfaceHandle()) + ", not yet sharing");
     }
     // Windows can set up sharing of display lists after creation time
     WindowsWGLContext other = (WindowsWGLContext) GLContextShareSet.getShareContext(this);
@@ -135,12 +135,12 @@ public class WindowsWGLContext extends GLContextImpl {
     }
     GLContextShareSet.contextCreated(this);
     if (DEBUG) {
-      System.err.println(getThreadName() + ": !!! Created OpenGL context " + toHexString(hglrc) + " for " + this + ", device context " + toHexString(drawable.getNativeWindow().getWindowHandle()) + ", sharing with " + toHexString(hglrc2));
+      System.err.println(getThreadName() + ": !!! Created OpenGL context " + toHexString(hglrc) + " for " + this + ", device context " + toHexString(drawable.getNativeWindow().getSurfaceHandle()) + ", sharing with " + toHexString(hglrc2));
     }
   }
   
   protected int makeCurrentImpl() throws GLException {
-    if (drawable.getNativeWindow().getWindowHandle() == 0) {
+    if (drawable.getNativeWindow().getSurfaceHandle() == 0) {
         if (DEBUG) {
           System.err.println("drawable not properly initialized");
         }
@@ -156,11 +156,11 @@ public class WindowsWGLContext extends GLContextImpl {
     }
 
     if (WGL.wglGetCurrentContext() != hglrc) {
-      if (!WGL.wglMakeCurrent(drawable.getNativeWindow().getWindowHandle(), hglrc)) {
+      if (!WGL.wglMakeCurrent(drawable.getNativeWindow().getSurfaceHandle(), hglrc)) {
         throw new GLException("Error making context current: " + WGL.GetLastError());
       } else {
         if (DEBUG && VERBOSE) {
-          System.err.println(getThreadName() + ": wglMakeCurrent(hdc " + toHexString(drawable.getNativeWindow().getWindowHandle()) +
+          System.err.println(getThreadName() + ": wglMakeCurrent(hdc " + toHexString(drawable.getNativeWindow().getSurfaceHandle()) +
                              ", hglrc " + toHexString(hglrc) + ") succeeded");
         }
       }

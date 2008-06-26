@@ -38,6 +38,8 @@ import com.sun.opengl.impl.*;
 
 public class WindowsWindow extends Window {
 
+    private long hdc;
+
     private static final String WINDOW_CLASS_NAME = "NewtWindow";
     static {
         NativeLibLoader.loadNEWT();
@@ -50,6 +52,13 @@ public class WindowsWindow extends Window {
     public WindowsWindow() {
     }
 
+    public long getSurfaceHandle() {
+        if (hdc == 0) {
+            hdc = GetDC(windowHandle);
+        }
+        return hdc;
+    }
+
     protected void createNative() {
         long wndClass = getWindowClass();
         windowHandle = CreateWindow(WINDOW_CLASS_NAME, getHInstance(), visualID, x, y, width, height);
@@ -59,7 +68,11 @@ public class WindowsWindow extends Window {
     }
 
     protected void closeNative() {
-        CloseWindow(windowHandle);
+        if (hdc != 0) {
+            ReleaseDC(windowHandle, hdc);
+            hdc = 0;
+        }
+        DestroyWindow(windowHandle);
     }
 
     public void setVisible(boolean visible) {
@@ -126,7 +139,9 @@ public class WindowsWindow extends Window {
     private static native long RegisterWindowClass(String windowClassName, long hInstance);
     private        native long CreateWindow(String windowClassName, long hInstance, long visualID,
                                             int x, int y, int width, int height);
-    private        native void CloseWindow(long windowHandle);
+    private        native void DestroyWindow(long windowHandle);
+    private        native long GetDC(long windowHandle);
+    private        native void ReleaseDC(long windowHandle, long hdc);
     private        native void setVisible0(long windowHandle, boolean visible);
     private static native void DispatchMessages(long windowHandle, int eventMask);
     private        native void setSize0(long windowHandle, int width, int height);

@@ -54,7 +54,7 @@ public class WindowsDummyWGLDrawable extends WindowsWGLDrawable {
     }
     hdc = WGL.GetDC(hwnd);
     NullWindow nw = (NullWindow) getNativeWindow();
-    nw.setWindowHandle(hdc);
+    nw.setSurfaceHandle(hdc);
     // Choose a (hopefully hardware-accelerated) OpenGL pixel format for this device context
     GLCapabilities caps = new GLCapabilities();
     caps.setDepthBits(16);

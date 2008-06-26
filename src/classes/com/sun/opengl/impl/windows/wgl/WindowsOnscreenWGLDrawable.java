@@ -77,7 +77,7 @@ public class WindowsOnscreenWGLDrawable extends WindowsWGLDrawable {
   public void swapBuffers() throws GLException {
     boolean didLock = false;
 
-    if (getNativeWindow().getWindowHandle() == 0) {
+    if (getNativeWindow().getSurfaceHandle() == 0) {
       if (lockSurface() == NativeWindow.LOCK_SURFACE_NOT_READY) {
         return;
       }
@@ -89,7 +89,7 @@ public class WindowsOnscreenWGLDrawable extends WindowsWGLDrawable {
       startTime = System.currentTimeMillis();
     }
 
-    if (!WGL.SwapBuffers(getNativeWindow().getWindowHandle()) && (WGL.GetLastError() != 0)) {
+    if (!WGL.SwapBuffers(getNativeWindow().getSurfaceHandle()) && (WGL.GetLastError() != 0)) {
       throw new GLException("Error swapping buffers");
     }
 

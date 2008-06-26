@@ -51,8 +51,8 @@ public class WindowsExternalWGLDrawable extends WindowsWGLDrawable {
   public static WindowsExternalWGLDrawable create(GLDrawableFactory factory) {
     long hdc = WGL.wglGetCurrentDC();
     NullWindow nw = new NullWindow();
-    nw.setWindowHandle(hdc);
-    if (nw.getWindowHandle() == 0) {
+    nw.setSurfaceHandle(hdc);
+    if (nw.getSurfaceHandle() == 0) {
       throw new GLException("Error: attempted to make an external GLDrawable without a drawable/context current");
     }
     return new WindowsExternalWGLDrawable(factory, nw);
