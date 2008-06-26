@@ -514,74 +514,74 @@
     <target name="declare.win32.vc6" if="isVC6">
       <echo message="Win32.VC6" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.win32.msvc" />
-      <property name="linker.cfg.id.base"                   value="linker.cfg.win32.msvc" /> 
-      <property name="linker.cfg.id.oswin"                  value="linker.cfg.win32.msvc.jogl.x11" /> 
-      <property name="linker.cfg.id.gl2"                    value="linker.cfg.win32.msvc.jogl.gl2" /> 
+      <property name="linker.cfg.id.base"                   value="linker.cfg.win32.msvc" />
+      <property name="linker.cfg.id.oswin"                  value="linker.cfg.win32.msvc.jogl.gl2" />
+      <property name="linker.cfg.id.gl2"                    value="linker.cfg.win32.msvc.jogl.gl2" />
     </target>
     
     <target name="declare.win32.vc7" if="isVC7">
       <echo message="Win32.VC7" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.win32.msvc" />
-      <property name="linker.cfg.id.base"                   value="linker.cfg.win32.msvc" /> 
-      <property name="linker.cfg.id.oswin"                  value="linker.cfg.win32.msvc.jogl.x11" /> 
-      <property name="linker.cfg.id.gl2"                    value="linker.cfg.win32.msvc.jogl.gl2" /> 
+      <property name="linker.cfg.id.base"                   value="linker.cfg.win32.msvc" />
+      <property name="linker.cfg.id.oswin"                  value="linker.cfg.win32.msvc.jogl.gl2" />
+      <property name="linker.cfg.id.gl2"                    value="linker.cfg.win32.msvc.jogl.gl2" />
     </target>
     
     <target name="declare.win32.vc8" if="isVC8">
       <echo message="Win32.VC8" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.win32.msvc" />
-      <property name="linker.cfg.id.base"                   value="linker.cfg.win32.msvc" /> 
-      <property name="linker.cfg.id.oswin"                  value="linker.cfg.win32.msvc.jogl.x11" /> 
-      <property name="linker.cfg.id.gl2"                    value="linker.cfg.win32.msvc.jogl.gl2" /> 
+      <property name="linker.cfg.id.base"                   value="linker.cfg.win32.msvc" />
+      <property name="linker.cfg.id.oswin"                  value="linker.cfg.win32.msvc.jogl.gl2" />
+      <property name="linker.cfg.id.gl2"                    value="linker.cfg.win32.msvc.jogl.gl2" />
     </target>
     
     <target name="declare.win32.vc8_x64" if="isVC8_X64">
       <echo message="Win32.VC8_X64" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.win32.msvc" />
-      <property name="linker.cfg.id.base"                   value="linker.cfg.win32.msvc" /> 
-      <property name="linker.cfg.id.oswin"                  value="linker.cfg.win32.msvc.jogl.x11" /> 
-      <property name="linker.cfg.id.gl2"                    value="linker.cfg.win32.msvc.jogl.gl2" /> 
+      <property name="linker.cfg.id.base"                   value="linker.cfg.win32.msvc" />
+      <property name="linker.cfg.id.oswin"                  value="linker.cfg.win32.msvc.jogl.gl2" />
+      <property name="linker.cfg.id.gl2"                    value="linker.cfg.win32.msvc.jogl.gl2" />
     </target>
     
     <target name="declare.win32.mingw" if="isMingW">
       <echo message="Win32.MingW" />
-      <property name="compiler.cfg.id"                      value="compiler.cfg.win32.mingw" /> 
-      <property name="linker.cfg.id.base"                   value="linker.cfg.win32.mingw" /> 
-      <property name="linker.cfg.id.oswin"                  value="linker.cfg.win32.mingw.jogl.x11" /> 
-      <property name="linker.cfg.id.gl2"                    value="linker.cfg.win32.mingw.jogl.gl2" /> 
+      <property name="compiler.cfg.id"                      value="compiler.cfg.win32.mingw" />
+      <property name="linker.cfg.id.base"                   value="linker.cfg.win32.mingw" />
+      <property name="linker.cfg.id.oswin"                  value="linker.cfg.win32.mingw.jogl.gl2" />
+      <property name="linker.cfg.id.gl2"                    value="linker.cfg.win32.mingw.jogl.gl2" />
     </target>
 
     <target name="declare.linux.x86" if="isLinuxX86">
       <echo message="Linux.x86" />
       <property name="java.includes.dir.platform"           value="${java.includes.dir.linux}" />
-      <property name="java.lib.dir.platform"                value="${java.lib.dir.linux}" />       
+      <property name="java.lib.dir.platform"                value="${java.lib.dir.linux}" />
 
-      <property name="compiler.cfg.id"                      value="compiler.cfg.linux" /> 
-      <property name="linker.cfg.id.base"                   value="linker.cfg.linux" /> 
-      <property name="linker.cfg.id.oswin"                  value="linker.cfg.linux.jogl.x11" /> 
-      <property name="linker.cfg.id.gl2"                    value="linker.cfg.linux.jogl.gl2" /> 
+      <property name="compiler.cfg.id"                      value="compiler.cfg.linux" />
+      <property name="linker.cfg.id.base"                   value="linker.cfg.linux" />
+      <property name="linker.cfg.id.oswin"                  value="linker.cfg.linux.jogl.x11" />
+      <property name="linker.cfg.id.gl2"                    value="linker.cfg.linux.jogl.gl2" />
     </target>
     
     <target name="declare.linux.amd64" if="isLinuxAMD64">
       <echo message="Linux.AMD64" />
       <property name="java.includes.dir.platform"           value="${java.includes.dir.linux}" />
-      <property name="java.lib.dir.platform"                value="${java.lib.dir.linux.amd64}" />       
+      <property name="java.lib.dir.platform"                value="${java.lib.dir.linux.amd64}" />
 
-      <property name="compiler.cfg.id"                      value="compiler.cfg.linux.amd64" /> 
-      <property name="linker.cfg.id.base"                   value="linker.cfg.linux.amd64" /> 
-      <property name="linker.cfg.id.oswin"                  value="linker.cfg.linux.amd64.jogl.x11" /> 
-      <property name="linker.cfg.id.gl2"                    value="linker.cfg.linux.amd64.jogl.gl2" /> 
+      <property name="compiler.cfg.id"                      value="compiler.cfg.linux.amd64" />
+      <property name="linker.cfg.id.base"                   value="linker.cfg.linux.amd64" />
+      <property name="linker.cfg.id.oswin"                  value="linker.cfg.linux.amd64.jogl.x11" />
+      <property name="linker.cfg.id.gl2"                    value="linker.cfg.linux.amd64.jogl.gl2" />
     </target>
     
     <target name="declare.linux.ia64" if="isLinuxIA64">
       <echo message="Linux.IA64" />
       <property name="java.includes.dir.platform"           value="${java.includes.dir.linux}" />
-      <property name="java.lib.dir.platform"                value="${java.lib.dir.linux.ia64}" />       
+      <property name="java.lib.dir.platform"                value="${java.lib.dir.linux.ia64}" />
 
-      <property name="compiler.cfg.id"                      value="compiler.cfg.linux" /> 
-      <property name="linker.cfg.id.base"                   value="linker.cfg.linux" /> 
-      <property name="linker.cfg.id.oswin"                  value="linker.cfg.linux.jogl.x11" /> 
-      <property name="linker.cfg.id.gl2"                    value="linker.cfg.linux.jogl.gl2" /> 
+      <property name="compiler.cfg.id"                      value="compiler.cfg.linux" />
+      <property name="linker.cfg.id.base"                   value="linker.cfg.linux" />
+      <property name="linker.cfg.id.oswin"                  value="linker.cfg.linux.jogl.x11" />
+      <property name="linker.cfg.id.gl2"                    value="linker.cfg.linux.jogl.gl2" />
     </target>
 
     <target name="declare.linux" depends="declare.linux.x86,declare.linux.amd64,declare.linux.ia64,declare.x11" if="isLinux" />
@@ -591,10 +591,10 @@
       <property name="java.includes.dir.platform"           value="${java.includes.dir.solaris}" />
       <property name="java.lib.dir.platform"                value="${java.lib.dir.solaris}" />
 
-      <property name="compiler.cfg.id"                      value="compiler.cfg.solaris" /> 
-      <property name="linker.cfg.id.base"                   value="linker.cfg.solaris" /> 
-      <property name="linker.cfg.id.oswin"                  value="linker.cfg.solaris.jogl.x11" /> 
-      <property name="linker.cfg.id.gl2"                    value="linker.cfg.solaris.jogl.gl2" /> 
+      <property name="compiler.cfg.id"                      value="compiler.cfg.solaris" />
+      <property name="linker.cfg.id.base"                   value="linker.cfg.solaris" />
+      <property name="linker.cfg.id.oswin"                  value="linker.cfg.solaris.jogl.x11" />
+      <property name="linker.cfg.id.gl2"                    value="linker.cfg.solaris.jogl.gl2" />
     </target>
   
  
@@ -603,10 +603,10 @@
       <property name="java.includes.dir.platform"           value="${java.includes.dir.solaris}" />
       <property name="java.lib.dir.platform"                value="${java.lib.dir.solaris}" />
 
-      <property name="compiler.cfg.id"                      value="compiler.cfg.solaris.sparcv9" /> 
-      <property name="linker.cfg.id.base"                   value="linker.cfg.solaris.sparcv9" /> 
-      <property name="linker.cfg.id.oswin"                  value="linker.cfg.solaris.sparcv9.jogl.x11" /> 
-      <property name="linker.cfg.id.gl2"                    value="linker.cfg.solaris.sparcv9.jogl.gl2" /> 
+      <property name="compiler.cfg.id"                      value="compiler.cfg.solaris.sparcv9" />
+      <property name="linker.cfg.id.base"                   value="linker.cfg.solaris.sparcv9" />
+      <property name="linker.cfg.id.oswin"                  value="linker.cfg.solaris.sparcv9.jogl.x11" />
+      <property name="linker.cfg.id.gl2"                    value="linker.cfg.solaris.sparcv9.jogl.gl2" />
     </target>
    
 
@@ -615,10 +615,10 @@
       <property name="java.includes.dir.platform"           value="${java.includes.dir.solaris}" />
       <property name="java.lib.dir.platform"                value="${java.lib.dir.solaris}" />
 
-      <property name="compiler.cfg.id"                      value="compiler.cfg.solaris.amd64" /> 
-      <property name="linker.cfg.id.base"                   value="linker.cfg.solaris.amd64" /> 
-      <property name="linker.cfg.id.oswin"                  value="linker.cfg.solaris.amd64.jogl.x11" /> 
-      <property name="linker.cfg.id.gl2"                    value="linker.cfg.solaris.amd64.jogl.gl2" /> 
+      <property name="compiler.cfg.id"                      value="compiler.cfg.solaris.amd64" />
+      <property name="linker.cfg.id.base"                   value="linker.cfg.solaris.amd64" />
+      <property name="linker.cfg.id.oswin"                  value="linker.cfg.solaris.amd64.jogl.x11" />
+      <property name="linker.cfg.id.gl2"                    value="linker.cfg.solaris.amd64.jogl.gl2" />
     </target>
    
     <target name="declare.freebsd" depends="declare.x11" if="isFreeBSD">
@@ -627,9 +627,9 @@
       <property name="java.lib.dir.platform"                value="${java.lib.dir.linux}" />
 
       <property name="compiler.cfg.id"                      value="compiler.cfg.freebsd.jogl" />
-      <property name="linker.cfg.id.base"                   value="linker.cfg.linux" /> 
-      <property name="linker.cfg.id.oswin"                  value="linker.cfg.linux.jogl.x11" /> 
-      <property name="linker.cfg.id.gl2"                    value="linker.cfg.linux.jogl.gl2" /> 
+      <property name="linker.cfg.id.base"                   value="linker.cfg.linux" />
+      <property name="linker.cfg.id.oswin"                  value="linker.cfg.linux.jogl.x11" />
+      <property name="linker.cfg.id.gl2"                    value="linker.cfg.linux.jogl.gl2" />
     </target>
 
     <target name="declare.hpux" depends="declare.x11" if="isHPUX">
@@ -637,15 +637,15 @@
       <property name="java.includes.dir.platform"           value="${java.includes.dir.hpux}" />
       <property name="java.lib.dir.platform"                value="${java.lib.dir.hpux}" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.hpux" />
-      <property name="linker.cfg.id.base"                   value="linker.cfg.hpux" /> 
-      <property name="linker.cfg.id.oswin"                  value="linker.cfg.hpux.jogl.x11" /> 
-      <property name="linker.cfg.id.gl2"                    value="linker.cfg.hpux.jogl.gl2" /> 
+      <property name="linker.cfg.id.base"                   value="linker.cfg.hpux" />
+      <property name="linker.cfg.id.oswin"                  value="linker.cfg.hpux.jogl.x11" />
+      <property name="linker.cfg.id.gl2"                    value="linker.cfg.hpux.jogl.gl2" />
     </target>
 
     <target name="declare.win32" depends="declare.win32.vc6,declare.win32.vc7,declare.win32.vc8,declare.win32.vc8_x64,declare.win32.mingw" if="isWindows">
         <property name="java.includes.dir.platform"             value="${java.includes.dir.win32}" />
         <property name="java.lib.dir.platform"                  value="${java.lib.dir.win32}" />
-    </target>          
+    </target>
 
     <target name="declare.x11" depends="init" if="isX11">
     </target>
@@ -654,10 +654,10 @@
       <property name="java.includes.dir.platform"           value="${java.includes.dir.macosx}" />
       <property name="java.lib.dir.platform"                value="${java.lib.dir.macosx}" />
 
-      <property name="compiler.cfg.id"                      value="compiler.cfg.macosx" /> 
-      <property name="linker.cfg.id.base"                   value="linker.cfg.macosx" /> 
-      <property name="linker.cfg.id.oswin"                  value="linker.cfg.macosx.jogl.x11" /> 
-      <property name="linker.cfg.id.gl2"                    value="linker.cfg.macosx.jogl.gl2" /> 
+      <property name="compiler.cfg.id"                      value="compiler.cfg.macosx" />
+      <property name="linker.cfg.id.base"                   value="linker.cfg.macosx" />
+      <property name="linker.cfg.id.oswin"                  value="linker.cfg.macosx.jogl.x11" />
+      <property name="linker.cfg.id.gl2"                    value="linker.cfg.macosx.jogl.gl2" />
     </target>
     
     <!-- ================================================================== -->

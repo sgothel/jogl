@@ -70,6 +70,7 @@ public class WindowsWGLContext extends GLContextImpl {
   public WindowsWGLContext(WindowsWGLDrawable drawable,
                           GLContext shareWith) {
     super(shareWith);
+    this.drawable = drawable;
   }
 
   public Object getPlatformGLExtensions() {

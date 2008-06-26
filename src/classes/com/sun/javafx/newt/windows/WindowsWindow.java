@@ -113,10 +113,9 @@ public class WindowsWindow extends Window {
     private static long hInstance;
     private static synchronized long getHInstance() {
         if (hInstance == 0) {
-            // FIXME: will require modification once this is moved into its own DLL ("newt")
-            hInstance = LoadLibraryW("jogl");
+            hInstance = LoadLibraryW("newt");
             if (hInstance == 0) {
-                throw new RuntimeException("Error finding HINSTANCE for \"jogl\"");
+                throw new RuntimeException("Error finding HINSTANCE for \"newt\"");
             }
         }
         return hInstance;

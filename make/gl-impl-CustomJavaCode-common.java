@@ -78,8 +78,19 @@
   }
 
   public final String toString() {
-        return "GL: "+getClass().getName()+
-               "(GLContext: "+getContext().getClass().getName()+","+
-               " Factory: "+ getContext().getGLDrawable().getFactory().getClass().getName()+")";
+      StringBuffer buf = new StringBuffer();
+      buf.append("GL: ");
+      buf.append(getClass().getName());
+      buf.append(" (GLContext: ");
+      GLContext context = getContext();
+      buf.append(context.getClass().getName());
+      buf.append(", GLDrawable: ");
+      GLDrawable drawable = context.getGLDrawable();
+      buf.append(drawable.getClass().getName());
+      buf.append(", Factory: ");
+      GLDrawableFactory factory = drawable.getFactory();
+      buf.append(factory.getClass().getName());
+      buf.append(")");
+      return buf.toString();
   }
 

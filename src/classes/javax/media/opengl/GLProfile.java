@@ -66,7 +66,6 @@ public class GLProfile {
         }
     } catch (Exception e) {
         System.out.println("Profile: "+profile+" not available");
-        System.out.println("Exception: "+e);
         profile=null;
     }
   }

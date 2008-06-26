@@ -66,6 +66,9 @@ public abstract class WindowsWGLDrawable extends GLDrawableImpl {
   public int lockSurface() throws GLException {
     int ret = super.lockSurface();
     if(NativeWindow.LOCK_SURFACE_NOT_READY == ret) {
+      if (DEBUG) {
+          System.err.println("WindowsWGLDrawable.lockSurface: surface not ready");
+      }
       return ret;
     }
     if (!pixelFormatChosen) {
@@ -73,6 +76,10 @@ public abstract class WindowsWGLDrawable extends GLDrawableImpl {
         choosePixelFormat(true);
         setPixelFormatFailCount = 0;
       } catch (RuntimeException e) {
+        if (DEBUG) {
+          System.err.println("WindowsWGLDrawable.lockSurface: squelching exception");
+          e.printStackTrace();
+        }
         // Workaround for problems seen on Intel 82855 cards in particular
         // Make it look like the lockSurface() call didn't succeed
         unlockSurface();
@@ -265,10 +272,14 @@ public abstract class WindowsWGLDrawable extends GLDrawableImpl {
         pfd = glCapabilities2PFD(capabilities, onscreen);
         // Remove one-basing of pixel format (added on later)
         recommendedPixelFormat = WGL.ChoosePixelFormat(hdc, pfd) - 1;
+        if (DEBUG) {
+          System.err.println(getThreadName() + ": Recommended pixel format = " + recommendedPixelFormat);
+        }
 
         numFormats = WGL.DescribePixelFormat(hdc, 1, 0, null);
         if (numFormats == 0) {
-          throw new GLException("Unable to enumerate pixel formats of window for GLCapabilitiesChooser");
+          throw new GLException("Unable to enumerate pixel formats of window " +
+                                toHexString(hdc) + " for GLCapabilitiesChooser");
         }
         availableCaps = new GLCapabilities[numFormats];
         for (int i = 0; i < numFormats; i++) {
