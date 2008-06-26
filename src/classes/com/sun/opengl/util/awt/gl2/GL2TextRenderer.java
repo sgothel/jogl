@@ -36,7 +36,7 @@
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
-package com.sun.opengl.util.j2d.gl2;
+package com.sun.opengl.util.awt.gl2;
 
 import com.sun.opengl.impl.*;
 import com.sun.opengl.impl.awt.packrect.*;
@@ -119,7 +119,7 @@ import javax.media.opengl.util.*;
     pack both glyphs and full Strings' rendering results (which are
     variable size) onto a larger OpenGL texture. The internal backing
     store is maintained using a {@link
-    com.sun.opengl.util.j2d.TextureRenderer TextureRenderer}. A least
+    com.sun.opengl.util.awt.gl2.GL2TextureRenderer TextureRenderer}. A least
     recently used (LRU) algorithm is used to discard previously
     rendered strings; the specific algorithm is undefined, but is
     currently implemented by flushing unused Strings' rendering

@@ -37,7 +37,7 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package javax.media.opengl.util.swing;
+package javax.media.opengl.util.awt;
 
 import java.awt.Component;
 import java.awt.EventQueue;

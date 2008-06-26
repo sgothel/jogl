@@ -40,7 +40,7 @@
  * facility.
  */
 
-package javax.media.opengl.util.swing;
+package javax.media.opengl.util.awt;
 
 import java.awt.BorderLayout;
 import java.awt.Color;

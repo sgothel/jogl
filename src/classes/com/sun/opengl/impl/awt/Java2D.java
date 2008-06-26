@@ -37,7 +37,7 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.sun.opengl.impl.j2d;
+package com.sun.opengl.impl.awt;
 
 import com.sun.opengl.impl.*;
 

@@ -161,13 +161,13 @@
                   value="javax/media/opengl/TraceGLES2.*, javax/media/opengl/DebugGLES2.*"/>
 
         <property name="java.part.awt"
-                  value="javax/media/opengl/awt/**, javax/media/opengl/j2d/**, javax/media/opengl/util/swing/**, com/sun/opengl/impl/j2d/**, com/sun/opengl/impl/awt/**"/>
+                  value="javax/media/opengl/awt/**, javax/media/opengl/util/awt/**, com/sun/opengl/impl/awt/**"/>
 
         <property name="java.part.util"
                   value="com/sun/opengl/util/io/**, com/sun/opengl/util/texture/**"/>
 
         <property name="java.part.util.awt"
-                  value="com/sun/opengl/util/**/awt/**, com/sun/opengl/util/**/j2d/**"/>
+                  value="com/sun/opengl/util/**/awt/**"/>
 
         <property name="java.part.util.gl2"
                   value="com/sun/opengl/util/glut/**, com/sun/opengl/util/**/gl2/**"/>
@@ -1653,12 +1653,12 @@
         <jar manifest="tempversion" destfile="${jogl.util.jar}">
             <fileset dir="${classes}"
                      includes="${java.part.util}"
-                     excludes="com/sun/opengl/**/awt/**, com/sun/opengl/**/j2d/**, com/sun/opengl/**/gl2/**"/>
+                     excludes="com/sun/opengl/**/awt/**, com/sun/opengl/**/gl2/**"/>
         </jar>
         <jar manifest="tempversion" destfile="${jogl.util.gl2.jar}">
             <fileset dir="${classes}"
                      includes="${java.part.util.gl2}"
-                     excludes="com/sun/opengl/**/awt/**, com/sun/opengl/**/j2d/**"/>
+                     excludes="com/sun/opengl/**/awt/**"/>
         </jar>
         <jar manifest="tempversion" destfile="${jogl.util.awt.jar}">
             <fileset dir="${classes}"

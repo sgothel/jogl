@@ -37,7 +37,7 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package javax.media.opengl.j2d.gl2;
+package javax.media.opengl.awt.gl2;
 
 import javax.media.opengl.*;
 import javax.media.opengl.awt.*;
@@ -53,7 +53,6 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 import com.sun.opengl.impl.*;
 import com.sun.opengl.impl.awt.*;
-import com.sun.opengl.impl.j2d.*;
 
 // FIXME: Subclasses need to call resetGLFunctionAvailability() on their
 // context whenever the displayChanged() function is called on their

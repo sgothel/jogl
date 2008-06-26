@@ -37,7 +37,7 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.sun.opengl.util.j2d.gl2;
+package com.sun.opengl.util.awt.gl2;
 
 import java.awt.Color;
 import java.awt.Dimension;

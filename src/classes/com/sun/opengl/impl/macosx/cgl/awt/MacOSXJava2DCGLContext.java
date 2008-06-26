@@ -45,7 +45,6 @@ import java.awt.Graphics;
 import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
 import com.sun.opengl.impl.awt.*;
-import com.sun.opengl.impl.j2d.*;
 import com.sun.opengl.impl.macosx.cgl.*;
 
 /** MacOSXCGLContext implementation supporting the Java2D/JOGL bridge
