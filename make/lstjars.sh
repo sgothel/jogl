@@ -25,11 +25,11 @@ echo
 diff -Nur jogl.allparts.lst jogl.all.lst
 
 echo JOGL ES1 NEWT CORE
-du -ksc jogl.core.jar jogl.egl.jar jogl.gles1.jar jogl.newt.jar
+du -ksc jogl.core.jar jogl.egl.jar jogl.gles1.jar newt.jar
 echo
 
 echo JOGL ES2 NEWT CORE
-du -ksc jogl.core.jar jogl.egl.jar jogl.gles2.jar jogl.newt.jar
+du -ksc jogl.core.jar jogl.egl.jar jogl.gles2.jar newt.jar
 echo
 
 echo JOGL GL2 OSWIN CORE no AWT
