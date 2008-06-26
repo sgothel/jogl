@@ -53,10 +53,6 @@ public class X11Window extends Window {
     public X11Window() {
     }
 
-    public long getSurfaceHandle() {
-        throw new NativeWindowException("Unsupported and unnecessary on the X11 platform");
-    }
-
     protected void createNative() {
         long w = CreateWindow(getDisplayHandle(), getScreenHandle(), getScreenIndex(), visualID, x, y, width, height);
         if (w == 0 || w!=windowHandle) {

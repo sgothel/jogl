@@ -216,6 +216,10 @@ public abstract class Window implements NativeWindow
         return windowHandle;
     }
 
+    public long getSurfaceHandle() {
+        return windowHandle; // default: return window handle
+    }
+
     public long getVisualID() {
         return visualID;
     }

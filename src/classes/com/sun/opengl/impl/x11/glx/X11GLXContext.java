@@ -124,7 +124,7 @@ public abstract class X11GLXContext extends GLContextImpl {
   }
 
   protected int makeCurrentImpl() throws GLException {
-    if (drawable.getNativeWindow().getWindowHandle() == 0) {
+    if (drawable.getNativeWindow().getSurfaceHandle() == 0) {
         if (DEBUG) {
           System.err.println("drawable not properly initialized");
         }
@@ -141,15 +141,15 @@ public abstract class X11GLXContext extends GLContextImpl {
 
     if (GLX.glXGetCurrentContext() != context) {
         if (!GLX.glXMakeContextCurrent(drawable.getNativeWindow().getDisplayHandle(), 
-                                       drawable.getNativeWindow().getWindowHandle(), 
-                                       drawable.getNativeWindow().getWindowHandle(), 
+                                       drawable.getNativeWindow().getSurfaceHandle(), 
+                                       drawable.getNativeWindow().getSurfaceHandle(), 
                                        context)) {
           throw new GLException("Error making context current");
         } else {
           if (DEBUG && (VERBOSE || created)) {
             System.err.println(getThreadName() + ": glXMakeCurrent(display " + 
                                toHexString(drawable.getNativeWindow().getDisplayHandle()) +
-                               ", drawable " + toHexString(drawable.getNativeWindow().getWindowHandle()) +
+                               ", drawable " + toHexString(drawable.getNativeWindow().getSurfaceHandle()) +
                                ", context " + toHexString(context) + ") succeeded");
           }
         }

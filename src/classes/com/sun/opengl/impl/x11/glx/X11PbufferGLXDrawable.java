@@ -81,9 +81,9 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
     getFactory().lockToolkit();
     try {
         NullWindow nw = (NullWindow) getNativeWindow();
-        if (nw.getWindowHandle() != 0) {
-          GLX.glXDestroyPbuffer(nw.getDisplayHandle(), nw.getWindowHandle());
-          nw.setWindowHandle(0);
+        if (nw.getSurfaceHandle() != 0) {
+          GLX.glXDestroyPbuffer(nw.getDisplayHandle(), nw.getSurfaceHandle());
+          nw.setSurfaceHandle(0);
         }
         nw.setDisplayHandle(0);
     } finally {
@@ -164,7 +164,7 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
       }
 
       // Set up instance variables
-      nw.setWindowHandle(drawable);
+      nw.setSurfaceHandle(drawable);
       this.fbConfig = fbConfig;
       
       // Pick innocent query values if multisampling or floating point buffers not available

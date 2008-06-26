@@ -69,7 +69,7 @@ public class X11OnscreenGLXDrawable extends X11GLXDrawable {
     try {    
       boolean didLock = false;
       
-      if (component.getWindowHandle() == 0) {
+      if (component.getSurfaceHandle() == 0) {
         if (lockSurface() == NativeWindow.LOCK_SURFACE_NOT_READY) {
           return;
         }
@@ -77,7 +77,7 @@ public class X11OnscreenGLXDrawable extends X11GLXDrawable {
         didLock = true;
       }
 
-      GLX.glXSwapBuffers(component.getDisplayHandle(), component.getWindowHandle());
+      GLX.glXSwapBuffers(component.getDisplayHandle(), component.getSurfaceHandle());
 
       if (didLock) {
         unlockSurface();

@@ -85,7 +85,7 @@ public class X11OffscreenGLXDrawable extends X11GLXDrawable {
         pixmap = 0;
         throw new GLException("glXCreateGLXPixmap failed");
       }
-      nw.setWindowHandle(drawable);
+      nw.setSurfaceHandle(drawable);
       isDoubleBuffered = (X11GLXDrawableFactory.glXGetConfig(dpy, vis, GLX.GLX_DOUBLEBUFFER, new int[1], 0) != 0);
       if (DEBUG) {
         System.err.println("Created pixmap " + toHexString(pixmap) +
@@ -103,7 +103,7 @@ public class X11OffscreenGLXDrawable extends X11GLXDrawable {
     try {
       NativeWindow nw = getNativeWindow();
       long display = nw.getDisplayHandle();
-      long drawable = nw.getWindowHandle();
+      long drawable = nw.getSurfaceHandle();
       if (DEBUG) {
         System.err.println("Destroying pixmap " + toHexString(pixmap) +
                            ", GLXPixmap " + toHexString(drawable) +

@@ -85,7 +85,7 @@ public class X11ExternalGLXDrawable extends X11GLXDrawable {
       GLX.glXQueryContext(display, context, GLX.GLX_SCREEN, val, 0);
       int screen = val[0];
       NullWindow nw = new NullWindow();
-      nw.setWindowHandle(drawable);
+      nw.setSurfaceHandle(drawable);
       nw.setScreenIndex(screen);
       return new X11ExternalGLXDrawable(factory, nw);
     } finally {
@@ -118,7 +118,7 @@ public class X11ExternalGLXDrawable extends X11GLXDrawable {
     }
 
     protected int makeCurrentImpl() throws GLException {
-      if (drawable.getNativeWindow().getWindowHandle() == 0) {
+      if (drawable.getNativeWindow().getSurfaceHandle() == 0) {
         // parent drawable not properly initialized
         // FIXME: signal error?
         if (DEBUG) {
@@ -141,14 +141,14 @@ public class X11ExternalGLXDrawable extends X11GLXDrawable {
         }
 
         if (!GLX.glXMakeContextCurrent(drawable.getNativeWindow().getDisplayHandle(),
-                                       drawable.getNativeWindow().getWindowHandle(),
+                                       drawable.getNativeWindow().getSurfaceHandle(),
                                        readDrawable,
                                        context)) {
           throw new GLException("Error making context current");
         } else {
           if (DEBUG && VERBOSE) {
             System.err.println(getThreadName() + ": glXMakeCurrent(display " + toHexString(drawable.getNativeWindow().getDisplayHandle()) +
-                               ", drawable " + toHexString(drawable.getNativeWindow().getWindowHandle()) +
+                               ", drawable " + toHexString(drawable.getNativeWindow().getSurfaceHandle()) +
                                ", context " + toHexString(context) + ") succeeded");
           }
         }
@@ -222,7 +222,7 @@ public class X11ExternalGLXDrawable extends X11GLXDrawable {
 
       if (DEBUG) {
         System.err.println("Created context " + toHexString(context) +
-                           " for GLXDrawable " + toHexString(drawable.getNativeWindow().getWindowHandle()));
+                           " for GLXDrawable " + toHexString(drawable.getNativeWindow().getSurfaceHandle()));
       }
     }
   }

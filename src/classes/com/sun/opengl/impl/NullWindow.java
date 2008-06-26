@@ -95,9 +95,6 @@ public class NullWindow implements NativeWindow {
   public long getWindowHandle() {
     return windowHandle;
   }
-  public void setWindowHandle(long handle) {
-    windowHandle=handle;
-  }
   public long getSurfaceHandle() {
     return surfaceHandle;
   }

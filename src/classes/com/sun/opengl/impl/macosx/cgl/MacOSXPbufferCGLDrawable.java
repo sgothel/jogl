@@ -66,9 +66,9 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
     try {
         NullWindow nw = (NullWindow) getNativeWindow();
 
-        if (nw.getWindowHandle() != 0) {
-          impl.destroy(nw.getWindowHandle());
-          nw.setWindowHandle(0);
+        if (nw.getSurfaceHandle() != 0) {
+          impl.destroy(nw.getSurfaceHandle());
+          nw.setSurfaceHandle(0);
         
           if (DEBUG) {
             System.err.println("Destroyed pbuffer: " + nw);
@@ -86,7 +86,7 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
   }
 
   public long getPbuffer() {
-    return getNativeWindow().getWindowHandle();
+    return getNativeWindow().getSurfaceHandle();
   }
   
   public void swapBuffers() throws GLException {
@@ -134,7 +134,7 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
         if (pBuffer == 0) {
           throw new GLException("pbuffer creation error: CGL.createPBuffer() failed");
         }
-        nw.setWindowHandle(pBuffer);
+        nw.setSurfaceHandle(pBuffer);
     } finally {
         getFactory().unlockToolkit();
     }

@@ -135,7 +135,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
     try {
       // Try to allocate a context with this
       nsContext = CGL.createContext(share,
-                                    drawable.getNativeWindow().getWindowHandle(),
+                                    drawable.getNativeWindow().getSurfaceHandle(),
                                     pixelFormat,
                                     viewNotReady, 0);
       if (nsContext == 0) {
@@ -232,7 +232,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
   }    
 	
   protected int makeCurrentImpl() throws GLException {
-    if (drawable.getNativeWindow().getWindowHandle() == 0) {
+    if (drawable.getNativeWindow().getSurfaceHandle() == 0) {
         if (DEBUG) {
           System.err.println("drawable not properly initialized");
         }
