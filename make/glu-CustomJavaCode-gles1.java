@@ -214,13 +214,6 @@ public final boolean gluProject(double objX, double objY, double objZ, double[] 
   return project.gluProject((float)objX, (float)objY, (float)objZ, BufferUtil.getFloatArray(model), model_offset, BufferUtil.getFloatArray(proj), proj_offset, view, view_offset, BufferUtil.getFloatArray(winPos), winPos_offset);
 }
 
-/** Interface to C language function: <br> <code> GLint gluProject(GLdouble objX, GLdouble objY, GLdouble objZ, const GLdouble *  model, const GLdouble *  proj, const GLint *  view, GLdouble *  winX, GLdouble *  winY, GLdouble *  winZ); </code>
- * <P> Accepts the outgoing window coordinates as a single buffer.
- */
-public final boolean gluProject(double objX, double objY, double objZ, DoubleBuffer model, DoubleBuffer proj, IntBuffer view, DoubleBuffer winPos) {
-  return project.gluProject((float)objX, (float)objY, (float)objZ, BufferUtil.getFloatBuffer(model), BufferUtil.getFloatBuffer(proj), view, BufferUtil.getFloatBuffer(winPos));
-}
-
 /** Interface to C language function: <br> <code> GLint gluUnProject(GLdouble winX, GLdouble winY, GLdouble winZ, const GLdouble *  model, const GLdouble *  proj, const GLint *  view, GLdouble *  objX, GLdouble *  objY, GLdouble *  objZ); </code>
  * <P> Accepts the outgoing object coordinates (a 3-vector) as a single array.
  */
@@ -228,25 +221,11 @@ public final boolean gluUnProject(double winX, double winY, double winZ, double[
   return project.gluUnProject((float)winX, (float)winY, (float)winZ, BufferUtil.getFloatArray(model), model_offset, BufferUtil.getFloatArray(proj), proj_offset, view, view_offset, BufferUtil.getFloatArray(objPos), objPos_offset);
 }
 
-/** Interface to C language function: <br> <code> GLint gluUnProject(GLdouble winX, GLdouble winY, GLdouble winZ, const GLdouble *  model, const GLdouble *  proj, const GLint *  view, GLdouble *  objX, GLdouble *  objY, GLdouble *  objZ); </code>
- * <P> Accepts the outgoing object coordinates (a 3-vector) as a single buffer.
- */
-public final boolean gluUnProject(double winX, double winY, double winZ, DoubleBuffer model, DoubleBuffer proj, IntBuffer view, DoubleBuffer objPos) {
-  return project.gluUnProject((float)winX, (float)winY, (float)winZ, BufferUtil.getFloatBuffer(model), BufferUtil.getFloatBuffer(proj), view, BufferUtil.getFloatBuffer(objPos));
-}
-
 /** Interface to C language function: <br> <code> GLint gluUnProject4(GLdouble winX, GLdouble winY, GLdouble winZ, GLdouble clipW, const GLdouble *  model, const GLdouble *  proj, const GLint *  view, GLdouble nearVal, GLdouble farVal, GLdouble *  objX, GLdouble *  objY, GLdouble *  objZ, GLdouble *  objW); </code>
  * <P> Accepts the outgoing object coordinates (a 4-vector) as a single array.
  */
 public final boolean gluUnProject4(double winX, double winY, double winZ, double clipW, double[] model, int model_offset, double[] proj, int proj_offset, int[] view, int view_offset, double nearVal, double farVal, double[] objPos, int objPos_offset) {
   return project.gluUnProject4((float)winX, (float)winY, (float)winZ, (float)clipW, BufferUtil.getFloatArray(model), model_offset, BufferUtil.getFloatArray(proj), proj_offset, view, view_offset, (float)nearVal, (float)farVal, BufferUtil.getFloatArray(objPos), objPos_offset);
-}
-
-/** Interface to C language function: <br> <code> GLint gluUnProject4(GLdouble winX, GLdouble winY, GLdouble winZ, GLdouble clipW, const GLdouble *  model, const GLdouble *  proj, const GLint *  view, GLdouble nearVal, GLdouble farVal, GLdouble *  objX, GLdouble *  objY, GLdouble *  objZ, GLdouble *  objW); </code>
- * <P> Accepts the outgoing object coordinates (a 4-vector) as a single buffer.
- */
-public final boolean gluUnProject4(double winX, double winY, double winZ, double clipW, DoubleBuffer model, DoubleBuffer proj, IntBuffer view, double nearVal, double farVal, DoubleBuffer objPos) {
-  return project.gluUnProject4((float)winX, (float)winY, (float)winZ, (float)clipW, BufferUtil.getFloatBuffer(model), BufferUtil.getFloatBuffer(proj), view, (float)nearVal, (float)farVal, BufferUtil.getFloatBuffer(objPos));
 }
 
 public final void gluPickMatrix(double x, double y, double delX, double delY, int[] viewport, int viewport_offset) {

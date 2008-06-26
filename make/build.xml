@@ -46,8 +46,18 @@
    - port to the ant-contrib CPPTask framework. Thanks to Athomas Goldberg for
    - the original OS detection code.
    -
-   - Some environment defs ..
-       jogl.cdcfp
+   - Some environment defs affecting compilation
+
+       jogl.cdcfp     - Using the CDC Java runtime library
+                            - no DoubleBuffer 
+                            - no LongBuffer
+
+                        This will set
+                            -> jogl.noAWT
+                            -> jogl.nogl2
+
+   - Internal settings, may not be necessary to set them manually,
+     since all JAR archives are orthogonal.
        jogl.noes1
        jogl.noes2
        jogl.nogl2
@@ -93,11 +103,9 @@
            </and>
         </condition>
 
-        <echo message="jogl.noes : ${jogl.noes}" />
-        <echo message="jogl.noes1: ${jogl.noes1}" />
-        <echo message="jogl.noes2: ${jogl.noes2}" />
-        <echo message="jogl.nogl2: ${jogl.nogl2}" />
-
+        <condition property="jogl.nogl2">
+           <isset property="jogl.cdcfp"/> 
+        </condition>
         <condition property="jogl.noAWT">
            <isset property="jogl.cdcfp"/> 
         </condition>
@@ -108,6 +116,10 @@
         <echo message="jogl.cdcfp: ${jogl.cdcfp}" />
         <echo message="jogl.noAWT: ${jogl.noAWT}" />
         <echo message="javac.bootclasspath.jar: ${javac.bootclasspath.jar}" />
+        <echo message="jogl.noes : ${jogl.noes}" />
+        <echo message="jogl.noes1: ${jogl.noes1}" />
+        <echo message="jogl.noes2: ${jogl.noes2}" />
+        <echo message="jogl.nogl2: ${jogl.nogl2}" />
 
         <condition property="jogl.noX11WindowsMacOsX">
           <and>
@@ -143,19 +155,19 @@
                   value="com/sun/opengl/impl/glu/gl2/**, com/sun/opengl/impl/glu/nurbs/**, com/sun/opengl/impl/glu/registry/**, com/sun/opengl/impl/glu/tessellator/**, javax/media/opengl/glu/gl2/**"/>
 
         <property name="java.part.gl2"
-                  value="javax/media/opengl/GL2.*, com/sun/opengl/impl/**/gl2/**, com/sun/opengl/impl/**/glx/**, com/sun/opengl/impl/**/wgl/**, com/sun/opengl/impl/**/cgl/**"/>
+                  value="com/sun/opengl/impl/**/gl2/**, com/sun/opengl/impl/**/glx/**, com/sun/opengl/impl/**/wgl/**, com/sun/opengl/impl/**/cgl/**"/>
 
         <property name="java.part.gl2.dbg"
                   value="javax/media/opengl/TraceGL2.*, javax/media/opengl/DebugGL2.*"/>
 
         <property name="java.part.es1"
-                  value="javax/media/opengl/GLES1.*, javax/media/opengl/**/es1/**, com/sun/opengl/**/es1/**"/>
+                  value="javax/media/opengl/**/es1/**, com/sun/opengl/**/es1/**"/>
 
         <property name="java.part.es1.dbg"
                   value="javax/media/opengl/TraceGLES1.*, javax/media/opengl/DebugGLES1.*"/>
 
         <property name="java.part.es2"
-                  value="javax/media/opengl/GLES2.*, javax/media/opengl/**/es2/**, com/sun/opengl/**/es2/**"/>
+                  value="javax/media/opengl/**/es2/**, com/sun/opengl/**/es2/**"/>
 
         <property name="java.part.es2.dbg"
                   value="javax/media/opengl/TraceGLES2.*, javax/media/opengl/DebugGLES2.*"/>
@@ -780,7 +792,7 @@
         </gluegen>
     </target>
 
-    <target name="java.generate.gl2" unless="jogl.nogl2">
+    <target name="java.generate.gl2">
         <echo message="Generating GL2 interface and implementation" />
         <gluegen src="${stub.includes.common}/gl.c" 
                  config="${config}/gl-gl2.cfg"
@@ -790,7 +802,7 @@
         </gluegen>
     </target>
 
-    <target name="java.generate.gles1" unless="jogl.noes1">
+    <target name="java.generate.gles1">
         <echo message="Generating GLES1 interface and implementation" />
         <gluegen src="${stub.includes.common}/gles1.c" 
                  config="${config}/gl-es1.cfg"
@@ -800,7 +812,7 @@
         </gluegen>
     </target>
 
-    <target name="java.generate.gles2" unless="jogl.noes2">
+    <target name="java.generate.gles2">
         <echo message="Generating GLES2 interface and implementation" />
         <gluegen src="${stub.includes.common}/gles2.c" 
                  config="${config}/gl-es2.cfg"
@@ -1304,9 +1316,9 @@
 
         <include name="${rootrel.src.c.jogl}/ContextUpdater.m" if="isOSX"/>
 
-        <include name="${rootrel.generated.c.jogl}/GL2Impl_JNI.c"/>
-        <include name="${rootrel.generated.c.jogl}/GLU_JNI.c"/>
-        <include name="${rootrel.generated.c.jogl}/GLUgl2_JNI.c"/>
+        <include name="${rootrel.generated.c.jogl}/gl2/GL2Impl_JNI.c"/>
+        <!--include name="${rootrel.generated.c.jogl}/GLU_JNI.c"/ EMPTY -->
+        <include name="${rootrel.generated.c.jogl}/gl2/GLUgl2_JNI.c"/>
 
         <include name="${rootrel.generated.c.jogl}/X11/GLX*.c" if="isX11"/>
         <include name="${rootrel.generated.c.jogl}/OSX/CGL*.c" if="isOSX"/>
@@ -1326,9 +1338,9 @@
 
         <include name="${rootrel.generated.c.jogl}/X11/X11Lib_JNI.c" if="isX11"/>
 
-        <include name="${rootrel.generated.c.jogl}/GLES2Impl_JNI.c"/>
+        <include name="${rootrel.generated.c.jogl}/es2/GLES2Impl_JNI.c"/>
 
-        <include name="${rootrel.generated.c.jogl}/EGL_JNI.c"/>
+        <include name="${rootrel.generated.c.jogl}/egl/EGL_JNI.c"/>
         <include name="${rootrel.src.c.jogl}/InternalBufferUtils.c"/>
         <include name="${rootrel.src.c.jogl}/ContextUpdater.m" if="isOSX"/>
       </patternset>
@@ -1343,13 +1355,13 @@
 
         <include name="${rootrel.generated.c.jogl}/X11/X11Lib_JNI.c" if="isX11"/>
 
-        <include name="${rootrel.generated.c.jogl}/EGL_JNI.c"/>
+        <include name="${rootrel.generated.c.jogl}/egl/EGL_JNI.c"/>
         <include name="${rootrel.src.c.jogl}/InternalBufferUtils.c"/>
         <include name="${rootrel.src.c.jogl}/ContextUpdater.m" if="isOSX"/>
 
-        <include name="${rootrel.generated.c.jogl}/GLES1Impl_JNI.c"/>
-        <include name="${rootrel.generated.c.jogl}/GLU_JNI.c"/>
-        <include name="${rootrel.generated.c.jogl}/GLUes1_JNI.c"/>
+        <include name="${rootrel.generated.c.jogl}/es1/GLES1Impl_JNI.c"/>
+        <!--include name="${rootrel.generated.c.jogl}/GLU_JNI.c"/ EMPTY -->
+        <!--include name="${rootrel.generated.c.jogl}/es1/GLUes1_JNI.c" EMPTY /-->
       </patternset>
 
       <patternset id="c.src.files.cg">
@@ -1473,7 +1485,7 @@
       </antcall>
     </target>
 
-    <target name="c.build.jogl.gl2">
+    <target name="c.build.jogl.gl2" unless="jogl.nogl2">
       <antcall target="c.build" inheritRefs="true">
         <param name="c.compiler.src.files" value="c.src.files.jogl.gl2"/>
         <param name="c.compiler.use-gl2" value="true"/>
@@ -1482,7 +1494,7 @@
       </antcall>
     </target>
 
-    <target name="c.build.jogl.es2">
+    <target name="c.build.jogl.es2" unless="jogl.noes1">
       <antcall target="c.build" inheritRefs="true">
         <param name="c.compiler.src.files" value="c.src.files.jogl.es2"/>
         <param name="c.compiler.use-es2" value="true"/>
@@ -1491,7 +1503,7 @@
       </antcall>
     </target>
 
-    <target name="c.build.jogl.es1">
+    <target name="c.build.jogl.es1" unless="jogl.noes2">
       <antcall target="c.build" inheritRefs="true">
         <param name="c.compiler.src.files" value="c.src.files.jogl.es1"/>
         <param name="c.compiler.use-es1" value="true"/>
