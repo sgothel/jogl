@@ -158,7 +158,7 @@ public interface GLUtessellatorCallback {
    *
    * @param vertexData
    *        Specifics a reference to the vertices of the triangles created
-   *        byt the tessellatin process.
+   *        by the tessellation process.
    *
    * @see GLU#gluTessCallback              gluTessCallback
    * @see #vertexData vertexData
@@ -174,7 +174,7 @@ public interface GLUtessellatorCallback {
    *
    * @param vertexData
    *        Specifics a reference to the vertices of the triangles created
-   *        byt the tessellatin process.
+   *        by the tessellation process.
    * @param polygonData
    *        Specifics a reference to user-defined data.
    *
