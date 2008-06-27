@@ -56,7 +56,11 @@ public abstract class Window implements NativeWindow
         } else if (NewtFactory.X11.equals(type)) {
             windowClass = Class.forName("com.sun.javafx.newt.x11.X11Window");
         } else if (NewtFactory.MACOSX.equals(type)) {
-            windowClass = Class.forName("com.sun.javafx.newt.macosx.MacOSXWindow");
+            // For the time being, use the AWT on Mac OS X since
+            // there's no advantage to avoiding its usage -- this
+            // would change if we were running on the iPhone and
+            // didn't have an AWT
+            windowClass = Class.forName("com.sun.javafx.newt.awt.AWTWindow");
         } else {
             throw new RuntimeException("Unknown window type \"" + type + "\"");
         }
@@ -135,7 +139,7 @@ public abstract class Window implements NativeWindow
         pumpMessages(em);
     }
 
-    public abstract void dispatchMessages(int eventMask);
+    protected abstract void dispatchMessages(int eventMask);
 
     public String toString() {
         return "Window[handle "+windowHandle+
@@ -254,6 +258,10 @@ public abstract class Window implements NativeWindow
     public abstract void    setPosition(int x, int y);
     public abstract boolean setFullscreen(boolean fullscreen);
 
+    public Object getWrappedWindow() {
+        return null;
+    }
+
     //
     // MouseListener Support
     //
@@ -262,14 +270,18 @@ public abstract class Window implements NativeWindow
         if(l == null) {
             return;
         }
-        mouseListener.add(l);
+        ArrayList newMouseListeners = (ArrayList) mouseListener.clone();
+        newMouseListeners.add(l);
+        mouseListener = newMouseListeners;
     }
 
     public synchronized void removeMouseListener(MouseListener l) {
         if (l == null) {
             return;
         }
-        mouseListener.remove(l);
+        ArrayList newMouseListeners = (ArrayList) mouseListener.clone();
+        newMouseListeners.remove(l);
+        mouseListener = newMouseListeners;
     }
 
     public synchronized MouseListener[] getMouseListeners() {
@@ -320,6 +332,8 @@ public abstract class Window implements NativeWindow
                 e = new MouseEvent(true, eventType, this, when,
                                    modifiers, x, y, 0, button);
             }
+        } else {
+            e = new MouseEvent(true, eventType, this, when, modifiers, x, y, 0, button);
         }
 
         if(DEBUG_MOUSE_EVENT) {
@@ -329,30 +343,39 @@ public abstract class Window implements NativeWindow
             }
         }
 
-        for(Iterator i = mouseListener.iterator(); i.hasNext(); ) {
+        ArrayList listeners = null;
+        synchronized(this) {
+            listeners = mouseListener;
+        }
+        for(Iterator i = listeners.iterator(); i.hasNext(); ) {
+            MouseListener l = (MouseListener) i.next();
             switch(e.getEventType()) {
+                case MouseEvent.EVENT_MOUSE_CLICKED:
+                    l.mouseClicked(e);
+                    break;
                 case MouseEvent.EVENT_MOUSE_ENTERED:
-                    ((MouseListener)i.next()).mouseEntered(e);
+                    l.mouseEntered(e);
                     break;
                 case MouseEvent.EVENT_MOUSE_EXITED:
-                    ((MouseListener)i.next()).mouseExited(e);
+                    l.mouseExited(e);
                     break;
                 case MouseEvent.EVENT_MOUSE_PRESSED:
-                    ((MouseListener)i.next()).mousePressed(e);
+                    l.mousePressed(e);
                     break;
                 case MouseEvent.EVENT_MOUSE_RELEASED:
-                    MouseListener ml = (MouseListener)i.next();
-                    ml.mouseReleased(e);
+                    l.mouseReleased(e);
                     if(null!=eClicked) {
-                        ml.mouseClicked(eClicked);
+                        l.mouseClicked(eClicked);
                     }
                     break;
                 case MouseEvent.EVENT_MOUSE_MOVED:
-                    ((MouseListener)i.next()).mouseMoved(e);
+                    l.mouseMoved(e);
                     break;
                 case MouseEvent.EVENT_MOUSE_DRAGGED:
-                    ((MouseListener)i.next()).mouseDragged(e);
+                    l.mouseDragged(e);
                     break;
+                default:
+                    throw new RuntimeException("Unexpected mouse event type " + e.getEventType());
             }
         }
     }
@@ -388,16 +411,19 @@ public abstract class Window implements NativeWindow
             System.out.println("sendKeyEvent: "+e);
         }
         for(Iterator i = keyListener.iterator(); i.hasNext(); ) {
+            KeyListener l = (KeyListener) i.next();
             switch(eventType) {
                 case KeyEvent.EVENT_KEY_PRESSED:
-                    ((KeyListener)i.next()).keyPressed(e);
+                    l.keyPressed(e);
                     break;
                 case KeyEvent.EVENT_KEY_RELEASED:
-                    ((KeyListener)i.next()).keyReleased(e);
+                    l.keyReleased(e);
                     break;
                 case KeyEvent.EVENT_KEY_TYPED:
-                    ((KeyListener)i.next()).keyTyped(e);
+                    l.keyTyped(e);
                     break;
+                default:
+                    throw new RuntimeException("Unexpected key event type " + e.getEventType());
             }
         }
     }

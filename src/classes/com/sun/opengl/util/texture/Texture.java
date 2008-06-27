@@ -40,6 +40,7 @@ import java.nio.*;
 
 import javax.media.opengl.*;
 import javax.media.opengl.glu.*;
+import javax.media.opengl.glu.gl2.*;
 import com.sun.opengl.impl.*;
 import com.sun.opengl.util.texture.*;
 import com.sun.opengl.util.texture.spi.*;
@@ -518,7 +519,8 @@ public class Texture {
       }
 
       try {
-        GLU glu = GLU.createGLU(gl);
+        // FIXME: need to get rid of this cast
+        GLUgl2 glu = (GLUgl2) GLU.createGLU(gl);
         glu.gluBuild2DMipmaps(texTarget, data.getInternalFormat(),
                               data.getWidth(), data.getHeight(),
                               data.getPixelFormat(), data.getPixelType(), data.getBuffer());

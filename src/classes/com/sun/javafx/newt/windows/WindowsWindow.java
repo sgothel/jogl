@@ -105,7 +105,7 @@ public class WindowsWindow extends Window {
         return 480; // FIXME
     }
 
-    public void dispatchMessages(int eventMask) {
+    protected void dispatchMessages(int eventMask) {
         DispatchMessages(windowHandle, eventMask);
     }
 

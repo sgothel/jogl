@@ -191,10 +191,15 @@ public abstract class GLDrawableFactory {
   public static GLDrawableFactory getFactory(Object target) 
     throws GLException
   {
-    if(null==target) {
+    if (target == null) {
         throw new IllegalArgumentException("target is null");
     }
-    if(target instanceof NativeWindow) {
+    if (target instanceof NativeWindow) {
+        if (((NativeWindow) target).getWrappedWindow() != null) {
+            target = ((NativeWindow) target).getWrappedWindow();
+        }
+    }
+    if (target instanceof NativeWindow) {
       return getFactory(false);
     } else if (NativeWindowFactory.isAWTComponent(target)) {
       return getFactory(true);

@@ -531,40 +531,40 @@
       <echo message="Win32.VC6" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.win32.msvc" />
       <property name="linker.cfg.id.base"                   value="linker.cfg.win32.msvc" />
-      <property name="linker.cfg.id.oswin"                  value="linker.cfg.win32.msvc.jogl.gl2" />
-      <property name="linker.cfg.id.gl2"                    value="linker.cfg.win32.msvc.jogl.gl2" />
+      <property name="linker.cfg.id.oswin"                  value="linker.cfg.win32.msvc.jogl" />
+      <property name="linker.cfg.id.gl2"                    value="linker.cfg.win32.msvc.jogl" />
     </target>
     
     <target name="declare.win32.vc7" if="isVC7">
       <echo message="Win32.VC7" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.win32.msvc" />
       <property name="linker.cfg.id.base"                   value="linker.cfg.win32.msvc" />
-      <property name="linker.cfg.id.oswin"                  value="linker.cfg.win32.msvc.jogl.gl2" />
-      <property name="linker.cfg.id.gl2"                    value="linker.cfg.win32.msvc.jogl.gl2" />
+      <property name="linker.cfg.id.oswin"                  value="linker.cfg.win32.msvc.jogl" />
+      <property name="linker.cfg.id.gl2"                    value="linker.cfg.win32.msvc.jogl" />
     </target>
     
     <target name="declare.win32.vc8" if="isVC8">
       <echo message="Win32.VC8" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.win32.msvc" />
       <property name="linker.cfg.id.base"                   value="linker.cfg.win32.msvc" />
-      <property name="linker.cfg.id.oswin"                  value="linker.cfg.win32.msvc.jogl.gl2" />
-      <property name="linker.cfg.id.gl2"                    value="linker.cfg.win32.msvc.jogl.gl2" />
+      <property name="linker.cfg.id.oswin"                  value="linker.cfg.win32.msvc.jogl" />
+      <property name="linker.cfg.id.gl2"                    value="linker.cfg.win32.msvc.jogl" />
     </target>
     
     <target name="declare.win32.vc8_x64" if="isVC8_X64">
       <echo message="Win32.VC8_X64" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.win32.msvc" />
       <property name="linker.cfg.id.base"                   value="linker.cfg.win32.msvc" />
-      <property name="linker.cfg.id.oswin"                  value="linker.cfg.win32.msvc.jogl.gl2" />
-      <property name="linker.cfg.id.gl2"                    value="linker.cfg.win32.msvc.jogl.gl2" />
+      <property name="linker.cfg.id.oswin"                  value="linker.cfg.win32.msvc.jogl" />
+      <property name="linker.cfg.id.gl2"                    value="linker.cfg.win32.msvc.jogl" />
     </target>
     
     <target name="declare.win32.mingw" if="isMingW">
       <echo message="Win32.MingW" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.win32.mingw" />
       <property name="linker.cfg.id.base"                   value="linker.cfg.win32.mingw" />
-      <property name="linker.cfg.id.oswin"                  value="linker.cfg.win32.mingw.jogl.gl2" />
-      <property name="linker.cfg.id.gl2"                    value="linker.cfg.win32.mingw.jogl.gl2" />
+      <property name="linker.cfg.id.oswin"                  value="linker.cfg.win32.mingw.jogl" />
+      <property name="linker.cfg.id.gl2"                    value="linker.cfg.win32.mingw.jogl" />
     </target>
 
     <target name="declare.linux.x86" if="isLinuxX86">
@@ -672,8 +672,8 @@
 
       <property name="compiler.cfg.id"                      value="compiler.cfg.macosx" />
       <property name="linker.cfg.id.base"                   value="linker.cfg.macosx" />
-      <property name="linker.cfg.id.oswin"                  value="linker.cfg.macosx.jogl.x11" />
-      <property name="linker.cfg.id.gl2"                    value="linker.cfg.macosx.jogl.gl2" />
+      <property name="linker.cfg.id.oswin"                  value="linker.cfg.macosx.jogl" />
+      <property name="linker.cfg.id.gl2"                    value="linker.cfg.macosx.jogl" />
     </target>
     
     <!-- ================================================================== -->
@@ -1251,13 +1251,13 @@
         <syslibset dir="/usr/lib/amd64" libs="X11"/>
       </linker>
 
-      <linker id="linker.cfg.win32.mingw.jogl.gl2" extends="linker.cfg.win32.mingw">
+      <linker id="linker.cfg.win32.mingw.jogl" extends="linker.cfg.win32.mingw">
         <linkerarg value="-Wl,--kill-at" />        <!-- remove @ from function names -->
         <syslibset libs="opengl32, glu32, gdi32, kernel32"/>
         <syslibset dir="${windows.cg.lib}" libs="cg, cgGL" if="c.compiler.use-cglib"/>
       </linker>
 
-      <linker id="linker.cfg.win32.msvc.jogl.gl2" extends="linker.cfg.win32.msvc">
+      <linker id="linker.cfg.win32.msvc.jogl" extends="linker.cfg.win32.msvc">
         <syslibset libs="opengl32, gdi32, user32, kernel32" />
         <syslibset dir="${windows.cg.lib}" libs="cg, cgGL" if="c.compiler.use-cglib"/>
     <!-- This is temporary -->
@@ -1350,15 +1350,12 @@
         <!-- Also supported on Solaris, but works differently -->
         <include name="${rootrel.src.c.jogl}/Xinerama.c" if="isLinux"/>
 
-        <include name="${rootrel.src.c.jogl}/MacOSXWindowSystemInterface.m" if="isOSX"/>
-
         <include name="${rootrel.generated.c.jogl}/X11/X11Lib_JNI.c" if="isX11"/>
 
         <include name="${rootrel.generated.c.jogl}/es2/GLES2Impl_JNI.c"/>
 
         <include name="${rootrel.generated.c.jogl}/egl/EGL_JNI.c"/>
         <include name="${rootrel.src.c.jogl}/InternalBufferUtils.c"/>
-        <include name="${rootrel.src.c.jogl}/ContextUpdater.m" if="isOSX"/>
       </patternset>
 
       <patternset id="c.src.files.jogl.es1">
@@ -1367,13 +1364,10 @@
         <!-- Also supported on Solaris, but works differently -->
         <include name="${rootrel.src.c.jogl}/Xinerama.c" if="isLinux"/>
 
-        <include name="${rootrel.src.c.jogl}/MacOSXWindowSystemInterface.m" if="isOSX"/>
-
         <include name="${rootrel.generated.c.jogl}/X11/X11Lib_JNI.c" if="isX11"/>
 
         <include name="${rootrel.generated.c.jogl}/egl/EGL_JNI.c"/>
         <include name="${rootrel.src.c.jogl}/InternalBufferUtils.c"/>
-        <include name="${rootrel.src.c.jogl}/ContextUpdater.m" if="isOSX"/>
 
         <include name="${rootrel.generated.c.jogl}/es1/GLES1Impl_JNI.c"/>
         <!--include name="${rootrel.generated.c.jogl}/GLU_JNI.c"/ EMPTY -->
@@ -1446,7 +1440,6 @@
       <!-- FIXME: this is a hack; the cpptask should have an option to change the
            suffix or at least understand the override from dylib to jnilib -->
       <move file="${obj}/libjogl_awt.dylib" tofile="${obj}/libjogl_awt.jnilib" />
-      <move file="${obj}/libnewt.dylib" tofile="${obj}/libnewt.jnilib" />
       <move file="${obj}/libjogl_gl2.dylib" tofile="${obj}/libjogl_gl2.jnilib" />
       <move file="${obj}/libjogl_es2.dylib" tofile="${obj}/libjogl_es2.jnilib" />
       <move file="${obj}/libjogl_es1.dylib" tofile="${obj}/libjogl_es1.jnilib" />
@@ -1464,7 +1457,7 @@
         <arg value="/System/Library/Frameworks/JavaVM.framework/Versions/1.5.0/Libraries/libjawt.dylib" />
         <arg value="/System/Library/Frameworks/JavaVM.framework/Libraries/libjawt.dylib" />
         <srcfile />
-        <fileset dir="${obj}" includes="libjogl_awt.jnilib, libjogl_gl2.jnilib, libjogl_gl2.jnilib, libjogl_es2.jnilib, libjogl_es1.jnilib" />
+        <fileset dir="${obj}" includes="libjogl_awt.jnilib, libjogl_gl2.jnilib, libjogl_es2.jnilib, libjogl_es1.jnilib, libjogl_cg.jnilib" />
       </apply>
     </target>
 
@@ -1492,7 +1485,8 @@
       </antcall>
     </target>
 
-    <target name="c.build.newt">
+    <!-- There is no native newt library on OS X -->
+    <target name="c.build.newt" unless="isOSX">
       <antcall target="c.build" inheritRefs="true">
         <param name="c.compiler.src.files" value="c.src.files.newt"/>
         <param name="c.compiler.use-newt" value="true"/>

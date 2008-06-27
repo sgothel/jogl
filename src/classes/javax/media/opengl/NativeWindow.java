@@ -69,33 +69,39 @@ public interface NativeWindow {
   public long getScreenHandle();
 
   /**
-   * Returns the window handle for this NativeWindow. 
+   * Returns the window handle for this NativeWindow. <P>
    *
    * The window handle shall reflect the platform one 
-   * for all window related operations, e.g. open, close, resize.
+   * for all window related operations, e.g. open, close, resize. <P>
    *
-   * On X11 this returns an entity of type Window. 
+   * On X11 this returns an entity of type Window. <BR>
    * On Microsoft Windows this returns an entity of type HWND. 
    */
-  public long getWindowHandle() throws NativeWindowException;
+  public long getWindowHandle();
 
   /**
-   * Returns the handle to the surface for this NativeWindow. 
+   * Returns the handle to the surface for this NativeWindow. <P>
    * 
    * The surface handle shall reflect the platform one
-   * for all drawable surface operations, e.g. opengl, swap-buffer.
+   * for all drawable surface operations, e.g. opengl, swap-buffer. <P>
    *
    * On X11 this returns an entity of type Window,
-   * since there is no differentiation of surface and window there.
+   * since there is no differentiation of surface and window there. <BR>
    * On Microsoft Windows this returns an entity of type HDC.
    */
-  public long getSurfaceHandle() throws NativeWindowException;
+  public long getSurfaceHandle();
 
   /**
    * Lifetime: after 1st lock, until invalidation
    */
   public long getVisualID();
   public int  getScreenIndex();
+
+  /**
+   * If this NativeWindow actually wraps a window from a Java-level
+   * window toolkit like the AWT, returns the underlying window.
+   */
+  public Object getWrappedWindow();
 
   public void setSize(int width, int height);
   public void setPosition(int x, int y);

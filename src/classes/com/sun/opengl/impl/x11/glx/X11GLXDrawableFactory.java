@@ -114,6 +114,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     if (target == null) {
       throw new IllegalArgumentException("Null target");
     }
+    target = NativeWindowHelper.unwrap(target);
     X11OnscreenGLXDrawable drawable = new X11OnscreenGLXDrawable(this, target);
     long visualID = target.getVisualID();
     int screen = target.getScreenIndex(); 

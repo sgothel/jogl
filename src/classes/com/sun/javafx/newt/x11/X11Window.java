@@ -108,7 +108,7 @@ public class X11Window extends Window {
         return getDisplayHeight0(getDisplayHandle(), getScreenIndex());
     }
 
-    public void dispatchMessages(int eventMask) {
+    protected void dispatchMessages(int eventMask) {
         DispatchMessages(getDisplayHandle(), windowHandle, eventMask);
     }
 

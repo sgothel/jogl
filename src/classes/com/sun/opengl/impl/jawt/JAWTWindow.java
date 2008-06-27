@@ -123,6 +123,10 @@ public abstract class JAWTWindow implements NativeWindow {
     return visualID;
   }
 
+  public Object getWrappedWindow() {
+    return null;
+  }
+
   public void setSize(int width, int height) {
     component.setSize(width, height);
   }

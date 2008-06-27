@@ -105,6 +105,10 @@ public class NullWindow implements NativeWindow {
     return 0;
   }
 
+  public Object getWrappedWindow() {
+    return null;
+  }
+
   public void setSize(int width, int height) {
     this.width=width;
     this.height=height;

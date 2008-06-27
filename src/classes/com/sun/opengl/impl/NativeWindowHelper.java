@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -20,7 +20,7 @@
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
  * PARTICULAR PURPOSE OR NON-INFRINGEMENT, ARE HEREBY EXCLUDED. SUN
- * MIDROSYSTEMS, INC. ("SUN") AND ITS LICENSORS SHALL NOT BE LIABLE FOR
+ * MICROSYSTEMS, INC. ("SUN") AND ITS LICENSORS SHALL NOT BE LIABLE FOR
  * ANY DAMAGES SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR
  * DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES. IN NO EVENT WILL SUN OR
  * ITS LICENSORS BE LIABLE FOR ANY LOST REVENUE, PROFIT OR DATA, OR FOR
@@ -29,37 +29,22 @@
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  * 
- * You acknowledge that this software is not designed or intended for use
- * in the design, construction, operation or maintenance of any nuclear
- * facility.
- * 
- * Sun gratefully acknowledges that this software was originally authored
- * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-#include <jawt_md.h>
+package com.sun.opengl.impl;
 
-#ifdef WIN32
-  #define PLATFORM_DSI_SIZE sizeof(JAWT_Win32DrawingSurfaceInfo)
-#elif defined(linux) || defined(__sun) || defined(__FreeBSD__) || defined(_HPUX)
-  #define PLATFORM_DSI_SIZE sizeof(JAWT_X11DrawingSurfaceInfo)
-#elif defined(macosx)
-  #define PLATFORM_DSI_SIZE sizeof(JAWT_MacOSXDrawingSurfaceInfo)
-#else
-  ERROR: port JAWT_DrawingSurfaceInfo.c to your platform
-#endif
+import javax.media.opengl.*;
 
-JNIEXPORT jobject JNICALL
-Java_com_sun_opengl_impl_jawt_JAWT_1DrawingSurfaceInfo_platformInfo0(JNIEnv* env, jobject unused, jobject jthis0) {
-  JAWT_DrawingSurfaceInfo* dsi;
-  dsi = (*env)->GetDirectBufferAddress(env, jthis0);
-  if (dsi == NULL) {
-    (*env)->ThrowNew(env, (*env)->FindClass(env, "java/lang/RuntimeException"),
-                     "Argument \"jthis0\" was not a direct buffer");
-    return NULL;
-  }
-  if (dsi->platformInfo == NULL) {
-    return NULL;
-  }
-  return (*env)->NewDirectByteBuffer(env, dsi->platformInfo, PLATFORM_DSI_SIZE);
+/** Helper class to assist in the case where for example a Newt window
+    wraps an AWT window. */
+
+public class NativeWindowHelper {
+    private NativeWindowHelper() {}
+
+    public static NativeWindow unwrap(NativeWindow target) {
+        if (target.getWrappedWindow() != null) {
+            target = NativeWindowFactory.getNativeWindow(target.getWrappedWindow());
+        }
+        return target;
+    }
 }

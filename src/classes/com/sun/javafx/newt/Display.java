@@ -46,7 +46,7 @@ public abstract class Display {
         } else if (NewtFactory.X11.equals(type)) {
             displayClass = Class.forName("com.sun.javafx.newt.x11.X11Display");
         } else if (NewtFactory.MACOSX.equals(type)) {
-            displayClass = Class.forName("com.sun.javafx.newt.macosx.MacOSXDisplay");
+            displayClass = Class.forName("com.sun.javafx.newt.awt.AWTDisplay");
         } else {
             throw new RuntimeException("Unknown display type \"" + type + "\"");
         }
