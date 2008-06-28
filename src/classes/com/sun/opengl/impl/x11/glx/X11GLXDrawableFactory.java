@@ -114,7 +114,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     if (target == null) {
       throw new IllegalArgumentException("Null target");
     }
-    target = NativeWindowHelper.unwrap(target);
+    target = NativeWindowFactory.getNativeWindow(target);
     X11OnscreenGLXDrawable drawable = new X11OnscreenGLXDrawable(this, target);
     long visualID = target.getVisualID();
     int screen = target.getScreenIndex(); 
@@ -424,12 +424,6 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     return caps;
   }
 
-  public void lockToolkit() {
-  }
-
-  public void unlockToolkit() {
-  }
-
   // Display connection for use by visual selection algorithm and by all offscreen surfaces
   private static long staticDisplay=0;
   private static boolean xineramaEnabled=false;
@@ -506,10 +500,6 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
       throw new GLException("glXGetConfig failed: error code " + glXGetConfigErrorCode(res));
     }
     return tmp[tmp_offset];
-  }
-
-  public static X11GLXDrawableFactory getX11Factory() {
-    return (X11GLXDrawableFactory) getFactory(false);
   }
 
   /** Workaround for apparent issue with ATI's proprietary drivers

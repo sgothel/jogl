@@ -65,12 +65,12 @@ public abstract class JAWTWindow implements NativeWindow {
   protected int  screenIndex;
 
   public JAWTWindow(Object comp) {
-    init(comp);
+    init((Component)comp);
   }
 
-  protected void init(Object windowObject) throws NativeWindowException {
+  protected void init(Component windowObject) throws NativeWindowException {
     invalidate();
-    this.component = (Component)windowObject;
+    this.component = windowObject;
     initNative();
   }
 
@@ -124,7 +124,11 @@ public abstract class JAWTWindow implements NativeWindow {
   }
 
   public Object getWrappedWindow() {
-    return null;
+    return component;
+  }
+
+  public final boolean isTerminalObject() {
+    return true;
   }
 
   public void setSize(int width, int height) {
@@ -164,6 +168,15 @@ public abstract class JAWTWindow implements NativeWindow {
 
   public boolean isFullscreen() {
     return false; // FIXME
+  }
+
+  public String toString() {
+    return "JAWT-Window[windowHandle "+getWindowHandle()+
+                ", surfaceHandle "+getSurfaceHandle()+
+                ", pos "+getX()+"/"+getY()+", size "+getWidth()+"x"+getHeight()+
+                ", visible "+isVisible()+
+                ", wrappedWindow "+getWrappedWindow()+
+                ", terminalObject "+isTerminalObject()+"]";
   }
 
 }

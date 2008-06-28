@@ -151,4 +151,6 @@ public interface GLDrawable {
   public int lockSurface() throws GLException;
   public void unlockSurface();
   public boolean isSurfaceLocked();
+
+  public String toString();
 }

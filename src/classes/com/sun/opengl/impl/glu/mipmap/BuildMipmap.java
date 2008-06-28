@@ -47,6 +47,7 @@ package com.sun.opengl.impl.glu.mipmap;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
 import javax.media.opengl.glu.GLU;
+import javax.media.opengl.util.BufferUtil;
 import com.sun.opengl.impl.Debug;
 import java.nio.*;
 import java.io.*;
@@ -73,7 +74,7 @@ public class BuildMipmap {
     int newImage_width;
     ShortBuffer otherImage = null;
     ShortBuffer imageTemp = null;
-    int memreq;
+    int memReq;
     int maxsize;
     int cmpts;
     PixelStorageModes psm = new PixelStorageModes();
@@ -88,8 +89,8 @@ public class BuildMipmap {
     
     Mipmap.retrieveStoreModes( gl, psm );
     try {
-      newImage = ByteBuffer.allocateDirect( Mipmap.image_size( width, 1, format, 
-            GL2.GL_UNSIGNED_SHORT ) ).order( ByteOrder.nativeOrder() ).asShortBuffer();
+      newImage = BufferUtil.nativeOrder(ByteBuffer.allocateDirect( Mipmap.image_size( width, 1, format, 
+            GL2.GL_UNSIGNED_SHORT ) )).asShortBuffer();
     } catch( OutOfMemoryError ome ) {
       return( GLU.GLU_OUT_OF_MEMORY );
     }
@@ -114,9 +115,9 @@ public class BuildMipmap {
         }
       } else {
         if( otherImage == null ) {
-          memreq = Mipmap.image_size( newwidth, 1, format, GL2.GL_UNSIGNED_SHORT );
+          memReq = Mipmap.image_size( newwidth, 1, format, GL2.GL_UNSIGNED_SHORT );
           try {
-            otherImage = ByteBuffer.allocateDirect( memreq ).order( ByteOrder.nativeOrder() ).asShortBuffer();
+            otherImage = BufferUtil.nativeOrder(ByteBuffer.allocateDirect( memReq )).asShortBuffer();
           } catch( OutOfMemoryError ome ) {
             gl.glPixelStorei( GL2.GL_UNPACK_ALIGNMENT, psm.getUnpackAlignment() );
             gl.glPixelStorei( GL2.GL_UNPACK_SKIP_ROWS, psm.getUnpackSkipRows() );
@@ -161,7 +162,7 @@ public class BuildMipmap {
     int newImage_height;
     ShortBuffer otherImage = null;
     ShortBuffer tempImage = null;
-    int memreq;
+    int memReq;
     int maxsize;
     int cmpts;
     PixelStorageModes psm = new PixelStorageModes();
@@ -177,8 +178,8 @@ public class BuildMipmap {
     }
     
     try {
-      newImage = ByteBuffer.allocateDirect( Mipmap.image_size( width, height, 
-            format, GL2.GL_UNSIGNED_SHORT ) ).order( ByteOrder.nativeOrder() ).asShortBuffer();
+      newImage = BufferUtil.nativeOrder(ByteBuffer.allocateDirect( Mipmap.image_size( width, height, 
+            format, GL2.GL_UNSIGNED_SHORT ) )).asShortBuffer();
     } catch( OutOfMemoryError ome ) {
       return( GLU.GLU_OUT_OF_MEMORY );
     }
@@ -203,9 +204,9 @@ public class BuildMipmap {
             newImage_height, 0, format, GL2.GL_UNSIGNED_SHORT, newImage );
       } else {
         if( otherImage == null ) {
-          memreq = Mipmap.image_size( newwidth[0], newheight[0], format, GL2.GL_UNSIGNED_SHORT );
+          memReq = Mipmap.image_size( newwidth[0], newheight[0], format, GL2.GL_UNSIGNED_SHORT );
           try {
-            otherImage = ByteBuffer.allocateDirect( memreq ).order( ByteOrder.nativeOrder() ).asShortBuffer();
+            otherImage = BufferUtil.nativeOrder(ByteBuffer.allocateDirect( memReq )).asShortBuffer();
           } catch( OutOfMemoryError ome ) {
             gl.glPixelStorei( GL2.GL_UNPACK_ALIGNMENT, psm.getUnpackAlignment() );
             gl.glPixelStorei( GL2.GL_UNPACK_SKIP_ROWS, psm.getUnpackSkipRows() );
@@ -258,9 +259,10 @@ public class BuildMipmap {
     int newImage_width;
     int newImage_height;
     short[] SWAP_IMAGE = null;
-    int memreq;
+    int memReq;
     int maxsize;
     int cmpts;
+    int mark=-1;
     
     boolean myswap_bytes;
     int groups_per_line, element_size, group_size;
@@ -305,8 +307,8 @@ public class BuildMipmap {
       rowsize += psm.getUnpackAlignment() - padding;
     }
     
-    data.position( psm.getUnpackSkipRows() * rowsize + psm.getUnpackSkipPixels() * group_size );
-    data.mark();
+    mark = psm.getUnpackSkipRows() * rowsize + psm.getUnpackSkipPixels() * group_size;
+    data.position( mark );
     
     gl.glPixelStorei( GL2.GL_UNPACK_SKIP_ROWS, 0 );
     gl.glPixelStorei( GL2.GL_UNPACK_SKIP_PIXELS, 0 );
@@ -339,7 +341,7 @@ public class BuildMipmap {
       if( nextHeight < 1 ) {
         nextHeight = 1;
       }
-      memreq = Mipmap.image_size( nextWidth, nextHeight, format, type );
+      memReq = Mipmap.image_size( nextWidth, nextHeight, format, type );
       
       try {
         switch( type ) {
@@ -362,7 +364,7 @@ public class BuildMipmap {
           case( GL2.GL_UNSIGNED_INT_8_8_8_8_REV ):
           case( GL2.GL_UNSIGNED_INT_10_10_10_2 ):
           case( GL2.GL_UNSIGNED_INT_2_10_10_10_REV ):
-            dstImage = ByteBuffer.allocateDirect( memreq ).order( ByteOrder.nativeOrder() );
+            dstImage = BufferUtil.nativeOrder(ByteBuffer.allocateDirect( memReq ));
             break;
           default:
             return( GLU.GLU_INVALID_ENUM );
@@ -453,7 +455,7 @@ public class BuildMipmap {
       
       myswap_bytes = false;
       rowsize = newwidth * group_size;
-      memreq = Mipmap.image_size( newwidth, newheight, format, type );
+      memReq = Mipmap.image_size( newwidth, newheight, format, type );
       // swap srcImage and dstImage
       tempImage = srcImage;
       srcImage = dstImage;
@@ -479,7 +481,7 @@ public class BuildMipmap {
           case( GL2.GL_UNSIGNED_INT_8_8_8_8_REV ):
           case( GL2.GL_UNSIGNED_INT_10_10_10_2 ):
           case( GL2.GL_UNSIGNED_INT_2_10_10_10_REV ):
-            dstImage = ByteBuffer.allocateDirect( memreq ).order( ByteOrder.nativeOrder() );
+            dstImage = BufferUtil.nativeOrder(ByteBuffer.allocateDirect( memReq ));
             break;
           default:
             return( GLU.GLU_INVALID_ENUM );
@@ -495,7 +497,7 @@ public class BuildMipmap {
       // level userLevel+1 is in srcImage; level userLevel already saved
       level = userLevel + 1;
     } else { // user's image is not nice powerof2 size square
-      memreq = Mipmap.image_size( newwidth, newheight, format, type );
+      memReq = Mipmap.image_size( newwidth, newheight, format, type );
       try { 
         switch( type ) {
           case( GL2.GL_UNSIGNED_BYTE ):
@@ -517,7 +519,7 @@ public class BuildMipmap {
           case( GL2.GL_UNSIGNED_INT_8_8_8_8_REV ):
           case( GL2.GL_UNSIGNED_INT_10_10_10_2 ):
           case( GL2.GL_UNSIGNED_INT_2_10_10_10_REV ):
-            dstImage = ByteBuffer.allocateDirect( memreq ).order( ByteOrder.nativeOrder() );
+            dstImage = BufferUtil.nativeOrder(ByteBuffer.allocateDirect( memReq ));
             break;
           default:
             return( GLU.GLU_INVALID_ENUM );
@@ -530,7 +532,7 @@ public class BuildMipmap {
         gl.glPixelStorei( GL2.GL_UNPACK_SWAP_BYTES, (psm.getUnpackSwapBytes() ? 1 : 0) );
         return( GLU.GLU_OUT_OF_MEMORY );
       }
-      data.reset();
+      data.position( mark );
       switch( type ) {
         case( GL2.GL_UNSIGNED_BYTE ):
           ScaleInternal.scale_internal_ubyte( cmpts, width, height, data, 
@@ -629,7 +631,7 @@ public class BuildMipmap {
           nextHeight = 1;
         }
         
-        memreq = Mipmap.image_size( nextWidth, nextHeight, format, type );
+        memReq = Mipmap.image_size( nextWidth, nextHeight, format, type );
         try {
           switch( type ) {
             case( GL2.GL_UNSIGNED_BYTE ):
@@ -651,7 +653,7 @@ public class BuildMipmap {
             case( GL2.GL_UNSIGNED_INT_8_8_8_8_REV ):
             case( GL2.GL_UNSIGNED_INT_10_10_10_2 ):
             case( GL2.GL_UNSIGNED_INT_2_10_10_10_REV ):
-              dstImage = ByteBuffer.allocateDirect( memreq ).order( ByteOrder.nativeOrder() );
+              dstImage = BufferUtil.nativeOrder(ByteBuffer.allocateDirect( memReq ));
               break;
             default:
               return( GLU.GLU_INVALID_ENUM );
@@ -845,7 +847,7 @@ public class BuildMipmap {
     int newImage_height;
     ByteBuffer otherImage;
     ByteBuffer imageTemp;
-    int memreq;
+    int memReq;
     int maxsize;
     int cmpts;
     
@@ -878,8 +880,8 @@ public class BuildMipmap {
       int i, j;
       
       try {
-        newImage = ByteBuffer.allocateDirect( Mipmap.image_size( 
-              width, height, format, GL2.GL_UNSIGNED_BYTE ) ).order( ByteOrder.nativeOrder() );
+        newImage = BufferUtil.nativeOrder(ByteBuffer.allocateDirect( Mipmap.image_size( 
+              width, height, format, GL2.GL_UNSIGNED_BYTE ) ));
       } catch( OutOfMemoryError err ) {
         return( GLU.GLU_OUT_OF_MEMORY );
       }
@@ -920,9 +922,9 @@ public class BuildMipmap {
                 0, format, GL2.GL_UNSIGNED_BYTE, newImage );
       } else {
         if( otherImage == null ) {
-          memreq = Mipmap.image_size( newwidth[0], newheight[0], format, GL2.GL_UNSIGNED_BYTE );
+          memReq = Mipmap.image_size( newwidth[0], newheight[0], format, GL2.GL_UNSIGNED_BYTE );
           try {
-            otherImage = ByteBuffer.allocateDirect( memreq ).order( ByteOrder.nativeOrder() );
+            otherImage = BufferUtil.nativeOrder(ByteBuffer.allocateDirect( memReq ));
           } catch( OutOfMemoryError err ) {
             gl.glPixelStorei( GL2.GL_UNPACK_ALIGNMENT, psm.getUnpackAlignment() );
             gl.glPixelStorei( GL2.GL_UNPACK_SKIP_ROWS, psm.getUnpackSkipRows() );
@@ -975,6 +977,7 @@ public class BuildMipmap {
     int memReq;
     int maxSize;
     int cmpts;
+    int mark=-1;
     
     boolean myswapBytes;
     int groupsPerLine, elementSize, groupSize;
@@ -1033,11 +1036,11 @@ public class BuildMipmap {
     
     imageSize = rowsPerImage * rowSize;
     
-    usersImage = data.duplicate();
-    usersImage.position( psm.getUnpackSkipRows() * rowSize +
-                         psm.getUnpackSkipPixels() * groupSize +
-                         psm.getUnpackSkipImages() * imageSize );
-    usersImage.mark();
+    usersImage = ByteBuffer.wrap(data.array());
+    mark = psm.getUnpackSkipRows() * rowSize +
+           psm.getUnpackSkipPixels() * groupSize +
+           psm.getUnpackSkipImages() * imageSize;
+    usersImage.position( mark );
     
     gl.glPixelStorei( GL2.GL_UNPACK_SKIP_ROWS, 0 );
     gl.glPixelStorei( GL2.GL_UNPACK_SKIP_PIXELS, 0 );
@@ -1099,7 +1102,7 @@ public class BuildMipmap {
           case( GL2.GL_UNSIGNED_INT_8_8_8_8_REV ):
           case( GL2.GL_UNSIGNED_INT_10_10_10_2 ):
           case( GL2.GL_UNSIGNED_INT_2_10_10_10_REV ):
-            dstImage = ByteBuffer.allocateDirect( memReq ).order( ByteOrder.nativeOrder() );
+            dstImage = BufferUtil.nativeOrder(ByteBuffer.allocateDirect( memReq ));
             break;
           default:
             return( GLU.GLU_INVALID_ENUM );
@@ -1285,7 +1288,7 @@ public class BuildMipmap {
           case( GL2.GL_UNSIGNED_INT_8_8_8_8_REV ):
           case( GL2.GL_UNSIGNED_INT_10_10_10_2 ):
           case( GL2.GL_UNSIGNED_INT_2_10_10_10_REV ):
-            dstImage = ByteBuffer.allocateDirect( memReq ).order( ByteOrder.nativeOrder() );
+            dstImage = BufferUtil.nativeOrder(ByteBuffer.allocateDirect( memReq ));
             break;
           default:
             return( GLU.GLU_INVALID_ENUM );
@@ -1326,7 +1329,7 @@ public class BuildMipmap {
           case( GL2.GL_UNSIGNED_INT_8_8_8_8_REV ):
           case( GL2.GL_UNSIGNED_INT_10_10_10_2 ):
           case( GL2.GL_UNSIGNED_INT_2_10_10_10_REV ):
-            dstImage = ByteBuffer.allocateDirect( memReq ).order( ByteOrder.nativeOrder() );
+            dstImage = BufferUtil.nativeOrder(ByteBuffer.allocateDirect( memReq ));
             break;
           default:
             return( GLU.GLU_INVALID_ENUM );
@@ -1388,7 +1391,7 @@ public class BuildMipmap {
             case( GL2.GL_UNSIGNED_INT_8_8_8_8_REV ):
             case( GL2.GL_UNSIGNED_INT_10_10_10_2 ):
             case( GL2.GL_UNSIGNED_INT_2_10_10_10_REV ):
-              dstImage = ByteBuffer.allocateDirect( memReq ).order( ByteOrder.nativeOrder() );
+              dstImage = BufferUtil.nativeOrder(ByteBuffer.allocateDirect( memReq ));
               break;
             default:
               return( GLU.GLU_INVALID_ENUM );
@@ -1410,7 +1413,7 @@ public class BuildMipmap {
     
     gl.glPixelStorei( GL2.GL_UNPACK_SWAP_BYTES, GL2.GL_FALSE );
     if( baseLevel <= level && level <= maxLevel ) {
-      usersImage.reset();
+      usersImage.position( mark );
       gl.getGL2().glTexImage3D( target, level, internalFormat, width, height, depth,
               0, format, type, usersImage );
     }
@@ -1556,7 +1559,7 @@ public class BuildMipmap {
         newDepth /= 2;
       }
       if( baseLevel <= level && level <= maxLevel ) {
-        usersImage.reset();
+        usersImage.position( mark );
         gl.getGL2().glTexImage3D( target, level, internalFormat, width, height, depth,
                 0, format, type, usersImage );
       }
@@ -1576,7 +1579,7 @@ public class BuildMipmap {
                                      int width, int height) {
     try {
       FileOutputStream fos = new FileOutputStream(new File(filename));
-      ByteBuffer header = ByteBuffer.allocate(TARGA_HEADER_SIZE);
+      ByteBuffer header = ByteBuffer.allocateDirect(TARGA_HEADER_SIZE);
       header.put(0, (byte) 0).put(1, (byte) 0);
       header.put(2, (byte) 2); // uncompressed type
       header.put(12, (byte) (width & 0xFF)); // width
@@ -1584,8 +1587,8 @@ public class BuildMipmap {
       header.put(14, (byte) (height & 0xFF)); // height
       header.put(15, (byte) (height >> 8)); // height
       header.put(16, (byte) 24); // pixel size
-      fos.getChannel().write(header);
-      fos.getChannel().write(data);
+      fos.write(header.array());
+      fos.write(data.array());
       data.clear();
       fos.close();
     } catch (IOException e) {

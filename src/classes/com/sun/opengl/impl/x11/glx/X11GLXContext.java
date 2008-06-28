@@ -325,7 +325,7 @@ public abstract class X11GLXContext extends GLContextImpl {
 
   public boolean isOptimizable() {
     return (super.isOptimizable() &&
-            !X11GLXDrawableFactory.getX11Factory().isVendorATI());
+            !((X11GLXDrawableFactory)getGLDrawable().getFactory()).isVendorATI());
   }
 
   //----------------------------------------------------------------------

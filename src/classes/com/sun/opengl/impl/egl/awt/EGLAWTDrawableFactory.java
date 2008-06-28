@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -29,22 +29,27 @@
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  * 
+ * You acknowledge that this software is not designed or intended for use
+ * in the design, construction, operation or maintenance of any nuclear
+ * facility.
  */
 
-package com.sun.opengl.impl;
+package com.sun.opengl.impl.egl.awt;
 
-import javax.media.opengl.*;
+import com.sun.opengl.impl.*;
+import com.sun.opengl.impl.egl.*;
+import com.sun.opengl.impl.jawt.*;
 
-/** Helper class to assist in the case where for example a Newt window
-    wraps an AWT window. */
+public class EGLAWTDrawableFactory extends EGLDrawableFactory {
 
-public class NativeWindowHelper {
-    private NativeWindowHelper() {}
+  public void lockToolkit() {
+    super.lockToolkit();
+    // freezes AWT: JAWTUtil.lockToolkit();
+  }
 
-    public static NativeWindow unwrap(NativeWindow target) {
-        if (target.getWrappedWindow() != null) {
-            target = NativeWindowFactory.getNativeWindow(target.getWrappedWindow());
-        }
-        return target;
-    }
+  public void unlockToolkit() {
+    // freezes AWT: JAWTUtil.unlockToolkit();
+    super.unlockToolkit();
+  }
+
 }

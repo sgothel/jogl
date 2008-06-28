@@ -115,6 +115,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     public GLDrawable createGLDrawable(NativeWindow target,
                                     GLCapabilities capabilities,
                                     GLCapabilitiesChooser chooser) {
+        target = NativeWindowFactory.getNativeWindow(target);
         return new EGLDrawable(this, target,
                                capabilities,
                                chooser);

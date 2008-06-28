@@ -82,44 +82,59 @@ public class NativeWindowFactory {
   }
 
   /**
-   * Returns true, if the given object is an instance of java.awt.Component.
-   * This check is performed on a Class.getName() basis,
-   * hence the independency to the java.awt.* package.
-   */
-  public static boolean isAWTComponent(Object target) {
-    return GLReflection.instanceOf(target, "java.awt.Component");
-  }
-
-  /**
    * Returns a NativeWindow.
    *
-   * @throws IllegalArgumentException if the passed target is null
+   * This method digest a window object 'winObj'.
+   * This can be either itself a NativeWindow, 
+   * or any other Java-level window toolkit window object.
+   *
+   * In case 'winObj' is a terminal NativeWindow, where
+   * {@link NativeWindow#isTerminalObject()} returns true,
+   * it is passed through directly.
+   *
+   * Otherwise either the non NativeWindow object,
+   * or the wrapped window object within the proxy NativeWindow
+   * will be used to factor a terminal NativeWindow.
+   *
+   * @throws IllegalArgumentException if the passed winObj is null
+   * @throws NativeWindowException if the passed winObj's is a proxy NativeWindow
+   *                               and does not hold a supported wrapped window object,
+   *                               or it is not a supported window object.
    * @throws GLException if any window system-specific errors caused
    *         the creation of the GLDrawable to fail.
    */
-  public static NativeWindow getNativeWindow(Object target) 
-    throws IllegalArgumentException, GLException
+  public static NativeWindow getNativeWindow(Object winObj) 
+    throws IllegalArgumentException, GLException, NativeWindowException
   {
-    if(null==target) {
-        throw new IllegalArgumentException("target is null");
+    if(null==winObj) {
+        throw new IllegalArgumentException("winObj is null");
     }
-    if(target instanceof NativeWindow) {
-        return (NativeWindow)target;
+    if(winObj instanceof NativeWindow) {
+        NativeWindow nw = (NativeWindow) winObj;
+        if(nw.isTerminalObject()) {
+            return nw; // use the terminal NativeWindow object directly
+        }
+        Object  wrappedWindow = nw.getWrappedWindow();
+        if(null==wrappedWindow) {
+            throw new NativeWindowException("Proxy NativeWindow holds no wrapped window: "+nw);
+        }
+        winObj = wrappedWindow;
     }
-    if (isAWTComponent(target)) {
+
+    if (GLReflection.isAWTComponent(winObj)) {
       initializeAWTFactory();
       if(awtFactory == null) {
           throw new GLException("Could not determine an AWT-NativeWindow constructor");
       }
       try {
-          return (NativeWindow) awtFactory.newInstance(new Object[] { target });
+          return (NativeWindow) awtFactory.newInstance(new Object[] { winObj });
       } catch (Exception ie) {
           ie.printStackTrace();
       }
     }
-    throw new IllegalArgumentException("Target type is unsupported. Currently supported: \n"+
-                                       "\tjavax.media.opengl.NativeWindow\n"+
-                                       "\tjava.awt.Component\n");
+    throw new NativeWindowException("Target type is unsupported. Currently supported: \n"+
+                                    "\tjavax.media.opengl.NativeWindow\n"+
+                                    "\tjava.awt.Component\n");
   }
 }
 

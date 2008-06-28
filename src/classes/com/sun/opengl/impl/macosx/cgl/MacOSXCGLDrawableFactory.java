@@ -66,7 +66,7 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
     if (target == null) {
       throw new IllegalArgumentException("Null target");
     }
-    target = NativeWindowHelper.unwrap(target);
+    target = NativeWindowFactory.getNativeWindow(target);
     if (capabilities == null) {
       capabilities = new GLCapabilities();
     }

@@ -39,6 +39,26 @@
 
 package javax.media.opengl;
 
+/** Interface for a native window object.
+    This can be a representation of a fully functional 
+    native window, i.e. a terminal object, where
+    {@link NativeWindow#isTerminalObject()} returns true.
+    Otherwise it is a a proxy for a wrapped
+    Java-level window toolkit window object (e.g. java.awt.Component),
+    which can be retrieved with 
+    {@link NativeWindow#getWrappedWindow()}.
+    
+    In case the NativeWindow is a terminal object,
+    where the NativeWindow implementation took care of exposing
+    all necessary native windowing information,
+    the utilizing toolkit (e.g. JOGL) will use a generic implementation
+    and use the native information directly.
+
+    In case the NativeWindow is a proxy object, 
+    where no native windowing information is available yet,
+    the utilizing toolkit (e.g. JOGL) is expected to have a specific implementation
+    path to handle the wrapped Java-level window toolkit window object. */
+
 public interface NativeWindow {
   public static final int LOCK_NOT_SUPPORTED = 0;
   public static final int LOCK_SURFACE_NOT_READY = 1;
@@ -99,9 +119,17 @@ public interface NativeWindow {
 
   /**
    * If this NativeWindow actually wraps a window from a Java-level
-   * window toolkit like the AWT, returns the underlying window.
+   * window toolkit, return the underlying window object.
    */
   public Object getWrappedWindow();
+
+  /**
+   * @return True, if this NativeWindow is a terminal object,
+   * i.e. all native windowing information is available.
+   * False otherwise, ie. it holds a wrapped window object,
+   * from which native handles must be derived by the utilizing tookit.
+   */
+  public boolean isTerminalObject();
 
   public void setSize(int width, int height);
   public void setPosition(int x, int y);

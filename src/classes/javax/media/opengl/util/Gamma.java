@@ -87,7 +87,7 @@ public class Gamma {
    *   out-of-bounds
    */
   public static boolean setDisplayGamma(float gamma, float brightness, float contrast) throws IllegalArgumentException {
-    return GLDrawableFactoryImpl.getFactoryImpl(false).setDisplayGamma(gamma, brightness, contrast);
+    return GLDrawableFactoryImpl.getFactoryImpl().setDisplayGamma(gamma, brightness, contrast);
   }
 
   /**
@@ -101,6 +101,6 @@ public class Gamma {
    * unspecified behavior during JVM teardown.
    */
   public static void resetDisplayGamma() {
-    GLDrawableFactoryImpl.getFactoryImpl(false).resetDisplayGamma();
+    GLDrawableFactoryImpl.getFactoryImpl().resetDisplayGamma();
   }
 }

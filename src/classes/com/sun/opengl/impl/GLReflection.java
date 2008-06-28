@@ -89,7 +89,9 @@ public final class GLReflection {
   }
 
   public static final boolean instanceOf(Object obj, String clazzName) {
-    Class clazz = obj.getClass();
+    return instanceOf(obj.getClass(), clazzName);
+  }
+  public static final boolean instanceOf(Class clazz, String clazzName) {
     do {
         if(clazz.getName().equals(clazzName)) {
             return true;
@@ -100,14 +102,28 @@ public final class GLReflection {
   }
 
   public static final boolean implementationOf(Object obj, String faceName) {
-    Class[] clazzes = obj.getClass().getInterfaces();
-    for(int i=clazzes.length-1; i>=0; i--) {
-        Class face = clazzes[i];
-        if(face.getName().equals(faceName)) {
-            return true;
+    return implementationOf(obj.getClass(), faceName);
+  }
+  public static final boolean implementationOf(Class clazz, String faceName) {
+    do {
+        Class[] clazzes = clazz.getInterfaces();
+        for(int i=clazzes.length-1; i>=0; i--) {
+            Class face = clazzes[i];
+            if(face.getName().equals(faceName)) {
+                return true;
+            }
         }
-    }
+        clazz = clazz.getSuperclass();
+    } while (clazz!=null);
     return false;
+  }
+
+  public static boolean isAWTComponent(Object target) {
+      return instanceOf(target, "java.awt.Component");
+  }
+
+  public static boolean isAWTComponent(Class clazz) {
+      return instanceOf(clazz, "java.awt.Component");
   }
 
 }

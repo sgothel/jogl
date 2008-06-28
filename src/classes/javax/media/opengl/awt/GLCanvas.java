@@ -43,6 +43,7 @@ import javax.media.opengl.*;
 
 import java.awt.Canvas;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.EventQueue;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
@@ -141,8 +142,8 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
       this.glCaps = capabilities;
     }
     if (!Beans.isDesignTime()) {
-      drawable = GLDrawableFactory.getFactory(true).createGLDrawable(NativeWindowFactory.getNativeWindow(this), 
-                                                                              capabilities, chooser);
+      drawable = GLDrawableFactory.getFactory(this.getClass()).createGLDrawable(NativeWindowFactory.getNativeWindow(this), 
+                                                                                capabilities, chooser);
       context = (GLContextImpl) drawable.createContext(shareWith);
       context.setSynchronized(true);
     }
@@ -549,9 +550,9 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
     }
 
     AWTGraphicsConfiguration config = (AWTGraphicsConfiguration)
-      GLDrawableFactory.getFactory(true).chooseGraphicsConfiguration(capabilities,
-                                                                 chooser,
-                                                                 new AWTGraphicsDevice(device));
+      GLDrawableFactory.getFactory(Component.class).chooseGraphicsConfiguration(capabilities,
+                                                                                chooser,
+                                                                                new AWTGraphicsDevice(device));
     if (config == null) {
       return null;
     }

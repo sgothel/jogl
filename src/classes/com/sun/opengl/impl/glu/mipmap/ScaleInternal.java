@@ -47,6 +47,7 @@ package com.sun.opengl.impl.glu.mipmap;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
 import javax.media.opengl.glu.GLU;
+import javax.media.opengl.util.BufferUtil;
 import java.nio.*;
 
 /**
@@ -2424,12 +2425,10 @@ public class ScaleInternal {
     }
     
     try {
-    beforeImage = ByteBuffer.allocateDirect( Mipmap.imageSize3D( widthIn, 
-            heightIn, depthIn, format, GL2.GL_UNSIGNED_SHORT ) ).order( 
-            ByteOrder.nativeOrder() ).asShortBuffer();
-    afterImage = ByteBuffer.allocateDirect( Mipmap.imageSize3D( widthIn, 
-            heightIn, depthIn, format, GL2.GL_UNSIGNED_SHORT ) ).order( 
-            ByteOrder.nativeOrder() ).asShortBuffer();
+    beforeImage = BufferUtil.nativeOrder(ByteBuffer.allocateDirect( Mipmap.imageSize3D( widthIn, 
+            heightIn, depthIn, format, GL2.GL_UNSIGNED_SHORT ) )).asShortBuffer();
+    afterImage = BufferUtil.nativeOrder(ByteBuffer.allocateDirect( Mipmap.imageSize3D( widthIn, 
+            heightIn, depthIn, format, GL2.GL_UNSIGNED_SHORT ) )).asShortBuffer();
     } catch( OutOfMemoryError err ) {
       return( GLU.GLU_OUT_OF_MEMORY );
     }

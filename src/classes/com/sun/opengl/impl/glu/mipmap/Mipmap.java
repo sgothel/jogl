@@ -47,6 +47,7 @@ package com.sun.opengl.impl.glu.mipmap;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
 import javax.media.opengl.glu.GLU;
+import javax.media.opengl.util.BufferUtil;
 import javax.media.opengl.GLException;
 import java.nio.*;
 
@@ -573,8 +574,8 @@ public class Mipmap {
       if( !isLegalFormatForPackedPixelType( format, typeout ) ) {
         return( GLU.GLU_INVALID_OPERATION );
       }
-      beforeimage = ByteBuffer.allocateDirect( image_size( widthin, heightin, format, GL2.GL_UNSIGNED_SHORT ) ).order( ByteOrder.nativeOrder() );
-      afterimage = ByteBuffer.allocateDirect( image_size( widthout, heightout, format, GL2.GL_UNSIGNED_SHORT ) ).order( ByteOrder.nativeOrder() );
+      beforeimage = BufferUtil.nativeOrder(ByteBuffer.allocateDirect( image_size( widthin, heightin, format, GL2.GL_UNSIGNED_SHORT ) ));
+      afterimage = BufferUtil.nativeOrder(ByteBuffer.allocateDirect( image_size( widthout, heightout, format, GL2.GL_UNSIGNED_SHORT ) ));
       if( beforeimage == null || afterimage == null ) {
         return( GLU.GLU_OUT_OF_MEMORY );
       }

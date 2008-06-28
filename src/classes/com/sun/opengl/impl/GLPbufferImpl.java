@@ -43,8 +43,8 @@ package com.sun.opengl.impl;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.event.*;
- */
 import java.beans.PropertyChangeListener;
+ */
 
 import javax.media.opengl.*;
 
@@ -184,20 +184,6 @@ public class GLPbufferImpl implements GLPbuffer {
 
   public boolean isSurfaceLocked() {
     return surfaceLocked;
-  }
-
-  private boolean tkLocked = false;
-
-  public void lockToolkit() throws GLException {
-    tkLocked=true;
-  }
-
-  public void unlockToolkit() {
-    tkLocked=false;
-  }
-
-  public boolean isToolkitLocked() {
-    return tkLocked;
   }
 
   //----------------------------------------------------------------------

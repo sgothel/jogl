@@ -134,5 +134,6 @@ public class WindowsOffscreenWGLDrawable extends WindowsWGLDrawable {
     } finally {
         getFactory().unlockToolkit();
     }
+    super.destroy();
   }
 }

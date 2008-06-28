@@ -252,18 +252,7 @@ public class BufferUtil {
       return dest;
   }
 
-  //----------------------------------------------------------------------
-  // Internals only below this point
-  //
-
-  // NOTE that this work must be done reflectively at the present time
-  // because this code must compile and run correctly on both CDC/FP and J2SE
-  private static boolean isCDCFP;
-  private static Class byteOrderClass;
-  private static Object nativeOrderObject;
-  private static Method orderMethod;
-
-  private static void nativeOrder(ByteBuffer buf) {
+  public static ByteBuffer nativeOrder(ByteBuffer buf) {
     if (!isCDCFP) {
       try {
         if (byteOrderClass == null) {
@@ -284,5 +273,18 @@ public class BufferUtil {
         }
       }
     }
+    return buf;
   }
+
+  //----------------------------------------------------------------------
+  // Internals only below this point
+  //
+
+  // NOTE that this work must be done reflectively at the present time
+  // because this code must compile and run correctly on both CDC/FP and J2SE
+  private static boolean isCDCFP;
+  private static Class byteOrderClass;
+  private static Object nativeOrderObject;
+  private static Method orderMethod;
+
 }

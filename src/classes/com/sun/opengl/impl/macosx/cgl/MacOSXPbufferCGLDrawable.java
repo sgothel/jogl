@@ -77,6 +77,7 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
     } finally {
         getFactory().unlockToolkit();
     }
+    super.destroy();
   }
 
   public void setSize(int width, int height) {

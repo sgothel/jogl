@@ -82,7 +82,11 @@ public class EGLDrawable extends GLDrawableImpl {
 
     public void destroy() {
         setRealized(false);
-        EGL.eglTerminate(display);
+        if(EGL.EGL_NO_DISPLAY!=display) {
+            EGL.eglTerminate(display);
+            display=EGL.EGL_NO_DISPLAY;
+        }
+        super.destroy();
     }
 
     public _EGLConfig getConfig() {
@@ -99,10 +103,18 @@ public class EGLDrawable extends GLDrawableImpl {
 
     public void setRealized(boolean realized) {
         if (realized) {
-            // Create the window surface
-            surface = EGL.eglCreateWindowSurface(display, config, component.getWindowHandle(), null);
+            getFactory().lockToolkit();
+            try {
+              lockSurface();
+
+              // Create the window surface
+              surface = EGL.eglCreateWindowSurface(display, config, component.getWindowHandle(), null);
+            } finally {
+              unlockSurface();
+              getFactory().unlockToolkit();
+            }
             if (surface == EGL.EGL_NO_SURFACE) {
-                throw new GLException("Creation of window surface (eglCreateWindowSurface) failed");
+                throw new GLException("Creation of window surface (eglCreateWindowSurface) failed, component: "+component);
             }
         } else if( surface != EGL.EGL_NO_SURFACE ) {
             // Destroy the window surface
@@ -115,6 +127,7 @@ public class EGLDrawable extends GLDrawableImpl {
             }
             surface = EGL.EGL_NO_SURFACE;
         }
+        super.setRealized(realized);
     }
 
     public void setSize(int width, int height) {
@@ -136,16 +149,28 @@ public class EGLDrawable extends GLDrawableImpl {
     }
 
     public void swapBuffers() throws GLException {
-        EGL.eglSwapBuffers(display, surface);
+        getFactory().lockToolkit();
+        try {
+          if (component.getSurfaceHandle() == 0) {
+            if (lockSurface() == NativeWindow.LOCK_SURFACE_NOT_READY) {
+              return;
+            }
+          }
+
+          EGL.eglSwapBuffers(display, surface);
+
+        } finally {
+          unlockSurface();
+          getFactory().unlockToolkit();
+        }
     }
 
     public String toString() {
-        return "EGLDrawable[ displayHandle " + component.getDisplayHandle() +
-                           ", screenHandle "+ component.getScreenHandle() +
-                           ", windowHandle "+ component.getWindowHandle() +
-                           ", display " + display +
-                           ", config " + config +
-                           ", surface " + surface +
-                           "]";
+        return "EGLDrawable[ realized "+getRealized()+
+                           ", window "+getNativeWindow()+
+                           ", egl display " + display +
+                           ", egl config " + config +
+                           ", egl surface " + surface +
+                           ", factory "+getFactory()+"]";
     }
 }

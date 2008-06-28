@@ -87,9 +87,6 @@ public abstract class MacOSXCGLDrawable extends GLDrawableImpl {
     this.chooser = chooser;
  }
 
-  public void destroy() {
-  }
-
   public GLCapabilities getChosenGLCapabilities() {
 	int numFormats = 1;
 	GLCapabilities availableCaps[] = new GLCapabilities[numFormats];

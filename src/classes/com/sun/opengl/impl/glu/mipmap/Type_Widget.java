@@ -56,7 +56,7 @@ public class Type_Widget {
   
   /** Creates a new instance of Type_Widget */
   public Type_Widget() {
-    buffer = ByteBuffer.allocate( 4 );
+    buffer = ByteBuffer.allocateDirect( 4 );
   }
   
   public void setUB0( byte b ) {

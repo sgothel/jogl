@@ -131,11 +131,11 @@ public class X11OffscreenGLXDrawable extends X11GLXDrawable {
       drawable = 0;
       pixmap = 0;
       display = 0;
-      nw.invalidate();
       setChosenGLCapabilities(null);
     } finally {
       getFactory().unlockToolkit();
     }
+    super.destroy();
   }
 
   public boolean isDoubleBuffered() {

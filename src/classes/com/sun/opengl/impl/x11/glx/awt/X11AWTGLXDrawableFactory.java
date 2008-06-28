@@ -171,11 +171,13 @@ public class X11AWTGLXDrawableFactory extends X11GLXDrawableFactory {
   }
 
   public void lockToolkit() {
+    super.lockToolkit();
     JAWTUtil.lockToolkit();
   }
 
   public void unlockToolkit() {
     JAWTUtil.unlockToolkit();
+    super.unlockToolkit();
   }
 
 }

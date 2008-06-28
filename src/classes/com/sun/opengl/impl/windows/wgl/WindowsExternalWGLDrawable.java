@@ -73,7 +73,4 @@ public class WindowsExternalWGLDrawable extends WindowsWGLDrawable {
   public int getHeight() {
     throw new GLException("Should not call this");
   }  
-
-  public void destroy() {
-  }
 }

@@ -16,7 +16,7 @@ function concat_jogl_list()
     echo $JOGL_LIST
 }
 
-JOGL_AWT="jogl.awt.jar jogl.util.awt.jar"
+JOGL_AWT="jogl.awt.jar jogl.util.awt.jar newt.awt.jar"
 
 JOGL_JAR_ALL="jogl.core.jar jogl.oswin.jar jogl.gles1.jar jogl.gles1.dbg.jar jogl.gles2.jar jogl.gles2.dbg.jar jogl.egl.jar jogl.gl2.jar jogl.gl2.dbg.jar jogl.util.jar jogl.util.gl2.jar newt.jar $JOGL_AWT"
 JOGL_LIB_ALL="libjogl_gl2.so libjogl_es1.so libjogl_es2.so libnewt.so libjogl_awt.so"

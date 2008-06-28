@@ -62,12 +62,12 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory implements
     super();
   }
 
-  public static GLDrawableFactoryImpl getFactoryImpl(boolean awt) {
-    return (GLDrawableFactoryImpl) getFactory(awt);
+  public static GLDrawableFactoryImpl getFactoryImpl(Class winClazz) {
+    return (GLDrawableFactoryImpl) getFactory(winClazz);
   }
 
-  public static GLDrawableFactoryImpl getFactoryImpl(Object target) {
-    return (GLDrawableFactoryImpl) getFactory(target);
+  public static GLDrawableFactoryImpl getFactoryImpl() {
+    return (GLDrawableFactoryImpl) getFactory();
   }
 
   // Helper function for more lazily loading the GLU library;

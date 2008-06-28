@@ -53,6 +53,10 @@ public class X11Window extends Window {
     public X11Window() {
     }
 
+    public final boolean isTerminalObject() {
+        return true;
+    }
+
     protected void createNative() {
         long w = CreateWindow(getDisplayHandle(), getScreenHandle(), getScreenIndex(), visualID, x, y, width, height);
         if (w == 0 || w!=windowHandle) {

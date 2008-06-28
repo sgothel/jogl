@@ -109,6 +109,10 @@ public class NullWindow implements NativeWindow {
     return null;
   }
 
+  public final boolean isTerminalObject() {
+    return true;
+  }
+
   public void setSize(int width, int height) {
     this.width=width;
     this.height=height;

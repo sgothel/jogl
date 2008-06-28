@@ -66,23 +66,17 @@ public class X11OnscreenGLXDrawable extends X11GLXDrawable {
 
   public void swapBuffers() throws GLException {
     getFactory().lockToolkit();
-    try {    
-      boolean didLock = false;
-      
+    try {
       if (component.getSurfaceHandle() == 0) {
         if (lockSurface() == NativeWindow.LOCK_SURFACE_NOT_READY) {
           return;
         }
-
-        didLock = true;
       }
 
       GLX.glXSwapBuffers(component.getDisplayHandle(), component.getSurfaceHandle());
 
-      if (didLock) {
-        unlockSurface();
-      }
     } finally {
+      unlockSurface();
       getFactory().unlockToolkit();
     }
   }

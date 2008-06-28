@@ -89,6 +89,7 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
     } finally {
         getFactory().unlockToolkit();
     }
+    super.destroy();
   }
 
   public void setSize(int width, int height) {

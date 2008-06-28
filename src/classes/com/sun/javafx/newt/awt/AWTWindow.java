@@ -57,6 +57,10 @@ public class AWTWindow extends Window {
     private int displayWidth;
     private int displayHeight;
 
+    public final boolean isTerminalObject() {
+        return false;
+    }
+
     protected void createNative() {
         runOnEDT(new Runnable() {
                 public void run() {
@@ -162,6 +166,9 @@ public class AWTWindow extends Window {
                                      e.getKeyCode(), e.getKeyChar());
                     }
                 }
+                if(DEBUG_MOUSE_EVENT) {
+                    System.out.println("dispatchMessages: in event:"+w.getEvent());
+                }
             }
         } while (w != null);
     }
@@ -199,6 +206,9 @@ public class AWTWindow extends Window {
     }
 
     private void enqueueEvent(boolean isMouseEvent, int type, InputEvent e) {
+        if(DEBUG_MOUSE_EVENT) {
+            System.out.println("enqueueEvent: mouse"+isMouseEvent+", event: "+e);
+        }
         AWTEventWrapper wrapper = new AWTEventWrapper(isMouseEvent,type, e);
         synchronized(this) {
             events.add(wrapper);

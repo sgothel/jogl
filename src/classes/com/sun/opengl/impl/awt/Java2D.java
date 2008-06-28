@@ -40,6 +40,7 @@
 package com.sun.opengl.impl.awt;
 
 import com.sun.opengl.impl.*;
+import com.sun.opengl.impl.jawt.*;
 
 import java.awt.*;
 import java.awt.image.*;
@@ -288,11 +289,11 @@ public class Java2D {
                           getDefaultScreenDevice().
                           getDefaultConfiguration());
 
-      GLDrawableFactoryImpl.getFactoryImpl(true).lockToolkit();
+      JAWTUtil.lockToolkit();
       try {
         invokeWithOGLContextCurrentMethod.invoke(null, new Object[] {g, r});
       } finally {
-        GLDrawableFactoryImpl.getFactory(true).unlockToolkit();
+        JAWTUtil.unlockToolkit();
       }
     } catch (InvocationTargetException e) {
       throw new GLException(e.getTargetException());
@@ -313,11 +314,11 @@ public class Java2D {
     checkActive();
 
     try {
-      GLDrawableFactoryImpl.getFactoryImpl(true).lockToolkit();
+      JAWTUtil.lockToolkit();
       try {
         return ((Boolean) invokeWithOGLSharedContextCurrentMethod.invoke(null, new Object[] {g, r})).booleanValue();
       } finally {
-        GLDrawableFactoryImpl.getFactoryImpl(true).unlockToolkit();
+        JAWTUtil.unlockToolkit();
       }
     } catch (InvocationTargetException e) {
       throw new GLException(e.getTargetException());
@@ -558,7 +559,7 @@ public class Java2D {
       }
       invokeWithOGLSharedContextCurrent(gc, new Runnable() {
           public void run() {
-            j2dFBOShareContext = GLDrawableFactory.getFactory(true).createExternalGLContext();
+            j2dFBOShareContext = GLDrawableFactory.getFactory(Component.class).createExternalGLContext();
           }
         });
       if (DEBUG) {

@@ -90,7 +90,7 @@ public abstract class GLDrawableFactory {
     // and if so, try to instantiate the EGLDrawableFactory
     if (GLProfile.isGLES()) {
       try {
-        awtFactory = (GLDrawableFactory) GLReflection.createInstance("com.sun.opengl.impl.egl.awt.EGLDrawableFactory");
+        awtFactory = (GLDrawableFactory) GLReflection.createInstance("com.sun.opengl.impl.egl.awt.EGLAWTDrawableFactory");
         return;
       } catch (Exception e) {
           e.printStackTrace();
@@ -132,6 +132,19 @@ public abstract class GLDrawableFactory {
     } catch (Exception e) {
       throw new GLException(e);
     }
+  }
+
+  private static GLDrawableFactory getAWTFactory() 
+    throws GLException
+  {
+    if(null==GLProfile.getProfile()) {
+        throw new GLException("No choosen/preset profile");
+    }
+    initializeAWTFactory();
+    if(awtFactory == null) {
+      throw new GLException("Could not determine the AWT-GLDrawableFactory");
+    }
+    return awtFactory;
   }
 
   /** Initializes the sole GLDrawableFactory instance for the given profile. */
@@ -183,51 +196,60 @@ public abstract class GLDrawableFactory {
     }
   }
 
+  private static GLDrawableFactory getNWFactory() 
+    throws GLException
+  {
+    if(null==GLProfile.getProfile()) {
+        throw new GLException("No choosen/preset profile");
+    }
+    initializeNWFactory();
+    if(nwFactory == null) {
+      throw new GLException("Could not determine the NativeWindow-GLDrawableFactory");
+    }
+    return nwFactory;
+  }
+
   /** Creates a new GLDrawableFactory instance. End users do not need
       to call this method. */
   protected GLDrawableFactory() {
   }
 
-  public static GLDrawableFactory getFactory(Object target) 
+  /** Returns a GLDrawableFactory suitable to the passed winObj.
+      In case winObj is a NativeWindow, the wrapped window object will be used.  */
+  public static GLDrawableFactory getFactory(Object winObj) 
     throws GLException
   {
-    if (target == null) {
-        throw new IllegalArgumentException("target is null");
+    if (winObj == null) {
+        throw new IllegalArgumentException("winObj is null");
     }
-    if (target instanceof NativeWindow) {
-        if (((NativeWindow) target).getWrappedWindow() != null) {
-            target = ((NativeWindow) target).getWrappedWindow();
+    if ( winObj instanceof NativeWindow ) {
+        NativeWindow nw = (NativeWindow)winObj;
+        if(null!=nw.getWrappedWindow()) {
+            winObj = nw.getWrappedWindow();
         }
     }
-    if (target instanceof NativeWindow) {
-      return getFactory(false);
-    } else if (NativeWindowFactory.isAWTComponent(target)) {
-      return getFactory(true);
+    return getFactory(winObj.getClass());
+  }
+
+  /** Returns a GLDrawableFactory suitable to the passed winClazz. */
+  public static GLDrawableFactory getFactory(Class winClazz) 
+    throws GLException
+  {
+    if (GLReflection.implementationOf(winClazz, NativeWindow.class.getName())) {
+      return getNWFactory();
+    } else if (GLReflection.isAWTComponent(winClazz)) {
+      return getAWTFactory();
     }
     throw new IllegalArgumentException("Target type is unsupported. Currently supported: \n"+
                                        "\tjavax.media.opengl.NativeWindow\n"+
                                        "\tjava.awt.Component\n");
   }
 
-  public static GLDrawableFactory getFactory(boolean awt) 
+  /** Returns the common GLDrawableFactory, suitable for NativeWindow. */
+  public static GLDrawableFactory getFactory() 
     throws GLException
   {
-    if(null==GLProfile.getProfile()) {
-        throw new GLException("No choosen/preset profile");
-    }
-    if(awt) {
-      initializeAWTFactory();
-      if(awtFactory == null) {
-          throw new GLException("Could not determine the AWT-GLDrawableFactory");
-      }
-      return awtFactory;
-    } else {
-      initializeNWFactory();
-      if(nwFactory == null) {
-          throw new GLException("Could not determine the NativeWindow-GLDrawableFactory");
-      }
-      return nwFactory;
-    }
+    return getNWFactory();
   }
 
   /** Shuts down this GLDrawableFactory, releasing resources

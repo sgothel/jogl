@@ -1387,7 +1387,7 @@ private static final GLUgl2ProcAddressTable getGLUProcAddressTable() {
   }
   if (gluProcAddressTable == null) {
     GLUgl2ProcAddressTable tmp = new GLUgl2ProcAddressTable();
-    ProcAddressHelper.resetProcAddressTable(tmp, GLDrawableFactoryImpl.getFactoryImpl(false));
+    ProcAddressHelper.resetProcAddressTable(tmp, GLDrawableFactoryImpl.getFactoryImpl());
     gluProcAddressTable = tmp;
   }
   return gluProcAddressTable;
@@ -1395,7 +1395,7 @@ private static final GLUgl2ProcAddressTable getGLUProcAddressTable() {
 
 private static final synchronized void loadGLULibrary() {
   if (!gluLibraryLoaded) {
-    GLDrawableFactoryImpl.getFactoryImpl(false).loadGLULibrary();
+    GLDrawableFactoryImpl.getFactoryImpl().loadGLULibrary();
     gluLibraryLoaded = true;
   }
 }

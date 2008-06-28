@@ -52,6 +52,10 @@ public class WindowsWindow extends Window {
     public WindowsWindow() {
     }
 
+    public final boolean isTerminalObject() {
+        return true;
+    }
+
     public long getSurfaceHandle() {
         if (hdc == 0) {
             hdc = GetDC(windowHandle);

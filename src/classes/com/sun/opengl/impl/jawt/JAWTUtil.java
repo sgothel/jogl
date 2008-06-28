@@ -64,7 +64,7 @@ public class JAWTUtil {
 
   private static boolean lockedToolkit;
 
-  public static void lockToolkit() throws GLException {
+  public static synchronized void lockToolkit() throws GLException {
     if (lockedToolkit) {
       throw new GLException("Toolkit already locked");
     }
@@ -84,13 +84,13 @@ public class JAWTUtil {
           JAWT.getJAWT().Lock();
         }
       } catch (Exception e) { j2dOk=false; }
-    }
+    } 
     if(!j2dOk) {
       JAWT.getJAWT().Lock();
     }
   }
 
-  public static void unlockToolkit() {
+  public static synchronized void unlockToolkit() {
     if (lockedToolkit) {
         if (headlessMode) {
           // Workaround for running (to some degree) in headless

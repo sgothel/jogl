@@ -54,7 +54,7 @@ public class X11JAWTWindow extends JAWTWindow {
   protected void initNative() throws NativeWindowException {
   }
 
-  public int lockSurface() throws NativeWindowException {
+  public synchronized int lockSurface() throws NativeWindowException {
     int ret = super.lockSurface();
     if(LOCK_SUCCESS != ret) {
         return ret;
@@ -113,7 +113,7 @@ public class X11JAWTWindow extends JAWTWindow {
     return ret;
   }
 
-  public void unlockSurface() {
+  public synchronized void unlockSurface() {
     if(!isSurfaceLocked()) return;
     ds.FreeDrawingSurfaceInfo(dsi);
     ds.Unlock();

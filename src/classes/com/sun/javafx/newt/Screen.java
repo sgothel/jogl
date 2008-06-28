@@ -45,7 +45,7 @@ public abstract class Screen {
             screenClass = Class.forName("com.sun.javafx.newt.windows.WindowsScreen");
         } else if (NewtFactory.X11.equals(type)) {
             screenClass = Class.forName("com.sun.javafx.newt.x11.X11Screen");
-        } else if (NewtFactory.MACOSX.equals(type)) {
+        } else if (NewtFactory.AWT.equals(type)) {
             screenClass = Class.forName("com.sun.javafx.newt.awt.AWTScreen");
         } else {
             throw new RuntimeException("Unknown window type \"" + type + "\"");

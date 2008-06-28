@@ -49,6 +49,9 @@ public abstract class NewtFactory {
     /** Mac OS X window type */
     public static final String MACOSX = "MacOSX";
 
+    /** Generic AWT wrapped window type, if available */
+    public static final String AWT = "AWT";
+
     /** Creates a Window of the default type for the current operating system. */
     public static String getWindowType() {
       String osName = System.getProperty("os.name");
@@ -57,7 +60,11 @@ public abstract class NewtFactory {
       if (osNameLowerCase.startsWith("wind")) {
           windowType = WINDOWS;
       } else if (osNameLowerCase.startsWith("mac os x")) {
-          windowType = MACOSX;
+          // For the time being, use the AWT on Mac OS X since
+          // there's no advantage to avoiding its usage -- this
+          // would change if we were running on the iPhone and
+          // didn't have an AWT
+          windowType = AWT;
       } else {
           windowType = X11;
       }
@@ -72,6 +79,13 @@ public abstract class NewtFactory {
     }
 
     /**
+     * Create a Display entity using the given implementation type, incl native creation
+     */
+    public static Display createDisplay(String type, String name) {
+      return Display.create(type, name);
+    }
+
+    /**
      * Create a Screen entity, incl native creation
      */
     public static Screen createScreen(Display display, int index) {
@@ -79,10 +93,24 @@ public abstract class NewtFactory {
     }
 
     /**
+     * Create a Screen entity using the given implementation type, incl native creation
+     */
+    public static Screen createScreen(String type, Display display, int index) {
+      return Screen.create(type, display, index);
+    }
+
+    /**
      * Create a Window entity, incl native creation
      */
     public static Window createWindow(Screen screen, long visualID) {
       return Window.create(getWindowType(), screen, visualID);
+    }
+
+    /**
+     * Create a Window entity using the given implementation type, incl native creation
+     */
+    public static Window createWindow(String type, Screen screen, long visualID) {
+      return Window.create(type, screen, visualID);
     }
 
     /**
@@ -108,5 +136,17 @@ public abstract class NewtFactory {
       return Window.wrapHandle(getWindowType(), screen, visualID, 
                                windowHandle, fullscreen, visible, x, y, width, height);
     }
+
+    private static final boolean instanceOf(Object obj, String clazzName) {
+        Class clazz = obj.getClass();
+        do {
+            if(clazz.getName().equals(clazzName)) {
+                return true;
+            }
+            clazz = clazz.getSuperclass();
+        } while (clazz!=null);
+        return false;
+    }
+
 }
 

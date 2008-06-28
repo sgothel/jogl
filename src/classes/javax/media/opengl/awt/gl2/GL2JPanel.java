@@ -211,7 +211,7 @@ public class GL2JPanel extends JPanel implements AWTGLAutoDrawable {
                              getDefaultConfiguration());
     }
     GLProfile.setProfile(GLProfile.GL2);
-    factory = GLDrawableFactoryImpl.getFactoryImpl(true);
+    factory = GLDrawableFactoryImpl.getFactoryImpl(Component.class);
   }
 
   /** Creates a new GL2JPanel component with a default set of OpenGL

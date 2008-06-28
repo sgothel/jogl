@@ -55,11 +55,7 @@ public abstract class Window implements NativeWindow
             windowClass = Class.forName("com.sun.javafx.newt.windows.WindowsWindow");
         } else if (NewtFactory.X11.equals(type)) {
             windowClass = Class.forName("com.sun.javafx.newt.x11.X11Window");
-        } else if (NewtFactory.MACOSX.equals(type)) {
-            // For the time being, use the AWT on Mac OS X since
-            // there's no advantage to avoiding its usage -- this
-            // would change if we were running on the iPhone and
-            // didn't have an AWT
+        } else if (NewtFactory.AWT.equals(type)) {
             windowClass = Class.forName("com.sun.javafx.newt.awt.AWTWindow");
         } else {
             throw new RuntimeException("Unknown window type \"" + type + "\"");
@@ -106,6 +102,8 @@ public abstract class Window implements NativeWindow
         }
     }
 
+    public abstract boolean isTerminalObject();
+
     /**
      * create native windowHandle, ie creates a new native invisible window
      */
@@ -142,9 +140,12 @@ public abstract class Window implements NativeWindow
     protected abstract void dispatchMessages(int eventMask);
 
     public String toString() {
-        return "Window[handle "+windowHandle+
+    return "NEWT-Window[windowHandle "+getWindowHandle()+
+                    ", surfaceHandle "+getSurfaceHandle()+
                     ", pos "+getX()+"/"+getY()+", size "+getWidth()+"x"+getHeight()+
-                    ", visible "+isVisible()+"]";
+                    ", visible "+isVisible()+
+                    ", wrappedWindow "+getWrappedWindow()+
+                    ", terminalObject "+isTerminalObject()+"]";
     }
 
     protected Screen screen;

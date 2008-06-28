@@ -101,6 +101,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
     } finally {
         getFactory().unlockToolkit();
     }
+    super.destroy();
   }
 
   public void setSize(int newWidth, int newHeight) {
