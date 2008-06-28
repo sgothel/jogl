@@ -40,8 +40,8 @@ import com.sun.opengl.impl.GLDrawableImpl;
 import javax.media.opengl.*;
 
 public class EGLDrawable extends GLDrawableImpl {
-    private long display;
     private GLCapabilitiesChooser chooser;
+    private long display;
     private _EGLConfig config;
     private long surface;
     private int[] tmp = new int[1];
@@ -50,9 +50,10 @@ public class EGLDrawable extends GLDrawableImpl {
                        NativeWindow component,
                        GLCapabilities capabilities,
                        GLCapabilitiesChooser chooser) throws GLException {
-        super(factory, component, true);
+        super(factory, component, false);
         setChosenGLCapabilities(capabilities);
         this.chooser = chooser;
+        surface=EGL.EGL_NO_SURFACE;
 
         display = EGL.eglGetDisplay((component.getDisplayHandle()>0)?component.getDisplayHandle():EGL.EGL_DEFAULT_DISPLAY);
         if (display == EGL.EGL_NO_DISPLAY) {
@@ -97,25 +98,28 @@ public class EGLDrawable extends GLDrawableImpl {
         return surface;
     }
 
+    protected void setSurface() {
+        if (EGL.EGL_NO_SURFACE==surface) {
+            try {
+                lockSurface();
+                // Create the window surface
+                surface = EGL.eglCreateWindowSurface(display, config, component.getWindowHandle(), null);
+                if (EGL.EGL_NO_SURFACE==surface) {
+                    throw new GLException("Creation of window surface (eglCreateWindowSurface) failed, component: "+component);
+                }
+            } finally {
+              unlockSurface();
+            }
+        }
+    }
+
     public GLContext createContext(GLContext shareWith) {
         return new EGLContext(this, shareWith);
     }
 
     public void setRealized(boolean realized) {
         if (realized) {
-            getFactory().lockToolkit();
-            try {
-              lockSurface();
-
-              // Create the window surface
-              surface = EGL.eglCreateWindowSurface(display, config, component.getWindowHandle(), null);
-            } finally {
-              unlockSurface();
-              getFactory().unlockToolkit();
-            }
-            if (surface == EGL.EGL_NO_SURFACE) {
-                throw new GLException("Creation of window surface (eglCreateWindowSurface) failed, component: "+component);
-            }
+            // setSurface();
         } else if( surface != EGL.EGL_NO_SURFACE ) {
             // Destroy the window surface
             // FIXME: we should expose a destroy() method on

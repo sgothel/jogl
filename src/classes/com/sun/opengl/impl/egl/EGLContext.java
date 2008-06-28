@@ -56,7 +56,7 @@ public class EGLContext extends GLContextImpl {
         return context;
     }
 
-    protected int makeCurrentImpl() throws GLException {
+    private int makeCurrentImplInner() throws GLException {
         boolean created = false;
         if (context == 0) {
             create();
@@ -66,13 +66,14 @@ public class EGLContext extends GLContextImpl {
             }
             created = true;
         }
-
-        if (!EGL.eglMakeCurrent(drawable.getDisplay(),
-                                drawable.getSurface(),
-                                drawable.getSurface(),
-                                context)) {
-            throw new GLException("Error making context 0x" +
-                                  Long.toHexString(context) + " current: error code " + EGL.eglGetError());
+        if (EGL.eglGetCurrentContext() != context) {
+            if (!EGL.eglMakeCurrent(drawable.getDisplay(),
+                                    drawable.getSurface(),
+                                    drawable.getSurface(),
+                                    context)) {
+                throw new GLException("Error making context 0x" +
+                                      Long.toHexString(context) + " current: error code " + EGL.eglGetError());
+            }
         }
 
         if (created) {
@@ -82,7 +83,38 @@ public class EGLContext extends GLContextImpl {
         return CONTEXT_CURRENT;
     }
 
+    protected int makeCurrentImpl() throws GLException {
+        if(EGL.EGL_NO_DISPLAY==drawable.getDisplay() ) {
+            System.err.println("drawable not properly initialized");
+            return CONTEXT_NOT_CURRENT;
+        }
+        drawable.setSurface();
+
+        int lockRes = NativeWindow.LOCK_SUCCESS;
+        // FIXME: freezes AWT: int lockRes = drawable.lockSurface();
+        boolean exceptionOccurred = false;
+        try {
+          if (lockRes == NativeWindow.LOCK_SURFACE_NOT_READY) {
+            return CONTEXT_NOT_CURRENT;
+          }
+          if (lockRes == NativeWindow.LOCK_SURFACE_CHANGED) {
+            destroyImpl();
+          }
+          return makeCurrentImplInner();
+        } catch (RuntimeException e) {
+          exceptionOccurred = true;
+          throw e;
+        } finally {
+          if (exceptionOccurred ||
+              (isOptimizable() && lockRes != NativeWindow.LOCK_SURFACE_NOT_READY)) {
+            drawable.unlockSurface();
+          }
+        }
+    }
+
     protected void releaseImpl() throws GLException {
+      getGLDrawable().getFactory().lockToolkit();
+      try {
         if (!EGL.eglMakeCurrent(drawable.getDisplay(),
                                 EGL.EGL_NO_SURFACE,
                                 EGL.EGL_NO_SURFACE,
@@ -90,9 +122,15 @@ public class EGLContext extends GLContextImpl {
             throw new GLException("Error freeing OpenGL context 0x" +
                                   Long.toHexString(context) + ": error code " + EGL.eglGetError());
         }
+      } finally {
+        getGLDrawable().getFactory().unlockToolkit();
+        drawable.unlockSurface();
+      }
     }
 
     protected void destroyImpl() throws GLException {
+      getGLDrawable().getFactory().lockToolkit();
+      try {
         if (context != 0) {
             if (!EGL.eglDestroyContext(drawable.getDisplay(), context)) {
                 throw new GLException("Error destroying OpenGL context 0x" +
@@ -101,6 +139,9 @@ public class EGLContext extends GLContextImpl {
             context = 0;
             GLContextShareSet.contextDestroyed(this);
         }
+      } finally {
+        getGLDrawable().getFactory().unlockToolkit();
+      }
     }
 
     protected void create() throws GLException {

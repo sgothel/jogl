@@ -44,11 +44,11 @@ public class EGLAWTDrawableFactory extends EGLDrawableFactory {
 
   public void lockToolkit() {
     super.lockToolkit();
-    // freezes AWT: JAWTUtil.lockToolkit();
+    //JAWTUtil.lockToolkit();
   }
 
   public void unlockToolkit() {
-    // freezes AWT: JAWTUtil.unlockToolkit();
+    //JAWTUtil.unlockToolkit();
     super.unlockToolkit();
   }
 
