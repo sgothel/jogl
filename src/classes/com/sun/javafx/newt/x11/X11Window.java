@@ -138,6 +138,7 @@ public class X11Window extends Window {
             nfs_width=width;
             nfs_height=height;
         }
+        sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED);
     }
 
     private void positionChanged(int newX, int newY) {
@@ -147,6 +148,7 @@ public class X11Window extends Window {
             nfs_x=x;
             nfs_y=y;
         }
+        sendWindowEvent(WindowEvent.EVENT_WINDOW_MOVED);
     }
 
     private void windowCreated(long visualID, long windowHandle) {

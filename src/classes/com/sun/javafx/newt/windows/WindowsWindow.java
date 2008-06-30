@@ -154,11 +154,13 @@ public class WindowsWindow extends Window {
     private void sizeChanged(int newWidth, int newHeight) {
         width = newWidth;
         height = newHeight;
+        sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED);
     }
 
     private void positionChanged(int newX, int newY) {
         x = newX;
         y = newY;
+        sendWindowEvent(WindowEvent.EVENT_WINDOW_MOVED);
     }
 
     private void windowClosed() {

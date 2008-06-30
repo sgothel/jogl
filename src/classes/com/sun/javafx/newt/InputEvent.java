@@ -33,7 +33,7 @@
 
 package com.sun.javafx.newt;
 
-public abstract class InputEvent
+public abstract class InputEvent extends Event
 {
  public static int  SHIFT_MASK     = 1 << 0;
  public static int  CTRL_MASK      = 1 << 1;
@@ -41,16 +41,10 @@ public abstract class InputEvent
  public static int  ALT_MASK       = 1 << 3;
  public static int  ALT_GRAPH_MASK = 1 << 5;
 
- protected InputEvent(boolean sysEvent, Window source, long when, int modifiers) {
+ protected InputEvent(boolean sysEvent, int eventType, Window source, long when, int modifiers) {
+    super(sysEvent, eventType, source, when);
     this.consumed=false;
-    this.sysEvent=sysEvent;
-    this.source=source;
-    this.when=when;
     this.modifiers=modifiers;
- }
-
- protected boolean isSysEvent() {
-    return sysEvent;
  }
 
  public void consume() {
@@ -62,9 +56,6 @@ public abstract class InputEvent
  }
  public int getModifiers() {
     return modifiers;
- }
- public long getWhen()  {
-    return when;
  }
  public boolean isAltDown() {
     return (modifiers&ALT_MASK)!=0;
@@ -83,13 +74,9 @@ public abstract class InputEvent
  }
 
  public String toString() {
-    return "InputEvent[sys:"+sysEvent+", source:"+source+", when:"+when+", modifiers:"+modifiers+"]";
+     return "InputEvent[modifiers:"+modifiers+"]";
  }
 
- private boolean sysEvent, consumed;
- private Window source;
+ private boolean consumed;
  private int modifiers;
- private long when;
-
 }
-

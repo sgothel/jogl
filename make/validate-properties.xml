@@ -25,25 +25,6 @@
     </target>
 
     <!-- 
-       - Ensure that "java.home.dir" is set.
-       - NOTE:  "java.home" is an internal property for ANT that is not
-       -        typically set to what the build needs it to be.
-      -->
-    <target name="java.home.dir.validate" unless="java.home.dir">
-        <fail>
-
-    *************************************************************
-    ** The property "java.home.dir" was not set in the JOGL    **
-    ** properties file                                         **
-    ** "${user.properties.file}"               **
-    ** (or this file was not found).                           **
-    **                                                         **
-    ** Please set "java.home.dir" to your JAVA_HOME directory. **
-    *************************************************************
-        </fail>
-    </target>
-
-    <!-- 
        - Make sure that jogl.jar is not on the CLASSPATH; this can cause
        - builds to fail since if this Java process has the jar file open
        - we can not overwrite it.
@@ -65,7 +46,7 @@
     <!-- 
        - Validate the required properties 
       -->
-    <target name="validate" depends="antlr.jar.validate, java.home.dir.validate, java.class.path.validate" 
+    <target name="validate" depends="antlr.jar.validate, java.class.path.validate" 
             description="Validate required properties" />
 
 </project>

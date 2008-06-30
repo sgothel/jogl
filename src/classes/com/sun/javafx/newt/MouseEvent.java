@@ -41,8 +41,7 @@ public class MouseEvent extends InputEvent
 
  protected MouseEvent(boolean sysEvent, int eventType, Window source, long when, int modifiers, int x, int y, int clickCount, int button) 
  {
-     super(sysEvent, source, when, modifiers); 
-     this.eventType=eventType;
+     super(sysEvent, eventType, source, when, modifiers); 
      this.x=x;
      this.y=y;
      this.clickCount=clickCount;
@@ -52,9 +51,6 @@ public class MouseEvent extends InputEvent
      this(false, eventType, source, when, modifiers, x, y, clickCount, button); 
  }
 
- public int getEventType() {
-    return eventType;
- }
  public int getButton() {
     return button;
  }
@@ -69,8 +65,8 @@ public class MouseEvent extends InputEvent
  }
  
  public String toString() {
-    return "MouseEvent["+getEventTypeString(eventType)+
-                       ", "+x+"/"+y+", button "+button+", count "+clickCount+", "+super.toString();
+    return "MouseEvent["+getEventTypeString(getEventType())+
+                       ", "+x+"/"+y+", button "+button+", count "+clickCount+", "+super.toString()+"]";
  }
 
  public static String getEventTypeString(int type) {
@@ -82,19 +78,17 @@ public class MouseEvent extends InputEvent
         case EVENT_MOUSE_RELEASED: return "EVENT_MOUSE_RELEASED";
         case EVENT_MOUSE_MOVED: return "EVENT_MOUSE_MOVED";
         case EVENT_MOUSE_DRAGGED: return "EVENT_MOUSE_DRAGGED";
-        default: return "unknown";
+        default: return "unknown (" + type + ")";
     }
  }
 
- private int eventType, x, y, clickCount, button;
+ private int x, y, clickCount, button;
 
- public static final int EVENT_MOUSE_CLICKED  = 1 << 0;
- public static final int EVENT_MOUSE_ENTERED  = 1 << 1;
- public static final int EVENT_MOUSE_EXITED   = 1 << 2;
- public static final int EVENT_MOUSE_PRESSED  = 1 << 3;
- public static final int EVENT_MOUSE_RELEASED = 1 << 4;
- public static final int EVENT_MOUSE_MOVED    = 1 << 5;
- public static final int EVENT_MOUSE_DRAGGED  = 1 << 6;
-
+ public static final int EVENT_MOUSE_CLICKED  = 200;
+ public static final int EVENT_MOUSE_ENTERED  = 201;
+ public static final int EVENT_MOUSE_EXITED   = 202;
+ public static final int EVENT_MOUSE_PRESSED  = 203;
+ public static final int EVENT_MOUSE_RELEASED = 204;
+ public static final int EVENT_MOUSE_MOVED    = 205;
+ public static final int EVENT_MOUSE_DRAGGED  = 206;
 }
-

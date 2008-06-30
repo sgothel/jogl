@@ -200,11 +200,11 @@ public abstract class GLDrawableFactory {
     throws GLException
   {
     if(null==GLProfile.getProfile()) {
-        throw new GLException("No choosen/preset profile");
+        throw new GLException("No chosen/preset GLProfile");
     }
     initializeNWFactory();
     if(nwFactory == null) {
-      throw new GLException("Could not determine the NativeWindow-GLDrawableFactory");
+      throw new GLException("Could not determine the NativeWindow GLDrawableFactory");
     }
     return nwFactory;
   }

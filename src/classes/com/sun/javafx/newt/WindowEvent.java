@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -29,21 +29,31 @@
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  * 
- * You acknowledge that this software is not designed or intended for use
- * in the design, construction, operation or maintenance of any nuclear
- * facility.
- * 
- * Sun gratefully acknowledges that this software was originally authored
- * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package javax.media.opengl.awt;
+package com.sun.javafx.newt;
 
-import javax.media.opengl.*;
-import javax.media.opengl.glu.*;
+public class WindowEvent extends Event {
+    public static final int EVENT_WINDOW_RESIZED = 100;
+    public static final int EVENT_WINDOW_MOVED   = 101; 
 
-public interface AWTGLAutoDrawable extends GLAutoDrawable, ComponentEvents {
-  /** Schedules a repaint of the component at some point in the
-      future. */
-  public void repaint();
+    public WindowEvent(int eventType, Window source, long when) {
+        this(false, eventType, source, when);
+    }
+
+    WindowEvent(boolean isSystemEvent, int eventType, Window source, long when) {
+        super(isSystemEvent, eventType, source, when);
+    }
+
+    public static String getEventTypeString(int type) {
+        switch(type) {
+            case EVENT_WINDOW_RESIZED: return "WINDOW_RESIZED";
+            case EVENT_WINDOW_MOVED:   return "WINDOW_MOVED";
+            default: return "unknown (" + type + ")";
+        }
+    }
+    public String toString() {
+        return "WindowEvent["+getEventTypeString(getEventType()) +
+            ", " + super.toString() + "]";
+    }
 }

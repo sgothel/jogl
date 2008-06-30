@@ -43,6 +43,7 @@ public abstract class Window implements NativeWindow
 {
     public static final boolean DEBUG_MOUSE_EVENT = false;
     public static final boolean DEBUG_KEY_EVENT = false;
+    public static final boolean DEBUG_WINDOW_EVENT = false;
     public static final boolean DEBUG_IMPLEMENTATION = false;
     
     private static Class getWindowClass(String type) 
@@ -131,9 +132,9 @@ public abstract class Window implements NativeWindow
 
     public void pumpMessages() {
         int em = 0;
-        //if(windowistener.size()>0) em |= EventListener.WINDOW;
-        if(mouseListener.size()>0) em |= EventListener.MOUSE;
-        if(keyListener.size()>0) em |= EventListener.KEY;
+        if(windowListeners.size()>0) em |= EventListener.WINDOW;
+        if(mouseListeners.size()>0) em |= EventListener.MOUSE;
+        if(keyListeners.size()>0) em |= EventListener.KEY;
         pumpMessages(em);
     }
 
@@ -271,25 +272,25 @@ public abstract class Window implements NativeWindow
         if(l == null) {
             return;
         }
-        ArrayList newMouseListeners = (ArrayList) mouseListener.clone();
+        ArrayList newMouseListeners = (ArrayList) mouseListeners.clone();
         newMouseListeners.add(l);
-        mouseListener = newMouseListeners;
+        mouseListeners = newMouseListeners;
     }
 
     public synchronized void removeMouseListener(MouseListener l) {
         if (l == null) {
             return;
         }
-        ArrayList newMouseListeners = (ArrayList) mouseListener.clone();
+        ArrayList newMouseListeners = (ArrayList) mouseListeners.clone();
         newMouseListeners.remove(l);
-        mouseListener = newMouseListeners;
+        mouseListeners = newMouseListeners;
     }
 
     public synchronized MouseListener[] getMouseListeners() {
-        return (MouseListener[]) mouseListener.toArray();
+        return (MouseListener[]) mouseListeners.toArray();
     }
 
-    private ArrayList mouseListener = new ArrayList();
+    private ArrayList mouseListeners = new ArrayList();
     private long lastMousePressed = 0;
     private int  lastMouseClickCount = 0;
     public  static final int ClickTimeout = 200;
@@ -346,7 +347,7 @@ public abstract class Window implements NativeWindow
 
         ArrayList listeners = null;
         synchronized(this) {
-            listeners = mouseListener;
+            listeners = mouseListeners;
         }
         for(Iterator i = listeners.iterator(); i.hasNext(); ) {
             MouseListener l = (MouseListener) i.next();
@@ -389,21 +390,25 @@ public abstract class Window implements NativeWindow
         if(l == null) {
             return;
         }
-        keyListener.add(l);
+        ArrayList newKeyListeners = (ArrayList) keyListeners.clone();
+        newKeyListeners.add(l);
+        keyListeners = newKeyListeners;
     }
 
     public synchronized void removeKeyListener(KeyListener l) {
         if (l == null) {
             return;
         }
-        keyListener.remove(l);
+        ArrayList newKeyListeners = (ArrayList) keyListeners.clone();
+        newKeyListeners.remove(l);
+        keyListeners = newKeyListeners;
     }
 
     public synchronized KeyListener[] getKeyListeners() {
-        return (KeyListener[]) keyListener.toArray();
+        return (KeyListener[]) keyListeners.toArray();
     }
 
-    private ArrayList keyListener = new ArrayList();
+    private ArrayList keyListeners = new ArrayList();
 
     protected void sendKeyEvent(int eventType, int modifiers, int keyCode, char keyChar) {
         KeyEvent e = new KeyEvent(true, eventType, this, System.currentTimeMillis(), 
@@ -411,7 +416,11 @@ public abstract class Window implements NativeWindow
         if(DEBUG_KEY_EVENT) {
             System.out.println("sendKeyEvent: "+e);
         }
-        for(Iterator i = keyListener.iterator(); i.hasNext(); ) {
+        ArrayList listeners = null;
+        synchronized(this) {
+            listeners = keyListeners;
+        }
+        for(Iterator i = listeners.iterator(); i.hasNext(); ) {
             KeyListener l = (KeyListener) i.next();
             switch(eventType) {
                 case KeyEvent.EVENT_KEY_PRESSED:
@@ -428,5 +437,56 @@ public abstract class Window implements NativeWindow
             }
         }
     }
-}
 
+    //
+    // WindowListener Support
+    //
+
+    private ArrayList windowListeners = new ArrayList();
+
+    public synchronized void addWindowListener(WindowListener l) {
+        if(l == null) {
+            return;
+        }
+        ArrayList newWindowListeners = (ArrayList) windowListeners.clone();
+        newWindowListeners.add(l);
+        windowListeners = newWindowListeners;
+    }
+
+    public synchronized void removeWindowListener(WindowListener l) {
+        if (l == null) {
+            return;
+        }
+        ArrayList newWindowListeners = (ArrayList) windowListeners.clone();
+        newWindowListeners.remove(l);
+        windowListeners = newWindowListeners;
+    }
+
+    public synchronized WindowListener[] getWindowListeners() {
+        return (WindowListener[]) windowListeners.toArray();
+    }
+
+    protected void sendWindowEvent(int eventType) {
+        WindowEvent e = new WindowEvent(true, eventType, this, System.currentTimeMillis());
+        if(DEBUG_WINDOW_EVENT) {
+            System.out.println("sendWindowEvent: "+e);
+        }
+        ArrayList listeners = null;
+        synchronized(this) {
+            listeners = windowListeners;
+        }
+        for(Iterator i = listeners.iterator(); i.hasNext(); ) {
+            WindowListener l = (WindowListener) i.next();
+            switch(eventType) {
+                case WindowEvent.EVENT_WINDOW_RESIZED:
+                    l.windowResized(e);
+                    break;
+                case WindowEvent.EVENT_WINDOW_MOVED:
+                    l.windowMoved(e);
+                    break;
+                default:
+                    throw new RuntimeException("Unexpected window event type " + e.getEventType());
+            }
+        }
+    }
+}

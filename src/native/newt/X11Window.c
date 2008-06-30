@@ -407,6 +407,8 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_x11_X11Window_DispatchMessages
                 break;
         }
         
+        // FIXME: support resize and window re-positioning events
+
         switch(evt.type) {
             case ButtonPress:
                 if(evt.xbutton.window==w) {

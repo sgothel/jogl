@@ -35,9 +35,8 @@ package com.sun.javafx.newt;
 
 public class KeyEvent extends InputEvent
 {
- protected KeyEvent(boolean sysEvent, int eventType, Window source, long when, int modifiers, int keyCode, char keyChar) {
-     super(sysEvent, source, when, modifiers); 
-     this.eventType=eventType;
+ KeyEvent(boolean sysEvent, int eventType, Window source, long when, int modifiers, int keyCode, char keyChar) {
+     super(sysEvent, eventType, source, when, modifiers); 
      this.keyCode=keyCode;
      this.keyChar=keyChar;
  }
@@ -45,9 +44,6 @@ public class KeyEvent extends InputEvent
      this(false, eventType, source, when, modifiers, keyCode, keyChar);
  }
 
- public int getEventType() {
-    return eventType;
- }
  public char getKeyChar() {
     return keyChar;
  }
@@ -56,8 +52,8 @@ public class KeyEvent extends InputEvent
  }
 
  public String toString() {
-    return "KeyEvent["+getEventTypeString(eventType)+
-                     ", code "+keyCode+", char "+keyChar+", isActionKey "+isActionKey()+" "+super.toString();
+    return "KeyEvent["+getEventTypeString(getEventType())+
+                     ", code "+keyCode+", char "+keyChar+", isActionKey "+isActionKey()+", "+super.toString()+"]";
  }
 
  public static String getEventTypeString(int type) {
@@ -65,7 +61,7 @@ public class KeyEvent extends InputEvent
         case EVENT_KEY_PRESSED: return "EVENT_KEY_PRESSED";
         case EVENT_KEY_RELEASED: return "EVENT_KEY_RELEASED";
         case EVENT_KEY_TYPED: return "EVENT_KEY_TYPED";
-        default: return "unknown";
+        default: return "unknown (" + type + ")";
     }
  }
 
@@ -116,13 +112,12 @@ public class KeyEvent extends InputEvent
     return false;
  }
 
-    private int eventType;
     private int keyCode;
     private char keyChar;
 
-    public static final int EVENT_KEY_PRESSED = 1 << 0;
-    public static final int EVENT_KEY_RELEASED= 1 << 1;
-    public static final int EVENT_KEY_TYPED   = 1 << 2;
+    public static final int EVENT_KEY_PRESSED = 300;
+    public static final int EVENT_KEY_RELEASED= 301;
+    public static final int EVENT_KEY_TYPED   = 302;
 
     /* Virtual key codes. */
 

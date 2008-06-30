@@ -71,9 +71,11 @@ public class AWTWindow extends Window {
                     canvas.addMouseListener(listener);
                     canvas.addMouseMotionListener(listener);
                     canvas.addKeyListener(listener);
+                    canvas.addComponentListener(listener);
                     frame.add(canvas, BorderLayout.CENTER);
                     frame.setSize(width, height);
                     frame.setLocation(x, y);
+                    frame.addComponentListener(new MoveListener());
                 }
             });
     }
@@ -126,6 +128,8 @@ public class AWTWindow extends Window {
     }
 
     public void setPosition(final int x, final int y) {
+        this.x = x;
+        this.y = y;
         runOnEDT(new Runnable() {
                 public void run() {
                     frame.setLocation(x, y);
@@ -153,18 +157,40 @@ public class AWTWindow extends Window {
                 }
             }
             if (w != null) {
-                if (w.isMouseEvent()) {
-                    if ((eventMask & com.sun.javafx.newt.EventListener.MOUSE) != 0) {
-                        MouseEvent e = (MouseEvent) w.getEvent();
-                        sendMouseEvent(w.getType(), convertModifiers(e),
-                                       e.getX(), e.getY(), convertButton(e));
-                    }
-                } else {
-                    if ((eventMask & com.sun.javafx.newt.EventListener.KEY) != 0) {
-                        KeyEvent e = (KeyEvent) w.getEvent();
-                        sendKeyEvent(w.getType(), convertModifiers(e),
-                                     e.getKeyCode(), e.getKeyChar());
-                    }
+                switch (w.getType()) {
+                    case com.sun.javafx.newt.WindowEvent.EVENT_WINDOW_RESIZED:
+                    case com.sun.javafx.newt.WindowEvent.EVENT_WINDOW_MOVED:
+                        if ((eventMask & com.sun.javafx.newt.EventListener.WINDOW) != 0) {
+                            sendWindowEvent(w.getType());
+                        }
+                        break;
+
+                    case com.sun.javafx.newt.MouseEvent.EVENT_MOUSE_CLICKED:
+                    case com.sun.javafx.newt.MouseEvent.EVENT_MOUSE_ENTERED:
+                    case com.sun.javafx.newt.MouseEvent.EVENT_MOUSE_EXITED:
+                    case com.sun.javafx.newt.MouseEvent.EVENT_MOUSE_PRESSED:
+                    case com.sun.javafx.newt.MouseEvent.EVENT_MOUSE_RELEASED:
+                    case com.sun.javafx.newt.MouseEvent.EVENT_MOUSE_MOVED:
+                    case com.sun.javafx.newt.MouseEvent.EVENT_MOUSE_DRAGGED:
+                        if ((eventMask & com.sun.javafx.newt.EventListener.MOUSE) != 0) {
+                            MouseEvent e = (MouseEvent) w.getEvent();
+                            sendMouseEvent(w.getType(), convertModifiers(e),
+                                           e.getX(), e.getY(), convertButton(e));
+                        }
+                        break;
+
+                    case com.sun.javafx.newt.KeyEvent.EVENT_KEY_PRESSED:
+                    case com.sun.javafx.newt.KeyEvent.EVENT_KEY_RELEASED:
+                    case com.sun.javafx.newt.KeyEvent.EVENT_KEY_TYPED:
+                        if ((eventMask & com.sun.javafx.newt.EventListener.KEY) != 0) {
+                            KeyEvent e = (KeyEvent) w.getEvent();
+                            sendKeyEvent(w.getType(), convertModifiers(e),
+                                         e.getKeyCode(), e.getKeyChar());
+                        }
+                        break;
+
+                    default:
+                        throw new RuntimeException("Unknown event type " + w.getType());
                 }
                 if(DEBUG_MOUSE_EVENT) {
                     System.out.println("dispatchMessages: in event:"+w.getEvent());
@@ -205,29 +231,24 @@ public class AWTWindow extends Window {
         }
     }
 
-    private void enqueueEvent(boolean isMouseEvent, int type, InputEvent e) {
-        if(DEBUG_MOUSE_EVENT) {
-            System.out.println("enqueueEvent: mouse"+isMouseEvent+", event: "+e);
-        }
-        AWTEventWrapper wrapper = new AWTEventWrapper(isMouseEvent,type, e);
+    private void enqueueEvent(int type, InputEvent e) {
+        AWTEventWrapper wrapper = new AWTEventWrapper(type, e);
         synchronized(this) {
             events.add(wrapper);
         }
     }
 
+    private static final int WINDOW_EVENT = 1;
+    private static final int KEY_EVENT = 2;
+    private static final int MOUSE_EVENT = 3;
+
     static class AWTEventWrapper {
-        boolean isMouseEvent;
         int type;
         InputEvent e;
 
-        AWTEventWrapper(boolean isMouseEvent, int type, InputEvent e) {
-            this.isMouseEvent = isMouseEvent;
+        AWTEventWrapper(int type, InputEvent e) {
             this.type = type;
             this.e = e;
-        }
-
-        public boolean isMouseEvent() {
-            return isMouseEvent;
         }
 
         public int getType() {
@@ -239,46 +260,79 @@ public class AWTWindow extends Window {
         }
     }
 
-    class Listener implements MouseListener, MouseMotionListener, KeyListener {
+    class MoveListener implements ComponentListener {
+        public void componentResized(ComponentEvent e) {
+        }
+
+        public void componentMoved(ComponentEvent e) {
+            x = frame.getX();
+            y = frame.getY();
+            enqueueEvent(com.sun.javafx.newt.WindowEvent.EVENT_WINDOW_MOVED, null);
+        }
+
+        public void componentShown(ComponentEvent e) {
+        }
+
+        public void componentHidden(ComponentEvent e) {
+        }
+
+    }
+
+    class Listener implements ComponentListener, MouseListener, MouseMotionListener, KeyListener {
+        public void componentResized(ComponentEvent e) {
+            width = canvas.getWidth();
+            height = canvas.getHeight();
+            enqueueEvent(com.sun.javafx.newt.WindowEvent.EVENT_WINDOW_RESIZED, null);
+        }
+
+        public void componentMoved(ComponentEvent e) {
+        }
+
+        public void componentShown(ComponentEvent e) {
+        }
+
+        public void componentHidden(ComponentEvent e) {
+        }
+
         public void mouseClicked(MouseEvent e) {
             // We ignore these as we synthesize them ourselves out of
             // mouse pressed and released events
         }
 
         public void mouseEntered(MouseEvent e) {
-            enqueueEvent(true, com.sun.javafx.newt.MouseEvent.EVENT_MOUSE_ENTERED, e);
+            enqueueEvent(com.sun.javafx.newt.MouseEvent.EVENT_MOUSE_ENTERED, e);
         }
 
         public void mouseExited(MouseEvent e) {
-            enqueueEvent(true, com.sun.javafx.newt.MouseEvent.EVENT_MOUSE_EXITED, e);
+            enqueueEvent(com.sun.javafx.newt.MouseEvent.EVENT_MOUSE_EXITED, e);
         }
 
         public void mousePressed(MouseEvent e) {
-            enqueueEvent(true, com.sun.javafx.newt.MouseEvent.EVENT_MOUSE_PRESSED, e);
+            enqueueEvent(com.sun.javafx.newt.MouseEvent.EVENT_MOUSE_PRESSED, e);
         }
 
         public void mouseReleased(MouseEvent e) {
-            enqueueEvent(true, com.sun.javafx.newt.MouseEvent.EVENT_MOUSE_RELEASED, e);
+            enqueueEvent(com.sun.javafx.newt.MouseEvent.EVENT_MOUSE_RELEASED, e);
         }
 
         public void mouseMoved(MouseEvent e) {
-            enqueueEvent(true, com.sun.javafx.newt.MouseEvent.EVENT_MOUSE_MOVED, e);
+            enqueueEvent(com.sun.javafx.newt.MouseEvent.EVENT_MOUSE_MOVED, e);
         }
 
         public void mouseDragged(MouseEvent e) {
-            enqueueEvent(true, com.sun.javafx.newt.MouseEvent.EVENT_MOUSE_DRAGGED, e);
+            enqueueEvent(com.sun.javafx.newt.MouseEvent.EVENT_MOUSE_DRAGGED, e);
         }
 
         public void keyPressed(KeyEvent e) {
-            enqueueEvent(false, com.sun.javafx.newt.KeyEvent.EVENT_KEY_PRESSED, e);
+            enqueueEvent(com.sun.javafx.newt.KeyEvent.EVENT_KEY_PRESSED, e);
         }
 
         public void keyReleased(KeyEvent e) {
-            enqueueEvent(false, com.sun.javafx.newt.KeyEvent.EVENT_KEY_RELEASED, e);
+            enqueueEvent(com.sun.javafx.newt.KeyEvent.EVENT_KEY_RELEASED, e);
         }
 
         public void keyTyped(KeyEvent e)  {
-            enqueueEvent(false, com.sun.javafx.newt.KeyEvent.EVENT_KEY_TYPED, e);
+            enqueueEvent(com.sun.javafx.newt.KeyEvent.EVENT_KEY_TYPED, e);
         }
     }
 }

@@ -81,10 +81,6 @@ public interface GLAutoDrawable extends GLDrawable {
       display} callback. */
   public void display();
 
-  /** Schedules a repaint of the component at some point in the
-      future. */
-  public void repaint();
-
   /** Enables or disables automatic buffer swapping for this drawable.
       By default this property is set to true; when true, after all
       GLEventListeners have been called for a display() event, the
