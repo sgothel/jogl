@@ -275,9 +275,9 @@ public class GL2JPanel extends JPanel implements AWTGLAutoDrawable {
     if (Java2D.isFBOEnabled() &&
         Java2D.getOGLSurfaceType(g) == Java2D.FBOBJECT) {
       if (DEBUG && VERBOSE) {
-        System.err.println("GL2JPanel: Fetching GL_FRAMEBUFFER_BINDING_EXT");
+        System.err.println("GL2JPanel: Fetching GL_FRAMEBUFFER_BINDING");
       }
-      gl.glGetIntegerv(GL2.GL_FRAMEBUFFER_BINDING_EXT, frameBuffer, 0);
+      gl.glGetIntegerv(GL2.GL_FRAMEBUFFER_BINDING, frameBuffer, 0);
 
       if (fbObjectWorkarounds ||
           !checkedForFBObjectWorkarounds) {
@@ -287,9 +287,9 @@ public class GL2JPanel extends JPanel implements AWTGLAutoDrawable {
 
         // Query the framebuffer for its color buffer so we can hook
         // it back up in our context (should not be necessary)
-        gl.glGetFramebufferAttachmentParameteriv(GL2.GL_FRAMEBUFFER_EXT,
-                                                 GL2.GL_COLOR_ATTACHMENT0_EXT,
-                                                 GL2.GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME_EXT,
+        gl.glGetFramebufferAttachmentParameteriv(GL2.GL_FRAMEBUFFER,
+                                                 GL2.GL_COLOR_ATTACHMENT0,
+                                                 GL2.GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME,
                                                  frameBufferTexture, 0);
         if (DEBUG && VERBOSE) {
           System.err.println("GL2JPanel: FBO COLOR_ATTACHMENT0: " + frameBufferTexture[0]);
@@ -312,7 +312,7 @@ public class GL2JPanel extends JPanel implements AWTGLAutoDrawable {
         // simultaneously bound to more than one context. Java2D will
         // re-bind the FBO during the next validation of its context.
         // Note: this breaks rendering at least on NVidia hardware
-        gl.glBindFramebuffer(GL2.GL_FRAMEBUFFER_EXT, 0);
+        gl.glBindFramebuffer(GL2.GL_FRAMEBUFFER, 0);
       }
     }
   }
@@ -367,9 +367,9 @@ public class GL2JPanel extends JPanel implements AWTGLAutoDrawable {
       if (!checkedForFBObjectWorkarounds) {
         checkedForFBObjectWorkarounds = true;
         gl.glBindTexture(fboTextureTarget, 0);
-        gl.glBindFramebuffer(GL2.GL_FRAMEBUFFER_EXT, frameBuffer[0]);
-        if (gl.glCheckFramebufferStatus(GL2.GL_FRAMEBUFFER_EXT) !=
-            GL2.GL_FRAMEBUFFER_COMPLETE_EXT) {
+        gl.glBindFramebuffer(GL2.GL_FRAMEBUFFER, frameBuffer[0]);
+        if (gl.glCheckFramebufferStatus(GL2.GL_FRAMEBUFFER) !=
+            GL2.GL_FRAMEBUFFER_COMPLETE) {
           // Need to do workarounds
           fbObjectWorkarounds = true;
           createNewDepthBuffer = true;
@@ -405,36 +405,36 @@ public class GL2JPanel extends JPanel implements AWTGLAutoDrawable {
                              " with width " + width[0] + ", height " + height[0]);
         }
                     
-        gl.glBindRenderbuffer(GL2.GL_RENDERBUFFER_EXT, frameBufferDepthBuffer[0]);
+        gl.glBindRenderbuffer(GL2.GL_RENDERBUFFER, frameBufferDepthBuffer[0]);
         // FIXME: may need a loop here like in Java2D
-        gl.glRenderbufferStorage(GL2.GL_RENDERBUFFER_EXT, GL2.GL_DEPTH_COMPONENT24, width[0], height[0]);
+        gl.glRenderbufferStorage(GL2.GL_RENDERBUFFER, GL2.GL_DEPTH_COMPONENT24, width[0], height[0]);
 
-        gl.glBindRenderbuffer(GL2.GL_RENDERBUFFER_EXT, 0);
+        gl.glBindRenderbuffer(GL2.GL_RENDERBUFFER, 0);
         createNewDepthBuffer = false;
       }
 
       gl.glBindTexture(fboTextureTarget, 0);
-      gl.glBindFramebuffer(GL2.GL_FRAMEBUFFER_EXT, frameBuffer[0]);
+      gl.glBindFramebuffer(GL2.GL_FRAMEBUFFER, frameBuffer[0]);
 
       if (fbObjectWorkarounds) {
         // Hook up the color and depth buffer attachment points for this framebuffer
-        gl.glFramebufferTexture2D(GL2.GL_FRAMEBUFFER_EXT,
-                                     GL2.GL_COLOR_ATTACHMENT0_EXT,
+        gl.glFramebufferTexture2D(GL2.GL_FRAMEBUFFER,
+                                     GL2.GL_COLOR_ATTACHMENT0,
                                      fboTextureTarget,
                                      frameBufferTexture[0],
                                      0);
         if (DEBUG && VERBOSE) {
           System.err.println("GL2JPanel: frameBufferDepthBuffer: " + frameBufferDepthBuffer[0]);
         }
-        gl.glFramebufferRenderbuffer(GL2.GL_FRAMEBUFFER_EXT,
-                                        GL2.GL_DEPTH_ATTACHMENT_EXT,
-                                        GL2.GL_RENDERBUFFER_EXT,
+        gl.glFramebufferRenderbuffer(GL2.GL_FRAMEBUFFER,
+                                        GL2.GL_DEPTH_ATTACHMENT,
+                                        GL2.GL_RENDERBUFFER,
                                         frameBufferDepthBuffer[0]);
       }
 
       if (DEBUG) {
-        int status = gl.glCheckFramebufferStatus(GL2.GL_FRAMEBUFFER_EXT);
-        if (status != GL2.GL_FRAMEBUFFER_COMPLETE_EXT) {
+        int status = gl.glCheckFramebufferStatus(GL2.GL_FRAMEBUFFER);
+        if (status != GL2.GL_FRAMEBUFFER_COMPLETE) {
           throw new GLException("Error: framebuffer was incomplete: status = 0x" +
                                 Integer.toHexString(status));
         }
@@ -459,7 +459,7 @@ public class GL2JPanel extends JPanel implements AWTGLAutoDrawable {
       // apparent driver bugs or at least unspecified behavior causing
       // OpenGL to run out of memory with certain cards and drivers
       GL2 gl = joglContext.getGL().getGL2();
-      gl.glBindFramebuffer(GL2.GL_FRAMEBUFFER_EXT, 0);
+      gl.glBindFramebuffer(GL2.GL_FRAMEBUFFER, 0);
     }
   }
 
