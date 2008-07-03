@@ -48,7 +48,7 @@ import javax.media.opengl.*;
  * turn the resulting base address into a java.nio.ByteBuffer, we need
  * to know the size in bytes of the allocated OpenGL buffer object.
  * Previously we would compute this size by using
- * glGetBufferParameterivARB with a pname of GL_BUFFER_SIZE_ARB, but
+ * glGetBufferParameterivARB with a pname of GL_BUFFER_SIZE, but
  * it appears doing so each time glMapBuffer is called is too costly
  * on at least Apple's new multithreaded OpenGL implementation. <P>
  *

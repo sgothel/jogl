@@ -64,6 +64,8 @@ extern "C" {
 #define GL_OES_EGL_image                  1
 
 #ifdef GL_OES_EGL_image
+/** sgothel: wrong defines and/or numbers:
+ *
 #define GL_TEXTURE_2D_OES                     0x1
 #define GL_TEXTURE_CUBE_MAP_POSITIVE_X_OES    0x3
 #define GL_TEXTURE_CUBE_MAP_NEGATIVE_X_OES    0x4
@@ -73,6 +75,7 @@ extern "C" {
 #define GL_TEXTURE_CUBE_MAP_NEGATIVE_Z_OES    0x8
 #define GL_RENDERBUFFER_OES                   0x9
 #define GL_TEXTURE_RECTANGLE_NV_OES           0xb
+ */
 
 typedef void *GLeglImageOES;
 GL_APICALL void GL_APIENTRY glEGLImageTargetTexture2DOES(GLenum target, GLeglImageOES image);

@@ -361,7 +361,7 @@ public class GL2JPanel extends JPanel implements AWTGLAutoDrawable {
       }
 
       // The texture target for Java2D's OpenGL pipeline when using FBOs
-      // -- either GL_TEXTURE_2D or GL_TEXTURE_RECTANGLE_ARB
+      // -- either GL_TEXTURE_2D or GL_TEXTURE_RECTANGLE
       int fboTextureTarget = Java2D.getOGLTextureType(g);
 
       if (!checkedForFBObjectWorkarounds) {

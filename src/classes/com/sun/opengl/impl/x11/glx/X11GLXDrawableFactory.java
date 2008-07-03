@@ -251,8 +251,8 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     res.setAccumBlueBits (glXGetConfig(display, info, GLX.GLX_ACCUM_BLUE_SIZE,  tmp, 0));
     res.setAccumAlphaBits(glXGetConfig(display, info, GLX.GLX_ACCUM_ALPHA_SIZE, tmp, 0));
     if (isMultisampleAvailable()) {
-      res.setSampleBuffers(glXGetConfig(display, info, GLX.GLX_SAMPLE_BUFFERS_ARB, tmp, 0) != 0);
-      res.setNumSamples   (glXGetConfig(display, info, GLX.GLX_SAMPLES_ARB,        tmp, 0));
+      res.setSampleBuffers(glXGetConfig(display, info, GLX.GLX_SAMPLE_BUFFERS, tmp, 0) != 0);
+      res.setNumSamples   (glXGetConfig(display, info, GLX.GLX_SAMPLES,        tmp, 0));
     }
     return res;
   }
@@ -327,9 +327,9 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
       res[idx++] = caps.getAccumAlphaBits();
     }
     if (isMultisampleAvailable && caps.getSampleBuffers()) {
-      res[idx++] = GLXExt.GLX_SAMPLE_BUFFERS_ARB;
+      res[idx++] = GLXExt.GLX_SAMPLE_BUFFERS;
       res[idx++] = GL.GL_TRUE;
-      res[idx++] = GLXExt.GLX_SAMPLES_ARB;
+      res[idx++] = GLXExt.GLX_SAMPLES;
       res[idx++] = caps.getNumSamples();
     }
     if (pbuffer) {
@@ -404,11 +404,11 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
           caps.setAccumAlphaBits(ivalues[i]);
           break;
 
-        case GLXExt.GLX_SAMPLE_BUFFERS_ARB:
+        case GLXExt.GLX_SAMPLE_BUFFERS:
           caps.setSampleBuffers(ivalues[i] != GL.GL_FALSE);
           break;
 
-        case GLXExt.GLX_SAMPLES_ARB:
+        case GLXExt.GLX_SAMPLES:
           caps.setNumSamples(ivalues[i]);
           break;
 

@@ -195,15 +195,15 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
         if (DEBUG) {
           System.err.println("" + nformats + " suitable pixel formats found");
           // query pixel format
-          iattributes[0] = WGLExt.WGL_RED_BITS_ARB;
-          iattributes[1] = WGLExt.WGL_GREEN_BITS_ARB;
-          iattributes[2] = WGLExt.WGL_BLUE_BITS_ARB;
-          iattributes[3] = WGLExt.WGL_ALPHA_BITS_ARB;
-          iattributes[4] = WGLExt.WGL_DEPTH_BITS_ARB;
-          iattributes[5] = (useFloat ? (ati ? WGLExt.WGL_PIXEL_TYPE_ARB : WGLExt.WGL_FLOAT_COMPONENTS_NV) : WGLExt.WGL_RED_BITS_ARB);
-          iattributes[6] = (haveMultisample ? WGLExt.WGL_SAMPLE_BUFFERS_ARB : WGLExt.WGL_RED_BITS_ARB);
-          iattributes[7] = (haveMultisample ? WGLExt.WGL_SAMPLES_ARB : WGLExt.WGL_RED_BITS_ARB);
-          iattributes[8] = WGLExt.WGL_DRAW_TO_PBUFFER_ARB;
+          iattributes[0] = WGLExt.WGL_RED_BITS;
+          iattributes[1] = WGLExt.WGL_GREEN_BITS;
+          iattributes[2] = WGLExt.WGL_BLUE_BITS;
+          iattributes[3] = WGLExt.WGL_ALPHA_BITS;
+          iattributes[4] = WGLExt.WGL_DEPTH_BITS;
+          iattributes[5] = (useFloat ? (ati ? WGLExt.WGL_PIXEL_TYPE: WGLExt.WGL_FLOAT_COMPONENTS_NV) : WGLExt.WGL_RED_BITS);
+          iattributes[6] = (haveMultisample ? WGLExt.WGL_SAMPLE_BUFFERS: WGLExt.WGL_RED_BITS);
+          iattributes[7] = (haveMultisample ? WGLExt.WGL_SAMPLES: WGLExt.WGL_RED_BITS);
+          iattributes[8] = WGLExt.WGL_DRAW_TO_PBUFFER;
           int[] ivalues = new int[9];
           for (int i = 0; i < nformats; i++) {
             if (!wglExt.wglGetPixelFormatAttribivARB(parentHdc, pformats[i], 0, 9, iattributes, 0, ivalues, 0)) {
@@ -222,9 +222,9 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
             System.err.print(" samples: " + ivalues[7]);
             if (useFloat) {
               if (ati) {
-                if (ivalues[5] == WGLExt.WGL_TYPE_RGBA_FLOAT_ATI) {
+                if (ivalues[5] == WGLExt.WGL_TYPE_RGBA_FLOAT) {
                   System.err.print(" [ati float]");
-                } else if (ivalues[5] != WGLExt.WGL_TYPE_RGBA_ARB) {
+                } else if (ivalues[5] != WGLExt.WGL_TYPE_RGBA) {
                   System.err.print(" [unknown pixel type " + ivalues[5] + "]");
                 }
               } else {
@@ -251,20 +251,20 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
           niattribs = 0;
 
           if (rtt) {
-            iattributes[niattribs++]   = WGLExt.WGL_TEXTURE_FORMAT_ARB;
+            iattributes[niattribs++]   = WGLExt.WGL_TEXTURE_FORMAT;
             if (useFloat) {
               iattributes[niattribs++] = WGLExt.WGL_TEXTURE_FLOAT_RGB_NV;
             } else {
-              iattributes[niattribs++] = WGLExt.WGL_TEXTURE_RGBA_ARB;
+              iattributes[niattribs++] = WGLExt.WGL_TEXTURE_RGBA;
             }
 
-            iattributes[niattribs++] = WGLExt.WGL_TEXTURE_TARGET_ARB;
-            iattributes[niattribs++] = rect ? WGLExt.WGL_TEXTURE_RECTANGLE_NV : WGLExt.WGL_TEXTURE_2D_ARB;
+            iattributes[niattribs++] = WGLExt.WGL_TEXTURE_TARGET;
+            iattributes[niattribs++] = rect ? WGLExt.WGL_TEXTURE_RECTANGLE_NV : WGLExt.WGL_TEXTURE_2D;
 
-            iattributes[niattribs++] = WGLExt.WGL_MIPMAP_TEXTURE_ARB;
+            iattributes[niattribs++] = WGLExt.WGL_MIPMAP_TEXTURE;
             iattributes[niattribs++] = GL.GL_FALSE;
 
-            iattributes[niattribs++] = WGLExt.WGL_PBUFFER_LARGEST_ARB;
+            iattributes[niattribs++] = WGLExt.WGL_PBUFFER_LARGEST;
             iattributes[niattribs++] = GL.GL_FALSE;
           }
 
@@ -298,23 +298,23 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
         // Re-query chosen pixel format
         {
           niattribs = 0;
-          iattributes[niattribs++] = WGLExt.WGL_ACCELERATION_ARB;
-          iattributes[niattribs++] = WGLExt.WGL_RED_BITS_ARB;
-          iattributes[niattribs++] = WGLExt.WGL_GREEN_BITS_ARB;
-          iattributes[niattribs++] = WGLExt.WGL_BLUE_BITS_ARB;
-          iattributes[niattribs++] = WGLExt.WGL_ALPHA_BITS_ARB;
-          iattributes[niattribs++] = WGLExt.WGL_DEPTH_BITS_ARB;
-          iattributes[niattribs++] = WGLExt.WGL_STENCIL_BITS_ARB;
-          iattributes[niattribs++] = WGLExt.WGL_DOUBLE_BUFFER_ARB;
-          iattributes[niattribs++] = WGLExt.WGL_STEREO_ARB;
-          iattributes[niattribs++] = WGLExt.WGL_ACCUM_RED_BITS_ARB;
-          iattributes[niattribs++] = WGLExt.WGL_ACCUM_GREEN_BITS_ARB;
-          iattributes[niattribs++] = WGLExt.WGL_ACCUM_BLUE_BITS_ARB;
-          iattributes[niattribs++] = WGLExt.WGL_ACCUM_ALPHA_BITS_ARB;
-          iattributes[niattribs++] = (useFloat ? (ati ? WGLExt.WGL_PIXEL_TYPE_ARB : WGLExt.WGL_FLOAT_COMPONENTS_NV) : WGLExt.WGL_RED_BITS_ARB);
-          iattributes[niattribs++] = (haveMultisample ? WGLExt.WGL_SAMPLE_BUFFERS_ARB : WGLExt.WGL_RED_BITS_ARB);
-          iattributes[niattribs++] = (haveMultisample ? WGLExt.WGL_SAMPLES_ARB : WGLExt.WGL_RED_BITS_ARB);
-          iattributes[niattribs++] = WGLExt.WGL_DRAW_TO_PBUFFER_ARB;
+          iattributes[niattribs++] = WGLExt.WGL_ACCELERATION;
+          iattributes[niattribs++] = WGLExt.WGL_RED_BITS;
+          iattributes[niattribs++] = WGLExt.WGL_GREEN_BITS;
+          iattributes[niattribs++] = WGLExt.WGL_BLUE_BITS;
+          iattributes[niattribs++] = WGLExt.WGL_ALPHA_BITS;
+          iattributes[niattribs++] = WGLExt.WGL_DEPTH_BITS;
+          iattributes[niattribs++] = WGLExt.WGL_STENCIL_BITS;
+          iattributes[niattribs++] = WGLExt.WGL_DOUBLE_BUFFER;
+          iattributes[niattribs++] = WGLExt.WGL_STEREO;
+          iattributes[niattribs++] = WGLExt.WGL_ACCUM_RED_BITS;
+          iattributes[niattribs++] = WGLExt.WGL_ACCUM_GREEN_BITS;
+          iattributes[niattribs++] = WGLExt.WGL_ACCUM_BLUE_BITS;
+          iattributes[niattribs++] = WGLExt.WGL_ACCUM_ALPHA_BITS;
+          iattributes[niattribs++] = (useFloat ? (ati ? WGLExt.WGL_PIXEL_TYPE: WGLExt.WGL_FLOAT_COMPONENTS_NV) : WGLExt.WGL_RED_BITS);
+          iattributes[niattribs++] = (haveMultisample ? WGLExt.WGL_SAMPLE_BUFFERS: WGLExt.WGL_RED_BITS);
+          iattributes[niattribs++] = (haveMultisample ? WGLExt.WGL_SAMPLES: WGLExt.WGL_RED_BITS);
+          iattributes[niattribs++] = WGLExt.WGL_DRAW_TO_PBUFFER;
           int[] ivalues = new int[niattribs];
           // FIXME: usually prefer to throw exceptions, but failure here is not critical
           if (wglExt.wglGetPixelFormatAttribivARB(parentHdc, pformats[whichFormat], 0, niattribs, iattributes, 0, ivalues, 0)) {
@@ -324,9 +324,9 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
 
         // Determine the actual width and height we were able to create.
         int[] tmp = new int[1];
-        wglExt.wglQueryPbufferARB( buffer, WGLExt.WGL_PBUFFER_WIDTH_ARB,  tmp, 0 );
+        wglExt.wglQueryPbufferARB( buffer, WGLExt.WGL_PBUFFER_WIDTH,  tmp, 0 );
         width = tmp[0];
-        wglExt.wglQueryPbufferARB( buffer, WGLExt.WGL_PBUFFER_HEIGHT_ARB, tmp, 0 );
+        wglExt.wglQueryPbufferARB( buffer, WGLExt.WGL_PBUFFER_HEIGHT, tmp, 0 );
         height = tmp[0];
         nw.setSize(width, height);
     } finally {
