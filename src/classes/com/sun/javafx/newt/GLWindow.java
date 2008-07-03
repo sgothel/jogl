@@ -178,7 +178,6 @@ public class GLWindow extends Window implements GLAutoDrawable {
             window.setVisible(true);
             drawable.setRealized(true);
             context = drawable.createContext(null);
-            System.out.println("Created context");
         }
     }
 
