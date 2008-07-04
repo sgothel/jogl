@@ -33,7 +33,7 @@ du -ksc jogl.core.jar jogl.egl.jar jogl.gles2.jar newt.jar
 echo
 
 echo JOGL GL2 OSWIN CORE no AWT
-du -ksc jogl.core.jar jogl.oswin.jar jogl.gl2.jar
+du -ksc jogl.core.jar jogl.oswin.jar jogl.gl2.jar newt.jar
 echo
 
 echo JOGL GL2 OSWIN with AWT
