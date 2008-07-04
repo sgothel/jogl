@@ -88,11 +88,11 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
           // not be called here, so we skip the use of any composable
           // pipelines (see WindowsOnscreenWGLContext.makeCurrentImpl)
           WGLExt wglExt = cachedWGLExt;
-          if (wglExt.wglReleasePbufferDCARB(buffer, nw.getSurfaceHandle()) == 0) {
+          if (wglExt.wglReleasePbufferDC(buffer, nw.getSurfaceHandle()) == 0) {
             throw new GLException("Error releasing pbuffer device context: error code " + WGL.GetLastError());
           }
           nw.setSurfaceHandle(0);
-          if (!wglExt.wglDestroyPbufferARB(buffer)) {
+          if (!wglExt.wglDestroyPbuffer(buffer)) {
             throw new GLException("Error destroying pbuffer: error code " + WGL.GetLastError());
           }
           buffer = 0;
@@ -177,13 +177,13 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
         int[] pformats = new int[MAX_PFORMATS];
         int   nformats;
         int[] nformatsTmp = new int[1];
-        if (!wglExt.wglChoosePixelFormatARB(parentHdc,
+        if (!wglExt.wglChoosePixelFormat(parentHdc,
                                             iattributes, 0,
                                             fattributes, 0,
                                             MAX_PFORMATS,
                                             pformats, 0,
                                             nformatsTmp, 0)) {
-          throw new GLException("pbuffer creation error: wglChoosePixelFormatARB() failed");
+          throw new GLException("pbuffer creation error: wglChoosePixelFormat() failed");
         }
         nformats = nformatsTmp[0];
         if (nformats <= 0) {
@@ -206,7 +206,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
           iattributes[8] = WGLExt.WGL_DRAW_TO_PBUFFER;
           int[] ivalues = new int[9];
           for (int i = 0; i < nformats; i++) {
-            if (!wglExt.wglGetPixelFormatAttribivARB(parentHdc, pformats[i], 0, 9, iattributes, 0, ivalues, 0)) {
+            if (!wglExt.wglGetPixelFormatAttribiv(parentHdc, pformats[i], 0, 9, iattributes, 0, ivalues, 0)) {
               throw new GLException("Error while querying pixel format " + pformats[i] +
                                     "'s (index " + i + "'s) capabilities for debugging");
             }
@@ -270,7 +270,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
 
           iattributes[niattribs++] = 0;
 
-          tmpBuffer = wglExt.wglCreatePbufferARB(parentHdc, format, getWidth(), getHeight(), iattributes, 0);
+          tmpBuffer = wglExt.wglCreatePbuffer(parentHdc, format, getWidth(), getHeight(), iattributes, 0);
           if (tmpBuffer != 0) {
             // Done
             break;
@@ -278,14 +278,14 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
         }
 
         if (tmpBuffer == 0) {
-          throw new GLException("pbuffer creation error: wglCreatePbufferARB() failed: tried " + nformats +
+          throw new GLException("pbuffer creation error: wglCreatePbuffer() failed: tried " + nformats +
                                 " pixel formats, last error was: " + wglGetLastError());
         }
 
         // Get the device context.
-        long tmpHdc = wglExt.wglGetPbufferDCARB(tmpBuffer);
+        long tmpHdc = wglExt.wglGetPbufferDC(tmpBuffer);
         if (tmpHdc == 0) {
-          throw new GLException("pbuffer creation error: wglGetPbufferDCARB() failed");
+          throw new GLException("pbuffer creation error: wglGetPbufferDC() failed");
         }
 
         NullWindow nw = (NullWindow) getNativeWindow();
@@ -317,16 +317,16 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
           iattributes[niattribs++] = WGLExt.WGL_DRAW_TO_PBUFFER;
           int[] ivalues = new int[niattribs];
           // FIXME: usually prefer to throw exceptions, but failure here is not critical
-          if (wglExt.wglGetPixelFormatAttribivARB(parentHdc, pformats[whichFormat], 0, niattribs, iattributes, 0, ivalues, 0)) {
+          if (wglExt.wglGetPixelFormatAttribiv(parentHdc, pformats[whichFormat], 0, niattribs, iattributes, 0, ivalues, 0)) {
             setChosenGLCapabilities(iattributes2GLCapabilities(iattributes, niattribs, ivalues, false));
           }
         }
 
         // Determine the actual width and height we were able to create.
         int[] tmp = new int[1];
-        wglExt.wglQueryPbufferARB( buffer, WGLExt.WGL_PBUFFER_WIDTH,  tmp, 0 );
+        wglExt.wglQueryPbuffer( buffer, WGLExt.WGL_PBUFFER_WIDTH,  tmp, 0 );
         width = tmp[0];
-        wglExt.wglQueryPbufferARB( buffer, WGLExt.WGL_PBUFFER_HEIGHT, tmp, 0 );
+        wglExt.wglQueryPbuffer( buffer, WGLExt.WGL_PBUFFER_HEIGHT, tmp, 0 );
         height = tmp[0];
         nw.setSize(width, height);
     } finally {

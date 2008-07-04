@@ -68,7 +68,7 @@ public class WindowsPbufferWGLContext extends WindowsWGLContext {
     WGLExt wglExt = getWGLExt();
     gl.glBindTexture(textureTarget, texture);
     if (rtt && hasRTT) {
-      if (!wglExt.wglBindTexImageARB(drawable.getPbuffer(), WGLExt.WGL_FRONT_LEFT)) {
+      if (!wglExt.wglBindTexImage(drawable.getPbuffer(), WGLExt.WGL_FRONT_LEFT)) {
         throw new GLException("Binding of pbuffer to texture failed: " + wglGetLastError());
       }
     }
@@ -84,7 +84,7 @@ public class WindowsPbufferWGLContext extends WindowsWGLContext {
     }
     if (rtt && hasRTT) {
       WGLExt wglExt = getWGLExt();
-      if (!wglExt.wglReleaseTexImageARB(drawable.getPbuffer(), WGLExt.WGL_FRONT_LEFT)) {
+      if (!wglExt.wglReleaseTexImage(drawable.getPbuffer(), WGLExt.WGL_FRONT_LEFT)) {
         throw new GLException("Releasing of pbuffer from texture failed: " + wglGetLastError());
       }
     }

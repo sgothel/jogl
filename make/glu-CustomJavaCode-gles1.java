@@ -356,7 +356,7 @@ private static GLUProcAddressTable getGLUProcAddressTable() {
   }
   if (gluProcAddressTable == null) {
     GLUProcAddressTable tmp = new GLUProcAddressTable();
-    ProcAddressHelper.resetProcAddressTable(tmp, GLDrawableFactoryImpl.getFactoryImpl());
+    GLProcAddressHelper.resetProcAddressTable(tmp, GLDrawableFactoryImpl.getFactoryImpl());
     gluProcAddressTable = tmp;
   }
   return gluProcAddressTable;

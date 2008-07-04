@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="JOGL" basedir="." default="all">
-<target name="c.configure" depends="gluegen.cpptasks.configure.compiler">
+<target name="c.configure.1" depends="gluegen.cpptasks.detect.os,gluegen.cpptasks.setup.compiler">
       <linker id="linker.cfg.linux.jogl.x11" extends="linker.cfg.linux">
         <syslibset dir="/devtools/i686-unknown-linux-gnu/xfree86-4.3.0-linux-ix86-glibc23/lib" libs="X11"/>
         <syslibset dir="/devtools/i686-unknown-linux-gnu/xfree86-4.3.0-linux-ix86-glibc23/lib" libs="Xxf86vm"/>

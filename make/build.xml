@@ -1194,7 +1194,7 @@
       <attribute name="compiler.cfg.id" />
       <attribute name="linker.cfg.id" />
       <attribute name="output.lib.name" />
-      <attribute name="c.compiler.use-jawt" default="false" />
+      <attribute name="c.compiler.use-jawt" default="false"/>
       <sequential>
         <echo message="Output lib name = @{output.lib.name}" />
 
@@ -1205,18 +1205,19 @@
 
         <condition property="c.compiler.use-debug"><istrue value="${c.compiler.debug}"/></condition>
 
-        <condition property="useJAWT">
-          <and>
+        <!-- since properties are immutable, we need one for each target -->
+        <condition property="@{output.lib.name}.useLibJAWT">
             <istrue value="@{c.compiler.use-jawt}" />
-          </and>
         </condition>
+        <echo message="c.compiler.use-jawt @{c.compiler.use-jawt}"/>
+        <echo message="@{output.lib.name}.useLibJAWT ${@{output.lib.name}.useLibJAWT}"/>
 
-        <condition property="c.compiler.needs-libjvm">
+        <condition property="@{output.lib.name}.useLibJVM">
           <and>
             <isset property="isHPUX"/>
-            <isset property="useJAWT"/>
+            <isset property="@{output.lib.name}.useLibJAWT"/>
           </and>
-        </condition>
+        </condition> 
 
         <patternset id="c.src.files.jogl.awt">
           <include name="${rootrel.src.c.jogl}/JAWT*.c"/>
@@ -1322,8 +1323,8 @@
           </compiler>
   
           <linker extends="@{linker.cfg.id}">
-            <syslibset dir="${java.lib.dir.platform}" libs="jawt" if="useJAWT"/>
-            <syslibset dir="${java.lib.dir.platform}/server" libs="jvm" if="c.compiler.needs-libjvm"/>
+            <syslibset dir="${java.lib.dir.platform}" libs="jawt" if="@{output.lib.name}.useLibJAWT"/>
+            <syslibset dir="${java.lib.dir.platform}/server" libs="jvm" if="@{output.lib.name}.useLibJVM"/>
           </linker>
         </cc>
 

@@ -1387,7 +1387,7 @@ private static final GLUgl2ProcAddressTable getGLUProcAddressTable() {
   }
   if (gluProcAddressTable == null) {
     GLUgl2ProcAddressTable tmp = new GLUgl2ProcAddressTable();
-    ProcAddressHelper.resetProcAddressTable(tmp, GLDrawableFactoryImpl.getFactoryImpl());
+    GLProcAddressHelper.resetProcAddressTable(tmp, GLDrawableFactoryImpl.getFactoryImpl());
     gluProcAddressTable = tmp;
   }
   return gluProcAddressTable;

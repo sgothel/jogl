@@ -225,7 +225,8 @@ private Map/*<ARBVBOKey, ByteBuffer>*/ arbVBOCache = new HashMap();
 
 /** Entry point to C language function: <br> <code> LPVOID glMapBuffer(GLenum target, GLenum access); </code>    */
 public java.nio.ByteBuffer glMapBuffer(int target, int access) {
-  final long __addr_ = ((GLES2ProcAddressTable)_context.getGLProcAddressTable())._addressof_glMapBufferOES;
+  // FIXME JAU: final long __addr_ = ((GLES2ProcAddressTable)_context.getGLProcAddressTable())._addressof_glMapBuffer;
+  final long __addr_ = 0;
   if (__addr_ == 0) {
     throw new GLException("Method \"glMapBuffer\" not available");
   }

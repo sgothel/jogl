@@ -41,6 +41,7 @@ import java.security.*;
 import java.util.*;
 import javax.media.opengl.*;
 import com.sun.gluegen.runtime.*;
+import com.sun.gluegen.runtime.opengl.*;
 import com.sun.opengl.impl.*;
 import com.sun.opengl.impl.x11.*;
 
@@ -97,7 +98,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     super();
     // Must initialize GLX support eagerly in case a pbuffer is the
     // first thing instantiated
-    ProcAddressHelper.resetProcAddressTable(GLX.getGLXProcAddressTable(), this);
+    GLProcAddressHelper.resetProcAddressTable(GLX.getGLXProcAddressTable(), this);
   }
 
   private static final int MAX_ATTRIBS = 128;

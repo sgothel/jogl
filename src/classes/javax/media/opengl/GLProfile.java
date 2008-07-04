@@ -64,8 +64,9 @@ public class GLProfile {
                 throw new GLException("com.sun.opengl.impl.egl.EGLDrawableFactory not available");
             }
         }
-    } catch (Exception e) {
-        System.out.println("Profile: "+profile+" not available");
+    } catch (Throwable e) {
+        System.out.println("Profile: "+profile+" not available.");
+        System.out.println("\t"+e);
         profile=null;
     }
   }

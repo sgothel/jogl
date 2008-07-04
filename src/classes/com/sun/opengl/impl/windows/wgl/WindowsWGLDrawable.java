@@ -163,12 +163,12 @@ public abstract class WindowsWGLDrawable extends GLDrawableImpl {
                                            null)) {
               int[] pformats = new int[MAX_PFORMATS];
               int[] numFormatsTmp = new int[1];
-              if (dummyWGLExt.wglChoosePixelFormatARB(hdc,
-                                                      iattributes, 0,
-                                                      fattributes, 0,
-                                                      MAX_PFORMATS,
-                                                      pformats, 0,
-                                                      numFormatsTmp, 0)) {
+              if (dummyWGLExt.wglChoosePixelFormat(hdc,
+                                                   iattributes, 0,
+                                                   fattributes, 0,
+                                                   MAX_PFORMATS,
+                                                   pformats, 0,
+                                                   numFormatsTmp, 0)) {
                 numFormats = numFormatsTmp[0];
                 if (numFormats > 0) {
                   // Remove one-basing of pixel format (added on later)
@@ -204,7 +204,7 @@ public abstract class WindowsWGLDrawable extends GLDrawableImpl {
               // window, to a pbuffer, or to a pixmap)
               int niattribs = 0;
               iattributes[0] = WGLExt.WGL_NUMBER_PIXEL_FORMATS;
-              if (dummyWGLExt.wglGetPixelFormatAttribivARB(hdc, 0, 0, 1, iattributes, 0, iresults, 0)) {
+              if (dummyWGLExt.wglGetPixelFormatAttribiv(hdc, 0, 0, 1, iattributes, 0, iresults, 0)) {
                 numFormats = iresults[0];
 
                 if (DEBUG) {
@@ -238,7 +238,7 @@ public abstract class WindowsWGLDrawable extends GLDrawableImpl {
 
                 availableCaps = new GLCapabilities[numFormats];
                 for (int i = 0; i < numFormats; i++) {
-                  if (!dummyWGLExt.wglGetPixelFormatAttribivARB(hdc, i+1, 0, niattribs, iattributes, 0, iresults, 0)) {
+                  if (!dummyWGLExt.wglGetPixelFormatAttribiv(hdc, i+1, 0, niattribs, iattributes, 0, iresults, 0)) {
                     throw new GLException("Error getting pixel format attributes for pixel format " + (i + 1) + " of device context");
                   }
                   availableCaps[i] = iattributes2GLCapabilities(iattributes, niattribs, iresults, true);
