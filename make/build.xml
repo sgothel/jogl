@@ -978,7 +978,7 @@
         </javac>
     </target>
 
-    <target name="java.compile.secondpass" depends="java.generate.composable.pipeline">
+    <target name="java.compile.secondpass.1" if="javac.bootclasspath.jar">
         <!-- Perform the second pass Java compile; everything. -->
         <javac destdir="${classes}"
                excludes="${java.excludes.all}"
@@ -993,6 +993,21 @@
         </javac>
     </target>
 
+    <target name="java.compile.secondpass.2" unless="javac.bootclasspath.jar">
+        <!-- Perform the second pass Java compile; everything. -->
+        <javac destdir="${classes}"
+               excludes="${java.excludes.all}"
+               source="${jogl.sourcelevel}"
+               classpath="${gluegen-rt.jar}"
+               fork="yes"
+               memoryMaximumSize="128m"
+               debug="true" debuglevel="source,lines">
+            <src path="${src.java}" />
+            <src path="${src.generated.java}" />
+        </javac>
+    </target>
+
+    <target name="java.compile.secondpass" depends="java.generate.composable.pipeline,java.compile.secondpass.1,java.compile.secondpass.2" />
 
     <target name="java.compile" depends="java.compile.firstpass,java.compile.secondpass" />
 
