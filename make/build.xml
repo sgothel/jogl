@@ -1429,8 +1429,13 @@
       <!-- exec mt, the Microsoft Manifest Tool, to include DLL manifests in order to resolve the location of msvcr80.dll -->
       <exec executable="mt">
         <arg value="-manifest"/>
-        <arg value="${obj}/jogl.dll.manifest"/>
-        <arg value="-outputresource:${obj}/jogl.dll;#2"/>
+        <arg value="${obj}/jogl_gl2.dll.manifest"/>
+        <arg value="-outputresource:${obj}/jogl_gl2.dll;#2"/>
+      </exec>
+      <exec executable="mt">
+        <arg value="-manifest"/>
+        <arg value="${obj}/newt.dll.manifest"/>
+        <arg value="-outputresource:${obj}/newt.dll;#2"/>
       </exec>
       <exec executable="mt">
         <arg value="-manifest"/>
