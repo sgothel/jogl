@@ -100,9 +100,10 @@ private int imageSizeInBytes(int format, int type, int w, int h, int d) {
   case GL_ABGR_EXT:
     elements = 4;
     break;
-  case GL_HILO_NV:
+  /* FIXME ?? 
+   case GL_HILO_NV:
     elements = 2;
-    break;
+    break; */
   default:
     return 0;
   }
