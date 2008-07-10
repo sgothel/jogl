@@ -331,9 +331,15 @@ public abstract void gluQuadricTexture(GLUquadric quad, boolean texture) ;
 /** Interface to C language function: <br> <code> void gluSphere(GLUquadric *  quad, GLdouble radius, GLint slices, GLint stacks); </code>    */
 public abstract void gluSphere(GLUquadric quad, double radius, int slices, int stacks) ;
 
+public abstract void gluOrtho2D(float left, float right, float bottom, float top) ;
+
 public abstract void gluOrtho2D(double left, double right, double bottom, double top) ;
 
+public abstract void gluPerspective(float fovy, float aspect, float zNear, float zFar) ;
+
 public abstract void gluPerspective(double fovy, double aspect, double zNear, double zFar) ;
+
+public abstract void gluLookAt(float eyeX, float eyeY, float eyeZ, float centerX, float centerY, float centerZ, float upX, float upY, float upZ) ;
 
 public abstract void gluLookAt(double eyeX, double eyeY, double eyeZ, double centerX, double centerY, double centerZ, double upX, double upY, double upZ) ;
 

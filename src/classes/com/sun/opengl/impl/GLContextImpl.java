@@ -395,6 +395,13 @@ public abstract class GLContextImpl extends GLContext {
     this.bufferSizeTracker = bufferSizeTracker;
   }
 
+  public GLBufferSizeTracker getOrCreateBufferSizeTracker() {
+    if(null==bufferSizeTracker) {
+        bufferSizeTracker=new GLBufferSizeTracker();
+    }
+    return bufferSizeTracker;
+  }
+
   public GLBufferSizeTracker getBufferSizeTracker() {
     return bufferSizeTracker;
   }

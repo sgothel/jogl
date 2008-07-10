@@ -325,7 +325,7 @@ public abstract class VBOBufferDraw {
     if(clazz==FloatBuffer.class) {
         ((FloatBuffer)buffer).put(v);
     } else if(clazz==IntBuffer.class) {
-        ((IntBuffer)buffer).put(Float2Fixed(v));
+        ((IntBuffer)buffer).put(FixedPoint.toFixed(v));
     } else {
         throw new GLException("Float doesn't match Buffer Class: "+clazz+" :\n\t"+this);
     }
@@ -355,13 +355,6 @@ public abstract class VBOBufferDraw {
                        ", bufferEnabled "+bufferEnabled+ 
                        ",\n\tbuffer "+buffer+ 
                        "]";
-  }
-
-  public static final int Float2Fixed(float value)
-  {
-    if (value < -32768) value = -32768;
-    if (value > 32767) value = 32767;
-    return (int)(value * 65536);
   }
 
   protected int glArrayType;

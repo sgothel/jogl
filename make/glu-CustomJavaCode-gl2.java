@@ -990,12 +990,25 @@ public final void gluSphere(GLUquadric quad, double radius, int slices, int stac
 
 private ProjectDouble project;
 
+public final void gluOrtho2D(float left, float right, float bottom, float top) {
+  project.gluOrtho2D(getCurrentGL2(), (double)left, (double)right, (double)bottom, (double)top);
+
+}
+
 public final void gluOrtho2D(double left, double right, double bottom, double top) {
   project.gluOrtho2D(getCurrentGL2(), left, right, bottom, top);
 }
 
+public final void gluPerspective(float fovy, float aspect, float zNear, float zFar) {
+  project.gluPerspective(getCurrentGL2(), (double)fovy, (double)aspect, (double)zNear, (double)zFar);
+}
+
 public final void gluPerspective(double fovy, double aspect, double zNear, double zFar) {
   project.gluPerspective(getCurrentGL2(), fovy, aspect, zNear, zFar);
+}
+
+public final void gluLookAt(float eyeX, float eyeY, float eyeZ, float centerX, float centerY, float centerZ, float upX, float upY, float upZ) {
+  project.gluLookAt(getCurrentGL2(), (double)eyeX, (double)eyeY, (double)eyeZ, (double)centerX, (double)centerY, (double)centerZ, (double)upX, (double)upY, (double)upZ);
 }
 
 public final void gluLookAt(double eyeX, double eyeY, double eyeZ, double centerX, double centerY, double centerZ, double upX, double upY, double upZ) {

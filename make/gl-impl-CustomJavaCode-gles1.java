@@ -4,7 +4,7 @@ private boolean inBeginEndPair;
 
 public GLES1Impl(GLContextImpl context) {
   this._context = context; 
-  this.bufferSizeTracker = context.getBufferSizeTracker();
+  this.bufferSizeTracker = context.getOrCreateBufferSizeTracker();
 }
 
 public boolean isFunctionAvailable(String glFunctionName) {
