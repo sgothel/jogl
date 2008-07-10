@@ -136,7 +136,7 @@ public class ImmModeSink {
         nComps = 0;
         tComps = 0;
         if(FLOAT2FIXED && glDataType==GL.GL_FLOAT) {
-            glDataType=GL.GL_FIXED;
+            glDataType=GL2ES1.GL_FIXED;
         }
         this.glDataType=glDataType;
         this.glDrawUsage=glDrawUsage;
