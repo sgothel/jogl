@@ -48,32 +48,35 @@
 // #define VERBOSE_ON 1
 
 #ifdef VERBOSE_ON
+    #define DBG_PRINT(args...) fprintf(stderr, args)
 
-static void _dumpVisualInfo(const char * msg, XVisualInfo *pVisualQuery) {
-    if(pVisualQuery!=NULL) {
-        fprintf(stderr, "%s: screen %d, visual: %p, visual-id: 0x%X, depth: %d, class %d, cmap sz: %d, bpp: 3x%d, rgb 0x%X 0x%X 0x%X\n",
-            msg,
-            pVisualQuery->screen,
-            pVisualQuery->visual,
-            (int)pVisualQuery->visualid,
-            pVisualQuery->depth,
-            pVisualQuery->class,
-            pVisualQuery->colormap_size,
-            pVisualQuery->bits_per_rgb,
-            (int)pVisualQuery->red_mask,
-            (int)pVisualQuery->green_mask,
-            (int)pVisualQuery->blue_mask
-        );
-    } else {
-        fprintf(stderr, "%s: NULL XVisualInfo\n", msg);
+    #define DUMP_VISUAL_INFO(a,b) _dumpVisualInfo((a),(b))
+
+    static void _dumpVisualInfo(const char * msg, XVisualInfo *pVisualQuery) {
+        if(pVisualQuery!=NULL) {
+            fprintf(stderr, "%s: screen %d, visual: %p, visual-id: 0x%X, depth: %d, class %d, cmap sz: %d, bpp: 3x%d, rgb 0x%X 0x%X 0x%X\n",
+                msg,
+                pVisualQuery->screen,
+                pVisualQuery->visual,
+                (int)pVisualQuery->visualid,
+                pVisualQuery->depth,
+                pVisualQuery->class,
+                pVisualQuery->colormap_size,
+                pVisualQuery->bits_per_rgb,
+                (int)pVisualQuery->red_mask,
+                (int)pVisualQuery->green_mask,
+                (int)pVisualQuery->blue_mask
+            );
+        } else {
+            fprintf(stderr, "%s: NULL XVisualInfo\n", msg);
+        }
     }
-}
-
-#define DUMP_VISUAL_INFO(a,b) _dumpVisualInfo((a),(b))
 
 #else
 
-#define DUMP_VISUAL_INFO(a,b)
+    #define DBG_PRINT(args...)
+
+    #define DUMP_VISUAL_INFO(a,b)
 
 #endif
 
@@ -220,9 +223,7 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_x11_X11Window_CreateWindow
             XFree(pVisualQuery);
             pVisualQuery=NULL;
         }
-#ifdef VERBOSE_ON
-        fprintf(stderr, "trying given (screen %d, visualID: %d) found: %p\n", scrn_idx, (int)visualID, visual);
-#endif
+        DBG_PRINT( "trying given (screen %d, visualID: %d) found: %p\n", scrn_idx, (int)visualID, visual);
     }
     if (visual==NULL)
     { 
@@ -246,9 +247,7 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_x11_X11Window_CreateWindow
                 visual = NULL;
                 visualID = 0;
             }
-#ifdef VERBOSE_ON
-            fprintf(stderr, "default visual (screen %d, visualID: %d) found: %p\n", scrn_idx, (int)visualID, visual);
-#endif
+            DBG_PRINT( "default visual (screen %d, visualID: %d) found: %p\n", scrn_idx, (int)visualID, visual);
         }
     }
     if (visual==NULL)
@@ -264,9 +263,10 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_x11_X11Window_CreateWindow
 
     windowParent = XRootWindowOfScreen(scrn);
 
-    attrMask = (CWBackPixel | CWBorderPixel | CWColormap | CWEventMask | CWOverrideRedirect);
+    attrMask  = (CWBackPixel | CWBorderPixel | CWColormap | CWEventMask | CWOverrideRedirect) ;
+
     memset(&xswa, 0, sizeof(xswa));
-    xswa.override_redirect = True;
+    xswa.override_redirect = False; // decorated
     xswa.border_pixel = 0;
     xswa.background_pixel = 0;
     xswa.event_mask = ExposureMask | StructureNotifyMask | KeyPressMask | KeyReleaseMask;
@@ -303,10 +303,13 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_x11_X11Window_CloseWindow
     Display * dpy = (Display *) (intptr_t) display;
     Window w = (Window)window;
 
-    XUngrabPointer(dpy, CurrentTime);
-    XUngrabKeyboard(dpy, CurrentTime);
+    /**
+     XUngrabPointer(dpy, CurrentTime);
+     XUngrabKeyboard(dpy, CurrentTime);
+     */
     XSelectInput(dpy, w, 0);
     XUnmapWindow(dpy, w);
+    XSync(dpy, True);
     XDestroyWindow(dpy, w);
 }
 
@@ -322,15 +325,17 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_x11_X11Window_setVisible0
     Window w = (Window)window;
     if(visible==JNI_TRUE) {
         XMapRaised(dpy, w);
-
-        XSetInputFocus(dpy, w, RevertToNone, CurrentTime);
-
         XSync(dpy, False);
+
+        XSetInputFocus(dpy, w, RevertToParent, CurrentTime);
+
     } else {
-        XUngrabPointer(dpy, CurrentTime);
-        XUngrabKeyboard(dpy, CurrentTime);
-        XSelectInput(dpy, w, 0);
+        /**
+         XUngrabPointer(dpy, CurrentTime);
+         XUngrabKeyboard(dpy, CurrentTime);
+         */
         XUnmapWindow(dpy, w);
+        XSync(dpy, False);
     }
 }
 
@@ -474,6 +479,12 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_x11_X11Window_DispatchMessages
                 if(evt.xvisibility.window==w) {
                 }
                 break;
+            case Expose:
+                if(evt.xvisibility.window==w) {
+                    DBG_PRINT( "event . sizeChangedID call\n");
+                    (*env)->CallVoidMethod(env, obj, sizeChangedID, (jint) evt.xexpose.width, (jint) evt.xexpose.height);
+                }
+                break;
         }
     } 
 }
@@ -481,14 +492,46 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_x11_X11Window_DispatchMessages
 /*
  * Class:     com_sun_javafx_newt_x11_X11Window
  * Method:    setSize0
- * Signature: (JJII)V
+ * Signature: (JJIIIZ)V
  */
 JNIEXPORT void JNICALL Java_com_sun_javafx_newt_x11_X11Window_setSize0
-  (JNIEnv *env, jobject obj, jlong display, jlong window, jint width, jint height)
+  (JNIEnv *env, jobject obj, jlong display, jlong window, jint width, jint height, jint decorationToggle, jboolean isVisible)
 {
     Display * dpy = (Display *) (intptr_t) display;
     Window w = (Window)window;
-    XResizeWindow(dpy, w, (unsigned)width, (unsigned)height);
+
+    if(0!=decorationToggle) {
+        XSetWindowAttributes xswa;
+        unsigned long attrMask=CWOverrideRedirect;
+
+        if(isVisible==JNI_TRUE) {
+            DBG_PRINT( "setSize0 . unmap\n");
+            XUnmapWindow(dpy, w);
+            XSync(dpy, False);
+        }
+
+        if(decorationToggle<0) {
+            /* undecorated  */
+            xswa.override_redirect = True; 
+        } else {
+            /* decorated  */
+            xswa.override_redirect = False;
+        }
+        XChangeWindowAttributes(dpy, w, attrMask, &xswa);
+
+        if(isVisible==JNI_TRUE) {
+            DBG_PRINT( "setSize0 . map\n");
+            XMapRaised(dpy, w);
+            XSync(dpy, False);
+        }
+    }
+    DBG_PRINT( "setSize0 . XConfigureWindow\n");
+    XWindowChanges xwc;
+    xwc.width=width;
+    xwc.height=height;
+    XConfigureWindow(dpy, w, CWWidth|CWHeight, &xwc);
+
+    DBG_PRINT( "setSize0 . sizeChangedID call\n");
     (*env)->CallVoidMethod(env, obj, sizeChangedID, (jint) width, (jint) height);
 }
 
@@ -502,7 +545,13 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_x11_X11Window_setPosition0
 {
     Display * dpy = (Display *) (intptr_t) display;
     Window w = (Window)window;
-    XMoveWindow(dpy, w, (unsigned)x, (unsigned)y);
+
+    DBG_PRINT( "setPos0 . XConfigureWindow\n");
+    XWindowChanges xwc;
+    xwc.x=x;
+    xwc.y=y;
+    XConfigureWindow(dpy, w, CWX|CWY, &xwc);
+
     // (*env)->CallVoidMethod(env, obj, positionChangedID, (jint) width, (jint) height);
 }
 

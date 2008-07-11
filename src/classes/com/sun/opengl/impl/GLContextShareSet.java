@@ -150,6 +150,31 @@ public class GLContextShareSet {
     }
   }
 
+  /** In order to avoid glGet calls for buffer object checks related
+      to glVertexPointer, etc. calls as well as glMapBuffer calls, we
+      need to share the same GLBufferSizeTracker object between
+      contexts sharing textures and display lists. For now we keep
+      this mechanism orthogonal to the GLObjectTracker to hopefully
+      keep things easier to understand. (The GLObjectTracker is
+      currently only needed in a fairly esoteric case, when the
+      Java2D/JOGL bridge is active, but the GLBufferSizeTracker
+      mechanism is now always required.) */
+  public static void registerForBufferObjectSharing(GLContext olderContextOrNull, GLContext newContext) {
+    // FIXME: downcasts to GLContextImpl undesirable
+    GLContextImpl older = (GLContextImpl) olderContextOrNull;
+    GLContextImpl newer = (GLContextImpl) newContext;
+    GLBufferSizeTracker tracker = null;
+    if (older != null) {
+      tracker = older.getBufferSizeTracker();
+      assert (tracker != null)
+        : "registerForBufferObjectSharing was not called properly for the older context, or has a bug in it";
+    }
+    if (tracker == null) {
+      tracker = new GLBufferSizeTracker();
+    }
+    newer.setBufferSizeTracker(tracker);
+  }
+
   // FIXME: refactor Java SE dependencies
   //  /** Indicates that the two supplied contexts (which must be able to
   //      share textures and display lists) should be in the same
@@ -242,35 +267,10 @@ public class GLContextShareSet {
   //      }
   //    }
   //  }
-  //
-  //  /** In order to avoid glGet calls for buffer object checks related
-  //      to glVertexPointer, etc. calls as well as glMapBuffer calls, we
-  //      need to share the same GLBufferSizeTracker object between
-  //      contexts sharing textures and display lists. For now we keep
-  //      this mechanism orthogonal to the GLObjectTracker to hopefully
-  //      keep things easier to understand. (The GLObjectTracker is
-  //      currently only needed in a fairly esoteric case, when the
-  //      Java2D/JOGL bridge is active, but the GLBufferSizeTracker
-  //      mechanism is now always required.) */
-  //  public static void registerForBufferObjectSharing(GLContext olderContextOrNull, GLContext newContext) {
-  //    // FIXME: downcasts to GLContextImpl undesirable
-  //    GLContextImpl older = (GLContextImpl) olderContextOrNull;
-  //    GLContextImpl newer = (GLContextImpl) newContext;
-  //    GLBufferSizeTracker tracker = null;
-  //    if (older != null) {
-  //      tracker = older.getBufferSizeTracker();
-  //      assert (tracker != null)
-  //        : "registerForBufferObjectSharing was not called properly for the older context, or has a bug in it";
-  //    }
-  //    if (tracker == null) {
-  //      tracker = new GLBufferSizeTracker();
-  //    }
-  //    newer.setBufferSizeTracker(tracker);
-  //  }
-
+  
   //----------------------------------------------------------------------
   // Internals only below this point
-  //
+  
 
   private static ShareSet entryFor(GLContext context) {
     return (ShareSet) shareMap.get(context);

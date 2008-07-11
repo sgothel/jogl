@@ -4,7 +4,7 @@ private boolean inBeginEndPair;
 
 public GLES2Impl(GLContextImpl context) {
   this._context = context; 
-  this.bufferSizeTracker = context.getOrCreateBufferSizeTracker();
+  this.bufferSizeTracker = context.getBufferSizeTracker();
 }
 
 public boolean isFunctionAvailable(String glFunctionName) {
@@ -109,36 +109,25 @@ private int imageSizeInBytes(int format, int type, int w, int h, int d) {
   return (elements * esize * w * h * d);
 }
 
-private boolean bufferObjectExtensionsInitialized = false;
-private boolean haveARBPixelBufferObject;
-private boolean haveEXTPixelBufferObject;
-private boolean haveGL15;
-private boolean haveGL21;
-private boolean haveARBVertexBufferObject;
 private GLBufferStateTracker bufferStateTracker = new GLBufferStateTracker();
 private GLBufferSizeTracker  bufferSizeTracker;
+
+private boolean bufferObjectExtensionsInitialized = false;
+private boolean haveOESFramebufferObject;
+private boolean haveOESPixelBufferObject;
 
 private void initBufferObjectExtensionChecks() {
   if (bufferObjectExtensionsInitialized)
     return;
   bufferObjectExtensionsInitialized = true;
-  haveARBPixelBufferObject  = isExtensionAvailable("GL_ARB_pixel_buffer_object");
-  haveEXTPixelBufferObject  = isExtensionAvailable("GL_EXT_pixel_buffer_object");
-  haveGL15                  = isExtensionAvailable("GL_VERSION_1_5");
-  haveGL21                  = isExtensionAvailable("GL_VERSION_2_1");
-  haveARBVertexBufferObject = isExtensionAvailable("GL_ARB_vertex_buffer_object");
+  haveOESFramebufferObject  = isExtensionAvailable("GL_OES_framebuffer_object");
+  haveOESPixelBufferObject  = false; // FIXME: can't find it in ES 1.1 or ES 2.0 spec
 }
 
-private void checkBufferObject(boolean extension1,
-                               boolean extension2,
-                               boolean extension3,
+private void checkBufferObject(boolean avail,
                                boolean enabled,
                                int state,
                                String kind) {
-  if (inBeginEndPair) {
-    throw new GLException("May not call this between glBegin and glEnd");
-  }
-  boolean avail = (extension1 || extension2 || extension3);
   if (!avail) {
     if (!enabled)
       return;
@@ -158,9 +147,7 @@ private void checkBufferObject(boolean extension1,
 
 private void checkArrayVBODisabled() { 
   initBufferObjectExtensionChecks();
-  checkBufferObject(haveGL15,
-                    haveARBVertexBufferObject,
-                    false,
+  checkBufferObject(true,
                     false,
                     GL.GL_ARRAY_BUFFER,
                     "array vertex_buffer_object");
@@ -168,9 +155,7 @@ private void checkArrayVBODisabled() {
 
 private void checkArrayVBOEnabled() { 
   initBufferObjectExtensionChecks();
-  checkBufferObject(haveGL15,
-                    haveARBVertexBufferObject,
-                    false,
+  checkBufferObject(true,
                     true,
                     GL.GL_ARRAY_BUFFER,
                     "array vertex_buffer_object");
@@ -178,9 +163,7 @@ private void checkArrayVBOEnabled() {
 
 private void checkElementVBODisabled() { 
   initBufferObjectExtensionChecks();
-  checkBufferObject(haveGL15,
-                    haveARBVertexBufferObject,
-                    false,
+  checkBufferObject(true,
                     false,
                     GL.GL_ELEMENT_ARRAY_BUFFER,
                     "element vertex_buffer_object");
@@ -188,12 +171,42 @@ private void checkElementVBODisabled() {
 
 private void checkElementVBOEnabled() { 
   initBufferObjectExtensionChecks();
-  checkBufferObject(haveGL15,
-                    haveARBVertexBufferObject,
-                    false,
+  checkBufferObject(true,
                     true,
                     GL.GL_ELEMENT_ARRAY_BUFFER,
                     "element vertex_buffer_object");
+}
+
+private void checkUnpackPBODisabled() { 
+  initBufferObjectExtensionChecks();
+  checkBufferObject(haveOESPixelBufferObject,
+                    false,
+                    GL2.GL_PIXEL_UNPACK_BUFFER,
+                    "unpack pixel_buffer_object");
+}
+
+private void checkUnpackPBOEnabled() { 
+  initBufferObjectExtensionChecks();
+  checkBufferObject(haveOESPixelBufferObject,
+                    true,
+                    GL2.GL_PIXEL_UNPACK_BUFFER,
+                    "unpack pixel_buffer_object");
+}
+
+private void checkPackPBODisabled() { 
+  initBufferObjectExtensionChecks();
+  checkBufferObject(haveOESPixelBufferObject,
+                    false,
+                    GL2.GL_PIXEL_PACK_BUFFER,
+                    "pack pixel_buffer_object");
+}
+
+private void checkPackPBOEnabled() { 
+  initBufferObjectExtensionChecks();
+  checkBufferObject(haveOESPixelBufferObject,
+                    true,
+                    GL2.GL_PIXEL_PACK_BUFFER,
+                    "pack pixel_buffer_object");
 }
 
 // Attempt to return the same ByteBuffer object from glMapBufferARB if

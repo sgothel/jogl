@@ -80,6 +80,7 @@ public abstract class GLContextImpl extends GLContext {
     if (shareWith != null) {
       GLContextShareSet.registerSharing(this, shareWith);
     }
+    GLContextShareSet.registerForBufferObjectSharing(shareWith, this);
     // This must occur after the above calls into the
     // GLContextShareSet, which set up state needed by the GL object
     setGL(createGL());
@@ -393,13 +394,6 @@ public abstract class GLContextImpl extends GLContext {
   
   public void setBufferSizeTracker(GLBufferSizeTracker bufferSizeTracker) {
     this.bufferSizeTracker = bufferSizeTracker;
-  }
-
-  public GLBufferSizeTracker getOrCreateBufferSizeTracker() {
-    if(null==bufferSizeTracker) {
-        bufferSizeTracker=new GLBufferSizeTracker();
-    }
-    return bufferSizeTracker;
   }
 
   public GLBufferSizeTracker getBufferSizeTracker() {

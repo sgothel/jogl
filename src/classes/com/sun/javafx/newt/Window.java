@@ -146,7 +146,9 @@ public abstract class Window implements NativeWindow
                     ", pos "+getX()+"/"+getY()+", size "+getWidth()+"x"+getHeight()+
                     ", visible "+isVisible()+
                     ", wrappedWindow "+getWrappedWindow()+
-                    ", terminalObject "+isTerminalObject()+"]";
+                    ", terminalObject "+isTerminalObject()+
+                    ", screen handle/index "+getScreenHandle()+"/"+getScreenIndex() +
+                    ", display handle "+getDisplayHandle()+ "]";
     }
 
     protected Screen screen;
@@ -186,6 +188,10 @@ public abstract class Window implements NativeWindow
     }
 
     public void invalidate() {
+        invalidate(false);
+    }
+
+    public void invalidate(boolean internal) {
         unlockSurface();
         screen   = null;
         visualID = 0;
@@ -207,15 +213,19 @@ public abstract class Window implements NativeWindow
     }
 
     public long getDisplayHandle() {
+        if(null==screen ||
+           null==screen.getDisplay()) {
+           return 0;
+        }
         return screen.getDisplay().getHandle();
     }
 
     public long getScreenHandle() {
-        return screen.getHandle();
+        return (null!=screen)?screen.getHandle():0;
     }
 
     public int  getScreenIndex() {
-        return screen.getIndex();
+        return (null!=screen)?screen.getIndex():0;
     }
 
     public long getWindowHandle() {

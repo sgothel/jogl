@@ -39,6 +39,7 @@ import com.sun.opengl.impl.*;
 public class WindowsWindow extends Window {
 
     private long hdc;
+    private long windowHandleClose;
 
     private static final String WINDOW_CLASS_NAME = "NewtWindow";
     static {
@@ -69,14 +70,19 @@ public class WindowsWindow extends Window {
         if (windowHandle == 0) {
             throw new RuntimeException("Error creating window");
         }
+        windowHandleClose = windowHandle;
     }
 
     protected void closeNative() {
         if (hdc != 0) {
-            ReleaseDC(windowHandle, hdc);
+            if(windowHandleClose != 0) {
+                ReleaseDC(windowHandleClose, hdc);
+            }
             hdc = 0;
         }
-        DestroyWindow(windowHandle);
+        if(windowHandleClose != 0) {
+            DestroyWindow(windowHandleClose);
+        }
     }
 
     public void setVisible(boolean visible) {

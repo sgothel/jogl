@@ -62,10 +62,14 @@ public class X11Window extends Window {
         if (w == 0 || w!=windowHandle) {
             throw new RuntimeException("Error creating window: "+w);
         }
+        windowHandleClose = windowHandle;
+        displayHandleClose = getDisplayHandle();
     }
 
     protected void closeNative() {
-        CloseWindow(getDisplayHandle(), windowHandle);
+        if(0!=displayHandleClose && 0!=windowHandleClose) {
+            CloseWindow(displayHandleClose, windowHandleClose);
+        }
     }
 
     public void setVisible(boolean visible) {
@@ -77,7 +81,7 @@ public class X11Window extends Window {
     }
 
     public void setSize(int width, int height) {
-        setSize0(getDisplayHandle(), windowHandle, width, height);
+        setSize0(getDisplayHandle(), windowHandle, width, height, 0, visible);
     }
 
     public void setPosition(int x, int y) {
@@ -99,7 +103,7 @@ public class X11Window extends Window {
                 h = nfs_height;
             }
             setPosition0(getDisplayHandle(), windowHandle, x, y);
-            setSize0(getDisplayHandle(), windowHandle, w, h);
+            setSize0(getDisplayHandle(), windowHandle, w, h, fullscreen?-1:1, visible);
         }
         return true;
     }
@@ -126,7 +130,7 @@ public class X11Window extends Window {
     private        native void CloseWindow(long display, long windowHandle);
     private        native void setVisible0(long display, long windowHandle, boolean visible);
     private        native void DispatchMessages(long display, long windowHandle, int eventMask);
-    private        native void setSize0(long display, long windowHandle, int width, int height);
+    private        native void setSize0(long display, long windowHandle, int width, int height, int decorationToggle, boolean isVisible);
     private        native void setPosition0(long display, long windowHandle, int x, int y);
     private        native int  getDisplayWidth0(long display, int scrn_idx);
     private        native int  getDisplayHeight0(long display, int scrn_idx);
@@ -162,4 +166,6 @@ public class X11Window extends Window {
     private void windowDestroyed() {
     }
 
+    private long   windowHandleClose;
+    private long   displayHandleClose;
 }

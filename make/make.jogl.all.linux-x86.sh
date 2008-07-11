@@ -2,7 +2,7 @@
 
 . ../../setenv-build-jogl.sh
 
-ant -v \
+ant \
     -Dgluegen.cpptasks.detected.os=true \
     -DisUnix=true \
     -DisLinux=true \
