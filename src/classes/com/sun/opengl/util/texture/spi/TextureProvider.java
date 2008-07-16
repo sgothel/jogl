@@ -37,10 +37,12 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.sun.opengl.util.texture;
+package com.sun.opengl.util.texture.spi;
 
 import java.io.*;
 import java.net.*;
+
+import com.sun.opengl.util.texture.*;
 
 /** Plug-in interface to TextureIO to support reading OpenGL textures
     from new file formats. For all methods, either internalFormat or

@@ -679,13 +679,13 @@ public class GL2TextureRenderer {
     }
 
     if (texture == null) {
-      texture = AWTTextureReader.newTexture(textureData);
+      texture = TextureIO.newTexture(textureData);
       if (mipmap && !texture.isUsingAutoMipmapGeneration()) {
         // Only try this once
         texture.dispose();
         mipmap = false;
         textureData.setMipmap(false);
-        texture = AWTTextureReader.newTexture(textureData);
+        texture = TextureIO.newTexture(textureData);
       }
 
       if (!smoothing) {
