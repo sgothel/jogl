@@ -37,7 +37,7 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.sun.opengl.impl.awt.packrect;
+package com.sun.opengl.impl.packrect;
 
 import java.util.*;
 

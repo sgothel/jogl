@@ -39,7 +39,7 @@
 package com.sun.opengl.util.awt.gl2;
 
 import com.sun.opengl.impl.*;
-import com.sun.opengl.impl.awt.packrect.*;
+import com.sun.opengl.impl.packrect.*;
 import com.sun.opengl.util.*;
 import com.sun.opengl.util.io.*;
 import com.sun.opengl.util.texture.*;

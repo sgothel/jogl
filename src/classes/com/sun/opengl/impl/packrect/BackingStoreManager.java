@@ -37,7 +37,7 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.sun.opengl.impl.awt.packrect;
+package com.sun.opengl.impl.packrect;
 
 /** This interface must be implemented by the end user and is called
     in response to events like addition of rectangles into the

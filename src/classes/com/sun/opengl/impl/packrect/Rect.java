@@ -37,7 +37,7 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.sun.opengl.impl.awt.packrect;
+package com.sun.opengl.impl.packrect;
 
 /** Represents a rectangular region on the backing store. The edges of
     the rectangle are the infinitely thin region between adjacent
