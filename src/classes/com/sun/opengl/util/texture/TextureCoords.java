@@ -46,34 +46,34 @@ package com.sun.opengl.util.texture;
     textured polygon and achieve correct results. */
 
 public class TextureCoords {
-  // These represent the lower-left point
-  private float left;
-  private float bottom;
-  // These represent the upper-right point
-  private float right;
-  private float top;
+    // These represent the lower-left point
+    private float left;
+    private float bottom;
+    // These represent the upper-right point
+    private float right;
+    private float top;
 
-  public TextureCoords(float left, float bottom,
-                       float right, float top) {
-    this.left = left;
-    this.bottom = bottom;
-    this.right = right;
-    this.top = top;
-  }
+    public TextureCoords(float left, float bottom,
+                         float right, float top) {
+        this.left = left;
+        this.bottom = bottom;
+        this.right = right;
+        this.top = top;
+    }
 
-  /** Returns the leftmost (x) texture coordinate of this
-      rectangle. */
-  public float left() { return left; }
+    /** Returns the leftmost (x) texture coordinate of this
+        rectangle. */
+    public float left() { return left; }
 
-  /** Returns the rightmost (x) texture coordinate of this
-      rectangle. */
-  public float right() { return right; }
+    /** Returns the rightmost (x) texture coordinate of this
+        rectangle. */
+    public float right() { return right; }
 
-  /** Returns the bottommost (y) texture coordinate of this
-      rectangle. */
-  public float bottom() { return bottom; }
+    /** Returns the bottommost (y) texture coordinate of this
+        rectangle. */
+    public float bottom() { return bottom; }
 
-  /** Returns the topmost (y) texture coordinate of this
-      rectangle. */
-  public float top() { return top; }
+    /** Returns the topmost (y) texture coordinate of this
+        rectangle. */
+    public float top() { return top; }
 }

@@ -47,11 +47,11 @@ import com.sun.opengl.util.texture.*;
     to new file formats. */
 
 public interface TextureWriter {
-  /** Writes the given TextureData to the passed file. Returns true if
-      this TextureWriter successfully handled the writing of the file,
-      otherwise false. May throw IOException if either this writer did
-      not support certain parameters of the TextureData or if an I/O
-      error occurred. */
-  public boolean write(File file,
-                       TextureData data) throws IOException;
+    /** Writes the given TextureData to the passed file. Returns true if
+        this TextureWriter successfully handled the writing of the file,
+        otherwise false. May throw IOException if either this writer did
+        not support certain parameters of the TextureData or if an I/O
+        error occurred. */
+    public boolean write(File file,
+                         TextureData data) throws IOException;
 }
