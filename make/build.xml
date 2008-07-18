@@ -148,7 +148,7 @@
                   value="com/sun/opengl/impl/egl/*"/>
 
         <property name="java.part.glugl2"
-                  value="com/sun/opengl/impl/glu/gl2/**, com/sun/opengl/impl/glu/nurbs/**, com/sun/opengl/impl/glu/registry/**, com/sun/opengl/impl/glu/tessellator/**, javax/media/opengl/glu/gl2/**"/>
+                  value="com/sun/opengl/impl/glu/gl2/**, com/sun/opengl/impl/glu/nurbs/**, com/sun/opengl/impl/glu/registry/**, javax/media/opengl/glu/gl2/**"/>
 
         <property name="java.part.gl2"
                   value="com/sun/opengl/impl/**/gl2/**, com/sun/opengl/impl/**/glx/**, com/sun/opengl/impl/**/wgl/**, com/sun/opengl/impl/**/cgl/**"/>
