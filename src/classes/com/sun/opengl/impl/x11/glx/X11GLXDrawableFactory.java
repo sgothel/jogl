@@ -178,7 +178,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
                                    final int initialHeight,
                                    final GLContext shareWith) {
     if (!canCreateGLPbuffer()) {
-      throw new GLException("Pbuffer support not available with current graphics card");
+      throw new GLUnsupportedException("Pbuffer support not available with current graphics card");
     }
     final List returnList = new ArrayList();
     final GLDrawableFactory factory = this;
@@ -340,7 +340,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
             glXExtensions.indexOf("GLX_NV_float_buffer") < 0) {
           throw new GLException("Floating-point pbuffers on X11 currently require NVidia hardware");
         }
-        res[idx++] = GLX.GLX_FLOAT_COMPONENTS_NV;
+        res[idx++] = GLXExt.GLX_FLOAT_COMPONENTS_NV;
         res[idx++] = GL.GL_TRUE;
       }
     }
@@ -413,7 +413,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
           caps.setNumSamples(ivalues[i]);
           break;
 
-        case GLX.GLX_FLOAT_COMPONENTS_NV:
+        case GLXExt.GLX_FLOAT_COMPONENTS_NV:
           caps.setPbufferFloatingPointBuffers(ivalues[i] != GL.GL_FALSE);
           break;
 

@@ -121,7 +121,7 @@ private void checkBufferObject(boolean avail,
   if (!avail) {
     if (!enabled)
       return;
-    throw new GLException("Required extensions not available to call this function");
+    throw new GLUnsupportedException("Required extensions not available to call this function");
   }
   int buffer = bufferStateTracker.getBoundBufferObject(state, this);
   if (enabled) {
@@ -230,7 +230,7 @@ private Map/*<ARBVBOKey, ByteBuffer>*/ arbVBOCache = new HashMap();
 public java.nio.ByteBuffer glMapBuffer(int target, int access) {
   final long __addr_ = ((GLES1ProcAddressTable)_context.getGLProcAddressTable())._addressof_glMapBuffer;
   if (__addr_ == 0) {
-    throw new GLException("Method \"glMapBuffer\" not available");
+    throw new GLUnsupportedException("Method \"glMapBuffer\" not available");
   }
   int sz = bufferSizeTracker.getBufferSize(bufferStateTracker,
                                            target,

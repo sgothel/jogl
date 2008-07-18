@@ -129,7 +129,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
                                    final int initialHeight,
                                    final GLContext shareWith) {
     if (!canCreateGLPbuffer()) {
-      throw new GLException("Pbuffer support not available with current graphics card");
+      throw new GLUnsupportedException("Pbuffer support not available with current graphics card");
     }
     final List returnList = new ArrayList();
     final GLDrawableFactory factory = this;

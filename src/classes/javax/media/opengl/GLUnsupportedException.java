@@ -37,61 +37,32 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.sun.opengl.impl.x11.glx;
+package javax.media.opengl;
 
-import javax.media.opengl.*;
-import com.sun.opengl.impl.*;
-import com.sun.opengl.impl.x11.*;
+/** A generic exception for OpenGL errors used throughout the binding
+    as a substitute for {@link UnsupportedOperationException}. */
 
-public class X11PbufferGLXContext extends X11GLXContext {
-  private X11PbufferGLXDrawable drawable;
-
-  public X11PbufferGLXContext(X11PbufferGLXDrawable drawable,
-                             GLContext shareWith) {
-    super(drawable, shareWith);
-    this.drawable = drawable;
+public class GLUnsupportedException extends UnsupportedOperationException {
+  /** Constructs a GLUnsupportedException object. */
+  public GLUnsupportedException() {
+    super();
   }
 
-  public void bindPbufferToTexture() {
-    // FIXME: figure out how to implement this
-    throw new GLUnsupportedException("Not yet implemented");
+  /** Constructs a GLUnsupportedException object with the specified detail
+      message. */
+  public GLUnsupportedException(String message) {
+    super(message);
   }
 
-  public void releasePbufferFromTexture() {
-    // FIXME: figure out how to implement this
-    throw new GLUnsupportedException("Not yet implemented");
+  /** Constructs a GLUnsupportedException object with the specified detail
+      message and root cause. */
+  public GLUnsupportedException(String message, Throwable cause) {
+    super(message, cause);
   }
 
-
-  public int getFloatingPointMode() {
-    return drawable.getFloatingPointMode();
-  }
-
-  protected void create() {
-    if (DEBUG) {
-      System.err.println("Creating context for pbuffer " + drawable.getWidth() +
-                         " x " + drawable.getHeight());
-    }
-
-    // Create a gl context for the p-buffer.
-    X11GLXContext other = (X11GLXContext) GLContextShareSet.getShareContext(this);
-    long share = 0;
-    if (other != null) {
-      share = other.getContext();
-      if (share == 0) {
-        throw new GLException("GLContextShareSet returned an invalid OpenGL context");
-      }
-    }
-    context = GLX.glXCreateNewContext(drawable.getNativeWindow().getDisplayHandle(), 
-                                      drawable.getFBConfig(), GLXExt.GLX_RGBA_TYPE, share, true);
-    if (context == 0) {
-      throw new GLException("pbuffer creation error: glXCreateNewContext() failed");
-    }
-    GLContextShareSet.contextCreated(this);
-
-    if (DEBUG) {
-      System.err.println("Created context for pbuffer " + drawable.getWidth() +
-                         " x " + drawable.getHeight());
-    }
+  /** Constructs a GLUnsupportedException object with the specified root
+      cause. */
+  public GLUnsupportedException(Throwable cause) {
+    super(cause);
   }
 }

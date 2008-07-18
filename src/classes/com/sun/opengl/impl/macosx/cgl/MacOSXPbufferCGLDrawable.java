@@ -117,7 +117,7 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
           // (undesirable) -- could maybe also do this with pbuffers
           /*
           if (!gl.isExtensionAvailable("GL_APPLE_float_pixels")) {
-        throw new GLException("Floating-point support (GL_APPLE_float_pixels) not available");
+        throw new GLUnsupportedException("Floating-point support (GL_APPLE_float_pixels) not available");
           }
           */
           if(GLProfile.isGL2()) {

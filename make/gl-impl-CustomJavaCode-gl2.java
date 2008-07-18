@@ -188,7 +188,7 @@ private void checkBufferObject(boolean extension1,
   if (!avail) {
     if (!enabled)
       return;
-    throw new GLException("Required extensions not available to call this function");
+    throw new GLUnsupportedException("Required extensions not available to call this function");
   }
   int buffer = bufferStateTracker.getBoundBufferObject(state, this);
   if (enabled) {
@@ -313,7 +313,7 @@ private Map/*<ARBVBOKey, ByteBuffer>*/ arbVBOCache = new HashMap();
 public java.nio.ByteBuffer glMapBuffer(int target, int access) {
   final long __addr_ = ((GL2ProcAddressTable)_context.getGLProcAddressTable())._addressof_glMapBuffer;
   if (__addr_ == 0) {
-    throw new GLException("Method \"glMapBuffer\" not available");
+    throw new GLUnsupportedException("Method \"glMapBuffer\" not available");
   }
   int sz = bufferSizeTracker.getBufferSize(bufferStateTracker,
                                            target,
@@ -336,4 +336,19 @@ public java.nio.ByteBuffer glMapBuffer(int target, int access) {
 
 /** Encapsulates function pointer for OpenGL function <br>: <code> LPVOID glMapBuffer(GLenum target, GLenum access); </code>    */
 native private long dispatch_glMapBuffer(int target, int access, long glProcAddress);
+
+  /** Dummy implementation for the ES 2.0 function: <br> <code> void {@native glShaderBinary}(GLint n, const GLuint *  shaders, GLenum binaryformat, const void *  binary, GLint length); </code>  <br> Always throws a GLException!  */
+  public void glShaderBinary(int n, java.nio.IntBuffer shaders, int binaryformat, java.nio.Buffer binary, int length) {
+    throw new GLUnsupportedException("Method \"glShaderBinary\" not available");
+  }
+
+  /** Dummy implementation for the ES 2.0 function: <br> <code> void {@native glShaderBinary}(GLint n, const GLuint *  shaders, GLenum binaryformat, const void *  binary, GLint length); </code>  <br> Always throws a GLException!  */
+  public void glShaderBinary(int n, int[] shaders, int shaders_offset, int binaryformat, java.nio.Buffer binary, int length) {
+    throw new GLUnsupportedException("Method \"glShaderBinary\" not available");
+  }
+
+  public void glReleaseShaderCompiler() {
+    // nothing to do 
+  }
+
 

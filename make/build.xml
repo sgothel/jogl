@@ -169,7 +169,7 @@
                   value="javax/media/opengl/TraceGLES2.*, javax/media/opengl/DebugGLES2.*"/>
 
         <property name="java.part.awt"
-                  value="javax/media/opengl/awt/**, javax/media/opengl/util/awt/**, com/sun/opengl/impl/awt/**, com/sun/opengl/impl/egl/awt/*"/>
+                  value="javax/media/opengl/awt/**, javax/media/opengl/util/awt/**, com/sun/opengl/impl/awt/**, com/sun/opengl/impl/egl/awt/*, com/sun/opengl/impl/packrect/*"/>
 
         <property name="java.part.util"
                   value="com/sun/opengl/util/io/**, com/sun/opengl/util/texture/**"/>

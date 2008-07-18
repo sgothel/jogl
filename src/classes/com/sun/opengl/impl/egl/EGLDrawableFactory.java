@@ -123,7 +123,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
 
     public GLDrawableImpl createOffscreenDrawable(GLCapabilities capabilities,
                                                   GLCapabilitiesChooser chooser) {
-        throw new GLException("Not yet implemented");
+        throw new GLUnsupportedException("Not yet implemented");
     }
 
     public boolean canCreateGLPbuffer() {
@@ -135,7 +135,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                                      final int initialWidth,
                                      final int initialHeight,
                                      final GLContext shareWith) {
-        throw new GLException("Pbuffer support not available on OpenGL ES");
+        throw new GLUnsupportedException("Pbuffer support not available on OpenGL ES");
     }
 
     public GLContext createExternalGLContext() {
@@ -147,7 +147,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     }
 
     public GLDrawable createExternalGLDrawable() {
-        throw new GLException("Not yet implemented");
+        throw new GLUnsupportedException("Not yet implemented");
     }
 
     public void loadGLULibrary() {
@@ -347,6 +347,6 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
 
     public GLContext createContextOnJava2DSurface(Object graphics, GLContext shareWith)
         throws GLException {
-        throw new GLException("Unimplemented on this platform");
+        throw new GLUnsupportedException("Unimplemented on this platform");
     }
 }

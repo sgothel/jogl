@@ -239,7 +239,7 @@ public abstract class GLContextImpl extends GLContext {
         } else if(GLProfile.isGLES1()) {
             clazzName="com.sun.opengl.impl.es2.GLES2"+suffix;
         } else {
-            throw new GLException("uncovered profile");
+            throw new GLUnsupportedException("uncovered profile");
         }
         return GLReflection.createInstance(clazzName, cstrArgTypes, cstrArgs);
     } catch (Exception e) {
@@ -369,7 +369,7 @@ public abstract class GLContextImpl extends GLContext {
       use. Returns one of GLPbuffer.APPLE_FLOAT, GLPbuffer.ATI_FLOAT,
       or GLPbuffer.NV_FLOAT. */
   public int getFloatingPointMode() throws GLException {
-    throw new GLException("Not supported on non-pbuffer contexts");
+    throw new GLUnsupportedException("Not supported on non-pbuffer contexts");
   }
 
   /** On some platforms the mismatch between OpenGL's coordinate

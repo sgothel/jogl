@@ -519,11 +519,13 @@ public class Texture {
             }
 
             try {
-                // FIXME: need to get rid of this cast
-                GLUgl2 glu = (GLUgl2) GLU.createGLU(gl);
-                glu.gluBuild2DMipmaps(texTarget, data.getInternalFormat(),
-                                      data.getWidth(), data.getHeight(),
-                                      data.getPixelFormat(), data.getPixelType(), data.getBuffer());
+                if(gl.isGL2()) {
+                    // FIXME: need to get rid of this cast
+                    GLUgl2 glu = (GLUgl2) GLU.createGLU();
+                    glu.gluBuild2DMipmaps(texTarget, data.getInternalFormat(),
+                                          data.getWidth(), data.getHeight(),
+                                          data.getPixelFormat(), data.getPixelType(), data.getBuffer());
+                }
             } finally {
                 gl.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, align[0]); // restore alignment
             }

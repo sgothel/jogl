@@ -171,7 +171,7 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
       // Pick innocent query values if multisampling or floating point buffers not available
       int sbAttrib      = ((X11GLXDrawableFactory)getFactory()).isMultisampleAvailable() ? GLXExt.GLX_SAMPLE_BUFFERS: GLX.GLX_RED_SIZE;
       int samplesAttrib = ((X11GLXDrawableFactory)getFactory()).isMultisampleAvailable() ? GLXExt.GLX_SAMPLES: GLX.GLX_RED_SIZE;
-      int floatNV       = getCapabilities().getPbufferFloatingPointBuffers() ? GLX.GLX_FLOAT_COMPONENTS_NV : GLX.GLX_RED_SIZE;
+      int floatNV       = getCapabilities().getPbufferFloatingPointBuffers() ? GLXExt.GLX_FLOAT_COMPONENTS_NV : GLX.GLX_RED_SIZE;
 
       // Query the fbconfig to determine its GLCapabilities
       int[] iattribs = {

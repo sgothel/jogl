@@ -327,7 +327,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
 
   public ByteBuffer glAllocateMemoryNV(int arg0, float arg1, float arg2, float arg3) {
     // FIXME: apparently the Apple extension doesn't require a custom memory allocator
-    throw new GLException("Not yet implemented");
+    throw new GLUnsupportedException("Not yet implemented");
   }
 
   public boolean isFunctionAvailable(String glFunctionName)

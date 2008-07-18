@@ -75,7 +75,7 @@ public class GLPbufferImpl implements GLPbuffer {
 
   public void setSize(int width, int height) {
     // FIXME
-    throw new GLException("Not yet implemented");
+    throw new GLUnsupportedException("Not yet implemented");
   }
 
   public NativeWindow getNativeWindow() {

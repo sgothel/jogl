@@ -115,7 +115,7 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
 
   public GLDrawable createExternalGLDrawable() {
     // FIXME
-    throw new GLException("Not yet implemented");
+    throw new GLUnsupportedException("Not yet implemented");
   }
 
   public void loadGLULibrary() {

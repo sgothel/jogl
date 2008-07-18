@@ -197,8 +197,8 @@ public class EGLContext extends GLContextImpl {
         return null;
     }
 
-    public void copy(GLContext source, int mask) throws GLException {
-        throw new GLException("Not yet implemented");
+    public void copy(GLContext source, int mask) throws GLUnsupportedException {
+        throw new GLUnsupportedException("Not yet implemented");
     }
 
     public void bindPbufferToTexture() {

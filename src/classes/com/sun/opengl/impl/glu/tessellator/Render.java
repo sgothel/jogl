@@ -297,7 +297,7 @@ class Render {
         int newState;
         int edgeState = -1;	/* force edge state output for first vertex */
 
-        tess.callBeginOrBeginData(GL2ES1.GL_TRIANGLES);
+        tess.callBeginOrBeginData(GL.GL_TRIANGLES);
 
         for (; f != null; f = f.trail) {
             /* Loop once for each edge (there will always be 3 edges) */
@@ -328,7 +328,7 @@ class Render {
              * edge "e".  The fan *should* contain exactly "size" triangles
              * (otherwise we've goofed up somewhere).
              */
-            tess.callBeginOrBeginData( GL2ES1.GL_TRIANGLE_FAN);
+            tess.callBeginOrBeginData( GL.GL_TRIANGLE_FAN);
             tess.callVertexOrVertexData( e.Org.data);
             tess.callVertexOrVertexData( e.Sym.Org.data);
 
@@ -350,7 +350,7 @@ class Render {
              * edge "e".  The strip *should* contain exactly "size" triangles
              * (otherwise we've goofed up somewhere).
              */
-            tess.callBeginOrBeginData( GL2ES1.GL_TRIANGLE_STRIP);
+            tess.callBeginOrBeginData( GL.GL_TRIANGLE_STRIP);
             tess.callVertexOrVertexData( e.Org.data);
             tess.callVertexOrVertexData( e.Sym.Org.data);
 
@@ -384,7 +384,7 @@ class Render {
 
         for (f = mesh.fHead.next; f != mesh.fHead; f = f.next) {
             if (f.inside) {
-                tess.callBeginOrBeginData( GL2ES1.GL_LINE_LOOP);
+                tess.callBeginOrBeginData( GL.GL_LINE_LOOP);
                 e = f.anEdge;
                 do {
                     tess.callVertexOrVertexData( e.Org.data);
@@ -536,9 +536,9 @@ class Render {
                     return true;
             }
 
-            tess.callBeginOrBeginData( tess.boundaryOnly ? GL2ES1.GL_LINE_LOOP
-                    : (tess.cacheCount > 3) ? GL2ES1.GL_TRIANGLE_FAN
-                    : GL2ES1.GL_TRIANGLES);
+            tess.callBeginOrBeginData( tess.boundaryOnly ? GL.GL_LINE_LOOP
+                    : (tess.cacheCount > 3) ? GL.GL_TRIANGLE_FAN
+                    : GL.GL_TRIANGLES);
 
             tess.callVertexOrVertexData( v[0].data);
             if (sign > 0) {

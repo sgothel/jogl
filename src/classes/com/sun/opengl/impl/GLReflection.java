@@ -48,12 +48,12 @@ public final class GLReflection {
     try {
         factoryClass = Class.forName(clazzName);
         if (factoryClass == null) {
-          throw new GLException(clazzName + " not available");
+          throw new GLUnsupportedException(clazzName + " not available");
         }
         try {
             factory = factoryClass.getDeclaredConstructor( cstrArgTypes );
         } catch(NoSuchMethodException nsme) {
-          throw new GLException("Constructor: '" + clazzName + "("+cstrArgTypes+")' not found");
+          throw new GLUnsupportedException("Constructor: '" + clazzName + "("+cstrArgTypes+")' not found");
         }
         return factory;
     } catch (Exception e) {
