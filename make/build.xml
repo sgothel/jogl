@@ -62,7 +62,6 @@
        jogl.noes2
        jogl.nogl2
        jogl.noAWT
-       jogl.noglugl2  - no glu gl2 impl.
        jogl.noutil    - no com.sun.opengl.util.*
        jogl.nonewt 
        jogl.noX11WindowsMacOsX, which implies:
@@ -147,6 +146,12 @@
         <property name="java.part.egl"
                   value="com/sun/opengl/impl/egl/*"/>
 
+        <property name="java.part.glutess"
+                  value="com/sun/opengl/impl/glu/tessellator/**"/>
+
+        <property name="java.part.glugl2es1"
+                  value="com/sun/opengl/impl/glu/GLUquadricImpl*, com/sun/opengl/impl/glu/mipmap/**"/>
+
         <property name="java.part.glugl2"
                   value="com/sun/opengl/impl/glu/gl2/**, com/sun/opengl/impl/glu/nurbs/**, com/sun/opengl/impl/glu/registry/**, javax/media/opengl/glu/gl2/**"/>
 
@@ -208,16 +213,8 @@
           </and>
         </condition>
 
-        <condition property="java.excludes.glugl2"
-                   value="${java.part.glugl2}">
-           <or>
-               <isset property="jogl.noglugl2"/> 
-               <isset property="jogl.nogl2"/> 
-           </or>
-        </condition>
-
         <condition property="java.excludes.gl2"
-                   value="${java.part.gl2}, ${java.part.gl2.dbg}, ${java.part.util.gl2}">
+                   value="${java.part.gl2}, ${java.part.gl2.dbg}, ${java.part.util.gl2}, ${java.part.glugl2}">
            <isset property="jogl.nogl2"/> 
         </condition>
 
@@ -433,6 +430,9 @@
         <property name="jogl.gles2.jar" value="${build}/jogl.gles2.jar" />
         <property name="jogl.gles2.dbg.jar" value="${build}/jogl.gles2.dbg.jar" />
         <property name="jogl.egl.jar" value="${build}/jogl.egl.jar" />
+        <property name="jogl.glutess.jar" value="${build}/jogl.glu.tess.jar" />
+        <property name="jogl.glugl2es1.jar" value="${build}/jogl.glu.gl2es1.jar" />
+        <property name="jogl.glugl2.jar"    value="${build}/jogl.glu.gl2.jar" />
         <property name="jogl.gl2.jar" value="${build}/jogl.gl2.jar" />
         <property name="jogl.gl2.dbg.jar" value="${build}/jogl.gl2.dbg.jar" />
         <property name="jogl.awt.jar" value="${build}/jogl.awt.jar" />
@@ -653,20 +653,20 @@
         </gluegen>
     </target> -->
 
-    <target name="java.generate.glu.If">
+    <target name="java.generate.glu.base">
         <echo message="Generating GLU class" />
         <gluegen src="${stub.includes.common}/glu.c" 
-                 config="${config}/glu-es1_if.cfg"
+                 config="${config}/glu-base.cfg"
                  includeRefid="stub.includes.fileset.all.gl2"
                  emitter="com.sun.gluegen.opengl.GLEmitter">
             <classpath refid="gluegen.classpath" />
         </gluegen>
     </target>
 
-    <target name="java.generate.glu.ES1" unless="jogl.noes1">
+    <target name="java.generate.glu.GL2ES1">
         <echo message="Generating GLU class" />
         <gluegen src="${stub.includes.common}/glu.c" 
-                 config="${config}/glu-es1.cfg"
+                 config="${config}/glu-gl2es1.cfg"
                  includeRefid="stub.includes.fileset.all.gl2"
                  emitter="com.sun.gluegen.opengl.GLEmitter">
             <classpath refid="gluegen.classpath" />
@@ -821,9 +821,9 @@
         <antcall target="java.generate.BufferUtil" inheritrefs="true" />
 
         <!-- Generate GLU class -->
-        <antcall target="java.generate.glu.If" inheritrefs="true" />
-        <antcall target="java.generate.glu.ES1" inheritrefs="true" />
-        <antcall target="java.generate.glu.GL2" inheritrefs="true" />
+        <antcall target="java.generate.glu.base"   inheritrefs="true" />
+        <antcall target="java.generate.glu.GL2ES1" inheritrefs="true" />
+        <antcall target="java.generate.glu.GL2"    inheritrefs="true" />
 
         <!-- Inform the user that the generators have successfully created 
            - the necessary Java files -->
@@ -1490,7 +1490,7 @@
         <jar manifest="tempversion" destfile="${jogl.core.jar}">
             <fileset dir="${classes}"
                      includes="javax/media/opengl/**, com/sun/gluegen/runtime/**, com/sun/opengl/**"
-                     excludes="${java.excludes.fixme} ${java.part.egl}, ${java.part.gl2}, ${java.part.gl2.dbg}, ${java.part.es1}, ${java.part.es1.dbg}, ${java.part.es2}, ${java.part.es2.dbg}, ${java.part.awt}, ${java.part.glugl2}, ${java.part.util} ${java.part.util.awt} ${java.part.util.gl2}, ${java.part.oswin}, ${java.part.newt}, ${java.part.newt.awt}"/>
+                     excludes="${java.excludes.fixme} ${java.part.egl}, ${java.part.gl2}, ${java.part.gl2.dbg}, ${java.part.es1}, ${java.part.es1.dbg}, ${java.part.es2}, ${java.part.es2.dbg}, ${java.part.awt}, ${java.part.glutess}, ${java.part.glugl2es1}, ${java.part.glugl2}, ${java.part.util} ${java.part.util.awt} ${java.part.util.gl2}, ${java.part.oswin}, ${java.part.newt}, ${java.part.newt.awt}"/>
         </jar>
         <jar manifest="tempversion" destfile="${jogl.gles1.jar}">
             <fileset dir="${classes}"
@@ -1517,12 +1517,24 @@
         </jar>
         <jar manifest="tempversion" destfile="${jogl.gl2.jar}">
             <fileset dir="${classes}"
-                     includes="${java.part.gl2} ${java.part.glugl2}"
-                     excludes="${java.part.gl2.dbg}"/>
+                     includes="${java.part.gl2}"
+                     excludes="${java.part.gl2.dbg}, ${java.part.glugl2}"/>
         </jar>
         <jar manifest="tempversion" destfile="${jogl.gl2.dbg.jar}">
             <fileset dir="${classes}"
                      includes="${java.part.gl2.dbg}"/>
+        </jar>
+        <jar manifest="tempversion" destfile="${jogl.glutess.jar}">
+            <fileset dir="${classes}"
+                     includes="${java.part.glutess}"/>
+        </jar>
+        <jar manifest="tempversion" destfile="${jogl.glugl2es1.jar}">
+            <fileset dir="${classes}"
+                     includes="${java.part.glugl2es1}"/>
+        </jar>
+        <jar manifest="tempversion" destfile="${jogl.glugl2.jar}">
+            <fileset dir="${classes}"
+                     includes="${java.part.glugl2}"/>
         </jar>
         <jar manifest="tempversion" destfile="${jogl.awt.jar}">
             <fileset dir="${classes}"

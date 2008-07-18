@@ -81,18 +81,23 @@ public static final GLU createGLU() throws GLException {
 }
 
 public static final GLU createGLU(String profile) throws GLUnsupportedException {
-  GLU glu = null;
-  String clazzName;
-  if(GLProfile.GL2.equals(profile)) {
-    clazzName="javax.media.opengl.glu.gl2.GLUgl2";
-  } else if(GLProfile.GLES1.equals(profile)) {
-    clazzName="javax.media.opengl.glu.es1.GLUes1";
-  } else if(GLProfile.GLES2.equals(profile)) {
-    clazzName="javax.media.opengl.glu.GLU";
-  } else {
-    throw new GLUnsupportedException("GLU not supported for GL profile: "+profile);
-  }
-  return (GLU) GLReflection.createInstance(clazzName);
+  try {
+      if(GLProfile.GL2.equals(profile)) {
+        return (GLU) GLReflection.createInstance("javax.media.opengl.glu.gl2.GLUgl2");
+      } 
+  } catch (GLUnsupportedException e) { System.out.println(e); }
+  try {
+      if(GLProfile.GL2.equals(profile) || GLProfile.GLES1.equals(profile)) {
+        return (GLU) GLReflection.createInstance("javax.media.opengl.glu.gl2es1.GLUgl2es1");
+      } 
+  } catch (GLUnsupportedException e) { System.out.println(e); }
+  try {
+      if(GLProfile.GL2.equals(profile) || GLProfile.GLES2.equals(profile)) {
+        return (GLU) GLReflection.createInstance("javax.media.opengl.glu.gl2es2.GLUgl2es2");
+      } 
+  } catch (GLUnsupportedException e) { System.out.println(e); }
+
+  return new GLU();
 }
 
 public static final GL getCurrentGL() throws GLException {
@@ -107,11 +112,26 @@ public static final GL getCurrentGL() throws GLException {
 // Tessellation routines
 //
 
+protected static boolean availableGLUtessellatorImpl = false;
+protected static boolean checkedGLUtessellatorImpl = false;
+
+protected static final void validateGLUtessellatorImpl() {
+    if(!checkedGLUtessellatorImpl) {
+        availableGLUtessellatorImpl = GLReflection.isClassAvailable("com.sun.opengl.impl.glu.tessellator.GLUtessellatorImpl");
+        checkedGLUtessellatorImpl = true;
+    }
+    if(!availableGLUtessellatorImpl) {
+      throw new GLUnsupportedException("GLUtessellator not available (GLUtessellatorImpl)");
+    }
+}
+
 /*****************************************************************************
  * <b>gluNewTess</b> creates and returns a new tessellation object.  This
  * object must be referred to when calling tesselation methods.  A return
  * value of null means that there was not enough memeory to allocate the
  * object.
+ *
+ * Optional, throws GLUnsupportedException if not available in profile
  *
  * @return A new tessellation object.
  *
@@ -119,13 +139,16 @@ public static final GL getCurrentGL() throws GLException {
  * @see #gluDeleteTess       gluDeleteTess
  * @see #gluTessCallback     gluTessCallback
  ****************************************************************************/
-public final GLUtessellator gluNewTess() {
+public static final GLUtessellator gluNewTess() {
+    validateGLUtessellatorImpl();
     return GLUtessellatorImpl.gluNewTess();
 }
 
 /*****************************************************************************
  * <b>gluDeleteTess</b> destroys the indicated tessellation object (which was
  * created with {@link #gluNewTess gluNewTess}).
+ *
+ * Optional, throws GLUnsupportedException if not available in profile
  *
  * @param tessellator
  *        Specifies the tessellation object to destroy.
@@ -134,7 +157,8 @@ public final GLUtessellator gluNewTess() {
  * @see #gluNewTess      gluNewTess
  * @see #gluTessCallback gluTessCallback
  ****************************************************************************/
-public final void gluDeleteTess(GLUtessellator tessellator) {
+public static final void gluDeleteTess(GLUtessellator tessellator) {
+    validateGLUtessellatorImpl();
     GLUtessellatorImpl tess = (GLUtessellatorImpl) tessellator;
     tess.gluDeleteTess();
 }
@@ -144,6 +168,8 @@ public final void gluDeleteTess(GLUtessellator tessellator) {
  * tessellation object.  These properties affect the way that the polygons are
  * interpreted and rendered.  The legal value for <i>which</i> are as
  * follows:<P>
+ *
+ * Optional, throws GLUnsupportedException if not available in profile
  *
  * <b>GLU_TESS_WINDING_RULE</b>
  * <UL>
@@ -216,7 +242,8 @@ public final void gluDeleteTess(GLUtessellator tessellator) {
  * @see #gluGetTessProperty gluGetTessProperty
  * @see #gluNewTess         gluNewTess
  ****************************************************************************/
-public final void gluTessProperty(GLUtessellator tessellator, int which, double value) {
+public static final void gluTessProperty(GLUtessellator tessellator, int which, double value) {
+    validateGLUtessellatorImpl();
     GLUtessellatorImpl tess = (GLUtessellatorImpl) tessellator;
     tess.gluTessProperty(which, value);
 }
@@ -227,6 +254,8 @@ public final void gluTessProperty(GLUtessellator tessellator, int which, double 
  * interpreted and rendered.  See the
  * {@link #gluTessProperty gluTessProperty} reference
  * page for information about the properties and what they do.
+ *
+ * Optional, throws GLUnsupportedException if not available in profile
  *
  * @param tessellator
  *        Specifies the tessellation object (created with
@@ -242,7 +271,8 @@ public final void gluTessProperty(GLUtessellator tessellator, int which, double 
  * @see #gluNewTess      gluNewTess
  * @see #gluTessProperty gluTessProperty
  ****************************************************************************/
-public final void gluGetTessProperty(GLUtessellator tessellator, int which, double[] value, int value_offset) {
+public static final void gluGetTessProperty(GLUtessellator tessellator, int which, double[] value, int value_offset) {
+    validateGLUtessellatorImpl();
     GLUtessellatorImpl tess = (GLUtessellatorImpl) tessellator;
     tess.gluGetTessProperty(which, value, value_offset);
 }
@@ -268,6 +298,8 @@ public final void gluGetTessProperty(GLUtessellator tessellator, int which, doub
  * The supplied normal persists until it is changed by another call to
  * <b>gluTessNormal</b>.
  *
+ * Optional, throws GLUnsupportedException if not available in profile
+ *
  * @param tessellator
  *        Specifies the tessellation object (created by
  *        {@link #gluNewTess gluNewTess}).
@@ -281,7 +313,8 @@ public final void gluGetTessProperty(GLUtessellator tessellator, int which, doub
  * @see #gluTessBeginPolygon gluTessBeginPolygon
  * @see #gluTessEndPolygon   gluTessEndPolygon
  ****************************************************************************/
-public final void gluTessNormal(GLUtessellator tessellator, double x, double y, double z) {
+public static final void gluTessNormal(GLUtessellator tessellator, double x, double y, double z) {
+    validateGLUtessellatorImpl();
     GLUtessellatorImpl tess = (GLUtessellatorImpl) tessellator;
     tess.gluTessNormal(x, y, z);
 }
@@ -291,6 +324,8 @@ public final void gluTessNormal(GLUtessellator tessellator, double x, double y, 
  * tessellation object. If the specified callback is already defined, then it
  * is replaced. If <i>aCallback</i> is null, then the existing callback
  * becomes undefined.<P>
+ *
+ * Optional, throws GLUnsupportedException if not available in profile
  *
  * These callbacks are used by the tessellation object to describe how a
  * polygon specified by the user is broken into triangles. Note that there are
@@ -564,7 +599,8 @@ public final void gluTessNormal(GLUtessellator tessellator, double x, double y, 
  * @see #gluTessProperty     gluTessProperty
  * @see #gluTessNormal       gluTessNormal
  ****************************************************************************/
-public final void gluTessCallback(GLUtessellator tessellator, int which, GLUtessellatorCallback aCallback) {
+public static final void gluTessCallback(GLUtessellator tessellator, int which, GLUtessellatorCallback aCallback) {
+    validateGLUtessellatorImpl();
     GLUtessellatorImpl tess = (GLUtessellatorImpl) tessellator;
     tess.gluTessCallback(which, aCallback);
 }
@@ -576,6 +612,8 @@ public final void gluTessCallback(GLUtessellator tessellator, int which, GLUtess
  * called four times. <b>gluTessVertex</b> can only be called between
  * {@link #gluTessBeginContour gluTessBeginContour} and
  * {@link #gluTessBeginContour gluTessEndContour}.<P>
+ *
+ * Optional, throws GLUnsupportedException if not available in profile
  *
  * <b>data</b> normally references to a structure containing the vertex
  * location, as well as other per-vertex attributes such as color and normal.
@@ -602,7 +640,8 @@ public final void gluTessCallback(GLUtessellator tessellator, int which, GLUtess
  * @see #gluTessNormal       gluTessNormal
  * @see #gluTessEndPolygon   gluTessEndPolygon
  ****************************************************************************/
-public final void gluTessVertex(GLUtessellator tessellator, double[] coords, int coords_offset, Object data) {
+public static final void gluTessVertex(GLUtessellator tessellator, double[] coords, int coords_offset, Object data) {
+    validateGLUtessellatorImpl();
     GLUtessellatorImpl tess = (GLUtessellatorImpl) tessellator;
     tess.gluTessVertex(coords, coords_offset, data);
 }
@@ -623,6 +662,8 @@ public final void gluTessVertex(GLUtessellator tessellator, double[] coords, int
  * gluTessVertex}, {@link #gluTessBeginContour
  * gluTessBeginContour}, and {@link #gluTessEndContour
  * gluTessEndContour} reference pages for more details.<P>
+ *
+ * Optional, throws GLUnsupportedException if not available in profile
  *
  * <b>data</b> is a reference to a user-defined data structure. If the
  * appropriate callback(s) are specified (see
@@ -650,7 +691,8 @@ public final void gluTessVertex(GLUtessellator tessellator, double[] coords, int
  * @see #gluTessNormal       gluTessNormal
  * @see #gluTessEndPolygon   gluTessEndPolygon
  ****************************************************************************/
-public final void gluTessBeginPolygon(GLUtessellator tessellator, Object data) {
+public static final void gluTessBeginPolygon(GLUtessellator tessellator, Object data) {
+    validateGLUtessellatorImpl();
     GLUtessellatorImpl tess = (GLUtessellatorImpl) tessellator;
     tess.gluTessBeginPolygon(data);
 }
@@ -670,6 +712,8 @@ public final void gluTessBeginPolygon(GLUtessellator tessellator, Object data) {
  * {@link #gluTessBeginPolygon gluTessBeginPolygon} and
  * {@link #gluTessEndPolygon gluTessEndPolygon}.
  *
+ * Optional, throws GLUnsupportedException if not available in profile
+ *
  * @param tessellator
  *        Specifies the tessellation object (created with
  *        {@link #gluNewTess gluNewTess}).
@@ -682,7 +726,8 @@ public final void gluTessBeginPolygon(GLUtessellator tessellator, Object data) {
  * @see #gluTessNormal       gluTessNormal
  * @see #gluTessEndPolygon   gluTessEndPolygon
  ****************************************************************************/
-public final void gluTessBeginContour(GLUtessellator tessellator) {
+public static final void gluTessBeginContour(GLUtessellator tessellator) {
+    validateGLUtessellatorImpl();
     GLUtessellatorImpl tess = (GLUtessellatorImpl) tessellator;
     tess.gluTessBeginContour();
 }
@@ -702,6 +747,8 @@ public final void gluTessBeginContour(GLUtessellator tessellator) {
  * gluTessBeginPolygon} and
  * {@link #gluTessEndPolygon gluTessEndPolygon}.
  *
+ * Optional, throws GLUnsupportedException if not available in profile
+ *
  * @param tessellator
  *        Specifies the tessellation object (created with
  *        {@link #gluNewTess gluNewTess}).
@@ -714,7 +761,8 @@ public final void gluTessBeginContour(GLUtessellator tessellator) {
  * @see #gluTessNormal       gluTessNormal
  * @see #gluTessEndPolygon   gluTessEndPolygon
  ****************************************************************************/
-public final void gluTessEndContour(GLUtessellator tessellator) {
+public static final void gluTessEndContour(GLUtessellator tessellator) {
+    validateGLUtessellatorImpl();
     GLUtessellatorImpl tess = (GLUtessellatorImpl) tessellator;
     tess.gluTessEndContour();
 }
@@ -735,6 +783,8 @@ public final void gluTessEndContour(GLUtessellator tessellator) {
  * gluTessBeginContour} and {@link #gluTessEndContour
  * gluTessEndContour} reference pages for more details.<P>
  *
+ * Optional, throws GLUnsupportedException if not available in profile
+ *
  * Once <b>gluTessEndPolygon</b> is called, the polygon is tessellated, and
  * the resulting triangles are described through callbacks. See
  * {@link #gluTessCallback gluTessCallback} for
@@ -752,7 +802,8 @@ public final void gluTessEndContour(GLUtessellator tessellator) {
  * @see #gluTessNormal       gluTessNormal
  * @see #gluTessBeginPolygon gluTessBeginPolygon
  ****************************************************************************/
-public final void gluTessEndPolygon(GLUtessellator tessellator) {
+public static final void gluTessEndPolygon(GLUtessellator tessellator) {
+    validateGLUtessellatorImpl();
     GLUtessellatorImpl tess = (GLUtessellatorImpl) tessellator;
     tess.gluTessEndPolygon();
 }
@@ -769,7 +820,8 @@ public final void gluTessEndPolygon(GLUtessellator tessellator) {
  * definition. See the {@link #gluTessVertex gluTessVertex} and {@link
  * #gluNextContour gluNextContour} reference pages for more
  * details.<P>
-
+ *
+ * Optional, throws GLUnsupportedException if not available in profile
  *
  * Once {@link #gluEndPolygon gluEndPolygon} is called,
  * the polygon is tessellated, and the resulting triangles are described
@@ -787,7 +839,8 @@ public final void gluTessEndPolygon(GLUtessellator tessellator) {
  * @see #gluTessBeginPolygon gluTessBeginPolygon
  * @see #gluTessBeginContour gluTessBeginContour
  ****************************************************************************/
-public final void gluBeginPolygon(GLUtessellator tessellator) {
+public static final void gluBeginPolygon(GLUtessellator tessellator) {
+    validateGLUtessellatorImpl();
     GLUtessellatorImpl tess = (GLUtessellatorImpl) tessellator;
     tess.gluBeginPolygon();
 }
@@ -801,6 +854,8 @@ public final void gluBeginPolygon(GLUtessellator tessellator) {
  * {@link #gluTessVertex gluTessVertex} calls to
  * describe the new contour. Repeat this process until all contours have been
  * described.<P>
+ *
+ * Optional, throws GLUnsupportedException if not available in profile
  *
  * The type parameter defines what type of contour follows. The following
  * values are valid. <P>
@@ -858,7 +913,8 @@ public final void gluBeginPolygon(GLUtessellator tessellator) {
  * @see #gluTessEndContour   gluTessEndContour
  * @see #gluTessVertex       gluTessVertex
  ****************************************************************************/
-public final void gluNextContour(GLUtessellator tessellator, int type) {
+public static final void gluNextContour(GLUtessellator tessellator, int type) {
+    validateGLUtessellatorImpl();
     GLUtessellatorImpl tess = (GLUtessellatorImpl) tessellator;
     tess.gluNextContour(type);
 }
@@ -874,6 +930,8 @@ public final void gluNextContour(GLUtessellator tessellator, int type) {
  * the definition. See the {@link #gluTessVertex
  * gluTessVertex} and {@link #gluNextContour
  * gluNextContour} reference pages for more details.<P>
+ *
+ * Optional, throws GLUnsupportedException if not available in profile
  *
  * Once <b>gluEndPolygon</b> is called, the polygon is tessellated, and the
  * resulting triangles are described through callbacks. See
@@ -891,7 +949,8 @@ public final void gluNextContour(GLUtessellator tessellator, int type) {
  * @see #gluTessBeginPolygon gluTessBeginPolygon
  * @see #gluTessBeginContour gluTessBeginContour
  ****************************************************************************/
-public final void gluEndPolygon(GLUtessellator tessellator) {
+public static final void gluEndPolygon(GLUtessellator tessellator) {
+    validateGLUtessellatorImpl();
     GLUtessellatorImpl tess = (GLUtessellatorImpl) tessellator;
     tess.gluEndPolygon();
 }
@@ -1194,39 +1253,60 @@ public void gluPickMatrix(double x, double y, double delX, double delY, IntBuffe
     throw new GLUnsupportedException("not implemented");
 }
 
+/**
+ * Optional, throws GLUnsupportedException if not available in profile
+ */
 public int gluScaleImage( int format, int widthin, int heightin,
                                int typein, java.nio.Buffer datain, int widthout, int heightout,
                                int typeout, java.nio.Buffer dataout ) {
     throw new GLUnsupportedException("not implemented");
 }
 
+/**
+ * Optional, throws GLUnsupportedException if not available in profile
+ */
 public int gluBuild1DMipmapLevels( int target, int internalFormat, int width,
                                         int format, int type, int userLevel, int baseLevel, int maxLevel,
                                         java.nio.Buffer data ) {
     throw new GLUnsupportedException("not implemented");
 }
+/**
+ * Optional, throws GLUnsupportedException if not available in profile
+ */
 public int gluBuild1DMipmaps( int target, int internalFormat, int width,
                                    int format, int type, java.nio.Buffer data ) {
     throw new GLUnsupportedException("not implemented");
 }
 
+/**
+ * Optional, throws GLUnsupportedException if not available in profile
+ */
 public int gluBuild2DMipmapLevels( int target, int internalFormat, int width,
                                         int height, int format, int type, int userLevel, int baseLevel,
                                         int maxLevel, java.nio.Buffer data ) {
     throw new GLUnsupportedException("not implemented");
 }
 
+/**
+ * Optional, throws GLUnsupportedException if not available in profile
+ */
 public int gluBuild2DMipmaps( int target, int internalFormat, int width,
                                    int height, int format, int type, java.nio.Buffer data ) {
     throw new GLUnsupportedException("not implemented");
 }
 
+/**
+ * Optional, throws GLUnsupportedException if not available in profile
+ */
 public int gluBuild3DMipmapLevels( int target, int internalFormat, int width,
                                         int height, int depth, int format, int type, int userLevel, int baseLevel,
                                         int maxLevel, java.nio.Buffer data) {
     throw new GLUnsupportedException("not implemented");
 }
 
+/**
+ * Optional, throws GLUnsupportedException if not available in profile
+ */
 public int gluBuild3DMipmaps( int target, int internalFormat, int width,
                                    int height, int depth, int format, int type, java.nio.Buffer data ) {
     throw new GLUnsupportedException("not implemented");

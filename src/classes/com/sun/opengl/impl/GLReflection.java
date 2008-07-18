@@ -41,6 +41,16 @@ import javax.media.opengl.*;
 
 public final class GLReflection {
 
+  public static final boolean isClassAvailable(String clazzName) {
+    try {
+        Class clazz = Class.forName(clazzName);
+        if (null!=clazz) {
+            return true;
+        }
+    } catch (Exception e) { }
+    return false;
+  }
+
   public static final Constructor getConstructor(String clazzName, Class[] cstrArgTypes) {
     Class factoryClass = null;
     Constructor factory = null;
@@ -57,7 +67,7 @@ public final class GLReflection {
         }
         return factory;
     } catch (Exception e) {
-      throw new GLException(e);
+      throw new GLUnsupportedException(e);
     }
   }
 
@@ -72,7 +82,7 @@ public final class GLReflection {
         factory = getConstructor(clazzName, cstrArgTypes);
         return factory.newInstance( cstrArgs ) ;
     } catch (Exception e) {
-      throw new GLException(e);
+      throw new GLUnsupportedException(e);
     }
   }
 

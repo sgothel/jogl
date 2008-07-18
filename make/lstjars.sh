@@ -65,6 +65,10 @@ echo JOGL GL2 OSWIN with AWT
 report jogl.core.jar jogl.oswin.jar jogl.gl2.jar jogl.awt.jar obj/tmp/libjogl_gl2.so.gz obj/tmp/libjogl_awt.so.gz
 echo
 
+echo JOGL GLU
+report jogl.glu.*jar
+echo
+
 echo JOGL EVERYTHING
 report jogl.all.jar
 echo

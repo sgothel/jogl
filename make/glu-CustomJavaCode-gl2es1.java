@@ -31,7 +31,7 @@ static {
  * simultaneously.
  */
 
-public GLUes1()
+public GLUgl2es1()
 {
   this.project = new ProjectFloat();
 }
@@ -78,52 +78,79 @@ public String gluGetString(int name) {
 // Quadric functionality
 //
 
-/** Interface to C language function: <br> <code> void gluCylinder(GLUquadric *  quad, GLdouble base, GLdouble top, GLdouble height, GLint slices, GLint stacks); </code>    */
+protected static boolean availableGLUquadricImpl = false;
+protected static boolean checkedGLUquadricImpl = false;
+
+/**
+ * Optional, throws GLUnsupportedException if not available in profile
+ */
+protected static final void validateGLUquadricImpl() {
+    if(!checkedGLUquadricImpl) {
+        availableGLUquadricImpl = GLReflection.isClassAvailable("com.sun.opengl.impl.glu.GLUquadricImpl");
+        checkedGLUquadricImpl = true;
+    }
+    if(!availableGLUquadricImpl) {
+      throw new GLUnsupportedException("GLUquadric not available (GLUquadricImpl)");
+    }
+}
+
+
+/** Option (throws GLUnsupportedException if not available in profile). <br> Interface to C language function: <br> <code> void gluCylinder(GLUquadric *  quad, GLdouble base, GLdouble top, GLdouble height, GLint slices, GLint stacks); </code>    */
 public final void gluCylinder(GLUquadric quad, double base, double top, double height, int slices, int stacks) {
+  validateGLUquadricImpl();
   ((GLUquadricImpl) quad).drawCylinder(getCurrentGL2ES1(), (float) base, (float) top, (float) height, slices, stacks);
 }
 
-/** Interface to C language function: <br> <code> void gluDeleteQuadric(GLUquadric *  quad); </code>    */
+/** Option (throws GLUnsupportedException if not available in profile). <br> Interface to C language function: <br> <code> void gluDeleteQuadric(GLUquadric *  quad); </code>    */
 public final void gluDeleteQuadric(GLUquadric quad) {
+  validateGLUquadricImpl();
 }
 
-/** Interface to C language function: <br> <code> void gluDisk(GLUquadric *  quad, GLdouble inner, GLdouble outer, GLint slices, GLint loops); </code>    */
+/** Option (throws GLUnsupportedException if not available in profile). <br> Interface to C language function: <br> <code> void gluDisk(GLUquadric *  quad, GLdouble inner, GLdouble outer, GLint slices, GLint loops); </code>    */
 public final void gluDisk(GLUquadric quad, double inner, double outer, int slices, int loops) {
+  validateGLUquadricImpl();
   ((GLUquadricImpl) quad).drawDisk(getCurrentGL2ES1(), (float) inner, (float) outer, slices, loops);
 }
 
-/** Interface to C language function: <br> <code> GLUquadric *  gluNewQuadric(void); </code>    */
+/** Option (throws GLUnsupportedException if not available in profile). <br> Interface to C language function: <br> <code> GLUquadric *  gluNewQuadric(void); </code>    */
 public final GLUquadric gluNewQuadric() {
+  validateGLUquadricImpl();
   return new GLUquadricImpl();
 }
 
-/** Interface to C language function: <br> <code> void gluPartialDisk(GLUquadric *  quad, GLdouble inner, GLdouble outer, GLint slices, GLint loops, GLdouble start, GLdouble sweep); </code>    */
+/** Option (throws GLUnsupportedException if not available in profile). <br> Interface to C language function: <br> <code> void gluPartialDisk(GLUquadric *  quad, GLdouble inner, GLdouble outer, GLint slices, GLint loops, GLdouble start, GLdouble sweep); </code>    */
 public final void gluPartialDisk(GLUquadric quad, double inner, double outer, int slices, int loops, double start, double sweep) {
+  validateGLUquadricImpl();
   ((GLUquadricImpl) quad).drawPartialDisk(getCurrentGL2ES1(), (float) inner, (float) outer, slices, loops, (float) start, (float) sweep);
 }
 
-/** Interface to C language function: <br> <code> void gluQuadricDrawStyle(GLUquadric *  quad, GLenum draw); </code>    */
+/** Option (throws GLUnsupportedException if not available in profile). <br> Interface to C language function: <br> <code> void gluQuadricDrawStyle(GLUquadric *  quad, GLenum draw); </code>    */
 public final void gluQuadricDrawStyle(GLUquadric quad, int draw) {
+  validateGLUquadricImpl();
   ((GLUquadricImpl) quad).setDrawStyle(draw);
 }
 
-/** Interface to C language function: <br> <code> void gluQuadricNormals(GLUquadric *  quad, GLenum normal); </code>    */
+/** Option (throws GLUnsupportedException if not available in profile). <br> Interface to C language function: <br> <code> void gluQuadricNormals(GLUquadric *  quad, GLenum normal); </code>    */
 public final void gluQuadricNormals(GLUquadric quad, int normal) {
+  validateGLUquadricImpl();
   ((GLUquadricImpl) quad).setNormals(normal);
 }
 
-/** Interface to C language function: <br> <code> void gluQuadricOrientation(GLUquadric *  quad, GLenum orientation); </code>    */
+/** Option (throws GLUnsupportedException if not available in profile). <br> Interface to C language function: <br> <code> void gluQuadricOrientation(GLUquadric *  quad, GLenum orientation); </code>    */
 public final void gluQuadricOrientation(GLUquadric quad, int orientation) {
+  validateGLUquadricImpl();
   ((GLUquadricImpl) quad).setOrientation(orientation);
 }
 
-/** Interface to C language function: <br> <code> void gluQuadricTexture(GLUquadric *  quad, GLboolean texture); </code>    */
+/** Option (throws GLUnsupportedException if not available in profile). <br> Interface to C language function: <br> <code> void gluQuadricTexture(GLUquadric *  quad, GLboolean texture); </code>    */
 public final void gluQuadricTexture(GLUquadric quad, boolean texture) {
+  validateGLUquadricImpl();
   ((GLUquadricImpl) quad).setTextureFlag(texture);
 }
 
-/** Interface to C language function: <br> <code> void gluSphere(GLUquadric *  quad, GLdouble radius, GLint slices, GLint stacks); </code>    */
+/** Option (throws GLUnsupportedException if not available in profile). <br> Interface to C language function: <br> <code> void gluSphere(GLUquadric *  quad, GLdouble radius, GLint slices, GLint stacks); </code>    */
 public final void gluSphere(GLUquadric quad, double radius, int slices, int stacks) {
+  validateGLUquadricImpl();
   ((GLUquadricImpl) quad).drawSphere(getCurrentGL2ES1(), (float) radius, slices, stacks);
 }
 
@@ -239,6 +266,19 @@ public final void gluPickMatrix(double x, double y, double delX, double delY, In
 //----------------------------------------------------------------------
 // Mipmap and image scaling functionality
 
+protected static boolean availableMipmap = false;
+protected static boolean checkedMipmap = false;
+
+protected static final void validateMipmap() {
+    if(!checkedMipmap) {
+        availableMipmap = GLReflection.isClassAvailable("com.sun.opengl.impl.glu.mipmap.Mipmap");
+        checkedMipmap = true;
+    }
+    if(!availableMipmap) {
+      throw new GLUnsupportedException("Mipmap not available");
+    }
+}
+
 private final java.nio.ByteBuffer copyToByteBuffer(java.nio.Buffer buf) {
   if (buf instanceof java.nio.ByteBuffer) {
     if (buf.position() == 0) {
@@ -256,9 +296,13 @@ private final java.nio.ByteBuffer copyToByteBuffer(java.nio.Buffer buf) {
   }
 }
 
+/**
+ * Optional, throws GLUnsupportedException if not available in profile
+ */
 public final int gluScaleImage( int format, int widthin, int heightin,
                                int typein, java.nio.Buffer datain, int widthout, int heightout,
                                int typeout, java.nio.Buffer dataout ) {
+  validateMipmap();
   java.nio.ByteBuffer in = null;
   java.nio.ByteBuffer out = null;
   in = copyToByteBuffer(datain);
@@ -293,50 +337,74 @@ public final int gluScaleImage( int format, int widthin, int heightin,
 }
 
 
+/**
+ * Optional, throws GLUnsupportedException if not available in profile
+ */
 public final int gluBuild1DMipmapLevels( int target, int internalFormat, int width,
                                         int format, int type, int userLevel, int baseLevel, int maxLevel,
                                         java.nio.Buffer data ) {
+  validateMipmap();
   java.nio.ByteBuffer buffer = copyToByteBuffer(data);
   return( Mipmap.gluBuild1DMipmapLevels( getCurrentGL2ES1(), target, internalFormat, width,
           format, type, userLevel, baseLevel, maxLevel, buffer ) );
 }
 
 
+/**
+ * Optional, throws GLUnsupportedException if not available in profile
+ */
 public final int gluBuild1DMipmaps( int target, int internalFormat, int width,
                                    int format, int type, java.nio.Buffer data ) {
+  validateMipmap();
   java.nio.ByteBuffer buffer = copyToByteBuffer(data);
   return( Mipmap.gluBuild1DMipmaps( getCurrentGL2ES1(), target, internalFormat, width, format,
           type, buffer ) );
 }
 
 
+/**
+ * Optional, throws GLUnsupportedException if not available in profile
+ */
 public final int gluBuild2DMipmapLevels( int target, int internalFormat, int width,
                                         int height, int format, int type, int userLevel, int baseLevel,
                                         int maxLevel, java.nio.Buffer data ) {
+  validateMipmap();
   // While the code below handles other data types, it doesn't handle non-ByteBuffers
   data = copyToByteBuffer(data);
   return( Mipmap.gluBuild2DMipmapLevels( getCurrentGL2ES1(), target, internalFormat, width,
           height, format, type, userLevel, baseLevel, maxLevel, data ) );
 }
 
+/**
+ * Optional, throws GLUnsupportedException if not available in profile
+ */
 public final int gluBuild2DMipmaps( int target, int internalFormat, int width,
                                    int height, int format, int type, java.nio.Buffer data ) {
+  validateMipmap();
   // While the code below handles other data types, it doesn't handle non-ByteBuffers
   data = copyToByteBuffer(data);
   return( Mipmap.gluBuild2DMipmaps( getCurrentGL2ES1(), target, internalFormat, width, height,
           format, type, data) );
 }
 
+/**
+ * Optional, throws GLUnsupportedException if not available in profile
+ */
 public final int gluBuild3DMipmapLevels( int target, int internalFormat, int width,
                                         int height, int depth, int format, int type, int userLevel, int baseLevel,
                                         int maxLevel, java.nio.Buffer data) {
+  validateMipmap();
   java.nio.ByteBuffer buffer = copyToByteBuffer(data);
   return( Mipmap.gluBuild3DMipmapLevels( getCurrentGL2ES1(), target, internalFormat, width,
           height, depth, format, type, userLevel, baseLevel, maxLevel, buffer) );
 }
 
+/**
+ * Optional, throws GLUnsupportedException if not available in profile
+ */
 public final int gluBuild3DMipmaps( int target, int internalFormat, int width,
                                    int height, int depth, int format, int type, java.nio.Buffer data ) {
+  validateMipmap();
   java.nio.ByteBuffer buffer = copyToByteBuffer(data);
   return( Mipmap.gluBuild3DMipmaps( getCurrentGL2ES1(), target, internalFormat, width, height,
           depth, format, type, buffer ) );
