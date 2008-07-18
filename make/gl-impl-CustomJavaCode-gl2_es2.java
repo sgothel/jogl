@@ -6,11 +6,12 @@
     if(count<=0) {
         throw new GLException("Method \"glShaderSource\" called with invalid length of source: "+count);
     }
-    int[] length = new int[count];
+    IntBuffer length = BufferUtil.newIntBuffer(count);
     for(int i=0; i<count; i++) {
-        length[i]=source[i].length();
+        length.put(source[i].length());
     }
-    glShaderSource(shader, count, source, length, 0);
+    length.flip();
+    glShaderSource(shader, count, source, length);
   }
 
   public void glShaderSource(IntBuffer shaders, java.lang.String[][] sources)
