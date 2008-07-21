@@ -45,6 +45,27 @@ import com.sun.opengl.impl.GLDrawableHelper;
  * etc.).
  */
 public class GLWindow extends Window implements GLAutoDrawable {
+    /**
+     * Event handling mode: EVENT_HANDLER_GL_NONE.
+     * No GL context is current, while calling the EventListener.
+     * This might be inconvenient, but don't impact the performance.
+     *
+     * @see com.sun.javafx.newt.GLWindow#setEventHandlerMode(int)
+     */
+    public static final int EVENT_HANDLER_GL_NONE    =       0;
+
+    /**
+     * Event handling mode: EVENT_HANDLER_GL_CURRENT.
+     * The GL context is made current, while calling the EventListener.
+     * This might be convenient, but impacts the performance
+     * due to context switches.
+     *
+     * This is the default setting!
+     *
+     * @see com.sun.javafx.newt.GLWindow#setEventHandlerMode(int)
+     */
+    public static final int EVENT_HANDLER_GL_CURRENT = (1 << 0);
+
     private Window window;
 
     /** Constructor. Do not call this directly -- use {@link
@@ -128,9 +149,37 @@ public class GLWindow extends Window implements GLAutoDrawable {
         return window.getDisplayHeight();
     }
 
+    /**
+     * Sets the event handling mode.
+     *
+     * @see com.sun.javafx.newt.GLWindow#EVENT_HANDLER_GL_NONE
+     * @see com.sun.javafx.newt.GLWindow#EVENT_HANDLER_GL_CURRENT
+     */
+    public void setEventHandlerMode(int mode) {
+        eventHandlerMode = mode;
+    }
+
+    public int getEventHandlerMode() {
+        return eventHandlerMode;
+    }
+
     public void pumpMessages(int eventMask) {
-        pumpMessagesWithEventMaskAction.eventMask = eventMask;
-        pumpMessagesImpl(pumpMessagesWithEventMaskAction);
+        if( 0 == (eventHandlerMode & EVENT_HANDLER_GL_CURRENT) ) {
+            window.pumpMessages(eventMask);
+        } else {
+            pumpMessagesWithEventMaskAction.eventMask = eventMask;
+            pumpMessagesImpl(pumpMessagesWithEventMaskAction);
+        }
+    }
+
+    public void pumpMessages() {
+        if( 0 == (eventHandlerMode & EVENT_HANDLER_GL_CURRENT) ) {
+            System.err.println("pump direct");
+            window.pumpMessages();
+        } else {
+            System.err.println("pump indirect with GL");
+            pumpMessagesImpl(pumpMessagesAction);
+        }
     }
 
     class PumpMessagesWithEventMaskAction implements Runnable {
@@ -141,10 +190,6 @@ public class GLWindow extends Window implements GLAutoDrawable {
         }
     }
     private PumpMessagesWithEventMaskAction pumpMessagesWithEventMaskAction = new PumpMessagesWithEventMaskAction();
-
-    public void pumpMessages() {
-        pumpMessagesImpl(pumpMessagesAction);
-    }
 
     class PumpMessagesAction implements Runnable {
         public void run() {
@@ -257,6 +302,7 @@ public class GLWindow extends Window implements GLAutoDrawable {
     // OpenGL-related methods and state
     //
 
+    private int eventHandlerMode = EVENT_HANDLER_GL_CURRENT;
     private GLDrawableFactory factory;
     private GLCapabilities caps;
     private GLDrawable drawable;
