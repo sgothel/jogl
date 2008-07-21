@@ -150,7 +150,7 @@
                   value="com/sun/opengl/impl/glu/tessellator/**"/>
 
         <property name="java.part.glugl2es1"
-                  value="com/sun/opengl/impl/glu/GLUquadricImpl*, com/sun/opengl/impl/glu/mipmap/**"/>
+                  value="com/sun/opengl/impl/glu/mipmap/**"/>
 
         <property name="java.part.glugl2"
                   value="com/sun/opengl/impl/glu/gl2/**, com/sun/opengl/impl/glu/nurbs/**, com/sun/opengl/impl/glu/registry/**, javax/media/opengl/glu/gl2/**"/>

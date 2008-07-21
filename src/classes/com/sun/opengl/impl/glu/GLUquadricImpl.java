@@ -152,7 +152,7 @@ public class GLUquadricImpl implements GLUquadric {
         immModeSink = new ImmModeSink(GL.GL_FLOAT, GL.GL_STATIC_DRAW, 3, 0, 0, 0, 32);
     }
     immModeSinkImmediate=true;
-    immModeSinkEnabled=GLProfile.isGLES();
+    immModeSinkEnabled=!GLProfile.isGL2();
   }
 
   public void enableImmModeSink(boolean val) {
@@ -168,7 +168,11 @@ public class GLUquadricImpl implements GLUquadric {
   }
 
   public void setImmMode(boolean val) {
-    immModeSinkImmediate=val;
+    if(immModeSinkEnabled) {
+        immModeSinkImmediate=val;
+    } else {
+        immModeSinkImmediate=true;
+    }
   }
 
   public boolean getImmMode() {
@@ -176,6 +180,8 @@ public class GLUquadricImpl implements GLUquadric {
   }
 
   public ImmModeSink replaceImmModeSink() {
+    if(!immModeSinkEnabled) return null;
+
     ImmModeSink res = immModeSink;
     if(USE_NORM_TXT) {
         immModeSink = new ImmModeSink(GL.GL_FLOAT, GL.GL_STATIC_DRAW, 3, 3, 0, 3, 32);
@@ -186,7 +192,9 @@ public class GLUquadricImpl implements GLUquadric {
   }
 
   public void resetImmModeSink(GL2ES1 gl) {
-    immModeSink.reset(gl);
+    if(immModeSinkEnabled) {
+        immModeSink.reset(gl);
+    }
   }
 
   /**
@@ -1171,7 +1179,11 @@ public class GLUquadricImpl implements GLUquadric {
       y /= mag;
       z /= mag;
     }
-    immModeSink.glNormal3f(x, y, z);
+    if(immModeSinkEnabled) {
+        immModeSink.glNormal3f(x, y, z);
+    } else {
+        ((GL2)gl).glNormal3f(x, y, z);
+    }
   }
 
   private final void TXTR_COORD(GL2ES1 gl, float x, float y) {
