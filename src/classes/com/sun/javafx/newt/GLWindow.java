@@ -174,10 +174,8 @@ public class GLWindow extends Window implements GLAutoDrawable {
 
     public void pumpMessages() {
         if( 0 == (eventHandlerMode & EVENT_HANDLER_GL_CURRENT) ) {
-            System.err.println("pump direct");
             window.pumpMessages();
         } else {
-            System.err.println("pump indirect with GL");
             pumpMessagesImpl(pumpMessagesAction);
         }
     }
