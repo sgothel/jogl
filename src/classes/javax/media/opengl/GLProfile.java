@@ -44,6 +44,9 @@ public class GLProfile {
   /** The desktop (OpenGL 2.0) profile */
   public static final String GL2   = "GL2";
 
+  /** The desktop short profile, intersecting: GL2+GLES1+GLES2 */
+  public static final String GL2ES12 = "GL2ES12";
+
   /** The OpenGL ES 1 (really, 1.1) profile */
   public static final String GLES1 = "GLES1";
 
@@ -56,8 +59,11 @@ public class GLProfile {
   private static final void tryLibrary() 
   {
     try {
+        Class clazz = Class.forName(getGLImplBaseClassName()+"Impl");
         if(GL2.equals(profile)) {
             NativeLibLoader.loadGL2();
+        } if(GL2ES12.equals(profile)) {
+            NativeLibLoader.loadGL2ES12();
         } else if(GLES1.equals(profile) || GLES2.equals(profile)) {
             Object eGLDrawableFactory = GLReflection.createInstance("com.sun.opengl.impl.egl.EGLDrawableFactory");
             if(null==eGLDrawableFactory) {
@@ -95,15 +101,21 @@ public class GLProfile {
     }
   }
 
+  /**
+   * Selects a profile, implementing the interface GL2ES1.
+   */
   public static synchronized final void setProfileGL2ES1() {
-    setProfile(new String[] { GLES1, GL2 });
+    setProfile(new String[] { GLES1, GL2ES12, GL2 });
     if(null==profile) {
       throw new GLException("Profiles GLES1 and GL2 not available");
     }
   }
 
+  /**
+   * Selects a profile, implementing the interface GL2ES2.
+   */
   public static synchronized final void setProfileGL2ES2() {
-    setProfile(new String[] { GLES2, GL2 });
+    setProfile(new String[] { GLES2, GL2ES12, GL2 });
     if(null==profile) {
       throw new GLException("Profiles GLES2 and GL2 not available");
     }
@@ -113,26 +125,37 @@ public class GLProfile {
     return profile;
   }
   
+  /* true profile GL2ES12 */
+  public static final boolean isGL2ES12() {
+    return GL2ES12.equals(profile);
+  }
+
+  /* true profile GL2 */
   public static final boolean isGL2() {
     return GL2.equals(profile);
   }
 
+  /* true profile GLES1 */
   public static final boolean isGLES1() {
     return GLES1.equals(profile);
   }
 
-  public static final boolean isGL2ES1() {
-    return isGL2() || isGLES1();
-  }
-
+  /* true profile GLES2 */
   public static final boolean isGLES2() {
     return GLES2.equals(profile);
   }
 
-  public static final boolean isGL2ES2() {
-    return isGL2() || isGLES2();
+  /* abstract profile GL2ES12, GL2, GLES1 */
+  public static final boolean isGL2ES1() {
+    return isGL2ES12() || isGL2() || isGLES1();
   }
 
+  /* abstract profile GL2ES12, GL2, GLES2 */
+  public static final boolean isGL2ES2() {
+    return isGL2ES12() || isGL2() || isGLES2();
+  }
+
+  /* abstract profile GLES1, GLES2 */
   public static final boolean isGLES() {
     return isGLES2() || isGLES1();
   }
@@ -163,6 +186,20 @@ public class GLProfile {
 
   public static final boolean implementationOfGL2ES2(Object obj) {
     return GLReflection.implementationOf(obj, "javax.media.opengl.GL2ES2");
+  }
+
+  public static final String getGLImplBaseClassName() {
+        if(isGL2()) {
+            return "com.sun.opengl.impl.gl2.GL2";
+        } else if(isGL2ES12()) {
+            return "com.sun.opengl.impl.gl2es12.GL2ES12";
+        } else if(isGLES1()) {
+            return "com.sun.opengl.impl.es1.GLES1";
+        } else if(isGLES2()) {
+            return "com.sun.opengl.impl.es2.GLES2";
+        } else {
+            throw new GLUnsupportedException("uncovered profile");
+        }
   }
 
 }

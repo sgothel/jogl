@@ -229,22 +229,7 @@ public abstract class GLContextImpl extends GLContext {
   //
 
   private Object createInstance(String suffix, Class[] cstrArgTypes, Object[] cstrArgs) {
-    String clazzName = null;
-
-    try {
-        if(GLProfile.isGL2()) {
-            clazzName="com.sun.opengl.impl.gl2.GL2"+suffix;
-        } else if(GLProfile.isGLES1()) {
-            clazzName="com.sun.opengl.impl.es1.GLES1"+suffix;
-        } else if(GLProfile.isGLES1()) {
-            clazzName="com.sun.opengl.impl.es2.GLES2"+suffix;
-        } else {
-            throw new GLUnsupportedException("uncovered profile");
-        }
-        return GLReflection.createInstance(clazzName, cstrArgTypes, cstrArgs);
-    } catch (Exception e) {
-      throw new GLException(e);
-    }
+    return GLReflection.createInstance(GLProfile.getGLImplBaseClassName()+suffix, cstrArgTypes, cstrArgs);
   }
 
   /** Create the GL for this context. */

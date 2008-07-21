@@ -155,8 +155,26 @@
         <property name="java.part.glugl2"
                   value="com/sun/opengl/impl/glu/gl2/**, com/sun/opengl/impl/glu/nurbs/**, com/sun/opengl/impl/glu/registry/**, javax/media/opengl/glu/gl2/**"/>
 
-        <property name="java.part.gl2"
-                  value="com/sun/opengl/impl/**/gl2/**, com/sun/opengl/impl/**/glx/**, com/sun/opengl/impl/**/wgl/**, com/sun/opengl/impl/**/cgl/**"/>
+        <property name="java.part.gl2es12.x11"
+                  value="com/sun/opengl/impl/gl2es12/**, com/sun/opengl/impl/x11/glx/*, com/sun/opengl/impl/x11/*"/>
+
+        <property name="java.part.gl2es12.win"
+                  value="com/sun/opengl/impl/gl2es12/**, com/sun/opengl/impl/windows/wgl/*"/>
+
+        <property name="java.part.gl2es12.osx"
+                  value="com/sun/opengl/impl/gl2es12/**, com/sun/opengl/impl/macosx/cgl/*"/>
+
+        <property name="java.part.gl2es12.dbg"
+                  value="javax/media/opengl/TraceGL2ES12.*, javax/media/opengl/DebugGL2ES12.*"/>
+
+        <property name="java.part.gl2.x11"
+                  value="com/sun/opengl/impl/**/gl2/**, com/sun/opengl/impl/x11/glx/*, com/sun/opengl/impl/x11/*"/>
+
+        <property name="java.part.gl2.win"
+                  value="com/sun/opengl/impl/**/gl2/**, com/sun/opengl/impl/windows/wgl/*"/>
+
+        <property name="java.part.gl2.osx"
+                  value="com/sun/opengl/impl/**/gl2/**, com/sun/opengl/impl/macosx/cgl/*"/>
 
         <property name="java.part.gl2.dbg"
                   value="javax/media/opengl/TraceGL2.*, javax/media/opengl/DebugGL2.*"/>
@@ -174,28 +192,16 @@
                   value="javax/media/opengl/TraceGLES2.*, javax/media/opengl/DebugGLES2.*"/>
 
         <property name="java.part.awt"
-                  value="javax/media/opengl/awt/**, javax/media/opengl/util/awt/**, com/sun/opengl/impl/awt/**, com/sun/opengl/impl/egl/awt/*, com/sun/opengl/impl/packrect/*"/>
+                  value="com/sun/opengl/impl/jawt/**, javax/media/opengl/awt/**, com/sun/opengl/impl/**/awt/**, com/sun/opengl/impl/packrect/*"/>
 
         <property name="java.part.util"
                   value="com/sun/opengl/util/io/**, com/sun/opengl/util/texture/**"/>
 
         <property name="java.part.util.awt"
-                  value="com/sun/opengl/util/**/awt/**"/>
+                  value="javax/media/opengl/util/awt/**, com/sun/opengl/util/**/awt/**"/>
 
         <property name="java.part.util.gl2"
                   value="com/sun/opengl/util/glut/**, com/sun/opengl/util/**/gl2/**"/>
-
-        <property name="java.part.x11"
-                  value="com/sun/opengl/**/x11/**"/>
-
-        <property name="java.part.win"
-                  value="com/sun/opengl/**/windows/**"/>
-
-        <property name="java.part.macosx"
-                  value="com/sun/opengl/**/macosx/**"/>
-
-        <property name="java.part.oswin"
-                  value="${java.part.x11}, ${java.part.win}, ${java.part.macosx}, com/sun/opengl/impl/jawt/*"/>
 
         <property name="java.part.newt"
                   value="com/sun/javafx/newt/*, com/sun/javafx/newt/x11/*, com/sun/javafx/newt/windows/*"/>
@@ -214,7 +220,7 @@
         </condition>
 
         <condition property="java.excludes.gl2"
-                   value="${java.part.gl2}, ${java.part.gl2.dbg}, ${java.part.util.gl2}, ${java.part.glugl2}">
+                   value="${java.part.gl2es12.x11}, ${java.part.gl2es12.win}, ${java.part.gl2es12.osx},  ${java.part.gl2es12.dbg}, ${java.part.gl2.x11}, ${java.part.gl2.win}, ${java.part.gl2.osx}, ${java.part.gl2.dbg}, ${java.part.util.gl2}, ${java.part.glugl2}">
            <isset property="jogl.nogl2"/> 
         </condition>
 
@@ -258,14 +264,6 @@
            <isset property="jogl.nonewt"/> 
         </condition>
 
-        <condition property="java.excludes.oswin"
-                   value="${java.part.oswin}">
-           <or>
-               <isset property="jogl.cdcfp"/> 
-               <isset property="jogl.noX11WindowsMacOsX"/> 
-           </or>
-        </condition>
-
         <condition property="java.excludes.cdcfp"
                    value="com/sun/opengl/util/io/TGAWriter*, com/sun/opengl/util/texture/**">
            <isset property="jogl.cdcfp"/> 
@@ -277,7 +275,7 @@
         <property name="java.excludes.fixme" 
                   value="com/sun/opengl/impl/gl2/fixme/** com/sun/javafx/audio/windows/waveout/TestSpatialization.java" />
 
-        <property name="java.excludes.all" value="${java.excludes.fixme} ${java.excludes.egl}, ${java.excludes.gl2}, ${java.excludes.es1}, ${java.excludes.es2}, ${java.excludes.awt}, ${java.excludes.glugl2}, ${java.excludes.util}, ${java.excludes.x11}, ${java.excludes.win}, ${java.excludes.macosx}, ${java.excludes.newt}, ${java.excludes.oswin}, ${java.excludes.cdcfp}" />
+        <property name="java.excludes.all" value="${java.excludes.fixme} ${java.excludes.egl}, ${java.excludes.gl2}, ${java.excludes.es1}, ${java.excludes.es2}, ${java.excludes.awt}, ${java.excludes.glugl2}, ${java.excludes.util}, ${java.excludes.x11}, ${java.excludes.win}, ${java.excludes.macosx}, ${java.excludes.newt}, ${java.excludes.cdcfp}" />
         <echo message="java.excludes.all: ${java.excludes.all}" />
 
 
@@ -433,12 +431,17 @@
         <property name="jogl.glutess.jar" value="${build}/jogl.glu.tess.jar" />
         <property name="jogl.glugl2es1.jar" value="${build}/jogl.glu.gl2es1.jar" />
         <property name="jogl.glugl2.jar"    value="${build}/jogl.glu.gl2.jar" />
-        <property name="jogl.gl2.jar" value="${build}/jogl.gl2.jar" />
+        <property name="jogl.gl2es12.x11.jar" value="${build}/jogl.gl2es12.x11.jar" />
+        <property name="jogl.gl2es12.win.jar" value="${build}/jogl.gl2es12.win.jar" />
+        <property name="jogl.gl2es12.osx.jar" value="${build}/jogl.gl2es12.osx.jar" />
+        <property name="jogl.gl2es12.dbg.jar" value="${build}/jogl.gl2es12.dbg.jar" />
+        <property name="jogl.gl2.x11.jar" value="${build}/jogl.gl2.x11.jar" />
+        <property name="jogl.gl2.win.jar" value="${build}/jogl.gl2.win.jar" />
+        <property name="jogl.gl2.osx.jar" value="${build}/jogl.gl2.osx.jar" />
         <property name="jogl.gl2.dbg.jar" value="${build}/jogl.gl2.dbg.jar" />
         <property name="jogl.awt.jar" value="${build}/jogl.awt.jar" />
         <property name="newt.jar" value="${build}/newt.jar" />
         <property name="newt.awt.jar" value="${build}/newt.awt.jar" />
-        <property name="jogl.oswin.jar" value="${build}/jogl.oswin.jar" />
         <property name="jogl.util.jar" value="${build}/jogl.util.jar" />
         <property name="jogl.util.gl2.jar" value="${build}/jogl.util.gl2.jar" />
         <property name="jogl.util.awt.jar" value="${build}/jogl.util.awt.jar" />
@@ -621,6 +624,16 @@
         </gluegen>
     </target>
 
+    <target name="java.generate.gl2es12">
+        <echo message="Generating GL2ES12 interface and implementation" />
+        <gluegen src="${stub.includes.common}/gl.c" 
+                 config="${config}/gl-gl2es12.cfg"
+                 includeRefid="stub.includes.fileset.all.gl2"
+                 emitter="com.sun.gluegen.opengl.GLEmitter">
+            <classpath refid="gluegen.classpath" />
+        </gluegen>
+    </target>
+
     <target name="java.generate.gles1">
         <echo message="Generating GLES1 interface and implementation" />
         <gluegen src="${stub.includes.common}/gles1.c" 
@@ -641,7 +654,7 @@
         </gluegen>
     </target>
 
-    <target name="java.generate.gl.all" depends="java.generate.gl_if, java.generate.gl2_es1_if, java.generate.gl2_es2_if, java.generate.gl2, java.generate.gles1, java.generate.gles2"/>
+    <target name="java.generate.gl.all" depends="java.generate.gl_if, java.generate.gl2_es1_if, java.generate.gl2_es2_if, java.generate.gl2, java.generate.gl2es12, java.generate.gles1, java.generate.gles2"/>
 
     <!-- target name="java.generate.gl.nsig" if="gluegen.nsig">
         <echo message="Generating GL interface and implementation" />
@@ -907,6 +920,21 @@
 
     </target>        
 
+    <target name="java.generate.composable.pipeline.check.gl2es12" unless="jogl.nogl2">
+        <!-- Blow away the DebugGL*.java and TraceGL*.java sources if GL*.class has changed
+             (the uptodate element doesn't support arbitrary source and destination files) -->
+        <dependset>
+            <srcfilelist dir="${classes}/javax/media/opengl" files="GL2ES12.class" />
+            <targetfileset dir="${src.generated.java}/javax/media/opengl"
+                           includes="DebugGL2ES12.java,TraceGL2ES12.java" />
+        </dependset>
+                           
+        <!-- Now choose one of the two to test to see if we have to regenerate -->
+        <uptodate property="java.generate.composable.pipeline.skip.gl2es12"
+                  srcfile="${classes}/javax/media/opengl/GL2ES12.class"
+                  targetfile="${src.generated.java}/javax/media/opengl/DebugGL2ES12.java" />
+    </target>        
+
     <target name="java.generate.composable.pipeline.check.gl2" unless="jogl.nogl2">
         <!-- Blow away the DebugGL*.java and TraceGL*.java sources if GL*.class has changed
              (the uptodate element doesn't support arbitrary source and destination files) -->
@@ -933,6 +961,14 @@
     <target name="java.generate.composable.pipeline.es2" depends="java.generate.composable.pipeline.check.es2" unless="java.generate.composable.pipeline.skip.es2">
         <java classname="com.sun.gluegen.opengl.BuildComposablePipeline" fork="yes" failonerror="true">
             <arg value="javax.media.opengl.GLES2" />
+            <arg value="${src.generated.java}/javax/media/opengl" />
+            <classpath refid="pipeline.classpath" />
+        </java>
+    </target>          
+
+    <target name="java.generate.composable.pipeline.gl2es12" depends="java.generate.composable.pipeline.check.gl2es12" unless="java.generate.composable.pipeline.skip.gl2es12">
+        <java classname="com.sun.gluegen.opengl.BuildComposablePipeline" fork="yes" failonerror="true">
+            <arg value="javax.media.opengl.GL2ES12" />
             <arg value="${src.generated.java}/javax/media/opengl" />
             <classpath refid="pipeline.classpath" />
         </java>
@@ -1267,6 +1303,25 @@
           <!--include name="${rootrel.src.c.jogl}/Mixer.cpp" if="isWindows"/-->
         </patternset>
 
+        <patternset id="c.src.files.jogl.gl2es12">
+          <include name="${rootrel.src.c.jogl}/XineramaHelper.c" if="isX11"/>
+          <!-- Xinerama supporting functions for Linux only (for now) -->
+          <!-- Also supported on Solaris, but works differently -->
+          <include name="${rootrel.src.c.jogl}/Xinerama.c" if="isLinux"/>
+          <include name="${rootrel.src.c.jogl}/MacOSXWindowSystemInterface.m" if="isOSX"/>
+          <include name="${rootrel.generated.c.jogl}/X11/X11Lib_JNI.c" if="isX11"/>
+          <include name="${rootrel.src.c.jogl}/InternalBufferUtils.c"/>
+          <include name="${rootrel.src.c.jogl}/ContextUpdater.m" if="isOSX"/>
+          <include name="${rootrel.generated.c.jogl}/gl2es12/GL2ES12Impl_JNI.c"/>
+          <!--include name="${rootrel.generated.c.jogl}/GLU_JNI.c"/ EMPTY -->
+          <!--include name="${rootrel.generated.c.jogl}/gl2es12/GLUgl2es12_JNI.c"/ SKIPPED -->
+          <include name="${rootrel.generated.c.jogl}/X11/GLX*.c" if="isX11"/>
+          <include name="${rootrel.generated.c.jogl}/OSX/CGL*.c" if="isOSX"/>
+          <include name="${rootrel.generated.c.jogl}/Windows/WGL*.c" if="isWindows"/>
+          <!-- FIXME: the Mixer should be moved to another library -->
+          <!--include name="${rootrel.src.c.jogl}/Mixer.cpp" if="isWindows"/-->
+        </patternset>
+
         <patternset id="c.src.files.jogl.es2">
           <include name="${rootrel.src.c.jogl}/XineramaHelper.c" if="isX11"/>
           <!-- Xinerama supporting functions for Linux only (for now) -->
@@ -1369,7 +1424,7 @@
         <arg value="/System/Library/Frameworks/JavaVM.framework/Versions/1.5.0/Libraries/libjawt.dylib" />
         <arg value="/System/Library/Frameworks/JavaVM.framework/Libraries/libjawt.dylib" />
         <srcfile />
-        <fileset dir="${obj}" includes="libjogl_awt.jnilib, libjogl_gl2.jnilib, libjogl_es2.jnilib, libjogl_es1.jnilib, libjogl_cg.jnilib" />
+        <fileset dir="${obj}" includes="libjogl_awt.jnilib, libjogl_gl2.jnilib, libjogl_gl2es12.jnilib, libjogl_es2.jnilib, libjogl_es1.jnilib, libjogl_cg.jnilib" />
       </apply>
     </target>
 
@@ -1407,6 +1462,13 @@
     <target name="c.build.jogl.gl2" unless="jogl.nogl2">
       <c.build c.compiler.src.files="c.src.files.jogl.gl2"
                output.lib.name="jogl_gl2"
+               compiler.cfg.id="${compiler.cfg.id}"
+               linker.cfg.id="${linker.cfg.id.gl2}"/>
+    </target>
+
+    <target name="c.build.jogl.gl2es12" unless="jogl.nogl2">
+      <c.build c.compiler.src.files="c.src.files.jogl.gl2es12"
+               output.lib.name="jogl_gl2es12"
                compiler.cfg.id="${compiler.cfg.id}"
                linker.cfg.id="${linker.cfg.id.gl2}"/>
     </target>
@@ -1460,7 +1522,7 @@
       <antcall target="c.manifest.cg" inheritRefs="true" />
     </target>
 
-    <target name="c.build.jogl" depends="c.configure,c.build.jogl.prepare,c.build.jogl.awt,c.build.newt,c.build.jogl.gl2,c.build.jogl.es2,c.build.jogl.es1,c.build.jogl.cg">
+    <target name="c.build.jogl" depends="c.configure,c.build.jogl.prepare,c.build.jogl.awt,c.build.newt,c.build.jogl.gl2es12,c.build.jogl.gl2,c.build.jogl.es2,c.build.jogl.es1,c.build.jogl.cg">
       <antcall target="c.fixup.jawt.version.macosx" inheritrefs="true" />
       <antcall target="c.manifest" inheritRefs="true" />
     </target>
@@ -1490,7 +1552,7 @@
         <jar manifest="tempversion" destfile="${jogl.core.jar}">
             <fileset dir="${classes}"
                      includes="javax/media/opengl/**, com/sun/gluegen/runtime/**, com/sun/opengl/**"
-                     excludes="${java.excludes.fixme} ${java.part.egl}, ${java.part.gl2}, ${java.part.gl2.dbg}, ${java.part.es1}, ${java.part.es1.dbg}, ${java.part.es2}, ${java.part.es2.dbg}, ${java.part.awt}, ${java.part.glutess}, ${java.part.glugl2es1}, ${java.part.glugl2}, ${java.part.util} ${java.part.util.awt} ${java.part.util.gl2}, ${java.part.oswin}, ${java.part.newt}, ${java.part.newt.awt}"/>
+                     excludes="${java.excludes.fixme} ${java.part.egl}, ${java.part.gl2es12.x11}, ${java.part.gl2es12.win}, ${java.part.gl2es12.osx}, ${java.part.gl2es12.dbg}, ${java.part.gl2.x11}, ${java.part.gl2.win}, ${java.part.gl2.osx}, ${java.part.gl2.dbg}, ${java.part.es1}, ${java.part.es1.dbg}, ${java.part.es2}, ${java.part.es2.dbg}, ${java.part.awt}, ${java.part.glutess}, ${java.part.glugl2es1}, ${java.part.glugl2}, ${java.part.util} ${java.part.util.awt} ${java.part.util.gl2}, ${java.part.newt}, ${java.part.newt.awt}"/>
         </jar>
         <jar manifest="tempversion" destfile="${jogl.gles1.jar}">
             <fileset dir="${classes}"
@@ -1515,9 +1577,38 @@
                      includes="${java.part.egl}"
                      excludes="${java.part.awt}"/>
         </jar>
-        <jar manifest="tempversion" destfile="${jogl.gl2.jar}">
+        <jar manifest="tempversion" destfile="${jogl.gl2es12.x11.jar}">
             <fileset dir="${classes}"
-                     includes="${java.part.gl2}"
+                     includes="${java.part.gl2es12.x11}"
+                     excludes="${java.part.gl2es12.dbg}, ${java.part.glugl2}"/>
+        </jar>
+        <jar manifest="tempversion" destfile="${jogl.gl2es12.win.jar}">
+            <fileset dir="${classes}"
+                     includes="${java.part.gl2es12.win}"
+                     excludes="${java.part.gl2es12.dbg}, ${java.part.glugl2}"/>
+        </jar>
+        <jar manifest="tempversion" destfile="${jogl.gl2es12.osx.jar}">
+            <fileset dir="${classes}"
+                     includes="${java.part.gl2es12.osx}"
+                     excludes="${java.part.gl2es12.dbg}, ${java.part.glugl2}"/>
+        </jar>
+        <jar manifest="tempversion" destfile="${jogl.gl2es12.dbg.jar}">
+            <fileset dir="${classes}"
+                     includes="${java.part.gl2es12.dbg}"/>
+        </jar>
+        <jar manifest="tempversion" destfile="${jogl.gl2.x11.jar}">
+            <fileset dir="${classes}"
+                     includes="${java.part.gl2.x11}"
+                     excludes="${java.part.gl2.dbg}, ${java.part.glugl2}"/>
+        </jar>
+        <jar manifest="tempversion" destfile="${jogl.gl2.win.jar}">
+            <fileset dir="${classes}"
+                     includes="${java.part.gl2.win}"
+                     excludes="${java.part.gl2.dbg}, ${java.part.glugl2}"/>
+        </jar>
+        <jar manifest="tempversion" destfile="${jogl.gl2.osx.jar}">
+            <fileset dir="${classes}"
+                     includes="${java.part.gl2.osx}"
                      excludes="${java.part.gl2.dbg}, ${java.part.glugl2}"/>
         </jar>
         <jar manifest="tempversion" destfile="${jogl.gl2.dbg.jar}">
@@ -1538,9 +1629,9 @@
         </jar>
         <jar manifest="tempversion" destfile="${jogl.awt.jar}">
             <fileset dir="${classes}"
-                     includes="${java.part.awt}"
-                     excludes="com/sun/opengl/impl/x11/**, com/sun/opengl/impl/windows/**, com/sun/opengl/impl/macosx/**"/>
+                     includes="${java.part.awt}" />
         </jar>
+                     <!-- excludes="com/sun/opengl/impl/x11/**, com/sun/opengl/impl/windows/**, com/sun/opengl/impl/macosx/**" --> 
         <jar manifest="tempversion" destfile="${newt.jar}">
             <fileset dir="${classes}"
                      includes="${java.part.newt}"/>
@@ -1548,11 +1639,6 @@
         <jar manifest="tempversion" destfile="${newt.awt.jar}">
             <fileset dir="${classes}"
                      includes="${java.part.newt.awt}"/>
-        </jar>
-        <jar manifest="tempversion" destfile="${jogl.oswin.jar}">
-            <fileset dir="${classes}"
-                     includes="${java.part.oswin}"
-                     excludes="com/sun/opengl/impl/**/glx/**, com/sun/opengl/impl/**/wgl/**, com/sun/opengl/impl/**/cgl/**"/>
         </jar>
         <jar manifest="tempversion" destfile="${jogl.util.jar}">
             <fileset dir="${classes}"

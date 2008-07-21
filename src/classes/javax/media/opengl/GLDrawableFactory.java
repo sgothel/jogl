@@ -95,7 +95,7 @@ public abstract class GLDrawableFactory {
       } catch (Exception e) {
           e.printStackTrace();
       }
-    } else if (!GLProfile.isGL2()) {
+    } else if (!GLProfile.isGL2() && !GLProfile.isGL2ES12()) {
       // We require that the user passes in one of the known profiles
       throw new GLException("Unknown or unsupported profile \"" + GLProfile.getProfile() + "\"");
     }
@@ -162,7 +162,7 @@ public abstract class GLDrawableFactory {
       } catch (Exception e) {
           e.printStackTrace();
       }
-    } else if (!GLProfile.isGL2()) {
+    } else if (!GLProfile.isGL2() && !GLProfile.isGL2ES12()) {
       // We require that the user passes in one of the known profiles
       throw new GLException("Unknown or unsupported profile \"" + GLProfile.getProfile() + "\"");
     }

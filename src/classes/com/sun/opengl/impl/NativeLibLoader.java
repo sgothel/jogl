@@ -124,6 +124,15 @@ public class NativeLibLoader {
     });
   }
 
+  public static void loadGL2ES12() {
+    AccessController.doPrivileged(new PrivilegedAction() {
+      public Object run() {
+        loadLibrary("jogl_gl2es12", null, false, false);
+        return null;
+      }
+    });
+  }
+
   public static void loadES2() {
     AccessController.doPrivileged(new PrivilegedAction() {
       public Object run() {

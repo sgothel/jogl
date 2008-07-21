@@ -32,18 +32,24 @@ for i in *.jar ; do
     jar tf $fname | grep class | sort > $bname.lst
 done
 
-mv jogl.all.lst jogl.all.lst.nope
+mkdir -p nope
+mv jogl.all.lst nope/
 
-echo duplicates
+mv jogl.gl2es12.*.lst jogl.gl2.*.lst nope/
+echo duplicates - w/o gl2es12.* gl2.*
 echo
 sort *.lst | uniq -d
+mv nope/* .
 
-cat *.lst | sort > jogl.allparts.lst
-mv jogl.all.lst.nope jogl.all.lst
+mv jogl.all.lst nope/
+cat *.lst | sort -u > jogl.allparts.lst
+mv nope/* .
 
 echo jogl.all bs jogl.allparts delta
 echo
 diff -Nur jogl.allparts.lst jogl.all.lst
+
+OSS=x11
 
 echo JOGL ES1 NEWT CORE
 report jogl.core.jar jogl.egl.jar jogl.gles1.jar newt.jar obj/tmp/libjogl_es1.so.gz obj/tmp/libnewt.so.gz
@@ -53,16 +59,16 @@ echo JOGL ES2 NEWT CORE
 report jogl.core.jar jogl.egl.jar jogl.gles2.jar newt.jar obj/tmp/libjogl_es2.so.gz obj/tmp/libnewt.so.gz
 echo
 
-echo JOGL GL2 NEWT CORE no AWT
-report jogl.core.jar jogl.oswin.jar jogl.gl2.jar newt.jar obj/tmp/libjogl_gl2.so.gz obj/tmp/libnewt.so.gz
+echo JOGL GL2ES12 NEWT 
+report jogl.core.jar jogl.gl2es12.$OSS.jar newt.jar obj/tmp/libjogl_gl2es12.so.gz obj/tmp/libnewt.so.gz
 echo
 
-echo JOGL GL2 OSWIN no AWT
-report jogl.core.jar jogl.oswin.jar jogl.gl2.jar obj/tmp/libjogl_gl2.so.gz
+echo JOGL GL2 NEWT 
+report jogl.core.jar jogl.gl2.$OSS.jar newt.jar obj/tmp/libjogl_gl2.so.gz obj/tmp/libnewt.so.gz
 echo
 
-echo JOGL GL2 OSWIN with AWT
-report jogl.core.jar jogl.oswin.jar jogl.gl2.jar jogl.awt.jar obj/tmp/libjogl_gl2.so.gz obj/tmp/libjogl_awt.so.gz
+echo JOGL GL2 AWT
+report jogl.core.jar jogl.gl2.$OSS.jar jogl.awt.jar obj/tmp/libjogl_gl2.so.gz obj/tmp/libjogl_awt.so.gz
 echo
 
 echo JOGL GLU

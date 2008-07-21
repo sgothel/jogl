@@ -44,9 +44,7 @@ public final class GLReflection {
   public static final boolean isClassAvailable(String clazzName) {
     try {
         Class clazz = Class.forName(clazzName);
-        if (null!=clazz) {
-            return true;
-        }
+        return null!=clazz;
     } catch (Exception e) { }
     return false;
   }
