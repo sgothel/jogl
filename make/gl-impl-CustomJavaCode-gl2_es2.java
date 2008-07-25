@@ -1,4 +1,106 @@
 
+    public String glGetShaderInfoLog(int shaderObj) {
+        int[] infoLogLength=new int[1];
+        glGetShaderiv(shaderObj, GL_INFO_LOG_LENGTH, infoLogLength, 0);
+
+        if(infoLogLength[0]==0) {
+            return "(InfoLog null)";
+        }
+        int[] charsWritten=new int[1];
+        byte[] infoLogBytes = new byte[infoLogLength[0]];
+        glGetShaderInfoLog(shaderObj, infoLogLength[0], charsWritten, 0, infoLogBytes, 0);
+
+        return new String(infoLogBytes, 0, charsWritten[0]);
+    }
+
+    public String glGetProgramInfoLog(int programObj) {
+        int[] infoLogLength=new int[1];
+        glGetProgramiv(programObj, GL_INFO_LOG_LENGTH, infoLogLength, 0);
+
+        if(infoLogLength[0]==0) {
+            return "(InfoLog null)";
+        }
+        int[] charsWritten=new int[1];
+        byte[] infoLogBytes = new byte[infoLogLength[0]];
+        glGetProgramInfoLog(programObj, infoLogLength[0], charsWritten, 0, infoLogBytes, 0);
+
+        return new String(infoLogBytes, 0, charsWritten[0]);
+    }
+
+    public boolean glIsShaderStatusValid(int shaderObj, int name) {
+        return glIsShaderStatusValid(shaderObj, name, null);
+    }
+    public boolean glIsShaderStatusValid(int shaderObj, int name, PrintStream verboseOut) {
+        int[] ires = new int[1];
+        glGetShaderiv(shaderObj, name, ires, 0);
+
+        boolean res = ires[0]==1;
+        if(!res && null!=verboseOut) {
+            verboseOut.println("Shader status invalid: "+glGetShaderInfoLog(shaderObj));
+        }
+        return res;
+    }
+    public boolean glIsShaderStatusValid(IntBuffer shaders, int name) {
+        return glIsShaderStatusValid(shaders, name, null);
+    }
+    public boolean glIsShaderStatusValid(IntBuffer shaders, int name, PrintStream verboseOut) {
+        boolean res = true;
+        shaders.rewind();
+        while(shaders.hasRemaining()) {
+            res = glIsShaderStatusValid(shaders.get(), name, verboseOut) && res;
+        }
+        shaders.rewind();
+        return res;
+    }
+
+    public boolean glIsProgramStatusValid(int programObj, int name) {
+        int[] ires = new int[1];
+        glGetProgramiv(programObj, name, ires, 0);
+
+        return ires[0]==1;
+    }
+
+    public boolean glIsProgramValid(int programObj) {
+        return glIsProgramValid(programObj, null);
+    }
+    public boolean glIsProgramValid(int programObj, PrintStream verboseOut) {
+        int[] ires = new int[1];
+        if(!glIsProgram(programObj)) {
+            if(null!=verboseOut) {
+                verboseOut.println("Program name invalid: "+programObj);
+            }
+            return false;
+        }
+        if(!glIsProgramStatusValid(programObj, GL_LINK_STATUS)) {
+            if(null!=verboseOut) {
+                verboseOut.println("Program link failed: "+programObj+"\n\t"+ glGetProgramInfoLog(programObj));
+            }
+            return false;
+        }
+        if(!glIsProgramStatusValid(programObj, GL_VALIDATE_STATUS)) {
+            if(null!=verboseOut) {
+                verboseOut.println("Program status invalid: "+programObj+"\n\t"+ glGetProgramInfoLog(programObj));
+            }
+            return false;
+        }
+        glValidateProgram(programObj);
+        if(!glIsProgramStatusValid(programObj, GL_VALIDATE_STATUS)) {
+            if(null!=verboseOut) {
+                verboseOut.println("Program validation failed: "+programObj+"\n\t"+ glGetProgramInfoLog(programObj));
+            }
+            return false;
+        }
+        return true;
+    }
+
+  public void glCreateShader(int type, IntBuffer shaders) {
+    shaders.clear();
+    while(shaders.hasRemaining()) {
+        shaders.put(glCreateShader(type));
+    }
+    shaders.rewind();
+  }
+
 
   public void glShaderSource(int shader, java.lang.String[] source)
   {
@@ -70,6 +172,64 @@
         return; // done
     }
     throw new GLException("Method \"glShaderBinaryOrSource\" without binary nor source");
+  }
+
+  public void glCompileShader(IntBuffer shaders)
+  {
+    shaders.rewind();
+    while(shaders.hasRemaining()) {
+        glCompileShader(shaders.get());
+    }
+    shaders.rewind();
+  }
+
+  public boolean glCreateCompileShader(IntBuffer shader, int shaderType,
+                                       int binFormat, java.nio.Buffer bin,
+                                       java.lang.String[][] sources)
+  {
+      return glCreateCompileShader(shader, shaderType,
+                                   binFormat, bin,
+                                   sources, null);
+  }
+
+  public boolean glCreateCompileShader(IntBuffer shader, int shaderType,
+                                       int binFormat, java.nio.Buffer bin,
+                                       java.lang.String[][] sources, 
+                                       PrintStream verboseOut)
+  {
+        glCreateShader(shaderType, shader);
+
+        glShaderBinaryOrSource(shader, binFormat, bin, sources);
+
+        glCompileShader(shader);
+
+        return glIsShaderStatusValid(shader, GL_COMPILE_STATUS, verboseOut);
+  }
+
+  public void glAttachShader(int program, IntBuffer shaders)
+  {
+    shaders.rewind();
+    while(shaders.hasRemaining()) {
+        glAttachShader(program, shaders.get());
+    }
+    shaders.rewind();
+  }
+
+  public void glDetachShader(int program, IntBuffer shaders)
+  {
+    shaders.rewind();
+    while(shaders.hasRemaining()) {
+        glDetachShader(program, shaders.get());
+    }
+    shaders.rewind();
+  }
+
+  public void glDeleteShader(IntBuffer shaders) {
+    shaders.rewind();
+    while(shaders.hasRemaining()) {
+        glDeleteShader(shaders.get());
+    }
+    shaders.clear();
   }
 
 

@@ -2,16 +2,22 @@
 package javax.media.opengl.util;
 
 import javax.media.opengl.*;
-import javax.media.opengl.util.gl2es1.VBOBufferDrawGL2ES1;
 import java.nio.*;
+import com.sun.opengl.impl.*;
 
 public abstract class VBOBufferDraw {
 
   public static VBOBufferDraw create(int glArrayType, int glDataType, int glBufferUsage, int comps, int initialSize) 
     throws GLException
   {
+    Class[] types = new Class[]{ int.class, int.class, int.class, int.class, int.class };
+    Object[] args = new Integer[]{ new Integer(glArrayType), new Integer(glDataType), new Integer(glBufferUsage), 
+                                   new Integer(comps), new Integer(initialSize) } ;
+
     if(GLProfile.isGL2ES1()) {
-        return new VBOBufferDrawGL2ES1(glArrayType, glDataType, glBufferUsage, comps, initialSize);
+        return (VBOBufferDraw) GLReflection.createInstance("com.sun.opengl.impl.gl2es1.VBOBufferDrawGL2ES1", types, args);
+    } else if(GLProfile.isGLES2()) {
+        return (VBOBufferDraw) GLReflection.createInstance("com.sun.opengl.impl.es2.VBOBufferDrawGLES2", types, args);
     }
     throw new GLException("VBOBufferDraw not supported for profile: "+GLProfile.getProfile());
   }
@@ -19,9 +25,14 @@ public abstract class VBOBufferDraw {
   protected void init(int glArrayType, int glDataType, int glBufferUsage, int comps, int initialSize) 
     throws GLException
   {
+    vboUsage=true;
+
     switch(glArrayType) {
         case GL2ES1.GL_VERTEX_ARRAY:
         case GL2ES1.GL_NORMAL_ARRAY:
+            if(3!=comps && 0!=comps) {
+                throw new GLException("component size for NORMAL_ARRAY must be 3 or 0: "+comps+" \n\t"+this); 
+            }
         case GL2ES1.GL_COLOR_ARRAY:
         case GL2ES1.GL_TEXTURE_COORD_ARRAY:
             break;
@@ -48,6 +59,13 @@ public abstract class VBOBufferDraw {
     this.sealed=false;
     this.bufferEnabled=false;
     growVBO(initialSize);
+  }
+
+  public boolean usesVBO() { return vboUsage; }
+
+  public void    setVBOUsage(boolean vboUsage) { 
+    checkSeal(false);
+    this.vboUsage=vboUsage; 
   }
 
   public int getGLArrayType() {
@@ -99,7 +117,7 @@ public abstract class VBOBufferDraw {
   }
 
   private final void init_vbo(GL gl) {
-    if(vboName==0) {
+    if(vboUsage && vboName==0) {
         int[] tmp = new int[1];
         gl.glGenBuffers(1, tmp, 0);
         vboName = tmp[0];
@@ -350,6 +368,7 @@ public abstract class VBOBufferDraw {
                        ", components "+components+ 
                        ", initialSize "+initialSize+ 
                        ", glBufferUsage "+glBufferUsage+ 
+                       ", vboUsage "+vboUsage+ 
                        ", vboName "+vboName+ 
                        ", sealed "+sealed+ 
                        ", bufferEnabled "+bufferEnabled+ 
@@ -367,6 +386,7 @@ public abstract class VBOBufferDraw {
   protected int vboName;
   protected boolean sealed;
   protected boolean bufferEnabled;
+  protected boolean vboUsage;
 
 }
 

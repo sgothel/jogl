@@ -1,6 +1,6 @@
 package javax.media.opengl.glu;
 
-import javax.media.opengl.GL2ES1;
+import javax.media.opengl.GL;
 import javax.media.opengl.util.ImmModeSink;
 
 /**
@@ -29,5 +29,5 @@ public interface GLUquadric {
     public ImmModeSink replaceImmModeSink();
 
     // gl may be null, then the GL client states are not disabled
-    public void resetImmModeSink(GL2ES1 gl);
+    public void resetImmModeSink(GL gl);
 }

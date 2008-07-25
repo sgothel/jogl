@@ -107,7 +107,7 @@ public class GLProfile {
   public static synchronized final void setProfileGL2ES1() {
     setProfile(new String[] { GLES1, GL2ES12, GL2 });
     if(null==profile) {
-      throw new GLException("Profiles GLES1 and GL2 not available");
+      throw new GLException("Profiles GLES1, GL2ES12 and GL2 not available");
     }
   }
 
@@ -117,7 +117,17 @@ public class GLProfile {
   public static synchronized final void setProfileGL2ES2() {
     setProfile(new String[] { GLES2, GL2ES12, GL2 });
     if(null==profile) {
-      throw new GLException("Profiles GLES2 and GL2 not available");
+      throw new GLException("Profiles GLES2, GL2ES12 and GL2 not available");
+    }
+  }
+
+  /**
+   * Selects a profile, implementing the interface GL
+   */
+  public static synchronized final void setProfileGLAny() {
+    setProfile(new String[] { GLES2, GLES1, GL2ES12, GL2 });
+    if(null==profile) {
+      throw new GLException("Profiles GLES2, GLES1, GL2ES12 and GL2 not available");
     }
   }
 

@@ -1,4 +1,29 @@
 
+  public static final int GL_LIGHT0 = 0x4000;
+  public static final int GL_LIGHT1 = 0x4001;
+  public static final int GL_LIGHT2 = 0x4002;
+  public static final int GL_LIGHT3 = 0x4003;
+  public static final int GL_LIGHT4 = 0x4004;
+  public static final int GL_LIGHT5 = 0x4005;
+  public static final int GL_LIGHT6 = 0x4006;
+  public static final int GL_LIGHT7 = 0x4007;
+  public static final int GL_LIGHTING = 0xB50;
+  public static final int GL_AMBIENT = 0x1200;
+  public static final int GL_DIFFUSE = 0x1201;
+  public static final int GL_SPECULAR = 0x1202;
+  public static final int GL_POSITION = 0x1203;
+  public static final int GL_COLOR_MATERIAL = 0xB57;
+  public static final int GL_FLAT = 0x1D00;
+  public static final int GL_SMOOTH = 0x1D01;
+
+  public static final int GL_MODELVIEW = 0x1700;
+  public static final int GL_PROJECTION = 0x1701;
+
+  public static final int GL_VERTEX_ARRAY = 0x8074;
+  public static final int GL_NORMAL_ARRAY = 0x8075;
+  public static final int GL_COLOR_ARRAY = 0x8076;
+  public static final int GL_TEXTURE_COORD_ARRAY = 0x8078;
+
   public boolean isGL2();
 
   public boolean isGLES1();
@@ -24,4 +49,57 @@
   public boolean matchesProfile();
 
   public boolean matchesProfile(String test_profile);
+
+  public String toString();
+
+  public GLContext getContext();
+
+  public void glClearDepth( double depth );
+
+  public void glDepthRange(double zNear, double zFar);
+
+  public void glPopMatrix();
+
+  public void glPushMatrix();
+
+  public void glLoadIdentity() ;
+
+  public void glLoadMatrixf(java.nio.FloatBuffer m) ;
+  public void glLoadMatrixf(float[] m, int m_offset);
+
+  public void glMatrixMode(int mode) ;
+
+  public void glMultMatrixf(java.nio.FloatBuffer m) ;
+  public void glMultMatrixf(float[] m, int m_offset);
+
+  public void glTranslatef(float x, float y, float z) ;
+
+  public void glRotatef(float angle, float x, float y, float z);
+
+  public void glScalef(float x, float y, float z) ;
+
+  public void glOrthof(float left, float right, float bottom, float top, float zNear, float zFar) ;
+
+  public void glFrustumf(float left, float right, float bottom, float top, float zNear, float zFar);
+
+  public void glEnableClientState(int arrayName);
+  public void glDisableClientState(int arrayName);
+
+  public void glVertexPointer(int size, int type, int stride, java.nio.Buffer pointer);
+  public void glVertexPointer(int size, int type, int stride, long pointer_buffer_offset);
+
+  public void glColorPointer(int size, int type, int stride, java.nio.Buffer pointer);
+  public void glColorPointer(int size, int type, int stride, long pointer_buffer_offset);
+  public void glColor4f(float red, float green, float blue, float alpha);
+
+  public void glNormalPointer(int type, int stride, java.nio.Buffer pointer);
+  public void glNormalPointer(int type, int stride, long pointer_buffer_offset);
+
+  public void glTexCoordPointer(int size, int type, int stride, java.nio.Buffer pointer);
+  public void glTexCoordPointer(int size, int type, int stride, long pointer_buffer_offset);
+
+  public void glLightfv(int light, int pname, java.nio.FloatBuffer params);
+  public void glLightfv(int light, int pname, float[] params, int params_offset);
+
+  public void glShadeModel(int mode);
 

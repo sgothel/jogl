@@ -79,6 +79,11 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
             throw new GLException("Invalid GL Profile for EGL: "+GLProfile.getProfile());
         }
 
+        // EGL Unix
+        glesLibNames.add("libEGL");
+        // EGL Windows
+        glesLibNames.add("EGL");
+
         ClassLoader loader = getClass().getClassLoader();
         for (Iterator iter = glesLibNames.iterator(); iter.hasNext(); ) {
             NativeLibrary lib = NativeLibrary.open((String) iter.next(), loader);
@@ -92,11 +97,6 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
             throw new GLException("Unable to dynamically load OpenGL ES library for profile \"" + GLProfile.getProfile() + "\"");
         }
 
-        // On the NVidia APX 2500 we need to separately load the EGL library
-        NativeLibrary eglLib = NativeLibrary.open("libEGL", loader);
-        if (eglLib != null) {
-            libs.add(eglLib);
-        }
         glesLibraries = libs;
 
         if (GLProfile.isGLES2()) {
@@ -175,24 +175,20 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
 
     public int[] glCapabilities2AttribList(GLCapabilities caps) {
         int[] attrs = new int[] {
-            EGL.EGL_DEPTH_SIZE,      caps.getDepthBits(),
-            // FIXME: does this need to be configurable?
-            EGL.EGL_SURFACE_TYPE,    EGL.EGL_WINDOW_BIT,
-            EGL.EGL_RED_SIZE,        caps.getRedBits(),
-            EGL.EGL_GREEN_SIZE,      caps.getGreenBits(),
-            EGL.EGL_BLUE_SIZE,       caps.getBlueBits(),
-            EGL.EGL_ALPHA_SIZE,      (caps.getAlphaBits() > 0 ? caps.getAlphaBits() : EGL.EGL_DONT_CARE),
-            EGL.EGL_STENCIL_SIZE,    (caps.getStencilBits() > 0 ? caps.getStencilBits() : EGL.EGL_DONT_CARE),
-            EGL.EGL_NONE, EGL.EGL_NONE,
-            EGL.EGL_NONE
-        };
-
-        // FIXME: we need to query the EGL version to determine
-        // whether we are allowed to specify the renderable type
-
+                EGL.EGL_RENDERABLE_TYPE, EGL.EGL_OPENGL_ES_BIT,
+                // FIXME: does this need to be configurable?
+                EGL.EGL_SURFACE_TYPE,    EGL.EGL_WINDOW_BIT,
+                EGL.EGL_RED_SIZE,        caps.getRedBits(),
+                EGL.EGL_GREEN_SIZE,      caps.getGreenBits(),
+                EGL.EGL_BLUE_SIZE,       caps.getBlueBits(),
+                EGL.EGL_ALPHA_SIZE,      (caps.getAlphaBits() > 0 ? caps.getAlphaBits() : EGL.EGL_DONT_CARE),
+                EGL.EGL_STENCIL_SIZE,    (caps.getStencilBits() > 0 ? caps.getStencilBits() : EGL.EGL_DONT_CARE),
+                EGL.EGL_DEPTH_SIZE,      caps.getDepthBits(),
+                EGL.EGL_NONE
+            };
         if (GLProfile.isGLES2()) {
-            attrs[attrs.length - 3] = EGL.EGL_RENDERABLE_TYPE;
-            attrs[attrs.length - 2] = EGL.EGL_OPENGL_ES2_BIT;
+            // ES 2
+            attrs[1] = EGL.EGL_OPENGL_ES2_BIT;
         }
 
         return attrs;

@@ -253,3 +253,21 @@ public java.nio.ByteBuffer glMapBuffer(int target, int access) {
 
 /** Encapsulates function pointer for OpenGL function <br>: <code> LPVOID glMapBuffer(GLenum target, GLenum access); </code>    */
 native private long dispatch_glMapBuffer(int target, int access, long glProcAddress);
+
+  public final String toString() {
+      StringBuffer buf = new StringBuffer();
+      buf.append("GL: ");
+      buf.append(getClass().getName());
+      buf.append(" (GLContext: ");
+      GLContext context = getContext();
+      buf.append(context.getClass().getName());
+      buf.append(", GLDrawable: ");
+      GLDrawable drawable = context.getGLDrawable();
+      buf.append(drawable.getClass().getName());
+      buf.append(", Factory: ");
+      GLDrawableFactory factory = drawable.getFactory();
+      buf.append(factory.getClass().getName());
+      buf.append(")");
+      return buf.toString();
+  }
+

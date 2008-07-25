@@ -36,7 +36,9 @@ package javax.media.opengl.util;
 import javax.media.opengl.*;
 
 public class FBObject {
-    private int fb, fbo_tex, depth_rb, stencil_rb, width, height, vStatus, attr;
+    private int width, height, attr;
+    private int fb, fbo_tex, depth_rb, stencil_rb, vStatus;
+    private int texInternalFormat, texDataFormat, texDataType;
 
     public static final int ATTR_DEPTH   = 1 << 0;
     public static final int ATTR_STENCIL = 1 << 1;
@@ -107,6 +109,29 @@ public class FBObject {
     }
 
     public void init(GL gl) {
+        int textureInternalFormat, textureDataFormat, textureDataType;
+
+        if(gl.isGL2()) { 
+            textureInternalFormat=GL.GL_RGBA8;
+            textureDataFormat=GL2.GL_BGRA;
+            textureDataType=GL2.GL_UNSIGNED_INT_8_8_8_8_REV;
+        } else if(gl.isGLES()) { 
+            textureInternalFormat=GL.GL_RGBA;
+            textureDataFormat=GL.GL_RGBA;
+            textureDataType=GL.GL_UNSIGNED_SHORT_5_5_5_1;
+        } else {
+            textureInternalFormat=GL.GL_RGB;
+            textureDataFormat=GL.GL_RGB;
+            textureDataType=GL.GL_UNSIGNED_BYTE;
+        }
+        init(gl, textureInternalFormat, textureDataFormat, textureDataType);
+    }
+
+    public void init(GL gl, int textureInternalFormat, int textureDataFormat, int textureDataType) {
+        texInternalFormat=textureInternalFormat; 
+        texDataFormat=textureDataFormat;
+        texDataType=textureDataType;
+
         // generate fbo ..
         int name[] = new int[1];
 
@@ -137,13 +162,8 @@ public class FBObject {
         gl.glBindFramebuffer(GL.GL_FRAMEBUFFER, fb);
 
         gl.glBindTexture(GL.GL_TEXTURE_2D, fbo_tex);
-        if(gl.isGL2()) { 
-            gl.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGBA8, width, height, 0,
-                            GL2.GL_BGRA, GL2.GL_UNSIGNED_INT_8_8_8_8_REV, null);
-        } else {
-            gl.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGB8, width, height, 0,
-                            GL.GL_RGB, GL.GL_UNSIGNED_BYTE, null);
-        }
+        gl.glTexImage2D(GL.GL_TEXTURE_2D, 0, texInternalFormat, width, height, 0,
+                        texDataFormat, texDataType, null);
         gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST);
         gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST);
         //gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL2.GL_CLAMP);

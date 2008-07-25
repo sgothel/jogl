@@ -69,12 +69,18 @@ public class BufferUtil {
     return bb;
   }
     
-  public static ByteBuffer newByteBuffer(byte[] values) {
-    ByteBuffer bb = newByteBuffer(values.length);
-    bb.put(values);
+  public static ByteBuffer newByteBuffer(byte[] values, int offset) {
+    int len = values.length-offset;
+    ByteBuffer bb = newByteBuffer(len);
+    bb.put(values, offset, len);
     bb.rewind();
     return bb;
   }
+    
+  public static ByteBuffer newByteBuffer(byte[] values) {
+    return newByteBuffer(values, 0);
+  }
+    
     
   /** Allocates a new direct DoubleBuffer with the specified number of
       elements. The returned buffer will have its byte order set to
@@ -84,6 +90,19 @@ public class BufferUtil {
     return bb.asDoubleBuffer();
   }
 
+  public static DoubleBuffer newDoubleBuffer(double[] values, int offset) {
+    int len = values.length-offset;
+    DoubleBuffer bb = newDoubleBuffer(len);
+    bb.put(values, offset, len);
+    bb.rewind();
+    return bb;
+  }
+    
+  public static DoubleBuffer newDoubleBuffer(double[] values) {
+    return newDoubleBuffer(values, 0);
+  }
+    
+
   /** Allocates a new direct FloatBuffer with the specified number of
       elements. The returned buffer will have its byte order set to
       the host platform's native byte order. */
@@ -92,12 +111,18 @@ public class BufferUtil {
     return bb.asFloatBuffer();
   }
     
-  public static FloatBuffer newFloatBuffer(float[] values) {
-    FloatBuffer bb = newFloatBuffer(values.length);
-    bb.put(values);
+  public static FloatBuffer newFloatBuffer(float[] values, int offset) {
+    int len = values.length-offset;
+    FloatBuffer bb = newFloatBuffer(len);
+    bb.put(values, offset, len);
     bb.rewind();
     return bb;
   }
+    
+  public static FloatBuffer newFloatBuffer(float[] values) {
+    return newFloatBuffer(values, 0);
+  }
+    
     
   /** Allocates a new direct IntBuffer with the specified number of
       elements. The returned buffer will have its byte order set to
@@ -107,11 +132,16 @@ public class BufferUtil {
     return bb.asIntBuffer();
   }
     
-  public static IntBuffer newIntBuffer(int[] values) {
-    IntBuffer bb = newIntBuffer(values.length);
-    bb.put(values);
+  public static IntBuffer newIntBuffer(int[] values, int offset) {
+    int len = values.length-offset;
+    IntBuffer bb = newIntBuffer(len);
+    bb.put(values, offset, len);
     bb.rewind();
     return bb;
+  }
+    
+  public static IntBuffer newIntBuffer(int[] values) {
+    return newIntBuffer(values, 0);
   }
     
   /** Allocates a new direct LongBuffer with the specified number of
@@ -130,11 +160,16 @@ public class BufferUtil {
     return bb.asShortBuffer();
   }
 
-  public static ShortBuffer newShortBuffer(short[] values) {
-    ShortBuffer bb = newShortBuffer(values.length);
-    bb.put(values);
+  public static ShortBuffer newShortBuffer(short[] values, int offset) {
+    int len = values.length-offset;
+    ShortBuffer bb = newShortBuffer(len);
+    bb.put(values, offset, len);
     bb.rewind();
     return bb;
+  }
+    
+  public static ShortBuffer newShortBuffer(short[] values) {
+    return newShortBuffer(values, 0);
   }
     
   //----------------------------------------------------------------------

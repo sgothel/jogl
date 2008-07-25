@@ -55,7 +55,7 @@ public class EGLDrawable extends GLDrawableImpl {
         this.chooser = chooser;
         surface=EGL.EGL_NO_SURFACE;
 
-        display = EGL.eglGetDisplay((component.getDisplayHandle()>0)?component.getDisplayHandle():EGL.EGL_DEFAULT_DISPLAY);
+        display = EGL.eglGetDisplay((0!=component.getDisplayHandle())?component.getDisplayHandle():EGL.EGL_DEFAULT_DISPLAY);
         if (display == EGL.EGL_NO_DISPLAY) {
             throw new GLException("eglGetDisplay failed");
         }

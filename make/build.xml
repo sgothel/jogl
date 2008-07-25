@@ -149,7 +149,7 @@
         <property name="java.part.glutess"
                   value="com/sun/opengl/impl/glu/tessellator/**"/>
 
-        <property name="java.part.glugl2es1"
+        <property name="java.part.glumipmap"
                   value="com/sun/opengl/impl/glu/mipmap/**"/>
 
         <property name="java.part.glugl2"
@@ -429,7 +429,7 @@
         <property name="jogl.gles2.dbg.jar" value="${build}/jogl.gles2.dbg.jar" />
         <property name="jogl.egl.jar" value="${build}/jogl.egl.jar" />
         <property name="jogl.glutess.jar" value="${build}/jogl.glu.tess.jar" />
-        <property name="jogl.glugl2es1.jar" value="${build}/jogl.glu.gl2es1.jar" />
+        <property name="jogl.glumipmap.jar" value="${build}/jogl.glu.mipmap.jar" />
         <property name="jogl.glugl2.jar"    value="${build}/jogl.glu.gl2.jar" />
         <property name="jogl.gl2es12.x11.jar" value="${build}/jogl.gl2es12.x11.jar" />
         <property name="jogl.gl2es12.win.jar" value="${build}/jogl.gl2es12.win.jar" />
@@ -760,6 +760,7 @@
         <copy file="../src/classes/javax/media/opengl/util/BufferUtil.java.javase" tofile="../build/gensrc/classes/javax/media/opengl/util/BufferUtil.java" />
     </target>
 
+    <!-- Generate the BufferUtil class for this particular profile -->
     <target name="java.generate.BufferUtil" depends="java.generate.BufferUtil.javase, java.generate.BufferUtil.javame_cdc_fp" />
 
     <target name="java.generate.gl.platforms" >
@@ -776,7 +777,8 @@
        - from the C GL headers.  This involves setting the taskdef and creating
        - the classpath reference id then running the task on each header.
       -->
-    <target name="java.generate" depends="build.gluegen, java.generate.check" unless="java.generate.skip">
+    <target name="java.generate" depends="build.gluegen, java.generate.BufferUtil, java.generate.check" unless="java.generate.skip">
+
         <!-- Add the GlueGen and BuildStaticGLInfo tasks to ANT -->
         <taskdef name="gluegen" classname="com.sun.gluegen.ant.GlueGenTask"
                  classpathref="gluegen.classpath" />
@@ -829,9 +831,6 @@
                      outputdir="${src.generated.java}/com/sun/opengl/impl">
             <classpath refid="gluegen.classpath" />
         </staticglgen>
-
-        <!-- Generate the BufferUtil class for this particular profile -->
-        <antcall target="java.generate.BufferUtil" inheritrefs="true" />
 
         <!-- Generate GLU class -->
         <antcall target="java.generate.glu.base"   inheritrefs="true" />
@@ -1002,6 +1001,7 @@
        - will be generated.
       -->
     <target name="java.compile.firstpass" depends="java.generate,java.generate.cg">
+
         <!-- Perform the first pass Java compile. -->
         <javac destdir="${classes}"
                classpath="${gluegen-rt.jar}"
@@ -1552,7 +1552,7 @@
         <jar manifest="tempversion" destfile="${jogl.core.jar}">
             <fileset dir="${classes}"
                      includes="javax/media/opengl/**, com/sun/gluegen/runtime/**, com/sun/opengl/**"
-                     excludes="${java.excludes.fixme} ${java.part.egl}, ${java.part.gl2es12.x11}, ${java.part.gl2es12.win}, ${java.part.gl2es12.osx}, ${java.part.gl2es12.dbg}, ${java.part.gl2.x11}, ${java.part.gl2.win}, ${java.part.gl2.osx}, ${java.part.gl2.dbg}, ${java.part.es1}, ${java.part.es1.dbg}, ${java.part.es2}, ${java.part.es2.dbg}, ${java.part.awt}, ${java.part.glutess}, ${java.part.glugl2es1}, ${java.part.glugl2}, ${java.part.util} ${java.part.util.awt} ${java.part.util.gl2}, ${java.part.newt}, ${java.part.newt.awt}"/>
+                     excludes="${java.excludes.fixme} ${java.part.egl}, ${java.part.gl2es12.x11}, ${java.part.gl2es12.win}, ${java.part.gl2es12.osx}, ${java.part.gl2es12.dbg}, ${java.part.gl2.x11}, ${java.part.gl2.win}, ${java.part.gl2.osx}, ${java.part.gl2.dbg}, ${java.part.es1}, ${java.part.es1.dbg}, ${java.part.es2}, ${java.part.es2.dbg}, ${java.part.awt}, ${java.part.glutess}, ${java.part.glumipmap}, ${java.part.glugl2}, ${java.part.util} ${java.part.util.awt} ${java.part.util.gl2}, ${java.part.newt}, ${java.part.newt.awt}"/>
         </jar>
         <jar manifest="tempversion" destfile="${jogl.gles1.jar}">
             <fileset dir="${classes}"
@@ -1619,9 +1619,9 @@
             <fileset dir="${classes}"
                      includes="${java.part.glutess}"/>
         </jar>
-        <jar manifest="tempversion" destfile="${jogl.glugl2es1.jar}">
+        <jar manifest="tempversion" destfile="${jogl.glumipmap.jar}">
             <fileset dir="${classes}"
-                     includes="${java.part.glugl2es1}"/>
+                     includes="${java.part.glumipmap}"/>
         </jar>
         <jar manifest="tempversion" destfile="${jogl.glugl2.jar}">
             <fileset dir="${classes}"

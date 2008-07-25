@@ -136,6 +136,13 @@ public class ProjectFloat {
       0.0f, 0.0f, 1.0f, 0.0f,
       0.0f, 0.0f, 0.0f, 1.0f };
 
+  private static final float[] ZERO_MATRIX =
+    new float[] {
+      0.0f, 0.0f, 0.0f, 0.0f,
+      0.0f, 0.0f, 0.0f, 0.0f,
+      0.0f, 0.0f, 0.0f, 0.0f,
+      0.0f, 0.0f, 0.0f, 0.0f };
+
   // Note that we have cloned parts of the implementation in order to
   // support incoming Buffers. The reason for this is to avoid loading
   // non-direct buffer subclasses unnecessarily, because doing so can
@@ -201,16 +208,25 @@ public class ProjectFloat {
   /**
    * Make matrix an identity matrix
    */
-  private void __gluMakeIdentityf(FloatBuffer m) {
+  public static void gluMakeIdentityf(FloatBuffer m) {
     int oldPos = m.position();
     m.put(IDENTITY_MATRIX);
     m.position(oldPos);
   }
 
   /**
+   * Make matrix an zero matrix
+   */
+  public static void gluMakeZero(FloatBuffer m) {
+    int oldPos = m.position();
+    m.put(ZERO_MATRIX);
+    m.position(oldPos);
+  }
+
+  /**
    * Make matrix an identity matrix
    */
-  private void __gluMakeIdentityf(float[] m) {
+  private void gluMakeIdentityf(float[] m) {
     for (int i = 0; i < 16; i++) {
       m[i] = IDENTITY_MATRIX[i];
     }
@@ -269,7 +285,7 @@ public class ProjectFloat {
         temp[i][j] = src[i*4+j];
       }
     }
-    __gluMakeIdentityf(inverse);
+    gluMakeIdentityf(inverse);
 
     for (i = 0; i < 4; i++) {
       //
@@ -343,7 +359,7 @@ public class ProjectFloat {
         temp.put(i*4+j, src.get(i*4+j + srcPos));
       }
     }
-    __gluMakeIdentityf(inverse);
+    gluMakeIdentityf(inverse);
 
     for (i = 0; i < 4; i++) {
       //
@@ -403,7 +419,7 @@ public class ProjectFloat {
    * @param b
    * @param r
    */
-  private void __gluMultMatricesf(float[] a, int a_offset, float[] b, int b_offset, float[] r) {
+  private void gluMultMatricesf(float[] a, int a_offset, float[] b, int b_offset, float[] r) {
     for (int i = 0; i < 4; i++) {
       for (int j = 0; j < 4; j++) {
         r[i*4+j] =
@@ -421,7 +437,7 @@ public class ProjectFloat {
    * @param b
    * @param r
    */
-  private void __gluMultMatricesf(FloatBuffer a, FloatBuffer b, FloatBuffer r) {
+  public static void gluMultMatricesf(FloatBuffer a, FloatBuffer b, FloatBuffer r) {
     int aPos = a.position();
     int bPos = b.position();
     int rPos = r.position();
@@ -442,11 +458,11 @@ public class ProjectFloat {
    *
    * @param v
    */
-  private static void normalize(float[] v) {
+  public static void normalize(float[] v) {
     float r;
 
     r = (float) Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
-    if ( r == 0.0 )
+    if ( r == 0.0 || r == 1.0)
       return;
 
     r = 1.0f / r;
@@ -463,7 +479,7 @@ public class ProjectFloat {
    *
    * @param v
    */
-  private static void normalize(FloatBuffer v) {
+  public static void normalize(FloatBuffer v) {
     float r;
 
     int vPos = v.position();
@@ -471,7 +487,7 @@ public class ProjectFloat {
     r = (float) Math.sqrt(v.get(0+vPos) * v.get(0+vPos) +
                           v.get(1+vPos) * v.get(1+vPos) +
                           v.get(2+vPos) * v.get(2+vPos));
-    if ( r == 0.0 )
+    if ( r == 0.0 || r == 1.0)
       return;
 
     r = 1.0f / r;
@@ -522,7 +538,7 @@ public class ProjectFloat {
    * @param bottom
    * @param top
    */
-  public void gluOrtho2D(GL2ES1 gl, float left, float right, float bottom, float top) {
+  public void gluOrtho2D(GL gl, float left, float right, float bottom, float top) {
     gl.glOrthof(left, right, bottom, top, -1, 1);
   }
 
@@ -534,7 +550,7 @@ public class ProjectFloat {
    * @param zNear
    * @param zFar
    */
-  public void gluPerspective(GL2ES1 gl, float fovy, float aspect, float zNear, float zFar) {
+  public void gluPerspective(GL gl, float fovy, float aspect, float zNear, float zFar) {
     float sine, cotangent, deltaZ;
     float radians = fovy / 2 * (float) Math.PI / 180;
 
@@ -547,7 +563,7 @@ public class ProjectFloat {
 
     cotangent = (float) Math.cos(radians) / sine;
 
-    __gluMakeIdentityf(matrixBuf);
+    gluMakeIdentityf(matrixBuf);
 
     matrixBuf.put(0 * 4 + 0, cotangent / aspect);
     matrixBuf.put(1 * 4 + 1, cotangent);
@@ -572,7 +588,7 @@ public class ProjectFloat {
    * @param upy
    * @param upz
    */
-  public void gluLookAt(GL2ES1 gl,
+  public void gluLookAt(GL gl,
                         float eyex,
                         float eyey,
                         float eyez,
@@ -603,7 +619,7 @@ public class ProjectFloat {
     /* Recompute up as: up = side x forward */
     cross(side, forward, up);
 
-    __gluMakeIdentityf(matrixBuf);
+    gluMakeIdentityf(matrixBuf);
     matrixBuf.put(0 * 4 + 0, side.get(0));
     matrixBuf.put(1 * 4 + 0, side.get(1));
     matrixBuf.put(2 * 4 + 0, side.get(2));
@@ -754,7 +770,7 @@ public class ProjectFloat {
     float[] in = this.in;
     float[] out = this.out;
 
-    __gluMultMatricesf(modelMatrix, modelMatrix_offset, projMatrix, projMatrix_offset, matrix);
+    gluMultMatricesf(modelMatrix, modelMatrix_offset, projMatrix, projMatrix_offset, matrix);
 
     if (!__gluInvertMatrixf(matrix, matrix))
       return false;
@@ -811,7 +827,7 @@ public class ProjectFloat {
     FloatBuffer in = this.inBuf;
     FloatBuffer out = this.outBuf;
 
-    __gluMultMatricesf(modelMatrix, projMatrix, matrixBuf);
+    gluMultMatricesf(modelMatrix, projMatrix, matrixBuf);
 
     if (!__gluInvertMatrixf(matrixBuf, matrixBuf))
       return false;
@@ -880,7 +896,7 @@ public class ProjectFloat {
     float[] in = this.in;
     float[] out = this.out;
 
-    __gluMultMatricesf(modelMatrix, modelMatrix_offset, projMatrix, projMatrix_offset, matrix);
+    gluMultMatricesf(modelMatrix, modelMatrix_offset, projMatrix, projMatrix_offset, matrix);
 
     if (!__gluInvertMatrixf(matrix, matrix))
       return false;
@@ -941,7 +957,7 @@ public class ProjectFloat {
     FloatBuffer in = this.inBuf;
     FloatBuffer out = this.outBuf;
 
-    __gluMultMatricesf(modelMatrix, projMatrix, matrixBuf);
+    gluMultMatricesf(modelMatrix, projMatrix, matrixBuf);
 
     if (!__gluInvertMatrixf(matrixBuf, matrixBuf))
       return false;
@@ -985,7 +1001,7 @@ public class ProjectFloat {
    * @param deltaY
    * @param viewport
    */
-  public void gluPickMatrix(GL2ES1 gl,
+  public void gluPickMatrix(GL gl,
                             float x,
                             float y,
                             float deltaX,
@@ -1013,7 +1029,7 @@ public class ProjectFloat {
    * @param viewport
    * @param viewport_offset
    */
-  public void gluPickMatrix(GL2ES1 gl,
+  public void gluPickMatrix(GL gl,
                             float x,
                             float y,
                             float deltaX,

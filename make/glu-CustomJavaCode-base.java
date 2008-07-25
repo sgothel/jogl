@@ -100,6 +100,11 @@ public static final GLU createGLU(String profile) throws GLUnsupportedException 
   return new GLU();
 }
 
+public GLU()
+{
+  this.project = new ProjectFloat();
+}
+
 public static final GL getCurrentGL() throws GLException {
   GLContext curContext = GLContext.getCurrent();
   if (curContext == null) {
@@ -1151,106 +1156,193 @@ public static final int GLU_TESS_WINDING_NEGATIVE = 100133;
 public static final int GLU_TESS_WINDING_ABS_GEQ_TWO = 100134;
 public static final double GLU_TESS_MAX_COORD = 1.0e150;
 
-public void gluCylinder(GLUquadric quad, double base, double top, double height, int slices, int stacks) {
-    throw new GLUnsupportedException("not implemented");
+//----------------------------------------------------------------------
+// Quadric functionality
+//
+
+protected static boolean availableGLUquadricImpl = false;
+protected static boolean checkedGLUquadricImpl = false;
+
+/**
+ * Optional, throws GLUnsupportedException if not available in profile
+ */
+protected static final void validateGLUquadricImpl() {
+    if(!checkedGLUquadricImpl) {
+        availableGLUquadricImpl = GLReflection.isClassAvailable("com.sun.opengl.impl.glu.GLUquadricImpl");
+        checkedGLUquadricImpl = true;
+    }
+    if(!availableGLUquadricImpl) {
+      throw new GLUnsupportedException("GLUquadric not available (GLUquadricImpl)");
+    }
 }
 
-/** Interface to C language function: <br> <code> void gluDeleteQuadric(GLUquadric *  quad); </code>    */
-public void gluDeleteQuadric(GLUquadric quad) {
-    throw new GLUnsupportedException("not implemented");
+
+/** Option (throws GLUnsupportedException if not available in profile). <br> Interface to C language function: <br> <code> void gluCylinder(GLUquadric *  quad, GLdouble base, GLdouble top, GLdouble height, GLint slices, GLint stacks); </code>    */
+public final void gluCylinder(GLUquadric quad, double base, double top, double height, int slices, int stacks) {
+  validateGLUquadricImpl();
+  ((GLUquadricImpl) quad).drawCylinder(getCurrentGL(), (float) base, (float) top, (float) height, slices, stacks);
 }
 
-/** Interface to C language function: <br> <code> void gluDisk(GLUquadric *  quad, GLdouble inner, GLdouble outer, GLint slices, GLint loops); </code>    */
-public void gluDisk(GLUquadric quad, double inner, double outer, int slices, int loops) {
-    throw new GLUnsupportedException("not implemented");
+/** Option (throws GLUnsupportedException if not available in profile). <br> Interface to C language function: <br> <code> void gluDeleteQuadric(GLUquadric *  quad); </code>    */
+public final void gluDeleteQuadric(GLUquadric quad) {
+  validateGLUquadricImpl();
 }
 
-/** Interface to C language function: <br> <code> GLUquadric *  gluNewQuadric(void); </code>    */
-public GLUquadric gluNewQuadric() {
-    throw new GLUnsupportedException("not implemented");
+/** Option (throws GLUnsupportedException if not available in profile). <br> Interface to C language function: <br> <code> void gluDisk(GLUquadric *  quad, GLdouble inner, GLdouble outer, GLint slices, GLint loops); </code>    */
+public final void gluDisk(GLUquadric quad, double inner, double outer, int slices, int loops) {
+  validateGLUquadricImpl();
+  ((GLUquadricImpl) quad).drawDisk(getCurrentGL(), (float) inner, (float) outer, slices, loops);
 }
 
-/** Interface to C language function: <br> <code> void gluPartialDisk(GLUquadric *  quad, GLdouble inner, GLdouble outer, GLint slices, GLint loops, GLdouble start, GLdouble sweep); </code>    */
-public void gluPartialDisk(GLUquadric quad, double inner, double outer, int slices, int loops, double start, double sweep) {
-    throw new GLUnsupportedException("not implemented");
+/** Option (throws GLUnsupportedException if not available in profile). <br> Interface to C language function: <br> <code> GLUquadric *  gluNewQuadric(void); </code>    */
+public final GLUquadric gluNewQuadric() {
+  validateGLUquadricImpl();
+  return new GLUquadricImpl();
 }
 
-/** Interface to C language function: <br> <code> void gluQuadricDrawStyle(GLUquadric *  quad, GLenum draw); </code>    */
-public void gluQuadricDrawStyle(GLUquadric quad, int draw) {
-    throw new GLUnsupportedException("not implemented");
+/** Option (throws GLUnsupportedException if not available in profile). <br> Interface to C language function: <br> <code> void gluPartialDisk(GLUquadric *  quad, GLdouble inner, GLdouble outer, GLint slices, GLint loops, GLdouble start, GLdouble sweep); </code>    */
+public final void gluPartialDisk(GLUquadric quad, double inner, double outer, int slices, int loops, double start, double sweep) {
+  validateGLUquadricImpl();
+  ((GLUquadricImpl) quad).drawPartialDisk(getCurrentGL(), (float) inner, (float) outer, slices, loops, (float) start, (float) sweep);
 }
 
-/** Interface to C language function: <br> <code> void gluQuadricNormals(GLUquadric *  quad, GLenum normal); </code>    */
-public void gluQuadricNormals(GLUquadric quad, int normal) {
-    throw new GLUnsupportedException("not implemented");
+/** Option (throws GLUnsupportedException if not available in profile). <br> Interface to C language function: <br> <code> void gluQuadricDrawStyle(GLUquadric *  quad, GLenum draw); </code>    */
+public final void gluQuadricDrawStyle(GLUquadric quad, int draw) {
+  validateGLUquadricImpl();
+  ((GLUquadricImpl) quad).setDrawStyle(draw);
 }
 
-/** Interface to C language function: <br> <code> void gluQuadricOrientation(GLUquadric *  quad, GLenum orientation); </code>    */
-public void gluQuadricOrientation(GLUquadric quad, int orientation) {
-    throw new GLUnsupportedException("not implemented");
+/** Option (throws GLUnsupportedException if not available in profile). <br> Interface to C language function: <br> <code> void gluQuadricNormals(GLUquadric *  quad, GLenum normal); </code>    */
+public final void gluQuadricNormals(GLUquadric quad, int normal) {
+  validateGLUquadricImpl();
+  ((GLUquadricImpl) quad).setNormals(normal);
 }
 
-/** Interface to C language function: <br> <code> void gluQuadricTexture(GLUquadric *  quad, GLboolean texture); </code>    */
-public void gluQuadricTexture(GLUquadric quad, boolean texture) {
-    throw new GLUnsupportedException("not implemented");
+/** Option (throws GLUnsupportedException if not available in profile). <br> Interface to C language function: <br> <code> void gluQuadricOrientation(GLUquadric *  quad, GLenum orientation); </code>    */
+public final void gluQuadricOrientation(GLUquadric quad, int orientation) {
+  validateGLUquadricImpl();
+  ((GLUquadricImpl) quad).setOrientation(orientation);
 }
 
-/** Interface to C language function: <br> <code> void gluSphere(GLUquadric *  quad, GLdouble radius, GLint slices, GLint stacks); </code>    */
-public void gluSphere(GLUquadric quad, double radius, int slices, int stacks) {
-    throw new GLUnsupportedException("not implemented");
+/** Option (throws GLUnsupportedException if not available in profile). <br> Interface to C language function: <br> <code> void gluQuadricTexture(GLUquadric *  quad, GLboolean texture); </code>    */
+public final void gluQuadricTexture(GLUquadric quad, boolean texture) {
+  validateGLUquadricImpl();
+  ((GLUquadricImpl) quad).setTextureFlag(texture);
 }
+
+/** Option (throws GLUnsupportedException if not available in profile). <br> Interface to C language function: <br> <code> void gluSphere(GLUquadric *  quad, GLdouble radius, GLint slices, GLint stacks); </code>    */
+public final void gluSphere(GLUquadric quad, double radius, int slices, int stacks) {
+  validateGLUquadricImpl();
+  ((GLUquadricImpl) quad).drawSphere(getCurrentGL(), (float) radius, slices, stacks);
+}
+
+//----------------------------------------------------------------------
+// Projection routines
+//
+
+private ProjectFloat project;
 
 public void gluOrtho2D(float left, float right, float bottom, float top) {
-    throw new GLUnsupportedException("not implemented");
-}
-
-public void gluOrtho2D(double left, double right, double bottom, double top) {
-    throw new GLUnsupportedException("not implemented");
+  project.gluOrtho2D(getCurrentGL(), left, right, bottom, top);
 }
 
 public void gluPerspective(float fovy, float aspect, float zNear, float zFar) {
-    throw new GLUnsupportedException("not implemented");
-}
-
-public void gluPerspective(double fovy, double aspect, double zNear, double zFar) {
-    throw new GLUnsupportedException("not implemented");
+  project.gluPerspective(getCurrentGL(), fovy, aspect, zNear, zFar);
 }
 
 public void gluLookAt(float eyeX, float eyeY, float eyeZ, float centerX, float centerY, float centerZ, float upX, float upY, float upZ) {
-    throw new GLUnsupportedException("not implemented");
+  project.gluLookAt(getCurrentGL(), eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ);
+}
+
+/** Interface to C language function: <br> <code> GLint gluProject(GLdouble objX, GLdouble objY, GLdouble objZ, const GLdouble *  model, const GLdouble *  proj, const GLint *  view, GLdouble *  winX, GLdouble *  winY, GLdouble *  winZ); </code>
+ * <P> Accepts the outgoing window coordinates as a single array.
+ */
+public boolean gluProject(float objX, float objY, float objZ, float[] model, int model_offset, float[] proj, int proj_offset, int[] view, int view_offset, float[] winPos, int winPos_offset) {
+  return project.gluProject(objX, objY, objZ, model, model_offset, proj, proj_offset, view, view_offset, winPos, winPos_offset);
+}
+
+/** Interface to C language function: <br> <code> GLint gluProject(GLdouble objX, GLdouble objY, GLdouble objZ, const GLdouble *  model, const GLdouble *  proj, const GLint *  view, GLdouble *  winX, GLdouble *  winY, GLdouble *  winZ); </code>
+ * <P> Accepts the outgoing window coordinates as a single buffer.
+ */
+public boolean gluProject(float objX, float objY, float objZ, java.nio.FloatBuffer model, java.nio.FloatBuffer proj, java.nio.IntBuffer view, java.nio.FloatBuffer winPos) {
+  return project.gluProject(objX, objY, objZ, model, proj, view, winPos);
+}
+
+/** Interface to C language function: <br> <code> GLint gluUnProject(GLdouble winX, GLdouble winY, GLdouble winZ, const GLdouble *  model, const GLdouble *  proj, const GLint *  view, GLdouble *  objX, GLdouble *  objY, GLdouble *  objZ); </code>
+ * <P> Accepts the outgoing object coordinates (a 3-vector) as a single array.
+ */
+public boolean gluUnProject(float winX, float winY, float winZ, float[] model, int model_offset, float[] proj, int proj_offset, int[] view, int view_offset, float[] objPos, int objPos_offset) {
+  return project.gluUnProject(winX, winY, winZ, model, model_offset, proj, proj_offset, view, view_offset, objPos, objPos_offset);
+}
+
+/** Interface to C language function: <br> <code> GLint gluUnProject(GLdouble winX, GLdouble winY, GLdouble winZ, const GLdouble *  model, const GLdouble *  proj, const GLint *  view, GLdouble *  objX, GLdouble *  objY, GLdouble *  objZ); </code>
+ * <P> Accepts the outgoing object coordinates (a 3-vector) as a single buffer.
+ */
+public boolean gluUnProject(float winX, float winY, float winZ, java.nio.FloatBuffer model, java.nio.FloatBuffer proj, java.nio.IntBuffer view, java.nio.FloatBuffer objPos) {
+  return project.gluUnProject(winX, winY, winZ, model, proj, view, objPos);
+}
+
+/** Interface to C language function: <br> <code> GLint gluUnProject4(GLdouble winX, GLdouble winY, GLdouble winZ, GLdouble clipW, const GLdouble *  model, const GLdouble *  proj, const GLint *  view, GLdouble nearVal, GLdouble farVal, GLdouble *  objX, GLdouble *  objY, GLdouble *  objZ, GLdouble *  objW); </code>
+ * <P> Accepts the outgoing object coordinates (a 4-vector) as a single array.
+ */
+public boolean gluUnProject4(float winX, float winY, float winZ, float clipW, float[] model, int model_offset, float[] proj, int proj_offset, int[] view, int view_offset, float nearVal, float farVal, float[] objPos, int objPos_offset) {
+  return project.gluUnProject4(winX, winY, winZ, clipW, model, model_offset, proj, proj_offset, view, view_offset, nearVal, farVal, objPos, objPos_offset);
+}
+
+/** Interface to C language function: <br> <code> GLint gluUnProject4(GLdouble winX, GLdouble winY, GLdouble winZ, GLdouble clipW, const GLdouble *  model, const GLdouble *  proj, const GLint *  view, GLdouble nearVal, GLdouble farVal, GLdouble *  objX, GLdouble *  objY, GLdouble *  objZ, GLdouble *  objW); </code>
+ * <P> Accepts the outgoing object coordinates (a 4-vector) as a single buffer.
+ */
+public boolean gluUnProject4(float winX, float winY, float winZ, float clipW, java.nio.FloatBuffer model, java.nio.FloatBuffer proj, java.nio.IntBuffer view, float nearVal, float farVal, java.nio.FloatBuffer objPos) {
+  return project.gluUnProject4(winX, winY, winZ, clipW, model, proj, view, nearVal, farVal, objPos);
+}
+
+public void gluPickMatrix(float x, float y, float delX, float delY, int[] viewport, int viewport_offset) {
+  project.gluPickMatrix(getCurrentGL(), x, y, delX, delY, viewport, viewport_offset);
+}
+
+public void gluPickMatrix(float x, float y, float delX, float delY, java.nio.IntBuffer viewport) {
+  project.gluPickMatrix(getCurrentGL(), x, y, delX, delY, viewport);
+}
+
+public void gluOrtho2D(double left, double right, double bottom, double top) {
+  project.gluOrtho2D(getCurrentGL(), (float)left, (float)right, (float)bottom, (float)top);
+}
+
+public void gluPerspective(double fovy, double aspect, double zNear, double zFar) {
+  project.gluPerspective(getCurrentGL(), (float)fovy, (float)aspect, (float)zNear, (float)zFar);
 }
 
 public void gluLookAt(double eyeX, double eyeY, double eyeZ, double centerX, double centerY, double centerZ, double upX, double upY, double upZ) {
-    throw new GLUnsupportedException("not implemented");
+  project.gluLookAt(getCurrentGL(), (float)eyeX, (float)eyeY, (float)eyeZ, (float)centerX, (float)centerY, (float)centerZ, (float)upX, (float)upY, (float)upZ);
 }
 
 /** Interface to C language function: <br> <code> GLint gluProject(GLdouble objX, GLdouble objY, GLdouble objZ, const GLdouble *  model, const GLdouble *  proj, const GLint *  view, GLdouble *  winX, GLdouble *  winY, GLdouble *  winZ); </code>
  * <P> Accepts the outgoing window coordinates as a single array.
  */
 public boolean gluProject(double objX, double objY, double objZ, double[] model, int model_offset, double[] proj, int proj_offset, int[] view, int view_offset, double[] winPos, int winPos_offset) {
-    throw new GLUnsupportedException("not implemented");
+  return project.gluProject((float)objX, (float)objY, (float)objZ, BufferUtil.getFloatArray(model), model_offset, BufferUtil.getFloatArray(proj), proj_offset, view, view_offset, BufferUtil.getFloatArray(winPos), winPos_offset);
 }
 
 /** Interface to C language function: <br> <code> GLint gluUnProject(GLdouble winX, GLdouble winY, GLdouble winZ, const GLdouble *  model, const GLdouble *  proj, const GLint *  view, GLdouble *  objX, GLdouble *  objY, GLdouble *  objZ); </code>
  * <P> Accepts the outgoing object coordinates (a 3-vector) as a single array.
  */
 public boolean gluUnProject(double winX, double winY, double winZ, double[] model, int model_offset, double[] proj, int proj_offset, int[] view, int view_offset, double[] objPos, int objPos_offset) {
-    throw new GLUnsupportedException("not implemented");
+  return project.gluUnProject((float)winX, (float)winY, (float)winZ, BufferUtil.getFloatArray(model), model_offset, BufferUtil.getFloatArray(proj), proj_offset, view, view_offset, BufferUtil.getFloatArray(objPos), objPos_offset);
 }
 
 /** Interface to C language function: <br> <code> GLint gluUnProject4(GLdouble winX, GLdouble winY, GLdouble winZ, GLdouble clipW, const GLdouble *  model, const GLdouble *  proj, const GLint *  view, GLdouble nearVal, GLdouble farVal, GLdouble *  objX, GLdouble *  objY, GLdouble *  objZ, GLdouble *  objW); </code>
  * <P> Accepts the outgoing object coordinates (a 4-vector) as a single array.
  */
 public boolean gluUnProject4(double winX, double winY, double winZ, double clipW, double[] model, int model_offset, double[] proj, int proj_offset, int[] view, int view_offset, double nearVal, double farVal, double[] objPos, int objPos_offset) {
-    throw new GLUnsupportedException("not implemented");
+  return project.gluUnProject4((float)winX, (float)winY, (float)winZ, (float)clipW, BufferUtil.getFloatArray(model), model_offset, BufferUtil.getFloatArray(proj), proj_offset, view, view_offset, (float)nearVal, (float)farVal, BufferUtil.getFloatArray(objPos), objPos_offset);
 }
 
 public void gluPickMatrix(double x, double y, double delX, double delY, int[] viewport, int viewport_offset) {
-    throw new GLUnsupportedException("not implemented");
+  project.gluPickMatrix(getCurrentGL(), (float)x, (float)y, (float)delX, (float)delY, viewport, viewport_offset);
 }
 
 public void gluPickMatrix(double x, double y, double delX, double delY, IntBuffer viewport) {
-    throw new GLUnsupportedException("not implemented");
+  project.gluPickMatrix(getCurrentGL(), (float)x, (float)y, (float)delX, (float)delY, viewport);
 }
 
 /**
