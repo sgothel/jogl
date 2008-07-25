@@ -543,6 +543,11 @@ private final void glDrawArraysEpilogue() {
         fixedFunction.glUseProgram(this, false);
     }
 }
+private final void glActiveTextureEpilog(int texture) {
+    if(fixedFunctionShaderActive) { 
+        fixedFunction.glActiveTexture(this, texture);
+    }
+}
 public void glLightfv(int light, int pname, java.nio.FloatBuffer params) {
   if(!fixedFunctionShaderActive) {
     throw new GLUnsupportedException("not enabled");

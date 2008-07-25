@@ -148,11 +148,12 @@ public class FixedFuncShader {
     public void glLightfv(GL2ES2 gl, int light, int pname, java.nio.FloatBuffer params) {
         if(!shaderOk) return;
         light -=GL.GL_LIGHT0;
-        if(0 <= light && light <= 7 && 0<=shaderLightsPos[light] ) {
-            glUseProgram(gl, true);
-            gl.glUniform4fv(shaderLightsPos[light], 1, params);
-            if(0<=shaderLightsSrc[light]) {
-                gl.glUniform1i(shaderLightsSrc[light], pname);
+        if(0 <= light && light <= 7) {
+            if(gl.GL_POSITION==pname && 0<=shaderLightsSource[light]) {
+                glUseProgram(gl, true);
+                gl.glUniform4fv(shaderLightsSource[light], 1, params);
+            } else if(gl.GL_AMBIENT==pname && 0<=shaderLigthsAmbient[light]) {
+                gl.glUniform4fv(shaderLigthsAmbient[light], 1, params);
             }
         }
     }
@@ -161,6 +162,13 @@ public class FixedFuncShader {
         if(!shaderOk || 0>shaderShadeModel) return;
         glUseProgram(gl, true);
         gl.glUniform1i(shaderShadeModel, mode);
+    }
+
+    public void glActiveTexture(GL2ES2 gl, int texture) {
+        if(!shaderOk || 0>shaderShadeModel) return;
+        glUseProgram(gl, true);
+        texture-=gl.GL_TEXTURE0;
+        gl.glUniform1i(shaderActiveTexture, 0);
     }
 
     protected void init(GL2ES2 gl, PMVMatrix pmvMatrix, ShaderData shaderData) {
@@ -207,12 +215,12 @@ public class FixedFuncShader {
 
         // optional parameter ..
         for(int i=0; i<7; i++) {
-            shaderLightsPos[i] = gl.glGetUniformLocation(shaderProgram, "mgl_LightPos"+i);
-            shaderLightsSrc[i] = gl.glGetUniformLocation(shaderProgram, "mgl_LightSrc"+i);
+            shaderLightsSource[i] = gl.glGetUniformLocation(shaderProgram, "mgl_LightSource"+i);
+            shaderLigthsAmbient[i] = gl.glGetUniformLocation(shaderProgram, "mgl_LightAmbient"+i);
         }
         shaderShadeModel = gl.glGetUniformLocation(shaderProgram, "mgl_ShadeModel");
 
-        shaderActiveTexture = gl.glGetUniformLocation(shaderProgram, "mgl_activeTexture");
+        shaderActiveTexture = gl.glGetUniformLocation(shaderProgram, "mgl_ActiveTexture");
         if(0<=shaderActiveTexture) {
             gl.glUniform1i(shaderActiveTexture, 0);
         }
@@ -236,11 +244,10 @@ public class FixedFuncShader {
     protected static final int TEXCOORD_ARRAY = 3; // mgl_MultiTexCoord0
 
     // uniforms ..
-    protected int shaderPMVMatrix=-1;
-    protected int[] shaderLightsPos = new int[] { -1, -1, -1, -1, -1, -1, -1 };
-    protected int[] shaderLightsSrc = new int[] { -1, -1, -1, -1, -1, -1, -1 };
-    protected int   shaderShadeModel = -1;
-    protected int   shaderActiveTexture = -1;
-
+    protected int shaderPMVMatrix=-1; // mgl_PMVMatrix mat4
+    protected int[] shaderLightsSource = new int[] { -1, -1, -1, -1, -1, -1, -1 }; // vec4f mgl_LightSourcei
+    protected int[] shaderLigthsAmbient = new int[] { -1, -1, -1, -1, -1, -1, -1 }; // vec4f mgl_LightAmbienti
+    protected int   shaderShadeModel = -1; // mgl_ShadeModel int
+    protected int   shaderActiveTexture = -1; // mgl_ActiveTexture int
 }
 
