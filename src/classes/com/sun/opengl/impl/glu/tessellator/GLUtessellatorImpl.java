@@ -55,7 +55,6 @@ package com.sun.opengl.impl.glu.tessellator;
 import com.sun.opengl.impl.glu.tessellator.*;
 import javax.media.opengl.*;
 import javax.media.opengl.glu.*;
-import javax.media.opengl.glu.gl2.*;
 
 public class GLUtessellatorImpl implements GLUtessellator {
     public static final int TESS_MAX_CACHE = 100;

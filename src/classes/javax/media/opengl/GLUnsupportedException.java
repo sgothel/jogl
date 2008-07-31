@@ -57,12 +57,14 @@ public class GLUnsupportedException extends UnsupportedOperationException {
   /** Constructs a GLUnsupportedException object with the specified detail
       message and root cause. */
   public GLUnsupportedException(String message, Throwable cause) {
-    super(message, cause);
+    super(message);
+    initCause(cause);
   }
 
   /** Constructs a GLUnsupportedException object with the specified root
       cause. */
   public GLUnsupportedException(Throwable cause) {
-    super(cause);
+    super();
+    initCause(cause);
   }
 }
