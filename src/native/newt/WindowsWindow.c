@@ -34,9 +34,10 @@
 #include <windows.h>
 #include <tchar.h>
 #include <stdlib.h>
-#ifdef UNDER_CE
-#include "aygshell.h"
-#endif
+// NOTE: it looks like SHFullScreen and/or aygshell.dll is not available on the APX 2500 any more
+// #ifdef UNDER_CE
+// #include "aygshell.h"
+// #endif
 
 /* This typedef is apparently needed for Microsoft compilers before VC8,
    and on Windows CE */
@@ -485,19 +486,20 @@ JNIEXPORT jboolean JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_setFul
     if (fullscreen) {
         screenWidth  = GetSystemMetrics(SM_CXSCREEN);
         screenHeight = GetSystemMetrics(SM_CYSCREEN);
-        /* First, hide all of the shell parts */
-        SHFullScreen(win,
-                     SHFS_HIDETASKBAR | SHFS_HIDESIPBUTTON | SHFS_HIDESTARTICON);
+        // NOTE: looks like SHFullScreen and/or aygshell.dll is not available on the APX 2500 any more
+        // First, hide all of the shell parts
+        // SHFullScreen(win,
+        //              SHFS_HIDETASKBAR | SHFS_HIDESIPBUTTON | SHFS_HIDESTARTICON);
         MoveWindow(win, 0, 0, screenWidth, screenHeight, TRUE);
         (*env)->CallVoidMethod(env, obj, sizeChangedID, (jint) screenWidth, (jint) screenHeight);
     } else {
         RECT rc;
         int width, height;
 
-        /* First, show all of the shell parts */
-        SHFullScreen(win,
-                     SHFS_SHOWTASKBAR | SHFS_SHOWSIPBUTTON | SHFS_SHOWSTARTICON);
-        /* Now resize the window to the size of the work area */
+        // First, show all of the shell parts
+        // SHFullScreen(win,
+        //              SHFS_SHOWTASKBAR | SHFS_SHOWSIPBUTTON | SHFS_SHOWSTARTICON);
+        // Now resize the window to the size of the work area
         SystemParametersInfo(SPI_GETWORKAREA, 0, &rc, FALSE);
         width = rc.right - rc.left;
         height = rc.bottom - rc.top;

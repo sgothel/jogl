@@ -104,6 +104,9 @@
         <condition property="jogl.noAWT">
            <isset property="jogl.cdcfp"/> 
         </condition>
+        <condition property="isCDCFP">
+           <isset property="jogl.cdcfp"/> 
+        </condition>
         <condition property="javac.bootclasspath.jar"
                    value="../../gluegen/make/lib/cdc_fp.jar">
            <isset property="jogl.cdcfp"/> 
@@ -523,7 +526,7 @@
           <propertyset>
             <propertyref name="antlr.jar" />
             <!--propertyref name="gluegen.nsig" /-->
-            <propertyref name="jogl.cdcfp" />
+            <propertyref name="isCDCFP" />
           </propertyset>
         </ant>
     </target>

@@ -43,7 +43,7 @@ import com.sun.gluegen.runtime.NativeLibrary;
 public class EGLDrawableFactory extends GLDrawableFactoryImpl {
   
     // We need more than one of these on certain devices (the NVidia APX 2500 in particular)
-    private List/*<NativeLibrary>*/ glesLibraries;
+    private List/*<NativeLibrary>*/ glesLibraries = new ArrayList();
 
     public EGLDrawableFactory() {
         super();
@@ -52,11 +52,22 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         EGL.resetProcAddressTable(this);
     }
 
+    private NativeLibrary loadFirstAvailable(List/*<String>*/ libNames, ClassLoader loader) {
+        for (Iterator iter = libNames.iterator(); iter.hasNext(); ) {
+            NativeLibrary lib = NativeLibrary.open((String) iter.next(), loader);
+            if (lib != null) {
+                return lib;
+            }
+        }
+        return null;
+    }
+
     private void loadGLESLibrary() {
         List/*<NativeLibrary>*/ libs = new ArrayList();
 
         // Try several variants
         List/*<String>*/ glesLibNames = new ArrayList();
+        List/*<String>*/ eglLibNames = new ArrayList();
 
         if (GLProfile.isGLES2()) {
             // Unix
@@ -80,25 +91,22 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         }
 
         // EGL Unix
-        glesLibNames.add("libEGL");
+        eglLibNames.add("libEGL");
         // EGL Windows
-        glesLibNames.add("EGL");
+        eglLibNames.add("EGL");
 
         ClassLoader loader = getClass().getClassLoader();
-        for (Iterator iter = glesLibNames.iterator(); iter.hasNext(); ) {
-            NativeLibrary lib = NativeLibrary.open((String) iter.next(), loader);
-            if (lib != null) {
-                libs.add(lib);
-                break;
-            }
-        }
-
-        if (libs.isEmpty()) {
+        NativeLibrary lib = loadFirstAvailable(glesLibNames, loader);
+        if (lib == null) {
             throw new GLException("Unable to dynamically load OpenGL ES library for profile \"" + GLProfile.getProfile() + "\"");
         }
-
-        glesLibraries = libs;
-
+        glesLibraries.add(lib);
+        lib = loadFirstAvailable(eglLibNames, loader);
+        if (lib == null) {
+            throw new GLException("Unable to dynamically load EGL library for profile \"" + GLProfile.getProfile() + "\"");
+        }
+        glesLibraries.add(lib);
+        
         if (GLProfile.isGLES2()) {
             NativeLibLoader.loadES2();
         } else if (GLProfile.isGLES1()) {

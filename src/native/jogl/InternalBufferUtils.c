@@ -39,10 +39,19 @@
 
 #include <jni.h>
 
-#ifdef _MSC_VER
- /* This typedef is apparently needed for compilers before VC8 */
- #if _MSC_VER < 1400
- typedef int intptr_t;
+#ifdef _WIN32
+ #ifdef _MSC_VER
+ /* This typedef is apparently needed for Microsoft compilers before VC8,
+    and on Windows CE */
+  #if (_MSC_VER < 1400) || defined(UNDER_CE)
+   #ifdef _WIN64
+    typedef long long intptr_t;
+   #else
+    typedef int intptr_t;
+   #endif
+  #endif
+ #else
+  #include <inttypes.h>
  #endif
 #else
  #include <inttypes.h>

@@ -72,7 +72,7 @@ public class GLProfile {
         }
     } catch (Throwable e) {
         System.out.println("Profile: "+profile+" not available.");
-        System.out.println("\t"+e);
+        e.printStackTrace();
         profile=null;
     }
   }
@@ -97,7 +97,15 @@ public class GLProfile {
         setProfile(profiles[i]);
     }
     if(null==profile) {
-      throw new GLException("Profiles "+profiles+" not available");
+      StringBuffer msg = new StringBuffer();
+      msg.append("[");
+      for (int i = 0; i < profiles.length; i++) {
+          if (i > 0)
+              msg.append(", ");
+          msg.append(profiles[i]);
+      }
+      msg.append("]");
+      throw new GLException("Profiles "+msg.toString()+" not available");
     }
   }
 
