@@ -53,7 +53,7 @@ public class GLProfile {
   /** The OpenGL ES 2 (really, 2.0) profile */
   public static final String GLES2 = "GLES2";
 
-  /** The JVM/process wide choosen GL profile **/
+  /** The JVM/process wide chosen GL profile **/
   private static String profile = null;
 
   private static final void tryLibrary() 
@@ -71,8 +71,6 @@ public class GLProfile {
             }
         }
     } catch (Throwable e) {
-        System.out.println("Profile: "+profile+" not available.");
-        e.printStackTrace();
         profile=null;
     }
   }
@@ -83,9 +81,12 @@ public class GLProfile {
     if(null==GLProfile.profile) {
         GLProfile.profile = profile;
         tryLibrary();
+        if (profile == null) {
+            throw new GLException("Profile " + profile + " not available");
+        }
     } else {
         if(!GLProfile.profile.equals(profile)) {
-              throw new GLException("Choosen profile ("+profile+") doesn't match preset one: "+GLProfile.profile);
+              throw new GLException("Chosen profile ("+profile+") doesn't match preset one: "+GLProfile.profile);
         }
     }
   }
@@ -94,7 +95,8 @@ public class GLProfile {
     throws GLException
   {
     for(int i=0; profile==null && i<profiles.length; i++) {
-        setProfile(profiles[i]);
+        profile = profiles[i];
+        tryLibrary();
     }
     if(null==profile) {
       StringBuffer msg = new StringBuffer();
@@ -114,9 +116,6 @@ public class GLProfile {
    */
   public static synchronized final void setProfileGL2ES1() {
     setProfile(new String[] { GLES1, GL2ES12, GL2 });
-    if(null==profile) {
-      throw new GLException("Profiles GLES1, GL2ES12 and GL2 not available");
-    }
   }
 
   /**
@@ -124,9 +123,6 @@ public class GLProfile {
    */
   public static synchronized final void setProfileGL2ES2() {
     setProfile(new String[] { GLES2, GL2ES12, GL2 });
-    if(null==profile) {
-      throw new GLException("Profiles GLES2, GL2ES12 and GL2 not available");
-    }
   }
 
   /**
@@ -134,9 +130,6 @@ public class GLProfile {
    */
   public static synchronized final void setProfileGLAny() {
     setProfile(new String[] { GLES2, GLES1, GL2ES12, GL2 });
-    if(null==profile) {
-      throw new GLException("Profiles GLES2, GLES1, GL2ES12 and GL2 not available");
-    }
   }
 
   public static final String getProfile() {
@@ -216,9 +209,7 @@ public class GLProfile {
         } else if(isGLES2()) {
             return "com.sun.opengl.impl.es2.GLES2";
         } else {
-            throw new GLUnsupportedException("uncovered profile");
+            throw new GLUnsupportedException("unsupported profile \"" + profile + "\"");
         }
   }
-
 }
-
