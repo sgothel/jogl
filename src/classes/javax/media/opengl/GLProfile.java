@@ -212,4 +212,306 @@ public class GLProfile {
             throw new GLUnsupportedException("unsupported profile \"" + profile + "\"");
         }
   }
+
+  /** 
+   * General validation if type is a valid GL data type
+   * for the current profile
+   */
+  public static boolean isValidDataType(int type, boolean throwException) {
+    switch(type) {
+        case GL.GL_UNSIGNED_BYTE:
+        case GL.GL_BYTE:
+        case GL.GL_UNSIGNED_SHORT:
+        case GL.GL_SHORT:
+        case GL.GL_FLOAT:
+        case GL.GL_FIXED:
+            return true;
+        case javax.media.opengl.GL2ES2.GL_INT:
+        case javax.media.opengl.GL2ES2.GL_UNSIGNED_INT:
+            if( isGL2ES2() ) {
+                return true;
+            }
+        case javax.media.opengl.GL2.GL_DOUBLE:
+        case javax.media.opengl.GL2.GL_2_BYTES:
+        case javax.media.opengl.GL2.GL_3_BYTES:
+        case javax.media.opengl.GL2.GL_4_BYTES:
+            if( isGL2ES12() || isGL2() ) {
+                return true;
+            }
+    } 
+    if(throwException) {
+        throw new GLException("Illegal data type on profile "+GLProfile.getProfile()+": "+type);
+    }
+    return false;
+  }
+
+  public static boolean isValidateArrayDataType(int index, int comps, int type, 
+                                                boolean isVertexAttribPointer, boolean throwException) {
+    String indexName = GLContext.getPredefinedArrayIndexName(index);
+    if(GLProfile.isGLES1()) {
+        if(isVertexAttribPointer) {
+            if(throwException) {
+                throw new GLException("Illegal array type for "+indexName+" on profile GLES1: VertexAttribPointer");
+            }
+            return false;
+        }
+        switch(index) {
+            case GL.GL_VERTEX_ARRAY:
+            case GL.GL_TEXTURE_COORD_ARRAY:
+                switch(type) {
+                    case GL.GL_BYTE:
+                    case GL.GL_SHORT:
+                    case GL.GL_FIXED:
+                    case GL.GL_FLOAT:
+                        break;
+                    default: 
+                        if(throwException) {
+                            throw new GLException("Illegal data type for "+indexName+" on profile GLES1: "+type);
+                        }
+                        return false;
+                }
+                switch(comps) {
+                    case 0:
+                    case 2:
+                    case 3:
+                    case 4:
+                        break;
+                    default: 
+                        if(throwException) {
+                            throw new GLException("Illegal component number for "+indexName+" on profile GLES1: "+comps);
+                        }
+                        return false;
+                }
+                break;
+            case GL.GL_NORMAL_ARRAY:
+                switch(type) {
+                    case GL.GL_BYTE:
+                    case GL.GL_SHORT:
+                    case GL.GL_FIXED:
+                    case GL.GL_FLOAT:
+                        break;
+                    default: 
+                        if(throwException) {
+                            throw new GLException("Illegal data type for "+indexName+" on profile GLES1: "+type);
+                        }
+                        return false;
+                }
+                switch(comps) {
+                    case 0:
+                    case 3:
+                        break;
+                    default: 
+                        if(throwException) {
+                            throw new GLException("Illegal component number for "+indexName+" on profile GLES1: "+comps);
+                        }
+                        return false;
+                }
+                break;
+            case GL.GL_COLOR_ARRAY:
+                switch(type) {
+                    case GL.GL_UNSIGNED_BYTE:
+                    case GL.GL_FIXED:
+                    case GL.GL_FLOAT:
+                        break;
+                    default: 
+                        if(throwException) {
+                            throw new GLException("Illegal data type for "+indexName+" on profile GLES1: "+type);
+                        }
+                        return false;
+                }
+                switch(comps) {
+                    case 0:
+                    case 4:
+                        break;
+                    default: 
+                        if(throwException) {
+                            throw new GLException("Illegal component number for "+indexName+" on profile GLES1: "+comps);
+                        }
+                        return false;
+                }
+                break;
+        }
+    } else if(GLProfile.isGLES2()) {
+        // simply ignore !isVertexAttribPointer case, since it is simulated anyway ..
+
+        switch(type) {
+            case GL.GL_UNSIGNED_BYTE:
+            case GL.GL_BYTE:
+            case GL.GL_UNSIGNED_SHORT:
+            case GL.GL_SHORT:
+            case GL.GL_FLOAT:
+            case GL.GL_FIXED:
+                break;
+            default: 
+                if(throwException) {
+                    throw new GLException("Illegal data type for "+indexName+" on profile GLES2: "+type);
+                }
+                return false;
+        }
+        switch(comps) {
+            case 0:
+            case 1:
+            case 2:
+            case 3:
+            case 4:
+                break;
+            default: 
+                if(throwException) {
+                    throw new GLException("Illegal component number for "+indexName+" on profile GLES1: "+comps);
+                }
+                return false;
+        }
+    } else if(GLProfile.isGL2ES12() || GLProfile.isGL2()) {
+        if(isVertexAttribPointer) {
+            switch(index) {
+                case GL.GL_VERTEX_ARRAY:
+                case GL.GL_TEXTURE_COORD_ARRAY:
+                case GL.GL_NORMAL_ARRAY:
+                case GL.GL_COLOR_ARRAY:
+                    switch(type) {
+                        case GL.GL_UNSIGNED_BYTE:
+                        case GL.GL_BYTE:
+                        case GL.GL_UNSIGNED_SHORT:
+                        case GL.GL_SHORT:
+                        case GL.GL_FLOAT:
+                        case javax.media.opengl.GL2ES2.GL_INT:
+                        case javax.media.opengl.GL2ES2.GL_UNSIGNED_INT:
+                        case javax.media.opengl.GL2.GL_DOUBLE:
+                            break;
+                        default: 
+                            if(throwException) {
+                                throw new GLException("Illegal data type for "+indexName+" on profile GL2: "+type);
+                            }
+                            return false;
+                    }
+                    switch(comps) {
+                        case 0:
+                        case 1:
+                        case 2:
+                        case 3:
+                        case 4:
+                            break;
+                        default: 
+                            if(throwException) {
+                                throw new GLException("Illegal component number for "+indexName+" on profile GL2: "+comps);
+                            }
+                            return false;
+                    }
+                    break;
+            }
+        } else {
+            switch(index) {
+                case GL.GL_VERTEX_ARRAY:
+                    switch(type) {
+                        case GL.GL_SHORT:
+                        case GL.GL_FLOAT:
+                        case javax.media.opengl.GL2ES2.GL_INT:
+                        case javax.media.opengl.GL2.GL_DOUBLE:
+                            break;
+                        default: 
+                            if(throwException) {
+                                throw new GLException("Illegal data type for "+indexName+" on profile GL2: "+type);
+                            }
+                            return false;
+                    }
+                    switch(comps) {
+                        case 0:
+                        case 2:
+                        case 3:
+                        case 4:
+                            break;
+                        default: 
+                            if(throwException) {
+                                throw new GLException("Illegal component number for "+indexName+" on profile GL2: "+comps);
+                            }
+                            return false;
+                    }
+                    break;
+                case GL.GL_NORMAL_ARRAY:
+                    switch(type) {
+                        case GL.GL_BYTE:
+                        case GL.GL_SHORT:
+                        case GL.GL_FLOAT:
+                        case javax.media.opengl.GL2ES2.GL_INT:
+                        case javax.media.opengl.GL2.GL_DOUBLE:
+                            break;
+                        default: 
+                            if(throwException) {
+                                throw new GLException("Illegal data type for "+indexName+" on profile GL2: "+type);
+                            }
+                            return false;
+                    }
+                    switch(comps) {
+                        case 0:
+                        case 3:
+                            break;
+                        default: 
+                            if(throwException) {
+                                throw new GLException("Illegal component number for "+indexName+" on profile GLES1: "+comps);
+                            }
+                            return false;
+                    }
+                    break;
+                case GL.GL_COLOR_ARRAY:
+                    switch(type) {
+                        case GL.GL_UNSIGNED_BYTE:
+                        case GL.GL_BYTE:
+                        case GL.GL_UNSIGNED_SHORT:
+                        case GL.GL_SHORT:
+                        case GL.GL_FLOAT:
+                        case javax.media.opengl.GL2ES2.GL_INT:
+                        case javax.media.opengl.GL2ES2.GL_UNSIGNED_INT:
+                        case javax.media.opengl.GL2.GL_DOUBLE:
+                            break;
+                        default: 
+                            if(throwException) {
+                                throw new GLException("Illegal data type for "+indexName+" on profile GL2: "+type);
+                            }
+                            return false;
+                    }
+                    switch(comps) {
+                        case 0:
+                        case 3:
+                        case 4:
+                            break;
+                        default: 
+                            if(throwException) {
+                                throw new GLException("Illegal component number for "+indexName+" on profile GL2: "+comps);
+                            }
+                            return false;
+                    }
+                    break;
+                case GL.GL_TEXTURE_COORD_ARRAY:
+                    switch(type) {
+                        case GL.GL_SHORT:
+                        case GL.GL_FLOAT:
+                        case javax.media.opengl.GL2ES2.GL_INT:
+                        case javax.media.opengl.GL2.GL_DOUBLE:
+                            break;
+                        default: 
+                            if(throwException) {
+                                throw new GLException("Illegal data type for "+indexName+" on profile GL2: "+type);
+                            }
+                            return false;
+                    }
+                    switch(comps) {
+                        case 0:
+                        case 1:
+                        case 2:
+                        case 3:
+                        case 4:
+                            break;
+                        default: 
+                            if(throwException) {
+                                throw new GLException("Illegal component number for "+indexName+" on profile GL2: "+comps);
+                            }
+                            return false;
+                    }
+                    break;
+            }
+        }
+    }
+    return true;
+  }
+
 }

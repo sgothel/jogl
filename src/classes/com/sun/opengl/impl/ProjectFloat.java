@@ -153,8 +153,8 @@ public class ProjectFloat {
 
   // Array-based implementation
   private final float[] matrix = new float[16];
+  private final float[][] tempInvertMatrix = new float[4][4];
 
-  private final float[][] tempMatrix = new float[4][4];
   private final float[] in = new float[4];
   private final float[] out = new float[4];
 
@@ -164,8 +164,8 @@ public class ProjectFloat {
   
   // Buffer-based implementation
   private final FloatBuffer matrixBuf;
+  private final FloatBuffer tempInvertMatrixBuf;
 
-  private final FloatBuffer tempMatrixBuf;
   private final FloatBuffer inBuf;
   private final FloatBuffer outBuf;
 
@@ -179,12 +179,12 @@ public class ProjectFloat {
     // Slice up one big buffer because some NIO implementations
     // allocate a huge amount of memory to back even the smallest of
     // buffers.
-    FloatBuffer buf = BufferUtil.newFloatBuffer(128);
+    FloatBuffer buf = BufferUtil.newFloatBuffer(2*16+2*4+3*3);
     int pos = 0;
     int sz = 16;
     matrixBuf = slice(buf, pos, sz);
     pos += sz;
-    tempMatrixBuf = slice(buf, pos, sz);
+    tempInvertMatrixBuf = slice(buf, pos, sz);
     pos += sz;
     sz = 4;
     inBuf = slice(buf, pos, sz);
@@ -226,7 +226,7 @@ public class ProjectFloat {
   /**
    * Make matrix an identity matrix
    */
-  private void gluMakeIdentityf(float[] m) {
+  public static void gluMakeIdentityf(float[] m) {
     for (int i = 0; i < 16; i++) {
       m[i] = IDENTITY_MATRIX[i];
     }
@@ -275,10 +275,10 @@ public class ProjectFloat {
    * 
    * @return
    */
-  private boolean __gluInvertMatrixf(float[] src, float[] inverse) {
+  public boolean gluInvertMatrixf(float[] src, float[] inverse) {
     int i, j, k, swap;
     float t;
-    float[][] temp = tempMatrix;
+    float[][] temp = tempInvertMatrix;
 
     for (i = 0; i < 4; i++) {
       for (j = 0; j < 4; j++) {
@@ -345,14 +345,14 @@ public class ProjectFloat {
    * 
    * @return
    */
-  private boolean __gluInvertMatrixf(FloatBuffer src, FloatBuffer inverse) {
+  public boolean gluInvertMatrixf(FloatBuffer src, FloatBuffer inverse) {
     int i, j, k, swap;
     float t;
 
     int srcPos = src.position();
     int invPos = inverse.position();
 
-    FloatBuffer temp = tempMatrixBuf;
+    FloatBuffer temp = tempInvertMatrixBuf;
 
     for (i = 0; i < 4; i++) {
       for (j = 0; j < 4; j++) {
@@ -772,7 +772,7 @@ public class ProjectFloat {
 
     gluMultMatricesf(modelMatrix, modelMatrix_offset, projMatrix, projMatrix_offset, matrix);
 
-    if (!__gluInvertMatrixf(matrix, matrix))
+    if (!gluInvertMatrixf(matrix, matrix))
       return false;
 
     in[0] = winx;
@@ -829,7 +829,7 @@ public class ProjectFloat {
 
     gluMultMatricesf(modelMatrix, projMatrix, matrixBuf);
 
-    if (!__gluInvertMatrixf(matrixBuf, matrixBuf))
+    if (!gluInvertMatrixf(matrixBuf, matrixBuf))
       return false;
 
     in.put(0, winx);
@@ -898,7 +898,7 @@ public class ProjectFloat {
 
     gluMultMatricesf(modelMatrix, modelMatrix_offset, projMatrix, projMatrix_offset, matrix);
 
-    if (!__gluInvertMatrixf(matrix, matrix))
+    if (!gluInvertMatrixf(matrix, matrix))
       return false;
 
     in[0] = winx;
@@ -959,7 +959,7 @@ public class ProjectFloat {
 
     gluMultMatricesf(modelMatrix, projMatrix, matrixBuf);
 
-    if (!__gluInvertMatrixf(matrixBuf, matrixBuf))
+    if (!gluInvertMatrixf(matrixBuf, matrixBuf))
       return false;
 
     in.put(0, winx);

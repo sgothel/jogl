@@ -368,4 +368,36 @@ native private long dispatch_glMapBuffer(int target, int access, long glProcAddr
       return buf.toString();
   }
 
+    public void glVertexPointer(GLArrayData array) {
+      if(array.isVBO()) {
+          glVertexPointer(array.getComponents(), array.getDataType(), array.getStride(), array.getOffset());
+      } else {
+          glVertexPointer(array.getComponents(), array.getDataType(), array.getStride(), array.getBuffer());
+      }
+    }
+    public void glColorPointer(GLArrayData array) {
+      if(array.isVBO()) {
+          glColorPointer(array.getComponents(), array.getDataType(), array.getStride(), array.getOffset());
+      } else {
+          glColorPointer(array.getComponents(), array.getDataType(), array.getStride(), array.getBuffer());
+      }
+
+    }
+    public void glNormalPointer(GLArrayData array) {
+      if(array.getComponents()!=3) {
+        throw new GLException("Only 3 components per normal allowed");
+      }
+      if(array.isVBO()) {
+          glNormalPointer(array.getDataType(), array.getStride(), array.getOffset());
+      } else {
+          glNormalPointer(array.getDataType(), array.getStride(), array.getBuffer());
+      }
+    }
+    public void glTexCoordPointer(GLArrayData array) {
+      if(array.isVBO()) {
+          glTexCoordPointer(array.getComponents(), array.getDataType(), array.getStride(), array.getOffset());
+      } else {
+          glTexCoordPointer(array.getComponents(), array.getDataType(), array.getStride(), array.getBuffer());
+      }
+    }
 

@@ -105,7 +105,7 @@
            <isset property="jogl.cdcfp"/> 
         </condition>
         <condition property="isCDCFP">
-           <isset property="jogl.cdcfp"/> 
+           <isset property="jogl.cdcfp"/>
         </condition>
         <condition property="javac.bootclasspath.jar"
                    value="../../gluegen/make/lib/cdc_fp.jar">
@@ -158,26 +158,29 @@
         <property name="java.part.glugl2"
                   value="com/sun/opengl/impl/glu/gl2/**, com/sun/opengl/impl/glu/nurbs/**, com/sun/opengl/impl/glu/registry/**, javax/media/opengl/glu/gl2/**"/>
 
+        <property name="java.part.glsl"
+                  value="javax/media/opengl/**/glsl/**, com/sun/opengl/**/glsl/**"/>
+
         <property name="java.part.gl2es12.x11"
-                  value="com/sun/opengl/impl/gl2es12/**, com/sun/opengl/impl/x11/glx/*, com/sun/opengl/impl/x11/*"/>
+                  value="com/sun/opengl/impl/gl2es12/**, ${java.part.glsl}, com/sun/opengl/impl/x11/glx/*, com/sun/opengl/impl/x11/*"/>
 
         <property name="java.part.gl2es12.win"
-                  value="com/sun/opengl/impl/gl2es12/**, com/sun/opengl/impl/windows/wgl/*"/>
+                  value="com/sun/opengl/impl/gl2es12/**, ${java.part.glsl}, com/sun/opengl/impl/windows/wgl/*"/>
 
         <property name="java.part.gl2es12.osx"
-                  value="com/sun/opengl/impl/gl2es12/**, com/sun/opengl/impl/macosx/cgl/*"/>
+                  value="com/sun/opengl/impl/gl2es12/**, ${java.part.glsl}, com/sun/opengl/impl/macosx/cgl/*"/>
 
         <property name="java.part.gl2es12.dbg"
                   value="javax/media/opengl/TraceGL2ES12.*, javax/media/opengl/DebugGL2ES12.*"/>
 
         <property name="java.part.gl2.x11"
-                  value="com/sun/opengl/impl/**/gl2/**, com/sun/opengl/impl/x11/glx/*, com/sun/opengl/impl/x11/*"/>
+                  value="com/sun/opengl/impl/**/gl2/**, ${java.part.glsl}, com/sun/opengl/impl/x11/glx/*, com/sun/opengl/impl/x11/*"/>
 
         <property name="java.part.gl2.win"
-                  value="com/sun/opengl/impl/**/gl2/**, com/sun/opengl/impl/windows/wgl/*"/>
+                  value="com/sun/opengl/impl/**/gl2/**, ${java.part.glsl}, com/sun/opengl/impl/windows/wgl/*"/>
 
         <property name="java.part.gl2.osx"
-                  value="com/sun/opengl/impl/**/gl2/**, com/sun/opengl/impl/macosx/cgl/*"/>
+                  value="com/sun/opengl/impl/**/gl2/**, ${java.part.glsl}, com/sun/opengl/impl/macosx/cgl/*"/>
 
         <property name="java.part.gl2.dbg"
                   value="javax/media/opengl/TraceGL2.*, javax/media/opengl/DebugGL2.*"/>
@@ -189,7 +192,7 @@
                   value="javax/media/opengl/TraceGLES1.*, javax/media/opengl/DebugGLES1.*"/>
 
         <property name="java.part.es2"
-                  value="javax/media/opengl/**/es2/**, com/sun/opengl/**/es2/**"/>
+                  value="javax/media/opengl/**/es2/**, com/sun/opengl/**/es2/**, ${java.part.glsl}"/>
 
         <property name="java.part.es2.dbg"
                   value="javax/media/opengl/TraceGLES2.*, javax/media/opengl/DebugGLES2.*"/>
@@ -1646,7 +1649,7 @@
         <jar manifest="tempversion" destfile="${jogl.util.jar}">
             <fileset dir="${classes}"
                      includes="${java.part.util}"
-                     excludes="com/sun/opengl/**/awt/**, com/sun/opengl/**/gl2/**"/>
+                     excludes="com/sun/opengl/**/awt/**, com/sun/opengl/**/gl2/**, ${java.part.glsl}"/>
         </jar>
         <jar manifest="tempversion" destfile="${jogl.util.gl2.jar}">
             <fileset dir="${classes}"

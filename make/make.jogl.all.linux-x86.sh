@@ -2,6 +2,8 @@
 
 . ../../setenv-build-jogl.sh
 
+#    -Dc.compiler.debug=true 
+
 ant -v \
     -Dgluegen.cpptasks.detected.os=true \
     -DisUnix=true \

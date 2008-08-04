@@ -1196,8 +1196,15 @@ public final void gluDisk(GLUquadric quad, double inner, double outer, int slice
 
 /** Option (throws GLUnsupportedException if not available in profile). <br> Interface to C language function: <br> <code> GLUquadric *  gluNewQuadric(void); </code>    */
 public final GLUquadric gluNewQuadric() {
+  return gluNewQuadric(false);
+}
+
+public final GLUquadric gluNewQuadric(boolean useGLSL) {
+  if(useGLSL && !GLProfile.isGL2ES2()) {
+    throw new GLException("GLUquadric GLSL implementation not supported for profile: "+GLProfile.getProfile());
+  }
   validateGLUquadricImpl();
-  return new GLUquadricImpl();
+  return new GLUquadricImpl(useGLSL);
 }
 
 /** Option (throws GLUnsupportedException if not available in profile). <br> Interface to C language function: <br> <code> void gluPartialDisk(GLUquadric *  quad, GLdouble inner, GLdouble outer, GLint slices, GLint loops, GLdouble start, GLdouble sweep); </code>    */

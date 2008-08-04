@@ -193,4 +193,63 @@ public abstract class GLContext {
            "(GL: "+getGL().getClass().getName()+","+
            " Factory: "+ getGLDrawable().getFactory().getClass().getName()+")";
   }
+
+  /**
+   * Mapping fixed function (client) array indices to 
+   * GLSL array attribute names.
+   *
+   * Useful for uniq mapping of canonical array index names as listed.
+   * 
+   * @see #mgl_Vertex
+   * @see javax.media.opengl.GL#GL_VERTEX_ARRAY
+   * @see #mgl_Normal
+   * @see javax.media.opengl.GL#GL_NORMAL_ARRAY
+   * @see #mgl_Color
+   * @see javax.media.opengl.GL#GL_COLOR_ARRAY
+   * @see #mgl_MultiTexCoord
+   * @see javax.media.opengl.GL#GL_TEXTURE_COORD_ARRAY
+   * @see javax.media.opengl.GL#glEnableClientState
+   * @see javax.media.opengl.GL#glVertexPointer
+   * @see javax.media.opengl.GL#glColorPointer
+   * @see javax.media.opengl.GL#glNormalPointer
+   * @see javax.media.opengl.GL#glTexCoordPointer
+   */
+  public static String getPredefinedArrayIndexName(int glArrayIndex) {
+    switch(glArrayIndex) {
+        case GL.GL_VERTEX_ARRAY:
+            return mgl_Vertex;
+        case GL.GL_NORMAL_ARRAY:
+            return mgl_Normal;
+        case GL.GL_COLOR_ARRAY:
+            return mgl_Color;
+        case GL.GL_TEXTURE_COORD_ARRAY:
+            return mgl_MultiTexCoord;
+    }
+    return null;
+  }
+
+  /**
+   * String name for
+   * @see javax.media.opengl.GL#GL_VERTEX_ARRAY
+   */
+  public static final String mgl_Vertex = "mgl_Vertex";
+
+  /**
+   * String name for
+   * @see javax.media.opengl.GL#GL_NORMAL_ARRAY
+   */
+  public static final String mgl_Normal = "mgl_Normal";
+
+  /**
+   * String name for
+   * @see javax.media.opengl.GL#GL_COLOR_ARRAY
+   */
+  public static final String mgl_Color = "mgl_Color";
+
+  /**
+   * String name for
+   * @see javax.media.opengl.GL#GL_TEXTURE_COORD_ARRAY
+   */
+  public static final String mgl_MultiTexCoord = "mgl_MultiTexCoord" ;
+
 }

@@ -130,6 +130,7 @@ import java.nio.*;
  */
 
 public class GLUquadricImpl implements GLUquadric {
+  private boolean useGLSL;
   private int drawStyle;
   private int orientation;
   private boolean textureFlag;
@@ -137,19 +138,29 @@ public class GLUquadricImpl implements GLUquadric {
   private boolean immModeSinkEnabled;
   private boolean immModeSinkImmediate;
 
-  public static final boolean USE_NORM_TXT = true;
+  public static final boolean USE_NORM = true;
+  public static final boolean USE_TEXT = false;
 
   private ImmModeSink immModeSink;
 
-  public GLUquadricImpl() {
+  public GLUquadricImpl(boolean useGLSL) {
+    this.useGLSL = useGLSL;
     drawStyle = GLU.GLU_FILL;
     orientation = GLU.GLU_OUTSIDE;
     textureFlag = false;
     normals = GLU.GLU_SMOOTH;
-    if(USE_NORM_TXT) {
-        immModeSink = new ImmModeSink(GL.GL_FLOAT, GL.GL_STATIC_DRAW, 3, 3, 0, 3, 32);
+    if(useGLSL) {
+        immModeSink = ImmModeSink.createGLSL (GL.GL_STATIC_DRAW, 32, 
+                                              3, GL.GL_FLOAT,  // vertex
+                                              0, GL.GL_FLOAT,  // color
+                                              USE_NORM?3:0, GL.GL_SHORT,  // normal
+                                              USE_TEXT?2:0, GL.GL_FLOAT); // texture
     } else {
-        immModeSink = new ImmModeSink(GL.GL_FLOAT, GL.GL_STATIC_DRAW, 3, 0, 0, 0, 32);
+        immModeSink = ImmModeSink.createFixed(GL.GL_STATIC_DRAW, 32, 
+                                              3, GL.GL_FLOAT,  // vertex
+                                              0, GL.GL_FLOAT,  // color
+                                              USE_NORM?3:0, GL.GL_SHORT,  // normal
+                                              USE_TEXT?2:0, GL.GL_FLOAT); // texture
     }
     immModeSinkImmediate=true;
     immModeSinkEnabled=!GLProfile.isGL2();
@@ -183,10 +194,18 @@ public class GLUquadricImpl implements GLUquadric {
     if(!immModeSinkEnabled) return null;
 
     ImmModeSink res = immModeSink;
-    if(USE_NORM_TXT) {
-        immModeSink = new ImmModeSink(GL.GL_FLOAT, GL.GL_STATIC_DRAW, 3, 3, 0, 3, 32);
+    if(useGLSL) {
+        immModeSink = ImmModeSink.createGLSL (GL.GL_STATIC_DRAW, 32, 
+                                              3, GL.GL_FLOAT,  // vertex
+                                              0, GL.GL_FLOAT,  // color
+                                              USE_NORM?3:0, GL.GL_SHORT,  // normal
+                                              USE_TEXT?2:0, GL.GL_FLOAT); // texture
     } else {
-        immModeSink = new ImmModeSink(GL.GL_FLOAT, GL.GL_STATIC_DRAW, 3, 0, 0, 0, 32);
+        immModeSink = ImmModeSink.createFixed(GL.GL_STATIC_DRAW, 32, 
+                                              3, GL.GL_FLOAT,  // vertex
+                                              0, GL.GL_FLOAT,  // color
+                                              USE_NORM?3:0, GL.GL_SHORT,  // normal
+                                              USE_TEXT?2:0, GL.GL_FLOAT); // texture
     }
     return res;
   }
@@ -349,9 +368,7 @@ public class GLUquadricImpl implements GLUquadric {
       for (i = 0; i < slices; i++) {
         x = cos((i * da));
         y = sin((i * da));
-        if(USE_NORM_TXT) {
-            normal3f(gl, x * nsign, y * nsign, nz * nsign);
-        }
+        normal3f(gl, x * nsign, y * nsign, nz * nsign);
 
         z = 0.0f;
         r = baseRadius;
@@ -372,9 +389,7 @@ public class GLUquadricImpl implements GLUquadric {
           for (i = 0; i < slices; i++) {
             x = cos((i * da));
             y = sin((i * da));
-            if(USE_NORM_TXT) {
-                normal3f(gl, x * nsign, y * nsign, nz * nsign);
-            }
+            normal3f(gl, x * nsign, y * nsign, nz * nsign);
             glVertex3f(gl, (x * r), (y * r), z);
           }
           glEnd(gl);
@@ -388,9 +403,7 @@ public class GLUquadricImpl implements GLUquadric {
           for (i = 0; i < slices; i++) {
             x = cos((i * da));
             y = sin((i * da));
-            if(USE_NORM_TXT) {
-                normal3f(gl, x * nsign, y * nsign, nz * nsign);
-            }
+            normal3f(gl, x * nsign, y * nsign, nz * nsign);
             glVertex3f(gl, (x * baseRadius), (y * baseRadius), 0.0f);
           }
           glEnd(gl);
@@ -398,9 +411,7 @@ public class GLUquadricImpl implements GLUquadric {
           for (i = 0; i < slices; i++) {
             x = cos((i * da));
             y = sin((i * da));
-            if(USE_NORM_TXT) {
-                normal3f(gl, x * nsign, y * nsign, nz * nsign);
-            }
+            normal3f(gl, x * nsign, y * nsign, nz * nsign);
             glVertex3f(gl, (x * topRadius), (y * topRadius), height);
           }
           glEnd(gl);
@@ -411,9 +422,7 @@ public class GLUquadricImpl implements GLUquadric {
       for (i = 0; i < slices; i++) {
         x = cos((i * da));
         y = sin((i * da));
-        if(USE_NORM_TXT) {
-            normal3f(gl, x * nsign, y * nsign, nz * nsign);
-        }
+        normal3f(gl, x * nsign, y * nsign, nz * nsign);
         glVertex3f(gl, (x * baseRadius), (y * baseRadius), 0.0f);
         glVertex3f(gl, (x * topRadius), (y * topRadius), (height));
       }
@@ -436,26 +445,18 @@ public class GLUquadricImpl implements GLUquadric {
             y = cos((i * da));
           }
           if (nsign == 1.0f) {
-            if(USE_NORM_TXT) {
-                normal3f(gl, (x * nsign), (y * nsign), (nz * nsign));
-                TXTR_COORD(gl, s, t);
-            }
+            normal3f(gl, (x * nsign), (y * nsign), (nz * nsign));
+            TXTR_COORD(gl, s, t);
             glVertex3f(gl, (x * r), (y * r), z);
-            if(USE_NORM_TXT) {
-                normal3f(gl, (x * nsign), (y * nsign), (nz * nsign));
-                TXTR_COORD(gl, s, t + dt);
-            }
+            normal3f(gl, (x * nsign), (y * nsign), (nz * nsign));
+            TXTR_COORD(gl, s, t + dt);
             glVertex3f(gl, (x * (r + dr)), (y * (r + dr)), (z + dz));
           } else {
-            if(USE_NORM_TXT) {
-                normal3f(gl, x * nsign, y * nsign, nz * nsign);
-                TXTR_COORD(gl, s, t);
-            }
+            normal3f(gl, x * nsign, y * nsign, nz * nsign);
+            TXTR_COORD(gl, s, t);
             glVertex3f(gl, (x * r), (y * r), z);
-            if(USE_NORM_TXT) {
-                normal3f(gl, x * nsign, y * nsign, nz * nsign);
-                TXTR_COORD(gl, s, t + dt);
-            }
+            normal3f(gl, x * nsign, y * nsign, nz * nsign);
+            TXTR_COORD(gl, s, t + dt);
             glVertex3f(gl, (x * (r + dr)), (y * (r + dr)), (z + dz));
           }
           s += ds;
@@ -959,19 +960,15 @@ public class GLUquadricImpl implements GLUquadric {
       if (!textureFlag) {
         // draw +Z end as a triangle fan
         glBegin(gl, GL.GL_TRIANGLE_FAN);
-        if(USE_NORM_TXT) {
-            glNormal3f(gl, 0.0f, 0.0f, 1.0f);
-        }
+        glNormal3f(gl, 0.0f, 0.0f, 1.0f);
         glVertex3f(gl, 0.0f, 0.0f, nsign * radius);
         for (j = 0; j <= slices; j++) {
           theta = (j == slices) ? 0.0f : j * dtheta;
           x = -sin(theta) * sin(drho);
           y = cos(theta) * sin(drho);
           z = nsign * cos(drho);
-          if(USE_NORM_TXT) {
-              if (normals) {
-                glNormal3f(gl, x * nsign, y * nsign, z * nsign);
-              }
+          if (normals) {
+            glNormal3f(gl, x * nsign, y * nsign, z * nsign);
           }
           glVertex3f(gl, x * radius, y * radius, z * radius);
         }
@@ -999,22 +996,18 @@ public class GLUquadricImpl implements GLUquadric {
           x = -sin(theta) * sin(rho);
           y = cos(theta) * sin(rho);
           z = nsign * cos(rho);
-          if(USE_NORM_TXT) {
-              if (normals) {
-                glNormal3f(gl, x * nsign, y * nsign, z * nsign);
-              }
-              TXTR_COORD(gl, s, t);
+          if (normals) {
+            glNormal3f(gl, x * nsign, y * nsign, z * nsign);
           }
+          TXTR_COORD(gl, s, t);
           glVertex3f(gl, x * radius, y * radius, z * radius);
           x = -sin(theta) * sin(rho + drho);
           y = cos(theta) * sin(rho + drho);
           z = nsign * cos(rho + drho);
-          if(USE_NORM_TXT) {
-              if (normals) {
-                glNormal3f(gl, x * nsign, y * nsign, z * nsign);
-              }
-              TXTR_COORD(gl, s, t - dt);
+          if (normals) {
+            glNormal3f(gl, x * nsign, y * nsign, z * nsign);
           }
+          TXTR_COORD(gl, s, t - dt);
           s += ds;
           glVertex3f(gl, x * radius, y * radius, z * radius);
         }
@@ -1025,9 +1018,7 @@ public class GLUquadricImpl implements GLUquadric {
       if (!textureFlag) {
         // draw -Z end as a triangle fan
         glBegin(gl, GL.GL_TRIANGLE_FAN);
-        if(USE_NORM_TXT) {
-            glNormal3f(gl, 0.0f, 0.0f, -1.0f);
-        }
+        glNormal3f(gl, 0.0f, 0.0f, -1.0f);
         glVertex3f(gl, 0.0f, 0.0f, -radius * nsign);
         rho = PI - drho;
         s = 1.0f;
@@ -1036,10 +1027,8 @@ public class GLUquadricImpl implements GLUquadric {
           x = -sin(theta) * sin(rho);
           y = cos(theta) * sin(rho);
           z = nsign * cos(rho);
-          if(USE_NORM_TXT) {
-              if (normals)
-                glNormal3f(gl, x * nsign, y * nsign, z * nsign);
-          }
+          if (normals)
+            glNormal3f(gl, x * nsign, y * nsign, z * nsign);
           s -= ds;
           glVertex3f(gl, x * radius, y * radius, z * radius);
         }
@@ -1148,10 +1137,13 @@ public class GLUquadricImpl implements GLUquadric {
   }
 
   private final void glNormal3f(GL gl, float x, float y, float z) {
+      short a=(short)(x*0xFFFF);
+      short b=(short)(y*0xFFFF);
+      short c=(short)(z*0xFFFF);
       if(immModeSinkEnabled) {
-          immModeSink.glNormal3f(x, y, z);
+          immModeSink.glNormal3s(a, b, c);
       } else {
-          ((GL2)gl).glNormal3f(x, y, z);
+          ((GL2)gl).glNormal3s(a, b, c);
       }
   }
 
@@ -1179,11 +1171,7 @@ public class GLUquadricImpl implements GLUquadric {
       y /= mag;
       z /= mag;
     }
-    if(immModeSinkEnabled) {
-        immModeSink.glNormal3f(x, y, z);
-    } else {
-        ((GL2)gl).glNormal3f(x, y, z);
-    }
+    glNormal3f(gl, x, y, z);
   }
 
   private final void TXTR_COORD(GL gl, float x, float y) {

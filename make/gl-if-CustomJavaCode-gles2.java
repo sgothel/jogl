@@ -61,19 +61,7 @@
    * @see #glTexCoordPointer(int, int, int, long);
    * @see #glDrawArrays(int, int, int);
    */
-  public static final int FIXED_EMULATION_VERTEXCOLOR  = (1 << 1) ;
-
-  /**
-   * Emulated FixedFunction vertex color bit, enables normal arrays and lights 
-   * Not implemented yet.
-  */
-  public static final int FIXED_EMULATION_NORMALLIGHT  = (1 << 2) ;
-
-  /**
-   * Emulated FixedFunction vertex color bit, enables texcoord arrays and textures 
-   * Can be enabled or disabled only in combination with FIXED_EMULATION_VERTEXCOLOR.
-   */
-  public static final int FIXED_EMULATION_TEXTURE      = (1 << 4) ;
+  public static final int FIXED_EMULATION_VERTEXCOLORTEXTURE  = (1 << 1) ;
 
   /**
    * Emulated FixedFunction implementation.
@@ -105,17 +93,6 @@
    * @see #disableFixedFunctionEmulationMode
    */
   public PMVMatrix getPMVMatrix();
-
-  /**
-   * Emulated FixedFunction matrix implementation.
-   *
-   * Fetches the internal matrix of matrixName.
-   * @param matrixName GL_MODELVIEW or GL_PROJECTION
-   * @see #enableFixedFunctionEmulationMode
-   * @see #disableFixedFunctionEmulationMode
-   * @see #getEnabledFixedFunctionEmulationModes
-   */
-  public FloatBuffer glGetPMVMatrixf();
 
   /**
    * Emulated FixedFunction matrix implementation.
