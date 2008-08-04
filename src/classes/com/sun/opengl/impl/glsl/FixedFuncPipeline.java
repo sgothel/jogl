@@ -1,5 +1,5 @@
 
-package com.sun.opengl.impl.es2;
+package com.sun.opengl.impl.glsl;
 
 import javax.media.opengl.*;
 import javax.media.opengl.util.*;
