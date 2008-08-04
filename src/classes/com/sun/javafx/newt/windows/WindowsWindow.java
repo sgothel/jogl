@@ -101,8 +101,13 @@ public class WindowsWindow extends Window {
 
     public boolean setFullscreen(boolean fullscreen) {
         if(this.fullscreen!=fullscreen) {
-            this.fullscreen=fullscreen;
-            return setFullScreen0(windowHandle, fullscreen);
+            boolean res = setFullScreen0(windowHandle, fullscreen);
+            if (fullscreen && res) {
+                this.fullscreen = true;
+            } else {
+                this.fullscreen = false;
+            }
+            return fullscreen;
         }
         return true;
     }
