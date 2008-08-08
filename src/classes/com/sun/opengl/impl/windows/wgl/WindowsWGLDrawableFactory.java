@@ -53,10 +53,6 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
   // FIXME: this should go away once we delete support for the C GLU library
   private long hglu32;
 
-  static {
-    NativeLibLoader.loadGL2();
-  }
-  
   public WindowsWGLDrawableFactory() {
     super();
   }

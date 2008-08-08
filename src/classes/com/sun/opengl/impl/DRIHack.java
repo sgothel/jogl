@@ -37,13 +37,11 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.sun.opengl.impl.x11.glx;
+package com.sun.opengl.impl;
 
 import java.io.*;
 import java.security.*;
 import com.sun.gluegen.runtime.*;
-import com.sun.opengl.impl.*;
-import com.sun.opengl.impl.x11.*;
 
 /**
  * Helper class for working around problems with open-source DRI

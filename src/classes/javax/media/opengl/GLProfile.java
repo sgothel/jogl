@@ -61,7 +61,10 @@ public class GLProfile {
     try {
         Class clazz = Class.forName(getGLImplBaseClassName()+"Impl");
         if(GL2.equals(profile)) {
+            // See DRIHack.java for an explanation of why this is necessary
+            DRIHack.begin();
             NativeLibLoader.loadGL2();
+            DRIHack.end();
         } if(GL2ES12.equals(profile)) {
             NativeLibLoader.loadGL2ES12();
         } else if(GLES1.equals(profile) || GLES2.equals(profile)) {
@@ -70,7 +73,11 @@ public class GLProfile {
                 throw new GLException("com.sun.opengl.impl.egl.EGLDrawableFactory not available");
             }
         }
+        System.out.println("Successfully loaded profile " + profile);
     } catch (Throwable e) {
+        if (Debug.debug("GLProfile")) {
+            e.printStackTrace();
+        }
         profile=null;
     }
   }

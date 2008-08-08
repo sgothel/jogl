@@ -85,15 +85,6 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     long visualID() { return visualID; }
   }
 
-  static {
-    // See DRIHack.java for an explanation of why this is necessary
-    DRIHack.begin();
-
-    com.sun.opengl.impl.NativeLibLoader.loadGL2();
-
-    DRIHack.end();
-  }
-
   public X11GLXDrawableFactory() {
     super();
     // Must initialize GLX support eagerly in case a pbuffer is the
