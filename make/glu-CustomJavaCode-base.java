@@ -85,18 +85,20 @@ public static final GLU createGLU(String profile) throws GLUnsupportedException 
       if(GLProfile.GL2.equals(profile)) {
         return (GLU) GLReflection.createInstance("javax.media.opengl.glu.gl2.GLUgl2");
       } 
-  } catch (GLUnsupportedException e) { System.out.println(e); }
+  } catch (GLUnsupportedException e) { e.printStackTrace(); }
   try {
       if(GLProfile.GL2ES12.equals(profile) || GLProfile.GL2.equals(profile) || GLProfile.GLES1.equals(profile)) {
         return (GLU) GLReflection.createInstance("javax.media.opengl.glu.gl2es1.GLUgl2es1");
       } 
-  } catch (GLUnsupportedException e) { System.out.println(e); }
+  } catch (GLUnsupportedException e) { e.printStackTrace(); }
+  // There is no specialized ES 2 GLU at this time
+  /*
   try {
       if(GLProfile.GL2ES12.equals(profile) || GLProfile.GL2.equals(profile) || GLProfile.GLES2.equals(profile)) {
         return (GLU) GLReflection.createInstance("javax.media.opengl.glu.gl2es2.GLUgl2es2");
       } 
-  } catch (GLUnsupportedException e) { System.out.println(e); }
-
+  } catch (GLUnsupportedException e) { e.printStackTrace(); }
+  */
   return new GLU();
 }
 
