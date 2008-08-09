@@ -354,7 +354,12 @@ public class GLWindow extends Window implements GLAutoDrawable {
     }
 
     public void swapBuffers() {
-        drawable.swapBuffers();
+        if (context != null && context != GLContext.getCurrent()) {
+            // Assume we should try to make the context current before swapping the buffers
+            helper.invokeGL(drawable, context, swapBuffersAction, initAction);
+        } else {
+            drawable.swapBuffers();
+        }
     }
 
     class InitAction implements Runnable {
@@ -379,6 +384,14 @@ public class GLWindow extends Window implements GLAutoDrawable {
     }
 
     private DisplayAction displayAction = new DisplayAction();
+
+    class SwapBuffersAction implements Runnable {
+        public void run() {
+            drawable.swapBuffers();
+        }
+    }
+
+    private SwapBuffersAction swapBuffersAction = new SwapBuffersAction();
 
     //----------------------------------------------------------------------
     // GLDrawable methods that are not really needed
