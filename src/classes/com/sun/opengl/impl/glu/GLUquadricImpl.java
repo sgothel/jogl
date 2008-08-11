@@ -137,6 +137,7 @@ public class GLUquadricImpl implements GLUquadric {
   private int normals;
   private boolean immModeSinkEnabled;
   private boolean immModeSinkImmediate;
+  public int normalType;
 
   public static final boolean USE_NORM = true;
   public static final boolean USE_TEXT = false;
@@ -149,17 +150,18 @@ public class GLUquadricImpl implements GLUquadric {
     orientation = GLU.GLU_OUTSIDE;
     textureFlag = false;
     normals = GLU.GLU_SMOOTH;
+    normalType = GLProfile.isGLES1()?GL.GL_BYTE:GL.GL_FLOAT;
     if(useGLSL) {
         immModeSink = ImmModeSink.createGLSL (GL.GL_STATIC_DRAW, 32, 
                                               3, GL.GL_FLOAT,  // vertex
                                               0, GL.GL_FLOAT,  // color
-                                              USE_NORM?3:0, GL.GL_SHORT,  // normal
+                                              USE_NORM?3:0, normalType,// normal
                                               USE_TEXT?2:0, GL.GL_FLOAT); // texture
     } else {
         immModeSink = ImmModeSink.createFixed(GL.GL_STATIC_DRAW, 32, 
                                               3, GL.GL_FLOAT,  // vertex
                                               0, GL.GL_FLOAT,  // color
-                                              USE_NORM?3:0, GL.GL_SHORT,  // normal
+                                              USE_NORM?3:0, normalType,// normal
                                               USE_TEXT?2:0, GL.GL_FLOAT); // texture
     }
     immModeSinkImmediate=true;
@@ -198,13 +200,13 @@ public class GLUquadricImpl implements GLUquadric {
         immModeSink = ImmModeSink.createGLSL (GL.GL_STATIC_DRAW, 32, 
                                               3, GL.GL_FLOAT,  // vertex
                                               0, GL.GL_FLOAT,  // color
-                                              USE_NORM?3:0, GL.GL_SHORT,  // normal
+                                              USE_NORM?3:0, normalType,// normal
                                               USE_TEXT?2:0, GL.GL_FLOAT); // texture
     } else {
         immModeSink = ImmModeSink.createFixed(GL.GL_STATIC_DRAW, 32, 
                                               3, GL.GL_FLOAT,  // vertex
                                               0, GL.GL_FLOAT,  // color
-                                              USE_NORM?3:0, GL.GL_SHORT,  // normal
+                                              USE_NORM?3:0, normalType,// normal
                                               USE_TEXT?2:0, GL.GL_FLOAT); // texture
     }
     return res;
@@ -1136,7 +1138,7 @@ public class GLUquadricImpl implements GLUquadric {
       }
   }
 
-  private final void glNormal3f(GL gl, float x, float y, float z) {
+  private final void glNormal3f_s(GL gl, float x, float y, float z) {
       short a=(short)(x*0xFFFF);
       short b=(short)(y*0xFFFF);
       short c=(short)(z*0xFFFF);
@@ -1145,6 +1147,35 @@ public class GLUquadricImpl implements GLUquadric {
       } else {
           ((GL2)gl).glNormal3s(a, b, c);
       }
+  }
+
+  private final void glNormal3f_b(GL gl, float x, float y, float z) {
+      byte a=(byte)(x*0xFF);
+      byte b=(byte)(y*0xFF);
+      byte c=(byte)(z*0xFF);
+      if(immModeSinkEnabled) {
+          immModeSink.glNormal3b(a, b, c);
+      } else {
+          ((GL2)gl).glNormal3b(a, b, c);
+      }
+  }
+
+  private final void glNormal3f(GL gl, float x, float y, float z) {
+    switch(normalType) {
+        case GL.GL_FLOAT:
+            if(immModeSinkEnabled) {
+                immModeSink.glNormal3f(x,y,z);
+            } else {
+                ((GL2)gl).glNormal3f(x,y,z);
+            }
+            break;
+        case GL.GL_SHORT:
+            glNormal3f_s(gl, x, y, z);
+            break;
+        case GL.GL_BYTE:
+            glNormal3f_b(gl, x, y, z);
+            break;
+    }
   }
 
   private final void glTexCoord2f(GL gl, float x, float y) {

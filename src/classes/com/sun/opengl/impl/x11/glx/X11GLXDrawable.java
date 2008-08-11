@@ -83,7 +83,7 @@ public abstract class X11GLXDrawable extends GLDrawableImpl {
       XVisualInfo[] infos = X11Lib.XGetVisualInfo(display, X11Lib.VisualIDMask, template, count, 0);
       getFactory().unlockToolkit();
       if (infos == null || infos.length == 0) {
-        throw new GLException("Error while getting XVisualInfo for visual ID " + visualID);
+        throw new GLException("Error while getting XVisualInfo for visual ID " + visualID+", "+this);
       }
       if (DEBUG) {
         System.err.println("!!! Fetched XVisualInfo for visual ID 0x" + Long.toHexString(visualID));

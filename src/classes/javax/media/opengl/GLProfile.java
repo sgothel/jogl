@@ -66,7 +66,10 @@ public class GLProfile {
             NativeLibLoader.loadGL2();
             DRIHack.end();
         } if(GL2ES12.equals(profile)) {
+            // See DRIHack.java for an explanation of why this is necessary
+            DRIHack.begin();
             NativeLibLoader.loadGL2ES12();
+            DRIHack.end();
         } else if(GLES1.equals(profile) || GLES2.equals(profile)) {
             Object eGLDrawableFactory = GLReflection.createInstance("com.sun.opengl.impl.egl.EGLDrawableFactory");
             if(null==eGLDrawableFactory) {

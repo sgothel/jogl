@@ -40,13 +40,13 @@ public class FixedFuncShaderVertexColor {
         "\n"+
         "void setTexCoord(in HIGHP vec4 defpos) {\n"+
         "  mgl_TexCoord[0] = ( 0 != (mgl_TexCoordEnabled &   1) ) ? mgl_MultiTexCoord0 : defpos;\n"+
-        "  mgl_TexCoord[1] = ( 0 != (mgl_TexCoordEnabled &   2) ) ? mgl_MultiTexCoord0 : defpos;\n"+
-        "  mgl_TexCoord[2] = ( 0 != (mgl_TexCoordEnabled &   4) ) ? mgl_MultiTexCoord0 : defpos;\n"+
-        "  mgl_TexCoord[3] = ( 0 != (mgl_TexCoordEnabled &   8) ) ? mgl_MultiTexCoord0 : defpos;\n"+
-        "  mgl_TexCoord[4] = ( 0 != (mgl_TexCoordEnabled &  16) ) ? mgl_MultiTexCoord0 : defpos;\n"+
-        "  mgl_TexCoord[5] = ( 0 != (mgl_TexCoordEnabled &  32) ) ? mgl_MultiTexCoord0 : defpos;\n"+
-        "  mgl_TexCoord[6] = ( 0 != (mgl_TexCoordEnabled &  64) ) ? mgl_MultiTexCoord0 : defpos;\n"+
-        "  mgl_TexCoord[7] = ( 0 != (mgl_TexCoordEnabled & 128) ) ? mgl_MultiTexCoord0 : defpos;\n"+
+        "  mgl_TexCoord[1] = ( 0 != (mgl_TexCoordEnabled &   2) ) ? mgl_MultiTexCoord1 : defpos;\n"+
+        "  mgl_TexCoord[2] = ( 0 != (mgl_TexCoordEnabled &   4) ) ? mgl_MultiTexCoord2 : defpos;\n"+
+        "  mgl_TexCoord[3] = ( 0 != (mgl_TexCoordEnabled &   8) ) ? mgl_MultiTexCoord3 : defpos;\n"+
+        "  mgl_TexCoord[4] = ( 0 != (mgl_TexCoordEnabled &  16) ) ? mgl_MultiTexCoord4 : defpos;\n"+
+        "  mgl_TexCoord[5] = ( 0 != (mgl_TexCoordEnabled &  32) ) ? mgl_MultiTexCoord5 : defpos;\n"+
+        "  mgl_TexCoord[6] = ( 0 != (mgl_TexCoordEnabled &  64) ) ? mgl_MultiTexCoord6 : defpos;\n"+
+        "  mgl_TexCoord[7] = ( 0 != (mgl_TexCoordEnabled & 128) ) ? mgl_MultiTexCoord7 : defpos;\n"+
         "}\n"+
         "\n"+
         "void main(void)\n"+
