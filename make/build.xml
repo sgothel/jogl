@@ -582,7 +582,7 @@
           <and>
               <isset property="java.generate.skip.es1"/>
               <isset property="java.generate.skip.es2"/>
-              <isset property="java.generate.skip.gl2"/>
+              <!--isset property="java.generate.skip.gl2"/-->
               <isset property="java.generate.skip.glu"/>
           </and>
         </condition>
@@ -1553,6 +1553,11 @@
               <filter token="VERSION" value="${base_version}-pre-${timestamp}"/>
               <filter token="BASEVERSION" value="${base_version}"/>
           </filterset>
+        </copy>
+
+        <copy todir="${classes}">
+            <fileset dir="${src.java}"
+                     includes="com/sun/opengl/impl/glsl/source/**, com/sun/opengl/impl/glsl/binary_nvidia/**" />
         </copy>
 
         <jar manifest="tempversion" destfile="${jogl.core.jar}">

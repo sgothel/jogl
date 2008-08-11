@@ -332,19 +332,45 @@ public class FixedFuncPipeline {
         this.pmvMatrix=pmvMatrix;
         this.shaderState=new ShaderState();
         this.shaderState.setVerbose(verbose);
+        ShaderCode vertexColor, vertexColorLight, fragmentColor, fragmentColorTexture;
 
-        ShaderCode vertexColor = new ShaderCode( gl.GL_VERTEX_SHADER, 1, -1, null,
-                                 FixedFuncShaderVertexColor.vertShaderSource);
+        // FIXME: Proper evaluation for binary format types ..
+        int binaryFormat = GLProfile.isGLES2()?GLES2.GL_NVIDIA_PLATFORM_BINARY_NV:-1;
 
-        ShaderCode vertexColorLight = new ShaderCode( gl.GL_VERTEX_SHADER, 1, -1, null,
-                                      FixedFuncShaderVertexColorLight.vertShaderSource);
+        switch(binaryFormat) {
+            case GLES2.GL_NVIDIA_PLATFORM_BINARY_NV:
+                vertexColor = ShaderCode.create( gl.GL_VERTEX_SHADER, 1, this.getClass(), 
+                                            binaryFormat, "binary_nvidia/FixedFuncShaderVertexColor.nvbv",
+                                            vertexColorSrcFile);
 
-        ShaderCode fragmentColor = new ShaderCode( gl.GL_FRAGMENT_SHADER, 1, -1, null,
-                                    FixedFuncShaderFragmentColor.fragShaderSource);
+                vertexColorLight = ShaderCode.create( gl.GL_VERTEX_SHADER, 1, this.getClass(),
+                                            binaryFormat, "binary_nvidia/FixedFuncShaderVertexColorLight.nvbv",
+                                            vertexColorLightSrcFile);
 
-        ShaderCode fragmentColorTexture = new ShaderCode( gl.GL_FRAGMENT_SHADER, 1, -1, null,
-                                    FixedFuncShaderFragmentColorTexture.fragShaderSource);
+                fragmentColor = ShaderCode.create( gl.GL_FRAGMENT_SHADER, 1, this.getClass(),
+                                            binaryFormat, "binary_nvidia/FixedFuncShaderFragmentColor.nvbv",
+                                            fragmentColorSrcFile);
 
+                fragmentColorTexture = ShaderCode.create( gl.GL_FRAGMENT_SHADER, 1, this.getClass(),
+                                            binaryFormat, "binary_nvidia/FixedFuncShaderFragmentColorTexture.nvbv",
+                                            fragmentColorTextureSrcFile);
+
+                break;
+            default:
+                vertexColor = ShaderCode.create( gl.GL_VERTEX_SHADER, 1, this.getClass(), -1, null, 
+                                            vertexColorSrcFile);
+
+                vertexColorLight = ShaderCode.create( gl.GL_VERTEX_SHADER, 1, this.getClass(), -1, null,
+                                            vertexColorLightSrcFile);
+
+                fragmentColor = ShaderCode.create( gl.GL_FRAGMENT_SHADER, 1, this.getClass(), -1, null,
+                                            fragmentColorSrcFile);
+
+                fragmentColorTexture = ShaderCode.create( gl.GL_FRAGMENT_SHADER, 1, this.getClass(), -1, null,
+                                            fragmentColorTextureSrcFile);
+        }
+
+        
         shaderProgramColor = new ShaderProgram();
         shaderProgramColor.add(vertexColor);
         shaderProgramColor.add(fragmentColor);
@@ -464,5 +490,10 @@ public class FixedFuncPipeline {
     public static final FloatBuffer defMatSpecular= BufferUtil.newFloatBuffer(new float[] { 0f, 0f, 0f, 1f});
     public static final FloatBuffer defMatEmission= BufferUtil.newFloatBuffer(new float[] { 0f, 0f, 0f, 1f});
     public static final float       defMatShininess = 0f;
+
+    protected static final String[] vertexColorSrcFile = new String[] { "source/FixedFuncShaderVertexColor.vp" };
+    protected static final String[] vertexColorLightSrcFile = new String[] { "source/FixedFuncShaderVertexColorLight.vp" };
+    protected static final String[] fragmentColorSrcFile = new String[] { "source/FixedFuncShaderFragmentColor.fp" } ;
+    protected static final String[] fragmentColorTextureSrcFile = new String[] { "source/FixedFuncShaderFragmentColorTexture.fp" } ;
 }
 
