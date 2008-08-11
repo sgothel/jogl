@@ -8,6 +8,50 @@ public GLES2Impl(GLContextImpl context) {
   this.enableFixedFunctionEmulationMode(FIXED_EMULATION_MATRIX);
 }
 
+public final boolean isGL2() {
+    return false;
+}
+
+public final boolean isGLES1() {
+    return false;
+}
+
+public final boolean isGLES2() {
+    return true;
+}
+
+public final boolean isGLES() {
+    return true;
+}
+
+public final boolean isGL2ES1() {
+    return false;
+}
+
+public final boolean isGL2ES2() {
+    return true;
+}
+
+public final GL2 getGL2() throws GLException {
+    throw new GLException("Not a GL2 implementation");
+}
+
+public final GLES1 getGLES1() throws GLException {
+    throw new GLException("Not a GLES1 implementation");
+}
+
+public final GLES2 getGLES2() throws GLException {
+    return this;
+}
+
+public final GL2ES1 getGL2ES1() throws GLException {
+    throw new GLException("Not a GL2ES1 implementation");
+}
+
+public final GL2ES2 getGL2ES2() throws GLException {
+    return this;
+}
+
 public boolean isFunctionAvailable(String glFunctionName) {
   return _context.isFunctionAvailable(glFunctionName);
 }
