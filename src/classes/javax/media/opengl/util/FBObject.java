@@ -118,7 +118,7 @@ public class FBObject {
         } else if(gl.isGLES()) { 
             textureInternalFormat=GL.GL_RGBA;
             textureDataFormat=GL.GL_RGBA;
-            textureDataType=GL.GL_UNSIGNED_SHORT_5_5_5_1;
+            textureDataType=GL.GL_UNSIGNED_BYTE;
         } else {
             textureInternalFormat=GL.GL_RGB;
             textureDataFormat=GL.GL_RGB;

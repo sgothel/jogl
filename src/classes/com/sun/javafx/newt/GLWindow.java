@@ -149,6 +149,12 @@ public class GLWindow extends Window implements GLAutoDrawable {
         return window.getDisplayHeight();
     }
 
+    public boolean getPerfLogEnabled() { return perfLog; }
+
+    public void enablePerfLog(boolean v) {
+        perfLog = v;
+    }
+
     /**
      * Sets the event handling mode.
      *
@@ -308,6 +314,7 @@ public class GLWindow extends Window implements GLAutoDrawable {
     private GLDrawableHelper helper = new GLDrawableHelper();
     // To make reshape events be sent immediately before a display event
     private boolean sendReshape;
+    private boolean perfLog = false;
 
     public GLDrawableFactory getFactory() {
         return factory;
@@ -365,6 +372,12 @@ public class GLWindow extends Window implements GLAutoDrawable {
     class InitAction implements Runnable {
         public void run() {
             helper.init(GLWindow.this);
+            startTime = System.currentTimeMillis();
+            curTime   = startTime;
+            if(perfLog) {
+                lastCheck  = startTime;
+                totalFrames = 0; lastFrames = 0;
+            }
         }
     }
     private InitAction initAction = new InitAction();
@@ -380,8 +393,34 @@ public class GLWindow extends Window implements GLAutoDrawable {
             }
 
             helper.display(GLWindow.this);
+
+            curTime = System.currentTimeMillis();
+            totalFrames++;
+
+            if(perfLog) {
+                long dt0, dt1;
+                lastFrames++;
+                dt0 = curTime-lastCheck;
+                if ( dt0 > 5000 ) {
+                    dt1 = curTime-startTime;
+                    System.out.println(dt1/1000+"s, 5s: "+ (lastFrames*1000)/dt0 + " fps, "+
+                                       "total: "+ (totalFrames*1000)/dt1 + " fps");
+                    lastCheck=curTime;
+                    lastFrames=0;
+                }
+            }
         }
     }
+
+    public long getStartTime()   { return startTime; }
+    public long getCurrentTime() { return curTime; }
+    public long getDuration()    { return curTime-startTime; }
+    public int  getTotalFrames() { return totalFrames; }
+
+    private long startTime = 0;
+    private long curTime = 0;
+    private long lastCheck  = 0;
+    private int  totalFrames = 0, lastFrames = 0;
 
     private DisplayAction displayAction = new DisplayAction();
 
