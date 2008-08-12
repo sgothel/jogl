@@ -76,18 +76,15 @@
             }
             return false;
         }
-        if(!glIsProgramStatusValid(programObj, GL_VALIDATE_STATUS)) {
-            if(null!=verboseOut) {
-                verboseOut.println("Program status invalid: "+programObj+"\n\t"+ glGetProgramInfoLog(programObj));
+        if ( !isGLES2() || glShaderCompilerAvailable() ) {
+            // failed on APX2500 (ES2.0, no compiler) for valid programs
+            glValidateProgram(programObj);
+            if(!glIsProgramStatusValid(programObj, GL_VALIDATE_STATUS)) {
+                if(null!=verboseOut) {
+                    verboseOut.println("Program validation failed: "+programObj+"\n\t"+ glGetProgramInfoLog(programObj));
+                }
+                return false;
             }
-            return false;
-        }
-        glValidateProgram(programObj);
-        if(!glIsProgramStatusValid(programObj, GL_VALIDATE_STATUS)) {
-            if(null!=verboseOut) {
-                verboseOut.println("Program validation failed: "+programObj+"\n\t"+ glGetProgramInfoLog(programObj));
-            }
-            return false;
         }
         return true;
     }
@@ -100,9 +97,60 @@
     shaders.rewind();
   }
 
+  private Boolean shaderCompilerAvailable = null;
+  private Set shaderBinaryFormats = null;
+
+  public Set glGetShaderBinaryFormats() 
+  {
+    if(null==shaderBinaryFormats) {
+        HashSet formatSet = new HashSet();
+
+        int[] param = new int[1];
+
+        glGetIntegerv(GL2ES2.GL_NUM_SHADER_BINARY_FORMATS, param, 0);
+        int numFormats = param[0];
+        if(numFormats>0) {
+            int[] formats = new int[numFormats];
+            glGetIntegerv(GL2ES2.GL_SHADER_BINARY_FORMATS, formats, 0);
+            shaderBinaryFormats = new HashSet(numFormats);
+            for(int i=0; i<numFormats; i++) {
+                shaderBinaryFormats.add(new Integer(formats[i]));
+            }
+        } else {
+            shaderBinaryFormats = new HashSet(0);
+        }
+    }
+    return shaderBinaryFormats;
+  }
+
+
+  public boolean glShaderCompilerAvailable() {
+    if(null==shaderCompilerAvailable) {
+        Set bfs = glGetShaderBinaryFormats();
+        if(isGLES2()) {
+            byte[] param = new byte[1];
+            glGetBooleanv(GL2ES2.GL_SHADER_COMPILER, param, 0);
+            boolean v = param[0]!=(byte)0x00;
+            if(!v && bfs.size()==0) {
+                // no supported binary formats, hence a compiler must be available!
+                v = true;
+            }
+            shaderCompilerAvailable = new Boolean(v);
+        } else if( isGL2() || isGL2ES2() ) {
+            shaderCompilerAvailable = new Boolean(true);
+        } else {
+            throw new GLException("invalid profile");
+        }
+    }
+    return shaderCompilerAvailable.booleanValue();
+  }
 
   public void glShaderSource(int shader, java.lang.String[] source)
   {
+    if(!glShaderCompilerAvailable()) {
+        throw new GLException("no compiler is available");
+    }
+
     int count = (null!=source)?source.length:0;
     if(count<=0) {
         throw new GLException("Method \"glShaderSource\" called with invalid length of source: "+count);
@@ -118,7 +166,7 @@
   public void glShaderSource(IntBuffer shaders, java.lang.String[][] sources)
   {
     int sourceNum = (null!=sources)?sources.length:0;
-    int shaderNum = (null!=shaders)?shaders.limit():0;
+    int shaderNum = (null!=shaders)?shaders.remaining():0;
     if(shaderNum<=0 || sourceNum<=0 || shaderNum!=sourceNum) {
         throw new GLException("Method \"glShaderSource\" called with invalid number of shaders and/or sources: shaders="+
             shaderNum+", sources="+sourceNum);
@@ -130,47 +178,22 @@
 
   public void glShaderBinary(IntBuffer shaders, int binFormat, java.nio.Buffer bin)
   {
-    int shaderNum = shaders.limit();
+    if(glGetShaderBinaryFormats().size()<=0) {
+        throw new GLException("no binary formats are supported");
+    }
+
+    int shaderNum = shaders.remaining();
     if(shaderNum<=0) {
         throw new GLException("Method \"glShaderBinary\" called with shaders number <= 0");
     }
     if(null==bin) {
         throw new GLException("Method \"glShaderBinary\" without binary (null)");
     }
-    int binLength = bin.limit();
+    int binLength = bin.remaining();
     if(0>=binLength) {
-        throw new GLException("Method \"glShaderBinary\" without binary (limit == 0)");
+        throw new GLException("Method \"glShaderBinary\" without binary (remaining == 0)");
     }
-    try {
-        glShaderBinary(shaderNum, shaders, binFormat, bin, binLength);
-    } catch (Exception e) { }
-  }
-
-  /**
-   * Wrapper for glShaderBinary and glShaderSource.
-   * Tries binary first, if not null, then the source code, if not null.
-   * The binary trial will fail in case no binary interface exist (GL2 profile),
-   * hence the fallback to the source code.
-   */
-  public void glShaderBinaryOrSource(IntBuffer shaders, 
-                                     int binFormat, java.nio.Buffer bin,
-                                     java.lang.String[][] sources)
-  {
-    int shaderNum = shaders.limit();
-    if(shaderNum<=0) {
-        throw new GLException("Method \"glShaderBinaryOrSource\" called with shaders number <= 0");
-    }
-    if(null!=bin) {
-        try {
-            glShaderBinary(shaders, binFormat, bin);
-            return; // done
-        } catch (Exception e) { }
-    }
-    if(null!=sources) {
-        glShaderSource(shaders, sources);
-        return; // done
-    }
-    throw new GLException("Method \"glShaderBinaryOrSource\" without binary nor source");
+    glShaderBinary(shaderNum, shaders, binFormat, bin, binLength);
   }
 
   public void glCompileShader(IntBuffer shaders)
@@ -182,27 +205,33 @@
     shaders.rewind();
   }
 
-  public boolean glCreateCompileShader(IntBuffer shader, int shaderType,
-                                       int binFormat, java.nio.Buffer bin,
-                                       java.lang.String[][] sources)
+  public boolean glCreateLoadShader(IntBuffer shader, int shaderType,
+                                    int binFormat, java.nio.Buffer bin,
+                                    PrintStream verboseOut)
   {
-      return glCreateCompileShader(shader, shaderType,
-                                   binFormat, bin,
-                                   sources, null);
+        glGetError(); // flush previous errors ..
+
+        glCreateShader(shaderType, shader);
+
+        glShaderBinary(shader, binFormat, bin);
+
+        return glGetError() == GL.GL_NO_ERROR;
   }
 
   public boolean glCreateCompileShader(IntBuffer shader, int shaderType,
-                                       int binFormat, java.nio.Buffer bin,
                                        java.lang.String[][] sources, 
                                        PrintStream verboseOut)
   {
+        glGetError(); // flush previous errors ..
+
         glCreateShader(shaderType, shader);
 
-        glShaderBinaryOrSource(shader, binFormat, bin, sources);
+        glShaderSource(shader, sources);
 
         glCompileShader(shader);
 
-        return glIsShaderStatusValid(shader, GL_COMPILE_STATUS, verboseOut);
+        return glIsShaderStatusValid(shader, GL_COMPILE_STATUS, verboseOut) &&
+               glGetError() == GL.GL_NO_ERROR;
   }
 
   public void glAttachShader(int program, IntBuffer shaders)

@@ -69,12 +69,15 @@ public class BufferUtil {
     return bb;
   }
     
-  public static ByteBuffer newByteBuffer(byte[] values, int offset) {
-    int len = values.length-offset;
+  public static ByteBuffer newByteBuffer(byte[] values, int offset, int len) {
     ByteBuffer bb = newByteBuffer(len);
     bb.put(values, offset, len);
     bb.rewind();
     return bb;
+  }
+    
+  public static ByteBuffer newByteBuffer(byte[] values, int offset) {
+    return newByteBuffer(values, offset, values.length-offset);
   }
     
   public static ByteBuffer newByteBuffer(byte[] values) {
@@ -111,14 +114,17 @@ public class BufferUtil {
     return bb.asFloatBuffer();
   }
     
-  public static FloatBuffer newFloatBuffer(float[] values, int offset) {
-    int len = values.length-offset;
+  public static FloatBuffer newFloatBuffer(float[] values, int offset, int len) {
     FloatBuffer bb = newFloatBuffer(len);
     bb.put(values, offset, len);
     bb.rewind();
     return bb;
   }
     
+  public static FloatBuffer newFloatBuffer(float[] values, int offset) {
+    return newFloatBuffer(values, 0, values.length-offset);
+  }
+
   public static FloatBuffer newFloatBuffer(float[] values) {
     return newFloatBuffer(values, 0);
   }
@@ -132,14 +138,17 @@ public class BufferUtil {
     return bb.asIntBuffer();
   }
     
-  public static IntBuffer newIntBuffer(int[] values, int offset) {
-    int len = values.length-offset;
+  public static IntBuffer newIntBuffer(int[] values, int offset, int len) {
     IntBuffer bb = newIntBuffer(len);
     bb.put(values, offset, len);
     bb.rewind();
     return bb;
   }
     
+  public static IntBuffer newIntBuffer(int[] values, int offset) {
+    return newIntBuffer(values, 0, values.length-offset);
+  }
+
   public static IntBuffer newIntBuffer(int[] values) {
     return newIntBuffer(values, 0);
   }
@@ -160,14 +169,17 @@ public class BufferUtil {
     return bb.asShortBuffer();
   }
 
-  public static ShortBuffer newShortBuffer(short[] values, int offset) {
-    int len = values.length-offset;
+  public static ShortBuffer newShortBuffer(short[] values, int offset, int len) {
     ShortBuffer bb = newShortBuffer(len);
     bb.put(values, offset, len);
     bb.rewind();
     return bb;
   }
     
+  public static ShortBuffer newShortBuffer(short[] values, int offset) {
+    return newShortBuffer(values, 0, values.length-offset);
+  }
+
   public static ShortBuffer newShortBuffer(short[] values) {
     return newShortBuffer(values, 0);
   }

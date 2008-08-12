@@ -130,7 +130,7 @@ public class GLUniformData {
      * Sets the determined location of the shader uniform
      * This is usually done within ShaderState.
      *
-     * @see javax.media.opengl.util.glsl.ShaderState#glUniform(GL2ES2, GLUniformData)
+     * @see javax.media.opengl.glsl.ShaderState#glUniform(GL2ES2, GLUniformData)
      */
     public void setLocation(int location) { this.location=location; }
 

@@ -28,8 +28,8 @@ JOGL_JAR_ES1_MAX="jogl.core.jar jogl.gles1.jar jogl.gles1.dbg.jar jogl.egl.jar j
 JOGL_LIB_ES1_MIN="libjogl_es1.so libnewt.so"
 JOGL_LIB_ES1_MAX="libjogl_es1.so libnewt.so libjogl_awt.so"
 
-JOGL_JAR_ES2_MIN="jogl.core.jar jogl.gles2.jar jogl.egl.jar newt.jar"
-JOGL_JAR_ES2_MAX="jogl.core.jar jogl.gles2.jar jogl.gles2.dbg.jar jogl.egl.jar jogl.glu.tess.jar newt.jar jogl.util.jar $JOGL_AWT"
+JOGL_JAR_ES2_MIN="jogl.core.jar jogl.gles2.jar jogl.fixed.jar jogl.egl.jar newt.jar"
+JOGL_JAR_ES2_MAX="jogl.core.jar jogl.gles2.jar jogl.fixed.jar jogl.gles2.dbg.jar jogl.egl.jar jogl.glu.tess.jar newt.jar jogl.util.jar $JOGL_AWT"
 JOGL_LIB_ES2_MIN="libjogl_es2.so libnewt.so"
 JOGL_LIB_ES2_MAX="libjogl_es2.so libnewt.so libjogl_awt.so"
 

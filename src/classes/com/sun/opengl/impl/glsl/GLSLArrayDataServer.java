@@ -2,7 +2,7 @@
 package com.sun.opengl.impl.glsl;
 
 import javax.media.opengl.*;
-import javax.media.opengl.util.glsl.ShaderState;
+import javax.media.opengl.glsl.ShaderState;
 import java.nio.*;
 
 public class GLSLArrayDataServer extends GLArrayDataServer {

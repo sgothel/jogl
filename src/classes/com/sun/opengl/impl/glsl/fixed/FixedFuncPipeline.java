@@ -1,9 +1,9 @@
 
-package com.sun.opengl.impl.glsl;
+package com.sun.opengl.impl.glsl.fixed;
 
 import javax.media.opengl.*;
 import javax.media.opengl.util.*;
-import javax.media.opengl.util.glsl.*;
+import javax.media.opengl.glsl.*;
 import java.nio.*;
 
 public class FixedFuncPipeline {
@@ -63,14 +63,22 @@ public class FixedFuncPipeline {
         shaderState.glUseProgram(gl, true);
 
         shaderState.glEnableVertexAttribArray(gl, getArrayIndexName(glArrayIndex));
-        textureCoordsEnabled |=  (1 << activeTextureUnit);
+        // textureCoordsEnabled |=  (1 << activeTextureUnit);
+        if ( textureCoordsEnabled.get(activeTextureUnit) != 1 ) {
+            textureCoordsEnabled.put(activeTextureUnit, 1);
+            textureCoordsEnabledDirty = true;
+        }
     }
 
     public void glDisableClientState(GL2ES2 gl, int glArrayIndex) {
         shaderState.glUseProgram(gl, true);
 
         shaderState.glDisableVertexAttribArray(gl, getArrayIndexName(glArrayIndex));
-        textureCoordsEnabled &= ~(1 << activeTextureUnit);
+        // textureCoordsEnabled &= ~(1 << activeTextureUnit);
+        if ( textureCoordsEnabled.get(activeTextureUnit) != 0 ) {
+            textureCoordsEnabled.put(activeTextureUnit, 0);
+            textureCoordsEnabledDirty = true;
+        }
     }
 
     public void glVertexPointer(GL2ES2 gl, GLArrayData data) {
@@ -245,10 +253,9 @@ public class FixedFuncPipeline {
 
         int light = cap - GL.GL_LIGHT0;
         if(0 <= light && light < MAX_LIGHTS) {
-            if(enable) {
-                lightsEnabled |=  (1 << light);
-            } else {
-                lightsEnabled &= ~(1 << light);
+            if ( (lightsEnabled.get(light)==1) != enable ) {
+                lightsEnabled.put(light, enable?1:0);
+                lightsEnabledDirty = true;
             }
             return;
         }
@@ -281,20 +288,22 @@ public class FixedFuncPipeline {
             }
         }
 
-        ud = shaderState.getUniform(mgl_TexCoordEnabled);
-        if(null!=ud) {
-            if(textureCoordsEnabled!=ud.intValue()) {
-                ud.setData(textureCoordsEnabled);
+        if(textureCoordsEnabledDirty) {
+            ud = shaderState.getUniform(mgl_TexCoordEnabled);
+            if(null!=ud) {
+                // same data object 
                 shaderState.glUniform(gl, ud);
             }
+            textureCoordsEnabledDirty=false;
         }
 
-        ud = shaderState.getUniform(mgl_LightsEnabled);
-        if(null!=ud) {
-            if(lightsEnabled!=ud.intValue()) {
-                ud.setData(lightsEnabled);
+        if(lightsEnabledDirty) {
+            ud = shaderState.getUniform(mgl_LightsEnabled);
+            if(null!=ud) {
+                // same data object 
                 shaderState.glUniform(gl, ud);
             }
+            lightsEnabledDirty=false;
         }
 
         if(textureEnabled) {
@@ -334,69 +343,44 @@ public class FixedFuncPipeline {
         this.shaderState.setVerbose(verbose);
         ShaderCode vertexColor, vertexColorLight, fragmentColor, fragmentColorTexture;
 
-        // FIXME: Proper evaluation for binary format types ..
-        int binaryFormat = GLProfile.isGLES2()?GLES2.GL_NVIDIA_PLATFORM_BINARY_NV:-1;
+        vertexColor = ShaderCode.create( gl, gl.GL_VERTEX_SHADER, 1, FixedFuncPipeline.class, 
+                                         shaderSrcRoot, shaderBinRoot, vertexColorFile);
 
-        switch(binaryFormat) {
-            case GLES2.GL_NVIDIA_PLATFORM_BINARY_NV:
-                vertexColor = ShaderCode.create( gl.GL_VERTEX_SHADER, 1, this.getClass(), 
-                                            binaryFormat, "binary_nvidia/FixedFuncShaderVertexColor.nvbv",
-                                            vertexColorSrcFile);
+        vertexColorLight = ShaderCode.create( gl, gl.GL_VERTEX_SHADER, 1, FixedFuncPipeline.class, 
+                                           shaderSrcRoot, shaderBinRoot, vertexColorLightFile);
 
-                vertexColorLight = ShaderCode.create( gl.GL_VERTEX_SHADER, 1, this.getClass(),
-                                            binaryFormat, "binary_nvidia/FixedFuncShaderVertexColorLight.nvbv",
-                                            vertexColorLightSrcFile);
+        fragmentColor = ShaderCode.create( gl, gl.GL_FRAGMENT_SHADER, 1, FixedFuncPipeline.class, 
+                                           shaderSrcRoot, shaderBinRoot, fragmentColorFile);
 
-                fragmentColor = ShaderCode.create( gl.GL_FRAGMENT_SHADER, 1, this.getClass(),
-                                            binaryFormat, "binary_nvidia/FixedFuncShaderFragmentColor.nvbv",
-                                            fragmentColorSrcFile);
+        fragmentColorTexture = ShaderCode.create( gl, gl.GL_FRAGMENT_SHADER, 1, FixedFuncPipeline.class, 
+                                                  shaderSrcRoot, shaderBinRoot, fragmentColorTextureFile);
 
-                fragmentColorTexture = ShaderCode.create( gl.GL_FRAGMENT_SHADER, 1, this.getClass(),
-                                            binaryFormat, "binary_nvidia/FixedFuncShaderFragmentColorTexture.nvbv",
-                                            fragmentColorTextureSrcFile);
-
-                break;
-            default:
-                vertexColor = ShaderCode.create( gl.GL_VERTEX_SHADER, 1, this.getClass(), -1, null, 
-                                            vertexColorSrcFile);
-
-                vertexColorLight = ShaderCode.create( gl.GL_VERTEX_SHADER, 1, this.getClass(), -1, null,
-                                            vertexColorLightSrcFile);
-
-                fragmentColor = ShaderCode.create( gl.GL_FRAGMENT_SHADER, 1, this.getClass(), -1, null,
-                                            fragmentColorSrcFile);
-
-                fragmentColorTexture = ShaderCode.create( gl.GL_FRAGMENT_SHADER, 1, this.getClass(), -1, null,
-                                            fragmentColorTextureSrcFile);
-        }
-
-        
         shaderProgramColor = new ShaderProgram();
         shaderProgramColor.add(vertexColor);
         shaderProgramColor.add(fragmentColor);
         if(!shaderProgramColor.link(gl, System.err)) {
-            throw new GLException("Couldn't link VertexColor program");
+            throw new GLException("Couldn't link VertexColor program: "+shaderProgramColor);
         }
 
         shaderProgramColorTexture = new ShaderProgram();
         shaderProgramColorTexture.add(vertexColor);
         shaderProgramColorTexture.add(fragmentColorTexture);
         if(!shaderProgramColorTexture.link(gl, System.err)) {
-            throw new GLException("Couldn't link VertexColorTexture program");
+            throw new GLException("Couldn't link VertexColorTexture program: "+shaderProgramColorTexture);
         }
 
         shaderProgramColorLight = new ShaderProgram();
         shaderProgramColorLight.add(vertexColorLight);
         shaderProgramColorLight.add(fragmentColor);
         if(!shaderProgramColorLight.link(gl, System.err)) {
-            throw new GLException("Couldn't link VertexColorLight program");
+            throw new GLException("Couldn't link VertexColorLight program: "+shaderProgramColorLight);
         }
 
         shaderProgramColorTextureLight = new ShaderProgram();
         shaderProgramColorTextureLight.add(vertexColorLight);
         shaderProgramColorTextureLight.add(fragmentColorTexture);
         if(!shaderProgramColorTextureLight.link(gl, System.err)) {
-            throw new GLException("Couldn't link VertexColorLight program");
+            throw new GLException("Couldn't link VertexColorLight program: "+shaderProgramColorTextureLight);
         }
 
         shaderState.attachShaderProgram(gl, shaderProgramColor);
@@ -412,7 +396,7 @@ public class FixedFuncPipeline {
 
         shaderState.glUniform(gl, new GLUniformData(mgl_ColorEnabled,  0));
         shaderState.glUniform(gl, new GLUniformData(mgl_ColorStatic, 4, zero4f));
-        shaderState.glUniform(gl, new GLUniformData(mgl_TexCoordEnabled,  textureCoordsEnabled));
+        shaderState.glUniform(gl, new GLUniformData(mgl_TexCoordEnabled,  1, textureCoordsEnabled));
         shaderState.glUniform(gl, new GLUniformData(mgl_ActiveTexture, activeTextureUnit));
         shaderState.glUniform(gl, new GLUniformData(mgl_ActiveTextureIdx, activeTextureUnit));
         shaderState.glUniform(gl, new GLUniformData(mgl_ShadeModel, 0));
@@ -428,7 +412,7 @@ public class FixedFuncPipeline {
             shaderState.glUniform(gl, new GLUniformData(mgl_LightSource+"["+i+"].linearAttenuation", defLinearAtten));
             shaderState.glUniform(gl, new GLUniformData(mgl_LightSource+"["+i+"].quadraticAttenuation", defQuadraticAtten));
         }
-        shaderState.glUniform(gl, new GLUniformData(mgl_LightsEnabled,  lightsEnabled));
+        shaderState.glUniform(gl, new GLUniformData(mgl_LightsEnabled,  1, lightsEnabled));
         shaderState.glUniform(gl, new GLUniformData(mgl_FrontMaterial+".ambient", 4, defMatAmbient));
         shaderState.glUniform(gl, new GLUniformData(mgl_FrontMaterial+".diffuse", 4, defMatDiffuse));
         shaderState.glUniform(gl, new GLUniformData(mgl_FrontMaterial+".specular", 4, defMatSpecular));
@@ -443,11 +427,13 @@ public class FixedFuncPipeline {
     protected boolean verbose=false;
 
     protected boolean textureEnabled=false;
-    protected int     textureCoordsEnabled=0;
+    protected IntBuffer textureCoordsEnabled = BufferUtil.newIntBuffer(new int[] { 0, 0, 0, 0, 0, 0, 0, 0 });
+    protected boolean textureCoordsEnabledDirty = false;
     protected int     activeTextureUnit=0;
 
     protected boolean lightingEnabled=false;
-    protected int     lightsEnabled=0;
+    protected IntBuffer lightsEnabled = BufferUtil.newIntBuffer(new int[] { 0, 0, 0, 0, 0, 0, 0, 0 });
+    protected boolean   lightsEnabledDirty = false;
 
     protected PMVMatrix pmvMatrix;
     protected ShaderState shaderState;
@@ -464,11 +450,11 @@ public class FixedFuncPipeline {
 
     protected static final String mgl_LightSource      = "mgl_LightSource";     //  struct mgl_LightSourceParameters[MAX_LIGHTS]
     protected static final String mgl_FrontMaterial    = "mgl_FrontMaterial";   //  struct mgl_MaterialParameters
-    protected static final String mgl_LightsEnabled    = "mgl_LightsEnabled";   //  1i bitfield
+    protected static final String mgl_LightsEnabled    = "mgl_LightsEnabled";   //  int mgl_LightsEnabled[MAX_LIGHTS];
 
     protected static final String mgl_ShadeModel       = "mgl_ShadeModel";      //  1i
 
-    protected static final String mgl_TexCoordEnabled  = "mgl_TexCoordEnabled"; //  1i bitfield
+    protected static final String mgl_TexCoordEnabled  = "mgl_TexCoordEnabled"; //  int mgl_TexCoordEnabled[MAX_TEXTURE_UNITS];
     protected static final String mgl_ActiveTexture    = "mgl_ActiveTexture";   //  1i
     protected static final String mgl_ActiveTextureIdx = "mgl_ActiveTextureIdx";//  1i
 
@@ -491,9 +477,11 @@ public class FixedFuncPipeline {
     public static final FloatBuffer defMatEmission= BufferUtil.newFloatBuffer(new float[] { 0f, 0f, 0f, 1f});
     public static final float       defMatShininess = 0f;
 
-    protected static final String[] vertexColorSrcFile = new String[] { "source/FixedFuncShaderVertexColor.vp" };
-    protected static final String[] vertexColorLightSrcFile = new String[] { "source/FixedFuncShaderVertexColorLight.vp" };
-    protected static final String[] fragmentColorSrcFile = new String[] { "source/FixedFuncShaderFragmentColor.fp" } ;
-    protected static final String[] fragmentColorTextureSrcFile = new String[] { "source/FixedFuncShaderFragmentColorTexture.fp" } ;
+    protected static final String vertexColorFile          = "FixedFuncColor";
+    protected static final String vertexColorLightFile     = "FixedFuncColorLight";
+    protected static final String fragmentColorFile        = "FixedFuncColor";
+    protected static final String fragmentColorTextureFile = "FixedFuncColorTexture";
+    protected static final String shaderSrcRoot = "shader" ;
+    protected static final String shaderBinRoot = "shader/bin" ;
 }
 

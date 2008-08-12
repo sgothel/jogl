@@ -59,6 +59,10 @@ echo JOGL ES2 NEWT CORE
 report jogl.core.jar jogl.egl.jar jogl.gles2.jar newt.jar obj/tmp/libjogl_es2.so.gz obj/tmp/libnewt.so.gz
 echo
 
+echo JOGL ES2 NEWT CORE FIXED
+report jogl.core.jar jogl.egl.jar jogl.gles2.jar jogl.fixed.jar newt.jar obj/tmp/libjogl_es2.so.gz obj/tmp/libnewt.so.gz
+echo
+
 echo JOGL GL2ES12 NEWT 
 report jogl.core.jar jogl.gl2es12.$OSS.jar newt.jar obj/tmp/libjogl_gl2es12.so.gz obj/tmp/libnewt.so.gz
 echo

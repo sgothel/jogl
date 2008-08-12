@@ -34,8 +34,8 @@ public class ImmModeSink {
    * a ShaderState must be current, using ShaderState.glUseProgram().
    *
    * @see #draw(GL, boolean)
-   * @see javax.media.opengl.util.glsl.ShaderState#glUseProgram(GL2ES2, boolean)
-   * @see javax.media.opengl.util.glsl.ShaderState#getCurrent()
+   * @see javax.media.opengl.glsl.ShaderState#glUseProgram(GL2ES2, boolean)
+   * @see javax.media.opengl.glsl.ShaderState#getCurrent()
    */
   public static ImmModeSink createGLSL(int glBufferUsage, int initialSize,
                                        int vComps, int vDataType,

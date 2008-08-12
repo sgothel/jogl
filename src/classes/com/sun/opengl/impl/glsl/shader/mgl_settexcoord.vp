@@ -1,0 +1,35 @@
+#ifndef mgl_settexcoord_vp
+#define mgl_settexcoord_vp
+
+#include es_precision.glsl
+
+#include mgl_const.glsl
+#include mgl_uniform.glsl
+#include mgl_attribute.glsl
+#include mgl_varying.glsl
+
+void setTexCoord(in vec4 defpos) {
+  /**
+   * bitwise operator not supported on APX 2500 ES 2.0
+   *
+  mgl_TexCoords[0] = ( 0 != (mgl_TexCoordEnabled &   1) ) ? mgl_MultiTexCoord0 : defpos;
+  mgl_TexCoords[1] = ( 0 != (mgl_TexCoordEnabled &   2) ) ? mgl_MultiTexCoord1 : defpos;
+  mgl_TexCoords[2] = ( 0 != (mgl_TexCoordEnabled &   4) ) ? mgl_MultiTexCoord2 : defpos;
+  mgl_TexCoords[3] = ( 0 != (mgl_TexCoordEnabled &   8) ) ? mgl_MultiTexCoord3 : defpos;
+  mgl_TexCoords[4] = ( 0 != (mgl_TexCoordEnabled &  16) ) ? mgl_MultiTexCoord4 : defpos;
+  mgl_TexCoords[5] = ( 0 != (mgl_TexCoordEnabled &  32) ) ? mgl_MultiTexCoord5 : defpos;
+  mgl_TexCoords[6] = ( 0 != (mgl_TexCoordEnabled &  64) ) ? mgl_MultiTexCoord6 : defpos;
+  mgl_TexCoords[7] = ( 0 != (mgl_TexCoordEnabled & 128) ) ? mgl_MultiTexCoord7 : defpos;
+   */
+  
+  mgl_TexCoords[0] = ( 0 != mgl_TexCoordEnabled[0] ) ? mgl_MultiTexCoord0 : defpos;
+  mgl_TexCoords[1] = ( 0 != mgl_TexCoordEnabled[1] ) ? mgl_MultiTexCoord1 : defpos;
+  mgl_TexCoords[2] = ( 0 != mgl_TexCoordEnabled[2] ) ? mgl_MultiTexCoord2 : defpos;
+  mgl_TexCoords[3] = ( 0 != mgl_TexCoordEnabled[3] ) ? mgl_MultiTexCoord3 : defpos;
+  mgl_TexCoords[4] = ( 0 != mgl_TexCoordEnabled[4] ) ? mgl_MultiTexCoord4 : defpos;
+  mgl_TexCoords[5] = ( 0 != mgl_TexCoordEnabled[5] ) ? mgl_MultiTexCoord5 : defpos;
+  mgl_TexCoords[6] = ( 0 != mgl_TexCoordEnabled[6] ) ? mgl_MultiTexCoord6 : defpos;
+  mgl_TexCoords[7] = ( 0 != mgl_TexCoordEnabled[7] ) ? mgl_MultiTexCoord7 : defpos;
+}
+
+#endif // mgl_settexcoord_vp

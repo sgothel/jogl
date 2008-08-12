@@ -537,7 +537,17 @@ public final String toString() {
       StringBuffer buf = new StringBuffer();
       buf.append("GL: ");
       buf.append(getClass().getName());
-      buf.append(" (GLContext: ");
+      buf.append(" (GLSL compiler: ");
+      buf.append(glShaderCompilerAvailable());
+      Set bfs = glGetShaderBinaryFormats();
+      buf.append(", binary formats ");
+      buf.append(bfs.size());
+      buf.append(":");
+      for(Iterator iter=bfs.iterator(); iter.hasNext(); ) {
+          buf.append(" ");
+          buf.append(((Integer)(iter.next())).intValue());
+      }
+      buf.append(") (GLContext: ");
       GLContext context = getContext();
       buf.append(context.getClass().getName());
       buf.append(", GLDrawable: ");
