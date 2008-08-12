@@ -46,6 +46,10 @@ public class ImmModeSink {
                            vComps, vDataType, cComps, cDataType, nComps, nDataType, tComps, tDataType, true);
   }
 
+  public static boolean usesVBO() { return vboUsage; }
+
+  public static void setVBOUsage(boolean v) { vboUsage = v; }
+
   public void destroy(GL gl) {
     destroyList(gl);
 
@@ -268,6 +272,7 @@ public class ImmModeSink {
 
   private VBOSet vboSet;
   private ArrayList vboSetList;
+  private static boolean vboUsage = true;
 
   protected static class VBOSet {
     protected VBOSet (int glBufferUsage, int initialSize,
@@ -297,6 +302,12 @@ public class ImmModeSink {
           this.colorVBO    = GLArrayDataServer.createGLSL(GLContext.mgl_Color,  cComps, cDataType, false, initialSize, glBufferUsage);
           this.normalVBO   = GLArrayDataServer.createGLSL(GLContext.mgl_Normal, nComps, nDataType, false, initialSize, glBufferUsage);
           this.texcoordVBO = GLArrayDataServer.createGLSL(GLContext.mgl_MultiTexCoord, tComps, tDataType, false, initialSize, glBufferUsage);
+        }
+        if(!vboUsage) {
+            this.vertexVBO.setVBOUsage(vboUsage);
+            this.colorVBO.setVBOUsage(vboUsage);
+            this.normalVBO.setVBOUsage(vboUsage);
+            this.texcoordVBO.setVBOUsage(vboUsage);
         }
 
         this.sealed=false;

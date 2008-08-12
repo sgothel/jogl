@@ -3,8 +3,12 @@
 . ../../setenv-build-jogl.sh
 
 #    -Dc.compiler.debug=true 
+#    -Djavacdebug="false"
+#    -Djavacdebuglevel=""
 
 ant -v \
+    -Djavacdebug="false" \
+    -Djavacdebuglevel="none" \
     -Djogl.cdcfp=true \
     -Dgluegen.cpptasks.detected.os=true \
     -DisUnix=true \

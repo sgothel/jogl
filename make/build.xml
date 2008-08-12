@@ -332,6 +332,10 @@
            - validate to ensure that all user-define variables are set. -->
         <property name="validate.user.properties" value="${make}/validate-properties.xml" />
            
+        <!-- NOTE: the value of the debug and optimise attributes will not be overridden if already set externally -->
+        <property name="javacdebug"       value="true" /> 
+        <property name="javacdebuglevel"  value="source,lines" /> 
+
         <!-- GlueGen properties. -->
         <!-- NOTE that these require a checked-out GlueGen workspace as a -->
         <!-- sibling of the JOGL workspace. -->
@@ -1022,7 +1026,7 @@
                includes="javax/media/opengl/GLDrawableFactory.java javax/media/opengl/GLDrawable.java javax/media/opengl/GLContext.java javax/media/opengl/GL.java javax/media/opengl/GL2ES1.java javax/media/opengl/GL2ES2.java javax/media/opengl/GL2.java javax/media/opengl/GLES1.java javax/media/opengl/GLES2.java"
                fork="yes"
                memoryMaximumSize="128m"
-               source="1.4" debug="true" debuglevel="source,lines">
+               source="1.4" debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <src path="${src.java}" />
             <src path="${src.generated.java}" />
         </javac>
@@ -1037,7 +1041,7 @@
                bootclasspath="${javac.bootclasspath.jar}"
                fork="yes"
                memoryMaximumSize="128m"
-               debug="true" debuglevel="source,lines">
+               debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <src path="${src.java}" />
             <src path="${src.generated.java}" />
         </javac>
@@ -1051,7 +1055,7 @@
                classpath="${gluegen-rt.jar}"
                fork="yes"
                memoryMaximumSize="128m"
-               debug="true" debuglevel="source,lines">
+               debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <src path="${src.java}" />
             <src path="${src.generated.java}" />
         </javac>
