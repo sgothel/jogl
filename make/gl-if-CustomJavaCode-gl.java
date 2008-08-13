@@ -115,6 +115,7 @@
 
   public void glLightfv(int light, int pname, java.nio.FloatBuffer params);
   public void glLightfv(int light, int pname, float[] params, int params_offset);
+  public void glMaterialf(int face, int pname, float param);
   public void glMaterialfv(int face, int pname, java.nio.FloatBuffer params);
   public void glMaterialfv(int face, int pname, float[] params, int params_offset);
 

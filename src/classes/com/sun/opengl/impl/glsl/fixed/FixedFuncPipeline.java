@@ -26,14 +26,6 @@ public class FixedFuncPipeline {
         return shaderState;
     }
 
-    public void enableLighting(boolean enable) {
-        lightingEnabled=enable;
-    }
-
-    public boolean lightingEnabled() {
-        return lightingEnabled;
-    }
-
     public int getActiveTextureUnit() {
         return activeTextureUnit;
     }
@@ -318,7 +310,7 @@ public class FixedFuncPipeline {
             } else {
                 shaderState.attachShaderProgram(gl, shaderProgramColor);
             }
-        } 
+        }
         if(DEBUG) {
             System.out.println("validate: "+this);
         }

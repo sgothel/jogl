@@ -63,39 +63,58 @@ public class GLArrayDataClient implements GLArrayData {
   // Data read access
   //
 
-  public boolean isVertexAttribute() { return isVertexAttribute; }
+  public final boolean isVertexAttribute() { return isVertexAttribute; }
 
-  public int getIndex() { return index; }
+  public final int getIndex() { return index; }
 
-  public int getLocation() { return location; }
+  public final int getLocation() { return location; }
 
-  public void setLocation(int v) { location = v; }
+  public final void setLocation(int v) { location = v; }
 
-  public String getName() { return name; }
+  public final String getName() { return name; }
 
   public long getOffset() { return -1; }
 
-  public Buffer getBuffer() { return buffer; }
+  public final Buffer getBuffer() { return buffer; }
 
   public boolean isVBO() { return false; }
 
-  public int getComponents() { return components; }
+  public int getVBOName() { return -1; }
 
-  public int getDataType() { return dataType; }
+  public int getBufferUsage() { return -1; }
 
-  public boolean getNormalized() { return normalized; }
+  public final int getComponentNumber() { return components; }
 
-  public int getStride() { return stride; }
+  public final int getComponentType() { return dataType; }
 
-  public boolean sealed() { return sealed; }
-
-  public Class getBufferClass() {
-    return clazz;
+  public final int getComponentSize() {
+    if(clazz==ByteBuffer.class) {
+        return BufferUtil.SIZEOF_BYTE;
+    }
+    if(clazz==ShortBuffer.class) {
+        return BufferUtil.SIZEOF_SHORT;
+    }
+    if(clazz==IntBuffer.class) {
+        return BufferUtil.SIZEOF_INT;
+    }
+    if(clazz==FloatBuffer.class) {
+        return BufferUtil.SIZEOF_FLOAT;
+    }
+    throw new GLException("Given Buffer Class not supported: "+clazz+":\n\t"+this);
   }
 
-  public int getVerticeNumber() {
-    return ( buffer!=null ) ? ( buffer.limit() / components ) : 0 ;
+  public final int getElementNumber() {
+    if(null==buffer) return 0;
+    return ( sealed ) ? ( buffer.limit() / components ) : ( buffer.position() / components ) ;
   }
+
+  public final boolean getNormalized() { return normalized; }
+
+  public final int getStride() { return stride; }
+
+  public final boolean sealed() { return sealed; }
+
+  public final Class getBufferClass() { return clazz; }
 
   //
   // Data and GL state modification ..
@@ -133,12 +152,13 @@ public class GLArrayDataClient implements GLArrayData {
   {
     if(enable) {
         checkSeal(true);
-        if(!bufferEnabled && null!=buffer) {
+        if(null!=buffer) {
             buffer.rewind();
-            enableBufferGLImpl(gl, true);
         }
-    } else if(bufferEnabled) {
-        enableBufferGLImpl(gl, false);
+    }
+    if(bufferEnabled != enable && components>0) {
+        enableBufferGLImpl(gl, enable);
+        bufferEnabled = enable;
     }
   }
 
@@ -293,7 +313,7 @@ public class GLArrayDataClient implements GLArrayData {
                        ", isVertexAttribute "+isVertexAttribute+
                        ", dataType "+dataType+ 
                        ", bufferClazz "+clazz+ 
-                       ", vertices "+getVerticeNumber()+
+                       ", elements "+getElementNumber()+
                        ", components "+components+ 
                        ", stride "+stride+"u "+strideB+"b "+strideL+"c"+
                        ", initialSize "+initialSize+ 
@@ -319,22 +339,6 @@ public class GLArrayDataClient implements GLArrayData {
         default:    
             throw new GLException("Given OpenGL data type not supported: "+dataType);
     }
-  }
-
-  public final int getBufferCompSize() {
-    if(clazz==ByteBuffer.class) {
-        return BufferUtil.SIZEOF_BYTE;
-    }
-    if(clazz==ShortBuffer.class) {
-        return BufferUtil.SIZEOF_SHORT;
-    }
-    if(clazz==IntBuffer.class) {
-        return BufferUtil.SIZEOF_INT;
-    }
-    if(clazz==FloatBuffer.class) {
-        return BufferUtil.SIZEOF_FLOAT;
-    }
-    throw new GLException("Given Buffer Class not supported: "+clazz+":\n\t"+this);
   }
 
   // non public matters
@@ -424,7 +428,7 @@ public class GLArrayDataClient implements GLArrayData {
             this.normalized = false;
     }
 
-    int bpc = getBufferCompSize();
+    int bpc = getComponentSize();
     if(0<stride && stride<comps*bpc) {
         throw new GLException("stride ("+stride+") lower than component bytes, "+comps+" * "+bpc);
     }
@@ -446,31 +450,47 @@ public class GLArrayDataClient implements GLArrayData {
     }
   }
 
+  protected final void passArrayPointer(GL gl) {
+    switch(index) {
+        case GL.GL_VERTEX_ARRAY:
+            gl.glVertexPointer(this);
+            break;
+        case GL.GL_NORMAL_ARRAY:
+            gl.glNormalPointer(this);
+            break;
+        case GL.GL_COLOR_ARRAY:
+            gl.glColorPointer(this);
+            break;
+        case GL.GL_TEXTURE_COORD_ARRAY:
+            gl.glTexCoordPointer(this);
+            break;
+        default:
+            throw new GLException("invalid glArrayIndex: "+index+":\n\t"+this); 
+    }
+  }
+
   protected void enableBufferGLImpl(GL gl, boolean enable) {
     if(enable) {
         gl.glEnableClientState(index);
-        bufferEnabled = true;
 
-        switch(index) {
-            case GL.GL_VERTEX_ARRAY:
-                gl.glVertexPointer(this);
-                break;
-            case GL.GL_NORMAL_ARRAY:
-                gl.glNormalPointer(this);
-                break;
-            case GL.GL_COLOR_ARRAY:
-                gl.glColorPointer(this);
-                break;
-            case GL.GL_TEXTURE_COORD_ARRAY:
-                gl.glTexCoordPointer(this);
-                break;
-            default:
-                throw new GLException("invalid glArrayIndex: "+index+":\n\t"+this); 
+        if(isVBO()) {
+            gl.glBindBuffer(GL.GL_ARRAY_BUFFER, getVBOName());
+            if(!bufferWritten) {
+                if(null!=buffer) {
+                    gl.glBufferData(GL.GL_ARRAY_BUFFER, buffer.limit() * getComponentSize(), buffer, getBufferUsage());
+                }
+                bufferWritten=true;
+            }
+            passArrayPointer(gl);
+        } else if(null!=buffer) {
+            passArrayPointer(gl);
+            bufferWritten=true;
         }
-        bufferWritten=true;
     } else {
+        if(isVBO()) {
+            gl.glBindBuffer(GL.GL_ARRAY_BUFFER, 0);
+        }
         gl.glDisableClientState(index);
-        bufferEnabled = false;
     }
   }
 

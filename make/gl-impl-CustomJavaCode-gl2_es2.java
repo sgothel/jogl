@@ -261,11 +261,12 @@
   }
 
   public void glVertexAttribPointer(GLArrayData array) {
+    if(array.getComponentNumber()==0) return;
     if(array.isVBO()) {
-        glVertexAttribPointer(array.getLocation(), array.getComponents(), array.getDataType(), 
+        glVertexAttribPointer(array.getLocation(), array.getComponentNumber(), array.getComponentType(), 
                               array.getNormalized(), array.getStride(), array.getOffset());
     } else {
-        glVertexAttribPointer(array.getLocation(), array.getComponents(), array.getDataType(), 
+        glVertexAttribPointer(array.getLocation(), array.getComponentNumber(), array.getComponentType(), 
                               array.getNormalized(), array.getStride(), array.getBuffer());
     }
   }

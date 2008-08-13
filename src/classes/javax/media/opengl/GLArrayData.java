@@ -3,6 +3,12 @@ package javax.media.opengl;
 
 import java.nio.*;
 
+/**
+ *
+ * The total number of bytes hold by the referenced buffer is:
+ * getComponentSize()* getComponentNumber() * getElementNumber()
+ *
+ */
 public interface GLArrayData {
 
     /**
@@ -51,9 +57,25 @@ public interface GLArrayData {
     public boolean sealed();
 
     /**
+     * Determines wheather the data is server side (VBO),
+     * or a client side array (false).
+     */
+    public boolean isVBO();
+
+    /**
      * The offset, if it's an VBO, otherwise -1
      */
     public long getOffset();
+
+    /**
+     * The VBO name, if it's an VBO, otherwise -1
+     */
+    public int getVBOName();
+
+    /**
+     * The VBO buffer usage, if it's an VBO, otherwise -1
+     */
+    public int getBufferUsage();
 
     /**
      * The Buffer holding the data, may be null in case of VBO
@@ -61,20 +83,24 @@ public interface GLArrayData {
     public Buffer getBuffer();
 
     /**
-     * Determines wheather the data is server side (VBO),
-     * or a client side array (false).
-     */
-    public boolean isVBO();
-
-    /**
      * The number of components per element
      */
-    public int getComponents();
+    public int getComponentNumber();
 
     /**
-     * The GL data type of the components, ie. GL_FLOAT
+     * The component's GL data type, ie. GL_FLOAT
      */
-    public int getDataType();
+    public int getComponentType();
+
+    /**
+     * The components size in bytes
+     */
+    public int getComponentSize();
+
+    /**
+     * Return the number of elements.
+     */
+    public int getElementNumber();
 
     /**
      * True, if GL shall normalize fixed point data while converting 
@@ -87,10 +113,6 @@ public interface GLArrayData {
      * allowing interleaved arrays.
      */
     public int getStride();
-
-    public int getVerticeNumber();
-
-    public int getBufferCompSize();
 
     public String toString();
 

@@ -526,6 +526,9 @@ public void glMaterialfv(int face, int pname, java.nio.FloatBuffer params) {
 public void glMaterialfv(int face, int pname, float[] params, int params_offset) {
     glMaterialfv(face, pname, BufferUtil.newFloatBuffer(params, params_offset));
 }
+public void glMaterialf(int face, int pname, float param) {
+    glMaterialfv(face, pname, BufferUtil.newFloatBuffer(new float[] { param }));
+}
 public void glShadeModel(int mode) {
   if(!fixedFunctionShaderActive) {
     throw new GLUnsupportedException("not enabled");
@@ -592,7 +595,11 @@ public void glVertexPointer(int size, int type, int stride, java.nio.Buffer poin
   glVertexPointer(GLArrayDataClient.createFixed(GL.GL_VERTEX_ARRAY, null, size, type, false, stride, pointer));
 }
 public void glVertexPointer(int size, int type, int stride, long pointer_buffer_offset) {
-  glVertexPointer(GLArrayDataServer.createFixed(GL.GL_VERTEX_ARRAY, null, size, type, false, stride, pointer_buffer_offset));
+  int vboName = bufferStateTracker.getBoundBufferObject(GL.GL_ARRAY_BUFFER, this);
+  if(vboName==0) {
+    throw new GLException("no GL_ARRAY_BUFFER VBO bound");
+  }
+  glVertexPointer(GLArrayDataServer.createFixed(GL.GL_VERTEX_ARRAY, null, size, type, false, stride, pointer_buffer_offset, vboName));
 }
 
 public void glColorPointer(GLArrayData array) {
@@ -613,14 +620,18 @@ public void glColorPointer(int size, int type, int stride, java.nio.Buffer point
   glColorPointer(GLArrayDataClient.createFixed(GL.GL_COLOR_ARRAY, null, size, type, false, stride, pointer));
 }
 public void glColorPointer(int size, int type, int stride, long pointer_buffer_offset) {
-  glColorPointer(GLArrayDataServer.createFixed(GL.GL_COLOR_ARRAY, null, size, type, false, stride, pointer_buffer_offset));
+  int vboName = bufferStateTracker.getBoundBufferObject(GL.GL_ARRAY_BUFFER, this);
+  if(vboName==0) {
+    throw new GLException("no GL_ARRAY_BUFFER VBO bound");
+  }
+  glColorPointer(GLArrayDataServer.createFixed(GL.GL_COLOR_ARRAY, null, size, type, false, stride, pointer_buffer_offset, vboName));
 }
 
 public void glNormalPointer(GLArrayData array) {
   if(!fixedFunctionShaderActive) {
     throw new GLUnsupportedException("Fixed function not enabled");
   }
-  if(array.getComponents()!=3) {
+  if(array.getComponentNumber()!=3) {
     throw new GLException("Only 3 components per normal allowed");
   }
   if(array.isVBO()) {
@@ -637,7 +648,11 @@ public void glNormalPointer(int type, int stride, java.nio.Buffer pointer) {
   glNormalPointer(GLArrayDataClient.createFixed(GL.GL_NORMAL_ARRAY, null, 3, type, false, stride, pointer));
 }
 public void glNormalPointer(int type, int stride, long pointer_buffer_offset) {
-  glNormalPointer(GLArrayDataServer.createFixed(GL.GL_NORMAL_ARRAY, null, 3, type, false, stride, pointer_buffer_offset));
+  int vboName = bufferStateTracker.getBoundBufferObject(GL.GL_ARRAY_BUFFER, this);
+  if(vboName==0) {
+    throw new GLException("no GL_ARRAY_BUFFER VBO bound");
+  }
+  glNormalPointer(GLArrayDataServer.createFixed(GL.GL_NORMAL_ARRAY, null, 3, type, false, stride, pointer_buffer_offset, vboName));
 }
 
 public void glTexCoordPointer(GLArrayData array) {
@@ -659,10 +674,11 @@ public void glTexCoordPointer(int size, int type, int stride, java.nio.Buffer po
     GLArrayDataClient.createFixed(GL.GL_TEXTURE_COORD_ARRAY, null, size, type, false, stride, pointer));
 }
 public void glTexCoordPointer(int size, int type, int stride, long pointer_buffer_offset) {
-  if(!fixedFunctionShaderActive) {
-    throw new GLUnsupportedException("Fixed function not enabled");
+  int vboName = bufferStateTracker.getBoundBufferObject(GL.GL_ARRAY_BUFFER, this);
+  if(vboName==0) {
+    throw new GLException("no GL_ARRAY_BUFFER VBO bound");
   }
   glTexCoordPointer(
-    GLArrayDataServer.createFixed(GL.GL_TEXTURE_COORD_ARRAY, null, size, type, false, stride, pointer_buffer_offset) );
+    GLArrayDataServer.createFixed(GL.GL_TEXTURE_COORD_ARRAY, null, size, type, false, stride, pointer_buffer_offset, vboName) );
 }
 

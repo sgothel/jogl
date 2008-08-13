@@ -406,7 +406,7 @@ public class ImmModeSink {
 
         if (vertexVBO.getBuffer()!=null) {
             if(null==indices) {
-                gl.glDrawArrays(mode, 0, vertexVBO.getVerticeNumber());
+                gl.glDrawArrays(mode, 0, vertexVBO.getElementNumber());
             } else {
                 Class clazz = indices.getClass();
                 int type=-1;
@@ -437,16 +437,16 @@ public class ImmModeSink {
     protected void glVertex2f(float x, float y) {
         checkSeal(false);
         vertexVBO.putf(x);
-        if(vertexVBO.getComponents()>1) 
+        if(vertexVBO.getComponentNumber()>1) 
             vertexVBO.putf(y);
         vertexVBO.padding(2);
     }
     protected void glVertex3f(float x, float y, float z) {
         checkSeal(false);
         vertexVBO.putf(x);
-        if(vertexVBO.getComponents()>1) 
+        if(vertexVBO.getComponentNumber()>1) 
             vertexVBO.putf(y);
-        if(vertexVBO.getComponents()>2) 
+        if(vertexVBO.getComponentNumber()>2) 
             vertexVBO.putf(z);
         vertexVBO.padding(3);
     }
@@ -458,9 +458,9 @@ public class ImmModeSink {
     protected void glNormal3f(float x, float y, float z) {
         checkSeal(false);
         normalVBO.putf(x);
-        if(normalVBO.getComponents()>1) 
+        if(normalVBO.getComponentNumber()>1) 
             normalVBO.putf(y);
-        if(normalVBO.getComponents()>2) 
+        if(normalVBO.getComponentNumber()>2) 
             normalVBO.putf(z);
         normalVBO.padding(3);
     }
@@ -472,20 +472,20 @@ public class ImmModeSink {
     protected void glColor3f(float x, float y, float z) {
         checkSeal(false);
         colorVBO.putf(x);
-        if(colorVBO.getComponents()>1) 
+        if(colorVBO.getComponentNumber()>1) 
             colorVBO.putf(y);
-        if(colorVBO.getComponents()>2) 
+        if(colorVBO.getComponentNumber()>2) 
             colorVBO.putf(z);
         colorVBO.padding(3);
     }
     protected void glColor4f(float x, float y, float z, float a) {
         checkSeal(false);
         colorVBO.putf(x);
-        if(colorVBO.getComponents()>1) 
+        if(colorVBO.getComponentNumber()>1) 
             colorVBO.putf(y);
-        if(colorVBO.getComponents()>2) 
+        if(colorVBO.getComponentNumber()>2) 
             colorVBO.putf(z);
-        if(colorVBO.getComponents()>3) 
+        if(colorVBO.getComponentNumber()>3) 
             colorVBO.putf(a);
         colorVBO.padding(4);
     }
@@ -497,16 +497,16 @@ public class ImmModeSink {
     protected void glTexCoord2f(float x, float y) {
         checkSeal(false);
         texcoordVBO.putf(x);
-        if(texcoordVBO.getComponents()>1) 
+        if(texcoordVBO.getComponentNumber()>1) 
             texcoordVBO.putf(y);
         texcoordVBO.padding(2);
     }
     protected void glTexCoord3f(float x, float y, float z) {
         checkSeal(false);
         texcoordVBO.putf(x);
-        if(texcoordVBO.getComponents()>1) 
+        if(texcoordVBO.getComponentNumber()>1) 
             texcoordVBO.putf(y);
-        if(texcoordVBO.getComponents()>2) 
+        if(texcoordVBO.getComponentNumber()>2) 
             texcoordVBO.putf(z);
         texcoordVBO.padding(3);
     }
@@ -514,16 +514,16 @@ public class ImmModeSink {
     protected void glVertex2s(short x, short y) {
         checkSeal(false);
         vertexVBO.puts(x);
-        if(vertexVBO.getComponents()>1) 
+        if(vertexVBO.getComponentNumber()>1) 
             vertexVBO.puts(y);
         vertexVBO.padding(2);
     }
     protected void glVertex3s(short x, short y, short z) {
         checkSeal(false);
         vertexVBO.puts(x);
-        if(vertexVBO.getComponents()>1) 
+        if(vertexVBO.getComponentNumber()>1) 
             vertexVBO.puts(y);
-        if(vertexVBO.getComponents()>2) 
+        if(vertexVBO.getComponentNumber()>2) 
             vertexVBO.puts(z);
         vertexVBO.padding(3);
     }
@@ -531,9 +531,9 @@ public class ImmModeSink {
     protected void glNormal3s(short x, short y, short z) {
         checkSeal(false);
         normalVBO.puts(x);
-        if(normalVBO.getComponents()>1) 
+        if(normalVBO.getComponentNumber()>1) 
             normalVBO.puts(y);
-        if(normalVBO.getComponents()>2) 
+        if(normalVBO.getComponentNumber()>2) 
             normalVBO.puts(z);
         normalVBO.padding(3);
     }
@@ -541,20 +541,20 @@ public class ImmModeSink {
     protected void glColor3s(short x, short y, short z) {
         checkSeal(false);
         colorVBO.puts(x);
-        if(colorVBO.getComponents()>1) 
+        if(colorVBO.getComponentNumber()>1) 
             colorVBO.puts(y);
-        if(colorVBO.getComponents()>2) 
+        if(colorVBO.getComponentNumber()>2) 
             colorVBO.puts(z);
         colorVBO.padding(3);
     }
     protected void glColor4s(short x, short y, short z, short a) {
         checkSeal(false);
         colorVBO.puts(x);
-        if(colorVBO.getComponents()>1) 
+        if(colorVBO.getComponentNumber()>1) 
             colorVBO.puts(y);
-        if(colorVBO.getComponents()>2) 
+        if(colorVBO.getComponentNumber()>2) 
             colorVBO.puts(z);
-        if(colorVBO.getComponents()>3) 
+        if(colorVBO.getComponentNumber()>3) 
             colorVBO.puts(a);
         colorVBO.padding(4);
     }
@@ -562,16 +562,16 @@ public class ImmModeSink {
     protected void glTexCoord2s(short x, short y) {
         checkSeal(false);
         texcoordVBO.puts(x);
-        if(texcoordVBO.getComponents()>1) 
+        if(texcoordVBO.getComponentNumber()>1) 
             texcoordVBO.puts(y);
         texcoordVBO.padding(2);
     }
     protected void glTexCoord3s(short x, short y, short z) {
         checkSeal(false);
         texcoordVBO.puts(x);
-        if(texcoordVBO.getComponents()>1) 
+        if(texcoordVBO.getComponentNumber()>1) 
             texcoordVBO.puts(y);
-        if(texcoordVBO.getComponents()>2) 
+        if(texcoordVBO.getComponentNumber()>2) 
             texcoordVBO.puts(z);
         texcoordVBO.padding(3);
     }
@@ -579,16 +579,16 @@ public class ImmModeSink {
     protected void glVertex2b(byte x, byte y) {
         checkSeal(false);
         vertexVBO.putb(x);
-        if(vertexVBO.getComponents()>1) 
+        if(vertexVBO.getComponentNumber()>1) 
             vertexVBO.putb(y);
         vertexVBO.padding(2);
     }
     protected void glVertex3b(byte x, byte y, byte z) {
         checkSeal(false);
         vertexVBO.putb(x);
-        if(vertexVBO.getComponents()>1) 
+        if(vertexVBO.getComponentNumber()>1) 
             vertexVBO.putb(y);
-        if(vertexVBO.getComponents()>2) 
+        if(vertexVBO.getComponentNumber()>2) 
             vertexVBO.putb(z);
         vertexVBO.padding(3);
     }
@@ -596,9 +596,9 @@ public class ImmModeSink {
     protected void glNormal3b(byte x, byte y, byte z) {
         checkSeal(false);
         normalVBO.putb(x);
-        if(normalVBO.getComponents()>1) 
+        if(normalVBO.getComponentNumber()>1) 
             normalVBO.putb(y);
-        if(normalVBO.getComponents()>2) 
+        if(normalVBO.getComponentNumber()>2) 
             normalVBO.putb(z);
         normalVBO.padding(3);
     }
@@ -606,27 +606,27 @@ public class ImmModeSink {
     protected void glColor3b(byte x, byte y, byte z) {
         checkSeal(false);
         colorVBO.putb(x);
-        if(colorVBO.getComponents()>1) 
+        if(colorVBO.getComponentNumber()>1) 
             colorVBO.putb(y);
-        if(colorVBO.getComponents()>2) 
+        if(colorVBO.getComponentNumber()>2) 
             colorVBO.putb(z);
         colorVBO.padding(3);
     }
     protected void glColor4b(byte x, byte y, byte z, byte a) {
         checkSeal(false);
         colorVBO.putb(x);
-        if(colorVBO.getComponents()>1) 
+        if(colorVBO.getComponentNumber()>1) 
             colorVBO.putb(y);
-        if(colorVBO.getComponents()>2) 
+        if(colorVBO.getComponentNumber()>2) 
             colorVBO.putb(z);
-        if(colorVBO.getComponents()>3) 
+        if(colorVBO.getComponentNumber()>3) 
             colorVBO.putb(a);
         colorVBO.padding(4);
     }
     protected void glTexCoord2b(byte x, byte y) {
         checkSeal(false);
         texcoordVBO.putb(x);
-        if(texcoordVBO.getComponents()>1) 
+        if(texcoordVBO.getComponentNumber()>1) 
             texcoordVBO.putb(y);
         texcoordVBO.padding(2);
     }
@@ -634,9 +634,9 @@ public class ImmModeSink {
     protected void glTexCoord3b(byte x, byte y, byte z) {
         checkSeal(false);
         texcoordVBO.putb(x);
-        if(texcoordVBO.getComponents()>1) 
+        if(texcoordVBO.getComponentNumber()>1) 
             texcoordVBO.putb(y);
-        if(texcoordVBO.getComponents()>2) 
+        if(texcoordVBO.getComponentNumber()>2) 
             texcoordVBO.putb(z);
         texcoordVBO.padding(3);
     }

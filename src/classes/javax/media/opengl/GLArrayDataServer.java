@@ -67,20 +67,25 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayData 
    * Create a VBOBuffer object, using a predefined fixed function array index
    * and starting with a given Buffer offset incl it's stride
    *
-   * This object can neither be enabled, nor rendered, since no knowledge of the buffer
-   * itself is available. This object is only a VBO variant of GLArrayData
-   * and cannot being drawn.
+   * The object will be created in a sealed state, 
+   * where the data has been written (previously).
+   *
+   * This object can be enabled, but since no knowledge of the orginal client data is available,
+   * we cannot send it down again.
    *
    * @see javax.media.opengl.GLContext#getPredefinedArrayIndexName(int)
    */
   public static GLArrayDataServer createFixed(int index, String name, int comps, int dataType, boolean normalized,
-                                              int stride, long bufferOffset)
+                                              int stride, long bufferOffset, int vboName)
     throws GLException
   {
     GLProfile.isValidateArrayDataType(index, comps, dataType, false, true);
 
     GLArrayDataServer ads = new GLArrayDataServer();
     ads.init(name, index, comps, dataType, normalized, stride, null, bufferOffset, 0, -1, false);
+    ads.vboName = vboName;
+    ads.bufferWritten = true;
+    ads.sealed = true;
     return ads;
   }
 
@@ -130,9 +135,11 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayData 
   // Data matters GLArrayData
   //
 
-  public long getOffset() { return vboUsage?bufferOffset:-1; }
+  public final long getOffset() { return vboUsage?bufferOffset:-1; }
 
-  public boolean isVBO() { return vboUsage; }
+  public final int getVBOName() { return vboUsage?vboName:-1; }
+
+  public final boolean isVBO() { return vboUsage; }
 
   //
   // Data and GL state modification ..
@@ -173,7 +180,7 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayData 
                        ", isVertexAttribute "+isVertexAttribute+
                        ", dataType "+dataType+ 
                        ", bufferClazz "+clazz+ 
-                       ", vertices "+getVerticeNumber()+
+                       ", elements "+getElementNumber()+
                        ", components "+components+ 
                        ", stride "+stride+"u "+strideB+"b "+strideL+"c"+
                        ", initialSize "+initialSize+ 
@@ -215,39 +222,6 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayData 
     this.vboName = 0;
   }
 
-  protected void enableBufferGLImpl(GL gl, boolean enable) {
-    if(enable) {
-        gl.glEnableClientState(index);
-        bufferEnabled = true;
-
-        if(vboUsage) {
-            gl.glBindBuffer(GL.GL_ARRAY_BUFFER, vboName);
-            if(!bufferWritten) {
-                gl.glBufferData(GL.GL_ARRAY_BUFFER, buffer.limit() * getBufferCompSize(), buffer, glBufferUsage);
-            }
-        }
-        switch(index) {
-            case GL.GL_VERTEX_ARRAY:
-                gl.glVertexPointer(this);
-                break;
-            case GL.GL_NORMAL_ARRAY:
-                gl.glNormalPointer(this);
-                break;
-            case GL.GL_COLOR_ARRAY:
-                gl.glColorPointer(this);
-                break;
-            case GL.GL_TEXTURE_COORD_ARRAY:
-                gl.glTexCoordPointer(this);
-                break;
-            default:
-                throw new GLException("invalid glArrayIndex: "+index+":\n\t"+this); 
-        }
-        bufferWritten=true;
-    } else {
-        gl.glDisableClientState(index);
-        bufferEnabled = false;
-    }
-  }
   protected void init_vbo(GL gl) {
     if(vboUsage && vboName==0) {
         int[] tmp = new int[1];

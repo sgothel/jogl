@@ -412,7 +412,7 @@ public class ShaderState {
     }
 
     /**
-     * Reset all previously mapped vertex attribute data,
+     * Reset all previously enabled mapped vertex attribute data,
      * incl enabling them
      *
      * @throws GLException is the program is not in use
@@ -430,11 +430,16 @@ public class ShaderState {
         attribMap2Idx.clear();
 
         for(Iterator iter = enabledVertexAttribArraySet.iterator(); iter.hasNext(); ) {
-            glEnableVertexAttribArray(gl, (String) iter.next());
-        }
+            String name = (String) iter.next();
+            glEnableVertexAttribArray(gl, name);
+            GLArrayData data = getVertexAttribPointer(name);
 
-        for(Iterator iter = vertexAttribMap2Data.values().iterator(); iter.hasNext(); ) {
-            glVertexAttribPointer(gl, (GLArrayData) iter.next());
+            if( data.isVBO() && data.getBuffer()==null ) {
+                // make sure the VBO is bound again
+                // in case this is only a VBO wrapped object (no buffer)
+                gl.glBindBuffer(GL.GL_ARRAY_BUFFER, data.getVBOName());
+            } 
+            glVertexAttribPointer(gl, data);
         }
     }
 

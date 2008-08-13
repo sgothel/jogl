@@ -22,6 +22,11 @@ public class GLSLArrayDataServer extends GLArrayDataServer {
     init(name, -1, comps, dataType, normalized, 0, null, 0, initialSize, glBufferUsage, true);
   }
 
+  protected final void passVertexAttribPointer(GL2ES2 gl, ShaderState st) {
+    if ( ! st.glVertexAttribPointer(gl, this) ) {
+        throw new RuntimeException("Internal Error");
+    }
+  }
 
   protected void enableBufferGLImpl(GL gl, boolean enable) {
     GL2ES2 glsl = gl.getGL2ES2();
@@ -34,23 +39,27 @@ public class GLSLArrayDataServer extends GLArrayDataServer {
         if(!st.glEnableVertexAttribArray(glsl, name)) {
             throw new RuntimeException("Internal Error");
         }
-        bufferEnabled = true;
 
         if(vboUsage) {
             gl.glBindBuffer(GL.GL_ARRAY_BUFFER, vboName);
             if(!bufferWritten) {
-                gl.glBufferData(GL.GL_ARRAY_BUFFER, buffer.limit() * getBufferCompSize(), buffer, glBufferUsage);
+                if(null!=buffer) {
+                    gl.glBufferData(GL.GL_ARRAY_BUFFER, buffer.limit() * getComponentSize(), buffer, glBufferUsage);
+                }
+                bufferWritten=true;
             }
+            passVertexAttribPointer(glsl, st);
+        } else if(null!=buffer) {
+            passVertexAttribPointer(glsl, st);
+            bufferWritten=true;
         }
-        if ( ! st.glVertexAttribPointer(glsl, this) ) {
-            throw new RuntimeException("Internal Error");
-        }
-        bufferWritten=true;
     } else {
+        if(vboUsage) {
+            gl.glBindBuffer(GL.GL_ARRAY_BUFFER, 0);
+        }
         if(!st.glDisableVertexAttribArray(glsl, name)) {
             throw new RuntimeException("Internal Error");
         }
-        bufferEnabled = false;
     }
   }
 
