@@ -30,11 +30,18 @@ vec4 getTexColor(in sampler2D tex, in int idx) {
 
 void main (void)
 {
-    vec4 texColor = getTexColor(mgl_ActiveTexture,mgl_ActiveTextureIdx);
+  if( mgl_CullFace > 0 && 
+      ( ( mgl_CullFace == 1 && gl_FrontFacing ) ||
+        ( mgl_CullFace == 2 && !gl_FrontFacing ) ||
+        ( mgl_CullFace == 3 ) ) ) {
+    discard;
+  }
 
-    if(length(texColor.rgb)>0.0) {
-       gl_FragColor = vec4(frontColor.rgb*texColor.rgb, frontColor.a) ;
-    } else {
-       gl_FragColor = frontColor;
-    }
+  vec4 texColor = getTexColor(mgl_ActiveTexture,mgl_ActiveTextureIdx);
+
+  if(length(texColor.rgb)>0.0) {
+    gl_FragColor = vec4(frontColor.rgb*texColor.rgb, frontColor.a) ;
+  } else {
+    gl_FragColor = frontColor;
+  }
 }

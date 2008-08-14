@@ -13,5 +13,6 @@ uniform HIGHP   vec4    mgl_ColorStatic;
 uniform LOWP    int     mgl_TexCoordEnabled[MAX_TEXTURE_UNITS];
 uniform       sampler2D mgl_ActiveTexture;
 uniform LOWP    int     mgl_ActiveTextureIdx;
+uniform LOWP    int     mgl_CullFace;
 
 #endif // mgl_uniform_glsl

@@ -232,14 +232,18 @@ public class FixedFuncPipeline {
     }
 
     public void glEnable(GL2ES2 gl, int cap, boolean enable) {
-        shaderState.glUseProgram(gl, true);
-
         switch(cap) {
             case GL.GL_TEXTURE_2D:
                 textureEnabled=enable;
                 return;
             case GL.GL_LIGHTING:
                 lightingEnabled=enable;
+                return;
+            case GL.GL_CULL_FACE:
+                cullFace=Math.abs(cullFace);
+                if(!enable) {
+                    cullFace*=-1;
+                }
                 return;
         }
 
@@ -248,10 +252,24 @@ public class FixedFuncPipeline {
             if ( (lightsEnabled.get(light)==1) != enable ) {
                 lightsEnabled.put(light, enable?1:0);
                 lightsEnabledDirty = true;
+                return;
             }
-            return;
         }
+    }
 
+    public void glCullFace(GL2ES2 gl, int faceName) {
+        switch(faceName) {
+            case GL.GL_FRONT:
+                faceName = 1; break;
+            case GL.GL_BACK:
+                faceName = 2; break;
+            case GL.GL_FRONT_AND_BACK:
+                faceName = 3; break;
+        }
+        if(0>cullFace) {
+            faceName *= -1;
+        }
+        cullFace = faceName;
     }
 
     public void validate(GL2ES2 gl) {
@@ -279,14 +297,12 @@ public class FixedFuncPipeline {
                 shaderState.glUniform(gl, ud);
             }
         }
-
-        if(textureCoordsEnabledDirty) {
-            ud = shaderState.getUniform(mgl_TexCoordEnabled);
-            if(null!=ud) {
-                // same data object 
+        ud = shaderState.getUniform(mgl_CullFace);
+        if(null!=ud) {
+            if(cullFace!=ud.intValue()) {
+                ud.setData(cullFace);
                 shaderState.glUniform(gl, ud);
             }
-            textureCoordsEnabledDirty=false;
         }
 
         if(lightsEnabledDirty) {
@@ -296,6 +312,15 @@ public class FixedFuncPipeline {
                 shaderState.glUniform(gl, ud);
             }
             lightsEnabledDirty=false;
+        }
+
+        if(textureCoordsEnabledDirty) {
+            ud = shaderState.getUniform(mgl_TexCoordEnabled);
+            if(null!=ud) {
+                // same data object 
+                shaderState.glUniform(gl, ud);
+            }
+            textureCoordsEnabledDirty=false;
         }
 
         if(textureEnabled) {
@@ -312,7 +337,7 @@ public class FixedFuncPipeline {
             }
         }
         if(DEBUG) {
-            System.out.println("validate: "+this);
+            System.err.println("validate: "+this);
         }
     }
 
@@ -322,7 +347,11 @@ public class FixedFuncPipeline {
                ", textureCoordsEnabled: "+textureCoordsEnabled+
                ", lightingEnabled: "+lightingEnabled+
                ", lightsEnabled: "+lightsEnabled+
-               ", ShaderState: "+shaderState+
+               "\n\t, shaderProgramColor: "+shaderProgramColor+
+               "\n\t, shaderProgramColorTexture: "+shaderProgramColorTexture+
+               "\n\t, shaderProgramColorLight: "+shaderProgramColorLight+
+               "\n\t, shaderProgramColorTextureLight: "+shaderProgramColorTextureLight+
+               "\n\t, ShaderState: "+shaderState+
                "]";
     }
 
@@ -392,6 +421,7 @@ public class FixedFuncPipeline {
         shaderState.glUniform(gl, new GLUniformData(mgl_ActiveTexture, activeTextureUnit));
         shaderState.glUniform(gl, new GLUniformData(mgl_ActiveTextureIdx, activeTextureUnit));
         shaderState.glUniform(gl, new GLUniformData(mgl_ShadeModel, 0));
+        shaderState.glUniform(gl, new GLUniformData(mgl_CullFace, cullFace));
         for(int i=0; i<MAX_LIGHTS; i++) {
             shaderState.glUniform(gl, new GLUniformData(mgl_LightSource+"["+i+"].ambient", 4, defAmbient));
             shaderState.glUniform(gl, new GLUniformData(mgl_LightSource+"["+i+"].diffuse", 4, defDiffuse));
@@ -415,13 +445,14 @@ public class FixedFuncPipeline {
     }
 
     protected static final boolean DEBUG=false;
-
     protected boolean verbose=false;
 
     protected boolean textureEnabled=false;
     protected IntBuffer textureCoordsEnabled = BufferUtil.newIntBuffer(new int[] { 0, 0, 0, 0, 0, 0, 0, 0 });
     protected boolean textureCoordsEnabledDirty = false;
     protected int     activeTextureUnit=0;
+
+    protected int cullFace=-2; // <=0 disabled, 1: front, 2: back (default, but disabled), 3: front & back
 
     protected boolean lightingEnabled=false;
     protected IntBuffer lightsEnabled = BufferUtil.newIntBuffer(new int[] { 0, 0, 0, 0, 0, 0, 0, 0 });
@@ -449,6 +480,8 @@ public class FixedFuncPipeline {
     protected static final String mgl_TexCoordEnabled  = "mgl_TexCoordEnabled"; //  int mgl_TexCoordEnabled[MAX_TEXTURE_UNITS];
     protected static final String mgl_ActiveTexture    = "mgl_ActiveTexture";   //  1i
     protected static final String mgl_ActiveTextureIdx = "mgl_ActiveTextureIdx";//  1i
+
+    protected static final String mgl_CullFace         = "mgl_CullFace";   //  1i
 
     protected static final FloatBuffer zero4f     = BufferUtil.newFloatBuffer(new float[] { 0.0f, 0.0f, 0.0f, 0.0f });
 

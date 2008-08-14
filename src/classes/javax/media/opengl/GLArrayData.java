@@ -140,7 +140,30 @@ public interface GLArrayData {
      */
     public void seal(GL gl, boolean seal);
 
+    /**
+     * Enables/disables the buffer, which implies
+     * the client state, binding the VBO
+     * and transfering the data if not done yet.
+     * 
+     * The above will only be executed,
+     * if the buffer is disabled,
+     * or 'setEnableAlways' was called with 'true'.
+     *
+     * @see #setEnableAlways(boolean)
+     */
     public void enableBuffer(GL gl, boolean enable);
+
+    /**
+     * Affects the behavior of 'enableBuffer'.
+     *
+     * The default is 'false'
+     *
+     * This is usefull when you mix up 
+     * GLArrayData usage with conventional GL array calls.
+     *
+     * @see #enableBuffer(GL, boolean)
+     */
+    public void setEnableAlways(boolean always);
 
     //
     // Data modification ..

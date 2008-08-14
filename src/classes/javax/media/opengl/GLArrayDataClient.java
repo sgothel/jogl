@@ -148,18 +148,24 @@ public class GLArrayDataClient implements GLArrayData {
     }
   }
 
-  public void enableBuffer(GL gl, boolean enable)
-  {
-    if(enable) {
-        checkSeal(true);
-        if(null!=buffer) {
-            buffer.rewind();
-        }
+  public void enableBuffer(GL gl, boolean enable) {
+    if(enableBufferAlways && enable) {
+        bufferEnabled = false;
     }
-    if(bufferEnabled != enable && components>0) {
+    if( bufferEnabled != enable && components>0 ) {
+        if(enable) {
+            checkSeal(true);
+            if(null!=buffer) {
+                buffer.rewind();
+            }
+        }
         enableBufferGLImpl(gl, enable);
         bufferEnabled = enable;
     }
+  }
+
+  public void setEnableAlways(boolean always) {
+    enableBufferAlways = always;
   }
 
   //
@@ -444,6 +450,7 @@ public class GLArrayDataClient implements GLArrayData {
     this.sealed=false;
     this.sealedGL=false;
     this.bufferEnabled=false;
+    this.enableBufferAlways=false;
     this.bufferWritten=false;
     if(null==buffer) {
         growBuffer(initialSize);
@@ -514,5 +521,6 @@ public class GLArrayDataClient implements GLArrayData {
   protected boolean sealed, sealedGL;
   protected boolean bufferEnabled;
   protected boolean bufferWritten;
+  protected boolean enableBufferAlways;
 }
 

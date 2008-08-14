@@ -508,6 +508,11 @@ private final void glEnablePrologue(int cap, boolean enable) {
         fixedFunction.glEnable(this, cap, enable);
     }
 }
+private final void glCullFacePrologue(int faceName) {
+    if(fixedFunctionShaderActive) { 
+        fixedFunction.glCullFace(this, faceName);
+    }
+}
 public void glLightfv(int light, int pname, java.nio.FloatBuffer params) {
   if(!fixedFunctionShaderActive) {
     throw new GLUnsupportedException("not enabled");
@@ -567,11 +572,11 @@ public final String toString() {
           buf.append("FIXED_EMULATION_VERTEXCOLORTEXTURE ");
       }
       buf.append("], matrixEnabled: "+fixedFunctionMatrixEnabled);
-      buf.append(", FixedFunction: "+fixedFunction);
       buf.append(", shaderActive: "+fixedFunctionShaderActive);
       if(null!=pmvMatrix) {
           buf.append(", matrixDirty: "+pmvMatrix.isDirty());
       }
+      buf.append("\n\t, FixedFunction: "+fixedFunction);
       buf.append(" )");
 
       return buf.toString();

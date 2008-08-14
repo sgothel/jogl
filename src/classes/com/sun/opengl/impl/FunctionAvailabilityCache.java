@@ -353,7 +353,7 @@ public final class FunctionAvailabilityCache {
       {
         // FIXME: refactor desktop OpenGL dependencies and make this
         // class work properly for OpenGL ES
-        e.printStackTrace();
+        System.err.println("FunctionAvailabilityCache.Version.<init>: "+e);
         major = 1;
         minor = 0;
         /*

@@ -66,6 +66,13 @@ public class ShaderState {
     public synchronized void attachShaderProgram(GL2ES2 gl, ShaderProgram prog) {
         boolean prgInUse = false; // earmarked state
 
+        if(DEBUG) {
+            int curId = (null!=shaderProgram)?shaderProgram.id():-1;
+            int newId = (null!=prog)?prog.id():-1;
+            System.err.println("Info: attachShaderProgram: "+curId+" -> "+newId+"\n\t"+shaderProgram+"\n\t"+prog);
+            Throwable tX = new Throwable("Info: attachShaderProgram: Trace");
+            tX.printStackTrace();
+        }
         if(null!=shaderProgram) {
             if(shaderProgram.equals(prog)) {
                 // nothing to do ..
@@ -75,10 +82,7 @@ public class ShaderState {
                 return;
             }
             prgInUse = shaderProgram.inUse();
-        }
-        if(DEBUG) {
-            Throwable tX = new Throwable("Info: attachShaderProgram: BEGIN "+shaderProgram+" -> "+prog);
-            tX.printStackTrace();
+            shaderProgram.glUseProgram(gl, false);
         }
 
         // register new one
@@ -178,6 +182,9 @@ public class ShaderState {
             if(0<=index) {
                 Integer idx = new Integer(index);
                 attribMap2Idx.put(name, idx);
+                if(DEBUG) {
+                    System.err.println("Info: glGetAttribLocation: "+name+", loc: "+index);
+                }
             } else if(verbose) {
                 Throwable tX = new Throwable("Info: glGetAttribLocation failed, no location for: "+name+", index: "+index);
                 tX.printStackTrace();
@@ -226,7 +233,7 @@ public class ShaderState {
             return false;
         }
         if(DEBUG) {
-            System.err.println("Info: glEnableVertexAttribArray: "+name);
+            System.err.println("Info: glEnableVertexAttribArray: "+name+", loc: "+index);
         }
         gl.glEnableVertexAttribArray(index);
         return true;
@@ -429,17 +436,41 @@ public class ShaderState {
         if(!shaderProgram.inUse()) throw new GLException("Program is not in use");
         attribMap2Idx.clear();
 
+        /**
+         *
         for(Iterator iter = enabledVertexAttribArraySet.iterator(); iter.hasNext(); ) {
-            String name = (String) iter.next();
-            glEnableVertexAttribArray(gl, name);
-            GLArrayData data = getVertexAttribPointer(name);
+            glEnableVertexAttribArray(gl, (String) iter.next());
+        }
+        for(Iterator iter = vertexAttribMap2Data.values().iterator(); iter.hasNext(); ) {
+            GLArrayData data = (GLArrayData) iter.next();
 
-            if( data.isVBO() && data.getBuffer()==null ) {
-                // make sure the VBO is bound again
-                // in case this is only a VBO wrapped object (no buffer)
+            ...
+        } */
+
+        for(Iterator iter = enabledVertexAttribArraySet.iterator(); iter.hasNext(); ) {
+            // get new location ..
+            String name = (String) iter.next();
+            int loc = glGetAttribLocation(gl, name);
+
+            // get & update data ..
+            GLArrayData data = getVertexAttribPointer(name);
+            data.setLocation(loc);
+            vertexAttribMap2Data.put(name, data);
+
+            if(0>loc) {
+                // not used in shader
+                System.err.println("*** skip: "+name);
+                continue;
+            }
+
+            // enable attrib, VBO and pass location/data
+            gl.glEnableVertexAttribArray(loc);
+
+            if( data.isVBO() ) {
                 gl.glBindBuffer(GL.GL_ARRAY_BUFFER, data.getVBOName());
             } 
-            glVertexAttribPointer(gl, data);
+
+            gl.glVertexAttribPointer(data);
         }
     }
 
@@ -561,13 +592,19 @@ public class ShaderState {
         }
         buf.append("], [");
         for(Iterator iter = vertexAttribMap2Data.values().iterator(); iter.hasNext(); ) {
-            buf.append("\n  ");
-            buf.append((GLArrayData) iter.next());
+            GLArrayData data = (GLArrayData) iter.next();
+            if(data.getLocation()>=0) {
+                buf.append("\n  ");
+                buf.append(data);
+            }
         }
         buf.append("], [");
         for(Iterator iter=uniformMap2Data.values().iterator(); iter.hasNext(); ) {
-            buf.append("\n  ");
-            buf.append((GLUniformData) iter.next());
+            GLUniformData data = (GLUniformData) iter.next();
+            if(data.getLocation()>=0) {
+                buf.append("\n  ");
+                buf.append(data);
+            }
         }
         buf.append("]");
         return buf.toString();
