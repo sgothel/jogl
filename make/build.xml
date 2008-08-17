@@ -277,7 +277,7 @@
         </condition>
 
         <condition property="java.excludes.cdcfp"
-                   value="com/sun/opengl/util/io/TGAWriter*, com/sun/opengl/util/texture/**">
+                   value="com/sun/opengl/util/io/TGAWriter*, com/sun/opengl/util/texture/spi/awt/**">
            <isset property="jogl.cdcfp"/> 
         </condition>
 
@@ -781,6 +781,21 @@
     <!-- Generate the BufferUtil class for this particular profile -->
     <target name="java.generate.BufferUtil" depends="java.generate.BufferUtil.javase, java.generate.BufferUtil.javame_cdc_fp" />
 
+    <target name="java.generate.TextureIO.javame_cdc_fp" if="jogl.cdcfp">
+        <copy file="../src/classes/com/sun/opengl/util/texture/TextureIO.java.javame_cdc_fp" tofile="../build/gensrc/classes/com/sun/opengl/util/texture/TextureIO.java" />
+        <copy file="../src/classes/com/sun/opengl/util/texture/spi/DDSImage.java.javame_cdc_fp" tofile="../build/gensrc/classes/com/sun/opengl/util/texture/spi/DDSImage.java" />
+        <copy file="../src/classes/com/sun/opengl/util/texture/spi/TGAImage.java.javame_cdc_fp" tofile="../build/gensrc/classes/com/sun/opengl/util/texture/spi/TGAImage.java" />
+    </target>
+
+    <target name="java.generate.TextureIO.javase" unless="jogl.cdcfp">
+        <copy file="../src/classes/com/sun/opengl/util/texture/TextureIO.java.javase" tofile="../build/gensrc/classes/com/sun/opengl/util/texture/TextureIO.java" />
+        <copy file="../src/classes/com/sun/opengl/util/texture/spi/DDSImage.java.javase" tofile="../build/gensrc/classes/com/sun/opengl/util/texture/spi/DDSImage.java" />
+        <copy file="../src/classes/com/sun/opengl/util/texture/spi/TGAImage.java.javase" tofile="../build/gensrc/classes/com/sun/opengl/util/texture/spi/TGAImage.java" />
+    </target>
+
+    <!-- Generate the TextureIO classes for this particular profile -->
+    <target name="java.generate.TextureIO" depends="java.generate.TextureIO.javase, java.generate.TextureIO.javame_cdc_fp" />
+
     <target name="java.generate.gl.platforms" >
         <dirset id="stub.includes.fileset.platform" dir="." includes="${stub.includes.dir}/${window.os.system}/** ${stub.includes.dir}/${window.es.system}/** ${stub.includes.dir}/common/** ${stub.includes.dir}/opengl/**" />
 
@@ -795,7 +810,7 @@
        - from the C GL headers.  This involves setting the taskdef and creating
        - the classpath reference id then running the task on each header.
       -->
-    <target name="java.generate" depends="build.gluegen, java.generate.BufferUtil, java.generate.check" unless="java.generate.skip">
+    <target name="java.generate" depends="build.gluegen, java.generate.BufferUtil, java.generate.TextureIO, java.generate.check" unless="java.generate.skip">
 
         <!-- Add the GlueGen and BuildStaticGLInfo tasks to ANT -->
         <taskdef name="gluegen" classname="com.sun.gluegen.ant.GlueGenTask"
