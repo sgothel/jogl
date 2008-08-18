@@ -42,7 +42,7 @@
  * compliant with the OpenGL(R) version 1.2.1 Specification.
  */
 
-package com.sun.opengl.impl.glu.gl2.glue;
+package com.sun.opengl.impl.glu;
 
 /**
  *

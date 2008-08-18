@@ -46,6 +46,7 @@ package com.sun.opengl.impl.glu.error;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.glu.GLU;
+import com.sun.opengl.impl.glu.Glue;
 
 /**
  *
@@ -92,7 +93,7 @@ public class Error {
 //      return( gluErrorStrings[ errorCode - (GLU.GLU_NURBS_ERROR1 - 1) ] );
 //    }
     if( (errorCode >= GLU.GLU_TESS_ERROR1) && (errorCode <= GLU.GLU_TESS_ERROR8) ) {
-      return( gluErrorStrings[ errorCode - (GLU.GLU_TESS_ERROR1 - 1) ] );
+        return( Glue.__gluTessErrorString(errorCode - (GLU.GLU_TESS_ERROR1 - 1)) );
     }
     return( "error ("+errorCode+")" );
   }
