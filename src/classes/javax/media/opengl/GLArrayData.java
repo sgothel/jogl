@@ -83,6 +83,16 @@ public interface GLArrayData {
     public Buffer getBuffer();
 
     /**
+     * Is the buffer written to the GPU ?
+     */
+    public boolean isBufferWritten();
+
+    /**
+     * Marks the buffer written to the GPU
+     */
+    public void setBufferWritten(boolean written);
+
+    /**
      * The number of components per element
      */
     public int getComponentNumber();

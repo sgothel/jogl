@@ -69,18 +69,22 @@ if [ ! -z "$1" ] ; then
         JOGL_ES1_MIN)
             JOGL_CLASSPATH=$(concat_jogl_list $JOGL_JAR_DIR $JOGL_JAR_ES1_MIN)
             JOGL_LIBS=$(concat_jogl_list $JOGL_LIB_DIR $JOGL_LIB_ES1_MIN)
+            JOGL_VBO_BUG=true ; export JOGL_VBO_BUG # ES emulation has buggy VBO impl.
             ;;
         JOGL_ES1_MAX)
             JOGL_CLASSPATH=$(concat_jogl_list $JOGL_JAR_DIR $JOGL_JAR_ES1_MAX)
             JOGL_LIBS=$(concat_jogl_list $JOGL_LIB_DIR $JOGL_LIB_ES1_MAX)
+            JOGL_VBO_BUG=true ; export JOGL_VBO_BUG # ES emulation has buggy VBO impl.
             ;;
         JOGL_ES2_MIN)
             JOGL_CLASSPATH=$(concat_jogl_list $JOGL_JAR_DIR $JOGL_JAR_ES2_MIN)
             JOGL_LIBS=$(concat_jogl_list $JOGL_LIB_DIR $JOGL_LIB_ES2_MIN)
+            JOGL_VBO_BUG=true ; export JOGL_VBO_BUG # ES emulation has buggy VBO impl.
             ;;
         JOGL_ES2_MAX)
             JOGL_CLASSPATH=$(concat_jogl_list $JOGL_JAR_DIR $JOGL_JAR_ES2_MAX)
             JOGL_LIBS=$(concat_jogl_list $JOGL_LIB_DIR $JOGL_LIB_ES2_MAX)
+            JOGL_VBO_BUG=true ; export JOGL_VBO_BUG # ES emulation has buggy VBO impl.
             ;;
         JOGL_GL2ES12_MIN)
             JOGL_CLASSPATH=$(concat_jogl_list $JOGL_JAR_DIR $JOGL_JAR_GL2ES12_MIN)

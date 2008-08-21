@@ -770,6 +770,17 @@
         </gluegen>
     </target>
 
+    <target name="java.generate.SystemUtil.javame_cdc_fp" if="jogl.cdcfp">
+        <copy file="../src/classes/com/sun/opengl/impl/SystemUtil.java.javame_cdc_fp" tofile="../build/gensrc/classes/com/sun/opengl/impl/SystemUtil.java" />
+    </target>
+
+    <target name="java.generate.SystemUtil.javase" unless="jogl.cdcfp">
+        <copy file="../src/classes/com/sun/opengl/impl/SystemUtil.java.javase" tofile="../build/gensrc/classes/com/sun/opengl/impl/SystemUtil.java" />
+    </target>
+
+    <!-- Generate the SystemUtil class for this particular profile -->
+    <target name="java.generate.SystemUtil" depends="java.generate.SystemUtil.javase, java.generate.SystemUtil.javame_cdc_fp" />
+
     <target name="java.generate.BufferUtil.javame_cdc_fp" if="jogl.cdcfp">
         <copy file="../src/classes/javax/media/opengl/util/BufferUtil.java.javame_cdc_fp" tofile="../build/gensrc/classes/javax/media/opengl/util/BufferUtil.java" />
     </target>
@@ -810,7 +821,7 @@
        - from the C GL headers.  This involves setting the taskdef and creating
        - the classpath reference id then running the task on each header.
       -->
-    <target name="java.generate" depends="build.gluegen, java.generate.BufferUtil, java.generate.TextureIO, java.generate.check" unless="java.generate.skip">
+    <target name="java.generate" depends="build.gluegen, java.generate.SystemUtil, java.generate.BufferUtil, java.generate.TextureIO, java.generate.check" unless="java.generate.skip">
 
         <!-- Add the GlueGen and BuildStaticGLInfo tasks to ANT -->
         <taskdef name="gluegen" classname="com.sun.gluegen.ant.GlueGenTask"

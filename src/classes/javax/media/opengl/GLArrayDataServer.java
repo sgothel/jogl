@@ -4,6 +4,7 @@ package javax.media.opengl;
 import javax.media.opengl.*;
 import java.nio.*;
 import com.sun.opengl.impl.*;
+import com.sun.opengl.impl.glsl.*;
 
 public class GLArrayDataServer extends GLArrayDataClient implements GLArrayData {
 
@@ -37,7 +38,8 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayData 
     GLProfile.isValidateArrayDataType(index, comps, dataType, false, true);
 
     GLArrayDataServer ads = new GLArrayDataServer();
-    ads.init(name, index, comps, dataType, normalized, stride, buffer, 0, buffer.limit(), glBufferUsage, false);
+    GLArrayHandler glArrayHandler = new GLFixedArrayHandler(ads);
+    ads.init(name, index, comps, dataType, normalized, stride, buffer, 0, buffer.limit(), glBufferUsage, false, glArrayHandler);
     return ads;
   }
 
@@ -59,7 +61,8 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayData 
     GLProfile.isValidateArrayDataType(index, comps, dataType, false, true);
 
     GLArrayDataServer ads = new GLArrayDataServer();
-    ads.init(name, index, comps, dataType, normalized, 0, null, 0, initialSize, glBufferUsage, false);
+    GLArrayHandler glArrayHandler = new GLFixedArrayHandler(ads);
+    ads.init(name, index, comps, dataType, normalized, 0, null, 0, initialSize, glBufferUsage, false, glArrayHandler);
     return ads;
   }
 
@@ -82,7 +85,8 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayData 
     GLProfile.isValidateArrayDataType(index, comps, dataType, false, true);
 
     GLArrayDataServer ads = new GLArrayDataServer();
-    ads.init(name, index, comps, dataType, normalized, stride, null, bufferOffset, 0, -1, false);
+    GLArrayHandler glArrayHandler = new GLSLArrayHandler(ads);
+    ads.init(name, index, comps, dataType, normalized, stride, null, bufferOffset, 0, -1, false, glArrayHandler);
     ads.vboName = vboName;
     ads.bufferWritten = true;
     ads.sealed = true;
@@ -99,15 +103,14 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayData 
                                              int initialSize, int glBufferUsage) 
     throws GLException
   {
-    GLProfile.isValidateArrayDataType(-1, comps, dataType, true, true);
-    Class[] types = new Class[]{ String.class, int.class, int.class, boolean.class, int.class, int.class };
-    Object[] args = new Object[]{ name, new Integer(comps), new Integer(dataType), 
-                                  new Boolean(normalized), new Integer(initialSize), new Integer(glBufferUsage) } ;
-
-    if(GLProfile.isGL2ES2()) {
-        return (GLArrayDataServer) GLReflection.createInstance("com.sun.opengl.impl.glsl.GLSLArrayDataServer", types, args);
+    if(!GLProfile.isGL2ES2()) {
+        throw new GLException("GLArrayDataServer not supported for profile: "+GLProfile.getProfile());
     }
-    throw new GLException("GLArrayDataServer not supported for profile: "+GLProfile.getProfile());
+
+    GLArrayDataServer ads = new GLArrayDataServer();
+    GLArrayHandler glArrayHandler = new GLSLArrayHandler(ads);
+    ads.init(name, -1, comps, dataType, normalized, 0, null, 0, initialSize, glBufferUsage, true, glArrayHandler);
+    return ads;
   }
 
   /**
@@ -120,15 +123,14 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayData 
                                              int stride, Buffer buffer, int glBufferUsage) 
     throws GLException
   {
-    GLProfile.isValidateArrayDataType(-1, comps, dataType, true, true);
-    Class[] types = new Class[]{ String.class, int.class, int.class, boolean.class, int.class, Buffer.class, int.class };
-    Object[] args = new Object[]{ name, new Integer(comps), new Integer(dataType), 
-                                  new Boolean(normalized), new Integer(stride), buffer, new Integer(glBufferUsage) } ;
-
-    if(GLProfile.isGL2ES2()) {
-        return (GLArrayDataServer) GLReflection.createInstance("com.sun.opengl.impl.glsl.GLSLArrayDataServer", types, args);
+    if(!GLProfile.isGL2ES2()) {
+        throw new GLException("GLArrayDataServer not supported for profile: "+GLProfile.getProfile());
     }
-    throw new GLException("GLArrayDataServer not supported for profile: "+GLProfile.getProfile());
+
+    GLArrayDataServer ads = new GLArrayDataServer();
+    GLArrayHandler glArrayHandler = new GLSLArrayHandler(ads);
+    ads.init(name, -1, comps, dataType, normalized, stride, buffer, 0, buffer.limit(), glBufferUsage, true, glArrayHandler);
+    return ads;
   }
 
   //
@@ -200,10 +202,11 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayData 
   //
 
   protected void init(String name, int index, int comps, int dataType, boolean normalized, 
-                      int stride, Buffer data, long offset, int initialSize, int glBufferUsage, boolean isVertexAttribute)
+                      int stride, Buffer data, long offset, int initialSize, int glBufferUsage, boolean isVertexAttribute,
+                      GLArrayHandler glArrayHandler)
     throws GLException
   {
-    super.init(name, index, comps, dataType, normalized, stride, data, initialSize, isVertexAttribute);
+    super.init(name, index, comps, dataType, normalized, stride, data, initialSize, isVertexAttribute, glArrayHandler);
 
     vboUsage=true;
 

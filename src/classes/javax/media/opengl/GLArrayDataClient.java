@@ -2,11 +2,21 @@
 package javax.media.opengl;
 
 import javax.media.opengl.util.*;
-import com.sun.opengl.impl.GLReflection;
+import com.sun.opengl.impl.*;
+import com.sun.opengl.impl.glsl.*;
 
 import java.nio.*;
 
 public class GLArrayDataClient implements GLArrayData {
+
+  /**
+   * The OpenGL ES emulation on the PC probably has a buggy VBO implementation,
+   * where we have to 'refresh' the VertexPointer or VertexAttribArray after each
+   * BindBuffer !
+   *
+   * This should not be necessary on proper native implementations.
+   */
+  public static final boolean hasVBOBug = (SystemUtil.getenv("JOGL_VBO_BUG") != null);
 
   /**
    * @arg index The GL array index
@@ -25,7 +35,8 @@ public class GLArrayDataClient implements GLArrayData {
   {
       GLProfile.isValidateArrayDataType(index, comps, dataType, false, true);
       GLArrayDataClient adc = new GLArrayDataClient();
-      adc.init(name, index, comps, dataType, normalized, 0, null, initialSize, false);
+      GLArrayHandler glArrayHandler = new GLFixedArrayHandler(adc);
+      adc.init(name, index, comps, dataType, normalized, 0, null, initialSize, false, glArrayHandler);
       return adc;
   }
 
@@ -35,27 +46,36 @@ public class GLArrayDataClient implements GLArrayData {
   {
       GLProfile.isValidateArrayDataType(index, comps, dataType, false, true);
       GLArrayDataClient adc = new GLArrayDataClient();
-      adc.init(name, index, comps, dataType, normalized, stride, buffer, comps*comps, false);
+      GLArrayHandler glArrayHandler = new GLFixedArrayHandler(adc);
+      adc.init(name, index, comps, dataType, normalized, stride, buffer, comps*comps, false, glArrayHandler);
       return adc;
   }
 
-  public static GLArrayDataClient createGLSL(int index, String name, int comps, int dataType, boolean normalized, 
+  public static GLArrayDataClient createGLSL(String name, int comps, int dataType, boolean normalized, 
                                              int initialSize)
     throws GLException
   {
-      GLProfile.isValidateArrayDataType(index, comps, dataType, true, true);
+      if(!GLProfile.isGL2ES2()) {
+        throw new GLException("GLArrayDataServer not supported for profile: "+GLProfile.getProfile());
+      }
+
       GLArrayDataClient adc = new GLArrayDataClient();
-      adc.init(name, index, comps, dataType, normalized, 0, null, initialSize, true);
+      GLArrayHandler glArrayHandler = new GLSLArrayHandler(adc);
+      adc.init(name, -1, comps, dataType, normalized, 0, null, initialSize, true, glArrayHandler);
       return adc;
   }
 
-  public static GLArrayDataClient createGLSL(int index, String name, int comps, int dataType, boolean normalized, 
+  public static GLArrayDataClient createGLSL(String name, int comps, int dataType, boolean normalized, 
                                              int stride, Buffer buffer)
     throws GLException
   {
-      GLProfile.isValidateArrayDataType(index, comps, dataType, true, true);
+      if(!GLProfile.isGL2ES2()) {
+        throw new GLException("GLArrayDataServer not supported for profile: "+GLProfile.getProfile());
+      }
+
       GLArrayDataClient adc = new GLArrayDataClient();
-      adc.init(name, index, comps, dataType, normalized, stride, buffer, comps*comps, true);
+      GLArrayHandler glArrayHandler = new GLSLArrayHandler(adc);
+      adc.init(name, -1, comps, dataType, normalized, stride, buffer, comps*comps, true, glArrayHandler);
       return adc;
   }
 
@@ -75,7 +95,7 @@ public class GLArrayDataClient implements GLArrayData {
 
   public long getOffset() { return -1; }
 
-  public final Buffer getBuffer() { return buffer; }
+  public final boolean isBufferWritten() { return bufferWritten; }
 
   public boolean isVBO() { return false; }
 
@@ -120,6 +140,10 @@ public class GLArrayDataClient implements GLArrayData {
   // Data and GL state modification ..
   //
 
+  public final Buffer getBuffer() { return buffer; }
+
+  public final void setBufferWritten(boolean written) { bufferWritten=written; }
+
   public void setName(String newName) {
     location = -1;
     name = newName;
@@ -159,7 +183,7 @@ public class GLArrayDataClient implements GLArrayData {
                 buffer.rewind();
             }
         }
-        enableBufferGLImpl(gl, enable);
+        glArrayHandler.enableBuffer(gl, enable);
         bufferEnabled = enable;
     }
   }
@@ -410,9 +434,10 @@ public class GLArrayDataClient implements GLArrayData {
   }
 
   protected void init(String name, int index, int comps, int dataType, boolean normalized, int stride, Buffer data, 
-                      int initialSize, boolean isVertexAttribute) 
+                      int initialSize, boolean isVertexAttribute, GLArrayHandler handler) 
     throws GLException
   {
+    this.glArrayHandler = handler;
     this.isVertexAttribute = isVertexAttribute;
     this.index = index;
     this.location = -1;
@@ -457,50 +482,6 @@ public class GLArrayDataClient implements GLArrayData {
     }
   }
 
-  protected final void passArrayPointer(GL gl) {
-    switch(index) {
-        case GL.GL_VERTEX_ARRAY:
-            gl.glVertexPointer(this);
-            break;
-        case GL.GL_NORMAL_ARRAY:
-            gl.glNormalPointer(this);
-            break;
-        case GL.GL_COLOR_ARRAY:
-            gl.glColorPointer(this);
-            break;
-        case GL.GL_TEXTURE_COORD_ARRAY:
-            gl.glTexCoordPointer(this);
-            break;
-        default:
-            throw new GLException("invalid glArrayIndex: "+index+":\n\t"+this); 
-    }
-  }
-
-  protected void enableBufferGLImpl(GL gl, boolean enable) {
-    if(enable) {
-        gl.glEnableClientState(index);
-
-        if(isVBO()) {
-            gl.glBindBuffer(GL.GL_ARRAY_BUFFER, getVBOName());
-            if(!bufferWritten) {
-                if(null!=buffer) {
-                    gl.glBufferData(GL.GL_ARRAY_BUFFER, buffer.limit() * getComponentSize(), buffer, getBufferUsage());
-                }
-                bufferWritten=true;
-            }
-            passArrayPointer(gl);
-        } else if(null!=buffer) {
-            passArrayPointer(gl);
-            bufferWritten=true;
-        }
-    } else {
-        if(isVBO()) {
-            gl.glBindBuffer(GL.GL_ARRAY_BUFFER, 0);
-        }
-        gl.glDisableClientState(index);
-    }
-  }
-
   protected void init_vbo(GL gl) {}
 
   protected GLArrayDataClient() { }
@@ -522,5 +503,7 @@ public class GLArrayDataClient implements GLArrayData {
   protected boolean bufferEnabled;
   protected boolean bufferWritten;
   protected boolean enableBufferAlways;
+
+  protected GLArrayHandler glArrayHandler;
 }
 

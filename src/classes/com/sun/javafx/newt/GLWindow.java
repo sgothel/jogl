@@ -403,8 +403,8 @@ public class GLWindow extends Window implements GLAutoDrawable {
                 dt0 = curTime-lastCheck;
                 if ( dt0 > 5000 ) {
                     dt1 = curTime-startTime;
-                    System.out.println(dt1/1000+"s, 5s: "+ (lastFrames*1000)/dt0 + " fps, "+
-                                       "total: "+ (totalFrames*1000)/dt1 + " fps");
+                    System.out.println(dt0/1000 +"s: "+ lastFrames + "f, " + (lastFrames*1000)/dt0 + " fps, "+dt0/lastFrames+" ms/f; "+
+                                       "total: "+ dt1/1000+"s, "+(totalFrames*1000)/dt1 + " fps, "+dt1/totalFrames+" ms/f");
                     lastCheck=curTime;
                     lastFrames=0;
                 }

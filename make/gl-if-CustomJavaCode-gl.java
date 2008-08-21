@@ -121,3 +121,4 @@
 
   public void glShadeModel(int mode);
 
+  public int glGetBoundBuffer(int target);

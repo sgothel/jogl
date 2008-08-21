@@ -18,3 +18,7 @@
     return false;
   }
 
+  public int glGetBoundBuffer(int target) {
+    return bufferStateTracker.getBoundBufferObject(target, this);
+  }
+

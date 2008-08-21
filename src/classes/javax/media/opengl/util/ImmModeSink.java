@@ -399,10 +399,10 @@ public class ImmModeSink {
             Exception e = new Exception("ImmModeSink.draw["+i+"](disableBufferAfterDraw: "+disableBufferAfterDraw+"):\n\t"+this);
             e.printStackTrace();
         }
-        vertexVBO.enableBuffer(gl, true);
         normalVBO.enableBuffer(gl, true);
         colorVBO.enableBuffer(gl, true);
         texcoordVBO.enableBuffer(gl, true);
+        vertexVBO.enableBuffer(gl, true);
 
         if (vertexVBO.getBuffer()!=null) {
             if(null==indices) {
@@ -419,14 +419,15 @@ public class ImmModeSink {
                     throw new GLException("Given Buffer Class not supported: "+clazz+", should be ubyte or ushort:\n\t"+this);
                 }
                 gl.glDrawElements(mode, indices.remaining(), type, indices);
+                // GL2: gl.glDrawRangeElements(mode, 0, indices.remaining()-1, indices.remaining(), type, indices);
             }
         }
 
         if(disableBufferAfterDraw) {
             vertexVBO.enableBuffer(gl, false);
-            normalVBO.enableBuffer(gl, false);
-            colorVBO.enableBuffer(gl, false);
             texcoordVBO.enableBuffer(gl, false);
+            colorVBO.enableBuffer(gl, false);
+            normalVBO.enableBuffer(gl, false);
         }
     }
 
