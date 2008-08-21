@@ -106,6 +106,7 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayData 
     if(!GLProfile.isGL2ES2()) {
         throw new GLException("GLArrayDataServer not supported for profile: "+GLProfile.getProfile());
     }
+    GLProfile.isValidateArrayDataType(-1, comps, dataType, true, true);
 
     GLArrayDataServer ads = new GLArrayDataServer();
     GLArrayHandler glArrayHandler = new GLSLArrayHandler(ads);
@@ -126,6 +127,7 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayData 
     if(!GLProfile.isGL2ES2()) {
         throw new GLException("GLArrayDataServer not supported for profile: "+GLProfile.getProfile());
     }
+    GLProfile.isValidateArrayDataType(-1, comps, dataType, true, true);
 
     GLArrayDataServer ads = new GLArrayDataServer();
     GLArrayHandler glArrayHandler = new GLSLArrayHandler(ads);

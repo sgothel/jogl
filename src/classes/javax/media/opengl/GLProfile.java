@@ -373,41 +373,34 @@ public class GLProfile {
         }
     } else if(GLProfile.isGL2ES12() || GLProfile.isGL2()) {
         if(isVertexAttribPointer) {
-            switch(index) {
-                case GL.GL_VERTEX_ARRAY:
-                case GL.GL_TEXTURE_COORD_ARRAY:
-                case GL.GL_NORMAL_ARRAY:
-                case GL.GL_COLOR_ARRAY:
-                    switch(type) {
-                        case GL.GL_UNSIGNED_BYTE:
-                        case GL.GL_BYTE:
-                        case GL.GL_UNSIGNED_SHORT:
-                        case GL.GL_SHORT:
-                        case GL.GL_FLOAT:
-                        case javax.media.opengl.GL2ES2.GL_INT:
-                        case javax.media.opengl.GL2ES2.GL_UNSIGNED_INT:
-                        case javax.media.opengl.GL2.GL_DOUBLE:
-                            break;
-                        default: 
-                            if(throwException) {
-                                throw new GLException("Illegal data type for "+indexName+" on profile GL2: "+type);
-                            }
-                            return false;
-                    }
-                    switch(comps) {
-                        case 0:
-                        case 1:
-                        case 2:
-                        case 3:
-                        case 4:
-                            break;
-                        default: 
-                            if(throwException) {
-                                throw new GLException("Illegal component number for "+indexName+" on profile GL2: "+comps);
-                            }
-                            return false;
-                    }
+            switch(type) {
+                case GL.GL_UNSIGNED_BYTE:
+                case GL.GL_BYTE:
+                case GL.GL_UNSIGNED_SHORT:
+                case GL.GL_SHORT:
+                case GL.GL_FLOAT:
+                case javax.media.opengl.GL2ES2.GL_INT:
+                case javax.media.opengl.GL2ES2.GL_UNSIGNED_INT:
+                case javax.media.opengl.GL2.GL_DOUBLE:
                     break;
+                default: 
+                    if(throwException) {
+                        throw new GLException("Illegal data type for "+indexName+" on profile GL2: "+type);
+                    }
+                    return false;
+            }
+            switch(comps) {
+                case 0:
+                case 1:
+                case 2:
+                case 3:
+                case 4:
+                    break;
+                default: 
+                    if(throwException) {
+                        throw new GLException("Illegal component number for "+indexName+" on profile GL2: "+comps);
+                    }
+                    return false;
             }
         } else {
             switch(index) {
