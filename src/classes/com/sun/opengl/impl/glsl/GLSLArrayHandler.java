@@ -8,16 +8,14 @@ import javax.media.opengl.glsl.ShaderState;
 import java.nio.*;
 
 public class GLSLArrayHandler implements GLArrayHandler {
-  private GLArrayData ad;
+  private GLArrayDataEditable ad;
 
-  public GLSLArrayHandler(GLArrayData ad) {
+  public GLSLArrayHandler(GLArrayDataEditable ad) {
     this.ad = ad;
   }
 
   protected final void passVertexAttribPointer(GL2ES2 gl, ShaderState st) {
-    if ( ! st.glVertexAttribPointer(gl, ad) ) {
-        throw new RuntimeException("Internal Error");
-    }
+    st.glVertexAttribPointer(gl, ad);
   }
 
   public void enableBuffer(GL gl, boolean enable) {
@@ -28,9 +26,7 @@ public class GLSLArrayHandler implements GLArrayHandler {
     }
 
     if(enable) {
-        if(!st.glEnableVertexAttribArray(glsl, ad.getName())) {
-            throw new RuntimeException("Internal Error");
-        }
+        st.glEnableVertexAttribArray(glsl, ad.getName());
 
         Buffer buffer = ad.getBuffer();
 
@@ -53,9 +49,7 @@ public class GLSLArrayHandler implements GLArrayHandler {
         if(ad.isVBO()) {
             gl.glBindBuffer(GL.GL_ARRAY_BUFFER, 0);
         }
-        if(!st.glDisableVertexAttribArray(glsl, ad.getName())) {
-            throw new RuntimeException("Internal Error");
-        }
+        st.glDisableVertexAttribArray(glsl, ad.getName());
     }
   }
 

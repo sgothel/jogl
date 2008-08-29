@@ -459,7 +459,6 @@ public class ShaderState {
 
             if(0>loc) {
                 // not used in shader
-                System.err.println("*** skip: "+name);
                 continue;
             }
 

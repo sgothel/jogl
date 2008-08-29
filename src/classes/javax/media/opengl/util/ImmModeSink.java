@@ -144,11 +144,12 @@ public class ImmModeSink {
         e.printStackTrace();
     }
     if(immediateDraw) {
-        vboSet.seal(gl, false);
+        vboSet.seal(gl, true);
         vboSet.draw(gl, indices, true, -1);
         reset(gl);
     } else {
         vboSet.seal(gl, true);
+        vboSet.enableBuffer(gl, false);
         vboSetList.add(vboSet);
         vboSet = vboSet.regenerate();
     }
@@ -157,6 +158,16 @@ public class ImmModeSink {
   public void glVertexv(Buffer v) {
     vboSet.glVertexv(v);
   }
+  public void glNormalv(Buffer v) {
+    vboSet.glNormalv(v);
+  }
+  public void glColorv(Buffer v) {
+    vboSet.glColorv(v);
+  }
+  public void glTexCoordv(Buffer v) {
+    vboSet.glTexCoordv(v);
+  }
+
   public final void glVertex2f(float x, float y) {
     vboSet.glVertex2f(x,y);
   }
@@ -165,16 +176,10 @@ public class ImmModeSink {
     vboSet.glVertex3f(x,y,z);
   }
 
-  public void glNormalv(Buffer v) {
-    vboSet.glNormalv(v);
-  }
   public final void glNormal3f(float x, float y, float z) {
     vboSet.glNormal3f(x,y,z);
   }
 
-  public void glColorv(Buffer v) {
-    vboSet.glColorv(v);
-  }
   public final void glColor3f(float x, float y, float z) {
     vboSet.glColor3f(x,y,z);
   }
@@ -183,9 +188,6 @@ public class ImmModeSink {
     vboSet.glColor4f(x,y,z, a);
   }
 
-  public void glTexCoordv(Buffer v) {
-    vboSet.glTexCoordv(v);
-  }
   public final void glTexCoord2f(float x, float y) {
     vboSet.glTexCoord2f(x,y);
   }
@@ -292,65 +294,20 @@ public class ImmModeSink {
         this.tComps=tComps;
         this.useGLSL=useGLSL;
 
-        if(!useGLSL) {
-          this.vertexVBO   = GLArrayDataServer.createFixed(GL.GL_VERTEX_ARRAY, null, vComps, vDataType, false, initialSize, glBufferUsage);
-          this.colorVBO    = GLArrayDataServer.createFixed(GL.GL_COLOR_ARRAY,  null, cComps, cDataType, false, initialSize, glBufferUsage);
-          this.normalVBO   = GLArrayDataServer.createFixed(GL.GL_NORMAL_ARRAY, null, nComps, nDataType, false, initialSize, glBufferUsage);
-          this.texcoordVBO = GLArrayDataServer.createFixed(GL.GL_TEXTURE_COORD_ARRAY, null, tComps, tDataType, false, initialSize, glBufferUsage);
-        } else {
-          this.vertexVBO   = GLArrayDataServer.createGLSL(GLContext.mgl_Vertex, vComps, vDataType, false, initialSize, glBufferUsage);
-          this.colorVBO    = GLArrayDataServer.createGLSL(GLContext.mgl_Color,  cComps, cDataType, false, initialSize, glBufferUsage);
-          this.normalVBO   = GLArrayDataServer.createGLSL(GLContext.mgl_Normal, nComps, nDataType, false, initialSize, glBufferUsage);
-          this.texcoordVBO = GLArrayDataServer.createGLSL(GLContext.mgl_MultiTexCoord, tComps, tDataType, false, initialSize, glBufferUsage);
-        }
-        if(!vboUsage) {
-            this.vertexVBO.setVBOUsage(vboUsage);
-            this.colorVBO.setVBOUsage(vboUsage);
-            this.normalVBO.setVBOUsage(vboUsage);
-            this.texcoordVBO.setVBOUsage(vboUsage);
-        }
+        allocateBuffer(initialSize);
+        rewind();
 
         this.sealed=false;
+        this.sealedGL=false;
         this.mode = -1;
         this.modeOrig = -1;
+        this.bufferEnabled=false;
+        this.bufferWritten=false;
     }
 
     protected final VBOSet regenerate() {
         return new VBOSet(glBufferUsage, initialSize, 
                           vComps, vDataType, cComps, cDataType, nComps, nDataType, tComps, tDataType, useGLSL);
-    }
-
-    protected void destroy(GL gl) {
-        vertexVBO.destroy(gl);
-        normalVBO.destroy(gl);
-        colorVBO.destroy(gl);
-        texcoordVBO.destroy(gl);
-
-        this.mode = -1;
-        this.modeOrig = -1;
-        this.sealed=false;
-    }
-
-    protected void reset(GL gl) {
-        vertexVBO.reset(gl);
-        normalVBO.reset(gl);
-        colorVBO.reset(gl);
-        texcoordVBO.reset(gl);
-
-        this.mode = -1;
-        this.modeOrig = -1;
-        this.sealed=false;
-    }
-
-    public String toString() {
-        return "VBOSet[mode "+mode+ 
-                       ", modeOrig "+modeOrig+ 
-                       ", sealed "+sealed+ 
-                       ",\n\t"+vertexVBO+
-                       ",\n\t"+normalVBO+
-                       ",\n\t"+colorVBO+
-                       ",\n\t"+texcoordVBO+
-                       "]";
     }
 
     protected void checkSeal(boolean test) throws GLException {
@@ -366,47 +323,17 @@ public class ImmModeSink {
         }
     }
 
-    protected void rewind() {
-        checkSeal(true);
-
-        vertexVBO.rewind();
-        normalVBO.rewind();
-        colorVBO.rewind();
-        texcoordVBO.rewind();
-    }
-
-    protected void seal(GL gl, boolean disableBufferAfterSeal)
-    {
-        checkSeal(false);
-        sealed = true;
-
-        vertexVBO.seal(gl, true);
-        normalVBO.seal(gl, true);
-        colorVBO.seal(gl, true);
-        texcoordVBO.seal(gl, true);
-
-        if(disableBufferAfterSeal) {
-            vertexVBO.enableBuffer(gl, false);
-            normalVBO.enableBuffer(gl, false);
-            colorVBO.enableBuffer(gl, false);
-            texcoordVBO.enableBuffer(gl, false);
-        }
-    }
-
     protected void draw(GL gl, Buffer indices, boolean disableBufferAfterDraw, int i)
     {
         if(DEBUG_DRAW) {
             Exception e = new Exception("ImmModeSink.draw["+i+"](disableBufferAfterDraw: "+disableBufferAfterDraw+"):\n\t"+this);
             e.printStackTrace();
         }
-        normalVBO.enableBuffer(gl, true);
-        colorVBO.enableBuffer(gl, true);
-        texcoordVBO.enableBuffer(gl, true);
-        vertexVBO.enableBuffer(gl, true);
+        enableBuffer(gl, true);
 
-        if (vertexVBO.getBuffer()!=null) {
+        if (buffer!=null) {
             if(null==indices) {
-                gl.glDrawArrays(mode, 0, vertexVBO.getElementNumber());
+                gl.glDrawArrays(mode, 0, count);
             } else {
                 Class clazz = indices.getClass();
                 int type=-1;
@@ -424,233 +351,615 @@ public class ImmModeSink {
         }
 
         if(disableBufferAfterDraw) {
-            vertexVBO.enableBuffer(gl, false);
-            texcoordVBO.enableBuffer(gl, false);
-            colorVBO.enableBuffer(gl, false);
-            normalVBO.enableBuffer(gl, false);
+            enableBuffer(gl, false);
         }
     }
 
-    protected void glVertexv(Buffer v) {
+    public void glVertexv(Buffer v) {
         checkSeal(false);
-        vertexVBO.put(v);
+        BufferUtil.put(vertexArray, v);
     }
-    protected void glVertex2f(float x, float y) {
+    public void glNormalv(Buffer v) {
         checkSeal(false);
-        vertexVBO.putf(x);
-        if(vertexVBO.getComponentNumber()>1) 
-            vertexVBO.putf(y);
-        vertexVBO.padding(2);
+        BufferUtil.put(normalArray, v);
     }
-    protected void glVertex3f(float x, float y, float z) {
+    public void glColorv(Buffer v) {
         checkSeal(false);
-        vertexVBO.putf(x);
-        if(vertexVBO.getComponentNumber()>1) 
-            vertexVBO.putf(y);
-        if(vertexVBO.getComponentNumber()>2) 
-            vertexVBO.putf(z);
-        vertexVBO.padding(3);
+        BufferUtil.put(colorArray, v);
+    }
+    public void glTexCoordv(Buffer v) {
+        checkSeal(false);
+        BufferUtil.put(textCoordArray, v);
     }
 
-    protected void glNormalv(Buffer v) {
+    public void glVertex2b(byte x, byte y) {
         checkSeal(false);
-        normalVBO.put(v);
+        growBufferIfNecessary(VERTEX, 2);
+        if(vComps>0) 
+            BufferUtil.putb(vertexArray, x);
+        if(vComps>1) 
+            BufferUtil.putb(vertexArray, y);
+        padding(VERTEX, vComps-2);
     }
-    protected void glNormal3f(float x, float y, float z) {
+    public void glVertex3b(byte x, byte y, byte z) {
         checkSeal(false);
-        normalVBO.putf(x);
-        if(normalVBO.getComponentNumber()>1) 
-            normalVBO.putf(y);
-        if(normalVBO.getComponentNumber()>2) 
-            normalVBO.putf(z);
-        normalVBO.padding(3);
+        growBufferIfNecessary(VERTEX, 3);
+        if(vComps>0) 
+            BufferUtil.putb(vertexArray, x);
+        if(vComps>1) 
+            BufferUtil.putb(vertexArray, y);
+        if(vComps>2) 
+            BufferUtil.putb(vertexArray, z);
+        padding(VERTEX, vComps-3);
     }
-
-    protected void glColorv(Buffer v) {
+    public void glVertex2s(short x, short y) {
         checkSeal(false);
-        colorVBO.put(v);
+        growBufferIfNecessary(VERTEX, 2);
+        if(vComps>0) 
+            BufferUtil.puts(vertexArray, x);
+        if(vComps>1) 
+            BufferUtil.puts(vertexArray, y);
+        padding(VERTEX, vComps-2);
     }
-    protected void glColor3f(float x, float y, float z) {
+    public void glVertex3s(short x, short y, short z) {
         checkSeal(false);
-        colorVBO.putf(x);
-        if(colorVBO.getComponentNumber()>1) 
-            colorVBO.putf(y);
-        if(colorVBO.getComponentNumber()>2) 
-            colorVBO.putf(z);
-        colorVBO.padding(3);
+        growBufferIfNecessary(VERTEX, 3);
+        if(vComps>0) 
+            BufferUtil.puts(vertexArray, x);
+        if(vComps>1) 
+            BufferUtil.puts(vertexArray, y);
+        if(vComps>2) 
+            BufferUtil.puts(vertexArray, z);
+        padding(VERTEX, vComps-3);
     }
-    protected void glColor4f(float x, float y, float z, float a) {
+    public void glVertex2f(float x, float y) {
         checkSeal(false);
-        colorVBO.putf(x);
-        if(colorVBO.getComponentNumber()>1) 
-            colorVBO.putf(y);
-        if(colorVBO.getComponentNumber()>2) 
-            colorVBO.putf(z);
-        if(colorVBO.getComponentNumber()>3) 
-            colorVBO.putf(a);
-        colorVBO.padding(4);
+        growBufferIfNecessary(VERTEX, 2);
+        if(vComps>0) 
+            BufferUtil.putf(vertexArray, x);
+        if(vComps>1) 
+            BufferUtil.putf(vertexArray, y);
+        padding(VERTEX, vComps-2);
     }
-
-    protected void glTexCoordv(Buffer v) {
+    public void glVertex3f(float x, float y, float z) {
         checkSeal(false);
-        texcoordVBO.put(v);
-    }
-    protected void glTexCoord2f(float x, float y) {
-        checkSeal(false);
-        texcoordVBO.putf(x);
-        if(texcoordVBO.getComponentNumber()>1) 
-            texcoordVBO.putf(y);
-        texcoordVBO.padding(2);
-    }
-    protected void glTexCoord3f(float x, float y, float z) {
-        checkSeal(false);
-        texcoordVBO.putf(x);
-        if(texcoordVBO.getComponentNumber()>1) 
-            texcoordVBO.putf(y);
-        if(texcoordVBO.getComponentNumber()>2) 
-            texcoordVBO.putf(z);
-        texcoordVBO.padding(3);
-    }
-
-    protected void glVertex2s(short x, short y) {
-        checkSeal(false);
-        vertexVBO.puts(x);
-        if(vertexVBO.getComponentNumber()>1) 
-            vertexVBO.puts(y);
-        vertexVBO.padding(2);
-    }
-    protected void glVertex3s(short x, short y, short z) {
-        checkSeal(false);
-        vertexVBO.puts(x);
-        if(vertexVBO.getComponentNumber()>1) 
-            vertexVBO.puts(y);
-        if(vertexVBO.getComponentNumber()>2) 
-            vertexVBO.puts(z);
-        vertexVBO.padding(3);
+        growBufferIfNecessary(VERTEX, 3);
+        if(vComps>0) 
+            BufferUtil.putf(vertexArray, x);
+        if(vComps>1) 
+            BufferUtil.putf(vertexArray, y);
+        if(vComps>2) 
+            BufferUtil.putf(vertexArray, z);
+        padding(VERTEX, vComps-3);
     }
 
-    protected void glNormal3s(short x, short y, short z) {
+    public void glNormal3b(byte x, byte y, byte z) {
         checkSeal(false);
-        normalVBO.puts(x);
-        if(normalVBO.getComponentNumber()>1) 
-            normalVBO.puts(y);
-        if(normalVBO.getComponentNumber()>2) 
-            normalVBO.puts(z);
-        normalVBO.padding(3);
+        growBufferIfNecessary(NORMAL, 3);
+        if(nComps>0) 
+            BufferUtil.putb(normalArray, x);
+        if(nComps>1) 
+            BufferUtil.putb(normalArray, y);
+        if(nComps>2) 
+            BufferUtil.putb(normalArray, z);
+        padding(NORMAL, nComps-3);
+    }
+    public void glNormal3s(short x, short y, short z) {
+        checkSeal(false);
+        growBufferIfNecessary(NORMAL, 3);
+        if(nComps>0) 
+            BufferUtil.puts(normalArray, x);
+        if(nComps>1) 
+            BufferUtil.puts(normalArray, y);
+        if(nComps>2) 
+            BufferUtil.puts(normalArray, z);
+        padding(NORMAL, nComps-3);
+    }
+    public void glNormal3f(float x, float y, float z) {
+        checkSeal(false);
+        growBufferIfNecessary(NORMAL, 3);
+        if(nComps>0) 
+            BufferUtil.putf(normalArray, x);
+        if(nComps>1) 
+            BufferUtil.putf(normalArray, y);
+        if(nComps>2) 
+            BufferUtil.putf(normalArray, z);
+        padding(NORMAL, nComps-3);
     }
 
-    protected void glColor3s(short x, short y, short z) {
+    public void glColor3b(byte r, byte g, byte b) {
         checkSeal(false);
-        colorVBO.puts(x);
-        if(colorVBO.getComponentNumber()>1) 
-            colorVBO.puts(y);
-        if(colorVBO.getComponentNumber()>2) 
-            colorVBO.puts(z);
-        colorVBO.padding(3);
+        growBufferIfNecessary(COLOR, 3);
+        if(cComps>0) 
+            BufferUtil.putb(colorArray, r);
+        if(cComps>1) 
+            BufferUtil.putb(colorArray, g);
+        if(cComps>2) 
+            BufferUtil.putb(colorArray, b);
+        padding(COLOR, cComps-3);
     }
-    protected void glColor4s(short x, short y, short z, short a) {
+    public void glColor4b(byte r, byte g, byte b, byte a) {
         checkSeal(false);
-        colorVBO.puts(x);
-        if(colorVBO.getComponentNumber()>1) 
-            colorVBO.puts(y);
-        if(colorVBO.getComponentNumber()>2) 
-            colorVBO.puts(z);
-        if(colorVBO.getComponentNumber()>3) 
-            colorVBO.puts(a);
-        colorVBO.padding(4);
+        growBufferIfNecessary(COLOR, 4);
+        if(cComps>0) 
+            BufferUtil.putb(colorArray, r);
+        if(cComps>1) 
+            BufferUtil.putb(colorArray, g);
+        if(cComps>2) 
+            BufferUtil.putb(colorArray, b);
+        if(cComps>3) 
+            BufferUtil.putb(colorArray, a);
+        padding(COLOR, cComps-4);
     }
-
-    protected void glTexCoord2s(short x, short y) {
+    public void glColor3s(short r, short g, short b) {
         checkSeal(false);
-        texcoordVBO.puts(x);
-        if(texcoordVBO.getComponentNumber()>1) 
-            texcoordVBO.puts(y);
-        texcoordVBO.padding(2);
+        growBufferIfNecessary(COLOR, 3);
+        if(cComps>0) 
+            BufferUtil.puts(colorArray, r);
+        if(cComps>1) 
+            BufferUtil.puts(colorArray, g);
+        if(cComps>2) 
+            BufferUtil.puts(colorArray, b);
+        padding(COLOR, cComps-3);
     }
-    protected void glTexCoord3s(short x, short y, short z) {
+    public void glColor4s(short r, short g, short b, short a) {
         checkSeal(false);
-        texcoordVBO.puts(x);
-        if(texcoordVBO.getComponentNumber()>1) 
-            texcoordVBO.puts(y);
-        if(texcoordVBO.getComponentNumber()>2) 
-            texcoordVBO.puts(z);
-        texcoordVBO.padding(3);
+        growBufferIfNecessary(COLOR, 4);
+        if(cComps>0) 
+            BufferUtil.puts(colorArray, r);
+        if(cComps>1) 
+            BufferUtil.puts(colorArray, g);
+        if(cComps>2) 
+            BufferUtil.puts(colorArray, b);
+        if(cComps>3) 
+            BufferUtil.puts(colorArray, a);
+        padding(COLOR, cComps-4);
     }
-
-    protected void glVertex2b(byte x, byte y) {
+    public void glColor3f(float r, float g, float b) {
         checkSeal(false);
-        vertexVBO.putb(x);
-        if(vertexVBO.getComponentNumber()>1) 
-            vertexVBO.putb(y);
-        vertexVBO.padding(2);
+        growBufferIfNecessary(COLOR, 3);
+        if(cComps>0) 
+            BufferUtil.putf(colorArray, r);
+        if(cComps>1) 
+            BufferUtil.putf(colorArray, g);
+        if(cComps>2) 
+            BufferUtil.putf(colorArray, b);
+        padding(COLOR, cComps-3);
     }
-    protected void glVertex3b(byte x, byte y, byte z) {
+    public void glColor4f(float r, float g, float b, float a) {
         checkSeal(false);
-        vertexVBO.putb(x);
-        if(vertexVBO.getComponentNumber()>1) 
-            vertexVBO.putb(y);
-        if(vertexVBO.getComponentNumber()>2) 
-            vertexVBO.putb(z);
-        vertexVBO.padding(3);
-    }
-
-    protected void glNormal3b(byte x, byte y, byte z) {
-        checkSeal(false);
-        normalVBO.putb(x);
-        if(normalVBO.getComponentNumber()>1) 
-            normalVBO.putb(y);
-        if(normalVBO.getComponentNumber()>2) 
-            normalVBO.putb(z);
-        normalVBO.padding(3);
-    }
-
-    protected void glColor3b(byte x, byte y, byte z) {
-        checkSeal(false);
-        colorVBO.putb(x);
-        if(colorVBO.getComponentNumber()>1) 
-            colorVBO.putb(y);
-        if(colorVBO.getComponentNumber()>2) 
-            colorVBO.putb(z);
-        colorVBO.padding(3);
-    }
-    protected void glColor4b(byte x, byte y, byte z, byte a) {
-        checkSeal(false);
-        colorVBO.putb(x);
-        if(colorVBO.getComponentNumber()>1) 
-            colorVBO.putb(y);
-        if(colorVBO.getComponentNumber()>2) 
-            colorVBO.putb(z);
-        if(colorVBO.getComponentNumber()>3) 
-            colorVBO.putb(a);
-        colorVBO.padding(4);
-    }
-    protected void glTexCoord2b(byte x, byte y) {
-        checkSeal(false);
-        texcoordVBO.putb(x);
-        if(texcoordVBO.getComponentNumber()>1) 
-            texcoordVBO.putb(y);
-        texcoordVBO.padding(2);
+        growBufferIfNecessary(COLOR, 4);
+        if(cComps>0) 
+            BufferUtil.putf(colorArray, r);
+        if(cComps>1) 
+            BufferUtil.putf(colorArray, g);
+        if(cComps>2) 
+            BufferUtil.putf(colorArray, b);
+        if(cComps>3) 
+            BufferUtil.putf(colorArray, a);
+        padding(COLOR, cComps-4);
     }
 
-    protected void glTexCoord3b(byte x, byte y, byte z) {
+    public void glTexCoord2b(byte x, byte y) {
         checkSeal(false);
-        texcoordVBO.putb(x);
-        if(texcoordVBO.getComponentNumber()>1) 
-            texcoordVBO.putb(y);
-        if(texcoordVBO.getComponentNumber()>2) 
-            texcoordVBO.putb(z);
-        texcoordVBO.padding(3);
+        growBufferIfNecessary(TEXTCOORD, 2);
+        if(tComps>0) 
+            BufferUtil.putb(textCoordArray, x);
+        if(tComps>1) 
+            BufferUtil.putb(textCoordArray, y);
+        padding(TEXTCOORD, tComps-2);
+    }
+    public void glTexCoord3b(byte x, byte y, byte z) {
+        checkSeal(false);
+        growBufferIfNecessary(TEXTCOORD, 3);
+        if(tComps>0) 
+            BufferUtil.putb(textCoordArray, x);
+        if(tComps>1) 
+            BufferUtil.putb(textCoordArray, y);
+        if(tComps>2) 
+            BufferUtil.putb(textCoordArray, z);
+        padding(TEXTCOORD, tComps-3);
+    }
+    public void glTexCoord2s(short x, short y) {
+        checkSeal(false);
+        growBufferIfNecessary(TEXTCOORD, 2);
+        if(tComps>0) 
+            BufferUtil.puts(textCoordArray, x);
+        if(tComps>1) 
+            BufferUtil.puts(textCoordArray, y);
+        padding(TEXTCOORD, tComps-2);
+    }
+    public void glTexCoord3s(short x, short y, short z) {
+        checkSeal(false);
+        growBufferIfNecessary(TEXTCOORD, 3);
+        if(tComps>0) 
+            BufferUtil.puts(textCoordArray, x);
+        if(tComps>1) 
+            BufferUtil.puts(textCoordArray, y);
+        if(tComps>2) 
+            BufferUtil.puts(textCoordArray, z);
+        padding(TEXTCOORD, tComps-3);
+    }
+    public void glTexCoord2f(float x, float y) {
+        checkSeal(false);
+        growBufferIfNecessary(TEXTCOORD, 2);
+        if(tComps>0) 
+            BufferUtil.putf(textCoordArray, x);
+        if(tComps>1) 
+            BufferUtil.putf(textCoordArray, y);
+        padding(TEXTCOORD, tComps-2);
+    }
+    public void glTexCoord3f(float x, float y, float z) {
+        checkSeal(false);
+        growBufferIfNecessary(TEXTCOORD, 3);
+        if(tComps>0) 
+            BufferUtil.putf(textCoordArray, x);
+        if(tComps>1) 
+            BufferUtil.putf(textCoordArray, y);
+        if(tComps>2) 
+            BufferUtil.putf(textCoordArray, z);
+        padding(TEXTCOORD, tComps-3);
     }
 
-    GLArrayDataServer vertexVBO;
-    GLArrayDataServer normalVBO;
-    GLArrayDataServer colorVBO;
-    GLArrayDataServer texcoordVBO;
-    int mode, modeOrig;
-    int glBufferUsage, initialSize;
-    int vComps,    cComps,    nComps,    tComps;
-    int vDataType, cDataType, nDataType, tDataType;
-    boolean sealed, useGLSL;
+    public void rewind() {
+        if(null!=vertexArray) {
+            vertexArray.rewind();
+        }
+        if(null!=colorArray) {
+            colorArray.rewind();
+        }
+        if(null!=normalArray) {
+            normalArray.rewind();
+        }
+        if(null!=textCoordArray) {
+            textCoordArray.rewind();
+        }
+    }
+
+    public void destroy(GL gl) {
+        reset(gl);
+
+        vertexArray=null; colorArray=null; normalArray=null; textCoordArray=null;
+        vArrayData=null; cArrayData=null; nArrayData=null; tArrayData=null;
+        buffer=null;
+        bSize=0; count=0;
+    }
+
+    public void reset(GL gl) {
+        enableBuffer(gl, false);
+        reset();
+    }
+
+    public void reset() {
+        if(buffer!=null) {
+            buffer.clear();
+        }
+        rewind();
+
+        this.mode = -1;
+        this.modeOrig = -1;
+        this.sealed=false;
+        this.bufferEnabled=false;
+        this.bufferWritten=false;
+    }
+
+    public void seal(GL gl, boolean seal)
+    {
+        seal(seal);
+        if(sealedGL==seal) return;
+        sealedGL = seal;
+        if(seal) {
+            if(vboUsage && vboName==0) {
+                int[] tmp = new int[1];
+                gl.glGenBuffers(1, tmp, 0);
+                vboName = tmp[0];
+            }
+            if(null!=vArrayData)
+                vArrayData.setVBOName(vboName);
+            if(null!=cArrayData)
+                cArrayData.setVBOName(vboName);
+            if(null!=nArrayData)
+                nArrayData.setVBOName(vboName);
+            if(null!=tArrayData)
+                tArrayData.setVBOName(vboName);
+            enableBuffer(gl, true);
+        } else {
+            enableBuffer(gl, false);
+        }
+    }
+
+    public void seal(boolean seal)
+    {
+        if(sealed==seal) return;
+        sealed = seal;
+        if(seal) {
+            bufferWritten=false;
+        }
+    }
+
+  public void enableBuffer(GL gl, boolean enable) {
+    /* if(enableBufferAlways && enable) {
+        bufferEnabled = false;
+    } */
+    if( bufferEnabled != enable && count>0 ) {
+        if(enable) {
+            checkSeal(true);
+        }
+        if(useGLSL) { 
+            enableBufferGLSL(gl, enable);
+        } else {
+            enableBufferFixed(gl, enable);
+        }
+        bufferEnabled = enable;
+    }
+  }
+
+  public void enableBufferFixed(GL gl, boolean enable) {
+    if(enable) {
+        gl.glBindBuffer(GL.GL_ARRAY_BUFFER, vboName);
+
+        if(!bufferWritten) {
+            gl.glBufferData(GL.GL_ARRAY_BUFFER, buffer.limit(), buffer, GL.GL_STATIC_DRAW);
+            bufferWritten=true;
+        }
+
+        if(vComps>0) {
+           gl.glEnableClientState(gl.GL_VERTEX_ARRAY);
+           gl.glVertexPointer(vArrayData);
+        }
+        if(cComps>0) {
+           gl.glEnableClientState(gl.GL_COLOR_ARRAY);
+           gl.glColorPointer(cArrayData);
+        }
+        if(nComps>0) {
+           gl.glEnableClientState(gl.GL_NORMAL_ARRAY);
+           gl.glNormalPointer(nArrayData);
+        }
+        if(tComps>0) {
+           gl.glEnableClientState(gl.GL_TEXTURE_COORD_ARRAY);
+           gl.glTexCoordPointer(tArrayData);
+        }
+
+        gl.glBindBuffer(GL.GL_ARRAY_BUFFER, 0);
+    } else {
+        if(vComps>0) {
+           gl.glDisableClientState(gl.GL_VERTEX_ARRAY);
+        }
+        if(cComps>0) {
+           gl.glDisableClientState(gl.GL_COLOR_ARRAY);
+        }
+        if(nComps>0) {
+           gl.glDisableClientState(gl.GL_NORMAL_ARRAY);
+        }
+        if(tComps>0) {
+           gl.glDisableClientState(gl.GL_TEXTURE_COORD_ARRAY);
+        }
+    }
+  }
+
+  public void enableBufferGLSL(GL gl, boolean enable) {
+    GL2ES2 glsl = gl.getGL2ES2();
+    javax.media.opengl.glsl.ShaderState st = javax.media.opengl.glsl.ShaderState.getCurrent();
+    if(null==st) {
+        throw new GLException("No ShaderState current");
+    }
+ 
+    if(enable) {
+        gl.glBindBuffer(GL.GL_ARRAY_BUFFER, vboName);
+
+        if(!bufferWritten) {
+            gl.glBufferData(GL.GL_ARRAY_BUFFER, buffer.limit(), buffer, GL.GL_STATIC_DRAW);
+            bufferWritten=true;
+        }
+
+        if(vComps>0) {
+           st.glEnableVertexAttribArray(glsl, vArrayData.getName());
+           st.glVertexAttribPointer(glsl, vArrayData);
+        }
+        if(cComps>0) {
+           st.glEnableVertexAttribArray(glsl, cArrayData.getName());
+           st.glVertexAttribPointer(glsl, cArrayData);
+        }
+        if(nComps>0) {
+           st.glEnableVertexAttribArray(glsl, nArrayData.getName());
+           st.glVertexAttribPointer(glsl, nArrayData);
+        }
+        if(tComps>0) {
+           st.glEnableVertexAttribArray(glsl, tArrayData.getName());
+           st.glVertexAttribPointer(glsl, tArrayData);
+        }
+
+        gl.glBindBuffer(GL.GL_ARRAY_BUFFER, 0);
+    } else {
+        if(vComps>0) {
+           st.glDisableVertexAttribArray(glsl, vArrayData.getName());
+        }
+        if(cComps>0) {
+           st.glDisableVertexAttribArray(glsl, cArrayData.getName());
+        }
+        if(nComps>0) {
+           st.glDisableVertexAttribArray(glsl, nArrayData.getName());
+        }
+        if(tComps>0) {
+           st.glDisableVertexAttribArray(glsl, tArrayData.getName());
+        }
+    }
+  }
+
+    public String toString() {
+        return "VBOSet[mode "+mode+ 
+                       ", modeOrig "+modeOrig+ 
+                       ", sealed "+sealed+ 
+                       ", bufferEnabled "+bufferEnabled+ 
+                       ", bufferWritten "+bufferWritten+ 
+                       ",\n\t"+vArrayData+
+                       ",\n\t"+cArrayData+
+                       ",\n\t"+nArrayData+
+                       ",\n\t"+tArrayData+
+                       "]";
+    }
+
+        // non public matters
+
+    protected void allocateBuffer(int elements) {
+        int vWidth = vComps * BufferUtil.sizeOfGLType(vDataType);
+        int cWidth = cComps * BufferUtil.sizeOfGLType(cDataType);
+        int nWidth = nComps * BufferUtil.sizeOfGLType(nDataType);
+        int tWidth = tComps * BufferUtil.sizeOfGLType(tDataType);
+
+        count  = elements;
+        bSize  = count * ( vWidth + cWidth + nWidth + tWidth ) ;
+
+        buffer = BufferUtil.newByteBuffer(bSize);
+
+        int pos = 0;
+        int size= count * vWidth ;
+        if(size>0) {
+            vertexArray = BufferUtil.sliceGLBuffer(buffer, pos, size, vDataType);
+        } else {
+            vertexArray = null;
+        }
+        vOffset = pos;
+        pos+=size;
+
+        size= count * cWidth ;
+        if(size>0) {
+            colorArray = BufferUtil.sliceGLBuffer(buffer, pos, size, cDataType);
+        } else {
+            colorArray = null;
+        }
+        cOffset = pos;
+        pos+=size;
+
+        size= count * nWidth ;
+        if(size>0) {
+            normalArray = BufferUtil.sliceGLBuffer(buffer, pos, size, nDataType);
+        } else {
+            normalArray = null;
+        }
+        nOffset = pos;
+        pos+=size;
+
+        size= count * tWidth ;
+        if(size>0) {
+            textCoordArray = BufferUtil.sliceGLBuffer(buffer, pos, size, tDataType);
+        } else {
+            textCoordArray = null;
+        }
+        tOffset = pos;
+        pos+=size;
+
+        buffer.position(pos);
+        buffer.flip();
+
+        if(vComps>0) {
+            vArrayData = GLArrayDataWrapper.createFixed(GL.GL_VERTEX_ARRAY, vComps, vDataType, false,
+                                                        0, vertexArray, 0, vOffset);
+        } else {
+            vArrayData = null;
+        }
+        if(cComps>0) {
+            cArrayData = GLArrayDataWrapper.createFixed(GL.GL_COLOR_ARRAY, cComps, cDataType, false,
+                                                        0, colorArray, 0, cOffset);
+        } else {
+            cArrayData = null;
+        }
+        if(nComps>0) {
+            nArrayData = GLArrayDataWrapper.createFixed(GL.GL_NORMAL_ARRAY, nComps, nDataType, false,
+                                                        0, normalArray, 0, nOffset);
+        } else {
+            nArrayData = null;
+        }
+        if(tComps>0) {
+            tArrayData = GLArrayDataWrapper.createFixed(GL.GL_TEXTURE_COORD_ARRAY, tComps, tDataType, false,
+                                                        0, textCoordArray, 0, tOffset);
+        } else {
+            tArrayData = null;
+        }
+
+    }
+
+    protected final boolean growBufferIfNecessary(int type, int spare) {
+        if(buffer==null || count < spare) { 
+            growBuffer(type, initialSize);
+            return true;
+        }
+        return false;
+    }
+
+    protected final void growBuffer(int type, int additional) {
+        if(sealed || 0==additional) return;
+
+        // save olde values ..
+        Buffer _vertexArray=vertexArray, _colorArray=colorArray, _normalArray=normalArray, _textCoordArray=textCoordArray;
+        ByteBuffer _buffer = buffer;
+
+        allocateBuffer(count+additional);
+
+        if(null!=_vertexArray) {
+            _vertexArray.flip();
+            BufferUtil.put(vertexArray, _vertexArray);
+        }
+        if(null!=_colorArray) {
+            _colorArray.flip();
+            BufferUtil.put(colorArray, _colorArray);
+        }
+        if(null!=_normalArray) {
+            _normalArray.flip();
+            BufferUtil.put(normalArray, _normalArray);
+        }
+        if(null!=_textCoordArray) {
+            _textCoordArray.flip();
+            BufferUtil.put(textCoordArray, _textCoordArray);
+        }
+    }
+
+    protected void padding(int type, int fill) {
+        if ( sealed ) return;
+
+        Buffer dest = null;
+
+        switch (type) {
+            case VERTEX:
+                dest = vertexArray;
+                break;
+            case COLOR:
+                dest = colorArray;
+                break;
+            case NORMAL:
+                dest = normalArray;
+                break;
+            case TEXTCOORD:
+                dest = textCoordArray;
+                break;
+        }
+
+        if ( null==dest ) return;
+
+        while((fill--)>0) {
+            BufferUtil.putb(dest, (byte)0);
+        }
+    }
+
+    protected int mode, modeOrig;
+    protected int glBufferUsage, initialSize;
+
+    protected ByteBuffer buffer;
+    protected int bSize, count, vboName;
+
+    public static final int VERTEX = 0;
+    public static final int COLOR = 1;
+    public static final int NORMAL = 2;
+    public static final int TEXTCOORD = 3;
+
+    protected int vOffset, cOffset, nOffset, tOffset;
+    protected int vComps,    cComps,    nComps,    tComps;
+    protected int vDataType, cDataType, nDataType, tDataType;
+    protected Buffer vertexArray, colorArray, normalArray, textCoordArray;
+    protected GLArrayDataWrapper vArrayData, cArrayData, nArrayData, tArrayData;
+
+    protected boolean sealed, sealedGL, useGLSL;
+    protected boolean bufferEnabled, bufferWritten;
   }
 
 }

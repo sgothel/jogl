@@ -223,6 +223,36 @@ public class GLProfile {
         }
   }
 
+  public static String getGLTypeName(int type) {
+    switch (type) {
+        case GL.GL_UNSIGNED_BYTE:
+            return "GL_UNSIGNED_BYTE";
+        case GL.GL_BYTE:
+            return "GL_BYTE";
+        case GL.GL_UNSIGNED_SHORT:
+            return "GL_UNSIGNED_SHORT";
+        case GL.GL_SHORT:
+            return "GL_SHORT";
+        case GL.GL_FLOAT:
+            return "GL_FLOAT";
+        case GL.GL_FIXED:
+            return "GL_FIXED";
+        case javax.media.opengl.GL2ES2.GL_INT:
+            return "GL_INT";
+        case javax.media.opengl.GL2ES2.GL_UNSIGNED_INT:
+            return "GL_UNSIGNED_INT";
+        case javax.media.opengl.GL2.GL_DOUBLE:
+            return "GL_DOUBLE";
+        case javax.media.opengl.GL2.GL_2_BYTES:
+            return "GL_2_BYTES";
+        case javax.media.opengl.GL2.GL_3_BYTES:
+            return "GL_3_BYTES";
+        case javax.media.opengl.GL2.GL_4_BYTES:
+            return "GL_4_BYTES";
+    }
+    return null;
+  }
+
   /** 
    * General validation if type is a valid GL data type
    * for the current profile

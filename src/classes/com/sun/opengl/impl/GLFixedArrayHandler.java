@@ -6,9 +6,9 @@ import javax.media.opengl.glsl.ShaderState;
 import java.nio.*;
 
 public class GLFixedArrayHandler implements GLArrayHandler {
-  private GLArrayData ad;
+  private GLArrayDataEditable ad;
 
-  public GLFixedArrayHandler(GLArrayData ad) {
+  public GLFixedArrayHandler(GLArrayDataEditable ad) {
     this.ad = ad;
   }
 

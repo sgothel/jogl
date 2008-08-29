@@ -6,7 +6,7 @@ import java.nio.*;
 import com.sun.opengl.impl.*;
 import com.sun.opengl.impl.glsl.*;
 
-public class GLArrayDataServer extends GLArrayDataClient implements GLArrayData {
+public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataEditable {
 
   //
   // lifetime matters
@@ -32,14 +32,15 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayData 
    * @see javax.media.opengl.GLContext#getPredefinedArrayIndexName(int)
    */
   public static GLArrayDataServer createFixed(int index, String name, int comps, int dataType, boolean normalized,
-                                              int stride, Buffer buffer, int glBufferUsage)
+                                              int stride, Buffer buffer, int vboBufferUsage)
     throws GLException
   {
     GLProfile.isValidateArrayDataType(index, comps, dataType, false, true);
 
     GLArrayDataServer ads = new GLArrayDataServer();
     GLArrayHandler glArrayHandler = new GLFixedArrayHandler(ads);
-    ads.init(name, index, comps, dataType, normalized, stride, buffer, 0, buffer.limit(), glBufferUsage, false, glArrayHandler);
+    ads.init(name, index, comps, dataType, normalized, stride, buffer, buffer.limit(), false, glArrayHandler,
+             0, 0, vboBufferUsage);
     return ads;
   }
 
@@ -55,41 +56,15 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayData 
    * @see javax.media.opengl.GLContext#getPredefinedArrayIndexName(int)
    */
   public static GLArrayDataServer createFixed(int index, String name, int comps, int dataType, boolean normalized, 
-                                              int initialSize, int glBufferUsage)
+                                              int initialSize, int vboBufferUsage)
     throws GLException
   {
     GLProfile.isValidateArrayDataType(index, comps, dataType, false, true);
 
     GLArrayDataServer ads = new GLArrayDataServer();
     GLArrayHandler glArrayHandler = new GLFixedArrayHandler(ads);
-    ads.init(name, index, comps, dataType, normalized, 0, null, 0, initialSize, glBufferUsage, false, glArrayHandler);
-    return ads;
-  }
-
-  /**
-   * Create a VBOBuffer object, using a predefined fixed function array index
-   * and starting with a given Buffer offset incl it's stride
-   *
-   * The object will be created in a sealed state, 
-   * where the data has been written (previously).
-   *
-   * This object can be enabled, but since no knowledge of the orginal client data is available,
-   * we cannot send it down again.
-   *
-   * @see javax.media.opengl.GLContext#getPredefinedArrayIndexName(int)
-   */
-  public static GLArrayDataServer createFixed(int index, String name, int comps, int dataType, boolean normalized,
-                                              int stride, long bufferOffset, int vboName)
-    throws GLException
-  {
-    GLProfile.isValidateArrayDataType(index, comps, dataType, false, true);
-
-    GLArrayDataServer ads = new GLArrayDataServer();
-    GLArrayHandler glArrayHandler = new GLSLArrayHandler(ads);
-    ads.init(name, index, comps, dataType, normalized, stride, null, bufferOffset, 0, -1, false, glArrayHandler);
-    ads.vboName = vboName;
-    ads.bufferWritten = true;
-    ads.sealed = true;
+    ads.init(name, index, comps, dataType, normalized, 0, null, initialSize, false, glArrayHandler,
+             0, 0, vboBufferUsage);
     return ads;
   }
 
@@ -100,7 +75,7 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayData 
    * @see javax.media.opengl.GLContext#getPredefinedArrayIndexName(int)
    */
   public static GLArrayDataServer createGLSL(String name, int comps, int dataType, boolean normalized,
-                                             int initialSize, int glBufferUsage) 
+                                             int initialSize, int vboBufferUsage) 
     throws GLException
   {
     if(!GLProfile.isGL2ES2()) {
@@ -110,7 +85,8 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayData 
 
     GLArrayDataServer ads = new GLArrayDataServer();
     GLArrayHandler glArrayHandler = new GLSLArrayHandler(ads);
-    ads.init(name, -1, comps, dataType, normalized, 0, null, 0, initialSize, glBufferUsage, true, glArrayHandler);
+    ads.init(name, -1, comps, dataType, normalized, 0, null, initialSize, true, glArrayHandler,
+             0, 0, vboBufferUsage);
     return ads;
   }
 
@@ -121,7 +97,7 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayData 
    * @see javax.media.opengl.GLContext#getPredefinedArrayIndexName(int)
    */
   public static GLArrayDataServer createGLSL(String name, int comps, int dataType, boolean normalized,
-                                             int stride, Buffer buffer, int glBufferUsage) 
+                                             int stride, Buffer buffer, int vboBufferUsage) 
     throws GLException
   {
     if(!GLProfile.isGL2ES2()) {
@@ -131,7 +107,8 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayData 
 
     GLArrayDataServer ads = new GLArrayDataServer();
     GLArrayHandler glArrayHandler = new GLSLArrayHandler(ads);
-    ads.init(name, -1, comps, dataType, normalized, stride, buffer, 0, buffer.limit(), glBufferUsage, true, glArrayHandler);
+    ads.init(name, -1, comps, dataType, normalized, stride, buffer, buffer.limit(), true, glArrayHandler,
+             0, 0, vboBufferUsage);
     return ads;
   }
 
@@ -139,11 +116,7 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayData 
   // Data matters GLArrayData
   //
 
-  public final long getOffset() { return vboUsage?bufferOffset:-1; }
-
-  public final int getVBOName() { return vboUsage?vboName:-1; }
-
-  public final boolean isVBO() { return vboUsage; }
+  public int getBufferUsage() { return vboBufferUsage; }
 
   //
   // Data and GL state modification ..
@@ -170,11 +143,7 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayData 
    */
   public void    setVBOUsage(boolean vboUsage) { 
     checkSeal(false);
-    this.vboUsage=(null!=buffer)?vboUsage:true; 
-  }
-
-  public int getBufferUsage() {
-    return glBufferUsage;
+    super.setVBOUsage(vboUsage);
   }
 
   public String toString() {
@@ -188,7 +157,7 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayData 
                        ", components "+components+ 
                        ", stride "+stride+"u "+strideB+"b "+strideL+"c"+
                        ", initialSize "+initialSize+ 
-                       ", glBufferUsage "+glBufferUsage+ 
+                       ", vboBufferUsage "+vboBufferUsage+ 
                        ", vboUsage "+vboUsage+ 
                        ", vboName "+vboName+ 
                        ", sealed "+sealed+ 
@@ -204,27 +173,27 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayData 
   //
 
   protected void init(String name, int index, int comps, int dataType, boolean normalized, 
-                      int stride, Buffer data, long offset, int initialSize, int glBufferUsage, boolean isVertexAttribute,
-                      GLArrayHandler glArrayHandler)
+                      int stride, Buffer data, int initialSize, boolean isVertexAttribute,
+                      GLArrayHandler glArrayHandler,
+                      int vboName, long bufferOffset, int vboBufferUsage)
     throws GLException
   {
-    super.init(name, index, comps, dataType, normalized, stride, data, initialSize, isVertexAttribute, glArrayHandler);
+    super.init(name, index, comps, dataType, normalized, stride, data, initialSize, isVertexAttribute, glArrayHandler,
+               vboName, bufferOffset);
 
     vboUsage=true;
 
-    if( ! (GLProfile.isGL2ES2() && glBufferUsage==GL2ES2.GL_STREAM_DRAW) ) {
-        switch(glBufferUsage) {
+    if( ! (GLProfile.isGL2ES2() && vboBufferUsage==GL2ES2.GL_STREAM_DRAW) ) {
+        switch(vboBufferUsage) {
             case -1: // nop
             case GL2ES1.GL_STATIC_DRAW:
             case GL2ES1.GL_DYNAMIC_DRAW:
                 break;
             default:
-                throw new GLException("invalid glBufferUsage: "+glBufferUsage+":\n\t"+this); 
+                throw new GLException("invalid vboBufferUsage: "+vboBufferUsage+":\n\t"+this); 
         }
     }
-    this.bufferOffset=offset;
-    this.glBufferUsage = glBufferUsage;
-    this.vboName = 0;
+    this.vboBufferUsage=vboBufferUsage;
   }
 
   protected void init_vbo(GL gl) {
@@ -235,10 +204,6 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayData 
     }
   }
 
-  protected long bufferOffset;
-  protected int glBufferUsage;
-  protected int vboName;
-  protected boolean vboUsage;
-
+  protected int vboBufferUsage;
 }
 

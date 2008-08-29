@@ -39,6 +39,13 @@
 
 package javax.media.opengl.util;
 
+import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
+import javax.media.opengl.GL2ES2;
+import javax.media.opengl.GLException;
+import javax.media.opengl.GLProfile;
+import com.sun.opengl.impl.GLReflection;
+
 import java.nio.*;
 import java.util.*;
 
@@ -54,11 +61,75 @@ public class BufferUtil {
   public static final int SIZEOF_LONG = -1;    // not supported
   public static final int SIZEOF_DOUBLE = -1;  // not supported
 
+  public static final int sizeOfGLType(int glType) {
+        switch (glType) {
+            case GL.GL_UNSIGNED_BYTE:
+                return SIZEOF_BYTE;
+            case GL.GL_BYTE:
+                return SIZEOF_BYTE;
+            case GL.GL_UNSIGNED_SHORT:
+                return SIZEOF_SHORT;
+            case GL.GL_SHORT:
+                return SIZEOF_SHORT;
+            case GL.GL_FLOAT:
+                return SIZEOF_FLOAT;
+            case GL.GL_FIXED:
+                return SIZEOF_INT;
+            case GL2ES2.GL_INT:
+                return SIZEOF_INT;
+            case GL2ES2.GL_UNSIGNED_INT:
+                return SIZEOF_INT;
+            case GL2.GL_DOUBLE:
+                return SIZEOF_DOUBLE;
+        }
+        return -1;
+  }
+
   private BufferUtil() {}
 
   //----------------------------------------------------------------------
   // Allocation routines
   //
+
+  public static final Buffer newGLBuffer(int glType, int numElements) {
+        switch (glType) {
+            case GL.GL_UNSIGNED_BYTE:
+            case GL.GL_BYTE:
+                return newByteBuffer(numElements);
+            case GL.GL_UNSIGNED_SHORT:
+            case GL.GL_SHORT:
+                return newShortBuffer(numElements);
+            case GL.GL_FLOAT:
+                return newFloatBuffer(numElements);
+            case GL.GL_FIXED:
+            case GL2ES2.GL_INT:
+            case GL2ES2.GL_UNSIGNED_INT:
+                return newIntBuffer(numElements);
+        }
+        return null;
+  }
+
+  public static final Buffer sliceGLBuffer(ByteBuffer parent, int bytePos, int byteLen, int glType) {
+        if(parent==null || byteLen==0) return null;
+        parent.position(bytePos);
+        parent.limit(bytePos + byteLen);
+
+        switch (glType) {
+            case GL.GL_UNSIGNED_BYTE:
+            case GL.GL_BYTE:
+                return parent.slice();
+            case GL.GL_UNSIGNED_SHORT:
+            case GL.GL_SHORT:
+                return parent.asShortBuffer();
+            case GL.GL_FLOAT:
+                return parent.asFloatBuffer();
+            case GL.GL_FIXED:
+            case GL2ES2.GL_INT:
+            case GL2ES2.GL_UNSIGNED_INT:
+                return parent.asIntBuffer();
+        }
+        return null;
+  }
 
   /** Allocates a new direct ByteBuffer with the specified number of
       elements. The returned buffer will have its byte order set to
@@ -285,6 +356,70 @@ public class BufferUtil {
       }
     }
     return buf;
+  }
+
+  //----------------------------------------------------------------------
+  // Convenient GL put methods with generic target Buffer
+  //
+  public static void put(Buffer dest, Buffer v) {
+    Class dClazz = dest.getClass();
+    Class vClazz = v.getClass();
+    if(!GLReflection.instanceOf(vClazz, dClazz.getName())) {
+        throw new GLException("This array's dest class "+dClazz+" doesn't match the argument's Class: "+vClazz);
+    }
+    if(dest instanceof ByteBuffer) {
+        ((ByteBuffer)dest).put((ByteBuffer)v);
+    } else if(dest instanceof ShortBuffer) {
+        ((ShortBuffer)dest).put((ShortBuffer)v);
+    } else if(dest instanceof IntBuffer) {
+        ((IntBuffer)dest).put((IntBuffer)v);
+    } else if(dest instanceof FloatBuffer) {
+        ((FloatBuffer)dest).put((FloatBuffer)v);
+    }
+  }
+
+  public static void putb(Buffer dest, byte v) {
+    if(dest instanceof ByteBuffer) {
+        ((ByteBuffer)dest).put(v);
+    } else if(dest instanceof ShortBuffer) {
+        ((ShortBuffer)dest).put((short)v);
+    } else if(dest instanceof IntBuffer) {
+        ((IntBuffer)dest).put((int)v);
+    } else {
+        throw new GLException("Byte doesn't match Buffer Class: "+dest);
+    }
+  }
+
+  public static void puts(Buffer dest, short v) {
+    if(dest instanceof ShortBuffer) {
+        ((ShortBuffer)dest).put(v);
+    } else if(dest instanceof IntBuffer) {
+        ((IntBuffer)dest).put((int)v);
+    } else {
+        throw new GLException("Short doesn't match Buffer Class: "+dest);
+    }
+  }
+
+  public static void puti(Buffer dest, int v) {
+    if(dest instanceof IntBuffer) {
+        ((IntBuffer)dest).put(v);
+    } else {
+        throw new GLException("Integer doesn't match Buffer Class: "+dest);
+    }
+  }
+
+  public static void putx(Buffer dest, int v) {
+    puti(dest, v);
+  }
+
+  public static void putf(Buffer dest, float v) {
+    if(dest instanceof FloatBuffer) {
+        ((FloatBuffer)dest).put(v);
+    } else if(dest instanceof IntBuffer) {
+        ((IntBuffer)dest).put(FixedPoint.toFixed(v));
+    } else {
+        throw new GLException("Float doesn't match Buffer Class: "+dest);
+    }
   }
 
   //----------------------------------------------------------------------
