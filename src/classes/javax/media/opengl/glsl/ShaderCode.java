@@ -3,6 +3,8 @@ package javax.media.opengl.glsl;
 
 import javax.media.opengl.*;
 import javax.media.opengl.util.*;
+import com.sun.opengl.util.io.StreamUtil;
+import com.sun.opengl.util.io.Locator;
 
 import java.util.*;
 import java.nio.*;
@@ -223,12 +225,12 @@ public class ShaderCode {
                 if (line.startsWith("#include ")) {
                     String includeFile = line.substring(9).trim();
                     // Try relative path first
-                    String next = makeRelative(path, includeFile);
-                    URL nextURL = getResource(next, context);
+                    String next = Locator.getRelativeOf(path, includeFile);
+                    URL nextURL = Locator.getResource(next, context);
                     if (nextURL == null) {
                         // Try absolute path
                         next = includeFile;
-                        nextURL = getResource(next, context);
+                        nextURL = Locator.getResource(next, context);
                     }
                     if (nextURL == null) {
                         // Fail
@@ -246,14 +248,14 @@ public class ShaderCode {
 
     public static String readShaderSource(Class context, String path) {
         ClassLoader contextCL = (null!=context)?context.getClassLoader():null;
-        URL url = getResource(path, contextCL);
+        URL url = Locator.getResource(path, contextCL);
         if (url == null && null!=context) {
             // Try again by scoping the path within the class's package
             String className = context.getName().replace('.', '/');
             int lastSlash = className.lastIndexOf('/');
             if (lastSlash >= 0) {
                 String tmpPath = className.substring(0, lastSlash + 1) + path;
-                url = getResource(tmpPath, contextCL);
+                url = Locator.getResource(tmpPath, contextCL);
                 if (url != null) {
                     path = tmpPath;
                 }
@@ -269,11 +271,11 @@ public class ShaderCode {
 
     public static ByteBuffer readShaderBinary(Class context, String path) {
         try {
-            URL url = getResource(context, path);
+            URL url = Locator.getResource(context, path);
             if (url == null) {
                 return null;
             }
-            return readAll(new BufferedInputStream(url.openStream()));
+            return StreamUtil.readAll2Buffer(new BufferedInputStream(url.openStream()));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -283,94 +285,6 @@ public class ShaderCode {
     // Internals only below this point
     //
 
-    public static URL getResource(Class context, String path) {
-        ClassLoader contextCL = (null!=context)?context.getClassLoader():null;
-        URL url = getResource(path, contextCL);
-        if (url == null && null!=context) {
-            // Try again by scoping the path within the class's package
-            String className = context.getName().replace('.', '/');
-            int lastSlash = className.lastIndexOf('/');
-            if (lastSlash >= 0) {
-                String tmpPath = className.substring(0, lastSlash + 1) + path;
-                url = getResource(tmpPath, contextCL);
-            }
-        }
-        return url;
-    }
-
-    public static URL getResource(String path, ClassLoader context) {
-        URL url = null;
-        if (context != null) {
-            url = context.getResource(path);
-        } else {
-            url = ClassLoader.getSystemResource(path);
-        }
-        if(!urlExists(url)) {
-            url = null;
-            try {
-                url = new URL(path);
-            } catch (MalformedURLException e) { }
-        }
-        if(!urlExists(url)) {
-            url = null;
-            try {
-                File file = new File(path);
-                if(file.exists()) {
-                    url = file.toURL();
-                }
-            } catch (MalformedURLException e) {}
-        }
-        return url;
-    }
-
-    private static boolean urlExists(URL url) {
-        boolean v = false;
-        if(null!=url) {
-            try {
-                URLConnection uc = url.openConnection();
-                v = true;
-            } catch (IOException ioe) { }
-        }
-        return v;
-    }
-
-    private static String makeRelative(String context, String includeFile) {
-        File file = new File(context);
-        file = file.getParentFile();
-        while (file != null && includeFile.startsWith("../")) {
-            file = file.getParentFile();
-            includeFile = includeFile.substring(3);
-        }
-        if (file != null) {
-            String res = new File(file, includeFile).getPath();
-	    // Handle things on Windows
-            return res.replace('\\', '/');
-        } else {
-            return includeFile;
-        }
-    }
-
-    private static ByteBuffer readAll(InputStream stream) throws IOException {
-        byte[] data = new byte[1024];
-        int numRead = 0;
-        int pos = 0;
-        do {
-            int avail = data.length - pos;
-            if (avail == 0) {
-                int newSize = 2 * data.length;
-                byte[] newData = new byte[newSize];
-                System.arraycopy(data, 0, newData, 0, data.length);
-                data = newData;
-                avail = data.length - pos;
-            }
-            numRead = stream.read(data, pos, avail);
-            if (numRead > 0) {
-                pos += numRead;
-            }
-        } while (numRead >= 0);
-        ByteBuffer res = BufferUtil.newByteBuffer(data, 0, pos);
-        return res;
-    }
     protected String[][] shaderSource = null;
     protected Buffer     shaderBinary = null;
     protected int        shaderBinaryFormat = -1;

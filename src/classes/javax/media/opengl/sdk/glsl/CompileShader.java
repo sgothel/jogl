@@ -2,6 +2,7 @@ package javax.media.opengl.sdk.glsl;
 
 import javax.media.opengl.glsl.*;
 import javax.media.opengl.*;
+import com.sun.opengl.util.io.Locator;
 
 import java.io.*;
 import java.net.*;
@@ -49,7 +50,7 @@ public abstract class CompileShader {
         String justName = basename(resourceName);
         outName = justName.substring(0, justName.length() - suffixLen) +
                   ShaderCode.getFileSuffix(true, type);
-        URL resourceURL = ShaderCode.getResource(null, resourceName);
+        URL resourceURL = Locator.getResource(null, resourceName);
         String dirName = dirname(resourceURL.getPath());
 
         outName = dirName + File.separator + "bin" + File.separator + 
@@ -61,7 +62,7 @@ public abstract class CompileShader {
     public void processOneShader(String resourceName, String outName, int type)
         throws IOException, UnsupportedEncodingException, InterruptedException
     {
-        URL resourceURL = ShaderCode.getResource(null, resourceName);
+        URL resourceURL = Locator.getResource(null, resourceName);
         String dirName = dirname(resourceURL.getPath());
 
         String shader = ShaderCode.readShaderSource(null, resourceName);

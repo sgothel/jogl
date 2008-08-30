@@ -813,7 +813,7 @@ public class TextureIO {
                                           String fileSuffix) throws IOException {
             if (DDS.equals(fileSuffix) ||
                 DDSImage.isDDSImage(stream)) {
-                byte[] data = StreamUtil.readAll(stream);
+                byte[] data = StreamUtil.readAll2Array(stream);
                 ByteBuffer buf = ByteBuffer.wrap(data);
                 DDSImage image = DDSImage.read(buf);
                 return newTextureData(image, internalFormat, pixelFormat, mipmap);

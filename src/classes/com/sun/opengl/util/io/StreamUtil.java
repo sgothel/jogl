@@ -39,16 +39,37 @@
 
 package com.sun.opengl.util.io;
 
+import javax.media.opengl.util.*;
+
 import java.io.*;
+import java.nio.*;
 
 /** Utilities for dealing with streams. */
 
 public class StreamUtil {
   private StreamUtil() {}
 
-  public static byte[] readAll(InputStream in) throws IOException {
-    in = new BufferedInputStream(in);
-    int avail = in.available();
+  public static byte[] readAll2Array(InputStream stream) throws IOException {
+    BytesRead bytesRead = readAll(stream);
+    byte[] data = bytesRead.data;
+    if (bytesRead.payloadLen != data.length) {
+      data = new byte[bytesRead.payloadLen];
+      System.arraycopy(bytesRead.data, 0, data, 0, bytesRead.payloadLen);
+    }
+    return data;
+  }
+
+  public static ByteBuffer readAll2Buffer(InputStream stream) throws IOException {
+        BytesRead bytesRead = readAll(stream);
+        return BufferUtil.newByteBuffer(bytesRead.data, 0, bytesRead.payloadLen);
+  }
+
+  private static BytesRead readAll(InputStream stream) throws IOException {
+    // FIXME: Shall we do this here ?
+    if( !(stream instanceof BufferedInputStream) ) {
+        stream = new BufferedInputStream(stream);
+    }
+    int avail = stream.available();
     byte[] data = new byte[avail];
     int numRead = 0;
     int pos = 0;
@@ -58,17 +79,22 @@ public class StreamUtil {
         System.arraycopy(data, 0, newData, 0, pos);
         data = newData;
       }
-      numRead = in.read(data, pos, avail);
+      numRead = stream.read(data, pos, avail);
       if (numRead >= 0) {
         pos += numRead;
       }
-      avail = in.available();
+      avail = stream.available();
     } while (avail > 0 && numRead >= 0);
-    if (pos != data.length) {
-      byte[] newData = new byte[pos];
-      System.arraycopy(data, 0, newData, 0, pos);
-      data = newData;
+
+    return new BytesRead(pos, data);
+  }
+
+  private static class BytesRead {
+    BytesRead(int payloadLen, byte[] data) {
+        this.payloadLen=payloadLen;
+        this.data=data;
     }
-    return data;
+    int payloadLen;
+    byte[] data;
   }
 }
