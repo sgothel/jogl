@@ -44,7 +44,7 @@ import java.nio.*;
 
 import javax.media.opengl.*;
 import javax.media.opengl.util.*;
-import com.sun.opengl.util.io.*;
+import com.sun.opengl.impl.io.*;
 import com.sun.opengl.util.texture.*;
 
 /** A reader and writer for DirectDraw Surface (.dds) files, which are
@@ -699,7 +699,7 @@ public class DDSImage {
         header = new Header();
         header.read(leInput);
         fixupHeader();
-        buf = ByteBuffer.wrap(StreamUtil.readAll(input));
+        buf = StreamUtil.readAll2Buffer(input);
     }
 
     private void initFromData(int d3dFormat,

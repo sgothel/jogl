@@ -50,7 +50,7 @@ public class StreamUtil {
   private StreamUtil() {}
 
   public static byte[] readAll2Array(InputStream stream) throws IOException {
-    BytesRead bytesRead = readAll(stream);
+    BytesRead bytesRead = readAllImpl(stream);
     byte[] data = bytesRead.data;
     if (bytesRead.payloadLen != data.length) {
       data = new byte[bytesRead.payloadLen];
@@ -60,11 +60,11 @@ public class StreamUtil {
   }
 
   public static ByteBuffer readAll2Buffer(InputStream stream) throws IOException {
-        BytesRead bytesRead = readAll(stream);
+        BytesRead bytesRead = readAllImpl(stream);
         return BufferUtil.newByteBuffer(bytesRead.data, 0, bytesRead.payloadLen);
   }
 
-  private static BytesRead readAll(InputStream stream) throws IOException {
+  private static BytesRead readAllImpl(InputStream stream) throws IOException {
     // FIXME: Shall we do this here ?
     if( !(stream instanceof BufferedInputStream) ) {
         stream = new BufferedInputStream(stream);

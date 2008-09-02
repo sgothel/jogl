@@ -47,7 +47,7 @@ import java.util.*;
 import javax.media.opengl.*;
 import javax.media.opengl.glu.*;
 import com.sun.opengl.impl.Debug;
-import com.sun.opengl.util.io.*;
+import com.sun.opengl.impl.io.*;
 import com.sun.opengl.util.texture.spi.*;
 
 /** <P> Provides input and output facilities for both loading OpenGL
