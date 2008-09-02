@@ -74,6 +74,7 @@ import com.sun.opengl.util.texture.*;
 public class TGAImage {
     private Header header;
     private int    format;
+    private int    bpp;
     private ByteBuffer data;
 
     private TGAImage(Header header) {
@@ -295,13 +296,6 @@ public class TGAImage {
         byte[] rawBuf = new byte[rawWidth];
         byte[] tmpData = new byte[rawWidth * header.height()];
 
-        if (header.pixelDepth() == 24) {
-            format = GL2.GL_BGR;
-        } else {
-            assert header.pixelDepth() == 32;
-            format = GL2.GL_BGRA;
-        }
-
         for (i = 0; i < header.height(); ++i) {
             dIn.readFully(rawBuf, 0, rawWidth);
 
@@ -313,7 +307,41 @@ public class TGAImage {
             System.arraycopy(rawBuf, 0, tmpData, y * rawWidth, rawBuf.length);
         }
 
+        if (header.pixelDepth() == 24) {
+            bpp=3;
+            if(GLProfile.isGL2()) {
+                format = GL2.GL_BGR;
+            } else {
+                format = GL.GL_RGB;
+                swapBGR(tmpData, rawWidth, header.height(), bpp);
+            }
+        } else {
+            assert header.pixelDepth() == 32;
+            bpp=4;
+
+            if(GLProfile.isGL2()) {
+                format = GL2.GL_BGRA;
+            } else {
+                format = GL.GL_RGBA;
+                swapBGR(tmpData, rawWidth, header.height(), bpp);
+            }
+        }
+
         data = ByteBuffer.wrap(tmpData);
+    }
+
+    private static void swapBGR(byte[] data, int bWidth, int height, int bpp) {
+        byte r,b;
+        int k;
+        for(int i=0; i<height; ++i) {
+            for(int j=0; j<bWidth; j+=bpp) {
+                k=i*bWidth+j;
+                b=data[k+0];
+                r=data[k+2];
+                data[k+0]=r;
+                data[k+2]=b;
+            }
+        }
     }
 
     /** Returns the width of the image. */
@@ -324,6 +352,9 @@ public class TGAImage {
 
     /** Returns the OpenGL format for this texture; e.g. GL.GL_BGR or GL.GL_BGRA. */
     public int getGLFormat() { return format; }
+
+    /** Returns the bytes per pixel */
+    public int getBytesPerPixel() { return bpp; }
 
     /** Returns the raw data for this texture in the correct
         (bottom-to-top) order for calls to glTexImage2D. */

@@ -1001,7 +1001,11 @@ public class TextureIO {
                     pixelFormat = image.getGLFormat();
                 }
                 if (internalFormat == 0) {
-                    internalFormat = GL.GL_RGBA8;
+                    if(GLProfile.isGL2()) {
+                        internalFormat = GL.GL_RGBA8;
+                    } else {
+                        internalFormat = (image.getBytesPerPixel()==4)?GL.GL_RGBA:GL.GL_RGB;
+                    }
                 }
                 return new TextureData(internalFormat,
                                        image.getWidth(),

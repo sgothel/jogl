@@ -319,25 +319,18 @@ public class TextureData {
         public void flush();
     }
 
+    public String toString() {
+        return "TextureData["+width+"x"+height+", internFormat "+internalFormat+", pixelFormat "+pixelFormat+", pixelType "+pixelType+", border "+border+", estSize "+estimatedMemorySize+", alignment "+alignment+", rowlen "+rowLength;
+    }
+
     //----------------------------------------------------------------------
     // Internals only below this point
     //
 
-    protected int estimatedMemorySize(Buffer buffer) {
+    protected static int estimatedMemorySize(Buffer buffer) {
         if (buffer == null) {
             return 0;
         }
-        int capacity = buffer.capacity();
-        if (buffer instanceof ByteBuffer) {
-            return capacity;
-        } else if (buffer instanceof IntBuffer) {
-            return capacity * BufferUtil.SIZEOF_INT;
-        } else if (buffer instanceof FloatBuffer) {
-            return capacity * BufferUtil.SIZEOF_FLOAT;
-        } else if (buffer instanceof ShortBuffer) {
-            return capacity * BufferUtil.SIZEOF_SHORT;
-        }
-        throw new RuntimeException("Unexpected buffer type " +
-                                   buffer.getClass().getName());
+        return buffer.capacity() * BufferUtil.sizeOfBufferElem(buffer);
     }
 }
