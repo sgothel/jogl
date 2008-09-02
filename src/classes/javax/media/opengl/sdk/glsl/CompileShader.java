@@ -2,7 +2,7 @@ package javax.media.opengl.sdk.glsl;
 
 import javax.media.opengl.glsl.*;
 import javax.media.opengl.*;
-import com.sun.opengl.util.io.Locator;
+import com.sun.opengl.impl.io.Locator;
 
 import java.io.*;
 import java.net.*;

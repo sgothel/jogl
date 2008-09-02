@@ -1,4 +1,4 @@
-package com.sun.opengl.util.io;
+package com.sun.opengl.impl.io;
 
 import javax.media.opengl.util.*;
 
