@@ -189,6 +189,23 @@ public class Texture {
         this.target = target;
     }
 
+    // Package-private constructor for creating a texture object which wraps
+    // an existing texture ID from another package
+    Texture(int textureID,
+	    int target,
+	    int texWidth,
+	    int texHeight,
+	    int imgWidth,
+	    int imgHeight,
+	    boolean mustFlipVertically) {
+	this.texID = textureID;
+	this.target = target;
+	this.mustFlipVertically = mustFlipVertically;
+	this.texWidth = texWidth;
+	this.texHeight = texHeight;
+	setImageSize(imgWidth, imgHeight, target);
+    }
+
     /**
      * Enables this texture's target (e.g., GL_TEXTURE_2D) in the
      * current GL context's state. This method is a shorthand equivalent
