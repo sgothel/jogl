@@ -709,6 +709,7 @@ public class TextureIO {
     private static List/*<TextureWriter>*/   textureWriters   = new ArrayList/*<TextureWriter>*/();
 
     static {
+        /*
         // ImageIO provider, the fall-back, must be the first one added
         try {
             // Use reflection to avoid compile-time dependencies on AWT-related classes
@@ -720,12 +721,14 @@ public class TextureIO {
                 e.printStackTrace();
             }
         }
+        */
 
         // Other special-case providers
         addTextureProvider(new DDSTextureProvider());
         addTextureProvider(new SGITextureProvider());
         addTextureProvider(new TGATextureProvider());
 
+        /*
         // ImageIO writer, the fall-back, must be the first one added
         try {
             // Use reflection to avoid compile-time dependencies on AWT-related classes
@@ -737,6 +740,7 @@ public class TextureIO {
                 e.printStackTrace();
             }
         }
+        */
 
         // Other special-case writers
         addTextureWriter(new DDSTextureWriter());

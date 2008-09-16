@@ -84,7 +84,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
     jobject window = NULL;
     BOOL isKeyDown = FALSE;
 
-#ifdef UNDER_CE
+#if defined(UNDER_CE) || _MSC_VER <= 1200
     window = (jobject) GetWindowLong(wnd, GWL_USERDATA);
 #else
     window = (jobject) GetWindowLongPtr(wnd, GWLP_USERDATA);
@@ -320,7 +320,7 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_CreateWin
 #endif
     
     if (window != NULL) {
-#ifdef UNDER_CE
+#if defined(UNDER_CE) || _MSC_VER <= 1200
         SetWindowLong(window, GWL_USERDATA, (intptr_t) (*env)->NewGlobalRef(env, obj));
 #else
         SetWindowLongPtr(window, GWLP_USERDATA, (intptr_t) (*env)->NewGlobalRef(env, obj));
