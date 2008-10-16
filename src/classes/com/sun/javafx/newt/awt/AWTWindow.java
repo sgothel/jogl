@@ -50,7 +50,7 @@ import com.sun.javafx.newt.Window;
     supporting Java SE. */
 
 public class AWTWindow extends Window {
-    private Frame frame;
+    private javax.swing.JFrame frame;
     private Canvas canvas;
     private LinkedList/*<AWTEventWrapper>*/ events = new LinkedList();
     private boolean gotDisplaySize;
@@ -61,18 +61,31 @@ public class AWTWindow extends Window {
         return false;
     }
 
+    public void setTitle(String title) {
+        super.setTitle(title);
+        if (frame != null) {
+            frame.setTitle(title);
+        }
+    }
+
     protected void createNative() {
         runOnEDT(new Runnable() {
                 public void run() {
-                    frame = new Frame("AWT NewtWindow");
+                    frame = new javax.swing.JFrame(getTitle());
+                    frame.setUndecorated(isUndecorated());
+                    if (isUndecorated()) {
+                        frame.setBackground(new java.awt.Color(0, 0, 0, 0));
+                        frame.getRootPane().putClientProperty("apple.awt.draggableWindowBackground", Boolean.FALSE);
+                    }
                     frame.setLayout(new BorderLayout());
                     canvas = new Canvas();
+                    canvas.setBackground(new java.awt.Color(0, 0, 0, 0));
                     Listener listener = new Listener();
                     canvas.addMouseListener(listener);
                     canvas.addMouseMotionListener(listener);
                     canvas.addKeyListener(listener);
                     canvas.addComponentListener(listener);
-                    frame.add(canvas, BorderLayout.CENTER);
+                    frame.getContentPane().add(canvas);//add(canvas, BorderLayout.CENTER);
                     frame.setSize(width, height);
                     frame.setLocation(x, y);
                     frame.addComponentListener(new MoveListener());

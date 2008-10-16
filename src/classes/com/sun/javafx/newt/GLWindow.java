@@ -89,23 +89,36 @@ public class GLWindow extends Window implements GLAutoDrawable {
         return create(null, null);
     }
 
+    public static GLWindow create(boolean undecorated) {
+        return create(null, null, undecorated);
+    }
+
     /** Creates a new GLWindow referring to the given window. */
     public static GLWindow create(Window window) {
         return create(window, null);
     }
+    public static GLWindow create(GLCapabilities caps) {
+        return create(caps, false);
+    }
 
     /** Creates a new GLWindow on the local display, screen 0, with a
         dummy visual ID, and with the given GLCapabilities. */
-    public static GLWindow create(GLCapabilities caps) {
-        return create(null, caps);
+    public static GLWindow create(GLCapabilities caps, boolean undecorated) {
+        return create(null, caps, undecorated);
     }
 
     /** Creates a new GLWindow referring to the given window, and with the given GLCapabilities. */
     public static GLWindow create(Window window, GLCapabilities caps) {
+        return create(window, caps, false);
+    }
+
+    public static GLWindow create(Window window, 
+                                  GLCapabilities caps,
+                                  boolean undecorated) {
         if (window == null) {
             Display display = NewtFactory.createDisplay(null); // local display
             Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
-            window = NewtFactory.createWindow(screen, 0); // dummy VisualID
+            window = NewtFactory.createWindow(screen, 0, undecorated); // dummy VisualID
         }
         if (caps == null) {
             caps = new GLCapabilities();
@@ -228,6 +241,22 @@ public class GLWindow extends Window implements GLAutoDrawable {
             drawable.setRealized(true);
             context = drawable.createContext(null);
         }
+    }
+
+    public void setTitle(String title) {
+        window.setTitle(title);
+    }
+
+    public String getTitle() {
+        return window.getTitle();
+    }
+
+    public void setUndecorated(boolean value) {
+        window.setUndecorated(value);
+    }
+
+    public boolean isUndecorated() {
+        return window.isUndecorated();
     }
 
     public void setSize(int width, int height) {

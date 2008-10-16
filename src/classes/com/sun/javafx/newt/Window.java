@@ -65,12 +65,17 @@ public abstract class Window implements NativeWindow
     }
 
     protected static Window create(String type, Screen screen, long visualID) {
+        return create(type, screen, visualID, false);
+    }
+
+    protected static Window create(String type, Screen screen, long visualID, boolean undecorated) {
         try {
             Class windowClass = getWindowClass(type);
             Window window = (Window) windowClass.newInstance();
             window.invalidate();
             window.screen   = screen;
             window.visualID = visualID;
+            window.setUndecorated(undecorated);
             window.createNative();
             return window;
         } catch (Throwable t) {
@@ -158,6 +163,27 @@ public abstract class Window implements NativeWindow
     protected boolean fullscreen, visible;
     protected int width, height, x, y;
     protected int     eventMask;
+
+    protected String title = "AWT NewtWindow";
+    protected boolean undecorated = false;
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public void setUndecorated(boolean value) {
+        undecorated = value;
+    }
+
+    public boolean isUndecorated() {
+        return undecorated;
+    }
+
+    
 
     //
     // NativeWindow impl

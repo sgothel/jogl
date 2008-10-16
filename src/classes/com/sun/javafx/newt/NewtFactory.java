@@ -106,6 +106,10 @@ public abstract class NewtFactory {
       return Window.create(getWindowType(), screen, visualID);
     }
 
+    public static Window createWindow(Screen screen, long visualID, boolean undecorated) {
+        return Window.create(getWindowType(), screen, visualID, undecorated);
+    }
+
     /**
      * Create a Window entity using the given implementation type, incl native creation
      */
