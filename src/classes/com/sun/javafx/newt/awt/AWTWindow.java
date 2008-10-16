@@ -40,9 +40,10 @@ import java.awt.EventQueue;
 import java.awt.Frame;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
+import java.lang.reflect.Method;
+import java.lang.reflect.InvocationTargetException;
 import java.awt.event.*;
 import java.util.*;
-
 import com.sun.javafx.newt.Window;
 
 /** An implementation of the Newt Window class built using the
@@ -50,7 +51,31 @@ import com.sun.javafx.newt.Window;
     supporting Java SE. */
 
 public class AWTWindow extends Window {
-    private javax.swing.JFrame frame;
+
+    static void setWindowAlpha(java.awt.Window w, float alpha) {
+        // hack for macosx only
+        Object peer = w.getPeer();
+        if (peer == null) {
+            return;
+        }
+        Class peerClass = peer.getClass();
+        
+        //noinspection EmptyCatchBlock
+        try {
+            Class nativeClass = Class.forName("apple.awt.CWindow");
+            if (nativeClass.isAssignableFrom(peerClass)) {
+                Method setAlpha = nativeClass.getMethod("setAlpha", 
+                                                        new Class[] {float.class});
+                setAlpha.invoke(peer, new Object[] { new Double(Math.max(0.0f, Math.min(alpha, 1.0f)))});
+            }
+        } catch (ClassNotFoundException e) {
+        } catch (NoSuchMethodException e) {
+        } catch (IllegalAccessException e) {
+        } catch (InvocationTargetException e) {
+        }
+    }
+
+    private Frame frame;
     private Canvas canvas;
     private LinkedList/*<AWTEventWrapper>*/ events = new LinkedList();
     private boolean gotDisplaySize;
@@ -71,21 +96,19 @@ public class AWTWindow extends Window {
     protected void createNative() {
         runOnEDT(new Runnable() {
                 public void run() {
-                    frame = new javax.swing.JFrame(getTitle());
+                    frame = new Frame(getTitle());
                     frame.setUndecorated(isUndecorated());
                     if (isUndecorated()) {
-                        frame.setBackground(new java.awt.Color(0, 0, 0, 0));
-                        frame.getRootPane().putClientProperty("apple.awt.draggableWindowBackground", Boolean.FALSE);
+                        setWindowAlpha(frame, 0);
                     }
                     frame.setLayout(new BorderLayout());
                     canvas = new Canvas();
-                    canvas.setBackground(new java.awt.Color(0, 0, 0, 0));
                     Listener listener = new Listener();
                     canvas.addMouseListener(listener);
                     canvas.addMouseMotionListener(listener);
                     canvas.addKeyListener(listener);
                     canvas.addComponentListener(listener);
-                    frame.getContentPane().add(canvas);//add(canvas, BorderLayout.CENTER);
+                    frame.add(canvas, BorderLayout.CENTER);
                     frame.setSize(width, height);
                     frame.setLocation(x, y);
                     frame.addComponentListener(new MoveListener());
