@@ -65,6 +65,7 @@ public abstract class NewtFactory {
           // would change if we were running on the iPhone and
           // didn't have an AWT
           windowType = AWT;
+          //windowType = MACOSX;
       } else {
           windowType = X11;
       }

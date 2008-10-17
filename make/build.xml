@@ -514,11 +514,11 @@
         <!-- Create the required output directories. -->
         <mkdir dir="${src.generated.java}" />
         <mkdir dir="${src.generated.c}" />
-        <mkdir dir="${src.generated.c}/OSX" />
+        <mkdir dir="${src.generated.c}/MacOSX" />
         <mkdir dir="${src.generated.c}/Windows" />
         <mkdir dir="${src.generated.c}/X11" />
         <mkdir dir="${src.generated.c.newt}" />
-        <mkdir dir="${src.generated.c.newt}/OSX" />
+        <mkdir dir="${src.generated.c.newt}/MacOSX" />
         <mkdir dir="${src.generated.c.newt}/Windows" />
         <mkdir dir="${src.generated.c.newt}/X11" />
         <mkdir dir="${classes}" />
@@ -1324,15 +1324,15 @@
         <patternset id="c.src.files.jogl.awt">
           <include name="${rootrel.src.c.jogl}/JAWT*.c"/>
           <include name="${rootrel.generated.c.jogl}/X11/JAWT*.c" if="isX11"/>
-          <include name="${rootrel.generated.c.jogl}/OSX/JAWT*.c" if="isOSX"/>
+          <include name="${rootrel.generated.c.jogl}/MacOSX/JAWT*.c" if="isOSX"/>
           <include name="${rootrel.generated.c.jogl}/Windows/JAWT*.c" if="isWindows"/>
         </patternset>
 
         <patternset id="c.src.files.newt">
           <!-- FIXME: NEWT should be moved to another library -->
           <include name="${rootrel.src.c.newt}/WindowsWindow.c" if="isWindows"/>
+          <include name="${rootrel.src.c.newt}/MacWindow.c" if="isOSX"/>
           <include name="${rootrel.src.c.newt}/X11Window.c" if="isX11"/>
-          <include name="${rootrel.src.c.newt}/OSXWindow.c" if="isOSX"/>
         </patternset>
 
         <patternset id="c.src.files.jogl.gl2">
@@ -1348,7 +1348,7 @@
           <!--include name="${rootrel.generated.c.jogl}/GLU_JNI.c"/ EMPTY -->
           <include name="${rootrel.generated.c.jogl}/gl2/GLUgl2_JNI.c"/>
           <include name="${rootrel.generated.c.jogl}/X11/GLX*.c" if="isX11"/>
-          <include name="${rootrel.generated.c.jogl}/OSX/CGL*.c" if="isOSX"/>
+          <include name="${rootrel.generated.c.jogl}/MacOSX/CGL*.c" if="isOSX"/>
           <include name="${rootrel.generated.c.jogl}/Windows/WGL*.c" if="isWindows"/>
           <!-- FIXME: the Mixer should be moved to another library -->
           <!--include name="${rootrel.src.c.jogl}/Mixer.cpp" if="isWindows"/-->
@@ -1367,7 +1367,7 @@
           <!--include name="${rootrel.generated.c.jogl}/GLU_JNI.c"/ EMPTY -->
           <!--include name="${rootrel.generated.c.jogl}/gl2es12/GLUgl2es12_JNI.c"/ SKIPPED -->
           <include name="${rootrel.generated.c.jogl}/X11/GLX*.c" if="isX11"/>
-          <include name="${rootrel.generated.c.jogl}/OSX/CGL*.c" if="isOSX"/>
+          <include name="${rootrel.generated.c.jogl}/MacOSX/CGL*.c" if="isOSX"/>
           <include name="${rootrel.generated.c.jogl}/Windows/WGL*.c" if="isWindows"/>
           <!-- FIXME: the Mixer should be moved to another library -->
           <!--include name="${rootrel.src.c.jogl}/Mixer.cpp" if="isWindows"/-->
@@ -1432,11 +1432,11 @@
             <!-- This is for the generated headers for handwritten C code -->
             <includepath path="${src.generated.c}" />
             <includepath path="${src.generated.c}/X11" if="isX11"/>
-            <includepath path="${src.generated.c}/OSX" if="isOSX"/>
+            <includepath path="${src.generated.c}/MacOSX" if="isOSX"/>
             <includepath path="${src.generated.c}/Windows" if="isWindows"/>
             <includepath path="${src.generated.c.newt}" />
             <includepath path="${src.generated.c.newt}/X11" if="isX11"/>
-            <includepath path="${src.generated.c.newt}/OSX" if="isOSX"/>
+            <includepath path="${src.generated.c.newt}/MacOSX" if="isOSX"/>
             <includepath path="${src.generated.c.newt}/Windows" if="isWindows"/>
   
             <!-- This must come last to not override real include paths -->
@@ -1482,6 +1482,7 @@
     <target name="c.build.newt.prepare">
       <!-- FIXME: this is temporary until we move this to another workspace -->
       <javah destdir="../build/gensrc/native/newt/Windows" classpath="${jogl.all.jar}" class="com.sun.javafx.newt.windows.WindowsWindow" />
+      <javah destdir="../build/gensrc/native/newt/MacOSX" classpath="${jogl.all.jar}" class="com.sun.javafx.newt.macosx.MacWindow" />
       <javah destdir="../build/gensrc/native/newt/X11" classpath="${jogl.all.jar}" class="com.sun.javafx.newt.x11.X11Window" />
     </target>
 
@@ -1502,8 +1503,7 @@
                linker.cfg.id="${linker.cfg.id.oswin}"/>
     </target>
 
-    <!-- There is no native newt library on OS X -->
-    <target name="c.build.newt" unless="isOSX">
+    <target name="c.build.newt">
       <c.build c.compiler.src.files="c.src.files.newt"
                output.lib.name="newt"
                compiler.cfg.id="${compiler.cfg.id}"

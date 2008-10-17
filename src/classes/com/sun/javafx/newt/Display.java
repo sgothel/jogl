@@ -43,6 +43,8 @@ public abstract class Display {
             displayClass = Class.forName("com.sun.javafx.newt.kd.KDDisplay");
         } else if (NewtFactory.WINDOWS.equals(type)) {
             displayClass = Class.forName("com.sun.javafx.newt.windows.WindowsDisplay");
+        } else if (NewtFactory.MACOSX.equals(type)) {
+            displayClass = Class.forName("com.sun.javafx.newt.macosx.MacDisplay");
         } else if (NewtFactory.X11.equals(type)) {
             displayClass = Class.forName("com.sun.javafx.newt.x11.X11Display");
         } else if (NewtFactory.AWT.equals(type)) {
