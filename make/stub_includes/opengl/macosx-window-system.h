@@ -21,6 +21,7 @@ Bool  makeCurrentContext(void* nsContext);
 Bool  clearCurrentContext(void* nsContext);
 Bool  deleteContext(void* nsContext);
 Bool  flushBuffer(void* nsContext);
+void  setCurrentContextOpacity(void* context, int opacity);
 void  updateContext(void* nsContext);
 void  copyContext(void* destContext, void* srcContext, int mask);
 

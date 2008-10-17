@@ -559,6 +559,12 @@ Bool flushBuffer(void* context) {
   return true;
 }
 
+void setCurrentContextOpacity(void* context, int opacity) {
+  NSOpenGLContext *nsContext = (NSOpenGLContext*)context;
+  
+  [nsContext setValues:&opacity forParameter:NSOpenGLCPSurfaceOpacity];
+}
+
 void updateContext(void* context) {
   NSOpenGLContext *nsContext = (NSOpenGLContext*)context;
 	
