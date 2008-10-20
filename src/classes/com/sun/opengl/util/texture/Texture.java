@@ -437,10 +437,12 @@ public class Texture {
         data.setHaveEXTABGR(gl.isExtensionAvailable("GL_EXT_abgr"));
         data.setHaveGL12(gl.isExtensionAvailable("GL_VERSION_1_2"));
 
+        // Indicates whether both width and height are power of two
+        boolean isPOT = isPowerOfTwo(imgWidth) && isPowerOfTwo(imgHeight);
+
         // Note that automatic mipmap generation doesn't work for
         // GL_ARB_texture_rectangle
-        if ((!isPowerOfTwo(imgWidth) || !isPowerOfTwo(imgHeight)) &&
-            !haveNPOT(gl)) {
+        if (!isPOT && !haveNPOT(gl)) {
             haveAutoMipmapGeneration = false;
         }
 
@@ -459,7 +461,7 @@ public class Texture {
             done = true;
         }
 
-        if (!done && preferTexRect(gl) &&
+        if (!done && preferTexRect(gl) && !isPOT &&
             haveTexRect(gl) && !data.isDataCompressed() && gl.isGL2()) {
             // GL_ARB_texture_rectangle does not work for compressed textures
             if (DEBUG) {
@@ -472,10 +474,9 @@ public class Texture {
             done = true;
         }
 
-        if (!done && ((isPowerOfTwo(imgWidth) && isPowerOfTwo(imgHeight)) ||
-                      haveNPOT(gl))) {
+        if (!done && (isPOT || haveNPOT(gl))) {
             if (DEBUG) {
-                if (isPowerOfTwo(imgWidth) && isPowerOfTwo(imgHeight)) {
+                if (isPOT) {
                     System.err.println("Power-of-two texture");
                 } else {
                     System.err.println("Using GL_ARB_texture_non_power_of_two");
