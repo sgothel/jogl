@@ -468,7 +468,7 @@ public class Texture {
             texWidth = imgWidth;
             texHeight = imgHeight;
             texTarget = GL.GL_TEXTURE_2D;
-        } else if (haveTexRect(gl) && !data.isDataCompressed() && !gl.isGL2()) {
+        } else if (haveTexRect(gl) && !data.isDataCompressed() && gl.isGL2()) {
             // GL_ARB_texture_rectangle does not work for compressed textures
             if (DEBUG) {
                 System.err.println("Using GL_ARB_texture_rectangle");
