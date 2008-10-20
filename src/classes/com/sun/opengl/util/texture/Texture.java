@@ -445,6 +445,7 @@ public class Texture {
         }
 
         boolean expandingCompressedTexture = false;
+        boolean done = false;
         if (data.getMipmap() && !haveAutoMipmapGeneration) {
             // GLU always scales the texture's dimensions to be powers of
             // two. It also doesn't really matter exactly what the texture
@@ -455,8 +456,24 @@ public class Texture {
             texWidth = imgWidth;
             texHeight = imgHeight;
             texTarget = GL.GL_TEXTURE_2D;
-        } else if ((isPowerOfTwo(imgWidth) && isPowerOfTwo(imgHeight)) ||
-                   haveNPOT(gl)) {
+            done = true;
+        }
+
+        if (!done && preferTexRect(gl) &&
+            haveTexRect(gl) && !data.isDataCompressed() && gl.isGL2()) {
+            // GL_ARB_texture_rectangle does not work for compressed textures
+            if (DEBUG) {
+                System.err.println("Using GL_ARB_texture_rectangle preferentially on this hardware");
+            }
+
+            texWidth = imgWidth;
+            texHeight = imgHeight;
+            texTarget = GL2.GL_TEXTURE_RECTANGLE;
+            done = true;
+        }
+
+        if (!done && ((isPowerOfTwo(imgWidth) && isPowerOfTwo(imgHeight)) ||
+                      haveNPOT(gl))) {
             if (DEBUG) {
                 if (isPowerOfTwo(imgWidth) && isPowerOfTwo(imgHeight)) {
                     System.err.println("Power-of-two texture");
@@ -468,7 +485,10 @@ public class Texture {
             texWidth = imgWidth;
             texHeight = imgHeight;
             texTarget = GL.GL_TEXTURE_2D;
-        } else if (haveTexRect(gl) && !data.isDataCompressed() && gl.isGL2()) {
+            done = true;
+        }
+
+        if (!done && haveTexRect(gl) && !data.isDataCompressed() && gl.isGL2()) {
             // GL_ARB_texture_rectangle does not work for compressed textures
             if (DEBUG) {
                 System.err.println("Using GL_ARB_texture_rectangle");
@@ -477,7 +497,10 @@ public class Texture {
             texWidth = imgWidth;
             texHeight = imgHeight;
             texTarget = GL2.GL_TEXTURE_RECTANGLE;
-        } else {
+            done = true;
+        }
+
+        if (!done) {
             // If we receive non-power-of-two compressed texture data and
             // don't have true hardware support for compressed textures, we
             // can fake this support by producing an empty "compressed"
@@ -1046,5 +1069,20 @@ public class Texture {
         return (!disableTexRect &&
                 TextureIO.isTexRectEnabled() &&
                 gl.isExtensionAvailable("GL_ARB_texture_rectangle"));
+    }
+
+    private static boolean preferTexRect(GL gl) {
+        // Prefer GL_ARB_texture_rectangle on ATI hardware on Mac OS X
+        // due to software fallbacks
+
+        String osName = System.getProperty("os.name").toLowerCase();
+        if (osName.startsWith("mac os x")) {
+            String vendor = gl.glGetString(GL.GL_VENDOR);
+            if (vendor != null && vendor.startsWith("ATI")) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
