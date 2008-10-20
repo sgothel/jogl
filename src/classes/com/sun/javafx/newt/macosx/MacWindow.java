@@ -52,11 +52,9 @@ public class MacWindow extends Window {
     }
     
     protected final void createNative() {
-        handle = 0;
     }
 
     protected final void closeNative() {
-    
     }
     
     public long getSurfaceHandle() {
