@@ -44,6 +44,7 @@ import java.util.*;
 import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
 import com.sun.opengl.impl.x11.*;
+import com.sun.gluegen.runtime.ProcAddressTable;
 
 public abstract class X11GLXContext extends GLContextImpl {
   protected X11GLXDrawable drawable;
@@ -68,6 +69,14 @@ public abstract class X11GLXContext extends GLContextImpl {
     this.drawable = drawable;
   }
   
+  public final ProcAddressTable getPlatformExtProcAddressTable() {
+    return getGLXExtProcAddressTable();
+  }
+
+  public final GLXExtProcAddressTable getGLXExtProcAddressTable() {
+    return glXExtProcAddressTable;
+  }
+
   public Object getPlatformGLExtensions() {
     return getGLXExt();
   }
@@ -233,10 +242,6 @@ public abstract class X11GLXContext extends GLContextImpl {
     resetProcAddressTable(getGLXExtProcAddressTable());
   }
   
-  public final GLXExtProcAddressTable getGLXExtProcAddressTable() {
-    return glXExtProcAddressTable;
-  }
-
   public synchronized String getPlatformExtensionsString() {
     if (!glXQueryExtensionsStringInitialized) {
       glXQueryExtensionsStringAvailable =
@@ -247,7 +252,7 @@ public abstract class X11GLXContext extends GLContextImpl {
       GLDrawableFactory factory = getGLDrawable().getFactory();
       boolean wasLocked = factory.isToolkitLocked();
       if(!wasLocked) {
-          getGLDrawable().getFactory().lockToolkit();
+          factory.lockToolkit();
       }
       try {
         String ret = GLX.glXQueryExtensionsString(drawable.getNativeWindow().getDisplayHandle(), 
@@ -258,7 +263,7 @@ public abstract class X11GLXContext extends GLContextImpl {
         return ret;
       } finally {
         if(!wasLocked) {
-            getGLDrawable().getFactory().unlockToolkit();
+            factory.unlockToolkit();
         }
       }
     } else {
@@ -266,6 +271,9 @@ public abstract class X11GLXContext extends GLContextImpl {
     }
   }
 
+  /**
+   * using dynamic ProcAddressTable verification always
+   *
   public boolean isFunctionAvailable(String glFunctionName)
   {
     boolean available = super.isFunctionAvailable(glFunctionName);
@@ -280,7 +288,7 @@ public abstract class X11GLXContext extends GLContextImpl {
            );
 
     return available;
-  }
+  }*/
   
   public boolean isExtensionAvailable(String glExtensionName) {
     if (glExtensionName.equals("GL_ARB_pbuffer") ||

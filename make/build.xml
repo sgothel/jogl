@@ -491,6 +491,7 @@
     <target name="declare.gl.gles" unless="jogl.noes" depends="declare.gl.gles1, declare.gl.gles2">
         <!-- Prepare to build the EGL interface -->
         <property name="window.es.cfg"                             value="${config}/egl.cfg" />
+        <property name="window.es.ext.cfg"                         value="${config}/eglext.cfg" />
         <property name="window.es.system"                          value="gluegen_egl"/>
     </target>
 
@@ -745,6 +746,17 @@
         </gluegen>
     </target>
 
+    <target name="java.generate.window.system.es.ext" if="window.es.ext.cfg" unless="jogl.noes">
+        <echo message="Generating EGLExt implementation class" />
+        <dirset id="stub.includes.fileset.platform" dir="." includes="${stub.includes.dir}/${window.es.system}/**" />
+        <gluegen src="${stub.includes.dir}/${window.es.system}/window-system-ext.c"
+                 config="${window.es.ext.cfg}"
+                 includeRefid="stub.includes.fileset.platform"
+                 emitter="com.sun.gluegen.opengl.GLEmitter">
+            <classpath refid="gluegen.classpath" />
+        </gluegen>
+    </target>
+
     <target name="java.generate.window.system.os" if="window.os.cfg" unless="jogl.nogl2">
         <echo message="Generating WGL/GLX/CGL/EGL implementation class" />
         <gluegen src="${stub.includes.dir}/${window.os.system}/window-system.c"
@@ -843,7 +855,8 @@
         <antcall target="java.generate.gl.all"      inheritRefs="true" />
         <!--antcall target="java.generate.gl.nsig" inheritRefs="true" /-->
 
-        <antcall target="java.generate.window.system.es" inheritRefs="true" />
+        <antcall target="java.generate.window.system.es"     inheritRefs="true" />
+        <antcall target="java.generate.window.system.es.ext" inheritRefs="true" />
 
         <echo message="Generating platform-specifics: X11" />
         <antcall target="java.generate.gl.platforms" inheritRefs="true">
@@ -876,13 +889,6 @@
           <param name="jawt.platform.header"                 value="${stub.includes.dir}/jni/macosx/jawt_md.h" />
         </antcall>
     
-        <echo message="Generating StaticGLInfo class" />
-        <staticglgen package="com.sun.opengl.impl"
-                     headers="${gl2.headers} ${gles1.headers} ${gles2.headers}"
-                     outputdir="${src.generated.java}/com/sun/opengl/impl">
-            <classpath refid="gluegen.classpath" />
-        </staticglgen>
-
         <!-- Generate GLU class -->
         <antcall target="java.generate.glu.base"   inheritrefs="true" />
         <antcall target="java.generate.glu.GL2ES1" inheritrefs="true" />

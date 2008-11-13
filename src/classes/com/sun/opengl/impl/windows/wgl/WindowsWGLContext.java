@@ -43,6 +43,7 @@ import java.nio.*;
 import java.util.*;
 import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
+import com.sun.gluegen.runtime.ProcAddressTable;
 
 public class WindowsWGLContext extends GLContextImpl {
   protected WindowsWGLDrawable drawable;
@@ -82,6 +83,14 @@ public class WindowsWGLContext extends GLContextImpl {
       wglExt = new WGLExtImpl(this);
     }
     return wglExt;
+  }
+
+  public final ProcAddressTable getPlatformExtProcAddressTable() {
+    return getWGLExtProcAddressTable();
+  }
+
+  public final WGLExtProcAddressTable getWGLExtProcAddressTable() {
+    return wglExtProcAddressTable;
   }
 
   public GLDrawable getGLDrawable() {
@@ -223,10 +232,6 @@ public class WindowsWGLContext extends GLContextImpl {
       wglExtProcAddressTable = new WGLExtProcAddressTable();
     }          
     resetProcAddressTable(getWGLExtProcAddressTable());
-  }
-  
-  public final WGLExtProcAddressTable getWGLExtProcAddressTable() {
-    return wglExtProcAddressTable;
   }
   
   public String getPlatformExtensionsString() {

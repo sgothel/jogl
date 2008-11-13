@@ -43,6 +43,7 @@ import java.nio.*;
 import java.util.*;
 import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
+import com.sun.gluegen.runtime.ProcAddressTable;
 
 public abstract class MacOSXCGLContext extends GLContextImpl
 {	
@@ -69,6 +70,14 @@ public abstract class MacOSXCGLContext extends GLContextImpl
       cglExt = new CGLExtImpl(this);
     }
     return cglExt;
+  }
+
+  public final ProcAddressTable getPlatformExtProcAddressTable() {
+    return getCGLExtProcAddressTable();
+  }
+
+  public final CGLExtProcAddressTable getCGLExtProcAddressTable() {
+    return cglExtProcAddressTable;
   }
 
   public GLDrawable getGLDrawable() {
@@ -309,10 +318,6 @@ public abstract class MacOSXCGLContext extends GLContextImpl
     resetProcAddressTable(getCGLExtProcAddressTable());
   }
 	
-  public final CGLExtProcAddressTable getCGLExtProcAddressTable() {
-    return cglExtProcAddressTable;
-  }
-
   public String getPlatformExtensionsString()
   {
     return "";

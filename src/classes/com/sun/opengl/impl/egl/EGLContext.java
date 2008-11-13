@@ -37,19 +37,54 @@ package com.sun.opengl.impl.egl;
 
 import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
+import com.sun.gluegen.runtime.ProcAddressTable;
 import java.nio.*;
+import java.util.*;
 
 public class EGLContext extends GLContextImpl {
     private EGLDrawable drawable;
     private long context;
+    private boolean eglQueryStringInitialized;
+    private boolean eglQueryStringAvailable;
+    private EGLExt eglExt;
+    // Table that holds the addresses of the native C-language entry points for
+    // EGL extension functions.
+    private EGLExtProcAddressTable eglExtProcAddressTable;
 
     public EGLContext(EGLDrawable drawable, GLContext shareWith) {
         super(shareWith);
         this.drawable = drawable;
     }
 
+    public Object getPlatformGLExtensions() {
+      return getEGLExt();
+    }
+
+    public EGLExt getEGLExt() {
+      if (eglExt == null) {
+        eglExt = new EGLExtImpl(this);
+      }
+      return eglExt;
+    }
+
+    public final ProcAddressTable getPlatformExtProcAddressTable() {
+        return eglExtProcAddressTable;
+    }
+
+    public final EGLExtProcAddressTable getEGLExtProcAddressTable() {
+        return eglExtProcAddressTable;
+    }
+
     public GLDrawable getGLDrawable() {
         return drawable;
+    }
+
+    protected String mapToRealGLFunctionName(String glFunctionName) {
+        return glFunctionName;
+    }
+
+    protected String mapToRealGLExtensionName(String glExtensionName) {
+        return glExtensionName;
     }
 
     public long getContext() {
@@ -146,13 +181,13 @@ public class EGLContext extends GLContextImpl {
 
     protected void create() throws GLException {
         long display = drawable.getDisplay();
-        _EGLConfig config = drawable.getConfig();
+        long config = drawable.getConfig();
         long shareWith = 0;
 
         if (display == 0) {
             throw new GLException("Error: attempted to create an OpenGL context without a display connection");
         }
-        if (config == null) {
+        if (config == 0) {
             throw new GLException("Error: attempted to create an OpenGL context without a graphics configuration");
         }
         EGLContext other = (EGLContext) GLContextShareSet.getShareContext(this);
@@ -189,13 +224,51 @@ public class EGLContext extends GLContextImpl {
         return (context != 0);
     }
 
+    protected void resetGLFunctionAvailability() {
+        super.resetGLFunctionAvailability();
+        if (DEBUG) {
+          System.err.println(getThreadName() + ": !!! Initializing EGL extension address table");
+        }
+        if (eglExtProcAddressTable == null) {
+          // FIXME: cache ProcAddressTables by capability bits so we can
+          // share them among contexts with the same capabilities
+          eglExtProcAddressTable = new EGLExtProcAddressTable();
+        }          
+        resetProcAddressTable(getEGLExtProcAddressTable());
+    }
+  
+    public synchronized String getPlatformExtensionsString() {
+        if (!eglQueryStringInitialized) {
+          eglQueryStringAvailable =
+            ((GLDrawableFactoryImpl)getGLDrawable().getFactory()).dynamicLookupFunction("eglQueryString") != 0;
+          eglQueryStringInitialized = true;
+        }
+        if (eglQueryStringAvailable) {
+          GLDrawableFactory factory = getGLDrawable().getFactory();
+          boolean wasLocked = factory.isToolkitLocked();
+          if(!wasLocked) {
+              factory.lockToolkit();
+          }
+          try {
+            String ret = EGL.eglQueryString(drawable.getNativeWindow().getDisplayHandle(), 
+                                            EGL.EGL_EXTENSIONS);
+            if (DEBUG) {
+              System.err.println("!!! EGL extensions: " + ret);
+            }
+            return ret;
+          } finally {
+            if(!wasLocked) {
+                factory.unlockToolkit();
+            }
+          }
+        } else {
+          return "";
+        }
+    }
+
     //----------------------------------------------------------------------
     // Currently unimplemented stuff
     //
-
-    public Object getPlatformGLExtensions() {
-        return null;
-    }
 
     public void copy(GLContext source, int mask) throws GLUnsupportedException {
         throw new GLUnsupportedException("Not yet implemented");
@@ -211,18 +284,6 @@ public class EGLContext extends GLContextImpl {
 
     public ByteBuffer glAllocateMemoryNV(int arg0, float arg1, float arg2, float arg3) {
         throw new GLException("Should not call this");
-    }
-
-    protected String mapToRealGLFunctionName(String glFunctionName) {
-        return glFunctionName;
-    }
-
-    protected String mapToRealGLExtensionName(String glExtensionName) {
-        return glExtensionName;
-    }
-
-    public String getPlatformExtensionsString() {
-        return "";
     }
 
     public boolean offscreenImageNeedsVerticalFlip() {

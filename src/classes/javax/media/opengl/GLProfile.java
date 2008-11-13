@@ -123,23 +123,26 @@ public class GLProfile {
 
   /**
    * Selects a profile, implementing the interface GL2ES1.
+   * Order: GL2, GL2ES12, GLES1
    */
   public static synchronized final void setProfileGL2ES1() {
-    setProfile(new String[] { GLES1, GL2ES12, GL2 });
+    setProfile(new String[] { GL2, GL2ES12, GLES1 });
   }
 
   /**
    * Selects a profile, implementing the interface GL2ES2.
+   * Order: GL2, GL2ES12, GLES2
    */
   public static synchronized final void setProfileGL2ES2() {
-    setProfile(new String[] { GLES2, GL2ES12, GL2 });
+    setProfile(new String[] { GL2, GL2ES12, GLES2 });
   }
 
   /**
    * Selects a profile, implementing the interface GL
+   * Order: GL2, GL2ES12, GLES2, GLES1
    */
   public static synchronized final void setProfileGLAny() {
-    setProfile(new String[] { GLES2, GLES1, GL2ES12, GL2 });
+    setProfile(new String[] { GL2, GL2ES12, GLES2, GLES1 });
   }
 
   public static final String getProfile() {

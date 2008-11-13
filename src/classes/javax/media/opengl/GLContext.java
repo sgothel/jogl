@@ -194,6 +194,12 @@ public abstract class GLContext {
            " Factory: "+ getGLDrawable().getFactory().getClass().getName()+")";
   }
 
+  /** Returns a non-null (but possibly empty) string containing the
+      space-separated list of available platform-dependent (e.g., WGL,
+      GLX) extensions. Can only be called while this context is
+      current. */
+  public abstract String getPlatformExtensionsString();
+
   /**
    * Mapping fixed function (client) array indices to 
    * GLSL array attribute names.
