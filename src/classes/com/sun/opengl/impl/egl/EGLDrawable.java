@@ -42,7 +42,7 @@ import javax.media.opengl.*;
 public class EGLDrawable extends GLDrawableImpl {
     private GLCapabilitiesChooser chooser;
     private long display;
-    private long config;
+    private _EGLConfig config;
     private long surface;
     private int[] tmp = new int[1];
 
@@ -63,11 +63,11 @@ public class EGLDrawable extends GLDrawableImpl {
             throw new GLException("eglInitialize failed");
         }
         int[] attrs = factory.glCapabilities2AttribList(capabilities);
-        long[] configs = new long[1];
+        _EGLConfig[] configs = new _EGLConfig[1];
         int[] numConfigs = new int[1];
         if (!EGL.eglChooseConfig(display,
                                  attrs, 0,
-                                 configs, 0, 1,
+                                 configs, 1,
                                  numConfigs, 0)) {
             throw new GLException("Graphics configuration selection (eglChooseConfig) failed");
         }
@@ -90,7 +90,7 @@ public class EGLDrawable extends GLDrawableImpl {
         super.destroy();
     }
 
-    public long getConfig() {
+    public _EGLConfig getConfig() {
         return config;
     }
 

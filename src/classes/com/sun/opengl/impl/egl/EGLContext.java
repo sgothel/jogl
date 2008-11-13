@@ -181,13 +181,13 @@ public class EGLContext extends GLContextImpl {
 
     protected void create() throws GLException {
         long display = drawable.getDisplay();
-        long config = drawable.getConfig();
+        _EGLConfig config = drawable.getConfig();
         long shareWith = 0;
 
         if (display == 0) {
             throw new GLException("Error: attempted to create an OpenGL context without a display connection");
         }
-        if (config == 0) {
+        if (config == null) {
             throw new GLException("Error: attempted to create an OpenGL context without a graphics configuration");
         }
         EGLContext other = (EGLContext) GLContextShareSet.getShareContext(this);
