@@ -71,9 +71,11 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
 
         if (GLProfile.isGLES2()) {
             // Unix
+            glesLibNames.add("libGLES20");
             glesLibNames.add("libGLESv2");
             glesLibNames.add("libGLESv2_CM");
             // Windows
+            glesLibNames.add("GLES20");
             glesLibNames.add("GLESv2");
             glesLibNames.add("GLESv2_CM");
         } else if (GLProfile.isGLES1()) {
@@ -161,11 +163,8 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     public void loadGLULibrary() {
     }
 
-    public long dynamicLookupFunction(String glFuncName) {
+    private long dynamicLookupFunctionOnLibs(String glFuncName) {
         // Look up this function name in all known libraries
-        // 
-        // Note that we aren't using eglGetProcAddress; maybe we
-        // should once it's bootstrapped (FIXME)
         for (Iterator iter = glesLibraries.iterator(); iter.hasNext(); ) {
             NativeLibrary lib = (NativeLibrary) iter.next();
             long addr = lib.lookupFunction(glFuncName);
@@ -175,6 +174,32 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         }
 
         return 0;
+    }
+
+    private long eglGetProcAddressHandle = 0;
+
+    public long dynamicLookupFunction(String glFuncName) {
+        if(null==glFuncName) {
+            return 0;
+        }
+
+        // bootstrap eglGetProcAddress
+        if(0==eglGetProcAddressHandle) {
+            eglGetProcAddressHandle = dynamicLookupFunctionOnLibs("eglGetProcAddress");
+            if(0==eglGetProcAddressHandle) {
+                throw new GLException("Couldn't find eglGetProcAddress function entry");
+            }
+        }
+
+        if(glFuncName.equals("eglGetProcAddress")) {
+            return eglGetProcAddressHandle;
+        }
+
+        long addr = EGL.eglGetProcAddress(eglGetProcAddressHandle, glFuncName);
+        if(0==addr) {
+            addr = dynamicLookupFunctionOnLibs(glFuncName);
+        }
+        return addr;
     }
 
     public boolean canCreateContextOnJava2DSurface() {

@@ -334,18 +334,26 @@ public abstract class GLContextImpl extends GLContext {
    */
   public boolean isFunctionAvailable(String glFunctionName) {
     if(isCreated()) {
+        // Check GL 1st (cached)
         ProcAddressTable pTable = getGLProcAddressTable();
         try {
             if(0!=pTable.getAddressFor(glFunctionName)) {
                 return true;
             }
         } catch (Exception e) {}
+
+        // Check platform extensions 2nd (cached)
         pTable = getPlatformExtProcAddressTable();
         try {
             if(0!=pTable.getAddressFor(glFunctionName)) {
                 return true;
             }
         } catch (Exception e) {}
+    }
+    // dynamic function lookup at last (not cached)
+    GLDrawableFactoryImpl factoryImpl = (GLDrawableFactoryImpl)getGLDrawable().getFactory();
+    if(0!=factoryImpl.dynamicLookupFunction(glFunctionName)) {
+        return true;
     }
     return false;
   }
