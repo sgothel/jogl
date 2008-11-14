@@ -350,9 +350,18 @@ public abstract class GLContextImpl extends GLContext {
             }
         } catch (Exception e) {}
     }
-    // dynamic function lookup at last (not cached)
+    // dynamic function lookup at last incl name aliasing (not cached)
     GLDrawableFactoryImpl factoryImpl = (GLDrawableFactoryImpl)getGLDrawable().getFactory();
-    if(0!=factoryImpl.dynamicLookupFunction(glFunctionName)) {
+    String tmpBase = com.sun.gluegen.runtime.opengl.GLExtensionNames.normalizeVEN(com.sun.gluegen.runtime.opengl.GLExtensionNames.normalizeARB(glFunctionName, true), true);
+    long addr = 0;
+    int  variants = com.sun.gluegen.runtime.opengl.GLExtensionNames.getFuncNamePermutationNumber(tmpBase);
+    for(int i = 0; 0==addr && i < variants; i++) {
+        String tmp = com.sun.gluegen.runtime.opengl.GLExtensionNames.getFuncNamePermutation(tmpBase, i);
+        try {
+            addr = factoryImpl.dynamicLookupFunction(tmp);
+        } catch (Exception e) { }
+    }
+    if(0!=addr) {
         return true;
     }
     return false;
