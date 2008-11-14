@@ -492,7 +492,7 @@
         <!-- Prepare to build the EGL interface -->
         <property name="window.es.cfg"                             value="${config}/egl.cfg" />
         <property name="window.es.ext.cfg"                         value="${config}/eglext.cfg" />
-        <property name="window.es.system"                          value="gluegen_egl"/>
+        <property name="window.es.system"                          value="egl"/>
     </target>
 
     <target name="declare.gl.gl2" unless="jogl.nogl2">
@@ -737,7 +737,7 @@
 
     <target name="java.generate.window.system.es" if="window.es.cfg" unless="jogl.noes">
         <echo message="Generating EGL implementation class" />
-        <dirset id="stub.includes.fileset.platform" dir="." includes="${stub.includes.dir}/${window.es.system}/**" />
+        <dirset id="stub.includes.fileset.platform" dir="." includes="${stub.includes.dir}/${window.es.system}/** ${stub.includes.dir}/common/**" />
         <gluegen src="${stub.includes.dir}/${window.es.system}/window-system.c"
                  config="${window.es.cfg}"
                  includeRefid="stub.includes.fileset.platform"
@@ -748,7 +748,7 @@
 
     <target name="java.generate.window.system.es.ext" if="window.es.ext.cfg" unless="jogl.noes">
         <echo message="Generating EGLExt implementation class" />
-        <dirset id="stub.includes.fileset.platform" dir="." includes="${stub.includes.dir}/${window.es.system}/**" />
+        <dirset id="stub.includes.fileset.platform" dir="." includes="${stub.includes.dir}/${window.es.system}/** ${stub.includes.dir}/common/**" />
         <gluegen src="${stub.includes.dir}/${window.es.system}/window-system-ext.c"
                  config="${window.es.ext.cfg}"
                  includeRefid="stub.includes.fileset.platform"

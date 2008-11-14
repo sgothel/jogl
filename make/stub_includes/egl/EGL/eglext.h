@@ -29,7 +29,7 @@ extern "C" {
 */
 
 /*
- * Copyright (c) 2007 NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2008 NVIDIA Corporation.  All rights reserved.
  *
  * NVIDIA Corporation and its licensors retain all intellectual property
  * and proprietary rights in and to this software, related documentation
@@ -145,6 +145,7 @@ typedef EGLBoolean (EGLAPIENTRYP PFNEGLDESTROYIMAGEKHRPROC) (EGLDisplay dpy, EGL
 /* eglCreateImageKHR target and eglCreatePbufferFromClientBuffer buftype */
 
 /* EGL_NV_perfmon */
+#if 0
 #ifndef EGL_NV_perfmon
 #define EGL_NV_perfmon 1
 #define EGL_PERFMONITOR_HARDWARE_COUNTERS_BIT_NV    0x00000001
@@ -162,9 +163,58 @@ typedef EGLBoolean (EGLAPIENTRYP PFNEGLDESTROYIMAGEKHRPROC) (EGLDisplay dpy, EGL
 #define EGL_NO_PERFMONITOR_NV ((EGLPerfMonitorNV)0)
 #define EGL_DEFAULT_PERFMARKER_NV ((EGLPerfMarkerNV)0)
 typedef void *EGLPerfMonitorNV;
-typedef void *EGLPerfCounterNV;
 typedef void *EGLPerfMarkerNV;
+#ifdef USE_GLUEGEN
+    /* GlueGen currently needs this form of typedef to produce distinct
+       types for each of these pointer types */
+    typedef struct {} _EGLPerfCounterNV, *EGLPerfCounterNV;
+#else
+    typedef void *EGLPerfCounterNV;
 #endif
+#ifdef EGL_EGLEXT_PROTOTYPES
+EGLAPI EGLPerfMonitorNV EGLAPIENTRY eglCreatePerfMonitorNV(EGLDisplay dpy, EGLint mask);
+EGLAPI EGLBoolean EGLAPIENTRY eglDestroyPerfMonitorNV(EGLDisplay dpy, EGLPerfMonitorNV monitor);
+EGLAPI EGLBoolean EGLAPIENTRY eglMakeCurrentPerfMonitorNV(EGLPerfMonitorNV monitor);
+EGLAPI EGLPerfMonitorNV EGLAPIENTRY eglGetCurrentPerfMonitorNV(void);
+EGLAPI EGLBoolean EGLAPIENTRY eglGetPerfCountersNV(EGLPerfMonitorNV monitor, EGLPerfCounterNV *counters, EGLint counter_size, EGLint *num_counter);
+EGLAPI EGLBoolean EGLAPIENTRY eglGetPerfCounterAttribNV(EGLPerfMonitorNV monitor, EGLPerfCounterNV counter, EGLint pname, EGLint *value);
+EGLAPI const char * EGLAPIENTRY eglQueryPerfCounterStringNV(EGLPerfMonitorNV monitor, EGLPerfCounterNV counter, EGLint pname);
+EGLAPI EGLBoolean EGLAPIENTRY eglPerfMonitorAddCountersNV(EGLint n, const EGLPerfCounterNV *counters);
+EGLAPI EGLBoolean EGLAPIENTRY eglPerfMonitorRemoveCountersNV(EGLint n, const EGLPerfCounterNV *counters);
+EGLAPI EGLBoolean EGLAPIENTRY eglPerfMonitorRemoveAllCountersNV(void);
+EGLAPI EGLBoolean EGLAPIENTRY eglPerfMonitorBeginExperimentNV(void);
+EGLAPI EGLBoolean EGLAPIENTRY eglPerfMonitorEndExperimentNV(void);
+EGLAPI EGLBoolean EGLAPIENTRY eglPerfMonitorBeginPassNV(EGLint n);
+EGLAPI EGLBoolean EGLAPIENTRY eglPerfMonitorEndPassNV(void);
+EGLAPI EGLPerfMarkerNV EGLAPIENTRY eglCreatePerfMarkerNV(void);
+EGLAPI EGLBoolean EGLAPIENTRY eglDestroyPerfMarkerNV(EGLPerfMarkerNV marker);
+EGLAPI EGLBoolean EGLAPIENTRY eglMakeCurrentPerfMarkerNV(EGLPerfMarkerNV marker);
+EGLAPI EGLPerfMarkerNV EGLAPIENTRY eglGetCurrentPerfMarkerNV(void);
+EGLAPI EGLBoolean EGLAPIENTRY eglGetPerfMarkerCounterNV(EGLPerfMarkerNV marker, EGLPerfCounterNV counter, EGLuint64NV *value, EGLuint64NV *cycles);
+EGLAPI EGLBoolean EGLAPIENTRY eglValidatePerfMonitorNV(EGLint *num_passes);
+#endif
+typedef EGLPerfMonitorNV (EGLAPIENTRYP PFNEGLCREATEPERFMONITORNVPROC)(EGLDisplay dpy, EGLint mask);
+typedef EGLBoolean (EGLAPIENTRYP PFNEGLDESTROYPERFMONITORNVPROC)(EGLDisplay dpy, EGLPerfMonitorNV monitor);
+typedef EGLBoolean (EGLAPIENTRYP PFNEGLMAKECURRENTPERFMONITORNVPROC)(EGLPerfMonitorNV monitor);
+typedef EGLPerfMonitorNV (EGLAPIENTRYP PFNEGLGETCURRENTPERFMONITORNVPROC)(void);
+typedef EGLBoolean (EGLAPIENTRYP PFNEGLGETPERFCOUNTERSNVPROC)(EGLPerfMonitorNV monitor, EGLPerfCounterNV *counters, EGLint counter_size, EGLint *num_counter);
+typedef EGLBoolean (EGLAPIENTRYP PFNEGLGETPERFCOUNTERATTRIBNVPROC)(EGLPerfMonitorNV monitor, EGLPerfCounterNV counter, EGLint pname, EGLint *value);
+typedef const char * (EGLAPIENTRYP PFNEGLQUERYPERFCOUNTERSTRINGNVPROC)(EGLPerfMonitorNV monitor, EGLPerfCounterNV counter, EGLint pname);
+typedef EGLBoolean (EGLAPIENTRYP PFNEGLPERFMONITORADDCOUNTERSNVPROC)(EGLint n, const EGLPerfCounterNV *counters);
+typedef EGLBoolean (EGLAPIENTRYP PFNEGLPERFMONITORREMOVECOUNTERSNVPROC)(EGLint n, const EGLPerfCounterNV *counters);
+typedef EGLBoolean (EGLAPIENTRYP PFNEGLPERFMONITORREMOVEALLCOUNTERSNVPROC)(void);
+typedef EGLBoolean (EGLAPIENTRYP PFNEGLPERFMONITORBEGINEXPERIMENTNVPROC)(void);
+typedef EGLBoolean (EGLAPIENTRYP PFNEGLPERFMONITORENDEXPERIMENTNVPROC)(void);
+typedef EGLBoolean (EGLAPIENTRYP PFNEGLPERFMONITORBEGINPASSNVPROC)(EGLint n);
+typedef EGLBoolean (EGLAPIENTRYP PFNEGLPERFMONITORENDPASSNVPROC)(void);
+typedef EGLPerfMarkerNV (EGLAPIENTRYP PFNEGLCREATEPERFMARKERNVPROC)(void);
+typedef EGLBoolean (EGLAPIENTRYP PFNEGLDESTROYPERFMARKERNVPROC)(EGLPerfMarkerNV marker);
+typedef EGLBoolean (EGLAPIENTRYP PFNEGLMAKECURRENTPERFMARKERNVPROC)(EGLPerfMarkerNV marker);
+typedef EGLPerfMarkerNV (EGLAPIENTRYP PFNEGLGETCURRENTPERFMARKERNVPROC)(void);
+typedef EGLBoolean (EGLAPIENTRYP PFNEGLGETPERFMARKERCOUNTERNVPROC)(EGLPerfMarkerNV marker, EGLPerfCounterNV counter, EGLuint64NV *value, EGLuint64NV *cycles);
+typedef EGLBoolean (EGLAPIENTRYP PFNEGLVALIDATEPERFMONITORNVPROC)(EGLint *num_passes);
+#endif
+#endif // exclude EGL_NV_perfmon
 
 /* EGL_NV_texture_rectangle (reuse analagous WGL enum) */
 #ifndef EGL_NV_texture_rectangle
@@ -175,6 +225,12 @@ typedef void *EGLPerfMarkerNV;
 
 #ifndef EGL_NV_system_time
 #define EGL_NV_system_time 1
+#ifdef EGL_EGLEXT_PROTOTYPES
+EGLAPI EGLuint64NV EGLAPIENTRY eglGetSystemTimeFrequencyNV(void);
+EGLAPI EGLuint64NV EGLAPIENTRY eglGetSystemTimeNV(void);
+#endif
+typedef EGLuint64NV (EGLAPIENTRYP PFNEGLGETSYSTEMTIMEFREQUENCYNVPROC)(void);
+typedef EGLuint64NV (EGLAPIENTRYP PFNEGLGETSYSTEMTIMENVPROC)(void);
 #endif
 
 /* EGL_NV_coverage_sample (reuse GLX_VIDEO_OUT_DEPTH_NV and
@@ -182,17 +238,17 @@ typedef void *EGLPerfMarkerNV;
  */
 #ifndef EGL_NV_coverage_sample
 #define EGL_NV_coverage_sample 1
-#define EGL_COVERAGE_BUFFERS_NV 0x20C5
-#define EGL_COVERAGE_SAMPLES_NV 0x20C6
+#define EGL_COVERAGE_BUFFERS_NV 0x30E0
+#define EGL_COVERAGE_SAMPLES_NV 0x30E1
 #endif
 
 /* EGL_NV_depth_nonlinear
  */
 #ifndef EGL_NV_depth_nonlinear
 #define EGL_NV_depth_nonlinear 1
-#define EGL_DEPTH_ENCODING_NV 0x20C3
+#define EGL_DEPTH_ENCODING_NV 0x30E2
 #define EGL_DEPTH_ENCODING_NONE_NV 0
-#define EGL_DEPTH_ENCODING_NONLINEAR_NV 0x20C4
+#define EGL_DEPTH_ENCODING_NONLINEAR_NV 0x30E3
 #endif
 
 #ifndef EGL_NV_nvva_image
@@ -215,24 +271,65 @@ EGLAPI EGLBoolean EGLAPIENTRY eglNvmaOutputSurfacePbufferUnlock(EGLDisplay displ
                                                             EGLSurface pbuffer);
 #endif
 
-/* EGL_NV_omx_sink -- currently undocumented.
-    This extension allows the OpenMAX videorenderer component to render to EGL
-    surfaces.*/
-#ifndef EGL_NV_omx_sink
-#define EGL_NV_omx_sink 1
-#define EGL_CONTEXT_OMX_VIDEORENDERER_COMPONENT_NV 0x3099 /* eglCreateContext attribute */
-#define EGL_OPENMAX_API 0x30A2 /* eglBindAPI target */
-#define EGL_OPENMAX_BIT 0x0008 /* EGL_RENDERABLE_TYPE mask bits */
+
+/* EGL_KHR_sync
+ */
+#ifndef EGL_KHR_sync
+#define EGL_KHR_sync 1
+typedef void* EGLSyncKHR;
+typedef void* NativeSyncKHR;
+typedef unsigned long long EGLTimeKHR;
+#ifdef EGL_EGLEXT_PROTOTYPES
+EGLSyncKHR eglCreateFenceSyncKHR( EGLDisplay dpy, EGLenum condition, const EGLint *attrib_list ); 
+NativeSyncKHR eglCreateNativeSyncKHR( EGLSyncKHR sync );
+EGLBoolean eglDestroySyncKHR( EGLSyncKHR sync );
+EGLBoolean eglFenceKHR( EGLSyncKHR sync );
+EGLint eglClientWaitSyncKHR( EGLSyncKHR sync, EGLint flags, EGLTimeKHR timeout );
+EGLBoolean eglSignalSyncKHR( EGLSyncKHR sync, EGLenum mode );
+EGLBoolean eglGetSyncAttribKHR( EGLSyncKHR sync, EGLint attribute, EGLint *value );
+#else
+typedef EGLSyncKHR (EGLAPIENTRYP PFNEGLCREATEFENCESYNCKHRPROC)( EGLDisplay dpy, EGLenum condition, const EGLint *attrib_list ); 
+typedef NativeSyncKHR (EGLAPIENTRYP PFNEGLCREATENATIVESYNCKHRPROC)( EGLSyncKHR sync );
+typedef EGLBoolean (EGLAPIENTRYP PFNEGLDESTROYSYNCKHRPROC)( EGLSyncKHR sync );
+typedef EGLBoolean (EGLAPIENTRYP PFNEGLFENCEKHRPROC)( EGLSyncKHR sync );
+typedef EGLint (EGLAPIENTRYP PFNEGLCLIENTWAITSYNCKHRPROC)( EGLSyncKHR sync, EGLint flags, EGLTimeKHR timeout );
+typedef EGLBoolean (EGLAPIENTRYP PFNEGLSIGNALSYNCKHRPROC)( EGLSyncKHR sync, EGLenum mode );
+typedef EGLBoolean (EGLAPIENTRYP PFNEGLGETSYNCATTRIBKHRPROC)( EGLSyncKHR sync, EGLint attribute, EGLint *value );
 #endif
 
-/* EGL_NV_omx_image -- currently undocumented.
-    This extension allows an EGL image to be created with an openmax
-    videorenderer source. */
-#ifndef EGL_NV_omx_image
-#define EGL_NV_omx_image
-#define EGL_OPENMAX_COMPONENT_NV 0x30BF /* eglCreateImageKHR target */
+/* !!!!! TODO: Get correct values for these defines !!!! 
+   Do not rely on these values...THEY WILL CHANGE!
+   And it WILL BREAK binary compatibility when they do! */
+#define EGL_SYNC_PRIOR_COMMANDS_COMPLETE_KHR     0x3100
+#define EGL_SYNC_NATIVE_SYNC_KHR                 0x3101
+#define EGL_SYNC_STATUS_KHR                      0x3102
+#define EGL_SIGNALED_KHR                         0x3103
+#define EGL_UNSIGNALED_KHR                       0x3104
+#define EGL_SYNC_FLUSH_COMMANDS_BIT_KHR          0x0001
+#define EGL_FOREVER_KHR                          0xFFFFFFFFFFFFFFFFull
+#define EGL_ALREADY_SIGNALED_KHR                 0x3105
+#define EGL_TIMEOUT_EXPIRED_KHR                  0x3106
+#define EGL_CONDITION_SATISFIED_KHR              0x3107
+#define EGL_SYNC_TYPE_KHR                        0x3108
+#define EGL_SYNC_CONDITION_KHR                   0x3109
+#define EGL_SYNC_FENCE_KHR                       0x310A
+#define EGL_NO_SYNC_KHR                          0x0000
 #endif
 
+
+
+/* EGL_NV_omx_il_sink
+ */
+#ifndef EGL_NV_omx_il_sink
+#define EGL_NV_omx_il_sink
+#define EGL_OPENMAX_IL_BIT_NV  0x0010 /* EGL_RENDERABLE_TYPE bit */
+#define EGL_SURFACE_OMX_IL_EVENT_CALLBACK_NV 0x309A /* eglCreate*Surface attribute */
+#define EGL_SURFACE_OMX_IL_EMPTY_BUFFER_DONE_CALLBACK_NV 0x309B /* eglCreate*Surface attribute */
+#define EGL_SURFACE_OMX_IL_CALLBACK_DATA_NV 0x309C /* eglCreate*Surface attribute */
+#define EGL_SURFACE_COMPONENT_HANDLE_NV 0x309D /* eglQuerySurface attribute */
+#endif
+
+#define EGL_RMSURFACE_NV 0x30EF /* eglCreateImageKHR target */
 
 #ifdef __cplusplus
 }

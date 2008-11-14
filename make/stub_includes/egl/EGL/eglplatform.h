@@ -21,14 +21,19 @@
 ** replaced with corresponding types of the native window system in egl.h.
 **
 ** EGL and native handle values must match their types.
-**
-** This version of eglplatform.h is used to generate the glue code for the Java-side
-** EGL class, and is intended to be platform-independent.
-**
 */
 
 #ifdef __cplusplus
 extern "C" {
+#endif
+
+#if defined(_WIN32)
+    typedef signed   __int32 int32_t;
+    typedef unsigned __int32 uint32_t;
+    typedef signed   __int64 int64_t;
+    typedef unsigned __int64 uint64_t;
+#else
+    #include <stdint.h>
 #endif
 
 // Define storage class specifiers
@@ -49,6 +54,15 @@ extern "C" {
 typedef int   EGLNativeDisplayType;
 typedef void* EGLNativeWindowType;
 typedef void* EGLNativePixmapType;
+
+// Define 64-bit integer extensions
+typedef int64_t  EGLint64NV;
+typedef uint64_t EGLuint64NV;
+
+// Define the pre-EGL 1.3 Native handle types for backwards compatibility
+typedef EGLNativeDisplayType NativeDisplayType;
+typedef EGLNativePixmapType  NativePixmapType;
+typedef EGLNativeWindowType  NativeWindowType;
 
 #ifdef __cplusplus
 }
