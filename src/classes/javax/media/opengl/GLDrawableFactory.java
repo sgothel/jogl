@@ -138,7 +138,7 @@ public abstract class GLDrawableFactory {
     throws GLException
   {
     if(null==GLProfile.getProfile()) {
-        throw new GLException("No choosen/preset profile");
+        throw new GLException("No chosen/preset GLProfile");
     }
     initializeAWTFactory();
     if(awtFactory == null) {
