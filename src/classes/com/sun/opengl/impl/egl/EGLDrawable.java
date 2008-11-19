@@ -51,7 +51,6 @@ public class EGLDrawable extends GLDrawableImpl {
                        GLCapabilities capabilities,
                        GLCapabilitiesChooser chooser) throws GLException {
         super(factory, component, false);
-        setChosenGLCapabilities(capabilities);
         this.chooser = chooser;
         surface=EGL.EGL_NO_SURFACE;
 
@@ -75,6 +74,27 @@ public class EGLDrawable extends GLDrawableImpl {
             throw new GLException("No valid graphics configuration selected from eglChooseConfig");
         }
         config = configs[0];
+        // Read the actual configuration into the choosen caps
+        int[] val = new int[1];
+        if(EGL.eglGetConfigAttrib(display, config, EGL.EGL_RED_SIZE, val, 0)) {
+            capabilities.setRedBits(val[0]);
+        }
+        if(EGL.eglGetConfigAttrib(display, config, EGL.EGL_GREEN_SIZE, val, 0)) {
+            capabilities.setGreenBits(val[0]);
+        }
+        if(EGL.eglGetConfigAttrib(display, config, EGL.EGL_BLUE_SIZE, val, 0)) {
+            capabilities.setBlueBits(val[0]);
+        }
+        if(EGL.eglGetConfigAttrib(display, config, EGL.EGL_ALPHA_SIZE, val, 0)) {
+            capabilities.setAlphaBits(val[0]);
+        }
+        if(EGL.eglGetConfigAttrib(display, config, EGL.EGL_STENCIL_SIZE, val, 0)) {
+            capabilities.setStencilBits(val[0]);
+        }
+        if(EGL.eglGetConfigAttrib(display, config, EGL.EGL_DEPTH_SIZE, val, 0)) {
+            capabilities.setDepthBits(val[0]);
+        }
+        setChosenGLCapabilities(capabilities);
     }
 
     public long getDisplay() {

@@ -5,6 +5,7 @@
 #    -Dc.compiler.debug=true 
 #    -Djavacdebug="false"
 #    -Djavacdebuglevel=""
+#    -Djava.generate.skip=true
 
 ant -v \
     -Djavacdebug="false" \
