@@ -812,15 +812,16 @@
 
     <target name="java.generate.TextureIO.javase" unless="jogl.cdcfp">
         <!-- For debugging -->
+<!--
         <copy file="../src/classes/com/sun/opengl/util/texture/TextureIO.java.javame_cdc_fp" tofile="../build/gensrc/classes/com/sun/opengl/util/texture/TextureIO.java" />
         <copy file="../src/classes/com/sun/opengl/util/texture/spi/DDSImage.java.javame_cdc_fp" tofile="../build/gensrc/classes/com/sun/opengl/util/texture/spi/DDSImage.java" />
         <copy file="../src/classes/com/sun/opengl/util/texture/spi/TGAImage.java.javame_cdc_fp" tofile="../build/gensrc/classes/com/sun/opengl/util/texture/spi/TGAImage.java" />
+-->
 
-<!--
         <copy file="../src/classes/com/sun/opengl/util/texture/TextureIO.java.javase" tofile="../build/gensrc/classes/com/sun/opengl/util/texture/TextureIO.java" />
         <copy file="../src/classes/com/sun/opengl/util/texture/spi/DDSImage.java.javase" tofile="../build/gensrc/classes/com/sun/opengl/util/texture/spi/DDSImage.java" />
         <copy file="../src/classes/com/sun/opengl/util/texture/spi/TGAImage.java.javase" tofile="../build/gensrc/classes/com/sun/opengl/util/texture/spi/TGAImage.java" />
--->
+
     </target>
 
     <!-- Generate the TextureIO classes for this particular profile -->

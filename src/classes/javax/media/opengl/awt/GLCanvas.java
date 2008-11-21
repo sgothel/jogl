@@ -79,6 +79,13 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
   private GLCapabilities glCaps;
   private GLCapabilitiesChooser glCapChooser;
 
+  static {
+    // Default to the GL2 profile, which is the default on the desktop
+    if (GLProfile.getProfile() == null) {
+      GLProfile.setProfile(GLProfile.GL2);
+    }
+  }
+
   /** Creates a new GLCanvas component with a default set of OpenGL
       capabilities, using the default OpenGL capabilities selection
       mechanism, on the default screen device. */
