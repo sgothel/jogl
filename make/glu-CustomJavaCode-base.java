@@ -115,6 +115,25 @@ public static final GL getCurrentGL() throws GLException {
   return curContext.getGL();
 }
 
+public final String gluErrorString(int errorCode) {
+  return Error.gluErrorString(errorCode);
+}
+
+/* extName is an extension name.
+ * extString is a string of extensions separated by blank(s). There may or 
+ * may not be leading or trailing blank(s) in extString.
+ * This works in cases of extensions being prefixes of another like
+ * GL_EXT_texture and GL_EXT_texture3D.
+ * Returns true if extName is found otherwise it returns false.
+ */
+public final boolean gluCheckExtension(java.lang.String extName, java.lang.String extString) {
+  return Registry.gluCheckExtension(extName, extString);
+}
+
+public final String gluGetString(int name) {
+  return Registry.gluGetString(name);
+}
+
 //----------------------------------------------------------------------
 // Tessellation routines
 //
