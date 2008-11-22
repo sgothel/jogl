@@ -1386,8 +1386,9 @@
           <!-- Also supported on Solaris, but works differently -->
           <include name="${rootrel.src.c.jogl}/Xinerama.c" if="isLinux"/>
           <include name="${rootrel.generated.c.jogl}/X11/X11Lib_JNI.c" if="isX11"/>
-          <include name="${rootrel.generated.c.jogl}/es2/GLES2Impl_JNI.c"/>
           <include name="${rootrel.generated.c.jogl}/egl/EGL_JNI.c"/>
+          <include name="${rootrel.generated.c.jogl}/egl/EGLExtImpl_JNI.c"/>
+          <include name="${rootrel.generated.c.jogl}/es2/GLES2Impl_JNI.c"/>
           <include name="${rootrel.src.c.jogl}/InternalBufferUtils.c"/>
         </patternset>
 
@@ -1398,8 +1399,9 @@
           <include name="${rootrel.src.c.jogl}/Xinerama.c" if="isLinux"/>
           <include name="${rootrel.generated.c.jogl}/X11/X11Lib_JNI.c" if="isX11"/>
           <include name="${rootrel.generated.c.jogl}/egl/EGL_JNI.c"/>
-          <include name="${rootrel.src.c.jogl}/InternalBufferUtils.c"/>
+          <include name="${rootrel.generated.c.jogl}/egl/EGLExtImpl_JNI.c"/>
           <include name="${rootrel.generated.c.jogl}/es1/GLES1Impl_JNI.c"/>
+          <include name="${rootrel.src.c.jogl}/InternalBufferUtils.c"/>
           <!--include name="${rootrel.generated.c.jogl}/GLU_JNI.c"/ EMPTY -->
           <!--include name="${rootrel.generated.c.jogl}/es1/GLUes1_JNI.c" EMPTY /-->
         </patternset>

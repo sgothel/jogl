@@ -1275,6 +1275,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\build\gensrc\native\jogl\egl\EGLExtImpl_JNI.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\build\gensrc\native\jogl\es1\GLES1Impl_JNI.c"
 				>
 			</File>
