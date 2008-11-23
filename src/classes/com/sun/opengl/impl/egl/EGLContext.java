@@ -198,14 +198,16 @@ public class EGLContext extends GLContextImpl {
             }
         }
 
-        int[] contextAttrs = null;
-        // FIXME: need to determine whether to specify the context
-        // attributes based on the EGL version
-        if (GLProfile.isGLES2()) {
-            contextAttrs = new int[] {
-                EGL.EGL_CONTEXT_CLIENT_VERSION, 2,
+        int[] contextAttrs = new int[] {
+                EGL.EGL_CONTEXT_CLIENT_VERSION, -1,
                 EGL.EGL_NONE
-            };
+        };
+        if (GLProfile.isGLES2()) {
+            contextAttrs[1] = 2;
+        } else if (GLProfile.isGLES1()) {
+            contextAttrs[1] = 1;
+        } else {
+            throw new GLException("Error creating OpenGL context - invalid GLProfile");
         }
         context = EGL.eglCreateContext(display, config, shareWith, contextAttrs, 0);
         if (context == 0) {
