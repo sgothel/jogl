@@ -315,4 +315,24 @@ class Geom {
     static double VertL1dist(GLUvertex u, GLUvertex v) {
         return Math.abs(u.s - v.s) + Math.abs(u.t - v.t);
     }
+
+    /***********************************************************************/
+
+    // Compute the cosine of the angle between the edges between o and
+    // v1 and between o and v2
+    static double EdgeCos(GLUvertex o, GLUvertex v1, GLUvertex v2) {
+        double ov1s = v1.s - o.s;
+        double ov1t = v1.t - o.t;
+        double ov2s = v2.s - o.s;
+        double ov2t = v2.t - o.t;
+        double dotp = ov1s * ov2s + ov1t * ov2t;
+        double len = Math.sqrt(ov1s * ov1s + ov1t * ov1t) * Math.sqrt(ov2s * ov2s + ov2t * ov2t);
+        if (len > 0.0) {
+            dotp /= len;
+        }
+        return dotp;
+    }
+
+    static final double EPSILON = 1.0e-5;
+    static final double ONE_MINUS_EPSILON = 1.0 - EPSILON;
 }

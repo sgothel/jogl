@@ -85,6 +85,10 @@ public class GLUtessellatorImpl implements GLUtessellator {
 
     boolean flagBoundary;	/* mark boundary edges (use EdgeFlag) */
     boolean boundaryOnly;	/* Extract contours, not triangles */
+    boolean avoidDegenerateTris; /* JOGL-specific hint to try to improve triangulation
+                                    by avoiding producing degenerate (zero-area) triangles;
+                                    has not been tested exhaustively and is therefore an option */
+
     GLUface lonelyTriList;
     /* list of triangles which could not be rendered as strips or fans */
 
@@ -234,6 +238,10 @@ public class GLUtessellatorImpl implements GLUtessellator {
                 boundaryOnly = (value != 0);
                 return;
 
+            case GLU.GLU_TESS_AVOID_DEGENERATE_TRIANGLES:
+                avoidDegenerateTris = (value != 0);
+                return;
+
             default:
                 callErrorOrErrorData(GLU.GLU_INVALID_ENUM);
                 return;
@@ -260,6 +268,9 @@ public class GLUtessellatorImpl implements GLUtessellator {
             case GLU.GLU_TESS_BOUNDARY_ONLY:
                 assert (boundaryOnly == true || boundaryOnly == false);
                 value[value_offset] = boundaryOnly ? 1 : 0;
+                break;
+            case GLU.GLU_TESS_AVOID_DEGENERATE_TRIANGLES:
+                value[value_offset] = avoidDegenerateTris ? 1 : 0;
                 break;
             default:
                 value[value_offset] = 0.0;
@@ -526,7 +537,7 @@ public class GLUtessellatorImpl implements GLUtessellator {
                 if (boundaryOnly) {
                     rc = TessMono.__gl_meshSetWindingNumber(mesh, 1, true);
                 } else {
-                    rc = TessMono.__gl_meshTessellateInterior(mesh);
+                    rc = TessMono.__gl_meshTessellateInterior(mesh, avoidDegenerateTris);
                 }
                 if (!rc) throw new RuntimeException();	/* could've used a label */
 

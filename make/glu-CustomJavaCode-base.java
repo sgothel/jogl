@@ -1152,6 +1152,8 @@ public static final int GLU_UNKNOWN = 100124;
 public static final int GLU_TESS_WINDING_RULE = 100140;
 public static final int GLU_TESS_BOUNDARY_ONLY = 100141;
 public static final int GLU_TESS_TOLERANCE = 100142;
+// JOGL-specific boolean property, false by default, that may improve the tessellation
+public static final int GLU_TESS_AVOID_DEGENERATE_TRIANGLES = 100149;
 
 // TessError
 public static final int GLU_TESS_ERROR1 = 100151;

@@ -80,7 +80,7 @@ class TessMono {
  * to the fan is a simple orientation test.  By making the fan as large
  * as possible, we restore the invariant (check it yourself).
  */
-    static boolean __gl_meshTessellateMonoRegion(GLUface face) {
+    static boolean __gl_meshTessellateMonoRegion(GLUface face, boolean avoidDegenerateTris) {
         GLUhalfEdge up, lo;
 
         /* All edges are oriented CCW around the boundary of the region.
@@ -97,7 +97,37 @@ class TessMono {
             ;
         lo = up.Onext.Sym;
 
+        boolean mustConnect = false; // hack for avoidDegenerateTris
+
         while (up.Lnext != lo) {
+            if (avoidDegenerateTris && !mustConnect) {
+                // Skip over regions where several vertices are collinear,
+                // to try to avoid producing degenerate (zero-area) triangles
+                //
+                // The "mustConnect" flag is a hack to try to avoid
+                // skipping too large regions and causing incorrect
+                // triangulations. This entire modification is overall
+                // not robust and needs more work
+                if (Geom.EdgeCos(lo.Lnext.Org, lo.Org, lo.Lnext.Lnext.Org) <= -Geom.ONE_MINUS_EPSILON) {
+                    // Lines around lo
+                    do {
+                        lo = lo.Onext.Sym;
+                        mustConnect = true;
+                    } while (up.Lnext != lo &&
+                             Geom.EdgeCos(lo.Lnext.Org, lo.Org, lo.Lnext.Lnext.Org) <= -Geom.ONE_MINUS_EPSILON);
+                } else if (Geom.EdgeCos(up.Onext.Sym.Org, up.Org, up.Onext.Sym.Onext.Sym.Org) <= -Geom.ONE_MINUS_EPSILON) {
+                    // Lines around up
+                    do {
+                        up = up.Lnext;
+                        mustConnect = true;
+                    } while (up.Lnext != lo &&
+                             Geom.EdgeCos(up.Onext.Sym.Org, up.Org, up.Onext.Sym.Onext.Sym.Org) <= -Geom.ONE_MINUS_EPSILON);
+                }
+
+                if (up.Lnext == lo)
+                    break;
+            }
+
             if (Geom.VertLeq(up.Sym.Org, lo.Org)) {
                 /* up.Sym.Org is on the left.  It is safe to form triangles from lo.Org.
                  * The EdgeGoesLeft test guarantees progress even when some triangles
@@ -106,6 +136,7 @@ class TessMono {
                 while (lo.Lnext != up && (Geom.EdgeGoesLeft(lo.Lnext)
                         || Geom.EdgeSign(lo.Org, lo.Sym.Org, lo.Lnext.Sym.Org) <= 0)) {
                     GLUhalfEdge tempHalfEdge = Mesh.__gl_meshConnect(lo.Lnext, lo);
+                    mustConnect = false;
                     if (tempHalfEdge == null) return false;
                     lo = tempHalfEdge.Sym;
                 }
@@ -115,6 +146,7 @@ class TessMono {
                 while (lo.Lnext != up && (Geom.EdgeGoesRight(up.Onext.Sym)
                         || Geom.EdgeSign(up.Sym.Org, up.Org, up.Onext.Sym.Org) >= 0)) {
                     GLUhalfEdge tempHalfEdge = Mesh.__gl_meshConnect(up, up.Onext.Sym);
+                    mustConnect = false;
                     if (tempHalfEdge == null) return false;
                     up = tempHalfEdge.Sym;
                 }
@@ -140,7 +172,7 @@ class TessMono {
  * the mesh which is marked "inside" the polygon.  Each such region
  * must be monotone.
  */
-    public static boolean __gl_meshTessellateInterior(GLUmesh mesh) {
+    public static boolean __gl_meshTessellateInterior(GLUmesh mesh, boolean avoidDegenerateTris) {
         GLUface f, next;
 
         /*LINTED*/
@@ -148,7 +180,7 @@ class TessMono {
             /* Make sure we don''t try to tessellate the new triangles. */
             next = f.next;
             if (f.inside) {
-                if (!__gl_meshTessellateMonoRegion(f)) return false;
+                if (!__gl_meshTessellateMonoRegion(f, avoidDegenerateTris)) return false;
             }
         }
 
