@@ -44,7 +44,6 @@
 
 package com.sun.opengl.impl.glu.registry;
 
-// breaks CVM: import java.util.regex.*;
 import javax.media.opengl.glu.GLU;
 
 /**
@@ -70,12 +69,11 @@ public class Registry {
     if( extName == null || extString == null ) {
       return( false );
     }
-    // breaks CVM: return( Pattern.compile( extName + "\\b" ).matcher( extString ).find() );
-    // Use gl.isFunctionAvailable() .. or find an alternative.
-    // I don't recommend the extension name queries anyways, since they are kind of buggy.
-    // But available function sets allows a better 'clue' of what is supported and what not - IMHO.
-    // However .. I have commented the regex stuff out, since it breaks CVM compilation,
-    // due to it's reference in glu-base (latest change ..)
-    return false; 
+    if ((extString.indexOf(extName + " ") >= 0) ||
+        extString.endsWith(extName) ||
+        extString.equals(extName)) {
+        return true;
+    }
+    return false;
   }
 }
