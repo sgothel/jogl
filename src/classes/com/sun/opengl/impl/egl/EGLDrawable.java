@@ -181,7 +181,7 @@ public class EGLDrawable extends GLDrawableImpl {
         return "EGLDrawable[ realized "+getRealized()+
                            ", window "+getNativeWindow()+
                            ", egl display " + display +
-                           ", egl config " + config +
+                           ", " + config +
                            ", egl surface " + surface +
                            ", factory "+getFactory()+"]";
     }

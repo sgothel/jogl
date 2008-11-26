@@ -60,7 +60,7 @@
 				Name="VCCLCompilerTool"
 				ExecutionBucket="7"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\CVM\cdc\src\share\javavm\export,..\..\..\..\CVM\cdc\src\share,..\..\..\..\CVM\cdc\src\win32,..\..\..\..\CVM\cdc\src\win32-arm,..\..\..\build\gensrc\native\newt\Windows"
+				AdditionalIncludeDirectories="..\..\..\..\CVM\cdc\src\share\javavm\export,..\..\..\..\CVM\cdc\src\share,..\..\..\..\CVM\cdc\src\win32,..\..\..\..\CVM\cdc\src\win32-arm,..\..\..\build\gensrc\native\newt\Windows,..\..\..\build\gensrc\native\newt\KD,..\..\..\make\stub_includes\egl"
 				PreprocessorDefinitions="_DEBUG;_WIN32_WCE=$(CEVER);UNDER_CE;WINCE;DEBUG;_WINDOWS;_USRDLL;NEWT_EXPORTS;$(ARCHFAM);$(_ARCHFAM_);_UNICODE;UNICODE"
 				MinimalRebuild="true"
 				RuntimeLibrary="1"
@@ -82,6 +82,8 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+                AdditionalDependencies="libKD.lib libEGL.lib"
+                AdditionalLibraryDirectories="../../../make/lib/wince/arm/nvap"
 				AdditionalOptions=" /subsystem:windowsce,5.00"
 				OutputFile="$(OutDir)/newt.dll"
 				LinkIncremental="2"
@@ -169,6 +171,8 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+                AdditionalDependencies="libKD.lib libEGL.lib"
+                AdditionalLibraryDirectories="../../../make/lib/wince/arm/nvap"
 				AdditionalOptions=" /subsystem:windowsce,5.00"
 				OutputFile="$(OutDir)/newt.dll"
 				LinkIncremental="2"
@@ -256,6 +260,8 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+                AdditionalDependencies="libKD.lib libEGL.lib"
+                AdditionalLibraryDirectories="../../../make/lib/wince/arm/nvap"
 				AdditionalOptions=" /subsystem:windowsce,5.00"
 				OutputFile="$(OutDir)/newt.dll"
 				LinkIncremental="2"
@@ -343,6 +349,8 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+                AdditionalDependencies="libKD.lib libEGL.lib"
+                AdditionalLibraryDirectories="../../../make/lib/wince/arm/nvap"
 				AdditionalOptions=" /subsystem:windowsce,5.00 /machine:MIPS"
 				OutputFile="$(OutDir)/newt.dll"
 				LinkIncremental="2"
@@ -430,6 +438,8 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+                AdditionalDependencies="libKD.lib libEGL.lib"
+                AdditionalLibraryDirectories="../../../make/lib/wince/arm/nvap"
 				AdditionalOptions=" /subsystem:windowsce,5.00 /machine:MIPS"
 				OutputFile="$(OutDir)/newt.dll"
 				LinkIncremental="2"
@@ -517,6 +527,8 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+                AdditionalDependencies="libKD.lib libEGL.lib"
+                AdditionalLibraryDirectories="../../../make/lib/wince/arm/nvap"
 				AdditionalOptions=" /subsystem:windowsce,5.00 /machine:MIPSFPU"
 				OutputFile="$(OutDir)/newt.dll"
 				LinkIncremental="2"
@@ -604,6 +616,8 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+                AdditionalDependencies="libKD.lib libEGL.lib"
+                AdditionalLibraryDirectories="../../../make/lib/wince/arm/nvap"
 				AdditionalOptions=" /subsystem:windowsce,5.00 /machine:MIPSFPU"
 				OutputFile="$(OutDir)/newt.dll"
 				LinkIncremental="2"
@@ -670,7 +684,7 @@
 				Name="VCCLCompilerTool"
 				ExecutionBucket="7"
 				Optimization="2"
-				AdditionalIncludeDirectories="..\..\..\..\CVM\cdc\src\share\javavm\export,..\..\..\..\CVM\cdc\src\share,..\..\..\..\CVM\cdc\src\win32,..\..\..\..\CVM\cdc\src\win32-arm,..\..\..\build\gensrc\native\newt\Windows"
+				AdditionalIncludeDirectories="..\..\..\..\CVM\cdc\src\share\javavm\export,..\..\..\..\CVM\cdc\src\share,..\..\..\..\CVM\cdc\src\win32,..\..\..\..\CVM\cdc\src\win32-arm,..\..\..\build\gensrc\native\newt\Windows,..\..\..\build\gensrc\native\newt\KD,..\..\..\make\stub_includes\egl"
 				PreprocessorDefinitions="NDEBUG;_WIN32_WCE=$(CEVER);UNDER_CE;WINCE;_WINDOWS;_USRDLL;NEWT_EXPORTS;$(ARCHFAM);$(_ARCHFAM_);_UNICODE;UNICODE"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
@@ -691,6 +705,8 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+                AdditionalDependencies="libKD.lib libEGL.lib"
+                AdditionalLibraryDirectories="../../../make/lib/wince/arm/nvap"
 				AdditionalOptions=" /subsystem:windowsce,5.00"
 				OutputFile="$(OutDir)/newt.dll"
 				LinkIncremental="1"
@@ -779,6 +795,8 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+                AdditionalDependencies="libKD.lib libEGL.lib"
+                AdditionalLibraryDirectories="../../../make/lib/wince/arm/nvap"
 				AdditionalOptions=" /subsystem:windowsce,5.00"
 				OutputFile="$(OutDir)/newt.dll"
 				LinkIncremental="1"
@@ -867,6 +885,8 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+                AdditionalDependencies="libKD.lib libEGL.lib"
+                AdditionalLibraryDirectories="../../../make/lib/wince/arm/nvap"
 				AdditionalOptions=" /subsystem:windowsce,5.00"
 				OutputFile="$(OutDir)/newt.dll"
 				LinkIncremental="1"
@@ -1272,6 +1292,10 @@
 			>
 			<File
 				RelativePath="..\..\..\src\native\newt\WindowsWindow.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\native\newt\KDWindow.c"
 				>
 			</File>
 		</Filter>

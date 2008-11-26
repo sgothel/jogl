@@ -156,6 +156,10 @@ public class EGLConfig {
         return attrs;
     }
 
+    public String toString() {
+        return "EGLConfig[ id "+configID+
+                           ", "+capabilities+"]";
+    }
     private _EGLConfig _config;
     private int configID;
     private GLCapabilities capabilities;

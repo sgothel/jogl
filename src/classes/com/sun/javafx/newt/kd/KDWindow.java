@@ -78,16 +78,17 @@ public class KDWindow extends Window {
         visualID = config.getNativeConfigID();
         chosenCaps = config.getCapabilities();
 
-        windowHandle = CreateWindow(getDisplayHandle(), visualID, eglRenderableType); 
-        if (windowHandle == 0) {
-            throw new RuntimeException("Error creating window: "+windowHandle);
+        windowHandle = 0;
+        eglWindowHandle = CreateWindow(getDisplayHandle(), visualID, eglRenderableType); 
+        if (eglWindowHandle == 0) {
+            throw new RuntimeException("Error creating egl window: "+eglWindowHandle);
         }
-        nativeWindowHandle = RealizeWindow(windowHandle);
-        if (nativeWindowHandle == 0) {
+        setVisible0(eglWindowHandle, false);
+        windowHandle = RealizeWindow(eglWindowHandle);
+        if (0 == windowHandle) {
             throw new RuntimeException("Error native Window Handle is null");
         }
-
-        windowHandleClose = windowHandle;
+        windowHandleClose = eglWindowHandle;
     }
 
     protected void closeNative() {
@@ -99,13 +100,13 @@ public class KDWindow extends Window {
     public void setVisible(boolean visible) {
         if(this.visible!=visible) {
             this.visible=visible;
-            setVisible0(windowHandle, visible);
+            setVisible0(eglWindowHandle, visible);
             clearEventMask();
         }
     }
 
     public void setSize(int width, int height) {
-        setSize0(windowHandle, width, height);
+        setSize0(eglWindowHandle, width, height);
     }
 
     public void setPosition(int x, int y) {
@@ -117,10 +118,10 @@ public class KDWindow extends Window {
         if(this.fullscreen!=fullscreen) {
             this.fullscreen=fullscreen;
             if(this.fullscreen) {
-                setFullScreen0(windowHandle, true);
+                setFullScreen0(eglWindowHandle, true);
             } else {
-                setFullScreen0(windowHandle, false);
-                setSize0(windowHandle, nfs_width, nfs_height);
+                setFullScreen0(eglWindowHandle, false);
+                setSize0(eglWindowHandle, nfs_width, nfs_height);
             }
         }
         return true;
@@ -135,7 +136,7 @@ public class KDWindow extends Window {
     }
 
     protected void dispatchMessages(int eventMask) {
-        DispatchMessages(windowHandle, eventMask);
+        DispatchMessages(eglWindowHandle, eventMask);
     }
 
     //----------------------------------------------------------------------
@@ -144,12 +145,12 @@ public class KDWindow extends Window {
 
     private static native boolean initIDs();
     private        native long CreateWindow(long displayHandle, long eglConfig, int eglRenderableType);
-    private        native long RealizeWindow(long windowHandle);
-    private        native int  CloseWindow(long windowHandle);
-    private        native void setVisible0(long windowHandle, boolean visible);
-    private        native void setSize0(long windowHandle, int width, int height);
-    private        native void setFullScreen0(long windowHandle, boolean fullscreen);
-    private        native void DispatchMessages(long windowHandle, int eventMask);
+    private        native long RealizeWindow(long eglWindowHandle);
+    private        native int  CloseWindow(long eglWindowHandle);
+    private        native void setVisible0(long eglWindowHandle, boolean visible);
+    private        native void setSize0(long eglWindowHandle, int width, int height);
+    private        native void setFullScreen0(long eglWindowHandle, boolean fullscreen);
+    private        native void DispatchMessages(long eglWindowHandle, int eventMask);
 
     private void sizeChanged(int newWidth, int newHeight) {
         width = newWidth;
@@ -167,6 +168,6 @@ public class KDWindow extends Window {
     private void windowClosed() {
     }
 
-    private long   nativeWindowHandle; // THE KD underlying native window handle
+    private long   eglWindowHandle;
     private long   windowHandleClose;
 }

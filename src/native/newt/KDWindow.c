@@ -31,10 +31,30 @@
  * 
  */
 
+#ifdef _WIN32
+  #include <windows.h>
+#endif
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <unistd.h>
+
+#ifdef _WIN32_WCE
+    #define STDOUT_FILE "\\Storage Card\\jogl_demos\\stdout.txt"
+    #define STDERR_FILE "\\Storage Card\\jogl_demos\\stderr.txt"
+#endif
+
+/* This typedef is apparently needed for Microsoft compilers before VC8,
+   and on Windows CE */
+#if (_MSC_VER < 1400) || defined(UNDER_CE)
+    #ifdef _WIN64
+        typedef long long intptr_t;
+    #else
+        typedef int intptr_t;
+    #endif
+#else
+    #include <inttypes.h>
+#endif
 
 #include <EGL/egl.h>
 #include <KD/kd.h>
@@ -49,39 +69,9 @@
 #define VERBOSE_ON 1
 
 #ifdef VERBOSE_ON
-    #define DBG_PRINT(args...) fprintf(stderr, args)
-
-    #define DUMP_VISUAL_INFO(a,b)
-    /*
-    #define DUMP_VISUAL_INFO(a,b) _dumpVisualInfo((a),(b))
-
-    static void _dumpVisualInfo(const char * msg, XVisualInfo *pVisualQuery) {
-        if(pVisualQuery!=NULL) {
-            fprintf(stderr, "%s: screen %d, visual: %p, visual-id: 0x%X, depth: %d, class %d, cmap sz: %d, bpp: 3x%d, rgb 0x%X 0x%X 0x%X\n",
-                msg,
-                pVisualQuery->screen,
-                pVisualQuery->visual,
-                (int)pVisualQuery->visualid,
-                pVisualQuery->depth,
-                pVisualQuery->class,
-                pVisualQuery->colormap_size,
-                pVisualQuery->bits_per_rgb,
-                (int)pVisualQuery->red_mask,
-                (int)pVisualQuery->green_mask,
-                (int)pVisualQuery->blue_mask
-            );
-        } else {
-            fprintf(stderr, "%s: NULL XVisualInfo\n", msg);
-        }
-    }
-    */
-
+    #define DBG_PRINT(...) fprintf(stderr, __VA_ARGS__)
 #else
-
-    #define DBG_PRINT(args...)
-
-    #define DUMP_VISUAL_INFO(a,b)
-
+    #define DBG_PRINT(...)
 #endif
 
 /**
@@ -96,6 +86,10 @@ static jmethodID sendKeyEventID = NULL;
 JNIEXPORT jboolean JNICALL Java_com_sun_javafx_newt_kd_KDWindow_initIDs
   (JNIEnv *env, jclass clazz)
 {
+#ifdef _WIN32_WCE
+    _wfreopen(TEXT(STDOUT_FILE),L"w",stdout);
+    _wfreopen(TEXT(STDERR_FILE),L"w",stderr);
+#endif
     sizeChangedID = (*env)->GetMethodID(env, clazz, "sizeChanged", "(II)V");
     windowClosedID    = (*env)->GetMethodID(env, clazz, "windowClosed",    "()V");
     sendMouseEventID = (*env)->GetMethodID(env, clazz, "sendMouseEvent", "(IIIII)V");
@@ -104,8 +98,10 @@ JNIEXPORT jboolean JNICALL Java_com_sun_javafx_newt_kd_KDWindow_initIDs
         windowClosedID == NULL ||
         sendMouseEventID == NULL ||
         sendKeyEventID == NULL) {
+        DBG_PRINT( "initIDs failed\n" );
         return JNI_FALSE;
     }
+    DBG_PRINT( "initIDs ok\n" );
     return JNI_TRUE;
 }
 
@@ -156,6 +152,7 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_kd_KDWindow_CreateWindow
     if(NULL==window) {
         fprintf(stderr, "[CreateWindow] failed: 0x%X\n", kdGetError());
     }
+    DBG_PRINT( "[CreateWindow] ok: %p\n", window);
     return (jlong) (intptr_t) window;
 }
 
@@ -170,6 +167,7 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_kd_KDWindow_RealizeWindow
         fprintf(stderr, "[RealizeWindow] failed: 0x%X, 0x%X\n", res, kdGetError());
         nativeWindow = NULL;
     }
+    DBG_PRINT( "[RealizeWindow] ok: %p\n", nativeWindow);
     return (jlong) (intptr_t) nativeWindow;
 }
 
@@ -177,8 +175,10 @@ JNIEXPORT jint JNICALL Java_com_sun_javafx_newt_kd_KDWindow_CloseWindow
   (JNIEnv *env, jobject obj, jlong window)
 {
     KDWindow *w = (KDWindow*) (intptr_t) window;
+    int res = kdDestroyWindow(w);
 
-    return kdDestroyWindow(w);
+    DBG_PRINT( "[CloseWindow] res: %d\n", res);
+    return res;
 }
 
 /*
@@ -192,6 +192,7 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_kd_KDWindow_setVisible0
     KDWindow *w = (KDWindow*) (intptr_t) window;
     KDboolean v = (visible==JNI_TRUE)?KD_TRUE:KD_FALSE;
     kdSetWindowPropertybv(w, KD_WINDOWPROPERTY_VISIBILITY, &v);
+    DBG_PRINT( "[setVisible] v=%d\n", visible);
 }
 
 /*
@@ -212,6 +213,7 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_kd_KDWindow_DispatchMessages
             DBG_PRINT( "event unrelated: src: %p, caller: %p\n", src_obj, obj);
             continue;
         }
+        DBG_PRINT( "[DispatchMessages]: caller %p, evt type: 0x%X\n", obj, evt->type);
 
         switch(evt->type) {
             case KD_EVENT_INPUT_POINTER:
@@ -311,7 +313,7 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_kd_KDWindow_DispatchMessages
     } 
 }
 
-JNIEXPORT void JNICALL Java_com_sun_javafx_newt_kd_KDWindow_setFullscreen0
+JNIEXPORT void JNICALL Java_com_sun_javafx_newt_kd_KDWindow_setFullScreen0
   (JNIEnv *env, jobject obj, jlong window, jboolean fullscreen)
 {
     KDWindow *w = (KDWindow*) (intptr_t) window;
@@ -319,7 +321,7 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_kd_KDWindow_setFullscreen0
 
     int res = kdSetWindowPropertyiv(w, KD_WINDOWPROPERTY_FULLSCREEN_NV, &v);
 
-    DBG_PRINT( "setFullscreen0 . fullscreen call: %d\n", res);
+    DBG_PRINT( "[setFullScreen] v=%d, res=%d\n", fullscreen, res);
 }
 
 JNIEXPORT void JNICALL Java_com_sun_javafx_newt_kd_KDWindow_setSize0
@@ -330,7 +332,7 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_kd_KDWindow_setSize0
 
     int res = kdSetWindowPropertyiv(w, KD_WINDOWPROPERTY_SIZE, v);
 
-    DBG_PRINT( "setSize0 . sizeChangedID call: %d\n", res);
+    DBG_PRINT( "[setSize] v=%dx%d, res=%d\n", width, height, res);
     (*env)->CallVoidMethod(env, obj, sizeChangedID, (jint) width, (jint) height);
 }
 
