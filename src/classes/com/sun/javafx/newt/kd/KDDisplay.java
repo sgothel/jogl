@@ -31,7 +31,7 @@
  * 
  */
 
-package com.sun.javafx.newt.windows;
+package com.sun.javafx.newt.kd;
 
 import com.sun.javafx.newt.*;
 import com.sun.opengl.impl.*;
