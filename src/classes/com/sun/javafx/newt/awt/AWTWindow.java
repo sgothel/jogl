@@ -45,6 +45,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.awt.event.*;
 import java.util.*;
 import com.sun.javafx.newt.Window;
+import javax.media.opengl.GLCapabilities;
 
 /** An implementation of the Newt Window class built using the
     AWT. This is provided for convenience of porting to platforms
@@ -93,7 +94,9 @@ public class AWTWindow extends Window {
         }
     }
 
-    protected void createNative() {
+    protected void createNative(GLCapabilities caps) {
+        chosenCaps = (GLCapabilities) caps.clone(); // FIXME: visualID := f1(caps); caps := f2(visualID)
+        visualID = 0; // n/a
         runOnEDT(new Runnable() {
                 public void run() {
                     frame = new Frame(getTitle());

@@ -33,6 +33,8 @@
 
 package com.sun.javafx.newt.windows;
 
+import javax.media.opengl.GLCapabilities;
+
 import com.sun.javafx.newt.*;
 import com.sun.opengl.impl.*;
 
@@ -64,8 +66,10 @@ public class WindowsWindow extends Window {
         return hdc;
     }
 
-    protected void createNative() {
+    protected void createNative(GLCapabilities caps) {
         long wndClass = getWindowClass();
+        chosenCaps = (GLCapabilities) caps.clone(); // FIXME: visualID := f1(caps); caps := f2(visualID)
+        visualID = 0; // n/a
         windowHandle = CreateWindow(WINDOW_CLASS_NAME, getHInstance(), visualID, x, y, width, height);
         if (windowHandle == 0) {
             throw new RuntimeException("Error creating window");

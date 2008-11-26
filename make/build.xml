@@ -216,7 +216,7 @@
                   value="com/sun/opengl/util/glut/**, com/sun/opengl/util/**/gl2/**"/>
 
         <property name="java.part.newt"
-                  value="com/sun/javafx/newt/*, com/sun/javafx/newt/x11/*, com/sun/javafx/newt/windows/*"/>
+                  value="com/sun/javafx/newt/*, com/sun/javafx/newt/x11/*, com/sun/javafx/newt/windows/*, com/sun/javafx/newt/kd/*"/>
 
         <property name="java.part.newt.awt"
                   value="com/sun/javafx/newt/awt/*"/>
@@ -522,6 +522,7 @@
         <mkdir dir="${src.generated.c.newt}/MacOSX" />
         <mkdir dir="${src.generated.c.newt}/Windows" />
         <mkdir dir="${src.generated.c.newt}/X11" />
+        <mkdir dir="${src.generated.c.newt}/KD" />
         <mkdir dir="${classes}" />
         <mkdir dir="${obj}" />
         <mkdir dir="${obj.jogl}" />
@@ -1340,6 +1341,7 @@
           <include name="${rootrel.src.c.newt}/WindowsWindow.c" if="isWindows"/>
           <include name="${rootrel.src.c.newt}/MacWindow.c" if="isOSX"/>
           <include name="${rootrel.src.c.newt}/X11Window.c" if="isX11"/>
+          <include name="${rootrel.src.c.newt}/KDWindow.c"  if="useKD"/>
         </patternset>
 
         <patternset id="c.src.files.jogl.gl2">
@@ -1447,6 +1449,7 @@
             <includepath path="${src.generated.c.newt}/X11" if="isX11"/>
             <includepath path="${src.generated.c.newt}/MacOSX" if="isOSX"/>
             <includepath path="${src.generated.c.newt}/Windows" if="isWindows"/>
+            <includepath path="${src.generated.c.newt}/KD" if="useKD"/>
   
             <!-- This must come last to not override real include paths -->
             <!-- includepath path="stub_includes/macosx" if="isOSX" / -->
@@ -1493,6 +1496,7 @@
       <javah destdir="../build/gensrc/native/newt/Windows" classpath="${jogl.all.jar}" class="com.sun.javafx.newt.windows.WindowsWindow" />
       <javah destdir="../build/gensrc/native/newt/MacOSX" classpath="${jogl.all.jar}" class="com.sun.javafx.newt.macosx.MacWindow" />
       <javah destdir="../build/gensrc/native/newt/X11" classpath="${jogl.all.jar}" class="com.sun.javafx.newt.x11.X11Window" />
+      <javah destdir="../build/gensrc/native/newt/KD" classpath="${jogl.all.jar}" class="com.sun.javafx.newt.kd.KDWindow" />
     </target>
 
     <target name="c.build.jogl.prepare" depends="c.build.newt.prepare">

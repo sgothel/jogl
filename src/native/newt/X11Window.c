@@ -98,6 +98,9 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_x11_X11Display_CreateDisplay
         _displayName = (*env)->GetStringUTFChars(env, displayName, 0);
     }
     dpy = XOpenDisplay(_displayName);
+    if(_displayName!=0) {
+        (*env)->ReleaseStringChars(env, displayName, (const jchar *)_displayName);
+    }
     if(dpy==NULL) {
         fprintf(stderr, "couldn't open display connection..\n");
     }
@@ -294,8 +297,8 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_x11_X11Window_CreateWindow
 
 /*
  * Class:     com_sun_javafx_newt_x11_X11Window
- * Method:    setVisible0
- * Signature: (JJZ)V
+ * Method:    CloseWindow
+ * Signature: (JJ)V
  */
 JNIEXPORT void JNICALL Java_com_sun_javafx_newt_x11_X11Window_CloseWindow
   (JNIEnv *env, jobject obj, jlong display, jlong window)

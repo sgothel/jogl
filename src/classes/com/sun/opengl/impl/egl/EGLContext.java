@@ -181,7 +181,7 @@ public class EGLContext extends GLContextImpl {
 
     protected void create() throws GLException {
         long display = drawable.getDisplay();
-        _EGLConfig config = drawable.getConfig();
+        _EGLConfig config = drawable.getEGLConfig().getNativeConfig();
         long shareWith = 0;
 
         if (display == 0) {

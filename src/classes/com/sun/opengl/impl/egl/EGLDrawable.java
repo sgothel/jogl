@@ -36,13 +36,14 @@
 package com.sun.opengl.impl.egl;
 
 import com.sun.opengl.impl.GLDrawableImpl;
+import com.sun.opengl.impl.GLReflection;
 
 import javax.media.opengl.*;
 
 public class EGLDrawable extends GLDrawableImpl {
     private GLCapabilitiesChooser chooser;
     private long display;
-    private _EGLConfig config;
+    private EGLConfig config;
     private long surface;
     private int[] tmp = new int[1];
 
@@ -53,48 +54,35 @@ public class EGLDrawable extends GLDrawableImpl {
         super(factory, component, false);
         this.chooser = chooser;
         surface=EGL.EGL_NO_SURFACE;
+        display=0;
+        config=null;
 
-        display = EGL.eglGetDisplay((0!=component.getDisplayHandle())?component.getDisplayHandle():EGL.EGL_DEFAULT_DISPLAY);
-        if (display == EGL.EGL_NO_DISPLAY) {
-            throw new GLException("eglGetDisplay failed");
+        if( GLReflection.instanceOf(component, "com.sun.javafx.newt.kd.KDWindow") ) {
+            // KDWindows holds already determined EGL values
+            display = component.getDisplayHandle();
+            if(display==0) {
+                throw new GLException("KDWindow has null display");
+            }
+            if (display == EGL.EGL_NO_DISPLAY) {
+                throw new GLException("KDWindow has EGL_NO_DISPLAY");
+            }
+            Long setConfigID = new Long(component.getVisualID());
+            if( 0 <= setConfigID.longValue() && setConfigID.longValue() <= Integer.MAX_VALUE ) {
+                config = new EGLConfig(display, setConfigID.intValue());
+            } else {
+                throw new GLException("KDWindow has invalid visualID/configID");
+            }
+        } else {
+            display = EGL.eglGetDisplay((0!=component.getDisplayHandle())?component.getDisplayHandle():EGL.EGL_DEFAULT_DISPLAY);
+            if (display == EGL.EGL_NO_DISPLAY) {
+                throw new GLException("eglGetDisplay failed");
+            }
+            if (!EGL.eglInitialize(display, null, null)) {
+                throw new GLException("eglInitialize failed");
+            }
+            config = new EGLConfig(display, capabilities);
         }
-        if (!EGL.eglInitialize(display, null, null)) {
-            throw new GLException("eglInitialize failed");
-        }
-        int[] attrs = factory.glCapabilities2AttribList(capabilities);
-        _EGLConfig[] configs = new _EGLConfig[1];
-        int[] numConfigs = new int[1];
-        if (!EGL.eglChooseConfig(display,
-                                 attrs, 0,
-                                 configs, 1,
-                                 numConfigs, 0)) {
-            throw new GLException("Graphics configuration selection (eglChooseConfig) failed");
-        }
-        if (numConfigs[0] == 0) {
-            throw new GLException("No valid graphics configuration selected from eglChooseConfig");
-        }
-        config = configs[0];
-        // Read the actual configuration into the choosen caps
-        int[] val = new int[1];
-        if(EGL.eglGetConfigAttrib(display, config, EGL.EGL_RED_SIZE, val, 0)) {
-            capabilities.setRedBits(val[0]);
-        }
-        if(EGL.eglGetConfigAttrib(display, config, EGL.EGL_GREEN_SIZE, val, 0)) {
-            capabilities.setGreenBits(val[0]);
-        }
-        if(EGL.eglGetConfigAttrib(display, config, EGL.EGL_BLUE_SIZE, val, 0)) {
-            capabilities.setBlueBits(val[0]);
-        }
-        if(EGL.eglGetConfigAttrib(display, config, EGL.EGL_ALPHA_SIZE, val, 0)) {
-            capabilities.setAlphaBits(val[0]);
-        }
-        if(EGL.eglGetConfigAttrib(display, config, EGL.EGL_STENCIL_SIZE, val, 0)) {
-            capabilities.setStencilBits(val[0]);
-        }
-        if(EGL.eglGetConfigAttrib(display, config, EGL.EGL_DEPTH_SIZE, val, 0)) {
-            capabilities.setDepthBits(val[0]);
-        }
-        setChosenGLCapabilities(capabilities);
+        setChosenGLCapabilities(config.getCapabilities());
     }
 
     public long getDisplay() {
@@ -110,7 +98,7 @@ public class EGLDrawable extends GLDrawableImpl {
         super.destroy();
     }
 
-    public _EGLConfig getConfig() {
+    public EGLConfig getEGLConfig() {
         return config;
     }
 
@@ -123,7 +111,7 @@ public class EGLDrawable extends GLDrawableImpl {
             try {
                 lockSurface();
                 // Create the window surface
-                surface = EGL.eglCreateWindowSurface(display, config, component.getWindowHandle(), null);
+                surface = EGL.eglCreateWindowSurface(display, config.getNativeConfig(), component.getWindowHandle(), null);
                 if (EGL.EGL_NO_SURFACE==surface) {
                     throw new GLException("Creation of window surface (eglCreateWindowSurface) failed, component: "+component);
                 }

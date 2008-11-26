@@ -70,9 +70,8 @@ public class GLWindow extends Window implements GLAutoDrawable {
 
     /** Constructor. Do not call this directly -- use {@link
         create()} instead. */
-    protected GLWindow(Window window, GLCapabilities caps) {
+    protected GLWindow(Window window) {
         this.window = window;
-        this.caps = caps;
         window.addWindowListener(new WindowListener() {
                 public void windowResized(WindowEvent e) {
                     sendReshape = true;
@@ -115,16 +114,16 @@ public class GLWindow extends Window implements GLAutoDrawable {
     public static GLWindow create(Window window, 
                                   GLCapabilities caps,
                                   boolean undecorated) {
-        if (window == null) {
-            Display display = NewtFactory.createDisplay(null); // local display
-            Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
-            window = NewtFactory.createWindow(screen, 0, undecorated); // dummy VisualID
-        }
         if (caps == null) {
             caps = new GLCapabilities();
         }
+        if (window == null) {
+            Display display = NewtFactory.createDisplay(null); // local display
+            Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
+            window = NewtFactory.createWindow(screen, caps, undecorated);
+        }
 
-        return new GLWindow(window, caps);
+        return new GLWindow(window);
     }
     
     public boolean isTerminalObject() {
@@ -132,7 +131,7 @@ public class GLWindow extends Window implements GLAutoDrawable {
         return false;
     }
 
-    protected void createNative() {
+    protected void createNative(GLCapabilities caps) {
         shouldNotCallThis();
     }
 
@@ -236,7 +235,7 @@ public class GLWindow extends Window implements GLAutoDrawable {
         window.setVisible(visible);
         if (visible && context == null) {
             factory = GLDrawableFactory.getFactory(window);
-            drawable = factory.createGLDrawable(window, caps, null);
+            drawable = factory.createGLDrawable(window, window.getChosenCapabilities(), null);
             window.setVisible(true);
             drawable.setRealized(true);
             context = drawable.createContext(null);
@@ -337,7 +336,6 @@ public class GLWindow extends Window implements GLAutoDrawable {
 
     private int eventHandlerMode = EVENT_HANDLER_GL_CURRENT;
     private GLDrawableFactory factory;
-    private GLCapabilities caps;
     private GLDrawable drawable;
     private GLContext context;
     private GLDrawableHelper helper = new GLDrawableHelper();

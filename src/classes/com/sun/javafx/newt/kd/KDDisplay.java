@@ -31,86 +31,30 @@
  * 
  */
 
-package com.sun.javafx.newt.macosx;
-
-import javax.media.opengl.GLCapabilities;
+package com.sun.javafx.newt.windows;
 
 import com.sun.javafx.newt.*;
 import com.sun.opengl.impl.*;
+import com.sun.opengl.impl.egl.*;
+import javax.media.opengl.GLException;
 
-public class MacWindow extends Window {
-    
-    private static native boolean _initIDs();
-    
+public class KDDisplay extends Display {
     static {
         NativeLibLoader.loadNEWT();
-        
-        if (_initIDs() == false) {
-            throw new RuntimeException("Failed to initialize jmethodIDs");
-        }
-    }
-    
-    public MacWindow() {
-    }
-    
-    protected final void createNative(GLCapabilities caps) {
-        chosenCaps = (GLCapabilities) caps.clone(); // FIXME: visualID := f1(caps); caps := f2(visualID)
-        visualID = 0; // n/a
     }
 
-    protected final void closeNative() {
+    public KDDisplay() {
     }
-    
-    public long getSurfaceHandle() {
-        return 0;
+
+    protected void createNative() {
+        // FIXME: map name to EGL_*_DISPLAY
+        handle = EGL.eglGetDisplay(EGL.EGL_DEFAULT_DISPLAY);
+        if (handle == EGL.EGL_NO_DISPLAY) {
+            throw new GLException("eglGetDisplay failed");
+        }
+        if (!EGL.eglInitialize(handle, null, null)) {
+            throw new GLException("eglInitialize failed");
+        }
     }
-    
-    public final boolean isTerminalObject() {
-        return true;
-    }
-    
-    public final int getDisplayWidth() {
-        return 640;
-    }
-    
-    public final int getDisplayHeight() {
-        return 480;
-    }
-    
-    public final void setVisible(boolean visible) {
-    }
-    
-    public final void setSize(int width, int height) {
-    }
-    
-    public final void setPosition(int x, int y) {
-    }
-    
-    public boolean setFullscreen(boolean fullscreen) {
-        return true;
-    }
-    
-    protected final void dispatchMessages(int eventMask) {
-    
-    }
-    
-/*
-    private void sizeChanged(int newWidth, int newHeight) {
-        width = newWidth;
-        height = newHeight;
-        sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED);
-    }
-    
-    private void positionChanged(int newX, int newY) {
-        x = newX;
-        y = newY;
-        sendWindowEvent(WindowEvent.EVENT_WINDOW_MOVED);
-    }
-    
-    private void windowClosed() {
-    }
-    
-    private void windowDestroyed() {
-    }
-*/
 }
+

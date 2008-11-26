@@ -206,30 +206,6 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         return false;
     }
 
-    public int[] glCapabilities2AttribList(GLCapabilities caps) {
-        int[] attrs = new int[] {
-                EGL.EGL_RENDERABLE_TYPE, -1,
-                // FIXME: does this need to be configurable?
-                EGL.EGL_SURFACE_TYPE,    EGL.EGL_WINDOW_BIT,
-                EGL.EGL_RED_SIZE,        caps.getRedBits(),
-                EGL.EGL_GREEN_SIZE,      caps.getGreenBits(),
-                EGL.EGL_BLUE_SIZE,       caps.getBlueBits(),
-                EGL.EGL_ALPHA_SIZE,      (caps.getAlphaBits() > 0 ? caps.getAlphaBits() : EGL.EGL_DONT_CARE),
-                EGL.EGL_STENCIL_SIZE,    (caps.getStencilBits() > 0 ? caps.getStencilBits() : EGL.EGL_DONT_CARE),
-                EGL.EGL_DEPTH_SIZE,      caps.getDepthBits(),
-                EGL.EGL_NONE
-            };
-        if (GLProfile.isGLES2()) {
-            attrs[1] = EGL.EGL_OPENGL_ES2_BIT;
-        } else if (GLProfile.isGLES1()) {
-            attrs[1] = EGL.EGL_OPENGL_ES_BIT;
-        } else {
-            throw new GLException("Error creating EGL drawable - invalid GLProfile");
-        }
-
-        return attrs;
-    }
-
     /*
 
     // FIXME: this is the OpenGL ES 2 initialization order

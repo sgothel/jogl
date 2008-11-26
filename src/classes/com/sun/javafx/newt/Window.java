@@ -33,6 +33,7 @@
 
 package com.sun.javafx.newt;
 
+import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.NativeWindow;
 import javax.media.opengl.NativeWindowException;
 
@@ -66,19 +67,19 @@ public abstract class Window implements NativeWindow
         return windowClass;
     }
 
-    protected static Window create(String type, Screen screen, long visualID) {
-        return create(type, screen, visualID, false);
+    protected static Window create(String type, Screen screen, GLCapabilities caps) {
+        return create(type, screen, caps, false);
     }
 
-    protected static Window create(String type, Screen screen, long visualID, boolean undecorated) {
+    protected static Window create(String type, Screen screen, GLCapabilities caps, boolean undecorated) {
         try {
             Class windowClass = getWindowClass(type);
             Window window = (Window) windowClass.newInstance();
             window.invalidate();
             window.screen   = screen;
-            window.visualID = visualID;
+            window.visualID = 0;
             window.setUndecorated(undecorated);
-            window.createNative();
+            window.createNative(caps);
             return window;
         } catch (Throwable t) {
             t.printStackTrace();
@@ -86,7 +87,7 @@ public abstract class Window implements NativeWindow
         }
     }
 
-    protected static Window wrapHandle(String type, Screen screen, long visualID, 
+    protected static Window wrapHandle(String type, Screen screen, GLCapabilities caps, long visualID, 
                                  long windowHandle, boolean fullscreen, boolean visible, 
                                  int x, int y, int width, int height) 
     {
@@ -95,6 +96,7 @@ public abstract class Window implements NativeWindow
             Window window = (Window) windowClass.newInstance();
             window.invalidate();
             window.screen   = screen;
+            window.chosenCaps = caps;
             window.visualID = visualID;
             window.windowHandle = windowHandle;
             window.fullscreen=fullscreen;
@@ -113,9 +115,12 @@ public abstract class Window implements NativeWindow
     public abstract boolean isTerminalObject();
 
     /**
-     * create native windowHandle, ie creates a new native invisible window
+     * Create native windowHandle, ie creates a new native invisible window
+     *
+     * Shall use the capabilities to determine the visualID
+     * and shall set chosenCaps.
      */
-    protected abstract void createNative();
+    protected abstract void createNative(GLCapabilities caps);
 
     protected abstract void closeNative();
 
@@ -154,11 +159,21 @@ public abstract class Window implements NativeWindow
                     ", visible "+isVisible()+
                     ", wrappedWindow "+getWrappedWindow()+
                     ", terminalObject "+isTerminalObject()+
+                    ", visualID "+visualID+
+                    ", "+chosenCaps+
                     ", screen handle/index "+getScreenHandle()+"/"+getScreenIndex() +
                     ", display handle "+getDisplayHandle()+ "]";
     }
 
     protected Screen screen;
+
+    /**
+     * The GLCapabilities shall be used to determine the visualID
+     */
+    protected GLCapabilities chosenCaps;
+    /**
+     * The visualID shall be determined using the GLCapabilities
+     */
     protected long   visualID;
     protected long   windowHandle;
     protected boolean locked=false;
@@ -223,6 +238,7 @@ public abstract class Window implements NativeWindow
         unlockSurface();
         screen   = null;
         visualID = 0;
+        chosenCaps = null;
         windowHandle = 0;
         locked = false;
         fullscreen=false;
@@ -262,6 +278,14 @@ public abstract class Window implements NativeWindow
 
     public long getSurfaceHandle() {
         return windowHandle; // default: return window handle
+    }
+
+    public GLCapabilities getChosenCapabilities() {
+        if (chosenCaps == null)
+          return null;
+
+        // Must return a new copy to avoid mutation by end user
+        return (GLCapabilities) chosenCaps.clone();
     }
 
     public long getVisualID() {

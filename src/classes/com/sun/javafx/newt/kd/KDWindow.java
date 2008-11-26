@@ -31,15 +31,21 @@
  * 
  */
 
-package com.sun.javafx.newt.x11;
+package com.sun.javafx.newt.kd;
 
 import com.sun.javafx.newt.*;
 import com.sun.opengl.impl.*;
+import com.sun.opengl.impl.egl.*;
 import javax.media.opengl.GLCapabilities;
+import javax.media.opengl.GLProfile;
 import javax.media.opengl.NativeWindowException;
 
-public class X11Window extends Window {
+public class KDWindow extends Window {
     private static final String WINDOW_CLASS_NAME = "NewtWindow";
+    // fullscreen size
+    //   this will be correct _after_ setting fullscreen on,
+    //   but KD has no method to ask for the display size
+    private int fs_width=800, fs_height=480;
     // non fullscreen dimensions ..
     private int nfs_width, nfs_height, nfs_x, nfs_y;
 
@@ -51,7 +57,7 @@ public class X11Window extends Window {
         }
     }
 
-    public X11Window() {
+    public KDWindow() {
     }
 
     public final boolean isTerminalObject() {
@@ -59,68 +65,77 @@ public class X11Window extends Window {
     }
 
     protected void createNative(GLCapabilities caps) {
-        chosenCaps = (GLCapabilities) caps.clone(); // FIXME: visualID := f1(caps); caps := f2(visualID)
-        visualID = 0; // n/a
-        long w = CreateWindow(getDisplayHandle(), getScreenHandle(), getScreenIndex(), visualID, x, y, width, height);
-        if (w == 0 || w!=windowHandle) {
-            throw new RuntimeException("Error creating window: "+w);
+        int eglRenderableType;
+        if(GLProfile.isGLES1()) {
+            eglRenderableType = EGL.EGL_OPENGL_ES_BIT;
         }
+        else if(GLProfile.isGLES2()) {
+            eglRenderableType = EGL.EGL_OPENGL_ES2_BIT;
+        } else {
+            eglRenderableType = EGL.EGL_OPENGL_BIT;
+        }
+        EGLConfig config = new EGLConfig(getDisplayHandle(), caps);
+        visualID = config.getNativeConfigID();
+        chosenCaps = config.getCapabilities();
+
+        windowHandle = CreateWindow(getDisplayHandle(), visualID, eglRenderableType); 
+        if (windowHandle == 0) {
+            throw new RuntimeException("Error creating window: "+windowHandle);
+        }
+        nativeWindowHandle = RealizeWindow(windowHandle);
+        if (nativeWindowHandle == 0) {
+            throw new RuntimeException("Error native Window Handle is null");
+        }
+
         windowHandleClose = windowHandle;
-        displayHandleClose = getDisplayHandle();
     }
 
     protected void closeNative() {
-        if(0!=displayHandleClose && 0!=windowHandleClose) {
-            CloseWindow(displayHandleClose, windowHandleClose);
+        if(0!=windowHandleClose) {
+            CloseWindow(windowHandleClose);
         }
     }
 
     public void setVisible(boolean visible) {
         if(this.visible!=visible) {
             this.visible=visible;
-            setVisible0(getDisplayHandle(), windowHandle, visible);
+            setVisible0(windowHandle, visible);
             clearEventMask();
         }
     }
 
     public void setSize(int width, int height) {
-        setSize0(getDisplayHandle(), windowHandle, width, height, 0, visible);
+        setSize0(windowHandle, width, height);
     }
 
     public void setPosition(int x, int y) {
-        setPosition0(getDisplayHandle(), windowHandle, x, y);
+        // n/a in KD
+        System.err.println("setPosition n/a in KD");
     }
 
     public boolean setFullscreen(boolean fullscreen) {
         if(this.fullscreen!=fullscreen) {
-            int x,y,w,h;
             this.fullscreen=fullscreen;
             if(this.fullscreen) {
-                x = 0; y = 0;
-                w = getDisplayWidth0(getDisplayHandle(), getScreenIndex())/2;
-                h = getDisplayHeight0(getDisplayHandle(), getScreenIndex())/2;
+                setFullScreen0(windowHandle, true);
             } else {
-                x = nfs_x;
-                y = nfs_y;
-                w = nfs_width;
-                h = nfs_height;
+                setFullScreen0(windowHandle, false);
+                setSize0(windowHandle, nfs_width, nfs_height);
             }
-            setPosition0(getDisplayHandle(), windowHandle, x, y);
-            setSize0(getDisplayHandle(), windowHandle, w, h, fullscreen?-1:1, visible);
         }
         return true;
     }
 
     public int getDisplayWidth() {
-        return getDisplayWidth0(getDisplayHandle(), getScreenIndex());
+        return fs_width;
     }
 
     public int getDisplayHeight() {
-        return getDisplayHeight0(getDisplayHandle(), getScreenIndex());
+        return fs_height;
     }
 
     protected void dispatchMessages(int eventMask) {
-        DispatchMessages(getDisplayHandle(), windowHandle, eventMask);
+        DispatchMessages(windowHandle, eventMask);
     }
 
     //----------------------------------------------------------------------
@@ -128,15 +143,13 @@ public class X11Window extends Window {
     //
 
     private static native boolean initIDs();
-    private        native long CreateWindow(long display, long screen, int screen_index, 
-                                            long visualID, int x, int y, int width, int height);
-    private        native void CloseWindow(long display, long windowHandle);
-    private        native void setVisible0(long display, long windowHandle, boolean visible);
-    private        native void DispatchMessages(long display, long windowHandle, int eventMask);
-    private        native void setSize0(long display, long windowHandle, int width, int height, int decorationToggle, boolean isVisible);
-    private        native void setPosition0(long display, long windowHandle, int x, int y);
-    private        native int  getDisplayWidth0(long display, int scrn_idx);
-    private        native int  getDisplayHeight0(long display, int scrn_idx);
+    private        native long CreateWindow(long displayHandle, long eglConfig, int eglRenderableType);
+    private        native long RealizeWindow(long windowHandle);
+    private        native int  CloseWindow(long windowHandle);
+    private        native void setVisible0(long windowHandle, boolean visible);
+    private        native void setSize0(long windowHandle, int width, int height);
+    private        native void setFullScreen0(long windowHandle, boolean fullscreen);
+    private        native void DispatchMessages(long windowHandle, int eventMask);
 
     private void sizeChanged(int newWidth, int newHeight) {
         width = newWidth;
@@ -144,31 +157,16 @@ public class X11Window extends Window {
         if(!fullscreen) {
             nfs_width=width;
             nfs_height=height;
+        } else {
+            fs_width = width;
+            fs_height = width;
         }
         sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED);
-    }
-
-    private void positionChanged(int newX, int newY) {
-        x = newX;
-        y = newY;
-        if(!fullscreen) {
-            nfs_x=x;
-            nfs_y=y;
-        }
-        sendWindowEvent(WindowEvent.EVENT_WINDOW_MOVED);
-    }
-
-    private void windowCreated(long visualID, long windowHandle) {
-        this.visualID = visualID;
-        this.windowHandle = windowHandle;
     }
 
     private void windowClosed() {
     }
 
-    private void windowDestroyed() {
-    }
-
+    private long   nativeWindowHandle; // THE KD underlying native window handle
     private long   windowHandleClose;
-    private long   displayHandleClose;
 }

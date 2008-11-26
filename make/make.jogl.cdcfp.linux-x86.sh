@@ -16,4 +16,5 @@ ant -v \
     -DisLinux=true \
     -DisLinuxX86=true \
     -DisX11=true \
+    -DuseKD=true \
     $* 2>&1 | tee make.jogl.cdcfp.linux-x86.log

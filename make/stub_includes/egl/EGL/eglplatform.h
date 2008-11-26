@@ -52,6 +52,7 @@ extern "C" {
 
 // Define native window system types
 typedef int   EGLNativeDisplayType;
+typedef void* EGLNativePointerType;
 typedef void* EGLNativeWindowType;
 typedef void* EGLNativePixmapType;
 

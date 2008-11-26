@@ -33,6 +33,7 @@
 
 package com.sun.javafx.newt;
 
+import javax.media.opengl.GLCapabilities;
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -54,10 +55,15 @@ public abstract class NewtFactory {
 
     /** Creates a Window of the default type for the current operating system. */
     public static String getWindowType() {
-      String osName = System.getProperty("os.name");
+      String osName = System.getProperty("newt.ws.name");
+      if(null==osName||osName.length()==0) {
+          osName = System.getProperty("os.name");
+      }
       String osNameLowerCase = osName.toLowerCase();
       String windowType;
-      if (osNameLowerCase.startsWith("wind")) {
+      if (osNameLowerCase.startsWith("kd")) {
+          windowType = KD;
+      } else if (osNameLowerCase.startsWith("wind")) {
           windowType = WINDOWS;
       } else if (osNameLowerCase.startsWith("mac os x")) {
           // For the time being, use the AWT on Mac OS X since
@@ -103,19 +109,19 @@ public abstract class NewtFactory {
     /**
      * Create a Window entity, incl native creation
      */
-    public static Window createWindow(Screen screen, long visualID) {
-      return Window.create(getWindowType(), screen, visualID);
+    public static Window createWindow(Screen screen, GLCapabilities caps) {
+      return Window.create(getWindowType(), screen, caps);
     }
 
-    public static Window createWindow(Screen screen, long visualID, boolean undecorated) {
-        return Window.create(getWindowType(), screen, visualID, undecorated);
+    public static Window createWindow(Screen screen, GLCapabilities caps, boolean undecorated) {
+        return Window.create(getWindowType(), screen, caps, undecorated);
     }
 
     /**
      * Create a Window entity using the given implementation type, incl native creation
      */
-    public static Window createWindow(String type, Screen screen, long visualID) {
-      return Window.create(type, screen, visualID);
+    public static Window createWindow(String type, Screen screen, GLCapabilities caps) {
+      return Window.create(type, screen, caps);
     }
 
     /**
@@ -135,10 +141,10 @@ public abstract class NewtFactory {
     /**
      * Instantiate a Window entity using the native handle.
      */
-    public static Window wrapWindow(Screen screen, long visualID,
+    public static Window wrapWindow(Screen screen, GLCapabilities caps, long visualID,
                                     long windowHandle, boolean fullscreen, boolean visible, 
                                     int x, int y, int width, int height) {
-      return Window.wrapHandle(getWindowType(), screen, visualID, 
+      return Window.wrapHandle(getWindowType(), screen, caps, visualID, 
                                windowHandle, fullscreen, visible, x, y, width, height);
     }
 
