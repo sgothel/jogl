@@ -116,14 +116,6 @@ public class WindowsWindow extends Window {
         return true;
     }
 
-    public int getDisplayWidth() {
-        return 640; // FIXME
-    }
-
-    public int getDisplayHeight() {
-        return 480; // FIXME
-    }
-
     protected void dispatchMessages(int eventMask) {
         DispatchMessages(windowHandle, eventMask);
     }

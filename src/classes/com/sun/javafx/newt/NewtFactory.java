@@ -53,6 +53,17 @@ public abstract class NewtFactory {
     /** Generic AWT wrapped window type, if available */
     public static final String AWT = "AWT";
 
+    public static int getPropertyIntValue(String propname) {
+        int i=0;
+        String s = System.getProperty(propname);
+        if(null!=s) {
+            try {
+                i = Integer.valueOf(s).intValue();
+            } catch (NumberFormatException nfe) {}
+        }
+        return i;
+    }
+
     /** Creates a Window of the default type for the current operating system. */
     public static String getWindowType() {
       String osName = System.getProperty("newt.ws.name");

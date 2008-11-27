@@ -266,7 +266,7 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_RegisterW
     (*env)->ReleaseStringUTFChars(env, appName, _appName);
 #endif
     if (!RegisterClass(wc)) {
-        free(wc->lpszClassName);
+        free((void *)wc->lpszClassName);
         free(wc);
         return 0;
     }

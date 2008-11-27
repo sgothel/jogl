@@ -95,10 +95,10 @@ public class X11Window extends Window {
         if(this.fullscreen!=fullscreen) {
             int x,y,w,h;
             this.fullscreen=fullscreen;
-            if(this.fullscreen) {
+            if(fullscreen) {
                 x = 0; y = 0;
-                w = getDisplayWidth0(getDisplayHandle(), getScreenIndex())/2;
-                h = getDisplayHeight0(getDisplayHandle(), getScreenIndex())/2;
+                w = screen.getWidth();
+                h = screen.getHeight();
             } else {
                 x = nfs_x;
                 y = nfs_y;
@@ -109,14 +109,6 @@ public class X11Window extends Window {
             setSize0(getDisplayHandle(), windowHandle, w, h, fullscreen?-1:1, visible);
         }
         return true;
-    }
-
-    public int getDisplayWidth() {
-        return getDisplayWidth0(getDisplayHandle(), getScreenIndex());
-    }
-
-    public int getDisplayHeight() {
-        return getDisplayHeight0(getDisplayHandle(), getScreenIndex());
     }
 
     protected void dispatchMessages(int eventMask) {
@@ -135,8 +127,6 @@ public class X11Window extends Window {
     private        native void DispatchMessages(long display, long windowHandle, int eventMask);
     private        native void setSize0(long display, long windowHandle, int width, int height, int decorationToggle, boolean isVisible);
     private        native void setPosition0(long display, long windowHandle, int x, int y);
-    private        native int  getDisplayWidth0(long display, int scrn_idx);
-    private        native int  getDisplayHeight0(long display, int scrn_idx);
 
     private void sizeChanged(int newWidth, int newHeight) {
         width = newWidth;

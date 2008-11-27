@@ -49,6 +49,8 @@ public class X11Screen extends Screen {
         if (handle == 0 ) {
             throw new RuntimeException("Error creating screen: "+index);
         }
+        setScreenSize(getWidth0(display.getHandle(), index),
+                      getHeight0(display.getHandle(), index));
     }
 
     //----------------------------------------------------------------------
@@ -56,4 +58,7 @@ public class X11Screen extends Screen {
     //
 
     private native long GetScreen(long dpy, int scrn_idx);
+    private native int  getWidth0(long display, int scrn_idx);
+    private native int  getHeight0(long display, int scrn_idx);
 }
+

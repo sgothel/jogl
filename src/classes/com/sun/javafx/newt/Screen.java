@@ -57,6 +57,11 @@ public abstract class Screen {
 
     protected static Screen create(String type, Display display, int idx) {
         try {
+            if(usrWidth<0 || usrHeight<0) {
+                usrWidth  = NewtFactory.getPropertyIntValue("newt.ws.swidth");
+                usrHeight = NewtFactory.getPropertyIntValue("newt.ws.sheight");
+                System.out.println("User screen size "+usrWidth+"x"+usrHeight);
+            }
             Class screenClass = getScreenClass(type);
             Screen screen  = (Screen) screenClass.newInstance();
             screen.display = display;
@@ -96,8 +101,37 @@ public abstract class Screen {
         return handle;
     }
 
+    /**
+     * The actual implementation shall return the detected display value,
+     * if not we return 800.
+     * This can be overwritten with the user property 'newt.ws.swidth',
+     */
+    public int getWidth() {
+        return (usrWidth>0) ? usrWidth : (width>0) ? width : 480;
+    }
+
+    /**
+     * The actual implementation shall return the detected display value,
+     * if not we return 480.
+     * This can be overwritten with the user property 'newt.ws.sheight',
+     */
+    public int getHeight() {
+        return (usrHeight>0) ? usrHeight : (height>0) ? height : 480;
+    }
+
+    /**
+     * The actual implementation shall call this function
+     * to set the detected screen size
+     */
+    public void setScreenSize(int w, int h) {
+        System.out.println("Detected screen size "+w+"x"+h);
+        width=w; height=h;
+    }
+
     protected Display display;
     protected int     index;
     protected long    handle;
+    protected int width=-1, height=-1; // detected values: set using setScreenSize
+    protected static int usrWidth=-1, usrHeight=-1; // property values: newt.ws.swidth and newt.ws.sheight
 }
 

@@ -128,9 +128,6 @@ public abstract class Window implements NativeWindow
         return screen;
     }
 
-    public abstract int getDisplayWidth();
-    public abstract int getDisplayHeight();
-
     /**
      * eventMask is a bitfield of EventListener event flags
      */

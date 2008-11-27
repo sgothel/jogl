@@ -39,11 +39,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#ifdef _WIN32_WCE
-    #define STDOUT_FILE "\\Storage Card\\jogl_demos\\stdout.txt"
-    #define STDERR_FILE "\\Storage Card\\jogl_demos\\stderr.txt"
-#endif
-
 /* This typedef is apparently needed for Microsoft compilers before VC8,
    and on Windows CE */
 #if (_MSC_VER < 1400) || defined(UNDER_CE)
@@ -66,12 +61,19 @@
 #include "MouseEvent.h"
 #include "KeyEvent.h"
 
-#define VERBOSE_ON 1
+// #define VERBOSE_ON 1
 
 #ifdef VERBOSE_ON
     #define DBG_PRINT(...) fprintf(stderr, __VA_ARGS__)
 #else
     #define DBG_PRINT(...)
+#endif
+
+#ifdef VERBOSE_ON
+    #ifdef _WIN32_WCE
+        #define STDOUT_FILE "\\Storage Card\\jogl_demos\\stdout.txt"
+        #define STDERR_FILE "\\Storage Card\\jogl_demos\\stderr.txt"
+    #endif
 #endif
 
 /**
@@ -86,9 +88,11 @@ static jmethodID sendKeyEventID = NULL;
 JNIEXPORT jboolean JNICALL Java_com_sun_javafx_newt_kd_KDWindow_initIDs
   (JNIEnv *env, jclass clazz)
 {
-#ifdef _WIN32_WCE
-    _wfreopen(TEXT(STDOUT_FILE),L"w",stdout);
-    _wfreopen(TEXT(STDERR_FILE),L"w",stderr);
+#ifdef VERBOSE_ON
+    #ifdef _WIN32_WCE
+        _wfreopen(TEXT(STDOUT_FILE),L"w",stdout);
+        _wfreopen(TEXT(STDERR_FILE),L"w",stderr);
+    #endif
 #endif
     sizeChangedID = (*env)->GetMethodID(env, clazz, "sizeChanged", "(II)V");
     windowClosedID    = (*env)->GetMethodID(env, clazz, "windowClosed",    "()V");
@@ -106,7 +110,7 @@ JNIEXPORT jboolean JNICALL Java_com_sun_javafx_newt_kd_KDWindow_initIDs
 }
 
 JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_kd_KDWindow_CreateWindow
-  (JNIEnv *env, jobject obj, jlong display, jlong eglConfig, jint eglRenderableType)
+  (JNIEnv *env, jobject obj, jint owner, jlong display, jlong eglConfig, jint eglRenderableType)
 {
     EGLint configAttribs[] = {
         EGL_RED_SIZE,           1,
@@ -123,6 +127,8 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_kd_KDWindow_CreateWindow
     EGLDisplay dpy  = (EGLDisplay)(intptr_t)display;
     EGLConfig  cfg  = (EGLConfig)(intptr_t)eglConfig;
     KDWindow *window = 0;
+
+    DBG_PRINT( "[CreateWindow]: owner %d\n", owner);
 
     if(dpy==NULL) {
         fprintf(stderr, "[CreateWindow] invalid display connection..\n");
@@ -147,12 +153,12 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_kd_KDWindow_CreateWindow
     configAttribs[i] = eglRenderableType;
 
     /* passing the KDWindow instance for the eventuserptr */
-    window = kdCreateWindow(dpy, configAttribs, (void *)(intptr_t)obj);
+    window = kdCreateWindow(dpy, configAttribs, (void *)(intptr_t)owner);
 
     if(NULL==window) {
         fprintf(stderr, "[CreateWindow] failed: 0x%X\n", kdGetError());
     }
-    DBG_PRINT( "[CreateWindow] ok: %p\n", window);
+    DBG_PRINT( "[CreateWindow] ok: %p, owner %d\n", window, (void *)(intptr_t)owner);
     return (jlong) (intptr_t) window;
 }
 
@@ -195,30 +201,25 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_kd_KDWindow_setVisible0
     DBG_PRINT( "[setVisible] v=%d\n", visible);
 }
 
-/*
- * Class:     com_sun_javafx_newt_kd_KDWindow
- * Method:    DispatchMessages
- * Signature: (JJI)V
- */
 JNIEXPORT void JNICALL Java_com_sun_javafx_newt_kd_KDWindow_DispatchMessages
-  (JNIEnv *env, jobject obj, jlong window, jint eventMask)
+  (JNIEnv *env, jobject obj, jint owner, jlong window, jint eventMask)
 {
     KDWindow *w = (KDWindow*) (intptr_t) window;
+    const KDEvent * evt;
 
     // Periodically take a break
-    const KDEvent * evt;
     while( NULL!=(evt=kdWaitEvent(0)) ) {
-        jobject src_obj = (jobject)(intptr_t)evt->userptr;
-        if(src_obj != obj) {
-            DBG_PRINT( "event unrelated: src: %p, caller: %p\n", src_obj, obj);
+        jint src_owner = (jint)(intptr_t)evt->userptr;
+        if(src_owner != owner) {
+            DBG_PRINT( "event unrelated: src: %d, caller: %d, evt type: 0x%X\n", src_owner, owner, evt->type);
             continue;
         }
-        DBG_PRINT( "[DispatchMessages]: caller %p, evt type: 0x%X\n", obj, evt->type);
+        DBG_PRINT( "[DispatchMessages]: caller %d, evt type: 0x%X\n", owner, evt->type);
 
         switch(evt->type) {
             case KD_EVENT_INPUT_POINTER:
                 if( ! ( eventMask & EVENT_MOUSE ) ) {
-                    DBG_PRINT( "event mouse ignored: src: %p\n", obj);
+                    DBG_PRINT( "event mouse ignored: src: %d\n", owner);
                     continue;
                 }
                 break;
@@ -226,7 +227,7 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_kd_KDWindow_DispatchMessages
             case KeyPress:
             case KeyRelease:
                 if( ! ( eventMask & EVENT_KEY ) ) {
-                    DBG_PRINT( "event key ignored: src: %p\n", obj);
+                    DBG_PRINT( "event key ignored: src: %d\n", owner);
                     continue;
                 }
                 break;
@@ -236,7 +237,7 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_kd_KDWindow_DispatchMessages
             case KD_EVENT_WINDOWPROPERTY_CHANGE:
             case KD_EVENT_WINDOW_REDRAW:
                 if( ! ( eventMask & EVENT_WINDOW ) ) {
-                    DBG_PRINT( "event window ignored: src: %p\n", obj);
+                    DBG_PRINT( "event window ignored: src: %d\n", owner);
                     continue;
                 }
                 break;
@@ -249,13 +250,13 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_kd_KDWindow_DispatchMessages
                 {
                     KDboolean hasFocus;
                     kdGetWindowPropertybv(w, KD_WINDOWPROPERTY_FOCUS, &hasFocus);
-                    DBG_PRINT( "event window focus : src: %p\n", obj);
+                    DBG_PRINT( "event window focus : src: %d\n", owner);
                 }
                 break;
             case KD_EVENT_WINDOW_CLOSE:
                 {
+                    DBG_PRINT( "event window close : src: %d\n", owner);
                     (*env)->CallVoidMethod(env, obj, windowClosedID);
-                    DBG_PRINT( "event window close : src: %p\n", obj);
                 }
                 break;
             case KD_EVENT_WINDOWPROPERTY_CHANGE:
@@ -266,21 +267,21 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_kd_KDWindow_DispatchMessages
                             {
                                 KDint32 v[2];
                                 if(!kdGetWindowPropertyiv(w, KD_WINDOWPROPERTY_SIZE, v)) {
-                                    DBG_PRINT( "event window size change : src: %p %dx%x\n", obj, v[0], v[1]);
+                                    DBG_PRINT( "event window size change : src: %d %dx%d\n", owner, v[0], v[1]);
                                     (*env)->CallVoidMethod(env, obj, sizeChangedID, (jint) v[0], (jint) v[1]);
                                 } else {
-                                    DBG_PRINT( "event window size change error: src: %p\n", obj);
+                                    DBG_PRINT( "event window size change error: src: %d %dx%d\n", owner, v[0], v[1]);
                                 }
                             }
                             break;
                         case KD_WINDOWPROPERTY_FOCUS:
-                            DBG_PRINT( "event window focus: src: %p\n", obj);
+                            DBG_PRINT( "event window focus: src: %d\n", owner);
                             break;
                         case KD_WINDOWPROPERTY_VISIBILITY:
                             {
                                 KDboolean visible;
                                 kdGetWindowPropertybv(w, KD_WINDOWPROPERTY_VISIBILITY, &visible);
-                                DBG_PRINT( "event window visibility: src: %p, v:%d\n", obj, visible);
+                                DBG_PRINT( "event window visibility: src: %d, v:%d\n", owner, visible);
                             }
                             break;
                         default:
@@ -294,21 +295,20 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_kd_KDWindow_DispatchMessages
                     // button idx: evt->data.input.index
                     // pressed = ev->data.input.value.i
                     // time = ev->timestamp
-                    (*env)->CallVoidMethod(env, obj, sendMouseEventID, 
-                                          (ptr->select==0) ? (jint) EVENT_MOUSE_RELEASED : (jint) EVENT_MOUSE_PRESSED, 
-                                          (jint) 0,
-                                          (jint) ptr->x, (jint) ptr->y, (jint) ptr->index);
+                    if(KD_INPUT_POINTER_SELECT==ptr->index) {
+                        DBG_PRINT( "event mouse click: src: %d, s:%d, (%d,%d)\n", owner, ptr->select, ptr->x, ptr->y);
+                        (*env)->CallVoidMethod(env, obj, sendMouseEventID, 
+                                              (ptr->select==0) ? (jint) EVENT_MOUSE_RELEASED : (jint) EVENT_MOUSE_PRESSED, 
+                                              (jint) 0,
+                                              (jint) ptr->x, (jint) ptr->y, 1);
+                    } else {
+                        DBG_PRINT( "event mouse: src: %d, s:%d, i:0x%X (%d,%d)\n", owner, ptr->select, ptr->index, ptr->x, ptr->y);
+                        (*env)->CallVoidMethod(env, obj, sendMouseEventID, (jint) EVENT_MOUSE_MOVED, 
+                                              0,
+                                              (jint) ptr->x, (jint) ptr->y, 0);
+                    }
                 }
                 break;
-            /*
-            case MotionNotify:
-                if(evt.xmotion.window==w) {
-                    (*env)->CallVoidMethod(env, obj, sendMouseEventID, (jint) EVENT_MOUSE_MOVED, 
-                                          (jint) evt.xmotion.state, 
-                                          (jint) evt.xmotion.x, (jint) evt.xmotion.y, (jint) 0);
-                }
-                break;
-            */
         }
     } 
 }
@@ -319,7 +319,7 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_kd_KDWindow_setFullScreen0
     KDWindow *w = (KDWindow*) (intptr_t) window;
     KDboolean v = fullscreen;
 
-    int res = kdSetWindowPropertyiv(w, KD_WINDOWPROPERTY_FULLSCREEN_NV, &v);
+    int res = kdSetWindowPropertybv(w, KD_WINDOWPROPERTY_FULLSCREEN_NV, &v);
 
     DBG_PRINT( "[setFullScreen] v=%d, res=%d\n", fullscreen, res);
 }

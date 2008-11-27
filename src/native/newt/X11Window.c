@@ -135,6 +135,21 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_x11_X11Screen_GetScreen
     return (jlong) (intptr_t) scrn;
 }
 
+JNIEXPORT jint JNICALL Java_com_sun_javafx_newt_x11_X11Screen_getWidth0
+  (JNIEnv *env, jobject obj, jlong display, jint scrn_idx)
+{
+    Display * dpy = (Display *) (intptr_t) display;
+    return (jint) XDisplayWidth( dpy, scrn_idx);
+}
+
+JNIEXPORT jint JNICALL Java_com_sun_javafx_newt_x11_X11Screen_getHeight0
+  (JNIEnv *env, jobject obj, jlong display, jint scrn_idx)
+{
+    Display * dpy = (Display *) (intptr_t) display;
+    return (jint) XDisplayHeight( dpy, scrn_idx);
+}
+
+
 /**
  * Window
  */
@@ -199,6 +214,8 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_x11_X11Window_CreateWindow
     unsigned long attrMask;
 
     int n;
+
+    DBG_PRINT( "CreateWindow %x/%d %dx%d\n", x, y, width, height);
 
     dpy  = (Display *)(intptr_t)display;
     if(dpy==NULL) {
@@ -326,6 +343,7 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_x11_X11Window_setVisible0
 {
     Display * dpy = (Display *) (intptr_t) display;
     Window w = (Window)window;
+    DBG_PRINT( "setVisible0 vis %d\n", visible);
     if(visible==JNI_TRUE) {
         XMapRaised(dpy, w);
         XSync(dpy, False);
@@ -503,6 +521,8 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_x11_X11Window_setSize0
     Display * dpy = (Display *) (intptr_t) display;
     Window w = (Window)window;
 
+    DBG_PRINT( "setSize0 %dx%d, dec %d, vis %d\n", width, height, decorationToggle, isVisible);
+
     if(0!=decorationToggle) {
         XSetWindowAttributes xswa;
         unsigned long attrMask=CWOverrideRedirect;
@@ -533,6 +553,7 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_x11_X11Window_setSize0
     xwc.width=width;
     xwc.height=height;
     XConfigureWindow(dpy, w, CWWidth|CWHeight, &xwc);
+    XSync(dpy, False);
 
     DBG_PRINT( "setSize0 . sizeChangedID call\n");
     (*env)->CallVoidMethod(env, obj, sizeChangedID, (jint) width, (jint) height);
@@ -557,29 +578,4 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_x11_X11Window_setPosition0
 
     // (*env)->CallVoidMethod(env, obj, positionChangedID, (jint) width, (jint) height);
 }
-
-/*
- * Class:     com_sun_javafx_newt_x11_X11Window
- * Method:    getDisplayWidth0
- * Signature: (JI)I
- */
-JNIEXPORT jint JNICALL Java_com_sun_javafx_newt_x11_X11Window_getDisplayWidth0
-  (JNIEnv *env, jobject obj, jlong display, jint scrn_idx)
-{
-    Display * dpy = (Display *) (intptr_t) display;
-    return (jint) XDisplayWidth( dpy, scrn_idx);
-}
-
-/*
- * Class:     com_sun_javafx_newt_x11_X11Window
- * Method:    getDisplayHeight0
- * Signature: (JI)I
- */
-JNIEXPORT jint JNICALL Java_com_sun_javafx_newt_x11_X11Window_getDisplayHeight0
-  (JNIEnv *env, jobject obj, jlong display, jint scrn_idx)
-{
-    Display * dpy = (Display *) (intptr_t) display;
-    return (jint) XDisplayHeight( dpy, scrn_idx);
-}
-
 

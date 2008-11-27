@@ -153,14 +153,6 @@ public class GLWindow extends Window implements GLAutoDrawable {
         window.close();
     }
 
-    public int getDisplayWidth() {
-        return window.getDisplayWidth();
-    }
-
-    public int getDisplayHeight() {
-        return window.getDisplayHeight();
-    }
-
     public boolean getPerfLogEnabled() { return perfLog; }
 
     public void enablePerfLog(boolean v) {
