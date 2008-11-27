@@ -109,7 +109,7 @@ public class NativeLibLoader {
   public static void loadNEWT() {
     AccessController.doPrivileged(new PrivilegedAction() {
       public Object run() {
-        loadLibrary("newt", null, false, false);
+        loadLibrary("newt", null, false, false); // JAU
         return null;
       }
     });
@@ -137,6 +137,8 @@ public class NativeLibLoader {
     AccessController.doPrivileged(new PrivilegedAction() {
       public Object run() {
         loadLibrary("jogl_es2", null, false, false);
+        // JAU loadLibrary("jogl_es2", null, false, false); // JAU
+        // JAU loadLibrary("jfxFramework", null, false, false); // JAU
         return null;
       }
     });

@@ -186,8 +186,8 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
     if( ! (GLProfile.isGL2ES2() && vboBufferUsage==GL2ES2.GL_STREAM_DRAW) ) {
         switch(vboBufferUsage) {
             case -1: // nop
-            case GL2ES1.GL_STATIC_DRAW:
-            case GL2ES1.GL_DYNAMIC_DRAW:
+            case GL.GL_STATIC_DRAW:
+            case GL.GL_DYNAMIC_DRAW:
                 break;
             default:
                 throw new GLException("invalid vboBufferUsage: "+vboBufferUsage+":\n\t"+this); 

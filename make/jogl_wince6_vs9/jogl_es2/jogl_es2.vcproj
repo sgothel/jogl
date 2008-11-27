@@ -66,6 +66,7 @@
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="3"
+                CompileAs="1"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -154,6 +155,7 @@
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="3"
+                CompileAs="1"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -241,6 +243,7 @@
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="3"
+                CompileAs="1"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -328,6 +331,7 @@
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="3"
+                CompileAs="1"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -415,6 +419,7 @@
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="3"
+                CompileAs="1"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -502,6 +507,7 @@
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="3"
+                CompileAs="1"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -589,6 +595,7 @@
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="3"
+                CompileAs="1"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -670,12 +677,13 @@
 				Name="VCCLCompilerTool"
 				ExecutionBucket="7"
 				Optimization="2"
-				AdditionalIncludeDirectories="..\..\..\..\CVM\cdc\src\share\javavm\export,..\..\..\..\CVM\cdc\src\share,..\..\..\..\CVM\cdc\src\win32,..\..\..\..\CVM\cdc\src\win32-arm,,..\..\..\make\stub_includes\egl,..\..\..\make\stub_includes\opengl,..\..\..\build\gensrc\native\newt\Windows"
+				AdditionalIncludeDirectories="..\..\..\..\CVM\cdc\src\share\javavm\export,..\..\..\..\CVM\cdc\src\share,..\..\..\..\CVM\cdc\src\win32,..\..\..\..\CVM\cdc\src\win32-arm,..\..\..\make\stub_includes\egl,..\..\..\make\stub_includes\opengl,..\..\..\make\stub_includes\openmax,..\..\..\build\gensrc\native\newt\Windows,..\..\..\build\gensrc\native\openmax"
 				PreprocessorDefinitions="NDEBUG;_WIN32_WCE=$(CEVER);UNDER_CE;WINCE;_WINDOWS;_USRDLL;JOGL_ES2_EXPORTS;$(ARCHFAM);$(_ARCHFAM_);_UNICODE;UNICODE"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="3"
+                CompileAs="1"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -692,7 +700,8 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions=" /subsystem:windowsce,5.00"
-				AdditionalDependencies="aygshell.lib"
+				AdditionalDependencies="aygshell.lib libKD.lib libnvomx.lib libEGL.lib"
+                AdditionalLibraryDirectories="../../../make/lib/wince/arm/nvap"
 				OutputFile="$(OutDir)/jogl_es2.dll"
 				LinkIncremental="1"
 				DelayLoadDLLs="$(NOINHERIT)"
@@ -765,6 +774,7 @@
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="3"
+                CompileAs="1"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -853,6 +863,7 @@
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="3"
+                CompileAs="1"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -941,6 +952,7 @@
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="3"
+                CompileAs="1"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -1029,6 +1041,7 @@
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="3"
+                CompileAs="1"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -1117,6 +1130,7 @@
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="3"
+                CompileAs="1"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -1205,6 +1219,7 @@
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="3"
+                CompileAs="1"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -1285,6 +1300,14 @@
 			</File>
 			<File
 				RelativePath="..\..\..\src\native\jogl\InternalBufferUtils.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\native\openmax\omx_tool.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\native\openmax\com_sun_javafx_media_video_openmax_OMXMoviePlayerImpl.c"
 				>
 			</File>
 		</Filter>
