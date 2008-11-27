@@ -42,7 +42,5 @@ public class KDScreen extends Screen {
 
     protected void createNative() {
         handle = 0;
-        width=-1;
-        height=-1;
     }
 }
