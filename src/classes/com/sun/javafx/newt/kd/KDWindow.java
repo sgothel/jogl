@@ -76,7 +76,7 @@ public class KDWindow extends Window {
 
         windowHandle = 0;
         windowID = ++_windowID;
-        eglWindowHandle = CreateWindow(windowID, getDisplayHandle(), visualID, eglRenderableType); 
+        eglWindowHandle = CreateWindow(windowID, getDisplayHandle(), config.getAttributeList());
         if (eglWindowHandle == 0) {
             throw new RuntimeException("Error creating egl window: "+eglWindowHandle);
         }
@@ -140,7 +140,7 @@ public class KDWindow extends Window {
     //
 
     private static native boolean initIDs();
-    private        native long CreateWindow(int owner, long displayHandle, long eglConfig, int eglRenderableType);
+    private        native long CreateWindow(int owner, long displayHandle, int[] attributes);
     private        native long RealizeWindow(long eglWindowHandle);
     private        native int  CloseWindow(long eglWindowHandle);
     private        native void setVisible0(long eglWindowHandle, boolean visible);

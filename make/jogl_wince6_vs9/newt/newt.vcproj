@@ -63,7 +63,7 @@
 				AdditionalIncludeDirectories="..\..\..\..\CVM\cdc\src\share\javavm\export,..\..\..\..\CVM\cdc\src\share,..\..\..\..\CVM\cdc\src\win32,..\..\..\..\CVM\cdc\src\win32-arm,..\..\..\build\gensrc\native\newt\Windows,..\..\..\build\gensrc\native\newt\KD,..\..\..\make\stub_includes\egl"
 				PreprocessorDefinitions="_DEBUG;_WIN32_WCE=$(CEVER);UNDER_CE;WINCE;DEBUG;_WINDOWS;_USRDLL;NEWT_EXPORTS;$(ARCHFAM);$(_ARCHFAM_);_UNICODE;UNICODE"
 				MinimalRebuild="true"
-				RuntimeLibrary="1"
+				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="3"
@@ -82,7 +82,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-                AdditionalDependencies="libKD.lib libEGL.lib"
+                AdditionalDependencies="libKD.lib"
                 AdditionalLibraryDirectories="../../../make/lib/wince/arm/nvap"
 				AdditionalOptions=" /subsystem:windowsce,5.00"
 				OutputFile="$(OutDir)/newt.dll"
@@ -152,7 +152,7 @@
 				Optimization="0"
 				PreprocessorDefinitions="_DEBUG;_WIN32_WCE=$(CEVER);UNDER_CE;WINCE;DEBUG;_WINDOWS;_USRDLL;NEWT_EXPORTS;$(ARCHFAM);$(_ARCHFAM_);_UNICODE;UNICODE"
 				MinimalRebuild="true"
-				RuntimeLibrary="1"
+				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="3"
@@ -171,7 +171,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-                AdditionalDependencies="libKD.lib libEGL.lib"
+                AdditionalDependencies="libKD.lib"
                 AdditionalLibraryDirectories="../../../make/lib/wince/arm/nvap"
 				AdditionalOptions=" /subsystem:windowsce,5.00"
 				OutputFile="$(OutDir)/newt.dll"
@@ -241,7 +241,7 @@
 				Optimization="0"
 				PreprocessorDefinitions="_DEBUG;_WIN32_WCE=$(CEVER);UNDER_CE;WINCE;DEBUG;_WINDOWS;_USRDLL;NEWT_EXPORTS;$(ARCHFAM);$(_ARCHFAM_);_UNICODE;UNICODE"
 				MinimalRebuild="true"
-				RuntimeLibrary="1"
+				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="3"
@@ -260,7 +260,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-                AdditionalDependencies="libKD.lib libEGL.lib"
+                AdditionalDependencies="libKD.lib"
                 AdditionalLibraryDirectories="../../../make/lib/wince/arm/nvap"
 				AdditionalOptions=" /subsystem:windowsce,5.00"
 				OutputFile="$(OutDir)/newt.dll"
@@ -330,7 +330,7 @@
 				Optimization="0"
 				PreprocessorDefinitions="_DEBUG;_WIN32_WCE=$(CEVER);UNDER_CE;WINCE;DEBUG;_WINDOWS;_USRDLL;NEWT_EXPORTS;$(ARCHFAM);$(_ARCHFAM_);_UNICODE;UNICODE"
 				MinimalRebuild="true"
-				RuntimeLibrary="1"
+				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="3"
@@ -349,7 +349,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-                AdditionalDependencies="libKD.lib libEGL.lib"
+                AdditionalDependencies="libKD.lib"
                 AdditionalLibraryDirectories="../../../make/lib/wince/arm/nvap"
 				AdditionalOptions=" /subsystem:windowsce,5.00 /machine:MIPS"
 				OutputFile="$(OutDir)/newt.dll"
@@ -419,7 +419,7 @@
 				Optimization="0"
 				PreprocessorDefinitions="_DEBUG;_WIN32_WCE=$(CEVER);UNDER_CE;WINCE;DEBUG;_WINDOWS;_USRDLL;NEWT_EXPORTS;$(ARCHFAM);$(_ARCHFAM_);_UNICODE;UNICODE"
 				MinimalRebuild="true"
-				RuntimeLibrary="1"
+				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="3"
@@ -438,7 +438,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-                AdditionalDependencies="libKD.lib libEGL.lib"
+                AdditionalDependencies="libKD.lib"
                 AdditionalLibraryDirectories="../../../make/lib/wince/arm/nvap"
 				AdditionalOptions=" /subsystem:windowsce,5.00 /machine:MIPS"
 				OutputFile="$(OutDir)/newt.dll"
@@ -508,7 +508,7 @@
 				Optimization="0"
 				PreprocessorDefinitions="_DEBUG;_WIN32_WCE=$(CEVER);UNDER_CE;WINCE;DEBUG;_WINDOWS;_USRDLL;NEWT_EXPORTS;$(ARCHFAM);$(_ARCHFAM_);_UNICODE;UNICODE"
 				MinimalRebuild="true"
-				RuntimeLibrary="1"
+				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="3"
@@ -527,7 +527,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-                AdditionalDependencies="libKD.lib libEGL.lib"
+                AdditionalDependencies="libKD.lib"
                 AdditionalLibraryDirectories="../../../make/lib/wince/arm/nvap"
 				AdditionalOptions=" /subsystem:windowsce,5.00 /machine:MIPSFPU"
 				OutputFile="$(OutDir)/newt.dll"
@@ -597,7 +597,7 @@
 				Optimization="0"
 				PreprocessorDefinitions="_DEBUG;_WIN32_WCE=$(CEVER);UNDER_CE;WINCE;DEBUG;_WINDOWS;_USRDLL;NEWT_EXPORTS;$(ARCHFAM);$(_ARCHFAM_);_UNICODE;UNICODE"
 				MinimalRebuild="true"
-				RuntimeLibrary="1"
+				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="3"
@@ -616,7 +616,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-                AdditionalDependencies="libKD.lib libEGL.lib"
+                AdditionalDependencies="libKD.lib"
                 AdditionalLibraryDirectories="../../../make/lib/wince/arm/nvap"
 				AdditionalOptions=" /subsystem:windowsce,5.00 /machine:MIPSFPU"
 				OutputFile="$(OutDir)/newt.dll"
@@ -686,7 +686,7 @@
 				Optimization="2"
 				AdditionalIncludeDirectories="..\..\..\..\CVM\cdc\src\share\javavm\export,..\..\..\..\CVM\cdc\src\share,..\..\..\..\CVM\cdc\src\win32,..\..\..\..\CVM\cdc\src\win32-arm,..\..\..\build\gensrc\native\newt\Windows,..\..\..\build\gensrc\native\newt\KD,..\..\..\make\stub_includes\egl"
 				PreprocessorDefinitions="NDEBUG;_WIN32_WCE=$(CEVER);UNDER_CE;WINCE;_WINDOWS;_USRDLL;NEWT_EXPORTS;$(ARCHFAM);$(_ARCHFAM_);_UNICODE;UNICODE"
-				RuntimeLibrary="0"
+				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="3"
@@ -705,7 +705,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-                AdditionalDependencies="libKD.lib libEGL.lib"
+                AdditionalDependencies="libKD.lib"
                 AdditionalLibraryDirectories="../../../make/lib/wince/arm/nvap"
 				AdditionalOptions=" /subsystem:windowsce,5.00"
 				OutputFile="$(OutDir)/newt.dll"
@@ -776,7 +776,7 @@
 				ExecutionBucket="7"
 				Optimization="2"
 				PreprocessorDefinitions="NDEBUG;_WIN32_WCE=$(CEVER);UNDER_CE;WINCE;_WINDOWS;_USRDLL;NEWT_EXPORTS;$(ARCHFAM);$(_ARCHFAM_);_UNICODE;UNICODE"
-				RuntimeLibrary="0"
+				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="3"
@@ -795,7 +795,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-                AdditionalDependencies="libKD.lib libEGL.lib"
+                AdditionalDependencies="libKD.lib"
                 AdditionalLibraryDirectories="../../../make/lib/wince/arm/nvap"
 				AdditionalOptions=" /subsystem:windowsce,5.00"
 				OutputFile="$(OutDir)/newt.dll"
@@ -866,7 +866,7 @@
 				ExecutionBucket="7"
 				Optimization="2"
 				PreprocessorDefinitions="NDEBUG;_WIN32_WCE=$(CEVER);UNDER_CE;WINCE;_WINDOWS;_USRDLL;NEWT_EXPORTS;$(ARCHFAM);$(_ARCHFAM_);_UNICODE;UNICODE"
-				RuntimeLibrary="0"
+				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="3"
@@ -885,7 +885,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-                AdditionalDependencies="libKD.lib libEGL.lib"
+                AdditionalDependencies="libKD.lib"
                 AdditionalLibraryDirectories="../../../make/lib/wince/arm/nvap"
 				AdditionalOptions=" /subsystem:windowsce,5.00"
 				OutputFile="$(OutDir)/newt.dll"
@@ -956,7 +956,7 @@
 				ExecutionBucket="7"
 				Optimization="2"
 				PreprocessorDefinitions="NDEBUG;_WIN32_WCE=$(CEVER);UNDER_CE;WINCE;_WINDOWS;_USRDLL;NEWT_EXPORTS;$(ARCHFAM);$(_ARCHFAM_);_UNICODE;UNICODE"
-				RuntimeLibrary="0"
+				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="3"
@@ -1044,7 +1044,7 @@
 				ExecutionBucket="7"
 				Optimization="2"
 				PreprocessorDefinitions="NDEBUG;_WIN32_WCE=$(CEVER);UNDER_CE;WINCE;_WINDOWS;_USRDLL;NEWT_EXPORTS;$(ARCHFAM);$(_ARCHFAM_);_UNICODE;UNICODE"
-				RuntimeLibrary="0"
+				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="3"
@@ -1132,7 +1132,7 @@
 				ExecutionBucket="7"
 				Optimization="2"
 				PreprocessorDefinitions="NDEBUG;_WIN32_WCE=$(CEVER);UNDER_CE;WINCE;_WINDOWS;_USRDLL;NEWT_EXPORTS;$(ARCHFAM);$(_ARCHFAM_);_UNICODE;UNICODE"
-				RuntimeLibrary="0"
+				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="3"
@@ -1220,7 +1220,7 @@
 				ExecutionBucket="7"
 				Optimization="2"
 				PreprocessorDefinitions="NDEBUG;_WIN32_WCE=$(CEVER);UNDER_CE;WINCE;_WINDOWS;_USRDLL;NEWT_EXPORTS;$(ARCHFAM);$(_ARCHFAM_);_UNICODE;UNICODE"
-				RuntimeLibrary="0"
+				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="3"

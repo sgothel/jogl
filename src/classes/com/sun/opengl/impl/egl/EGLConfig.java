@@ -54,6 +54,10 @@ public class EGLConfig {
         return capabilities;
     }
 
+    public int[] getAttributeList() {
+        return glCapabilities2AttribList(capabilities);
+    }
+
     public EGLConfig(long display, int configID) {
         int[] attrs = new int[] {
                 EGL.EGL_RENDERABLE_TYPE, -1,
@@ -163,6 +167,5 @@ public class EGLConfig {
     private _EGLConfig _config;
     private int configID;
     private GLCapabilities capabilities;
-
 }
 

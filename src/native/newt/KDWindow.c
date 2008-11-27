@@ -51,7 +51,6 @@
     #include <inttypes.h>
 #endif
 
-#include <EGL/egl.h>
 #include <KD/kd.h>
 #include <KD/NV_extwindowprops.h>
 
@@ -110,22 +109,11 @@ JNIEXPORT jboolean JNICALL Java_com_sun_javafx_newt_kd_KDWindow_initIDs
 }
 
 JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_kd_KDWindow_CreateWindow
-  (JNIEnv *env, jobject obj, jint owner, jlong display, jlong eglConfig, jint eglRenderableType)
+  (JNIEnv *env, jobject obj, jint owner, jlong display, jintArray jAttrs)
 {
-    EGLint configAttribs[] = {
-        EGL_RED_SIZE,           1,
-        EGL_GREEN_SIZE,         1,
-        EGL_BLUE_SIZE,          1,
-        EGL_ALPHA_SIZE,         EGL_DONT_CARE,
-        EGL_DEPTH_SIZE,         1,
-        EGL_STENCIL_SIZE,       EGL_DONT_CARE,
-        EGL_SURFACE_TYPE,       EGL_WINDOW_BIT,
-        EGL_RENDERABLE_TYPE,    -1,
-        EGL_NONE
-    };
-    int i;
+    jint * attrs = NULL;
+    jsize attrsLen;
     EGLDisplay dpy  = (EGLDisplay)(intptr_t)display;
-    EGLConfig  cfg  = (EGLConfig)(intptr_t)eglConfig;
     KDWindow *window = 0;
 
     DBG_PRINT( "[CreateWindow]: owner %d\n", owner);
@@ -135,25 +123,21 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_kd_KDWindow_CreateWindow
         return 0;
     }
 
-    i=1;
-    eglGetConfigAttrib(dpy, cfg, EGL_RED_SIZE, &configAttribs[i]);
-    i+=2;
-    eglGetConfigAttrib(dpy, cfg, EGL_GREEN_SIZE, &configAttribs[i]);
-    i+=2;
-    eglGetConfigAttrib(dpy, cfg, EGL_BLUE_SIZE, &configAttribs[i]);
-    i+=2;
-    eglGetConfigAttrib(dpy, cfg, EGL_ALPHA_SIZE, &configAttribs[i]);
-    i+=2;
-    eglGetConfigAttrib(dpy, cfg, EGL_DEPTH_SIZE, &configAttribs[i]);
-    i+=2;
-    configAttribs[i] = EGL_WINDOW_BIT;
-    i+=2;
-    eglGetConfigAttrib(dpy, cfg, EGL_STENCIL_SIZE, &configAttribs[i]);
-    i+=2;
-    configAttribs[i] = eglRenderableType;
+    attrsLen = (*env)->GetArrayLength(env, jAttrs);
+    if(0==attrsLen) {
+        fprintf(stderr, "[CreateWindow] attribute array size 0..\n");
+        return 0;
+    }
+    attrs = (*env)->GetIntArrayElements(env, jAttrs, 0);
+    if(NULL==attrs) {
+        fprintf(stderr, "[CreateWindow] attribute array NULL..\n");
+        return 0;
+    }
 
     /* passing the KDWindow instance for the eventuserptr */
-    window = kdCreateWindow(dpy, configAttribs, (void *)(intptr_t)owner);
+    window = kdCreateWindow(dpy, attrs, (void *)(intptr_t)owner);
+
+    (*env)->ReleaseIntArrayElements(env, jAttrs, attrs, 0);
 
     if(NULL==window) {
         fprintf(stderr, "[CreateWindow] failed: 0x%X\n", kdGetError());
