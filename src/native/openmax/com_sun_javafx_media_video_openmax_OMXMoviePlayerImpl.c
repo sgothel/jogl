@@ -71,7 +71,7 @@ void java_throwNewRuntimeException(JNIEnv *env, const char* format, ...)
     }
 }
 
-JNIEXPORT jlong JNICALL Java_com_sun_javafx_media_video_openmax_OMXMovieImpl__1createInstance
+JNIEXPORT jlong JNICALL Java_com_sun_javafx_media_video_openmax_OMXMoviePlayerImpl__1createInstance
   (JNIEnv *env, jobject instance, jint vBufferNum)
 {
     OMXToolBasicAV_t * pOMXAV;
@@ -84,7 +84,7 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_media_video_openmax_OMXMovieImpl__1c
     return (jlong)((intptr_t)((void *)pOMXAV));
 }
 
-JNIEXPORT void JNICALL Java_com_sun_javafx_media_video_openmax_OMXMovieImpl__1setStream
+JNIEXPORT void JNICALL Java_com_sun_javafx_media_video_openmax_OMXMoviePlayerImpl__1setStream
   (JNIEnv *env, jobject instance, jlong ptr, jstring jpath)
 {
     jboolean iscopy;
@@ -102,7 +102,7 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_media_video_openmax_OMXMovieImpl__1se
     fprintf(stdout, "setStream 3 ..\n"); fflush(stdout); // JAU
 }
 
-JNIEXPORT void JNICALL Java_com_sun_javafx_media_video_openmax_OMXMovieImpl__1updateStreamInfo
+JNIEXPORT void JNICALL Java_com_sun_javafx_media_video_openmax_OMXMoviePlayerImpl__1updateStreamInfo
   (JNIEnv *env, jobject instance, jlong ptr)
 {
     OMXToolBasicAV_t *pOMXAV = (OMXToolBasicAV_t *)((void *)((intptr_t)ptr));
@@ -114,7 +114,7 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_media_video_openmax_OMXMovieImpl__1up
     }
 }
 
-JNIEXPORT void JNICALL Java_com_sun_javafx_media_video_openmax_OMXMovieImpl__1setEGLImageTexture2D
+JNIEXPORT void JNICALL Java_com_sun_javafx_media_video_openmax_OMXMoviePlayerImpl__1setEGLImageTexture2D
   (JNIEnv *env, jobject instance, jlong ptr, jint i, jint tex, jlong image, jlong sync)
 {
   OMXToolBasicAV_t *pOMXAV = (OMXToolBasicAV_t *)((void *)((intptr_t)ptr));
@@ -126,7 +126,7 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_media_video_openmax_OMXMovieImpl__1se
   }
 }
 
-JNIEXPORT void JNICALL Java_com_sun_javafx_media_video_openmax_OMXMovieImpl__1activateInstance
+JNIEXPORT void JNICALL Java_com_sun_javafx_media_video_openmax_OMXMoviePlayerImpl__1activateInstance
   (JNIEnv *env, jobject instance, jlong ptr)
 {
     OMXToolBasicAV_t *pOMXAV = (OMXToolBasicAV_t *)((void *)((intptr_t)ptr));
@@ -139,14 +139,14 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_media_video_openmax_OMXMovieImpl__1ac
 }
 
 /*
- * Class:     com_sun_javafx_media_video_openmax_OMXMovieImpl
+ * Class:     com_sun_javafx_media_video_openmax_OMXMoviePlayerImpl
  * Method:    _play
  * Signature: (ILjava/nio/ByteBuffer;JFI)V
  */
-JNIEXPORT void JNICALL Java_com_sun_javafx_media_video_openmax_OMXMovieImpl__1play
+JNIEXPORT void JNICALL Java_com_sun_javafx_media_video_openmax_OMXMoviePlayerImpl__1play
   (JNIEnv *env, jobject instance, jlong ptr, jlong position, jfloat rate, jint loopCount)
 {
-//fprintf(stdout, "Java_com_sun_javafx_media_video_openmax_OMXMovieImpl__1play\n");
+//fprintf(stdout, "Java_com_sun_javafx_media_video_openmax_OMXMoviePlayerImpl__1play\n");
   OMXToolBasicAV_t *pOMXAV = (OMXToolBasicAV_t *)((void *)((intptr_t)ptr));
   _env = env;
   if (pOMXAV != NULL) {
@@ -158,11 +158,11 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_media_video_openmax_OMXMovieImpl__1pl
 }
 
 /*
- * Class:     com_sun_javafx_media_video_openmax_OMXMovieImpl
+ * Class:     com_sun_javafx_media_video_openmax_OMXMoviePlayerImpl
  * Method:    _stop
  * Signature: (I)I
  */
-JNIEXPORT jlong JNICALL Java_com_sun_javafx_media_video_openmax_OMXMovieImpl__1stop
+JNIEXPORT jlong JNICALL Java_com_sun_javafx_media_video_openmax_OMXMoviePlayerImpl__1stop
   (JNIEnv *env, jobject instance, jlong ptr)
 {
     jlong frame = 0;
@@ -171,22 +171,22 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_media_video_openmax_OMXMovieImpl__1s
 }
 
 /*
- * Class:     com_sun_javafx_media_video_openmax_OMXMovieImpl
+ * Class:     com_sun_javafx_media_video_openmax_OMXMoviePlayerImpl
  * Method:    _setVolume
  * Signature: (IF)V
  */
-JNIEXPORT void JNICALL Java_com_sun_javafx_media_video_openmax_OMXMovieImpl__1setVolume
+JNIEXPORT void JNICALL Java_com_sun_javafx_media_video_openmax_OMXMoviePlayerImpl__1setVolume
   (JNIEnv *env, jobject instance, jlong ptr, jfloat volume)
 {
     _env = env;
 }
 
 /*
- * Class:     com_sun_javafx_media_video_openmax_OMXMovieImpl
+ * Class:     com_sun_javafx_media_video_openmax_OMXMoviePlayerImpl
  * Method:    _getCurrentPosition
  * Signature: (I)I
  */
-JNIEXPORT jlong JNICALL Java_com_sun_javafx_media_video_openmax_OMXMovieImpl__1getCurrentPosition
+JNIEXPORT jlong JNICALL Java_com_sun_javafx_media_video_openmax_OMXMoviePlayerImpl__1getCurrentPosition
   (JNIEnv *env, jobject instance, jlong ptr)
 {
     jlong frame = 0;
@@ -195,11 +195,11 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_media_video_openmax_OMXMovieImpl__1g
 }
 
 /*
- * Class:     com_sun_javafx_media_video_openmax_OMXMovieImpl
+ * Class:     com_sun_javafx_media_video_openmax_OMXMoviePlayerImpl
  * Method:    _getCurrentPosition
  * Signature: (I)I
  */
-JNIEXPORT jlong JNICALL Java_com_sun_javafx_media_video_openmax_OMXMovieImpl__1getCurrentLoaded
+JNIEXPORT jlong JNICALL Java_com_sun_javafx_media_video_openmax_OMXMoviePlayerImpl__1getCurrentLoaded
   (JNIEnv *env, jobject instance, jlong ptr)
 {
     jlong frame = 0;
@@ -207,7 +207,7 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_media_video_openmax_OMXMovieImpl__1g
     return frame;
 }
 
-JNIEXPORT jlong JNICALL Java_com_sun_javafx_media_video_openmax_OMXMovieImpl__1getDuration
+JNIEXPORT jlong JNICALL Java_com_sun_javafx_media_video_openmax_OMXMoviePlayerImpl__1getDuration
   (JNIEnv *env, jobject instance, jlong ptr)
 {
     jlong frame = 0;
@@ -215,77 +215,77 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_media_video_openmax_OMXMovieImpl__1g
     return frame;
 }
 /*
- * Class:     com_sun_javafx_media_video_openmax_OMXMovieImpl
+ * Class:     com_sun_javafx_media_video_openmax_OMXMoviePlayerImpl
  * Method:    _step
  * Signature: (IIJ)V
  */
-JNIEXPORT jlong JNICALL Java_com_sun_javafx_media_video_openmax_OMXMovieImpl__1step
+JNIEXPORT jlong JNICALL Java_com_sun_javafx_media_video_openmax_OMXMoviePlayerImpl__1step
   (JNIEnv *env, jobject instance, jlong ptr, jint direction, jlong position)
 {
-//fprintf(stdout, "Java_com_sun_javafx_media_video_openmax_OMXMovieImpl__1step\n");
+//fprintf(stdout, "Java_com_sun_javafx_media_video_openmax_OMXMoviePlayerImpl__1step\n");
     jlong frame = position;
     _env = env;
     return frame;
 }
 
 /*
- * Class:     com_sun_javafx_media_video_openmax_OMXMovieImpl
+ * Class:     com_sun_javafx_media_video_openmax_OMXMoviePlayerImpl
  * Method:    _setRate
  * Signature: (IF)V
  */
-JNIEXPORT void JNICALL Java_com_sun_javafx_media_video_openmax_OMXMovieImpl__1setRate
+JNIEXPORT void JNICALL Java_com_sun_javafx_media_video_openmax_OMXMoviePlayerImpl__1setRate
   (JNIEnv *env, jobject instance, jlong ptr, jfloat rate)
 {
-//fprintf(stdout, "Java_com_sun_javafx_media_video_openmax_OMXMovieImpl__1setRate\n");
+//fprintf(stdout, "Java_com_sun_javafx_media_video_openmax_OMXMoviePlayerImpl__1setRate\n");
     _env = env;
 }
 
 /*
- * Class:     com_sun_javafx_media_video_openmax_OMXMovieImpl
+ * Class:     com_sun_javafx_media_video_openmax_OMXMoviePlayerImpl
  * Method:    _setRate
  * Signature: (IF)V
  */
-JNIEXPORT jlong JNICALL Java_com_sun_javafx_media_video_openmax_OMXMovieImpl__1setCurrentPosition
+JNIEXPORT jlong JNICALL Java_com_sun_javafx_media_video_openmax_OMXMoviePlayerImpl__1setCurrentPosition
   (JNIEnv *env, jobject obj, jlong ptr, jlong position)
 {
-//fprintf(stdout, "Java_com_sun_javafx_media_video_openmax_OMXMovieImpl__1setRate\n");
+//fprintf(stdout, "Java_com_sun_javafx_media_video_openmax_OMXMoviePlayerImpl__1setRate\n");
     _env = env;
     return position;
 }
 
 /*
- * Class:     com_sun_javafx_media_video_openmax_OMXMovieImpl
+ * Class:     com_sun_javafx_media_video_openmax_OMXMoviePlayerImpl
  * Method:    _lock
  * Signature: (I)V
  */
-JNIEXPORT void JNICALL Java_com_sun_javafx_media_video_openmax_OMXMovieImpl__1lock
+JNIEXPORT void JNICALL Java_com_sun_javafx_media_video_openmax_OMXMoviePlayerImpl__1lock
   (JNIEnv *env, jobject instance, jlong ptr)
 {
-//fprintf(stdout, "Java_com_sun_javafx_media_video_openmax_OMXMovieImpl__1lock\n");
+//fprintf(stdout, "Java_com_sun_javafx_media_video_openmax_OMXMoviePlayerImpl__1lock\n");
     _env = env;
 }
 
 /*
- * Class:     com_sun_javafx_media_video_openmax_OMXMovieImpl
+ * Class:     com_sun_javafx_media_video_openmax_OMXMoviePlayerImpl
  * Method:    _unlock
  * Signature: (I)V
  */
-JNIEXPORT void JNICALL Java_com_sun_javafx_media_video_openmax_OMXMovieImpl__1unlock
+JNIEXPORT void JNICALL Java_com_sun_javafx_media_video_openmax_OMXMoviePlayerImpl__1unlock
   (JNIEnv *env, jobject instance, jlong ptr)
 {
-//fprintf(stdout, "Java_com_sun_javafx_media_video_openmax_OMXMovieImpl__1unlock\n");
+//fprintf(stdout, "Java_com_sun_javafx_media_video_openmax_OMXMoviePlayerImpl__1unlock\n");
     _env = env;
 }
 
 /*
- * Class:     com_sun_javafx_media_video_openmax_OMXMovieImpl
+ * Class:     com_sun_javafx_media_video_openmax_OMXMoviePlayerImpl
  * Method:    _getTextureID
  * Signature: (I)I
  */
-JNIEXPORT jint JNICALL Java_com_sun_javafx_media_video_openmax_OMXMovieImpl__1getTextureID
+JNIEXPORT jint JNICALL Java_com_sun_javafx_media_video_openmax_OMXMoviePlayerImpl__1getTextureID
   (JNIEnv *env, jobject instance, jlong ptr)
 {
-//fprintf(stdout, "Java_com_sun_javafx_media_video_openmax_OMXMovieImpl__1getTextureID\n");
+//fprintf(stdout, "Java_com_sun_javafx_media_video_openmax_OMXMoviePlayerImpl__1getTextureID\n");
   jint textureID = 0xffffffff;
   OMXToolBasicAV_t *pOMXAV = (OMXToolBasicAV_t *)((void *)((intptr_t)ptr));
   _env = env;
@@ -296,14 +296,14 @@ JNIEXPORT jint JNICALL Java_com_sun_javafx_media_video_openmax_OMXMovieImpl__1ge
 }
 
 /*
- * Class:     com_sun_javafx_media_video_openmax_OMXMovieImpl
+ * Class:     com_sun_javafx_media_video_openmax_OMXMoviePlayerImpl
  * Method:    _getWidth
  * Signature: (I)I
  */
-JNIEXPORT jint JNICALL Java_com_sun_javafx_media_video_openmax_OMXMovieImpl__1getWidth
+JNIEXPORT jint JNICALL Java_com_sun_javafx_media_video_openmax_OMXMoviePlayerImpl__1getWidth
   (JNIEnv *env, jobject instance, jlong ptr)
 {
-//fprintf(stdout, "Java_com_sun_javafx_media_video_openmax_OMXMovieImpl__1getWidth\n");
+//fprintf(stdout, "Java_com_sun_javafx_media_video_openmax_OMXMoviePlayerImpl__1getWidth\n");
   jint width = 0;
     
   OMXToolBasicAV_t *pOMXAV = (OMXToolBasicAV_t *)((void *)((intptr_t)ptr));
@@ -315,14 +315,14 @@ JNIEXPORT jint JNICALL Java_com_sun_javafx_media_video_openmax_OMXMovieImpl__1ge
 }
 
 /*
- * Class:     com_sun_javafx_media_video_openmax_OMXMovieImpl
+ * Class:     com_sun_javafx_media_video_openmax_OMXMoviePlayerImpl
  * Method:    _getHeight
  * Signature: (I)I
  */
-JNIEXPORT jint JNICALL Java_com_sun_javafx_media_video_openmax_OMXMovieImpl__1getHeight
+JNIEXPORT jint JNICALL Java_com_sun_javafx_media_video_openmax_OMXMoviePlayerImpl__1getHeight
   (JNIEnv *env, jobject instance, jlong ptr)
 {
-//fprintf(stdout, "Java_com_sun_javafx_media_video_openmax_OMXMovieImpl__1getHeight\n");
+//fprintf(stdout, "Java_com_sun_javafx_media_video_openmax_OMXMoviePlayerImpl__1getHeight\n");
   jint height = 0;
     
   OMXToolBasicAV_t *pOMXAV = (OMXToolBasicAV_t *)((void *)((intptr_t)ptr));
@@ -334,25 +334,25 @@ JNIEXPORT jint JNICALL Java_com_sun_javafx_media_video_openmax_OMXMovieImpl__1ge
 }
 
 /*
- * Class:     com_sun_javafx_media_video_openmax_OMXMovieImpl
+ * Class:     com_sun_javafx_media_video_openmax_OMXMoviePlayerImpl
  * Method:    _task
  * Signature: (I)V
  */
-JNIEXPORT void JNICALL Java_com_sun_javafx_media_video_openmax_OMXMovieImpl__1task
+JNIEXPORT void JNICALL Java_com_sun_javafx_media_video_openmax_OMXMoviePlayerImpl__1task
   (JNIEnv *env, jobject instance, jlong ptr)
 {
   _env = env;
 }
 
 /*
- * Class:     com_sun_javafx_media_video_openmax_OMXMovieImpl
+ * Class:     com_sun_javafx_media_video_openmax_OMXMoviePlayerImpl
  * Method:    _destroy
  * Signature: (I)V
  */
-JNIEXPORT void JNICALL Java_com_sun_javafx_media_video_openmax_OMXMovieImpl__1destroyInstance
+JNIEXPORT void JNICALL Java_com_sun_javafx_media_video_openmax_OMXMoviePlayerImpl__1destroyInstance
   (JNIEnv *env, jobject instance, jlong ptr)
 {
-//fprintf(stdout, "Java_com_sun_javafx_media_video_openmax_OMXMovieImpl__1destroy\n");
+//fprintf(stdout, "Java_com_sun_javafx_media_video_openmax_OMXMoviePlayerImpl__1destroy\n");
   OMXToolBasicAV_t *pOMXAV = (OMXToolBasicAV_t *)((void *)((intptr_t)ptr));
   _env = env;
   if (pOMXAV != NULL) {

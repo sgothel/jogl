@@ -352,6 +352,7 @@ public class OMXMoviePlayerImpl /* extends MoviePlayerImpl */ {
                 image, sync);
             eglImgTexsMap.put(new Integer(tex), eglImgTexs[i]);
         }
+        gl.glDisable(gl.GL_TEXTURE_2D);
     }
     
     public boolean isValid() {

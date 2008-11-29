@@ -354,6 +354,7 @@
         <property name="rootrel.src.java" value="src/classes" />
         <property name="rootrel.src.c.jogl" value="src/native/jogl" />
         <property name="rootrel.src.c.newt" value="src/native/newt" />
+        <property name="rootrel.src.c.openmax" value="src/native/openmax" />
         <property name="rootrel.build" value="build" />
         <property name="rootrel.src.generated" value="${rootrel.build}/gensrc" />
         <property name="rootrel.generated.c.jogl" value="${rootrel.src.generated}/native/jogl" />
@@ -1451,6 +1452,7 @@
             <sysincludepath path="${java.includes.dir.platform}"/>
             <includepath path="stub_includes/opengl"/>
             <includepath path="stub_includes/egl"/>
+            <includepath path="stub_includes/openmax" if="useOpenMAX"/>
             <includepath path="stub_includes/cg" if="c.compiler.use-cglib"/>        
   
             <!-- This is for the generated headers for handwritten C code -->

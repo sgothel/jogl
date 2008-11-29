@@ -7,7 +7,7 @@
 #    -Djavacdebug="false" \
 #    -Djavacdebuglevel="none" \
 #
-#    -Djava.generate.skip=true
+#    -Djava.generate.skip=true \
 
 ant -v \
     -Djogl.cdcfp=true \
@@ -18,4 +18,5 @@ ant -v \
     -DisX11=true \
     -DuseKD=true \
     -DuseOpenMAX=true \
+    -Djava.generate.skip=true \
     $* 2>&1 | tee make.jogl.cdcfp.linux-x86.log

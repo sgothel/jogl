@@ -1,6 +1,28 @@
 
 #include "omx_tool.h"
 
+#define VERBOSE_ON 1
+#define VERBOSE2_ON 1
+
+#ifdef VERBOSE_ON
+    #define DBG_PRINT(...) fprintf(stdout, __VA_ARGS__)
+#else
+    #define DBG_PRINT(...)
+#endif
+
+#if defined(VERBOSE_ON) && defined(VERBOSE2_ON)
+    #define DBG_PRINT2(...) fprintf(stdout, __VA_ARGS__)
+#else
+    #define DBG_PRINT2(...)
+#endif
+
+#ifdef VERBOSE_ON
+    #ifdef _WIN32_WCE
+        #define STDOUT_FILE "\\Storage Card\\stdout.txt"
+        #define STDERR_FILE "\\Storage Card\\stderr.txt"
+    #endif
+#endif
+
 #include <NVOMX_IndexExtensions.h>
 #if !defined(SELF_TEST)
     #include <jni.h>
@@ -26,7 +48,7 @@ void java_throwNewRuntimeException(void *env, const char* format, ...) {
     #endif
     va_end(ap);
     buffer[sizeof(buffer)-1]=0;
-    fprintf(stderr, "RuntimeException: %s\n", buffer); fflush(stderr);
+    DBG_PRINT( "RuntimeException: %s\n", buffer);
     exit(1);
 }
 #endif
@@ -84,6 +106,14 @@ static int _initialized = 0;
 static void InitStatic()
 {
     if(_initialized) return;
+
+#ifdef VERBOSE_ON
+    #ifdef _WIN32_WCE
+        _wfreopen(TEXT(STDOUT_FILE),L"w",stdout);
+        _wfreopen(TEXT(STDERR_FILE),L"w",stderr);
+    #endif
+#endif
+
     _initialized = 1;
 
     vOMX.s.nVersionMajor = 1;
@@ -101,14 +131,13 @@ static void InitStatic()
     } else {
         _hasEGLSync = 1;
     }
-    _hasEGLSync = 0; // JAU
 
     OMX_Init();
 }
 
 static void Invalidate(OMXToolBasicAV_t * pOMXAV)
 {
-    printf("INVALIDATE\n"); fflush(stdout);
+    DBG_PRINT("INVALIDATE\n");
     pOMXAV->status=OMXAV_INVALID;
 }
 
@@ -137,18 +166,18 @@ static OMX_ERRORTYPE EventHandler(
     {
         case OMX_EventCmdComplete:
         {
-            printf("event complete: cmd 0x%X, s:0x%X, component: %p - %s\n", (unsigned)nData1, (unsigned)nData2, hComponent, name);
+            DBG_PRINT("event complete: cmd 0x%X, s:0x%X, component: %p - %s\n", (unsigned)nData1, (unsigned)nData2, hComponent, name);
             if (nData1 == OMX_CommandStateSet && pOMXAV->status == OMXAV_INVALID)
             {
                 if (nData2 > OMX_StateLoaded) {
-                    printf("\t state -> StateLoaded\n");
+                    DBG_PRINT("\t state -> StateLoaded\n");
                     // Transition the component down to StateLoaded
                     OMX_SendCommand(hComponent, OMX_CommandStateSet, OMX_StateLoaded, 0);
                 }
             }
             else if (nData1 == OMX_CommandFlush && nData2 == OMX_ALL)
             {
-                printf("\t flush\n");
+                DBG_PRINT("\t flush\n");
                 kdThreadSemPost(pOMXAV->flushSem);
             }
             break;
@@ -156,10 +185,10 @@ static OMX_ERRORTYPE EventHandler(
         case OMX_EventBufferFlag:
             if (nData2 & OMX_BUFFERFLAG_EOS)
             {
-                printf("event buffer EOS: component: %p - %s\n", hComponent, name);
+                DBG_PRINT("event buffer EOS: component: %p - %s\n", hComponent, name);
                 if (pOMXAV->endComponent == hComponent)
                 {
-                    printf("\t end component - FIN\n");
+                    DBG_PRINT("\t end component - FIN\n");
 				    pOMXAV->status = OMXAV_FIN;
                 }
 		    }
@@ -168,17 +197,17 @@ static OMX_ERRORTYPE EventHandler(
             {
                 if (nData1 == OMX_ErrorIncorrectStateTransition)
                 {
-                    printf("event error: 0x%X IncorrectTransition, component: %p - %s\n", (unsigned int) nData1, hComponent, name);
+                    DBG_PRINT("event error: 0x%X IncorrectTransition, component: %p - %s\n", (unsigned int) nData1, hComponent, name);
                     // We are shutting down, just continue with that process
                     OMX_SendCommand(hComponent, OMX_CommandStateSet, OMX_StateIdle, 0);
                 }
                 else if(nData1 == OMX_ErrorSameState) 
                 {
-                    printf("event error: Same State 0x%X, component: %p - %s\n", (unsigned int) nData2, hComponent, name);
+                    DBG_PRINT("event error: Same State 0x%X, component: %p - %s\n", (unsigned int) nData2, hComponent, name);
                 } 
                 else
                 {
-                    printf("event error: 0x%X, component: %p - %s\n", (unsigned int) nData1, hComponent, name);
+                    DBG_PRINT("event error: 0x%X, component: %p - %s\n", (unsigned int) nData1, hComponent, name);
                     Invalidate(pOMXAV);
                 }
             } 
@@ -211,7 +240,7 @@ static OMX_ERRORTYPE FillBufferDone(
         pOMXAV->status = OMXAV_FIN;
     }
     pOMXAV->available++;
-    fprintf(stdout, "FillBufferDone avail %d\n", pOMXAV->available); fflush(stdout);
+    DBG_PRINT("FillBufferDone avail %d\n", pOMXAV->available);
 
     return OMX_ErrorNone;
 }
@@ -229,9 +258,9 @@ static OMX_ERRORTYPE WaitForState(OMX_HANDLETYPE hComponent,
     OMX_STATETYPE eState;
     int loop=STATE_TIMEOUT_LOOP;
 
-    fprintf(stdout, "WaitForState p1 c:%p s1:0x%X s2:0x%X\n", hComponent, eTestState, eTestState2); fflush(stdout); // JAU
+    DBG_PRINT( "WaitForState p1 c:%p s1:0x%X s2:0x%X\n", hComponent, eTestState, eTestState2);
     eError = OMX_GetState(hComponent, &eState);
-    fprintf(stdout, "WaitForState p2 s:0x%X e:0x%X\n", eState, eError); fflush(stdout); // JAU
+    DBG_PRINT( "WaitForState p2 s:0x%X e:0x%X\n", eState, eError);
 
     while (loop>0 &&
            OMX_ErrorNone == eError &&
@@ -242,7 +271,7 @@ static OMX_ERRORTYPE WaitForState(OMX_HANDLETYPE hComponent,
         loop--;
 
         eError = OMX_GetState(hComponent, &eState);
-        fprintf(stdout, "WaitForState p3 s:0x%X e:0x%X\n", eState, eError); fflush(stdout); // JAU
+        DBG_PRINT( "WaitForState p3 s:0x%X e:0x%X\n", eState, eError);
     }
 
     if(NULL!=currentState) *currentState=eState;
@@ -317,21 +346,20 @@ KDint OMXToolBasicAV_CheckState(OMXToolBasicAV_t * pOMXAV, OMX_STATETYPE state)
 KDint OMXToolBasicAV_WaitForState(OMXToolBasicAV_t * pOMXAV, OMX_STATETYPE state)
 {
     KDint res, i;
-    fprintf(stdout, "OMXToolBasicAV_WaitForState %p s:%d\n", pOMXAV, state); fflush(stdout); // JAU
+    DBG_PRINT( "OMXToolBasicAV_WaitForState %p s:%d\n", pOMXAV, state);
     if(NULL==pOMXAV) {
-        fprintf(stdout, "OMXToolBasicAV_WaitForState p1\n"); fflush(stdout); // JAU
+        DBG_PRINT( "OMXToolBasicAV_WaitForState p1\n");
         return -1;
     }
 
     for(i=0; i<OMXAV_H_NUMBER; i++) {
         if(0!=pOMXAV->comp[i]) {
-            fprintf(stdout, "OMXToolBasicAV_WaitForState p4 %d c:%p\n", i, pOMXAV->comp[i]); fflush(stdout); // JAU
+            DBG_PRINT( "OMXToolBasicAV_WaitForState p4 %d c:%p\n", i, pOMXAV->comp[i]);
             if( 0!=(res=SyncOnState(pOMXAV->comp[i], state)) ) {
                 KDchar name[128];
                 GetComponentName(pOMXAV->comp[i], name, 128);
-                fprintf(stdout, "OMXToolBasicAV_WaitForState Failed (Wait) %d c:%p - %s, s:0x%X\n", 
+                DBG_PRINT( "OMXToolBasicAV_WaitForState Failed (Wait) %d c:%p - %s, s:0x%X\n", 
                     i, pOMXAV->comp[i], name, state); 
-                fflush(stdout); // JAU
                 return res-(i*10); 
             }
         }
@@ -345,13 +373,13 @@ static OMX_ERRORTYPE RequestState(OMX_HANDLETYPE hComponent, OMX_STATETYPE state
     OMX_ERRORTYPE eError = OMX_ErrorNone;
     OMX_STATETYPE eState;
     eError = OMX_GetState(hComponent, &eState);
-    fprintf(stdout, "RequestState p2 c:%p, e:0x%X, s:0x%X\n", 
-        hComponent, eError, eState); fflush(stdout); // JAU
+    DBG_PRINT( "RequestState p2 c:%p, e:0x%X, s:0x%X\n", 
+        hComponent, eError, eState);
     // Skip StateSet in case the state is already reached ..
     if(OMX_ErrorNone != eError || eState!=state) {
         eError = OMX_SendCommand(hComponent, OMX_CommandStateSet, state, 0);
-        fprintf(stdout, "RequestState p3 c:%p e:0x%X s: 0x%X -> 0x%X\n", 
-            hComponent, eError, eState, state); fflush(stdout); // JAU
+        DBG_PRINT( "RequestState p3 c:%p e:0x%X s: 0x%X -> 0x%X\n", 
+            hComponent, eError, eState, state);
         if(wait) {
             OMX_STATETYPE currentState;
             eError = WaitForState(hComponent, state, OMX_StateInvalid, &currentState);
@@ -364,9 +392,9 @@ static OMX_ERRORTYPE RequestState(OMX_HANDLETYPE hComponent, OMX_STATETYPE state
 KDint OMXToolBasicAV_RequestState(OMXToolBasicAV_t * pOMXAV, OMX_STATETYPE state, KDboolean wait)
 {
     KDint i;
-    fprintf(stdout, "OMXToolBasicAV_RequestState %p s:%d, w:%d\n", pOMXAV, state, wait); fflush(stdout); // JAU
+    DBG_PRINT( "OMXToolBasicAV_RequestState %p s:%d, w:%d\n", pOMXAV, state, wait);
     if(NULL==pOMXAV) {
-        fprintf(stdout, "OMXToolBasicAV_RequestState p1\n"); fflush(stdout); // JAU
+        DBG_PRINT( "OMXToolBasicAV_RequestState p1\n");
         return -1;
     }
 
@@ -417,22 +445,22 @@ static void DestroyInstanceUnlock(OMXToolBasicAV_t * pOMXAV)
     int i, res1=0, res2=0;
     if(NULL==pOMXAV) return;
 
-    fprintf(stderr, "Destroy p1\n"); fflush(stderr);
+    DBG_PRINT( "Destroy p1\n");
     PlayStop(pOMXAV);
 
-    fprintf(stderr, "Destroy p2\n"); fflush(stderr);
+    DBG_PRINT( "Destroy p2\n");
     if(0!=(res1=OMXToolBasicAV_RequestState(pOMXAV, OMX_StateIdle, KD_TRUE)))
     {
         java_throwNewRuntimeException(NULL, "Destroy - Wait for Idle Failed (%d)", res1);
     }
 
-    fprintf(stderr, "Destroy p3\n"); fflush(stderr);
+    DBG_PRINT( "Destroy p3\n");
     SendCommand(pOMXAV, OMX_CommandPortDisable, OMX_ALL, 0); // Ignore error ..
 
-    fprintf(stderr, "Destroy p3\n"); fflush(stderr);
+    DBG_PRINT( "Destroy p3\n");
     DetachVideoRenderer(pOMXAV);
 
-    fprintf(stderr, "Destroy p4\n"); fflush(stderr);
+    DBG_PRINT( "Destroy p4\n");
     if(0!=(res2=OMXToolBasicAV_RequestState(pOMXAV, OMX_StateLoaded, KD_TRUE)))
     {
         if(!res1) {
@@ -440,7 +468,7 @@ static void DestroyInstanceUnlock(OMXToolBasicAV_t * pOMXAV)
         }
     }
 
-    fprintf(stderr, "Destroy p5\n"); fflush(stderr);
+    DBG_PRINT( "Destroy p5\n");
     for(i=0; i<OMXAV_H_NUMBER; i++) {
         if(0!=pOMXAV->comp[i]) {
             OMX_FreeHandle(pOMXAV->comp[i]);
@@ -449,19 +477,19 @@ static void DestroyInstanceUnlock(OMXToolBasicAV_t * pOMXAV)
     }
 
     if(0!=pOMXAV->flushSem) {
-        fprintf(stderr, "Destroy p6\n"); fflush(stderr);
+        DBG_PRINT( "Destroy p6\n");
         kdThreadSemFree(pOMXAV->flushSem);
         pOMXAV->flushSem=0;
     }
     if(0!=pOMXAV->mutex) {
-        fprintf(stderr, "Destroy p7\n"); fflush(stderr);
+        DBG_PRINT( "Destroy p7\n");
         kdThreadMutexUnlock(pOMXAV->mutex);
-        fprintf(stderr, "Destroy p8\n"); fflush(stderr);
+        DBG_PRINT( "Destroy p8\n");
         kdThreadMutexFree(pOMXAV->mutex);
         pOMXAV->mutex=0;
     }
 
-    fprintf(stderr, "Destroy DONE\n"); fflush(stderr);
+    DBG_PRINT( "Destroy DONE\n");
 
     free(pOMXAV);
 }
@@ -589,7 +617,7 @@ static int StartClock(OMXToolBasicAV_t * pOMXAV, KDboolean start, KDfloat32 time
     eError = OMX_SetConfig(pOMXAV->comp[OMXAV_H_CLOCK], OMX_IndexConfigTimeClockState, &oClockState);
     while (loop>0 && OMX_ErrorNotReady == eError)
     {
-        fprintf(stdout, "Play 3.2\n"); fflush(stdout); // JAU
+        DBG_PRINT( "Play 3.2\n");
         usleep(STATE_SLEEP*1000);
         loop--;
         eError = OMX_SetConfig(pOMXAV->comp[OMXAV_H_CLOCK], OMX_IndexConfigTimeClockState,
@@ -702,10 +730,10 @@ static int AttachVideoRenderer(OMXToolBasicAV_t * pOMXAV)
     // mandatory before EGLUseImage
     OMXSAFE(RequestState(pOMXAV->comp[OMXAV_H_VSCHEDULER], OMX_StateIdle, KD_FALSE));
 
-    fprintf(stdout, "Attach VR %p c:%p\n", pOMXAV, pOMXAV->comp[OMXAV_H_VSCHEDULER]); fflush(stdout); // JAU
+    DBG_PRINT( "Attach VR %p c:%p\n", pOMXAV, pOMXAV->comp[OMXAV_H_VSCHEDULER]);
     OMXSAFE(UpdateStreamInfo(pOMXAV));
 
-    fprintf(stdout, "UseEGLImg port enable/tunneling %p\n", pOMXAV);
+    DBG_PRINT( "UseEGLImg port enable/tunneling %p\n", pOMXAV);
     OMXSAFE(OMX_SendCommand(pOMXAV->comp[OMXAV_H_CLOCK],      OMX_CommandPortEnable, PORT_VRENDERER, 0));
     OMXSAFE(OMX_SendCommand(pOMXAV->comp[OMXAV_H_VDECODER],   OMX_CommandPortEnable,              1, 0));
     OMXSAFE(OMX_SendCommand(pOMXAV->comp[OMXAV_H_VSCHEDULER], OMX_CommandPortEnable,              0, 0));
@@ -718,7 +746,7 @@ static int AttachVideoRenderer(OMXToolBasicAV_t * pOMXAV)
         // The Texture, EGLImage and EGLSync was created by the Java client,
         // and registered using the OMXToolBasicAV_SetEGLImageTexture2D command.
 
-        fprintf(stdout, "UseEGLImg %p #%d t:%d i:%p s:%p p1\n", pOMXAV, i, pBuf->tex, pBuf->image, pBuf->sync); fflush(stdout); // JAU
+        DBG_PRINT( "UseEGLImg %p #%d t:%d i:%p s:%p p1\n", pOMXAV, i, pBuf->tex, pBuf->image, pBuf->sync);
 
         if(NULL==pBuf->image) {
             java_throwNewRuntimeException(NULL, "AttachVideoRenderer: User didn't set buffer %d/%d\n", i, pOMXAV->vBufferNum);
@@ -732,11 +760,11 @@ static int AttachVideoRenderer(OMXToolBasicAV_t * pOMXAV)
                     pOMXAV, // app private data
                     pBuf->image));
         }
-        fprintf(stdout, "UseEGLImg %p #%d t:%d i:%p s:%p b:%p - p2\n", 
-            pOMXAV, i, pBuf->tex, pBuf->image, pBuf->sync, pBuf->omxBufferHeader); fflush(stdout); // JAU
+        DBG_PRINT( "UseEGLImg %p #%d t:%d i:%p s:%p b:%p - p2\n", 
+            pOMXAV, i, pBuf->tex, pBuf->image, pBuf->sync, pBuf->omxBufferHeader);
     }
 
-    fprintf(stdout, "UseEGLImg %p #%d DONE\n", pOMXAV, i); fflush(stdout); // JAU
+    DBG_PRINT( "UseEGLImg %p #%d DONE\n", pOMXAV, i);
     return 0;
 }
 
@@ -749,19 +777,19 @@ static int DetachVideoRenderer(OMXToolBasicAV_t * pOMXAV)
         java_throwNewRuntimeException(NULL, "Attach Video first");
         return -1;
     }
-    fprintf(stderr, "DetachVideoRenderer p0\n"); fflush(stderr);
+    DBG_PRINT( "DetachVideoRenderer p0\n");
     if(0==CheckState(pOMXAV->comp[OMXAV_H_VSCHEDULER], OMX_StateLoaded)) {
-        fprintf(stderr, "DetachVideoRenderer DONE (already state loaded)\n"); fflush(stderr);
+        DBG_PRINT( "DetachVideoRenderer DONE (already state loaded)\n");
         return 0;
     }
     OMXSAFE(RequestState(pOMXAV->comp[OMXAV_H_VSCHEDULER], OMX_StateIdle, KD_TRUE));
 
-    fprintf(stderr, "DetachVideoRenderer p1\n"); fflush(stderr);
+    DBG_PRINT( "DetachVideoRenderer p1\n");
     OMXSAFE(OMX_SendCommand(pOMXAV->comp[OMXAV_H_CLOCK],      OMX_CommandPortDisable, PORT_VRENDERER, 0));
     OMXSAFE(OMX_SendCommand(pOMXAV->comp[OMXAV_H_VDECODER],   OMX_CommandPortDisable,              1, 0));
     OMXSAFE(OMX_SendCommand(pOMXAV->comp[OMXAV_H_VSCHEDULER], OMX_CommandPortDisable,              0, 0));
     OMXSAFE(OMX_SendCommand(pOMXAV->comp[OMXAV_H_VSCHEDULER], OMX_CommandPortDisable,              2, 0));
-    fprintf(stderr, "DetachVideoRenderer p2\n"); fflush(stderr);
+    DBG_PRINT( "DetachVideoRenderer p2\n");
 
     for (i = 0; i < pOMXAV->vBufferNum; i++) {
         OMXToolImageBuffer_t *pBuf = &pOMXAV->buffers[i];
@@ -777,11 +805,11 @@ static int DetachVideoRenderer(OMXToolBasicAV_t * pOMXAV)
     }
 
     OMXSAFE(RequestState(pOMXAV->comp[OMXAV_H_VSCHEDULER], OMX_StateLoaded, KD_TRUE));
-    fprintf(stderr, "DetachVideoRenderer p3\n"); fflush(stderr);
+    DBG_PRINT( "DetachVideoRenderer p3\n");
 
     OMX_FreeHandle(pOMXAV->comp[OMXAV_H_VSCHEDULER]);
     pOMXAV->comp[OMXAV_H_VSCHEDULER]=NULL;
-    fprintf(stderr, "DetachVideoRenderer DONE\n"); fflush(stderr);
+    DBG_PRINT( "DetachVideoRenderer DONE\n");
     return 0;
 }
 
@@ -792,12 +820,12 @@ OMXToolBasicAV_t * OMXToolBasicAV_CreateInstance(int vBufferNum)
     InitStatic();
 
     if(vBufferNum>EGLIMAGE_MAX_BUFFERS) {
-        fprintf(stderr, "buffer number %d > MAX(%d)\n", vBufferNum, EGLIMAGE_MAX_BUFFERS);
+        DBG_PRINT( "buffer number %d > MAX(%d)\n", vBufferNum, EGLIMAGE_MAX_BUFFERS);
         return NULL;
     }
     pOMXAV = malloc(sizeof(OMXToolBasicAV_t));
     if(NULL==pOMXAV) {
-        fprintf(stderr, "Init struct failed!\n");
+        DBG_PRINT( "Init struct failed!\n");
         return NULL;
     }
     memset(pOMXAV, 0, sizeof(OMXToolBasicAV_t));
@@ -827,7 +855,7 @@ int OMXToolBasicAV_SetStream(OMXToolBasicAV_t * pOMXAV, const KDchar * stream)
 {
     OMX_ERRORTYPE eError = OMX_ErrorNone;
 
-    fprintf(stdout, "SetStream 1 %s  ..\n", stream); fflush(stdout); // JAU
+    DBG_PRINT( "SetStream 1 %s  ..\n", stream);
 
     // FIXME: verify player state .. ie stop !
     if(pOMXAV->status!=OMXAV_INIT) {
@@ -837,7 +865,7 @@ int OMXToolBasicAV_SetStream(OMXToolBasicAV_t * pOMXAV, const KDchar * stream)
 
     kdThreadMutexLock(pOMXAV->mutex);
 
-    fprintf(stdout, "SetStream 3\n"); fflush(stdout); // JAU
+    DBG_PRINT( "SetStream 3\n");
 
     // Use the "super parser" :) FIXME: Non NV case ..
     eError = OMX_GetHandle(&pOMXAV->comp[OMXAV_H_READER], "OMX.Nvidia.reader", pOMXAV, &pOMXAV->callbacks);
@@ -849,7 +877,7 @@ int OMXToolBasicAV_SetStream(OMXToolBasicAV_t * pOMXAV, const KDchar * stream)
         return -1;
     }
 
-    fprintf(stdout, "SetStream 4\n"); fflush(stdout); // JAU
+    DBG_PRINT( "SetStream 4\n");
 
     // Auto detect codecs
     {
@@ -902,11 +930,11 @@ int OMXToolBasicAV_SetStream(OMXToolBasicAV_t * pOMXAV, const KDchar * stream)
             return -1;
         }
     }
-    fprintf(stdout, "SetStream 5 ; audioPort %d, videoPort %d\n", pOMXAV->audioPort, pOMXAV->videoPort); fflush(stdout); // JAU
+    DBG_PRINT( "SetStream 5 ; audioPort %d, videoPort %d\n", pOMXAV->audioPort, pOMXAV->videoPort);
 
     OMXSAFE(OMX_GetHandle(&pOMXAV->comp[OMXAV_H_CLOCK],     "OMX.Nvidia.clock.component", pOMXAV, &pOMXAV->callbacks));
 
-    fprintf(stdout, "Configuring comp[OMXAV_H_CLOCK]\n");
+    DBG_PRINT( "Configuring comp[OMXAV_H_CLOCK]\n");
     {
 
         OMX_TIME_CONFIG_ACTIVEREFCLOCKTYPE oActiveClockType;
@@ -922,7 +950,7 @@ int OMXToolBasicAV_SetStream(OMXToolBasicAV_t * pOMXAV, const KDchar * stream)
 
     kdThreadMutexUnlock(pOMXAV->mutex);
 
-    fprintf(stdout, "SetStream X\n"); fflush(stdout); // JAU
+    DBG_PRINT( "SetStream X\n");
 
     return 0;
 }
@@ -938,7 +966,7 @@ int OMXToolBasicAV_UpdateStreamInfo(OMXToolBasicAV_t * pOMXAV) {
 int OMXToolBasicAV_SetEGLImageTexture2D(OMXToolBasicAV_t * pOMXAV, KDint i, GLuint tex, EGLImageKHR image, EGLSyncKHR sync)
 {
     if(NULL==pOMXAV) return -1;
-    fprintf(stdout, "SetEGLImg %p #%d/%d t:%d i:%p s:%p..\n", pOMXAV, i, pOMXAV->vBufferNum, tex, image, sync); fflush(stdout); // JAU
+    DBG_PRINT( "SetEGLImg %p #%d/%d t:%d i:%p s:%p..\n", pOMXAV, i, pOMXAV->vBufferNum, tex, image, sync);
     if(i<0||i>=pOMXAV->vBufferNum) return -1;
 
 
@@ -958,7 +986,7 @@ int OMXToolBasicAV_SetEGLImageTexture2D(OMXToolBasicAV_t * pOMXAV, KDint i, GLui
 int OMXToolBasicAV_ActivateInstance(OMXToolBasicAV_t * pOMXAV) {
     int res;
     if(NULL==pOMXAV) return -1;
-    fprintf(stdout, "ActivateInstance 1\n"); fflush(stdout); // JAU
+    DBG_PRINT( "ActivateInstance 1\n");
 
     kdThreadMutexLock(pOMXAV->mutex);
 
@@ -997,24 +1025,24 @@ int OMXToolBasicAV_ActivateInstance(OMXToolBasicAV_t * pOMXAV) {
         }
     }
 
-    fprintf(stdout, "Setup tunneling\n"); fflush(stdout); // JAU
+    DBG_PRINT( "Setup tunneling\n");
     {
         // do tunneling
         if (pOMXAV->audioPort != -1)
         {
-            fprintf(stdout, "Setup tunneling audio\n"); fflush(stdout); // JAU
+            DBG_PRINT( "Setup tunneling audio\n");
             OMXSAFE(OMX_SetupTunnel(pOMXAV->comp[OMXAV_H_READER], pOMXAV->audioPort, pOMXAV->comp[OMXAV_H_ADECODER],  0));
             // The rest of the audio port is configured in AttachAudioRenderer
         }
         
         if (pOMXAV->videoPort != -1)
         {
-            fprintf(stdout, "Setup tunneling video\n"); fflush(stdout); // JAU
+            DBG_PRINT( "Setup tunneling video\n");
             OMXSAFE(OMX_SetupTunnel(pOMXAV->comp[OMXAV_H_READER], pOMXAV->videoPort, pOMXAV->comp[OMXAV_H_VDECODER],  0));
             // The rest of the video port is configured in AttachVideoRenderer
         }
     }
-    fprintf(stdout, "ActivateInstance .. %p\n", pOMXAV); fflush(stdout);
+    DBG_PRINT( "ActivateInstance .. %p\n", pOMXAV);
 
     //
     // mandatory: wait until all devices are idle
@@ -1028,7 +1056,7 @@ int OMXToolBasicAV_ActivateInstance(OMXToolBasicAV_t * pOMXAV) {
     }
     pOMXAV->status=OMXAV_STOPPED;
     kdThreadMutexUnlock(pOMXAV->mutex);
-    fprintf(stdout, "ActivateInstance done %p\n", pOMXAV); fflush(stdout);
+    DBG_PRINT( "ActivateInstance done %p\n", pOMXAV);
     return 0;
 }
 
@@ -1087,16 +1115,16 @@ int OMXToolBasicAV_PlayStart(OMXToolBasicAV_t * pOMXAV)
     int res;
     if(NULL==pOMXAV) return -1;
     if(pOMXAV->status<=OMXAV_INIT) {
-        fprintf(stderr, "Err: Play invalid"); fflush(stderr);
+        fprintf(stderr, "Err: Play invalid");
         return -1;
     }
     if(pOMXAV->status==OMXAV_PLAYING) {
         return 0;
     }
 
-    fprintf(stdout, "Play 1\n"); fflush(stdout); // JAU
+    DBG_PRINT( "Play 1\n");
     kdThreadMutexLock(pOMXAV->mutex);
-    fprintf(stdout, "Play 2\n"); fflush(stdout); // JAU
+    DBG_PRINT( "Play 2\n");
 
     if(OMXToolBasicAV_CheckState(pOMXAV, OMX_StateIdle)) {
         if(0!=(res=OMXToolBasicAV_RequestState(pOMXAV, OMX_StateIdle, KD_TRUE))) {
@@ -1106,29 +1134,29 @@ int OMXToolBasicAV_PlayStart(OMXToolBasicAV_t * pOMXAV)
         }
     }
     if(pOMXAV->status==OMXAV_PAUSED)  {
-        fprintf(stdout, "Play 3.0\n"); fflush(stdout); // JAU
+        DBG_PRINT( "Play 3.0\n");
         SetClockScale(pOMXAV, 1);
     }
-    fprintf(stdout, "Play 3.1\n"); fflush(stdout); // JAU
+    DBG_PRINT( "Play 3.1\n");
     if(0!=(res=OMXToolBasicAV_RequestState(pOMXAV, OMX_StateExecuting, KD_TRUE))) {
         java_throwNewRuntimeException(NULL, "Play Execute Failed (%d)", res);
         kdThreadMutexUnlock(pOMXAV->mutex);
         return res;
     }
     if(pOMXAV->status==OMXAV_STOPPED || pOMXAV->status==OMXAV_FIN) {
-        fprintf(stdout, "Play 3.2\n"); fflush(stdout); // JAU
+        DBG_PRINT( "Play 3.2\n");
         if(StartClock(pOMXAV, KD_TRUE, 0.0)) {
             java_throwNewRuntimeException(NULL, "Play StartClock Failed");
             kdThreadMutexUnlock(pOMXAV->mutex);
             return -1;
         }
-        fprintf(stdout, "Play 3.3\n"); fflush(stdout); // JAU
+        DBG_PRINT( "Play 3.3\n");
     }
-    fprintf(stdout, "Play 4.0\n"); fflush(stdout); // JAU
+    DBG_PRINT( "Play 4.0\n");
 
     kdThreadMutexUnlock(pOMXAV->mutex);
     pOMXAV->status=OMXAV_PLAYING;
-    fprintf(stdout, "Play DONE\n"); fflush(stdout); // JAU
+    DBG_PRINT( "Play DONE\n");
     return 0;
 }
 
@@ -1296,8 +1324,8 @@ GLuint OMXToolBasicAV_GetTexture(OMXToolBasicAV_t * pOMXAV) {
     if(pOMXAV->status==OMXAV_PLAYING) {
         int next = (pOMXAV->omxPos + 1) % pOMXAV->vBufferNum;
         
-        // fprintf(stdout, "GetTexture A avail %d, filled %d, pos o:%d g:%d\n", 
-        //     pOMXAV->available, pOMXAV->filled, pOMXAV->omxPos, pOMXAV->glPos); fflush(stdout);
+        DBG_PRINT2("GetTexture A avail %d, filled %d, pos o:%d g:%d\n", 
+                   pOMXAV->available, pOMXAV->filled, pOMXAV->omxPos, pOMXAV->glPos);
 
         while (pOMXAV->filled < pOMXAV->vBufferNum)
         {
@@ -1307,25 +1335,25 @@ GLuint OMXToolBasicAV_GetTexture(OMXToolBasicAV_t * pOMXAV) {
                  attr == EGL_SIGNALED_KHR )
                )
             {
-                // fprintf(stdout, "GetTexture p2.1 attr 0x%X\n", attr); fflush(stdout);
+                DBG_PRINT2( "GetTexture p2.1 attr 0x%X\n", attr);
                 // OpenGL has finished rendering with this texture, so we are free
                 // to make OpenMAX IL fill it with new data.
                 OMX_FillThisBuffer(pOMXAV->comp[OMXAV_H_VSCHEDULER], pOMXAV->buffers[pOMXAV->omxPos].omxBufferHeader);
-                // fprintf(stdout, "GetTexture p2.2\n", attr); fflush(stdout);
+                DBG_PRINT2( "GetTexture p2.2\n");
                 pOMXAV->omxPos = next;
                 next = (pOMXAV->omxPos + 1) % pOMXAV->vBufferNum;
                 pOMXAV->filled++;
             }
             else
             {
-                // fprintf(stdout, "GetTexture p2.3\n", attr); fflush(stdout);
+                DBG_PRINT2( "GetTexture p2.3\n");
                 break;
             }
         }
     }
     if (pOMXAV->available > 1)
     {
-        // fprintf(stdout, "GetTexture p3.1\n"); fflush(stdout);
+        DBG_PRINT2("GetTexture p3.1\n");
         // We want to make sure that the previous eglImage
         // has finished, so insert a fence command into the
         // command stream to make sure that any rendering using
@@ -1335,7 +1363,7 @@ GLuint OMXToolBasicAV_GetTexture(OMXToolBasicAV_t * pOMXAV) {
         // was successfull.
         if (!_hasEGLSync || eglFenceKHR(pOMXAV->buffers[pOMXAV->glPos].sync))
         {
-            // fprintf(stdout, "GetTexture p3.2\n"); fflush(stdout);
+            DBG_PRINT2( "GetTexture p3.2\n");
             pOMXAV->available--;
             pOMXAV->filled--;
             pOMXAV->glPos = (pOMXAV->glPos + 1) % pOMXAV->vBufferNum;
@@ -1344,8 +1372,8 @@ GLuint OMXToolBasicAV_GetTexture(OMXToolBasicAV_t * pOMXAV) {
     }
 
     texID = pOMXAV->available ? pOMXAV->buffers[ret].tex : 0;
-    // fprintf(stdout, "GetTexture B avail %d, filled %d, pos o:%d g:%d t:%d\n", 
-    //     pOMXAV->available, pOMXAV->filled, pOMXAV->omxPos, pOMXAV->glPos, texID); fflush(stdout);
+    DBG_PRINT2( "GetTexture B avail %d, filled %d, pos o:%d g:%d t:%d\n", 
+                pOMXAV->available, pOMXAV->filled, pOMXAV->omxPos, pOMXAV->glPos, texID);
 
     kdThreadMutexUnlock(pOMXAV->mutex);
     return texID;
@@ -1364,11 +1392,6 @@ void OMXToolBasicAV_DestroyInstance(OMXToolBasicAV_t * pOMXAV)
 #include <KD/NV_extwindowprops.h>
 
 static PFNEGLDESTROYIMAGEKHRPROC eglDestroyImageKHR;
-
-#ifdef _WIN32_WCE
-    #define STDOUT_FILE "\\Storage Card\\stdout.txt"
-    #define STDERR_FILE "\\Storage Card\\stderr.txt"
-#endif
 
 int ModuleTest()
 {
@@ -1423,11 +1446,6 @@ int ModuleTest()
     NativeWindowType ntWindow;
 
 //    KDint wSize[2];
-
-#ifdef _WIN32_WCE
-    _wfreopen(TEXT(STDOUT_FILE),L"w",stdout);
-    _wfreopen(TEXT(STDERR_FILE),L"w",stderr);
-#endif
 
     /*
      * EGL initialisation.
@@ -1535,17 +1553,17 @@ int ModuleTest()
         }
     }
     
-    printf("7\n"); fflush(stdout);
+    printf("7\n");
     if( OMXToolBasicAV_ActivateInstance(pOMXAV) ) {
         return -1;
     }
 
-    printf("8\n"); fflush(stdout);
+    printf("8\n");
     if( OMXToolBasicAV_PlayStart(pOMXAV) ) {
         return -1;
     }
 
-    printf("8.2\n"); fflush(stdout);
+    printf("8.2\n");
 
     i = 0;
     while (i++ < 10) {
@@ -1554,7 +1572,7 @@ int ModuleTest()
         // set attributes
         // draw arrays ..
         eglSwapBuffers(eglDisplay, eglWindowSurface);
-        printf("Sleep %d\n", i); fflush(stdout);
+        printf("Sleep %d\n", i);
         usleep(1000);
     }
     

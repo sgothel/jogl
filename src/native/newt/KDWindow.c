@@ -63,15 +63,15 @@
 // #define VERBOSE_ON 1
 
 #ifdef VERBOSE_ON
-    #define DBG_PRINT(...) fprintf(stderr, __VA_ARGS__)
+    #define DBG_PRINT(...) fprintf(stdout, __VA_ARGS__)
 #else
     #define DBG_PRINT(...)
 #endif
 
 #ifdef VERBOSE_ON
     #ifdef _WIN32_WCE
-        #define STDOUT_FILE "\\Storage Card\\jogl_demos\\stdout.txt"
-        #define STDERR_FILE "\\Storage Card\\jogl_demos\\stderr.txt"
+        #define STDOUT_FILE "\\Storage Card\\stdout.txt"
+        #define STDERR_FILE "\\Storage Card\\stderr.txt"
     #endif
 #endif
 
