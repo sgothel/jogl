@@ -162,7 +162,7 @@
                   value="javax/media/opengl/glsl/**, com/sun/opengl/impl/glsl/**"/>
 
         <property name="java.part.openmax"
-                  value="com/sun/javafx/media/video/openmax/**"/>
+                  value="com/sun/openmax/**"/>
 
         <property name="java.part.sdk"
                   value="javax/media/opengl/sdk/**"/>
@@ -201,7 +201,7 @@
                   value="javax/media/opengl/TraceGLES1.*, javax/media/opengl/DebugGLES1.*"/>
 
         <property name="java.part.es2"
-                  value="javax/media/opengl/**/es2/**, com/sun/opengl/**/es2/**, ${java.part.glsl}, ${java.part.openmax}"/>
+                  value="javax/media/opengl/**/es2/**, com/sun/opengl/**/es2/**, ${java.part.glsl}"/>
 
         <property name="java.part.es2.dbg"
                   value="javax/media/opengl/TraceGLES2.*, javax/media/opengl/DebugGLES2.*"/>
@@ -1368,7 +1368,7 @@
           <!-- FIXME: the Mixer should be moved to another library -->
           <!--include name="${rootrel.src.c.jogl}/Mixer.cpp" if="isWindows"/-->
           <include name="${rootrel.src.c.openmax}/omx_tool.c"  if="useOpenMAX"/>
-          <include name="${rootrel.src.c.openmax}/com_sun_javafx_media_video_openmax_OMXMoviePlayerImpl.c"  if="useOpenMAX"/>
+          <include name="${rootrel.src.c.openmax}/com_sun_openmax_OMXInstance.c"  if="useOpenMAX"/>
         </patternset>
 
         <patternset id="c.src.files.jogl.gl2es12">
@@ -1389,7 +1389,7 @@
           <!-- FIXME: the Mixer should be moved to another library -->
           <!--include name="${rootrel.src.c.jogl}/Mixer.cpp" if="isWindows"/-->
           <include name="${rootrel.src.c.openmax}/omx_tool.c"  if="useOpenMAX"/>
-          <include name="${rootrel.src.c.openmax}/com_sun_javafx_media_video_openmax_OMXMoviePlayerImpl.c"  if="useOpenMAX"/>
+          <include name="${rootrel.src.c.openmax}/com_sun_openmax_OMXInstance.c"  if="useOpenMAX"/>
         </patternset>
 
         <patternset id="c.src.files.jogl.es2">
@@ -1403,7 +1403,7 @@
           <include name="${rootrel.generated.c.jogl}/es2/GLES2Impl_JNI.c"/>
           <include name="${rootrel.src.c.jogl}/InternalBufferUtils.c"/>
           <include name="${rootrel.src.c.openmax}/omx_tool.c"  if="useOpenMAX"/>
-          <include name="${rootrel.src.c.openmax}/com_sun_javafx_media_video_openmax_OMXMoviePlayerImpl.c"  if="useOpenMAX"/>
+          <include name="${rootrel.src.c.openmax}/com_sun_openmax_OMXInstance.c"  if="useOpenMAX"/>
         </patternset>
 
         <patternset id="c.src.files.jogl.es1">
@@ -1419,7 +1419,7 @@
           <!--include name="${rootrel.generated.c.jogl}/GLU_JNI.c"/ EMPTY -->
           <!--include name="${rootrel.generated.c.jogl}/es1/GLUes1_JNI.c" EMPTY /-->
           <include name="${rootrel.src.c.openmax}/omx_tool.c"  if="useOpenMAX"/>
-          <include name="${rootrel.src.c.openmax}/com_sun_javafx_media_video_openmax_OMXMoviePlayerImpl.c"  if="useOpenMAX"/>
+          <include name="${rootrel.src.c.openmax}/com_sun_openmax_OMXInstance.c"  if="useOpenMAX"/>
         </patternset>
 
         <patternset id="c.src.files.cg">
@@ -1522,7 +1522,7 @@
       <!-- Generate the waveout Mixer header -->
       <!-- FIXME: this is temporary until we move this to another workspace -->
       <javah destdir="../build/gensrc/native/jogl" classpath="${jogl.all.jar}" class="com.sun.javafx.audio.windows.waveout.Mixer" />
-      <javah destdir="../build/gensrc/native/openmax" classpath="${jogl.all.jar}" class="com.sun.javafx.media.video.openmax.OMXMoviePlayerImpl" />
+      <javah destdir="../build/gensrc/native/openmax" classpath="${jogl.all.jar}" class="com.sun.openmax.OMXInstance" />
     </target>
 
     <target name="c.build.jogl.awt">
@@ -1738,7 +1738,7 @@
         <jar manifest="tempversion" destfile="${jogl.util.jar}">
             <fileset dir="${classes}"
                      includes="${java.part.util}"
-                     excludes="com/sun/opengl/**/awt/**, com/sun/opengl/**/gl2/**, ${java.part.glsl}, ${java.part.openmax}"/>
+                     excludes="com/sun/opengl/**/awt/**, com/sun/opengl/**/gl2/**, ${java.part.glsl}"/>
         </jar>
         <jar manifest="tempversion" destfile="${jogl.util.gl2.jar}">
             <fileset dir="${classes}"
@@ -1754,6 +1754,7 @@
                 <include name="javax/media/opengl/**" />
                 <include name="com/sun/gluegen/runtime/**" />
                 <include name="com/sun/opengl/**" />
+                <include name="${java.part.openmax}" />
                 <!-- FIXME: this is temporary until we move these classes to another workspace -->
                 <include name="com/sun/javafx/**" />
             </fileset>

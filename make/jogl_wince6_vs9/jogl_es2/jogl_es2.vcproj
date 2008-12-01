@@ -1307,7 +1307,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\src\native\openmax\com_sun_javafx_media_video_openmax_OMXMoviePlayerImpl.c"
+				RelativePath="..\..\..\src\native\openmax\com_sun_openmax_OMXInstance.c"
 				>
 			</File>
 		</Filter>

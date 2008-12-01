@@ -86,11 +86,18 @@ typedef struct {
     OMX_CALLBACKTYPE callbacks;
 
     KDchar audioCodec[256];
+    KDchar audioCodecComponent[256];
     KDchar videoCodec[256];
+    KDchar videoCodecComponent[256];
     int audioPort;
     int videoPort;
-    int width;
-    int height;
+    KDuint32 width;
+    KDuint32 height;
+    KDuint32 bitrate; // per seconds
+    KDuint32 framerate; // per seconds
+    KDfloat32 length; // seconds
+    KDfloat32 speed; // current clock scale
+    KDfloat32 play_speed; // current play clock scale
 
     KDThreadMutex * mutex;
     KDThreadSem   * flushSem;
@@ -103,6 +110,18 @@ typedef struct {
     int available;
 
     int status;
+
+    intptr_t jni_env;
+    intptr_t jni_instance;
+    intptr_t jni_mid_saveAttributes;
+    intptr_t jni_mid_attributesUpdated;
+    intptr_t jni_fid_width;
+    intptr_t jni_fid_height;
+    intptr_t jni_fid_fps;
+    intptr_t jni_fid_bps;
+    intptr_t jni_fid_totalFrames;
+    intptr_t jni_fid_acodec;
+    intptr_t jni_fid_vcodec;
 } OMXToolBasicAV_t ;
 
 //
@@ -119,27 +138,28 @@ KDint OMXToolBasicAV_SetState(OMXToolBasicAV_t * pOMXAV, OMX_STATETYPE state, KD
 //
 // User related functionality, mutex managed
 //
-OMXToolBasicAV_t * OMXToolBasicAV_CreateInstance(int vBufferNum); // #1
-int OMXToolBasicAV_SetStream(OMXToolBasicAV_t * pOMXAV, const KDchar * stream); // #3
-int OMXToolBasicAV_UpdateStreamInfo(OMXToolBasicAV_t * pOMXAV);
-int OMXToolBasicAV_SetEGLImageTexture2D(OMXToolBasicAV_t * pOMXAV, KDint i, GLuint tex, EGLImageKHR image, EGLSyncKHR sync); // #2..
-int OMXToolBasicAV_ActivateInstance(OMXToolBasicAV_t * pOMXAV);
+OMXToolBasicAV_t * OMXToolBasicAV_CreateInstance(); // #1
+void OMXToolBasicAV_SetStream(OMXToolBasicAV_t * pOMXAV, int vBufferNum, const KDchar * stream); // #2
+void OMXToolBasicAV_SetStreamEGLImageTexture2D(OMXToolBasicAV_t * pOMXAV, KDint i, GLuint tex, EGLImageKHR image, EGLSyncKHR sync); // #3
+void OMXToolBasicAV_ActivateStream(OMXToolBasicAV_t * pOMXAV); // #4
 
-int OMXToolBasicAV_AttachVideoRenderer(OMXToolBasicAV_t * pOMXAV); // DetachVideoRenderer before ..
-int OMXToolBasicAV_DetachVideoRenderer(OMXToolBasicAV_t * pOMXAV); // Stop before ..
+void OMXToolBasicAV_AttachVideoRenderer(OMXToolBasicAV_t * pOMXAV); // Stop, DetachVideoRenderer, SetEGLImageTexture2D ..  before ..
+void OMXToolBasicAV_DetachVideoRenderer(OMXToolBasicAV_t * pOMXAV); // Stop before ..
 
-int OMXToolBasicAV_SetClockScale(OMXToolBasicAV_t * pOMXAV, KDfloat32 scale);
-int OMXToolBasicAV_PlayStart(OMXToolBasicAV_t * pOMXAV);
-int OMXToolBasicAV_PlayPause(OMXToolBasicAV_t * pOMXAV);
-int OMXToolBasicAV_PlayStop(OMXToolBasicAV_t * pOMXAV);
-int OMXToolBasicAV_PlaySeek(OMXToolBasicAV_t * pOMXAV, KDfloat32 time);
-GLuint OMXToolBasicAV_GetTexture(OMXToolBasicAV_t * pOMXAV);
+void OMXToolBasicAV_SetPlaySpeed(OMXToolBasicAV_t * pOMXAV, KDfloat32 scale);
+void OMXToolBasicAV_PlayStart(OMXToolBasicAV_t * pOMXAV); // #5
+void OMXToolBasicAV_PlayPause(OMXToolBasicAV_t * pOMXAV);
+void OMXToolBasicAV_PlayStop(OMXToolBasicAV_t * pOMXAV);
+void OMXToolBasicAV_PlaySeek(OMXToolBasicAV_t * pOMXAV, KDfloat32 time);
+GLuint OMXToolBasicAV_GetNextTextureID(OMXToolBasicAV_t * pOMXAV);
+
+KDfloat32 OMXToolBasicAV_GetCurrentPosition(OMXToolBasicAV_t * pOMXAV);
 
 void OMXToolBasicAV_DestroyInstance(OMXToolBasicAV_t * pOMXAV);
-int ModuleTest();
 
-
-
+#if defined(SELF_TEST)
+    int ModuleTest();
+#endif
 
 #endif /* _OMX_TOOL_H */
 

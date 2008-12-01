@@ -18,5 +18,4 @@ ant -v \
     -DisX11=true \
     -DuseKD=true \
     -DuseOpenMAX=true \
-    -Djava.generate.skip=true \
     $* 2>&1 | tee make.jogl.cdcfp.linux-x86.log

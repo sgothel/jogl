@@ -24,20 +24,20 @@
 #endif
 
 #include <NVOMX_IndexExtensions.h>
-#if !defined(SELF_TEST)
-    #include <jni.h>
-#endif
 
 #define NOTSET_U8 ((OMX_U8)0xDE)
 #define NOTSET_U16 ((OMX_U16)0xDEDE)
 #define NOTSET_U32 ((OMX_U32)0xDEDEDEDE)
 #define INIT_PARAM(_X_)  (memset(&(_X_), NOTSET_U8, sizeof(_X_)), ((_X_).nSize = sizeof (_X_)), (_X_).nVersion = vOMX)
 
+void OMXInstance_SaveJavaAttributes(OMXToolBasicAV_t *pOMXAV, KDboolean issueJavaCallback);
+void OMXInstance_UpdateJavaAttributes(OMXToolBasicAV_t *pOMXAV, KDboolean issueJavaCallback);
+
 #if !defined(SELF_TEST)
-void java_throwNewRuntimeException(JNIEnv *env, const char* format, ...);
+void java_throwNewRuntimeException(intptr_t jni_env, const char* format, ...);
 #else
 #include <stdarg.h>
-void java_throwNewRuntimeException(void *env, const char* format, ...) {
+void java_throwNewRuntimeException(intptr_t jni_env, const char* format, ...) {
     va_list ap;
     char buffer[255];
     va_start(ap, format);
@@ -54,11 +54,23 @@ void java_throwNewRuntimeException(void *env, const char* format, ...) {
 #endif
 static void DestroyInstanceUnlock(OMXToolBasicAV_t * pOMXAV);
 
+#define OMXSAFEVOID(x) \
+do { \
+    OMX_ERRORTYPE err = (x); \
+    if (err != OMX_ErrorNone) { \
+        java_throwNewRuntimeException((NULL!=pOMXAV)?pOMXAV->jni_env:0, "FAILED at %s:%d, Error: 0x%x\n", __FILE__, __LINE__, err); \
+        if(NULL!=pOMXAV) { \
+            DestroyInstanceUnlock(pOMXAV); \
+        } \
+        return; \
+    } \
+} while (0);
+
 #define OMXSAFE(x) \
 do { \
     OMX_ERRORTYPE err = (x); \
     if (err != OMX_ErrorNone) { \
-        java_throwNewRuntimeException(NULL, "FAILED at %s:%d, Error: 0x%x\n", __FILE__, __LINE__, err); \
+        java_throwNewRuntimeException((NULL!=pOMXAV)?pOMXAV->jni_env:0, "FAILED at %s:%d, Error: 0x%x\n", __FILE__, __LINE__, err); \
         if(NULL!=pOMXAV) { \
             DestroyInstanceUnlock(pOMXAV); \
         } \
@@ -70,7 +82,7 @@ do { \
 do { \
     OMX_ERRORTYPE err = (x); \
     if (err != OMX_ErrorNone) { \
-        java_throwNewRuntimeException(NULL, "FAILED at %s:%d, Error: 0x%x\n", __FILE__, __LINE__, err); \
+        java_throwNewRuntimeException((NULL!=pOMXAV)?pOMXAV->jni_env:0, "FAILED at %s:%d, Error: 0x%x\n", __FILE__, __LINE__, err); \
         if(NULL!=pOMXAV) { \
             DestroyInstanceUnlock(pOMXAV); \
         } \
@@ -149,6 +161,8 @@ static void GetComponentName(OMX_HANDLETYPE hComponent, KDchar *pName, int nameM
     OMX_GetComponentVersion(hComponent, pName, &v1, &v2, &uuid);
 }
 
+static OMX_ERRORTYPE UpdateStreamInfo(OMXToolBasicAV_t * pOMXAV, KDboolean issueCallback);
+
 static OMX_ERRORTYPE EventHandler(
         OMX_IN OMX_HANDLETYPE hComponent,
         OMX_IN OMX_PTR pAppData,
@@ -211,6 +225,11 @@ static OMX_ERRORTYPE EventHandler(
                     Invalidate(pOMXAV);
                 }
             } 
+            break;
+        case OMX_EventPortSettingsChanged:
+            {
+                (void) UpdateStreamInfo(pOMXAV, (pOMXAV->status>OMXAV_INIT)?KD_TRUE:KD_FALSE);
+            }
             break;
         default:
             break;
@@ -451,7 +470,7 @@ static void DestroyInstanceUnlock(OMXToolBasicAV_t * pOMXAV)
     DBG_PRINT( "Destroy p2\n");
     if(0!=(res1=OMXToolBasicAV_RequestState(pOMXAV, OMX_StateIdle, KD_TRUE)))
     {
-        java_throwNewRuntimeException(NULL, "Destroy - Wait for Idle Failed (%d)", res1);
+        java_throwNewRuntimeException(pOMXAV->jni_env, "Destroy - Wait for Idle Failed (%d)", res1);
     }
 
     DBG_PRINT( "Destroy p3\n");
@@ -464,7 +483,7 @@ static void DestroyInstanceUnlock(OMXToolBasicAV_t * pOMXAV)
     if(0!=(res2=OMXToolBasicAV_RequestState(pOMXAV, OMX_StateLoaded, KD_TRUE)))
     {
         if(!res1) {
-            java_throwNewRuntimeException(NULL, "Destroy - Wait for Loaded Failed (%d)", res2);
+            java_throwNewRuntimeException(pOMXAV->jni_env, "Destroy - Wait for Loaded Failed (%d)", res2);
         }
     }
 
@@ -516,10 +535,9 @@ static OMX_ERRORTYPE AddFile(OMXToolBasicAV_t * pOMXAV, const KDchar* filename)
     return OMX_ErrorNone;
 }
 
-static OMX_ERRORTYPE ProbePort(OMXToolBasicAV_t * pOMXAV, int port, KDchar* component)
+static OMX_ERRORTYPE ProbePort(OMXToolBasicAV_t * pOMXAV, int port, KDchar *codec, KDchar* component)
 {
     // FIXME: Non NV case ..
-    KDchar codec[256];
     OMX_U32 roles = 1;
     OMX_ERRORTYPE err = OMX_ErrorNone;
     OMX_INDEXTYPE eParam;
@@ -536,12 +554,10 @@ static OMX_ERRORTYPE ProbePort(OMXToolBasicAV_t * pOMXAV, int port, KDchar* comp
     oStreamType.nPort = port;
     OMXSAFEERR(OMX_GetParameter(pOMXAV->comp[OMXAV_H_READER], eParam, &oStreamType));
 
-    if (oPortDef.eDomain == OMX_PortDomainVideo)
-        kdStrcpy_s(codec, 128, "video_decoder.");
-    else if (oPortDef.eDomain == OMX_PortDomainAudio)
-        kdStrcpy_s(codec, 128, "audio_decoder.");
-    else
+    if (oPortDef.eDomain != OMX_PortDomainVideo &&
+        oPortDef.eDomain != OMX_PortDomainAudio) {
         return OMX_ErrorNotImplemented;
+    }
 
     switch (oStreamType.eStreamType)
     {
@@ -566,42 +582,23 @@ static OMX_ERRORTYPE ProbePort(OMXToolBasicAV_t * pOMXAV, int port, KDchar* comp
     }
 
     {
+        KDchar ocodec[256];
         OMX_U8 *tmp = (OMX_U8*) kdMalloc(OMX_MAX_STRINGNAME_SIZE + 1);
         kdMemset(tmp, 0, sizeof(OMX_U8) * (OMX_MAX_STRINGNAME_SIZE + 1));
+
+        if (oPortDef.eDomain == OMX_PortDomainVideo)
+            kdStrcpy_s(ocodec, 128, "video_decoder.");
+        else if (oPortDef.eDomain == OMX_PortDomainAudio)
+            kdStrcpy_s(ocodec, 128, "audio_decoder.");
+        kdStrncat_s(ocodec, 128, codec, kdStrlen(codec));
 
         err = OMX_GetComponentsOfRole(codec, &roles, &tmp);
         kdStrcpy_s(component, 256, (KDchar*) tmp);
         kdFree(tmp);
+        printf("%s(%s) -> %s\n", ocodec, codec, component);
     }
 
-    printf("%s -> %s\n", codec, component);
     return err != OMX_ErrorNone ? err : roles ? OMX_ErrorNone : OMX_ErrorComponentNotFound;
-}
-
-static OMX_ERRORTYPE UpdateStreamInfo(OMXToolBasicAV_t * pOMXAV)
-{
-    OMX_PARAM_PORTDEFINITIONTYPE oPortDef;
-    kdMemset(&oPortDef, 0, sizeof(oPortDef));
-    oPortDef.nSize = sizeof(oPortDef);
-    oPortDef.nVersion.s.nVersionMajor = 1;
-    oPortDef.nVersion.s.nVersionMinor = 1;
-    oPortDef.nPortIndex = 0;
-    OMXSAFEERR(OMX_GetParameter(pOMXAV->comp[OMXAV_H_READER], OMX_IndexParamPortDefinition, &oPortDef));
-
-    if (oPortDef.eDomain != OMX_PortDomainVideo)
-    {
-        kdMemset(&oPortDef, 0, sizeof(oPortDef));
-        oPortDef.nSize = sizeof(oPortDef);
-        oPortDef.nVersion.s.nVersionMajor = 1;
-        oPortDef.nVersion.s.nVersionMinor = 1;
-
-        oPortDef.nPortIndex = 1;
-        OMXSAFEERR(OMX_GetParameter(pOMXAV->comp[OMXAV_H_READER], OMX_IndexParamPortDefinition, &oPortDef));
-    }
-    pOMXAV->width = oPortDef.format.video.nFrameWidth;
-    pOMXAV->height = oPortDef.format.video.nFrameHeight;
-
-    return OMX_ErrorNone;
 }
 
 static int StartClock(OMXToolBasicAV_t * pOMXAV, KDboolean start, KDfloat32 time) {
@@ -626,6 +623,25 @@ static int StartClock(OMXToolBasicAV_t * pOMXAV, KDboolean start, KDfloat32 time
     return (OMX_ErrorNotReady == eError)?-1:0;
 }
 
+static KDfloat32 GetClockPosition(OMXToolBasicAV_t * pOMXAV)
+{
+    OMX_TIME_CONFIG_TIMESTAMPTYPE stamp;
+    INIT_PARAM(stamp);
+    stamp.nPortIndex = 0;
+
+    OMX_GetConfig(pOMXAV->comp[OMXAV_H_CLOCK], OMX_IndexConfigTimeCurrentMediaTime, &stamp);
+    return (KDfloat32) (stamp.nTimestamp * (1.0f/(1000.0f*1000.0f)));
+}
+
+static KDfloat32 GetClockScale(OMXToolBasicAV_t * pOMXAV)
+{
+    OMX_TIME_CONFIG_SCALETYPE pScale;
+    INIT_PARAM(pScale);
+
+    OMX_GetConfig(pOMXAV->comp[OMXAV_H_CLOCK], OMX_IndexConfigTimeScale, &pScale);
+    return (pScale.xScale / 65536.0f);
+}
+
 static KDint SetClockScale(OMXToolBasicAV_t * pOMXAV, KDfloat32 scale)
 {
     OMX_TIME_CONFIG_SCALETYPE pScale;
@@ -634,6 +650,88 @@ static KDint SetClockScale(OMXToolBasicAV_t * pOMXAV, KDfloat32 scale)
 
     OMX_SetConfig(pOMXAV->comp[OMXAV_H_CLOCK], OMX_IndexConfigTimeScale, &pScale);
     return 0;
+}
+
+static int SetMediaPosition(OMXToolBasicAV_t * pOMXAV, KDfloat32 time) {
+    OMX_ERRORTYPE eError = OMX_ErrorNone;
+    OMX_TIME_CONFIG_TIMESTAMPTYPE timestamp;
+    int loop=STATE_TIMEOUT_LOOP;
+    INIT_PARAM(timestamp);
+    timestamp.nPortIndex = 0;
+    timestamp.nTimestamp = (OMX_TICKS) (time * 1000.0 * 1000.0);
+
+    eError = OMX_SetConfig(pOMXAV->comp[OMXAV_H_READER], OMX_IndexConfigTimePosition, &timestamp);
+    while (loop>0 && OMX_ErrorNotReady == eError)
+    {
+        usleep(STATE_SLEEP*1000);
+        loop--;
+        eError = OMX_SetConfig(pOMXAV->comp[OMXAV_H_READER], OMX_IndexConfigTimePosition, &timestamp);
+    }
+    return (OMX_ErrorNotReady == eError)?-1:0;
+}
+
+static KDfloat32 GetMediaLength(OMXToolBasicAV_t * pOMXAV)
+{
+    NVX_PARAM_DURATION oDuration;
+    OMX_INDEXTYPE eParam;
+
+    if (OMX_ErrorNone != OMX_GetExtensionIndex(pOMXAV->comp[OMXAV_H_READER], NVX_INDEX_PARAM_DURATION, &eParam))
+        return -1.0f;
+
+    if (OMX_ErrorNone != OMX_GetParameter(pOMXAV->comp[OMXAV_H_READER], eParam, &oDuration))
+        return -1.0f;
+
+    return (KDfloat32) (oDuration.nDuration * (1.0f/(1000.0f*1000.0f)));
+}
+
+static OMX_ERRORTYPE UpdateStreamInfo(OMXToolBasicAV_t * pOMXAV, KDboolean issueCallback)
+{
+    OMX_ERRORTYPE err = OMX_ErrorNone;
+    OMX_PARAM_PORTDEFINITIONTYPE oPortDef;
+
+    DBG_PRINT( "Update StreamInfo p0\n" );
+
+    kdMemset(&oPortDef, 0, sizeof(oPortDef));
+    oPortDef.nSize = sizeof(oPortDef);
+    oPortDef.nVersion.s.nVersionMajor = 1;
+    oPortDef.nVersion.s.nVersionMinor = 1;
+    oPortDef.nPortIndex = 0;
+    err = OMX_GetParameter(pOMXAV->comp[OMXAV_H_READER], OMX_IndexParamPortDefinition, &oPortDef);
+    if(OMX_ErrorNone!=err) {
+        fprintf(stderr, "UpdateStreamInfo failed - p1 0x%X", err);
+        return err;
+    }
+
+    if (oPortDef.eDomain != OMX_PortDomainVideo)
+    {
+        kdMemset(&oPortDef, 0, sizeof(oPortDef));
+        oPortDef.nSize = sizeof(oPortDef);
+        oPortDef.nVersion.s.nVersionMajor = 1;
+        oPortDef.nVersion.s.nVersionMinor = 1;
+        oPortDef.nPortIndex = 1;
+        err = OMX_GetParameter(pOMXAV->comp[OMXAV_H_READER], OMX_IndexParamPortDefinition, &oPortDef);
+        if(OMX_ErrorNone!=err) {
+            fprintf(stderr, "UpdateStreamInfo failed - p2 0x%X", err);
+            return err;
+        }
+    }
+
+    DBG_PRINT( "Update StreamInfo p1\n" );
+    OMXInstance_SaveJavaAttributes(pOMXAV, issueCallback);
+
+    pOMXAV->width = oPortDef.format.video.nFrameWidth;
+    pOMXAV->height = oPortDef.format.video.nFrameHeight;
+    /* pOMXAV->stride = oPortDef.format.video.nStride;
+    pOMXAV->sliceHeight = oPortDef.format.video.nSliceHeight; */
+    pOMXAV->framerate = oPortDef.format.video.xFramerate;
+    pOMXAV->bitrate = oPortDef.format.video.nBitrate;
+    DBG_PRINT( "Update StreamInfo p2 %dx%d, fps %d, bps %d\n", pOMXAV->width, pOMXAV->height, pOMXAV->framerate, pOMXAV->bitrate );
+    pOMXAV->length = GetMediaLength(pOMXAV);
+    pOMXAV->speed = GetClockScale(pOMXAV);
+
+    OMXInstance_UpdateJavaAttributes(pOMXAV, issueCallback);
+
+    return err;
 }
 
 static int AttachAudioRenderer(OMXToolBasicAV_t * pOMXAV)
@@ -646,7 +744,7 @@ static int AttachAudioRenderer(OMXToolBasicAV_t * pOMXAV)
         // FIXME: proper audio buffering .. 
         OMXSAFE(OMX_GetHandle(&pOMXAV->comp[OMXAV_H_ABUFFERING], "OMX.Nvidia.audio.visualization", pOMXAV, &pOMXAV->callbacks));
         if(0!=(res=SyncOnState(pOMXAV->comp[OMXAV_H_ABUFFERING], OMX_StateLoaded))) {
-            java_throwNewRuntimeException(NULL, "Loading AudioBuffering Failed (%d)", res);
+            java_throwNewRuntimeException(pOMXAV->jni_env, "Loading AudioBuffering Failed (%d)", res);
             return res;
         }
         /**
@@ -668,7 +766,7 @@ static int AttachAudioRenderer(OMXToolBasicAV_t * pOMXAV)
 
     // mandatory before SetupTunnel
     if(0!=(res=SyncOnState(pOMXAV->comp[OMXAV_H_ARENDERER], OMX_StateLoaded))) {
-        java_throwNewRuntimeException(NULL, "Loading AudioRenderer Failed (%d)", res);
+        java_throwNewRuntimeException(pOMXAV->jni_env, "Loading AudioRenderer Failed (%d)", res);
         return res;
     }
 
@@ -716,7 +814,7 @@ static int AttachVideoRenderer(OMXToolBasicAV_t * pOMXAV)
 {
     int i, res=0;
     if(KD_NULL!=pOMXAV->comp[OMXAV_H_VSCHEDULER]) {
-        java_throwNewRuntimeException(NULL, "Detach Video first");
+        java_throwNewRuntimeException(pOMXAV->jni_env, "Detach Video first");
         return -1;
     }
     OMXSAFE(OMX_GetHandle(&pOMXAV->comp[OMXAV_H_VSCHEDULER], "OMX.Nvidia.video.scheduler", pOMXAV, &pOMXAV->callbacks));
@@ -724,14 +822,14 @@ static int AttachVideoRenderer(OMXToolBasicAV_t * pOMXAV)
 
     // mandatory before SetupTunnel
     if(0!=(res=SyncOnState(pOMXAV->comp[OMXAV_H_VSCHEDULER], OMX_StateLoaded))) {
-        java_throwNewRuntimeException(NULL, "Loading VideoScheduler Failed (%d)", res);
+        java_throwNewRuntimeException(pOMXAV->jni_env, "Loading VideoScheduler Failed (%d)", res);
         return res;
     }
     // mandatory before EGLUseImage
     OMXSAFE(RequestState(pOMXAV->comp[OMXAV_H_VSCHEDULER], OMX_StateIdle, KD_FALSE));
 
     DBG_PRINT( "Attach VR %p c:%p\n", pOMXAV, pOMXAV->comp[OMXAV_H_VSCHEDULER]);
-    OMXSAFE(UpdateStreamInfo(pOMXAV));
+    OMXSAFE(UpdateStreamInfo(pOMXAV, KD_FALSE));
 
     DBG_PRINT( "UseEGLImg port enable/tunneling %p\n", pOMXAV);
     OMXSAFE(OMX_SendCommand(pOMXAV->comp[OMXAV_H_CLOCK],      OMX_CommandPortEnable, PORT_VRENDERER, 0));
@@ -744,12 +842,12 @@ static int AttachVideoRenderer(OMXToolBasicAV_t * pOMXAV)
     for (i = 0; i < pOMXAV->vBufferNum; i++) {
         OMXToolImageBuffer_t *pBuf = &pOMXAV->buffers[i];
         // The Texture, EGLImage and EGLSync was created by the Java client,
-        // and registered using the OMXToolBasicAV_SetEGLImageTexture2D command.
+        // and registered using the OMXToolBasicAV_SetStreamEGLImageTexture2D command.
 
         DBG_PRINT( "UseEGLImg %p #%d t:%d i:%p s:%p p1\n", pOMXAV, i, pBuf->tex, pBuf->image, pBuf->sync);
 
         if(NULL==pBuf->image) {
-            java_throwNewRuntimeException(NULL, "AttachVideoRenderer: User didn't set buffer %d/%d\n", i, pOMXAV->vBufferNum);
+            java_throwNewRuntimeException(pOMXAV->jni_env, "AttachVideoRenderer: User didn't set buffer %d/%d\n", i, pOMXAV->vBufferNum);
             return -1;
         } else  {
             // tell decoder output port that it will be using EGLImage
@@ -774,7 +872,7 @@ static int DetachVideoRenderer(OMXToolBasicAV_t * pOMXAV)
     if(NULL==pOMXAV) return -1;
 
     if(KD_NULL==pOMXAV->comp[OMXAV_H_VSCHEDULER]) {
-        java_throwNewRuntimeException(NULL, "Attach Video first");
+        java_throwNewRuntimeException(pOMXAV->jni_env, "Attach Video first");
         return -1;
     }
     DBG_PRINT( "DetachVideoRenderer p0\n");
@@ -813,16 +911,12 @@ static int DetachVideoRenderer(OMXToolBasicAV_t * pOMXAV)
     return 0;
 }
 
-OMXToolBasicAV_t * OMXToolBasicAV_CreateInstance(int vBufferNum)
+OMXToolBasicAV_t * OMXToolBasicAV_CreateInstance()
 {
     int i;
     OMXToolBasicAV_t * pOMXAV = NULL;
     InitStatic();
 
-    if(vBufferNum>EGLIMAGE_MAX_BUFFERS) {
-        DBG_PRINT( "buffer number %d > MAX(%d)\n", vBufferNum, EGLIMAGE_MAX_BUFFERS);
-        return NULL;
-    }
     pOMXAV = malloc(sizeof(OMXToolBasicAV_t));
     if(NULL==pOMXAV) {
         DBG_PRINT( "Init struct failed!\n");
@@ -844,14 +938,13 @@ OMXToolBasicAV_t * OMXToolBasicAV_CreateInstance(int vBufferNum)
     pOMXAV->mutex = kdThreadMutexCreate(KD_NULL);
     pOMXAV->flushSem = kdThreadSemCreate(0);
 
-    pOMXAV->vBufferNum = vBufferNum;
-
+    pOMXAV->play_speed = 1.0f;
     pOMXAV->status=OMXAV_INIT;
 
     return pOMXAV;
 }
 
-int OMXToolBasicAV_SetStream(OMXToolBasicAV_t * pOMXAV, const KDchar * stream)
+void OMXToolBasicAV_SetStream(OMXToolBasicAV_t * pOMXAV, int vBufferNum, const KDchar * stream)
 {
     OMX_ERRORTYPE eError = OMX_ErrorNone;
 
@@ -859,22 +952,28 @@ int OMXToolBasicAV_SetStream(OMXToolBasicAV_t * pOMXAV, const KDchar * stream)
 
     // FIXME: verify player state .. ie stop !
     if(pOMXAV->status!=OMXAV_INIT) {
-        java_throwNewRuntimeException(NULL, "Player instance in use\n");
-        return -1;
+        java_throwNewRuntimeException(pOMXAV->jni_env, "Player instance in use\n");
+        return;
+    }
+    if(vBufferNum>EGLIMAGE_MAX_BUFFERS) {
+        java_throwNewRuntimeException(pOMXAV->jni_env, "buffer number %d > MAX(%d)\n", vBufferNum, EGLIMAGE_MAX_BUFFERS);
+        return;
     }
 
     kdThreadMutexLock(pOMXAV->mutex);
 
     DBG_PRINT( "SetStream 3\n");
 
+    pOMXAV->vBufferNum = vBufferNum;
+
     // Use the "super parser" :) FIXME: Non NV case ..
     eError = OMX_GetHandle(&pOMXAV->comp[OMXAV_H_READER], "OMX.Nvidia.reader", pOMXAV, &pOMXAV->callbacks);
 
     eError = AddFile(pOMXAV, stream);
     if(eError!=OMX_ErrorNone) {
-        java_throwNewRuntimeException(NULL, "Couldn't open or handle stream: %s\n", stream);
+        java_throwNewRuntimeException(pOMXAV->jni_env, "Couldn't open or handle stream: %s\n", stream);
         kdThreadMutexUnlock(pOMXAV->mutex);
-        return -1;
+        return;
     }
 
     DBG_PRINT( "SetStream 4\n");
@@ -886,14 +985,14 @@ int OMXToolBasicAV_SetStream(OMXToolBasicAV_t * pOMXAV, const KDchar * stream)
         oPortDef.nPortIndex = 0;
         pOMXAV->videoPort = -1;
         pOMXAV->audioPort = -1;
-        OMXSAFE(OMX_GetParameter(pOMXAV->comp[OMXAV_H_READER], OMX_IndexParamPortDefinition, &oPortDef));
+        OMXSAFEVOID(OMX_GetParameter(pOMXAV->comp[OMXAV_H_READER], OMX_IndexParamPortDefinition, &oPortDef));
 
         if (oPortDef.eDomain == OMX_PortDomainAudio)
             pOMXAV->audioPort = oPortDef.nPortIndex;
         else if (oPortDef.eDomain == OMX_PortDomainVideo)
             pOMXAV->videoPort = oPortDef.nPortIndex;
         else
-            OMXSAFE(OMX_ErrorNotImplemented);
+            OMXSAFEVOID(OMX_ErrorNotImplemented);
 
         INIT_PARAM(oPortDef);
         oPortDef.nPortIndex = 1;
@@ -904,35 +1003,35 @@ int OMXToolBasicAV_SetStream(OMXToolBasicAV_t * pOMXAV, const KDchar * stream)
             else if (oPortDef.eDomain == OMX_PortDomainVideo)
                 pOMXAV->videoPort = oPortDef.nPortIndex;
             else
-                OMXSAFE(OMX_ErrorNotImplemented);
+                OMXSAFEVOID(OMX_ErrorNotImplemented);
         }
         if (pOMXAV->audioPort != -1)
         {
-            if (ProbePort(pOMXAV, pOMXAV->audioPort, pOMXAV->audioCodec) != OMX_ErrorNone)
+            if (ProbePort(pOMXAV, pOMXAV->audioPort, pOMXAV->audioCodec, pOMXAV->audioCodecComponent) != OMX_ErrorNone)
             {
                 printf("disabling audio port\n");
-                OMXSAFE(OMX_SendCommand(pOMXAV->comp[OMXAV_H_READER], OMX_CommandPortDisable, pOMXAV->audioPort, 0));
+                OMXSAFEVOID(OMX_SendCommand(pOMXAV->comp[OMXAV_H_READER], OMX_CommandPortDisable, pOMXAV->audioPort, 0));
                 pOMXAV->audioPort = -1;
             }
         }
         if (pOMXAV->videoPort != -1)
-            if (ProbePort(pOMXAV, pOMXAV->videoPort, pOMXAV->videoCodec) != OMX_ErrorNone)
+            if (ProbePort(pOMXAV, pOMXAV->videoPort, pOMXAV->videoCodec, pOMXAV->videoCodecComponent) != OMX_ErrorNone)
             {
                 printf("disabling video port\n");
-                OMXSAFE(OMX_SendCommand(pOMXAV->comp[OMXAV_H_READER], OMX_CommandPortDisable, pOMXAV->videoPort, 0));
+                OMXSAFEVOID(OMX_SendCommand(pOMXAV->comp[OMXAV_H_READER], OMX_CommandPortDisable, pOMXAV->videoPort, 0));
                 pOMXAV->videoPort = -1;
             }
 
         if (pOMXAV->audioPort == -1 && pOMXAV->videoPort == -1)
         {
-            java_throwNewRuntimeException(NULL, "Neither audioport or videoport could be played back!\n");
+            java_throwNewRuntimeException(pOMXAV->jni_env, "Neither audioport or videoport could be played back!\n");
             kdThreadMutexUnlock(pOMXAV->mutex);
-            return -1;
+            return;
         }
     }
     DBG_PRINT( "SetStream 5 ; audioPort %d, videoPort %d\n", pOMXAV->audioPort, pOMXAV->videoPort);
 
-    OMXSAFE(OMX_GetHandle(&pOMXAV->comp[OMXAV_H_CLOCK],     "OMX.Nvidia.clock.component", pOMXAV, &pOMXAV->callbacks));
+    OMXSAFEVOID(OMX_GetHandle(&pOMXAV->comp[OMXAV_H_CLOCK],     "OMX.Nvidia.clock.component", pOMXAV, &pOMXAV->callbacks));
 
     DBG_PRINT( "Configuring comp[OMXAV_H_CLOCK]\n");
     {
@@ -941,34 +1040,29 @@ int OMXToolBasicAV_SetStream(OMXToolBasicAV_t * pOMXAV, const KDchar * stream)
 		INIT_PARAM(oActiveClockType);
 		oActiveClockType.eClock = (pOMXAV->audioPort != -1) ?
                     OMX_TIME_RefClockAudio : OMX_TIME_RefClockVideo;
-        OMXSAFE(OMX_SetConfig(pOMXAV->comp[OMXAV_H_CLOCK], OMX_IndexConfigTimeActiveRefClock,
+        OMXSAFEVOID(OMX_SetConfig(pOMXAV->comp[OMXAV_H_CLOCK], OMX_IndexConfigTimeActiveRefClock,
 							   &oActiveClockType));
     }
-    OMXSAFE(OMX_SendCommand(pOMXAV->comp[OMXAV_H_CLOCK], OMX_CommandPortDisable, (OMX_U32) -1, 0));
+    OMXSAFEVOID(OMX_SendCommand(pOMXAV->comp[OMXAV_H_CLOCK], OMX_CommandPortDisable, (OMX_U32) -1, 0));
 
-    OMXSAFE(UpdateStreamInfo(pOMXAV));
+    OMXSAFEVOID(UpdateStreamInfo(pOMXAV, KD_FALSE));
 
     kdThreadMutexUnlock(pOMXAV->mutex);
 
     DBG_PRINT( "SetStream X\n");
-
-    return 0;
 }
 
-int OMXToolBasicAV_UpdateStreamInfo(OMXToolBasicAV_t * pOMXAV) {
-    if(NULL==pOMXAV) return -1;
-    kdThreadMutexLock(pOMXAV->mutex);
-    OMXSAFE(UpdateStreamInfo(pOMXAV));
-    kdThreadMutexUnlock(pOMXAV->mutex);
-    return 0;
-}
-
-int OMXToolBasicAV_SetEGLImageTexture2D(OMXToolBasicAV_t * pOMXAV, KDint i, GLuint tex, EGLImageKHR image, EGLSyncKHR sync)
+void OMXToolBasicAV_SetStreamEGLImageTexture2D(OMXToolBasicAV_t * pOMXAV, KDint i, GLuint tex, EGLImageKHR image, EGLSyncKHR sync)
 {
-    if(NULL==pOMXAV) return -1;
-    DBG_PRINT( "SetEGLImg %p #%d/%d t:%d i:%p s:%p..\n", pOMXAV, i, pOMXAV->vBufferNum, tex, image, sync);
-    if(i<0||i>=pOMXAV->vBufferNum) return -1;
-
+    if(NULL==pOMXAV) {
+        java_throwNewRuntimeException(0, "OMX instance null\n");
+        return;
+    }
+    DBG_PRINT( "SetStreamEGLImg %p #%d/%d t:%d i:%p s:%p..\n", pOMXAV, i, pOMXAV->vBufferNum, tex, image, sync);
+    if(i<0||i>=pOMXAV->vBufferNum) {
+        java_throwNewRuntimeException(pOMXAV->jni_env, "Buffer index out of range: %d\n", i);
+        return;
+    }
 
     kdThreadMutexLock(pOMXAV->mutex);
     {
@@ -979,41 +1073,42 @@ int OMXToolBasicAV_SetEGLImageTexture2D(OMXToolBasicAV_t * pOMXAV, KDint i, GLui
 
     }
     kdThreadMutexUnlock(pOMXAV->mutex);
-
-    return 0;
 }
 
-int OMXToolBasicAV_ActivateInstance(OMXToolBasicAV_t * pOMXAV) {
+void OMXToolBasicAV_ActivateStream(OMXToolBasicAV_t * pOMXAV) {
     int res;
-    if(NULL==pOMXAV) return -1;
-    DBG_PRINT( "ActivateInstance 1\n");
+    if(NULL==pOMXAV) {
+        java_throwNewRuntimeException(0, "OMX instance null\n");
+        return;
+    }
+    DBG_PRINT( "ActivateStream 1\n");
 
     kdThreadMutexLock(pOMXAV->mutex);
 
     if (pOMXAV->audioPort != -1)
     {
-        OMXSAFE(OMX_GetHandle(&pOMXAV->comp[OMXAV_H_ADECODER],  pOMXAV->audioCodec, pOMXAV, &pOMXAV->callbacks));
+        OMXSAFEVOID(OMX_GetHandle(&pOMXAV->comp[OMXAV_H_ADECODER],  pOMXAV->audioCodecComponent, pOMXAV, &pOMXAV->callbacks));
     }
 
     if (pOMXAV->videoPort != -1)
     {
-        OMXSAFE(OMX_GetHandle(&pOMXAV->comp[OMXAV_H_VDECODER],  pOMXAV->videoCodec, pOMXAV, &pOMXAV->callbacks));
+        OMXSAFEVOID(OMX_GetHandle(&pOMXAV->comp[OMXAV_H_VDECODER],  pOMXAV->videoCodecComponent, pOMXAV, &pOMXAV->callbacks));
     }
 
     //
     // mandatory: before SetupTunnel (->Activate), wait until all devices are ready ..
     //            arender/vrender must wait as well ..
     if(0!=(res=OMXToolBasicAV_WaitForState(pOMXAV, OMX_StateLoaded))) {
-        java_throwNewRuntimeException(NULL, "Loaded Failed (%d)", res);
+        java_throwNewRuntimeException(pOMXAV->jni_env, "Loaded Failed (%d)", res);
         kdThreadMutexUnlock(pOMXAV->mutex);
-        return res;
+        return;
     }
 
     if (pOMXAV->audioPort != -1)
     {
         if(0!=(res=AttachAudioRenderer(pOMXAV))) {
             kdThreadMutexUnlock(pOMXAV->mutex);
-            return res;
+            return; // exception thrown
         }
     }
 
@@ -1021,7 +1116,7 @@ int OMXToolBasicAV_ActivateInstance(OMXToolBasicAV_t * pOMXAV) {
     {
         if(0!=(res=AttachVideoRenderer(pOMXAV))) {
             kdThreadMutexUnlock(pOMXAV->mutex);
-            return res;
+            return; // exception thrown
         }
     }
 
@@ -1031,18 +1126,18 @@ int OMXToolBasicAV_ActivateInstance(OMXToolBasicAV_t * pOMXAV) {
         if (pOMXAV->audioPort != -1)
         {
             DBG_PRINT( "Setup tunneling audio\n");
-            OMXSAFE(OMX_SetupTunnel(pOMXAV->comp[OMXAV_H_READER], pOMXAV->audioPort, pOMXAV->comp[OMXAV_H_ADECODER],  0));
+            OMXSAFEVOID(OMX_SetupTunnel(pOMXAV->comp[OMXAV_H_READER], pOMXAV->audioPort, pOMXAV->comp[OMXAV_H_ADECODER],  0));
             // The rest of the audio port is configured in AttachAudioRenderer
         }
         
         if (pOMXAV->videoPort != -1)
         {
             DBG_PRINT( "Setup tunneling video\n");
-            OMXSAFE(OMX_SetupTunnel(pOMXAV->comp[OMXAV_H_READER], pOMXAV->videoPort, pOMXAV->comp[OMXAV_H_VDECODER],  0));
+            OMXSAFEVOID(OMX_SetupTunnel(pOMXAV->comp[OMXAV_H_READER], pOMXAV->videoPort, pOMXAV->comp[OMXAV_H_VDECODER],  0));
             // The rest of the video port is configured in AttachVideoRenderer
         }
     }
-    DBG_PRINT( "ActivateInstance .. %p\n", pOMXAV);
+    DBG_PRINT( "ActivateStream .. %p\n", pOMXAV);
 
     //
     // mandatory: wait until all devices are idle
@@ -1050,139 +1145,127 @@ int OMXToolBasicAV_ActivateInstance(OMXToolBasicAV_t * pOMXAV) {
     //
     if(0!=(res=OMXToolBasicAV_RequestState(pOMXAV, OMX_StateIdle, KD_TRUE)))
     {
-        java_throwNewRuntimeException(NULL, "Wait for Idle Failed (%d)", res);
+        java_throwNewRuntimeException(pOMXAV->jni_env, "Wait for Idle Failed (%d)", res);
         kdThreadMutexUnlock(pOMXAV->mutex);
-        return res;
+        return;
     }
     pOMXAV->status=OMXAV_STOPPED;
     kdThreadMutexUnlock(pOMXAV->mutex);
-    DBG_PRINT( "ActivateInstance done %p\n", pOMXAV);
-    return 0;
+    DBG_PRINT( "ActivateStream done %p\n", pOMXAV);
 }
 
-int OMXToolBasicAV_DetachVideoRenderer(OMXToolBasicAV_t * pOMXAV) {
-    int res;
-    if(NULL==pOMXAV) return -1;
-    if(pOMXAV->status<=OMXAV_INIT) {
-        fprintf(stderr, "Err: DetachVideoRenderer invalid");
-        return -1;
+void OMXToolBasicAV_DetachVideoRenderer(OMXToolBasicAV_t * pOMXAV) {
+    if(NULL==pOMXAV) {
+        java_throwNewRuntimeException(0, "OMX instance null\n");
+        return;
     }
-
+    if(pOMXAV->status<=OMXAV_INIT) {
+        java_throwNewRuntimeException(pOMXAV->jni_env, "OMX invalid status: %d <= INIT\n", pOMXAV->status);
+        return;
+    }
     kdThreadMutexLock(pOMXAV->mutex);
 
-    res = DetachVideoRenderer(pOMXAV);
+    (void) DetachVideoRenderer(pOMXAV);
 
     kdThreadMutexUnlock(pOMXAV->mutex);
-    return res;
 }
 
-int OMXToolBasicAV_AttachVideoRenderer(OMXToolBasicAV_t * pOMXAV) {
-    int res;
-    if(NULL==pOMXAV) return -1;
-    if(pOMXAV->status<=OMXAV_INIT) {
-        fprintf(stderr, "Err: AttachVideoRenderer invalid");
-        return -1;
+void OMXToolBasicAV_AttachVideoRenderer(OMXToolBasicAV_t * pOMXAV) {
+    if(NULL==pOMXAV) {
+        java_throwNewRuntimeException(0, "OMX instance null\n");
+        return;
     }
-
+    if(pOMXAV->status<=OMXAV_INIT) {
+        java_throwNewRuntimeException(pOMXAV->jni_env, "OMX invalid status: %d <= INIT\n", pOMXAV->status);
+        return;
+    }
     kdThreadMutexLock(pOMXAV->mutex);
 
-    res = AttachVideoRenderer(pOMXAV);
+    (void) AttachVideoRenderer(pOMXAV);
 
     kdThreadMutexUnlock(pOMXAV->mutex);
-    return res;
 }
 
-int OMXToolBasicAV_SetClockScale(OMXToolBasicAV_t * pOMXAV, KDfloat32 scale)
+void OMXToolBasicAV_SetPlaySpeed(OMXToolBasicAV_t * pOMXAV, KDfloat32 scale)
+{
+    if(NULL==pOMXAV) {
+        java_throwNewRuntimeException(0, "OMX instance null\n");
+        return;
+    }
+    if(pOMXAV->status<=OMXAV_INIT) {
+        java_throwNewRuntimeException(pOMXAV->jni_env, "OMX invalid status: %d <= INIT\n", pOMXAV->status);
+        return;
+    }
+    kdThreadMutexLock(pOMXAV->mutex);
+
+    if(!SetClockScale(pOMXAV, scale)) {
+        pOMXAV->play_speed=scale;
+    }
+
+    kdThreadMutexUnlock(pOMXAV->mutex);
+}
+
+
+void OMXToolBasicAV_PlayStart(OMXToolBasicAV_t * pOMXAV)
 {
     int res;
-    if(NULL==pOMXAV) return -1;
-    if(pOMXAV->status<=OMXAV_INIT) {
-        fprintf(stderr, "Err: SetClockScale invalid");
-        return -1;
+    if(NULL==pOMXAV) {
+        java_throwNewRuntimeException(0, "OMX instance null\n");
+        return;
     }
-
-    kdThreadMutexLock(pOMXAV->mutex);
-
-    res = SetClockScale(pOMXAV, scale);
-
-    kdThreadMutexUnlock(pOMXAV->mutex);
-    return res;
-}
-
-
-int OMXToolBasicAV_PlayStart(OMXToolBasicAV_t * pOMXAV)
-{
-    int res;
-    if(NULL==pOMXAV) return -1;
     if(pOMXAV->status<=OMXAV_INIT) {
-        fprintf(stderr, "Err: Play invalid");
-        return -1;
+        java_throwNewRuntimeException(pOMXAV->jni_env, "OMX invalid status: %d <= INIT\n", pOMXAV->status);
+        return;
     }
     if(pOMXAV->status==OMXAV_PLAYING) {
-        return 0;
+        return;
     }
 
-    DBG_PRINT( "Play 1\n");
     kdThreadMutexLock(pOMXAV->mutex);
     DBG_PRINT( "Play 2\n");
 
-    if(OMXToolBasicAV_CheckState(pOMXAV, OMX_StateIdle)) {
-        if(0!=(res=OMXToolBasicAV_RequestState(pOMXAV, OMX_StateIdle, KD_TRUE))) {
-            java_throwNewRuntimeException(NULL, "Idle Failed (%d)", res);
-            kdThreadMutexUnlock(pOMXAV->mutex);
-            return res;
-        }
-    }
-    if(pOMXAV->status==OMXAV_PAUSED)  {
-        DBG_PRINT( "Play 3.0\n");
-        SetClockScale(pOMXAV, 1);
-    }
+    SetClockScale(pOMXAV, pOMXAV->play_speed);
+
     DBG_PRINT( "Play 3.1\n");
     if(0!=(res=OMXToolBasicAV_RequestState(pOMXAV, OMX_StateExecuting, KD_TRUE))) {
-        java_throwNewRuntimeException(NULL, "Play Execute Failed (%d)", res);
+        java_throwNewRuntimeException(pOMXAV->jni_env, "Play Execute Failed (%d)", res);
         kdThreadMutexUnlock(pOMXAV->mutex);
-        return res;
+        return;
     }
     if(pOMXAV->status==OMXAV_STOPPED || pOMXAV->status==OMXAV_FIN) {
         DBG_PRINT( "Play 3.2\n");
         if(StartClock(pOMXAV, KD_TRUE, 0.0)) {
-            java_throwNewRuntimeException(NULL, "Play StartClock Failed");
+            java_throwNewRuntimeException(pOMXAV->jni_env, "Play StartClock Failed");
             kdThreadMutexUnlock(pOMXAV->mutex);
-            return -1;
+            return;
         }
-        DBG_PRINT( "Play 3.3\n");
     }
     DBG_PRINT( "Play 4.0\n");
 
     kdThreadMutexUnlock(pOMXAV->mutex);
     pOMXAV->status=OMXAV_PLAYING;
     DBG_PRINT( "Play DONE\n");
-    return 0;
 }
 
 static int PlayStop(OMXToolBasicAV_t * pOMXAV)
 {
     int res;
-    if(NULL==pOMXAV) return -1;
-
-    if(pOMXAV->status<=OMXAV_INIT) {
-        fprintf(stderr, "Err: Stop invalid");
+    if(NULL==pOMXAV || pOMXAV->status<=OMXAV_INIT) {
         return -1;
     }
     if( pOMXAV->status!=OMXAV_PLAYING && pOMXAV->status!=OMXAV_PAUSED ) {
-        fprintf(stderr, "Err: Stop not playing nor paused");
         return -1;
     }
 
     if(OMXToolBasicAV_CheckState(pOMXAV, OMX_StateLoaded)) {
         if(StartClock(pOMXAV, KD_FALSE, 0.0)) {
-            java_throwNewRuntimeException(NULL, "Stop StopClock Failed");
+            java_throwNewRuntimeException(pOMXAV->jni_env, "Stop StopClock Failed");
             kdThreadMutexUnlock(pOMXAV->mutex);
             return -1;
         }
         if(OMXToolBasicAV_CheckState(pOMXAV, OMX_StateIdle)) {
             if(0!=(res=OMXToolBasicAV_RequestState(pOMXAV, OMX_StateIdle, KD_TRUE))) {
-                java_throwNewRuntimeException(NULL, "Stop Idle Failed (%d)", res);
+                java_throwNewRuntimeException(pOMXAV->jni_env, "Stop Idle Failed (%d)", res);
                 kdThreadMutexUnlock(pOMXAV->mutex);
                 return res;
             }
@@ -1192,31 +1275,36 @@ static int PlayStop(OMXToolBasicAV_t * pOMXAV)
     return 0;
 }
 
-int OMXToolBasicAV_PlayStop(OMXToolBasicAV_t * pOMXAV)
+void OMXToolBasicAV_PlayStop(OMXToolBasicAV_t * pOMXAV)
 {
-    int res;
-    if(NULL==pOMXAV) return -1;
-
+    if(NULL==pOMXAV) {
+        java_throwNewRuntimeException(0, "OMX instance null\n");
+        return;
+    }
+    if(pOMXAV->status<=OMXAV_INIT) {
+        java_throwNewRuntimeException(pOMXAV->jni_env, "OMX invalid status: %d <= INIT\n", pOMXAV->status);
+        return;
+    }
     kdThreadMutexLock(pOMXAV->mutex);
-    res=PlayStop(pOMXAV);
+
+    (void) PlayStop(pOMXAV);
+
     kdThreadMutexUnlock(pOMXAV->mutex);
-    return res;
 }
 
-int OMXToolBasicAV_PlayPause(OMXToolBasicAV_t * pOMXAV)
+void OMXToolBasicAV_PlayPause(OMXToolBasicAV_t * pOMXAV)
 {
     int res;
-    if(NULL==pOMXAV) return -1;
+    if(NULL==pOMXAV) {
+        java_throwNewRuntimeException(0, "OMX instance null\n");
+        return;
+    }
     if(pOMXAV->status<=OMXAV_INIT) {
-        fprintf(stderr, "Err: Pause invalid");
-        return -1;
+        java_throwNewRuntimeException(pOMXAV->jni_env, "OMX invalid status: %d <= INIT\n", pOMXAV->status);
+        return;
     }
-    if(pOMXAV->status==OMXAV_PAUSED) {
-        return 0;
-    }
-    if(pOMXAV->status!=OMXAV_PLAYING) {
-        fprintf(stderr, "Err: Pause not playing");
-        return -1;
+    if(pOMXAV->status==OMXAV_PAUSED || pOMXAV->status!=OMXAV_PLAYING) {
+        return;
     }
 
     kdThreadMutexLock(pOMXAV->mutex);
@@ -1224,33 +1312,40 @@ int OMXToolBasicAV_PlayPause(OMXToolBasicAV_t * pOMXAV)
     if(0!=(res=OMXToolBasicAV_RequestState(pOMXAV, OMX_StatePause, KD_TRUE))) {
         fprintf(stderr, "Err: Pause Pause Failed (%d)", res);
         kdThreadMutexUnlock(pOMXAV->mutex);
-        return res;
+        return;
     }
     pOMXAV->status=OMXAV_PAUSED;
     kdThreadMutexUnlock(pOMXAV->mutex);
-    return 0;
 }
 
-int OMXToolBasicAV_PlaySeek(OMXToolBasicAV_t * pOMXAV, KDfloat32 time)
+void OMXToolBasicAV_PlaySeek(OMXToolBasicAV_t * pOMXAV, KDfloat32 time)
 {
     int res;
-    OMX_ERRORTYPE eError = OMX_ErrorNotReady;
 
-    if(NULL==pOMXAV) return -1;
-    if(pOMXAV->status<=OMXAV_INIT) {
-        fprintf(stderr, "Err: Seek invalid");
-        return -1;
+    if(NULL==pOMXAV) {
+        java_throwNewRuntimeException(0, "OMX instance null\n");
+        return;
     }
-
+    if(pOMXAV->status<=OMXAV_INIT) {
+        java_throwNewRuntimeException(pOMXAV->jni_env, "OMX invalid status: %d <= INIT\n", pOMXAV->status);
+        return;
+    }
     kdThreadMutexLock(pOMXAV->mutex);
+
+    pOMXAV->length = GetMediaLength(pOMXAV);
+    if(pOMXAV->length<=time) {
+        (void) PlayStop(pOMXAV);
+        kdThreadMutexUnlock(pOMXAV->mutex);
+        return;
+    }
 
     // 1. Pause the component through the use of OMX_SendCommand requesting a
     //    state transition to OMX_StatePause.
     if(pOMXAV->status!=OMXAV_PAUSED) {
         if(0!=(res=OMXToolBasicAV_RequestState(pOMXAV, OMX_StatePause, KD_TRUE))) {
-            fprintf(stderr, "Err: Seek Pause Failed (%d)", res);
+            java_throwNewRuntimeException(pOMXAV->jni_env, "Seek Pause Failed (%d)", res);
             kdThreadMutexUnlock(pOMXAV->mutex);
-            return res;
+            return;
         }
     }
 
@@ -1258,39 +1353,24 @@ int OMXToolBasicAV_PlaySeek(OMXToolBasicAV_t * pOMXAV, KDfloat32 time)
     //    on OMX_TIME_CONFIG_CLOCKSTATETYPE requesting a transition to
     //    OMX_TIME_ClockStateStopped.
     if(StartClock(pOMXAV, KD_FALSE, 0.0)) {
-        java_throwNewRuntimeException(NULL, "Seek StopClock Failed");
+        java_throwNewRuntimeException(pOMXAV->jni_env, "Seek StopClock Failed");
         kdThreadMutexUnlock(pOMXAV->mutex);
-        return -1;
+        return;
     }
 
     // 3. Seek to the desired location through the use of OMX_SetConfig on
     //    OMX_IndexConfigTimePosition requesting the desired timestamp.
-    {
-        OMX_TIME_CONFIG_TIMESTAMPTYPE timestamp;
-        int loop=STATE_TIMEOUT_LOOP;
-        INIT_PARAM(timestamp);
-        timestamp.nPortIndex = 0;
-        timestamp.nTimestamp = (OMX_TICKS) (time * 1000.0 * 1000.0);
-
-        eError = OMX_SetConfig(pOMXAV->comp[OMXAV_H_READER], OMX_IndexConfigTimePosition, &timestamp);
-        while (loop>0 && OMX_ErrorNotReady == eError)
-        {
-            usleep(STATE_SLEEP*1000);
-            loop--;
-            eError = OMX_SetConfig(pOMXAV->comp[OMXAV_H_READER], OMX_IndexConfigTimePosition, &timestamp);
-        }
-        if (OMX_ErrorNotReady == eError) {
-            java_throwNewRuntimeException(NULL, "Seek position Failed");
-            kdThreadMutexUnlock(pOMXAV->mutex);
-            return -1;
-        }
+    if(SetMediaPosition(pOMXAV, time)) {
+        java_throwNewRuntimeException(pOMXAV->jni_env, "Seek position Failed");
+        kdThreadMutexUnlock(pOMXAV->mutex);
+        return;
     }
 
     // 4. Flush all components.
     if(SendCommand(pOMXAV, OMX_CommandFlush, OMX_ALL, 0)) {
-        fprintf(stderr, "Err: Seek Flush Failed");
+        java_throwNewRuntimeException(pOMXAV->jni_env, "Seek Flush Failed");
         kdThreadMutexUnlock(pOMXAV->mutex);
-        return -1;
+        return;
     }
 
     // 5. Start the comp[OMXAV_H_CLOCK] components media comp[OMXAV_H_CLOCK] through the use of OMX_SetConfig
@@ -1298,25 +1378,24 @@ int OMXToolBasicAV_PlaySeek(OMXToolBasicAV_t * pOMXAV, KDfloat32 time)
     //    OMX_TIME_ClockStateRunning or
     //    OMX_TIME_ClockStateWaitingForStartTime.
     if(StartClock(pOMXAV, KD_TRUE, time)) {
-        java_throwNewRuntimeException(NULL, "Seek StartClock Failed");
+        java_throwNewRuntimeException(pOMXAV->jni_env, "Seek StartClock Failed");
         kdThreadMutexUnlock(pOMXAV->mutex);
-        return -1;
+        return;
     }
 
     // 6. Un-pause the component through the use of OMX_SendCommand requesting a
     //    state transition to OMX_StateExecuting.
-    if(pOMXAV->status!=OMXAV_PLAYING) {
+    if(pOMXAV->status==OMXAV_PLAYING) {
         if(0!=(res=OMXToolBasicAV_RequestState(pOMXAV, OMX_StateExecuting, KD_TRUE))) {
-            fprintf(stderr, "Err: Seek Execute Failed (%d)", res);
+            java_throwNewRuntimeException(pOMXAV->jni_env, "Seek Execute Failed (%d)", res);
             kdThreadMutexUnlock(pOMXAV->mutex);
-            return res;
+            return;
         }
     }
     kdThreadMutexUnlock(pOMXAV->mutex);
-    return 0;
 }
 
-GLuint OMXToolBasicAV_GetTexture(OMXToolBasicAV_t * pOMXAV) {
+GLuint OMXToolBasicAV_GetNextTextureID(OMXToolBasicAV_t * pOMXAV) {
     GLuint texID = 0;
     int ret = pOMXAV->glPos;
     kdThreadMutexLock(pOMXAV->mutex);
@@ -1324,7 +1403,7 @@ GLuint OMXToolBasicAV_GetTexture(OMXToolBasicAV_t * pOMXAV) {
     if(pOMXAV->status==OMXAV_PLAYING) {
         int next = (pOMXAV->omxPos + 1) % pOMXAV->vBufferNum;
         
-        DBG_PRINT2("GetTexture A avail %d, filled %d, pos o:%d g:%d\n", 
+        DBG_PRINT2("GetNextTexture A avail %d, filled %d, pos o:%d g:%d\n", 
                    pOMXAV->available, pOMXAV->filled, pOMXAV->omxPos, pOMXAV->glPos);
 
         while (pOMXAV->filled < pOMXAV->vBufferNum)
@@ -1335,25 +1414,25 @@ GLuint OMXToolBasicAV_GetTexture(OMXToolBasicAV_t * pOMXAV) {
                  attr == EGL_SIGNALED_KHR )
                )
             {
-                DBG_PRINT2( "GetTexture p2.1 attr 0x%X\n", attr);
+                DBG_PRINT2( "GetNextTexture p2.1 attr 0x%X\n", attr);
                 // OpenGL has finished rendering with this texture, so we are free
                 // to make OpenMAX IL fill it with new data.
                 OMX_FillThisBuffer(pOMXAV->comp[OMXAV_H_VSCHEDULER], pOMXAV->buffers[pOMXAV->omxPos].omxBufferHeader);
-                DBG_PRINT2( "GetTexture p2.2\n");
+                DBG_PRINT2( "GetNextTexture p2.2\n");
                 pOMXAV->omxPos = next;
                 next = (pOMXAV->omxPos + 1) % pOMXAV->vBufferNum;
                 pOMXAV->filled++;
             }
             else
             {
-                DBG_PRINT2( "GetTexture p2.3\n");
+                DBG_PRINT2( "GetNextTexture p2.3\n");
                 break;
             }
         }
     }
     if (pOMXAV->available > 1)
     {
-        DBG_PRINT2("GetTexture p3.1\n");
+        DBG_PRINT2("GetNextTexture p3.1\n");
         // We want to make sure that the previous eglImage
         // has finished, so insert a fence command into the
         // command stream to make sure that any rendering using
@@ -1363,7 +1442,7 @@ GLuint OMXToolBasicAV_GetTexture(OMXToolBasicAV_t * pOMXAV) {
         // was successfull.
         if (!_hasEGLSync || eglFenceKHR(pOMXAV->buffers[pOMXAV->glPos].sync))
         {
-            DBG_PRINT2( "GetTexture p3.2\n");
+            DBG_PRINT2( "GetNextTexture p3.2\n");
             pOMXAV->available--;
             pOMXAV->filled--;
             pOMXAV->glPos = (pOMXAV->glPos + 1) % pOMXAV->vBufferNum;
@@ -1372,11 +1451,30 @@ GLuint OMXToolBasicAV_GetTexture(OMXToolBasicAV_t * pOMXAV) {
     }
 
     texID = pOMXAV->available ? pOMXAV->buffers[ret].tex : 0;
-    DBG_PRINT2( "GetTexture B avail %d, filled %d, pos o:%d g:%d t:%d\n", 
+    DBG_PRINT2( "GetNextTexture B avail %d, filled %d, pos o:%d g:%d t:%d\n", 
                 pOMXAV->available, pOMXAV->filled, pOMXAV->omxPos, pOMXAV->glPos, texID);
 
     kdThreadMutexUnlock(pOMXAV->mutex);
     return texID;
+}
+
+KDfloat32 OMXToolBasicAV_GetCurrentPosition(OMXToolBasicAV_t * pOMXAV) {
+    KDfloat32 res = -1.0f;
+    if(NULL==pOMXAV) {
+        java_throwNewRuntimeException(0, "OMX instance null\n");
+        return res;
+    }
+    if(pOMXAV->status<=OMXAV_INIT) {
+        java_throwNewRuntimeException(pOMXAV->jni_env, "OMX invalid status: %d <= INIT\n", pOMXAV->status);
+        return res;
+    }
+    kdThreadMutexLock(pOMXAV->mutex);
+
+    res = GetClockPosition(pOMXAV);
+
+    kdThreadMutexUnlock(pOMXAV->mutex);
+
+    return res;
 }
 
 void OMXToolBasicAV_DestroyInstance(OMXToolBasicAV_t * pOMXAV)
@@ -1548,13 +1646,13 @@ int ModuleTest()
 
         printf("6 eglGetError: 0x%x\n", eglGetError());
 
-        if(OMXToolBasicAV_SetEGLImageTexture2D(pOMXAV, i, tex, image, sync)) {
+        if(OMXToolBasicAV_SetStreamEGLImageTexture2D(pOMXAV, i, tex, image, sync)) {
             return -1;
         }
     }
     
     printf("7\n");
-    if( OMXToolBasicAV_ActivateInstance(pOMXAV) ) {
+    if( OMXToolBasicAV_ActivateStream(pOMXAV) ) {
         return -1;
     }
 

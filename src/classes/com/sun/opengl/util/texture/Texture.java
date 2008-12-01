@@ -266,7 +266,16 @@ public class Texture {
      * OpenGL-related errors occurred
      */
     public void dispose() throws GLException {
-        GLU.getCurrentGL().glDeleteTextures(1, new int[] {texID}, 0);
+        dispose(GLU.getCurrentGL());
+    }
+
+    /**
+     * Disposes the native resources used by this texture object.
+     *
+     * @throws GLException if any OpenGL-related errors occurred
+     */
+    public void dispose(GL gl) throws GLException {
+        gl.glDeleteTextures(1, new int[] {texID}, 0);
         texID = 0;
     }
 
