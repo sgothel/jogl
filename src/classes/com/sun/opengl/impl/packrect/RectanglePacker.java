@@ -102,8 +102,12 @@ public class RectanglePacker {
 
   /** Decides upon an (x, y) position for the given rectangle (leaving
       its width and height unchanged) and places it on the backing
-      store. May provoke re-layout of other Rects already added. */
-  public void add(Rect rect) {
+      store. May provoke re-layout of other Rects already added. If
+      the BackingStoreManager does not support compaction, and {@link
+      BackingStoreManager#preExpand BackingStoreManager.preExpand}
+      does not clear enough space for the incoming rectangle, then
+      this method will throw a RuntimeException. */
+  public void add(Rect rect) throws RuntimeException {
     // Allocate backing store if we don't have any yet
     if (backingStore == null)
       backingStore = manager.allocateBackingStore(levels.w(), levels.h());
@@ -116,13 +120,20 @@ public class RectanglePacker {
       if (levels.add(rect))
         return;
 
-      // Try to allocate with horizontal compaction
-      if (levels.compactAndAdd(rect, backingStore, manager))
-        return;
-
-      // Let the manager have a chance at potentially evicting some entries
-      tryAgain = manager.preExpand(rect, attemptNumber++);
+      if (manager.canCompact()) {
+        // Try to allocate with horizontal compaction
+        if (levels.compactAndAdd(rect, backingStore, manager))
+          return;
+        // Let the manager have a chance at potentially evicting some entries
+        tryAgain = manager.preExpand(rect, attemptNumber++);
+      } else {
+        tryAgain = manager.additionFailed(rect, attemptNumber++);
+      }
     } while (tryAgain);
+
+    if (!manager.canCompact()) {
+      throw new RuntimeException("BackingStoreManager does not support compaction or expansion, and didn't clear space for new rectangle");
+    }
 
     compactImpl(rect);
 

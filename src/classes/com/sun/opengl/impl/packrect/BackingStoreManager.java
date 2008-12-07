@@ -49,6 +49,16 @@ public interface BackingStoreManager {
   public Object allocateBackingStore(int w, int h);
   public void   deleteBackingStore(Object backingStore);
 
+  /** Indication whether this BackingStoreManager supports compaction;
+      in other words, the allocation of a new backing store and
+      movement of the contents of the backing store from the old to
+      the new one. If it does not, then RectanglePacker.add() may
+      throw an exception if additionFailed() can not make enough room
+      available. If an implementation returns false, this also implies
+      that the backing store can not grow, so that preExpand() will
+      never be called. */
+  public boolean canCompact();
+
   /** Notification that expansion of the backing store is about to be
       done due to addition of the given rectangle. Gives the manager a
       chance to do some compaction and potentially remove old entries
@@ -64,8 +74,12 @@ public interface BackingStoreManager {
 
   /** Notification that addition of the given Rect failed because a
       maximum size was set in the RectanglePacker and the backing
-      store could not be expanded. */
-  public void additionFailed(Rect cause, int attemptNumber);
+      store could not be expanded, or because compaction (and,
+      therefore, implicitly expansion) was not supported. Should
+      return false if the manager can do nothing more to handle the
+      failed addition, which will cause a RuntimeException to be
+      thrown from the RectanglePacker. */
+  public boolean additionFailed(Rect cause, int attemptNumber);
 
   /** Notification that movement is starting. */
   public void beginMovement(Object oldBackingStore, Object newBackingStore);

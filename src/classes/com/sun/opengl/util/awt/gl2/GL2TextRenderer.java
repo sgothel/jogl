@@ -1202,7 +1202,7 @@ public class GL2TextRenderer {
             return false;
         }
 
-        public void additionFailed(Rect cause, int attemptNumber) {
+        public boolean additionFailed(Rect cause, int attemptNumber) {
             // Heavy hammer -- might consider doing something different
             packer.clear();
             stringLocations.clear();
@@ -1212,6 +1212,16 @@ public class GL2TextRenderer {
                 System.err.println(
                                    " *** Cleared all text because addition failed ***");
             }
+
+            if (attemptNumber == 0) {
+                return true;
+            }
+
+            return false;
+        }
+
+        public boolean canCompact() {
+            return true;
         }
 
         public void beginMovement(Object oldBackingStore, Object newBackingStore) {
