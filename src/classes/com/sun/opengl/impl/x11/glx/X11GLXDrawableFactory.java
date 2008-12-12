@@ -176,8 +176,8 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     Runnable r = new Runnable() {
         public void run() {
           X11PbufferGLXDrawable pbufferDrawable = new X11PbufferGLXDrawable(factory, capabilities,
-                                                                          initialWidth,
-                                                                          initialHeight);
+                                                                            initialWidth,
+                                                                            initialHeight);
           GLPbufferImpl pbuffer = new GLPbufferImpl(pbufferDrawable, shareWith);
           returnList.add(pbuffer);
         }

@@ -378,7 +378,7 @@ public abstract class GLContextImpl extends GLContext {
    * "GL_VERTEX_PROGRAM_ARB").
    */
   public boolean isExtensionAvailable(String glExtensionName) {
-      return extensionAvailability.isExtensionAvailable(glExtensionName);
+      return extensionAvailability.isExtensionAvailable(mapToRealGLExtensionName(glExtensionName));
   }
 
   /** Indicates which floating-point pbuffer implementation is in

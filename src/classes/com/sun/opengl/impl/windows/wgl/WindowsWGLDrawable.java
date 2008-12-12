@@ -56,10 +56,9 @@ public abstract class WindowsWGLDrawable extends GLDrawableImpl {
   protected static final int MAX_ATTRIBS  = 256;
 
   public WindowsWGLDrawable(GLDrawableFactory factory, NativeWindow comp, boolean realized,
-                            GLCapabilities capabilities,
+                            GLCapabilities requestedCapabilities,
                             GLCapabilitiesChooser chooser) {
-    super(factory, comp, realized);
-    setChosenGLCapabilities(capabilities);
+    super(factory, comp, requestedCapabilities, realized);
     this.chooser = chooser;
   }
 
@@ -105,7 +104,7 @@ public abstract class WindowsWGLDrawable extends GLDrawableImpl {
     PIXELFORMATDESCRIPTOR pfd = null;
     int pixelFormat = 0;
     GLCapabilities chosenCaps = null;
-    GLCapabilities capabilities = getCapabilities();
+    GLCapabilities capabilities = getRequestedGLCapabilities();
     long hdc = getNativeWindow().getSurfaceHandle();
     if (onscreen) {
       if ((pixelFormat = WGL.GetPixelFormat(hdc)) != 0) {

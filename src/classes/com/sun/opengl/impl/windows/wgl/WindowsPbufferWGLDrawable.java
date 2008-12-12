@@ -51,12 +51,12 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
   private int floatMode;
 
   public WindowsPbufferWGLDrawable(GLDrawableFactory factory,
-                                  GLCapabilities capabilities,
-                                  int initialWidth,
-                                  int initialHeight,
-                                  WindowsWGLDrawable dummyDrawable,
-                                  WGLExt wglExt) {
-    super(factory, new NullWindow(), true, capabilities, null);
+                                   GLCapabilities requestedCapabilities,
+                                   int initialWidth,
+                                   int initialHeight,
+                                   WindowsWGLDrawable dummyDrawable,
+                                   WGLExt wglExt) {
+    super(factory, new NullWindow(), true, requestedCapabilities, null);
     if (initialWidth <= 0 || initialHeight <= 0) {
       throw new GLException("Initial width and height of pbuffer must be positive (were (" +
 			    initialWidth + ", " + initialHeight + "))");
@@ -65,10 +65,10 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
     nw.setSize(initialWidth, initialHeight);
 
     if (DEBUG) {
-      System.out.println("Pbuffer caps on init: " + capabilities +
-                         (capabilities.getPbufferRenderToTexture() ? " [rtt]" : "") +
-                         (capabilities.getPbufferRenderToTextureRectangle() ? " [rect]" : "") +
-                         (capabilities.getPbufferFloatingPointBuffers() ? " [float]" : ""));
+      System.out.println("Pbuffer caps on init: " + requestedCapabilities +
+                         (requestedCapabilities.getPbufferRenderToTexture() ? " [rtt]" : "") +
+                         (requestedCapabilities.getPbufferRenderToTextureRectangle() ? " [rect]" : "") +
+                         (requestedCapabilities.getPbufferFloatingPointBuffers() ? " [float]" : ""));
     }
 
     createPbuffer(dummyDrawable.getNativeWindow().getSurfaceHandle(), wglExt);
@@ -137,6 +137,11 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
     */
   }
 
+  // This is public to allow access from PbufferContext
+  public GLCapabilities getRequestedGLCapabilities() {
+    return super.getRequestedGLCapabilities();
+  }
+
   private void createPbuffer(long parentHdc, WGLExt wglExt) {
     int[]   iattributes = new int  [2*MAX_ATTRIBS];
     float[] fattributes = new float[1];
@@ -144,7 +149,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
     int     niattribs   = 0;
     int     width, height;
 
-    GLCapabilities capabilities = getCapabilities();
+    GLCapabilities capabilities = getRequestedGLCapabilities();
 
     if (DEBUG) {
       System.out.println("Pbuffer parentHdc = " + toHexString(parentHdc));

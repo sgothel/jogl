@@ -42,11 +42,16 @@ package com.sun.opengl.impl;
 import javax.media.opengl.*;
 
 public abstract class GLDrawableImpl implements GLDrawable {
-  protected GLDrawableImpl(GLDrawableFactory factory, NativeWindow comp, boolean realized) {
+  private GLCapabilities requestedCapabilities;
+
+  protected GLDrawableImpl(GLDrawableFactory factory,
+                           NativeWindow comp,
+                           GLCapabilities requestedCapabilities,
+                           boolean realized) {
       this.factory = factory;
       this.component = comp;
+      this.requestedCapabilities = (GLCapabilities) requestedCapabilities.clone();
       this.realized = realized;
-      this.chosenCapabilities=null;
   }
 
   /** For offscreen GLDrawables (pbuffers and "pixmap" drawables),
@@ -62,8 +67,8 @@ public abstract class GLDrawableImpl implements GLDrawable {
     return GLContextImpl.toHexString(hex);
   }
 
-  public GLCapabilities getCapabilities() {
-    return chosenCapabilities;
+  protected GLCapabilities getRequestedGLCapabilities() {
+    return requestedCapabilities;
   }
 
   public GLCapabilities getChosenGLCapabilities() {
@@ -74,7 +79,7 @@ public abstract class GLDrawableImpl implements GLDrawable {
     return (GLCapabilities) chosenCapabilities.clone();
   }
 
-  public void setChosenGLCapabilities(GLCapabilities caps) {
+  protected void setChosenGLCapabilities(GLCapabilities caps) {
     chosenCapabilities = (caps==null) ? null : (GLCapabilities) caps.clone();
   }
 

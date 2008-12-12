@@ -49,10 +49,9 @@ public abstract class X11GLXDrawable extends GLDrawableImpl {
   protected GLCapabilitiesChooser chooser;
 
   protected X11GLXDrawable(GLDrawableFactory factory, NativeWindow comp, boolean realized,
-                           GLCapabilities capabilities,
+                           GLCapabilities requestedCapabilities,
                            GLCapabilitiesChooser chooser) {
-    super(factory, comp, realized);
-    setChosenGLCapabilities(capabilities);
+    super(factory, comp, requestedCapabilities, realized);
     this.chooser = chooser;
   }
 
@@ -89,7 +88,6 @@ public abstract class X11GLXDrawable extends GLDrawableImpl {
         System.err.println("!!! Fetched XVisualInfo for visual ID 0x" + Long.toHexString(visualID));
         System.err.println("!!! Resulting XVisualInfo: visualid = 0x" + Long.toHexString(infos[0].visualid()));
       }
-
       // FIXME: the storage for the infos array is leaked (should
       // clean it up somehow when we're done with the visual we're
       // returning)
@@ -120,7 +118,7 @@ public abstract class X11GLXDrawable extends GLDrawableImpl {
       } finally {
         getFactory().unlockToolkit();
       }
-      GLCapabilities capabilities = getCapabilities();
+      GLCapabilities capabilities = getRequestedGLCapabilities();
       int chosen = chooser.chooseCapabilities(capabilities, caps, -1);
       if (chosen < 0 || chosen >= caps.length) {
         throw new GLException("GLCapabilitiesChooser specified invalid index (expected 0.." + (caps.length - 1) + ")");

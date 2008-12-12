@@ -887,20 +887,6 @@ public class GL2JPanel extends JPanel implements AWTGLAutoDrawable {
     return null;
   }
 
-  public void setChosenGLCapabilities(GLCapabilities caps) {
-    if (oglPipelineEnabled) {
-      this.caps = (caps==null) ? null : (GLCapabilities) caps.clone();
-    }
-
-    if (hardwareAccelerationDisabled) {
-      if (offscreenDrawable != null)
-        offscreenDrawable.setChosenGLCapabilities(caps);
-    } else {
-      if (pbuffer != null)
-        pbuffer.setChosenGLCapabilities(caps);
-    }
-  }
-
   public NativeWindow getNativeWindow() {
     throw new GLException("FIXME");
   }

@@ -96,7 +96,7 @@ public class WindowsPbufferWGLContext extends WindowsWGLContext {
       System.err.println("WindowsPbufferWGLContext: super.makeCurrentImpl() = " + res);
     }
     if (res == CONTEXT_CURRENT_NEW) {
-      GLCapabilities capabilities = drawable.getCapabilities();
+      GLCapabilities capabilities = drawable.getRequestedGLCapabilities();
 
       // Initialize render-to-texture support if requested
       GL gl = getGL();

@@ -159,18 +159,6 @@ public class GLPbufferImpl implements GLPbuffer {
     return pbufferDrawable.getChosenGLCapabilities();
   }
 
-  public GLCapabilities getCapabilities() {
-    if (pbufferDrawable == null)
-      return null;
-
-    return pbufferDrawable.getCapabilities();
-  }
-
-  public void setChosenGLCapabilities(GLCapabilities caps) {
-    pbufferDrawable.setChosenGLCapabilities(caps);
-  }
-
-
   private boolean surfaceLocked = false;
 
   public int lockSurface() throws GLException {

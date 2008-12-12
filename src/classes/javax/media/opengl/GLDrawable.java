@@ -139,11 +139,6 @@ public interface GLDrawable {
     */
   public GLCapabilities getChosenGLCapabilities();
 
-  /**
-   * stores a copy of the passed object
-   */
-  public void setChosenGLCapabilities(GLCapabilities caps);
-
   public NativeWindow getNativeWindow();
 
   public GLDrawableFactory getFactory();

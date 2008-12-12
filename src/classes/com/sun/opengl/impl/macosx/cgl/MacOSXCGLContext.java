@@ -110,7 +110,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
       }
     }
     int[] viewNotReady = new int[1];
-    GLCapabilities capabilities = drawable.getCapabilities();
+    GLCapabilities capabilities = drawable.getRequestedGLCapabilities();
     int[] iattribs = new int[128];
     int[] ivalues = new int[128];
     int idx = 0;

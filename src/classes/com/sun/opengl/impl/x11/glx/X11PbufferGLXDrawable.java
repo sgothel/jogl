@@ -52,9 +52,10 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
   protected static final int MAX_PFORMATS = 256;
   protected static final int MAX_ATTRIBS  = 256;
 
-  protected X11PbufferGLXDrawable(GLDrawableFactory factory, GLCapabilities capabilities, 
+  protected X11PbufferGLXDrawable(GLDrawableFactory factory,
+                                  GLCapabilities requestedCapabilities, 
                                   int initialWidth, int initialHeight) {
-    super(factory, new NullWindow(), true, capabilities, null);
+    super(factory, new NullWindow(), true, requestedCapabilities, null);
     if (initialWidth <= 0 || initialHeight <= 0) {
       throw new GLException("Initial width and height of pbuffer must be positive (were (" +
 			    initialWidth + ", " + initialHeight + "))");
@@ -63,10 +64,10 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
     nw.setSize(initialWidth, initialHeight);
 
     if (DEBUG) {
-      System.out.println("Pbuffer caps on init: " + capabilities +
-                         (capabilities.getPbufferRenderToTexture() ? " [rtt]" : "") +
-                         (capabilities.getPbufferRenderToTextureRectangle() ? " [rect]" : "") +
-                         (capabilities.getPbufferFloatingPointBuffers() ? " [float]" : ""));
+      System.out.println("Pbuffer caps on init: " + requestedCapabilities +
+                         (requestedCapabilities.getPbufferRenderToTexture() ? " [rtt]" : "") +
+                         (requestedCapabilities.getPbufferRenderToTextureRectangle() ? " [rect]" : "") +
+                         (requestedCapabilities.getPbufferFloatingPointBuffers() ? " [float]" : ""));
     }
 
     nw.setDisplayHandle(X11GLXDrawableFactory.getDisplayConnection());
@@ -99,7 +100,7 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
     createPbuffer();
   }
 
-  public void createPbuffer() {
+  private void createPbuffer() {
     getFactory().lockToolkit();
     try {
       NullWindow nw = (NullWindow) getNativeWindow();
@@ -110,15 +111,17 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
       int screen = X11Lib.DefaultScreen(display);
       nw.setScreenIndex(screen);
     
-      if (getCapabilities().getPbufferRenderToTexture()) {
+      GLCapabilities capabilities = getRequestedGLCapabilities();
+
+      if (capabilities.getPbufferRenderToTexture()) {
         throw new GLException("Render-to-texture pbuffers not supported yet on X11");
       }
 
-      if (getCapabilities().getPbufferRenderToTextureRectangle()) {
+      if (capabilities.getPbufferRenderToTextureRectangle()) {
         throw new GLException("Render-to-texture-rectangle pbuffers not supported yet on X11");
       }
 
-      int[] iattributes = X11GLXDrawableFactory.glCapabilities2AttribList(getCapabilities(),
+      int[] iattributes = X11GLXDrawableFactory.glCapabilities2AttribList(capabilities,
                                                                          ((X11GLXDrawableFactory)getFactory()).isMultisampleAvailable(),
                                                                          true, display, screen);
 
@@ -171,7 +174,7 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
       // Pick innocent query values if multisampling or floating point buffers not available
       int sbAttrib      = ((X11GLXDrawableFactory)getFactory()).isMultisampleAvailable() ? GLXExt.GLX_SAMPLE_BUFFERS: GLX.GLX_RED_SIZE;
       int samplesAttrib = ((X11GLXDrawableFactory)getFactory()).isMultisampleAvailable() ? GLXExt.GLX_SAMPLES: GLX.GLX_RED_SIZE;
-      int floatNV       = getCapabilities().getPbufferFloatingPointBuffers() ? GLXExt.GLX_FLOAT_COMPONENTS_NV : GLX.GLX_RED_SIZE;
+      int floatNV       = capabilities.getPbufferFloatingPointBuffers() ? GLXExt.GLX_FLOAT_COMPONENTS_NV : GLX.GLX_RED_SIZE;
 
       // Query the fbconfig to determine its GLCapabilities
       int[] iattribs = {

@@ -48,9 +48,9 @@ public class X11OffscreenGLXDrawable extends X11GLXDrawable {
   private boolean isDoubleBuffered;
 
   protected X11OffscreenGLXDrawable(GLDrawableFactory factory,
-                                GLCapabilities capabilities,
-                                GLCapabilitiesChooser chooser) {
-    super(factory, new NullWindow(), true, capabilities, chooser);
+                                    GLCapabilities requestedCapabilities,
+                                    GLCapabilitiesChooser chooser) {
+    super(factory, new NullWindow(), true, requestedCapabilities, chooser);
   }
 
   public GLContext createContext(GLContext shareWith) {

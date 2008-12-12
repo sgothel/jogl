@@ -473,10 +473,6 @@ public class GLWindow extends Window implements GLAutoDrawable {
         return drawable.getChosenGLCapabilities();
     }
 
-    public void setChosenGLCapabilities(GLCapabilities caps) {
-        drawable.setChosenGLCapabilities(caps);
-    }
-
     public NativeWindow getNativeWindow() {
         return drawable.getNativeWindow();
     }

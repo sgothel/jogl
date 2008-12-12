@@ -410,10 +410,6 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
     return drawable.getChosenGLCapabilities();
   }
 
-  public void setChosenGLCapabilities(GLCapabilities caps) {
-    drawable.setChosenGLCapabilities(caps);
-  }
-
   public NativeWindow getNativeWindow() {
     return drawable.getNativeWindow();
   }

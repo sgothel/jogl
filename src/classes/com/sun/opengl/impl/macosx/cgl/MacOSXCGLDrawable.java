@@ -81,27 +81,35 @@ public abstract class MacOSXCGLDrawable extends GLDrawableImpl {
   public static final int CGL_MODE      = 2;
 
   public MacOSXCGLDrawable(GLDrawableFactory factory, NativeWindow comp, boolean realized,
-                           GLCapabilities capabilities, GLCapabilitiesChooser chooser) {
-    super(factory, comp, realized);
-    setChosenGLCapabilities(capabilities);
+                           GLCapabilities requestedCapabilities, GLCapabilitiesChooser chooser) {
+    super(factory, comp, requestedCapabilities, realized);
     this.chooser = chooser;
  }
 
   public GLCapabilities getChosenGLCapabilities() {
-	int numFormats = 1;
-	GLCapabilities availableCaps[] = new GLCapabilities[numFormats];
-	availableCaps[0] = super.getChosenGLCapabilities();
-	int pixelFormat = chooser.chooseCapabilities(getCapabilities(), availableCaps, 0);
-	if ((pixelFormat < 0) || (pixelFormat >= numFormats)) {
+    int numFormats = 1;
+    GLCapabilities availableCaps[] = new GLCapabilities[numFormats];
+    availableCaps[0] = super.getChosenGLCapabilities();
+    int pixelFormat = chooser.chooseCapabilities(getRequestedGLCapabilities(), availableCaps, 0);
+    if ((pixelFormat < 0) || (pixelFormat >= numFormats)) {
       throw new GLException("Invalid result " + pixelFormat +
-							  " from GLCapabilitiesChooser (should be between 0 and " +
-							  (numFormats - 1) + ")");
-	}
-	if (DEBUG) {
+                            " from GLCapabilitiesChooser (should be between 0 and " +
+                            (numFormats - 1) + ")");
+    }
+    if (DEBUG) {
       System.err.println(getThreadName() + ": Chosen pixel format (" + pixelFormat + "):");
       System.err.println(availableCaps[pixelFormat]);
-	}
+    }
     return availableCaps[pixelFormat];
+  }
+
+  // These are public to allow access from a couple of context implementations
+  public void setChosenGLCapabilities(GLCapabilities caps) {
+    super.setChosenGLCapabilities(caps);
+  }
+
+  public GLCapabilities getRequestedGLCapabilities() {
+    return super.getRequestedGLCapabilities();
   }
 
   protected static String getThreadName() {

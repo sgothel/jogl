@@ -47,9 +47,9 @@ public class WindowsOffscreenWGLDrawable extends WindowsWGLDrawable {
   private long hbitmap;
 
   public WindowsOffscreenWGLDrawable(GLDrawableFactory factory, 
-                                    GLCapabilities capabilities,
-                                    GLCapabilitiesChooser chooser) {
-    super(factory, new NullWindow(), true, capabilities, chooser);
+                                     GLCapabilities requestedCapabilities,
+                                     GLCapabilitiesChooser chooser) {
+    super(factory, new NullWindow(), true, requestedCapabilities, chooser);
   }
 
   public GLContext createContext(GLContext shareWith) {
@@ -66,7 +66,7 @@ public class WindowsOffscreenWGLDrawable extends WindowsWGLDrawable {
     getFactory().lockToolkit();
     try {
         NullWindow nw = (NullWindow) getNativeWindow();
-        GLCapabilities capabilities = getCapabilities();
+        GLCapabilities capabilities = getRequestedGLCapabilities();
         int width = getWidth();
         int height = getHeight();
         BITMAPINFO info = BITMAPINFO.create();

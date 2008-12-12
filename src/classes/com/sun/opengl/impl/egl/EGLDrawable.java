@@ -49,9 +49,9 @@ public class EGLDrawable extends GLDrawableImpl {
 
     public EGLDrawable(EGLDrawableFactory factory,
                        NativeWindow component,
-                       GLCapabilities capabilities,
+                       GLCapabilities requestedCapabilities,
                        GLCapabilitiesChooser chooser) throws GLException {
-        super(factory, component, false);
+        super(factory, component, requestedCapabilities, false);
         this.chooser = chooser;
         surface=EGL.EGL_NO_SURFACE;
         display=0;
@@ -80,7 +80,7 @@ public class EGLDrawable extends GLDrawableImpl {
             if (!EGL.eglInitialize(display, null, null)) {
                 throw new GLException("eglInitialize failed");
             }
-            config = new EGLConfig(display, capabilities);
+            config = new EGLConfig(display, requestedCapabilities);
         }
         setChosenGLCapabilities(config.getCapabilities());
     }

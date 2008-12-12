@@ -81,4 +81,8 @@ public class X11OnscreenGLXDrawable extends X11GLXDrawable {
     }
   }
 
+  // This is public to allow access from the DrawableFactory
+  protected void setChosenGLCapabilities(GLCapabilities caps) {
+    super.setChosenGLCapabilities(caps);
+  }
 }

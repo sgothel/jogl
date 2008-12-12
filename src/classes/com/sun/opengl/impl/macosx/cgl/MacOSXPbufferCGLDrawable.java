@@ -94,12 +94,12 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
     // FIXME: do we need to do anything if the pbuffer is double-buffered?
   }
 
-  protected void createPbuffer() {
+  private void createPbuffer() {
     NullWindow nw = (NullWindow) getNativeWindow();
     getFactory().lockToolkit();
     try {
         int renderTarget;
-        GLCapabilities capabilities = getCapabilities();
+        GLCapabilities capabilities = getRequestedGLCapabilities();
         if (GLProfile.isGL2() && capabilities.getPbufferRenderToTextureRectangle()) {
           renderTarget = GL2.GL_TEXTURE_RECTANGLE;
         } else {
