@@ -49,6 +49,12 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
   private int textureTarget; // e.g. GL_TEXTURE_2D, GL_TEXTURE_RECTANGLE_NV
   private int texture;       // actual texture object
 
+  // NSOpenGLPbuffer (for normal mode)
+  // CGLPbufferObj (for CGL_MODE situation, i.e., when Java2D/JOGL bridge is active)
+  // Note that we can not store this in the NativeWindow because the
+  // semantic is that contains an NSView
+  protected long pBuffer;
+
   public MacOSXPbufferCGLDrawable(GLDrawableFactory factory, GLCapabilities capabilities, int initialWidth, int initialHeight) {
     super(factory, new NullWindow(), true, capabilities, null);
     NullWindow nw = (NullWindow) getNativeWindow();
@@ -64,14 +70,11 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
   public void destroy() {
     getFactory().lockToolkit();
     try {
-        NullWindow nw = (NullWindow) getNativeWindow();
-
-        if (nw.getSurfaceHandle() != 0) {
-          impl.destroy(nw.getSurfaceHandle());
-          nw.setSurfaceHandle(0);
-        
+        if (this.pBuffer != 0) {
+          impl.destroy(pBuffer);
+          this.pBuffer = 0;
           if (DEBUG) {
-            System.err.println("Destroyed pbuffer: " + nw);
+            System.err.println("Destroyed pbuffer: " + pBuffer);
           }
         }
     } finally {
@@ -87,7 +90,7 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
   }
 
   public long getPbuffer() {
-    return getNativeWindow().getSurfaceHandle();
+    return pBuffer;
   }
   
   public void swapBuffers() throws GLException {
@@ -131,11 +134,10 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
           }
         }
             
-        long pBuffer = impl.create(renderTarget, internalFormat, getWidth(), getHeight());
+        pBuffer = impl.create(renderTarget, internalFormat, getWidth(), getHeight());
         if (pBuffer == 0) {
           throw new GLException("pbuffer creation error: CGL.createPBuffer() failed");
         }
-        nw.setSurfaceHandle(pBuffer);
     } finally {
         getFactory().unlockToolkit();
     }
