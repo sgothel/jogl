@@ -107,11 +107,12 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
       throw new IllegalArgumentException("Null target");
     }
     target = NativeWindowFactory.getNativeWindow(target);
-    X11OnscreenGLXDrawable drawable = new X11OnscreenGLXDrawable(this, target);
-    long visualID = target.getVisualID();
-    int screen = target.getScreenIndex(); 
-    drawable.setChosenGLCapabilities((GLCapabilities) visualToGLCapsMap.get(new ScreenAndVisualIDKey(screen, visualID)));
-    return drawable;
+    return new X11OnscreenGLXDrawable(this, target);
+  }
+
+  public GLCapabilities lookupCapabilitiesByScreenAndVisualID(int screenIndex,
+                                                              long visualID) {
+    return (GLCapabilities) visualToGLCapsMap.get(new ScreenAndVisualIDKey(screenIndex, visualID));
   }
 
   public GLDrawableImpl createOffscreenDrawable(GLCapabilities capabilities,
