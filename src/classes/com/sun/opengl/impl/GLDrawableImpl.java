@@ -50,7 +50,8 @@ public abstract class GLDrawableImpl implements GLDrawable {
                            boolean realized) {
       this.factory = factory;
       this.component = comp;
-      this.requestedCapabilities = (GLCapabilities) requestedCapabilities.clone();
+      this.requestedCapabilities =
+          (requestedCapabilities == null) ? null : (GLCapabilities) requestedCapabilities.clone();
       this.realized = realized;
   }
 
