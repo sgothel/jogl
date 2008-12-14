@@ -68,7 +68,7 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
   }
 
   public void destroy() {
-    getFactory().lockToolkit();
+    getFactoryImpl().lockToolkit();
     try {
         if (this.pBuffer != 0) {
           impl.destroy(pBuffer);
@@ -78,7 +78,7 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
           }
         }
     } finally {
-        getFactory().unlockToolkit();
+        getFactoryImpl().unlockToolkit();
     }
     super.destroy();
   }
@@ -99,7 +99,7 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
 
   private void createPbuffer() {
     NullWindow nw = (NullWindow) getNativeWindow();
-    getFactory().lockToolkit();
+    getFactoryImpl().lockToolkit();
     try {
         int renderTarget;
         GLCapabilities capabilities = getRequestedGLCapabilities();
@@ -139,7 +139,7 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
           throw new GLException("pbuffer creation error: CGL.createPBuffer() failed");
         }
     } finally {
-        getFactory().unlockToolkit();
+        getFactoryImpl().unlockToolkit();
     }
         
     if (DEBUG) {

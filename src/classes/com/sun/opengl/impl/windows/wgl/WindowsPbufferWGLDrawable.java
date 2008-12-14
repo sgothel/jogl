@@ -79,7 +79,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
   }
 
   public void destroy() {
-    getFactory().lockToolkit();
+    getFactoryImpl().lockToolkit();
     try {
         NullWindow nw = (NullWindow) getNativeWindow();
         if (nw.getSurfaceHandle() != 0) {
@@ -99,7 +99,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
           setChosenGLCapabilities(null);
         }
     } finally {
-        getFactory().unlockToolkit();
+        getFactoryImpl().unlockToolkit();
     }
     super.destroy();
   }
@@ -159,7 +159,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
                          (capabilities.getPbufferFloatingPointBuffers() ? " [float]" : ""));
     }
 
-    getFactory().lockToolkit();
+    getFactoryImpl().lockToolkit();
     try {
         if (!glCapabilities2iattributes(capabilities,
                                         iattributes,
@@ -335,7 +335,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
         height = tmp[0];
         nw.setSize(width, height);
     } finally {
-        getFactory().unlockToolkit();
+        getFactoryImpl().unlockToolkit();
     }
 
     if (DEBUG) {

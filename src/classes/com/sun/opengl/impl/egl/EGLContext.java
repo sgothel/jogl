@@ -148,7 +148,7 @@ public class EGLContext extends GLContextImpl {
     }
 
     protected void releaseImpl() throws GLException {
-      getGLDrawable().getFactory().lockToolkit();
+      getDrawableImpl().getFactoryImpl().lockToolkit();
       try {
         if (!EGL.eglMakeCurrent(drawable.getDisplay(),
                                 EGL.EGL_NO_SURFACE,
@@ -158,13 +158,13 @@ public class EGLContext extends GLContextImpl {
                                   Long.toHexString(context) + ": error code " + EGL.eglGetError());
         }
       } finally {
-        getGLDrawable().getFactory().unlockToolkit();
+        getDrawableImpl().getFactoryImpl().unlockToolkit();
         drawable.unlockSurface();
       }
     }
 
     protected void destroyImpl() throws GLException {
-      getGLDrawable().getFactory().lockToolkit();
+      getDrawableImpl().getFactoryImpl().lockToolkit();
       try {
         if (context != 0) {
             if (!EGL.eglDestroyContext(drawable.getDisplay(), context)) {
@@ -175,7 +175,7 @@ public class EGLContext extends GLContextImpl {
             GLContextShareSet.contextDestroyed(this);
         }
       } finally {
-        getGLDrawable().getFactory().unlockToolkit();
+        getDrawableImpl().getFactoryImpl().unlockToolkit();
       }
     }
 
@@ -242,11 +242,11 @@ public class EGLContext extends GLContextImpl {
     public synchronized String getPlatformExtensionsString() {
         if (!eglQueryStringInitialized) {
           eglQueryStringAvailable =
-            ((GLDrawableFactoryImpl)getGLDrawable().getFactory()).dynamicLookupFunction("eglQueryString") != 0;
+            getDrawableImpl().getFactoryImpl().dynamicLookupFunction("eglQueryString") != 0;
           eglQueryStringInitialized = true;
         }
         if (eglQueryStringAvailable) {
-          GLDrawableFactory factory = getGLDrawable().getFactory();
+          GLDrawableFactoryImpl factory = getDrawableImpl().getFactoryImpl();
           boolean wasLocked = factory.isToolkitLocked();
           if(!wasLocked) {
               factory.lockToolkit();

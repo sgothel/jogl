@@ -79,7 +79,7 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
   }
 
   public void destroy() {
-    getFactory().lockToolkit();
+    getFactoryImpl().lockToolkit();
     try {
         NullWindow nw = (NullWindow) getNativeWindow();
         if (nw.getSurfaceHandle() != 0) {
@@ -88,7 +88,7 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
         }
         nw.setDisplayHandle(0);
     } finally {
-        getFactory().unlockToolkit();
+        getFactoryImpl().unlockToolkit();
     }
     super.destroy();
   }
@@ -101,7 +101,7 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
   }
 
   private void createPbuffer() {
-    getFactory().lockToolkit();
+    getFactoryImpl().lockToolkit();
     try {
       NullWindow nw = (NullWindow) getNativeWindow();
       long display = nw.getDisplayHandle();
@@ -211,7 +211,7 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
         System.err.println("Created pbuffer " + width + " x " + height);
       }
     } finally {
-      getFactory().unlockToolkit();
+      getFactoryImpl().unlockToolkit();
     }
   }
 

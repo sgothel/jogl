@@ -78,9 +78,9 @@ public abstract class X11GLXDrawable extends GLDrawableImpl {
       XVisualInfo template = XVisualInfo.create();
       // FIXME: probably not 64-bit clean
       template.visualid((int) visualID);
-      getFactory().lockToolkit();
+      getFactoryImpl().lockToolkit();
       XVisualInfo[] infos = X11Lib.XGetVisualInfo(display, X11Lib.VisualIDMask, template, count, 0);
-      getFactory().unlockToolkit();
+      getFactoryImpl().unlockToolkit();
       if (infos == null || infos.length == 0) {
         throw new GLException("Error while getting XVisualInfo for visual ID " + visualID+", "+this);
       }
@@ -105,7 +105,11 @@ public abstract class X11GLXDrawable extends GLDrawableImpl {
       template.screen(screen);
       XVisualInfo[] infos = null;
       GLCapabilities[] caps = null;
-      getFactory().lockToolkit();
+      boolean didLock = false;
+      if (!getFactoryImpl().isToolkitLocked()) {
+        getFactoryImpl().lockToolkit();
+        didLock = true;
+      }
       try {
         infos = X11Lib.XGetVisualInfo(display, X11Lib.VisualScreenMask, template, count, 0);
         if (infos == null) {
@@ -116,7 +120,9 @@ public abstract class X11GLXDrawable extends GLDrawableImpl {
           caps[i] = ((X11GLXDrawableFactory)getFactory()).xvi2GLCapabilities(display, infos[i]);
         }
       } finally {
-        getFactory().unlockToolkit();
+        if (didLock) {
+          getFactoryImpl().unlockToolkit();
+        }
       }
       GLCapabilities capabilities = getRequestedGLCapabilities();
       int chosen = chooser.chooseCapabilities(capabilities, caps, -1);

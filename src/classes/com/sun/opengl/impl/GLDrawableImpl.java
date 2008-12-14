@@ -55,6 +55,10 @@ public abstract class GLDrawableImpl implements GLDrawable {
       this.realized = realized;
   }
 
+  public GLDrawableFactoryImpl getFactoryImpl() {
+    return (GLDrawableFactoryImpl) getFactory();
+  }
+
   /** For offscreen GLDrawables (pbuffers and "pixmap" drawables),
       indicates that native resources should be reclaimed. */
   public void destroy() throws GLException {

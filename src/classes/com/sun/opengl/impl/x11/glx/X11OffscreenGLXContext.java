@@ -71,11 +71,11 @@ public class X11OffscreenGLXContext extends X11GLXContext {
   }
 
   protected int makeCurrentImpl() throws GLException {
-    getGLDrawable().getFactory().lockToolkit();
+    getDrawableImpl().getFactoryImpl().lockToolkit();
     try {
       return super.makeCurrentImpl();
     } finally {
-      getGLDrawable().getFactory().unlockToolkit();
+      getDrawableImpl().getFactoryImpl().unlockToolkit();
     }
   }
 

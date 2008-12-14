@@ -63,7 +63,7 @@ public class WindowsOffscreenWGLDrawable extends WindowsWGLDrawable {
   }
 
   private void create() {
-    getFactory().lockToolkit();
+    getFactoryImpl().lockToolkit();
     try {
         NullWindow nw = (NullWindow) getNativeWindow();
         GLCapabilities capabilities = getRequestedGLCapabilities();
@@ -113,12 +113,12 @@ public class WindowsOffscreenWGLDrawable extends WindowsWGLDrawable {
         
         choosePixelFormat(false);
     } finally {
-        getFactory().unlockToolkit();
+        getFactoryImpl().unlockToolkit();
     }
   }
   
   public void destroy() {
-    getFactory().lockToolkit();
+    getFactoryImpl().lockToolkit();
     try {
         NullWindow nw = (NullWindow) getNativeWindow();
         if (nw.getSurfaceHandle() != 0) {
@@ -132,7 +132,7 @@ public class WindowsOffscreenWGLDrawable extends WindowsWGLDrawable {
           setChosenGLCapabilities(null);
         }
     } finally {
-        getFactory().unlockToolkit();
+        getFactoryImpl().unlockToolkit();
     }
     super.destroy();
   }

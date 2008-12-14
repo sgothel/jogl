@@ -172,18 +172,18 @@ public abstract class X11GLXContext extends GLContextImpl {
   }
 
   protected void releaseImpl() throws GLException {
-    getGLDrawable().getFactory().lockToolkit();
+    getDrawableImpl().getFactoryImpl().lockToolkit();
     try {
       if (!GLX.glXMakeContextCurrent(drawable.getNativeWindow().getDisplayHandle(), 0, 0, 0)) {
         throw new GLException("Error freeing OpenGL context");
       }
     } finally {
-      getGLDrawable().getFactory().unlockToolkit();
+      getDrawableImpl().getFactoryImpl().unlockToolkit();
     }
   }
 
   protected void destroyImpl() throws GLException {
-    getGLDrawable().getFactory().lockToolkit();
+    getDrawableImpl().getFactoryImpl().lockToolkit();
     try {
       if (context != 0) {
         if (DEBUG) {
@@ -200,7 +200,7 @@ public abstract class X11GLXContext extends GLContextImpl {
         GLContextShareSet.contextDestroyed(this);
       }
     } finally {
-      getGLDrawable().getFactory().unlockToolkit();
+      getDrawableImpl().getFactoryImpl().unlockToolkit();
     }
   }
 
@@ -220,12 +220,12 @@ public abstract class X11GLXContext extends GLContextImpl {
     if (drawable.getNativeWindow().getDisplayHandle() == 0) {
       throw new GLException("Connection to X display not yet set up");
     }
-    getGLDrawable().getFactory().lockToolkit();
+    getDrawableImpl().getFactoryImpl().lockToolkit();
     try {
       GLX.glXCopyContext(drawable.getNativeWindow().getDisplayHandle(), src, dst, mask);
       // Should check for X errors and raise GLException
     } finally {
-      getGLDrawable().getFactory().unlockToolkit();
+      getDrawableImpl().getFactoryImpl().unlockToolkit();
     }
   }
 
@@ -245,11 +245,11 @@ public abstract class X11GLXContext extends GLContextImpl {
   public synchronized String getPlatformExtensionsString() {
     if (!glXQueryExtensionsStringInitialized) {
       glXQueryExtensionsStringAvailable =
-        ((GLDrawableFactoryImpl)getGLDrawable().getFactory()).dynamicLookupFunction("glXQueryExtensionsString") != 0;
+        getDrawableImpl().getFactoryImpl().dynamicLookupFunction("glXQueryExtensionsString") != 0;
       glXQueryExtensionsStringInitialized = true;
     }
     if (glXQueryExtensionsStringAvailable) {
-      GLDrawableFactory factory = getGLDrawable().getFactory();
+      GLDrawableFactoryImpl factory = getDrawableImpl().getFactoryImpl();
       boolean wasLocked = factory.isToolkitLocked();
       if(!wasLocked) {
           factory.lockToolkit();
@@ -293,14 +293,14 @@ public abstract class X11GLXContext extends GLContextImpl {
   public boolean isExtensionAvailable(String glExtensionName) {
     if (glExtensionName.equals("GL_ARB_pbuffer") ||
         glExtensionName.equals("GL_ARB_pixel_format")) {
-      return ((GLDrawableFactory)getGLDrawable().getFactory()).canCreateGLPbuffer();
+      return getGLDrawable().getFactory().canCreateGLPbuffer();
     }
     return super.isExtensionAvailable(glExtensionName);
   }
 
 
   public void setSwapInterval(int interval) {
-    getGLDrawable().getFactory().lockToolkit();
+    getDrawableImpl().getFactoryImpl().lockToolkit();
     try {
       // FIXME: make the context current first? Currently assumes that
       // will not be necessary. Make the caller do this?
@@ -309,7 +309,7 @@ public abstract class X11GLXContext extends GLContextImpl {
         glXExt.glXSwapIntervalSGI(interval);
       }
     } finally {
-      getGLDrawable().getFactory().unlockToolkit();
+      getDrawableImpl().getFactoryImpl().unlockToolkit();
     }
   }
 

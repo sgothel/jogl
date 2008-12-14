@@ -72,7 +72,7 @@ public class X11ExternalGLXDrawable extends X11GLXDrawable {
   }
 
   protected static X11ExternalGLXDrawable create(GLDrawableFactory factory) {
-    factory.lockToolkit();
+    ((GLDrawableFactoryImpl) factory).lockToolkit();
     try {
       long display = GLX.glXGetCurrentDisplay();
       long drawable = GLX.glXGetCurrentDrawable();
@@ -89,7 +89,7 @@ public class X11ExternalGLXDrawable extends X11GLXDrawable {
       nw.setScreenIndex(screen);
       return new X11ExternalGLXDrawable(factory, nw);
     } finally {
-      factory.unlockToolkit();
+      ((GLDrawableFactoryImpl) factory).unlockToolkit();
     }
   }
 
@@ -126,7 +126,7 @@ public class X11ExternalGLXDrawable extends X11GLXDrawable {
 
       // Note that we have to completely override makeCurrentImpl
       // because the underlying makeCurrent call differs from the norm
-      getFactory().lockToolkit();
+      getFactoryImpl().lockToolkit();
       try {
         boolean created = false;
         if (context == 0) {
@@ -156,18 +156,18 @@ public class X11ExternalGLXDrawable extends X11GLXDrawable {
         }
         return CONTEXT_CURRENT;
       } finally {
-        getFactory().unlockToolkit();
+        getFactoryImpl().unlockToolkit();
       }
     }
 
     protected void releaseImpl() throws GLException {
-      getFactory().lockToolkit();
+      getFactoryImpl().lockToolkit();
       try {
         if (!GLX.glXMakeContextCurrent(drawable.getNativeWindow().getDisplayHandle(), 0, 0, 0)) {
           throw new GLException("Error freeing OpenGL context");
         }
       } finally {
-        getFactory().unlockToolkit();
+        getFactoryImpl().unlockToolkit();
       }
     }
 

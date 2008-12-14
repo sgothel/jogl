@@ -76,6 +76,27 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory implements
   public abstract void loadGLULibrary();
 
   //---------------------------------------------------------------------------
+  // Support for locking and unlocking the toolkit -- needed only on X11 platforms
+  protected static boolean lockedToolkit = false;
+
+  public void lockToolkit() throws GLException {
+    if(lockedToolkit) {
+        throw new GLException("Toolkit already locked");
+    }
+    lockedToolkit=true;
+  }
+
+  public void unlockToolkit() {
+    if(lockedToolkit) {
+        lockedToolkit=false;
+    }
+  }
+
+  public boolean isToolkitLocked() {
+    return lockedToolkit;
+  }
+
+  //---------------------------------------------------------------------------
   // Support for Java2D/JOGL bridge on Mac OS X; the external
   // GLDrawable mechanism in the public API is sufficienit to
   // implement this functionality on all other platforms

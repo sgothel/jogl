@@ -50,7 +50,7 @@ public class X11ExternalGLXContext extends X11GLXContext {
 
   public X11ExternalGLXContext() {
     super(null, null);
-    getGLDrawable().getFactory().lockToolkit();
+    getDrawableImpl().getFactoryImpl().lockToolkit();
     try {
       context = GLX.glXGetCurrentContext();
       if (context == 0) {
@@ -60,7 +60,7 @@ public class X11ExternalGLXContext extends X11GLXContext {
       nw.setDisplayHandle(GLX.glXGetCurrentDisplay());
       drawable = new Drawable(getGLDrawable().getFactory(), nw);
     } finally {
-      getGLDrawable().getFactory().unlockToolkit();
+      getDrawableImpl().getFactoryImpl().unlockToolkit();
     }
     GLContextShareSet.contextCreated(this);
     resetGLFunctionAvailability();

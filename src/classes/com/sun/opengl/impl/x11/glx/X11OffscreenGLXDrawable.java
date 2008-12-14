@@ -70,7 +70,7 @@ public class X11OffscreenGLXDrawable extends X11GLXDrawable {
     XVisualInfo vis = chooseVisual(false);
     int bitsPerPixel = vis.depth();
 
-    getFactory().lockToolkit();
+    getFactoryImpl().lockToolkit();
     try {
       int screen = X11Lib.DefaultScreen(dpy);
       nw.setScreenIndex(screen);
@@ -94,7 +94,7 @@ public class X11OffscreenGLXDrawable extends X11GLXDrawable {
       }
       setChosenGLCapabilities(((X11GLXDrawableFactory)getFactory()).xvi2GLCapabilities(dpy, vis));
     } finally {
-      getFactory().unlockToolkit();
+      getFactoryImpl().unlockToolkit();
     }
   }
 
@@ -111,7 +111,7 @@ public class X11OffscreenGLXDrawable extends X11GLXDrawable {
       }
 
       // Must destroy pixmap and GLXPixmap
-      getFactory().lockToolkit();
+      getFactoryImpl().lockToolkit();
 
       if (DEBUG) {
         long cur = GLX.glXGetCurrentContext();
@@ -133,7 +133,7 @@ public class X11OffscreenGLXDrawable extends X11GLXDrawable {
       display = 0;
       setChosenGLCapabilities(null);
     } finally {
-      getFactory().unlockToolkit();
+      getFactoryImpl().unlockToolkit();
     }
     super.destroy();
   }

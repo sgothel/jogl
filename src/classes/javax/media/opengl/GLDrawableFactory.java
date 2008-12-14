@@ -260,25 +260,6 @@ public abstract class GLDrawableFactory {
   public void shutdown() {
   }
 
-  public void lockToolkit() throws GLException {
-    if(lockedToolkit) {
-        throw new GLException("Toolkit already locked");
-    }
-    lockedToolkit=true;
-  }
-
-  public void unlockToolkit() {
-    if(lockedToolkit) {
-        lockedToolkit=false;
-    }
-  }
-
-  public boolean isToolkitLocked() {
-    return lockedToolkit;
-  }
-
-  protected  static boolean lockedToolkit = false;
-
   /**
    * <P> Selects a graphics configuration on the specified graphics
    * device compatible with the supplied GLCapabilities. This method

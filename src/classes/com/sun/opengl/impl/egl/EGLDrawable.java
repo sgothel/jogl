@@ -161,7 +161,7 @@ public class EGLDrawable extends GLDrawableImpl {
     }
 
     public void swapBuffers() throws GLException {
-        getFactory().lockToolkit();
+        getFactoryImpl().lockToolkit();
         try {
           if (component.getSurfaceHandle() == 0) {
             if (lockSurface() == NativeWindow.LOCK_SURFACE_NOT_READY) {
@@ -173,7 +173,7 @@ public class EGLDrawable extends GLDrawableImpl {
 
         } finally {
           unlockSurface();
-          getFactory().unlockToolkit();
+          getFactoryImpl().unlockToolkit();
         }
     }
 
