@@ -40,7 +40,6 @@
 package javax.media.opengl.awt;
 
 import javax.media.opengl.*;
-import javax.media.opengl.awt.*;
 
 import java.awt.*;
 import java.awt.geom.*;
@@ -89,45 +88,40 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
 
   private GLDrawableHelper drawableHelper = new GLDrawableHelper();
   private volatile boolean isInitialized;
-  private volatile boolean shouldInitialize = false;
 
   // Data used for either pbuffers or pixmap-based offscreen surfaces
   private GLCapabilities        offscreenCaps;
   private GLCapabilitiesChooser chooser;
   private GLContext             shareWith;
-  // This image is exactly the correct size to render into the panel
-  private BufferedImage         offscreenImage;
-  // One of these is used to store the read back pixels before storing
-  // in the BufferedImage
-  private ByteBuffer            readBackBytes;
-  private IntBuffer             readBackInts;
-  private int                   readBackWidthInPixels;
-  private int                   readBackHeightInPixels;
   // Width of the actual GLJPanel
   private int panelWidth   = 0;
   private int panelHeight  = 0;
-  private Updater updater;
-  private int awtFormat;
-  private int glFormat;
-  private int glType;
   // Lazy reshape notification
   private boolean handleReshape = false;
   private boolean sendReshape = true;
 
   private static GLDrawableFactoryImpl factory;
 
-  // Implementation using pbuffers
+  // The backend in use
+  private Backend backend;
+
+  // Used by all backends either directly or indirectly to hook up callbacks
+  private Updater updater = new Updater();
+
+  // Turns off the pbuffer-based backend (used by default, unless the
+  // Java 2D / OpenGL pipeline is in use)
   private static boolean hardwareAccelerationDisabled =
     Debug.isPropertyDefined("jogl.gljpanel.nohw");
+
+  // Turns off the fallback to software-based rendering from
+  // pbuffer-based rendering
   private static boolean softwareRenderingDisabled =
     Debug.isPropertyDefined("jogl.gljpanel.nosw");
-  private GLPbuffer pbuffer;
-  private int       pbufferWidth  = 256;
-  private int       pbufferHeight = 256;
 
-  // Implementation using software rendering
-  private GLDrawableImpl offscreenDrawable;
-  private GLContextImpl offscreenContext;
+  // Indicates whether the Java 2D OpenGL pipeline is enabled
+  private boolean oglPipelineEnabled =
+    Java2D.isOGLPipelineActive() &&
+    !Debug.isPropertyDefined("jogl.gljpanel.noogl");
 
   // For handling reshape events lazily
   private int reshapeX;
@@ -135,70 +129,10 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
   private int reshapeWidth;
   private int reshapeHeight;
 
-  // For saving/restoring of OpenGL state during ReadPixels
-  private int[] swapbytes    = new int[1];
-  private int[] rowlength    = new int[1];
-  private int[] skiprows     = new int[1];
-  private int[] skippixels   = new int[1];
-  private int[] alignment    = new int[1];
-
-  // Implementation using Java2D OpenGL pipeline's back buffer
-  private boolean oglPipelineEnabled =
-    Java2D.isOGLPipelineActive() &&
-    !Debug.isPropertyDefined("jogl.gljpanel.noogl");
-  // Opaque Object identifier representing the Java2D surface we are
-  // drawing to; used to determine when to destroy and recreate JOGL
-  // context
-  private Object j2dSurface;
-  // Graphics object being used during Java2D update action
-  // (absolutely essential to cache this)
-  private Graphics cached2DGraphics;
-  // No-op context representing the Java2D OpenGL context
-  private GLContext j2dContext;
-  // Context associated with no-op drawable representing the JOGL
-  // OpenGL context
-  private GLDrawable joglDrawable;
-  // The real OpenGL context JOGL uses to render
-  private GLContext  joglContext;
-  // State captured from Java2D OpenGL context necessary in order to
-  // properly render into Java2D back buffer
-  private int[] drawBuffer   = new int[1];
-  private int[] readBuffer   = new int[1];
-  // This is required when the FBO option of the Java2D / OpenGL
-  // pipeline is active
-  private int[] frameBuffer  = new int[1];
-  // Current (as of this writing) NVidia drivers have a couple of bugs
-  // relating to the sharing of framebuffer and renderbuffer objects
-  // between contexts. It appears we have to (a) reattach the color
-  // attachment and (b) actually create new depth buffer storage and
-  // attach it in order for the FBO to behave properly in our context.
-  private boolean checkedForFBObjectWorkarounds;
-  private boolean fbObjectWorkarounds;
-  private int[] frameBufferDepthBuffer;
-  private int[] frameBufferTexture;
-  private boolean createNewDepthBuffer;
-  // Current (as of this writing) ATI drivers have problems when the
-  // same FBO is bound in two different contexts. Here we check for
-  // this case and explicitly release the FBO from Java2D's context
-  // before switching to ours. Java2D will re-bind the FBO when it
-  // makes its context current the next time. Interestingly, if we run
-  // this code path on NVidia hardware, it breaks the rendering
-  // results -- no output is generated. This doesn't appear to be an
-  // interaction with the abovementioned NVidia-specific workarounds,
-  // as even if we disable that code the FBO is still reported as
-  // incomplete in our context.
-  private boolean checkedGLVendor;
-  private boolean vendorIsATI;
-
-  // Holding on to this GraphicsConfiguration is a workaround for a
-  // problem in the Java 2D / JOGL bridge when FBOs are enabled; see
-  // comment related to Issue 274 below
-  private GraphicsConfiguration workaroundConfig;
-
   // These are always set to (0, 0) except when the Java2D / OpenGL
   // pipeline is active
-  private int   viewportX;
-  private int   viewportY;
+  private int viewportX;
+  private int viewportY;
 
   static {
     // Force eager initialization of part of the Java2D class since
@@ -269,200 +203,6 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
     }
   }
 
-  private void captureJ2DState(GL2 gl, Graphics g) {
-    gl.glGetIntegerv(GL2.GL_DRAW_BUFFER, drawBuffer, 0);
-    gl.glGetIntegerv(GL2.GL_READ_BUFFER, readBuffer, 0);
-    if (Java2D.isFBOEnabled() &&
-        Java2D.getOGLSurfaceType(g) == Java2D.FBOBJECT) {
-      if (DEBUG && VERBOSE) {
-        System.err.println("GLJPanel: Fetching GL_FRAMEBUFFER_BINDING");
-      }
-      gl.glGetIntegerv(GL2.GL_FRAMEBUFFER_BINDING, frameBuffer, 0);
-
-      if (fbObjectWorkarounds ||
-          !checkedForFBObjectWorkarounds) {
-        // See above for description of what we are doing here
-        if (frameBufferTexture == null)
-          frameBufferTexture = new int[1];
-
-        // Query the framebuffer for its color buffer so we can hook
-        // it back up in our context (should not be necessary)
-        gl.glGetFramebufferAttachmentParameteriv(GL2.GL_FRAMEBUFFER,
-                                                 GL2.GL_COLOR_ATTACHMENT0,
-                                                 GL2.GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME,
-                                                 frameBufferTexture, 0);
-        if (DEBUG && VERBOSE) {
-          System.err.println("GLJPanel: FBO COLOR_ATTACHMENT0: " + frameBufferTexture[0]);
-        }
-      }
-
-      if (!checkedGLVendor) {
-        checkedGLVendor = true;
-        String vendor = gl.glGetString(GL2.GL_VENDOR);
-
-        if ((vendor != null) &&
-            vendor.startsWith("ATI")) {
-          vendorIsATI = true;
-        }
-      }
-
-      if (vendorIsATI) {
-        // Unbind the FBO from Java2D's context as it appears that
-        // driver bugs on ATI's side are causing problems if the FBO is
-        // simultaneously bound to more than one context. Java2D will
-        // re-bind the FBO during the next validation of its context.
-        // Note: this breaks rendering at least on NVidia hardware
-        gl.glBindFramebuffer(GL2.GL_FRAMEBUFFER, 0);
-      }
-    }
-  }
-
-  private boolean preGL(Graphics g) {
-    GL2 gl = joglContext.getGL().getGL2();
-    // Set up needed state in JOGL context from Java2D context
-    gl.glEnable(GL2.GL_SCISSOR_TEST);
-    Rectangle r = Java2D.getOGLScissorBox(g);
-
-    if (r == null) {
-      if (DEBUG && VERBOSE) {
-        System.err.println("Java2D.getOGLScissorBox() returned null");
-      }
-      return false;
-    }
-    if (DEBUG && VERBOSE) {
-      System.err.println("GLJPanel: gl.glScissor(" + r.x + ", " + r.y + ", " + r.width + ", " + r.height + ")");
-    }
-
-    gl.glScissor(r.x, r.y, r.width, r.height);
-    Rectangle oglViewport = Java2D.getOGLViewport(g, panelWidth, panelHeight);
-    // If the viewport X or Y changes, in addition to the panel's
-    // width or height, we need to send a reshape operation to the
-    // client
-    if ((viewportX != oglViewport.x) ||
-        (viewportY != oglViewport.y)) {
-      sendReshape = true;
-      if (DEBUG) {
-        System.err.println("Sending reshape because viewport changed");
-        System.err.println("  viewportX (" + viewportX + ") ?= oglViewport.x (" + oglViewport.x + ")");
-        System.err.println("  viewportY (" + viewportY + ") ?= oglViewport.y (" + oglViewport.y + ")");
-      }
-    }
-    viewportX = oglViewport.x;
-    viewportY = oglViewport.y;
-
-    // If the FBO option is active, bind to the FBO from the Java2D
-    // context.
-    // Note that all of the plumbing in the context sharing stuff will
-    // allow us to bind to this object since it's in our namespace.
-    if (Java2D.isFBOEnabled() &&
-        Java2D.getOGLSurfaceType(g) == Java2D.FBOBJECT) {
-      if (DEBUG && VERBOSE) {
-        System.err.println("GLJPanel: Binding to framebuffer object " + frameBuffer[0]);
-      }
-
-      // The texture target for Java2D's OpenGL pipeline when using FBOs
-      // -- either GL_TEXTURE_2D or GL_TEXTURE_RECTANGLE
-      int fboTextureTarget = Java2D.getOGLTextureType(g);
-
-      if (!checkedForFBObjectWorkarounds) {
-        checkedForFBObjectWorkarounds = true;
-        gl.glBindTexture(fboTextureTarget, 0);
-        gl.glBindFramebuffer(GL2.GL_FRAMEBUFFER, frameBuffer[0]);
-        if (gl.glCheckFramebufferStatus(GL2.GL_FRAMEBUFFER) !=
-            GL2.GL_FRAMEBUFFER_COMPLETE) {
-          // Need to do workarounds
-          fbObjectWorkarounds = true;
-          createNewDepthBuffer = true;
-          if (DEBUG) {
-            System.err.println("-- GLJPanel: discovered frame_buffer_object workarounds to be necessary");
-          }
-        } else {
-          // Don't need the frameBufferTexture temporary any more
-          frameBufferTexture = null;
-        }
-      }
-
-      if (fbObjectWorkarounds && createNewDepthBuffer) {
-        if (frameBufferDepthBuffer == null)
-          frameBufferDepthBuffer = new int[1];
-
-        // Create our own depth renderbuffer and associated storage
-        // If we have an old one, delete it
-        if (frameBufferDepthBuffer[0] != 0) {
-          gl.glDeleteRenderbuffers(1, frameBufferDepthBuffer, 0);
-          frameBufferDepthBuffer[0] = 0;
-        }
-
-        gl.glBindTexture(fboTextureTarget, frameBufferTexture[0]);
-        int[] width = new int[1];
-        int[] height = new int[1];
-        gl.glGetTexLevelParameteriv(fboTextureTarget, 0, GL2.GL_TEXTURE_WIDTH, width, 0);
-        gl.glGetTexLevelParameteriv(fboTextureTarget, 0, GL2.GL_TEXTURE_HEIGHT, height, 0);
-                    
-        gl.glGenRenderbuffers(1, frameBufferDepthBuffer, 0);
-        if (DEBUG) {
-          System.err.println("GLJPanel: Generated frameBufferDepthBuffer " + frameBufferDepthBuffer[0] +
-                             " with width " + width[0] + ", height " + height[0]);
-        }
-                    
-        gl.glBindRenderbuffer(GL2.GL_RENDERBUFFER, frameBufferDepthBuffer[0]);
-        // FIXME: may need a loop here like in Java2D
-        gl.glRenderbufferStorage(GL2.GL_RENDERBUFFER, GL2.GL_DEPTH_COMPONENT24, width[0], height[0]);
-
-        gl.glBindRenderbuffer(GL2.GL_RENDERBUFFER, 0);
-        createNewDepthBuffer = false;
-      }
-
-      gl.glBindTexture(fboTextureTarget, 0);
-      gl.glBindFramebuffer(GL2.GL_FRAMEBUFFER, frameBuffer[0]);
-
-      if (fbObjectWorkarounds) {
-        // Hook up the color and depth buffer attachment points for this framebuffer
-        gl.glFramebufferTexture2D(GL2.GL_FRAMEBUFFER,
-                                     GL2.GL_COLOR_ATTACHMENT0,
-                                     fboTextureTarget,
-                                     frameBufferTexture[0],
-                                     0);
-        if (DEBUG && VERBOSE) {
-          System.err.println("GLJPanel: frameBufferDepthBuffer: " + frameBufferDepthBuffer[0]);
-        }
-        gl.glFramebufferRenderbuffer(GL2.GL_FRAMEBUFFER,
-                                        GL2.GL_DEPTH_ATTACHMENT,
-                                        GL2.GL_RENDERBUFFER,
-                                        frameBufferDepthBuffer[0]);
-      }
-
-      if (DEBUG) {
-        int status = gl.glCheckFramebufferStatus(GL2.GL_FRAMEBUFFER);
-        if (status != GL2.GL_FRAMEBUFFER_COMPLETE) {
-          throw new GLException("Error: framebuffer was incomplete: status = 0x" +
-                                Integer.toHexString(status));
-        }
-      }
-    } else {
-      if (DEBUG && VERBOSE) {
-        System.err.println("GLJPanel: Setting up drawBuffer " + drawBuffer[0] +
-                           " and readBuffer " + readBuffer[0]);
-      }
-
-      gl.glDrawBuffer(drawBuffer[0]);
-      gl.glReadBuffer(readBuffer[0]);
-    }
-
-    return true;
-  }
-
-  private void postGL(Graphics g) {
-    if (Java2D.isFBOEnabled() &&
-        Java2D.getOGLSurfaceType(g) == Java2D.FBOBJECT) {
-      // Unbind the framebuffer from our context to work around
-      // apparent driver bugs or at least unspecified behavior causing
-      // OpenGL to run out of memory with certain cards and drivers
-      GL2 gl = joglContext.getGL().getGL2();
-      gl.glBindFramebuffer(GL2.GL_FRAMEBUFFER, 0);
-    }
-  }
-
   /** Overridden to cause OpenGL rendering to be performed during
       repaint cycles. Subclasses which override this method must call
       super.paintComponent() in their paintComponent() method in order
@@ -492,8 +232,8 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
       return;
     }
 
-    if (shouldInitialize) {
-      initialize();
+    if (backend == null || !isInitialized) {
+      createAndInitializeBackend();
     }
 
     if (!isInitialized) {
@@ -509,9 +249,973 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
     }
 
     updater.setGraphics(g);
+    backend.doPaintComponent(g);
+  }
 
-    if (oglPipelineEnabled) {
+  /** Overridden to track when this component is added to a container.
+      Subclasses which override this method must call
+      super.addNotify() in their addNotify() method in order to
+      function properly. <P>
 
+      <B>Overrides:</B>
+      <DL><DD><CODE>addNotify</CODE> in class <CODE>java.awt.Component</CODE></DD></DL> */
+  public void addNotify() {
+    super.addNotify();
+    if (DEBUG) {
+      System.err.println("GLJPanel.addNotify()");
+    }
+  }
+
+  /** Overridden to track when this component is removed from a
+      container. Subclasses which override this method must call
+      super.removeNotify() in their removeNotify() method in order to
+      function properly. <P>
+
+      <B>Overrides:</B>
+      <DL><DD><CODE>removeNotify</CODE> in class <CODE>java.awt.Component</CODE></DD></DL> */
+  public void removeNotify() {
+    if (DEBUG) {
+      System.err.println("GLJPanel.removeNotify()");
+    }
+    if (backend != null) {
+      backend.destroy();
+      backend = null;
+    }
+    isInitialized = false;
+    super.removeNotify();
+  }
+
+  /** Overridden to cause {@link GLDrawableHelper#reshape} to be
+      called on all registered {@link GLEventListener}s. Subclasses
+      which override this method must call super.reshape() in
+      their reshape() method in order to function properly. <P>
+
+      <B>Overrides:</B>
+      <DL><DD><CODE>reshape</CODE> in class <CODE>java.awt.Component</CODE></DD></DL> */
+  public void reshape(int x, int y, int width, int height) {
+    super.reshape(x, y, width, height);
+
+    reshapeX = x;
+    reshapeY = y;
+    reshapeWidth = width;
+    reshapeHeight = height;
+    handleReshape = true;
+  }
+
+  public void setOpaque(boolean opaque) {
+    if (backend != null) {
+      backend.setOpaque(opaque);
+    }
+    super.setOpaque(opaque);
+  }
+
+  public void addGLEventListener(GLEventListener listener) {
+    drawableHelper.addGLEventListener(listener);
+  }
+
+  public void removeGLEventListener(GLEventListener listener) {
+    drawableHelper.removeGLEventListener(listener);
+  }
+
+  public GLContext createContext(GLContext shareWith) {
+    return backend.createContext(shareWith);
+  }
+
+  public void setRealized(boolean realized) {
+  }
+
+  public GLContext getContext() {
+    if (backend == null) {
+      return null;
+    }
+    return backend.getContext();
+  }
+
+  public GL getGL() {
+    GLContext context = getContext();
+    return (context == null) ? null : context.getGL();
+  }
+
+  public void setGL(GL gl) {
+    GLContext context = getContext();
+    if (context != null) {
+      context.setGL(gl);
+    }
+  }
+
+  public void setAutoSwapBufferMode(boolean onOrOff) {
+    // In the current implementation this is a no-op. Both the pbuffer
+    // and pixmap based rendering paths use a single-buffered surface
+    // so swapping the buffers doesn't do anything. We also don't
+    // currently have the provision to skip copying the data to the
+    // Swing portion of the GLJPanel in any of the rendering paths.
+  }
+
+  public boolean getAutoSwapBufferMode() {
+    // In the current implementation this is a no-op. Both the pbuffer
+    // and pixmap based rendering paths use a single-buffered surface
+    // so swapping the buffers doesn't do anything. We also don't
+    // currently have the provision to skip copying the data to the
+    // Swing portion of the GLJPanel in any of the rendering paths.
+    return true;
+  }
+
+  public void swapBuffers() {
+    // In the current implementation this is a no-op. Both the pbuffer
+    // and pixmap based rendering paths use a single-buffered surface
+    // so swapping the buffers doesn't do anything. We also don't
+    // currently have the provision to skip copying the data to the
+    // Swing portion of the GLJPanel in any of the rendering paths.
+  }
+
+  /** For a translucent GLJPanel (one for which {@link #setOpaque
+      setOpaque}(false) has been called), indicates whether the
+      application should preserve the OpenGL color buffer
+      (GL_COLOR_BUFFER_BIT) for correct rendering of the GLJPanel and
+      underlying widgets which may show through portions of the
+      GLJPanel with alpha values less than 1.  Most Swing
+      implementations currently expect the GLJPanel to be completely
+      cleared (e.g., by <code>glClear(GL_COLOR_BUFFER_BIT |
+      GL_DEPTH_BUFFER_BIT)</code>), but for certain optimized Swing
+      implementations which use OpenGL internally, it may be possible
+      to perform OpenGL rendering using the GLJPanel into the same
+      OpenGL drawable as the Swing implementation uses. */
+  public boolean shouldPreserveColorBufferIfTranslucent() {
+    return oglPipelineEnabled;
+  }
+
+  public GLCapabilities getChosenGLCapabilities() {
+    return backend.getChosenGLCapabilities();
+  }
+
+  public NativeWindow getNativeWindow() {
+    throw new GLException("FIXME");
+  }
+
+  public GLDrawableFactory getFactory() {
+    return factory;
+  }
+
+  public int lockSurface() throws GLException {
+    throw new GLException("FIXME");
+  }
+  public void unlockSurface() {
+    throw new GLException("FIXME");
+  }
+  public boolean isSurfaceLocked() {
+    throw new GLException("FIXME");
+  }
+  public void destroy() {
+    throw new GLException("FIXME");
+  }
+
+  //----------------------------------------------------------------------
+  // Internals only below this point
+  //
+
+  private void createAndInitializeBackend() {
+    if (panelWidth == 0 ||
+        panelHeight == 0) {
+      // See whether we have a non-zero size yet and can go ahead with
+      // initialization
+      if (reshapeWidth == 0 ||
+          reshapeHeight == 0) {
+        return;
+      }
+
+      // Pull down reshapeWidth and reshapeHeight into panelWidth and
+      // panelHeight eagerly in order to complete initialization, and
+      // force a reshape later
+      panelWidth = reshapeWidth;
+      panelHeight = reshapeHeight;
+    }
+
+    do {
+      if (backend == null) {
+        if (oglPipelineEnabled) {
+          backend = new J2DOGLBackend();
+        } else {
+          if (!hardwareAccelerationDisabled &&
+              factory.canCreateGLPbuffer()) {
+            backend = new PbufferBackend();
+          } else {
+            if (softwareRenderingDisabled) {
+              throw new GLException("Fallback to software rendering disabled by user");
+            }
+            backend = new SoftwareBackend();
+          }
+        }
+      }
+
+      if (!isInitialized) {
+        backend.initialize();
+      }
+      // The backend might set itself to null, indicating it punted to
+      // a different implementation -- try again
+    } while (backend == null);
+  }
+
+  private void handleReshape() {
+    panelWidth  = reshapeWidth;
+    panelHeight = reshapeHeight;
+
+    if (DEBUG) {
+      System.err.println("GLJPanel.handleReshape: (w,h) = (" +
+                         panelWidth + "," + panelHeight + ")");
+    }
+
+    sendReshape = true;
+    backend.handleReshape();
+    handleReshape = false;
+  }
+
+  // This is used as the GLEventListener for the pbuffer-based backend
+  // as well as the callback mechanism for the other backends
+  class Updater implements GLEventListener {
+    private Graphics g;
+
+    public void setGraphics(Graphics g) {
+      this.g = g;
+    }
+
+    public void init(GLAutoDrawable drawable) {
+      if (!backend.preGL(g)) {
+        return;
+      }
+      drawableHelper.init(GLJPanel.this);
+      backend.postGL(g, false);
+    }
+
+    public void display(GLAutoDrawable drawable) {
+      if (!backend.preGL(g)) {
+        return;
+      }
+      if (sendReshape) {
+        if (DEBUG) {
+          System.err.println("glViewport(" + viewportX + ", " + viewportY + ", " + panelWidth + ", " + panelHeight + ")");
+        }
+        getGL().getGL2().glViewport(viewportX, viewportY, panelWidth, panelHeight);
+        drawableHelper.reshape(GLJPanel.this, viewportX, viewportY, panelWidth, panelHeight);
+        sendReshape = false;
+      }
+
+      drawableHelper.display(GLJPanel.this);
+      backend.postGL(g, true);
+    }
+
+    public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
+      // This is handled above and dispatched directly to the appropriate context
+    }
+
+    public void displayChanged(GLAutoDrawable drawable, boolean modeChanged, boolean deviceChanged) {
+    }
+  }
+
+  class InitAction implements Runnable {
+    public void run() {
+      updater.init(GLJPanel.this);
+    }
+  }
+  private InitAction initAction = new InitAction();
+
+  class DisplayAction implements Runnable {
+    public void run() {
+      updater.display(GLJPanel.this);
+    }
+  }
+  private DisplayAction displayAction = new DisplayAction();
+
+  class PaintImmediatelyAction implements Runnable {
+    public void run() {
+      paintImmediately(0, 0, getWidth(), getHeight());
+    }
+  }
+  private PaintImmediatelyAction paintImmediatelyAction = new PaintImmediatelyAction();
+
+  private int getNextPowerOf2(int number) {
+    // Workaround for problems where 0 width or height are transiently
+    // seen during layout
+    if (number == 0) {
+      return 2;
+    }
+
+    if (((number-1) & number) == 0) {
+      //ex: 8 -> 0b1000; 8-1=7 -> 0b0111; 0b1000&0b0111 == 0
+      return number;
+    }
+    int power = 0;
+    while (number > 0) {
+      number = number>>1;
+      power++;
+    }
+    return (1<<power);
+  }
+
+  private int getGLInteger(GL gl, int which) {
+    int[] tmp = new int[1];
+    gl.glGetIntegerv(which, tmp, 0);
+    return tmp[0];
+  }
+
+  //----------------------------------------------------------------------
+  // Implementations of the various backends
+  //
+
+  // Abstraction of the different rendering backends: i.e., pure
+  // software / pixmap rendering, pbuffer-based acceleration, Java 2D
+  // / JOGL bridge
+  static interface Backend {
+    // Called each time the backend needs to initialize itself
+    public void initialize();
+
+    // Called when the backend should clean up its resources
+    public void destroy();
+
+    // Called when the opacity of the GLJPanel is changed
+    public void setOpaque(boolean opaque);
+
+    // Called to manually create an additional OpenGL context against
+    // this GLJPanel
+    public GLContext createContext(GLContext shareWith);
+
+    // Called to get the current backend's GLContext
+    public GLContext getContext();
+
+    // Called to fetch the "real" chosen GLCapabilities for the backend
+    public GLCapabilities getChosenGLCapabilities();
+
+    // Called to handle a reshape event. When this is called, the
+    // OpenGL context associated with the backend is not current, to
+    // make it easier to destroy and re-create pbuffers if necessary.
+    public void handleReshape();
+
+    // Called before the OpenGL work is done in init() and display().
+    // If false is returned, this render is aborted.
+    public boolean preGL(Graphics g);
+
+    // Called after the OpenGL work is done in init() and display().
+    // The isDisplay argument indicates whether this was called on
+    // behalf of a call to display() rather than init().
+    public void postGL(Graphics g, boolean isDisplay);
+
+    // Called from within paintComponent() to initiate the render
+    public void doPaintComponent(Graphics g);
+  }
+
+  // Base class used by both the software (pixmap) and pbuffer
+  // backends, both of which rely on reading back the OpenGL frame
+  // buffer and drawing it with a BufferedImage
+  abstract class AbstractReadbackBackend implements Backend {
+    // This image is exactly the correct size to render into the panel
+    protected BufferedImage         offscreenImage;
+    // One of these is used to store the read back pixels before storing
+    // in the BufferedImage
+    protected ByteBuffer            readBackBytes;
+    protected IntBuffer             readBackInts;
+    protected int                   readBackWidthInPixels;
+    protected int                   readBackHeightInPixels;
+
+    private int awtFormat;
+    private int glFormat;
+    private int glType;
+
+    // For saving/restoring of OpenGL state during ReadPixels
+    private int[] swapbytes    = new int[1];
+    private int[] rowlength    = new int[1];
+    private int[] skiprows     = new int[1];
+    private int[] skippixels   = new int[1];
+    private int[] alignment    = new int[1];
+
+    public void setOpaque(boolean opaque) {
+      if (opaque != isOpaque()) {
+        if (offscreenImage != null) {
+          offscreenImage.flush();
+          offscreenImage = null;
+        }
+      }
+    }
+
+    public boolean preGL(Graphics g) {
+      // Empty in this implementation
+      return true;
+    }
+
+    public void postGL(Graphics g, boolean isDisplay) {
+      if (isDisplay) {
+        // Must now copy pixels from offscreen context into surface
+        if (offscreenImage == null) {
+          if (panelWidth > 0 && panelHeight > 0) {
+            // It looks like NVidia's drivers (at least the ones on my
+            // notebook) are buggy and don't allow a sub-rectangle to be
+            // read from a pbuffer...this doesn't really matter because
+            // it's the Graphics.drawImage() calls that are the
+            // bottleneck
+
+            int awtFormat = 0;
+
+            // Should be more flexible in these BufferedImage formats;
+            // perhaps see what the preferred image types are on the
+            // given platform
+            if (isOpaque()) {
+              awtFormat = BufferedImage.TYPE_INT_RGB;
+            } else {
+              awtFormat = BufferedImage.TYPE_INT_ARGB;
+            }
+
+            offscreenImage = new BufferedImage(panelWidth,
+                                               panelHeight,
+                                               awtFormat);
+            switch (awtFormat) {
+            case BufferedImage.TYPE_3BYTE_BGR:
+              glFormat = GL2.GL_BGR;
+              glType   = GL2.GL_UNSIGNED_BYTE;
+              readBackBytes = ByteBuffer.allocate(readBackWidthInPixels * readBackHeightInPixels * 3);
+              break;
+
+            case BufferedImage.TYPE_INT_RGB:
+            case BufferedImage.TYPE_INT_ARGB:
+              glFormat = GL2.GL_BGRA;
+              glType   = getGLPixelType();
+              readBackInts = IntBuffer.allocate(readBackWidthInPixels * readBackHeightInPixels);
+              break;
+
+            default:
+              // FIXME: Support more off-screen image types (current
+              // offscreen context implementations don't use others, and
+              // some of the OpenGL formats aren't supported in the 1.1
+              // headers, which we're currently using)
+              throw new GLException("Unsupported offscreen image type " + awtFormat);
+            }
+          }
+        }
+
+        if (offscreenImage != null) {
+          GL2 gl = getGL().getGL2();
+          // Save current modes
+          gl.glGetIntegerv(GL2.GL_PACK_SWAP_BYTES,    swapbytes, 0);
+          gl.glGetIntegerv(GL2.GL_PACK_ROW_LENGTH,    rowlength, 0);
+          gl.glGetIntegerv(GL2.GL_PACK_SKIP_ROWS,     skiprows, 0);
+          gl.glGetIntegerv(GL2.GL_PACK_SKIP_PIXELS,   skippixels, 0);
+          gl.glGetIntegerv(GL2.GL_PACK_ALIGNMENT,     alignment, 0);
+
+          gl.glPixelStorei(GL2.GL_PACK_SWAP_BYTES,    GL.GL_FALSE);
+          gl.glPixelStorei(GL2.GL_PACK_ROW_LENGTH,    readBackWidthInPixels);
+          gl.glPixelStorei(GL2.GL_PACK_SKIP_ROWS,     0);
+          gl.glPixelStorei(GL2.GL_PACK_SKIP_PIXELS,   0);
+          gl.glPixelStorei(GL2.GL_PACK_ALIGNMENT,     1);
+
+          // Actually read the pixels.
+          gl.glReadBuffer(GL2.GL_FRONT);
+          if (readBackBytes != null) {
+            gl.glReadPixels(0, 0, readBackWidthInPixels, readBackHeightInPixels, glFormat, glType, readBackBytes);
+          } else if (readBackInts != null) {
+            gl.glReadPixels(0, 0, readBackWidthInPixels, readBackHeightInPixels, glFormat, glType, readBackInts);
+          }
+
+          // Restore saved modes.
+          gl.glPixelStorei(GL2.GL_PACK_SWAP_BYTES,  swapbytes[0]);
+          gl.glPixelStorei(GL2.GL_PACK_ROW_LENGTH,  rowlength[0]);
+          gl.glPixelStorei(GL2.GL_PACK_SKIP_ROWS,   skiprows[0]);
+          gl.glPixelStorei(GL2.GL_PACK_SKIP_PIXELS, skippixels[0]);
+          gl.glPixelStorei(GL2.GL_PACK_ALIGNMENT,   alignment[0]);
+
+          if (readBackBytes != null || readBackInts != null) {
+            // Copy temporary data into raster of BufferedImage for faster
+            // blitting Note that we could avoid this copy in the cases
+            // where !offscreenContext.offscreenImageNeedsVerticalFlip(),
+            // but that's the software rendering path which is very slow
+            // anyway
+            Object src  = null;
+            Object dest = null;
+            int    srcIncr  = 0;
+            int    destIncr = 0;
+
+            if (readBackBytes != null) {
+              src = readBackBytes.array();
+              dest = ((DataBufferByte) offscreenImage.getRaster().getDataBuffer()).getData();
+              srcIncr = readBackWidthInPixels * 3;
+              destIncr = offscreenImage.getWidth() * 3;
+            } else {
+              src = readBackInts.array();
+              dest = ((DataBufferInt) offscreenImage.getRaster().getDataBuffer()).getData();
+              srcIncr = readBackWidthInPixels;
+              destIncr = offscreenImage.getWidth();
+            }
+
+            if (flipVertically()) {
+              int srcPos = 0;
+              int destPos = (offscreenImage.getHeight() - 1) * destIncr;
+              for (; destPos >= 0; srcPos += srcIncr, destPos -= destIncr) {
+                System.arraycopy(src, srcPos, dest, destPos, destIncr);
+              }
+            } else {
+              int srcPos = 0;
+              int destEnd = destIncr * offscreenImage.getHeight();
+              for (int destPos = 0; destPos < destEnd; srcPos += srcIncr, destPos += destIncr) {
+                System.arraycopy(src, srcPos, dest, destPos, destIncr);
+              }
+            }
+
+            // Note: image will be drawn back in paintComponent() for
+            // correctness on all platforms
+          }
+        }
+      }
+    }
+
+    public void doPaintComponent(Graphics g) {
+      doPaintComponentImpl();
+      if (offscreenImage != null) {
+        // Draw resulting image in one shot
+        g.drawImage(offscreenImage, 0, 0,
+                    offscreenImage.getWidth(),
+                    offscreenImage.getHeight(),
+                    GLJPanel.this);
+      }
+    }
+
+    protected abstract void    doPaintComponentImpl();
+    protected abstract int     getGLPixelType();
+    protected abstract boolean flipVertically();
+  }
+
+  class SoftwareBackend extends AbstractReadbackBackend {
+    // Implementation using software rendering
+    private GLDrawableImpl offscreenDrawable;
+    private GLContextImpl offscreenContext;
+
+    public void initialize() {
+      // Fall-through path: create an offscreen context instead
+      offscreenDrawable = factory.createOffscreenDrawable(offscreenCaps, chooser);
+      offscreenDrawable.setSize(Math.max(1, panelWidth), Math.max(1, panelHeight));
+      offscreenContext = (GLContextImpl) offscreenDrawable.createContext(shareWith);
+      offscreenContext.setSynchronized(true);
+      isInitialized = true;
+    }
+
+    public void destroy() {
+      if (offscreenContext != null) {
+        offscreenContext.destroy();
+        offscreenContext = null;
+      }
+      if (offscreenDrawable != null) {
+        offscreenDrawable.destroy();
+        offscreenDrawable = null;
+      }
+    }
+
+    public GLContext createContext(GLContext shareWith) {
+      return offscreenDrawable.createContext(shareWith);
+    }
+
+    public GLContext getContext() {
+      return offscreenContext;
+    }
+
+    public GLCapabilities getChosenGLCapabilities() {
+      if (offscreenDrawable == null) {
+        return null;
+      }
+      return offscreenDrawable.getChosenGLCapabilities();
+    }
+
+    public void handleReshape() {
+      offscreenContext.destroy();
+      offscreenDrawable.setSize(Math.max(1, panelWidth), Math.max(1, panelHeight));
+      readBackWidthInPixels  = Math.max(1, panelWidth);
+      readBackHeightInPixels = Math.max(1, panelHeight);
+
+      if (offscreenImage != null) {
+        offscreenImage.flush();
+        offscreenImage = null;
+      }
+    }
+
+    protected void doPaintComponentImpl() {
+      drawableHelper.invokeGL(offscreenDrawable, offscreenContext, displayAction, initAction);
+    }
+
+    protected int getGLPixelType() {
+      return offscreenContext.getOffscreenContextPixelDataType();
+    }
+
+    protected boolean flipVertically() {
+      return offscreenContext.offscreenImageNeedsVerticalFlip();
+    }
+  }
+
+  class PbufferBackend extends AbstractReadbackBackend {
+    private GLPbuffer pbuffer;
+    private int       pbufferWidth  = 256;
+    private int       pbufferHeight = 256;
+
+    public void initialize() {
+      if (pbuffer != null) {
+        throw new InternalError("Creating pbuffer twice without destroying it (memory leak / correctness bug)");
+      }
+      try {
+        pbuffer = factory.createGLPbuffer(offscreenCaps,
+                                          null,
+                                          pbufferWidth,
+                                          pbufferHeight,
+                                          shareWith);
+        pbuffer.addGLEventListener(updater);
+        isInitialized = true;
+      } catch (GLException e) {
+        if (DEBUG) {
+          e.printStackTrace();
+          System.err.println("GLJPanel: Falling back on software rendering because of problems creating pbuffer");
+        }
+        hardwareAccelerationDisabled = true;
+        backend = null;
+        isInitialized = false;
+        createAndInitializeBackend();
+      }
+    }
+
+    public void destroy() {
+      if (pbuffer != null) {
+        pbuffer.destroy();
+        pbuffer = null;
+      }
+    }
+
+    public GLContext createContext(GLContext shareWith) {
+      return pbuffer.createContext(shareWith);
+    }
+
+    public GLContext getContext() {
+      // Workaround for crashes in NetBeans GUI builder
+      if (pbuffer == null && Beans.isDesignTime()) {
+        return null;
+      }
+      return pbuffer.getContext();
+    }
+
+    public GLCapabilities getChosenGLCapabilities() {
+      if (pbuffer == null) {
+        return null;
+      }
+      return pbuffer.getChosenGLCapabilities();
+    }
+    
+    public void handleReshape() {
+      // Use factor larger than 2 during shrinks for some hysteresis
+      float shrinkFactor = 2.5f;
+      if ((panelWidth > pbufferWidth)                  || (panelHeight > pbufferHeight) ||
+          (panelWidth < (pbufferWidth / shrinkFactor)) || (panelHeight < (pbufferHeight / shrinkFactor))) {
+        if (DEBUG) {
+          System.err.println("Resizing pbuffer from (" + pbufferWidth + ", " + pbufferHeight + ") " +
+                             " to fit (" + panelWidth + ", " + panelHeight + ")");
+        }
+        // Must destroy and recreate pbuffer to fit
+        if (pbuffer != null) {
+          // Watch for errors during pbuffer destruction (due to
+          // buggy / bad OpenGL drivers, in particular SiS) and fall
+          // back to software rendering
+          try {
+            pbuffer.destroy();
+          } catch (GLException e) {
+            hardwareAccelerationDisabled = true;
+            backend = null;
+            isInitialized = false;
+            // Just disabled hardware acceleration during this resize operation; do a fixup
+            readBackWidthInPixels  = Math.max(1, panelWidth);
+            readBackHeightInPixels = Math.max(1, panelHeight);
+            if (DEBUG) {
+              System.err.println("WARNING: falling back to software rendering due to bugs in OpenGL drivers");
+              e.printStackTrace();
+            }
+            createAndInitializeBackend();
+            return;
+          }
+        }
+        pbuffer = null;
+        isInitialized = false;
+        pbufferWidth = getNextPowerOf2(panelWidth);
+        pbufferHeight = getNextPowerOf2(panelHeight);
+        if (DEBUG && !hardwareAccelerationDisabled) {
+          System.err.println("New pbuffer size is (" + pbufferWidth + ", " + pbufferHeight + ")");
+        }
+        initialize();
+      }
+
+      // It looks like NVidia's drivers (at least the ones on my
+      // notebook) are buggy and don't allow a rectangle of less than
+      // the pbuffer's width to be read...this doesn't really matter
+      // because it's the Graphics.drawImage() calls that are the
+      // bottleneck. Should probably make the size of the offscreen
+      // image be the exact size of the pbuffer to save some work on
+      // resize operations...
+      readBackWidthInPixels  = pbufferWidth;
+      readBackHeightInPixels = panelHeight;
+
+      if (offscreenImage != null) {
+        offscreenImage.flush();
+        offscreenImage = null;
+      }
+    }
+
+    protected void doPaintComponentImpl() {
+      pbuffer.display();
+    }
+
+    protected int getGLPixelType() {
+      // This seems to be a good choice on all platforms
+      return GL2.GL_UNSIGNED_INT_8_8_8_8_REV;
+    }
+
+    protected boolean flipVertically() {
+      return true;
+    }
+  }
+
+  class J2DOGLBackend implements Backend {
+    // Opaque Object identifier representing the Java2D surface we are
+    // drawing to; used to determine when to destroy and recreate JOGL
+    // context
+    private Object j2dSurface;
+    // Graphics object being used during Java2D update action
+    // (absolutely essential to cache this)
+    private Graphics cached2DGraphics;
+    // No-op context representing the Java2D OpenGL context
+    private GLContext j2dContext;
+    // Context associated with no-op drawable representing the JOGL
+    // OpenGL context
+    private GLDrawable joglDrawable;
+    // The real OpenGL context JOGL uses to render
+    private GLContext  joglContext;
+    // State captured from Java2D OpenGL context necessary in order to
+    // properly render into Java2D back buffer
+    private int[] drawBuffer   = new int[1];
+    private int[] readBuffer   = new int[1];
+    // This is required when the FBO option of the Java2D / OpenGL
+    // pipeline is active
+    private int[] frameBuffer  = new int[1];
+    // Current (as of this writing) NVidia drivers have a couple of bugs
+    // relating to the sharing of framebuffer and renderbuffer objects
+    // between contexts. It appears we have to (a) reattach the color
+    // attachment and (b) actually create new depth buffer storage and
+    // attach it in order for the FBO to behave properly in our context.
+    private boolean checkedForFBObjectWorkarounds;
+    private boolean fbObjectWorkarounds;
+    private int[] frameBufferDepthBuffer;
+    private int[] frameBufferTexture;
+    private boolean createNewDepthBuffer;
+    // Current (as of this writing) ATI drivers have problems when the
+    // same FBO is bound in two different contexts. Here we check for
+    // this case and explicitly release the FBO from Java2D's context
+    // before switching to ours. Java2D will re-bind the FBO when it
+    // makes its context current the next time. Interestingly, if we run
+    // this code path on NVidia hardware, it breaks the rendering
+    // results -- no output is generated. This doesn't appear to be an
+    // interaction with the abovementioned NVidia-specific workarounds,
+    // as even if we disable that code the FBO is still reported as
+    // incomplete in our context.
+    private boolean checkedGLVendor;
+    private boolean vendorIsATI;
+
+    // Holding on to this GraphicsConfiguration is a workaround for a
+    // problem in the Java 2D / JOGL bridge when FBOs are enabled; see
+    // comment related to Issue 274 below
+    private GraphicsConfiguration workaroundConfig;
+
+    public void initialize() {
+      // No-op in this implementation; everything is done lazily
+      isInitialized = true;
+    }
+
+    public void destroy() {
+      Java2D.invokeWithOGLContextCurrent(null, new Runnable() {
+          public void run() {
+            if (joglContext != null) {
+              joglContext.destroy();
+              joglContext = null;
+            }
+            joglDrawable = null;
+            if (j2dContext != null) {
+              j2dContext.destroy();
+              j2dContext = null;
+            }
+          }
+        });
+    }
+
+    public void setOpaque(boolean opaque) {
+      // Empty in this implementation
+    }
+
+    public GLContext createContext(GLContext shareWith) {
+      // FIXME: should implement this, but it was not properly
+      // implemented before the refactoring anyway
+      throw new GLException("Not yet implemented");
+    }
+
+    public GLContext getContext() {
+      return joglContext;
+    }
+
+    public GLCapabilities getChosenGLCapabilities() {
+      // FIXME: should do better than this; is it possible to using only platform-independent code?
+      return new GLCapabilities();
+    }
+
+    public void handleReshape() {
+      // Empty in this implementation
+    }
+
+    public boolean preGL(Graphics g) {
+      GL2 gl = joglContext.getGL().getGL2();
+      // Set up needed state in JOGL context from Java2D context
+      gl.glEnable(GL2.GL_SCISSOR_TEST);
+      Rectangle r = Java2D.getOGLScissorBox(g);
+
+      if (r == null) {
+        if (DEBUG && VERBOSE) {
+          System.err.println("Java2D.getOGLScissorBox() returned null");
+        }
+        return false;
+      }
+      if (DEBUG && VERBOSE) {
+        System.err.println("GLJPanel: gl.glScissor(" + r.x + ", " + r.y + ", " + r.width + ", " + r.height + ")");
+      }
+
+      gl.glScissor(r.x, r.y, r.width, r.height);
+      Rectangle oglViewport = Java2D.getOGLViewport(g, panelWidth, panelHeight);
+      // If the viewport X or Y changes, in addition to the panel's
+      // width or height, we need to send a reshape operation to the
+      // client
+      if ((viewportX != oglViewport.x) ||
+          (viewportY != oglViewport.y)) {
+        sendReshape = true;
+        if (DEBUG) {
+          System.err.println("Sending reshape because viewport changed");
+          System.err.println("  viewportX (" + viewportX + ") ?= oglViewport.x (" + oglViewport.x + ")");
+          System.err.println("  viewportY (" + viewportY + ") ?= oglViewport.y (" + oglViewport.y + ")");
+        }
+      }
+      viewportX = oglViewport.x;
+      viewportY = oglViewport.y;
+
+      // If the FBO option is active, bind to the FBO from the Java2D
+      // context.
+      // Note that all of the plumbing in the context sharing stuff will
+      // allow us to bind to this object since it's in our namespace.
+      if (Java2D.isFBOEnabled() &&
+          Java2D.getOGLSurfaceType(g) == Java2D.FBOBJECT) {
+        if (DEBUG && VERBOSE) {
+          System.err.println("GLJPanel: Binding to framebuffer object " + frameBuffer[0]);
+        }
+
+        // The texture target for Java2D's OpenGL pipeline when using FBOs
+        // -- either GL_TEXTURE_2D or GL_TEXTURE_RECTANGLE_ARB
+        int fboTextureTarget = Java2D.getOGLTextureType(g);
+
+        if (!checkedForFBObjectWorkarounds) {
+          checkedForFBObjectWorkarounds = true;
+          gl.glBindTexture(fboTextureTarget, 0);
+          gl.glBindFramebuffer(GL2.GL_FRAMEBUFFER, frameBuffer[0]);
+          if (gl.glCheckFramebufferStatus(GL2.GL_FRAMEBUFFER) !=
+              GL2.GL_FRAMEBUFFER_COMPLETE) {
+            // Need to do workarounds
+            fbObjectWorkarounds = true;
+            createNewDepthBuffer = true;
+            if (DEBUG) {
+              System.err.println("-- GLJPanel: discovered frame_buffer_object workarounds to be necessary");
+            }
+          } else {
+            // Don't need the frameBufferTexture temporary any more
+            frameBufferTexture = null;
+          }
+        }
+
+        if (fbObjectWorkarounds && createNewDepthBuffer) {
+          if (frameBufferDepthBuffer == null)
+            frameBufferDepthBuffer = new int[1];
+
+          // Create our own depth renderbuffer and associated storage
+          // If we have an old one, delete it
+          if (frameBufferDepthBuffer[0] != 0) {
+            gl.glDeleteRenderbuffers(1, frameBufferDepthBuffer, 0);
+            frameBufferDepthBuffer[0] = 0;
+          }
+
+          gl.glBindTexture(fboTextureTarget, frameBufferTexture[0]);
+          int[] width = new int[1];
+          int[] height = new int[1];
+          gl.glGetTexLevelParameteriv(fboTextureTarget, 0, GL2.GL_TEXTURE_WIDTH, width, 0);
+          gl.glGetTexLevelParameteriv(fboTextureTarget, 0, GL2.GL_TEXTURE_HEIGHT, height, 0);
+                    
+          gl.glGenRenderbuffers(1, frameBufferDepthBuffer, 0);
+          if (DEBUG) {
+            System.err.println("GLJPanel: Generated frameBufferDepthBuffer " + frameBufferDepthBuffer[0] +
+                               " with width " + width[0] + ", height " + height[0]);
+          }
+                    
+          gl.glBindRenderbuffer(GL2.GL_RENDERBUFFER, frameBufferDepthBuffer[0]);
+          // FIXME: may need a loop here like in Java2D
+          gl.glRenderbufferStorage(GL2.GL_RENDERBUFFER, GL2.GL_DEPTH_COMPONENT24, width[0], height[0]);
+
+          gl.glBindRenderbuffer(GL2.GL_RENDERBUFFER, 0);
+          createNewDepthBuffer = false;
+        }
+
+        gl.glBindTexture(fboTextureTarget, 0);
+        gl.glBindFramebuffer(GL2.GL_FRAMEBUFFER, frameBuffer[0]);
+
+        if (fbObjectWorkarounds) {
+          // Hook up the color and depth buffer attachment points for this framebuffer
+          gl.glFramebufferTexture2D(GL2.GL_FRAMEBUFFER,
+                                    GL2.GL_COLOR_ATTACHMENT0,
+                                    fboTextureTarget,
+                                    frameBufferTexture[0],
+                                    0);
+          if (DEBUG && VERBOSE) {
+            System.err.println("GLJPanel: frameBufferDepthBuffer: " + frameBufferDepthBuffer[0]);
+          }
+          gl.glFramebufferRenderbuffer(GL2.GL_FRAMEBUFFER,
+                                       GL2.GL_DEPTH_ATTACHMENT,
+                                       GL2.GL_RENDERBUFFER,
+                                       frameBufferDepthBuffer[0]);
+        }
+
+        if (DEBUG) {
+          int status = gl.glCheckFramebufferStatus(GL2.GL_FRAMEBUFFER);
+          if (status != GL2.GL_FRAMEBUFFER_COMPLETE) {
+            throw new GLException("Error: framebuffer was incomplete: status = 0x" +
+                                  Integer.toHexString(status));
+          }
+        }
+      } else {
+        if (DEBUG && VERBOSE) {
+          System.err.println("GLJPanel: Setting up drawBuffer " + drawBuffer[0] +
+                             " and readBuffer " + readBuffer[0]);
+        }
+
+        gl.glDrawBuffer(drawBuffer[0]);
+        gl.glReadBuffer(readBuffer[0]);
+      }
+
+      return true;
+    }
+
+    public void postGL(Graphics g, boolean isDisplay) {
+      // Cause OpenGL pipeline to flush its results because
+      // otherwise it's possible we will buffer up multiple frames'
+      // rendering results, resulting in apparent mouse lag
+      GL gl = getGL();
+      gl.glFinish();
+
+      if (Java2D.isFBOEnabled() &&
+          Java2D.getOGLSurfaceType(g) == Java2D.FBOBJECT) {
+        // Unbind the framebuffer from our context to work around
+        // apparent driver bugs or at least unspecified behavior causing
+        // OpenGL to run out of memory with certain cards and drivers
+        gl.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0);
+      }
+    }
+
+    public void doPaintComponent(final Graphics g) {
       // This is a workaround for an issue in the Java 2D / JOGL
       // bridge (reported by an end user as JOGL Issue 274) where Java
       // 2D can occasionally leave its internal OpenGL context current
@@ -557,7 +1261,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
               // FIXME: add more checks?
 
               j2dContext.makeCurrent();
-              GL2 gl = j2dContext.getGL().getGL2();
+              GL gl = j2dContext.getGL();
               if ((getGLInteger(gl, GL2.GL_RED_BITS)         < offscreenCaps.getRedBits())        ||
                   (getGLInteger(gl, GL2.GL_GREEN_BITS)       < offscreenCaps.getGreenBits())      ||
                   (getGLInteger(gl, GL2.GL_BLUE_BITS)        < offscreenCaps.getBlueBits())       ||
@@ -583,7 +1287,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
                   System.err.println("GL_STENCIL_BITS     " + getGLInteger(gl, GL2.GL_STENCIL_BITS)     + "              " + offscreenCaps.getStencilBits());
                 }
                 isInitialized = false;
-                shouldInitialize = true;
+                backend = null;
                 oglPipelineEnabled = false;
                 handleReshape = true;
                 j2dContext.release();
@@ -596,7 +1300,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
 
             j2dContext.makeCurrent();
             try {
-              captureJ2DState(j2dContext.getGL().getGL2(), g);
+              captureJ2DState(j2dContext.getGL(), g);
               Object curSurface = Java2D.getOGLSurfaceIdentifier(g);
               if (curSurface != null) {
                 if (j2dSurface != curSurface) {
@@ -616,9 +1320,9 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
                   if (factory.canCreateExternalGLDrawable()) {
                     joglDrawable = factory.createExternalGLDrawable();
                     joglContext = joglDrawable.createContext(shareWith);
-                  } else if (factory.canCreateContextOnJava2DSurface()) {
+                  } else if (((GLDrawableFactoryImpl) factory).canCreateContextOnJava2DSurface()) {
                     // Mac OS X code path
-                    joglContext = factory.createContextOnJava2DSurface(g, shareWith);
+                    joglContext = ((GLDrawableFactoryImpl) factory).createContextOnJava2DSurface(g, shareWith);
                   }
                   if (DEBUG) {
                     joglContext.setGL(new DebugGL2(joglContext.getGL().getGL2()));
@@ -662,643 +1366,54 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
             }
           }
         });
-    } else {
-      if (!hardwareAccelerationDisabled) {
-        pbuffer.display();
-      } else {
-        drawableHelper.invokeGL(offscreenDrawable, offscreenContext, displayAction, initAction);
-      }
-
-      if (offscreenImage != null) {
-        // Draw resulting image in one shot
-        g.drawImage(offscreenImage, 0, 0, offscreenImage.getWidth(), offscreenImage.getHeight(), this);
-      }
     }
-  }
 
-  /** Overridden to track when this component is added to a container.
-      Subclasses which override this method must call
-      super.addNotify() in their addNotify() method in order to
-      function properly. <P>
-
-      <B>Overrides:</B>
-      <DL><DD><CODE>addNotify</CODE> in class <CODE>java.awt.Component</CODE></DD></DL> */
-  public void addNotify() {
-    super.addNotify();
-    shouldInitialize = true;
-    if (DEBUG) {
-      System.err.println("GLJPanel.addNotify()");
-    }
-  }
-
-  /** Overridden to track when this component is removed from a
-      container. Subclasses which override this method must call
-      super.removeNotify() in their removeNotify() method in order to
-      function properly. <P>
-
-      <B>Overrides:</B>
-      <DL><DD><CODE>removeNotify</CODE> in class <CODE>java.awt.Component</CODE></DD></DL> */
-  public void removeNotify() {
-    if (DEBUG) {
-      System.err.println("GLJPanel.removeNotify()");
-    }
-    if (oglPipelineEnabled) {
-      Java2D.invokeWithOGLContextCurrent(null, new Runnable() {
-          public void run() {
-            if (joglContext != null) {
-              joglContext.destroy();
-              joglContext = null;
-            }
-            joglDrawable = null;
-            if (j2dContext != null) {
-              j2dContext.destroy();
-              j2dContext = null;
-            }
-          }
-        });
-    } else {
-      if (!hardwareAccelerationDisabled) {
-        if (pbuffer != null) {
-          pbuffer.destroy();
-          pbuffer = null;
+    private void captureJ2DState(GL gl, Graphics g) {
+      gl.glGetIntegerv(GL2.GL_DRAW_BUFFER, drawBuffer, 0);
+      gl.glGetIntegerv(GL2.GL_READ_BUFFER, readBuffer, 0);
+      if (Java2D.isFBOEnabled() &&
+          Java2D.getOGLSurfaceType(g) == Java2D.FBOBJECT) {
+        if (DEBUG && VERBOSE) {
+          System.err.println("GLJPanel: Fetching GL_FRAMEBUFFER_BINDING_EXT");
         }
-      } else {
-        if (offscreenContext != null) {
-          offscreenContext.destroy();
-          offscreenContext = null;
-        }
-        if (offscreenDrawable != null) {
-          offscreenDrawable.destroy();
-          offscreenDrawable = null;
-        }
-      }
-    }
-    isInitialized = false;
-    super.removeNotify();
-  }
+        gl.glGetIntegerv(GL2.GL_FRAMEBUFFER_BINDING, frameBuffer, 0);
 
-  /** Overridden to cause {@link GLDrawableHelper#reshape} to be
-      called on all registered {@link GLEventListener}s. Subclasses
-      which override this method must call super.reshape() in
-      their reshape() method in order to function properly. <P>
+        if (fbObjectWorkarounds ||
+            !checkedForFBObjectWorkarounds) {
+          // See above for description of what we are doing here
+          if (frameBufferTexture == null)
+            frameBufferTexture = new int[1];
 
-      <B>Overrides:</B>
-      <DL><DD><CODE>reshape</CODE> in class <CODE>java.awt.Component</CODE></DD></DL> */
-  public void reshape(int x, int y, int width, int height) {
-    super.reshape(x, y, width, height);
-
-    reshapeX = x;
-    reshapeY = y;
-    reshapeWidth = width;
-    reshapeHeight = height;
-    handleReshape = true;
-  }
-
-  public void setOpaque(boolean opaque) {
-    if (opaque != isOpaque()) {
-      if (offscreenImage != null) {
-        offscreenImage.flush();
-        offscreenImage = null;
-      }
-    }
-    super.setOpaque(opaque);
-  }
-
-  public void addGLEventListener(GLEventListener listener) {
-    drawableHelper.addGLEventListener(listener);
-  }
-
-  public void removeGLEventListener(GLEventListener listener) {
-    drawableHelper.removeGLEventListener(listener);
-  }
-
-  public GLContext createContext(GLContext shareWith) {
-    if (!hardwareAccelerationDisabled) {
-      return pbuffer.createContext(shareWith);
-    } else {
-      return offscreenDrawable.createContext(shareWith);
-    }
-  }
-
-  public void setRealized(boolean realized) {
-  }
-
-  public GLContext getContext() {
-    if (oglPipelineEnabled) {
-      return joglContext;
-    } else {
-      if (!hardwareAccelerationDisabled) {
-        // Workaround for crashes in NetBeans GUI builder
-        if (pbuffer == null && Beans.isDesignTime()) {
-          return null;
-        }
-        return pbuffer.getContext();
-      } else {
-        return offscreenContext;
-      }
-    }
-  }
-
-  public GL getGL() {
-    GLContext context = getContext();
-    return (context == null) ? null : context.getGL();
-  }
-
-  public void setGL(GL gl) {
-    if(!gl.isGL2()) {
-        throw new GLException("not a GL2 implementation");
-    }
-    GLContext context = getContext();
-    if (context != null) {
-      context.setGL(gl);
-    }
-  }
-
-  public void setAutoSwapBufferMode(boolean onOrOff) {
-    if (!hardwareAccelerationDisabled) {
-      // Workaround for crashes in NetBeans GUI builder
-      if (pbuffer == null && Beans.isDesignTime()) {
-        return;
-      }
-      pbuffer.setAutoSwapBufferMode(onOrOff);
-    } else {
-      drawableHelper.setAutoSwapBufferMode(onOrOff);
-    }
-  }
-
-  public boolean getAutoSwapBufferMode() {
-    if (!hardwareAccelerationDisabled && !oglPipelineEnabled) {
-      return pbuffer.getAutoSwapBufferMode();
-    } else {
-      return drawableHelper.getAutoSwapBufferMode();
-    }
-  }
-
-  public void swapBuffers() {
-    // In the current implementation this is basically a no-op. Both
-    // the pbuffer and pixmap based rendering paths use a single-
-    // buffered surface so swapping the buffers doesn't do anything.
-    // We also don't currently have the provision to skip copying the
-    // data to the Swing portion of the GLJPanel in any of the
-    // rendering paths.
-    if (oglPipelineEnabled) {
-      // Do nothing
-    } else if (!hardwareAccelerationDisabled) {
-      pbuffer.swapBuffers();
-    } else {
-      drawableHelper.invokeGL(offscreenDrawable, offscreenContext, swapBuffersAction, initAction);
-    }
-  }
-
-  /** For a translucent GLJPanel (one for which {@link #setOpaque
-      setOpaque}(false) has been called), indicates whether the
-      application should preserve the OpenGL color buffer
-      (GL_COLOR_BUFFER_BIT) for correct rendering of the GLJPanel and
-      underlying widgets which may show through portions of the
-      GLJPanel with alpha values less than 1.  Most Swing
-      implementations currently expect the GLJPanel to be completely
-      cleared (e.g., by <code>glClear(GL_COLOR_BUFFER_BIT |
-      GL_DEPTH_BUFFER_BIT)</code>), but for certain optimized Swing
-      implementations which use OpenGL internally, it may be possible
-      to perform OpenGL rendering using the GLJPanel into the same
-      OpenGL drawable as the Swing implementation uses. */
-  public boolean shouldPreserveColorBufferIfTranslucent() {
-    return oglPipelineEnabled;
-  }
-
-  protected GLCapabilities caps=null;
-
-  public GLCapabilities getChosenGLCapabilities() {
-    if (oglPipelineEnabled) {
-      if(caps==null) {
-          caps = new GLCapabilities();
-      }
-      return caps;
-    }
-
-    if (hardwareAccelerationDisabled) {
-      if (offscreenDrawable != null)
-        return offscreenDrawable.getChosenGLCapabilities();
-    } else {
-      if (pbuffer != null)
-        return pbuffer.getChosenGLCapabilities();
-    }
-    
-    return null;
-  }
-
-  public NativeWindow getNativeWindow() {
-    throw new GLException("FIXME");
-  }
-
-  public GLDrawableFactory getFactory() {
-    return factory;
-  }
-
-  public int lockSurface() throws GLException {
-    throw new GLException("FIXME");
-  }
-  public void unlockSurface() {
-    throw new GLException("FIXME");
-  }
-  public boolean isSurfaceLocked() {
-    throw new GLException("FIXME");
-  }
-  public void destroy() {
-    throw new GLException("FIXME");
-  }
-
-  //----------------------------------------------------------------------
-  // Internals only below this point
-  //
-
-  private void initialize() {
-    if (panelWidth == 0 ||
-        panelHeight == 0) {
-      // See whether we have a non-zero size yet and can go ahead with
-      // initialization
-      if (reshapeWidth == 0 ||
-          reshapeHeight == 0) {
-        return;
-      }
-
-      // Pull down reshapeWidth and reshapeHeight into panelWidth and
-      // panelHeight eagerly in order to complete initialization, and
-      // force a reshape later
-      panelWidth = reshapeWidth;
-      panelHeight = reshapeHeight;
-    }
-
-    if (!oglPipelineEnabled) {
-      // Initialize either the hardware-accelerated rendering path or
-      // the lightweight rendering path
-      if (!hardwareAccelerationDisabled) {
-        if (factory.canCreateGLPbuffer()) {
-          if (pbuffer != null) {
-            throw new InternalError("Creating pbuffer twice without destroying it (memory leak / correctness bug)");
-          }
-          try {
-            pbuffer = factory.createGLPbuffer(offscreenCaps,
-                                                                     null,
-                                                                     pbufferWidth,
-                                                                     pbufferHeight,
-                                                                     shareWith);
-            updater = new Updater();
-            pbuffer.addGLEventListener(updater);
-            shouldInitialize = false;
-            isInitialized = true;
-            return;
-          } catch (GLException e) {
-            if (DEBUG) {
-              e.printStackTrace();
-              System.err.println("GLJPanel: Falling back on software rendering because of problems creating pbuffer");
-            }
-            hardwareAccelerationDisabled = true;
-          }
-        } else {
-          if (DEBUG) {
-            System.err.println("GLJPanel: Falling back on software rendering because no pbuffer support");
-          }
-
-          // If the factory reports that it can't create a pbuffer,
-          // don't try again the next time, and fall through to the
-          // software rendering path
-          hardwareAccelerationDisabled = true;
-        }
-      }
-
-      if (softwareRenderingDisabled) {
-        throw new GLException("Fallback to software rendering disabled by user");
-      }
-
-      // Fall-through path: create an offscreen context instead
-      offscreenDrawable = factory.createOffscreenDrawable(offscreenCaps, chooser);
-      offscreenDrawable.setSize(Math.max(1, panelWidth), Math.max(1, panelHeight));
-      offscreenContext = (GLContextImpl) offscreenDrawable.createContext(shareWith);
-      offscreenContext.setSynchronized(true);
-    }
-    updater = new Updater();
-    shouldInitialize = false;
-    isInitialized = true;
-  }
-
-  private void handleReshape() {
-    readBackWidthInPixels = 0;
-    readBackHeightInPixels = 0;
-
-    panelWidth  = reshapeWidth;
-    panelHeight = reshapeHeight;
-
-    if (DEBUG) {
-      System.err.println("GLJPanel.handleReshape: (w,h) = (" +
-                         panelWidth + "," + panelHeight + ")");
-    }
-
-    sendReshape = true;
-
-    if (!oglPipelineEnabled) {
-      if (!hardwareAccelerationDisabled) {
-        // Use factor larger than 2 during shrinks for some hysteresis
-        float shrinkFactor = 2.5f;
-        if ((panelWidth > pbufferWidth           )       || (panelHeight > pbufferHeight) ||
-            (panelWidth < (pbufferWidth / shrinkFactor)) || (panelHeight < (pbufferHeight / shrinkFactor))) {
-          if (DEBUG) {
-            System.err.println("Resizing pbuffer from (" + pbufferWidth + ", " + pbufferHeight + ") " +
-                               " to fit (" + panelWidth + ", " + panelHeight + ")");
-          }
-          // Must destroy and recreate pbuffer to fit
-          if (pbuffer != null) {
-            // Watch for errors during pbuffer destruction (due to
-            // buggy / bad OpenGL drivers, in particular SiS) and fall
-            // back to software rendering
-            try {
-              pbuffer.destroy();
-            } catch (GLException e) {
-              hardwareAccelerationDisabled = true;
-              if (DEBUG) {
-                System.err.println("WARNING: falling back to software rendering due to bugs in OpenGL drivers");
-                e.printStackTrace();
-              }
-            }
-          }
-          pbuffer = null;
-          isInitialized = false;
-          pbufferWidth = getNextPowerOf2(panelWidth);
-          pbufferHeight = getNextPowerOf2(panelHeight);
-          if (DEBUG && !hardwareAccelerationDisabled) {
-            System.err.println("New pbuffer size is (" + pbufferWidth + ", " + pbufferHeight + ")");
-          }
-          initialize();
-        }
-
-        // It looks like NVidia's drivers (at least the ones on my
-        // notebook) are buggy and don't allow a rectangle of less than
-        // the pbuffer's width to be read...this doesn't really matter
-        // because it's the Graphics.drawImage() calls that are the
-        // bottleneck. Should probably make the size of the offscreen
-        // image be the exact size of the pbuffer to save some work on
-        // resize operations...
-        if (!hardwareAccelerationDisabled) {
-          readBackWidthInPixels  = pbufferWidth;
-          readBackHeightInPixels = panelHeight;
-        } else {
-          // Just disabled hardware acceleration during this resize operation; do a fixup
-          readBackWidthInPixels  = Math.max(1, panelWidth);
-          readBackHeightInPixels = Math.max(1, panelHeight);
-        }
-      } else {
-        offscreenContext.destroy();
-        offscreenDrawable.setSize(Math.max(1, panelWidth), Math.max(1, panelHeight));
-        readBackWidthInPixels  = Math.max(1, panelWidth);
-        readBackHeightInPixels = Math.max(1, panelHeight);
-      }
-
-      if (offscreenImage != null) {
-        offscreenImage.flush();
-        offscreenImage = null;
-      }
-    }
-
-    handleReshape = false;
-  }
-
-  // FIXME: it isn't clear whether this works any more given that
-  // we're accessing the GLDrawable inside of the GLPbuffer directly
-  // up in reshape() -- need to rethink and clean this up
-  class Updater implements GLEventListener {
-    private Graphics g;
-
-    public void setGraphics(Graphics g) {
-      this.g = g;
-    }
-
-    public void init(GLAutoDrawable drawable) {
-      if (oglPipelineEnabled) {
-        if (!preGL(g)) {
-          return;
-        }
-      }
-      drawableHelper.init(GLJPanel.this);
-      if (oglPipelineEnabled) {
-        postGL(g);
-      }
-    }
-
-    public void display(GLAutoDrawable drawable) {
-      if (oglPipelineEnabled) {
-        if (!preGL(g)) {
-          return;
-        }
-      }
-
-      if (sendReshape) {
-        if (DEBUG) {
-          System.err.println("glViewport(" + viewportX + ", " + viewportY + ", " + panelWidth + ", " + panelHeight + ")");
-        }
-        getGL().getGL2().glViewport(viewportX, viewportY, panelWidth, panelHeight);
-        drawableHelper.reshape(GLJPanel.this, viewportX, viewportY, panelWidth, panelHeight);
-        sendReshape = false;
-      }
-
-      drawableHelper.display(GLJPanel.this);
-
-      if (!oglPipelineEnabled) {
-        // Must now copy pixels from offscreen context into surface
-        if (offscreenImage == null) {
-          if (panelWidth > 0 && panelHeight > 0) {
-            // It looks like NVidia's drivers (at least the ones on my
-            // notebook) are buggy and don't allow a sub-rectangle to be
-            // read from a pbuffer...this doesn't really matter because
-            // it's the Graphics.drawImage() calls that are the
-            // bottleneck
-
-            int awtFormat = 0;
-            int hwGLFormat = 0;
-            if (!hardwareAccelerationDisabled) {
-              // This seems to be a good choice on all platforms
-              hwGLFormat = GL2.GL_UNSIGNED_INT_8_8_8_8_REV;
-            }
-
-            // Should be more flexible in these BufferedImage formats;
-            // perhaps see what the preferred image types are on the
-            // given platform
-            if (isOpaque()) {
-              awtFormat = BufferedImage.TYPE_INT_RGB;
-            } else {
-              awtFormat = BufferedImage.TYPE_INT_ARGB;
-            }
-
-            offscreenImage = new BufferedImage(panelWidth,
-                                               panelHeight,
-                                               awtFormat);
-            switch (awtFormat) {
-            case BufferedImage.TYPE_3BYTE_BGR:
-              glFormat = GL2.GL_BGR;
-              glType   = GL2.GL_UNSIGNED_BYTE;
-              readBackBytes = ByteBuffer.allocate(readBackWidthInPixels * readBackHeightInPixels * 3);
-              break;
-
-            case BufferedImage.TYPE_INT_RGB:
-            case BufferedImage.TYPE_INT_ARGB:
-              glFormat = GL2.GL_BGRA;
-              glType   = (hardwareAccelerationDisabled
-                          ? offscreenContext.getOffscreenContextPixelDataType()
-                          : hwGLFormat);
-              readBackInts = IntBuffer.allocate(readBackWidthInPixels * readBackHeightInPixels);
-              break;
-
-            default:
-              // FIXME: Support more off-screen image types (current
-              // offscreen context implementations don't use others, and
-              // some of the OpenGL formats aren't supported in the 1.1
-              // headers, which we're currently using)
-              throw new GLException("Unsupported offscreen image type " + awtFormat);
-            }
+          // Query the framebuffer for its color buffer so we can hook
+          // it back up in our context (should not be necessary)
+          gl.glGetFramebufferAttachmentParameteriv(GL2.GL_FRAMEBUFFER,
+                                                   GL2.GL_COLOR_ATTACHMENT0,
+                                                   GL2.GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME,
+                                                   frameBufferTexture, 0);
+          if (DEBUG && VERBOSE) {
+            System.err.println("GLJPanel: FBO COLOR_ATTACHMENT0: " + frameBufferTexture[0]);
           }
         }
 
-        if (offscreenImage != null) {
-          GL2 gl = getGL().getGL2();
-          // Save current modes
-          gl.glGetIntegerv(GL2.GL_PACK_SWAP_BYTES,    swapbytes, 0);
-          gl.glGetIntegerv(GL2.GL_PACK_ROW_LENGTH,    rowlength, 0);
-          gl.glGetIntegerv(GL2.GL_PACK_SKIP_ROWS,     skiprows, 0);
-          gl.glGetIntegerv(GL2.GL_PACK_SKIP_PIXELS,   skippixels, 0);
-          gl.glGetIntegerv(GL2.GL_PACK_ALIGNMENT,     alignment, 0);
+        if (!checkedGLVendor) {
+          checkedGLVendor = true;
+          String vendor = gl.glGetString(GL2.GL_VENDOR);
 
-          gl.glPixelStorei(GL2.GL_PACK_SWAP_BYTES,    GL2.GL_FALSE);
-          gl.glPixelStorei(GL2.GL_PACK_ROW_LENGTH,    readBackWidthInPixels);
-          gl.glPixelStorei(GL2.GL_PACK_SKIP_ROWS,     0);
-          gl.glPixelStorei(GL2.GL_PACK_SKIP_PIXELS,   0);
-          gl.glPixelStorei(GL2.GL_PACK_ALIGNMENT,     1);
-
-          // Actually read the pixels.
-          gl.glReadBuffer(GL2.GL_FRONT);
-          if (readBackBytes != null) {
-            gl.glReadPixels(0, 0, readBackWidthInPixels, readBackHeightInPixels, glFormat, glType, readBackBytes);
-          } else if (readBackInts != null) {
-            gl.glReadPixels(0, 0, readBackWidthInPixels, readBackHeightInPixels, glFormat, glType, readBackInts);
-          }
-
-          // Restore saved modes.
-          gl.glPixelStorei(GL2.GL_PACK_SWAP_BYTES,  swapbytes[0]);
-          gl.glPixelStorei(GL2.GL_PACK_ROW_LENGTH,  rowlength[0]);
-          gl.glPixelStorei(GL2.GL_PACK_SKIP_ROWS,   skiprows[0]);
-          gl.glPixelStorei(GL2.GL_PACK_SKIP_PIXELS, skippixels[0]);
-          gl.glPixelStorei(GL2.GL_PACK_ALIGNMENT,   alignment[0]);
-
-          if (readBackBytes != null || readBackInts != null) {
-            // Copy temporary data into raster of BufferedImage for faster
-            // blitting Note that we could avoid this copy in the cases
-            // where !offscreenContext.offscreenImageNeedsVerticalFlip(),
-            // but that's the software rendering path which is very slow
-            // anyway
-            Object src  = null;
-            Object dest = null;
-            int    srcIncr  = 0;
-            int    destIncr = 0;
-
-            if (readBackBytes != null) {
-              src = readBackBytes.array();
-              dest = ((DataBufferByte) offscreenImage.getRaster().getDataBuffer()).getData();
-              srcIncr = readBackWidthInPixels * 3;
-              destIncr = offscreenImage.getWidth() * 3;
-            } else {
-              src = readBackInts.array();
-              dest = ((DataBufferInt) offscreenImage.getRaster().getDataBuffer()).getData();
-              srcIncr = readBackWidthInPixels;
-              destIncr = offscreenImage.getWidth();
-            }
-
-            if (!hardwareAccelerationDisabled ||
-                offscreenContext.offscreenImageNeedsVerticalFlip()) {
-              int srcPos = 0;
-              int destPos = (offscreenImage.getHeight() - 1) * destIncr;
-              for (; destPos >= 0; srcPos += srcIncr, destPos -= destIncr) {
-                System.arraycopy(src, srcPos, dest, destPos, destIncr);
-              }
-            } else {
-              int srcPos = 0;
-              int destEnd = destIncr * offscreenImage.getHeight();
-              for (int destPos = 0; destPos < destEnd; srcPos += srcIncr, destPos += destIncr) {
-                System.arraycopy(src, srcPos, dest, destPos, destIncr);
-              }
-            }
-
-	    // Note: image will be drawn back in paintComponent() for
-	    // correctness on all platforms
+          if ((vendor != null) &&
+              vendor.startsWith("ATI")) {
+            vendorIsATI = true;
           }
         }
-      } else {
-        // Cause OpenGL pipeline to flush its results because
-        // otherwise it's possible we will buffer up multiple frames'
-        // rendering results, resulting in apparent mouse lag
-        GL2 gl = getGL().getGL2();
-        gl.glFinish();
 
-        postGL(g);
+        if (vendorIsATI) {
+          // Unbind the FBO from Java2D's context as it appears that
+          // driver bugs on ATI's side are causing problems if the FBO is
+          // simultaneously bound to more than one context. Java2D will
+          // re-bind the FBO during the next validation of its context.
+          // Note: this breaks rendering at least on NVidia hardware
+          gl.glBindFramebuffer(GL2.GL_FRAMEBUFFER, 0);
+        }
       }
     }
-
-    public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
-      // This is handled above and dispatched directly to the appropriate context
-    }
-
-    public void displayChanged(GLAutoDrawable drawable, boolean modeChanged, boolean deviceChanged) {
-    }
-  }
-
-  class InitAction implements Runnable {
-    public void run() {
-      updater.init(GLJPanel.this);
-    }
-  }
-  private InitAction initAction = new InitAction();
-
-  class DisplayAction implements Runnable {
-    public void run() {
-      updater.display(GLJPanel.this);
-    }
-  }
-  private DisplayAction displayAction = new DisplayAction();
-
-  // This one is used exclusively in the non-hardware-accelerated case
-  class SwapBuffersAction implements Runnable {
-    public void run() {
-      offscreenDrawable.swapBuffers();
-    }
-  }
-  private SwapBuffersAction swapBuffersAction = new SwapBuffersAction();
-
-  class PaintImmediatelyAction implements Runnable {
-    public void run() {
-      paintImmediately(0, 0, getWidth(), getHeight());
-    }
-  }
-  private PaintImmediatelyAction paintImmediatelyAction = new PaintImmediatelyAction();
-
-  private int getNextPowerOf2(int number) {
-    // Workaround for problems where 0 width or height are transiently
-    // seen during layout
-    if (number == 0) {
-      return 2;
-    }
-
-    if (((number-1) & number) == 0) {
-      //ex: 8 -> 0b1000; 8-1=7 -> 0b0111; 0b1000&0b0111 == 0
-      return number;
-    }
-    int power = 0;
-    while (number > 0) {
-      number = number>>1;
-      power++;
-    }
-    return (1<<power);
-  }
-
-  private int getGLInteger(GL gl, int which) {
-    int[] tmp = new int[1];
-    gl.glGetIntegerv(which, tmp, 0);
-    return tmp[0];
   }
 }
