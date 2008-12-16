@@ -37,7 +37,7 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package javax.media.opengl.awt.gl2;
+package javax.media.opengl.awt;
 
 import javax.media.opengl.*;
 import javax.media.opengl.awt.*;
@@ -63,7 +63,7 @@ import com.sun.opengl.impl.awt.*;
     when adding a heavyweight doesn't work either because of
     Z-ordering or LayoutManager problems. <P>
 
-    The GL2JPanel can be made transparent by creating it with a
+    The GLJPanel can be made transparent by creating it with a
     GLCapabilities object with alpha bits specified and calling {@link
     #setOpaque}(false). Pixels with resulting OpenGL alpha values less
     than 1.0 will be overlaid on any underlying Swing rendering. <P>
@@ -75,16 +75,16 @@ import com.sun.opengl.impl.awt.*;
     rendering, and because pbuffers can not be resized, somewhat
     surprising behavior may occur during resize operations; the {@link
     GLEventListener#init} method may be called multiple times as the
-    pbuffer is resized to be able to cover the size of the GL2JPanel.
+    pbuffer is resized to be able to cover the size of the GLJPanel.
     This behavior is correct, as the textures and display lists for
-    the GL2JPanel will have been lost during the resize operation. The
+    the GLJPanel will have been lost during the resize operation. The
     application should attempt to make its GLEventListener.init()
     methods as side-effect-free as possible. <P>
 
 */
 
-public class GL2JPanel extends JPanel implements AWTGLAutoDrawable {
-  private static final boolean DEBUG = Debug.debug("GL2JPanel");
+public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
+  private static final boolean DEBUG = Debug.debug("GLJPanel");
   private static final boolean VERBOSE = Debug.verbose();
 
   private GLDrawableHelper drawableHelper = new GLDrawableHelper();
@@ -103,7 +103,7 @@ public class GL2JPanel extends JPanel implements AWTGLAutoDrawable {
   private IntBuffer             readBackInts;
   private int                   readBackWidthInPixels;
   private int                   readBackHeightInPixels;
-  // Width of the actual GL2JPanel
+  // Width of the actual GLJPanel
   private int panelWidth   = 0;
   private int panelHeight  = 0;
   private Updater updater;
@@ -214,21 +214,21 @@ public class GL2JPanel extends JPanel implements AWTGLAutoDrawable {
     factory = GLDrawableFactoryImpl.getFactoryImpl(Component.class);
   }
 
-  /** Creates a new GL2JPanel component with a default set of OpenGL
+  /** Creates a new GLJPanel component with a default set of OpenGL
       capabilities and using the default OpenGL capabilities selection
       mechanism. */
-  public GL2JPanel() {
+  public GLJPanel() {
     this(null);
   }
 
-  /** Creates a new GL2JPanel component with the requested set of
+  /** Creates a new GLJPanel component with the requested set of
       OpenGL capabilities, using the default OpenGL capabilities
       selection mechanism. */
-  public GL2JPanel(GLCapabilities capabilities) {
+  public GLJPanel(GLCapabilities capabilities) {
     this(capabilities, null, null);
   }
 
-  /** Creates a new GL2JPanel component. The passed GLCapabilities
+  /** Creates a new GLJPanel component. The passed GLCapabilities
       specifies the OpenGL capabilities for the component; if null, a
       default set of capabilities is used. The GLCapabilitiesChooser
       specifies the algorithm for selecting one of the available
@@ -239,7 +239,7 @@ public class GL2JPanel extends JPanel implements AWTGLAutoDrawable {
       if sharing is not desired. See the note in the overview documentation on
       <a href="../../../overview-summary.html#SHARING">context sharing</a>.
   */
-  public GL2JPanel(GLCapabilities capabilities, GLCapabilitiesChooser chooser, GLContext shareWith) {
+  public GLJPanel(GLCapabilities capabilities, GLCapabilitiesChooser chooser, GLContext shareWith) {
     super();
 
     // Works around problems on many vendors' cards; we don't need a
@@ -275,7 +275,7 @@ public class GL2JPanel extends JPanel implements AWTGLAutoDrawable {
     if (Java2D.isFBOEnabled() &&
         Java2D.getOGLSurfaceType(g) == Java2D.FBOBJECT) {
       if (DEBUG && VERBOSE) {
-        System.err.println("GL2JPanel: Fetching GL_FRAMEBUFFER_BINDING");
+        System.err.println("GLJPanel: Fetching GL_FRAMEBUFFER_BINDING");
       }
       gl.glGetIntegerv(GL2.GL_FRAMEBUFFER_BINDING, frameBuffer, 0);
 
@@ -292,7 +292,7 @@ public class GL2JPanel extends JPanel implements AWTGLAutoDrawable {
                                                  GL2.GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME,
                                                  frameBufferTexture, 0);
         if (DEBUG && VERBOSE) {
-          System.err.println("GL2JPanel: FBO COLOR_ATTACHMENT0: " + frameBufferTexture[0]);
+          System.err.println("GLJPanel: FBO COLOR_ATTACHMENT0: " + frameBufferTexture[0]);
         }
       }
 
@@ -330,7 +330,7 @@ public class GL2JPanel extends JPanel implements AWTGLAutoDrawable {
       return false;
     }
     if (DEBUG && VERBOSE) {
-      System.err.println("GL2JPanel: gl.glScissor(" + r.x + ", " + r.y + ", " + r.width + ", " + r.height + ")");
+      System.err.println("GLJPanel: gl.glScissor(" + r.x + ", " + r.y + ", " + r.width + ", " + r.height + ")");
     }
 
     gl.glScissor(r.x, r.y, r.width, r.height);
@@ -357,7 +357,7 @@ public class GL2JPanel extends JPanel implements AWTGLAutoDrawable {
     if (Java2D.isFBOEnabled() &&
         Java2D.getOGLSurfaceType(g) == Java2D.FBOBJECT) {
       if (DEBUG && VERBOSE) {
-        System.err.println("GL2JPanel: Binding to framebuffer object " + frameBuffer[0]);
+        System.err.println("GLJPanel: Binding to framebuffer object " + frameBuffer[0]);
       }
 
       // The texture target for Java2D's OpenGL pipeline when using FBOs
@@ -374,7 +374,7 @@ public class GL2JPanel extends JPanel implements AWTGLAutoDrawable {
           fbObjectWorkarounds = true;
           createNewDepthBuffer = true;
           if (DEBUG) {
-            System.err.println("-- GL2JPanel: discovered frame_buffer_object workarounds to be necessary");
+            System.err.println("-- GLJPanel: discovered frame_buffer_object workarounds to be necessary");
           }
         } else {
           // Don't need the frameBufferTexture temporary any more
@@ -401,7 +401,7 @@ public class GL2JPanel extends JPanel implements AWTGLAutoDrawable {
                     
         gl.glGenRenderbuffers(1, frameBufferDepthBuffer, 0);
         if (DEBUG) {
-          System.err.println("GL2JPanel: Generated frameBufferDepthBuffer " + frameBufferDepthBuffer[0] +
+          System.err.println("GLJPanel: Generated frameBufferDepthBuffer " + frameBufferDepthBuffer[0] +
                              " with width " + width[0] + ", height " + height[0]);
         }
                     
@@ -424,7 +424,7 @@ public class GL2JPanel extends JPanel implements AWTGLAutoDrawable {
                                      frameBufferTexture[0],
                                      0);
         if (DEBUG && VERBOSE) {
-          System.err.println("GL2JPanel: frameBufferDepthBuffer: " + frameBufferDepthBuffer[0]);
+          System.err.println("GLJPanel: frameBufferDepthBuffer: " + frameBufferDepthBuffer[0]);
         }
         gl.glFramebufferRenderbuffer(GL2.GL_FRAMEBUFFER,
                                         GL2.GL_DEPTH_ATTACHMENT,
@@ -441,7 +441,7 @@ public class GL2JPanel extends JPanel implements AWTGLAutoDrawable {
       }
     } else {
       if (DEBUG && VERBOSE) {
-        System.err.println("GL2JPanel: Setting up drawBuffer " + drawBuffer[0] +
+        System.err.println("GLJPanel: Setting up drawBuffer " + drawBuffer[0] +
                            " and readBuffer " + readBuffer[0]);
       }
 
@@ -472,7 +472,7 @@ public class GL2JPanel extends JPanel implements AWTGLAutoDrawable {
       <DL><DD><CODE>paintComponent</CODE> in class <CODE>javax.swing.JComponent</CODE></DD></DL> */
   protected void paintComponent(final Graphics g) {
     if (Beans.isDesignTime()) {
-      // Make GL2JPanel behave better in NetBeans GUI builder
+      // Make GLJPanel behave better in NetBeans GUI builder
       g.setColor(Color.BLACK);
       g.fillRect(0, 0, getWidth(), getHeight());
       FontMetrics fm = g.getFontMetrics();
@@ -569,7 +569,7 @@ public class GL2JPanel extends JPanel implements AWTGLAutoDrawable {
                   //          (getGLInteger(gl, GL2.GL_DEPTH_BITS)       < offscreenCaps.getDepthBits())      ||
                   (getGLInteger(gl, GL2.GL_STENCIL_BITS)     < offscreenCaps.getStencilBits())) {
                 if (DEBUG) {
-                  System.err.println("GL2JPanel: Falling back to pbuffer-based support because Java2D context insufficient");
+                  System.err.println("GLJPanel: Falling back to pbuffer-based support because Java2D context insufficient");
                   System.err.println("                    Available              Required");
                   System.err.println("GL_RED_BITS         " + getGLInteger(gl, GL2.GL_RED_BITS)         + "              " + offscreenCaps.getRedBits());
                   System.err.println("GL_GREEN_BITS       " + getGLInteger(gl, GL2.GL_GREEN_BITS)       + "              " + offscreenCaps.getGreenBits());
@@ -687,7 +687,7 @@ public class GL2JPanel extends JPanel implements AWTGLAutoDrawable {
     super.addNotify();
     shouldInitialize = true;
     if (DEBUG) {
-      System.err.println("GL2JPanel.addNotify()");
+      System.err.println("GLJPanel.addNotify()");
     }
   }
 
@@ -700,7 +700,7 @@ public class GL2JPanel extends JPanel implements AWTGLAutoDrawable {
       <DL><DD><CODE>removeNotify</CODE> in class <CODE>java.awt.Component</CODE></DD></DL> */
   public void removeNotify() {
     if (DEBUG) {
-      System.err.println("GL2JPanel.removeNotify()");
+      System.err.println("GLJPanel.removeNotify()");
     }
     if (oglPipelineEnabled) {
       Java2D.invokeWithOGLContextCurrent(null, new Runnable() {
@@ -839,7 +839,7 @@ public class GL2JPanel extends JPanel implements AWTGLAutoDrawable {
     // the pbuffer and pixmap based rendering paths use a single-
     // buffered surface so swapping the buffers doesn't do anything.
     // We also don't currently have the provision to skip copying the
-    // data to the Swing portion of the GL2JPanel in any of the
+    // data to the Swing portion of the GLJPanel in any of the
     // rendering paths.
     if (oglPipelineEnabled) {
       // Do nothing
@@ -850,17 +850,17 @@ public class GL2JPanel extends JPanel implements AWTGLAutoDrawable {
     }
   }
 
-  /** For a translucent GL2JPanel (one for which {@link #setOpaque
+  /** For a translucent GLJPanel (one for which {@link #setOpaque
       setOpaque}(false) has been called), indicates whether the
       application should preserve the OpenGL color buffer
-      (GL_COLOR_BUFFER_BIT) for correct rendering of the GL2JPanel and
+      (GL_COLOR_BUFFER_BIT) for correct rendering of the GLJPanel and
       underlying widgets which may show through portions of the
-      GL2JPanel with alpha values less than 1.  Most Swing
-      implementations currently expect the GL2JPanel to be completely
+      GLJPanel with alpha values less than 1.  Most Swing
+      implementations currently expect the GLJPanel to be completely
       cleared (e.g., by <code>glClear(GL_COLOR_BUFFER_BIT |
       GL_DEPTH_BUFFER_BIT)</code>), but for certain optimized Swing
       implementations which use OpenGL internally, it may be possible
-      to perform OpenGL rendering using the GL2JPanel into the same
+      to perform OpenGL rendering using the GLJPanel into the same
       OpenGL drawable as the Swing implementation uses. */
   public boolean shouldPreserveColorBufferIfTranslucent() {
     return oglPipelineEnabled;
@@ -951,13 +951,13 @@ public class GL2JPanel extends JPanel implements AWTGLAutoDrawable {
           } catch (GLException e) {
             if (DEBUG) {
               e.printStackTrace();
-              System.err.println("GL2JPanel: Falling back on software rendering because of problems creating pbuffer");
+              System.err.println("GLJPanel: Falling back on software rendering because of problems creating pbuffer");
             }
             hardwareAccelerationDisabled = true;
           }
         } else {
           if (DEBUG) {
-            System.err.println("GL2JPanel: Falling back on software rendering because no pbuffer support");
+            System.err.println("GLJPanel: Falling back on software rendering because no pbuffer support");
           }
 
           // If the factory reports that it can't create a pbuffer,
@@ -990,7 +990,7 @@ public class GL2JPanel extends JPanel implements AWTGLAutoDrawable {
     panelHeight = reshapeHeight;
 
     if (DEBUG) {
-      System.err.println("GL2JPanel.handleReshape: (w,h) = (" +
+      System.err.println("GLJPanel.handleReshape: (w,h) = (" +
                          panelWidth + "," + panelHeight + ")");
     }
 
@@ -1078,7 +1078,7 @@ public class GL2JPanel extends JPanel implements AWTGLAutoDrawable {
           return;
         }
       }
-      drawableHelper.init(GL2JPanel.this);
+      drawableHelper.init(GLJPanel.this);
       if (oglPipelineEnabled) {
         postGL(g);
       }
@@ -1096,11 +1096,11 @@ public class GL2JPanel extends JPanel implements AWTGLAutoDrawable {
           System.err.println("glViewport(" + viewportX + ", " + viewportY + ", " + panelWidth + ", " + panelHeight + ")");
         }
         getGL().getGL2().glViewport(viewportX, viewportY, panelWidth, panelHeight);
-        drawableHelper.reshape(GL2JPanel.this, viewportX, viewportY, panelWidth, panelHeight);
+        drawableHelper.reshape(GLJPanel.this, viewportX, viewportY, panelWidth, panelHeight);
         sendReshape = false;
       }
 
-      drawableHelper.display(GL2JPanel.this);
+      drawableHelper.display(GLJPanel.this);
 
       if (!oglPipelineEnabled) {
         // Must now copy pixels from offscreen context into surface
@@ -1250,14 +1250,14 @@ public class GL2JPanel extends JPanel implements AWTGLAutoDrawable {
 
   class InitAction implements Runnable {
     public void run() {
-      updater.init(GL2JPanel.this);
+      updater.init(GLJPanel.this);
     }
   }
   private InitAction initAction = new InitAction();
 
   class DisplayAction implements Runnable {
     public void run() {
-      updater.display(GL2JPanel.this);
+      updater.display(GLJPanel.this);
     }
   }
   private DisplayAction displayAction = new DisplayAction();
