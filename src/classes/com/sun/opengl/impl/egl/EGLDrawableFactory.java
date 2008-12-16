@@ -132,7 +132,9 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     }
 
     public GLDrawableImpl createOffscreenDrawable(GLCapabilities capabilities,
-                                                  GLCapabilitiesChooser chooser) {
+                                                  GLCapabilitiesChooser chooser,
+                                                  int width,
+                                                  int height) {
         throw new GLUnsupportedException("Not yet implemented");
     }
 

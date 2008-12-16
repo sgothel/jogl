@@ -108,10 +108,6 @@ public abstract class GLDrawableImpl implements GLDrawable {
     return realized;
   }
 
-  public void setSize(int width, int height) {
-    component.setSize(width, height);
-  }
-
   public int getWidth() {
     return component.getWidth();
   }

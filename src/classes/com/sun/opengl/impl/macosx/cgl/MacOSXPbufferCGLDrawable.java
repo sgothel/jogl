@@ -55,10 +55,10 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
   // semantic is that contains an NSView
   protected long pBuffer;
 
-  public MacOSXPbufferCGLDrawable(GLDrawableFactory factory, GLCapabilities capabilities, int initialWidth, int initialHeight) {
+  public MacOSXPbufferCGLDrawable(GLDrawableFactory factory, GLCapabilities capabilities, int width, int height) {
     super(factory, new NullWindow(), true, capabilities, null);
     NullWindow nw = (NullWindow) getNativeWindow();
-    nw.setSize(initialWidth, initialHeight);
+    nw.setSize(width, height);
     initOpenGLImpl();
     createPbuffer();
   }
@@ -81,12 +81,6 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
         getFactoryImpl().unlockToolkit();
     }
     super.destroy();
-  }
-
-  public void setSize(int width, int height) {
-    super.setSize(width, height);
-    destroy();
-    createPbuffer();
   }
 
   public long getPbuffer() {

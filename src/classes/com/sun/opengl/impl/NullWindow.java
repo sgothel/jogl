@@ -125,30 +125,4 @@ public class NullWindow implements NativeWindow {
   public int getHeight() {
     return height;
   }
-
-  public int getX() {
-    return 0;
-  }
-  public int getY() {
-    return 0;
-  }
-
-  public void setPosition(int x, int y) {
-  }
-
-  public void setVisible(boolean visible) {
-  }
-
-  public boolean isVisible() {
-    return false;
-  }
-
-  public boolean setFullscreen(boolean fullscreen) {
-    return false; // FIXME
-  }
-
-  public boolean isFullscreen() {
-    return false; // FIXME
-  }
-
 }

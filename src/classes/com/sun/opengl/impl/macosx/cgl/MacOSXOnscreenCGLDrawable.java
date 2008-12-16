@@ -71,10 +71,6 @@ public class MacOSXOnscreenCGLDrawable extends MacOSXCGLDrawable {
     return context;
   }
 
-  public void setSize(int width, int height) {
-    component.setSize(width, height);
-  }
-
   public int getWidth() {
     return component.getWidth();
   }

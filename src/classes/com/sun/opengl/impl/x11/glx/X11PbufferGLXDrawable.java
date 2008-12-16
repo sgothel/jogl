@@ -54,14 +54,14 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
 
   protected X11PbufferGLXDrawable(GLDrawableFactory factory,
                                   GLCapabilities requestedCapabilities, 
-                                  int initialWidth, int initialHeight) {
+                                  int width, int height) {
     super(factory, new NullWindow(), true, requestedCapabilities, null);
-    if (initialWidth <= 0 || initialHeight <= 0) {
-      throw new GLException("Initial width and height of pbuffer must be positive (were (" +
-			    initialWidth + ", " + initialHeight + "))");
+    if (width <= 0 || height <= 0) {
+      throw new GLException("Width and height of pbuffer must be positive (were (" +
+			    width + ", " + height + "))");
     }
     NullWindow nw = (NullWindow) getNativeWindow();
-    nw.setSize(initialWidth, initialHeight);
+    nw.setSize(width, height);
 
     if (DEBUG) {
       System.out.println("Pbuffer caps on init: " + requestedCapabilities +
@@ -91,13 +91,6 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
         getFactoryImpl().unlockToolkit();
     }
     super.destroy();
-  }
-
-  public void setSize(int width, int height) {
-    super.setSize(width, height);
-    destroy();
-    ((NullWindow)getNativeWindow()).setDisplayHandle(X11GLXDrawableFactory.getDisplayConnection());
-    createPbuffer();
   }
 
   private void createPbuffer() {

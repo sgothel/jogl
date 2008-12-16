@@ -53,7 +53,9 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory implements
       used to implement the fallback rendering path of the
       GLJPanel. */
   public abstract GLDrawableImpl createOffscreenDrawable(GLCapabilities capabilities,
-                                                         GLCapabilitiesChooser chooser);
+                                                         GLCapabilitiesChooser chooser,
+                                                         int width,
+                                                         int height);
 
   /** Dynamically looks up the given function. */
   public abstract long dynamicLookupFunction(String glFuncName);

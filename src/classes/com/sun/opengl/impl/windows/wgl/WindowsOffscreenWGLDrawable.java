@@ -48,18 +48,16 @@ public class WindowsOffscreenWGLDrawable extends WindowsWGLDrawable {
 
   public WindowsOffscreenWGLDrawable(GLDrawableFactory factory, 
                                      GLCapabilities requestedCapabilities,
-                                     GLCapabilitiesChooser chooser) {
+                                     GLCapabilitiesChooser chooser,
+                                     int width,
+                                     int height) {
     super(factory, new NullWindow(), true, requestedCapabilities, chooser);
+    ((NullWindow) getNativeWindow()).setSize(width, height);
+    create();
   }
 
   public GLContext createContext(GLContext shareWith) {
     return new WindowsOffscreenWGLContext(this, shareWith);
-  }
-
-  public void setSize(int newWidth, int newHeight) {
-    super.setSize(newWidth, newHeight);
-    destroy();
-    create();
   }
 
   private void create() {

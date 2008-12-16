@@ -116,8 +116,10 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   public GLDrawableImpl createOffscreenDrawable(GLCapabilities capabilities,
-                                                GLCapabilitiesChooser chooser) {
-    return new X11OffscreenGLXDrawable(this, capabilities, chooser);
+                                                GLCapabilitiesChooser chooser,
+                                                int width,
+                                                int height) {
+    return new X11OffscreenGLXDrawable(this, capabilities, chooser, width, height);
   }
 
   private boolean pbufferSupportInitialized = false;

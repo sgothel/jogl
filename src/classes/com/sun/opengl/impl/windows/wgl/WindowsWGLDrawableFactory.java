@@ -80,8 +80,10 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   public GLDrawableImpl createOffscreenDrawable(GLCapabilities capabilities,
-                                                GLCapabilitiesChooser chooser) {
-    return new WindowsOffscreenWGLDrawable(this, capabilities, chooser);
+                                                GLCapabilitiesChooser chooser,
+                                                int width,
+                                                int height) {
+    return new WindowsOffscreenWGLDrawable(this, capabilities, chooser, width, height);
   }
 
   private boolean pbufferSupportInitialized = false;

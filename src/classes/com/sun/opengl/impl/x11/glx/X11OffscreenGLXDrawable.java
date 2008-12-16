@@ -49,20 +49,17 @@ public class X11OffscreenGLXDrawable extends X11GLXDrawable {
 
   protected X11OffscreenGLXDrawable(GLDrawableFactory factory,
                                     GLCapabilities requestedCapabilities,
-                                    GLCapabilitiesChooser chooser) {
+                                    GLCapabilitiesChooser chooser,
+                                    int width,
+                                    int height) {
     super(factory, new NullWindow(), true, requestedCapabilities, chooser);
+    ((NullWindow) getNativeWindow()).setSize(width, height);
   }
 
   public GLContext createContext(GLContext shareWith) {
     return new X11OffscreenGLXContext(this, shareWith);
   }
   
-  public void setSize(int newWidth, int newHeight) {
-    super.setSize(newWidth, newHeight);
-    destroy();
-    create();
-  }
-
   private void create() {
     NullWindow nw = (NullWindow) getNativeWindow();
     long dpy = X11GLXDrawableFactory.getDisplayConnection();

@@ -62,10 +62,6 @@ public class WindowsOnscreenWGLDrawable extends WindowsWGLDrawable {
     return new WindowsOnscreenWGLContext(this, shareWith);
   }
 
-  public void setSize(int width, int height) {
-    component.setSize(width, height);
-  }
-
   public int getWidth() {
     return component.getWidth();
   }

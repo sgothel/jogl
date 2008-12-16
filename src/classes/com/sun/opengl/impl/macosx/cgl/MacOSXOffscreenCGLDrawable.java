@@ -44,8 +44,11 @@ import com.sun.opengl.impl.*;
 
 public class MacOSXOffscreenCGLDrawable extends MacOSXPbufferCGLDrawable {
 
-  public MacOSXOffscreenCGLDrawable(GLDrawableFactory factory, GLCapabilities capabilities) {
-    super(factory, capabilities, 0, 0);
+  public MacOSXOffscreenCGLDrawable(GLDrawableFactory factory,
+                                    GLCapabilities capabilities,
+                                    int width,
+                                    int height) {
+    super(factory, capabilities, width, height);
   }
 
   public GLContext createContext(GLContext shareWith) {

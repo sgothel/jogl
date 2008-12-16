@@ -52,10 +52,6 @@ public class X11OnscreenGLXDrawable extends X11GLXDrawable {
     return new X11OnscreenGLXContext(this, shareWith);
   }
 
-  public void setSize(int width, int height) {
-    component.setSize(width, height);
-  }
-
   public int getWidth() {
     return component.getWidth();
   }

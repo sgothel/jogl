@@ -110,11 +110,6 @@ public interface GLDrawable {
    */
   public void destroy();
 
-  /** Requests a new width and height for this GLDrawable. Not all
-      drawables are able to respond to this request and may silently
-      ignore it. */
-  public void setSize(int width, int height);
-
   /** Returns the current width of this GLDrawable. */
   public int getWidth();
 

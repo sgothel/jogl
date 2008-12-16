@@ -73,8 +73,10 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   public GLDrawableImpl createOffscreenDrawable(GLCapabilities capabilities,
-                                                GLCapabilitiesChooser chooser) {
-    return new MacOSXOffscreenCGLDrawable(this, capabilities);
+                                                GLCapabilitiesChooser chooser,
+                                                int width,
+                                                int height) {
+    return new MacOSXOffscreenCGLDrawable(this, capabilities, width, height);
   }
 
   public boolean canCreateGLPbuffer() {

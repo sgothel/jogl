@@ -786,8 +786,10 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
 
     public void initialize() {
       // Fall-through path: create an offscreen context instead
-      offscreenDrawable = factory.createOffscreenDrawable(offscreenCaps, chooser);
-      offscreenDrawable.setSize(Math.max(1, panelWidth), Math.max(1, panelHeight));
+      offscreenDrawable = factory.createOffscreenDrawable(offscreenCaps,
+                                                          chooser,
+                                                          Math.max(1, panelWidth),
+                                                          Math.max(1, panelHeight));
       offscreenContext = (GLContextImpl) offscreenDrawable.createContext(shareWith);
       offscreenContext.setSynchronized(true);
       isInitialized = true;
@@ -820,8 +822,8 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
     }
 
     public void handleReshape() {
-      offscreenContext.destroy();
-      offscreenDrawable.setSize(Math.max(1, panelWidth), Math.max(1, panelHeight));
+      destroy();
+      initialize();
       readBackWidthInPixels  = Math.max(1, panelWidth);
       readBackHeightInPixels = Math.max(1, panelHeight);
 

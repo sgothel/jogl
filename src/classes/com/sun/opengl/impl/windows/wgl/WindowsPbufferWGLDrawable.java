@@ -52,17 +52,17 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
 
   public WindowsPbufferWGLDrawable(GLDrawableFactory factory,
                                    GLCapabilities requestedCapabilities,
-                                   int initialWidth,
-                                   int initialHeight,
+                                   int width,
+                                   int height,
                                    WindowsWGLDrawable dummyDrawable,
                                    WGLExt wglExt) {
     super(factory, new NullWindow(), true, requestedCapabilities, null);
-    if (initialWidth <= 0 || initialHeight <= 0) {
-      throw new GLException("Initial width and height of pbuffer must be positive (were (" +
-			    initialWidth + ", " + initialHeight + "))");
+    if (width <= 0 || height <= 0) {
+      throw new GLException("Width and height of pbuffer must be positive (were (" +
+			    width + ", " + height + "))");
     }
     NullWindow nw = (NullWindow) getNativeWindow();
-    nw.setSize(initialWidth, initialHeight);
+    nw.setSize(width, height);
 
     if (DEBUG) {
       System.out.println("Pbuffer caps on init: " + requestedCapabilities +
@@ -102,14 +102,6 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
         getFactoryImpl().unlockToolkit();
     }
     super.destroy();
-  }
-
-  public void setSize(int newWidth, int newHeight) {
-    super.setSize(newWidth, newHeight);
-    destroy();
-    if(cachedParentHdc!=0 && cachedWGLExt!=null) {
-        createPbuffer(cachedParentHdc, cachedWGLExt);
-    }
   }
 
   public long getPbuffer() {

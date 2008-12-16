@@ -143,40 +143,11 @@ public abstract class JAWTWindow implements NativeWindow {
     return component.getHeight();
   }
 
-  public int getX() {
-    return component.getX();
-  }
-  public int getY() {
-    return component.getY();
-  }
-
-  public void setPosition(int x, int y) {
-    component.setLocation(x,y);
-  }
-
-  public void setVisible(boolean visible) {
-    component.setVisible(visible);
-  }
-
-  public boolean isVisible() {
-    return component.isVisible();
-  }
-
-  public boolean setFullscreen(boolean fullscreen) {
-    return false; // FIXME
-  }
-
-  public boolean isFullscreen() {
-    return false; // FIXME
-  }
-
   public String toString() {
     return "JAWT-Window[windowHandle "+getWindowHandle()+
                 ", surfaceHandle "+getSurfaceHandle()+
-                ", pos "+getX()+"/"+getY()+", size "+getWidth()+"x"+getHeight()+
-                ", visible "+isVisible()+
+                ", size "+getWidth()+"x"+getHeight()+
                 ", wrappedWindow "+getWrappedWindow()+
                 ", terminalObject "+isTerminalObject()+"]";
   }
-
 }

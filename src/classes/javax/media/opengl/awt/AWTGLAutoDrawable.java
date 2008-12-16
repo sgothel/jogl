@@ -43,6 +43,9 @@ import javax.media.opengl.*;
 import javax.media.opengl.glu.*;
 
 public interface AWTGLAutoDrawable extends GLAutoDrawable, ComponentEvents {
+  /** Requests a new width and height for this AWTGLAutoDrawable. */
+  public void setSize(int width, int height);
+
   /** Schedules a repaint of the component at some point in the
       future. */
   public void repaint();

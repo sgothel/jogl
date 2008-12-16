@@ -289,9 +289,21 @@ public abstract class Window implements NativeWindow
         return visualID;
     }
 
-    public boolean isVisible() {
-        return visible;
+    public int getWidth() {
+        return width;
     }
+
+    public int getHeight() {
+        return height;
+    }
+
+    public Object getWrappedWindow() {
+        return null;
+    }
+
+    //
+    // Additional methods
+    //
 
     public int getX() {
         return x;
@@ -301,12 +313,8 @@ public abstract class Window implements NativeWindow
         return y;
     }
 
-    public int getWidth() {
-        return width;
-    }
-
-    public int getHeight() {
-        return height;
+    public boolean isVisible() {
+        return visible;
     }
 
     public boolean isFullscreen() {
@@ -314,14 +322,9 @@ public abstract class Window implements NativeWindow
     }
 
     public abstract void    setVisible(boolean visible);
-
     public abstract void    setSize(int width, int height);
     public abstract void    setPosition(int x, int y);
     public abstract boolean setFullscreen(boolean fullscreen);
-
-    public Object getWrappedWindow() {
-        return null;
-    }
 
     //
     // MouseListener Support

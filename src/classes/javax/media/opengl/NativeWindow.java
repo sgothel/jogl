@@ -131,15 +131,9 @@ public interface NativeWindow {
    */
   public boolean isTerminalObject();
 
-  public void setSize(int width, int height);
-  public void setPosition(int x, int y);
+  /** Returns the current width of this window. */
   public int getWidth();
-  public int getHeight();
-  public int getX();
-  public int getY();
 
-  public void setVisible(boolean visible);
-  public boolean setFullscreen(boolean fullscreen);
-  public boolean isVisible();
-  public boolean isFullscreen();
+  /** Returns the current height of this window. */
+  public int getHeight();
 }
