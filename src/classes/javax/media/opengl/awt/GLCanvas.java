@@ -149,8 +149,8 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
       this.glCaps = capabilities;
     }
     if (!Beans.isDesignTime()) {
-      drawable = GLDrawableFactory.getFactory(this.getClass()).createGLDrawable(NativeWindowFactory.getNativeWindow(this), 
-                                                                                capabilities, chooser);
+      drawable = GLDrawableFactory.getFactory().createGLDrawable(NativeWindowFactory.getFactory(getClass()).getNativeWindow(this), 
+                                                                 capabilities, chooser);
       context = (GLContextImpl) drawable.createContext(shareWith);
       context.setSynchronized(true);
     }
@@ -553,9 +553,9 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
     }
 
     AWTGraphicsConfiguration config = (AWTGraphicsConfiguration)
-      GLDrawableFactory.getFactory(Component.class).chooseGraphicsConfiguration(capabilities,
-                                                                                chooser,
-                                                                                new AWTGraphicsDevice(device));
+      NativeWindowFactory.getFactory(Component.class).chooseGraphicsConfiguration(capabilities,
+                                                                                  chooser,
+                                                                                  new AWTGraphicsDevice(device));
     if (config == null) {
       return null;
     }

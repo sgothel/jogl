@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -28,28 +28,26 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
- * You acknowledge that this software is not designed or intended for use
- * in the design, construction, operation or maintenance of any nuclear
- * facility.
  */
 
-package com.sun.opengl.impl.egl.awt;
+package javax.media.opengl;
 
-import com.sun.opengl.impl.*;
-import com.sun.opengl.impl.egl.*;
-import com.sun.opengl.impl.jawt.*;
+/** Encapsulates a graphics device, or screen, on X11
+    platforms. Objects of this type are passed to {@link
+    NativeWindowFactory#chooseGraphicsConfiguration
+    NativeWindowFactory.chooseGraphicsConfiguration()} on X11
+    platforms when toolkits other than the AWT are being used.  */
 
-public class EGLAWTDrawableFactory extends EGLDrawableFactory {
+public class X11GraphicsDevice implements AbstractGraphicsDevice {
+    private int screen;
 
-  public void lockToolkit() {
-    super.lockToolkit();
-    //JAWTUtil.lockToolkit();
-  }
+    /** Constructs a new X11GraphicsDevice corresponding to the given screen. */
+    public X11GraphicsDevice(int screen) {
+        this.screen = screen;
+    }
 
-  public void unlockToolkit() {
-    //JAWTUtil.unlockToolkit();
-    super.unlockToolkit();
-  }
-
+    /** Returns the screen that this graphics device object represents. */
+    public int getScreen() {
+        return screen;
+    }
 }

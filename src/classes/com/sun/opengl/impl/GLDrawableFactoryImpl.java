@@ -64,10 +64,6 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory implements
     super();
   }
 
-  public static GLDrawableFactoryImpl getFactoryImpl(Class winClazz) {
-    return (GLDrawableFactoryImpl) getFactory(winClazz);
-  }
-
   public static GLDrawableFactoryImpl getFactoryImpl() {
     return (GLDrawableFactoryImpl) getFactory();
   }
@@ -77,30 +73,21 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory implements
   // RTLD_LOCAL and we need to call dlsym(RTLD_DEFAULT)
   public abstract void loadGLULibrary();
 
-  //---------------------------------------------------------------------------
+  //----------------------------------------------------------------------
   // Support for locking and unlocking the toolkit -- needed only on X11 platforms
-  protected static boolean lockedToolkit = false;
+  //
 
-  public void lockToolkit() throws GLException {
-    if(lockedToolkit) {
-        throw new GLException("Toolkit already locked");
-    }
-    lockedToolkit=true;
+  public void lockToolkit() {
+    NativeWindowFactory.getDefaultFactory().getToolkitLock().lock();
   }
 
   public void unlockToolkit() {
-    if(lockedToolkit) {
-        lockedToolkit=false;
-    }
-  }
-
-  public boolean isToolkitLocked() {
-    return lockedToolkit;
+    NativeWindowFactory.getDefaultFactory().getToolkitLock().unlock();
   }
 
   //---------------------------------------------------------------------------
   // Support for Java2D/JOGL bridge on Mac OS X; the external
-  // GLDrawable mechanism in the public API is sufficienit to
+  // GLDrawable mechanism in the public API is sufficient to
   // implement this functionality on all other platforms
   //
 

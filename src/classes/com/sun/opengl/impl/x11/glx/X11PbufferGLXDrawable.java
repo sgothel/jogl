@@ -70,7 +70,7 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
                          (requestedCapabilities.getPbufferFloatingPointBuffers() ? " [float]" : ""));
     }
 
-    nw.setDisplayHandle(X11GLXDrawableFactory.getDisplayConnection());
+    nw.setDisplayHandle(X11Util.getDisplayConnection());
     createPbuffer();
   }
 
@@ -115,7 +115,7 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
       }
 
       int[] iattributes = X11GLXDrawableFactory.glCapabilities2AttribList(capabilities,
-                                                                         ((X11GLXDrawableFactory)getFactory()).isMultisampleAvailable(),
+                                                                         X11Util.isMultisampleAvailable(),
                                                                          true, display, screen);
 
       int[] nelementsTmp = new int[1];
@@ -165,8 +165,8 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
       this.fbConfig = fbConfig;
       
       // Pick innocent query values if multisampling or floating point buffers not available
-      int sbAttrib      = ((X11GLXDrawableFactory)getFactory()).isMultisampleAvailable() ? GLXExt.GLX_SAMPLE_BUFFERS: GLX.GLX_RED_SIZE;
-      int samplesAttrib = ((X11GLXDrawableFactory)getFactory()).isMultisampleAvailable() ? GLXExt.GLX_SAMPLES: GLX.GLX_RED_SIZE;
+      int sbAttrib      = X11Util.isMultisampleAvailable() ? GLXExt.GLX_SAMPLE_BUFFERS: GLX.GLX_RED_SIZE;
+      int samplesAttrib = X11Util.isMultisampleAvailable() ? GLXExt.GLX_SAMPLES: GLX.GLX_RED_SIZE;
       int floatNV       = capabilities.getPbufferFloatingPointBuffers() ? GLXExt.GLX_FLOAT_COMPONENTS_NV : GLX.GLX_RED_SIZE;
 
       // Query the fbconfig to determine its GLCapabilities

@@ -61,76 +61,66 @@ public class WindowsOffscreenWGLDrawable extends WindowsWGLDrawable {
   }
 
   private void create() {
-    getFactoryImpl().lockToolkit();
-    try {
-        NullWindow nw = (NullWindow) getNativeWindow();
-        GLCapabilities capabilities = getRequestedGLCapabilities();
-        int width = getWidth();
-        int height = getHeight();
-        BITMAPINFO info = BITMAPINFO.create();
-        BITMAPINFOHEADER header = info.bmiHeader();
-        int bitsPerPixel = (capabilities.getRedBits() +
-                            capabilities.getGreenBits() +
-                            capabilities.getBlueBits());
-        header.biSize(header.size());
-        header.biWidth(width);
-        // NOTE: negating the height causes the DIB to be in top-down row
-        // order rather than bottom-up; ends up being correct during pixel
-        // readback
-        header.biHeight(-1 * height);
-        header.biPlanes((short) 1);
-        header.biBitCount((short) bitsPerPixel);
-        header.biXPelsPerMeter(0);
-        header.biYPelsPerMeter(0);
-        header.biClrUsed(0);
-        header.biClrImportant(0);
-        header.biCompression(WGL.BI_RGB);
-        header.biSizeImage(width * height * bitsPerPixel / 8);
+    NullWindow nw = (NullWindow) getNativeWindow();
+    GLCapabilities capabilities = getRequestedGLCapabilities();
+    int width = getWidth();
+    int height = getHeight();
+    BITMAPINFO info = BITMAPINFO.create();
+    BITMAPINFOHEADER header = info.bmiHeader();
+    int bitsPerPixel = (capabilities.getRedBits() +
+                        capabilities.getGreenBits() +
+                        capabilities.getBlueBits());
+    header.biSize(header.size());
+    header.biWidth(width);
+    // NOTE: negating the height causes the DIB to be in top-down row
+    // order rather than bottom-up; ends up being correct during pixel
+    // readback
+    header.biHeight(-1 * height);
+    header.biPlanes((short) 1);
+    header.biBitCount((short) bitsPerPixel);
+    header.biXPelsPerMeter(0);
+    header.biYPelsPerMeter(0);
+    header.biClrUsed(0);
+    header.biClrImportant(0);
+    header.biCompression(WGL.BI_RGB);
+    header.biSizeImage(width * height * bitsPerPixel / 8);
 
-        long hdc = WGL.CreateCompatibleDC(0);
-        if (hdc == 0) {
-          System.out.println("LastError: " + WGL.GetLastError());
-          throw new GLException("Error creating device context for offscreen OpenGL context");
-        }
-        nw.setSurfaceHandle(hdc);
-
-        hbitmap = WGL.CreateDIBSection(hdc, info, WGL.DIB_RGB_COLORS, 0, 0, 0);
-        if (hbitmap == 0) {
-          WGL.DeleteDC(hdc);
-          hdc = 0;
-          throw new GLException("Error creating offscreen bitmap of width " + width +
-                                ", height " + height);
-        }
-        if ((origbitmap = WGL.SelectObject(hdc, hbitmap)) == 0) {
-          WGL.DeleteObject(hbitmap);
-          hbitmap = 0;
-          WGL.DeleteDC(hdc);
-          hdc = 0;
-          throw new GLException("Error selecting bitmap into new device context");
-        }
-        
-        choosePixelFormat(false);
-    } finally {
-        getFactoryImpl().unlockToolkit();
+    long hdc = WGL.CreateCompatibleDC(0);
+    if (hdc == 0) {
+      System.out.println("LastError: " + WGL.GetLastError());
+      throw new GLException("Error creating device context for offscreen OpenGL context");
     }
+    nw.setSurfaceHandle(hdc);
+
+    hbitmap = WGL.CreateDIBSection(hdc, info, WGL.DIB_RGB_COLORS, 0, 0, 0);
+    if (hbitmap == 0) {
+      WGL.DeleteDC(hdc);
+      hdc = 0;
+      throw new GLException("Error creating offscreen bitmap of width " + width +
+                            ", height " + height);
+    }
+    if ((origbitmap = WGL.SelectObject(hdc, hbitmap)) == 0) {
+      WGL.DeleteObject(hbitmap);
+      hbitmap = 0;
+      WGL.DeleteDC(hdc);
+      hdc = 0;
+      throw new GLException("Error selecting bitmap into new device context");
+    }
+        
+    choosePixelFormat(false);
   }
   
   public void destroy() {
-    getFactoryImpl().lockToolkit();
-    try {
-        NullWindow nw = (NullWindow) getNativeWindow();
-        if (nw.getSurfaceHandle() != 0) {
-          // Must destroy bitmap and device context
-          WGL.SelectObject(nw.getSurfaceHandle(), origbitmap);
-          WGL.DeleteObject(hbitmap);
-          WGL.DeleteDC(nw.getSurfaceHandle());
-          origbitmap = 0;
-          hbitmap = 0;
-          nw.setSurfaceHandle(0);
-          setChosenGLCapabilities(null);
-        }
-    } finally {
-        getFactoryImpl().unlockToolkit();
+    NullWindow nw = (NullWindow) getNativeWindow();
+    if (nw.getSurfaceHandle() != 0) {
+      // Must destroy bitmap and device context
+      WGL.SelectObject(nw.getSurfaceHandle(), origbitmap);
+      WGL.DeleteObject(hbitmap);
+      WGL.DeleteDC(nw.getSurfaceHandle());
+      origbitmap = 0;
+      hbitmap = 0;
+      nw.setSurfaceHandle(0);
+      setChosenGLCapabilities(null);
     }
     super.destroy();
   }

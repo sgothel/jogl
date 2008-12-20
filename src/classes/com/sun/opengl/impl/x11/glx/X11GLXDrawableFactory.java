@@ -48,14 +48,11 @@ import com.sun.opengl.impl.x11.*;
 public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
   protected static final boolean DEBUG = Debug.debug("X11GLXDrawableFactory");
 
-  // ATI's proprietary drivers apparently send GLX tokens even for
-  // direct contexts, so we need to disable the context optimizations
-  // in this case
-  private static boolean isVendorATI;
-
   // Map for rediscovering the GLCapabilities associated with a
   // particular screen and visualID after the fact
   protected static Map visualToGLCapsMap = Collections.synchronizedMap(new HashMap());
+  // The screens for which we've already initialized it
+  protected static Set/*<Integer>*/ initializedScreenSet = Collections.synchronizedSet(new HashSet());
   
   public static class ScreenAndVisualIDKey {
     private int screen;
@@ -110,6 +107,21 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     return new X11OnscreenGLXDrawable(this, target);
   }
 
+  public void initializeVisualToGLCapabilitiesMap(int screen,
+                                                  XVisualInfo[] infos,
+                                                  GLCapabilities[] caps) {
+    Integer key = new Integer(screen);
+    if (!initializedScreenSet.contains(key)) {
+      for (int i = 0; i < infos.length; i++) {
+        if (caps[i] != null) {
+          visualToGLCapsMap.put(new ScreenAndVisualIDKey(screen, infos[i].visualid()),
+                                caps[i].clone());
+        }
+      }
+      initializedScreenSet.add(key);      
+    }
+  }
+
   public GLCapabilities lookupCapabilitiesByScreenAndVisualID(int screenIndex,
                                                               long visualID) {
     return (GLCapabilities) visualToGLCapsMap.get(new ScreenAndVisualIDKey(screenIndex, visualID));
@@ -128,7 +140,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     if (!pbufferSupportInitialized) {
       Runnable r = new Runnable() {
           public void run() {
-            long display = getDisplayConnection();
+            long display = X11Util.getDisplayConnection();
             lockToolkit();
             try {
               int[] major = new int[1];
@@ -245,7 +257,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     res.setAccumGreenBits(glXGetConfig(display, info, GLX.GLX_ACCUM_GREEN_SIZE, tmp, 0));
     res.setAccumBlueBits (glXGetConfig(display, info, GLX.GLX_ACCUM_BLUE_SIZE,  tmp, 0));
     res.setAccumAlphaBits(glXGetConfig(display, info, GLX.GLX_ACCUM_ALPHA_SIZE, tmp, 0));
-    if (isMultisampleAvailable()) {
+    if (X11Util.isMultisampleAvailable()) {
       res.setSampleBuffers(glXGetConfig(display, info, GLX.GLX_SAMPLE_BUFFERS, tmp, 0) != 0);
       res.setNumSamples   (glXGetConfig(display, info, GLX.GLX_SAMPLES,        tmp, 0));
     }
@@ -419,63 +431,6 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     return caps;
   }
 
-  // Display connection for use by visual selection algorithm and by all offscreen surfaces
-  private static long staticDisplay=0;
-  private static boolean xineramaEnabled=false;
-  private static boolean multisampleAvailable=false;
-  public static long getDisplayConnection() {
-    if (staticDisplay == 0) {
-      // FIXME: lockToolkit();
-      try {
-        staticDisplay = X11Lib.XOpenDisplay(null);
-        if (DEBUG && (staticDisplay != 0)) {
-          long display = staticDisplay;
-          int screen = X11Lib.DefaultScreen(display);
-          System.err.println("!!! GLX server vendor : " +
-                             GLX.glXQueryServerString(display, screen, GLX.GLX_VENDOR));
-          System.err.println("!!! GLX server version: " +
-                             GLX.glXQueryServerString(display, screen, GLX.GLX_VERSION));
-          System.err.println("!!! GLX client vendor : " +
-                             GLX.glXGetClientString(display, GLX.GLX_VENDOR));
-          System.err.println("!!! GLX client version: " +
-                             GLX.glXGetClientString(display, GLX.GLX_VERSION));
-        }
-
-        if (staticDisplay != 0) {
-          String vendor = GLX.glXGetClientString(staticDisplay, GLX.GLX_VENDOR);
-          if (vendor != null && vendor.startsWith("ATI")) {
-            isVendorATI = true;
-          }
-          xineramaEnabled = X11Lib.XineramaEnabled(staticDisplay);
-          String exts = GLX.glXGetClientString(staticDisplay, GLX.GLX_EXTENSIONS);
-          if (exts != null) {
-            multisampleAvailable = (exts.indexOf("GLX_ARB_multisample") >= 0);
-          }
-        }
-      } finally {
-        // FIXME: unlockToolkit();
-      }
-      if (staticDisplay == 0) {
-          throw new GLException("Unable to open default display, needed for visual selection and offscreen surface handling");
-      }
-    }
-    return staticDisplay;
-  }
-
-  public boolean isXineramaEnabled() {
-    if (staticDisplay == 0) {
-        getDisplayConnection(); // will set xineramaEnabled
-    }
-    return xineramaEnabled;
-  }
-
-  public boolean isMultisampleAvailable() {
-    if (staticDisplay == 0) {
-        getDisplayConnection(); // will set multisampleAvailable
-    }
-    return multisampleAvailable;
-  }
-
   private static String glXGetConfigErrorCode(int err) {
     switch (err) {
       case GLX.GLX_NO_EXTENSION:  return "GLX_NO_EXTENSION";
@@ -495,12 +450,6 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
       throw new GLException("glXGetConfig failed: error code " + glXGetConfigErrorCode(res));
     }
     return tmp[tmp_offset];
-  }
-
-  /** Workaround for apparent issue with ATI's proprietary drivers
-      where direct contexts still send GLX tokens for GL calls */
-  public static boolean isVendorATI() {
-    return isVendorATI;
   }
 
   private void maybeDoSingleThreadedWorkaround(Runnable action) {
@@ -534,7 +483,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
 
     int[] size = new int[1];
     lockToolkit();
-    long display = getDisplayConnection();
+    long display = X11Util.getDisplayConnection();
     boolean res = X11Lib.XF86VidModeGetGammaRampSize(display,
                                                   X11Lib.DefaultScreen(display),
                                                   size, 0);
@@ -554,7 +503,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     }
 
     lockToolkit();
-    long display = getDisplayConnection();
+    long display = X11Util.getDisplayConnection();
     boolean res = X11Lib.XF86VidModeSetGammaRamp(display,
                                               X11Lib.DefaultScreen(display),
                                               rampData.length,
@@ -578,7 +527,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     rampData.limit(3 * size);
     ShortBuffer blueRampData = rampData.slice();
     lockToolkit();
-    long display = getDisplayConnection();
+    long display = X11Util.getDisplayConnection();
     boolean res = X11Lib.XF86VidModeGetGammaRamp(display,
                                               X11Lib.DefaultScreen(display),
                                               size,
@@ -610,7 +559,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     rampData.limit(3 * size);
     ShortBuffer blueRampData = rampData.slice();
     lockToolkit();
-    long display = getDisplayConnection();
+    long display = X11Util.getDisplayConnection();
     X11Lib.XF86VidModeSetGammaRamp(display,
                                 X11Lib.DefaultScreen(display),
                                 size,

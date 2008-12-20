@@ -226,7 +226,7 @@ public class GLWindow extends Window implements GLAutoDrawable {
     public void setVisible(boolean visible) {
         window.setVisible(visible);
         if (visible && context == null) {
-            factory = GLDrawableFactory.getFactory(window);
+            factory = GLDrawableFactory.getFactory();
             drawable = factory.createGLDrawable(window, window.getChosenCapabilities(), null);
             window.setVisible(true);
             drawable.setRealized(true);

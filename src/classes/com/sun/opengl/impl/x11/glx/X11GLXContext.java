@@ -250,10 +250,7 @@ public abstract class X11GLXContext extends GLContextImpl {
     }
     if (glXQueryExtensionsStringAvailable) {
       GLDrawableFactoryImpl factory = getDrawableImpl().getFactoryImpl();
-      boolean wasLocked = factory.isToolkitLocked();
-      if(!wasLocked) {
-          factory.lockToolkit();
-      }
+      factory.lockToolkit();
       try {
         String ret = GLX.glXQueryExtensionsString(drawable.getNativeWindow().getDisplayHandle(), 
                                                   drawable.getNativeWindow().getScreenIndex());
@@ -262,9 +259,7 @@ public abstract class X11GLXContext extends GLContextImpl {
         }
         return ret;
       } finally {
-        if(!wasLocked) {
-            factory.unlockToolkit();
-        }
+        factory.unlockToolkit();
       }
     } else {
       return "";
@@ -339,7 +334,7 @@ public abstract class X11GLXContext extends GLContextImpl {
 
   public boolean isOptimizable() {
     return (super.isOptimizable() &&
-            !((X11GLXDrawableFactory)getGLDrawable().getFactory()).isVendorATI());
+            !X11Util.isVendorATI());
   }
 
   //----------------------------------------------------------------------

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -28,113 +28,191 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
- * You acknowledge that this software is not designed or intended for use
- * in the design, construction, operation or maintenance of any nuclear
- * facility.
- * 
- * Sun gratefully acknowledges that this software was originally authored
- * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
 package javax.media.opengl;
 
 import java.lang.reflect.*;
 import java.security.*;
+import java.util.*;
+
 import com.sun.opengl.impl.*;
 
-public class NativeWindowFactory {
-  private static Constructor awtFactory = null;
+/** Provides the link between the window toolkit and the Java binding
+    to the OpenGL API. The NativeWindowFactory, and NativeWindow
+    instances it creates, encompass all of the toolkit-specific
+    functionality, leaving the GLDrawableFactory independent of any
+    particular toolkit. */
 
-  /** Initializes the sole NativeWindowFactory instance . */
-  private static void initializeAWTFactory() throws GLException {
-    if (awtFactory == null) {
-        // Use the desktop OpenGL as the fallback always
+public abstract class NativeWindowFactory {
+    private static NativeWindowFactory defaultFactory;
+    private static HashMap/*<Class, NativeWindowFactory>*/ registeredFactories =
+        new HashMap();
+    private static Class nativeWindowClass;
+
+    /** Creates a new NativeWindowFactory instance. End users do not
+        need to call this method. */
+    protected NativeWindowFactory() {
+    }
+
+    static {
+        initialize();
+    }
+
+    private static void initialize() {
+        String osName = System.getProperty("os.name");
+        String osNameLowerCase = osName.toLowerCase();
+        String factoryClassName = null;
+
+        // We break compile-time dependencies on the AWT here to
+        // make it easier to run this code on mobile devices
+
+        NativeWindowFactory factory = new NativeWindowFactoryImpl();
+        nativeWindowClass = javax.media.opengl.NativeWindow.class;
+        registerFactory(nativeWindowClass, factory);
+        defaultFactory = factory;
+        
+        Class componentClass = null;
         try {
-          String osName = System.getProperty("os.name");
-          String osNameLowerCase = osName.toLowerCase();
-          String factoryClassName = null;
-
-          // Because there are some complications with generating all
-          // platforms' Java glue code on all platforms (among them that we
-          // would have to include jawt.h and jawt_md.h in the jogl
-          // sources, which we currently don't have to do) we break the only
-          // static dependencies with platform-specific code here using reflection.
-
-          if (osNameLowerCase.startsWith("wind")) {
-            factoryClassName = "com.sun.opengl.impl.jawt.windows.WindowsJAWTWindow";
-          } else if (osNameLowerCase.startsWith("mac os x")) {
-            factoryClassName = "com.sun.opengl.impl.jawt.macosx.MacOSXJAWTWindow";
-          } else {
-            // Assume Linux, Solaris, etc. Should probably test for these explicitly.
-            factoryClassName = "com.sun.opengl.impl.jawt.x11.X11JAWTWindow";
-          }
-
-          if (factoryClassName == null) {
-            throw new GLException("OS " + osName + " not yet supported");
-          }
-
-          awtFactory = GLReflection.getConstructor(factoryClassName, new Class[] { Object.class });
+            componentClass = Class.forName("java.awt.Component");
         } catch (Exception e) {
-          throw new GLException(e);
         }
-    }
-  }
-
-  /**
-   * Returns a NativeWindow.
-   *
-   * This method digest a window object 'winObj'.
-   * This can be either itself a NativeWindow, 
-   * or any other Java-level window toolkit window object.
-   *
-   * In case 'winObj' is a terminal NativeWindow, where
-   * {@link NativeWindow#isTerminalObject()} returns true,
-   * it is passed through directly.
-   *
-   * Otherwise either the non NativeWindow object,
-   * or the wrapped window object within the proxy NativeWindow
-   * will be used to factor a terminal NativeWindow.
-   *
-   * @throws IllegalArgumentException if the passed winObj is null
-   * @throws NativeWindowException if the passed winObj's is a proxy NativeWindow
-   *                               and does not hold a supported wrapped window object,
-   *                               or it is not a supported window object.
-   * @throws GLException if any window system-specific errors caused
-   *         the creation of the GLDrawable to fail.
-   */
-  public static NativeWindow getNativeWindow(Object winObj) 
-    throws IllegalArgumentException, GLException, NativeWindowException
-  {
-    if(null==winObj) {
-        throw new IllegalArgumentException("winObj is null");
-    }
-    if(winObj instanceof NativeWindow) {
-        NativeWindow nw = (NativeWindow) winObj;
-        if(nw.isTerminalObject()) {
-            return nw; // use the terminal NativeWindow object directly
+        if (componentClass != null) {
+            if (!osNameLowerCase.startsWith("wind") &&
+                !osNameLowerCase.startsWith("mac os x")) {
+                // Assume X11 platform -- should probably test for these explicitly
+                try {
+                    Constructor factoryConstructor =
+                        GLReflection.getConstructor("com.sun.opengl.impl.x11.glx.awt.X11AWTGLXNativeWindowFactory", new Class[] {});
+                    factory = (NativeWindowFactory) factoryConstructor.newInstance(null);
+                } catch (Exception e) {
+                }
+            }
+            registerFactory(componentClass, factory);
+            defaultFactory = factory;
         }
-        Object  wrappedWindow = nw.getWrappedWindow();
-        if(null==wrappedWindow) {
-            throw new NativeWindowException("Proxy NativeWindow holds no wrapped window: "+nw);
-        }
-        winObj = wrappedWindow;
     }
 
-    if (GLReflection.isAWTComponent(winObj)) {
-      initializeAWTFactory();
-      if(awtFactory == null) {
-          throw new GLException("Could not determine an AWT-NativeWindow constructor");
-      }
-      try {
-          return (NativeWindow) awtFactory.newInstance(new Object[] { winObj });
-      } catch (Exception ie) {
-          ie.printStackTrace();
-      }
+    /** Sets the default NativeWindowFactory. Certain operations on
+        X11 platforms require synchronization, and the implementation
+        of this synchronization may be specific to the window toolkit
+        in use. It is impractical to require that all of the APIs that
+        might require synchronization receive a {@link ToolkitLock
+        ToolkitLock} as argument. For this reason the concept of a
+        default NativeWindowFactory is introduced. The toolkit lock
+        provided via {@link #getToolkitLock getToolkitLock} from this
+        default NativeWindowFactory will be used for synchronization
+        within the Java binding to OpenGL. By default, if the AWT is
+        available, the default toolkit will support the AWT. */
+    public static void setDefaultFactory(NativeWindowFactory factory) {
+        defaultFactory = factory;
     }
-    throw new NativeWindowException("Target type is unsupported. Currently supported: \n"+
-                                    "\tjavax.media.opengl.NativeWindow\n"+
-                                    "\tjava.awt.Component\n");
-  }
+
+    /** Gets the default NativeWindowFactory. Certain operations on
+        X11 platforms require synchronization, and the implementation
+        of this synchronization may be specific to the window toolkit
+        in use. It is impractical to require that all of the APIs that
+        might require synchronization receive a {@link ToolkitLock
+        ToolkitLock} as argument. For this reason the concept of a
+        default NativeWindowFactory is introduced. The toolkit lock
+        provided via {@link #getToolkitLock getToolkitLock} from this
+        default NativeWindowFactory will be used for synchronization
+        within the Java binding to OpenGL. By default, if the AWT is
+        available, the default toolkit will support the AWT. */
+    public static NativeWindowFactory getDefaultFactory() {
+        return defaultFactory;
+    }
+
+    /** Returns the appropriate NativeWindowFactory to handle window
+        objects of the given type. The windowClass might be {@link
+        NativeWindow NativeWindow}, in which case the client has
+        already assumed the responsibility of creating a compatible
+        NativeWindow implementation, or it might be that of a toolkit
+        class like {@link java.awt.Component Component}. */
+    public static NativeWindowFactory getFactory(Class windowClass) throws IllegalArgumentException {
+        if (nativeWindowClass.isAssignableFrom(windowClass)) {
+            return (NativeWindowFactory) registeredFactories.get(nativeWindowClass);
+        }
+        Class clazz = windowClass;
+        while (clazz != null) {
+            NativeWindowFactory factory = (NativeWindowFactory) registeredFactories.get(clazz);
+            if (factory != null) {
+                return factory;
+            }
+            clazz = clazz.getSuperclass();
+        }
+        throw new IllegalArgumentException("No registered NativeWindowFactory for class " + windowClass.getName());
+    }
+
+    /** Registers a NativeWindowFactory handling window objects of the
+        given class. This does not need to be called by end users,
+        only implementors of new NativeWindowFactory subclasses.. */
+    protected static void registerFactory(Class windowClass, NativeWindowFactory factory) {
+        registeredFactories.put(windowClass, factory);
+    }
+
+    /** Converts the given window object into a {@link NativeWindow
+        NativeWindow} which can be operated upon by the {@link
+        GLDrawableFactory GLDrawableFactory}. The object may be a
+        component for a particular window toolkit, such as an AWT
+        Canvas. It may also be a NativeWindow object, in which no
+        conversion is necessary. The particular implementation of the
+        NativeWindowFactory is responsible for handling objects from a
+        particular window toolkit. The built-in NativeWindowFactory
+        handles NativeWindow instances as well as AWT Components.
+    
+        @throws IllegalArgumentException if the given window object
+        could not be handled by any of the registered
+        NativeWindowFactory instances
+    */
+    public static NativeWindow getNativeWindow(Object winObj) throws IllegalArgumentException, NativeWindowException {
+        if (winObj == null) {
+            throw new IllegalArgumentException("Null window object");
+        }
+
+        return getFactory(winObj.getClass()).getNativeWindowImpl(winObj);
+    }
+
+    /**
+     * <P> Selects a graphics configuration on the specified graphics
+     * device compatible with the supplied GLCapabilities. This method
+     * is intended to be used by applications which do not use the
+     * supplied GLCanvas class but instead wrap their own Canvas or
+     * other window toolkit-specific object with a GLDrawable. Some
+     * platforms (specifically X11) require the graphics configuration
+     * to be specified when the window toolkit object is created. This
+     * method may return null on platforms on which the OpenGL pixel
+     * format selection process is performed later. </P>
+     *
+     * <P> The concrete data type of the passed graphics device and
+     * returned graphics configuration must be specified in the
+     * documentation binding this particular API to the underlying
+     * window toolkit. The Reference Implementation accepts {@link
+     * AWTGraphicsDevice AWTGraphicsDevice} objects and returns {@link
+     * AWTGraphicsConfiguration AWTGraphicsConfiguration} objects. </P>
+     *
+     * @see java.awt.Canvas#Canvas(java.awt.GraphicsConfiguration)
+     *
+     * @throws IllegalArgumentException if the data type of the passed
+     *         AbstractGraphicsDevice is not supported by this
+     *         NativeWindowFactory.
+     * @throws GLException if any window system-specific errors caused
+     *         the selection of the graphics configuration to fail.
+     */
+    public abstract AbstractGraphicsConfiguration
+        chooseGraphicsConfiguration(GLCapabilities capabilities,
+                                    GLCapabilitiesChooser chooser,
+                                    AbstractGraphicsDevice device)
+        throws IllegalArgumentException, GLException;
+
+    /** Performs the conversion from a toolkit's window object to a
+        NativeWindow. Implementors of concrete NativeWindowFactory
+        subclasses should override this method. */
+    protected abstract NativeWindow getNativeWindowImpl(Object winObj) throws IllegalArgumentException;
+
+    /** Returns the object which provides support for synchronizing
+        with the underlying window toolkit. On most platforms the
+        returned object does nothing; currently it only has effects on
+        X11 platforms. */
+    public abstract ToolkitLock getToolkitLock();
 }
-

@@ -68,17 +68,12 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
   }
 
   public void destroy() {
-    getFactoryImpl().lockToolkit();
-    try {
-        if (this.pBuffer != 0) {
-          impl.destroy(pBuffer);
-          this.pBuffer = 0;
-          if (DEBUG) {
-            System.err.println("Destroyed pbuffer: " + pBuffer);
-          }
-        }
-    } finally {
-        getFactoryImpl().unlockToolkit();
+    if (this.pBuffer != 0) {
+      impl.destroy(pBuffer);
+      this.pBuffer = 0;
+      if (DEBUG) {
+        System.err.println("Destroyed pbuffer: " + pBuffer);
+      }
     }
     super.destroy();
   }
@@ -93,47 +88,42 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
 
   private void createPbuffer() {
     NullWindow nw = (NullWindow) getNativeWindow();
-    getFactoryImpl().lockToolkit();
-    try {
-        int renderTarget;
-        GLCapabilities capabilities = getRequestedGLCapabilities();
-        if (GLProfile.isGL2() && capabilities.getPbufferRenderToTextureRectangle()) {
-          renderTarget = GL2.GL_TEXTURE_RECTANGLE;
-        } else {
-          int w = getNextPowerOf2(getWidth());
-          int h = getNextPowerOf2(getHeight());
-          nw.setSize(w, h);
-          renderTarget = GL.GL_TEXTURE_2D;
-        }
+    int renderTarget;
+    GLCapabilities capabilities = getRequestedGLCapabilities();
+    if (GLProfile.isGL2() && capabilities.getPbufferRenderToTextureRectangle()) {
+      renderTarget = GL2.GL_TEXTURE_RECTANGLE;
+    } else {
+      int w = getNextPowerOf2(getWidth());
+      int h = getNextPowerOf2(getHeight());
+      nw.setSize(w, h);
+      renderTarget = GL.GL_TEXTURE_2D;
+    }
 
-        int internalFormat = GL.GL_RGBA;
-        if (capabilities.getPbufferFloatingPointBuffers()) {
-          // FIXME: want to check availability of GL_APPLE_float_pixels
-          // extension, but need valid OpenGL context in order to do so --
-          // in worst case would need to create dummy window / GLCanvas
-          // (undesirable) -- could maybe also do this with pbuffers
-          /*
-          if (!gl.isExtensionAvailable("GL_APPLE_float_pixels")) {
+    int internalFormat = GL.GL_RGBA;
+    if (capabilities.getPbufferFloatingPointBuffers()) {
+      // FIXME: want to check availability of GL_APPLE_float_pixels
+      // extension, but need valid OpenGL context in order to do so --
+      // in worst case would need to create dummy window / GLCanvas
+      // (undesirable) -- could maybe also do this with pbuffers
+      /*
+        if (!gl.isExtensionAvailable("GL_APPLE_float_pixels")) {
         throw new GLUnsupportedException("Floating-point support (GL_APPLE_float_pixels) not available");
-          }
-          */
-          if(GLProfile.isGL2()) {
-              switch (capabilities.getRedBits()) {
-                case 16: internalFormat = GL2.GL_RGBA_FLOAT16_APPLE; break;
-                case 32: internalFormat = GL2.GL_RGBA_FLOAT32_APPLE; break;
-                default: throw new GLException("Invalid floating-point bit depth (only 16 and 32 supported)");
-              }
-          } else {
-              internalFormat = GL.GL_RGBA;
-          }
         }
+      */
+      if(GLProfile.isGL2()) {
+        switch (capabilities.getRedBits()) {
+        case 16: internalFormat = GL2.GL_RGBA_FLOAT16_APPLE; break;
+        case 32: internalFormat = GL2.GL_RGBA_FLOAT32_APPLE; break;
+        default: throw new GLException("Invalid floating-point bit depth (only 16 and 32 supported)");
+        }
+      } else {
+        internalFormat = GL.GL_RGBA;
+      }
+    }
             
-        pBuffer = impl.create(renderTarget, internalFormat, getWidth(), getHeight());
-        if (pBuffer == 0) {
-          throw new GLException("pbuffer creation error: CGL.createPBuffer() failed");
-        }
-    } finally {
-        getFactoryImpl().unlockToolkit();
+    pBuffer = impl.create(renderTarget, internalFormat, getWidth(), getHeight());
+    if (pBuffer == 0) {
+      throw new GLException("pbuffer creation error: CGL.createPBuffer() failed");
     }
         
     if (DEBUG) {

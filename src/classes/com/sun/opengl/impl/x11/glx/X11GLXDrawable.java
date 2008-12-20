@@ -105,11 +105,7 @@ public abstract class X11GLXDrawable extends GLDrawableImpl {
       template.screen(screen);
       XVisualInfo[] infos = null;
       GLCapabilities[] caps = null;
-      boolean didLock = false;
-      if (!getFactoryImpl().isToolkitLocked()) {
-        getFactoryImpl().lockToolkit();
-        didLock = true;
-      }
+      getFactoryImpl().lockToolkit();
       try {
         infos = X11Lib.XGetVisualInfo(display, X11Lib.VisualScreenMask, template, count, 0);
         if (infos == null) {
@@ -120,9 +116,7 @@ public abstract class X11GLXDrawable extends GLDrawableImpl {
           caps[i] = ((X11GLXDrawableFactory)getFactory()).xvi2GLCapabilities(display, infos[i]);
         }
       } finally {
-        if (didLock) {
-          getFactoryImpl().unlockToolkit();
-        }
+        getFactoryImpl().unlockToolkit();
       }
       GLCapabilities capabilities = getRequestedGLCapabilities();
       int chosen = chooser.chooseCapabilities(capabilities, caps, -1);

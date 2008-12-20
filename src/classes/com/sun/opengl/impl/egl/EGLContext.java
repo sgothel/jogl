@@ -247,10 +247,7 @@ public class EGLContext extends GLContextImpl {
         }
         if (eglQueryStringAvailable) {
           GLDrawableFactoryImpl factory = getDrawableImpl().getFactoryImpl();
-          boolean wasLocked = factory.isToolkitLocked();
-          if(!wasLocked) {
-              factory.lockToolkit();
-          }
+          factory.lockToolkit();
           try {
             String ret = EGL.eglQueryString(drawable.getNativeWindow().getDisplayHandle(), 
                                             EGL.EGL_EXTENSIONS);
@@ -259,9 +256,7 @@ public class EGLContext extends GLContextImpl {
             }
             return ret;
           } finally {
-            if(!wasLocked) {
-                factory.unlockToolkit();
-            }
+            factory.unlockToolkit();
           }
         } else {
           return "";

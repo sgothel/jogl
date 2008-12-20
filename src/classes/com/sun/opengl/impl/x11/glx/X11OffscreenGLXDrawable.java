@@ -54,6 +54,7 @@ public class X11OffscreenGLXDrawable extends X11GLXDrawable {
                                     int height) {
     super(factory, new NullWindow(), true, requestedCapabilities, chooser);
     ((NullWindow) getNativeWindow()).setSize(width, height);
+    create();
   }
 
   public GLContext createContext(GLContext shareWith) {
@@ -62,7 +63,7 @@ public class X11OffscreenGLXDrawable extends X11GLXDrawable {
   
   private void create() {
     NullWindow nw = (NullWindow) getNativeWindow();
-    long dpy = X11GLXDrawableFactory.getDisplayConnection();
+    long dpy = X11Util.getDisplayConnection();
     nw.setDisplayHandle(dpy);
     XVisualInfo vis = chooseVisual(false);
     int bitsPerPixel = vis.depth();

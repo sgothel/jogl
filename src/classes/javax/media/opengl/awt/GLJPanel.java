@@ -145,7 +145,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
                              getDefaultConfiguration());
     }
     GLProfile.setProfile(GLProfile.GL2);
-    factory = GLDrawableFactoryImpl.getFactoryImpl(Component.class);
+    factory = GLDrawableFactoryImpl.getFactoryImpl();
   }
 
   /** Creates a new GLJPanel component with a default set of OpenGL
