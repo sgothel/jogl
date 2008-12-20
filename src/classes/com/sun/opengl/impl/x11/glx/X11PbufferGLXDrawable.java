@@ -119,6 +119,9 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
                                                                          true, display, screen);
 
       int[] nelementsTmp = new int[1];
+      // FIXME: we inherently leak the memory from the underlying call
+      // to glXChooseFBConfig because a copy of the original Buffer is
+      // made to expand each pointer from 32 to 64 bits
       LongBuffer fbConfigs = GLX.glXChooseFBConfig(display, screen, iattributes, 0, nelementsTmp, 0);
       if (fbConfigs == null || fbConfigs.limit() == 0 || fbConfigs.get(0) == 0) {
         throw new GLException("pbuffer creation error: glXChooseFBConfig() failed");

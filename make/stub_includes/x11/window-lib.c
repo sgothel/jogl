@@ -31,6 +31,10 @@ extern int XFreePixmap(
     Pixmap		/* pixmap */
 );
 
+extern int XFree(
+    void*		/* data */
+);
+
 // Helper routine for querying whether Xinerama is enabled.
 Bool XineramaEnabled(Display* display);
 
