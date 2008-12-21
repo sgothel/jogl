@@ -138,9 +138,5 @@ public interface GLDrawable {
 
   public GLDrawableFactory getFactory();
 
-  public int lockSurface() throws GLException;
-  public void unlockSurface();
-  public boolean isSurfaceLocked();
-
   public String toString();
 }

@@ -477,18 +477,6 @@ public class GLWindow extends Window implements GLAutoDrawable {
         return drawable.getNativeWindow();
     }
 
-    public int lockSurface() throws GLException {
-        return drawable.lockSurface();
-    }
-
-    public void unlockSurface() {
-        drawable.unlockSurface();
-    }
-
-    public boolean isSurfaceLocked() {
-        return drawable.isSurfaceLocked();
-    }
-
     //----------------------------------------------------------------------
     // Internals only below this point
     //

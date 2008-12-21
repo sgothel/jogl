@@ -396,15 +396,6 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
     return factory;
   }
 
-  public int lockSurface() throws GLException {
-    throw new GLException("FIXME");
-  }
-  public void unlockSurface() {
-    throw new GLException("FIXME");
-  }
-  public boolean isSurfaceLocked() {
-    throw new GLException("FIXME");
-  }
   public void destroy() {
     throw new GLException("FIXME");
   }

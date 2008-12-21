@@ -418,18 +418,6 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
     return drawable.getFactory();
   }
 
-  public int lockSurface() throws GLException {
-    return drawable.lockSurface();
-  }
-
-  public void unlockSurface() {
-    drawable.unlockSurface();
-  }
-
-  public boolean isSurfaceLocked() {
-    return drawable.isSurfaceLocked();
-  }
-
   public void destroy() {
     drawable.destroy();
   }
