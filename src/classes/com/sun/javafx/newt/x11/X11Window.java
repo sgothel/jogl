@@ -54,10 +54,6 @@ public class X11Window extends Window {
     public X11Window() {
     }
 
-    public final boolean isTerminalObject() {
-        return true;
-    }
-
     protected void createNative(GLCapabilities caps) {
         chosenCaps = (GLCapabilities) caps.clone(); // FIXME: visualID := f1(caps); caps := f2(visualID)
         visualID = 0; // n/a

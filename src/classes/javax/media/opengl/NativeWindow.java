@@ -39,25 +39,20 @@
 
 package javax.media.opengl;
 
-/** Interface for a native window object.
-    This can be a representation of a fully functional 
-    native window, i.e. a terminal object, where
-    {@link NativeWindow#isTerminalObject()} returns true.
-    Otherwise it is a a proxy for a wrapped
-    Java-level window toolkit window object (e.g. java.awt.Component),
-    which can be retrieved with 
-    {@link NativeWindow#getWrappedWindow()}.
-    
-    In case the NativeWindow is a terminal object,
-    where the NativeWindow implementation took care of exposing
-    all necessary native windowing information,
-    the utilizing toolkit (e.g. JOGL) will use a generic implementation
-    and use the native information directly.
+/** Provides the mechanism by which the Java / OpenGL binding
+    interacts with windows. A window toolkit such as the AWT may
+    either implement this interface directly with one of its
+    components, or provide and register an implementation of {@link
+    NativeWindowFactory NativeWindowFactory} which can create
+    NativeWindow objects for its components. <P>
 
-    In case the NativeWindow is a proxy object, 
-    where no native windowing information is available yet,
-    the utilizing toolkit (e.g. JOGL) is expected to have a specific implementation
-    path to handle the wrapped Java-level window toolkit window object. */
+    A NativeWindow created for a particular on-screen component is
+    expected to have the same lifetime as that component. As long as
+    the component is alive, the NativeWindow must be able to control
+    it, and any time it is visible and locked, provide information
+    such as the window handle to the Java / OpenGL binding so that
+    GLDrawables and GLContexts may be created for the window.
+*/
 
 public interface NativeWindow {
   public static final int LOCK_NOT_SUPPORTED = 0;
@@ -116,20 +111,6 @@ public interface NativeWindow {
    */
   public long getVisualID();
   public int  getScreenIndex();
-
-  /**
-   * If this NativeWindow actually wraps a window from a Java-level
-   * window toolkit, return the underlying window object.
-   */
-  public Object getWrappedWindow();
-
-  /**
-   * @return True, if this NativeWindow is a terminal object,
-   * i.e. all native windowing information is available.
-   * False otherwise, ie. it holds a wrapped window object,
-   * from which native handles must be derived by the utilizing tookit.
-   */
-  public boolean isTerminalObject();
 
   /** Returns the current width of this window. */
   public int getWidth();

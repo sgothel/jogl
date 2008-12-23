@@ -126,11 +126,6 @@ public class GLWindow extends Window implements GLAutoDrawable {
         return new GLWindow(window);
     }
     
-    public boolean isTerminalObject() {
-        shouldNotCallThis();
-        return false;
-    }
-
     protected void createNative(GLCapabilities caps) {
         shouldNotCallThis();
     }
@@ -227,7 +222,11 @@ public class GLWindow extends Window implements GLAutoDrawable {
         window.setVisible(visible);
         if (visible && context == null) {
             factory = GLDrawableFactory.getFactory();
-            drawable = factory.createGLDrawable(window, window.getChosenCapabilities(), null);
+            NativeWindow nw = window;
+            if (window.getWrappedWindow() != null) {
+                nw = NativeWindowFactory.getNativeWindow(window.getWrappedWindow());
+            }
+            drawable = factory.createGLDrawable(nw, window.getChosenCapabilities(), null);
             window.setVisible(true);
             drawable.setRealized(true);
             context = drawable.createContext(null);

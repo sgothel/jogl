@@ -65,10 +65,6 @@ public class MacWindow extends Window {
         return 0;
     }
     
-    public final boolean isTerminalObject() {
-        return true;
-    }
-    
     public final int getDisplayWidth() {
         return 640;
     }

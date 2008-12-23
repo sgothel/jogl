@@ -43,17 +43,12 @@ public class NativeWindowFactoryImpl extends NativeWindowFactory {
     // This subclass of NativeWindowFactory handles the case of
     // NativeWindows and AWT Components being passed in
     protected NativeWindow getNativeWindowImpl(Object winObj) throws IllegalArgumentException {
-        if (null==winObj) {
+        if (null == winObj) {
             throw new IllegalArgumentException("winObj is null");
         }
         if (winObj instanceof NativeWindow) {
-            NativeWindow nw = (NativeWindow) winObj;
-            Object wrappedWindow = nw.getWrappedWindow();
-            if (wrappedWindow == null) {
-                // Use the NativeWindow directly
-                return nw;
-            }
-            winObj = wrappedWindow;
+            // Use the NativeWindow directly
+            return (NativeWindow) winObj;
         }
 
         if (GLReflection.isAWTComponent(winObj)) {

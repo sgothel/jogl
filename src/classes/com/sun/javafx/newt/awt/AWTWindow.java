@@ -83,10 +83,6 @@ public class AWTWindow extends Window {
     private int displayWidth;
     private int displayHeight;
 
-    public final boolean isTerminalObject() {
-        return false;
-    }
-
     public void setTitle(String title) {
         super.setTitle(title);
         if (frame != null) {

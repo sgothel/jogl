@@ -56,10 +56,6 @@ public class KDWindow extends Window {
     public KDWindow() {
     }
 
-    public final boolean isTerminalObject() {
-        return true;
-    }
-
     protected void createNative(GLCapabilities caps) {
         int eglRenderableType;
         if(GLProfile.isGLES1()) {

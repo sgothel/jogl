@@ -82,7 +82,6 @@ public interface GLDrawable {
   public GLContext createContext(GLContext shareWith);
 
   /**
-
    * Indicates to on-screen GLDrawable implementations whether the
    * underlying window has been created and can be drawn into. This
    * method must be called from GLDrawables obtained from the
@@ -99,7 +98,7 @@ public interface GLDrawable {
    * by the implementation. It is not necessary to call
    * <code>setRealized</code> on a GLCanvas, a GLJPanel, or a
    * GLPbuffer, as these perform the appropriate calls on their
-   * underlying GLDrawables internally..
+   * underlying GLDrawables internally.
    */
   public void setRealized(boolean realized);
 

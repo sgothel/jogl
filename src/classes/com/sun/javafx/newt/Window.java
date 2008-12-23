@@ -112,8 +112,6 @@ public abstract class Window implements NativeWindow
         }
     }
 
-    public abstract boolean isTerminalObject();
-
     /**
      * Create native windowHandle, ie creates a new native invisible window
      *
@@ -155,7 +153,6 @@ public abstract class Window implements NativeWindow
                     ", pos "+getX()+"/"+getY()+", size "+getWidth()+"x"+getHeight()+
                     ", visible "+isVisible()+
                     ", wrappedWindow "+getWrappedWindow()+
-                    ", terminalObject "+isTerminalObject()+
                     ", visualID "+visualID+
                     ", "+chosenCaps+
                     ", screen handle/index "+getScreenHandle()+"/"+getScreenIndex() +
@@ -297,6 +294,8 @@ public abstract class Window implements NativeWindow
         return height;
     }
 
+    /** If this Window actually wraps one from another toolkit such as
+        the AWT, this will return a non-null value. */
     public Object getWrappedWindow() {
         return null;
     }
