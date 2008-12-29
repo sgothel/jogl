@@ -96,6 +96,5 @@ public class WindowsDummyWGLDrawable extends WindowsWGLDrawable {
       WGL.DestroyWindow(hwnd);
       hwnd = 0;
     }
-    super.destroy();
   }
 }

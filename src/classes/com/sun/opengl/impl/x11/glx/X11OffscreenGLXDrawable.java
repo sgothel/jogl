@@ -133,7 +133,6 @@ public class X11OffscreenGLXDrawable extends X11GLXDrawable {
     } finally {
       getFactoryImpl().unlockToolkit();
     }
-    super.destroy();
   }
 
   public boolean isDoubleBuffered() {

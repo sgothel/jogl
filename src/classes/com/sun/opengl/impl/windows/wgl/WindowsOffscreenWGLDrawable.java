@@ -122,6 +122,5 @@ public class WindowsOffscreenWGLDrawable extends WindowsWGLDrawable {
       nw.setSurfaceHandle(0);
       setChosenGLCapabilities(null);
     }
-    super.destroy();
   }
 }

@@ -96,7 +96,6 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
       buffer = 0;
       setChosenGLCapabilities(null);
     }
-    super.destroy();
   }
 
   public long getPbuffer() {

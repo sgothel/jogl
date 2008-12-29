@@ -396,10 +396,6 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
     return factory;
   }
 
-  public void destroy() {
-    throw new GLException("FIXME");
-  }
-
   //----------------------------------------------------------------------
   // Internals only below this point
   //

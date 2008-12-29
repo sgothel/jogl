@@ -418,10 +418,6 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
     return drawable.getFactory();
   }
 
-  public void destroy() {
-    drawable.destroy();
-  }
-
   //----------------------------------------------------------------------
   // Internals only below this point
   //

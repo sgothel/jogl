@@ -142,7 +142,7 @@ public class GLWindow extends Window implements GLAutoDrawable {
             context.destroy();
         }
         if (drawable != null) {
-            drawable.destroy();
+            drawable.setRealized(false);
         }
 
         window.close();
@@ -461,10 +461,6 @@ public class GLWindow extends Window implements GLAutoDrawable {
     public void setRealized(boolean realized) {
     }
 
-    public void destroy() {
-        close();
-    }
-    
     public GLCapabilities getChosenGLCapabilities() {
         if (drawable == null)
             return null;

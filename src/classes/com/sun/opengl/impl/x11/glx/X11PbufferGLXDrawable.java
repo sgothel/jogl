@@ -90,7 +90,6 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
     } finally {
         getFactoryImpl().unlockToolkit();
     }
-    super.destroy();
   }
 
   private void createPbuffer() {

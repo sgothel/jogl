@@ -61,8 +61,8 @@ public abstract class GLDrawableImpl implements GLDrawable {
 
   /** For offscreen GLDrawables (pbuffers and "pixmap" drawables),
       indicates that native resources should be reclaimed. */
-  public void destroy() throws GLException {
-    setRealized(false);
+  public void destroy() {
+    throw new GLException("Should not call this (should only be called for offscreen GLDrawables)");
   }
 
   public void swapBuffers() throws GLException {

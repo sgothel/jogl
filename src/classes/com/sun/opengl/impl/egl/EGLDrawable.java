@@ -56,46 +56,10 @@ public class EGLDrawable extends GLDrawableImpl {
         surface=EGL.EGL_NO_SURFACE;
         display=0;
         config=null;
-
-        if( GLReflection.instanceOf(component, "com.sun.javafx.newt.kd.KDWindow") ) {
-            // KDWindows holds already determined EGL values
-            display = component.getDisplayHandle();
-            if(display==0) {
-                throw new GLException("KDWindow has null display");
-            }
-            if (display == EGL.EGL_NO_DISPLAY) {
-                throw new GLException("KDWindow has EGL_NO_DISPLAY");
-            }
-            Long setConfigID = new Long(component.getVisualID());
-            if( 0 <= setConfigID.longValue() && setConfigID.longValue() <= Integer.MAX_VALUE ) {
-                config = new EGLConfig(display, setConfigID.intValue());
-            } else {
-                throw new GLException("KDWindow has invalid visualID/configID");
-            }
-        } else {
-            display = EGL.eglGetDisplay((0!=component.getDisplayHandle())?component.getDisplayHandle():EGL.EGL_DEFAULT_DISPLAY);
-            if (display == EGL.EGL_NO_DISPLAY) {
-                throw new GLException("eglGetDisplay failed");
-            }
-            if (!EGL.eglInitialize(display, null, null)) {
-                throw new GLException("eglInitialize failed");
-            }
-            config = new EGLConfig(display, requestedCapabilities);
-        }
-        setChosenGLCapabilities(config.getCapabilities());
     }
 
     public long getDisplay() {
         return display;
-    }
-
-    public void destroy() {
-        setRealized(false);
-        if(EGL.EGL_NO_DISPLAY!=display) {
-            EGL.eglTerminate(display);
-            display=EGL.EGL_NO_DISPLAY;
-        }
-        super.destroy();
     }
 
     public EGLConfig getEGLConfig() {
@@ -127,17 +91,42 @@ public class EGLDrawable extends GLDrawableImpl {
 
     public void setRealized(boolean realized) {
         if (realized) {
-            // setSurface();
-        } else if( surface != EGL.EGL_NO_SURFACE ) {
+            if (GLReflection.instanceOf(component, "com.sun.javafx.newt.kd.KDWindow")) {
+                // KDWindows holds already determined EGL values
+                display = component.getDisplayHandle();
+                if (display==0) {
+                    throw new GLException("KDWindow has null display");
+                }
+                if (display == EGL.EGL_NO_DISPLAY) {
+                    throw new GLException("KDWindow has EGL_NO_DISPLAY");
+                }
+                Long setConfigID = new Long(component.getVisualID());
+                if ( 0 <= setConfigID.longValue() && setConfigID.longValue() <= Integer.MAX_VALUE ) {
+                    config = new EGLConfig(display, setConfigID.intValue());
+                } else {
+                    throw new GLException("KDWindow has invalid visualID/configID");
+                }
+            } else {
+                display = EGL.eglGetDisplay((0!=component.getDisplayHandle())?component.getDisplayHandle():EGL.EGL_DEFAULT_DISPLAY);
+                if (display == EGL.EGL_NO_DISPLAY) {
+                    throw new GLException("eglGetDisplay failed");
+                }
+                if (!EGL.eglInitialize(display, null, null)) {
+                    throw new GLException("eglInitialize failed");
+                }
+                config = new EGLConfig(display, getRequestedGLCapabilities());
+            }
+            setChosenGLCapabilities(config.getCapabilities());
+        } else if (surface != EGL.EGL_NO_SURFACE) {
             // Destroy the window surface
-            // FIXME: we should expose a destroy() method on
-            // GLDrawable and get rid of setRealized(), instead
-            // destroying and re-creating the GLDrawable associated
-            // with for example a GLCanvas each time
             if (!EGL.eglDestroySurface(display, surface)) {
                 throw new GLException("Error destroying window surface (eglDestroySurface)");
             }
             surface = EGL.EGL_NO_SURFACE;
+            if (EGL.EGL_NO_DISPLAY!=display) {
+                EGL.eglTerminate(display);
+                display=EGL.EGL_NO_DISPLAY;
+            }
         }
         super.setRealized(realized);
     }

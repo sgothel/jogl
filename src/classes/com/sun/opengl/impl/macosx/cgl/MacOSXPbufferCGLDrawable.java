@@ -75,7 +75,6 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
         System.err.println("Destroyed pbuffer: " + pBuffer);
       }
     }
-    super.destroy();
   }
 
   public long getPbuffer() {
