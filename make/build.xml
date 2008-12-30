@@ -235,7 +235,7 @@
         </condition>
 
         <condition property="java.excludes.gl2"
-                   value="${java.part.gl2es12.x11}, ${java.part.gl2es12.win}, ${java.part.gl2es12.osx},  ${java.part.gl2es12.dbg}, ${java.part.gl2.x11}, ${java.part.gl2.win}, ${java.part.gl2.osx}, ${java.part.gl2.dbg}, ${java.part.util.gl2}, ${java.part.glugl2}">
+                   value="${java.part.gl2es12.x11}, ${java.part.gl2es12.win}, ${java.part.gl2es12.osx}, ${java.part.gl2es12.dbg}, ${java.part.gl2.x11}, ${java.part.gl2.win}, ${java.part.gl2.osx}, ${java.part.gl2.dbg}, ${java.part.util.gl2}, ${java.part.glugl2}">
            <isset property="jogl.nogl2"/> 
         </condition>
 
@@ -280,7 +280,7 @@
         </condition>
 
         <condition property="java.excludes.cdcfp"
-                   value="com/sun/opengl/util/io/TGAWriter*, com/sun/opengl/util/texture/spi/awt/**">
+                   value="com/sun/opengl/util/AWTAnimatorImpl*, com/sun/opengl/util/io/TGAWriter*, com/sun/opengl/util/texture/spi/awt/**">
            <isset property="jogl.cdcfp"/> 
         </condition>
 

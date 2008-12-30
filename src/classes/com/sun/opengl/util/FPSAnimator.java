@@ -37,7 +37,7 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package javax.media.opengl.util;
+package com.sun.opengl.util;
 
 import java.util.*;
 import javax.media.opengl.*;
