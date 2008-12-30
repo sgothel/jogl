@@ -37,7 +37,7 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.sun.opengl.util.awt.gl2;
+package com.sun.opengl.util.awt;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -52,9 +52,6 @@ import javax.media.opengl.glu.gl2.*;
 import com.sun.opengl.util.texture.*;
 import com.sun.opengl.util.texture.spi.*;
 import com.sun.opengl.util.texture.awt.*;
-import com.sun.opengl.util.gl2.*;
-import com.sun.opengl.util.awt.*;
-import com.sun.opengl.util.awt.gl2.*;
 
 /** Provides the ability to render into an OpenGL {@link
     com.sun.opengl.util.texture.Texture Texture} using the Java 2D
@@ -63,7 +60,7 @@ import com.sun.opengl.util.awt.gl2.*;
     that image to an OpenGL texture on demand. The resulting OpenGL
     texture can then be mapped on to a polygon for display. */
 
-public class GL2TextureRenderer {
+public class TextureRenderer {
   // For now, we supply only a BufferedImage back-end for this
   // renderer. In theory we could use the Java 2D/JOGL bridge to fully
   // accelerate the rendering paths, but there are restrictions on
@@ -112,7 +109,7 @@ public class GL2TextureRenderer {
       @param height the height of the texture to render into
       @param alpha whether to allocate an alpha channel for the texture
   */
-  public GL2TextureRenderer(int width, int height, boolean alpha) {
+  public TextureRenderer(int width, int height, boolean alpha) {
     this(width, height, alpha, false);
   }
 
@@ -127,13 +124,13 @@ public class GL2TextureRenderer {
       @param alpha whether to allocate an alpha channel for the texture
       @param mipmap whether to attempt use of automatic mipmap generation
   */
-  public GL2TextureRenderer(int width, int height, boolean alpha, boolean mipmap) {
+  public TextureRenderer(int width, int height, boolean alpha, boolean mipmap) {
     this(width, height, alpha, false, mipmap);
   }
 
   // Internal constructor to avoid confusion since alpha only makes
   // sense when intensity is not set
-  private GL2TextureRenderer(int width, int height, boolean alpha, boolean intensity, boolean mipmap) {
+  private TextureRenderer(int width, int height, boolean alpha, boolean intensity, boolean mipmap) {
     this.alpha = alpha;
     this.intensity = intensity;
     this.mipmap = mipmap;
@@ -144,7 +141,7 @@ public class GL2TextureRenderer {
       which acts only as an alpha channel. No mipmap support is
       requested. Internally, this associates a GL_INTENSITY OpenGL
       texture with the backing store. */
-  public static GL2TextureRenderer createAlphaOnlyRenderer(int width, int height) {
+  public static TextureRenderer createAlphaOnlyRenderer(int width, int height) {
     return createAlphaOnlyRenderer(width, height, false);
   }
 
@@ -154,8 +151,8 @@ public class GL2TextureRenderer {
       better smoothing when rendering the TextureRenderer's contents
       at a distance. Internally, this associates a GL_INTENSITY OpenGL
       texture with the backing store. */
-  public static GL2TextureRenderer createAlphaOnlyRenderer(int width, int height, boolean mipmap) {
-    return new GL2TextureRenderer(width, height, false, true, mipmap);
+  public static TextureRenderer createAlphaOnlyRenderer(int width, int height, boolean mipmap) {
+    return new TextureRenderer(width, height, false, true, mipmap);
   }
 
   /** Returns the width of the backing store of this renderer.

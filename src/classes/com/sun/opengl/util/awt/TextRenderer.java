@@ -36,7 +36,7 @@
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
-package com.sun.opengl.util.awt.gl2;
+package com.sun.opengl.util.awt;
 
 import com.sun.opengl.impl.*;
 import com.sun.opengl.impl.packrect.*;
@@ -44,9 +44,6 @@ import com.sun.opengl.util.*;
 import com.sun.opengl.util.io.*;
 import com.sun.opengl.util.texture.*;
 import com.sun.opengl.util.texture.awt.*;
-import com.sun.opengl.util.gl2.*;
-import com.sun.opengl.util.awt.*;
-import com.sun.opengl.util.awt.gl2.*;
 
 import java.awt.AlphaComposite;
 import java.awt.Color;
@@ -119,7 +116,7 @@ import javax.media.opengl.util.*;
     pack both glyphs and full Strings' rendering results (which are
     variable size) onto a larger OpenGL texture. The internal backing
     store is maintained using a {@link
-    com.sun.opengl.util.awt.gl2.GL2TextureRenderer TextureRenderer}. A least
+    com.sun.opengl.util.awt.TextureRenderer TextureRenderer}. A least
     recently used (LRU) algorithm is used to discard previously
     rendered strings; the specific algorithm is undefined, but is
     currently implemented by flushing unused Strings' rendering
@@ -130,7 +127,7 @@ import javax.media.opengl.util.*;
     @author John Burkey
     @author Kenneth Russell
 */
-public class GL2TextRenderer {
+public class TextRenderer {
     private static final boolean DEBUG = Debug.debug("TextRenderer");
 
     // These are occasionally useful for more in-depth debugging
@@ -166,7 +163,7 @@ public class GL2TextRenderer {
     private RectanglePacker packer;
     private boolean haveMaxSize;
     private RenderDelegate renderDelegate;
-    private GL2TextureRenderer cachedBackingStore;
+    private TextureRenderer cachedBackingStore;
     private Graphics2D cachedGraphics;
     private FontRenderContext cachedFontRenderContext;
     private Map /*<String,Rect>*/ stringLocations = new HashMap /*<String,Rect>*/();
@@ -216,7 +213,7 @@ public class GL2TextRenderer {
 
         @param font the font to render with
     */
-    public GL2TextRenderer(Font font) {
+    public TextRenderer(Font font) {
         this(font, false, false, null, false);
     }
 
@@ -230,7 +227,7 @@ public class GL2TextRenderer {
         @param font the font to render with
         @param mipmap whether to attempt use of automatic mipmap generation
     */
-    public GL2TextRenderer(Font font, boolean mipmap) {
+    public TextRenderer(Font font, boolean mipmap) {
         this(font, false, false, null, mipmap);
     }
 
@@ -247,7 +244,7 @@ public class GL2TextRenderer {
         @param useFractionalMetrics whether to use fractional font
         metrics at the Java 2D level
     */
-    public GL2TextRenderer(Font font, boolean antialiased,
+    public TextRenderer(Font font, boolean antialiased,
                         boolean useFractionalMetrics) {
         this(font, antialiased, useFractionalMetrics, null, false);
     }
@@ -266,7 +263,7 @@ public class GL2TextRenderer {
         @param renderDelegate the render delegate to use to draw the
         text's bitmap, or null to use the default one
     */
-    public GL2TextRenderer(Font font, boolean antialiased,
+    public TextRenderer(Font font, boolean antialiased,
                         boolean useFractionalMetrics, RenderDelegate renderDelegate) {
         this(font, antialiased, useFractionalMetrics, renderDelegate, false);
     }
@@ -288,7 +285,7 @@ public class GL2TextRenderer {
         text's bitmap, or null to use the default one
         @param mipmap whether to attempt use of automatic mipmap generation
     */
-    public GL2TextRenderer(Font font, boolean antialiased,
+    public TextRenderer(Font font, boolean antialiased,
                         boolean useFractionalMetrics, RenderDelegate renderDelegate,
                         boolean mipmap) {
         this.font = font;
@@ -609,8 +606,8 @@ public class GL2TextRenderer {
                                       (int) Math.ceil(src.getHeight()) + 2 * boundary);
     }
 
-    private GL2TextureRenderer getBackingStore() {
-        GL2TextureRenderer renderer = (GL2TextureRenderer) packer.getBackingStore();
+    private TextureRenderer getBackingStore() {
+        TextureRenderer renderer = (TextureRenderer) packer.getBackingStore();
 
         if (renderer != cachedBackingStore) {
             // Backing store changed since last time; discard any cached Graphics2D
@@ -627,7 +624,7 @@ public class GL2TextRenderer {
     }
 
     private Graphics2D getGraphics2D() {
-        GL2TextureRenderer renderer = getBackingStore();
+        TextureRenderer renderer = getBackingStore();
 
         if (cachedGraphics == null) {
             cachedGraphics = renderer.createGraphics();
@@ -880,7 +877,7 @@ public class GL2TextRenderer {
         }
 
         // OK, now draw the portion of the backing store to the screen
-        GL2TextureRenderer renderer = getBackingStore();
+        TextureRenderer renderer = getBackingStore();
 
         // NOTE that the rectangles managed by the packer have their
         // origin at the upper-left but the TextureRenderer's origin is
@@ -1146,12 +1143,12 @@ public class GL2TextRenderer {
             // whether we're likely to need to support a full RGBA backing
             // store (i.e., non-default Paint, foreground color, etc.), but
             // for now, let's just be more efficient
-            GL2TextureRenderer renderer;
+            TextureRenderer renderer;
 
             if (renderDelegate.intensityOnly()) {
-                renderer = GL2TextureRenderer.createAlphaOnlyRenderer(w, h, mipmap);
+                renderer = TextureRenderer.createAlphaOnlyRenderer(w, h, mipmap);
             } else {
-                renderer = new GL2TextureRenderer(w, h, true, mipmap);
+                renderer = new TextureRenderer(w, h, true, mipmap);
             }
             renderer.setSmoothing(smoothing);
 
@@ -1164,7 +1161,7 @@ public class GL2TextRenderer {
         }
 
         public void deleteBackingStore(Object backingStore) {
-            ((GL2TextureRenderer) backingStore).dispose();
+            ((TextureRenderer) backingStore).dispose();
         }
 
         public boolean preExpand(Rect cause, int attemptNumber) {
@@ -1247,20 +1244,20 @@ public class GL2TextRenderer {
                 }
 
                 if (isOrthoMode) {
-                    ((GL2TextureRenderer) oldBackingStore).endOrthoRendering();
+                    ((TextureRenderer) oldBackingStore).endOrthoRendering();
                 } else {
-                    ((GL2TextureRenderer) oldBackingStore).end3DRendering();
+                    ((TextureRenderer) oldBackingStore).end3DRendering();
                 }
             }
 
-            GL2TextureRenderer newRenderer = (GL2TextureRenderer) newBackingStore;
+            TextureRenderer newRenderer = (TextureRenderer) newBackingStore;
             g = newRenderer.createGraphics();
         }
 
         public void move(Object oldBackingStore, Rect oldLocation,
                          Object newBackingStore, Rect newLocation) {
-            GL2TextureRenderer oldRenderer = (GL2TextureRenderer) oldBackingStore;
-            GL2TextureRenderer newRenderer = (GL2TextureRenderer) newBackingStore;
+            TextureRenderer oldRenderer = (TextureRenderer) oldBackingStore;
+            TextureRenderer newRenderer = (TextureRenderer) newBackingStore;
 
             if (oldRenderer == newRenderer) {
                 // Movement on the same backing store -- easy case
@@ -1282,17 +1279,17 @@ public class GL2TextRenderer {
             g.dispose();
 
             // Sync the whole surface
-            GL2TextureRenderer newRenderer = (GL2TextureRenderer) newBackingStore;
+            TextureRenderer newRenderer = (TextureRenderer) newBackingStore;
             newRenderer.markDirty(0, 0, newRenderer.getWidth(),
                                   newRenderer.getHeight());
 
             // Re-enter the begin / end pair if necessary
             if (inBeginEndPair) {
                 if (isOrthoMode) {
-                    ((GL2TextureRenderer) newBackingStore).beginOrthoRendering(beginRenderingWidth,
+                    ((TextureRenderer) newBackingStore).beginOrthoRendering(beginRenderingWidth,
                                                                             beginRenderingHeight, beginRenderingDepthTestDisabled);
                 } else {
-                    ((GL2TextureRenderer) newBackingStore).begin3DRendering();
+                    ((TextureRenderer) newBackingStore).begin3DRendering();
                 }
 
                 // Push client attrib bits used by the pipelined quad renderer
@@ -1301,10 +1298,10 @@ public class GL2TextRenderer {
 
                 if (haveCachedColor) {
                     if (cachedColor == null) {
-                        ((GL2TextureRenderer) newBackingStore).setColor(cachedR,
+                        ((TextureRenderer) newBackingStore).setColor(cachedR,
                                                                      cachedG, cachedB, cachedA);
                     } else {
-                        ((GL2TextureRenderer) newBackingStore).setColor(cachedColor);
+                        ((TextureRenderer) newBackingStore).setColor(cachedColor);
                     }
                 }
             } else {
@@ -1450,7 +1447,7 @@ public class GL2TextRenderer {
                     mPipelinedQuadRenderer = new Pipelined_QuadRenderer();
                 }
 
-                GL2TextureRenderer renderer = getBackingStore();
+                TextureRenderer renderer = getBackingStore();
                 // Handles case where NPOT texture is used for backing store
                 TextureCoords wholeImageTexCoords = renderer.getTexture().getImageTexCoords();
                 float xScale = wholeImageTexCoords.right();
@@ -1770,7 +1767,7 @@ public class GL2TextRenderer {
             if (mOutstandingGlyphsVerticesPipeline > 0) {
                 GL2 gl = GLUgl2.getCurrentGL2();
 
-                GL2TextureRenderer renderer = getBackingStore();
+                TextureRenderer renderer = getBackingStore();
                 Texture texture = renderer.getTexture(); // triggers texture uploads.  Maybe this should be more obvious?
 
                 mVertCoords.rewind();
@@ -1813,7 +1810,7 @@ public class GL2TextRenderer {
 
         private void drawIMMEDIATE() {
             if (mOutstandingGlyphsVerticesPipeline > 0) {
-                GL2TextureRenderer renderer = getBackingStore();
+                TextureRenderer renderer = getBackingStore();
                 Texture texture = renderer.getTexture(); // triggers texture uploads.  Maybe this should be more obvious?
 
                 GL2 gl = GLUgl2.getCurrentGL2();
@@ -1869,7 +1866,7 @@ public class GL2TextRenderer {
                 return;
             }
 
-            GL2TextureRenderer rend = getBackingStore();
+            TextureRenderer rend = getBackingStore();
             final int w = rend.getWidth();
             final int h = rend.getHeight();
             rend.beginOrthoRendering(w, h);

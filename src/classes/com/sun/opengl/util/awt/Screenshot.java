@@ -34,7 +34,7 @@
  * facility.
  */
 
-package com.sun.opengl.util.awt.gl2;
+package com.sun.opengl.util.awt;
 
 import java.awt.image.*;
 import java.io.*;
@@ -48,12 +48,11 @@ import javax.media.opengl.glu.gl2.*;
 
 import com.sun.opengl.impl.io.*;
 import com.sun.opengl.util.io.*;
-import com.sun.opengl.util.awt.*;
 
 /** Utilities for taking screenshots of OpenGL applications. */
 
-public class GL2Screenshot {
-  private GL2Screenshot() {}
+public class Screenshot {
+  private Screenshot() {}
 
   /** 
    * Takes a fast screenshot of the current OpenGL drawable to a Targa

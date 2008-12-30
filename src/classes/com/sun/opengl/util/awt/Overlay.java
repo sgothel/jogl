@@ -37,28 +37,26 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.sun.opengl.util.awt.gl2;
+package com.sun.opengl.util.awt;
 
 import java.awt.Graphics2D;
 
 import javax.media.opengl.*;
 import com.sun.opengl.util.texture.*;
 
-import com.sun.opengl.util.awt.*;
-
 /** Provides a Java 2D overlay on top of an arbitrary GLDrawable,
     making it easier to do things like draw text and images on top of
     an OpenGL scene while still maintaining reasonably good
     efficiency. */
 
-public class GL2Overlay {
+public class Overlay {
   private GLDrawable drawable;
-  private GL2TextureRenderer renderer;
+  private TextureRenderer renderer;
   private boolean contentsLost;
 
   /** Creates a new Java 2D overlay on top of the specified
       GLDrawable. */
-  public GL2Overlay(GLDrawable drawable) {
+  public Overlay(GLDrawable drawable) {
     this.drawable = drawable;
   }
 
@@ -201,7 +199,7 @@ public class GL2Overlay {
 
   private void validateRenderer() {
     if (renderer == null) {
-      renderer = new GL2TextureRenderer(drawable.getWidth(),
+      renderer = new TextureRenderer(drawable.getWidth(),
                                      drawable.getHeight(),
                                      true);
       contentsLost = true;
