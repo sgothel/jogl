@@ -216,7 +216,7 @@
                   value="javax/media/opengl/util/awt/**, com/sun/opengl/util/**/awt/**"/>
 
         <property name="java.part.util.gl2"
-                  value="com/sun/opengl/util/glut/**, com/sun/opengl/util/**/gl2/**"/>
+                  value="com/sun/opengl/util/**/gl2/**"/>
 
         <property name="java.part.newt"
                   value="com/sun/javafx/newt/*, com/sun/javafx/newt/x11/*, com/sun/javafx/newt/windows/*, com/sun/javafx/newt/kd/*"/>
