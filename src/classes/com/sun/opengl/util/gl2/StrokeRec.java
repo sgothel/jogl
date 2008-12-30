@@ -37,7 +37,7 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.sun.opengl.util.glut.rec;
+package com.sun.opengl.util.gl2;
 
 /* Copyright (c) Mark J. Kilgard, 1994, 1998. */
 
@@ -45,7 +45,7 @@ package com.sun.opengl.util.glut.rec;
    and is provided without guarantee or warrantee expressed or 
    implied. This program is -not- in the public domain. */
 
-public class StrokeRec {
+class StrokeRec {
   public int num_coords;
   public CoordRec[] coord;
   

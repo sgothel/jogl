@@ -37,14 +37,11 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.sun.opengl.util.glut.gl2;
+package com.sun.opengl.util.gl2;
 
 import javax.media.opengl.*;
 import javax.media.opengl.glu.*;
 import javax.media.opengl.glu.gl2.*;
-import com.sun.opengl.util.glut.*;
-import com.sun.opengl.util.glut.rec.*;
-import com.sun.opengl.util.glut.fonts.*;
 
 /** Subset of the routines provided by the GLUT interface. Note the
     signatures of many of the methods are necessarily different than
@@ -95,7 +92,7 @@ import com.sun.opengl.util.glut.fonts.*;
     OpenGL(TM) is a trademark of Silicon Graphics, Inc. <P>
 */
 
-public class GLUTgl2 {
+public class GLUT {
   public static final int STROKE_ROMAN = 0;
   public static final int STROKE_MONO_ROMAN = 1;
   public static final int BITMAP_9_BY_15 = 2;

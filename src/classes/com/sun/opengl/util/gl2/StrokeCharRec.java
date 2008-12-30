@@ -37,7 +37,7 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.sun.opengl.util.glut.rec;
+package com.sun.opengl.util.gl2;
 
 /* Copyright (c) Mark J. Kilgard, 1994, 1998. */
 
@@ -45,22 +45,19 @@ package com.sun.opengl.util.glut.rec;
    and is provided without guarantee or warrantee expressed or 
    implied. This program is -not- in the public domain. */
 
-public class StrokeFontRec {
-  public String name;
-  public int num_chars;
-  public StrokeCharRec[] ch;
-  public float top;
-  public float bottom;
+class StrokeCharRec {
+  public int num_strokes;
+  public StrokeRec[] stroke;
+  public float center;
+  public float right;
 
-  public StrokeFontRec(String name,
-                int num_chars,
-                StrokeCharRec[] ch,
-                float top,
-                float bottom) {
-    this.name = name;
-    this.num_chars = num_chars;
-    this.ch = ch;
-    this.top = top;
-    this.bottom = bottom;
+  public StrokeCharRec(int num_strokes,
+                StrokeRec[] stroke,
+                float center,
+                float right) {
+    this.num_strokes = num_strokes;
+    this.stroke = stroke;
+    this.center = center;
+    this.right = right;
   }
 }

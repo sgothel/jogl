@@ -37,7 +37,7 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.sun.opengl.util.glut.rec;
+package com.sun.opengl.util.gl2;
 
 /* Copyright (c) Mark J. Kilgard, 1994, 1998. */
 
@@ -45,19 +45,25 @@ package com.sun.opengl.util.glut.rec;
    and is provided without guarantee or warrantee expressed or 
    implied. This program is -not- in the public domain. */
 
-public class StrokeCharRec {
-  public int num_strokes;
-  public StrokeRec[] stroke;
-  public float center;
-  public float right;
+class BitmapCharRec {
+  public int width;
+  public int height;
+  public float xorig;
+  public float yorig;
+  public float advance;
+  public byte[] bitmap;
 
-  public StrokeCharRec(int num_strokes,
-                StrokeRec[] stroke,
-                float center,
-                float right) {
-    this.num_strokes = num_strokes;
-    this.stroke = stroke;
-    this.center = center;
-    this.right = right;
+  public BitmapCharRec(int width,
+                int height,
+                float xorig,
+                float yorig,
+                float advance,
+                byte[] bitmap) {
+    this.width   = width;
+    this.height  = height;
+    this.xorig   = xorig;
+    this.yorig   = yorig;
+    this.advance = advance;
+    this.bitmap  = bitmap;
   }
 }

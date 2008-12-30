@@ -37,11 +37,9 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.sun.opengl.util.glut.fonts;
+package com.sun.opengl.util.gl2;
 
-import com.sun.opengl.util.glut.rec.*;
-
-public class GLUTBitmapTimesRoman10 {
+class GLUTBitmapTimesRoman10 {
 
 /* GENERATED FILE -- DO NOT MODIFY */
 
