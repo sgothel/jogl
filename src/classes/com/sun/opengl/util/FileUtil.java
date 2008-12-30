@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -37,64 +37,53 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.sun.opengl.impl.io;
-
-import javax.media.opengl.util.*;
+package com.sun.opengl.util;
 
 import java.io.*;
-import java.nio.*;
 
-/** Utilities for dealing with streams. */
+/** Utilities for dealing with files. */
 
-public class StreamUtil {
-  private StreamUtil() {}
+public class FileUtil {
+    private FileUtil() {}
 
-  public static byte[] readAll2Array(InputStream stream) throws IOException {
-    BytesRead bytesRead = readAllImpl(stream);
-    byte[] data = bytesRead.data;
-    if (bytesRead.payloadLen != data.length) {
-      data = new byte[bytesRead.payloadLen];
-      System.arraycopy(bytesRead.data, 0, data, 0, bytesRead.payloadLen);
+    /**
+     * Returns the lowercase suffix of the given file name (the text
+     * after the last '.' in the file name). Returns null if the file
+     * name has no suffix. Only operates on the given file name;
+     * performs no I/O operations.
+     *
+     * @param file name of the file
+     * @return lowercase suffix of the file name
+     * @throws NullPointerException if file is null
+     */
+
+    public static String getFileSuffix(File file) {
+        return getFileSuffix(file.getName());
     }
-    return data;
-  }
 
-  public static ByteBuffer readAll2Buffer(InputStream stream) throws IOException {
-        BytesRead bytesRead = readAllImpl(stream);
-        return BufferUtil.newByteBuffer(bytesRead.data, 0, bytesRead.payloadLen);
-  }
-
-  private static BytesRead readAllImpl(InputStream stream) throws IOException {
-    // FIXME: Shall we do this here ?
-    if( !(stream instanceof BufferedInputStream) ) {
-        stream = new BufferedInputStream(stream);
+    /**
+     * Returns the lowercase suffix of the given file name (the text
+     * after the last '.' in the file name). Returns null if the file
+     * name has no suffix. Only operates on the given file name;
+     * performs no I/O operations.
+     *
+     * @param filename name of the file
+     * @return lowercase suffix of the file name
+     * @throws NullPointerException if filename is null
+     */
+    public static String getFileSuffix(String filename) {
+        int lastDot = filename.lastIndexOf('.');
+        if (lastDot < 0) {
+            return null;
+        }
+        return toLowerCase(filename.substring(lastDot + 1));
     }
-    int avail = stream.available();
-    byte[] data = new byte[avail];
-    int numRead = 0;
-    int pos = 0;
-    do {
-      if (pos + avail > data.length) {
-        byte[] newData = new byte[pos + avail];
-        System.arraycopy(data, 0, newData, 0, pos);
-        data = newData;
-      }
-      numRead = stream.read(data, pos, avail);
-      if (numRead >= 0) {
-        pos += numRead;
-      }
-      avail = stream.available();
-    } while (avail > 0 && numRead >= 0);
 
-    return new BytesRead(pos, data);
-  }
+    private static String toLowerCase(String arg) {
+        if (arg == null) {
+            return null;
+        }
 
-  private static class BytesRead {
-    BytesRead(int payloadLen, byte[] data) {
-        this.payloadLen=payloadLen;
-        this.data=data;
+        return arg.toLowerCase();
     }
-    int payloadLen;
-    byte[] data;
-  }
 }

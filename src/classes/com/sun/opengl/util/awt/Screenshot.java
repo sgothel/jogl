@@ -46,8 +46,7 @@ import javax.media.opengl.*;
 import javax.media.opengl.glu.*;
 import javax.media.opengl.glu.gl2.*;
 
-import com.sun.opengl.impl.io.*;
-import com.sun.opengl.util.io.*;
+import com.sun.opengl.util.*;
 
 /** Utilities for taking screenshots of OpenGL applications. */
 

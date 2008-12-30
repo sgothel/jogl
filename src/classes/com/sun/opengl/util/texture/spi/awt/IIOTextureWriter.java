@@ -47,7 +47,7 @@ import java.nio.*;
 import javax.imageio.*;
 
 import javax.media.opengl.*;
-import com.sun.opengl.impl.io.*;
+import com.sun.opengl.util.*;
 import com.sun.opengl.util.awt.*;
 import com.sun.opengl.util.texture.*;
 import com.sun.opengl.util.texture.spi.*;

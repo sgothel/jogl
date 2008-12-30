@@ -3,7 +3,7 @@ package javax.media.opengl.glsl;
 
 import javax.media.opengl.*;
 import javax.media.opengl.util.*;
-import com.sun.opengl.impl.io.StreamUtil;
+import com.sun.opengl.util.StreamUtil;
 import com.sun.opengl.impl.io.Locator;
 
 import java.util.*;

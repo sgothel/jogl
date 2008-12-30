@@ -34,7 +34,7 @@
  * facility.
  */
 
-package com.sun.opengl.util.io;
+package com.sun.opengl.util;
 
 import java.io.*;
 import java.nio.*;
@@ -43,8 +43,8 @@ import java.nio.channels.*;
 /**
  * Utility class which helps take fast screenshots of OpenGL rendering
  * results into Targa-format files. Used by the {@link
- * com.sun.opengl.util.Screenshot Screenshot} class; can also be used
- * in conjunction with the {@link com.sun.opengl.util.TileRenderer
+ * com.sun.opengl.util.gl2.Screenshot Screenshot} class; can also be used
+ * in conjunction with the {@link com.sun.opengl.util.gl2.TileRenderer
  * TileRenderer} class. <P>
  */
 

@@ -280,7 +280,7 @@
         </condition>
 
         <condition property="java.excludes.cdcfp"
-                   value="com/sun/opengl/util/AWTAnimatorImpl*, com/sun/opengl/util/io/TGAWriter*, com/sun/opengl/util/texture/spi/awt/**">
+                   value="com/sun/opengl/util/AWTAnimatorImpl*, com/sun/opengl/util/TGAWriter*, com/sun/opengl/util/texture/spi/awt/**">
            <isset property="jogl.cdcfp"/> 
         </condition>
 

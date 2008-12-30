@@ -41,7 +41,6 @@ package com.sun.opengl.util.awt;
 import com.sun.opengl.impl.*;
 import com.sun.opengl.impl.packrect.*;
 import com.sun.opengl.util.*;
-import com.sun.opengl.util.io.*;
 import com.sun.opengl.util.texture.*;
 import com.sun.opengl.util.texture.awt.*;
 
