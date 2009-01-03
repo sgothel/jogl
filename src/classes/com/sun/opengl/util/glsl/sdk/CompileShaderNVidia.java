@@ -1,6 +1,5 @@
-package javax.media.opengl.sdk.glsl;
+package com.sun.opengl.util.glsl.sdk;
 
-import javax.media.opengl.glsl.*;
 import javax.media.opengl.*;
 
 import java.io.*;

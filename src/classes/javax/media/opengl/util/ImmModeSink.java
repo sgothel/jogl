@@ -739,7 +739,7 @@ public class ImmModeSink {
 
   public void enableBufferGLSL(GL gl, boolean enable) {
     GL2ES2 glsl = gl.getGL2ES2();
-    javax.media.opengl.glsl.ShaderState st = javax.media.opengl.glsl.ShaderState.getCurrent();
+    com.sun.opengl.util.glsl.ShaderState st = com.sun.opengl.util.glsl.ShaderState.getCurrent();
     if(null==st) {
         throw new GLException("No ShaderState current");
     }

@@ -4,7 +4,7 @@ package com.sun.opengl.impl.glsl;
 import com.sun.opengl.impl.*;
 
 import javax.media.opengl.*;
-import javax.media.opengl.glsl.ShaderState;
+import com.sun.opengl.util.glsl.ShaderState;
 import java.nio.*;
 
 public class GLSLArrayHandler implements GLArrayHandler {

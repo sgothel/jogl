@@ -2,7 +2,6 @@
 package com.sun.opengl.impl;
 
 import javax.media.opengl.*;
-import javax.media.opengl.glsl.ShaderState;
 import java.nio.*;
 
 public class GLFixedArrayHandler implements GLArrayHandler {

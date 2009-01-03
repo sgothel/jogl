@@ -3,7 +3,7 @@ package com.sun.opengl.impl.glsl.fixed;
 
 import javax.media.opengl.*;
 import javax.media.opengl.util.*;
-import javax.media.opengl.glsl.*;
+import com.sun.opengl.util.glsl.*;
 import java.nio.*;
 
 public class FixedFuncPipeline {
