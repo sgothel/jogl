@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2009 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -31,21 +31,13 @@
  * 
  */
 
-#include "com_sun_javafx_newt_macosx_MacWindow.h"
+#ifndef _INPUT_EVENT_H_
+#define _INPUT_EVENT_H_
 
-#include "EventListener.h"
-#include "MouseEvent.h"
-#include "KeyEvent.h"
+#define EVENT_SHIFT_MASK      1
+#define EVENT_CTRL_MASK       2
+#define EVENT_META_MASK       4
+#define EVENT_ALT_MASK        8
+#define EVENT_ALT_GRAPH_MASK 32
 
-#include <stdio.h>
-
-/*
- * Class:     com_sun_javafx_newt_macosx_MacWindow
- * Method:    _initIDs
- * Signature: ()Z
- */
-JNIEXPORT jboolean JNICALL Java_com_sun_javafx_newt_macosx_MacWindow__1initIDs
-  (JNIEnv *env, jclass clazz)
-{
-    return JNI_TRUE;
-}
+#endif

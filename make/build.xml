@@ -1345,7 +1345,7 @@
         <patternset id="c.src.files.newt">
           <!-- FIXME: NEWT should be moved to another library -->
           <include name="${rootrel.src.c.newt}/WindowsWindow.c" if="isWindows"/>
-          <include name="${rootrel.src.c.newt}/MacWindow.c" if="isOSX"/>
+          <include name="${rootrel.src.c.newt}/*.m" if="isOSX"/>
           <include name="${rootrel.src.c.newt}/X11Window.c" if="isX11"/>
           <include name="${rootrel.src.c.newt}/KDWindow.c"  if="useKD"/>
         </patternset>

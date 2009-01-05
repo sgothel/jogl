@@ -53,7 +53,13 @@ public abstract class NewtFactory {
     /** Generic AWT wrapped window type, if available */
     public static final String AWT = "AWT";
 
-    public static int getPropertyIntValue(String propname) {
+    // Work-around for initialization order problems on Mac OS X
+    // between native Newt and (apparently) Fmod
+    static {
+        Window.init(getWindowType());
+    }
+
+    static int getPropertyIntValue(String propname) {
         int i=0;
         String s = System.getProperty(propname);
         if(null!=s) {
@@ -76,13 +82,11 @@ public abstract class NewtFactory {
           windowType = KD;
       } else if (osNameLowerCase.startsWith("wind")) {
           windowType = WINDOWS;
-      } else if (osNameLowerCase.startsWith("mac os x")) {
-          // For the time being, use the AWT on Mac OS X since
-          // there's no advantage to avoiding its usage -- this
-          // would change if we were running on the iPhone and
-          // didn't have an AWT
+      } else if (osNameLowerCase.startsWith("mac os x") ||
+                 osNameLowerCase.startsWith("darwin")) {
+          windowType = MACOSX;
+      } else if (osNameLowerCase.equals("awt")) {
           windowType = AWT;
-          //windowType = MACOSX;
       } else {
           windowType = X11;
       }

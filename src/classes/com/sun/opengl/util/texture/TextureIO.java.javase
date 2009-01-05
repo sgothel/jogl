@@ -736,6 +736,10 @@ public class TextureIO {
             if (DEBUG) {
                 e.printStackTrace();
             }
+        } catch (Error e) {
+            if (DEBUG) {
+                e.printStackTrace();
+            }
         }
 
         // Other special-case writers

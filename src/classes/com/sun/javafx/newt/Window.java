@@ -47,6 +47,20 @@ public abstract class Window implements NativeWindow
     public static final boolean DEBUG_WINDOW_EVENT = false;
     public static final boolean DEBUG_IMPLEMENTATION = false;
     
+    // Workaround for initialization order problems on Mac OS X
+    // between native Newt and (apparently) Fmod -- if Fmod is
+    // initialized first then the connection to the window server
+    // breaks, leading to errors from deep within the AppKit
+    static void init(String type) {
+        if (NewtFactory.MACOSX.equals(type)) {
+            try {
+                getWindowClass(type);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     private static Class getWindowClass(String type) 
         throws ClassNotFoundException 
     {
@@ -175,7 +189,7 @@ public abstract class Window implements NativeWindow
     protected int width, height, x, y;
     protected int     eventMask;
 
-    protected String title = "AWT NewtWindow";
+    protected String title = "Newt Window";
     protected boolean undecorated = false;
 
     public String getTitle() {

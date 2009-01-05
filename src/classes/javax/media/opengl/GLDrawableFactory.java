@@ -121,7 +121,8 @@ public abstract class GLDrawableFactory {
           if (factoryClassName == null) {
             if (osNameLowerCase.startsWith("windows")) {
               factoryClassName = "com.sun.opengl.impl.windows.wgl.WindowsWGLDrawableFactory";
-            } else if (osNameLowerCase.startsWith("mac os x")) {
+            } else if (osNameLowerCase.startsWith("mac os x") ||
+                       osNameLowerCase.startsWith("darwin")) {
               // FIXME: remove this residual dependence on the AWT
               factoryClassName = "com.sun.opengl.impl.macosx.cgl.awt.MacOSXAWTCGLDrawableFactory";
             } else {

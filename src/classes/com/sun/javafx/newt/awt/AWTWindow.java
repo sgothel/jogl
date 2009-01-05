@@ -53,6 +53,11 @@ import javax.media.opengl.GLCapabilities;
 
 public class AWTWindow extends Window {
 
+    public AWTWindow() {
+        super();
+        title = "AWT NewtWindow";
+    }
+
     static void setWindowAlpha(java.awt.Window w, float alpha) {
         // hack for macosx only
         Object peer = w.getPeer();
