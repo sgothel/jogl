@@ -43,6 +43,8 @@ import java.awt.GraphicsEnvironment;
 import java.lang.reflect.Method;
 import java.lang.reflect.InvocationTargetException;
 import java.awt.event.*;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.*;
 import com.sun.javafx.newt.Window;
 import javax.media.opengl.GLCapabilities;
@@ -56,29 +58,6 @@ public class AWTWindow extends Window {
     public AWTWindow() {
         super();
         title = "AWT NewtWindow";
-    }
-
-    static void setWindowAlpha(java.awt.Window w, float alpha) {
-        // hack for macosx only
-        Object peer = w.getPeer();
-        if (peer == null) {
-            return;
-        }
-        Class peerClass = peer.getClass();
-        
-        //noinspection EmptyCatchBlock
-        try {
-            Class nativeClass = Class.forName("apple.awt.CWindow");
-            if (nativeClass.isAssignableFrom(peerClass)) {
-                Method setAlpha = nativeClass.getMethod("setAlpha", 
-                                                        new Class[] {float.class});
-                setAlpha.invoke(peer, new Object[] { new Double(Math.max(0.0f, Math.min(alpha, 1.0f)))});
-            }
-        } catch (ClassNotFoundException e) {
-        } catch (NoSuchMethodException e) {
-        } catch (IllegalAccessException e) {
-        } catch (InvocationTargetException e) {
-        }
     }
 
     private Frame frame;
@@ -102,9 +81,6 @@ public class AWTWindow extends Window {
                 public void run() {
                     frame = new Frame(getTitle());
                     frame.setUndecorated(isUndecorated());
-                    if (isUndecorated()) {
-                        setWindowAlpha(frame, 0);
-                    }
                     frame.setLayout(new BorderLayout());
                     canvas = new Canvas();
                     Listener listener = new Listener();
