@@ -162,8 +162,10 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_createWindow
 JNIEXPORT void JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_makeKeyAndOrderFront
   (JNIEnv *env, jobject unused, jlong window)
 {
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     NSWindow* win = (NSWindow*) ((intptr_t) window);
     [win makeKeyAndOrderFront: win];
+    [pool release];
 }
 
 /*
@@ -174,8 +176,10 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_makeKeyAndOrder
 JNIEXPORT void JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_orderOut
   (JNIEnv *env, jobject unused, jlong window)
 {
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     NSWindow* win = (NSWindow*) ((intptr_t) window);
     [win orderOut: win];
+    [pool release];
 }
 
 /*
@@ -186,8 +190,10 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_orderOut
 JNIEXPORT void JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_close0
   (JNIEnv *env, jobject unused, jlong window)
 {
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     NSWindow* win = (NSWindow*) ((intptr_t) window);
     [win close];
+    [pool release];
 }
 
 /*
@@ -215,6 +221,7 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_dispatchMessage
   (JNIEnv *env, jobject unused, jint eventMask)
 {
     NSEvent* event = NULL;
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
 
     [NewtMacWindow setJNIEnv: env];
     do {
@@ -228,6 +235,7 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_dispatchMessage
         }
     } while (event != NULL);
     [NewtMacWindow setJNIEnv: NULL];
+    [pool release];
 }
 
 /*
@@ -238,8 +246,11 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_dispatchMessage
 JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_contentView
   (JNIEnv *env, jobject unused, jlong window)
 {
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     NSWindow* win = (NSWindow*) ((intptr_t) window);
-    return (jlong) ((intptr_t) [win contentView]);
+    jlong res = (jlong) ((intptr_t) [win contentView]);
+    [pool release];
+    return res;
 }
 
 /*
@@ -250,9 +261,11 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_contentView
 JNIEXPORT void JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_setContentSize
   (JNIEnv *env, jobject unused, jlong window, jint w, jint h)
 {
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     NSWindow* win = (NSWindow*) ((intptr_t) window);
     NSSize sz = NSMakeSize(w, h);
     [win setContentSize: sz];
+    [pool release];
 }
 
 /*
@@ -263,6 +276,8 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_setContentSize
 JNIEXPORT void JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_setFrameTopLeftPoint
   (JNIEnv *env, jobject unused, jlong window, jint x, jint y)
 {
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     NSWindow* win = (NSWindow*) ((intptr_t) window);
     setFrameTopLeftPoint(win, x, y);
+    [pool release];
 }
