@@ -65,6 +65,10 @@ public class GLCapabilities implements Cloneable {
   private boolean sampleBuffers = false;
   private int     numSamples    = 2;
 
+  // Support for transparent windows containing OpenGL content
+  // (currently only has an effect on Mac OS X)
+  private boolean backgroundOpaque = true;
+
   // Bits for pbuffer creation
   private boolean pbufferFloatingPointBuffers;
   private boolean pbufferRenderToTexture;
@@ -316,6 +320,29 @@ public class GLCapabilities implements Cloneable {
     return pbufferRenderToTextureRectangle;
   }
 
+  /** For on-screen OpenGL contexts on some platforms, sets whether
+      the background of the context should be considered opaque. On
+      supported platforms, setting this to false, in conjunction with
+      other changes at the window toolkit level, can allow
+      hardware-accelerated OpenGL content inside of windows of
+      arbitrary shape. To achieve this effect it is necessary to use
+      an OpenGL clear color with an alpha less than 1.0. The default
+      value for this flag is <code>true</code>; setting it to false
+      may incur a certain performance penalty, so it is not
+      recommended to arbitrarily set it to false. */
+  public void setBackgroundOpaque(boolean opaque) {
+    backgroundOpaque = opaque;
+  }
+
+  /** Indicates whether the background of this OpenGL context should
+      be considered opaque. Defaults to true.
+
+      @see #setBackgroundOpaque
+  */
+  public boolean isBackgroundOpaque() {
+    return backgroundOpaque;
+  }
+
   /** Returns a textual representation of this GLCapabilities
       object. */ 
   public String toString() {
@@ -335,6 +362,7 @@ public class GLCapabilities implements Cloneable {
 	    ", Alpha Accum: " + accumAlphaBits +
             ", Multisample: " + sampleBuffers +
             (sampleBuffers ? ", Num samples: " + numSamples : "") +
+            ", Opaque: " + backgroundOpaque +
 	    " ]");
   }
 }

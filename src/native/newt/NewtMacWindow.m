@@ -82,6 +82,13 @@ static JNIEnv* env = NULL;
     return res;
 }
 
+- (BOOL) canBecomeKeyWindow
+{
+    // Even if the window is borderless, we still want it to be able
+    // to become the key window to receive keyboard events
+    return YES;
+}
+
 static jint mods2JavaMods(NSUInteger mods)
 {
     int javaMods = 0;

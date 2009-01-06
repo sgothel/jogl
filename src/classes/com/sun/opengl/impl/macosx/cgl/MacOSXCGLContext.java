@@ -158,6 +158,11 @@ public abstract class MacOSXCGLContext extends GLContextImpl
         throw new GLException("Error creating NSOpenGLContext with requested pixel format");
       }
 
+      if (!pbuffer && !capabilities.isBackgroundOpaque()) {
+          // Set the context opacity
+          CGL.setContextOpacity(nsContext, 0);
+      }
+
       // On this platform the pixel format is associated with the
       // context and not the drawable. However it's a reasonable
       // approximation to just store the chosen pixel format up in the

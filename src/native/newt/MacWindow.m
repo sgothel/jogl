@@ -137,6 +137,13 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_createWindow
                                                defer: YES
                                                javaWindowObject: windowObj] retain];
 
+    // If the window is undecorated, assume we want the possibility of
+    // a shaped window, so make it non-opaque and the background color clear
+    if ((styleMask & NSTitledWindowMask) == 0) {
+        [window setOpaque: NO];
+        [window setBackgroundColor: [NSColor clearColor]];
+    }
+
     // Immediately re-position the window based on an upper-left coordinate system
     setFrameTopLeftPoint(window, x, y);
 
