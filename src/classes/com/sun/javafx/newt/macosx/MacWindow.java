@@ -187,6 +187,13 @@ public class MacWindow extends Window {
 
         this.visible = visible;
     }
+
+    public void setTitle(String title) {
+        super.setTitle(title);
+        if (nativeWindow != 0) {
+            setTitle0(nativeWindow, title);
+        }
+    }
     
     public void setSize(int width, int height) {
         this.width = width;
