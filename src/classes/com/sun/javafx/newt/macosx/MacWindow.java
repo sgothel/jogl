@@ -328,10 +328,10 @@ public class MacWindow extends Window {
     }
 
     protected void sendKeyEvent(int eventType, int modifiers, int keyCode, char keyChar) {
-        keyChar = convertKeyChar(keyChar);
+        int key = convertKeyChar(keyChar);
         // Note that we send the key char for the key code on this
         // platform -- we do not get any useful key codes out of the system
-        super.sendKeyEvent(eventType, modifiers, keyChar, keyChar);
+        super.sendKeyEvent(eventType, modifiers, key, keyChar);
     }
 
     private native long createWindow(int x, int y, int w, int h,
