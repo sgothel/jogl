@@ -54,6 +54,7 @@ NSString* jstringToNSString(JNIEnv* env, jstring jstr)
 
 static BOOL initializedMenuHeight = NO;
 static CGFloat menuHeight = 0;
+static BOOL DEBUG = NO;
 
 void setFrameTopLeftPoint(NSWindow* win, jint x, jint y)
 {
@@ -66,12 +67,16 @@ void setFrameTopLeftPoint(NSWindow* win, jint x, jint y)
         BOOL mustRelease = NO;
 
         if (menu == nil) {
-            printf("main menu was nil, trying services menu\n");
+            if (DEBUG) {
+                printf("main menu was nil, trying services menu\n");
+            }
             menu = [NSApp servicesMenu];
         }
 
         if (menu == nil) {
-            printf("services menu was nil, trying an empty menu instance\n");
+            if (DEBUG) {
+                printf("services menu was nil, trying an empty menu instance\n");
+            }
             menu = [[[NSMenu alloc] initWithTitle: @"Foo"] retain];
             mustRelease = YES;
         }
