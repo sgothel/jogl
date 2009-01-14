@@ -249,6 +249,10 @@ static jint mods2JavaMods(NSUInteger mods)
 - (void)windowDidMove: (NSNotification*) notification
 {
     NSRect rect = [self frame];
+    NSScreen* menuBarScreen = NULL;
+    NSScreen* screen = NULL;
+    NSRect screenRect;
+    NSPoint pt;
 
     if (env == NULL) {
         return;
@@ -258,11 +262,13 @@ static jint mods2JavaMods(NSUInteger mods)
         return;
     }
 
-    // FIXME: this result isn't consistent with setFrameTopLeftPoint
+    // FIXME: unclear whether this works correctly in multiple monitor situations
+    screen = [self screen];
+    screenRect = [screen visibleFrame];
+    pt = NSMakePoint(rect.origin.x, screenRect.origin.y + screenRect.size.height - rect.origin.y - rect.size.height);
 
     (*env)->CallVoidMethod(env, javaWindowObject, positionChangedID,
-                           (jint) rect.origin.x,
-                           (jint) rect.origin.y);
+                           (jint) pt.x, (jint) pt.y);
 }
 
 - (void)windowWillClose: (NSNotification*) notification

@@ -52,45 +52,13 @@ NSString* jstringToNSString(JNIEnv* env, jstring jstr)
     return str;
 }
 
-static BOOL initializedMenuHeight = NO;
-static CGFloat menuHeight = 0;
-static BOOL DEBUG = NO;
-
 void setFrameTopLeftPoint(NSWindow* win, jint x, jint y)
 {
     NSScreen* screen = [NSScreen mainScreen];
-    NSRect screenRect = [screen frame];
+    NSRect visibleScreenRect = [screen visibleFrame];
     NSPoint pt;
-
-    if (!initializedMenuHeight) {
-        NSMenu* menu = [NSApp mainMenu];
-        BOOL mustRelease = NO;
-
-        if (menu == nil) {
-            if (DEBUG) {
-                printf("main menu was nil, trying services menu\n");
-            }
-            menu = [NSApp servicesMenu];
-        }
-
-        if (menu == nil) {
-            if (DEBUG) {
-                printf("services menu was nil, trying an empty menu instance\n");
-            }
-            menu = [[[NSMenu alloc] initWithTitle: @"Foo"] retain];
-            mustRelease = YES;
-        }
-
-        menuHeight = [menu menuBarHeight];
-
-        if (mustRelease) {
-            [menu release];
-        }
-
-        initializedMenuHeight = YES;
-    }
-
-    pt = NSMakePoint(x, screenRect.origin.y + screenRect.size.height - menuHeight - y);
+    
+    pt = NSMakePoint(x, visibleScreenRect.origin.y + visibleScreenRect.size.height - y);
     [win setFrameTopLeftPoint: pt];
 }
 
