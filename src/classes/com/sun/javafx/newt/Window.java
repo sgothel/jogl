@@ -368,7 +368,7 @@ public abstract class Window implements NativeWindow
     private ArrayList mouseListeners = new ArrayList();
     private long lastMousePressed = 0;
     private int  lastMouseClickCount = 0;
-    public  static final int ClickTimeout = 200;
+    public  static final int ClickTimeout = 300;
     private boolean[] buttonStates = new boolean[3];
 
     protected void sendMouseEvent(int eventType, int modifiers, int x, int y, int button) {
