@@ -145,9 +145,15 @@ static jint mods2JavaMods(NSUInteger mods)
 - (void) sendMouseEvent: (NSEvent*) event eventType: (jint) evType
 {
     jint javaMods = mods2JavaMods([event modifierFlags]);
-    NSPoint location = [event locationInWindow];
     NSRect frameRect = [self frame];
     NSRect contentRect = [self contentRectForFrameRect: frameRect];
+    // NSPoint location = [event locationInWindow];
+    // The following computation improves the behavior of mouse drag
+    // events when they also affect the location of the window, but it
+    // still isn't perfect
+    NSPoint curLocation = [NSEvent mouseLocation];
+    NSPoint location = NSMakePoint(curLocation.x - frameRect.origin.x,
+                                   curLocation.y - frameRect.origin.y);
 
     if (env == NULL) {
         return;
