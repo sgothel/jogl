@@ -3,6 +3,7 @@ package com.sun.opengl.impl.glsl.fixed;
 
 import javax.media.opengl.*;
 import javax.media.opengl.util.*;
+import javax.media.opengl.sub.fixed.*;
 import com.sun.opengl.util.glsl.*;
 import java.nio.*;
 
@@ -11,7 +12,16 @@ public class FixedFuncPipeline {
     public static final int MAX_LIGHTS        = 8;
 
     public FixedFuncPipeline(GL2ES2 gl, PMVMatrix pmvMatrix) {
-        init(gl, pmvMatrix);
+        init(gl, pmvMatrix, FixedFuncPipeline.class, shaderSrcRootDef, shaderBinRootDef, 
+             vertexColorFileDef, vertexColorLightFileDef, fragmentColorFileDef, fragmentColorTextureFileDef);
+    }
+    public FixedFuncPipeline(GL2ES2 gl, PMVMatrix pmvMatrix, Class shaderRootClass, String shaderSrcRoot, String shaderBinRoot, 
+                       String vertexColorFile,
+                       String vertexColorLightFile,
+                       String fragmentColorFile,
+                       String fragmentColorTextureFile) {
+        init(gl, pmvMatrix, shaderRootClass, shaderSrcRoot, shaderBinRoot, 
+             vertexColorFile, vertexColorLightFile, fragmentColorFile, fragmentColorTextureFile);
     }
 
     public boolean verbose() { return verbose; }
@@ -33,11 +43,11 @@ public class FixedFuncPipeline {
     public String getArrayIndexName(int glArrayIndex) {
       String name = GLContext.getPredefinedArrayIndexName(glArrayIndex); 
       switch(glArrayIndex) {
-          case GL.GL_VERTEX_ARRAY:
-          case GL.GL_NORMAL_ARRAY:
-          case GL.GL_COLOR_ARRAY:
+          case GLPointerIf.GL_VERTEX_ARRAY:
+          case GLPointerIf.GL_NORMAL_ARRAY:
+          case GLPointerIf.GL_COLOR_ARRAY:
               break;
-          case GL.GL_TEXTURE_COORD_ARRAY:
+          case GLPointerIf.GL_TEXTURE_COORD_ARRAY:
               name = name + activeTextureUnit;
       }
       return name;
@@ -105,38 +115,38 @@ public class FixedFuncPipeline {
 
     public void glLightfv(GL2ES2 gl, int light, int pname, java.nio.FloatBuffer params) {
         shaderState.glUseProgram(gl, true);
-        light -=GL.GL_LIGHT0;
+        light -=GLLightingIf.GL_LIGHT0;
         if(0 <= light && light < MAX_LIGHTS) {
             GLUniformData ud = null;
             switch(pname) {
-                case  GL.GL_AMBIENT:
+                case  GLLightingIf.GL_AMBIENT:
                     ud = shaderState.getUniform(mgl_LightSource+"["+light+"].ambient");
                     break;
-                case  GL.GL_DIFFUSE:
+                case  GLLightingIf.GL_DIFFUSE:
                     ud = shaderState.getUniform(mgl_LightSource+"["+light+"].diffuse");
                     break;
-                case  GL.GL_SPECULAR:
+                case  GLLightingIf.GL_SPECULAR:
                     ud = shaderState.getUniform(mgl_LightSource+"["+light+"].specular");
                     break;
-                case GL.GL_POSITION:
+                case GLLightingIf.GL_POSITION:
                     ud = shaderState.getUniform(mgl_LightSource+"["+light+"].position");
                     break;
-                case GL.GL_SPOT_DIRECTION:
+                case GLLightingIf.GL_SPOT_DIRECTION:
                     ud = shaderState.getUniform(mgl_LightSource+"["+light+"].spotDirection");
                     break;
-                case GL.GL_SPOT_EXPONENT:
+                case GLLightingIf.GL_SPOT_EXPONENT:
                     ud = shaderState.getUniform(mgl_LightSource+"["+light+"].spotExponent");
                     break;
-                case GL.GL_SPOT_CUTOFF:
+                case GLLightingIf.GL_SPOT_CUTOFF:
                     ud = shaderState.getUniform(mgl_LightSource+"["+light+"].spotCutoff");
                     break;
-                case GL.GL_CONSTANT_ATTENUATION:
+                case GLLightingIf.GL_CONSTANT_ATTENUATION:
                     ud = shaderState.getUniform(mgl_LightSource+"["+light+"].constantAttenuation");
                     break;
-                case GL.GL_LINEAR_ATTENUATION:
+                case GLLightingIf.GL_LINEAR_ATTENUATION:
                     ud = shaderState.getUniform(mgl_LightSource+"["+light+"].linearAttenuation");
                     break;
-                case GL.GL_QUADRATIC_ATTENUATION:
+                case GLLightingIf.GL_QUADRATIC_ATTENUATION:
                     ud = shaderState.getUniform(mgl_LightSource+"["+light+"].quadraticAttenuation");
                     break;
                 default:
@@ -171,22 +181,22 @@ public class FixedFuncPipeline {
 
         GLUniformData ud = null;
         switch(pname) {
-            case  GL.GL_AMBIENT:
+            case  GLLightingIf.GL_AMBIENT:
                 ud = shaderState.getUniform(mgl_FrontMaterial+".ambient");
                 break;
-            case  GL.GL_AMBIENT_AND_DIFFUSE:
-                glMaterialfv(gl, face, GL.GL_AMBIENT, params);
+            case  GLLightingIf.GL_AMBIENT_AND_DIFFUSE:
+                glMaterialfv(gl, face, GLLightingIf.GL_AMBIENT, params);
                 // fall through intended ..
-            case  GL.GL_DIFFUSE:
+            case  GLLightingIf.GL_DIFFUSE:
                 ud = shaderState.getUniform(mgl_FrontMaterial+".diffuse");
                 break;
-            case  GL.GL_SPECULAR:
+            case  GLLightingIf.GL_SPECULAR:
                 ud = shaderState.getUniform(mgl_FrontMaterial+".specular");
                 break;
-            case  GL.GL_EMISSION:
+            case  GLLightingIf.GL_EMISSION:
                 ud = shaderState.getUniform(mgl_FrontMaterial+".emission");
                 break;
-            case  GL.GL_SHININESS:
+            case  GLLightingIf.GL_SHININESS:
                 ud = shaderState.getUniform(mgl_FrontMaterial+".shininess");
                 break;
             default:
@@ -231,30 +241,36 @@ public class FixedFuncPipeline {
         }
     }
 
-    public void glEnable(GL2ES2 gl, int cap, boolean enable) {
+    /**
+     * @return false if digested in regard to GL2ES2 spec, 
+     *         eg this call must not be passed to an underlying ES2 implementation.
+     *         true if this call shall be passed to an underlying GL2ES2/ES2 implementation as well.
+     */
+    public boolean glEnable(GL2ES2 gl, int cap, boolean enable) {
         switch(cap) {
             case GL.GL_TEXTURE_2D:
                 textureEnabled=enable;
-                return;
-            case GL.GL_LIGHTING:
+                return true;
+            case GLLightingIf.GL_LIGHTING:
                 lightingEnabled=enable;
-                return;
+                return false;
             case GL.GL_CULL_FACE:
                 cullFace=Math.abs(cullFace);
                 if(!enable) {
                     cullFace*=-1;
                 }
-                return;
+                return true;
         }
 
-        int light = cap - GL.GL_LIGHT0;
+        int light = cap - GLLightingIf.GL_LIGHT0;
         if(0 <= light && light < MAX_LIGHTS) {
             if ( (lightsEnabled.get(light)==1) != enable ) {
                 lightsEnabled.put(light, enable?1:0);
                 lightsEnabledDirty = true;
-                return;
+                return false;
             }
         }
+        return true; // pass it on ..
     }
 
     public void glCullFace(GL2ES2 gl, int faceName) {
@@ -355,7 +371,12 @@ public class FixedFuncPipeline {
                "]";
     }
 
-    protected void init(GL2ES2 gl, PMVMatrix pmvMatrix) {
+    protected void init(GL2ES2 gl, PMVMatrix pmvMatrix, Class shaderRootClass, String shaderSrcRoot, String shaderBinRoot, 
+                       String vertexColorFile,
+                       String vertexColorLightFile,
+                       String fragmentColorFile,
+                       String fragmentColorTextureFile) 
+   {
         if(null==pmvMatrix) {
             throw new GLException("PMVMatrix is null");
         }
@@ -364,16 +385,16 @@ public class FixedFuncPipeline {
         this.shaderState.setVerbose(verbose);
         ShaderCode vertexColor, vertexColorLight, fragmentColor, fragmentColorTexture;
 
-        vertexColor = ShaderCode.create( gl, gl.GL_VERTEX_SHADER, 1, FixedFuncPipeline.class, 
+        vertexColor = ShaderCode.create( gl, gl.GL_VERTEX_SHADER, 1, shaderRootClass,
                                          shaderSrcRoot, shaderBinRoot, vertexColorFile);
 
-        vertexColorLight = ShaderCode.create( gl, gl.GL_VERTEX_SHADER, 1, FixedFuncPipeline.class, 
+        vertexColorLight = ShaderCode.create( gl, gl.GL_VERTEX_SHADER, 1, shaderRootClass,
                                            shaderSrcRoot, shaderBinRoot, vertexColorLightFile);
 
-        fragmentColor = ShaderCode.create( gl, gl.GL_FRAGMENT_SHADER, 1, FixedFuncPipeline.class, 
+        fragmentColor = ShaderCode.create( gl, gl.GL_FRAGMENT_SHADER, 1, shaderRootClass,
                                            shaderSrcRoot, shaderBinRoot, fragmentColorFile);
 
-        fragmentColorTexture = ShaderCode.create( gl, gl.GL_FRAGMENT_SHADER, 1, FixedFuncPipeline.class, 
+        fragmentColorTexture = ShaderCode.create( gl, gl.GL_FRAGMENT_SHADER, 1, shaderRootClass,
                                                   shaderSrcRoot, shaderBinRoot, fragmentColorTextureFile);
 
         shaderProgramColor = new ShaderProgram();
@@ -502,11 +523,11 @@ public class FixedFuncPipeline {
     public static final FloatBuffer defMatEmission= BufferUtil.newFloatBuffer(new float[] { 0f, 0f, 0f, 1f});
     public static final float       defMatShininess = 0f;
 
-    protected static final String vertexColorFile          = "FixedFuncColor";
-    protected static final String vertexColorLightFile     = "FixedFuncColorLight";
-    protected static final String fragmentColorFile        = "FixedFuncColor";
-    protected static final String fragmentColorTextureFile = "FixedFuncColorTexture";
-    protected static final String shaderSrcRoot = "shader" ;
-    protected static final String shaderBinRoot = "shader/bin" ;
+    protected static final String vertexColorFileDef          = "FixedFuncColor";
+    protected static final String vertexColorLightFileDef    = "FixedFuncColorLight";
+    protected static final String fragmentColorFileDef        = "FixedFuncColor";
+    protected static final String fragmentColorTextureFileDef = "FixedFuncColorTexture";
+    protected static final String shaderSrcRootDef = "shader" ;
+    protected static final String shaderBinRootDef = "shader/bin" ;
 }
 

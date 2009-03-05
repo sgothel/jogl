@@ -5,9 +5,12 @@ private boolean inBeginEndPair;
 public GLES2Impl(GLContextImpl context) {
   this._context = context; 
   this.bufferSizeTracker = context.getBufferSizeTracker();
-  this.enableFixedFunctionEmulationMode(FIXED_EMULATION_MATRIX);
 }
 
+public final boolean isGL() {
+    return true;
+}
+  
 public final boolean isGL2() {
     return false;
 }
@@ -30,6 +33,10 @@ public final boolean isGL2ES1() {
 
 public final boolean isGL2ES2() {
     return true;
+}
+
+public final GL getGL() throws GLException {
+    return this;
 }
 
 public final GL2 getGL2() throws GLException {
@@ -159,99 +166,95 @@ private GLBufferSizeTracker  bufferSizeTracker;
 
 private boolean bufferObjectExtensionsInitialized = false;
 private boolean haveOESFramebufferObject;
-private boolean haveOESPixelBufferObject;
 
 private void initBufferObjectExtensionChecks() {
   if (bufferObjectExtensionsInitialized)
     return;
   bufferObjectExtensionsInitialized = true;
   haveOESFramebufferObject  = isExtensionAvailable("GL_OES_framebuffer_object");
-  haveOESPixelBufferObject  = false; // FIXME: can't find it in ES 1.1 or ES 2.0 spec
 }
 
-private void checkBufferObject(boolean avail,
-                               boolean enabled,
-                               int state,
-                               String kind) {
+private boolean checkBufferObject(boolean avail,
+                                  boolean enabled,
+                                  int state,
+                                  String kind, boolean throwException) {
   if (!avail) {
     if (!enabled)
-      return;
-    throw new GLUnsupportedException("Required extensions not available to call this function");
+      return true;
+    if(throwException) {
+        throw new GLUnsupportedException("Required extensions not available to call this function");
+    }
+    return false;
   }
   int buffer = bufferStateTracker.getBoundBufferObject(state, this);
   if (enabled) {
     if (buffer == 0) {
-      throw new GLException(kind + " must be enabled to call this method");
+      if(throwException) {
+          throw new GLException(kind + " must be enabled to call this method");
+      }
+      return false;
     }
   } else {
     if (buffer != 0) {
-      throw new GLException(kind + " must be disabled to call this method");
+      if(throwException) {
+          throw new GLException(kind + " must be disabled to call this method");
+      }
+      return false;
     }
   }
+  return true;
 }  
 
-private void checkArrayVBODisabled() { 
+private boolean checkArrayVBODisabled(boolean throwException) { 
   initBufferObjectExtensionChecks();
-  checkBufferObject(true,
+  return checkBufferObject(true,
                     false,
                     GL.GL_ARRAY_BUFFER,
-                    "array vertex_buffer_object");
+                    "array vertex_buffer_object", throwException);
 }
 
-private void checkArrayVBOEnabled() { 
+private boolean checkArrayVBOEnabled(boolean throwException) { 
   initBufferObjectExtensionChecks();
-  checkBufferObject(true,
+  return checkBufferObject(true,
                     true,
                     GL.GL_ARRAY_BUFFER,
-                    "array vertex_buffer_object");
+                    "array vertex_buffer_object", throwException);
 }
 
-private void checkElementVBODisabled() { 
+private boolean checkElementVBODisabled(boolean throwException) { 
   initBufferObjectExtensionChecks();
-  checkBufferObject(true,
+  return checkBufferObject(true,
                     false,
                     GL.GL_ELEMENT_ARRAY_BUFFER,
-                    "element vertex_buffer_object");
+                    "element vertex_buffer_object", throwException);
 }
 
-private void checkElementVBOEnabled() { 
+private boolean checkElementVBOEnabled(boolean throwException) { 
   initBufferObjectExtensionChecks();
-  checkBufferObject(true,
+  return checkBufferObject(true,
                     true,
                     GL.GL_ELEMENT_ARRAY_BUFFER,
-                    "element vertex_buffer_object");
+                    "element vertex_buffer_object", throwException);
 }
 
-private void checkUnpackPBODisabled() { 
-  initBufferObjectExtensionChecks();
-  checkBufferObject(haveOESPixelBufferObject,
-                    false,
-                    GL2.GL_PIXEL_UNPACK_BUFFER,
-                    "unpack pixel_buffer_object");
+private boolean checkUnpackPBODisabled(boolean throwException) { 
+    // PBO n/a for ES 1.1 or ES 2.0
+    return true;
 }
 
-private void checkUnpackPBOEnabled() { 
-  initBufferObjectExtensionChecks();
-  checkBufferObject(haveOESPixelBufferObject,
-                    true,
-                    GL2.GL_PIXEL_UNPACK_BUFFER,
-                    "unpack pixel_buffer_object");
+private boolean checkUnpackPBOEnabled(boolean throwException) { 
+    // PBO n/a for ES 1.1 or ES 2.0
+    return false;
 }
 
-private void checkPackPBODisabled() { 
-  initBufferObjectExtensionChecks();
-  checkBufferObject(haveOESPixelBufferObject,
-                    false,
-                    GL2.GL_PIXEL_PACK_BUFFER,
-                    "pack pixel_buffer_object");
+private boolean checkPackPBODisabled(boolean throwException) { 
+    // PBO n/a for ES 1.1 or ES 2.0
+    return true;
 }
 
-private void checkPackPBOEnabled() { 
-  initBufferObjectExtensionChecks();
-  checkBufferObject(haveOESPixelBufferObject,
-                    true,
-                    GL2.GL_PIXEL_PACK_BUFFER,
-                    "pack pixel_buffer_object");
+private boolean checkPackPBOEnabled(boolean throwException) { 
+    // PBO n/a for ES 1.1 or ES 2.0
+    return false;
 }
 
 // Attempt to return the same ByteBuffer object from glMapBufferARB if
@@ -315,381 +318,5 @@ public void glClearDepth(double depth) {
 
 public void glDepthRange(double zNear, double zFar) {
     glDepthRangef((float)zNear, (float)zFar); 
-}
-
-protected int fixedFunctionEmulationMode = 0;
-
-protected boolean fixedFunctionShaderActive=false;
-protected FixedFuncPipeline fixedFunction=null;
-
-protected boolean fixedFunctionMatrixEnabled=false;
-protected PMVMatrix pmvMatrix = null;
-
-public void enableFixedFunctionEmulationMode(int modes) {
-    fixedFunctionEmulationMode|=modes;
-
-    if( 0 != (modes & FIXED_EMULATION_MATRIX ) ) {
-      if ( !fixedFunctionMatrixEnabled) {
-          // setup ressources
-          fixedFunctionMatrixEnabled=true;
-
-          pmvMatrix = new PMVMatrix();
-      }
-    }
-
-    if( 0 != (modes & FIXED_EMULATION_VERTEXCOLORTEXTURE ) ) {
-          fixedFunctionShaderActive=true;
-          if(null==fixedFunction) {
-            fixedFunction = new FixedFuncPipeline(this, pmvMatrix);
-          }
-    }
-}
-
-public void disableFixedFunctionEmulationMode(int modes) {
-    fixedFunctionEmulationMode&=~modes;
-
-    if( 0 != (modes & FIXED_EMULATION_MATRIX ) ) {
-      if ( fixedFunctionMatrixEnabled) {
-          // release ressources
-          fixedFunctionMatrixEnabled=false;
-          pmvMatrix = null;
-      }
-    }
-
-    // currently only for shader type: FIXED_EMULATION_VERTEXCOLORTEXTURE
-    if( 0 != (modes & FIXED_EMULATION_VERTEXCOLORTEXTURE ) ) {
-          if(null!=fixedFunction) {
-            fixedFunction.release(this);
-          }
-          fixedFunctionShaderActive=false;
-    }
-}
-
-public int  getEnabledFixedFunctionEmulationModes() {
-    return fixedFunctionEmulationMode;
-}
-
-public PMVMatrix getPMVMatrix() {
-    return pmvMatrix;
-}
-
-public int  glGetMatrixMode() {
-    if(!fixedFunctionMatrixEnabled) {
-        throw new GLUnsupportedException("not enabled");
-    }
-    return pmvMatrix.glGetMatrixMode();
-}
-public void glMatrixMode(int mode) {
-    if(!fixedFunctionMatrixEnabled) {
-        throw new GLUnsupportedException("not enabled");
-    }
-    pmvMatrix.glMatrixMode(mode);
-}
-public FloatBuffer glGetMatrixf(int matrixName) {
-    if(!fixedFunctionMatrixEnabled) {
-        throw new GLUnsupportedException("not enabled");
-    }
-    return pmvMatrix.glGetMatrixf(matrixName);
-}
-
-public FloatBuffer glGetMatrixf() {
-    if(!fixedFunctionMatrixEnabled) {
-        throw new GLUnsupportedException("not enabled");
-    }
-    return pmvMatrix.glGetMatrixf();
-}
-
-public void glLoadMatrixf(java.nio.FloatBuffer m) {
-    if(!fixedFunctionMatrixEnabled) {
-        throw new GLUnsupportedException("not enabled");
-    }
-    pmvMatrix.glLoadMatrixf(m);
-}
-public void glLoadMatrixf(float[] m, int m_offset) {
-    glLoadMatrixf(BufferUtil.newFloatBuffer(m, m_offset));
-}
-public void glPopMatrix() {
-    if(!fixedFunctionMatrixEnabled) {
-        throw new GLUnsupportedException("not enabled");
-    }
-    pmvMatrix.glPopMatrix();
-}
-
-public void glPushMatrix() {
-    if(!fixedFunctionMatrixEnabled) {
-        throw new GLUnsupportedException("not enabled");
-    }
-    pmvMatrix.glPushMatrix();
-}
-
-public void glLoadIdentity() {
-    if(!fixedFunctionMatrixEnabled) {
-        throw new GLUnsupportedException("not enabled");
-    }
-    pmvMatrix.glLoadIdentity();
-}
-public void glMultMatrixf(java.nio.FloatBuffer m) {
-    if(!fixedFunctionMatrixEnabled) {
-        throw new GLUnsupportedException("not enabled");
-    }
-    pmvMatrix.glMultMatrixf(m);
-}
-public void glMultMatrixf(float[] m, int m_offset) {
-    glMultMatrixf(BufferUtil.newFloatBuffer(m, m_offset));
-}
-public void glTranslatef(float x, float y, float z) {
-    if(!fixedFunctionMatrixEnabled) {
-        throw new GLUnsupportedException("not enabled");
-    }
-    pmvMatrix.glTranslatef(x, y, z);
-}
-public void glRotatef(float angdeg, float x, float y, float z) {
-    if(!fixedFunctionMatrixEnabled) {
-        throw new GLUnsupportedException("not enabled");
-    }
-    pmvMatrix.glRotatef(angdeg, x, y, z);
-}
-
-public void glScalef(float x, float y, float z) {
-    if(!fixedFunctionMatrixEnabled) {
-        throw new GLUnsupportedException("not enabled");
-    }
-    pmvMatrix.glScalef(x, y, z);
-}
-public void glOrthof(float left, float right, float bottom, float top, float zNear, float zFar) {
-    if(!fixedFunctionMatrixEnabled) {
-        throw new GLUnsupportedException("not enabled");
-    }
-    pmvMatrix.glOrthof(left, right, bottom, top, zNear, zFar);
-}
-public void glFrustumf(float left, float right, float bottom, float top, float zNear, float zFar) {
-    if(!fixedFunctionMatrixEnabled) {
-        throw new GLUnsupportedException("not enabled");
-    }
-    pmvMatrix.glFrustumf(left, right, bottom, top, zNear, zFar);
-}
-
-public void glEnableClientState(int glArrayIndex) {
-  if(!fixedFunctionShaderActive) {
-    throw new GLUnsupportedException("not enabled");
-  }
-  fixedFunction.glEnableClientState(this, glArrayIndex);
-}
-public void glDisableClientState(int glArrayIndex) {
-  if(!fixedFunctionShaderActive) {
-    throw new GLUnsupportedException("not enabled");
-  }
-  fixedFunction.glDisableClientState(this, glArrayIndex);
-}
-public void glColor4f(float red, float green, float blue, float alpha) {
-  if(!fixedFunctionShaderActive) {
-    throw new GLUnsupportedException("not enabled");
-  }
-  fixedFunction.glColor4fv(this, BufferUtil.newFloatBuffer(new float[] { red, green, blue, alpha })); 
-}
-
-private final void glDrawArraysPrologue() {
-    if(fixedFunctionShaderActive) { 
-        fixedFunction.validate(this); 
-    }
-}
-private final void glDrawArraysEpilogue() {
-    //if(fixedFunctionShaderActive) { 
-    //    fixedFunction.getShaderState().glUseProgram(this, false);
-    //}
-}
-private final void glActiveTextureEpilog(int texture) {
-    if(fixedFunctionShaderActive) { 
-        fixedFunction.glActiveTexture(this, texture);
-    }
-}
-private final void glEnablePrologue(int cap, boolean enable) {
-    if(fixedFunctionShaderActive) { 
-        fixedFunction.glEnable(this, cap, enable);
-    }
-}
-private final void glCullFacePrologue(int faceName) {
-    if(fixedFunctionShaderActive) { 
-        fixedFunction.glCullFace(this, faceName);
-    }
-}
-public void glLightfv(int light, int pname, java.nio.FloatBuffer params) {
-  if(!fixedFunctionShaderActive) {
-    throw new GLUnsupportedException("not enabled");
-  }
-  fixedFunction.glLightfv(this, light, pname, params);
-}
-public void glLightfv(int light, int pname, float[] params, int params_offset) {
-    glLightfv(light, pname, BufferUtil.newFloatBuffer(params, params_offset));
-}
-public void glMaterialfv(int face, int pname, java.nio.FloatBuffer params) {
-  if(!fixedFunctionShaderActive) {
-    throw new GLUnsupportedException("not enabled");
-  }
-  fixedFunction.glMaterialfv(this, face, pname, params);
-}
-public void glMaterialfv(int face, int pname, float[] params, int params_offset) {
-    glMaterialfv(face, pname, BufferUtil.newFloatBuffer(params, params_offset));
-}
-public void glMaterialf(int face, int pname, float param) {
-    glMaterialfv(face, pname, BufferUtil.newFloatBuffer(new float[] { param }));
-}
-public void glShadeModel(int mode) {
-  if(!fixedFunctionShaderActive) {
-    throw new GLUnsupportedException("not enabled");
-  }
-  fixedFunction.glShadeModel(this, mode);
-}
-
-public final String toString() {
-      StringBuffer buf = new StringBuffer();
-      buf.append("GL: ");
-      buf.append(getClass().getName());
-      buf.append(" (GLSL compiler: ");
-      buf.append(glShaderCompilerAvailable());
-      Set bfs = glGetShaderBinaryFormats();
-      buf.append(", binary formats ");
-      buf.append(bfs.size());
-      buf.append(":");
-      for(Iterator iter=bfs.iterator(); iter.hasNext(); ) {
-          buf.append(" ");
-          buf.append(((Integer)(iter.next())).intValue());
-      }
-      buf.append(") (GLContext: ");
-      GLContext context = getContext();
-      buf.append(context.getClass().getName());
-      buf.append(", GLDrawable: ");
-      GLDrawable drawable = context.getGLDrawable();
-      buf.append(drawable.getClass().getName());
-      buf.append(", Factory: ");
-      GLDrawableFactory factory = drawable.getFactory();
-      buf.append(factory.getClass().getName());
-      buf.append(", fixedEmul: [ ");
-      if( 0 != (fixedFunctionEmulationMode & FIXED_EMULATION_MATRIX) ) {
-          buf.append("FIXED_EMULATION_MATRIX ");
-      }
-      if( 0 != (fixedFunctionEmulationMode & FIXED_EMULATION_VERTEXCOLORTEXTURE) ) {
-          buf.append("FIXED_EMULATION_VERTEXCOLORTEXTURE ");
-      }
-      buf.append("], matrixEnabled: "+fixedFunctionMatrixEnabled);
-      buf.append(", shaderActive: "+fixedFunctionShaderActive);
-      if(null!=pmvMatrix) {
-          buf.append(", matrixDirty: "+pmvMatrix.isDirty());
-      }
-      buf.append("\n\t, FixedFunction: "+fixedFunction);
-      buf.append(" )");
-
-      return buf.toString();
-}
-
-public void glVertexPointer(GLArrayData array) {
-  if(!fixedFunctionShaderActive) {
-    throw new GLUnsupportedException("Fixed function not enabled");
-  }
-  if(array.isVBO()) {
-      checkArrayVBOEnabled();
-  } else {
-      checkArrayVBODisabled();
-      BufferFactory.rangeCheck(array.getBuffer(), 1);
-      if (!BufferFactory.isDirect(array.getBuffer())) {
-        throw new GLException("Argument \"pointer\" was not a direct buffer"); }
-  }
-  fixedFunction.glVertexPointer(this, array);
-}
-public void glVertexPointer(int size, int type, int stride, java.nio.Buffer pointer) {
-  glVertexPointer(GLArrayDataWrapper.createFixed(GL.GL_VERTEX_ARRAY, size, type, false, stride, pointer, 0, 0));
-}
-public void glVertexPointer(int size, int type, int stride, long pointer_buffer_offset) {
-  int vboName = bufferStateTracker.getBoundBufferObject(GL.GL_ARRAY_BUFFER, this);
-  if(vboName==0) {
-    throw new GLException("no GL_ARRAY_BUFFER VBO bound");
-  }
-  glVertexPointer(GLArrayDataWrapper.createFixed(GL.GL_VERTEX_ARRAY, size, type, false, 
-                                                 stride, null, vboName, pointer_buffer_offset));
-}
-
-public void glColorPointer(GLArrayData array) {
-  if(!fixedFunctionShaderActive) {
-    throw new GLUnsupportedException("Fixed function not enabled");
-  }
-  if(array.isVBO()) {
-      checkArrayVBOEnabled();
-  } else {
-      checkArrayVBODisabled();
-      BufferFactory.rangeCheck(array.getBuffer(), 1);
-      if (!BufferFactory.isDirect(array.getBuffer())) {
-        throw new GLException("Argument \"pointer\" was not a direct buffer"); }
-  }
-  fixedFunction.glColorPointer(this, array);
-}
-public void glColorPointer(int size, int type, int stride, java.nio.Buffer pointer) {
-  glColorPointer(GLArrayDataWrapper.createFixed(GL.GL_COLOR_ARRAY, size, type, false, 
-                                                stride, pointer, 0, 0));
-}
-public void glColorPointer(int size, int type, int stride, long pointer_buffer_offset) {
-  int vboName = bufferStateTracker.getBoundBufferObject(GL.GL_ARRAY_BUFFER, this);
-  if(vboName==0) {
-    throw new GLException("no GL_ARRAY_BUFFER VBO bound");
-  }
-  glColorPointer(GLArrayDataWrapper.createFixed(GL.GL_COLOR_ARRAY, size, type, false, 
-                                               stride, null, vboName, pointer_buffer_offset));
-}
-
-public void glNormalPointer(GLArrayData array) {
-  if(!fixedFunctionShaderActive) {
-    throw new GLUnsupportedException("Fixed function not enabled");
-  }
-  if(array.getComponentNumber()!=3) {
-    throw new GLException("Only 3 components per normal allowed");
-  }
-  if(array.isVBO()) {
-      checkArrayVBOEnabled();
-  } else {
-      checkArrayVBODisabled();
-      BufferFactory.rangeCheck(array.getBuffer(), 1);
-      if (!BufferFactory.isDirect(array.getBuffer())) {
-        throw new GLException("Argument \"pointer\" was not a direct buffer"); }
-  }
-  fixedFunction.glNormalPointer(this, array);
-}
-public void glNormalPointer(int type, int stride, java.nio.Buffer pointer) {
-  glNormalPointer(GLArrayDataWrapper.createFixed(GL.GL_NORMAL_ARRAY, 3, type, false, 
-                                                 stride, pointer, 0, 0));
-}
-public void glNormalPointer(int type, int stride, long pointer_buffer_offset) {
-  int vboName = bufferStateTracker.getBoundBufferObject(GL.GL_ARRAY_BUFFER, this);
-  if(vboName==0) {
-    throw new GLException("no GL_ARRAY_BUFFER VBO bound");
-  }
-  glNormalPointer(GLArrayDataWrapper.createFixed(GL.GL_NORMAL_ARRAY, 3, type, false, 
-                                                 stride, null, vboName, pointer_buffer_offset));
-}
-
-public void glTexCoordPointer(GLArrayData array) {
-  if(!fixedFunctionShaderActive) {
-    throw new GLUnsupportedException("Fixed function not enabled");
-  }
-  if(array.isVBO()) {
-      checkArrayVBOEnabled();
-  } else {
-      checkArrayVBODisabled();
-      BufferFactory.rangeCheck(array.getBuffer(), 1);
-      if (!BufferFactory.isDirect(array.getBuffer())) {
-        throw new GLException("Argument \"pointer\" was not a direct buffer"); }
-  }
-  fixedFunction.glTexCoordPointer(this, array);
-}
-public void glTexCoordPointer(int size, int type, int stride, java.nio.Buffer pointer) {
-  glTexCoordPointer(
-    GLArrayDataWrapper.createFixed(GL.GL_TEXTURE_COORD_ARRAY, size, type, false, stride, pointer, 0,0));
-}
-public void glTexCoordPointer(int size, int type, int stride, long pointer_buffer_offset) {
-  int vboName = bufferStateTracker.getBoundBufferObject(GL.GL_ARRAY_BUFFER, this);
-  if(vboName==0) {
-    throw new GLException("no GL_ARRAY_BUFFER VBO bound");
-  }
-  glTexCoordPointer(
-    GLArrayDataWrapper.createFixed(GL.GL_TEXTURE_COORD_ARRAY, size, type, false, 
-                                   stride, null, vboName, pointer_buffer_offset) );
 }
 

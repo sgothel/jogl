@@ -324,6 +324,13 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
   public void setRealized(boolean realized) {
   }
 
+  public void setContext(GLContext ctx) {
+    if (backend == null) {
+      return;
+    }
+    backend.setContext(ctx);
+  }
+
   public GLContext getContext() {
     if (backend == null) {
       return null;
@@ -565,6 +572,9 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
     // this GLJPanel
     public GLContext createContext(GLContext shareWith);
 
+    // Called to set the current backend's GLContext
+    public void setContext(GLContext ctx);
+
     // Called to get the current backend's GLContext
     public GLContext getContext();
 
@@ -797,6 +807,10 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
       return offscreenDrawable.createContext(shareWith);
     }
 
+    public void setContext(GLContext ctx) {
+      offscreenContext=(GLContextImpl)ctx;
+    }
+
     public GLContext getContext() {
       return offscreenContext;
     }
@@ -871,6 +885,13 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
 
     public GLContext createContext(GLContext shareWith) {
       return pbuffer.createContext(shareWith);
+    }
+
+    public void setContext(GLContext ctx) {
+      if (pbuffer == null && Beans.isDesignTime()) {
+        return;
+      }
+      pbuffer.setContext(ctx);
     }
 
     public GLContext getContext() {
@@ -1038,6 +1059,10 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
       // FIXME: should implement this, but it was not properly
       // implemented before the refactoring anyway
       throw new GLException("Not yet implemented");
+    }
+
+    public void setContext(GLContext ctx) {
+        joglContext=ctx;
     }
 
     public GLContext getContext() {

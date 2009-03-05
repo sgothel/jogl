@@ -373,6 +373,10 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
     drawableHelper.removeGLEventListener(listener);
   }
 
+  public void setContext(GLContext ctx) {
+    context=(GLContextImpl)ctx;
+  }
+
   public GLContext getContext() {
     return context;
   }

@@ -112,6 +112,10 @@ public class GLPbufferImpl implements GLPbuffer {
     drawableHelper.removeGLEventListener(listener);
   }
 
+  public void setContext(GLContext ctx) {
+    context=(GLContextImpl)ctx;
+  }
+
   public GLContext getContext() {
     return context;
   }

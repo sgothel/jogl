@@ -1,10 +1,11 @@
 #! /bin/sh
 
-. ../../setenv-build-jogl.sh
+. ../../setenv-build-jogl-x86.sh
 
 #    -Dc.compiler.debug=true 
 
 ant -v \
+    -Drootrel.build=build-x86 \
     -Dgluegen.cpptasks.detected.os=true \
     -DisUnix=true \
     -DisLinux=true \

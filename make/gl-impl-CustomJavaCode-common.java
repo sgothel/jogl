@@ -22,3 +22,11 @@
     return bufferStateTracker.getBoundBufferObject(target, this);
   }
 
+  public boolean glIsVBOArrayEnabled() {
+    return checkArrayVBOEnabled(false);
+  }
+
+  public boolean glIsVBOElementEnabled() {
+    return checkElementVBOEnabled(false);
+  }
+

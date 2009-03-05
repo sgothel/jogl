@@ -278,11 +278,11 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     int[] res = new int[MAX_ATTRIBS];
     int idx = 0;
     if (pbuffer) {
-      res[idx++] = GLXExt.GLX_DRAWABLE_TYPE;
-      res[idx++] = GLXExt.GLX_PBUFFER_BIT;
+      res[idx++] = GLX.GLX_DRAWABLE_TYPE;
+      res[idx++] = GLX.GLX_PBUFFER_BIT;
 
-      res[idx++] = GLXExt.GLX_RENDER_TYPE;
-      res[idx++] = GLXExt.GLX_RGBA_BIT;
+      res[idx++] = GLX.GLX_RENDER_TYPE;
+      res[idx++] = GLX.GLX_RGBA_BIT;
     } else {
       res[idx++] = GLX.GLX_RGBA;
     }
@@ -334,9 +334,9 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
       res[idx++] = caps.getAccumAlphaBits();
     }
     if (isMultisampleAvailable && caps.getSampleBuffers()) {
-      res[idx++] = GLXExt.GLX_SAMPLE_BUFFERS;
+      res[idx++] = GLX.GLX_SAMPLE_BUFFERS;
       res[idx++] = GL.GL_TRUE;
-      res[idx++] = GLXExt.GLX_SAMPLES;
+      res[idx++] = GLX.GLX_SAMPLES;
       res[idx++] = caps.getNumSamples();
     }
     if (pbuffer) {
@@ -411,11 +411,11 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
           caps.setAccumAlphaBits(ivalues[i]);
           break;
 
-        case GLXExt.GLX_SAMPLE_BUFFERS:
+        case GLX.GLX_SAMPLE_BUFFERS:
           caps.setSampleBuffers(ivalues[i] != GL.GL_FALSE);
           break;
 
-        case GLXExt.GLX_SAMPLES:
+        case GLX.GLX_SAMPLES:
           caps.setNumSamples(ivalues[i]);
           break;
 

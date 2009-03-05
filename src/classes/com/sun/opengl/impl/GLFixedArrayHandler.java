@@ -2,6 +2,8 @@
 package com.sun.opengl.impl;
 
 import javax.media.opengl.*;
+import javax.media.opengl.sub.*;
+import javax.media.opengl.sub.fixed.*;
 import java.nio.*;
 
 public class GLFixedArrayHandler implements GLArrayHandler {
@@ -11,18 +13,18 @@ public class GLFixedArrayHandler implements GLArrayHandler {
     this.ad = ad;
   }
 
-  protected final void passArrayPointer(GL gl) {
+  protected final void passArrayPointer(GLPointerIf gl) {
     switch(ad.getIndex()) {
-        case GL.GL_VERTEX_ARRAY:
+        case GLPointerIf.GL_VERTEX_ARRAY:
             gl.glVertexPointer(ad);
             break;
-        case GL.GL_NORMAL_ARRAY:
+        case GLPointerIf.GL_NORMAL_ARRAY:
             gl.glNormalPointer(ad);
             break;
-        case GL.GL_COLOR_ARRAY:
+        case GLPointerIf.GL_COLOR_ARRAY:
             gl.glColorPointer(ad);
             break;
-        case GL.GL_TEXTURE_COORD_ARRAY:
+        case GLPointerIf.GL_TEXTURE_COORD_ARRAY:
             gl.glTexCoordPointer(ad);
             break;
         default:
@@ -31,8 +33,9 @@ public class GLFixedArrayHandler implements GLArrayHandler {
   }
 
   public void enableBuffer(GL gl, boolean enable) {
+    GLPointerIf glp = GLFixedFuncUtil.getGLFixedFuncIf(gl);
     if(enable) {
-        gl.glEnableClientState(ad.getIndex());
+        glp.glEnableClientState(ad.getIndex());
 
         Buffer buffer = ad.getBuffer();
 
@@ -46,16 +49,16 @@ public class GLFixedArrayHandler implements GLArrayHandler {
                 }
                 ad.setBufferWritten(true);
             }
-            passArrayPointer(gl);
+            passArrayPointer(glp);
         } else if(null!=buffer) {
-            passArrayPointer(gl);
+            passArrayPointer(glp);
             ad.setBufferWritten(true);
         }
     } else {
         if(ad.isVBO()) {
             gl.glBindBuffer(GL.GL_ARRAY_BUFFER, 0);
         }
-        gl.glDisableClientState(ad.getIndex());
+        glp.glDisableClientState(ad.getIndex());
     }
   }
 }

@@ -117,6 +117,7 @@ package com.sun.opengl.impl.glu;
 
 import javax.media.opengl.util.ImmModeSink;
 import javax.media.opengl.*;
+import javax.media.opengl.sub.*;
 import javax.media.opengl.glu.*;
 import java.nio.*;
 
@@ -1110,7 +1111,7 @@ public class GLUquadricImpl implements GLUquadric {
       if(immModeSinkEnabled) {
           immModeSink.glBegin(mode);
       } else {
-          ((GL2)gl).glBegin(mode);
+          gl.getGL2().glBegin(mode);
       }
   }
 
@@ -1118,7 +1119,7 @@ public class GLUquadricImpl implements GLUquadric {
       if(immModeSinkEnabled) {
           immModeSink.glEnd(gl, immModeSinkImmediate);
       } else {
-          ((GL2)gl).glEnd();
+          gl.getGL2().glEnd();
       }
   }
 
@@ -1126,7 +1127,7 @@ public class GLUquadricImpl implements GLUquadric {
       if(immModeSinkEnabled) {
           immModeSink.glVertex2f(x, y);
       } else {
-          ((GL2)gl).glVertex2f(x, y);
+          gl.getGL2().glVertex2f(x, y);
       }
   }
 
@@ -1134,7 +1135,7 @@ public class GLUquadricImpl implements GLUquadric {
       if(immModeSinkEnabled) {
           immModeSink.glVertex3f(x, y, z);
       } else {
-          ((GL2)gl).glVertex3f(x, y, z);
+          gl.getGL2().glVertex3f(x, y, z);
       }
   }
 
@@ -1145,7 +1146,7 @@ public class GLUquadricImpl implements GLUquadric {
       if(immModeSinkEnabled) {
           immModeSink.glNormal3s(a, b, c);
       } else {
-          ((GL2)gl).glNormal3s(a, b, c);
+          gl.getGL2().glNormal3s(a, b, c);
       }
   }
 
@@ -1156,7 +1157,7 @@ public class GLUquadricImpl implements GLUquadric {
       if(immModeSinkEnabled) {
           immModeSink.glNormal3b(a, b, c);
       } else {
-          ((GL2)gl).glNormal3b(a, b, c);
+          gl.getGL2().glNormal3b(a, b, c);
       }
   }
 
@@ -1166,7 +1167,7 @@ public class GLUquadricImpl implements GLUquadric {
             if(immModeSinkEnabled) {
                 immModeSink.glNormal3f(x,y,z);
             } else {
-                ((GL2)gl).glNormal3f(x,y,z);
+                gl.getGL2().glNormal3f(x,y,z);
             }
             break;
         case GL.GL_SHORT:
@@ -1182,7 +1183,7 @@ public class GLUquadricImpl implements GLUquadric {
       if(immModeSinkEnabled) {
           immModeSink.glTexCoord2f(x, y);
       } else {
-          ((GL2)gl).glTexCoord2f(x, y);
+          gl.getGL2().glTexCoord2f(x, y);
       }
   }
 

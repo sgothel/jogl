@@ -81,4 +81,14 @@ public class X11OnscreenGLXDrawable extends X11GLXDrawable {
   protected void setChosenGLCapabilities(GLCapabilities caps) {
     super.setChosenGLCapabilities(caps);
   }
+
+  public void setRealized(boolean realized) {
+    if (realized) {
+      X11GLXDrawableFactory factory = (X11GLXDrawableFactory) getFactory();
+      NativeWindow window = getNativeWindow();
+      setChosenGLCapabilities(factory.lookupCapabilitiesByScreenAndVisualID(window.getScreenIndex(),
+                                                                            window.getVisualID()));
+    } 
+    super.setRealized(realized);
+  }
 }

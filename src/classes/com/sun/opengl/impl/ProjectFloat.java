@@ -118,6 +118,7 @@ import java.nio.*;
 
 import javax.media.opengl.*;
 import javax.media.opengl.util.*;
+import javax.media.opengl.sub.fixed.GLMatrixIf;
 
 /**
  * ProjectFloat.java
@@ -538,7 +539,7 @@ public class ProjectFloat {
    * @param bottom
    * @param top
    */
-  public void gluOrtho2D(GL gl, float left, float right, float bottom, float top) {
+  public void gluOrtho2D(GLMatrixIf gl, float left, float right, float bottom, float top) {
     gl.glOrthof(left, right, bottom, top, -1, 1);
   }
 
@@ -550,7 +551,7 @@ public class ProjectFloat {
    * @param zNear
    * @param zFar
    */
-  public void gluPerspective(GL gl, float fovy, float aspect, float zNear, float zFar) {
+  public void gluPerspective(GLMatrixIf gl, float fovy, float aspect, float zNear, float zFar) {
     float sine, cotangent, deltaZ;
     float radians = fovy / 2 * (float) Math.PI / 180;
 
@@ -588,7 +589,7 @@ public class ProjectFloat {
    * @param upy
    * @param upz
    */
-  public void gluLookAt(GL gl,
+  public void gluLookAt(GLMatrixIf gl,
                         float eyex,
                         float eyey,
                         float eyez,
@@ -1001,7 +1002,7 @@ public class ProjectFloat {
    * @param deltaY
    * @param viewport
    */
-  public void gluPickMatrix(GL gl,
+  public void gluPickMatrix(GLMatrixIf gl,
                             float x,
                             float y,
                             float deltaX,
@@ -1029,7 +1030,7 @@ public class ProjectFloat {
    * @param viewport
    * @param viewport_offset
    */
-  public void gluPickMatrix(GL gl,
+  public void gluPickMatrix(GLMatrixIf gl,
                             float x,
                             float y,
                             float deltaX,

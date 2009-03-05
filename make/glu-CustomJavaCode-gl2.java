@@ -34,6 +34,7 @@ public GLUgl2()
   this.project = new ProjectDouble();
 }
 
+
 //----------------------------------------------------------------------
 // Utility routines
 //

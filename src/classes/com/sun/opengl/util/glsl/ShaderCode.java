@@ -51,7 +51,9 @@ public class ShaderCode {
         id = getNextID();
     }
 
-    public static ShaderCode create(int type, int number, Class context, String[] sourceFiles) {
+    public static ShaderCode create(GL2ES2 gl, int type, int number, Class context, String[] sourceFiles) {
+        if(!gl.glShaderCompilerAvailable()) return null;
+
         String[][] shaderSources = null;
         if(null!=sourceFiles) {
             shaderSources = new String[sourceFiles.length][1];
@@ -112,7 +114,7 @@ public class ShaderCode {
             String srcPath[] = new String[1];
             srcFileName = srcRoot + '/' + basename + "." + getFileSuffix(false, type);
             srcPath[0] = srcFileName;
-            res = create(type, number, context, srcPath);
+            res = create(gl, type, number, context, srcPath);
             if(null!=res) {
                 return res;
             }
@@ -132,6 +134,61 @@ public class ShaderCode {
         }
 
         return res;
+    }
+
+    public static boolean createAndLoadShader(GL2ES2 gl, IntBuffer shader, int shaderType,
+                                              int binFormat, java.nio.Buffer bin,
+                                              PrintStream verboseOut)
+    {
+        int err = gl.glGetError(); // flush previous errors ..
+        if(err!=GL.GL_NO_ERROR && null!=verboseOut) {
+            verboseOut.println("createAndLoadShader: Pre GL Error: 0x"+Integer.toHexString(err));
+        }
+
+        gl.glCreateShader(shaderType, shader);
+        err = gl.glGetError(); 
+        if(err!=GL.GL_NO_ERROR) {
+            throw new GLException("createAndLoadShader: CreateShader failed, GL Error: 0x"+Integer.toHexString(err));
+        }
+
+
+        gl.glShaderBinary(shader, binFormat, bin);
+
+        err = gl.glGetError();
+        if(err!=GL.GL_NO_ERROR && null!=verboseOut) {
+            verboseOut.println("createAndLoadShader: ShaderBinary failed, GL Error: 0x"+Integer.toHexString(err));
+        }
+        return err == GL.GL_NO_ERROR;
+    }
+
+    public static boolean createAndCompileShader(GL2ES2 gl, IntBuffer shader, int shaderType,
+                                                 java.lang.String[][] sources, 
+                                                 PrintStream verboseOut)
+    {
+        int err = gl.glGetError(); // flush previous errors ..
+        if(err!=GL.GL_NO_ERROR && null!=verboseOut) {
+            verboseOut.println("createAndCompileShader: Pre GL Error: 0x"+Integer.toHexString(err));
+        }
+
+        gl.glCreateShader(shaderType, shader);
+        err = gl.glGetError(); 
+        if(err!=GL.GL_NO_ERROR) {
+            throw new GLException("createAndCompileShader: CreateShader failed, GL Error: 0x"+Integer.toHexString(err));
+        }
+
+        gl.glShaderSource(shader, sources);
+        err = gl.glGetError(); 
+        if(err!=GL.GL_NO_ERROR) {
+            throw new GLException("createAndCompileShader: ShaderSource failed, GL Error: 0x"+Integer.toHexString(err));
+        }
+
+        gl.glCompileShader(shader);
+        err = gl.glGetError(); 
+        if(err!=GL.GL_NO_ERROR && null!=verboseOut) {
+            verboseOut.println("createAndCompileShader: CompileShader failed, GL Error: 0x"+Integer.toHexString(err));
+        }
+
+        return gl.glIsShaderStatusValid(shader, gl.GL_COMPILE_STATUS, verboseOut) && err == GL.GL_NO_ERROR;
     }
 
     /**
@@ -176,11 +233,11 @@ public class ShaderCode {
 
         // Create & Compile the vertex/fragment shader objects
         if(null!=shaderSource) {
-            valid=gl.glCreateCompileShader(shader, shaderType,
-                                           shaderSource, verboseOut);
+            valid=createAndCompileShader(gl, shader, shaderType,
+                                         shaderSource, verboseOut);
         } else if(null!=shaderBinary) {
-            valid=gl.glCreateLoadShader(shader, shaderType,
-                                        shaderBinaryFormat, shaderBinary, verboseOut);
+            valid=createAndLoadShader(gl, shader, shaderType,
+                                      shaderBinaryFormat, shaderBinary, verboseOut);
         } else {
             throw new GLException("no code (source or binary)");
         }

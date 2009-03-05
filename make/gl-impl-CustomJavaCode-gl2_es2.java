@@ -205,35 +205,6 @@
     shaders.rewind();
   }
 
-  public boolean glCreateLoadShader(IntBuffer shader, int shaderType,
-                                    int binFormat, java.nio.Buffer bin,
-                                    PrintStream verboseOut)
-  {
-        glGetError(); // flush previous errors ..
-
-        glCreateShader(shaderType, shader);
-
-        glShaderBinary(shader, binFormat, bin);
-
-        return glGetError() == GL.GL_NO_ERROR;
-  }
-
-  public boolean glCreateCompileShader(IntBuffer shader, int shaderType,
-                                       java.lang.String[][] sources, 
-                                       PrintStream verboseOut)
-  {
-        glGetError(); // flush previous errors ..
-
-        glCreateShader(shaderType, shader);
-
-        glShaderSource(shader, sources);
-
-        glCompileShader(shader);
-
-        return glIsShaderStatusValid(shader, GL_COMPILE_STATUS, verboseOut) &&
-               glGetError() == GL.GL_NO_ERROR;
-  }
-
   public void glAttachShader(int program, IntBuffer shaders)
   {
     shaders.rewind();
@@ -320,4 +291,36 @@
         }
     }
   }
+
+  public final String toString() {
+      StringBuffer buf = new StringBuffer();
+      buf.append("GL: ");
+      buf.append(getClass().getName());
+      buf.append(" (GLSL compiler: ");
+      buf.append(glShaderCompilerAvailable());
+      Set bfs = glGetShaderBinaryFormats();
+      buf.append(", binary formats ");
+      buf.append(bfs.size());
+      buf.append(":");
+      for(Iterator iter=bfs.iterator(); iter.hasNext(); ) {
+          buf.append(" ");
+          buf.append(((Integer)(iter.next())).intValue());
+      }
+      buf.append(") (GLContext: ");
+      GLContext context = getContext();
+      buf.append(context.getClass().getName());
+      buf.append(", GLDrawable: ");
+      GLDrawable drawable = context.getGLDrawable();
+      if(null!=drawable) {
+          buf.append(drawable.getClass().getName());
+          buf.append(", Factory: ");
+          GLDrawableFactory factory = drawable.getFactory();
+          buf.append(factory.getClass().getName());
+      } else {
+          buf.append("n/a");
+      }
+      buf.append(")");
+      return buf.toString();
+  }
+
 

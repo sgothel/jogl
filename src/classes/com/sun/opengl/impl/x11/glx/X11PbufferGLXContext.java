@@ -83,7 +83,7 @@ public class X11PbufferGLXContext extends X11GLXContext {
       }
     }
     context = GLX.glXCreateNewContext(drawable.getNativeWindow().getDisplayHandle(), 
-                                      drawable.getFBConfig(), GLXExt.GLX_RGBA_TYPE, share, true);
+                                      drawable.getFBConfig(), GLX.GLX_RGBA_TYPE, share, true);
     if (context == 0) {
       throw new GLException("pbuffer creation error: glXCreateNewContext() failed");
     }

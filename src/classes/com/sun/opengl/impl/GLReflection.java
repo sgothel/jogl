@@ -45,7 +45,7 @@ public final class GLReflection {
     try {
         Class clazz = Class.forName(clazzName);
         return null!=clazz;
-    } catch (Exception e) { }
+    } catch (Throwable e) { }
     return false;
   }
 
@@ -64,7 +64,10 @@ public final class GLReflection {
           throw new GLUnsupportedException("Constructor: '" + clazzName + "("+cstrArgTypes+")' not found");
         }
         return factory;
-    } catch (Exception e) {
+    } catch (Throwable e) { 
+      if (Debug.debug("GLReflection")) {
+          e.printStackTrace();
+      }
       throw new GLUnsupportedException(e);
     }
   }

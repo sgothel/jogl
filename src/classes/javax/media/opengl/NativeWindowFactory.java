@@ -85,8 +85,7 @@ public abstract class NativeWindowFactory {
                     Constructor factoryConstructor =
                         GLReflection.getConstructor("com.sun.opengl.impl.x11.glx.awt.X11AWTGLXNativeWindowFactory", new Class[] {});
                     factory = (NativeWindowFactory) factoryConstructor.newInstance(null);
-                } catch (Exception e) {
-                }
+                } catch (Exception e) { }
             }
             registerFactory(componentClass, factory);
             defaultFactory = factory;

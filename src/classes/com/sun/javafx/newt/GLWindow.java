@@ -338,22 +338,24 @@ public class GLWindow extends Window implements GLAutoDrawable {
         return factory;
     }
 
+    public void setContext(GLContext newCtx) {
+        context = newCtx;
+    }
+
     public GLContext getContext() {
         return context;
     }
 
     public GL getGL() {
-        GLContext ctx = getContext();
-        if (ctx == null) {
+        if (context == null) {
             return null;
         }
-        return ctx.getGL();
+        return context.getGL();
     }
 
     public void setGL(GL gl) {
-        GLContext ctx = getContext();
-        if (ctx != null) {
-            ctx.setGL(gl);
+        if (context != null) {
+            context.setGL(gl);
         }
     }
 

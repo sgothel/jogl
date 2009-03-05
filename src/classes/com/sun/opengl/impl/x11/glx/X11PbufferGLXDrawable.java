@@ -149,9 +149,9 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
       // Create the p-buffer.
       int niattribs = 0;
 
-      iattributes[niattribs++] = GLXExt.GLX_PBUFFER_WIDTH;
+      iattributes[niattribs++] = GLX.GLX_PBUFFER_WIDTH;
       iattributes[niattribs++] = nw.getWidth();
-      iattributes[niattribs++] = GLXExt.GLX_PBUFFER_HEIGHT;
+      iattributes[niattribs++] = GLX.GLX_PBUFFER_HEIGHT;
       iattributes[niattribs++] = nw.getHeight();
 
       iattributes[niattribs++] = 0;
@@ -167,8 +167,8 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
       this.fbConfig = fbConfig;
       
       // Pick innocent query values if multisampling or floating point buffers not available
-      int sbAttrib      = X11Util.isMultisampleAvailable() ? GLXExt.GLX_SAMPLE_BUFFERS: GLX.GLX_RED_SIZE;
-      int samplesAttrib = X11Util.isMultisampleAvailable() ? GLXExt.GLX_SAMPLES: GLX.GLX_RED_SIZE;
+      int sbAttrib      = X11Util.isMultisampleAvailable() ? GLX.GLX_SAMPLE_BUFFERS: GLX.GLX_RED_SIZE;
+      int samplesAttrib = X11Util.isMultisampleAvailable() ? GLX.GLX_SAMPLES: GLX.GLX_RED_SIZE;
       int floatNV       = capabilities.getPbufferFloatingPointBuffers() ? GLXExt.GLX_FLOAT_COMPONENTS_NV : GLX.GLX_RED_SIZE;
 
       // Query the fbconfig to determine its GLCapabilities
@@ -196,9 +196,9 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
 
       // Determine the actual width and height we were able to create.
       int[] tmp = new int[1];
-      GLX.glXQueryDrawable(display, drawable, GLXExt.GLX_WIDTH, tmp, 0);
+      GLX.glXQueryDrawable(display, drawable, GLX.GLX_WIDTH, tmp, 0);
       int width = tmp[0];
-      GLX.glXQueryDrawable(display, drawable, GLXExt.GLX_HEIGHT, tmp, 0);
+      GLX.glXQueryDrawable(display, drawable, GLX.GLX_HEIGHT, tmp, 0);
       int height = tmp[0];
       nw.setSize(width, height);
 

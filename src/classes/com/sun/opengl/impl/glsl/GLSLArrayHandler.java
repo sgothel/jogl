@@ -4,6 +4,7 @@ package com.sun.opengl.impl.glsl;
 import com.sun.opengl.impl.*;
 
 import javax.media.opengl.*;
+import javax.media.opengl.sub.*;
 import com.sun.opengl.util.glsl.ShaderState;
 import java.nio.*;
 
@@ -19,6 +20,9 @@ public class GLSLArrayHandler implements GLArrayHandler {
   }
 
   public void enableBuffer(GL gl, boolean enable) {
+    if(!gl.isGL2ES2()) {
+        throw new GLException("GLSLArrayHandler expects a GL2ES2 implementation");
+    }
     GL2ES2 glsl = gl.getGL2ES2();
     ShaderState st = ShaderState.getCurrent();
     if(null==st) {
@@ -33,10 +37,10 @@ public class GLSLArrayHandler implements GLArrayHandler {
         if(ad.isVBO()) {
             // always bind and refresh the VBO mgr,
             // in case more than one gl*Pointer objects are in use
-            gl.glBindBuffer(GL.GL_ARRAY_BUFFER, ad.getVBOName());
+            glsl.glBindBuffer(GL.GL_ARRAY_BUFFER, ad.getVBOName());
             if(!ad.isBufferWritten()) {
                 if(null!=buffer) {
-                    gl.glBufferData(GL.GL_ARRAY_BUFFER, buffer.limit() * ad.getComponentSize(), buffer, ad.getBufferUsage());
+                    glsl.glBufferData(GL.GL_ARRAY_BUFFER, buffer.limit() * ad.getComponentSize(), buffer, ad.getBufferUsage());
                 }
                 ad.setBufferWritten(true);
             }
@@ -47,7 +51,7 @@ public class GLSLArrayHandler implements GLArrayHandler {
         }
     } else {
         if(ad.isVBO()) {
-            gl.glBindBuffer(GL.GL_ARRAY_BUFFER, 0);
+            glsl.glBindBuffer(GL.GL_ARRAY_BUFFER, 0);
         }
         st.glDisableVertexAttribArray(glsl, ad.getName());
     }

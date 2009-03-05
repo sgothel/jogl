@@ -20,6 +20,10 @@ public GL2ES12Impl(GLContextImpl context) {
   this.bufferSizeTracker = context.getBufferSizeTracker();
 }
 
+public final boolean isGL() {
+    return false;
+}
+
 public final boolean isGL2() {
     return false;
 }
@@ -42,6 +46,10 @@ public final boolean isGL2ES1() {
 
 public final boolean isGL2ES2() {
     return true;
+}
+
+public final GL getGL() throws GLException {
+    return this;
 }
 
 public final GL2 getGL2() throws GLException {
@@ -174,8 +182,6 @@ private GLBufferStateTracker bufferStateTracker = new GLBufferStateTracker();
 private GLBufferSizeTracker  bufferSizeTracker;
 
 private boolean bufferObjectExtensionsInitialized = false;
-private boolean haveARBPixelBufferObject;
-private boolean haveEXTPixelBufferObject;
 private boolean haveGL15;
 private boolean haveGL21;
 private boolean haveARBVertexBufferObject;
@@ -184,118 +190,106 @@ private void initBufferObjectExtensionChecks() {
   if (bufferObjectExtensionsInitialized)
     return;
   bufferObjectExtensionsInitialized = true;
-  haveARBPixelBufferObject  = isExtensionAvailable("GL_ARB_pixel_buffer_object");
-  haveEXTPixelBufferObject  = isExtensionAvailable("GL_EXT_pixel_buffer_object");
   haveGL15                  = isExtensionAvailable("GL_VERSION_1_5");
   haveGL21                  = isExtensionAvailable("GL_VERSION_2_1");
   haveARBVertexBufferObject = isExtensionAvailable("GL_ARB_vertex_buffer_object");
 }
 
-private void checkBufferObject(boolean extension1,
-                               boolean extension2,
-                               boolean extension3,
-                               boolean enabled,
-                               int state,
-                               String kind) {
+private boolean checkBufferObject(boolean extension1,
+                                  boolean extension2,
+                                  boolean extension3,
+                                  boolean enabled,
+                                  int state,
+                                  String kind, boolean throwException) {
   if (inBeginEndPair) {
     throw new GLException("May not call this between glBegin and glEnd");
   }
   boolean avail = (extension1 || extension2 || extension3);
   if (!avail) {
     if (!enabled)
-      return;
-    throw new GLUnsupportedException("Required extensions not available to call this function");
+      return true;
+    if(throwException) {
+        throw new GLUnsupportedException("Required extensions not available to call this function");
+    }
+    return false;
   }
   int buffer = bufferStateTracker.getBoundBufferObject(state, this);
   if (enabled) {
     if (buffer == 0) {
-      throw new GLException(kind + " must be enabled to call this method");
+      if(throwException) {
+          throw new GLException(kind + " must be enabled to call this method");
+      }
+      return false;
     }
   } else {
     if (buffer != 0) {
-      throw new GLException(kind + " must be disabled to call this method");
+      if(throwException) {
+          throw new GLException(kind + " must be disabled to call this method");
+      }
+      return false;
     }
   }
+  return true;
 }  
 
-private void checkArrayVBODisabled() { 
+private boolean checkArrayVBODisabled(boolean throwException) { 
   initBufferObjectExtensionChecks();
-  checkBufferObject(haveGL15,
+  return checkBufferObject(haveGL15,
                     haveARBVertexBufferObject,
                     false,
                     false,
                     GL.GL_ARRAY_BUFFER,
-                    "array vertex_buffer_object");
+                    "array vertex_buffer_object", throwException);
 }
 
-private void checkArrayVBOEnabled() { 
+private boolean checkArrayVBOEnabled(boolean throwException) { 
   initBufferObjectExtensionChecks();
-  checkBufferObject(haveGL15,
+  return checkBufferObject(haveGL15,
                     haveARBVertexBufferObject,
                     false,
                     true,
                     GL.GL_ARRAY_BUFFER,
-                    "array vertex_buffer_object");
+                    "array vertex_buffer_object", throwException);
 }
 
-private void checkElementVBODisabled() { 
+private boolean checkElementVBODisabled(boolean throwException) { 
   initBufferObjectExtensionChecks();
-  checkBufferObject(haveGL15,
+  return checkBufferObject(haveGL15,
                     haveARBVertexBufferObject,
                     false,
                     false,
                     GL.GL_ELEMENT_ARRAY_BUFFER,
-                    "element vertex_buffer_object");
+                    "element vertex_buffer_object", throwException);
 }
 
-private void checkElementVBOEnabled() { 
+private boolean checkElementVBOEnabled(boolean throwException) { 
   initBufferObjectExtensionChecks();
-  checkBufferObject(haveGL15,
+  return checkBufferObject(haveGL15,
                     haveARBVertexBufferObject,
                     false,
                     true,
                     GL.GL_ELEMENT_ARRAY_BUFFER,
-                    "element vertex_buffer_object");
+                    "element vertex_buffer_object", throwException);
 }
 
-private void checkUnpackPBODisabled() { 
-  initBufferObjectExtensionChecks();
-  checkBufferObject(haveARBPixelBufferObject,
-                    haveEXTPixelBufferObject,
-                    haveGL21,
-                    false,
-                    GL2.GL_PIXEL_UNPACK_BUFFER,
-                    "unpack pixel_buffer_object");
+private boolean checkUnpackPBODisabled(boolean throwException) { 
+  // PBO n/a for ES 1.1 or ES 2.0
+  return true;
 }
 
-private void checkUnpackPBOEnabled() { 
-  initBufferObjectExtensionChecks();
-  checkBufferObject(haveARBPixelBufferObject,
-                    haveEXTPixelBufferObject,
-                    haveGL21,
-                    true,
-                    GL2.GL_PIXEL_UNPACK_BUFFER,
-                    "unpack pixel_buffer_object");
+private boolean checkUnpackPBOEnabled(boolean throwException) { 
+  // PBO n/a for ES 1.1 or ES 2.0
+  return false;
 }
 
-private void checkPackPBODisabled() { 
-  initBufferObjectExtensionChecks();
-  checkBufferObject(haveARBPixelBufferObject,
-                    haveEXTPixelBufferObject,
-                    haveGL21,
-                    false,
-                    GL2.GL_PIXEL_PACK_BUFFER,
-                    "pack pixel_buffer_object");
+private boolean checkPackPBODisabled(boolean throwException) { 
+  // PBO n/a for ES 1.1 or ES 2.0
+  return true;
 }
 
-private void checkPackPBOEnabled() { 
-  initBufferObjectExtensionChecks();
-  checkBufferObject(haveARBPixelBufferObject,
-                    haveEXTPixelBufferObject,
-                    haveGL21,
-                    true,
-                    GL2.GL_PIXEL_PACK_BUFFER,
-                    "pack pixel_buffer_object");
+private boolean checkPackPBOEnabled(boolean throwException) { 
+  // PBO n/a for ES 1.1 or ES 2.0
+  return false;
 }
 
 // Attempt to return the same ByteBuffer object from glMapBuffer if
@@ -365,33 +359,6 @@ native private long dispatch_glMapBuffer(int target, int access, long glProcAddr
 
   public void glReleaseShaderCompiler() {
     // nothing to do 
-  }
-
-  public final String toString() {
-      StringBuffer buf = new StringBuffer();
-      buf.append("GL: ");
-      buf.append(getClass().getName());
-      buf.append(" (GLSL compiler: ");
-      buf.append(glShaderCompilerAvailable());
-      Set bfs = glGetShaderBinaryFormats();
-      buf.append(", binary formats ");
-      buf.append(bfs.size());
-      buf.append(":");
-      for(Iterator iter=bfs.iterator(); iter.hasNext(); ) {
-          buf.append(" ");
-          buf.append(((Integer)(iter.next())).intValue());
-      }
-      buf.append(") (GLContext: ");
-      GLContext context = getContext();
-      buf.append(context.getClass().getName());
-      buf.append(", GLDrawable: ");
-      GLDrawable drawable = context.getGLDrawable();
-      buf.append(drawable.getClass().getName());
-      buf.append(", Factory: ");
-      GLDrawableFactory factory = drawable.getFactory();
-      buf.append(factory.getClass().getName());
-      buf.append(")");
-      return buf.toString();
   }
 
     public void glVertexPointer(GLArrayData array) {

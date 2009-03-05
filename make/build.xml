@@ -339,23 +339,20 @@
         <property name="javacdebug"       value="true" /> 
         <property name="javacdebuglevel"  value="source,lines" /> 
 
-        <!-- GlueGen properties. -->
-        <!-- NOTE that these require a checked-out GlueGen workspace as a -->
-        <!-- sibling of the JOGL workspace. -->
-        <property name="gluegen.make.dir" value="../../gluegen/make" />
-        <property name="gluegen.build.xml" value="${gluegen.make.dir}/build.xml" />
-        <property name="gluegen.jar" value="../../gluegen/build/gluegen.jar" />
-        <property name="gluegen-rt.jar" value="../../gluegen/build/gluegen-rt.jar" />
-                                                
         <!-- Names of directories relative to the project root.
              Some of these are used in FileMappers later for dependence information
              and need exact string matching, which is why they use file.separator
              instead of "/". -->
+        <condition property="rootrel.build" value="build">
+          <not>
+              <isset property="rootrel.build"/>
+          </not>
+        </condition>
         <property name="rootrel.src.java" value="src/classes" />
         <property name="rootrel.src.c.jogl" value="src/native/jogl" />
         <property name="rootrel.src.c.newt" value="src/native/newt" />
         <property name="rootrel.src.c.openmax" value="src/native/openmax" />
-        <property name="rootrel.build" value="build" />
+
         <property name="rootrel.src.generated" value="${rootrel.build}/gensrc" />
         <property name="rootrel.generated.c.jogl" value="${rootrel.src.generated}/native/jogl" />
         <property name="rootrel.generated.c.cg" value="${rootrel.src.generated}/native/jogl_cg" />
@@ -363,10 +360,19 @@
         <property name="rootrel.obj.jogl" value="${rootrel.obj}/jogl" />
         <property name="rootrel.obj.cg" value="${rootrel.obj}/jogl_cg" />
 
+        <!-- GlueGen properties. -->
+        <!-- NOTE that these require a checked-out GlueGen workspace as a -->
+        <!-- sibling of the JOGL workspace. -->
+        <property name="gluegen.make.dir" value="../../gluegen/make" />
+        <property name="gluegen.build.xml" value="${gluegen.make.dir}/build.xml" />
+        <property name="gluegen.jar" value="../../gluegen/${rootrel.build}/gluegen.jar" />
+        <property name="gluegen-rt.jar" value="../../gluegen/${rootrel.build}/gluegen-rt.jar" />
+                                                
         <!-- The source directories. -->
         <property name="src.java" value="${project.root}/${rootrel.src.java}" />
         <property name="src.c"    value="${project.root}/${rootrel.src.c}" />
         <property name="build"    value="${project.root}/${rootrel.build}" />
+        <property name="tempdir"  value="${project.root}/build-temp" />
         
         <!-- The generated source directories. -->
         <property name="src.generated" value="${build}/gensrc" />
@@ -610,9 +616,24 @@
         <!--property name="java.generate.skip" value="true"/-->
     </target>
 
+    <target name="java.generate.cleantemp">
+        <delete includeEmptyDirs="true" quiet="true">
+            <fileset dir="${tempdir}/gensrc" />
+        </delete>
+    </target>
+
+    <target name="java.generate.copy2temp">
+        <copy todir="${tempdir}">
+            <fileset dir="../${rootrel.build}"
+                     includes="gensrc/classes/**" />
+        </copy>
+    </target>
+
     <target name="java.generate.gl_if">
         <echo message="Generating GL interface" />
+        <antcall target="java.generate.copy2temp" inheritRefs="true" />
         <gluegen src="${stub.includes.common}/gles2.c"
+                 outputRootDir="../${rootrel.build}"
                  config="${config}/gl-if-gl.cfg"
                  includeRefid="stub.includes.fileset.all.gl2"
                  emitter="com.sun.gluegen.opengl.GLEmitter">
@@ -622,7 +643,9 @@
 
     <target name="java.generate.gl2_es1_if">
         <echo message="Generating GL2_ES1 interface" />
+        <antcall target="java.generate.copy2temp" inheritRefs="true" />
         <gluegen src="${stub.includes.common}/gles1.c"
+                 outputRootDir="../${rootrel.build}"
                  config="${config}/gl-if-gl2_es1.cfg" 
                  includeRefid="stub.includes.fileset.all.gl2"
                  emitter="com.sun.gluegen.opengl.GLEmitter">
@@ -632,7 +655,9 @@
 
     <target name="java.generate.gl2_es2_if">
         <echo message="Generating GL2_ES2 interface" />
+        <antcall target="java.generate.copy2temp" inheritRefs="true" />
         <gluegen src="${stub.includes.common}/gles2.c"
+                 outputRootDir="../${rootrel.build}"
                  config="${config}/gl-if-gl2_es2.cfg" 
                  includeRefid="stub.includes.fileset.all.gl2"
                  emitter="com.sun.gluegen.opengl.GLEmitter">
@@ -642,7 +667,9 @@
 
     <target name="java.generate.gl2">
         <echo message="Generating GL2 interface and implementation" />
+        <antcall target="java.generate.copy2temp" inheritRefs="true" />
         <gluegen src="${stub.includes.common}/gl.c" 
+                 outputRootDir="../${rootrel.build}"
                  config="${config}/gl-gl2.cfg"
                  includeRefid="stub.includes.fileset.all.gl2"
                  emitter="com.sun.gluegen.opengl.GLEmitter">
@@ -652,7 +679,9 @@
 
     <target name="java.generate.gl2es12">
         <echo message="Generating GL2ES12 interface and implementation" />
+        <antcall target="java.generate.copy2temp" inheritRefs="true" />
         <gluegen src="${stub.includes.common}/gl.c" 
+                 outputRootDir="../${rootrel.build}"
                  config="${config}/gl-gl2es12.cfg"
                  includeRefid="stub.includes.fileset.all.gl2"
                  emitter="com.sun.gluegen.opengl.GLEmitter">
@@ -662,7 +691,9 @@
 
     <target name="java.generate.gles1">
         <echo message="Generating GLES1 interface and implementation" />
+        <antcall target="java.generate.copy2temp" inheritRefs="true" />
         <gluegen src="${stub.includes.common}/gles1.c" 
+                 outputRootDir="../${rootrel.build}"
                  config="${config}/gl-es1.cfg"
                  includeRefid="stub.includes.fileset.all.gl2"
                  emitter="com.sun.gluegen.opengl.GLEmitter">
@@ -672,7 +703,9 @@
 
     <target name="java.generate.gles2">
         <echo message="Generating GLES2 interface and implementation" />
+        <antcall target="java.generate.copy2temp" inheritRefs="true" />
         <gluegen src="${stub.includes.common}/gles2.c" 
+                 outputRootDir="../${rootrel.build}"
                  config="${config}/gl-es2.cfg"
                  includeRefid="stub.includes.fileset.all.gl2"
                  emitter="com.sun.gluegen.opengl.GLEmitter">
@@ -694,7 +727,9 @@
 
     <target name="java.generate.glu.base">
         <echo message="Generating GLU class" />
+        <antcall target="java.generate.copy2temp" inheritRefs="true" />
         <gluegen src="${stub.includes.common}/glu.c" 
+                 outputRootDir="../${rootrel.build}"
                  config="${config}/glu-base.cfg"
                  includeRefid="stub.includes.fileset.all.gl2"
                  emitter="com.sun.gluegen.opengl.GLEmitter">
@@ -704,7 +739,9 @@
 
     <target name="java.generate.glu.GL2ES1">
         <echo message="Generating GLU class" />
+        <antcall target="java.generate.copy2temp" inheritRefs="true" />
         <gluegen src="${stub.includes.common}/glu.c" 
+                 outputRootDir="../${rootrel.build}"
                  config="${config}/glu-gl2es1.cfg"
                  includeRefid="stub.includes.fileset.all.gl2"
                  emitter="com.sun.gluegen.opengl.GLEmitter">
@@ -714,7 +751,9 @@
 
     <target name="java.generate.glu.GL2" unless="jogl.nogl2">
         <echo message="Generating GLU class" />
+        <antcall target="java.generate.copy2temp" inheritRefs="true" />
         <gluegen src="${stub.includes.common}/glu.c" 
+                 outputRootDir="../${rootrel.build}"
                  config="${config}/glu-gl2.cfg"
                  includeRefid="stub.includes.fileset.all.gl2"
                  emitter="com.sun.gluegen.opengl.GLEmitter">
@@ -724,7 +763,9 @@
 
     <target name="java.generate.platform.glext" unless="jogl.nogl2">
         <echo message="Generating platform-specific OpenGL extension class" />
+        <antcall target="java.generate.copy2temp" inheritRefs="true" />
         <gluegen src="${glext.platform.header}" 
+                 outputRootDir="../${rootrel.build}"
                  config="${glext.platform.cfg}"
                  includeRefid="stub.includes.fileset.all.gl2"
                  emitter="com.sun.gluegen.opengl.GLEmitter">
@@ -734,7 +775,9 @@
 
     <target name="java.generate.window.lib" if="windowlib.os.cfg">
         <echo message="Generating Windowing Lib implementation class" />
+        <antcall target="java.generate.copy2temp" inheritRefs="true" />
         <gluegen src="${stub.includes.dir}/${window.os.system}/window-lib.c"
+                 outputRootDir="../${rootrel.build}"
                  config="${windowlib.os.cfg}"
                  includeRefid="stub.includes.fileset.platform"
                  emitter="com.sun.gluegen.JavaEmitter">
@@ -744,8 +787,10 @@
 
     <target name="java.generate.window.system.es" if="window.es.cfg" unless="jogl.noes">
         <echo message="Generating EGL implementation class" />
+        <antcall target="java.generate.copy2temp" inheritRefs="true" />
         <dirset id="stub.includes.fileset.platform" dir="." includes="${stub.includes.dir}/${window.es.system}/** ${stub.includes.dir}/common/**" />
         <gluegen src="${stub.includes.dir}/${window.es.system}/window-system.c"
+                 outputRootDir="../${rootrel.build}"
                  config="${window.es.cfg}"
                  includeRefid="stub.includes.fileset.platform"
                  emitter="com.sun.gluegen.opengl.GLEmitter">
@@ -755,8 +800,10 @@
 
     <target name="java.generate.window.system.es.ext" if="window.es.ext.cfg" unless="jogl.noes">
         <echo message="Generating EGLExt implementation class" />
+        <antcall target="java.generate.copy2temp" inheritRefs="true" />
         <dirset id="stub.includes.fileset.platform" dir="." includes="${stub.includes.dir}/${window.es.system}/** ${stub.includes.dir}/common/**" />
         <gluegen src="${stub.includes.dir}/${window.es.system}/window-system-ext.c"
+                 outputRootDir="../${rootrel.build}"
                  config="${window.es.ext.cfg}"
                  includeRefid="stub.includes.fileset.platform"
                  emitter="com.sun.gluegen.opengl.GLEmitter">
@@ -766,7 +813,9 @@
 
     <target name="java.generate.window.system.os" if="window.os.cfg" unless="jogl.nogl2">
         <echo message="Generating WGL/GLX/CGL/EGL implementation class" />
+        <antcall target="java.generate.copy2temp" inheritRefs="true" />
         <gluegen src="${stub.includes.dir}/${window.os.system}/window-system.c"
+                 outputRootDir="../${rootrel.build}"
                  config="${window.os.cfg}"
                  includeRefid="stub.includes.fileset.platform"
                  emitter="com.sun.gluegen.opengl.GLEmitter">
@@ -780,7 +829,9 @@
            -        handle different drives in an effective manner. -->
         <echo message="Generating JAWT interface class" />
         <echo message="java.home.dir=${java.home.dir}" />
+        <antcall target="java.generate.copy2temp" inheritRefs="true" />
         <gluegen src="${jawt.platform.header}"
+                 outputRootDir="../${rootrel.build}"
                  config="${jawt.cfg}"
                  literalInclude="${stub.includes.dir}/jni"
                  includeRefid="stub.includes.fileset.platform"
@@ -790,44 +841,44 @@
     </target>
 
     <target name="java.generate.SystemUtil.javame_cdc_fp" if="jogl.cdcfp">
-        <copy file="../src/classes/com/sun/opengl/impl/SystemUtil.java.javame_cdc_fp" tofile="../build/gensrc/classes/com/sun/opengl/impl/SystemUtil.java" />
+        <copy file="../src/classes/com/sun/opengl/impl/SystemUtil.java.javame_cdc_fp" tofile="../${rootrel.build}/gensrc/classes/com/sun/opengl/impl/SystemUtil.java" />
     </target>
 
     <target name="java.generate.SystemUtil.javase" unless="jogl.cdcfp">
-        <copy file="../src/classes/com/sun/opengl/impl/SystemUtil.java.javase" tofile="../build/gensrc/classes/com/sun/opengl/impl/SystemUtil.java" />
+        <copy file="../src/classes/com/sun/opengl/impl/SystemUtil.java.javase" tofile="../${rootrel.build}/gensrc/classes/com/sun/opengl/impl/SystemUtil.java" />
     </target>
 
     <!-- Generate the SystemUtil class for this particular profile -->
     <target name="java.generate.SystemUtil" depends="java.generate.SystemUtil.javase, java.generate.SystemUtil.javame_cdc_fp" />
 
     <target name="java.generate.BufferUtil.javame_cdc_fp" if="jogl.cdcfp">
-        <copy file="../src/classes/javax/media/opengl/util/BufferUtil.java.javame_cdc_fp" tofile="../build/gensrc/classes/javax/media/opengl/util/BufferUtil.java" />
+        <copy file="../src/classes/javax/media/opengl/util/BufferUtil.java.javame_cdc_fp" tofile="../${rootrel.build}/gensrc/classes/javax/media/opengl/util/BufferUtil.java" />
     </target>
 
     <target name="java.generate.BufferUtil.javase" unless="jogl.cdcfp">
-        <copy file="../src/classes/javax/media/opengl/util/BufferUtil.java.javase" tofile="../build/gensrc/classes/javax/media/opengl/util/BufferUtil.java" />
+        <copy file="../src/classes/javax/media/opengl/util/BufferUtil.java.javase" tofile="../${rootrel.build}/gensrc/classes/javax/media/opengl/util/BufferUtil.java" />
     </target>
 
     <!-- Generate the BufferUtil class for this particular profile -->
     <target name="java.generate.BufferUtil" depends="java.generate.BufferUtil.javase, java.generate.BufferUtil.javame_cdc_fp" />
 
     <target name="java.generate.TextureIO.javame_cdc_fp" if="jogl.cdcfp">
-        <copy file="../src/classes/com/sun/opengl/util/texture/TextureIO.java.javame_cdc_fp" tofile="../build/gensrc/classes/com/sun/opengl/util/texture/TextureIO.java" />
-        <copy file="../src/classes/com/sun/opengl/util/texture/spi/DDSImage.java.javame_cdc_fp" tofile="../build/gensrc/classes/com/sun/opengl/util/texture/spi/DDSImage.java" />
-        <copy file="../src/classes/com/sun/opengl/util/texture/spi/TGAImage.java.javame_cdc_fp" tofile="../build/gensrc/classes/com/sun/opengl/util/texture/spi/TGAImage.java" />
+        <copy file="../src/classes/com/sun/opengl/util/texture/TextureIO.java.javame_cdc_fp" tofile="../${rootrel.build}/gensrc/classes/com/sun/opengl/util/texture/TextureIO.java" />
+        <copy file="../src/classes/com/sun/opengl/util/texture/spi/DDSImage.java.javame_cdc_fp" tofile="../${rootrel.build}/gensrc/classes/com/sun/opengl/util/texture/spi/DDSImage.java" />
+        <copy file="../src/classes/com/sun/opengl/util/texture/spi/TGAImage.java.javame_cdc_fp" tofile="../${rootrel.build}/gensrc/classes/com/sun/opengl/util/texture/spi/TGAImage.java" />
     </target>
 
     <target name="java.generate.TextureIO.javase" unless="jogl.cdcfp">
         <!-- For debugging -->
 <!--
-        <copy file="../src/classes/com/sun/opengl/util/texture/TextureIO.java.javame_cdc_fp" tofile="../build/gensrc/classes/com/sun/opengl/util/texture/TextureIO.java" />
-        <copy file="../src/classes/com/sun/opengl/util/texture/spi/DDSImage.java.javame_cdc_fp" tofile="../build/gensrc/classes/com/sun/opengl/util/texture/spi/DDSImage.java" />
-        <copy file="../src/classes/com/sun/opengl/util/texture/spi/TGAImage.java.javame_cdc_fp" tofile="../build/gensrc/classes/com/sun/opengl/util/texture/spi/TGAImage.java" />
+        <copy file="../src/classes/com/sun/opengl/util/texture/TextureIO.java.javame_cdc_fp" tofile="../${rootrel.build}/gensrc/classes/com/sun/opengl/util/texture/TextureIO.java" />
+        <copy file="../src/classes/com/sun/opengl/util/texture/spi/DDSImage.java.javame_cdc_fp" tofile="../${rootrel.build}/gensrc/classes/com/sun/opengl/util/texture/spi/DDSImage.java" />
+        <copy file="../src/classes/com/sun/opengl/util/texture/spi/TGAImage.java.javame_cdc_fp" tofile="../${rootrel.build}/gensrc/classes/com/sun/opengl/util/texture/spi/TGAImage.java" />
 -->
 
-        <copy file="../src/classes/com/sun/opengl/util/texture/TextureIO.java.javase" tofile="../build/gensrc/classes/com/sun/opengl/util/texture/TextureIO.java" />
-        <copy file="../src/classes/com/sun/opengl/util/texture/spi/DDSImage.java.javase" tofile="../build/gensrc/classes/com/sun/opengl/util/texture/spi/DDSImage.java" />
-        <copy file="../src/classes/com/sun/opengl/util/texture/spi/TGAImage.java.javase" tofile="../build/gensrc/classes/com/sun/opengl/util/texture/spi/TGAImage.java" />
+        <copy file="../src/classes/com/sun/opengl/util/texture/TextureIO.java.javase" tofile="../${rootrel.build}/gensrc/classes/com/sun/opengl/util/texture/TextureIO.java" />
+        <copy file="../src/classes/com/sun/opengl/util/texture/spi/DDSImage.java.javase" tofile="../${rootrel.build}/gensrc/classes/com/sun/opengl/util/texture/spi/DDSImage.java" />
+        <copy file="../src/classes/com/sun/opengl/util/texture/spi/TGAImage.java.javase" tofile="../${rootrel.build}/gensrc/classes/com/sun/opengl/util/texture/spi/TGAImage.java" />
 
     </target>
 
@@ -941,6 +992,7 @@
 
         <!-- Generate CgGL interface class -->
         <gluegen src="${stub.includes.common}/cg.c" 
+                 outputRootDir="../${rootrel.build}"
                  config="cg-common.cfg"
                  includeRefid="stub.includes.cg.fileset.all"
                  emitter="com.sun.gluegen.JavaEmitter">
@@ -1060,6 +1112,35 @@
     <target name="java.generate.composable.pipeline" depends="java.generate.composable.pipeline.check, java.generate.composable.pipeline.es1, java.generate.composable.pipeline.es2, java.generate.composable.pipeline.gl2">
     </target>
 
+    <target name="java.generate.composable.pipeline.custom.check.glfixfunc">
+        <!-- Blow away the DebugGL*.java and TraceGL*.java sources if GL*.class has changed
+             (the uptodate element doesn't support arbitrary source and destination files) -->
+        <dependset>
+            <srcfilelist dir="${classes}/javax/media/opengl/sub/fixed" files="GLFixedFuncIf.class" />
+            <srcfilelist dir="${classes}/javax/media/opengl" files="GL2ES2.class" />
+            <targetfileset dir="${src.generated.java}/com/sun/opengl/impl/fixed"
+                           includes="GLFixedFuncImpl.java" />
+        </dependset>
+                           
+        <!-- Now choose one of the two to test to see if we have to regenerate -->
+        <uptodate property="java.generate.composable.pipeline.custom.skip.glfixfunc"
+                  srcfile="${classes}/javax/media/opengl/GL2ES2.class"
+                  targetfile="${src.generated.java}/javax/media/opengl/impl/fixed/GLFixedFuncImpl.java" />
+    </target>        
+    <target name="java.generate.composable.pipeline.custom.glfixfunc" depends="java.generate.composable.pipeline.custom.check.glfixfunc" unless="java.generate.composable.pipeline.custom.skip.glfixfunc">
+        <java classname="com.sun.gluegen.opengl.BuildComposablePipeline" fork="yes" failonerror="true">
+            <arg value="javax.media.opengl.sub.fixed.GLFixedFuncIf" />
+            <arg value="${src.generated.java}/com/sun/opengl/impl/fixed" />
+            <arg value="com.sun.opengl.impl.fixed.GLFixedFuncImpl" />
+            <arg value="javax.media.opengl.sub.fixed.GLFixedFuncHookIf" />
+            <arg value="javax.media.opengl.GL" />
+            <arg value="prolog_xor_downstream" />
+            <classpath refid="pipeline.classpath" />
+        </java>
+    </target>          
+    <target name="java.generate.composable.pipeline.custom" depends="init, build.gluegen, java.generate.composable.pipeline.check, java.generate.composable.pipeline.custom.glfixfunc">
+    </target>
+
     <!-- ================================================================== -->
     <!-- 
        - Compile the original and generated source.  The composable pipelines
@@ -1070,7 +1151,7 @@
         <!-- Perform the first pass Java compile. -->
         <javac destdir="${classes}"
                classpath="${gluegen-rt.jar}"
-               includes="javax/media/opengl/GLDrawableFactory.java javax/media/opengl/GLDrawable.java javax/media/opengl/GLContext.java javax/media/opengl/GL.java javax/media/opengl/GL2ES1.java javax/media/opengl/GL2ES2.java javax/media/opengl/GL2.java javax/media/opengl/GLES1.java javax/media/opengl/GLES2.java"
+               includes="javax/media/opengl/sub/** javax/media/opengl/GLDrawableFactory.java javax/media/opengl/GLDrawable.java javax/media/opengl/GLContext.java javax/media/opengl/GL.java javax/media/opengl/GL2ES1.java javax/media/opengl/GL2ES2.java javax/media/opengl/GL2.java javax/media/opengl/GLES1.java javax/media/opengl/GLES2.java"
                fork="yes"
                memoryMaximumSize="128m"
                source="1.4" debug="${javacdebug}" debuglevel="${javacdebuglevel}">
@@ -1110,7 +1191,36 @@
 
     <target name="java.compile.secondpass" depends="java.generate.composable.pipeline,java.compile.secondpass.1,java.compile.secondpass.2" />
 
-    <target name="java.compile" depends="java.compile.firstpass,java.compile.secondpass" />
+    <target name="java.compile.thirdpass.1" if="javac.bootclasspath.jar">
+        <!-- Perform the thirdpass pass Java compile; custom generated sources. -->
+        <javac destdir="${classes}"
+               excludes="${java.excludes.all}"
+               source="${jogl.sourcelevel}"
+               classpath="${gluegen-rt.jar}"
+               bootclasspath="${javac.bootclasspath.jar}"
+               fork="yes"
+               memoryMaximumSize="128m"
+               debug="${javacdebug}" debuglevel="${javacdebuglevel}">
+            <src path="${src.generated.java}" />
+        </javac>
+    </target>
+
+    <target name="java.compile.thirdpass.2" unless="javac.bootclasspath.jar">
+        <!-- Perform the thirdpass pass Java compile; custom generated sources. -->
+        <javac destdir="${classes}"
+               excludes="${java.excludes.all}"
+               source="${jogl.sourcelevel}"
+               classpath="${gluegen-rt.jar}"
+               fork="yes"
+               memoryMaximumSize="128m"
+               debug="${javacdebug}" debuglevel="${javacdebuglevel}">
+            <src path="${src.generated.java}" />
+        </javac>
+    </target>
+
+    <target name="java.compile.thirdpass" depends="java.generate.composable.pipeline.custom,java.compile.thirdpass.1,java.compile.thirdpass.2" />
+
+    <target name="java.compile" depends="java.compile.firstpass,java.compile.secondpass,java.compile.thirdpass" />
 
     <!-- ================================================================== -->
     <!-- 
@@ -1509,20 +1619,20 @@
 
     <target name="c.build.newt.prepare">
       <!-- FIXME: this is temporary until we move this to another workspace -->
-      <javah destdir="../build/gensrc/native/newt/Windows" classpath="${jogl.all.jar}" class="com.sun.javafx.newt.windows.WindowsWindow" />
-      <javah destdir="../build/gensrc/native/newt/MacOSX" classpath="${jogl.all.jar}" class="com.sun.javafx.newt.macosx.MacWindow" />
-      <javah destdir="../build/gensrc/native/newt/X11" classpath="${jogl.all.jar}" class="com.sun.javafx.newt.x11.X11Window" />
-      <javah destdir="../build/gensrc/native/newt/KD" classpath="${jogl.all.jar}" class="com.sun.javafx.newt.kd.KDWindow" />
+      <javah destdir="../${rootrel.build}/gensrc/native/newt/Windows" classpath="${jogl.all.jar}" class="com.sun.javafx.newt.windows.WindowsWindow" />
+      <javah destdir="../${rootrel.build}/gensrc/native/newt/MacOSX" classpath="${jogl.all.jar}" class="com.sun.javafx.newt.macosx.MacWindow" />
+      <javah destdir="../${rootrel.build}/gensrc/native/newt/X11" classpath="${jogl.all.jar}" class="com.sun.javafx.newt.x11.X11Window" />
+      <javah destdir="../${rootrel.build}/gensrc/native/newt/KD" classpath="${jogl.all.jar}" class="com.sun.javafx.newt.kd.KDWindow" />
     </target>
 
     <target name="c.build.jogl.prepare" depends="c.build.newt.prepare">
       <!-- Generate the EGLDrawableFactory header -->
       <!-- FIXME: this is temporary until we fully autogenerate the EGL interface -->
-      <javah destdir="../build/gensrc/native/jogl" classpath="${jogl.all.jar}" class="com.sun.opengl.impl.egl.EGLDrawableFactory" />
+      <javah destdir="../${rootrel.build}/gensrc/native/jogl" classpath="${jogl.all.jar}" class="com.sun.opengl.impl.egl.EGLDrawableFactory" />
       <!-- Generate the waveout Mixer header -->
       <!-- FIXME: this is temporary until we move this to another workspace -->
-      <javah destdir="../build/gensrc/native/jogl" classpath="${jogl.all.jar}" class="com.sun.javafx.audio.windows.waveout.Mixer" />
-      <javah destdir="../build/gensrc/native/openmax" classpath="${jogl.all.jar}" class="com.sun.openmax.OMXInstance" />
+      <javah destdir="../${rootrel.build}/gensrc/native/jogl" classpath="${jogl.all.jar}" class="com.sun.javafx.audio.windows.waveout.Mixer" />
+      <javah destdir="../${rootrel.build}/gensrc/native/openmax" classpath="${jogl.all.jar}" class="com.sun.openmax.OMXInstance" />
     </target>
 
     <target name="c.build.jogl.awt">
@@ -2258,15 +2368,15 @@
     <!-- First copy the generated files out of the Linux build results into the appropriate -->
     <!-- directory of this source tree (so that they'll be blown away properly with an -->
     <!-- "ant clean") -->
-    <mkdir dir="../build/gensrc/classes/javax/media/opengl/glu" />
-    <copy file="${jogl.dist.dir}/jogl-linux/DebugGL2.java" todir="../build/gensrc/classes/javax/media/opengl" />
-    <copy file="${jogl.dist.dir}/jogl-linux/TraceGL2.java" todir="../build/gensrc/classes/javax/media/opengl" />
-    <copy file="${jogl.dist.dir}/jogl-linux/GL.java"      todir="../build/gensrc/classes/javax/media/opengl" />
-    <copy file="${jogl.dist.dir}/jogl-linux/GLU.java"     todir="../build/gensrc/classes/javax/media/opengl/glu" />
-    <copy file="${jogl.dist.dir}/jogl-linux/GLUquadric.java"     todir="../build/gensrc/classes/javax/media/opengl/glu" />
+    <mkdir dir="../${rootrel.build}/gensrc/classes/javax/media/opengl/glu" />
+    <copy file="${jogl.dist.dir}/jogl-linux/DebugGL2.java" todir="../${rootrel.build}/gensrc/classes/javax/media/opengl" />
+    <copy file="${jogl.dist.dir}/jogl-linux/TraceGL2.java" todir="../${rootrel.build}/gensrc/classes/javax/media/opengl" />
+    <copy file="${jogl.dist.dir}/jogl-linux/GL.java"      todir="../${rootrel.build}/gensrc/classes/javax/media/opengl" />
+    <copy file="${jogl.dist.dir}/jogl-linux/GLU.java"     todir="../${rootrel.build}/gensrc/classes/javax/media/opengl/glu" />
+    <copy file="${jogl.dist.dir}/jogl-linux/GLUquadric.java"     todir="../${rootrel.build}/gensrc/classes/javax/media/opengl/glu" />
         <zip destfile="${jogl.dist.dir}/jogl-${tmp.version}-src.zip"
          basedir="../.."
-         includes="gluegen/LICENSE.txt,gluegen/doc/**,gluegen/make/**,gluegen/src/**,jogl/*.txt,jogl/build/gensrc/classes/javax/media/opengl/**,jogl/doc/**,jogl/make/**,jogl/src/**"
+         includes="gluegen/LICENSE.txt,gluegen/doc/**,gluegen/make/**,gluegen/src/**,jogl/*.txt,jogl/${rootrel.build}/gensrc/classes/javax/media/opengl/**,jogl/doc/**,jogl/make/**,jogl/src/**"
          excludes="**/*.class,**/*~"
          />
         <!-- Create zip archives suitable for developers -->
@@ -2339,6 +2449,7 @@
       -->
     <target name="clean" description="Remove all build products" depends="declare.common">
         <delete includeEmptyDirs="true" quiet="true">
+            <fileset dir="${tempdir}" />
             <fileset dir="${build}" />
             <fileset dir="${javadoc}" />
             <fileset dir="${javadoc.spec}" />

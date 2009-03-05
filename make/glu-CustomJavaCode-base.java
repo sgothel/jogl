@@ -76,10 +76,16 @@ public boolean isFunctionAvailable(String gluFunctionName)
 // Utility routines
 //
 
+/**
+ * Instantiates a GLU implementation object in respect to the current GL profile.
+ */
 public static final GLU createGLU() throws GLException {
   return createGLU(GLProfile.getProfile());
 }
 
+/**
+ * Instantiates a GLU implementation object in respect to the given GL profile.
+ */
 public static final GLU createGLU(String profile) throws GLUnsupportedException {
   try {
       if(GLProfile.GL2.equals(profile)) {
@@ -93,11 +99,11 @@ public static final GLU createGLU(String profile) throws GLUnsupportedException 
   } catch (GLUnsupportedException e) { e.printStackTrace(); }
   // There is no specialized ES 2 GLU at this time
   /*
-  try {
-      if(GLProfile.GL2ES12.equals(profile) || GLProfile.GL2.equals(profile) || GLProfile.GLES2.equals(profile)) {
-        return (GLU) GLReflection.createInstance("javax.media.opengl.glu.gl2es2.GLUgl2es2");
-      } 
-  } catch (GLUnsupportedException e) { e.printStackTrace(); }
+      try {
+          if(GLProfile.GL2ES12.equals(profile) || GLProfile.GL2.equals(profile) || GLProfile.GLES2.equals(profile)) {
+            return (GLU) GLReflection.createInstance("javax.media.opengl.glu.gl2es2.GLUgl2es2");
+          } 
+      } catch (GLUnsupportedException e) { e.printStackTrace(); }
   */
   return new GLU();
 }
@@ -1273,15 +1279,15 @@ public final void gluSphere(GLUquadric quad, double radius, int slices, int stac
 private ProjectFloat project;
 
 public void gluOrtho2D(float left, float right, float bottom, float top) {
-  project.gluOrtho2D(getCurrentGL(), left, right, bottom, top);
+  project.gluOrtho2D(GLFixedFuncUtil.getCurrentGLFixedFuncIf(), left, right, bottom, top);
 }
 
 public void gluPerspective(float fovy, float aspect, float zNear, float zFar) {
-  project.gluPerspective(getCurrentGL(), fovy, aspect, zNear, zFar);
+  project.gluPerspective(GLFixedFuncUtil.getCurrentGLFixedFuncIf(), fovy, aspect, zNear, zFar);
 }
 
 public void gluLookAt(float eyeX, float eyeY, float eyeZ, float centerX, float centerY, float centerZ, float upX, float upY, float upZ) {
-  project.gluLookAt(getCurrentGL(), eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ);
+  project.gluLookAt(GLFixedFuncUtil.getCurrentGLFixedFuncIf(), eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ);
 }
 
 /** Interface to C language function: <br> <code> GLint gluProject(GLdouble objX, GLdouble objY, GLdouble objZ, const GLdouble *  model, const GLdouble *  proj, const GLint *  view, GLdouble *  winX, GLdouble *  winY, GLdouble *  winZ); </code>
@@ -1327,23 +1333,23 @@ public boolean gluUnProject4(float winX, float winY, float winZ, float clipW, ja
 }
 
 public void gluPickMatrix(float x, float y, float delX, float delY, int[] viewport, int viewport_offset) {
-  project.gluPickMatrix(getCurrentGL(), x, y, delX, delY, viewport, viewport_offset);
+  project.gluPickMatrix(GLFixedFuncUtil.getCurrentGLFixedFuncIf(), x, y, delX, delY, viewport, viewport_offset);
 }
 
 public void gluPickMatrix(float x, float y, float delX, float delY, java.nio.IntBuffer viewport) {
-  project.gluPickMatrix(getCurrentGL(), x, y, delX, delY, viewport);
+  project.gluPickMatrix(GLFixedFuncUtil.getCurrentGLFixedFuncIf(), x, y, delX, delY, viewport);
 }
 
 public void gluOrtho2D(double left, double right, double bottom, double top) {
-  project.gluOrtho2D(getCurrentGL(), (float)left, (float)right, (float)bottom, (float)top);
+  project.gluOrtho2D(GLFixedFuncUtil.getCurrentGLFixedFuncIf(), (float)left, (float)right, (float)bottom, (float)top);
 }
 
 public void gluPerspective(double fovy, double aspect, double zNear, double zFar) {
-  project.gluPerspective(getCurrentGL(), (float)fovy, (float)aspect, (float)zNear, (float)zFar);
+  project.gluPerspective(GLFixedFuncUtil.getCurrentGLFixedFuncIf(), (float)fovy, (float)aspect, (float)zNear, (float)zFar);
 }
 
 public void gluLookAt(double eyeX, double eyeY, double eyeZ, double centerX, double centerY, double centerZ, double upX, double upY, double upZ) {
-  project.gluLookAt(getCurrentGL(), (float)eyeX, (float)eyeY, (float)eyeZ, (float)centerX, (float)centerY, (float)centerZ, (float)upX, (float)upY, (float)upZ);
+  project.gluLookAt(GLFixedFuncUtil.getCurrentGLFixedFuncIf(), (float)eyeX, (float)eyeY, (float)eyeZ, (float)centerX, (float)centerY, (float)centerZ, (float)upX, (float)upY, (float)upZ);
 }
 
 /** Interface to C language function: <br> <code> GLint gluProject(GLdouble objX, GLdouble objY, GLdouble objZ, const GLdouble *  model, const GLdouble *  proj, const GLint *  view, GLdouble *  winX, GLdouble *  winY, GLdouble *  winZ); </code>
@@ -1368,11 +1374,11 @@ public boolean gluUnProject4(double winX, double winY, double winZ, double clipW
 }
 
 public void gluPickMatrix(double x, double y, double delX, double delY, int[] viewport, int viewport_offset) {
-  project.gluPickMatrix(getCurrentGL(), (float)x, (float)y, (float)delX, (float)delY, viewport, viewport_offset);
+  project.gluPickMatrix(GLFixedFuncUtil.getCurrentGLFixedFuncIf(), (float)x, (float)y, (float)delX, (float)delY, viewport, viewport_offset);
 }
 
 public void gluPickMatrix(double x, double y, double delX, double delY, IntBuffer viewport) {
-  project.gluPickMatrix(getCurrentGL(), (float)x, (float)y, (float)delX, (float)delY, viewport);
+  project.gluPickMatrix(GLFixedFuncUtil.getCurrentGLFixedFuncIf(), (float)x, (float)y, (float)delX, (float)delY, viewport);
 }
 
 /**

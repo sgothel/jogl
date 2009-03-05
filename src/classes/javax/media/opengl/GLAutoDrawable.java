@@ -56,8 +56,14 @@ public interface GLAutoDrawable extends GLDrawable {
   /**
    * Returns the context associated with this drawable. The returned
    * context will be synchronized.
+   * Don't rely on it's identity, the context may change.
    */
   public GLContext getContext();
+
+  /**
+   * Associate a new context to this drawable.
+   */
+  public void setContext(GLContext context);
 
   /** Adds a {@link GLEventListener} to this drawable. If multiple
       listeners are added to a given drawable, they are notified of

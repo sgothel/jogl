@@ -3,6 +3,10 @@ public GLES1Impl(GLContextImpl context) {
   this.bufferSizeTracker = context.getBufferSizeTracker();
 }
 
+public final boolean isGL() {
+    return true;
+}
+  
 public final boolean isGL2() {
     return false;
 }
@@ -25,6 +29,10 @@ public final boolean isGL2ES1() {
 
 public final boolean isGL2ES2() {
     return false;
+}
+
+public final GL getGL() throws GLException {
+    return this;
 }
 
 public final GL2 getGL2() throws GLException {
@@ -148,99 +156,95 @@ private GLBufferSizeTracker  bufferSizeTracker;
 
 private boolean bufferObjectExtensionsInitialized = false;
 private boolean haveOESFramebufferObject;
-private boolean haveOESPixelBufferObject;
 
 private void initBufferObjectExtensionChecks() {
   if (bufferObjectExtensionsInitialized)
     return;
   bufferObjectExtensionsInitialized = true;
   haveOESFramebufferObject  = isExtensionAvailable("GL_OES_framebuffer_object");
-  haveOESPixelBufferObject  = false; // FIXME: can't find it in ES 1.1 or ES 2.0 spec
 }
 
-private void checkBufferObject(boolean avail,
-                               boolean enabled,
-                               int state,
-                               String kind) {
+private boolean checkBufferObject(boolean avail,
+                                  boolean enabled,
+                                  int state,
+                                  String kind, boolean throwException) {
   if (!avail) {
     if (!enabled)
-      return;
-    throw new GLUnsupportedException("Required extensions not available to call this function");
+      return true;
+    if(throwException) {
+        throw new GLUnsupportedException("Required extensions not available to call this function");
+    }
+    return false;
   }
   int buffer = bufferStateTracker.getBoundBufferObject(state, this);
   if (enabled) {
     if (buffer == 0) {
-      throw new GLException(kind + " must be enabled to call this method");
+      if(throwException) {
+          throw new GLException(kind + " must be enabled to call this method");
+      }
+      return false;
     }
   } else {
     if (buffer != 0) {
-      throw new GLException(kind + " must be disabled to call this method");
+      if(throwException) {
+          throw new GLException(kind + " must be disabled to call this method");
+      }
+      return false;
     }
   }
+  return true;
 }  
 
-private void checkArrayVBODisabled() { 
+private boolean checkArrayVBODisabled(boolean throwException) { 
   initBufferObjectExtensionChecks();
-  checkBufferObject(true,
+  return checkBufferObject(true,
                     false,
                     GL.GL_ARRAY_BUFFER,
-                    "array vertex_buffer_object");
+                    "array vertex_buffer_object", throwException);
 }
 
-private void checkArrayVBOEnabled() { 
+private boolean checkArrayVBOEnabled(boolean throwException) { 
   initBufferObjectExtensionChecks();
-  checkBufferObject(true,
+  return checkBufferObject(true,
                     true,
                     GL.GL_ARRAY_BUFFER,
-                    "array vertex_buffer_object");
+                    "array vertex_buffer_object", throwException);
 }
 
-private void checkElementVBODisabled() { 
+private boolean checkElementVBODisabled(boolean throwException) { 
   initBufferObjectExtensionChecks();
-  checkBufferObject(true,
+  return checkBufferObject(true,
                     false,
                     GL.GL_ELEMENT_ARRAY_BUFFER,
-                    "element vertex_buffer_object");
+                    "element vertex_buffer_object", throwException);
 }
 
-private void checkElementVBOEnabled() { 
+private boolean checkElementVBOEnabled(boolean throwException) { 
   initBufferObjectExtensionChecks();
-  checkBufferObject(true,
+  return checkBufferObject(true,
                     true,
                     GL.GL_ELEMENT_ARRAY_BUFFER,
-                    "element vertex_buffer_object");
+                    "element vertex_buffer_object", throwException);
 }
 
-private void checkUnpackPBODisabled() { 
-  initBufferObjectExtensionChecks();
-  checkBufferObject(haveOESPixelBufferObject,
-                    false,
-                    GL2.GL_PIXEL_UNPACK_BUFFER,
-                    "unpack pixel_buffer_object");
+private boolean checkUnpackPBODisabled(boolean throwException) { 
+    // PBO n/a for ES 1.1 or ES 2.0
+    return true;
 }
 
-private void checkUnpackPBOEnabled() { 
-  initBufferObjectExtensionChecks();
-  checkBufferObject(haveOESPixelBufferObject,
-                    true,
-                    GL2.GL_PIXEL_UNPACK_BUFFER,
-                    "unpack pixel_buffer_object");
+private boolean checkUnpackPBOEnabled(boolean throwException) { 
+    // PBO n/a for ES 1.1 or ES 2.0
+    return false;
 }
 
-private void checkPackPBODisabled() { 
-  initBufferObjectExtensionChecks();
-  checkBufferObject(haveOESPixelBufferObject,
-                    false,
-                    GL2.GL_PIXEL_PACK_BUFFER,
-                    "pack pixel_buffer_object");
+private boolean checkPackPBODisabled(boolean throwException) { 
+    // PBO n/a for ES 1.1 or ES 2.0
+    return true;
 }
 
-private void checkPackPBOEnabled() { 
-  initBufferObjectExtensionChecks();
-  checkBufferObject(haveOESPixelBufferObject,
-                    true,
-                    GL2.GL_PIXEL_PACK_BUFFER,
-                    "pack pixel_buffer_object");
+private boolean checkPackPBOEnabled(boolean throwException) { 
+    // PBO n/a for ES 1.1 or ES 2.0
+    return false;
 }
 
 // Attempt to return the same ByteBuffer object from glMapBufferARB if
@@ -307,10 +311,14 @@ native private long dispatch_glMapBuffer(int target, int access, long glProcAddr
       buf.append(context.getClass().getName());
       buf.append(", GLDrawable: ");
       GLDrawable drawable = context.getGLDrawable();
-      buf.append(drawable.getClass().getName());
-      buf.append(", Factory: ");
-      GLDrawableFactory factory = drawable.getFactory();
-      buf.append(factory.getClass().getName());
+      if(null!=drawable) {
+          buf.append(drawable.getClass().getName());
+          buf.append(", Factory: ");
+          GLDrawableFactory factory = drawable.getFactory();
+          buf.append(factory.getClass().getName());
+      } else {
+          buf.append("n/a");
+      }
       buf.append(")");
       return buf.toString();
   }

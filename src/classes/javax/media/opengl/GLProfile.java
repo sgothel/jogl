@@ -36,6 +36,7 @@
 
 package javax.media.opengl;
 
+import javax.media.opengl.sub.fixed.*;
 import java.lang.reflect.*;
 import java.security.*;
 import com.sun.opengl.impl.*;
@@ -299,8 +300,8 @@ public class GLProfile {
             return false;
         }
         switch(index) {
-            case GL.GL_VERTEX_ARRAY:
-            case GL.GL_TEXTURE_COORD_ARRAY:
+            case GLPointerIf.GL_VERTEX_ARRAY:
+            case GLPointerIf.GL_TEXTURE_COORD_ARRAY:
                 switch(type) {
                     case GL.GL_BYTE:
                     case GL.GL_SHORT:
@@ -326,7 +327,7 @@ public class GLProfile {
                         return false;
                 }
                 break;
-            case GL.GL_NORMAL_ARRAY:
+            case GLPointerIf.GL_NORMAL_ARRAY:
                 switch(type) {
                     case GL.GL_BYTE:
                     case GL.GL_SHORT:
@@ -350,7 +351,7 @@ public class GLProfile {
                         return false;
                 }
                 break;
-            case GL.GL_COLOR_ARRAY:
+            case GLPointerIf.GL_COLOR_ARRAY:
                 switch(type) {
                     case GL.GL_UNSIGNED_BYTE:
                     case GL.GL_FIXED:
@@ -437,7 +438,7 @@ public class GLProfile {
             }
         } else {
             switch(index) {
-                case GL.GL_VERTEX_ARRAY:
+                case GLPointerIf.GL_VERTEX_ARRAY:
                     switch(type) {
                         case GL.GL_SHORT:
                         case GL.GL_FLOAT:
@@ -463,7 +464,7 @@ public class GLProfile {
                             return false;
                     }
                     break;
-                case GL.GL_NORMAL_ARRAY:
+                case GLPointerIf.GL_NORMAL_ARRAY:
                     switch(type) {
                         case GL.GL_BYTE:
                         case GL.GL_SHORT:
@@ -488,7 +489,7 @@ public class GLProfile {
                             return false;
                     }
                     break;
-                case GL.GL_COLOR_ARRAY:
+                case GLPointerIf.GL_COLOR_ARRAY:
                     switch(type) {
                         case GL.GL_UNSIGNED_BYTE:
                         case GL.GL_BYTE:
@@ -517,7 +518,7 @@ public class GLProfile {
                             return false;
                     }
                     break;
-                case GL.GL_TEXTURE_COORD_ARRAY:
+                case GLPointerIf.GL_TEXTURE_COORD_ARRAY:
                     switch(type) {
                         case GL.GL_SHORT:
                         case GL.GL_FLOAT:

@@ -39,6 +39,10 @@
 
 package javax.media.opengl;
 
+import com.sun.opengl.impl.Debug;
+import javax.media.opengl.sub.fixed.*;
+import java.util.HashMap;
+
 /** Abstraction for an OpenGL rendering context. In order to perform
     OpenGL rendering, a context must be "made current" on the current
     thread. OpenGL rendering semantics specify that only one context
@@ -53,6 +57,8 @@ package javax.media.opengl;
     refer to a given context. */
 
 public abstract class GLContext {
+  protected static final boolean DEBUG = Debug.debug("GLContext");
+
   /** Indicates that the context was not made current during the last call to {@link #makeCurrent makeCurrent}. */
   public static final int CONTEXT_NOT_CURRENT = 0;
   /** Indicates that the context was made current during the last call to {@link #makeCurrent makeCurrent}. */
@@ -61,6 +67,8 @@ public abstract class GLContext {
   public static final int CONTEXT_CURRENT_NEW = 2;
 
   private static ThreadLocal currentContext = new ThreadLocal();
+
+  private HashMap/*<int, Object>*/ attachedObjects = new HashMap();
 
   /**
    * Returns the GLDrawable to which this context may be used to
@@ -158,6 +166,11 @@ public abstract class GLContext {
    * new GLContext implementations; not for use by end users.
    */
   protected static void setCurrent(GLContext cur) {
+    if(DEBUG) {
+        Exception e = new Exception("setCurrent: "+Thread.currentThread()+", "+currentContext.get()+" -> "+cur);
+        e.printStackTrace();
+    }
+
     currentContext.set(cur);
   }
   
@@ -188,6 +201,21 @@ public abstract class GLContext {
    */
   public abstract void setGL(GL gl);
 
+  /**
+   * Returns the attached user object for the given name to this GLContext/GL.
+   */
+  public Object getAttachedObject(int name) {
+    return attachedObjects.get(new Integer(name));
+  }
+
+  /**
+   * Sets the attached user object for the given name to this GLContext/GL.
+   * Returns the previous set object or null.
+   */
+  public Object putAttachedObject(int name, Object obj) {
+    return attachedObjects.put(new Integer(name), obj);
+  }
+
   public final String toString() {
     return "GLContext: "+getClass().getName()+
            "(GL: "+getGL().getClass().getName()+","+
@@ -207,28 +235,28 @@ public abstract class GLContext {
    * Useful for uniq mapping of canonical array index names as listed.
    * 
    * @see #mgl_Vertex
-   * @see javax.media.opengl.GL#GL_VERTEX_ARRAY
+   * @see javax.media.opengl.sub.fixed.GLPointerIf#GL_VERTEX_ARRAY
    * @see #mgl_Normal
-   * @see javax.media.opengl.GL#GL_NORMAL_ARRAY
+   * @see javax.media.opengl.sub.fixed.GLPointerIf#GL_NORMAL_ARRAY
    * @see #mgl_Color
-   * @see javax.media.opengl.GL#GL_COLOR_ARRAY
+   * @see javax.media.opengl.sub.fixed.GLPointerIf#GL_COLOR_ARRAY
    * @see #mgl_MultiTexCoord
-   * @see javax.media.opengl.GL#GL_TEXTURE_COORD_ARRAY
-   * @see javax.media.opengl.GL#glEnableClientState
-   * @see javax.media.opengl.GL#glVertexPointer
-   * @see javax.media.opengl.GL#glColorPointer
-   * @see javax.media.opengl.GL#glNormalPointer
-   * @see javax.media.opengl.GL#glTexCoordPointer
+   * @see javax.media.opengl.sub.fixed.GLPointerIf#GL_TEXTURE_COORD_ARRAY
+   * @see javax.media.opengl.sub.fixed.GLPointerIf#glEnableClientState
+   * @see javax.media.opengl.sub.fixed.GLPointerIf#glVertexPointer
+   * @see javax.media.opengl.sub.fixed.GLPointerIf#glColorPointer
+   * @see javax.media.opengl.sub.fixed.GLPointerIf#glNormalPointer
+   * @see javax.media.opengl.sub.fixed.GLPointerIf#glTexCoordPointer
    */
   public static String getPredefinedArrayIndexName(int glArrayIndex) {
     switch(glArrayIndex) {
-        case GL.GL_VERTEX_ARRAY:
+        case GLPointerIf.GL_VERTEX_ARRAY:
             return mgl_Vertex;
-        case GL.GL_NORMAL_ARRAY:
+        case GLPointerIf.GL_NORMAL_ARRAY:
             return mgl_Normal;
-        case GL.GL_COLOR_ARRAY:
+        case GLPointerIf.GL_COLOR_ARRAY:
             return mgl_Color;
-        case GL.GL_TEXTURE_COORD_ARRAY:
+        case GLPointerIf.GL_TEXTURE_COORD_ARRAY:
             return mgl_MultiTexCoord;
     }
     return null;

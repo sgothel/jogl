@@ -2,6 +2,8 @@
 package javax.media.opengl.util;
 
 import javax.media.opengl.*;
+import javax.media.opengl.sub.*;
+import javax.media.opengl.sub.fixed.*;
 import com.sun.opengl.impl.GLReflection;
 import java.nio.*;
 import java.util.Iterator;
@@ -332,8 +334,13 @@ public class ImmModeSink {
         enableBuffer(gl, true);
 
         if (buffer!=null) {
+            GLFixedFuncIf glf = GLFixedFuncUtil.getGLFixedFuncIf(gl);
+            if(null==glf) {
+                throw new GLException("ImmModeSink.draw: No GLFixedFuncIf available");
+            }
+
             if(null==indices) {
-                gl.glDrawArrays(mode, 0, count);
+                glf.glDrawArrays(mode, 0, count);
             } else {
                 Class clazz = indices.getClass();
                 int type=-1;
@@ -345,7 +352,7 @@ public class ImmModeSink {
                 if(0>type) {
                     throw new GLException("Given Buffer Class not supported: "+clazz+", should be ubyte or ushort:\n\t"+this);
                 }
-                gl.glDrawElements(mode, indices.remaining(), type, indices);
+                glf.glDrawElements(mode, indices.remaining(), type, indices);
                 // GL2: gl.glDrawRangeElements(mode, 0, indices.remaining()-1, indices.remaining(), type, indices);
             }
         }
@@ -643,11 +650,12 @@ public class ImmModeSink {
         this.bufferWritten=false;
     }
 
-    public void seal(GL gl, boolean seal)
+    public void seal(GL glObj, boolean seal)
     {
         seal(seal);
         if(sealedGL==seal) return;
         sealedGL = seal;
+        GL gl = glObj.getGL();
         if(seal) {
             if(vboUsage && vboName==0) {
                 int[] tmp = new int[1];
@@ -695,6 +703,11 @@ public class ImmModeSink {
   }
 
   public void enableBufferFixed(GL gl, boolean enable) {
+    GLFixedFuncIf glf = GLFixedFuncUtil.getGLFixedFuncIf(gl);
+    if(null==glf) {
+        throw new GLException("ImmModeSink.enableBufferFixed: No GLFixedFuncIf available");
+    }
+
     if(enable) {
         gl.glBindBuffer(GL.GL_ARRAY_BUFFER, vboName);
 
@@ -704,35 +717,35 @@ public class ImmModeSink {
         }
 
         if(vComps>0) {
-           gl.glEnableClientState(gl.GL_VERTEX_ARRAY);
-           gl.glVertexPointer(vArrayData);
+           glf.glEnableClientState(glf.GL_VERTEX_ARRAY);
+           glf.glVertexPointer(vArrayData);
         }
         if(cComps>0) {
-           gl.glEnableClientState(gl.GL_COLOR_ARRAY);
-           gl.glColorPointer(cArrayData);
+           glf.glEnableClientState(glf.GL_COLOR_ARRAY);
+           glf.glColorPointer(cArrayData);
         }
         if(nComps>0) {
-           gl.glEnableClientState(gl.GL_NORMAL_ARRAY);
-           gl.glNormalPointer(nArrayData);
+           glf.glEnableClientState(glf.GL_NORMAL_ARRAY);
+           glf.glNormalPointer(nArrayData);
         }
         if(tComps>0) {
-           gl.glEnableClientState(gl.GL_TEXTURE_COORD_ARRAY);
-           gl.glTexCoordPointer(tArrayData);
+           glf.glEnableClientState(glf.GL_TEXTURE_COORD_ARRAY);
+           glf.glTexCoordPointer(tArrayData);
         }
 
         gl.glBindBuffer(GL.GL_ARRAY_BUFFER, 0);
     } else {
         if(vComps>0) {
-           gl.glDisableClientState(gl.GL_VERTEX_ARRAY);
+           glf.glDisableClientState(glf.GL_VERTEX_ARRAY);
         }
         if(cComps>0) {
-           gl.glDisableClientState(gl.GL_COLOR_ARRAY);
+           glf.glDisableClientState(glf.GL_COLOR_ARRAY);
         }
         if(nComps>0) {
-           gl.glDisableClientState(gl.GL_NORMAL_ARRAY);
+           glf.glDisableClientState(glf.GL_NORMAL_ARRAY);
         }
         if(tComps>0) {
-           gl.glDisableClientState(gl.GL_TEXTURE_COORD_ARRAY);
+           glf.glDisableClientState(glf.GL_TEXTURE_COORD_ARRAY);
         }
     }
   }
@@ -745,10 +758,10 @@ public class ImmModeSink {
     }
  
     if(enable) {
-        gl.glBindBuffer(GL.GL_ARRAY_BUFFER, vboName);
+        glsl.glBindBuffer(GL.GL_ARRAY_BUFFER, vboName);
 
         if(!bufferWritten) {
-            gl.glBufferData(GL.GL_ARRAY_BUFFER, buffer.limit(), buffer, GL.GL_STATIC_DRAW);
+            glsl.glBufferData(GL.GL_ARRAY_BUFFER, buffer.limit(), buffer, GL.GL_STATIC_DRAW);
             bufferWritten=true;
         }
 
@@ -769,7 +782,7 @@ public class ImmModeSink {
            st.glVertexAttribPointer(glsl, tArrayData);
         }
 
-        gl.glBindBuffer(GL.GL_ARRAY_BUFFER, 0);
+        glsl.glBindBuffer(GL.GL_ARRAY_BUFFER, 0);
     } else {
         if(vComps>0) {
            st.glDisableVertexAttribArray(glsl, vArrayData.getName());
@@ -853,25 +866,25 @@ public class ImmModeSink {
         buffer.flip();
 
         if(vComps>0) {
-            vArrayData = GLArrayDataWrapper.createFixed(GL.GL_VERTEX_ARRAY, vComps, vDataType, false,
+            vArrayData = GLArrayDataWrapper.createFixed(GLPointerIf.GL_VERTEX_ARRAY, vComps, vDataType, false,
                                                         0, vertexArray, 0, vOffset);
         } else {
             vArrayData = null;
         }
         if(cComps>0) {
-            cArrayData = GLArrayDataWrapper.createFixed(GL.GL_COLOR_ARRAY, cComps, cDataType, false,
+            cArrayData = GLArrayDataWrapper.createFixed(GLPointerIf.GL_COLOR_ARRAY, cComps, cDataType, false,
                                                         0, colorArray, 0, cOffset);
         } else {
             cArrayData = null;
         }
         if(nComps>0) {
-            nArrayData = GLArrayDataWrapper.createFixed(GL.GL_NORMAL_ARRAY, nComps, nDataType, false,
+            nArrayData = GLArrayDataWrapper.createFixed(GLPointerIf.GL_NORMAL_ARRAY, nComps, nDataType, false,
                                                         0, normalArray, 0, nOffset);
         } else {
             nArrayData = null;
         }
         if(tComps>0) {
-            tArrayData = GLArrayDataWrapper.createFixed(GL.GL_TEXTURE_COORD_ARRAY, tComps, tDataType, false,
+            tArrayData = GLArrayDataWrapper.createFixed(GLPointerIf.GL_TEXTURE_COORD_ARRAY, tComps, tDataType, false,
                                                         0, textCoordArray, 0, tOffset);
         } else {
             tArrayData = null;

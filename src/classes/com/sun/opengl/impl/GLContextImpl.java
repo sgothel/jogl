@@ -48,7 +48,7 @@ import com.sun.gluegen.runtime.opengl.*;
 
 public abstract class GLContextImpl extends GLContext {
   protected GLContextLock lock = new GLContextLock();
-  protected static final boolean DEBUG = Debug.debug("GLContextImpl");
+  protected static final boolean DEBUG = Debug.debug("GLContext");
   protected static final boolean VERBOSE = Debug.verbose();
   protected static final boolean NO_FREE = Debug.isPropertyDefined("jogl.GLContext.nofree");
   // NOTE: default sense of GLContext optimization disabled in JSR-231
@@ -223,6 +223,12 @@ public abstract class GLContextImpl extends GLContext {
   }
 
   public void setGL(GL gl) {
+    if(DEBUG) {
+        String sgl1 = (null!=this.gl)?this.gl.getClass().toString()+", "+this.gl.toString():new String("<null>");
+        String sgl2 = (null!=gl)?gl.getClass().toString()+", "+gl.toString():new String("<null>");
+        Exception e = new Exception("setGL: "+Thread.currentThread()+", "+sgl1+" -> "+sgl2);
+        e.printStackTrace();
+    }
     this.gl = gl;
   }
 
