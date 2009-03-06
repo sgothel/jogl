@@ -1147,6 +1147,7 @@
        - will be generated.
       -->
     <target name="java.compile.firstpass" depends="java.generate,java.generate.cg">
+        <antcall target="java.generate.cleantemp" inheritRefs="true" />
 
         <!-- Perform the first pass Java compile. -->
         <javac destdir="${classes}"
