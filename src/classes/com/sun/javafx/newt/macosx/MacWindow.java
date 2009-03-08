@@ -250,6 +250,11 @@ public class MacWindow extends Window {
     }
 
     private char convertKeyChar(char keyChar) {
+        if (keyChar == '\r') {
+            // Turn these into \n
+            return '\n';
+        }
+
         if (keyChar >= NSUpArrowFunctionKey && keyChar <= NSModeSwitchFunctionKey) {
             switch (keyChar) {
                 case NSUpArrowFunctionKey:     return KeyEvent.VK_UP;
