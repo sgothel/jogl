@@ -44,6 +44,25 @@
 
 #import <stdio.h>
 
+// For some reason, rightMouseDown isn't automatically being passed
+// from the NSView to the containing NSWindow
+
+@interface NewtView : NSView
+{
+}
+
+@end
+
+@implementation NewtView
+- (void) rightMouseDown: (NSEvent*) theEvent
+{
+    NSResponder* next = [self nextResponder];
+    if (next != nil) {
+        [next rightMouseDown: theEvent];
+    }
+}
+@end
+
 NSString* jstringToNSString(JNIEnv* env, jstring jstr)
 {
     const jchar* jstrChars = (*env)->GetStringChars(env, jstr, NULL);
@@ -121,13 +140,17 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_createWindow
     setFrameTopLeftPoint(window, x, y);
 
     // Allocate an NSView
-    NSView* view = [[NSView alloc] initWithFrame: rect];
+    NSView* view = [[NewtView alloc] initWithFrame: rect];
 
     // specify we want mouse-moved events
     [window setAcceptsMouseMovedEvents:YES];
 
     // Set the content view
     [window setContentView: view];
+
+    // Set the next responder to be the window so that we can forward
+    // right mouse button down events
+    [view setNextResponder: window];
 
     [pool release];
 
