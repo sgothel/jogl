@@ -477,17 +477,17 @@
         <property name="jogl.all.jar" value="${build}/jogl.all.jar" />
 
         <!-- The javadoc dirs. -->
-        <property name="javadoc" value="${project.root}/javadoc_public" />
-        <property name="javadoc.spec" value="${project.root}/javadoc_spec" />
+        <property name="javadoc" value="${project.root}/javadoc_jogl_public" />
+        <property name="javadoc.spec" value="${project.root}/javadoc_jogl_spec" />
         <property name="javadoc.dev" value="${project.root}/javadoc_jogl_dev" />
         <property name="javadoc.link" value="http://java.sun.com/j2se/1.4.2/docs/api/" />
         <property name="javadoc.windowtitle" value="JOGL API -- JSR-231 ${base_version} Specification" />
         <property name="javadoc.overview" value="spec-overview.html" />
-        <property name="javadoc.spec.packagenames" value="javax.media.opengl.*,com.sun.javafx.newt" />
+        <property name="javadoc.spec.packagenames" value="javax.media.nwi.*,javax.media.opengl.*,com.sun.javafx.newt" />
 
         <property name="javadoc.packagenames" value="${javadoc.spec.packagenames},com.sun.opengl.util.*" />
 
-        <property name="javadoc.dev.packagenames" value="javax.media.opengl.*,com.sun.opengl.impl.*,com.sun.opengl.util.*,com.sun.gluegen,com.sun.gluegen.runtime" />
+        <property name="javadoc.dev.packagenames" value="javax.media.nwi.*,javax.media.opengl.*,com.sun.opengl.impl.*,com.sun.opengl.util.*,com.sun.gluegen,com.sun.gluegen.runtime" />
     <property name="javadoc.bottom" value="Copyright 2005 Sun Microsystems, Inc. All rights reserved. Use is subject to &lt;a href=&quot;http://jcp.org/en/jsr/detail?id=231&quot;&gt;license terms&lt;/a&gt;." />
     </target>
     
