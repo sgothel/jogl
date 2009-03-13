@@ -81,6 +81,43 @@
 #endif
 
 /**
+ * Keycode
+ */
+
+#define IS_WITHIN(k,a,b) ((a)<=(k)&&(k)<=(b))
+
+static jint X11KeySym2NewtVKey(KeySym keySym) {
+    if(IS_WITHIN(keySym,XK_F1,XK_F12)) 
+        return (keySym-XK_F1)+VK_F1;
+
+    switch(keySym) {
+        case XK_Alt_L:
+        case XK_Alt_R:
+            return VK_ALT;
+
+        case XK_Left:
+            return VK_LEFT;
+        case XK_Right:
+            return VK_RIGHT;
+        case XK_Up:
+            return VK_UP;
+        case XK_Down:
+            return VK_DOWN;
+        case XK_Page_Up:
+            return VK_PAGE_UP;
+        case XK_Page_Down:
+            return VK_PAGE_DOWN;
+        case XK_Shift_L:
+        case XK_Shift_R:
+            return VK_SHIFT;
+        case XK_Control_L:
+        case XK_Control_R:
+            return VK_CONTROL;
+    }
+    return keySym;
+}
+
+/**
  * Display
  */
 
@@ -466,7 +503,7 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_x11_X11Window_DispatchMessages
                     }
                     (*env)->CallVoidMethod(env, obj, sendKeyEventID, (jint) EVENT_KEY_PRESSED, 
                                           (jint) evt.xkey.state, 
-                                          (jint) keySym, (jchar) keyChar);
+                                          X11KeySym2NewtVKey(keySym), (jchar) keyChar);
                 }
                 break;
             case KeyRelease:
@@ -478,7 +515,7 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_x11_X11Window_DispatchMessages
                     }
                     (*env)->CallVoidMethod(env, obj, sendKeyEventID, (jint) EVENT_KEY_RELEASED, 
                                           (jint) evt.xkey.state, 
-                                          (jint) keySym, (jchar) keyChar);
+                                          X11KeySym2NewtVKey(keySym), (jchar) keyChar);
                 }
                 break;
             case FocusIn:

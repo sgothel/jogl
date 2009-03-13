@@ -38,6 +38,10 @@ public class MouseEvent extends InputEvent
   public static final int BUTTON1 = 1;
   public static final int BUTTON2 = 2;
   public static final int BUTTON3 = 3;
+  public static final int BUTTON4 = 4;
+  public static final int BUTTON5 = 5;
+  public static final int BUTTON6 = 6;
+  public static final int BUTTON_NUMBER = 6;
 
  protected MouseEvent(boolean sysEvent, int eventType, Window source, long when, int modifiers, int x, int y, int clickCount, int button) 
  {

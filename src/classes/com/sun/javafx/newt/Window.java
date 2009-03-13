@@ -369,12 +369,15 @@ public abstract class Window implements NativeWindow
     private long lastMousePressed = 0;
     private int  lastMouseClickCount = 0;
     public  static final int ClickTimeout = 300;
-    private boolean[] buttonStates = new boolean[3];
+    private boolean[] buttonStates = new boolean[MouseEvent.BUTTON_NUMBER];
 
     protected void sendMouseEvent(int eventType, int modifiers, int x, int y, int button) {
         if(DEBUG_MOUSE_EVENT) {
             System.out.println("sendMouseEvent: "+MouseEvent.getEventTypeString(eventType)+
                                ", mod "+modifiers+", pos "+x+"/"+y+", button "+button);
+        }
+        if(button<0||button>MouseEvent.BUTTON_NUMBER) {
+            throw new RuntimeException("Invalid mouse button number" + button);
         }
         long when = System.currentTimeMillis();
         MouseEvent eClicked = null;
