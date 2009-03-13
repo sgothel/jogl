@@ -32,6 +32,7 @@
 
 package javax.media.opengl;
 
+import javax.media.nwi.*;
 import java.lang.reflect.*;
 import java.security.*;
 import java.util.*;
@@ -68,7 +69,7 @@ public abstract class NativeWindowFactory {
         // make it easier to run this code on mobile devices
 
         NativeWindowFactory factory = new NativeWindowFactoryImpl();
-        nativeWindowClass = javax.media.opengl.NativeWindow.class;
+        nativeWindowClass = javax.media.nwi.NativeWindow.class;
         registerFactory(nativeWindowClass, factory);
         defaultFactory = factory;
         
@@ -174,7 +175,7 @@ public abstract class NativeWindowFactory {
 
     /**
      * <P> Selects a graphics configuration on the specified graphics
-     * device compatible with the supplied GLCapabilities. This method
+     * device compatible with the supplied NWCapabilities. This method
      * is intended to be used by applications which do not use the
      * supplied GLCanvas class but instead wrap their own Canvas or
      * other window toolkit-specific object with a GLDrawable. Some
@@ -199,8 +200,8 @@ public abstract class NativeWindowFactory {
      *         the selection of the graphics configuration to fail.
      */
     public abstract AbstractGraphicsConfiguration
-        chooseGraphicsConfiguration(GLCapabilities capabilities,
-                                    GLCapabilitiesChooser chooser,
+        chooseGraphicsConfiguration(NWCapabilities capabilities,
+                                    NWCapabilitiesChooser chooser,
                                     AbstractGraphicsDevice device)
         throws IllegalArgumentException, GLException;
 

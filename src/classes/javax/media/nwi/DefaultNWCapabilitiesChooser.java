@@ -37,23 +37,21 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package javax.media.opengl;
-
-import com.sun.opengl.impl.Debug;
+package javax.media.nwi;
 
 /** <P> The default implementation of the {@link
-    GLCapabilitiesChooser} interface, which provides consistent visual
+    NWCapabilitiesChooser} interface, which provides consistent visual
     selection behavior across platforms. The precise algorithm is
     deliberately left loosely specified. Some properties are: </P>
 
     <UL>
 
     <LI> As long as there is at least one available non-null
-    GLCapabilities which matches the "stereo" option, will return a
+    NWCapabilities which matches the "stereo" option, will return a
     valid index.
 
     <LI> Attempts to match as closely as possible the given
-    GLCapabilities, but will select one with fewer capabilities (i.e.,
+    NWCapabilities, but will select one with fewer capabilities (i.e.,
     lower color depth) if necessary.
 
     <LI> Prefers hardware-accelerated visuals to
@@ -79,11 +77,11 @@ import com.sun.opengl.impl.Debug;
     </UL>
 */
 
-public class DefaultGLCapabilitiesChooser implements GLCapabilitiesChooser {
-  private static final boolean DEBUG = Debug.debug("DefaultGLCapabilitiesChooser");
+public class DefaultNWCapabilitiesChooser implements NWCapabilitiesChooser {
+  private static final boolean DEBUG = false; // FIXME: Debug.debug("DefaultNWCapabilitiesChooser");
 
-  public int chooseCapabilities(GLCapabilities desired,
-                                GLCapabilities[] available,
+  public int chooseCapabilities(NWCapabilities desired,
+                                NWCapabilities[] available,
                                 int windowSystemRecommendedChoice) {
     if (DEBUG) {
       System.err.println("Desired: " + desired);
@@ -120,7 +118,7 @@ public class DefaultGLCapabilitiesChooser implements GLCapabilitiesChooser {
     }
     // Compute score for each
     for (int i = 0; i < scores.length; i++) {
-      GLCapabilities cur = available[i];
+      NWCapabilities cur = available[i];
       if (cur == null) {
         continue;
       }
@@ -159,7 +157,7 @@ public class DefaultGLCapabilitiesChooser implements GLCapabilitiesChooser {
       if (score == NO_SCORE) {
         continue;
       }
-      GLCapabilities cur = available[i];
+      NWCapabilities cur = available[i];
       if (cur.getHardwareAccelerated()) {
         int absScore = Math.abs(score);
         if (!gotHW ||
@@ -175,7 +173,7 @@ public class DefaultGLCapabilitiesChooser implements GLCapabilitiesChooser {
         if (score == NO_SCORE) {
           continue;
         }
-        GLCapabilities cur = available[i];
+        NWCapabilities cur = available[i];
         if (!cur.getHardwareAccelerated()) {
           if (score <= 0) {
             score -= maxAbsoluteHWScore;
@@ -215,7 +213,7 @@ public class DefaultGLCapabilitiesChooser implements GLCapabilitiesChooser {
       }
     }
     if (chosenIndex < 0) {
-      throw new GLException("Unable to select one of the provided GLCapabilities");
+      throw new NativeWindowException("Unable to select one of the provided NWCapabilities");
     }
     if (DEBUG) {
       System.err.println("Chosen index: " + chosenIndex);

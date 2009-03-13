@@ -33,9 +33,9 @@
 
 package com.sun.javafx.newt;
 
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.NativeWindow;
-import javax.media.opengl.NativeWindowException;
+import javax.media.nwi.NWCapabilities;
+import javax.media.nwi.NativeWindow;
+import javax.media.nwi.NativeWindowException;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -76,16 +76,16 @@ public abstract class Window implements NativeWindow
         } else if (NewtFactory.AWT.equals(type)) {
             windowClass = Class.forName("com.sun.javafx.newt.awt.AWTWindow");
         } else {
-            throw new RuntimeException("Unknown window type \"" + type + "\"");
+            throw new NativeWindowException("Unknown window type \"" + type + "\"");
         }
         return windowClass;
     }
 
-    protected static Window create(String type, Screen screen, GLCapabilities caps) {
+    protected static Window create(String type, Screen screen, NWCapabilities caps) {
         return create(type, screen, caps, false);
     }
 
-    protected static Window create(String type, Screen screen, GLCapabilities caps, boolean undecorated) {
+    protected static Window create(String type, Screen screen, NWCapabilities caps, boolean undecorated) {
         try {
             Class windowClass = getWindowClass(type);
             Window window = (Window) windowClass.newInstance();
@@ -97,11 +97,11 @@ public abstract class Window implements NativeWindow
             return window;
         } catch (Throwable t) {
             t.printStackTrace();
-            throw new RuntimeException(t);
+            throw new NativeWindowException(t);
         }
     }
 
-    protected static Window wrapHandle(String type, Screen screen, GLCapabilities caps, long visualID, 
+    protected static Window wrapHandle(String type, Screen screen, NWCapabilities caps, long visualID, 
                                  long windowHandle, boolean fullscreen, boolean visible, 
                                  int x, int y, int width, int height) 
     {
@@ -122,7 +122,7 @@ public abstract class Window implements NativeWindow
             return window;
         } catch (Throwable t) {
             t.printStackTrace();
-            throw new RuntimeException(t);
+            throw new NativeWindowException(t);
         }
     }
 
@@ -132,7 +132,7 @@ public abstract class Window implements NativeWindow
      * Shall use the capabilities to determine the visualID
      * and shall set chosenCaps.
      */
-    protected abstract void createNative(GLCapabilities caps);
+    protected abstract void createNative(NWCapabilities caps);
 
     protected abstract void closeNative();
 
@@ -176,11 +176,11 @@ public abstract class Window implements NativeWindow
     protected Screen screen;
 
     /**
-     * The GLCapabilities shall be used to determine the visualID
+     * The NWCapabilities shall be used to determine the visualID
      */
-    protected GLCapabilities chosenCaps;
+    protected NWCapabilities chosenCaps;
     /**
-     * The visualID shall be determined using the GLCapabilities
+     * The visualID shall be determined using the NWCapabilities
      */
     protected long   visualID;
     protected long   windowHandle;
@@ -288,12 +288,12 @@ public abstract class Window implements NativeWindow
         return windowHandle; // default: return window handle
     }
 
-    public GLCapabilities getChosenCapabilities() {
+    public NWCapabilities getChosenCapabilities() {
         if (chosenCaps == null)
           return null;
 
         // Must return a new copy to avoid mutation by end user
-        return (GLCapabilities) chosenCaps.clone();
+        return (NWCapabilities) chosenCaps.clone();
     }
 
     public long getVisualID() {
@@ -377,7 +377,7 @@ public abstract class Window implements NativeWindow
                                ", mod "+modifiers+", pos "+x+"/"+y+", button "+button);
         }
         if(button<0||button>MouseEvent.BUTTON_NUMBER) {
-            throw new RuntimeException("Invalid mouse button number" + button);
+            throw new NativeWindowException("Invalid mouse button number" + button);
         }
         long when = System.currentTimeMillis();
         MouseEvent eClicked = null;
@@ -455,7 +455,7 @@ public abstract class Window implements NativeWindow
                     l.mouseDragged(e);
                     break;
                 default:
-                    throw new RuntimeException("Unexpected mouse event type " + e.getEventType());
+                    throw new NativeWindowException("Unexpected mouse event type " + e.getEventType());
             }
         }
     }
@@ -511,7 +511,7 @@ public abstract class Window implements NativeWindow
                     l.keyTyped(e);
                     break;
                 default:
-                    throw new RuntimeException("Unexpected key event type " + e.getEventType());
+                    throw new NativeWindowException("Unexpected key event type " + e.getEventType());
             }
         }
     }
@@ -563,7 +563,7 @@ public abstract class Window implements NativeWindow
                     l.windowMoved(e);
                     break;
                 default:
-                    throw new RuntimeException("Unexpected window event type " + e.getEventType());
+                    throw new NativeWindowException("Unexpected window event type " + e.getEventType());
             }
         }
     }

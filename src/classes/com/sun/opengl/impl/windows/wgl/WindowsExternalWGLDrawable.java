@@ -39,13 +39,14 @@
 
 package com.sun.opengl.impl.windows.wgl;
 
+import javax.media.nwi.*;
 import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
 
 public class WindowsExternalWGLDrawable extends WindowsWGLDrawable {
 
   public WindowsExternalWGLDrawable(GLDrawableFactory factory, NativeWindow component) {
-    super(factory, component, true, new GLCapabilities(), null);
+    super(factory, component, true, new NWCapabilities(), null);
   }
 
   public static WindowsExternalWGLDrawable create(GLDrawableFactory factory) {

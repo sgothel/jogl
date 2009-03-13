@@ -1152,7 +1152,7 @@
         <!-- Perform the first pass Java compile. -->
         <javac destdir="${classes}"
                classpath="${gluegen-rt.jar}"
-               includes="javax/media/opengl/sub/** javax/media/opengl/GLDrawableFactory.java javax/media/opengl/GLDrawable.java javax/media/opengl/GLContext.java javax/media/opengl/GL.java javax/media/opengl/GL2ES1.java javax/media/opengl/GL2ES2.java javax/media/opengl/GL2.java javax/media/opengl/GLES1.java javax/media/opengl/GLES2.java"
+               includes="javax/media/nwi/** javax/media/opengl/sub/** javax/media/opengl/GLDrawableFactory.java javax/media/opengl/GLDrawable.java javax/media/opengl/GLContext.java javax/media/opengl/GL.java javax/media/opengl/GL2ES1.java javax/media/opengl/GL2ES2.java javax/media/opengl/GL2.java javax/media/opengl/GLES1.java javax/media/opengl/GLES2.java"
                fork="yes"
                memoryMaximumSize="128m"
                source="1.4" debug="${javacdebug}" debuglevel="${javacdebuglevel}">
@@ -1748,7 +1748,7 @@
 
         <jar manifest="tempversion" destfile="${jogl.core.jar}">
             <fileset dir="${classes}"
-                     includes="javax/media/opengl/**, com/sun/gluegen/runtime/**, com/sun/opengl/**"
+                     includes="javax/media/nwi/**, javax/media/opengl/**, com/sun/gluegen/runtime/**, com/sun/opengl/**"
                      excludes="${java.excludes.fixme} ${java.part.egl}, ${java.part.sdk}, ${java.part.glsl}, ${java.part.openmax}, ${java.part.glsl.fixed}, ${java.part.gl2es12.x11}, ${java.part.gl2es12.win}, ${java.part.gl2es12.osx}, ${java.part.gl2es12.dbg}, ${java.part.gl2.x11}, ${java.part.gl2.win}, ${java.part.gl2.osx}, ${java.part.gl2.dbg}, ${java.part.es1}, ${java.part.es1.dbg}, ${java.part.es2}, ${java.part.es2.dbg}, ${java.part.awt}, ${java.part.glutess}, ${java.part.glumipmap}, ${java.part.glugl2}, ${java.part.util} ${java.part.util.awt} ${java.part.util.gl2}, ${java.part.newt}, ${java.part.newt.awt}"/>
         </jar>
         <jar manifest="tempversion" destfile="${jogl.gles1.jar}">
@@ -1862,6 +1862,7 @@
         </jar>
         <jar manifest="tempversion" destfile="${jogl.all.jar}">
             <fileset dir="${classes}">
+                <include name="javax/media/nwi/**" />
                 <include name="javax/media/opengl/**" />
                 <include name="com/sun/gluegen/runtime/**" />
                 <include name="com/sun/opengl/**" />
@@ -1888,6 +1889,7 @@
         </copy>
         <jar manifest="tempversion" destfile="${jogl.jar}">
             <fileset dir="${classes}">
+                <include name="javax/media/nwi/**" />
                 <include name="javax/media/opengl/**" />
                 <include name="com/sun/gluegen/runtime/**" />
                 <include name="com/sun/opengl/**" />

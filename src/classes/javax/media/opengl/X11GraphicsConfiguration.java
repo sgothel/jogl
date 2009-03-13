@@ -32,6 +32,8 @@
 
 package javax.media.opengl;
 
+import javax.media.nwi.*;
+
 /** Encapsulates a graphics configuration, or OpenGL pixel format, on
     X11 platforms. Objects of this type are returned from {@link
     NativeWindowFactory#chooseGraphicsConfiguration

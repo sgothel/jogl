@@ -36,6 +36,7 @@
 
 package com.sun.opengl.impl;
 
+import javax.media.nwi.*;
 import javax.media.opengl.*;
 
 public class NullWindow implements NativeWindow {

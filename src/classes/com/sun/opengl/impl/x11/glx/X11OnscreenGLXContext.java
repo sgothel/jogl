@@ -41,6 +41,7 @@ package com.sun.opengl.impl.x11.glx;
 
 import java.util.*;
 
+import javax.media.nwi.*;
 import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
 import com.sun.opengl.impl.x11.*;
@@ -60,10 +61,10 @@ public class X11OnscreenGLXContext extends X11GLXContext {
   
   protected int makeCurrentImpl() throws GLException {
     int lockRes = drawable.lockSurface();
-    if (drawable.getChosenGLCapabilities() == null) {
+    if (drawable.getChosenNWCapabilities() == null) {
       X11GLXDrawableFactory factory = (X11GLXDrawableFactory) drawable.getFactory();
       NativeWindow window = drawable.getNativeWindow();
-      drawable.setChosenGLCapabilities(factory.lookupCapabilitiesByScreenAndVisualID(window.getScreenIndex(),
+      drawable.setChosenNWCapabilities(factory.lookupCapabilitiesByScreenAndVisualID(window.getScreenIndex(),
                                                                                      window.getVisualID()));
     }
     boolean exceptionOccurred = false;

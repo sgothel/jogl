@@ -41,6 +41,7 @@ package com.sun.opengl.impl.windows.wgl;
 
 import java.nio.*;
 import java.util.*;
+import javax.media.nwi.*;
 import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
 import javax.media.opengl.util.BufferUtil;
@@ -57,30 +58,30 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
     super();
   }
 
-  public AbstractGraphicsConfiguration chooseGraphicsConfiguration(GLCapabilities capabilities,
-                                                                   GLCapabilitiesChooser chooser,
+  public AbstractGraphicsConfiguration chooseGraphicsConfiguration(NWCapabilities capabilities,
+                                                                   NWCapabilitiesChooser chooser,
                                                                    AbstractGraphicsDevice device) {
     return null;
   }
 
   public GLDrawable createGLDrawable(NativeWindow target,
-                                  GLCapabilities capabilities,
-                                  GLCapabilitiesChooser chooser) {
+                                  NWCapabilities capabilities,
+                                  NWCapabilitiesChooser chooser) {
     if (target == null) {
       throw new IllegalArgumentException("Null target");
     }
     target = NativeWindowFactory.getNativeWindow(target);
     if (capabilities == null) {
-      capabilities = new GLCapabilities();
+      capabilities = new NWCapabilities();
     }
     if (chooser == null) {
-      chooser = new DefaultGLCapabilitiesChooser();
+      chooser = new DefaultNWCapabilitiesChooser();
     }
     return new WindowsOnscreenWGLDrawable(this, target, capabilities, chooser);
   }
 
-  public GLDrawableImpl createOffscreenDrawable(GLCapabilities capabilities,
-                                                GLCapabilitiesChooser chooser,
+  public GLDrawableImpl createOffscreenDrawable(NWCapabilities capabilities,
+                                                NWCapabilitiesChooser chooser,
                                                 int width,
                                                 int height) {
     return new WindowsOffscreenWGLDrawable(this, capabilities, chooser, width, height);
@@ -121,8 +122,8 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
     return canCreateGLPbuffer;
   }
 
-  public GLPbuffer createGLPbuffer(final GLCapabilities capabilities,
-                                   final GLCapabilitiesChooser chooser,
+  public GLPbuffer createGLPbuffer(final NWCapabilities capabilities,
+                                   final NWCapabilitiesChooser chooser,
                                    final int initialWidth,
                                    final int initialHeight,
                                    final GLContext shareWith) {

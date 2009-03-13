@@ -37,14 +37,14 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package javax.media.opengl;
+package javax.media.nwi;
 
 /** Specifies a set of OpenGL capabilities that a rendering context
     must support, such as color depth and whether stereo is enabled.
     It currently contains the minimal number of routines which allow
     configuration on all supported window systems. */
 
-public class GLCapabilities implements Cloneable {
+public class NWCapabilities implements Cloneable {
   private boolean doubleBuffered = true;
   private boolean stereo         = false;
   private boolean hardwareAccelerated = true;
@@ -74,16 +74,16 @@ public class GLCapabilities implements Cloneable {
   private boolean pbufferRenderToTexture;
   private boolean pbufferRenderToTextureRectangle;
 
-  /** Creates a GLCapabilities object. All attributes are in a default
+  /** Creates a NWCapabilities object. All attributes are in a default
       state.
     */
-  public GLCapabilities() {}
+  public NWCapabilities() {}
 
   public Object clone() {
     try {
       return super.clone();
     } catch (CloneNotSupportedException e) {
-      throw new GLException(e);
+      throw new NativeWindowException(e);
     }
   }
 
@@ -343,10 +343,10 @@ public class GLCapabilities implements Cloneable {
     return backgroundOpaque;
   }
 
-  /** Returns a textual representation of this GLCapabilities
+  /** Returns a textual representation of this NWCapabilities
       object. */ 
   public String toString() {
-    return ("GLCapabilities [" +
+    return ("NWCapabilities [" +
             "DoubleBuffered: " + doubleBuffered +
 	    ", Stereo: " + stereo + 
             ", HardwareAccelerated: " + hardwareAccelerated +

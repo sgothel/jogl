@@ -39,6 +39,7 @@
 
 package com.sun.opengl.impl.x11.glx;
 
+import javax.media.nwi.*;
 import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
 import com.sun.opengl.impl.x11.*;
@@ -48,8 +49,8 @@ public class X11OffscreenGLXDrawable extends X11GLXDrawable {
   private boolean isDoubleBuffered;
 
   protected X11OffscreenGLXDrawable(GLDrawableFactory factory,
-                                    GLCapabilities requestedCapabilities,
-                                    GLCapabilitiesChooser chooser,
+                                    NWCapabilities requestedCapabilities,
+                                    NWCapabilitiesChooser chooser,
                                     int width,
                                     int height) {
     super(factory, new NullWindow(), true, requestedCapabilities, chooser);
@@ -90,7 +91,7 @@ public class X11OffscreenGLXDrawable extends X11GLXDrawable {
                            ", GLXPixmap " + toHexString(drawable) +
                            ", display " + toHexString(dpy));
       }
-      setChosenGLCapabilities(((X11GLXDrawableFactory)getFactory()).xvi2GLCapabilities(dpy, vis));
+      setChosenNWCapabilities(((X11GLXDrawableFactory)getFactory()).xvi2NWCapabilities(dpy, vis));
     } finally {
       getFactoryImpl().unlockToolkit();
     }
@@ -129,7 +130,7 @@ public class X11OffscreenGLXDrawable extends X11GLXDrawable {
       drawable = 0;
       pixmap = 0;
       display = 0;
-      setChosenGLCapabilities(null);
+      setChosenNWCapabilities(null);
     } finally {
       getFactoryImpl().unlockToolkit();
     }

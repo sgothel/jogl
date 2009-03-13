@@ -41,6 +41,7 @@ package com.sun.opengl.impl.macosx.cgl;
 
 import java.nio.*;
 import java.util.*;
+import javax.media.nwi.*;
 import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
 import com.sun.gluegen.runtime.ProcAddressTable;
@@ -110,7 +111,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
       }
     }
     int[] viewNotReady = new int[1];
-    GLCapabilities capabilities = drawable.getRequestedGLCapabilities();
+    NWCapabilities capabilities = drawable.getRequestedNWCapabilities();
     int[] iattribs = new int[128];
     int[] ivalues = new int[128];
     int idx = 0;
@@ -139,7 +140,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
 
     long pixelFormat = CGL.createPixelFormat(iattribs, 0, idx, ivalues, 0);
     if (pixelFormat == 0) {
-      throw new GLException("Unable to allocate pixel format with requested GLCapabilities");
+      throw new GLException("Unable to allocate pixel format with requested NWCapabilities");
     }
     try {
       // Try to allocate a context with this
@@ -167,10 +168,10 @@ public abstract class MacOSXCGLContext extends GLContextImpl
       // context and not the drawable. However it's a reasonable
       // approximation to just store the chosen pixel format up in the
       // drawable since the public API doesn't provide for a different
-      // GLCapabilities per context.
-      if (drawable.getChosenGLCapabilities() == null) {
+      // NWCapabilities per context.
+      if (drawable.getChosenNWCapabilities() == null) {
         // Figure out what attributes we really got
-        GLCapabilities caps = new GLCapabilities();
+        NWCapabilities caps = new NWCapabilities();
         CGL.queryPixelFormat(pixelFormat, iattribs, 0, idx, ivalues, 0);
         for (int i = 0; i < idx; i++) {
           int attr = iattribs[i];
@@ -234,7 +235,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
           }
         }
 
-        drawable.setChosenGLCapabilities(caps);
+        drawable.setChosenNWCapabilities(caps);
       }
       
       

@@ -39,6 +39,7 @@
 
 package com.sun.opengl.impl.windows.wgl;
 
+import javax.media.nwi.*;
 import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
 
@@ -53,8 +54,8 @@ public class WindowsOnscreenWGLDrawable extends WindowsWGLDrawable {
   private long profilingSwapBuffersTime;
 
   protected WindowsOnscreenWGLDrawable(GLDrawableFactory factory, NativeWindow component,
-                                   GLCapabilities capabilities,
-                                   GLCapabilitiesChooser chooser) {
+                                   NWCapabilities capabilities,
+                                   NWCapabilitiesChooser chooser) {
     super(factory, component, false, capabilities, chooser);
   }
 

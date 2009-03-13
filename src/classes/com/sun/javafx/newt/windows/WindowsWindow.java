@@ -33,7 +33,8 @@
 
 package com.sun.javafx.newt.windows;
 
-import javax.media.opengl.GLCapabilities;
+import javax.media.nwi.NWCapabilities;
+import javax.media.nwi.NativeWindowException;
 
 import com.sun.javafx.newt.*;
 import com.sun.opengl.impl.*;
@@ -48,7 +49,7 @@ public class WindowsWindow extends Window {
         NativeLibLoader.loadNEWT();
 
         if (!initIDs()) {
-            throw new RuntimeException("Failed to initialize jmethodIDs");
+            throw new NativeWindowException("Failed to initialize jmethodIDs");
         }
     }
 
@@ -62,13 +63,13 @@ public class WindowsWindow extends Window {
         return hdc;
     }
 
-    protected void createNative(GLCapabilities caps) {
+    protected void createNative(NWCapabilities caps) {
         long wndClass = getWindowClass();
-        chosenCaps = (GLCapabilities) caps.clone(); // FIXME: visualID := f1(caps); caps := f2(visualID)
+        chosenCaps = (NWCapabilities) caps.clone(); // FIXME: visualID := f1(caps); caps := f2(visualID)
         visualID = 0; // n/a
         windowHandle = CreateWindow(WINDOW_CLASS_NAME, getHInstance(), visualID, x, y, width, height);
         if (windowHandle == 0) {
-            throw new RuntimeException("Error creating window");
+            throw new NativeWindowException("Error creating window");
         }
         windowHandleClose = windowHandle;
     }
@@ -125,7 +126,7 @@ public class WindowsWindow extends Window {
         if (windowClass == 0) {
             windowClass = RegisterWindowClass(WINDOW_CLASS_NAME, getHInstance());
             if (windowClass == 0) {
-                throw new RuntimeException("Error while registering window class");
+                throw new NativeWindowException("Error while registering window class");
             }
         }
         return windowClass;
@@ -135,7 +136,7 @@ public class WindowsWindow extends Window {
         if (hInstance == 0) {
             hInstance = LoadLibraryW("newt");
             if (hInstance == 0) {
-                throw new RuntimeException("Error finding HINSTANCE for \"newt\"");
+                throw new NativeWindowException("Error finding HINSTANCE for \"newt\"");
             }
         }
         return hInstance;

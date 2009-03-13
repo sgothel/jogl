@@ -32,6 +32,7 @@
 
 package com.sun.opengl.impl.x11.glx;
 
+import javax.media.nwi.*;
 import javax.media.opengl.*;
 
 import com.sun.opengl.impl.*;
@@ -44,8 +45,8 @@ import com.sun.opengl.impl.x11.*;
     abstractions. */
 
 public class X11GLXNativeWindowFactory extends NativeWindowFactoryImpl {
-    public AbstractGraphicsConfiguration chooseGraphicsConfiguration(GLCapabilities capabilities,
-                                                                     GLCapabilitiesChooser chooser,
+    public AbstractGraphicsConfiguration chooseGraphicsConfiguration(NWCapabilities capabilities,
+                                                                     NWCapabilitiesChooser chooser,
                                                                      AbstractGraphicsDevice absDevice) {
         if (absDevice != null &&
             !(absDevice instanceof X11GraphicsDevice)) {
@@ -62,14 +63,14 @@ public class X11GLXNativeWindowFactory extends NativeWindowFactoryImpl {
     }
 
     /** Returns the visual ID of the chosen GraphicsConfiguration. */
-    protected long chooseGraphicsConfigurationImpl(GLCapabilities capabilities,
-                                                   GLCapabilitiesChooser chooser,
+    protected long chooseGraphicsConfigurationImpl(NWCapabilities capabilities,
+                                                   NWCapabilitiesChooser chooser,
                                                    int screen) {
         if (capabilities == null) {
-            capabilities = new GLCapabilities();
+            capabilities = new NWCapabilities();
         }
         if (chooser == null) {
-            chooser = new DefaultGLCapabilitiesChooser();
+            chooser = new DefaultNWCapabilitiesChooser();
         }
 
         if (X11Util.isXineramaEnabled()) {
@@ -82,7 +83,7 @@ public class X11GLXNativeWindowFactory extends NativeWindowFactoryImpl {
 
         int[] attribs = X11GLXDrawableFactory.glCapabilities2AttribList(capabilities, X11Util.isMultisampleAvailable(), false, 0, 0);
         XVisualInfo[] infos = null;
-        GLCapabilities[] caps = null;
+        NWCapabilities[] caps = null;
         int recommendedIndex = -1;
         getDefaultFactory().getToolkitLock().lock();
         try {
@@ -103,9 +104,9 @@ public class X11GLXNativeWindowFactory extends NativeWindowFactoryImpl {
             if (infos == null) {
                 throw new GLException("Error while enumerating available XVisualInfos");
             }
-            caps = new GLCapabilities[infos.length];
+            caps = new NWCapabilities[infos.length];
             for (int i = 0; i < infos.length; i++) {
-                caps[i] = ((X11GLXDrawableFactory) GLDrawableFactory.getFactory()).xvi2GLCapabilities(display, infos[i]);
+                caps[i] = ((X11GLXDrawableFactory) GLDrawableFactory.getFactory()).xvi2NWCapabilities(display, infos[i]);
                 // Attempt to find the visual chosen by glXChooseVisual
                 if (recommendedVis != null && recommendedVis.visualid() == infos[i].visualid()) {
                     recommendedIndex = i;
@@ -116,14 +117,14 @@ public class X11GLXNativeWindowFactory extends NativeWindowFactoryImpl {
         }
         // Store these away for later
         ((X11GLXDrawableFactory) GLDrawableFactory.getFactory()).
-            initializeVisualToGLCapabilitiesMap(screen, infos, caps);
+            initializeVisualToNWCapabilitiesMap(screen, infos, caps);
         int chosen = chooser.chooseCapabilities(capabilities, caps, recommendedIndex);
         if (chosen < 0 || chosen >= caps.length) {
-            throw new GLException("GLCapabilitiesChooser specified invalid index (expected 0.." + (caps.length - 1) + ")");
+            throw new GLException("NWCapabilitiesChooser specified invalid index (expected 0.." + (caps.length - 1) + ")");
         }
         XVisualInfo vis = infos[chosen];
         if (vis == null) {
-            throw new GLException("GLCapabilitiesChooser chose an invalid visual");
+            throw new GLException("NWCapabilitiesChooser chose an invalid visual");
         }
         return vis.visualid();
     }

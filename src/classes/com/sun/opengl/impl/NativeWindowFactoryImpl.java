@@ -35,6 +35,7 @@ package com.sun.opengl.impl;
 import java.lang.reflect.*;
 import java.security.*;
 
+import javax.media.nwi.*;
 import javax.media.opengl.*;
 
 public class NativeWindowFactoryImpl extends NativeWindowFactory {
@@ -100,8 +101,8 @@ public class NativeWindowFactoryImpl extends NativeWindowFactory {
 
     // All platforms except for X11 perform the OpenGL pixel format
     // selection lazily
-    public AbstractGraphicsConfiguration chooseGraphicsConfiguration(GLCapabilities capabilities,
-                                                                     GLCapabilitiesChooser chooser,
+    public AbstractGraphicsConfiguration chooseGraphicsConfiguration(NWCapabilities capabilities,
+                                                                     NWCapabilitiesChooser chooser,
                                                                      AbstractGraphicsDevice device) {
         return null;
     }

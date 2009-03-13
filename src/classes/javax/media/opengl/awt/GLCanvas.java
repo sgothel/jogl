@@ -40,6 +40,7 @@
 package javax.media.opengl.awt;
 
 import javax.media.opengl.*;
+import javax.media.nwi.*;
 
 import java.awt.Canvas;
 import java.awt.Color;
@@ -76,8 +77,8 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
   private boolean sendReshape = false;
   
   private GraphicsConfiguration chosen;
-  private GLCapabilities glCaps;
-  private GLCapabilitiesChooser glCapChooser;
+  private NWCapabilities glCaps;
+  private NWCapabilitiesChooser glCapChooser;
 
   static {
     // Default to the GL2 profile, which is the default on the desktop
@@ -96,15 +97,15 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
   /** Creates a new GLCanvas component with the requested set of
       OpenGL capabilities, using the default OpenGL capabilities
       selection mechanism, on the default screen device. */
-  public GLCanvas(GLCapabilities capabilities) {
+  public GLCanvas(NWCapabilities capabilities) {
     this(capabilities, null, null, null);
   }
 
-  /** Creates a new GLCanvas component. The passed GLCapabilities
+  /** Creates a new GLCanvas component. The passed NWCapabilities
       specifies the OpenGL capabilities for the component; if null, a
-      default set of capabilities is used. The GLCapabilitiesChooser
+      default set of capabilities is used. The NWCapabilitiesChooser
       specifies the algorithm for selecting one of the available
-      GLCapabilities for the component; a DefaultGLCapabilitesChooser
+      NWCapabilities for the component; a DefaultGLCapabilitesChooser
       is used if null is passed for this argument. The passed
       GLContext specifies an OpenGL context with which to share
       textures, display lists and other OpenGL state, and may be null
@@ -115,8 +116,8 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
       which to create the GLCanvas; the GLDrawableFactory uses the
       default screen device of the local GraphicsEnvironment if null
       is passed for this argument. */
-  public GLCanvas(GLCapabilities capabilities,
-                  GLCapabilitiesChooser chooser,
+  public GLCanvas(NWCapabilities capabilities,
+                  NWCapabilitiesChooser chooser,
                   GLContext shareWith,
                   GraphicsDevice device) {
     // The platform-specific GLDrawableFactory will only provide a
@@ -407,11 +408,11 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
     maybeDoSingleThreadedWorkaround(swapBuffersOnEventDispatchThreadAction, swapBuffersAction);
   }
 
-  public GLCapabilities getChosenGLCapabilities() {
+  public NWCapabilities getChosenNWCapabilities() {
     if (drawable == null)
       return null;
 
-    return drawable.getChosenGLCapabilities();
+    return drawable.getChosenNWCapabilities();
   }
 
   public NativeWindow getNativeWindow() {
@@ -532,8 +533,8 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
     }
   }
 
-  private static GraphicsConfiguration chooseGraphicsConfiguration(GLCapabilities capabilities,
-                                                                   GLCapabilitiesChooser chooser,
+  private static GraphicsConfiguration chooseGraphicsConfiguration(NWCapabilities capabilities,
+                                                                   NWCapabilitiesChooser chooser,
                                                                    GraphicsDevice device) {
     // Make GLCanvas behave better in NetBeans GUI builder
     if (Beans.isDesignTime()) {

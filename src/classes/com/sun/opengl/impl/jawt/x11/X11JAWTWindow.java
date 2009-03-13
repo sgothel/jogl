@@ -40,6 +40,7 @@ import com.sun.opengl.impl.x11.*;
 import com.sun.opengl.impl.jawt.*;
 import com.sun.opengl.impl.*;
 
+import javax.media.nwi.*;
 import javax.media.opengl.*;
 
 import java.awt.GraphicsDevice;

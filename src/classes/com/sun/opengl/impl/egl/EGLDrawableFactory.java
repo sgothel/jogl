@@ -36,6 +36,7 @@
 package com.sun.opengl.impl.egl;
 
 import java.util.*;
+import javax.media.nwi.*;
 import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
 import com.sun.gluegen.runtime.NativeLibrary;
@@ -116,23 +117,23 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         }
     }
 
-    public AbstractGraphicsConfiguration chooseGraphicsConfiguration(GLCapabilities capabilities,
-                                                                     GLCapabilitiesChooser chooser,
+    public AbstractGraphicsConfiguration chooseGraphicsConfiguration(NWCapabilities capabilities,
+                                                                     NWCapabilitiesChooser chooser,
                                                                      AbstractGraphicsDevice device) {
         return null;
     }
 
     public GLDrawable createGLDrawable(NativeWindow target,
-                                    GLCapabilities capabilities,
-                                    GLCapabilitiesChooser chooser) {
+                                    NWCapabilities capabilities,
+                                    NWCapabilitiesChooser chooser) {
         target = NativeWindowFactory.getNativeWindow(target);
         return new EGLDrawable(this, target,
                                capabilities,
                                chooser);
     }
 
-    public GLDrawableImpl createOffscreenDrawable(GLCapabilities capabilities,
-                                                  GLCapabilitiesChooser chooser,
+    public GLDrawableImpl createOffscreenDrawable(NWCapabilities capabilities,
+                                                  NWCapabilitiesChooser chooser,
                                                   int width,
                                                   int height) {
         throw new GLUnsupportedException("Not yet implemented");
@@ -142,8 +143,8 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         // Not supported on OpenGL ES
         return false;
     }
-    public GLPbuffer createGLPbuffer(final GLCapabilities capabilities,
-                                     final GLCapabilitiesChooser chooser,
+    public GLPbuffer createGLPbuffer(final NWCapabilities capabilities,
+                                     final NWCapabilitiesChooser chooser,
                                      final int initialWidth,
                                      final int initialHeight,
                                      final GLContext shareWith) {

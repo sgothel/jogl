@@ -33,7 +33,7 @@
 
 package com.sun.javafx.newt;
 
-import javax.media.opengl.GLCapabilities;
+import javax.media.nwi.NWCapabilities;
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -124,18 +124,18 @@ public abstract class NewtFactory {
     /**
      * Create a Window entity, incl native creation
      */
-    public static Window createWindow(Screen screen, GLCapabilities caps) {
+    public static Window createWindow(Screen screen, NWCapabilities caps) {
       return Window.create(getWindowType(), screen, caps);
     }
 
-    public static Window createWindow(Screen screen, GLCapabilities caps, boolean undecorated) {
+    public static Window createWindow(Screen screen, NWCapabilities caps, boolean undecorated) {
         return Window.create(getWindowType(), screen, caps, undecorated);
     }
 
     /**
      * Create a Window entity using the given implementation type, incl native creation
      */
-    public static Window createWindow(String type, Screen screen, GLCapabilities caps) {
+    public static Window createWindow(String type, Screen screen, NWCapabilities caps) {
       return Window.create(type, screen, caps);
     }
 
@@ -156,7 +156,7 @@ public abstract class NewtFactory {
     /**
      * Instantiate a Window entity using the native handle.
      */
-    public static Window wrapWindow(Screen screen, GLCapabilities caps, long visualID,
+    public static Window wrapWindow(Screen screen, NWCapabilities caps, long visualID,
                                     long windowHandle, boolean fullscreen, boolean visible, 
                                     int x, int y, int width, int height) {
       return Window.wrapHandle(getWindowType(), screen, caps, visualID, 

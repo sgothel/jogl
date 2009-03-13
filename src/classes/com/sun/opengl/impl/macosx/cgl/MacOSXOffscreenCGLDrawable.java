@@ -39,13 +39,14 @@
 
 package com.sun.opengl.impl.macosx.cgl;
 
+import javax.media.nwi.*;
 import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
 
 public class MacOSXOffscreenCGLDrawable extends MacOSXPbufferCGLDrawable {
 
   public MacOSXOffscreenCGLDrawable(GLDrawableFactory factory,
-                                    GLCapabilities capabilities,
+                                    NWCapabilities capabilities,
                                     int width,
                                     int height) {
     super(factory, capabilities, width, height);

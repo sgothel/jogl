@@ -39,6 +39,8 @@
 
 package javax.media.opengl;
 
+import javax.media.nwi.*;
+
 // FIXME: We need some way to tell when the device upon which the canvas is
 // being displayed has changed (e.g., the user drags the canvas's parent
 // window from one screen on multi-screen environment to another, when the
@@ -141,7 +143,7 @@ public interface GLDrawable {
       automatically and should not be called by the end user. */
   public void swapBuffers() throws GLException;
 
-  /** Fetches the {@link GLCapabilities} corresponding to the chosen
+  /** Fetches the {@link NWCapabilities} corresponding to the chosen
       OpenGL capabilities (pixel format / visual) for this drawable.
       Some drawables, in particular on-screen drawables, may be
       created lazily; null is returned if the drawable is not
@@ -151,7 +153,7 @@ public interface GLDrawable {
       value in this case. 
       Returns a copy of the passed object.
     */
-  public GLCapabilities getChosenGLCapabilities();
+  public NWCapabilities getChosenNWCapabilities();
 
   public NativeWindow getNativeWindow();
 

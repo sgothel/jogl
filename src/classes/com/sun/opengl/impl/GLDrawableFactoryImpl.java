@@ -40,6 +40,7 @@
 package com.sun.opengl.impl;
 
 import java.nio.*;
+import javax.media.nwi.*;
 import javax.media.opengl.*;
 import com.sun.gluegen.runtime.*;
 
@@ -52,8 +53,8 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory implements
   /** Creates a (typically software-accelerated) offscreen GLDrawable
       used to implement the fallback rendering path of the
       GLJPanel. */
-  public abstract GLDrawableImpl createOffscreenDrawable(GLCapabilities capabilities,
-                                                         GLCapabilitiesChooser chooser,
+  public abstract GLDrawableImpl createOffscreenDrawable(NWCapabilities capabilities,
+                                                         NWCapabilitiesChooser chooser,
                                                          int width,
                                                          int height);
 

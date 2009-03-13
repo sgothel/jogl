@@ -35,8 +35,8 @@ package com.sun.javafx.newt.x11;
 
 import com.sun.javafx.newt.*;
 import com.sun.opengl.impl.*;
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.NativeWindowException;
+import javax.media.nwi.NWCapabilities;
+import javax.media.nwi.NativeWindowException;
 
 public class X11Window extends Window {
     private static final String WINDOW_CLASS_NAME = "NewtWindow";
@@ -47,19 +47,19 @@ public class X11Window extends Window {
         NativeLibLoader.loadNEWT();
 
         if (!initIDs()) {
-            throw new RuntimeException("Failed to initialize jmethodIDs");
+            throw new NativeWindowException("Failed to initialize jmethodIDs");
         }
     }
 
     public X11Window() {
     }
 
-    protected void createNative(GLCapabilities caps) {
-        chosenCaps = (GLCapabilities) caps.clone(); // FIXME: visualID := f1(caps); caps := f2(visualID)
+    protected void createNative(NWCapabilities caps) {
+        chosenCaps = (NWCapabilities) caps.clone(); // FIXME: visualID := f1(caps); caps := f2(visualID)
         visualID = 0; // n/a
         long w = CreateWindow(getDisplayHandle(), getScreenHandle(), getScreenIndex(), visualID, x, y, width, height);
         if (w == 0 || w!=windowHandle) {
-            throw new RuntimeException("Error creating window: "+w);
+            throw new NativeWindowException("Error creating window: "+w);
         }
         windowHandleClose = windowHandle;
         displayHandleClose = getDisplayHandle();

@@ -3,6 +3,7 @@ package com.sun.opengl.impl.macosx.cgl;
 import java.security.*;
 import java.util.*;
 
+import javax.media.nwi.*;
 import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
 
@@ -80,7 +81,7 @@ public class MacOSXPbufferCGLContext extends MacOSXCGLContext {
 
       // Initialize render-to-texture support if requested
       GL gl = getGL();
-      boolean rect = gl.isGL2() && drawable.getRequestedGLCapabilities().getPbufferRenderToTextureRectangle();
+      boolean rect = gl.isGL2() && drawable.getRequestedNWCapabilities().getPbufferRenderToTextureRectangle();
       if (rect) {
         if (!gl.isExtensionAvailable("GL_EXT_texture_rectangle")) {
           System.err.println("MacOSXPbufferCGLContext: WARNING: GL_EXT_texture_rectangle extension not " +
@@ -135,7 +136,7 @@ public class MacOSXPbufferCGLContext extends MacOSXCGLContext {
   }
 
   protected boolean create() {
-    GLCapabilities capabilities = drawable.getRequestedGLCapabilities();
+    NWCapabilities capabilities = drawable.getRequestedNWCapabilities();
     if (capabilities.getPbufferFloatingPointBuffers() &&
 	!isTigerOrLater) {
       throw new GLException("Floating-point pbuffers supported only on OS X 10.4 or later");
@@ -210,7 +211,7 @@ public class MacOSXPbufferCGLContext extends MacOSXCGLContext {
   // NSOpenGLContext-based implementation
   class NSOpenGLImpl implements Impl {
     public long create() {
-      GLCapabilities capabilities = drawable.getRequestedGLCapabilities();
+      NWCapabilities capabilities = drawable.getRequestedNWCapabilities();
       if (capabilities.getPbufferFloatingPointBuffers() &&
           !isTigerOrLater) {
         throw new GLException("Floating-point pbuffers supported only on OS X 10.4 or later");
@@ -265,7 +266,7 @@ public class MacOSXPbufferCGLContext extends MacOSXCGLContext {
       int[] attrs = new int[256];
       int i = 0;
       attrs[i++] = CGL.kCGLPFAPBuffer;
-      GLCapabilities capabilities = drawable.getRequestedGLCapabilities();
+      NWCapabilities capabilities = drawable.getRequestedNWCapabilities();
       if (capabilities.getPbufferFloatingPointBuffers())
         attrs[i++] = CGL.kCGLPFAColorFloat;
       if (capabilities.getDoubleBuffered())

@@ -40,6 +40,7 @@
 package javax.media.opengl.awt;
 
 import javax.media.opengl.*;
+import javax.media.nwi.*;
 
 import java.awt.*;
 import java.awt.geom.*;
@@ -63,7 +64,7 @@ import com.sun.opengl.impl.awt.*;
     Z-ordering or LayoutManager problems. <P>
 
     The GLJPanel can be made transparent by creating it with a
-    GLCapabilities object with alpha bits specified and calling {@link
+    NWCapabilities object with alpha bits specified and calling {@link
     #setOpaque}(false). Pixels with resulting OpenGL alpha values less
     than 1.0 will be overlaid on any underlying Swing rendering. <P>
 
@@ -90,8 +91,8 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
   private volatile boolean isInitialized;
 
   // Data used for either pbuffers or pixmap-based offscreen surfaces
-  private GLCapabilities        offscreenCaps;
-  private GLCapabilitiesChooser chooser;
+  private NWCapabilities        offscreenCaps;
+  private NWCapabilitiesChooser chooser;
   private GLContext             shareWith;
   // Width of the actual GLJPanel
   private int panelWidth   = 0;
@@ -158,33 +159,33 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
   /** Creates a new GLJPanel component with the requested set of
       OpenGL capabilities, using the default OpenGL capabilities
       selection mechanism. */
-  public GLJPanel(GLCapabilities capabilities) {
+  public GLJPanel(NWCapabilities capabilities) {
     this(capabilities, null, null);
   }
 
-  /** Creates a new GLJPanel component. The passed GLCapabilities
+  /** Creates a new GLJPanel component. The passed NWCapabilities
       specifies the OpenGL capabilities for the component; if null, a
-      default set of capabilities is used. The GLCapabilitiesChooser
+      default set of capabilities is used. The NWCapabilitiesChooser
       specifies the algorithm for selecting one of the available
-      GLCapabilities for the component; a DefaultGLCapabilitesChooser
+      NWCapabilities for the component; a DefaultGLCapabilitesChooser
       is used if null is passed for this argument. The passed
       GLContext specifies an OpenGL context with which to share
       textures, display lists and other OpenGL state, and may be null
       if sharing is not desired. See the note in the overview documentation on
       <a href="../../../overview-summary.html#SHARING">context sharing</a>.
   */
-  public GLJPanel(GLCapabilities capabilities, GLCapabilitiesChooser chooser, GLContext shareWith) {
+  public GLJPanel(NWCapabilities capabilities, NWCapabilitiesChooser chooser, GLContext shareWith) {
     super();
 
     // Works around problems on many vendors' cards; we don't need a
     // back buffer for the offscreen surface anyway
     if (capabilities != null) {
-        offscreenCaps = (GLCapabilities) capabilities.clone();
+        offscreenCaps = (NWCapabilities) capabilities.clone();
     } else {
-        offscreenCaps = new GLCapabilities();
+        offscreenCaps = new NWCapabilities();
     }
     offscreenCaps.setDoubleBuffered(false);
-    this.chooser = ((chooser != null) ? chooser : new DefaultGLCapabilitiesChooser());
+    this.chooser = ((chooser != null) ? chooser : new DefaultNWCapabilitiesChooser());
     this.shareWith = shareWith;
   }
 
@@ -391,8 +392,8 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
     return oglPipelineEnabled;
   }
 
-  public GLCapabilities getChosenGLCapabilities() {
-    return backend.getChosenGLCapabilities();
+  public NWCapabilities getChosenNWCapabilities() {
+    return backend.getChosenNWCapabilities();
   }
 
   public NativeWindow getNativeWindow() {
@@ -578,8 +579,8 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
     // Called to get the current backend's GLContext
     public GLContext getContext();
 
-    // Called to fetch the "real" chosen GLCapabilities for the backend
-    public GLCapabilities getChosenGLCapabilities();
+    // Called to fetch the "real" chosen NWCapabilities for the backend
+    public NWCapabilities getChosenNWCapabilities();
 
     // Called to handle a reshape event. When this is called, the
     // OpenGL context associated with the backend is not current, to
@@ -815,11 +816,11 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
       return offscreenContext;
     }
 
-    public GLCapabilities getChosenGLCapabilities() {
+    public NWCapabilities getChosenNWCapabilities() {
       if (offscreenDrawable == null) {
         return null;
       }
-      return offscreenDrawable.getChosenGLCapabilities();
+      return offscreenDrawable.getChosenNWCapabilities();
     }
 
     public void handleReshape() {
@@ -902,11 +903,11 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
       return pbuffer.getContext();
     }
 
-    public GLCapabilities getChosenGLCapabilities() {
+    public NWCapabilities getChosenNWCapabilities() {
       if (pbuffer == null) {
         return null;
       }
-      return pbuffer.getChosenGLCapabilities();
+      return pbuffer.getChosenNWCapabilities();
     }
     
     public void handleReshape() {
@@ -1069,9 +1070,9 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
       return joglContext;
     }
 
-    public GLCapabilities getChosenGLCapabilities() {
+    public NWCapabilities getChosenNWCapabilities() {
       // FIXME: should do better than this; is it possible to using only platform-independent code?
-      return new GLCapabilities();
+      return new NWCapabilities();
     }
 
     public void handleReshape() {

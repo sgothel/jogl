@@ -33,6 +33,7 @@
 
 package com.sun.javafx.newt;
 
+import javax.media.nwi.*;
 import javax.media.opengl.*;
 import com.sun.opengl.impl.GLDrawableHelper;
 
@@ -83,7 +84,7 @@ public class GLWindow extends Window implements GLAutoDrawable {
     }
 
     /** Creates a new GLWindow on the local display, screen 0, with a
-        dummy visual ID, and with the default GLCapabilities. */
+        dummy visual ID, and with the default NWCapabilities. */
     public static GLWindow create() {
         return create(null, null);
     }
@@ -96,26 +97,26 @@ public class GLWindow extends Window implements GLAutoDrawable {
     public static GLWindow create(Window window) {
         return create(window, null);
     }
-    public static GLWindow create(GLCapabilities caps) {
+    public static GLWindow create(NWCapabilities caps) {
         return create(caps, false);
     }
 
     /** Creates a new GLWindow on the local display, screen 0, with a
-        dummy visual ID, and with the given GLCapabilities. */
-    public static GLWindow create(GLCapabilities caps, boolean undecorated) {
+        dummy visual ID, and with the given NWCapabilities. */
+    public static GLWindow create(NWCapabilities caps, boolean undecorated) {
         return create(null, caps, undecorated);
     }
 
-    /** Creates a new GLWindow referring to the given window, and with the given GLCapabilities. */
-    public static GLWindow create(Window window, GLCapabilities caps) {
+    /** Creates a new GLWindow referring to the given window, and with the given NWCapabilities. */
+    public static GLWindow create(Window window, NWCapabilities caps) {
         return create(window, caps, false);
     }
 
     public static GLWindow create(Window window, 
-                                  GLCapabilities caps,
+                                  NWCapabilities caps,
                                   boolean undecorated) {
         if (caps == null) {
-            caps = new GLCapabilities();
+            caps = new NWCapabilities();
         }
         if (window == null) {
             Display display = NewtFactory.createDisplay(null); // local display
@@ -126,7 +127,7 @@ public class GLWindow extends Window implements GLAutoDrawable {
         return new GLWindow(window);
     }
     
-    protected void createNative(GLCapabilities caps) {
+    protected void createNative(NWCapabilities caps) {
         shouldNotCallThis();
     }
 
@@ -463,11 +464,11 @@ public class GLWindow extends Window implements GLAutoDrawable {
     public void setRealized(boolean realized) {
     }
 
-    public GLCapabilities getChosenGLCapabilities() {
+    public NWCapabilities getChosenNWCapabilities() {
         if (drawable == null)
             return null;
 
-        return drawable.getChosenGLCapabilities();
+        return drawable.getChosenNWCapabilities();
     }
 
     public NativeWindow getNativeWindow() {
@@ -479,6 +480,6 @@ public class GLWindow extends Window implements GLAutoDrawable {
     //
 
     private void shouldNotCallThis() {
-        throw new RuntimeException("Should not call this");
+        throw new NativeWindowException("Should not call this");
     }
 }

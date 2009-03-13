@@ -39,6 +39,7 @@
 
 package com.sun.opengl.impl.x11.glx;
 
+import javax.media.nwi.*;
 import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
 import com.sun.opengl.impl.x11.*;
@@ -78,15 +79,15 @@ public class X11OnscreenGLXDrawable extends X11GLXDrawable {
   }
 
   // This is public to allow access from the DrawableFactory
-  protected void setChosenGLCapabilities(GLCapabilities caps) {
-    super.setChosenGLCapabilities(caps);
+  protected void setChosenNWCapabilities(NWCapabilities caps) {
+    super.setChosenNWCapabilities(caps);
   }
 
   public void setRealized(boolean realized) {
     if (realized) {
       X11GLXDrawableFactory factory = (X11GLXDrawableFactory) getFactory();
       NativeWindow window = getNativeWindow();
-      setChosenGLCapabilities(factory.lookupCapabilitiesByScreenAndVisualID(window.getScreenIndex(),
+      setChosenNWCapabilities(factory.lookupCapabilitiesByScreenAndVisualID(window.getScreenIndex(),
                                                                             window.getVisualID()));
     } 
     super.setRealized(realized);

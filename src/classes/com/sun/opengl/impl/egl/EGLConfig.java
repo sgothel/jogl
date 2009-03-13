@@ -36,6 +36,7 @@
 package com.sun.opengl.impl.egl;
 
 import java.util.*;
+import javax.media.nwi.*;
 import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
 import com.sun.gluegen.runtime.NativeLibrary;
@@ -50,7 +51,7 @@ public class EGLConfig {
         return configID;
     }
 
-    public GLCapabilities getCapabilities() {
+    public NWCapabilities getCapabilities() {
         return capabilities;
     }
 
@@ -82,11 +83,11 @@ public class EGLConfig {
         if (numConfigs[0] == 0) {
             throw new GLException("No valid graphics configuration selected from eglChooseConfig");
         }
-        capabilities = new GLCapabilities();
+        capabilities = new NWCapabilities();
         setup(display, configID, configs[0]);
     }
 
-    public EGLConfig(long display, GLCapabilities caps) {
+    public EGLConfig(long display, NWCapabilities caps) {
         int[] attrs = glCapabilities2AttribList(caps);
         _EGLConfig[] configs = new _EGLConfig[1];
         int[] numConfigs = new int[1];
@@ -99,7 +100,7 @@ public class EGLConfig {
         if (numConfigs[0] == 0) {
             throw new GLException("No valid graphics configuration selected from eglChooseConfig");
         }
-        capabilities = (GLCapabilities)caps.clone();
+        capabilities = (NWCapabilities)caps.clone();
         setup(display, -1, configs[0]);
     }
 
@@ -136,7 +137,7 @@ public class EGLConfig {
         }
     }
 
-    public static int[] glCapabilities2AttribList(GLCapabilities caps) {
+    public static int[] glCapabilities2AttribList(NWCapabilities caps) {
         int[] attrs = new int[] {
                 EGL.EGL_RENDERABLE_TYPE, -1,
                 // FIXME: does this need to be configurable?
@@ -166,6 +167,6 @@ public class EGLConfig {
     }
     private _EGLConfig _config;
     private int configID;
-    private GLCapabilities capabilities;
+    private NWCapabilities capabilities;
 }
 

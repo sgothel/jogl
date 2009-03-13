@@ -42,6 +42,7 @@ package com.sun.opengl.impl.jawt.windows;
 import com.sun.opengl.impl.windows.*;
 import com.sun.opengl.impl.jawt.*;
 
+import javax.media.nwi.*;
 import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
 

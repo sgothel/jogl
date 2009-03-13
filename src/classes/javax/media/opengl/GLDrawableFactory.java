@@ -39,6 +39,8 @@
 
 package javax.media.opengl;
 
+import javax.media.nwi.*;
+
 import java.lang.reflect.*;
 import java.security.*;
 import com.sun.opengl.impl.*;
@@ -46,21 +48,21 @@ import com.sun.opengl.impl.*;
 /** <P> Provides a virtual machine- and operating system-independent
     mechanism for creating {@link GLDrawable}s. </P>
 
-    <P> The {@link javax.media.opengl.GLCapabilities} objects passed
+    <P> The {@link javax.media.opengl.NWCapabilities} objects passed
     in to the various factory methods are used as a hint for the
     properties of the returned drawable. The default capabilities
     selection algorithm (equivalent to passing in a null {@link
-    GLCapabilitiesChooser}) is described in {@link
-    DefaultGLCapabilitiesChooser}. Sophisticated applications needing
+    NWCapabilitiesChooser}) is described in {@link
+    DefaultNWCapabilitiesChooser}. Sophisticated applications needing
     to change the selection algorithm may pass in their own {@link
-    GLCapabilitiesChooser} which can select from the available pixel
-    formats. The GLCapabilitiesChooser mechanism may not be supported
+    NWCapabilitiesChooser} which can select from the available pixel
+    formats. The NWCapabilitiesChooser mechanism may not be supported
     by all implementations or on all platforms, in which case any
-    passed GLCapabilitiesChooser will be ignored. </P>
+    passed NWCapabilitiesChooser will be ignored. </P>
 
     <P> Because of the multithreaded nature of the Java platform's
     Abstract Window Toolkit, it is typically not possible to immediately
-    reject a given {@link GLCapabilities} as being unsupportable by
+    reject a given {@link NWCapabilities} as being unsupportable by
     either returning <code>null</code> from the creation routines or
     raising a {@link GLException}. The semantics of the rejection
     process are (unfortunately) left unspecified for now. The current
@@ -153,19 +155,19 @@ public abstract class GLDrawableFactory {
    * Returns a GLDrawable that wraps a platform-specific window system
    * object, such as an AWT or LCDUI Canvas. On platforms which
    * support it, selects a pixel format compatible with the supplied
-   * GLCapabilities, or if the passed GLCapabilities object is null,
+   * NWCapabilities, or if the passed NWCapabilities object is null,
    * uses a default set of capabilities. On these platforms, uses
-   * either the supplied GLCapabilitiesChooser object, or if the
-   * passed GLCapabilitiesChooser object is null, uses a
-   * DefaultGLCapabilitiesChooser instance.
+   * either the supplied NWCapabilitiesChooser object, or if the
+   * passed NWCapabilitiesChooser object is null, uses a
+   * DefaultNWCapabilitiesChooser instance.
    *
    * @throws IllegalArgumentException if the passed target is null
    * @throws GLException if any window system-specific errors caused
    *         the creation of the GLDrawable to fail.
    */
   public abstract GLDrawable createGLDrawable(NativeWindow target,
-                                              GLCapabilities capabilities,
-                                              GLCapabilitiesChooser chooser)
+                                              NWCapabilities capabilities,
+                                              NWCapabilitiesChooser chooser)
     throws IllegalArgumentException, GLException;
   
   //----------------------------------------------------------------------
@@ -186,8 +188,8 @@ public abstract class GLDrawableFactory {
    * @throws GLException if any window system-specific errors caused
    *         the creation of the GLPbuffer to fail.
    */
-  public abstract GLPbuffer createGLPbuffer(GLCapabilities capabilities,
-                                            GLCapabilitiesChooser chooser,
+  public abstract GLPbuffer createGLPbuffer(NWCapabilities capabilities,
+                                            NWCapabilitiesChooser chooser,
                                             int initialWidth,
                                             int initialHeight,
                                             GLContext shareWith)

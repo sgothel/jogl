@@ -47,7 +47,8 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.*;
 import com.sun.javafx.newt.Window;
-import javax.media.opengl.GLCapabilities;
+import javax.media.nwi.NWCapabilities;
+import javax.media.nwi.NativeWindowException;
 
 /** An implementation of the Newt Window class built using the
     AWT. This is provided for convenience of porting to platforms
@@ -74,8 +75,8 @@ public class AWTWindow extends Window {
         }
     }
 
-    protected void createNative(GLCapabilities caps) {
-        chosenCaps = (GLCapabilities) caps.clone(); // FIXME: visualID := f1(caps); caps := f2(visualID)
+    protected void createNative(NWCapabilities caps) {
+        chosenCaps = (NWCapabilities) caps.clone(); // FIXME: visualID := f1(caps); caps := f2(visualID)
         visualID = 0; // n/a
         runOnEDT(new Runnable() {
                 public void run() {
@@ -206,7 +207,7 @@ public class AWTWindow extends Window {
                         break;
 
                     default:
-                        throw new RuntimeException("Unknown event type " + w.getType());
+                        throw new NativeWindowException("Unknown event type " + w.getType());
                 }
                 if(DEBUG_MOUSE_EVENT) {
                     System.out.println("dispatchMessages: in event:"+w.getEvent());
@@ -242,7 +243,7 @@ public class AWTWindow extends Window {
             try {
                 EventQueue.invokeAndWait(r);
             } catch (Exception e) {
-                throw new RuntimeException(e);
+                throw new NativeWindowException(e);
             }
         }
     }

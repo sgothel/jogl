@@ -32,6 +32,8 @@
 
 package javax.media.opengl;
 
+import javax.media.nwi.*;
+
 /** Encapsulates a graphics device, or screen, on X11
     platforms. Objects of this type are passed to {@link
     NativeWindowFactory#chooseGraphicsConfiguration

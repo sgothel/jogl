@@ -39,6 +39,7 @@
 
 package com.sun.opengl.impl.macosx.cgl;
 
+import javax.media.nwi.*;
 import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
 
@@ -55,7 +56,7 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
   // semantic is that contains an NSView
   protected long pBuffer;
 
-  public MacOSXPbufferCGLDrawable(GLDrawableFactory factory, GLCapabilities capabilities, int width, int height) {
+  public MacOSXPbufferCGLDrawable(GLDrawableFactory factory, NWCapabilities capabilities, int width, int height) {
     super(factory, new NullWindow(), true, capabilities, null);
     NullWindow nw = (NullWindow) getNativeWindow();
     nw.setSize(width, height);
@@ -88,7 +89,7 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
   private void createPbuffer() {
     NullWindow nw = (NullWindow) getNativeWindow();
     int renderTarget;
-    GLCapabilities capabilities = getRequestedGLCapabilities();
+    NWCapabilities capabilities = getRequestedNWCapabilities();
     if (GLProfile.isGL2() && capabilities.getPbufferRenderToTextureRectangle()) {
       renderTarget = GL2.GL_TEXTURE_RECTANGLE;
     } else {

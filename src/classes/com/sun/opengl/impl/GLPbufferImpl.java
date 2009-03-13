@@ -46,6 +46,7 @@ import java.awt.event.*;
 import java.beans.PropertyChangeListener;
  */
 
+import javax.media.nwi.*;
 import javax.media.opengl.*;
 
 /** Platform-independent class exposing pbuffer functionality to
@@ -156,11 +157,11 @@ public class GLPbufferImpl implements GLPbuffer {
     context.releasePbufferFromTexture();
   }
 
-  public GLCapabilities getChosenGLCapabilities() {
+  public NWCapabilities getChosenNWCapabilities() {
     if (pbufferDrawable == null)
       return null;
 
-    return pbufferDrawable.getChosenGLCapabilities();
+    return pbufferDrawable.getChosenNWCapabilities();
   }
 
   private boolean surfaceLocked = false;

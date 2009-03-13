@@ -41,6 +41,7 @@ package com.sun.opengl.impl.macosx.cgl;
 
 import java.util.*;
 
+import javax.media.nwi.*;
 import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
 

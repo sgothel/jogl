@@ -40,6 +40,7 @@ import com.sun.opengl.impl.*;
 
 import java.awt.Component;
 import java.awt.GraphicsEnvironment;
+import javax.media.nwi.*;
 import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
 

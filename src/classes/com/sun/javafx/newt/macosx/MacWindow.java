@@ -33,7 +33,8 @@
 
 package com.sun.javafx.newt.macosx;
 
-import javax.media.opengl.GLCapabilities;
+import javax.media.nwi.NWCapabilities;
+import javax.media.nwi.NativeWindowException;
 
 import com.sun.javafx.newt.*;
 import com.sun.opengl.impl.*;
@@ -135,15 +136,15 @@ public class MacWindow extends Window {
         NativeLibLoader.loadNEWT();
         
         if (!initIDs()) {
-            throw new RuntimeException("Failed to initialize jmethodIDs");
+            throw new NativeWindowException("Failed to initialize jmethodIDs");
         }
     }
     
     public MacWindow() {
     }
     
-    protected void createNative(GLCapabilities caps) {
-        chosenCaps = (GLCapabilities) caps.clone(); // FIXME: visualID := f1(caps); caps := f2(visualID)
+    protected void createNative(NWCapabilities caps) {
+        chosenCaps = (NWCapabilities) caps.clone(); // FIXME: visualID := f1(caps); caps := f2(visualID)
         visualID = 0; // n/a
     }
 

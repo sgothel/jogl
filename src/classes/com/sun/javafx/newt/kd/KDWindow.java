@@ -36,9 +36,9 @@ package com.sun.javafx.newt.kd;
 import com.sun.javafx.newt.*;
 import com.sun.opengl.impl.*;
 import com.sun.opengl.impl.egl.*;
-import javax.media.opengl.GLCapabilities;
+import javax.media.nwi.NWCapabilities;
 import javax.media.opengl.GLProfile;
-import javax.media.opengl.NativeWindowException;
+import javax.media.nwi.NativeWindowException;
 
 public class KDWindow extends Window {
     private static final String WINDOW_CLASS_NAME = "NewtWindow";
@@ -49,14 +49,14 @@ public class KDWindow extends Window {
         NativeLibLoader.loadNEWT();
 
         if (!initIDs()) {
-            throw new RuntimeException("Failed to initialize jmethodIDs");
+            throw new NativeWindowException("Failed to initialize jmethodIDs");
         }
     }
 
     public KDWindow() {
     }
 
-    protected void createNative(GLCapabilities caps) {
+    protected void createNative(NWCapabilities caps) {
         int eglRenderableType;
         if(GLProfile.isGLES1()) {
             eglRenderableType = EGL.EGL_OPENGL_ES_BIT;
@@ -74,13 +74,13 @@ public class KDWindow extends Window {
         windowID = ++_windowID;
         eglWindowHandle = CreateWindow(windowID, getDisplayHandle(), config.getAttributeList());
         if (eglWindowHandle == 0) {
-            throw new RuntimeException("Error creating egl window: "+eglWindowHandle);
+            throw new NativeWindowException("Error creating egl window: "+eglWindowHandle);
         }
         setVisible0(eglWindowHandle, false);
         /*
         windowHandle = RealizeWindow(eglWindowHandle);
         if (0 == windowHandle) {
-            throw new RuntimeException("Error native Window Handle is null");
+            throw new NativeWindowException("Error native Window Handle is null");
         } */
         windowHandleClose = eglWindowHandle;
     }
@@ -98,7 +98,7 @@ public class KDWindow extends Window {
             if ( 0==windowHandle ) {
                 windowHandle = RealizeWindow(eglWindowHandle);
                 if (0 == windowHandle) {
-                    throw new RuntimeException("Error native Window Handle is null");
+                    throw new NativeWindowException("Error native Window Handle is null");
                 }
             }
             clearEventMask();

@@ -43,6 +43,7 @@ import java.lang.ref.WeakReference;
 import java.security.*;
 import java.util.*;
 
+import javax.media.nwi.*;
 import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
 
@@ -51,8 +52,8 @@ public class MacOSXOnscreenCGLDrawable extends MacOSXCGLDrawable {
     new ArrayList();
 
   protected MacOSXOnscreenCGLDrawable(GLDrawableFactory factory, NativeWindow component,
-                                  GLCapabilities capabilities,
-                                  GLCapabilitiesChooser chooser) {
+                                  NWCapabilities capabilities,
+                                  NWCapabilitiesChooser chooser) {
     super(factory, component, false, capabilities, chooser);
   }
 

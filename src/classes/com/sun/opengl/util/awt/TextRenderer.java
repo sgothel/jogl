@@ -66,6 +66,7 @@ import java.text.*;
 
 import java.util.*;
 
+import javax.media.nwi.*;
 import javax.media.opengl.*;
 import javax.media.opengl.glu.*;
 import javax.media.opengl.glu.gl2.*;
@@ -901,7 +902,7 @@ public class TextRenderer {
     private void debug() {
         dbgFrame = new Frame("TextRenderer Debug Output");
 
-        GLCanvas dbgCanvas = new GLCanvas(new GLCapabilities(), null,
+        GLCanvas dbgCanvas = new GLCanvas(new NWCapabilities(), null,
                                           GLContext.getCurrent(), null);
         dbgCanvas.addGLEventListener(new DebugListener(dbgFrame));
         dbgFrame.add(dbgCanvas);

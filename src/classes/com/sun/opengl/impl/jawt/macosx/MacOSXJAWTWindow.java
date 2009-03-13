@@ -46,6 +46,7 @@ import com.sun.opengl.impl.*;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 
+import javax.media.nwi.*;
 import javax.media.opengl.*;
 import java.security.*;
 

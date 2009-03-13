@@ -37,7 +37,7 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package javax.media.opengl;
+package javax.media.nwi;
 
 /** Provides the mechanism by which the Java / OpenGL binding
     interacts with windows. A window toolkit such as the AWT may

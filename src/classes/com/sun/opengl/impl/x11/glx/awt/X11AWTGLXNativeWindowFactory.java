@@ -35,6 +35,7 @@ package com.sun.opengl.impl.x11.glx.awt;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
+import javax.media.nwi.*;
 import javax.media.opengl.*;
 import javax.media.opengl.awt.*;
 
@@ -45,8 +46,8 @@ import com.sun.opengl.impl.x11.*;
 import com.sun.opengl.impl.x11.glx.*;
 
 public class X11AWTGLXNativeWindowFactory extends X11GLXNativeWindowFactory {
-    public AbstractGraphicsConfiguration chooseGraphicsConfiguration(GLCapabilities capabilities,
-                                                                     GLCapabilitiesChooser chooser,
+    public AbstractGraphicsConfiguration chooseGraphicsConfiguration(NWCapabilities capabilities,
+                                                                     NWCapabilitiesChooser chooser,
                                                                      AbstractGraphicsDevice absDevice) {
         GraphicsDevice device = null;
         if (absDevice != null &&

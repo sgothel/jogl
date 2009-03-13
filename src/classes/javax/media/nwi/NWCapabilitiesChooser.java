@@ -37,17 +37,17 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package javax.media.opengl;
+package javax.media.nwi;
 
 /** Provides a mechanism by which applications can customize the
-    window type selection for a given {@link GLCapabilities}.
+    window type selection for a given {@link NWCapabilities}.
     Developers can implement this interface and pass an instance into
     the appropriate method of {@link GLDrawableFactory}; the chooser
     will be called during the OpenGL context creation process. */
 
-public interface GLCapabilitiesChooser {
+public interface NWCapabilitiesChooser {
   /** Chooses the index (0..available.length - 1) of the {@link
-      GLCapabilities} most closely matching the desired one from the
+      NWCapabilities} most closely matching the desired one from the
       list of all supported. Some of the entries in the
       <code>available</code> array may be null; the chooser must
       ignore these. The <em>windowSystemRecommendedChoice</em>
@@ -59,9 +59,9 @@ public interface GLCapabilitiesChooser {
       {@link GLDrawableFactory} when an instance of this class is
       passed in to one of its factory methods. It should generally not
       be invoked by users directly, unless it is desired to delegate
-      the choice to some other GLCapabilitiesChooser object.
+      the choice to some other NWCapabilitiesChooser object.
   */
-  public int chooseCapabilities(GLCapabilities desired,
-                                GLCapabilities[] available,
+  public int chooseCapabilities(NWCapabilities desired,
+                                NWCapabilities[] available,
                                 int windowSystemRecommendedChoice);
 }

@@ -38,10 +38,11 @@ package com.sun.opengl.impl.egl;
 import com.sun.opengl.impl.GLDrawableImpl;
 import com.sun.opengl.impl.GLReflection;
 
+import javax.media.nwi.*;
 import javax.media.opengl.*;
 
 public class EGLDrawable extends GLDrawableImpl {
-    private GLCapabilitiesChooser chooser;
+    private NWCapabilitiesChooser chooser;
     private long display;
     private EGLConfig config;
     private long surface;
@@ -49,8 +50,8 @@ public class EGLDrawable extends GLDrawableImpl {
 
     public EGLDrawable(EGLDrawableFactory factory,
                        NativeWindow component,
-                       GLCapabilities requestedCapabilities,
-                       GLCapabilitiesChooser chooser) throws GLException {
+                       NWCapabilities requestedCapabilities,
+                       NWCapabilitiesChooser chooser) throws GLException {
         super(factory, component, requestedCapabilities, false);
         this.chooser = chooser;
         surface=EGL.EGL_NO_SURFACE;
@@ -114,9 +115,9 @@ public class EGLDrawable extends GLDrawableImpl {
                 if (!EGL.eglInitialize(display, null, null)) {
                     throw new GLException("eglInitialize failed");
                 }
-                config = new EGLConfig(display, getRequestedGLCapabilities());
+                config = new EGLConfig(display, getRequestedNWCapabilities());
             }
-            setChosenGLCapabilities(config.getCapabilities());
+            setChosenNWCapabilities(config.getCapabilities());
         } else if (surface != EGL.EGL_NO_SURFACE) {
             // Destroy the window surface
             if (!EGL.eglDestroySurface(display, surface)) {

@@ -59,7 +59,7 @@ public interface GLPbuffer extends GLAutoDrawable {
 
   /** Binds this pbuffer to its internal texture target. Only valid to
       call if offscreen render-to-texture has been specified in the
-      GLCapabilities for this GLPbuffer. If the
+      NWCapabilities for this GLPbuffer. If the
       render-to-texture-rectangle capability has also been specified,
       this will use e.g. wglBindTexImageARB as its implementation and
       cause the texture to be bound to e.g. the
@@ -82,7 +82,7 @@ public interface GLPbuffer extends GLAutoDrawable {
 
   /** Indicates which vendor's extension is being used to support
       floating point channels in this pbuffer if that capability was
-      requested in the GLCapabilities during pbuffer creation. Returns
+      requested in the NWCapabilities during pbuffer creation. Returns
       one of NV_FLOAT, ATI_FLOAT or APPLE_FLOAT, or throws GLException
       if floating-point channels were not requested for this pbuffer.
       This function may only be called once the init method for this

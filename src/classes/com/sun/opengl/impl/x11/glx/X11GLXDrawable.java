@@ -39,6 +39,7 @@
 
 package com.sun.opengl.impl.x11.glx;
 
+import javax.media.nwi.*;
 import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
 import com.sun.opengl.impl.x11.*;
@@ -46,11 +47,11 @@ import com.sun.opengl.impl.x11.*;
 public abstract class X11GLXDrawable extends GLDrawableImpl {
   protected static final boolean DEBUG = Debug.debug("X11GLXDrawable");
 
-  protected GLCapabilitiesChooser chooser;
+  protected NWCapabilitiesChooser chooser;
 
   protected X11GLXDrawable(GLDrawableFactory factory, NativeWindow comp, boolean realized,
-                           GLCapabilities requestedCapabilities,
-                           GLCapabilitiesChooser chooser) {
+                           NWCapabilities requestedCapabilities,
+                           NWCapabilitiesChooser chooser) {
     super(factory, comp, requestedCapabilities, realized);
     this.chooser = chooser;
   }
@@ -104,24 +105,24 @@ public abstract class X11GLXDrawable extends GLDrawableImpl {
       XVisualInfo template = XVisualInfo.create();
       template.screen(screen);
       XVisualInfo[] infos = null;
-      GLCapabilities[] caps = null;
+      NWCapabilities[] caps = null;
       getFactoryImpl().lockToolkit();
       try {
         infos = X11Lib.XGetVisualInfo(display, X11Lib.VisualScreenMask, template, count, 0);
         if (infos == null) {
           throw new GLException("Error while enumerating available XVisualInfos");
         }
-        caps = new GLCapabilities[infos.length];
+        caps = new NWCapabilities[infos.length];
         for (int i = 0; i < infos.length; i++) {
-          caps[i] = ((X11GLXDrawableFactory)getFactory()).xvi2GLCapabilities(display, infos[i]);
+          caps[i] = ((X11GLXDrawableFactory)getFactory()).xvi2NWCapabilities(display, infos[i]);
         }
       } finally {
         getFactoryImpl().unlockToolkit();
       }
-      GLCapabilities capabilities = getRequestedGLCapabilities();
+      NWCapabilities capabilities = getRequestedNWCapabilities();
       int chosen = chooser.chooseCapabilities(capabilities, caps, -1);
       if (chosen < 0 || chosen >= caps.length) {
-        throw new GLException("GLCapabilitiesChooser specified invalid index (expected 0.." + (caps.length - 1) + ")");
+        throw new GLException("NWCapabilitiesChooser specified invalid index (expected 0.." + (caps.length - 1) + ")");
       }
       if (DEBUG) {
         System.err.println("Chosen visual (" + chosen + "):");
@@ -129,7 +130,7 @@ public abstract class X11GLXDrawable extends GLDrawableImpl {
       }
       vis = infos[chosen];
       if (vis == null) {
-        throw new GLException("GLCapabilitiesChooser chose an invalid visual");
+        throw new GLException("NWCapabilitiesChooser chose an invalid visual");
       }
       // FIXME: the storage for the infos array is leaked (should
       // clean it up somehow when we're done with the visual we're

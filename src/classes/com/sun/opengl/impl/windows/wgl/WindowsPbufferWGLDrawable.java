@@ -39,6 +39,7 @@
 
 package com.sun.opengl.impl.windows.wgl;
 
+import javax.media.nwi.*;
 import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
 
@@ -51,7 +52,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
   private int floatMode;
 
   public WindowsPbufferWGLDrawable(GLDrawableFactory factory,
-                                   GLCapabilities requestedCapabilities,
+                                   NWCapabilities requestedCapabilities,
                                    int width,
                                    int height,
                                    WindowsWGLDrawable dummyDrawable,
@@ -94,7 +95,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
         throw new GLException("Error destroying pbuffer: error code " + WGL.GetLastError());
       }
       buffer = 0;
-      setChosenGLCapabilities(null);
+      setChosenNWCapabilities(null);
     }
   }
 
@@ -124,8 +125,8 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
   }
 
   // This is public to allow access from PbufferContext
-  public GLCapabilities getRequestedGLCapabilities() {
-    return super.getRequestedGLCapabilities();
+  public NWCapabilities getRequestedNWCapabilities() {
+    return super.getRequestedNWCapabilities();
   }
 
   private void createPbuffer(long parentHdc, WGLExt wglExt) {
@@ -135,7 +136,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
     int     niattribs   = 0;
     int     width, height;
 
-    GLCapabilities capabilities = getRequestedGLCapabilities();
+    NWCapabilities capabilities = getRequestedNWCapabilities();
 
     if (DEBUG) {
       System.out.println("Pbuffer parentHdc = " + toHexString(parentHdc));
@@ -307,7 +308,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
       int[] ivalues = new int[niattribs];
       // FIXME: usually prefer to throw exceptions, but failure here is not critical
       if (wglExt.wglGetPixelFormatAttribiv(parentHdc, pformats[whichFormat], 0, niattribs, iattributes, 0, ivalues, 0)) {
-        setChosenGLCapabilities(iattributes2GLCapabilities(iattributes, niattribs, ivalues, false));
+        setChosenNWCapabilities(iattributes2NWCapabilities(iattributes, niattribs, ivalues, false));
       }
     }
 

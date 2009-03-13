@@ -39,6 +39,7 @@
 
 package com.sun.opengl.impl.x11.glx;
 
+import javax.media.nwi.*;
 import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
 import com.sun.opengl.impl.x11.*;

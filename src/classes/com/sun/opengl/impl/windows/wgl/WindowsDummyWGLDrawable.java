@@ -39,6 +39,7 @@
 
 package com.sun.opengl.impl.windows.wgl;
 
+import javax.media.nwi.*;
 import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
 
@@ -46,7 +47,7 @@ public class WindowsDummyWGLDrawable extends WindowsWGLDrawable {
   private long hwnd, hdc;
 
   public WindowsDummyWGLDrawable(GLDrawableFactory factory) {
-    super(factory, new NullWindow(), true, new GLCapabilities(), null);
+    super(factory, new NullWindow(), true, new NWCapabilities(), null);
     // All entries to CreateDummyWindow must synchronize on one object
     // to avoid accidentally registering the dummy window class twice
     synchronized (WindowsDummyWGLDrawable.class) {
@@ -56,7 +57,7 @@ public class WindowsDummyWGLDrawable extends WindowsWGLDrawable {
     NullWindow nw = (NullWindow) getNativeWindow();
     nw.setSurfaceHandle(hdc);
     // Choose a (hopefully hardware-accelerated) OpenGL pixel format for this device context
-    GLCapabilities caps = new GLCapabilities();
+    NWCapabilities caps = new NWCapabilities();
     caps.setDepthBits(16);
     PIXELFORMATDESCRIPTOR pfd = glCapabilities2PFD(caps, true);
     int pixelFormat = WGL.ChoosePixelFormat(hdc, pfd);

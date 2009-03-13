@@ -39,6 +39,7 @@
 
 package com.sun.opengl.impl.windows.wgl;
 
+import javax.media.nwi.*;
 import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
 
@@ -47,8 +48,8 @@ public class WindowsOffscreenWGLDrawable extends WindowsWGLDrawable {
   private long hbitmap;
 
   public WindowsOffscreenWGLDrawable(GLDrawableFactory factory, 
-                                     GLCapabilities requestedCapabilities,
-                                     GLCapabilitiesChooser chooser,
+                                     NWCapabilities requestedCapabilities,
+                                     NWCapabilitiesChooser chooser,
                                      int width,
                                      int height) {
     super(factory, new NullWindow(), true, requestedCapabilities, chooser);
@@ -62,7 +63,7 @@ public class WindowsOffscreenWGLDrawable extends WindowsWGLDrawable {
 
   private void create() {
     NullWindow nw = (NullWindow) getNativeWindow();
-    GLCapabilities capabilities = getRequestedGLCapabilities();
+    NWCapabilities capabilities = getRequestedNWCapabilities();
     int width = getWidth();
     int height = getHeight();
     BITMAPINFO info = BITMAPINFO.create();
@@ -120,7 +121,7 @@ public class WindowsOffscreenWGLDrawable extends WindowsWGLDrawable {
       origbitmap = 0;
       hbitmap = 0;
       nw.setSurfaceHandle(0);
-      setChosenGLCapabilities(null);
+      setChosenNWCapabilities(null);
     }
   }
 }

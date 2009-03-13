@@ -39,6 +39,7 @@ package com.sun.opengl.impl.x11.glx;
 import java.nio.*;
 import java.security.*;
 import java.util.*;
+import javax.media.nwi.*;
 import javax.media.opengl.*;
 import com.sun.gluegen.runtime.*;
 import com.sun.gluegen.runtime.opengl.*;
@@ -48,7 +49,7 @@ import com.sun.opengl.impl.x11.*;
 public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
   protected static final boolean DEBUG = Debug.debug("X11GLXDrawableFactory");
 
-  // Map for rediscovering the GLCapabilities associated with a
+  // Map for rediscovering the NWCapabilities associated with a
   // particular screen and visualID after the fact
   protected static Map visualToGLCapsMap = Collections.synchronizedMap(new HashMap());
   // The screens for which we've already initialized it
@@ -91,15 +92,15 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
 
   private static final int MAX_ATTRIBS = 128;
 
-  public AbstractGraphicsConfiguration chooseGraphicsConfiguration(GLCapabilities capabilities,
-                                                                   GLCapabilitiesChooser chooser,
+  public AbstractGraphicsConfiguration chooseGraphicsConfiguration(NWCapabilities capabilities,
+                                                                   NWCapabilitiesChooser chooser,
                                                                    AbstractGraphicsDevice absDevice) {
     return null;
   }
 
   public GLDrawable createGLDrawable(NativeWindow target,
-                                     GLCapabilities capabilities,
-                                     GLCapabilitiesChooser chooser) {
+                                     NWCapabilities capabilities,
+                                     NWCapabilitiesChooser chooser) {
     if (target == null) {
       throw new IllegalArgumentException("Null target");
     }
@@ -107,9 +108,9 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     return new X11OnscreenGLXDrawable(this, target);
   }
 
-  public void initializeVisualToGLCapabilitiesMap(int screen,
+  public void initializeVisualToNWCapabilitiesMap(int screen,
                                                   XVisualInfo[] infos,
-                                                  GLCapabilities[] caps) {
+                                                  NWCapabilities[] caps) {
     Integer key = new Integer(screen);
     if (!initializedScreenSet.contains(key)) {
       for (int i = 0; i < infos.length; i++) {
@@ -122,13 +123,13 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     }
   }
 
-  public GLCapabilities lookupCapabilitiesByScreenAndVisualID(int screenIndex,
+  public NWCapabilities lookupCapabilitiesByScreenAndVisualID(int screenIndex,
                                                               long visualID) {
-    return (GLCapabilities) visualToGLCapsMap.get(new ScreenAndVisualIDKey(screenIndex, visualID));
+    return (NWCapabilities) visualToGLCapsMap.get(new ScreenAndVisualIDKey(screenIndex, visualID));
   }
 
-  public GLDrawableImpl createOffscreenDrawable(GLCapabilities capabilities,
-                                                GLCapabilitiesChooser chooser,
+  public GLDrawableImpl createOffscreenDrawable(NWCapabilities capabilities,
+                                                NWCapabilitiesChooser chooser,
                                                 int width,
                                                 int height) {
     return new X11OffscreenGLXDrawable(this, capabilities, chooser, width, height);
@@ -178,8 +179,8 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     return canCreateGLPbuffer;
   }
 
-  public GLPbuffer createGLPbuffer(final GLCapabilities capabilities,
-                                   final GLCapabilitiesChooser chooser,
+  public GLPbuffer createGLPbuffer(final NWCapabilities capabilities,
+                                   final NWCapabilitiesChooser chooser,
                                    final int initialWidth,
                                    final int initialHeight,
                                    final GLContext shareWith) {
@@ -227,7 +228,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     return res;
   }
 
-  public GLCapabilities xvi2GLCapabilities(long display, XVisualInfo info) {
+  public NWCapabilities xvi2NWCapabilities(long display, XVisualInfo info) {
     int[] tmp = new int[1];
     int val = glXGetConfig(display, info, GLX.GLX_USE_GL, tmp, 0);
     if (val == 0) {
@@ -239,12 +240,12 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
       // Visual does not support RGBA
       return null;
     }
-    GLCapabilities res = new GLCapabilities();
+    NWCapabilities res = new NWCapabilities();
     res.setDoubleBuffered(glXGetConfig(display, info, GLX.GLX_DOUBLEBUFFER,     tmp, 0) != 0);
     res.setStereo        (glXGetConfig(display, info, GLX.GLX_STEREO,           tmp, 0) != 0);
     // Note: use of hardware acceleration is determined by
     // glXCreateContext, not by the XVisualInfo. Optimistically claim
-    // that all GLCapabilities have the capability to be hardware
+    // that all NWCapabilities have the capability to be hardware
     // accelerated.
     res.setHardwareAccelerated(true);
     res.setDepthBits     (glXGetConfig(display, info, GLX.GLX_DEPTH_SIZE,       tmp, 0));
@@ -264,7 +265,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     return res;
   }
 
-  public static int[] glCapabilities2AttribList(GLCapabilities caps,
+  public static int[] glCapabilities2AttribList(NWCapabilities caps,
                                                 boolean isMultisampleAvailable,
                                                 boolean pbuffer,
                                                 long display,
@@ -354,11 +355,11 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     return res;
   }
 
-  public static GLCapabilities attribList2GLCapabilities(int[] iattribs,
+  public static NWCapabilities attribList2NWCapabilities(int[] iattribs,
                                                          int niattribs,
                                                          int[] ivalues,
                                                          boolean pbuffer) {
-    GLCapabilities caps = new GLCapabilities();
+    NWCapabilities caps = new NWCapabilities();
 
     for (int i = 0; i < niattribs; i++) {
       int attr = iattribs[i];
