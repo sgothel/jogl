@@ -310,6 +310,13 @@ public class TextureData {
         }
     }
 
+    /** Calls flush()
+     * @see #flush()
+     */
+    public void destroy() {
+        flush();
+    }
+
     /** Defines a callback mechanism to allow the user to explicitly
         deallocate native resources (memory-mapped files, etc.)
         associated with a particular TextureData. */

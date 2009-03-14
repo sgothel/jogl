@@ -10,6 +10,7 @@
 #    -Djava.generate.skip=true \
 
 ant -v \
+    -Drootrel.build=build-cdcfp-x86 \
     -Djogl.cdcfp=true \
     -Dgluegen.cpptasks.detected.os=true \
     -DisUnix=true \

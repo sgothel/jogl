@@ -294,9 +294,8 @@
 
   public final String toString() {
       StringBuffer buf = new StringBuffer();
-      buf.append("GL: ");
       buf.append(getClass().getName());
-      buf.append(" (GLSL compiler: ");
+      buf.append(" [GLSL compiler: ");
       buf.append(glShaderCompilerAvailable());
       Set bfs = glGetShaderBinaryFormats();
       buf.append(", binary formats ");
@@ -306,20 +305,7 @@
           buf.append(" ");
           buf.append(((Integer)(iter.next())).intValue());
       }
-      buf.append(") (GLContext: ");
-      GLContext context = getContext();
-      buf.append(context.getClass().getName());
-      buf.append(", GLDrawable: ");
-      GLDrawable drawable = context.getGLDrawable();
-      if(null!=drawable) {
-          buf.append(drawable.getClass().getName());
-          buf.append(", Factory: ");
-          GLDrawableFactory factory = drawable.getFactory();
-          buf.append(factory.getClass().getName());
-      } else {
-          buf.append("n/a");
-      }
-      buf.append(")");
+      buf.append("]");
       return buf.toString();
   }
 

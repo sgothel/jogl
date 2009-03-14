@@ -108,5 +108,7 @@ public interface GLArrayData {
 
     public String toString();
 
+    public void destroy(GL gl);
+
 }
 

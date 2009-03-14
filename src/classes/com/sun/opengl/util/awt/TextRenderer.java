@@ -1882,6 +1882,12 @@ public class TextRenderer {
             }
         }
 
+        public void dispose(GLAutoDrawable drawable) {
+            glu.destroy();
+            glu=null;
+            frame=null;
+        }
+
         // Unused methods
         public void init(GLAutoDrawable drawable) {
         }

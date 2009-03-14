@@ -36,6 +36,7 @@ package com.sun.javafx.newt;
 public class WindowEvent extends Event {
     public static final int EVENT_WINDOW_RESIZED = 100;
     public static final int EVENT_WINDOW_MOVED   = 101; 
+    public static final int EVENT_WINDOW_DESTROY_NOTIFY = 102; 
 
     public WindowEvent(int eventType, Window source, long when) {
         this(false, eventType, source, when);
@@ -49,6 +50,7 @@ public class WindowEvent extends Event {
         switch(type) {
             case EVENT_WINDOW_RESIZED: return "WINDOW_RESIZED";
             case EVENT_WINDOW_MOVED:   return "WINDOW_MOVED";
+            case EVENT_WINDOW_DESTROY_NOTIFY:   return "EVENT_WINDOW_DESTROY_NOTIFY";
             default: return "unknown (" + type + ")";
         }
     }

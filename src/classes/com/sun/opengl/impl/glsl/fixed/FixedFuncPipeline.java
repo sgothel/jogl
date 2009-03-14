@@ -53,12 +53,12 @@ public class FixedFuncPipeline {
       return name;
     }
 
-    public void release(GL2ES2 gl) {
-        shaderState.release(gl);
+    public void destroy(GL2ES2 gl) {
         shaderProgramColor.release(gl, true);
         shaderProgramColorLight.release(gl, true);
         shaderProgramColorTexture.release(gl, true);
         shaderProgramColorTextureLight.release(gl, true);
+        shaderState.destroy(gl);
     }
 
     public void glEnableClientState(GL2ES2 gl, int glArrayIndex) {

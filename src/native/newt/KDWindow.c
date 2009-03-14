@@ -80,7 +80,8 @@
  */
 
 static jmethodID sizeChangedID = NULL;
-static jmethodID windowClosedID = NULL;
+static jmethodID windowDestroyNotifyID = NULL;
+static jmethodID windowDestroyedID = NULL;
 static jmethodID sendMouseEventID = NULL;
 static jmethodID sendKeyEventID = NULL;
 
@@ -94,11 +95,13 @@ JNIEXPORT jboolean JNICALL Java_com_sun_javafx_newt_kd_KDWindow_initIDs
     #endif
 #endif
     sizeChangedID = (*env)->GetMethodID(env, clazz, "sizeChanged", "(II)V");
-    windowClosedID    = (*env)->GetMethodID(env, clazz, "windowClosed",    "()V");
+    windowDestroyNotifyID = (*env)->GetMethodID(env, clazz, "windowDestroyNotify",    "()V");
+    windowDestroyedID = (*env)->GetMethodID(env, clazz, "windowDestroyed", "()V");
     sendMouseEventID = (*env)->GetMethodID(env, clazz, "sendMouseEvent", "(IIIII)V");
     sendKeyEventID = (*env)->GetMethodID(env, clazz, "sendKeyEvent", "(IIIC)V");
     if (sizeChangedID == NULL ||
-        windowClosedID == NULL ||
+        windowDestroyNotifyID == NULL ||
+        windowDestroyedID == NULL ||
         sendMouseEventID == NULL ||
         sendKeyEventID == NULL) {
         DBG_PRINT( "initIDs failed\n" );
@@ -240,7 +243,9 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_kd_KDWindow_DispatchMessages
             case KD_EVENT_WINDOW_CLOSE:
                 {
                     DBG_PRINT( "event window close : src: %d\n", owner);
-                    (*env)->CallVoidMethod(env, obj, windowClosedID);
+                    (*env)->CallVoidMethod(env, obj, windowDestroyNotifyID);
+                    // Called by Window.java: DestroyWindow(wnd);
+                    //  (*env)->CallVoidMethod(env, obj, windowDestroyedID);
                 }
                 break;
             case KD_EVENT_WINDOWPROPERTY_CHANGE:
@@ -304,8 +309,8 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_kd_KDWindow_setFullScreen0
     KDboolean v = fullscreen;
 
     int res = kdSetWindowPropertybv(w, KD_WINDOWPROPERTY_FULLSCREEN_NV, &v);
-
     DBG_PRINT( "[setFullScreen] v=%d, res=%d\n", fullscreen, res);
+    (void)res;
 }
 
 JNIEXPORT void JNICALL Java_com_sun_javafx_newt_kd_KDWindow_setSize0
@@ -315,8 +320,9 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_kd_KDWindow_setSize0
     KDint32 v[] = { width, height };
 
     int res = kdSetWindowPropertyiv(w, KD_WINDOWPROPERTY_SIZE, v);
-
     DBG_PRINT( "[setSize] v=%dx%d, res=%d\n", width, height, res);
+    (void)res;
+
     (*env)->CallVoidMethod(env, obj, sizeChangedID, (jint) width, (jint) height);
 }
 

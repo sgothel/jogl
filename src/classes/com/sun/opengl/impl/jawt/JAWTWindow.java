@@ -128,10 +128,6 @@ public abstract class JAWTWindow implements NativeWindow {
     return component;
   }
 
-  public final boolean isTerminalObject() {
-    return true;
-  }
-
   public void setSize(int width, int height) {
     component.setSize(width, height);
   }
@@ -145,10 +141,17 @@ public abstract class JAWTWindow implements NativeWindow {
   }
 
   public String toString() {
-    return "JAWT-Window[windowHandle "+getWindowHandle()+
+    StringBuffer sb = new StringBuffer();
+
+    sb.append("JAWT-Window[windowHandle "+getWindowHandle()+
                 ", surfaceHandle "+getSurfaceHandle()+
-                ", size "+getWidth()+"x"+getHeight()+
+                ", pos "+component.getX()+"/"+component.getY()+", size "+getWidth()+"x"+getHeight()+
+                ", visible "+component.isVisible()+
                 ", wrappedWindow "+getWrappedWindow()+
-                ", terminalObject "+isTerminalObject()+"]";
+                ", visualID "+visualID+
+                ", screen handle/index "+getScreenHandle()+"/"+getScreenIndex() +
+                ", display handle "+getDisplayHandle()+"]");
+
+    return sb.toString();
   }
 }

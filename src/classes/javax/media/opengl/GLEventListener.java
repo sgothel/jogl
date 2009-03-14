@@ -57,6 +57,17 @@ public interface GLEventListener extends EventListener {
   */
   public void init(GLAutoDrawable drawable);
   
+  /** Called by the drawable before the OpenGL context is
+      destroyed by an external event. 
+      This happens through notification by the 
+      native window manager, ie window close, but also 
+      manually by calling {@link GLAutoDrawable#destroy destroy}.
+      Shall be used to perform final release of all OpenGL
+      resources, such as memory buffers and GLSL programs.
+      You might also want to exit your application after receiving this signal.
+  */
+  public void dispose(GLAutoDrawable drawable);
+  
   /** Called by the drawable to initiate OpenGL rendering by the
       client. After all GLEventListeners have been notified of a
       display event, the drawable will swap its buffers if {@link

@@ -34,6 +34,14 @@ public GLUgl2()
   this.project = new ProjectDouble();
 }
 
+public void destroy() {
+  if(null!=this.project) {
+      this.project.destroy();
+      this.project=null;
+  }
+  super.destroy();
+}
+
 
 //----------------------------------------------------------------------
 // Utility routines

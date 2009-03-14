@@ -50,6 +50,10 @@ import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
+import java.awt.Container;
+import java.awt.Window;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowAdapter;
 import java.awt.geom.*;
 import java.beans.*;
 import java.lang.reflect.*;
@@ -156,7 +160,34 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
       context.setSynchronized(true);
     }
   }
-  
+
+  protected interface DestroyMethod {
+    public void destroyMethod();
+  }
+
+  protected final static Object  addClosingListener(Component c, final DestroyMethod d) {
+    WindowAdapter cl = null;
+    Window w = getWindow(c);
+    if(null!=w) {
+        cl = new WindowAdapter() {
+                public void windowClosing(WindowEvent e) {
+                  // we have to issue this call rigth away,
+                  // otherwise the window gets destroyed
+                  d.destroyMethod();
+                }
+            };
+        w.addWindowListener(cl);
+    }
+    return cl;
+  }
+
+  protected final static Window getWindow(Component c) {
+    while ( c!=null && ! ( c instanceof Window ) ) {
+        c = c.getParent();
+    }
+    return (Window)c;
+  }
+
   /**
    * Overridden to choose a GraphicsConfiguration on a parent container's
    * GraphicsDevice because both devices
@@ -252,9 +283,27 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
   public void setRealized(boolean realized) {
   }
 
+  private Object closingListener = null;
+  private Object closingListenerLock = new Object();
+
   public void display() {
     maybeDoSingleThreadedWorkaround(displayOnEventDispatchThreadAction,
                                     displayAction);
+    if(null==closingListener) {
+      synchronized(closingListenerLock) {
+        if(null==closingListener) {
+            closingListener=addClosingListener(this, new DestroyMethod() { 
+                        public void destroyMethod() { destroy(); } });
+        }
+      }
+    }
+  }
+
+  /**
+   * Just an alias for removeNotify
+   */
+  public void destroy() {
+    removeNotify();
   }
 
   /** Overridden to cause OpenGL rendering to be performed during
@@ -302,9 +351,6 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
       disableBackgroundErase();
       drawable.setRealized(true);
     }
-    if (DEBUG) {
-      System.err.println("GLCanvas.addNotify()");
-    }
   }
 
   /** Overridden to track when this component is removed from a
@@ -315,6 +361,12 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
       <B>Overrides:</B>
       <DL><DD><CODE>removeNotify</CODE> in class <CODE>java.awt.Component</CODE></DD></DL> */
   public void removeNotify() {
+    if(DEBUG) {
+        Exception ex1 = new Exception("removeNotify - start");
+        ex1.printStackTrace();
+    }
+    drawableHelper.invokeGL(drawable, context, disposeAction, null);
+
     if (Beans.isDesignTime()) {
       super.removeNotify();
     } else {
@@ -337,12 +389,15 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
           destroyAction.run();
         }
       } finally {
-        drawable.setRealized(false);
-        super.removeNotify();
-        if (DEBUG) {
-          System.err.println("GLCanvas.removeNotify()");
+        if(null!=drawable) {
+            drawable.setRealized(false);
         }
+        drawable=null;
+        super.removeNotify();
       }
+    }
+    if(DEBUG) {
+        System.out.println("removeNotify - end");
     }
   }
 
@@ -423,9 +478,20 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
     return drawable.getFactory();
   }
 
+  public String toString() {
+    return "AWT-GLCanvas[ "+((null!=drawable)?drawable.getClass().getName():"null-drawable")+", "+drawableHelper+"]";
+  }
+
   //----------------------------------------------------------------------
   // Internals only below this point
   //
+
+  class DisposeAction implements Runnable {
+    public void run() {
+      drawableHelper.dispose(GLCanvas.this);
+    }
+  }
+  private DisposeAction disposeAction = new DisposeAction();
 
   private void maybeDoSingleThreadedWorkaround(Runnable eventDispatchThreadAction,
                                                Runnable invokeGLAction) {
@@ -488,11 +554,18 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
 
   class DestroyAction implements Runnable {
     public void run() {
-      GLContext current = GLContext.getCurrent();
-      if (current == context) {
-        context.release();
+      if(DEBUG) {
+        Exception ex1 = new Exception("DestroyAction - start");
+        ex1.printStackTrace();
       }
-      context.destroy();
+      GLContext current = GLContext.getCurrent();
+      if(null!=current) {
+          context.destroy();
+          context = null;
+      }
+      if(DEBUG) {
+        System.out.println("DestroyAction - end");
+      }
     }
   }
   private DestroyAction destroyAction = new DestroyAction();

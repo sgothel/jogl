@@ -46,8 +46,8 @@ public class FixedFuncHook implements GLFixedFuncHookIf {
                                               vertexColorFile, vertexColorLightFile, fragmentColorFile, fragmentColorTextureFile);
     }
 
-    public void dispose() {
-        fixedFunction.release(gl);
+    public void destroy() {
+        fixedFunction.destroy(gl);
         fixedFunction = null;
     }
 

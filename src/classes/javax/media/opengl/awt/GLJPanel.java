@@ -204,6 +204,13 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
     }
   }
 
+  /**
+   * Just an alias for removeNotify
+   */
+  public void destroy() {
+      removeNotify();
+  }
+
   /** Overridden to cause OpenGL rendering to be performed during
       repaint cycles. Subclasses which override this method must call
       super.paintComponent() in their paintComponent() method in order
@@ -275,15 +282,20 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
       <B>Overrides:</B>
       <DL><DD><CODE>removeNotify</CODE> in class <CODE>java.awt.Component</CODE></DD></DL> */
   public void removeNotify() {
-    if (DEBUG) {
-      System.err.println("GLJPanel.removeNotify()");
+    if(DEBUG) {
+        Exception ex1 = new Exception("removeNotify - start");
+        ex1.printStackTrace();
     }
     if (backend != null) {
+      drawableHelper.invokeGL(backend.getDrawable(), backend.getContext(), disposeAction, null);
       backend.destroy();
       backend = null;
     }
     isInitialized = false;
     super.removeNotify();
+    if(DEBUG) {
+        System.out.println("removeNotify - end");
+    }
   }
 
   /** Overridden to cause {@link GLDrawableHelper#reshape} to be
@@ -448,7 +460,18 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
       // The backend might set itself to null, indicating it punted to
       // a different implementation -- try again
     } while (backend == null);
+
+    if(null==closingListener) {
+      synchronized(closingListenerLock) {
+        if(null==closingListener) {
+            closingListener=GLCanvas.addClosingListener(this, new GLCanvas.DestroyMethod() {
+                        public void destroyMethod() { destroy(); } });
+        }
+      }
+    }
   }
+  private Object closingListener = null;
+  private Object closingListenerLock = new Object();
 
   private void handleReshape() {
     panelWidth  = reshapeWidth;
@@ -481,6 +504,10 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
       backend.postGL(g, false);
     }
 
+    public void dispose(GLAutoDrawable drawable) {
+      drawableHelper.dispose(GLJPanel.this);
+    }
+
     public void display(GLAutoDrawable drawable) {
       if (!backend.preGL(g)) {
         return;
@@ -505,6 +532,17 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
     public void displayChanged(GLAutoDrawable drawable, boolean modeChanged, boolean deviceChanged) {
     }
   }
+
+  public String toString() {
+    return "AWT-GLJPanel[ "+((null!=backend)?backend.getDrawable().getClass().getName():"null-drawable")+", "+drawableHelper+"]";
+  }
+
+  class DisposeAction implements Runnable {
+    public void run() {
+      updater.dispose(GLJPanel.this);
+    }
+  }
+  private DisposeAction disposeAction = new DisposeAction();
 
   class InitAction implements Runnable {
     public void run() {
@@ -578,6 +616,9 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
 
     // Called to get the current backend's GLContext
     public GLContext getContext();
+
+    // Called to get the current backend's GLDrawable
+    public GLDrawable getDrawable();
 
     // Called to fetch the "real" chosen NWCapabilities for the backend
     public NWCapabilities getChosenNWCapabilities();
@@ -816,6 +857,10 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
       return offscreenContext;
     }
 
+    public GLDrawable getDrawable() {
+        return offscreenDrawable;
+    }
+
     public NWCapabilities getChosenNWCapabilities() {
       if (offscreenDrawable == null) {
         return null;
@@ -901,6 +946,10 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
         return null;
       }
       return pbuffer.getContext();
+    }
+
+    public GLDrawable getDrawable() {
+        return pbuffer;
     }
 
     public NWCapabilities getChosenNWCapabilities() {
@@ -1068,6 +1117,10 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
 
     public GLContext getContext() {
       return joglContext;
+    }
+
+    public GLDrawable getDrawable() {
+        return joglDrawable;
     }
 
     public NWCapabilities getChosenNWCapabilities() {

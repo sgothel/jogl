@@ -113,6 +113,13 @@ public GLU()
   this.project = new ProjectFloat();
 }
 
+public void destroy() {
+  if(null!=this.project) {
+      this.project.destroy();
+      this.project=null;
+  }
+}
+
 public static final GL getCurrentGL() throws GLException {
   GLContext curContext = GLContext.getCurrent();
   if (curContext == null) {

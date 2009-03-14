@@ -4,7 +4,7 @@
 
 #    -Dc.compiler.debug=true 
 
-ant -v \
+ant \
     -Drootrel.build=build-x86_64 \
     -Dgluegen.cpptasks.detected.os=true \
     -DisUnix=true \

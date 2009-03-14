@@ -157,6 +157,7 @@ public class ProjectDouble {
   private final double[] up = new double[3];
   
   // Buffer-based implementation
+  private DoubleBuffer locbuf;
   private final DoubleBuffer matrixBuf;
 
   private final DoubleBuffer tempMatrixBuf;
@@ -173,24 +174,31 @@ public class ProjectDouble {
     // Slice up one big buffer because some NIO implementations
     // allocate a huge amount of memory to back even the smallest of
     // buffers.
-    DoubleBuffer buf = BufferUtil.newDoubleBuffer(128);
+    DoubleBuffer locbuf = BufferUtil.newDoubleBuffer(128);
     int pos = 0;
     int sz = 16;
-    matrixBuf = slice(buf, pos, sz);
+    matrixBuf = slice(locbuf, pos, sz);
     pos += sz;
-    tempMatrixBuf = slice(buf, pos, sz);
+    tempMatrixBuf = slice(locbuf, pos, sz);
     pos += sz;
     sz = 4;
-    inBuf = slice(buf, pos, sz);
+    inBuf = slice(locbuf, pos, sz);
     pos += sz;
-    outBuf = slice(buf, pos, sz);
+    outBuf = slice(locbuf, pos, sz);
     pos += sz;
     sz = 3;
-    forwardBuf = slice(buf, pos, sz);
+    forwardBuf = slice(locbuf, pos, sz);
     pos += sz;
-    sideBuf = slice(buf, pos, sz);
+    sideBuf = slice(locbuf, pos, sz);
     pos += sz;
-    upBuf = slice(buf, pos, sz);
+    upBuf = slice(locbuf, pos, sz);
+  }
+
+  public void destroy() {
+    if(locbuf!=null) {
+        locbuf.clear();
+        locbuf=null;
+    }
   }
 
   private static DoubleBuffer slice(DoubleBuffer buf, int pos, int len) {

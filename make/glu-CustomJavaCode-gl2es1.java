@@ -36,6 +36,10 @@ public GLUgl2es1()
   super();
 }
 
+public void destroy() {
+  super.destroy();
+}
+
 //----------------------------------------------------------------------
 // Utility routines
 //

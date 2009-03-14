@@ -77,6 +77,15 @@ public interface GLAutoDrawable extends GLDrawable {
       during this update cycle. */
   public void removeGLEventListener(GLEventListener listener);
 
+  /** Destroys all resources associated with this GLAutoDrawable.
+      If a window is attached to it's implementation, it shall be closed.
+      Causes disposing of all OpenGL resources
+      by calling {@link GLEventListener#dispose dispose} for all
+      registered {@link GLEventListener}s. Called automatically by the
+      window system toolkit upon receiving a destroy notification. This
+      routine may be called manually. */
+  public void destroy();
+
   /** Causes OpenGL rendering to be performed for this GLAutoDrawable
       by calling {@link GLEventListener#display display} for all
       registered {@link GLEventListener}s. Called automatically by the

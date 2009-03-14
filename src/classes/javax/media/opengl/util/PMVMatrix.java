@@ -43,23 +43,23 @@ public class PMVMatrix implements GLMatrixIf {
 
           matrixMvit3 = BufferUtil.newFloatBuffer(3*3);
 
-          FloatBuffer buf = BufferUtil.newFloatBuffer(6*16);
+          localBuf = BufferUtil.newFloatBuffer(6*16);
 
-          matrixMult=slice(buf, 0*16, 16);
+          matrixMult=slice(localBuf, 0*16, 16);
 
-          matrixTrans=slice(buf, 1*16, 16);
+          matrixTrans=slice(localBuf, 1*16, 16);
           projectFloat.gluMakeIdentityf(matrixTrans);
 
-          matrixRot=slice(buf, 2*16, 16);
+          matrixRot=slice(localBuf, 2*16, 16);
           projectFloat.gluMakeIdentityf(matrixRot);
 
-          matrixScale=slice(buf, 3*16, 16);
+          matrixScale=slice(localBuf, 3*16, 16);
           projectFloat.gluMakeIdentityf(matrixScale);
 
-          matrixOrtho=slice(buf, 4*16, 16);
+          matrixOrtho=slice(localBuf, 4*16, 16);
           projectFloat.gluMakeIdentityf(matrixOrtho);
 
-          matrixFrustum=slice(buf, 5*16, 16);
+          matrixFrustum=slice(localBuf, 5*16, 16);
           projectFloat.gluMakeZero(matrixFrustum);
 
           vec3f=new float[3];
@@ -75,6 +75,43 @@ public class PMVMatrix implements GLMatrixIf {
           glMatrixMode(GL.GL_TEXTURE);
           glLoadIdentity();
           setDirty();
+    }
+
+    public void destroy() {
+        if(null!=projectFloat) {
+            projectFloat.destroy(); projectFloat=null;
+        }
+
+        if(null!=matrixIdent) {
+            matrixIdent.clear(); matrixIdent=null;
+        }
+        if(null!=matrixTPMvMvitPmv) {
+            matrixTPMvMvitPmv.clear(); matrixTPMvMvitPmv=null;
+        }
+        if(null!=matrixMvit3) {
+            matrixMvit3.clear(); matrixMvit3=null;
+        }
+        if(null!=localBuf) {
+            localBuf.clear(); localBuf=null;
+        }
+
+        if(null!=matrixPStack) {
+            matrixPStack.clear(); matrixPStack=null;
+        }
+        vec3f=null;
+        if(null!=matrixMvStack) {
+            matrixMvStack.clear(); matrixMvStack=null;
+        }
+        if(null!=matrixPStack) {
+        matrixPStack.clear(); matrixPStack=null;
+        }
+        if(null!=matrixTStack) {
+            matrixTStack.clear(); matrixTStack=null;
+        }
+
+        matrixTPMvMvitPmv=null; matrixPMvMvit=null; matrixPMvMvitPmv=null; matrixPMvMvi=null; matrixPMv=null; 
+        matrixP=null; matrixT=null; matrixMv=null; matrixMvi=null; matrixMvit=null; matrixPmv=null;
+        matrixMult=null; matrixTrans=null; matrixRot=null; matrixScale=null; matrixOrtho=null; matrixFrustum=null;
     }
 
     private static FloatBuffer slice(FloatBuffer buf, int pos, int len) {
@@ -606,7 +643,7 @@ public class PMVMatrix implements GLMatrixIf {
     protected FloatBuffer matrixIdent;
     protected FloatBuffer matrixTPMvMvitPmv, matrixPMvMvit, matrixPMvMvitPmv, matrixPMvMvi, matrixPMv, matrixP, matrixT, matrixMv, matrixMvi, matrixMvit, matrixPmv;
     protected FloatBuffer matrixMvit3;
-    protected FloatBuffer matrixMult, matrixTrans, matrixRot, matrixScale, matrixOrtho, matrixFrustum;
+    protected FloatBuffer localBuf, matrixMult, matrixTrans, matrixRot, matrixScale, matrixOrtho, matrixFrustum;
     protected float[] vec3f;
     protected List/*FloatBuffer*/ matrixTStack, matrixPStack, matrixMvStack;
     protected int matrixMode = GL_MODELVIEW;

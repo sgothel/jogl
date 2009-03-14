@@ -165,7 +165,8 @@ public abstract class GLContextImpl extends GLContext {
 
   public void destroy() {
     if (lock.isHeld()) {
-      throw new GLException("Can not destroy context while it is current");
+        // release current context 
+        release();
     }
 
     /* FIXME: refactor dependence on Java 2D / JOGL bridge

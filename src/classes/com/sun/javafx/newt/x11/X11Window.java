@@ -68,7 +68,15 @@ public class X11Window extends Window {
     protected void closeNative() {
         if(0!=displayHandleClose && 0!=windowHandleClose) {
             CloseWindow(displayHandleClose, windowHandleClose);
+            windowHandleClose = 0;
+            displayHandleClose = 0;
         }
+    }
+
+    protected void windowDestroyed() {
+        windowHandleClose = 0;
+        displayHandleClose = 0;
+        super.windowDestroyed();
     }
 
     public void setVisible(boolean visible) {
@@ -108,7 +116,7 @@ public class X11Window extends Window {
     }
 
     protected void dispatchMessages(int eventMask) {
-        DispatchMessages(getDisplayHandle(), windowHandle, eventMask);
+        DispatchMessages(getDisplayHandle(), windowHandle, eventMask, windowDeleteAtom);
     }
 
     //----------------------------------------------------------------------
@@ -120,7 +128,7 @@ public class X11Window extends Window {
                                             long visualID, int x, int y, int width, int height);
     private        native void CloseWindow(long display, long windowHandle);
     private        native void setVisible0(long display, long windowHandle, boolean visible);
-    private        native void DispatchMessages(long display, long windowHandle, int eventMask);
+    private        native void DispatchMessages(long display, long windowHandle, int eventMask, long windowDeleteAtom);
     private        native void setSize0(long display, long windowHandle, int width, int height, int decorationToggle, boolean isVisible);
     private        native void setPosition0(long display, long windowHandle, int x, int y);
 
@@ -144,17 +152,13 @@ public class X11Window extends Window {
         sendWindowEvent(WindowEvent.EVENT_WINDOW_MOVED);
     }
 
-    private void windowCreated(long visualID, long windowHandle) {
+    private void windowCreated(long visualID, long windowHandle, long windowDeleteAtom) {
         this.visualID = visualID;
         this.windowHandle = windowHandle;
-    }
-
-    private void windowClosed() {
-    }
-
-    private void windowDestroyed() {
+        this.windowDeleteAtom=windowDeleteAtom;
     }
 
     private long   windowHandleClose;
     private long   displayHandleClose;
+    private long   windowDeleteAtom;
 }

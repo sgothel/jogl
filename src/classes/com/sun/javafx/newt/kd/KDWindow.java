@@ -156,9 +156,6 @@ public class KDWindow extends Window {
         sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED);
     }
 
-    private void windowClosed() {
-    }
-
     private long   eglWindowHandle;
     private long   windowHandleClose;
     private int    windowID;

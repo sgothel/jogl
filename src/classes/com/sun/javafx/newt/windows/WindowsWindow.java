@@ -83,7 +83,13 @@ public class WindowsWindow extends Window {
         }
         if(windowHandleClose != 0) {
             DestroyWindow(windowHandleClose);
+            windowHandleClose = 0;
         }
+    }
+
+    protected void windowDestroyed() {
+        windowHandleClose = 0;
+        super.windowDestroyed();
     }
 
     public void setVisible(boolean visible) {
@@ -165,11 +171,5 @@ public class WindowsWindow extends Window {
         x = newX;
         y = newY;
         sendWindowEvent(WindowEvent.EVENT_WINDOW_MOVED);
-    }
-
-    private void windowClosed() {
-    }
-
-    private void windowDestroyed() {
     }
 }

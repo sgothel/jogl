@@ -329,7 +329,7 @@ public class OMXInstance {
     }
     native float _getCurrentPosition(long moviePtr);
 
-    public synchronized void dispose(GL gl) {
+    public synchronized void destroy(GL gl) {
         removeAllEGLImageTexture2D(gl);
         if (moviePtr != 0) {
             long ptr = moviePtr;
@@ -344,7 +344,7 @@ public class OMXInstance {
     }
     protected synchronized void finalize() {
         if (moviePtr != 0) {
-            dispose(null);
+            destroy(null);
         }
     }
     native void _destroyInstance(long moviePtr);
@@ -453,7 +453,7 @@ public class OMXInstance {
                         eglExt.eglDestroySync(eglImgTexs[i].sync);
                     }
                     if(null!=gl) {
-                        eglImgTexs[i].texture.dispose(gl);
+                        eglImgTexs[i].texture.destroy(gl);
                     }
                     eglImgTexs[i]=null;
                 }

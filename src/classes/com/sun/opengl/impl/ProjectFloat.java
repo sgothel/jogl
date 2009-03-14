@@ -164,6 +164,7 @@ public class ProjectFloat {
   private final float[] up = new float[3];
   
   // Buffer-based implementation
+  private FloatBuffer locbuf;
   private final FloatBuffer matrixBuf;
   private final FloatBuffer tempInvertMatrixBuf;
 
@@ -180,24 +181,31 @@ public class ProjectFloat {
     // Slice up one big buffer because some NIO implementations
     // allocate a huge amount of memory to back even the smallest of
     // buffers.
-    FloatBuffer buf = BufferUtil.newFloatBuffer(2*16+2*4+3*3);
+    locbuf = BufferUtil.newFloatBuffer(2*16+2*4+3*3);
     int pos = 0;
     int sz = 16;
-    matrixBuf = slice(buf, pos, sz);
+    matrixBuf = slice(locbuf, pos, sz);
     pos += sz;
-    tempInvertMatrixBuf = slice(buf, pos, sz);
+    tempInvertMatrixBuf = slice(locbuf, pos, sz);
     pos += sz;
     sz = 4;
-    inBuf = slice(buf, pos, sz);
+    inBuf = slice(locbuf, pos, sz);
     pos += sz;
-    outBuf = slice(buf, pos, sz);
+    outBuf = slice(locbuf, pos, sz);
     pos += sz;
     sz = 3;
-    forwardBuf = slice(buf, pos, sz);
+    forwardBuf = slice(locbuf, pos, sz);
     pos += sz;
-    sideBuf = slice(buf, pos, sz);
+    sideBuf = slice(locbuf, pos, sz);
     pos += sz;
-    upBuf = slice(buf, pos, sz);
+    upBuf = slice(locbuf, pos, sz);
+  }
+
+  public void destroy() {
+    if(locbuf!=null) {
+        locbuf.clear();
+        locbuf=null;
+    }
   }
 
   private static FloatBuffer slice(FloatBuffer buf, int pos, int len) {

@@ -55,6 +55,16 @@ public class GLDrawableHelper {
   public GLDrawableHelper() {
   }
 
+  public synchronized String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.append("GLEventListeners num "+listeners.size()+" [");
+    for (Iterator iter = listeners.iterator(); iter.hasNext(); ) {
+      sb.append(iter.next()+", ");
+    }
+    sb.append("]");
+    return sb.toString();
+  }
+
   public synchronized void addGLEventListener(GLEventListener listener) {
     List newListeners = (List) ((ArrayList) listeners).clone();
     newListeners.add(listener);
@@ -64,6 +74,15 @@ public class GLDrawableHelper {
   public synchronized void removeGLEventListener(GLEventListener listener) {
     List newListeners = (List) ((ArrayList) listeners).clone();
     newListeners.remove(listener);
+    listeners = newListeners;
+  }
+
+  public synchronized void dispose(GLAutoDrawable drawable) {
+    List newListeners = (List) ((ArrayList) listeners).clone();
+    for (Iterator iter = newListeners.iterator(); iter.hasNext(); ) {
+      ((GLEventListener) iter.next()).dispose(drawable);
+      iter.remove();
+    }
     listeners = newListeners;
   }
 
@@ -117,12 +136,14 @@ public class GLDrawableHelper {
     try {
       res = context.makeCurrent();
       if (res != GLContext.CONTEXT_NOT_CURRENT) {
-        perThreadInitAction.set(initAction);
-        if (res == GLContext.CONTEXT_CURRENT_NEW) {
-          if (DEBUG) {
-            System.err.println("GLDrawableHelper " + this + ".invokeGL(): Running initAction");
-          }
-          initAction.run();
+        if(null!=initAction) {
+            perThreadInitAction.set(initAction);
+            if (res == GLContext.CONTEXT_CURRENT_NEW) {
+              if (DEBUG) {
+                System.err.println("GLDrawableHelper " + this + ".invokeGL(): Running initAction");
+              }
+              initAction.run();
+            }
         }
         if (DEBUG && VERBOSE) {
           System.err.println("GLDrawableHelper " + this + ".invokeGL(): Running runnable");

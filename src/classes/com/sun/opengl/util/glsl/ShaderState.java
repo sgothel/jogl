@@ -105,13 +105,32 @@ public class ShaderState {
     public ShaderProgram shaderProgram() { return shaderProgram; }
 
     /**
+     * Calls release(gl, true, true)
+     *
      * @see #glReleaseAllVertexAttributes
      * @see #glReleaseAllUniforms
+     * @see #release(GL2ES2, boolean, boolean)
      */
-    public synchronized void release(GL2ES2 gl) {
+    public synchronized void destroy(GL2ES2 gl) {
+        release(gl, true, true);
+    }
+
+    /**
+     * Calls release(gl, false, false)
+     *
+     * @see #glReleaseAllVertexAttributes
+     * @see #glReleaseAllUniforms
+     * @see #release(GL2ES2, boolean, boolean)
+     */
+    public synchronized void releaseAllData(GL2ES2 gl) {
         release(gl, false, false);
     }
 
+    /**
+     * @see #glReleaseAllVertexAttributes
+     * @see #glReleaseAllUniforms
+     * @see ShaderProgram#release(GL2ES2, boolean)
+     */
     public synchronized void release(GL2ES2 gl, boolean releaseProgramToo, boolean releaseShaderToo) {
         boolean prgInUse = false;
         if(null!=shaderProgram) {

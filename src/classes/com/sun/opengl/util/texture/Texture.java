@@ -264,17 +264,28 @@ public class Texture {
      *
      * @throws GLException if no OpenGL context was current or if any
      * OpenGL-related errors occurred
+     * @deprecated use destroy(GL)
      */
     public void dispose() throws GLException {
-        dispose(GLU.getCurrentGL());
+        destroy(GLU.getCurrentGL());
     }
 
     /**
      * Disposes the native resources used by this texture object.
      *
      * @throws GLException if any OpenGL-related errors occurred
+     * @deprecated use destroy(GL)
      */
     public void dispose(GL gl) throws GLException {
+        destroy(gl);
+    }
+
+    /**
+     * Destroys the native resources used by this texture object.
+     *
+     * @throws GLException if any OpenGL-related errors occurred
+     */
+    public void destroy(GL gl) throws GLException {
         gl.glDeleteTextures(1, new int[] {texID}, 0);
         texID = 0;
     }

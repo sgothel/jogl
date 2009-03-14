@@ -162,7 +162,9 @@ public abstract class Window implements NativeWindow
     protected abstract void dispatchMessages(int eventMask);
 
     public String toString() {
-    return "NEWT-Window[windowHandle "+getWindowHandle()+
+        StringBuffer sb = new StringBuffer();
+
+        sb.append("NEWT-Window[windowHandle "+getWindowHandle()+
                     ", surfaceHandle "+getSurfaceHandle()+
                     ", pos "+getX()+"/"+getY()+", size "+getWidth()+"x"+getHeight()+
                     ", visible "+isVisible()+
@@ -170,7 +172,22 @@ public abstract class Window implements NativeWindow
                     ", visualID "+visualID+
                     ", "+chosenCaps+
                     ", screen handle/index "+getScreenHandle()+"/"+getScreenIndex() +
-                    ", display handle "+getDisplayHandle()+ "]";
+                    ", display handle "+getDisplayHandle());
+
+        sb.append(", WindowListeners num "+windowListeners.size()+" [");
+        for (Iterator iter = windowListeners.iterator(); iter.hasNext(); ) {
+          sb.append(iter.next()+", ");
+        }
+        sb.append("], MouseListeners num "+mouseListeners.size()+" [");
+        for (Iterator iter = mouseListeners.iterator(); iter.hasNext(); ) {
+          sb.append(iter.next()+", ");
+        }
+        sb.append("], KeyListeners num "+keyListeners.size()+" [");
+        for (Iterator iter = keyListeners.iterator(); iter.hasNext(); ) {
+          sb.append(iter.next()+", ");
+        }
+        sb.append("]");
+        return sb.toString();
     }
 
     protected Screen screen;
@@ -233,9 +250,18 @@ public abstract class Window implements NativeWindow
         return locked;
     }
 
-    public void close() {
+    public synchronized void destroy() {
+        if(DEBUG_WINDOW_EVENT) {
+            System.out.println("Window.destroy() start");
+        }
+        windowListeners = new ArrayList();
+        mouseListeners = new ArrayList();
+        keyListeners = new ArrayList();
         closeNative();
         invalidate();
+        if(DEBUG_WINDOW_EVENT) {
+            System.out.println("Window.destroy() end");
+        }
     }
 
     public void invalidate() {
@@ -332,6 +358,40 @@ public abstract class Window implements NativeWindow
 
     public boolean isFullscreen() {
         return fullscreen;
+    }
+
+    private boolean autoDrawableMember = false;
+
+    /**
+     * If set to true, 
+     * certain action will be performed by the owning
+     * AutoDrawable, ie the destroy() call within windowDestroyNotify()
+     */
+    protected void setAutoDrawableMember(boolean b) {
+        autoDrawableMember = b;
+    }
+
+    protected void windowDestroyNotify() {
+        if(DEBUG_WINDOW_EVENT) {
+            System.out.println("Window.windowDestroyeNotify start");
+        }
+
+        sendWindowEvent(WindowEvent.EVENT_WINDOW_DESTROY_NOTIFY);
+
+        if(!autoDrawableMember) {
+            destroy();
+        }
+
+        if(DEBUG_WINDOW_EVENT) {
+            System.out.println("Window.windowDestroyeNotify end");
+        }
+    }
+
+    protected void windowDestroyed() {
+        if(DEBUG_WINDOW_EVENT) {
+            System.out.println("Window.windowDestroyed");
+        }
+        invalidate();
     }
 
     public abstract void    setVisible(boolean visible);
@@ -561,6 +621,9 @@ public abstract class Window implements NativeWindow
                     break;
                 case WindowEvent.EVENT_WINDOW_MOVED:
                     l.windowMoved(e);
+                    break;
+                case WindowEvent.EVENT_WINDOW_DESTROY_NOTIFY:
+                    l.windowDestroyNotify(e);
                     break;
                 default:
                     throw new NativeWindowException("Unexpected window event type " + e.getEventType());

@@ -207,6 +207,33 @@ public class FBObject {
         unbind(gl);
     }
 
+    public void destroy(GL gl) {
+        unbind(gl);
+
+        int name[] = new int[1];
+
+        if(0!=stencil_rb) {
+            name[0] = stencil_rb;
+            gl.glDeleteRenderbuffers(1, name, 0);
+            stencil_rb = 0;
+        }
+        if(0!=depth_rb) {
+            name[0] = depth_rb;
+            gl.glDeleteRenderbuffers(1, name, 0);
+            depth_rb=0;
+        }
+        if(0!=fbo_tex) {
+            name[0] = fbo_tex;
+            gl.glDeleteTextures(1, name, 0);
+            fbo_tex = 0;
+        }
+        if(0!=fb) {
+            name[0] = fb;
+            gl.glDeleteFramebuffers(1, name, 0);
+            fb = 0;
+        }
+    }
+
     public void bind(GL gl) {
         gl.glBindTexture(GL.GL_TEXTURE_2D, fbo_tex);
         gl.glBindFramebuffer(GL.GL_FRAMEBUFFER, fb); 

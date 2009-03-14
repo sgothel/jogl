@@ -245,11 +245,6 @@ public class MacWindow extends Window {
         }
     }
 
-    private void windowClosed() {
-        nativeWindow = 0;
-        visible = false;
-    }
-
     private char convertKeyChar(char keyChar) {
         if (keyChar == '\r') {
             // Turn these into \n

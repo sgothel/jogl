@@ -37,14 +37,29 @@ public class ShaderProgram {
     public Integer    key() { return id; }
 
     /**
-     * @see #glReleaseAllVertexAttributes
+     * Detaches all shader codes and deletes the program.
+     * Destroys the shader codes as well.
+     * Calls release(gl, true)
+     *
+     * @see #release(GL2ES2, boolean)
+     */
+    public synchronized void destroy(GL2ES2 gl) {
+        release(gl, true);
+    }
+
+    /**
+     * Detaches all shader codes and deletes the program.
+     * Calls release(gl, false)
+     *
+     * @see #release(GL2ES2, boolean)
      */
     public synchronized void release(GL2ES2 gl) {
         release(gl, false);
     }
 
     /**
-     * @see #glReleaseAllVertexAttributes
+     * Detaches all shader codes and deletes the program.
+     * If releaseShaderToo is true, destroys the shader codes as well.
      */
     public synchronized void release(GL2ES2 gl, boolean releaseShaderToo) {
         glUseProgram(gl, false);
@@ -52,7 +67,7 @@ public class ShaderProgram {
             ShaderCode shaderCode = (ShaderCode) iter.next();
             gl.glDetachShader(shaderProgram, shaderCode.shader());
             if(releaseShaderToo) {
-                shaderCode.release(gl);
+                shaderCode.destroy(gl);
             }
         }
         shaderMap.clear();

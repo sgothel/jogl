@@ -36,4 +36,5 @@ package com.sun.javafx.newt;
 public interface WindowListener extends EventListener {
     public void windowResized(WindowEvent e);
     public void windowMoved(WindowEvent e);
+    public void windowDestroyNotify(WindowEvent e);
 }

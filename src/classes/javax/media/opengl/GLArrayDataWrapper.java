@@ -90,6 +90,17 @@ public class GLArrayDataWrapper implements GLArrayData {
 
   public final Class getBufferClass() { return clazz; }
 
+  public void destroy(GL gl) {
+    this.buffer = null;
+    this.components = 0;
+    this.stride=0;
+    this.strideB=0;
+    this.strideL=0;
+    this.vboName=0;
+    this.vboUsage=false;
+    this.bufferOffset=0;
+  }
+
   public String toString() {
     return "GLArrayDataWrapper["+name+
                        ", index "+index+

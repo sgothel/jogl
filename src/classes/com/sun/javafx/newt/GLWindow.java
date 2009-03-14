@@ -73,6 +73,7 @@ public class GLWindow extends Window implements GLAutoDrawable {
         create()} instead. */
     protected GLWindow(Window window) {
         this.window = window;
+        this.window.setAutoDrawableMember(true);
         window.addWindowListener(new WindowListener() {
                 public void windowResized(WindowEvent e) {
                     sendReshape = true;
@@ -80,13 +81,17 @@ public class GLWindow extends Window implements GLAutoDrawable {
 
                 public void windowMoved(WindowEvent e) {
                 }
+
+                public void windowDestroyNotify(WindowEvent e) {
+                    sendDispose = true;
+                }
             });
     }
 
     /** Creates a new GLWindow on the local display, screen 0, with a
         dummy visual ID, and with the default NWCapabilities. */
     public static GLWindow create() {
-        return create(null, null);
+        return create(null, null, false);
     }
 
     public static GLWindow create(boolean undecorated) {
@@ -95,10 +100,10 @@ public class GLWindow extends Window implements GLAutoDrawable {
 
     /** Creates a new GLWindow referring to the given window. */
     public static GLWindow create(Window window) {
-        return create(window, null);
+        return create(window, null, false);
     }
     public static GLWindow create(NWCapabilities caps) {
-        return create(caps, false);
+        return create(null, caps, false);
     }
 
     /** Creates a new GLWindow on the local display, screen 0, with a
@@ -135,18 +140,32 @@ public class GLWindow extends Window implements GLAutoDrawable {
         shouldNotCallThis();
     }
 
-    public void close() {
+    public synchronized void destroy() {
+        if(Window.DEBUG_WINDOW_EVENT) {
+            Exception e1 = new Exception("GLWindow.destroy 1: "+this);
+            e1.printStackTrace();
+        }
+
+        sendDisposeEvent();
+
         if (context != null) {
-            if (context == GLContext.getCurrent()) {
-                context.release();
-            }
             context.destroy();
         }
         if (drawable != null) {
             drawable.setRealized(false);
         }
 
-        window.close();
+         if(null!=window) {
+            window.destroy();
+         } 
+
+        if(Window.DEBUG_WINDOW_EVENT) {
+            System.out.println("GLWindow.destroy fin: "+this);
+        }
+
+        drawable = null;
+        context = null;
+        window = null;
     }
 
     public boolean getPerfLogEnabled() { return perfLog; }
@@ -322,6 +341,10 @@ public class GLWindow extends Window implements GLAutoDrawable {
         return window.getWindowListeners();
     }
 
+    public String toString() {
+        return "NEWT-GLWindow[ "+drawable+", "+helper+", "+factory+"]";
+    }
+
     //----------------------------------------------------------------------
     // OpenGL-related methods and state
     //
@@ -332,7 +355,8 @@ public class GLWindow extends Window implements GLAutoDrawable {
     private GLContext context;
     private GLDrawableHelper helper = new GLDrawableHelper();
     // To make reshape events be sent immediately before a display event
-    private boolean sendReshape;
+    private boolean sendReshape=false;
+    private boolean sendDispose=false;
     private boolean perfLog = false;
 
     public GLDrawableFactory getFactory() {
@@ -369,8 +393,21 @@ public class GLWindow extends Window implements GLAutoDrawable {
     }
 
     public void display() {
-        pumpMessages();
-        helper.invokeGL(drawable, context, displayAction, initAction);
+        if(window.getSurfaceHandle()!=0) {
+            pumpMessages();
+            if (sendDispose) {
+                destroy();
+                sendDispose=false;
+            } else {
+                helper.invokeGL(drawable, context, displayAction, initAction);
+            }
+        }
+    }
+
+    private void sendDisposeEvent() {
+        if(disposeAction!=null && drawable!=null && context != null && window!=null && window.getSurfaceHandle()!=0) {
+            helper.invokeGL(drawable, context, disposeAction, null);
+        }
     }
 
     public void setAutoSwapBufferMode(boolean onOrOff) {
@@ -382,11 +419,13 @@ public class GLWindow extends Window implements GLAutoDrawable {
     }
 
     public void swapBuffers() {
-        if (context != null && context != GLContext.getCurrent()) {
-            // Assume we should try to make the context current before swapping the buffers
-            helper.invokeGL(drawable, context, swapBuffersAction, initAction);
-        } else {
-            drawable.swapBuffers();
+        if(window.getSurfaceHandle()!=0) {
+            if (context != null && context != GLContext.getCurrent()) {
+                // Assume we should try to make the context current before swapping the buffers
+                helper.invokeGL(drawable, context, swapBuffersAction, initAction);
+            } else {
+                drawable.swapBuffers();
+            }
         }
     }
 
@@ -402,6 +441,13 @@ public class GLWindow extends Window implements GLAutoDrawable {
         }
     }
     private InitAction initAction = new InitAction();
+
+    class DisposeAction implements Runnable {
+        public void run() {
+            helper.dispose(GLWindow.this);
+        }
+    }
+    private DisposeAction disposeAction = new DisposeAction();
 
     class DisplayAction implements Runnable {
         public void run() {

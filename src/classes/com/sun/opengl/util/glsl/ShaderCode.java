@@ -244,11 +244,21 @@ public class ShaderCode {
         return valid;
     }
 
-    public void release(GL2ES2 gl) {
+    public void destroy(GL2ES2 gl) {
         if(isValid()) {
-            gl.glDeleteShader(shader());
+            if(null!=gl) {
+                gl.glDeleteShader(shader());
+            }
             valid=false;
         }
+        if(null!=shaderBinary) {
+            shaderBinary.clear();
+            shaderBinary=null;
+        }
+        shaderSource=null;
+        shaderBinaryFormat=-1;
+        shaderType=-1;
+        id=null;
     }
 
     public boolean equals(Object obj) {

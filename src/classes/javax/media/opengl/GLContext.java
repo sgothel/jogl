@@ -216,10 +216,12 @@ public abstract class GLContext {
     return attachedObjects.put(new Integer(name), obj);
   }
 
+  /**
+   * Classname, GL, GLDrawable
+   */
   public final String toString() {
-    return "GLContext: "+getClass().getName()+
-           "(GL: "+getGL().getClass().getName()+","+
-           " Factory: "+ getGLDrawable().getFactory().getClass().getName()+")";
+    return getClass().getName()+" ["+getGL()+","+
+           " Drawable: "+ getGLDrawable()+"] ";
   }
 
   /** Returns a non-null (but possibly empty) string containing the

@@ -40,7 +40,8 @@ static jmethodID sendMouseEventID  = NULL;
 static jmethodID sendKeyEventID    = NULL;
 static jmethodID sizeChangedID     = NULL;
 static jmethodID positionChangedID = NULL;
-static jmethodID windowClosedID    = NULL;
+static jmethodID windowDestroyNotifyID = NULL;
+static jmethodID windowDestroyedID = NULL;
 
 // This is set while messages are being dispatched and cleared afterward
 static JNIEnv* env = NULL;
@@ -53,8 +54,9 @@ static JNIEnv* env = NULL;
     sendKeyEventID    = (*env)->GetMethodID(env, clazz, "sendKeyEvent",    "(IIIC)V");
     sizeChangedID     = (*env)->GetMethodID(env, clazz, "sizeChanged",     "(II)V");
     positionChangedID = (*env)->GetMethodID(env, clazz, "positionChanged", "(II)V");
-    windowClosedID    = (*env)->GetMethodID(env, clazz, "windowClosed",    "()V");
-    if (sendMouseEventID && sendKeyEventID && sizeChangedID && positionChangedID && windowClosedID) {
+    windowDestroyNotifyID    = (*env)->GetMethodID(env, clazz, "windowDestroyNotify",    "()V");
+    windowDestroyedID    = (*env)->GetMethodID(env, clazz, "windowDestroyed",    "()V");
+    if (sendMouseEventID && sendKeyEventID && sizeChangedID && positionChangedID && windowDestroyedID && windowDestroyNotifyID) {
         return YES;
     }
     return NO;
@@ -287,7 +289,8 @@ static jint mods2JavaMods(NSUInteger mods)
         return;
     }
 
-    (*env)->CallVoidMethod(env, javaWindowObject, windowClosedID);
+    (*env)->CallVoidMethod(env, javaWindowObject, windowDestroyNotifyID);
+    // Will be called by Window.java (*env)->CallVoidMethod(env, javaWindowObject, windowDestroyedID);
 }
 
 @end
