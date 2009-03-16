@@ -1,0 +1,10 @@
+package com.sun.opengl.impl;
+
+public class SystemUtil {
+
+    /** Wrapper for System.getenv(), which doesn't work on platforms
+        earlier than JDK 5 */
+    public static String getenv(String variableName) {
+        return null;
+    }
+}
