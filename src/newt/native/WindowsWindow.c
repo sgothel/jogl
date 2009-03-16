@@ -57,7 +57,7 @@ typedef int intptr_t;
 
 static jmethodID sizeChangedID = NULL;
 static jmethodID positionChangedID = NULL;
-static jmethodID windowClosedID = NULL;
+static jmethodID windowDestroyNotifyID = NULL;
 static jmethodID windowDestroyedID = NULL;
 static jmethodID sendMouseEventID = NULL;
 static jmethodID sendKeyEventID = NULL;
@@ -96,8 +96,8 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
     
     switch (message) {
     case WM_CLOSE:
-        (*env)->CallVoidMethod(env, window, windowClosedID);
-        DestroyWindow(wnd);
+        (*env)->CallVoidMethod(env, window, windowDestroyNotifyID);
+        // Called by Window.java: DestroyWindow(wnd);
         break;
 
     case WM_DESTROY:
@@ -203,13 +203,13 @@ JNIEXPORT jboolean JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_initID
 {
     sizeChangedID = (*env)->GetMethodID(env, clazz, "sizeChanged", "(II)V");
     positionChangedID = (*env)->GetMethodID(env, clazz, "positionChanged", "(II)V");
-    windowClosedID    = (*env)->GetMethodID(env, clazz, "windowClosed",    "()V");
+    windowDestroyNotifyID    = (*env)->GetMethodID(env, clazz, "windowDestroyNotify",    "()V");
     windowDestroyedID = (*env)->GetMethodID(env, clazz, "windowDestroyed", "()V");
     sendMouseEventID = (*env)->GetMethodID(env, clazz, "sendMouseEvent", "(IIIII)V");
     sendKeyEventID = (*env)->GetMethodID(env, clazz, "sendKeyEvent", "(IIIC)V");
     if (sizeChangedID == NULL ||
         positionChangedID == NULL ||
-        windowClosedID == NULL ||
+        windowDestroyNotifyID == NULL ||
         windowDestroyedID == NULL ||
         sendMouseEventID == NULL ||
         sendKeyEventID == NULL) {
