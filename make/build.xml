@@ -61,6 +61,12 @@
 
     <target name="all" description="Build nwi, jogl and newt projects" depends="init,build.nwi,build.jogl,build.newt" />
 
+    <target name="clean" depends="init">
+        <ant antfile="${nwi.build.xml}" dir="${nwi.make.dir}" target="clean" inheritAll="false"/>
+        <ant antfile="${jogl.build.xml}" dir="${jogl.make.dir}" target="clean" inheritAll="false"/>
+        <ant antfile="${newt.build.xml}" dir="${newt.make.dir}" target="clean" inheritAll="false"/>
+    </target>        
+
     <target name="javadoc" depends="init">
         <!-- Build the general Javadoc -->
         <javadoc packagenames="${javadoc.packagenames}"
