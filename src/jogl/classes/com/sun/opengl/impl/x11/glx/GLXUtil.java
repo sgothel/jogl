@@ -35,9 +35,9 @@ package com.sun.opengl.impl.x11.glx;
 import javax.media.opengl.*;
 
 import com.sun.opengl.impl.*;
-import javax.media.nwi.NativeWindowFactory;
-import com.sun.nwi.impl.NullWindow;
-import com.sun.nwi.impl.x11.*;
+import javax.media.nativewindow.NativeWindowFactory;
+import com.sun.nativewindow.impl.NullWindow;
+import com.sun.nativewindow.impl.x11.*;
 
 public class GLXUtil {
     private static final boolean DEBUG = Debug.debug("GLXUtil");

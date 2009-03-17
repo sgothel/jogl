@@ -44,7 +44,7 @@ import javax.media.opengl.GL2;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
-import com.sun.nwi.impl.NWReflection;
+import com.sun.nativewindow.impl.NWReflection;
 
 import java.nio.*;
 import java.util.*;

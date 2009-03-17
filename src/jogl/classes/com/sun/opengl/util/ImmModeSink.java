@@ -5,7 +5,7 @@ import javax.media.opengl.*;
 import javax.media.opengl.util.*;
 import javax.media.opengl.sub.*;
 import javax.media.opengl.sub.fixed.*;
-import com.sun.nwi.impl.NWReflection;
+import com.sun.nativewindow.impl.NWReflection;
 import java.nio.*;
 import java.util.Iterator;
 import java.util.ArrayList;

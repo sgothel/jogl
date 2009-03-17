@@ -47,8 +47,8 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.*;
 import com.sun.javafx.newt.Window;
-import javax.media.nwi.NWCapabilities;
-import javax.media.nwi.NativeWindowException;
+import javax.media.nativewindow.NWCapabilities;
+import javax.media.nativewindow.NativeWindowException;
 
 /** An implementation of the Newt Window class built using the
     AWT. This is provided for convenience of porting to platforms

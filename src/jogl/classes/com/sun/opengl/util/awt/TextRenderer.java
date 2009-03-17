@@ -66,7 +66,7 @@ import java.text.*;
 
 import java.util.*;
 
-import javax.media.nwi.*;
+import javax.media.nativewindow.*;
 import javax.media.opengl.*;
 import javax.media.opengl.glu.*;
 import javax.media.opengl.glu.gl2.*;

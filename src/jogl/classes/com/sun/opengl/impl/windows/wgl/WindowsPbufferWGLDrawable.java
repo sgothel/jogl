@@ -39,10 +39,10 @@
 
 package com.sun.opengl.impl.windows.wgl;
 
-import javax.media.nwi.*;
+import javax.media.nativewindow.*;
 import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
-import com.sun.nwi.impl.NullWindow;
+import com.sun.nativewindow.impl.NullWindow;
 
 public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
   private long cachedParentHdc;

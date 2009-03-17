@@ -39,10 +39,10 @@
 
 package com.sun.opengl.impl.macosx.cgl;
 
-import javax.media.nwi.*;
+import javax.media.nativewindow.*;
 import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
-import com.sun.nwi.impl.NullWindow;
+import com.sun.nativewindow.impl.NullWindow;
 
 public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
   private static final boolean DEBUG = Debug.debug("MacOSXPbufferCGLDrawable");

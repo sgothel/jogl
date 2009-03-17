@@ -46,7 +46,7 @@ import java.awt.event.*;
 import java.beans.PropertyChangeListener;
  */
 
-import javax.media.nwi.*;
+import javax.media.nativewindow.*;
 import javax.media.opengl.*;
 
 /** Platform-independent class exposing pbuffer functionality to

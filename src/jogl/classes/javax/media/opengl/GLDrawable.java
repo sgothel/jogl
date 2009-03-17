@@ -39,7 +39,7 @@
 
 package javax.media.opengl;
 
-import javax.media.nwi.*;
+import javax.media.nativewindow.*;
 
 // FIXME: We need some way to tell when the device upon which the canvas is
 // being displayed has changed (e.g., the user drags the canvas's parent

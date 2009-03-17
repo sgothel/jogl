@@ -39,10 +39,10 @@
 
 package com.sun.opengl.impl.x11.glx;
 
-import javax.media.nwi.*;
+import javax.media.nativewindow.*;
 import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
-import com.sun.nwi.impl.x11.*;
+import com.sun.nativewindow.impl.x11.*;
 
 public abstract class X11GLXDrawable extends GLDrawableImpl {
   protected static final boolean DEBUG = Debug.debug("X11GLXDrawable");

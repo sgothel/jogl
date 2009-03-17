@@ -39,14 +39,14 @@ package com.sun.opengl.impl.x11.glx;
 import java.nio.*;
 import java.security.*;
 import java.util.*;
-import javax.media.nwi.*;
+import javax.media.nativewindow.*;
 import javax.media.opengl.*;
 import com.sun.gluegen.runtime.*;
 import com.sun.gluegen.runtime.opengl.*;
 import com.sun.opengl.impl.*;
 import com.sun.opengl.impl.x11.glx.*;
-import com.sun.nwi.impl.NullWindow;
-import com.sun.nwi.impl.x11.*;
+import com.sun.nativewindow.impl.NullWindow;
+import com.sun.nativewindow.impl.x11.*;
 
 public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
   protected static final boolean DEBUG = Debug.debug("X11GLXDrawableFactory");

@@ -36,7 +36,7 @@ package com.sun.javafx.newt.opengl.kd;
 import com.sun.javafx.newt.*;
 import com.sun.javafx.newt.impl.*;
 import com.sun.opengl.impl.egl.*;
-import javax.media.nwi.NativeWindowException;
+import javax.media.nativewindow.NativeWindowException;
 
 public class KDDisplay extends Display {
     static {

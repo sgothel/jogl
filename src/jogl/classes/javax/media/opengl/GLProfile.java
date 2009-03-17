@@ -40,7 +40,7 @@ import javax.media.opengl.sub.fixed.*;
 import java.lang.reflect.*;
 import java.security.*;
 import com.sun.opengl.impl.*;
-import com.sun.nwi.impl.NWReflection;
+import com.sun.nativewindow.impl.NWReflection;
 
 public class GLProfile {
   /** The desktop (OpenGL 2.0) profile */

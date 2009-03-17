@@ -36,7 +36,7 @@
 
 package com.sun.opengl.impl.awt;
 
-import com.sun.nwi.impl.jawt.*;
+import com.sun.nativewindow.impl.jawt.*;
 
 import com.sun.opengl.impl.*;
 

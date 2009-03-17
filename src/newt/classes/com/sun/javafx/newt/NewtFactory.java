@@ -33,7 +33,7 @@
 
 package com.sun.javafx.newt;
 
-import javax.media.nwi.NWCapabilities;
+import javax.media.nativewindow.NWCapabilities;
 import java.util.ArrayList;
 import java.util.Iterator;
 

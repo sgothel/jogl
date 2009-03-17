@@ -43,7 +43,7 @@ import java.nio.*;
 import java.lang.reflect.*;
 
 import javax.media.opengl.*;
-import com.sun.nwi.impl.NWReflection;
+import com.sun.nativewindow.impl.NWReflection;
 import com.sun.gluegen.runtime.*;
 import com.sun.gluegen.runtime.opengl.*;
 

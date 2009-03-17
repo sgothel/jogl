@@ -35,8 +35,8 @@ package com.sun.javafx.newt.x11;
 
 import com.sun.javafx.newt.*;
 import com.sun.javafx.newt.impl.*;
-import javax.media.nwi.NWCapabilities;
-import javax.media.nwi.NativeWindowException;
+import javax.media.nativewindow.NWCapabilities;
+import javax.media.nativewindow.NativeWindowException;
 
 public class X11Window extends Window {
     private static final String WINDOW_CLASS_NAME = "NewtWindow";

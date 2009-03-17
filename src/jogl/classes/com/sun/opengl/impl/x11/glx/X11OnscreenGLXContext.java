@@ -41,7 +41,7 @@ package com.sun.opengl.impl.x11.glx;
 
 import java.util.*;
 
-import javax.media.nwi.*;
+import javax.media.nativewindow.*;
 import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
 import com.sun.opengl.impl.x11.*;

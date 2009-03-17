@@ -34,9 +34,9 @@
 package com.sun.javafx.newt;
 
 import com.sun.javafx.newt.impl.Debug;
-import javax.media.nwi.NWCapabilities;
-import javax.media.nwi.NativeWindow;
-import javax.media.nwi.NativeWindowException;
+import javax.media.nativewindow.NWCapabilities;
+import javax.media.nativewindow.NativeWindow;
+import javax.media.nativewindow.NativeWindowException;
 
 import java.util.ArrayList;
 import java.util.Iterator;

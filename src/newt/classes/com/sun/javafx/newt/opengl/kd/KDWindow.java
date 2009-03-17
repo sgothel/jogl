@@ -36,9 +36,9 @@ package com.sun.javafx.newt.opengl.kd;
 import com.sun.javafx.newt.*;
 import com.sun.javafx.newt.impl.*;
 import com.sun.opengl.impl.egl.*;
-import javax.media.nwi.NWCapabilities;
+import javax.media.nativewindow.NWCapabilities;
 import javax.media.opengl.GLProfile;
-import javax.media.nwi.NativeWindowException;
+import javax.media.nativewindow.NativeWindowException;
 
 public class KDWindow extends Window {
     private static final String WINDOW_CLASS_NAME = "NewtWindow";

@@ -39,12 +39,12 @@
 
 package javax.media.opengl;
 
-import javax.media.nwi.*;
+import javax.media.nativewindow.*;
 
 import java.lang.reflect.*;
 import java.security.*;
 import com.sun.opengl.impl.*;
-import com.sun.nwi.impl.NWReflection;
+import com.sun.nativewindow.impl.NWReflection;
 
 /** <P> Provides a virtual machine- and operating system-independent
     mechanism for creating {@link GLDrawable}s. </P>

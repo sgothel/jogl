@@ -40,9 +40,9 @@
 package javax.media.opengl.awt;
 
 import javax.media.opengl.*;
-import javax.media.nwi.*;
-import javax.media.nwi.awt.AWTGraphicsDevice;
-import javax.media.nwi.awt.AWTGraphicsConfiguration;
+import javax.media.nativewindow.*;
+import javax.media.nativewindow.awt.AWTGraphicsDevice;
+import javax.media.nativewindow.awt.AWTGraphicsConfiguration;
 
 import com.sun.opengl.impl.*;
 

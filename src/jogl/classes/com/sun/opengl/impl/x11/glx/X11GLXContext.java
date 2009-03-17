@@ -41,11 +41,11 @@ package com.sun.opengl.impl.x11.glx;
 
 import java.nio.*;
 import java.util.*;
-import javax.media.nwi.*;
+import javax.media.nativewindow.*;
 import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
 import com.sun.opengl.impl.x11.glx.*;
-import com.sun.nwi.impl.x11.*;
+import com.sun.nativewindow.impl.x11.*;
 import com.sun.gluegen.runtime.ProcAddressTable;
 
 public abstract class X11GLXContext extends GLContextImpl {

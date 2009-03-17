@@ -184,7 +184,7 @@
         <property name="rootrel.obj" value="${rootrel.build.newt}/obj" />
 
         <property name="gluegen-rt.jar" value="../../gluegen/${rootrel.build}/gluegen-rt.jar" />
-        <property name="nwi.all.jar" value="../${rootrel.build}-nwi/nwi.all.jar" />
+        <property name="nativewindow.all.jar" value="../${rootrel.build}-nativewindow/nativewindow.all.jar" />
         <property name="jogl.all.jar" value="../${rootrel.build}-jogl/jogl.all.jar" />
 
         <!-- The source directories. -->
@@ -200,8 +200,8 @@
         <property name="classes" value="${build}/classes" />
         <property name="obj"      value="${project.root}/${rootrel.obj}" />
 
-        <path id="nwigluegenjogl.classpath">
-            <pathelement location="${nwi.all.jar}" />
+        <path id="nativewindow_gluegen_jogl.classpath">
+            <pathelement location="${nativewindow.all.jar}" />
             <pathelement location="${gluegen-rt.jar}" />
             <pathelement location="${jogl.all.jar}" />
         </path>
@@ -259,7 +259,7 @@
                fork="yes"
                memoryMaximumSize="128m"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
-            <classpath refid="nwigluegenjogl.classpath"/>
+            <classpath refid="nativewindow_gluegen_jogl.classpath"/>
             <src path="${src.java}" />
         </javac>
     </target>
@@ -273,7 +273,7 @@
                memoryMaximumSize="128m"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <src path="${src.java}" />
-            <classpath refid="nwigluegenjogl.classpath"/>
+            <classpath refid="nativewindow_gluegen_jogl.classpath"/>
         </javac>
     </target>
 
@@ -613,7 +613,7 @@
                  source="1.4"
                  linkoffline="${javadoc.link} 142-packages"
          bottom="${javadoc.bottom}" >
-         <classpath refid="nwigluegenjogl.classpath"/>
+         <classpath refid="nativewindow_gluegen_jogl.classpath"/>
         </javadoc>
     </target>
 
@@ -627,7 +627,7 @@
                  source="1.4"
                  linkoffline="${javadoc.link} 142-packages"
                  bottom="${javadoc.bottom}" >
-         <classpath refid="nwigluegenjogl.classpath"/>
+         <classpath refid="nativewindow_gluegen_jogl.classpath"/>
         </javadoc>
     </target>
                                                                                                                                    
@@ -641,7 +641,7 @@
                  source="1.4"
                  linkoffline="${javadoc.link} 142-packages"
          bottom="${javadoc.bottom}" >
-         <classpath refid="nwigluegenjogl.classpath"/>
+         <classpath refid="nativewindow_gluegen_jogl.classpath"/>
         </javadoc>
     </target>
 

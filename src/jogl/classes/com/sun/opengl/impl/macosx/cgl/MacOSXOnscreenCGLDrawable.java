@@ -43,7 +43,7 @@ import java.lang.ref.WeakReference;
 import java.security.*;
 import java.util.*;
 
-import javax.media.nwi.*;
+import javax.media.nativewindow.*;
 import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
 

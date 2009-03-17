@@ -34,7 +34,7 @@
 package com.sun.javafx.newt.opengl;
 
 import com.sun.javafx.newt.*;
-import javax.media.nwi.*;
+import javax.media.nativewindow.*;
 import javax.media.opengl.*;
 import com.sun.opengl.impl.GLDrawableHelper;
 

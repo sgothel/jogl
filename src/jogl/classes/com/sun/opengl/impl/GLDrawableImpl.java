@@ -39,7 +39,7 @@
 
 package com.sun.opengl.impl;
 
-import javax.media.nwi.*;
+import javax.media.nativewindow.*;
 import javax.media.opengl.*;
 
 public abstract class GLDrawableImpl implements GLDrawable {

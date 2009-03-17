@@ -33,8 +33,8 @@
 
 package com.sun.javafx.newt.windows;
 
-import javax.media.nwi.NWCapabilities;
-import javax.media.nwi.NativeWindowException;
+import javax.media.nativewindow.NWCapabilities;
+import javax.media.nativewindow.NativeWindowException;
 
 import com.sun.javafx.newt.*;
 import com.sun.javafx.newt.impl.*;

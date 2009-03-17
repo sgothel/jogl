@@ -7,7 +7,7 @@ package javax.media.opengl.sub.fixed;
 import javax.media.opengl.*;
 import javax.media.opengl.sub.*;
 
-import com.sun.nwi.impl.NWReflection;
+import com.sun.nativewindow.impl.NWReflection;
 import java.lang.reflect.*;
 
 /**

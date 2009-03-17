@@ -46,14 +46,14 @@ import java.lang.reflect.Method;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.HashSet;
-import com.sun.nwi.impl.NativeLibLoaderBase;
+import com.sun.nativewindow.impl.NativeLibLoaderBase;
 
 public class NativeLibLoader extends NativeLibLoaderBase {
   
   public static void loadNEWT() {
     AccessController.doPrivileged(new PrivilegedAction() {
       public Object run() {
-        loadLibrary("newt", nwiX11Preload, true);
+        loadLibrary("newt", nativewindowX11Preload, true);
         return null;
       }
     });
@@ -62,7 +62,7 @@ public class NativeLibLoader extends NativeLibLoaderBase {
   public static void loadGL2() {
     AccessController.doPrivileged(new PrivilegedAction() {
       public Object run() {
-        loadLibrary("jogl_gl2", nwiX11Preload, true);
+        loadLibrary("jogl_gl2", nativewindowX11Preload, true);
         return null;
       }
     });
@@ -71,7 +71,7 @@ public class NativeLibLoader extends NativeLibLoaderBase {
   public static void loadGL2ES12() {
     AccessController.doPrivileged(new PrivilegedAction() {
       public Object run() {
-        loadLibrary("jogl_gl2es12", nwiX11Preload, true);
+        loadLibrary("jogl_gl2es12", nativewindowX11Preload, true);
         return null;
       }
     });
@@ -80,7 +80,7 @@ public class NativeLibLoader extends NativeLibLoaderBase {
   public static void loadES2() {
     AccessController.doPrivileged(new PrivilegedAction() {
       public Object run() {
-        loadLibrary("jogl_es2", nwiX11Preload, true);
+        loadLibrary("jogl_es2", nativewindowX11Preload, true);
         return null;
       }
     });
@@ -89,7 +89,7 @@ public class NativeLibLoader extends NativeLibLoaderBase {
   public static void loadES1() {
     AccessController.doPrivileged(new PrivilegedAction() {
       public Object run() {
-        loadLibrary("jogl_es1", nwiX11Preload, true);
+        loadLibrary("jogl_es1", nativewindowX11Preload, true);
         return null;
       }
     });
@@ -98,7 +98,7 @@ public class NativeLibLoader extends NativeLibLoaderBase {
   public static void loadCgImpl() {
     AccessController.doPrivileged(new PrivilegedAction() {
       public Object run() {
-        String[] preload = { "nwi", "cg", "cgGL" };
+        String[] preload = { "nativewindow", "cg", "cgGL" };
         loadLibrary("jogl_cg", preload, true);
         return null;
       }
@@ -129,7 +129,7 @@ public class NativeLibLoader extends NativeLibLoaderBase {
     }
   }
 
-  private static final String[] nwiX11Preload = { "nwi_x11" };
+  private static final String[] nativewindowX11Preload = { "nativewindow_x11" };
   private static boolean usingJNLPAppletLauncher;
   private static Method  jnlpLoadLibraryMethod;
 

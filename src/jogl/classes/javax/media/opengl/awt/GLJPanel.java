@@ -40,7 +40,7 @@
 package javax.media.opengl.awt;
 
 import javax.media.opengl.*;
-import javax.media.nwi.*;
+import javax.media.nativewindow.*;
 
 import java.awt.*;
 import java.awt.geom.*;

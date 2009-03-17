@@ -46,14 +46,14 @@ import java.lang.reflect.Method;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.HashSet;
-import com.sun.nwi.impl.NativeLibLoaderBase;
+import com.sun.nativewindow.impl.NativeLibLoaderBase;
 
 public class NativeLibLoader extends NativeLibLoaderBase {
   
   public static void loadNEWT() {
     AccessController.doPrivileged(new PrivilegedAction() {
       public Object run() {
-        String[] preload = { "nwi" };
+        String[] preload = { "nativewindow" };
         loadLibrary("newt", preload, true);
         return null;
       }

@@ -32,12 +32,12 @@
 
 package com.sun.opengl.impl.x11.glx;
 
-import javax.media.nwi.*;
-import javax.media.nwi.x11.X11GraphicsDevice;
-import javax.media.nwi.x11.X11GraphicsConfiguration;
-import com.sun.nwi.impl.NullWindow;
-import com.sun.nwi.impl.NativeWindowFactoryImpl;
-import com.sun.nwi.impl.x11.*;
+import javax.media.nativewindow.*;
+import javax.media.nativewindow.x11.X11GraphicsDevice;
+import javax.media.nativewindow.x11.X11GraphicsConfiguration;
+import com.sun.nativewindow.impl.NullWindow;
+import com.sun.nativewindow.impl.NativeWindowFactoryImpl;
+import com.sun.nativewindow.impl.x11.*;
 
 import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
@@ -52,7 +52,7 @@ import com.sun.opengl.impl.x11.glx.*;
 public class X11GLXNativeWindowFactory extends NativeWindowFactoryImpl {
 
     public X11GLXNativeWindowFactory() {
-        NativeWindowFactory.registerFactory(javax.media.nwi.NativeWindow.class, this);
+        NativeWindowFactory.registerFactory(javax.media.nativewindow.NativeWindow.class, this);
     }
 
     public AbstractGraphicsConfiguration chooseGraphicsConfiguration(NWCapabilities capabilities,

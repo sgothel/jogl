@@ -36,9 +36,9 @@
 package com.sun.opengl.impl.egl;
 
 import com.sun.opengl.impl.GLDrawableImpl;
-import com.sun.nwi.impl.NWReflection;
+import com.sun.nativewindow.impl.NWReflection;
 
-import javax.media.nwi.*;
+import javax.media.nativewindow.*;
 import javax.media.opengl.*;
 
 public class EGLDrawable extends GLDrawableImpl {

@@ -35,7 +35,7 @@
 
 package com.sun.opengl.impl.egl;
 
-import javax.media.nwi.*;
+import javax.media.nativewindow.*;
 import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
 import com.sun.gluegen.runtime.ProcAddressTable;

@@ -49,16 +49,16 @@ Bool XF86VidModeSetGammaRamp(
 
 /* Need to expose DefaultScreen and RootWindow macros to Java */
 JNIEXPORT jlong JNICALL 
-Java_com_sun_nwi_impl_x11_X11Lib_DefaultScreen(JNIEnv *env, jclass _unused, jlong display) {
+Java_com_sun_nativewindow_impl_x11_X11Lib_DefaultScreen(JNIEnv *env, jclass _unused, jlong display) {
   return DefaultScreen((Display*) (intptr_t) display);
 }
 JNIEXPORT jlong JNICALL 
-Java_com_sun_nwi_impl_x11_X11Lib_RootWindow(JNIEnv *env, jclass _unused, jlong display, jint screen) {
+Java_com_sun_nativewindow_impl_x11_X11Lib_RootWindow(JNIEnv *env, jclass _unused, jlong display, jint screen) {
   return RootWindow((Display*) (intptr_t) display, screen);
 }
 
 JNIEXPORT jlong JNICALL 
-Java_com_sun_nwi_impl_x11_X11Lib_dlopen(JNIEnv *env, jclass _unused, jstring name) {
+Java_com_sun_nativewindow_impl_x11_X11Lib_dlopen(JNIEnv *env, jclass _unused, jstring name) {
   const jbyte* chars;
   void* res;
   chars = (*env)->GetStringUTFChars(env, name, NULL);
@@ -68,7 +68,7 @@ Java_com_sun_nwi_impl_x11_X11Lib_dlopen(JNIEnv *env, jclass _unused, jstring nam
 }
 
 JNIEXPORT jlong JNICALL 
-Java_com_sun_nwi_impl_x11_X11Lib_dlsym(JNIEnv *env, jclass _unused, jstring name) {
+Java_com_sun_nativewindow_impl_x11_X11Lib_dlsym(JNIEnv *env, jclass _unused, jstring name) {
   const jbyte* chars;
   void* res;
   chars = (*env)->GetStringUTFChars(env, name, NULL);

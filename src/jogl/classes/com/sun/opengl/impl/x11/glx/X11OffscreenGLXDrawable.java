@@ -39,11 +39,11 @@
 
 package com.sun.opengl.impl.x11.glx;
 
-import javax.media.nwi.*;
+import javax.media.nativewindow.*;
 import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
-import com.sun.nwi.impl.NullWindow;
-import com.sun.nwi.impl.x11.*;
+import com.sun.nativewindow.impl.NullWindow;
+import com.sun.nativewindow.impl.x11.*;
 
 public class X11OffscreenGLXDrawable extends X11GLXDrawable {
   private long pixmap;

@@ -35,15 +35,15 @@ package com.sun.opengl.impl.x11.glx.awt;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
-import javax.media.nwi.*;
-import javax.media.nwi.awt.AWTGraphicsDevice;
-import javax.media.nwi.awt.AWTGraphicsConfiguration;
+import javax.media.nativewindow.*;
+import javax.media.nativewindow.awt.AWTGraphicsDevice;
+import javax.media.nativewindow.awt.AWTGraphicsConfiguration;
 import javax.media.opengl.*;
 import javax.media.opengl.awt.*;
 
 import com.sun.opengl.impl.*;
-import com.sun.nwi.impl.jawt.*;
-import com.sun.nwi.impl.jawt.x11.*;
+import com.sun.nativewindow.impl.jawt.*;
+import com.sun.nativewindow.impl.jawt.x11.*;
 import com.sun.opengl.impl.x11.*;
 import com.sun.opengl.impl.x11.glx.*;
 
