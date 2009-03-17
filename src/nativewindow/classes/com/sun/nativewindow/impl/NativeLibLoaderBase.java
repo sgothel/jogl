@@ -37,7 +37,7 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.sun.nwi.impl;
+package com.sun.nativewindow.impl;
 
 // FIXME: refactor Java SE dependencies
 //import java.awt.Toolkit;
@@ -104,10 +104,10 @@ public class NativeLibLoaderBase {
     }
   }
   
-  public static void loadNWI(final String ossuffix) {
+  public static void loadNativeWindow(final String ossuffix) {
     AccessController.doPrivileged(new PrivilegedAction() {
       public Object run() {
-        loadLibrary("nwi_"+ossuffix, null, false);
+        loadLibrary("nativewindow_"+ossuffix, null, false);
         return null;
       }
     });

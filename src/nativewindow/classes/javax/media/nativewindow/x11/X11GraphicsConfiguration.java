@@ -30,9 +30,9 @@
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  */
 
-package javax.media.nwi.x11;
+package javax.media.nativewindow.x11;
 
-import javax.media.nwi.*;
+import javax.media.nativewindow.*;
 
 /** Encapsulates a graphics configuration, or OpenGL pixel format, on
     X11 platforms. Objects of this type are returned from {@link

@@ -34,14 +34,13 @@
  * facility.
  */
 
-package com.sun.nwi.impl.jawt.x11;
+package com.sun.nativewindow.impl.jawt.x11;
 
-import com.sun.nwi.impl.x11.*;
-import com.sun.nwi.impl.jawt.*;
-import com.sun.nwi.impl.*;
+import com.sun.nativewindow.impl.x11.*;
+import com.sun.nativewindow.impl.jawt.*;
+import com.sun.nativewindow.impl.*;
 
-import javax.media.nwi.*;
-import javax.media.nwi.*;
+import javax.media.nativewindow.*;
 
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;

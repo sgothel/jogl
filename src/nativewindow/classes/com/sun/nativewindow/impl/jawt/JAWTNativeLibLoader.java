@@ -37,9 +37,9 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.sun.nwi.impl.jawt;
+package com.sun.nativewindow.impl.jawt;
 
-import com.sun.nwi.impl.*;
+import com.sun.nativewindow.impl.*;
 
 import java.awt.Toolkit;
 import java.lang.reflect.InvocationTargetException;
@@ -63,7 +63,7 @@ public class JAWTNativeLibLoader extends NativeLibLoaderBase {
         boolean isOSX = System.getProperty("os.name").equals("Mac OS X");
         String[] preload = { "jawt" };
 
-        loadLibrary("nwi_awt", (isOSX)?null:preload, false);
+        loadLibrary("nativewindow_awt", (isOSX)?null:preload, false);
         return null;
       }
     });

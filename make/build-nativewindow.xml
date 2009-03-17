@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-   - Ant build for NWI.  This build has been tested with ANT 1.7.0.  The
+   - Ant build for the NativeWindow package.  This build has been tested with ANT 1.7.0.  The
    - optional.jar that contains the optional ANT tasks must be in the ANT
    - classpath (typically the ant/lib directory).
    -
-   - A clean download of NWI is required for this build.
+   - A clean download of the NativeWindow sources is required for this build.
    -
    - This build has no dependence on environment variables; the needed
    - ones (e.g. java.home, ANT_HOME) are all set by the Ant wrapper shell
@@ -18,7 +18,7 @@
    -        be run from the "make" directory.
    -
    - Public targets:
-   -   all: (default; autodetects OS and chooses C compiler from nwi.properties)
+   -   all: (default; autodetects OS and chooses C compiler from gluegen.properties)
    -   clean:        clean all built
    -   javadoc:      create the standard developer Javadoc (recommended)
    -                 (Note: should build all first - may be dependence in the future)
@@ -28,11 +28,11 @@
    -                       to create the Javadoc for the platform on which you are
    -                       currently running.
    - 
-   - Note: on Windows the "win32.c.compiler" property in nwi.properties
+   - Note: on Windows the "win32.c.compiler" property in gluegen.properties
    - is required to select the appropriate C compiler. See the example
-   - nwi.properties in this directory for valid values. On Mac OS X
+   - gluegen.properties in the gluegen workspace for valid values. On Mac OS X
    - universal binaries may also be built by setting the "macosxfat"
-   - property in nwi.properties; again see the example file in this
+   - property in gluegen.properties; again see the example file in this
    - directory.
    -   
    - Thanks to Rob Grzywinski and Artur Biesiadowski for the bulk of the
@@ -59,21 +59,21 @@
            setup.noWindows
            setup.noMacOsX
    -->
-<project name="NWI" basedir="." default="all">
+<project name="NativeWindow" basedir="." default="all">
 
   <!-- This is the version of JOGL you are building -->
   <property name="base_version" value="0.0.0-rc0"/>
     
   <!-- Uncomment this property definition to cause a full release build to be done -->
   <!-- without needing to specify the RI target on the command line  -->
-  <property name="RImanifestfile" value="nwiRIversion" />
+  <property name="RImanifestfile" value="nativewindowRIversion" />
 
   <!-- Pull in GlueGen cpptasks build file -->
   <property name="gluegen.root" value="../../gluegen" />
   <import file="${gluegen.root}/make/gluegen-cpptasks.xml" />
 
-  <available file="${user.home}/nwi.compiler.xml" property="nwi.compiler.present"/>
-  <import file="${user.home}/nwi.compiler.xml" optional="true" />
+  <available file="${user.home}/nativewindow.compiler.xml" property="nwi.compiler.present"/>
+  <import file="${user.home}/nativewindow.compiler.xml" optional="true" />
 
     <!-- ================================================================== -->
     <!-- 
@@ -123,16 +123,16 @@
         <!-- partitioning -->
 
         <property name="java.part.core"
-                  value="javax/media/nwi/*, javax/media/nwi/x11/*, com/sun/nwi/impl/*, com/sun/nwi/impl/x11/*"/>
+                  value="javax/media/nativewindow/*, javax/media/nativewindow/x11/*, com/sun/nativewindow/impl/*, com/sun/nativewindow/impl/x11/*"/>
 
         <!-- property name="java.part.win"
-                  value="com/sun/nwi/impl/win/**"/ NOTHING TO DO HERE -->
+                  value="com/sun/nativewindow/impl/win/**"/ NOTHING TO DO HERE -->
 
         <!-- property name="java.part.macosx"
-                  value="com/sun/nwi/impl/macosx/**"/ NOTHING TO DO HERE -->
+                  value="com/sun/nativewindow/impl/macosx/**"/ NOTHING TO DO HERE -->
 
         <property name="java.part.awt"
-                  value="javax/media/nwi/awt/*, com/sun/nwi/impl/jawt/**, com/sun/nwi/impl/**/awt/**"/>
+                  value="javax/media/nativewindow/awt/*, com/sun/nativewindow/impl/jawt/**, com/sun/nativewindow/impl/**/awt/**"/>
 
         <!-- condition excludes -->
 
@@ -168,11 +168,11 @@
     </target>
 
     <target name="base.init.sourcelevel.1">
-        <property name="nwi.sourcelevel" value="1.4" />
+        <property name="nativewindow.sourcelevel" value="1.4" />
     </target>
 
     <!--target name="base.init.sourcelevel.2" if="gluegen.nsig">
-        <property name="nwi.sourcelevel" value="1.5" />
+        <property name="nativewindow.sourcelevel" value="1.5" />
     </target-->
 
     <!-- ================================================================== -->
@@ -183,12 +183,12 @@
         <!-- Load the user specified properties file that defines various host
            - specific paths.  The user will be notified if this is does not
            - exist. -->
-        <property name="user.properties.file" value="${user.home}/nwi.properties" />
+        <property name="user.properties.file" value="${user.home}/nativewindow.properties" />
         <property file="${user.properties.file}" />
         <echo message="Loaded ${user.properties.file}." />
         <property file="${user.home}/gluegen.properties" />
         <echo message="Loaded ${user.home}/gluegen.properties." />
-        <fail message="antlr.jar was not specified in nwi.properties or gluegen.properties. Please see README.txt for instructions" unless="antlr.jar"/>
+        <fail message="antlr.jar was not specified in nativewindow.properties or gluegen.properties. Please see README.txt for instructions" unless="antlr.jar"/>
         <echo message="antlr.jar=${antlr.jar}" />
     </target>
 
@@ -214,18 +214,18 @@
               <isset property="rootrel.build"/>
           </not>
         </condition>
-        <property name="rootrel.build.nwi" value="${rootrel.build}-nwi" />
-        <property name="rootrel.src" value="src/nwi" />
+        <property name="rootrel.build.nativewindow" value="${rootrel.build}-nativewindow" />
+        <property name="rootrel.src" value="src/nativewindow" />
         <property name="rootrel.src.java" value="${rootrel.src}/classes" />
         <property name="rootrel.src.c" value="${rootrel.src}/native" />
 
-        <property name="rootrel.src.generated" value="${rootrel.build.nwi}/gensrc" />
+        <property name="rootrel.src.generated" value="${rootrel.build.nativewindow}/gensrc" />
         <property name="rootrel.generated.c" value="${rootrel.src.generated}/native" />
-        <property name="rootrel.obj" value="${rootrel.build.nwi}/obj" />
+        <property name="rootrel.obj" value="${rootrel.build.nativewindow}/obj" />
 
         <!-- GlueGen properties. -->
         <!-- NOTE that these require a checked-out GlueGen workspace as a -->
-        <!-- sibling of the NWI workspace. -->
+        <!-- sibling of the NativeWindow workspace. -->
         <property name="gluegen.make.dir" value="../../gluegen/make" />
         <property name="gluegen.build.xml" value="${gluegen.make.dir}/build.xml" />
         <property name="gluegen.jar" value="../../gluegen/${rootrel.build}/gluegen.jar" />
@@ -234,7 +234,7 @@
         <!-- The source directories. -->
         <property name="src.java" value="${project.root}/${rootrel.src.java}" />
         <property name="src.c"    value="${project.root}/${rootrel.src.c}" />
-        <property name="build"    value="${project.root}/${rootrel.build.nwi}" />
+        <property name="build"    value="${project.root}/${rootrel.build.nativewindow}" />
         
         <!-- The generated source directories. -->
         <property name="src.generated" value="${build}/gensrc" />
@@ -246,7 +246,7 @@
         <property name="obj"      value="${project.root}/${rootrel.obj}" />
 
         <!-- The headers from which Java files are generated -->
-        <property name="config" value="${make}/config/nwi" />
+        <property name="config" value="${make}/config/nativewindow" />
         <property name="stub.includes" value="${make}/stub_includes" />
         <property name="stub.includes.dir" value="stub_includes" /> <!-- NOTE:  this MUST be relative for FileSet -->
         <property name="stub.includes.common" value="${stub.includes}/common" />
@@ -279,23 +279,23 @@
           <pathelement location="${antlr.jar}" />
         </path>
 
-        <!-- The resulting nwi.jar. -->
-        <property name="nwi.core.jar" value="${build}/nwi.core.jar" />
-        <property name="nwi.awt.jar" value="${build}/nwi.awt.jar" />
-        <property name="nwi.all.jar" value="${build}/nwi.all.jar" />
+        <!-- The resulting nativewindow.jar. -->
+        <property name="nativewindow.core.jar" value="${build}/nativewindow.core.jar" />
+        <property name="nativewindow.awt.jar" value="${build}/nativewindow.awt.jar" />
+        <property name="nativewindow.all.jar" value="${build}/nativewindow.all.jar" />
 
         <!-- The javadoc dirs. -->
-        <property name="javadoc" value="${project.root}/javadoc_nwi_public" />
-        <property name="javadoc.spec" value="${project.root}/javadoc_nwi_spec" />
-        <property name="javadoc.dev" value="${project.root}/javadoc_nwi_dev" />
+        <property name="javadoc" value="${project.root}/javadoc_nativewindow_public" />
+        <property name="javadoc.spec" value="${project.root}/javadoc_nativewindow_spec" />
+        <property name="javadoc.dev" value="${project.root}/javadoc_nativewindow_dev" />
         <property name="javadoc.link" value="http://java.sun.com/j2se/1.4.2/docs/api/" />
-        <property name="javadoc.windowtitle" value="Native Windowing Interface (NWI) API -- ${base_version} Specification" />
+        <property name="javadoc.windowtitle" value="Native Windowing Interface (NativeWindow) API -- ${base_version} Specification" />
         <property name="javadoc.overview" value="spec-overview.html" />
-        <property name="javadoc.spec.packagenames" value="javax.media.nwi.*" />
+        <property name="javadoc.spec.packagenames" value="javax.media.nativewindow.*" />
 
         <property name="javadoc.packagenames" value="${javadoc.spec.packagenames}" />
 
-        <property name="javadoc.dev.packagenames" value="${javadoc.packagenames},com.sun.nwi.impl.*,com.sun.gluegen,com.sun.gluegen.runtime" />
+        <property name="javadoc.dev.packagenames" value="${javadoc.packagenames},com.sun.nativewindow.impl.*,com.sun.gluegen,com.sun.gluegen.runtime" />
     <property name="javadoc.bottom" value="Copyright 2005 Sun Microsystems, Inc. All rights reserved. Use is subject to &lt;a href=&quot;http://jcp.org/en/jsr/detail?id=231&quot;&gt;license terms&lt;/a&gt;." />
     </target>
     
@@ -357,13 +357,13 @@
 
         <!-- Now check for the presence of one well-known file -->
         <uptodate property="java.generate.skip.x11windowlib"
-                  targetfile="${src.generated.java}/com/sun/nwi/impl/x11/X11Lib.java">
+                  targetfile="${src.generated.java}/com/sun/nativewindow/impl/x11/X11Lib.java">
             <srcfiles refid="stub.includes.dependencies.fileset.1" />
             <srcfiles refid="stub.includes.dependencies.fileset.2" />
             <srcfiles refid="stub.includes.dependencies.fileset.3" />
         </uptodate>
         <uptodate property="java.generate.skip.jawt"
-                  targetfile="${src.generated.java}/com/sun/nwi/impl/jawt/JAWT.java">
+                  targetfile="${src.generated.java}/com/sun/nativewindow/impl/jawt/JAWT.java">
             <srcfiles refid="stub.includes.dependencies.fileset.1" />
             <srcfiles refid="stub.includes.dependencies.fileset.2" />
             <srcfiles refid="stub.includes.dependencies.fileset.3" />
@@ -382,7 +382,7 @@
     <target name="java.generate.windowlib" if="windowlib.os.cfg">
         <echo message="Generating Windowing Lib implementation class" />
         <gluegen src="${stub.includes.dir}/${window.os.system}/window-lib.c"
-                 outputRootDir="../${rootrel.build.nwi}"
+                 outputRootDir="../${rootrel.build.nativewindow}"
                  config="${windowlib.os.cfg}"
                  includeRefid="stub.includes.fileset.platform"
                  emitter="com.sun.gluegen.JavaEmitter">
@@ -397,7 +397,7 @@
         <echo message="Generating JAWT interface class" />
         <echo message="java.home.dir=${java.home.dir}" />
         <gluegen src="${jawt.platform.header}"
-                 outputRootDir="../${rootrel.build.nwi}"
+                 outputRootDir="../${rootrel.build.nativewindow}"
                  config="${jawt.cfg}"
                  literalInclude="${stub.includes.dir}/jni"
                  includeRefid="stub.includes.fileset.platform"
@@ -467,7 +467,7 @@
         <!-- Perform the first pass Java compile; everything -->
         <javac destdir="${classes}"
                excludes="${java.excludes.all}"
-               source="${nwi.sourcelevel}"
+               source="${nativewindow.sourcelevel}"
                classpath="${gluegen-rt.jar}"
                bootclasspath="${javac.bootclasspath.jar}"
                fork="yes"
@@ -482,7 +482,7 @@
         <!-- Perform the second pass Java compile; everything. -->
         <javac destdir="${classes}"
                excludes="${java.excludes.all}"
-               source="${nwi.sourcelevel}"
+               source="${nativewindow.sourcelevel}"
                classpath="${gluegen-rt.jar}"
                fork="yes"
                memoryMaximumSize="128m"
@@ -499,46 +499,46 @@
        - Compile the native C code for JOGL (and optionally the Cg binding).
       -->
 
-    <target name="c.configure.1" depends="gluegen.cpptasks.detect.os,gluegen.cpptasks.setup.compiler" unless="nwi.compiler.present">
+    <target name="c.configure.1" depends="gluegen.cpptasks.detect.os,gluegen.cpptasks.setup.compiler" unless="nativewindow.compiler.present">
       <!-- compiler configuration -->
       <!-- Note that we can use the base setups in the gluegen-cpptasks for most of these -->
 
-      <compiler id="compiler.cfg.freebsd.nwi" extends="compiler.cfg.freebsd">
+      <compiler id="compiler.cfg.freebsd.nativewindow" extends="compiler.cfg.freebsd">
         <!-- Need to force X11R6 headers on to include path after stub_includes -->
         <includepath path="/usr/X11R6/include" />
       </compiler>
 
       <!-- linker configuration -->
  
-      <linker id="linker.cfg.linux.nwi.x11" extends="linker.cfg.linux">
+      <linker id="linker.cfg.linux.nativewindow.x11" extends="linker.cfg.linux">
         <syslibset dir="/usr/X11R6/lib" libs="X11"/>
         <syslibset dir="/usr/X11R6/lib" libs="Xxf86vm" />
       </linker>
 
-      <linker id="linker.cfg.linux.amd64.nwi.x11" extends="linker.cfg.linux.amd64">
+      <linker id="linker.cfg.linux.amd64.nativewindow.x11" extends="linker.cfg.linux.amd64">
         <syslibset dir="/usr/X11R6/lib64" libs="X11"/>
         <syslibset dir="/usr/X11R6/lib64" libs="Xxf86vm" />
       </linker>
 
-      <linker id="linker.cfg.solaris.nwi.x11" extends="linker.cfg.solaris">
+      <linker id="linker.cfg.solaris.nativewindow.x11" extends="linker.cfg.solaris">
         <syslibset libs="X11"/>
       </linker>
 
-      <linker id="linker.cfg.win32.mingw.nwi" extends="linker.cfg.win32.mingw">
+      <linker id="linker.cfg.win32.mingw.nativewindow" extends="linker.cfg.win32.mingw">
         <linkerarg value="-Wl,--kill-at" />        <!-- remove @ from function names -->
         <syslibset libs="gdi32, kernel32"/>
       </linker>
 
-      <linker id="linker.cfg.win32.msvc.nwi" extends="linker.cfg.win32.msvc">
+      <linker id="linker.cfg.win32.msvc.nativewindow" extends="linker.cfg.win32.msvc">
         <syslibset libs="gdi32, user32, kernel32" />
       </linker>
 
-      <linker id="linker.cfg.macosx.nwi" extends="linker.cfg.macosx">
+      <linker id="linker.cfg.macosx.nativewindow" extends="linker.cfg.macosx">
         <linkerarg value="-framework" />
         <linkerarg value="Cocoa" />
       </linker>
 
-      <linker id="linker.cfg.hpux.nwi" extends="linker.cfg.hpux">
+      <linker id="linker.cfg.hpux.nativewindow" extends="linker.cfg.hpux">
         <syslibset dir="/usr/lib" libs="X11"/>
       </linker>
     </target>
@@ -547,35 +547,35 @@
       <echo message="Win32.VC" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.win32.msvc" />
       <property name="linker.cfg.id.core"                   value="linker.cfg.win32.msvc" />
-      <property name="linker.cfg.id.oswin"                  value="linker.cfg.win32.msvc.nwi" />
+      <property name="linker.cfg.id.oswin"                  value="linker.cfg.win32.msvc.nativewindow" />
     </target>
     
     <target name="c.configure.win32.mingw" if="isMingW">
       <echo message="Win32.MingW" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.win32.mingw" />
       <property name="linker.cfg.id.core"                   value="linker.cfg.win32.mingw" />
-      <property name="linker.cfg.id.oswin"                  value="linker.cfg.win32.mingw.nwi" />
+      <property name="linker.cfg.id.oswin"                  value="linker.cfg.win32.mingw.nativewindow" />
     </target>
 
     <target name="c.configure.linux.x86" if="isLinuxX86">
       <echo message="Linux.x86" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.linux" />
       <property name="linker.cfg.id.core"                   value="linker.cfg.linux" />
-      <property name="linker.cfg.id.oswin"                  value="linker.cfg.linux.nwi.x11" />
+      <property name="linker.cfg.id.oswin"                  value="linker.cfg.linux.nativewindow.x11" />
     </target>
     
     <target name="c.configure.linux.amd64" if="isLinuxAMD64">
       <echo message="Linux.AMD64" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.linux.amd64" />
       <property name="linker.cfg.id.core"                   value="linker.cfg.linux.amd64" />
-      <property name="linker.cfg.id.oswin"                  value="linker.cfg.linux.amd64.nwi.x11" />
+      <property name="linker.cfg.id.oswin"                  value="linker.cfg.linux.amd64.nativewindow.x11" />
     </target>
     
     <target name="c.configure.linux.ia64" if="isLinuxIA64">
       <echo message="Linux.IA64" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.linux" />
       <property name="linker.cfg.id.core"                   value="linker.cfg.linux" />
-      <property name="linker.cfg.id.oswin"                  value="linker.cfg.linux.nwi.x11" />
+      <property name="linker.cfg.id.oswin"                  value="linker.cfg.linux.nativewindow.x11" />
     </target>
 
     <target name="c.configure.linux" depends="c.configure.linux.x86,c.configure.linux.amd64,c.configure.linux.ia64,c.configure.x11" if="isLinux" />
@@ -584,7 +584,7 @@
       <echo message="Solaris" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.solaris" />
       <property name="linker.cfg.id.core"                   value="linker.cfg.solaris" />
-      <property name="linker.cfg.id.oswin"                  value="linker.cfg.solaris.nwi.x11" />
+      <property name="linker.cfg.id.oswin"                  value="linker.cfg.solaris.nativewindow.x11" />
     </target>
   
  
@@ -592,7 +592,7 @@
       <echo message="SolarisSparcv9" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.solaris.sparcv9" />
       <property name="linker.cfg.id.core"                   value="linker.cfg.solaris.sparcv9" />
-      <property name="linker.cfg.id.oswin"                  value="linker.cfg.solaris.sparcv9.nwi.x11" />
+      <property name="linker.cfg.id.oswin"                  value="linker.cfg.solaris.sparcv9.nativewindow.x11" />
     </target>
    
 
@@ -600,21 +600,21 @@
       <echo message="SolarisAMD64" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.solaris.amd64" />
       <property name="linker.cfg.id.core"                   value="linker.cfg.solaris.amd64" />
-      <property name="linker.cfg.id.oswin"                  value="linker.cfg.solaris.amd64.nwi.x11" />
+      <property name="linker.cfg.id.oswin"                  value="linker.cfg.solaris.amd64.nativewindow.x11" />
     </target>
    
     <target name="c.configure.freebsd" depends="c.configure.x11" if="isFreeBSD">
       <echo message="FreeBSD" />
-      <property name="compiler.cfg.id"                      value="compiler.cfg.freebsd.nwi" />
+      <property name="compiler.cfg.id"                      value="compiler.cfg.freebsd.nativewindow" />
       <property name="linker.cfg.id.core"                   value="linker.cfg.linux" />
-      <property name="linker.cfg.id.oswin"                  value="linker.cfg.linux.nwi.x11" />
+      <property name="linker.cfg.id.oswin"                  value="linker.cfg.linux.nativewindow.x11" />
     </target>
 
     <target name="c.configure.hpux" depends="c.configure.x11" if="isHPUX">
       <echo message="HP-UX" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.hpux" />
       <property name="linker.cfg.id.core"                   value="linker.cfg.hpux" />
-      <property name="linker.cfg.id.oswin"                  value="linker.cfg.hpux.nwi.x11" />
+      <property name="linker.cfg.id.oswin"                  value="linker.cfg.hpux.nativewindow.x11" />
     </target>
 
     <target name="c.configure.win32" depends="c.configure.win32.vc,c.configure.win32.mingw" if="isWindows" />
@@ -624,7 +624,7 @@
     <target name="c.configure.macosx" if="isOSX">
       <property name="compiler.cfg.id"                      value="compiler.cfg.macosx" />
       <property name="linker.cfg.id.core"                   value="linker.cfg.macosx" />
-      <property name="linker.cfg.id.oswin"                  value="linker.cfg.macosx.nwi" />
+      <property name="linker.cfg.id.oswin"                  value="linker.cfg.macosx.nativewindow" />
     </target>
     
     <target name="c.configure.2" depends="c.configure.win32,c.configure.linux,c.configure.solaris32,c.configure.solaris.sparcv9,c.configure.solaris.amd64,c.configure.macosx,c.configure.freebsd,c.configure.hpux" />
@@ -747,50 +747,50 @@
         <arg value="/System/Library/Frameworks/JavaVM.framework/Versions/1.5.0/Libraries/libjawt.dylib" />
         <arg value="/System/Library/Frameworks/JavaVM.framework/Libraries/libjawt.dylib" />
         <srcfile />
-        <fileset dir="${obj}" includes="libnwi_awt.jnilib" />
+        <fileset dir="${obj}" includes="libnativewindow_awt.jnilib" />
       </apply>
     </target>
 
-    <target name="c.build.nwi.awt">
+    <target name="c.build.nativewindow.awt">
       <c.build c.compiler.src.files="c.src.files.awt"
                c.compiler.use-jawt="true"
-               output.lib.name="nwi_awt"
+               output.lib.name="nativewindow_awt"
                compiler.cfg.id="${compiler.cfg.id}"
                linker.cfg.id="${linker.cfg.id.oswin}"/>
     </target>
 
-    <target name="c.build.nwi.windowlib.x11" if="isX11">
+    <target name="c.build.nativewindow.windowlib.x11" if="isX11">
       <c.build c.compiler.src.files="c.src.files.x11"
-               output.lib.name="nwi_x11"
+               output.lib.name="nativewindow_x11"
                compiler.cfg.id="${compiler.cfg.id}"
                linker.cfg.id="${linker.cfg.id.oswin}"/>
     </target>
 
-    <target name="c.build.nwi.windowlib" depends="c.build.nwi.windowlib.x11"/>
+    <target name="c.build.nativewindow.windowlib" depends="c.build.nativewindow.windowlib.x11"/>
 
     <target name="c.manifest" if="isVC8Family">
       <!-- exec mt, the Microsoft Manifest Tool, to include DLL manifests in order to resolve the location of msvcr80.dll -->
       <exec executable="mt">
         <arg value="-manifest"/>
-        <arg value="${obj}/nwi.dll.manifest"/>
-        <arg value="-outputresource:${obj}/nwi.dll;#2"/>
+        <arg value="${obj}/nativewindow.dll.manifest"/>
+        <arg value="-outputresource:${obj}/nativewindow.dll;#2"/>
       </exec>
       <exec executable="mt">
         <arg value="-manifest"/>
-        <arg value="${obj}/nwi_awt.dll.manifest"/>
-        <arg value="-outputresource:${obj}/nwi_awt.dll;#2"/>
+        <arg value="${obj}/nativewindow_awt.dll.manifest"/>
+        <arg value="-outputresource:${obj}/nativewindow_awt.dll;#2"/>
       </exec>
       <antcall target="c.manifest.cg" inheritRefs="true" />
     </target>
 
-    <target name="c.build.nwi" depends="c.configure,c.build.nwi.windowlib,c.build.nwi.awt">
+    <target name="c.build.nativewindow" depends="c.configure,c.build.nativewindow.windowlib,c.build.nativewindow.awt">
       <antcall target="c.fixup.jawt.version.macosx" inheritrefs="true" />
       <antcall target="c.manifest" inheritRefs="true" />
     </target>
 
     <!-- ================================================================== -->
     <!--
-       - Build the nwi.jar files.
+       - Build the nativewindow.jar files.
       -->
     <target name="jar" depends="java.compile,cond-if-RImanifest,cond-else-RImanifest"/>
 
@@ -801,7 +801,7 @@
     </target>
 
     <target name="cond-if-RImanifest" depends="check-RIcond" if="RIcond-is-true">
-        <copy file="nwiRIversion"
+        <copy file="nativewindowRIversion"
           tofile="tempversion"
           overwrite="true">
           <filterset>
@@ -810,19 +810,19 @@
           </filterset>
         </copy>
 
-        <jar manifest="tempversion" destfile="${nwi.core.jar}">
+        <jar manifest="tempversion" destfile="${nativewindow.core.jar}">
             <fileset dir="${classes}"
                      includes="${java.part.core}"
                      excludes="${java.part.awt}"/>
         </jar>
-        <jar manifest="tempversion" destfile="${nwi.awt.jar}">
+        <jar manifest="tempversion" destfile="${nativewindow.awt.jar}">
             <fileset dir="${classes}"
                      includes="${java.part.awt}"/>
         </jar>
-        <jar manifest="tempversion" destfile="${nwi.all.jar}">
+        <jar manifest="tempversion" destfile="${nativewindow.all.jar}">
             <fileset dir="${classes}">
-                <include name="javax/media/nwi/**" />
-                <include name="com/sun/nwi/**" />
+                <include name="javax/media/nativewindow/**" />
+                <include name="com/sun/nativewindow/**" />
                 <include name="com/sun/gluegen/runtime/**" />
             </fileset>
         </jar>
@@ -834,7 +834,7 @@
         <tstamp>
              <format property="timestamp" pattern="yyyyMMdd-HH:mm:ss"/>
         </tstamp>
-        <copy file="nwiversion"
+        <copy file="nativewindowversion"
           tofile="tempversion"
           overwrite="true">
           <filterset>
@@ -842,11 +842,11 @@
               <filter token="BASEVERSION" value="${base_version}"/>
           </filterset>
         </copy>
-        <jar manifest="tempversion" destfile="${nwi.jar}">
+        <jar manifest="tempversion" destfile="${nativewindow.jar}">
             <fileset dir="${classes}">
-                <include name="javax/media/nwi/**" />
+                <include name="javax/media/nativewindow/**" />
                 <include name="com/sun/gluegen/runtime/**" />
-                <include name="com/sun/nwi/**" />
+                <include name="com/sun/nativewindow/**" />
             </fileset>
         </jar>
         <delete file="tempversion"/>
@@ -901,41 +901,41 @@
         </javadoc>
     </target>
 
-    <target name="all.doc" description="Build NWI docs" depends="init,javadoc,javadoc.spec,javadoc.dev" />
+    <target name="all.doc" description="Build NativeWindow docs" depends="init,javadoc,javadoc.spec,javadoc.dev" />
 
     <!-- ================================================================== -->
     <!--
        - Build the platform-independent distribution out of jars built for
        - Windows, Linux and Mac OS X; the Java sources for Jogl can't be
        - fully cross-compiled at this time. To run this target, you need to
-       - specify the property nwi.dist.dir as a System property (i.e.,
-       - "ant -Dnwi.dist.dir=../dist dist"); directories named nwi-linux,
-       - nwi-win, and nwi-macosx need to be inside that directory and each
-       - of those directories needs to contain both the nwi.jar for that
-       - platform as well as the native code (libnwi.so, nwi.dll, or
-       - libnwi.jnilib). Also builds jars containing the native code for
+       - specify the property nativewindow.dist.dir as a System property (i.e.,
+       - "ant -Dnativewindow.dist.dir=../dist dist"); directories named nativewindow-linux,
+       - nativewindow-win, and nativewindow-macosx need to be inside that directory and each
+       - of those directories needs to contain both the nativewindow.jar for that
+       - platform as well as the native code (libnativewindow.so, nativewindow.dll, or
+       - libnativewindow.jnilib). Also builds jars containing the native code for
        - Windows, Linux, Mac OS X, Solaris/SPARC and Solaris/x86.
       -->
-    <target name="dist.dir.check" unless="nwi.dist.dir">
+    <target name="dist.dir.check" unless="nativewindow.dist.dir">
         <fail>
   
     ******************************************************************
     ** To build the Jogl distribution out of the platform-specific  **
-    ** component jars and native code, the property nwi.dist.dir   **
+    ** component jars and native code, the property nativewindow.dist.dir   **
     ** needs to be specified on the command line. Please read the   **
     ** comments associated with the "dist" target in the build.xml. **
     ******************************************************************
         </fail>
     </target>
 
-    <target name="dist.check.windows" if="nwi.dist.dir">
+    <target name="dist.check.windows" if="nativewindow.dist.dir">
         <condition property="windows.complete">
       <and>
-        <available file="${nwi.dist.dir}/nwi-win/nwi.jar" />
-        <available file="${nwi.dist.dir}/nwi-win/32/nwi.dll" />
-        <available file="${nwi.dist.dir}/nwi-win/32/nwi_awt.dll" />
-        <available file="${nwi.dist.dir}/nwi-win/32/gluegen-rt.dll" />
-        <available file="${nwi.dist.dir}/nwi-win/32/gluegen-rt-natives-windows-i586.jar" />
+        <available file="${nativewindow.dist.dir}/nativewindow-win/nativewindow.jar" />
+        <available file="${nativewindow.dist.dir}/nativewindow-win/32/nativewindow.dll" />
+        <available file="${nativewindow.dist.dir}/nativewindow-win/32/nativewindow_awt.dll" />
+        <available file="${nativewindow.dist.dir}/nativewindow-win/32/gluegen-rt.dll" />
+        <available file="${nativewindow.dist.dir}/nativewindow-win/32/gluegen-rt-natives-windows-i586.jar" />
       </and>
     </condition>
     <fail unless="windows.complete">
@@ -947,13 +947,13 @@
         </fail>
     </target>
 
-    <target name="dist.check.windows-amd64" if="nwi.dist.dir">
+    <target name="dist.check.windows-amd64" if="nativewindow.dist.dir">
         <condition property="windows-amd64.complete">
       <and>
-        <available file="${nwi.dist.dir}/nwi-win/64/nwi.dll" />
-        <available file="${nwi.dist.dir}/nwi-win/64/nwi_awt.dll" />
-        <available file="${nwi.dist.dir}/nwi-win/64/gluegen-rt.dll" />
-        <available file="${nwi.dist.dir}/nwi-win/64/gluegen-rt-natives-windows-amd64.jar" />
+        <available file="${nativewindow.dist.dir}/nativewindow-win/64/nativewindow.dll" />
+        <available file="${nativewindow.dist.dir}/nativewindow-win/64/nativewindow_awt.dll" />
+        <available file="${nativewindow.dist.dir}/nativewindow-win/64/gluegen-rt.dll" />
+        <available file="${nativewindow.dist.dir}/nativewindow-win/64/gluegen-rt-natives-windows-amd64.jar" />
       </and>
     </condition>
     <fail unless="windows-amd64.complete">
@@ -965,14 +965,14 @@
         </fail>
     </target>
 
-    <target name="dist.check.linux" if="nwi.dist.dir">
+    <target name="dist.check.linux" if="nativewindow.dist.dir">
         <condition property="linux.complete">
       <and>
-        <available file="${nwi.dist.dir}/nwi-linux/nwi.jar" />
-        <available file="${nwi.dist.dir}/nwi-linux/32/libnwi.so" />
-        <available file="${nwi.dist.dir}/nwi-linux/32/libnwi_awt.so" />
-        <available file="${nwi.dist.dir}/nwi-linux/32/libgluegen-rt.so" />
-        <available file="${nwi.dist.dir}/nwi-linux/32/gluegen-rt-natives-linux-i586.jar" />
+        <available file="${nativewindow.dist.dir}/nativewindow-linux/nativewindow.jar" />
+        <available file="${nativewindow.dist.dir}/nativewindow-linux/32/libnativewindow.so" />
+        <available file="${nativewindow.dist.dir}/nativewindow-linux/32/libnativewindow_awt.so" />
+        <available file="${nativewindow.dist.dir}/nativewindow-linux/32/libgluegen-rt.so" />
+        <available file="${nativewindow.dist.dir}/nativewindow-linux/32/gluegen-rt-natives-linux-i586.jar" />
       </and>
     </condition>
     <fail unless="linux.complete">
@@ -984,13 +984,13 @@
         </fail>
     </target>
 
-    <target name="dist.check.linux-amd64" if="nwi.dist.dir">
+    <target name="dist.check.linux-amd64" if="nativewindow.dist.dir">
         <condition property="linux-amd64.complete">
       <and>
-        <available file="${nwi.dist.dir}/nwi-linux/64/libnwi.so" />
-        <available file="${nwi.dist.dir}/nwi-linux/64/libnwi_awt.so" />
-        <available file="${nwi.dist.dir}/nwi-linux/64/libgluegen-rt.so" />
-        <available file="${nwi.dist.dir}/nwi-linux/64/gluegen-rt-natives-linux-amd64.jar" />
+        <available file="${nativewindow.dist.dir}/nativewindow-linux/64/libnativewindow.so" />
+        <available file="${nativewindow.dist.dir}/nativewindow-linux/64/libnativewindow_awt.so" />
+        <available file="${nativewindow.dist.dir}/nativewindow-linux/64/libgluegen-rt.so" />
+        <available file="${nativewindow.dist.dir}/nativewindow-linux/64/gluegen-rt-natives-linux-amd64.jar" />
       </and>
     </condition>
     <fail unless="linux-amd64.complete">
@@ -1002,14 +1002,14 @@
         </fail>
     </target>
 
-    <target name="dist.check.macosx" if="nwi.dist.dir">
+    <target name="dist.check.macosx" if="nativewindow.dist.dir">
         <condition property="macosx.complete">
       <and>
-        <available file="${nwi.dist.dir}/nwi-macosx/nwi.jar" />
-        <available file="${nwi.dist.dir}/nwi-macosx/ppc/libnwi.jnilib" />
-        <available file="${nwi.dist.dir}/nwi-macosx/ppc/libnwi_awt.jnilib" />
-        <available file="${nwi.dist.dir}/nwi-macosx/ppc/libgluegen-rt.jnilib" />
-        <available file="${nwi.dist.dir}/nwi-macosx/ppc/gluegen-rt-natives-macosx-ppc.jar" />
+        <available file="${nativewindow.dist.dir}/nativewindow-macosx/nativewindow.jar" />
+        <available file="${nativewindow.dist.dir}/nativewindow-macosx/ppc/libnativewindow.jnilib" />
+        <available file="${nativewindow.dist.dir}/nativewindow-macosx/ppc/libnativewindow_awt.jnilib" />
+        <available file="${nativewindow.dist.dir}/nativewindow-macosx/ppc/libgluegen-rt.jnilib" />
+        <available file="${nativewindow.dist.dir}/nativewindow-macosx/ppc/gluegen-rt-natives-macosx-ppc.jar" />
       </and>
     </condition>
     <fail unless="macosx.complete">
@@ -1022,14 +1022,14 @@
     </target>
 
 
-    <target name="dist.check.macosxfat" if="nwi.dist.dir">
+    <target name="dist.check.macosxfat" if="nativewindow.dist.dir">
         <condition property="macosxfat.complete">
       <and>
-        <available file="${nwi.dist.dir}/nwi-macosx/nwi.jar" />
-        <available file="${nwi.dist.dir}/nwi-macosx/fat/libnwi.jnilib" />
-        <available file="${nwi.dist.dir}/nwi-macosx/fat/libnwi_awt.jnilib" />
-        <available file="${nwi.dist.dir}/nwi-macosx/fat/libgluegen-rt.jnilib" />
-        <available file="${nwi.dist.dir}/nwi-macosx/fat/gluegen-rt-natives-macosx-universal.jar" />
+        <available file="${nativewindow.dist.dir}/nativewindow-macosx/nativewindow.jar" />
+        <available file="${nativewindow.dist.dir}/nativewindow-macosx/fat/libnativewindow.jnilib" />
+        <available file="${nativewindow.dist.dir}/nativewindow-macosx/fat/libnativewindow_awt.jnilib" />
+        <available file="${nativewindow.dist.dir}/nativewindow-macosx/fat/libgluegen-rt.jnilib" />
+        <available file="${nativewindow.dist.dir}/nativewindow-macosx/fat/gluegen-rt-natives-macosx-universal.jar" />
       </and>
     </condition>
     <fail unless="macosxfat.complete">
@@ -1043,14 +1043,14 @@
 
 
 
-    <target name="dist.check.solsparc" if="nwi.dist.dir">
+    <target name="dist.check.solsparc" if="nativewindow.dist.dir">
         <condition property="solsparc.complete">
       <and>
-        <available file="${nwi.dist.dir}/nwi-solsparc/nwi.jar" />
-        <available file="${nwi.dist.dir}/nwi-solsparc/32/libnwi.so" />
-        <available file="${nwi.dist.dir}/nwi-solsparc/32/libnwi_awt.so" />
-        <available file="${nwi.dist.dir}/nwi-solsparc/32/libgluegen-rt.so" />
-        <available file="${nwi.dist.dir}/nwi-solsparc/32/gluegen-rt-natives-solaris-sparc.jar" />
+        <available file="${nativewindow.dist.dir}/nativewindow-solsparc/nativewindow.jar" />
+        <available file="${nativewindow.dist.dir}/nativewindow-solsparc/32/libnativewindow.so" />
+        <available file="${nativewindow.dist.dir}/nativewindow-solsparc/32/libnativewindow_awt.so" />
+        <available file="${nativewindow.dist.dir}/nativewindow-solsparc/32/libgluegen-rt.so" />
+        <available file="${nativewindow.dist.dir}/nativewindow-solsparc/32/gluegen-rt-natives-solaris-sparc.jar" />
       </and>
     </condition>
     <fail unless="solsparc.complete">
@@ -1062,14 +1062,14 @@
         </fail>
     </target>
 
-    <target name="dist.check.solsparcv9" if="nwi.dist.dir">
+    <target name="dist.check.solsparcv9" if="nativewindow.dist.dir">
         <condition property="solsparcv9.complete">
       <and>
-        <available file="${nwi.dist.dir}/nwi-solsparc/nwi.jar" />
-        <available file="${nwi.dist.dir}/nwi-solsparc/64/libnwi.so" />
-        <available file="${nwi.dist.dir}/nwi-solsparc/64/libnwi_awt.so" />
-        <available file="${nwi.dist.dir}/nwi-solsparc/64/libgluegen-rt.so" />
-        <available file="${nwi.dist.dir}/nwi-solsparc/64/gluegen-rt-natives-solaris-sparcv9.jar" />
+        <available file="${nativewindow.dist.dir}/nativewindow-solsparc/nativewindow.jar" />
+        <available file="${nativewindow.dist.dir}/nativewindow-solsparc/64/libnativewindow.so" />
+        <available file="${nativewindow.dist.dir}/nativewindow-solsparc/64/libnativewindow_awt.so" />
+        <available file="${nativewindow.dist.dir}/nativewindow-solsparc/64/libgluegen-rt.so" />
+        <available file="${nativewindow.dist.dir}/nativewindow-solsparc/64/gluegen-rt-natives-solaris-sparcv9.jar" />
       </and>
     </condition>
     <fail unless="solsparcv9.complete">
@@ -1081,14 +1081,14 @@
         </fail>
     </target>
 
-    <target name="dist.check.solx86" if="nwi.dist.dir">
+    <target name="dist.check.solx86" if="nativewindow.dist.dir">
         <condition property="solx86.complete">
       <and>
-        <available file="${nwi.dist.dir}/nwi-solx86/nwi.jar" />
-        <available file="${nwi.dist.dir}/nwi-solx86/32/libnwi.so" />
-        <available file="${nwi.dist.dir}/nwi-solx86/32/libnwi_awt.so" />
-        <available file="${nwi.dist.dir}/nwi-solx86/32/libgluegen-rt.so" />
-        <available file="${nwi.dist.dir}/nwi-solx86/32/gluegen-rt-natives-solaris-i586.jar" />
+        <available file="${nativewindow.dist.dir}/nativewindow-solx86/nativewindow.jar" />
+        <available file="${nativewindow.dist.dir}/nativewindow-solx86/32/libnativewindow.so" />
+        <available file="${nativewindow.dist.dir}/nativewindow-solx86/32/libnativewindow_awt.so" />
+        <available file="${nativewindow.dist.dir}/nativewindow-solx86/32/libgluegen-rt.so" />
+        <available file="${nativewindow.dist.dir}/nativewindow-solx86/32/gluegen-rt-natives-solaris-i586.jar" />
       </and>
     </condition>
     <fail unless="solx86.complete">
@@ -1100,13 +1100,13 @@
         </fail>
     </target>
 
-    <target name="dist.check.solamd64" if="nwi.dist.dir">
+    <target name="dist.check.solamd64" if="nativewindow.dist.dir">
         <condition property="solamd64.complete">
       <and>
-        <available file="${nwi.dist.dir}/nwi-solx86/64/libnwi.so" />
-        <available file="${nwi.dist.dir}/nwi-solx86/64/libnwi_awt.so" />
-        <available file="${nwi.dist.dir}/nwi-solx86/64/libgluegen-rt.so" />
-        <available file="${nwi.dist.dir}/nwi-solx86/64/gluegen-rt-natives-solaris-amd64.jar" />
+        <available file="${nativewindow.dist.dir}/nativewindow-solx86/64/libnativewindow.so" />
+        <available file="${nativewindow.dist.dir}/nativewindow-solx86/64/libnativewindow_awt.so" />
+        <available file="${nativewindow.dist.dir}/nativewindow-solx86/64/libgluegen-rt.so" />
+        <available file="${nativewindow.dist.dir}/nativewindow-solx86/64/gluegen-rt-natives-solaris-amd64.jar" />
       </and>
     </condition>
     <fail unless="solamd64.complete">
@@ -1124,31 +1124,31 @@
     <!--   zip.os.arch    = the os/arch combination for this zip file (i.e., "windows-i586") -->
     <!--   zip.src.so.dir = the directory containing the .so's / .dll's / .jnilib's for this platform-->
     <target name="dist.build.zip">
-        <property name="nwi.tmp.version" value="nwi-${tmp.version}-${zip.os.arch}" />
+        <property name="nativewindow.tmp.version" value="nativewindow-${tmp.version}-${zip.os.arch}" />
         <!-- Create all needed directories -->
-        <delete dir="${nwi.dist.dir}/tmp" failonerror="false" />
-        <mkdir dir="${nwi.dist.dir}/tmp/${nwi.tmp.version}/lib" />
+        <delete dir="${nativewindow.dist.dir}/tmp" failonerror="false" />
+        <mkdir dir="${nativewindow.dist.dir}/tmp/${nativewindow.tmp.version}/lib" />
         <!-- Copy in files -->
-        <copy todir="${nwi.dist.dir}/tmp/${nwi.tmp.version}/lib">
+        <copy todir="${nativewindow.dist.dir}/tmp/${nativewindow.tmp.version}/lib">
             <fileset dir="${zip.src.so.dir}" includes="*${zip.so.suffix}" />
         </copy>
-        <copy file="${nwi.dist.dir}/nwi.jar" todir="${nwi.dist.dir}/tmp/${nwi.tmp.version}/lib" />
-        <copy file="${nwi.dist.dir}/gluegen-rt.jar" todir="${nwi.dist.dir}/tmp/${nwi.tmp.version}/lib" />
-        <copy file="../CHANGELOG.txt"          todir="${nwi.dist.dir}/tmp/${nwi.tmp.version}" />
-        <copy file="../COPYRIGHT.txt"          todir="${nwi.dist.dir}/tmp/${nwi.tmp.version}" />
-        <copy file="../LICENSE.txt"            tofile="${nwi.dist.dir}/tmp/${nwi.tmp.version}/LICENSE-NWI-${tmp.version}.txt" />
+        <copy file="${nativewindow.dist.dir}/nativewindow.jar" todir="${nativewindow.dist.dir}/tmp/${nativewindow.tmp.version}/lib" />
+        <copy file="${nativewindow.dist.dir}/gluegen-rt.jar" todir="${nativewindow.dist.dir}/tmp/${nativewindow.tmp.version}/lib" />
+        <copy file="../CHANGELOG.txt"          todir="${nativewindow.dist.dir}/tmp/${nativewindow.tmp.version}" />
+        <copy file="../COPYRIGHT.txt"          todir="${nativewindow.dist.dir}/tmp/${nativewindow.tmp.version}" />
+        <copy file="../LICENSE.txt"            tofile="${nativewindow.dist.dir}/tmp/${nativewindow.tmp.version}/LICENSE-NATIVEWINDOW-${tmp.version}.txt" />
         <copy file="README-zip-bundles.txt"
-          tofile="${nwi.dist.dir}/tmp/${nwi.tmp.version}/README.txt"
+          tofile="${nativewindow.dist.dir}/tmp/${nativewindow.tmp.version}/README.txt"
           overwrite="true">
           <filterset>
               <filter token="VERSION" value="${tmp.version}"/>
           </filterset>
         </copy>
-        <copy file="../doc/userguide/index.html" tofile="${nwi.dist.dir}/tmp/${nwi.tmp.version}/Userguide.html" />
+        <copy file="../doc/userguide/index.html" tofile="${nativewindow.dist.dir}/tmp/${nativewindow.tmp.version}/Userguide.html" />
         <!-- zip it up -->
-        <zip destfile="${nwi.dist.dir}/${nwi.tmp.version}.zip"
-         basedir="${nwi.dist.dir}/tmp"
-         includes="${nwi.tmp.version}/**" />
+        <zip destfile="${nativewindow.dist.dir}/${nativewindow.tmp.version}.zip"
+         basedir="${nativewindow.dist.dir}/tmp"
+         includes="${nativewindow.tmp.version}/**" />
     </target>
 
     <target name="setup-version-RI" if="RImanifestfile">
@@ -1164,160 +1164,160 @@
 
     <target name="dist" depends="dist.dir.check,dist.check.windows,dist.check.windows-amd64,dist.check.linux,dist.check.linux-amd64,dist.check.macosx,dist.check.macosxfat,dist.check.solsparc,dist.check.solsparcv9,dist.check.solx86,dist.check.solamd64,setup-version-RI,setup-version-non-RI">
         <delete>
-            <fileset dir="${nwi.dist.dir}" includes="*.jar" />
+            <fileset dir="${nativewindow.dist.dir}" includes="*.jar" />
         </delete>
         <delete>
-            <fileset dir="${nwi.dist.dir}" includes="*.zip" />
+            <fileset dir="${nativewindow.dist.dir}" includes="*.zip" />
         </delete>
-        <delete dir="${nwi.dist.dir}/tmp" failonerror="false" />
-        <delete dir="${nwi.dist.dir}/META-INF" failonerror="false" />
+        <delete dir="${nativewindow.dist.dir}/tmp" failonerror="false" />
+        <delete dir="${nativewindow.dist.dir}/META-INF" failonerror="false" />
         <!-- Extract manifest from one of the jars to re-use it in the dist jar -->
-        <unjar src="${nwi.dist.dir}/nwi-win/nwi.jar" dest="${nwi.dist.dir}" >
+        <unjar src="${nativewindow.dist.dir}/nativewindow-win/nativewindow.jar" dest="${nativewindow.dist.dir}" >
             <patternset>
                 <include name="META-INF/MANIFEST.MF" />
             </patternset>
         </unjar>
         <!-- Build jar files suitable for Java Web Start -->
-        <jar manifest="${nwi.dist.dir}/META-INF/MANIFEST.MF" destfile="${nwi.dist.dir}/nwi.jar" duplicate="preserve">
-        <zipgroupfileset dir="${nwi.dist.dir}"
-                         includes="nwi-win/nwi.jar, nwi-linux/nwi.jar, nwi-macosx/nwi.jar" />
+        <jar manifest="${nativewindow.dist.dir}/META-INF/MANIFEST.MF" destfile="${nativewindow.dist.dir}/nativewindow.jar" duplicate="preserve">
+        <zipgroupfileset dir="${nativewindow.dist.dir}"
+                         includes="nativewindow-win/nativewindow.jar, nativewindow-linux/nativewindow.jar, nativewindow-macosx/nativewindow.jar" />
         </jar>
         <!-- Apply Pack200 repacking to allow later compression by that mechanism -->
         <apply executable="pack200" verbose="true" >
             <arg value="--repack" />
-            <fileset file="${nwi.dist.dir}/nwi.jar" />
+            <fileset file="${nativewindow.dist.dir}/nativewindow.jar" />
         </apply>
-        <jar destfile="${nwi.dist.dir}/nwi-natives-windows-i586.jar"
-             basedir="${nwi.dist.dir}/nwi-win/32"
-             includes="nwi.dll,nwi_awt.dll" />
-        <jar destfile="${nwi.dist.dir}/nwi-natives-windows-amd64.jar"
-             basedir="${nwi.dist.dir}/nwi-win/64"
-             includes="nwi.dll,nwi_awt.dll" />
-        <jar destfile="${nwi.dist.dir}/nwi-natives-linux-i586.jar"
-             basedir="${nwi.dist.dir}/nwi-linux/32"
-             includes="libnwi.so,libnwi_awt.so" />
-        <jar destfile="${nwi.dist.dir}/nwi-natives-linux-amd64.jar"
-             basedir="${nwi.dist.dir}/nwi-linux/64"
-             includes="libnwi.so,libnwi_awt.so" />
-        <jar destfile="${nwi.dist.dir}/nwi-natives-macosx-ppc.jar"
-             basedir="${nwi.dist.dir}/nwi-macosx/ppc"
-             includes="libnwi.jnilib,libnwi_awt.jnilib" />
-        <jar destfile="${nwi.dist.dir}/nwi-natives-macosx-universal.jar"
-             basedir="${nwi.dist.dir}/nwi-macosx/fat"
-             includes="libnwi.jnilib,libnwi_awt.jnilib" />
-        <jar destfile="${nwi.dist.dir}/nwi-natives-solaris-sparc.jar"
-             basedir="${nwi.dist.dir}/nwi-solsparc/32"
-             includes="libnwi.so,libnwi_awt.so" />
-        <jar destfile="${nwi.dist.dir}/nwi-natives-solaris-sparcv9.jar"
-             basedir="${nwi.dist.dir}/nwi-solsparc/64"
-             includes="libnwi.so,libnwi_awt.so" />
-        <jar destfile="${nwi.dist.dir}/nwi-natives-solaris-i586.jar"
-             basedir="${nwi.dist.dir}/nwi-solx86/32"
-             includes="libnwi.so,libnwi_awt.so" />
-        <jar destfile="${nwi.dist.dir}/nwi-natives-solaris-amd64.jar"
-             basedir="${nwi.dist.dir}/nwi-solx86/64"
-             includes="libnwi.so,libnwi_awt.so" />
+        <jar destfile="${nativewindow.dist.dir}/nativewindow-natives-windows-i586.jar"
+             basedir="${nativewindow.dist.dir}/nativewindow-win/32"
+             includes="nativewindow.dll,nativewindow_awt.dll" />
+        <jar destfile="${nativewindow.dist.dir}/nativewindow-natives-windows-amd64.jar"
+             basedir="${nativewindow.dist.dir}/nativewindow-win/64"
+             includes="nativewindow.dll,nativewindow_awt.dll" />
+        <jar destfile="${nativewindow.dist.dir}/nativewindow-natives-linux-i586.jar"
+             basedir="${nativewindow.dist.dir}/nativewindow-linux/32"
+             includes="libnativewindow.so,libnativewindow_awt.so" />
+        <jar destfile="${nativewindow.dist.dir}/nativewindow-natives-linux-amd64.jar"
+             basedir="${nativewindow.dist.dir}/nativewindow-linux/64"
+             includes="libnativewindow.so,libnativewindow_awt.so" />
+        <jar destfile="${nativewindow.dist.dir}/nativewindow-natives-macosx-ppc.jar"
+             basedir="${nativewindow.dist.dir}/nativewindow-macosx/ppc"
+             includes="libnativewindow.jnilib,libnativewindow_awt.jnilib" />
+        <jar destfile="${nativewindow.dist.dir}/nativewindow-natives-macosx-universal.jar"
+             basedir="${nativewindow.dist.dir}/nativewindow-macosx/fat"
+             includes="libnativewindow.jnilib,libnativewindow_awt.jnilib" />
+        <jar destfile="${nativewindow.dist.dir}/nativewindow-natives-solaris-sparc.jar"
+             basedir="${nativewindow.dist.dir}/nativewindow-solsparc/32"
+             includes="libnativewindow.so,libnativewindow_awt.so" />
+        <jar destfile="${nativewindow.dist.dir}/nativewindow-natives-solaris-sparcv9.jar"
+             basedir="${nativewindow.dist.dir}/nativewindow-solsparc/64"
+             includes="libnativewindow.so,libnativewindow_awt.so" />
+        <jar destfile="${nativewindow.dist.dir}/nativewindow-natives-solaris-i586.jar"
+             basedir="${nativewindow.dist.dir}/nativewindow-solx86/32"
+             includes="libnativewindow.so,libnativewindow_awt.so" />
+        <jar destfile="${nativewindow.dist.dir}/nativewindow-natives-solaris-amd64.jar"
+             basedir="${nativewindow.dist.dir}/nativewindow-solx86/64"
+             includes="libnativewindow.so,libnativewindow_awt.so" />
         <!-- Copy gluegen-rt.jar from Linux build (arbitrary; this jar is platform-independent) -->
-        <copy file="${nwi.dist.dir}/nwi-linux/gluegen-rt.jar" todir="${nwi.dist.dir}" />
+        <copy file="${nativewindow.dist.dir}/nativewindow-linux/gluegen-rt.jar" todir="${nativewindow.dist.dir}" />
         <!-- Copy gluegen-rt native jars out of platform-specific subdirectories -->
-        <copy todir="${nwi.dist.dir}">
-            <fileset dir="${nwi.dist.dir}/nwi-win/32" includes="gluegen-natives-*.jar" />
+        <copy todir="${nativewindow.dist.dir}">
+            <fileset dir="${nativewindow.dist.dir}/nativewindow-win/32" includes="gluegen-natives-*.jar" />
         </copy>
-        <copy todir="${nwi.dist.dir}">
-            <fileset dir="${nwi.dist.dir}/nwi-win/64" includes="gluegen-natives-*.jar" />
+        <copy todir="${nativewindow.dist.dir}">
+            <fileset dir="${nativewindow.dist.dir}/nativewindow-win/64" includes="gluegen-natives-*.jar" />
         </copy>
-        <copy todir="${nwi.dist.dir}">
-            <fileset dir="${nwi.dist.dir}/nwi-linux/32" includes="gluegen-natives-*.jar" />
+        <copy todir="${nativewindow.dist.dir}">
+            <fileset dir="${nativewindow.dist.dir}/nativewindow-linux/32" includes="gluegen-natives-*.jar" />
         </copy>
-        <copy todir="${nwi.dist.dir}">
-            <fileset dir="${nwi.dist.dir}/nwi-linux/64" includes="gluegen-natives-*.jar" />
+        <copy todir="${nativewindow.dist.dir}">
+            <fileset dir="${nativewindow.dist.dir}/nativewindow-linux/64" includes="gluegen-natives-*.jar" />
         </copy>
-        <copy todir="${nwi.dist.dir}">
-            <fileset dir="${nwi.dist.dir}/nwi-macosx/ppc" includes="gluegen-natives-*.jar" />
+        <copy todir="${nativewindow.dist.dir}">
+            <fileset dir="${nativewindow.dist.dir}/nativewindow-macosx/ppc" includes="gluegen-natives-*.jar" />
         </copy>
-        <copy todir="${nwi.dist.dir}">
-            <fileset dir="${nwi.dist.dir}/nwi-macosx/fat" includes="gluegen-natives-*.jar" />
+        <copy todir="${nativewindow.dist.dir}">
+            <fileset dir="${nativewindow.dist.dir}/nativewindow-macosx/fat" includes="gluegen-natives-*.jar" />
         </copy>
-        <copy todir="${nwi.dist.dir}">
-            <fileset dir="${nwi.dist.dir}/nwi-solsparc/32" includes="gluegen-natives-*.jar" />
+        <copy todir="${nativewindow.dist.dir}">
+            <fileset dir="${nativewindow.dist.dir}/nativewindow-solsparc/32" includes="gluegen-natives-*.jar" />
         </copy>
-        <copy todir="${nwi.dist.dir}">
-            <fileset dir="${nwi.dist.dir}/nwi-solsparc/64" includes="gluegen-natives-*.jar" />
+        <copy todir="${nativewindow.dist.dir}">
+            <fileset dir="${nativewindow.dist.dir}/nativewindow-solsparc/64" includes="gluegen-natives-*.jar" />
         </copy>
-        <copy todir="${nwi.dist.dir}">
-            <fileset dir="${nwi.dist.dir}/nwi-solx86/32" includes="gluegen-natives-*.jar" />
+        <copy todir="${nativewindow.dist.dir}">
+            <fileset dir="${nativewindow.dist.dir}/nativewindow-solx86/32" includes="gluegen-natives-*.jar" />
         </copy>
-        <copy todir="${nwi.dist.dir}">
-            <fileset dir="${nwi.dist.dir}/nwi-solx86/64" includes="gluegen-natives-*.jar" />
+        <copy todir="${nativewindow.dist.dir}">
+            <fileset dir="${nativewindow.dist.dir}/nativewindow-solx86/64" includes="gluegen-natives-*.jar" />
         </copy>
 
-        <zip destfile="${nwi.dist.dir}/nwi-${tmp.version}-src.zip"
+        <zip destfile="${nativewindow.dist.dir}/nativewindow-${tmp.version}-src.zip"
          basedir="../.."
-         includes="jogl/*.txt,jogl/${rootrel.build.nwi}/gensrc/classes/javax/media/nwi/**,jogl/doc/**,jogl/make/**,jogl/src/nwi/**"
+         includes="jogl/*.txt,jogl/${rootrel.build.nativewindow}/gensrc/classes/javax/media/nativewindow/**,jogl/doc/**,jogl/make/**,jogl/src/nativewindow/**"
          excludes="**/*.class,**/*~"
          />
         <!-- Create zip archives suitable for developers -->
         <!-- Unfortunately, we have to replicate the os/arch name combinations from
              gluegen-cpptasks.xml. The reason for this is that we can't generate these
              zip archives on the platform where the builds run; we have to run the dist
-             target in order to get the platform-independent nwi.jar. -->
+             target in order to get the platform-independent nativewindow.jar. -->
         <antcall target="dist.build.zip" inheritAll="true">
             <param name="zip.os.arch"    value="linux-i586" />
             <param name="zip.so.suffix"  value=".so" />
-            <param name="zip.src.so.dir" value="${nwi.dist.dir}/nwi-linux/32" />
+            <param name="zip.src.so.dir" value="${nativewindow.dist.dir}/nativewindow-linux/32" />
         </antcall>
         <antcall target="dist.build.zip" inheritAll="true">
             <param name="zip.os.arch"    value="linux-amd64" />
             <param name="zip.so.suffix"  value=".so" />
-            <param name="zip.src.so.dir" value="${nwi.dist.dir}/nwi-linux/64" />
+            <param name="zip.src.so.dir" value="${nativewindow.dist.dir}/nativewindow-linux/64" />
         </antcall>
         <antcall target="dist.build.zip" inheritAll="true">
             <param name="zip.os.arch"    value="macosx-ppc" />
             <param name="zip.so.suffix"  value=".jnilib" />
-            <param name="zip.src.so.dir" value="${nwi.dist.dir}/nwi-macosx/ppc" />
+            <param name="zip.src.so.dir" value="${nativewindow.dist.dir}/nativewindow-macosx/ppc" />
         </antcall>
         <antcall target="dist.build.zip" inheritAll="true">
             <param name="zip.os.arch"    value="macosx-universal" />
             <param name="zip.so.suffix"  value=".jnilib" />
-            <param name="zip.src.so.dir" value="${nwi.dist.dir}/nwi-macosx/fat" />
+            <param name="zip.src.so.dir" value="${nativewindow.dist.dir}/nativewindow-macosx/fat" />
         </antcall>
         <antcall target="dist.build.zip" inheritAll="true">
             <param name="zip.os.arch"    value="solaris-i586" />
             <param name="zip.so.suffix"  value=".so" />
-            <param name="zip.src.so.dir" value="${nwi.dist.dir}/nwi-solx86/32" />
+            <param name="zip.src.so.dir" value="${nativewindow.dist.dir}/nativewindow-solx86/32" />
         </antcall>
         <antcall target="dist.build.zip" inheritAll="true">
             <param name="zip.os.arch"    value="solaris-amd64" />
             <param name="zip.so.suffix"  value=".so" />
-            <param name="zip.src.so.dir" value="${nwi.dist.dir}/nwi-solx86/64" />
+            <param name="zip.src.so.dir" value="${nativewindow.dist.dir}/nativewindow-solx86/64" />
         </antcall>
         <antcall target="dist.build.zip" inheritAll="true">
             <param name="zip.os.arch"    value="solaris-sparc" />
             <param name="zip.so.suffix"  value=".so" />
-            <param name="zip.src.so.dir" value="${nwi.dist.dir}/nwi-solsparc/32" />
+            <param name="zip.src.so.dir" value="${nativewindow.dist.dir}/nativewindow-solsparc/32" />
         </antcall>
         <antcall target="dist.build.zip" inheritAll="true">
             <param name="zip.os.arch"    value="solaris-sparcv9" />
             <param name="zip.so.suffix"  value=".so" />
-            <param name="zip.src.so.dir" value="${nwi.dist.dir}/nwi-solsparc/64" />
+            <param name="zip.src.so.dir" value="${nativewindow.dist.dir}/nativewindow-solsparc/64" />
         </antcall>
         <antcall target="dist.build.zip" inheritAll="true">
             <param name="zip.os.arch"    value="windows-i586" />
             <param name="zip.so.suffix"  value=".dll" />
-            <param name="zip.src.so.dir" value="${nwi.dist.dir}/nwi-win/32" />
+            <param name="zip.src.so.dir" value="${nativewindow.dist.dir}/nativewindow-win/32" />
         </antcall>
         <antcall target="dist.build.zip" inheritAll="true">
             <param name="zip.os.arch"    value="windows-amd64" />
             <param name="zip.so.suffix"  value=".dll" />
-            <param name="zip.src.so.dir" value="${nwi.dist.dir}/nwi-win/64" />
+            <param name="zip.src.so.dir" value="${nativewindow.dist.dir}/nativewindow-win/64" />
         </antcall>
         <!-- Create one last zip archive by hand, this one containing all of the -->
         <!-- Java Web Start jar files (for easier redistribution) -->
-        <zip destfile="${nwi.dist.dir}/nwi-${tmp.version}-webstart.zip"
-         basedir="${nwi.dist.dir}"
+        <zip destfile="${nativewindow.dist.dir}/nativewindow-${tmp.version}-webstart.zip"
+         basedir="${nativewindow.dist.dir}"
          includes="*.jar" />
         <!-- Create a version.txt file indicating which version we just built -->
-        <echo message="${tmp.version}" file="${nwi.dist.dir}/version.txt" />
+        <echo message="${tmp.version}" file="${nativewindow.dist.dir}/version.txt" />
     </target>
 
     <!-- ================================================================== -->
@@ -1337,7 +1337,7 @@
     <!--
        - Build everything.
       -->
-    <target name="all" description="Build NWI JAR file(s) and native libraries." depends="load.user.properties,init,jar,c.build.nwi" />
+    <target name="all" description="Build NativeWindow JAR file(s) and native libraries." depends="load.user.properties,init,jar,c.build.nativewindow" />
 
     <!-- ================================================================== -->
     <!--
@@ -1345,10 +1345,10 @@
        - indicate this is the Reference Implementation.
       -->
     <target name="RI">
-        <!-- Set property for using the RI manifest file so nwi.jar is versioned
+        <!-- Set property for using the RI manifest file so nativewindow.jar is versioned
            - properly
           -->
-          <property name="RImanifestfile" value="nwiRIversion" />
+          <property name="RImanifestfile" value="nativewindowRIversion" />
           <antcall target="all" inheritRefs="true" />
     </target>
 </project>

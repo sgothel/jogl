@@ -37,7 +37,7 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package javax.media.nwi;
+package javax.media.nativewindow;
 
 /** Provides a mechanism by which applications can customize the
     window type selection for a given {@link NWCapabilities}.

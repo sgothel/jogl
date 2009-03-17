@@ -30,14 +30,14 @@
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  */
 
-package javax.media.nwi;
+package javax.media.nativewindow;
 
-import javax.media.nwi.*;
+import javax.media.nativewindow.*;
 import java.lang.reflect.*;
 import java.security.*;
 import java.util.*;
 
-import com.sun.nwi.impl.*;
+import com.sun.nativewindow.impl.*;
 
 /** Provides the link between the window toolkit and the Java binding
     to the OpenGL API. The NativeWindowFactory, and NativeWindow
@@ -69,7 +69,7 @@ public abstract class NativeWindowFactory {
         // make it easier to run this code on mobile devices
 
         NativeWindowFactory factory = new NativeWindowFactoryImpl();
-        nativeWindowClass = javax.media.nwi.NativeWindow.class;
+        nativeWindowClass = javax.media.nativewindow.NativeWindow.class;
         registerFactory(nativeWindowClass, factory);
         defaultFactory = factory;
         
@@ -84,7 +84,7 @@ public abstract class NativeWindowFactory {
                 // Assume X11 platform -- should probably test for these explicitly
                 try {
                     Constructor factoryConstructor =
-                        NWReflection.getConstructor("com.sun.nwi.impl.x11.awt.X11AWTNativeWindowFactory", new Class[] {});
+                        NWReflection.getConstructor("com.sun.nativewindow.impl.x11.awt.X11AWTNativeWindowFactory", new Class[] {});
                     factory = (NativeWindowFactory) factoryConstructor.newInstance(null);
                 } catch (Exception e) { }
             }

@@ -37,10 +37,10 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package javax.media.nwi.awt;
+package javax.media.nativewindow.awt;
 
 import java.awt.GraphicsConfiguration;
-import javax.media.nwi.AbstractGraphicsConfiguration;
+import javax.media.nativewindow.AbstractGraphicsConfiguration;
 
 /** A wrapper for an AWT GraphicsConfiguration allowing it to be
     handled in a toolkit-independent manner. */

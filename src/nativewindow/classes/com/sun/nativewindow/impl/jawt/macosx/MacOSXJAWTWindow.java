@@ -37,16 +37,15 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.sun.nwi.impl.jawt.macosx;
+package com.sun.nativewindow.impl.jawt.macosx;
 
-import com.sun.nwi.impl.jawt.*;
-import com.sun.nwi.impl.*;
+import com.sun.nativewindow.impl.jawt.*;
+import com.sun.nativewindow.impl.*;
 
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 
-import javax.media.nwi.*;
-import javax.media.nwi.*;
+import javax.media.nativewindow.*;
 import java.security.*;
 
 public class MacOSXJAWTWindow extends JAWTWindow {

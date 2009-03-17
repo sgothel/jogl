@@ -37,9 +37,9 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.sun.nwi.impl.jawt;
+package com.sun.nativewindow.impl.jawt;
 
-import com.sun.nwi.impl.*;
+import com.sun.nativewindow.impl.*;
 
 /** Marker class for all window system-specific JAWT data structures. */
 

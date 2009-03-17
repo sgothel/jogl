@@ -37,7 +37,7 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package javax.media.nwi;
+package javax.media.nativewindow;
 
 /** A marker interface describing a graphics device in a
     toolkit-independent manner. */

@@ -37,7 +37,7 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.sun.nwi.impl;
+package com.sun.nativewindow.impl;
 
 import java.security.*;
 
@@ -49,13 +49,13 @@ public class Debug {
   private static boolean debugAll;
   
   static {
-    verbose = isPropertyDefined("nwi.verbose");
-    debugAll = isPropertyDefined("nwi.debug");
+    verbose = isPropertyDefined("nativewindow.verbose");
+    debugAll = isPropertyDefined("nativewindow.debug");
     if (verbose) {
-       Package p = Package.getPackage("javax.media.nwi");
-       System.err.println("NWI specification version " + p.getSpecificationVersion());
-       System.err.println("NWI implementation version " + p.getImplementationVersion());
-       System.err.println("NWI implementation vendor " + p.getImplementationVendor());
+       Package p = Package.getPackage("javax.media.nativewindow");
+       System.err.println("NativeWindow specification version " + p.getSpecificationVersion());
+       System.err.println("NativeWindow implementation version " + p.getImplementationVersion());
+       System.err.println("NativeWindow implementation vendor " + p.getImplementationVendor());
     }
   }
 
@@ -88,6 +88,6 @@ public class Debug {
   }
 
   public static boolean debug(String subcomponent) {
-    return debugAll() || isPropertyDefined("nwi.debug." + subcomponent);
+    return debugAll() || isPropertyDefined("nativewindow.debug." + subcomponent);
   }
 }

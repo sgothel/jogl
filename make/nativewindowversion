@@ -4,5 +4,5 @@ Specification-Vendor: Sun Microsystems, Inc.
 Implementation-Title: Native Window Interface Runtime Environment
 Implementation-Version: @VERSION@
 Implementation-Vendor: java.net JOGL community
-Extension-Name: javax.media.nwi
+Extension-Name: javax.media.nativewindow
 Implementation-Vendor-Id: com.sun

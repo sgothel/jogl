@@ -34,17 +34,17 @@
  * facility.
  */
 
-package com.sun.nwi.impl.jawt;
+package com.sun.nativewindow.impl.jawt;
 
-import com.sun.nwi.impl.*;
+import com.sun.nativewindow.impl.*;
 
-import javax.media.nwi.*;
+import javax.media.nativewindow.*;
 
 import java.awt.GraphicsEnvironment;
 
 public class JAWTUtil {
   static {
-        NativeLibLoaderBase.loadNWI("awt");
+        NativeLibLoaderBase.loadNativeWindow("awt");
   }
 
   // See whether we're running in headless mode

@@ -30,15 +30,15 @@
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  */
 
-package com.sun.nwi.impl.x11;
+package com.sun.nativewindow.impl.x11;
 
-import javax.media.nwi.*;
+import javax.media.nativewindow.*;
 
-import com.sun.nwi.impl.*;
+import com.sun.nativewindow.impl.*;
 
 public class X11Util {
     static {
-        NativeLibLoaderBase.loadNWI("x11");
+        NativeLibLoaderBase.loadNativeWindow("x11");
     }
 
     private static final boolean DEBUG = Debug.debug("X11Util");

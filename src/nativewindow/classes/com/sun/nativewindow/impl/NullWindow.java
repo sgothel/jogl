@@ -34,9 +34,9 @@
  * facility.
  */
 
-package com.sun.nwi.impl;
+package com.sun.nativewindow.impl;
 
-import javax.media.nwi.*;
+import javax.media.nativewindow.*;
 
 public class NullWindow implements NativeWindow {
   protected boolean locked;

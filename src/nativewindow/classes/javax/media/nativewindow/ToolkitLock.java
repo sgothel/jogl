@@ -30,7 +30,7 @@
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  */
 
-package javax.media.nwi;
+package javax.media.nativewindow;
 
 /** Provides an interface for locking and unlocking the underlying
     window toolkit, where this is necessary in the OpenGL

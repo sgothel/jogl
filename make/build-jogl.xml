@@ -355,7 +355,7 @@
         <property name="gluegen.build.xml" value="${gluegen.make.dir}/build.xml" />
         <property name="gluegen.jar" value="../../gluegen/${rootrel.build}/gluegen.jar" />
         <property name="gluegen-rt.jar" value="../../gluegen/${rootrel.build}/gluegen-rt.jar" />
-        <property name="nwi.all.jar" value="../${rootrel.build}-nwi/nwi.all.jar" />
+        <property name="nativewindow.all.jar" value="../${rootrel.build}-nativewindow/nativewindow.all.jar" />
                                                 
         <!-- The source directories. -->
         <property name="src.java" value="${project.root}/${rootrel.src.java}" />
@@ -428,8 +428,8 @@
           <pathelement location="${antlr.jar}" />
         </path>
 
-        <path id="nwigluegen.classpath">
-            <pathelement location="${nwi.all.jar}" />
+        <path id="nativewindow_gluegen.classpath">
+            <pathelement location="${nativewindow.all.jar}" />
             <pathelement location="${gluegen-rt.jar}" />
         </path>
 
@@ -1104,7 +1104,7 @@
                fork="yes"
                memoryMaximumSize="128m"
                source="1.4" debug="${javacdebug}" debuglevel="${javacdebuglevel}">
-            <classpath refid="nwigluegen.classpath"/>
+            <classpath refid="nativewindow_gluegen.classpath"/>
             <src path="${src.java}" />
             <src path="${src.generated.java}" />
         </javac>
@@ -1119,7 +1119,7 @@
                fork="yes"
                memoryMaximumSize="128m"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
-            <classpath refid="nwigluegen.classpath"/>
+            <classpath refid="nativewindow_gluegen.classpath"/>
             <src path="${src.java}" />
             <src path="${src.generated.java}" />
         </javac>
@@ -1133,7 +1133,7 @@
                fork="yes"
                memoryMaximumSize="128m"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
-            <classpath refid="nwigluegen.classpath"/>
+            <classpath refid="nativewindow_gluegen.classpath"/>
             <src path="${src.java}" />
             <src path="${src.generated.java}" />
         </javac>
@@ -1150,7 +1150,7 @@
                fork="yes"
                memoryMaximumSize="128m"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
-            <classpath refid="nwigluegen.classpath"/>
+            <classpath refid="nativewindow_gluegen.classpath"/>
             <src path="${src.generated.java}" />
         </javac>
     </target>
@@ -1163,7 +1163,7 @@
                fork="yes"
                memoryMaximumSize="128m"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
-            <classpath refid="nwigluegen.classpath"/>
+            <classpath refid="nativewindow_gluegen.classpath"/>
             <src path="${src.generated.java}" />
         </javac>
     </target>
@@ -1758,7 +1758,7 @@
                  source="1.4"
                  linkoffline="${javadoc.link} 142-packages"
          bottom="${javadoc.bottom}" >
-          <classpath refid="nwigluegen.classpath"/>
+          <classpath refid="nativewindow_gluegen.classpath"/>
           <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.jar}" />
         </javadoc>
     </target>
@@ -1774,7 +1774,7 @@
                  source="1.4"
                  linkoffline="${javadoc.link} 142-packages"
          bottom="${javadoc.bottom}" >
-          <classpath refid="nwigluegen.classpath"/>
+          <classpath refid="nativewindow_gluegen.classpath"/>
           <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.jar}" />
         </javadoc>
     </target>
@@ -1791,7 +1791,7 @@
                  source="1.4"
                  linkoffline="${javadoc.link} 142-packages"
                  bottom="${javadoc.bottom}" >
-          <classpath refid="nwigluegen.classpath"/>
+          <classpath refid="nativewindow_gluegen.classpath"/>
           <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.jar}" />
         </javadoc>
     </target>
@@ -1807,7 +1807,7 @@
                  source="1.4"
                  linkoffline="${javadoc.link} 142-packages"
                  bottom="${javadoc.bottom}" >
-          <classpath refid="nwigluegen.classpath"/>
+          <classpath refid="nativewindow_gluegen.classpath"/>
           <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.jar}" />
         </javadoc>
     </target>
@@ -1824,7 +1824,7 @@
                  source="1.4"
                  linkoffline="${javadoc.link} 142-packages"
          bottom="${javadoc.bottom}" >
-          <classpath refid="nwigluegen.classpath"/>
+          <classpath refid="nativewindow_gluegen.classpath"/>
           <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.jar}" />
         </javadoc>
     </target>
@@ -1840,7 +1840,7 @@
                  source="1.4"
                  linkoffline="${javadoc.link} 142-packages"
          bottom="${javadoc.bottom}" >
-          <classpath refid="nwigluegen.classpath"/>
+          <classpath refid="nativewindow_gluegen.classpath"/>
           <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.jar}" />
         </javadoc>
     </target>

@@ -37,9 +37,9 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package javax.media.nwi;
+package javax.media.nativewindow;
 
-/** A generic exception for NWI errors used throughout the binding
+/** A generic exception for errors used throughout the binding
     as a substitute for {@link RuntimeException}. */
 
 public class NWException extends RuntimeException {

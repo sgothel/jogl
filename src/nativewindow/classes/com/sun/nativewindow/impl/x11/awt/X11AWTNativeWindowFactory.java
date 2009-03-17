@@ -30,17 +30,17 @@
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  */
 
-package com.sun.nwi.impl.x11.awt;
+package com.sun.nativewindow.impl.x11.awt;
 
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
-import javax.media.nwi.*;
+import javax.media.nativewindow.*;
 
-import com.sun.nwi.impl.*;
-import com.sun.nwi.impl.jawt.*;
-import com.sun.nwi.impl.jawt.x11.*;
-import com.sun.nwi.impl.x11.*;
+import com.sun.nativewindow.impl.*;
+import com.sun.nativewindow.impl.jawt.*;
+import com.sun.nativewindow.impl.jawt.x11.*;
+import com.sun.nativewindow.impl.x11.*;
 
 public class X11AWTNativeWindowFactory extends NativeWindowFactoryImpl {
 

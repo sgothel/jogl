@@ -37,10 +37,10 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package javax.media.nwi.awt;
+package javax.media.nativewindow.awt;
 
 import java.awt.GraphicsDevice;
-import javax.media.nwi.AbstractGraphicsDevice;
+import javax.media.nativewindow.AbstractGraphicsDevice;
 
 /** A wrapper for an AWT GraphicsDevice allowing it to be
     handled in a toolkit-independent manner. */

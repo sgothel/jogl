@@ -37,12 +37,12 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.sun.nwi.impl.jawt.windows;
+package com.sun.nativewindow.impl.jawt.windows;
 
-import com.sun.nwi.impl.jawt.*;
+import com.sun.nativewindow.impl.*;
+import com.sun.nativewindow.impl.jawt.*;
 
-import javax.media.nwi.*;
-import com.sun.nwi.impl.*;
+import javax.media.nativewindow.*;
 
 public class WindowsJAWTWindow extends JAWTWindow {
 

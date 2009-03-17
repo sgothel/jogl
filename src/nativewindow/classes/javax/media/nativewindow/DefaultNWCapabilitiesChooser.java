@@ -37,7 +37,7 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package javax.media.nwi;
+package javax.media.nativewindow;
 
 /** <P> The default implementation of the {@link
     NWCapabilitiesChooser} interface, which provides consistent visual

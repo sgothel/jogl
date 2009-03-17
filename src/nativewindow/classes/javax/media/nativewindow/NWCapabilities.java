@@ -37,7 +37,7 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package javax.media.nwi;
+package javax.media.nativewindow;
 
 /** Specifies a set of OpenGL capabilities that a rendering context
     must support, such as color depth and whether stereo is enabled.

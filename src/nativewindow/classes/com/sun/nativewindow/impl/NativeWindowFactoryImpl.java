@@ -30,12 +30,12 @@
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  */
 
-package com.sun.nwi.impl;
+package com.sun.nativewindow.impl;
 
 import java.lang.reflect.*;
 import java.security.*;
 
-import javax.media.nwi.*;
+import javax.media.nativewindow.*;
 
 public class NativeWindowFactoryImpl extends NativeWindowFactory {
     protected static final boolean DEBUG = Debug.debug("NativeWindowFactoryImpl");
@@ -57,7 +57,7 @@ public class NativeWindowFactoryImpl extends NativeWindowFactory {
 
         throw new IllegalArgumentException("Target window object type " +
                                            winObj.getClass().getName() + " is unsupported; expected " +
-                                           "javax.media.nwi.NativeWindow or java.awt.Component");
+                                           "javax.media.nativewindow.NativeWindow or java.awt.Component");
     }
     
     private Constructor nativeWindowConstructor = null;
@@ -73,12 +73,12 @@ public class NativeWindowFactoryImpl extends NativeWindowFactory {
                 // make it easier to run this code on mobile devices
 
                 if (osNameLowerCase.startsWith("wind")) {
-                    windowClassName = "com.sun.nwi.impl.jawt.windows.WindowsJAWTWindow";
+                    windowClassName = "com.sun.nativewindow.impl.jawt.windows.WindowsJAWTWindow";
                 } else if (osNameLowerCase.startsWith("mac os x")) {
-                    windowClassName = "com.sun.nwi.impl.jawt.macosx.MacOSXJAWTWindow";
+                    windowClassName = "com.sun.nativewindow.impl.jawt.macosx.MacOSXJAWTWindow";
                 } else {
                     // Assume Linux, Solaris, etc. Should probably test for these explicitly.
-                    windowClassName = "com.sun.nwi.impl.jawt.x11.X11JAWTWindow";
+                    windowClassName = "com.sun.nativewindow.impl.jawt.x11.X11JAWTWindow";
                 }
 
                 if (windowClassName == null) {

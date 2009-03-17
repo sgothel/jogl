@@ -37,9 +37,9 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.sun.nwi.impl.jawt.x11;
+package com.sun.nativewindow.impl.jawt.x11;
 
-import com.sun.nwi.impl.x11.*;
+import com.sun.nativewindow.impl.x11.*;
 
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;

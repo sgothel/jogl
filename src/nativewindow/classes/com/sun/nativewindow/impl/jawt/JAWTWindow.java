@@ -34,15 +34,14 @@
  * facility.
  */
 
-package com.sun.nwi.impl.jawt;
+package com.sun.nativewindow.impl.jawt;
 
-import com.sun.nwi.impl.*;
+import com.sun.nativewindow.impl.*;
 
 import java.awt.Component;
 import java.awt.GraphicsEnvironment;
-import javax.media.nwi.*;
-import javax.media.nwi.*;
-import com.sun.nwi.impl.*;
+import javax.media.nativewindow.*;
+import com.sun.nativewindow.impl.*;
 
 public abstract class JAWTWindow implements NativeWindow {
   protected static final boolean DEBUG = Debug.debug("GLDrawable");

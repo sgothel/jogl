@@ -34,10 +34,10 @@
  * facility.
  */
 
-package com.sun.nwi.impl;
+package com.sun.nativewindow.impl;
 
 import java.lang.reflect.*;
-import javax.media.nwi.*;
+import javax.media.nativewindow.*;
 
 public final class NWReflection {
   public static final boolean DEBUG = Debug.debug("NWReflection");
