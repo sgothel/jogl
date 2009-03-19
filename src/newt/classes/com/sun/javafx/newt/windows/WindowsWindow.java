@@ -33,7 +33,7 @@
 
 package com.sun.javafx.newt.windows;
 
-import javax.media.nativewindow.NWCapabilities;
+import javax.media.nativewindow.Capabilities;
 import javax.media.nativewindow.NativeWindowException;
 
 import com.sun.javafx.newt.*;
@@ -63,11 +63,14 @@ public class WindowsWindow extends Window {
         return hdc;
     }
 
-    protected void createNative(NWCapabilities caps) {
+    protected void createNative(Capabilities caps) {
         long wndClass = getWindowClass();
-        chosenCaps = (NWCapabilities) caps.clone(); // FIXME: visualID := f1(caps); caps := f2(visualID)
-        visualID = 0; // n/a
-        windowHandle = CreateWindow(WINDOW_CLASS_NAME, getHInstance(), visualID, x, y, width, height);
+        // FIXME: no way to really set the proper Capabilities nor the
+        // AbstractGraphicsConfiguration since we don't do (OpenGL)
+        // pixel format selection here
+        chosenCaps = (Capabilities) caps.clone(); // FIXME: visualID := f1(caps); caps := f2(visualID)
+        config = null; // n/a
+        windowHandle = CreateWindow(WINDOW_CLASS_NAME, getHInstance(), 0, x, y, width, height);
         if (windowHandle == 0) {
             throw new NativeWindowException("Error creating window");
         }

@@ -63,7 +63,7 @@ public class WindowsPbufferWGLContext extends WindowsWGLContext {
   public void bindPbufferToTexture() {
     if (!rtt) {
       throw new GLException("Shouldn't try to bind a pbuffer to a texture if render-to-texture hasn't been " +
-                            "specified in its NWCapabilities");
+                            "specified in its GLCapabilities");
     }
     GL gl = getGL();
     WGLExt wglExt = getWGLExt();
@@ -81,7 +81,7 @@ public class WindowsPbufferWGLContext extends WindowsWGLContext {
   public void releasePbufferFromTexture() {
     if (!rtt) {
       throw new GLException("Shouldn't try to bind a pbuffer to a texture if render-to-texture hasn't been " +
-                            "specified in its NWCapabilities");
+                            "specified in its GLCapabilities");
     }
     if (rtt && hasRTT) {
       WGLExt wglExt = getWGLExt();
@@ -97,7 +97,7 @@ public class WindowsPbufferWGLContext extends WindowsWGLContext {
       System.err.println("WindowsPbufferWGLContext: super.makeCurrentImpl() = " + res);
     }
     if (res == CONTEXT_CURRENT_NEW) {
-      NWCapabilities capabilities = drawable.getRequestedNWCapabilities();
+      GLCapabilities capabilities = drawable.getRequestedGLCapabilities();
 
       // Initialize render-to-texture support if requested
       GL gl = getGL();

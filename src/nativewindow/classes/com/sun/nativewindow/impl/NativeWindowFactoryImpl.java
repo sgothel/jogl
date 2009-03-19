@@ -98,14 +98,6 @@ public class NativeWindowFactoryImpl extends NativeWindowFactory {
         }
     }
 
-    // All platforms except for X11 perform the OpenGL pixel format
-    // selection lazily
-    public AbstractGraphicsConfiguration chooseGraphicsConfiguration(NWCapabilities capabilities,
-                                                                     NWCapabilitiesChooser chooser,
-                                                                     AbstractGraphicsDevice device) {
-        return null;
-    }
-
     // On most platforms the toolkit lock is a no-op
     private ToolkitLock toolkitLock = new ToolkitLock() {
             public void lock() {

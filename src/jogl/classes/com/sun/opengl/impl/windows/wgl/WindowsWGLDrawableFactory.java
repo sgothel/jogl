@@ -58,30 +58,24 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
     super();
   }
 
-  public AbstractGraphicsConfiguration chooseGraphicsConfiguration(NWCapabilities capabilities,
-                                                                   NWCapabilitiesChooser chooser,
-                                                                   AbstractGraphicsDevice device) {
-    return null;
-  }
-
   public GLDrawable createGLDrawable(NativeWindow target,
-                                  NWCapabilities capabilities,
-                                  NWCapabilitiesChooser chooser) {
+                                  GLCapabilities capabilities,
+                                  GLCapabilitiesChooser chooser) {
     if (target == null) {
       throw new IllegalArgumentException("Null target");
     }
     target = NativeWindowFactory.getNativeWindow(target);
     if (capabilities == null) {
-      capabilities = new NWCapabilities();
+      capabilities = new GLCapabilities();
     }
     if (chooser == null) {
-      chooser = new DefaultNWCapabilitiesChooser();
+      chooser = new DefaultGLCapabilitiesChooser();
     }
     return new WindowsOnscreenWGLDrawable(this, target, capabilities, chooser);
   }
 
-  public GLDrawableImpl createOffscreenDrawable(NWCapabilities capabilities,
-                                                NWCapabilitiesChooser chooser,
+  public GLDrawableImpl createOffscreenDrawable(GLCapabilities capabilities,
+                                                GLCapabilitiesChooser chooser,
                                                 int width,
                                                 int height) {
     return new WindowsOffscreenWGLDrawable(this, capabilities, chooser, width, height);
@@ -122,8 +116,8 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
     return canCreateGLPbuffer;
   }
 
-  public GLPbuffer createGLPbuffer(final NWCapabilities capabilities,
-                                   final NWCapabilitiesChooser chooser,
+  public GLPbuffer createGLPbuffer(final GLCapabilities capabilities,
+                                   final GLCapabilitiesChooser chooser,
                                    final int initialWidth,
                                    final int initialHeight,
                                    final GLContext shareWith) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2003-2009 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -37,16 +37,28 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package javax.media.nativewindow;
+package javax.media.opengl;
+
+import javax.media.nativewindow.Capabilities;
+import javax.media.nativewindow.NativeWindowException;
 
 /** <P> The default implementation of the {@link
-    CapabilitiesChooser} interface, which provides consistent visual
+    GLCapabilitiesChooser} interface, which provides consistent visual
     selection behavior across platforms. The precise algorithm is
     deliberately left loosely specified. Some properties are: </P>
 
+    <UL>
+
+    <LI> As long as there is at least one available non-null
+    GLCapabilities which matches the "stereo" option, will return a
+    valid index.
+
     <LI> Attempts to match as closely as possible the given
-    Capabilities, but will select one with fewer capabilities (i.e.,
+    GLCapabilities, but will select one with fewer capabilities (i.e.,
     lower color depth) if necessary.
+
+    <LI> Prefers hardware-accelerated visuals to
+    non-hardware-accelerated.
 
     <LI> If there is no exact match, prefers a more-capable visual to
     a less-capable one.
@@ -54,60 +66,134 @@ package javax.media.nativewindow;
     <LI> If there is more than one exact match, chooses an arbitrary
     one.
 
+    <LI> May select the opposite of a double- or single-buffered
+    visual (based on the user's request) in dire situations.
+
+    <LI> Color depth (including alpha) mismatches are weighted higher
+    than depth buffer mismatches, which are in turn weighted higher
+    than accumulation buffer (including alpha) and stencil buffer
+    depth mismatches.
+
     <LI> If a valid windowSystemRecommendedChoice parameter is
     supplied, chooses that instead of using the cross-platform code.
 
     </UL>
 */
 
-public class DefaultCapabilitiesChooser implements CapabilitiesChooser {
-  private static final boolean DEBUG = false; // FIXME: Debug.debug("DefaultCapabilitiesChooser");
+public class DefaultGLCapabilitiesChooser implements GLCapabilitiesChooser {
+  private static final boolean DEBUG = false; // FIXME: Debug.debug("DefaultGLCapabilitiesChooser");
 
   public int chooseCapabilities(Capabilities desired,
                                 Capabilities[] available,
                                 int windowSystemRecommendedChoice) {
+    GLCapabilities _desired = (GLCapabilities) desired;
+    GLCapabilities[] _available = (GLCapabilities[]) available;
+
     if (DEBUG) {
-      System.err.println("Desired: " + desired);
-      for (int i = 0; i < available.length; i++) {
-        System.err.println("Available " + i + ": " + available[i]);
+      System.err.println("Desired: " + _desired);
+      for (int i = 0; i < _available.length; i++) {
+        System.err.println("Available " + i + ": " + _available[i]);
       }
       System.err.println("Window system's recommended choice: " + windowSystemRecommendedChoice);
     }
 
     if (windowSystemRecommendedChoice >= 0 &&
-        windowSystemRecommendedChoice < available.length &&
-        available[windowSystemRecommendedChoice] != null) {
+        windowSystemRecommendedChoice < _available.length &&
+        _available[windowSystemRecommendedChoice] != null) {
       if (DEBUG) {
         System.err.println("Choosing window system's recommended choice of " + windowSystemRecommendedChoice);
-        System.err.println(available[windowSystemRecommendedChoice]);
+        System.err.println(_available[windowSystemRecommendedChoice]);
       }
       return windowSystemRecommendedChoice;
     }
 
     // Create score array
-    int[] scores = new int[available.length];
+    int[] scores = new int[_available.length];
     int NO_SCORE = -9999999;
+    int DOUBLE_BUFFER_MISMATCH_PENALTY = 1000;
+    int STENCIL_MISMATCH_PENALTY = 500;
+    // Pseudo attempt to keep equal rank penalties scale-equivalent
+    // (e.g., stencil mismatch is 3 * accum because there are 3 accum
+    // components)
     int COLOR_MISMATCH_PENALTY_SCALE     = 36;
+    int DEPTH_MISMATCH_PENALTY_SCALE     = 6;
+    int ACCUM_MISMATCH_PENALTY_SCALE     = 1;
+    int STENCIL_MISMATCH_PENALTY_SCALE   = 3;
     for (int i = 0; i < scores.length; i++) {
       scores[i] = NO_SCORE;
     }
     // Compute score for each
     for (int i = 0; i < scores.length; i++) {
-      Capabilities cur = available[i];
+      GLCapabilities cur = _available[i];
       if (cur == null) {
+        continue;
+      }
+      if (_desired.getStereo() != cur.getStereo()) {
         continue;
       }
       int score = 0;
       // Compute difference in color depth
+      // (Note that this decides the direction of all other penalties)
       score += (COLOR_MISMATCH_PENALTY_SCALE *
                 ((cur.getRedBits() + cur.getGreenBits() + cur.getBlueBits() + cur.getAlphaBits()) -
-                 (desired.getRedBits() + desired.getGreenBits() + desired.getBlueBits() + desired.getAlphaBits())));
+                 (_desired.getRedBits() + _desired.getGreenBits() + _desired.getBlueBits() + _desired.getAlphaBits())));
+      // Compute difference in depth buffer depth
+      score += (DEPTH_MISMATCH_PENALTY_SCALE * sign(score) * 
+                Math.abs(cur.getDepthBits() - _desired.getDepthBits()));
+      // Compute difference in accumulation buffer depth
+      score += (ACCUM_MISMATCH_PENALTY_SCALE * sign(score) *
+                Math.abs((cur.getAccumRedBits() + cur.getAccumGreenBits() + cur.getAccumBlueBits() + cur.getAccumAlphaBits()) -
+                         (_desired.getAccumRedBits() + _desired.getAccumGreenBits() + _desired.getAccumBlueBits() + _desired.getAccumAlphaBits())));
+      // Compute difference in stencil bits
+      score += STENCIL_MISMATCH_PENALTY_SCALE * sign(score) * (cur.getStencilBits() - _desired.getStencilBits());
+      if (cur.getDoubleBuffered() != _desired.getDoubleBuffered()) {
+        score += sign(score) * DOUBLE_BUFFER_MISMATCH_PENALTY;
+      }
+      if ((_desired.getStencilBits() > 0) && (cur.getStencilBits() == 0)) {
+        score += sign(score) * STENCIL_MISMATCH_PENALTY;
+      }
       scores[i] = score;
+    }
+    // Now prefer hardware-accelerated visuals by pushing scores of
+    // non-hardware-accelerated visuals out
+    boolean gotHW = false;
+    int maxAbsoluteHWScore = 0;
+    for (int i = 0; i < scores.length; i++) {
+      int score = scores[i];
+      if (score == NO_SCORE) {
+        continue;
+      }
+      GLCapabilities cur = _available[i];
+      if (cur.getHardwareAccelerated()) {
+        int absScore = Math.abs(score);
+        if (!gotHW ||
+            (absScore > maxAbsoluteHWScore)) {
+          gotHW = true;
+          maxAbsoluteHWScore = absScore;
+        }
+      }
+    }
+    if (gotHW) {
+      for (int i = 0; i < scores.length; i++) {
+        int score = scores[i];
+        if (score == NO_SCORE) {
+          continue;
+        }
+        GLCapabilities cur = _available[i];
+        if (!cur.getHardwareAccelerated()) {
+          if (score <= 0) {
+            score -= maxAbsoluteHWScore;
+          } else if (score > 0) {
+            score += maxAbsoluteHWScore;
+          }
+          scores[i] = score;
+        }
+      }
     }
 
     if (DEBUG) {
       System.err.print("Scores: [");
-      for (int i = 0; i < available.length; i++) {
+      for (int i = 0; i < _available.length; i++) {
         if (i > 0) {
           System.err.print(",");
         }
@@ -133,12 +219,12 @@ public class DefaultCapabilitiesChooser implements CapabilitiesChooser {
       }
     }
     if (chosenIndex < 0) {
-      throw new NativeWindowException("Unable to select one of the provided Capabilities");
+      throw new NativeWindowException("Unable to select one of the provided GLCapabilities");
     }
     if (DEBUG) {
       System.err.println("Chosen index: " + chosenIndex);
       System.err.println("Chosen capabilities:");
-      System.err.println(available[chosenIndex]);
+      System.err.println(_available[chosenIndex]);
     }
 
     return chosenIndex;

@@ -46,7 +46,7 @@ import com.sun.opengl.impl.*;
 public abstract class WindowsWGLDrawable extends GLDrawableImpl {
   protected static final boolean DEBUG = Debug.debug("WindowsWGLDrawable");
 
-  protected NWCapabilitiesChooser chooser;
+  protected GLCapabilitiesChooser chooser;
   protected boolean pixelFormatChosen;
 
   // Workaround for problems on Intel 82855 cards
@@ -57,8 +57,8 @@ public abstract class WindowsWGLDrawable extends GLDrawableImpl {
   protected static final int MAX_ATTRIBS  = 256;
 
   public WindowsWGLDrawable(GLDrawableFactory factory, NativeWindow comp, boolean realized,
-                            NWCapabilities requestedCapabilities,
-                            NWCapabilitiesChooser chooser) {
+                            GLCapabilities requestedCapabilities,
+                            GLCapabilitiesChooser chooser) {
     super(factory, comp, requestedCapabilities, realized);
     this.chooser = chooser;
   }
@@ -90,7 +90,7 @@ public abstract class WindowsWGLDrawable extends GLDrawableImpl {
           }
           return NativeWindow.LOCK_SURFACE_NOT_READY;
         } else {
-          // Probably a user error in the NWCapabilitiesChooser or similar.
+          // Probably a user error in the GLCapabilitiesChooser or similar.
           // Don't propagate non-GLExceptions out because calling code
           // expects to catch only that exception type
           throw new GLException(e);
@@ -104,8 +104,8 @@ public abstract class WindowsWGLDrawable extends GLDrawableImpl {
   protected void choosePixelFormat(boolean onscreen) {
     PIXELFORMATDESCRIPTOR pfd = null;
     int pixelFormat = 0;
-    NWCapabilities chosenCaps = null;
-    NWCapabilities capabilities = getRequestedNWCapabilities();
+    GLCapabilities chosenCaps = null;
+    GLCapabilities capabilities = getRequestedGLCapabilities();
     long hdc = getNativeWindow().getSurfaceHandle();
     if (onscreen) {
       if ((pixelFormat = WGL.GetPixelFormat(hdc)) != 0) {
@@ -121,15 +121,15 @@ public abstract class WindowsWGLDrawable extends GLDrawableImpl {
           throw new GLException("Unable to describe pixel format " + pixelFormat +
                                 " of window set by Java2D/OpenGL pipeline");
         }
-        setChosenNWCapabilities(pfd2NWCapabilities(pfd));
+        setChosenGLCapabilities(pfd2GLCapabilities(pfd));
         pixelFormatChosen = true;
         return;
       }
 
-      NWCapabilities[] availableCaps = null;
+      GLCapabilities[] availableCaps = null;
       int numFormats = 0;
       pfd = newPixelFormatDescriptor();
-      // Produce a recommended pixel format selection for the NWCapabilitiesChooser.
+      // Produce a recommended pixel format selection for the GLCapabilitiesChooser.
       // Use wglChoosePixelFormatARB if user requested multisampling and if we have it available
       WindowsWGLDrawable dummyDrawable = null;
       GLContextImpl     dummyContext  = null;
@@ -187,17 +187,17 @@ public abstract class WindowsWGLDrawable extends GLDrawableImpl {
                 if (recommendedPixelFormat < 0) {
                   System.err.print(getThreadName() + ": wglChoosePixelFormatARB didn't recommend a pixel format");
                   if (capabilities.getSampleBuffers()) {
-                    System.err.print(" for multisampled NWCapabilities");
+                    System.err.print(" for multisampled GLCapabilities");
                   }
                   System.err.println();
                 }
               }
 
-              // Produce a list of NWCapabilities to give to the
-              // NWCapabilitiesChooser.
+              // Produce a list of GLCapabilities to give to the
+              // GLCapabilitiesChooser.
               // Use wglGetPixelFormatAttribivARB instead of
               // DescribePixelFormat to get higher-precision information
-              // about the pixel format (should make the NWCapabilities
+              // about the pixel format (should make the GLCapabilities
               // more precise as well...i.e., remove the
               // "HardwareAccelerated" bit, which is basically
               // meaningless, and put in whether it can render to a
@@ -213,7 +213,7 @@ public abstract class WindowsWGLDrawable extends GLDrawableImpl {
 
                 // Should we be filtering out the pixel formats which aren't
                 // applicable, as we are doing here?
-                // We don't have enough information in the NWCapabilities to
+                // We don't have enough information in the GLCapabilities to
                 // represent those that aren't...
                 iattributes[niattribs++] = WGLExt.WGL_DRAW_TO_WINDOW;
                 iattributes[niattribs++] = WGLExt.WGL_ACCELERATION;
@@ -236,12 +236,12 @@ public abstract class WindowsWGLDrawable extends GLDrawableImpl {
                   iattributes[niattribs++] = WGLExt.WGL_SAMPLES;
                 }
 
-                availableCaps = new NWCapabilities[numFormats];
+                availableCaps = new GLCapabilities[numFormats];
                 for (int i = 0; i < numFormats; i++) {
                   if (!dummyWGLExt.wglGetPixelFormatAttribiv(hdc, i+1, 0, niattribs, iattributes, 0, iresults, 0)) {
                     throw new GLException("Error getting pixel format attributes for pixel format " + (i + 1) + " of device context");
                   }
-                  availableCaps[i] = iattributes2NWCapabilities(iattributes, niattribs, iresults, true);
+                  availableCaps[i] = iattributes2GLCapabilities(iattributes, niattribs, iresults, true);
                 }
                 gotAvailableCaps = true;
               } else {
@@ -279,27 +279,31 @@ public abstract class WindowsWGLDrawable extends GLDrawableImpl {
         numFormats = WGL.DescribePixelFormat(hdc, 1, 0, null);
         if (numFormats == 0) {
           throw new GLException("Unable to enumerate pixel formats of window " +
-                                toHexString(hdc) + " for NWCapabilitiesChooser");
+                                toHexString(hdc) + " for GLCapabilitiesChooser");
         }
-        availableCaps = new NWCapabilities[numFormats];
+        availableCaps = new GLCapabilities[numFormats];
         for (int i = 0; i < numFormats; i++) {
           if (WGL.DescribePixelFormat(hdc, 1 + i, pfd.size(), pfd) == 0) {
             throw new GLException("Error describing pixel format " + (1 + i) + " of device context");
           }
-          availableCaps[i] = pfd2NWCapabilities(pfd);
+          availableCaps[i] = pfd2GLCapabilities(pfd);
         }
       }
 
       // NOTE: officially, should make a copy of all of these
-      // NWCapabilities to avoid mutation by the end user during the
+      // GLCapabilities to avoid mutation by the end user during the
       // chooseCapabilities call, but for the time being, assume they
       // won't be changed
 
       // Supply information to chooser
-      pixelFormat = chooser.chooseCapabilities(capabilities, availableCaps, recommendedPixelFormat);
+      try {
+        pixelFormat = chooser.chooseCapabilities(capabilities, availableCaps, recommendedPixelFormat);
+      } catch (NativeWindowException e) {
+        throw new GLException(e);
+      }
       if ((pixelFormat < 0) || (pixelFormat >= numFormats)) {
         throw new GLException("Invalid result " + pixelFormat +
-                              " from NWCapabilitiesChooser (should be between 0 and " +
+                              " from GLCapabilitiesChooser (should be between 0 and " +
                               (numFormats - 1) + ")");
       }
       if (DEBUG) {
@@ -327,19 +331,19 @@ public abstract class WindowsWGLDrawable extends GLDrawableImpl {
       }
       throw new GLException("Unable to set pixel format " + pixelFormat + " for device context " + toHexString(hdc) + ": error code " + lastError);
     }
-    // Reuse the previously-constructed NWCapabilities because it
+    // Reuse the previously-constructed GLCapabilities because it
     // turns out that using DescribePixelFormat on some pixel formats
     // (which, for example, support full-scene antialiasing) for some
     // reason return that they are not OpenGL-capable
     if (chosenCaps != null) {
-      setChosenNWCapabilities(chosenCaps);
+      setChosenGLCapabilities(chosenCaps);
     } else {
-      setChosenNWCapabilities(pfd2NWCapabilities(pfd));
+      setChosenGLCapabilities(pfd2GLCapabilities(pfd));
     }
     pixelFormatChosen = true;
   }
 
-  protected static PIXELFORMATDESCRIPTOR glCapabilities2PFD(NWCapabilities caps, boolean onscreen) {
+  protected static PIXELFORMATDESCRIPTOR glCapabilities2PFD(GLCapabilities caps, boolean onscreen) {
     int colorDepth = (caps.getRedBits() +
                       caps.getGreenBits() +
                       caps.getBlueBits());
@@ -388,11 +392,11 @@ public abstract class WindowsWGLDrawable extends GLDrawableImpl {
     return pfd;
   }
 
-  protected static NWCapabilities pfd2NWCapabilities(PIXELFORMATDESCRIPTOR pfd) {
+  protected static GLCapabilities pfd2GLCapabilities(PIXELFORMATDESCRIPTOR pfd) {
     if ((pfd.dwFlags() & WGL.PFD_SUPPORT_OPENGL) == 0) {
       return null;
     }
-    NWCapabilities res = new NWCapabilities();
+    GLCapabilities res = new GLCapabilities();
     res.setRedBits       (pfd.cRedBits());
     res.setGreenBits     (pfd.cGreenBits());
     res.setBlueBits      (pfd.cBlueBits());
@@ -410,7 +414,7 @@ public abstract class WindowsWGLDrawable extends GLDrawableImpl {
     return res;
   }
 
-  protected static boolean glCapabilities2iattributes(NWCapabilities capabilities,
+  protected static boolean glCapabilities2iattributes(GLCapabilities capabilities,
                                                       int[] iattributes,
                                                       WGLExt wglExt,
                                                       boolean pbuffer,
@@ -532,7 +536,7 @@ public abstract class WindowsWGLDrawable extends GLDrawableImpl {
       } else {
         if (!rtt) {
           // Currently we don't support non-truecolor visuals in the
-          // NWCapabilities, so we don't offer the option of making
+          // GLCapabilities, so we don't offer the option of making
           // color-index pbuffers.
           iattributes[niattribs++] = WGLExt.WGL_PIXEL_TYPE;
           iattributes[niattribs++] = WGLExt.WGL_TYPE_RGBA;
@@ -565,11 +569,11 @@ public abstract class WindowsWGLDrawable extends GLDrawableImpl {
     return true;
   }
 
-  protected static NWCapabilities iattributes2NWCapabilities(int[] iattribs,
+  protected static GLCapabilities iattributes2GLCapabilities(int[] iattribs,
                                                              int niattribs,
                                                              int[] iresults,
                                                              boolean requireRenderToWindow) {
-    NWCapabilities res = new NWCapabilities();
+    GLCapabilities res = new GLCapabilities();
     for (int i = 0; i < niattribs; i++) {
       int attr = iattribs[i];
       switch (attr) {

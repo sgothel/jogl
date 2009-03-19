@@ -36,7 +36,8 @@ package com.sun.javafx.newt.opengl.kd;
 import com.sun.javafx.newt.*;
 import com.sun.javafx.newt.impl.*;
 import com.sun.opengl.impl.egl.*;
-import javax.media.nativewindow.NWCapabilities;
+import javax.media.nativewindow.Capabilities;
+import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;
 import javax.media.nativewindow.NativeWindowException;
 
@@ -56,7 +57,7 @@ public class KDWindow extends Window {
     public KDWindow() {
     }
 
-    protected void createNative(NWCapabilities caps) {
+    protected void createNative(Capabilities caps) {
         int eglRenderableType;
         if(GLProfile.isGLES1()) {
             eglRenderableType = EGL.EGL_OPENGL_ES_BIT;
@@ -66,8 +67,18 @@ public class KDWindow extends Window {
         } else {
             eglRenderableType = EGL.EGL_OPENGL_BIT;
         }
-        EGLConfig config = new EGLConfig(getDisplayHandle(), caps);
-        visualID = config.getNativeConfigID();
+        GLCapabilities glCaps = null;
+        if (caps instanceof GLCapabilities) {
+            glCaps = (GLCapabilities) caps;
+        } else {
+            glCaps = new GLCapabilities();
+            glCaps.setRedBits(caps.getRedBits());
+            glCaps.setGreenBits(caps.getGreenBits());
+            glCaps.setBlueBits(caps.getBlueBits());
+            glCaps.setAlphaBits(caps.getAlphaBits());
+        }
+        EGLConfig config = new EGLConfig(getDisplayHandle(), glCaps);
+        this.config = config;
         chosenCaps = config.getCapabilities();
 
         windowHandle = 0;

@@ -39,45 +39,21 @@
 
 package javax.media.nativewindow;
 
-/** Specifies a set of OpenGL capabilities that a rendering context
-    must support, such as color depth and whether stereo is enabled.
-    It currently contains the minimal number of routines which allow
-    configuration on all supported window systems. */
+/** Specifies a set of capabilities that a window's rendering context
+    must support, such as color depth per channel. It currently
+    contains the minimal number of routines which allow configuration
+    on all supported window systems. */
 
-public class NWCapabilities implements Cloneable {
-  private boolean doubleBuffered = true;
-  private boolean stereo         = false;
-  private boolean hardwareAccelerated = true;
-  private int     depthBits      = 24;
-  private int     stencilBits    = 0;
+public class Capabilities implements Cloneable {
   private int     redBits        = 8;
   private int     greenBits      = 8;
   private int     blueBits       = 8;
   private int     alphaBits      = 0;
-  private int     accumRedBits   = 0;
-  private int     accumGreenBits = 0;
-  private int     accumBlueBits  = 0;
-  private int     accumAlphaBits = 0;
-  // Shift bits from PIXELFORMATDESCRIPTOR not present because they
-  // are unlikely to be supported on Windows anyway
 
-  // Support for full-scene antialiasing (FSAA)
-  private boolean sampleBuffers = false;
-  private int     numSamples    = 2;
-
-  // Support for transparent windows containing OpenGL content
-  // (currently only has an effect on Mac OS X)
-  private boolean backgroundOpaque = true;
-
-  // Bits for pbuffer creation
-  private boolean pbufferFloatingPointBuffers;
-  private boolean pbufferRenderToTexture;
-  private boolean pbufferRenderToTextureRectangle;
-
-  /** Creates a NWCapabilities object. All attributes are in a default
+  /** Creates a Capabilities object. All attributes are in a default
       state.
     */
-  public NWCapabilities() {}
+  public Capabilities() {}
 
   public Object clone() {
     try {
@@ -87,56 +63,6 @@ public class NWCapabilities implements Cloneable {
     }
   }
 
-  /** Indicates whether double-buffering is enabled. */
-  public boolean getDoubleBuffered() {
-    return doubleBuffered;
-  }
-
-  /** Enables or disables double buffering. */
-  public void setDoubleBuffered(boolean onOrOff) {
-    doubleBuffered = onOrOff;
-  }
-
-  /** Indicates whether stereo is enabled. */
-  public boolean getStereo() {
-    return stereo;
-  }
-  
-  /** Enables or disables stereo viewing. */
-  public void setStereo(boolean onOrOff) {
-    stereo = onOrOff;
-  }
-
-  /** Indicates whether hardware acceleration is enabled. */
-  public boolean getHardwareAccelerated() {
-    return hardwareAccelerated;
-  }
-  
-  /** Enables or disables hardware acceleration. */
-  public void setHardwareAccelerated(boolean onOrOff) {
-    hardwareAccelerated = onOrOff;
-  }
-
-  /** Returns the number of bits requested for the depth buffer. */
-  public int getDepthBits() {
-    return depthBits;
-  }
-
-  /** Sets the number of bits requested for the depth buffer. */
-  public void setDepthBits(int depthBits) {
-    this.depthBits = depthBits;
-  }
-  
-  /** Returns the number of bits requested for the stencil buffer. */
-  public int getStencilBits() {
-    return stencilBits;
-  }
-
-  /** Sets the number of bits requested for the stencil buffer. */
-  public void setStencilBits(int stencilBits) {
-    this.stencilBits = stencilBits;
-  }
-  
   /** Returns the number of bits requested for the color buffer's red
       component. On some systems only the color depth, which is the
       sum of the red, green, and blue bits, is considered. */
@@ -192,177 +118,15 @@ public class NWCapabilities implements Cloneable {
   public void setAlphaBits(int alphaBits) {
     this.alphaBits = alphaBits;
   }
-  
-  /** Returns the number of bits requested for the accumulation
-      buffer's red component. On some systems only the accumulation
-      buffer depth, which is the sum of the red, green, and blue bits,
-      is considered. */
-  public int getAccumRedBits() {
-    return accumRedBits;
-  }
 
-  /** Sets the number of bits requested for the accumulation buffer's
-      red component. On some systems only the accumulation buffer
-      depth, which is the sum of the red, green, and blue bits, is
-      considered. */
-  public void setAccumRedBits(int accumRedBits) {
-    this.accumRedBits = accumRedBits;
-  }
-
-  /** Returns the number of bits requested for the accumulation
-      buffer's green component. On some systems only the accumulation
-      buffer depth, which is the sum of the red, green, and blue bits,
-      is considered. */
-  public int getAccumGreenBits() {
-    return accumGreenBits;
-  }
-
-  /** Sets the number of bits requested for the accumulation buffer's
-      green component. On some systems only the accumulation buffer
-      depth, which is the sum of the red, green, and blue bits, is
-      considered. */
-  public void setAccumGreenBits(int accumGreenBits) {
-    this.accumGreenBits = accumGreenBits;
-  }
-
-  /** Returns the number of bits requested for the accumulation
-      buffer's blue component. On some systems only the accumulation
-      buffer depth, which is the sum of the red, green, and blue bits,
-      is considered. */
-  public int getAccumBlueBits() {
-    return accumBlueBits;
-  }
-
-  /** Sets the number of bits requested for the accumulation buffer's
-      blue component. On some systems only the accumulation buffer
-      depth, which is the sum of the red, green, and blue bits, is
-      considered. */
-  public void setAccumBlueBits(int accumBlueBits) {
-    this.accumBlueBits = accumBlueBits;
-  }
-
-  /** Returns the number of bits requested for the accumulation
-      buffer's alpha component. On some systems only the accumulation
-      buffer depth, which is the sum of the red, green, and blue bits,
-      is considered. */
-  public int getAccumAlphaBits() {
-    return accumAlphaBits;
-  }
-
-  /** Sets number of bits requested for accumulation buffer's alpha
-      component. On some systems only the accumulation buffer depth,
-      which is the sum of the red, green, and blue bits, is
-      considered. */
-  public void setAccumAlphaBits(int accumAlphaBits) {
-    this.accumAlphaBits = accumAlphaBits;
-  }
-
-  /** Indicates whether sample buffers for full-scene antialiasing
-      (FSAA) should be allocated for this drawable. Defaults to
-      false. */
-  public void setSampleBuffers(boolean onOrOff) {
-    sampleBuffers = onOrOff;
-  }
-
-  /** Returns whether sample buffers for full-scene antialiasing
-      (FSAA) should be allocated for this drawable. Defaults to
-      false. */
-  public boolean getSampleBuffers() {
-    return sampleBuffers;
-  }
-
-  /** If sample buffers are enabled, indicates the number of buffers
-      to be allocated. Defaults to 2. */
-  public void setNumSamples(int numSamples) {
-    this.numSamples = numSamples;
-  }
-
-  /** Returns the number of sample buffers to be allocated if sample
-      buffers are enabled. Defaults to 2. */
-  public int getNumSamples() {
-    return numSamples;
-  }
-
-  /** For pbuffers only, indicates whether floating-point buffers
-      should be used if available. Defaults to false. */
-  public void setPbufferFloatingPointBuffers(boolean onOrOff) {
-    pbufferFloatingPointBuffers = onOrOff;
-  }
-
-  /** For pbuffers only, returns whether floating-point buffers should
-      be used if available. Defaults to false. */
-  public boolean getPbufferFloatingPointBuffers() {
-    return pbufferFloatingPointBuffers;
-  }
-
-  /** For pbuffers only, indicates whether the render-to-texture
-      extension should be used if available.  Defaults to false. */
-  public void setPbufferRenderToTexture(boolean onOrOff) {
-    pbufferRenderToTexture = onOrOff;
-  }
-
-  /** For pbuffers only, returns whether the render-to-texture
-      extension should be used if available.  Defaults to false. */
-  public boolean getPbufferRenderToTexture() {
-    return pbufferRenderToTexture;
-  }
-
-  /** For pbuffers only, indicates whether the
-      render-to-texture-rectangle extension should be used if
-      available. Defaults to false. */
-  public void setPbufferRenderToTextureRectangle(boolean onOrOff) {
-    pbufferRenderToTextureRectangle = onOrOff;
-  }
-
-  /** For pbuffers only, returns whether the render-to-texture
-      extension should be used. Defaults to false. */
-  public boolean getPbufferRenderToTextureRectangle() {
-    return pbufferRenderToTextureRectangle;
-  }
-
-  /** For on-screen OpenGL contexts on some platforms, sets whether
-      the background of the context should be considered opaque. On
-      supported platforms, setting this to false, in conjunction with
-      other changes at the window toolkit level, can allow
-      hardware-accelerated OpenGL content inside of windows of
-      arbitrary shape. To achieve this effect it is necessary to use
-      an OpenGL clear color with an alpha less than 1.0. The default
-      value for this flag is <code>true</code>; setting it to false
-      may incur a certain performance penalty, so it is not
-      recommended to arbitrarily set it to false. */
-  public void setBackgroundOpaque(boolean opaque) {
-    backgroundOpaque = opaque;
-  }
-
-  /** Indicates whether the background of this OpenGL context should
-      be considered opaque. Defaults to true.
-
-      @see #setBackgroundOpaque
-  */
-  public boolean isBackgroundOpaque() {
-    return backgroundOpaque;
-  }
-
-  /** Returns a textual representation of this NWCapabilities
+  /** Returns a textual representation of this Capabilities
       object. */ 
   public String toString() {
-    return ("NWCapabilities [" +
-            "DoubleBuffered: " + doubleBuffered +
-	    ", Stereo: " + stereo + 
-            ", HardwareAccelerated: " + hardwareAccelerated +
-	    ", DepthBits: " + depthBits +
-	    ", StencilBits: " + stencilBits +
-	    ", Red: " + redBits +
+    return ("Capabilities [" +
+	    "Red: " + redBits +
 	    ", Green: " + greenBits +
 	    ", Blue: " + blueBits +
 	    ", Alpha: " + alphaBits +
-	    ", Red Accum: " + accumRedBits +
-	    ", Green Accum: " + accumGreenBits +
-	    ", Blue Accum: " + accumBlueBits +
-	    ", Alpha Accum: " + accumAlphaBits +
-            ", Multisample: " + sampleBuffers +
-            (sampleBuffers ? ", Num samples: " + numSamples : "") +
-            ", Opaque: " + backgroundOpaque +
 	    " ]");
   }
 }

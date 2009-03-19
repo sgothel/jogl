@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2003-2009 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -28,32 +28,28 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+ * 
+ * You acknowledge that this software is not designed or intended for use
+ * in the design, construction, operation or maintenance of any nuclear
+ * facility.
+ * 
+ * Sun gratefully acknowledges that this software was originally authored
+ * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package javax.media.nativewindow.x11;
+package javax.media.opengl;
 
-import javax.media.nativewindow.*;
+import javax.media.nativewindow.CapabilitiesChooser;
 
-/** Encapsulates a graphics configuration, or OpenGL pixel format, on
-    X11 platforms. Objects of this type are returned from {@link
-    NativeWindowFactory#chooseGraphicsConfiguration
-    NativeWindowFactory.chooseGraphicsConfiguration()} on X11
-    platforms when toolkits other than the AWT are being used.  */
+/** Provides a mechanism by which applications can customize the
+    window type selection for a given {@link GLCapabilities}.
+    Developers can implement this interface and pass an instance into
+    the appropriate method of {@link GLDrawableFactory}; the chooser
+    will be called during the OpenGL context creation process. Note
+    that this is only a marker interface; its signature is the same as
+    {@link CapabilitiesChooser}, but the array of {@link Capabilities}
+    objects passed to {@link #chooseCapabilities chooseCapabilities}
+    will actually be an array of {@link GLCapabilities}. */
 
-public class X11GraphicsConfiguration implements AbstractGraphicsConfiguration {
-    private long visualID;
-
-    /** Constructs a new X11GraphicsConfiguration corresponding to the given visual ID. */
-    public X11GraphicsConfiguration(long visualID) {
-        this.visualID = visualID;
-    }
-
-    /** Returns the visual ID that this graphics configuration object represents. */
-    public long getVisualID() {
-        return visualID;
-    }
-    
-    public String toString() {
-        return "[X11GraphicsConfiguration visualID = " + visualID + "]";
-    }
+public interface GLCapabilitiesChooser extends CapabilitiesChooser {
 }

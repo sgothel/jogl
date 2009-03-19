@@ -39,19 +39,18 @@
 
 package javax.media.nativewindow;
 
-/** Provides the mechanism by which the Java / OpenGL binding
-    interacts with windows. A window toolkit such as the AWT may
-    either implement this interface directly with one of its
-    components, or provide and register an implementation of {@link
-    NativeWindowFactory NativeWindowFactory} which can create
-    NativeWindow objects for its components. <P>
+/** Provides the low-level information required for
+    hardware-accelerated rendering in a platform-independent manner. A
+    window toolkit such as the AWT may either implement this interface
+    directly with one of its components, or provide and register an
+    implementation of {@link NativeWindowFactory NativeWindowFactory}
+    which can create NativeWindow objects for its components. <P>
 
     A NativeWindow created for a particular on-screen component is
     expected to have the same lifetime as that component. As long as
     the component is alive, the NativeWindow must be able to control
     it, and any time it is visible and locked, provide information
-    such as the window handle to the Java / OpenGL binding so that
-    GLDrawables and GLContexts may be created for the window.
+    such as the window handle.
 */
 
 public interface NativeWindow {
@@ -107,9 +106,21 @@ public interface NativeWindow {
   public long getSurfaceHandle();
 
   /**
-   * Lifetime: after 1st lock, until invalidation
+   * Returns the graphics configuration corresponding to this window.
+   * The graphics configuration is most relevant on X11 platforms
+   * where it also decides other properties related to hardware
+   * accelerated rendering such as the OpenGL pixel format. This
+   * method may return null on platforms where it is not needed, and
+   * is only guaranteed to return a valid value while the window is
+   * locked.
    */
-  public long getVisualID();
+  public AbstractGraphicsConfiguration getGraphicsConfiguration();
+
+  /**
+   * Returns the index of the screen on which this window currently
+   * lies. This method is only guaranteed to return a valid value
+   * while the window is locked.
+   */
   public int  getScreenIndex();
 
   /** Returns the current width of this window. */

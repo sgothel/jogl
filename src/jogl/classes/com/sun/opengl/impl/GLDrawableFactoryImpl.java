@@ -53,18 +53,11 @@ import java.lang.reflect.*;
     they may be instantiated by the GLJPanel implementation. */
 public abstract class GLDrawableFactoryImpl extends GLDrawableFactory implements DynamicLookupHelper {
 
-  /**
-   * Make sure the right NativeWindowFactory is registered
-   */
-  static {
-    initializeNativeWindowFactory();
-  }
-
   /** Creates a (typically software-accelerated) offscreen GLDrawable
       used to implement the fallback rendering path of the
       GLJPanel. */
-  public abstract GLDrawableImpl createOffscreenDrawable(NWCapabilities capabilities,
-                                                         NWCapabilitiesChooser chooser,
+  public abstract GLDrawableImpl createOffscreenDrawable(GLCapabilities capabilities,
+                                                         GLCapabilitiesChooser chooser,
                                                          int width,
                                                          int height);
 
@@ -260,37 +253,5 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory implements
     Runtime.getRuntime().removeShutdownHook(gammaShutdownHook);
     gammaShutdownHookRegistered = false;
     // Leave the original gamma ramp data alone
-  }
-
-  private static void initializeNativeWindowFactory() {
-    String osName = System.getProperty("os.name");
-    String osNameLowerCase = osName.toLowerCase();
-    String factoryClassName = null;
-
-    // We break compile-time dependencies on the AWT here to
-    // make it easier to run this code on mobile devices
-
-    NativeWindowFactory factory = null;
-    
-    if (!osNameLowerCase.startsWith("wind") &&
-        !osNameLowerCase.startsWith("mac os x")) {
-        // Assume X11 platform -- should probably test for these explicitly
-        try {
-            // try X11 AWT GLX ..
-            Constructor factoryConstructor = NWReflection.getConstructor("com.sun.opengl.impl.x11.glx.awt.X11AWTGLXNativeWindowFactory", new Class[] {});
-            factory = (NativeWindowFactory) factoryConstructor.newInstance(null);
-        } catch (Exception e) {}
-        if(null==factory) {
-            try {
-                // try X11 GLX ..
-                Constructor factoryConstructor = NWReflection.getConstructor("com.sun.opengl.impl.x11.glx.X11GLXNativeWindowFactory", new Class[] {});
-                factory = (NativeWindowFactory) factoryConstructor.newInstance(null);
-            } catch (Exception e) {}
-        }
-        /**
-        if(null==factory) {
-            // must be EGL then ..
-        } */
-    }
   }
 }

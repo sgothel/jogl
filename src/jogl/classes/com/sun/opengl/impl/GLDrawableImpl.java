@@ -43,16 +43,16 @@ import javax.media.nativewindow.*;
 import javax.media.opengl.*;
 
 public abstract class GLDrawableImpl implements GLDrawable {
-  private NWCapabilities requestedCapabilities;
+  private GLCapabilities requestedCapabilities;
 
   protected GLDrawableImpl(GLDrawableFactory factory,
                            NativeWindow comp,
-                           NWCapabilities requestedCapabilities,
+                           GLCapabilities requestedCapabilities,
                            boolean realized) {
       this.factory = factory;
       this.component = comp;
       this.requestedCapabilities =
-          (requestedCapabilities == null) ? null : (NWCapabilities) requestedCapabilities.clone();
+          (requestedCapabilities == null) ? null : (GLCapabilities) requestedCapabilities.clone();
       this.realized = realized;
   }
 
@@ -73,20 +73,20 @@ public abstract class GLDrawableImpl implements GLDrawable {
     return GLContextImpl.toHexString(hex);
   }
 
-  protected NWCapabilities getRequestedNWCapabilities() {
+  protected GLCapabilities getRequestedGLCapabilities() {
     return requestedCapabilities;
   }
 
-  public NWCapabilities getChosenNWCapabilities() {
+  public GLCapabilities getChosenGLCapabilities() {
     if (chosenCapabilities == null)
       return null;
 
     // Must return a new copy to avoid mutation by end user
-    return (NWCapabilities) chosenCapabilities.clone();
+    return (GLCapabilities) chosenCapabilities.clone();
   }
 
-  protected void setChosenNWCapabilities(NWCapabilities caps) {
-    chosenCapabilities = (caps==null) ? null : (NWCapabilities) caps.clone();
+  protected void setChosenGLCapabilities(GLCapabilities caps) {
+    chosenCapabilities = (caps==null) ? null : (GLCapabilities) caps.clone();
   }
 
   public NativeWindow getNativeWindow() {
@@ -100,7 +100,7 @@ public abstract class GLDrawableImpl implements GLDrawable {
   public void setRealized(boolean realized) {
     this.realized = realized;
     if(!realized) {
-        setChosenNWCapabilities(null);
+        setChosenGLCapabilities(null);
         component.invalidate();
     }
   }
@@ -141,7 +141,7 @@ public abstract class GLDrawableImpl implements GLDrawable {
 
   protected GLDrawableFactory factory;
   protected NativeWindow component;
-  private NWCapabilities chosenCapabilities;
+  private GLCapabilities chosenCapabilities;
 
   // Indicates whether the component (if an onscreen context) has been
   // realized. Plausibly, before the component is realized the JAWT

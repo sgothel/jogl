@@ -34,7 +34,8 @@
 package com.sun.javafx.newt;
 
 import com.sun.javafx.newt.impl.Debug;
-import javax.media.nativewindow.NWCapabilities;
+import javax.media.nativewindow.AbstractGraphicsConfiguration;
+import javax.media.nativewindow.Capabilities;
 import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.NativeWindowException;
 
@@ -82,17 +83,16 @@ public abstract class Window implements NativeWindow
         return windowClass;
     }
 
-    protected static Window create(String type, Screen screen, NWCapabilities caps) {
+    protected static Window create(String type, Screen screen, Capabilities caps) {
         return create(type, screen, caps, false);
     }
 
-    protected static Window create(String type, Screen screen, NWCapabilities caps, boolean undecorated) {
+    protected static Window create(String type, Screen screen, Capabilities caps, boolean undecorated) {
         try {
             Class windowClass = getWindowClass(type);
             Window window = (Window) windowClass.newInstance();
             window.invalidate();
             window.screen   = screen;
-            window.visualID = 0;
             window.setUndecorated(undecorated);
             window.createNative(caps);
             return window;
@@ -102,7 +102,7 @@ public abstract class Window implements NativeWindow
         }
     }
 
-    protected static Window wrapHandle(String type, Screen screen, NWCapabilities caps, long visualID, 
+    protected static Window wrapHandle(String type, Screen screen, Capabilities caps, AbstractGraphicsConfiguration config, 
                                  long windowHandle, boolean fullscreen, boolean visible, 
                                  int x, int y, int width, int height) 
     {
@@ -112,7 +112,7 @@ public abstract class Window implements NativeWindow
             window.invalidate();
             window.screen   = screen;
             window.chosenCaps = caps;
-            window.visualID = visualID;
+            window.config = config;
             window.windowHandle = windowHandle;
             window.fullscreen=fullscreen;
             window.visible=visible;
@@ -128,12 +128,12 @@ public abstract class Window implements NativeWindow
     }
 
     /**
-     * Create native windowHandle, ie creates a new native invisible window
+     * Create native windowHandle, ie creates a new native invisible window.
      *
-     * Shall use the capabilities to determine the visualID
-     * and shall set chosenCaps.
+     * Shall use the capabilities to determine the graphics configuration
+     * and shall set the chosen capabilities.
      */
-    protected abstract void createNative(NWCapabilities caps);
+    protected abstract void createNative(Capabilities caps);
 
     protected abstract void closeNative();
 
@@ -170,7 +170,7 @@ public abstract class Window implements NativeWindow
                     ", pos "+getX()+"/"+getY()+", size "+getWidth()+"x"+getHeight()+
                     ", visible "+isVisible()+
                     ", wrappedWindow "+getWrappedWindow()+
-                    ", visualID "+visualID+
+                    ", config "+config+
                     ", "+chosenCaps+
                     ", screen handle/index "+getScreenHandle()+"/"+getScreenIndex() +
                     ", display handle "+getDisplayHandle());
@@ -193,14 +193,9 @@ public abstract class Window implements NativeWindow
 
     protected Screen screen;
 
-    /**
-     * The NWCapabilities shall be used to determine the visualID
-     */
-    protected NWCapabilities chosenCaps;
-    /**
-     * The visualID shall be determined using the NWCapabilities
-     */
-    protected long   visualID;
+    // The Capabilities is used to determine the AbstractGraphicsConfiguration
+    protected Capabilities chosenCaps;
+    protected AbstractGraphicsConfiguration config;
     protected long   windowHandle;
     protected boolean locked=false;
     protected boolean fullscreen, visible;
@@ -272,7 +267,7 @@ public abstract class Window implements NativeWindow
     public void invalidate(boolean internal) {
         unlockSurface();
         screen   = null;
-        visualID = 0;
+        config = null;
         chosenCaps = null;
         windowHandle = 0;
         locked = false;
@@ -315,16 +310,16 @@ public abstract class Window implements NativeWindow
         return windowHandle; // default: return window handle
     }
 
-    public NWCapabilities getChosenCapabilities() {
+    public Capabilities getChosenCapabilities() {
         if (chosenCaps == null)
           return null;
 
         // Must return a new copy to avoid mutation by end user
-        return (NWCapabilities) chosenCaps.clone();
+        return (Capabilities) chosenCaps.clone();
     }
 
-    public long getVisualID() {
-        return visualID;
+    public AbstractGraphicsConfiguration getGraphicsConfiguration() {
+        return config;
     }
 
     public int getWidth() {

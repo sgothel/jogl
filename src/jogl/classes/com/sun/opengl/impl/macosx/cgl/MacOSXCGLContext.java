@@ -111,7 +111,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
       }
     }
     int[] viewNotReady = new int[1];
-    NWCapabilities capabilities = drawable.getRequestedNWCapabilities();
+    GLCapabilities capabilities = drawable.getRequestedGLCapabilities();
     int[] iattribs = new int[128];
     int[] ivalues = new int[128];
     int idx = 0;
@@ -140,7 +140,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
 
     long pixelFormat = CGL.createPixelFormat(iattribs, 0, idx, ivalues, 0);
     if (pixelFormat == 0) {
-      throw new GLException("Unable to allocate pixel format with requested NWCapabilities");
+      throw new GLException("Unable to allocate pixel format with requested GLCapabilities");
     }
     try {
       // Try to allocate a context with this
@@ -168,10 +168,10 @@ public abstract class MacOSXCGLContext extends GLContextImpl
       // context and not the drawable. However it's a reasonable
       // approximation to just store the chosen pixel format up in the
       // drawable since the public API doesn't provide for a different
-      // NWCapabilities per context.
-      if (drawable.getChosenNWCapabilities() == null) {
+      // GLCapabilities per context.
+      if (drawable.getChosenGLCapabilities() == null) {
         // Figure out what attributes we really got
-        NWCapabilities caps = new NWCapabilities();
+        GLCapabilities caps = new GLCapabilities();
         CGL.queryPixelFormat(pixelFormat, iattribs, 0, idx, ivalues, 0);
         for (int i = 0; i < idx; i++) {
           int attr = iattribs[i];
@@ -235,7 +235,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
           }
         }
 
-        drawable.setChosenNWCapabilities(caps);
+        drawable.setChosenGLCapabilities(caps);
       }
       
       

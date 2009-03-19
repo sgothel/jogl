@@ -61,7 +61,7 @@ public abstract class JAWTWindow implements NativeWindow {
   protected long display;
   protected long screen;
   protected long drawable;
-  protected long visualID;
+  protected AbstractGraphicsConfiguration config;
   protected int  screenIndex;
 
   public JAWTWindow(Object comp) {
@@ -83,7 +83,7 @@ public abstract class JAWTWindow implements NativeWindow {
     screen= 0;
     screenIndex = -1;
     drawable= 0;
-    visualID = 0;
+    config = null;
   }
 
   public synchronized int lockSurface() throws NativeWindowException {
@@ -119,8 +119,8 @@ public abstract class JAWTWindow implements NativeWindow {
   public long getSurfaceHandle() {
     return drawable;
   }
-  public long getVisualID() {
-    return visualID;
+  public AbstractGraphicsConfiguration getGraphicsConfiguration() {
+    return config;
   }
 
   public Object getWrappedWindow() {
@@ -147,7 +147,7 @@ public abstract class JAWTWindow implements NativeWindow {
                 ", pos "+component.getX()+"/"+component.getY()+", size "+getWidth()+"x"+getHeight()+
                 ", visible "+component.isVisible()+
                 ", wrappedWindow "+getWrappedWindow()+
-                ", visualID "+visualID+
+                ", config "+config+
                 ", screen handle/index "+getScreenHandle()+"/"+getScreenIndex() +
                 ", display handle "+getDisplayHandle()+"]");
 

@@ -53,7 +53,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
   private int floatMode;
 
   public WindowsPbufferWGLDrawable(GLDrawableFactory factory,
-                                   NWCapabilities requestedCapabilities,
+                                   GLCapabilities requestedCapabilities,
                                    int width,
                                    int height,
                                    WindowsWGLDrawable dummyDrawable,
@@ -96,7 +96,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
         throw new GLException("Error destroying pbuffer: error code " + WGL.GetLastError());
       }
       buffer = 0;
-      setChosenNWCapabilities(null);
+      setChosenGLCapabilities(null);
     }
   }
 
@@ -126,8 +126,8 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
   }
 
   // This is public to allow access from PbufferContext
-  public NWCapabilities getRequestedNWCapabilities() {
-    return super.getRequestedNWCapabilities();
+  public GLCapabilities getRequestedGLCapabilities() {
+    return super.getRequestedGLCapabilities();
   }
 
   private void createPbuffer(long parentHdc, WGLExt wglExt) {
@@ -137,7 +137,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
     int     niattribs   = 0;
     int     width, height;
 
-    NWCapabilities capabilities = getRequestedNWCapabilities();
+    GLCapabilities capabilities = getRequestedGLCapabilities();
 
     if (DEBUG) {
       System.out.println("Pbuffer parentHdc = " + toHexString(parentHdc));
@@ -309,7 +309,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
       int[] ivalues = new int[niattribs];
       // FIXME: usually prefer to throw exceptions, but failure here is not critical
       if (wglExt.wglGetPixelFormatAttribiv(parentHdc, pformats[whichFormat], 0, niattribs, iattributes, 0, ivalues, 0)) {
-        setChosenNWCapabilities(iattributes2NWCapabilities(iattributes, niattribs, ivalues, false));
+        setChosenGLCapabilities(iattributes2GLCapabilities(iattributes, niattribs, ivalues, false));
       }
     }
 

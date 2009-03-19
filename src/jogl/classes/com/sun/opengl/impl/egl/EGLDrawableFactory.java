@@ -117,23 +117,23 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         }
     }
 
-    public AbstractGraphicsConfiguration chooseGraphicsConfiguration(NWCapabilities capabilities,
-                                                                     NWCapabilitiesChooser chooser,
+    public AbstractGraphicsConfiguration chooseGraphicsConfiguration(GLCapabilities capabilities,
+                                                                     GLCapabilitiesChooser chooser,
                                                                      AbstractGraphicsDevice device) {
         return null;
     }
 
     public GLDrawable createGLDrawable(NativeWindow target,
-                                    NWCapabilities capabilities,
-                                    NWCapabilitiesChooser chooser) {
+                                       GLCapabilities capabilities,
+                                       GLCapabilitiesChooser chooser) {
         target = NativeWindowFactory.getNativeWindow(target);
         return new EGLDrawable(this, target,
                                capabilities,
                                chooser);
     }
 
-    public GLDrawableImpl createOffscreenDrawable(NWCapabilities capabilities,
-                                                  NWCapabilitiesChooser chooser,
+    public GLDrawableImpl createOffscreenDrawable(GLCapabilities capabilities,
+                                                  GLCapabilitiesChooser chooser,
                                                   int width,
                                                   int height) {
         throw new GLException("Not yet implemented");
@@ -143,8 +143,8 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         // Not supported on OpenGL ES
         return false;
     }
-    public GLPbuffer createGLPbuffer(final NWCapabilities capabilities,
-                                     final NWCapabilitiesChooser chooser,
+    public GLPbuffer createGLPbuffer(final GLCapabilities capabilities,
+                                     final GLCapabilitiesChooser chooser,
                                      final int initialWidth,
                                      final int initialHeight,
                                      final GLContext shareWith) {

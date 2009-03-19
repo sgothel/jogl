@@ -46,7 +46,7 @@ import com.sun.opengl.impl.*;
 public abstract class MacOSXCGLDrawable extends GLDrawableImpl {
   protected static final boolean DEBUG = Debug.debug("MacOSXCGLDrawable");
 
-  protected NWCapabilitiesChooser chooser;
+  protected GLCapabilitiesChooser chooser;
   
   // The Java2D/OpenGL pipeline on OS X uses low-level CGLContextObjs
   // to represent the contexts for e.g. the Java2D back buffer. When
@@ -82,18 +82,18 @@ public abstract class MacOSXCGLDrawable extends GLDrawableImpl {
   public static final int CGL_MODE      = 2;
 
   public MacOSXCGLDrawable(GLDrawableFactory factory, NativeWindow comp, boolean realized,
-                           NWCapabilities requestedCapabilities, NWCapabilitiesChooser chooser) {
+                           GLCapabilities requestedCapabilities, GLCapabilitiesChooser chooser) {
     super(factory, comp, requestedCapabilities, realized);
     this.chooser = chooser;
  }
 
   // These are public to allow access from a couple of context implementations
-  public void setChosenNWCapabilities(NWCapabilities caps) {
-    super.setChosenNWCapabilities(caps);
+  public void setChosenGLCapabilities(GLCapabilities caps) {
+    super.setChosenGLCapabilities(caps);
   }
 
-  public NWCapabilities getRequestedNWCapabilities() {
-    return super.getRequestedNWCapabilities();
+  public GLCapabilities getRequestedGLCapabilities() {
+    return super.getRequestedGLCapabilities();
   }
 
   protected static String getThreadName() {

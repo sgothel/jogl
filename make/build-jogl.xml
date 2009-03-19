@@ -336,7 +336,7 @@
               <isset property="rootrel.build"/>
           </not>
         </condition>
-        <property name="rootrel.build.jogl" value="${rootrel.build}-jogl" />
+        <property name="rootrel.build.jogl" value="${rootrel.build}/jogl" />
         <property name="rootrel.src.java" value="src/jogl/classes" />
         <property name="rootrel.src.c" value="src/jogl/native" />
         <property name="rootrel.src.c.openmax" value="src/jogl/native/openmax" />
@@ -355,13 +355,13 @@
         <property name="gluegen.build.xml" value="${gluegen.make.dir}/build.xml" />
         <property name="gluegen.jar" value="../../gluegen/${rootrel.build}/gluegen.jar" />
         <property name="gluegen-rt.jar" value="../../gluegen/${rootrel.build}/gluegen-rt.jar" />
-        <property name="nativewindow.all.jar" value="../${rootrel.build}-nativewindow/nativewindow.all.jar" />
+        <property name="nativewindow.all.jar" value="../${rootrel.build}/nativewindow/nativewindow.all.jar" />
                                                 
         <!-- The source directories. -->
         <property name="src.java" value="${project.root}/${rootrel.src.java}" />
         <property name="src.c"    value="${project.root}/${rootrel.src.c}" />
         <property name="build"    value="${project.root}/${rootrel.build.jogl}" />
-        <property name="tempdir"  value="${project.root}/build-temp" />
+        <property name="tempdir"  value="${build}/temp" />
         
         <!-- The generated source directories. -->
         <property name="src.generated" value="${build}/gensrc" />

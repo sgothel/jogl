@@ -40,18 +40,21 @@ import java.nio.*;
 import java.security.*;
 import java.util.*;
 import javax.media.nativewindow.*;
+import javax.media.nativewindow.x11.*;
 import javax.media.opengl.*;
 import com.sun.gluegen.runtime.*;
 import com.sun.gluegen.runtime.opengl.*;
 import com.sun.opengl.impl.*;
 import com.sun.opengl.impl.x11.glx.*;
 import com.sun.nativewindow.impl.NullWindow;
+import com.sun.nativewindow.impl.NWReflection;
 import com.sun.nativewindow.impl.x11.*;
+import com.sun.nativewindow.impl.jawt.x11.*;
 
 public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
   protected static final boolean DEBUG = Debug.debug("X11GLXDrawableFactory");
 
-  // Map for rediscovering the NWCapabilities associated with a
+  // Map for rediscovering the GLCapabilities associated with a
   // particular screen and visualID after the fact
   protected static Map visualToGLCapsMap = Collections.synchronizedMap(new HashMap());
   // The screens for which we've already initialized it
@@ -90,19 +93,27 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     // Must initialize GLX support eagerly in case a pbuffer is the
     // first thing instantiated
     GLProcAddressHelper.resetProcAddressTable(GLX.getGLXProcAddressTable(), this);
+    // Register our GraphicsConfigurationFactory implementations
+    // The act of constructing them causes them to be registered
+    new X11GLXGraphicsConfigurationFactory();
+    try {
+      NWReflection.createInstance("com.sun.opengl.impl.x11.glx.awt.X11AWTGLXGraphicsConfigurationFactory",
+                                  new Object[] {});
+    } catch (Exception e) {
+    }
   }
 
   private static final int MAX_ATTRIBS = 128;
 
-  public AbstractGraphicsConfiguration chooseGraphicsConfiguration(NWCapabilities capabilities,
-                                                                   NWCapabilitiesChooser chooser,
+  public AbstractGraphicsConfiguration chooseGraphicsConfiguration(GLCapabilities capabilities,
+                                                                   GLCapabilitiesChooser chooser,
                                                                    AbstractGraphicsDevice absDevice) {
     return null;
   }
 
   public GLDrawable createGLDrawable(NativeWindow target,
-                                     NWCapabilities capabilities,
-                                     NWCapabilitiesChooser chooser) {
+                                     GLCapabilities capabilities,
+                                     GLCapabilitiesChooser chooser) {
     if (target == null) {
       throw new IllegalArgumentException("Null target");
     }
@@ -110,9 +121,9 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     return new X11OnscreenGLXDrawable(this, target);
   }
 
-  public void initializeVisualToNWCapabilitiesMap(int screen,
+  public void initializeVisualToGLCapabilitiesMap(int screen,
                                                   XVisualInfo[] infos,
-                                                  NWCapabilities[] caps) {
+                                                  GLCapabilities[] caps) {
     Integer key = new Integer(screen);
     if (!initializedScreenSet.contains(key)) {
       for (int i = 0; i < infos.length; i++) {
@@ -125,13 +136,32 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     }
   }
 
-  public NWCapabilities lookupCapabilitiesByScreenAndVisualID(int screenIndex,
-                                                              long visualID) {
-    return (NWCapabilities) visualToGLCapsMap.get(new ScreenAndVisualIDKey(screenIndex, visualID));
+  public GLCapabilities lookupCapabilitiesByScreenAndConfig(int screenIndex,
+                                                            AbstractGraphicsConfiguration config) {
+    return (GLCapabilities) visualToGLCapsMap.get(new ScreenAndVisualIDKey(screenIndex, getVisualID(config)));
   }
 
-  public GLDrawableImpl createOffscreenDrawable(NWCapabilities capabilities,
-                                                NWCapabilitiesChooser chooser,
+  public long getVisualID(AbstractGraphicsConfiguration config) {
+    if (config == null) {
+      return 0;
+    }
+    // FIXME: this is hopefully the last remaining place in this
+    // implementation that is over-specialized; third-party toolkits
+    // would need to use the X11GraphicsConfiguration in order to
+    // interoperate with this code
+    if (config instanceof X11GraphicsConfiguration) {
+      return ((X11GraphicsConfiguration) config).getVisualID();
+    }
+    try {
+      // The AWT-specific code and casts have been moved to the X11SunJDKReflection helper class
+      return X11SunJDKReflection.graphicsConfigurationGetVisualID(config);
+    } catch (Throwable t) {
+      return 0;
+    }
+  }
+
+  public GLDrawableImpl createOffscreenDrawable(GLCapabilities capabilities,
+                                                GLCapabilitiesChooser chooser,
                                                 int width,
                                                 int height) {
     return new X11OffscreenGLXDrawable(this, capabilities, chooser, width, height);
@@ -181,8 +211,8 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     return canCreateGLPbuffer;
   }
 
-  public GLPbuffer createGLPbuffer(final NWCapabilities capabilities,
-                                   final NWCapabilitiesChooser chooser,
+  public GLPbuffer createGLPbuffer(final GLCapabilities capabilities,
+                                   final GLCapabilitiesChooser chooser,
                                    final int initialWidth,
                                    final int initialHeight,
                                    final GLContext shareWith) {
@@ -230,7 +260,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     return res;
   }
 
-  public NWCapabilities xvi2NWCapabilities(long display, XVisualInfo info) {
+  public GLCapabilities xvi2GLCapabilities(long display, XVisualInfo info) {
     int[] tmp = new int[1];
     int val = glXGetConfig(display, info, GLX.GLX_USE_GL, tmp, 0);
     if (val == 0) {
@@ -242,12 +272,12 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
       // Visual does not support RGBA
       return null;
     }
-    NWCapabilities res = new NWCapabilities();
+    GLCapabilities res = new GLCapabilities();
     res.setDoubleBuffered(glXGetConfig(display, info, GLX.GLX_DOUBLEBUFFER,     tmp, 0) != 0);
     res.setStereo        (glXGetConfig(display, info, GLX.GLX_STEREO,           tmp, 0) != 0);
     // Note: use of hardware acceleration is determined by
     // glXCreateContext, not by the XVisualInfo. Optimistically claim
-    // that all NWCapabilities have the capability to be hardware
+    // that all GLCapabilities have the capability to be hardware
     // accelerated.
     res.setHardwareAccelerated(true);
     res.setDepthBits     (glXGetConfig(display, info, GLX.GLX_DEPTH_SIZE,       tmp, 0));
@@ -267,7 +297,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     return res;
   }
 
-  public static int[] glCapabilities2AttribList(NWCapabilities caps,
+  public static int[] glCapabilities2AttribList(GLCapabilities caps,
                                                 boolean isMultisampleAvailable,
                                                 boolean pbuffer,
                                                 long display,
@@ -357,11 +387,11 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     return res;
   }
 
-  public static NWCapabilities attribList2NWCapabilities(int[] iattribs,
+  public static GLCapabilities attribList2GLCapabilities(int[] iattribs,
                                                          int niattribs,
                                                          int[] ivalues,
                                                          boolean pbuffer) {
-    NWCapabilities caps = new NWCapabilities();
+    GLCapabilities caps = new GLCapabilities();
 
     for (int i = 0; i < niattribs; i++) {
       int attr = iattribs[i];

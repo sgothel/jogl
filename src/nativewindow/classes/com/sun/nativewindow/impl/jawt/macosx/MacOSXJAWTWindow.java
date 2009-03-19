@@ -69,7 +69,7 @@ public class MacOSXJAWTWindow extends JAWTWindow {
     }
     int res = ds.Lock();
     if ((res & JAWTFactory.JAWT_LOCK_ERROR) != 0) {
-      throw new NWException("Unable to lock surface");
+      throw new NativeWindowException("Unable to lock surface");
     }
     // See whether the surface changed and if so destroy the old
     // OpenGL context so it will be recreated (NOTE: removeNotify
@@ -110,7 +110,7 @@ public class MacOSXJAWTWindow extends JAWTWindow {
     drawable = macosxdsi.cocoaViewRef();
     // FIXME: Are the followup abstractions available ? would it be usefull ?
     display  = 0;
-    visualID = 0;
+    config = null;
     screen= 0;
     screenIndex = 0;
 
@@ -127,7 +127,7 @@ public class MacOSXJAWTWindow extends JAWTWindow {
     return ret;
   }
     
-  public void unlockSurface() throws NWException {
+  public void unlockSurface() throws NativeWindowException {
     if(!isSurfaceLocked()) return;
     ds.FreeDrawingSurfaceInfo(dsi);
     ds.Unlock();

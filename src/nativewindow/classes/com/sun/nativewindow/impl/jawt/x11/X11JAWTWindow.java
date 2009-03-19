@@ -36,11 +36,12 @@
 
 package com.sun.nativewindow.impl.jawt.x11;
 
+import javax.media.nativewindow.*;
+import javax.media.nativewindow.x11.*;
+
 import com.sun.nativewindow.impl.x11.*;
 import com.sun.nativewindow.impl.jawt.*;
 import com.sun.nativewindow.impl.*;
-
-import javax.media.nativewindow.*;
 
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
@@ -87,7 +88,8 @@ public class X11JAWTWindow extends JAWTWindow {
     x11dsi = (JAWT_X11DrawingSurfaceInfo) dsi.platformInfo();
     display = x11dsi.display();
     drawable = x11dsi.drawable();
-    visualID = x11dsi.visualID();
+    long visualID = x11dsi.visualID();
+    config = new X11GraphicsConfiguration(visualID);
     screen= 0;
     if (X11Lib.XineramaEnabled(display)) {
       screenIndex = 0;
@@ -105,7 +107,7 @@ public class X11JAWTWindow extends JAWTWindow {
       x11dsi = null;
       display = 0;
       drawable = 0;
-      visualID = 0;
+      config = null;
       screen= 0;
       screenIndex = -1;
       return LOCK_SURFACE_NOT_READY;

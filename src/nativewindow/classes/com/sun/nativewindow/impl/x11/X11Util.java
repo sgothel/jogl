@@ -60,7 +60,7 @@ public class X11Util {
                 NativeWindowFactory.getDefaultFactory().getToolkitLock().unlock();
             }
             if (staticDisplay == 0) {
-                throw new NWException("Unable to open default display");
+                throw new NativeWindowException("Unable to open default display");
             }
         }
         return staticDisplay;

@@ -52,8 +52,8 @@ public class MacOSXOnscreenCGLDrawable extends MacOSXCGLDrawable {
     new ArrayList();
 
   protected MacOSXOnscreenCGLDrawable(GLDrawableFactory factory, NativeWindow component,
-                                  NWCapabilities capabilities,
-                                  NWCapabilitiesChooser chooser) {
+                                  GLCapabilities capabilities,
+                                  GLCapabilitiesChooser chooser) {
     super(factory, component, false, capabilities, chooser);
   }
 

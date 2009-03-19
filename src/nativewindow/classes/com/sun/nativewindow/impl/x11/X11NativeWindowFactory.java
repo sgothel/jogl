@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2009 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -30,30 +30,47 @@
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  */
 
-package javax.media.nativewindow.x11;
+package com.sun.nativewindow.impl.x11;
 
 import javax.media.nativewindow.*;
+import com.sun.nativewindow.impl.*;
 
-/** Encapsulates a graphics configuration, or OpenGL pixel format, on
-    X11 platforms. Objects of this type are returned from {@link
-    NativeWindowFactory#chooseGraphicsConfiguration
-    NativeWindowFactory.chooseGraphicsConfiguration()} on X11
-    platforms when toolkits other than the AWT are being used.  */
+public class X11NativeWindowFactory extends NativeWindowFactoryImpl {
+    // On X11 platforms we need to do some locking; this basic
+    // implementation should suffice for some simple window toolkits
+    private ToolkitLock toolkitLock = new ToolkitLock() {
+            private Thread owner;
+            private int recursionCount;
+            
+            public synchronized void lock() {
+                Thread cur = Thread.currentThread();
+                if (owner == cur) {
+                    ++recursionCount;
+                    return;
+                }
+                while (owner != null) {
+                    try {
+                        wait();
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+                owner = cur;
+            }
 
-public class X11GraphicsConfiguration implements AbstractGraphicsConfiguration {
-    private long visualID;
+            public synchronized void unlock() {
+                if (owner != Thread.currentThread()) {
+                    throw new RuntimeException("Not owner");
+                }
+                if (recursionCount > 0) {
+                    --recursionCount;
+                    return;
+                }
+                owner = null;
+            }
+        };
 
-    /** Constructs a new X11GraphicsConfiguration corresponding to the given visual ID. */
-    public X11GraphicsConfiguration(long visualID) {
-        this.visualID = visualID;
-    }
-
-    /** Returns the visual ID that this graphics configuration object represents. */
-    public long getVisualID() {
-        return visualID;
-    }
-    
-    public String toString() {
-        return "[X11GraphicsConfiguration visualID = " + visualID + "]";
+    public ToolkitLock getToolkitLock() {
+        return toolkitLock;
     }
 }

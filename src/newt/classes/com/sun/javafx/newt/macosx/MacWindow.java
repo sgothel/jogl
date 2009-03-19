@@ -33,7 +33,7 @@
 
 package com.sun.javafx.newt.macosx;
 
-import javax.media.nativewindow.NWCapabilities;
+import javax.media.nativewindow.Capabilities;
 import javax.media.nativewindow.NativeWindowException;
 
 import com.sun.javafx.newt.*;
@@ -143,9 +143,12 @@ public class MacWindow extends Window {
     public MacWindow() {
     }
     
-    protected void createNative(NWCapabilities caps) {
-        chosenCaps = (NWCapabilities) caps.clone(); // FIXME: visualID := f1(caps); caps := f2(visualID)
-        visualID = 0; // n/a
+    protected void createNative(Capabilities caps) {
+        // FIXME: no way to really set the proper Capabilities nor the
+        // AbstractGraphicsConfiguration since we don't do (OpenGL)
+        // pixel format selection here
+        chosenCaps = (Capabilities) caps.clone(); // FIXME: visualID := f1(caps); caps := f2(visualID)
+        config = null; // n/a
     }
 
     protected void closeNative() {

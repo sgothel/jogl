@@ -101,8 +101,8 @@ public class NullWindow implements NativeWindow {
   public void setSurfaceHandle(long handle) {
     surfaceHandle=handle;
   }
-  public long getVisualID() {
-    return 0;
+  public AbstractGraphicsConfiguration getGraphicsConfiguration() {
+    return null;
   }
 
   public Object getWrappedWindow() {

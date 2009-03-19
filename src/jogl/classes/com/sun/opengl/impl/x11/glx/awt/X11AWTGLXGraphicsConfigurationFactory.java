@@ -36,8 +36,10 @@ import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import javax.media.nativewindow.*;
-import javax.media.nativewindow.awt.AWTGraphicsDevice;
+import javax.media.nativewindow.x11.X11GraphicsConfiguration;
+import javax.media.nativewindow.x11.X11GraphicsDevice;
 import javax.media.nativewindow.awt.AWTGraphicsConfiguration;
+import javax.media.nativewindow.awt.AWTGraphicsDevice;
 import javax.media.opengl.*;
 import javax.media.opengl.awt.*;
 
@@ -47,26 +49,19 @@ import com.sun.nativewindow.impl.jawt.x11.*;
 import com.sun.opengl.impl.x11.*;
 import com.sun.opengl.impl.x11.glx.*;
 
-public class X11AWTGLXNativeWindowFactory extends X11GLXNativeWindowFactory {
-
-    public X11AWTGLXNativeWindowFactory() {
-        Class componentClass = null;
-        try {
-            componentClass = Class.forName("java.awt.Component");
-        } catch (Exception e) { 
-            throw new GLException(e);
-        }
-
-        NativeWindowFactory.registerFactory(componentClass, this);
+public class X11AWTGLXGraphicsConfigurationFactory extends GraphicsConfigurationFactory {
+    public X11AWTGLXGraphicsConfigurationFactory() {
+        GraphicsConfigurationFactory.registerFactory(javax.media.nativewindow.awt.AWTGraphicsDevice.class,
+                                                     this);
     }
 
-    public AbstractGraphicsConfiguration chooseGraphicsConfiguration(NWCapabilities capabilities,
-                                                                     NWCapabilitiesChooser chooser,
+    public AbstractGraphicsConfiguration chooseGraphicsConfiguration(Capabilities capabilities,
+                                                                     CapabilitiesChooser chooser,
                                                                      AbstractGraphicsDevice absDevice) {
         GraphicsDevice device = null;
         if (absDevice != null &&
             !(absDevice instanceof AWTGraphicsDevice)) {
-            throw new IllegalArgumentException("This NativeWindowFactory accepts only AWTGraphicsDevice objects");
+            throw new IllegalArgumentException("This GraphicsConfigurationFactory accepts only AWTGraphicsDevice objects");
         }
 
         if ((absDevice == null) ||
@@ -76,66 +71,45 @@ public class X11AWTGLXNativeWindowFactory extends X11GLXNativeWindowFactory {
             device = ((AWTGraphicsDevice) absDevice).getGraphicsDevice();
         }
 
-        long visualID = chooseGraphicsConfigurationImpl(capabilities, chooser,
-                                                        X11SunJDKReflection.graphicsDeviceGetScreen(device));
+        if (capabilities != null &&
+            !(capabilities instanceof GLCapabilities)) {
+            throw new IllegalArgumentException("This GraphicsConfigurationFactory accepts only GLCapabilities objects");
+        }
 
-        // Now figure out which GraphicsConfiguration corresponds to this
-        // visual by matching the visual ID
-        GraphicsConfiguration[] configs = device.getConfigurations();
-        for (int i = 0; i < configs.length; i++) {
-            GraphicsConfiguration config = configs[i];
-            if (config != null) {
-                if (X11SunJDKReflection.graphicsConfigurationGetVisualID(config) == visualID) {
-                    return new AWTGraphicsConfiguration(config);
+        if (chooser != null &&
+            !(chooser instanceof GLCapabilitiesChooser)) {
+            throw new IllegalArgumentException("This GraphicsConfigurationFactory accepts only GLCapabilitiesChooser objects");
+        }
+
+        // Fabricate an X11GraphicsDevice and delegate to the GraphicsConfigurationFactory for those
+        // 
+        // Note that we could derive from X11GLXGraphicsConfigurationFactory, but that would
+        // limit the ability of third parties to plug in new visual selection algorithms
+        X11GraphicsDevice x11Device = new X11GraphicsDevice(X11SunJDKReflection.graphicsDeviceGetScreen(device));
+        X11GraphicsConfiguration x11Config = (X11GraphicsConfiguration)
+            GraphicsConfigurationFactory.getFactory(x11Device).chooseGraphicsConfiguration(capabilities,
+                                                                                           chooser,
+                                                                                           x11Device);
+        if (x11Config != null) {
+            long visualID = x11Config.getVisualID();
+            // Now figure out which GraphicsConfiguration corresponds to this
+            // visual by matching the visual ID
+            GraphicsConfiguration[] configs = device.getConfigurations();
+            for (int i = 0; i < configs.length; i++) {
+                GraphicsConfiguration config = configs[i];
+                if (config != null) {
+                    if (X11SunJDKReflection.graphicsConfigurationGetVisualID(config) == visualID) {
+                        return new AWTGraphicsConfiguration(config);
+                    }
                 }
             }
         }
-
+        
         // Either we weren't able to reflectively introspect on the
         // X11GraphicsConfig or something went wrong in the steps above;
         // we're going to return null without signaling an error condition
         // in this case (although we should distinguish between the two
         // and possibly report more of an error in the latter case)
         return null;
-    }
-
-    // When running the AWT on X11 platforms, we use the AWT native
-    // interface (JAWT) to lock and unlock the toolkit
-    private ToolkitLock toolkitLock = new ToolkitLock() {
-            private Thread owner;
-            private int recursionCount;
-            
-            public synchronized void lock() {
-                Thread cur = Thread.currentThread();
-                if (owner == cur) {
-                    ++recursionCount;
-                    return;
-                }
-                while (owner != null) {
-                    try {
-                        wait();
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-                owner = cur;
-                JAWTUtil.lockToolkit();
-            }
-
-            public synchronized void unlock() {
-                if (owner != Thread.currentThread()) {
-                    throw new RuntimeException("Not owner");
-                }
-                if (recursionCount > 0) {
-                    --recursionCount;
-                    return;
-                }
-                owner = null;
-                JAWTUtil.unlockToolkit();
-            }
-        };
-
-    public ToolkitLock getToolkitLock() {
-        return toolkitLock;
     }
 }

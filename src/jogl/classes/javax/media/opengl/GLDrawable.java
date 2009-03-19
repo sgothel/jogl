@@ -143,7 +143,7 @@ public interface GLDrawable {
       automatically and should not be called by the end user. */
   public void swapBuffers() throws GLException;
 
-  /** Fetches the {@link NWCapabilities} corresponding to the chosen
+  /** Fetches the {@link GLCapabilities} corresponding to the chosen
       OpenGL capabilities (pixel format / visual) for this drawable.
       Some drawables, in particular on-screen drawables, may be
       created lazily; null is returned if the drawable is not
@@ -153,7 +153,7 @@ public interface GLDrawable {
       value in this case. 
       Returns a copy of the passed object.
     */
-  public NWCapabilities getChosenNWCapabilities();
+  public GLCapabilities getChosenGLCapabilities();
 
   public NativeWindow getNativeWindow();
 

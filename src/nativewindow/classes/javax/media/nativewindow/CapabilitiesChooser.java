@@ -40,14 +40,14 @@
 package javax.media.nativewindow;
 
 /** Provides a mechanism by which applications can customize the
-    window type selection for a given {@link NWCapabilities}.
+    window type selection for a given {@link Capabilities}.
     Developers can implement this interface and pass an instance into
-    the appropriate method of {@link GLDrawableFactory}; the chooser
-    will be called during the OpenGL context creation process. */
+    the appropriate method of {@link NativeWindowFactory}; the chooser
+    will be called at window creation time, on some platforms. */
 
-public interface NWCapabilitiesChooser {
+public interface CapabilitiesChooser {
   /** Chooses the index (0..available.length - 1) of the {@link
-      NWCapabilities} most closely matching the desired one from the
+      Capabilities} most closely matching the desired one from the
       list of all supported. Some of the entries in the
       <code>available</code> array may be null; the chooser must
       ignore these. The <em>windowSystemRecommendedChoice</em>
@@ -56,12 +56,14 @@ public interface NWCapabilitiesChooser {
       not necessarily required, that the chooser select that entry.
 
       <P> <em>Note:</em> this method is called automatically by the
-      {@link GLDrawableFactory} when an instance of this class is
-      passed in to one of its factory methods. It should generally not
-      be invoked by users directly, unless it is desired to delegate
-      the choice to some other NWCapabilitiesChooser object.
+      {@link NativeWindowFactory} when an instance of this class is
+      passed in to its {@link
+      NativeWindowFactory#chooseGraphicsConfiguration
+      chooseGraphicsConfiguration} method. It should generally not be
+      invoked by users directly, unless it is desired to delegate the
+      choice to some other CapabilitiesChooser object.
   */
-  public int chooseCapabilities(NWCapabilities desired,
-                                NWCapabilities[] available,
+  public int chooseCapabilities(Capabilities desired,
+                                Capabilities[] available,
                                 int windowSystemRecommendedChoice);
 }

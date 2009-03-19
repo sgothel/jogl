@@ -46,6 +46,9 @@ import java.awt.GraphicsDevice;
 import java.lang.reflect.*;
 import java.security.*;
 
+import javax.media.nativewindow.AbstractGraphicsConfiguration;
+import javax.media.nativewindow.awt.AWTGraphicsConfiguration;
+
 /** This class encapsulates the reflection routines necessary to peek
     inside a few data structures in the AWT implementation on X11 for
     the purposes of correctly enumerating the available visuals. */
@@ -87,6 +90,17 @@ public class X11SunJDKReflection {
     } catch (Exception e) {
       return 0;
     }
+  }
+
+  public static int graphicsConfigurationGetVisualID(AbstractGraphicsConfiguration config) {
+      try {
+          if (config instanceof AWTGraphicsConfiguration) {
+              return graphicsConfigurationGetVisualID(((AWTGraphicsConfiguration) config).getGraphicsConfiguration());
+          }
+          return 0;
+      } catch (Exception e) {
+          return 0;
+      }
   }
 
   public static int graphicsConfigurationGetVisualID(GraphicsConfiguration config) {

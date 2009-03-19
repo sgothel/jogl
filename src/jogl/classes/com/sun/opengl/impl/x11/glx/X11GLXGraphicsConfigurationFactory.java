@@ -43,24 +43,36 @@ import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
 import com.sun.opengl.impl.x11.glx.*;
 
-/** Subclass of NativeWindowFactory used when non-AWT tookits are used
-    on X11 platforms. Toolkits will likely need to subclass this one
-    to add synchronization in certain places and change the accepted
-    and returned types of the GraphicsDevice and GraphicsConfiguration
-    abstractions. */
+/** Subclass of GraphicsConfigurationFactory used when non-AWT tookits
+    are used on X11 platforms. Toolkits will likely need to delegate
+    to this one to change the accepted and returned types of the
+    GraphicsDevice and GraphicsConfiguration abstractions. */
 
-public class X11GLXNativeWindowFactory extends NativeWindowFactoryImpl {
+public class X11GLXGraphicsConfigurationFactory extends GraphicsConfigurationFactory {
+    // Keep this under the same debug flag as the drawable factory for convenience
+    protected static final boolean DEBUG = Debug.debug("X11GLXDrawableFactory");
 
-    public X11GLXNativeWindowFactory() {
-        NativeWindowFactory.registerFactory(javax.media.nativewindow.NativeWindow.class, this);
+    public X11GLXGraphicsConfigurationFactory() {
+        GraphicsConfigurationFactory.registerFactory(javax.media.nativewindow.x11.X11GraphicsDevice.class,
+                                                     this);
     }
 
-    public AbstractGraphicsConfiguration chooseGraphicsConfiguration(NWCapabilities capabilities,
-                                                                     NWCapabilitiesChooser chooser,
+    public AbstractGraphicsConfiguration chooseGraphicsConfiguration(Capabilities capabilities,
+                                                                     CapabilitiesChooser chooser,
                                                                      AbstractGraphicsDevice absDevice) {
         if (absDevice != null &&
             !(absDevice instanceof X11GraphicsDevice)) {
             throw new IllegalArgumentException("This NativeWindowFactory accepts only X11GraphicsDevice objects");
+        }
+
+        if (capabilities != null &&
+            !(capabilities instanceof GLCapabilities)) {
+            throw new IllegalArgumentException("This NativeWindowFactory accepts only GLCapabilities objects");
+        }
+
+        if (chooser != null &&
+            !(chooser instanceof GLCapabilitiesChooser)) {
+            throw new IllegalArgumentException("This NativeWindowFactory accepts only GLCapabilitiesChooser objects");
         }
 
         int screen = 0;
@@ -68,19 +80,21 @@ public class X11GLXNativeWindowFactory extends NativeWindowFactoryImpl {
             screen = ((X11GraphicsDevice) absDevice).getScreen();
         }
 
-        long visualID = chooseGraphicsConfigurationImpl(capabilities, chooser, screen);
+        long visualID = chooseGraphicsConfigurationImpl((GLCapabilities) capabilities,
+                                                        (GLCapabilitiesChooser) chooser,
+                                                        screen);
         return new X11GraphicsConfiguration(visualID);
     }
 
     /** Returns the visual ID of the chosen GraphicsConfiguration. */
-    protected long chooseGraphicsConfigurationImpl(NWCapabilities capabilities,
-                                                   NWCapabilitiesChooser chooser,
+    protected long chooseGraphicsConfigurationImpl(GLCapabilities capabilities,
+                                                   GLCapabilitiesChooser chooser,
                                                    int screen) {
         if (capabilities == null) {
-            capabilities = new NWCapabilities();
+            capabilities = new GLCapabilities();
         }
         if (chooser == null) {
-            chooser = new DefaultNWCapabilitiesChooser();
+            chooser = new DefaultGLCapabilitiesChooser();
         }
 
         if (X11Util.isXineramaEnabled()) {
@@ -93,9 +107,9 @@ public class X11GLXNativeWindowFactory extends NativeWindowFactoryImpl {
 
         int[] attribs = X11GLXDrawableFactory.glCapabilities2AttribList(capabilities, GLXUtil.isMultisampleAvailable(), false, 0, 0);
         XVisualInfo[] infos = null;
-        NWCapabilities[] caps = null;
+        GLCapabilities[] caps = null;
         int recommendedIndex = -1;
-        getDefaultFactory().getToolkitLock().lock();
+        NativeWindowFactory.getDefaultFactory().getToolkitLock().lock();
         try {
             long display = X11Util.getDisplayConnection();
             XVisualInfo recommendedVis = GLX.glXChooseVisual(display, screen, attribs, 0);
@@ -114,66 +128,33 @@ public class X11GLXNativeWindowFactory extends NativeWindowFactoryImpl {
             if (infos == null) {
                 throw new GLException("Error while enumerating available XVisualInfos");
             }
-            caps = new NWCapabilities[infos.length];
+            caps = new GLCapabilities[infos.length];
             for (int i = 0; i < infos.length; i++) {
-                caps[i] = ((X11GLXDrawableFactory) GLDrawableFactory.getFactory()).xvi2NWCapabilities(display, infos[i]);
+                caps[i] = ((X11GLXDrawableFactory) GLDrawableFactory.getFactory()).xvi2GLCapabilities(display, infos[i]);
                 // Attempt to find the visual chosen by glXChooseVisual
                 if (recommendedVis != null && recommendedVis.visualid() == infos[i].visualid()) {
                     recommendedIndex = i;
                 }
             }
         } finally {
-            getDefaultFactory().getToolkitLock().unlock();
+            NativeWindowFactory.getDefaultFactory().getToolkitLock().unlock();
         }
         // Store these away for later
         ((X11GLXDrawableFactory) GLDrawableFactory.getFactory()).
-            initializeVisualToNWCapabilitiesMap(screen, infos, caps);
-        int chosen = chooser.chooseCapabilities(capabilities, caps, recommendedIndex);
+            initializeVisualToGLCapabilitiesMap(screen, infos, caps);
+        int chosen;
+        try {
+          chosen = chooser.chooseCapabilities(capabilities, caps, recommendedIndex);
+        } catch (NativeWindowException e) {
+          throw new GLException(e);
+        }
         if (chosen < 0 || chosen >= caps.length) {
-            throw new GLException("NWCapabilitiesChooser specified invalid index (expected 0.." + (caps.length - 1) + ")");
+            throw new GLException("GLCapabilitiesChooser specified invalid index (expected 0.." + (caps.length - 1) + ")");
         }
         XVisualInfo vis = infos[chosen];
         if (vis == null) {
-            throw new GLException("NWCapabilitiesChooser chose an invalid visual");
+            throw new GLException("GLCapabilitiesChooser chose an invalid visual");
         }
         return vis.visualid();
-    }
-
-    // On X11 platforms we need to do some locking; this basic
-    // implementation should suffice for some simple window toolkits
-    private ToolkitLock toolkitLock = new ToolkitLock() {
-            private Thread owner;
-            private int recursionCount;
-            
-            public synchronized void lock() {
-                Thread cur = Thread.currentThread();
-                if (owner == cur) {
-                    ++recursionCount;
-                    return;
-                }
-                while (owner != null) {
-                    try {
-                        wait();
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-                owner = cur;
-            }
-
-            public synchronized void unlock() {
-                if (owner != Thread.currentThread()) {
-                    throw new RuntimeException("Not owner");
-                }
-                if (recursionCount > 0) {
-                    --recursionCount;
-                    return;
-                }
-                owner = null;
-            }
-        };
-
-    public ToolkitLock getToolkitLock() {
-        return toolkitLock;
     }
 }

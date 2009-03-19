@@ -84,8 +84,8 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
   private boolean sendReshape = false;
   
   private GraphicsConfiguration chosen;
-  private NWCapabilities glCaps;
-  private NWCapabilitiesChooser glCapChooser;
+  private GLCapabilities glCaps;
+  private GLCapabilitiesChooser glCapChooser;
 
   static {
     // Default to the GL2 profile, which is the default on the desktop
@@ -104,15 +104,15 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
   /** Creates a new GLCanvas component with the requested set of
       OpenGL capabilities, using the default OpenGL capabilities
       selection mechanism, on the default screen device. */
-  public GLCanvas(NWCapabilities capabilities) {
+  public GLCanvas(GLCapabilities capabilities) {
     this(capabilities, null, null, null);
   }
 
-  /** Creates a new GLCanvas component. The passed NWCapabilities
+  /** Creates a new GLCanvas component. The passed GLCapabilities
       specifies the OpenGL capabilities for the component; if null, a
-      default set of capabilities is used. The NWCapabilitiesChooser
+      default set of capabilities is used. The GLCapabilitiesChooser
       specifies the algorithm for selecting one of the available
-      NWCapabilities for the component; a DefaultGLCapabilitesChooser
+      GLCapabilities for the component; a DefaultGLCapabilitesChooser
       is used if null is passed for this argument. The passed
       GLContext specifies an OpenGL context with which to share
       textures, display lists and other OpenGL state, and may be null
@@ -123,8 +123,8 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
       which to create the GLCanvas; the GLDrawableFactory uses the
       default screen device of the local GraphicsEnvironment if null
       is passed for this argument. */
-  public GLCanvas(NWCapabilities capabilities,
-                  NWCapabilitiesChooser chooser,
+  public GLCanvas(GLCapabilities capabilities,
+                  GLCapabilitiesChooser chooser,
                   GLContext shareWith,
                   GraphicsDevice device) {
     // The platform-specific GLDrawableFactory will only provide a
@@ -466,11 +466,11 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
     maybeDoSingleThreadedWorkaround(swapBuffersOnEventDispatchThreadAction, swapBuffersAction);
   }
 
-  public NWCapabilities getChosenNWCapabilities() {
+  public GLCapabilities getChosenGLCapabilities() {
     if (drawable == null)
       return null;
 
-    return drawable.getChosenNWCapabilities();
+    return drawable.getChosenGLCapabilities();
   }
 
   public NativeWindow getNativeWindow() {
@@ -609,18 +609,19 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
     }
   }
 
-  private static GraphicsConfiguration chooseGraphicsConfiguration(NWCapabilities capabilities,
-                                                                   NWCapabilitiesChooser chooser,
+  private static GraphicsConfiguration chooseGraphicsConfiguration(GLCapabilities capabilities,
+                                                                   GLCapabilitiesChooser chooser,
                                                                    GraphicsDevice device) {
     // Make GLCanvas behave better in NetBeans GUI builder
     if (Beans.isDesignTime()) {
       return null;
     }
 
+    AWTGraphicsDevice awtDevice = new AWTGraphicsDevice(device);
     AWTGraphicsConfiguration config = (AWTGraphicsConfiguration)
-      NativeWindowFactory.getFactory(Component.class).chooseGraphicsConfiguration(capabilities,
-                                                                                  chooser,
-                                                                                  new AWTGraphicsDevice(device));
+      GraphicsConfigurationFactory.getFactory(awtDevice).chooseGraphicsConfiguration(capabilities,
+                                                                                     chooser,
+                                                                                     awtDevice);
     if (config == null) {
       return null;
     }

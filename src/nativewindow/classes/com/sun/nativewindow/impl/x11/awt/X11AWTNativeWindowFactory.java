@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2009 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -42,7 +42,7 @@ import com.sun.nativewindow.impl.jawt.*;
 import com.sun.nativewindow.impl.jawt.x11.*;
 import com.sun.nativewindow.impl.x11.*;
 
-public class X11AWTNativeWindowFactory extends NativeWindowFactoryImpl {
+public class X11AWTNativeWindowFactory extends X11NativeWindowFactory {
 
     // When running the AWT on X11 platforms, we use the AWT native
     // interface (JAWT) to lock and unlock the toolkit

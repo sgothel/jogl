@@ -47,7 +47,7 @@ import com.sun.nativewindow.impl.NullWindow;
 public class WindowsExternalWGLDrawable extends WindowsWGLDrawable {
 
   public WindowsExternalWGLDrawable(GLDrawableFactory factory, NativeWindow component) {
-    super(factory, component, true, new NWCapabilities(), null);
+    super(factory, component, true, new GLCapabilities(), null);
   }
 
   public static WindowsExternalWGLDrawable create(GLDrawableFactory factory) {

@@ -214,7 +214,7 @@
               <isset property="rootrel.build"/>
           </not>
         </condition>
-        <property name="rootrel.build.nativewindow" value="${rootrel.build}-nativewindow" />
+        <property name="rootrel.build.nativewindow" value="${rootrel.build}/nativewindow" />
         <property name="rootrel.src" value="src/nativewindow" />
         <property name="rootrel.src.java" value="${rootrel.src}/classes" />
         <property name="rootrel.src.c" value="${rootrel.src}/native" />

@@ -47,7 +47,7 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.*;
 import com.sun.javafx.newt.Window;
-import javax.media.nativewindow.NWCapabilities;
+import javax.media.nativewindow.Capabilities;
 import javax.media.nativewindow.NativeWindowException;
 
 /** An implementation of the Newt Window class built using the
@@ -75,9 +75,9 @@ public class AWTWindow extends Window {
         }
     }
 
-    protected void createNative(NWCapabilities caps) {
-        chosenCaps = (NWCapabilities) caps.clone(); // FIXME: visualID := f1(caps); caps := f2(visualID)
-        visualID = 0; // n/a
+    protected void createNative(Capabilities caps) {
+        chosenCaps = (Capabilities) caps.clone(); // FIXME: visualID := f1(caps); caps := f2(visualID)
+        config = null; // n/a
         runOnEDT(new Runnable() {
                 public void run() {
                     frame = new Frame(getTitle());

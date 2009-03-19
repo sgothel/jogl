@@ -30,30 +30,31 @@
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  */
 
-package javax.media.nativewindow.x11;
+package com.sun.nativewindow.impl.x11;
 
 import javax.media.nativewindow.*;
+import javax.media.nativewindow.x11.*;
 
-/** Encapsulates a graphics configuration, or OpenGL pixel format, on
-    X11 platforms. Objects of this type are returned from {@link
-    NativeWindowFactory#chooseGraphicsConfiguration
-    NativeWindowFactory.chooseGraphicsConfiguration()} on X11
-    platforms when toolkits other than the AWT are being used.  */
-
-public class X11GraphicsConfiguration implements AbstractGraphicsConfiguration {
-    private long visualID;
-
-    /** Constructs a new X11GraphicsConfiguration corresponding to the given visual ID. */
-    public X11GraphicsConfiguration(long visualID) {
-        this.visualID = visualID;
-    }
-
-    /** Returns the visual ID that this graphics configuration object represents. */
-    public long getVisualID() {
-        return visualID;
-    }
-    
-    public String toString() {
-        return "[X11GraphicsConfiguration visualID = " + visualID + "]";
+public class X11GraphicsConfigurationFactory extends GraphicsConfigurationFactory {
+    // FIXME: there is a "quality of implementation" issue here. We
+    // want to allow the use of the GraphicsConfigurationFactory in
+    // conjunction with OpenGL as well as other rendering mechanisms.
+    // On X11 platforms the OpenGL pixel format is associated with the
+    // window's visual. On other platforms, the OpenGL pixel format is
+    // chosen lazily. As in the OpenGL binding, the default
+    // X11GraphicsConfigurationFactory would need to provide a default
+    // mechanism for selecting a visual based on a set of
+    // capabilities. Here we always return 0 for the visual ID, which
+    // presumably corresponds to the default visual (which may be a
+    // bad assumption). When using OpenGL, the OpenGL binding is
+    // responsible for registering a GraphicsConfigurationFactory
+    // which actually performs visual selection, though based on
+    // GLCapabilities.
+    public AbstractGraphicsConfiguration
+        chooseGraphicsConfiguration(Capabilities capabilities,
+                                    CapabilitiesChooser chooser,
+                                    AbstractGraphicsDevice device)
+        throws IllegalArgumentException, NativeWindowException {
+        return new X11GraphicsConfiguration(0);
     }
 }

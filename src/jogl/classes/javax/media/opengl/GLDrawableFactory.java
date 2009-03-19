@@ -49,21 +49,21 @@ import com.sun.nativewindow.impl.NWReflection;
 /** <P> Provides a virtual machine- and operating system-independent
     mechanism for creating {@link GLDrawable}s. </P>
 
-    <P> The {@link javax.media.opengl.NWCapabilities} objects passed
+    <P> The {@link javax.media.opengl.GLCapabilities} objects passed
     in to the various factory methods are used as a hint for the
     properties of the returned drawable. The default capabilities
     selection algorithm (equivalent to passing in a null {@link
-    NWCapabilitiesChooser}) is described in {@link
-    DefaultNWCapabilitiesChooser}. Sophisticated applications needing
+    GLCapabilitiesChooser}) is described in {@link
+    DefaultGLCapabilitiesChooser}. Sophisticated applications needing
     to change the selection algorithm may pass in their own {@link
-    NWCapabilitiesChooser} which can select from the available pixel
-    formats. The NWCapabilitiesChooser mechanism may not be supported
+    GLCapabilitiesChooser} which can select from the available pixel
+    formats. The GLCapabilitiesChooser mechanism may not be supported
     by all implementations or on all platforms, in which case any
-    passed NWCapabilitiesChooser will be ignored. </P>
+    passed GLCapabilitiesChooser will be ignored. </P>
 
     <P> Because of the multithreaded nature of the Java platform's
     Abstract Window Toolkit, it is typically not possible to immediately
-    reject a given {@link NWCapabilities} as being unsupportable by
+    reject a given {@link GLCapabilities} as being unsupportable by
     either returning <code>null</code> from the creation routines or
     raising a {@link GLException}. The semantics of the rejection
     process are (unfortunately) left unspecified for now. The current
@@ -156,19 +156,19 @@ public abstract class GLDrawableFactory {
    * Returns a GLDrawable that wraps a platform-specific window system
    * object, such as an AWT or LCDUI Canvas. On platforms which
    * support it, selects a pixel format compatible with the supplied
-   * NWCapabilities, or if the passed NWCapabilities object is null,
+   * GLCapabilities, or if the passed GLCapabilities object is null,
    * uses a default set of capabilities. On these platforms, uses
-   * either the supplied NWCapabilitiesChooser object, or if the
-   * passed NWCapabilitiesChooser object is null, uses a
-   * DefaultNWCapabilitiesChooser instance.
+   * either the supplied GLCapabilitiesChooser object, or if the
+   * passed GLCapabilitiesChooser object is null, uses a
+   * DefaultGLCapabilitiesChooser instance.
    *
    * @throws IllegalArgumentException if the passed target is null
    * @throws GLException if any window system-specific errors caused
    *         the creation of the GLDrawable to fail.
    */
   public abstract GLDrawable createGLDrawable(NativeWindow target,
-                                              NWCapabilities capabilities,
-                                              NWCapabilitiesChooser chooser)
+                                              GLCapabilities capabilities,
+                                              GLCapabilitiesChooser chooser)
     throws IllegalArgumentException, GLException;
   
   //----------------------------------------------------------------------
@@ -189,8 +189,8 @@ public abstract class GLDrawableFactory {
    * @throws GLException if any window system-specific errors caused
    *         the creation of the GLPbuffer to fail.
    */
-  public abstract GLPbuffer createGLPbuffer(NWCapabilities capabilities,
-                                            NWCapabilitiesChooser chooser,
+  public abstract GLPbuffer createGLPbuffer(GLCapabilities capabilities,
+                                            GLCapabilitiesChooser chooser,
                                             int initialWidth,
                                             int initialHeight,
                                             GLContext shareWith)

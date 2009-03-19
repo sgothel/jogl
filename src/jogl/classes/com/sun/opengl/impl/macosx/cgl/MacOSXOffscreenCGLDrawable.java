@@ -46,7 +46,7 @@ import com.sun.opengl.impl.*;
 public class MacOSXOffscreenCGLDrawable extends MacOSXPbufferCGLDrawable {
 
   public MacOSXOffscreenCGLDrawable(GLDrawableFactory factory,
-                                    NWCapabilities capabilities,
+                                    GLCapabilities capabilities,
                                     int width,
                                     int height) {
     super(factory, capabilities, width, height);

@@ -42,7 +42,7 @@ import javax.media.nativewindow.*;
 import javax.media.opengl.*;
 
 public class EGLDrawable extends GLDrawableImpl {
-    private NWCapabilitiesChooser chooser;
+    private GLCapabilitiesChooser chooser;
     private long display;
     private EGLConfig config;
     private long surface;
@@ -50,8 +50,8 @@ public class EGLDrawable extends GLDrawableImpl {
 
     public EGLDrawable(EGLDrawableFactory factory,
                        NativeWindow component,
-                       NWCapabilities requestedCapabilities,
-                       NWCapabilitiesChooser chooser) throws GLException {
+                       GLCapabilities requestedCapabilities,
+                       GLCapabilitiesChooser chooser) throws GLException {
         super(factory, component, requestedCapabilities, false);
         this.chooser = chooser;
         surface=EGL.EGL_NO_SURFACE;
@@ -92,7 +92,7 @@ public class EGLDrawable extends GLDrawableImpl {
 
     public void setRealized(boolean realized) {
         if (realized) {
-            if (NWReflection.instanceOf(component, "com.sun.javafx.newt.kd.KDWindow")) {
+            if (NWReflection.instanceOf(component, "com.sun.javafx.newt.opengl.kd.KDWindow")) {
                 // KDWindows holds already determined EGL values
                 display = component.getDisplayHandle();
                 if (display==0) {
@@ -101,11 +101,10 @@ public class EGLDrawable extends GLDrawableImpl {
                 if (display == EGL.EGL_NO_DISPLAY) {
                     throw new GLException("KDWindow has EGL_NO_DISPLAY");
                 }
-                Long setConfigID = new Long(component.getVisualID());
-                if ( 0 <= setConfigID.longValue() && setConfigID.longValue() <= Integer.MAX_VALUE ) {
-                    config = new EGLConfig(display, setConfigID.intValue());
-                } else {
-                    throw new GLException("KDWindow has invalid visualID/configID");
+                EGLConfig config = (EGLConfig) component.getGraphicsConfiguration();
+                int configID = 0;
+                if (config != null) {
+                    configID = config.getNativeConfigID();
                 }
             } else {
                 display = EGL.eglGetDisplay((0!=component.getDisplayHandle())?component.getDisplayHandle():EGL.EGL_DEFAULT_DISPLAY);
@@ -115,9 +114,9 @@ public class EGLDrawable extends GLDrawableImpl {
                 if (!EGL.eglInitialize(display, null, null)) {
                     throw new GLException("eglInitialize failed");
                 }
-                config = new EGLConfig(display, getRequestedNWCapabilities());
+                config = new EGLConfig(display, getRequestedGLCapabilities());
             }
-            setChosenNWCapabilities(config.getCapabilities());
+            setChosenGLCapabilities(config.getCapabilities());
         } else if (surface != EGL.EGL_NO_SURFACE) {
             // Destroy the window surface
             if (!EGL.eglDestroySurface(display, surface)) {

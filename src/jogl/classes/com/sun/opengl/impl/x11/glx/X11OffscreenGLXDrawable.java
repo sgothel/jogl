@@ -50,8 +50,8 @@ public class X11OffscreenGLXDrawable extends X11GLXDrawable {
   private boolean isDoubleBuffered;
 
   protected X11OffscreenGLXDrawable(GLDrawableFactory factory,
-                                    NWCapabilities requestedCapabilities,
-                                    NWCapabilitiesChooser chooser,
+                                    GLCapabilities requestedCapabilities,
+                                    GLCapabilitiesChooser chooser,
                                     int width,
                                     int height) {
     super(factory, new NullWindow(), true, requestedCapabilities, chooser);
@@ -92,7 +92,7 @@ public class X11OffscreenGLXDrawable extends X11GLXDrawable {
                            ", GLXPixmap " + toHexString(drawable) +
                            ", display " + toHexString(dpy));
       }
-      setChosenNWCapabilities(((X11GLXDrawableFactory)getFactory()).xvi2NWCapabilities(dpy, vis));
+      setChosenGLCapabilities(((X11GLXDrawableFactory)getFactory()).xvi2GLCapabilities(dpy, vis));
     } finally {
       getFactoryImpl().unlockToolkit();
     }
@@ -131,7 +131,7 @@ public class X11OffscreenGLXDrawable extends X11GLXDrawable {
       drawable = 0;
       pixmap = 0;
       display = 0;
-      setChosenNWCapabilities(null);
+      setChosenGLCapabilities(null);
     } finally {
       getFactoryImpl().unlockToolkit();
     }

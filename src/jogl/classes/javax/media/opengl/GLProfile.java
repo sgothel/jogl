@@ -58,7 +58,7 @@ public class GLProfile {
   /** The JVM/process wide chosen GL profile **/
   private static String profile = null;
 
-  private static final void tryLibrary() 
+  private static final Throwable tryLibrary() 
   {
     try {
         Class clazz = Class.forName(getGLImplBaseClassName()+"Impl");
@@ -79,11 +79,13 @@ public class GLProfile {
             }
         }
         System.out.println("Successfully loaded profile " + profile);
+        return null;
     } catch (Throwable e) {
         if (Debug.debug("GLProfile")) {
             e.printStackTrace();
         }
         profile=null;
+        return e;
     }
   }
 
@@ -92,9 +94,9 @@ public class GLProfile {
   {
     if(null==GLProfile.profile) {
         GLProfile.profile = profile;
-        tryLibrary();
-        if (profile == null) {
-            throw new GLException("Profile " + profile + " not available");
+        Throwable t = tryLibrary();
+        if (GLProfile.profile == null) {
+            throw new GLException("Profile " + profile + " not available", t);
         }
     } else {
         if(!GLProfile.profile.equals(profile)) {
@@ -106,9 +108,14 @@ public class GLProfile {
   public static synchronized final void setProfile(String[] profiles) 
     throws GLException
   {
+    Throwable t = null;
     for(int i=0; profile==null && i<profiles.length; i++) {
         profile = profiles[i];
-        tryLibrary();
+        if (t == null) {
+          t = tryLibrary();
+        } else {
+          tryLibrary();
+        }
     }
     if(null==profile) {
       StringBuffer msg = new StringBuffer();
@@ -119,7 +126,7 @@ public class GLProfile {
           msg.append(profiles[i]);
       }
       msg.append("]");
-      throw new GLException("Profiles "+msg.toString()+" not available");
+      throw new GLException("Profiles "+msg.toString()+" not available", t);
     }
   }
 

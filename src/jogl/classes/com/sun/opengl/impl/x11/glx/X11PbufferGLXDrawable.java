@@ -56,7 +56,7 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
   protected static final int MAX_ATTRIBS  = 256;
 
   protected X11PbufferGLXDrawable(GLDrawableFactory factory,
-                                  NWCapabilities requestedCapabilities, 
+                                  GLCapabilities requestedCapabilities, 
                                   int width, int height) {
     super(factory, new NullWindow(), true, requestedCapabilities, null);
     if (width <= 0 || height <= 0) {
@@ -106,7 +106,7 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
       int screen = X11Lib.DefaultScreen(display);
       nw.setScreenIndex(screen);
     
-      NWCapabilities capabilities = getRequestedNWCapabilities();
+      GLCapabilities capabilities = getRequestedGLCapabilities();
 
       if (capabilities.getPbufferRenderToTexture()) {
         throw new GLException("Render-to-texture pbuffers not supported yet on X11");
@@ -174,7 +174,7 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
       int samplesAttrib = GLXUtil.isMultisampleAvailable() ? GLX.GLX_SAMPLES: GLX.GLX_RED_SIZE;
       int floatNV       = capabilities.getPbufferFloatingPointBuffers() ? GLXExt.GLX_FLOAT_COMPONENTS_NV : GLX.GLX_RED_SIZE;
 
-      // Query the fbconfig to determine its NWCapabilities
+      // Query the fbconfig to determine its GLCapabilities
       int[] iattribs = {
         GLX.GLX_DOUBLEBUFFER,
         GLX.GLX_STEREO,
@@ -195,7 +195,7 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
 
       int[] ivalues = new int[iattribs.length];
       queryFBConfig(display, fbConfig, iattribs, iattribs.length, ivalues);
-      setChosenNWCapabilities(X11GLXDrawableFactory.attribList2NWCapabilities(iattribs, iattribs.length, ivalues, true));
+      setChosenGLCapabilities(X11GLXDrawableFactory.attribList2GLCapabilities(iattribs, iattribs.length, ivalues, true));
 
       // Determine the actual width and height we were able to create.
       int[] tmp = new int[1];

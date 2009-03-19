@@ -35,8 +35,10 @@ package com.sun.javafx.newt.x11;
 
 import com.sun.javafx.newt.*;
 import com.sun.javafx.newt.impl.*;
-import javax.media.nativewindow.NWCapabilities;
+import javax.media.nativewindow.Capabilities;
+import javax.media.nativewindow.GraphicsConfigurationFactory;
 import javax.media.nativewindow.NativeWindowException;
+import javax.media.nativewindow.x11.*;
 
 public class X11Window extends Window {
     private static final String WINDOW_CLASS_NAME = "NewtWindow";
@@ -54,9 +56,18 @@ public class X11Window extends Window {
     public X11Window() {
     }
 
-    protected void createNative(NWCapabilities caps) {
-        chosenCaps = (NWCapabilities) caps.clone(); // FIXME: visualID := f1(caps); caps := f2(visualID)
-        visualID = 0; // n/a
+    protected void createNative(Capabilities caps) {
+        // FIXME: we're running the visual selection algorithm (i.e.,
+        // from the OpenGL binding) but have no mechanism for
+        // capturing the chosen Capabilities
+        chosenCaps = (Capabilities) caps.clone(); // FIXME: visualID := f1(caps); caps := f2(visualID)
+        X11GraphicsDevice device = new X11GraphicsDevice(getScreenIndex());
+        X11GraphicsConfiguration config = (X11GraphicsConfiguration)
+            GraphicsConfigurationFactory.getFactory(device).chooseGraphicsConfiguration(caps, null, device);
+        long visualID = 0;
+        if (config != null) {
+            visualID = ((X11GraphicsConfiguration) config).getVisualID();
+        }
         long w = CreateWindow(getDisplayHandle(), getScreenHandle(), getScreenIndex(), visualID, x, y, width, height);
         if (w == 0 || w!=windowHandle) {
             throw new NativeWindowException("Error creating window: "+w);
@@ -153,7 +164,7 @@ public class X11Window extends Window {
     }
 
     private void windowCreated(long visualID, long windowHandle, long windowDeleteAtom) {
-        this.visualID = visualID;
+        this.config = new X11GraphicsConfiguration(visualID);
         this.windowHandle = windowHandle;
         this.windowDeleteAtom=windowDeleteAtom;
     }

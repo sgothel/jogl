@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2008-2009 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -32,23 +32,22 @@
 
 package javax.media.nativewindow;
 
-import javax.media.nativewindow.*;
 import java.lang.reflect.*;
 import java.security.*;
 import java.util.*;
 
 import com.sun.nativewindow.impl.*;
 
-/** Provides the link between the window toolkit and the Java binding
-    to the OpenGL API. The NativeWindowFactory, and NativeWindow
-    instances it creates, encompass all of the toolkit-specific
-    functionality, leaving the GLDrawableFactory independent of any
-    particular toolkit. */
+/** Provides a pluggable mechanism for arbitrary window toolkits to
+    adapt their components to the {@link NativeWindow} interface,
+    which provides a platform-independent mechanism of accessing the
+    information required to perform operations like
+    hardware-accelerated rendering using the OpenGL API. */
 
 public abstract class NativeWindowFactory {
     private static NativeWindowFactory defaultFactory;
-    private static HashMap/*<Class, NativeWindowFactory>*/ registeredFactories =
-        new HashMap();
+    private static Map/*<Class, NativeWindowFactory>*/ registeredFactories =
+        Collections.synchronizedMap(new HashMap());
     private static Class nativeWindowClass;
 
     /** Creates a new NativeWindowFactory instance. End users do not
@@ -56,40 +55,54 @@ public abstract class NativeWindowFactory {
     protected NativeWindowFactory() {
     }
 
-    static {
-        initialize();
-    }
-
+    private static boolean initialized = false;
     private static void initialize() {
-        String osName = System.getProperty("os.name");
-        String osNameLowerCase = osName.toLowerCase();
-        String factoryClassName = null;
-
-        // We break compile-time dependencies on the AWT here to
-        // make it easier to run this code on mobile devices
-
-        NativeWindowFactory factory = new NativeWindowFactoryImpl();
-        nativeWindowClass = javax.media.nativewindow.NativeWindow.class;
-        registerFactory(nativeWindowClass, factory);
-        defaultFactory = factory;
-        
-        Class componentClass = null;
-        try {
-            componentClass = Class.forName("java.awt.Component");
-        } catch (Exception e) {
-        }
-        if (componentClass != null) {
-            if (!osNameLowerCase.startsWith("wind") &&
-                !osNameLowerCase.startsWith("mac os x")) {
-                // Assume X11 platform -- should probably test for these explicitly
-                try {
-                    Constructor factoryConstructor =
-                        NWReflection.getConstructor("com.sun.nativewindow.impl.x11.awt.X11AWTNativeWindowFactory", new Class[] {});
-                    factory = (NativeWindowFactory) factoryConstructor.newInstance(null);
-                } catch (Exception e) { }
+        synchronized (NativeWindowFactory.class) {
+            if (initialized) {
+                return;
             }
-            registerFactory(componentClass, factory);
+            initialized = true;
+
+            String osName = System.getProperty("os.name");
+            String osNameLowerCase = osName.toLowerCase();
+            String factoryClassName = null;
+
+            // We break compile-time dependencies on the AWT here to
+            // make it easier to run this code on mobile devices
+
+            NativeWindowFactory factory = new NativeWindowFactoryImpl();
+            nativeWindowClass = javax.media.nativewindow.NativeWindow.class;
+            registerFactory(nativeWindowClass, factory);
             defaultFactory = factory;
+        
+            Class componentClass = null;
+            try {
+                componentClass = Class.forName("java.awt.Component");
+            } catch (Exception e) {
+            }
+            if (componentClass != null) {
+                if (!osNameLowerCase.startsWith("wind") &&
+                    !osNameLowerCase.startsWith("mac os x")) {
+                    // Assume X11 platform -- should probably test for these explicitly
+                    boolean exceptionOccurred = true;
+                    try {
+                        Constructor factoryConstructor =
+                            NWReflection.getConstructor("com.sun.nativewindow.impl.x11.awt.X11AWTNativeWindowFactory", new Class[] {});
+                        factory = (NativeWindowFactory) factoryConstructor.newInstance(null);
+                        exceptionOccurred = false;
+                    } catch (Exception e) { }
+                    if (exceptionOccurred) {
+                        // Try the non-AWT X11 native window factory
+                        try {
+                            Constructor factoryConstructor =
+                                NWReflection.getConstructor("com.sun.nativewindow.impl.x11.X11NativeWindowFactory", new Class[] {});
+                            factory = (NativeWindowFactory) factoryConstructor.newInstance(null);
+                        } catch (Exception e) { }
+                    }
+                }
+                registerFactory(componentClass, factory);
+                defaultFactory = factory;
+            }
         }
     }
 
@@ -105,6 +118,7 @@ public abstract class NativeWindowFactory {
         within the Java binding to OpenGL. By default, if the AWT is
         available, the default toolkit will support the AWT. */
     public static void setDefaultFactory(NativeWindowFactory factory) {
+        initialize();
         defaultFactory = factory;
     }
 
@@ -120,6 +134,7 @@ public abstract class NativeWindowFactory {
         within the Java binding to OpenGL. By default, if the AWT is
         available, the default toolkit will support the AWT. */
     public static NativeWindowFactory getDefaultFactory() {
+        initialize();
         return defaultFactory;
     }
 
@@ -130,6 +145,7 @@ public abstract class NativeWindowFactory {
         NativeWindow implementation, or it might be that of a toolkit
         class like {@link java.awt.Component Component}. */
     public static NativeWindowFactory getFactory(Class windowClass) throws IllegalArgumentException {
+        initialize();
         if (nativeWindowClass.isAssignableFrom(windowClass)) {
             return (NativeWindowFactory) registeredFactories.get(nativeWindowClass);
         }
@@ -146,8 +162,9 @@ public abstract class NativeWindowFactory {
 
     /** Registers a NativeWindowFactory handling window objects of the
         given class. This does not need to be called by end users,
-        only implementors of new NativeWindowFactory subclasses, .. */
+        only implementors of new NativeWindowFactory subclasses. */
     protected static void registerFactory(Class windowClass, NativeWindowFactory factory) {
+        initialize();
         registeredFactories.put(windowClass, factory);
     }
 
@@ -172,38 +189,6 @@ public abstract class NativeWindowFactory {
 
         return getFactory(winObj.getClass()).getNativeWindowImpl(winObj);
     }
-
-    /**
-     * <P> Selects a graphics configuration on the specified graphics
-     * device compatible with the supplied NWCapabilities. This method
-     * is intended to be used by applications which do not use the
-     * supplied GLCanvas class but instead wrap their own Canvas or
-     * other window toolkit-specific object with a GLDrawable. Some
-     * platforms (specifically X11) require the graphics configuration
-     * to be specified when the window toolkit object is created. This
-     * method may return null on platforms on which the OpenGL pixel
-     * format selection process is performed later. </P>
-     *
-     * <P> The concrete data type of the passed graphics device and
-     * returned graphics configuration must be specified in the
-     * documentation binding this particular API to the underlying
-     * window toolkit. The Reference Implementation accepts {@link
-     * AWTGraphicsDevice AWTGraphicsDevice} objects and returns {@link
-     * AWTGraphicsConfiguration AWTGraphicsConfiguration} objects. </P>
-     *
-     * @see java.awt.Canvas#Canvas(java.awt.GraphicsConfiguration)
-     *
-     * @throws IllegalArgumentException if the data type of the passed
-     *         AbstractGraphicsDevice is not supported by this
-     *         NativeWindowFactory.
-     * @throws NWException if any window system-specific errors caused
-     *         the selection of the graphics configuration to fail.
-     */
-    public abstract AbstractGraphicsConfiguration
-        chooseGraphicsConfiguration(NWCapabilities capabilities,
-                                    NWCapabilitiesChooser chooser,
-                                    AbstractGraphicsDevice device)
-        throws IllegalArgumentException, NWException;
 
     /** Performs the conversion from a toolkit's window object to a
         NativeWindow. Implementors of concrete NativeWindowFactory

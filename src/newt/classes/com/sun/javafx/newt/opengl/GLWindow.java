@@ -90,7 +90,7 @@ public class GLWindow extends Window implements GLAutoDrawable {
     }
 
     /** Creates a new GLWindow on the local display, screen 0, with a
-        dummy visual ID, and with the default NWCapabilities. */
+        dummy visual ID, and with the default GLCapabilities. */
     public static GLWindow create() {
         return create(null, null, false);
     }
@@ -103,26 +103,26 @@ public class GLWindow extends Window implements GLAutoDrawable {
     public static GLWindow create(Window window) {
         return create(window, null, false);
     }
-    public static GLWindow create(NWCapabilities caps) {
+    public static GLWindow create(GLCapabilities caps) {
         return create(null, caps, false);
     }
 
     /** Creates a new GLWindow on the local display, screen 0, with a
-        dummy visual ID, and with the given NWCapabilities. */
-    public static GLWindow create(NWCapabilities caps, boolean undecorated) {
+        dummy visual ID, and with the given GLCapabilities. */
+    public static GLWindow create(GLCapabilities caps, boolean undecorated) {
         return create(null, caps, undecorated);
     }
 
-    /** Creates a new GLWindow referring to the given window, and with the given NWCapabilities. */
-    public static GLWindow create(Window window, NWCapabilities caps) {
+    /** Creates a new GLWindow referring to the given window, and with the given GLCapabilities. */
+    public static GLWindow create(Window window, GLCapabilities caps) {
         return create(window, caps, false);
     }
 
     public static GLWindow create(Window window, 
-                                  NWCapabilities caps,
+                                  GLCapabilities caps,
                                   boolean undecorated) {
         if (caps == null) {
-            caps = new NWCapabilities();
+            caps = new GLCapabilities();
         }
         if (window == null) {
             Display display = NewtFactory.createDisplay(null); // local display
@@ -133,7 +133,7 @@ public class GLWindow extends Window implements GLAutoDrawable {
         return new GLWindow(window);
     }
     
-    protected void createNative(NWCapabilities caps) {
+    protected void createNative(Capabilities caps) {
         shouldNotCallThis();
     }
 
@@ -247,7 +247,7 @@ public class GLWindow extends Window implements GLAutoDrawable {
             if (window.getWrappedWindow() != null) {
                 nw = NativeWindowFactory.getNativeWindow(window.getWrappedWindow());
             }
-            drawable = factory.createGLDrawable(nw, window.getChosenCapabilities(), null);
+            drawable = factory.createGLDrawable(nw, (GLCapabilities) window.getChosenCapabilities(), null);
             window.setVisible(true);
             drawable.setRealized(true);
             context = drawable.createContext(null);
@@ -501,6 +501,14 @@ public class GLWindow extends Window implements GLAutoDrawable {
     private SwapBuffersAction swapBuffersAction = new SwapBuffersAction();
 
     //----------------------------------------------------------------------
+    // Window methods that are not really needed
+    //
+
+    public Capabilities getChosenCapabilities() {
+        return getChosenGLCapabilities();
+    }
+
+    //----------------------------------------------------------------------
     // GLDrawable methods that are not really needed
     //
 
@@ -511,11 +519,11 @@ public class GLWindow extends Window implements GLAutoDrawable {
     public void setRealized(boolean realized) {
     }
 
-    public NWCapabilities getChosenNWCapabilities() {
+    public GLCapabilities getChosenGLCapabilities() {
         if (drawable == null)
             return null;
 
-        return drawable.getChosenNWCapabilities();
+        return drawable.getChosenGLCapabilities();
     }
 
     public NativeWindow getNativeWindow() {

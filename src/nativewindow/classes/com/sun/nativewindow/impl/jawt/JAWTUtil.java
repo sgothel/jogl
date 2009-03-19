@@ -57,9 +57,9 @@ public class JAWTUtil {
 
   private static boolean lockedToolkit;
 
-  public static synchronized void lockToolkit() throws NWException {
+  public static synchronized void lockToolkit() throws NativeWindowException {
     if (lockedToolkit) {
-      throw new NWException("Toolkit already locked");
+      throw new NativeWindowException("Toolkit already locked");
     }
     lockedToolkit = true;
 

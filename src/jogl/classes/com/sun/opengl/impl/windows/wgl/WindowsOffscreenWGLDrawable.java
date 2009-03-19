@@ -49,8 +49,8 @@ public class WindowsOffscreenWGLDrawable extends WindowsWGLDrawable {
   private long hbitmap;
 
   public WindowsOffscreenWGLDrawable(GLDrawableFactory factory, 
-                                     NWCapabilities requestedCapabilities,
-                                     NWCapabilitiesChooser chooser,
+                                     GLCapabilities requestedCapabilities,
+                                     GLCapabilitiesChooser chooser,
                                      int width,
                                      int height) {
     super(factory, new NullWindow(), true, requestedCapabilities, chooser);
@@ -64,7 +64,7 @@ public class WindowsOffscreenWGLDrawable extends WindowsWGLDrawable {
 
   private void create() {
     NullWindow nw = (NullWindow) getNativeWindow();
-    NWCapabilities capabilities = getRequestedNWCapabilities();
+    GLCapabilities capabilities = getRequestedGLCapabilities();
     int width = getWidth();
     int height = getHeight();
     BITMAPINFO info = BITMAPINFO.create();
@@ -122,7 +122,7 @@ public class WindowsOffscreenWGLDrawable extends WindowsWGLDrawable {
       origbitmap = 0;
       hbitmap = 0;
       nw.setSurfaceHandle(0);
-      setChosenNWCapabilities(null);
+      setChosenGLCapabilities(null);
     }
   }
 }

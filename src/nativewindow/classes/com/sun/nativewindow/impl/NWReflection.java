@@ -64,19 +64,19 @@ public final class NWReflection {
     try {
         factoryClass = Class.forName(clazzName);
         if (factoryClass == null) {
-          throw new NWException(clazzName + " not available");
+          throw new NativeWindowException(clazzName + " not available");
         }
         try {
             factory = factoryClass.getDeclaredConstructor( cstrArgTypes );
         } catch(NoSuchMethodException nsme) {
-          throw new NWException("Constructor: '" + clazzName + "("+cstrArgTypes+")' not found");
+          throw new NativeWindowException("Constructor: '" + clazzName + "("+cstrArgTypes+")' not found");
         }
         return factory;
     } catch (Throwable e) { 
       if (DEBUG) {
           e.printStackTrace();
       }
-      throw new NWException(e);
+      throw new NativeWindowException(e);
     }
   }
 
@@ -91,7 +91,7 @@ public final class NWReflection {
         factory = getConstructor(clazzName, cstrArgTypes);
         return factory.newInstance( cstrArgs ) ;
     } catch (Exception e) {
-      throw new NWException(e);
+      throw new NativeWindowException(e);
     }
   }
 

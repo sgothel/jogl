@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2009 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -30,30 +30,15 @@
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  */
 
-package javax.media.nativewindow.x11;
+package com.sun.nativewindow.impl;
 
 import javax.media.nativewindow.*;
 
-/** Encapsulates a graphics configuration, or OpenGL pixel format, on
-    X11 platforms. Objects of this type are returned from {@link
-    NativeWindowFactory#chooseGraphicsConfiguration
-    NativeWindowFactory.chooseGraphicsConfiguration()} on X11
-    platforms when toolkits other than the AWT are being used.  */
-
-public class X11GraphicsConfiguration implements AbstractGraphicsConfiguration {
-    private long visualID;
-
-    /** Constructs a new X11GraphicsConfiguration corresponding to the given visual ID. */
-    public X11GraphicsConfiguration(long visualID) {
-        this.visualID = visualID;
-    }
-
-    /** Returns the visual ID that this graphics configuration object represents. */
-    public long getVisualID() {
-        return visualID;
-    }
-    
-    public String toString() {
-        return "[X11GraphicsConfiguration visualID = " + visualID + "]";
+public class GraphicsConfigurationFactoryImpl extends GraphicsConfigurationFactory {
+    // By default we just return null; X11 is the only window system requiring eager visual selection
+    public AbstractGraphicsConfiguration chooseGraphicsConfiguration(Capabilities capabilities,
+                                                                     CapabilitiesChooser chooser,
+                                                                     AbstractGraphicsDevice device) {
+        return null;
     }
 }

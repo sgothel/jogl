@@ -177,15 +177,15 @@
               <isset property="rootrel.build"/>
           </not>
         </condition>
-        <property name="rootrel.build.newt" value="${rootrel.build}-newt" />
+        <property name="rootrel.build.newt" value="${rootrel.build}/newt" />
         <property name="rootrel.src" value="src/newt" />
         <property name="rootrel.src.java" value="${rootrel.src}/classes" />
         <property name="rootrel.src.c" value="${rootrel.src}/native" />
         <property name="rootrel.obj" value="${rootrel.build.newt}/obj" />
 
         <property name="gluegen-rt.jar" value="../../gluegen/${rootrel.build}/gluegen-rt.jar" />
-        <property name="nativewindow.all.jar" value="../${rootrel.build}-nativewindow/nativewindow.all.jar" />
-        <property name="jogl.all.jar" value="../${rootrel.build}-jogl/jogl.all.jar" />
+        <property name="nativewindow.all.jar" value="../${rootrel.build}/nativewindow/nativewindow.all.jar" />
+        <property name="jogl.all.jar" value="../${rootrel.build}/jogl/jogl.all.jar" />
 
         <!-- The source directories. -->
         <property name="src.java" value="${project.root}/${rootrel.src.java}" />
