@@ -1,10 +1,14 @@
 
 package com.sun.opengl.util;
 
+import java.security.*;
+
 import javax.media.opengl.*;
 import javax.media.opengl.util.*;
-import com.sun.opengl.impl.*;
-import com.sun.opengl.impl.glsl.*;
+
+import com.sun.opengl.util.glsl.*;
+
+import com.sun.opengl.impl.SystemUtil;
 
 import java.nio.*;
 
@@ -17,7 +21,11 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
    *
    * This should not be necessary on proper native implementations.
    */
-  public static final boolean hasVBOBug = (SystemUtil.getenv("JOGL_VBO_BUG") != null);
+  public static final boolean hasVBOBug = AccessController.doPrivileged(new PrivilegedAction() {
+          public Object run() {
+              return SystemUtil.getenv("JOGL_VBO_BUG");
+          }
+      }) != null;
 
   /**
    * @arg index The GL array index
@@ -34,7 +42,7 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
                                               int initialSize)
     throws GLException
   {
-      GLProfile.isValidateArrayDataType(index, comps, dataType, false, true);
+      GLProfile.isValidArrayDataType(index, comps, dataType, false, true);
       GLArrayDataClient adc = new GLArrayDataClient();
       GLArrayHandler glArrayHandler = new GLFixedArrayHandler(adc);
       adc.init(name, index, comps, dataType, normalized, 0, null, initialSize, false, glArrayHandler, 0, 0);
@@ -45,7 +53,7 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
                                               int stride, Buffer buffer)
     throws GLException
   {
-      GLProfile.isValidateArrayDataType(index, comps, dataType, false, true);
+      GLProfile.isValidArrayDataType(index, comps, dataType, false, true);
       GLArrayDataClient adc = new GLArrayDataClient();
       GLArrayHandler glArrayHandler = new GLFixedArrayHandler(adc);
       adc.init(name, index, comps, dataType, normalized, stride, buffer, comps*comps, false, glArrayHandler, 0, 0);
@@ -59,7 +67,7 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
       if(!GLProfile.isGL2ES2()) {
         throw new GLException("GLArrayDataServer not supported for profile: "+GLProfile.getProfile());
       }
-      GLProfile.isValidateArrayDataType(-1, comps, dataType, true, true);
+      GLProfile.isValidArrayDataType(-1, comps, dataType, true, true);
 
       GLArrayDataClient adc = new GLArrayDataClient();
       GLArrayHandler glArrayHandler = new GLSLArrayHandler(adc);
@@ -74,7 +82,7 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
       if(!GLProfile.isGL2ES2()) {
         throw new GLException("GLArrayDataServer not supported for profile: "+GLProfile.getProfile());
       }
-      GLProfile.isValidateArrayDataType(-1, comps, dataType, true, true);
+      GLProfile.isValidArrayDataType(-1, comps, dataType, true, true);
 
       GLArrayDataClient adc = new GLArrayDataClient();
       GLArrayHandler glArrayHandler = new GLSLArrayHandler(adc);

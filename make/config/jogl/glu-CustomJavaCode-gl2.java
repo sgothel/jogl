@@ -218,13 +218,13 @@ private final ByteBuffer copyToByteBuffer(Buffer buf) {
     if (buf.position() == 0) {
       return (ByteBuffer) buf;
     }
-    return BufferUtil.copyByteBuffer((ByteBuffer) buf);
+    return InternalBufferUtil.copyByteBuffer((ByteBuffer) buf);
   } else if (buf instanceof ShortBuffer) {
-    return BufferUtil.copyShortBufferAsByteBuffer((ShortBuffer) buf);
+    return InternalBufferUtil.copyShortBufferAsByteBuffer((ShortBuffer) buf);
   } else if (buf instanceof IntBuffer) {
-    return BufferUtil.copyIntBufferAsByteBuffer((IntBuffer) buf);
+    return InternalBufferUtil.copyIntBufferAsByteBuffer((IntBuffer) buf);
   } else if (buf instanceof FloatBuffer) {
-    return BufferUtil.copyFloatBufferAsByteBuffer((FloatBuffer) buf);
+    return InternalBufferUtil.copyFloatBufferAsByteBuffer((FloatBuffer) buf);
   } else {
     throw new IllegalArgumentException("Unsupported buffer type (must be one of byte, short, int, or float)");
   }
@@ -239,11 +239,11 @@ private final int gluScaleImageJava( int format, int widthin, int heightin,
   if( dataout instanceof ByteBuffer ) {
     out = (ByteBuffer)dataout;
   } else if( dataout instanceof ShortBuffer ) {
-    out = BufferUtil.newByteBuffer(dataout.remaining() * BufferUtil.SIZEOF_SHORT);
+    out = InternalBufferUtil.newByteBuffer(dataout.remaining() * InternalBufferUtil.SIZEOF_SHORT);
   } else if ( dataout instanceof IntBuffer ) {
-    out = BufferUtil.newByteBuffer(dataout.remaining() * BufferUtil.SIZEOF_INT);
+    out = InternalBufferUtil.newByteBuffer(dataout.remaining() * InternalBufferUtil.SIZEOF_INT);
   } else if ( dataout instanceof FloatBuffer ) {
-    out = BufferUtil.newByteBuffer(dataout.remaining() * BufferUtil.SIZEOF_FLOAT);
+    out = InternalBufferUtil.newByteBuffer(dataout.remaining() * InternalBufferUtil.SIZEOF_FLOAT);
   } else {
     throw new IllegalArgumentException("Unsupported destination buffer type (must be byte, short, int, or float)");
   }

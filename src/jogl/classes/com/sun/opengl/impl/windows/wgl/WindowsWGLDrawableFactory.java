@@ -44,7 +44,6 @@ import java.util.*;
 import javax.media.nativewindow.*;
 import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
-import javax.media.opengl.util.BufferUtil;
 
 public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
   private static final boolean DEBUG = Debug.debug("WindowsWGLDrawableFactory");

@@ -35,9 +35,9 @@
     <property name="javadoc.bottom" value="Copyright 2005 Sun Microsystems, Inc. All rights reserved. Use is subject to &lt;a href=&quot;http://jcp.org/en/jsr/detail?id=231&quot;&gt;license terms&lt;/a&gt;." />
 
         <property name="gluegen-rt.jar" value="../../gluegen/${rootrel.build}/gluegen-rt.jar" />
-        <property name="nativewindow.all.jar" value="../${rootrel.build}-nativewindow/nativewindow.all.jar" />
-        <property name="jogl.all.jar" value="../${rootrel.build}-jogl/jogl.all.jar" />
-        <property name="newt.all.jar" value="../${rootrel.build}-newt/newt.all.jar" />
+        <property name="nativewindow.all.jar" value="../${rootrel.build}/nativewindow/nativewindow.all.jar" />
+        <property name="jogl.all.jar" value="../${rootrel.build}/jogl/jogl.all.jar" />
+        <property name="newt.all.jar" value="../${rootrel.build}/newt/newt.all.jar" />
 
         <path id="all.classpath">
             <pathelement location="${nativewindow.all.jar}" />

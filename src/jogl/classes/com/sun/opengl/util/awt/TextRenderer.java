@@ -38,9 +38,9 @@
  */
 package com.sun.opengl.util.awt;
 
-import com.sun.opengl.impl.*;
-import com.sun.opengl.impl.packrect.*;
+import com.sun.opengl.impl.Debug;
 import com.sun.opengl.util.*;
+import com.sun.opengl.util.packrect.*;
 import com.sun.opengl.util.texture.*;
 import com.sun.opengl.util.texture.awt.*;
 
@@ -70,7 +70,6 @@ import javax.media.opengl.*;
 import javax.media.opengl.glu.*;
 import javax.media.opengl.glu.gl2.*;
 import javax.media.opengl.awt.*;
-import javax.media.opengl.util.*;
 
 
 /** Renders bitmapped Java 2D text into an OpenGL window with high

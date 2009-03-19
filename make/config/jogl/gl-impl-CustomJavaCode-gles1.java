@@ -291,8 +291,8 @@ public java.nio.ByteBuffer glMapBuffer(int target, int access) {
   ARBVBOKey key = new ARBVBOKey(addr, sz);
   java.nio.ByteBuffer _res = (java.nio.ByteBuffer) arbVBOCache.get(key);
   if (_res == null) {
-    _res = InternalBufferUtils.newDirectByteBuffer(addr, sz);
-    BufferUtil.nativeOrder(_res);
+    _res = newDirectByteBuffer(addr, sz);
+    InternalBufferUtil.nativeOrder(_res);
     arbVBOCache.put(key, _res);
   }
   _res.position(0);
@@ -301,6 +301,8 @@ public java.nio.ByteBuffer glMapBuffer(int target, int access) {
 
 /** Encapsulates function pointer for OpenGL function <br>: <code> LPVOID glMapBuffer(GLenum target, GLenum access); </code>    */
 native private long dispatch_glMapBuffer(int target, int access, long glProcAddress);
+
+native private ByteBuffer newDirectByteBuffer(long addr, int capacity);
 
   public final String toString() {
       return getClass().getName();

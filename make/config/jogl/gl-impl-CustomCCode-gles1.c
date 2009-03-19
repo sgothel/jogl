@@ -14,3 +14,12 @@ Java_com_sun_opengl_impl_es1_GLES1Impl_dispatch_1glMapBuffer(JNIEnv *env, jobjec
   return (jlong) (intptr_t) _res;
 }
 
+/*   Java->C glue code:
+ *   Java package: com.sun.opengl.impl.es1.GLES1Impl
+ *    Java method: ByteBuffer newDirectByteBuffer(long addr, int capacity);
+ *     C function: jobject newDirectByteBuffer(jlong addr, jint capacity);
+ */
+JNIEXPORT jobject JNICALL
+Java_com_sun_opengl_impl_es1_GLES1Impl_newDirectByteBuffer(JNIEnv *env, jobject _unused, jlong addr, jint capacity) {
+  return (*env)->NewDirectByteBuffer(env, (void*) (intptr_t) addr, capacity);
+}

@@ -348,7 +348,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     public native void shutdown();
 
     public void testGetDirectBufferAddress() {
-        java.nio.FloatBuffer buf = com.sun.opengl.util.BufferUtil.newFloatBuffer(12);
+        java.nio.FloatBuffer buf = com.sun.opengl.impl.InternalBufferUtil.newFloatBuffer(12);
         int addr = getDirectBufferAddress(buf);
         System.out.println("Direct FloatBuffer's address: 0x" + Integer.toHexString(addr));
     }

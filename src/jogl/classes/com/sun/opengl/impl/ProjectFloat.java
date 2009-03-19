@@ -117,8 +117,7 @@ package com.sun.opengl.impl;
 import java.nio.*;
 
 import javax.media.opengl.*;
-import javax.media.opengl.util.*;
-import javax.media.opengl.sub.fixed.GLMatrixIf;
+import javax.media.opengl.fixedfunc.GLMatrixFunc;
 
 /**
  * ProjectFloat.java
@@ -181,7 +180,7 @@ public class ProjectFloat {
     // Slice up one big buffer because some NIO implementations
     // allocate a huge amount of memory to back even the smallest of
     // buffers.
-    locbuf = BufferUtil.newFloatBuffer(2*16+2*4+3*3);
+    locbuf = InternalBufferUtil.newFloatBuffer(2*16+2*4+3*3);
     int pos = 0;
     int sz = 16;
     matrixBuf = slice(locbuf, pos, sz);
@@ -547,7 +546,7 @@ public class ProjectFloat {
    * @param bottom
    * @param top
    */
-  public void gluOrtho2D(GLMatrixIf gl, float left, float right, float bottom, float top) {
+  public void gluOrtho2D(GLMatrixFunc gl, float left, float right, float bottom, float top) {
     gl.glOrthof(left, right, bottom, top, -1, 1);
   }
 
@@ -559,7 +558,7 @@ public class ProjectFloat {
    * @param zNear
    * @param zFar
    */
-  public void gluPerspective(GLMatrixIf gl, float fovy, float aspect, float zNear, float zFar) {
+  public void gluPerspective(GLMatrixFunc gl, float fovy, float aspect, float zNear, float zFar) {
     float sine, cotangent, deltaZ;
     float radians = fovy / 2 * (float) Math.PI / 180;
 
@@ -597,7 +596,7 @@ public class ProjectFloat {
    * @param upy
    * @param upz
    */
-  public void gluLookAt(GLMatrixIf gl,
+  public void gluLookAt(GLMatrixFunc gl,
                         float eyex,
                         float eyey,
                         float eyez,
@@ -1010,7 +1009,7 @@ public class ProjectFloat {
    * @param deltaY
    * @param viewport
    */
-  public void gluPickMatrix(GLMatrixIf gl,
+  public void gluPickMatrix(GLMatrixFunc gl,
                             float x,
                             float y,
                             float deltaX,
@@ -1038,7 +1037,7 @@ public class ProjectFloat {
    * @param viewport
    * @param viewport_offset
    */
-  public void gluPickMatrix(GLMatrixIf gl,
+  public void gluPickMatrix(GLMatrixFunc gl,
                             float x,
                             float y,
                             float deltaX,

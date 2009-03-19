@@ -3,8 +3,8 @@ package com.sun.opengl.util;
 
 import javax.media.opengl.*;
 import java.nio.*;
-import com.sun.opengl.impl.*;
-import com.sun.opengl.impl.glsl.*;
+
+import com.sun.opengl.util.glsl.*;
 
 public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataEditable {
 
@@ -35,7 +35,7 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
                                               int stride, Buffer buffer, int vboBufferUsage)
     throws GLException
   {
-    GLProfile.isValidateArrayDataType(index, comps, dataType, false, true);
+    GLProfile.isValidArrayDataType(index, comps, dataType, false, true);
 
     GLArrayDataServer ads = new GLArrayDataServer();
     GLArrayHandler glArrayHandler = new GLFixedArrayHandler(ads);
@@ -59,7 +59,7 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
                                               int initialSize, int vboBufferUsage)
     throws GLException
   {
-    GLProfile.isValidateArrayDataType(index, comps, dataType, false, true);
+    GLProfile.isValidArrayDataType(index, comps, dataType, false, true);
 
     GLArrayDataServer ads = new GLArrayDataServer();
     GLArrayHandler glArrayHandler = new GLFixedArrayHandler(ads);
@@ -81,7 +81,7 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
     if(!GLProfile.isGL2ES2()) {
         throw new GLException("GLArrayDataServer not supported for profile: "+GLProfile.getProfile());
     }
-    GLProfile.isValidateArrayDataType(-1, comps, dataType, true, true);
+    GLProfile.isValidArrayDataType(-1, comps, dataType, true, true);
 
     GLArrayDataServer ads = new GLArrayDataServer();
     GLArrayHandler glArrayHandler = new GLSLArrayHandler(ads);
@@ -103,7 +103,7 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
     if(!GLProfile.isGL2ES2()) {
         throw new GLException("GLArrayDataServer not supported for profile: "+GLProfile.getProfile());
     }
-    GLProfile.isValidateArrayDataType(-1, comps, dataType, true, true);
+    GLProfile.isValidArrayDataType(-1, comps, dataType, true, true);
 
     GLArrayDataServer ads = new GLArrayDataServer();
     GLArrayHandler glArrayHandler = new GLSLArrayHandler(ads);

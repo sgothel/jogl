@@ -116,7 +116,6 @@
 package com.sun.opengl.impl.glu;
 
 import javax.media.opengl.*;
-import javax.media.opengl.sub.*;
 import javax.media.opengl.glu.*;
 import com.sun.opengl.util.ImmModeSink;
 import java.nio.*;

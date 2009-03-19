@@ -1,7 +1,7 @@
 package com.sun.opengl.util.glsl.sdk;
 
 import javax.media.opengl.*;
-import com.sun.opengl.impl.io.Locator;
+import com.sun.opengl.util.*;
 import com.sun.opengl.util.glsl.*;
 
 import java.io.*;

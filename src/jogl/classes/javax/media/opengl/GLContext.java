@@ -40,7 +40,6 @@
 package javax.media.opengl;
 
 import com.sun.opengl.impl.Debug;
-import javax.media.opengl.sub.fixed.*;
 import java.util.HashMap;
 
 /** Abstraction for an OpenGL rendering context. In order to perform
@@ -229,63 +228,4 @@ public abstract class GLContext {
       GLX) extensions. Can only be called while this context is
       current. */
   public abstract String getPlatformExtensionsString();
-
-  /**
-   * Mapping fixed function (client) array indices to 
-   * GLSL array attribute names.
-   *
-   * Useful for uniq mapping of canonical array index names as listed.
-   * 
-   * @see #mgl_Vertex
-   * @see javax.media.opengl.sub.fixed.GLPointerIf#GL_VERTEX_ARRAY
-   * @see #mgl_Normal
-   * @see javax.media.opengl.sub.fixed.GLPointerIf#GL_NORMAL_ARRAY
-   * @see #mgl_Color
-   * @see javax.media.opengl.sub.fixed.GLPointerIf#GL_COLOR_ARRAY
-   * @see #mgl_MultiTexCoord
-   * @see javax.media.opengl.sub.fixed.GLPointerIf#GL_TEXTURE_COORD_ARRAY
-   * @see javax.media.opengl.sub.fixed.GLPointerIf#glEnableClientState
-   * @see javax.media.opengl.sub.fixed.GLPointerIf#glVertexPointer
-   * @see javax.media.opengl.sub.fixed.GLPointerIf#glColorPointer
-   * @see javax.media.opengl.sub.fixed.GLPointerIf#glNormalPointer
-   * @see javax.media.opengl.sub.fixed.GLPointerIf#glTexCoordPointer
-   */
-  public static String getPredefinedArrayIndexName(int glArrayIndex) {
-    switch(glArrayIndex) {
-        case GLPointerIf.GL_VERTEX_ARRAY:
-            return mgl_Vertex;
-        case GLPointerIf.GL_NORMAL_ARRAY:
-            return mgl_Normal;
-        case GLPointerIf.GL_COLOR_ARRAY:
-            return mgl_Color;
-        case GLPointerIf.GL_TEXTURE_COORD_ARRAY:
-            return mgl_MultiTexCoord;
-    }
-    return null;
-  }
-
-  /**
-   * String name for
-   * @see javax.media.opengl.GL#GL_VERTEX_ARRAY
-   */
-  public static final String mgl_Vertex = "mgl_Vertex";
-
-  /**
-   * String name for
-   * @see javax.media.opengl.GL#GL_NORMAL_ARRAY
-   */
-  public static final String mgl_Normal = "mgl_Normal";
-
-  /**
-   * String name for
-   * @see javax.media.opengl.GL#GL_COLOR_ARRAY
-   */
-  public static final String mgl_Color = "mgl_Color";
-
-  /**
-   * String name for
-   * @see javax.media.opengl.GL#GL_TEXTURE_COORD_ARRAY
-   */
-  public static final String mgl_MultiTexCoord = "mgl_MultiTexCoord" ;
-
 }

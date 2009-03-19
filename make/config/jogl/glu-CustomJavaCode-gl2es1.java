@@ -99,13 +99,13 @@ private final java.nio.ByteBuffer copyToByteBuffer(java.nio.Buffer buf) {
     if (buf.position() == 0) {
       return (java.nio.ByteBuffer) buf;
     }
-    return BufferUtil.copyByteBuffer((java.nio.ByteBuffer) buf);
+    return InternalBufferUtil.copyByteBuffer((java.nio.ByteBuffer) buf);
   } else if (buf instanceof java.nio.ShortBuffer) {
-    return BufferUtil.copyShortBufferAsByteBuffer((java.nio.ShortBuffer) buf);
+    return InternalBufferUtil.copyShortBufferAsByteBuffer((java.nio.ShortBuffer) buf);
   } else if (buf instanceof java.nio.IntBuffer) {
-    return BufferUtil.copyIntBufferAsByteBuffer((java.nio.IntBuffer) buf);
+    return InternalBufferUtil.copyIntBufferAsByteBuffer((java.nio.IntBuffer) buf);
   } else if (buf instanceof java.nio.FloatBuffer) {
-    return BufferUtil.copyFloatBufferAsByteBuffer((java.nio.FloatBuffer) buf);
+    return InternalBufferUtil.copyFloatBufferAsByteBuffer((java.nio.FloatBuffer) buf);
   } else {
     throw new IllegalArgumentException("Unsupported buffer type (must be one of byte, short, int, or float)");
   }
@@ -124,11 +124,11 @@ public final int gluScaleImage( int format, int widthin, int heightin,
   if( dataout instanceof java.nio.ByteBuffer ) {
     out = (java.nio.ByteBuffer)dataout;
   } else if( dataout instanceof java.nio.ShortBuffer ) {
-    out = BufferUtil.newByteBuffer(dataout.remaining() * BufferUtil.SIZEOF_SHORT);
+    out = InternalBufferUtil.newByteBuffer(dataout.remaining() * InternalBufferUtil.SIZEOF_SHORT);
   } else if ( dataout instanceof java.nio.IntBuffer ) {
-    out = BufferUtil.newByteBuffer(dataout.remaining() * BufferUtil.SIZEOF_INT);
+    out = InternalBufferUtil.newByteBuffer(dataout.remaining() * InternalBufferUtil.SIZEOF_INT);
   } else if ( dataout instanceof java.nio.FloatBuffer ) {
-    out = BufferUtil.newByteBuffer(dataout.remaining() * BufferUtil.SIZEOF_FLOAT);
+    out = InternalBufferUtil.newByteBuffer(dataout.remaining() * InternalBufferUtil.SIZEOF_FLOAT);
   } else {
     throw new IllegalArgumentException("Unsupported destination buffer type (must be byte, short, int, or float)");
   }

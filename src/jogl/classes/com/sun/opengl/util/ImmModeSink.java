@@ -3,8 +3,7 @@ package com.sun.opengl.util;
 
 import javax.media.opengl.*;
 import javax.media.opengl.util.*;
-import javax.media.opengl.sub.*;
-import javax.media.opengl.sub.fixed.*;
+import javax.media.opengl.fixedfunc.*;
 import com.sun.nativewindow.impl.NWReflection;
 import java.nio.*;
 import java.util.Iterator;
@@ -861,25 +860,25 @@ public class ImmModeSink {
         buffer.flip();
 
         if(vComps>0) {
-            vArrayData = GLArrayDataWrapper.createFixed(GLPointerIf.GL_VERTEX_ARRAY, vComps, vDataType, false,
+            vArrayData = GLArrayDataWrapper.createFixed(GLPointerFunc.GL_VERTEX_ARRAY, vComps, vDataType, false,
                                                         0, vertexArray, 0, vOffset);
         } else {
             vArrayData = null;
         }
         if(cComps>0) {
-            cArrayData = GLArrayDataWrapper.createFixed(GLPointerIf.GL_COLOR_ARRAY, cComps, cDataType, false,
+            cArrayData = GLArrayDataWrapper.createFixed(GLPointerFunc.GL_COLOR_ARRAY, cComps, cDataType, false,
                                                         0, colorArray, 0, cOffset);
         } else {
             cArrayData = null;
         }
         if(nComps>0) {
-            nArrayData = GLArrayDataWrapper.createFixed(GLPointerIf.GL_NORMAL_ARRAY, nComps, nDataType, false,
+            nArrayData = GLArrayDataWrapper.createFixed(GLPointerFunc.GL_NORMAL_ARRAY, nComps, nDataType, false,
                                                         0, normalArray, 0, nOffset);
         } else {
             nArrayData = null;
         }
         if(tComps>0) {
-            tArrayData = GLArrayDataWrapper.createFixed(GLPointerIf.GL_TEXTURE_COORD_ARRAY, tComps, tDataType, false,
+            tArrayData = GLArrayDataWrapper.createFixed(GLPointerFunc.GL_TEXTURE_COORD_ARRAY, tComps, tDataType, false,
                                                         0, textCoordArray, 0, tOffset);
         } else {
             tArrayData = null;

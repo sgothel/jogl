@@ -155,7 +155,7 @@
     if(count<=0) {
         throw new GLException("Method \"glShaderSource\" called with invalid length of source: "+count);
     }
-    IntBuffer length = BufferUtil.newIntBuffer(count);
+    IntBuffer length = InternalBufferUtil.newIntBuffer(count);
     for(int i=0; i<count; i++) {
         length.put(source[i].length());
     }

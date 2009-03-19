@@ -3,7 +3,8 @@ package com.sun.opengl.util;
 
 import javax.media.opengl.*;
 import javax.media.opengl.util.*;
-import com.sun.opengl.impl.*;
+
+import com.sun.opengl.util.glsl.fixedfunc.impl.*;
 
 import java.nio.*;
 
@@ -14,7 +15,7 @@ public class GLArrayDataWrapper implements GLArrayData {
                                               int vboName, long bufferOffset)
     throws GLException
   {
-      GLProfile.isValidateArrayDataType(index, comps, dataType, false, true);
+      GLProfile.isValidArrayDataType(index, comps, dataType, false, true);
       GLArrayDataWrapper adc = new GLArrayDataWrapper();
       adc.init(null, index, comps, dataType, normalized, stride, buffer, false, 
                vboName, bufferOffset);
@@ -29,7 +30,7 @@ public class GLArrayDataWrapper implements GLArrayData {
       if(!GLProfile.isGL2ES2()) {
         throw new GLException("GLArrayDataServer not supported for profile: "+GLProfile.getProfile());
       }
-      GLProfile.isValidateArrayDataType(-1, comps, dataType, true, true);
+      GLProfile.isValidArrayDataType(-1, comps, dataType, true, true);
 
       GLArrayDataWrapper adc = new GLArrayDataWrapper();
       adc.init(name, -1, comps, dataType, normalized, stride, buffer, true,
@@ -157,7 +158,8 @@ public class GLArrayDataWrapper implements GLArrayData {
     this.isVertexAttribute = isVertexAttribute;
     this.index = index;
     this.location = -1;
-    this.name = (null==name)?GLContext.getPredefinedArrayIndexName(index):name;
+    // We can't have any dependence on the FixedFuncUtil class here for build bootstrapping reasons
+    this.name = (null==name)?FixedFuncPipeline.getPredefinedArrayIndexName(index):name;
     if(null==this.name) {
         throw new GLException("Not a valid GL array index: "+index);
     }

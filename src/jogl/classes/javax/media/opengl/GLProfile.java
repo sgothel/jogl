@@ -36,7 +36,7 @@
 
 package javax.media.opengl;
 
-import javax.media.opengl.sub.fixed.*;
+import javax.media.opengl.fixedfunc.*;
 import java.lang.reflect.*;
 import java.security.*;
 import com.sun.opengl.impl.*;
@@ -235,7 +235,7 @@ public class GLProfile {
         }
   }
 
-  public static String getGLTypeName(int type) {
+  private static String getGLTypeName(int type) {
     switch (type) {
         case GL.GL_UNSIGNED_BYTE:
             return "GL_UNSIGNED_BYTE";
@@ -263,6 +263,20 @@ public class GLProfile {
             return "GL_4_BYTES";
     }
     return null;
+  }
+
+  private static String getGLArrayName(int array) {
+      switch(array) {
+          case GLPointerFunc.GL_VERTEX_ARRAY:
+              return "GL_VERTEX_ARRAY";
+          case GLPointerFunc.GL_NORMAL_ARRAY:
+              return "GL_NORMAL_ARRAY";
+          case GLPointerFunc.GL_COLOR_ARRAY:
+              return "GL_COLOR_ARRAY";
+          case GLPointerFunc.GL_TEXTURE_COORD_ARRAY:
+              return "GL_TEXTURE_COORD_ARRAY";
+      }
+      return null;
   }
 
   /** 
@@ -297,19 +311,19 @@ public class GLProfile {
     return false;
   }
 
-  public static boolean isValidateArrayDataType(int index, int comps, int type, 
-                                                boolean isVertexAttribPointer, boolean throwException) {
-    String indexName = GLContext.getPredefinedArrayIndexName(index);
+  public static boolean isValidArrayDataType(int index, int comps, int type, 
+                                             boolean isVertexAttribPointer, boolean throwException) {
+    String arrayName = getGLArrayName(index);
     if(GLProfile.isGLES1()) {
         if(isVertexAttribPointer) {
             if(throwException) {
-                throw new GLException("Illegal array type for "+indexName+" on profile GLES1: VertexAttribPointer");
+                throw new GLException("Illegal array type for "+arrayName+" on profile GLES1: VertexAttribPointer");
             }
             return false;
         }
         switch(index) {
-            case GLPointerIf.GL_VERTEX_ARRAY:
-            case GLPointerIf.GL_TEXTURE_COORD_ARRAY:
+            case GLPointerFunc.GL_VERTEX_ARRAY:
+            case GLPointerFunc.GL_TEXTURE_COORD_ARRAY:
                 switch(type) {
                     case GL.GL_BYTE:
                     case GL.GL_SHORT:
@@ -318,7 +332,7 @@ public class GLProfile {
                         break;
                     default: 
                         if(throwException) {
-                            throw new GLException("Illegal data type for "+indexName+" on profile GLES1: "+type);
+                            throw new GLException("Illegal data type for "+arrayName+" on profile GLES1: "+type);
                         }
                         return false;
                 }
@@ -330,12 +344,12 @@ public class GLProfile {
                         break;
                     default: 
                         if(throwException) {
-                            throw new GLException("Illegal component number for "+indexName+" on profile GLES1: "+comps);
+                            throw new GLException("Illegal component number for "+arrayName+" on profile GLES1: "+comps);
                         }
                         return false;
                 }
                 break;
-            case GLPointerIf.GL_NORMAL_ARRAY:
+            case GLPointerFunc.GL_NORMAL_ARRAY:
                 switch(type) {
                     case GL.GL_BYTE:
                     case GL.GL_SHORT:
@@ -344,7 +358,7 @@ public class GLProfile {
                         break;
                     default: 
                         if(throwException) {
-                            throw new GLException("Illegal data type for "+indexName+" on profile GLES1: "+type);
+                            throw new GLException("Illegal data type for "+arrayName+" on profile GLES1: "+type);
                         }
                         return false;
                 }
@@ -354,12 +368,12 @@ public class GLProfile {
                         break;
                     default: 
                         if(throwException) {
-                            throw new GLException("Illegal component number for "+indexName+" on profile GLES1: "+comps);
+                            throw new GLException("Illegal component number for "+arrayName+" on profile GLES1: "+comps);
                         }
                         return false;
                 }
                 break;
-            case GLPointerIf.GL_COLOR_ARRAY:
+            case GLPointerFunc.GL_COLOR_ARRAY:
                 switch(type) {
                     case GL.GL_UNSIGNED_BYTE:
                     case GL.GL_FIXED:
@@ -367,7 +381,7 @@ public class GLProfile {
                         break;
                     default: 
                         if(throwException) {
-                            throw new GLException("Illegal data type for "+indexName+" on profile GLES1: "+type);
+                            throw new GLException("Illegal data type for "+arrayName+" on profile GLES1: "+type);
                         }
                         return false;
                 }
@@ -377,7 +391,7 @@ public class GLProfile {
                         break;
                     default: 
                         if(throwException) {
-                            throw new GLException("Illegal component number for "+indexName+" on profile GLES1: "+comps);
+                            throw new GLException("Illegal component number for "+arrayName+" on profile GLES1: "+comps);
                         }
                         return false;
                 }
@@ -396,7 +410,7 @@ public class GLProfile {
                 break;
             default: 
                 if(throwException) {
-                    throw new GLException("Illegal data type for "+indexName+" on profile GLES2: "+type);
+                    throw new GLException("Illegal data type for "+arrayName+" on profile GLES2: "+type);
                 }
                 return false;
         }
@@ -409,7 +423,7 @@ public class GLProfile {
                 break;
             default: 
                 if(throwException) {
-                    throw new GLException("Illegal component number for "+indexName+" on profile GLES1: "+comps);
+                    throw new GLException("Illegal component number for "+arrayName+" on profile GLES1: "+comps);
                 }
                 return false;
         }
@@ -427,7 +441,7 @@ public class GLProfile {
                     break;
                 default: 
                     if(throwException) {
-                        throw new GLException("Illegal data type for "+indexName+" on profile GL2: "+type);
+                        throw new GLException("Illegal data type for "+arrayName+" on profile GL2: "+type);
                     }
                     return false;
             }
@@ -440,13 +454,13 @@ public class GLProfile {
                     break;
                 default: 
                     if(throwException) {
-                        throw new GLException("Illegal component number for "+indexName+" on profile GL2: "+comps);
+                        throw new GLException("Illegal component number for "+arrayName+" on profile GL2: "+comps);
                     }
                     return false;
             }
         } else {
             switch(index) {
-                case GLPointerIf.GL_VERTEX_ARRAY:
+                case GLPointerFunc.GL_VERTEX_ARRAY:
                     switch(type) {
                         case GL.GL_SHORT:
                         case GL.GL_FLOAT:
@@ -455,7 +469,7 @@ public class GLProfile {
                             break;
                         default: 
                             if(throwException) {
-                                throw new GLException("Illegal data type for "+indexName+" on profile GL2: "+type);
+                                throw new GLException("Illegal data type for "+arrayName+" on profile GL2: "+type);
                             }
                             return false;
                     }
@@ -467,12 +481,12 @@ public class GLProfile {
                             break;
                         default: 
                             if(throwException) {
-                                throw new GLException("Illegal component number for "+indexName+" on profile GL2: "+comps);
+                                throw new GLException("Illegal component number for "+arrayName+" on profile GL2: "+comps);
                             }
                             return false;
                     }
                     break;
-                case GLPointerIf.GL_NORMAL_ARRAY:
+                case GLPointerFunc.GL_NORMAL_ARRAY:
                     switch(type) {
                         case GL.GL_BYTE:
                         case GL.GL_SHORT:
@@ -482,7 +496,7 @@ public class GLProfile {
                             break;
                         default: 
                             if(throwException) {
-                                throw new GLException("Illegal data type for "+indexName+" on profile GL2: "+type);
+                                throw new GLException("Illegal data type for "+arrayName+" on profile GL2: "+type);
                             }
                             return false;
                     }
@@ -492,12 +506,12 @@ public class GLProfile {
                             break;
                         default: 
                             if(throwException) {
-                                throw new GLException("Illegal component number for "+indexName+" on profile GLES1: "+comps);
+                                throw new GLException("Illegal component number for "+arrayName+" on profile GLES1: "+comps);
                             }
                             return false;
                     }
                     break;
-                case GLPointerIf.GL_COLOR_ARRAY:
+                case GLPointerFunc.GL_COLOR_ARRAY:
                     switch(type) {
                         case GL.GL_UNSIGNED_BYTE:
                         case GL.GL_BYTE:
@@ -510,7 +524,7 @@ public class GLProfile {
                             break;
                         default: 
                             if(throwException) {
-                                throw new GLException("Illegal data type for "+indexName+" on profile GL2: "+type);
+                                throw new GLException("Illegal data type for "+arrayName+" on profile GL2: "+type);
                             }
                             return false;
                     }
@@ -521,12 +535,12 @@ public class GLProfile {
                             break;
                         default: 
                             if(throwException) {
-                                throw new GLException("Illegal component number for "+indexName+" on profile GL2: "+comps);
+                                throw new GLException("Illegal component number for "+arrayName+" on profile GL2: "+comps);
                             }
                             return false;
                     }
                     break;
-                case GLPointerIf.GL_TEXTURE_COORD_ARRAY:
+                case GLPointerFunc.GL_TEXTURE_COORD_ARRAY:
                     switch(type) {
                         case GL.GL_SHORT:
                         case GL.GL_FLOAT:
@@ -535,7 +549,7 @@ public class GLProfile {
                             break;
                         default: 
                             if(throwException) {
-                                throw new GLException("Illegal data type for "+indexName+" on profile GL2: "+type);
+                                throw new GLException("Illegal data type for "+arrayName+" on profile GL2: "+type);
                             }
                             return false;
                     }
@@ -548,7 +562,7 @@ public class GLProfile {
                             break;
                         default: 
                             if(throwException) {
-                                throw new GLException("Illegal component number for "+indexName+" on profile GL2: "+comps);
+                                throw new GLException("Illegal component number for "+arrayName+" on profile GL2: "+comps);
                             }
                             return false;
                     }
@@ -558,5 +572,4 @@ public class GLProfile {
     }
     return true;
   }
-
 }

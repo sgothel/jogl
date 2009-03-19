@@ -44,7 +44,7 @@ import java.nio.*;
 import java.nio.channels.*;
 
 import javax.media.opengl.*;
-import javax.media.opengl.util.*;
+import com.sun.opengl.util.*;
 import com.sun.opengl.util.texture.*;
 
 /** A reader and writer for DirectDraw Surface (.dds) files, which are

@@ -2,9 +2,7 @@
 package com.sun.opengl.util.glsl;
 
 import javax.media.opengl.*;
-import javax.media.opengl.util.*;
-import com.sun.opengl.util.StreamUtil;
-import com.sun.opengl.impl.io.Locator;
+import com.sun.opengl.util.*;
 
 import java.util.*;
 import java.nio.*;

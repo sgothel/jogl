@@ -156,18 +156,11 @@
 
         <property name="java.part.glugl2"
                   value="com/sun/opengl/impl/glu/gl2/**, com/sun/opengl/impl/glu/nurbs/**, com/sun/opengl/impl/glu/registry/**, javax/media/opengl/glu/gl2/**"/>
-
-        <property name="java.part.glsl"
-                  value="javax/media/opengl/glsl/**, com/sun/opengl/impl/glsl/**"/>
-
         <property name="java.part.openmax"
                   value="com/sun/openmax/**"/>
 
         <property name="java.part.sdk"
                   value="javax/media/opengl/sdk/**"/>
-
-        <property name="java.part.glsl.fixed"
-                  value="com/sun/opengl/impl/glsl/fixed/**"/>
 
         <property name="java.part.gl2es12.x11"
                   value="com/sun/opengl/impl/gl2es12/**, com/sun/opengl/impl/x11/glx/*"/>
@@ -200,7 +193,7 @@
                   value="javax/media/opengl/TraceGLES1.*, javax/media/opengl/DebugGLES1.*"/>
 
         <property name="java.part.es2"
-                  value="javax/media/opengl/**/es2/**, com/sun/opengl/**/es2/**, ${java.part.glsl}"/>
+                  value="javax/media/opengl/**/es2/**, com/sun/opengl/**/es2/**"/>
 
         <property name="java.part.es2.dbg"
                   value="javax/media/opengl/TraceGLES2.*, javax/media/opengl/DebugGLES2.*"/>
@@ -209,13 +202,16 @@
                   value="javax/media/opengl/awt/**, com/sun/opengl/impl/**/awt/**"/>
 
         <property name="java.part.util"
-                  value="com/sun/opengl/util/io/**, com/sun/opengl/util/texture/**, com/sun/opengl/impl/packrect/*"/>
+                  value="com/sun/opengl/util/*, com/sun/opengl/util/glsl/**, com/sun/opengl/util/texture/**, com/sun/opengl/util/packrect/**"/>
 
         <property name="java.part.util.awt"
-                  value="javax/media/opengl/util/awt/**, com/sun/opengl/util/**/awt/**"/>
+                  value="com/sun/opengl/util/**/awt/**"/>
 
         <property name="java.part.util.gl2"
                   value="com/sun/opengl/util/**/gl2/**"/>
+
+        <property name="java.part.util.fixedfunc.shaders"
+                  value="com/sun/opengl/util/glsl/fixedfunc/impl/shaders/*, com/sun/opengl/util/glsl/fixedfunc/impl/shaders/bin/**"/>
 
         <!-- condition excludes -->
 
@@ -361,7 +357,7 @@
         <property name="src.java" value="${project.root}/${rootrel.src.java}" />
         <property name="src.c"    value="${project.root}/${rootrel.src.c}" />
         <property name="build"    value="${project.root}/${rootrel.build.jogl}" />
-        <property name="tempdir"  value="${build}/temp" />
+        <property name="tempdir"  value="${project.root}/build-temp" />
         
         <!-- The generated source directories. -->
         <property name="src.generated" value="${build}/gensrc" />
@@ -459,7 +455,6 @@
         <property name="jogl.gl2.win.jar" value="${build}/jogl.gl2.win.jar" />
         <property name="jogl.gl2.osx.jar" value="${build}/jogl.gl2.osx.jar" />
         <property name="jogl.gl2.dbg.jar" value="${build}/jogl.gl2.dbg.jar" />
-        <property name="jogl.fixed.jar" value="${build}/jogl.fixed.jar" />
         <property name="jogl.awt.jar" value="${build}/jogl.awt.jar" />
         <property name="jogl.util.jar" value="${build}/jogl.util.jar" />
         <property name="jogl.util.gl2.jar" value="${build}/jogl.util.gl2.jar" />
@@ -809,14 +804,16 @@
     <target name="java.generate.SystemUtil" depends="java.generate.SystemUtil.javase, java.generate.SystemUtil.javame_cdc_fp" />
 
     <target name="java.generate.BufferUtil.javame_cdc_fp" if="setup.cdcfp">
-        <copy file="../src/jogl/classes/javax/media/opengl/util/BufferUtil.java.javame_cdc_fp" tofile="../${rootrel.build.jogl}/gensrc/classes/javax/media/opengl/util/BufferUtil.java" />
+        <copy file="../src/jogl/classes/com/sun/opengl/util/BufferUtil.java.javame_cdc_fp" tofile="../${rootrel.build.jogl}/gensrc/classes/com/sun/opengl/util/BufferUtil.java" />
+        <copy file="../src/jogl/classes/com/sun/opengl/impl/InternalBufferUtil.java.javame_cdc_fp" tofile="../${rootrel.build.jogl}/gensrc/classes/com/sun/opengl/impl/InternalBufferUtil.java" />
     </target>
 
     <target name="java.generate.BufferUtil.javase" unless="setup.cdcfp">
-        <copy file="../src/jogl/classes/javax/media/opengl/util/BufferUtil.java.javase" tofile="../${rootrel.build.jogl}/gensrc/classes/javax/media/opengl/util/BufferUtil.java" />
+        <copy file="../src/jogl/classes/com/sun/opengl/util/BufferUtil.java.javase" tofile="../${rootrel.build.jogl}/gensrc/classes/com/sun/opengl/util/BufferUtil.java" />
+        <copy file="../src/jogl/classes/com/sun/opengl/impl/InternalBufferUtil.java.javase" tofile="../${rootrel.build.jogl}/gensrc/classes/com/sun/opengl/impl/InternalBufferUtil.java" />
     </target>
 
-    <!-- Generate the BufferUtil class for this particular profile -->
+    <!-- Generate the BufferUtil classes for this particular profile -->
     <target name="java.generate.BufferUtil" depends="java.generate.BufferUtil.javase, java.generate.BufferUtil.javame_cdc_fp" />
 
     <target name="java.generate.TextureIO.javame_cdc_fp" if="setup.cdcfp">
@@ -1064,24 +1061,24 @@
         <!-- Blow away the DebugGL*.java and TraceGL*.java sources if GL*.class has changed
              (the uptodate element doesn't support arbitrary source and destination files) -->
         <dependset>
-            <srcfilelist dir="${classes}/com/sun/opengl/util/glsl/fixed" files="FixedFuncHook.class" />
+            <srcfilelist dir="${classes}/com/sun/opengl/util/glsl/fixedfunc" files="FixedFuncHook.class" />
             <srcfilelist dir="${classes}/javax/media/opengl" files="GL2ES1.class" />
             <srcfilelist dir="${classes}/javax/media/opengl" files="GL2ES2.class" />
-            <targetfileset dir="${src.generated.java}/com/sun/opengl/impl/fixed"
-                           includes="GLFixedFuncImpl.java" />
+            <targetfileset dir="${src.generated.java}/com/sun/opengl/util/glsl/fixedfunc/impl"
+                           includes="FixedFuncImpl.java" />
         </dependset>
                            
         <!-- Now choose one of the two to test to see if we have to regenerate -->
         <uptodate property="java.generate.composable.pipeline.custom.skip.glfixfunc"
                   srcfile="${classes}/javax/media/opengl/GL2ES1.class"
-                  targetfile="${src.generated.java}/com/sun/opengl/util/glsl/fixed/FixedFuncImpl.java" />
+                  targetfile="${src.generated.java}/com/sun/opengl/util/glsl/fixedfunc/impl/FixedFuncImpl.java" />
     </target>        
     <target name="java.generate.composable.pipeline.custom.glfixfunc" depends="java.generate.composable.pipeline.custom.check.glfixfunc" unless="java.generate.composable.pipeline.custom.skip.glfixfunc">
         <java classname="com.sun.gluegen.opengl.BuildComposablePipeline" fork="yes" failonerror="true">
             <arg value="javax.media.opengl.GL2ES1" />
-            <arg value="${src.generated.java}/com/sun/opengl/util/glsl/fixed" />
-            <arg value="com.sun.opengl.util.glsl.fixed.FixedFuncImpl" />
-            <arg value="com.sun.opengl.util.glsl.fixed.FixedFuncHook" />
+            <arg value="${src.generated.java}/com/sun/opengl/util/glsl/fixedfunc/impl" />
+            <arg value="com.sun.opengl.util.glsl.fixedfunc.impl.FixedFuncImpl" />
+            <arg value="com.sun.opengl.util.glsl.fixedfunc.impl.FixedFuncHook" />
             <arg value="javax.media.opengl.GL2ES2" />
             <arg value="prolog_xor_downstream" />
             <classpath refid="pipeline.classpath" />
@@ -1100,7 +1097,7 @@
 
         <!-- Perform the first pass Java compile. -->
         <javac destdir="${classes}"
-               includes="javax/media/opengl/sub/** javax/media/opengl/GLDrawableFactory.java javax/media/opengl/GLDrawable.java javax/media/opengl/GLContext.java javax/media/opengl/GL.java javax/media/opengl/GL2ES1.java javax/media/opengl/GL2ES2.java javax/media/opengl/GL2.java javax/media/opengl/GLES1.java javax/media/opengl/GLES2.java"
+               includes="javax/media/opengl/fixedfunc/** javax/media/opengl/GLDrawableFactory.java javax/media/opengl/GLDrawable.java javax/media/opengl/GLContext.java javax/media/opengl/GL.java javax/media/opengl/GL2ES1.java javax/media/opengl/GL2ES2.java javax/media/opengl/GL2.java javax/media/opengl/GLES1.java javax/media/opengl/GLES2.java"
                fork="yes"
                memoryMaximumSize="128m"
                source="1.4" debug="${javacdebug}" debuglevel="${javacdebuglevel}">
@@ -1111,9 +1108,9 @@
     </target>
 
     <target name="java.compile.secondpass.1" if="javac.bootclasspath.jar">
-        <!-- Perform the second pass Java compile; everything. -->
+        <!-- Perform the second pass Java compile; everything except portion of fixed function emulation depending on generated code. -->
         <javac destdir="${classes}"
-               excludes="${java.excludes.all}"
+               excludes="com/sun/opengl/util/glsl/fixedfunc/FixedFuncUtil.java,${java.excludes.all}"
                source="${jogl.sourcelevel}"
                bootclasspath="${javac.bootclasspath.jar}"
                fork="yes"
@@ -1126,9 +1123,9 @@
     </target>
 
     <target name="java.compile.secondpass.2" unless="javac.bootclasspath.jar">
-        <!-- Perform the second pass Java compile; everything. -->
+        <!-- Perform the second pass Java compile; everything except portion of fixed function emulation depending on generated code. -->
         <javac destdir="${classes}"
-               excludes="${java.excludes.all}"
+               excludes="com/sun/opengl/util/glsl/fixedfunc/FixedFuncUtil.java,${java.excludes.all}"
                source="${jogl.sourcelevel}"
                fork="yes"
                memoryMaximumSize="128m"
@@ -1142,7 +1139,7 @@
     <target name="java.compile.secondpass" depends="java.generate.composable.pipeline,java.compile.secondpass.1,java.compile.secondpass.2" />
 
     <target name="java.compile.thirdpass.1" if="javac.bootclasspath.jar">
-        <!-- Perform the thirdpass pass Java compile; custom generated sources. -->
+        <!-- Perform the third pass Java compile; everything including fixed function emulation. -->
         <javac destdir="${classes}"
                excludes="${java.excludes.all}"
                source="${jogl.sourcelevel}"
@@ -1151,12 +1148,13 @@
                memoryMaximumSize="128m"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="nativewindow_gluegen.classpath"/>
+            <src path="${src.java}" />
             <src path="${src.generated.java}" />
         </javac>
     </target>
 
     <target name="java.compile.thirdpass.2" unless="javac.bootclasspath.jar">
-        <!-- Perform the thirdpass pass Java compile; custom generated sources. -->
+        <!-- Perform the third pass Java compile; everything including fixed function emulation. -->
         <javac destdir="${classes}"
                excludes="${java.excludes.all}"
                source="${jogl.sourcelevel}"
@@ -1164,6 +1162,7 @@
                memoryMaximumSize="128m"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="nativewindow_gluegen.classpath"/>
+            <src path="${src.java}" />
             <src path="${src.generated.java}" />
         </javac>
     </target>
@@ -1384,7 +1383,7 @@
         <patternset id="c.src.files.jogl.gl2">
           <include name="${rootrel.src.c}/macosx/MacOSXWindowSystemInterface.m" if="isOSX"/>
           <include name="${rootrel.src.c}/macosx/ContextUpdater.m" if="isOSX"/>
-          <include name="${rootrel.src.c}/InternalBufferUtils.c"/>
+          <include name="${rootrel.src.c}/GLXGetProcAddressARB.c"/>
           <!-- FIXME: the Mixer should be moved to another library -->
           <!--include name="${rootrel.src.c}/Mixer.cpp" if="isWindows"/-->
           <include name="${rootrel.src.c.openmax}/omx_tool.c"  if="useOpenMAX"/>
@@ -1401,7 +1400,7 @@
         <patternset id="c.src.files.jogl.gl2es12">
           <include name="${rootrel.src.c}/macosx/MacOSXWindowSystemInterface.m" if="isOSX"/>
           <include name="${rootrel.src.c}/macosx/ContextUpdater.m" if="isOSX"/>
-          <include name="${rootrel.src.c}/InternalBufferUtils.c"/>
+          <include name="${rootrel.src.c}/GLXGetProcAddressARB.c"/>
           <!-- FIXME: the Mixer should be moved to another library -->
           <!--include name="${rootrel.src.c}/Mixer.cpp" if="isWindows"/-->
           <include name="${rootrel.src.c.openmax}/omx_tool.c"  if="useOpenMAX"/>
@@ -1416,7 +1415,7 @@
         </patternset>
 
         <patternset id="c.src.files.jogl.es2">
-          <include name="${rootrel.src.c}/InternalBufferUtils.c"/>
+          <include name="${rootrel.src.c}/GLXGetProcAddressARB.c"/>
           <include name="${rootrel.src.c.openmax}/omx_tool.c"  if="useOpenMAX"/>
           <include name="${rootrel.src.c.openmax}/com_sun_openmax_OMXInstance.c"  if="useOpenMAX"/>
 
@@ -1426,7 +1425,7 @@
         </patternset>
 
         <patternset id="c.src.files.jogl.es1">
-          <include name="${rootrel.src.c}/InternalBufferUtils.c"/>
+          <include name="${rootrel.src.c}/GLXGetProcAddressARB.c"/>
           <include name="${rootrel.src.c.openmax}/omx_tool.c"  if="useOpenMAX"/>
           <include name="${rootrel.src.c.openmax}/com_sun_openmax_OMXInstance.c"  if="useOpenMAX"/>
 
@@ -1594,15 +1593,10 @@
           </filterset>
         </copy>
 
-        <copy todir="${classes}">
-            <fileset dir="${src.java}"
-                     includes="com/sun/opengl/impl/glsl/fixed/shader/**" />
-        </copy>
-
         <jar manifest="tempversion" destfile="${jogl.core.jar}">
             <fileset dir="${classes}"
                      includes="javax/media/opengl/**, com/sun/gluegen/runtime/**, com/sun/opengl/**"
-                     excludes="${java.excludes.fixme} ${java.part.egl}, ${java.part.sdk}, ${java.part.glsl}, ${java.part.openmax}, ${java.part.glsl.fixed}, ${java.part.gl2es12.x11}, ${java.part.gl2es12.win}, ${java.part.gl2es12.osx}, ${java.part.gl2es12.dbg}, ${java.part.gl2.x11}, ${java.part.gl2.win}, ${java.part.gl2.osx}, ${java.part.gl2.dbg}, ${java.part.es1}, ${java.part.es1.dbg}, ${java.part.es2}, ${java.part.es2.dbg}, ${java.part.awt}, ${java.part.glutess}, ${java.part.glumipmap}, ${java.part.glugl2}, ${java.part.util} ${java.part.util.awt} ${java.part.util.gl2}"/>
+                     excludes="${java.excludes.fixme} ${java.part.egl}, ${java.part.sdk}, ${java.part.openmax}, ${java.part.gl2es12.x11}, ${java.part.gl2es12.win}, ${java.part.gl2es12.osx}, ${java.part.gl2es12.dbg}, ${java.part.gl2.x11}, ${java.part.gl2.win}, ${java.part.gl2.osx}, ${java.part.gl2.dbg}, ${java.part.es1}, ${java.part.es1.dbg}, ${java.part.es2}, ${java.part.es2.dbg}, ${java.part.awt}, ${java.part.glutess}, ${java.part.glumipmap}, ${java.part.glugl2}, ${java.part.util} ${java.part.util.awt} ${java.part.util.gl2}"/>
         </jar>
         <jar manifest="tempversion" destfile="${jogl.gles1.jar}">
             <fileset dir="${classes}"
@@ -1615,8 +1609,8 @@
         </jar>
         <jar manifest="tempversion" destfile="${jogl.gles2.jar}">
             <fileset dir="${classes}"
-                     includes="${java.part.es2}, ${java.part.glsl}, ${java.part.openmax}"
-                     excludes="${java.part.es2.dbg}, ${java.part.glsl.fixed}"/>
+                     includes="${java.part.es2}, ${java.part.openmax}"
+                     excludes="${java.part.es2.dbg}"/>
         </jar>
         <jar manifest="tempversion" destfile="${jogl.gles2.dbg.jar}">
             <fileset dir="${classes}"
@@ -1629,18 +1623,18 @@
         </jar>
         <jar manifest="tempversion" destfile="${jogl.gl2es12.x11.jar}">
             <fileset dir="${classes}"
-                     includes="${java.part.gl2es12.x11}, ${java.part.glsl}, ${java.part.openmax}"
-                     excludes="${java.part.gl2es12.dbg}, ${java.part.glugl2}, ${java.part.glsl.fixed}"/>
+                     includes="${java.part.gl2es12.x11}, ${java.part.openmax}"
+                     excludes="${java.part.gl2es12.dbg}, ${java.part.glugl2}"/>
         </jar>
         <jar manifest="tempversion" destfile="${jogl.gl2es12.win.jar}">
             <fileset dir="${classes}"
-                     includes="${java.part.gl2es12.win}, ${java.part.glsl}, ${java.part.openmax}"
-                     excludes="${java.part.gl2es12.dbg}, ${java.part.glugl2}, ${java.part.glsl.fixed}"/>
+                     includes="${java.part.gl2es12.win}, ${java.part.openmax}"
+                     excludes="${java.part.gl2es12.dbg}, ${java.part.glugl2}"/>
         </jar>
         <jar manifest="tempversion" destfile="${jogl.gl2es12.osx.jar}">
             <fileset dir="${classes}"
-                     includes="${java.part.gl2es12.osx}, ${java.part.glsl}, ${java.part.openmax}"
-                     excludes="${java.part.gl2es12.dbg}, ${java.part.glugl2}, ${java.part.glsl.fixed}"/>
+                     includes="${java.part.gl2es12.osx}, ${java.part.openmax}"
+                     excludes="${java.part.gl2es12.dbg}, ${java.part.glugl2}"/>
         </jar>
         <jar manifest="tempversion" destfile="${jogl.gl2es12.dbg.jar}">
             <fileset dir="${classes}"
@@ -1648,27 +1642,22 @@
         </jar>
         <jar manifest="tempversion" destfile="${jogl.gl2.x11.jar}">
             <fileset dir="${classes}"
-                     includes="${java.part.gl2.x11}, ${java.part.glsl}, ${java.part.openmax}"
-                     excludes="${java.part.gl2.dbg}, ${java.part.glugl2}, ${java.part.glsl.fixed}"/>
+                     includes="${java.part.gl2.x11}, ${java.part.openmax}"
+                     excludes="${java.part.gl2.dbg}, ${java.part.glugl2}"/>
         </jar>
         <jar manifest="tempversion" destfile="${jogl.gl2.win.jar}">
             <fileset dir="${classes}"
-                     includes="${java.part.gl2.win}, ${java.part.glsl}, ${java.part.openmax}"
-                     excludes="${java.part.gl2.dbg}, ${java.part.glugl2}, ${java.part.glsl.fixed}"/>
+                     includes="${java.part.gl2.win}, ${java.part.openmax}"
+                     excludes="${java.part.gl2.dbg}, ${java.part.glugl2}"/>
         </jar>
         <jar manifest="tempversion" destfile="${jogl.gl2.osx.jar}">
             <fileset dir="${classes}"
-                     includes="${java.part.gl2.osx}, ${java.part.glsl}, ${java.part.openmax}"
-                     excludes="${java.part.gl2.dbg}, ${java.part.glugl2}, ${java.part.glsl.fixed}"/>
+                     includes="${java.part.gl2.osx}, ${java.part.openmax}"
+                     excludes="${java.part.gl2.dbg}, ${java.part.glugl2}"/>
         </jar>
         <jar manifest="tempversion" destfile="${jogl.gl2.dbg.jar}">
             <fileset dir="${classes}"
                      includes="${java.part.gl2.dbg}"/>
-        </jar>
-        <jar manifest="tempversion" destfile="${jogl.fixed.jar}">
-            <fileset dir="${classes}"
-                     includes="${java.part.glsl.fixed}"
-                     excludes="com/sun/opengl/impl/glsl/fixed/shader/scripts/**"/>
         </jar>
         <jar manifest="tempversion" destfile="${jogl.sdk.jar}">
             <fileset dir="${classes}"
@@ -1693,7 +1682,9 @@
         <jar manifest="tempversion" destfile="${jogl.util.jar}">
             <fileset dir="${classes}"
                      includes="${java.part.util}"
-                     excludes="com/sun/opengl/**/awt/**, com/sun/opengl/**/gl2/**, ${java.part.glsl}"/>
+                     excludes="com/sun/opengl/**/awt/**, com/sun/opengl/**/gl2/**"/>
+            <fileset dir="${src.java}"
+                     includes="${java.part.util.fixedfunc.shaders}"/>
         </jar>
         <jar manifest="tempversion" destfile="${jogl.util.gl2.jar}">
             <fileset dir="${classes}"
@@ -1713,6 +1704,8 @@
                 <!-- FIXME: this is temporary until we move these classes to another workspace -->
                 <include name="com/sun/javafx/**" />
             </fileset>
+            <fileset dir="${src.java}"
+                     includes="${java.part.util.fixedfunc.shaders}"/>
         </jar>
         <delete file="tempversion"/>
     </target>

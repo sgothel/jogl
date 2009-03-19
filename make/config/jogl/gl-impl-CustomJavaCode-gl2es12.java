@@ -336,8 +336,8 @@ public java.nio.ByteBuffer glMapBuffer(int target, int access) {
   ARBVBOKey key = new ARBVBOKey(addr, sz);
   ByteBuffer _res = (ByteBuffer) arbVBOCache.get(key);
   if (_res == null) {
-    _res = InternalBufferUtils.newDirectByteBuffer(addr, sz);
-    _res.order(ByteOrder.nativeOrder());
+    _res = newDirectByteBuffer(addr, sz);
+    InternalBufferUtil.nativeOrder(_res);
     arbVBOCache.put(key, _res);
   }
   _res.position(0);
@@ -346,6 +346,8 @@ public java.nio.ByteBuffer glMapBuffer(int target, int access) {
 
 /** Encapsulates function pointer for OpenGL function <br>: <code> LPVOID glMapBuffer(GLenum target, GLenum access); </code>    */
 native private long dispatch_glMapBuffer(int target, int access, long glProcAddress);
+
+native private ByteBuffer newDirectByteBuffer(long addr, int capacity);
 
   /** Dummy implementation for the ES 2.0 function: <br> <code> void {@native glShaderBinary}(GLint n, const GLuint *  shaders, GLenum binaryformat, const void *  binary, GLint length); </code>  <br> Always throws a GLException!  */
   public void glShaderBinary(int n, java.nio.IntBuffer shaders, int binaryformat, java.nio.Buffer binary, int length) {
