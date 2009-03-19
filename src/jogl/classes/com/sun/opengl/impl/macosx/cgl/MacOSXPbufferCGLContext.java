@@ -3,7 +3,6 @@ package com.sun.opengl.impl.macosx.cgl;
 import java.security.*;
 import java.util.*;
 
-import javax.media.nativewindow.*;
 import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
 

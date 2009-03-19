@@ -39,7 +39,6 @@
 
 package com.sun.opengl.impl.windows.wgl;
 
-import javax.media.nativewindow.*;
 import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
 
