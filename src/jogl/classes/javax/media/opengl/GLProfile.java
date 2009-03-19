@@ -197,30 +197,6 @@ public class GLProfile {
     return (null==test_profile)?false:test_profile.equals(profile);
   }
 
-  public static final boolean implementationOfGL2(Object obj) {
-    return NWReflection.implementationOf(obj, "javax.media.opengl.GL2");
-  }
-
-  public static final boolean implementationOfGLES1(Object obj) {
-    return NWReflection.implementationOf(obj, "javax.media.opengl.GLES1");
-  }
-
-  public static final boolean implementationOfGLES2(Object obj) {
-    return NWReflection.implementationOf(obj, "javax.media.opengl.GLES2");
-  }
-
-  public static final boolean implementationOfGLES(Object obj) {
-    return implementationOfGLES1(obj) || implementationOfGLES2(obj);
-  }
-
-  public static final boolean implementationOfGL2ES1(Object obj) {
-    return NWReflection.implementationOf(obj, "javax.media.opengl.GL2ES1");
-  }
-
-  public static final boolean implementationOfGL2ES2(Object obj) {
-    return NWReflection.implementationOf(obj, "javax.media.opengl.GL2ES2");
-  }
-
   public static final String getGLImplBaseClassName() {
         if(isGL2()) {
             return "com.sun.opengl.impl.gl2.GL2";
