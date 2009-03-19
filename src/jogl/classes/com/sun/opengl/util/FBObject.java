@@ -31,7 +31,7 @@
  * 
  */
 
-package javax.media.opengl.util;
+package com.sun.opengl.util;
 
 import javax.media.opengl.*;
 

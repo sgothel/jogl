@@ -2,7 +2,6 @@
 package com.sun.opengl.util;
 
 import javax.media.opengl.*;
-import javax.media.opengl.util.*;
 import javax.media.opengl.fixedfunc.*;
 import com.sun.nativewindow.impl.NWReflection;
 import java.nio.*;

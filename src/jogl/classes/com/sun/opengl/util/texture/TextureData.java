@@ -39,7 +39,6 @@ package com.sun.opengl.util.texture;
 import java.nio.*;
 
 import javax.media.opengl.*;
-import javax.media.opengl.util.*;
 import com.sun.opengl.util.*;
 
 /**

@@ -6,7 +6,6 @@ package com.sun.opengl.util.glsl.fixedfunc.impl;
 
 import javax.media.opengl.*;
 import javax.media.opengl.fixedfunc.*;
-import javax.media.opengl.util.*;
 import javax.media.opengl.glu.*;
 import com.sun.gluegen.runtime.BufferFactory;
 import com.sun.opengl.util.*;

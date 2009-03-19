@@ -4,7 +4,6 @@ package com.sun.opengl.util;
 import java.security.*;
 
 import javax.media.opengl.*;
-import javax.media.opengl.util.*;
 
 import com.sun.opengl.util.glsl.*;
 

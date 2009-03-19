@@ -39,8 +39,6 @@
 
 package com.sun.opengl.util;
 
-import javax.media.opengl.util.*;
-
 import java.io.*;
 import java.nio.*;
 
