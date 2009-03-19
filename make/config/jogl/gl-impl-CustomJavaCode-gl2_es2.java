@@ -295,17 +295,19 @@
   public final String toString() {
       StringBuffer buf = new StringBuffer();
       buf.append(getClass().getName());
-      buf.append(" [GLSL compiler: ");
-      buf.append(glShaderCompilerAvailable());
-      Set bfs = glGetShaderBinaryFormats();
-      buf.append(", binary formats ");
-      buf.append(bfs.size());
-      buf.append(":");
-      for(Iterator iter=bfs.iterator(); iter.hasNext(); ) {
-          buf.append(" ");
-          buf.append(((Integer)(iter.next())).intValue());
+      if (isGL2ES2()) {
+          buf.append(" [GLSL compiler: ");
+          buf.append(glShaderCompilerAvailable());
+          Set bfs = glGetShaderBinaryFormats();
+          buf.append(", binary formats ");
+          buf.append(bfs.size());
+          buf.append(":");
+          for(Iterator iter=bfs.iterator(); iter.hasNext(); ) {
+              buf.append(" ");
+              buf.append(((Integer)(iter.next())).intValue());
+          }
+          buf.append("]");
       }
-      buf.append("]");
       return buf.toString();
   }
 

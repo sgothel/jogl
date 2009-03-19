@@ -93,7 +93,7 @@ public static final GLU createGLU(String profile) throws GLException {
       } 
   } catch (GLException e) { e.printStackTrace(); }
   try {
-      if(GLProfile.GL2ES12.equals(profile) || GLProfile.GL2.equals(profile) || GLProfile.GLES1.equals(profile)) {
+      if(GLProfile.GL2ES1.equals(profile) || GLProfile.GL2.equals(profile) || GLProfile.GLES1.equals(profile)) {
         return (GLU) NWReflection.createInstance("javax.media.opengl.glu.gl2es1.GLUgl2es1");
       } 
   } catch (GLException e) { e.printStackTrace(); }

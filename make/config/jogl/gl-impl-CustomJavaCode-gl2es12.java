@@ -18,7 +18,10 @@ public void setObjectTracker(GLObjectTracker tracker) {
 public GL2ES12Impl(GLContextImpl context) {
   this._context = context; 
   this.bufferSizeTracker = context.getBufferSizeTracker();
+  this.isGL2ES2 = GLProfile.isGL2ES2();
 }
+
+private boolean isGL2ES2;
 
 public final boolean isGL() {
     return false;
@@ -41,11 +44,11 @@ public final boolean isGLES() {
 }
 
 public final boolean isGL2ES1() {
-    return true;
+    return !isGL2ES2;
 }
 
 public final boolean isGL2ES2() {
-    return true;
+    return isGL2ES2;
 }
 
 public final GL getGL() throws GLException {
@@ -65,11 +68,17 @@ public final GLES2 getGLES2() throws GLException {
 }
 
 public final GL2ES1 getGL2ES1() throws GLException {
-    return this;
+    if (isGL2ES1()) {
+        return this;
+    }
+    throw new GLException("Not a GL2ES1 implementation");
 }
 
 public final GL2ES2 getGL2ES2() throws GLException {
-    return this;
+    if (isGL2ES2()) {
+        return this;
+    }
+    throw new GLException("Not a GL2ES2 implementation");
 }
 
 public boolean isFunctionAvailable(String glFunctionName) {
