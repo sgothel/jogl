@@ -24,7 +24,7 @@ public GL2ES12Impl(GLContextImpl context) {
 private boolean isGL2ES2;
 
 public final boolean isGL() {
-    return false;
+    return true;
 }
 
 public final boolean isGL2() {

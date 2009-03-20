@@ -22,7 +22,7 @@ public class FixedFuncUtil {
         if(gl.isGL2ES1()) {
             return gl.getGL2ES1();
         } else if(gl.isGL2ES2()) {
-            GL2ES2 es2 = (GL2ES2)gl;
+            GL2ES2 es2 = gl.getGL2ES2();
             FixedFuncHook hook = new FixedFuncHook(es2);
             FixedFuncImpl impl = new FixedFuncImpl(es2, hook);
             gl.getContext().setGL(impl);

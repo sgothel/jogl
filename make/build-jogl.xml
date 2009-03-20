@@ -216,6 +216,9 @@
         <property name="java.part.util.fixedfuncemu"
                   value="com/sun/opengl/util/glsl/fixedfunc/**"/>
 
+        <property name="java.part.util.fixedfuncemu.shadercode"
+                  value="com/sun/opengl/util/glsl/fixedfunc/impl/shaders/*, com/sun/opengl/util/glsl/fixedfunc/impl/shaders/bin/**"/>
+
         <!-- condition excludes -->
 
         <condition property="java.excludes.egl"
@@ -1700,6 +1703,8 @@
         <jar manifest="tempversion" destfile="${jogl.util.fixedfuncemu.jar}">
             <fileset dir="${classes}"
                      includes="${java.part.util.fixedfuncemu}"/>
+            <fileset dir="${src.java}"
+                     includes="${java.part.util.fixedfuncemu.shadercode}"/>
         </jar>
         <jar manifest="tempversion" destfile="${jogl.all.jar}">
             <fileset dir="${classes}">
