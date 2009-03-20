@@ -202,7 +202,7 @@
                   value="javax/media/opengl/awt/**, com/sun/opengl/impl/**/awt/**"/>
 
         <property name="java.part.util"
-                  value="com/sun/opengl/util/*, com/sun/opengl/util/glsl/**, com/sun/opengl/util/texture/**, com/sun/opengl/util/packrect/**"/>
+                  value="com/sun/opengl/util/*, com/sun/opengl/util/texture/**, com/sun/opengl/util/packrect/**"/>
 
         <property name="java.part.util.awt"
                   value="com/sun/opengl/util/**/awt/**"/>
@@ -210,8 +210,11 @@
         <property name="java.part.util.gl2"
                   value="com/sun/opengl/util/**/gl2/**"/>
 
-        <property name="java.part.util.fixedfunc.shaders"
-                  value="com/sun/opengl/util/glsl/fixedfunc/impl/shaders/*, com/sun/opengl/util/glsl/fixedfunc/impl/shaders/bin/**"/>
+        <property name="java.part.util.glsl"
+                  value="com/sun/opengl/util/glsl/*, com/sun/opengl/util/glsl/sdk/*"/>
+
+        <property name="java.part.util.fixedfuncemu"
+                  value="com/sun/opengl/util/glsl/fixedfunc/**"/>
 
         <!-- condition excludes -->
 
@@ -459,6 +462,7 @@
         <property name="jogl.util.jar" value="${build}/jogl.util.jar" />
         <property name="jogl.util.gl2.jar" value="${build}/jogl.util.gl2.jar" />
         <property name="jogl.util.awt.jar" value="${build}/jogl.util.awt.jar" />
+        <property name="jogl.util.fixedfuncemu.jar" value="${build}/jogl.util.fixedfuncemu.jar" />
         <property name="jogl.sdk.jar" value="${build}/jogl.sdk.jar" />
         <property name="jogl.all.jar" value="${build}/jogl.all.jar" />
 
@@ -1596,7 +1600,7 @@
         <jar manifest="tempversion" destfile="${jogl.core.jar}">
             <fileset dir="${classes}"
                      includes="javax/media/opengl/**, com/sun/gluegen/runtime/**, com/sun/opengl/**"
-                     excludes="${java.excludes.fixme} ${java.part.egl}, ${java.part.sdk}, ${java.part.openmax}, ${java.part.gl2es12.x11}, ${java.part.gl2es12.win}, ${java.part.gl2es12.osx}, ${java.part.gl2es12.dbg}, ${java.part.gl2.x11}, ${java.part.gl2.win}, ${java.part.gl2.osx}, ${java.part.gl2.dbg}, ${java.part.es1}, ${java.part.es1.dbg}, ${java.part.es2}, ${java.part.es2.dbg}, ${java.part.awt}, ${java.part.glutess}, ${java.part.glumipmap}, ${java.part.glugl2}, ${java.part.util} ${java.part.util.awt} ${java.part.util.gl2}"/>
+                     excludes="${java.excludes.fixme} ${java.part.egl}, ${java.part.sdk}, ${java.part.openmax}, ${java.part.gl2es12.x11}, ${java.part.gl2es12.win}, ${java.part.gl2es12.osx}, ${java.part.gl2es12.dbg}, ${java.part.gl2.x11}, ${java.part.gl2.win}, ${java.part.gl2.osx}, ${java.part.gl2.dbg}, ${java.part.es1}, ${java.part.es1.dbg}, ${java.part.es2}, ${java.part.es2.dbg}, ${java.part.awt}, ${java.part.glutess}, ${java.part.glumipmap}, ${java.part.glugl2}, ${java.part.util} ${java.part.util.awt} ${java.part.util.gl2} ${java.part.util.glsl} ${java.part.util.fixedfuncemu}"/>
         </jar>
         <jar manifest="tempversion" destfile="${jogl.gles1.jar}">
             <fileset dir="${classes}"
@@ -1681,10 +1685,8 @@
         </jar>
         <jar manifest="tempversion" destfile="${jogl.util.jar}">
             <fileset dir="${classes}"
-                     includes="${java.part.util}"
-                     excludes="com/sun/opengl/**/awt/**, com/sun/opengl/**/gl2/**"/>
-            <fileset dir="${src.java}"
-                     includes="${java.part.util.fixedfunc.shaders}"/>
+                     includes="${java.part.util}, ${java.part.util.glsl}"
+                     excludes="${java.part.util.awt}, ${java.part.util.gl2}, ${java.part.util.fixedfuncemu}"/>
         </jar>
         <jar manifest="tempversion" destfile="${jogl.util.gl2.jar}">
             <fileset dir="${classes}"
@@ -1694,6 +1696,10 @@
         <jar manifest="tempversion" destfile="${jogl.util.awt.jar}">
             <fileset dir="${classes}"
                      includes="${java.part.util.awt}"/>
+        </jar>
+        <jar manifest="tempversion" destfile="${jogl.util.fixedfuncemu.jar}">
+            <fileset dir="${classes}"
+                     includes="${java.part.util.fixedfuncemu}"/>
         </jar>
         <jar manifest="tempversion" destfile="${jogl.all.jar}">
             <fileset dir="${classes}">

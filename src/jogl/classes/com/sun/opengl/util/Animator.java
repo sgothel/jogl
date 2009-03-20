@@ -66,7 +66,7 @@ public class Animator {
     public Animator() {
         try {
             // Try to use the AWT-capable Animator implementation by default
-            impl = (AnimatorImpl) Class.forName("com.sun.opengl.util.AWTAnimatorImpl").newInstance();
+            impl = (AnimatorImpl) Class.forName("com.sun.opengl.util.awt.AWTAnimatorImpl").newInstance();
         } catch (Exception e) {
             impl = new AnimatorImpl();
         }
