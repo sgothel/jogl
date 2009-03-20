@@ -19,7 +19,7 @@
         <property name="newt.build.xml" value="${newt.make.dir}/build-newt.xml" />
 
         <property name="all.srcj.path" value="${src}/nativewindow/classes;${src}/jogl/classes;${src}/newt/classes" />
-        <property name="all.genj.path" value="${build}-nativewindow/gensrc/classes;${build}-jogl/gensrc/classes;${build}-newt/gensrc/classes" />
+        <property name="all.genj.path" value="${build}/nativewindow/gensrc/classes;${build}/jogl/gensrc/classes;${build}/newt/gensrc/classes" />
 
         <!-- The javadoc dirs. -->
         <property name="javadoc" value="${project.root}/javadoc_public" />
