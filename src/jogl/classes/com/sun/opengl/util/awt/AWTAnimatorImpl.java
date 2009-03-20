@@ -30,7 +30,7 @@
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  */
 
-package com.sun.opengl.util;
+package com.sun.opengl.util.awt;
 
 import java.awt.Component;
 import java.awt.EventQueue;
@@ -39,12 +39,13 @@ import java.util.*;
 import javax.swing.*;
 
 import javax.media.opengl.*;
+import com.sun.opengl.util.*;
 
 /** Abstraction to factor out AWT dependencies from the Animator's
     implementation in a way that still allows the FPSAnimator to pick
     up this behavior if desired. */
 
-class AWTAnimatorImpl extends AnimatorImpl {
+public class AWTAnimatorImpl extends AnimatorImpl {
     // For efficient rendering of Swing components, in particular when
     // they overlap one another
     private List lightweights    = new ArrayList();
