@@ -78,8 +78,8 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
                                              int initialSize, int vboBufferUsage) 
     throws GLException
   {
-    if(!GLProfile.isGL2ES2()) {
-        throw new GLException("GLArrayDataServer not supported for profile: "+GLProfile.getProfile());
+    if(!GLProfile.hasGLSL()) {
+        throw new GLException("GLArrayDataServer.GLSL not supported for profile: "+GLProfile.getProfile());
     }
     GLProfile.isValidArrayDataType(-1, comps, dataType, true, true);
 
@@ -100,8 +100,8 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
                                              int stride, Buffer buffer, int vboBufferUsage) 
     throws GLException
   {
-    if(!GLProfile.isGL2ES2()) {
-        throw new GLException("GLArrayDataServer not supported for profile: "+GLProfile.getProfile());
+    if(!GLProfile.hasGLSL()) {
+        throw new GLException("GLArrayDataServer.GLSL not supported for profile: "+GLProfile.getProfile());
     }
     GLProfile.isValidArrayDataType(-1, comps, dataType, true, true);
 

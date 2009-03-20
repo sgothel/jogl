@@ -258,7 +258,7 @@ public class ImmModeSink {
                         int cComps, int cDataType, 
                         int nComps, int nDataType, 
                         int tComps, int tDataType, boolean useGLSL) {
-    if(useGLSL && !GLProfile.isGL2ES2()) {
+    if(useGLSL && !GLProfile.hasGLSL()) {
         throw new GLException("ImmModeSink GLSL usage not supported for profile: "+GLProfile.getProfile());
     }
     vboSet = new  VBOSet(glBufferUsage, initialSize, 

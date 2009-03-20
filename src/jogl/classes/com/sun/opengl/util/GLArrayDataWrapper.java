@@ -26,8 +26,8 @@ public class GLArrayDataWrapper implements GLArrayData {
                                              int vboName, long bufferOffset)
     throws GLException
   {
-      if(!GLProfile.isGL2ES2()) {
-        throw new GLException("GLArrayDataServer not supported for profile: "+GLProfile.getProfile());
+      if(!GLProfile.hasGLSL()) {
+        throw new GLException("GLArrayDataWrapper.GLSL not supported for profile: "+GLProfile.getProfile());
       }
       GLProfile.isValidArrayDataType(-1, comps, dataType, true, true);
 

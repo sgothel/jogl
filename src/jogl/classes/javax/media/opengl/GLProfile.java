@@ -201,17 +201,24 @@ public class GLProfile {
     return GLES2.equals(profile);
   }
 
+  /* Indicates whether a GL2ES1 capable profile is in use, ie GL2ES1, GL2, GLES1 */
   public static final boolean isGL2ES1() {
-    return GL2ES1.equals(profile);
+    return GL2ES1.equals(profile) || isGL2() || isGLES1() ;
   }
 
+  /* Indicates whether a GL2ES2 capable profile is in use, ie GL2ES2, GL2, GLES2 */
   public static final boolean isGL2ES2() {
-    return GL2ES2.equals(profile);
+    return GL2ES2.equals(profile) || isGL2() || isGLES2() ;
   }
 
   /** Indicates whether either of the OpenGL ES profiles are in use. */
   public static final boolean isGLES() {
     return isGLES2() || isGLES1();
+  }
+
+  /** Indicates whether a GLSL capable profiles is in use. */
+  public static final boolean hasGLSL() {
+    return isGL2ES2();
   }
 
   public static final boolean matches(String test_profile) {

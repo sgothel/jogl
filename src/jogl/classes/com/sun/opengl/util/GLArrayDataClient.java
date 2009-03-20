@@ -63,8 +63,8 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
                                              int initialSize)
     throws GLException
   {
-      if(!GLProfile.isGL2ES2()) {
-        throw new GLException("GLArrayDataServer not supported for profile: "+GLProfile.getProfile());
+      if(!GLProfile.hasGLSL()) {
+        throw new GLException("GLArrayDataClient.GLSL not supported for profile: "+GLProfile.getProfile());
       }
       GLProfile.isValidArrayDataType(-1, comps, dataType, true, true);
 
@@ -78,8 +78,8 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
                                              int stride, Buffer buffer)
     throws GLException
   {
-      if(!GLProfile.isGL2ES2()) {
-        throw new GLException("GLArrayDataServer not supported for profile: "+GLProfile.getProfile());
+      if(!GLProfile.hasGLSL()) {
+        throw new GLException("GLArrayDataClient.GLSL not supported for profile: "+GLProfile.getProfile());
       }
       GLProfile.isValidArrayDataType(-1, comps, dataType, true, true);
 

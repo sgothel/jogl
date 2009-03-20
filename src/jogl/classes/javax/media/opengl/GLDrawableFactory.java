@@ -104,7 +104,7 @@ public abstract class GLDrawableFactory {
         } catch (Exception e) {
           e.printStackTrace();
         }
-      } else if (!GLProfile.isGL2() && !GLProfile.isGL2ES1() && !GLProfile.isGL2ES2()) {
+      } else if (!GLProfile.isGL2ES1() && !GLProfile.isGL2ES2()) {
         // We require that the user passes in one of the known profiles
         throw new GLException("Unknown or unsupported profile \"" + GLProfile.getProfile() + "\"");
       }
