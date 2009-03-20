@@ -103,6 +103,9 @@
   public Set glGetShaderBinaryFormats() 
   {
     if(null==shaderBinaryFormats) {
+        if(getContext()!=GLContext.getCurrent()) {
+            return new HashSet(0); // bail out
+        }
         HashSet formatSet = new HashSet();
 
         int[] param = new int[1];
@@ -126,6 +129,9 @@
 
   public boolean glShaderCompilerAvailable() {
     if(null==shaderCompilerAvailable) {
+        if(getContext()!=GLContext.getCurrent()) {
+            return false; // bail out
+        }
         Set bfs = glGetShaderBinaryFormats();
         if(isGLES2()) {
             byte[] param = new byte[1];
