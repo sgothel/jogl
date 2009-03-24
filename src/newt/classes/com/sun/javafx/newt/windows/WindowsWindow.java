@@ -102,11 +102,22 @@ public class WindowsWindow extends Window {
         }
     }
 
+    // @Override
     public void setSize(int width, int height) {
-        setSize0(windowHandle, width, height);
+        if (width != this.width || this.height != height) {
+            this.width = width;
+            this.height = height;
+            setSize0(windowHandle, width, height);
+        }
     }
 
+    //@Override
     public void setPosition(int x, int y) {
+        if (this.x != x || this.y != y) {
+            this.x = x;
+            this.y = y;
+            setPosition(windowHandle, x, y);
+        }
     }
 
     public boolean setFullscreen(boolean fullscreen) {
@@ -120,6 +131,17 @@ public class WindowsWindow extends Window {
             return fullscreen;
         }
         return true;
+    }
+
+    // @Override
+    public void setTitle(String title) {
+        if (title == null) {
+            title = "";
+        }
+        if (!title.equals(getTitle())) {
+            super.setTitle(title);
+            setTitle(windowHandle, title);
+        }
     }
 
     protected void dispatchMessages(int eventMask) {
@@ -163,6 +185,8 @@ public class WindowsWindow extends Window {
     private static native void DispatchMessages(long windowHandle, int eventMask);
     private        native void setSize0(long windowHandle, int width, int height);
     private        native boolean setFullScreen0(long windowHandle, boolean fullscreen);
+    private static native void setPosition(long windowHandle, int x, int y);
+    private static native void setTitle(long windowHandle, String title);
 
     private void sizeChanged(int newWidth, int newHeight) {
         width = newWidth;

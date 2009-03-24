@@ -53,6 +53,7 @@ typedef int intptr_t;
 
 #include "EventListener.h"
 #include "MouseEvent.h"
+#include "InputEvent.h"
 #include "KeyEvent.h"
 
 static jmethodID sizeChangedID = NULL;
@@ -74,6 +75,26 @@ static jchar* GetNullTerminatedStringChars(JNIEnv* env, jstring str)
         (*env)->GetStringRegion(env, str, 0, (*env)->GetStringLength(env, str), strChars);
     }
     return strChars;
+}
+
+static jint ConvertModifiers(WPARAM wParam) {
+    jint modifiers = 0;
+    if ((wParam & MK_CONTROL) != 0) {
+        modifiers |= EVENT_CTRL_MASK;
+    }
+    if ((wParam & MK_SHIFT) != 0) {
+        modifiers |= EVENT_SHIFT_MASK;
+    }
+    if ((wParam & MK_CONTROL) != 0) {
+        modifiers |= EVENT_CTRL_MASK;
+    }
+    if ((wParam & MK_CONTROL) != 0) {
+        modifiers |= EVENT_CTRL_MASK;
+    }
+    if (HIBYTE(GetKeyState(VK_MENU)) != 0) {
+        modifiers |= EVENT_ALT_MASK;
+    }
+    return modifiers;
 }
 
 static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
@@ -143,43 +164,49 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
     // FIXME: define constants for the mouse buttons and modifiers
     case WM_LBUTTONDOWN:
         (*env)->CallVoidMethod(env, window, sendMouseEventID, (jint) EVENT_MOUSE_PRESSED,
-                               (jint) wParam, (jint) LOWORD(lParam), (jint) HIWORD(lParam), (jint) 1);
+                               ConvertModifiers(wParam), (jint) LOWORD(lParam), (jint) HIWORD(lParam), (jint) 1);
         useDefWindowProc = 1;
         break;
 
     case WM_LBUTTONUP:
         (*env)->CallVoidMethod(env, window, sendMouseEventID, (jint) EVENT_MOUSE_RELEASED,
-                               (jint) wParam, (jint) LOWORD(lParam), (jint) HIWORD(lParam), (jint) 1);
+                               ConvertModifiers(wParam), (jint) LOWORD(lParam), (jint) HIWORD(lParam), (jint) 1);
         useDefWindowProc = 1;
         break;
 
     case WM_MBUTTONDOWN:
         (*env)->CallVoidMethod(env, window, sendMouseEventID, (jint) EVENT_MOUSE_PRESSED,
-                               (jint) wParam, (jint) LOWORD(lParam), (jint) HIWORD(lParam), (jint) 2);
+                               ConvertModifiers(wParam), (jint) LOWORD(lParam), (jint) HIWORD(lParam), (jint) 2);
         useDefWindowProc = 1;
         break;
 
     case WM_MBUTTONUP:
         (*env)->CallVoidMethod(env, window, sendMouseEventID, (jint) EVENT_MOUSE_RELEASED,
-                               (jint) wParam, (jint) LOWORD(lParam), (jint) HIWORD(lParam), (jint) 2);
+                               ConvertModifiers(wParam), (jint) LOWORD(lParam), (jint) HIWORD(lParam), (jint) 2);
         useDefWindowProc = 1;
         break;
 
     case WM_RBUTTONDOWN:
         (*env)->CallVoidMethod(env, window, sendMouseEventID, (jint) EVENT_MOUSE_PRESSED,
-                               (jint) wParam, (jint) LOWORD(lParam), (jint) HIWORD(lParam), (jint) 3);
+                               ConvertModifiers(wParam), (jint) LOWORD(lParam), (jint) HIWORD(lParam), (jint) 3);
         useDefWindowProc = 1;
         break;
 
     case WM_RBUTTONUP:
         (*env)->CallVoidMethod(env, window, sendMouseEventID, (jint) EVENT_MOUSE_RELEASED,
-                               (jint) wParam, (jint) LOWORD(lParam), (jint) HIWORD(lParam), (jint) 3);
+                               ConvertModifiers(wParam), (jint) LOWORD(lParam), (jint) HIWORD(lParam), (jint) 3);
         useDefWindowProc = 1;
         break;
 
     case WM_MOUSEMOVE:
         (*env)->CallVoidMethod(env, window, sendMouseEventID, (jint) EVENT_MOUSE_MOVED,
-                               (jint) wParam, (jint) LOWORD(lParam), (jint) HIWORD(lParam), (jint) 0);
+                               ConvertModifiers(wParam), (jint) LOWORD(lParam), (jint) HIWORD(lParam), (jint) 0);
+        useDefWindowProc = 1;
+        break;
+
+    case WM_MOVE:
+        (*env)->CallVoidMethod(env, window, positionChangedID,
+                               (jint)LOWORD(lParam), (jint)HIWORD(lParam));
         useDefWindowProc = 1;
         break;
 
@@ -512,4 +539,38 @@ JNIEXPORT jboolean JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_setFul
     /* For the time being, full-screen not supported on the desktop */
     return JNI_FALSE;
 #endif
+}
+
+/*
+ * Class:     com_sun_javafx_newt_windows_WindowsWindow
+ * Method:    setPosition
+ * Signature: (JII)V
+ */
+JNIEXPORT void JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_setPosition
+  (JNIEnv *env, jclass clazz, jlong window, jint x, jint y)
+{
+    UINT flags = SWP_NOACTIVATE | SWP_NOZORDER;
+    HWND hwnd = (HWND)window;
+    RECT r;
+
+    GetWindowRect(hwnd, &r);
+    SetWindowPos(hwnd, 0, x, y, (r.right-r.left), (r.bottom-r.top), flags);
+}
+
+/*
+ * Class:     com_sun_javafx_newt_windows_WindowsWindow
+ * Method:    setTitle
+ * Signature: (JLjava/lang/String;)V
+ */
+JNIEXPORT void JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_setTitle
+  (JNIEnv *env, jclass clazz, jlong window, jstring title)
+{
+    HWND hwnd = (HWND)window;
+    if (title != NULL) {
+        jchar *titleString = GetNullTerminatedStringChars(env, title);
+        if (titleString != NULL) {
+            SetWindowTextW(hwnd, titleString);
+            free(titleString);
+        }
+    }
 }
