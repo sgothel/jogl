@@ -161,7 +161,6 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
         (*env)->CallVoidMethod(env, window, sizeChangedID, (jint) rc.right, (jint) rc.bottom);
         break;
 
-    // FIXME: define constants for the mouse buttons and modifiers
     case WM_LBUTTONDOWN:
         (*env)->CallVoidMethod(env, window, sendMouseEventID, (jint) EVENT_MOUSE_PRESSED,
                                ConvertModifiers(wParam), (jint) LOWORD(lParam), (jint) HIWORD(lParam), (jint) 1);
@@ -303,11 +302,12 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_RegisterW
 /*
  * Class:     com_sun_javafx_newt_windows_WindowsWindow
  * Method:    CreateWindow
- * Signature: (Ljava/lang/String;JJIIII)J
+ * Signature: (Ljava/lang/String;JJZIIII)J
  */
 JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_CreateWindow
   (JNIEnv *env, jobject obj, jstring windowClassName, jlong hInstance, jlong visualID,
-                             jint jx, jint jy, jint defaultWidth, jint defaultHeight)
+        jboolean bIsUndecorated,
+        jint jx, jint jy, jint defaultWidth, jint defaultHeight)
 {
     const TCHAR* wndClassName = NULL;
     DWORD windowStyle = WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_VISIBLE;
@@ -331,7 +331,11 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_CreateWin
 #else
     x = CW_USEDEFAULT;
     y = 0;
-    windowStyle |= WS_OVERLAPPEDWINDOW;
+    if (bIsUndecorated) {
+        windowStyle |= WS_POPUP | WS_SYSMENU | WS_MAXIMIZEBOX | WS_MINIMIZEBOX;
+    } else {
+        windowStyle |= WS_OVERLAPPEDWINDOW;
+    }
 #endif
 
     (void) visualID; // FIXME: use the visualID ..

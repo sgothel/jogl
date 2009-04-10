@@ -70,7 +70,7 @@ public class WindowsWindow extends Window {
         // pixel format selection here
         chosenCaps = (Capabilities) caps.clone(); // FIXME: visualID := f1(caps); caps := f2(visualID)
         config = null; // n/a
-        windowHandle = CreateWindow(WINDOW_CLASS_NAME, getHInstance(), 0, x, y, width, height);
+        windowHandle = CreateWindow(WINDOW_CLASS_NAME, getHInstance(), 0, undecorated, x, y, width, height);
         if (windowHandle == 0) {
             throw new NativeWindowException("Error creating window");
         }
@@ -177,6 +177,7 @@ public class WindowsWindow extends Window {
     private static native long LoadLibraryW(String libraryName);
     private static native long RegisterWindowClass(String windowClassName, long hInstance);
     private        native long CreateWindow(String windowClassName, long hInstance, long visualID,
+                                            boolean isUndecorated,
                                             int x, int y, int width, int height);
     private        native void DestroyWindow(long windowHandle);
     private        native long GetDC(long windowHandle);
