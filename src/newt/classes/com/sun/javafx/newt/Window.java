@@ -422,9 +422,9 @@ public abstract class Window implements NativeWindow
     }
 
     private ArrayList mouseListeners = new ArrayList();
-    private int  lastMouseButton = 0;
-    private long lastMousePressed = 0;
-    private int  lastMouseClickCount = 0;
+    private int  mouseButtonPressed = 0; // current pressed mouse button number
+    private long lastMousePressed = 0; // last time when a mouse button was pressed
+    private int  lastMouseClickCount = 0; // last mouse button click count
     public  static final int ClickTimeout = 300;
 
     protected void sendMouseEvent(int eventType, int modifiers, int x, int y, int button) {
@@ -446,7 +446,7 @@ public abstract class Window implements NativeWindow
                 lastMouseClickCount=1;
             }
             lastMousePressed=when;
-            lastMouseButton=button;
+            mouseButtonPressed=button;
             e = new MouseEvent(true, eventType, this, when,
                                modifiers, x, y, lastMouseClickCount, button);
         } else if(MouseEvent.EVENT_MOUSE_RELEASED==eventType) {
@@ -458,12 +458,12 @@ public abstract class Window implements NativeWindow
             } else {
                 lastMouseClickCount=0;
                 lastMousePressed=0;
-                lastMouseButton=0;
             }
+            mouseButtonPressed=0;
         } else if(MouseEvent.EVENT_MOUSE_MOVED==eventType) {
-            if (lastMouseButton>0) {
+            if (mouseButtonPressed>0) {
                 e = new MouseEvent(true, MouseEvent.EVENT_MOUSE_DRAGGED, this, when,
-                                   modifiers, x, y, 1, lastMouseButton);
+                                   modifiers, x, y, 1, mouseButtonPressed);
             } else {
                 e = new MouseEvent(true, eventType, this, when,
                                    modifiers, x, y, 0, button);
