@@ -780,7 +780,6 @@
         <arg value="${obj}/nativewindow_awt.dll.manifest"/>
         <arg value="-outputresource:${obj}/nativewindow_awt.dll;#2"/>
       </exec>
-      <antcall target="c.manifest.cg" inheritRefs="true" />
     </target>
 
     <target name="c.build.nativewindow" depends="c.configure,c.build.nativewindow.windowlib,c.build.nativewindow.awt">

@@ -526,7 +526,6 @@
         <arg value="${obj}/newt.dll.manifest"/>
         <arg value="-outputresource:${obj}/newt.dll;#2"/>
       </exec>
-      <antcall target="c.manifest.cg" inheritRefs="true" />
     </target>
 
     <target name="c.build.newt" depends="c.configure,c.build.newt.prepare,c.build.newt.windowlib">
