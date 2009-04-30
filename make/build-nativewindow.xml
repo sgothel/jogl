@@ -677,8 +677,11 @@
         </patternset>
 
         <patternset id="c.src.files.x11">
-          <include name="${rootrel.src.c}/x11/*.c" if="isX11"/>
           <include name="${rootrel.generated.c}/X11/X11*.c" if="isX11"/>
+          <include name="${rootrel.src.c}/x11/XineramaHelper.c" if="isX11"/>
+          <!-- Xinerama supporting functions for Linux only (for now) -->
+          <!-- Also supported on Solaris, but works differently -->
+          <include name="${rootrel.src.c}/x11/Xinerama.c" if="isLinux"/>
         </patternset>
 
         <echo message="Compiling @{output.lib.name}" />
