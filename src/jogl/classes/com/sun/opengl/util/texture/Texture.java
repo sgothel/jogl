@@ -295,7 +295,7 @@ public class Texture {
      *
      * @return the OpenGL target of this texture
      * @see javax.media.opengl.GL#GL_TEXTURE_2D
-     * @see javax.media.opengl.GL2#GL_TEXTURE_RECTANGLE
+     * @see javax.media.opengl.GL2#GL_TEXTURE_RECTANGLE_ARB
      */
     public int getTarget() {
         return target;
@@ -386,7 +386,7 @@ public class Texture {
      * @return the texture coordinates corresponding to the specified sub-image
      */
     public TextureCoords getSubImageTexCoords(int x1, int y1, int x2, int y2) {
-        if (target == GL2.GL_TEXTURE_RECTANGLE) {
+        if (target == GL2.GL_TEXTURE_RECTANGLE_ARB) {
             if (mustFlipVertically) {
                 return new TextureCoords(x1, texHeight - y1, x2, texHeight - y2);
             } else {
@@ -490,7 +490,7 @@ public class Texture {
 
             texWidth = imgWidth;
             texHeight = imgHeight;
-            texTarget = GL2.GL_TEXTURE_RECTANGLE;
+            texTarget = GL2.GL_TEXTURE_RECTANGLE_ARB;
             done = true;
         }
 
@@ -517,7 +517,7 @@ public class Texture {
 
             texWidth = imgWidth;
             texHeight = imgHeight;
-            texTarget = GL2.GL_TEXTURE_RECTANGLE;
+            texTarget = GL2.GL_TEXTURE_RECTANGLE_ARB;
             done = true;
         }
 
@@ -650,8 +650,8 @@ public class Texture {
         int magFilter = GL.GL_LINEAR;
         int wrapMode = (gl.isExtensionAvailable("GL_VERSION_1_2") || !gl.isGL2()) ? GL.GL_CLAMP_TO_EDGE : GL2.GL_CLAMP;
 
-        // REMIND: figure out what to do for GL_TEXTURE_RECTANGLE
-        if (texTarget != GL2.GL_TEXTURE_RECTANGLE) {
+        // REMIND: figure out what to do for GL_TEXTURE_RECTANGLE_ARB
+        if (texTarget != GL2.GL_TEXTURE_RECTANGLE_ARB) {
             gl.glTexParameteri(texParamTarget, GL.GL_TEXTURE_MIN_FILTER, minFilter);
             gl.glTexParameteri(texParamTarget, GL.GL_TEXTURE_MAG_FILTER, magFilter);
             gl.glTexParameteri(texParamTarget, GL.GL_TEXTURE_WRAP_S, wrapMode);
@@ -665,7 +665,7 @@ public class Texture {
         // map
         if ((this.target == 0) ||
             (this.target == GL.GL_TEXTURE_2D) ||
-            (this.target == GL2.GL_TEXTURE_RECTANGLE)) {
+            (this.target == GL2.GL_TEXTURE_RECTANGLE_ARB)) {
             this.target = texTarget;
         }
 
@@ -912,7 +912,7 @@ public class Texture {
     private void setImageSize(int width, int height, int target) {
         imgWidth = width;
         imgHeight = height;
-        if (target == GL2.GL_TEXTURE_RECTANGLE) {
+        if (target == GL2.GL_TEXTURE_RECTANGLE_ARB) {
             if (mustFlipVertically) {
                 coords = new TextureCoords(0, imgHeight, imgWidth, 0);
             } else {

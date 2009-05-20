@@ -91,7 +91,7 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
     int renderTarget;
     GLCapabilities capabilities = getRequestedGLCapabilities();
     if (GLProfile.isGL2() && capabilities.getPbufferRenderToTextureRectangle()) {
-      renderTarget = GL2.GL_TEXTURE_RECTANGLE;
+      renderTarget = GL2.GL_TEXTURE_RECTANGLE_EXT;
     } else {
       int w = getNextPowerOf2(getWidth());
       int h = getNextPowerOf2(getHeight());

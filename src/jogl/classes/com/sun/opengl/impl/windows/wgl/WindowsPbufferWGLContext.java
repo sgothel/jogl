@@ -68,7 +68,7 @@ public class WindowsPbufferWGLContext extends WindowsWGLContext {
     WGLExt wglExt = getWGLExt();
     gl.glBindTexture(textureTarget, texture);
     if (rtt && hasRTT) {
-      if (!wglExt.wglBindTexImage(drawable.getPbuffer(), WGLExt.WGL_FRONT_LEFT)) {
+      if (!wglExt.wglBindTexImageARB(drawable.getPbuffer(), WGLExt.WGL_FRONT_LEFT_ARB)) {
         throw new GLException("Binding of pbuffer to texture failed: " + wglGetLastError());
       }
     }
@@ -84,7 +84,7 @@ public class WindowsPbufferWGLContext extends WindowsWGLContext {
     }
     if (rtt && hasRTT) {
       WGLExt wglExt = getWGLExt();
-      if (!wglExt.wglReleaseTexImage(drawable.getPbuffer(), WGLExt.WGL_FRONT_LEFT)) {
+      if (!wglExt.wglReleaseTexImageARB(drawable.getPbuffer(), WGLExt.WGL_FRONT_LEFT_ARB)) {
         throw new GLException("Releasing of pbuffer from texture failed: " + wglGetLastError());
       }
     }
@@ -123,7 +123,7 @@ public class WindowsPbufferWGLContext extends WindowsWGLContext {
             if (DEBUG) {
               System.err.println("  Using render-to-texture-rectangle");
             }
-            textureTarget = GL2.GL_TEXTURE_RECTANGLE;
+            textureTarget = GL2.GL_TEXTURE_RECTANGLE_ARB;
           } else {
             if (DEBUG) {
               System.err.println("  Using vanilla render-to-texture");
