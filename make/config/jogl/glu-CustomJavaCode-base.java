@@ -83,20 +83,32 @@ public static final GLU createGLU() throws GLException {
   return createGLU(GLProfile.getProfile());
 }
 
+private static Class gl2Class;
+private static Class gl2es1Class;
+
 /**
  * Instantiates a GLU implementation object in respect to the given GL profile.
  */
 public static final GLU createGLU(String profile) throws GLException {
   try {
+      Class c = null;
       if(GLProfile.GL2.equals(profile)) {
-        return (GLU) NWReflection.createInstance("javax.media.opengl.glu.gl2.GLUgl2");
-      } 
-  } catch (GLException e) { e.printStackTrace(); }
-  try {
-      if(GLProfile.GL2ES1.equals(profile) || GLProfile.GL2.equals(profile) || GLProfile.GLES1.equals(profile)) {
-        return (GLU) NWReflection.createInstance("javax.media.opengl.glu.gl2es1.GLUgl2es1");
-      } 
-  } catch (GLException e) { e.printStackTrace(); }
+        if (gl2Class == null) {
+          gl2Class = Class.forName("javax.media.opengl.glu.gl2.GLUgl2");
+        }
+        c = gl2Class;
+      } else if (GLProfile.GL2ES1.equals(profile) || GLProfile.GLES1.equals(profile)) {
+        if (gl2es1Class == null) {
+          gl2es1Class = Class.forName("javax.media.opengl.glu.gl2es1.GLUgl2es1");
+        }
+        c = gl2es1Class;
+      }
+      if (c != null) {
+        return (GLU) c.newInstance();
+      }
+  } catch (Exception e) {
+    throw new GLException(e);
+  }
   // There is no specialized ES 2 GLU at this time
   /*
       try {
