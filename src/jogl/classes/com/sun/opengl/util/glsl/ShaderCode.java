@@ -50,7 +50,7 @@ public class ShaderCode {
     }
 
     public static ShaderCode create(GL2ES2 gl, int type, int number, Class context, String[] sourceFiles) {
-        if(!gl.glShaderCompilerAvailable()) return null;
+        if(!ShaderUtil.isShaderCompilerAvailable(gl)) return null;
 
         String[][] shaderSources = null;
         if(null!=sourceFiles) {
@@ -108,7 +108,7 @@ public class ShaderCode {
         String srcFileName = null;
         String binFileName = null;
 
-        if(gl.glShaderCompilerAvailable()) {
+        if(ShaderUtil.isShaderCompilerAvailable(gl)) {
             String srcPath[] = new String[1];
             srcFileName = srcRoot + '/' + basename + "." + getFileSuffix(false, type);
             srcPath[0] = srcFileName;
@@ -117,7 +117,7 @@ public class ShaderCode {
                 return res;
             }
         }
-        Set binFmts = gl.glGetShaderBinaryFormats();
+        Set binFmts = ShaderUtil.getShaderBinaryFormats(gl);
         for(Iterator iter=binFmts.iterator(); null==res && iter.hasNext(); ) {
             int bFmt = ((Integer)(iter.next())).intValue();
             String bFmtPath = getBinarySubPath(bFmt);
@@ -143,14 +143,14 @@ public class ShaderCode {
             verboseOut.println("createAndLoadShader: Pre GL Error: 0x"+Integer.toHexString(err));
         }
 
-        gl.glCreateShader(shaderType, shader);
+        ShaderUtil.createShader(gl, shaderType, shader);
         err = gl.glGetError(); 
         if(err!=GL.GL_NO_ERROR) {
             throw new GLException("createAndLoadShader: CreateShader failed, GL Error: 0x"+Integer.toHexString(err));
         }
 
 
-        gl.glShaderBinary(shader, binFormat, bin);
+        ShaderUtil.shaderBinary(gl, shader, binFormat, bin);
 
         err = gl.glGetError();
         if(err!=GL.GL_NO_ERROR && null!=verboseOut) {
@@ -168,25 +168,25 @@ public class ShaderCode {
             verboseOut.println("createAndCompileShader: Pre GL Error: 0x"+Integer.toHexString(err));
         }
 
-        gl.glCreateShader(shaderType, shader);
+        ShaderUtil.createShader(gl, shaderType, shader);
         err = gl.glGetError(); 
         if(err!=GL.GL_NO_ERROR) {
             throw new GLException("createAndCompileShader: CreateShader failed, GL Error: 0x"+Integer.toHexString(err));
         }
 
-        gl.glShaderSource(shader, sources);
+        ShaderUtil.shaderSource(gl, shader, sources);
         err = gl.glGetError(); 
         if(err!=GL.GL_NO_ERROR) {
             throw new GLException("createAndCompileShader: ShaderSource failed, GL Error: 0x"+Integer.toHexString(err));
         }
 
-        gl.glCompileShader(shader);
+        ShaderUtil.compileShader(gl, shader);
         err = gl.glGetError(); 
         if(err!=GL.GL_NO_ERROR && null!=verboseOut) {
             verboseOut.println("createAndCompileShader: CompileShader failed, GL Error: 0x"+Integer.toHexString(err));
         }
 
-        return gl.glIsShaderStatusValid(shader, gl.GL_COMPILE_STATUS, verboseOut) && err == GL.GL_NO_ERROR;
+        return ShaderUtil.isShaderStatusValid(gl, shader, gl.GL_COMPILE_STATUS, verboseOut) && err == GL.GL_NO_ERROR;
     }
 
     /**
@@ -245,7 +245,7 @@ public class ShaderCode {
     public void destroy(GL2ES2 gl) {
         if(isValid()) {
             if(null!=gl) {
-                gl.glDeleteShader(shader());
+                ShaderUtil.deleteShader(gl, shader());
             }
             valid=false;
         }

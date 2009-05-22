@@ -65,7 +65,7 @@ public class ShaderProgram {
         glUseProgram(gl, false);
         for(Iterator iter=shaderMap.values().iterator(); iter.hasNext(); ) {
             ShaderCode shaderCode = (ShaderCode) iter.next();
-            gl.glDetachShader(shaderProgram, shaderCode.shader());
+            ShaderUtil.detachShader(gl, shaderProgram, shaderCode.shader());
             if(releaseShaderToo) {
                 shaderCode.destroy(gl);
             }
@@ -125,14 +125,14 @@ public class ShaderProgram {
         if(oldShaderID>=0) {
             ShaderCode oldShader = (ShaderCode) shaderMap.remove(new Integer(oldShaderID));
             if(null!=oldShader) {
-                gl.glDetachShader(shaderProgram, oldShader.shader());
+                ShaderUtil.detachShader(gl, shaderProgram, oldShader.shader());
             }
         }
         add(newShader);
 
-        gl.glAttachShader(shaderProgram, newShader.shader());
+        ShaderUtil.attachShader(gl, shaderProgram, newShader.shader());
         gl.glLinkProgram(shaderProgram);
-        if ( ! gl.glIsProgramValid(shaderProgram, System.err) )  {
+        if ( ! ShaderUtil.isProgramValid(gl, shaderProgram, System.err) )  {
             return false;
         }
 
@@ -154,13 +154,13 @@ public class ShaderProgram {
             if(!shaderCode.compile(gl, verboseOut)) {
                 return false;
             }
-            gl.glAttachShader(shaderProgram, shaderCode.shader());
+            ShaderUtil.attachShader(gl, shaderProgram, shaderCode.shader());
         }
 
         // Link the program
         gl.glLinkProgram(shaderProgram);
 
-        programLinked = gl.glIsProgramValid(shaderProgram, System.err);
+        programLinked = ShaderUtil.isProgramValid(gl, shaderProgram, System.err);
 
         return programLinked;
     }

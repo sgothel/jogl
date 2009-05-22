@@ -304,10 +304,6 @@ native private long dispatch_glMapBuffer(int target, int access, long glProcAddr
 
 native private ByteBuffer newDirectByteBuffer(long addr, int capacity);
 
-  public final String toString() {
-      return getClass().getName();
-  }
-
 public void glVertexPointer(GLArrayData array) {
   if(array.getComponentNumber()==0) return;
   if(array.isVBO()) {

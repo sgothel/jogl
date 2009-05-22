@@ -201,18 +201,33 @@ public abstract class GLContext {
   public abstract void setGL(GL gl);
 
   /**
-   * Returns the attached user object for the given name to this GLContext/GL.
+   * Returns the attached user object for the given name to this GLContext.
    */
   public Object getAttachedObject(int name) {
     return attachedObjects.get(new Integer(name));
   }
 
   /**
-   * Sets the attached user object for the given name to this GLContext/GL.
-   * Returns the previous set object or null.
+   * Returns the attached user object for the given name to this GLContext.
+   */
+  public Object getAttachedObject(String name) {
+    return attachedObjects.get(name);
+  }
+
+  /**
+   * Sets the attached user object for the given name to this GLContext.
+   * Returns the previously set object or null.
    */
   public Object putAttachedObject(int name, Object obj) {
     return attachedObjects.put(new Integer(name), obj);
+  }
+
+  /**
+   * Sets the attached user object for the given name to this GLContext.
+   * Returns the previously set object or null.
+   */
+  public Object putAttachedObject(String name, Object obj) {
+    return attachedObjects.put(name, obj);
   }
 
   /**
