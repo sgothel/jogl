@@ -94,6 +94,16 @@ static jint ConvertModifiers(WPARAM wParam) {
     if (HIBYTE(GetKeyState(VK_MENU)) != 0) {
         modifiers |= EVENT_ALT_MASK;
     }
+    if (HIBYTE(GetKeyState(VK_LBUTTON)) != 0) {
+        modifiers |= EVENT_BUTTON1_MASK;
+    }
+    if (HIBYTE(GetKeyState(VK_MBUTTON)) != 0) {
+        modifiers |= EVENT_BUTTON2_MASK;
+    }
+    if (HIBYTE(GetKeyState(VK_RBUTTON)) != 0) {
+        modifiers |= EVENT_BUTTON3_MASK;
+    }
+
     return modifiers;
 }
 
@@ -208,6 +218,12 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
                                (jint)LOWORD(lParam), (jint)HIWORD(lParam));
         useDefWindowProc = 1;
         break;
+
+    case WM_ERASEBKGND:
+        // ignore erase background
+        useDefWindowProc = 0;
+        break;
+
 
     // FIXME: generate EVENT_MOUSE_ENTERED, EVENT_MOUSE_EXITED
     default:

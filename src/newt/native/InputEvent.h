@@ -39,5 +39,8 @@
 #define EVENT_META_MASK       4
 #define EVENT_ALT_MASK        8
 #define EVENT_ALT_GRAPH_MASK 32
+#define EVENT_BUTTON1_MASK   (1<<6)
+#define EVENT_BUTTON2_MASK   (1<<7)
+#define EVENT_BUTTON3_MASK   (1<<8)
 
 #endif
