@@ -97,7 +97,7 @@ JNIEXPORT jboolean JNICALL Java_com_sun_javafx_newt_kd_KDWindow_initIDs
     sizeChangedID = (*env)->GetMethodID(env, clazz, "sizeChanged", "(II)V");
     windowDestroyNotifyID = (*env)->GetMethodID(env, clazz, "windowDestroyNotify",    "()V");
     windowDestroyedID = (*env)->GetMethodID(env, clazz, "windowDestroyed", "()V");
-    sendMouseEventID = (*env)->GetMethodID(env, clazz, "sendMouseEvent", "(IIIII)V");
+    sendMouseEventID = (*env)->GetMethodID(env, clazz, "sendMouseEvent", "(IIIIII)V");
     sendKeyEventID = (*env)->GetMethodID(env, clazz, "sendKeyEvent", "(IIIC)V");
     if (sizeChangedID == NULL ||
         windowDestroyNotifyID == NULL ||
@@ -289,12 +289,12 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_kd_KDWindow_DispatchMessages
                         (*env)->CallVoidMethod(env, obj, sendMouseEventID, 
                                               (ptr->select==0) ? (jint) EVENT_MOUSE_RELEASED : (jint) EVENT_MOUSE_PRESSED, 
                                               (jint) 0,
-                                              (jint) ptr->x, (jint) ptr->y, 1);
+                                              (jint) ptr->x, (jint) ptr->y, 1, 0);
                     } else {
                         DBG_PRINT( "event mouse: src: %d, s:%d, i:0x%X (%d,%d)\n", owner, ptr->select, ptr->index, ptr->x, ptr->y);
                         (*env)->CallVoidMethod(env, obj, sendMouseEventID, (jint) EVENT_MOUSE_MOVED, 
                                               0,
-                                              (jint) ptr->x, (jint) ptr->y, 0);
+                                              (jint) ptr->x, (jint) ptr->y, 0, 0);
                     }
                 }
                 break;

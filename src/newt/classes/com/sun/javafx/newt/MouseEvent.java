@@ -43,16 +43,21 @@ public class MouseEvent extends InputEvent
   public static final int BUTTON6 = 6;
   public static final int BUTTON_NUMBER = 6;
 
- protected MouseEvent(boolean sysEvent, int eventType, Window source, long when, int modifiers, int x, int y, int clickCount, int button) 
+ protected MouseEvent(boolean sysEvent, int eventType, Window source, long when,
+                      int modifiers, int x, int y, int clickCount, int button,
+                      int rotation)
  {
      super(sysEvent, eventType, source, when, modifiers); 
      this.x=x;
      this.y=y;
      this.clickCount=clickCount;
      this.button=button;
+     this.wheelRotation = rotation;
  }
- public MouseEvent(int eventType, Window source, long when, int modifiers, int x, int y, int clickCount, int button) {
-     this(false, eventType, source, when, modifiers, x, y, clickCount, button); 
+ public MouseEvent(int eventType, Window source, long when, int modifiers,
+                   int x, int y, int clickCount, int button, int rotation) {
+     this(false, eventType, source, when, modifiers, x, y, clickCount, button,
+          rotation);
  }
 
  public int getButton() {
@@ -67,10 +72,15 @@ public class MouseEvent extends InputEvent
  public int getY() {
     return y;
  }
+ public int getWheelRotation() {
+    return wheelRotation;
+ }
  
  public String toString() {
     return "MouseEvent["+getEventTypeString(getEventType())+
-                       ", "+x+"/"+y+", button "+button+", count "+clickCount+", "+super.toString()+"]";
+                       ", "+x+"/"+y+", button "+button+", count "+clickCount+
+                       ", wheel rotation "+wheelRotation+
+                       ", "+super.toString()+"]";
  }
 
  public static String getEventTypeString(int type) {
@@ -82,11 +92,12 @@ public class MouseEvent extends InputEvent
         case EVENT_MOUSE_RELEASED: return "EVENT_MOUSE_RELEASED";
         case EVENT_MOUSE_MOVED: return "EVENT_MOUSE_MOVED";
         case EVENT_MOUSE_DRAGGED: return "EVENT_MOUSE_DRAGGED";
+        case EVENT_MOUSE_WHEEL_MOVED: return "EVENT_MOUSE_WHEEL_MOVED";
         default: return "unknown (" + type + ")";
     }
  }
 
- private int x, y, clickCount, button;
+ private int x, y, clickCount, button, wheelRotation;
 
  public static final int EVENT_MOUSE_CLICKED  = 200;
  public static final int EVENT_MOUSE_ENTERED  = 201;
@@ -95,4 +106,5 @@ public class MouseEvent extends InputEvent
  public static final int EVENT_MOUSE_RELEASED = 204;
  public static final int EVENT_MOUSE_MOVED    = 205;
  public static final int EVENT_MOUSE_DRAGGED  = 206;
+ public static final int EVENT_MOUSE_WHEEL_MOVED = 207;
 }

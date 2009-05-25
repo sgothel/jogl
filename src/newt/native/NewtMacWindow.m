@@ -50,7 +50,7 @@ static JNIEnv* env = NULL;
 
 + (BOOL) initNatives: (JNIEnv*) env forClass: (jclass) clazz
 {
-    sendMouseEventID  = (*env)->GetMethodID(env, clazz, "sendMouseEvent",  "(IIIII)V");
+    sendMouseEventID  = (*env)->GetMethodID(env, clazz, "sendMouseEvent",  "(IIIIII)V");
     sendKeyEventID    = (*env)->GetMethodID(env, clazz, "sendKeyEvent",    "(IIIC)V");
     sizeChangedID     = (*env)->GetMethodID(env, clazz, "sizeChanged",     "(II)V");
     positionChangedID = (*env)->GetMethodID(env, clazz, "positionChanged", "(II)V");
@@ -170,7 +170,7 @@ static jint mods2JavaMods(NSUInteger mods)
                            evType, javaMods,
                            (jint) location.x,
                            (jint) (contentRect.size.height - location.y),
-                           (jint) (1 + [event buttonNumber]));
+                           (jint) (1 + [event buttonNumber]), 0);
 }
 
 - (void) mouseEntered: (NSEvent*) theEvent

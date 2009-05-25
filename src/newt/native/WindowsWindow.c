@@ -31,7 +31,7 @@
  * 
  */
 
-#include <windows.h>
+#include <Windows.h>
 #include <tchar.h>
 #include <stdlib.h>
 // NOTE: it looks like SHFullScreen and/or aygshell.dll is not available on the APX 2500 any more
@@ -47,6 +47,22 @@ typedef long long intptr_t;
 #else
 typedef int intptr_t;
 #endif
+#endif
+
+#ifndef WM_MOUSEWHEEL
+#define WM_MOUSEWHEEL                   0x020A
+#endif //WM_MOUSEWHEEL
+
+#ifndef WHEEL_DELTA
+#define WHEEL_DELTA                     120
+#endif //WHEEL_DELTA
+
+#ifndef WHEEL_PAGESCROLL
+#define WHEEL_PAGESCROLL                (UINT_MAX)
+#endif //WHEEL_PAGESCROLL
+
+#ifndef GET_WHEEL_DELTA_WPARAM  // defined for (_WIN32_WINNT >= 0x0500)
+#define GET_WHEEL_DELTA_WPARAM(wParam)  ((short)HIWORD(wParam))
 #endif
 
 #include "com_sun_javafx_newt_windows_WindowsWindow.h"
@@ -124,7 +140,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
         // Shouldn't happen
         return DefWindowProc(wnd, message, wParam, lParam);
     }
-    
+
     switch (message) {
     case WM_CLOSE:
         (*env)->CallVoidMethod(env, window, windowDestroyNotifyID);
@@ -172,44 +188,74 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
         break;
 
     case WM_LBUTTONDOWN:
-        (*env)->CallVoidMethod(env, window, sendMouseEventID, (jint) EVENT_MOUSE_PRESSED,
-                               ConvertModifiers(wParam), (jint) LOWORD(lParam), (jint) HIWORD(lParam), (jint) 1);
+        (*env)->CallVoidMethod(env, window, sendMouseEventID,
+                               (jint) EVENT_MOUSE_PRESSED,
+                               ConvertModifiers(wParam),
+                               (jint) LOWORD(lParam), (jint) HIWORD(lParam),
+                               (jint) 1, (jint) 0);
         useDefWindowProc = 1;
         break;
 
     case WM_LBUTTONUP:
-        (*env)->CallVoidMethod(env, window, sendMouseEventID, (jint) EVENT_MOUSE_RELEASED,
-                               ConvertModifiers(wParam), (jint) LOWORD(lParam), (jint) HIWORD(lParam), (jint) 1);
+        (*env)->CallVoidMethod(env, window, sendMouseEventID,
+                               (jint) EVENT_MOUSE_RELEASED,
+                               ConvertModifiers(wParam),
+                               (jint) LOWORD(lParam), (jint) HIWORD(lParam),
+                               (jint) 1, (jint) 0);
         useDefWindowProc = 1;
         break;
 
     case WM_MBUTTONDOWN:
-        (*env)->CallVoidMethod(env, window, sendMouseEventID, (jint) EVENT_MOUSE_PRESSED,
-                               ConvertModifiers(wParam), (jint) LOWORD(lParam), (jint) HIWORD(lParam), (jint) 2);
+        (*env)->CallVoidMethod(env, window, sendMouseEventID,
+                               (jint) EVENT_MOUSE_PRESSED,
+                               ConvertModifiers(wParam),
+                               (jint) LOWORD(lParam), (jint) HIWORD(lParam),
+                               (jint) 2, (jint) 0);
         useDefWindowProc = 1;
         break;
 
     case WM_MBUTTONUP:
-        (*env)->CallVoidMethod(env, window, sendMouseEventID, (jint) EVENT_MOUSE_RELEASED,
-                               ConvertModifiers(wParam), (jint) LOWORD(lParam), (jint) HIWORD(lParam), (jint) 2);
+        (*env)->CallVoidMethod(env, window, sendMouseEventID,
+                               (jint) EVENT_MOUSE_RELEASED,
+                               ConvertModifiers(wParam),
+                               (jint) LOWORD(lParam), (jint) HIWORD(lParam),
+                               (jint) 2, (jint) 0);
         useDefWindowProc = 1;
         break;
 
     case WM_RBUTTONDOWN:
-        (*env)->CallVoidMethod(env, window, sendMouseEventID, (jint) EVENT_MOUSE_PRESSED,
-                               ConvertModifiers(wParam), (jint) LOWORD(lParam), (jint) HIWORD(lParam), (jint) 3);
+        (*env)->CallVoidMethod(env, window, sendMouseEventID,
+                               (jint) EVENT_MOUSE_PRESSED,
+                               ConvertModifiers(wParam),
+                               (jint) LOWORD(lParam), (jint) HIWORD(lParam),
+                               (jint) 3, (jint) 0);
         useDefWindowProc = 1;
         break;
 
     case WM_RBUTTONUP:
-        (*env)->CallVoidMethod(env, window, sendMouseEventID, (jint) EVENT_MOUSE_RELEASED,
-                               ConvertModifiers(wParam), (jint) LOWORD(lParam), (jint) HIWORD(lParam), (jint) 3);
+        (*env)->CallVoidMethod(env, window, sendMouseEventID,
+                               (jint) EVENT_MOUSE_RELEASED,
+                               ConvertModifiers(wParam),
+                               (jint) LOWORD(lParam), (jint) HIWORD(lParam),
+                               (jint) 3,  (jint) 0);
         useDefWindowProc = 1;
         break;
 
     case WM_MOUSEMOVE:
-        (*env)->CallVoidMethod(env, window, sendMouseEventID, (jint) EVENT_MOUSE_MOVED,
-                               ConvertModifiers(wParam), (jint) LOWORD(lParam), (jint) HIWORD(lParam), (jint) 0);
+        (*env)->CallVoidMethod(env, window, sendMouseEventID,
+                               (jint) EVENT_MOUSE_MOVED,
+                               ConvertModifiers(wParam),
+                               (jint) LOWORD(lParam), (jint) HIWORD(lParam),
+                               (jint) 0,  (jint) 0);
+        useDefWindowProc = 1;
+        break;
+
+    case WM_MOUSEWHEEL:
+        (*env)->CallVoidMethod(env, window, sendMouseEventID,
+                               (jint) EVENT_MOUSE_WHEEL_MOVED,
+                               ConvertModifiers(wParam),
+                               (jint) LOWORD(lParam), (jint) HIWORD(lParam),
+                               (jint) 0,  (jint) GET_WHEEL_DELTA_WPARAM(wParam));
         useDefWindowProc = 1;
         break;
 
@@ -247,7 +293,7 @@ JNIEXPORT jboolean JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_initID
     positionChangedID = (*env)->GetMethodID(env, clazz, "positionChanged", "(II)V");
     windowDestroyNotifyID    = (*env)->GetMethodID(env, clazz, "windowDestroyNotify",    "()V");
     windowDestroyedID = (*env)->GetMethodID(env, clazz, "windowDestroyed", "()V");
-    sendMouseEventID = (*env)->GetMethodID(env, clazz, "sendMouseEvent", "(IIIII)V");
+    sendMouseEventID = (*env)->GetMethodID(env, clazz, "sendMouseEvent", "(IIIIII)V");
     sendKeyEventID = (*env)->GetMethodID(env, clazz, "sendKeyEvent", "(IIIC)V");
     if (sizeChangedID == NULL ||
         positionChangedID == NULL ||

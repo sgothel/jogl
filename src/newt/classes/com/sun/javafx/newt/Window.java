@@ -427,7 +427,8 @@ public abstract class Window implements NativeWindow
     private int  lastMouseClickCount = 0; // last mouse button click count
     public  static final int ClickTimeout = 300;
 
-    protected void sendMouseEvent(int eventType, int modifiers, int x, int y, int button) {
+    protected void sendMouseEvent(int eventType, int modifiers,
+                                  int x, int y, int button, int rotation) {
         if(DEBUG_MOUSE_EVENT) {
             System.out.println("sendMouseEvent: "+MouseEvent.getEventTypeString(eventType)+
                                ", mod "+modifiers+", pos "+x+"/"+y+", button "+button);
@@ -448,13 +449,13 @@ public abstract class Window implements NativeWindow
             lastMousePressed=when;
             mouseButtonPressed=button;
             e = new MouseEvent(true, eventType, this, when,
-                               modifiers, x, y, lastMouseClickCount, button);
+                               modifiers, x, y, lastMouseClickCount, button, 0);
         } else if(MouseEvent.EVENT_MOUSE_RELEASED==eventType) {
             e = new MouseEvent(true, eventType, this, when,
-                               modifiers, x, y, lastMouseClickCount, button);
+                               modifiers, x, y, lastMouseClickCount, button, 0);
             if(when-lastMousePressed<ClickTimeout) {
                 eClicked = new MouseEvent(true, MouseEvent.EVENT_MOUSE_CLICKED, this, when,
-                                          modifiers, x, y, lastMouseClickCount, button);
+                                          modifiers, x, y, lastMouseClickCount, button, 0);
             } else {
                 lastMouseClickCount=0;
                 lastMousePressed=0;
@@ -463,13 +464,15 @@ public abstract class Window implements NativeWindow
         } else if(MouseEvent.EVENT_MOUSE_MOVED==eventType) {
             if (mouseButtonPressed>0) {
                 e = new MouseEvent(true, MouseEvent.EVENT_MOUSE_DRAGGED, this, when,
-                                   modifiers, x, y, 1, mouseButtonPressed);
+                                   modifiers, x, y, 1, mouseButtonPressed, 0);
             } else {
                 e = new MouseEvent(true, eventType, this, when,
-                                   modifiers, x, y, 0, button);
+                                   modifiers, x, y, 0, button, 0);
             }
+        } else if(MouseEvent.EVENT_MOUSE_WHEEL_MOVED==eventType) {
+            e = new MouseEvent(true, eventType, this, when, modifiers, x, y, 0, button, rotation);
         } else {
-            e = new MouseEvent(true, eventType, this, when, modifiers, x, y, 0, button);
+            e = new MouseEvent(true, eventType, this, when, modifiers, x, y, 0, button, 0);
         }
 
         if(DEBUG_MOUSE_EVENT) {
@@ -509,6 +512,9 @@ public abstract class Window implements NativeWindow
                     break;
                 case MouseEvent.EVENT_MOUSE_DRAGGED:
                     l.mouseDragged(e);
+                    break;
+                case MouseEvent.EVENT_MOUSE_WHEEL_MOVED:
+                    l.mouseWheelMoved(e);
                     break;
                 default:
                     throw new NativeWindowException("Unexpected mouse event type " + e.getEventType());

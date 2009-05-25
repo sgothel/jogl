@@ -189,10 +189,16 @@ public class AWTWindow extends Window {
                     case com.sun.javafx.newt.MouseEvent.EVENT_MOUSE_RELEASED:
                     case com.sun.javafx.newt.MouseEvent.EVENT_MOUSE_MOVED:
                     case com.sun.javafx.newt.MouseEvent.EVENT_MOUSE_DRAGGED:
+                    case com.sun.javafx.newt.MouseEvent.EVENT_MOUSE_WHEEL_MOVED:
                         if ((eventMask & com.sun.javafx.newt.EventListener.MOUSE) != 0) {
                             MouseEvent e = (MouseEvent) w.getEvent();
+                            int rotation = 0;
+                            if (e instanceof MouseWheelEvent) {
+                                rotation = ((MouseWheelEvent)e).getWheelRotation();
+                            }
                             sendMouseEvent(w.getType(), convertModifiers(e),
-                                           e.getX(), e.getY(), convertButton(e));
+                                           e.getX(), e.getY(), convertButton(e),
+                                           rotation);
                         }
                         break;
 

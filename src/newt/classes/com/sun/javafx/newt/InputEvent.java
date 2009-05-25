@@ -35,11 +35,14 @@ package com.sun.javafx.newt;
 
 public abstract class InputEvent extends Event
 {
- public static int  SHIFT_MASK     = 1 << 0;
- public static int  CTRL_MASK      = 1 << 1;
- public static int  META_MASK      = 1 << 2;
- public static int  ALT_MASK       = 1 << 3;
- public static int  ALT_GRAPH_MASK = 1 << 5;
+ public static final int  SHIFT_MASK     = 1 << 0;
+ public static final int  CTRL_MASK      = 1 << 1;
+ public static final int  META_MASK      = 1 << 2;
+ public static final int  ALT_MASK       = 1 << 3;
+ public static final int  ALT_GRAPH_MASK = 1 << 5;
+ public static final int  BUTTON1_MASK   = 1 << 6;
+ public static final int  BUTTON2_MASK   = 1 << 7;
+ public static final int  BUTTON3_MASK   = 1 << 8;
 
  protected InputEvent(boolean sysEvent, int eventType, Window source, long when, int modifiers) {
     super(sysEvent, eventType, source, when);
@@ -71,6 +74,18 @@ public abstract class InputEvent extends Event
  }
  public boolean isShiftDown()  {
     return (modifiers&SHIFT_MASK)!=0;
+ }
+
+ public boolean isButton1Down()  {
+    return (modifiers&BUTTON1_MASK)!=0;
+ }
+
+ public boolean isButton2Down()  {
+    return (modifiers&BUTTON2_MASK)!=0;
+ }
+
+ public boolean isButton3Down()  {
+    return (modifiers&BUTTON3_MASK)!=0;
  }
 
  public String toString() {
