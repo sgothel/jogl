@@ -157,6 +157,29 @@ static jint mods2JavaMods(NSUInteger mods)
     NSPoint location = NSMakePoint(curLocation.x - frameRect.origin.x,
                                    curLocation.y - frameRect.origin.y);
 
+    // convert to 1-based button number (or use zero if no button is involved)
+    jint javaButtonNum;
+    switch ([event type]) {
+    case NSLeftMouseDown:
+    case NSLeftMouseUp:
+    case NSLeftMouseDragged:
+        javaButtonNum = 1;
+        break;
+    case NSRightMouseDown:
+    case NSRightMouseUp:
+    case NSRightMouseDragged:
+        javaButtonNum = 3;
+        break;
+    case NSOtherMouseDown:
+    case NSOtherMouseUp:
+    case NSOtherMouseDragged:
+        javaButtonNum = 2;
+        break;
+    default:
+        javaButtonNum = 0;
+        break;
+    }
+
     if (env == NULL) {
         return;
     }
@@ -165,12 +188,11 @@ static jint mods2JavaMods(NSUInteger mods)
         return;
     }
 
-    // 1-base the button number
     (*env)->CallVoidMethod(env, javaWindowObject, sendMouseEventID,
                            evType, javaMods,
                            (jint) location.x,
                            (jint) (contentRect.size.height - location.y),
-                           (jint) (1 + [event buttonNumber]), 0);
+                           javaButtonNum, 0);
 }
 
 - (void) mouseEntered: (NSEvent*) theEvent
