@@ -40,6 +40,7 @@ static jmethodID sendMouseEventID  = NULL;
 static jmethodID sendKeyEventID    = NULL;
 static jmethodID sizeChangedID     = NULL;
 static jmethodID positionChangedID = NULL;
+static jmethodID focusChangedID    = NULL;
 static jmethodID windowDestroyNotifyID = NULL;
 static jmethodID windowDestroyedID = NULL;
 
@@ -54,9 +55,10 @@ static JNIEnv* env = NULL;
     sendKeyEventID    = (*env)->GetMethodID(env, clazz, "sendKeyEvent",    "(IIIC)V");
     sizeChangedID     = (*env)->GetMethodID(env, clazz, "sizeChanged",     "(II)V");
     positionChangedID = (*env)->GetMethodID(env, clazz, "positionChanged", "(II)V");
+    focusChangedID = (*env)->GetMethodID(env, clazz, "focusChanged", "(Z)V");
     windowDestroyNotifyID    = (*env)->GetMethodID(env, clazz, "windowDestroyNotify",    "()V");
     windowDestroyedID    = (*env)->GetMethodID(env, clazz, "windowDestroyed",    "()V");
-    if (sendMouseEventID && sendKeyEventID && sizeChangedID && positionChangedID && windowDestroyedID && windowDestroyNotifyID) {
+    if (sendMouseEventID && sendKeyEventID && sizeChangedID && positionChangedID && focusChangedID && windowDestroyedID && windowDestroyNotifyID) {
         return YES;
     }
     return NO;
@@ -313,6 +315,32 @@ static jint mods2JavaMods(NSUInteger mods)
 
     (*env)->CallVoidMethod(env, javaWindowObject, windowDestroyNotifyID);
     // Will be called by Window.java (*env)->CallVoidMethod(env, javaWindowObject, windowDestroyedID);
+}
+
+- (void) windowDidBecomeKey: (NSNotification *) notification
+{
+    if (env == NULL) {
+        return;
+    }
+
+    if (javaWindowObject == NULL) {
+        return;
+    }
+
+    (*env)->CallVoidMethod(env, javaWindowObject, focusChangedID, JNI_TRUE);
+}
+
+- (void) windowDidResignKey: (NSNotification *) notification
+{
+    if (env == NULL) {
+        return;
+    }
+
+    if (javaWindowObject == NULL) {
+        return;
+    }
+
+    (*env)->CallVoidMethod(env, javaWindowObject, focusChangedID, JNI_FALSE);
 }
 
 @end

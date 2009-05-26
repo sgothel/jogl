@@ -173,6 +173,20 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_makeKeyAndOrder
 
 /*
  * Class:     com_sun_javafx_newt_macosx_MacWindow
+ * Method:    makeKey
+ * Signature: (J)V
+ */
+JNIEXPORT void JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_makeKey
+  (JNIEnv *env, jobject unused, jlong window)
+{
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+    NSWindow* win = (NSWindow*) ((intptr_t) window);
+    [win makeKeyWindow];
+    [pool release];
+}
+
+/*
+ * Class:     com_sun_javafx_newt_macosx_MacWindow
  * Method:    orderOut
  * Signature: (J)V
  */

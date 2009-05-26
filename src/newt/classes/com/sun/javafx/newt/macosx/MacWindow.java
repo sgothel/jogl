@@ -182,6 +182,7 @@ public class MacWindow extends Window {
             if (created) {
                 sendWindowEvent(WindowEvent.EVENT_WINDOW_MOVED);
                 sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED);
+                sendWindowEvent(WindowEvent.EVENT_WINDOW_GAINED_FOCUS);
             }
         } else {
             if (nativeWindow != 0) {
@@ -196,6 +197,13 @@ public class MacWindow extends Window {
         super.setTitle(title);
         if (nativeWindow != 0) {
             setTitle0(nativeWindow, title);
+        }
+    }
+
+    public void requestFocus() {
+        super.requestFocus();
+        if (nativeWindow != 0) {
+            makeKey(nativeWindow);
         }
     }
     
@@ -245,6 +253,14 @@ public class MacWindow extends Window {
                 System.out.println("  Posted WINDOW_MOVED event");
             }
             sendWindowEvent(WindowEvent.EVENT_WINDOW_MOVED);
+        }
+    }
+
+    private void focusChanged(boolean focusGained) {
+        if (focusGained) {
+            sendWindowEvent(WindowEvent.EVENT_WINDOW_GAINED_FOCUS);
+        } else {
+            sendWindowEvent(WindowEvent.EVENT_WINDOW_LOST_FOCUS);
         }
     }
 
@@ -343,6 +359,7 @@ public class MacWindow extends Window {
                                      int backingStoreType,
                                      boolean deferCreation);
     private native void makeKeyAndOrderFront(long window);
+    private native void makeKey(long window);
     private native void orderOut(long window);
     private native void close0(long window);
     private native void setTitle0(long window, String title);
