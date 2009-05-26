@@ -32,6 +32,7 @@
  */
 
 #include <Windows.h>
+#include <Windowsx.h>
 #include <tchar.h>
 #include <stdlib.h>
 // NOTE: it looks like SHFullScreen and/or aygshell.dll is not available on the APX 2500 any more
@@ -250,14 +251,22 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
         useDefWindowProc = 1;
         break;
 
-    case WM_MOUSEWHEEL:
+    case WM_MOUSEWHEEL: {
+        // need to convert the coordinates to component-relative
+        int x = GET_X_LPARAM(lParam);
+        int y = GET_Y_LPARAM(lParam);
+        POINT eventPt;
+        eventPt.x = x;
+        eventPt.y = y;
+        ScreenToClient(wnd, &eventPt);
         (*env)->CallVoidMethod(env, window, sendMouseEventID,
                                (jint) EVENT_MOUSE_WHEEL_MOVED,
                                ConvertModifiers(wParam),
-                               (jint) LOWORD(lParam), (jint) HIWORD(lParam),
+                               (jint) eventPt.x, (jint) eventPt.y,
                                (jint) 0,  (jint) GET_WHEEL_DELTA_WPARAM(wParam));
         useDefWindowProc = 1;
         break;
+    }
 
     case WM_MOVE:
         (*env)->CallVoidMethod(env, window, positionChangedID,
