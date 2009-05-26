@@ -37,4 +37,6 @@ public interface WindowListener extends EventListener {
     public void windowResized(WindowEvent e);
     public void windowMoved(WindowEvent e);
     public void windowDestroyNotify(WindowEvent e);
+    public void windowGainedFocus(WindowEvent e);
+    public void windowLostFocus(WindowEvent e);
 }

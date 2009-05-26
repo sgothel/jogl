@@ -221,7 +221,8 @@ public abstract class Window implements NativeWindow
         return undecorated;
     }
 
-    
+    public void requestFocus() {
+    }
 
     //
     // NativeWindow impl
@@ -551,7 +552,7 @@ public abstract class Window implements NativeWindow
     private ArrayList keyListeners = new ArrayList();
 
     protected void sendKeyEvent(int eventType, int modifiers, int keyCode, char keyChar) {
-        KeyEvent e = new KeyEvent(true, eventType, this, System.currentTimeMillis(), 
+        KeyEvent e = new KeyEvent(true, eventType, this, System.currentTimeMillis(),
                                       modifiers, keyCode, keyChar);
         if(DEBUG_KEY_EVENT) {
             System.out.println("sendKeyEvent: "+e);
@@ -627,8 +628,16 @@ public abstract class Window implements NativeWindow
                 case WindowEvent.EVENT_WINDOW_DESTROY_NOTIFY:
                     l.windowDestroyNotify(e);
                     break;
+                case WindowEvent.EVENT_WINDOW_GAINED_FOCUS:
+                    l.windowGainedFocus(e);
+                    break;
+                case WindowEvent.EVENT_WINDOW_LOST_FOCUS:
+                    l.windowLostFocus(e);
+                    break;
                 default:
-                    throw new NativeWindowException("Unexpected window event type " + e.getEventType());
+                    throw 
+                        new NativeWindowException("Unexpected window event type "
+                                                  + e.getEventType());
             }
         }
     }

@@ -4,7 +4,7 @@
 
 #define EVENT_KEY_PRESSED  300
 #define EVENT_KEY_RELEASED 301
-// Send by Java: EVENT_KEY_TYPED  302
+#define EVENT_KEY_TYPED 302
 
 #define VK_ENTER '\n'
 #define VK_BACK_SPACE '\b'

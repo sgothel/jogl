@@ -134,6 +134,14 @@ public class WindowsWindow extends Window {
     }
 
     // @Override
+    public void requestFocus() {
+        super.requestFocus();
+        if (windowHandle != 0L) {
+            requestFocus(windowHandle);
+        }
+    }
+
+    // @Override
     public void setTitle(String title) {
         if (title == null) {
             title = "";
@@ -188,6 +196,7 @@ public class WindowsWindow extends Window {
     private        native boolean setFullScreen0(long windowHandle, boolean fullscreen);
     private static native void setPosition(long windowHandle, int x, int y);
     private static native void setTitle(long windowHandle, String title);
+    private static native void requestFocus(long windowHandle);
 
     private void sizeChanged(int newWidth, int newHeight) {
         width = newWidth;
@@ -199,5 +208,19 @@ public class WindowsWindow extends Window {
         x = newX;
         y = newY;
         sendWindowEvent(WindowEvent.EVENT_WINDOW_MOVED);
+    }
+
+    /**
+     *
+     * @param focusOwner if focusGained is true, focusOwner is the previous
+     * focus owner, if focusGained is false, focusOwner is the new focus owner
+     * @param focusGained
+     */
+    private void focusChanged(long focusOwner, boolean focusGained) {
+        if (focusGained) {
+            sendWindowEvent(WindowEvent.EVENT_WINDOW_GAINED_FOCUS);
+        } else {
+            sendWindowEvent(WindowEvent.EVENT_WINDOW_LOST_FOCUS);
+        }
     }
 }

@@ -75,6 +75,7 @@ typedef int intptr_t;
 
 static jmethodID sizeChangedID = NULL;
 static jmethodID positionChangedID = NULL;
+static jmethodID focusChangedID = NULL;
 static jmethodID windowDestroyNotifyID = NULL;
 static jmethodID windowDestroyedID = NULL;
 static jmethodID sendMouseEventID = NULL;
@@ -94,19 +95,13 @@ static jchar* GetNullTerminatedStringChars(JNIEnv* env, jstring str)
     return strChars;
 }
 
-static jint ConvertModifiers(WPARAM wParam) {
+static jint GetModifiers() {
     jint modifiers = 0;
-    if ((wParam & MK_CONTROL) != 0) {
+    if (HIBYTE(GetKeyState(VK_CONTROL)) != 0) {
         modifiers |= EVENT_CTRL_MASK;
     }
-    if ((wParam & MK_SHIFT) != 0) {
+    if (HIBYTE(GetKeyState(VK_SHIFT)) != 0) {
         modifiers |= EVENT_SHIFT_MASK;
-    }
-    if ((wParam & MK_CONTROL) != 0) {
-        modifiers |= EVENT_CTRL_MASK;
-    }
-    if ((wParam & MK_CONTROL) != 0) {
-        modifiers |= EVENT_CTRL_MASK;
     }
     if (HIBYTE(GetKeyState(VK_MENU)) != 0) {
         modifiers |= EVENT_ALT_MASK;
@@ -122,6 +117,25 @@ static jint ConvertModifiers(WPARAM wParam) {
     }
 
     return modifiers;
+}
+
+static int WmChar(JNIEnv *env, jobject window, UINT character, UINT repCnt,
+                  UINT flags, BOOL system)
+{
+    // The Alt modifier is reported in the 29th bit of the lParam,
+    // i.e., it is the 13th bit of `flags' (which is HIWORD(lParam)).
+    BOOL alt_is_down = (flags & (1<<13)) != 0;
+    if (system && alt_is_down) {
+        if (character == VK_SPACE) {
+            return 1;
+        }
+    }
+    (*env)->CallVoidMethod(env, window, sendKeyEventID,
+                           (jint) EVENT_KEY_TYPED,
+                           GetModifiers(),
+                           (jint) -1,
+                           (jchar) character);
+    return 1;
 }
 
 static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
@@ -152,34 +166,25 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
         (*env)->CallVoidMethod(env, window, windowDestroyedID);
         break;
 
-    // Windows does the translation between key codes and key chars by
-    // producing synthetic WM_CHAR messages in response to WM_KEYDOWN
-    // messages. The Java level contains the state machine to assemble
-    // these multiple events into a single event.
-    case WM_CHAR:
-        // NOTE that the (1 << 31) bit is meaningless regardless of
-        // what the docs for WM_CHAR say; we never receive a WM_CHAR
-        // message in response to translating a WM_KEYUP message
-        (*env)->CallVoidMethod(env, window, sendKeyEventID,
-                               (jint) EVENT_KEY_PRESSED,
-                               // FIXME: need to interpret the key events in order to compute the modifiers
-                               (jint) 0,
-                               (jint) -1,
-                               (jchar) wParam);
-        useDefWindowProc = 1;
+    case WM_SYSCHAR:
+        useDefWindowProc = WmChar(env, window, wParam,
+                                  LOWORD(lParam), HIWORD(lParam), FALSE);
         break;
 
+    case WM_CHAR:
+        useDefWindowProc = WmChar(env, window, wParam,
+                                  LOWORD(lParam), HIWORD(lParam), TRUE);
+        break;
+        
     case WM_KEYDOWN:
-        // FIXME: need to interpret the key events in order to compute the modifiers
         (*env)->CallVoidMethod(env, window, sendKeyEventID, (jint) EVENT_KEY_PRESSED,
-                               (jint) 0, (jint) wParam, (jchar) -1);
+                               GetModifiers(), (jint) wParam, (jchar) -1);
         useDefWindowProc = 1;
         break;
 
     case WM_KEYUP:
-        // FIXME: need to interpret the key events in order to compute the modifiers
         (*env)->CallVoidMethod(env, window, sendKeyEventID, (jint) EVENT_KEY_RELEASED,
-                               (jint) 0, (jint) wParam, (jchar) -1);
+                               GetModifiers(), (jint) wParam, (jchar) -1);
         useDefWindowProc = 1;
         break;
 
@@ -191,7 +196,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
     case WM_LBUTTONDOWN:
         (*env)->CallVoidMethod(env, window, sendMouseEventID,
                                (jint) EVENT_MOUSE_PRESSED,
-                               ConvertModifiers(wParam),
+                               GetModifiers(),
                                (jint) LOWORD(lParam), (jint) HIWORD(lParam),
                                (jint) 1, (jint) 0);
         useDefWindowProc = 1;
@@ -200,7 +205,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
     case WM_LBUTTONUP:
         (*env)->CallVoidMethod(env, window, sendMouseEventID,
                                (jint) EVENT_MOUSE_RELEASED,
-                               ConvertModifiers(wParam),
+                               GetModifiers(),
                                (jint) LOWORD(lParam), (jint) HIWORD(lParam),
                                (jint) 1, (jint) 0);
         useDefWindowProc = 1;
@@ -209,7 +214,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
     case WM_MBUTTONDOWN:
         (*env)->CallVoidMethod(env, window, sendMouseEventID,
                                (jint) EVENT_MOUSE_PRESSED,
-                               ConvertModifiers(wParam),
+                               GetModifiers(),
                                (jint) LOWORD(lParam), (jint) HIWORD(lParam),
                                (jint) 2, (jint) 0);
         useDefWindowProc = 1;
@@ -218,7 +223,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
     case WM_MBUTTONUP:
         (*env)->CallVoidMethod(env, window, sendMouseEventID,
                                (jint) EVENT_MOUSE_RELEASED,
-                               ConvertModifiers(wParam),
+                               GetModifiers(),
                                (jint) LOWORD(lParam), (jint) HIWORD(lParam),
                                (jint) 2, (jint) 0);
         useDefWindowProc = 1;
@@ -227,7 +232,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
     case WM_RBUTTONDOWN:
         (*env)->CallVoidMethod(env, window, sendMouseEventID,
                                (jint) EVENT_MOUSE_PRESSED,
-                               ConvertModifiers(wParam),
+                               GetModifiers(),
                                (jint) LOWORD(lParam), (jint) HIWORD(lParam),
                                (jint) 3, (jint) 0);
         useDefWindowProc = 1;
@@ -236,7 +241,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
     case WM_RBUTTONUP:
         (*env)->CallVoidMethod(env, window, sendMouseEventID,
                                (jint) EVENT_MOUSE_RELEASED,
-                               ConvertModifiers(wParam),
+                               GetModifiers(),
                                (jint) LOWORD(lParam), (jint) HIWORD(lParam),
                                (jint) 3,  (jint) 0);
         useDefWindowProc = 1;
@@ -245,7 +250,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
     case WM_MOUSEMOVE:
         (*env)->CallVoidMethod(env, window, sendMouseEventID,
                                (jint) EVENT_MOUSE_MOVED,
-                               ConvertModifiers(wParam),
+                               GetModifiers(),
                                (jint) LOWORD(lParam), (jint) HIWORD(lParam),
                                (jint) 0,  (jint) 0);
         useDefWindowProc = 1;
@@ -261,12 +266,24 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
         ScreenToClient(wnd, &eventPt);
         (*env)->CallVoidMethod(env, window, sendMouseEventID,
                                (jint) EVENT_MOUSE_WHEEL_MOVED,
-                               ConvertModifiers(wParam),
+                               GetModifiers(),
                                (jint) eventPt.x, (jint) eventPt.y,
                                (jint) 0,  (jint) GET_WHEEL_DELTA_WPARAM(wParam));
         useDefWindowProc = 1;
         break;
     }
+
+    case WM_SETFOCUS:
+        (*env)->CallVoidMethod(env, window, focusChangedID,
+                               (jlong)wParam, JNI_TRUE);
+        useDefWindowProc = 1;
+        break;
+
+    case WM_KILLFOCUS:
+        (*env)->CallVoidMethod(env, window, focusChangedID,
+                               (jlong)wParam, JNI_FALSE);
+        useDefWindowProc = 1;
+        break;
 
     case WM_MOVE:
         (*env)->CallVoidMethod(env, window, positionChangedID,
@@ -300,12 +317,14 @@ JNIEXPORT jboolean JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_initID
 {
     sizeChangedID = (*env)->GetMethodID(env, clazz, "sizeChanged", "(II)V");
     positionChangedID = (*env)->GetMethodID(env, clazz, "positionChanged", "(II)V");
+    focusChangedID = (*env)->GetMethodID(env, clazz, "focusChanged", "(JZ)V");
     windowDestroyNotifyID    = (*env)->GetMethodID(env, clazz, "windowDestroyNotify",    "()V");
     windowDestroyedID = (*env)->GetMethodID(env, clazz, "windowDestroyed", "()V");
     sendMouseEventID = (*env)->GetMethodID(env, clazz, "sendMouseEvent", "(IIIIII)V");
     sendKeyEventID = (*env)->GetMethodID(env, clazz, "sendKeyEvent", "(IIIC)V");
     if (sizeChangedID == NULL ||
         positionChangedID == NULL ||
+        focusChangedID == NULL ||
         windowDestroyNotifyID == NULL ||
         windowDestroyedID == NULL ||
         sendMouseEventID == NULL ||
@@ -647,5 +666,20 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_setTitle
             SetWindowTextW(hwnd, titleString);
             free(titleString);
         }
+    }
+}
+
+/*
+ * Class:     com_sun_javafx_newt_windows_WindowsWindow
+ * Method:    requestFocus
+ * Signature: (J)V
+ */
+JNIEXPORT void JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_requestFocus
+  (JNIEnv *env, jclass clazz, jlong window)
+{
+    HWND hwnd = (HWND)window;
+
+    if (IsWindow(hwnd)) {
+        SetFocus(hwnd);
     }
 }

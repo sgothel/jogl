@@ -83,6 +83,12 @@ public class GLWindow extends Window implements GLAutoDrawable {
                 public void windowMoved(WindowEvent e) {
                 }
 
+                public void windowGainedFocus(WindowEvent e) {
+                }
+
+                public void windowLostFocus(WindowEvent e) {
+                }
+
                 public void windowDestroyNotify(WindowEvent e) {
                     sendDispose = true;
                 }
