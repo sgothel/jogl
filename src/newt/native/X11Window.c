@@ -88,35 +88,35 @@
 
 static jint X11KeySym2NewtVKey(KeySym keySym) {
     if(IS_WITHIN(keySym,XK_F1,XK_F12)) 
-        return (keySym-XK_F1)+VK_F1;
+        return (keySym-XK_F1)+J_VK_F1;
 
     switch(keySym) {
         case XK_Alt_L:
         case XK_Alt_R:
-            return VK_ALT;
+            return J_VK_ALT;
 
         case XK_Left:
-            return VK_LEFT;
+            return J_VK_LEFT;
         case XK_Right:
-            return VK_RIGHT;
+            return J_VK_RIGHT;
         case XK_Up:
-            return VK_UP;
+            return J_VK_UP;
         case XK_Down:
-            return VK_DOWN;
+            return J_VK_DOWN;
         case XK_Page_Up:
-            return VK_PAGE_UP;
+            return J_VK_PAGE_UP;
         case XK_Page_Down:
-            return VK_PAGE_DOWN;
+            return J_VK_PAGE_DOWN;
         case XK_Shift_L:
         case XK_Shift_R:
-            return VK_SHIFT;
+            return J_VK_SHIFT;
         case XK_Control_L:
         case XK_Control_R:
-            return VK_CONTROL;
+            return J_VK_CONTROL;
         case XK_Escape:
-            return VK_ESCAPE;
+            return J_VK_ESCAPE;
         case XK_Delete:
-            return VK_DELETE;
+            return J_VK_DELETE;
     }
     return keySym;
 }
