@@ -36,7 +36,6 @@ import javax.media.opengl.*;
 
 import com.sun.opengl.impl.*;
 import javax.media.nativewindow.NativeWindowFactory;
-import com.sun.nativewindow.impl.NullWindow;
 import com.sun.nativewindow.impl.x11.*;
 
 public class GLXUtil {

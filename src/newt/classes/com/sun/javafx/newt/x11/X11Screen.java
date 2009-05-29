@@ -35,6 +35,8 @@ package com.sun.javafx.newt.x11;
 
 import com.sun.javafx.newt.*;
 import com.sun.javafx.newt.impl.*;
+import javax.media.nativewindow.*;
+import javax.media.nativewindow.x11.*;
 
 public class X11Screen extends Screen {
     static {
@@ -44,14 +46,17 @@ public class X11Screen extends Screen {
     public X11Screen() {
     }
 
-    protected void createNative() {
-        handle = GetScreen(display.getHandle(), index);
+    protected void createNative(int index) {
+        long handle = GetScreen(display.getHandle(), index);
         if (handle == 0 ) {
             throw new RuntimeException("Error creating screen: "+index);
         }
+        aScreen = new X11GraphicsScreen((X11GraphicsDevice)getDisplay().getGraphicsDevice(), index);
         setScreenSize(getWidth0(display.getHandle(), index),
                       getHeight0(display.getHandle(), index));
     }
+
+    protected void closeNative() { }
 
     //----------------------------------------------------------------------
     // Internals only

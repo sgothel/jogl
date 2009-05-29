@@ -49,12 +49,12 @@ public class X11OffscreenGLXDrawable extends X11GLXDrawable {
   private long pixmap;
   private boolean isDoubleBuffered;
 
-  protected X11OffscreenGLXDrawable(GLDrawableFactory factory,
-                                    GLCapabilities requestedCapabilities,
+  protected X11OffscreenGLXDrawable(GLDrawableFactory factory, AbstractGraphicsScreen screen,
+                                    GLCapabilities caps,
                                     GLCapabilitiesChooser chooser,
                                     int width,
                                     int height) {
-    super(factory, new NullWindow(), true, requestedCapabilities, chooser);
+    super(factory, new NullWindow(X11GLXGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(caps, chooser, screen, false)), true);
     ((NullWindow) getNativeWindow()).setSize(width, height);
     create();
   }
@@ -65,17 +65,18 @@ public class X11OffscreenGLXDrawable extends X11GLXDrawable {
   
   private void create() {
     NullWindow nw = (NullWindow) getNativeWindow();
-    long dpy = X11Util.getDisplayConnection();
-    nw.setDisplayHandle(dpy);
-    XVisualInfo vis = chooseVisual(false);
+    X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration) nw.getGraphicsConfiguration().getNativeGraphicsConfiguration();
+    XVisualInfo vis = config.getXVisualInfo();
     int bitsPerPixel = vis.depth();
+    AbstractGraphicsScreen aScreen = config.getScreen();
+    AbstractGraphicsDevice aDevice = aScreen.getDevice();
+    long dpy = aDevice.getHandle();
+    int screen = aScreen.getIndex();
 
     getFactoryImpl().lockToolkit();
     try {
-      int screen = X11Lib.DefaultScreen(dpy);
-      nw.setScreenIndex(screen);
       pixmap = X11Lib.XCreatePixmap(dpy, (int) X11Lib.RootWindow(dpy, screen), 
-                                 component.getWidth(), component.getHeight(), bitsPerPixel);
+                                    component.getWidth(), component.getHeight(), bitsPerPixel);
       if (pixmap == 0) {
         throw new GLException("XCreatePixmap failed");
       }
@@ -86,13 +87,12 @@ public class X11OffscreenGLXDrawable extends X11GLXDrawable {
         throw new GLException("glXCreateGLXPixmap failed");
       }
       nw.setSurfaceHandle(drawable);
-      isDoubleBuffered = (X11GLXDrawableFactory.glXGetConfig(dpy, vis, GLX.GLX_DOUBLEBUFFER, new int[1], 0) != 0);
+      isDoubleBuffered = (X11GLXGraphicsConfiguration.glXGetConfig(dpy, vis, GLX.GLX_DOUBLEBUFFER, new int[1], 0) != 0);
       if (DEBUG) {
         System.err.println("Created pixmap " + toHexString(pixmap) +
                            ", GLXPixmap " + toHexString(drawable) +
                            ", display " + toHexString(dpy));
       }
-      setChosenGLCapabilities(((X11GLXDrawableFactory)getFactory()).xvi2GLCapabilities(dpy, vis));
     } finally {
       getFactoryImpl().unlockToolkit();
     }
@@ -131,7 +131,6 @@ public class X11OffscreenGLXDrawable extends X11GLXDrawable {
       drawable = 0;
       pixmap = 0;
       display = 0;
-      setChosenGLCapabilities(null);
     } finally {
       getFactoryImpl().unlockToolkit();
     }

@@ -42,6 +42,8 @@ package com.sun.opengl.impl.x11.glx;
 import java.nio.*;
 import java.util.*;
 import javax.media.opengl.*;
+import javax.media.nativewindow.*;
+import javax.media.nativewindow.x11.*;
 import com.sun.opengl.impl.*;
 import com.sun.opengl.impl.x11.glx.*;
 import com.sun.nativewindow.impl.x11.*;
@@ -117,7 +119,6 @@ public abstract class X11GLXContext extends GLContextImpl {
    * called by {@link create()}.
    */
   protected void createContext(boolean onscreen) {
-    XVisualInfo vis = drawable.chooseVisual(onscreen);
     X11GLXContext other = (X11GLXContext) GLContextShareSet.getShareContext(this);
     long share = 0;
     if (other != null) {
@@ -126,10 +127,119 @@ public abstract class X11GLXContext extends GLContextImpl {
         throw new GLException("GLContextShareSet returned an invalid OpenGL context");
       }
     }
-    context = GLX.glXCreateContext(drawable.getNativeWindow().getDisplayHandle(), vis, share, onscreen);
-    if (context == 0) {
-      throw new GLException("Unable to create OpenGL context");
+
+    X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)drawable.getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration();
+    if(DEBUG) {
+          System.err.println("X11GLXContext.createContext got "+config);
     }
+    long display = config.getScreen().getDevice().getHandle();
+
+    if(config.getFBConfigID()<0) {
+        // not able to use FBConfig
+        if(GLProfile.isGL3()) {
+          throw new GLException("Unable to create OpenGL 3.1 context");
+        }
+        context = GLX.glXCreateContext(display, config.getXVisualInfo(), share, onscreen);
+        if (context == 0) {
+          throw new GLException("Unable to create OpenGL context");
+        }
+        if (!GLX.glXMakeContextCurrent(display,
+                                       drawable.getNativeWindow().getSurfaceHandle(), 
+                                       drawable.getNativeWindow().getSurfaceHandle(), 
+                                       context)) {
+          throw new GLException("Error making temp context (old2) current: display 0x"+Long.toHexString(display)+", context 0x"+Long.toHexString(context)+", drawable "+drawable);
+        }
+        resetGLFunctionAvailability();
+        if(DEBUG) {
+              System.err.println("X11GLXContext.createContext done (old2 ctx) 0x"+Long.toHexString(context));
+        }
+
+    } else {
+
+        // To use GLX_ARB_create_context, we have to make a temp context current,
+        // so we are able to use GetProcAddress
+        long temp_context = GLX.glXCreateNewContext(display, config.getFBConfig(), GLX.GLX_RGBA_TYPE, share, onscreen);
+        if (temp_context == 0) {
+            throw new GLException("Unable to create temp OpenGL context");
+        } else {
+            if (!GLX.glXMakeContextCurrent(display,
+                                           drawable.getNativeWindow().getSurfaceHandle(), 
+                                           drawable.getNativeWindow().getSurfaceHandle(), 
+                                           temp_context)) {
+              throw new GLException("Error making temp context (old) current: display 0x"+Long.toHexString(display)+", context 0x"+Long.toHexString(context)+", drawable "+drawable);
+            }
+            resetGLFunctionAvailability();
+
+            if( !isFunctionAvailable("glXCreateContextAttribsARB") ||
+                !isExtensionAvailable("GLX_ARB_create_context") )  {
+                if(GLProfile.isGL3()) {
+                  if (!GLX.glXMakeContextCurrent(display, 0, 0, 0)) {
+                    throw new GLException("Error freeing temp OpenGL context");
+                  }
+                  GLX.glXDestroyContext(display, temp_context);
+                  throw new GLException("Unable to create OpenGL 3.1 context (no GLX_ARB_create_context)");
+                }
+
+                // continue with temp context for GL < 3.0
+                context = temp_context;
+                if(DEBUG) {
+                  System.err.println("X11GLXContext.createContext done (old ctx < 3.0 - no GLX_ARB_create_context) 0x"+Long.toHexString(context));
+                }
+            } else {
+                GLXExt glXExt = getGLXExt();
+
+                // preset with default values
+                int attribs[] = {
+                    GLX.GLX_CONTEXT_MAJOR_VERSION_ARB, 3,
+                    GLX.GLX_CONTEXT_MINOR_VERSION_ARB, 0,
+                    GLX.GLX_CONTEXT_FLAGS_ARB, 0,      
+                    GLX.GLX_RENDER_TYPE, GLX.GLX_RGBA_TYPE,
+                    0
+                };
+
+                if(GLProfile.isGL3()) {
+                    attribs[1] |= 3;
+                    attribs[3] |= 1;
+                    attribs[5] |= GLX.GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB /* | GLX.GLX_CONTEXT_DEBUG_BIT_ARB */;
+                }
+
+                context = glXExt.glXCreateContextAttribsARB(display, config.getFBConfig(), share, onscreen, attribs, 0);
+                if(0==context) {
+                    if(GLProfile.isGL3()) {
+                      if (!GLX.glXMakeContextCurrent(display, 0, 0, 0)) {
+                        throw new GLException("Error freeing temp OpenGL context");
+                      }
+                      GLX.glXDestroyContext(display, temp_context);
+                      throw new GLException("Unable to create OpenGL 3.1 context (have GLX_ARB_create_context)");
+                    }
+
+                    // continue with temp context for GL < 3.0
+                    context = temp_context;
+                    if(DEBUG) {
+                      System.err.println("X11GLXContext.createContext done (old ctx < 3.0 - no 3.0) 0x"+Long.toHexString(context));
+                    }
+                } else {
+                    if (!GLX.glXMakeContextCurrent(display, 0, 0, 0)) {
+                        throw new GLException("Error freeing temp OpenGL context");
+                    }
+                    GLX.glXDestroyContext(display, temp_context);
+
+                    // need to update the GL func table ..
+                    if (!GLX.glXMakeContextCurrent(display,
+                                                   drawable.getNativeWindow().getSurfaceHandle(), 
+                                                   drawable.getNativeWindow().getSurfaceHandle(), 
+                                                   context)) {
+                      // FIXME: Nvidia driver 185.18.10 can't make the 3.1 context current ..                               
+                      throw new GLException("Error making context (new) current: display 0x"+Long.toHexString(display)+", context 0x"+Long.toHexString(context)+", drawable "+drawable);
+                    }
+                    resetGLFunctionAvailability();
+                    if(DEBUG) {
+                      System.err.println("X11GLXContext.createContext done (new ctx >= 3.0) 0x"+Long.toHexString(context));
+                    }
+                }
+            }
+        } 
+    } 
     GLContextShareSet.contextCreated(this);
   }
 
@@ -155,18 +265,16 @@ public abstract class X11GLXContext extends GLContextImpl {
                                        drawable.getNativeWindow().getSurfaceHandle(), 
                                        context)) {
           throw new GLException("Error making context current");
-        } else {
-          if (DEBUG && (VERBOSE || created)) {
-            System.err.println(getThreadName() + ": glXMakeCurrent(display " + 
-                               toHexString(drawable.getNativeWindow().getDisplayHandle()) +
-                               ", drawable " + toHexString(drawable.getNativeWindow().getSurfaceHandle()) +
-                               ", context " + toHexString(context) + ") succeeded");
-          }
+        }
+        if (DEBUG && (VERBOSE || created)) {
+          System.err.println(getThreadName() + ": glXMakeCurrent(display " + 
+                             toHexString(drawable.getNativeWindow().getDisplayHandle()) +
+                             ", drawable " + toHexString(drawable.getNativeWindow().getSurfaceHandle()) +
+                             ", context " + toHexString(context) + ") succeeded");
         }
     }
 
     if (created) {
-      resetGLFunctionAvailability();
       return CONTEXT_CURRENT_NEW;
     }
     return CONTEXT_CURRENT;
@@ -267,25 +375,6 @@ public abstract class X11GLXContext extends GLContextImpl {
     }
   }
 
-  /**
-   * using dynamic ProcAddressTable verification always
-   *
-  public boolean isFunctionAvailable(String glFunctionName)
-  {
-    boolean available = super.isFunctionAvailable(glFunctionName);
-    
-    // Sanity check for implementations that use proc addresses for run-time
-    // linking: if the function IS available, then make sure there's a proc
-    // address for it if it's an extension or not part of the OpenGL 1.1 core
-    // (post GL 1.1 functions are run-time linked on windows).
-    assert(!available ||
-           (getGLProcAddressTable().getAddressFor(mapToRealGLFunctionName(glFunctionName)) != 0 ||
-            FunctionAvailabilityCache.isPartOfGLCore("1.1", mapToRealGLFunctionName(glFunctionName)))
-           );
-
-    return available;
-  }*/
-  
   public boolean isExtensionAvailable(String glExtensionName) {
     if (glExtensionName.equals("GL_ARB_pbuffer") ||
         glExtensionName.equals("GL_ARB_pixel_format")) {

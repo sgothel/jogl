@@ -44,7 +44,7 @@ import java.util.*;
 
 public class EGLContext extends GLContextImpl {
     private EGLDrawable drawable;
-    private long context;
+    private long eglContext;
     private boolean eglQueryStringInitialized;
     private boolean eglQueryStringAvailable;
     private EGLExt eglExt;
@@ -89,26 +89,26 @@ public class EGLContext extends GLContextImpl {
     }
 
     public long getContext() {
-        return context;
+        return eglContext;
     }
 
     private int makeCurrentImplInner() throws GLException {
         boolean created = false;
-        if (context == 0) {
+        if (eglContext == 0) {
             create();
             if (DEBUG) {
                 System.err.println(getThreadName() + ": !!! Created GL context 0x" +
-                                   Long.toHexString(context) + " for " + getClass().getName());
+                                   Long.toHexString(eglContext) + " for " + getClass().getName());
             }
             created = true;
         }
-        if (EGL.eglGetCurrentContext() != context) {
+        if (EGL.eglGetCurrentContext() != eglContext) {
             if (!EGL.eglMakeCurrent(drawable.getDisplay(),
                                     drawable.getSurface(),
                                     drawable.getSurface(),
-                                    context)) {
+                                    eglContext)) {
                 throw new GLException("Error making context 0x" +
-                                      Long.toHexString(context) + " current: error code " + EGL.eglGetError());
+                                      Long.toHexString(eglContext) + " current: error code " + EGL.eglGetError());
             }
         }
 
@@ -156,7 +156,7 @@ public class EGLContext extends GLContextImpl {
                                 EGL.EGL_NO_SURFACE,
                                 EGL.EGL_NO_CONTEXT)) {
             throw new GLException("Error freeing OpenGL context 0x" +
-                                  Long.toHexString(context) + ": error code " + EGL.eglGetError());
+                                  Long.toHexString(eglContext) + ": error code " + EGL.eglGetError());
         }
       } finally {
         getDrawableImpl().getFactoryImpl().unlockToolkit();
@@ -167,12 +167,12 @@ public class EGLContext extends GLContextImpl {
     protected void destroyImpl() throws GLException {
       getDrawableImpl().getFactoryImpl().lockToolkit();
       try {
-        if (context != 0) {
-            if (!EGL.eglDestroyContext(drawable.getDisplay(), context)) {
+        if (eglContext != 0) {
+            if (!EGL.eglDestroyContext(drawable.getDisplay(), eglContext)) {
                 throw new GLException("Error destroying OpenGL context 0x" +
-                                      Long.toHexString(context) + ": error code " + EGL.eglGetError());
+                                      Long.toHexString(eglContext) + ": error code " + EGL.eglGetError());
             }
-            context = 0;
+            eglContext = 0;
             GLContextShareSet.contextDestroyed(this);
         }
       } finally {
@@ -181,14 +181,15 @@ public class EGLContext extends GLContextImpl {
     }
 
     protected void create() throws GLException {
-        long display = drawable.getDisplay();
-        _EGLConfig config = drawable.getEGLConfig().getNativeConfig();
+        long eglDisplay = drawable.getDisplay();
+        EGLGraphicsConfiguration config = drawable.getGraphicsConfiguration();
+        _EGLConfig eglConfig = config.getNativeConfig();
         long shareWith = EGL.EGL_NO_CONTEXT;
 
-        if (display == 0) {
+        if (eglDisplay == 0) {
             throw new GLException("Error: attempted to create an OpenGL context without a display connection");
         }
-        if (config == null) {
+        if (eglConfig == null) {
             throw new GLException("Error: attempted to create an OpenGL context without a graphics configuration");
         }
         EGLContext other = (EGLContext) GLContextShareSet.getShareContext(this);
@@ -203,28 +204,28 @@ public class EGLContext extends GLContextImpl {
                 EGL.EGL_CONTEXT_CLIENT_VERSION, -1,
                 EGL.EGL_NONE
         };
-        if (GLProfile.isGLES2()) {
+        if (GLProfile.usesNativeGLES2()) {
             contextAttrs[1] = 2;
-        } else if (GLProfile.isGLES1()) {
+        } else if (GLProfile.usesNativeGLES1()) {
             contextAttrs[1] = 1;
         } else {
             throw new GLException("Error creating OpenGL context - invalid GLProfile");
         }
-        context = EGL.eglCreateContext(display, config, shareWith, contextAttrs, 0);
-        if (context == 0) {
+        eglContext = EGL.eglCreateContext(eglDisplay, eglConfig, shareWith, contextAttrs, 0);
+        if (eglContext == 0) {
             throw new GLException("Error creating OpenGL context");
         }
         GLContextShareSet.contextCreated(this);
         if (DEBUG) {
             System.err.println(getThreadName() + ": !!! Created OpenGL context 0x" +
-                               Long.toHexString(context) + " for " + this +
+                               Long.toHexString(eglContext) + " for " + this +
                                ", surface 0x" + Long.toHexString(drawable.getSurface()) +
                                ", sharing with 0x" + Long.toHexString(shareWith));
         }
     }
 
     public boolean isCreated() {
-        return (context != 0);
+        return (eglContext != 0);
     }
 
     protected void resetGLFunctionAvailability() {
@@ -250,7 +251,7 @@ public class EGLContext extends GLContextImpl {
           GLDrawableFactoryImpl factory = getDrawableImpl().getFactoryImpl();
           factory.lockToolkit();
           try {
-            String ret = EGL.eglQueryString(drawable.getNativeWindow().getDisplayHandle(), 
+            String ret = EGL.eglQueryString(drawable.getDisplay(), 
                                             EGL.EGL_EXTENSIONS);
             if (DEBUG) {
               System.err.println("!!! EGL extensions: " + ret);

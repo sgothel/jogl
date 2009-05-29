@@ -34,27 +34,72 @@ package com.sun.nativewindow.impl.x11;
 
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.x11.*;
+import com.sun.nativewindow.impl.x11.XVisualInfo;
+import com.sun.nativewindow.impl.x11.X11Lib;
 
 public class X11GraphicsConfigurationFactory extends GraphicsConfigurationFactory {
-    // FIXME: there is a "quality of implementation" issue here. We
-    // want to allow the use of the GraphicsConfigurationFactory in
-    // conjunction with OpenGL as well as other rendering mechanisms.
-    // On X11 platforms the OpenGL pixel format is associated with the
-    // window's visual. On other platforms, the OpenGL pixel format is
-    // chosen lazily. As in the OpenGL binding, the default
-    // X11GraphicsConfigurationFactory would need to provide a default
-    // mechanism for selecting a visual based on a set of
-    // capabilities. Here we always return 0 for the visual ID, which
-    // presumably corresponds to the default visual (which may be a
-    // bad assumption). When using OpenGL, the OpenGL binding is
-    // responsible for registering a GraphicsConfigurationFactory
-    // which actually performs visual selection, though based on
-    // GLCapabilities.
     public AbstractGraphicsConfiguration
         chooseGraphicsConfiguration(Capabilities capabilities,
                                     CapabilitiesChooser chooser,
-                                    AbstractGraphicsDevice device)
+                                    AbstractGraphicsScreen screen)
         throws IllegalArgumentException, NativeWindowException {
-        return new X11GraphicsConfiguration(0);
+
+        if(null==screen || !(screen instanceof X11GraphicsScreen)) {
+            throw new NativeWindowException("Only valid X11GraphicsScreen are allowed");
+        }
+        return new X11GraphicsConfiguration((X11GraphicsScreen)screen, capabilities, getXVisualInfo(screen, capabilities));
+    }
+
+    public static XVisualInfo getXVisualInfo(AbstractGraphicsScreen screen, long visualID)
+    {
+        XVisualInfo xvi_temp = XVisualInfo.create();
+        xvi_temp.visualid(visualID);
+        xvi_temp.screen(screen.getIndex());
+        int num[] = { -1 };
+
+        XVisualInfo[] xvis = X11Lib.XGetVisualInfoCopied(screen.getDevice().getHandle(), X11Lib.VisualIDMask|X11Lib.VisualScreenMask, xvi_temp, num, 0);
+
+        if(xvis==null || num[0]<1) {
+            return null;
+        }
+
+        return XVisualInfo.create(xvis[0]);
+    }
+
+    public static XVisualInfo getXVisualInfo(AbstractGraphicsScreen screen, Capabilities capabilities)
+    {
+        XVisualInfo xv = getXVisualInfoImpl(screen, capabilities, 4 /* TrueColor */);
+        if(null!=xv) return xv;
+        return getXVisualInfoImpl(screen, capabilities, 5 /* DirectColor */);
+    }
+
+    private static XVisualInfo getXVisualInfoImpl(AbstractGraphicsScreen screen, Capabilities capabilities, int c_class)
+    {
+        XVisualInfo ret = null;
+        int[] num = { -1 };
+
+        XVisualInfo vinfo_template = XVisualInfo.create();
+        vinfo_template.screen(screen.getIndex());
+        vinfo_template.c_class(c_class);
+
+        XVisualInfo[] vinfos = X11Lib.XGetVisualInfoCopied(screen.getDevice().getHandle(), X11Lib.VisualScreenMask, vinfo_template, num, 0);
+        XVisualInfo best=null;
+        int rdepth = capabilities.getRedBits() + capabilities.getGreenBits() + capabilities.getBlueBits() + capabilities.getAlphaBits();
+        for (int i = 0; vinfos!=null && i < num[0]; i++) {
+            if ( best == null || 
+                 best.depth() < vinfos[i].depth() ) 
+            {
+                best = vinfos[i];
+                if(rdepth <= best.depth())
+                    break;
+            }
+        }
+        if ( null!=best && ( rdepth <= best.depth() || 24 == best.depth()) ) {
+            ret = XVisualInfo.create(best);
+        }
+        best = null;
+
+        return ret;
     }
 }
+

@@ -33,31 +33,15 @@
 
 package com.sun.javafx.newt;
 
-import javax.media.nativewindow.AbstractGraphicsConfiguration;
-import javax.media.nativewindow.Capabilities;
+import javax.media.nativewindow.*;
 import java.util.ArrayList;
 import java.util.Iterator;
 
 public abstract class NewtFactory {
-    /** OpenKODE window type */
-    public static final String KD = "KD";
-
-    /** Microsoft Windows window type */
-    public static final String WINDOWS = "Windows";
-
-    /** X11 window type */
-    public static final String X11 = "X11";
-
-    /** Mac OS X window type */
-    public static final String MACOSX = "MacOSX";
-
-    /** Generic AWT wrapped window type, if available */
-    public static final String AWT = "AWT";
-
     // Work-around for initialization order problems on Mac OS X
     // between native Newt and (apparently) Fmod
     static {
-        Window.init(getWindowType());
+        Window.init(NativeWindowFactory.getNativeWindowType());
     }
 
     static int getPropertyIntValue(String propname) {
@@ -71,34 +55,11 @@ public abstract class NewtFactory {
         return i;
     }
 
-    /** Creates a Window of the default type for the current operating system. */
-    public static String getWindowType() {
-      String osName = System.getProperty("newt.ws.name");
-      if(null==osName||osName.length()==0) {
-          osName = System.getProperty("os.name");
-      }
-      String osNameLowerCase = osName.toLowerCase();
-      String windowType;
-      if (osNameLowerCase.startsWith("kd")) {
-          windowType = KD;
-      } else if (osNameLowerCase.startsWith("wind")) {
-          windowType = WINDOWS;
-      } else if (osNameLowerCase.startsWith("mac os x") ||
-                 osNameLowerCase.startsWith("darwin")) {
-          windowType = MACOSX;
-      } else if (osNameLowerCase.equals("awt")) {
-          windowType = AWT;
-      } else {
-          windowType = X11;
-      }
-      return windowType;
-    }
-
     /**
      * Create a Display entity, incl native creation
      */
     public static Display createDisplay(String name) {
-      return Display.create(getWindowType(), name);
+      return Display.create(NativeWindowFactory.getNativeWindowType(), name);
     }
 
     /**
@@ -112,7 +73,7 @@ public abstract class NewtFactory {
      * Create a Screen entity, incl native creation
      */
     public static Screen createScreen(Display display, int index) {
-      return Screen.create(getWindowType(), display, index);
+      return Screen.create(NativeWindowFactory.getNativeWindowType(), display, index);
     }
 
     /**
@@ -126,11 +87,11 @@ public abstract class NewtFactory {
      * Create a Window entity, incl native creation
      */
     public static Window createWindow(Screen screen, Capabilities caps) {
-      return Window.create(getWindowType(), screen, caps);
+      return Window.create(NativeWindowFactory.getNativeWindowType(), screen, caps);
     }
 
     public static Window createWindow(Screen screen, Capabilities caps, boolean undecorated) {
-        return Window.create(getWindowType(), screen, caps, undecorated);
+        return Window.create(NativeWindowFactory.getNativeWindowType(), screen, caps, undecorated);
     }
 
     /**
@@ -143,24 +104,24 @@ public abstract class NewtFactory {
     /**
      * Instantiate a Display entity using the native handle.
      */
-    public static Display wrapDisplay(String name, long handle) {
-      return Display.wrapHandle(getWindowType(), name, handle);
+    public static Display wrapDisplay(String name, AbstractGraphicsDevice device) {
+      return Display.wrapHandle(NativeWindowFactory.getNativeWindowType(), name, device);
     }
 
     /**
      * Instantiate a Screen entity using the native handle.
      */
-    public static Screen wrapScreen(Display display, int index, long handle) {
-      return Screen.wrapHandle(getWindowType(), display, index, handle);
+    public static Screen wrapScreen(Display display, AbstractGraphicsScreen screen) {
+      return Screen.wrapHandle(NativeWindowFactory.getNativeWindowType(), display, screen);
     }
 
     /**
      * Instantiate a Window entity using the native handle.
      */
-    public static Window wrapWindow(Screen screen, Capabilities caps, AbstractGraphicsConfiguration config,
+    public static Window wrapWindow(Screen screen, AbstractGraphicsConfiguration config,
                                     long windowHandle, boolean fullscreen, boolean visible, 
                                     int x, int y, int width, int height) {
-      return Window.wrapHandle(getWindowType(), screen, caps, config,
+      return Window.wrapHandle(NativeWindowFactory.getNativeWindowType(), screen, config,
                                windowHandle, fullscreen, visible, x, y, width, height);
     }
 

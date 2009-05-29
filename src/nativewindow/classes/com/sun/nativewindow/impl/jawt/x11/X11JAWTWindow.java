@@ -48,8 +48,8 @@ import java.awt.GraphicsEnvironment;
 
 public class X11JAWTWindow extends JAWTWindow {
 
-  public X11JAWTWindow(Object comp) {
-    super(comp);
+  public X11JAWTWindow(Object comp, AbstractGraphicsConfiguration config) {
+    super(comp, config);
   }
 
   protected void initNative() throws NativeWindowException {
@@ -63,6 +63,7 @@ public class X11JAWTWindow extends JAWTWindow {
     ds = JAWT.getJAWT().GetDrawingSurface(component);
     if (ds == null) {
       // Widget not yet realized
+      super.unlockSurface();
       return LOCK_SURFACE_NOT_READY;
     }
     int res = ds.Lock();
@@ -83,21 +84,22 @@ public class X11JAWTWindow extends JAWTWindow {
       ds.Unlock();
       JAWT.getJAWT().FreeDrawingSurface(ds);
       ds = null;
+      super.unlockSurface();
       return LOCK_SURFACE_NOT_READY;
     }
     x11dsi = (JAWT_X11DrawingSurfaceInfo) dsi.platformInfo();
-    display = x11dsi.display();
-    drawable = x11dsi.drawable();
-    long visualID = x11dsi.visualID();
-    config = new X11GraphicsConfiguration(visualID);
-    screen= 0;
-    if (X11Lib.XineramaEnabled(display)) {
-      screenIndex = 0;
-    } else {
-      GraphicsDevice device = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
-      screenIndex = X11SunJDKReflection.graphicsDeviceGetScreen(device);
+    if (x11dsi == null) {
+      // Widget not yet realized
+      ds.FreeDrawingSurfaceInfo(dsi);
+      ds.Unlock();
+      JAWT.getJAWT().FreeDrawingSurface(ds);
+      ds = null;
+      dsi = null;
+      super.unlockSurface();
+      return LOCK_SURFACE_NOT_READY;
     }
-    if (display == 0 || drawable == 0) {
+    drawable = x11dsi.drawable();
+    if (drawable == 0) {
       // Widget not yet realized
       ds.FreeDrawingSurfaceInfo(dsi);
       ds.Unlock();
@@ -105,11 +107,8 @@ public class X11JAWTWindow extends JAWTWindow {
       ds = null;
       dsi = null;
       x11dsi = null;
-      display = 0;
       drawable = 0;
-      config = null;
-      screen= 0;
-      screenIndex = -1;
+      super.unlockSurface();
       return LOCK_SURFACE_NOT_READY;
     }
     return ret;

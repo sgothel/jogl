@@ -288,23 +288,23 @@ public class GLCapabilities extends Capabilities implements Cloneable {
   /** Returns a textual representation of this GLCapabilities
       object. */ 
   public String toString() {
-    return ("GLCapabilities [" +
-            "DoubleBuffered: " + doubleBuffered +
+    return getClass().toString()+"[" +
+        super.toString()+
+        ", DoubleBuffered: " + doubleBuffered +
 	    ", Stereo: " + stereo + 
-            ", HardwareAccelerated: " + hardwareAccelerated +
+        ", HardwareAccelerated: " + hardwareAccelerated +
 	    ", DepthBits: " + depthBits +
 	    ", StencilBits: " + stencilBits +
-	    ", Red: " + getRedBits() +
-	    ", Green: " + getGreenBits() +
-	    ", Blue: " + getBlueBits() +
-	    ", Alpha: " + getAlphaBits() +
 	    ", Red Accum: " + accumRedBits +
 	    ", Green Accum: " + accumGreenBits +
 	    ", Blue Accum: " + accumBlueBits +
 	    ", Alpha Accum: " + accumAlphaBits +
-            ", Multisample: " + sampleBuffers +
-            (sampleBuffers ? ", Num samples: " + numSamples : "") +
-            ", Opaque: " + backgroundOpaque +
-	    " ]");
+        ", Multisample: " + sampleBuffers +
+        ", Num samples: "+(sampleBuffers ? numSamples : 0) +
+        ", Opaque: " + backgroundOpaque +
+        ", PBuffer-FloatingPointBuffers: "+pbufferFloatingPointBuffers+
+        ", PBuffer-RenderToTexture: "+pbufferRenderToTexture+
+        ", PBuffer-RenderToTextureRectangle: "+pbufferRenderToTextureRectangle+
+	    " ]";
   }
 }

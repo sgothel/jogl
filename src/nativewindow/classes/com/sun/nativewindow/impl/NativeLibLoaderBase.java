@@ -48,6 +48,8 @@ import java.security.PrivilegedAction;
 import java.util.HashSet;
 
 public class NativeLibLoaderBase {
+  private static boolean DEBUG = true;
+
   public interface LoaderAction {
     /**
      * Loads the library specified by libname. Optionally preloads the libraries specified by
@@ -70,6 +72,7 @@ public class NativeLibLoaderBase {
             System.loadLibrary(preload[i]);
           }
           catch (UnsatisfiedLinkError e) {
+            if(DEBUG) e.printStackTrace();
             if (!preloadIgnoreError && e.getMessage().indexOf("already loaded") < 0) {
               throw e;
             }

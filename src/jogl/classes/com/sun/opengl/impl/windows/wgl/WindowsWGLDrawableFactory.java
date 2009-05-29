@@ -55,29 +55,26 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
 
   public WindowsWGLDrawableFactory() {
     super();
+
+    // Register our GraphicsConfigurationFactory implementations
+    // The act of constructing them causes them to be registered
+    new WindowsWGLGraphicsConfigurationFactory();
   }
 
-  public GLDrawable createGLDrawable(NativeWindow target,
-                                  GLCapabilities capabilities,
-                                  GLCapabilitiesChooser chooser) {
+  public GLDrawable createGLDrawable(NativeWindow target) {
     if (target == null) {
       throw new IllegalArgumentException("Null target");
     }
-    target = NativeWindowFactory.getNativeWindow(target);
-    if (capabilities == null) {
-      capabilities = new GLCapabilities();
-    }
-    if (chooser == null) {
-      chooser = new DefaultGLCapabilitiesChooser();
-    }
-    return new WindowsOnscreenWGLDrawable(this, target, capabilities, chooser);
+    target = NativeWindowFactory.getNativeWindow(target, null);
+    return new WindowsOnscreenWGLDrawable(this, target);
   }
 
   public GLDrawableImpl createOffscreenDrawable(GLCapabilities capabilities,
                                                 GLCapabilitiesChooser chooser,
                                                 int width,
                                                 int height) {
-    return new WindowsOffscreenWGLDrawable(this, capabilities, chooser, width, height);
+    AbstractGraphicsScreen aScreen = DefaultGraphicsScreen.createDefault();
+    return new WindowsOffscreenWGLDrawable(this, aScreen, capabilities, chooser, width, height);
   }
 
   private boolean pbufferSupportInitialized = false;
@@ -136,7 +133,8 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
           dummyContext.makeCurrent();
           WGLExt dummyWGLExt = dummyContext.getWGLExt();
           try {
-            WindowsPbufferWGLDrawable pbufferDrawable = new WindowsPbufferWGLDrawable(factory, capabilities,
+            AbstractGraphicsScreen aScreen = DefaultGraphicsScreen.createDefault();
+            WindowsPbufferWGLDrawable pbufferDrawable = new WindowsPbufferWGLDrawable(factory, aScreen, capabilities, chooser,
                                                                                     initialWidth,
                                                                                     initialHeight,
                                                                                     dummyDrawable,
@@ -158,7 +156,8 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   public GLContext createExternalGLContext() {
-    return new WindowsExternalWGLContext();
+    AbstractGraphicsScreen aScreen = DefaultGraphicsScreen.createDefault();
+    return new WindowsExternalWGLContext(aScreen);
   }
 
   public boolean canCreateExternalGLDrawable() {
@@ -166,7 +165,8 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   public GLDrawable createExternalGLDrawable() {
-    return WindowsExternalWGLDrawable.create(this);
+    AbstractGraphicsScreen aScreen = DefaultGraphicsScreen.createDefault();
+    return WindowsExternalWGLDrawable.create(this, aScreen);
   }
 
   public void loadGLULibrary() {

@@ -59,7 +59,7 @@ public class NativeLibLoader extends NativeLibLoaderBase {
     });
   }
 
-  public static void loadGL2() {
+  public static void loadGLDesktop() {
     AccessController.doPrivileged(new PrivilegedAction() {
       public Object run() {
         loadLibrary("jogl_gl2", nativewindowX11Preload, true);
@@ -109,6 +109,8 @@ public class NativeLibLoader extends NativeLibLoaderBase {
   // Support for the new JNLPAppletLauncher
   //
 
+  private static boolean DEBUG = true;
+
   private static class JOGLAction implements NativeLibLoaderBase.LoaderAction {
     public void loadLibrary(String libname, String[] preload,
         boolean preloadIgnoreError) {
@@ -118,6 +120,7 @@ public class NativeLibLoader extends NativeLibLoaderBase {
             loadLibraryInternal(preload[i]);
           }
           catch (UnsatisfiedLinkError e) {
+            if(DEBUG) e.printStackTrace();
             if (!preloadIgnoreError && e.getMessage().indexOf("already loaded") < 0) {
               throw e;
             }
@@ -156,6 +159,7 @@ public class NativeLibLoader extends NativeLibLoaderBase {
           jnlpLoadLibraryMethod.invoke(null, new Object[] { libraryName });
         } catch (Exception e) {
           Throwable t = e;
+          if(DEBUG) t.printStackTrace();
           if (t instanceof InvocationTargetException) {
             t = ((InvocationTargetException) t).getTargetException();
           }

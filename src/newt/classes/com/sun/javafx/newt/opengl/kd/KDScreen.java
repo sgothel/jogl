@@ -34,12 +34,20 @@
 package com.sun.javafx.newt.opengl.kd;
 
 import com.sun.javafx.newt.*;
+import javax.media.nativewindow.*;
 
 public class KDScreen extends Screen {
     public KDScreen() {
     }
 
-    protected void createNative() {
-        handle = 0;
+    protected void createNative(int index) {
+        aScreen = new DefaultGraphicsScreen(getDisplay().getGraphicsDevice(), index);
+    }
+
+    protected void closeNative() { }
+
+    // elevate access to this package ..
+    protected void setScreenSize(int w, int h) {
+        super.setScreenSize(w, h);
     }
 }

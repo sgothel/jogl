@@ -33,21 +33,23 @@
 
 package com.sun.javafx.newt;
 
+import javax.media.nativewindow.*;
+
 public abstract class Display {
 
     private static Class getDisplayClass(String type) 
         throws ClassNotFoundException 
     {
         Class displayClass = null;
-        if (NewtFactory.KD.equals(type)) {
+        if (NativeWindowFactory.TYPE_EGL.equals(type)) {
             displayClass = Class.forName("com.sun.javafx.newt.opengl.kd.KDDisplay");
-        } else if (NewtFactory.WINDOWS.equals(type)) {
+        } else if (NativeWindowFactory.TYPE_WINDOWS.equals(type)) {
             displayClass = Class.forName("com.sun.javafx.newt.windows.WindowsDisplay");
-        } else if (NewtFactory.MACOSX.equals(type)) {
+        } else if (NativeWindowFactory.TYPE_MACOSX.equals(type)) {
             displayClass = Class.forName("com.sun.javafx.newt.macosx.MacDisplay");
-        } else if (NewtFactory.X11.equals(type)) {
+        } else if (NativeWindowFactory.TYPE_X11.equals(type)) {
             displayClass = Class.forName("com.sun.javafx.newt.x11.X11Display");
-        } else if (NewtFactory.AWT.equals(type)) {
+        } else if (NativeWindowFactory.TYPE_AWT.equals(type)) {
             displayClass = Class.forName("com.sun.javafx.newt.awt.AWTDisplay");
         } else {
             throw new RuntimeException("Unknown display type \"" + type + "\"");
@@ -60,20 +62,26 @@ public abstract class Display {
             Class displayClass = getDisplayClass(type);
             Display display = (Display) displayClass.newInstance();
             display.name=name;
-            display.handle=0;
             display.createNative();
+            if(null==display.aDevice) {
+                throw new RuntimeException("Display.createNative() failed to instanciate an AbstractGraphicsDevice");
+            }
             return display;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    protected static Display wrapHandle(String type, String name, long handle) {
+    public synchronized void destroy() {
+        closeNative();
+    }
+
+    protected static Display wrapHandle(String type, String name, AbstractGraphicsDevice aDevice) {
         try {
             Class displayClass = getDisplayClass(type);
             Display display = (Display) displayClass.newInstance();
             display.name=name;
-            display.handle=handle;
+            display.aDevice=aDevice;
             return display;
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -81,16 +89,21 @@ public abstract class Display {
     }
 
     protected abstract void createNative();
+    protected abstract void closeNative();
 
     public String getName() {
         return name;
     }
 
     public long getHandle() {
-        return handle;
+        return aDevice.getHandle();
+    }
+
+    public AbstractGraphicsDevice getGraphicsDevice() {
+        return aDevice;
     }
 
     protected String name;
-    protected long   handle;
+    protected AbstractGraphicsDevice aDevice;
 }
 

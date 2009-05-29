@@ -39,20 +39,48 @@
 
 package javax.media.nativewindow.awt;
 
+import javax.media.nativewindow.*;
 import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
 import javax.media.nativewindow.AbstractGraphicsDevice;
+import com.sun.nativewindow.impl.*;
 
 /** A wrapper for an AWT GraphicsDevice allowing it to be
     handled in a toolkit-independent manner. */
 
-public class AWTGraphicsDevice implements AbstractGraphicsDevice {
+public class AWTGraphicsDevice extends DefaultGraphicsDevice implements Cloneable {
   private GraphicsDevice device;
 
-  public AWTGraphicsDevice(GraphicsDevice device) {
+  protected AWTGraphicsDevice(GraphicsDevice device) {
+    super(NativeWindowFactory.TYPE_AWT);
     this.device = device;
+  }
+
+  public static AbstractGraphicsDevice createDevice(GraphicsDevice awtDevice) {
+    if(null==awtDevice) {
+        awtDevice = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+    }
+    return new AWTGraphicsDevice(awtDevice);
+  }
+
+  public Object clone() {
+      return super.clone();
   }
 
   public GraphicsDevice getGraphicsDevice() {
     return device;
   }
+
+  /**
+   * In case the native handle was specified, e.g. using X11,
+   * we shall be able to mark it.
+   */
+  public void setHandle(long handle) {
+    this.handle = handle;
+  }
+
+  public String toString() {
+    return getClass().toString()+"[type "+getType()+", awtDevice "+device+", handle 0x"+Long.toHexString(getHandle())+"]";
+  }
 }
+

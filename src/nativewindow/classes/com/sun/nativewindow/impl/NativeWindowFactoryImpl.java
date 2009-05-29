@@ -41,8 +41,8 @@ public class NativeWindowFactoryImpl extends NativeWindowFactory {
     protected static final boolean DEBUG = Debug.debug("NativeWindowFactoryImpl");
 
     // This subclass of NativeWindowFactory handles the case of
-    // NativeWindows and AWT Components being passed in
-    protected NativeWindow getNativeWindowImpl(Object winObj) throws IllegalArgumentException {
+    // NativeWindows being passed in
+    protected NativeWindow getNativeWindowImpl(Object winObj, AbstractGraphicsConfiguration config) throws IllegalArgumentException {
         if (null == winObj) {
             throw new IllegalArgumentException("winObj is null");
         }
@@ -51,8 +51,12 @@ public class NativeWindowFactoryImpl extends NativeWindowFactory {
             return (NativeWindow) winObj;
         }
 
+        if (null == config) {
+            throw new IllegalArgumentException("AbstractGraphicsConfiguration is null with a non NativeWindow object");
+        }
+
         if (NWReflection.isAWTComponent(winObj)) {
-            return getAWTNativeWindow(winObj);
+            return getAWTNativeWindow(winObj, config);
         }
 
         throw new IllegalArgumentException("Target window object type " +
@@ -62,7 +66,7 @@ public class NativeWindowFactoryImpl extends NativeWindowFactory {
     
     private Constructor nativeWindowConstructor = null;
 
-    private NativeWindow getAWTNativeWindow(Object winObj) {
+    private NativeWindow getAWTNativeWindow(Object winObj, AbstractGraphicsConfiguration config) {
         if (nativeWindowConstructor == null) {
             try {
                 String osName = System.getProperty("os.name");
@@ -85,14 +89,14 @@ public class NativeWindowFactoryImpl extends NativeWindowFactory {
                     throw new IllegalArgumentException("OS " + osName + " not yet supported");
                 }
 
-                nativeWindowConstructor = NWReflection.getConstructor(windowClassName, new Class[] { Object.class });
+                nativeWindowConstructor = NWReflection.getConstructor(windowClassName, new Class[] { Object.class, AbstractGraphicsConfiguration.class });
             } catch (Exception e) {
                 throw (IllegalArgumentException) new IllegalArgumentException().initCause(e);
             }
         }
 
         try {
-            return (NativeWindow) nativeWindowConstructor.newInstance(new Object[] { winObj });
+            return (NativeWindow) nativeWindowConstructor.newInstance(new Object[] { winObj, config });
         } catch (Exception ie) {
             throw (IllegalArgumentException) new IllegalArgumentException().initCause(ie);
         }

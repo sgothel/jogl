@@ -35,9 +35,7 @@ package com.sun.javafx.newt.x11;
 
 import com.sun.javafx.newt.*;
 import com.sun.javafx.newt.impl.*;
-import javax.media.nativewindow.Capabilities;
-import javax.media.nativewindow.GraphicsConfigurationFactory;
-import javax.media.nativewindow.NativeWindowException;
+import javax.media.nativewindow.*;
 import javax.media.nativewindow.x11.*;
 
 public class X11Window extends Window {
@@ -57,18 +55,13 @@ public class X11Window extends Window {
     }
 
     protected void createNative(Capabilities caps) {
-        // FIXME: we're running the visual selection algorithm (i.e.,
-        // from the OpenGL binding) but have no mechanism for
-        // capturing the chosen Capabilities
-        chosenCaps = (Capabilities) caps.clone(); // FIXME: visualID := f1(caps); caps := f2(visualID)
-        X11GraphicsDevice device = new X11GraphicsDevice(getScreenIndex());
-        X11GraphicsConfiguration config = (X11GraphicsConfiguration)
-            GraphicsConfigurationFactory.getFactory(device).chooseGraphicsConfiguration(caps, null, device);
-        long visualID = 0;
-        if (config != null) {
-            visualID = ((X11GraphicsConfiguration) config).getVisualID();
+        config = GraphicsConfigurationFactory.getFactory(getScreen().getDisplay().getGraphicsDevice()).chooseGraphicsConfiguration(caps, null, getScreen().getGraphicsScreen());
+        if (config == null) {
+            throw new NativeWindowException("Error choosing GraphicsConfiguration creating window: "+this);
         }
-        long w = CreateWindow(getDisplayHandle(), getScreenHandle(), getScreenIndex(), visualID, x, y, width, height);
+        X11GraphicsConfiguration x11config = (X11GraphicsConfiguration) config;
+        long visualID = x11config.getVisualID();
+        long w = CreateWindow(getDisplayHandle(), getScreenIndex(), visualID, x, y, width, height);
         if (w == 0 || w!=windowHandle) {
             throw new NativeWindowException("Error creating window: "+w);
         }
@@ -135,7 +128,7 @@ public class X11Window extends Window {
     //
 
     private static native boolean initIDs();
-    private        native long CreateWindow(long display, long screen, int screen_index, 
+    private        native long CreateWindow(long display, int screen_index, 
                                             long visualID, int x, int y, int width, int height);
     private        native void CloseWindow(long display, long windowHandle);
     private        native void setVisible0(long display, long windowHandle, boolean visible);
@@ -163,8 +156,7 @@ public class X11Window extends Window {
         sendWindowEvent(WindowEvent.EVENT_WINDOW_MOVED);
     }
 
-    private void windowCreated(long visualID, long windowHandle, long windowDeleteAtom) {
-        this.config = new X11GraphicsConfiguration(visualID);
+    private void windowCreated(long windowHandle, long windowDeleteAtom) {
         this.windowHandle = windowHandle;
         this.windowDeleteAtom=windowDeleteAtom;
     }

@@ -93,18 +93,18 @@ public abstract class GLDrawableFactory {
   public static GLDrawableFactory getFactory() throws GLException {
     if (null == factory) {
       if (null == GLProfile.getProfile()) {
-        throw new GLException("GLProfile was not properly initialized");
+        GLProfile.setProfileGLAny(); // do it now .. last resort
       }
 
       // See if the user is requesting one of the embedded profiles,
       // and if so, try to instantiate the EGLDrawableFactory
-      if (GLProfile.isGLES()) {
+      if ( GLProfile.usesNativeGLES() ) {
         try {
           factory = (GLDrawableFactory) NWReflection.createInstance("com.sun.opengl.impl.egl.EGLDrawableFactory");
         } catch (Exception e) {
           e.printStackTrace();
         }
-      } else if (!GLProfile.isGL2ES1() && !GLProfile.isGL2ES2()) {
+      } else if ( !GLProfile.isGL2ES1() && !GLProfile.isGL2ES2() ) {
         // We require that the user passes in one of the known profiles
         throw new GLException("Unknown or unsupported profile \"" + GLProfile.getProfile() + "\"");
       }
@@ -154,7 +154,9 @@ public abstract class GLDrawableFactory {
 
   /**
    * Returns a GLDrawable that wraps a platform-specific window system
-   * object, such as an AWT or LCDUI Canvas. On platforms which
+   * object, such as an AWT or LCDUI Canvas. 
+   * On platforms which support pixel format, the NativeWindow's AbstractGraphicsConfiguration
+   * is being used. 
    * support it, selects a pixel format compatible with the supplied
    * GLCapabilities, or if the passed GLCapabilities object is null,
    * uses a default set of capabilities. On these platforms, uses
@@ -165,10 +167,10 @@ public abstract class GLDrawableFactory {
    * @throws IllegalArgumentException if the passed target is null
    * @throws GLException if any window system-specific errors caused
    *         the creation of the GLDrawable to fail.
+   *
+   * @see javax.media.nativewindow.GraphicsConfigurationFactory#chooseGraphicsConfiguration(Capabilities, CapabilitiesChooser, AbstractGraphicsScreen)
    */
-  public abstract GLDrawable createGLDrawable(NativeWindow target,
-                                              GLCapabilities capabilities,
-                                              GLCapabilitiesChooser chooser)
+  public abstract GLDrawable createGLDrawable(NativeWindow target)
     throws IllegalArgumentException, GLException;
   
   //----------------------------------------------------------------------

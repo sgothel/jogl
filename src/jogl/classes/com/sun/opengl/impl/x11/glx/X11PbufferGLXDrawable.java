@@ -40,6 +40,7 @@
 package com.sun.opengl.impl.x11.glx;
 
 import javax.media.opengl.*;
+import javax.media.nativewindow.*;
 import com.sun.opengl.impl.*;
 import com.sun.opengl.impl.x11.glx.*;
 import com.sun.nativewindow.impl.NullWindow;
@@ -54,10 +55,11 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
   protected static final int MAX_PFORMATS = 256;
   protected static final int MAX_ATTRIBS  = 256;
 
-  protected X11PbufferGLXDrawable(GLDrawableFactory factory,
-                                  GLCapabilities requestedCapabilities, 
+  protected X11PbufferGLXDrawable(GLDrawableFactory factory, AbstractGraphicsScreen screen,
+                                  GLCapabilities caps, 
+                                  GLCapabilitiesChooser chooser,
                                   int width, int height) {
-    super(factory, new NullWindow(), true, requestedCapabilities, null);
+    super(factory, new NullWindow(X11GLXGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(caps, chooser, screen, true)), true);
     if (width <= 0 || height <= 0) {
       throw new GLException("Width and height of pbuffer must be positive (were (" +
 			    width + ", " + height + "))");
@@ -66,13 +68,10 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
     nw.setSize(width, height);
 
     if (DEBUG) {
-      System.out.println("Pbuffer caps on init: " + requestedCapabilities +
-                         (requestedCapabilities.getPbufferRenderToTexture() ? " [rtt]" : "") +
-                         (requestedCapabilities.getPbufferRenderToTextureRectangle() ? " [rect]" : "") +
-                         (requestedCapabilities.getPbufferFloatingPointBuffers() ? " [float]" : ""));
+      caps = (GLCapabilities) getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration().getCapabilities();
+      System.out.println("Pbuffer config: " + getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration());
     }
 
-    nw.setDisplayHandle(X11Util.getDisplayConnection());
     createPbuffer();
   }
 
@@ -86,9 +85,8 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
         NullWindow nw = (NullWindow) getNativeWindow();
         if (nw.getSurfaceHandle() != 0) {
           GLX.glXDestroyPbuffer(nw.getDisplayHandle(), nw.getSurfaceHandle());
-          nw.setSurfaceHandle(0);
         }
-        nw.setDisplayHandle(0);
+        nw.invalidate();
     } finally {
         getFactoryImpl().unlockToolkit();
     }
@@ -97,15 +95,19 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
   private void createPbuffer() {
     getFactoryImpl().lockToolkit();
     try {
-      NullWindow nw = (NullWindow) getNativeWindow();
-      long display = nw.getDisplayHandle();
-      if (nw.getDisplayHandle()== 0) {
+      X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration) getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration();
+      AbstractGraphicsScreen aScreen = config.getScreen();
+      AbstractGraphicsDevice aDevice = aScreen.getDevice();
+      long display = aDevice.getHandle();
+      int screen = aScreen.getIndex();
+
+      if (display==0) {
         throw new GLException("Null display");
       }
-      int screen = X11Lib.DefaultScreen(display);
-      nw.setScreenIndex(screen);
+
+      NullWindow nw = (NullWindow) getNativeWindow();
     
-      GLCapabilities capabilities = getRequestedGLCapabilities();
+      GLCapabilities capabilities = (GLCapabilities)config.getCapabilities();
 
       if (capabilities.getPbufferRenderToTexture()) {
         throw new GLException("Render-to-texture pbuffers not supported yet on X11");
@@ -115,47 +117,16 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
         throw new GLException("Render-to-texture-rectangle pbuffers not supported yet on X11");
       }
 
-      int[] iattributes = X11GLXDrawableFactory.glCapabilities2AttribList(capabilities,
-                                                                         GLXUtil.isMultisampleAvailable(),
-                                                                         true, display, screen);
-
-      int[] nelementsTmp = new int[1];
-      // FIXME: we inherently leak the memory from the underlying call
-      // to glXChooseFBConfig because a copy of the original Buffer is
-      // made to expand each pointer from 32 to 64 bits
-      LongBuffer fbConfigs = GLX.glXChooseFBConfig(display, screen, iattributes, 0, nelementsTmp, 0);
-      if (fbConfigs == null || fbConfigs.limit() == 0 || fbConfigs.get(0) == 0) {
-        throw new GLException("pbuffer creation error: glXChooseFBConfig() failed");
-      }
-      int nelements = nelementsTmp[0];
-      if (nelements <= 0) {
-        throw new GLException("pbuffer creation error: couldn't find a suitable frame buffer configuration");
-      }
-      // Note that we currently don't allow selection of anything but
-      // the first GLXFBConfig in the returned list
-      long fbConfig = fbConfigs.get(0);
-
-      if (DEBUG) {
-        System.err.println("Found " + fbConfigs.limit() + " matching GLXFBConfigs");
-        System.err.println("Parameters of default one:");
-        System.err.println("render type: 0x" + Integer.toHexString(queryFBConfig(display, fbConfig, GLX.GLX_RENDER_TYPE)));
-        System.err.println("rgba: " + ((queryFBConfig(display, fbConfig, GLX.GLX_RENDER_TYPE) & GLX.GLX_RGBA_BIT) != 0));
-        System.err.println("r: " + queryFBConfig(display, fbConfig, GLX.GLX_RED_SIZE));
-        System.err.println("g: " + queryFBConfig(display, fbConfig, GLX.GLX_GREEN_SIZE));
-        System.err.println("b: " + queryFBConfig(display, fbConfig, GLX.GLX_BLUE_SIZE));
-        System.err.println("a: " + queryFBConfig(display, fbConfig, GLX.GLX_ALPHA_SIZE));
-        System.err.println("depth: " + queryFBConfig(display, fbConfig, GLX.GLX_DEPTH_SIZE));
-        System.err.println("double buffered: " + queryFBConfig(display, fbConfig, GLX.GLX_DOUBLEBUFFER));
-      }
+      fbConfig = config.getFBConfig();
 
       // Create the p-buffer.
       int niattribs = 0;
+      int[] iattributes = new int[5];
 
       iattributes[niattribs++] = GLX.GLX_PBUFFER_WIDTH;
       iattributes[niattribs++] = nw.getWidth();
       iattributes[niattribs++] = GLX.GLX_PBUFFER_HEIGHT;
       iattributes[niattribs++] = nw.getHeight();
-
       iattributes[niattribs++] = 0;
 
       long drawable = GLX.glXCreatePbuffer(display, fbConfig, iattributes, 0);
@@ -166,36 +137,7 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
 
       // Set up instance variables
       nw.setSurfaceHandle(drawable);
-      this.fbConfig = fbConfig;
       
-      // Pick innocent query values if multisampling or floating point buffers not available
-      int sbAttrib      = GLXUtil.isMultisampleAvailable() ? GLX.GLX_SAMPLE_BUFFERS: GLX.GLX_RED_SIZE;
-      int samplesAttrib = GLXUtil.isMultisampleAvailable() ? GLX.GLX_SAMPLES: GLX.GLX_RED_SIZE;
-      int floatNV       = capabilities.getPbufferFloatingPointBuffers() ? GLXExt.GLX_FLOAT_COMPONENTS_NV : GLX.GLX_RED_SIZE;
-
-      // Query the fbconfig to determine its GLCapabilities
-      int[] iattribs = {
-        GLX.GLX_DOUBLEBUFFER,
-        GLX.GLX_STEREO,
-        GLX.GLX_RED_SIZE,
-        GLX.GLX_GREEN_SIZE,
-        GLX.GLX_BLUE_SIZE,
-        GLX.GLX_ALPHA_SIZE,
-        GLX.GLX_DEPTH_SIZE,
-        GLX.GLX_STENCIL_SIZE,
-        GLX.GLX_ACCUM_RED_SIZE,
-        GLX.GLX_ACCUM_GREEN_SIZE,
-        GLX.GLX_ACCUM_BLUE_SIZE,
-        GLX.GLX_ACCUM_ALPHA_SIZE,
-        sbAttrib,
-        samplesAttrib,        
-        floatNV
-      };
-
-      int[] ivalues = new int[iattribs.length];
-      queryFBConfig(display, fbConfig, iattribs, iattribs.length, ivalues);
-      setChosenGLCapabilities(X11GLXDrawableFactory.attribList2GLCapabilities(iattribs, iattribs.length, ivalues, true));
-
       // Determine the actual width and height we were able to create.
       int[] tmp = new int[1];
       GLX.glXQueryDrawable(display, drawable, GLX.GLX_WIDTH, tmp, 0);
@@ -221,21 +163,4 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
     return fbConfig;
   }
 
-  private int queryFBConfig(long display, long fbConfig, int attrib) {
-    int[] tmp = new int[1];
-    if (GLX.glXGetFBConfigAttrib(display, fbConfig, attrib, tmp, 0) != 0) {
-      throw new GLException("glXGetFBConfigAttrib failed");
-    }
-    return tmp[0];
-  }
-
-  private void queryFBConfig(long display, long fbConfig, int[] attribs, int nattribs, int[] values) {
-    int[] tmp = new int[1];
-    for (int i = 0; i < nattribs; i++) {
-      if (GLX.glXGetFBConfigAttrib(display, fbConfig, attribs[i], tmp, 0) != 0) {
-        throw new GLException("glXGetFBConfigAttrib failed");
-      }
-      values[i] = tmp[0];
-    }
-  }
 }

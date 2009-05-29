@@ -40,6 +40,7 @@
 package com.sun.opengl.impl.windows.wgl;
 
 import javax.media.opengl.*;
+import javax.media.nativewindow.*;
 import com.sun.opengl.impl.*;
 import com.sun.nativewindow.impl.NullWindow;
 
@@ -48,11 +49,12 @@ public class WindowsOffscreenWGLDrawable extends WindowsWGLDrawable {
   private long hbitmap;
 
   public WindowsOffscreenWGLDrawable(GLDrawableFactory factory, 
+                                     AbstractGraphicsScreen absScreen,
                                      GLCapabilities requestedCapabilities,
                                      GLCapabilitiesChooser chooser,
                                      int width,
                                      int height) {
-    super(factory, new NullWindow(), true, requestedCapabilities, chooser);
+    super(factory, new NullWindow(WindowsWGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(requestedCapabilities, chooser, absScreen, true)), true);
     ((NullWindow) getNativeWindow()).setSize(width, height);
     create();
   }
@@ -63,7 +65,8 @@ public class WindowsOffscreenWGLDrawable extends WindowsWGLDrawable {
 
   private void create() {
     NullWindow nw = (NullWindow) getNativeWindow();
-    GLCapabilities capabilities = getRequestedGLCapabilities();
+    WindowsWGLGraphicsConfiguration config = (WindowsWGLGraphicsConfiguration)nw.getGraphicsConfiguration().getNativeGraphicsConfiguration();
+    GLCapabilities capabilities = (GLCapabilities)config.getCapabilities();
     int width = getWidth();
     int height = getHeight();
     BITMAPINFO info = BITMAPINFO.create();
@@ -108,7 +111,7 @@ public class WindowsOffscreenWGLDrawable extends WindowsWGLDrawable {
       throw new GLException("Error selecting bitmap into new device context");
     }
         
-    choosePixelFormat(false);
+    config.update(getFactory(), nw, true);
   }
   
   public void destroy() {
@@ -121,7 +124,6 @@ public class WindowsOffscreenWGLDrawable extends WindowsWGLDrawable {
       origbitmap = 0;
       hbitmap = 0;
       nw.setSurfaceHandle(0);
-      setChosenGLCapabilities(null);
     }
   }
 }

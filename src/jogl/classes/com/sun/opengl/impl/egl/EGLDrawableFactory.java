@@ -39,6 +39,7 @@ import java.util.*;
 import javax.media.nativewindow.*;
 import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
+import com.sun.nativewindow.impl.*;
 import com.sun.gluegen.runtime.NativeLibrary;
 
 public class EGLDrawableFactory extends GLDrawableFactoryImpl {
@@ -51,6 +52,17 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
 
         loadGLESLibrary();
         EGL.resetProcAddressTable(this);
+
+        // Register our GraphicsConfigurationFactory implementations
+        // The act of constructing them causes them to be registered
+        new EGLGraphicsConfigurationFactory();
+
+        // Check for other underlying stuff ..
+        if(NativeWindowFactory.TYPE_X11.equals(NativeWindowFactory.getNativeWindowType())) {
+            try {
+                NWReflection.createInstance("com.sun.opengl.impl.x11.glx.X11GLXGraphicsConfigurationFactory");
+            } catch (Throwable t) {}
+        }
     }
 
     private NativeLibrary loadFirstAvailable(List/*<String>*/ libNames, ClassLoader loader) {
@@ -70,7 +82,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         List/*<String>*/ glesLibNames = new ArrayList();
         List/*<String>*/ eglLibNames = new ArrayList();
 
-        if (GLProfile.isGLES2()) {
+        if (GLProfile.usesNativeGLES2()) {
             // Unix
             glesLibNames.add("libGLES20");
             glesLibNames.add("libGLESv2");
@@ -79,7 +91,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
             glesLibNames.add("GLES20");
             glesLibNames.add("GLESv2");
             glesLibNames.add("GLESv2_CM");
-        } else if (GLProfile.isGLES1()) {
+        } else if (GLProfile.usesNativeGLES1()) {
             // Unix
             glesLibNames.add("libGLES_CM");
             glesLibNames.add("libGLES_CL");
@@ -110,26 +122,16 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         }
         glesLibraries.add(lib);
         
-        if (GLProfile.isGLES2()) {
+        if (GLProfile.usesNativeGLES2()) {
             NativeLibLoader.loadES2();
-        } else if (GLProfile.isGLES1()) {
+        } else if (GLProfile.usesNativeGLES1()) {
             NativeLibLoader.loadES1();
         }
     }
 
-    public AbstractGraphicsConfiguration chooseGraphicsConfiguration(GLCapabilities capabilities,
-                                                                     GLCapabilitiesChooser chooser,
-                                                                     AbstractGraphicsDevice device) {
-        return null;
-    }
-
-    public GLDrawable createGLDrawable(NativeWindow target,
-                                       GLCapabilities capabilities,
-                                       GLCapabilitiesChooser chooser) {
-        target = NativeWindowFactory.getNativeWindow(target);
-        return new EGLDrawable(this, target,
-                               capabilities,
-                               chooser);
+    public GLDrawable createGLDrawable(NativeWindow target) {
+        target = NativeWindowFactory.getNativeWindow(target, null);
+        return new EGLDrawable(this, target);
     }
 
     public GLDrawableImpl createOffscreenDrawable(GLCapabilities capabilities,
@@ -152,7 +154,8 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     }
 
     public GLContext createExternalGLContext() {
-        return new EGLExternalContext();
+        AbstractGraphicsScreen absScreen = DefaultGraphicsScreen.createScreenDevice(0);
+        return new EGLExternalContext(absScreen);
     }
 
     public boolean canCreateExternalGLDrawable() {

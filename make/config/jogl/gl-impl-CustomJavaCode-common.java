@@ -6,6 +6,9 @@
     if(null==test_profile) {
         return false;
     }
+    if(test_profile.equals(GLProfile.GL3)) {
+        return isGL3();
+    }
     if(test_profile.equals(GLProfile.GL2)) {
         return isGL2();
     }

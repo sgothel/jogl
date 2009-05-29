@@ -33,6 +33,7 @@
 package javax.media.nativewindow.x11;
 
 import javax.media.nativewindow.*;
+import com.sun.nativewindow.impl.x11.XVisualInfo;
 
 /** Encapsulates a graphics configuration, or OpenGL pixel format, on
     X11 platforms. Objects of this type are returned from {@link
@@ -40,20 +41,27 @@ import javax.media.nativewindow.*;
     NativeWindowFactory.chooseGraphicsConfiguration()} on X11
     platforms when toolkits other than the AWT are being used.  */
 
-public class X11GraphicsConfiguration implements AbstractGraphicsConfiguration {
-    private long visualID;
+public class X11GraphicsConfiguration extends DefaultGraphicsConfiguration implements Cloneable {
+    private XVisualInfo info;
 
-    /** Constructs a new X11GraphicsConfiguration corresponding to the given visual ID. */
-    public X11GraphicsConfiguration(long visualID) {
-        this.visualID = visualID;
+    public X11GraphicsConfiguration(X11GraphicsScreen screen, Capabilities caps, XVisualInfo info) {
+        super(screen, caps);
+        this.info = info;
     }
 
-    /** Returns the visual ID that this graphics configuration object represents. */
+    public Object clone() {
+      return super.clone();
+    }
+
+    public XVisualInfo getXVisualInfo() {
+        return info;
+    }
+
     public long getVisualID() {
-        return visualID;
+        return (null!=info)?info.visualid():0;
     }
     
     public String toString() {
-        return "[X11GraphicsConfiguration visualID = " + visualID + "]";
+        return getClass().toString()+"["+getScreen()+", visualID 0x" + Long.toHexString(getVisualID()) + ", " + getCapabilities() +"]";
     }
 }

@@ -49,8 +49,8 @@ public class WindowsJAWTWindow extends JAWTWindow {
   public static final boolean PROFILING = false; // FIXME
   public static final int PROFILING_TICKS = 600; // FIXME
 
-  public WindowsJAWTWindow(Object comp) {
-    super(comp);
+  public WindowsJAWTWindow(Object comp, AbstractGraphicsConfiguration config) {
+    super(comp, config);
   }
 
   protected void initNative() throws NativeWindowException {
@@ -69,6 +69,7 @@ public class WindowsJAWTWindow extends JAWTWindow {
     ds = JAWT.getJAWT().GetDrawingSurface(component);
     if (ds == null) {
       // Widget not yet realized
+      super.unlockSurface();
       return LOCK_SURFACE_NOT_READY;
     }
     int res = ds.Lock();
@@ -89,16 +90,21 @@ public class WindowsJAWTWindow extends JAWTWindow {
       ds.Unlock();
       JAWT.getJAWT().FreeDrawingSurface(ds);
       ds = null;
+      super.unlockSurface();
       return LOCK_SURFACE_NOT_READY;
     }
     win32dsi = (JAWT_Win32DrawingSurfaceInfo) dsi.platformInfo();
+    if (win32dsi == null) {
+      // Widget not yet realized
+      ds.FreeDrawingSurfaceInfo(dsi);
+      ds.Unlock();
+      JAWT.getJAWT().FreeDrawingSurface(ds);
+      ds = null;
+      dsi = null;
+      super.unlockSurface();
+      return LOCK_SURFACE_NOT_READY;
+    }
     drawable = win32dsi.hdc();
-    // FIXME: Are the followup abstractions available ? would it be usefull ?
-    display  = 0;
-    config = null;
-    screen= 0;
-    screenIndex = 0;
-
     if (drawable == 0) {
       // Widget not yet realized
       ds.FreeDrawingSurfaceInfo(dsi);
@@ -107,6 +113,7 @@ public class WindowsJAWTWindow extends JAWTWindow {
       ds = null;
       dsi = null;
       win32dsi = null;
+      super.unlockSurface();
       return LOCK_SURFACE_NOT_READY;
     }
     if (PROFILING) {

@@ -56,7 +56,7 @@ import java.util.HashMap;
     refer to a given context. */
 
 public abstract class GLContext {
-  protected static final boolean DEBUG = Debug.debug("GLContext");
+  protected static final boolean DEBUG = Debug.isPropertyDefined("jogl.debug.GLContext"); // Debug.debug("GLContext");
 
   /** Indicates that the context was not made current during the last call to {@link #makeCurrent makeCurrent}. */
   public static final int CONTEXT_NOT_CURRENT = 0;

@@ -47,12 +47,12 @@ import com.sun.nativewindow.impl.NullWindow;
 public class WindowsExternalWGLDrawable extends WindowsWGLDrawable {
 
   public WindowsExternalWGLDrawable(GLDrawableFactory factory, NativeWindow component) {
-    super(factory, component, true, new GLCapabilities(), null);
+    super(factory, component, true);
   }
 
-  public static WindowsExternalWGLDrawable create(GLDrawableFactory factory) {
+  public static WindowsExternalWGLDrawable create(GLDrawableFactory factory, AbstractGraphicsScreen absScreen) {
     long hdc = WGL.wglGetCurrentDC();
-    NullWindow nw = new NullWindow();
+    NullWindow nw = new NullWindow(WindowsWGLGraphicsConfigurationFactory.createDefaultGraphicsConfiguration(absScreen, false));
     nw.setSurfaceHandle(hdc);
     if (nw.getSurfaceHandle() == 0) {
       throw new GLException("Error: attempted to make an external GLDrawable without a drawable/context current");

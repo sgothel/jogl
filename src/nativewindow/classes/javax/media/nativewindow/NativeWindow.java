@@ -77,12 +77,6 @@ public interface NativeWindow {
   public void invalidate();
 
   /**
-   * Lifetime: locked state
-   */
-  public long getDisplayHandle();
-  public long getScreenHandle();
-
-  /**
    * Returns the window handle for this NativeWindow. <P>
    *
    * The window handle shall reflect the platform one 
@@ -105,27 +99,27 @@ public interface NativeWindow {
    */
   public long getSurfaceHandle();
 
-  /**
-   * Returns the graphics configuration corresponding to this window.
-   * The graphics configuration is most relevant on X11 platforms
-   * where it also decides other properties related to hardware
-   * accelerated rendering such as the OpenGL pixel format. This
-   * method may return null on platforms where it is not needed, and
-   * is only guaranteed to return a valid value while the window is
-   * locked.
-   */
-  public AbstractGraphicsConfiguration getGraphicsConfiguration();
-
-  /**
-   * Returns the index of the screen on which this window currently
-   * lies. This method is only guaranteed to return a valid value
-   * while the window is locked.
-   */
-  public int  getScreenIndex();
-
   /** Returns the current width of this window. */
   public int getWidth();
 
   /** Returns the current height of this window. */
   public int getHeight();
+
+  /**
+   * Returns the graphics configuration corresponding to this window.
+   * @see javax.media.nativewindow.GraphicsConfigurationFactory#chooseGraphicsConfiguration(Capabilities, CapabilitiesChooser, AbstractGraphicsScreen)
+   */
+  public AbstractGraphicsConfiguration getGraphicsConfiguration();
+
+  /**
+   * Convenience: Get display handle from 
+   *   AbstractGraphicsConfiguration . AbstractGraphicsScreen . AbstractGraphicsDevice
+   */
+  public long getDisplayHandle();
+
+  /**
+   * Convenience: Get display handle from 
+   *   AbstractGraphicsConfiguration . AbstractGraphicsScreen
+   */
+  public int  getScreenIndex();
 }

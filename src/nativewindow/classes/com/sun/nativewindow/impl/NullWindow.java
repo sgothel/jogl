@@ -41,12 +41,15 @@ import javax.media.nativewindow.*;
 public class NullWindow implements NativeWindow {
   protected boolean locked;
   protected int width, height, scrnIndex;
-  protected long windowHandle, surfaceHandle, displayHandle;
+  protected long surfaceHandle, displayHandle;
+  protected AbstractGraphicsConfiguration config;
 
 
-  public NullWindow() {
-    locked=false;
-    scrnIndex=-1;
+  public NullWindow(AbstractGraphicsConfiguration cfg) {
+    invalidate();
+    config = cfg;
+    displayHandle=cfg.getScreen().getDevice().getHandle();
+    scrnIndex=cfg.getScreen().getIndex();
   }
 
   protected void init(Object windowObject) throws NativeWindowException {
@@ -57,6 +60,9 @@ public class NullWindow implements NativeWindow {
 
   public synchronized void invalidate() {
     locked = false;
+    displayHandle=0;
+    scrnIndex=-1;
+    surfaceHandle=0;
   }
 
   public synchronized int lockSurface() throws NativeWindowException {
@@ -78,22 +84,13 @@ public class NullWindow implements NativeWindow {
   }
 
   public long getDisplayHandle() {
-    return windowHandle;
-  }
-  public void setDisplayHandle(long handle) {
-    windowHandle=handle;
-  }
-  public long getScreenHandle() {
-    return 0;
+    return displayHandle;
   }
   public int getScreenIndex() {
     return scrnIndex;
   }
-  public void setScreenIndex(int idx) {
-    scrnIndex=idx;
-  }
   public long getWindowHandle() {
-    return windowHandle;
+    return 0;
   }
   public long getSurfaceHandle() {
     return surfaceHandle;
@@ -102,7 +99,7 @@ public class NullWindow implements NativeWindow {
     surfaceHandle=handle;
   }
   public AbstractGraphicsConfiguration getGraphicsConfiguration() {
-    return null;
+    return config;
   }
 
   public Object getWrappedWindow() {

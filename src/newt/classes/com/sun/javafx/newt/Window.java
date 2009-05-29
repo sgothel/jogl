@@ -34,10 +34,7 @@
 package com.sun.javafx.newt;
 
 import com.sun.javafx.newt.impl.Debug;
-import javax.media.nativewindow.AbstractGraphicsConfiguration;
-import javax.media.nativewindow.Capabilities;
-import javax.media.nativewindow.NativeWindow;
-import javax.media.nativewindow.NativeWindowException;
+import javax.media.nativewindow.*;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -54,7 +51,7 @@ public abstract class Window implements NativeWindow
     // initialized first then the connection to the window server
     // breaks, leading to errors from deep within the AppKit
     static void init(String type) {
-        if (NewtFactory.MACOSX.equals(type)) {
+        if (NativeWindowFactory.TYPE_MACOSX.equals(type)) {
             try {
                 getWindowClass(type);
             } catch (Exception e) {
@@ -67,15 +64,15 @@ public abstract class Window implements NativeWindow
         throws ClassNotFoundException 
     {
         Class windowClass = null;
-        if (NewtFactory.KD.equals(type)) {
+        if (NativeWindowFactory.TYPE_EGL.equals(type)) {
             windowClass = Class.forName("com.sun.javafx.newt.opengl.kd.KDWindow");
-        } else if (NewtFactory.WINDOWS.equals(type)) {
+        } else if (NativeWindowFactory.TYPE_WINDOWS.equals(type)) {
             windowClass = Class.forName("com.sun.javafx.newt.windows.WindowsWindow");
-        } else if (NewtFactory.MACOSX.equals(type)) {
+        } else if (NativeWindowFactory.TYPE_MACOSX.equals(type)) {
             windowClass = Class.forName("com.sun.javafx.newt.macosx.MacWindow");
-        } else if (NewtFactory.X11.equals(type)) {
+        } else if (NativeWindowFactory.TYPE_X11.equals(type)) {
             windowClass = Class.forName("com.sun.javafx.newt.x11.X11Window");
-        } else if (NewtFactory.AWT.equals(type)) {
+        } else if (NativeWindowFactory.TYPE_AWT.equals(type)) {
             windowClass = Class.forName("com.sun.javafx.newt.awt.AWTWindow");
         } else {
             throw new NativeWindowException("Unknown window type \"" + type + "\"");
@@ -102,7 +99,7 @@ public abstract class Window implements NativeWindow
         }
     }
 
-    protected static Window wrapHandle(String type, Screen screen, Capabilities caps, AbstractGraphicsConfiguration config, 
+    protected static Window wrapHandle(String type, Screen screen, AbstractGraphicsConfiguration config, 
                                  long windowHandle, boolean fullscreen, boolean visible, 
                                  int x, int y, int width, int height) 
     {
@@ -111,7 +108,6 @@ public abstract class Window implements NativeWindow
             Window window = (Window) windowClass.newInstance();
             window.invalidate();
             window.screen   = screen;
-            window.chosenCaps = caps;
             window.config = config;
             window.windowHandle = windowHandle;
             window.fullscreen=fullscreen;
@@ -165,15 +161,12 @@ public abstract class Window implements NativeWindow
     public String toString() {
         StringBuffer sb = new StringBuffer();
 
-        sb.append("NEWT-Window[windowHandle "+getWindowHandle()+
+        sb.append("NEWT-Window[config "+config+
+                    ", windowHandle "+getWindowHandle()+
                     ", surfaceHandle "+getSurfaceHandle()+
                     ", pos "+getX()+"/"+getY()+", size "+getWidth()+"x"+getHeight()+
                     ", visible "+isVisible()+
-                    ", wrappedWindow "+getWrappedWindow()+
-                    ", config "+config+
-                    ", "+chosenCaps+
-                    ", screen handle/index "+getScreenHandle()+"/"+getScreenIndex() +
-                    ", display handle "+getDisplayHandle());
+                    ", wrappedWindow "+getWrappedWindow());
 
         sb.append(", WindowListeners num "+windowListeners.size()+" [");
         for (Iterator iter = windowListeners.iterator(); iter.hasNext(); ) {
@@ -193,8 +186,6 @@ public abstract class Window implements NativeWindow
 
     protected Screen screen;
 
-    // The Capabilities is used to determine the AbstractGraphicsConfiguration
-    protected Capabilities chosenCaps;
     protected AbstractGraphicsConfiguration config;
     protected long   windowHandle;
     protected boolean locked=false;
@@ -268,8 +259,6 @@ public abstract class Window implements NativeWindow
     public void invalidate(boolean internal) {
         unlockSurface();
         screen   = null;
-        config = null;
-        chosenCaps = null;
         windowHandle = 0;
         locked = false;
         fullscreen=false;
@@ -288,19 +277,11 @@ public abstract class Window implements NativeWindow
     }
 
     public long getDisplayHandle() {
-        if(null==screen ||
-           null==screen.getDisplay()) {
-           return 0;
-        }
         return screen.getDisplay().getHandle();
     }
 
-    public long getScreenHandle() {
-        return (null!=screen)?screen.getHandle():0;
-    }
-
     public int  getScreenIndex() {
-        return (null!=screen)?screen.getIndex():0;
+        return screen.getIndex();
     }
 
     public long getWindowHandle() {
@@ -312,11 +293,8 @@ public abstract class Window implements NativeWindow
     }
 
     public Capabilities getChosenCapabilities() {
-        if (chosenCaps == null)
-          return null;
-
         // Must return a new copy to avoid mutation by end user
-        return (Capabilities) chosenCaps.clone();
+        return (Capabilities) config.getCapabilities().clone();
     }
 
     public AbstractGraphicsConfiguration getGraphicsConfiguration() {

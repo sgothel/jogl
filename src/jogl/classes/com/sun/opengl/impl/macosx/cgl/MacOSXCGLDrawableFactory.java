@@ -49,29 +49,26 @@ import com.sun.opengl.impl.*;
 public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
   public MacOSXCGLDrawableFactory() {
     super();
+
+    // Register our GraphicsConfigurationFactory implementations
+    // The act of constructing them causes them to be registered
+    new MacOSXCGLGraphicsConfigurationFactory();
   }
 
-  public GLDrawable createGLDrawable(NativeWindow target,
-                                     GLCapabilities capabilities,
-                                     GLCapabilitiesChooser chooser) {
+  public GLDrawable createGLDrawable(NativeWindow target) {
     if (target == null) {
       throw new IllegalArgumentException("Null target");
     }
-    target = NativeWindowFactory.getNativeWindow(target);
-    if (capabilities == null) {
-      capabilities = new GLCapabilities();
-    }
-    if (chooser == null) {
-      chooser = new DefaultGLCapabilitiesChooser();
-    }
-    return new MacOSXOnscreenCGLDrawable(this, target, capabilities, chooser);
+    target = NativeWindowFactory.getNativeWindow(target, null);
+    return new MacOSXOnscreenCGLDrawable(this, target);
   }
 
   public GLDrawableImpl createOffscreenDrawable(GLCapabilities capabilities,
                                                 GLCapabilitiesChooser chooser,
                                                 int width,
                                                 int height) {
-    return new MacOSXOffscreenCGLDrawable(this, capabilities, width, height);
+    AbstractGraphicsScreen aScreen = DefaultGraphicsScreen.createDefault();
+    return new MacOSXOffscreenCGLDrawable(this, aScreen, capabilities, chooser, width, height);
   }
 
   public boolean canCreateGLPbuffer() {
@@ -87,7 +84,8 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
     final GLDrawableFactory factory = this;
     Runnable r = new Runnable() {
         public void run() {
-          MacOSXPbufferCGLDrawable pbufferDrawable = new MacOSXPbufferCGLDrawable(factory, capabilities,
+          AbstractGraphicsScreen aScreen = DefaultGraphicsScreen.createDefault();
+          MacOSXPbufferCGLDrawable pbufferDrawable = new MacOSXPbufferCGLDrawable(factory, aScreen, capabilities, chooser,
 										initialWidth,
 										initialHeight);
           GLPbufferImpl pbuffer = new GLPbufferImpl(pbufferDrawable, shareWith);
@@ -99,7 +97,8 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   public GLContext createExternalGLContext() {
-    return new MacOSXExternalCGLContext();
+    AbstractGraphicsScreen aScreen = DefaultGraphicsScreen.createDefault();
+    return new MacOSXExternalCGLContext(aScreen);
   }
 
   public boolean canCreateExternalGLDrawable() {

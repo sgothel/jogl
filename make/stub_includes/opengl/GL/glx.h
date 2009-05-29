@@ -297,10 +297,8 @@ extern void glXSelectEvent( Display *dpy, GLXDrawable drawable,
 extern void glXGetSelectedEvent( Display *dpy, GLXDrawable drawable,
                                  unsigned long *mask );
 
-
 /* GLX 1.4 and later */
 extern void (*glXGetProcAddress(const GLubyte *procname))();
-
 
 #ifndef GLX_GLXEXT_LEGACY
 

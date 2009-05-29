@@ -44,7 +44,7 @@ import javax.media.nativewindow.*;
 import com.sun.nativewindow.impl.*;
 
 public abstract class JAWTWindow implements NativeWindow {
-  protected static final boolean DEBUG = Debug.debug("GLDrawable");
+  protected static final boolean DEBUG = Debug.debug("NativeWindow");
 
   // See whether we're running in headless mode
   private static boolean headlessMode;
@@ -56,15 +56,16 @@ public abstract class JAWTWindow implements NativeWindow {
   // lifetime: forever
   protected Component component;
   protected boolean locked;
+  protected AbstractGraphicsConfiguration config;
 
   // lifetime: valid after lock, forever until invalidate
-  protected long display;
-  protected long screen;
   protected long drawable;
-  protected AbstractGraphicsConfiguration config;
-  protected int  screenIndex;
 
-  public JAWTWindow(Object comp) {
+  public JAWTWindow(Object comp, AbstractGraphicsConfiguration config) {
+    if (config == null) {
+        throw new NativeWindowException("Error: AbstractGraphicsConfiguration is null");
+    }
+    this.config = config;
     init((Component)comp);
   }
 
@@ -79,16 +80,18 @@ public abstract class JAWTWindow implements NativeWindow {
   public synchronized void invalidate() {
     locked = false;
     component = null;
-    display= 0;
-    screen= 0;
-    screenIndex = -1;
     drawable= 0;
-    config = null;
   }
 
   public synchronized int lockSurface() throws NativeWindowException {
+    if(DEBUG) {
+        if(JAWTUtil.isToolkitLocked()) {
+          JAWTUtil.getLockedStack().printStackTrace();
+          throw new NativeWindowException("JAWT already locked - "+this);
+        }
+    }
     if (locked) {
-      throw new NativeWindowException("Surface already locked");
+      throw new NativeWindowException("Surface already locked - "+this);
     }
     locked = true;
     return LOCK_SUCCESS;
@@ -105,13 +108,10 @@ public abstract class JAWTWindow implements NativeWindow {
   }
 
   public long getDisplayHandle() {
-    return display;
-  }
-  public long getScreenHandle() {
-    return screen;
+    return config.getScreen().getDevice().getHandle();
   }
   public int getScreenIndex() {
-    return screenIndex;
+    return config.getScreen().getIndex();
   }
   public long getWindowHandle() {
     return drawable;
@@ -142,14 +142,13 @@ public abstract class JAWTWindow implements NativeWindow {
   public String toString() {
     StringBuffer sb = new StringBuffer();
 
-    sb.append("JAWT-Window[windowHandle "+getWindowHandle()+
+    sb.append("JAWT-Window[config "+config+
+                ", windowHandle "+getWindowHandle()+
                 ", surfaceHandle "+getSurfaceHandle()+
                 ", pos "+component.getX()+"/"+component.getY()+", size "+getWidth()+"x"+getHeight()+
                 ", visible "+component.isVisible()+
-                ", wrappedWindow "+getWrappedWindow()+
-                ", config "+config+
-                ", screen handle/index "+getScreenHandle()+"/"+getScreenIndex() +
-                ", display handle "+getDisplayHandle()+"]");
+                ", locked "+locked+
+                ", wrappedWindow "+getWrappedWindow()+"]");
 
     return sb.toString();
   }

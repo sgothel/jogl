@@ -33,13 +33,18 @@
 
 package com.sun.javafx.newt.awt;
 
+import java.awt.*;
 import com.sun.javafx.newt.*;
+import javax.media.nativewindow.*;
+import javax.media.nativewindow.awt.*;
 
 public class AWTDisplay extends Display {
     public AWTDisplay() {
     }
 
     protected void createNative() {
-        handle = 0;
+        aDevice = (AWTGraphicsDevice) AWTGraphicsDevice.createDevice(null); // default 
     }
+
+    protected void closeNative() { }
 }

@@ -42,6 +42,7 @@ package com.sun.opengl.impl.windows.wgl;
 import java.nio.*;
 import java.util.*;
 import javax.media.opengl.*;
+import javax.media.nativewindow.*;
 import com.sun.opengl.impl.*;
 
 public class WindowsExternalWGLContext extends WindowsWGLContext {
@@ -49,7 +50,7 @@ public class WindowsExternalWGLContext extends WindowsWGLContext {
   private boolean created = true;
   private GLContext lastContext;
 
-  public WindowsExternalWGLContext() {
+  public WindowsExternalWGLContext(AbstractGraphicsScreen absScreen) {
     // FIXME: figure out how to hook back in the Java 2D / JOGL bridge
     super(null, null);
     hglrc = WGL.wglGetCurrentContext();

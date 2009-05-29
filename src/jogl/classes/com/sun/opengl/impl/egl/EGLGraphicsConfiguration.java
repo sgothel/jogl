@@ -41,7 +41,7 @@ import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
 import com.sun.gluegen.runtime.NativeLibrary;
 
-public class EGLConfig implements AbstractGraphicsConfiguration {
+public class EGLGraphicsConfiguration extends DefaultGraphicsConfiguration implements Cloneable {
     
     public _EGLConfig getNativeConfig() {
         return _config;
@@ -51,23 +51,25 @@ public class EGLConfig implements AbstractGraphicsConfiguration {
         return configID;
     }
 
-    public GLCapabilities getCapabilities() {
-        return capabilities;
+    public EGLGraphicsConfiguration(AbstractGraphicsScreen screen, GLCapabilities caps, _EGLConfig cfg, int cfgID) {
+        super(screen, caps);
+        _config = cfg;
+        configID = cfgID;
     }
 
-    public int[] getAttributeList() {
-        return glCapabilities2AttribList(capabilities);
+    public Object clone() {
+        return super.clone();
     }
 
-    public EGLConfig(long display, int configID) {
+    public static _EGLConfig EGLConfigId2EGLConfig(long display, int configID) {
         int[] attrs = new int[] {
                 EGL.EGL_RENDERABLE_TYPE, -1,
                 EGL.EGL_CONFIG_ID, configID,
                 EGL.EGL_NONE
             };
-        if (GLProfile.isGLES2()) {
+        if (GLProfile.usesNativeGLES2()) {
             attrs[1] = EGL.EGL_OPENGL_ES2_BIT;
-        } else if (GLProfile.isGLES1()) {
+        } else if (GLProfile.usesNativeGLES1()) {
             attrs[1] = EGL.EGL_OPENGL_ES_BIT;
         } else {
             throw new GLException("Error creating EGL drawable - invalid GLProfile");
@@ -78,66 +80,41 @@ public class EGLConfig implements AbstractGraphicsConfiguration {
                                  attrs, 0,
                                  configs, 1,
                                  numConfigs, 0)) {
-            throw new GLException("Graphics configuration selection (eglChooseConfig) failed");
+            return null;
         }
         if (numConfigs[0] == 0) {
-            throw new GLException("No valid graphics configuration selected from eglChooseConfig");
+            return null;
         }
-        capabilities = new GLCapabilities();
-        setup(display, configID, configs[0]);
+        return configs[0];
     }
 
-    public EGLConfig(long display, GLCapabilities caps) {
-        int[] attrs = glCapabilities2AttribList(caps);
-        _EGLConfig[] configs = new _EGLConfig[1];
-        int[] numConfigs = new int[1];
-        if (!EGL.eglChooseConfig(display,
-                                 attrs, 0,
-                                 configs, 1,
-                                 numConfigs, 0)) {
-            throw new GLException("Graphics configuration selection (eglChooseConfig) failed");
-        }
-        if (numConfigs[0] == 0) {
-            throw new GLException("No valid graphics configuration selected from eglChooseConfig");
-        }
-        capabilities = (GLCapabilities)caps.clone();
-        setup(display, -1, configs[0]);
-    }
-
-    private void setup(long display, int setConfigID, _EGLConfig _config) {
-        this._config = _config;
+    public static GLCapabilities EGLConfig2Capabilities(long display, _EGLConfig _config) {
+        GLCapabilities caps = new GLCapabilities();
         int[] val = new int[1];
-        // get the configID 
-        if(EGL.eglGetConfigAttrib(display, _config, EGL.EGL_CONFIG_ID, val, 0)) {
-            configID = val[0];
-            if( setConfigID>=0 && setConfigID!=this.configID ) {
-                throw new GLException("EGL ConfigID mismatch, ask "+setConfigID+", got "+configID);
-            }
-        } else {
-            throw new GLException("EGL couldn't retrieve ConfigID");
-        }
+
         // Read the actual configuration into the choosen caps
         if(EGL.eglGetConfigAttrib(display, _config, EGL.EGL_RED_SIZE, val, 0)) {
-            capabilities.setRedBits(val[0]);
+            caps.setRedBits(val[0]);
         }
         if(EGL.eglGetConfigAttrib(display, _config, EGL.EGL_GREEN_SIZE, val, 0)) {
-            capabilities.setGreenBits(val[0]);
+            caps.setGreenBits(val[0]);
         }
         if(EGL.eglGetConfigAttrib(display, _config, EGL.EGL_BLUE_SIZE, val, 0)) {
-            capabilities.setBlueBits(val[0]);
+            caps.setBlueBits(val[0]);
         }
         if(EGL.eglGetConfigAttrib(display, _config, EGL.EGL_ALPHA_SIZE, val, 0)) {
-            capabilities.setAlphaBits(val[0]);
+            caps.setAlphaBits(val[0]);
         }
         if(EGL.eglGetConfigAttrib(display, _config, EGL.EGL_STENCIL_SIZE, val, 0)) {
-            capabilities.setStencilBits(val[0]);
+            caps.setStencilBits(val[0]);
         }
         if(EGL.eglGetConfigAttrib(display, _config, EGL.EGL_DEPTH_SIZE, val, 0)) {
-            capabilities.setDepthBits(val[0]);
+            caps.setDepthBits(val[0]);
         }
+        return caps;
     }
 
-    public static int[] glCapabilities2AttribList(GLCapabilities caps) {
+    public static int[] GLCapabilities2AttribList(GLCapabilities caps) {
         int[] attrs = new int[] {
                 EGL.EGL_RENDERABLE_TYPE, -1,
                 // FIXME: does this need to be configurable?
@@ -150,23 +127,23 @@ public class EGLConfig implements AbstractGraphicsConfiguration {
                 EGL.EGL_DEPTH_SIZE,      caps.getDepthBits(),
                 EGL.EGL_NONE
             };
-        if (GLProfile.isGLES2()) {
-            attrs[1] = EGL.EGL_OPENGL_ES2_BIT;
-        } else if (GLProfile.isGLES1()) {
+
+        if(GLProfile.usesNativeGLES1()) {
             attrs[1] = EGL.EGL_OPENGL_ES_BIT;
+        }
+        else if(GLProfile.usesNativeGLES2()) {
+            attrs[1] = EGL.EGL_OPENGL_ES2_BIT;
         } else {
-            throw new GLException("Error creating EGL drawable - invalid GLProfile");
+            attrs[1] = EGL.EGL_OPENGL_BIT;
         }
 
         return attrs;
     }
 
     public String toString() {
-        return "EGLConfig[ id "+configID+
-                           ", "+capabilities+"]";
+        return getClass().toString()+"["+getScreen()+", eglConfigID "+configID+ ", "+getCapabilities()+"]";
     }
     private _EGLConfig _config;
     private int configID;
-    private GLCapabilities capabilities;
 }
 

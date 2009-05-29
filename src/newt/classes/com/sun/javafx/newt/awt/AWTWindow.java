@@ -47,8 +47,8 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.*;
 import com.sun.javafx.newt.Window;
-import javax.media.nativewindow.Capabilities;
-import javax.media.nativewindow.NativeWindowException;
+import javax.media.nativewindow.*;
+import javax.media.nativewindow.awt.*;
 
 /** An implementation of the Newt Window class built using the
     AWT. This is provided for convenience of porting to platforms
@@ -76,8 +76,10 @@ public class AWTWindow extends Window {
     }
 
     protected void createNative(Capabilities caps) {
-        chosenCaps = (Capabilities) caps.clone(); // FIXME: visualID := f1(caps); caps := f2(visualID)
-        config = null; // n/a
+        config = GraphicsConfigurationFactory.getFactory(getScreen().getDisplay().getGraphicsDevice()).chooseGraphicsConfiguration(caps, null, getScreen().getGraphicsScreen());
+        if (config == null) {
+            throw new NativeWindowException("Error choosing GraphicsConfiguration creating window: "+this);
+        }
         runOnEDT(new Runnable() {
                 public void run() {
                     frame = new Frame(getTitle());

@@ -53,10 +53,8 @@ public class WindowsOnscreenWGLDrawable extends WindowsWGLDrawable {
   private int  profilingSwapBuffersTicks;
   private long profilingSwapBuffersTime;
 
-  protected WindowsOnscreenWGLDrawable(GLDrawableFactory factory, NativeWindow component,
-                                   GLCapabilities capabilities,
-                                   GLCapabilitiesChooser chooser) {
-    super(factory, component, false, capabilities, chooser);
+  protected WindowsOnscreenWGLDrawable(GLDrawableFactory factory, NativeWindow component) {
+    super(factory, component, false);
   }
 
   public GLContext createContext(GLContext shareWith) {

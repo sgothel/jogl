@@ -39,20 +39,42 @@
 
 package javax.media.nativewindow.awt;
 
+import javax.media.nativewindow.*;
 import java.awt.GraphicsConfiguration;
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 
 /** A wrapper for an AWT GraphicsConfiguration allowing it to be
     handled in a toolkit-independent manner. */
 
-public class AWTGraphicsConfiguration implements AbstractGraphicsConfiguration {
+public class AWTGraphicsConfiguration extends DefaultGraphicsConfiguration implements Cloneable {
   private GraphicsConfiguration config;
+  AbstractGraphicsConfiguration encapsuled;
 
-  public AWTGraphicsConfiguration(GraphicsConfiguration config) {
+  public AWTGraphicsConfiguration(AWTGraphicsScreen screen, Capabilities caps, GraphicsConfiguration config, AbstractGraphicsConfiguration encapsuled) {
+    super(screen, caps);
     this.config = config;
+    this.encapsuled=encapsuled;
+  }
+
+  public AWTGraphicsConfiguration(AWTGraphicsScreen screen, Capabilities caps, GraphicsConfiguration config) {
+    super(screen, caps);
+    this.config = config;
+    this.encapsuled=null;
+  }
+
+  public Object clone() {
+      return super.clone();
   }
 
   public GraphicsConfiguration getGraphicsConfiguration() {
     return config;
+  }
+
+  public AbstractGraphicsConfiguration getNativeGraphicsConfiguration() {
+    return (null!=encapsuled)?encapsuled:this;
+  }
+
+  public String toString() {
+    return getClass().toString()+"[" + getScreen() + ", " + getCapabilities() + ", " + config +", encapsuled "+encapsuled+"]";
   }
 }

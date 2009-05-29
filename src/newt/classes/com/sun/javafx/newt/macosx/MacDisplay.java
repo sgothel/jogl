@@ -34,12 +34,15 @@
 package com.sun.javafx.newt.macosx;
 
 import com.sun.javafx.newt.*;
+import javax.media.nativewindow.*;
 
 public class MacDisplay extends Display {
     public MacDisplay() {
     }
 
     protected void createNative() {
-        handle = 0;
+        aDevice = new DefaultGraphicsDevice(NativeWindowFactory.TYPE_MACOSX);
     }
+
+    protected void closeNative() { }
 }

@@ -41,6 +41,7 @@ package javax.media.opengl.awt;
 
 import javax.media.opengl.*;
 import javax.media.nativewindow.*;
+import javax.media.nativewindow.awt.*;
 
 import java.awt.*;
 import java.awt.geom.*;
@@ -142,8 +143,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
     if (Java2D.isOGLPipelineActive() && Java2D.isFBOEnabled()) {
       Java2D.getShareContext(GraphicsEnvironment.
                              getLocalGraphicsEnvironment().
-                             getDefaultScreenDevice().
-                             getDefaultConfiguration());
+                             getDefaultScreenDevice());
     }
     GLProfile.setProfile(GLProfile.GL2);
     factory = GLDrawableFactoryImpl.getFactoryImpl();

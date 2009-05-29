@@ -50,8 +50,8 @@ import java.security.*;
 
 public class MacOSXJAWTWindow extends JAWTWindow {
 
-  public MacOSXJAWTWindow(Object comp) {
-    super(comp);
+  public MacOSXJAWTWindow(Object comp, AbstractGraphicsConfiguration config) {
+    super(comp, config);
   }
 
   protected void initNative() throws NativeWindowException {
@@ -65,6 +65,7 @@ public class MacOSXJAWTWindow extends JAWTWindow {
     ds = JAWT.getJAWT().GetDrawingSurface(component);
     if (ds == null) {
       // Widget not yet realized
+      super.unlockSurface();
       return NativeWindow.LOCK_SURFACE_NOT_READY;
     }
     int res = ds.Lock();
@@ -94,6 +95,7 @@ public class MacOSXJAWTWindow extends JAWTWindow {
       ds.Unlock();
       JAWT.getJAWT().FreeDrawingSurface(ds);
       ds = null;
+      super.unlockSurface();
       return NativeWindow.LOCK_SURFACE_NOT_READY;
     }
     firstLock = false;
@@ -105,14 +107,10 @@ public class MacOSXJAWTWindow extends JAWTWindow {
       JAWT.getJAWT().FreeDrawingSurface(ds);
       ds = null;
       dsi = null;
+      super.unlockSurface();
       return NativeWindow.LOCK_SURFACE_NOT_READY;
     }
     drawable = macosxdsi.cocoaViewRef();
-    // FIXME: Are the followup abstractions available ? would it be usefull ?
-    display  = 0;
-    config = null;
-    screen= 0;
-    screenIndex = 0;
 
     if (drawable == 0) {
       // Widget not yet realized
@@ -122,6 +120,7 @@ public class MacOSXJAWTWindow extends JAWTWindow {
       ds = null;
       dsi = null;
       macosxdsi = null;
+      super.unlockSurface();
       return NativeWindow.LOCK_SURFACE_NOT_READY;
     }
     return ret;

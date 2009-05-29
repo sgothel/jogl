@@ -122,11 +122,11 @@ public class Capabilities implements Cloneable {
   /** Returns a textual representation of this Capabilities
       object. */ 
   public String toString() {
-    return ("Capabilities [" +
+    return getClass().toString()+"[" +
 	    "Red: " + redBits +
 	    ", Green: " + greenBits +
 	    ", Blue: " + blueBits +
 	    ", Alpha: " + alphaBits +
-	    " ]");
+	    " ]";
   }
 }

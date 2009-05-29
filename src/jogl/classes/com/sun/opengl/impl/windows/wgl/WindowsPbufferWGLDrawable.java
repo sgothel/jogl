@@ -40,6 +40,7 @@
 package com.sun.opengl.impl.windows.wgl;
 
 import javax.media.opengl.*;
+import javax.media.nativewindow.*;
 import com.sun.opengl.impl.*;
 import com.sun.nativewindow.impl.NullWindow;
 
@@ -52,12 +53,15 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
   private int floatMode;
 
   public WindowsPbufferWGLDrawable(GLDrawableFactory factory,
+                                   AbstractGraphicsScreen absScreen,
                                    GLCapabilities requestedCapabilities,
+                                   final GLCapabilitiesChooser chooser,
                                    int width,
                                    int height,
                                    WindowsWGLDrawable dummyDrawable,
                                    WGLExt wglExt) {
-    super(factory, new NullWindow(), true, requestedCapabilities, null);
+    super(factory, new NullWindow(WindowsWGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(
+                                        requestedCapabilities, chooser, absScreen, true) ), true);
     if (width <= 0 || height <= 0) {
       throw new GLException("Width and height of pbuffer must be positive (were (" +
 			    width + ", " + height + "))");
@@ -66,10 +70,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
     nw.setSize(width, height);
 
     if (DEBUG) {
-      System.out.println("Pbuffer caps on init: " + requestedCapabilities +
-                         (requestedCapabilities.getPbufferRenderToTexture() ? " [rtt]" : "") +
-                         (requestedCapabilities.getPbufferRenderToTextureRectangle() ? " [rect]" : "") +
-                         (requestedCapabilities.getPbufferFloatingPointBuffers() ? " [float]" : ""));
+      System.out.println("Pbuffer caps: " + requestedCapabilities);
     }
 
     createPbuffer(dummyDrawable.getNativeWindow().getSurfaceHandle(), wglExt);
@@ -95,7 +96,6 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
         throw new GLException("Error destroying pbuffer: error code " + WGL.GetLastError());
       }
       buffer = 0;
-      setChosenGLCapabilities(null);
     }
   }
 
@@ -124,33 +124,26 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
     */
   }
 
-  // This is public to allow access from PbufferContext
-  public GLCapabilities getRequestedGLCapabilities() {
-    return super.getRequestedGLCapabilities();
-  }
-
   private void createPbuffer(long parentHdc, WGLExt wglExt) {
-    int[]   iattributes = new int  [2*MAX_ATTRIBS];
+    int[]   iattributes = new int  [2*WindowsWGLGraphicsConfiguration.MAX_ATTRIBS];
     float[] fattributes = new float[1];
     int[]   floatModeTmp = new int[1];
     int     niattribs   = 0;
     int     width, height;
 
-    GLCapabilities capabilities = getRequestedGLCapabilities();
+    WindowsWGLGraphicsConfiguration config = (WindowsWGLGraphicsConfiguration) getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration();
+    GLCapabilities capabilities = (GLCapabilities)config.getCapabilities();
 
     if (DEBUG) {
       System.out.println("Pbuffer parentHdc = " + toHexString(parentHdc));
-      System.out.println("Pbuffer caps: " + capabilities +
-                         (capabilities.getPbufferRenderToTexture() ? " [rtt]" : "") +
-                         (capabilities.getPbufferRenderToTextureRectangle() ? " [rect]" : "") +
-                         (capabilities.getPbufferFloatingPointBuffers() ? " [float]" : ""));
+      System.out.println("Pbuffer caps: " + capabilities);
     }
 
-    if (!glCapabilities2iattributes(capabilities,
+    if(!WindowsWGLGraphicsConfiguration.GLCapabilities2AttribList(capabilities,
                                     iattributes,
                                     wglExt,
                                     true,
-                                    floatModeTmp)) {
+                                    floatModeTmp)){
       throw new GLException("Pbuffer-related extensions not supported");
     }
 
@@ -164,15 +157,15 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
       ati = (floatMode == GLPbuffer.ATI_FLOAT);
     }
 
-    int[] pformats = new int[MAX_PFORMATS];
+    int[] pformats = new int[WindowsWGLGraphicsConfiguration.MAX_PFORMATS];
     int   nformats;
     int[] nformatsTmp = new int[1];
     if (!wglExt.wglChoosePixelFormatARB(parentHdc,
-                                        iattributes, 0,
-                                        fattributes, 0,
-                                        MAX_PFORMATS,
-                                        pformats, 0,
-                                        nformatsTmp, 0)) {
+                                     iattributes, 0,
+                                     fattributes, 0,
+                                     WindowsWGLGraphicsConfiguration.MAX_PFORMATS,
+                                     pformats, 0,
+                                     nformatsTmp, 0)) {
       throw new GLException("pbuffer creation error: wglChoosePixelFormat() failed");
     }
     nformats = nformatsTmp[0];
@@ -306,9 +299,20 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
       iattributes[niattribs++] = (haveMultisample ? WGLExt.WGL_SAMPLES_ARB : WGLExt.WGL_RED_BITS_ARB);
       iattributes[niattribs++] = WGLExt.WGL_DRAW_TO_PBUFFER_ARB;
       int[] ivalues = new int[niattribs];
-      // FIXME: usually prefer to throw exceptions, but failure here is not critical
       if (wglExt.wglGetPixelFormatAttribivARB(parentHdc, pformats[whichFormat], 0, niattribs, iattributes, 0, ivalues, 0)) {
-        setChosenGLCapabilities(iattributes2GLCapabilities(iattributes, niattribs, ivalues, false));
+        GLCapabilities newCaps = WindowsWGLGraphicsConfiguration.AttribList2GLCapabilities(iattributes, niattribs, ivalues, false);
+        PIXELFORMATDESCRIPTOR pfd = WindowsWGLGraphicsConfiguration.createPixelFormatDescriptor();
+        if (WGL.DescribePixelFormat(parentHdc, pformats[whichFormat], pfd.size(), pfd) == 0) {
+          throw new GLException("Unable to describe pixel format " + pformats[whichFormat]);
+        }
+        config.setCapsPFD(newCaps, pfd, pformats[whichFormat]);
+      } else {
+        PIXELFORMATDESCRIPTOR pfd = WindowsWGLGraphicsConfiguration.createPixelFormatDescriptor();
+        if (WGL.DescribePixelFormat(parentHdc, pformats[whichFormat], pfd.size(), pfd) == 0) {
+          throw new GLException("Unable to describe pixel format " + pformats[whichFormat]);
+        }
+        GLCapabilities newCaps = WindowsWGLGraphicsConfiguration.PFD2GLCapabilities(pfd);
+        config.setCapsPFD(newCaps, pfd, pformats[whichFormat]);
       }
     }
 

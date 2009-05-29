@@ -215,8 +215,8 @@ JNIEXPORT jboolean JNICALL Java_com_sun_javafx_newt_x11_X11Window_initIDs
     positionChangedID = (*env)->GetMethodID(env, clazz, "positionChanged", "(II)V");
     windowDestroyNotifyID = (*env)->GetMethodID(env, clazz, "windowDestroyNotify", "()V");
     windowDestroyedID = (*env)->GetMethodID(env, clazz, "windowDestroyed", "()V");
-    windowCreatedID = (*env)->GetMethodID(env, clazz, "windowCreated", "(JJJ)V");
-    sendMouseEventID = (*env)->GetMethodID(env, clazz, "sendMouseEvent", "(IIIII)V");
+    windowCreatedID = (*env)->GetMethodID(env, clazz, "windowCreated", "(JJ)V");
+    sendMouseEventID = (*env)->GetMethodID(env, clazz, "sendMouseEvent", "(IIIIII)V");
     sendKeyEventID = (*env)->GetMethodID(env, clazz, "sendKeyEvent", "(IIIC)V");
     if (sizeChangedID == NULL ||
         positionChangedID == NULL ||
@@ -233,15 +233,14 @@ JNIEXPORT jboolean JNICALL Java_com_sun_javafx_newt_x11_X11Window_initIDs
 /*
  * Class:     com_sun_javafx_newt_x11_X11Window
  * Method:    CreateWindow
- * Signature: (JJIJIIII)J
+ * Signature: (JIJIIII)J
  */
 JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_x11_X11Window_CreateWindow
-  (JNIEnv *env, jobject obj, jlong display, jlong screen, jint screen_index, 
+  (JNIEnv *env, jobject obj, jlong display, jint screen_index, 
                              jlong visualID,
                              jint x, jint y, jint width, jint height)
 {
-    Display * dpy  = NULL;
-    Screen  * scrn = NULL;
+    Display * dpy  = (Display *)(intptr_t)display;
     int       scrn_idx = (int)screen_index;
     Window  windowParent = 0;
     Window  window = 0;
@@ -253,67 +252,40 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_x11_X11Window_CreateWindow
 
     XSetWindowAttributes xswa;
     unsigned long attrMask;
-
     int n;
 
     DBG_PRINT( "CreateWindow %x/%d %dx%d\n", x, y, width, height);
 
-    dpy  = (Display *)(intptr_t)display;
     if(dpy==NULL) {
         fprintf(stderr, "[CreateWindow] invalid display connection..\n");
         return 0;
     }
 
-    scrn = (Screen *)(intptr_t)screen;
-    if(scrn==NULL) {
-        fprintf(stderr, "invalid screen connection..\n");
+    if(visualID<0) {
+        fprintf(stderr, "[CreateWindow] invalid VisualID ..\n");
         return 0;
     }
 
-    if(visualID>0) {
-        // try given VisualID on screen
-        memset(&visualTemplate, 0, sizeof(XVisualInfo));
-        visualTemplate.screen = scrn_idx;
-        visualTemplate.visualid = (VisualID)visualID;
-        pVisualQuery = XGetVisualInfo(dpy, VisualIDMask|VisualScreenMask, &visualTemplate,&n);
-        DUMP_VISUAL_INFO("Given VisualID,ScreenIdx", pVisualQuery);
-        if(pVisualQuery!=NULL) {
-            visual   = pVisualQuery->visual;
-            depth    = pVisualQuery->depth;
-            visualID = (jlong)pVisualQuery->visualid;
-            XFree(pVisualQuery);
-            pVisualQuery=NULL;
-        }
-        DBG_PRINT( "trying given (screen %d, visualID: %d) found: %p\n", scrn_idx, (int)visualID, visual);
+    Screen * scrn = ScreenOfDisplay(dpy, screen_index);
+
+    // try given VisualID on screen
+    memset(&visualTemplate, 0, sizeof(XVisualInfo));
+    visualTemplate.screen = scrn_idx;
+    visualTemplate.visualid = (VisualID)visualID;
+    pVisualQuery = XGetVisualInfo(dpy, VisualIDMask|VisualScreenMask, &visualTemplate,&n);
+    DUMP_VISUAL_INFO("Given VisualID,ScreenIdx", pVisualQuery);
+    if(pVisualQuery!=NULL) {
+        visual   = pVisualQuery->visual;
+        depth    = pVisualQuery->depth;
+        visualID = (jlong)pVisualQuery->visualid;
+        XFree(pVisualQuery);
+        pVisualQuery=NULL;
     }
+    DBG_PRINT( "trying given (screen %d, visualID: %d) found: %p\n", scrn_idx, (int)visualID, visual);
+
     if (visual==NULL)
     { 
-        // try default ..
-        visual = XDefaultVisualOfScreen(scrn);
-        if(visual!=NULL) {
-            visualID = (jlong)visual->visualid;
-            // try given VisualID on screen
-            memset(&visualTemplate, 0, sizeof(XVisualInfo));
-            visualTemplate.screen = scrn_idx;
-            visualTemplate.visualid = (VisualID)visualID;
-            pVisualQuery = XGetVisualInfo(dpy, VisualIDMask|VisualScreenMask, &visualTemplate,&n);
-            DUMP_VISUAL_INFO("Given ScreenIdx, Default VisualID", pVisualQuery);
-            if(pVisualQuery!=NULL) {
-                visual   = pVisualQuery->visual;
-                depth    = pVisualQuery->depth;
-                visualID = (jlong)pVisualQuery->visualid;
-                XFree(pVisualQuery);
-                pVisualQuery=NULL;
-            } else {
-                visual = NULL;
-                visualID = 0;
-            }
-            DBG_PRINT( "default visual (screen %d, visualID: %d) found: %p\n", scrn_idx, (int)visualID, visual);
-        }
-    }
-    if (visual==NULL)
-    { 
-        fprintf(stderr, "could not query any Visual, bail out!\n");
+        fprintf(stderr, "could not query Visual by given VisualID, bail out!\n");
         return 0;
     } 
 
@@ -350,7 +322,7 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_x11_X11Window_CreateWindow
     XSetWMProtocols(dpy, window, &wm_delete_window, 1);
     XClearWindow(dpy, window);
 
-    (*env)->CallVoidMethod(env, obj, windowCreatedID, visualID, (jlong) window, (jlong)wm_delete_window);
+    (*env)->CallVoidMethod(env, obj, windowCreatedID, (jlong) window, (jlong)wm_delete_window);
 
     return (jlong) window;
 }
@@ -488,21 +460,21 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_x11_X11Window_DispatchMessages
                 if(evt.xbutton.window==w) {
                     (*env)->CallVoidMethod(env, obj, sendMouseEventID, (jint) EVENT_MOUSE_PRESSED, 
                                           (jint) evt.xbutton.state, 
-                                          (jint) evt.xbutton.x, (jint) evt.xbutton.y, (jint) evt.xbutton.button);
+                                          (jint) evt.xbutton.x, (jint) evt.xbutton.y, (jint) evt.xbutton.button, 0 /*rotation*/);
                 }
                 break;
             case ButtonRelease:
                 if(evt.xbutton.window==w) {
                     (*env)->CallVoidMethod(env, obj, sendMouseEventID, (jint) EVENT_MOUSE_RELEASED, 
                                           (jint) evt.xbutton.state, 
-                                          (jint) evt.xbutton.x, (jint) evt.xbutton.y, (jint) evt.xbutton.button);
+                                          (jint) evt.xbutton.x, (jint) evt.xbutton.y, (jint) evt.xbutton.button, 0 /*rotation*/);
                 }
                 break;
             case MotionNotify:
                 if(evt.xmotion.window==w) {
                     (*env)->CallVoidMethod(env, obj, sendMouseEventID, (jint) EVENT_MOUSE_MOVED, 
                                           (jint) evt.xmotion.state, 
-                                          (jint) evt.xmotion.x, (jint) evt.xmotion.y, (jint) 0);
+                                          (jint) evt.xmotion.x, (jint) evt.xmotion.y, (jint) 0, 0 /*rotation*/);
                 }
                 break;
             case KeyPress:

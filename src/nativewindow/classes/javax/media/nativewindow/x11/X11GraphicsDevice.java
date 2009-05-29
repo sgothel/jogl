@@ -34,22 +34,19 @@ package javax.media.nativewindow.x11;
 
 import javax.media.nativewindow.*;
 
-/** Encapsulates a graphics device, or screen, on X11
-    platforms. Objects of this type are passed to {@link
-    NativeWindowFactory#chooseGraphicsConfiguration
-    NativeWindowFactory.chooseGraphicsConfiguration()} on X11
-    platforms when toolkits other than the AWT are being used.  */
+import com.sun.nativewindow.impl.x11.*;
 
-public class X11GraphicsDevice implements AbstractGraphicsDevice {
-    private int screen;
+/** Encapsulates a graphics device on X11 platforms.
+ */
 
-    /** Constructs a new X11GraphicsDevice corresponding to the given screen. */
-    public X11GraphicsDevice(int screen) {
-        this.screen = screen;
+public class X11GraphicsDevice extends DefaultGraphicsDevice implements Cloneable {
+    /** Constructs a new X11GraphicsDevice corresponding to the given native display handle. */
+    public X11GraphicsDevice(long display) {
+        super(NativeWindowFactory.TYPE_X11, display);
     }
 
-    /** Returns the screen that this graphics device object represents. */
-    public int getScreen() {
-        return screen;
+    public Object clone() {
+      return super.clone();
     }
 }
+

@@ -40,6 +40,7 @@
 package com.sun.opengl.impl.macosx.cgl;
 
 import javax.media.opengl.*;
+import javax.media.nativewindow.*;
 import com.sun.opengl.impl.*;
 
 public class MacOSXExternalCGLContext extends MacOSXCGLContext {
@@ -47,7 +48,7 @@ public class MacOSXExternalCGLContext extends MacOSXCGLContext {
   private boolean created = true;
   private GLContext lastContext;
 
-  public MacOSXExternalCGLContext() {
+  public MacOSXExternalCGLContext(AbstractGraphicsScreen absScreen) {
     super(null, null);
 
     // FIXME: we don't have a "current context" primitive implemented

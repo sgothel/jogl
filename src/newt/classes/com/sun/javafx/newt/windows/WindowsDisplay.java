@@ -34,12 +34,15 @@
 package com.sun.javafx.newt.windows;
 
 import com.sun.javafx.newt.*;
+import javax.media.nativewindow.*;
 
 public class WindowsDisplay extends Display {
     public WindowsDisplay() {
     }
 
     protected void createNative() {
-        handle = 0;
+        aDevice = new DefaultGraphicsDevice(NativeWindowFactory.TYPE_WINDOWS);
     }
+
+    protected void closeNative() { }
 }

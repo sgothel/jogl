@@ -51,10 +51,8 @@ public class MacOSXOnscreenCGLDrawable extends MacOSXCGLDrawable {
   private List/*<WeakReference<GLContext>>*/ createdContexts =
     new ArrayList();
 
-  protected MacOSXOnscreenCGLDrawable(GLDrawableFactory factory, NativeWindow component,
-                                  GLCapabilities capabilities,
-                                  GLCapabilitiesChooser chooser) {
-    super(factory, component, false, capabilities, chooser);
+  protected MacOSXOnscreenCGLDrawable(GLDrawableFactory factory, NativeWindow component) {
+    super(factory, component, false);
   }
 
   public GLContext createContext(GLContext shareWith) {

@@ -41,8 +41,7 @@ package javax.media.opengl.awt;
 
 import javax.media.opengl.*;
 import javax.media.nativewindow.*;
-import javax.media.nativewindow.awt.AWTGraphicsDevice;
-import javax.media.nativewindow.awt.AWTGraphicsConfiguration;
+import javax.media.nativewindow.awt.*;
 
 import com.sun.opengl.impl.*;
 
@@ -127,15 +126,6 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
                   GLCapabilitiesChooser chooser,
                   GLContext shareWith,
                   GraphicsDevice device) {
-    // The platform-specific GLDrawableFactory will only provide a
-    // non-null GraphicsConfiguration on platforms where this is
-    // necessary (currently only X11, as Windows allows the pixel
-    // format of the window to be set later and Mac OS X seems to
-    // handle this very differently than all other platforms). On
-    // other platforms this method returns null; it is the case (at
-    // least in the Sun AWT implementation) that this will result in
-    // equivalent behavior to calling the no-arg super() constructor
-    // for Canvas.
     /*
      * Workaround for Xinerama, always pass null so we can detect whether
      * super.getGraphicsConfiguration() is returning the Canvas' GC (null),
@@ -146,21 +136,33 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
     /*
      * Save the chosen capabilities for use in getGraphicsConfiguration().
      */
-    chosen = chooseGraphicsConfiguration(capabilities, chooser, device);
-    if (chosen != null) {
+    AWTGraphicsConfiguration config = chooseGraphicsConfiguration(capabilities, chooser, device);
+    if(DEBUG) {
+        Exception e = new Exception("Created Config: "+config);
+        e.printStackTrace();
+    }
+    if(null!=config) {
+      // update ..
+      chosen = config.getGraphicsConfiguration();
+
       /*
        * If we are running on a platform that
        * must select a GraphicsConfiguration now,
        * save these for later use in getGraphicsConfiguration().
        */
       this.glCapChooser = chooser;
-      this.glCaps = capabilities;
+      this.glCaps = (GLCapabilities)config.getCapabilities();
     }
     if (!Beans.isDesignTime()) {
-      drawable = GLDrawableFactory.getFactory().createGLDrawable(NativeWindowFactory.getFactory(getClass()).getNativeWindow(this), 
-                                                                 capabilities, chooser);
+      if(null==config) {
+          throw new GLException("Error: AWTGraphicsConfiguration is null");
+      }
+      drawable = GLDrawableFactory.getFactory().createGLDrawable(NativeWindowFactory.getNativeWindow(this, config));
       context = (GLContextImpl) drawable.createContext(shareWith);
       context.setSynchronized(true);
+    }
+    if(DEBUG) {
+        System.err.println("Created Drawable: "+drawable);
     }
   }
 
@@ -243,7 +245,8 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
          * block, both devices should have the same visual list, and the
          * same configuration should be selected here.
          */
-        final GraphicsConfiguration compatible = chooseGraphicsConfiguration(glCaps, glCapChooser, gc.getDevice());
+        AWTGraphicsConfiguration config = chooseGraphicsConfiguration(glCaps, glCapChooser, gc.getDevice());
+        final GraphicsConfiguration compatible = (null!=config)?config.getGraphicsConfiguration():null;
 
         if (compatible != null) {
           /*
@@ -352,6 +355,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
     super.addNotify();
     if (!Beans.isDesignTime()) {
       disableBackgroundErase();
+
       drawable.setRealized(true);
     }
   }
@@ -609,23 +613,23 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
     }
   }
 
-  private static GraphicsConfiguration chooseGraphicsConfiguration(GLCapabilities capabilities,
-                                                                   GLCapabilitiesChooser chooser,
-                                                                   GraphicsDevice device) {
+  private static AWTGraphicsConfiguration chooseGraphicsConfiguration(GLCapabilities capabilities,
+                                                                      GLCapabilitiesChooser chooser,
+                                                                      GraphicsDevice device) {
     // Make GLCanvas behave better in NetBeans GUI builder
     if (Beans.isDesignTime()) {
       return null;
     }
 
-    AWTGraphicsDevice awtDevice = new AWTGraphicsDevice(device);
+    AbstractGraphicsScreen aScreen = AWTGraphicsScreen.createScreenDevice(device);
     AWTGraphicsConfiguration config = (AWTGraphicsConfiguration)
-      GraphicsConfigurationFactory.getFactory(awtDevice).chooseGraphicsConfiguration(capabilities,
-                                                                                     chooser,
-                                                                                     awtDevice);
+      GraphicsConfigurationFactory.getFactory(AWTGraphicsDevice.class).chooseGraphicsConfiguration(capabilities,
+                                                                                                   chooser,
+                                                                                                   aScreen);
     if (config == null) {
-      return null;
+      throw new GLException("Error: Couldn't fetch AWTGraphicsConfiguration");
     }
 
-    return config.getGraphicsConfiguration();
+    return config;
   }
 }

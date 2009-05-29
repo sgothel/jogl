@@ -47,6 +47,8 @@ import java.lang.reflect.*;
 import java.security.*;
 
 import javax.media.opengl.*;
+import javax.media.nativewindow.*;
+import javax.media.nativewindow.awt.*;
 
 /** Defines integration with the Java2D OpenGL pipeline. This
     integration is only supported in 1.6 and is highly experimental. */
@@ -285,8 +287,7 @@ public class Java2D {
       // Queue Flusher Thread, which isn't allowed
       initFBOShareContext(GraphicsEnvironment.
                           getLocalGraphicsEnvironment().
-                          getDefaultScreenDevice().
-                          getDefaultConfiguration());
+                          getDefaultScreenDevice());
 
       AWTUtil.lockToolkit();
       try {
@@ -437,8 +438,7 @@ public class Java2D {
     // FIXME: this may need adjustment
     initFBOShareContext(GraphicsEnvironment.
                         getLocalGraphicsEnvironment().
-                        getDefaultScreenDevice().
-                        getDefaultConfiguration());
+                        getDefaultScreenDevice());
     if (j2dFBOShareContext != null) {
       return j2dFBOShareContext;
     }
@@ -449,8 +449,8 @@ public class Java2D {
       context", with which all contexts created by JOGL must share
       textures and display lists when the FBO option is enabled for
       the Java2D/OpenGL pipeline. */
-  public static GLContext getShareContext(GraphicsConfiguration gc) {
-    initFBOShareContext(gc);
+  public static GLContext getShareContext(GraphicsDevice device) {
+    initFBOShareContext(device);
     // FIXME: for full generality probably need to have multiple of
     // these, one per GraphicsConfiguration seen?
     return j2dFBOShareContext;
@@ -536,7 +536,7 @@ public class Java2D {
     return i.intValue();
   }
 
-  private static void initFBOShareContext(final GraphicsConfiguration gc) {
+  private static void initFBOShareContext(final GraphicsDevice device) {
     // Note 1: this must not be done in the static initalizer due to
     // deadlock problems.
 
@@ -556,9 +556,10 @@ public class Java2D {
       if (DEBUG) {
         System.err.println("Starting initialization of J2D FBO share context");
       }
-      invokeWithOGLSharedContextCurrent(gc, new Runnable() {
+      invokeWithOGLSharedContextCurrent(device.getDefaultConfiguration(), new Runnable() {
           public void run() {
-            j2dFBOShareContext = GLDrawableFactory.getFactory().createExternalGLContext();
+            // AbstractGraphicsScreen awtscreen = AWTGraphicsScreen.createScreenDevice(device);
+            j2dFBOShareContext = GLDrawableFactory.getFactory().createExternalGLContext(/*awtscreen*/);
           }
         });
       if (DEBUG) {

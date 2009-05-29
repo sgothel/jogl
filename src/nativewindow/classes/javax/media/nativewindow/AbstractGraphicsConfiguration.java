@@ -42,5 +42,24 @@ package javax.media.nativewindow;
 /** A marker interface describing a graphics configuration, visual, or
     pixel format in a toolkit-independent manner. */
 
-public interface AbstractGraphicsConfiguration {
+public interface AbstractGraphicsConfiguration extends Cloneable {
+    /**
+     * Return the screen this graphics configuration is valid for
+     */
+    public AbstractGraphicsScreen getScreen();
+
+    /**
+     * Return the capabilities reflecting this graphics configuration,
+     * which may differ from the capabilites used to choose this configuration.
+     */
+    public Capabilities getCapabilities();
+
+    /**
+     * In case this instance already reflects a native configuration,
+     * return this one.
+     * Otherwise return the encapsuled native configuration, 
+     * as it shall be included e.g. in the AWT case.
+     */
+    public AbstractGraphicsConfiguration getNativeGraphicsConfiguration();
 }
+

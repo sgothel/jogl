@@ -39,8 +39,20 @@
 
 package javax.media.nativewindow;
 
-/** A marker interface describing a graphics device in a
-    toolkit-independent manner. */
+/** A interface describing a graphics device in a
+    toolkit-independent manner.
+ */
 
-public interface AbstractGraphicsDevice {
+public interface AbstractGraphicsDevice extends Cloneable {
+    /**
+     * Returns the type of the underlying subsystem, ie
+     * NativeWindowFactory.TYPE_KD, NativeWindowFactory.TYPE_X11, ..
+     */
+    public String getType();
+
+    /**
+     * Returns the native handle of the underlying native device,
+     * if such thing exist.
+     */
+    public long getHandle();
 }

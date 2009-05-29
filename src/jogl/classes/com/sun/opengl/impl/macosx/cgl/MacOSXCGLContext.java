@@ -42,6 +42,7 @@ package com.sun.opengl.impl.macosx.cgl;
 import java.nio.*;
 import java.util.*;
 import javax.media.opengl.*;
+import javax.media.nativewindow.*;
 import com.sun.opengl.impl.*;
 import com.sun.gluegen.runtime.ProcAddressTable;
 
@@ -109,8 +110,10 @@ public abstract class MacOSXCGLContext extends GLContextImpl
         throw new GLException("GLContextShareSet returned an invalid OpenGL context");
       }
     }
+    MacOSXCGLGraphicsConfiguration config = (MacOSXCGLGraphicsConfiguration) drawable.getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration();
+    GLCapabilities capabilities = (GLCapabilities)config.getCapabilities();
+    // FIXME: Shall being moved to MacOSXCGLGraphicsConfiguration !
     int[] viewNotReady = new int[1];
-    GLCapabilities capabilities = drawable.getRequestedGLCapabilities();
     int[] iattribs = new int[128];
     int[] ivalues = new int[128];
     int idx = 0;
@@ -166,9 +169,10 @@ public abstract class MacOSXCGLContext extends GLContextImpl
       // On this platform the pixel format is associated with the
       // context and not the drawable. However it's a reasonable
       // approximation to just store the chosen pixel format up in the
-      // drawable since the public API doesn't provide for a different
-      // GLCapabilities per context.
-      if (drawable.getChosenGLCapabilities() == null) {
+      // NativeWindow's AbstractGraphicsConfiguration, 
+      // since the public API doesn't provide for a different GLCapabilities per context.
+      // Note: These restrictions of the platform's API might be considered as a bug anyways.
+      if (!config.getIsUpdated()) {
         // Figure out what attributes we really got
         GLCapabilities caps = new GLCapabilities();
         CGL.queryPixelFormat(pixelFormat, iattribs, 0, idx, ivalues, 0);
@@ -234,7 +238,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
           }
         }
 
-        drawable.setChosenGLCapabilities(caps);
+        config.update(caps);
       }
       
       

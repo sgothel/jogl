@@ -34,12 +34,15 @@
 package com.sun.javafx.newt.macosx;
 
 import com.sun.javafx.newt.*;
+import javax.media.nativewindow.*;
 
 public class MacScreen extends Screen {
     public MacScreen() {
     }
 
-    protected void createNative() {
-        handle = 0;
+    protected void createNative(int index) {
+        aScreen = new DefaultGraphicsScreen(getDisplay().getGraphicsDevice(), index);
     }
+
+    protected void closeNative() { }
 }

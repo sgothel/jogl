@@ -36,20 +36,21 @@ import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import javax.media.nativewindow.*;
-import javax.media.nativewindow.x11.X11GraphicsConfiguration;
-import javax.media.nativewindow.x11.X11GraphicsDevice;
-import javax.media.nativewindow.awt.AWTGraphicsConfiguration;
-import javax.media.nativewindow.awt.AWTGraphicsDevice;
+import javax.media.nativewindow.x11.*;
+import javax.media.nativewindow.awt.*;
 import javax.media.opengl.*;
 import javax.media.opengl.awt.*;
 
 import com.sun.opengl.impl.*;
 import com.sun.nativewindow.impl.jawt.*;
 import com.sun.nativewindow.impl.jawt.x11.*;
+import com.sun.nativewindow.impl.x11.*;
 import com.sun.opengl.impl.x11.*;
 import com.sun.opengl.impl.x11.glx.*;
 
 public class X11AWTGLXGraphicsConfigurationFactory extends GraphicsConfigurationFactory {
+    protected static final boolean DEBUG = Debug.debug("GraphicsConfiguration");
+
     public X11AWTGLXGraphicsConfigurationFactory() {
         GraphicsConfigurationFactory.registerFactory(javax.media.nativewindow.awt.AWTGraphicsDevice.class,
                                                      this);
@@ -57,19 +58,18 @@ public class X11AWTGLXGraphicsConfigurationFactory extends GraphicsConfiguration
 
     public AbstractGraphicsConfiguration chooseGraphicsConfiguration(Capabilities capabilities,
                                                                      CapabilitiesChooser chooser,
-                                                                     AbstractGraphicsDevice absDevice) {
+                                                                     AbstractGraphicsScreen absScreen) {
         GraphicsDevice device = null;
-        if (absDevice != null &&
-            !(absDevice instanceof AWTGraphicsDevice)) {
-            throw new IllegalArgumentException("This GraphicsConfigurationFactory accepts only AWTGraphicsDevice objects");
+        if (absScreen != null &&
+            !(absScreen instanceof AWTGraphicsScreen)) {
+            throw new IllegalArgumentException("This GraphicsConfigurationFactory accepts only AWTGraphicsScreen objects");
         }
 
-        if ((absDevice == null) ||
-            (((AWTGraphicsDevice) absDevice).getGraphicsDevice() == null)) {
-            device = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
-        } else {
-            device = ((AWTGraphicsDevice) absDevice).getGraphicsDevice();
+        if(null==absScreen) {
+            absScreen = AWTGraphicsScreen.createScreenDevice(-1);
         }
+        AWTGraphicsScreen awtScreen = (AWTGraphicsScreen) absScreen;
+        device = ((AWTGraphicsDevice)awtScreen.getDevice()).getGraphicsDevice();
 
         if (capabilities != null &&
             !(capabilities instanceof GLCapabilities)) {
@@ -81,15 +81,35 @@ public class X11AWTGLXGraphicsConfigurationFactory extends GraphicsConfiguration
             throw new IllegalArgumentException("This GraphicsConfigurationFactory accepts only GLCapabilitiesChooser objects");
         }
 
-        // Fabricate an X11GraphicsDevice and delegate to the GraphicsConfigurationFactory for those
-        // 
-        // Note that we could derive from X11GLXGraphicsConfigurationFactory, but that would
-        // limit the ability of third parties to plug in new visual selection algorithms
-        X11GraphicsDevice x11Device = new X11GraphicsDevice(X11SunJDKReflection.graphicsDeviceGetScreen(device));
+        if(DEBUG) {
+            Exception e = new Exception("X11AWTGLXGraphicsConfigurationFactory: got "+absScreen);
+            e.printStackTrace();
+        }
+        long displayHandle = 0;
+        NativeWindowFactory.getDefaultFactory().getToolkitLock().lock();
+        try {
+            displayHandle = X11SunJDKReflection.graphicsDeviceGetScreen(device);
+            if(0==displayHandle) {
+                displayHandle = X11Util.getDefaultDisplay();
+                ((AWTGraphicsDevice)awtScreen.getDevice()).setHandle(displayHandle);
+                if(DEBUG) {
+                    System.err.println("X11AWTGLXGraphicsConfigurationFactory: using default X11 display");
+                }
+            }
+        } catch (Throwable t) {
+        } finally {
+          NativeWindowFactory.getDefaultFactory().getToolkitLock().unlock();
+        }
+        X11GraphicsDevice x11Device = new X11GraphicsDevice(displayHandle);
+        X11GraphicsScreen x11Screen = new X11GraphicsScreen(x11Device, awtScreen.getIndex());
+        if(DEBUG) {
+            System.err.println("X11AWTGLXGraphicsConfigurationFactory: made "+x11Screen);
+        }
+
         X11GraphicsConfiguration x11Config = (X11GraphicsConfiguration)
             GraphicsConfigurationFactory.getFactory(x11Device).chooseGraphicsConfiguration(capabilities,
                                                                                            chooser,
-                                                                                           x11Device);
+                                                                                           x11Screen);
         if (x11Config != null) {
             long visualID = x11Config.getVisualID();
             // Now figure out which GraphicsConfiguration corresponds to this
@@ -99,7 +119,7 @@ public class X11AWTGLXGraphicsConfigurationFactory extends GraphicsConfiguration
                 GraphicsConfiguration config = configs[i];
                 if (config != null) {
                     if (X11SunJDKReflection.graphicsConfigurationGetVisualID(config) == visualID) {
-                        return new AWTGraphicsConfiguration(config);
+                        return new AWTGraphicsConfiguration(awtScreen, x11Config.getCapabilities(), config, x11Config);
                     }
                 }
             }

@@ -45,103 +45,13 @@ import com.sun.opengl.impl.*;
 import com.sun.nativewindow.impl.x11.*;
 
 public abstract class X11GLXDrawable extends GLDrawableImpl {
-  protected static final boolean DEBUG = Debug.debug("X11GLXDrawable");
+    protected static final boolean DEBUG = Debug.debug("X11GLXDrawable");
 
-  protected GLCapabilitiesChooser chooser;
-
-  protected X11GLXDrawable(GLDrawableFactory factory, NativeWindow comp, boolean realized,
-                           GLCapabilities requestedCapabilities,
-                           GLCapabilitiesChooser chooser) {
-    super(factory, comp, requestedCapabilities, realized);
-    this.chooser = chooser;
-  }
+    protected X11GLXDrawable(GLDrawableFactory factory, NativeWindow comp, boolean realized) {
+        super(factory, comp, realized);
+    }
 
   //---------------------------------------------------------------------------
   // Internals only below this point
   //
-
-  protected XVisualInfo chooseVisual(boolean onscreen) {
-    long display = getNativeWindow().getDisplayHandle();
-    long visualID = ((X11GLXDrawableFactory) getFactory()).getVisualID(getNativeWindow().getGraphicsConfiguration());
-    if (display == 0) {
-      throw new GLException("null display");
-    }
-
-    // FIXME
-    if (onscreen) {
-      // The visual has already been chosen by the time we get here;
-      // it's specified by the GraphicsConfiguration of the
-      // GLCanvas. Fortunately, the JAWT supplies the visual ID for
-      // the component in a portable fashion, so all we have to do is
-      // use XGetVisualInfo with a VisualIDMask to get the
-      // corresponding XVisualInfo to pass into glXChooseVisual.
-      int[] count = new int[1];
-      XVisualInfo template = XVisualInfo.create();
-      // FIXME: probably not 64-bit clean
-      template.visualid((int) visualID);
-      getFactoryImpl().lockToolkit();
-      XVisualInfo[] infos = X11Lib.XGetVisualInfo(display, X11Lib.VisualIDMask, template, count, 0);
-      getFactoryImpl().unlockToolkit();
-      if (infos == null || infos.length == 0) {
-        throw new GLException("Error while getting XVisualInfo for visual ID " + visualID+", "+this);
-      }
-      if (DEBUG) {
-        System.err.println("!!! Fetched XVisualInfo for visual ID 0x" + Long.toHexString(visualID));
-        System.err.println("!!! Resulting XVisualInfo: visualid = 0x" + Long.toHexString(infos[0].visualid()));
-      }
-      // FIXME: the storage for the infos array is leaked (should
-      // clean it up somehow when we're done with the visual we're
-      // returning)
-      return infos[0];
-    } else {
-      // It isn't clear to me whether we need this much code to handle
-      // the offscreen case, where we're creating a pixmap into which
-      // to render...this is what we (incorrectly) used to do for the
-      // onscreen case
-
-      int screen = 0; // FIXME: provide way to specify this?
-      XVisualInfo vis = null;
-      int[] count = new int[1];
-      XVisualInfo template = XVisualInfo.create();
-      template.screen(screen);
-      XVisualInfo[] infos = null;
-      GLCapabilities[] caps = null;
-      getFactoryImpl().lockToolkit();
-      try {
-        infos = X11Lib.XGetVisualInfo(display, X11Lib.VisualScreenMask, template, count, 0);
-        if (infos == null) {
-          throw new GLException("Error while enumerating available XVisualInfos");
-        }
-        caps = new GLCapabilities[infos.length];
-        for (int i = 0; i < infos.length; i++) {
-          caps[i] = ((X11GLXDrawableFactory)getFactory()).xvi2GLCapabilities(display, infos[i]);
-        }
-      } finally {
-        getFactoryImpl().unlockToolkit();
-      }
-      GLCapabilities capabilities = getRequestedGLCapabilities();
-      int chosen;
-      try {
-        chosen = chooser.chooseCapabilities(capabilities, caps, -1);
-      } catch (NativeWindowException e) {
-        throw new GLException(e);
-      }
-      if (chosen < 0 || chosen >= caps.length) {
-        throw new GLException("GLCapabilitiesChooser specified invalid index (expected 0.." + (caps.length - 1) + ")");
-      }
-      if (DEBUG) {
-        System.err.println("Chosen visual (" + chosen + "):");
-        System.err.println(caps[chosen]);
-      }
-      vis = infos[chosen];
-      if (vis == null) {
-        throw new GLException("GLCapabilitiesChooser chose an invalid visual");
-      }
-      // FIXME: the storage for the infos array is leaked (should
-      // clean it up somehow when we're done with the visual we're
-      // returning)
-
-      return vis;
-    }
-  }
 }

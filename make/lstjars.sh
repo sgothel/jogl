@@ -5,8 +5,12 @@ STATDIR=$THISDIR/../stats
 
 BUILDDIR=$1
 if [ -z "$BUILDDIR" ] ; then 
-    BUILDDIR=$THISDIR/../build
+    echo "usage $0 <BUILDDIR>"
+    exit 1
 fi
+
+idir=$BUILDDIR/jogl/gensrc/classes/javax/media/opengl
+
 
 function report() {
     #ls -1 -s --block-size=1024 $*

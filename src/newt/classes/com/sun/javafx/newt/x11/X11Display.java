@@ -35,6 +35,8 @@ package com.sun.javafx.newt.x11;
 
 import com.sun.javafx.newt.*;
 import com.sun.javafx.newt.impl.*;
+import javax.media.nativewindow.*;
+import javax.media.nativewindow.x11.*;
 
 public class X11Display extends Display {
     static {
@@ -45,11 +47,14 @@ public class X11Display extends Display {
     }
 
     protected void createNative() {
-        handle = CreateDisplay(name);
+        long handle = CreateDisplay(name);
         if (handle == 0 ) {
             throw new RuntimeException("Error creating display: "+name);
         }
+        aDevice = new X11GraphicsDevice(handle);
     }
+
+    protected void closeNative() { }
 
     //----------------------------------------------------------------------
     // Internals only

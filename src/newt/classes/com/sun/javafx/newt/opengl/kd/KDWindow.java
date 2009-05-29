@@ -36,7 +36,7 @@ package com.sun.javafx.newt.opengl.kd;
 import com.sun.javafx.newt.*;
 import com.sun.javafx.newt.impl.*;
 import com.sun.opengl.impl.egl.*;
-import javax.media.nativewindow.Capabilities;
+import javax.media.nativewindow.*;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;
 import javax.media.nativewindow.NativeWindowException;
@@ -58,41 +58,21 @@ public class KDWindow extends Window {
     }
 
     protected void createNative(Capabilities caps) {
-        int eglRenderableType;
-        if(GLProfile.isGLES1()) {
-            eglRenderableType = EGL.EGL_OPENGL_ES_BIT;
+        config = GraphicsConfigurationFactory.getFactory(getScreen().getDisplay().getGraphicsDevice()).chooseGraphicsConfiguration(caps, null, getScreen().getGraphicsScreen());
+        if (config == null) {
+            throw new NativeWindowException("Error choosing GraphicsConfiguration creating window: "+this);
         }
-        else if(GLProfile.isGLES2()) {
-            eglRenderableType = EGL.EGL_OPENGL_ES2_BIT;
-        } else {
-            eglRenderableType = EGL.EGL_OPENGL_BIT;
-        }
-        GLCapabilities glCaps = null;
-        if (caps instanceof GLCapabilities) {
-            glCaps = (GLCapabilities) caps;
-        } else {
-            glCaps = new GLCapabilities();
-            glCaps.setRedBits(caps.getRedBits());
-            glCaps.setGreenBits(caps.getGreenBits());
-            glCaps.setBlueBits(caps.getBlueBits());
-            glCaps.setAlphaBits(caps.getAlphaBits());
-        }
-        EGLConfig config = new EGLConfig(getDisplayHandle(), glCaps);
-        this.config = config;
-        chosenCaps = config.getCapabilities();
+
+        GLCapabilities eglCaps = (GLCapabilities)config.getCapabilities();
+        int[] eglAttribs = EGLGraphicsConfiguration.GLCapabilities2AttribList(eglCaps);
 
         windowHandle = 0;
         windowID = ++_windowID;
-        eglWindowHandle = CreateWindow(windowID, getDisplayHandle(), config.getAttributeList());
+        eglWindowHandle = CreateWindow(windowID, getDisplayHandle(), eglAttribs);
         if (eglWindowHandle == 0) {
-            throw new NativeWindowException("Error creating egl window: "+eglWindowHandle);
+            throw new NativeWindowException("Error creating egl window: "+config);
         }
         setVisible0(eglWindowHandle, false);
-        /*
-        windowHandle = RealizeWindow(eglWindowHandle);
-        if (0 == windowHandle) {
-            throw new NativeWindowException("Error native Window Handle is null");
-        } */
         windowHandleClose = eglWindowHandle;
     }
 
@@ -162,7 +142,7 @@ public class KDWindow extends Window {
             nfs_width=width;
             nfs_height=height;
         } else {
-            screen.setScreenSize(width, height);
+            ((KDScreen)screen).setScreenSize(width, height);
         }
         sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED);
     }

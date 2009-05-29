@@ -37,13 +37,14 @@ package com.sun.opengl.impl.egl;
 
 import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
+import javax.media.nativewindow.*;
 
 public class EGLExternalContext extends EGLContext {
     private boolean firstMakeCurrent = true;
     private boolean created = true;
     private GLContext lastContext;
 
-    public EGLExternalContext() {
+    public EGLExternalContext(AbstractGraphicsScreen screen) {
         super(null, null);
         GLContextShareSet.contextCreated(this);
         resetGLFunctionAvailability();

@@ -50,7 +50,7 @@ public class X11ExternalGLXContext extends X11GLXContext {
   private boolean created = true;
   private GLContext lastContext;
 
-  public X11ExternalGLXContext() {
+  public X11ExternalGLXContext(AbstractGraphicsScreen screen) {
     super(null, null);
     getDrawableImpl().getFactoryImpl().lockToolkit();
     try {
@@ -58,8 +58,7 @@ public class X11ExternalGLXContext extends X11GLXContext {
       if (context == 0) {
         throw new GLException("Error: attempted to make an external GLContext without a drawable/context current");
       }
-      NullWindow nw = new NullWindow();
-      nw.setDisplayHandle(GLX.glXGetCurrentDisplay());
+      NullWindow nw = new NullWindow(X11GLXGraphicsConfigurationFactory.createDefaultGraphicsConfiguration(screen, false));
       drawable = new Drawable(getGLDrawable().getFactory(), nw);
     } finally {
       getDrawableImpl().getFactoryImpl().unlockToolkit();
@@ -111,7 +110,7 @@ public class X11ExternalGLXContext extends X11GLXContext {
   // Need to provide the display connection to extension querying APIs
   class Drawable extends X11GLXDrawable {
     Drawable(GLDrawableFactory factory, NativeWindow comp) {
-      super(factory, comp, true, null, null);
+      super(factory, comp, true);
     }
 
     public GLContext createContext(GLContext shareWith) {

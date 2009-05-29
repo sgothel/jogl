@@ -169,7 +169,7 @@ public class GLUquadricImpl implements GLUquadric {
   }
 
   public void enableImmModeSink(boolean val) {
-    if(!GLProfile.isGLES()) {
+    if(GLProfile.isGL2()) {
         immModeSinkEnabled=val;
     } else {
         immModeSinkEnabled=true;

@@ -36,7 +36,8 @@ package com.sun.javafx.newt.opengl.kd;
 import com.sun.javafx.newt.*;
 import com.sun.javafx.newt.impl.*;
 import com.sun.opengl.impl.egl.*;
-import javax.media.nativewindow.NativeWindowException;
+import javax.media.nativewindow.*;
+import javax.media.nativewindow.egl.*;
 
 public class KDDisplay extends Display {
     static {
@@ -48,12 +49,19 @@ public class KDDisplay extends Display {
 
     protected void createNative() {
         // FIXME: map name to EGL_*_DISPLAY
-        handle = EGL.eglGetDisplay(EGL.EGL_DEFAULT_DISPLAY);
+        long handle = EGL.eglGetDisplay(EGL.EGL_DEFAULT_DISPLAY);
         if (handle == EGL.EGL_NO_DISPLAY) {
             throw new NativeWindowException("eglGetDisplay failed");
         }
         if (!EGL.eglInitialize(handle, null, null)) {
             throw new NativeWindowException("eglInitialize failed");
+        }
+        aDevice = new EGLGraphicsDevice(handle);
+    }
+
+    protected void closeNative() {
+        if (aDevice.getHandle() != EGL.EGL_NO_DISPLAY) {
+            EGL.eglTerminate(aDevice.getHandle());
         }
     }
 }

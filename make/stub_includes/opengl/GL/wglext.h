@@ -189,6 +189,16 @@ extern "C" {
 #define WGL_TYPE_RGBA_FLOAT_ARB        0x21A0
 #endif
 
+#ifndef WGL_ARB_create_context
+#define WGL_CONTEXT_MAJOR_VERSION_ARB   0x2091
+#define WGL_CONTEXT_MINOR_VERSION_ARB   0x2092
+#define WGL_CONTEXT_LAYER_PLANE_ARB     0x2093
+#define WGL_CONTEXT_FLAGS_ARB           0x2094
+#define WGL_CONTEXT_DEBUG_BIT_ARB       0x0001
+#define WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB  0x0002
+#define ERROR_INVALID_VERSION_ARB       0x2095
+#endif
+
 #ifndef WGL_EXT_make_current_read
 #define ERROR_INVALID_PIXEL_TYPE_EXT   0x2043
 #endif
@@ -450,6 +460,14 @@ typedef BOOL (WINAPI * PFNWGLSETPBUFFERATTRIBARBPROC) (HPBUFFERARB hPbuffer, con
 
 #ifndef WGL_ARB_pixel_format_float
 #define WGL_ARB_pixel_format_float 1
+#endif
+
+#ifndef WGL_ARB_create_context
+#define WGL_ARB_create_context 1
+#ifdef WGL_WGLEXT_PROTOTYPES
+extern HGLRC WINAPI wglCreateContextAttribsARB(HDC hDC, HGLRC hshareContext, const int *attribList);
+#endif /* WGL_WGLEXT_PROTOTYPES */
+typedef HGLRC (WINAPI * PFNWGLCREATECONTEXTATTRIBSARBPROC) (HDC hDC, HGLRC hshareContext, const int *attribList);
 #endif
 
 #ifndef WGL_EXT_display_color_table

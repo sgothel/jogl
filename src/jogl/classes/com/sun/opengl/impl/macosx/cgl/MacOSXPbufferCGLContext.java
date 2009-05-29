@@ -4,6 +4,7 @@ import java.security.*;
 import java.util.*;
 
 import javax.media.opengl.*;
+import javax.media.nativewindow.*;
 import com.sun.opengl.impl.*;
 
 public class MacOSXPbufferCGLContext extends MacOSXCGLContext {
@@ -79,8 +80,10 @@ public class MacOSXPbufferCGLContext extends MacOSXCGLContext {
       resetGLFunctionAvailability();
 
       // Initialize render-to-texture support if requested
+      DefaultGraphicsConfiguration config = (DefaultGraphicsConfiguration) drawable.getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration();
+      GLCapabilities capabilities = (GLCapabilities)config.getCapabilities();
       GL gl = getGL();
-      boolean rect = gl.isGL2() && drawable.getRequestedGLCapabilities().getPbufferRenderToTextureRectangle();
+      boolean rect = gl.isGL2() && capabilities.getPbufferRenderToTextureRectangle();
       if (rect) {
         if (!gl.isExtensionAvailable("GL_EXT_texture_rectangle")) {
           System.err.println("MacOSXPbufferCGLContext: WARNING: GL_EXT_texture_rectangle extension not " +
@@ -135,7 +138,8 @@ public class MacOSXPbufferCGLContext extends MacOSXCGLContext {
   }
 
   protected boolean create() {
-    GLCapabilities capabilities = drawable.getRequestedGLCapabilities();
+    DefaultGraphicsConfiguration config = (DefaultGraphicsConfiguration) drawable.getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration();
+    GLCapabilities capabilities = (GLCapabilities)config.getCapabilities();
     if (capabilities.getPbufferFloatingPointBuffers() &&
 	!isTigerOrLater) {
       throw new GLException("Floating-point pbuffers supported only on OS X 10.4 or later");
@@ -210,7 +214,8 @@ public class MacOSXPbufferCGLContext extends MacOSXCGLContext {
   // NSOpenGLContext-based implementation
   class NSOpenGLImpl implements Impl {
     public long create() {
-      GLCapabilities capabilities = drawable.getRequestedGLCapabilities();
+      DefaultGraphicsConfiguration config = (DefaultGraphicsConfiguration) drawable.getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration();
+      GLCapabilities capabilities = (GLCapabilities)config.getCapabilities();
       if (capabilities.getPbufferFloatingPointBuffers() &&
           !isTigerOrLater) {
         throw new GLException("Floating-point pbuffers supported only on OS X 10.4 or later");
@@ -262,10 +267,12 @@ public class MacOSXPbufferCGLContext extends MacOSXCGLContext {
       }
 
       // Set up pixel format attributes
+      // FIXME: shall go into MacOSXCGLGraphicsConfiguration
       int[] attrs = new int[256];
       int i = 0;
       attrs[i++] = CGL.kCGLPFAPBuffer;
-      GLCapabilities capabilities = drawable.getRequestedGLCapabilities();
+      DefaultGraphicsConfiguration config = (DefaultGraphicsConfiguration) drawable.getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration();
+      GLCapabilities capabilities = (GLCapabilities)config.getCapabilities();
       if (capabilities.getPbufferFloatingPointBuffers())
         attrs[i++] = CGL.kCGLPFAColorFloat;
       if (capabilities.getDoubleBuffered())

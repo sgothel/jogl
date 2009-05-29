@@ -54,40 +54,6 @@ import com.sun.nativewindow.impl.jawt.x11.*;
 public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
   protected static final boolean DEBUG = Debug.debug("X11GLXDrawableFactory");
 
-  // Map for rediscovering the GLCapabilities associated with a
-  // particular screen and visualID after the fact
-  protected static Map visualToGLCapsMap = Collections.synchronizedMap(new HashMap());
-  // The screens for which we've already initialized it
-  protected static Set/*<Integer>*/ initializedScreenSet = Collections.synchronizedSet(new HashSet());
-  
-  public static class ScreenAndVisualIDKey {
-    private int screen;
-    private long visualID;
-
-    public ScreenAndVisualIDKey(int screen,
-                                long visualID) {
-      this.screen = screen;
-      this.visualID = visualID;
-    }
-
-    public int hashCode() {
-      return (int) (screen + 13 * visualID);
-    }
-
-    public boolean equals(Object obj) {
-      if ((obj == null) || (!(obj instanceof ScreenAndVisualIDKey))) {
-        return false;
-      }
-
-      ScreenAndVisualIDKey key = (ScreenAndVisualIDKey) obj;
-      return (screen == key.screen &&
-              visualID == key.visualID);
-    }
-
-    int  screen()   { return screen; }
-    long visualID() { return visualID; }
-  }
-
   public X11GLXDrawableFactory() {
     super();
     // Must initialize GLX support eagerly in case a pbuffer is the
@@ -103,68 +69,20 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     }
   }
 
-  private static final int MAX_ATTRIBS = 128;
-
-  public AbstractGraphicsConfiguration chooseGraphicsConfiguration(GLCapabilities capabilities,
-                                                                   GLCapabilitiesChooser chooser,
-                                                                   AbstractGraphicsDevice absDevice) {
-    return null;
-  }
-
-  public GLDrawable createGLDrawable(NativeWindow target,
-                                     GLCapabilities capabilities,
-                                     GLCapabilitiesChooser chooser) {
+  public GLDrawable createGLDrawable(NativeWindow target) {
     if (target == null) {
       throw new IllegalArgumentException("Null target");
     }
-    target = NativeWindowFactory.getNativeWindow(target);
+    target = NativeWindowFactory.getNativeWindow(target, null);
     return new X11OnscreenGLXDrawable(this, target);
-  }
-
-  public void initializeVisualToGLCapabilitiesMap(int screen,
-                                                  XVisualInfo[] infos,
-                                                  GLCapabilities[] caps) {
-    Integer key = new Integer(screen);
-    if (!initializedScreenSet.contains(key)) {
-      for (int i = 0; i < infos.length; i++) {
-        if (caps[i] != null) {
-          visualToGLCapsMap.put(new ScreenAndVisualIDKey(screen, infos[i].visualid()),
-                                caps[i].clone());
-        }
-      }
-      initializedScreenSet.add(key);      
-    }
-  }
-
-  public GLCapabilities lookupCapabilitiesByScreenAndConfig(int screenIndex,
-                                                            AbstractGraphicsConfiguration config) {
-    return (GLCapabilities) visualToGLCapsMap.get(new ScreenAndVisualIDKey(screenIndex, getVisualID(config)));
-  }
-
-  public long getVisualID(AbstractGraphicsConfiguration config) {
-    if (config == null) {
-      return 0;
-    }
-    // FIXME: this is hopefully the last remaining place in this
-    // implementation that is over-specialized; third-party toolkits
-    // would need to use the X11GraphicsConfiguration in order to
-    // interoperate with this code
-    if (config instanceof X11GraphicsConfiguration) {
-      return ((X11GraphicsConfiguration) config).getVisualID();
-    }
-    try {
-      // The AWT-specific code and casts have been moved to the X11SunJDKReflection helper class
-      return X11SunJDKReflection.graphicsConfigurationGetVisualID(config);
-    } catch (Throwable t) {
-      return 0;
-    }
   }
 
   public GLDrawableImpl createOffscreenDrawable(GLCapabilities capabilities,
                                                 GLCapabilitiesChooser chooser,
                                                 int width,
                                                 int height) {
-    return new X11OffscreenGLXDrawable(this, capabilities, chooser, width, height);
+    AbstractGraphicsScreen screen = X11GraphicsScreen.createDefault();
+    return new X11OffscreenGLXDrawable(this, screen, capabilities, chooser, width, height);
   }
 
   private boolean pbufferSupportInitialized = false;
@@ -223,7 +141,8 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     final GLDrawableFactory factory = this;
     Runnable r = new Runnable() {
         public void run() {
-          X11PbufferGLXDrawable pbufferDrawable = new X11PbufferGLXDrawable(factory, capabilities,
+          AbstractGraphicsScreen screen = X11GraphicsScreen.createDefault();
+          X11PbufferGLXDrawable pbufferDrawable = new X11PbufferGLXDrawable(factory, screen, capabilities, chooser,
                                                                             initialWidth,
                                                                             initialHeight);
           GLPbufferImpl pbuffer = new GLPbufferImpl(pbufferDrawable, shareWith);
@@ -235,7 +154,8 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   public GLContext createExternalGLContext() {
-    return new X11ExternalGLXContext();
+    AbstractGraphicsScreen screen = X11GraphicsScreen.createDefault();
+    return new X11ExternalGLXContext(screen);
   }
 
   public boolean canCreateExternalGLDrawable() {
@@ -243,7 +163,8 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   public GLDrawable createExternalGLDrawable() {
-    return X11ExternalGLXDrawable.create(this);
+    AbstractGraphicsScreen screen = X11GraphicsScreen.createDefault();
+    return X11ExternalGLXDrawable.create(this, screen);
   }
 
   public void loadGLULibrary() {
@@ -258,231 +179,6 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
       res = X11Lib.dlsym(glFuncName);
     }
     return res;
-  }
-
-  public GLCapabilities xvi2GLCapabilities(long display, XVisualInfo info) {
-    int[] tmp = new int[1];
-    int val = glXGetConfig(display, info, GLX.GLX_USE_GL, tmp, 0);
-    if (val == 0) {
-      // Visual does not support OpenGL
-      return null;
-    }
-    val = glXGetConfig(display, info, GLX.GLX_RGBA, tmp, 0);
-    if (val == 0) {
-      // Visual does not support RGBA
-      return null;
-    }
-    GLCapabilities res = new GLCapabilities();
-    res.setDoubleBuffered(glXGetConfig(display, info, GLX.GLX_DOUBLEBUFFER,     tmp, 0) != 0);
-    res.setStereo        (glXGetConfig(display, info, GLX.GLX_STEREO,           tmp, 0) != 0);
-    // Note: use of hardware acceleration is determined by
-    // glXCreateContext, not by the XVisualInfo. Optimistically claim
-    // that all GLCapabilities have the capability to be hardware
-    // accelerated.
-    res.setHardwareAccelerated(true);
-    res.setDepthBits     (glXGetConfig(display, info, GLX.GLX_DEPTH_SIZE,       tmp, 0));
-    res.setStencilBits   (glXGetConfig(display, info, GLX.GLX_STENCIL_SIZE,     tmp, 0));
-    res.setRedBits       (glXGetConfig(display, info, GLX.GLX_RED_SIZE,         tmp, 0));
-    res.setGreenBits     (glXGetConfig(display, info, GLX.GLX_GREEN_SIZE,       tmp, 0));
-    res.setBlueBits      (glXGetConfig(display, info, GLX.GLX_BLUE_SIZE,        tmp, 0));
-    res.setAlphaBits     (glXGetConfig(display, info, GLX.GLX_ALPHA_SIZE,       tmp, 0));
-    res.setAccumRedBits  (glXGetConfig(display, info, GLX.GLX_ACCUM_RED_SIZE,   tmp, 0));
-    res.setAccumGreenBits(glXGetConfig(display, info, GLX.GLX_ACCUM_GREEN_SIZE, tmp, 0));
-    res.setAccumBlueBits (glXGetConfig(display, info, GLX.GLX_ACCUM_BLUE_SIZE,  tmp, 0));
-    res.setAccumAlphaBits(glXGetConfig(display, info, GLX.GLX_ACCUM_ALPHA_SIZE, tmp, 0));
-    if (GLXUtil.isMultisampleAvailable()) {
-      res.setSampleBuffers(glXGetConfig(display, info, GLX.GLX_SAMPLE_BUFFERS, tmp, 0) != 0);
-      res.setNumSamples   (glXGetConfig(display, info, GLX.GLX_SAMPLES,        tmp, 0));
-    }
-    return res;
-  }
-
-  public static int[] glCapabilities2AttribList(GLCapabilities caps,
-                                                boolean isMultisampleAvailable,
-                                                boolean pbuffer,
-                                                long display,
-                                                int screen) {
-    int colorDepth = (caps.getRedBits() +
-                      caps.getGreenBits() +
-                      caps.getBlueBits());
-    if (colorDepth < 15) {
-      throw new GLException("Bit depths < 15 (i.e., non-true-color) not supported");
-    }
-    int[] res = new int[MAX_ATTRIBS];
-    int idx = 0;
-    if (pbuffer) {
-      res[idx++] = GLX.GLX_DRAWABLE_TYPE;
-      res[idx++] = GLX.GLX_PBUFFER_BIT;
-
-      res[idx++] = GLX.GLX_RENDER_TYPE;
-      res[idx++] = GLX.GLX_RGBA_BIT;
-    } else {
-      res[idx++] = GLX.GLX_RGBA;
-    }
-    if (caps.getDoubleBuffered()) {
-      res[idx++] = GLX.GLX_DOUBLEBUFFER;
-      if (pbuffer) {
-        res[idx++] = GL.GL_TRUE;
-      }
-    } else {
-      if (pbuffer) {
-        res[idx++] = GLX.GLX_DOUBLEBUFFER;
-        res[idx++] = GL.GL_FALSE;
-      }
-    }
-    if (caps.getStereo()) {
-      res[idx++] = GLX.GLX_STEREO;
-      if (pbuffer) {
-        res[idx++] = GL.GL_TRUE;
-      }
-    }
-    // NOTE: don't set (GLX_STEREO, GL_FALSE) in "else" branch for
-    // pbuffer case to work around Mesa bug
-
-    res[idx++] = GLX.GLX_RED_SIZE;
-    res[idx++] = caps.getRedBits();
-    res[idx++] = GLX.GLX_GREEN_SIZE;
-    res[idx++] = caps.getGreenBits();
-    res[idx++] = GLX.GLX_BLUE_SIZE;
-    res[idx++] = caps.getBlueBits();
-    res[idx++] = GLX.GLX_ALPHA_SIZE;
-    res[idx++] = caps.getAlphaBits();
-    res[idx++] = GLX.GLX_DEPTH_SIZE;
-    res[idx++] = caps.getDepthBits();
-    if (caps.getStencilBits() > 0) {
-      res[idx++] = GLX.GLX_STENCIL_SIZE;
-      res[idx++] = caps.getStencilBits();
-    }
-    if (caps.getAccumRedBits()   > 0 ||
-        caps.getAccumGreenBits() > 0 ||
-        caps.getAccumBlueBits()  > 0 ||
-        caps.getAccumAlphaBits() > 0) {
-      res[idx++] = GLX.GLX_ACCUM_RED_SIZE;
-      res[idx++] = caps.getAccumRedBits();
-      res[idx++] = GLX.GLX_ACCUM_GREEN_SIZE;
-      res[idx++] = caps.getAccumGreenBits();
-      res[idx++] = GLX.GLX_ACCUM_BLUE_SIZE;
-      res[idx++] = caps.getAccumBlueBits();
-      res[idx++] = GLX.GLX_ACCUM_ALPHA_SIZE;
-      res[idx++] = caps.getAccumAlphaBits();
-    }
-    if (isMultisampleAvailable && caps.getSampleBuffers()) {
-      res[idx++] = GLX.GLX_SAMPLE_BUFFERS;
-      res[idx++] = GL.GL_TRUE;
-      res[idx++] = GLX.GLX_SAMPLES;
-      res[idx++] = caps.getNumSamples();
-    }
-    if (pbuffer) {
-      if (caps.getPbufferFloatingPointBuffers()) {
-        String glXExtensions = GLX.glXQueryExtensionsString(display, screen);
-        if (glXExtensions == null ||
-            glXExtensions.indexOf("GLX_NV_float_buffer") < 0) {
-          throw new GLException("Floating-point pbuffers on X11 currently require NVidia hardware");
-        }
-        res[idx++] = GLXExt.GLX_FLOAT_COMPONENTS_NV;
-        res[idx++] = GL.GL_TRUE;
-      }
-    }
-    res[idx++] = 0;
-    return res;
-  }
-
-  public static GLCapabilities attribList2GLCapabilities(int[] iattribs,
-                                                         int niattribs,
-                                                         int[] ivalues,
-                                                         boolean pbuffer) {
-    GLCapabilities caps = new GLCapabilities();
-
-    for (int i = 0; i < niattribs; i++) {
-      int attr = iattribs[i];
-      switch (attr) {
-        case GLX.GLX_DOUBLEBUFFER:
-          caps.setDoubleBuffered(ivalues[i] != GL.GL_FALSE);
-          break;
-
-        case GLX.GLX_STEREO:
-          caps.setStereo(ivalues[i] != GL.GL_FALSE);
-          break;
-
-        case GLX.GLX_RED_SIZE:
-          caps.setRedBits(ivalues[i]);
-          break;
-
-        case GLX.GLX_GREEN_SIZE:
-          caps.setGreenBits(ivalues[i]);
-          break;
-
-        case GLX.GLX_BLUE_SIZE:
-          caps.setBlueBits(ivalues[i]);
-          break;
-
-        case GLX.GLX_ALPHA_SIZE:
-          caps.setAlphaBits(ivalues[i]);
-          break;
-
-        case GLX.GLX_DEPTH_SIZE:
-          caps.setDepthBits(ivalues[i]);
-          break;
-
-        case GLX.GLX_STENCIL_SIZE:
-          caps.setStencilBits(ivalues[i]);
-          break;
-
-        case GLX.GLX_ACCUM_RED_SIZE:
-          caps.setAccumRedBits(ivalues[i]);
-          break;
-
-        case GLX.GLX_ACCUM_GREEN_SIZE:
-          caps.setAccumGreenBits(ivalues[i]);
-          break;
-
-        case GLX.GLX_ACCUM_BLUE_SIZE:
-          caps.setAccumBlueBits(ivalues[i]);
-          break;
-
-        case GLX.GLX_ACCUM_ALPHA_SIZE:
-          caps.setAccumAlphaBits(ivalues[i]);
-          break;
-
-        case GLX.GLX_SAMPLE_BUFFERS:
-          caps.setSampleBuffers(ivalues[i] != GL.GL_FALSE);
-          break;
-
-        case GLX.GLX_SAMPLES:
-          caps.setNumSamples(ivalues[i]);
-          break;
-
-        case GLXExt.GLX_FLOAT_COMPONENTS_NV:
-          caps.setPbufferFloatingPointBuffers(ivalues[i] != GL.GL_FALSE);
-          break;
-
-        default:
-          break;
-      }
-    }
-
-    return caps;
-  }
-
-  private static String glXGetConfigErrorCode(int err) {
-    switch (err) {
-      case GLX.GLX_NO_EXTENSION:  return "GLX_NO_EXTENSION";
-      case GLX.GLX_BAD_SCREEN:    return "GLX_BAD_SCREEN";
-      case GLX.GLX_BAD_ATTRIBUTE: return "GLX_BAD_ATTRIBUTE";
-      case GLX.GLX_BAD_VISUAL:    return "GLX_BAD_VISUAL";
-      default:                return "Unknown error code " + err;
-    }
-  }
-
-  public static int glXGetConfig(long display, XVisualInfo info, int attrib, int[] tmp, int tmp_offset) {
-    if (display == 0) {
-      throw new GLException("No display connection");
-    }
-    int res = GLX.glXGetConfig(display, info, attrib, tmp, tmp_offset);
-    if (res != 0) {
-      throw new GLException("glXGetConfig failed: error code " + glXGetConfigErrorCode(res));
-    }
-    return tmp[tmp_offset];
   }
 
   private void maybeDoSingleThreadedWorkaround(Runnable action) {

@@ -72,7 +72,8 @@ public class GLWindow extends Window implements GLAutoDrawable {
 
     /** Constructor. Do not call this directly -- use {@link
         create()} instead. */
-    protected GLWindow(Window window) {
+    protected GLWindow(Window window, boolean ownerOfDisplayAndScreen) {
+        this.ownerOfDisplayAndScreen = ownerOfDisplayAndScreen;
         this.window = window;
         this.window.setAutoDrawableClient(true);
         window.addWindowListener(new WindowListener() {
@@ -130,13 +131,16 @@ public class GLWindow extends Window implements GLAutoDrawable {
         if (caps == null) {
             caps = new GLCapabilities();
         }
+
+        boolean ownerOfDisplayAndScreen=false;
         if (window == null) {
+            ownerOfDisplayAndScreen = true;
             Display display = NewtFactory.createDisplay(null); // local display
             Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
             window = NewtFactory.createWindow(screen, caps, undecorated);
         }
 
-        return new GLWindow(window);
+        return new GLWindow(window, ownerOfDisplayAndScreen);
     }
     
     protected void createNative(Capabilities caps) {
@@ -162,9 +166,17 @@ public class GLWindow extends Window implements GLAutoDrawable {
             drawable.setRealized(false);
         }
 
-         if(null!=window) {
+        Screen _screen = null;
+        Display _device = null;
+        if(null!=window) {
+            if(ownerOfDisplayAndScreen) {
+                _screen = getScreen();
+                if(null != _screen) {
+                    _device = _screen.getDisplay();
+                }
+            }
             window.destroy();
-         } 
+        } 
 
         if(Window.DEBUG_WINDOW_EVENT) {
             System.out.println("GLWindow.destroy fin: "+this);
@@ -172,6 +184,13 @@ public class GLWindow extends Window implements GLAutoDrawable {
 
         drawable = null;
         context = null;
+
+        if(null != _screen) {
+            _screen.destroy();
+        }
+        if(null != _device) {
+            _device.destroy();
+        }
         window = null;
     }
 
@@ -251,13 +270,17 @@ public class GLWindow extends Window implements GLAutoDrawable {
             factory = GLDrawableFactory.getFactory();
             NativeWindow nw = window;
             if (window.getWrappedWindow() != null) {
-                nw = NativeWindowFactory.getNativeWindow(window.getWrappedWindow());
+                nw = NativeWindowFactory.getNativeWindow(window.getWrappedWindow(), nw.getGraphicsConfiguration());
             }
-            drawable = factory.createGLDrawable(nw, (GLCapabilities) window.getChosenCapabilities(), null);
+            drawable = factory.createGLDrawable(nw);
             window.setVisible(true);
             drawable.setRealized(true);
             context = drawable.createContext(null);
         }
+    }
+
+    public Screen getScreen() {
+        return window.getScreen();
     }
 
     public void setTitle(String title) {
@@ -495,6 +518,7 @@ public class GLWindow extends Window implements GLAutoDrawable {
     private long curTime = 0;
     private long lastCheck  = 0;
     private int  totalFrames = 0, lastFrames = 0;
+    private boolean ownerOfDisplayAndScreen;
 
     private DisplayAction displayAction = new DisplayAction();
 

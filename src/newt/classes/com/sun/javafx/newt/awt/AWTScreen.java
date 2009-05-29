@@ -34,12 +34,17 @@
 package com.sun.javafx.newt.awt;
 
 import com.sun.javafx.newt.*;
+import javax.media.nativewindow.*;
+import javax.media.nativewindow.awt.*;
 
 public class AWTScreen extends Screen {
     public AWTScreen() {
     }
 
-    protected void createNative() {
-        handle = 0;
+    protected void createNative(int index) {
+        aScreen = new AWTGraphicsScreen((AWTGraphicsDevice)display.getGraphicsDevice());
     }
+
+    protected void closeNative() { }
+
 }

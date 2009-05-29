@@ -46,7 +46,7 @@ import com.sun.opengl.impl.x11.*;
 
 public class X11OnscreenGLXDrawable extends X11GLXDrawable {
   protected X11OnscreenGLXDrawable(GLDrawableFactory factory, NativeWindow component) {
-    super(factory, component, false, null, null);
+    super(factory, component, false);
   }
 
   public GLContext createContext(GLContext shareWith) {
@@ -76,20 +76,5 @@ public class X11OnscreenGLXDrawable extends X11GLXDrawable {
       unlockSurface();
       getFactoryImpl().unlockToolkit();
     }
-  }
-
-  // This is public to allow access from the DrawableFactory
-  protected void setChosenGLCapabilities(GLCapabilities caps) {
-    super.setChosenGLCapabilities(caps);
-  }
-
-  public void setRealized(boolean realized) {
-    if (realized) {
-      X11GLXDrawableFactory factory = (X11GLXDrawableFactory) getFactory();
-      NativeWindow window = getNativeWindow();
-      setChosenGLCapabilities(factory.lookupCapabilitiesByScreenAndConfig(window.getScreenIndex(),
-                                                                          window.getGraphicsConfiguration()));
-    } 
-    super.setRealized(realized);
   }
 }

@@ -66,6 +66,13 @@ public class X11Util {
         return staticDisplay;
     }
 
+    public static long getDefaultDisplay() {
+        if (staticDisplay == 0) {
+            getDisplayConnection(); // will set xineramaEnabled
+        }
+        return staticDisplay;
+    }
+
     public static boolean isXineramaEnabled() {
         if (staticDisplay == 0) {
             getDisplayConnection(); // will set xineramaEnabled

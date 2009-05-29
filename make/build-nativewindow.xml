@@ -123,7 +123,7 @@
         <!-- partitioning -->
 
         <property name="java.part.core"
-                  value="javax/media/nativewindow/*, javax/media/nativewindow/x11/*, com/sun/nativewindow/impl/*, com/sun/nativewindow/impl/x11/*"/>
+                  value="javax/media/nativewindow/*, javax/media/nativewindow/egl/*, javax/media/nativewindow/x11/*, javax/media/nativewindow/macosx/*, javax/media/nativewindow/windows/*, com/sun/nativewindow/impl/*, com/sun/nativewindow/impl/x11/*"/>
 
         <!-- property name="java.part.win"
                   value="com/sun/nativewindow/impl/win/**"/ NOTHING TO DO HERE -->

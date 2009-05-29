@@ -43,16 +43,12 @@ import javax.media.nativewindow.*;
 import javax.media.opengl.*;
 
 public abstract class GLDrawableImpl implements GLDrawable {
-  private GLCapabilities requestedCapabilities;
 
   protected GLDrawableImpl(GLDrawableFactory factory,
                            NativeWindow comp,
-                           GLCapabilities requestedCapabilities,
                            boolean realized) {
       this.factory = factory;
       this.component = comp;
-      this.requestedCapabilities =
-          (requestedCapabilities == null) ? null : (GLCapabilities) requestedCapabilities.clone();
       this.realized = realized;
   }
 
@@ -73,20 +69,13 @@ public abstract class GLDrawableImpl implements GLDrawable {
     return GLContextImpl.toHexString(hex);
   }
 
-  protected GLCapabilities getRequestedGLCapabilities() {
-    return requestedCapabilities;
-  }
-
   public GLCapabilities getChosenGLCapabilities() {
-    if (chosenCapabilities == null)
+    GLCapabilities caps = (GLCapabilities)component.getGraphicsConfiguration().getCapabilities();
+    if (caps == null)
       return null;
 
     // Must return a new copy to avoid mutation by end user
-    return (GLCapabilities) chosenCapabilities.clone();
-  }
-
-  protected void setChosenGLCapabilities(GLCapabilities caps) {
-    chosenCapabilities = (caps==null) ? null : (GLCapabilities) caps.clone();
+    return (GLCapabilities)caps.clone();
   }
 
   public NativeWindow getNativeWindow() {
@@ -100,7 +89,6 @@ public abstract class GLDrawableImpl implements GLDrawable {
   public void setRealized(boolean realized) {
     this.realized = realized;
     if(!realized) {
-        setChosenGLCapabilities(null);
         component.invalidate();
     }
   }
@@ -141,7 +129,6 @@ public abstract class GLDrawableImpl implements GLDrawable {
 
   protected GLDrawableFactory factory;
   protected NativeWindow component;
-  private GLCapabilities chosenCapabilities;
 
   // Indicates whether the component (if an onscreen context) has been
   // realized. Plausibly, before the component is realized the JAWT

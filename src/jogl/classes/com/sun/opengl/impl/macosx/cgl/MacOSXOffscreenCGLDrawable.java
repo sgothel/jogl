@@ -40,15 +40,18 @@
 package com.sun.opengl.impl.macosx.cgl;
 
 import javax.media.opengl.*;
+import javax.media.nativewindow.*;
 import com.sun.opengl.impl.*;
 
 public class MacOSXOffscreenCGLDrawable extends MacOSXPbufferCGLDrawable {
 
   public MacOSXOffscreenCGLDrawable(GLDrawableFactory factory,
+                                    AbstractGraphicsScreen absScreen,
                                     GLCapabilities capabilities,
+                                    GLCapabilitiesChooser chooser,
                                     int width,
                                     int height) {
-    super(factory, capabilities, width, height);
+    super(factory, absScreen, capabilities, chooser, width, height);
   }
 
   public GLContext createContext(GLContext shareWith) {

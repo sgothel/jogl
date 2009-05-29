@@ -52,16 +52,19 @@ public class JAWTUtil {
 
   static {
     lockedToolkit = false;
+    lockedStack   = null;
     headlessMode = GraphicsEnvironment.isHeadless();
   }
 
   private static boolean lockedToolkit;
+  private static Exception lockedStack;
 
   public static synchronized void lockToolkit() throws NativeWindowException {
     if (lockedToolkit) {
       throw new NativeWindowException("Toolkit already locked");
     }
     lockedToolkit = true;
+    lockedStack = new Exception("JAWT - locked");
 
     if (headlessMode) {
       // Workaround for running (to some degree) in headless
@@ -84,11 +87,16 @@ public class JAWTUtil {
 
         JAWT.getJAWT().Unlock();
         lockedToolkit = false;
+        lockedStack = null;
     }
   }
 
   public static boolean isToolkitLocked() {
     return lockedToolkit;
+  }
+
+  public static Exception getLockedStack() {
+    return lockedStack;
   }
 }
 

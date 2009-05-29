@@ -24,6 +24,10 @@ public final boolean isGL() {
     return true;
 }
   
+public final boolean isGL3() {
+    return false;
+}
+
 public final boolean isGL2() {
     return true;
 }
@@ -50,6 +54,10 @@ public final boolean isGL2ES2() {
 
 public final GL getGL() throws GLException {
     return this;
+}
+
+public final GL3 getGL3() throws GLException {
+    throw new GLException("Not a GL3 implementation");
 }
 
 public final GL2 getGL2() throws GLException {

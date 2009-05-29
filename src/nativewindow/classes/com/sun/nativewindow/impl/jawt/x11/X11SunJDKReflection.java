@@ -56,6 +56,7 @@ import javax.media.nativewindow.awt.AWTGraphicsConfiguration;
 public class X11SunJDKReflection {
   private static Class   x11GraphicsDeviceClass;
   private static Method  x11GraphicsDeviceGetScreenMethod;
+  private static Method  x11GraphicsDeviceGetDisplayMethod;
   private static Class   x11GraphicsConfigClass;
   private static Method  x11GraphicsConfigGetVisualMethod;
   private static boolean initted;
@@ -67,6 +68,8 @@ public class X11SunJDKReflection {
             x11GraphicsDeviceClass = Class.forName("sun.awt.X11GraphicsDevice");
             x11GraphicsDeviceGetScreenMethod = x11GraphicsDeviceClass.getDeclaredMethod("getScreen", new Class[] {});
             x11GraphicsDeviceGetScreenMethod.setAccessible(true);
+            x11GraphicsDeviceGetDisplayMethod = x11GraphicsDeviceClass.getDeclaredMethod("getDisplay", new Class[] {});
+            x11GraphicsDeviceGetDisplayMethod.setAccessible(true);
 
             x11GraphicsConfigClass = Class.forName("sun.awt.X11GraphicsConfig");
             x11GraphicsConfigGetVisualMethod = x11GraphicsConfigClass.getDeclaredMethod("getVisual", new Class[] {});
@@ -87,6 +90,18 @@ public class X11SunJDKReflection {
 
     try {
       return ((Integer) x11GraphicsDeviceGetScreenMethod.invoke(device, new Object[] {})).intValue();
+    } catch (Exception e) {
+      return 0;
+    }
+  }
+
+  public static long graphicsDeviceGetDisplay(GraphicsDevice device) {
+    if (!initted) {
+      return 0;
+    }
+
+    try {
+      return ((Long) x11GraphicsDeviceGetDisplayMethod.invoke(device, new Object[] {})).longValue();
     } catch (Exception e) {
       return 0;
     }

@@ -53,7 +53,7 @@ public class X11ExternalGLXDrawable extends X11GLXDrawable {
   private long readDrawable;
 
   private X11ExternalGLXDrawable(GLDrawableFactory factory, NativeWindow component) {
-    super(factory, component, true, null, null);
+    super(factory, component, true);
 
     readDrawable = GLX.glXGetCurrentReadDrawable();
 
@@ -73,22 +73,28 @@ public class X11ExternalGLXDrawable extends X11GLXDrawable {
     }
   }
 
-  protected static X11ExternalGLXDrawable create(GLDrawableFactory factory) {
+  protected static X11ExternalGLXDrawable create(GLDrawableFactory factory, AbstractGraphicsScreen aScreen) {
     ((GLDrawableFactoryImpl) factory).lockToolkit();
     try {
       long display = GLX.glXGetCurrentDisplay();
+      long context = GLX.glXGetCurrentContext();
+      int[] val = new int[1];
+      GLX.glXQueryContext(display, context, GLX.GLX_SCREEN, val, 0);
+      int screen = val[0];
       long drawable = GLX.glXGetCurrentDrawable();
       if (drawable == 0) {
         throw new GLException("Error: attempted to make an external GLDrawable without a drawable/context current");
       }
 
-      long context = GLX.glXGetCurrentContext();
-      int[] val = new int[1];
-      GLX.glXQueryContext(display, context, GLX.GLX_SCREEN, val, 0);
-      int screen = val[0];
-      NullWindow nw = new NullWindow();
+      if(screen!=aScreen.getIndex()) {
+        throw new GLException("Error: Passed AbstractGraphicsScreen's index is not current: "+aScreen+", GLX-screen "+screen);
+      }
+      if(display!=aScreen.getDevice().getHandle()) {
+        throw new GLException("Error: Passed AbstractGraphicsScreen's display is not current: "+aScreen+", GLX-display 0x"+Long.toHexString(display));
+      }
+
+      NullWindow nw = new NullWindow(X11GLXGraphicsConfigurationFactory.createDefaultGraphicsConfiguration(aScreen, false));
       nw.setSurfaceHandle(drawable);
-      nw.setScreenIndex(screen);
       return new X11ExternalGLXDrawable(factory, nw);
     } finally {
       ((GLDrawableFactoryImpl) factory).unlockToolkit();
@@ -187,7 +193,7 @@ public class X11ExternalGLXDrawable extends X11GLXDrawable {
       };
       float[] fattributes = new float[0];
       int[] nelementsTmp = new int[1];
-      LongBuffer fbConfigs = GLX.glXChooseFBConfig(display, screen, iattributes, 0, nelementsTmp, 0);
+      LongBuffer fbConfigs = GLX.glXChooseFBConfigCopied(display, screen, iattributes, 0, nelementsTmp, 0);
       int nelements = nelementsTmp[0];
       if (nelements <= 0) {
         throw new GLException("context creation error: couldn't find a suitable frame buffer configuration");

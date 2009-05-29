@@ -61,12 +61,6 @@ public class X11OnscreenGLXContext extends X11GLXContext {
   
   protected int makeCurrentImpl() throws GLException {
     int lockRes = drawable.lockSurface();
-    if (drawable.getChosenGLCapabilities() == null) {
-      X11GLXDrawableFactory factory = (X11GLXDrawableFactory) drawable.getFactory();
-      NativeWindow window = drawable.getNativeWindow();
-      drawable.setChosenGLCapabilities(factory.lookupCapabilitiesByScreenAndConfig(window.getScreenIndex(),
-                                                                                   window.getGraphicsConfiguration()));
-    }
     boolean exceptionOccurred = false;
     try {
       if (lockRes == NativeWindow.LOCK_SURFACE_NOT_READY) {

@@ -35,10 +35,9 @@ package com.sun.nativewindow.impl;
 import javax.media.nativewindow.*;
 
 public class GraphicsConfigurationFactoryImpl extends GraphicsConfigurationFactory {
-    // By default we just return null; X11 is the only window system requiring eager visual selection
     public AbstractGraphicsConfiguration chooseGraphicsConfiguration(Capabilities capabilities,
                                                                      CapabilitiesChooser chooser,
-                                                                     AbstractGraphicsDevice device) {
-        return null;
+                                                                     AbstractGraphicsScreen screen) {
+        return new DefaultGraphicsConfiguration(screen, capabilities);
     }
 }

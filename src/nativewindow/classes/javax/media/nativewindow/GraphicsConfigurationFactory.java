@@ -54,9 +54,21 @@ import com.sun.nativewindow.impl.*;
  */
 
 public abstract class GraphicsConfigurationFactory {
+    protected static final boolean DEBUG = Debug.debug("GraphicsConfiguration");
+
     private static Map/*<Class, NativeWindowFactory>*/ registeredFactories =
         Collections.synchronizedMap(new HashMap());
     private static Class abstractGraphicsDeviceClass;
+    private static Class anyDeviceClass;
+
+    /** 
+     * Marker class javax.media.nativewindow.GraphicsConfigurationFactory.AnyDevice.class
+     * If a factory is registered with it, it matches for all device types !
+     */
+    public static class AnyDevice implements AbstractGraphicsDevice {
+        public String getType() { return "OPAQUE"; }
+        public long getHandle() { return 0; }
+    }
 
     static {
         initialize();
@@ -73,6 +85,7 @@ public abstract class GraphicsConfigurationFactory {
         String factoryClassName = null;
 
         abstractGraphicsDeviceClass = javax.media.nativewindow.AbstractGraphicsDevice.class;
+        anyDeviceClass = javax.media.nativewindow.GraphicsConfigurationFactory.AnyDevice.class;
         
         if (!osNameLowerCase.startsWith("wind") &&
             !osNameLowerCase.startsWith("mac os x")) {
@@ -115,17 +128,33 @@ public abstract class GraphicsConfigurationFactory {
         if (!(abstractGraphicsDeviceClass.isAssignableFrom(abstractGraphicsDeviceImplementor))) {
             throw new IllegalArgumentException("Given class must implement AbstractGraphicsDevice");
         }
+
+        // Check if opaque AnyDevice match exist, it needs an exact match
+        GraphicsConfigurationFactory factory = (GraphicsConfigurationFactory)registeredFactories.get(anyDeviceClass);
+        if(null!=factory) {
+            if(DEBUG) {
+                System.err.println("GraphicsConfigurationFactory.getFactory() OPAQUE "+anyDeviceClass+" -> "+factory);
+            }
+            return factory;
+        }
         Class clazz = abstractGraphicsDeviceImplementor;
         while (clazz != null) {
-            GraphicsConfigurationFactory factory =
+            factory =
                 (GraphicsConfigurationFactory) registeredFactories.get(clazz);
             if (factory != null) {
+                if(DEBUG) {
+                    System.err.println("GraphicsConfigurationFactory.getFactory() "+abstractGraphicsDeviceImplementor+" -> "+factory);
+                }
                 return factory;
             }
             clazz = clazz.getSuperclass();
         }
         // Return the default
-        return (GraphicsConfigurationFactory) registeredFactories.get(abstractGraphicsDeviceClass);
+        factory = (GraphicsConfigurationFactory)registeredFactories.get(abstractGraphicsDeviceClass);
+        if(DEBUG) {
+            System.err.println("GraphicsConfigurationFactory.getFactory() DEFAULT "+abstractGraphicsDeviceClass+" -> "+factory);
+        }
+        return factory;
     }
 
     /** Registers a GraphicsConfigurationFactory handling graphics
@@ -141,18 +170,32 @@ public abstract class GraphicsConfigurationFactory {
         if (!(abstractGraphicsDeviceClass.isAssignableFrom(abstractGraphicsDeviceImplementor))) {
             throw new IllegalArgumentException("Given class must implement AbstractGraphicsDevice");
         }
+        if(DEBUG) {
+            System.err.println("GraphicsConfigurationFactory.registerFactory() "+abstractGraphicsDeviceImplementor+" -> "+factory);
+        }
         registeredFactories.put(abstractGraphicsDeviceImplementor, factory);
     }
 
     /**
      * <P> Selects a graphics configuration on the specified graphics
      * device compatible with the supplied {@link Capabilities}. Some
-     * platforms (specifically X11) require the graphics configuration
-     * to be specified when the native window is created. This method
-     * is mainly intended to be both used and implemented by the
-     * OpenGL binding, and may return null on platforms on which the
-     * OpenGL pixel format selection process is performed later or in
-     * other unspecified situations. </P>
+     * platforms (e.g.: X11, EGL, KD) require the graphics configuration
+     * to be specified when the native window is created. 
+     * These architectures have seperated their device, screen, window and drawable
+     * context and hence are capable of quering the capabilities for each screen.
+     * A fully established window is not required.</P>
+     *
+     * <P>Other platforms (e.g. Windows, MacOSX) don't offer the mentioned seperation
+     * and hence need a fully established window and it's drawable.
+     * Here the validation of the capabilities is performed later.
+     * In this case, the AbstractGraphicsConfiguration implementation 
+     * must allow an overwrite of the Capabilites, for example
+     * {@link DefaultGraphicsConfiguration#setCapabilities DefaultGraphicsConfiguration.setCapabilities()}.
+     * </P>
+     *
+     * <P>
+     * This method is mainly intended to be both used and implemented by the
+     * OpenGL binding.</P>
      *
      * <P> The concrete data type of the passed graphics device and
      * returned graphics configuration must be specified in the
@@ -171,10 +214,13 @@ public abstract class GraphicsConfigurationFactory {
      *         NativeWindowFactory.
      * @throws NativeWindowException if any window system-specific errors caused
      *         the selection of the graphics configuration to fail.
+     *
+     * @see javax.media.nativewindow.GraphicsConfigurationFactory#chooseGraphicsConfiguration(Capabilities, CapabilitiesChooser, AbstractGraphicsScreen)
+     * @see javax.media.nativewindow.DefaultGraphicsConfiguration#setCapabilities(Capabilities caps)
      */
     public abstract AbstractGraphicsConfiguration
         chooseGraphicsConfiguration(Capabilities capabilities,
                                     CapabilitiesChooser chooser,
-                                    AbstractGraphicsDevice device)
+                                    AbstractGraphicsScreen screen)
         throws IllegalArgumentException, NativeWindowException;
 }

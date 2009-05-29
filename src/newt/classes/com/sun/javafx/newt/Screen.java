@@ -33,21 +33,23 @@
 
 package com.sun.javafx.newt;
 
+import javax.media.nativewindow.*;
+
 public abstract class Screen {
 
     private static Class getScreenClass(String type) 
         throws ClassNotFoundException 
     {
         Class screenClass = null;
-        if (NewtFactory.KD.equals(type)) {
+        if (NativeWindowFactory.TYPE_EGL.equals(type)) {
             screenClass = Class.forName("com.sun.javafx.newt.opengl.kd.KDScreen");
-        } else if (NewtFactory.WINDOWS.equals(type)) {
+        } else if (NativeWindowFactory.TYPE_WINDOWS.equals(type)) {
             screenClass = Class.forName("com.sun.javafx.newt.windows.WindowsScreen");
-        } else if (NewtFactory.MACOSX.equals(type)) {
+        } else if (NativeWindowFactory.TYPE_MACOSX.equals(type)) {
             screenClass = Class.forName("com.sun.javafx.newt.macosx.MacScreen");
-        } else if (NewtFactory.X11.equals(type)) {
+        } else if (NativeWindowFactory.TYPE_X11.equals(type)) {
             screenClass = Class.forName("com.sun.javafx.newt.x11.X11Screen");
-        } else if (NewtFactory.AWT.equals(type)) {
+        } else if (NativeWindowFactory.TYPE_AWT.equals(type)) {
             screenClass = Class.forName("com.sun.javafx.newt.awt.AWTScreen");
         } else {
             throw new RuntimeException("Unknown window type \"" + type + "\"");
@@ -65,40 +67,50 @@ public abstract class Screen {
             Class screenClass = getScreenClass(type);
             Screen screen  = (Screen) screenClass.newInstance();
             screen.display = display;
-            screen.index   = idx;
-            screen.handle  = 0;
-            screen.createNative();
+            screen.createNative(idx);
+            if(null==screen.aScreen) {
+                throw new RuntimeException("Screen.createNative() failed to instanciate an AbstractGraphicsScreen");
+            }
             return screen;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    protected static Screen wrapHandle(String type, Display display, int idx, long handle) {
+    public synchronized void destroy() {
+        closeNative();
+    }
+
+    protected static Screen wrapHandle(String type, Display display, AbstractGraphicsScreen aScreen) {
         try {
             Class screenClass = getScreenClass(type);
             Screen screen  = (Screen) screenClass.newInstance();
             screen.display = display;
-            screen.index   = idx;
-            screen.handle  = handle;
+            screen.aScreen = aScreen;
             return screen;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    protected abstract void createNative();
+    protected abstract void createNative(int index);
+    protected abstract void closeNative();
+
+    protected void setScreenSize(int w, int h) {
+        System.out.println("Detected screen size "+w+"x"+h);
+        width=w; height=h;
+    }
 
     public Display getDisplay() {
         return display;
     }
 
     public int getIndex() {
-        return index;
+        return aScreen.getIndex();
     }
 
-    public long getHandle() {
-        return handle;
+    public AbstractGraphicsScreen getGraphicsScreen() {
+        return aScreen;
     }
 
     /**
@@ -119,18 +131,8 @@ public abstract class Screen {
         return (usrHeight>0) ? usrHeight : (height>0) ? height : 480;
     }
 
-    /**
-     * The actual implementation shall call this function
-     * to set the detected screen size
-     */
-    public void setScreenSize(int w, int h) {
-        System.out.println("Detected screen size "+w+"x"+h);
-        width=w; height=h;
-    }
-
     protected Display display;
-    protected int     index;
-    protected long    handle;
+    protected AbstractGraphicsScreen aScreen;
     protected int width=-1, height=-1; // detected values: set using setScreenSize
     protected static int usrWidth=-1, usrHeight=-1; // property values: newt.ws.swidth and newt.ws.sheight
 }
