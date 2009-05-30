@@ -44,7 +44,7 @@ import javax.media.nativewindow.*;
 import com.sun.nativewindow.impl.*;
 
 public abstract class JAWTWindow implements NativeWindow {
-  protected static final boolean DEBUG = Debug.debug("NativeWindow");
+  protected static final boolean DEBUG = Debug.debug("JAWT");
 
   // See whether we're running in headless mode
   private static boolean headlessMode;
@@ -83,28 +83,39 @@ public abstract class JAWTWindow implements NativeWindow {
     drawable= 0;
   }
 
+  private Exception lockedStack = null;
+
   public synchronized int lockSurface() throws NativeWindowException {
     if(DEBUG) {
+        // Not that this is a hard criteria ..
+        // but it is not recommended locking both, JAWT and the surface
         if(JAWTUtil.isToolkitLocked()) {
           JAWTUtil.getLockedStack().printStackTrace();
           throw new NativeWindowException("JAWT already locked - "+this);
         }
     }
-    if (locked) {
+    if (null!=lockedStack) {
+      lockedStack.printStackTrace();
       throw new NativeWindowException("Surface already locked - "+this);
     }
-    locked = true;
+    lockedStack = new Exception("JAWTWindow previous locked by:");
     return LOCK_SUCCESS;
   }
 
   public synchronized void unlockSurface() {
-    if (locked) {
-        locked = false;
+    if (null!=lockedStack) {
+        lockedStack = null;
+    } else {
+        throw new RuntimeException("JAWTWindow not locked");
     }
   }
 
   public synchronized boolean isSurfaceLocked() {
-    return locked;
+    return null!=lockedStack;
+  }
+
+  public Exception getLockedStack() {
+    return lockedStack;
   }
 
   public long getDisplayHandle() {

@@ -212,13 +212,17 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
 
     int[] size = new int[1];
     lockToolkit();
-    long display = X11Util.getDisplayConnection();
-    boolean res = X11Lib.XF86VidModeGetGammaRampSize(display,
-                                                  X11Lib.DefaultScreen(display),
-                                                  size, 0);
-    unlockToolkit();
-    if (!res)
-      return 0;
+    try {
+        long display = X11Util.getDisplayConnection();
+        boolean res = X11Lib.XF86VidModeGetGammaRampSize(display,
+                                                      X11Lib.DefaultScreen(display),
+                                                      size, 0);
+        if (!res) {
+          return 0;
+        }
+    } finally {
+        unlockToolkit();
+    }
     gotGammaRampLength = true;
     gammaRampLength = size[0];
     return gammaRampLength;
@@ -232,15 +236,18 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     }
 
     lockToolkit();
-    long display = X11Util.getDisplayConnection();
-    boolean res = X11Lib.XF86VidModeSetGammaRamp(display,
-                                              X11Lib.DefaultScreen(display),
-                                              rampData.length,
-                                              rampData, 0,
-                                              rampData, 0,
-                                              rampData, 0);
-    unlockToolkit();
-    return res;
+    try {
+        long display = X11Util.getDisplayConnection();
+        boolean res = X11Lib.XF86VidModeSetGammaRamp(display,
+                                                  X11Lib.DefaultScreen(display),
+                                                  rampData.length,
+                                                  rampData, 0,
+                                                  rampData, 0,
+                                                  rampData, 0);
+        return res;
+    } finally {
+        unlockToolkit();
+    }
   }
 
   protected Buffer getGammaRamp() {
@@ -256,16 +263,20 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     rampData.limit(3 * size);
     ShortBuffer blueRampData = rampData.slice();
     lockToolkit();
-    long display = X11Util.getDisplayConnection();
-    boolean res = X11Lib.XF86VidModeGetGammaRamp(display,
-                                              X11Lib.DefaultScreen(display),
-                                              size,
-                                              redRampData,
-                                              greenRampData,
-                                              blueRampData);
-    unlockToolkit();
-    if (!res)
-      return null;
+    try {
+        long display = X11Util.getDisplayConnection();
+        boolean res = X11Lib.XF86VidModeGetGammaRamp(display,
+                                                  X11Lib.DefaultScreen(display),
+                                                  size,
+                                                  redRampData,
+                                                  greenRampData,
+                                                  blueRampData);
+        if (!res) {
+          return null;
+        }
+    } finally {
+        unlockToolkit();
+    }
     return rampData;
   }
 
@@ -288,13 +299,16 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     rampData.limit(3 * size);
     ShortBuffer blueRampData = rampData.slice();
     lockToolkit();
-    long display = X11Util.getDisplayConnection();
-    X11Lib.XF86VidModeSetGammaRamp(display,
-                                X11Lib.DefaultScreen(display),
-                                size,
-                                redRampData,
-                                greenRampData,
-                                blueRampData);
-    unlockToolkit();
+    try {
+        long display = X11Util.getDisplayConnection();
+        X11Lib.XF86VidModeSetGammaRamp(display,
+                                    X11Lib.DefaultScreen(display),
+                                    size,
+                                    redRampData,
+                                    greenRampData,
+                                    blueRampData);
+    } finally {
+        unlockToolkit();
+    }
   }
 }

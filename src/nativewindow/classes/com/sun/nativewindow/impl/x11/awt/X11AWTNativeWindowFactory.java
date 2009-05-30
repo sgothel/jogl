@@ -77,6 +77,7 @@ public class X11AWTNativeWindowFactory extends X11NativeWindowFactory {
                 }
                 owner = null;
                 JAWTUtil.unlockToolkit();
+                notifyAll();
             }
         };
 

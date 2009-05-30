@@ -115,7 +115,9 @@ public class X11JAWTWindow extends JAWTWindow {
   }
 
   public synchronized void unlockSurface() {
-    if(!isSurfaceLocked()) return;
+    if(!isSurfaceLocked()) {
+        throw new RuntimeException("JAWTWindow not locked");
+    }
     ds.FreeDrawingSurfaceInfo(dsi);
     ds.Unlock();
     JAWT.getJAWT().FreeDrawingSurface(ds);
