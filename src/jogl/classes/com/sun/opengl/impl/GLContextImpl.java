@@ -310,17 +310,36 @@ public abstract class GLContextImpl extends GLContext {
   public abstract boolean isCreated();
 
   /**
-   * Resets the cache of which GL functions are available for calling through this
+   * Sets the OpenGL implementation class and
+   * the cache of which GL functions are available for calling through this
    * context. See {@link #isFunctionAvailable(String)} for more information on
    * the definition of "available".
+   *
+   * @param force force the setting, even if is already being set.
+   *              This might be usefull if you change the OpenGL implementation.
    */
-  protected void resetGLFunctionAvailability() {
+  protected void setGLFunctionAvailability(boolean force) {
+    if(null!=this.gl && null!=glProcAddressTable && !force) {
+        return; // already done and not forced
+    }
     // In order to be able to allow the user to uniformly install the
     // debug and trace pipelines in their GLEventListener.init()
     // method (for both GLCanvas and GLJPanel), we need to reset the
     // actual GL object in the GLDrawable as well
     setGL(createGL());
 
+    updateGLProcAddressTable();
+  }
+
+  /**
+   * Updates the cache of which GL functions are available for calling through this
+   * context. See {@link #isFunctionAvailable(String)} for more information on
+   * the definition of "available".
+   */
+  protected void updateGLProcAddressTable() {
+    if(null==this.gl) {
+        throw new GLException("setGLFunctionAvailability no called yet");
+    }
     extensionAvailability.flush();
     if (DEBUG) {
       System.err.println(getThreadName() + ": !!! Initializing OpenGL extension address table for " + this);

@@ -113,7 +113,7 @@ public class EGLContext extends GLContextImpl {
         }
 
         if (created) {
-            resetGLFunctionAvailability();
+            setGLFunctionAvailability(false);
             return CONTEXT_CURRENT_NEW;
         }
         return CONTEXT_CURRENT;
@@ -222,14 +222,22 @@ public class EGLContext extends GLContextImpl {
                                ", surface 0x" + Long.toHexString(drawable.getSurface()) +
                                ", sharing with 0x" + Long.toHexString(shareWith));
         }
+        if (!EGL.eglMakeCurrent(drawable.getDisplay(),
+                                drawable.getSurface(),
+                                drawable.getSurface(),
+                                eglContext)) {
+            throw new GLException("Error making context 0x" +
+                                  Long.toHexString(eglContext) + " current: error code " + EGL.eglGetError());
+        }
+        setGLFunctionAvailability(true);
     }
 
     public boolean isCreated() {
         return (eglContext != 0);
     }
 
-    protected void resetGLFunctionAvailability() {
-        super.resetGLFunctionAvailability();
+    protected void updateGLProcAddressTable() {
+        super.updateGLProcAddressTable();
         if (DEBUG) {
           System.err.println(getThreadName() + ": !!! Initializing EGL extension address table");
         }

@@ -159,7 +159,7 @@ public class X11ExternalGLXDrawable extends X11GLXDrawable {
         }
 
         if (created) {
-          resetGLFunctionAvailability();
+          setGLFunctionAvailability(false);
           return CONTEXT_CURRENT_NEW;
         }
         return CONTEXT_CURRENT;

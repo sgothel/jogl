@@ -77,7 +77,7 @@ public class MacOSXPbufferCGLContext extends MacOSXCGLContext {
     }
             
     if (created) {
-      resetGLFunctionAvailability();
+      setGLFunctionAvailability(false);
 
       // Initialize render-to-texture support if requested
       DefaultGraphicsConfiguration config = (DefaultGraphicsConfiguration) drawable.getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration();
@@ -151,6 +151,12 @@ public class MacOSXPbufferCGLContext extends MacOSXCGLContext {
     }
     // Will throw exception upon error
     nsContext = impl.create();
+
+    if (!impl.makeCurrent(nsContext)) {
+      throw new GLException("Error making nsContext current");
+    }
+    setGLFunctionAvailability(true);
+            
     return true;
   }
 

@@ -149,7 +149,7 @@ public abstract class X11GLXContext extends GLContextImpl {
                                        context)) {
           throw new GLException("Error making temp context (old2) current: display 0x"+Long.toHexString(display)+", context 0x"+Long.toHexString(context)+", drawable "+drawable);
         }
-        resetGLFunctionAvailability();
+        setGLFunctionAvailability(true);
         if(DEBUG) {
               System.err.println("X11GLXContext.createContext done (old2 ctx) 0x"+Long.toHexString(context));
         }
@@ -168,7 +168,7 @@ public abstract class X11GLXContext extends GLContextImpl {
                                            temp_context)) {
               throw new GLException("Error making temp context (old) current: display 0x"+Long.toHexString(display)+", context 0x"+Long.toHexString(context)+", drawable "+drawable);
             }
-            resetGLFunctionAvailability();
+            setGLFunctionAvailability(true);
 
             if( !isFunctionAvailable("glXCreateContextAttribsARB") ||
                 !isExtensionAvailable("GLX_ARB_create_context") )  {
@@ -232,7 +232,7 @@ public abstract class X11GLXContext extends GLContextImpl {
                       // FIXME: Nvidia driver 185.18.10 can't make the 3.1 context current ..                               
                       throw new GLException("Error making context (new) current: display 0x"+Long.toHexString(display)+", context 0x"+Long.toHexString(context)+", drawable "+drawable);
                     }
-                    resetGLFunctionAvailability();
+                    updateGLProcAddressTable();
                     if(DEBUG) {
                       System.err.println("X11GLXContext.createContext done (new ctx >= 3.0) 0x"+Long.toHexString(context));
                     }
@@ -275,6 +275,7 @@ public abstract class X11GLXContext extends GLContextImpl {
     }
 
     if (created) {
+      setGLFunctionAvailability(false);
       return CONTEXT_CURRENT_NEW;
     }
     return CONTEXT_CURRENT;
@@ -338,8 +339,8 @@ public abstract class X11GLXContext extends GLContextImpl {
     }
   }
 
-  protected void resetGLFunctionAvailability() {
-    super.resetGLFunctionAvailability();
+  protected void updateGLProcAddressTable() {
+    super.updateGLProcAddressTable();
     if (DEBUG) {
       System.err.println(getThreadName() + ": !!! Initializing GLX extension address table");
     }
@@ -350,7 +351,7 @@ public abstract class X11GLXContext extends GLContextImpl {
     }          
     resetProcAddressTable(getGLXExtProcAddressTable());
   }
-  
+
   public synchronized String getPlatformExtensionsString() {
     if (!glXQueryExtensionsStringInitialized) {
       glXQueryExtensionsStringAvailable =

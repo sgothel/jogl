@@ -69,7 +69,7 @@ public class MacOSXExternalCGLContext extends MacOSXCGLContext {
     // context = CGL.CGLGetCurrentContext();
 
     GLContextShareSet.contextCreated(this);
-    resetGLFunctionAvailability();
+    setGLFunctionAvailability(false);
   }
 
   protected boolean create() {

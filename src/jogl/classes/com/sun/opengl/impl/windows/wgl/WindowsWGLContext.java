@@ -143,7 +143,7 @@ public class WindowsWGLContext extends GLContextImpl {
         if (!WGL.wglMakeCurrent(drawable.getNativeWindow().getSurfaceHandle(), temp_hglrc)) {
             throw new GLException("Error making temp context current: " + WGL.GetLastError());
         }
-        resetGLFunctionAvailability();
+        setGLFunctionAvailability(true);
 
         if( !isFunctionAvailable("wglCreateContextAttribsARB") ||
             !isExtensionAvailable("WGL_ARB_create_context") )  {
@@ -208,7 +208,7 @@ public class WindowsWGLContext extends GLContextImpl {
                 if (!WGL.wglMakeCurrent(drawable.getNativeWindow().getSurfaceHandle(), hglrc)) {
                     throw new GLException("Error making new context current: " + WGL.GetLastError());
                 }
-                resetGLFunctionAvailability();
+                updateGLProcAddressTable();
                 if(DEBUG) {
                   System.err.println("WindowsWGLContext.create done (new ctx >= 3.0) 0x"+Long.toHexString(hglrc));
                 }
@@ -256,6 +256,7 @@ public class WindowsWGLContext extends GLContextImpl {
     }
 
     if (created) {
+      setGLFunctionAvailability(false);
       return CONTEXT_CURRENT_NEW;
     }
     return CONTEXT_CURRENT;
@@ -300,8 +301,8 @@ public class WindowsWGLContext extends GLContextImpl {
     }
   }
 
-  protected void resetGLFunctionAvailability() {
-    super.resetGLFunctionAvailability();
+  protected void updateGLProcAddressTable() {
+    super.updateGLProcAddressTable();
     if (DEBUG) {
       System.err.println(getThreadName() + ": !!! Initializing WGL extension address table for " + this);
     }

@@ -47,7 +47,7 @@ public class EGLExternalContext extends EGLContext {
     public EGLExternalContext(AbstractGraphicsScreen screen) {
         super(null, null);
         GLContextShareSet.contextCreated(this);
-        resetGLFunctionAvailability();
+        setGLFunctionAvailability(false);
     }
 
     public int makeCurrent() throws GLException {

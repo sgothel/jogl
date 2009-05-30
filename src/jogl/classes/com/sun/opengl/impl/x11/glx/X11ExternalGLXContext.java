@@ -64,7 +64,7 @@ public class X11ExternalGLXContext extends X11GLXContext {
       getDrawableImpl().getFactoryImpl().unlockToolkit();
     }
     GLContextShareSet.contextCreated(this);
-    resetGLFunctionAvailability();
+    setGLFunctionAvailability(false);
   }
 
   protected void create() {

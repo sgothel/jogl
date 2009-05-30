@@ -240,11 +240,13 @@ public abstract class MacOSXCGLContext extends GLContextImpl
 
         config.update(caps);
       }
-      
-      
     } finally {
       CGL.deletePixelFormat(pixelFormat);
     }
+    if (!CGL.makeCurrentContext(nsContext)) {
+      throw new GLException("Error making nsContext current");
+    }
+    setGLFunctionAvailability(true);
     GLContextShareSet.contextCreated(this);
     return true;
   }    
@@ -272,7 +274,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
     }
             
     if (created) {
-      resetGLFunctionAvailability();
+      setGLFunctionAvailability(false);
       return CONTEXT_CURRENT_NEW;
     }
     return CONTEXT_CURRENT;
@@ -313,9 +315,8 @@ public abstract class MacOSXCGLContext extends GLContextImpl
     CGL.copyContext(dst, src, mask);
   }
 
-  protected void resetGLFunctionAvailability()
-  {
-    super.resetGLFunctionAvailability();
+  protected void updateGLProcAddressTable() {
+    super.updateGLProcAddressTable();
     if (DEBUG) {
       System.err.println("!!! Initializing CGL extension address table");
     }

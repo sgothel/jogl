@@ -61,7 +61,7 @@ public class WindowsExternalWGLContext extends WindowsWGLContext {
       System.err.println(getThreadName() + ": !!! Created external OpenGL context " + toHexString(hglrc) + " for " + this);
     }
     GLContextShareSet.contextCreated(this);
-    resetGLFunctionAvailability();
+    setGLFunctionAvailability(false);
   }
 
   public int makeCurrent() throws GLException {
