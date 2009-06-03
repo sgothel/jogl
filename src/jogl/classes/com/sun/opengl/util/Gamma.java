@@ -39,6 +39,7 @@
 
 package com.sun.opengl.util;
 
+import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
 
 /** Provides control over the primary display's gamma, brightness and
@@ -86,8 +87,8 @@ public class Gamma {
    * @throws IllegalArgumentException if any of the parameters were
    *   out-of-bounds
    */
-  public static boolean setDisplayGamma(float gamma, float brightness, float contrast) throws IllegalArgumentException {
-    return GLDrawableFactoryImpl.getFactoryImpl().setDisplayGamma(gamma, brightness, contrast);
+  public static boolean setDisplayGamma(GL gl, float gamma, float brightness, float contrast) throws IllegalArgumentException {
+    return GLDrawableFactoryImpl.getFactoryImpl(gl.getContext().getGLDrawable().getGLProfile()).setDisplayGamma(gamma, brightness, contrast);
   }
 
   /**
@@ -100,7 +101,7 @@ public class Gamma {
    * exiting, calling it is recommended because of the inevitable
    * unspecified behavior during JVM teardown.
    */
-  public static void resetDisplayGamma() {
-    GLDrawableFactoryImpl.getFactoryImpl().resetDisplayGamma();
+  public static void resetDisplayGamma(GL gl) {
+    GLDrawableFactoryImpl.getFactoryImpl(gl.getContext().getGLDrawable().getGLProfile()).resetDisplayGamma();
   }
 }

@@ -69,10 +69,15 @@ public abstract class GLDrawableImpl implements GLDrawable {
     return GLContextImpl.toHexString(hex);
   }
 
-  public GLCapabilities getChosenGLCapabilities() {
-    GLCapabilities caps = (GLCapabilities)component.getGraphicsConfiguration().getCapabilities();
-    if (caps == null)
-      return null;
+  public GLProfile getGLProfile() {
+    return getGLCapabilities().getGLProfile();
+  }
+
+  public GLCapabilities getGLCapabilities() {
+    GLCapabilities caps = (GLCapabilities)component.getGraphicsConfiguration().getNativeGraphicsConfiguration().getCapabilities();
+    if (caps == null) {
+        throw new GLException("No GLCapabilities: "+this);
+    }
 
     // Must return a new copy to avoid mutation by end user
     return (GLCapabilities)caps.clone();
@@ -123,6 +128,7 @@ public abstract class GLDrawableImpl implements GLDrawable {
 
   public String toString() {
     return getClass().getName()+"[realized "+getRealized()+
+                ", capabilities "+getGLCapabilities()+
                 ", window "+getNativeWindow()+
                 ", factory "+getFactory()+"]";
   }

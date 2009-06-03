@@ -68,7 +68,7 @@ public abstract class X11GLXContext extends GLContextImpl {
 
   public X11GLXContext(X11GLXDrawable drawable,
                       GLContext shareWith) {
-    super(shareWith);
+    super(drawable.getGLProfile(), shareWith);
     this.drawable = drawable;
   }
   
@@ -132,11 +132,12 @@ public abstract class X11GLXContext extends GLContextImpl {
     if(DEBUG) {
           System.err.println("X11GLXContext.createContext got "+config);
     }
+    GLCapabilities glCaps = (GLCapabilities) config.getCapabilities();
     long display = config.getScreen().getDevice().getHandle();
 
     if(config.getFBConfigID()<0) {
         // not able to use FBConfig
-        if(GLProfile.isGL3()) {
+        if(glCaps.getGLProfile().isGL3()) {
           throw new GLException("Unable to create OpenGL 3.1 context");
         }
         context = GLX.glXCreateContext(display, config.getXVisualInfo(), share, onscreen);
@@ -172,7 +173,7 @@ public abstract class X11GLXContext extends GLContextImpl {
 
             if( !isFunctionAvailable("glXCreateContextAttribsARB") ||
                 !isExtensionAvailable("GLX_ARB_create_context") )  {
-                if(GLProfile.isGL3()) {
+                if(glCaps.getGLProfile().isGL3()) {
                   if (!GLX.glXMakeContextCurrent(display, 0, 0, 0)) {
                     throw new GLException("Error freeing temp OpenGL context");
                   }
@@ -197,7 +198,7 @@ public abstract class X11GLXContext extends GLContextImpl {
                     0
                 };
 
-                if(GLProfile.isGL3()) {
+                if(glCaps.getGLProfile().isGL3()) {
                     attribs[1] |= 3;
                     attribs[3] |= 1;
                     attribs[5] |= GLX.GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB /* | GLX.GLX_CONTEXT_DEBUG_BIT_ARB */;
@@ -205,7 +206,7 @@ public abstract class X11GLXContext extends GLContextImpl {
 
                 context = glXExt.glXCreateContextAttribsARB(display, config.getFBConfig(), share, onscreen, attribs, 0);
                 if(0==context) {
-                    if(GLProfile.isGL3()) {
+                    if(glCaps.getGLProfile().isGL3()) {
                       if (!GLX.glXMakeContextCurrent(display, 0, 0, 0)) {
                         throw new GLException("Error freeing temp OpenGL context");
                       }
@@ -229,7 +230,6 @@ public abstract class X11GLXContext extends GLContextImpl {
                                                    drawable.getNativeWindow().getSurfaceHandle(), 
                                                    drawable.getNativeWindow().getSurfaceHandle(), 
                                                    context)) {
-                      // FIXME: Nvidia driver 185.18.10 can't make the 3.1 context current ..                               
                       throw new GLException("Error making context (new) current: display 0x"+Long.toHexString(display)+", context 0x"+Long.toHexString(context)+", drawable "+drawable);
                     }
                     updateGLProcAddressTable();

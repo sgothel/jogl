@@ -49,6 +49,7 @@ import java.util.HashSet;
 import com.sun.nativewindow.impl.NativeLibLoaderBase;
 
 public class NativeLibLoader extends NativeLibLoaderBase {
+  protected static final boolean DEBUG = Debug.debug("NativeLibLoader");
   
   public static void loadNEWT() {
     AccessController.doPrivileged(new PrivilegedAction() {
@@ -68,7 +69,7 @@ public class NativeLibLoader extends NativeLibLoaderBase {
     });
   }
 
-  public static void loadGL2ES12() {
+  public static void loadGLDesktopES12() {
     AccessController.doPrivileged(new PrivilegedAction() {
       public Object run() {
         loadLibrary("jogl_gl2es12", nativewindowX11Preload, true);
@@ -109,26 +110,28 @@ public class NativeLibLoader extends NativeLibLoaderBase {
   // Support for the new JNLPAppletLauncher
   //
 
-  private static boolean DEBUG = true;
-
   private static class JOGLAction implements NativeLibLoaderBase.LoaderAction {
     public void loadLibrary(String libname, String[] preload,
         boolean preloadIgnoreError) {
       if (null!=preload) {
         for (int i=0; i<preload.length; i++) {
-          try {
-            loadLibraryInternal(preload[i]);
-          }
-          catch (UnsatisfiedLinkError e) {
-            if(DEBUG) e.printStackTrace();
-            if (!preloadIgnoreError && e.getMessage().indexOf("already loaded") < 0) {
-              throw e;
-            }
+          if(!isLoaded(preload[i])) {
+              try {
+                loadLibraryInternal(preload[i]);
+                addLoaded(preload[i]);
+              }
+              catch (UnsatisfiedLinkError e) {
+                if(DEBUG) e.printStackTrace();
+                if (!preloadIgnoreError && e.getMessage().indexOf("already loaded") < 0) {
+                  throw e;
+                }
+              }
           }
         }
       }
       
       loadLibraryInternal(libname);
+      addLoaded(libname);
     }
   }
 
@@ -175,6 +178,9 @@ public class NativeLibLoader extends NativeLibLoaderBase {
       // FIXME: remove
       // System.out.println("sun.boot.library.path=" + System.getProperty("sun.boot.library.path"));
       System.loadLibrary(libraryName);
+      if(DEBUG) {
+        System.err.println("JOGL Loaded Native Library: "+libraryName);
+      }
     }
   }
 }

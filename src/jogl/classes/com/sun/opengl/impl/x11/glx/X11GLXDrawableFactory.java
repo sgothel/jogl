@@ -65,8 +65,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     try {
       NWReflection.createInstance("com.sun.opengl.impl.x11.glx.awt.X11AWTGLXGraphicsConfigurationFactory",
                                   new Object[] {});
-    } catch (Exception e) {
-    }
+    } catch (Throwable t) { }
   }
 
   public GLDrawable createGLDrawable(NativeWindow target) {

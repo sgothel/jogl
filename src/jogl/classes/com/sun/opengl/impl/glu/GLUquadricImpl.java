@@ -138,41 +138,34 @@ public class GLUquadricImpl implements GLUquadric {
   private boolean immModeSinkEnabled;
   private boolean immModeSinkImmediate;
   public int normalType;
+  public GL gl;
 
   public static final boolean USE_NORM = true;
   public static final boolean USE_TEXT = false;
 
-  private ImmModeSink immModeSink;
+  private ImmModeSink immModeSink=null;
 
-  public GLUquadricImpl(boolean useGLSL) {
+  public GLUquadricImpl(GL gl, boolean useGLSL) {
+    this.gl=gl;
     this.useGLSL = useGLSL;
     drawStyle = GLU.GLU_FILL;
     orientation = GLU.GLU_OUTSIDE;
     textureFlag = false;
     normals = GLU.GLU_SMOOTH;
-    normalType = GLProfile.isGLES1()?GL.GL_BYTE:GL.GL_FLOAT;
-    if(useGLSL) {
-        immModeSink = ImmModeSink.createGLSL (GL.GL_STATIC_DRAW, 32, 
-                                              3, GL.GL_FLOAT,  // vertex
-                                              0, GL.GL_FLOAT,  // color
-                                              USE_NORM?3:0, normalType,// normal
-                                              USE_TEXT?2:0, GL.GL_FLOAT); // texture
-    } else {
-        immModeSink = ImmModeSink.createFixed(GL.GL_STATIC_DRAW, 32, 
-                                              3, GL.GL_FLOAT,  // vertex
-                                              0, GL.GL_FLOAT,  // color
-                                              USE_NORM?3:0, normalType,// normal
-                                              USE_TEXT?2:0, GL.GL_FLOAT); // texture
-    }
+    normalType = gl.isGLES1()?GL.GL_BYTE:GL.GL_FLOAT;
     immModeSinkImmediate=true;
-    immModeSinkEnabled=!GLProfile.isGL2();
+    immModeSinkEnabled=!gl.isGL2();
+    replaceImmModeSink();
   }
 
   public void enableImmModeSink(boolean val) {
-    if(GLProfile.isGL2()) {
+    if(gl.isGL2()) {
         immModeSinkEnabled=val;
     } else {
         immModeSinkEnabled=true;
+    }
+    if(null==immModeSink && immModeSinkEnabled) {
+      replaceImmModeSink();
     }
   }
 
@@ -197,13 +190,13 @@ public class GLUquadricImpl implements GLUquadric {
 
     ImmModeSink res = immModeSink;
     if(useGLSL) {
-        immModeSink = ImmModeSink.createGLSL (GL.GL_STATIC_DRAW, 32, 
+        immModeSink = ImmModeSink.createGLSL (gl, GL.GL_STATIC_DRAW, 32, 
                                               3, GL.GL_FLOAT,  // vertex
                                               0, GL.GL_FLOAT,  // color
                                               USE_NORM?3:0, normalType,// normal
                                               USE_TEXT?2:0, GL.GL_FLOAT); // texture
     } else {
-        immModeSink = ImmModeSink.createFixed(GL.GL_STATIC_DRAW, 32, 
+        immModeSink = ImmModeSink.createFixed(gl, GL.GL_STATIC_DRAW, 32, 
                                               3, GL.GL_FLOAT,  // vertex
                                               0, GL.GL_FLOAT,  // color
                                               USE_NORM?3:0, normalType,// normal

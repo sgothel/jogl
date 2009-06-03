@@ -2,9 +2,10 @@
 // query Vertex Buffer Object state
 private boolean inBeginEndPair;
 
-public GLES2Impl(GLContextImpl context) {
+public GLES2Impl(GLProfile glp, GLContextImpl context) {
   this._context = context; 
   this.bufferSizeTracker = context.getBufferSizeTracker();
+  this.glProfile = glp;
 }
 
 public final boolean isGL() {
@@ -36,6 +37,10 @@ public final boolean isGL2ES1() {
 }
 
 public final boolean isGL2ES2() {
+    return true;
+}
+
+public final boolean hasGLSL() {
     return true;
 }
 

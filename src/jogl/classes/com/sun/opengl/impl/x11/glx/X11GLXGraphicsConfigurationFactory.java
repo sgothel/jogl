@@ -69,6 +69,7 @@ public class X11GLXGraphicsConfigurationFactory extends GraphicsConfigurationFac
       }
       X11GraphicsScreen x11Screen = (X11GraphicsScreen)absScreen;
 
+      GLProfile glProfile = GLProfile.GetProfileDefault();
       GLCapabilities caps=null;
       XVisualInfo xvis=null;
       long fbcfg = 0;
@@ -83,7 +84,7 @@ public class X11GLXGraphicsConfigurationFactory extends GraphicsConfigurationFac
       try {
           long visID = X11Lib.DefaultVisualID(display, x11Screen.getIndex());
           xvis = X11GLXGraphicsConfiguration.XVisualID2XVisualInfo(display, visID);
-          caps = X11GLXGraphicsConfiguration.XVisualInfo2GLCapabilities(display, xvis);
+          caps = X11GLXGraphicsConfiguration.XVisualInfo2GLCapabilities(glProfile, display, xvis);
 
           int[] attribs = X11GLXGraphicsConfiguration.GLCapabilities2AttribList(caps, true, GLXUtil.isMultisampleAvailable(), usePBuffer, 0, 0);
           int[] count = { -1 };
@@ -92,7 +93,7 @@ public class X11GLXGraphicsConfigurationFactory extends GraphicsConfigurationFac
               throw new Exception("Could not fetch FBConfig for "+caps);
           }
           fbcfg = fbcfgsL.get(0);
-          GLCapabilities capFB = X11GLXGraphicsConfiguration.GLXFBConfig2GLCapabilities(display, fbcfg);
+          GLCapabilities capFB = X11GLXGraphicsConfiguration.GLXFBConfig2GLCapabilities(glProfile, display, fbcfg);
 
           int[] tmpID = new int[1];
           fbid = X11GLXGraphicsConfiguration.glXGetFBConfig(display, fbcfg, GLX.GLX_FBCONFIG_ID, tmpID, 0);
@@ -133,7 +134,7 @@ public class X11GLXGraphicsConfigurationFactory extends GraphicsConfigurationFac
         }
 
         if (capabilities == null) {
-            capabilities = new GLCapabilities();
+            capabilities = new GLCapabilities(null);
         }
 
     
@@ -174,6 +175,7 @@ public class X11GLXGraphicsConfigurationFactory extends GraphicsConfigurationFac
         int chosen=-1;
         int retFBID=-1;
         XVisualInfo retXVisualInfo = null;
+        GLProfile glProfile = capabilities.getGLProfile();
 
         // Utilizing FBConfig
         //
@@ -189,7 +191,7 @@ public class X11GLXGraphicsConfigurationFactory extends GraphicsConfigurationFac
             recommendedIndex = 0; // 1st match is always recommended ..
             caps = new GLCapabilities[fbcfgsL.limit()];
             for (int i = 0; i < fbcfgsL.limit(); i++) {
-                caps[i] = X11GLXGraphicsConfiguration.GLXFBConfig2GLCapabilities(display, fbcfgsL.get(i));
+                caps[i] = X11GLXGraphicsConfiguration.GLXFBConfig2GLCapabilities(glProfile, display, fbcfgsL.get(i));
             }
 
             if(null==chooser) {
@@ -239,6 +241,7 @@ public class X11GLXGraphicsConfigurationFactory extends GraphicsConfigurationFac
         // in pure Java, we're going to provide the underlying window
         // system's selection to the chooser as a hint
 
+        GLProfile glProfile = capabilities.getGLProfile();
         int[] attribs = X11GLXGraphicsConfiguration.GLCapabilities2AttribList(capabilities, false, GLXUtil.isMultisampleAvailable(), false, 0, 0);
         XVisualInfo[] infos = null;
         GLCapabilities[] caps = null;
@@ -266,7 +269,7 @@ public class X11GLXGraphicsConfigurationFactory extends GraphicsConfigurationFac
             }
             caps = new GLCapabilities[infos.length];
             for (int i = 0; i < infos.length; i++) {
-                caps[i] = X11GLXGraphicsConfiguration.XVisualInfo2GLCapabilities(display, infos[i]);
+                caps[i] = X11GLXGraphicsConfiguration.XVisualInfo2GLCapabilities(glProfile, display, infos[i]);
                 // Attempt to find the visual chosen by glXChooseVisual
                 if (recommendedVis != null && recommendedVis.visualid() == infos[i].visualid()) {
                     recommendedIndex = i;

@@ -165,11 +165,12 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
         return res;
   }
 
-  public static GLCapabilities AttribList2GLCapabilities(int[] iattribs,
+  public static GLCapabilities AttribList2GLCapabilities(GLProfile glp, 
+                                                         int[] iattribs,
                                                          int niattribs,
                                                          int[] ivalues,
                                                          boolean usePBuffer) {
-    GLCapabilities caps = new GLCapabilities();
+    GLCapabilities caps = new GLCapabilities(glp);
 
     for (int i = 0; i < niattribs; i++) {
       int attr = iattribs[i];
@@ -252,14 +253,14 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
 
   // FBConfig
 
-  public static GLCapabilities GLXFBConfig2GLCapabilities(long display, long fbcfg) {
+  public static GLCapabilities GLXFBConfig2GLCapabilities(GLProfile glp, long display, long fbcfg) {
     int[] tmp = new int[1];
     int val;
     val = glXGetFBConfig(display, fbcfg, GLX.GLX_RENDER_TYPE, tmp, 0);
     if (val != GLX.GLX_RGBA_BIT) {
       throw new GLException("Visual does not support RGBA");
     }
-    GLCapabilities res = new GLCapabilities();
+    GLCapabilities res = new GLCapabilities(glp);
     res.setDoubleBuffered(glXGetFBConfig(display, fbcfg, GLX.GLX_DOUBLEBUFFER,     tmp, 0) != 0);
     res.setStereo        (glXGetFBConfig(display, fbcfg, GLX.GLX_STEREO,           tmp, 0) != 0);
     res.setHardwareAccelerated(glXGetFBConfig(display, fbcfg, GLX.GLX_CONFIG_CAVEAT, tmp, 0) != GLX.GLX_SLOW_CONFIG);
@@ -327,7 +328,7 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
       return res;
   }
 
-  public static GLCapabilities XVisualInfo2GLCapabilities(long display, XVisualInfo info) {
+  public static GLCapabilities XVisualInfo2GLCapabilities(GLProfile glp, long display, XVisualInfo info) {
     int[] tmp = new int[1];
     int val = glXGetConfig(display, info, GLX.GLX_USE_GL, tmp, 0);
     if (val == 0) {
@@ -337,7 +338,7 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
     if (val == 0) {
       throw new GLException("Visual does not support RGBA");
     }
-    GLCapabilities res = new GLCapabilities();
+    GLCapabilities res = new GLCapabilities(glp);
     res.setDoubleBuffered(glXGetConfig(display, info, GLX.GLX_DOUBLEBUFFER,     tmp, 0) != 0);
     res.setStereo        (glXGetConfig(display, info, GLX.GLX_STEREO,           tmp, 0) != 0);
     // Note: use of hardware acceleration is determined by

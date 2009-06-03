@@ -1,7 +1,5 @@
 
-  public boolean matchesProfile();
-
-  public boolean matchesProfile(String test_profile);
+  public GLProfile getGLProfile();
 
   public void glClearDepth( double depth );
 

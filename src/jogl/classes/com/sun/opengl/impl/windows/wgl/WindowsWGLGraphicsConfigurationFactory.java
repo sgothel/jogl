@@ -61,7 +61,7 @@ public class WindowsWGLGraphicsConfigurationFactory extends GraphicsConfiguratio
     }
 
     protected static WindowsWGLGraphicsConfiguration createDefaultGraphicsConfiguration(AbstractGraphicsScreen absScreen, boolean useOffScreen) {
-        GLCapabilities caps = new GLCapabilities();
+        GLCapabilities caps = new GLCapabilities(null);
         if(null==absScreen) {
             absScreen = DefaultGraphicsScreen.createScreenDevice(0);
         }
@@ -91,6 +91,7 @@ public class WindowsWGLGraphicsConfigurationFactory extends GraphicsConfiguratio
 
         WindowsWGLGraphicsConfiguration config = (WindowsWGLGraphicsConfiguration) nativeWindow.getGraphicsConfiguration().getNativeGraphicsConfiguration();
         GLCapabilities capabilities = (GLCapabilities) config.getCapabilities();
+        GLProfile glProfile = capabilities.getGLProfile();
         long hdc = nativeWindow.getSurfaceHandle();
 
         PIXELFORMATDESCRIPTOR pfd = null;
@@ -111,7 +112,7 @@ public class WindowsWGLGraphicsConfigurationFactory extends GraphicsConfiguratio
               throw new GLException("Unable to describe pixel format " + pixelFormat +
                                     " of window set by Java2D/OpenGL pipeline");
             }
-            config.setCapsPFD(WindowsWGLGraphicsConfiguration.PFD2GLCapabilities(pfd), pfd, pixelFormat);
+            config.setCapsPFD(WindowsWGLGraphicsConfiguration.PFD2GLCapabilities(glProfile, pfd), pfd, pixelFormat);
             return;
           }
 
@@ -230,7 +231,7 @@ public class WindowsWGLGraphicsConfigurationFactory extends GraphicsConfiguratio
                       if (!dummyWGLExt.wglGetPixelFormatAttribivARB(hdc, i+1, 0, niattribs, iattributes, 0, iresults, 0)) {
                         throw new GLException("Error getting pixel format attributes for pixel format " + (i + 1) + " of device context");
                       }
-                      availableCaps[i] = WindowsWGLGraphicsConfiguration.AttribList2GLCapabilities(iattributes, niattribs, iresults, true);
+                      availableCaps[i] = WindowsWGLGraphicsConfiguration.AttribList2GLCapabilities(glProfile, iattributes, niattribs, iresults, true);
                     }
                     gotAvailableCaps = true;
                   } else {
@@ -275,7 +276,7 @@ public class WindowsWGLGraphicsConfigurationFactory extends GraphicsConfiguratio
               if (WGL.DescribePixelFormat(hdc, 1 + i, pfd.size(), pfd) == 0) {
                 throw new GLException("Error describing pixel format " + (1 + i) + " of device context");
               }
-              availableCaps[i] = WindowsWGLGraphicsConfiguration.PFD2GLCapabilities(pfd);
+              availableCaps[i] = WindowsWGLGraphicsConfiguration.PFD2GLCapabilities(glProfile, pfd);
             }
           }
 
@@ -331,7 +332,7 @@ public class WindowsWGLGraphicsConfigurationFactory extends GraphicsConfiguratio
         if (chosenCaps != null) {
           capabilities = chosenCaps;
         } else {
-          capabilities = WindowsWGLGraphicsConfiguration.PFD2GLCapabilities(pfd);
+          capabilities = WindowsWGLGraphicsConfiguration.PFD2GLCapabilities(glProfile, pfd);
         }
         config.setCapsPFD(capabilities, pfd, pixelFormat);
     }

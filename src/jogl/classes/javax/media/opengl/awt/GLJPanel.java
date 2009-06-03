@@ -93,6 +93,8 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
 
   // Data used for either pbuffers or pixmap-based offscreen surfaces
   private GLCapabilities        offscreenCaps;
+  private GLProfile             glProfile;
+  private GLDrawableFactoryImpl factory;
   private GLCapabilitiesChooser chooser;
   private GLContext             shareWith;
   // Width of the actual GLJPanel
@@ -101,8 +103,6 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
   // Lazy reshape notification
   private boolean handleReshape = false;
   private boolean sendReshape = true;
-
-  private static GLDrawableFactoryImpl factory;
 
   // The backend in use
   private Backend backend;
@@ -145,8 +145,6 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
                              getLocalGraphicsEnvironment().
                              getDefaultScreenDevice());
     }
-    GLProfile.setProfile(GLProfile.GL2);
-    factory = GLDrawableFactoryImpl.getFactoryImpl();
   }
 
   /** Creates a new GLJPanel component with a default set of OpenGL
@@ -182,9 +180,11 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
     if (capabilities != null) {
         offscreenCaps = (GLCapabilities) capabilities.clone();
     } else {
-        offscreenCaps = new GLCapabilities();
+        offscreenCaps = new GLCapabilities(null);
     }
     offscreenCaps.setDoubleBuffered(false);
+    this.glProfile = offscreenCaps.getGLProfile();
+    this.factory = GLDrawableFactoryImpl.getFactoryImpl(glProfile);
     this.chooser = ((chooser != null) ? chooser : new DefaultGLCapabilitiesChooser());
     this.shareWith = shareWith;
   }
@@ -352,6 +352,9 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
   }
 
   public GL getGL() {
+    if (Beans.isDesignTime()) {
+      return null;
+    }
     GLContext context = getContext();
     return (context == null) ? null : context.getGL();
   }
@@ -404,15 +407,19 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
     return oglPipelineEnabled;
   }
 
-  public GLCapabilities getChosenGLCapabilities() {
-    return backend.getChosenGLCapabilities();
+  public GLCapabilities getGLCapabilities() {
+    return backend.getGLCapabilities();
+  }
+
+  public final GLProfile getGLProfile() {
+    return glProfile;
   }
 
   public NativeWindow getNativeWindow() {
     throw new GLException("FIXME");
   }
 
-  public GLDrawableFactory getFactory() {
+  public final GLDrawableFactory getFactory() {
     return factory;
   }
 
@@ -620,8 +627,11 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
     // Called to get the current backend's GLDrawable
     public GLDrawable getDrawable();
 
-    // Called to fetch the "real" chosen GLCapabilities for the backend
-    public GLCapabilities getChosenGLCapabilities();
+    // Called to fetch the "real" GLCapabilities for the backend
+    public GLCapabilities getGLCapabilities();
+
+    // Called to fetch the "real" GLProfile for the backend
+    public GLProfile getGLProfile();
 
     // Called to handle a reshape event. When this is called, the
     // OpenGL context associated with the backend is not current, to
@@ -861,11 +871,18 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
         return offscreenDrawable;
     }
 
-    public GLCapabilities getChosenGLCapabilities() {
+    public GLCapabilities getGLCapabilities() {
       if (offscreenDrawable == null) {
         return null;
       }
-      return offscreenDrawable.getChosenGLCapabilities();
+      return offscreenDrawable.getGLCapabilities();
+    }
+
+    public GLProfile getGLProfile() {
+      if (offscreenDrawable == null) {
+        return null;
+      }
+      return offscreenDrawable.getGLProfile();
     }
 
     public void handleReshape() {
@@ -952,11 +969,18 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
         return pbuffer;
     }
 
-    public GLCapabilities getChosenGLCapabilities() {
+    public GLCapabilities getGLCapabilities() {
       if (pbuffer == null) {
         return null;
       }
-      return pbuffer.getChosenGLCapabilities();
+      return pbuffer.getGLCapabilities();
+    }
+    
+    public GLProfile getGLProfile() {
+      if (pbuffer == null) {
+        return null;
+      }
+      return pbuffer.getGLProfile();
     }
     
     public void handleReshape() {
@@ -1123,9 +1147,14 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
         return joglDrawable;
     }
 
-    public GLCapabilities getChosenGLCapabilities() {
+    public GLCapabilities getGLCapabilities() {
       // FIXME: should do better than this; is it possible to using only platform-independent code?
-      return new GLCapabilities();
+      return new GLCapabilities(null);
+    }
+
+    public GLProfile getGLProfile() {
+      // FIXME: should do better than this; is it possible to using only platform-independent code?
+      return GLProfile.GetProfileDefault();
     }
 
     public void handleReshape() {
@@ -1388,9 +1417,9 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
                   if (factory.canCreateExternalGLDrawable()) {
                     joglDrawable = factory.createExternalGLDrawable();
                     joglContext = joglDrawable.createContext(shareWith);
-                  } else if (((GLDrawableFactoryImpl) factory).canCreateContextOnJava2DSurface()) {
+                  } else if (factory.canCreateContextOnJava2DSurface()) {
                     // Mac OS X code path
-                    joglContext = ((GLDrawableFactoryImpl) factory).createContextOnJava2DSurface(g, shareWith);
+                    joglContext = factory.createContextOnJava2DSurface(g, shareWith);
                   }
                   if (DEBUG) {
                     joglContext.setGL(new DebugGL2(joglContext.getGL().getGL2()));

@@ -41,7 +41,7 @@ public abstract class NewtFactory {
     // Work-around for initialization order problems on Mac OS X
     // between native Newt and (apparently) Fmod
     static {
-        Window.init(NativeWindowFactory.getNativeWindowType());
+        Window.init(NativeWindowFactory.getNativeWindowType(true));
     }
 
     static int getPropertyIntValue(String propname) {
@@ -59,7 +59,7 @@ public abstract class NewtFactory {
      * Create a Display entity, incl native creation
      */
     public static Display createDisplay(String name) {
-      return Display.create(NativeWindowFactory.getNativeWindowType(), name);
+      return Display.create(NativeWindowFactory.getNativeWindowType(true), name);
     }
 
     /**
@@ -73,7 +73,7 @@ public abstract class NewtFactory {
      * Create a Screen entity, incl native creation
      */
     public static Screen createScreen(Display display, int index) {
-      return Screen.create(NativeWindowFactory.getNativeWindowType(), display, index);
+      return Screen.create(NativeWindowFactory.getNativeWindowType(true), display, index);
     }
 
     /**
@@ -87,11 +87,11 @@ public abstract class NewtFactory {
      * Create a Window entity, incl native creation
      */
     public static Window createWindow(Screen screen, Capabilities caps) {
-      return Window.create(NativeWindowFactory.getNativeWindowType(), screen, caps);
+      return Window.create(NativeWindowFactory.getNativeWindowType(true), screen, caps);
     }
 
     public static Window createWindow(Screen screen, Capabilities caps, boolean undecorated) {
-        return Window.create(NativeWindowFactory.getNativeWindowType(), screen, caps, undecorated);
+        return Window.create(NativeWindowFactory.getNativeWindowType(true), screen, caps, undecorated);
     }
 
     /**
@@ -105,14 +105,14 @@ public abstract class NewtFactory {
      * Instantiate a Display entity using the native handle.
      */
     public static Display wrapDisplay(String name, AbstractGraphicsDevice device) {
-      return Display.wrapHandle(NativeWindowFactory.getNativeWindowType(), name, device);
+      return Display.wrapHandle(NativeWindowFactory.getNativeWindowType(true), name, device);
     }
 
     /**
      * Instantiate a Screen entity using the native handle.
      */
     public static Screen wrapScreen(Display display, AbstractGraphicsScreen screen) {
-      return Screen.wrapHandle(NativeWindowFactory.getNativeWindowType(), display, screen);
+      return Screen.wrapHandle(NativeWindowFactory.getNativeWindowType(true), display, screen);
     }
 
     /**
@@ -121,7 +121,7 @@ public abstract class NewtFactory {
     public static Window wrapWindow(Screen screen, AbstractGraphicsConfiguration config,
                                     long windowHandle, boolean fullscreen, boolean visible, 
                                     int x, int y, int width, int height) {
-      return Window.wrapHandle(NativeWindowFactory.getNativeWindowType(), screen, config,
+      return Window.wrapHandle(NativeWindowFactory.getNativeWindowType(true), screen, config,
                                windowHandle, fullscreen, visible, x, y, width, height);
     }
 

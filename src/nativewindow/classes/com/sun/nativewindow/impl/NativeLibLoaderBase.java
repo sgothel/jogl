@@ -48,7 +48,7 @@ import java.security.PrivilegedAction;
 import java.util.HashSet;
 
 public class NativeLibLoaderBase {
-  private static boolean DEBUG = true;
+  public static final boolean DEBUG = Debug.debug("NativeLibLoader");
 
   public interface LoaderAction {
     /**
@@ -68,23 +68,38 @@ public class NativeLibLoaderBase {
         boolean preloadIgnoreError) {
       if (null!=preload) {
         for (int i=0; i<preload.length; i++) {
-          try {
-            System.loadLibrary(preload[i]);
-          }
-          catch (UnsatisfiedLinkError e) {
-            if(DEBUG) e.printStackTrace();
-            if (!preloadIgnoreError && e.getMessage().indexOf("already loaded") < 0) {
-              throw e;
-            }
+          if(!isLoaded(preload[i])) {
+              try {
+                System.loadLibrary(preload[i]);
+                addLoaded(preload[i]);
+              }
+              catch (UnsatisfiedLinkError e) {
+                if(DEBUG) e.printStackTrace();
+                if (!preloadIgnoreError && e.getMessage().indexOf("already loaded") < 0) {
+                  throw e;
+                }
+              }
           }
         }
       }
       System.loadLibrary(libname);
+      addLoaded(libname);
     }
   }
 
   private static final HashSet loaded = new HashSet();
   private static LoaderAction loaderAction = new DefaultAction();
+
+  public static boolean isLoaded(String libName) {
+    return loaded.contains(libName);
+  }
+
+  public static void addLoaded(String libName) {
+    loaded.add(libName);
+    if(DEBUG) {
+        System.err.println("NativeLibLoaderBase Loaded Native Library: "+libName);
+    }
+  }
 
   public static void disableLoading() {
     setLoadingAction(null);
@@ -100,10 +115,9 @@ public class NativeLibLoaderBase {
 
   protected static synchronized void loadLibrary(String libname, String[] preload, 
       boolean preloadIgnoreError) {
-    if (loaderAction != null && !loaded.contains(libname))
+    if (loaderAction != null && !isLoaded(libname))
     {
       loaderAction.loadLibrary(libname, preload, preloadIgnoreError);    
-      loaded.add(libname);
     }
   }
   

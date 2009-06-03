@@ -76,28 +76,30 @@ public boolean isFunctionAvailable(String gluFunctionName)
 // Utility routines
 //
 
-/**
- * Instantiates a GLU implementation object in respect to the current GL profile.
- */
-public static final GLU createGLU() throws GLException {
-  return createGLU(GLProfile.getProfile());
-}
-
 private static Class gl2Class;
 private static Class gl2es1Class;
 
 /**
- * Instantiates a GLU implementation object in respect to the given GL profile.
+ * Instantiates a GLU implementation object in respect to the given GL profile
+ * of this thread current GL.
  */
-public static final GLU createGLU(String profile) throws GLException {
+public static final GLU createGLU() throws GLException {
+    return createGLU(getCurrentGL());
+}
+
+/**
+ * Instantiates a GLU implementation object in respect to the given GL profile
+ * of the given GL.
+ */
+public static final GLU createGLU(GL gl) throws GLException {
   try {
       Class c = null;
-      if(GLProfile.GL2.equals(profile)) {
+      if(gl.isGL2()) {
         if (gl2Class == null) {
           gl2Class = Class.forName("javax.media.opengl.glu.gl2.GLUgl2");
         }
         c = gl2Class;
-      } else if (GLProfile.GL2ES1.equals(profile) || GLProfile.GLES1.equals(profile)) {
+      } else if (gl.isGL2ES1()) {
         if (gl2es1Class == null) {
           gl2es1Class = Class.forName("javax.media.opengl.glu.gl2es1.GLUgl2es1");
         }
@@ -1210,14 +1212,19 @@ public static final double GLU_TESS_MAX_COORD = 1.0e150;
 
 protected static boolean availableGLUquadricImpl = false;
 protected static boolean checkedGLUquadricImpl = false;
+protected static volatile Object syncObject = new Object();
 
 /**
  * Optional, throws GLException if not available in profile
  */
 protected static final void validateGLUquadricImpl() {
     if(!checkedGLUquadricImpl) {
-        availableGLUquadricImpl = NWReflection.isClassAvailable("com.sun.opengl.impl.glu.GLUquadricImpl");
-        checkedGLUquadricImpl = true;
+        synchronized (syncObject) {
+            if(!checkedGLUquadricImpl) {
+                availableGLUquadricImpl = NWReflection.isClassAvailable("com.sun.opengl.impl.glu.GLUquadricImpl");
+                checkedGLUquadricImpl = true;
+            }
+        }
     }
     if(!availableGLUquadricImpl) {
       throw new GLException("GLUquadric not available (GLUquadricImpl)");
@@ -1248,11 +1255,12 @@ public final GLUquadric gluNewQuadric() {
 }
 
 public final GLUquadric gluNewQuadric(boolean useGLSL) {
-  if(useGLSL && !GLProfile.isGL2ES2()) {
-    throw new GLException("GLUquadric GLSL implementation not supported for profile: "+GLProfile.getProfile());
+  GL gl = getCurrentGL();
+  if(useGLSL && !gl.isGL2ES2()) {
+    throw new GLException("GLUquadric GLSL implementation not supported for profile: "+gl);
   }
   validateGLUquadricImpl();
-  return new GLUquadricImpl(useGLSL);
+  return new GLUquadricImpl(gl, useGLSL);
 }
 
 /** Option (throws GLException if not available in profile). <br> Interface to C language function: <br> <code> void gluPartialDisk(GLUquadric *  quad, GLdouble inner, GLdouble outer, GLint slices, GLint loops, GLdouble start, GLdouble sweep); </code>    */

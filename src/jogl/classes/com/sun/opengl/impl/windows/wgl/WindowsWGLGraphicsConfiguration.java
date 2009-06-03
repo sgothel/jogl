@@ -235,11 +235,11 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
         return true;
     }
 
-    public static GLCapabilities AttribList2GLCapabilities(int[] iattribs,
+    public static GLCapabilities AttribList2GLCapabilities(GLProfile glp, int[] iattribs,
                                                          int niattribs,
                                                          int[] iresults,
                                                          boolean requireRenderToWindow) {
-        GLCapabilities res = new GLCapabilities();
+        GLCapabilities res = new GLCapabilities(glp);
         for (int i = 0; i < niattribs; i++) {
           int attr = iattribs[i];
           switch (attr) {
@@ -341,11 +341,11 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
 
   // PIXELFORMAT
 
-    public static GLCapabilities PFD2GLCapabilities(PIXELFORMATDESCRIPTOR pfd) {
+    public static GLCapabilities PFD2GLCapabilities(GLProfile glp, PIXELFORMATDESCRIPTOR pfd) {
         if ((pfd.dwFlags() & WGL.PFD_SUPPORT_OPENGL) == 0) {
           return null;
         }
-        GLCapabilities res = new GLCapabilities();
+        GLCapabilities res = new GLCapabilities(glp);
         res.setRedBits       (pfd.cRedBits());
         res.setGreenBits     (pfd.cGreenBits());
         res.setBlueBits      (pfd.cBlueBits());

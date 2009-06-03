@@ -80,68 +80,140 @@ import com.sun.nativewindow.impl.NWReflection;
 */
 
 public abstract class GLDrawableFactory {
-  private static GLDrawableFactory factory;
-
   /** Creates a new GLDrawableFactory instance. End users do not need
       to call this method. */
   protected GLDrawableFactory() {
   }
 
-  /** Returns the sole GLDrawableFactory instance. The {@link
-      GLProfile GLProfile} must be configured before calling this
-      method. */
-  public static GLDrawableFactory getFactory() throws GLException {
-    if (null == factory) {
-      if (null == GLProfile.getProfile()) {
-        GLProfile.setProfileGLAny(); // do it now .. last resort
-      }
+  private static final GLDrawableFactory eglES1Factory;
+  private static final GLDrawableFactory eglES2Factory;
+  private static final GLDrawableFactory nativeOSFactory;
+  private static final String nativeOSType;
 
-      // See if the user is requesting one of the embedded profiles,
-      // and if so, try to instantiate the EGLDrawableFactory
-      if ( GLProfile.usesNativeGLES() ) {
-        try {
-          factory = (GLDrawableFactory) NWReflection.createInstance("com.sun.opengl.impl.egl.EGLDrawableFactory");
-        } catch (Exception e) {
-          e.printStackTrace();
+  /**
+   * Instantiate singleton factories if available, EGLES1, EGLES2 and the OS native ones.
+   */
+  static {
+    GLDrawableFactory tmp = null;
+    try {
+        tmp = (GLDrawableFactory) NWReflection.createInstance("com.sun.opengl.impl.egl.EGLDrawableFactory", new Object[] { GLProfile.GLES1 });
+    } catch (Throwable t) {
+        if (GLProfile.DEBUG) {
+            System.err.println("GLDrawableFactory.static - EGLDrawableFactory GLES1 - not available");
+            t.printStackTrace();
         }
-      } else if ( !GLProfile.isGL2ES1() && !GLProfile.isGL2ES2() ) {
-        // We require that the user passes in one of the known profiles
-        throw new GLException("Unknown or unsupported profile \"" + GLProfile.getProfile() + "\"");
-      }
+    }
+    eglES1Factory = tmp;
 
-      if (null == factory) {
-        // Use the desktop OpenGL as the fallback always
-        try {
-          String factoryClassName =
+    tmp = null;
+    try {
+        tmp = (GLDrawableFactory) NWReflection.createInstance("com.sun.opengl.impl.egl.EGLDrawableFactory", new Object[] { GLProfile.GLES2 });
+    } catch (Throwable t) {
+        if (GLProfile.DEBUG) {
+            System.err.println("GLDrawableFactory.static - EGLDrawableFactory GLES2 - not available");
+            t.printStackTrace();
+        }
+    }
+    eglES2Factory = tmp;
+
+    nativeOSType = NativeWindowFactory.getNativeWindowType(false);
+
+    String factoryClassName = null;
+    tmp = null;
+    try {
+        factoryClassName =
             (String) AccessController.doPrivileged(new PrivilegedAction() {
                 public Object run() {
                   return System.getProperty("opengl.factory.class.name");
                 }
               });
-          String osName = System.getProperty("os.name");
-          String osNameLowerCase = osName.toLowerCase();
 
-          if (factoryClassName == null) {
-            if (osNameLowerCase.startsWith("windows")) {
+        if (null == factoryClassName) {
+            if ( nativeOSType.equals(NativeWindowFactory.TYPE_EGL) ) {
+              // use egl*Factory ..
+            } else if ( nativeOSType.equals(NativeWindowFactory.TYPE_X11) ) {
+              factoryClassName = "com.sun.opengl.impl.x11.glx.X11GLXDrawableFactory";
+            } else if ( nativeOSType.equals(NativeWindowFactory.TYPE_WINDOWS) ) {
               factoryClassName = "com.sun.opengl.impl.windows.wgl.WindowsWGLDrawableFactory";
-            } else if (osNameLowerCase.startsWith("mac os x") ||
-                       osNameLowerCase.startsWith("darwin")) {
+            } else if ( nativeOSType.equals(NativeWindowFactory.TYPE_MACOSX) ) {
               // FIXME: remove this residual dependence on the AWT
               factoryClassName = "com.sun.opengl.impl.macosx.cgl.awt.MacOSXAWTCGLDrawableFactory";
             } else {
-              // Assume Linux, Solaris, etc. Should probably test for these explicitly.
-              factoryClassName = "com.sun.opengl.impl.x11.glx.X11GLXDrawableFactory";
+              throw new GLException("Unsupported NativeWindow type: "+nativeOSType);
             }
-          }
-
-          factory = (GLDrawableFactory) NWReflection.createInstance(factoryClassName);
-        } catch (Exception e) {
-          throw new GLException(e);
         }
+        if (null != factoryClassName) {
+          tmp = (GLDrawableFactory) NWReflection.createInstance(factoryClassName);
+        }
+    } catch (Throwable t) {
+        if (GLProfile.DEBUG) {
+            System.err.println("GLDrawableFactory.static - Native Platform: "+nativeOSType+" - not available: "+factoryClassName);
+            t.printStackTrace();
+        }
+    }
+    nativeOSFactory = tmp;
+  }
+
+  /** 
+   * Returns the sole GLDrawableFactory instance. 
+   * 
+   * @arg nw NativeWindow object to query the ES GLProfile type,
+   *      which itself helps to determine the EGL factory type.
+   */
+  public static GLDrawableFactory getFactory(NativeWindow nw) throws GLException {
+      return getFactory(nw.getGraphicsConfiguration().getNativeGraphicsConfiguration());
+  }
+
+  /** 
+   * Returns the sole GLDrawableFactory instance. 
+   * 
+   * @arg agc AbstractGraphicsConfiguration object to query the ES GLProfile type,
+   *      which itself helps to determine the EGL factory type.
+   */
+  public static GLDrawableFactory getFactory(AbstractGraphicsConfiguration agc) throws GLException {
+      if(null==agc) {
+        throw new GLException("Null AbstractGraphicsConfiguration");
       }
+      if( !(agc.getCapabilities() instanceof GLCapabilities) ) {
+        throw new GLException("Unsupported AbstractGraphicsConfiguration for OpenGL: "+agc);
+      }
+      return getFactory((GLCapabilities)agc.getCapabilities());
+  }
+
+  /** 
+   * Returns the sole GLDrawableFactory instance. 
+   * 
+   * @arg esCaps GLCapabilities object to query the ES GLProfile type,
+   *      which itself helps to determine the EGL factory type.
+   */
+  public static GLDrawableFactory getFactory(GLCapabilities esCaps) throws GLException {
+    return getFactory(esCaps.getGLProfile());
+  }
+
+  /** 
+   * Returns the sole GLDrawableFactory instance. 
+   * 
+   * @arg esProfile GLProfile to determine the EGL factory type.
+   */
+  public static GLDrawableFactory getFactory(GLProfile esProfile) throws GLException {
+    return getFactory(esProfile.getImplName());
+  }
+
+  protected static GLDrawableFactory getFactory(String profileImpl) throws GLException {
+    if ( GLProfile.UsesNativeGLES1(profileImpl) ) {
+        if(null==eglES1Factory) throw new GLException("GLDrawableFactory unavailable for EGL/ES1: "+profileImpl);
+        return eglES1Factory;
+    } else if ( GLProfile.UsesNativeGLES2(profileImpl) ) {
+        if(null==eglES2Factory) throw new GLException("GLDrawableFactory unavailable for EGL/ES2: "+profileImpl);
+        return eglES2Factory;
     }
 
-    return factory;
+    return getNativeOSFactory();
+  }
+
+  protected static GLDrawableFactory getNativeOSFactory() {
+    if(null==nativeOSFactory) throw new GLException("GLDrawableFactory unavailable for Native Platform "+nativeOSType);
+    return nativeOSFactory;
   }
 
   /** Shuts down this GLDrawableFactory, releasing resources

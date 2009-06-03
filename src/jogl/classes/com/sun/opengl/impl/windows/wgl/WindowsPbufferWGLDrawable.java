@@ -133,6 +133,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
 
     WindowsWGLGraphicsConfiguration config = (WindowsWGLGraphicsConfiguration) getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration();
     GLCapabilities capabilities = (GLCapabilities)config.getCapabilities();
+    GLProfile glProfile = capabilities.getGLProfile();
 
     if (DEBUG) {
       System.out.println("Pbuffer parentHdc = " + toHexString(parentHdc));
@@ -300,7 +301,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
       iattributes[niattribs++] = WGLExt.WGL_DRAW_TO_PBUFFER_ARB;
       int[] ivalues = new int[niattribs];
       if (wglExt.wglGetPixelFormatAttribivARB(parentHdc, pformats[whichFormat], 0, niattribs, iattributes, 0, ivalues, 0)) {
-        GLCapabilities newCaps = WindowsWGLGraphicsConfiguration.AttribList2GLCapabilities(iattributes, niattribs, ivalues, false);
+        GLCapabilities newCaps = WindowsWGLGraphicsConfiguration.AttribList2GLCapabilities(glProfile, iattributes, niattribs, ivalues, false);
         PIXELFORMATDESCRIPTOR pfd = WindowsWGLGraphicsConfiguration.createPixelFormatDescriptor();
         if (WGL.DescribePixelFormat(parentHdc, pformats[whichFormat], pfd.size(), pfd) == 0) {
           throw new GLException("Unable to describe pixel format " + pformats[whichFormat]);
@@ -311,7 +312,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
         if (WGL.DescribePixelFormat(parentHdc, pformats[whichFormat], pfd.size(), pfd) == 0) {
           throw new GLException("Unable to describe pixel format " + pformats[whichFormat]);
         }
-        GLCapabilities newCaps = WindowsWGLGraphicsConfiguration.PFD2GLCapabilities(pfd);
+        GLCapabilities newCaps = WindowsWGLGraphicsConfiguration.PFD2GLCapabilities(glProfile, pfd);
         config.setCapsPFD(newCaps, pfd, pformats[whichFormat]);
       }
     }

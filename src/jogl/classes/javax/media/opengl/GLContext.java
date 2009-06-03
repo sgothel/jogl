@@ -149,8 +149,23 @@ public abstract class GLContext {
   public abstract void copy(GLContext source, int mask) throws GLException;
 
   /**
-   * Returns the context which is current on the current thread. If no
-   * context is current, returns null.
+   * Returns the GL object bound to this thread current context.
+   * If no context is current, throw an GLException
+   *
+   * @return the current context's GL object on this thread
+   * @thows GLException if no context is current
+   */
+  public static GL getCurrentGL() throws GLException {
+    GLContext glc = getCurrent();
+    if(null==glc) {
+        throw new GLException("No OpenGL context current on this thread");
+    }
+    return glc.getGL();
+  }
+
+  /**
+   * Returns this thread current context.
+   * If no context is current, returns null.
    *
    * @return the context current on this thread, or null if no context
    * is current.

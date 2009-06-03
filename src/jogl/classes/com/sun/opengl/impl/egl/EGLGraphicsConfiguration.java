@@ -61,18 +61,18 @@ public class EGLGraphicsConfiguration extends DefaultGraphicsConfiguration imple
         return super.clone();
     }
 
-    public static _EGLConfig EGLConfigId2EGLConfig(long display, int configID) {
+    public static _EGLConfig EGLConfigId2EGLConfig(GLProfile glp, long display, int configID) {
         int[] attrs = new int[] {
                 EGL.EGL_RENDERABLE_TYPE, -1,
                 EGL.EGL_CONFIG_ID, configID,
                 EGL.EGL_NONE
             };
-        if (GLProfile.usesNativeGLES2()) {
+        if (glp.usesNativeGLES2()) {
             attrs[1] = EGL.EGL_OPENGL_ES2_BIT;
-        } else if (GLProfile.usesNativeGLES1()) {
+        } else if (glp.usesNativeGLES1()) {
             attrs[1] = EGL.EGL_OPENGL_ES_BIT;
         } else {
-            throw new GLException("Error creating EGL drawable - invalid GLProfile");
+            attrs[1] = EGL.EGL_OPENGL_BIT;
         }
         _EGLConfig[] configs = new _EGLConfig[1];
         int[] numConfigs = new int[1];
@@ -88,8 +88,8 @@ public class EGLGraphicsConfiguration extends DefaultGraphicsConfiguration imple
         return configs[0];
     }
 
-    public static GLCapabilities EGLConfig2Capabilities(long display, _EGLConfig _config) {
-        GLCapabilities caps = new GLCapabilities();
+    public static GLCapabilities EGLConfig2Capabilities(GLProfile glp, long display, _EGLConfig _config) {
+        GLCapabilities caps = new GLCapabilities(glp);
         int[] val = new int[1];
 
         // Read the actual configuration into the choosen caps
@@ -128,10 +128,10 @@ public class EGLGraphicsConfiguration extends DefaultGraphicsConfiguration imple
                 EGL.EGL_NONE
             };
 
-        if(GLProfile.usesNativeGLES1()) {
+        if(caps.getGLProfile().usesNativeGLES1()) {
             attrs[1] = EGL.EGL_OPENGL_ES_BIT;
         }
-        else if(GLProfile.usesNativeGLES2()) {
+        else if(caps.getGLProfile().usesNativeGLES2()) {
             attrs[1] = EGL.EGL_OPENGL_ES2_BIT;
         } else {
             attrs[1] = EGL.EGL_OPENGL_BIT;

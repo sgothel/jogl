@@ -37,36 +37,36 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
    *
    * @see javax.media.opengl.GLContext#getPredefinedArrayIndexName(int)
    */
-  public static GLArrayDataClient createFixed(int index, String name, int comps, int dataType, boolean normalized, 
+  public static GLArrayDataClient createFixed(GL gl, int index, String name, int comps, int dataType, boolean normalized, 
                                               int initialSize)
     throws GLException
   {
-      GLProfile.isValidArrayDataType(index, comps, dataType, false, true);
+      gl.getGLProfile().isValidArrayDataType(index, comps, dataType, false, true);
       GLArrayDataClient adc = new GLArrayDataClient();
       GLArrayHandler glArrayHandler = new GLFixedArrayHandler(adc);
       adc.init(name, index, comps, dataType, normalized, 0, null, initialSize, false, glArrayHandler, 0, 0);
       return adc;
   }
 
-  public static GLArrayDataClient createFixed(int index, String name, int comps, int dataType, boolean normalized, 
+  public static GLArrayDataClient createFixed(GL gl, int index, String name, int comps, int dataType, boolean normalized, 
                                               int stride, Buffer buffer)
     throws GLException
   {
-      GLProfile.isValidArrayDataType(index, comps, dataType, false, true);
+      gl.getGLProfile().isValidArrayDataType(index, comps, dataType, false, true);
       GLArrayDataClient adc = new GLArrayDataClient();
       GLArrayHandler glArrayHandler = new GLFixedArrayHandler(adc);
       adc.init(name, index, comps, dataType, normalized, stride, buffer, comps*comps, false, glArrayHandler, 0, 0);
       return adc;
   }
 
-  public static GLArrayDataClient createGLSL(String name, int comps, int dataType, boolean normalized, 
+  public static GLArrayDataClient createGLSL(GL gl, String name, int comps, int dataType, boolean normalized, 
                                              int initialSize)
     throws GLException
   {
-      if(!GLProfile.hasGLSL()) {
-        throw new GLException("GLArrayDataClient.GLSL not supported for profile: "+GLProfile.getProfile());
+      if(!gl.hasGLSL()) {
+        throw new GLException("GLArrayDataClient.GLSL not supported: "+gl);
       }
-      GLProfile.isValidArrayDataType(-1, comps, dataType, true, true);
+      gl.getGLProfile().isValidArrayDataType(-1, comps, dataType, true, true);
 
       GLArrayDataClient adc = new GLArrayDataClient();
       GLArrayHandler glArrayHandler = new GLSLArrayHandler(adc);
@@ -74,14 +74,14 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
       return adc;
   }
 
-  public static GLArrayDataClient createGLSL(String name, int comps, int dataType, boolean normalized, 
+  public static GLArrayDataClient createGLSL(GL gl, String name, int comps, int dataType, boolean normalized, 
                                              int stride, Buffer buffer)
     throws GLException
   {
-      if(!GLProfile.hasGLSL()) {
-        throw new GLException("GLArrayDataClient.GLSL not supported for profile: "+GLProfile.getProfile());
+      if(!gl.hasGLSL()) {
+        throw new GLException("GLArrayDataClient.GLSL not supported: "+gl);
       }
-      GLProfile.isValidArrayDataType(-1, comps, dataType, true, true);
+      gl.getGLProfile().isValidArrayDataType(-1, comps, dataType, true, true);
 
       GLArrayDataClient adc = new GLArrayDataClient();
       GLArrayHandler glArrayHandler = new GLSLArrayHandler(adc);

@@ -292,11 +292,6 @@ public abstract class Window implements NativeWindow
         return windowHandle; // default: return window handle
     }
 
-    public Capabilities getChosenCapabilities() {
-        // Must return a new copy to avoid mutation by end user
-        return (Capabilities) config.getCapabilities().clone();
-    }
-
     public AbstractGraphicsConfiguration getGraphicsConfiguration() {
         return config;
     }

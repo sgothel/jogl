@@ -70,6 +70,10 @@ public class EGLGraphicsConfigurationFactory extends GraphicsConfigurationFactor
             throw new IllegalArgumentException("This NativeWindowFactory accepts only GLCapabilitiesChooser objects");
         }
 
+        if (chooser == null) {
+            chooser = new DefaultGLCapabilitiesChooser();
+        }
+
         return chooseGraphicsConfigurationStatic((GLCapabilities) capabilities,
                                                  (GLCapabilitiesChooser) chooser,
                                                  absScreen);
@@ -79,8 +83,9 @@ public class EGLGraphicsConfigurationFactory extends GraphicsConfigurationFactor
                                                                              GLCapabilitiesChooser chooser,
                                                                              AbstractGraphicsScreen absScreen) {
         if (capabilities == null) {
-            capabilities = new GLCapabilities();
+            capabilities = new GLCapabilities(null);
         }
+        GLProfile glp = capabilities.getGLProfile();
 
         if(null==absScreen) {
             throw new GLException("Null AbstractGraphicsScreen");
@@ -96,6 +101,47 @@ public class EGLGraphicsConfigurationFactory extends GraphicsConfigurationFactor
             throw new GLException("Invalid EGL display: "+absDevice);
         }
 
+        EGLGraphicsConfiguration res = eglChooseConfig(eglDisplay, capabilities, absScreen);
+        if(null!=res) {
+            return res;
+        }
+
+        _EGLConfig[] configs = new _EGLConfig[10];
+        int[] numConfigs = new int[1];
+
+        if(!EGL.eglGetConfigs(eglDisplay, configs, 10, numConfigs, 0)) {
+            throw new GLException("Graphics configuration fetch (eglGetConfigs) failed");
+        }
+        if (numConfigs[0] == 0) {
+            throw new GLException("Graphics configuration fetch (eglGetConfigs) - no EGLConfig found");
+        }
+        GLCapabilities[] caps = new GLCapabilities[numConfigs[0]];
+        for(int i=0; i<caps.length; i++) {
+            caps[i] = EGLGraphicsConfiguration.EGLConfig2Capabilities(glp, eglDisplay, configs[i]);
+            if(DEBUG) {
+                System.err.println("caps["+i+"] "+caps[i]);
+            }
+        }
+        int chosen = -1;
+        try {
+            chosen = chooser.chooseCapabilities(capabilities, caps, -1);
+        } catch (NativeWindowException e) { throw new GLException(e); }
+        if(chosen<0) {
+            throw new GLException("Graphics configuration chooser failed");
+        }
+        if(DEBUG) {
+            System.err.println("Choosen "+caps[chosen]);
+        }
+        res = eglChooseConfig(eglDisplay, caps[chosen], absScreen);
+        if(null==res) {
+            throw new GLException("Graphics configuration chooser/eglChoose failed");
+        }
+        return res;
+    }
+
+    protected static EGLGraphicsConfiguration eglChooseConfig(long eglDisplay, GLCapabilities capabilities,
+                                                              AbstractGraphicsScreen absScreen) {
+        GLProfile glp = capabilities.getGLProfile();
         int[] attrs = EGLGraphicsConfiguration.GLCapabilities2AttribList(capabilities);
         _EGLConfig[] configs = new _EGLConfig[1];
         int[] numConfigs = new int[1];
@@ -105,18 +151,17 @@ public class EGLGraphicsConfigurationFactory extends GraphicsConfigurationFactor
                                  numConfigs, 0)) {
             throw new GLException("Graphics configuration selection (eglChooseConfig) failed");
         }
-        if (numConfigs[0] == 0) {
-            throw new GLException("No valid graphics configuration selected from eglChooseConfig");
-        }
+        if (numConfigs[0] > 0) {
+            int[] val = new int[1];
+            // get the configID 
+            if(!EGL.eglGetConfigAttrib(eglDisplay, configs[0], EGL.EGL_CONFIG_ID, val, 0)) {
+                throw new GLException("EGL couldn't retrieve ConfigID");
+            }
 
-        int[] val = new int[1];
-        // get the configID 
-        if(!EGL.eglGetConfigAttrib(eglDisplay, configs[0], EGL.EGL_CONFIG_ID, val, 0)) {
-            throw new GLException("EGL couldn't retrieve ConfigID");
+            return new EGLGraphicsConfiguration(absScreen, 
+                            EGLGraphicsConfiguration.EGLConfig2Capabilities(glp, eglDisplay, configs[0]), configs[0], val[0]);
         }
-
-        return new EGLGraphicsConfiguration(absScreen, 
-                        EGLGraphicsConfiguration.EGLConfig2Capabilities(eglDisplay, configs[0]), configs[0], val[0]);
+        return null;
     }
 }
 

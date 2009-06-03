@@ -20,12 +20,12 @@ public class ImmModeSink {
   /**
    * Uses a GL2ES1, or ES2 fixed function emulation immediate mode sink
    */
-  public static ImmModeSink createFixed(int glBufferUsage, int initialSize,
+  public static ImmModeSink createFixed(GL gl, int glBufferUsage, int initialSize,
                                         int vComps, int vDataType,
                                         int cComps, int cDataType, 
                                         int nComps, int nDataType, 
                                         int tComps, int tDataType) {
-    return new ImmModeSink(glBufferUsage, initialSize, 
+    return new ImmModeSink(gl, glBufferUsage, initialSize, 
                            vComps, vDataType, cComps, cDataType, nComps, nDataType, tComps, tDataType, false);
   }
 
@@ -38,12 +38,12 @@ public class ImmModeSink {
    * @see javax.media.opengl.glsl.ShaderState#glUseProgram(GL2ES2, boolean)
    * @see javax.media.opengl.glsl.ShaderState#getCurrent()
    */
-  public static ImmModeSink createGLSL(int glBufferUsage, int initialSize,
+  public static ImmModeSink createGLSL(GL gl, int glBufferUsage, int initialSize,
                                        int vComps, int vDataType,
                                        int cComps, int cDataType, 
                                        int nComps, int nDataType, 
                                        int tComps, int tDataType) {
-    return new ImmModeSink(glBufferUsage, initialSize, 
+    return new ImmModeSink(gl, glBufferUsage, initialSize, 
                            vComps, vDataType, cComps, cDataType, nComps, nDataType, tComps, tDataType, true);
   }
 
@@ -253,15 +253,15 @@ public class ImmModeSink {
     vboSet.glTexCoord3b(x,y,z);
   }
 
-  protected ImmModeSink(int glBufferUsage, int initialSize,
+  protected ImmModeSink(GL gl, int glBufferUsage, int initialSize,
                         int vComps, int vDataType,
                         int cComps, int cDataType, 
                         int nComps, int nDataType, 
                         int tComps, int tDataType, boolean useGLSL) {
-    if(useGLSL && !GLProfile.hasGLSL()) {
-        throw new GLException("ImmModeSink GLSL usage not supported for profile: "+GLProfile.getProfile());
+    if(useGLSL && !gl.hasGLSL()) {
+        throw new GLException("ImmModeSink GLSL usage not supported: "+gl);
     }
-    vboSet = new  VBOSet(glBufferUsage, initialSize, 
+    vboSet = new  VBOSet(gl, glBufferUsage, initialSize, 
                          vComps, vDataType, cComps, cDataType, nComps, nDataType, tComps, tDataType, useGLSL);
     this.vboSetList   = new ArrayList();
   }
@@ -278,11 +278,12 @@ public class ImmModeSink {
   private static boolean vboUsage = true;
 
   protected static class VBOSet {
-    protected VBOSet (int glBufferUsage, int initialSize,
+    protected VBOSet (GL gl, int glBufferUsage, int initialSize,
                       int vComps, int vDataType,
                       int cComps, int cDataType, 
                       int nComps, int nDataType, 
                       int tComps, int tDataType, boolean useGLSL) {
+        this.gl=gl;
         this.glBufferUsage=glBufferUsage;
         this.initialSize=initialSize;
         this.vDataType=vDataType;
@@ -307,7 +308,7 @@ public class ImmModeSink {
     }
 
     protected final VBOSet regenerate() {
-        return new VBOSet(glBufferUsage, initialSize, 
+        return new VBOSet(gl, glBufferUsage, initialSize, 
                           vComps, vDataType, cComps, cDataType, nComps, nDataType, tComps, tDataType, useGLSL);
     }
 
@@ -805,7 +806,7 @@ public class ImmModeSink {
                        "]";
     }
 
-        // non public matters
+    // non public matters
 
     protected void allocateBuffer(int elements) {
         int vWidth = vComps * BufferUtil.sizeOfGLType(vDataType);
@@ -859,25 +860,25 @@ public class ImmModeSink {
         buffer.flip();
 
         if(vComps>0) {
-            vArrayData = GLArrayDataWrapper.createFixed(GLPointerFunc.GL_VERTEX_ARRAY, vComps, vDataType, false,
+            vArrayData = GLArrayDataWrapper.createFixed(gl, GLPointerFunc.GL_VERTEX_ARRAY, vComps, vDataType, false,
                                                         0, vertexArray, 0, vOffset);
         } else {
             vArrayData = null;
         }
         if(cComps>0) {
-            cArrayData = GLArrayDataWrapper.createFixed(GLPointerFunc.GL_COLOR_ARRAY, cComps, cDataType, false,
+            cArrayData = GLArrayDataWrapper.createFixed(gl, GLPointerFunc.GL_COLOR_ARRAY, cComps, cDataType, false,
                                                         0, colorArray, 0, cOffset);
         } else {
             cArrayData = null;
         }
         if(nComps>0) {
-            nArrayData = GLArrayDataWrapper.createFixed(GLPointerFunc.GL_NORMAL_ARRAY, nComps, nDataType, false,
+            nArrayData = GLArrayDataWrapper.createFixed(gl, GLPointerFunc.GL_NORMAL_ARRAY, nComps, nDataType, false,
                                                         0, normalArray, 0, nOffset);
         } else {
             nArrayData = null;
         }
         if(tComps>0) {
-            tArrayData = GLArrayDataWrapper.createFixed(GLPointerFunc.GL_TEXTURE_COORD_ARRAY, tComps, tDataType, false,
+            tArrayData = GLArrayDataWrapper.createFixed(gl, GLPointerFunc.GL_TEXTURE_COORD_ARRAY, tComps, tDataType, false,
                                                         0, textCoordArray, 0, tOffset);
         } else {
             tArrayData = null;
@@ -966,6 +967,7 @@ public class ImmModeSink {
 
     protected boolean sealed, sealedGL, useGLSL;
     protected boolean bufferEnabled, bufferWritten;
+    protected GL gl;
   }
 
 }

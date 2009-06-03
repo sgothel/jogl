@@ -42,6 +42,7 @@ package com.sun.opengl.impl.windows.wgl;
 import java.nio.*;
 import java.util.*;
 import javax.media.opengl.*;
+import javax.media.nativewindow.*;
 import com.sun.opengl.impl.*;
 import com.sun.gluegen.runtime.ProcAddressTable;
 
@@ -70,7 +71,7 @@ public class WindowsWGLContext extends GLContextImpl {
   // FIXME: figure out how to hook back in the Java 2D / JOGL bridge
   public WindowsWGLContext(WindowsWGLDrawable drawable,
                           GLContext shareWith) {
-    super(shareWith);
+    super(drawable.getGLProfile(), shareWith);
     this.drawable = drawable;
   }
 
@@ -118,6 +119,12 @@ public class WindowsWGLContext extends GLContextImpl {
    * called by {@link #makeCurrentImpl()}.
    */
   protected void create() {
+    AbstractGraphicsConfiguration config = drawable.getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration();
+    if(DEBUG) {
+          System.err.println("WindowsWGLContext.create got "+config);
+    }
+    GLCapabilities glCaps = (GLCapabilities) config.getCapabilities();
+
     if (drawable.getNativeWindow().getSurfaceHandle() == 0) {
       throw new GLException("Internal error: attempted to create OpenGL context without an associated drawable");
     }
@@ -147,7 +154,7 @@ public class WindowsWGLContext extends GLContextImpl {
 
         if( !isFunctionAvailable("wglCreateContextAttribsARB") ||
             !isExtensionAvailable("WGL_ARB_create_context") )  {
-            if(GLProfile.isGL3()) {
+            if(glCaps.getGLProfile().isGL3()) {
               if (!WGL.wglMakeCurrent(0, 0)) {
                 throw new GLException("Error freeing temp OpenGL context: " + WGL.GetLastError());
               }
@@ -173,7 +180,7 @@ public class WindowsWGLContext extends GLContextImpl {
                 0
             };
 
-            if(GLProfile.isGL3()) {
+            if(glCaps.getGLProfile().isGL3()) {
                 attribs[1] |= 3;
                 attribs[3] |= 1;
                 attribs[5] |= WGLExt.WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB /* | WGLExt.WGL_CONTEXT_DEBUG_BIT_ARB */;
@@ -181,7 +188,7 @@ public class WindowsWGLContext extends GLContextImpl {
 
             hglrc = wglExt.wglCreateContextAttribsARB(drawable.getNativeWindow().getSurfaceHandle(), hglrc2, attribs, 0); 
             if(0==hglrc) {
-                if(GLProfile.isGL3()) {
+                if(glCaps.getGLProfile().isGL3()) {
                   if (!WGL.wglMakeCurrent(0, 0)) {
                     throw new GLException("Error freeing temp OpenGL context: " + WGL.GetLastError());
                   }

@@ -68,8 +68,14 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory implements
     super();
   }
 
-  public static GLDrawableFactoryImpl getFactoryImpl() {
-    return (GLDrawableFactoryImpl) getFactory();
+  /**
+   * Returns the sole GLDrawableFactoryImpl instance.
+   *
+   * @arg esProfile GLProfile to determine the EGL factory type,
+   *      maybe null in case of non ES profile, ie GL2 or GL3.
+   */
+  public static GLDrawableFactoryImpl getFactoryImpl(GLProfile glp) {
+    return (GLDrawableFactoryImpl) getFactory(glp);
   }
 
   // Helper function for more lazily loading the GLU library;

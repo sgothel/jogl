@@ -560,7 +560,7 @@ public class TextureIO {
         }
 
         // First fetch the texture data
-        GL _gl = GLU.getCurrentGL();
+        GL _gl = GLContext.getCurrentGL();
         if (!_gl.isGL2()) {
             throw new GLException("Only GL2 supports fetching compressed images, GL: " + _gl);
         }
@@ -1046,7 +1046,8 @@ public class TextureIO {
                     pixelFormat = image.getGLFormat();
                 }
                 if (internalFormat == 0) {
-                    if(GLProfile.isGL2()) {
+                    GL gl = GLContext.getCurrentGL();
+                    if(gl.isGL2()) {
                         internalFormat = GL.GL_RGBA8;
                     } else {
                         internalFormat = (image.getBytesPerPixel()==4)?GL.GL_RGBA:GL.GL_RGB;
@@ -1212,7 +1213,7 @@ public class TextureIO {
 
     private static int glGetInteger(int pname) {
         int[] tmp = new int[1];
-        GL gl = GLU.getCurrentGL();
+        GL gl = GLContext.getCurrentGL();
         gl.glGetIntegerv(pname, tmp, 0);
         return tmp[0];
     }

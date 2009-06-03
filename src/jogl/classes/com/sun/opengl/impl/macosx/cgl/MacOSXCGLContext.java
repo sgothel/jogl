@@ -58,7 +58,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
   public MacOSXCGLContext(MacOSXCGLDrawable drawable,
                          GLContext shareWith)
   {
-    super(shareWith);
+    super(drawable.getGLProfile(), shareWith);
     this.drawable = drawable;
   }
 	
@@ -112,6 +112,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
     }
     MacOSXCGLGraphicsConfiguration config = (MacOSXCGLGraphicsConfiguration) drawable.getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration();
     GLCapabilities capabilities = (GLCapabilities)config.getCapabilities();
+    GLProfile glProfile = capabilities.getGLProfile();
     // FIXME: Shall being moved to MacOSXCGLGraphicsConfiguration !
     int[] viewNotReady = new int[1];
     int[] iattribs = new int[128];
@@ -174,7 +175,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
       // Note: These restrictions of the platform's API might be considered as a bug anyways.
       if (!config.getIsUpdated()) {
         // Figure out what attributes we really got
-        GLCapabilities caps = new GLCapabilities();
+        GLCapabilities caps = new GLCapabilities(glProfile);
         CGL.queryPixelFormat(pixelFormat, iattribs, 0, idx, ivalues, 0);
         for (int i = 0; i < idx; i++) {
           int attr = iattribs[i];

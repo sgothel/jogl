@@ -9,27 +9,27 @@ import java.nio.*;
 
 public class GLArrayDataWrapper implements GLArrayData {
 
-  public static GLArrayDataWrapper createFixed(int index, int comps, int dataType, boolean normalized, 
+  public static GLArrayDataWrapper createFixed(GL gl, int index, int comps, int dataType, boolean normalized, 
                                               int stride, Buffer buffer,
                                               int vboName, long bufferOffset)
     throws GLException
   {
-      GLProfile.isValidArrayDataType(index, comps, dataType, false, true);
+      gl.getGLProfile().isValidArrayDataType(index, comps, dataType, false, true);
       GLArrayDataWrapper adc = new GLArrayDataWrapper();
       adc.init(null, index, comps, dataType, normalized, stride, buffer, false, 
                vboName, bufferOffset);
       return adc;
   }
 
-  public static GLArrayDataWrapper createGLSL(String name, int comps, int dataType, boolean normalized, 
+  public static GLArrayDataWrapper createGLSL(GL gl, String name, int comps, int dataType, boolean normalized, 
                                              int stride, Buffer buffer,
                                              int vboName, long bufferOffset)
     throws GLException
   {
-      if(!GLProfile.hasGLSL()) {
-        throw new GLException("GLArrayDataWrapper.GLSL not supported for profile: "+GLProfile.getProfile());
+      if(!gl.hasGLSL()) {
+        throw new GLException("GLArrayDataWrapper.GLSL not supported: "+gl);
       }
-      GLProfile.isValidArrayDataType(-1, comps, dataType, true, true);
+      gl.getGLProfile().isValidArrayDataType(-1, comps, dataType, true, true);
 
       GLArrayDataWrapper adc = new GLArrayDataWrapper();
       adc.init(name, -1, comps, dataType, normalized, stride, buffer, true,

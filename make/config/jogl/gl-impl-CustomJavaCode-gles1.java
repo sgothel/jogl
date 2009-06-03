@@ -1,6 +1,7 @@
-public GLES1Impl(GLContextImpl context) {
+public GLES1Impl(GLProfile glp, GLContextImpl context) {
   this._context = context; 
   this.bufferSizeTracker = context.getBufferSizeTracker();
+  this.glProfile = glp;
 }
 
 public final boolean isGL() {
@@ -32,6 +33,10 @@ public final boolean isGL2ES1() {
 }
 
 public final boolean isGL2ES2() {
+    return false;
+}
+
+public final boolean hasGLSL() {
     return false;
 }
 

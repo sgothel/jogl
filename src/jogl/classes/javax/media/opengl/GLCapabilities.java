@@ -47,6 +47,7 @@ import javax.media.nativewindow.Capabilities;
     configuration on all supported window systems. */
 
 public class GLCapabilities extends Capabilities implements Cloneable {
+  private GLProfile glProfile = null;
   private boolean doubleBuffered = true;
   private boolean stereo         = false;
   private boolean hardwareAccelerated = true;
@@ -72,10 +73,18 @@ public class GLCapabilities extends Capabilities implements Cloneable {
   private boolean pbufferRenderToTexture;
   private boolean pbufferRenderToTextureRectangle;
 
-  /** Creates a GLCapabilities object. All attributes are in a default
-      state.
+  /** Creates a GLCapabilities object. All attributes are in a default state.
+    * @param glp GLProfile, or null for the default GLProfile
     */
-  public GLCapabilities() {}
+  public GLCapabilities(GLProfile glp) {
+      glProfile = (null!=glp)?glp:GLProfile.GetProfileDefault();
+      if(glProfile.usesNativeGLES()) {
+        setRedBits(5);
+        setGreenBits(6);
+        setBlueBits(5);
+        setDepthBits(16);
+      }
+  }
 
   public Object clone() {
     try {
@@ -83,6 +92,16 @@ public class GLCapabilities extends Capabilities implements Cloneable {
     } catch (RuntimeException e) {
       throw new GLException(e);
     }
+  }
+
+  /** Returns the GL profile you desire or used by the drawable. */
+  public GLProfile getGLProfile() {
+    return glProfile;
+  }
+
+  /** Sets the GL profile you desire */
+  public void setGLProfile(GLProfile profile) {
+    glProfile=profile;
   }
 
   /** Indicates whether double-buffering is enabled. */
@@ -290,6 +309,7 @@ public class GLCapabilities extends Capabilities implements Cloneable {
   public String toString() {
     return getClass().toString()+"[" +
         super.toString()+
+        ", GL profile: " + glProfile +
         ", DoubleBuffered: " + doubleBuffered +
 	    ", Stereo: " + stereo + 
         ", HardwareAccelerated: " + hardwareAccelerated +

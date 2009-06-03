@@ -129,7 +129,7 @@ public class GLWindow extends Window implements GLAutoDrawable {
                                   GLCapabilities caps,
                                   boolean undecorated) {
         if (caps == null) {
-            caps = new GLCapabilities();
+            caps = new GLCapabilities(null); // default ..
         }
 
         boolean ownerOfDisplayAndScreen=false;
@@ -267,11 +267,11 @@ public class GLWindow extends Window implements GLAutoDrawable {
     public void setVisible(boolean visible) {
         window.setVisible(visible);
         if (visible && context == null) {
-            factory = GLDrawableFactory.getFactory();
             NativeWindow nw = window;
             if (window.getWrappedWindow() != null) {
                 nw = NativeWindowFactory.getNativeWindow(window.getWrappedWindow(), nw.getGraphicsConfiguration());
             }
+            factory = GLDrawableFactory.getFactory(nw);
             drawable = factory.createGLDrawable(nw);
             window.setVisible(true);
             drawable.setRealized(true);
@@ -531,14 +531,6 @@ public class GLWindow extends Window implements GLAutoDrawable {
     private SwapBuffersAction swapBuffersAction = new SwapBuffersAction();
 
     //----------------------------------------------------------------------
-    // Window methods that are not really needed
-    //
-
-    public Capabilities getChosenCapabilities() {
-        return getChosenGLCapabilities();
-    }
-
-    //----------------------------------------------------------------------
     // GLDrawable methods that are not really needed
     //
 
@@ -549,11 +541,20 @@ public class GLWindow extends Window implements GLAutoDrawable {
     public void setRealized(boolean realized) {
     }
 
-    public GLCapabilities getChosenGLCapabilities() {
-        if (drawable == null)
-            return null;
+    public GLCapabilities getGLCapabilities() {
+        if (drawable == null) {
+            throw new GLException("No drawable yet");
+        }
 
-        return drawable.getChosenGLCapabilities();
+        return drawable.getGLCapabilities();
+    }
+
+    public GLProfile getGLProfile() {
+        if (drawable == null) {
+            throw new GLException("No drawable yet");
+        }
+
+        return drawable.getGLProfile();
     }
 
     public NativeWindow getNativeWindow() {

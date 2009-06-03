@@ -305,9 +305,10 @@ public class TGAImage {
             System.arraycopy(rawBuf, 0, tmpData, y * rawWidth, rawBuf.length);
         }
 
+        GL gl = GLContext.getCurrentGL();
         if (header.pixelDepth() == 24) {
             bpp=3;
-            if(GLProfile.isGL2()) {
+            if(gl.isGL2()) {
                 format = GL2.GL_BGR;
             } else {
                 format = GL.GL_RGB;
@@ -317,7 +318,7 @@ public class TGAImage {
             assert header.pixelDepth() == 32;
             bpp=4;
 
-            if(GLProfile.isGL2()) {
+            if(gl.isGL2()) {
                 format = GL2.GL_BGRA;
             } else {
                 format = GL.GL_RGBA;

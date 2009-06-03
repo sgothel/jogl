@@ -47,10 +47,10 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     // We need more than one of these on certain devices (the NVidia APX 2500 in particular)
     private List/*<NativeLibrary>*/ glesLibraries = new ArrayList();
 
-    public EGLDrawableFactory() {
+    public EGLDrawableFactory(String esProfile) {
         super();
 
-        loadGLESLibrary();
+        loadGLESLibrary(esProfile);
         EGL.resetProcAddressTable(this);
 
         // Register our GraphicsConfigurationFactory implementations
@@ -58,7 +58,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         new EGLGraphicsConfigurationFactory();
 
         // Check for other underlying stuff ..
-        if(NativeWindowFactory.TYPE_X11.equals(NativeWindowFactory.getNativeWindowType())) {
+        if(NativeWindowFactory.TYPE_X11.equals(NativeWindowFactory.getNativeWindowType(false))) {
             try {
                 NWReflection.createInstance("com.sun.opengl.impl.x11.glx.X11GLXGraphicsConfigurationFactory");
             } catch (Throwable t) {}
@@ -67,7 +67,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
 
     private NativeLibrary loadFirstAvailable(List/*<String>*/ libNames, ClassLoader loader) {
         for (Iterator iter = libNames.iterator(); iter.hasNext(); ) {
-            NativeLibrary lib = NativeLibrary.open((String) iter.next(), loader);
+            NativeLibrary lib = NativeLibrary.open((String) iter.next(), loader, false /*global*/);
             if (lib != null) {
                 return lib;
             }
@@ -75,14 +75,14 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         return null;
     }
 
-    private void loadGLESLibrary() {
+    private void loadGLESLibrary(String esProfile) {
         List/*<NativeLibrary>*/ libs = new ArrayList();
 
         // Try several variants
         List/*<String>*/ glesLibNames = new ArrayList();
         List/*<String>*/ eglLibNames = new ArrayList();
 
-        if (GLProfile.usesNativeGLES2()) {
+        if(GLProfile.UsesNativeGLES2(esProfile)) {
             // Unix
             glesLibNames.add("libGLES20");
             glesLibNames.add("libGLESv2");
@@ -91,7 +91,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
             glesLibNames.add("GLES20");
             glesLibNames.add("GLESv2");
             glesLibNames.add("GLESv2_CM");
-        } else if (GLProfile.usesNativeGLES1()) {
+        } else if(GLProfile.UsesNativeGLES1(esProfile)) {
             // Unix
             glesLibNames.add("libGLES_CM");
             glesLibNames.add("libGLES_CL");
@@ -102,7 +102,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
             glesLibNames.add("GLES_CL");
             glesLibNames.add("GLESv1_CM");
         } else {
-            throw new GLException("Invalid GL Profile for EGL: "+GLProfile.getProfile());
+            throw new GLException("Invalid GL Profile for EGL: "+esProfile);
         }
 
         // EGL Unix
@@ -113,18 +113,18 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         ClassLoader loader = getClass().getClassLoader();
         NativeLibrary lib = loadFirstAvailable(glesLibNames, loader);
         if (lib == null) {
-            throw new GLException("Unable to dynamically load OpenGL ES library for profile \"" + GLProfile.getProfile() + "\"");
+            throw new GLException("Unable to dynamically load OpenGL ES library for profile \"" + esProfile + "\"");
         }
         glesLibraries.add(lib);
         lib = loadFirstAvailable(eglLibNames, loader);
         if (lib == null) {
-            throw new GLException("Unable to dynamically load EGL library for profile \"" + GLProfile.getProfile() + "\"");
+            throw new GLException("Unable to dynamically load EGL library for profile \"" + esProfile + "\"");
         }
         glesLibraries.add(lib);
         
-        if (GLProfile.usesNativeGLES2()) {
+        if (GLProfile.UsesNativeGLES2(esProfile)) {
             NativeLibLoader.loadES2();
-        } else if (GLProfile.usesNativeGLES1()) {
+        } else if (GLProfile.UsesNativeGLES1(esProfile)) {
             NativeLibLoader.loadES1();
         }
     }

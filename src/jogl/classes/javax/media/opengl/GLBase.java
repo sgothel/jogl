@@ -63,6 +63,9 @@ public interface GLBase {
    */
   public boolean isGL2ES2();
 
+  /** Indicates whether this GL object supports GLSL. */
+  public boolean hasGLSL();
+
   /**
    * Casts this object to the GL interface.
    * @return this object cast to the GL interface
@@ -117,4 +120,10 @@ public interface GLBase {
    * @return the GLContext with which this GL object is associated
    */
   public GLContext getContext();
+
+  /**
+   * Returns the GLProfile with which this GL object is associated.
+   * @return the GLProfile with which this GL object is associated
+   */
+  public GLProfile getGLProfile();
 }

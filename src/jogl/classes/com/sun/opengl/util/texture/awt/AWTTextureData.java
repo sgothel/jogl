@@ -170,7 +170,9 @@ public class AWTTextureData extends TextureData {
             return;
         }
 
-        if (GLProfile.isGL2()) {
+        GLProfile glp = GLContext.getCurrentGL().getGLProfile();
+
+        if (glp.isGL2()) {
             switch (image.getType()) {
                 case BufferedImage.TYPE_INT_RGB:
                     pixelFormat = GL2.GL_BGRA;

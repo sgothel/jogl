@@ -144,16 +144,18 @@ public interface GLDrawable {
   public void swapBuffers() throws GLException;
 
   /** Fetches the {@link GLCapabilities} corresponding to the chosen
-      OpenGL capabilities (pixel format / visual) for this drawable.
-      Some drawables, in particular on-screen drawables, may be
-      created lazily; null is returned if the drawable is not
-      currently created or if its pixel format has not been set yet.
+      OpenGL capabilities (pixel format / visual / GLProfile) for this drawable.
       On some platforms, the pixel format is not directly associated
       with the drawable; a best attempt is made to return a reasonable
       value in this case. 
-      Returns a copy of the passed object.
+      Returns a copy of the queried object.
     */
-  public GLCapabilities getChosenGLCapabilities();
+  public GLCapabilities getGLCapabilities();
+
+  /** Fetches the {@link GLProfile} for this drawable.
+      Returns the GLProfile object, no copy.
+    */
+  public GLProfile getGLProfile();
 
   public NativeWindow getNativeWindow();
 

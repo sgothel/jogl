@@ -97,7 +97,7 @@ public abstract class NativeWindowFactory {
                 componentClass = Class.forName("java.awt.Component");
             } catch (Exception e) { }
 
-            if(TYPE_X11.equals(getNativeWindowType())) {
+            if(TYPE_X11.equals(getNativeWindowType(true))) {
                 // Assume X11 platform -- should probably test for these explicitly
                 NativeWindowFactory _factory = null;
                 if (componentClass != null) {
@@ -124,9 +124,9 @@ public abstract class NativeWindowFactory {
         }
     }
 
-    public static String getNativeWindowType() {
+    public static String getNativeWindowType(boolean useCustom) {
       if(null==nativeWindowingType) {
-          String osName = System.getProperty("nativewindow.ws.name");
+          String osName = useCustom?System.getProperty("nativewindow.ws.name"):null;
           if(null==osName||osName.length()==0) {
               osName = System.getProperty("os.name");
           }
@@ -139,7 +139,7 @@ public abstract class NativeWindowFactory {
           } else if (osNameLowerCase.startsWith("mac os x") ||
                      osNameLowerCase.startsWith("darwin")) {
               nativeWindowingType = NativeWindowFactory.TYPE_MACOSX;
-          } else if (osNameLowerCase.equals("awt")) {
+          } else if (useCustom && osNameLowerCase.equals("awt")) {
               nativeWindowingType = NativeWindowFactory.TYPE_AWT;
           } else {
               nativeWindowingType = NativeWindowFactory.TYPE_X11;

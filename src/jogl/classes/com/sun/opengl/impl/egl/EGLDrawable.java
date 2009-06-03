@@ -68,6 +68,14 @@ public class EGLDrawable extends GLDrawableImpl {
         return eglConfig;
     }
 
+    public GLProfile getGLProfile() {
+        return (null==eglConfig)?super.getGLProfile():((GLCapabilities)eglConfig.getCapabilities()).getGLProfile();
+    }
+
+    public GLCapabilities getGLCapabilities() {
+        return (null==eglConfig)?super.getGLCapabilities():(GLCapabilities)eglConfig.getCapabilities();
+    }
+
     protected void setSurface() {
         if (EGL.EGL_NO_SURFACE==eglSurface) {
             lockSurface();

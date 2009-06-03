@@ -175,7 +175,7 @@ public class Texture {
     private static final boolean disableTexRect = Debug.isPropertyDefined("jogl.texture.notexrect");
 
     public Texture(TextureData data) throws GLException {
-        GL gl = GLU.getCurrentGL();
+        GL gl = GLContext.getCurrentGL();
         texID = createTextureID(gl); 
 
         updateImage(data);
@@ -184,7 +184,7 @@ public class Texture {
     // Constructor for use when creating e.g. cube maps, where there is
     // no initial texture data
     public Texture(int target) throws GLException {
-        GL gl = GLU.getCurrentGL();
+        GL gl = GLContext.getCurrentGL();
         texID = createTextureID(gl); 
         this.target = target;
     }
@@ -221,7 +221,7 @@ public class Texture {
      * OpenGL-related errors occurred
      */
     public void enable() throws GLException {
-        GLU.getCurrentGL().glEnable(target);
+        GLContext.getCurrentGL().glEnable(target);
     }
 
     /**
@@ -239,7 +239,7 @@ public class Texture {
      * OpenGL-related errors occurred
      */
     public void disable() throws GLException {
-        GLU.getCurrentGL().glDisable(target); 
+        GLContext.getCurrentGL().glDisable(target); 
     }
 
     /**
@@ -256,7 +256,7 @@ public class Texture {
      * OpenGL-related errors occurred
      */
     public void bind() throws GLException {
-        GLU.getCurrentGL().glBindTexture(target, texID); 
+        GLContext.getCurrentGL().glBindTexture(target, texID); 
     }
 
     /**
@@ -267,7 +267,7 @@ public class Texture {
      * @deprecated use destroy(GL)
      */
     public void dispose() throws GLException {
-        destroy(GLU.getCurrentGL());
+        destroy(GLContext.getCurrentGL());
     }
 
     /**
@@ -438,7 +438,7 @@ public class Texture {
      * OpenGL-related errors occurred
      */
     public void updateImage(TextureData data, int target) throws GLException {
-        GL gl = GLU.getCurrentGL();
+        GL gl = GLContext.getCurrentGL();
 
         imgWidth = data.getWidth();
         imgHeight = data.getHeight();
@@ -580,7 +580,7 @@ public class Texture {
 
             try {
                 // FIXME: may need check for GLUnsupportedException
-                GLU glu = GLU.createGLU();
+                GLU glu = GLU.createGLU(gl);
                 glu.gluBuild2DMipmaps(texTarget, data.getInternalFormat(),
                                       data.getWidth(), data.getHeight(),
                                       data.getPixelFormat(), data.getPixelType(), data.getBuffer());
@@ -763,7 +763,7 @@ public class Texture {
     public void setTexParameterf(int parameterName,
                                  float value) {
         bind();
-        GL gl = GLU.getCurrentGL();
+        GL gl = GLContext.getCurrentGL();
         gl.glTexParameterf(target, parameterName, value);
     }
 
@@ -778,7 +778,7 @@ public class Texture {
     public void setTexParameterfv(int parameterName,
                                   FloatBuffer params) {
         bind();
-        GL gl = GLU.getCurrentGL();
+        GL gl = GLContext.getCurrentGL();
         gl.glTexParameterfv(target, parameterName, params);
     }
 
@@ -793,7 +793,7 @@ public class Texture {
     public void setTexParameterfv(int parameterName,
                                   float[] params, int params_offset) {
         bind();
-        GL gl = GLU.getCurrentGL();
+        GL gl = GLContext.getCurrentGL();
         gl.glTexParameterfv(target, parameterName, params, params_offset);
     }
 
@@ -811,7 +811,7 @@ public class Texture {
     public void setTexParameteri(int parameterName,
                                  int value) {
         bind();
-        GL gl = GLU.getCurrentGL();
+        GL gl = GLContext.getCurrentGL();
         gl.glTexParameteri(target, parameterName, value);
     }
 
@@ -826,7 +826,7 @@ public class Texture {
     public void setTexParameteriv(int parameterName,
                                   IntBuffer params) {
         bind();
-        GL gl = GLU.getCurrentGL();
+        GL gl = GLContext.getCurrentGL();
         gl.glTexParameteriv(target, parameterName, params);
     }
 
@@ -841,7 +841,7 @@ public class Texture {
     public void setTexParameteriv(int parameterName,
                                   int[] params, int params_offset) {
         bind();
-        GL gl = GLU.getCurrentGL();
+        GL gl = GLContext.getCurrentGL();
         gl.glTexParameteriv(target, parameterName, params, params_offset);
     }
 
@@ -933,7 +933,7 @@ public class Texture {
     private void updateSubImageImpl(TextureData data, int newTarget, int mipmapLevel,
                                     int dstx, int dsty,
                                     int srcx, int srcy, int width, int height) throws GLException {
-        GL gl = GLU.getCurrentGL();
+        GL gl = GLContext.getCurrentGL();
         data.setHaveEXTABGR(gl.isExtensionAvailable("GL_EXT_abgr"));
         data.setHaveGL12(gl.isExtensionAvailable("GL_VERSION_1_2"));
 
@@ -1047,7 +1047,7 @@ public class Texture {
     }
 
     private void checkCompressedTextureExtensions(TextureData data) {
-        GL gl = GLU.getCurrentGL();
+        GL gl = GLContext.getCurrentGL();
         if (data.isDataCompressed()) {
             switch (data.getInternalFormat()) {
             case GL.GL_COMPRESSED_RGB_S3TC_DXT1_EXT:

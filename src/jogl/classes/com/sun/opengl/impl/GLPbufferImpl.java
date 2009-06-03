@@ -157,11 +157,18 @@ public class GLPbufferImpl implements GLPbuffer {
     context.releasePbufferFromTexture();
   }
 
-  public GLCapabilities getChosenGLCapabilities() {
+  public GLCapabilities getGLCapabilities() {
     if (pbufferDrawable == null)
       return null;
 
-    return pbufferDrawable.getChosenGLCapabilities();
+    return pbufferDrawable.getGLCapabilities();
+  }
+
+  public GLProfile getGLProfile() {
+    if (pbufferDrawable == null)
+      return null;
+
+    return pbufferDrawable.getGLProfile();
   }
 
   private boolean surfaceLocked = false;

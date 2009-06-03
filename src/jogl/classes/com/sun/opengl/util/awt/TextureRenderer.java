@@ -401,7 +401,7 @@ public class TextureRenderer {
       @throws GLException If an OpenGL context is not current when this method is called
   */
   public void setColor(float r, float g, float b, float a) throws GLException {
-    GL2 gl = GLUgl2.getCurrentGL2();
+    GL2 gl = GLContext.getCurrentGL().getGL2();
     this.r = r * a;
     this.g = g * a;
     this.b = b * a;
@@ -498,7 +498,7 @@ public class TextureRenderer {
                          int texturex, int texturey,
                          int width, int height,
                          float scaleFactor) throws GLException {
-    GL2 gl = GLUgl2.getCurrentGL2();
+    GL2 gl = GLContext.getCurrentGL().getGL2();
     Texture texture = getTexture();
     TextureCoords coords = texture.getSubImageTexCoords(texturex, texturey,
                                                         texturex + width,
@@ -552,7 +552,7 @@ public class TextureRenderer {
   //
 
   private void beginRendering(boolean ortho, int width, int height, boolean disableDepthTestForOrtho) {
-    GL2 gl = GLUgl2.getCurrentGL2();
+    GL2 gl = GLContext.getCurrentGL().getGL2();
     int attribBits = 
       GL2.GL_ENABLE_BIT | GL2.GL_TEXTURE_BIT | GL2.GL_COLOR_BUFFER_BIT |
       (ortho ? (GL2.GL_DEPTH_BUFFER_BIT | GL2.GL_TRANSFORM_BIT) : 0);
@@ -599,7 +599,7 @@ public class TextureRenderer {
   }
 
   private void endRendering(boolean ortho) {
-    GL2 gl = GLUgl2.getCurrentGL2();
+    GL2 gl = GLContext.getCurrentGL().getGL2();
     Texture texture = getTexture();
     texture.disable();
     if (ortho) {
@@ -614,6 +614,7 @@ public class TextureRenderer {
   }
 
   private void init(int width, int height) {
+    GL2 gl = GLContext.getCurrentGL().getGL2();
     // Discard previous BufferedImage if any
     if (image != null) {
       image.flush();

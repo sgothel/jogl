@@ -15,10 +15,11 @@ public void setObjectTracker(GLObjectTracker tracker) {
 
 */
 
-public GL2ES12Impl(GLContextImpl context) {
+public GL2ES12Impl(GLProfile glp, GLContextImpl context) {
   this._context = context; 
   this.bufferSizeTracker = context.getBufferSizeTracker();
-  this.isGL2ES2 = GLProfile.isGL2ES2();
+  this.isGL2ES2 = glp.isGL2ES2();
+  this.glProfile = glp;
 }
 
 private boolean isGL2ES2;
@@ -52,6 +53,10 @@ public final boolean isGL2ES1() {
 }
 
 public final boolean isGL2ES2() {
+    return isGL2ES2;
+}
+
+public final boolean hasGLSL() {
     return isGL2ES2;
 }
 

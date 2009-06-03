@@ -53,7 +53,7 @@ public class EGLContext extends GLContextImpl {
     private EGLExtProcAddressTable eglExtProcAddressTable;
 
     public EGLContext(EGLDrawable drawable, GLContext shareWith) {
-        super(shareWith);
+        super(drawable.getGLProfile(), shareWith);
         this.drawable = drawable;
     }
 
@@ -183,6 +183,7 @@ public class EGLContext extends GLContextImpl {
     protected void create() throws GLException {
         long eglDisplay = drawable.getDisplay();
         EGLGraphicsConfiguration config = drawable.getGraphicsConfiguration();
+        GLProfile glProfile = drawable.getGLProfile();
         _EGLConfig eglConfig = config.getNativeConfig();
         long shareWith = EGL.EGL_NO_CONTEXT;
 
@@ -204,12 +205,12 @@ public class EGLContext extends GLContextImpl {
                 EGL.EGL_CONTEXT_CLIENT_VERSION, -1,
                 EGL.EGL_NONE
         };
-        if (GLProfile.usesNativeGLES2()) {
+        if (glProfile.usesNativeGLES2()) {
             contextAttrs[1] = 2;
-        } else if (GLProfile.usesNativeGLES1()) {
+        } else if (glProfile.usesNativeGLES1()) {
             contextAttrs[1] = 1;
         } else {
-            throw new GLException("Error creating OpenGL context - invalid GLProfile");
+            throw new GLException("Error creating OpenGL context - invalid GLProfile: "+glProfile);
         }
         eglContext = EGL.eglCreateContext(eglDisplay, eglConfig, shareWith, contextAttrs, 0);
         if (eglContext == 0) {

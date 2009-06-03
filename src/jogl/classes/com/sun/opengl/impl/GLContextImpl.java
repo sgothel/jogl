@@ -76,7 +76,7 @@ public abstract class GLContextImpl extends GLContext {
 
   protected GL gl;
 
-  public GLContextImpl(GLContext shareWith) {
+  public GLContextImpl(GLProfile glp, GLContext shareWith) {
     extensionAvailability = new ExtensionAvailabilityCache(this);
     if (shareWith != null) {
       GLContextShareSet.registerSharing(this, shareWith);
@@ -84,7 +84,7 @@ public abstract class GLContextImpl extends GLContext {
     GLContextShareSet.registerForBufferObjectSharing(shareWith, this);
     // This must occur after the above calls into the
     // GLContextShareSet, which set up state needed by the GL object
-    setGL(createGL());
+    setGL(createGL(glp));
   }
 
   public GLDrawableImpl getDrawableImpl() {
@@ -134,6 +134,11 @@ public abstract class GLContextImpl extends GLContext {
     if (res == CONTEXT_NOT_CURRENT) {
       lock.unlock();
     } else {
+      if(res == CONTEXT_CURRENT_NEW) {
+        // check if the drawable's and the GL's GLProfile are equal
+        // throws an GLException if not 
+        getGLDrawable().getGLProfile().verifyEquality(gl.getGLProfile());
+      }
       setCurrent(this);
 
       /* FIXME: refactor dependence on Java 2D / JOGL bridge
@@ -240,13 +245,13 @@ public abstract class GLContextImpl extends GLContext {
   // Helpers for various context implementations
   //
 
-  private Object createInstance(String suffix, Class[] cstrArgTypes, Object[] cstrArgs) {
-    return NWReflection.createInstance(GLProfile.getGLImplBaseClassName()+suffix, cstrArgTypes, cstrArgs);
+  private Object createInstance(GLProfile glp, String suffix, Class[] cstrArgTypes, Object[] cstrArgs) {
+    return NWReflection.createInstance(glp.getGLImplBaseClassName()+suffix, cstrArgTypes, cstrArgs);
   }
 
   /** Create the GL for this context. */
-  protected GL createGL() {
-    GL gl = (GL) createInstance("Impl", new Class[] { GLContextImpl.class }, new Object[] { this } );
+  protected GL createGL(GLProfile glp) {
+    GL gl = (GL) createInstance(glp, "Impl", new Class[] { GLProfile.class, GLContextImpl.class }, new Object[] { glp, this } );
 
     /* FIXME: refactor dependence on Java 2D / JOGL bridge
     if (tracker != null) {
@@ -322,11 +327,9 @@ public abstract class GLContextImpl extends GLContext {
     if(null!=this.gl && null!=glProcAddressTable && !force) {
         return; // already done and not forced
     }
-    // In order to be able to allow the user to uniformly install the
-    // debug and trace pipelines in their GLEventListener.init()
-    // method (for both GLCanvas and GLJPanel), we need to reset the
-    // actual GL object in the GLDrawable as well
-    setGL(createGL());
+    if(null==this.gl || force) {
+        setGL(createGL(getGLDrawable().getGLProfile()));
+    }
 
     updateGLProcAddressTable();
   }
@@ -345,7 +348,7 @@ public abstract class GLContextImpl extends GLContext {
       System.err.println(getThreadName() + ": !!! Initializing OpenGL extension address table for " + this);
     }
     if (glProcAddressTable == null) {
-      glProcAddressTable = (ProcAddressTable) createInstance("ProcAddressTable", new Class[0], null);
+      glProcAddressTable = (ProcAddressTable) createInstance(gl.getGLProfile(), "ProcAddressTable", new Class[0], null);
       // FIXME: cache ProcAddressTables by capability bits so we can
       // share them among contexts with the same capabilities
     }

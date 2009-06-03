@@ -69,18 +69,22 @@ public class NativeLibLoader extends NativeLibLoaderBase {
         boolean preloadIgnoreError) {
       if (null!=preload) {
         for (int i=0; i<preload.length; i++) {
-          try {
-            loadLibraryInternal(preload[i]);
-          }
-          catch (UnsatisfiedLinkError e) {
-            if (!preloadIgnoreError && e.getMessage().indexOf("already loaded") < 0) {
-              throw e;
-            }
+          if(!isLoaded(preload[i])) {
+              try {
+                loadLibraryInternal(preload[i]);
+                addLoaded(preload[i]);
+              }
+              catch (UnsatisfiedLinkError e) {
+                if (!preloadIgnoreError && e.getMessage().indexOf("already loaded") < 0) {
+                  throw e;
+                }
+              }
           }
         }
       }
       
       loadLibraryInternal(libname);
+      addLoaded(libname);
     }
   }
 

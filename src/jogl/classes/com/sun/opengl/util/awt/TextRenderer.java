@@ -645,8 +645,10 @@ public class TextRenderer {
 
     private void beginRendering(boolean ortho, int width, int height,
                                 boolean disableDepthTestForOrtho) {
+        GL2 gl = GLContext.getCurrentGL().getGL2();
+
         if (DEBUG && !debugged) {
-            debug();
+            debug(gl);
         }
 
         inBeginEndPair = true;
@@ -661,8 +663,6 @@ public class TextRenderer {
         } else {
             getBackingStore().begin3DRendering();
         }
-
-        GL2 gl = GLUgl2.getCurrentGL2();
 
         // Push client attrib bits used by the pipelined quad renderer
         gl.glPushClientAttrib((int) GL2.GL_ALL_CLIENT_ATTRIB_BITS);
@@ -709,7 +709,7 @@ public class TextRenderer {
 
         inBeginEndPair = false;
 
-        GL2 gl = GLUgl2.getCurrentGL2();
+        GL2 gl = GLContext.getCurrentGL().getGL2();
 
         // Pop client attrib bits used by the pipelined quad renderer
         gl.glPopClientAttrib();
@@ -897,12 +897,12 @@ public class TextRenderer {
     //----------------------------------------------------------------------
     // Debugging functionality
     //
-    private void debug() {
+    private void debug(GL gl) {
         dbgFrame = new Frame("TextRenderer Debug Output");
 
-        GLCanvas dbgCanvas = new GLCanvas(new GLCapabilities(), null,
+        GLCanvas dbgCanvas = new GLCanvas(new GLCapabilities(gl.getGLProfile()), null,
                                           GLContext.getCurrent(), null);
-        dbgCanvas.addGLEventListener(new DebugListener(dbgFrame));
+        dbgCanvas.addGLEventListener(new DebugListener(gl, dbgFrame));
         dbgFrame.add(dbgCanvas);
 
         final FPSAnimator anim = new FPSAnimator(dbgCanvas, 10);
@@ -1225,7 +1225,7 @@ public class TextRenderer {
                 // Draw any outstanding glyphs
                 flush();
 
-                GL2 gl = GLUgl2.getCurrentGL2();
+                GL2 gl = GLContext.getCurrentGL().getGL2();
 
                 // Pop client attrib bits used by the pipelined quad renderer
                 gl.glPopClientAttrib();
@@ -1291,7 +1291,7 @@ public class TextRenderer {
                 }
 
                 // Push client attrib bits used by the pipelined quad renderer
-                GL2 gl = GLUgl2.getCurrentGL2();
+                GL2 gl = GLContext.getCurrentGL().getGL2();
                 gl.glPushClientAttrib((int) GL2.GL_ALL_CLIENT_ATTRIB_BITS);
 
                 if (haveCachedColor) {
@@ -1706,7 +1706,7 @@ public class TextRenderer {
         int mVBO_For_ResuableTileTexCoords;
 
         Pipelined_QuadRenderer() {
-            GL2 gl = GLUgl2.getCurrentGL2();
+            GL2 gl = GLContext.getCurrentGL().getGL2();
             mVertCoords = BufferUtil.newFloatBuffer(kTotalBufferSizeCoordsVerts);
             mTexCoords = BufferUtil.newFloatBuffer(kTotalBufferSizeCoordsTex);
 
@@ -1763,7 +1763,7 @@ public class TextRenderer {
 
         private void drawVertexArrays() {
             if (mOutstandingGlyphsVerticesPipeline > 0) {
-                GL2 gl = GLUgl2.getCurrentGL2();
+                GL2 gl = GLContext.getCurrentGL().getGL2();
 
                 TextureRenderer renderer = getBackingStore();
                 Texture texture = renderer.getTexture(); // triggers texture uploads.  Maybe this should be more obvious?
@@ -1811,7 +1811,7 @@ public class TextRenderer {
                 TextureRenderer renderer = getBackingStore();
                 Texture texture = renderer.getTexture(); // triggers texture uploads.  Maybe this should be more obvious?
 
-                GL2 gl = GLUgl2.getCurrentGL2();
+                GL2 gl = GLContext.getCurrentGL().getGL2();
                 gl.glBegin(GL2.GL_QUADS);
 
                 try {
@@ -1849,15 +1849,16 @@ public class TextRenderer {
     }
 
     class DebugListener implements GLEventListener {
-        private GLU glu = GLU.createGLU();
+        private GLU glu;
         private Frame frame;
 
-        DebugListener(Frame frame) {
+        DebugListener(GL gl, Frame frame) {
+            this.glu = GLU.createGLU(gl);
             this.frame = frame;
         }
 
         public void display(GLAutoDrawable drawable) {
-            GL2 gl = GLUgl2.getCurrentGL2();
+            GL2 gl = GLContext.getCurrentGL().getGL2();
             gl.glClear(GL2.GL_DEPTH_BUFFER_BIT | GL2.GL_COLOR_BUFFER_BIT);
 
             if (packer == null) {

@@ -59,16 +59,6 @@ public abstract class GraphicsConfigurationFactory {
     private static Map/*<Class, NativeWindowFactory>*/ registeredFactories =
         Collections.synchronizedMap(new HashMap());
     private static Class abstractGraphicsDeviceClass;
-    private static Class anyDeviceClass;
-
-    /** 
-     * Marker class javax.media.nativewindow.GraphicsConfigurationFactory.AnyDevice.class
-     * If a factory is registered with it, it matches for all device types !
-     */
-    public static class AnyDevice implements AbstractGraphicsDevice {
-        public String getType() { return "OPAQUE"; }
-        public long getHandle() { return 0; }
-    }
 
     static {
         initialize();
@@ -85,7 +75,6 @@ public abstract class GraphicsConfigurationFactory {
         String factoryClassName = null;
 
         abstractGraphicsDeviceClass = javax.media.nativewindow.AbstractGraphicsDevice.class;
-        anyDeviceClass = javax.media.nativewindow.GraphicsConfigurationFactory.AnyDevice.class;
         
         if (!osNameLowerCase.startsWith("wind") &&
             !osNameLowerCase.startsWith("mac os x")) {
@@ -129,14 +118,7 @@ public abstract class GraphicsConfigurationFactory {
             throw new IllegalArgumentException("Given class must implement AbstractGraphicsDevice");
         }
 
-        // Check if opaque AnyDevice match exist, it needs an exact match
-        GraphicsConfigurationFactory factory = (GraphicsConfigurationFactory)registeredFactories.get(anyDeviceClass);
-        if(null!=factory) {
-            if(DEBUG) {
-                System.err.println("GraphicsConfigurationFactory.getFactory() OPAQUE "+anyDeviceClass+" -> "+factory);
-            }
-            return factory;
-        }
+        GraphicsConfigurationFactory factory = null;
         Class clazz = abstractGraphicsDeviceImplementor;
         while (clazz != null) {
             factory =

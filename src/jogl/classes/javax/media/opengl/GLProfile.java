@@ -38,298 +38,262 @@ package javax.media.opengl;
 
 import javax.media.opengl.fixedfunc.*;
 import java.lang.reflect.*;
+import java.util.HashMap;
 import java.security.*;
 import com.sun.opengl.impl.*;
 import com.sun.nativewindow.impl.NWReflection;
 
-public class GLProfile {
+/**
+ * Manages all available OpenGL Profiles.
+ * Each GLProfile is a singleton instance queried at static initialization time.
+ * All returned GLProfile objects are references to such singletons.
+ */
+public class GLProfile implements Cloneable {
   public static final boolean DEBUG = Debug.debug("GLProfile");
 
   //
   // Public (user-visible) profiles
   //
 
-  /** The desktop (OpenGL 3.1) profile */
+  /** The desktop OpenGL >= 3.1 profile */
   public static final String GL3   = "GL3";
 
-  /** The desktop (OpenGL 2.0) profile */
+  /** The desktop OpenGL [1.5 .. 3.0] profile */
   public static final String GL2   = "GL2";
 
-  /** The OpenGL ES 1 (really, 1.1) profile */
+  /** The embedded OpenGL ES >= 1.0 profile */
   public static final String GLES1 = "GLES1";
 
-  /** The OpenGL ES 2 (really, 2.0) profile */
+  /** The embedded OpenGL ES >= 2.0 profile */
   public static final String GLES2 = "GLES2";
 
-  /** The intersection of the desktop (OpenGL 2.0) and OpenGL ES 1.x profiles */
+  /** The intersection of the desktop GL2 and embedded ES1 profiles */
   public static final String GL2ES1 = "GL2ES1";
 
-  /** The intersection of the desktop (OpenGL 2.0) and OpenGL ES 2.x profiles */
+  /** The intersection of the desktop GL2 and embedded ES2 profiles */
   public static final String GL2ES2 = "GL2ES2";
 
-  //
-  // Profiles which are implementation details
-  //
-
-  // The intersection between desktop OpenGL and the union of the OpenGL ES profiles
-  // This is here only to avoid having separate GL2ES1Impl and GL2ES2Impl classes
-  private static final String GL2ES12 = "GL2ES12";
-
-  /** The JVM/process wide chosen GL profile **/
-  private static String profile = null;
-
-  /** The "real" profile implementing the chosen profile; for example,
-      both GL2ES1 and GL2ES2 currently map to GL2ES12 */
-  private static String realProfile = null;
-
-  private static final Throwable tryLibrary() 
-  {
-    String clazzName = getGLImplBaseClassName() + "Impl" ;
-    try {
-        Class clazz = Class.forName(clazzName);
-        if(GL3.equals(realProfile) || GL2.equals(realProfile)) {
-            // See DRIHack.java for an explanation of why this is necessary
-            DRIHack.begin();
-            NativeLibLoader.loadGLDesktop();
-            DRIHack.end();
-        } if(GL2ES12.equals(realProfile)) {
-            // See DRIHack.java for an explanation of why this is necessary
-            DRIHack.begin();
-            NativeLibLoader.loadGL2ES12();
-            DRIHack.end();
-        } else if(usesNativeGLES()) {
-            Object eGLDrawableFactory = NWReflection.createInstance("com.sun.opengl.impl.egl.EGLDrawableFactory");
-            if(null==eGLDrawableFactory) {
-                throw new GLException("com.sun.opengl.impl.egl.EGLDrawableFactory not available");
-            }
-        }
-        System.out.println("Successfully loaded profile " + profile + " ("+realProfile+"/"+clazzName+")");
-        return null;
-    } catch (Throwable e) {
-        if (DEBUG) {
-            System.err.println("GLProfile.tryLibrary: failed: " + profile + " ("+realProfile+"/"+clazzName+")");
-            e.printStackTrace();
-        }
-        profile=null;
-        realProfile = null;
-        return e;
-    }
-  }
-
-  private static boolean hasGL2ES12Impl = null!=NWReflection.getClass("com.sun.opengl.impl.gl2es12.GL2ES12Impl");
-  private static boolean hasGL2Impl     = null!=NWReflection.getClass("com.sun.opengl.impl.gl2.GL2Impl");
-
-  private static String computeRealProfile() {
-    if (GL2ES1.equals(profile) ||
-        GL2ES2.equals(profile)) {
-      if(hasGL2Impl) {
-          realProfile = GL2;
-          return realProfile;
-      } else if(hasGL2ES12Impl) {
-          realProfile = GL2ES12;
-          return realProfile;
-      }
-    }
-    realProfile = profile;
-    return realProfile;
-  }
-
-  private static final void initStatics() {
-    GLDrawableFactory.getFactory();
-  }
-
-  public static synchronized final void setProfile(String profile) 
-    throws GLException
-  {
-    if(null==GLProfile.profile) {
-        GLProfile.profile = profile;
-        String rp = computeRealProfile();
-        Throwable t = tryLibrary();
-        if (GLProfile.profile == null) {
-            throw new GLException("Profile " + profile + " ("+rp+") not available", t);
-        }
-        initStatics();
-    } else {
-        if(!GLProfile.profile.equals(profile)) {
-              throw new GLException("Requested profile ("+profile+") doesn't match already chosen one: "+GLProfile.profile);
-        }
-    }
-  }
-
-  public static synchronized final void setProfile(String[] profiles) 
-    throws GLException
-  {
-    Throwable t = null;
-    for(int i=0; profile==null && i<profiles.length; i++) {
-        profile = profiles[i];
-        computeRealProfile();
-        if (t == null) {
-          t = tryLibrary();
-        } else {
-          tryLibrary();
-        }
-    }
-    if(null==profile) {
-      StringBuffer msg = new StringBuffer();
-      msg.append("[");
-      for (int i = 0; i < profiles.length; i++) {
-          if (i > 0)
-              msg.append(", ");
-          msg.append(profiles[i]);
-      }
-      msg.append("]");
-      throw new GLException("Profiles "+msg.toString()+" not available", t);
-    }
-    initStatics();
-  }
-
-  /**
-   * Selects a profile, implementing the interface GL2ES1.
-   * Order: GL2ES1, GL2, GLES1
-   */
-  public static synchronized final void setProfileGL2ES1() {
-    setProfile(new String[] { GL2ES1, GL2, GLES1 });
-  }
-
-  /**
-   * Selects a profile, implementing the interface GL2ES2.
-   * Order: GL2ES2, GL2, GL3, GLES2
-   */
-  public static synchronized final void setProfileGL2ES2() {
-    setProfile(new String[] { GL2ES2, GL2, /*GL3,*/ GLES2 });
-  }
-
-  /**
-   * Selects a profile, implementing the interface GL
+  /** 
+   * All GL Profiles in the order of default detection.
    * Order: GL2, GL2ES2, GL2ES1, GL3, GLES2, GLES1
    */
-  public static synchronized final void setProfileGLAny() {
-    setProfile(new String[] { GL2, GL2ES2, GL2ES1, /*GL3,*/ GLES2, GLES1 });
+  public static final String[] GL_PROFILE_LIST = new String[] { GL2, GL2ES2, GL2ES1, GL3, GLES2, GLES1 };
+
+  /**
+   * All GL2ES2 Profiles in the order of default detection 
+   * Order: GL2ES2, GL2, GL3, GLES2
+   */
+  public static final String[] GL2ES2_PROFILE_LIST = new String[] { GL2ES2, GL2, GL3, GLES2 };
+
+  /**
+   * All GL2ES1 Profiles in the order of default detection 
+   * Order: GL2ES1, GL2, GLES1
+   */
+  public static final String[] GL2ES1_PROFILE_LIST = new String[] { GL2ES1, GL2, GLES1 };
+
+  /** Returns a default GLProfile object, reflecting the best for the running platform.
+    * It selects the first of the set {@link GLProfile#GL_PROFILE_LIST}
+    */
+  public static final GLProfile GetProfileDefault() {
+    if(null==defaultGLProfile) {
+        throw new GLException("No default profile available"); // should never be reached 
+    }
+    return defaultGLProfile;
   }
 
-  public static final String getProfile() {
-    return profile;
-  }
-  
-  public static final boolean isGL3() {
-    return GL3.equals(profile);
-  }
-
-  public static final boolean isGL2() {
-    return GL2.equals(profile);
-  }
-
-  public static final boolean isGLES1() {
-    return GLES1.equals(profile);
-  }
-
-  public static final boolean isGLES2() {
-    return GLES2.equals(profile);
+  /** Returns a GLProfile object.
+    * Verfifies the given profile and chooses an apropriate implementation.
+    *
+    * @throws GLException if no implementation for the given profile is found.
+    */
+  public static final GLProfile GetProfile(String profile) 
+    throws GLException
+  {
+    if(null==profile) return GetProfileDefault();
+    GLProfile glProfile = (GLProfile) mappedProfiles.get(profile);
+    if(null==glProfile) {
+        throw new GLException("No implementation for profile "+profile+" available");
+    }
+    return glProfile;
   }
 
-  /* Indicates whether a GL2ES1 capable profile is in use, ie GL2ES1, GL2, GLES1 */
-  public static final boolean isGL2ES1() {
-    return GL2ES1.equals(profile) || isGL2() || isGLES1() ;
+  /**
+   * Returns a profile, implementing the interface GL2ES1.
+   * It selects the first of the set: {@link GLProfile#GL2ES1_PROFILE_LIST}
+   *
+   * @throws GLException if no implementation for the given profile is found.
+   */
+  public static final GLProfile GetProfileGL2ES1() 
+    throws GLException
+  {
+    return GetProfile(GL2ES1_PROFILE_LIST);
   }
 
-  /* Indicates whether a GL2ES2 capable profile is in use, ie GL2ES2, GL2, GLES2 */
-  public static final boolean isGL2ES2() {
-    return GL2ES2.equals(profile) || isGL2() || isGL3() || isGLES2() ;
+  /**
+   * Returns a profile, implementing the interface GL2ES2.
+   * It selects the first of the set: {@link GLProfile#GL2ES2_PROFILE_LIST}
+   *
+   * @throws GLException if no implementation for the given profile is found.
+   */
+  public static final GLProfile GetProfileGL2ES2() 
+    throws GLException
+  {
+    return GetProfile(GL2ES2_PROFILE_LIST);
+  }
+
+  /**
+   * Returns the first profile from the given list,
+   * where an implementation is available.
+   *
+   * @throws GLException if no implementation for the given profile is found.
+   */
+  public static final GLProfile GetProfile(String[] profiles) 
+    throws GLException
+  {
+    for(int i=0; i<profiles.length; i++) {
+        String profile = profiles[i];
+        GLProfile glProfile = (GLProfile) mappedProfiles.get(profile);
+        if(null!=glProfile) {
+            return glProfile;
+        }
+    }
+    throw new GLException("Profiles "+list2String(profiles)+" not available");
   }
 
   /** Indicates whether the native OpenGL ES1 profile is in use. 
    * This requires an EGL interface.
    */
-  public static final boolean usesNativeGLES1() {
-    return GLES1.equals(realProfile) || GL2ES1.equals(realProfile) ;
+  public static final boolean UsesNativeGLES1(String profileImpl) {
+    return GLES1.equals(profileImpl) || GL2ES1.equals(profileImpl) ;
   }
 
   /** Indicates whether the native OpenGL ES2 profile is in use. 
    * This requires an EGL interface.
    */
-  public static final boolean usesNativeGLES2() {
-    return GLES2.equals(realProfile) || GL2ES2.equals(realProfile) ;
+  public static final boolean UsesNativeGLES2(String profileImpl) {
+    return GLES2.equals(profileImpl) || GL2ES2.equals(profileImpl) ;
   }
 
   /** Indicates whether either of the native OpenGL ES profiles are in use. */
-  public static final boolean usesNativeGLES() {
-    return usesNativeGLES2() || usesNativeGLES1();
+  public static final boolean UsesNativeGLES(String profileImpl) {
+    return UsesNativeGLES2(profileImpl) || UsesNativeGLES1(profileImpl);
   }
 
-  /** Indicates whether a GLSL capable profiles is in use. */
-  public static final boolean hasGLSL() {
-    return isGL2ES2() ;
-  }
-
-  public static final boolean matches(String test_profile) {
-    return (null==test_profile)?false:test_profile.equals(profile);
-  }
-
-  public static final String getGLImplBaseClassName() {
-        if(GL3.equals(realProfile)) {
+  public static final String GetGLImplBaseClassName(String profileImpl) {
+        if(GL3.equals(profileImpl)) {
             return "com.sun.opengl.impl.gl3.GL3";
-        } else if(GL2.equals(realProfile)) {
+        } else if(GL2.equals(profileImpl)) {
             return "com.sun.opengl.impl.gl2.GL2";
-        } else if(GL2ES12.equals(realProfile)) {
+        } else if(GL2ES12.equals(profileImpl)) {
             return "com.sun.opengl.impl.gl2es12.GL2ES12";
-        } else if(GLES1.equals(realProfile) || GL2ES1.equals(realProfile)) {
+        } else if(GLES1.equals(profileImpl) || GL2ES1.equals(profileImpl)) {
             return "com.sun.opengl.impl.es1.GLES1";
-        } else if(GLES2.equals(realProfile) || GL2ES2.equals(realProfile)) {
+        } else if(GLES2.equals(profileImpl) || GL2ES2.equals(profileImpl)) {
             return "com.sun.opengl.impl.es2.GLES2";
         } else {
-            throw new GLException("unsupported profile \"" + profile + "\"");
+            throw new GLException("unsupported profile \"" + profileImpl + "\"");
         }
   }
 
-  private static String getGLTypeName(int type) {
-    switch (type) {
-        case GL.GL_UNSIGNED_BYTE:
-            return "GL_UNSIGNED_BYTE";
-        case GL.GL_BYTE:
-            return "GL_BYTE";
-        case GL.GL_UNSIGNED_SHORT:
-            return "GL_UNSIGNED_SHORT";
-        case GL.GL_SHORT:
-            return "GL_SHORT";
-        case GL.GL_FLOAT:
-            return "GL_FLOAT";
-        case GL.GL_FIXED:
-            return "GL_FIXED";
-        case javax.media.opengl.GL2ES2.GL_INT:
-            return "GL_INT";
-        case javax.media.opengl.GL2ES2.GL_UNSIGNED_INT:
-            return "GL_UNSIGNED_INT";
-        case javax.media.opengl.GL2.GL_DOUBLE:
-            return "GL_DOUBLE";
-        case javax.media.opengl.GL2.GL_2_BYTES:
-            return "GL_2_BYTES";
-        case javax.media.opengl.GL2.GL_3_BYTES:
-            return "GL_3_BYTES";
-        case javax.media.opengl.GL2.GL_4_BYTES:
-            return "GL_4_BYTES";
-    }
-    return null;
+  public final String getGLImplBaseClassName() {
+    return GetGLImplBaseClassName(profileImpl);
   }
 
-  private static String getGLArrayName(int array) {
-      switch(array) {
-          case GLPointerFunc.GL_VERTEX_ARRAY:
-              return "GL_VERTEX_ARRAY";
-          case GLPointerFunc.GL_NORMAL_ARRAY:
-              return "GL_NORMAL_ARRAY";
-          case GLPointerFunc.GL_COLOR_ARRAY:
-              return "GL_COLOR_ARRAY";
-          case GLPointerFunc.GL_TEXTURE_COORD_ARRAY:
-              return "GL_TEXTURE_COORD_ARRAY";
-      }
-      return null;
+  public Object clone() {
+    try {
+      return super.clone();
+    } catch (Exception e) {
+      throw new GLException(e);
+    }
+  }
+
+  /**
+   * @param o GLProfile object to compare with
+   * @return true if given Object is a GLProfile and
+   *         if both, profile and profileImpl is equal with this.
+   */
+  public final boolean equals(Object o) {
+    if(o instanceof GLProfile) {
+        GLProfile glp = (GLProfile)o;
+        return profile.equals(glp.getName()) &&
+               profileImpl.equals(glp.getImplName()) ;
+    }
+    return false;
+  }
+ 
+  /**
+   * @param glp GLProfile to compare with
+   * @throws GLException if given GLProfile and this aren't equal
+   */
+  public final void verifyEquality(GLProfile glp) 
+    throws GLException
+  {
+    if(!this.equals(glp)) throw new GLException("GLProfiles are not equal: "+this+" != "+glp);
+  }
+
+  public final String getName() {
+    return profile;
+  }
+
+  public final String getImplName() {
+    return profileImpl;
+  }
+
+  /** Indicates whether this profile is capable os GL3. */
+  public final boolean isGL3() {
+    return GL3.equals(profile);
+  }
+
+  /** Indicates whether this profile is capable os GL2. */
+  public final boolean isGL2() {
+    return GL2.equals(profile);
+  }
+
+  /** Indicates whether this profile is capable os GLES1. */
+  public final boolean isGLES1() {
+    return GLES1.equals(profile);
+  }
+
+  /** Indicates whether this profile is capable os GLES2. */
+  public final boolean isGLES2() {
+    return GLES2.equals(profile);
+  }
+
+  /** Indicates whether this profile is capable os GL2ES1. */
+  public final boolean isGL2ES1() {
+    return GL2ES1.equals(profile) || isGL2() || isGLES1() ;
+  }
+
+  /** Indicates whether this profile is capable os GL2ES2. */
+  public final boolean isGL2ES2() {
+    return GL2ES2.equals(profile) || isGL2() || isGL3() || isGLES2() ;
+  }
+
+  /** Indicates whether this profile uses the native OpenGL ES1 implementations. */
+  public final boolean usesNativeGLES1() {
+    return GLES1.equals(profileImpl) || GL2ES1.equals(profileImpl) ;
+  }
+
+  /** Indicates whether this profile uses the native OpenGL ES2 implementations. */
+  public final boolean usesNativeGLES2() {
+    return GLES2.equals(profileImpl) || GL2ES2.equals(profileImpl) ;
+  }
+
+  /** Indicates whether this profile uses either of the native OpenGL ES implementations. */
+  public final boolean usesNativeGLES() {
+    return usesNativeGLES2() || usesNativeGLES1();
+  }
+
+  /** Indicates whether this profile supports GLSL. */
+  public final boolean hasGLSL() {
+    return isGL2ES2() ;
   }
 
   /** 
    * General validation if type is a valid GL data type
    * for the current profile
    */
-  public static boolean isValidDataType(int type, boolean throwException) {
+  public boolean isValidDataType(int type, boolean throwException) {
     switch(type) {
         case GL.GL_UNSIGNED_BYTE:
         case GL.GL_BYTE:
@@ -355,15 +319,15 @@ public class GLProfile {
             }
     } 
     if(throwException) {
-        throw new GLException("Illegal data type on profile "+GLProfile.getProfile()+": "+type);
+        throw new GLException("Illegal data type on profile "+this+": "+type);
     }
     return false;
   }
 
-  public static boolean isValidArrayDataType(int index, int comps, int type, 
-                                             boolean isVertexAttribPointer, boolean throwException) {
-    String arrayName = getGLArrayName(index);
-    if(GLProfile.isGLES1()) {
+  public boolean isValidArrayDataType(int index, int comps, int type, 
+                                      boolean isVertexAttribPointer, boolean throwException) {
+    String arrayName = GetGLArrayName(index);
+    if(isGLES1()) {
         if(isVertexAttribPointer) {
             if(throwException) {
                 throw new GLException("Illegal array type for "+arrayName+" on profile GLES1: VertexAttribPointer");
@@ -446,7 +410,7 @@ public class GLProfile {
                 }
                 break;
         }
-    } else if(GLProfile.isGLES2()) {
+    } else if(isGLES2()) {
         // simply ignore !isVertexAttribPointer case, since it is simulated anyway ..
 
         switch(type) {
@@ -476,7 +440,7 @@ public class GLProfile {
                 }
                 return false;
         }
-    } else if( GLProfile.isGL2ES2() ) {
+    } else if( isGL2ES2() ) {
         if(isVertexAttribPointer) {
             switch(type) {
                 case GL.GL_UNSIGNED_BYTE:
@@ -621,4 +585,239 @@ public class GLProfile {
     }
     return true;
   }
+
+  public String toString() {
+    return "GLProfile[" + profile + "/" + profileImpl + "]";
+  }
+
+  // The intersection between desktop OpenGL and the union of the OpenGL ES profiles
+  // This is here only to avoid having separate GL2ES1Impl and GL2ES2Impl classes
+  private static final String GL2ES12 = "GL2ES12";
+
+  private static final boolean hasGL3Impl;
+  private static final boolean hasGL2Impl;
+  private static final boolean hasGL2ES12Impl;
+  private static final boolean hasGLES2Impl;
+  private static final boolean hasGLES1Impl;
+
+  /** The JVM/process wide default GL profile **/
+  private static GLProfile defaultGLProfile;
+  
+  /** All GLProfiles */
+  private static final HashMap/*<String, GLProfile>*/ mappedProfiles;
+
+  /**
+   * Tries the profiles implementation and native libraries.
+   * Throws an GLException if no profile could be found at all.
+   */
+  static {
+    boolean hasDesktopGL = false;
+    try {
+        // See DRIHack.java for an explanation of why this is necessary
+        DRIHack.begin();
+        NativeLibLoader.loadGLDesktop();
+        DRIHack.end();
+        hasDesktopGL = true;
+    } catch (Throwable t) {
+        if (DEBUG) {
+            System.err.println("GLProfile.static Desktop GL Library not available");
+            t.printStackTrace();
+        }
+    }
+    boolean hasDesktopGLES12 = false;
+    try {
+        // See DRIHack.java for an explanation of why this is necessary
+        DRIHack.begin();
+        NativeLibLoader.loadGLDesktopES12();
+        DRIHack.end();
+        hasDesktopGLES12 = true;
+    } catch (Throwable t) {
+        if (DEBUG) {
+            System.err.println("GLProfile.static Desktop GL ES12 Library not available");
+            t.printStackTrace();
+        }
+    }
+
+    boolean hasNativeOSFactory = false;
+    if(hasDesktopGL||hasDesktopGLES12) {
+        try {
+            hasNativeOSFactory = null!=GLDrawableFactory.getNativeOSFactory();
+        } catch (Throwable t) {
+            if (DEBUG) {
+                System.err.println("GLProfile.static - Native platform GLDrawable factory not available");
+                t.printStackTrace();
+            }
+        }
+    }
+    if(!hasNativeOSFactory) {
+        hasDesktopGLES12=false;
+        hasDesktopGL=false;
+    }
+
+    // FIXME: check for real GL3 availability .. ?
+    hasGL3Impl     = hasDesktopGL && null!=NWReflection.getClass("com.sun.opengl.impl.gl3.GL3Impl");
+    hasGL2Impl     = hasDesktopGL && null!=NWReflection.getClass("com.sun.opengl.impl.gl2.GL2Impl");
+
+    hasGL2ES12Impl = hasDesktopGLES12 && null!=NWReflection.getClass("com.sun.opengl.impl.gl2es12.GL2ES12Impl");
+
+    boolean btest = false;
+    try {
+        btest = null!=GLDrawableFactory.getFactory(GLES2) && null!=NWReflection.getClass("com.sun.opengl.impl.es2.GLES2Impl");
+    } catch (Throwable t) {
+        if (DEBUG) {
+            System.err.println("GLProfile.static - GL ES2 Factory/Library not available");
+            t.printStackTrace();
+        }
+    }
+    hasGLES2Impl     = btest;
+
+    btest = false;
+    try {
+        btest = null!=GLDrawableFactory.getFactory(GLES1) && null!=NWReflection.getClass("com.sun.opengl.impl.es1.GLES1Impl");
+    } catch (Throwable t) {
+        if (DEBUG) {
+            System.err.println("GLProfile.static - GL ES1 Factory/Library not available");
+            t.printStackTrace();
+        }
+    }
+    hasGLES1Impl     = btest;
+
+    if (DEBUG) {
+        System.err.println("GLProfile.static hasNativeOSFactory "+hasNativeOSFactory);
+        System.err.println("GLProfile.static hasDesktopGLES12 "+hasDesktopGLES12);
+        System.err.println("GLProfile.static hasDesktopGL "+hasDesktopGL);
+        System.err.println("GLProfile.static hasGL3Impl "+hasGL3Impl);
+        System.err.println("GLProfile.static hasGL2Impl "+hasGL2Impl);
+        System.err.println("GLProfile.static hasGL2ES12Impl "+hasGL2ES12Impl);
+        System.err.println("GLProfile.static hasGLES2Impl "+hasGLES2Impl);
+        System.err.println("GLProfile.static hasGLES1Impl "+hasGLES1Impl);
+    }
+
+    HashMap/*<String, GLProfile>*/ _mappedProfiles = new HashMap(GL_PROFILE_LIST.length);
+    for(int i=0; i<GL_PROFILE_LIST.length; i++) {
+        String profile = GL_PROFILE_LIST[i];
+        String profileImpl = ComputeProfileImpl(profile);
+        if(null!=profileImpl) {
+            GLProfile glProfile = new GLProfile(profile, profileImpl);
+            _mappedProfiles.put(profile, glProfile);
+            if (DEBUG) {
+                System.err.println("GLProfile.static map "+glProfile);
+            }
+            if(null==defaultGLProfile) {
+                defaultGLProfile=glProfile;
+                if (DEBUG) {
+                    System.err.println("GLProfile.static default "+glProfile);
+                }
+            }
+        } else {
+            if (DEBUG) {
+                System.err.println("GLProfile.static map *** no mapping for "+profile);
+            }
+        }
+    }
+    mappedProfiles = _mappedProfiles; // final ..
+    if(null==defaultGLProfile) {
+        throw new GLException("No profile available: "+list2String(GL_PROFILE_LIST));
+    }
+  }
+
+  private static final String list2String(String[] list) {
+    StringBuffer msg = new StringBuffer();
+    msg.append("[");
+    for (int i = 0; i < list.length; i++) {
+      if (i > 0)
+          msg.append(", ");
+      msg.append(list[i]);
+    }
+    msg.append("]");
+    return msg.toString();
+  }
+
+
+  /**
+   * Returns the profile implementation
+   */
+  private static String ComputeProfileImpl(String profile) {
+    if (GL2ES1.equals(profile)) {
+      if(hasGL2Impl) {
+          return GL2;
+      } else if(hasGL2ES12Impl) {
+          return GL2ES12;
+      } else if(hasGLES1Impl) {
+          return GLES1;
+      }
+    } else if (GL2ES2.equals(profile)) {
+      if(hasGL2ES12Impl) {
+          return GL2ES12;
+      } else if(hasGL2Impl) {
+          return GL2;
+      } else if(hasGL3Impl) {
+          return GL3;
+      } else if(hasGLES2Impl) {
+          return GLES2;
+      }
+    } else if(GL3.equals(profile) && hasGL3Impl) {
+        return GL3;
+    } else if(GL2.equals(profile) && hasGL2Impl) {
+        return GL2;
+    } else if(GLES2.equals(profile) && hasGLES2Impl) {
+        return GLES2;
+    } else if(GLES1.equals(profile) && hasGLES1Impl) {
+        return GLES1;
+    }
+    return null;
+  }
+
+  public static String GetGLTypeName(int type) {
+    switch (type) {
+        case GL.GL_UNSIGNED_BYTE:
+            return "GL_UNSIGNED_BYTE";
+        case GL.GL_BYTE:
+            return "GL_BYTE";
+        case GL.GL_UNSIGNED_SHORT:
+            return "GL_UNSIGNED_SHORT";
+        case GL.GL_SHORT:
+            return "GL_SHORT";
+        case GL.GL_FLOAT:
+            return "GL_FLOAT";
+        case GL.GL_FIXED:
+            return "GL_FIXED";
+        case javax.media.opengl.GL2ES2.GL_INT:
+            return "GL_INT";
+        case javax.media.opengl.GL2ES2.GL_UNSIGNED_INT:
+            return "GL_UNSIGNED_INT";
+        case javax.media.opengl.GL2.GL_DOUBLE:
+            return "GL_DOUBLE";
+        case javax.media.opengl.GL2.GL_2_BYTES:
+            return "GL_2_BYTES";
+        case javax.media.opengl.GL2.GL_3_BYTES:
+            return "GL_3_BYTES";
+        case javax.media.opengl.GL2.GL_4_BYTES:
+            return "GL_4_BYTES";
+    }
+    return null;
+  }
+
+  public static String GetGLArrayName(int array) {
+      switch(array) {
+          case GLPointerFunc.GL_VERTEX_ARRAY:
+              return "GL_VERTEX_ARRAY";
+          case GLPointerFunc.GL_NORMAL_ARRAY:
+              return "GL_NORMAL_ARRAY";
+          case GLPointerFunc.GL_COLOR_ARRAY:
+              return "GL_COLOR_ARRAY";
+          case GLPointerFunc.GL_TEXTURE_COORD_ARRAY:
+              return "GL_TEXTURE_COORD_ARRAY";
+      }
+      return null;
+  }
+
+  private GLProfile(String profile, String profileImpl) {
+    this.profile = profile;
+    this.profileImpl = profileImpl;
+  }
+
+  private String profileImpl = null;
+  private String profile = null;
+
 }
