@@ -30,28 +30,26 @@
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  */
 
-package com.sun.opengl.impl.x11.glx.awt;
+package com.sun.opengl.impl.macosx.cgl.awt;
 
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import javax.media.nativewindow.*;
-import javax.media.nativewindow.x11.*;
+import javax.media.nativewindow.macosx.*;
 import javax.media.nativewindow.awt.*;
 import javax.media.opengl.*;
 import javax.media.opengl.awt.*;
 
 import com.sun.opengl.impl.*;
+import com.sun.opengl.impl.macosx.cgl.*;
 import com.sun.nativewindow.impl.jawt.*;
-import com.sun.nativewindow.impl.jawt.x11.*;
-import com.sun.nativewindow.impl.x11.*;
-import com.sun.opengl.impl.x11.*;
-import com.sun.opengl.impl.x11.glx.*;
+import com.sun.nativewindow.impl.jawt.macosx.*;
 
-public class X11AWTGLXGraphicsConfigurationFactory extends GraphicsConfigurationFactory {
-    protected static final boolean DEBUG = Debug.debug("GraphicsConfiguration");
+public class MacOSXAWTCGLGraphicsConfigurationFactory extends GraphicsConfigurationFactory {
+    protected static final boolean DEBUG = com.sun.opengl.impl.Debug.debug("GraphicsConfiguration");
 
-    public X11AWTGLXGraphicsConfigurationFactory() {
+    public MacOSXAWTCGLGraphicsConfigurationFactory() {
         GraphicsConfigurationFactory.registerFactory(javax.media.nativewindow.awt.AWTGraphicsDevice.class, this);
     }
 
@@ -81,45 +79,26 @@ public class X11AWTGLXGraphicsConfigurationFactory extends GraphicsConfiguration
         }
 
         if(DEBUG) {
-            System.err.println("X11AWTGLXGraphicsConfigurationFactory: got "+absScreen);
-        }
-        long displayHandle = 0;
-        NativeWindowFactory.getDefaultFactory().getToolkitLock().lock();
-        try {
-            displayHandle = X11SunJDKReflection.graphicsDeviceGetScreen(device);
-            if(0==displayHandle) {
-                displayHandle = X11Util.getDefaultDisplay();
-                ((AWTGraphicsDevice)awtScreen.getDevice()).setHandle(displayHandle);
-                if(DEBUG) {
-                    System.err.println("X11AWTGLXGraphicsConfigurationFactory: using default X11 display");
-                }
-            }
-        } catch (Throwable t) {
-        } finally {
-          NativeWindowFactory.getDefaultFactory().getToolkitLock().unlock();
-        }
-        X11GraphicsDevice x11Device = new X11GraphicsDevice(displayHandle);
-        X11GraphicsScreen x11Screen = new X11GraphicsScreen(x11Device, awtScreen.getIndex());
-        if(DEBUG) {
-            System.err.println("X11AWTGLXGraphicsConfigurationFactory: made "+x11Screen);
+            System.err.println("MacOSXAWTCGLGraphicsConfigurationFactory: got "+absScreen);
         }
 
-        X11GraphicsConfiguration x11Config = (X11GraphicsConfiguration)
-            GraphicsConfigurationFactory.getFactory(x11Device).chooseGraphicsConfiguration(capabilities,
+        long displayHandle = 0;
+
+        MacOSXGraphicsDevice macDevice = new MacOSXGraphicsDevice();
+        DefaultGraphicsScreen macScreen = new DefaultGraphicsScreen(macDevice, awtScreen.getIndex());
+        if(DEBUG) {
+            System.err.println("MacOSXAWTCGLGraphicsConfigurationFactory: made "+macScreen);
+        }
+
+        MacOSXCGLGraphicsConfiguration macConfig = (MacOSXCGLGraphicsConfiguration)
+            GraphicsConfigurationFactory.getFactory(macDevice).chooseGraphicsConfiguration(capabilities,
                                                                                            chooser,
-                                                                                           x11Screen);
-        if (x11Config != null) {
-            long visualID = x11Config.getVisualID();
-            // Now figure out which GraphicsConfiguration corresponds to this
-            // visual by matching the visual ID
+                                                                                           macScreen);
+        if (macConfig != null) {
+            // FIXME: we have nothing to match .. so choose the 1st
             GraphicsConfiguration[] configs = device.getConfigurations();
-            for (int i = 0; i < configs.length; i++) {
-                GraphicsConfiguration config = configs[i];
-                if (config != null) {
-                    if (X11SunJDKReflection.graphicsConfigurationGetVisualID(config) == visualID) {
-                        return new AWTGraphicsConfiguration(awtScreen, x11Config.getCapabilities(), config, x11Config);
-                    }
-                }
+            if(configs.length>0) {
+                return new AWTGraphicsConfiguration(awtScreen, macConfig.getCapabilities(), configs[0], macConfig);
             }
         }
         

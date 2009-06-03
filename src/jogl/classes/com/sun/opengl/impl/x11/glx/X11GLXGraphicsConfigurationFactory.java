@@ -50,8 +50,7 @@ public class X11GLXGraphicsConfigurationFactory extends GraphicsConfigurationFac
     protected static final boolean DEBUG = Debug.debug("GraphicsConfiguration");
 
     public X11GLXGraphicsConfigurationFactory() {
-        GraphicsConfigurationFactory.registerFactory(javax.media.nativewindow.x11.X11GraphicsDevice.class,
-                                                     this);
+        GraphicsConfigurationFactory.registerFactory(javax.media.nativewindow.x11.X11GraphicsDevice.class, this);
     }
 
     public AbstractGraphicsConfiguration chooseGraphicsConfiguration(Capabilities capabilities,

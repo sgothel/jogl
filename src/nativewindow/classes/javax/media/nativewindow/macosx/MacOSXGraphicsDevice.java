@@ -28,22 +28,23 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
  */
 
-package com.sun.javafx.newt.macosx;
+package javax.media.nativewindow.macosx;
 
-import com.sun.javafx.newt.*;
 import javax.media.nativewindow.*;
-import javax.media.nativewindow.macosx.*;
 
-public class MacDisplay extends Display {
-    public MacDisplay() {
+/** Encapsulates a graphics device on MacOSX platforms.
+ */
+
+public class MacOSXGraphicsDevice extends DefaultGraphicsDevice implements Cloneable {
+    /** Constructs a new MacOSXGraphicsDevice */
+    public MacOSXGraphicsDevice() {
+        super(NativeWindowFactory.TYPE_MACOSX);
     }
 
-    protected void createNative() {
-        aDevice = new MacOSXGraphicsDevice();
+    public Object clone() {
+      return super.clone();
     }
-
-    protected void closeNative() { }
 }
+

@@ -45,20 +45,29 @@ import java.util.*;
 import javax.media.nativewindow.*;
 import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
+import com.sun.nativewindow.impl.*;
 
 public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
+  protected static final boolean DEBUG = com.sun.opengl.impl.Debug.debug("GraphicsConfiguration");
+
   public MacOSXCGLDrawableFactory() {
     super();
 
     // Register our GraphicsConfigurationFactory implementations
     // The act of constructing them causes them to be registered
     new MacOSXCGLGraphicsConfigurationFactory();
+
+    try {
+      NWReflection.createInstance("com.sun.opengl.impl.macosx.cgl.awt.MacOSXAWTCGLGraphicsConfigurationFactory",
+                                  new Object[] {});
+    } catch (Throwable t) { }
   }
 
   public GLDrawable createGLDrawable(NativeWindow target) {
     if (target == null) {
       throw new IllegalArgumentException("Null target");
     }
+    NativeWindowFactory factory = NativeWindowFactory.getFactory(target.getClass());
     target = NativeWindowFactory.getNativeWindow(target, null);
     return new MacOSXOnscreenCGLDrawable(this, target);
   }

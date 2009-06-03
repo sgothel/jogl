@@ -33,6 +33,7 @@
 package com.sun.opengl.impl.macosx.cgl;
 
 import javax.media.nativewindow.*;
+import javax.media.nativewindow.macosx.*;
 import com.sun.nativewindow.impl.*;
 
 import javax.media.opengl.*;
@@ -44,13 +45,10 @@ import com.sun.opengl.impl.*;
     GraphicsDevice and GraphicsConfiguration abstractions. */
 
 public class MacOSXCGLGraphicsConfigurationFactory extends GraphicsConfigurationFactory {
+    protected static final boolean DEBUG = com.sun.opengl.impl.Debug.debug("GraphicsConfiguration");
 
     public MacOSXCGLGraphicsConfigurationFactory() {
-        Class awtDeviceClass = NWReflection.getClass("javax.media.nativewindow.awt.AWTGraphicsDevice");
-        if(null!=awtDeviceClass) {
-            GraphicsConfigurationFactory.registerFactory(awtDeviceClass, this);
-        }
-        GraphicsConfigurationFactory.registerFactory(javax.media.nativewindow.AbstractGraphicsDevice.class, this);
+        GraphicsConfigurationFactory.registerFactory(javax.media.nativewindow.macosx.MacOSXGraphicsDevice.class, this);
     }
 
     public AbstractGraphicsConfiguration chooseGraphicsConfiguration(Capabilities capabilities,
