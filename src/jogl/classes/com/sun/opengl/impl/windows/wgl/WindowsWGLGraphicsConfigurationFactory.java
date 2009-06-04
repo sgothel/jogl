@@ -33,6 +33,7 @@
 package com.sun.opengl.impl.windows.wgl;
 
 import javax.media.nativewindow.*;
+import javax.media.nativewindow.windows.*;
 import com.sun.nativewindow.impl.*;
 
 import javax.media.opengl.*;
@@ -47,11 +48,7 @@ public class WindowsWGLGraphicsConfigurationFactory extends GraphicsConfiguratio
     protected static final boolean DEBUG = com.sun.opengl.impl.Debug.debug("GraphicsConfiguration");
 
     public WindowsWGLGraphicsConfigurationFactory() {
-        Class awtDeviceClass = NWReflection.getClass("javax.media.nativewindow.awt.AWTGraphicsDevice");
-        if(null!=awtDeviceClass) {
-            GraphicsConfigurationFactory.registerFactory(awtDeviceClass, this);
-        }
-        GraphicsConfigurationFactory.registerFactory(javax.media.nativewindow.AbstractGraphicsDevice.class, this);
+        GraphicsConfigurationFactory.registerFactory(javax.media.nativewindow.windows.WindowsGraphicsDevice.class, this);
     }
 
     public AbstractGraphicsConfiguration chooseGraphicsConfiguration(Capabilities capabilities,

@@ -47,6 +47,12 @@
     #else
         typedef int intptr_t;
     #endif
+#elif _MSC_VER <= 1500
+    #ifdef _WIN64 // [
+        typedef __int64           intptr_t;
+    #else // _WIN64 ][
+        typedef int               intptr_t;
+    #endif // _WIN64 ]
 #else
     #include <inttypes.h>
 #endif

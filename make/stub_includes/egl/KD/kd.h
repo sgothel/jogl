@@ -707,7 +707,7 @@ KD_API KDint KD_APIENTRY kdInetAton(const KDchar *cp, KDuint32 *inp);
 /* kdInetNtop: Convert a network address to textual form. */
 #define KD_INET_ADDRSTRLEN 16
 typedef struct KDInAddr {
-    KDuint32 s_addr;
+    KDuint32 _s_addr; /* MSVC VC9 again .. couldn't handle s_addr here */
 } KDInAddr;
 KD_API const KDchar *KD_APIENTRY kdInetNtop(KDuint af, const void *src, KDchar *dst, KDsize cnt);
 
