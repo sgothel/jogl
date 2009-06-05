@@ -76,14 +76,19 @@ public class EGLDrawable extends GLDrawableImpl {
         return (null==eglConfig)?super.getGLCapabilities():(GLCapabilities)eglConfig.getCapabilities();
     }
 
-    protected void setSurface() {
+    private void setSurface() {
         if (EGL.EGL_NO_SURFACE==eglSurface) {
             lockSurface();
             try {
+                if(DEBUG) {
+                    System.err.println("setSurface using component: handle 0x"+Long.toHexString(component.getWindowHandle())+", "+component);
+                }
                 // Create the window surface
                 eglSurface = EGL.eglCreateWindowSurface(eglDisplay, eglConfig.getNativeConfig(), component.getWindowHandle(), null);
                 if (EGL.EGL_NO_SURFACE==eglSurface) {
-                    throw new GLException("Creation of window surface (eglCreateWindowSurface) failed, component: "+component);
+                    throw new GLException("Creation of window surface (eglCreateWindowSurface) failed, component: "+component+", error 0x"+Integer.toHexString(EGL.eglGetError()));
+                } else if(DEBUG) {
+                    System.err.println("setSurface result: eglSurface 0x"+Long.toHexString(eglSurface));
                 }
             } finally {
               unlockSurface();
@@ -116,12 +121,15 @@ public class EGLDrawable extends GLDrawableImpl {
             } else {
                 // create a new EGL config ..
                 ownEGLDisplay=true;
-                eglDisplay = EGL.eglGetDisplay((0!=aDevice.getHandle())?aDevice.getHandle():EGL.EGL_DEFAULT_DISPLAY);
+                long ndisplay = (0!=aDevice.getHandle())?aDevice.getHandle():EGL.EGL_DEFAULT_DISPLAY;
+                eglDisplay = EGL.eglGetDisplay(ndisplay);
                 if (eglDisplay == EGL.EGL_NO_DISPLAY) {
-                    throw new GLException("Failed to created EGL display from "+aDevice);
+                    throw new GLException("Failed to created EGL display: nhandle 0x"+Long.toHexString(ndisplay)+", "+aDevice+", error 0x"+Integer.toHexString(EGL.eglGetError()));
+                } else if(DEBUG) {
+                    System.err.println("eglDisplay("+ndisplay+"): 0x"+Long.toHexString(eglDisplay));
                 }
                 if (!EGL.eglInitialize(eglDisplay, null, null)) {
-                    throw new GLException("eglInitialize failed");
+                    throw new GLException("eglInitialize failed"+", error 0x"+Integer.toHexString(EGL.eglGetError()));
                 }
                 EGLGraphicsDevice e = new EGLGraphicsDevice(eglDisplay);
                 DefaultGraphicsScreen s = new DefaultGraphicsScreen(e, aConfig.getScreen().getIndex());
@@ -129,8 +137,11 @@ public class EGLDrawable extends GLDrawableImpl {
                 eglConfig = (EGLGraphicsConfiguration) GraphicsConfigurationFactory.getFactory(e).chooseGraphicsConfiguration(caps, null, s);
                 if (null == eglConfig) {
                     throw new GLException("Couldn't create EGLGraphicsConfiguration from "+s);
+                } else if(DEBUG) {
+                    System.err.println("Chosen eglConfig: "+eglConfig);
                 }
             }
+            setSurface();
         } else if (eglSurface != EGL.EGL_NO_SURFACE) {
             // Destroy the window surface
             if (!EGL.eglDestroySurface(eglDisplay, eglSurface)) {

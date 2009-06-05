@@ -44,9 +44,9 @@ import java.util.*;
 import javax.media.nativewindow.*;
 import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
+import com.sun.nativewindow.impl.NWReflection;
 
 public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
-  private static final boolean DEBUG = Debug.debug("WindowsWGLDrawableFactory");
   private static final boolean VERBOSE = Debug.verbose();
 
   // Handle to GLU32.dll
@@ -59,6 +59,10 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
     // Register our GraphicsConfigurationFactory implementations
     // The act of constructing them causes them to be registered
     new WindowsWGLGraphicsConfigurationFactory();
+    try {
+      NWReflection.createInstance("com.sun.opengl.impl.windows.wgl.awt.WindowsAWTWGLGraphicsConfigurationFactory",
+                                  new Object[] {});
+    } catch (Throwable t) { }
   }
 
   public GLDrawable createGLDrawable(NativeWindow target) {

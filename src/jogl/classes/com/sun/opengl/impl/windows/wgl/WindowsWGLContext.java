@@ -152,8 +152,20 @@ public class WindowsWGLContext extends GLContextImpl {
         }
         setGLFunctionAvailability(true);
 
-        if( !isFunctionAvailable("wglCreateContextAttribsARB") ||
-            !isExtensionAvailable("WGL_ARB_create_context") )  {
+        boolean haswglCreateContextAttribsARB = isFunctionAvailable("wglCreateContextAttribsARB");
+        boolean hasWGL_ARB_create_context = false;
+        try {
+            hasWGL_ARB_create_context = isExtensionAvailable("WGL_ARB_create_context");
+        } catch (Exception e) {
+            // funny .. so let's take the result of the available function
+            hasWGL_ARB_create_context = haswglCreateContextAttribsARB;
+            if(DEBUG) {
+              e.printStackTrace();
+            }
+        }
+
+        if( !haswglCreateContextAttribsARB ||
+            !hasWGL_ARB_create_context ) {
             if(glCaps.getGLProfile().isGL3()) {
               if (!WGL.wglMakeCurrent(0, 0)) {
                 throw new GLException("Error freeing temp OpenGL context: " + WGL.GetLastError());
@@ -183,7 +195,8 @@ public class WindowsWGLContext extends GLContextImpl {
             if(glCaps.getGLProfile().isGL3()) {
                 attribs[1] |= 3;
                 attribs[3] |= 1;
-                attribs[5] |= WGLExt.WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB /* | WGLExt.WGL_CONTEXT_DEBUG_BIT_ARB */;
+                // attribs[5] |= WGLExt.WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB ; // NVidia WGL driver doesn't support this one ..
+                // attribs[5] |= WGLExt.WGL_CONTEXT_DEBUG_BIT_ARB ;
             }
 
             hglrc = wglExt.wglCreateContextAttribsARB(drawable.getNativeWindow().getSurfaceHandle(), hglrc2, attribs, 0); 

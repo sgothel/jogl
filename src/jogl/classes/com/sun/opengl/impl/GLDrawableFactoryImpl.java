@@ -52,6 +52,7 @@ import java.lang.reflect.*;
     these GLDrawables is not supplied directly to end users, though
     they may be instantiated by the GLJPanel implementation. */
 public abstract class GLDrawableFactoryImpl extends GLDrawableFactory implements DynamicLookupHelper {
+  protected static final boolean DEBUG = Debug.debug("GLDrawableFactory");
 
   /** Creates a (typically software-accelerated) offscreen GLDrawable
       used to implement the fallback rendering path of the

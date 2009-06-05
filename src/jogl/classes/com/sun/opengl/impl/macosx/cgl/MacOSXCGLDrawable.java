@@ -44,8 +44,6 @@ import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
 
 public abstract class MacOSXCGLDrawable extends GLDrawableImpl {
-  protected static final boolean DEBUG = Debug.debug("MacOSXCGLDrawable");
-
   // The Java2D/OpenGL pipeline on OS X uses low-level CGLContextObjs
   // to represent the contexts for e.g. the Java2D back buffer. When
   // the Java2D/JOGL bridge is active, this means that if we want to

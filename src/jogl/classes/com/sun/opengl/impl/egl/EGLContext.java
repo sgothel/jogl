@@ -124,7 +124,6 @@ public class EGLContext extends GLContextImpl {
             System.err.println("drawable not properly initialized");
             return CONTEXT_NOT_CURRENT;
         }
-        drawable.setSurface();
 
         int lockRes = NativeWindow.LOCK_SUCCESS;
         // FIXME: freezes AWT: int lockRes = drawable.lockSurface();
@@ -214,7 +213,8 @@ public class EGLContext extends GLContextImpl {
         }
         eglContext = EGL.eglCreateContext(eglDisplay, eglConfig, shareWith, contextAttrs, 0);
         if (eglContext == 0) {
-            throw new GLException("Error creating OpenGL context");
+            throw new GLException("Error creating OpenGL context: eglDisplay 0x"+Long.toHexString(eglDisplay)+
+                                  ", "+glProfile+", error 0x"+Integer.toHexString(EGL.eglGetError()));
         }
         GLContextShareSet.contextCreated(this);
         if (DEBUG) {

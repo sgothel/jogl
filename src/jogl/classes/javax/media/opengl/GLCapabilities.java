@@ -78,12 +78,6 @@ public class GLCapabilities extends Capabilities implements Cloneable {
     */
   public GLCapabilities(GLProfile glp) {
       glProfile = (null!=glp)?glp:GLProfile.GetProfileDefault();
-      if(glProfile.usesNativeGLES()) {
-        setRedBits(5);
-        setGreenBits(6);
-        setBlueBits(5);
-        setDepthBits(16);
-      }
   }
 
   public Object clone() {

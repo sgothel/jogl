@@ -1442,7 +1442,7 @@
         <patternset id="c.src.files.jogl.gl2">
           <include name="${rootrel.src.c}/macosx/MacOSXWindowSystemInterface.m" if="isOSX"/>
           <include name="${rootrel.src.c}/macosx/ContextUpdater.m" if="isOSX"/>
-          <include name="${rootrel.src.c}/GLXGetProcAddressARB.c"/>
+          <include name="${rootrel.src.c}/GLXGetProcAddressARB.c" if="isX11"/>
           <!-- FIXME: the Mixer should be moved to another library -->
           <!--include name="${rootrel.src.c}/Mixer.cpp" if="isWindows"/-->
           <include name="${rootrel.src.c.openmax}/omx_tool.c"  if="useOpenMAX"/>
@@ -1460,7 +1460,7 @@
         <patternset id="c.src.files.jogl.gl2es12">
           <include name="${rootrel.src.c}/macosx/MacOSXWindowSystemInterface.m" if="isOSX"/>
           <include name="${rootrel.src.c}/macosx/ContextUpdater.m" if="isOSX"/>
-          <include name="${rootrel.src.c}/GLXGetProcAddressARB.c"/>
+          <include name="${rootrel.src.c}/GLXGetProcAddressARB.c" if="isX11"/>
           <!-- FIXME: the Mixer should be moved to another library -->
           <!--include name="${rootrel.src.c}/Mixer.cpp" if="isWindows"/-->
           <include name="${rootrel.src.c.openmax}/omx_tool.c"  if="useOpenMAX"/>
@@ -1475,7 +1475,7 @@
         </patternset>
 
         <patternset id="c.src.files.jogl.es2">
-          <include name="${rootrel.src.c}/GLXGetProcAddressARB.c"/>
+          <include name="${rootrel.src.c}/GLXGetProcAddressARB.c" if="isX11"/>
           <include name="${rootrel.src.c.openmax}/omx_tool.c"  if="useOpenMAX"/>
           <include name="${rootrel.src.c.openmax}/com_sun_openmax_OMXInstance.c"  if="useOpenMAX"/>
 
@@ -1485,7 +1485,7 @@
         </patternset>
 
         <patternset id="c.src.files.jogl.es1">
-          <include name="${rootrel.src.c}/GLXGetProcAddressARB.c"/>
+          <include name="${rootrel.src.c}/GLXGetProcAddressARB.c" if="isX11"/>
           <include name="${rootrel.src.c.openmax}/omx_tool.c"  if="useOpenMAX"/>
           <include name="${rootrel.src.c.openmax}/com_sun_openmax_OMXInstance.c"  if="useOpenMAX"/>
 

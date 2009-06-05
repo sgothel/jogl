@@ -44,8 +44,6 @@ import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
 
 public abstract class WindowsWGLDrawable extends GLDrawableImpl {
-  protected static final boolean DEBUG = Debug.debug("WindowsWGLDrawable");
-
   // Workaround for problems on Intel 82855 cards
   private int  setPixelFormatFailCount;
   private static final int MAX_SET_PIXEL_FORMAT_FAIL_COUNT = 5;

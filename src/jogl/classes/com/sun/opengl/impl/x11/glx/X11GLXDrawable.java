@@ -45,8 +45,6 @@ import com.sun.opengl.impl.*;
 import com.sun.nativewindow.impl.x11.*;
 
 public abstract class X11GLXDrawable extends GLDrawableImpl {
-    protected static final boolean DEBUG = Debug.debug("X11GLXDrawable");
-
     protected X11GLXDrawable(GLDrawableFactory factory, NativeWindow comp, boolean realized) {
         super(factory, comp, realized);
     }

@@ -54,7 +54,7 @@ public class NativeLibLoader extends NativeLibLoaderBase {
   public static void loadNEWT() {
     AccessController.doPrivileged(new PrivilegedAction() {
       public Object run() {
-        loadLibrary("newt", nativewindowX11Preload, true);
+        loadLibrary("newt", nativeOSPreload, true);
         return null;
       }
     });
@@ -63,7 +63,7 @@ public class NativeLibLoader extends NativeLibLoaderBase {
   public static void loadGLDesktop() {
     AccessController.doPrivileged(new PrivilegedAction() {
       public Object run() {
-        loadLibrary("jogl_gl2", nativewindowX11Preload, true);
+        loadLibrary("jogl_gl2", nativeOSPreload, true);
         return null;
       }
     });
@@ -72,7 +72,7 @@ public class NativeLibLoader extends NativeLibLoaderBase {
   public static void loadGLDesktopES12() {
     AccessController.doPrivileged(new PrivilegedAction() {
       public Object run() {
-        loadLibrary("jogl_gl2es12", nativewindowX11Preload, true);
+        loadLibrary("jogl_gl2es12", nativeOSPreload, true);
         return null;
       }
     });
@@ -81,7 +81,7 @@ public class NativeLibLoader extends NativeLibLoaderBase {
   public static void loadES2() {
     AccessController.doPrivileged(new PrivilegedAction() {
       public Object run() {
-        loadLibrary("jogl_es2", nativewindowX11Preload, true);
+        loadLibrary("jogl_es2", nativeOSPreload, true);
         return null;
       }
     });
@@ -90,7 +90,7 @@ public class NativeLibLoader extends NativeLibLoaderBase {
   public static void loadES1() {
     AccessController.doPrivileged(new PrivilegedAction() {
       public Object run() {
-        loadLibrary("jogl_es1", nativewindowX11Preload, true);
+        loadLibrary("jogl_es1", nativeOSPreload, true);
         return null;
       }
     });
@@ -135,7 +135,7 @@ public class NativeLibLoader extends NativeLibLoaderBase {
     }
   }
 
-  private static final String[] nativewindowX11Preload = { "nativewindow_x11" };
+  private static final String[] nativeOSPreload = { "nativewindow_x11" };
   private static boolean usingJNLPAppletLauncher;
   private static Method  jnlpLoadLibraryMethod;
 

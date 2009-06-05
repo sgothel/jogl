@@ -612,6 +612,9 @@ public class GLProfile implements Cloneable {
    */
   static {
     boolean hasDesktopGL = false;
+    boolean hasDesktopGLES12 = false;
+    boolean hasNativeOSFactory = false;
+
     try {
         // See DRIHack.java for an explanation of why this is necessary
         DRIHack.begin();
@@ -624,7 +627,7 @@ public class GLProfile implements Cloneable {
             t.printStackTrace();
         }
     }
-    boolean hasDesktopGLES12 = false;
+
     try {
         // See DRIHack.java for an explanation of why this is necessary
         DRIHack.begin();
@@ -638,7 +641,6 @@ public class GLProfile implements Cloneable {
         }
     }
 
-    boolean hasNativeOSFactory = false;
     if(hasDesktopGL||hasDesktopGLES12) {
         try {
             hasNativeOSFactory = null!=GLDrawableFactory.getNativeOSFactory();
@@ -649,6 +651,7 @@ public class GLProfile implements Cloneable {
             }
         }
     }
+
     if(!hasNativeOSFactory) {
         hasDesktopGLES12=false;
         hasDesktopGL=false;

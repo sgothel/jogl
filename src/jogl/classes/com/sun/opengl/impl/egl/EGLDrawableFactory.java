@@ -44,15 +44,7 @@ import com.sun.gluegen.runtime.NativeLibrary;
 
 public class EGLDrawableFactory extends GLDrawableFactoryImpl {
   
-    // We need more than one of these on certain devices (the NVidia APX 2500 in particular)
-    private List/*<NativeLibrary>*/ glesLibraries = new ArrayList();
-
-    public EGLDrawableFactory(String esProfile) {
-        super();
-
-        loadGLESLibrary(esProfile);
-        EGL.resetProcAddressTable(this);
-
+    static {
         // Register our GraphicsConfigurationFactory implementations
         // The act of constructing them causes them to be registered
         new EGLGraphicsConfigurationFactory();
@@ -63,6 +55,16 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                 NWReflection.createInstance("com.sun.opengl.impl.x11.glx.X11GLXGraphicsConfigurationFactory");
             } catch (Throwable t) {}
         }
+    }
+
+    // We need more than one of these on certain devices (the NVidia APX 2500 in particular)
+    private List/*<NativeLibrary>*/ glesLibraries = new ArrayList();
+
+    public EGLDrawableFactory(String esProfile) {
+        super();
+
+        loadGLESLibrary(esProfile);
+        EGL.resetProcAddressTable(this);
     }
 
     private NativeLibrary loadFirstAvailable(List/*<String>*/ libNames, ClassLoader loader) {
@@ -82,40 +84,53 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         List/*<String>*/ glesLibNames = new ArrayList();
         List/*<String>*/ eglLibNames = new ArrayList();
 
+        // ES
         if(GLProfile.UsesNativeGLES2(esProfile)) {
-            // Unix
-            glesLibNames.add("libGLES20");
-            glesLibNames.add("libGLESv2");
-            glesLibNames.add("libGLESv2_CM");
-            // Windows
             glesLibNames.add("GLES20");
             glesLibNames.add("GLESv2");
             glesLibNames.add("GLESv2_CM");
+            // for windows distributions using the 'unlike' lib prefix
+            // where our tool does not add it.
+            glesLibNames.add("libGLES20"); 
+            glesLibNames.add("libGLESv2");
+            glesLibNames.add("libGLESv2_CM");
         } else if(GLProfile.UsesNativeGLES1(esProfile)) {
-            // Unix
-            glesLibNames.add("libGLES_CM");
-            glesLibNames.add("libGLES_CL");
-            glesLibNames.add("libGLESv1_CM");
-
-            // Windows
             glesLibNames.add("GLES_CM");
             glesLibNames.add("GLES_CL");
             glesLibNames.add("GLESv1_CM");
+            // for windows distributions using the 'unlike' lib prefix, 
+            // where our tool does not add it.
+            glesLibNames.add("libGLES_CM");
+            glesLibNames.add("libGLES_CL");
+            glesLibNames.add("libGLESv1_CM");
         } else {
             throw new GLException("Invalid GL Profile for EGL: "+esProfile);
         }
 
-        // EGL Unix
-        eglLibNames.add("libEGL");
-        // EGL Windows
+        // EGL
         eglLibNames.add("EGL");
+        // for windows distributions using the 'unlike' lib prefix, 
+        // where our tool does not add it.
+        eglLibNames.add("libEGL");
 
         ClassLoader loader = getClass().getClassLoader();
-        NativeLibrary lib = loadFirstAvailable(glesLibNames, loader);
+        NativeLibrary lib = null;
+
+        // ES libraries ..
+        lib = loadFirstAvailable(glesLibNames, loader);
         if (lib == null) {
             throw new GLException("Unable to dynamically load OpenGL ES library for profile \"" + esProfile + "\"");
         }
         glesLibraries.add(lib);
+
+        // ES libraries ..
+        lib = loadFirstAvailable(glesLibNames, loader);
+        if (lib == null) {
+            throw new GLException("Unable to dynamically load OpenGL ES library for profile \"" + esProfile + "\"");
+        }
+        glesLibraries.add(lib);
+
+        // EGL libraries ..
         lib = loadFirstAvailable(eglLibNames, loader);
         if (lib == null) {
             throw new GLException("Unable to dynamically load EGL library for profile \"" + esProfile + "\"");
@@ -175,10 +190,15 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
             NativeLibrary lib = (NativeLibrary) iter.next();
             long addr = lib.lookupFunction(glFuncName);
             if (addr != 0) {
+                if(DEBUG) {
+                    System.err.println("Lookup-Native: <"+glFuncName+"> 0x"+Long.toHexString(addr));
+                }
                 return addr;
             }
         }
-
+        if(DEBUG) {
+            System.err.println("Lookup-Native: <*"+glFuncName+"> ** FAILED ** ");
+        }
         return 0;
     }
 
@@ -193,7 +213,11 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         if(0==eglGetProcAddressHandle) {
             eglGetProcAddressHandle = dynamicLookupFunctionOnLibs("eglGetProcAddress");
             if(0==eglGetProcAddressHandle) {
-                throw new GLException("Couldn't find eglGetProcAddress function entry");
+                GLException e = new GLException("Couldn't find eglGetProcAddress function entry");
+                if(DEBUG) {
+                    e.printStackTrace();
+                }
+                throw e;
             }
         }
 
@@ -202,6 +226,13 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         }
 
         long addr = EGL.eglGetProcAddress(eglGetProcAddressHandle, glFuncName);
+        if(DEBUG) {
+            if(0!=addr) {
+                System.err.println("Lookup-EGL: <"+glFuncName+"> 0x"+Long.toHexString(addr));
+            } else {
+                System.err.println("Lookup-EGL: <"+glFuncName+"> ** FAILED ** ");
+            }
+        }
         if(0==addr) {
             addr = dynamicLookupFunctionOnLibs(glFuncName);
         }

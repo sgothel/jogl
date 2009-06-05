@@ -105,6 +105,9 @@ public class EGLGraphicsConfigurationFactory extends GraphicsConfigurationFactor
         if(null!=res) {
             return res;
         }
+        if(DEBUG) {
+            System.err.println("eglChooseConfig failed with given capabilities");
+        }
 
         _EGLConfig[] configs = new _EGLConfig[10];
         int[] numConfigs = new int[1];
@@ -133,8 +136,28 @@ public class EGLGraphicsConfigurationFactory extends GraphicsConfigurationFactor
             System.err.println("Choosen "+caps[chosen]);
         }
         res = eglChooseConfig(eglDisplay, caps[chosen], absScreen);
+        if(null!=res) {
+            return res;
+        }
+        if(DEBUG) {
+            System.err.println("eglChooseConfig failed with eglGetConfig/choosen capabilities");
+        }
+
+        // Last try .. add a fixed embedded profile [ATI, Nokia, ..]
+        GLCapabilities fixedCaps = new GLCapabilities(glp);
+        fixedCaps.setRedBits(5);
+        fixedCaps.setGreenBits(6);
+        fixedCaps.setBlueBits(5);
+        fixedCaps.setDepthBits(16);
+        fixedCaps.setSampleBuffers(true);
+        fixedCaps.setNumSamples(4);
+        if(DEBUG) {
+            System.err.println("trying fixed caps: "+fixedCaps);
+        }
+
+        res = eglChooseConfig(eglDisplay, fixedCaps, absScreen);
         if(null==res) {
-            throw new GLException("Graphics configuration chooser/eglChoose failed");
+            throw new GLException("Graphics configuration failed [direct caps, eglGetConfig/chooser and fixed-caps]");
         }
         return res;
     }
@@ -155,7 +178,11 @@ public class EGLGraphicsConfigurationFactory extends GraphicsConfigurationFactor
             int[] val = new int[1];
             // get the configID 
             if(!EGL.eglGetConfigAttrib(eglDisplay, configs[0], EGL.EGL_CONFIG_ID, val, 0)) {
-                throw new GLException("EGL couldn't retrieve ConfigID");
+                if(DEBUG) {
+                    // FIXME: this happens on a ATI PC Emulation ..
+                    System.err.println("EGL couldn't retrieve ConfigID for already chosen eglConfig "+capabilities+", use 0");
+                }
+                val[0]=0;
             }
 
             return new EGLGraphicsConfiguration(absScreen, 

@@ -111,6 +111,21 @@ public class EGLGraphicsConfiguration extends DefaultGraphicsConfiguration imple
         if(EGL.eglGetConfigAttrib(display, _config, EGL.EGL_DEPTH_SIZE, val, 0)) {
             caps.setDepthBits(val[0]);
         }
+        if(EGL.eglGetConfigAttrib(display, _config, EGL.EGL_SAMPLES, val, 0)) {
+            caps.setSampleBuffers(val[0]>0?true:false);
+            caps.setNumSamples(val[0]);
+        }
+        if(EGL.eglGetConfigAttrib(display, _config, EGL.EGL_TRANSPARENT_TYPE, val, 0)) {
+            caps.setBackgroundOpaque(val[0] != EGL.EGL_TRANSPARENT_RGB);
+        }
+        /**
+            // FIXME - Add transparency values to Capabilities !
+        if(!caps.isBackgroundOpaque()) {
+            if(EGL.eglGetConfigAttrib(display, _config, EGL.EGL_TRANSPARENT_RED_VALUE, val, 0)) {
+                caps.setTransparentRed(val[0]);
+            }
+        }
+        */
         return caps;
     }
 
@@ -118,13 +133,15 @@ public class EGLGraphicsConfiguration extends DefaultGraphicsConfiguration imple
         int[] attrs = new int[] {
                 EGL.EGL_RENDERABLE_TYPE, -1,
                 // FIXME: does this need to be configurable?
-                EGL.EGL_SURFACE_TYPE,    EGL.EGL_WINDOW_BIT,
+                EGL.EGL_SURFACE_TYPE,    EGL.EGL_WINDOW_BIT, // or EGL_PBUFFER_BIT, EGL_PIXMAP_BIT
                 EGL.EGL_RED_SIZE,        caps.getRedBits(),
                 EGL.EGL_GREEN_SIZE,      caps.getGreenBits(),
                 EGL.EGL_BLUE_SIZE,       caps.getBlueBits(),
                 EGL.EGL_ALPHA_SIZE,      (caps.getAlphaBits() > 0 ? caps.getAlphaBits() : EGL.EGL_DONT_CARE),
                 EGL.EGL_STENCIL_SIZE,    (caps.getStencilBits() > 0 ? caps.getStencilBits() : EGL.EGL_DONT_CARE),
                 EGL.EGL_DEPTH_SIZE,      caps.getDepthBits(),
+                EGL.EGL_SAMPLES,         (caps.getSampleBuffers() ? caps.getNumSamples() : 1),
+                EGL.EGL_TRANSPARENT_TYPE,(caps.isBackgroundOpaque() ? EGL.EGL_NONE : EGL.EGL_TRANSPARENT_TYPE),
                 EGL.EGL_NONE
             };
 

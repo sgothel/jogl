@@ -341,7 +341,7 @@ public abstract class GLContextImpl extends GLContext {
    */
   protected void updateGLProcAddressTable() {
     if(null==this.gl) {
-        throw new GLException("setGLFunctionAvailability no called yet");
+        throw new GLException("setGLFunctionAvailability not called yet");
     }
     extensionAvailability.flush();
     if (DEBUG) {

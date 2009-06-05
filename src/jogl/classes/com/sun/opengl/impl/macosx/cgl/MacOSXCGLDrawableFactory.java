@@ -48,8 +48,6 @@ import com.sun.opengl.impl.*;
 import com.sun.nativewindow.impl.*;
 
 public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
-  protected static final boolean DEBUG = com.sun.opengl.impl.Debug.debug("GraphicsConfiguration");
-
   public MacOSXCGLDrawableFactory() {
     super();
 

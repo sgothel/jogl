@@ -52,8 +52,6 @@ import com.sun.nativewindow.impl.x11.*;
 import com.sun.nativewindow.impl.jawt.x11.*;
 
 public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
-  protected static final boolean DEBUG = Debug.debug("X11GLXDrawableFactory");
-
   public X11GLXDrawableFactory() {
     super();
     // Must initialize GLX support eagerly in case a pbuffer is the

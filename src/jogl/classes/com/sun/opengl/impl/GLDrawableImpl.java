@@ -43,6 +43,7 @@ import javax.media.nativewindow.*;
 import javax.media.opengl.*;
 
 public abstract class GLDrawableImpl implements GLDrawable {
+  protected static final boolean DEBUG = Debug.debug("GLDrawable");
 
   protected GLDrawableImpl(GLDrawableFactory factory,
                            NativeWindow comp,

@@ -43,11 +43,24 @@
 /* This typedef is apparently needed for Microsoft compilers before VC8,
    and on Windows CE */
 #if (_MSC_VER < 1400) || defined(UNDER_CE)
-#ifdef _WIN64
-typedef long long intptr_t;
+    #ifdef _WIN64
+        typedef long long intptr_t;
+    #else
+        typedef int intptr_t;
+    #endif
+#elif _MSC_VER <= 1500
+    #ifdef _WIN64 // [
+        typedef __int64           intptr_t;
+    #else // _WIN64 ][
+        typedef int               intptr_t;
+    #endif // _WIN64 ]
 #else
-typedef int intptr_t;
+    #include <inttypes.h>
 #endif
+
+#ifdef _MSC_VER <= 1500
+    // FIXME: Determine for which MSVC versions ..
+    #define strdup(s) _strdup(s)
 #endif
 
 #ifndef WM_MOUSEWHEEL
