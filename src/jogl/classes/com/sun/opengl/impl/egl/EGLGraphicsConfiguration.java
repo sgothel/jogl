@@ -63,17 +63,9 @@ public class EGLGraphicsConfiguration extends DefaultGraphicsConfiguration imple
 
     public static _EGLConfig EGLConfigId2EGLConfig(GLProfile glp, long display, int configID) {
         int[] attrs = new int[] {
-                EGL.EGL_RENDERABLE_TYPE, -1,
                 EGL.EGL_CONFIG_ID, configID,
                 EGL.EGL_NONE
             };
-        if (glp.usesNativeGLES2()) {
-            attrs[1] = EGL.EGL_OPENGL_ES2_BIT;
-        } else if (glp.usesNativeGLES1()) {
-            attrs[1] = EGL.EGL_OPENGL_ES_BIT;
-        } else {
-            attrs[1] = EGL.EGL_OPENGL_BIT;
-        }
         _EGLConfig[] configs = new _EGLConfig[1];
         int[] numConfigs = new int[1];
         if (!EGL.eglChooseConfig(display,

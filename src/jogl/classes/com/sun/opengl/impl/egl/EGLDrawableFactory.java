@@ -185,19 +185,35 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     }
 
     private long dynamicLookupFunctionOnLibs(String glFuncName) {
+        String funcName=glFuncName;
+        long addr = dynamicLookupFunctionOnLibsImpl(funcName);
+        if( 0==addr && NativeWindowFactory.getNativeWindowType(false)==NativeWindowFactory.TYPE_WINDOWS ) {
+            // Hack: try some C++ decoration here for Imageon's emulation libraries ..
+            final int argAlignment=4;  // 4 byte alignment of each argument
+            final int maxArguments=12; // experience ..
+            for(int arg=0; 0==addr && arg<=maxArguments; arg++) {
+                funcName = "_"+glFuncName+"@"+(arg*argAlignment);
+                addr = dynamicLookupFunctionOnLibsImpl(funcName);
+            }
+        }
+        if(DEBUG) {
+            if(0!=addr) {
+                System.err.println("Lookup-Native: "+glFuncName+" / "+funcName+" 0x"+Long.toHexString(addr));
+            } else {
+                System.err.println("Lookup-Native: "+glFuncName+" / "+funcName+" ** FAILED ** ");
+            }
+        }
+        return addr;
+    }
+
+    private long dynamicLookupFunctionOnLibsImpl(String glFuncName) {
         // Look up this function name in all known libraries
         for (Iterator iter = glesLibraries.iterator(); iter.hasNext(); ) {
             NativeLibrary lib = (NativeLibrary) iter.next();
             long addr = lib.lookupFunction(glFuncName);
             if (addr != 0) {
-                if(DEBUG) {
-                    System.err.println("Lookup-Native: <"+glFuncName+"> 0x"+Long.toHexString(addr));
-                }
                 return addr;
             }
-        }
-        if(DEBUG) {
-            System.err.println("Lookup-Native: <*"+glFuncName+"> ** FAILED ** ");
         }
         return 0;
     }
@@ -229,8 +245,6 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         if(DEBUG) {
             if(0!=addr) {
                 System.err.println("Lookup-EGL: <"+glFuncName+"> 0x"+Long.toHexString(addr));
-            } else {
-                System.err.println("Lookup-EGL: <"+glFuncName+"> ** FAILED ** ");
             }
         }
         if(0==addr) {

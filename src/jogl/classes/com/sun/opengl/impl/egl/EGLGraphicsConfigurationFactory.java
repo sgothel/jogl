@@ -32,6 +32,7 @@
 
 package com.sun.opengl.impl.egl;
 
+import java.io.PrintStream;
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.egl.*;
 import com.sun.nativewindow.impl.*;
@@ -118,12 +119,9 @@ public class EGLGraphicsConfigurationFactory extends GraphicsConfigurationFactor
         if (numConfigs[0] == 0) {
             throw new GLException("Graphics configuration fetch (eglGetConfigs) - no EGLConfig found");
         }
-        GLCapabilities[] caps = new GLCapabilities[numConfigs[0]];
-        for(int i=0; i<caps.length; i++) {
-            caps[i] = EGLGraphicsConfiguration.EGLConfig2Capabilities(glp, eglDisplay, configs[i]);
-            if(DEBUG) {
-                System.err.println("caps["+i+"] "+caps[i]);
-            }
+        GLCapabilities[] caps = eglConfigs2GLCaps(glp, eglDisplay, configs, numConfigs[0]);
+        if(DEBUG) {
+            printCaps("eglGetConfigs", caps, System.err);
         }
         int chosen = -1;
         try {
@@ -172,23 +170,45 @@ public class EGLGraphicsConfigurationFactory extends GraphicsConfigurationFactor
                                  attrs, 0,
                                  configs, 1,
                                  numConfigs, 0)) {
-            throw new GLException("Graphics configuration selection (eglChooseConfig) failed");
+            throw new GLException("Graphics configuration selection (eglChooseConfig) failed for "+capabilities);
         }
         if (numConfigs[0] > 0) {
+            if(DEBUG) {
+                GLCapabilities[] caps = eglConfigs2GLCaps(glp, eglDisplay, configs, numConfigs[0]);
+                printCaps("eglChooseConfig", caps, System.err);
+            }
             int[] val = new int[1];
             // get the configID 
             if(!EGL.eglGetConfigAttrib(eglDisplay, configs[0], EGL.EGL_CONFIG_ID, val, 0)) {
                 if(DEBUG) {
                     // FIXME: this happens on a ATI PC Emulation ..
-                    System.err.println("EGL couldn't retrieve ConfigID for already chosen eglConfig "+capabilities+", use 0");
+                    System.err.println("EGL couldn't retrieve ConfigID for already chosen eglConfig "+capabilities+" fake 0");
                 }
                 val[0]=0;
             }
+            GLCapabilities resCaps = EGLGraphicsConfiguration.EGLConfig2Capabilities(glp, eglDisplay, configs[0]);
+            if(DEBUG) {
+                System.err.println("eglChooseConfig found: "+capabilities+" -> "+resCaps);
+            }
 
-            return new EGLGraphicsConfiguration(absScreen, 
-                            EGLGraphicsConfiguration.EGLConfig2Capabilities(glp, eglDisplay, configs[0]), configs[0], val[0]);
+            return new EGLGraphicsConfiguration(absScreen, resCaps, configs[0], val[0]);
         }
         return null;
+    }
+
+    protected static GLCapabilities[] eglConfigs2GLCaps(GLProfile glp, long eglDisplay, _EGLConfig[] configs, int num)
+    {
+        GLCapabilities[] caps = new GLCapabilities[num];
+        for(int i=0; i<num; i++) {
+            caps[i] = EGLGraphicsConfiguration.EGLConfig2Capabilities(glp, eglDisplay, configs[i]);
+        }
+        return caps;
+    }
+
+    protected static void printCaps(String prefix, GLCapabilities[] caps, PrintStream out) {
+        for(int i=0; i<caps.length; i++) {
+            out.println(prefix+"["+i+"] "+caps[i]);
+        }
     }
 }
 

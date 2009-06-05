@@ -162,10 +162,11 @@ public abstract class Window implements NativeWindow
         StringBuffer sb = new StringBuffer();
 
         sb.append("NEWT-Window[config "+config+
-                    ", windowHandle "+getWindowHandle()+
-                    ", surfaceHandle "+getSurfaceHandle()+
+                    ", windowHandle 0x"+Long.toHexString(getWindowHandle())+
+                    ", surfaceHandle 0x"+Long.toHexString(getSurfaceHandle())+
                     ", pos "+getX()+"/"+getY()+", size "+getWidth()+"x"+getHeight()+
                     ", visible "+isVisible()+
+                    ", "+screen+
                     ", wrappedWindow "+getWrappedWindow());
 
         sb.append(", WindowListeners num "+windowListeners.size()+" [");
