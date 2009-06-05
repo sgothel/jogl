@@ -113,7 +113,7 @@ public class EGLGraphicsConfigurationFactory extends GraphicsConfigurationFactor
         _EGLConfig[] configs = new _EGLConfig[10];
         int[] numConfigs = new int[1];
 
-        if(!EGL.eglGetConfigs(eglDisplay, configs, 10, numConfigs, 0)) {
+        if(!EGL.eglGetConfigs(eglDisplay, configs, configs.length, numConfigs, 0)) {
             throw new GLException("Graphics configuration fetch (eglGetConfigs) failed");
         }
         if (numConfigs[0] == 0) {
@@ -164,11 +164,11 @@ public class EGLGraphicsConfigurationFactory extends GraphicsConfigurationFactor
                                                               AbstractGraphicsScreen absScreen) {
         GLProfile glp = capabilities.getGLProfile();
         int[] attrs = EGLGraphicsConfiguration.GLCapabilities2AttribList(capabilities);
-        _EGLConfig[] configs = new _EGLConfig[1];
+        _EGLConfig[] configs = new _EGLConfig[10];
         int[] numConfigs = new int[1];
         if (!EGL.eglChooseConfig(eglDisplay,
                                  attrs, 0,
-                                 configs, 1,
+                                 configs, configs.length,
                                  numConfigs, 0)) {
             throw new GLException("Graphics configuration selection (eglChooseConfig) failed for "+capabilities);
         }
@@ -182,7 +182,7 @@ public class EGLGraphicsConfigurationFactory extends GraphicsConfigurationFactor
             if(!EGL.eglGetConfigAttrib(eglDisplay, configs[0], EGL.EGL_CONFIG_ID, val, 0)) {
                 if(DEBUG) {
                     // FIXME: this happens on a ATI PC Emulation ..
-                    System.err.println("EGL couldn't retrieve ConfigID for already chosen eglConfig "+capabilities+" fake 0");
+                    System.err.println("EGL couldn't retrieve ConfigID for already chosen eglConfig "+capabilities+", error 0x"+Integer.toHexString(EGL.eglGetError()));
                 }
                 val[0]=0;
             }
