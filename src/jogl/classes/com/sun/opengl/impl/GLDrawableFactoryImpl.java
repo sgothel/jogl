@@ -62,7 +62,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory implements
                                                          int width,
                                                          int height);
 
-  /** Dynamically looks up the given function. */
+  /** DynamicLookupHelper: Dynamically looks up the given function. */
   public abstract long dynamicLookupFunction(String glFuncName);
 
   protected GLDrawableFactoryImpl() {

@@ -53,6 +53,9 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
   // FIXME: this should go away once we delete support for the C GLU library
   private long hglu32;
 
+  // Handle to core OpenGL32.dll
+  private long hopengl32;
+
   public WindowsWGLDrawableFactory() {
     super();
 
@@ -63,6 +66,8 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
       NWReflection.createInstance("com.sun.opengl.impl.windows.wgl.awt.WindowsAWTWGLGraphicsConfigurationFactory",
                                   new Object[] {});
     } catch (Throwable t) { }
+
+    loadOpenGL32Library();
   }
 
   public GLDrawable createGLDrawable(NativeWindow target) {
@@ -173,6 +178,17 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
     return WindowsExternalWGLDrawable.create(this, aScreen);
   }
 
+  public void loadOpenGL32Library() {
+    if (hopengl32 == 0) {
+      hopengl32 = WGL.LoadLibraryA("OpenGL32");
+      if (DEBUG) {
+        if (hopengl32 == 0) {
+          System.err.println("WindowsWGLDrawableFactory: Could not load OpenGL32.dll - maybe an embedded device");
+        }
+      }
+    }
+  }
+
   public void loadGLULibrary() {
     if (hglu32 == 0) {
       hglu32 = WGL.LoadLibraryA("GLU32");
@@ -184,6 +200,13 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
 
   public long dynamicLookupFunction(String glFuncName) {
     long res = WGL.wglGetProcAddress(glFuncName);
+    if (res == 0) {
+      // It may happen that a driver doesn't return the OpenGL32 core function pointer
+      // with wglGetProcAddress (e.g. NVidia GL 3.1) - hence we have to look harder.
+      if (hopengl32 != 0) {
+        res = WGL.GetProcAddress(hopengl32, glFuncName);
+      }
+    }
     if (res == 0) {
       // GLU routines aren't known to the OpenGL function lookup
       if (hglu32 != 0) {

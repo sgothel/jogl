@@ -152,20 +152,8 @@ public class WindowsWGLContext extends GLContextImpl {
         }
         setGLFunctionAvailability(true);
 
-        boolean haswglCreateContextAttribsARB = isFunctionAvailable("wglCreateContextAttribsARB");
-        boolean hasWGL_ARB_create_context = false;
-        try {
-            hasWGL_ARB_create_context = isExtensionAvailable("WGL_ARB_create_context");
-        } catch (Exception e) {
-            // funny .. so let's take the result of the available function
-            hasWGL_ARB_create_context = haswglCreateContextAttribsARB;
-            if(DEBUG) {
-              e.printStackTrace();
-            }
-        }
-
-        if( !haswglCreateContextAttribsARB ||
-            !hasWGL_ARB_create_context ) {
+        if( !isFunctionAvailable("wglCreateContextAttribsARB") ||
+            !isExtensionAvailable("WGL_ARB_create_context") ) {
             if(glCaps.getGLProfile().isGL3()) {
               if (!WGL.wglMakeCurrent(0, 0)) {
                 throw new GLException("Error freeing temp OpenGL context: " + WGL.GetLastError());
