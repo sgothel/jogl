@@ -39,12 +39,12 @@ import com.sun.nativewindow.impl.*;
 
 /**
  * Provides the mechanism by which the graphics configuration for a
- * given window can be chosen before the window is created. On some
- * window systems (EGL/OpenKODE and X11 in particular) the graphics configuration
- * decides parameters related to hardware accelerated rendering such
- * as the OpenGL pixel format. On these platforms it is necessary to
- * choose the graphics configuration early. Note that the selection of
- * the graphics configuration is an algorithm which does not have
+ * window can be chosen before the window is created. The graphics 
+ * configuration decides parameters related to hardware accelerated rendering such
+ * as the OpenGL pixel format. <br>
+ * On some window systems (EGL/OpenKODE and X11 in particular) it is necessary to
+ * choose the graphics configuration early at window creation time. <br>
+ * Note that the selection of the graphics configuration is an algorithm which does not have
  * strong dependencies on the particular Java window toolkit in use
  * (e.g., AWT) and therefore it is strongly desirable to factor this
  * functionality out of the core {@link NativeWindowFactory} so that

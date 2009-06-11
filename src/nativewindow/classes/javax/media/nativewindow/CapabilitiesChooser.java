@@ -43,7 +43,7 @@ package javax.media.nativewindow;
     window type selection for a given {@link Capabilities}.
     Developers can implement this interface and pass an instance into
     the method {@link GraphicsConfigurationFactory#chooseGraphicsConfiguration}; the chooser
-    will be called at window creation time, on some platforms. */
+    will be called at window creation time. */
 
 public interface CapabilitiesChooser {
   /** Chooses the index (0..available.length - 1) of the {@link
