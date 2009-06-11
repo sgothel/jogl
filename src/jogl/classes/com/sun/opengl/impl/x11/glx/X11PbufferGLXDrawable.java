@@ -49,12 +49,6 @@ import com.sun.nativewindow.impl.x11.*;
 import java.nio.LongBuffer;
 
 public class X11PbufferGLXDrawable extends X11GLXDrawable {
-  // drawable in superclass is a GLXPbuffer
-  private long fbConfig;
-
-  protected static final int MAX_PFORMATS = 256;
-  protected static final int MAX_ATTRIBS  = 256;
-
   protected X11PbufferGLXDrawable(GLDrawableFactory factory, AbstractGraphicsScreen screen,
                                   GLCapabilities caps, 
                                   GLCapabilitiesChooser chooser,
@@ -68,7 +62,6 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
     nw.setSize(width, height);
 
     if (DEBUG) {
-      caps = (GLCapabilities) getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration().getCapabilities();
       System.out.println("Pbuffer config: " + getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration());
     }
 
@@ -107,7 +100,7 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
 
       NullWindow nw = (NullWindow) getNativeWindow();
     
-      GLCapabilities capabilities = (GLCapabilities)config.getCapabilities();
+      GLCapabilities capabilities = (GLCapabilities)config.getChosenCapabilities();
 
       if (capabilities.getPbufferRenderToTexture()) {
         throw new GLException("Render-to-texture pbuffers not supported yet on X11");
@@ -116,8 +109,6 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
       if (capabilities.getPbufferRenderToTextureRectangle()) {
         throw new GLException("Render-to-texture-rectangle pbuffers not supported yet on X11");
       }
-
-      fbConfig = config.getFBConfig();
 
       // Create the p-buffer.
       int niattribs = 0;
@@ -129,7 +120,7 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
       iattributes[niattribs++] = nw.getHeight();
       iattributes[niattribs++] = 0;
 
-      long drawable = GLX.glXCreatePbuffer(display, fbConfig, iattributes, 0);
+      long drawable = GLX.glXCreatePbuffer(display, config.getFBConfig(), iattributes, 0);
       if (drawable == 0) {
         // FIXME: query X error code for detail error message
         throw new GLException("pbuffer creation error: glXCreatePbuffer() failed");
@@ -158,9 +149,4 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
     // Floating-point pbuffers currently require NVidia hardware on X11
     return GLPbuffer.NV_FLOAT;
   }
-  
-  public long getFBConfig() {
-    return fbConfig;
-  }
-
 }

@@ -42,23 +42,16 @@ import com.sun.opengl.impl.*;
 import com.sun.gluegen.runtime.NativeLibrary;
 
 public class MacOSXCGLGraphicsConfiguration extends DefaultGraphicsConfiguration implements Cloneable {
-    private boolean isUpdated = false;
-    
-    public MacOSXCGLGraphicsConfiguration(AbstractGraphicsScreen screen, GLCapabilities caps) {
-        super(screen, caps);
+    public MacOSXCGLGraphicsConfiguration(AbstractGraphicsScreen screen, GLCapabilities capsChosen, GLCapabilities capsRequested) {
+        super(screen, capsChosen, capsRequested);
     }
 
     public Object clone() {
         return super.clone();
     }
 
-    protected void update(GLCapabilities caps) {
-        setCapabilities(caps);
-        isUpdated=true;
-    }
-
-    public boolean getIsUpdated() {
-        return isUpdated;
+    protected void setChosenCapabilities(GLCapabilities caps) {
+        super.setChosenCapabilities(caps);
     }
 }
 

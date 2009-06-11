@@ -41,15 +41,18 @@ import com.sun.gluegen.runtime.NativeLibrary;
 import com.sun.nativewindow.impl.x11.*;
 
 public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implements Cloneable {
-    // Keep this under the same debug flag as the drawable factory for convenience
     protected static final boolean DEBUG = Debug.debug("GraphicsConfiguration");
     
     public static final int MAX_ATTRIBS = 128;
     private long fbConfig;
     private int  fbConfigID;
+    private GLCapabilitiesChooser chooser; 
 
-    public X11GLXGraphicsConfiguration(X11GraphicsScreen screen, GLCapabilities caps, XVisualInfo info, long fbcfg, int fbcfgID) {
-        super(screen, caps, info);
+    public X11GLXGraphicsConfiguration(X11GraphicsScreen screen, 
+                                       GLCapabilities capsChosen, GLCapabilities capsRequested, GLCapabilitiesChooser chooser,
+                                       XVisualInfo info, long fbcfg, int fbcfgID) {
+        super(screen, capsChosen, capsRequested, info);
+        this.chooser=chooser;
         fbConfig = fbcfg;
         fbConfigID = fbcfgID;
     }
@@ -60,6 +63,23 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
 
     public long getFBConfig()   { return fbConfig; }
     public int  getFBConfigID() { return fbConfigID; }
+
+    protected void updateGraphicsConfiguration() {
+        X11GLXGraphicsConfiguration newConfig = (X11GLXGraphicsConfiguration)
+            GraphicsConfigurationFactory.getFactory(getScreen().getDevice()).chooseGraphicsConfiguration(getRequestedCapabilities(),
+                                                                                                         chooser,
+                                                                                                         getScreen());
+        if(null!=newConfig) {
+            // FIXME: setScreen( ... );
+            setXVisualInfo(newConfig.getXVisualInfo());
+            setChosenCapabilities(newConfig.getChosenCapabilities());
+            fbConfig = newConfig.getFBConfig();
+            fbConfigID = newConfig.getFBConfigID();
+            if(DEBUG) {
+                System.err.println("!!! updateGraphicsConfiguration: "+this);
+            }
+        }
+    }
 
     public static int[] GLCapabilities2AttribList(GLCapabilities caps,
                                                   boolean forFBAttr,
@@ -98,15 +118,14 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
             res[idx++] = GLX.GLX_TRANSPARENT_TYPE;
             res[idx++] = caps.isBackgroundOpaque()?GLX.GLX_NONE:GLX.GLX_TRANSPARENT_RGB;
             if(!caps.isBackgroundOpaque()) {
-                // FIXME - Add transparency values to Capabilities !
                 res[idx++] = GLX.GLX_TRANSPARENT_RED_VALUE;
-                res[idx++] = 64;
+                res[idx++] = caps.getTransparentRedValue()>=0?caps.getTransparentRedValue():(int)GLX.GLX_DONT_CARE;
                 res[idx++] = GLX.GLX_TRANSPARENT_GREEN_VALUE;
-                res[idx++] = 64;
+                res[idx++] = caps.getTransparentGreenValue()>=0?caps.getTransparentGreenValue():(int)GLX.GLX_DONT_CARE;
                 res[idx++] = GLX.GLX_TRANSPARENT_BLUE_VALUE;
-                res[idx++] = 64;
+                res[idx++] = caps.getTransparentBlueValue()>=0?caps.getTransparentBlueValue():(int)GLX.GLX_DONT_CARE;
                 res[idx++] = GLX.GLX_TRANSPARENT_ALPHA_VALUE;
-                res[idx++] = 64;
+                res[idx++] = caps.getTransparentAlphaValue()>=0?caps.getTransparentAlphaValue():(int)GLX.GLX_DONT_CARE;
             }
         } else {
             if (caps.getDoubleBuffered()) {
@@ -243,6 +262,22 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
           caps.setPbufferFloatingPointBuffers(ivalues[i] != GL.GL_FALSE);
           break;
 
+        case GLX.GLX_TRANSPARENT_RED_VALUE:
+          caps.setTransparentRedValue(ivalues[i]);
+          break;
+
+        case GLX.GLX_TRANSPARENT_GREEN_VALUE:
+          caps.setTransparentGreenValue(ivalues[i]);
+          break;
+
+        case GLX.GLX_TRANSPARENT_BLUE_VALUE:
+          caps.setTransparentBlueValue(ivalues[i]);
+          break;
+
+        case GLX.GLX_TRANSPARENT_ALPHA_VALUE:
+          caps.setTransparentAlphaValue(ivalues[i]);
+          break;
+
         default:
           break;
       }
@@ -279,6 +314,19 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
       res.setNumSamples   (glXGetFBConfig(display, fbcfg, GLX.GLX_SAMPLES,        tmp, 0));
     }
     res.setBackgroundOpaque(glXGetFBConfig(display, fbcfg, GLX.GLX_TRANSPARENT_TYPE, tmp, 0) == GLX.GLX_NONE);
+    if(!res.isBackgroundOpaque()) {
+        glXGetFBConfig(display, fbcfg, GLX.GLX_TRANSPARENT_RED_VALUE,  tmp, 0);
+        res.setTransparentRedValue(tmp[0]==GLX.GLX_DONT_CARE?-1:tmp[0]);
+
+        glXGetFBConfig(display, fbcfg, GLX.GLX_TRANSPARENT_GREEN_VALUE,  tmp, 0);
+        res.setTransparentGreenValue(tmp[0]==GLX.GLX_DONT_CARE?-1:tmp[0]);
+
+        glXGetFBConfig(display, fbcfg, GLX.GLX_TRANSPARENT_BLUE_VALUE,  tmp, 0);
+        res.setTransparentBlueValue(tmp[0]==GLX.GLX_DONT_CARE?-1:tmp[0]);
+
+        glXGetFBConfig(display, fbcfg, GLX.GLX_TRANSPARENT_ALPHA_VALUE,  tmp, 0);
+        res.setTransparentAlphaValue(tmp[0]==GLX.GLX_DONT_CARE?-1:tmp[0]);
+    }
     try { 
         res.setPbufferFloatingPointBuffers(glXGetFBConfig(display, fbcfg, GLXExt.GLX_FLOAT_COMPONENTS_NV, tmp, 0) != GL.GL_FALSE);
     } catch (Exception e) {}
@@ -385,7 +433,7 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
   }
 
   public String toString() {
-    return "X11GLXGraphicsConfiguration["+getScreen()+", visualID 0x" + Long.toHexString(getVisualID()) + ", fbConfigID 0x" + Long.toHexString(fbConfigID) + ", " + getCapabilities() +"]";
+    return "X11GLXGraphicsConfiguration["+getScreen()+", visualID 0x" + Long.toHexString(getVisualID()) + ", fbConfigID 0x" + Long.toHexString(fbConfigID) + ", " + getChosenCapabilities() +"]";
   }
 }
 

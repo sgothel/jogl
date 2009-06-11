@@ -81,6 +81,11 @@ public class WindowsAWTWGLGraphicsConfigurationFactory extends GraphicsConfigura
         if(DEBUG) {
             System.err.println("WindowsAWTWGLGraphicsConfigurationFactory: got "+absScreen);
         }
+        GraphicsConfiguration gc = device.getDefaultConfiguration();
+        AWTGraphicsConfiguration.SetupCapabilitiesPixelformat(capabilities, gc);
+        if(DEBUG) {
+            System.err.println("AWT Colormodel compatible: "+capabilities);
+        }
 
         long displayHandle = 0;
 
@@ -94,19 +99,12 @@ public class WindowsAWTWGLGraphicsConfigurationFactory extends GraphicsConfigura
             GraphicsConfigurationFactory.getFactory(winDevice).chooseGraphicsConfiguration(capabilities,
                                                                                            chooser,
                                                                                            winScreen);
-        if (winConfig != null) {
-            // FIXME: we have nothing to match .. so choose the 1st
-            GraphicsConfiguration[] configs = device.getConfigurations();
-            if(configs.length>0) {
-                return new AWTGraphicsConfiguration(awtScreen, winConfig.getCapabilities(), configs[0], winConfig);
-            }
+
+        if (winConfig == null) {
+            throw new GLException("Unable to choose a GraphicsConfiguration: "+capabilities+",\n\t"+chooser+"\n\t"+winScreen);
         }
-        
-        // Either we weren't able to reflectively introspect on the
-        // X11GraphicsConfig or something went wrong in the steps above;
-        // we're going to return null without signaling an error condition
-        // in this case (although we should distinguish between the two
-        // and possibly report more of an error in the latter case)
-        return null;
+
+        // FIXME: we have nothing to match .. so choose the default
+        return new AWTGraphicsConfiguration(awtScreen, winConfig.getChosenCapabilities(), winConfig.getRequestedCapabilities(), gc, winConfig);
     }
 }

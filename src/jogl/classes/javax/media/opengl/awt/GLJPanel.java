@@ -204,6 +204,45 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
     }
   }
 
+  public synchronized void dispose(boolean regenerate) {
+    if(DEBUG) {
+        Exception ex1 = new Exception("dispose("+regenerate+") - start");
+        ex1.printStackTrace();
+    }
+    if (backend != null) {
+      disposeRegenerate=regenerate;
+      disposeContext=backend.getContext();
+      disposeDrawable=backend.getDrawable();
+
+      if (Threading.isSingleThreaded() &&
+          !Threading.isOpenGLThread()) {
+          // Workaround for termination issues with applets --
+          // sun.applet.AppletPanel should probably be performing the
+          // remove() call on the EDT rather than on its own thread
+          if (Threading.isAWTMode() &&
+              Thread.holdsLock(getTreeLock())) {
+            // The user really should not be invoking remove() from this
+            // thread -- but since he/she is, we can not go over to the
+            // EDT at this point. Try to destroy the context from here.
+            drawableHelper.invokeGL(disposeDrawable, disposeContext, disposeAction, null);
+          } else {
+            Threading.invokeOnOpenGLThread(disposeOnEventDispatchThreadAction);
+          }
+      } else {
+          drawableHelper.invokeGL(disposeDrawable, disposeContext, disposeAction, null);
+      }
+
+      backend.setContext(disposeContext);
+      if(null==disposeContext) {
+        isInitialized = false;
+      }
+    }
+
+    if(DEBUG) {
+        System.err.println("dispose("+regenerate+") - stop");
+    }
+  }
+
   /**
    * Just an alias for removeNotify
    */
@@ -286,8 +325,8 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
         Exception ex1 = new Exception("removeNotify - start");
         ex1.printStackTrace();
     }
+    dispose(false);
     if (backend != null) {
-      drawableHelper.invokeGL(backend.getDrawable(), backend.getContext(), disposeAction, null);
       backend.destroy();
       backend = null;
     }
@@ -407,8 +446,8 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
     return oglPipelineEnabled;
   }
 
-  public GLCapabilities getGLCapabilities() {
-    return backend.getGLCapabilities();
+  public GLCapabilities getChosenGLCapabilities() {
+    return backend.getChosenGLCapabilities();
   }
 
   public final GLProfile getGLProfile() {
@@ -544,12 +583,39 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
     return "AWT-GLJPanel[ "+((null!=backend)?backend.getDrawable().getClass().getName():"null-drawable")+", "+drawableHelper+"]";
   }
 
+  private boolean disposeRegenerate;
+  private GLContext disposeContext;
+  private GLDrawable disposeDrawable;
+  private DisposeAction disposeAction = new DisposeAction();
+
   class DisposeAction implements Runnable {
     public void run() {
       updater.dispose(GLJPanel.this);
+
+      if(null!=disposeContext) {
+          disposeContext.destroy();
+          disposeContext=null;
+      }
+      if(null!=disposeDrawable) {
+          disposeDrawable.setRealized(false);
+      }
+      if(disposeRegenerate && null!=disposeDrawable) {
+          disposeDrawable.setRealized(true);
+          disposeContext = (GLContextImpl) disposeDrawable.createContext(shareWith);
+          disposeContext.setSynchronized(true);
+      }
     }
   }
-  private DisposeAction disposeAction = new DisposeAction();
+
+  private DisposeOnEventDispatchThreadAction disposeOnEventDispatchThreadAction =
+    new DisposeOnEventDispatchThreadAction();
+
+  class DisposeOnEventDispatchThreadAction implements Runnable {
+    public void run() {
+      drawableHelper.invokeGL(disposeDrawable, disposeContext, disposeAction, null);
+    }
+  }
+
 
   class InitAction implements Runnable {
     public void run() {
@@ -628,7 +694,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
     public GLDrawable getDrawable();
 
     // Called to fetch the "real" GLCapabilities for the backend
-    public GLCapabilities getGLCapabilities();
+    public GLCapabilities getChosenGLCapabilities();
 
     // Called to fetch the "real" GLProfile for the backend
     public GLProfile getGLProfile();
@@ -871,11 +937,11 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
         return offscreenDrawable;
     }
 
-    public GLCapabilities getGLCapabilities() {
+    public GLCapabilities getChosenGLCapabilities() {
       if (offscreenDrawable == null) {
         return null;
       }
-      return offscreenDrawable.getGLCapabilities();
+      return offscreenDrawable.getChosenGLCapabilities();
     }
 
     public GLProfile getGLProfile() {
@@ -969,11 +1035,11 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
         return pbuffer;
     }
 
-    public GLCapabilities getGLCapabilities() {
+    public GLCapabilities getChosenGLCapabilities() {
       if (pbuffer == null) {
         return null;
       }
-      return pbuffer.getGLCapabilities();
+      return pbuffer.getChosenGLCapabilities();
     }
     
     public GLProfile getGLProfile() {
@@ -1147,7 +1213,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
         return joglDrawable;
     }
 
-    public GLCapabilities getGLCapabilities() {
+    public GLCapabilities getChosenGLCapabilities() {
       // FIXME: should do better than this; is it possible to using only platform-independent code?
       return new GLCapabilities(null);
     }

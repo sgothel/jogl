@@ -55,7 +55,6 @@ public abstract class JAWTWindow implements NativeWindow {
 
   // lifetime: forever
   protected Component component;
-  protected boolean locked;
   protected AbstractGraphicsConfiguration config;
 
   // lifetime: valid after lock, forever until invalidate
@@ -78,12 +77,11 @@ public abstract class JAWTWindow implements NativeWindow {
   protected abstract void initNative() throws NativeWindowException;
 
   public synchronized void invalidate() {
-    locked = false;
     component = null;
     drawable= 0;
   }
 
-  private Exception lockedStack = null;
+  private volatile Exception lockedStack = null;
 
   public synchronized int lockSurface() throws NativeWindowException {
     if(DEBUG) {
@@ -94,19 +92,23 @@ public abstract class JAWTWindow implements NativeWindow {
           throw new NativeWindowException("JAWT already locked - "+this);
         }
     }
+
     if (null!=lockedStack) {
       lockedStack.printStackTrace();
       throw new NativeWindowException("Surface already locked - "+this);
     }
-    lockedStack = new Exception("JAWTWindow previous locked by:");
+
+    lockedStack = new Exception("JAWTWindow previously locked by "+Thread.currentThread().getName());
+
     return LOCK_SUCCESS;
   }
 
   public synchronized void unlockSurface() {
     if (null!=lockedStack) {
         lockedStack = null;
+        // notifyAll();
     } else {
-        throw new RuntimeException("JAWTWindow not locked");
+        throw new NativeWindowException("JAWTWindow not locked");
     }
   }
 
@@ -154,12 +156,16 @@ public abstract class JAWTWindow implements NativeWindow {
     StringBuffer sb = new StringBuffer();
 
     sb.append("JAWT-Window[config "+config+
-                ", windowHandle "+getWindowHandle()+
-                ", surfaceHandle "+getSurfaceHandle()+
-                ", pos "+component.getX()+"/"+component.getY()+", size "+getWidth()+"x"+getHeight()+
-                ", visible "+component.isVisible()+
-                ", locked "+locked+
-                ", wrappedWindow "+getWrappedWindow()+"]");
+                ", windowHandle 0x"+Long.toHexString(getWindowHandle())+
+                ", surfaceHandle 0x"+Long.toHexString(getSurfaceHandle()));
+    if(null!=component) {
+      sb.append(", pos "+component.getX()+"/"+component.getY()+", size "+getWidth()+"x"+getHeight()+
+                ", visible "+component.isVisible());
+    } else {
+      sb.append(", component NULL");
+    }
+    sb.append(", locked "+isSurfaceLocked()+
+              ", wrappedWindow "+getWrappedWindow()+"]");
 
     return sb.toString();
   }

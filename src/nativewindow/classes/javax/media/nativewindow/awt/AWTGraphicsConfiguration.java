@@ -41,7 +41,10 @@ package javax.media.nativewindow.awt;
 
 import javax.media.nativewindow.*;
 import java.awt.GraphicsConfiguration;
+import java.awt.Transparency;
+import java.awt.image.ColorModel;
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
+import com.sun.nativewindow.impl.Debug;
 
 /** A wrapper for an AWT GraphicsConfiguration allowing it to be
     handled in a toolkit-independent manner. */
@@ -50,14 +53,16 @@ public class AWTGraphicsConfiguration extends DefaultGraphicsConfiguration imple
   private GraphicsConfiguration config;
   AbstractGraphicsConfiguration encapsuled;
 
-  public AWTGraphicsConfiguration(AWTGraphicsScreen screen, Capabilities caps, GraphicsConfiguration config, AbstractGraphicsConfiguration encapsuled) {
-    super(screen, caps);
+  public AWTGraphicsConfiguration(AWTGraphicsScreen screen, 
+                                  Capabilities capsChosen, Capabilities capsRequested,
+                                  GraphicsConfiguration config, AbstractGraphicsConfiguration encapsuled) {
+    super(screen, capsChosen, capsRequested);
     this.config = config;
     this.encapsuled=encapsuled;
   }
 
-  public AWTGraphicsConfiguration(AWTGraphicsScreen screen, Capabilities caps, GraphicsConfiguration config) {
-    super(screen, caps);
+  public AWTGraphicsConfiguration(AWTGraphicsScreen screen, Capabilities capsChosen, Capabilities capsRequested, GraphicsConfiguration config) {
+    super(screen, capsChosen, capsRequested);
     this.config = config;
     this.encapsuled=null;
   }
@@ -74,7 +79,46 @@ public class AWTGraphicsConfiguration extends DefaultGraphicsConfiguration imple
     return (null!=encapsuled)?encapsuled:this;
   }
 
+  /**
+   * Setup the Capabilities RGBA size in regard to the given GraphicsConfiguration ColorModel
+   */
+  public static Capabilities SetupCapabilitiesPixelformat(Capabilities capabilities, GraphicsConfiguration gc) {
+    int cmTransparency = capabilities.isBackgroundOpaque()?Transparency.OPAQUE:Transparency.TRANSLUCENT;
+    ColorModel cm = gc.getColorModel(cmTransparency);
+    if(null==cm && !capabilities.isBackgroundOpaque()) {
+        capabilities.setBackgroundOpaque(true);
+        cmTransparency = Transparency.OPAQUE;
+        cm = gc.getColorModel(cmTransparency);
+    }
+    if(null==cm) {
+        throw new NativeWindowException("Could not determine AWT ColorModel");
+    }
+    int cmBitsPerPixel = cm.getPixelSize();
+    int bitsPerPixel = 0;
+    int[] bitesPerComponent = cm.getComponentSize();
+    if(bitesPerComponent.length>=3) {
+        capabilities.setRedBits(bitesPerComponent[0]);
+        bitsPerPixel += bitesPerComponent[0];
+        capabilities.setGreenBits(bitesPerComponent[1]);
+        bitsPerPixel += bitesPerComponent[1];
+        capabilities.setBlueBits(bitesPerComponent[2]);
+        bitsPerPixel += bitesPerComponent[2];
+    }
+    if(bitesPerComponent.length>=4) {
+        capabilities.setAlphaBits(bitesPerComponent[3]);
+        bitsPerPixel += bitesPerComponent[3];
+    } else {
+        capabilities.setAlphaBits(0);
+    }
+    if(Debug.debugAll()) {
+        if(cmBitsPerPixel!=bitsPerPixel) {
+            System.err.println("AWT Colormodel bits per components/pixel mismatch: "+bitsPerPixel+" != "+cmBitsPerPixel);
+        }
+    }
+    return capabilities;
+  }
+
   public String toString() {
-    return getClass().toString()+"[" + getScreen() + ", " + getCapabilities() + ", " + config +", encapsuled "+encapsuled+"]";
+    return getClass().toString()+"[" + getScreen() + ", " + getChosenCapabilities() + ", " + config +", encapsuled "+encapsuled+"]";
   }
 }

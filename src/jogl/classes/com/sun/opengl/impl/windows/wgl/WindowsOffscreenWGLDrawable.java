@@ -66,7 +66,7 @@ public class WindowsOffscreenWGLDrawable extends WindowsWGLDrawable {
   private void create() {
     NullWindow nw = (NullWindow) getNativeWindow();
     WindowsWGLGraphicsConfiguration config = (WindowsWGLGraphicsConfiguration)nw.getGraphicsConfiguration().getNativeGraphicsConfiguration();
-    GLCapabilities capabilities = (GLCapabilities)config.getCapabilities();
+    GLCapabilities capabilities = (GLCapabilities)config.getRequestedCapabilities();
     int width = getWidth();
     int height = getHeight();
     BITMAPINFO info = BITMAPINFO.create();
@@ -111,7 +111,7 @@ public class WindowsOffscreenWGLDrawable extends WindowsWGLDrawable {
       throw new GLException("Error selecting bitmap into new device context");
     }
         
-    config.update(getFactory(), nw, true);
+    config.updateGraphicsConfiguration(getFactory(), nw, true);
   }
   
   public void destroy() {

@@ -80,6 +80,7 @@ public class MacOSXOnscreenCGLContext extends MacOSXCGLContext {
           // This can happen if the window currently is zero-sized, for example.
           // Make sure we don't leave the surface locked in this case.
           drawable.unlockSurface();
+          lockRes = NativeWindow.LOCK_SURFACE_NOT_READY;
         }
       }
       return ret;
@@ -98,7 +99,7 @@ public class MacOSXOnscreenCGLContext extends MacOSXCGLContext {
     try {
       super.releaseImpl();
     } finally {
-      if (!isOptimizable()) {
+      if (!isOptimizable() && drawable.isSurfaceLocked()) {
         drawable.unlockSurface();
       }
     }

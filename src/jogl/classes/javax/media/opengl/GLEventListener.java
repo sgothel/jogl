@@ -49,8 +49,9 @@ import java.util.EventListener;
 public interface GLEventListener extends EventListener {
   /** Called by the drawable immediately after the OpenGL context is
       initialized. Can be used to perform one-time OpenGL
-      initialization such as setup of lights and display lists. Note
-      that this method may be called more than once if the underlying
+      initialization per GLContext, such as setup of lights and display lists.<p> 
+
+      Note that this method may be called more than once if the underlying
       OpenGL context for the GLAutoDrawable is destroyed and
       recreated, for example if a GLCanvas is removed from the widget
       hierarchy and later added again.
@@ -63,8 +64,12 @@ public interface GLEventListener extends EventListener {
       native window manager, ie window close, but also 
       manually by calling {@link GLAutoDrawable#destroy destroy}.
       Shall be used to perform final release of all OpenGL
-      resources, such as memory buffers and GLSL programs.
-      You might also want to exit your application after receiving this signal.
+      resources per GLContext, such as memory buffers and GLSL programs.<P>
+
+      Note that this event does not imply the end of life of the application.
+      It could be produced with a followup call to {@link #init(GLAutoDrawable)}
+      in case the GLContext has been recreated, 
+      e.g. due to a pixel configuration change in a multihead environment.
   */
   public void dispose(GLAutoDrawable drawable);
   
@@ -104,6 +109,11 @@ public interface GLEventListener extends EventListener {
       efficient manner. For example, the application may need make fewer
       adjustments to compensate for a device change if it knows that the mode
       on the new device is identical the previous mode.<p>
+
+      Note that this method is for application logic purpose only,
+      all necessary OpenGL specific reconfiguration are made through
+      {@link #dispose(GLAutoDrawable)} and {@link #init(GLAutoDrawable)},
+      if necessary.<p>
 
       <b>NOTE: Implementations are not required to implement this method.  The
         Reference Implementation DOES NOT IMPLEMENT this method.</b>

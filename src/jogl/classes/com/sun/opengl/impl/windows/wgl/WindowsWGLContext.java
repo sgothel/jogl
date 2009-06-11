@@ -119,11 +119,10 @@ public class WindowsWGLContext extends GLContextImpl {
    * called by {@link #makeCurrentImpl()}.
    */
   protected void create() {
-    AbstractGraphicsConfiguration config = drawable.getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration();
+    GLCapabilities glCaps = drawable.getChosenGLCapabilities();
     if(DEBUG) {
-          System.err.println("WindowsWGLContext.create got "+config);
+          System.err.println("WindowsWGLContext.create got "+glCaps);
     }
-    GLCapabilities glCaps = (GLCapabilities) config.getCapabilities();
 
     if (drawable.getNativeWindow().getSurfaceHandle() == 0) {
       throw new GLException("Internal error: attempted to create OpenGL context without an associated drawable");

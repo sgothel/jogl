@@ -91,7 +91,7 @@ public class GLWindow extends Window implements GLAutoDrawable {
                 }
 
                 public void windowDestroyNotify(WindowEvent e) {
-                    sendDispose = true;
+                    sendDestroy = true;
                 }
             });
     }
@@ -151,9 +151,9 @@ public class GLWindow extends Window implements GLAutoDrawable {
         shouldNotCallThis();
     }
 
-    public synchronized void destroy() {
-        if(Window.DEBUG_WINDOW_EVENT) {
-            Exception e1 = new Exception("GLWindow.destroy 1: "+this);
+    public synchronized void dispose(boolean regenerate) {
+        if(Window.DEBUG_WINDOW_EVENT || window.DEBUG_IMPLEMENTATION) {
+            Exception e1 = new Exception("GLWindow.destroy("+regenerate+") 1: "+this);
             e1.printStackTrace();
         }
 
@@ -165,6 +165,27 @@ public class GLWindow extends Window implements GLAutoDrawable {
         if (drawable != null) {
             drawable.setRealized(false);
         }
+
+        if(regenerate) {
+            drawable.setRealized(true);
+            if(getSurfaceHandle()==0) {
+                throw new GLException("SurfaceHandle==NULL after setRealize(true) "+this);
+            }
+            context = drawable.createContext(null);
+        }
+
+        if(Window.DEBUG_WINDOW_EVENT || window.DEBUG_IMPLEMENTATION) {
+            System.out.println("GLWindow.dispose("+regenerate+") fin: "+this);
+        }
+    }
+
+    public synchronized void destroy() {
+        if(Window.DEBUG_WINDOW_EVENT || window.DEBUG_IMPLEMENTATION) {
+            Exception e1 = new Exception("GLWindow.destroy 1: "+this);
+            e1.printStackTrace();
+        }
+
+        dispose(false);
 
         Screen _screen = null;
         Display _device = null;
@@ -178,7 +199,7 @@ public class GLWindow extends Window implements GLAutoDrawable {
             window.destroy();
         } 
 
-        if(Window.DEBUG_WINDOW_EVENT) {
+        if(Window.DEBUG_WINDOW_EVENT || window.DEBUG_IMPLEMENTATION) {
             System.out.println("GLWindow.destroy fin: "+this);
         }
 
@@ -271,10 +292,13 @@ public class GLWindow extends Window implements GLAutoDrawable {
             if (window.getWrappedWindow() != null) {
                 nw = NativeWindowFactory.getNativeWindow(window.getWrappedWindow(), nw.getGraphicsConfiguration());
             }
-            factory = GLDrawableFactory.getFactory(nw);
+            GLCapabilities glCaps = (GLCapabilities) nw.getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities();
+            factory = GLDrawableFactory.getFactory(glCaps.getGLProfile());
             drawable = factory.createGLDrawable(nw);
-            window.setVisible(true);
             drawable.setRealized(true);
+            if(getSurfaceHandle()==0) {
+                throw new GLException("SurfaceHandle==NULL after setRealize(true) "+this);
+            }
             context = drawable.createContext(null);
         }
     }
@@ -372,7 +396,7 @@ public class GLWindow extends Window implements GLAutoDrawable {
     }
 
     public String toString() {
-        return "NEWT-GLWindow[ "+drawable+", "+helper+", "+factory+"]";
+        return "NEWT-GLWindow[ "+drawable+", \n\t"+window+", \n\t"+helper+", \n\t"+factory+"]";
     }
 
     //----------------------------------------------------------------------
@@ -386,7 +410,7 @@ public class GLWindow extends Window implements GLAutoDrawable {
     private GLDrawableHelper helper = new GLDrawableHelper();
     // To make reshape events be sent immediately before a display event
     private boolean sendReshape=false;
-    private boolean sendDispose=false;
+    private boolean sendDestroy=false;
     private boolean perfLog = false;
 
     public GLDrawableFactory getFactory() {
@@ -423,11 +447,11 @@ public class GLWindow extends Window implements GLAutoDrawable {
     }
 
     public void display() {
-        if(window.getSurfaceHandle()!=0) {
+        if(getSurfaceHandle()!=0) {
             pumpMessages();
-            if (sendDispose) {
+            if (sendDestroy) {
                 destroy();
-                sendDispose=false;
+                sendDestroy=false;
             } else {
                 helper.invokeGL(drawable, context, displayAction, initAction);
             }
@@ -435,7 +459,7 @@ public class GLWindow extends Window implements GLAutoDrawable {
     }
 
     private void sendDisposeEvent() {
-        if(disposeAction!=null && drawable!=null && context != null && window!=null && window.getSurfaceHandle()!=0) {
+        if(disposeAction!=null && drawable!=null && context != null && window!=null && getSurfaceHandle()!=0) {
             helper.invokeGL(drawable, context, disposeAction, null);
         }
     }
@@ -449,7 +473,7 @@ public class GLWindow extends Window implements GLAutoDrawable {
     }
 
     public void swapBuffers() {
-        if(window.getSurfaceHandle()!=0) {
+        if(getSurfaceHandle()!=0) {
             if (context != null && context != GLContext.getCurrent()) {
                 // Assume we should try to make the context current before swapping the buffers
                 helper.invokeGL(drawable, context, swapBuffersAction, initAction);
@@ -531,6 +555,44 @@ public class GLWindow extends Window implements GLAutoDrawable {
     private SwapBuffersAction swapBuffersAction = new SwapBuffersAction();
 
     //----------------------------------------------------------------------
+    // GLDrawable methods
+    //
+
+    public NativeWindow getNativeWindow() {
+        return null!=drawable ? drawable.getNativeWindow() : null;
+    }
+
+    public synchronized int lockSurface() throws NativeWindowException {
+        if(null!=drawable) return drawable.getNativeWindow().lockSurface();
+        return NativeWindow.LOCK_SURFACE_NOT_READY;
+    }
+
+    public synchronized void unlockSurface() {
+        if(null!=drawable) drawable.getNativeWindow().unlockSurface();
+        else throw new NativeWindowException("NEWT-GLWindow not locked");
+    }
+
+    public synchronized boolean isSurfaceLocked() {
+        if(null!=drawable) return drawable.getNativeWindow().isSurfaceLocked();
+        return false;
+    }
+
+    public synchronized Exception getLockedStack() {
+        if(null!=drawable) return drawable.getNativeWindow().getLockedStack();
+        return null;
+    }
+
+    public long getWindowHandle() {
+        if(null!=drawable) return drawable.getNativeWindow().getWindowHandle();
+        return super.getWindowHandle();
+    }
+
+    public long getSurfaceHandle() {
+        if(null!=drawable) return drawable.getNativeWindow().getSurfaceHandle();
+        return super.getSurfaceHandle();
+    }
+
+    //----------------------------------------------------------------------
     // GLDrawable methods that are not really needed
     //
 
@@ -541,12 +603,12 @@ public class GLWindow extends Window implements GLAutoDrawable {
     public void setRealized(boolean realized) {
     }
 
-    public GLCapabilities getGLCapabilities() {
+    public GLCapabilities getChosenGLCapabilities() {
         if (drawable == null) {
             throw new GLException("No drawable yet");
         }
 
-        return drawable.getGLCapabilities();
+        return drawable.getChosenGLCapabilities();
     }
 
     public GLProfile getGLProfile() {
@@ -555,10 +617,6 @@ public class GLWindow extends Window implements GLAutoDrawable {
         }
 
         return drawable.getGLProfile();
-    }
-
-    public NativeWindow getNativeWindow() {
-        return drawable.getNativeWindow();
     }
 
     //----------------------------------------------------------------------

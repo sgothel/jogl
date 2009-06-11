@@ -44,9 +44,13 @@ import com.sun.opengl.impl.*;
 import com.sun.nativewindow.impl.NWReflection;
 
 /**
- * Manages all available OpenGL Profiles.
- * Each GLProfile is a singleton instance queried at static initialization time.
- * All returned GLProfile objects are references to such singletons.
+ * Specifies the the OpenGL profile.
+ * 
+ * This class static singleton initialization queries the availability of all OpenGL Profiles
+ * and instantiates singleton GLProfile objects for each available profile.
+ *
+ * The platform default profile may be used, using {@link GLProfile#GetProfileDefault()}, 
+ * or more specialized versions using the other static GetProfile methods.
  */
 public class GLProfile implements Cloneable {
   public static final boolean DEBUG = Debug.debug("GLProfile");
@@ -55,44 +59,41 @@ public class GLProfile implements Cloneable {
   // Public (user-visible) profiles
   //
 
-  /** The desktop OpenGL >= 3.1 profile */
+  /** The desktop OpenGL profile 3.x, with x >= 1 */
   public static final String GL3   = "GL3";
 
-  /** The desktop OpenGL [1.5 .. 3.0] profile */
+  /** The desktop OpenGL profile 1.x up to 3.0 */
   public static final String GL2   = "GL2";
 
-  /** The embedded OpenGL ES >= 1.0 profile */
+  /** The embedded OpenGL profile ES 1.x, with x >= 0 */
   public static final String GLES1 = "GLES1";
 
-  /** The embedded OpenGL ES >= 2.0 profile */
+  /** The embedded OpenGL profile ES 2.x, with x >= 0 */
   public static final String GLES2 = "GLES2";
 
-  /** The intersection of the desktop GL2 and embedded ES1 profiles */
+  /** The intersection of the desktop GL2 and embedded ES1 profile */
   public static final String GL2ES1 = "GL2ES1";
 
-  /** The intersection of the desktop GL2 and embedded ES2 profiles */
+  /** The intersection of the desktop GL3, GL2 and embedded ES2 profile */
   public static final String GL2ES2 = "GL2ES2";
 
   /** 
-   * All GL Profiles in the order of default detection.
-   * Order: GL2, GL2ES2, GL2ES1, GL3, GLES2, GLES1
+   * All GL Profiles in the order of default detection: GL2, GL2ES2, GL2ES1, GLES2, GLES1, GL3
    */
-  public static final String[] GL_PROFILE_LIST = new String[] { GL2, GL2ES2, GL2ES1, GL3, GLES2, GLES1 };
+  public static final String[] GL_PROFILE_LIST_ALL = new String[] { GL2, GL2ES2, GL2ES1, GLES2, GLES1, GL3 };
 
   /**
-   * All GL2ES2 Profiles in the order of default detection 
-   * Order: GL2ES2, GL2, GL3, GLES2
+   * All GL2ES2 Profiles in the order of default detection: GL2ES2, GL2, GLES2, GL3
    */
-  public static final String[] GL2ES2_PROFILE_LIST = new String[] { GL2ES2, GL2, GL3, GLES2 };
+  public static final String[] GL_PROFILE_LIST_GL2ES2 = new String[] { GL2ES2, GL2, GLES2, GL3 };
 
   /**
-   * All GL2ES1 Profiles in the order of default detection 
-   * Order: GL2ES1, GL2, GLES1
+   * All GL2ES1 Profiles in the order of default detection: GL2ES1, GL2, GLES1
    */
-  public static final String[] GL2ES1_PROFILE_LIST = new String[] { GL2ES1, GL2, GLES1 };
+  public static final String[] GL_PROFILE_LIST_GL2ES1 = new String[] { GL2ES1, GL2, GLES1 };
 
   /** Returns a default GLProfile object, reflecting the best for the running platform.
-    * It selects the first of the set {@link GLProfile#GL_PROFILE_LIST}
+    * It selects the first of the set {@link GLProfile#GL_PROFILE_LIST_ALL}
     */
   public static final GLProfile GetProfileDefault() {
     if(null==defaultGLProfile) {
@@ -119,26 +120,26 @@ public class GLProfile implements Cloneable {
 
   /**
    * Returns a profile, implementing the interface GL2ES1.
-   * It selects the first of the set: {@link GLProfile#GL2ES1_PROFILE_LIST}
+   * It selects the first of the set: {@link GLProfile#GL_PROFILE_LIST_GL2ES1}
    *
    * @throws GLException if no implementation for the given profile is found.
    */
   public static final GLProfile GetProfileGL2ES1() 
     throws GLException
   {
-    return GetProfile(GL2ES1_PROFILE_LIST);
+    return GetProfile(GL_PROFILE_LIST_GL2ES1);
   }
 
   /**
    * Returns a profile, implementing the interface GL2ES2.
-   * It selects the first of the set: {@link GLProfile#GL2ES2_PROFILE_LIST}
+   * It selects the first of the set: {@link GLProfile#GL_PROFILE_LIST_GL2ES2}
    *
    * @throws GLException if no implementation for the given profile is found.
    */
   public static final GLProfile GetProfileGL2ES2() 
     throws GLException
   {
-    return GetProfile(GL2ES2_PROFILE_LIST);
+    return GetProfile(GL_PROFILE_LIST_GL2ES2);
   }
 
   /**
@@ -239,27 +240,27 @@ public class GLProfile implements Cloneable {
     return profileImpl;
   }
 
-  /** Indicates whether this profile is capable os GL3. */
+  /** Indicates whether this profile is capable of GL3. */
   public final boolean isGL3() {
     return GL3.equals(profile);
   }
 
-  /** Indicates whether this profile is capable os GL2. */
+  /** Indicates whether this profile is capable of GL2. */
   public final boolean isGL2() {
     return GL2.equals(profile);
   }
 
-  /** Indicates whether this profile is capable os GLES1. */
+  /** Indicates whether this profile is capable of GLES1. */
   public final boolean isGLES1() {
     return GLES1.equals(profile);
   }
 
-  /** Indicates whether this profile is capable os GLES2. */
+  /** Indicates whether this profile is capable of GLES2. */
   public final boolean isGLES2() {
     return GLES2.equals(profile);
   }
 
-  /** Indicates whether this profile is capable os GL2ES1. */
+  /** Indicates whether this profile is capable of GL2ES1. */
   public final boolean isGL2ES1() {
     return GL2ES1.equals(profile) || isGL2() || isGLES1() ;
   }
@@ -643,7 +644,7 @@ public class GLProfile implements Cloneable {
 
     if(hasDesktopGL||hasDesktopGLES12) {
         try {
-            hasNativeOSFactory = null!=GLDrawableFactory.getNativeOSFactory();
+            hasNativeOSFactory = null!=GLDrawableFactory.getFactoryImpl(GL2);
         } catch (Throwable t) {
             if (DEBUG) {
                 System.err.println("GLProfile.static - Native platform GLDrawable factory not available");
@@ -664,8 +665,16 @@ public class GLProfile implements Cloneable {
     hasGL2ES12Impl = hasDesktopGLES12 && null!=NWReflection.getClass("com.sun.opengl.impl.gl2es12.GL2ES12Impl");
 
     boolean btest = false;
+
+    boolean hasEGLDynLookup = null!=NWReflection.getClass("com.sun.opengl.impl.egl.EGLDynamicLookupHelper");
+    boolean hasEGLDrawableFactory = false;
     try {
-        btest = null!=GLDrawableFactory.getFactory(GLES2) && null!=NWReflection.getClass("com.sun.opengl.impl.es2.GLES2Impl");
+        if(hasEGLDynLookup) {
+            hasEGLDrawableFactory = null!=GLDrawableFactory.getFactoryImpl(GLES2);
+            btest = hasEGLDrawableFactory &&
+                    null!=NWReflection.getClass("com.sun.opengl.impl.es2.GLES2Impl") &&
+                    null!=com.sun.opengl.impl.egl.EGLDynamicLookupHelper.getDynamicLookupHelper(2);
+        }
     } catch (Throwable t) {
         if (DEBUG) {
             System.err.println("GLProfile.static - GL ES2 Factory/Library not available");
@@ -676,7 +685,11 @@ public class GLProfile implements Cloneable {
 
     btest = false;
     try {
-        btest = null!=GLDrawableFactory.getFactory(GLES1) && null!=NWReflection.getClass("com.sun.opengl.impl.es1.GLES1Impl");
+        if(hasEGLDynLookup) {
+            btest = hasEGLDrawableFactory &&
+                    null!=NWReflection.getClass("com.sun.opengl.impl.es1.GLES1Impl") &&
+                    null!=com.sun.opengl.impl.egl.EGLDynamicLookupHelper.getDynamicLookupHelper(1);
+        }
     } catch (Throwable t) {
         if (DEBUG) {
             System.err.println("GLProfile.static - GL ES1 Factory/Library not available");
@@ -696,9 +709,9 @@ public class GLProfile implements Cloneable {
         System.err.println("GLProfile.static hasGLES1Impl "+hasGLES1Impl);
     }
 
-    HashMap/*<String, GLProfile>*/ _mappedProfiles = new HashMap(GL_PROFILE_LIST.length);
-    for(int i=0; i<GL_PROFILE_LIST.length; i++) {
-        String profile = GL_PROFILE_LIST[i];
+    HashMap/*<String, GLProfile>*/ _mappedProfiles = new HashMap(GL_PROFILE_LIST_ALL.length);
+    for(int i=0; i<GL_PROFILE_LIST_ALL.length; i++) {
+        String profile = GL_PROFILE_LIST_ALL[i];
         String profileImpl = ComputeProfileImpl(profile);
         if(null!=profileImpl) {
             GLProfile glProfile = new GLProfile(profile, profileImpl);
@@ -720,7 +733,7 @@ public class GLProfile implements Cloneable {
     }
     mappedProfiles = _mappedProfiles; // final ..
     if(null==defaultGLProfile) {
-        throw new GLException("No profile available: "+list2String(GL_PROFILE_LIST));
+        throw new GLException("No profile available: "+list2String(GL_PROFILE_LIST_ALL));
     }
   }
 

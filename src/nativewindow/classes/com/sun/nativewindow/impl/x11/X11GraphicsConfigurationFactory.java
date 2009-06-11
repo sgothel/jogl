@@ -47,7 +47,7 @@ public class X11GraphicsConfigurationFactory extends GraphicsConfigurationFactor
         if(null==screen || !(screen instanceof X11GraphicsScreen)) {
             throw new NativeWindowException("Only valid X11GraphicsScreen are allowed");
         }
-        return new X11GraphicsConfiguration((X11GraphicsScreen)screen, capabilities, getXVisualInfo(screen, capabilities));
+        return new X11GraphicsConfiguration((X11GraphicsScreen)screen, capabilities, capabilities, getXVisualInfo(screen, capabilities));
     }
 
     public static XVisualInfo getXVisualInfo(AbstractGraphicsScreen screen, long visualID)

@@ -38,8 +38,8 @@ import com.sun.nativewindow.impl.x11.*;
 
 /** Encapsulates a screen index on X11
     platforms. Objects of this type are passed to {@link
-    NativeWindowFactory#chooseGraphicsConfiguration
-    NativeWindowFactory.chooseGraphicsConfiguration()} on X11
+    javax.media.nativewindow.GraphicsConfigurationFactory#chooseGraphicsConfiguration
+    GraphicsConfigurationFactory.chooseGraphicsConfiguration()} on X11
     platforms when toolkits other than the AWT are being used.  */
 
 public class X11GraphicsScreen extends DefaultGraphicsScreen implements Cloneable {

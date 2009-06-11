@@ -79,6 +79,7 @@ public class X11GLXGraphicsConfigurationFactory extends GraphicsConfigurationFac
 
       // Utilizing FBConfig
       //
+      GLCapabilities capsFB = null;
       NativeWindowFactory.getDefaultFactory().getToolkitLock().lock();
       try {
           long visID = X11Lib.DefaultVisualID(display, x11Screen.getIndex());
@@ -92,7 +93,7 @@ public class X11GLXGraphicsConfigurationFactory extends GraphicsConfigurationFac
               throw new Exception("Could not fetch FBConfig for "+caps);
           }
           fbcfg = fbcfgsL.get(0);
-          GLCapabilities capFB = X11GLXGraphicsConfiguration.GLXFBConfig2GLCapabilities(glProfile, display, fbcfg);
+          capsFB = X11GLXGraphicsConfiguration.GLXFBConfig2GLCapabilities(glProfile, display, fbcfg);
 
           int[] tmpID = new int[1];
           fbid = X11GLXGraphicsConfiguration.glXGetFBConfig(display, fbcfg, GLX.GLX_FBCONFIG_ID, tmpID, 0);
@@ -101,13 +102,12 @@ public class X11GLXGraphicsConfigurationFactory extends GraphicsConfigurationFac
           if (xvis==null) {
             throw new GLException("Error: Choosen FBConfig has no visual");
           }
-          caps = capFB;
         } catch (Throwable t) {
         } finally {
           NativeWindowFactory.getDefaultFactory().getToolkitLock().unlock();
         }
 
-        return new X11GLXGraphicsConfiguration(x11Screen, caps, xvis, fbcfg, fbid);
+        return new X11GLXGraphicsConfiguration(x11Screen, (null!=capsFB)?capsFB:caps, caps, null, xvis, fbcfg, fbid);
     }
 
     protected static X11GLXGraphicsConfiguration chooseGraphicsConfigurationStatic(Capabilities capabilities,
@@ -221,7 +221,7 @@ public class X11GLXGraphicsConfigurationFactory extends GraphicsConfigurationFac
             NativeWindowFactory.getDefaultFactory().getToolkitLock().unlock();
         }
 
-        return new X11GLXGraphicsConfiguration(x11Screen, caps[chosen], retXVisualInfo, fbcfgsL.get(chosen), retFBID);
+        return new X11GLXGraphicsConfiguration(x11Screen, caps[chosen], capabilities, chooser, retXVisualInfo, fbcfgsL.get(chosen), retFBID);
     }
 
     protected static X11GLXGraphicsConfiguration chooseGraphicsConfigurationXVisual(GLCapabilities capabilities,
@@ -289,7 +289,7 @@ public class X11GLXGraphicsConfigurationFactory extends GraphicsConfigurationFac
         } finally {
             NativeWindowFactory.getDefaultFactory().getToolkitLock().unlock();
         }
-        return new X11GLXGraphicsConfiguration(x11Screen, caps[chosen], retXVisualInfo, 0, -1);
+        return new X11GLXGraphicsConfiguration(x11Screen, caps[chosen], capabilities, chooser, retXVisualInfo, 0, -1);
     }
 }
 

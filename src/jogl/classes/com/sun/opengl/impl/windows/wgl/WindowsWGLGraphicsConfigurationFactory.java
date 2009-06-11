@@ -62,7 +62,7 @@ public class WindowsWGLGraphicsConfigurationFactory extends GraphicsConfiguratio
         if(null==absScreen) {
             absScreen = DefaultGraphicsScreen.createScreenDevice(0);
         }
-        return new WindowsWGLGraphicsConfiguration(absScreen, caps, WindowsWGLGraphicsConfiguration.GLCapabilities2PFD(caps, useOffScreen), -1, null);
+        return new WindowsWGLGraphicsConfiguration(absScreen, caps, caps, WindowsWGLGraphicsConfiguration.GLCapabilities2PFD(caps, useOffScreen), -1, null);
     }
 
     protected static WindowsWGLGraphicsConfiguration chooseGraphicsConfigurationStatic(GLCapabilities caps,
@@ -71,7 +71,7 @@ public class WindowsWGLGraphicsConfigurationFactory extends GraphicsConfiguratio
         if(null==absScreen) {
             absScreen = DefaultGraphicsScreen.createScreenDevice(0);
         }
-        return new WindowsWGLGraphicsConfiguration(absScreen, caps, WindowsWGLGraphicsConfiguration.GLCapabilities2PFD(caps, useOffScreen), -1, 
+        return new WindowsWGLGraphicsConfiguration(absScreen, caps, caps, WindowsWGLGraphicsConfiguration.GLCapabilities2PFD(caps, useOffScreen), -1, 
                                                    (GLCapabilitiesChooser)chooser);
     }
 
@@ -87,7 +87,7 @@ public class WindowsWGLGraphicsConfigurationFactory extends GraphicsConfiguratio
         }
 
         WindowsWGLGraphicsConfiguration config = (WindowsWGLGraphicsConfiguration) nativeWindow.getGraphicsConfiguration().getNativeGraphicsConfiguration();
-        GLCapabilities capabilities = (GLCapabilities) config.getCapabilities();
+        GLCapabilities capabilities = (GLCapabilities) config.getRequestedCapabilities();
         GLProfile glProfile = capabilities.getGLProfile();
         long hdc = nativeWindow.getSurfaceHandle();
 

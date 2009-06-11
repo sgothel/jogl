@@ -39,7 +39,7 @@ package com.sun.nativewindow.impl;
 import javax.media.nativewindow.*;
 
 public class NullWindow implements NativeWindow {
-  protected boolean locked;
+  private Exception lockedStack = null;
   protected int width, height, scrnIndex;
   protected long surfaceHandle, displayHandle;
   protected AbstractGraphicsConfiguration config;
@@ -59,28 +59,34 @@ public class NullWindow implements NativeWindow {
   }
 
   public synchronized void invalidate() {
-    locked = false;
     displayHandle=0;
     scrnIndex=-1;
     surfaceHandle=0;
   }
 
   public synchronized int lockSurface() throws NativeWindowException {
-    if (locked) {
-      throw new NativeWindowException("Surface already locked");
+    if (null!=lockedStack) {
+      lockedStack.printStackTrace();
+      throw new NativeWindowException("Surface already locked - "+this);
     }
-    locked = true;
+    lockedStack = new Exception("NullWindow previously locked by "+Thread.currentThread().getName());
     return LOCK_SUCCESS;
   }
 
   public synchronized void unlockSurface() {
-    if (locked) {
-        locked = false;
+    if (null!=lockedStack) {
+        lockedStack = null;
+    } else {
+        throw new NativeWindowException("NullWindow not locked");
     }
   }
 
   public synchronized boolean isSurfaceLocked() {
-    return locked;
+    return null!=lockedStack;
+  }
+
+  public Exception getLockedStack() {
+    return lockedStack;
   }
 
   public long getDisplayHandle() {

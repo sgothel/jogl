@@ -63,8 +63,8 @@ public class KDWindow extends Window {
             throw new NativeWindowException("Error choosing GraphicsConfiguration creating window: "+this);
         }
 
-        GLCapabilities eglCaps = (GLCapabilities)config.getCapabilities();
-        int[] eglAttribs = EGLGraphicsConfiguration.GLCapabilities2AttribList(eglCaps);
+        GLCapabilities eglCaps = (GLCapabilities)config.getChosenCapabilities();
+        int[] eglAttribs = EGLGraphicsConfiguration.GLCapabilities2AttribList(eglCaps, EGL.EGL_WINDOW_BIT);
 
         windowHandle = 0;
         windowID = ++_windowID;

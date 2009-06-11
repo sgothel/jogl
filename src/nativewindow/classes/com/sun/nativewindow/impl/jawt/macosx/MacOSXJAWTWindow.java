@@ -70,6 +70,7 @@ public class MacOSXJAWTWindow extends JAWTWindow {
     }
     int res = ds.Lock();
     if ((res & JAWTFactory.JAWT_LOCK_ERROR) != 0) {
+      super.unlockSurface();
       throw new NativeWindowException("Unable to lock surface");
     }
     // See whether the surface changed and if so destroy the old
@@ -127,7 +128,9 @@ public class MacOSXJAWTWindow extends JAWTWindow {
   }
     
   public void unlockSurface() throws NativeWindowException {
-    if(!isSurfaceLocked()) return;
+    if(!isSurfaceLocked()) {
+        throw new RuntimeException("JAWTWindow not locked");
+    }
     ds.FreeDrawingSurfaceInfo(dsi);
     ds.Unlock();
     JAWT.getJAWT().FreeDrawingSurface(ds);

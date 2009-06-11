@@ -64,88 +64,92 @@ public abstract class NativeWindowFactory {
     public static final String TYPE_DEFAULT = "default";
 
     private static NativeWindowFactory defaultFactory;
-    private static Map/*<Class, NativeWindowFactory>*/ registeredFactories =
-        Collections.synchronizedMap(new HashMap());
+    private static Map/*<Class, NativeWindowFactory>*/ registeredFactories;
     private static Class nativeWindowClass;
-    private static String nativeWindowingType=null;
+    private static String nativeWindowingTypePure;
+    private static String nativeOSNamePure;
+    private static String nativeWindowingTypeCustom;
+    private static String nativeOSNameCustom;
 
     /** Creates a new NativeWindowFactory instance. End users do not
         need to call this method. */
     protected NativeWindowFactory() {
     }
 
-    private static boolean initialized = false;
-    private static void initialize() {
-        synchronized (NativeWindowFactory.class) {
-            if (initialized) {
-                return;
-            }
-            initialized = true;
-
-            String factoryClassName = null;
-
-            // We break compile-time dependencies on the AWT here to
-            // make it easier to run this code on mobile devices
-
-            NativeWindowFactory factory = new NativeWindowFactoryImpl();
-            nativeWindowClass = javax.media.nativewindow.NativeWindow.class;
-            registerFactory(nativeWindowClass, factory);
-            defaultFactory = factory;
-        
-            Class componentClass = null;
-            try {
-                componentClass = Class.forName("java.awt.Component");
-            } catch (Exception e) { }
-
-            if(TYPE_X11.equals(getNativeWindowType(true))) {
-                // Assume X11 platform -- should probably test for these explicitly
-                NativeWindowFactory _factory = null;
-                if (componentClass != null) {
-                    try {
-                        Constructor factoryConstructor =
-                            NWReflection.getConstructor("com.sun.nativewindow.impl.x11.awt.X11AWTNativeWindowFactory", new Class[] {});
-                        _factory = (NativeWindowFactory) factoryConstructor.newInstance(null);
-                    } catch (Exception e) { }
-                }
-                if (null ==_factory) {
-                    // Try the non-AWT X11 native window factory
-                    try {
-                        Constructor factoryConstructor =
-                            NWReflection.getConstructor("com.sun.nativewindow.impl.x11.X11NativeWindowFactory", new Class[] {});
-                        _factory = (NativeWindowFactory) factoryConstructor.newInstance(null);
-                    } catch (Exception e) { }
-                }
-                if (null !=_factory) {
-                    factory = _factory;
-                }
-            }
-            registerFactory(componentClass, factory);
-            defaultFactory = factory;
+    private static String _getNativeWindowingType(String osNameLowerCase) {
+        if (osNameLowerCase.startsWith("kd")) {
+              return TYPE_EGL;
+        } else if (osNameLowerCase.startsWith("wind")) {
+              return TYPE_WINDOWS;
+        } else if (osNameLowerCase.startsWith("mac os x") ||
+                     osNameLowerCase.startsWith("darwin")) {
+              return TYPE_MACOSX;
+        } else if (osNameLowerCase.equals("awt")) {
+              return TYPE_AWT;
+        } else {
+              return TYPE_X11;
         }
     }
 
+    static {
+        // Gather the windowing OS first
+        nativeOSNamePure = System.getProperty("os.name");
+        nativeOSNameCustom = System.getProperty("nativewindow.ws.name");
+        if(null==nativeOSNameCustom||nativeOSNameCustom.length()==0) {
+              nativeOSNameCustom = nativeOSNamePure;
+        }
+        nativeWindowingTypePure = _getNativeWindowingType(nativeOSNamePure.toLowerCase());
+        nativeWindowingTypeCustom = _getNativeWindowingType(nativeOSNameCustom.toLowerCase());
+
+        registeredFactories = Collections.synchronizedMap(new HashMap());
+
+        String factoryClassName = null;
+
+        // We break compile-time dependencies on the AWT here to
+        // make it easier to run this code on mobile devices
+
+        NativeWindowFactory factory = new NativeWindowFactoryImpl();
+        nativeWindowClass = javax.media.nativewindow.NativeWindow.class;
+        registerFactory(nativeWindowClass, factory);
+        defaultFactory = factory;
+    
+        Class componentClass = null;
+        try {
+            componentClass = Class.forName("java.awt.Component");
+        } catch (Exception e) { }
+
+        if(TYPE_X11.equals(nativeWindowingTypeCustom)) {
+            // Assume X11 platform -- should probably test for these explicitly
+            NativeWindowFactory _factory = null;
+            if (componentClass != null) {
+                try {
+                    Constructor factoryConstructor =
+                        NWReflection.getConstructor("com.sun.nativewindow.impl.x11.awt.X11AWTNativeWindowFactory", new Class[] {});
+                    _factory = (NativeWindowFactory) factoryConstructor.newInstance(null);
+                } catch (Exception e) { }
+            }
+            if (null ==_factory) {
+                // Try the non-AWT X11 native window factory
+                try {
+                    Constructor factoryConstructor =
+                        NWReflection.getConstructor("com.sun.nativewindow.impl.x11.X11NativeWindowFactory", new Class[] {});
+                    _factory = (NativeWindowFactory) factoryConstructor.newInstance(null);
+                } catch (Exception e) { }
+            }
+            if (null !=_factory) {
+                factory = _factory;
+            }
+        }
+        registerFactory(componentClass, factory);
+        defaultFactory = factory;
+    }
+
+    public static String getNativeOSName(boolean useCustom) {
+        return useCustom?nativeOSNameCustom:nativeOSNamePure;
+    }
+
     public static String getNativeWindowType(boolean useCustom) {
-      if(null==nativeWindowingType) {
-          String osName = useCustom?System.getProperty("nativewindow.ws.name"):null;
-          if(null==osName||osName.length()==0) {
-              osName = System.getProperty("os.name");
-          }
-          String osNameLowerCase = osName.toLowerCase();
-          String windowType;
-          if (osNameLowerCase.startsWith("kd")) {
-              nativeWindowingType = NativeWindowFactory.TYPE_EGL;
-          } else if (osNameLowerCase.startsWith("wind")) {
-              nativeWindowingType = NativeWindowFactory.TYPE_WINDOWS;
-          } else if (osNameLowerCase.startsWith("mac os x") ||
-                     osNameLowerCase.startsWith("darwin")) {
-              nativeWindowingType = NativeWindowFactory.TYPE_MACOSX;
-          } else if (useCustom && osNameLowerCase.equals("awt")) {
-              nativeWindowingType = NativeWindowFactory.TYPE_AWT;
-          } else {
-              nativeWindowingType = NativeWindowFactory.TYPE_X11;
-          }
-      }
-      return nativeWindowingType;
+        return useCustom?nativeWindowingTypeCustom:nativeWindowingTypePure;
     }
 
     /** Sets the default NativeWindowFactory. Certain operations on
@@ -160,7 +164,6 @@ public abstract class NativeWindowFactory {
         within the Java binding to OpenGL. By default, if the AWT is
         available, the default toolkit will support the AWT. */
     public static void setDefaultFactory(NativeWindowFactory factory) {
-        initialize();
         defaultFactory = factory;
     }
 
@@ -176,7 +179,6 @@ public abstract class NativeWindowFactory {
         within the Java binding to OpenGL. By default, if the AWT is
         available, the default toolkit will support the AWT. */
     public static NativeWindowFactory getDefaultFactory() {
-        initialize();
         return defaultFactory;
     }
 
@@ -187,7 +189,6 @@ public abstract class NativeWindowFactory {
         NativeWindow implementation, or it might be that of a toolkit
         class like {@link java.awt.Component Component}. */
     public static NativeWindowFactory getFactory(Class windowClass) throws IllegalArgumentException {
-        initialize();
         if (nativeWindowClass.isAssignableFrom(windowClass)) {
             return (NativeWindowFactory) registeredFactories.get(nativeWindowClass);
         }
@@ -206,22 +207,21 @@ public abstract class NativeWindowFactory {
         given class. This does not need to be called by end users,
         only implementors of new NativeWindowFactory subclasses. */
     protected static void registerFactory(Class windowClass, NativeWindowFactory factory) {
-        initialize();
         registeredFactories.put(windowClass, factory);
     }
 
-    /** Converts the given window object and it's optional
+    /** Converts the given window object and it's
         {@link AbstractGraphicsConfiguration AbstractGraphicsConfiguration} into a 
-        {@link NativeWindow NativeWindow} which can be operated upon by the 
-        {@link GLDrawableFactory GLDrawableFactory}. The object may be a
-        component for a particular window toolkit, such as an AWT
-        Canvas. In this case {@link AbstractGraphicsConfiguration AbstractGraphicsConfiguration}
-        must be valid. It may also be a NativeWindow object, in which no
-        conversion is necessary and {@link AbstractGraphicsConfiguration AbstractGraphicsConfiguration}
-        will be ignored. The particular implementation of the
+        {@link NativeWindow NativeWindow} which can be operated upon by a custom
+        toolkit, e.g. {@link javax.media.opengl.GLDrawableFactory javax.media.opengl.GLDrawableFactory}.<br>
+        The object may be a component for a particular window toolkit, such as an AWT
+        Canvas.  It may also be a NativeWindow object itself.<br>
+        You shall utilize {@link javax.media.nativewindow.GraphicsConfigurationFactory GraphicsConfigurationFactory}
+        to construct a proper {@link AbstractGraphicsConfiguration AbstractGraphicsConfiguration}.<br>
+        The particular implementation of the
         NativeWindowFactory is responsible for handling objects from a
         particular window toolkit. The built-in NativeWindowFactory
-        handles NativeWindow instances as well as AWT Components.
+        handles NativeWindow instances as well as AWT Components.<br>
     
         @throws IllegalArgumentException if the given window object
         could not be handled by any of the registered

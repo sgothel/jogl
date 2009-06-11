@@ -42,8 +42,8 @@ import com.sun.gluegen.runtime.ProcAddressTable;
 import java.nio.*;
 import java.util.*;
 
-public class EGLContext extends GLContextImpl {
-    private EGLDrawable drawable;
+public abstract class EGLContext extends GLContextImpl {
+    protected EGLDrawable drawable;
     private long eglContext;
     private boolean eglQueryStringInitialized;
     private boolean eglQueryStringAvailable;
@@ -92,7 +92,11 @@ public class EGLContext extends GLContextImpl {
         return eglContext;
     }
 
-    private int makeCurrentImplInner() throws GLException {
+    protected int makeCurrentImpl() throws GLException {
+        if(EGL.EGL_NO_DISPLAY==drawable.getDisplay() ) {
+            System.err.println("drawable not properly initialized");
+            return CONTEXT_NOT_CURRENT;
+        }
         boolean created = false;
         if (eglContext == 0) {
             create();
@@ -119,37 +123,7 @@ public class EGLContext extends GLContextImpl {
         return CONTEXT_CURRENT;
     }
 
-    protected int makeCurrentImpl() throws GLException {
-        if(EGL.EGL_NO_DISPLAY==drawable.getDisplay() ) {
-            System.err.println("drawable not properly initialized");
-            return CONTEXT_NOT_CURRENT;
-        }
-
-        int lockRes = NativeWindow.LOCK_SUCCESS;
-        // FIXME: freezes AWT: int lockRes = drawable.lockSurface();
-        boolean exceptionOccurred = false;
-        try {
-          if (lockRes == NativeWindow.LOCK_SURFACE_NOT_READY) {
-            return CONTEXT_NOT_CURRENT;
-          }
-          if (lockRes == NativeWindow.LOCK_SURFACE_CHANGED) {
-            destroyImpl();
-          }
-          return makeCurrentImplInner();
-        } catch (RuntimeException e) {
-          exceptionOccurred = true;
-          throw e;
-        } finally {
-          if (exceptionOccurred ||
-              (isOptimizable() && lockRes != NativeWindow.LOCK_SURFACE_NOT_READY)) {
-            drawable.unlockSurface();
-          }
-        }
-    }
-
     protected void releaseImpl() throws GLException {
-      getDrawableImpl().getFactoryImpl().lockToolkit();
-      try {
         if (!EGL.eglMakeCurrent(drawable.getDisplay(),
                                 EGL.EGL_NO_SURFACE,
                                 EGL.EGL_NO_SURFACE,
@@ -157,10 +131,6 @@ public class EGLContext extends GLContextImpl {
             throw new GLException("Error freeing OpenGL context 0x" +
                                   Long.toHexString(eglContext) + ": error code " + EGL.eglGetError());
         }
-      } finally {
-        getDrawableImpl().getFactoryImpl().unlockToolkit();
-        drawable.unlockSurface();
-      }
     }
 
     protected void destroyImpl() throws GLException {
@@ -258,7 +228,7 @@ public class EGLContext extends GLContextImpl {
     public synchronized String getPlatformExtensionsString() {
         if (!eglQueryStringInitialized) {
           eglQueryStringAvailable =
-            getDrawableImpl().getFactoryImpl().dynamicLookupFunction("eglQueryString") != 0;
+            getDrawableImpl().getDynamicLookupHelper().dynamicLookupFunction("eglQueryString") != 0;
           eglQueryStringInitialized = true;
         }
         if (eglQueryStringAvailable) {
@@ -279,6 +249,10 @@ public class EGLContext extends GLContextImpl {
         }
     }
 
+    public abstract void bindPbufferToTexture();
+
+    public abstract void releasePbufferFromTexture();
+
     //----------------------------------------------------------------------
     // Currently unimplemented stuff
     //
@@ -287,13 +261,6 @@ public class EGLContext extends GLContextImpl {
         throw new GLException("Not yet implemented");
     }
 
-    public void bindPbufferToTexture() {
-        throw new GLException("Should not call this");
-    }
-
-    public void releasePbufferFromTexture() {
-        throw new GLException("Should not call this");
-    }
 
     public ByteBuffer glAllocateMemoryNV(int arg0, float arg1, float arg2, float arg3) {
         throw new GLException("Should not call this");

@@ -42,53 +42,40 @@ package com.sun.opengl.impl.windows.wgl;
 import javax.media.nativewindow.*;
 import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
+import com.sun.gluegen.runtime.DynamicLookupHelper;
 
 public abstract class WindowsWGLDrawable extends GLDrawableImpl {
-  // Workaround for problems on Intel 82855 cards
-  private int  setPixelFormatFailCount;
   private static final int MAX_SET_PIXEL_FORMAT_FAIL_COUNT = 5;
 
   public WindowsWGLDrawable(GLDrawableFactory factory, NativeWindow comp, boolean realized) {
     super(factory, comp, realized);
   }
 
-  public int lockSurface() throws GLException {
-    int ret = super.lockSurface();
+  public void setRealized(boolean realized) {
+    super.setRealized(realized);
+
+    if(!realized) {
+        return; // nothing todo ..
+    }
+
+    int ret = lockSurface();
     if(NativeWindow.LOCK_SURFACE_NOT_READY == ret) {
-      if (DEBUG) {
-          System.err.println("WindowsWGLDrawable.lockSurface: surface not ready");
-      }
-      return ret;
+      throw new GLException("WindowsWGLDrawable.setRealized(true): lockSurface - surface not ready");
     }
-    NativeWindow nativeWindow = getNativeWindow();
-    WindowsWGLGraphicsConfiguration config = (WindowsWGLGraphicsConfiguration)nativeWindow.getGraphicsConfiguration().getNativeGraphicsConfiguration();
-    if (!config.getIsUpdated()) {
-      try {
-        config.update(getFactory(), nativeWindow, false);
-        setPixelFormatFailCount = 0;
-      } catch (RuntimeException e) {
+    try {
+        NativeWindow nativeWindow = getNativeWindow();
+        WindowsWGLGraphicsConfiguration config = (WindowsWGLGraphicsConfiguration)nativeWindow.getGraphicsConfiguration().getNativeGraphicsConfiguration();
+        config.updateGraphicsConfiguration(getFactory(), nativeWindow, false);
         if (DEBUG) {
-          System.err.println("WindowsWGLDrawable.lockSurface: squelching exception");
-          e.printStackTrace();
+          System.err.println("!!! WindowsWGLDrawable.setRealized(true): "+config);
         }
-        // Workaround for problems seen on Intel 82855 cards in particular
-        // Make it look like the lockSurface() call didn't succeed
+    } finally {
         unlockSurface();
-        if (e instanceof GLException) {
-          if (++setPixelFormatFailCount == MAX_SET_PIXEL_FORMAT_FAIL_COUNT) {
-            setPixelFormatFailCount = 0;
-            throw e;
-          }
-          return NativeWindow.LOCK_SURFACE_NOT_READY;
-        } else {
-          // Probably a user error in the GLCapabilitiesChooser or similar.
-          // Don't propagate non-GLExceptions out because calling code
-          // expects to catch only that exception type
-          throw new GLException(e);
-        }
-      }
     }
-    return ret;
+  }
+
+  public DynamicLookupHelper getDynamicLookupHelper() {
+    return (WindowsWGLDrawableFactory) getFactoryImpl() ;
   }
 
   protected static String getThreadName() {

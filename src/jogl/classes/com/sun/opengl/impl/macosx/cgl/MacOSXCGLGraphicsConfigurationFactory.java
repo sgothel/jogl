@@ -57,15 +57,6 @@ public class MacOSXCGLGraphicsConfigurationFactory extends GraphicsConfiguration
         return chooseGraphicsConfigurationStatic(capabilities, chooser, absScreen, false);
     }
 
-    /** FIXME: remove
-    protected static MacOSXCGLGraphicsConfiguration createDefaultGraphicsConfiguration(AbstractGraphicsScreen absScreen, boolean usePBuffer) {
-        if (absScreen == null) {
-            throw new IllegalArgumentException("AbstractGraphicsScreen is null");
-        }
-
-        return new MacOSXCGLGraphicsConfiguration(absScreen, new GLCapabilities());
-    }*/
-
     protected static MacOSXCGLGraphicsConfiguration chooseGraphicsConfigurationStatic(Capabilities capabilities,
                                                                                    CapabilitiesChooser chooser,
                                                                                    AbstractGraphicsScreen absScreen, boolean usePBuffer) {
@@ -87,7 +78,7 @@ public class MacOSXCGLGraphicsConfigurationFactory extends GraphicsConfiguration
             capabilities = new GLCapabilities(null);
         }
 
-        return new MacOSXCGLGraphicsConfiguration(absScreen, (GLCapabilities)capabilities);
+        return new MacOSXCGLGraphicsConfiguration(absScreen, (GLCapabilities)capabilities, (GLCapabilities)capabilities);
     }
 }
 

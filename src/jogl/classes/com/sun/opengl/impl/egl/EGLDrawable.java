@@ -37,19 +37,20 @@ package com.sun.opengl.impl.egl;
 
 import com.sun.opengl.impl.GLDrawableImpl;
 import com.sun.nativewindow.impl.NWReflection;
+import com.sun.gluegen.runtime.DynamicLookupHelper;
 
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.egl.*;
 import javax.media.opengl.*;
 
-public class EGLDrawable extends GLDrawableImpl {
+public abstract class EGLDrawable extends GLDrawableImpl {
+    protected boolean ownEGLDisplay = false;
     private long eglDisplay;
     private EGLGraphicsConfiguration eglConfig;
-    private boolean ownEGLDisplay = false;
-    private long eglSurface = 0;
+    private long eglSurface;
     private int[] tmp = new int[1];
 
-    public EGLDrawable(EGLDrawableFactory factory,
+    protected EGLDrawable(EGLDrawableFactory factory,
                        NativeWindow component) throws GLException {
         super(factory, component, false);
         eglSurface=EGL.EGL_NO_SURFACE;
@@ -68,21 +69,54 @@ public class EGLDrawable extends GLDrawableImpl {
         return eglConfig;
     }
 
-    public GLProfile getGLProfile() {
-        return (null==eglConfig)?super.getGLProfile():((GLCapabilities)eglConfig.getCapabilities()).getGLProfile();
+    public GLCapabilities getChosenGLCapabilities() {
+        return (null==eglConfig)?super.getChosenGLCapabilities():(GLCapabilities)eglConfig.getChosenCapabilities();
     }
 
-    public GLCapabilities getGLCapabilities() {
-        return (null==eglConfig)?super.getGLCapabilities():(GLCapabilities)eglConfig.getCapabilities();
+    public abstract GLContext createContext(GLContext shareWith);
+
+    protected abstract long createSurface(long eglDpy, _EGLConfig eglNativeCfg);
+
+    private void recreateSurface() {
+        if(EGL.EGL_NO_SURFACE!=eglSurface) {
+            EGL.eglDestroySurface(eglDisplay, eglSurface);
+        }
+        eglSurface = createSurface(eglDisplay, eglConfig.getNativeConfig());
     }
 
-    public GLContext createContext(GLContext shareWith) {
-        return new EGLContext(this, shareWith);
+    public int lockSurface() throws GLException {
+        int ret = super.lockSurface();
+        if(NativeWindow.LOCK_SURFACE_NOT_READY == ret) {
+          if (DEBUG) {
+              System.err.println("EGLDrawable.lockSurface: surface not ready");
+          }
+          return ret;
+        }
+        if (NativeWindow.LOCK_SURFACE_CHANGED == ret) {
+            AbstractGraphicsConfiguration aConfig = component.getGraphicsConfiguration().getNativeGraphicsConfiguration();
+            // ensure this is a EGLGraphicsConfiguration, ie setRealized(true) already validated the EGL config and eglSurface.
+            if(EGL.EGL_NO_SURFACE!=eglSurface && aConfig instanceof EGLGraphicsConfiguration) {
+                if(DEBUG) {
+                    System.err.println("NativeWindow.LOCK_SURFACE_CHANGED: "+component);
+                }
+                ((EGLGraphicsConfiguration)aConfig).updateGraphicsConfiguration();
+                recreateSurface();
+            } else {
+                ret = NativeWindow.LOCK_SUCCESS; // overwrite result, no surface change action required yet
+            }
+        }
+        return ret;
     }
+
 
     public void setRealized(boolean realized) {
+        super.setRealized(realized);
+
         if (realized) {
-            lockSurface();
+            if ( NativeWindow.LOCK_SURFACE_NOT_READY == lockSurface() ) {
+                throw new GLException("Couldn't lock surface");
+            }
+            // lockSurface() also resolved the window/surface handles
             try {
                 AbstractGraphicsConfiguration aConfig = component.getGraphicsConfiguration().getNativeGraphicsConfiguration();
                 AbstractGraphicsDevice aDevice = aConfig.getScreen().getDevice();
@@ -127,7 +161,7 @@ public class EGLDrawable extends GLDrawableImpl {
                     }
                     EGLGraphicsDevice e = new EGLGraphicsDevice(eglDisplay);
                     DefaultGraphicsScreen s = new DefaultGraphicsScreen(e, aConfig.getScreen().getIndex());
-                    GLCapabilities caps = (GLCapabilities) aConfig.getCapabilities();
+                    GLCapabilities caps = (GLCapabilities) aConfig.getChosenCapabilities(); // yes, use the already choosen Capabilities (x11,win32,..)
                     eglConfig = (EGLGraphicsConfiguration) GraphicsConfigurationFactory.getFactory(e).chooseGraphicsConfiguration(caps, null, s);
                     if (null == eglConfig) {
                         throw new GLException("Couldn't create EGLGraphicsConfiguration from "+s);
@@ -135,16 +169,9 @@ public class EGLDrawable extends GLDrawableImpl {
                         System.err.println("Chosen eglConfig: "+eglConfig);
                     }
                 }
-
+                eglSurface = createSurface(eglDisplay, eglConfig.getNativeConfig());
                 if(DEBUG) {
-                    System.err.println("setSurface using component: handle 0x"+Long.toHexString(component.getWindowHandle())+", "+component);
-                }
-                // Create the window surface
-                eglSurface = EGL.eglCreateWindowSurface(eglDisplay, eglConfig.getNativeConfig(), component.getWindowHandle(), null);
-                if (EGL.EGL_NO_SURFACE==eglSurface) {
-                    throw new GLException("Creation of window surface (eglCreateWindowSurface) failed, component: "+component+", error 0x"+Integer.toHexString(EGL.eglGetError()));
-                } else if(DEBUG) {
-                    System.err.println("setSurface result: eglSurface 0x"+Long.toHexString(eglSurface));
+                    System.err.println("setSurface using component: handle 0x"+Long.toHexString(component.getWindowHandle())+" -> 0x"+Long.toHexString(eglSurface));
                 }
             } finally {
               unlockSurface();
@@ -161,11 +188,6 @@ public class EGLDrawable extends GLDrawableImpl {
             eglDisplay=EGL.EGL_NO_DISPLAY;
             eglConfig=null;
         }
-        super.setRealized(realized);
-    }
-
-    public void setSize(int width, int height) {
-        // FIXME: anything to do here?
     }
 
     public int getWidth() {
@@ -183,20 +205,26 @@ public class EGLDrawable extends GLDrawableImpl {
     }
 
     public void swapBuffers() throws GLException {
-        getFactoryImpl().lockToolkit();
+        boolean didLock = false;
         try {
           if (component.getSurfaceHandle() == 0) {
             if (lockSurface() == NativeWindow.LOCK_SURFACE_NOT_READY) {
               return;
             }
+            didLock = true;
           }
 
           EGL.eglSwapBuffers(eglDisplay, eglSurface);
 
         } finally {
-          unlockSurface();
-          getFactoryImpl().unlockToolkit();
+          if(didLock) {
+              unlockSurface();
+          }
         }
+    }
+
+    public DynamicLookupHelper getDynamicLookupHelper() {
+        return EGLDynamicLookupHelper.getDynamicLookupHelper(getGLProfile());
     }
 
     public String toString() {

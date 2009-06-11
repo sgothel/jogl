@@ -1,0 +1,111 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <title>NativeWindow Protocol Draft Public Review Specification</title>
+</head>
+  <body>
+   
+<h2><i>NativeWindow Protocol</i> Specification Overview</h2>
+   
+<h3>Preface</h3>
+  This specification, an optional set of packages, describing a <i>protocol</i> for a 
+  <i>native windowing interface</i> binding to Java(TM).<br>
+  Currently specified <i>native windowing systems</i> are:<br><br>
+  <ul>
+    <li> EGL/OpenKODE Windowing System</li>
+    <li> X11 Windowing System</li>
+    <li> Microsoft Windows</li>
+    <li> Apple MacOSX</li>
+    <li> Java's AWT</li>
+  </ul>
+  <br>
+  However, any other native windowing system may be added to the implementation,
+  using a generic string identifier and an optional specialisation of:<br><br>
+  <ul>
+    <li>{@link javax.media.nativewindow.AbstractGraphicsDevice AbstractGraphicsDevice},<br>
+       <br>
+       Shall return the new string identifier with {@link javax.media.nativewindow.AbstractGraphicsDevice#getType() getType()}</li><br>
+    <li>{@link javax.media.nativewindow.AbstractGraphicsScreen AbstractGraphicsScreen}</li>
+    <li>{@link javax.media.nativewindow.AbstractGraphicsConfiguration AbstractGraphicsConfiguration}</li><br>
+  </ul>
+  <br>
+  The implementor has to provide the following:<br><br>
+  <ul>
+    <li> The specialisation of the abstract class {@link javax.media.nativewindow.NativeWindowFactory NativeWindowFactory}<br>
+         <br>
+         shall be registered with {@link javax.media.nativewindow.NativeWindowFactory#registerFactory NativeWindowFactory.registerFactory(..)}.</li><br>
+
+    <li> The specialisation of the abstract class {@link javax.media.nativewindow.GraphicsConfigurationFactory GraphicsConfigurationFactory}<br>
+         <br>
+         shall be registered with {@link javax.media.nativewindow.GraphicsConfigurationFactory#registerFactory GraphicsConfigurationFactory.registerFactory(..)}.</li><br>
+  </ul><br>
+  This protocol <i>does not</i> describe how to <i>create</i> native windows, but how to <i>bind</i> a native window to an implementation of
+  {@link javax.media.nativewindow.NativeWindow NativeWindow}.<br>
+  However, an implementation of this protocol (e.g. {@link com.sun.javafx.newt}) may support the creation.<br>
+   
+<h3>Dependencies</h3>
+  This binding has dependencies to the following:<br><br>
+  <ul>
+    <li> Either of the following Java implementations:<br>
+    <ul>
+        <li> <a href="http://java.sun.com/j2se/1.4.2/docs/api/">Java SE 1.4 or later</a> </li><br>
+        <li> <a href="http://java.sun.com/javame/technology/cdc/">Java ME CDC 1.1.2 (JSR 218)</a> and 
+             <a href="http://java.sun.com/products/foundation/">Foundation Profile 1.1.2 (JSR 219)</a><br>
+             and either of the following <i>java.nio</i> implementations:<br>
+             <ul>
+                <li> <a href="http://java.sun.com/javame/reference/apis/jsr239/java/nio/package-summary.html"> JSR239 <i>java.nio</i> subset</a> </li>
+                <li> <a href="http://java.sun.com/j2se/1.4.2/docs/api/java/nio/package-summary.html"> Java 1.4 <i>java.nio</i> implementation</a> </li>
+             </ul><br>
+    </ul>    
+  </ul>
+  <br>
+
+<h3>Package Structure</h3>
+  The packages defined by this specification include:<br><br>
+<ul>
+    <li>The <b>javax.media.nativewindow</b> package<br>
+      <br>
+  This package contains Java bindings for a native windowing system.<br>
+  Subsequent packages contain marker type classes, containing native characteristics of the windowing system.</li><br><br>
+  <ul>
+    <li>The <b>javax.media.nativewindow.awt</b> package<br>
+      <br>
+  This sub package contains classes to cover the native characteristics of the AWT windowing system.</li><br>
+
+    <li>The <b>javax.media.nativewindow.x11</b> package<br>
+      <br>
+  This sub package contains classes to cover the native characteristics of the X11 windowing system.</li><br>
+
+    <li>The <b>javax.media.nativewindow.windows</b> package<br>
+      <br>
+  This sub package contains classes to cover the native characteristics of the Windows windowing system.</li><br>
+
+    <li>The <b>javax.media.nativewindow.macosx</b> package<br>
+      <br>
+  This sub package contains classes to cover the native characteristics of the MacOSX windowing system.</li><br>
+
+    <li>The <b>javax.media.nativewindow.egl</b> package<br>
+      <br>
+  This sub package contains classes to cover the native characteristics of the EGL/OpenKODE windowing system.</li><br>
+  </ul>
+</ul>
+
+<h3>Factory Model</h3>
+Running on a platform with a supported windowing system, the factory model shall be used
+to instantiate a native window, see {@link javax.media.nativewindow.NativeWindowFactory NativeWindowFactory}.<br>
+The implementor has to specialize 
+All supported 
+Regardless of the knowledge of the underly
+<br>
+
+<h3>Revision History<br>
+  </h3>
+   
+<ul>
+<li> Early Draft Review, June 2009
+</ul>
+  <br>
+  <br>
+ <br>
+</body>
+</html>

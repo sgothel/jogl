@@ -37,15 +37,17 @@ import com.sun.nativewindow.impl.x11.XVisualInfo;
 
 /** Encapsulates a graphics configuration, or OpenGL pixel format, on
     X11 platforms. Objects of this type are returned from {@link
-    NativeWindowFactory#chooseGraphicsConfiguration
-    NativeWindowFactory.chooseGraphicsConfiguration()} on X11
+    javax.media.nativewindow.GraphicsConfigurationFactory#chooseGraphicsConfiguration
+    GraphicsConfigurationFactory.chooseGraphicsConfiguration()} on X11
     platforms when toolkits other than the AWT are being used.  */
 
 public class X11GraphicsConfiguration extends DefaultGraphicsConfiguration implements Cloneable {
     private XVisualInfo info;
 
-    public X11GraphicsConfiguration(X11GraphicsScreen screen, Capabilities caps, XVisualInfo info) {
-        super(screen, caps);
+    public X11GraphicsConfiguration(X11GraphicsScreen screen, 
+                                    Capabilities capsChosen, Capabilities capsRequested,
+                                    XVisualInfo info) {
+        super(screen, capsChosen, capsRequested);
         this.info = info;
     }
 
@@ -57,11 +59,15 @@ public class X11GraphicsConfiguration extends DefaultGraphicsConfiguration imple
         return info;
     }
 
+    protected void setXVisualInfo(XVisualInfo info) {
+        this.info = info;
+    }
+
     public long getVisualID() {
         return (null!=info)?info.visualid():0;
     }
     
     public String toString() {
-        return getClass().toString()+"["+getScreen()+", visualID 0x" + Long.toHexString(getVisualID()) + ", " + getCapabilities() +"]";
+        return getClass().toString()+"["+getScreen()+", visualID 0x" + Long.toHexString(getVisualID()) + ", " + getChosenCapabilities() +"]";
     }
 }

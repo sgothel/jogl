@@ -38,6 +38,6 @@ public class GraphicsConfigurationFactoryImpl extends GraphicsConfigurationFacto
     public AbstractGraphicsConfiguration chooseGraphicsConfiguration(Capabilities capabilities,
                                                                      CapabilitiesChooser chooser,
                                                                      AbstractGraphicsScreen screen) {
-        return new DefaultGraphicsConfiguration(screen, capabilities);
+        return new DefaultGraphicsConfiguration(screen, capabilities, capabilities);
     }
 }

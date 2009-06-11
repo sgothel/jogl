@@ -74,6 +74,7 @@ public class WindowsJAWTWindow extends JAWTWindow {
     }
     int res = ds.Lock();
     if ((res & JAWTFactory.JAWT_LOCK_ERROR) != 0) {
+      super.unlockSurface();
       throw new NativeWindowException("Unable to lock surface");
     }
     // See whether the surface changed and if so destroy the old
@@ -130,7 +131,9 @@ public class WindowsJAWTWindow extends JAWTWindow {
   }
 
   public void unlockSurface() {
-    if(!isSurfaceLocked()) return;
+    if(!isSurfaceLocked()) {
+        throw new RuntimeException("JAWTWindow not locked");
+    }
     long startTime = 0;
     if (PROFILING) {
       startTime = System.currentTimeMillis();
@@ -141,7 +144,6 @@ public class WindowsJAWTWindow extends JAWTWindow {
     ds = null;
     dsi = null;
     win32dsi = null;
-    drawable = 0;
     super.unlockSurface();
     if (PROFILING) {
       long endTime = System.currentTimeMillis();

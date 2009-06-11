@@ -81,7 +81,7 @@ public class MacOSXPbufferCGLContext extends MacOSXCGLContext {
 
       // Initialize render-to-texture support if requested
       DefaultGraphicsConfiguration config = (DefaultGraphicsConfiguration) drawable.getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration();
-      GLCapabilities capabilities = (GLCapabilities)config.getCapabilities();
+      GLCapabilities capabilities = (GLCapabilities)config.getChosenCapabilities();
       GL gl = getGL();
       boolean rect = gl.isGL2() && capabilities.getPbufferRenderToTextureRectangle();
       if (rect) {
@@ -139,7 +139,7 @@ public class MacOSXPbufferCGLContext extends MacOSXCGLContext {
 
   protected boolean create() {
     DefaultGraphicsConfiguration config = (DefaultGraphicsConfiguration) drawable.getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration();
-    GLCapabilities capabilities = (GLCapabilities)config.getCapabilities();
+    GLCapabilities capabilities = (GLCapabilities)config.getChosenCapabilities();
     if (capabilities.getPbufferFloatingPointBuffers() &&
 	!isTigerOrLater) {
       throw new GLException("Floating-point pbuffers supported only on OS X 10.4 or later");
@@ -221,7 +221,7 @@ public class MacOSXPbufferCGLContext extends MacOSXCGLContext {
   class NSOpenGLImpl implements Impl {
     public long create() {
       DefaultGraphicsConfiguration config = (DefaultGraphicsConfiguration) drawable.getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration();
-      GLCapabilities capabilities = (GLCapabilities)config.getCapabilities();
+      GLCapabilities capabilities = (GLCapabilities)config.getChosenCapabilities();
       if (capabilities.getPbufferFloatingPointBuffers() &&
           !isTigerOrLater) {
         throw new GLException("Floating-point pbuffers supported only on OS X 10.4 or later");
@@ -278,7 +278,7 @@ public class MacOSXPbufferCGLContext extends MacOSXCGLContext {
       int i = 0;
       attrs[i++] = CGL.kCGLPFAPBuffer;
       DefaultGraphicsConfiguration config = (DefaultGraphicsConfiguration) drawable.getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration();
-      GLCapabilities capabilities = (GLCapabilities)config.getCapabilities();
+      GLCapabilities capabilities = (GLCapabilities)config.getChosenCapabilities();
       if (capabilities.getPbufferFloatingPointBuffers())
         attrs[i++] = CGL.kCGLPFAColorFloat;
       if (capabilities.getDoubleBuffered())

@@ -69,24 +69,21 @@ public class NativeWindowFactoryImpl extends NativeWindowFactory {
     private NativeWindow getAWTNativeWindow(Object winObj, AbstractGraphicsConfiguration config) {
         if (nativeWindowConstructor == null) {
             try {
-                String osName = System.getProperty("os.name");
-                String osNameLowerCase = osName.toLowerCase();
+                String osType = getNativeWindowType(false);
                 String windowClassName = null;
 
                 // We break compile-time dependencies on the AWT here to
                 // make it easier to run this code on mobile devices
 
-                if (osNameLowerCase.startsWith("wind")) {
+                if (osType.equals(TYPE_WINDOWS)) {
                     windowClassName = "com.sun.nativewindow.impl.jawt.windows.WindowsJAWTWindow";
-                } else if (osNameLowerCase.startsWith("mac os x")) {
+                } else if (osType.equals(TYPE_MACOSX)) {
                     windowClassName = "com.sun.nativewindow.impl.jawt.macosx.MacOSXJAWTWindow";
-                } else {
+                } else if (osType.equals(TYPE_X11)) {
                     // Assume Linux, Solaris, etc. Should probably test for these explicitly.
                     windowClassName = "com.sun.nativewindow.impl.jawt.x11.X11JAWTWindow";
-                }
-
-                if (windowClassName == null) {
-                    throw new IllegalArgumentException("OS " + osName + " not yet supported");
+                } else {
+                    throw new IllegalArgumentException("OS " + getNativeOSName(false) + " not yet supported");
                 }
 
                 nativeWindowConstructor = NWReflection.getConstructor(windowClassName, new Class[] { Object.class, AbstractGraphicsConfiguration.class });

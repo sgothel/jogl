@@ -90,23 +90,22 @@ public class MacOSXAWTCGLGraphicsConfigurationFactory extends GraphicsConfigurat
             System.err.println("MacOSXAWTCGLGraphicsConfigurationFactory: made "+macScreen);
         }
 
+        GraphicsConfiguration gc = device.getDefaultConfiguration();
+        AWTGraphicsConfiguration.SetupCapabilitiesPixelformat(capabilities, gc);
+        if(DEBUG) {
+            System.err.println("AWT Colormodel compatible: "+capabilities);
+        }
+
         MacOSXCGLGraphicsConfiguration macConfig = (MacOSXCGLGraphicsConfiguration)
             GraphicsConfigurationFactory.getFactory(macDevice).chooseGraphicsConfiguration(capabilities,
                                                                                            chooser,
                                                                                            macScreen);
-        if (macConfig != null) {
-            // FIXME: we have nothing to match .. so choose the 1st
-            GraphicsConfiguration[] configs = device.getConfigurations();
-            if(configs.length>0) {
-                return new AWTGraphicsConfiguration(awtScreen, macConfig.getCapabilities(), configs[0], macConfig);
-            }
+
+        if (macConfig == null) {
+            throw new GLException("Unable to choose a GraphicsConfiguration: "+capabilities+",\n\t"+chooser+"\n\t"+macScreen);
         }
-        
-        // Either we weren't able to reflectively introspect on the
-        // X11GraphicsConfig or something went wrong in the steps above;
-        // we're going to return null without signaling an error condition
-        // in this case (although we should distinguish between the two
-        // and possibly report more of an error in the latter case)
-        return null;
+
+        // FIXME: we have nothing to match .. so choose the default
+        return new AWTGraphicsConfiguration(awtScreen, macConfig.getChosenCapabilities(), macConfig.getRequestedCapabilities(), gc, macConfig);
     }
 }

@@ -86,4 +86,13 @@ public class EGLExternalContext extends EGLContext {
     public boolean isCreated() {
         return created;
     }
+
+    public void bindPbufferToTexture() {
+        throw new GLException("Should not call this");
+    }
+
+    public void releasePbufferFromTexture() {
+        throw new GLException("Should not call this");
+    }
+
 }

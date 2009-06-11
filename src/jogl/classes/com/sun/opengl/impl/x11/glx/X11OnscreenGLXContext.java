@@ -47,7 +47,6 @@ import com.sun.opengl.impl.*;
 import com.sun.opengl.impl.x11.*;
 
 public class X11OnscreenGLXContext extends X11GLXContext {
-  protected X11OnscreenGLXDrawable drawable;
   // This indicates whether the context we have created is indirect
   // and therefore requires the toolkit to be locked around all GL
   // calls rather than just all GLX calls
@@ -56,7 +55,6 @@ public class X11OnscreenGLXContext extends X11GLXContext {
   public X11OnscreenGLXContext(X11OnscreenGLXDrawable drawable,
                               GLContext shareWith) {
     super(drawable, shareWith);
-    this.drawable = drawable;
   }
   
   protected int makeCurrentImpl() throws GLException {

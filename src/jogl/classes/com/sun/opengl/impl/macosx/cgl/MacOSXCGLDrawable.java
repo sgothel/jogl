@@ -42,6 +42,7 @@ package com.sun.opengl.impl.macosx.cgl;
 import javax.media.nativewindow.*;
 import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
+import com.sun.gluegen.runtime.DynamicLookupHelper;
 
 public abstract class MacOSXCGLDrawable extends GLDrawableImpl {
   // The Java2D/OpenGL pipeline on OS X uses low-level CGLContextObjs
@@ -80,6 +81,26 @@ public abstract class MacOSXCGLDrawable extends GLDrawableImpl {
   public MacOSXCGLDrawable(GLDrawableFactory factory, NativeWindow comp, boolean realized) {
     super(factory, comp, realized);
  }
+
+  public void setRealized(boolean realized) {
+    super.setRealized(realized);
+
+    if(realized) {
+        int lockRes = lockSurface();
+        try {
+          // nothing to do, but complied with protocol, 
+          // ie resolved the window/surface handles
+        } finally {
+          if ( lockRes != NativeWindow.LOCK_SURFACE_NOT_READY ) {
+            unlockSurface();
+          }
+        }
+    }
+  }
+
+  public DynamicLookupHelper getDynamicLookupHelper() {
+    return (MacOSXCGLDrawableFactory) getFactoryImpl() ;
+  }
 
   protected static String getThreadName() {
     return Thread.currentThread().getName();

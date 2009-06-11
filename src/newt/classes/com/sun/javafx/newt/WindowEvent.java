@@ -39,6 +39,7 @@ public class WindowEvent extends Event {
     public static final int EVENT_WINDOW_DESTROY_NOTIFY = 102;
     public static final int EVENT_WINDOW_GAINED_FOCUS = 103;
     public static final int EVENT_WINDOW_LOST_FOCUS = 104;
+    // public static final int EVENT_WINDOW_REPAINT = 105; // TODO
 
     public WindowEvent(int eventType, Window source, long when) {
         this(false, eventType, source, when);
@@ -55,6 +56,7 @@ public class WindowEvent extends Event {
             case EVENT_WINDOW_DESTROY_NOTIFY:   return "EVENT_WINDOW_DESTROY_NOTIFY";
             case EVENT_WINDOW_GAINED_FOCUS:   return "EVENT_WINDOW_GAINED_FOCUS";
             case EVENT_WINDOW_LOST_FOCUS:   return "EVENT_WINDOW_LOST_FOCUS";
+            // case EVENT_WINDOW_REPAINT:   return "EVENT_WINDOW_REPAINT";
             default: return "unknown (" + type + ")";
         }
     }

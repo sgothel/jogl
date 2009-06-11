@@ -47,12 +47,12 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
 
     private PIXELFORMATDESCRIPTOR pixelfmt;
     private int pixelfmtID;
-    private boolean isUpdated = false;
+    private boolean isChosen = false;
     private GLCapabilitiesChooser chooser;
 
-    public WindowsWGLGraphicsConfiguration(AbstractGraphicsScreen screen, GLCapabilities caps, PIXELFORMATDESCRIPTOR pixelfmt, int pixelfmtID,
-                                           GLCapabilitiesChooser chooser) {
-        super(screen, caps);
+    public WindowsWGLGraphicsConfiguration(AbstractGraphicsScreen screen, GLCapabilities capsChosen, GLCapabilities capsRequested,
+                                           PIXELFORMATDESCRIPTOR pixelfmt, int pixelfmtID, GLCapabilitiesChooser chooser) {
+        super(screen, capsChosen, capsRequested);
         this.chooser=chooser;
         this.pixelfmt = pixelfmt;
         this.pixelfmtID = pixelfmtID;
@@ -62,18 +62,19 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
         return super.clone();
     }
 
-    protected void update(GLDrawableFactory factory, NativeWindow nativeWindow, boolean useOffScreen) {
+    protected void updateGraphicsConfiguration(GLDrawableFactory factory, NativeWindow nativeWindow, boolean useOffScreen) {
         WindowsWGLGraphicsConfigurationFactory.updateGraphicsConfiguration(chooser, factory, nativeWindow, useOffScreen);
     }
     protected void setCapsPFD(GLCapabilities caps, PIXELFORMATDESCRIPTOR pfd, int pfdID) {
+        // FIXME: setScreen ( .. )
         this.pixelfmt = pfd;
         this.pixelfmtID = pfdID;
-        setCapabilities(caps);
-        isUpdated=true;
+        setChosenCapabilities(caps);
+        isChosen=true;
     }
 
-    public boolean getIsUpdated() {
-        return isUpdated;
+    public boolean getCapabilitiesChosen() {
+        return isChosen;
     }
 
     public PIXELFORMATDESCRIPTOR getPixelFormat()   { return pixelfmt; }
@@ -433,7 +434,7 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
   }
 
   public String toString() {
-    return "WindowsWGLGraphicsConfiguration["+getScreen()+", pfdID " + pixelfmtID + ", " + getCapabilities() +"]";
+    return "WindowsWGLGraphicsConfiguration["+getScreen()+", pfdID " + pixelfmtID + ", " + getChosenCapabilities() +"]";
   }
 }
 

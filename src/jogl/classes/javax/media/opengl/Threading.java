@@ -39,13 +39,14 @@
 
 package javax.media.opengl;
 
-// FIXME: refactor Java SE dependencies
-//import java.awt.EventQueue;
 import java.lang.reflect.InvocationTargetException;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 
 import com.sun.opengl.impl.*;
+
+import javax.media.nativewindow.NativeWindowFactory;
+import com.sun.nativewindow.impl.NWReflection;
 
 /** This API provides access to the threading model for the implementation of 
     the classes in this package.
@@ -122,21 +123,25 @@ import com.sun.opengl.impl.*;
 */
 
 public class Threading {
+  public static final int AWT    = 1;
+  public static final int WORKER = 2;
+
+  protected static final boolean DEBUG = Debug.debug("Threading");
+
   private static boolean singleThreaded = true;
-  private static final int AWT    = 1;
-  private static final int WORKER = 2;
   private static int mode;
-  /* FIXME: refactor Java SE dependencies
+  private static boolean hasAWT;
   // We need to know whether we're running on X11 platforms to change
   // our behavior when the Java2D/JOGL bridge is active
-  private static boolean isX11;
-  */
+  private static boolean _isX11;
+
+  private static final ThreadingPlugin threadingPlugin;
   
   static {
+    Object threadingPluginTmp =
     AccessController.doPrivileged(new PrivilegedAction() {
         public Object run() {
           String workaround = System.getProperty("opengl.1thread");
-          /* FIXME: refactor Java SE dependencies
           // Default to using the AWT thread on all platforms except
           // Windows. On OS X there is instability apparently due to
           // using the JAWT on non-AWT threads. On X11 platforms there
@@ -145,12 +150,16 @@ public class Threading {
           // while holding the AWT lock. The optimization of
           // makeCurrent / release calls isn't worth these stability
           // problems.
-          String osName = System.getProperty("os.name");
-          boolean isWindows = osName.startsWith("Windows");
-          isX11 = !(isWindows || osName.startsWith("Mac OS"));
-          */
-          // int defaultMode = (isWindows ? WORKER : AWT);
-          int defaultMode = AWT;
+          hasAWT = NWReflection.isClassAvailable("java.awt.Canvas") &&
+                   NWReflection.isClassAvailable("javax.media.opengl.awt.GLCanvas");
+
+          String osType = NativeWindowFactory.getNativeWindowType(false);
+          _isX11 = NativeWindowFactory.TYPE_X11.equals(osType);
+          // boolean isWindows = NativeWindowFactory.TYPE_WINDOWS.equals(osType);
+
+          // int defaultMode = (isWindows ? WORKER : ( hasAWT ? AWT : WORKER ) );
+          int defaultMode = ( hasAWT ? AWT : WORKER );
+
           mode = defaultMode;
           if (workaround != null) {
             workaround = workaround.toLowerCase();
@@ -168,13 +177,26 @@ public class Threading {
             }
           }
           printWorkaroundNotice();
-          return null;
+
+          Object threadingPluginObj=null;
+          // try to fetch the AWTThreadingPlugin
+          try {
+                threadingPluginObj = NWReflection.createInstance("com.sun.opengl.impl.awt.AWTThreadingPlugin");
+          } catch (Throwable t) { }
+          return threadingPluginObj;
         }
       });
+    threadingPlugin = (ThreadingPlugin) threadingPluginTmp;
+    if(DEBUG) {
+        System.err.println("Threading: hasAWT "+hasAWT+", mode "+((mode==AWT)?"AWT":"WORKER")+", plugin "+threadingPlugin);
+    }
   }
 
   /** No reason to ever instantiate this class */
   private Threading() {}
+
+  public static boolean isX11() { return _isX11; }
+  public static int getMode() { return mode; }
 
   /** If an implementation of the javax.media.opengl APIs offers a 
       multithreading option but the default behavior is single-threading, 
@@ -211,34 +233,14 @@ public class Threading {
       throw new GLException("Should only call this in single-threaded mode");
     }
 
+    if(null!=threadingPlugin) {
+        return threadingPlugin.isOpenGLThread();
+    }
+
     switch (mode) {
       case AWT:
-        /* FIXME: refactor Java SE dependencies
-        if (Java2D.isOGLPipelineActive()) {
-          // FIXME: ideally only the QFT would be considered to be the
-          // "OpenGL thread", but we can not currently run all of
-          // JOGL's OpenGL work on that thread. See the FIXME in
-          // invokeOnOpenGLThread.
-          return (Java2D.isQueueFlusherThread() ||
-                  (isX11 && EventQueue.isDispatchThread()));
-        } else {
-          return EventQueue.isDispatchThread();
-        }
-        */
         return true;
       case WORKER:
-        /* FIXME: refactor Java SE dependencies
-        if (Java2D.isOGLPipelineActive()) {
-          // FIXME: ideally only the QFT would be considered to be the
-          // "OpenGL thread", but we can not currently run all of
-          // JOGL's OpenGL work on that thread. See the FIXME in
-          // invokeOnOpenGLThread.
-          return (Java2D.isQueueFlusherThread() ||
-                  (isX11 && GLWorkerThread.isWorkerThread()));
-        } else {
-          return GLWorkerThread.isWorkerThread();
-        }
-        */
         return GLWorkerThread.isWorkerThread();
       default:
         throw new InternalError("Illegal single-threading mode " + mode);
@@ -263,29 +265,13 @@ public class Threading {
       throw new GLException ("Should only call this from other threads than the OpenGL thread");
     }    
 
+    if(null!=threadingPlugin) {
+        threadingPlugin.invokeOnOpenGLThread(r);
+        return;
+    }
+
     switch (mode) {
       case AWT:
-        /* FIXME: refactor Java SE dependencies
-        // FIXME: ideally should run all OpenGL work on the Java2D QFT
-        // thread when it's enabled, but unfortunately there are
-        // deadlock issues on X11 platforms when making our
-        // heavyweight OpenGL contexts current on the QFT because we
-        // perform the JAWT lock inside the makeCurrent()
-        // implementation, which attempts to grab the AWT lock on the
-        // QFT which is not allowed. For now, on X11 platforms,
-        // continue to perform this work on the EDT.
-        if (Java2D.isOGLPipelineActive() && !isX11) {
-          Java2D.invokeWithOGLContextCurrent(null, r);
-        } else {
-          try {
-            EventQueue.invokeAndWait(r);
-          } catch (InvocationTargetException e) {
-            throw new GLException(e.getTargetException());
-          } catch (InterruptedException e) {
-            throw new GLException(e);
-          }
-        }
-        */
         r.run();
         break;
 

@@ -42,7 +42,7 @@ package javax.media.nativewindow;
 /** Provides a mechanism by which applications can customize the
     window type selection for a given {@link Capabilities}.
     Developers can implement this interface and pass an instance into
-    the appropriate method of {@link NativeWindowFactory}; the chooser
+    the method {@link GraphicsConfigurationFactory#chooseGraphicsConfiguration}; the chooser
     will be called at window creation time, on some platforms. */
 
 public interface CapabilitiesChooser {
@@ -56,10 +56,9 @@ public interface CapabilitiesChooser {
       not necessarily required, that the chooser select that entry.
 
       <P> <em>Note:</em> this method is called automatically by the
-      {@link NativeWindowFactory} when an instance of this class is
-      passed in to its {@link
-      NativeWindowFactory#chooseGraphicsConfiguration
-      chooseGraphicsConfiguration} method. It should generally not be
+      {@link GraphicsConfigurationFactory#chooseGraphicsConfiguration} method 
+      when an instance of this class is passed in to it.
+      It should generally not be
       invoked by users directly, unless it is desired to delegate the
       choice to some other CapabilitiesChooser object.
   */

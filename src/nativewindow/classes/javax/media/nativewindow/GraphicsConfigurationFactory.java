@@ -40,7 +40,7 @@ import com.sun.nativewindow.impl.*;
 /**
  * Provides the mechanism by which the graphics configuration for a
  * given window can be chosen before the window is created. On some
- * window systems (X11 in particular) the graphics configuration
+ * window systems (EGL/OpenKODE and X11 in particular) the graphics configuration
  * decides parameters related to hardware accelerated rendering such
  * as the OpenGL pixel format. On these platforms it is necessary to
  * choose the graphics configuration early. Note that the selection of
@@ -172,7 +172,7 @@ public abstract class GraphicsConfigurationFactory {
      * Here the validation of the capabilities is performed later.
      * In this case, the AbstractGraphicsConfiguration implementation 
      * must allow an overwrite of the Capabilites, for example
-     * {@link DefaultGraphicsConfiguration#setCapabilities DefaultGraphicsConfiguration.setCapabilities()}.
+     * {@link DefaultGraphicsConfiguration#setChosenCapabilities DefaultGraphicsConfiguration.setChosenCapabilities(..)}.
      * </P>
      *
      * <P>
@@ -183,8 +183,8 @@ public abstract class GraphicsConfigurationFactory {
      * returned graphics configuration must be specified in the
      * documentation binding this particular API to the underlying
      * window toolkit. The Reference Implementation accepts {@link
-     * AWTGraphicsDevice AWTGraphicsDevice} objects and returns {@link
-     * AWTGraphicsConfiguration AWTGraphicsConfiguration} objects. On
+     * javax.media.nativewindow.awt.AWTGraphicsDevice AWTGraphicsDevice} objects and returns {@link
+     * javax.media.nativewindow.awt.AWTGraphicsConfiguration AWTGraphicsConfiguration} objects. On
      * X11 platforms where the AWT is not in use, it also accepts
      * {@link javax.media.nativewindow.x11.X11GraphicsDevice
      * X11GraphicsDevice} objects and returns {@link
@@ -198,7 +198,7 @@ public abstract class GraphicsConfigurationFactory {
      *         the selection of the graphics configuration to fail.
      *
      * @see javax.media.nativewindow.GraphicsConfigurationFactory#chooseGraphicsConfiguration(Capabilities, CapabilitiesChooser, AbstractGraphicsScreen)
-     * @see javax.media.nativewindow.DefaultGraphicsConfiguration#setCapabilities(Capabilities caps)
+     * @see javax.media.nativewindow.DefaultGraphicsConfiguration#setChosenCapabilities(Capabilities caps)
      */
     public abstract AbstractGraphicsConfiguration
         chooseGraphicsConfiguration(Capabilities capabilities,

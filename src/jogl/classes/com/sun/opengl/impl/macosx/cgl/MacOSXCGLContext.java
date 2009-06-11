@@ -111,7 +111,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
       }
     }
     MacOSXCGLGraphicsConfiguration config = (MacOSXCGLGraphicsConfiguration) drawable.getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration();
-    GLCapabilities capabilities = (GLCapabilities)config.getCapabilities();
+    GLCapabilities capabilities = (GLCapabilities)config.getRequestedCapabilities();
     GLProfile glProfile = capabilities.getGLProfile();
     // FIXME: Shall being moved to MacOSXCGLGraphicsConfiguration !
     int[] viewNotReady = new int[1];
@@ -173,7 +173,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
       // NativeWindow's AbstractGraphicsConfiguration, 
       // since the public API doesn't provide for a different GLCapabilities per context.
       // Note: These restrictions of the platform's API might be considered as a bug anyways.
-      if (!config.getIsUpdated()) {
+      {
         // Figure out what attributes we really got
         GLCapabilities caps = new GLCapabilities(glProfile);
         CGL.queryPixelFormat(pixelFormat, iattribs, 0, idx, ivalues, 0);
@@ -239,7 +239,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
           }
         }
 
-        config.update(caps);
+        config.setChosenCapabilities(caps);
       }
     } finally {
       CGL.deletePixelFormat(pixelFormat);

@@ -57,96 +57,13 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         }
     }
 
-    // We need more than one of these on certain devices (the NVidia APX 2500 in particular)
-    private List/*<NativeLibrary>*/ glesLibraries = new ArrayList();
-
-    public EGLDrawableFactory(String esProfile) {
+    public EGLDrawableFactory() {
         super();
-
-        loadGLESLibrary(esProfile);
-        EGL.resetProcAddressTable(this);
-    }
-
-    private NativeLibrary loadFirstAvailable(List/*<String>*/ libNames, ClassLoader loader) {
-        for (Iterator iter = libNames.iterator(); iter.hasNext(); ) {
-            NativeLibrary lib = NativeLibrary.open((String) iter.next(), loader, false /*global*/);
-            if (lib != null) {
-                return lib;
-            }
-        }
-        return null;
-    }
-
-    private void loadGLESLibrary(String esProfile) {
-        List/*<NativeLibrary>*/ libs = new ArrayList();
-
-        // Try several variants
-        List/*<String>*/ glesLibNames = new ArrayList();
-        List/*<String>*/ eglLibNames = new ArrayList();
-
-        // ES
-        if(GLProfile.UsesNativeGLES2(esProfile)) {
-            glesLibNames.add("GLES20");
-            glesLibNames.add("GLESv2");
-            glesLibNames.add("GLESv2_CM");
-            // for windows distributions using the 'unlike' lib prefix
-            // where our tool does not add it.
-            glesLibNames.add("libGLES20"); 
-            glesLibNames.add("libGLESv2");
-            glesLibNames.add("libGLESv2_CM");
-        } else if(GLProfile.UsesNativeGLES1(esProfile)) {
-            glesLibNames.add("GLES_CM");
-            glesLibNames.add("GLES_CL");
-            glesLibNames.add("GLESv1_CM");
-            // for windows distributions using the 'unlike' lib prefix, 
-            // where our tool does not add it.
-            glesLibNames.add("libGLES_CM");
-            glesLibNames.add("libGLES_CL");
-            glesLibNames.add("libGLESv1_CM");
-        } else {
-            throw new GLException("Invalid GL Profile for EGL: "+esProfile);
-        }
-
-        // EGL
-        eglLibNames.add("EGL");
-        // for windows distributions using the 'unlike' lib prefix, 
-        // where our tool does not add it.
-        eglLibNames.add("libEGL");
-
-        ClassLoader loader = getClass().getClassLoader();
-        NativeLibrary lib = null;
-
-        // ES libraries ..
-        lib = loadFirstAvailable(glesLibNames, loader);
-        if (lib == null) {
-            throw new GLException("Unable to dynamically load OpenGL ES library for profile \"" + esProfile + "\"");
-        }
-        glesLibraries.add(lib);
-
-        // ES libraries ..
-        lib = loadFirstAvailable(glesLibNames, loader);
-        if (lib == null) {
-            throw new GLException("Unable to dynamically load OpenGL ES library for profile \"" + esProfile + "\"");
-        }
-        glesLibraries.add(lib);
-
-        // EGL libraries ..
-        lib = loadFirstAvailable(eglLibNames, loader);
-        if (lib == null) {
-            throw new GLException("Unable to dynamically load EGL library for profile \"" + esProfile + "\"");
-        }
-        glesLibraries.add(lib);
-        
-        if (GLProfile.UsesNativeGLES2(esProfile)) {
-            NativeLibLoader.loadES2();
-        } else if (GLProfile.UsesNativeGLES1(esProfile)) {
-            NativeLibLoader.loadES1();
-        }
     }
 
     public GLDrawable createGLDrawable(NativeWindow target) {
         target = NativeWindowFactory.getNativeWindow(target, null);
-        return new EGLDrawable(this, target);
+        return new EGLOnscreenDrawable(this, target);
     }
 
     public GLDrawableImpl createOffscreenDrawable(GLCapabilities capabilities,
@@ -157,15 +74,20 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     }
 
     public boolean canCreateGLPbuffer() {
-        // Not supported on OpenGL ES
-        return false;
+        return true;
     }
     public GLPbuffer createGLPbuffer(final GLCapabilities capabilities,
                                      final GLCapabilitiesChooser chooser,
                                      final int initialWidth,
                                      final int initialHeight,
                                      final GLContext shareWith) {
-        throw new GLException("Pbuffer support not available on OpenGL ES");
+        if (!canCreateGLPbuffer()) {
+          throw new GLException("Pbuffer support not available with this EGL implementation");
+        }
+        EGLPbufferDrawable pbufferDrawable = new EGLPbufferDrawable(this, capabilities, chooser,
+                                                                  initialWidth,
+                                                                  initialHeight);
+        return new GLPbufferImpl(pbufferDrawable, shareWith);
     }
 
     public GLContext createExternalGLContext() {
@@ -184,225 +106,9 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     public void loadGLULibrary() {
     }
 
-    private long dynamicLookupFunctionOnLibs(String glFuncName) {
-        String funcName=glFuncName;
-        long addr = dynamicLookupFunctionOnLibsImpl(funcName);
-        if( 0==addr && NativeWindowFactory.getNativeWindowType(false)==NativeWindowFactory.TYPE_WINDOWS ) {
-            // Hack: try some C++ decoration here for Imageon's emulation libraries ..
-            final int argAlignment=4;  // 4 byte alignment of each argument
-            final int maxArguments=12; // experience ..
-            for(int arg=0; 0==addr && arg<=maxArguments; arg++) {
-                funcName = "_"+glFuncName+"@"+(arg*argAlignment);
-                addr = dynamicLookupFunctionOnLibsImpl(funcName);
-            }
-        }
-        if(DEBUG) {
-            if(0!=addr) {
-                System.err.println("Lookup-Native: "+glFuncName+" / "+funcName+" 0x"+Long.toHexString(addr));
-            } else {
-                System.err.println("Lookup-Native: "+glFuncName+" / "+funcName+" ** FAILED ** ");
-            }
-        }
-        return addr;
-    }
-
-    private long dynamicLookupFunctionOnLibsImpl(String glFuncName) {
-        // Look up this function name in all known libraries
-        for (Iterator iter = glesLibraries.iterator(); iter.hasNext(); ) {
-            NativeLibrary lib = (NativeLibrary) iter.next();
-            long addr = lib.lookupFunction(glFuncName);
-            if (addr != 0) {
-                return addr;
-            }
-        }
-        return 0;
-    }
-
-    private long eglGetProcAddressHandle = 0;
-
-    public long dynamicLookupFunction(String glFuncName) {
-        if(null==glFuncName) {
-            return 0;
-        }
-
-        // bootstrap eglGetProcAddress
-        if(0==eglGetProcAddressHandle) {
-            eglGetProcAddressHandle = dynamicLookupFunctionOnLibs("eglGetProcAddress");
-            if(0==eglGetProcAddressHandle) {
-                GLException e = new GLException("Couldn't find eglGetProcAddress function entry");
-                if(DEBUG) {
-                    e.printStackTrace();
-                }
-                throw e;
-            }
-        }
-
-        if(glFuncName.equals("eglGetProcAddress")) {
-            return eglGetProcAddressHandle;
-        }
-
-        long addr = EGL.eglGetProcAddress(eglGetProcAddressHandle, glFuncName);
-        if(DEBUG) {
-            if(0!=addr) {
-                System.err.println("Lookup-EGL: <"+glFuncName+"> 0x"+Long.toHexString(addr));
-            }
-        }
-        if(0==addr) {
-            addr = dynamicLookupFunctionOnLibs(glFuncName);
-        }
-        return addr;
-    }
-
     public boolean canCreateContextOnJava2DSurface() {
         return false;
     }
-
-    /*
-
-    // FIXME: this is the OpenGL ES 2 initialization order
-
-    // Initialize everything
-    public void initialize() throws GLException {
-        System.out.println("EGLDrawableFactory.initEGL()");
-        if (!initEGL()) {
-            throw new GLException("EGL init failed");
-        }
-        System.out.println("EGLDrawableFactory.chooseConfig()");
-        if (!chooseConfig()) {
-            throw new GLException("EGL choose config failed");
-        }
-        System.out.println("EGLDrawableFactory.checkDisplay()");
-        if (!checkDisplay()) {
-            throw new GLException("EGL check display failed");
-        }
-        System.out.println("EGLDrawableFactory.checkConfig()");
-        if (!checkConfig()) {
-            throw new GLException("EGL check config failed");
-        }
-        System.out.println("EGLDrawableFactory.createWindow()");
-        if (!createWindow()) {
-            throw new GLException("KD window init failed");
-        }
-        System.out.println("EGLDrawableFactory.setWindowVisible()");
-        setWindowVisible();
-        System.out.println("EGLDrawableFactory.setWindowFullscreen()");
-        setWindowFullscreen();
-        System.out.println("EGLDrawableFactory.realizeWindow()");
-        if (!realizeWindow()) {
-            throw new GLException("EGL/GLES window realize failed");
-        }
-        System.out.println("EGLDrawableFactory.createSurface()");
-        if (!createSurface()) {
-            throw new GLException("EGL create window surface failed");
-        }
-        System.out.println("EGLDrawableFactory.createContext()");
-        if (!createContext()) {
-            throw new GLException("EGL create context failed");
-        }
-        System.out.println("EGLDrawableFactory.makeCurrent()");
-        if (!makeCurrent()) {
-            throw new GLException("EGL make current failed");
-        }
-        System.out.println("EGLDrawableFactory.updateWindowSize()");
-        updateWindowSize();
-    }
-
-    */
-
-    /*
-
-    // FIXME: this is the OpenGL ES 1 initialization order
-
-    // Initialize everything
-    public void initialize() throws GLException {
-        System.out.println("EGLDrawableFactory.initEGL()");
-        if (!initEGL()) {
-            throw new GLException("EGL init failed");
-        }
-        System.out.println("EGLDrawableFactory.chooseConfig()");
-        if (!chooseConfig()) {
-            throw new GLException("EGL choose config failed");
-        }
-        System.out.println("EGLDrawableFactory.checkDisplay()");
-        if (!checkDisplay()) {
-            throw new GLException("EGL check display failed");
-        }
-        System.out.println("EGLDrawableFactory.checkConfig()");
-        if (!checkConfig()) {
-            throw new GLException("EGL check config failed");
-        }
-        System.out.println("EGLDrawableFactory.createContext()");
-        if (!createContext()) {
-            throw new GLException("EGL create context failed");
-        }
-        //
-        // OpenKODE Core window system initialisation.
-        //
-        System.out.println("EGLDrawableFactory.createWindow()");
-        if (!createWindow()) {
-            throw new GLException("KD window init failed");
-        }
-        //        System.out.println("EGLDrawableFactory.setWindowVisible()");
-        //        setWindowVisible();
-        System.out.println("EGLDrawableFactory.setWindowFullscreen()");
-        setWindowFullscreen();
-        System.out.println("EGLDrawableFactory.realizeWindow()");
-        if (!realizeWindow()) {
-            throw new GLException("EGL/GLES window realize failed");
-        }
-        System.out.println("EGLDrawableFactory.createSurface()");
-        if (!createSurface()) {
-            throw new GLException("EGL create window surface failed");
-        }
-        System.out.println("EGLDrawableFactory.makeCurrent()");
-        if (!makeCurrent()) {
-            throw new GLException("EGL make current failed");
-        }
-        System.out.println("EGLDrawableFactory.updateWindowSize()");
-        updateWindowSize();
-    }
-
-    */
-
-    /*
-
-    // Process incoming events -- must be called every frame
-    public void processEvents() {
-        if (shouldExit()) {
-            shutdown();
-        }
-    }
-
-    public void swapBuffers() {
-        swapBuffers0();
-    }
-
-    private native boolean initEGL();
-    private native boolean chooseConfig();
-    private native boolean checkDisplay();
-    private native boolean checkConfig();
-    private native boolean createWindow();
-    private native void    setWindowVisible();
-    private native void    setWindowFullscreen();
-    private native boolean realizeWindow();
-    private native boolean createSurface();
-    private native boolean createContext();
-    private native boolean makeCurrent();
-    private native void    updateWindowSize();
-    private native void    swapBuffers0();
-
-    // Runs the native message loop one step and checks to see if we should exit
-    private native boolean shouldExit();
-    public native void shutdown();
-
-    public void testGetDirectBufferAddress() {
-        java.nio.FloatBuffer buf = com.sun.opengl.impl.InternalBufferUtil.newFloatBuffer(12);
-        int addr = getDirectBufferAddress(buf);
-        System.out.println("Direct FloatBuffer's address: 0x" + Integer.toHexString(addr));
-    }
-    public native int getDirectBufferAddress(java.nio.Buffer buf);
-
-    */
 
     public GLContext createContextOnJava2DSurface(Object graphics, GLContext shareWith)
         throws GLException {

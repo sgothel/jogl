@@ -50,6 +50,13 @@ public class Capabilities implements Cloneable {
   private int     blueBits       = 8;
   private int     alphaBits      = 0;
 
+  // Support for transparent windows containing OpenGL content
+  private boolean backgroundOpaque = true;
+  private int     transparentValueRed = -1;
+  private int     transparentValueGreen = -1;
+  private int     transparentValueBlue = -1;
+  private int     transparentValueAlpha = -1;
+
   /** Creates a Capabilities object. All attributes are in a default
       state.
     */
@@ -61,6 +68,26 @@ public class Capabilities implements Cloneable {
     } catch (CloneNotSupportedException e) {
       throw new NativeWindowException(e);
     }
+  }
+
+  public boolean equals(Object obj) {
+    if(!(obj instanceof Capabilities)) {
+        return false;
+    }
+    Capabilities other = (Capabilities)obj;
+    boolean res = other.getRedBits()==redBits &&
+                  other.getGreenBits()==greenBits &&
+                  other.getBlueBits()==blueBits &&
+                  other.getAlphaBits()==alphaBits &&
+                  other.isBackgroundOpaque()==backgroundOpaque;
+    if(!backgroundOpaque) {
+     res = res && other.getTransparentRedValue()==transparentValueRed &&
+                  other.getTransparentGreenValue()==transparentValueGreen &&
+                  other.getTransparentBlueValue()==transparentValueBlue &&
+                  other.getTransparentAlphaValue()==transparentValueAlpha;
+    }
+
+    return res;
   }
 
   /** Returns the number of bits requested for the color buffer's red
@@ -119,14 +146,114 @@ public class Capabilities implements Cloneable {
     this.alphaBits = alphaBits;
   }
 
+  /** For on-screen OpenGL contexts on some platforms, sets whether
+      the background of the context should be considered opaque. On
+      supported platforms, setting this to false, in conjunction with
+      the transparency values, may allow
+      hardware-accelerated OpenGL content inside of windows of
+      arbitrary shape. To achieve this effect it is necessary to use
+      an OpenGL clear color with an alpha less than 1.0. The default
+      value for this flag is <code>true</code>; setting it to false
+      may incur a certain performance penalty, so it is not
+      recommended to arbitrarily set it to false.<br>
+      If not set already, the transparency values for red, green, blue and alpha
+      are set to their default value, which is half of the value range
+      of the framebuffer's corresponding component,
+      ie <code> redValue = ( 1 << ( redBits - 1 ) ) -1 </code>.
+    */
+  public void setBackgroundOpaque(boolean opaque) {
+    backgroundOpaque = opaque;
+    if(!opaque) {
+        if(transparentValueRed<0)
+            transparentValueRed = ( 1 << ( getRedBits() - 1 ) )  - 1 ;
+        if(transparentValueGreen<0)
+            transparentValueGreen = ( 1 << ( getGreenBits() - 1 ) )  - 1 ;
+        if(transparentValueBlue<0)
+            transparentValueBlue = ( 1 << ( getBlueBits() - 1 ) )  - 1 ;
+        if(transparentValueAlpha<0)
+            transparentValueAlpha = ( 1 << ( getAlphaBits() - 1 ) )  - 1 ;
+    }
+  }
+
+  /** Indicates whether the background of this OpenGL context should
+      be considered opaque. Defaults to true.
+
+      @see #setBackgroundOpaque
+  */
+  public boolean isBackgroundOpaque() {
+    return backgroundOpaque;
+  }
+
+  /** Gets the transparent red value for the frame buffer configuration.
+    * This value is undefined if {@link #isBackgroundOpaque()} equals true.
+    * @see #setTransparentRedValue
+    */
+  public int getTransparentRedValue() { return transparentValueRed; }
+
+  /** Gets the transparent green value for the frame buffer configuration.
+    * This value is undefined if {@link #isBackgroundOpaque()} equals true.
+    * @see #setTransparentGreenValue
+    */
+  public int getTransparentGreenValue() { return transparentValueGreen; }
+
+  /** Gets the transparent blue value for the frame buffer configuration.
+    * This value is undefined if {@link #isBackgroundOpaque()} equals true.
+    * @see #setTransparentBlueValue
+    */
+  public int getTransparentBlueValue() { return transparentValueBlue; }
+
+  /** Gets the transparent alpha value for the frame buffer configuration.
+    * This value is undefined if {@link #isBackgroundOpaque()} equals true.
+    * @see #setTransparentAlphaValue
+    */
+  public int getTransparentAlphaValue() { return transparentValueAlpha; }
+
+  /** Sets the transparent red value for the frame buffer configuration,
+      ranging from 0 to the maximum frame buffer value for red.
+      This value is ignored if {@link #isBackgroundOpaque()} equals true.<br>
+      It defaults to half of the frambuffer value for red. <br>
+      A value of -1 is interpreted as any value. */
+  public void setTransparentRedValue(int transValueRed) { transparentValueRed=transValueRed; }
+
+  /** Sets the transparent green value for the frame buffer configuration,
+      ranging from 0 to the maximum frame buffer value for green.
+      This value is ignored if {@link #isBackgroundOpaque()} equals true.<br>
+      It defaults to half of the frambuffer value for green.<br>
+      A value of -1 is interpreted as any value. */
+  public void setTransparentGreenValue(int transValueGreen) { transparentValueGreen=transValueGreen; }
+
+  /** Sets the transparent blue value for the frame buffer configuration,
+      ranging from 0 to the maximum frame buffer value for blue.
+      This value is ignored if {@link #isBackgroundOpaque()} equals true.<br>
+      It defaults to half of the frambuffer value for blue.<br>
+      A value of -1 is interpreted as any value. */
+  public void setTransparentBlueValue(int transValueBlue) { transparentValueBlue=transValueBlue; }
+
+  /** Sets the transparent alpha value for the frame buffer configuration,
+      ranging from 0 to the maximum frame buffer value for alpha.
+      This value is ignored if {@link #isBackgroundOpaque()} equals true.<br>
+      It defaults to half of the frambuffer value for alpha.<br>
+      A value of -1 is interpreted as any value. */
+  public void setTransparentAlphaValue(int transValueAlpha) { transparentValueAlpha=transValueAlpha; }
+
+
   /** Returns a textual representation of this Capabilities
       object. */ 
   public String toString() {
-    return getClass().toString()+"[" +
-	    "Red: " + redBits +
+    StringBuffer msg = new StringBuffer();
+    msg.append("Capabilities[");
+	msg.append("Red: " + redBits +
 	    ", Green: " + greenBits +
 	    ", Blue: " + blueBits +
 	    ", Alpha: " + alphaBits +
-	    " ]";
+        ", Opaque: " + backgroundOpaque);
+    if(!backgroundOpaque) {
+        msg.append(", Transparent RGBA: [0x"+ Integer.toHexString(transparentValueRed)+
+                   " 0x"+ Integer.toHexString(transparentValueGreen)+
+                   " 0x"+ Integer.toHexString(transparentValueBlue)+
+                   " 0x"+ Integer.toHexString(transparentValueAlpha)+"] ");
+    }
+	msg.append("]");
+    return msg.toString();
   }
 }

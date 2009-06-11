@@ -181,7 +181,7 @@ public abstract class Window implements NativeWindow
         for (Iterator iter = keyListeners.iterator(); iter.hasNext(); ) {
           sb.append(iter.next()+", ");
         }
-        sb.append("]");
+        sb.append("] ]");
         return sb.toString();
     }
 
@@ -189,7 +189,7 @@ public abstract class Window implements NativeWindow
 
     protected AbstractGraphicsConfiguration config;
     protected long   windowHandle;
-    protected boolean locked=false;
+    protected Exception lockedStack = null;
     protected boolean fullscreen, visible;
     protected int width, height, x, y;
     protected int     eventMask;
@@ -220,23 +220,29 @@ public abstract class Window implements NativeWindow
     // NativeWindow impl
     //
 
-    public int lockSurface() throws NativeWindowException {
-        if (locked) {
-          throw new NativeWindowException("Surface already locked");
+    public synchronized int lockSurface() throws NativeWindowException {
+        if (null!=lockedStack) {
+          lockedStack.printStackTrace();
+          throw new NativeWindowException("Surface already locked - "+this);
         }
-        // locked = true;
-        // return LOCK_SUCCESS;
-        return LOCK_NOT_SUPPORTED;
+        lockedStack = new Exception("NEWT-Window previously locked by "+Thread.currentThread().getName());
+        return LOCK_SUCCESS;
     }
 
-    public void unlockSurface() {
-        if (locked) {
-            locked = false;
+    public synchronized void unlockSurface() {
+        if (null!=lockedStack) {
+            lockedStack = null;
+        } else {
+            throw new NativeWindowException("NEWT-Window not locked");
         }
     }
 
-    public boolean isSurfaceLocked() {
-        return locked;
+    public synchronized boolean isSurfaceLocked() {
+        return null!=lockedStack;
+    }
+
+    public synchronized Exception getLockedStack() {
+        return lockedStack;
     }
 
     public synchronized void destroy() {
@@ -258,10 +264,8 @@ public abstract class Window implements NativeWindow
     }
 
     public void invalidate(boolean internal) {
-        unlockSurface();
         screen   = null;
         windowHandle = 0;
-        locked = false;
         fullscreen=false;
         visible=false;
         eventMask = 0;

@@ -67,6 +67,7 @@ public class AWTWindow extends Window {
     private boolean gotDisplaySize;
     private int displayWidth;
     private int displayHeight;
+    private volatile boolean awtCreated=false;
 
     public void setTitle(String title) {
         super.setTitle(title);
@@ -75,28 +76,47 @@ public class AWTWindow extends Window {
         }
     }
 
+    Object syncObj = new Object();
+
     protected void createNative(Capabilities caps) {
         config = GraphicsConfigurationFactory.getFactory(getScreen().getDisplay().getGraphicsDevice()).chooseGraphicsConfiguration(caps, null, getScreen().getGraphicsScreen());
         if (config == null) {
             throw new NativeWindowException("Error choosing GraphicsConfiguration creating window: "+this);
         }
+
         runOnEDT(new Runnable() {
                 public void run() {
-                    frame = new Frame(getTitle());
-                    frame.setUndecorated(isUndecorated());
-                    frame.setLayout(new BorderLayout());
-                    canvas = new Canvas();
-                    Listener listener = new Listener();
-                    canvas.addMouseListener(listener);
-                    canvas.addMouseMotionListener(listener);
-                    canvas.addKeyListener(listener);
-                    canvas.addComponentListener(listener);
-                    frame.add(canvas, BorderLayout.CENTER);
-                    frame.setSize(width, height);
-                    frame.setLocation(x, y);
-                    frame.addComponentListener(new MoveListener());
+                    synchronized (syncObj) {
+                        frame = new Frame(getTitle());
+                        frame.setUndecorated(isUndecorated());
+                        frame.setLayout(new BorderLayout());
+                        canvas = new Canvas( ((AWTGraphicsConfiguration) config).getGraphicsConfiguration() );
+                        Listener listener = new Listener();
+                        canvas.addMouseListener(listener);
+                        canvas.addMouseMotionListener(listener);
+                        canvas.addKeyListener(listener);
+                        canvas.addComponentListener(listener);
+                        frame.add(canvas, BorderLayout.CENTER);
+                        frame.setSize(width, height);
+                        frame.setLocation(x, y);
+                        frame.addComponentListener(new MoveListener());
+                        frame.addWindowListener(new WindowEventListener());
+                        awtCreated=true;
+                        syncObj.notifyAll();
+                    }
                 }
             });
+
+        // make sure we are finished ..
+        while(!awtCreated) {
+            synchronized (syncObj) {
+                if(!awtCreated) {
+                    try {
+                        syncObj.wait();
+                    } catch (InterruptedException e) {}
+                }
+            }
+        }
     }
 
     protected void closeNative() {
@@ -179,6 +199,7 @@ public class AWTWindow extends Window {
                 switch (w.getType()) {
                     case com.sun.javafx.newt.WindowEvent.EVENT_WINDOW_RESIZED:
                     case com.sun.javafx.newt.WindowEvent.EVENT_WINDOW_MOVED:
+                    case com.sun.javafx.newt.WindowEvent.EVENT_WINDOW_DESTROY_NOTIFY:
                         if ((eventMask & com.sun.javafx.newt.EventListener.WINDOW) != 0) {
                             sendWindowEvent(w.getType());
                         }
@@ -358,6 +379,24 @@ public class AWTWindow extends Window {
 
         public void keyTyped(KeyEvent e)  {
             enqueueEvent(com.sun.javafx.newt.KeyEvent.EVENT_KEY_TYPED, e);
+        }
+    }
+
+    class WindowEventListener implements WindowListener {
+        public void windowActivated(WindowEvent e) {
+        }
+        public void windowClosed(WindowEvent e) {
+        }
+        public void windowClosing(WindowEvent e) {
+            enqueueEvent(com.sun.javafx.newt.WindowEvent.EVENT_WINDOW_DESTROY_NOTIFY, null);
+        }
+        public void windowDeactivated(WindowEvent e) {
+        }
+        public void windowDeiconified(WindowEvent e) {
+        }
+        public void windowIconified(WindowEvent e) {
+        }
+        public void windowOpened(WindowEvent e) {
         }
     }
 }

@@ -94,7 +94,7 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
   private void createPbuffer() {
     NullWindow nw = (NullWindow) getNativeWindow();
     DefaultGraphicsConfiguration config = (DefaultGraphicsConfiguration) nw.getGraphicsConfiguration().getNativeGraphicsConfiguration();
-    GLCapabilities capabilities = (GLCapabilities)config.getCapabilities();
+    GLCapabilities capabilities = (GLCapabilities)config.getChosenCapabilities();
     GLProfile glProfile = capabilities.getGLProfile();
     int renderTarget;
     if (glProfile.isGL2() && capabilities.getPbufferRenderToTextureRectangle()) {

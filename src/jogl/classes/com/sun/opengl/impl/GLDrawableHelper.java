@@ -124,6 +124,13 @@ public class GLDrawableHelper {
                        GLContext context,
                        Runnable  runnable,
                        Runnable  initAction) {
+    if(null==context) {
+        if (DEBUG) {
+            Exception e = new GLException(Thread.currentThread().getName()+" GLDrawableHelper " + this + ".invokeGL(): NULL GLContext");
+            e.printStackTrace();
+        }
+        return;
+    }
     // Support for recursive makeCurrent() calls as well as calling
     // other drawables' display() methods from within another one's
     GLContext lastContext    = GLContext.getCurrent();
@@ -145,14 +152,16 @@ public class GLDrawableHelper {
               initAction.run();
             }
         }
-        if (DEBUG && VERBOSE) {
-          System.err.println("GLDrawableHelper " + this + ".invokeGL(): Running runnable");
-        }
-        runnable.run();
-        if (autoSwapBufferMode) {
-          if (drawable != null) {
-            drawable.swapBuffers();
-          }
+        if(null!=runnable) {
+            if (DEBUG && VERBOSE) {
+              System.err.println("GLDrawableHelper " + this + ".invokeGL(): Running runnable");
+            }
+            runnable.run();
+            if (autoSwapBufferMode) {
+              if (drawable != null) {
+                drawable.swapBuffers();
+              }
+            }
         }
       }
     } finally {
@@ -170,4 +179,5 @@ public class GLDrawableHelper {
       }
     }
   }
+
 }

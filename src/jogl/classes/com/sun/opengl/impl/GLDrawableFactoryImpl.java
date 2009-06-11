@@ -51,7 +51,7 @@ import java.lang.reflect.*;
     Independent Bitmaps on Windows, pixmaps on X11). Direct access to
     these GLDrawables is not supplied directly to end users, though
     they may be instantiated by the GLJPanel implementation. */
-public abstract class GLDrawableFactoryImpl extends GLDrawableFactory implements DynamicLookupHelper {
+public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
   protected static final boolean DEBUG = Debug.debug("GLDrawableFactory");
 
   /** Creates a (typically software-accelerated) offscreen GLDrawable
@@ -62,9 +62,6 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory implements
                                                          int width,
                                                          int height);
 
-  /** DynamicLookupHelper: Dynamically looks up the given function. */
-  public abstract long dynamicLookupFunction(String glFuncName);
-
   protected GLDrawableFactoryImpl() {
     super();
   }
@@ -72,8 +69,8 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory implements
   /**
    * Returns the sole GLDrawableFactoryImpl instance.
    *
-   * @arg esProfile GLProfile to determine the EGL factory type,
-   *      maybe null in case of non ES profile, ie GL2 or GL3.
+   * @arg glProfile GLProfile to determine the factory type, ie EGLDrawableFactory,
+   *                or one of the native GLDrawableFactory's, ie X11/GLX, Windows/WGL or MacOSX/CGL.
    */
   public static GLDrawableFactoryImpl getFactoryImpl(GLProfile glp) {
     return (GLDrawableFactoryImpl) getFactory(glp);

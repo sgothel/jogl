@@ -34,11 +34,14 @@ package javax.media.nativewindow;
 
 public class DefaultGraphicsConfiguration implements Cloneable, AbstractGraphicsConfiguration {
     private AbstractGraphicsScreen screen;
-    private Capabilities capabilities;
+    private Capabilities capabilitiesChosen;
+    private Capabilities capabilitiesRequested;
 
-    public DefaultGraphicsConfiguration(AbstractGraphicsScreen screen, Capabilities caps) {
+    public DefaultGraphicsConfiguration(AbstractGraphicsScreen screen, 
+                                        Capabilities capsChosen, Capabilities capsRequested) {
         this.screen = screen;
-        this.capabilities = caps;
+        this.capabilitiesChosen = capsChosen;
+        this.capabilitiesRequested = capsRequested;
     }
 
     public Object clone() {
@@ -53,8 +56,12 @@ public class DefaultGraphicsConfiguration implements Cloneable, AbstractGraphics
         return screen;
     }
 
-    public Capabilities getCapabilities() {
-        return (Capabilities)capabilities.clone();
+    public Capabilities getChosenCapabilities() {
+        return (Capabilities)capabilitiesChosen.clone();
+    }
+
+    public Capabilities getRequestedCapabilities() {
+        return (Capabilities)capabilitiesRequested.clone();
     }
 
     public AbstractGraphicsConfiguration getNativeGraphicsConfiguration() {
@@ -63,17 +70,31 @@ public class DefaultGraphicsConfiguration implements Cloneable, AbstractGraphics
 
     /**
      * Set the capabilities to a new value.
-     * Despite the architecture's goal to gather this data upfront,
-     * on some platforms we can gather the info only after the window creation..
-     * However, if you can, please use {@link GraphicsConfigurationFactory GraphicsConfigurationFactory}.
+     *
+     * The use case for setting the Capabilities at a later time is
+     * a change of the graphics device in a multi-screen environment.<br>
+     *
+     * A copy of the passed object is being used.
      *
      * @see javax.media.nativewindow.GraphicsConfigurationFactory#chooseGraphicsConfiguration(Capabilities, CapabilitiesChooser, AbstractGraphicsScreen)
      */
-    protected void setCapabilities(Capabilities caps) {
-        capabilities = (Capabilities) caps.clone();
+    protected void setChosenCapabilities(Capabilities capsChosen) {
+        capabilitiesChosen = (Capabilities) capsChosen.clone();
+    }
+
+    /**
+     * Set a new screen.
+     *
+     * the use case for setting a new screen at a later time is
+     * a change of the graphics device in a multi-screen environment.<br>
+     *
+     * A copy of the passed object is being used.
+     */
+    protected void setScreen(DefaultGraphicsScreen screen) {
+        this.screen = (AbstractGraphicsScreen) screen.clone();
     }
 
     public String toString() {
-        return getClass().toString()+"[" + screen +", "+ capabilities +"]";
+        return getClass().toString()+"[" + screen +", "+ capabilitiesChosen +"]";
     }
 }

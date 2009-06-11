@@ -46,8 +46,9 @@ import javax.media.nativewindow.*;
 import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
 import com.sun.nativewindow.impl.*;
+import com.sun.gluegen.runtime.DynamicLookupHelper;
 
-public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
+public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl implements DynamicLookupHelper {
   public MacOSXCGLDrawableFactory() {
     super();
 

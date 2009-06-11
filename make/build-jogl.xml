@@ -73,7 +73,7 @@
 <project name="JOGL" basedir="." default="all">
 
   <!-- This is the version of JOGL you are building -->
-  <property name="base_version" value="1.1.1-rc8"/>
+  <property name="base_version" value="1.2.0-rc1"/>
     
   <!-- Uncomment this property definition to cause a full release build to be done -->
   <!-- without needing to specify the RI target on the command line  -->
@@ -489,7 +489,7 @@
         <property name="javadoc.dev" value="${project.root}/javadoc_jogl_dev" />
         <property name="javadoc.link" value="http://java.sun.com/j2se/1.4.2/docs/api/" />
         <property name="javadoc.windowtitle" value="JOGL API -- JSR-231 ${base_version} Specification" />
-        <property name="javadoc.overview" value="spec-overview.html" />
+        <property name="javadoc.overview" value="doc/jogl/spec-overview.html" />
         <property name="javadoc.spec.packagenames" value="javax.media.opengl.*" />
 
         <property name="javadoc.packagenames" value="${javadoc.spec.packagenames},com.sun.opengl.util.*" />
@@ -1806,7 +1806,7 @@
        -        errors, ensure that the source is built first.
       -->
     <target name="javadoc.nocg" depends="load.user.properties,init" unless="jogl.cg">
-        <!-- Build the general Javadoc -->
+        <!-- Build the general public Javadoc -->
         <javadoc packagenames="${javadoc.packagenames}"
                  excludepackagenames="${java.excludes.javadoc.packagenames}"
                  sourcepath="${src.java};${src.generated.java}"        
@@ -1822,7 +1822,7 @@
 
     <!-- Same as above but with Cg directories added -->
     <target name="javadoc.cg" depends="load.user.properties,init" if="jogl.cg">
-        <!-- Build the general Javadoc -->
+        <!-- Build the general public Javadoc with CG -->
         <javadoc packagenames="${javadoc.packagenames},com.sun.opengl.cg"
                  excludepackagenames="${java.excludes.javadoc.packagenames}"
                  sourcepath="${src.java};${src.generated.java}"        
@@ -1839,7 +1839,7 @@
     <target name="javadoc" depends="javadoc.nocg,javadoc.cg" />
 
     <target name="javadoc.spec.nocg" depends="load.user.properties,init" unless="jogl.cg">
-        <!-- Build the general Javadoc -->
+        <!-- Build the specification Javadoc -->
         <javadoc packagenames="${javadoc.spec.packagenames}"
                  excludepackagenames="${java.excludes.javadoc.packagenames}"
                  sourcepath="${src.java};${src.generated.java}"
@@ -1855,7 +1855,7 @@
                                                                                                                                    
     <!-- Same as above since Cg directories are not part of spec -->
     <target name="javadoc.spec.cg" depends="load.user.properties,init" if="jogl.cg">
-        <!-- Build the general Javadoc -->
+        <!-- Build the specification Javadoc with CG -->
         <javadoc packagenames="${javadoc.spec.packagenames}"
                  excludepackagenames="${java.excludes.javadoc.packagenames}"
                  sourcepath="${src.java};${src.generated.java}"

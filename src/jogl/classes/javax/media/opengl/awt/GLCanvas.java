@@ -48,7 +48,6 @@ import com.sun.opengl.impl.*;
 import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.EventQueue;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.GraphicsConfiguration;
@@ -87,6 +86,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
   private GraphicsConfiguration chosen;
   private AWTGraphicsConfiguration awtConfig;
   private GLCapabilitiesChooser glCapChooser;
+  private GLContext shareWithContext;
 
   /** Creates a new GLCanvas component with a default set of OpenGL
       capabilities, using the default OpenGL capabilities selection
@@ -134,6 +134,15 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
     }
     glProfile = capabilities.getGLProfile();
 
+    // FIXME: all this shall move to addNotify(), 
+    //        since only there a GraphicsConfiguration is available ..
+    if(null==device) {
+        GraphicsConfiguration gc = super.getGraphicsConfiguration();
+        if(null!=gc) {
+            device = gc.getDevice();
+        }
+    }
+
     /*
      * Save the chosen capabilities for use in getGraphicsConfiguration().
      */
@@ -152,13 +161,14 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
        * save these for later use in getGraphicsConfiguration().
        */
       this.glCapChooser = chooser;
+      this.shareWithContext=shareWith;
     }
     if (!Beans.isDesignTime()) {
       if(null==awtConfig) {
           throw new GLException("Error: AWTGraphicsConfiguration is null");
       }
-      drawable = GLDrawableFactory.getFactory(awtConfig).createGLDrawable(NativeWindowFactory.getNativeWindow(this, awtConfig));
-      context = (GLContextImpl) drawable.createContext(shareWith);
+      drawable = GLDrawableFactory.getFactory(glProfile).createGLDrawable(NativeWindowFactory.getNativeWindow(this, awtConfig));
+      context = (GLContextImpl) drawable.createContext(shareWithContext);
       context.setSynchronized(true);
     }
     if(DEBUG) {
@@ -245,8 +255,14 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
          * block, both devices should have the same visual list, and the
          * same configuration should be selected here.
          */
-        AWTGraphicsConfiguration config = chooseGraphicsConfiguration((GLCapabilities)awtConfig.getCapabilities(), glCapChooser, gc.getDevice());
+        AWTGraphicsConfiguration config = chooseGraphicsConfiguration((GLCapabilities)awtConfig.getRequestedCapabilities(), glCapChooser, gc.getDevice());
         final GraphicsConfiguration compatible = (null!=config)?config.getGraphicsConfiguration():null;
+        if(DEBUG) {
+            System.err.println("!!! Created Config (n): HAVE    GC "+gc);
+            System.err.println("!!! Created Config (n): Choosen GC "+compatible);
+            System.err.println("!!! Created Config (n): Choosen CF "+config);
+            System.err.println("!!! Created Config (n): EQUALS CAPS "+config.getChosenCapabilities().equals(awtConfig.getChosenCapabilities()));
+        }
 
         if (compatible != null) {
           /*
@@ -254,7 +270,15 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
            * any outside callers of this method.
            */
           chosen = compatible;
-          awtConfig = config; // FIXME: ??
+          /**
+           * FIXME: On Windows: I get a JAWT_LOCK_ERROR in the WindowsJAWTWindow.lock() .. funny,
+           *        is it because the AWT holds the lock while updating the context on a display change? 
+           *        This failure doesn't happen all times, but sometimes .. sync problem ?
+          if( !config.getChosenCapabilities().equals(awtConfig.getChosenCapabilities())) {
+              dispose(true);
+          } 
+          */
+          awtConfig = config;
         }
       }
 
@@ -303,6 +327,36 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
                         public void destroyMethod() { destroy(); } });
         }
       }
+    }
+  }
+
+  public void dispose(boolean regenerate) {
+    if(DEBUG) {
+        Exception ex1 = new Exception("dispose("+regenerate+") - start");
+        ex1.printStackTrace();
+    }
+    disposeRegenerate=regenerate;
+
+    if (Threading.isSingleThreaded() &&
+        !Threading.isOpenGLThread()) {
+      // Workaround for termination issues with applets --
+      // sun.applet.AppletPanel should probably be performing the
+      // remove() call on the EDT rather than on its own thread
+      if (Threading.isAWTMode() &&
+          Thread.holdsLock(getTreeLock())) {
+        // The user really should not be invoking remove() from this
+        // thread -- but since he/she is, we can not go over to the
+        // EDT at this point. Try to destroy the context from here.
+        drawableHelper.invokeGL(drawable, context, disposeAction, null);
+      } else {
+        Threading.invokeOnOpenGLThread(disposeOnEventDispatchThreadAction);
+      }
+    } else {
+      drawableHelper.invokeGL(drawable, context, disposeAction, null);
+    }
+
+    if(DEBUG) {
+        System.err.println("dispose("+regenerate+") - stop");
     }
   }
 
@@ -373,33 +427,13 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
         Exception ex1 = new Exception("removeNotify - start");
         ex1.printStackTrace();
     }
-    drawableHelper.invokeGL(drawable, context, disposeAction, null);
 
     if (Beans.isDesignTime()) {
       super.removeNotify();
     } else {
       try {
-        if (Threading.isSingleThreaded() &&
-            !Threading.isOpenGLThread()) {
-          // Workaround for termination issues with applets --
-          // sun.applet.AppletPanel should probably be performing the
-          // remove() call on the EDT rather than on its own thread
-          if (Threading.isAWTMode() &&
-              Thread.holdsLock(getTreeLock())) {
-            // The user really should not be invoking remove() from this
-            // thread -- but since he/she is, we can not go over to the
-            // EDT at this point. Try to destroy the context from here.
-            destroyAction.run();
-          } else {
-            Threading.invokeOnOpenGLThread(destroyAction);
-          }
-        } else {
-          destroyAction.run();
-        }
+        dispose(false);
       } finally {
-        if(null!=drawable) {
-            drawable.setRealized(false);
-        }
         drawable=null;
         super.removeNotify();
       }
@@ -474,15 +508,23 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
   }
 
   public GLProfile getGLProfile() {
-    return getGLCapabilities().getGLProfile();
+    return glProfile;
   }
 
-  public GLCapabilities getGLCapabilities() {
+  public GLCapabilities getChosenGLCapabilities() {
     if (awtConfig == null) {
         throw new GLException("No AWTGraphicsConfiguration: "+this);
     }
 
-    return (GLCapabilities)awtConfig.getCapabilities();
+    return (GLCapabilities)awtConfig.getChosenCapabilities();
+  }
+
+  public GLCapabilities getRequestedGLCapabilities() {
+    if (awtConfig == null) {
+        throw new GLException("No AWTGraphicsConfiguration: "+this);
+    }
+
+    return (GLCapabilities)awtConfig.getRequestedCapabilities();
   }
 
   public NativeWindow getNativeWindow() {
@@ -501,13 +543,6 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
   // Internals only below this point
   //
 
-  class DisposeAction implements Runnable {
-    public void run() {
-      drawableHelper.dispose(GLCanvas.this);
-    }
-  }
-  private DisposeAction disposeAction = new DisposeAction();
-
   private void maybeDoSingleThreadedWorkaround(Runnable eventDispatchThreadAction,
                                                Runnable invokeGLAction) {
     if (Threading.isSingleThreaded() &&
@@ -515,6 +550,40 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
       Threading.invokeOnOpenGLThread(eventDispatchThreadAction);
     } else {
       drawableHelper.invokeGL(drawable, context, invokeGLAction, initAction);
+    }
+  }
+
+  private boolean disposeRegenerate;
+  private DisposeAction disposeAction = new DisposeAction();
+
+  class DisposeAction implements Runnable {
+    public void run() {
+      drawableHelper.dispose(GLCanvas.this);
+
+      if(null!=context) {
+        context.makeCurrent(); // implicit wait for lock ..
+        context.destroy();
+        context=null;
+      }
+
+      if(null!=drawable) {
+          drawable.setRealized(false);
+      }
+
+      if(disposeRegenerate && null!=drawable) {
+          drawable.setRealized(true);
+          context = (GLContextImpl) drawable.createContext(shareWithContext);
+          context.setSynchronized(true);
+      }
+    }
+  }
+
+  private DisposeOnEventDispatchThreadAction disposeOnEventDispatchThreadAction =
+    new DisposeOnEventDispatchThreadAction();
+
+  class DisposeOnEventDispatchThreadAction implements Runnable {
+    public void run() {
+      drawableHelper.invokeGL(drawable, context, disposeAction, null);
     }
   }
 
@@ -566,24 +635,6 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
   }
   private SwapBuffersOnEventDispatchThreadAction swapBuffersOnEventDispatchThreadAction =
     new SwapBuffersOnEventDispatchThreadAction();
-
-  class DestroyAction implements Runnable {
-    public void run() {
-      if(DEBUG) {
-        Exception ex1 = new Exception("DestroyAction - start");
-        ex1.printStackTrace();
-      }
-      GLContext current = GLContext.getCurrent();
-      if(null!=current) {
-          context.destroy();
-          context = null;
-      }
-      if(DEBUG) {
-        System.out.println("DestroyAction - end");
-      }
-    }
-  }
-  private DestroyAction destroyAction = new DestroyAction();
 
   // Disables the AWT's erasing of this Canvas's background on Windows
   // in Java SE 6. This internal API is not available in previous

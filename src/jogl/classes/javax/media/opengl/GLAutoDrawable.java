@@ -50,8 +50,16 @@ import javax.media.opengl.glu.*;
     calls to {@link GLContext#makeCurrent makeCurrent} will block if
     the context is current on another thread. This allows the internal
     GLContext for the GLAutoDrawable to be used both by the event
-    based rendering mechanism as well by end users directly. */
+    based rendering mechanism as well by end users directly.<p>
 
+    The implementation shall initialize itself as soon as possible,
+    ie if an attached window is become visible.
+    The it shall call {@link GLDrawable#setRealized setRealized(true)}
+    and create the GLContext.
+    The followup {@link #display display} call will ensure that all
+    {@link GLEventListener#init init} calls for
+    registered {@link GLEventListener}s will be made.
+  */
 public interface GLAutoDrawable extends GLDrawable {
   /**
    * Returns the context associated with this drawable. The returned
@@ -77,7 +85,24 @@ public interface GLAutoDrawable extends GLDrawable {
       during this update cycle. */
   public void removeGLEventListener(GLEventListener listener);
 
-  /** Destroys all resources associated with this GLAutoDrawable.
+  /** Destroys the GLContext associated with this GLAutoDrawable. 
+      Causes disposing of all OpenGL resources
+      by calling {@link GLEventListener#dispose dispose} for all
+      registered {@link GLEventListener}s,
+      and then destroys the GLContext.
+      The implementation shall also call {@link GLDrawable#setRealized setRealized(false)}
+      to notify GLDrawable.<p>
+
+      If the argument <code>regenerate</code> is true,
+      the implementation shall call {@link GLDrawable#setRealized setRealized(true)}
+      and create a new GLContext.
+      The followup {@link #display display} call will ensure that all
+      {@link GLEventListener#init init} calls for
+      registered {@link GLEventListener}s will be made.*/
+  public void dispose(boolean regenerate);
+
+  /** Destroys all resources associated with this GLAutoDrawable,
+      inclusive the GLContext.
       If a window is attached to it's implementation, it shall be closed.
       Causes disposing of all OpenGL resources
       by calling {@link GLEventListener#dispose dispose} for all
@@ -93,7 +118,11 @@ public interface GLAutoDrawable extends GLDrawable {
       routine may be called manually for better control over the
       rendering process. It is legal to call another GLAutoDrawable's
       display method from within the {@link GLEventListener#display
-      display} callback. */
+      display} callback.<p>
+      In case of a new generated OpenGL context, 
+      the implementation shall call {@link GLEventListener#init init} for all
+      registered {@link GLEventListener}s <i>before</i> making the 
+      actual {@link GLEventListener#display display} calls.*/
   public void display();
 
   /** Enables or disables automatic buffer swapping for this drawable.

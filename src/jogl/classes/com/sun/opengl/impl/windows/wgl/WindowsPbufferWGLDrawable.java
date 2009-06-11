@@ -132,7 +132,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
     int     width, height;
 
     WindowsWGLGraphicsConfiguration config = (WindowsWGLGraphicsConfiguration) getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration();
-    GLCapabilities capabilities = (GLCapabilities)config.getCapabilities();
+    GLCapabilities capabilities = (GLCapabilities)config.getRequestedCapabilities();
     GLProfile glProfile = capabilities.getGLProfile();
 
     if (DEBUG) {

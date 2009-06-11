@@ -157,11 +157,18 @@ public class GLPbufferImpl implements GLPbuffer {
     context.releasePbufferFromTexture();
   }
 
-  public GLCapabilities getGLCapabilities() {
+  public GLCapabilities getChosenGLCapabilities() {
     if (pbufferDrawable == null)
       return null;
 
-    return pbufferDrawable.getGLCapabilities();
+    return pbufferDrawable.getChosenGLCapabilities();
+  }
+
+  public GLCapabilities getRequestedGLCapabilities() {
+    if (pbufferDrawable == null)
+      return null;
+
+    return pbufferDrawable.getRequestedGLCapabilities();
   }
 
   public GLProfile getGLProfile() {
@@ -217,7 +224,13 @@ public class GLPbufferImpl implements GLPbuffer {
                                            PropertyChangeListener listener) {}
                                            */
 
+  public void dispose(boolean regenerate) {
+    // Offscreen ..
+    // FIXME: action required ?
+  }
+
   public void destroy() {
+    // FIXME: not calling event listeners ..
     if (Threading.isSingleThreaded() &&
         !Threading.isOpenGLThread()) {
       Threading.invokeOnOpenGLThread(destroyAction);
@@ -291,11 +304,9 @@ public class GLPbufferImpl implements GLPbuffer {
 
   class DestroyAction implements Runnable {
     public void run() {
-      GLContext current = GLContext.getCurrent();
-      if (current == context) {
-        context.release();
+      if (null != context) {
+          context.destroy();
       }
-      context.destroy();
       pbufferDrawable.destroy();
     }
   }

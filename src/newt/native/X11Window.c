@@ -526,7 +526,7 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_x11_X11Window_DispatchMessages
             case Expose:
                 if(evt.xexpose.window==w) {
                     DBG_PRINT( "event . Expose call 0x%X\n", evt.xexpose.window);
-                    (*env)->CallVoidMethod(env, obj, sizeChangedID, (jint) evt.xexpose.width, (jint) evt.xexpose.height);
+                    /* FIXME: Might want to send a repaint event .. */
                 }
                 break;
             case UnmapNotify:

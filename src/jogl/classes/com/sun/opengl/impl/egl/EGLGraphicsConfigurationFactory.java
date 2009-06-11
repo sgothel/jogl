@@ -46,8 +46,7 @@ import com.sun.opengl.impl.*;
     GraphicsDevice and GraphicsConfiguration abstractions. */
 
 public class EGLGraphicsConfigurationFactory extends GraphicsConfigurationFactory {
-    // Keep this under the same debug flag as the drawable factory for convenience
-    protected static final boolean DEBUG = com.sun.opengl.impl.Debug.debug("EGLDrawableFactory");
+    protected static final boolean DEBUG = GraphicsConfigurationFactory.DEBUG || com.sun.opengl.impl.Debug.debug("EGL");
 
     public EGLGraphicsConfigurationFactory() {
         // become the selector for KD/EGL ..
@@ -71,18 +70,14 @@ public class EGLGraphicsConfigurationFactory extends GraphicsConfigurationFactor
             throw new IllegalArgumentException("This NativeWindowFactory accepts only GLCapabilitiesChooser objects");
         }
 
-        if (chooser == null) {
-            chooser = new DefaultGLCapabilitiesChooser();
-        }
-
         return chooseGraphicsConfigurationStatic((GLCapabilities) capabilities,
                                                  (GLCapabilitiesChooser) chooser,
-                                                 absScreen);
+                                                 absScreen, EGL.EGL_WINDOW_BIT);
     }
 
     public static EGLGraphicsConfiguration chooseGraphicsConfigurationStatic(GLCapabilities capabilities,
                                                                              GLCapabilitiesChooser chooser,
-                                                                             AbstractGraphicsScreen absScreen) {
+                                                                             AbstractGraphicsScreen absScreen, int eglSurfaceType) {
         if (capabilities == null) {
             capabilities = new GLCapabilities(null);
         }
@@ -102,12 +97,16 @@ public class EGLGraphicsConfigurationFactory extends GraphicsConfigurationFactor
             throw new GLException("Invalid EGL display: "+absDevice);
         }
 
-        EGLGraphicsConfiguration res = eglChooseConfig(eglDisplay, capabilities, absScreen);
+        EGLGraphicsConfiguration res = eglChooseConfig(eglDisplay, capabilities, capabilities, chooser, absScreen, eglSurfaceType);
         if(null!=res) {
             return res;
         }
         if(DEBUG) {
-            System.err.println("eglChooseConfig failed with given capabilities");
+            System.err.println("eglChooseConfig failed with given capabilities surfaceType 0x"+Integer.toHexString(eglSurfaceType)+", "+capabilities);
+        }
+
+        if (chooser == null) {
+            chooser = new DefaultGLCapabilitiesChooser();
         }
 
         _EGLConfig[] configs = new _EGLConfig[10];
@@ -133,12 +132,12 @@ public class EGLGraphicsConfigurationFactory extends GraphicsConfigurationFactor
         if(DEBUG) {
             System.err.println("Choosen "+caps[chosen]);
         }
-        res = eglChooseConfig(eglDisplay, caps[chosen], absScreen);
+        res = eglChooseConfig(eglDisplay, caps[chosen], capabilities, chooser, absScreen, eglSurfaceType);
         if(null!=res) {
             return res;
         }
         if(DEBUG) {
-            System.err.println("eglChooseConfig failed with eglGetConfig/choosen capabilities");
+            System.err.println("eglChooseConfig failed with eglGetConfig/choosen capabilities surfaceType 0x"+Integer.toHexString(eglSurfaceType));
         }
 
         // Last try .. add a fixed embedded profile [ATI, Nokia, ..]
@@ -153,24 +152,25 @@ public class EGLGraphicsConfigurationFactory extends GraphicsConfigurationFactor
             System.err.println("trying fixed caps: "+fixedCaps);
         }
 
-        res = eglChooseConfig(eglDisplay, fixedCaps, absScreen);
+        res = eglChooseConfig(eglDisplay, fixedCaps, capabilities, chooser, absScreen, eglSurfaceType);
         if(null==res) {
             throw new GLException("Graphics configuration failed [direct caps, eglGetConfig/chooser and fixed-caps]");
         }
         return res;
     }
 
-    protected static EGLGraphicsConfiguration eglChooseConfig(long eglDisplay, GLCapabilities capabilities,
-                                                              AbstractGraphicsScreen absScreen) {
-        GLProfile glp = capabilities.getGLProfile();
-        int[] attrs = EGLGraphicsConfiguration.GLCapabilities2AttribList(capabilities);
+    protected static EGLGraphicsConfiguration eglChooseConfig(long eglDisplay, 
+                                                              GLCapabilities capsChoosen0, GLCapabilities capsRequested, GLCapabilitiesChooser chooser,
+                                                              AbstractGraphicsScreen absScreen, int eglSurfaceType) {
+        GLProfile glp = capsChoosen0.getGLProfile();
+        int[] attrs = EGLGraphicsConfiguration.GLCapabilities2AttribList(capsChoosen0, eglSurfaceType);
         _EGLConfig[] configs = new _EGLConfig[10];
         int[] numConfigs = new int[1];
         if (!EGL.eglChooseConfig(eglDisplay,
                                  attrs, 0,
                                  configs, configs.length,
                                  numConfigs, 0)) {
-            throw new GLException("Graphics configuration selection (eglChooseConfig) failed for "+capabilities);
+            throw new GLException("Graphics configuration selection (eglChooseConfig) failed for surfaceType 0x"+Integer.toHexString(eglSurfaceType)+", "+capsChoosen0);
         }
         if (numConfigs[0] > 0) {
             if(DEBUG) {
@@ -182,16 +182,16 @@ public class EGLGraphicsConfigurationFactory extends GraphicsConfigurationFactor
             if(!EGL.eglGetConfigAttrib(eglDisplay, configs[0], EGL.EGL_CONFIG_ID, val, 0)) {
                 if(DEBUG) {
                     // FIXME: this happens on a ATI PC Emulation ..
-                    System.err.println("EGL couldn't retrieve ConfigID for already chosen eglConfig "+capabilities+", error 0x"+Integer.toHexString(EGL.eglGetError()));
+                    System.err.println("EGL couldn't retrieve ConfigID for already chosen eglConfig "+capsChoosen0+", error 0x"+Integer.toHexString(EGL.eglGetError()));
                 }
                 val[0]=0;
             }
-            GLCapabilities resCaps = EGLGraphicsConfiguration.EGLConfig2Capabilities(glp, eglDisplay, configs[0]);
+            GLCapabilities capsChoosen1 = EGLGraphicsConfiguration.EGLConfig2Capabilities(glp, eglDisplay, configs[0]);
             if(DEBUG) {
-                System.err.println("eglChooseConfig found: "+capabilities+" -> "+resCaps);
+                System.err.println("eglChooseConfig found: surfaceType 0x"+Integer.toHexString(eglSurfaceType)+", "+capsChoosen0+" -> "+capsChoosen1);
             }
 
-            return new EGLGraphicsConfiguration(absScreen, resCaps, configs[0], val[0]);
+            return new EGLGraphicsConfiguration(absScreen, capsChoosen1, capsRequested, chooser, configs[0], val[0]);
         }
         return null;
     }

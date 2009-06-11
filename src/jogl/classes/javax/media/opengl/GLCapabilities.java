@@ -41,11 +41,17 @@ package javax.media.opengl;
 
 import javax.media.nativewindow.Capabilities;
 
-/** Specifies a set of OpenGL capabilities that a rendering context
-    must support, such as color depth and whether stereo is enabled.
+/** Specifies a set of OpenGL capabilities.<br>
+    At creation time of a {@link GLDrawable} using {@link GLDrawableFactory},
+    an instance of this class is passed,
+    describing the desired capabilities that a rendering context
+    must support, such as the OpenGL profile, color depth and whether stereo is enabled.<br>
+
+    The actual capabilites of created {@link GLDrawable}s are then reflected by their own
+    GLCapabilites instance, which can be queried with {@link GLDrawable#getGLCapabilities()}.<br>
+
     It currently contains the minimal number of routines which allow
     configuration on all supported window systems. */
-
 public class GLCapabilities extends Capabilities implements Cloneable {
   private GLProfile glProfile = null;
   private boolean doubleBuffered = true;
@@ -63,10 +69,6 @@ public class GLCapabilities extends Capabilities implements Cloneable {
   // Support for full-scene antialiasing (FSAA)
   private boolean sampleBuffers = false;
   private int     numSamples    = 2;
-
-  // Support for transparent windows containing OpenGL content
-  // (currently only has an effect on Mac OS X)
-  private boolean backgroundOpaque = true;
 
   // Bits for pbuffer creation
   private boolean pbufferFloatingPointBuffers;
@@ -86,6 +88,32 @@ public class GLCapabilities extends Capabilities implements Cloneable {
     } catch (RuntimeException e) {
       throw new GLException(e);
     }
+  }
+
+  public boolean equals(Object obj) {
+    if(!(obj instanceof GLCapabilities)) {
+        return false;
+    }
+    GLCapabilities other = (GLCapabilities)obj;
+    boolean res = super.equals(obj) &&
+                  other.getGLProfile()==glProfile &&
+                  other.getDoubleBuffered()==doubleBuffered &&
+                  other.getStereo()==stereo &&
+                  other.getHardwareAccelerated()==hardwareAccelerated &&
+                  other.getDepthBits()==depthBits &&
+                  other.getStencilBits()==stencilBits &&
+                  other.getAccumRedBits()==accumRedBits &&
+                  other.getAccumGreenBits()==accumGreenBits &&
+                  other.getAccumBlueBits()==accumBlueBits &&
+                  other.getAccumAlphaBits()==accumAlphaBits &&
+                  other.getSampleBuffers()==sampleBuffers &&
+                  other.getPbufferFloatingPointBuffers()==pbufferFloatingPointBuffers &&
+                  other.getPbufferRenderToTexture()==pbufferRenderToTexture &&
+                  other.getPbufferRenderToTextureRectangle()==pbufferRenderToTextureRectangle;
+    if(sampleBuffers) {
+        res = res && other.getNumSamples()==numSamples;
+    }
+    return res;
   }
 
   /** Returns the GL profile you desire or used by the drawable. */
@@ -275,35 +303,13 @@ public class GLCapabilities extends Capabilities implements Cloneable {
     return pbufferRenderToTextureRectangle;
   }
 
-  /** For on-screen OpenGL contexts on some platforms, sets whether
-      the background of the context should be considered opaque. On
-      supported platforms, setting this to false, in conjunction with
-      other changes at the window toolkit level, can allow
-      hardware-accelerated OpenGL content inside of windows of
-      arbitrary shape. To achieve this effect it is necessary to use
-      an OpenGL clear color with an alpha less than 1.0. The default
-      value for this flag is <code>true</code>; setting it to false
-      may incur a certain performance penalty, so it is not
-      recommended to arbitrarily set it to false. */
-  public void setBackgroundOpaque(boolean opaque) {
-    backgroundOpaque = opaque;
-  }
-
-  /** Indicates whether the background of this OpenGL context should
-      be considered opaque. Defaults to true.
-
-      @see #setBackgroundOpaque
-  */
-  public boolean isBackgroundOpaque() {
-    return backgroundOpaque;
-  }
-
   /** Returns a textual representation of this GLCapabilities
       object. */ 
   public String toString() {
-    return getClass().toString()+"[" +
-        super.toString()+
-        ", GL profile: " + glProfile +
+    StringBuffer msg = new StringBuffer();
+    msg.append("GLCapabilities[");
+    msg.append(super.toString());
+    msg.append(", GL profile: " + glProfile +
         ", DoubleBuffered: " + doubleBuffered +
 	    ", Stereo: " + stereo + 
         ", HardwareAccelerated: " + hardwareAccelerated +
@@ -314,11 +320,10 @@ public class GLCapabilities extends Capabilities implements Cloneable {
 	    ", Blue Accum: " + accumBlueBits +
 	    ", Alpha Accum: " + accumAlphaBits +
         ", Multisample: " + sampleBuffers +
-        ", Num samples: "+(sampleBuffers ? numSamples : 0) +
-        ", Opaque: " + backgroundOpaque +
-        ", PBuffer-FloatingPointBuffers: "+pbufferFloatingPointBuffers+
+        ", Num samples: "+(sampleBuffers ? numSamples : 0));
+    msg.append(", PBuffer-FloatingPointBuffers: "+pbufferFloatingPointBuffers+
         ", PBuffer-RenderToTexture: "+pbufferRenderToTexture+
-        ", PBuffer-RenderToTextureRectangle: "+pbufferRenderToTextureRectangle+
-	    " ]";
+        ", PBuffer-RenderToTextureRectangle: "+pbufferRenderToTextureRectangle+ "]");
+    return msg.toString();
   }
 }

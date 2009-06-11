@@ -119,7 +119,13 @@ public interface GLDrawable {
    * component. <code>setRealized</code> allows the
    * <code>GLDrawable</code> to re-initialize and destroy any
    * associated resources as the component becomes realized and
-   * unrealized, respectively.
+   * unrealized, respectively.<br><br>
+   * The minimum implementation shall at least call 
+   * {@link NativeWindow#lockSurface() NativeWindow.lockSurface()} and if successfull 
+   * release it with {@link NativeWindow#unlockSurface() NativeWindow.unlockSurface()}
+   * in case realized is true.
+   * This is important since this resolve the window/surface handles,
+   * which are assumed to be present after <code>setRealized(true)</code>.
    *
    * <P>
    *
@@ -144,13 +150,13 @@ public interface GLDrawable {
   public void swapBuffers() throws GLException;
 
   /** Fetches the {@link GLCapabilities} corresponding to the chosen
-      OpenGL capabilities (pixel format / visual / GLProfile) for this drawable.
+      OpenGL capabilities (pixel format / visual / GLProfile) for this drawable.<br>
       On some platforms, the pixel format is not directly associated
       with the drawable; a best attempt is made to return a reasonable
-      value in this case. 
-      Returns a copy of the queried object.
+      value in this case. <br>
+      @return A copy of the queried object.
     */
-  public GLCapabilities getGLCapabilities();
+  public GLCapabilities getChosenGLCapabilities();
 
   /** Fetches the {@link GLProfile} for this drawable.
       Returns the GLProfile object, no copy.

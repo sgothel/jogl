@@ -45,8 +45,9 @@ import javax.media.nativewindow.*;
 import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
 import com.sun.nativewindow.impl.NWReflection;
+import com.sun.gluegen.runtime.DynamicLookupHelper;
 
-public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
+public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl implements DynamicLookupHelper {
   private static final boolean VERBOSE = Debug.verbose();
 
   // Handle to GLU32.dll

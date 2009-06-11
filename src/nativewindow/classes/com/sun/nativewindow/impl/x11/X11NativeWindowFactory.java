@@ -67,6 +67,7 @@ public class X11NativeWindowFactory extends NativeWindowFactoryImpl {
                     return;
                 }
                 owner = null;
+                notifyAll();
             }
         };
 

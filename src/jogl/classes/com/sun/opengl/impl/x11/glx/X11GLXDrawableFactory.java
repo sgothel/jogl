@@ -51,7 +51,7 @@ import com.sun.nativewindow.impl.NWReflection;
 import com.sun.nativewindow.impl.x11.*;
 import com.sun.nativewindow.impl.jawt.x11.*;
 
-public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
+public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements DynamicLookupHelper {
   public X11GLXDrawableFactory() {
     super();
     // Must initialize GLX support eagerly in case a pbuffer is the

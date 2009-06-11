@@ -132,7 +132,7 @@ public abstract class X11GLXContext extends GLContextImpl {
     if(DEBUG) {
           System.err.println("X11GLXContext.createContext got "+config);
     }
-    GLCapabilities glCaps = (GLCapabilities) config.getCapabilities();
+    GLCapabilities glCaps = (GLCapabilities) config.getChosenCapabilities();
     long display = config.getScreen().getDevice().getHandle();
 
     if(config.getFBConfigID()<0) {
@@ -282,13 +282,8 @@ public abstract class X11GLXContext extends GLContextImpl {
   }
 
   protected void releaseImpl() throws GLException {
-    getDrawableImpl().getFactoryImpl().lockToolkit();
-    try {
-      if (!GLX.glXMakeContextCurrent(drawable.getNativeWindow().getDisplayHandle(), 0, 0, 0)) {
+    if (!GLX.glXMakeContextCurrent(drawable.getNativeWindow().getDisplayHandle(), 0, 0, 0)) {
         throw new GLException("Error freeing OpenGL context");
-      }
-    } finally {
-      getDrawableImpl().getFactoryImpl().unlockToolkit();
     }
   }
 
@@ -355,7 +350,7 @@ public abstract class X11GLXContext extends GLContextImpl {
   public synchronized String getPlatformExtensionsString() {
     if (!glXQueryExtensionsStringInitialized) {
       glXQueryExtensionsStringAvailable =
-        getDrawableImpl().getFactoryImpl().dynamicLookupFunction("glXQueryExtensionsString") != 0;
+        getDrawableImpl().getDynamicLookupHelper().dynamicLookupFunction("glXQueryExtensionsString") != 0;
       glXQueryExtensionsStringInitialized = true;
     }
     if (glXQueryExtensionsStringAvailable) {

@@ -41,6 +41,7 @@ package com.sun.opengl.impl;
 
 import javax.media.nativewindow.*;
 import javax.media.opengl.*;
+import com.sun.gluegen.runtime.DynamicLookupHelper;
 
 public abstract class GLDrawableImpl implements GLDrawable {
   protected static final boolean DEBUG = Debug.debug("GLDrawable");
@@ -51,7 +52,13 @@ public abstract class GLDrawableImpl implements GLDrawable {
       this.factory = factory;
       this.component = comp;
       this.realized = realized;
+      this.requestedCapabilities = (GLCapabilities)component.getGraphicsConfiguration().getNativeGraphicsConfiguration().getRequestedCapabilities(); // a copy ..
   }
+
+  /** 
+   * Returns the DynamicLookupHelper
+   */
+  public abstract DynamicLookupHelper getDynamicLookupHelper();
 
   public GLDrawableFactoryImpl getFactoryImpl() {
     return (GLDrawableFactoryImpl) getFactory();
@@ -71,17 +78,15 @@ public abstract class GLDrawableImpl implements GLDrawable {
   }
 
   public GLProfile getGLProfile() {
-    return getGLCapabilities().getGLProfile();
+    return requestedCapabilities.getGLProfile();
   }
 
-  public GLCapabilities getGLCapabilities() {
-    GLCapabilities caps = (GLCapabilities)component.getGraphicsConfiguration().getNativeGraphicsConfiguration().getCapabilities();
-    if (caps == null) {
-        throw new GLException("No GLCapabilities: "+this);
-    }
+  public GLCapabilities getChosenGLCapabilities() {
+    return  (GLCapabilities)component.getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities(); // a copy
+  }
 
-    // Must return a new copy to avoid mutation by end user
-    return (GLCapabilities)caps.clone();
+  public GLCapabilities getRequestedGLCapabilities() {
+    return requestedCapabilities;
   }
 
   public NativeWindow getNativeWindow() {
@@ -129,13 +134,14 @@ public abstract class GLDrawableImpl implements GLDrawable {
 
   public String toString() {
     return getClass().getName()+"[realized "+getRealized()+
-                ", capabilities "+getGLCapabilities()+
+                ", capabilities "+getChosenGLCapabilities()+
                 ", window "+getNativeWindow()+
                 ", factory "+getFactory()+"]";
   }
 
   protected GLDrawableFactory factory;
   protected NativeWindow component;
+  protected GLCapabilities requestedCapabilities;
 
   // Indicates whether the component (if an onscreen context) has been
   // realized. Plausibly, before the component is realized the JAWT
