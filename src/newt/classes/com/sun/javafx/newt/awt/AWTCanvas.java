@@ -43,6 +43,9 @@ import java.awt.GraphicsConfiguration;
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.awt.*;
 import com.sun.javafx.newt.impl.Debug;
+import java.lang.reflect.Method;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 
 public class AWTCanvas extends Canvas {
   private GraphicsDevice device;
@@ -74,6 +77,8 @@ public class AWTCanvas extends Canvas {
 
   public void addNotify() {
     super.addNotify();
+
+    disableBackgroundErase();
 
     GraphicsConfiguration gc = super.getGraphicsConfiguration();
     if(null!=gc) {
@@ -214,4 +219,39 @@ public class AWTCanvas extends Canvas {
     return config;
   }
 
+  // Disables the AWT's erasing of this Canvas's background on Windows
+  // in Java SE 6. This internal API is not available in previous
+  // releases, but the system property
+  // -Dsun.awt.noerasebackground=true can be specified to get similar
+  // results globally in previous releases.
+  private static boolean disableBackgroundEraseInitialized;
+  private static Method  disableBackgroundEraseMethod;
+  private void disableBackgroundErase() {
+    if (!disableBackgroundEraseInitialized) {
+      try {
+        AccessController.doPrivileged(new PrivilegedAction() {
+            public Object run() {
+              try {
+                disableBackgroundEraseMethod =
+                  getToolkit().getClass().getDeclaredMethod("disableBackgroundErase",
+                                                            new Class[] { Canvas.class });
+                disableBackgroundEraseMethod.setAccessible(true);
+              } catch (Exception e) {
+              }
+              return null;
+            }
+          });
+      } catch (Exception e) {
+      }
+      disableBackgroundEraseInitialized = true;
+    }
+    if (disableBackgroundEraseMethod != null) {
+      try {
+        disableBackgroundEraseMethod.invoke(getToolkit(), new Object[] { this });
+      } catch (Exception e) {
+        // FIXME: workaround for 6504460 (incorrect backport of 6333613 in 5.0u10)
+        // throw new GLException(e);
+      }
+    }
+  }
 }

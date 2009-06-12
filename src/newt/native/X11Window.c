@@ -266,6 +266,8 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_x11_X11Window_CreateWindow
         return 0;
     }
 
+    XSync(dpy, False);
+
     Screen * scrn = ScreenOfDisplay(dpy, screen_index);
 
     // try given VisualID on screen
@@ -321,6 +323,7 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_x11_X11Window_CreateWindow
     Atom wm_delete_window = XInternAtom(dpy, "WM_DELETE_WINDOW", False);
     XSetWMProtocols(dpy, window, &wm_delete_window, 1);
     XClearWindow(dpy, window);
+    XSync(dpy, False);
 
     (*env)->CallVoidMethod(env, obj, windowCreatedID, (jlong) window, (jlong)wm_delete_window);
 
@@ -338,14 +341,16 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_x11_X11Window_CloseWindow
     Display * dpy = (Display *) (intptr_t) display;
     Window w = (Window)window;
 
+    XSync(dpy, False);
     /**
      XUngrabPointer(dpy, CurrentTime);
      XUngrabKeyboard(dpy, CurrentTime);
      */
     XSelectInput(dpy, w, 0);
     XUnmapWindow(dpy, w);
-    XSync(dpy, True);
+    XSync(dpy, False);
     XDestroyWindow(dpy, w);
+    XSync(dpy, False);
     (*env)->CallVoidMethod(env, obj, windowDestroyedID);
 }
 
@@ -360,11 +365,13 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_x11_X11Window_setVisible0
     Display * dpy = (Display *) (intptr_t) display;
     Window w = (Window)window;
     DBG_PRINT( "setVisible0 vis %d\n", visible);
+    XSync(dpy, False);
     if(visible==JNI_TRUE) {
         XMapRaised(dpy, w);
         XSync(dpy, False);
 
-        XSetInputFocus(dpy, w, RevertToParent, CurrentTime);
+        // XSetInputFocus(dpy, w, RevertToParent, CurrentTime);
+        // XSync(dpy, False);
 
     } else {
         /**
@@ -546,28 +553,42 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_x11_X11Window_DispatchMessages
     } 
 }
 
+#define MWM_FULLSCREEN 1
+
+#ifdef MWM_FULLSCREEN
+    #define MWM_HINTS_DECORATIONS   (1L << 1)
+    #define PROP_MWM_HINTS_ELEMENTS 5
+#endif
+
 /*
  * Class:     com_sun_javafx_newt_x11_X11Window
  * Method:    setSize0
- * Signature: (JJIIIZ)V
+ * Signature: (JIJIIIIIZ)V
  */
 JNIEXPORT void JNICALL Java_com_sun_javafx_newt_x11_X11Window_setSize0
-  (JNIEnv *env, jobject obj, jlong display, jlong window, jint width, jint height, jint decorationToggle, jboolean isVisible)
+  (JNIEnv *env, jobject obj, jlong display, jint screen_index, jlong window, jint x, jint y, jint width, jint height, jint decorationToggle, jboolean isVisible)
 {
     Display * dpy = (Display *) (intptr_t) display;
     Window w = (Window)window;
+    Screen * scrn = ScreenOfDisplay(dpy, (int)screen_index);
+    Window parent = XRootWindowOfScreen(scrn);
 
     DBG_PRINT( "setSize0 %dx%d, dec %d, vis %d\n", width, height, decorationToggle, isVisible);
 
+    XSync(dpy, False);
+
     if(0!=decorationToggle) {
+#ifdef MWM_FULLSCREEN
+        unsigned long mwmhints[PROP_MWM_HINTS_ELEMENTS] = { 0, 0, 0, 0, 0 }; // flags, functions, decorations, input_mode, status
+        Atom prop;
+
+        mwmhints[0] = MWM_HINTS_DECORATIONS;
+        mwmhints[2] = (decorationToggle<0)?False:True;
+        prop = XInternAtom( dpy, "_MOTIF_WM_HINTS", False );
+        XChangeProperty( dpy, w, prop, prop, 32, PropModeReplace, (unsigned char *)&mwmhints, PROP_MWM_HINTS_ELEMENTS);
+#else
         XSetWindowAttributes xswa;
         unsigned long attrMask=CWOverrideRedirect;
-
-        if(isVisible==JNI_TRUE) {
-            DBG_PRINT( "setSize0 . unmap\n");
-            XUnmapWindow(dpy, w);
-            XSync(dpy, False);
-        }
 
         if(decorationToggle<0) {
             /* undecorated  */
@@ -577,19 +598,22 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_x11_X11Window_setSize0
             xswa.override_redirect = False;
         }
         XChangeWindowAttributes(dpy, w, attrMask, &xswa);
-
-        if(isVisible==JNI_TRUE) {
-            DBG_PRINT( "setSize0 . map\n");
-            XMapRaised(dpy, w);
-            XSync(dpy, False);
-        }
+        XReparentWindow( dpy, w, parent, x, y );
+#endif
     }
+    XSync(dpy, False);
     DBG_PRINT( "setSize0 . XConfigureWindow\n");
     XWindowChanges xwc;
     xwc.width=width;
     xwc.height=height;
     XConfigureWindow(dpy, w, CWWidth|CWHeight, &xwc);
+    XReparentWindow( dpy, w, parent, x, y );
+
     XSync(dpy, False);
+
+    /** if(isVisible==JNI_TRUE) {
+        XSetInputFocus(dpy, w, RevertToNone, CurrentTime);
+    } */
 
     DBG_PRINT( "setSize0 . sizeChangedID call\n");
     (*env)->CallVoidMethod(env, obj, sizeChangedID, (jint) width, (jint) height);
@@ -611,6 +635,7 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_x11_X11Window_setPosition0
     xwc.x=x;
     xwc.y=y;
     XConfigureWindow(dpy, w, CWX|CWY, &xwc);
+    XSync(dpy, False);
 
     // (*env)->CallVoidMethod(env, obj, positionChangedID, (jint) width, (jint) height);
 }

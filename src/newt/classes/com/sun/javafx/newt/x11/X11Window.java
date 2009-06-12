@@ -92,7 +92,7 @@ public class X11Window extends Window {
     }
 
     public void setSize(int width, int height) {
-        setSize0(getDisplayHandle(), windowHandle, width, height, 0, visible);
+        setSize0(getDisplayHandle(), getScreenIndex(), windowHandle, x, y, width, height, 0, visible);
     }
 
     public void setPosition(int x, int y) {
@@ -113,8 +113,10 @@ public class X11Window extends Window {
                 w = nfs_width;
                 h = nfs_height;
             }
-            setPosition0(getDisplayHandle(), windowHandle, x, y);
-            setSize0(getDisplayHandle(), windowHandle, w, h, fullscreen?-1:1, visible);
+            if(DEBUG_IMPLEMENTATION || DEBUG_WINDOW_EVENT) {
+                System.err.println("X11Window fs: "+fullscreen+" "+x+"/"+y+" "+w+"x"+h);
+            }
+            setSize0(getDisplayHandle(), getScreenIndex(), windowHandle, x, y, w, h, fullscreen?-1:1, visible);
         }
         return true;
     }
@@ -133,7 +135,8 @@ public class X11Window extends Window {
     private        native void CloseWindow(long display, long windowHandle);
     private        native void setVisible0(long display, long windowHandle, boolean visible);
     private        native void DispatchMessages(long display, long windowHandle, int eventMask, long windowDeleteAtom);
-    private        native void setSize0(long display, long windowHandle, int width, int height, int decorationToggle, boolean isVisible);
+    private        native void setSize0(long display, int screen_index, long windowHandle, 
+                                        int x, int y, int width, int height, int decorationToggle, boolean isVisible);
     private        native void setPosition0(long display, long windowHandle, int x, int y);
 
     private void sizeChanged(int newWidth, int newHeight) {

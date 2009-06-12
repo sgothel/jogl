@@ -45,6 +45,8 @@ import com.sun.nativewindow.impl.*;
     hardware-accelerated rendering using the OpenGL API. */
 
 public abstract class NativeWindowFactory {
+    protected static final boolean DEBUG = Debug.debug("NativeWindow");
+
     /** OpenKODE/EGL type */
     public static final String TYPE_EGL = "EGL";
 
@@ -105,29 +107,38 @@ public abstract class NativeWindowFactory {
 
         String factoryClassName = null;
 
-        // We break compile-time dependencies on the AWT here to
-        // make it easier to run this code on mobile devices
-
+        // register our default factory -> NativeWindow
         NativeWindowFactory factory = new NativeWindowFactoryImpl();
         nativeWindowClass = javax.media.nativewindow.NativeWindow.class;
         registerFactory(nativeWindowClass, factory);
         defaultFactory = factory;
     
-        Class componentClass = null;
-        try {
-            componentClass = Class.forName("java.awt.Component");
-        } catch (Exception e) { }
+        // We break compile-time dependencies on the AWT here to
+        // make it easier to run this code on mobile devices
 
+        Class componentClass = null;
+        if ( NWReflection.isClassAvailable("java.awt.Component") &&
+             NWReflection.isClassAvailable("javax.media.nativewindow.awt.AWTGraphicsDevice") ) {
+            try {
+                componentClass = Class.forName("java.awt.Component");
+            } catch (Exception e) { }
+        }
+
+        /** FIXME: this whole block has to be removed .. */
         if(TYPE_X11.equals(nativeWindowingTypeCustom)) {
-            // Assume X11 platform -- should probably test for these explicitly
             NativeWindowFactory _factory = null;
+            /** Makes NEWT/AWT pretty unstable .. GLCanvas is serialized anyways ..
             if (componentClass != null) {
                 try {
                     Constructor factoryConstructor =
                         NWReflection.getConstructor("com.sun.nativewindow.impl.x11.awt.X11AWTNativeWindowFactory", new Class[] {});
                     _factory = (NativeWindowFactory) factoryConstructor.newInstance(null);
                 } catch (Exception e) { }
-            }
+            } */
+            /** FIXME: What is this ?? 
+                       The original code just added the lock toolkit at X11 & AWT ..
+                       And it would have been set to null pointer, since the above only
+                       exist with AWT ... 
             if (null ==_factory) {
                 // Try the non-AWT X11 native window factory
                 try {
@@ -136,12 +147,17 @@ public abstract class NativeWindowFactory {
                     _factory = (NativeWindowFactory) factoryConstructor.newInstance(null);
                 } catch (Exception e) { }
             }
+            */
             if (null !=_factory) {
                 factory = _factory;
             }
         }
-        registerFactory(componentClass, factory);
-        defaultFactory = factory;
+
+        if(null!=componentClass) {
+            // register either our default factory or (if exist) the X11/AWT one -> NativeWindow
+            registerFactory(componentClass, factory);
+            defaultFactory = factory;
+        }
     }
 
     public static String getNativeOSName(boolean useCustom) {
@@ -207,6 +223,9 @@ public abstract class NativeWindowFactory {
         given class. This does not need to be called by end users,
         only implementors of new NativeWindowFactory subclasses. */
     protected static void registerFactory(Class windowClass, NativeWindowFactory factory) {
+        if(DEBUG) {
+            System.err.println("NativeWindowFactory.registerFactory() "+windowClass+" -> "+factory);
+        }
         registeredFactories.put(windowClass, factory);
     }
 

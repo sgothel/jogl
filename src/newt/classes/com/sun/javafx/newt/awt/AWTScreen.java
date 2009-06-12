@@ -34,6 +34,7 @@
 package com.sun.javafx.newt.awt;
 
 import com.sun.javafx.newt.*;
+import java.awt.DisplayMode;
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.awt.*;
 
@@ -43,10 +44,20 @@ public class AWTScreen extends Screen {
 
     protected void createNative(int index) {
         aScreen = new AWTGraphicsScreen((AWTGraphicsDevice)display.getGraphicsDevice());
+        
+        DisplayMode mode = ((AWTGraphicsDevice)getDisplay().getGraphicsDevice()).getGraphicsDevice().getDisplayMode();
+        int w = mode.getWidth();
+        int h = mode.getHeight();
+        setScreenSize(w, h);
     }
 
     protected void setAWTGraphicsScreen(AWTGraphicsScreen s) {
         aScreen = s;
+    }
+
+    // done by AWTWindow ..
+    protected void setScreenSize(int w, int h) {
+        super.setScreenSize(w, h);
     }
 
     protected void closeNative() { }

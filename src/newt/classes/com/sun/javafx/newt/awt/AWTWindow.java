@@ -64,20 +64,23 @@ public class AWTWindow extends Window {
     private Frame frame;
     private AWTCanvas canvas;
     private LinkedList/*<AWTEventWrapper>*/ events = new LinkedList();
-    private boolean gotDisplaySize;
-    private int displayWidth;
-    private int displayHeight;
+    // non fullscreen dimensions ..
+    private int nfs_width, nfs_height, nfs_x, nfs_y;
 
-    public void setTitle(String title) {
+    public void setTitle(final String title) {
         super.setTitle(title);
-        if (frame != null) {
-            frame.setTitle(title);
-        }
+        runOnEDT(true, new Runnable() {
+                public void run() {
+                    if (frame != null) {
+                        frame.setTitle(title);
+                    }
+                }
+            });
     }
 
     protected void createNative(final Capabilities caps) {
 
-        runOnEDT(new Runnable() {
+        runOnEDT(true, new Runnable() {
                 public void run() {
                     frame = new Frame(getTitle());
                     frame.setUndecorated(isUndecorated());
@@ -98,7 +101,7 @@ public class AWTWindow extends Window {
     }
 
     protected void closeNative() {
-        runOnEDT(new Runnable() {
+        runOnEDT(true, new Runnable() {
                 public void run() {
                     frame.dispose();
                     frame = null;
@@ -113,35 +116,13 @@ public class AWTWindow extends Window {
             if (config == null) {
                 throw new NativeWindowException("Error Device change null GraphicsConfiguration: "+this);
             }
-            // propagate new info ..
-            ((AWTScreen)getScreen()).setAWTGraphicsScreen((AWTGraphicsScreen)config.getScreen());
-            ((AWTDisplay)getScreen().getDisplay()).setAWTGraphicsDevice((AWTGraphicsDevice)config.getScreen().getDevice());
+            updateDeviceData();
         }
         return res;
     }
 
-    public int getDisplayWidth() {
-        getDisplaySize();
-        return displayWidth;
-    }
-
-    public int getDisplayHeight() {
-        getDisplaySize();
-        return displayHeight;
-    }
-
-    private void getDisplaySize() {
-        if (!gotDisplaySize) {
-            DisplayMode mode =
-                GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDisplayMode();
-            displayWidth = mode.getWidth();
-            displayHeight = mode.getHeight();
-            gotDisplaySize = true;
-        }
-    }
-
     public void setVisible(final boolean visible) {
-        runOnEDT(new Runnable() {
+        runOnEDT(true, new Runnable() {
                 public void run() {
                     frame.setVisible(visible);
                 }
@@ -153,15 +134,28 @@ public class AWTWindow extends Window {
             throw new NativeWindowException("Error choosing GraphicsConfiguration creating window: "+this);
         }
 
+        updateDeviceData();
+    }
+
+    private void updateDeviceData() {
         // propagate new info ..
         ((AWTScreen)getScreen()).setAWTGraphicsScreen((AWTGraphicsScreen)config.getScreen());
         ((AWTDisplay)getScreen().getDisplay()).setAWTGraphicsDevice((AWTGraphicsDevice)config.getScreen().getDevice());
+
+        DisplayMode mode = ((AWTGraphicsDevice)config.getScreen().getDevice()).getGraphicsDevice().getDisplayMode();
+        int w = mode.getWidth();
+        int h = mode.getHeight();
+        ((AWTScreen)screen).setScreenSize(w, h);
     }
 
     public void setSize(final int width, final int height) {
         this.width = width;
         this.height = height;
-        runOnEDT(new Runnable() {
+        if(!fullscreen) {
+            nfs_width=width;
+            nfs_height=height;
+        }
+        runOnEDT(false, new Runnable() {
                 public void run() {
                     frame.setSize(width, height);
                 }
@@ -171,16 +165,49 @@ public class AWTWindow extends Window {
     public void setPosition(final int x, final int y) {
         this.x = x;
         this.y = y;
-        runOnEDT(new Runnable() {
+        if(!fullscreen) {
+            nfs_x=x;
+            nfs_y=y;
+        }
+        runOnEDT(false, new Runnable() {
                 public void run() {
                     frame.setLocation(x, y);
                 }
             });
     }
 
-    public boolean setFullscreen(boolean fullscreen) {
-        // Ignore for now
-        return false;
+    public boolean setFullscreen(final boolean fullscreen) {
+        if(this.fullscreen!=fullscreen) {
+            final int x,y,w,h;
+            this.fullscreen=fullscreen;
+            if(fullscreen) {
+                x = 0; y = 0;
+                w = screen.getWidth();
+                h = screen.getHeight();
+            } else {
+                x = nfs_x;
+                y = nfs_y;
+                w = nfs_width;
+                h = nfs_height;
+            }
+            if(DEBUG_IMPLEMENTATION || DEBUG_WINDOW_EVENT) {
+                System.err.println("AWTWindow fs: "+fullscreen+" "+x+"/"+y+" "+w+"x"+h);
+            }
+            runOnEDT(false, new Runnable() {
+                    public void run() {
+                        if(!frame.isDisplayable()) {
+                            frame.setUndecorated(fullscreen);
+                        } else {
+                            if(DEBUG_IMPLEMENTATION || DEBUG_WINDOW_EVENT) {
+                                System.err.println("AWTWindow can't undecorate already created frame");
+                            }
+                        }
+                        frame.setLocation(x, y);
+                        frame.setSize(w, h);
+                    }
+                });
+        }
+        return true;
     }
 
     public Object getWrappedWindow() {
@@ -267,12 +294,16 @@ public class AWTWindow extends Window {
         return 0;
     }
 
-    private static void runOnEDT(Runnable r) {
+    private static void runOnEDT(boolean wait, Runnable r) {
         if (EventQueue.isDispatchThread()) {
             r.run();
         } else {
             try {
-                EventQueue.invokeAndWait(r);
+                if(wait) {
+                    EventQueue.invokeAndWait(r);
+                } else {
+                    EventQueue.invokeLater(r);
+                }
             } catch (Exception e) {
                 throw new NativeWindowException(e);
             }
