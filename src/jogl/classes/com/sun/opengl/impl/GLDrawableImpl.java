@@ -99,9 +99,6 @@ public abstract class GLDrawableImpl implements GLDrawable {
 
   public void setRealized(boolean realized) {
     this.realized = realized;
-    if(!realized) {
-        component.invalidate();
-    }
   }
 
   public boolean getRealized() {
@@ -134,9 +131,10 @@ public abstract class GLDrawableImpl implements GLDrawable {
 
   public String toString() {
     return getClass().getName()+"[realized "+getRealized()+
-                ", capabilities "+getChosenGLCapabilities()+
-                ", window "+getNativeWindow()+
-                ", factory "+getFactory()+"]";
+                ",\n\trequested "+getRequestedGLCapabilities()+
+                ",\n\tchosen    "+getChosenGLCapabilities()+
+                ",\n\twindow    "+getNativeWindow()+
+                ",\n\tfactory   "+getFactory()+"]";
   }
 
   protected GLDrawableFactory factory;

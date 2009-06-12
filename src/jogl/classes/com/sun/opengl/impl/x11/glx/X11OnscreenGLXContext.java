@@ -64,9 +64,6 @@ public class X11OnscreenGLXContext extends X11GLXContext {
       if (lockRes == NativeWindow.LOCK_SURFACE_NOT_READY) {
         return CONTEXT_NOT_CURRENT;
       }
-      if (lockRes == NativeWindow.LOCK_SURFACE_CHANGED) {
-        destroyImpl();
-      }
       return super.makeCurrentImpl();
     } catch (RuntimeException e) {
       exceptionOccurred = true;

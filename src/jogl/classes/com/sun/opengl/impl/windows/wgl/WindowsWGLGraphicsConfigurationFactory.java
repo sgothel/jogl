@@ -91,17 +91,25 @@ public class WindowsWGLGraphicsConfigurationFactory extends GraphicsConfiguratio
         GLProfile glProfile = capabilities.getGLProfile();
         long hdc = nativeWindow.getSurfaceHandle();
 
+        if (DEBUG) {
+          Exception ex = new Exception("WindowsWGLGraphicsConfigurationFactory got HDC 0x"+Long.toHexString(hdc));
+          ex.printStackTrace();
+          System.err.println("WindowsWGLGraphicsConfigurationFactory got NW    "+nativeWindow);
+        }
+
         PIXELFORMATDESCRIPTOR pfd = null;
         int pixelFormat = 0;
         GLCapabilities chosenCaps = null;
 
         if (!useOffScreen) {
           if ((pixelFormat = WGL.GetPixelFormat(hdc)) != 0) {
-            // The Java2D/OpenGL pipeline probably already set a pixel
-            // format for this canvas.
+            // Pixelformat already set by either 
+            //  - a previous updateGraphicsConfiguration() call on the same HDC,
+            //  - the graphics driver, copying the HDC's pixelformat to the new one,
+            //  - or the Java2D/OpenGL pipeline's configuration
             if (DEBUG) {
-              System.err.println("NOTE: pixel format already chosen (by Java2D/OpenGL pipeline?) for window: " + 
-                                 WGL.GetPixelFormat(hdc));
+              System.err.println("!!!! NOTE: pixel format already chosen for HDC: 0x" + Long.toHexString(hdc)+
+                                 ", pixelformat "+WGL.GetPixelFormat(hdc));
             }
             pfd = WindowsWGLGraphicsConfiguration.createPixelFormatDescriptor();
             if (WGL.DescribePixelFormat(hdc, pixelFormat, pfd.size(), pfd) == 0) {
@@ -257,11 +265,12 @@ public class WindowsWGLGraphicsConfigurationFactory extends GraphicsConfiguratio
               }
             }
             pfd = WindowsWGLGraphicsConfiguration.GLCapabilities2PFD(capabilities, !useOffScreen);
-            // Remove one-basing of pixel format (added on later)
-            recommendedPixelFormat = WGL.ChoosePixelFormat(hdc, pfd) - 1;
+            recommendedPixelFormat = WGL.ChoosePixelFormat(hdc, pfd);
             if (DEBUG) {
               System.err.println(getThreadName() + ": Recommended pixel format = " + recommendedPixelFormat);
             }
+            // Remove one-basing of pixel format (added on later)
+            recommendedPixelFormat -= 1;
 
             numFormats = WGL.DescribePixelFormat(hdc, 1, 0, null);
             if (numFormats == 0) {
@@ -297,12 +306,12 @@ public class WindowsWGLGraphicsConfigurationFactory extends GraphicsConfiguratio
                                   " from GLCapabilitiesChooser (should be between 0 and " +
                                   (numFormats - 1) + ")");
           }
+          pixelFormat += 1; // one-base the index
+          chosenCaps = availableCaps[pixelFormat-1];
           if (DEBUG) {
             System.err.println(getThreadName() + ": Chosen pixel format (" + pixelFormat + "):");
-            System.err.println(availableCaps[pixelFormat]);
+            System.err.println(chosenCaps);
           }
-          chosenCaps = availableCaps[pixelFormat];
-          pixelFormat += 1; // one-base the index
           if (WGL.DescribePixelFormat(hdc, pixelFormat, pfd.size(), pfd) == 0) {
             throw new GLException("Error re-describing the chosen pixel format: " + WGL.GetLastError());
           }

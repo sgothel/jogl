@@ -257,11 +257,16 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
          */
         AWTGraphicsConfiguration config = chooseGraphicsConfiguration((GLCapabilities)awtConfig.getRequestedCapabilities(), glCapChooser, gc.getDevice());
         final GraphicsConfiguration compatible = (null!=config)?config.getGraphicsConfiguration():null;
+        boolean equalCaps = config.getChosenCapabilities().equals(awtConfig.getChosenCapabilities());
         if(DEBUG) {
-            System.err.println("!!! Created Config (n): HAVE    GC "+gc);
+            Exception e = new Exception("Call Stack: "+Thread.currentThread().getName());
+            e.printStackTrace();
+            System.err.println("!!! Created Config (n): HAVE    GC "+chosen);
+            System.err.println("!!! Created Config (n): THIS    GC "+gc);
             System.err.println("!!! Created Config (n): Choosen GC "+compatible);
+            System.err.println("!!! Created Config (n): HAVE    CF "+awtConfig);
             System.err.println("!!! Created Config (n): Choosen CF "+config);
-            System.err.println("!!! Created Config (n): EQUALS CAPS "+config.getChosenCapabilities().equals(awtConfig.getChosenCapabilities()));
+            System.err.println("!!! Created Config (n): EQUALS CAPS "+equalCaps);
         }
 
         if (compatible != null) {
@@ -270,15 +275,12 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
            * any outside callers of this method.
            */
           chosen = compatible;
-          /**
-           * FIXME: On Windows: I get a JAWT_LOCK_ERROR in the WindowsJAWTWindow.lock() .. funny,
-           *        is it because the AWT holds the lock while updating the context on a display change? 
-           *        This failure doesn't happen all times, but sometimes .. sync problem ?
-          if( !config.getChosenCapabilities().equals(awtConfig.getChosenCapabilities())) {
-              dispose(true);
-          } 
-          */
+
           awtConfig = config;
+
+          if( !equalCaps ) {
+              dispose(true);
+          }
         }
       }
 
@@ -554,9 +556,13 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
   }
 
   private boolean disposeRegenerate;
-  private DisposeAction disposeAction = new DisposeAction();
+  private DisposeAction disposeAction = new DisposeAction(this);
 
   class DisposeAction implements Runnable {
+    private GLCanvas canvas;
+    public DisposeAction(GLCanvas canvas) {
+        this.canvas = canvas;
+    }
     public void run() {
       drawableHelper.dispose(GLCanvas.this);
 
@@ -570,10 +576,16 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
           drawable.setRealized(false);
       }
 
-      if(disposeRegenerate && null!=drawable) {
+      if(disposeRegenerate) {
+          // recreate GLDrawable to reflect it's new graphics configuration
+          drawable = GLDrawableFactory.getFactory(glProfile).createGLDrawable(NativeWindowFactory.getNativeWindow(canvas, awtConfig));
+          if(DEBUG) {
+            System.err.println("GLCanvas.dispose(true): new drawable: "+drawable);
+          }
           drawable.setRealized(true);
           context = (GLContextImpl) drawable.createContext(shareWithContext);
           context.setSynchronized(true);
+          sendReshape=true; // ensure a reshape is being send ..
       }
     }
   }

@@ -104,6 +104,10 @@ public class WindowsAWTWGLGraphicsConfigurationFactory extends GraphicsConfigura
             throw new GLException("Unable to choose a GraphicsConfiguration: "+capabilities+",\n\t"+chooser+"\n\t"+winScreen);
         }
 
+        if(DEBUG) {
+            System.err.println("WindowsAWTWGLGraphicsConfigurationFactory: chosen "+winConfig);
+        }
+
         // FIXME: we have nothing to match .. so choose the default
         return new AWTGraphicsConfiguration(awtScreen, winConfig.getChosenCapabilities(), winConfig.getRequestedCapabilities(), gc, winConfig);
     }

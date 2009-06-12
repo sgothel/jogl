@@ -51,7 +51,6 @@ public abstract class GLContextImpl extends GLContext {
   protected GLContextLock lock = new GLContextLock();
   protected static final boolean DEBUG = Debug.debug("GLContext");
   protected static final boolean VERBOSE = Debug.verbose();
-  protected static final boolean NO_FREE = Debug.isPropertyDefined("jogl.GLContext.nofree");
   // NOTE: default sense of GLContext optimization disabled in JSR-231
   // 1.0 beta 5 due to problems on X11 platforms (both Linux and
   // Solaris) when moving and resizing windows. Apparently GLX tokens
@@ -175,36 +174,36 @@ public abstract class GLContextImpl extends GLContext {
         release();
     }
 
-    /* FIXME: refactor dependence on Java 2D / JOGL bridge
-    if (tracker != null) {
-      // Don't need to do anything for contexts that haven't been
-      // created yet
-      if (isCreated()) {
-        // If we are tracking creation and destruction of server-side
-        // OpenGL objects, we must decrement the reference count of the
-        // GLObjectTracker upon context destruction.
-        //
-        // Note that we can only eagerly delete these server-side
-        // objects if there is another context currrent right now
-        // which shares textures and display lists with this one.
-        tracker.unref(deletedObjectTracker);
-      }
-    }
-    */
-
-    // Because we don't know how many other contexts we might be
-    // sharing with (and it seems too complicated to implement the
-    // GLObjectTracker's ref/unref scheme for the buffer-related
-    // optimizations), simply clear the cache of known buffers' sizes
-    // when we destroy contexts
-    if (bufferSizeTracker != null) {
-        bufferSizeTracker.clearCachedBufferSizes();
-    }
-
     // Must hold the lock around the destroy operation to make sure we
     // don't destroy the context out from under another thread rendering to it
     lock.lock();
     try {
+      /* FIXME: refactor dependence on Java 2D / JOGL bridge
+      if (tracker != null) {
+        // Don't need to do anything for contexts that haven't been
+        // created yet
+        if (isCreated()) {
+          // If we are tracking creation and destruction of server-side
+          // OpenGL objects, we must decrement the reference count of the
+          // GLObjectTracker upon context destruction.
+          //
+          // Note that we can only eagerly delete these server-side
+          // objects if there is another context currrent right now
+          // which shares textures and display lists with this one.
+          tracker.unref(deletedObjectTracker);
+        }
+      }
+      */
+  
+      // Because we don't know how many other contexts we might be
+      // sharing with (and it seems too complicated to implement the
+      // GLObjectTracker's ref/unref scheme for the buffer-related
+      // optimizations), simply clear the cache of known buffers' sizes
+      // when we destroy contexts
+      if (bufferSizeTracker != null) {
+          bufferSizeTracker.clearCachedBufferSizes();
+      }
+  
       destroyImpl();
     } finally {
       lock.unlock();

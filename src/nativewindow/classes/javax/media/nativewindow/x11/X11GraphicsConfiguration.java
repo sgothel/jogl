@@ -68,6 +68,9 @@ public class X11GraphicsConfiguration extends DefaultGraphicsConfiguration imple
     }
     
     public String toString() {
-        return getClass().toString()+"["+getScreen()+", visualID 0x" + Long.toHexString(getVisualID()) + ", " + getChosenCapabilities() +"]";
+        return getClass().toString()+"["+getScreen()+", visualID 0x" + Long.toHexString(getVisualID()) + 
+                                       ",\n\tchosen    " + capabilitiesChosen+
+                                       ",\n\trequested " + capabilitiesRequested+ 
+                                       "]";
     }
 }

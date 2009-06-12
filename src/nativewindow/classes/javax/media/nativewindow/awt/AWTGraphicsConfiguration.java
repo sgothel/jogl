@@ -51,20 +51,20 @@ import com.sun.nativewindow.impl.Debug;
 
 public class AWTGraphicsConfiguration extends DefaultGraphicsConfiguration implements Cloneable {
   private GraphicsConfiguration config;
-  AbstractGraphicsConfiguration encapsuled;
+  AbstractGraphicsConfiguration encapsulated;
 
   public AWTGraphicsConfiguration(AWTGraphicsScreen screen, 
                                   Capabilities capsChosen, Capabilities capsRequested,
-                                  GraphicsConfiguration config, AbstractGraphicsConfiguration encapsuled) {
+                                  GraphicsConfiguration config, AbstractGraphicsConfiguration encapsulated) {
     super(screen, capsChosen, capsRequested);
     this.config = config;
-    this.encapsuled=encapsuled;
+    this.encapsulated=encapsulated;
   }
 
   public AWTGraphicsConfiguration(AWTGraphicsScreen screen, Capabilities capsChosen, Capabilities capsRequested, GraphicsConfiguration config) {
     super(screen, capsChosen, capsRequested);
     this.config = config;
-    this.encapsuled=null;
+    this.encapsulated=null;
   }
 
   public Object clone() {
@@ -76,7 +76,7 @@ public class AWTGraphicsConfiguration extends DefaultGraphicsConfiguration imple
   }
 
   public AbstractGraphicsConfiguration getNativeGraphicsConfiguration() {
-    return (null!=encapsuled)?encapsuled:this;
+    return (null!=encapsulated)?encapsulated:this;
   }
 
   /**
@@ -119,6 +119,10 @@ public class AWTGraphicsConfiguration extends DefaultGraphicsConfiguration imple
   }
 
   public String toString() {
-    return getClass().toString()+"[" + getScreen() + ", " + getChosenCapabilities() + ", " + config +", encapsuled "+encapsuled+"]";
+    return getClass().toString()+"[" + getScreen() + 
+                                   ",\n\tchosen    " + capabilitiesChosen+
+                                   ",\n\trequested " + capabilitiesRequested+ 
+                                   ",\n\t" + config +
+                                   ",\n\tencapsulated "+encapsulated+"]";
   }
 }

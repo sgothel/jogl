@@ -155,8 +155,8 @@ public abstract class JAWTWindow implements NativeWindow {
   public String toString() {
     StringBuffer sb = new StringBuffer();
 
-    sb.append("JAWT-Window[config "+config+
-                ", windowHandle 0x"+Long.toHexString(getWindowHandle())+
+    sb.append("JAWT-Window["+
+                "windowHandle 0x"+Long.toHexString(getWindowHandle())+
                 ", surfaceHandle 0x"+Long.toHexString(getSurfaceHandle()));
     if(null!=component) {
       sb.append(", pos "+component.getX()+"/"+component.getY()+", size "+getWidth()+"x"+getHeight()+
@@ -165,7 +165,8 @@ public abstract class JAWTWindow implements NativeWindow {
       sb.append(", component NULL");
     }
     sb.append(", locked "+isSurfaceLocked()+
-              ", wrappedWindow "+getWrappedWindow()+"]");
+              ",\n\tconfig "+config+
+              ",\n\twrappedWindow "+getWrappedWindow()+"]");
 
     return sb.toString();
   }

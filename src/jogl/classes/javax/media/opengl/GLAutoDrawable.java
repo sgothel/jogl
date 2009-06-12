@@ -56,10 +56,13 @@ import javax.media.opengl.glu.*;
     ie if the attached {@link javax.media.nativewindow.NativeWindow NativeWindow} is become visible. 
     The following protocol shall be satisfied:
     <ul>
+        <li> Create the  {@link GLDrawable} with the requested {@link GLCapabilities}</li>
         <li> Notify {@link GLDrawable} to validate the {@link GLCapabilities} by calling {@link GLDrawable#setRealized setRealized(true)}.</li>
         <li> Create the new {@link GLContext}.</li>
         <li> Initialize all OpenGL resources by calling {@link GLEventListener#init init(..)} for all
              registered {@link GLEventListener}s. This can be done immediatly, or with the followup {@link #display display(..)} call.</li>
+        <li> Send a reshape event by calling {@link GLEventListener#reshape reshape(..)} for all
+             registered {@link GLEventListener}s. This shall be done after the {@link GLEventListener#init init(..)} calls.</li>
     </ul><P>
 
     Another implementation detail is the drawable reconfiguration. One use case is where a window is being 
@@ -69,7 +72,7 @@ import javax.media.opengl.glu.*;
     is capable to determine a display device change. This is demonstrated within {@link javax.media.opengl.awt.GLCanvas}'s 
     {@link javax.media.opengl.awt.GLCanvas#getGraphicsConfiguration getGraphicsConfiguration()} 
     specialization. Another demonstration is NEWT's {@link javax.media.nativewindow.NativeWindow NativeWindow} 
-    implementation on the the Windows platform, which captures the native platform's <i>WM_DEVMODECHANGE</i> message.<br>
+    implementation on the the Windows platform, which utilizes the native platform's <i>MonitorFromWindow(HWND)</i> function.<br>
     All OpenGL resources shall be regenerated, while the drawable's {@link GLCapabilities} has 
     to be choosen again. The following protocol shall be satisfied.
     <ul>
@@ -82,12 +85,18 @@ import javax.media.opengl.glu.*;
         </ul>
         <li> Controlled regeneration:</li>
         <ul>
+            <li> Create the new {@link GLDrawable} with the requested {@link GLCapabilities}
             <li> Notify {@link GLDrawable} to revalidate the {@link GLCapabilities} by calling {@link GLDrawable#setRealized setRealized(true)}.</li>
             <li> Create the new {@link GLContext}.</li>
             <li> Initialize all OpenGL resources by calling {@link GLEventListener#init init(..)} for all
                  registered {@link GLEventListener}s. This can be done immediatly, or with the followup {@link #display display(..)} call.</li>
+            <li> Send a reshape event by calling {@link GLEventListener#reshape reshape(..)} for all
+                 registered {@link GLEventListener}s. This shall be done after the {@link GLEventListener#init init(..)} calls.</li>
         </ul>
     </ul>
+    Note: Current graphics driver keep the surface configuration for a given window, even if the window is moved to 
+    a monitor with a different pixel configuration, ie 32bpp to 16bpp. However, it is best to not assume such behavior
+    and follow the above protocol.
   */
 public interface GLAutoDrawable extends GLDrawable {
   /** FIXME:

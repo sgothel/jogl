@@ -58,7 +58,7 @@
     #include <inttypes.h>
 #endif
 
-#ifdef _MSC_VER <= 1500
+#if _MSC_VER <= 1500
     // FIXME: Determine for which MSVC versions ..
     #define strdup(s) _strdup(s)
 #endif
@@ -77,6 +77,16 @@
 
 #ifndef GET_WHEEL_DELTA_WPARAM  // defined for (_WIN32_WINNT >= 0x0500)
 #define GET_WHEEL_DELTA_WPARAM(wParam)  ((short)HIWORD(wParam))
+#endif
+
+#ifndef MONITOR_DEFAULTTONULL
+#define MONITOR_DEFAULTTONULL 0
+#endif
+#ifndef MONITOR_DEFAULTTOPRIMARY
+#define MONITOR_DEFAULTTOPRIMARY 1
+#endif
+#ifndef MONITOR_DEFAULTTONEAREST
+#define MONITOR_DEFAULTTONEAREST 2
 #endif
 
 #include "com_sun_javafx_newt_windows_WindowsWindow.h"
@@ -753,7 +763,7 @@ JNIEXPORT jboolean JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_initID
     sizeChangedID = (*env)->GetMethodID(env, clazz, "sizeChanged", "(II)V");
     positionChangedID = (*env)->GetMethodID(env, clazz, "positionChanged", "(II)V");
     focusChangedID = (*env)->GetMethodID(env, clazz, "focusChanged", "(JZ)V");
-    windowDestroyNotifyID    = (*env)->GetMethodID(env, clazz, "windowDestroyNotify",    "()V");
+    windowDestroyNotifyID    = (*env)->GetMethodID(env, clazz, "windowDestroyNotify", "()V");
     windowDestroyedID = (*env)->GetMethodID(env, clazz, "windowDestroyed", "()V");
     sendMouseEventID = (*env)->GetMethodID(env, clazz, "sendMouseEvent", "(IIIIII)V");
     sendKeyEventID = (*env)->GetMethodID(env, clazz, "sendKeyEvent", "(IIIC)V");
@@ -919,6 +929,22 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_ReleaseDC
   (JNIEnv *env, jobject obj, jlong window, jlong dc)
 {
     ReleaseDC((HWND) window, (HDC) dc);
+}
+
+/*
+ * Class:     com_sun_javafx_newt_windows_WindowsWindow
+ * Method:    MonitorFromWindow
+ * Signature: (J)J
+ */
+JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_MonitorFromWindow
+  (JNIEnv *env, jobject obj, jlong window)
+{
+    #if (_WIN32_WINNT >= 0x0500 || _WIN32_WINDOWS >= 0x0410 || WINVER >= 0x0500) && !defined(_WIN32_WCE)
+        return (jlong)MonitorFromWindow((HWND)window, MONITOR_DEFAULTTOPRIMARY);
+    #else
+        #warning NO MULTI MONITOR SUPPORT
+        return 0;
+    #endif
 }
 
 /*

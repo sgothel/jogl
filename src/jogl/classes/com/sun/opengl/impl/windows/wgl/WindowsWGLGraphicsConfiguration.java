@@ -434,7 +434,10 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
   }
 
   public String toString() {
-    return "WindowsWGLGraphicsConfiguration["+getScreen()+", pfdID " + pixelfmtID + ", " + getChosenCapabilities() +"]";
+    return "WindowsWGLGraphicsConfiguration["+getScreen()+", pfdID " + pixelfmtID + 
+                                            ",\n\trequested " + getRequestedCapabilities() +
+                                            ",\n\tchosen    " + getChosenCapabilities() +
+                                            "]";
   }
 }
 

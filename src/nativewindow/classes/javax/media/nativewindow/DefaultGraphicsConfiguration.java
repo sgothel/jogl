@@ -34,8 +34,8 @@ package javax.media.nativewindow;
 
 public class DefaultGraphicsConfiguration implements Cloneable, AbstractGraphicsConfiguration {
     private AbstractGraphicsScreen screen;
-    private Capabilities capabilitiesChosen;
-    private Capabilities capabilitiesRequested;
+    protected Capabilities capabilitiesChosen;
+    protected Capabilities capabilitiesRequested;
 
     public DefaultGraphicsConfiguration(AbstractGraphicsScreen screen, 
                                         Capabilities capsChosen, Capabilities capsRequested) {
@@ -95,6 +95,9 @@ public class DefaultGraphicsConfiguration implements Cloneable, AbstractGraphics
     }
 
     public String toString() {
-        return getClass().toString()+"[" + screen +", "+ capabilitiesChosen +"]";
+        return getClass().toString()+"[" + screen +
+                                       ",\n\tchosen    " + capabilitiesChosen+
+                                       ",\n\trequested " + capabilitiesRequested+ 
+                                       "]";
     }
 }

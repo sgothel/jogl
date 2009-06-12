@@ -153,7 +153,7 @@ public class GLWindow extends Window implements GLAutoDrawable {
 
     protected void dispose(boolean regenerate) {
         if(Window.DEBUG_WINDOW_EVENT || window.DEBUG_IMPLEMENTATION) {
-            Exception e1 = new Exception("GLWindow.destroy("+regenerate+") 1: "+this);
+            Exception e1 = new Exception("GLWindow.dispose("+regenerate+") "+Thread.currentThread().getName()+", 1: "+this);
             e1.printStackTrace();
         }
 
@@ -166,22 +166,39 @@ public class GLWindow extends Window implements GLAutoDrawable {
             drawable.setRealized(false);
         }
 
+        if(null!=window) {
+            window.disposeSurfaceHandle();
+        }
+
         if(regenerate) {
+            if(null==window) {
+                throw new GLException("GLWindow.dispose(true): null window");
+            }
+
+            // recreate GLDrawable, to reflect the new graphics configurations
+            NativeWindow nw;
+            if (window.getWrappedWindow() != null) {
+                nw = NativeWindowFactory.getNativeWindow(window.getWrappedWindow(), window.getGraphicsConfiguration());
+            } else {
+                nw = window;
+            }
+            drawable = factory.createGLDrawable(nw);
             drawable.setRealized(true);
             if(getSurfaceHandle()==0) {
                 throw new GLException("SurfaceHandle==NULL after setRealize(true) "+this);
             }
             context = drawable.createContext(null);
+            sendReshape = true; // ensure a reshape event is send ..
         }
 
         if(Window.DEBUG_WINDOW_EVENT || window.DEBUG_IMPLEMENTATION) {
-            System.out.println("GLWindow.dispose("+regenerate+") fin: "+this);
+            System.out.println("GLWindow.dispose("+regenerate+") "+Thread.currentThread().getName()+", fin: "+this);
         }
     }
 
     public synchronized void destroy() {
         if(Window.DEBUG_WINDOW_EVENT || window.DEBUG_IMPLEMENTATION) {
-            Exception e1 = new Exception("GLWindow.destroy 1: "+this);
+            Exception e1 = new Exception("GLWindow.destroy "+Thread.currentThread().getName()+", 1: "+this);
             e1.printStackTrace();
         }
 
@@ -200,7 +217,7 @@ public class GLWindow extends Window implements GLAutoDrawable {
         } 
 
         if(Window.DEBUG_WINDOW_EVENT || window.DEBUG_IMPLEMENTATION) {
-            System.out.println("GLWindow.destroy fin: "+this);
+            System.out.println("GLWindow.destroy "+Thread.currentThread().getName()+", fin: "+this);
         }
 
         drawable = null;
@@ -288,9 +305,11 @@ public class GLWindow extends Window implements GLAutoDrawable {
     public void setVisible(boolean visible) {
         window.setVisible(visible);
         if (visible && context == null) {
-            NativeWindow nw = window;
+            NativeWindow nw;
             if (window.getWrappedWindow() != null) {
-                nw = NativeWindowFactory.getNativeWindow(window.getWrappedWindow(), nw.getGraphicsConfiguration());
+                nw = NativeWindowFactory.getNativeWindow(window.getWrappedWindow(), window.getGraphicsConfiguration());
+            } else {
+                nw = window;
             }
             GLCapabilities glCaps = (GLCapabilities) nw.getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities();
             factory = GLDrawableFactory.getFactory(glCaps.getGLProfile());
@@ -300,6 +319,7 @@ public class GLWindow extends Window implements GLAutoDrawable {
                 throw new GLException("SurfaceHandle==NULL after setRealize(true) "+this);
             }
             context = drawable.createContext(null);
+            sendReshape = true; // ensure a reshape event is send ..
         }
     }
 
@@ -449,6 +469,9 @@ public class GLWindow extends Window implements GLAutoDrawable {
     public void display() {
         if(getSurfaceHandle()!=0) {
             pumpMessages();
+            if(window.hasDeviceChanged()) {
+                dispose(true);
+            }
             if (sendDestroy) {
                 destroy();
                 sendDestroy=false;

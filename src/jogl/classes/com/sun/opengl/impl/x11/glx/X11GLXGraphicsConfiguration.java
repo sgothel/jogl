@@ -433,7 +433,10 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
   }
 
   public String toString() {
-    return "X11GLXGraphicsConfiguration["+getScreen()+", visualID 0x" + Long.toHexString(getVisualID()) + ", fbConfigID 0x" + Long.toHexString(fbConfigID) + ", " + getChosenCapabilities() +"]";
+    return "X11GLXGraphicsConfiguration["+getScreen()+", visualID 0x" + Long.toHexString(getVisualID()) + ", fbConfigID 0x" + Long.toHexString(fbConfigID) + 
+                                        ",\n\trequested " + getRequestedCapabilities()+
+                                        ",\n\tchosen    " + getChosenCapabilities()+
+                                        "]";
   }
 }
 

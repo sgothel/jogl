@@ -249,8 +249,8 @@ public abstract class GLContext {
    * Classname, GL, GLDrawable
    */
   public final String toString() {
-    return getClass().getName()+" ["+getGL()+","+
-           " Drawable: "+ getGLDrawable()+"] ";
+    return getClass().getName()+" ["+getGL()+
+           ",\n\tDrawable: "+ getGLDrawable()+"] ";
   }
 
   /** Returns a non-null (but possibly empty) string containing the

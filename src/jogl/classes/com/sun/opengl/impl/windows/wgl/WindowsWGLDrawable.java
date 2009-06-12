@@ -58,8 +58,7 @@ public abstract class WindowsWGLDrawable extends GLDrawableImpl {
         return; // nothing todo ..
     }
 
-    int ret = lockSurface();
-    if(NativeWindow.LOCK_SURFACE_NOT_READY == ret) {
+    if(NativeWindow.LOCK_SURFACE_NOT_READY == lockSurface()) {
       throw new GLException("WindowsWGLDrawable.setRealized(true): lockSurface - surface not ready");
     }
     try {

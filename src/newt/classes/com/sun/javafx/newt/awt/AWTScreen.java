@@ -45,6 +45,10 @@ public class AWTScreen extends Screen {
         aScreen = new AWTGraphicsScreen((AWTGraphicsDevice)display.getGraphicsDevice());
     }
 
+    protected void setAWTGraphicsScreen(AWTGraphicsScreen s) {
+        aScreen = s;
+    }
+
     protected void closeNative() { }
 
 }

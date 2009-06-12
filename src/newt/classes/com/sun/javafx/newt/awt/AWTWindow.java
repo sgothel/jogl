@@ -62,12 +62,11 @@ public class AWTWindow extends Window {
     }
 
     private Frame frame;
-    private Canvas canvas;
+    private AWTCanvas canvas;
     private LinkedList/*<AWTEventWrapper>*/ events = new LinkedList();
     private boolean gotDisplaySize;
     private int displayWidth;
     private int displayHeight;
-    private volatile boolean awtCreated=false;
 
     public void setTitle(String title) {
         super.setTitle(title);
@@ -76,47 +75,26 @@ public class AWTWindow extends Window {
         }
     }
 
-    Object syncObj = new Object();
-
-    protected void createNative(Capabilities caps) {
-        config = GraphicsConfigurationFactory.getFactory(getScreen().getDisplay().getGraphicsDevice()).chooseGraphicsConfiguration(caps, null, getScreen().getGraphicsScreen());
-        if (config == null) {
-            throw new NativeWindowException("Error choosing GraphicsConfiguration creating window: "+this);
-        }
+    protected void createNative(final Capabilities caps) {
 
         runOnEDT(new Runnable() {
                 public void run() {
-                    synchronized (syncObj) {
-                        frame = new Frame(getTitle());
-                        frame.setUndecorated(isUndecorated());
-                        frame.setLayout(new BorderLayout());
-                        canvas = new Canvas( ((AWTGraphicsConfiguration) config).getGraphicsConfiguration() );
-                        Listener listener = new Listener();
-                        canvas.addMouseListener(listener);
-                        canvas.addMouseMotionListener(listener);
-                        canvas.addKeyListener(listener);
-                        canvas.addComponentListener(listener);
-                        frame.add(canvas, BorderLayout.CENTER);
-                        frame.setSize(width, height);
-                        frame.setLocation(x, y);
-                        frame.addComponentListener(new MoveListener());
-                        frame.addWindowListener(new WindowEventListener());
-                        awtCreated=true;
-                        syncObj.notifyAll();
-                    }
+                    frame = new Frame(getTitle());
+                    frame.setUndecorated(isUndecorated());
+                    frame.setLayout(new BorderLayout());
+                    canvas = new AWTCanvas(caps);
+                    Listener listener = new Listener();
+                    canvas.addMouseListener(listener);
+                    canvas.addMouseMotionListener(listener);
+                    canvas.addKeyListener(listener);
+                    canvas.addComponentListener(listener);
+                    frame.add(canvas, BorderLayout.CENTER);
+                    frame.setSize(width, height);
+                    frame.setLocation(x, y);
+                    frame.addComponentListener(new MoveListener());
+                    frame.addWindowListener(new WindowEventListener());
                 }
             });
-
-        // make sure we are finished ..
-        while(!awtCreated) {
-            synchronized (syncObj) {
-                if(!awtCreated) {
-                    try {
-                        syncObj.wait();
-                    } catch (InterruptedException e) {}
-                }
-            }
-        }
     }
 
     protected void closeNative() {
@@ -126,6 +104,20 @@ public class AWTWindow extends Window {
                     frame = null;
                 }
             });
+    }
+
+    public boolean hasDeviceChanged() {
+        boolean res = canvas.hasDeviceChanged();
+        if(res) {
+            config = canvas.getAWTGraphicsConfiguration();
+            if (config == null) {
+                throw new NativeWindowException("Error Device change null GraphicsConfiguration: "+this);
+            }
+            // propagate new info ..
+            ((AWTScreen)getScreen()).setAWTGraphicsScreen((AWTGraphicsScreen)config.getScreen());
+            ((AWTDisplay)getScreen().getDisplay()).setAWTGraphicsDevice((AWTGraphicsDevice)config.getScreen().getDevice());
+        }
+        return res;
     }
 
     public int getDisplayWidth() {
@@ -154,6 +146,16 @@ public class AWTWindow extends Window {
                     frame.setVisible(visible);
                 }
             });
+
+        config = canvas.getAWTGraphicsConfiguration();
+
+        if (config == null) {
+            throw new NativeWindowException("Error choosing GraphicsConfiguration creating window: "+this);
+        }
+
+        // propagate new info ..
+        ((AWTScreen)getScreen()).setAWTGraphicsScreen((AWTGraphicsScreen)config.getScreen());
+        ((AWTDisplay)getScreen().getDisplay()).setAWTGraphicsDevice((AWTGraphicsDevice)config.getScreen().getDevice());
     }
 
     public void setSize(final int width, final int height) {
@@ -238,7 +240,7 @@ public class AWTWindow extends Window {
                     default:
                         throw new NativeWindowException("Unknown event type " + w.getType());
                 }
-                if(DEBUG_MOUSE_EVENT) {
+                if(Window.DEBUG_MOUSE_EVENT) {
                     System.out.println("dispatchMessages: in event:"+w.getEvent());
                 }
             }

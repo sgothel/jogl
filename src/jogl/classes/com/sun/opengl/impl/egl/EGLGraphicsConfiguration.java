@@ -246,7 +246,11 @@ public class EGLGraphicsConfiguration extends DefaultGraphicsConfiguration imple
     }
 
     public String toString() {
-        return getClass().toString()+"["+getScreen()+", eglConfigID "+configID+ ", "+getChosenCapabilities()+"]";
+        return getClass().toString()+"["+getScreen()+", eglConfigID "+configID+
+                                     ",\n\trequested " + getRequestedCapabilities()+
+                                     ",\n\tchosen    " + getChosenCapabilities()+
+                                     "]";
+
     }
 
     private GLCapabilitiesChooser chooser;

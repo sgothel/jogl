@@ -127,9 +127,6 @@ public class WindowsWGLContext extends GLContextImpl {
     if (drawable.getNativeWindow().getSurfaceHandle() == 0) {
       throw new GLException("Internal error: attempted to create OpenGL context without an associated drawable");
     }
-    if (DEBUG) {
-      System.err.println(getThreadName() + ": !!! Created OpenGL context " + toHexString(hglrc) + " for " + this + ", device context " + toHexString(drawable.getNativeWindow().getSurfaceHandle()) + ", not yet sharing");
-    }
     // Windows can set up sharing of display lists after creation time
     WindowsWGLContext other = (WindowsWGLContext) GLContextShareSet.getShareContext(this);
     long hglrc2 = 0;
@@ -143,6 +140,9 @@ public class WindowsWGLContext extends GLContextImpl {
     // To use WGL_ARB_create_context, we have to make a temp context current,
     // so we are able to use GetProcAddress
     long temp_hglrc = WGL.wglCreateContext(drawable.getNativeWindow().getSurfaceHandle());
+    if (DEBUG) {
+      System.err.println(getThreadName() + ": !!! Created temp OpenGL context " + toHexString(temp_hglrc) + " for " + this + ", device context " + toHexString(drawable.getNativeWindow().getSurfaceHandle()) + ", not yet sharing");
+    }
     if (temp_hglrc == 0) {
       throw new GLException("Unable to create temp OpenGL context for device context " + toHexString(drawable.getNativeWindow().getSurfaceHandle()));
     } else {
@@ -270,20 +270,19 @@ public class WindowsWGLContext extends GLContextImpl {
   }
 
   protected void releaseImpl() throws GLException {
-    if (!NO_FREE) {
-      if (!WGL.wglMakeCurrent(0, 0)) {
+    if (!WGL.wglMakeCurrent(0, 0)) {
         throw new GLException("Error freeing OpenGL context: " + WGL.GetLastError());
-      }
     }
   }
 
   protected void destroyImpl() throws GLException {
+    if (DEBUG) {
+        Exception e = new Exception(getThreadName() + ": !!! Destroyed OpenGL context " + toHexString(hglrc));
+        e.printStackTrace();
+    }
     if (hglrc != 0) {
       if (!WGL.wglDeleteContext(hglrc)) {
         throw new GLException("Unable to delete OpenGL context");
-      }
-      if (DEBUG) {
-        System.err.println(getThreadName() + ": !!! Destroyed OpenGL context " + toHexString(hglrc));
       }
       hglrc = 0;
       GLContextShareSet.contextDestroyed(this);

@@ -247,7 +247,7 @@ public abstract class Window implements NativeWindow
 
     public synchronized void destroy() {
         if(DEBUG_WINDOW_EVENT) {
-            System.out.println("Window.destroy() start");
+            System.out.println("Window.destroy() start "+Thread.currentThread().getName());
         }
         windowListeners = new ArrayList();
         mouseListeners = new ArrayList();
@@ -255,15 +255,15 @@ public abstract class Window implements NativeWindow
         closeNative();
         invalidate();
         if(DEBUG_WINDOW_EVENT) {
-            System.out.println("Window.destroy() end");
+            System.out.println("Window.destroy() end "+Thread.currentThread().getName());
         }
     }
 
     public void invalidate() {
-        invalidate(false);
-    }
-
-    public void invalidate(boolean internal) {
+        if(DEBUG_IMPLEMENTATION || DEBUG_WINDOW_EVENT) {
+            Exception e = new Exception("!!! Window Invalidate "+Thread.currentThread().getName());
+            e.printStackTrace();
+        }
         screen   = null;
         windowHandle = 0;
         fullscreen=false;
@@ -295,6 +295,13 @@ public abstract class Window implements NativeWindow
 
     public long getSurfaceHandle() {
         return windowHandle; // default: return window handle
+    }
+
+    /** Special method to dispose a surface handle,
+        in case of a device change _and_ where there 
+        is a different semantics of window handle and surface handle.
+        This is currently only true for Windows. */
+    public void disposeSurfaceHandle() {
     }
 
     public AbstractGraphicsConfiguration getGraphicsConfiguration() {
@@ -337,6 +344,12 @@ public abstract class Window implements NativeWindow
 
     private boolean autoDrawableMember = false;
 
+    /** If the implementation is capable of detecting a device change
+        return true and clear the status/reason of the change. */
+    public boolean hasDeviceChanged() {
+        return false;
+    }
+
     /**
      * If set to true, 
      * certain action will be performed by the owning
@@ -348,7 +361,7 @@ public abstract class Window implements NativeWindow
 
     protected void windowDestroyNotify() {
         if(DEBUG_WINDOW_EVENT) {
-            System.out.println("Window.windowDestroyeNotify start");
+            System.out.println("Window.windowDestroyeNotify start "+Thread.currentThread().getName());
         }
 
         sendWindowEvent(WindowEvent.EVENT_WINDOW_DESTROY_NOTIFY);
@@ -358,13 +371,13 @@ public abstract class Window implements NativeWindow
         }
 
         if(DEBUG_WINDOW_EVENT) {
-            System.out.println("Window.windowDestroyeNotify end");
+            System.out.println("Window.windowDestroyeNotify end "+Thread.currentThread().getName());
         }
     }
 
     protected void windowDestroyed() {
         if(DEBUG_WINDOW_EVENT) {
-            System.out.println("Window.windowDestroyed");
+            System.out.println("Window.windowDestroyed "+Thread.currentThread().getName());
         }
         invalidate();
     }

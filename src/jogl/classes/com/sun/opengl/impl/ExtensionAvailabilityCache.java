@@ -52,6 +52,7 @@ import java.lang.reflect.*;
  */
 public final class ExtensionAvailabilityCache {
   private static final boolean DEBUG = Debug.debug("ExtensionAvailabilityCache");
+  private static final boolean DEBUG_AVAILABILITY = Debug.isPropertyDefined("ExtensionAvailabilityCache");
 
   ExtensionAvailabilityCache(GLContextImpl context)
   {
@@ -91,7 +92,7 @@ public final class ExtensionAvailabilityCache {
         String availableExt = tok.nextToken().trim();
         availableExt = availableExt.intern();
         availableExtensionCache.add(availableExt);
-        if (DEBUG) {
+        if (DEBUG_AVAILABILITY) {
           System.err.println("!!!   Available: " + availableExt);
         }
       }

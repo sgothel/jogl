@@ -40,6 +40,7 @@ import com.sun.javafx.newt.impl.*;
 
 public class WindowsWindow extends Window {
 
+    private long hmon;
     private long hdc;
     private long windowHandleClose;
 
@@ -58,8 +59,39 @@ public class WindowsWindow extends Window {
     public long getSurfaceHandle() {
         if (hdc == 0) {
             hdc = GetDC(windowHandle);
+            hmon = MonitorFromWindow(windowHandle);
+            if(DEBUG_IMPLEMENTATION || DEBUG_WINDOW_EVENT) {
+                Exception e = new Exception("!!! Window new surface handle "+Thread.currentThread().getName()+
+                                            ",HDC 0x"+Long.toHexString(hdc)+", HMON 0x"+Long.toHexString(hmon));
+                e.printStackTrace();
+            }
         }
         return hdc;
+    }
+
+    public boolean hasDeviceChanged() {
+        long _hmon = MonitorFromWindow(windowHandle);
+        if (hmon != _hmon) {
+            if(DEBUG_IMPLEMENTATION || DEBUG_WINDOW_EVENT) {
+                Exception e = new Exception("!!! Window Device Changed "+Thread.currentThread().getName()+
+                                            ", HMON 0x"+Long.toHexString(hmon)+" -> 0x"+Long.toHexString(_hmon));
+                e.printStackTrace();
+            }
+            hmon = _hmon;
+            return true;
+        }
+        return false;
+    }
+
+    public void disposeSurfaceHandle() {
+        if (hdc != 0) {
+            ReleaseDC(windowHandle, hdc);
+            hdc=0;
+            if(DEBUG_IMPLEMENTATION || DEBUG_WINDOW_EVENT) {
+                Exception e = new Exception("!!! Window surface handle disposed "+Thread.currentThread().getName());
+                e.printStackTrace();
+            }
+        }
     }
 
     protected void createNative(Capabilities caps) {
@@ -188,6 +220,7 @@ public class WindowsWindow extends Window {
     private        native void DestroyWindow(long windowHandle);
     private        native long GetDC(long windowHandle);
     private        native void ReleaseDC(long windowHandle, long hdc);
+    private        native long MonitorFromWindow(long windowHandle);
     private        native void setVisible0(long windowHandle, boolean visible);
     private static native void DispatchMessages(long windowHandle, int eventMask);
     private        native void setSize0(long windowHandle, int width, int height);

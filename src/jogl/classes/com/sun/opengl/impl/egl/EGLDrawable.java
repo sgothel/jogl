@@ -82,32 +82,11 @@ public abstract class EGLDrawable extends GLDrawableImpl {
             EGL.eglDestroySurface(eglDisplay, eglSurface);
         }
         eglSurface = createSurface(eglDisplay, eglConfig.getNativeConfig());
-    }
 
-    public int lockSurface() throws GLException {
-        int ret = super.lockSurface();
-        if(NativeWindow.LOCK_SURFACE_NOT_READY == ret) {
-          if (DEBUG) {
-              System.err.println("EGLDrawable.lockSurface: surface not ready");
-          }
-          return ret;
+        if(DEBUG) {
+            System.err.println("setSurface using component: handle 0x"+Long.toHexString(component.getWindowHandle())+" -> 0x"+Long.toHexString(eglSurface));
         }
-        if (NativeWindow.LOCK_SURFACE_CHANGED == ret) {
-            AbstractGraphicsConfiguration aConfig = component.getGraphicsConfiguration().getNativeGraphicsConfiguration();
-            // ensure this is a EGLGraphicsConfiguration, ie setRealized(true) already validated the EGL config and eglSurface.
-            if(EGL.EGL_NO_SURFACE!=eglSurface && aConfig instanceof EGLGraphicsConfiguration) {
-                if(DEBUG) {
-                    System.err.println("NativeWindow.LOCK_SURFACE_CHANGED: "+component);
-                }
-                ((EGLGraphicsConfiguration)aConfig).updateGraphicsConfiguration();
-                recreateSurface();
-            } else {
-                ret = NativeWindow.LOCK_SUCCESS; // overwrite result, no surface change action required yet
-            }
-        }
-        return ret;
     }
-
 
     public void setRealized(boolean realized) {
         super.setRealized(realized);
@@ -131,6 +110,7 @@ public abstract class EGLDrawable extends GLDrawableImpl {
                         if (null == eglConfig) {
                             throw new GLException("Null EGLGraphicsConfiguration from "+aConfig);
                         }
+                        eglConfig.updateGraphicsConfiguration();
                     } else {
                         throw new GLException("EGLGraphicsConfiguration doesn't carry a EGLGraphicsDevice: "+aConfig);
                     }
@@ -169,10 +149,7 @@ public abstract class EGLDrawable extends GLDrawableImpl {
                         System.err.println("Chosen eglConfig: "+eglConfig);
                     }
                 }
-                eglSurface = createSurface(eglDisplay, eglConfig.getNativeConfig());
-                if(DEBUG) {
-                    System.err.println("setSurface using component: handle 0x"+Long.toHexString(component.getWindowHandle())+" -> 0x"+Long.toHexString(eglSurface));
-                }
+                recreateSurface();
             } finally {
               unlockSurface();
             }

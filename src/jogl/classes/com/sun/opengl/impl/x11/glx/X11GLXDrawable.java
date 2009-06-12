@@ -54,34 +54,24 @@ public abstract class X11GLXDrawable extends GLDrawableImpl {
     return (X11GLXDrawableFactory) getFactoryImpl() ;
   }
 
-  public int lockSurface() throws GLException {
-    int ret = super.lockSurface();
-    if(NativeWindow.LOCK_SURFACE_NOT_READY == ret) {
-      if (DEBUG) {
-          System.err.println("X11GLXDrawable.lockSurface: surface not ready");
-      }
-      return ret;
-    }
-    if (NativeWindow.LOCK_SURFACE_CHANGED == ret) {
-        X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration();
-        config.updateGraphicsConfiguration();
-    }
-    return ret;
-  }
-
   public void setRealized(boolean realized) {
     super.setRealized(realized);
 
-    if(realized) {
-        int lockRes = lockSurface();
-        try {
-          // nothing to do, but complied with protocol, 
-          // ie resolved the window/surface handles
-        } finally {
-          if ( lockRes != NativeWindow.LOCK_SURFACE_NOT_READY ) {
-            unlockSurface();
-          }
+    if(!realized) {
+        return; // nothing to do 
+    }
+
+    if(NativeWindow.LOCK_SURFACE_NOT_READY == lockSurface()) {
+      throw new GLException("X11GLXDrawable.setRealized(true): lockSurface - surface not ready");
+    }
+    try {
+        X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration();
+        config.updateGraphicsConfiguration();
+        if (DEBUG) {
+          System.err.println("!!! X11GLXDrawable.setRealized(true): "+config);
         }
+    } finally {
+      unlockSurface();
     }
   }
 

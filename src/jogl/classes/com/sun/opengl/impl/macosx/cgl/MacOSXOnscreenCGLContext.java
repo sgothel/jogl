@@ -61,9 +61,6 @@ public class MacOSXOnscreenCGLContext extends MacOSXCGLContext {
       if (lockRes == NativeWindow.LOCK_SURFACE_NOT_READY) {
         return CONTEXT_NOT_CURRENT;
       }
-      if (lockRes == NativeWindow.LOCK_SURFACE_CHANGED) {
-        destroyImpl();
-      }
       int ret = super.makeCurrentImpl();
       if ((ret == CONTEXT_CURRENT) ||
           (ret == CONTEXT_CURRENT_NEW)) {

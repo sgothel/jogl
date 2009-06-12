@@ -61,12 +61,6 @@ public class WindowsOnscreenWGLContext extends WindowsWGLContext {
       if (lockRes == NativeWindow.LOCK_SURFACE_NOT_READY) {
         return CONTEXT_NOT_CURRENT;
       }
-      if (lockRes == NativeWindow.LOCK_SURFACE_CHANGED) {
-        if (DEBUG) {
-          System.err.println("!!! SURFACE_CHANGED WindowsOnscreenWGLContext.makeCurrentImpl: NEW CONTEXT");
-        }
-        destroyImpl();
-      }
       int ret = super.makeCurrentImpl();
       return ret;
     } catch (RuntimeException e) {

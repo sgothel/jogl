@@ -78,12 +78,9 @@ public class GLDrawableHelper {
   }
 
   public synchronized void dispose(GLAutoDrawable drawable) {
-    List newListeners = (List) ((ArrayList) listeners).clone();
-    for (Iterator iter = newListeners.iterator(); iter.hasNext(); ) {
+    for (Iterator iter = listeners.iterator(); iter.hasNext(); ) {
       ((GLEventListener) iter.next()).dispose(drawable);
-      iter.remove();
     }
-    listeners = newListeners;
   }
 
   public void init(GLAutoDrawable drawable) {
