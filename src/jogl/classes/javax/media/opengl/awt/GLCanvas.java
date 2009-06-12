@@ -330,7 +330,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
     }
   }
 
-  public void dispose(boolean regenerate) {
+  protected void dispose(boolean regenerate) {
     if(DEBUG) {
         Exception ex1 = new Exception("dispose("+regenerate+") - start");
         ex1.printStackTrace();

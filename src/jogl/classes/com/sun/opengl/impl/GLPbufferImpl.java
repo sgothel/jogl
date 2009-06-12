@@ -224,13 +224,8 @@ public class GLPbufferImpl implements GLPbuffer {
                                            PropertyChangeListener listener) {}
                                            */
 
-  public void dispose(boolean regenerate) {
-    // Offscreen ..
-    // FIXME: action required ?
-  }
-
   public void destroy() {
-    // FIXME: not calling event listeners ..
+    // FIXME: not calling event listeners .. see GLAutoDrawable spec
     if (Threading.isSingleThreaded() &&
         !Threading.isOpenGLThread()) {
       Threading.invokeOnOpenGLThread(destroyAction);

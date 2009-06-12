@@ -151,7 +151,7 @@ public class GLWindow extends Window implements GLAutoDrawable {
         shouldNotCallThis();
     }
 
-    public synchronized void dispose(boolean regenerate) {
+    protected void dispose(boolean regenerate) {
         if(Window.DEBUG_WINDOW_EVENT || window.DEBUG_IMPLEMENTATION) {
             Exception e1 = new Exception("GLWindow.destroy("+regenerate+") 1: "+this);
             e1.printStackTrace();

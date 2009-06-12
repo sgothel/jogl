@@ -58,13 +58,13 @@ public interface GLEventListener extends EventListener {
   */
   public void init(GLAutoDrawable drawable);
   
-  /** Called by the drawable before the OpenGL context is
-      destroyed by an external event. 
-      This happens through notification by the 
-      native window manager, ie window close, but also 
-      manually by calling {@link GLAutoDrawable#destroy destroy}.
-      Shall be used to perform final release of all OpenGL
+  /** Notifies the listener to perform the release of all OpenGL
       resources per GLContext, such as memory buffers and GLSL programs.<P>
+
+      Called by the drawable before the OpenGL context is
+      destroyed by an external event, like a reconfiguration of the
+      {@link GLAutoDrawable} closing an attached window,
+      but also manually by calling {@link GLAutoDrawable#destroy destroy}.<P>
 
       Note that this event does not imply the end of life of the application.
       It could be produced with a followup call to {@link #init(GLAutoDrawable)}
@@ -89,34 +89,4 @@ public interface GLEventListener extends EventListener {
       client may not have to do anything in this method.
   */
   public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height);
-
-  /** Called by the drawable when the display mode or the display device
-      associated with the GLAutoDrawable has changed. The two boolean parameters
-      indicate the types of change(s) that have occurred. 
-      <P>
-
-      An example of a display <i>mode</i> change is when the bit depth changes (e.g.,
-      from 32-bit to 16-bit color) on monitor upon which the GLAutoDrawable is
-      currently being displayed. <p>
-
-      An example of a display <i>device</i> change is when the user drags the
-      window containing the GLAutoDrawable from one monitor to another in a
-      multiple-monitor setup. <p>
-
-      The reason that this function handles both types of changes (instead of
-      handling mode and device changes in separate methods) is so that
-      applications have the opportunity to respond to display changes in the most
-      efficient manner. For example, the application may need make fewer
-      adjustments to compensate for a device change if it knows that the mode
-      on the new device is identical the previous mode.<p>
-
-      Note that this method is for application logic purpose only,
-      all necessary OpenGL specific reconfiguration are made through
-      {@link #dispose(GLAutoDrawable)} and {@link #init(GLAutoDrawable)},
-      if necessary.<p>
-
-      <b>NOTE: Implementations are not required to implement this method.  The
-        Reference Implementation DOES NOT IMPLEMENT this method.</b>
-  */
-  public void displayChanged(GLAutoDrawable drawable, boolean modeChanged, boolean deviceChanged);
 }

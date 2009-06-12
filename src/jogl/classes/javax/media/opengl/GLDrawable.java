@@ -41,28 +41,6 @@ package javax.media.opengl;
 
 import javax.media.nativewindow.*;
 
-// FIXME: We need some way to tell when the device upon which the canvas is
-// being displayed has changed (e.g., the user drags the canvas's parent
-// window from one screen on multi-screen environment to another, when the
-// user changes the display bit depth or screen resolution, etc). When this
-// occurs, we need the canvas to reset the gl function pointer tables for the
-// canvas, because the new device may have different capabilities (e.g.,
-// doesn't support as many opengl extensions) from the original device. This
-// hook would also be useful in other GLDrawables (for example, offscreen
-// buffers such as pbuffers, whose contents may or may not be invalidated when
-// the display mode changes, depending on the vendor's GL implementation).
-//
-// Right now I'm not sure how hook into when this change occurs. There isn't
-// any AWT event corresponding to a device change (as far as I can
-// tell). We could constantly check the GraphicsConfiguration of the canvas's top-level
-// parent to see if it has changed, but this would be very slow (we'd have to
-// do it every time the context is made current). There has got to be a better
-// solution, but I'm not sure what it is.
-
-// FIXME: Subclasses need to call resetGLFunctionAvailability() on their
-// context whenever the displayChanged() function is called on our
-// GLEventListeners
-
 /** An abstraction for an OpenGL rendering target. A GLDrawable's
     primary functionality is to create OpenGL contexts which can be
     used to perform rendering. A GLDrawable does not automatically
@@ -119,13 +97,21 @@ public interface GLDrawable {
    * component. <code>setRealized</code> allows the
    * <code>GLDrawable</code> to re-initialize and destroy any
    * associated resources as the component becomes realized and
-   * unrealized, respectively.<br><br>
-   * The minimum implementation shall at least call 
-   * {@link NativeWindow#lockSurface() NativeWindow.lockSurface()} and if successfull 
-   * release it with {@link NativeWindow#unlockSurface() NativeWindow.unlockSurface()}
-   * in case realized is true.
-   * This is important since this resolve the window/surface handles,
-   * which are assumed to be present after <code>setRealized(true)</code>.
+   * unrealized, respectively.
+   *
+   * <P>
+   *
+   * With an argument of <code>true</code>, 
+   * the minimum implementation shall call 
+   * {@link NativeWindow#lockSurface() NativeWindow's lockSurface()} and if successfull:
+   * <ul>
+   *    <li> Update the {@link GLCapabilities}, which are associated with 
+   *         the attached {@link NativeWindow}'s {@link AbstractGraphicsConfiguration}.</li>
+   *    <li> Release the lock with {@link NativeWindow#unlockSurface() NativeWindow's unlockSurface()}.</li>
+   * </ul><br>
+   * This is important since {@link NativeWindow#lockSurface() NativeWindow's lockSurface()}
+   * ensures resolving the window/surface handles, and the drawable's {@link GLCapabilities}
+   * might have changed.
    *
    * <P>
    *
@@ -154,6 +140,9 @@ public interface GLDrawable {
       On some platforms, the pixel format is not directly associated
       with the drawable; a best attempt is made to return a reasonable
       value in this case. <br>
+      This object shall be directly associated to the attached {@link NativeWindow}'s 
+      {@link AbstractGraphicsConfiguration}, and if changes are necessary,
+      they should reflect those as well.
       @return A copy of the queried object.
     */
   public GLCapabilities getChosenGLCapabilities();

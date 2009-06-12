@@ -50,17 +50,57 @@ import javax.media.opengl.glu.*;
     calls to {@link GLContext#makeCurrent makeCurrent} will block if
     the context is current on another thread. This allows the internal
     GLContext for the GLAutoDrawable to be used both by the event
-    based rendering mechanism as well by end users directly.<p>
+    based rendering mechanism as well by end users directly.<P>
 
     The implementation shall initialize itself as soon as possible,
-    ie if an attached window is become visible.
-    The it shall call {@link GLDrawable#setRealized setRealized(true)}
-    and create the GLContext.
-    The followup {@link #display display} call will ensure that all
-    {@link GLEventListener#init init} calls for
-    registered {@link GLEventListener}s will be made.
+    ie if the attached {@link javax.media.nativewindow.NativeWindow NativeWindow} is become visible. 
+    The following protocol shall be satisfied:
+    <ul>
+        <li> Notify {@link GLDrawable} to validate the {@link GLCapabilities} by calling {@link GLDrawable#setRealized setRealized(true)}.</li>
+        <li> Create the new {@link GLContext}.</li>
+        <li> Initialize all OpenGL resources by calling {@link GLEventListener#init init(..)} for all
+             registered {@link GLEventListener}s. This can be done immediatly, or with the followup {@link #display display(..)} call.</li>
+    </ul><P>
+
+    Another implementation detail is the drawable reconfiguration. One use case is where a window is being 
+    dragged to another screen with a different pixel configuration, ie {@link GLCapabilities}. The implementation 
+    shall be able to detect such cases in conjunction with the associated {@link javax.media.nativewindow.NativeWindow NativeWindow}.<br>
+    For example, AWT's {@link java.awt.Canvas} 's {@link java.awt.Canvas#getGraphicsConfiguration getGraphicsConfiguration()}
+    is capable to determine a display device change. This is demonstrated within {@link javax.media.opengl.awt.GLCanvas}'s 
+    {@link javax.media.opengl.awt.GLCanvas#getGraphicsConfiguration getGraphicsConfiguration()} 
+    specialization. Another demonstration is NEWT's {@link javax.media.nativewindow.NativeWindow NativeWindow} 
+    implementation on the the Windows platform, which captures the native platform's <i>WM_DEVMODECHANGE</i> message.<br>
+    All OpenGL resources shall be regenerated, while the drawable's {@link GLCapabilities} has 
+    to be choosen again. The following protocol shall be satisfied.
+    <ul>
+        <li> Controlled disposal:</li>
+        <ul>
+            <li> Dispose all OpenGL resources by calling {@link GLEventListener#dispose dispose(..)} for all
+                 registered {@link GLEventListener}s.</li>
+            <li> Destroy the {@link GLContext}.</li>
+            <li> Notify {@link GLDrawable} of the invalid state by calling {@link GLDrawable#setRealized setRealized(false)}.</li>
+        </ul>
+        <li> Controlled regeneration:</li>
+        <ul>
+            <li> Notify {@link GLDrawable} to revalidate the {@link GLCapabilities} by calling {@link GLDrawable#setRealized setRealized(true)}.</li>
+            <li> Create the new {@link GLContext}.</li>
+            <li> Initialize all OpenGL resources by calling {@link GLEventListener#init init(..)} for all
+                 registered {@link GLEventListener}s. This can be done immediatly, or with the followup {@link #display display(..)} call.</li>
+        </ul>
+    </ul>
   */
 public interface GLAutoDrawable extends GLDrawable {
+  /** FIXME:
+  ** Invalid state, the resources are not yet ready to render. *
+  public static final int STATE_INVALID = 0;
+
+  ** Valid state, all resources are ready to render, 
+      and all registered {@link GLEventListener#init init(..)} are called. *
+  public static final int STATE_VALID = 1;
+
+  ** Destroying state, currently executing the {@link #destroy()} method. *
+  public static final int STATE_DESTROYING = 2; */
+
   /**
    * Returns the context associated with this drawable. The returned
    * context will be synchronized.
@@ -85,44 +125,35 @@ public interface GLAutoDrawable extends GLDrawable {
       during this update cycle. */
   public void removeGLEventListener(GLEventListener listener);
 
-  /** Destroys the GLContext associated with this GLAutoDrawable. 
-      Causes disposing of all OpenGL resources
-      by calling {@link GLEventListener#dispose dispose} for all
-      registered {@link GLEventListener}s,
-      and then destroys the GLContext.
-      The implementation shall also call {@link GLDrawable#setRealized setRealized(false)}
-      to notify GLDrawable.<p>
-
-      If the argument <code>regenerate</code> is true,
-      the implementation shall call {@link GLDrawable#setRealized setRealized(true)}
-      and create a new GLContext.
-      The followup {@link #display display} call will ensure that all
-      {@link GLEventListener#init init} calls for
-      registered {@link GLEventListener}s will be made.*/
-  public void dispose(boolean regenerate);
+  /** FIXME: Returns the current state, 
+      {@link #STATE_INVALID}, {@link #STATE_VALID} or {@link #STATE_DESTROYING}.
+      Tool to determine, e.g. if a {@link GLEventListener#dispose dispose(..)}
+      event is send in the context of the destruction of this GLAutoDrawable.
+  public int getCurrentState(); */
 
   /** Destroys all resources associated with this GLAutoDrawable,
       inclusive the GLContext.
       If a window is attached to it's implementation, it shall be closed.
       Causes disposing of all OpenGL resources
-      by calling {@link GLEventListener#dispose dispose} for all
+      by calling {@link GLEventListener#dispose dispose(..)} for all
       registered {@link GLEventListener}s. Called automatically by the
       window system toolkit upon receiving a destroy notification. This
       routine may be called manually. */
   public void destroy();
 
   /** Causes OpenGL rendering to be performed for this GLAutoDrawable
-      by calling {@link GLEventListener#display display} for all
+      by calling {@link GLEventListener#display display(..)} for all
       registered {@link GLEventListener}s. Called automatically by the
       window system toolkit upon receiving a repaint() request. this
       routine may be called manually for better control over the
       rendering process. It is legal to call another GLAutoDrawable's
       display method from within the {@link GLEventListener#display
-      display} callback.<p>
+      display(..)} callback.<p>
       In case of a new generated OpenGL context, 
-      the implementation shall call {@link GLEventListener#init init} for all
+      the implementation shall call {@link GLEventListener#init init(..)} for all
       registered {@link GLEventListener}s <i>before</i> making the 
-      actual {@link GLEventListener#display display} calls.*/
+      actual {@link GLEventListener#display display(..)} calls,
+      in case this has not been done yet.*/
   public void display();
 
   /** Enables or disables automatic buffer swapping for this drawable.
@@ -130,7 +161,7 @@ public interface GLAutoDrawable extends GLDrawable {
       GLEventListeners have been called for a display() event, the
       front and back buffers are swapped, displaying the results of
       the render. When disabled, the user is responsible for calling
-      {@link #swapBuffers} manually. */
+      {@link #swapBuffers(..)} manually. */
   public void setAutoSwapBufferMode(boolean onOrOff);
 
   /** Indicates whether automatic buffer swapping is enabled for this
