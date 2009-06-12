@@ -20,16 +20,23 @@ public class ShaderState {
     public void setVerbose(boolean v) { verbose=v; }
 
     /**
-     * Fetches the current shader state
+     * Fetches the current shader state from the thread local storage (TLS)
      *
      * @see javax.media.opengl.glsl.ShaderState#glUseProgram(GL2ES2, boolean)
      * @see javax.media.opengl.glsl.ShaderState#getCurrent()
      */
-    public static synchronized ShaderState getCurrent() { return currentShaderState; }
+    public static synchronized ShaderState getCurrent() { 
+        GLContext current = GLContext.getCurrent();
+        if(null==current) {
+            throw new GLException("No context is current on this thread");
+        }
+        return (ShaderState) current.getAttachedObject(ShaderState.class.getName());
+    }
 
     /**
-     * Turns the shader program on 
-     * and set this ShaderState to current if on equals true
+     * Turns the shader program on or off.<br>
+     * Puts this ShaderState to to the thread local storage (TLS),
+     * if <code>on</code> is <code>true</code>.
      *
      * @see javax.media.opengl.glsl.ShaderState#glUseProgram(GL2ES2, boolean)
      * @see javax.media.opengl.glsl.ShaderState#getCurrent()
@@ -41,9 +48,8 @@ public class ShaderState {
             } else {
                 throw new GLException("No program is attached");
             }
-            if(currentShaderState!=this) {
-                currentShaderState = this;
-            }
+            // update the current ShaderState to the TLS ..
+            gl.getContext().putAttachedObject(ShaderState.class.getName(), this);
         } else if(null!=shaderProgram) {
             shaderProgram.glUseProgram(gl, false);
         }
@@ -637,7 +643,6 @@ public class ShaderState {
     protected HashMap vertexAttribMap2Data = new HashMap();
     protected HashMap uniformMap2Idx = new HashMap();
     protected HashMap uniformMap2Data = new HashMap();
-    protected static ShaderState currentShaderState = null;
 
 }
 

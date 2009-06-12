@@ -388,12 +388,10 @@ public class ShaderUtil {
     private static Impl getImpl(GL _gl) {
         GL2ES2 gl = _gl.getGL2ES2();
         GLContext context = gl.getContext();
-        // Argument could be anything suitably unique
-        String name = "com.sun.opengl.util.glsl.ShaderUtil.GL2ES2Impl";
-        Impl impl = (Impl) context.getAttachedObject(name);
+        Impl impl = (Impl) context.getAttachedObject(ShaderUtil.class.getName());
         if (impl == null) {
             impl = new GL2ES2Impl();
-            context.putAttachedObject(name, impl);
+            context.putAttachedObject(ShaderUtil.class.getName(), impl);
         }
         return impl;
     }
