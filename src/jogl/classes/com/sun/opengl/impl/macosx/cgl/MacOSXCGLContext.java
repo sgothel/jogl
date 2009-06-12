@@ -113,6 +113,9 @@ public abstract class MacOSXCGLContext extends GLContextImpl
     MacOSXCGLGraphicsConfiguration config = (MacOSXCGLGraphicsConfiguration) drawable.getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration();
     GLCapabilities capabilities = (GLCapabilities)config.getRequestedCapabilities();
     GLProfile glProfile = capabilities.getGLProfile();
+    if(glProfile.isGL3()) {
+        throw new GLException("GL3 profile currently not supported on MacOSX, due to the lack of a OpenGL 3.1 implementation");
+    }
     // FIXME: Shall being moved to MacOSXCGLGraphicsConfiguration !
     int[] viewNotReady = new int[1];
     int[] iattribs = new int[128];
