@@ -124,21 +124,93 @@ public abstract class NativeWindowFactory {
             } catch (Exception e) { }
         }
 
-        /** FIXME: this whole block has to be removed .. */
         if(TYPE_X11.equals(nativeWindowingTypeCustom)) {
             NativeWindowFactory _factory = null;
-            /** Makes NEWT/AWT pretty unstable .. GLCanvas is serialized anyways ..
+
+            // FIXME: there are regressions in functionality in the
+            // JOGL 2 rewrite compared to JOGL 1.1.1 which are
+            // described in the writeup below.
+            //
+            // There are certain operations that may be done by
+            // user-level native code which must share the display
+            // connection with the underlying window toolkit. In JOGL,
+            // for example, the AWT GLCanvas makes GLX and OpenGL
+            // calls against an X Drawable that was created by the
+            // AWT. In this case, the AWT Native Interface ("JAWT") is
+            // used to lock and unlock this surface, which grabs and
+            // releases a lock which is also used internally to the
+            // AWT implementation. This is required because the AWT
+            // makes X calls from multiple threads: for example, the
+            // AWT Toolkit thread and one or more Event Dispatch
+            // Threads.
+            //
+            // In the JOGL API, there are other operations that use an
+            // X display connection which do not involve locking an
+            // on-screen window created by the toolkit: visual
+            // selection, pbuffers, external contexts and external
+            // drawables.
+            //
+            // The JOGL GLPbuffer implementation uses its own display
+            // connection via "XOpenDisplay(null)". This was true even
+            // in JOGL 1.1.1. It is believed, but not 100% clear,
+            // whether X implementations are robust enough to handle
+            // the opening of a new display connection in a
+            // multithreaded fashion with no synchronization.
+            // (Semantically this should be allowed, but practically,
+            // it is unclear.) Currently the JOGL implementation locks
+            // the ToolkitLock around pbuffer-related operations.
+            //
+            // Even if the pbuffer case is over-synchronized, there
+            // are definitely cases where synchronization with the
+            // toolkit is required. From recollection, visual
+            // selection is performed outside of the cover of the
+            // toolkit's lock, and the toolkit's display connection is
+            // used for this operation, so for correctness the toolkit
+            // must be locked during glXChooseFBConfig /
+            // glXChooseVisual. Synchronization with the toolkit is
+            // definitely needed for support of external GLDrawables,
+            // where JOGL creates additional OpenGL contexts on a
+            // surface that was created by a third party. External
+            // GLDrawables are the foundation of the Java 2D / JOGL
+            // bridge. While this bridge may be historical at this
+            // point, support for external GLDrawables on platforms
+            // that can support them (namely, WGL and X11 platforms;
+            // Mac OS X does not currently have the required
+            // primitives in its OpenGL window system binding) makes
+            // the JOGL library more powerful.
+            // 
+            // (FIXME: from code examination, it looks like there are
+            // regressions in the support for external GLDrawables in
+            // JOGL 2 compared to JOGL 1.1.1. Note that the "default"
+            // X display connection from X11Util is being used during
+            // construction of the X11ExternalGLXDrawable instead of
+            // the result of glXGetCurrentDisplay().)
+            //
+            // The X11AWTNativeWindowFactory provides a locking
+            // mechanism compatible with the AWT. It may be desirable
+            // to replace this window factory when using third-party
+            // toolkits like Newt even when running on Java SE when
+            // the AWT is available.
+
             if (componentClass != null) {
                 try {
                     Constructor factoryConstructor =
                         NWReflection.getConstructor("com.sun.nativewindow.impl.x11.awt.X11AWTNativeWindowFactory", new Class[] {});
                     _factory = (NativeWindowFactory) factoryConstructor.newInstance(null);
                 } catch (Exception e) { }
-            } */
-            /** FIXME: What is this ?? 
-                       The original code just added the lock toolkit at X11 & AWT ..
-                       And it would have been set to null pointer, since the above only
-                       exist with AWT ... 
+            }
+
+            // If it turns out that the AWT is not available, for
+            // example on embedded profiles (CDC / FP), then
+            // synchronization is still needed, for example among
+            // multiple threads that might create pbuffers. The
+            // X11NativeWindowFactory provides a simple reentrant lock
+            // for this purpose. It is expected that third-party
+            // toolkits will either replace this factory, and thereby
+            // the implementation of this lock, if stronger
+            // interoperability is desired, for example full support
+            // for external GLDrawables.
+
             if (null ==_factory) {
                 // Try the non-AWT X11 native window factory
                 try {
@@ -147,7 +219,7 @@ public abstract class NativeWindowFactory {
                     _factory = (NativeWindowFactory) factoryConstructor.newInstance(null);
                 } catch (Exception e) { }
             }
-            */
+
             if (null !=_factory) {
                 factory = _factory;
             }
