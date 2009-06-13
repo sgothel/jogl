@@ -127,13 +127,12 @@ public Object getPlatformGLExtensions() {
 //
 
 /** Returns the number of bytes required to fill in the appropriate
-    texture. This is regrettably a lower bound as in certain
-    circumstances OpenGL state such as unpack alignment can cause more
-    data to be required. However this should be close enough that it
-    should catch most crashes. The logic in this routine is based on
-    code in the SGI OpenGL sample implementation. */
+    texture. This is computed as closely as possible based on the
+    pixel pack or unpack parameters. The logic in this routine is
+    based on code in the SGI OpenGL sample implementation. */
 
-private int imageSizeInBytes(int format, int type, int w, int h, int d) {
+private int imageSizeInBytes(int format, int type, int w, int h, int d,
+                             int dimensions, boolean pack) {
   int elements = 0;
   int esize = 0;
   
@@ -216,7 +215,7 @@ private int imageSizeInBytes(int format, int type, int w, int h, int d) {
   default:
     return 0;
   }
-  return (elements * esize * w * h * d);
+  return imageSizeInBytes(elements * esize, w, h, d, dimensions, pack);
 }
 
 private GLBufferStateTracker bufferStateTracker = new GLBufferStateTracker();
