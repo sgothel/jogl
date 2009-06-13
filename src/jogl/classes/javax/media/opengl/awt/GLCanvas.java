@@ -666,7 +666,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
                   try {
                     disableBackgroundEraseMethod =
                       clazz.getDeclaredMethod("disableBackgroundErase",
-                                                                new Class[] { Canvas.class });
+                                              new Class[] { Canvas.class });
                     disableBackgroundEraseMethod.setAccessible(true);
                   } catch (Exception e) {
                     clazz = clazz.getSuperclass();
