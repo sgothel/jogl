@@ -103,7 +103,6 @@ public class AWTThreadingPlugin implements ThreadingPlugin {
             throw new GLException(e);
           }
         }
-        r.run();
         break;
 
       case Threading.WORKER:
