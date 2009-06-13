@@ -613,22 +613,27 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
     }
 
     switch (message) {
+
+    //
+    // The signal pipeline for destruction is:
+    //    Java::DestroyWindow(wnd) _or_ window-close-button -> 
+    //     WM_CLOSE -> Java::windowDestroyNotify -> W_DESTROY -> Java::windowDestroyed ->
+    //       Java::CleanupWindowResources()
     case WM_CLOSE:
         (*env)->CallVoidMethod(env, window, windowDestroyNotifyID);
-        // Called by Window.java: DestroyWindow(wnd);
         break;
 
     case WM_DESTROY:
-        /** Results in ACCESS_VIOLATION, since this thread 
-         *  might not be the creator of the global reference ..  
-            (*env)->DeleteGlobalRef(env, wud->jinstance); */
-        free(wud); wud=NULL;
+        {
 #if defined(UNDER_CE) || _MSC_VER <= 1200
-        SetWindowLong(window, GWL_USERDATA, (intptr_t) wud);
+            SetWindowLong(wnd, GWL_USERDATA, NULL);
 #else
-        SetWindowLongPtr(window, GWLP_USERDATA, (intptr_t) wud);
+            SetWindowLongPtr(wnd, GWLP_USERDATA, NULL);
 #endif
-        (*env)->CallVoidMethod(env, window, windowDestroyedID);
+            free(wud); wud=NULL;
+            (*env)->CallVoidMethod(env, window, windowDestroyedID);
+            (*env)->DeleteGlobalRef(env, window);
+        }
         break;
 
     case WM_SYSCHAR:
@@ -837,64 +842,74 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_LoadLibra
 /*
  * Class:     com_sun_javafx_newt_windows_WindowsWindow
  * Method:    RegisterWindowClass
- * Signature: (Ljava/lang/String;J)J
+ * Signature: (Ljava/lang/String;J)I
  */
-JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_RegisterWindowClass
-  (JNIEnv *env, jclass clazz, jstring appName, jlong hInstance)
+JNIEXPORT jint JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_RegisterWindowClass
+  (JNIEnv *env, jclass clazz, jstring wndClassName, jlong hInstance)
 {
-    WNDCLASS* wc;
+    ATOM res;
+    WNDCLASS wc;
 #ifndef UNICODE
-    const char* _appName = NULL;
+    const char* _wndClassName = NULL;
 #endif
 
-    wc = calloc(1, sizeof(WNDCLASS));
     /* register class */
-    wc->style = CS_HREDRAW | CS_VREDRAW;
-    wc->lpfnWndProc = (WNDPROC)wndProc;
-    wc->cbClsExtra = 0;
-    wc->cbWndExtra = 0;
+    wc.style = CS_HREDRAW | CS_VREDRAW;
+    wc.lpfnWndProc = (WNDPROC)wndProc;
+    wc.cbClsExtra = 0;
+    wc.cbWndExtra = 0;
     /* This cast is legal because the HMODULE for a DLL is the same as
        its HINSTANCE -- see MSDN docs for DllMain */
-    wc->hInstance = (HINSTANCE) hInstance;
-    wc->hIcon = NULL;
-    wc->hCursor = LoadCursor(NULL, MAKEINTRESOURCE(IDC_ARROW));
-    wc->hbrBackground = GetStockObject(BLACK_BRUSH);
-    wc->lpszMenuName = NULL;
+    wc.hInstance = (HINSTANCE) hInstance;
+    wc.hIcon = NULL;
+    wc.hCursor = LoadCursor(NULL, MAKEINTRESOURCE(IDC_ARROW));
+    wc.hbrBackground = GetStockObject(BLACK_BRUSH);
+    wc.lpszMenuName = NULL;
 #ifdef UNICODE
-    wc->lpszClassName = GetNullTerminatedStringChars(env, appName);
+    wc.lpszClassName = GetNullTerminatedStringChars(env, wndClassName);
 #else
-    _appName = (*env)->GetStringUTFChars(env, appName, NULL);
-    wc->lpszClassName = strdup(_appName);
-    (*env)->ReleaseStringUTFChars(env, appName, _appName);
+    _wndClassName = (*env)->GetStringUTFChars(env, wndClassName, NULL);
+    wc.lpszClassName = strdup(_wndClassName);
+    (*env)->ReleaseStringUTFChars(env, wndClassName, _wndClassName);
 #endif
-    if (!RegisterClass(wc)) {
-        free((void *)wc->lpszClassName);
-        free(wc);
-        return 0;
-    }
-    return (jlong) (intptr_t) wc;
+    res = RegisterClass(&wc);
+
+    free((void *)wc.lpszClassName);
+
+    return (jint)res;
+}
+
+/*
+ * Class:     com_sun_javafx_newt_windows_WindowsWindow
+ * Method:    CleanupWindowResources
+ * Signature: (java/lang/String;J)V
+ */
+JNIEXPORT void JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_CleanupWindowResources
+  (JNIEnv *env, jobject obj, jint wndClassAtom, jlong hInstance)
+{
+    UnregisterClass(MAKEINTATOM(wndClassAtom), (HINSTANCE) hInstance);
 }
 
 /*
  * Class:     com_sun_javafx_newt_windows_WindowsWindow
  * Method:    CreateWindow
- * Signature: (Ljava/lang/String;JJZIIII)J
+ * Signature: (ILjava/lang/String;JJZIIII)J
  */
 JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_CreateWindow
-  (JNIEnv *env, jobject obj, jstring windowClassName, jlong hInstance, jlong visualID,
+  (JNIEnv *env, jobject obj, jint wndClassAtom, jstring jWndName, jlong hInstance, jlong visualID,
         jboolean bIsUndecorated,
         jint jx, jint jy, jint defaultWidth, jint defaultHeight)
 {
-    const TCHAR* wndClassName = NULL;
+    const TCHAR* wndName = NULL;
     DWORD windowStyle = WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_VISIBLE;
     int x=(int)jx, y=(int)jy;
     int width=(int)defaultWidth, height=(int)defaultHeight;
     HWND window = NULL;
 
 #ifdef UNICODE
-    wndClassName = GetNullTerminatedStringChars(env, windowClassName);
+    wndName = GetNullTerminatedStringChars(env, jWndName);
 #else
-    wndClassName = (*env)->GetStringUTFChars(env, windowClassName, NULL);
+    wndName = (*env)->GetStringUTFChars(env, jWndName, NULL);
 #endif
 
     x = CW_USEDEFAULT;
@@ -907,17 +922,12 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_CreateWin
 
     (void) visualID; // FIXME: use the visualID ..
 
-    window = CreateWindow(wndClassName, wndClassName, windowStyle,
+    window = CreateWindow(MAKEINTATOM(wndClassAtom), wndName, windowStyle,
                           x, y, width, height,
                           NULL, NULL,
                           (HINSTANCE) hInstance,
                           NULL);
-#ifdef UNICODE
-    free((void*) wndClassName);
-#else
-    (*env)->ReleaseStringUTFChars(env, windowClassName, wndClassName);
-#endif
-    
+
     if (window != NULL) {
         WindowUserData * wud = (WindowUserData *) malloc(sizeof(WindowUserData));
         wud->jinstance = (*env)->NewGlobalRef(env, obj);
@@ -929,6 +939,13 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_CreateWin
 #endif
         ShowWindow(window, SW_SHOWNORMAL);
     }
+
+#ifdef UNICODE
+    free((void*) wndName);
+#else
+    (*env)->ReleaseStringUTFChars(env, jWndName, wndName);
+#endif
+
     return (jlong) (intptr_t) window;
 }
 
@@ -940,21 +957,6 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_CreateWin
 JNIEXPORT void JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_DestroyWindow
   (JNIEnv *env, jobject obj, jlong window)
 {
-/**
-    WindowUserData * wud;
-#if defined(UNDER_CE) || _MSC_VER <= 1200
-    wud = (WindowUserData *) GetWindowLong((HWND)window, GWL_USERDATA);
-#else
-    wud = (WindowUserData *) GetWindowLongPtr((HWND)window, GWLP_USERDATA);
-#endif
-    if(NULL==wud) {
-        fprintf(stderr, "INTERNAL ERROR in WindowsWindow::DestroyWindow window userdata NULL\n");
-        exit(1);
-    }
-    (*env)->DeleteGlobalRef(env, wud->jinstance);
-
-    free(wud); */
-
     DestroyWindow((HWND) window);
 }
 

@@ -46,7 +46,6 @@ public class WindowsWindow extends Window {
     // non fullscreen dimensions ..
     private int nfs_width, nfs_height, nfs_x, nfs_y;
 
-    private static final String WINDOW_CLASS_NAME = "NewtWindow";
     static {
         NativeLibLoader.loadNEWT();
 
@@ -97,12 +96,11 @@ public class WindowsWindow extends Window {
     }
 
     protected void createNative(Capabilities caps) {
-        long wndClass = getWindowClass();
         config = GraphicsConfigurationFactory.getFactory(getScreen().getDisplay().getGraphicsDevice()).chooseGraphicsConfiguration(caps, null, getScreen().getGraphicsScreen());
         if (config == null) {
             throw new NativeWindowException("Error choosing GraphicsConfiguration creating window: "+this);
         }
-        windowHandle = CreateWindow(WINDOW_CLASS_NAME, getHInstance(), 0, undecorated, x, y, width, height);
+        windowHandle = CreateWindow(getWindowClassAtom(), WINDOW_CLASS_NAME, getHInstance(), 0, undecorated, x, y, width, height);
         if (windowHandle == 0) {
             throw new NativeWindowException("Error creating window");
         }
@@ -123,6 +121,7 @@ public class WindowsWindow extends Window {
     }
 
     protected void windowDestroyed() {
+        // singleton ATOM CleanupWindowResources(getWindowClassAtom(), getHInstance());
         windowHandleClose = 0;
         super.windowDestroyed();
     }
@@ -208,15 +207,17 @@ public class WindowsWindow extends Window {
     //----------------------------------------------------------------------
     // Internals only
     //
-    private static long windowClass;
-    private static synchronized long getWindowClass() {
-        if (windowClass == 0) {
-            windowClass = RegisterWindowClass(WINDOW_CLASS_NAME, getHInstance());
-            if (windowClass == 0) {
+    private static final String WINDOW_CLASS_NAME = "NewtWindowClass";
+
+    private static int windowClassAtom = 0;
+    private static synchronized int getWindowClassAtom() {
+        if(0 == windowClassAtom) {
+            windowClassAtom = RegisterWindowClass(WINDOW_CLASS_NAME, getHInstance());
+            if (windowClassAtom == 0) {
                 throw new NativeWindowException("Error while registering window class");
             }
         }
-        return windowClass;
+        return windowClassAtom;
     }
     private static long hInstance;
     private static synchronized long getHInstance() {
@@ -231,10 +232,12 @@ public class WindowsWindow extends Window {
 
     private static native boolean initIDs();
     private static native long LoadLibraryW(String libraryName);
-    private static native long RegisterWindowClass(String windowClassName, long hInstance);
-    private        native long CreateWindow(String windowClassName, long hInstance, long visualID,
+    private static native int  RegisterWindowClass(String windowClassName, long hInstance);
+    private        native long CreateWindow(int wndClassAtom, String wndName, 
+                                            long hInstance, long visualID,
                                             boolean isUndecorated,
                                             int x, int y, int width, int height);
+    private        native void CleanupWindowResources(int wndClassAtom, long hInstance);
     private        native void DestroyWindow(long windowHandle);
     private        native long GetDC(long windowHandle);
     private        native void ReleaseDC(long windowHandle, long hdc);
