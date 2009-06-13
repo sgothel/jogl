@@ -1096,7 +1096,7 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_DispatchMe
             TranslateMessage(&msg);
             DispatchMessage(&msg);
         }
-    } while (gotOne && i < 10);
+    } while (gotOne && i < 100);
 }
 
 /*
