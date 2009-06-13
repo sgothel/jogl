@@ -971,7 +971,7 @@
         <!-- Generate CgGL interface class -->
         <gluegen src="${stub.includes.opengl}/cg.c" 
                  outputRootDir="../${rootrel.build.jogl}"
-                 config="cg-common.cfg"
+                 config="${config}/cg-common.cfg"
                  includeRefid="stub.includes.cg.fileset.all"
                  emitter="com.sun.gluegen.JavaEmitter">
             <classpath refid="gluegen.classpath" />
