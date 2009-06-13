@@ -78,15 +78,18 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
   static private GLProfile glProfileDefault = GLProfile.GetProfileDefault();
   private GLProfile glProfile;
   private GLDrawableHelper drawableHelper = new GLDrawableHelper();
+  private GraphicsConfiguration chosen;
+  private AWTGraphicsConfiguration awtConfig;
   private GLDrawable drawable;
   private GLContextImpl context;
   private boolean autoSwapBufferMode = true;
   private boolean sendReshape = false;
   
-  private GraphicsConfiguration chosen;
-  private AWTGraphicsConfiguration awtConfig;
-  private GLCapabilitiesChooser glCapChooser;
-  private GLContext shareWithContext;
+  // copy of the cstr args ..
+  private GLCapabilities capabilities;
+  private GLCapabilitiesChooser chooser;
+  private GLContext shareWith;
+  private GraphicsDevice device;
 
   /** Creates a new GLCanvas component with a default set of OpenGL
       capabilities, using the default OpenGL capabilities selection
@@ -134,46 +137,10 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
     }
     glProfile = capabilities.getGLProfile();
 
-    // FIXME: all this shall move to addNotify(), 
-    //        since only there a GraphicsConfiguration is available ..
-    if(null==device) {
-        GraphicsConfiguration gc = super.getGraphicsConfiguration();
-        if(null!=gc) {
-            device = gc.getDevice();
-        }
-    }
-
-    /*
-     * Save the chosen capabilities for use in getGraphicsConfiguration().
-     */
-    awtConfig = chooseGraphicsConfiguration(capabilities, chooser, device);
-    if(DEBUG) {
-        Exception e = new Exception("Created Config: "+awtConfig);
-        e.printStackTrace();
-    }
-    if(null!=awtConfig) {
-      // update ..
-      chosen = awtConfig.getGraphicsConfiguration();
-
-      /*
-       * If we are running on a platform that
-       * must select a GraphicsConfiguration now,
-       * save these for later use in getGraphicsConfiguration().
-       */
-      this.glCapChooser = chooser;
-      this.shareWithContext=shareWith;
-    }
-    if (!Beans.isDesignTime()) {
-      if(null==awtConfig) {
-          throw new GLException("Error: AWTGraphicsConfiguration is null");
-      }
-      drawable = GLDrawableFactory.getFactory(glProfile).createGLDrawable(NativeWindowFactory.getNativeWindow(this, awtConfig));
-      context = (GLContextImpl) drawable.createContext(shareWithContext);
-      context.setSynchronized(true);
-    }
-    if(DEBUG) {
-        System.err.println("Created Drawable: "+drawable);
-    }
+    this.capabilities = capabilities;
+    this.chooser = chooser;
+    this.shareWith=shareWith;
+    this.device = device;
   }
 
   protected interface DestroyMethod {
@@ -255,7 +222,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
          * block, both devices should have the same visual list, and the
          * same configuration should be selected here.
          */
-        AWTGraphicsConfiguration config = chooseGraphicsConfiguration((GLCapabilities)awtConfig.getRequestedCapabilities(), glCapChooser, gc.getDevice());
+        AWTGraphicsConfiguration config = chooseGraphicsConfiguration((GLCapabilities)awtConfig.getRequestedCapabilities(), chooser, gc.getDevice());
         final GraphicsConfiguration compatible = (null!=config)?config.getGraphicsConfiguration():null;
         boolean equalCaps = config.getChosenCapabilities().equals(awtConfig.getChosenCapabilities());
         if(DEBUG) {
@@ -411,9 +378,39 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
   public void addNotify() {
     super.addNotify();
     if (!Beans.isDesignTime()) {
-      disableBackgroundErase();
+        disableBackgroundErase();
 
-      drawable.setRealized(true);
+        if(null==device) {
+            GraphicsConfiguration gc = super.getGraphicsConfiguration();
+            if(null!=gc) {
+                device = gc.getDevice();
+            }
+        }
+
+        /*
+         * Save the chosen capabilities for use in getGraphicsConfiguration().
+         */
+        awtConfig = chooseGraphicsConfiguration(capabilities, chooser, device);
+        if(DEBUG) {
+            Exception e = new Exception("Created Config: "+awtConfig);
+            e.printStackTrace();
+        }
+        if(null!=awtConfig) {
+          // update ..
+          chosen = awtConfig.getGraphicsConfiguration();
+
+        }
+        if(null==awtConfig) {
+          throw new GLException("Error: AWTGraphicsConfiguration is null");
+        }
+        drawable = GLDrawableFactory.getFactory(glProfile).createGLDrawable(NativeWindowFactory.getNativeWindow(this, awtConfig));
+        context = (GLContextImpl) drawable.createContext(shareWith);
+        context.setSynchronized(true);
+
+        if(DEBUG) {
+            System.err.println("Created Drawable: "+drawable);
+        }
+        drawable.setRealized(true);
     }
   }
 
@@ -583,7 +580,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
             System.err.println("GLCanvas.dispose(true): new drawable: "+drawable);
           }
           drawable.setRealized(true);
-          context = (GLContextImpl) drawable.createContext(shareWithContext);
+          context = (GLContextImpl) drawable.createContext(shareWith);
           context.setSynchronized(true);
           sendReshape=true; // ensure a reshape is being send ..
       }
