@@ -521,11 +521,7 @@
 
     <target name="c.manifest" if="isVC8Family">
       <!-- exec mt, the Microsoft Manifest Tool, to include DLL manifests in order to resolve the location of msvcr80.dll -->
-      <exec executable="mt">
-        <arg value="-manifest"/>
-        <arg value="${obj}/newt.dll.manifest"/>
-        <arg value="-outputresource:${obj}/newt.dll;#2"/>
-      </exec>
+      <msvc.manifest objdir="${obj}" dllname="newt" />
     </target>
 
     <target name="c.build.newt" depends="c.configure,c.build.newt.prepare,c.build.newt.windowlib">

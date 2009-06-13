@@ -773,16 +773,8 @@
 
     <target name="c.manifest" if="isVC8Family">
       <!-- exec mt, the Microsoft Manifest Tool, to include DLL manifests in order to resolve the location of msvcr80.dll -->
-      <exec executable="mt">
-        <arg value="-manifest"/>
-        <arg value="${obj}/nativewindow.dll.manifest"/>
-        <arg value="-outputresource:${obj}/nativewindow.dll;#2"/>
-      </exec>
-      <exec executable="mt">
-        <arg value="-manifest"/>
-        <arg value="${obj}/nativewindow_awt.dll.manifest"/>
-        <arg value="-outputresource:${obj}/nativewindow_awt.dll;#2"/>
-      </exec>
+      <msvc.manifest objdir="${obj}" dllname="nativewindow" />
+      <msvc.manifest objdir="${obj}" dllname="nativewindow_awt" />
     </target>
 
     <target name="c.build.nativewindow" depends="c.configure,c.build.nativewindow.windowlib,c.build.nativewindow.awt">

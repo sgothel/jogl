@@ -1605,25 +1605,15 @@
     </target>
     
     <target name="c.manifest.cg" if="jogl.cg">
-      <exec executable="mt">
-        <arg value="-manifest"/>
-        <arg value="${obj}/jogl_cg.dll.manifest"/>
-        <arg value="-outputresource:${obj}/jogl_cg.dll;#2"/>
-      </exec>
+      <msvc.manifest objdir="${obj}" dllname="jogl_cg" />
     </target>
 
     <target name="c.manifest" if="isVC8Family">
       <!-- exec mt, the Microsoft Manifest Tool, to include DLL manifests in order to resolve the location of msvcr80.dll -->
-      <exec executable="mt">
-        <arg value="-manifest"/>
-        <arg value="${obj}/jogl_gl2.dll.manifest"/>
-        <arg value="-outputresource:${obj}/jogl_gl2.dll;#2"/>
-      </exec>
-      <exec executable="mt">
-        <arg value="-manifest"/>
-        <arg value="${obj}/jogl_awt.dll.manifest"/>
-        <arg value="-outputresource:${obj}/jogl_awt.dll;#2"/>
-      </exec>
+      <msvc.manifest objdir="${obj}" dllname="jogl_es1" />
+      <msvc.manifest objdir="${obj}" dllname="jogl_es2" />
+      <msvc.manifest objdir="${obj}" dllname="jogl_gl2" />
+      <msvc.manifest objdir="${obj}" dllname="jogl_gl2es12" />
       <antcall target="c.manifest.cg" inheritRefs="true" />
     </target>
 
