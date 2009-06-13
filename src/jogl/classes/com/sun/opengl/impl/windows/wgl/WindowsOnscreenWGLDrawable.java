@@ -73,11 +73,12 @@ public class WindowsOnscreenWGLDrawable extends WindowsWGLDrawable {
     boolean didLock = false;
 
     try {
-        if (getNativeWindow().getSurfaceHandle() == 0) {
-          if (lockSurface() == NativeWindow.LOCK_SURFACE_NOT_READY) {
-            return;
-          }
-          didLock = true;
+        if ( !isSurfaceLocked() ) {
+            // Usually the surface shall be locked within [makeCurrent .. swap .. release]
+            if (lockSurface() == NativeWindow.LOCK_SURFACE_NOT_READY) {
+                return;
+            }
+            didLock = true;
         }
 
         long startTime = 0;

@@ -70,7 +70,7 @@ import javax.media.opengl.glu.*;
     shall be able to detect such cases in conjunction with the associated {@link javax.media.nativewindow.NativeWindow NativeWindow}.<br>
     For example, AWT's {@link java.awt.Canvas} 's {@link java.awt.Canvas#getGraphicsConfiguration getGraphicsConfiguration()}
     is capable to determine a display device change. This is demonstrated within {@link javax.media.opengl.awt.GLCanvas}'s 
-    {@link javax.media.opengl.awt.GLCanvas#getGraphicsConfiguration getGraphicsConfiguration()} 
+    and NEWT's <code>AWTCanvas</code> {@link javax.media.opengl.awt.GLCanvas#getGraphicsConfiguration getGraphicsConfiguration()} 
     specialization. Another demonstration is NEWT's {@link javax.media.nativewindow.NativeWindow NativeWindow} 
     implementation on the the Windows platform, which utilizes the native platform's <i>MonitorFromWindow(HWND)</i> function.<br>
     All OpenGL resources shall be regenerated, while the drawable's {@link GLCapabilities} has 
@@ -96,9 +96,23 @@ import javax.media.opengl.glu.*;
     </ul>
     Note: Current graphics driver keep the surface configuration for a given window, even if the window is moved to 
     a monitor with a different pixel configuration, ie 32bpp to 16bpp. However, it is best to not assume such behavior
-    and follow the above protocol.
+    and make your application comply with the above protocol.<P>
+
+    However, to not introduce to much breakage with older applications and because of the situation 
+    mentioned above, the <code>boolean</code> system property <code>jogl.screenchange.action</code> will control the 
+    screen change action as follows:<br>
+
+    <PRE>
+    -Djogl.screenchange.action=false Disable the drawable reconfiguration (the default)
+    -Djogl.screenchange.action=true  Enable  the drawable reconfiguration
+    </PRE>    
   */
 public interface GLAutoDrawable extends GLDrawable {
+  /** Flag reflecting wheather the drawable reconfiguration will be issued in 
+    * case a screen device change occured, e.g. in a multihead environment,
+    * where you drag the window to another monitor. */
+  public static final boolean ScreenChangeActionEnabled = Boolean.getBoolean("jogl.screenchange.action");
+
   /** FIXME:
   ** Invalid state, the resources are not yet ready to render. *
   public static final int STATE_INVALID = 0;

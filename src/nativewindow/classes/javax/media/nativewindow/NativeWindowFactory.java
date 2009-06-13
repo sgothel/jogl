@@ -124,7 +124,9 @@ public abstract class NativeWindowFactory {
             } catch (Exception e) { }
         }
 
-        if(TYPE_X11.equals(nativeWindowingTypeCustom)) {
+        boolean toolkitLockDisabled = Boolean.getBoolean("nativewindow.toolkitlock.disabled"); // test ..
+        
+        if(TYPE_X11.equals(nativeWindowingTypeCustom) && !toolkitLockDisabled) {
             NativeWindowFactory _factory = null;
 
             // FIXME: there are regressions in functionality in the
@@ -143,6 +145,7 @@ public abstract class NativeWindowFactory {
             // makes X calls from multiple threads: for example, the
             // AWT Toolkit thread and one or more Event Dispatch
             // Threads.
+            // CHECK: OK
             //
             // In the JOGL API, there are other operations that use an
             // X display connection which do not involve locking an
@@ -159,6 +162,11 @@ public abstract class NativeWindowFactory {
             // (Semantically this should be allowed, but practically,
             // it is unclear.) Currently the JOGL implementation locks
             // the ToolkitLock around pbuffer-related operations.
+            // CHECK: OK - Using X11GraphicsScreen.createDefault() now,
+            //        utilizing one display per thread.
+            //        However, locking code is still intact.
+            //        FIXME: Shall it really have one new display per 
+            //               Pbuffer ?
             //
             // Even if the pbuffer case is over-synchronized, there
             // are definitely cases where synchronization with the
@@ -203,14 +211,14 @@ public abstract class NativeWindowFactory {
             // If it turns out that the AWT is not available, for
             // example on embedded profiles (CDC / FP), then
             // synchronization is still needed, for example among
-            // multiple threads that might create pbuffers. The
-            // X11NativeWindowFactory provides a simple reentrant lock
+            // multiple threads that might create pbuffers 
+            // or for threads using the static default display to query information. 
+            // The X11NativeWindowFactory provides a simple reentrant lock
             // for this purpose. It is expected that third-party
             // toolkits will either replace this factory, and thereby
             // the implementation of this lock, if stronger
             // interoperability is desired, for example full support
             // for external GLDrawables.
-
             if (null ==_factory) {
                 // Try the non-AWT X11 native window factory
                 try {
@@ -226,9 +234,12 @@ public abstract class NativeWindowFactory {
         }
 
         if(null!=componentClass) {
-            // register either our default factory or (if exist) the X11/AWT one -> NativeWindow
+            // register either our default factory or (if exist) the X11/AWT one -> AWT Component
             registerFactory(componentClass, factory);
-            defaultFactory = factory;
+        }
+        defaultFactory = factory;
+        if(DEBUG) {
+            System.err.println("NativeWindowFactory defaultFactory "+factory);
         }
     }
 
@@ -334,8 +345,8 @@ public abstract class NativeWindowFactory {
     protected abstract NativeWindow getNativeWindowImpl(Object winObj, AbstractGraphicsConfiguration config) throws IllegalArgumentException;
 
     /** Returns the object which provides support for synchronizing
-        with the underlying window toolkit. On most platforms the
-        returned object does nothing; currently it only has effects on
-        X11 platforms. */
+        with the underlying window toolkit.<br>
+        @see ToolkitLock
+      */
     public abstract ToolkitLock getToolkitLock();
 }

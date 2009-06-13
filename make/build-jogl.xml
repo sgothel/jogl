@@ -342,6 +342,8 @@
         <!-- NOTE: the value of the debug and optimise attributes will not be overridden if already set externally -->
         <property name="javacdebug"       value="true" /> 
         <property name="javacdebuglevel"  value="source,lines" /> 
+        <!-- property name="javac.memorymax"  value="128m" /-->  <!-- I ran out of memory with these .. linux x86_64 6u14 -->
+        <property name="javac.memorymax"  value="512m" /> 
 
         <!-- Names of directories relative to the project root.
              Some of these are used in FileMappers later for dependence information
@@ -1158,7 +1160,7 @@
         <javac destdir="${classes}"
                includes="javax/media/opengl/fixedfunc/** javax/media/opengl/GLDrawableFactory.java javax/media/opengl/GLDrawable.java javax/media/opengl/GLContext.java javax/media/opengl/GL.java javax/media/opengl/GL2ES1.java javax/media/opengl/GL2ES2.java javax/media/opengl/GL2.java javax/media/opengl/GLES1.java javax/media/opengl/GLES2.java javax/media/opengl/GL3.java"
                fork="yes"
-               memoryMaximumSize="128m"
+               memoryMaximumSize="${javac.memorymax}"
                source="1.4" debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="nativewindow_gluegen.classpath"/>
             <src path="${src.java}" />
@@ -1173,7 +1175,7 @@
                source="${jogl.sourcelevel}"
                bootclasspath="${javac.bootclasspath.jar}"
                fork="yes"
-               memoryMaximumSize="128m"
+               memoryMaximumSize="${javac.memorymax}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="nativewindow_gluegen.classpath"/>
             <src path="${src.java}" />
@@ -1187,7 +1189,7 @@
                excludes="com/sun/opengl/util/glsl/fixedfunc/FixedFuncUtil.java,${java.excludes.all}"
                source="${jogl.sourcelevel}"
                fork="yes"
-               memoryMaximumSize="128m"
+               memoryMaximumSize="${javac.memorymax}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="nativewindow_gluegen.classpath"/>
             <src path="${src.java}" />
@@ -1204,7 +1206,7 @@
                source="${jogl.sourcelevel}"
                bootclasspath="${javac.bootclasspath.jar}"
                fork="yes"
-               memoryMaximumSize="128m"
+               memoryMaximumSize="${javac.memorymax}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="nativewindow_gluegen.classpath"/>
             <src path="${src.java}" />
@@ -1218,7 +1220,7 @@
                excludes="${java.excludes.all}"
                source="${jogl.sourcelevel}"
                fork="yes"
-               memoryMaximumSize="128m"
+               memoryMaximumSize="${javac.memorymax}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="nativewindow_gluegen.classpath"/>
             <src path="${src.java}" />

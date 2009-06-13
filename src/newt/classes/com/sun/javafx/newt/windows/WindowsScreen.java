@@ -34,15 +34,24 @@
 package com.sun.javafx.newt.windows;
 
 import com.sun.javafx.newt.*;
+import com.sun.javafx.newt.impl.*;
 import javax.media.nativewindow.*;
 
 public class WindowsScreen extends Screen {
+    static {
+        NativeLibLoader.loadNEWT();
+    }
+
     public WindowsScreen() {
     }
 
     protected void createNative(int index) {
         aScreen = new DefaultGraphicsScreen(getDisplay().getGraphicsDevice(), index);
+        setScreenSize(getScreenWidth(getIndex()), getScreenHeight(getIndex()));
     }
 
     protected void closeNative() { }
+
+    private        native int getScreenWidth(int scrn_idx);
+    private        native int getScreenHeight(int scrn_idx);
 }

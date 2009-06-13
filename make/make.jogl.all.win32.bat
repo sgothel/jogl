@@ -8,4 +8,4 @@ REM    -Dc.compiler.debug=true
 REM    -DuseOpenMAX=true 
 REM    -DuseKD=true
 
-ant -Drootrel.build=build-win32 -v > make.jogl.all.win32.log 2>&1
+ant -Drootrel.build=build-win32 > make.jogl.all.win32.log 2>&1

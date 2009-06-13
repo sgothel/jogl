@@ -33,12 +33,12 @@ JOGL_JAR_ES1_MAX="$JOGL_CORE jogl.gles1.jar jogl.gles1.dbg.jar jogl.egl.jar jogl
 JOGL_LIB_ES1_MIN="libjogl_es1.so libnewt.so"
 JOGL_LIB_ES1_MAX="libjogl_es1.so libnewt.so libjogl_awt.so libnativewindow_x11.so libnativewindow_awt.so"
 
-JOGL_JAR_ES2_MIN="$JOGL_CORE jogl.gles2.jar jogl.egl.jar"
+JOGL_JAR_ES2_MIN="$JOGL_CORE jogl.gles2.jar jogl.egl.jar jogl.util.fixedfuncemu.jar"
 JOGL_JAR_ES2_MAX="$JOGL_CORE jogl.gles2.jar jogl.egl.jar jogl.util.fixedfuncemu.jar jogl.glu.tess.jar $JOGL_AWT"
 JOGL_LIB_ES2_MIN="libjogl_es2.so libnewt.so"
 JOGL_LIB_ES2_MAX="libjogl_es2.so libnewt.so libjogl_awt.so libnativewindow_x11.so libnativewindow_awt.so"
 
-JOGL_JAR_GL2ES12_MIN="$JOGL_CORE jogl.gl2es12.$OSS.jar"
+JOGL_JAR_GL2ES12_MIN="$JOGL_CORE jogl.gl2es12.$OSS.jar jogl.util.fixedfuncemu.jar"
 JOGL_JAR_GL2ES12_MAX="$JOGL_CORE jogl.gl2es12.$OSS.jar jogl.util.fixedfuncemu.jar jogl.gl2es12.dbg.jar jogl.glu.tess.jar jogl.glu.mipmap.jar $JOGL_AWT"
 JOGL_LIB_GL2ES12_MIN="libjogl_gl2es12.so libnewt.so libnativewindow_x11.so libnativewindow_awt.so"
 JOGL_LIB_GL2ES12_MAX="libjogl_gl2es12.so libnewt.so libnativewindow_x11.so libnativewindow_awt.so"

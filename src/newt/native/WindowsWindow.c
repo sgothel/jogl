@@ -104,9 +104,11 @@ static jmethodID windowDestroyedID = NULL;
 static jmethodID sendMouseEventID = NULL;
 static jmethodID sendKeyEventID = NULL;
 
-// This is set by DispatchMessages, below, and cleared when it exits
-static JNIEnv* env = NULL;
-
+typedef struct {
+    JNIEnv* jenv;
+    jobject jinstance;
+} WindowUserData;
+    
 typedef struct {
     UINT javaKey;
     UINT windowsKey;
@@ -590,16 +592,23 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
 {
     RECT rc;
     int useDefWindowProc = 0;
+    JNIEnv *env = NULL;
     jobject window = NULL;
     BOOL isKeyDown = FALSE;
+    WindowUserData * wud;
 
 #if defined(UNDER_CE) || _MSC_VER <= 1200
-    window = (jobject) GetWindowLong(wnd, GWL_USERDATA);
+    wud = (WindowUserData *) GetWindowLong(wnd, GWL_USERDATA);
 #else
-    window = (jobject) GetWindowLongPtr(wnd, GWLP_USERDATA);
+    wud = (WindowUserData *) GetWindowLongPtr(wnd, GWLP_USERDATA);
 #endif
-    if (window == NULL || env == NULL) {
-        // Shouldn't happen
+    if(NULL==wud) {
+        return DefWindowProc(wnd, message, wParam, lParam);
+    }
+    env = wud->jenv;
+    window = wud->jinstance;
+
+    if (NULL==window || NULL==env) {
         return DefWindowProc(wnd, message, wParam, lParam);
     }
 
@@ -610,6 +619,15 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
         break;
 
     case WM_DESTROY:
+        /** Results in ACCESS_VIOLATION, since this thread 
+         *  might not be the creator of the global reference ..  
+            (*env)->DeleteGlobalRef(env, wud->jinstance); */
+        free(wud); wud=NULL;
+#if defined(UNDER_CE) || _MSC_VER <= 1200
+        SetWindowLong(window, GWL_USERDATA, (intptr_t) wud);
+#else
+        SetWindowLongPtr(window, GWLP_USERDATA, (intptr_t) wud);
+#endif
         (*env)->CallVoidMethod(env, window, windowDestroyedID);
         break;
 
@@ -753,6 +771,28 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
 }
 
 /*
+ * Class:     com_sun_javafx_newt_windows_WindowsScreen
+ * Method:    getScreenWidth
+ * Signature: (I)I
+ */
+JNIEXPORT jint JNICALL Java_com_sun_javafx_newt_windows_WindowsScreen_getScreenWidth
+  (JNIEnv *env, jobject obj, jint scrn_idx)
+{
+    return (jint)GetSystemMetrics(SM_CXSCREEN);
+}
+
+/*
+ * Class:     com_sun_javafx_newt_windows_WindowsScreen
+ * Method:    getScreenWidth
+ * Signature: (I)I
+ */
+JNIEXPORT jint JNICALL Java_com_sun_javafx_newt_windows_WindowsScreen_getScreenHeight
+  (JNIEnv *env, jobject obj, jint scrn_idx)
+{
+    return (jint)GetSystemMetrics(SM_CYSCREEN);
+}
+
+/*
  * Class:     com_sun_javafx_newt_windows_WindowsWindow
  * Method:    initIDs
  * Signature: ()Z
@@ -857,14 +897,6 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_CreateWin
     wndClassName = (*env)->GetStringUTFChars(env, windowClassName, NULL);
 #endif
 
-    // FIXME: until we have valid values coming down from the
-    // application code, use some default values
-#ifdef UNDER_CE
-    // Prefer to not have any surprises in the initial window sizing or placement
-    width = GetSystemMetrics(SM_CXSCREEN);
-    height = GetSystemMetrics(SM_CYSCREEN);
-    x = y = 0;
-#else
     x = CW_USEDEFAULT;
     y = 0;
     if (bIsUndecorated) {
@@ -872,7 +904,6 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_CreateWin
     } else {
         windowStyle |= WS_OVERLAPPEDWINDOW;
     }
-#endif
 
     (void) visualID; // FIXME: use the visualID ..
 
@@ -888,10 +919,13 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_CreateWin
 #endif
     
     if (window != NULL) {
+        WindowUserData * wud = (WindowUserData *) malloc(sizeof(WindowUserData));
+        wud->jinstance = (*env)->NewGlobalRef(env, obj);
+        wud->jenv = env;
 #if defined(UNDER_CE) || _MSC_VER <= 1200
-        SetWindowLong(window, GWL_USERDATA, (intptr_t) (*env)->NewGlobalRef(env, obj));
+        SetWindowLong(window, GWL_USERDATA, (intptr_t) wud);
 #else
-        SetWindowLongPtr(window, GWLP_USERDATA, (intptr_t) (*env)->NewGlobalRef(env, obj));
+        SetWindowLongPtr(window, GWLP_USERDATA, (intptr_t) wud);
 #endif
         ShowWindow(window, SW_SHOWNORMAL);
     }
@@ -906,6 +940,21 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_CreateWin
 JNIEXPORT void JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_DestroyWindow
   (JNIEnv *env, jobject obj, jlong window)
 {
+/**
+    WindowUserData * wud;
+#if defined(UNDER_CE) || _MSC_VER <= 1200
+    wud = (WindowUserData *) GetWindowLong((HWND)window, GWL_USERDATA);
+#else
+    wud = (WindowUserData *) GetWindowLongPtr((HWND)window, GWLP_USERDATA);
+#endif
+    if(NULL==wud) {
+        fprintf(stderr, "INTERNAL ERROR in WindowsWindow::DestroyWindow window userdata NULL\n");
+        exit(1);
+    }
+    (*env)->DeleteGlobalRef(env, wud->jinstance);
+
+    free(wud); */
+
     DestroyWindow((HWND) window);
 }
 
@@ -969,13 +1018,24 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_setVisible
  * Signature: (JI)V
  */
 JNIEXPORT void JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_DispatchMessages
-  (JNIEnv *_env, jclass clazz, jlong window, jint eventMask)
+  (JNIEnv *env, jclass clazz, jlong window, jint eventMask)
 {
     int i = 0;
     MSG msg;
     BOOL gotOne;
+    WindowUserData * wud;
 
-    env = _env;
+#if defined(UNDER_CE) || _MSC_VER <= 1200
+    wud = (WindowUserData *) GetWindowLong((HWND)window, GWL_USERDATA);
+#else
+    wud = (WindowUserData *) GetWindowLongPtr((HWND)window, GWLP_USERDATA);
+#endif
+    if(NULL==wud) {
+        fprintf(stderr, "INTERNAL ERROR in WindowsWindow::DispatchMessages window userdata NULL\n");
+        exit(1);
+    }
+
+    wud->jenv = env;
 
     if(eventMask<0) {
         eventMask *= -1;
@@ -1034,9 +1094,7 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_DispatchMe
             TranslateMessage(&msg);
             DispatchMessage(&msg);
         }
-    } while (gotOne && i < 100);
-
-    env = NULL;
+    } while (gotOne && i < 10);
 }
 
 /*
@@ -1056,54 +1114,11 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_setSize0
 
 /*
  * Class:     com_sun_javafx_newt_windows_WindowsWindow
- * Method:    setFullScreen0
- * Signature: (JZ)Z
- */
-JNIEXPORT jboolean JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_setFullScreen0
-  (JNIEnv *env, jobject obj, jlong window, jboolean fullscreen)
-{
-#ifdef UNDER_CE
-    int screenWidth;
-    int screenHeight;
-    HWND win = (HWND) window;
-
-    if (fullscreen) {
-        screenWidth  = GetSystemMetrics(SM_CXSCREEN);
-        screenHeight = GetSystemMetrics(SM_CYSCREEN);
-        // NOTE: looks like SHFullScreen and/or aygshell.dll is not available on the APX 2500 any more
-        // First, hide all of the shell parts
-        // SHFullScreen(win,
-        //              SHFS_HIDETASKBAR | SHFS_HIDESIPBUTTON | SHFS_HIDESTARTICON);
-        MoveWindow(win, 0, 0, screenWidth, screenHeight, TRUE);
-        (*env)->CallVoidMethod(env, obj, sizeChangedID, (jint) screenWidth, (jint) screenHeight);
-    } else {
-        RECT rc;
-        int width, height;
-
-        // First, show all of the shell parts
-        // SHFullScreen(win,
-        //              SHFS_SHOWTASKBAR | SHFS_SHOWSIPBUTTON | SHFS_SHOWSTARTICON);
-        // Now resize the window to the size of the work area
-        SystemParametersInfo(SPI_GETWORKAREA, 0, &rc, FALSE);
-        width = rc.right - rc.left;
-        height = rc.bottom - rc.top;
-        MoveWindow(win, rc.left, rc.top, width, height, TRUE);
-        (*env)->CallVoidMethod(env, obj, sizeChangedID, (jint) width, (jint) height);
-    }
-    return JNI_TRUE;
-#else
-    /* For the time being, full-screen not supported on the desktop */
-    return JNI_FALSE;
-#endif
-}
-
-/*
- * Class:     com_sun_javafx_newt_windows_WindowsWindow
  * Method:    setPosition
  * Signature: (JII)V
  */
 JNIEXPORT void JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_setPosition
-  (JNIEnv *env, jclass clazz, jlong window, jint x, jint y)
+  (JNIEnv *env, jobject obj, jlong window, jint x, jint y)
 {
     UINT flags = SWP_NOACTIVATE | SWP_NOZORDER;
     HWND hwnd = (HWND)window;
@@ -1111,6 +1126,39 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_setPositio
 
     GetWindowRect(hwnd, &r);
     SetWindowPos(hwnd, 0, x, y, (r.right-r.left), (r.bottom-r.top), flags);
+}
+
+/*
+ * Class:     com_sun_javafx_newt_windows_WindowsWindow
+ * Method:    setFullscreen
+ * Signature: (JIIIIZZ)V
+ */
+JNIEXPORT void JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_setFullscreen0
+  (JNIEnv *env, jobject obj, jlong window, jint x, jint y, jint width, jint height, jboolean bIsUndecorated, jboolean on)
+{
+    UINT flags;
+    HWND hwnd = (HWND)window;
+    HWND hWndInsertAfter;
+    DWORD windowStyle = WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_VISIBLE;
+
+    if (bIsUndecorated || on) {
+        windowStyle |= WS_POPUP | WS_SYSMENU | WS_MAXIMIZEBOX | WS_MINIMIZEBOX;
+    } else {
+        windowStyle |= WS_OVERLAPPEDWINDOW;
+    }
+    SetWindowLong(hwnd, GWL_STYLE, windowStyle);
+
+    if(on==JNI_TRUE) {
+        flags = SWP_SHOWWINDOW;
+        hWndInsertAfter = HWND_TOPMOST;
+    } else {
+        flags = SWP_NOACTIVATE | SWP_NOZORDER;
+        hWndInsertAfter = 0;
+    }
+
+    SetWindowPos(hwnd, hWndInsertAfter, x, y, width, height, flags);
+
+    (*env)->CallVoidMethod(env, obj, sizeChangedID, (jint) width, (jint) height);
 }
 
 /*

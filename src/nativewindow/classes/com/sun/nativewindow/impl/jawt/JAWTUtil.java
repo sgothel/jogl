@@ -60,9 +60,9 @@ public class JAWTUtil {
   public static synchronized void lockToolkit() throws NativeWindowException {
     if (null!=lockedStack) {
       lockedStack.printStackTrace();
-      throw new NativeWindowException("Toolkit already locked");
+      throw new NativeWindowException("JAWT Toolkit already locked - "+Thread.currentThread().getName());
     }
-    lockedStack = new Exception("JAWT - already locked by: ");
+    lockedStack = new Exception("JAWT Toolkit already locked by: "+Thread.currentThread().getName());
 
     if (headlessMode) {
       // Workaround for running (to some degree) in headless

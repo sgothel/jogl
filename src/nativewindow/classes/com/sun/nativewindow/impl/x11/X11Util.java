@@ -32,51 +32,94 @@
 
 package com.sun.nativewindow.impl.x11;
 
+import java.util.HashMap;
+
 import javax.media.nativewindow.*;
 
 import com.sun.nativewindow.impl.*;
 
+/**
+ * Contains a thread safe X11 utility to retrieve tread local display connection,<br>
+ * as well as the static global discplay connection.<br>
+ *
+ * The TLS variant is thread safe per se, but has the memory leak risk on applications
+ * heavily utilizing runnables on a new thread.<br>
+ * 
+ * The static variant is more nice to resources, but involves the default toolkit
+ * locking mechanism, which invocation you have to provide as shown below.<br>
+ * <PRE>
+   NativeWindowFactory.getDefaultFactory().getToolkitLock().lock();
+   try {
+     long displayHandle = X11Util.getStaticDefaultDisplay();
+     ...
+   } finally {
+     NativeWindowFactory.getDefaultFactory().getToolkitLock().unlock();
+   }
+ * </PRE><br>
+ *
+ * We will use the TLS variant, where a long term display connection is being used,
+ * ie in JOGL's <code>X11AWTGLXGraphicsConfigurationFactory</code>,
+ * on all other situations where we just query some X11 attributes,
+ * the locked static variant shall be used instead.<br>
+ */
 public class X11Util {
+    private static final boolean DEBUG = Debug.debug("X11Util");
+
     static {
         NativeLibLoaderBase.loadNativeWindow("x11");
     }
 
-    private static final boolean DEBUG = Debug.debug("X11Util");
-
     private X11Util() {}
 
-    // Display connection for use by visual selection algorithm and by all offscreen surfaces
-    private static long staticDisplay=0;
-    private static boolean xineramaEnabled=false;
-    public static long getDisplayConnection() {
-        if (staticDisplay == 0) {
-            NativeWindowFactory.getDefaultFactory().getToolkitLock().lock();
-            try {
-                staticDisplay = X11Lib.XOpenDisplay(null);
-                if (staticDisplay != 0) {
-                    xineramaEnabled = X11Lib.XineramaEnabled(staticDisplay);
+    private static ThreadLocal currentDisplayAssociation = new ThreadLocal();
+
+    private static long    staticDefaultDisplay=0; 
+    private static boolean staticDefaultDisplayXineramaEnable=false; 
+
+    private static long fetchStaticDefaultDisplay() {
+        if(0==staticDefaultDisplay) {
+            synchronized (X11Util.class) {
+                if(0==staticDefaultDisplay) {
+                    staticDefaultDisplay = X11Lib.XOpenDisplay(null);
+                    if(0==staticDefaultDisplay) {
+                        throw new NativeWindowException("Unable to create a static default display connection");
+                    }
+                    staticDefaultDisplayXineramaEnable = X11Lib.XineramaEnabled(staticDefaultDisplay);
                 }
-            } finally {
-                NativeWindowFactory.getDefaultFactory().getToolkitLock().unlock();
-            }
-            if (staticDisplay == 0) {
-                throw new NativeWindowException("Unable to open default display");
             }
         }
-        return staticDisplay;
+        return staticDefaultDisplay;
     }
 
-    public static long getDefaultDisplay() {
-        if (staticDisplay == 0) {
-            getDisplayConnection(); // will set xineramaEnabled
-        }
-        return staticDisplay;
+    /** Returns the global static default display connection, read the toolkit lock/unlock
+      * requirements {@link X11Util above} for synchronization. */
+    public static long getStaticDefaultDisplay() {
+        return fetchStaticDefaultDisplay();
     }
 
-    public static boolean isXineramaEnabled() {
-        if (staticDisplay == 0) {
-            getDisplayConnection(); // will set xineramaEnabled
+    /** Returns the global static default display connection, read the toolkit lock/unlock
+      * requirements {@link X11Util above} for synchronization. */
+    public static boolean isXineramaEnabledOnStaticDefaultDisplay() {
+        fetchStaticDefaultDisplay();
+        return staticDefaultDisplayXineramaEnable;
+    }
+
+
+    /** Returns this thread current default display. */
+    public static long getThreadLocalDefaultDisplay() {
+        Long dpyL = (Long) currentDisplayAssociation.get();
+        if(null==dpyL) {
+            long dpy = X11Lib.XOpenDisplay(null);
+            if(0==dpy) {
+                throw new NativeWindowException("Unable to create a default display connection on Thread "+Thread.currentThread().getName());
+            }
+            dpyL = new Long(dpy);
+            currentDisplayAssociation.set( dpyL );
+            if(DEBUG) {
+                Exception e = new Exception("Created new TLS display connection 0x"+Long.toHexString(dpy)+" for thread "+Thread.currentThread().getName());
+                e.printStackTrace();
+            }
         }
-        return xineramaEnabled;
+        return dpyL.longValue();
     }
 }

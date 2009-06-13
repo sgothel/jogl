@@ -83,22 +83,26 @@ public class X11AWTGLXGraphicsConfigurationFactory extends GraphicsConfiguration
         if(DEBUG) {
             System.err.println("X11AWTGLXGraphicsConfigurationFactory: got "+absScreen);
         }
-        long displayHandle = 0;
+        
+        // Need the lock here, since it could be an AWT owned display connection
+        X11GraphicsDevice x11Device;
         NativeWindowFactory.getDefaultFactory().getToolkitLock().lock();
         try {
-            displayHandle = X11SunJDKReflection.graphicsDeviceGetScreen(device);
+            long displayHandle = X11SunJDKReflection.graphicsDeviceGetDisplay(device);
             if(0==displayHandle) {
-                displayHandle = X11Util.getDefaultDisplay();
-                ((AWTGraphicsDevice)awtScreen.getDevice()).setHandle(displayHandle);
+                displayHandle = X11Util.getThreadLocalDefaultDisplay();
                 if(DEBUG) {
-                    System.err.println("X11AWTGLXGraphicsConfigurationFactory: using default X11 display");
+                    System.err.println("X11AWTGLXGraphicsConfigurationFactory: using a thread local X11 display");
                 }
+            } else if(DEBUG) {
+                System.err.println("X11AWTGLXGraphicsConfigurationFactory: using AWT X11 display 0x"+Long.toHexString(displayHandle));
             }
-        } catch (Throwable t) {
+            ((AWTGraphicsDevice)awtScreen.getDevice()).setHandle(displayHandle);
+            x11Device = new X11GraphicsDevice(displayHandle);
         } finally {
-          NativeWindowFactory.getDefaultFactory().getToolkitLock().unlock();
+            NativeWindowFactory.getDefaultFactory().getToolkitLock().unlock();
         }
-        X11GraphicsDevice x11Device = new X11GraphicsDevice(displayHandle);
+
         X11GraphicsScreen x11Screen = new X11GraphicsScreen(x11Device, awtScreen.getIndex());
         if(DEBUG) {
             System.err.println("X11AWTGLXGraphicsConfigurationFactory: made "+x11Screen);

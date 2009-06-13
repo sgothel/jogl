@@ -232,10 +232,17 @@ public class AWTCanvas extends Canvas {
         AccessController.doPrivileged(new PrivilegedAction() {
             public Object run() {
               try {
-                disableBackgroundEraseMethod =
-                  getToolkit().getClass().getDeclaredMethod("disableBackgroundErase",
-                                                            new Class[] { Canvas.class });
-                disableBackgroundEraseMethod.setAccessible(true);
+                Class clazz = getToolkit().getClass();
+                while (clazz != null && disableBackgroundEraseMethod == null) {
+                  try {
+                    disableBackgroundEraseMethod =
+                      clazz.getDeclaredMethod("disableBackgroundErase",
+                                              new Class[] { Canvas.class });
+                    disableBackgroundEraseMethod.setAccessible(true);
+                  } catch (Exception e) {
+                    clazz = clazz.getSuperclass();
+                  }
+                }
               } catch (Exception e) {
               }
               return null;

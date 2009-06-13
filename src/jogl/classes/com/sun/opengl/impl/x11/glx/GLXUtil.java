@@ -51,14 +51,14 @@ public class GLXUtil {
     // Display connection for use by visual selection algorithm and by all offscreen surfaces
     private static boolean multisampleAvailable=false;
 
-    private static long staticDisplay=0;
+    private static boolean isInit=false;
 
     private static void init() {
-        if (staticDisplay == 0) {
-            staticDisplay = X11Util.getDisplayConnection();
-            if(staticDisplay!=0) {
-                NativeWindowFactory.getDefaultFactory().getToolkitLock().lock();
-                try {
+        if (!isInit) {
+            NativeWindowFactory.getDefaultFactory().getToolkitLock().lock();
+            try {
+                long staticDisplay = X11Util.getStaticDefaultDisplay();
+                if(staticDisplay!=0) {
                     if (DEBUG) {
                         long display = staticDisplay;
                         int screen = X11Lib.DefaultScreen(display);
@@ -79,11 +79,12 @@ public class GLXUtil {
                     if (exts != null) {
                         multisampleAvailable = (exts.indexOf("GLX_ARB_multisample") >= 0);
                     }
-                } finally {
-                    NativeWindowFactory.getDefaultFactory().getToolkitLock().unlock();
+                    isInit=true;
+                } else {
+                    throw new GLException("Unable to open default display, needed for visual selection and offscreen surface handling");
                 }
-            } else {
-                throw new GLException("Unable to open default display, needed for visual selection and offscreen surface handling");
+            } finally {
+                NativeWindowFactory.getDefaultFactory().getToolkitLock().unlock();
             }
         }
     }

@@ -112,7 +112,8 @@ public class X11GLXGraphicsConfigurationFactory extends GraphicsConfigurationFac
 
     protected static X11GLXGraphicsConfiguration chooseGraphicsConfigurationStatic(Capabilities capabilities,
                                                                                    CapabilitiesChooser chooser,
-                                                                                   AbstractGraphicsScreen absScreen, boolean usePBuffer) {
+                                                                                   AbstractGraphicsScreen absScreen, 
+                                                                                   boolean usePBuffer) {
         if (absScreen == null) {
             throw new IllegalArgumentException("AbstractGraphicsScreen is null");
         }

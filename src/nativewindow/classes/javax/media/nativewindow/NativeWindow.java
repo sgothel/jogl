@@ -70,9 +70,18 @@ public interface NativeWindow {
    * shall be set and be valid after a successfull call,
    * ie a return value other than {@link #LOCK_SURFACE_NOT_READY}.<P>
    *
+   * The semantics of the underlying native locked resource
+   * may be related to the {@link ToolkitLock} one. Hence it is 
+   * important that implementation of both harmonize well.<br>
+   * The implementation may want to aquire the {@link ToolkitLock}
+   * first to become it's owner before proceeding with it's
+   * actual surface lock. <P>
+   *
    * @return {@link #LOCK_SUCCESS}, {@link #LOCK_SURFACE_CHANGED} or {@link #LOCK_SURFACE_NOT_READY}.
    *
    * @throws NativeWindowException if surface is already locked
+   *
+   * @see ToolkitLock
    */
   public int lockSurface() throws NativeWindowException ;
 
@@ -83,6 +92,9 @@ public interface NativeWindow {
    * or the surface handle, see {@link #lockSurface()} <P>
    *
    * @throws NativeWindowException if surface is not locked
+   *
+   * @see #lockSurface
+   * @see ToolkitLock
    */
   public void unlockSurface() throws NativeWindowException ;
 

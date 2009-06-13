@@ -87,10 +87,10 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
   public boolean canCreateGLPbuffer() {
     if (!pbufferSupportInitialized) {
       Runnable r = new Runnable() {
-          public void run() {
-            long display = X11Util.getDisplayConnection();
+        public void run() {
             lockToolkit();
             try {
+              long display = X11Util.getStaticDefaultDisplay();
               int[] major = new int[1];
               int[] minor = new int[1];
               int screen = 0; // FIXME: provide way to specify this?
@@ -108,19 +108,19 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
               if (major[0] == 1 && minor[0] == 2) {
                 String str = GLX.glXGetClientString(display, GLX.GLX_VERSION);
                 if (str != null && str.startsWith("1.") &&
-		    (str.charAt(2) >= '3')) {
+                   (str.charAt(2) >= '3')) {
                   canCreateGLPbuffer = true;
                 }
               } else {
                 canCreateGLPbuffer = ((major[0] > 1) || (minor[0] > 2));
               }
-        
+
               pbufferSupportInitialized = true;        
             } finally {
               unlockToolkit();
             }
-          }
-        };
+        }
+      };
       maybeDoSingleThreadedWorkaround(r);
     }
     return canCreateGLPbuffer;
@@ -210,7 +210,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
     int[] size = new int[1];
     lockToolkit();
     try {
-        long display = X11Util.getDisplayConnection();
+        long display = X11Util.getStaticDefaultDisplay();
         boolean res = X11Lib.XF86VidModeGetGammaRampSize(display,
                                                       X11Lib.DefaultScreen(display),
                                                       size, 0);
@@ -234,7 +234,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
 
     lockToolkit();
     try {
-        long display = X11Util.getDisplayConnection();
+        long display = X11Util.getStaticDefaultDisplay();
         boolean res = X11Lib.XF86VidModeSetGammaRamp(display,
                                                   X11Lib.DefaultScreen(display),
                                                   rampData.length,
@@ -261,7 +261,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
     ShortBuffer blueRampData = rampData.slice();
     lockToolkit();
     try {
-        long display = X11Util.getDisplayConnection();
+        long display = X11Util.getStaticDefaultDisplay();
         boolean res = X11Lib.XF86VidModeGetGammaRamp(display,
                                                   X11Lib.DefaultScreen(display),
                                                   size,
@@ -297,7 +297,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
     ShortBuffer blueRampData = rampData.slice();
     lockToolkit();
     try {
-        long display = X11Util.getDisplayConnection();
+        long display = X11Util.getStaticDefaultDisplay();
         X11Lib.XF86VidModeSetGammaRamp(display,
                                     X11Lib.DefaultScreen(display),
                                     size,

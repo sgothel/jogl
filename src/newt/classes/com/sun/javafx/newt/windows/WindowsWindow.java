@@ -43,6 +43,8 @@ public class WindowsWindow extends Window {
     private long hmon;
     private long hdc;
     private long windowHandleClose;
+    // non fullscreen dimensions ..
+    private int nfs_width, nfs_height, nfs_x, nfs_y;
 
     private static final String WINDOW_CLASS_NAME = "NewtWindow";
     static {
@@ -135,6 +137,10 @@ public class WindowsWindow extends Window {
     // @Override
     public void setSize(int width, int height) {
         if (width != this.width || this.height != height) {
+            if(!fullscreen) {
+                nfs_width=width;
+                nfs_height=height;
+            }
             this.width = width;
             this.height = height;
             setSize0(windowHandle, width, height);
@@ -144,23 +150,36 @@ public class WindowsWindow extends Window {
     //@Override
     public void setPosition(int x, int y) {
         if (this.x != x || this.y != y) {
+            if(!fullscreen) {
+                nfs_x=x;
+                nfs_y=y;
+            }
             this.x = x;
             this.y = y;
-            setPosition(windowHandle, x, y);
+            setPosition(windowHandle, x , y);
         }
     }
 
     public boolean setFullscreen(boolean fullscreen) {
         if(this.fullscreen!=fullscreen) {
-            boolean res = setFullScreen0(windowHandle, fullscreen);
-            if (fullscreen && res) {
-                this.fullscreen = true;
+            int x,y,w,h;
+            this.fullscreen=fullscreen;
+            if(fullscreen) {
+                x = 0; y = 0;
+                w = screen.getWidth();
+                h = screen.getHeight();
             } else {
-                this.fullscreen = false;
+                x = nfs_x;
+                y = nfs_y;
+                w = nfs_width;
+                h = nfs_height;
             }
-            return fullscreen;
+            if(DEBUG_IMPLEMENTATION || DEBUG_WINDOW_EVENT) {
+                System.err.println("WindowsWindow fs: "+fullscreen+" "+x+"/"+y+" "+w+"x"+h);
+            }
+            setFullscreen0(windowHandle, x, y, w, h, undecorated, fullscreen);
         }
-        return true;
+        return fullscreen;
     }
 
     // @Override
@@ -189,7 +208,6 @@ public class WindowsWindow extends Window {
     //----------------------------------------------------------------------
     // Internals only
     //
-
     private static long windowClass;
     private static synchronized long getWindowClass() {
         if (windowClass == 0) {
@@ -221,23 +239,31 @@ public class WindowsWindow extends Window {
     private        native long GetDC(long windowHandle);
     private        native void ReleaseDC(long windowHandle, long hdc);
     private        native long MonitorFromWindow(long windowHandle);
-    private        native void setVisible0(long windowHandle, boolean visible);
+    private static native void setVisible0(long windowHandle, boolean visible);
     private static native void DispatchMessages(long windowHandle, int eventMask);
     private        native void setSize0(long windowHandle, int width, int height);
-    private        native boolean setFullScreen0(long windowHandle, boolean fullscreen);
-    private static native void setPosition(long windowHandle, int x, int y);
+    private        native void setPosition(long windowHandle, int x, int y);
+    private        native void setFullscreen0(long windowHandle, int x, int y, int width, int height, boolean isUndecorated, boolean on);
     private static native void setTitle(long windowHandle, String title);
     private static native void requestFocus(long windowHandle);
 
     private void sizeChanged(int newWidth, int newHeight) {
         width = newWidth;
         height = newHeight;
+        if(!fullscreen) {
+            nfs_width=width;
+            nfs_height=height;
+        }
         sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED);
     }
 
     private void positionChanged(int newX, int newY) {
         x = newX;
         y = newY;
+        if(!fullscreen) {
+            nfs_x=x;
+            nfs_y=y;
+        }
         sendWindowEvent(WindowEvent.EVENT_WINDOW_MOVED);
     }
 

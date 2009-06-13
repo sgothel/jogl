@@ -57,6 +57,7 @@ public class X11OnscreenGLXContext extends X11GLXContext {
     super(drawable, shareWith);
   }
   
+  // Note: Usually the surface shall be locked within [makeCurrent .. swap .. release]
   protected int makeCurrentImpl() throws GLException {
     int lockRes = drawable.lockSurface();
     boolean exceptionOccurred = false;
@@ -70,17 +71,18 @@ public class X11OnscreenGLXContext extends X11GLXContext {
       throw e;
     } finally {
       if (exceptionOccurred ||
-          (isOptimizable() && lockRes != NativeWindow.LOCK_SURFACE_NOT_READY)) {
+          (isOptimizable() && lockRes != NativeWindow.LOCK_SURFACE_NOT_READY) && drawable.isSurfaceLocked()) {
         drawable.unlockSurface();
       }
     }
   }
 
+  // Note: Usually the surface shall be locked within [makeCurrent .. swap .. release]
   protected void releaseImpl() throws GLException {
     try {
       super.releaseImpl();
     } finally {
-      if (!isOptimizable()) {
+      if (!isOptimizable() && drawable.isSurfaceLocked()) {
         drawable.unlockSurface();
       }
     }

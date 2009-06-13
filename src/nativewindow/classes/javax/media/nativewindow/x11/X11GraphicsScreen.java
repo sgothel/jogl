@@ -54,31 +54,35 @@ public class X11GraphicsScreen extends DefaultGraphicsScreen implements Cloneabl
         return new X11GraphicsScreen(new X11GraphicsDevice(display), screenIdx);
     }
 
+    /** Creates a new X11GraphicsScreen using a thread local display connection */
     public static AbstractGraphicsScreen createDefault() {
-        long display = X11Util.getDefaultDisplay();
+        long display = X11Util.getThreadLocalDefaultDisplay();
         int scrnIdx = X11Lib.DefaultScreen(display);
         return createScreenDevice(display, scrnIdx);
     }
 
     public long getDefaultVisualID() {
-        long display = X11Util.getDefaultDisplay();
-        int scrnIdx = X11Lib.DefaultScreen(display);
-        return X11Lib.DefaultVisualID(display, scrnIdx);
+        // It still could be an AWT hold handle ..
+        NativeWindowFactory.getDefaultFactory().getToolkitLock().lock();
+        try {
+            long display = getDevice().getHandle();
+            int scrnIdx = X11Lib.DefaultScreen(display);
+            return X11Lib.DefaultVisualID(display, scrnIdx);
+        } finally {
+            NativeWindowFactory.getDefaultFactory().getToolkitLock().unlock();
+        }
     }
 
     private static int fetchScreen(int screen) {
-        // FIXME NativeWindowFactory.getDefaultFactory().getToolkitLock().lock();
-        /*
+        NativeWindowFactory.getDefaultFactory().getToolkitLock().lock();
         try {
-            if(!com.sun.nativewindow.impl.x11.X11Util.isXineramaEnabled()) {
+            if(!com.sun.nativewindow.impl.x11.X11Util.isXineramaEnabledOnStaticDefaultDisplay()) {
                 return screen;
             }
         } finally {
-            // FIXME NativeWindowFactory.getDefaultFactory().getToolkitLock().unlock();
+            NativeWindowFactory.getDefaultFactory().getToolkitLock().unlock();
         }
         return 0;
-        */
-                return screen;
     }
 
     public Object clone() {

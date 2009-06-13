@@ -71,7 +71,7 @@ public abstract class X11GLXDrawable extends GLDrawableImpl {
           System.err.println("!!! X11GLXDrawable.setRealized(true): "+config);
         }
     } finally {
-      unlockSurface();
+        unlockSurface();
     }
   }
 

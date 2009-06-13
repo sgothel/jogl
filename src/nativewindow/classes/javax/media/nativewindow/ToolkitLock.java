@@ -37,8 +37,33 @@ package javax.media.nativewindow;
     implementation. This mechanism is generally only needed on X11
     platforms. Currently it is only used when the AWT is in use.
     Implementations of this lock, if they are not no-ops, must support
-    reentrant locking and unlocking. */
+    reentrant locking and unlocking. <P>
+    
+    The ToolkitLock implementation can be aquired by 
+    {@link NativeWindowFactory#getToolkitLock NativeWindowFactory's getToolkitLock()}.<P>
 
+    All toolkit shared resources shall be accessed by encapsulating the
+    code with a locking block as follows.
+    <PRE>
+    NativeWindowFactory.getDefaultFactory().getToolkitLock().lock();
+    try {
+      long displayHandle = X11Util.getStaticDefaultDisplay();
+      ...
+    } finally {
+      NativeWindowFactory.getDefaultFactory().getToolkitLock().unlock();
+    }
+    </PRE><P>
+
+    The underlying toolkit's locking mechanism may relate to {@link NativeWindow}'s 
+    {@link NativeWindow#lockSurface lockSurface()}. Hence it is important
+    that both implementation harmonize well, ie {@link NativeWindow#lockSurface lockSurface()}
+    shall issue a ToolkitLock lock befor it aquires it's surface lock. This is true
+    in the AWT implementation for example. Otherwise the surface lock would <i>steal</i>
+    the ToolkitLock's lock and a deadlock would be unavoidable.<P>
+
+    However the necessity of needing a global state synchronization will of course
+    impact your performance very much, especially in case of a multithreaded/multiwindow case.
+    */
 public interface ToolkitLock {
     /** Locks the toolkit. */
     public void lock();

@@ -155,6 +155,7 @@ public class AWTWindow extends Window {
             nfs_width=width;
             nfs_height=height;
         }
+        /** An AWT event on setSize() would bring us in a deadlock situation, hence invokeLater() */
         runOnEDT(false, new Runnable() {
                 public void run() {
                     frame.setSize(width, height);
@@ -169,7 +170,7 @@ public class AWTWindow extends Window {
             nfs_x=x;
             nfs_y=y;
         }
-        runOnEDT(false, new Runnable() {
+        runOnEDT(true, new Runnable() {
                 public void run() {
                     frame.setLocation(x, y);
                 }
@@ -193,6 +194,7 @@ public class AWTWindow extends Window {
             if(DEBUG_IMPLEMENTATION || DEBUG_WINDOW_EVENT) {
                 System.err.println("AWTWindow fs: "+fullscreen+" "+x+"/"+y+" "+w+"x"+h);
             }
+            /** An AWT event on setSize() would bring us in a deadlock situation, hence invokeLater() */
             runOnEDT(false, new Runnable() {
                     public void run() {
                         if(!frame.isDisplayable()) {

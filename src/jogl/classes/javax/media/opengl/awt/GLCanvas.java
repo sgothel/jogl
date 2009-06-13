@@ -278,7 +278,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
 
           awtConfig = config;
 
-          if( !equalCaps ) {
+          if( !equalCaps && GLAutoDrawable.ScreenChangeActionEnabled ) {
               dispose(true);
           }
         }

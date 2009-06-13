@@ -43,6 +43,9 @@ public class X11GraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
     /** Constructs a new X11GraphicsDevice corresponding to the given native display handle. */
     public X11GraphicsDevice(long display) {
         super(NativeWindowFactory.TYPE_X11, display);
+        if(0==display) {
+            throw new NativeWindowException("null display");
+        }
     }
 
     public Object clone() {

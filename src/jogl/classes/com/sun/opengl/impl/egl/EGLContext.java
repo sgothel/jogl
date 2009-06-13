@@ -124,28 +124,33 @@ public abstract class EGLContext extends GLContextImpl {
     }
 
     protected void releaseImpl() throws GLException {
-        if (!EGL.eglMakeCurrent(drawable.getDisplay(),
-                                EGL.EGL_NO_SURFACE,
-                                EGL.EGL_NO_SURFACE,
-                                EGL.EGL_NO_CONTEXT)) {
-            throw new GLException("Error freeing OpenGL context 0x" +
-                                  Long.toHexString(eglContext) + ": error code " + EGL.eglGetError());
-        }
+      getDrawableImpl().getFactoryImpl().lockToolkit();
+      try {
+          if (!EGL.eglMakeCurrent(drawable.getDisplay(),
+                                  EGL.EGL_NO_SURFACE,
+                                  EGL.EGL_NO_SURFACE,
+                                  EGL.EGL_NO_CONTEXT)) {
+                throw new GLException("Error freeing OpenGL context 0x" +
+                                      Long.toHexString(eglContext) + ": error code " + EGL.eglGetError());
+          }
+      } finally {
+          getDrawableImpl().getFactoryImpl().unlockToolkit();
+      }
     }
 
     protected void destroyImpl() throws GLException {
       getDrawableImpl().getFactoryImpl().lockToolkit();
       try {
-        if (eglContext != 0) {
-            if (!EGL.eglDestroyContext(drawable.getDisplay(), eglContext)) {
-                throw new GLException("Error destroying OpenGL context 0x" +
-                                      Long.toHexString(eglContext) + ": error code " + EGL.eglGetError());
-            }
-            eglContext = 0;
-            GLContextShareSet.contextDestroyed(this);
-        }
+          if (eglContext != 0) {
+              if (!EGL.eglDestroyContext(drawable.getDisplay(), eglContext)) {
+                  throw new GLException("Error destroying OpenGL context 0x" +
+                                        Long.toHexString(eglContext) + ": error code " + EGL.eglGetError());
+              }
+              eglContext = 0;
+              GLContextShareSet.contextDestroyed(this);
+          }
       } finally {
-        getDrawableImpl().getFactoryImpl().unlockToolkit();
+          getDrawableImpl().getFactoryImpl().unlockToolkit();
       }
     }
 

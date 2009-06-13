@@ -282,30 +282,35 @@ public abstract class X11GLXContext extends GLContextImpl {
   }
 
   protected void releaseImpl() throws GLException {
-    if (!GLX.glXMakeContextCurrent(drawable.getNativeWindow().getDisplayHandle(), 0, 0, 0)) {
-        throw new GLException("Error freeing OpenGL context");
+    getDrawableImpl().getFactoryImpl().lockToolkit();
+    try {
+        if (!GLX.glXMakeContextCurrent(drawable.getNativeWindow().getDisplayHandle(), 0, 0, 0)) {
+            throw new GLException("Error freeing OpenGL context");
+        }
+    } finally {
+        getDrawableImpl().getFactoryImpl().unlockToolkit();
     }
   }
 
   protected void destroyImpl() throws GLException {
     getDrawableImpl().getFactoryImpl().lockToolkit();
     try {
-      if (context != 0) {
-        if (DEBUG) {
-          System.err.println("glXDestroyContext(0x" +
-                             Long.toHexString(drawable.getNativeWindow().getDisplayHandle()) +
-                             ", 0x" +
-                             Long.toHexString(context) + ")");
+        if (context != 0) {
+            if (DEBUG) {
+              System.err.println("glXDestroyContext(0x" +
+                                 Long.toHexString(drawable.getNativeWindow().getDisplayHandle()) +
+                                 ", 0x" +
+                                 Long.toHexString(context) + ")");
+            }
+            GLX.glXDestroyContext(drawable.getNativeWindow().getDisplayHandle(), context);
+            if (DEBUG) {
+              System.err.println("!!! Destroyed OpenGL context " + context);
+            }
+            context = 0;
+            GLContextShareSet.contextDestroyed(this);
         }
-        GLX.glXDestroyContext(drawable.getNativeWindow().getDisplayHandle(), context);
-        if (DEBUG) {
-          System.err.println("!!! Destroyed OpenGL context " + context);
-        }
-        context = 0;
-        GLContextShareSet.contextDestroyed(this);
-      }
     } finally {
-      getDrawableImpl().getFactoryImpl().unlockToolkit();
+        getDrawableImpl().getFactoryImpl().unlockToolkit();
     }
   }
 

@@ -84,21 +84,16 @@ public abstract class JAWTWindow implements NativeWindow {
   private volatile Exception lockedStack = null;
 
   public synchronized int lockSurface() throws NativeWindowException {
-    if(DEBUG) {
-        // Not that this is a hard criteria ..
-        // but it is not recommended locking both, JAWT and the surface
-        if(JAWTUtil.isToolkitLocked()) {
-          JAWTUtil.getLockedStack().printStackTrace();
-          throw new NativeWindowException("JAWT already locked - "+this);
-        }
-    }
+    // We have to be the owner of the JAWT ToolkitLock 'lock' to benefit from the
+    // recursive lock capabitlites. Otherwise a followup ToolkitLock would
+    // deadlock, since we already have locked JAWT with the surface lock.
+    NativeWindowFactory.getDefaultFactory().getToolkitLock().lock();
 
     if (null!=lockedStack) {
       lockedStack.printStackTrace();
-      throw new NativeWindowException("Surface already locked - "+this);
+      throw new NativeWindowException("JAWT Surface already locked - "+Thread.currentThread().getName()+" "+this);
     }
-
-    lockedStack = new Exception("JAWTWindow previously locked by "+Thread.currentThread().getName());
+    lockedStack = new Exception("JAWT Surface previously locked by "+Thread.currentThread().getName());
 
     return LOCK_SUCCESS;
   }
@@ -106,10 +101,10 @@ public abstract class JAWTWindow implements NativeWindow {
   public synchronized void unlockSurface() {
     if (null!=lockedStack) {
         lockedStack = null;
-        // notifyAll();
     } else {
-        throw new NativeWindowException("JAWTWindow not locked");
+        throw new NativeWindowException("JAWT Surface not locked");
     }
+    NativeWindowFactory.getDefaultFactory().getToolkitLock().unlock();
   }
 
   public synchronized boolean isSurfaceLocked() {

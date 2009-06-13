@@ -221,11 +221,14 @@ public abstract class Window implements NativeWindow
     //
 
     public synchronized int lockSurface() throws NativeWindowException {
+        // We leave the ToolkitLock lock to the specializtion's discretion, 
+        // ie the implicit JAWTWindow in case of AWTWindow
         if (null!=lockedStack) {
           lockedStack.printStackTrace();
-          throw new NativeWindowException("Surface already locked - "+this);
+          throw new NativeWindowException("NEWT Surface already locked - "+Thread.currentThread().getName()+" "+this);
         }
-        lockedStack = new Exception("NEWT-Window previously locked by "+Thread.currentThread().getName());
+
+        lockedStack = new Exception("NEWT Surface previously locked by "+Thread.currentThread().getName());
         return LOCK_SUCCESS;
     }
 
@@ -233,8 +236,10 @@ public abstract class Window implements NativeWindow
         if (null!=lockedStack) {
             lockedStack = null;
         } else {
-            throw new NativeWindowException("NEWT-Window not locked");
+            throw new NativeWindowException("NEWT Surface not locked");
         }
+        // We leave the ToolkitLock unlock to the specializtion's discretion, 
+        // ie the implicit JAWTWindow in case of AWTWindow
     }
 
     public synchronized boolean isSurfaceLocked() {

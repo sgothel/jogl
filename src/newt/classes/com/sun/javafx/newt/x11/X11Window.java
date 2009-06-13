@@ -92,10 +92,18 @@ public class X11Window extends Window {
     }
 
     public void setSize(int width, int height) {
+        if(!fullscreen) {
+            nfs_width=width;
+            nfs_height=height;
+        }
         setSize0(getDisplayHandle(), getScreenIndex(), windowHandle, x, y, width, height, 0, visible);
     }
 
     public void setPosition(int x, int y) {
+        if(!fullscreen) {
+            nfs_x=x;
+            nfs_y=y;
+        }
         setPosition0(getDisplayHandle(), windowHandle, x, y);
     }
 
@@ -118,7 +126,7 @@ public class X11Window extends Window {
             }
             setSize0(getDisplayHandle(), getScreenIndex(), windowHandle, x, y, w, h, fullscreen?-1:1, visible);
         }
-        return true;
+        return fullscreen;
     }
 
     protected void dispatchMessages(int eventMask) {

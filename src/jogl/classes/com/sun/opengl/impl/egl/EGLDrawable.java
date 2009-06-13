@@ -45,9 +45,9 @@ import javax.media.opengl.*;
 
 public abstract class EGLDrawable extends GLDrawableImpl {
     protected boolean ownEGLDisplay = false;
-    private long eglDisplay;
     private EGLGraphicsConfiguration eglConfig;
-    private long eglSurface;
+    protected long eglDisplay;
+    protected long eglSurface;
     private int[] tmp = new int[1];
 
     protected EGLDrawable(EGLDrawableFactory factory,
@@ -179,25 +179,6 @@ public abstract class EGLDrawable extends GLDrawableImpl {
             throw new GLException("Error querying surface height");
         }
         return tmp[0];
-    }
-
-    public void swapBuffers() throws GLException {
-        boolean didLock = false;
-        try {
-          if (component.getSurfaceHandle() == 0) {
-            if (lockSurface() == NativeWindow.LOCK_SURFACE_NOT_READY) {
-              return;
-            }
-            didLock = true;
-          }
-
-          EGL.eglSwapBuffers(eglDisplay, eglSurface);
-
-        } finally {
-          if(didLock) {
-              unlockSurface();
-          }
-        }
     }
 
     public DynamicLookupHelper getDynamicLookupHelper() {
