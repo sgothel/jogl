@@ -79,7 +79,7 @@ public class GLCapabilities extends Capabilities implements Cloneable {
     * @param glp GLProfile, or null for the default GLProfile
     */
   public GLCapabilities(GLProfile glp) {
-      glProfile = (null!=glp)?glp:GLProfile.GetProfileDefault();
+      glProfile = (null!=glp)?glp:GLProfile.getDefault();
   }
 
   public Object clone() {

@@ -559,7 +559,7 @@ public class Java2D {
       invokeWithOGLSharedContextCurrent(device.getDefaultConfiguration(), new Runnable() {
           public void run() {
             // AbstractGraphicsScreen awtscreen = AWTGraphicsScreen.createScreenDevice(device);
-            j2dFBOShareContext = GLDrawableFactory.getFactory(GLProfile.GetProfileDefault()).createExternalGLContext(/*awtscreen*/);
+            j2dFBOShareContext = GLDrawableFactory.getFactory(GLProfile.getDefault()).createExternalGLContext(/*awtscreen*/);
           }
         });
       if (DEBUG) {

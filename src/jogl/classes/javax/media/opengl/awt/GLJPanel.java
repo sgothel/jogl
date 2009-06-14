@@ -219,7 +219,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
           // Workaround for termination issues with applets --
           // sun.applet.AppletPanel should probably be performing the
           // remove() call on the EDT rather than on its own thread
-          if (Threading.isAWTMode() &&
+          if (ThreadingImpl.isAWTMode() &&
               Thread.holdsLock(getTreeLock())) {
             // The user really should not be invoking remove() from this
             // thread -- but since he/she is, we can not go over to the
@@ -1220,7 +1220,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
 
     public GLProfile getGLProfile() {
       // FIXME: should do better than this; is it possible to using only platform-independent code?
-      return GLProfile.GetProfileDefault();
+      return GLProfile.getDefault();
     }
 
     public void handleReshape() {

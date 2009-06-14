@@ -91,7 +91,7 @@ public class MacOSXAWTCGLGraphicsConfigurationFactory extends GraphicsConfigurat
         }
 
         GraphicsConfiguration gc = device.getDefaultConfiguration();
-        AWTGraphicsConfiguration.SetupCapabilitiesPixelformat(capabilities, gc);
+        AWTGraphicsConfiguration.setupCapabilitiesRGBABits(capabilities, gc);
         if(DEBUG) {
             System.err.println("AWT Colormodel compatible: "+capabilities);
         }

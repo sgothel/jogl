@@ -469,7 +469,7 @@ public class GLWindow extends Window implements GLAutoDrawable {
     public void display() {
         if(getSurfaceHandle()!=0) {
             pumpMessages();
-            if(window.hasDeviceChanged() && GLAutoDrawable.ScreenChangeActionEnabled) {
+            if(window.hasDeviceChanged() && GLAutoDrawable.SCREEN_CHANGE_ACTION_ENABLED) {
                 dispose(true);
             }
             if (sendDestroy) {

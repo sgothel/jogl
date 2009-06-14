@@ -53,37 +53,37 @@ public class AWTThreadingPlugin implements ThreadingPlugin {
   public AWTThreadingPlugin() {}
 
   public boolean isOpenGLThread() throws GLException {
-    switch (Threading.getMode()) {
-      case Threading.AWT:
+    switch (ThreadingImpl.getMode()) {
+      case ThreadingImpl.AWT:
         if (Java2D.isOGLPipelineActive()) {
           // FIXME: ideally only the QFT would be considered to be the
           // "OpenGL thread", but we can not currently run all of
           // JOGL's OpenGL work on that thread. See the FIXME in
           // invokeOnOpenGLThread.
           return (Java2D.isQueueFlusherThread() ||
-                  (Threading.isX11() && EventQueue.isDispatchThread()));
+                  (ThreadingImpl.isX11() && EventQueue.isDispatchThread()));
         } else {
           return EventQueue.isDispatchThread();
         }
-      case Threading.WORKER:
+      case ThreadingImpl.WORKER:
         if (Java2D.isOGLPipelineActive()) {
           // FIXME: ideally only the QFT would be considered to be the
           // "OpenGL thread", but we can not currently run all of
           // JOGL's OpenGL work on that thread. See the FIXME in
           // invokeOnOpenGLThread.
           return (Java2D.isQueueFlusherThread() ||
-                  (Threading.isX11() && GLWorkerThread.isWorkerThread()));
+                  (ThreadingImpl.isX11() && GLWorkerThread.isWorkerThread()));
         } else {
           return GLWorkerThread.isWorkerThread();
         }
       default:
-        throw new InternalError("Illegal single-threading mode " + Threading.getMode());
+        throw new InternalError("Illegal single-threading mode " + ThreadingImpl.getMode());
     }
   }
 
   public void invokeOnOpenGLThread(Runnable r) throws GLException {
-    switch (Threading.getMode()) {
-      case Threading.AWT:
+    switch (ThreadingImpl.getMode()) {
+      case ThreadingImpl.AWT:
         // FIXME: ideally should run all OpenGL work on the Java2D QFT
         // thread when it's enabled, but unfortunately there are
         // deadlock issues on X11 platforms when making our
@@ -92,7 +92,7 @@ public class AWTThreadingPlugin implements ThreadingPlugin {
         // implementation, which attempts to grab the AWT lock on the
         // QFT which is not allowed. For now, on X11 platforms,
         // continue to perform this work on the EDT.
-        if (Java2D.isOGLPipelineActive() && !Threading.isX11()) {
+        if (Java2D.isOGLPipelineActive() && !ThreadingImpl.isX11()) {
           Java2D.invokeWithOGLContextCurrent(null, r);
         } else {
           try {
@@ -105,7 +105,7 @@ public class AWTThreadingPlugin implements ThreadingPlugin {
         }
         break;
 
-      case Threading.WORKER:
+      case ThreadingImpl.WORKER:
         if (!GLWorkerThread.isStarted()) {
           synchronized (GLWorkerThread.class) {
             if (!GLWorkerThread.isStarted()) {
@@ -123,7 +123,7 @@ public class AWTThreadingPlugin implements ThreadingPlugin {
         break;
 
       default:
-        throw new InternalError("Illegal single-threading mode " + Threading.getMode());
+        throw new InternalError("Illegal single-threading mode " + ThreadingImpl.getMode());
     }
   }
 }

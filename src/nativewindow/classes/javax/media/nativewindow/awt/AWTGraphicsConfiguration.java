@@ -80,9 +80,13 @@ public class AWTGraphicsConfiguration extends DefaultGraphicsConfiguration imple
   }
 
   /**
-   * Setup the Capabilities RGBA size in regard to the given GraphicsConfiguration ColorModel
+   * Sets up the Capabilities' RGBA size based on the given GraphicsConfiguration's ColorModel.
+   *
+   * @param capabilities the Capabilities object whose red, green, blue, and alpha bits will be set
+   * @param gc the GraphicsConfiguration from which to derive the RGBA bit depths
+   * @return the passed Capabilities
    */
-  public static Capabilities SetupCapabilitiesPixelformat(Capabilities capabilities, GraphicsConfiguration gc) {
+  public static Capabilities setupCapabilitiesRGBABits(Capabilities capabilities, GraphicsConfiguration gc) {
     int cmTransparency = capabilities.isBackgroundOpaque()?Transparency.OPAQUE:Transparency.TRANSLUCENT;
     ColorModel cm = gc.getColorModel(cmTransparency);
     if(null==cm && !capabilities.isBackgroundOpaque()) {

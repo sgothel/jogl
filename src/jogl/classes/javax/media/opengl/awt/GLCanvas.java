@@ -75,7 +75,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
 
   private static final boolean DEBUG = Debug.debug("GLCanvas");
 
-  static private GLProfile glProfileDefault = GLProfile.GetProfileDefault();
+  static private GLProfile defaultGLProfile = GLProfile.getDefault();
   private GLProfile glProfile;
   private GLDrawableHelper drawableHelper = new GLDrawableHelper();
   private GraphicsConfiguration chosen;
@@ -133,7 +133,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
     super();
 
     if(null==capabilities) {
-        capabilities = new GLCapabilities(glProfileDefault);
+        capabilities = new GLCapabilities(defaultGLProfile);
     }
     glProfile = capabilities.getGLProfile();
 
@@ -245,7 +245,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
 
           awtConfig = config;
 
-          if( !equalCaps && GLAutoDrawable.ScreenChangeActionEnabled ) {
+          if( !equalCaps && GLAutoDrawable.SCREEN_CHANGE_ACTION_ENABLED ) {
               dispose(true);
           }
         }
@@ -311,7 +311,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable {
       // Workaround for termination issues with applets --
       // sun.applet.AppletPanel should probably be performing the
       // remove() call on the EDT rather than on its own thread
-      if (Threading.isAWTMode() &&
+      if (ThreadingImpl.isAWTMode() &&
           Thread.holdsLock(getTreeLock())) {
         // The user really should not be invoking remove() from this
         // thread -- but since he/she is, we can not go over to the

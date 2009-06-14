@@ -153,7 +153,7 @@ public abstract class GLDrawableFactory {
   }
 
   protected static GLDrawableFactory getFactoryImpl(String glProfileImplName) throws GLException {
-    if ( GLProfile.UsesNativeGLES(glProfileImplName) ) {
+    if ( GLProfile.usesNativeGLES(glProfileImplName) ) {
         if(null==eglFactory) throw new GLException("GLDrawableFactory unavailable for EGL: "+glProfileImplName);
         return eglFactory;
     }

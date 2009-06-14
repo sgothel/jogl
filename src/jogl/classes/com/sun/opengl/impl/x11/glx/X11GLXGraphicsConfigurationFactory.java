@@ -68,7 +68,7 @@ public class X11GLXGraphicsConfigurationFactory extends GraphicsConfigurationFac
       }
       X11GraphicsScreen x11Screen = (X11GraphicsScreen)absScreen;
 
-      GLProfile glProfile = GLProfile.GetProfileDefault();
+      GLProfile glProfile = GLProfile.getDefault();
       GLCapabilities caps=null;
       XVisualInfo xvis=null;
       long fbcfg = 0;
