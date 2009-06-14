@@ -254,9 +254,15 @@ public abstract class Window implements NativeWindow
         if(DEBUG_WINDOW_EVENT) {
             System.out.println("Window.destroy() start "+Thread.currentThread().getName());
         }
-        windowListeners = new ArrayList();
-        mouseListeners = new ArrayList();
-        keyListeners = new ArrayList();
+        synchronized(windowListeners) {
+            windowListeners = new ArrayList();
+        }
+        synchronized(mouseListeners) {
+            mouseListeners = new ArrayList();
+        }
+        synchronized(keyListeners) {
+            keyListeners = new ArrayList();
+        }
         closeNative();
         invalidate();
         if(DEBUG_WINDOW_EVENT) {
@@ -396,26 +402,32 @@ public abstract class Window implements NativeWindow
     // MouseListener Support
     //
 
-    public synchronized void addMouseListener(MouseListener l) {
+    public void addMouseListener(MouseListener l) {
         if(l == null) {
             return;
         }
-        ArrayList newMouseListeners = (ArrayList) mouseListeners.clone();
-        newMouseListeners.add(l);
-        mouseListeners = newMouseListeners;
+        synchronized(mouseListeners) {
+            ArrayList newMouseListeners = (ArrayList) mouseListeners.clone();
+            newMouseListeners.add(l);
+            mouseListeners = newMouseListeners;
+        }
     }
 
-    public synchronized void removeMouseListener(MouseListener l) {
+    public void removeMouseListener(MouseListener l) {
         if (l == null) {
             return;
         }
-        ArrayList newMouseListeners = (ArrayList) mouseListeners.clone();
-        newMouseListeners.remove(l);
-        mouseListeners = newMouseListeners;
+        synchronized(mouseListeners) {
+            ArrayList newMouseListeners = (ArrayList) mouseListeners.clone();
+            newMouseListeners.remove(l);
+            mouseListeners = newMouseListeners;
+        }
     }
 
-    public synchronized MouseListener[] getMouseListeners() {
-        return (MouseListener[]) mouseListeners.toArray();
+    public MouseListener[] getMouseListeners() {
+        synchronized(mouseListeners) {
+            return (MouseListener[]) mouseListeners.toArray();
+        }
     }
 
     private ArrayList mouseListeners = new ArrayList();
@@ -480,7 +492,7 @@ public abstract class Window implements NativeWindow
         }
 
         ArrayList listeners = null;
-        synchronized(this) {
+        synchronized(mouseListeners) {
             listeners = mouseListeners;
         }
         for(Iterator i = listeners.iterator(); i.hasNext(); ) {
@@ -523,26 +535,32 @@ public abstract class Window implements NativeWindow
     // KeyListener Support
     //
 
-    public synchronized void addKeyListener(KeyListener l) {
+    public void addKeyListener(KeyListener l) {
         if(l == null) {
             return;
         }
-        ArrayList newKeyListeners = (ArrayList) keyListeners.clone();
-        newKeyListeners.add(l);
-        keyListeners = newKeyListeners;
+        synchronized(keyListeners) {
+            ArrayList newKeyListeners = (ArrayList) keyListeners.clone();
+            newKeyListeners.add(l);
+            keyListeners = newKeyListeners;
+        }
     }
 
-    public synchronized void removeKeyListener(KeyListener l) {
+    public void removeKeyListener(KeyListener l) {
         if (l == null) {
             return;
         }
-        ArrayList newKeyListeners = (ArrayList) keyListeners.clone();
-        newKeyListeners.remove(l);
-        keyListeners = newKeyListeners;
+        synchronized(keyListeners) {
+            ArrayList newKeyListeners = (ArrayList) keyListeners.clone();
+            newKeyListeners.remove(l);
+            keyListeners = newKeyListeners;
+        }
     }
 
-    public synchronized KeyListener[] getKeyListeners() {
-        return (KeyListener[]) keyListeners.toArray();
+    public KeyListener[] getKeyListeners() {
+        synchronized(keyListeners) {
+            return (KeyListener[]) keyListeners.toArray();
+        }
     }
 
     private ArrayList keyListeners = new ArrayList();
@@ -554,7 +572,7 @@ public abstract class Window implements NativeWindow
             System.out.println("sendKeyEvent: "+e);
         }
         ArrayList listeners = null;
-        synchronized(this) {
+        synchronized(keyListeners) {
             listeners = keyListeners;
         }
         for(Iterator i = listeners.iterator(); i.hasNext(); ) {
@@ -581,26 +599,32 @@ public abstract class Window implements NativeWindow
 
     private ArrayList windowListeners = new ArrayList();
 
-    public synchronized void addWindowListener(WindowListener l) {
+    public void addWindowListener(WindowListener l) {
         if(l == null) {
             return;
         }
-        ArrayList newWindowListeners = (ArrayList) windowListeners.clone();
-        newWindowListeners.add(l);
-        windowListeners = newWindowListeners;
+        synchronized(windowListeners) {
+            ArrayList newWindowListeners = (ArrayList) windowListeners.clone();
+            newWindowListeners.add(l);
+            windowListeners = newWindowListeners;
+        }
     }
 
-    public synchronized void removeWindowListener(WindowListener l) {
+    public void removeWindowListener(WindowListener l) {
         if (l == null) {
             return;
         }
-        ArrayList newWindowListeners = (ArrayList) windowListeners.clone();
-        newWindowListeners.remove(l);
-        windowListeners = newWindowListeners;
+        synchronized(windowListeners) {
+            ArrayList newWindowListeners = (ArrayList) windowListeners.clone();
+            newWindowListeners.remove(l);
+            windowListeners = newWindowListeners;
+        }
     }
 
-    public synchronized WindowListener[] getWindowListeners() {
-        return (WindowListener[]) windowListeners.toArray();
+    public WindowListener[] getWindowListeners() {
+        synchronized(windowListeners) {
+            return (WindowListener[]) windowListeners.toArray();
+        }
     }
 
     protected void sendWindowEvent(int eventType) {
@@ -609,7 +633,7 @@ public abstract class Window implements NativeWindow
             System.out.println("sendWindowEvent: "+e);
         }
         ArrayList listeners = null;
-        synchronized(this) {
+        synchronized(windowListeners) {
             listeners = windowListeners;
         }
         for(Iterator i = listeners.iterator(); i.hasNext(); ) {

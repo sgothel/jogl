@@ -44,9 +44,6 @@ static jmethodID focusChangedID    = NULL;
 static jmethodID windowDestroyNotifyID = NULL;
 static jmethodID windowDestroyedID = NULL;
 
-// This is set while messages are being dispatched and cleared afterward
-static JNIEnv* env = NULL;
-
 @implementation NewtMacWindow
 
 + (BOOL) initNatives: (JNIEnv*) env forClass: (jclass) clazz
@@ -64,7 +61,7 @@ static JNIEnv* env = NULL;
     return NO;
 }
 
-+ (void) setJNIEnv: (JNIEnv*) theEnv
+- (void) setJNIEnv: (JNIEnv*) theEnv
 {
     env = theEnv;
 }

@@ -37,12 +37,15 @@
 @interface NewtMacWindow : NSWindow
 {
     jobject javaWindowObject;
+
+    // This is set while messages are being dispatched and cleared afterward
+    JNIEnv* env;
 }
 
 + (BOOL) initNatives: (JNIEnv*) env forClass: (jobject) clazz;
 
 /* Set and cleared during event dispatching cycle */
-+ (void) setJNIEnv: (JNIEnv*) env;
+- (void) setJNIEnv: (JNIEnv*) env;
 
 - (id) initWithContentRect: (NSRect) contentRect
        styleMask: (NSUInteger) windowStyle

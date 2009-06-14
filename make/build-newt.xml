@@ -96,7 +96,7 @@
         <!-- partitioning -->
 
         <property name="java.part.core"
-                  value="com/sun/javafx/newt/*, com/sun/javafx/newt/x11/*, com/sun/javafx/newt/windows/*, com/sun/javafx/newt/macosx/*, com/sun/javafx/newt/impl/*"/>
+                  value="com/sun/javafx/newt/*, com/sun/javafx/newt/util/*, com/sun/javafx/newt/x11/*, com/sun/javafx/newt/windows/*, com/sun/javafx/newt/macosx/*, com/sun/javafx/newt/impl/*"/>
 
         <property name="java.part.opengl"
                   value="com/sun/javafx/newt/opengl/*, com/sun/javafx/newt/opengl/kd/*"/>

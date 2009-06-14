@@ -89,6 +89,11 @@ void setFrameTopLeftPoint(NSWindow* win, jint x, jint y)
 JNIEXPORT jboolean JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_initIDs
   (JNIEnv *env, jclass clazz)
 {
+    static int initialized = 0;
+
+    if(initialized) return JNI_TRUE;
+    initialized = 1;
+
     // This little bit of magic is needed in order to receive mouse
     // motion events and allow key focus to be properly transferred.
     // FIXME: are these Carbon APIs? They come from the
@@ -231,16 +236,18 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_setTitle0
 
 /*
  * Class:     com_sun_javafx_newt_macosx_MacWindow
- * Method:    dispatchMessages
- * Signature: (I)V
+ * Method:    dispatchMessages0
+ * Signature: (JI)V
  */
-JNIEXPORT void JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_dispatchMessages
-  (JNIEnv *env, jobject unused, jint eventMask)
+JNIEXPORT void JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_dispatchMessages0
+  (JNIEnv *env, jobject unused, jlong window, jint eventMask)
 {
     NSEvent* event = NULL;
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
 
-    [NewtMacWindow setJNIEnv: env];
+    NewtMacWindow* nwwin = (NewtMacWindow*) ((intptr_t) window);
+    [nwwin setJNIEnv: env];
+
     do {
         // FIXME: ignoring event mask for the time being
         event = [NSApp nextEventMatchingMask: NSAnyEventMask
@@ -248,10 +255,13 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_dispatchMessage
                        inMode: NSDefaultRunLoopMode
                        dequeue: YES];
         if (event != NULL) {
+            NewtMacWindow* nwwin = (NewtMacWindow*) [event window];
+            [nwwin setJNIEnv: env];
+
             [NSApp sendEvent: event];
         }
     } while (event != NULL);
-    [NewtMacWindow setJNIEnv: NULL];
+    // [nwwin setJNIEnv: NULL];
     [pool release];
 }
 
