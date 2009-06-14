@@ -308,3 +308,46 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_setFrameTopLeft
     setFrameTopLeftPoint(win, x, y);
     [pool release];
 }
+
+/*
+ * Class:     com_sun_javafx_newt_macosx_MacWindow
+ * Method:    getScreenWidth
+ * Signature: (I)I
+ */
+JNIEXPORT jint JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_getScreenWidth
+  (JNIEnv *env, jclass clazz, jint sidx)
+{
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+
+    NSArray *screens = [NSScreen screens];
+    if(sidx<0) sidx=0;
+    if(sidx>=[screens count]) sidx=0;
+    NSScreen *screen = (NSScreen *) [screens objectAtIndex: sidx];
+    NSRect rect = [screen frame];
+
+    [pool release];
+
+    return (jint) (rect.size.width);
+}
+
+/*
+ * Class:     com_sun_javafx_newt_macosx_MacWindow
+ * Method:    getScreenHeight
+ * Signature: (I)I
+ */
+JNIEXPORT jint JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_getScreenHeight
+  (JNIEnv *env, jclass clazz, jint sidx)
+{
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+
+    NSArray *screens = [NSScreen screens];
+    if(sidx<0) sidx=0;
+    if(sidx>=[screens count]) sidx=0;
+    NSScreen *screen = (NSScreen *) [screens objectAtIndex: sidx];
+    NSRect rect = [screen frame];
+
+    [pool release];
+
+    return (jint) (rect.size.height);
+}
+

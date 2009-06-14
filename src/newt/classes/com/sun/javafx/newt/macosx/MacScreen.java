@@ -42,6 +42,7 @@ public class MacScreen extends Screen {
 
     protected void createNative(int index) {
         aScreen = new DefaultGraphicsScreen(getDisplay().getGraphicsDevice(), index);
+        setScreenSize(MacWindow.getScreenWidth(getIndex()), MacWindow.getScreenHeight(getIndex()));
     }
 
     protected void closeNative() { }

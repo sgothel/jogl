@@ -84,7 +84,8 @@ public class MainThread {
     public static final boolean USE_MAIN_THREAD = NativeWindowFactory.getNativeWindowType(false)==NativeWindowFactory.TYPE_MACOSX ||
                                                   Boolean.getBoolean("newt.MainThread.force");
 
-    private static final boolean DEBUG = false;
+    protected static final boolean DEBUG = Debug.debug("MainThread");
+
     private static boolean isExit=false;
     private static volatile boolean isRunning=false;
     private static Object taskWorkerLock=new Object();

@@ -40,7 +40,6 @@ import com.sun.javafx.newt.*;
 import com.sun.javafx.newt.impl.*;
 
 public class MacWindow extends Window {
-    private static final boolean DEBUG = false;
     
     private static native boolean initIDs();
     
@@ -131,6 +130,8 @@ public class MacWindow extends Window {
     private static final int NSModeSwitchFunctionKey     = 0xF747;
 
     private long nativeWindow;
+    // non fullscreen dimensions ..
+    private int nfs_width, nfs_height, nfs_x, nfs_y;
 
     private static volatile boolean isInit = false;
 
@@ -143,7 +144,7 @@ public class MacWindow extends Window {
         if(!initIDs()) {
             throw new NativeWindowException("Failed to initialize jmethodIDs");
         }
-        if(DEBUG) System.out.println("MacWindow.initIDs OK "+Thread.currentThread().getName());
+        if(DEBUG_IMPLEMENTATION) System.out.println("MacWindow.initIDs OK "+Thread.currentThread().getName());
     }
     
     public MacWindow() {
@@ -159,7 +160,7 @@ public class MacWindow extends Window {
 
     class CloseAction implements Runnable {
         public void run() {
-            if(DEBUG) System.out.println("MacWindow.CloseAction "+Thread.currentThread().getName());
+            if(DEBUG_IMPLEMENTATION) System.out.println("MacWindow.CloseAction "+Thread.currentThread().getName());
             if (nativeWindow != 0) {
                 close0(nativeWindow);
                 nativeWindow = 0;
@@ -169,7 +170,7 @@ public class MacWindow extends Window {
     private CloseAction closeAction = new CloseAction();
 
     protected void closeNative() {
-        if(DEBUG) System.out.println("MacWindow.closeNative "+Thread.currentThread().getName());
+        if(DEBUG_IMPLEMENTATION) System.out.println("MacWindow.closeNative "+Thread.currentThread().getName());
         MainThread.invoke(true, this, closeAction);
     }
     
@@ -182,9 +183,8 @@ public class MacWindow extends Window {
     
     class VisibleAction implements Runnable {
         public void run() {
-            if(DEBUG) System.out.println("MacWindow.VisibleAction "+visible+" "+Thread.currentThread().getName());
+            if(DEBUG_IMPLEMENTATION) System.out.println("MacWindow.VisibleAction "+visible+" "+Thread.currentThread().getName());
             if (visible) {
-                boolean created = false;
                 if (nativeWindow == 0) {
                     nativeWindow = createWindow(getX(), getY(), getWidth(), getHeight(),
                                                 (isUndecorated() ?
@@ -192,11 +192,10 @@ public class MacWindow extends Window {
                                                  NSTitledWindowMask|NSClosableWindowMask|NSMiniaturizableWindowMask|NSResizableWindowMask),
                                                 NSBackingStoreBuffered,
                                                 true);
-                    setTitle0(nativeWindow, getTitle());
-                    created = true;
                 }
-                makeKeyAndOrderFront(nativeWindow);
-                if (created) {
+                if (nativeWindow != 0) {
+                    setTitle0(nativeWindow, getTitle());
+                    makeKeyAndOrderFront(nativeWindow);
                     sendWindowEvent(WindowEvent.EVENT_WINDOW_MOVED);
                     sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED);
                     sendWindowEvent(WindowEvent.EVENT_WINDOW_GAINED_FOCUS);
@@ -212,7 +211,7 @@ public class MacWindow extends Window {
 
     public void setVisible(boolean visible) {
         this.visible = visible;
-        if(DEBUG) System.out.println("MacWindow.setVisible "+visible+" "+Thread.currentThread().getName());
+        if(DEBUG_IMPLEMENTATION) System.out.println("MacWindow.setVisible "+visible+" "+Thread.currentThread().getName());
         MainThread.invoke(true, this, visibleAction);
     }
 
@@ -256,7 +255,11 @@ public class MacWindow extends Window {
     public void setSize(int width, int height) {
         this.width=width;
         this.height=height;
-        MainThread.invoke(true, this, sizeAction);
+        if(!fullscreen) {
+            nfs_width=width;
+            nfs_height=height;
+        }
+        MainThread.invoke(false, this, sizeAction);
     }
     
     class PositionAction implements Runnable {
@@ -271,7 +274,11 @@ public class MacWindow extends Window {
     public void setPosition(int x, int y) {
         this.x=x;
         this.y=y;
-        MainThread.invoke(true, this, positionAction);
+        if(!fullscreen) {
+            nfs_x=x;
+            nfs_y=y;
+        }
+        MainThread.invoke(false, this, positionAction);
     }
     
     class DispatchAction implements Runnable {
@@ -287,19 +294,61 @@ public class MacWindow extends Window {
         MainThread.invoke(false, this, dispatchAction);
     }
     
+    class FullscreenAction implements Runnable {
+        int x, y, w, h;
+        public void set(int x, int y, int w, int h) {
+            this.x=x; this.y=y; this.w=w; this.h=h;
+        }
+        public void run() {
+            if (nativeWindow != 0) {
+                if(fullscreen) {
+                    setFrameTopLeftPoint(nativeWindow, x, y);
+                    setContentSize(nativeWindow, w, h);
+                } else {
+                    setContentSize(nativeWindow, w, h);
+                    setFrameTopLeftPoint(nativeWindow, x, y);
+                }
+            }
+        }
+    }
+    private FullscreenAction fullscreenAction = new FullscreenAction();
+
     public boolean setFullscreen(boolean fullscreen) {
-        // FIXME: implement this
-        return false;
+        if(this.fullscreen!=fullscreen) {
+            int x, y, w, h;
+            this.fullscreen=fullscreen;
+            if(fullscreen) {
+                x = 0; 
+                y = 0;
+                w = screen.getWidth();
+                h = screen.getHeight();
+            } else {
+                x = nfs_x;
+                y = nfs_y;
+                w = nfs_width;
+                h = nfs_height;
+            }
+            if(DEBUG_IMPLEMENTATION || DEBUG_WINDOW_EVENT) {
+                System.err.println("MacWindow fs: "+fullscreen+" "+x+"/"+y+" "+w+"x"+h);
+            }
+            fullscreenAction.set(x, y, w, h);
+            MainThread.invoke(false, this, fullscreenAction);
+        }
+        return fullscreen;
     }
     
     private void sizeChanged(int newWidth, int newHeight) {
-        if (DEBUG) {
+        if (DEBUG_IMPLEMENTATION) {
             System.out.println(Thread.currentThread().getName()+" Size changed to " + newWidth + ", " + newHeight);
         }
         if (width != newWidth || height != newHeight) {
             width = newWidth;
             height = newHeight;
-            if (DEBUG) {
+            if(!fullscreen) {
+                nfs_width=width;
+                nfs_height=height;
+            }
+            if (DEBUG_IMPLEMENTATION) {
                 System.out.println("  Posted WINDOW_RESIZED event");
             }
             sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED);
@@ -307,13 +356,17 @@ public class MacWindow extends Window {
     }
 
     private void positionChanged(int newX, int newY) {
-        if (DEBUG) {
+        if (DEBUG_IMPLEMENTATION) {
             System.out.println(Thread.currentThread().getName()+" Position changed to " + newX + ", " + newY);
         }
         if (x != newX || y != newY) {
             x = newX;
             y = newY;
-            if (DEBUG) {
+            if(!fullscreen) {
+                nfs_x=x;
+                nfs_y=y;
+            }
+            if (DEBUG_IMPLEMENTATION) {
                 System.out.println("  Posted WINDOW_MOVED event");
             }
             sendWindowEvent(WindowEvent.EVENT_WINDOW_MOVED);
@@ -413,7 +466,7 @@ public class MacWindow extends Window {
 
     protected void sendKeyEvent(int eventType, int modifiers, int keyCode, char keyChar) {
         int key = convertKeyChar(keyChar);
-        if(DEBUG) System.out.println("MacWindow.sendKeyEvent "+Thread.currentThread().getName());
+        if(DEBUG_IMPLEMENTATION) System.out.println("MacWindow.sendKeyEvent "+Thread.currentThread().getName());
         // Note that we send the key char for the key code on this
         // platform -- we do not get any useful key codes out of the system
         super.sendKeyEvent(eventType, modifiers, key, keyChar);
@@ -432,4 +485,6 @@ public class MacWindow extends Window {
     private native long contentView(long window);
     private native void setContentSize(long window, int w, int h);
     private native void setFrameTopLeftPoint(long window, int x, int y);
+    protected static native int getScreenWidth(int scrn_idx);
+    protected static native int getScreenHeight(int scrn_idx);
 }
