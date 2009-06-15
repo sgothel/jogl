@@ -38,6 +38,7 @@ import javax.media.nativewindow.*;
 
 public class MacScreen extends Screen {
     public MacScreen() {
+        MacWindow.initSingleton();
     }
 
     protected void createNative(int index) {
