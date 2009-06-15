@@ -1,0 +1,70 @@
+#include es_precision.glsl
+#include mgl_lightdef.glsl
+
+#include mgl_const.glsl
+#include mgl_uniform.glsl
+#include mgl_uniform_light.glsl
+#include mgl_attribute.glsl
+#include mgl_varying.glsl
+
+#include mgl_settexcoord.vp
+
+void main(void)
+{
+  vec4 position;
+  vec3 normal, lightDir, cameraDir, halfDir;
+  vec4 ambient, diffuse, specular;
+  float NdotL, NdotHV, dist, attenuation;
+  int i;
+
+  position  = mgl_PMVMatrix[1] * mgl_Vertex; // vertex eye position 
+
+  normal = normalize(mgl_NormalMatrix * mgl_Normal); 
+  // cameraPosition:      (mgl_PMVMatrix[2] * vec4(0,0,0,1.0)).xyz                   
+  cameraDir  = normalize( (mgl_PMVMatrix[2] * vec4(0,0,0,1.0)).xyz - mgl_Vertex.xyz ); 
+
+  ambient = vec4(0,0,0,0);
+  diffuse = vec4(0,0,0,0);
+  specular = vec4(0,0,0,0);
+
+  bool lightEnabled = false;
+
+  for(i=0; i<MAX_LIGHTS; i++) {
+    if( 0!= mgl_LightsEnabled[i] ) {
+      lightEnabled = true;
+      ambient += mgl_LightSource[i].ambient;
+      lightDir = mgl_LightSource[i].position.xyz - position.xyz;
+      dist     = length(lightDir);
+      lightDir = normalize(lightDir);
+      attenuation = 1.0 / ( 
+                       mgl_LightSource[i].constantAttenuation+ 
+                       mgl_LightSource[i].linearAttenuation    * dist +   
+                       mgl_LightSource[i].quadraticAttenuation * dist * dist );
+      NdotL = max(0.0, dot(normal, lightDir));
+      diffuse += mgl_LightSource[i].diffuse * NdotL * attenuation;
+      if (NdotL != 0.0) {
+        halfDir  = normalize (lightDir + cameraDir); 
+        NdotHV   = max(0.0, dot(normal, halfDir));
+        specular += mgl_LightSource[i].specular * 
+                    pow(NdotHV,mgl_FrontMaterial.shininess) * attenuation;
+      }
+    }
+  }
+  ambient  += mgl_FrontMaterial.ambient;
+  diffuse  *= mgl_FrontMaterial.diffuse;
+  specular *= mgl_FrontMaterial.specular;
+
+  if(mgl_ColorEnabled>0) {
+    frontColor=mgl_Color;
+  } else {
+    frontColor=mgl_ColorStatic;
+  }
+  if( lightEnabled ) {
+    frontColor *= ambient + diffuse + specular;
+  }
+
+  gl_Position  = mgl_PMVMatrix[0] * position;
+
+  setTexCoord(gl_Position);
+}
+

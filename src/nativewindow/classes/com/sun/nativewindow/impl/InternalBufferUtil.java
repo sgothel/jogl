@@ -1,0 +1,124 @@
+/*
+ * Copyright (c) 2009 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are
+ * met:
+ * 
+ * - Redistribution of source code must retain the above copyright
+ *   notice, this list of conditions and the following disclaimer.
+ * 
+ * - Redistribution in binary form must reproduce the above copyright
+ *   notice, this list of conditions and the following disclaimer in the
+ *   documentation and/or other materials provided with the distribution.
+ * 
+ * Neither the name of Sun Microsystems, Inc. or the names of
+ * contributors may be used to endorse or promote products derived from
+ * this software without specific prior written permission.
+ * 
+ * This software is provided "AS IS," without a warranty of any kind. ALL
+ * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
+ * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
+ * PARTICULAR PURPOSE OR NON-INFRINGEMENT, ARE HEREBY EXCLUDED. SUN
+ * MICROSYSTEMS, INC. ("SUN") AND ITS LICENSORS SHALL NOT BE LIABLE FOR
+ * ANY DAMAGES SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR
+ * DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES. IN NO EVENT WILL SUN OR
+ * ITS LICENSORS BE LIABLE FOR ANY LOST REVENUE, PROFIT OR DATA, OR FOR
+ * DIRECT, INDIRECT, SPECIAL, CONSEQUENTIAL, INCIDENTAL OR PUNITIVE
+ * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
+ * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
+ * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+ * 
+ */
+
+package com.sun.nativewindow.impl;
+
+import java.lang.reflect.*;
+import java.nio.*;
+
+/** Internal copy of selected routines from BufferUtil to avoid
+    outward dependencies on com.sun.opengl.util package. */
+public class InternalBufferUtil {
+    public static final int SIZEOF_BYTE = 1;
+    public static final int SIZEOF_SHORT = 2;
+    public static final int SIZEOF_INT = 4;
+    public static final int SIZEOF_FLOAT = 4;
+
+    //----------------------------------------------------------------------
+    // Allocation routines
+    //
+
+    /** Allocates a new direct ByteBuffer with the specified number of
+        elements. The returned buffer will have its byte order set to
+        the host platform's native byte order. */
+    public static ByteBuffer newByteBuffer(int numElements) {
+        ByteBuffer bb = ByteBuffer.allocateDirect(numElements);
+        nativeOrder(bb);
+        return bb;
+    }
+    
+    /** Allocates a new direct IntBuffer with the specified number of
+        elements. The returned buffer will have its byte order set to
+        the host platform's native byte order. */
+    public static IntBuffer newIntBuffer(int numElements) {
+        ByteBuffer bb = newByteBuffer(numElements * SIZEOF_INT);
+        return bb.asIntBuffer();
+    }
+    
+    //----------------------------------------------------------------------
+    // Copy routines (type-to-type)
+    //
+
+    /** Copies the <i>remaining</i> elements (as defined by
+        <code>limit() - position()</code>) in the passed ByteBuffer into
+        a newly-allocated direct ByteBuffer. The returned buffer will
+        have its byte order set to the host platform's native byte
+        order. The position of the newly-allocated buffer will be zero,
+        and the position of the passed buffer is unchanged (though its
+        mark is changed). */
+    public static ByteBuffer copyByteBuffer(ByteBuffer orig) {
+        ByteBuffer dest = newByteBuffer(orig.remaining());
+        dest.put(orig);
+        dest.rewind();
+        return dest;
+    }
+
+    //----------------------------------------------------------------------
+    // Conversion routines 
+    //
+
+    public static ByteBuffer nativeOrder(ByteBuffer buf) {
+        if (!isCDCFP) {
+            try {
+                if (byteOrderClass == null) {
+                    byteOrderClass = Class.forName("java.nio.ByteOrder");
+                    orderMethod = ByteBuffer.class.getMethod("order", new Class[] { byteOrderClass });
+                    Method nativeOrderMethod = byteOrderClass.getMethod("nativeOrder", null);
+                    nativeOrderObject = nativeOrderMethod.invoke(null, null);
+                }
+            } catch (Throwable t) {
+                // Must be running on CDC / FP
+                isCDCFP = true;
+            }
+
+            if (!isCDCFP) {
+                try {
+                    orderMethod.invoke(buf, new Object[] { nativeOrderObject });
+                } catch (Throwable t) {
+                }
+            }
+        }
+        return buf;
+    }
+
+    //----------------------------------------------------------------------
+    // Internals only below this point
+    //
+
+    // NOTE that this work must be done reflectively at the present time
+    // because this code must compile and run correctly on both CDC/FP and J2SE
+    private static boolean isCDCFP;
+    private static Class byteOrderClass;
+    private static Object nativeOrderObject;
+    private static Method orderMethod;
+}

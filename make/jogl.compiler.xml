@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="JOGL" basedir="." default="all">
+<target name="c.configure.1" depends="gluegen.cpptasks.detect.os,gluegen.cpptasks.setup.compiler">
+      <linker id="linker.cfg.linux.jogl.x11" extends="linker.cfg.linux">
+        <syslibset dir="/devtools/i686-unknown-linux-gnu/xfree86-4.3.0-linux-ix86-glibc23/lib" libs="X11"/>
+        <syslibset dir="/devtools/i686-unknown-linux-gnu/xfree86-4.3.0-linux-ix86-glibc23/lib" libs="Xxf86vm"/>
+      </linker>
+
+      <linker id="linker.cfg.linux.jogl.gl2" extends="linker.cfg.linux.jogl.x11">
+        <syslibset dir="/devtools/i686-unknown-linux-gnu/xfree86-4.3.0-linux-ix86-glibc23/lib" libs="GL"/>
+        <syslibset dir="${x11.cg.lib}" libs="Cg, CgGL" if="c.compiler.use-cglib"/>
+      </linker>
+</target>
+</project>
+

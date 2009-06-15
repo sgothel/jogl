@@ -1,0 +1,145 @@
+
+<project name="JOGL_ALL" basedir="." default="all">
+
+    <target name="init">
+        <property name="base_version_jogl" value="1.2.0-rc1"/>
+        <property name="base_version_nw"   value="1.0.0-rc1"/>
+        <property name="project.root" value=".." />
+        <condition property="rootrel.build" value="build">
+          <not>
+              <isset property="rootrel.build"/>
+          </not>
+        </condition>
+        <property name="build" value="${project.root}/${rootrel.build}" />
+        <property name="src" value="${project.root}/src" />
+
+        <property name="nativewindow.make.dir" value="." />
+        <property name="nativewindow.build.xml" value="${nativewindow.make.dir}/build-nativewindow.xml" />
+        <property name="jogl.make.dir" value="." />
+        <property name="jogl.build.xml" value="${jogl.make.dir}/build-jogl.xml" />
+        <property name="newt.make.dir" value="." />
+        <property name="newt.build.xml" value="${newt.make.dir}/build-newt.xml" />
+
+        <property name="all.srcj.path" value="${src}/nativewindow/classes;${src}/jogl/classes;${src}/newt/classes" />
+        <property name="all.genj.path" value="${build}/nativewindow/gensrc/classes;${build}/jogl/gensrc/classes;${build}/newt/gensrc/classes" />
+
+        <!-- The javadoc dirs. -->
+        <property name="javadoc" value="${project.root}/javadoc_public" />
+        <property name="javadoc.link" value="http://java.sun.com/j2se/1.4.2/docs/api/" />
+        <property name="javadoc.overview" value="doc/jogl/spec-overview.html" />
+
+        <property name="javadoc.nw.overview" value="../src/nativewindow/classes/javax/media/nativewindow/package.html" />
+        <property name="javadoc.nw.spec" value="${project.root}/javadoc_nativewindow_spec" />
+        <property name="javadoc.nw.spec.windowtitle" value="NativeWindow API -- ${base_version_nw} Specification" />
+        <property name="javadoc.nw.spec.packagenames" value="javax.media.nativewindow.*" />
+
+        <property name="javadoc.spec" value="${project.root}/javadoc_jogl_spec" />
+        <property name="javadoc.spec.windowtitle" value="JOGL API -- JSR-231 ${base_version_jogl} Specification" />
+        <property name="javadoc.spec.packagenames" value="javax.media.opengl.*" />
+
+        <property name="javadoc.windowtitle" value="JOGL, NativeWindow and NEWT APIs" />
+        <property name="javadoc.packagenames" value="${javadoc.nw.spec.packagenames},${javadoc.spec.packagenames},com.sun.opengl.util.*,com.sun.javafx.newt, com.sun.javafx.newt.opengl" />
+
+        <property name="javadoc.dev" value="${project.root}/javadoc_dev" />
+        <property name="javadoc.dev.packagenames" value="${javadoc.packagenames},com.sun.opengl.impl.*,com.sun.nativewindow.impl.*,com.sun.javafx.newt.*,com.sun.gluegen,com.sun.gluegen.runtime" />
+
+        <property name="java.excludes.javadoc.packagenames" value="com.sun.opengl.impl.gl2.fixme.*,com.sun.javafx.audio.windows.waveout.TestSpatialization"/>
+        <property name="javadoc.bottom" value="Copyright 2005 Sun Microsystems, Inc. All rights reserved. Use is subject to &lt;a href=&quot;http://jcp.org/en/jsr/detail?id=231&quot;&gt;license terms&lt;/a&gt;." />
+
+        <property name="gluegen-rt.jar" value="../../gluegen/${rootrel.build}/gluegen-rt.jar" />
+        <property name="nativewindow.all.jar" value="../${rootrel.build}/nativewindow/nativewindow.all.jar" />
+        <property name="jogl.all.jar" value="../${rootrel.build}/jogl/jogl.all.jar" />
+        <property name="newt.all.jar" value="../${rootrel.build}/newt/newt.all.jar" />
+
+        <path id="all.classpath">
+            <pathelement location="${nativewindow.all.jar}" />
+            <pathelement location="${gluegen-rt.jar}" />
+            <pathelement location="${jogl.all.jar}" />
+            <pathelement location="${newt.all.jar}" />
+        </path>
+
+    </target>
+
+    <target name="build.nativewindow" depends="init">
+        <ant antfile="${nativewindow.build.xml}" dir="${nativewindow.make.dir}" target="all" inheritAll="false"/>
+    </target>
+
+    <target name="build.jogl" depends="init">
+        <ant antfile="${jogl.build.xml}" dir="${jogl.make.dir}" target="all" inheritAll="false"/>
+    </target>
+
+    <target name="build.newt" depends="init">
+        <ant antfile="${newt.build.xml}" dir="${newt.make.dir}" target="all" inheritAll="false"/>
+    </target>
+
+    <target name="all" description="Build nativewindow, jogl and newt projects" depends="init,build.nativewindow,build.jogl,build.newt" />
+
+    <target name="clean" depends="init">
+        <ant antfile="${nativewindow.build.xml}" dir="${nativewindow.make.dir}" target="clean" inheritAll="false"/>
+        <ant antfile="${jogl.build.xml}" dir="${jogl.make.dir}" target="clean" inheritAll="false"/>
+        <ant antfile="${newt.build.xml}" dir="${newt.make.dir}" target="clean" inheritAll="false"/>
+    </target>        
+
+    <target name="javadoc" depends="init">
+        <!-- Build the general public Javadoc -->
+        <javadoc packagenames="${javadoc.packagenames}"
+                 excludepackagenames="${java.excludes.javadoc.packagenames}"
+                 sourcepath="${all.srcj.path};${all.genj.path}"
+                 destdir="${javadoc}" windowtitle="${javadoc.windowtitle}"
+                 overview="${javadoc.overview}" 
+                 source="1.4"
+         bottom="${javadoc.bottom}" >
+         <classpath refid="all.classpath"/>
+         <link offline="true" href="${javadoc.link}" packagelistLoc="142-packages" />
+        </javadoc>
+    </target>
+
+    <target name="javadoc.jogl.spec" depends="init,javadoc.nw.spec">
+        <!-- Build the specification Javadoc -->
+        <javadoc packagenames="${javadoc.spec.packagenames}"
+                 excludepackagenames="${java.excludes.javadoc.packagenames}"
+                 sourcepath="${all.srcj.path};${all.genj.path}"
+                 destdir="${javadoc.spec}" windowtitle="${javadoc.spec.windowtitle}"
+                 overview="${javadoc.overview}"
+                 source="1.4"
+                 bottom="${javadoc.bottom}" >
+         <classpath refid="all.classpath"/>
+         <link offline="true" href="${javadoc.link}" packagelistLoc="142-packages" />
+         <link offline="false" href="${javadoc.nw.spec}" />
+        </javadoc>
+    </target>
+                                                                                                                                   
+    <target name="javadoc.dev" depends="init">
+        <!-- Build the internal developer Javadoc -->
+        <javadoc packagenames="${javadoc.dev.packagenames}"
+                 excludepackagenames="${java.excludes.javadoc.packagenames}"
+                 sourcepath="${all.srcj.path};${all.genj.path}"
+                 destdir="${javadoc.dev}" windowtitle="${javadoc.windowtitle}"
+                 overview="${javadoc.overview}" 
+                 source="1.4"
+         bottom="${javadoc.bottom}" >
+         <classpath refid="all.classpath"/>
+         <link offline="true" href="${javadoc.link}" packagelistLoc="142-packages" />
+        </javadoc>
+    </target>
+
+    <target name="javadoc.nw.spec" depends="init">
+        <!-- Build the general Javadoc -->
+        <javadoc packagenames="${javadoc.nw.spec.packagenames}"
+                 excludepackagenames="${java.excludes.javadoc.packagenames}"
+                 sourcepath="${all.srcj.path};${all.genj.path}"
+                 destdir="${javadoc.nw.spec}" windowtitle="${javadoc.nw.spec.windowtitle}"
+                 overview="${javadoc.nw.overview}"
+                 source="1.4"
+                 bottom="${javadoc.bottom}" >
+         <classpath refid="all.classpath"/>
+         <link offline="true" href="${javadoc.link}" packagelistLoc="142-packages" />
+        </javadoc>
+    </target>
+                                                                                                                                   
+    <target name="javadoc.spec" description="Build Specifications JOGL and Nativewindow" depends="init,javadoc.jogl.spec" />
+
+    <target name="all.doc" description="Build NativeWindow, JOGL and NEWT docs" depends="init,javadoc,javadoc.spec,javadoc.dev" />
+
+</project>
+
