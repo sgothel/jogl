@@ -136,6 +136,10 @@ public class MacWindow extends Window {
     // non fullscreen dimensions ..
     private int nfs_width, nfs_height, nfs_x, nfs_y;
 
+    static {
+        initSingleton();
+    }
+
     private static volatile boolean isInit = false;
 
     public static synchronized void initSingleton() {
@@ -151,7 +155,6 @@ public class MacWindow extends Window {
     }
     
     public MacWindow() {
-        initSingleton();
     }
     
     protected void createNative(Capabilities caps) {
