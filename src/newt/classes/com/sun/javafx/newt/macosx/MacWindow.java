@@ -183,6 +183,7 @@ public class MacWindow extends Window {
 
     private void createWindow(boolean recreate) {
         if(0!=windowHandle && !recreate) {
+            makeKeyAndOrderFront(windowHandle);
             return;
         }
         if(0!=windowHandle) {
@@ -200,7 +201,7 @@ public class MacWindow extends Window {
                                      NSBackingStoreBuffered, 
                                      getScreen().getIndex(), surfaceHandle);
         if (windowHandle == 0) {
-            throw new NativeWindowException("Could create native window "+Thread.currentThread().getName()+" "+this);
+            throw new NativeWindowException("Couldn't create native window "+Thread.currentThread().getName()+" "+this);
         }
         surfaceHandle = contentView(windowHandle);
         setTitle0(windowHandle, getTitle());
