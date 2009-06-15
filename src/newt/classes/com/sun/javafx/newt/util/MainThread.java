@@ -92,6 +92,7 @@ public class MainThread {
     private static boolean shouldStop;
     private static ArrayList tasks;
     private static ArrayList tasksBlock;
+    private static Thread mainThread;
 
     static class MainAction extends Thread {
         private String mainClassName;
@@ -161,6 +162,7 @@ public class MainThread {
         shouldStop = false;
         tasks = new ArrayList();
         tasksBlock = new ArrayList();
+        mainThread = Thread.currentThread();
 
         mainAction = new MainAction(mainClassName, mainClassArgs);
 
@@ -186,9 +188,9 @@ public class MainThread {
             return;
         }
 
-        // if this main thread is not being used,
-        // let them run it on their own thread ..
-        if(!isRunning()) {
+        // if this main thread is not being used or
+        // if this is already the main thread .. just execute.
+        if( !isRunning() || mainThread == Thread.currentThread() ) {
             r.run();
             return;
         }

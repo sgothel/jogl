@@ -36,6 +36,35 @@
 #import "KeyEvent.h"
 #import "MouseEvent.h"
 
+@implementation NewtView
+- (void) setJNIEnv: (JNIEnv*) theEnv
+{
+    env = theEnv;
+}
+- (JNIEnv*) getJNIEnv
+{
+    return env;
+}
+
+- (void) setJavaWindowObject: (jobject) javaWindowObj
+{
+    javaWindowObject = javaWindowObj;
+}
+
+- (jobject) getJavaWindowObject
+{
+    return javaWindowObject;
+}
+
+- (void) rightMouseDown: (NSEvent*) theEvent
+{
+    NSResponder* next = [self nextResponder];
+    if (next != nil) {
+        [next rightMouseDown: theEvent];
+    }
+}
+@end
+
 static jmethodID sendMouseEventID  = NULL;
 static jmethodID sendKeyEventID    = NULL;
 static jmethodID sizeChangedID     = NULL;
@@ -61,22 +90,16 @@ static jmethodID windowDestroyedID = NULL;
     return NO;
 }
 
-- (void) setJNIEnv: (JNIEnv*) theEnv
-{
-    env = theEnv;
-}
-
 - (id) initWithContentRect: (NSRect) contentRect
        styleMask: (NSUInteger) windowStyle
        backing: (NSBackingStoreType) bufferingType
-       defer: (BOOL) deferCreation
-       javaWindowObject: (jobject) javaWindowObj
+       screen:(NSScreen *)screen
 {
     id res = [super initWithContentRect: contentRect
                     styleMask: windowStyle
                     backing: bufferingType
-                    defer: deferCreation];
-    javaWindowObject = javaWindowObj;
+                    defer: YES
+                    screen: screen];
     // Why is this necessary? Without it we don't get any of the
     // delegate methods like resizing and window movement.
     [self setDelegate: self];
@@ -110,19 +133,22 @@ static jint mods2JavaMods(NSUInteger mods)
 
 - (void) sendKeyEvent: (NSEvent*) event eventType: (jint) evType
 {
+    NSView* nsview = [self contentView];
+    if( ! [nsview isMemberOfClass:[NewtView class]] ) {
+        return;
+    }
+    NewtView* view = (NewtView *) nsview;
+    jobject javaWindowObject = [view getJavaWindowObject];
+    JNIEnv* env = [view getJNIEnv];
+    if (env==NULL || javaWindowObject == NULL) {
+        return;
+    }
+
     int i;
     jint keyCode = (jint) [event keyCode];
     NSString* chars = [event charactersIgnoringModifiers];
     int len = [chars length];
     jint javaMods = mods2JavaMods([event modifierFlags]);
-
-    if (env == NULL) {
-        return;
-    }
-
-    if (javaWindowObject == NULL) {
-        return;
-    }
 
     for (i = 0; i < len; i++) {
         // Note: the key code in the NSEvent does not map to anything we can use
@@ -145,6 +171,17 @@ static jint mods2JavaMods(NSUInteger mods)
 
 - (void) sendMouseEvent: (NSEvent*) event eventType: (jint) evType
 {
+    NSView* nsview = [self contentView];
+    if( ! [nsview isMemberOfClass:[NewtView class]] ) {
+        return;
+    }
+    NewtView* view = (NewtView *) nsview;
+    jobject javaWindowObject = [view getJavaWindowObject];
+    JNIEnv* env = [view getJNIEnv];
+    if (env==NULL || javaWindowObject == NULL) {
+        return;
+    }
+
     jint javaMods = mods2JavaMods([event modifierFlags]);
     NSRect frameRect = [self frame];
     NSRect contentRect = [self contentRectForFrameRect: frameRect];
@@ -177,14 +214,6 @@ static jint mods2JavaMods(NSUInteger mods)
     default:
         javaButtonNum = 0;
         break;
-    }
-
-    if (env == NULL) {
-        return;
-    }
-
-    if (javaWindowObject == NULL) {
-        return;
     }
 
     (*env)->CallVoidMethod(env, javaWindowObject, sendMouseEventID,
@@ -259,16 +288,19 @@ static jint mods2JavaMods(NSUInteger mods)
 
 - (void)windowDidResize: (NSNotification*) notification
 {
+    NSView* nsview = [self contentView];
+    if( ! [nsview isMemberOfClass:[NewtView class]] ) {
+        return;
+    }
+    NewtView* view = (NewtView *) nsview;
+    jobject javaWindowObject = [view getJavaWindowObject];
+    JNIEnv* env = [view getJNIEnv];
+    if (env==NULL || javaWindowObject == NULL) {
+        return;
+    }
+
     NSRect frameRect = [self frame];
     NSRect contentRect = [self contentRectForFrameRect: frameRect];
-
-    if (env == NULL) {
-        return;
-    }
-
-    if (javaWindowObject == NULL) {
-        return;
-    }
 
     (*env)->CallVoidMethod(env, javaWindowObject, sizeChangedID,
                            (jint) contentRect.size.width,
@@ -277,19 +309,22 @@ static jint mods2JavaMods(NSUInteger mods)
 
 - (void)windowDidMove: (NSNotification*) notification
 {
+    NSView* nsview = [self contentView];
+    if( ! [nsview isMemberOfClass:[NewtView class]] ) {
+        return;
+    }
+    NewtView* view = (NewtView *) nsview;
+    jobject javaWindowObject = [view getJavaWindowObject];
+    JNIEnv* env = [view getJNIEnv];
+    if (env==NULL || javaWindowObject == NULL) {
+        return;
+    }
+
     NSRect rect = [self frame];
     NSScreen* menuBarScreen = NULL;
     NSScreen* screen = NULL;
     NSRect screenRect;
     NSPoint pt;
-
-    if (env == NULL) {
-        return;
-    }
-
-    if (javaWindowObject == NULL) {
-        return;
-    }
 
     // FIXME: unclear whether this works correctly in multiple monitor situations
     screen = [self screen];
@@ -302,25 +337,35 @@ static jint mods2JavaMods(NSUInteger mods)
 
 - (void)windowWillClose: (NSNotification*) notification
 {
-    if (env == NULL) {
+    NSView* nsview = [self contentView];
+    if( ! [nsview isMemberOfClass:[NewtView class]] ) {
         return;
     }
-
-    if (javaWindowObject == NULL) {
+    NewtView* view = (NewtView *) nsview;
+    jobject javaWindowObject = [view getJavaWindowObject];
+    JNIEnv* env = [view getJNIEnv];
+    if (env==NULL || javaWindowObject == NULL) {
         return;
     }
 
     (*env)->CallVoidMethod(env, javaWindowObject, windowDestroyNotifyID);
     // Will be called by Window.java (*env)->CallVoidMethod(env, javaWindowObject, windowDestroyedID);
+
+    // EOL ..
+    (*env)->DeleteGlobalRef(env, javaWindowObject);
+    [view setJavaWindowObject: NULL];
 }
 
 - (void) windowDidBecomeKey: (NSNotification *) notification
 {
-    if (env == NULL) {
+    NSView* nsview = [self contentView];
+    if( ! [nsview isMemberOfClass:[NewtView class]] ) {
         return;
     }
-
-    if (javaWindowObject == NULL) {
+    NewtView* view = (NewtView *) nsview;
+    jobject javaWindowObject = [view getJavaWindowObject];
+    JNIEnv* env = [view getJNIEnv];
+    if (env==NULL || javaWindowObject == NULL) {
         return;
     }
 
@@ -329,11 +374,14 @@ static jint mods2JavaMods(NSUInteger mods)
 
 - (void) windowDidResignKey: (NSNotification *) notification
 {
-    if (env == NULL) {
+    NSView* nsview = [self contentView];
+    if( ! [nsview isMemberOfClass:[NewtView class]] ) {
         return;
     }
-
-    if (javaWindowObject == NULL) {
+    NewtView* view = (NewtView *) nsview;
+    jobject javaWindowObject = [view getJavaWindowObject];
+    JNIEnv* env = [view getJNIEnv];
+    if (env==NULL || javaWindowObject == NULL) {
         return;
     }
 

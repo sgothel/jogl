@@ -34,7 +34,7 @@
 #import <AppKit/AppKit.h>
 #import "jni.h"
 
-@interface NewtMacWindow : NSWindow
+@interface NewtView : NSView
 {
     jobject javaWindowObject;
 
@@ -42,15 +42,28 @@
     JNIEnv* env;
 }
 
-+ (BOOL) initNatives: (JNIEnv*) env forClass: (jobject) clazz;
-
-/* Set and cleared during event dispatching cycle */
+/* Set during event dispatching cycle */
 - (void) setJNIEnv: (JNIEnv*) env;
+- (JNIEnv*) getJNIEnv;
+
+/* Register or deregister (NULL) the java Window object, 
+   ie, if NULL, no events are send */
+- (void) setJavaWindowObject: (jobject) javaWindowObj;
+- (jobject) getJavaWindowObject;
+
+- (void) rightMouseDown: (NSEvent*) theEvent;
+
+@end
+
+@interface NewtMacWindow : NSWindow
+{
+}
+
++ (BOOL) initNatives: (JNIEnv*) env forClass: (jobject) clazz;
 
 - (id) initWithContentRect: (NSRect) contentRect
        styleMask: (NSUInteger) windowStyle
        backing: (NSBackingStoreType) bufferingType
-       defer: (BOOL) deferCreation
-       javaWindowObject: (jobject) javaWindowObj;
+       screen:(NSScreen *)screen;
 
 @end

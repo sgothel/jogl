@@ -44,25 +44,6 @@
 
 #import <stdio.h>
 
-// For some reason, rightMouseDown isn't automatically being passed
-// from the NSView to the containing NSWindow
-
-@interface NewtView : NSView
-{
-}
-
-@end
-
-@implementation NewtView
-- (void) rightMouseDown: (NSEvent*) theEvent
-{
-    NSResponder* next = [self nextResponder];
-    if (next != nil) {
-        [next rightMouseDown: theEvent];
-    }
-}
-@end
-
 NSString* jstringToNSString(JNIEnv* env, jstring jstr)
 {
     const jchar* jstrChars = (*env)->GetStringChars(env, jstr, NULL);
@@ -79,6 +60,32 @@ void setFrameTopLeftPoint(NSWindow* win, jint x, jint y)
     
     pt = NSMakePoint(x, visibleScreenRect.origin.y + visibleScreenRect.size.height - y);
     [win setFrameTopLeftPoint: pt];
+}
+
+static NewtView * changeContentView(JNIEnv *env, jobject javaWindowObject, NSWindow *win, NewtView *newView) {
+    NSView* oldNSView = [win contentView];
+    NewtView* oldView = NULL;
+
+    if(NULL!=oldNSView) {
+        if([oldNSView isInFullScreenMode]) {
+            // FIXME: Available >= 10.5 - Makes the taskbar disapear
+            [oldNSView exitFullScreenModeWithOptions: NULL];
+        }
+        if( [oldNSView isMemberOfClass:[NewtView class]] ) {
+            oldView = (NewtView *) oldNSView;
+
+            jobject globJavaWindowObject = [oldView getJavaWindowObject];
+            (*env)->DeleteGlobalRef(env, globJavaWindowObject);
+            [oldView setJavaWindowObject: NULL];
+        }
+    }
+    if(NULL!=newView) {
+        jobject globJavaWindowObject = (*env)->NewGlobalRef(env, javaWindowObject);
+        [newView setJavaWindowObject: globJavaWindowObject];
+    }
+    [win setContentView: newView];
+
+    return oldView;
 }
 
 /*
@@ -117,41 +124,61 @@ JNIEXPORT jboolean JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_initIDs
 
 /*
  * Class:     com_sun_javafx_newt_macosx_MacWindow
- * Method:    createWindow
- * Signature: (IIIIIIZ)J
+ * Method:    createWindow0
+ * Signature: (IIIIZIIIJ)J
  */
-JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_createWindow
-  (JNIEnv *env, jobject jthis, jint x, jint y, jint w, jint h, jint styleMask, jint bufferingType, jboolean deferCreation)
+JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_createWindow0
+  (JNIEnv *env, jobject jthis, jint x, jint y, jint w, jint h, jboolean fullscreen, jint styleMask, 
+   jint bufferingType, jint screen_idx, jlong jview)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     NSRect rect = NSMakeRect(x, y, w, h);
-    jobject windowObj = (*env)->NewGlobalRef(env, jthis);
+
+    NSArray *screens = [NSScreen screens];
+    if(screen_idx<0) screen_idx=0;
+    if(screen_idx>=[screens count]) screen_idx=0;
+    NSScreen *screen = (NSScreen *) [screens objectAtIndex: screen_idx];
+
+    if (fullscreen) {
+        styleMask = NSBorderlessWindowMask;
+        NSRect rect = [screen frame];
+        w = (jint) (rect.size.width);
+        h = (jint) (rect.size.height);
+    }
 
     // Allocate the window
     NSWindow* window = [[[NewtMacWindow alloc] initWithContentRect: rect
                                                styleMask: (NSUInteger) styleMask
                                                backing: (NSBackingStoreType) bufferingType
-                                               defer: YES
-                                               javaWindowObject: windowObj] retain];
+                                               screen: screen] retain];
 
-    // If the window is undecorated, assume we want the possibility of
-    // a shaped window, so make it non-opaque and the background color clear
-    if ((styleMask & NSTitledWindowMask) == 0) {
-        [window setOpaque: NO];
-        [window setBackgroundColor: [NSColor clearColor]];
+    if (fullscreen) {
+        [window setOpaque: YES];
+    } else {
+        // If the window is undecorated, assume we want the possibility of
+        // a shaped window, so make it non-opaque and the background color clear
+        if ((styleMask & NSTitledWindowMask) == 0) {
+            [window setOpaque: NO];
+            [window setBackgroundColor: [NSColor clearColor]];
+        }
     }
 
     // Immediately re-position the window based on an upper-left coordinate system
     setFrameTopLeftPoint(window, x, y);
 
-    // Allocate an NSView
-    NSView* view = [[NewtView alloc] initWithFrame: rect];
-
     // specify we want mouse-moved events
     [window setAcceptsMouseMovedEvents:YES];
 
+    // Use given NewtView or allocate an NewtView if NULL
+    NewtView* view = (0==jview)? [[NewtView alloc] initWithFrame: rect] : (NewtView*) ((intptr_t) jview) ;
+
     // Set the content view
-    [window setContentView: view];
+    (void) changeContentView(env, jthis, window, view);
+
+    if(fullscreen) {
+        // FIXME: Available >= 10.5 - Makes the taskbar disapear
+        [view enterFullScreenMode: screen withOptions:NULL];
+    }
 
     // Set the next responder to be the window so that we can forward
     // right mouse button down events
@@ -245,23 +272,37 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_dispatchMessage
     NSEvent* event = NULL;
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
 
-    NewtMacWindow* nwwin = (NewtMacWindow*) ((intptr_t) window);
-    [nwwin setJNIEnv: env];
+NS_DURING
 
-    do {
-        // FIXME: ignoring event mask for the time being
-        event = [NSApp nextEventMatchingMask: NSAnyEventMask
-                       untilDate: [NSDate distantPast]
-                       inMode: NSDefaultRunLoopMode
-                       dequeue: YES];
-        if (event != NULL) {
-            NewtMacWindow* nwwin = (NewtMacWindow*) [event window];
-            [nwwin setJNIEnv: env];
+    NSWindow* win = (NSWindow *) ((intptr_t) window);
 
-            [NSApp sendEvent: event];
-        }
-    } while (event != NULL);
-    // [nwwin setJNIEnv: NULL];
+    if(NULL != win) {
+        NewtView* view = (NewtView *) [win contentView];
+        [view setJNIEnv: env];
+
+        do {
+            // FIXME: ignoring event mask for the time being
+            event = [NSApp nextEventMatchingMask: NSAnyEventMask
+                           untilDate: [NSDate distantPast]
+                           inMode: NSDefaultRunLoopMode
+                           dequeue: YES];
+            if (event != NULL) {
+                win = (NSWindow*) [event window];
+                view = (NewtView *) [win contentView];
+                [view setJNIEnv: env];
+
+                [NSApp sendEvent: event];
+            }
+        } while (event != NULL);
+    }
+
+NS_HANDLER
+    
+    // just ignore it ..
+
+NS_ENDHANDLER
+
+
     [pool release];
 }
 
@@ -278,6 +319,25 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_contentView
     jlong res = (jlong) ((intptr_t) [win contentView]);
     [pool release];
     return res;
+}
+
+/*
+ * Class:     com_sun_javafx_newt_macosx_MacWindow
+ * Method:    changeContentView
+ * Signature: (J)J
+ */
+JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_changeContentView
+  (JNIEnv *env, jobject jthis, jlong window, jlong jview)
+{
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+    NSWindow* win = (NewtMacWindow*) ((intptr_t) window);
+    NewtView* newView = (NewtView *) ((intptr_t) jview);
+
+    NewtView* oldView = changeContentView(env, jthis, win, newView);
+
+    [pool release];
+
+    return oldView;
 }
 
 /*
@@ -315,14 +375,14 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_setFrameTopLeft
  * Signature: (I)I
  */
 JNIEXPORT jint JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_getScreenWidth
-  (JNIEnv *env, jclass clazz, jint sidx)
+  (JNIEnv *env, jclass clazz, jint screen_idx)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
 
     NSArray *screens = [NSScreen screens];
-    if(sidx<0) sidx=0;
-    if(sidx>=[screens count]) sidx=0;
-    NSScreen *screen = (NSScreen *) [screens objectAtIndex: sidx];
+    if(screen_idx<0) screen_idx=0;
+    if(screen_idx>=[screens count]) screen_idx=0;
+    NSScreen *screen = (NSScreen *) [screens objectAtIndex: screen_idx];
     NSRect rect = [screen frame];
 
     [pool release];
@@ -336,14 +396,14 @@ JNIEXPORT jint JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_getScreenWidth
  * Signature: (I)I
  */
 JNIEXPORT jint JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_getScreenHeight
-  (JNIEnv *env, jclass clazz, jint sidx)
+  (JNIEnv *env, jclass clazz, jint screen_idx)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
 
     NSArray *screens = [NSScreen screens];
-    if(sidx<0) sidx=0;
-    if(sidx>=[screens count]) sidx=0;
-    NSScreen *screen = (NSScreen *) [screens objectAtIndex: sidx];
+    if(screen_idx<0) screen_idx=0;
+    if(screen_idx>=[screens count]) screen_idx=0;
+    NSScreen *screen = (NSScreen *) [screens objectAtIndex: screen_idx];
     NSRect rect = [screen frame];
 
     [pool release];
