@@ -67,10 +67,13 @@ static NewtView * changeContentView(JNIEnv *env, jobject javaWindowObject, NSWin
     NewtView* oldView = NULL;
 
     if(NULL!=oldNSView) {
+NS_DURING
+        // Available >= 10.5 - Makes the taskbar disapear
         if([oldNSView isInFullScreenMode]) {
-            // FIXME: Available >= 10.5 - Makes the taskbar disapear
             [oldNSView exitFullScreenModeWithOptions: NULL];
         }
+NS_HANDLER
+NS_ENDHANDLER
         if( [oldNSView isMemberOfClass:[NewtView class]] ) {
             oldView = (NewtView *) oldNSView;
 
@@ -175,10 +178,13 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_createWindow0
     // Set the content view
     (void) changeContentView(env, jthis, window, view);
 
+NS_DURING
+    // Available >= 10.5 - Makes the taskbar disapear
     if(fullscreen) {
-        // FIXME: Available >= 10.5 - Makes the taskbar disapear
         [view enterFullScreenMode: screen withOptions:NULL];
     }
+NS_HANDLER
+NS_ENDHANDLER
 
     // Set the next responder to be the window so that we can forward
     // right mouse button down events
