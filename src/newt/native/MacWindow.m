@@ -68,7 +68,7 @@ static NewtView * changeContentView(JNIEnv *env, jobject javaWindowObject, NSWin
 
     if(NULL!=oldNSView) {
 NS_DURING
-        // Available >= 10.5 - Makes the taskbar disapear
+        // Available >= 10.5 - Makes the menubar disapear
         if([oldNSView isInFullScreenMode]) {
             [oldNSView exitFullScreenModeWithOptions: NULL];
         }
@@ -179,9 +179,9 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_createWindow0
     (void) changeContentView(env, jthis, window, view);
 
 NS_DURING
-    // Available >= 10.5 - Makes the taskbar disapear
+    // Available >= 10.5 - Makes the menubar disapear
     if(fullscreen) {
-        [view enterFullScreenMode: screen withOptions:NULL];
+         [view enterFullScreenMode: screen withOptions:NULL];
     }
 NS_HANDLER
 NS_ENDHANDLER
@@ -247,6 +247,17 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_close0
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     NSWindow* win = (NSWindow*) ((intptr_t) window);
+    NSView* view = [win contentView];
+    [win orderOut: win];
+NS_DURING
+    if(NULL!=view) {
+        // Available >= 10.5 - Makes the menubar disapear
+        if([view isInFullScreenMode]) {
+            [view exitFullScreenModeWithOptions: NULL];
+        }
+    }
+NS_HANDLER
+NS_ENDHANDLER
     [win close];
     [pool release];
 }

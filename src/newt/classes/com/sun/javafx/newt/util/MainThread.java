@@ -183,7 +183,7 @@ public class MainThread {
     }
 
     /** invokes the given Runnable */
-    public static void invoke(boolean wait, Object owner, Runnable r) {
+    public static void invoke(boolean wait, Runnable r) {
         if(r == null) {
             return;
         }
