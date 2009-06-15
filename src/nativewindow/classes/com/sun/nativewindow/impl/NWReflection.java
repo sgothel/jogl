@@ -44,7 +44,7 @@ public final class NWReflection {
 
   public static final boolean isClassAvailable(String clazzName) {
     try {
-        Class clazz = Class.forName(clazzName);
+        Class clazz = Class.forName(clazzName, false, NWReflection.class.getClassLoader());
         return null!=clazz;
     } catch (Throwable e) { }
     return false;
@@ -52,7 +52,7 @@ public final class NWReflection {
 
   public static final Class getClass(String clazzName) {
     try {
-        return Class.forName(clazzName);
+        return Class.forName(clazzName, false, NWReflection.class.getClassLoader());
     } catch (Throwable e) { }
     return null;
   }
@@ -62,7 +62,7 @@ public final class NWReflection {
     Constructor factory = null;
 
     try {
-        factoryClass = Class.forName(clazzName);
+        factoryClass = getClass(clazzName);
         if (factoryClass == null) {
           throw new NativeWindowException(clazzName + " not available");
         }
