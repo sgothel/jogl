@@ -117,6 +117,9 @@ public class NativeLibLoader extends NativeLibLoaderBase {
         for (int i=0; i<preload.length; i++) {
           if(!isLoaded(preload[i])) {
               try {
+                if(DEBUG) {
+                    System.err.println("JOGL NativeLibLoader preload "+preload[i]);
+                }
                 loadLibraryInternal(preload[i]);
                 addLoaded(preload[i]);
               }
@@ -130,6 +133,9 @@ public class NativeLibLoader extends NativeLibLoaderBase {
         }
       }
       
+      if(DEBUG) {
+          System.err.println("JOGL NativeLibLoader    load "+libname);
+      }
       loadLibraryInternal(libname);
       addLoaded(libname);
     }

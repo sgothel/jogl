@@ -44,6 +44,7 @@ import java.awt.GraphicsEnvironment;
 
 public class JAWTUtil {
   static {
+        JAWTNativeLibLoader.loadAWTImpl();
         NativeLibLoaderBase.loadNativeWindow("awt");
   }
 

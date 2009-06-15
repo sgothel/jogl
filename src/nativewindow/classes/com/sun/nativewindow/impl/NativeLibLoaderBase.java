@@ -72,6 +72,9 @@ public class NativeLibLoaderBase {
               try {
                 System.loadLibrary(preload[i]);
                 addLoaded(preload[i]);
+                if(DEBUG) {
+                    System.err.println("NativeLibLoaderBase preloaded "+preload[i]);
+                }
               }
               catch (UnsatisfiedLinkError e) {
                 if(DEBUG) e.printStackTrace();
@@ -84,6 +87,9 @@ public class NativeLibLoaderBase {
       }
       System.loadLibrary(libname);
       addLoaded(libname);
+      if(DEBUG) {
+          System.err.println("NativeLibLoaderBase    loaded "+libname);
+      }
     }
   }
 

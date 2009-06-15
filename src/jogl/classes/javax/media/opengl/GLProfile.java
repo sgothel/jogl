@@ -658,21 +658,21 @@ public class GLProfile implements Cloneable {
         }
 
         // FIXME: check for real GL3 availability .. ?
-        hasGL3Impl     = hasDesktopGL && null!=NWReflection.getClass("com.sun.opengl.impl.gl3.GL3Impl");
-        hasGL2Impl     = hasDesktopGL && null!=NWReflection.getClass("com.sun.opengl.impl.gl2.GL2Impl");
+        hasGL3Impl     = hasDesktopGL && NWReflection.isClassAvailable("com.sun.opengl.impl.gl3.GL3Impl");
+        hasGL2Impl     = hasDesktopGL && NWReflection.isClassAvailable("com.sun.opengl.impl.gl2.GL2Impl");
 
-        hasGL2ES12Impl = hasDesktopGLES12 && null!=NWReflection.getClass("com.sun.opengl.impl.gl2es12.GL2ES12Impl");
+        hasGL2ES12Impl = hasDesktopGLES12 && NWReflection.isClassAvailable("com.sun.opengl.impl.gl2es12.GL2ES12Impl");
 
         boolean btest = false;
 
-        boolean hasEGLDynLookup = null!=NWReflection.getClass("com.sun.opengl.impl.egl.EGLDynamicLookupHelper");
+        boolean hasEGLDynLookup = NWReflection.isClassAvailable("com.sun.opengl.impl.egl.EGLDynamicLookupHelper");
         boolean hasEGLDrawableFactory = false;
         try {
             if(hasEGLDynLookup) {
                 hasEGLDrawableFactory = null!=GLDrawableFactory.getFactoryImpl(GLES2);
                 btest = hasEGLDrawableFactory &&
-                    null!=NWReflection.getClass("com.sun.opengl.impl.es2.GLES2Impl") &&
-                    null!=com.sun.opengl.impl.egl.EGLDynamicLookupHelper.getDynamicLookupHelper(2);
+                        NWReflection.isClassAvailable("com.sun.opengl.impl.es2.GLES2Impl") &&
+                        null!=com.sun.opengl.impl.egl.EGLDynamicLookupHelper.getDynamicLookupHelper(2);
             }
         } catch (Throwable t) {
             if (DEBUG) {
@@ -686,8 +686,8 @@ public class GLProfile implements Cloneable {
         try {
             if(hasEGLDynLookup) {
                 btest = hasEGLDrawableFactory &&
-                    null!=NWReflection.getClass("com.sun.opengl.impl.es1.GLES1Impl") &&
-                    null!=com.sun.opengl.impl.egl.EGLDynamicLookupHelper.getDynamicLookupHelper(1);
+                        NWReflection.isClassAvailable("com.sun.opengl.impl.es1.GLES1Impl") &&
+                        null!=com.sun.opengl.impl.egl.EGLDynamicLookupHelper.getDynamicLookupHelper(1);
             }
         } catch (Throwable t) {
             if (DEBUG) {

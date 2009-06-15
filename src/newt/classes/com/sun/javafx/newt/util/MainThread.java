@@ -114,7 +114,7 @@ public class MainThread {
 
             // start user app ..
             try {
-                Class mainClass = NWReflection.getClass(mainClassName);
+                Class mainClass = NWReflection.getClass(mainClassName, true);
                 if(null==mainClass) {
                     throw new RuntimeException(new ClassNotFoundException("MainThread couldn't find main class "+mainClassName));
                 }

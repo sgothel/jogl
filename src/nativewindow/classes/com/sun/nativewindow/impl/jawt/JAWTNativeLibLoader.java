@@ -39,7 +39,8 @@
 
 package com.sun.nativewindow.impl.jawt;
 
-import com.sun.nativewindow.impl.*;
+import javax.media.nativewindow.NativeWindowFactory;
+import com.sun.nativewindow.impl.NativeLibLoaderBase;
 
 import java.awt.Toolkit;
 import java.lang.reflect.InvocationTargetException;
@@ -60,10 +61,9 @@ public class JAWTNativeLibLoader extends NativeLibLoaderBase {
         // ensure references from jogl_awt shared object
         // will succeed since JAWT shared object isn't in
         // default library path
-        boolean isOSX = System.getProperty("os.name").equals("Mac OS X");
-        String[] preload = { "jawt" };
-
-        loadLibrary("nativewindow_awt", (isOSX)?null:preload, false);
+        if ( ! NativeWindowFactory.TYPE_MACOSX.equals( NativeWindowFactory.getNativeWindowType(false) ) ) {
+            loadLibrary("jawt", null, true);
+        }
         return null;
       }
     });

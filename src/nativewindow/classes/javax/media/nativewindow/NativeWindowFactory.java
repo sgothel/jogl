@@ -120,7 +120,7 @@ public abstract class NativeWindowFactory {
         if ( NWReflection.isClassAvailable("java.awt.Component") &&
              NWReflection.isClassAvailable("javax.media.nativewindow.awt.AWTGraphicsDevice") ) {
             try {
-                componentClass = NWReflection.getClass("java.awt.Component");
+                componentClass = NWReflection.getClass("java.awt.Component", false);
             } catch (Exception e) { }
         }
 
