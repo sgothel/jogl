@@ -993,7 +993,6 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_MonitorFr
     #if (_WIN32_WINNT >= 0x0500 || _WIN32_WINDOWS >= 0x0410 || WINVER >= 0x0500) && !defined(_WIN32_WCE)
         return (jlong)MonitorFromWindow((HWND)window, MONITOR_DEFAULTTOPRIMARY);
     #else
-        #warn NO MULTI MONITOR SUPPORT
         return 0;
     #endif
 }
