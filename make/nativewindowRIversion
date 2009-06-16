@@ -2,7 +2,7 @@ Specification-Title: Native Window Interface API Specification
 Specification-Version: @BASEVERSION@
 Specification-Vendor: Sun Microsystems, Inc.
 Implementation-Title: Native Window Interface Runtime Environment
-Implementation-Version: @VERSION@
+Implementation-Version: @BASEVERSION@
 Implementation-Vendor: Sun Microsystems, Inc.
 Extension-Name: javax.media.nativewindow
 Implementation-Vendor-Id: com.sun

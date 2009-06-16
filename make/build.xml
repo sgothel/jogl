@@ -1,9 +1,9 @@
 
 <project name="JOGL_ALL" basedir="." default="all">
 
+    <import file="versions.xml" />
+
     <target name="init">
-        <property name="base_version_jogl" value="1.2.0-rc1"/>
-        <property name="base_version_nw"   value="1.0.0-rc1"/>
         <property name="project.root" value=".." />
         <condition property="rootrel.build" value="build">
           <not>
@@ -30,11 +30,11 @@
 
         <property name="javadoc.nw.overview" value="../src/nativewindow/classes/javax/media/nativewindow/package.html" />
         <property name="javadoc.nw.spec" value="${project.root}/javadoc_nativewindow_spec" />
-        <property name="javadoc.nw.spec.windowtitle" value="NativeWindow API -- ${base_version_nw} Specification" />
+        <property name="javadoc.nw.spec.windowtitle" value="NativeWindow API -- ${nativewindow_base_version} Specification" />
         <property name="javadoc.nw.spec.packagenames" value="javax.media.nativewindow.*" />
 
         <property name="javadoc.spec" value="${project.root}/javadoc_jogl_spec" />
-        <property name="javadoc.spec.windowtitle" value="JOGL API -- JSR-231 ${base_version_jogl} Specification" />
+        <property name="javadoc.spec.windowtitle" value="JOGL API -- JSR-231 ${jogl_base_version} Specification" />
         <property name="javadoc.spec.packagenames" value="javax.media.opengl.*" />
 
         <property name="javadoc.windowtitle" value="JOGL, NativeWindow and NEWT APIs" />
