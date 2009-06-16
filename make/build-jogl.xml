@@ -297,6 +297,10 @@
         <property name="java.excludes.all" value="${java.excludes.fixme} ${java.excludes.egl}, ${java.excludes.gl2}, ${java.excludes.gl3}, ${java.excludes.es1}, ${java.excludes.es2}, ${java.excludes.awt}, ${java.excludes.glugl2}, ${java.excludes.util}, ${java.excludes.x11}, ${java.excludes.win}, ${java.excludes.macosx}, ${java.excludes.cdcfp}" />
         <echo message="java.excludes.all: ${java.excludes.all}" />
 
+        <!-- Cg determination -->
+        <condition property="c.compiler.use-cglib">
+          <isset property="jogl.cg" />
+        </condition>
 
         <!-- Set the project root directory to be up one directory. -->
         <property name="project.root" value=".." />
