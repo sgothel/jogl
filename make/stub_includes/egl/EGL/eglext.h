@@ -278,7 +278,7 @@ EGLAPI EGLBoolean EGLAPIENTRY eglNvmaOutputSurfacePbufferUnlock(EGLDisplay displ
 #define EGL_KHR_sync 1
 typedef void* EGLSyncKHR;
 typedef void* NativeSyncKHR;
-typedef unsigned long long EGLTimeKHR;
+typedef uint64_t EGLTimeKHR;
 #ifdef EGL_EGLEXT_PROTOTYPES
 EGLSyncKHR eglCreateFenceSyncKHR( EGLDisplay dpy, EGLenum condition, const EGLint *attrib_list ); 
 NativeSyncKHR eglCreateNativeSyncKHR( EGLSyncKHR sync );
