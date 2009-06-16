@@ -1211,7 +1211,7 @@ typedef void (GLAPIENTRYP PFNGLGETTEXPARAMETERIVPROC) (GLenum target, GLenum pna
 typedef void (GLAPIENTRYP PFNGLGETTEXLEVELPARAMETERFVPROC) (GLenum target, GLint level, GLenum pname, GLfloat *params);
 typedef void (GLAPIENTRYP PFNGLGETTEXLEVELPARAMETERIVPROC) (GLenum target, GLint level, GLenum pname, GLint *params);
 typedef GLboolean (GLAPIENTRYP PFNGLISENABLEDPROC) (GLenum cap);
-typedef void (GLAPIENTRYP PFNGLDEPTHRANGEPROC) (GLclampd _near, GLclampd _far); /* MSVC can't handle near or far var names */
+typedef void (GLAPIENTRYP PFNGLDEPTHRANGEPROC) (GLclampd near_val, GLclampd far_val); /* MSVC can't handle near or far var names */
 typedef void (GLAPIENTRYP PFNGLVIEWPORTPROC) (GLint x, GLint y, GLsizei width, GLsizei height);
 #endif
 
