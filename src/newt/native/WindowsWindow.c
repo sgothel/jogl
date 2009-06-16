@@ -626,9 +626,9 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
     case WM_DESTROY:
         {
 #if defined(UNDER_CE) || _MSC_VER <= 1200
-            SetWindowLong(wnd, GWL_USERDATA, NULL);
+            SetWindowLong(wnd, GWL_USERDATA, (intptr_t) NULL);
 #else
-            SetWindowLongPtr(wnd, GWLP_USERDATA, NULL);
+            SetWindowLongPtr(wnd, GWLP_USERDATA, (intptr_t) NULL);
 #endif
             free(wud); wud=NULL;
             (*env)->CallVoidMethod(env, window, windowDestroyedID);
@@ -993,7 +993,7 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_MonitorFr
     #if (_WIN32_WINNT >= 0x0500 || _WIN32_WINDOWS >= 0x0410 || WINVER >= 0x0500) && !defined(_WIN32_WCE)
         return (jlong)MonitorFromWindow((HWND)window, MONITOR_DEFAULTTOPRIMARY);
     #else
-        #warning NO MULTI MONITOR SUPPORT
+        #warn NO MULTI MONITOR SUPPORT
         return 0;
     #endif
 }
