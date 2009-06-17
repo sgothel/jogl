@@ -35,7 +35,12 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdarg.h>
-#include <stdint.h>
+// Building on obsolete platform on SPARC right now
+#ifdef __sparc
+  #include <inttypes.h>
+#else
+  #include <stdint.h>
+#endif
 #include <unistd.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
@@ -50,7 +55,13 @@
 // #define VERBOSE_ON 1
 
 #ifdef VERBOSE_ON
-    #define DBG_PRINT(args...) fprintf(stderr, args); fflush(stderr);
+    // Workaround for ancient compiler on Solaris/SPARC
+    // #define DBG_PRINT(args...) fprintf(stderr, args); fflush(stderr)
+    #define DBG_PRINT0(str) fprintf(stderr, str); flush(stderr)
+    #define DBG_PRINT1(str, arg1) fprintf(stderr, str, arg1); flush(stderr)
+    #define DBG_PRINT2(str, arg1, arg2) fprintf(stderr, str, arg1, arg2); flush(stderr)
+    #define DBG_PRINT3(str, arg1, arg2, arg3) fprintf(stderr, str, arg1, arg2, arg3); flush(stderr)
+    #define DBG_PRINT4(str, arg1, arg2, arg3, arg4) fprintf(stderr, str, arg1, arg2, arg3, arg4); flush(stderr)
 
     #define DUMP_VISUAL_INFO(a,b) _dumpVisualInfo((a),(b))
 
@@ -76,7 +87,13 @@
 
 #else
 
-    #define DBG_PRINT(args...)
+    // Workaround for ancient compiler on Solaris/SPARC
+    // #define DBG_PRINT(args...)
+    #define DBG_PRINT0(str)
+    #define DBG_PRINT1(str, arg1)
+    #define DBG_PRINT2(str, arg1, arg2)
+    #define DBG_PRINT3(str, arg1, arg2, arg3)
+    #define DBG_PRINT4(str, arg1, arg2, arg3, arg4)
 
     #define DUMP_VISUAL_INFO(a,b)
 
@@ -214,10 +231,12 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_x11_X11Display_CreateDisplay
 {
     Display * dpy = NULL;
     const char * _displayName = NULL;
+    jlong javaObjectAtom;
+    jlong windowDeleteAtom;
     if(displayName!=0) {
         _displayName = (*env)->GetStringUTFChars(env, displayName, 0);
     }
-    DBG_PRINT("open display connection for %s ..\n", ((NULL==_displayName)?"NULL":_displayName));
+    DBG_PRINT1("open display connection for %s ..\n", ((NULL==_displayName)?"NULL":_displayName));
     dpy = XOpenDisplay(_displayName);
     if(dpy==NULL) {
         _throwNewRuntimeException(env, "couldn't open display connection for %s\n", ((NULL==_displayName)?"NULL":_displayName));
@@ -226,21 +245,21 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_x11_X11Display_CreateDisplay
         (*env)->ReleaseStringChars(env, displayName, (const jchar *)_displayName);
     }
 
-    jlong javaObjectAtom = (jlong) XInternAtom(dpy, "JOGL_JAVA_OBJECT", False);
+    javaObjectAtom = (jlong) XInternAtom(dpy, "JOGL_JAVA_OBJECT", False);
     if(None==javaObjectAtom) {
         XCloseDisplay(dpy);
         _throwNewRuntimeException(env, "could not create Atom JOGL_JAVA_OBJECT, bail out!\n");
         return 0;
     }
 
-    jlong windowDeleteAtom = (jlong) XInternAtom(dpy, "WM_DELETE_WINDOW", False);
+    windowDeleteAtom = (jlong) XInternAtom(dpy, "WM_DELETE_WINDOW", False);
     if(None==windowDeleteAtom) {
         XCloseDisplay(dpy);
         _throwNewRuntimeException(env, "could not create Atom WM_DELETE_WINDOW, bail out!\n");
         return 0;
     }
 
-    DBG_PRINT("X11Display_CreateDisplay dpy %p\n", dpy);
+    DBG_PRINT1("X11Display_CreateDisplay dpy %p\n", dpy);
 
     (*env)->CallVoidMethod(env, obj, displayCreatedID, javaObjectAtom, windowDeleteAtom);
 
@@ -256,7 +275,7 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_x11_X11Display_DestroyDisplay
   (JNIEnv *env, jobject obj, jlong display)
 {
     Display * dpy = (Display *)(intptr_t)display;
-    DBG_PRINT("X11Display_DestroyDisplay dpy %p\n", dpy);
+    DBG_PRINT1("X11Display_DestroyDisplay dpy %p\n", dpy);
     XCloseDisplay(dpy);
 }
 
@@ -411,26 +430,26 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_x11_X11Display_DispatchMessages
             case FocusOut:
                 break;
             case DestroyNotify:
-                DBG_PRINT( "event . DestroyNotify call 0x%X\n", evt.xdestroywindow.window);
+                DBG_PRINT1( "event . DestroyNotify call 0x%X\n", evt.xdestroywindow.window);
                 (*env)->CallVoidMethod(env, jwindow, windowDestroyedID);
                 break;
             case CreateNotify:
-                DBG_PRINT( "event . CreateNotify call 0x%X\n", evt.xcreatewindow.window);
+                DBG_PRINT1( "event . CreateNotify call 0x%X\n", evt.xcreatewindow.window);
                 (*env)->CallVoidMethod(env, jwindow, windowCreatedID);
                 break;
             case VisibilityNotify:
-                DBG_PRINT( "event . VisibilityNotify call 0x%X\n", evt.xvisibility.window);
+                DBG_PRINT1( "event . VisibilityNotify call 0x%X\n", evt.xvisibility.window);
                 break;
             case Expose:
-                DBG_PRINT( "event . Expose call 0x%X\n", evt.xexpose.window);
+                DBG_PRINT1( "event . Expose call 0x%X\n", evt.xexpose.window);
                 /* FIXME: Might want to send a repaint event .. */
                 break;
             case UnmapNotify:
-                DBG_PRINT( "event . UnmapNotify call 0x%X\n", evt.xunmap.window);
+                DBG_PRINT1( "event . UnmapNotify call 0x%X\n", evt.xunmap.window);
                 break;
             case ClientMessage:
                 if (evt.xclient.send_event==True && evt.xclient.data.l[0]==(Atom)wmDeleteAtom) {
-                    DBG_PRINT( "event . ClientMessage call 0x%X type 0x%X !!!\n", evt.xclient.window, evt.xclient.message_type);
+                    DBG_PRINT2( "event . ClientMessage call 0x%X type 0x%X !!!\n", evt.xclient.window, evt.xclient.message_type);
                     (*env)->CallVoidMethod(env, jwindow, windowDestroyNotifyID);
                     // Called by Window.java: CloseWindow(); 
                 }
@@ -540,7 +559,10 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_x11_X11Window_CreateWindow
     unsigned long attrMask;
     int n;
 
-    DBG_PRINT( "CreateWindow %x/%d %dx%d\n", x, y, width, height);
+    Screen* scrn;
+    Atom wm_delete_atom;
+
+    DBG_PRINT4( "CreateWindow %x/%d %dx%d\n", x, y, width, height);
 
     if(dpy==NULL) {
         fprintf(stderr, "[CreateWindow] invalid display connection..\n");
@@ -554,7 +576,7 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_x11_X11Window_CreateWindow
 
     XSync(dpy, False);
 
-    Screen * scrn = ScreenOfDisplay(dpy, screen_index);
+    scrn = ScreenOfDisplay(dpy, screen_index);
 
     // try given VisualID on screen
     memset(&visualTemplate, 0, sizeof(XVisualInfo));
@@ -569,7 +591,7 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_x11_X11Window_CreateWindow
         XFree(pVisualQuery);
         pVisualQuery=NULL;
     }
-    DBG_PRINT( "[CreateWindow] trying given (dpy %p, screen %d, visualID: %d) found: %p\n", dpy, scrn_idx, (int)visualID, visual);
+    DBG_PRINT4( "[CreateWindow] trying given (dpy %p, screen %d, visualID: %d) found: %p\n", dpy, scrn_idx, (int)visualID, visual);
 
     if (visual==NULL)
     { 
@@ -607,7 +629,7 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_x11_X11Window_CreateWindow
                            attrMask,
                            &xswa);
 
-    Atom wm_delete_atom = (Atom)windowDeleteAtom;
+    wm_delete_atom = (Atom)windowDeleteAtom;
     XSetWMProtocols(dpy, window, &wm_delete_atom, 1);
 
     setJavaWindowProperty(env, dpy, window, javaObjectAtom, (*env)->NewGlobalRef(env, obj));
@@ -629,7 +651,7 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_x11_X11Window_CreateWindow
         */
     }
 
-    DBG_PRINT( "[CreateWindow] created window %p on display %p\n", window, dpy);
+    DBG_PRINT2( "[CreateWindow] created window %p on display %p\n", window, dpy);
     (*env)->CallVoidMethod(env, obj, windowCreatedID, (jlong) window);
 
     return (jlong) window;
@@ -680,7 +702,7 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_x11_X11Window_setVisible0
 {
     Display * dpy = (Display *) (intptr_t) display;
     Window w = (Window)window;
-    DBG_PRINT( "setVisible0 vis %d\n", visible);
+    DBG_PRINT1( "setVisible0 vis %d\n", visible);
     XSync(dpy, False);
     if(visible==JNI_TRUE) {
         XMapRaised(dpy, w);
@@ -719,7 +741,9 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_x11_X11Window_setSize0
     Screen * scrn = ScreenOfDisplay(dpy, (int)screen_index);
     Window parent = XRootWindowOfScreen(scrn);
 
-    DBG_PRINT( "setSize0 %dx%d, dec %d, vis %d\n", width, height, decorationToggle, isVisible);
+    XWindowChanges xwc;
+
+    DBG_PRINT4( "setSize0 %dx%d, dec %d, vis %d\n", width, height, decorationToggle, isVisible);
 
     XSync(dpy, False);
 
@@ -748,8 +772,7 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_x11_X11Window_setSize0
 #endif
     }
     XSync(dpy, False);
-    DBG_PRINT( "setSize0 . XConfigureWindow\n");
-    XWindowChanges xwc;
+    DBG_PRINT0( "setSize0 . XConfigureWindow\n");
     xwc.width=width;
     xwc.height=height;
     XConfigureWindow(dpy, w, CWWidth|CWHeight, &xwc);
@@ -767,7 +790,7 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_x11_X11Window_setSize0
         XChangeProperty( dpy, w, prop, prop, 32, PropModeReplace, (unsigned char *)&wmleader, 1);
     } */
 
-    DBG_PRINT( "setSize0 . sizeChangedID call\n");
+    DBG_PRINT0( "setSize0 . sizeChangedID call\n");
     (*env)->CallVoidMethod(env, obj, sizeChangedID, (jint) width, (jint) height);
 }
 
@@ -781,9 +804,9 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_x11_X11Window_setPosition0
 {
     Display * dpy = (Display *) (intptr_t) display;
     Window w = (Window)window;
-
-    DBG_PRINT( "setPos0 . XConfigureWindow\n");
     XWindowChanges xwc;
+
+    DBG_PRINT0( "setPos0 . XConfigureWindow\n");
     xwc.x=x;
     xwc.y=y;
     XConfigureWindow(dpy, w, CWX|CWY, &xwc);

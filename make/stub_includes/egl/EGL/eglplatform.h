@@ -33,7 +33,12 @@ extern "C" {
     typedef signed   __int64 int64_t;
     typedef unsigned __int64 uint64_t;
 #else
-    #include <stdint.h>
+    // Building on obsolete platform on SPARC right now
+    #ifdef __sparc
+        #include <inttypes.h>
+    #else
+        #include <stdint.h>
+    #endif
 #endif
 
 // Define storage class specifiers
