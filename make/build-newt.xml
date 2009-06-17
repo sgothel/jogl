@@ -856,17 +856,6 @@
          includes="${newt.tmp.version}/**" />
     </target>
 
-    <target name="setup-version-RI" if="RImanifestfile">
-        <property name="tmp.version" value="${newt_base_version}" />
-    </target>
-
-    <target name="setup-version-non-RI" unless="RImanifestfile">
-        <tstamp>
-             <format property="timestamp" pattern="yyyyMMdd"/>
-        </tstamp>
-        <property name="tmp.version" value="${newt_base_version}-pre-${timestamp}" />
-    </target>
-
     <target name="dist" depends="dist.dir.check,dist.check.windows,dist.check.windows-amd64,dist.check.linux,dist.check.linux-amd64,dist.check.macosx,dist.check.macosxfat,dist.check.solsparc,dist.check.solsparcv9,dist.check.solx86,dist.check.solamd64,setup-version-RI,setup-version-non-RI">
         <delete>
             <fileset dir="${newt.dist.dir}" includes="*.jar" />
@@ -1009,7 +998,23 @@
     <!--
        - Build everything.
       -->
-    <target name="all" description="Build NEWT JAR file(s) and native libraries." depends="load.user.properties,init,jar,c.build.newt" />
+    <target name="all" description="Build NEWT JAR file(s) and native libraries." depends="load.user.properties,init,jar,c.build.newt,generate.version.txt" />
+
+    <target name="setup-version-RI" if="newt.ri">
+        <property name="tmp.version" value="${newt_base_version}" />
+    </target>
+
+    <target name="setup-version-non-RI" unless="newt.ri">
+        <tstamp>
+             <format property="version.timestamp" pattern="yyyyMMdd"/>
+        </tstamp>
+        <property name="tmp.version" value="${newt_base_version}-pre-${version.timestamp}" />
+    </target>
+
+    <target name="generate.version.txt" depends="setup-version-RI,setup-version-non-RI">
+        <!-- Create a version.txt file indicating which version we just built -->
+        <echo message="${tmp.version}" file="${build}/version.txt" />
+    </target>
 
     <!-- ================================================================== -->
     <!--
@@ -1020,7 +1025,7 @@
         <!-- Set property for using the RI manifest file so newt.jar is versioned
            - properly
           -->
-          <property name="RImanifestfile" value="newtRIversion" />
+          <property name="newt.ri" value="true" />
           <antcall target="all" inheritRefs="true" />
     </target>
 </project>

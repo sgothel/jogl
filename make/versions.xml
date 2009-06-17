@@ -15,8 +15,10 @@
 
   <!-- Uncomment this property in order to produce a JOGL release
        build without running the "RI" (Reference Implementation)
-       target in build-jogl.xml. -->
-  <property name="jogl.ri" value="true" />
+       target in build-jogl.xml. This should be uncommented for
+       official release builds and intermediate release builds, but
+       commented out for nightly builds. -->
+       <property name="jogl.ri" value="true" />
 
   <!-- Base version of the NativeWindow interface, following the same
        rules as above -->
@@ -24,7 +26,9 @@
 
   <!-- Uncomment this property in order to produce a NativeWindow
        build without running the "RI" (Reference Implementation)
-       target in build-nativewindow.xml. -->
+       target in build-nativewindow.xml. This should be uncommented for
+       official release builds and intermediate release builds, but
+       commented out for nightly builds. -->
   <property name="nativewindow.ri" value="true" />
 
   <!-- Base version of the Newt library, following the same
@@ -34,7 +38,9 @@
   <!-- Newt isn't covered by a JSR at the moment, so there is little
        value in having a different reference implementation
        vs. intermediate build numbering scheme, but for the moment
-       let's keep things symmetric -->
+       let's keep things symmetric. This should be uncommented for
+       official release builds and intermediate release builds, but
+       commented out for nightly builds.  -->
   <property name="newt.ri" value="true" />
 
 </project>

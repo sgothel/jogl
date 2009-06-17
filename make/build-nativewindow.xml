@@ -1140,17 +1140,6 @@
          includes="${nativewindow.tmp.version}/**" />
     </target>
 
-    <target name="setup-version-RI" if="RImanifestfile">
-        <property name="tmp.version" value="${nativewindow_base_version}" />
-    </target>
-
-    <target name="setup-version-non-RI" unless="RImanifestfile">
-        <tstamp>
-             <format property="timestamp" pattern="yyyyMMdd"/>
-        </tstamp>
-        <property name="tmp.version" value="${nativewindow_base_version}-pre-${timestamp}" />
-    </target>
-
     <target name="dist" depends="dist.dir.check,dist.check.windows,dist.check.windows-amd64,dist.check.linux,dist.check.linux-amd64,dist.check.macosx,dist.check.macosxfat,dist.check.solsparc,dist.check.solsparcv9,dist.check.solx86,dist.check.solamd64,setup-version-RI,setup-version-non-RI">
         <delete>
             <fileset dir="${nativewindow.dist.dir}" includes="*.jar" />
@@ -1326,7 +1315,23 @@
     <!--
        - Build everything.
       -->
-    <target name="all" description="Build NativeWindow JAR file(s) and native libraries." depends="load.user.properties,init,jar,c.build.nativewindow" />
+    <target name="all" description="Build NativeWindow JAR file(s) and native libraries." depends="load.user.properties,init,jar,c.build.nativewindow,generate.version.txt" />
+
+    <target name="setup-version-RI" if="nativewindow.ri">
+        <property name="tmp.version" value="${nativewindow_base_version}" />
+    </target>
+
+    <target name="setup-version-non-RI" unless="nativewindow.ri">
+        <tstamp>
+             <format property="version.timestamp" pattern="yyyyMMdd"/>
+        </tstamp>
+        <property name="tmp.version" value="${nativewindow_base_version}-pre-${version.timestamp}" />
+    </target>
+
+    <target name="generate.version.txt" depends="setup-version-RI,setup-version-non-RI">
+        <!-- Create a version.txt file indicating which version we just built -->
+        <echo message="${tmp.version}" file="${build}/version.txt" />
+    </target>
 
     <!-- ================================================================== -->
     <!--
