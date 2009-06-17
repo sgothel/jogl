@@ -37,6 +37,10 @@ import com.sun.javafx.newt.*;
 import javax.media.nativewindow.*;
 
 public class KDScreen extends Screen {
+    static {
+        KDDisplay.initSingleton();
+    }
+
     public KDScreen() {
     }
 

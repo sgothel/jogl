@@ -34,8 +34,11 @@
 package com.sun.javafx.newt;
 
 import javax.media.nativewindow.*;
+import com.sun.javafx.newt.impl.Debug;
+import java.util.*;
 
-public abstract class Display {
+public abstract class Display implements Runnable {
+    public static final boolean DEBUG = Debug.debug("Display");
 
     private static Class getDisplayClass(String type) 
         throws ClassNotFoundException 
@@ -57,14 +60,93 @@ public abstract class Display {
         return displayClass;
     }
 
+    private static ThreadLocal currentDisplayMap = new ThreadLocal();
+
+    /** Returns the thread local display map */
+    public static Map getCurrentDisplayMap() {
+        Map displayMap = (Map) currentDisplayMap.get();
+        if(null==displayMap) {
+            displayMap = new HashMap();
+            currentDisplayMap.set( displayMap );
+        }
+        return displayMap;
+    }
+
+    /** maps the given display to the thread local display map
+      * and notifies all threads synchronized to this display map. */
+    protected static Display setCurrentDisplay(Display display) {
+        Map displayMap = getCurrentDisplayMap();
+        Display oldDisplay = null;
+        synchronized(displayMap) {
+            String name = display.getName();
+            if(null==name) name="nil";
+            oldDisplay = (Display) displayMap.put(name, display);
+            displayMap.notifyAll();
+        }
+        return oldDisplay;
+    }
+
+    /** removes the mapping of the given name from the thread local display map
+      * and notifies all threads synchronized to this display map. */
+    protected static Display removeCurrentDisplay(String name) {
+        if(null==name) name="nil";
+        Map displayMap = getCurrentDisplayMap();
+        Display oldDisplay = null;
+        synchronized(displayMap) {
+            oldDisplay = (Display) displayMap.remove(name);
+            displayMap.notifyAll();
+        }
+        return oldDisplay;
+    }
+
+    /** Returns the thread local display mapped to the given name */
+    public static Display getCurrentDisplay(String name) {
+        if(null==name) name="nil";
+        Map displayMap = getCurrentDisplayMap();
+        Display display = (Display) displayMap.get(name);
+        return display;
+    }
+
+    private static void dumpDisplayMap(String prefix) {
+        Map displayMap = getCurrentDisplayMap();
+        Set entrySet = displayMap.entrySet();
+        Iterator i = entrySet.iterator();
+        System.err.println(prefix+" DisplayMap["+entrySet.size()+"] "+Thread.currentThread().getName());
+        for(int j=0; i.hasNext(); j++) {
+            Map.Entry entry = (Map.Entry) i.next();
+            System.err.println("  ["+j+"] "+entry.getKey()+" -> "+entry.getValue());
+        }
+    }
+
+    /** Returns the thread local display collection */
+    public static Collection getCurrentDisplays() {
+        return getCurrentDisplayMap().values();
+    }
+
+    /** Make sure to reuse a Display with the same name */
     protected static Display create(String type, String name) {
         try {
-            Class displayClass = getDisplayClass(type);
-            Display display = (Display) displayClass.newInstance();
-            display.name=name;
-            display.createNative();
-            if(null==display.aDevice) {
-                throw new RuntimeException("Display.createNative() failed to instanciate an AbstractGraphicsDevice");
+            Display display = getCurrentDisplay(name);
+            if(null==display) {
+                Class displayClass = getDisplayClass(type);
+                display = (Display) displayClass.newInstance();
+                display.name=name;
+                display.refCount=1;
+                display.createNative();
+                if(null==display.aDevice) {
+                    throw new RuntimeException("Display.createNative() failed to instanciate an AbstractGraphicsDevice");
+                }
+                setCurrentDisplay(display);
+                if(DEBUG) {
+                    System.err.println("Display.create("+name+") NEW: "+display+" "+Thread.currentThread().getName());
+                }
+            } else {
+                synchronized(display) {
+                    display.refCount++;
+                    if(DEBUG) {
+                        System.err.println("Display.create("+name+") REUSE: refCount "+display.refCount+", "+display+" "+Thread.currentThread().getName());
+                    }
+                }
             }
             return display;
         } catch (Exception e) {
@@ -73,7 +155,18 @@ public abstract class Display {
     }
 
     public synchronized void destroy() {
-        closeNative();
+        refCount--;
+        if(0==refCount) {
+            removeCurrentDisplay(name);
+            if(DEBUG) {
+                System.err.println("Display.destroy("+name+") REMOVE: "+this+" "+Thread.currentThread().getName());
+            }
+            closeNative();
+        } else {
+            if(DEBUG) {
+                System.err.println("Display.destroy("+name+") KEEP: refCount "+refCount+", "+this+" "+Thread.currentThread().getName());
+            }
+        }
     }
 
     protected static Display wrapHandle(String type, String name, AbstractGraphicsDevice aDevice) {
@@ -103,7 +196,36 @@ public abstract class Display {
         return aDevice;
     }
 
+    public synchronized void pumpMessages() {
+        dispatchMessages();
+    }
+
+    /** calls {@link #pumpMessages} */
+    public void run() {
+        pumpMessages();
+    }
+
+    public static interface Action {
+        public void run(Display display);
+    }
+
+    /** Calls {@link Display.Action#run(Display)} on all Display's 
+        bound to the current thread. */
+    public static void runCurrentThreadDisplaysAction(Display.Action action) {
+        Iterator iter = getCurrentDisplays().iterator(); // Thread local .. no sync necessary
+        while(iter.hasNext()) {
+            action.run((Display) iter.next());
+        }
+    }
+
+    public String toString() {
+        return "NEWT-Display["+name+", refCount "+refCount+", "+aDevice+"]";
+    }
+
+    protected abstract void dispatchMessages();
+
     protected String name;
+    protected int refCount;
     protected AbstractGraphicsDevice aDevice;
 }
 

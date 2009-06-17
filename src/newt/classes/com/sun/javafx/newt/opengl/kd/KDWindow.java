@@ -47,11 +47,7 @@ public class KDWindow extends Window {
     private int nfs_width, nfs_height, nfs_x, nfs_y;
 
     static {
-        NativeLibLoader.loadNEWT();
-
-        if (!initIDs()) {
-            throw new NativeWindowException("Failed to initialize jmethodIDs");
-        }
+        KDDisplay.initSingleton();
     }
 
     public KDWindow() {
@@ -67,8 +63,7 @@ public class KDWindow extends Window {
         int[] eglAttribs = EGLGraphicsConfiguration.GLCapabilities2AttribList(eglCaps, EGL.EGL_WINDOW_BIT);
 
         windowHandle = 0;
-        windowID = ++_windowID;
-        eglWindowHandle = CreateWindow(windowID, getDisplayHandle(), eglAttribs);
+        eglWindowHandle = CreateWindow(getDisplayHandle(), eglAttribs);
         if (eglWindowHandle == 0) {
             throw new NativeWindowException("Error creating egl window: "+config);
         }
@@ -78,7 +73,8 @@ public class KDWindow extends Window {
 
     protected void closeNative() {
         if(0!=windowHandleClose) {
-            CloseWindow(windowHandleClose);
+            CloseWindow(windowHandleClose, windowUserData);
+            windowUserData=0;
         }
     }
 
@@ -118,22 +114,21 @@ public class KDWindow extends Window {
         return true;
     }
 
-    protected void dispatchMessages(int eventMask) {
-        DispatchMessages(windowID, eglWindowHandle, eventMask);
-    }
-
     //----------------------------------------------------------------------
     // Internals only
     //
 
-    private static native boolean initIDs();
-    private        native long CreateWindow(int owner, long displayHandle, int[] attributes);
+    protected static native boolean initIDs();
+    private        native long CreateWindow(long displayHandle, int[] attributes);
     private        native long RealizeWindow(long eglWindowHandle);
-    private        native int  CloseWindow(long eglWindowHandle);
+    private        native int  CloseWindow(long eglWindowHandle, long userData);
     private        native void setVisible0(long eglWindowHandle, boolean visible);
     private        native void setSize0(long eglWindowHandle, int width, int height);
     private        native void setFullScreen0(long eglWindowHandle, boolean fullscreen);
-    private        native void DispatchMessages(int owner, long eglWindowHandle, int eventMask);
+
+    private void windowCreated(long userData) {
+        windowUserData=userData;
+    }
 
     private void sizeChanged(int newWidth, int newHeight) {
         width = newWidth;
@@ -149,6 +144,5 @@ public class KDWindow extends Window {
 
     private long   eglWindowHandle;
     private long   windowHandleClose;
-    private int    windowID;
-    private static int _windowID = 0;
+    private long   windowUserData;
 }

@@ -104,13 +104,15 @@ public class GLProfile implements Cloneable {
 
     /** Returns a GLProfile object.
      * Verfifies the given profile and chooses an apropriate implementation.
+     * A generic value of <code>null</code> or <code>GL</code> will result in
+     * the default profile.
      *
      * @throws GLException if no implementation for the given profile is found.
      */
     public static final GLProfile get(String profile) 
         throws GLException
     {
-        if(null==profile) return getDefault();
+        if(null==profile || profile.equals("GL")) return getDefault();
         GLProfile glProfile = (GLProfile) mappedProfiles.get(profile);
         if(null==glProfile) {
             throw new GLException("No implementation for profile "+profile+" available");

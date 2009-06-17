@@ -37,14 +37,20 @@ import com.sun.javafx.newt.*;
 import javax.media.nativewindow.*;
 
 public class MacScreen extends Screen {
+    static {
+        MacDisplay.initSingleton();
+    }
+
     public MacScreen() {
-        MacWindow.initSingleton();
     }
 
     protected void createNative(int index) {
         aScreen = new DefaultGraphicsScreen(getDisplay().getGraphicsDevice(), index);
-        setScreenSize(MacWindow.getScreenWidth(getIndex()), MacWindow.getScreenHeight(getIndex()));
+        setScreenSize(getWidthImpl(getIndex()), getHeightImpl(getIndex()));
     }
 
     protected void closeNative() { }
+
+    private static native int getWidthImpl(int scrn_idx);
+    private static native int getHeightImpl(int scrn_idx);
 }

@@ -81,15 +81,120 @@
     #endif
 #endif
 
-/**
- * Window
- */
+#define JOGL_KD_USERDATA_MAGIC 0xDEADBEEF
+typedef struct {
+    long magic;
+    KDWindow * kdWindow;
+    jobject javaWindow;
+} JOGLKDUserdata;
 
+static jmethodID windowCreatedID = NULL;
 static jmethodID sizeChangedID = NULL;
 static jmethodID windowDestroyNotifyID = NULL;
 static jmethodID windowDestroyedID = NULL;
 static jmethodID sendMouseEventID = NULL;
 static jmethodID sendKeyEventID = NULL;
+
+/**
+ * Display
+ */
+
+JNIEXPORT void JNICALL Java_com_sun_javafx_newt_kd_KDDisplay_DispatchMessages
+  (JNIEnv *env, jobject obj)
+{
+    const KDEvent * evt;
+    int numEvents = 0;
+
+    // Periodically take a break
+    while( numEvents<100 && NULL!=(evt=kdWaitEvent(0)) ) {
+        KDWindow *kdWindow;
+        jobject javaWindow;
+        JOGLKDUserdata * userData = (JOGLKDUserdata *)(intptr_t)evt->userptr;
+        if(NULL == userData || userData->magic!=JOGL_KD_USERDATA_MAGIC) {
+            DBG_PRINT( "event unrelated: evt type: 0x%X\n", evt->type);
+            continue;
+        }
+        kdWindow = userData->kdWindow;
+        javaWindow = userData->javaWindow;
+        DBG_PRINT( "[DispatchMessages]: userData %p, evt type: 0x%X\n", userData, evt->type);
+
+        numEvents++;
+
+        // FIXME: support resize and window re-positioning events
+
+        switch(evt->type) {
+            case KD_EVENT_WINDOW_FOCUS:
+                {
+                    KDboolean hasFocus;
+                    kdGetWindowPropertybv(kdWindow, KD_WINDOWPROPERTY_FOCUS, &hasFocus);
+                    DBG_PRINT( "event window focus : src: %p\n", userData);
+                }
+                break;
+            case KD_EVENT_WINDOW_CLOSE:
+                {
+                    DBG_PRINT( "event window close : src: %p\n", userData);
+                    (*env)->CallVoidMethod(env, javaWindow, windowDestroyNotifyID);
+                    // Called by Window.java: DestroyWindow(wnd);
+                    //  (*env)->CallVoidMethod(env, javaWindow, windowDestroyedID);
+                }
+                break;
+            case KD_EVENT_WINDOWPROPERTY_CHANGE:
+                {
+                    const KDEventWindowProperty* prop = &evt->data.windowproperty;
+                    switch (prop->pname) {
+                        case KD_WINDOWPROPERTY_SIZE:
+                            {
+                                KDint32 v[2];
+                                if(!kdGetWindowPropertyiv(kdWindow, KD_WINDOWPROPERTY_SIZE, v)) {
+                                    DBG_PRINT( "event window size change : src: %p %dx%d\n", userData, v[0], v[1]);
+                                    (*env)->CallVoidMethod(env, javaWindow, sizeChangedID, (jint) v[0], (jint) v[1]);
+                                } else {
+                                    DBG_PRINT( "event window size change error: src: %p %dx%d\n", userData, v[0], v[1]);
+                                }
+                            }
+                            break;
+                        case KD_WINDOWPROPERTY_FOCUS:
+                            DBG_PRINT( "event window focus: src: %p\n", userData);
+                            break;
+                        case KD_WINDOWPROPERTY_VISIBILITY:
+                            {
+                                KDboolean visible;
+                                kdGetWindowPropertybv(kdWindow, KD_WINDOWPROPERTY_VISIBILITY, &visible);
+                                DBG_PRINT( "event window visibility: src: %p, v:%d\n", userData, visible);
+                            }
+                            break;
+                        default:
+                            break;
+                    }
+                }
+                break;
+            case KD_EVENT_INPUT_POINTER:
+                {
+                    const KDEventInputPointer* ptr = &(evt->data.inputpointer);
+                    // button idx: evt->data.input.index
+                    // pressed = ev->data.input.value.i
+                    // time = ev->timestamp
+                    if(KD_INPUT_POINTER_SELECT==ptr->index) {
+                        DBG_PRINT( "event mouse click: src: %p, s:%d, (%d,%d)\n", userData, ptr->select, ptr->x, ptr->y);
+                        (*env)->CallVoidMethod(env, javaWindow, sendMouseEventID, 
+                                              (ptr->select==0) ? (jint) EVENT_MOUSE_RELEASED : (jint) EVENT_MOUSE_PRESSED, 
+                                              (jint) 0,
+                                              (jint) ptr->x, (jint) ptr->y, 1, 0);
+                    } else {
+                        DBG_PRINT( "event mouse: src: %d, s:%p, i:0x%X (%d,%d)\n", userData, ptr->select, ptr->index, ptr->x, ptr->y);
+                        (*env)->CallVoidMethod(env, javaWindow, sendMouseEventID, (jint) EVENT_MOUSE_MOVED, 
+                                              0,
+                                              (jint) ptr->x, (jint) ptr->y, 0, 0);
+                    }
+                }
+                break;
+        }
+    } 
+}
+
+/**
+ * Window
+ */
 
 JNIEXPORT jboolean JNICALL Java_com_sun_javafx_newt_kd_KDWindow_initIDs
   (JNIEnv *env, jclass clazz)
@@ -100,12 +205,14 @@ JNIEXPORT jboolean JNICALL Java_com_sun_javafx_newt_kd_KDWindow_initIDs
         _wfreopen(TEXT(STDERR_FILE),L"w",stderr);
     #endif
 #endif
+    windowCreatedID = (*env)->GetMethodID(env, clazz, "windowCreated", "(J)V");
     sizeChangedID = (*env)->GetMethodID(env, clazz, "sizeChanged", "(II)V");
     windowDestroyNotifyID = (*env)->GetMethodID(env, clazz, "windowDestroyNotify",    "()V");
     windowDestroyedID = (*env)->GetMethodID(env, clazz, "windowDestroyed", "()V");
     sendMouseEventID = (*env)->GetMethodID(env, clazz, "sendMouseEvent", "(IIIIII)V");
     sendKeyEventID = (*env)->GetMethodID(env, clazz, "sendKeyEvent", "(IIIC)V");
-    if (sizeChangedID == NULL ||
+    if (windowCreatedID == NULL ||
+        sizeChangedID == NULL ||
         windowDestroyNotifyID == NULL ||
         windowDestroyedID == NULL ||
         sendMouseEventID == NULL ||
@@ -118,14 +225,12 @@ JNIEXPORT jboolean JNICALL Java_com_sun_javafx_newt_kd_KDWindow_initIDs
 }
 
 JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_kd_KDWindow_CreateWindow
-  (JNIEnv *env, jobject obj, jint owner, jlong display, jintArray jAttrs)
+  (JNIEnv *env, jobject obj, jlong display, jintArray jAttrs)
 {
     jint * attrs = NULL;
     jsize attrsLen;
     EGLDisplay dpy  = (EGLDisplay)(intptr_t)display;
     KDWindow *window = 0;
-
-    DBG_PRINT( "[CreateWindow]: owner %d\n", owner);
 
     if(dpy==NULL) {
         fprintf(stderr, "[CreateWindow] invalid display connection..\n");
@@ -143,15 +248,21 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_kd_KDWindow_CreateWindow
         return 0;
     }
 
-    /* passing the KDWindow instance for the eventuserptr */
-    window = kdCreateWindow(dpy, attrs, (void *)(intptr_t)owner);
+    JOGLKDUserdata * userData = kdMalloc(sizeof(JOGLKDUserdata));
+    userData->magic = JOGL_KD_USERDATA_MAGIC;
+    window = kdCreateWindow(dpy, attrs, (void *)userData);
 
     (*env)->ReleaseIntArrayElements(env, jAttrs, attrs, 0);
 
     if(NULL==window) {
+        kdFree(userData);
         fprintf(stderr, "[CreateWindow] failed: 0x%X\n", kdGetError());
+    } else {
+        userData->javaWindow = (*env)->NewGlobalRef(env, obj);
+        userData->kdWindow = window;
+        (*env)->CallVoidMethod(env, obj, windowCreatedID, (jlong) (intptr_t) userData);
+        DBG_PRINT( "[CreateWindow] ok: %p, userdata %p\n", window, userData);
     }
-    DBG_PRINT( "[CreateWindow] ok: %p, owner %d\n", window, (void *)(intptr_t)owner);
     return (jlong) (intptr_t) window;
 }
 
@@ -171,10 +282,13 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_kd_KDWindow_RealizeWindow
 }
 
 JNIEXPORT jint JNICALL Java_com_sun_javafx_newt_kd_KDWindow_CloseWindow
-  (JNIEnv *env, jobject obj, jlong window)
+  (JNIEnv *env, jobject obj, jlong window, jlong juserData)
 {
     KDWindow *w = (KDWindow*) (intptr_t) window;
+    JOGLKDUserdata * userData = (JOGLKDUserdata*) (intptr_t) juserData;
     int res = kdDestroyWindow(w);
+    (*env)->DeleteGlobalRef(env, userData->javaWindow);
+    kdFree(userData);
 
     DBG_PRINT( "[CloseWindow] res: %d\n", res);
     return res;
@@ -192,120 +306,6 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_kd_KDWindow_setVisible0
     KDboolean v = (visible==JNI_TRUE)?KD_TRUE:KD_FALSE;
     kdSetWindowPropertybv(w, KD_WINDOWPROPERTY_VISIBILITY, &v);
     DBG_PRINT( "[setVisible] v=%d\n", visible);
-}
-
-JNIEXPORT void JNICALL Java_com_sun_javafx_newt_kd_KDWindow_DispatchMessages
-  (JNIEnv *env, jobject obj, jint owner, jlong window, jint eventMask)
-{
-    KDWindow *w = (KDWindow*) (intptr_t) window;
-    const KDEvent * evt;
-
-    // Periodically take a break
-    while( NULL!=(evt=kdWaitEvent(0)) ) {
-        jint src_owner = (jint)(intptr_t)evt->userptr;
-        if(src_owner != owner) {
-            DBG_PRINT( "event unrelated: src: %d, caller: %d, evt type: 0x%X\n", src_owner, owner, evt->type);
-            continue;
-        }
-        DBG_PRINT( "[DispatchMessages]: caller %d, evt type: 0x%X\n", owner, evt->type);
-
-        switch(evt->type) {
-            case KD_EVENT_INPUT_POINTER:
-                if( ! ( eventMask & EVENT_MOUSE ) ) {
-                    DBG_PRINT( "event mouse ignored: src: %d\n", owner);
-                    continue;
-                }
-                break;
-            /*
-            case KeyPress:
-            case KeyRelease:
-                if( ! ( eventMask & EVENT_KEY ) ) {
-                    DBG_PRINT( "event key ignored: src: %d\n", owner);
-                    continue;
-                }
-                break;
-                */
-            case KD_EVENT_WINDOW_FOCUS:
-            case KD_EVENT_WINDOW_CLOSE:
-            case KD_EVENT_WINDOWPROPERTY_CHANGE:
-            case KD_EVENT_WINDOW_REDRAW:
-                if( ! ( eventMask & EVENT_WINDOW ) ) {
-                    DBG_PRINT( "event window ignored: src: %d\n", owner);
-                    continue;
-                }
-                break;
-        }
-        
-        // FIXME: support resize and window re-positioning events
-
-        switch(evt->type) {
-            case KD_EVENT_WINDOW_FOCUS:
-                {
-                    KDboolean hasFocus;
-                    kdGetWindowPropertybv(w, KD_WINDOWPROPERTY_FOCUS, &hasFocus);
-                    DBG_PRINT( "event window focus : src: %d\n", owner);
-                }
-                break;
-            case KD_EVENT_WINDOW_CLOSE:
-                {
-                    DBG_PRINT( "event window close : src: %d\n", owner);
-                    (*env)->CallVoidMethod(env, obj, windowDestroyNotifyID);
-                    // Called by Window.java: DestroyWindow(wnd);
-                    //  (*env)->CallVoidMethod(env, obj, windowDestroyedID);
-                }
-                break;
-            case KD_EVENT_WINDOWPROPERTY_CHANGE:
-                {
-                    const KDEventWindowProperty* prop = &evt->data.windowproperty;
-                    switch (prop->pname) {
-                        case KD_WINDOWPROPERTY_SIZE:
-                            {
-                                KDint32 v[2];
-                                if(!kdGetWindowPropertyiv(w, KD_WINDOWPROPERTY_SIZE, v)) {
-                                    DBG_PRINT( "event window size change : src: %d %dx%d\n", owner, v[0], v[1]);
-                                    (*env)->CallVoidMethod(env, obj, sizeChangedID, (jint) v[0], (jint) v[1]);
-                                } else {
-                                    DBG_PRINT( "event window size change error: src: %d %dx%d\n", owner, v[0], v[1]);
-                                }
-                            }
-                            break;
-                        case KD_WINDOWPROPERTY_FOCUS:
-                            DBG_PRINT( "event window focus: src: %d\n", owner);
-                            break;
-                        case KD_WINDOWPROPERTY_VISIBILITY:
-                            {
-                                KDboolean visible;
-                                kdGetWindowPropertybv(w, KD_WINDOWPROPERTY_VISIBILITY, &visible);
-                                DBG_PRINT( "event window visibility: src: %d, v:%d\n", owner, visible);
-                            }
-                            break;
-                        default:
-                            break;
-                    }
-                }
-                break;
-            case KD_EVENT_INPUT_POINTER:
-                {
-                    const KDEventInputPointer* ptr = &(evt->data.inputpointer);
-                    // button idx: evt->data.input.index
-                    // pressed = ev->data.input.value.i
-                    // time = ev->timestamp
-                    if(KD_INPUT_POINTER_SELECT==ptr->index) {
-                        DBG_PRINT( "event mouse click: src: %d, s:%d, (%d,%d)\n", owner, ptr->select, ptr->x, ptr->y);
-                        (*env)->CallVoidMethod(env, obj, sendMouseEventID, 
-                                              (ptr->select==0) ? (jint) EVENT_MOUSE_RELEASED : (jint) EVENT_MOUSE_PRESSED, 
-                                              (jint) 0,
-                                              (jint) ptr->x, (jint) ptr->y, 1, 0);
-                    } else {
-                        DBG_PRINT( "event mouse: src: %d, s:%d, i:0x%X (%d,%d)\n", owner, ptr->select, ptr->index, ptr->x, ptr->y);
-                        (*env)->CallVoidMethod(env, obj, sendMouseEventID, (jint) EVENT_MOUSE_MOVED, 
-                                              0,
-                                              (jint) ptr->x, (jint) ptr->y, 0, 0);
-                    }
-                }
-                break;
-        }
-    } 
 }
 
 JNIEXPORT void JNICALL Java_com_sun_javafx_newt_kd_KDWindow_setFullScreen0

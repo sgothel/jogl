@@ -37,6 +37,7 @@ import com.sun.javafx.newt.*;
 import javax.media.nativewindow.*;
 import javax.media.opengl.*;
 import com.sun.opengl.impl.GLDrawableHelper;
+import java.util.*;
 
 /**
  * An implementation of {@link Window} which is customized for OpenGL
@@ -44,13 +45,20 @@ import com.sun.opengl.impl.GLDrawableHelper;
  * javax.media.opengl.GLAutoDrawable} interface. For convenience, this
  * window class guarantees that its OpenGL context is current inside
  * the various EventListeners' callbacks (MouseListener, KeyListener,
- * etc.).
+ * etc.).<P>
+ *
+ * Best performance is currently achieved with default settings,
+ * {@link #setEventHandlerMode} to {@link #EVENT_HANDLER_GL_NONE}
+ * and one thread per GLWindow. To ensure compatibility with the
+ * underlying platform, window shall also be created within your 
+ * working thread. See comment at {@link #setRunPumpMessages}.
  */
 public class GLWindow extends Window implements GLAutoDrawable {
     /**
      * Event handling mode: EVENT_HANDLER_GL_NONE.
      * No GL context is current, while calling the EventListener.
      * This might be inconvenient, but don't impact the performance.
+     * Also 
      *
      * @see com.sun.javafx.newt.GLWindow#setEventHandlerMode(int)
      */
@@ -68,7 +76,10 @@ public class GLWindow extends Window implements GLAutoDrawable {
      */
     public static final int EVENT_HANDLER_GL_CURRENT = (1 << 0);
 
+    private static List/*GLWindow*/ glwindows = new ArrayList();
+
     private Window window;
+    private boolean runPumpMessages = true;
 
     /** Constructor. Do not call this directly -- use {@link
         create()} instead. */
@@ -94,6 +105,10 @@ public class GLWindow extends Window implements GLAutoDrawable {
                     sendDestroy = true;
                 }
             });
+
+        List newglw = (List) ((ArrayList) glwindows).clone();
+        newglw.add(this);
+        glwindows=newglw;
     }
 
     /** Creates a new GLWindow on the local display, screen 0, with a
@@ -132,10 +147,11 @@ public class GLWindow extends Window implements GLAutoDrawable {
             caps = new GLCapabilities(null); // default ..
         }
 
+        Display display;
         boolean ownerOfDisplayAndScreen=false;
         if (window == null) {
             ownerOfDisplayAndScreen = true;
-            Display display = NewtFactory.createDisplay(null); // local display
+            display = NewtFactory.createDisplay(null); // local display
             Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
             window = NewtFactory.createWindow(screen, caps, undecorated);
         }
@@ -143,6 +159,24 @@ public class GLWindow extends Window implements GLAutoDrawable {
         return new GLWindow(window, ownerOfDisplayAndScreen);
     }
     
+    /** 
+     * EXPERIMENTAL<br> 
+     * Enable or disables running the {@link Display#pumpMessages} in the {@link #display()} call.<br>
+     * The default behavior is to run {@link Display#pumpMessages}.<P>
+     *
+     * The idea was that in a single threaded environment with one {@link Display} and many {@link Window}'s,
+     * a performance benefit was expected while disabling the implicit {@link Display#pumpMessages} and
+     * do it once via {@link GLWindow#runCurrentThreadPumpMessage()} <br>
+     * This could not have been verified. No measurable difference could have been recognized.<P>
+     *
+     * Best performance has been achieved with one GLWindow per thread.<br> 
+     *
+     * @deprecated EXPERIMENTAL, semantic is about to be removed after further verification.
+     */
+    public void setRunPumpMessages(boolean onoff) {
+        runPumpMessages = onoff;
+    }
+
     protected void createNative(Capabilities caps) {
         shouldNotCallThis();
     }
@@ -202,6 +236,10 @@ public class GLWindow extends Window implements GLAutoDrawable {
             e1.printStackTrace();
         }
 
+        List newglw = (List) ((ArrayList) glwindows).clone();
+        newglw.remove(this);
+        glwindows=newglw;
+
         dispose(false);
 
         Screen _screen = null;
@@ -251,57 +289,7 @@ public class GLWindow extends Window implements GLAutoDrawable {
     public int getEventHandlerMode() {
         return eventHandlerMode;
     }
-
-    public void pumpMessages(int eventMask) {
-        if( 0 == (eventHandlerMode & EVENT_HANDLER_GL_CURRENT) ) {
-            window.pumpMessages(eventMask);
-        } else {
-            pumpMessagesWithEventMaskAction.eventMask = eventMask;
-            pumpMessagesImpl(pumpMessagesWithEventMaskAction);
-        }
-    }
-
-    public void pumpMessages() {
-        if( 0 == (eventHandlerMode & EVENT_HANDLER_GL_CURRENT) ) {
-            window.pumpMessages();
-        } else {
-            pumpMessagesImpl(pumpMessagesAction);
-        }
-    }
-
-    class PumpMessagesWithEventMaskAction implements Runnable {
-        private int eventMask;
-
-        public void run() {
-            window.pumpMessages(eventMask);
-        }
-    }
-    private PumpMessagesWithEventMaskAction pumpMessagesWithEventMaskAction = new PumpMessagesWithEventMaskAction();
-
-    class PumpMessagesAction implements Runnable {
-        public void run() {
-            window.pumpMessages();
-        }
-    }
-    private PumpMessagesAction pumpMessagesAction = new PumpMessagesAction();
-
-    private void pumpMessagesImpl(Runnable pumpMessagesAction) {
-        //        pumpMessagesAction.run();
-
-        boolean autoSwapBuffer = helper.getAutoSwapBufferMode();
-        helper.setAutoSwapBufferMode(false);
-        try {
-            helper.invokeGL(drawable, context, pumpMessagesAction, initAction);
-        } finally {
-            helper.setAutoSwapBufferMode(autoSwapBuffer);
-        }
-
-    }
-
-    protected void dispatchMessages(int eventMask) {
-        shouldNotCallThis();
-    }
-
+ 
     public void setVisible(boolean visible) {
         window.setVisible(visible);
         if (visible && context == null) {
@@ -423,7 +411,8 @@ public class GLWindow extends Window implements GLAutoDrawable {
     // OpenGL-related methods and state
     //
 
-    private int eventHandlerMode = EVENT_HANDLER_GL_CURRENT;
+    private static int eventHandlerMode = EVENT_HANDLER_GL_CURRENT;
+    private static boolean autoSwapBufferMode = true;
     private GLDrawableFactory factory;
     private GLDrawable drawable;
     private GLContext context;
@@ -466,9 +455,69 @@ public class GLWindow extends Window implements GLAutoDrawable {
         helper.removeGLEventListener(listener);
     }
 
+    class DisplayPumpMessage implements Display.Action {
+        public void run(Display display) {
+            if( 0 == (eventHandlerMode & EVENT_HANDLER_GL_CURRENT) ) {
+                display.run();
+            } else {
+                helper.setAutoSwapBufferMode(false);
+                try {
+                    helper.invokeGL(drawable, context, display, initAction);
+                } finally {
+                    helper.setAutoSwapBufferMode(autoSwapBufferMode);
+                }
+            }
+        }
+    }
+    private DisplayPumpMessage displayPumpMessage = new DisplayPumpMessage();
+
+    static class DisplayPumpMessageStatic implements Display.Action {
+        public void run(Display display) {
+            display.run();
+        }
+    }
+    private static DisplayPumpMessageStatic displayPumpMessageStatic = new DisplayPumpMessageStatic();
+
+    /**
+     * @see #setRunPumpMessages
+     * @deprecated EXPERIMENTAL, semantic is about to be removed after further verification.
+     */
+    public static void runCurrentThreadPumpMessage() {
+        Exception safedE = null;
+
+        if( 0 != (eventHandlerMode & EVENT_HANDLER_GL_CURRENT) ) {
+            // for all: setup / init / makeCurrent
+            for(Iterator i = glwindows.iterator(); i.hasNext(); ) {
+               GLWindow glw = (GLWindow) i.next();
+               glw.helper.setAutoSwapBufferMode(false);
+               glw.helper.invokeGL(glw.drawable, glw.context, null, glw.initAction);
+            }
+        }
+
+        try {
+            Display.runCurrentThreadDisplaysAction(displayPumpMessageStatic);
+        } catch (Exception e) {
+            safedE=e;
+        }
+
+        if( 0 != (eventHandlerMode & EVENT_HANDLER_GL_CURRENT) ) {
+            // for all: reset
+            for(Iterator i = glwindows.iterator(); i.hasNext(); ) {
+               GLWindow glw = (GLWindow) i.next();
+               glw.helper.setAutoSwapBufferMode(autoSwapBufferMode);
+            }
+        }
+
+        if(null!=safedE) {
+            throw new GLException(safedE);
+        }
+    }
+
     public void display() {
         if(getSurfaceHandle()!=0) {
-            pumpMessages();
+            if(runPumpMessages) {
+                displayPumpMessage.run(window.getScreen().getDisplay());
+            }
             if(window.hasDeviceChanged() && GLAutoDrawable.SCREEN_CHANGE_ACTION_ENABLED) {
                 dispose(true);
             }
@@ -487,12 +536,14 @@ public class GLWindow extends Window implements GLAutoDrawable {
         }
     }
 
+    /** This implementation uses a static value */
     public void setAutoSwapBufferMode(boolean onOrOff) {
-        helper.setAutoSwapBufferMode(onOrOff);
+        autoSwapBufferMode = onOrOff;
     }
 
+    /** This implementation uses a static value */
     public boolean getAutoSwapBufferMode() {
-        return helper.getAutoSwapBufferMode();
+        return autoSwapBufferMode;
     }
 
     public void swapBuffers() {
@@ -555,6 +606,7 @@ public class GLWindow extends Window implements GLAutoDrawable {
             }
         }
     }
+    private DisplayAction displayAction = new DisplayAction();
 
     public long getStartTime()   { return startTime; }
     public long getCurrentTime() { return curTime; }
@@ -567,14 +619,11 @@ public class GLWindow extends Window implements GLAutoDrawable {
     private int  totalFrames = 0, lastFrames = 0;
     private boolean ownerOfDisplayAndScreen;
 
-    private DisplayAction displayAction = new DisplayAction();
-
     class SwapBuffersAction implements Runnable {
         public void run() {
             drawable.swapBuffers();
         }
     }
-
     private SwapBuffersAction swapBuffersAction = new SwapBuffersAction();
 
     //----------------------------------------------------------------------

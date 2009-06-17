@@ -40,9 +40,24 @@ import javax.media.nativewindow.*;
 import javax.media.nativewindow.egl.*;
 
 public class KDDisplay extends Display {
+
     static {
-        NativeLibLoader.loadNEWT();
+        initSingleton();
     }
+
+    private static volatile boolean isInit = false;
+
+    public static synchronized void initSingleton() {
+        if(isInit) return;
+        isInit=true;
+
+        NativeLibLoader.loadNEWT();
+
+        if (!KDWindow.initIDs()) {
+            throw new NativeWindowException("Failed to initialize KDWindow jmethodIDs");
+        }
+    }
+
 
     public KDDisplay() {
     }
@@ -64,5 +79,11 @@ public class KDDisplay extends Display {
             EGL.eglTerminate(aDevice.getHandle());
         }
     }
+
+    protected void dispatchMessages() {
+        DispatchMessages();
+    }
+
+    private native void DispatchMessages();
 }
 

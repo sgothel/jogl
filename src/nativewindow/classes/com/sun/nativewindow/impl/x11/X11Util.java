@@ -73,18 +73,23 @@ public class X11Util {
 
     private static ThreadLocal currentDisplayAssociation = new ThreadLocal();
 
-    private static long    staticDefaultDisplay=0; 
+    private static volatile long    staticDefaultDisplay=0; 
     private static boolean staticDefaultDisplayXineramaEnable=false; 
 
     private static long fetchStaticDefaultDisplay() {
         if(0==staticDefaultDisplay) {
             synchronized (X11Util.class) {
                 if(0==staticDefaultDisplay) {
-                    staticDefaultDisplay = X11Lib.XOpenDisplay(null);
-                    if(0==staticDefaultDisplay) {
-                        throw new NativeWindowException("Unable to create a static default display connection");
+                    NativeWindowFactory.getDefaultFactory().getToolkitLock().lock();
+                    try {
+                        staticDefaultDisplay = X11Lib.XOpenDisplay(null);
+                        if(0==staticDefaultDisplay) {
+                            throw new NativeWindowException("Unable to create a static default display connection");
+                        }
+                        staticDefaultDisplayXineramaEnable = X11Lib.XineramaEnabled(staticDefaultDisplay);
+                    } finally {
+                        NativeWindowFactory.getDefaultFactory().getToolkitLock().unlock();
                     }
-                    staticDefaultDisplayXineramaEnable = X11Lib.XineramaEnabled(staticDefaultDisplay);
                 }
             }
         }
@@ -109,15 +114,20 @@ public class X11Util {
     public static long getThreadLocalDefaultDisplay() {
         Long dpyL = (Long) currentDisplayAssociation.get();
         if(null==dpyL) {
-            long dpy = X11Lib.XOpenDisplay(null);
-            if(0==dpy) {
-                throw new NativeWindowException("Unable to create a default display connection on Thread "+Thread.currentThread().getName());
-            }
-            dpyL = new Long(dpy);
-            currentDisplayAssociation.set( dpyL );
-            if(DEBUG) {
-                Exception e = new Exception("Created new TLS display connection 0x"+Long.toHexString(dpy)+" for thread "+Thread.currentThread().getName());
-                e.printStackTrace();
+            NativeWindowFactory.getDefaultFactory().getToolkitLock().lock();
+            try {
+                long dpy = X11Lib.XOpenDisplay(null);
+                if(0==dpy) {
+                    throw new NativeWindowException("Unable to create a default display connection on Thread "+Thread.currentThread().getName());
+                }
+                dpyL = new Long(dpy);
+                currentDisplayAssociation.set( dpyL );
+                if(DEBUG) {
+                    Exception e = new Exception("Created new TLS display connection 0x"+Long.toHexString(dpy)+" for thread "+Thread.currentThread().getName());
+                    e.printStackTrace();
+                }
+            } finally {
+                NativeWindowFactory.getDefaultFactory().getToolkitLock().unlock();
             }
         }
         return dpyL.longValue();

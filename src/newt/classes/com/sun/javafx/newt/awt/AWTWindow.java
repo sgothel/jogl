@@ -63,7 +63,6 @@ public class AWTWindow extends Window {
 
     private Frame frame;
     private AWTCanvas canvas;
-    private LinkedList/*<AWTEventWrapper>*/ events = new LinkedList();
     // non fullscreen dimensions ..
     private int nfs_width, nfs_height, nfs_x, nfs_y;
 
@@ -80,13 +79,15 @@ public class AWTWindow extends Window {
 
     protected void createNative(final Capabilities caps) {
 
+        final AWTWindow awtWindow = this;
+
         runOnEDT(true, new Runnable() {
                 public void run() {
                     frame = new Frame(getTitle());
                     frame.setUndecorated(isUndecorated());
                     frame.setLayout(new BorderLayout());
                     canvas = new AWTCanvas(caps);
-                    Listener listener = new Listener();
+                    Listener listener = new Listener(awtWindow);
                     canvas.addMouseListener(listener);
                     canvas.addMouseMotionListener(listener);
                     canvas.addKeyListener(listener);
@@ -94,8 +95,8 @@ public class AWTWindow extends Window {
                     frame.add(canvas, BorderLayout.CENTER);
                     frame.setSize(width, height);
                     frame.setLocation(x, y);
-                    frame.addComponentListener(new MoveListener());
-                    frame.addWindowListener(new WindowEventListener());
+                    frame.addComponentListener(new MoveListener(awtWindow));
+                    frame.addWindowListener(new WindowEventListener(awtWindow));
                 }
             });
     }
@@ -216,84 +217,17 @@ public class AWTWindow extends Window {
         return canvas;
     }
 
-    public void dispatchMessages(int eventMask) {
-        AWTEventWrapper w;
-        do {
-            synchronized(this) {
-                if (!events.isEmpty()) {
-                    w = (AWTEventWrapper) events.removeFirst();
-                } else {
-                    w = null;
-                }
-            }
-            if (w != null) {
-                switch (w.getType()) {
-                    case com.sun.javafx.newt.WindowEvent.EVENT_WINDOW_RESIZED:
-                    case com.sun.javafx.newt.WindowEvent.EVENT_WINDOW_MOVED:
-                    case com.sun.javafx.newt.WindowEvent.EVENT_WINDOW_DESTROY_NOTIFY:
-                        if ((eventMask & com.sun.javafx.newt.EventListener.WINDOW) != 0) {
-                            sendWindowEvent(w.getType());
-                        }
-                        break;
-
-                    case com.sun.javafx.newt.MouseEvent.EVENT_MOUSE_CLICKED:
-                    case com.sun.javafx.newt.MouseEvent.EVENT_MOUSE_ENTERED:
-                    case com.sun.javafx.newt.MouseEvent.EVENT_MOUSE_EXITED:
-                    case com.sun.javafx.newt.MouseEvent.EVENT_MOUSE_PRESSED:
-                    case com.sun.javafx.newt.MouseEvent.EVENT_MOUSE_RELEASED:
-                    case com.sun.javafx.newt.MouseEvent.EVENT_MOUSE_MOVED:
-                    case com.sun.javafx.newt.MouseEvent.EVENT_MOUSE_DRAGGED:
-                    case com.sun.javafx.newt.MouseEvent.EVENT_MOUSE_WHEEL_MOVED:
-                        if ((eventMask & com.sun.javafx.newt.EventListener.MOUSE) != 0) {
-                            MouseEvent e = (MouseEvent) w.getEvent();
-                            int rotation = 0;
-                            if (e instanceof MouseWheelEvent) {
-                                rotation = ((MouseWheelEvent)e).getWheelRotation();
-                            }
-                            sendMouseEvent(w.getType(), convertModifiers(e),
-                                           e.getX(), e.getY(), convertButton(e),
-                                           rotation);
-                        }
-                        break;
-
-                    case com.sun.javafx.newt.KeyEvent.EVENT_KEY_PRESSED:
-                    case com.sun.javafx.newt.KeyEvent.EVENT_KEY_RELEASED:
-                    case com.sun.javafx.newt.KeyEvent.EVENT_KEY_TYPED:
-                        if ((eventMask & com.sun.javafx.newt.EventListener.KEY) != 0) {
-                            KeyEvent e = (KeyEvent) w.getEvent();
-                            sendKeyEvent(w.getType(), convertModifiers(e),
-                                         e.getKeyCode(), e.getKeyChar());
-                        }
-                        break;
-
-                    default:
-                        throw new NativeWindowException("Unknown event type " + w.getType());
-                }
-                if(Window.DEBUG_MOUSE_EVENT) {
-                    System.out.println("dispatchMessages: in event:"+w.getEvent());
-                }
-            }
-        } while (w != null);
+    protected void sendWindowEvent(int eventType) {
+        super.sendWindowEvent(eventType);
     }
 
-    private static int convertModifiers(InputEvent e) {
-        int newtMods = 0;
-        int mods = e.getModifiers();
-        if ((mods & InputEvent.SHIFT_MASK) != 0)     newtMods |= com.sun.javafx.newt.InputEvent.SHIFT_MASK;
-        if ((mods & InputEvent.CTRL_MASK) != 0)      newtMods |= com.sun.javafx.newt.InputEvent.CTRL_MASK;
-        if ((mods & InputEvent.META_MASK) != 0)      newtMods |= com.sun.javafx.newt.InputEvent.META_MASK;
-        if ((mods & InputEvent.ALT_MASK) != 0)       newtMods |= com.sun.javafx.newt.InputEvent.ALT_MASK;
-        if ((mods & InputEvent.ALT_GRAPH_MASK) != 0) newtMods |= com.sun.javafx.newt.InputEvent.ALT_GRAPH_MASK;
-        return newtMods;
+    protected void sendKeyEvent(int eventType, int modifiers, int keyCode, char keyChar) {
+        super.sendKeyEvent(eventType, modifiers, keyCode, keyChar);
     }
 
-    private static int convertButton(MouseEvent e) {
-        switch (e.getButton()) {
-            case MouseEvent.BUTTON1: return com.sun.javafx.newt.MouseEvent.BUTTON1;
-            case MouseEvent.BUTTON2: return com.sun.javafx.newt.MouseEvent.BUTTON2;
-            case MouseEvent.BUTTON3: return com.sun.javafx.newt.MouseEvent.BUTTON3;
-        }
-        return 0;
+    protected void sendMouseEvent(int eventType, int modifiers,
+                                  int x, int y, int button, int rotation) {
+        super.sendMouseEvent(eventType, modifiers, x, y, button, rotation);
     }
 
     private static void runOnEDT(boolean wait, Runnable r) {
@@ -312,43 +246,26 @@ public class AWTWindow extends Window {
         }
     }
 
-    private void enqueueEvent(int type, InputEvent e) {
-        AWTEventWrapper wrapper = new AWTEventWrapper(type, e);
-        synchronized(this) {
-            events.add(wrapper);
-        }
-    }
-
     private static final int WINDOW_EVENT = 1;
     private static final int KEY_EVENT = 2;
     private static final int MOUSE_EVENT = 3;
 
-    static class AWTEventWrapper {
-        int type;
-        InputEvent e;
-
-        AWTEventWrapper(int type, InputEvent e) {
-            this.type = type;
-            this.e = e;
-        }
-
-        public int getType() {
-            return type;
-        }
-
-        public InputEvent getEvent() {
-            return e;
-        }
-    }
-
     class MoveListener implements ComponentListener {
+        private AWTWindow window;
+        private AWTDisplay display;
+
+        public MoveListener(AWTWindow w) {
+            window = w;
+            display = (AWTDisplay)window.getScreen().getDisplay();
+        }
+
         public void componentResized(ComponentEvent e) {
         }
 
         public void componentMoved(ComponentEvent e) {
             x = frame.getX();
             y = frame.getY();
-            enqueueEvent(com.sun.javafx.newt.WindowEvent.EVENT_WINDOW_MOVED, null);
+            display.enqueueEvent(window, com.sun.javafx.newt.WindowEvent.EVENT_WINDOW_MOVED, null);
         }
 
         public void componentShown(ComponentEvent e) {
@@ -360,10 +277,18 @@ public class AWTWindow extends Window {
     }
 
     class Listener implements ComponentListener, MouseListener, MouseMotionListener, KeyListener {
+        private AWTWindow window;
+        private AWTDisplay display;
+
+        public Listener(AWTWindow w) {
+            window = w;
+            display = (AWTDisplay)window.getScreen().getDisplay();
+        }
+
         public void componentResized(ComponentEvent e) {
             width = canvas.getWidth();
             height = canvas.getHeight();
-            enqueueEvent(com.sun.javafx.newt.WindowEvent.EVENT_WINDOW_RESIZED, null);
+            display.enqueueEvent(window, com.sun.javafx.newt.WindowEvent.EVENT_WINDOW_RESIZED, null);
         }
 
         public void componentMoved(ComponentEvent e) {
@@ -381,49 +306,57 @@ public class AWTWindow extends Window {
         }
 
         public void mouseEntered(MouseEvent e) {
-            enqueueEvent(com.sun.javafx.newt.MouseEvent.EVENT_MOUSE_ENTERED, e);
+            display.enqueueEvent(window, com.sun.javafx.newt.MouseEvent.EVENT_MOUSE_ENTERED, e);
         }
 
         public void mouseExited(MouseEvent e) {
-            enqueueEvent(com.sun.javafx.newt.MouseEvent.EVENT_MOUSE_EXITED, e);
+            display.enqueueEvent(window, com.sun.javafx.newt.MouseEvent.EVENT_MOUSE_EXITED, e);
         }
 
         public void mousePressed(MouseEvent e) {
-            enqueueEvent(com.sun.javafx.newt.MouseEvent.EVENT_MOUSE_PRESSED, e);
+            display.enqueueEvent(window, com.sun.javafx.newt.MouseEvent.EVENT_MOUSE_PRESSED, e);
         }
 
         public void mouseReleased(MouseEvent e) {
-            enqueueEvent(com.sun.javafx.newt.MouseEvent.EVENT_MOUSE_RELEASED, e);
+            display.enqueueEvent(window, com.sun.javafx.newt.MouseEvent.EVENT_MOUSE_RELEASED, e);
         }
 
         public void mouseMoved(MouseEvent e) {
-            enqueueEvent(com.sun.javafx.newt.MouseEvent.EVENT_MOUSE_MOVED, e);
+            display.enqueueEvent(window, com.sun.javafx.newt.MouseEvent.EVENT_MOUSE_MOVED, e);
         }
 
         public void mouseDragged(MouseEvent e) {
-            enqueueEvent(com.sun.javafx.newt.MouseEvent.EVENT_MOUSE_DRAGGED, e);
+            display.enqueueEvent(window, com.sun.javafx.newt.MouseEvent.EVENT_MOUSE_DRAGGED, e);
         }
 
         public void keyPressed(KeyEvent e) {
-            enqueueEvent(com.sun.javafx.newt.KeyEvent.EVENT_KEY_PRESSED, e);
+            display.enqueueEvent(window, com.sun.javafx.newt.KeyEvent.EVENT_KEY_PRESSED, e);
         }
 
         public void keyReleased(KeyEvent e) {
-            enqueueEvent(com.sun.javafx.newt.KeyEvent.EVENT_KEY_RELEASED, e);
+            display.enqueueEvent(window, com.sun.javafx.newt.KeyEvent.EVENT_KEY_RELEASED, e);
         }
 
         public void keyTyped(KeyEvent e)  {
-            enqueueEvent(com.sun.javafx.newt.KeyEvent.EVENT_KEY_TYPED, e);
+            display.enqueueEvent(window, com.sun.javafx.newt.KeyEvent.EVENT_KEY_TYPED, e);
         }
     }
 
     class WindowEventListener implements WindowListener {
+        private AWTWindow window;
+        private AWTDisplay display;
+
+        public WindowEventListener(AWTWindow w) {
+            window = w;
+            display = (AWTDisplay)window.getScreen().getDisplay();
+        }
+
         public void windowActivated(WindowEvent e) {
         }
         public void windowClosed(WindowEvent e) {
         }
         public void windowClosing(WindowEvent e) {
-            enqueueEvent(com.sun.javafx.newt.WindowEvent.EVENT_WINDOW_DESTROY_NOTIFY, null);
+            display.enqueueEvent(window, com.sun.javafx.newt.WindowEvent.EVENT_WINDOW_DESTROY_NOTIFY, null);
         }
         public void windowDeactivated(WindowEvent e) {
         }

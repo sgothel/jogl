@@ -47,11 +47,7 @@ public class WindowsWindow extends Window {
     private int nfs_width, nfs_height, nfs_x, nfs_y;
 
     static {
-        NativeLibLoader.loadNEWT();
-
-        if (!initIDs()) {
-            throw new NativeWindowException("Failed to initialize jmethodIDs");
-        }
+        WindowsDisplay.initSingleton();
     }
 
     public WindowsWindow() {
@@ -96,11 +92,13 @@ public class WindowsWindow extends Window {
     }
 
     protected void createNative(Capabilities caps) {
-        config = GraphicsConfigurationFactory.getFactory(getScreen().getDisplay().getGraphicsDevice()).chooseGraphicsConfiguration(caps, null, getScreen().getGraphicsScreen());
+        WindowsScreen  screen = (WindowsScreen) getScreen();
+        WindowsDisplay display = (WindowsDisplay) screen.getDisplay();
+        config = GraphicsConfigurationFactory.getFactory(display.getGraphicsDevice()).chooseGraphicsConfiguration(caps, null, screen.getGraphicsScreen());
         if (config == null) {
             throw new NativeWindowException("Error choosing GraphicsConfiguration creating window: "+this);
         }
-        windowHandle = CreateWindow(getWindowClassAtom(), WINDOW_CLASS_NAME, getHInstance(), 0, undecorated, x, y, width, height);
+        windowHandle = CreateWindow(display.getWindowClassAtom(), display.WINDOW_CLASS_NAME, display.getHInstance(), 0, undecorated, x, y, width, height);
         if (windowHandle == 0) {
             throw new NativeWindowException("Error creating window");
         }
@@ -121,7 +119,6 @@ public class WindowsWindow extends Window {
     }
 
     protected void windowDestroyed() {
-        // singleton ATOM CleanupWindowResources(getWindowClassAtom(), getHInstance());
         windowHandleClose = 0;
         super.windowDestroyed();
     }
@@ -200,50 +197,19 @@ public class WindowsWindow extends Window {
         }
     }
 
-    protected void dispatchMessages(int eventMask) {
-        DispatchMessages(windowHandle, eventMask);
-    }
-
     //----------------------------------------------------------------------
     // Internals only
     //
-    private static final String WINDOW_CLASS_NAME = "NewtWindowClass";
-
-    private static int windowClassAtom = 0;
-    private static synchronized int getWindowClassAtom() {
-        if(0 == windowClassAtom) {
-            windowClassAtom = RegisterWindowClass(WINDOW_CLASS_NAME, getHInstance());
-            if (windowClassAtom == 0) {
-                throw new NativeWindowException("Error while registering window class");
-            }
-        }
-        return windowClassAtom;
-    }
-    private static long hInstance;
-    private static synchronized long getHInstance() {
-        if (hInstance == 0) {
-            hInstance = LoadLibraryW("newt");
-            if (hInstance == 0) {
-                throw new NativeWindowException("Error finding HINSTANCE for \"newt\"");
-            }
-        }
-        return hInstance;
-    }
-
-    private static native boolean initIDs();
-    private static native long LoadLibraryW(String libraryName);
-    private static native int  RegisterWindowClass(String windowClassName, long hInstance);
+    protected static native boolean initIDs();
     private        native long CreateWindow(int wndClassAtom, String wndName, 
                                             long hInstance, long visualID,
                                             boolean isUndecorated,
                                             int x, int y, int width, int height);
-    private        native void CleanupWindowResources(int wndClassAtom, long hInstance);
     private        native void DestroyWindow(long windowHandle);
     private        native long GetDC(long windowHandle);
     private        native void ReleaseDC(long windowHandle, long hdc);
     private        native long MonitorFromWindow(long windowHandle);
     private static native void setVisible0(long windowHandle, boolean visible);
-    private static native void DispatchMessages(long windowHandle, int eventMask);
     private        native void setSize0(long windowHandle, int width, int height);
     private        native void setPosition(long windowHandle, int x, int y);
     private        native void setFullscreen0(long windowHandle, int x, int y, int width, int height, boolean isUndecorated, boolean on);

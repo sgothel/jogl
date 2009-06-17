@@ -33,17 +33,55 @@
 
 package com.sun.javafx.newt.macosx;
 
-import com.sun.javafx.newt.*;
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.macosx.*;
+import com.sun.javafx.newt.*;
+import com.sun.javafx.newt.impl.*;
+import com.sun.javafx.newt.util.MainThread;
 
 public class MacDisplay extends Display {
+    static {
+        initSingleton();
+    }
+
+    private static volatile boolean isInit = false;
+
+    public static synchronized void initSingleton() {
+        if(isInit) return;
+        isInit=true;
+
+        NativeLibLoader.loadNEWT();
+
+        if(!initNSApplication()) {
+            throw new NativeWindowException("Failed to initialize native Application hook");
+        }
+        if(!MacWindow.initIDs()) {
+            throw new NativeWindowException("Failed to initialize jmethodIDs");
+        }
+        if(DEBUG) System.out.println("MacDisplay.init App and IDs OK "+Thread.currentThread().getName());
+    }
+    
     public MacDisplay() {
     }
 
+    class DispatchAction implements Runnable {
+        public void run() {
+            dispatchMessages0();
+        }
+    }
+    private DispatchAction dispatchAction = new DispatchAction();
+
+    public void dispatchMessages() {
+        MainThread.invoke(false, dispatchAction);
+    }
+    
     protected void createNative() {
         aDevice = new MacOSXGraphicsDevice();
     }
 
     protected void closeNative() { }
+
+    private static native boolean initNSApplication();
+    protected native void dispatchMessages0();
 }
+

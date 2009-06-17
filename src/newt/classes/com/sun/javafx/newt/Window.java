@@ -137,27 +137,6 @@ public abstract class Window implements NativeWindow
         return screen;
     }
 
-    /**
-     * eventMask is a bitfield of EventListener event flags
-     */
-    public void pumpMessages(int eventMask) {
-        if(this.eventMask!=eventMask && eventMask>0) {
-            this.eventMask=eventMask;
-            eventMask*=-1;
-        }
-        dispatchMessages(eventMask);
-    }
-
-    public void pumpMessages() {
-        int em = 0;
-        if(windowListeners.size()>0) em |= EventListener.WINDOW;
-        if(mouseListeners.size()>0) em |= EventListener.MOUSE;
-        if(keyListeners.size()>0) em |= EventListener.KEY;
-        pumpMessages(em);
-    }
-
-    protected abstract void dispatchMessages(int eventMask);
-
     public String toString() {
         StringBuffer sb = new StringBuffer();
 
@@ -438,6 +417,9 @@ public abstract class Window implements NativeWindow
 
     protected void sendMouseEvent(int eventType, int modifiers,
                                   int x, int y, int button, int rotation) {
+        if(x<0||y<0||x>=width||y>=height) {
+            return; // .. invalid ..
+        }
         if(DEBUG_MOUSE_EVENT) {
             System.out.println("sendMouseEvent: "+MouseEvent.getEventTypeString(eventType)+
                                ", mod "+modifiers+", pos "+x+"/"+y+", button "+button);

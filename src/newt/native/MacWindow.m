@@ -85,6 +85,7 @@ NS_ENDHANDLER
     if(NULL!=newView) {
         jobject globJavaWindowObject = (*env)->NewGlobalRef(env, javaWindowObject);
         [newView setJavaWindowObject: globJavaWindowObject];
+        [newView setJNIEnv: env];
     }
     [win setContentView: newView];
 
@@ -92,11 +93,11 @@ NS_ENDHANDLER
 }
 
 /*
- * Class:     com_sun_javafx_newt_macosx_MacWindow
+ * Class:     com_sun_javafx_newt_macosx_MacDisplay
  * Method:    initIDs
  * Signature: ()Z
  */
-JNIEXPORT jboolean JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_initIDs
+JNIEXPORT jboolean JNICALL Java_com_sun_javafx_newt_macosx_MacDisplay_initNSApplication
   (JNIEnv *env, jclass clazz)
 {
     static int initialized = 0;
@@ -116,6 +117,109 @@ JNIEXPORT jboolean JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_initIDs
 
     // Initialize the shared NSApplication instance
     [NSApplication sharedApplication];
+
+    // Need this when debugging, as it is necessary to attach gdb to
+    // the running java process -- "gdb java" doesn't work
+    //    printf("Going to sleep for 10 seconds\n");
+    //    sleep(10);
+
+    return (jboolean) JNI_TRUE;
+}
+
+/*
+ * Class:     com_sun_javafx_newt_macosx_MacDisplay
+ * Method:    dispatchMessages0
+ * Signature: ()V
+ */
+JNIEXPORT void JNICALL Java_com_sun_javafx_newt_macosx_MacDisplay_dispatchMessages0
+  (JNIEnv *env, jobject unused, jlong window, jint eventMask)
+{
+    NSEvent* event = NULL;
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+
+NS_DURING
+
+    NSWindow* win = NULL;
+    NewtView* view = NULL;
+    int num_events = 0;
+
+    // Periodically take a break
+    do {
+        // FIXME: ignoring event mask for the time being
+        event = [NSApp nextEventMatchingMask: NSAnyEventMask
+                       untilDate: [NSDate distantPast]
+                       inMode: NSDefaultRunLoopMode
+                       dequeue: YES];
+        if (event != NULL) {
+            [NSApp sendEvent: event];
+
+            num_events++;
+        }
+    } while (num_events<100 && event != NULL);
+
+NS_HANDLER
+    
+    // just ignore it ..
+
+NS_ENDHANDLER
+
+    [pool release];
+}
+
+/*
+ * Class:     com_sun_javafx_newt_macosx_MacScreen
+ * Method:    getWidthImpl
+ * Signature: (I)I
+ */
+JNIEXPORT jint JNICALL Java_com_sun_javafx_newt_macosx_MacScreen_getWidthImpl
+  (JNIEnv *env, jclass clazz, jint screen_idx)
+{
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+
+    NSArray *screens = [NSScreen screens];
+    if(screen_idx<0) screen_idx=0;
+    if(screen_idx>=[screens count]) screen_idx=0;
+    NSScreen *screen = (NSScreen *) [screens objectAtIndex: screen_idx];
+    NSRect rect = [screen frame];
+
+    [pool release];
+
+    return (jint) (rect.size.width);
+}
+
+/*
+ * Class:     com_sun_javafx_newt_macosx_MacScreen
+ * Method:    getHeightImpl
+ * Signature: (I)I
+ */
+JNIEXPORT jint JNICALL Java_com_sun_javafx_newt_macosx_MacScreen_getHeightImpl
+  (JNIEnv *env, jclass clazz, jint screen_idx)
+{
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+
+    NSArray *screens = [NSScreen screens];
+    if(screen_idx<0) screen_idx=0;
+    if(screen_idx>=[screens count]) screen_idx=0;
+    NSScreen *screen = (NSScreen *) [screens objectAtIndex: screen_idx];
+    NSRect rect = [screen frame];
+
+    [pool release];
+
+    return (jint) (rect.size.height);
+}
+
+/*
+ * Class:     com_sun_javafx_newt_macosx_MacWindow
+ * Method:    initIDs
+ * Signature: ()Z
+ */
+JNIEXPORT jboolean JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_initIDs
+  (JNIEnv *env, jclass clazz)
+{
+    static int initialized = 0;
+
+    if(initialized) return JNI_TRUE;
+    initialized = 1;
 
     // Need this when debugging, as it is necessary to attach gdb to
     // the running java process -- "gdb java" doesn't work
@@ -280,51 +384,6 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_setTitle0
 
 /*
  * Class:     com_sun_javafx_newt_macosx_MacWindow
- * Method:    dispatchMessages0
- * Signature: (JI)V
- */
-JNIEXPORT void JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_dispatchMessages0
-  (JNIEnv *env, jobject unused, jlong window, jint eventMask)
-{
-    NSEvent* event = NULL;
-    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-
-NS_DURING
-
-    NSWindow* win = (NSWindow *) ((intptr_t) window);
-
-    if(NULL != win) {
-        NewtView* view = (NewtView *) [win contentView];
-        [view setJNIEnv: env];
-
-        do {
-            // FIXME: ignoring event mask for the time being
-            event = [NSApp nextEventMatchingMask: NSAnyEventMask
-                           untilDate: [NSDate distantPast]
-                           inMode: NSDefaultRunLoopMode
-                           dequeue: YES];
-            if (event != NULL) {
-                win = (NSWindow*) [event window];
-                view = (NewtView *) [win contentView];
-                [view setJNIEnv: env];
-
-                [NSApp sendEvent: event];
-            }
-        } while (event != NULL);
-    }
-
-NS_HANDLER
-    
-    // just ignore it ..
-
-NS_ENDHANDLER
-
-
-    [pool release];
-}
-
-/*
- * Class:     com_sun_javafx_newt_macosx_MacWindow
  * Method:    contentView
  * Signature: (J)J
  */
@@ -384,47 +443,5 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_setFrameTopLeft
     NSWindow* win = (NSWindow*) ((intptr_t) window);
     setFrameTopLeftPoint(win, x, y);
     [pool release];
-}
-
-/*
- * Class:     com_sun_javafx_newt_macosx_MacWindow
- * Method:    getScreenWidth
- * Signature: (I)I
- */
-JNIEXPORT jint JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_getScreenWidth
-  (JNIEnv *env, jclass clazz, jint screen_idx)
-{
-    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-
-    NSArray *screens = [NSScreen screens];
-    if(screen_idx<0) screen_idx=0;
-    if(screen_idx>=[screens count]) screen_idx=0;
-    NSScreen *screen = (NSScreen *) [screens objectAtIndex: screen_idx];
-    NSRect rect = [screen frame];
-
-    [pool release];
-
-    return (jint) (rect.size.width);
-}
-
-/*
- * Class:     com_sun_javafx_newt_macosx_MacWindow
- * Method:    getScreenHeight
- * Signature: (I)I
- */
-JNIEXPORT jint JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_getScreenHeight
-  (JNIEnv *env, jclass clazz, jint screen_idx)
-{
-    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-
-    NSArray *screens = [NSScreen screens];
-    if(screen_idx<0) screen_idx=0;
-    if(screen_idx>=[screens count]) screen_idx=0;
-    NSScreen *screen = (NSScreen *) [screens objectAtIndex: screen_idx];
-    NSRect rect = [screen frame];
-
-    [pool release];
-
-    return (jint) (rect.size.height);
 }
 

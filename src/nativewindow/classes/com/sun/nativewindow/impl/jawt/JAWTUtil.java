@@ -43,20 +43,27 @@ import javax.media.nativewindow.*;
 import java.awt.GraphicsEnvironment;
 
 public class JAWTUtil {
-  static {
-        JAWTNativeLibLoader.loadAWTImpl();
-        NativeLibLoaderBase.loadNativeWindow("awt");
-  }
-
-  // See whether we're running in headless mode
-  private static boolean headlessMode;
 
   static {
+    JAWTNativeLibLoader.loadAWTImpl();
+    NativeLibLoaderBase.loadNativeWindow("awt");
+
     lockedStack   = null;
     headlessMode = GraphicsEnvironment.isHeadless();
   }
 
+  // See whether we're running in headless mode
+  private static final boolean headlessMode;
+
   private static Exception lockedStack;
+
+  // Just a hook to let this class being initialized,
+  // ie loading the native libraries ..
+  public static void init() { }
+
+  public static boolean isHeadlessMode() {
+    return headlessMode;
+  }
 
   public static synchronized void lockToolkit() throws NativeWindowException {
     if (null!=lockedStack) {

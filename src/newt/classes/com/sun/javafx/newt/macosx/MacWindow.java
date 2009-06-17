@@ -41,8 +41,6 @@ import com.sun.javafx.newt.impl.*;
 
 public class MacWindow extends Window {
     
-    private static native boolean initIDs();
-    
     // Window styles
     private static final int NSBorderlessWindowMask     = 0;
     private static final int NSTitledWindowMask         = 1 << 0;
@@ -129,31 +127,14 @@ public class MacWindow extends Window {
     private static final int NSHelpFunctionKey           = 0xF746;
     private static final int NSModeSwitchFunctionKey     = 0xF747;
 
-    // sync the MacOSX resources .. NSView, ie toggle fullscreen, window create
-    private Object nsViewLock = new Object();
-
     private volatile long surfaceHandle;
     // non fullscreen dimensions ..
     private int nfs_width, nfs_height, nfs_x, nfs_y;
 
     static {
-        initSingleton();
+        MacDisplay.initSingleton();
     }
 
-    private static volatile boolean isInit = false;
-
-    public static synchronized void initSingleton() {
-        if(isInit) return;
-        isInit=true;
-
-        NativeLibLoader.loadNEWT();
-
-        if(!initIDs()) {
-            throw new NativeWindowException("Failed to initialize jmethodIDs");
-        }
-        if(DEBUG_IMPLEMENTATION) System.out.println("MacWindow.initIDs OK "+Thread.currentThread().getName());
-    }
-    
     public MacWindow() {
     }
     
@@ -166,12 +147,15 @@ public class MacWindow extends Window {
 
     class CloseAction implements Runnable {
         public void run() {
-            synchronized(nsViewLock) {
+            nsViewLock.lock();
+            try {
                 if(DEBUG_IMPLEMENTATION) System.out.println("MacWindow.CloseAction "+Thread.currentThread().getName());
                 if (windowHandle != 0) {
                     close0(windowHandle);
                     windowHandle = 0;
                 }
+            } finally {
+                nsViewLock.unlock();
             }
         }
     }
@@ -182,20 +166,70 @@ public class MacWindow extends Window {
     }
     
     public long getWindowHandle() {
-        synchronized(nsViewLock) {
+        nsViewLock.lock();
+        try {
             return windowHandle;
+        } finally {
+            nsViewLock.unlock();
         }
     }
 
     public long getSurfaceHandle() {
-        synchronized(nsViewLock) {
+        nsViewLock.lock();
+        try {
             return surfaceHandle;
+        } finally {
+            nsViewLock.unlock();
         }
+    }
+
+    private ToolkitLock nsViewLock = new ToolkitLock() {
+            private Thread owner;
+            private int recursionCount;
+            
+            public synchronized void lock() {
+                Thread cur = Thread.currentThread();
+                if (owner == cur) {
+                    ++recursionCount;
+                    return;
+                }
+                while (owner != null) {
+                    try {
+                        wait();
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+                owner = cur;
+            }
+
+            public synchronized void unlock() {
+                if (owner != Thread.currentThread()) {
+                    throw new RuntimeException("Not owner");
+                }
+                if (recursionCount > 0) {
+                    --recursionCount;
+                    return;
+                }
+                owner = null;
+                notifyAll();
+            }
+        };
+
+    public synchronized int lockSurface() throws NativeWindowException {
+        nsViewLock.lock();
+        return super.lockSurface();
+    }
+
+    public void unlockSurface() {
+        super.unlockSurface();
+        nsViewLock.unlock();
     }
 
     class VisibleAction implements Runnable {
         public void run() {
-            synchronized(nsViewLock) {
+            nsViewLock.lock();
+            try {
                 if(DEBUG_IMPLEMENTATION) System.out.println("MacWindow.VisibleAction "+visible+" "+Thread.currentThread().getName());
                 if (visible) {
                     createWindow(false);
@@ -204,6 +238,8 @@ public class MacWindow extends Window {
                         orderOut(windowHandle);
                     }
                 }
+            } finally {
+                nsViewLock.unlock();
             }
         }
     }
@@ -216,10 +252,13 @@ public class MacWindow extends Window {
 
     class TitleAction implements Runnable {
         public void run() {
-            synchronized(nsViewLock) {
+            nsViewLock.lock();
+            try {
                 if (windowHandle != 0) {
                     setTitle0(windowHandle, title);
                 }
+            } finally {
+                nsViewLock.unlock();
             }
         }
     }
@@ -232,10 +271,13 @@ public class MacWindow extends Window {
 
     class FocusAction implements Runnable {
         public void run() {
-            synchronized(nsViewLock) {
+            nsViewLock.lock();
+            try {
                 if (windowHandle != 0) {
                     makeKey(windowHandle);
                 }
+            } finally {
+                nsViewLock.unlock();
             }
         }
     }
@@ -248,10 +290,13 @@ public class MacWindow extends Window {
     
     class SizeAction implements Runnable {
         public void run() {
-            synchronized(nsViewLock) {
+            nsViewLock.lock();
+            try {
                 if (windowHandle != 0) {
                     setContentSize(windowHandle, width, height);
                 }
+            } finally {
+                nsViewLock.unlock();
             }
         }
     }
@@ -269,10 +314,13 @@ public class MacWindow extends Window {
     
     class PositionAction implements Runnable {
         public void run() {
-            synchronized(nsViewLock) {
+            nsViewLock.lock();
+            try {
                 if (windowHandle != 0) {
                     setFrameTopLeftPoint(windowHandle, x, y);
                 }
+            } finally {
+                nsViewLock.unlock();
             }
         }
     }
@@ -288,26 +336,16 @@ public class MacWindow extends Window {
         MainThread.invoke(true, positionAction);
     }
     
-    class DispatchAction implements Runnable {
-        public void run() {
-            dispatchMessages0(windowHandle, eventMask);
-        }
-    }
-    private DispatchAction dispatchAction = new DispatchAction();
-    private int eventMask;
-
-    public void dispatchMessages(int eventMask) {
-        this.eventMask=eventMask;
-        MainThread.invoke(false, dispatchAction);
-    }
-    
     class FullscreenAction implements Runnable {
         public void run() {
-            synchronized(nsViewLock) {
+            nsViewLock.lock();
+            try {
                 if(DEBUG_IMPLEMENTATION || DEBUG_WINDOW_EVENT) {
                     System.err.println("MacWindow fs: "+fullscreen+" "+x+"/"+y+" "+width+"x"+height);
                 }
                 createWindow(true);
+            } finally {
+                nsViewLock.unlock();
             }
         }
     }
@@ -495,6 +533,7 @@ public class MacWindow extends Window {
         sendWindowEvent(WindowEvent.EVENT_WINDOW_GAINED_FOCUS);
     }
     
+    protected static native boolean initIDs();
     private native long createWindow0(int x, int y, int w, int h,
                                      boolean fullscreen, int windowStyle,
                                      int backingStoreType,
@@ -504,11 +543,8 @@ public class MacWindow extends Window {
     private native void orderOut(long window);
     private native void close0(long window);
     private native void setTitle0(long window, String title);
-    protected native void dispatchMessages0(long window, int eventMask);
     private native long contentView(long window);
     private native long changeContentView(long window, long view);
     private native void setContentSize(long window, int w, int h);
     private native void setFrameTopLeftPoint(long window, int x, int y);
-    protected static native int getScreenWidth(int scrn_idx);
-    protected static native int getScreenHeight(int scrn_idx);
 }

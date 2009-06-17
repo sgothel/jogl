@@ -34,6 +34,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdarg.h>
+#include <stdint.h>
 #include <unistd.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
@@ -48,7 +50,7 @@
 // #define VERBOSE_ON 1
 
 #ifdef VERBOSE_ON
-    #define DBG_PRINT(args...) fprintf(stderr, args)
+    #define DBG_PRINT(args...) fprintf(stderr, args); fflush(stderr);
 
     #define DUMP_VISUAL_INFO(a,b) _dumpVisualInfo((a),(b))
 
@@ -121,9 +123,86 @@ static jint X11KeySym2NewtVKey(KeySym keySym) {
     return keySym;
 }
 
+static const char * const ClazzNameRuntimeException = 
+                            "java/lang/RuntimeException";
+static jclass    runtimeExceptionClz=NULL;
+
+static const char * const ClazzNameNewtWindow = 
+                            "com/sun/javafx/newt/Window";
+static jclass    newtWindowClz=NULL;
+
+static jmethodID sizeChangedID = NULL;
+static jmethodID positionChangedID = NULL;
+static jmethodID windowDestroyNotifyID = NULL;
+static jmethodID windowDestroyedID = NULL;
+static jmethodID windowCreatedID = NULL;
+static jmethodID sendMouseEventID = NULL;
+static jmethodID sendKeyEventID = NULL;
+
+static jmethodID displayCreatedID = NULL;
+
+static void _throwNewRuntimeException(JNIEnv *env, const char* msg, ...)
+{
+    char buffer[512];
+    va_list ap;
+
+    va_start(ap, msg);
+    vsnprintf(buffer, sizeof(buffer), msg, ap);
+    va_end(ap);
+
+    (*env)->ThrowNew(env, runtimeExceptionClz, buffer);
+}
+
 /**
  * Display
  */
+
+/*
+ * Class:     com_sun_javafx_newt_x11_X11Display
+ * Method:    initIDs
+ * Signature: ()Z
+ */
+JNIEXPORT jboolean JNICALL Java_com_sun_javafx_newt_x11_X11Display_initIDs
+  (JNIEnv *env, jclass clazz)
+{
+    jclass c;
+
+    displayCreatedID = (*env)->GetMethodID(env, clazz, "displayCreated", "(JJ)V");
+    if (displayCreatedID == NULL) {
+        return JNI_FALSE;
+    }
+
+    if(NULL==newtWindowClz) {
+        c = (*env)->FindClass(env, ClazzNameNewtWindow);
+        if(NULL==c) {
+            fprintf(stderr, "FatalError: NEWT X11Window: can't find %s\n", ClazzNameNewtWindow);
+            return JNI_FALSE;
+        }
+        newtWindowClz = (jclass)(*env)->NewGlobalRef(env, c);
+        (*env)->DeleteLocalRef(env, c);
+        if(NULL==newtWindowClz) {
+            fprintf(stderr, "FatalError: NEWT X11Window: can't use %s\n", ClazzNameNewtWindow);
+            return JNI_FALSE;
+        }
+    }
+
+    if(NULL==runtimeExceptionClz) {
+        c = (*env)->FindClass(env, ClazzNameRuntimeException);
+        if(NULL==c) {
+            fprintf(stderr, "FatalError: NEWT X11Window: can't find %s\n", ClazzNameRuntimeException);
+            return JNI_FALSE;
+        }
+        runtimeExceptionClz = (jclass)(*env)->NewGlobalRef(env, c);
+        (*env)->DeleteLocalRef(env, c);
+        if(NULL==runtimeExceptionClz) {
+            fprintf(stderr, "FatalError: NEWT X11Window: can't use %s\n", ClazzNameRuntimeException);
+            return JNI_FALSE;
+        }
+    }
+
+    return JNI_TRUE;
+}
+
 
 /*
  * Class:     com_sun_javafx_newt_x11_X11Display
@@ -138,15 +217,228 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_x11_X11Display_CreateDisplay
     if(displayName!=0) {
         _displayName = (*env)->GetStringUTFChars(env, displayName, 0);
     }
+    DBG_PRINT("open display connection for %s ..\n", ((NULL==_displayName)?"NULL":_displayName));
     dpy = XOpenDisplay(_displayName);
+    if(dpy==NULL) {
+        _throwNewRuntimeException(env, "couldn't open display connection for %s\n", ((NULL==_displayName)?"NULL":_displayName));
+    }
     if(_displayName!=0) {
         (*env)->ReleaseStringChars(env, displayName, (const jchar *)_displayName);
     }
-    if(dpy==NULL) {
-        fprintf(stderr, "couldn't open display connection..\n");
+
+    jlong javaObjectAtom = (jlong) XInternAtom(dpy, "JOGL_JAVA_OBJECT", False);
+    if(None==javaObjectAtom) {
+        XCloseDisplay(dpy);
+        _throwNewRuntimeException(env, "could not create Atom JOGL_JAVA_OBJECT, bail out!\n");
+        return 0;
     }
+
+    jlong windowDeleteAtom = (jlong) XInternAtom(dpy, "WM_DELETE_WINDOW", False);
+    if(None==windowDeleteAtom) {
+        XCloseDisplay(dpy);
+        _throwNewRuntimeException(env, "could not create Atom WM_DELETE_WINDOW, bail out!\n");
+        return 0;
+    }
+
+    DBG_PRINT("X11Display_CreateDisplay dpy %p\n", dpy);
+
+    (*env)->CallVoidMethod(env, obj, displayCreatedID, javaObjectAtom, windowDeleteAtom);
+
     return (jlong) (intptr_t) dpy;
 }
+
+/*
+ * Class:     com_sun_javafx_newt_x11_X11Display
+ * Method:    DestroyDisplay
+ * Signature: (J)V
+ */
+JNIEXPORT void JNICALL Java_com_sun_javafx_newt_x11_X11Display_DestroyDisplay
+  (JNIEnv *env, jobject obj, jlong display)
+{
+    Display * dpy = (Display *)(intptr_t)display;
+    DBG_PRINT("X11Display_DestroyDisplay dpy %p\n", dpy);
+    XCloseDisplay(dpy);
+}
+
+static int putPtrIn32Long(unsigned long * dst, uintptr_t src) {
+    int i=0;
+        dst[i++] = (unsigned long) ( ( src >>  0 ) & 0xFFFFFFFF ) ;
+    if(sizeof(uintptr_t) == 8) {
+        dst[i++] = (unsigned long) ( ( src >> 32 ) & 0xFFFFFFFF ) ;
+    }
+    return i;
+}
+
+static uintptr_t getPtrOut32Long(unsigned long * src) {
+    uintptr_t  res = ( (uintptr_t) ( src[0] & 0xFFFFFFFF ) )  <<  0 ;
+    if(sizeof(uintptr_t) == 8) {
+              res |= ( (uintptr_t) ( src[1] & 0xFFFFFFFF ) )  << 32 ;
+    }
+    return res;
+}
+
+static void setJavaWindowProperty(JNIEnv *env, Display *dpy, Window window, jlong javaObjectAtom, jobject jwindow) {
+    unsigned long jogl_java_object_data[2];
+    int nitems_32 = putPtrIn32Long( jogl_java_object_data, (uintptr_t) jwindow);
+
+    {
+        jobject test = (jobject) getPtrOut32Long(jogl_java_object_data);
+        if( ! (jwindow==test) ) {
+            _throwNewRuntimeException(env, "Internal Error .. Encoded Window ref not the same %p != %p !\n", jwindow, test);
+        }
+    }
+
+    XChangeProperty( dpy, window, (Atom)javaObjectAtom, (Atom)javaObjectAtom, 32, PropModeReplace, 
+                                     (unsigned char *)&jogl_java_object_data, nitems_32);
+}
+
+static jobject getJavaWindowProperty(JNIEnv *env, Display *dpy, Window window, jlong javaObjectAtom) {
+    Atom actual_type_return;
+    int actual_format_return;
+    int nitems_32 = ( sizeof(uintptr_t) == 8 ) ? 2 : 1 ;
+    unsigned char * jogl_java_object_data_pp = NULL;
+    jobject jwindow;
+
+    {
+        unsigned long nitems_return = 0;
+        unsigned long bytes_after_return = 0;
+        jobject jwindow = NULL;
+        int res;
+
+        res = XGetWindowProperty(dpy, window, (Atom)javaObjectAtom, 0, nitems_32, False, 
+                                 (Atom)javaObjectAtom, &actual_type_return, &actual_format_return, 
+                                 &nitems_return, &bytes_after_return, &jogl_java_object_data_pp);
+
+        if ( Success != res ) {
+            _throwNewRuntimeException(env, "could not fetch Atom JOGL_JAVA_OBJECT window property (res %d) nitems_return %ld, bytes_after_return %ld, bail out!\n",
+                res, nitems_return, bytes_after_return);
+            return NULL;
+        }
+
+        if(actual_type_return!=(Atom)javaObjectAtom || nitems_return<nitems_32 || NULL==jogl_java_object_data_pp) {
+            XFree(jogl_java_object_data_pp);
+            _throwNewRuntimeException(env, "could not fetch Atom JOGL_JAVA_OBJECT window property (res %d) nitems_return %ld, bytes_after_return %ld, actual_type_return %ld, JOGL_JAVA_OBJECT %ld, bail out!\n",
+                res, nitems_return, bytes_after_return, (long)actual_type_return, javaObjectAtom);
+            return NULL;
+        }
+    }
+    jwindow = (jobject) getPtrOut32Long( (unsigned long *) jogl_java_object_data_pp ) ;
+    XFree(jogl_java_object_data_pp);
+
+#ifdef VERBOSE_ON
+    if(JNI_FALSE == (*env)->IsInstanceOf(env, jwindow, newtWindowClz)) {
+        _throwNewRuntimeException(env, "fetched Atom JOGL_JAVA_OBJECT window is not a NEWT Window: javaWindow 0x%X !\n", jwindow);
+    }
+#endif
+    return jwindow;
+}
+
+/*
+ * Class:     com_sun_javafx_newt_x11_X11Display
+ * Method:    DispatchMessages
+ * Signature: (JIJJ)V
+ */
+JNIEXPORT void JNICALL Java_com_sun_javafx_newt_x11_X11Display_DispatchMessages
+  (JNIEnv *env, jobject obj, jlong display, jlong javaObjectAtom, jlong wmDeleteAtom)
+{
+    Display * dpy = (Display *) (intptr_t) display;
+    int num_events = 0;
+
+    // Periodically take a break
+    while( num_events<100 && XPending(dpy)>0 ) {
+        jobject jwindow = NULL;
+        XEvent evt;
+        KeySym keySym;
+        char keyChar;
+        char text[255];
+
+        XNextEvent(dpy, &evt);
+        num_events++;
+
+        if( 0==evt.xany.window ) {
+            _throwNewRuntimeException(env, "event window NULL, bail out!\n");
+        }
+
+        if(dpy!=evt.xany.display) {
+            _throwNewRuntimeException(env, "wrong display");
+            continue;
+        }
+        jwindow = getJavaWindowProperty(env, dpy, evt.xany.window, javaObjectAtom);
+        if(NULL==jwindow) {
+            // just leave .. _throwNewRuntimeException(env, "could not fetch Java Window object, bail out!\n");
+            return;
+        }
+ 
+        // FIXME: support resize and window re-positioning events
+
+        switch(evt.type) {
+            case ButtonPress:
+                (*env)->CallVoidMethod(env, jwindow, sendMouseEventID, (jint) EVENT_MOUSE_PRESSED, 
+                                      (jint) evt.xbutton.state, 
+                                      (jint) evt.xbutton.x, (jint) evt.xbutton.y, (jint) evt.xbutton.button, 0 /*rotation*/);
+                break;
+            case ButtonRelease:
+                (*env)->CallVoidMethod(env, jwindow, sendMouseEventID, (jint) EVENT_MOUSE_RELEASED, 
+                                      (jint) evt.xbutton.state, 
+                                      (jint) evt.xbutton.x, (jint) evt.xbutton.y, (jint) evt.xbutton.button, 0 /*rotation*/);
+                break;
+            case MotionNotify:
+                (*env)->CallVoidMethod(env, jwindow, sendMouseEventID, (jint) EVENT_MOUSE_MOVED, 
+                                      (jint) evt.xmotion.state, 
+                                      (jint) evt.xmotion.x, (jint) evt.xmotion.y, (jint) 0, 0 /*rotation*/); 
+                break;
+            case KeyPress:
+                if(XLookupString(&evt.xkey,text,255,&keySym,0)==1) {
+                    keyChar=text[0];
+                } else {
+                    keyChar=0;
+                }
+                (*env)->CallVoidMethod(env, jwindow, sendKeyEventID, (jint) EVENT_KEY_PRESSED, 
+                                      (jint) evt.xkey.state, 
+                                      X11KeySym2NewtVKey(keySym), (jchar) keyChar);
+                break;
+            case KeyRelease:
+                if(XLookupString(&evt.xkey,text,255,&keySym,0)==1) {
+                    keyChar=text[0];
+                } else {
+                    keyChar=0;
+                }
+                (*env)->CallVoidMethod(env, jwindow, sendKeyEventID, (jint) EVENT_KEY_RELEASED, 
+                                      (jint) evt.xkey.state, 
+                                      X11KeySym2NewtVKey(keySym), (jchar) keyChar);
+                break;
+            case FocusIn:
+            case FocusOut:
+                break;
+            case DestroyNotify:
+                DBG_PRINT( "event . DestroyNotify call 0x%X\n", evt.xdestroywindow.window);
+                (*env)->CallVoidMethod(env, jwindow, windowDestroyedID);
+                break;
+            case CreateNotify:
+                DBG_PRINT( "event . CreateNotify call 0x%X\n", evt.xcreatewindow.window);
+                (*env)->CallVoidMethod(env, jwindow, windowCreatedID);
+                break;
+            case VisibilityNotify:
+                DBG_PRINT( "event . VisibilityNotify call 0x%X\n", evt.xvisibility.window);
+                break;
+            case Expose:
+                DBG_PRINT( "event . Expose call 0x%X\n", evt.xexpose.window);
+                /* FIXME: Might want to send a repaint event .. */
+                break;
+            case UnmapNotify:
+                DBG_PRINT( "event . UnmapNotify call 0x%X\n", evt.xunmap.window);
+                break;
+            case ClientMessage:
+                if (evt.xclient.send_event==True && evt.xclient.data.l[0]==(Atom)wmDeleteAtom) {
+                    DBG_PRINT( "event . ClientMessage call 0x%X type 0x%X !!!\n", evt.xclient.window, evt.xclient.message_type);
+                    (*env)->CallVoidMethod(env, jwindow, windowDestroyNotifyID);
+                    // Called by Window.java: CloseWindow(); 
+                }
+                break;
+        }
+    } 
+}
+
 
 /**
  * Screen
@@ -195,14 +487,6 @@ JNIEXPORT jint JNICALL Java_com_sun_javafx_newt_x11_X11Screen_getHeight0
  * Window
  */
 
-static jmethodID sizeChangedID = NULL;
-static jmethodID positionChangedID = NULL;
-static jmethodID windowDestroyNotifyID = NULL;
-static jmethodID windowDestroyedID = NULL;
-static jmethodID windowCreatedID = NULL;
-static jmethodID sendMouseEventID = NULL;
-static jmethodID sendKeyEventID = NULL;
-
 /*
  * Class:     com_sun_javafx_newt_x11_X11Window
  * Method:    initIDs
@@ -215,9 +499,10 @@ JNIEXPORT jboolean JNICALL Java_com_sun_javafx_newt_x11_X11Window_initIDs
     positionChangedID = (*env)->GetMethodID(env, clazz, "positionChanged", "(II)V");
     windowDestroyNotifyID = (*env)->GetMethodID(env, clazz, "windowDestroyNotify", "()V");
     windowDestroyedID = (*env)->GetMethodID(env, clazz, "windowDestroyed", "()V");
-    windowCreatedID = (*env)->GetMethodID(env, clazz, "windowCreated", "(JJ)V");
+    windowCreatedID = (*env)->GetMethodID(env, clazz, "windowCreated", "(J)V");
     sendMouseEventID = (*env)->GetMethodID(env, clazz, "sendMouseEvent", "(IIIIII)V");
     sendKeyEventID = (*env)->GetMethodID(env, clazz, "sendKeyEvent", "(IIIC)V");
+
     if (sizeChangedID == NULL ||
         positionChangedID == NULL ||
         windowDestroyNotifyID == NULL ||
@@ -237,7 +522,8 @@ JNIEXPORT jboolean JNICALL Java_com_sun_javafx_newt_x11_X11Window_initIDs
  */
 JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_x11_X11Window_CreateWindow
   (JNIEnv *env, jobject obj, jlong display, jint screen_index, 
-                             jlong visualID,
+                             jlong visualID, 
+                             jlong javaObjectAtom, jlong windowDeleteAtom, 
                              jint x, jint y, jint width, jint height)
 {
     Display * dpy  = (Display *)(intptr_t)display;
@@ -283,11 +569,11 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_x11_X11Window_CreateWindow
         XFree(pVisualQuery);
         pVisualQuery=NULL;
     }
-    DBG_PRINT( "trying given (screen %d, visualID: %d) found: %p\n", scrn_idx, (int)visualID, visual);
+    DBG_PRINT( "[CreateWindow] trying given (dpy %p, screen %d, visualID: %d) found: %p\n", dpy, scrn_idx, (int)visualID, visual);
 
     if (visual==NULL)
     { 
-        fprintf(stderr, "could not query Visual by given VisualID, bail out!\n");
+        _throwNewRuntimeException(env, "could not query Visual by given VisualID, bail out!\n");
         return 0;
     } 
 
@@ -320,12 +606,31 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_x11_X11Window_CreateWindow
                            visual,
                            attrMask,
                            &xswa);
-    Atom wm_delete_window = XInternAtom(dpy, "WM_DELETE_WINDOW", False);
-    XSetWMProtocols(dpy, window, &wm_delete_window, 1);
+
+    Atom wm_delete_atom = (Atom)windowDeleteAtom;
+    XSetWMProtocols(dpy, window, &wm_delete_atom, 1);
+
+    setJavaWindowProperty(env, dpy, window, javaObjectAtom, (*env)->NewGlobalRef(env, obj));
+
     XClearWindow(dpy, window);
     XSync(dpy, False);
 
-    (*env)->CallVoidMethod(env, obj, windowCreatedID, (jlong) window, (jlong)wm_delete_window);
+    {
+        long xevent_mask = 0;
+        xevent_mask |= ButtonPressMask|ButtonReleaseMask|PointerMotionMask;
+        xevent_mask |= KeyPressMask|KeyReleaseMask;
+        xevent_mask |= ExposureMask | StructureNotifyMask | SubstructureNotifyMask | VisibilityNotify ;
+        XSelectInput(dpy, window, xevent_mask);
+
+        /**
+            XGrabPointer(dpy, window, True, ButtonPressMask|ButtonReleaseMask|PointerMotionMask,
+                        GrabModeAsync, GrabModeAsync, window, None, CurrentTime);
+            XGrabKeyboard(dpy, window, True, GrabModeAsync, GrabModeAsync, CurrentTime);
+        */
+    }
+
+    DBG_PRINT( "[CreateWindow] created window %p on display %p\n", window, dpy);
+    (*env)->CallVoidMethod(env, obj, windowCreatedID, (jlong) window);
 
     return (jlong) window;
 }
@@ -336,10 +641,21 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_x11_X11Window_CreateWindow
  * Signature: (JJ)V
  */
 JNIEXPORT void JNICALL Java_com_sun_javafx_newt_x11_X11Window_CloseWindow
-  (JNIEnv *env, jobject obj, jlong display, jlong window)
+  (JNIEnv *env, jobject obj, jlong display, jlong window, jlong javaObjectAtom)
 {
     Display * dpy = (Display *) (intptr_t) display;
     Window w = (Window)window;
+    jobject jwindow;
+
+    jwindow = getJavaWindowProperty(env, dpy, w, javaObjectAtom);
+    if(NULL==jwindow) {
+        _throwNewRuntimeException(env, "could not fetch Java Window object, bail out!\n");
+        return;
+    }
+    if ( JNI_FALSE == (*env)->IsSameObject(env, jwindow, obj) ) {
+        _throwNewRuntimeException(env, "Internal Error .. Window global ref not the same!\n");
+    }
+    (*env)->DeleteGlobalRef(env, jwindow);
 
     XSync(dpy, False);
     /**
@@ -381,176 +697,6 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_x11_X11Window_setVisible0
         XUnmapWindow(dpy, w);
         XSync(dpy, False);
     }
-}
-
-/*
- * Class:     com_sun_javafx_newt_x11_X11Window
- * Method:    DispatchMessages
- * Signature: (JJI)V
- */
-JNIEXPORT void JNICALL Java_com_sun_javafx_newt_x11_X11Window_DispatchMessages
-  (JNIEnv *env, jobject obj, jlong display, jlong window, jint eventMask, jlong wmDeleteAtom)
-{
-    Display * dpy = (Display *) (intptr_t) display;
-    Window w = (Window)window;
-    Atom wm_delete_window = (Atom)wmDeleteAtom;
-
-    if(eventMask<0) {
-        long xevent_mask_key = 0;
-        long xevent_mask_ptr = 0;
-        long xevent_mask_win = 0;
-        eventMask *= -1;
-        if( 0 != ( eventMask & EVENT_MOUSE ) ) {
-            xevent_mask_ptr |= ButtonPressMask|ButtonReleaseMask|PointerMotionMask;
-        }
-        if( 0 != ( eventMask & EVENT_KEY ) ) {
-            xevent_mask_key |= KeyPressMask|KeyReleaseMask;
-        }
-        if( 0 != ( eventMask & EVENT_WINDOW ) ) {
-            xevent_mask_win |= ExposureMask | StructureNotifyMask | SubstructureNotifyMask | VisibilityNotify ;
-        }
-
-        XSelectInput(dpy, w, xevent_mask_win|xevent_mask_key|xevent_mask_ptr);
-
-        /**
-        if(0!=xevent_mask_ptr) {
-            XGrabPointer(dpy, w, True, xevent_mask_ptr,
-                        GrabModeAsync, GrabModeAsync, w, None, CurrentTime);
-        } 
-        if(0!=xevent_mask_key) {
-            XGrabKeyboard(dpy, w, True, GrabModeAsync, GrabModeAsync, CurrentTime);
-        } */
-
-    }
-
-    // Periodically take a break
-    while( XPending(dpy)>0 ) {
-        XEvent evt;
-        KeySym keySym;
-        char keyChar;
-        char text[255];
-
-        XNextEvent(dpy, &evt);
- 
-        switch(evt.type) {
-            case ButtonPress:
-            case ButtonRelease:
-            case MotionNotify:
-                if( ! ( eventMask & EVENT_MOUSE ) ) {
-                    continue;
-                }
-                break;
-            case KeyPress:
-            case KeyRelease:
-                if( ! ( eventMask & EVENT_KEY ) ) {
-                    continue;
-                }
-                break;
-            case FocusIn:
-            case FocusOut:
-                break;
-            case DestroyNotify:
-            case CreateNotify:
-            case VisibilityNotify:
-            case Expose:
-            case UnmapNotify:
-                if( ! ( eventMask & EVENT_WINDOW ) ) {
-                    continue;
-                }
-                break;
-        }
-        
-        // FIXME: support resize and window re-positioning events
-
-        switch(evt.type) {
-            case ButtonPress:
-                if(evt.xbutton.window==w) {
-                    (*env)->CallVoidMethod(env, obj, sendMouseEventID, (jint) EVENT_MOUSE_PRESSED, 
-                                          (jint) evt.xbutton.state, 
-                                          (jint) evt.xbutton.x, (jint) evt.xbutton.y, (jint) evt.xbutton.button, 0 /*rotation*/);
-                }
-                break;
-            case ButtonRelease:
-                if(evt.xbutton.window==w) {
-                    (*env)->CallVoidMethod(env, obj, sendMouseEventID, (jint) EVENT_MOUSE_RELEASED, 
-                                          (jint) evt.xbutton.state, 
-                                          (jint) evt.xbutton.x, (jint) evt.xbutton.y, (jint) evt.xbutton.button, 0 /*rotation*/);
-                }
-                break;
-            case MotionNotify:
-                if(evt.xmotion.window==w) {
-                    (*env)->CallVoidMethod(env, obj, sendMouseEventID, (jint) EVENT_MOUSE_MOVED, 
-                                          (jint) evt.xmotion.state, 
-                                          (jint) evt.xmotion.x, (jint) evt.xmotion.y, (jint) 0, 0 /*rotation*/);
-                }
-                break;
-            case KeyPress:
-                if(evt.xkey.window==w) {
-                    if(XLookupString(&evt.xkey,text,255,&keySym,0)==1) {
-                        keyChar=text[0];
-                    } else {
-                        keyChar=0;
-                    }
-                    (*env)->CallVoidMethod(env, obj, sendKeyEventID, (jint) EVENT_KEY_PRESSED, 
-                                          (jint) evt.xkey.state, 
-                                          X11KeySym2NewtVKey(keySym), (jchar) keyChar);
-                }
-                break;
-            case KeyRelease:
-                if(evt.xkey.window==w) {
-                    if(XLookupString(&evt.xkey,text,255,&keySym,0)==1) {
-                        keyChar=text[0];
-                    } else {
-                        keyChar=0;
-                    }
-                    (*env)->CallVoidMethod(env, obj, sendKeyEventID, (jint) EVENT_KEY_RELEASED, 
-                                          (jint) evt.xkey.state, 
-                                          X11KeySym2NewtVKey(keySym), (jchar) keyChar);
-                }
-                break;
-            case FocusIn:
-            case FocusOut:
-                if(evt.xfocus.window==w) {
-                }
-                break;
-            case DestroyNotify:
-                if(evt.xdestroywindow.window==w) {
-                    DBG_PRINT( "event . DestroyNotify call 0x%X\n", evt.xdestroywindow.window);
-                    (*env)->CallVoidMethod(env, obj, windowDestroyedID);
-                }
-                break;
-            case CreateNotify:
-                if(evt.xcreatewindow.window==w) {
-                    DBG_PRINT( "event . DestroyNotify call 0x%X\n", evt.xcreatewindow.window);
-                    (*env)->CallVoidMethod(env, obj, windowCreatedID);
-                }
-                break;
-            case VisibilityNotify:
-                if(evt.xvisibility.window==w) {
-                    DBG_PRINT( "event . VisibilityNotify call 0x%X\n", evt.xvisibility.window);
-                }
-                break;
-            case Expose:
-                if(evt.xexpose.window==w) {
-                    DBG_PRINT( "event . Expose call 0x%X\n", evt.xexpose.window);
-                    /* FIXME: Might want to send a repaint event .. */
-                }
-                break;
-            case UnmapNotify:
-                if(evt.xunmap.window==w) {
-                    DBG_PRINT( "event . UnmapNotify call 0x%X\n", evt.xunmap.window);
-                }
-                break;
-            case ClientMessage:
-                if (evt.xclient.window==w && evt.xclient.send_event==True && evt.xclient.data.l[0]==wm_delete_window) {
-                    DBG_PRINT( "event . ClientMessage call 0x%X type 0x%X !!!\n", evt.xclient.window, evt.xclient.message_type);
-                    (*env)->CallVoidMethod(env, obj, windowDestroyNotifyID);
-                    // Called by Window.java: CloseWindow(); 
-                }
-                break;
-
-        }
-    } 
 }
 
 #define MWM_FULLSCREEN 1
@@ -612,7 +758,13 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_x11_X11Window_setSize0
     XSync(dpy, False);
 
     /** if(isVisible==JNI_TRUE) {
+        // this ..
         XSetInputFocus(dpy, w, RevertToNone, CurrentTime);
+
+        // or this ..
+        unsigned long wmleader[1] = { (unsigned long) w};
+        Atom prop = XInternAtom( dpy, "WM_CLIENT_LEADER", False );
+        XChangeProperty( dpy, w, prop, prop, 32, PropModeReplace, (unsigned char *)&wmleader, 1);
     } */
 
     DBG_PRINT( "setSize0 . sizeChangedID call\n");

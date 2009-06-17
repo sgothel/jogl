@@ -40,25 +40,65 @@ import javax.media.nativewindow.x11.*;
 
 public class X11Display extends Display {
     static {
-        NativeLibLoader.loadNEWT();
+        initSingleton();
     }
+
+    private static volatile boolean isInit = false;
+
+    public static synchronized void initSingleton() {
+        if(isInit) return;
+        isInit=true;
+
+        NativeLibLoader.loadNEWT();
+
+        if (!initIDs()) {
+            throw new NativeWindowException("Failed to initialize X11Display jmethodIDs");
+        }
+
+        if (!X11Window.initIDs()) {
+            throw new NativeWindowException("Failed to initialize X11Window jmethodIDs");
+        }
+    }
+
 
     public X11Display() {
     }
 
     protected void createNative() {
-        long handle = CreateDisplay(name);
+        long handle= CreateDisplay(name);
         if (handle == 0 ) {
             throw new RuntimeException("Error creating display: "+name);
         }
         aDevice = new X11GraphicsDevice(handle);
     }
 
-    protected void closeNative() { }
+    protected void closeNative() {
+        DestroyDisplay(getHandle());
+    }
+
+    protected void dispatchMessages() {
+        DispatchMessages(getHandle(), javaObjectAtom, windowDeleteAtom);
+    }
+
+    protected long getJavaObjectAtom() { return javaObjectAtom; }
+    protected long getWindowDeleteAtom() { return windowDeleteAtom; }
 
     //----------------------------------------------------------------------
     // Internals only
     //
+    private static native boolean initIDs();
 
     private native long CreateDisplay(String name);
+    private native void DestroyDisplay(long handle);
+
+    private native void DispatchMessages(long display, long javaObjectAtom, long windowDeleteAtom);
+
+    private void displayCreated(long javaObjectAtom, long windowDeleteAtom) {
+        this.javaObjectAtom=javaObjectAtom;
+        this.windowDeleteAtom=windowDeleteAtom;
+    }
+
+    private long windowDeleteAtom;
+    private long javaObjectAtom;
 }
+

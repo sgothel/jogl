@@ -51,40 +51,44 @@ public class GLXUtil {
     // Display connection for use by visual selection algorithm and by all offscreen surfaces
     private static boolean multisampleAvailable=false;
 
-    private static boolean isInit=false;
+    private static volatile boolean isInit=false;
 
-    private static void init() {
+    private static synchronized void init() {
         if (!isInit) {
-            NativeWindowFactory.getDefaultFactory().getToolkitLock().lock();
-            try {
-                long staticDisplay = X11Util.getStaticDefaultDisplay();
-                if(staticDisplay!=0) {
-                    if (DEBUG) {
-                        long display = staticDisplay;
-                        int screen = X11Lib.DefaultScreen(display);
-                        System.err.println("!!! GLX server vendor : " +
-                                           GLX.glXQueryServerString(display, screen, GLX.GLX_VENDOR));
-                        System.err.println("!!! GLX server version: " +
-                                           GLX.glXQueryServerString(display, screen, GLX.GLX_VERSION));
-                        System.err.println("!!! GLX client vendor : " +
-                                           GLX.glXGetClientString(display, GLX.GLX_VENDOR));
-                        System.err.println("!!! GLX client version: " +
-                                           GLX.glXGetClientString(display, GLX.GLX_VERSION));
+            synchronized (GLXUtil.class) {
+                if (!isInit) {
+                    NativeWindowFactory.getDefaultFactory().getToolkitLock().lock();
+                    try {
+                        long staticDisplay = X11Util.getStaticDefaultDisplay();
+                        if(staticDisplay!=0) {
+                            if (DEBUG) {
+                                long display = staticDisplay;
+                                int screen = X11Lib.DefaultScreen(display);
+                                System.err.println("!!! GLX server vendor : " +
+                                                   GLX.glXQueryServerString(display, screen, GLX.GLX_VENDOR));
+                                System.err.println("!!! GLX server version: " +
+                                                   GLX.glXQueryServerString(display, screen, GLX.GLX_VERSION));
+                                System.err.println("!!! GLX client vendor : " +
+                                                   GLX.glXGetClientString(display, GLX.GLX_VENDOR));
+                                System.err.println("!!! GLX client version: " +
+                                                   GLX.glXGetClientString(display, GLX.GLX_VERSION));
+                            }
+                            String vendor = GLX.glXGetClientString(staticDisplay, GLX.GLX_VENDOR);
+                            if (vendor != null && vendor.startsWith("ATI")) {
+                                isVendorATI = true;
+                            }
+                            String exts = GLX.glXGetClientString(staticDisplay, GLX.GLX_EXTENSIONS);
+                            if (exts != null) {
+                                multisampleAvailable = (exts.indexOf("GLX_ARB_multisample") >= 0);
+                            }
+                            isInit=true;
+                        } else {
+                            throw new GLException("Unable to open default display, needed for visual selection and offscreen surface handling");
+                        }
+                    } finally {
+                        NativeWindowFactory.getDefaultFactory().getToolkitLock().unlock();
                     }
-                    String vendor = GLX.glXGetClientString(staticDisplay, GLX.GLX_VENDOR);
-                    if (vendor != null && vendor.startsWith("ATI")) {
-                        isVendorATI = true;
-                    }
-                    String exts = GLX.glXGetClientString(staticDisplay, GLX.GLX_EXTENSIONS);
-                    if (exts != null) {
-                        multisampleAvailable = (exts.indexOf("GLX_ARB_multisample") >= 0);
-                    }
-                    isInit=true;
-                } else {
-                    throw new GLException("Unable to open default display, needed for visual selection and offscreen surface handling");
                 }
-            } finally {
-                NativeWindowFactory.getDefaultFactory().getToolkitLock().unlock();
             }
         }
     }

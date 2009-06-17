@@ -39,9 +39,11 @@ import javax.media.nativewindow.*;
 import javax.media.nativewindow.x11.*;
 
 public class X11Screen extends Screen {
+
     static {
-        NativeLibLoader.loadNEWT();
+        X11Display.initSingleton();
     }
+
 
     public X11Screen() {
     }

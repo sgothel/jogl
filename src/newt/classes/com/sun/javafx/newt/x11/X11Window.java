@@ -44,34 +44,34 @@ public class X11Window extends Window {
     private int nfs_width, nfs_height, nfs_x, nfs_y;
 
     static {
-        NativeLibLoader.loadNEWT();
-
-        if (!initIDs()) {
-            throw new NativeWindowException("Failed to initialize jmethodIDs");
-        }
+        X11Display.initSingleton();
     }
 
     public X11Window() {
     }
 
     protected void createNative(Capabilities caps) {
-        config = GraphicsConfigurationFactory.getFactory(getScreen().getDisplay().getGraphicsDevice()).chooseGraphicsConfiguration(caps, null, getScreen().getGraphicsScreen());
+        X11Screen screen = (X11Screen) getScreen();
+        X11Display display = (X11Display) screen.getDisplay();
+        config = GraphicsConfigurationFactory.getFactory(display.getGraphicsDevice()).chooseGraphicsConfiguration(caps, null, screen.getGraphicsScreen());
         if (config == null) {
             throw new NativeWindowException("Error choosing GraphicsConfiguration creating window: "+this);
         }
         X11GraphicsConfiguration x11config = (X11GraphicsConfiguration) config;
         long visualID = x11config.getVisualID();
-        long w = CreateWindow(getDisplayHandle(), getScreenIndex(), visualID, x, y, width, height);
+        long w = CreateWindow(display.getHandle(), screen.getIndex(), visualID, 
+                         display.getJavaObjectAtom(), display.getWindowDeleteAtom(), x, y, width, height);
         if (w == 0 || w!=windowHandle) {
             throw new NativeWindowException("Error creating window: "+w);
         }
         windowHandleClose = windowHandle;
-        displayHandleClose = getDisplayHandle();
+        displayHandleClose = display.getHandle();
     }
 
     protected void closeNative() {
         if(0!=displayHandleClose && 0!=windowHandleClose) {
-            CloseWindow(displayHandleClose, windowHandleClose);
+            X11Display display = (X11Display) getScreen().getDisplay();
+            CloseWindow(displayHandleClose, windowHandleClose, display.getJavaObjectAtom());
             windowHandleClose = 0;
             displayHandleClose = 0;
         }
@@ -89,6 +89,10 @@ public class X11Window extends Window {
             setVisible0(getDisplayHandle(), windowHandle, visible);
             clearEventMask();
         }
+    }
+
+    public void requestFocus() {
+        super.requestFocus();
     }
 
     public void setSize(int width, int height) {
@@ -129,20 +133,15 @@ public class X11Window extends Window {
         return fullscreen;
     }
 
-    protected void dispatchMessages(int eventMask) {
-        DispatchMessages(getDisplayHandle(), windowHandle, eventMask, windowDeleteAtom);
-    }
-
     //----------------------------------------------------------------------
     // Internals only
     //
 
-    private static native boolean initIDs();
+    protected static native boolean initIDs();
     private        native long CreateWindow(long display, int screen_index, 
-                                            long visualID, int x, int y, int width, int height);
-    private        native void CloseWindow(long display, long windowHandle);
+                                            long visualID, long javaObjectAtom, long windowDeleteAtom, int x, int y, int width, int height);
+    private        native void CloseWindow(long display, long windowHandle, long javaObjectAtom);
     private        native void setVisible0(long display, long windowHandle, boolean visible);
-    private        native void DispatchMessages(long display, long windowHandle, int eventMask, long windowDeleteAtom);
     private        native void setSize0(long display, int screen_index, long windowHandle, 
                                         int x, int y, int width, int height, int decorationToggle, boolean isVisible);
     private        native void setPosition0(long display, long windowHandle, int x, int y);
@@ -167,12 +166,10 @@ public class X11Window extends Window {
         sendWindowEvent(WindowEvent.EVENT_WINDOW_MOVED);
     }
 
-    private void windowCreated(long windowHandle, long windowDeleteAtom) {
+    private void windowCreated(long windowHandle) {
         this.windowHandle = windowHandle;
-        this.windowDeleteAtom=windowDeleteAtom;
     }
 
     private long   windowHandleClose;
     private long   displayHandleClose;
-    private long   windowDeleteAtom;
 }

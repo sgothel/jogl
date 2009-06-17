@@ -778,61 +778,34 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
 }
 
 /*
- * Class:     com_sun_javafx_newt_windows_WindowsScreen
- * Method:    getScreenWidth
- * Signature: (I)I
+ * Class:     com_sun_javafx_newt_windows_WindowsDisplay
+ * Method:    DispatchMessages
+ * Signature: ()V
  */
-JNIEXPORT jint JNICALL Java_com_sun_javafx_newt_windows_WindowsScreen_getScreenWidth
-  (JNIEnv *env, jobject obj, jint scrn_idx)
-{
-    return (jint)GetSystemMetrics(SM_CXSCREEN);
-}
-
-/*
- * Class:     com_sun_javafx_newt_windows_WindowsScreen
- * Method:    getScreenWidth
- * Signature: (I)I
- */
-JNIEXPORT jint JNICALL Java_com_sun_javafx_newt_windows_WindowsScreen_getScreenHeight
-  (JNIEnv *env, jobject obj, jint scrn_idx)
-{
-    return (jint)GetSystemMetrics(SM_CYSCREEN);
-}
-
-/*
- * Class:     com_sun_javafx_newt_windows_WindowsWindow
- * Method:    initIDs
- * Signature: ()Z
- */
-JNIEXPORT jboolean JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_initIDs
+JNIEXPORT void JNICALL Java_com_sun_javafx_newt_windows_WindowsDisplay_DispatchMessages
   (JNIEnv *env, jclass clazz)
 {
-    sizeChangedID = (*env)->GetMethodID(env, clazz, "sizeChanged", "(II)V");
-    positionChangedID = (*env)->GetMethodID(env, clazz, "positionChanged", "(II)V");
-    focusChangedID = (*env)->GetMethodID(env, clazz, "focusChanged", "(JZ)V");
-    windowDestroyNotifyID    = (*env)->GetMethodID(env, clazz, "windowDestroyNotify", "()V");
-    windowDestroyedID = (*env)->GetMethodID(env, clazz, "windowDestroyed", "()V");
-    sendMouseEventID = (*env)->GetMethodID(env, clazz, "sendMouseEvent", "(IIIIII)V");
-    sendKeyEventID = (*env)->GetMethodID(env, clazz, "sendKeyEvent", "(IIIC)V");
-    if (sizeChangedID == NULL ||
-        positionChangedID == NULL ||
-        focusChangedID == NULL ||
-        windowDestroyNotifyID == NULL ||
-        windowDestroyedID == NULL ||
-        sendMouseEventID == NULL ||
-        sendKeyEventID == NULL) {
-        return JNI_FALSE;
-    }
-    BuildDynamicKeyMapTable();
-    return JNI_TRUE;
+    int i = 0;
+    MSG msg;
+    BOOL gotOne;
+
+    // Periodically take a break
+    do {
+        gotOne = PeekMessage(&msg, (HWND) NULL, 0, 0, PM_REMOVE);
+        if (gotOne) {
+            ++i;
+            TranslateMessage(&msg);
+            DispatchMessage(&msg);
+        }
+    } while (gotOne && i < 100);
 }
 
 /*
- * Class:     com_sun_javafx_newt_windows_WindowsWindow
+ * Class:     com_sun_javafx_newt_windows_WindowsDisplay
  * Method:    LoadLibraryW
  * Signature: (Ljava/lang/String;)J
  */
-JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_LoadLibraryW
+JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_windows_WindowsDisplay_LoadLibraryW
   (JNIEnv *env, jclass clazz, jstring dllName)
 {
     jchar* _dllName = GetNullTerminatedStringChars(env, dllName);
@@ -842,11 +815,11 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_LoadLibra
 }
 
 /*
- * Class:     com_sun_javafx_newt_windows_WindowsWindow
+ * Class:     com_sun_javafx_newt_windows_WindowsDisplay
  * Method:    RegisterWindowClass
  * Signature: (Ljava/lang/String;J)I
  */
-JNIEXPORT jint JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_RegisterWindowClass
+JNIEXPORT jint JNICALL Java_com_sun_javafx_newt_windows_WindowsDisplay_RegisterWindowClass
   (JNIEnv *env, jclass clazz, jstring wndClassName, jlong hInstance)
 {
     ATOM res;
@@ -882,14 +855,64 @@ JNIEXPORT jint JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_RegisterWi
 }
 
 /*
- * Class:     com_sun_javafx_newt_windows_WindowsWindow
+ * Class:     com_sun_javafx_newt_windows_WindowsDisplay
  * Method:    CleanupWindowResources
  * Signature: (java/lang/String;J)V
  */
-JNIEXPORT void JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_CleanupWindowResources
-  (JNIEnv *env, jobject obj, jint wndClassAtom, jlong hInstance)
+JNIEXPORT void JNICALL Java_com_sun_javafx_newt_windows_WindowsDisplay_UnregisterWindowClass
+  (JNIEnv *env, jclass clazz, jint wndClassAtom, jlong hInstance)
 {
     UnregisterClass(MAKEINTATOM(wndClassAtom), (HINSTANCE) hInstance);
+}
+
+/*
+ * Class:     com_sun_javafx_newt_windows_WindowsScreen
+ * Method:    getWidthImpl
+ * Signature: (I)I
+ */
+JNIEXPORT jint JNICALL Java_com_sun_javafx_newt_windows_WindowsScreen_getWidthImpl
+  (JNIEnv *env, jobject obj, jint scrn_idx)
+{
+    return (jint)GetSystemMetrics(SM_CXSCREEN);
+}
+
+/*
+ * Class:     com_sun_javafx_newt_windows_WindowsScreen
+ * Method:    getWidthImpl
+ * Signature: (I)I
+ */
+JNIEXPORT jint JNICALL Java_com_sun_javafx_newt_windows_WindowsScreen_getHeightImpl
+  (JNIEnv *env, jobject obj, jint scrn_idx)
+{
+    return (jint)GetSystemMetrics(SM_CYSCREEN);
+}
+
+/*
+ * Class:     com_sun_javafx_newt_windows_WindowsWindow
+ * Method:    initIDs
+ * Signature: ()Z
+ */
+JNIEXPORT jboolean JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_initIDs
+  (JNIEnv *env, jclass clazz)
+{
+    sizeChangedID = (*env)->GetMethodID(env, clazz, "sizeChanged", "(II)V");
+    positionChangedID = (*env)->GetMethodID(env, clazz, "positionChanged", "(II)V");
+    focusChangedID = (*env)->GetMethodID(env, clazz, "focusChanged", "(JZ)V");
+    windowDestroyNotifyID    = (*env)->GetMethodID(env, clazz, "windowDestroyNotify", "()V");
+    windowDestroyedID = (*env)->GetMethodID(env, clazz, "windowDestroyed", "()V");
+    sendMouseEventID = (*env)->GetMethodID(env, clazz, "sendMouseEvent", "(IIIIII)V");
+    sendKeyEventID = (*env)->GetMethodID(env, clazz, "sendKeyEvent", "(IIIC)V");
+    if (sizeChangedID == NULL ||
+        positionChangedID == NULL ||
+        focusChangedID == NULL ||
+        windowDestroyNotifyID == NULL ||
+        windowDestroyedID == NULL ||
+        sendMouseEventID == NULL ||
+        sendKeyEventID == NULL) {
+        return JNI_FALSE;
+    }
+    BuildDynamicKeyMapTable();
+    return JNI_TRUE;
 }
 
 /*
@@ -1013,91 +1036,6 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_setVisible
     } else {
         ShowWindow(hWnd, SW_HIDE);
     }
-}
-
-/*
- * Class:     com_sun_javafx_newt_windows_WindowsWindow
- * Method:    DispatchMessages
- * Signature: (JI)V
- */
-JNIEXPORT void JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_DispatchMessages
-  (JNIEnv *env, jclass clazz, jlong window, jint eventMask)
-{
-    int i = 0;
-    MSG msg;
-    BOOL gotOne;
-    WindowUserData * wud;
-
-#if defined(UNDER_CE) || _MSC_VER <= 1200
-    wud = (WindowUserData *) GetWindowLong((HWND)window, GWL_USERDATA);
-#else
-    wud = (WindowUserData *) GetWindowLongPtr((HWND)window, GWLP_USERDATA);
-#endif
-    if(NULL==wud) {
-        fprintf(stderr, "INTERNAL ERROR in WindowsWindow::DispatchMessages window userdata NULL\n");
-        exit(1);
-    }
-
-    wud->jenv = env;
-
-    if(eventMask<0) {
-        eventMask *= -1;
-        /* FIXME: re-select input mask 
-            long xevent_mask_key = 0;
-            long xevent_mask_ptr = 0;
-            long xevent_mask_win = 0;
-            if( 0 != ( eventMask & EVENT_MOUSE ) ) {
-                xevent_mask_ptr |= ButtonPressMask|ButtonReleaseMask|PointerMotionMask;
-            }
-            if( 0 != ( eventMask & EVENT_KEY ) ) {
-                xevent_mask_key |= KeyPressMask|KeyReleaseMask;
-            }
-            if( 0 != ( eventMask & EVENT_WINDOW ) ) {
-                xevent_mask_win |= ExposureMask;
-            }
-
-            XSelectInput(dpy, w, xevent_mask_win|xevent_mask_key|xevent_mask_ptr);
-        */
-    }
-
-    // Periodically take a break
-    do {
-        gotOne = PeekMessage(&msg, (HWND) window, 0, 0, PM_REMOVE);
-        if (gotOne) {
-            ++i;
-            switch (msg.message) {
-                case WM_CLOSE:
-                case WM_DESTROY:
-                case WM_SIZE:
-                    if( ! ( eventMask & EVENT_WINDOW ) ) {
-                        continue;
-                    }
-                    break;
-
-                case WM_CHAR:
-                case WM_KEYDOWN:
-                case WM_KEYUP:
-                    if( ! ( eventMask & EVENT_KEY ) ) {
-                        continue;
-                    }
-                    break;
-
-                case WM_LBUTTONDOWN:
-                case WM_LBUTTONUP:
-                case WM_MBUTTONDOWN:
-                case WM_MBUTTONUP:
-                case WM_RBUTTONDOWN:
-                case WM_RBUTTONUP:
-                case WM_MOUSEMOVE:
-                    if( ! ( eventMask & EVENT_MOUSE ) ) {
-                        continue;
-                    }
-                    break;
-            }
-            TranslateMessage(&msg);
-            DispatchMessage(&msg);
-        }
-    } while (gotOne && i < 100);
 }
 
 /*

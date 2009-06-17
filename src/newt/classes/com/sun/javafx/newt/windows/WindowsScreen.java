@@ -39,19 +39,20 @@ import javax.media.nativewindow.*;
 
 public class WindowsScreen extends Screen {
     static {
-        NativeLibLoader.loadNEWT();
+        WindowsDisplay.initSingleton();
     }
+
 
     public WindowsScreen() {
     }
 
     protected void createNative(int index) {
         aScreen = new DefaultGraphicsScreen(getDisplay().getGraphicsDevice(), index);
-        setScreenSize(getScreenWidth(getIndex()), getScreenHeight(getIndex()));
+        setScreenSize(getWidthImpl(getIndex()), getHeightImpl(getIndex()));
     }
 
     protected void closeNative() { }
 
-    private        native int getScreenWidth(int scrn_idx);
-    private        native int getScreenHeight(int scrn_idx);
+    private        native int getWidthImpl(int scrn_idx);
+    private        native int getHeightImpl(int scrn_idx);
 }

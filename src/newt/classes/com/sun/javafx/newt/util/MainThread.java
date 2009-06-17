@@ -44,7 +44,7 @@ import javax.media.nativewindow.*;
 
 import com.sun.javafx.newt.*;
 import com.sun.javafx.newt.impl.*;
-import com.sun.javafx.newt.macosx.MacWindow;
+import com.sun.javafx.newt.macosx.MacDisplay;
 import com.sun.nativewindow.impl.NWReflection;
 
 /**
@@ -167,7 +167,7 @@ public class MainThread {
         mainAction = new MainAction(mainClassName, mainClassArgs);
 
         if(NativeWindowFactory.getNativeWindowType(false)==NativeWindowFactory.TYPE_MACOSX) {
-            MacWindow.initSingleton();
+            MacDisplay.initSingleton();
         }
 
         if ( USE_MAIN_THREAD ) {
