@@ -519,11 +519,11 @@
         <syslibset libs="X11"/>
       </linker>
 
-      <linker id="linker.cfg.solaris.sparcv9.nativewindow.x11" extends="linker.cfg.solaris">
+      <linker id="linker.cfg.solaris.sparcv9.nativewindow.x11" extends="linker.cfg.solaris.sparcv9">
         <syslibset dir="/usr/lib/sparcv9" libs="X11"/>
       </linker>
 
-      <linker id="linker.cfg.solaris.amd64.nativewindow.x11" extends="linker.cfg.solaris">
+      <linker id="linker.cfg.solaris.amd64.nativewindow.x11" extends="linker.cfg.solaris.amd64">
         <syslibset dir="/usr/lib/amd64" libs="X11"/>
       </linker>
 
