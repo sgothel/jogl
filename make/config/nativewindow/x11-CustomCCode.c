@@ -94,9 +94,11 @@ static jmethodID cstrInternalBufferUtil = NULL;
 static jclass clazzByteBuffer = NULL;
 
 static void _initClazzAccess(JNIEnv *env) {
+    jclass c;
+
     if(NULL!=cstrInternalBufferUtil) return ;
 
-    jclass c = (*env)->FindClass(env, clazzNameInternalBufferUtil);
+    c = (*env)->FindClass(env, clazzNameInternalBufferUtil);
     if(NULL==c) {
         fprintf(stderr, "FatalError: Java_com_sun_nativewindow_impl_x11_X11Lib: can't find %s\n", clazzNameInternalBufferUtil);
         (*env)->FatalError(env, clazzNameInternalBufferUtil);
