@@ -775,6 +775,12 @@
     <target name="c.build.nativewindow" depends="c.configure,c.build.nativewindow.windowlib,c.build.nativewindow.awt">
       <antcall target="c.fixup.jawt.version.macosx" inheritrefs="true" />
       <antcall target="c.manifest" inheritRefs="true" />
+      <!-- Create the Java Web Start jar file for the built native code -->
+      <jar destfile="${build}/nativewindow-natives-${os.and.arch}.jar">
+        <fileset dir="${obj}">
+          <include name="*.${native.library.suffix}" />
+        </fileset>
+      </jar>
     </target>
 
     <!-- ================================================================== -->

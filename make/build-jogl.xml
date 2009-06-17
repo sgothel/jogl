@@ -1620,6 +1620,12 @@
 
     <target name="c.build.jogl" depends="c.configure,c.build.jogl.prepare,c.build.jogl.gl2es12,c.build.jogl.gl2,c.build.jogl.es2,c.build.jogl.es1,c.build.jogl.cg">
       <antcall target="c.manifest" inheritRefs="true" />
+      <!-- Create the Java Web Start jar file for the built native code -->
+      <jar destfile="${build}/jogl-natives-${os.and.arch}.jar">
+        <fileset dir="${obj}">
+          <include name="*.${native.library.suffix}" />
+        </fileset>
+      </jar>
     </target>
 
     <!-- ================================================================== -->
@@ -2146,14 +2152,14 @@
     </target>
 
     <target name="setup-version-RI" if="jogl.ri">
-        <property name="tmp.version" value="${base_version}" />
+        <property name="tmp.version" value="${jogl_base_version}" />
     </target>
 
     <target name="setup-version-non-RI" unless="jogl.ri">
         <tstamp>
              <format property="timestamp" pattern="yyyyMMdd"/>
         </tstamp>
-        <property name="tmp.version" value="${base_version}-pre-${timestamp}" />
+        <property name="tmp.version" value="${jogl_base_version}-pre-${timestamp}" />
     </target>
 
     <target name="dist" depends="dist.dir.check,dist.check.windows,dist.check.windows-amd64,dist.check.linux,dist.check.linux-amd64,dist.check.macosx,dist.check.macosxfat,dist.check.solsparc,dist.check.solsparcv9,dist.check.solx86,dist.check.solamd64,setup-version-RI,setup-version-non-RI">

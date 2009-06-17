@@ -521,6 +521,12 @@
 
     <target name="c.build.newt" depends="c.configure,c.build.newt.prepare,c.build.newt.windowlib">
       <antcall target="c.manifest" inheritRefs="true" />
+      <!-- Create the Java Web Start jar file for the built native code -->
+      <jar destfile="${build}/newt-natives-${os.and.arch}.jar">
+        <fileset dir="${obj}">
+          <include name="*.${native.library.suffix}" />
+        </fileset>
+      </jar>
     </target>
 
     <!-- ================================================================== -->

@@ -3,6 +3,10 @@
 
     <import file="versions.xml" />
 
+  <!-- Pull in GlueGen cpptasks build file to pick up os.and.arch -->
+  <property name="gluegen.root" value="../../gluegen" />
+  <import file="${gluegen.root}/make/gluegen-cpptasks.xml" />
+
     <target name="init">
         <property name="project.root" value=".." />
         <condition property="rootrel.build" value="build">
@@ -72,7 +76,83 @@
         <ant antfile="${newt.build.xml}" dir="${newt.make.dir}" target="all" inheritAll="false"/>
     </target>
 
-    <target name="all" description="Build nativewindow, jogl and newt projects" depends="init,build.nativewindow,build.jogl,build.newt" />
+    <!-- ================================================================== -->
+    <!--
+       - Build the per-platform binary zip archive for developers.
+       - This must be called after all of the build targets complete.
+      -->
+
+    <target name="setup-version-RI" if="jogl.ri">
+        <property name="tmp.version" value="${jogl_base_version}" />
+    </target>
+
+    <target name="setup-version-non-RI" unless="jogl.ri">
+        <tstamp>
+             <format property="timestamp" pattern="yyyyMMdd"/>
+        </tstamp>
+        <property name="tmp.version" value="${jogl_base_version}-pre-${timestamp}" />
+    </target>
+
+    <target name="developer-zip-archive" depends="gluegen.cpptasks.detect.os,setup-version-RI,setup-version-non-RI">
+        <property name="archive.name" value="jogl-${tmp.version}-${os.and.arch}" />
+        <property name="archive.dir" value="${build}/${archive.name}" />
+        <delete includeEmptyDirs="true" quiet="true" dir="${archive.dir}" failonerror="false" />
+        <mkdir dir="${archive.dir}" />
+        <!-- Copy the appropriate pieces into the archive directory -->
+        <copy file="../CHANGELOG.txt"  todir="${archive.dir}" />
+        <copy file="../COPYRIGHT.txt"  todir="${archive.dir}" />
+        <copy file="../LICENSE.txt"    todir="${archive.dir}" />
+        <copy file="../doc/userguide/index.html" tofile="${archive.dir}/Userguide.html" />
+        <copy file="README-zip-bundles.txt"
+            tofile="${archive.dir}/README.txt"
+            overwrite="true">
+            <filterset>
+                <filter token="VERSION" value="${tmp.version}"/>
+            </filterset>
+        </copy>
+        <mkdir dir="${archive.dir}/lib" />
+        <copy file="${project.root}/../gluegen/${rootrel.build}/gluegen-rt.jar" todir="${archive.dir}/lib" />
+        <copy todir="${archive.dir}/lib">
+            <fileset dir="${project.root}/../gluegen/${rootrel.build}" includes="gluegen-rt.jar" />
+            <fileset dir="${project.root}/../gluegen/${rootrel.build}/obj" includes="*.${native.library.suffix}" />
+            <fileset dir="${build}/jogl" includes="*.jar" excludes="*natives*.jar" />
+            <fileset dir="${build}/jogl/obj" includes="*.${native.library.suffix}" />
+            <fileset dir="${build}/nativewindow" includes="*.jar" excludes="*natives*.jar" />
+            <fileset dir="${build}/nativewindow/obj" includes="*.${native.library.suffix}" />
+            <fileset dir="${build}/newt" includes="*.jar" excludes="*natives*.jar" />
+            <fileset dir="${build}/newt/obj" includes="*.${native.library.suffix}" />
+        </copy>
+        <zip destfile="${build}/${archive.name}.zip"
+             basedir="${build}"
+             includes="${archive.name}/**" />
+        <!-- Clean up after ourselves -->
+        <delete includeEmptyDirs="true" quiet="true" dir="${archive.dir}" failonerror="false" />
+    </target>
+
+    <!-- ================================================================== -->
+    <!--
+       - Build the source archive for developers.
+       - This must be called after all of the build targets complete.
+      -->
+
+    <target name="source-archive" depends="setup-version-RI,setup-version-non-RI">
+        <zip destfile="${build}/jogl-${tmp.version}-src.zip"
+             basedir="${project.root}/.."
+             excludes="gluegen/build/**,gluegen/build-temp/**,jogl/build/**,jogl/build-temp/**"
+             includes="gluegen/**, jogl/**" />
+        <!-- Now add in certain portions of the generated source code for developers -->
+        <zip update="true"
+             destfile="${build}/jogl-${tmp.version}-src.zip"
+             basedir="${project.root}/.."
+             includes="jogl/build/jogl/gensrc/classes/javax/media/opengl/**" />
+    </target>
+
+    <!-- ================================================================== -->
+    <!--
+       - Main build target.
+      -->
+
+    <target name="all" description="Build nativewindow, jogl and newt projects" depends="init,build.nativewindow,build.jogl,build.newt,developer-zip-archive,source-archive" />
 
     <target name="clean" depends="init">
         <ant antfile="${nativewindow.build.xml}" dir="${nativewindow.make.dir}" target="clean" inheritAll="false"/>

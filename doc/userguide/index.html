@@ -117,9 +117,10 @@ bundles.
 If you are developing a new application which uses JOGL, download the
 zip archive for your platform (for example.,
 jogl-[version]-windows-i586.zip) and unzip it. Modify your CLASSPATH
-environment variable to include the full paths to jogl.jar and
-gluegen-rt.jar; for example,
-".;C:\Some\Other\Package\foo.jar;C:\Users\myhome\jogl-[version]-windows-i586\lib\jogl.jar;C:\Users\myhome\jogl-[version]-windows-i586\lib\gluegen-rt.jar".
+environment variable to include the full paths to jogl.all.jar,
+nativewindow.all.jar, gluegen-rt.jar, and optionally newt.all.jar; for
+example,
+".;C:\Some\Other\Package\foo.jar;C:\Users\myhome\jogl-[version]-windows-i586\lib\jogl.all.jar;C:\Users\myhome\jogl-[version]-windows-i586\lib\nativewindow.all.jar;C:\Users\myhome\jogl-[version]-windows-i586\lib\gluegen-rt.jar;C:\Users\myhome\jogl-[version]-windows-i586\lib\newt.all.jar".
 (If you did not previously set the CLASSPATH environment variable, you
 may want to make sure that ".", the current directory, is on your new
 CLASSPATH.) Modify your PATH environment variable (Windows),
@@ -136,10 +137,18 @@ libraries to their current project.
 </P>
 <P>
 
-Dropping the JOGL jar and native library into the extension directory
-of the JRE is <b>strongly discouraged</b>. Doing so can cause
-conflicts with third-party applications launched via Java Web Start,
-and causes confusion later when upgrading the distribution.
+Note that the per-platform zip archives contain many more jar files
+than just the three or four mentioned above. The additional jars
+illustrate how JOGL may be partitioned to achieve a smaller deployment
+size, in particular on smaller devices.
+
+</P>
+<P>
+
+Dropping the JOGL jars and native libraries into the extension
+directory of the JRE is <b>strongly discouraged</b>. Doing so will
+cause conflicts with third-party applications launched via Java Web
+Start, and causes confusion later when upgrading the distribution.
 
 </P>
 <P>
@@ -667,7 +676,7 @@ threading model, the old threading model can be used by specifying the
 system property <CODE>-Djogl.1thread=auto</CODE> or
 <CODE>-Djogl.1thread=false</CODE>. The "auto" setting is equivalent to
 the behavior in 1.1 b09 and before, where on ATI cards the
-single-threaded mode would be used. The "false' setting is equivalent
+single-threaded mode would be used. The "false" setting is equivalent
 to disabling the single-threaded mode. "true" is now the default
 setting.
 

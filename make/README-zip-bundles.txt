@@ -3,7 +3,7 @@ Java (TM) Binding for the OpenGL (r) API, version @VERSION@
 -------------------------------------------------------
 
 This software is licensed by Sun Microsystems, as specified
-in the LICENSE-JOGL-@VERSION@.txt file.  You must use this software 
+in the LICENSE.txt file.  You must use this software 
 in accordance with the terms under which the code is licensed.
 
 
@@ -16,7 +16,7 @@ JOGL release for your target platform, you will see the
 following files in the top directory:
   
   COPYRIGHT.txt
-  LICENSE-JOGL-@VERSION@.txt
+  LICENSE.txt
   Userguide.html
   README.txt                  README file (you are reading it now)
 
@@ -42,4 +42,4 @@ JOGL source code and project information can be found at:
 Numerous answers to common questions can be found on the JOGL
 forum:
 
-  http://www.javagaming.org/forums/index.php?board=25.0
+  http://www.javagaming.org/index.php/board,25.0.html
