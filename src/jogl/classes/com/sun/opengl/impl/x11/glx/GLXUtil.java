@@ -57,36 +57,30 @@ public class GLXUtil {
         if (!isInit) {
             synchronized (GLXUtil.class) {
                 if (!isInit) {
-                    NativeWindowFactory.getDefaultFactory().getToolkitLock().lock();
-                    try {
-                        long staticDisplay = X11Util.getStaticDefaultDisplay();
-                        if(staticDisplay!=0) {
-                            if (DEBUG) {
-                                long display = staticDisplay;
-                                int screen = X11Lib.DefaultScreen(display);
-                                System.err.println("!!! GLX server vendor : " +
-                                                   GLX.glXQueryServerString(display, screen, GLX.GLX_VENDOR));
-                                System.err.println("!!! GLX server version: " +
-                                                   GLX.glXQueryServerString(display, screen, GLX.GLX_VERSION));
-                                System.err.println("!!! GLX client vendor : " +
-                                                   GLX.glXGetClientString(display, GLX.GLX_VENDOR));
-                                System.err.println("!!! GLX client version: " +
-                                                   GLX.glXGetClientString(display, GLX.GLX_VERSION));
-                            }
-                            String vendor = GLX.glXGetClientString(staticDisplay, GLX.GLX_VENDOR);
-                            if (vendor != null && vendor.startsWith("ATI")) {
-                                isVendorATI = true;
-                            }
-                            String exts = GLX.glXGetClientString(staticDisplay, GLX.GLX_EXTENSIONS);
-                            if (exts != null) {
-                                multisampleAvailable = (exts.indexOf("GLX_ARB_multisample") >= 0);
-                            }
-                            isInit=true;
-                        } else {
-                            throw new GLException("Unable to open default display, needed for visual selection and offscreen surface handling");
+                    long locDisplay = X11Util.getThreadLocalDefaultDisplay();
+                    if(locDisplay!=0) {
+                        if (DEBUG) {
+                            int screen = X11Lib.DefaultScreen(locDisplay);
+                            System.err.println("!!! GLX server vendor : " +
+                                               GLX.glXQueryServerString(locDisplay, screen, GLX.GLX_VENDOR));
+                            System.err.println("!!! GLX server version: " +
+                                               GLX.glXQueryServerString(locDisplay, screen, GLX.GLX_VERSION));
+                            System.err.println("!!! GLX client vendor : " +
+                                               GLX.glXGetClientString(locDisplay, GLX.GLX_VENDOR));
+                            System.err.println("!!! GLX client version: " +
+                                               GLX.glXGetClientString(locDisplay, GLX.GLX_VERSION));
                         }
-                    } finally {
-                        NativeWindowFactory.getDefaultFactory().getToolkitLock().unlock();
+                        String vendor = GLX.glXGetClientString(locDisplay, GLX.GLX_VENDOR);
+                        if (vendor != null && vendor.startsWith("ATI")) {
+                            isVendorATI = true;
+                        }
+                        String exts = GLX.glXGetClientString(locDisplay, GLX.GLX_EXTENSIONS);
+                        if (exts != null) {
+                            multisampleAvailable = (exts.indexOf("GLX_ARB_multisample") >= 0);
+                        }
+                        isInit=true;
+                    } else {
+                        throw new GLException("Unable to open default display, needed for visual selection and offscreen surface handling");
                     }
                 }
             }

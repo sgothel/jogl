@@ -74,13 +74,8 @@ public class X11GraphicsScreen extends DefaultGraphicsScreen implements Cloneabl
     }
 
     private static int fetchScreen(int screen) {
-        NativeWindowFactory.getDefaultFactory().getToolkitLock().lock();
-        try {
-            if(!com.sun.nativewindow.impl.x11.X11Util.isXineramaEnabledOnStaticDefaultDisplay()) {
-                return screen;
-            }
-        } finally {
-            NativeWindowFactory.getDefaultFactory().getToolkitLock().unlock();
+        if(!com.sun.nativewindow.impl.x11.X11Util.isXineramaEnabledOnThreadLocalDefaultDisplay()) {
+            return screen;
         }
         return 0;
     }

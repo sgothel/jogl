@@ -86,42 +86,32 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
   private boolean canCreateGLPbuffer = false;
   public boolean canCreateGLPbuffer() {
     if (!pbufferSupportInitialized) {
-      Runnable r = new Runnable() {
-        public void run() {
-            lockToolkit();
-            try {
-              long display = X11Util.getStaticDefaultDisplay();
-              int[] major = new int[1];
-              int[] minor = new int[1];
-              int screen = 0; // FIXME: provide way to specify this?
+        long display = X11Util.getThreadLocalDefaultDisplay();
+        int[] major = new int[1];
+        int[] minor = new int[1];
+        int screen = 0; // FIXME: provide way to specify this?
 
-              if (!GLX.glXQueryVersion(display, major, 0, minor, 0)) {
-                throw new GLException("glXQueryVersion failed");
-              }
-              if (DEBUG) {
-                System.err.println("!!! GLX version: major " + major[0] +
-                                   ", minor " + minor[0]);
-              }
-
-              // Work around bugs in ATI's Linux drivers where they report they
-              // only implement GLX version 1.2 on the server side
-              if (major[0] == 1 && minor[0] == 2) {
-                String str = GLX.glXGetClientString(display, GLX.GLX_VERSION);
-                if (str != null && str.startsWith("1.") &&
-                   (str.charAt(2) >= '3')) {
-                  canCreateGLPbuffer = true;
-                }
-              } else {
-                canCreateGLPbuffer = ((major[0] > 1) || (minor[0] > 2));
-              }
-
-              pbufferSupportInitialized = true;        
-            } finally {
-              unlockToolkit();
-            }
+        if (!GLX.glXQueryVersion(display, major, 0, minor, 0)) {
+          throw new GLException("glXQueryVersion failed");
         }
-      };
-      maybeDoSingleThreadedWorkaround(r);
+        if (DEBUG) {
+          System.err.println("!!! GLX version: major " + major[0] +
+                             ", minor " + minor[0]);
+        }
+
+        // Work around bugs in ATI's Linux drivers where they report they
+        // only implement GLX version 1.2 on the server side
+        if (major[0] == 1 && minor[0] == 2) {
+          String str = GLX.glXGetClientString(display, GLX.GLX_VERSION);
+          if (str != null && str.startsWith("1.") &&
+             (str.charAt(2) >= '3')) {
+            canCreateGLPbuffer = true;
+          }
+        } else {
+          canCreateGLPbuffer = ((major[0] > 1) || (minor[0] > 2));
+        }
+
+        pbufferSupportInitialized = true;        
     }
     return canCreateGLPbuffer;
   }
@@ -208,17 +198,12 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
     }
 
     int[] size = new int[1];
-    lockToolkit();
-    try {
-        long display = X11Util.getStaticDefaultDisplay();
-        boolean res = X11Lib.XF86VidModeGetGammaRampSize(display,
-                                                      X11Lib.DefaultScreen(display),
-                                                      size, 0);
-        if (!res) {
-          return 0;
-        }
-    } finally {
-        unlockToolkit();
+    long display = X11Util.getThreadLocalDefaultDisplay();
+    boolean res = X11Lib.XF86VidModeGetGammaRampSize(display,
+                                                  X11Lib.DefaultScreen(display),
+                                                  size, 0);
+    if (!res) {
+      return 0;
     }
     gotGammaRampLength = true;
     gammaRampLength = size[0];
@@ -232,19 +217,14 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
       rampData[i] = (short) (ramp[i] * 65535);
     }
 
-    lockToolkit();
-    try {
-        long display = X11Util.getStaticDefaultDisplay();
-        boolean res = X11Lib.XF86VidModeSetGammaRamp(display,
-                                                  X11Lib.DefaultScreen(display),
-                                                  rampData.length,
-                                                  rampData, 0,
-                                                  rampData, 0,
-                                                  rampData, 0);
-        return res;
-    } finally {
-        unlockToolkit();
-    }
+    long display = X11Util.getThreadLocalDefaultDisplay();
+    boolean res = X11Lib.XF86VidModeSetGammaRamp(display,
+                                              X11Lib.DefaultScreen(display),
+                                              rampData.length,
+                                              rampData, 0,
+                                              rampData, 0,
+                                              rampData, 0);
+    return res;
   }
 
   protected Buffer getGammaRamp() {
@@ -259,20 +239,15 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
     rampData.position(2 * size);
     rampData.limit(3 * size);
     ShortBuffer blueRampData = rampData.slice();
-    lockToolkit();
-    try {
-        long display = X11Util.getStaticDefaultDisplay();
-        boolean res = X11Lib.XF86VidModeGetGammaRamp(display,
-                                                  X11Lib.DefaultScreen(display),
-                                                  size,
-                                                  redRampData,
-                                                  greenRampData,
-                                                  blueRampData);
-        if (!res) {
-          return null;
-        }
-    } finally {
-        unlockToolkit();
+    long display = X11Util.getThreadLocalDefaultDisplay();
+    boolean res = X11Lib.XF86VidModeGetGammaRamp(display,
+                                              X11Lib.DefaultScreen(display),
+                                              size,
+                                              redRampData,
+                                              greenRampData,
+                                              blueRampData);
+    if (!res) {
+      return null;
     }
     return rampData;
   }
@@ -295,17 +270,12 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
     rampData.position(2 * size);
     rampData.limit(3 * size);
     ShortBuffer blueRampData = rampData.slice();
-    lockToolkit();
-    try {
-        long display = X11Util.getStaticDefaultDisplay();
-        X11Lib.XF86VidModeSetGammaRamp(display,
-                                    X11Lib.DefaultScreen(display),
-                                    size,
-                                    redRampData,
-                                    greenRampData,
-                                    blueRampData);
-    } finally {
-        unlockToolkit();
-    }
+    long display = X11Util.getThreadLocalDefaultDisplay();
+    X11Lib.XF86VidModeSetGammaRamp(display,
+                                X11Lib.DefaultScreen(display),
+                                size,
+                                redRampData,
+                                greenRampData,
+                                blueRampData);
   }
 }

@@ -47,8 +47,9 @@ package javax.media.nativewindow;
     <PRE>
     NativeWindowFactory.getDefaultFactory().getToolkitLock().lock();
     try {
-      long displayHandle = X11Util.getStaticDefaultDisplay();
-      ...
+      long displayHandle = X11Util.getThreadLocalDefaultDisplay();
+      ... some code dealing with shared resources 
+      ... ie the window surface
     } finally {
       NativeWindowFactory.getDefaultFactory().getToolkitLock().unlock();
     }
