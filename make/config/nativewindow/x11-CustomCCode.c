@@ -140,6 +140,8 @@ Java_com_sun_nativewindow_impl_x11_X11Lib_XGetVisualInfoCopied1__JJLjava_nio_Byt
   int * _ptr3 = NULL;
   XVisualInfo *  _res;
   int count;
+  jobject jbyteSource;
+  jobject jbyteCopy;
     if (arg2 != NULL) {
         _ptr2 = (XVisualInfo *) (((char*) (*env)->GetDirectBufferAddress(env, arg2)) + 0);
     }
@@ -155,9 +157,9 @@ Java_com_sun_nativewindow_impl_x11_X11Lib_XGetVisualInfoCopied1__JJLjava_nio_Byt
 
   _initClazzAccess(env);
 
-  jobject jbyteSource = (*env)->NewDirectByteBuffer(env, _res, count * sizeof(XVisualInfo));
-  jobject jbyteCopy   = (*env)->CallStaticObjectMethod(env,
-                            clazzInternalBufferUtil, cstrInternalBufferUtil, jbyteSource);
+  jbyteSource = (*env)->NewDirectByteBuffer(env, _res, count * sizeof(XVisualInfo));
+  jbyteCopy   = (*env)->CallStaticObjectMethod(env,
+                                               clazzInternalBufferUtil, cstrInternalBufferUtil, jbyteSource);
 
   // FIXME: remove reference/gc jbyteSource ?? 
   XFree(_res);
