@@ -461,24 +461,24 @@ static jchar* GetNullTerminatedStringChars(JNIEnv* env, jstring str)
 
 static jint GetModifiers() {
     jint modifiers = 0;
-    // have to do &0xFF to avoid runtime assert crash caused by compiling with
+    // have to do &0xFFFF to avoid runtime assert caused by compiling with
     // /RTCcsu
-    if (HIBYTE((GetKeyState(VK_CONTROL) & 0xFF)) != 0) {
+    if (HIBYTE((GetKeyState(VK_CONTROL) & 0xFFFF)) != 0) {
         modifiers |= EVENT_CTRL_MASK;
     }
-    if (HIBYTE((GetKeyState(VK_SHIFT) & 0xFF)) != 0) {
+    if (HIBYTE((GetKeyState(VK_SHIFT) & 0xFFFF)) != 0) {
         modifiers |= EVENT_SHIFT_MASK;
     }
-    if (HIBYTE((GetKeyState(VK_MENU) & 0xFF)) != 0) {
+    if (HIBYTE((GetKeyState(VK_MENU) & 0xFFFF)) != 0) {
         modifiers |= EVENT_ALT_MASK;
     }
-    if (HIBYTE((GetKeyState(VK_LBUTTON) & 0xFF)) != 0) {
+    if (HIBYTE((GetKeyState(VK_LBUTTON) & 0xFFFF)) != 0) {
         modifiers |= EVENT_BUTTON1_MASK;
     }
-    if (HIBYTE((GetKeyState(VK_MBUTTON) & 0xFF)) != 0) {
+    if (HIBYTE((GetKeyState(VK_MBUTTON) & 0xFFFF)) != 0) {
         modifiers |= EVENT_BUTTON2_MASK;
     }
-    if (HIBYTE((GetKeyState(VK_RBUTTON) & 0xFF)) != 0) {
+    if (HIBYTE((GetKeyState(VK_RBUTTON) & 0xFFFF)) != 0) {
         modifiers |= EVENT_BUTTON3_MASK;
     }
 
