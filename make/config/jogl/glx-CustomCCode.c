@@ -24,9 +24,11 @@ static jmethodID cstrInternalBufferUtil = NULL;
 static jclass clazzByteBuffer = NULL;
 
 static void _initClazzAccess(JNIEnv *env) {
+    jclass c;
+
     if(NULL!=cstrInternalBufferUtil) return ;
 
-    jclass c = (*env)->FindClass(env, clazzNameInternalBufferUtil);
+    c = (*env)->FindClass(env, clazzNameInternalBufferUtil);
     if(NULL==c) {
         fprintf(stderr, "FatalError: Java_com_sun_opengl_impl_x11_glx_GLX: can't find %s\n", clazzNameInternalBufferUtil);
         (*env)->FatalError(env, clazzNameInternalBufferUtil);
@@ -65,14 +67,16 @@ static void _initClazzAccess(JNIEnv *env) {
 JNIEXPORT jobject JNICALL 
 Java_com_sun_opengl_impl_x11_glx_GLX_glXGetVisualFromFBConfigCopied0__JJ(JNIEnv *env, jclass _unused, jlong dpy, jlong config) {
   XVisualInfo *  _res;
+  jobject jbyteSource;
+  jobject jbyteCopy;
   _res = glXGetVisualFromFBConfig((Display *) (intptr_t) dpy, (GLXFBConfig) (intptr_t) config);
   if (_res == NULL) return NULL;
 
   _initClazzAccess(env);
 
-  jobject jbyteSource = (*env)->NewDirectByteBuffer(env, _res, sizeof(XVisualInfo));
-  jobject jbyteCopy   = (*env)->CallStaticObjectMethod(env,
-                            clazzInternalBufferUtil, cstrInternalBufferUtil, jbyteSource);
+  jbyteSource = (*env)->NewDirectByteBuffer(env, _res, sizeof(XVisualInfo));
+  jbyteCopy   = (*env)->CallStaticObjectMethod(env,
+                                               clazzInternalBufferUtil, cstrInternalBufferUtil, jbyteSource);
 
   // FIXME: remove reference/gc jbyteSource ?? 
   XFree(_res);
@@ -91,6 +95,8 @@ Java_com_sun_opengl_impl_x11_glx_GLX_glXChooseFBConfigCopied1__JILjava_lang_Obje
   int * _ptr3 = NULL;
   GLXFBConfig *  _res;
   int count;
+  jobject jbyteSource;
+  jobject jbyteCopy;
   if (attribList != NULL) {
     _ptr2 = (int *) (((char*) (*env)->GetPrimitiveArrayCritical(env, attribList, NULL)) + attribList_byte_offset);
   }
@@ -109,9 +115,9 @@ Java_com_sun_opengl_impl_x11_glx_GLX_glXChooseFBConfigCopied1__JILjava_lang_Obje
 
   _initClazzAccess(env);
 
-  jobject jbyteSource = (*env)->NewDirectByteBuffer(env, _res, count * sizeof(GLXFBConfig));
-  jobject jbyteCopy   = (*env)->CallStaticObjectMethod(env,
-                            clazzInternalBufferUtil, cstrInternalBufferUtil, jbyteSource);
+  jbyteSource = (*env)->NewDirectByteBuffer(env, _res, count * sizeof(GLXFBConfig));
+  jbyteCopy   = (*env)->CallStaticObjectMethod(env,
+                                               clazzInternalBufferUtil, cstrInternalBufferUtil, jbyteSource);
 
   // FIXME: remove reference/gc jbyteSource ?? 
   XFree(_res);
@@ -128,6 +134,8 @@ JNIEXPORT jobject JNICALL
 Java_com_sun_opengl_impl_x11_glx_GLX_glXChooseVisualCopied1__JILjava_lang_Object_2I(JNIEnv *env, jclass _unused, jlong dpy, jint screen, jobject attribList, jint attribList_byte_offset) {
   int * _ptr2 = NULL;
   XVisualInfo *  _res;
+  jobject jbyteSource;
+  jobject jbyteCopy;
   if (attribList != NULL) {
     _ptr2 = (int *) (((char*) (*env)->GetPrimitiveArrayCritical(env, attribList, NULL)) + attribList_byte_offset);
   }
@@ -139,9 +147,9 @@ Java_com_sun_opengl_impl_x11_glx_GLX_glXChooseVisualCopied1__JILjava_lang_Object
 
   _initClazzAccess(env);
 
-  jobject jbyteSource = (*env)->NewDirectByteBuffer(env, _res, sizeof(XVisualInfo));
-  jobject jbyteCopy   = (*env)->CallStaticObjectMethod(env,
-                            clazzInternalBufferUtil, cstrInternalBufferUtil, jbyteSource);
+  jbyteSource = (*env)->NewDirectByteBuffer(env, _res, sizeof(XVisualInfo));
+  jbyteCopy   = (*env)->CallStaticObjectMethod(env,
+                                               clazzInternalBufferUtil, cstrInternalBufferUtil, jbyteSource);
 
   // FIXME: remove reference/gc jbyteSource ?? 
   XFree(_res);
