@@ -519,6 +519,14 @@
         <syslibset libs="X11"/>
       </linker>
 
+      <linker id="linker.cfg.solaris.sparcv9.nativewindow.x11" extends="linker.cfg.solaris">
+        <syslibset dir="/usr/lib/sparcv9" libs="X11"/>
+      </linker>
+
+      <linker id="linker.cfg.solaris.amd64.nativewindow.x11" extends="linker.cfg.solaris">
+        <syslibset dir="/usr/lib/amd64" libs="X11"/>
+      </linker>
+
       <linker id="linker.cfg.win32.mingw.nativewindow" extends="linker.cfg.win32.mingw">
         <linkerarg value="-Wl,--kill-at" />        <!-- remove @ from function names -->
         <syslibset libs="gdi32, kernel32"/>
