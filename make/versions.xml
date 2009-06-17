@@ -11,30 +11,30 @@
        example, "2.0-beta1" or "2.0-rc1". For large releases, push
        betas before release candidates to give the community time to
        react.-->
-  <property name="jogl_base_version" value="2.0" />
+  <property name="jogl_base_version" value="2.0-beta1" />
 
   <!-- Uncomment this property in order to produce a JOGL release
        build without running the "RI" (Reference Implementation)
        target in build-jogl.xml. -->
-  <!-- <property name="jogl.ri" value="true" /> -->
+  <property name="jogl.ri" value="true" />
 
   <!-- Base version of the NativeWindow interface, following the same
        rules as above -->
-  <property name="nativewindow_base_version" value="1.0" />
+  <property name="nativewindow_base_version" value="1.0-beta1" />
 
   <!-- Uncomment this property in order to produce a NativeWindow
        build without running the "RI" (Reference Implementation)
        target in build-nativewindow.xml. -->
-  <!-- <property name="nativewindow.ri" value="true" /> -->
+  <property name="nativewindow.ri" value="true" />
 
   <!-- Base version of the Newt library, following the same
        rules as above -->
-  <property name="newt_base_version" value="1.0" />
+  <property name="newt_base_version" value="1.0-beta1" />
 
   <!-- Newt isn't covered by a JSR at the moment, so there is little
        value in having a different reference implementation
        vs. intermediate build numbering scheme, but for the moment
        let's keep things symmetric -->
-  <!-- <property name="newt.ri" value="true" /> -->
+  <property name="newt.ri" value="true" />
 
 </project>
