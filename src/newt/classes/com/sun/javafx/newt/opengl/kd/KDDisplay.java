@@ -42,20 +42,15 @@ import javax.media.nativewindow.egl.*;
 public class KDDisplay extends Display {
 
     static {
-        initSingleton();
-    }
-
-    private static volatile boolean isInit = false;
-
-    public static synchronized void initSingleton() {
-        if(isInit) return;
-        isInit=true;
-
         NativeLibLoader.loadNEWT();
 
         if (!KDWindow.initIDs()) {
             throw new NativeWindowException("Failed to initialize KDWindow jmethodIDs");
         }
+    }
+
+    public static void initSingleton() {
+        // just exist to ensure static init has been run
     }
 
 

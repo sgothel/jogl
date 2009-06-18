@@ -45,20 +45,15 @@ public class WindowsDisplay extends Display {
     private static long hInstance;
 
     static {
-        initSingleton();
-    }
-
-    private static volatile boolean isInit = false;
-
-    public static synchronized void initSingleton() {
-        if(isInit) return;
-        isInit=true;
-
         NativeLibLoader.loadNEWT();
 
         if (!WindowsWindow.initIDs()) {
             throw new NativeWindowException("Failed to initialize WindowsWindow jmethodIDs");
         }
+    }
+
+    public static void initSingleton() {
+        // just exist to ensure static init has been run
     }
 
 

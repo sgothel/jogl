@@ -41,15 +41,6 @@ import com.sun.javafx.newt.util.MainThread;
 
 public class MacDisplay extends Display {
     static {
-        initSingleton();
-    }
-
-    private static volatile boolean isInit = false;
-
-    public static synchronized void initSingleton() {
-        if(isInit) return;
-        isInit=true;
-
         NativeLibLoader.loadNEWT();
 
         if(!initNSApplication()) {
@@ -59,6 +50,10 @@ public class MacDisplay extends Display {
             throw new NativeWindowException("Failed to initialize jmethodIDs");
         }
         if(DEBUG) System.out.println("MacDisplay.init App and IDs OK "+Thread.currentThread().getName());
+    }
+
+    public static void initSingleton() {
+        // just exist to ensure static init has been run
     }
     
     public MacDisplay() {

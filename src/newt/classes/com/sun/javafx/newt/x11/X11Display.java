@@ -41,15 +41,6 @@ import com.sun.nativewindow.impl.x11.X11Util;
 
 public class X11Display extends Display {
     static {
-        initSingleton();
-    }
-
-    private static volatile boolean isInit = false;
-
-    public static synchronized void initSingleton() {
-        if(isInit) return;
-        isInit=true;
-
         NativeLibLoader.loadNEWT();
 
         if (!initIDs()) {
@@ -59,6 +50,10 @@ public class X11Display extends Display {
         if (!X11Window.initIDs()) {
             throw new NativeWindowException("Failed to initialize X11Window jmethodIDs");
         }
+    }
+
+    public static void initSingleton() {
+        // just exist to ensure static init has been run
     }
 
 
