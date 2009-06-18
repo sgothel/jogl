@@ -25,7 +25,8 @@
         <property name="newt.build.xml" value="${newt.make.dir}/build-newt.xml" />
 
         <property name="all.srcj.path" value="${src}/nativewindow/classes;${src}/jogl/classes;${src}/newt/classes" />
-        <property name="all.genj.path" value="${build}/nativewindow/gensrc/classes;${build}/jogl/gensrc/classes;${build}/newt/gensrc/classes" />
+        <!-- No generated classes for Newt at the present time -->
+        <property name="all.genj.path" value="${build}/nativewindow/gensrc/classes;${build}/jogl/gensrc/classes" />
 
         <!-- The javadoc dirs. -->
         <property name="javadoc" value="${project.root}/javadoc_public" />
@@ -50,6 +51,7 @@
         <property name="java.excludes.javadoc.packagenames" value="com.sun.opengl.impl.gl2.fixme.*,com.sun.javafx.audio.windows.waveout.TestSpatialization"/>
         <property name="javadoc.bottom" value="Copyright 2005 Sun Microsystems, Inc. All rights reserved. Use is subject to &lt;a href=&quot;http://jcp.org/en/jsr/detail?id=231&quot;&gt;license terms&lt;/a&gt;." />
 
+        <property name="gluegen.jar" value="../../gluegen/${rootrel.build}/gluegen.jar" />
         <property name="gluegen-rt.jar" value="../../gluegen/${rootrel.build}/gluegen-rt.jar" />
         <property name="nativewindow.all.jar" value="../${rootrel.build}/nativewindow/nativewindow.all.jar" />
         <property name="jogl.all.jar" value="../${rootrel.build}/jogl/jogl.all.jar" />
@@ -179,6 +181,7 @@
          bottom="${javadoc.bottom}" >
          <classpath refid="all.classpath"/>
          <link offline="true" href="${javadoc.link}" packagelistLoc="142-packages" />
+          <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.jar}" />
         </javadoc>
     </target>
 
@@ -194,6 +197,7 @@
          <classpath refid="all.classpath"/>
          <link offline="true" href="${javadoc.link}" packagelistLoc="142-packages" />
          <link offline="false" href="${javadoc.nw.spec}" />
+          <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.jar}" />
         </javadoc>
     </target>
                                                                                                                                    
@@ -208,6 +212,7 @@
          bottom="${javadoc.bottom}" >
          <classpath refid="all.classpath"/>
          <link offline="true" href="${javadoc.link}" packagelistLoc="142-packages" />
+          <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.jar}" />
         </javadoc>
     </target>
 
@@ -222,6 +227,7 @@
                  bottom="${javadoc.bottom}" >
          <classpath refid="all.classpath"/>
          <link offline="true" href="${javadoc.link}" packagelistLoc="142-packages" />
+         <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.jar}" />
         </javadoc>
     </target>
                                                                                                                                    
