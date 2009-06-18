@@ -36,11 +36,13 @@ package com.sun.javafx.newt;
 import javax.media.nativewindow.*;
 import java.util.ArrayList;
 import java.util.Iterator;
+import com.sun.nativewindow.impl.jvm.JVMUtil;
 
 public abstract class NewtFactory {
     // Work-around for initialization order problems on Mac OS X
     // between native Newt and (apparently) Fmod
     static {
+        JVMUtil.initSingleton();
         Window.init(NativeWindowFactory.getNativeWindowType(true));
     }
 

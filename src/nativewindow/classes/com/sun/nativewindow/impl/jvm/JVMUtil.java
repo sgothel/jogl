@@ -30,27 +30,49 @@
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  */
 
-package com.sun.opengl.impl.x11.glx;
+package com.sun.nativewindow.impl.jvm;
 
-import javax.media.opengl.*;
+import java.nio.ByteBuffer;
+import com.sun.nativewindow.impl.*;
 
-import com.sun.opengl.impl.*;
-import javax.media.nativewindow.NativeWindowFactory;
-import com.sun.nativewindow.impl.x11.*;
+/**
+ * Currently this tool works around the Hotspot race condition bugs:
+ <PRE>
+     4395095 JNI access to java.nio DirectBuffer constructor/accessor
+     6852404 Race condition in JNI Direct Buffer access and creation routines
+ </PRE>
+ *
+ * Make sure to initialize this class as soon as possible,
+ * before doing any multithreading work.
+ *
+ */
+public class JVMUtil {
+    private static final boolean DEBUG = Debug.debug("JVMUtil");
 
-public class GLXUtil {
-    public static boolean isMultisampleAvailable(long display) {
-        String exts = GLX.glXGetClientString(display, GLX.GLX_EXTENSIONS);
-        if (exts != null) {
-            return (exts.indexOf("GLX_ARB_multisample") >= 0);
+    static {
+        initSingleton();
+    }
+
+    private static volatile boolean isInit = false;
+
+    public static synchronized void initSingleton() {
+        if(isInit) return;
+        isInit=true;
+
+        NativeLibLoaderBase.loadNativeWindow("jvm");
+
+        ByteBuffer buffer = InternalBufferUtil.newByteBuffer(64);
+        if( ! initialize(buffer) ) {
+            throw new RuntimeException("Failed to initialize the JVMUtil "+Thread.currentThread().getName());
         }
-        return false;
+        if(DEBUG) {
+            Exception e = new Exception("JVMUtil.initSingleton() .. initialized "+Thread.currentThread().getName());
+            e.printStackTrace();
+        }
     }
 
-    /** Workaround for apparent issue with ATI's proprietary drivers
-        where direct contexts still send GLX tokens for GL calls */
-    public static boolean isVendorATI(long display) {
-        String vendor = GLX.glXGetClientString(display, GLX.GLX_VENDOR);
-        return vendor != null && vendor.startsWith("ATI") ;
-    }
+    private JVMUtil() {}
+
+    private static native boolean initialize(java.nio.ByteBuffer buffer);
 }
+

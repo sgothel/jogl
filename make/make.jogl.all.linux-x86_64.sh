@@ -3,8 +3,11 @@
 . ../../setenv-build-jogl-x86_64.sh
 
 #    -Dc.compiler.debug=true 
+#    -Dbuild.noarchives=true
 
 ant \
+    -Dc.compiler.debug=true \
+    -Dbuild.noarchives=true \
     -Drootrel.build=build-x86_64 \
     -Dgluegen.cpptasks.detected.os=true \
     -DisUnix=true \

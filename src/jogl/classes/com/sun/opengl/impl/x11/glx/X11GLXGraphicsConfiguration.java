@@ -288,7 +288,10 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
 
   // FBConfig
 
-  public static GLCapabilities GLXFBConfig2GLCapabilities(GLProfile glp, long display, long fbcfg) {
+  // sgothel: The synchronized was added, due to bugs within the GLX implementation on my platform
+  //          in regards to multithreading (FIXME).
+
+  public synchronized static GLCapabilities GLXFBConfig2GLCapabilities(GLProfile glp, long display, long fbcfg, boolean isMultisampleEnabled) {
     int[] tmp = new int[1];
     int val;
     val = glXGetFBConfig(display, fbcfg, GLX.GLX_RENDER_TYPE, tmp, 0);
@@ -309,7 +312,7 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
     res.setAccumGreenBits(glXGetFBConfig(display, fbcfg, GLX.GLX_ACCUM_GREEN_SIZE, tmp, 0));
     res.setAccumBlueBits (glXGetFBConfig(display, fbcfg, GLX.GLX_ACCUM_BLUE_SIZE,  tmp, 0));
     res.setAccumAlphaBits(glXGetFBConfig(display, fbcfg, GLX.GLX_ACCUM_ALPHA_SIZE, tmp, 0));
-    if (GLXUtil.isMultisampleAvailable()) {
+    if (isMultisampleEnabled) {
       res.setSampleBuffers(glXGetFBConfig(display, fbcfg, GLX.GLX_SAMPLE_BUFFERS, tmp, 0) != 0);
       res.setNumSamples   (glXGetFBConfig(display, fbcfg, GLX.GLX_SAMPLES,        tmp, 0));
     }
@@ -333,7 +336,7 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
     return res;
   }
 
-  private static String glXGetFBConfigErrorCode(int err) {
+  private synchronized static String glXGetFBConfigErrorCode(int err) {
     switch (err) {
       case GLX.GLX_NO_EXTENSION:  return "GLX_NO_EXTENSION";
       case GLX.GLX_BAD_ATTRIBUTE: return "GLX_BAD_ATTRIBUTE";
@@ -341,7 +344,7 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
     }
   }
 
-  public static int glXGetFBConfig(long display, long cfg, int attrib, int[] tmp, int tmp_offset) {
+  public synchronized static int glXGetFBConfig(long display, long cfg, int attrib, int[] tmp, int tmp_offset) {
     if (display == 0) {
       throw new GLException("No display connection");
     }
@@ -376,7 +379,7 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
       return res;
   }
 
-  public static GLCapabilities XVisualInfo2GLCapabilities(GLProfile glp, long display, XVisualInfo info) {
+  public static GLCapabilities XVisualInfo2GLCapabilities(GLProfile glp, long display, XVisualInfo info, boolean isMultisampleEnabled) {
     int[] tmp = new int[1];
     int val = glXGetConfig(display, info, GLX.GLX_USE_GL, tmp, 0);
     if (val == 0) {
@@ -404,7 +407,7 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
     res.setAccumGreenBits(glXGetConfig(display, info, GLX.GLX_ACCUM_GREEN_SIZE, tmp, 0));
     res.setAccumBlueBits (glXGetConfig(display, info, GLX.GLX_ACCUM_BLUE_SIZE,  tmp, 0));
     res.setAccumAlphaBits(glXGetConfig(display, info, GLX.GLX_ACCUM_ALPHA_SIZE, tmp, 0));
-    if (GLXUtil.isMultisampleAvailable()) {
+    if (isMultisampleEnabled) {
       res.setSampleBuffers(glXGetConfig(display, info, GLX.GLX_SAMPLE_BUFFERS, tmp, 0) != 0);
       res.setNumSamples   (glXGetConfig(display, info, GLX.GLX_SAMPLES,        tmp, 0));
     }

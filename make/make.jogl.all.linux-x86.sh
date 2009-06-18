@@ -4,8 +4,10 @@
 
 #    -Dc.compiler.debug=true 
 #    -DuseOpenMAX=true \
+#    -Dbuild.noarchives=true
 
 ant \
+    -Dbuild.noarchives=true \
     -Drootrel.build=build-x86 \
     -Dgluegen.cpptasks.detected.os=true \
     -DisUnix=true \

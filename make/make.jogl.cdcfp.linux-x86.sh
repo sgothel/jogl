@@ -8,8 +8,10 @@
 #    -Djavacdebuglevel="none" \
 #
 #    -Djava.generate.skip=true \
+#    -Dbuild.noarchives=true
 
 ant -v \
+    -Dbuild.noarchives=true \
     -Drootrel.build=build-cdcfp-x86 \
     -Djogl.cdcfp=true \
     -Dgluegen.cpptasks.detected.os=true \

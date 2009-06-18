@@ -42,6 +42,7 @@ import java.util.HashMap;
 import java.security.*;
 import com.sun.opengl.impl.*;
 import com.sun.nativewindow.impl.NWReflection;
+import com.sun.nativewindow.impl.jvm.JVMUtil;
 
 /**
  * Specifies the the OpenGL profile.
@@ -613,6 +614,8 @@ public class GLProfile implements Cloneable {
      * Throws an GLException if no profile could be found at all.
      */
     static {
+        JVMUtil.initSingleton();
+
         boolean hasDesktopGL = false;
         boolean hasDesktopGLES12 = false;
         boolean hasNativeOSFactory = false;

@@ -42,7 +42,7 @@ import com.sun.nativewindow.impl.jawt.*;
 import com.sun.nativewindow.impl.jawt.x11.*;
 import com.sun.nativewindow.impl.x11.*;
 
-public class X11AWTNativeWindowFactory extends X11NativeWindowFactory {
+public class X11AWTNativeWindowFactory extends NativeWindowFactoryImpl {
 
     // When running the AWT on X11 platforms, we use the AWT native
     // interface (JAWT) to lock and unlock the toolkit

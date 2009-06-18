@@ -46,7 +46,7 @@ public class X11GraphicsScreen extends DefaultGraphicsScreen implements Cloneabl
 
     /** Constructs a new X11GraphicsScreen corresponding to the given native screen index. */
     public X11GraphicsScreen(X11GraphicsDevice device, int screen) {
-        super(device, fetchScreen(screen));
+        super(device, fetchScreen(device, screen));
     }
 
     public static AbstractGraphicsScreen createScreenDevice(long display, int screenIdx) {
@@ -73,8 +73,8 @@ public class X11GraphicsScreen extends DefaultGraphicsScreen implements Cloneabl
         }
     }
 
-    private static int fetchScreen(int screen) {
-        if(!com.sun.nativewindow.impl.x11.X11Util.isXineramaEnabledOnThreadLocalDefaultDisplay()) {
+    private static int fetchScreen(X11GraphicsDevice device, int screen) {
+        if(!X11Lib.XineramaEnabled(device.getHandle())) {
             return screen;
         }
         return 0;

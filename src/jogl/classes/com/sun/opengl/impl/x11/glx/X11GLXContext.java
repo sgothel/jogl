@@ -134,6 +134,7 @@ public abstract class X11GLXContext extends GLContextImpl {
     }
     GLCapabilities glCaps = (GLCapabilities) config.getChosenCapabilities();
     long display = config.getScreen().getDevice().getHandle();
+    isVendorATI = GLXUtil.isVendorATI(display);
 
     if(config.getFBConfigID()<0) {
         // not able to use FBConfig
@@ -424,8 +425,7 @@ public abstract class X11GLXContext extends GLContextImpl {
   }
 
   public boolean isOptimizable() {
-    return (super.isOptimizable() &&
-            !GLXUtil.isVendorATI());
+    return (super.isOptimizable() && !isVendorATI);
   }
 
   //----------------------------------------------------------------------
@@ -435,5 +435,7 @@ public abstract class X11GLXContext extends GLContextImpl {
   public long getContext() {
     return context;
   }
+
+  private boolean isVendorATI = false;
 
 }

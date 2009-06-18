@@ -118,7 +118,7 @@
         <!-- partitioning -->
 
         <property name="java.part.core"
-                  value="javax/media/nativewindow/*, javax/media/nativewindow/egl/*, javax/media/nativewindow/x11/*, javax/media/nativewindow/macosx/*, javax/media/nativewindow/windows/*, com/sun/nativewindow/impl/*, com/sun/nativewindow/impl/x11/*"/>
+                  value="javax/media/nativewindow/*, javax/media/nativewindow/egl/*, javax/media/nativewindow/x11/*, javax/media/nativewindow/macosx/*, javax/media/nativewindow/windows/*, com/sun/nativewindow/impl/*, com/sun/nativewindow/impl/jvm/*, com/sun/nativewindow/impl/x11/*"/>
 
         <!-- property name="java.part.win"
                   value="com/sun/nativewindow/impl/win/**"/ NOTHING TO DO HERE -->
@@ -672,6 +672,10 @@
           </and>
         </condition> 
 
+        <patternset id="c.src.files.jvm">
+          <include name="${rootrel.src.c}/JVM*.c"/>
+        </patternset>
+
         <patternset id="c.src.files.awt">
           <include name="${rootrel.src.c}/JAWT*.c"/>
           <include name="${rootrel.generated.c}/X11/JAWT*.c" if="isX11"/>
@@ -757,6 +761,13 @@
       </apply>
     </target>
 
+    <target name="c.build.nativewindow.jvm">
+      <c.build c.compiler.src.files="c.src.files.jvm"
+               output.lib.name="nativewindow_jvm"
+               compiler.cfg.id="${compiler.cfg.id}"
+               linker.cfg.id="${linker.cfg.id.oswin}"/>
+    </target>
+
     <target name="c.build.nativewindow.awt">
       <c.build c.compiler.src.files="c.src.files.awt"
                c.compiler.use-jawt="true"
@@ -776,11 +787,11 @@
 
     <target name="c.manifest" if="isVC8Family">
       <!-- exec mt, the Microsoft Manifest Tool, to include DLL manifests in order to resolve the location of msvcr80.dll -->
-      <msvc.manifest objdir="${obj}" dllname="nativewindow" />
+      <msvc.manifest objdir="${obj}" dllname="nativewindow_jvm" />
       <msvc.manifest objdir="${obj}" dllname="nativewindow_awt" />
     </target>
 
-    <target name="c.build.nativewindow" depends="c.configure,c.build.nativewindow.windowlib,c.build.nativewindow.awt">
+    <target name="c.build.nativewindow" depends="c.configure,c.build.nativewindow.windowlib,c.build.nativewindow.jvm,c.build.nativewindow.awt">
       <antcall target="c.fixup.jawt.version.macosx" inheritrefs="true" />
       <antcall target="c.manifest" inheritRefs="true" />
       <!-- Create the Java Web Start jar file for the built native code -->

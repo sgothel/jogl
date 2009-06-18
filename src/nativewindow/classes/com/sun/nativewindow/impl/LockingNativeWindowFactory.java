@@ -30,14 +30,12 @@
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  */
 
-package com.sun.nativewindow.impl.x11;
+package com.sun.nativewindow.impl;
 
 import javax.media.nativewindow.*;
-import com.sun.nativewindow.impl.*;
 
-public class X11NativeWindowFactory extends NativeWindowFactoryImpl {
-    // On X11 platforms we need to do some locking; this basic
-    // implementation should suffice for some simple window toolkits
+public class LockingNativeWindowFactory extends NativeWindowFactoryImpl {
+    // Provides a generic basic and recursive locking mechanism for your discretion.
     private ToolkitLock toolkitLock = new ToolkitLock() {
             private Thread owner;
             private int recursionCount;

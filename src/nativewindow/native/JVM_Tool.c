@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -20,7 +20,7 @@
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
  * PARTICULAR PURPOSE OR NON-INFRINGEMENT, ARE HEREBY EXCLUDED. SUN
- * MICROSYSTEMS, INC. ("SUN") AND ITS LICENSORS SHALL NOT BE LIABLE FOR
+ * MIDROSYSTEMS, INC. ("SUN") AND ITS LICENSORS SHALL NOT BE LIABLE FOR
  * ANY DAMAGES SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR
  * DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES. IN NO EVENT WILL SUN OR
  * ITS LICENSORS BE LIABLE FOR ANY LOST REVENUE, PROFIT OR DATA, OR FOR
@@ -28,29 +28,24 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+ * 
+ * You acknowledge that this software is not designed or intended for use
+ * in the design, construction, operation or maintenance of any nuclear
+ * facility.
+ * 
+ * Sun gratefully acknowledges that this software was originally authored
+ * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.sun.opengl.impl.x11.glx;
+#include <jni.h>
 
-import javax.media.opengl.*;
-
-import com.sun.opengl.impl.*;
-import javax.media.nativewindow.NativeWindowFactory;
-import com.sun.nativewindow.impl.x11.*;
-
-public class GLXUtil {
-    public static boolean isMultisampleAvailable(long display) {
-        String exts = GLX.glXGetClientString(display, GLX.GLX_EXTENSIONS);
-        if (exts != null) {
-            return (exts.indexOf("GLX_ARB_multisample") >= 0);
-        }
-        return false;
-    }
-
-    /** Workaround for apparent issue with ATI's proprietary drivers
-        where direct contexts still send GLX tokens for GL calls */
-    public static boolean isVendorATI(long display) {
-        String vendor = GLX.glXGetClientString(display, GLX.GLX_VENDOR);
-        return vendor != null && vendor.startsWith("ATI") ;
-    }
+JNIEXPORT jboolean JNICALL
+Java_com_sun_nativewindow_impl_jvm_JVMUtil_initialize(JNIEnv *env, jclass _unused, jobject nioBuffer) {
+  int res;
+  void * ptr = NULL;
+  if (nioBuffer != NULL) {
+        ptr = (void *) (*env)->GetDirectBufferAddress(env, nioBuffer);
+  }
+  return ( NULL==ptr ) ? JNI_FALSE : JNI_TRUE ;
 }
+

@@ -33,10 +33,11 @@
 
 package com.sun.javafx.newt.x11;
 
-import com.sun.javafx.newt.*;
-import com.sun.javafx.newt.impl.*;
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.x11.*;
+import com.sun.javafx.newt.*;
+import com.sun.javafx.newt.impl.*;
+import com.sun.nativewindow.impl.x11.X11Util;
 
 public class X11Display extends Display {
     static {
@@ -65,15 +66,23 @@ public class X11Display extends Display {
     }
 
     protected void createNative() {
-        long handle= CreateDisplay(name);
+        long handle= X11Util.getThreadLocalDisplay(name);
         if (handle == 0 ) {
             throw new RuntimeException("Error creating display: "+name);
+        }
+        try {
+            CompleteDisplay(handle);
+        } catch(RuntimeException e) {
+            X11Util.closeThreadLocalDisplay(name);
+            throw e;
         }
         aDevice = new X11GraphicsDevice(handle);
     }
 
     protected void closeNative() {
-        DestroyDisplay(getHandle());
+        if(0==X11Util.closeThreadLocalDisplay(name)) {
+            throw new NativeWindowException(this+" was not mapped");
+        }
     }
 
     protected void dispatchMessages() {
@@ -88,12 +97,11 @@ public class X11Display extends Display {
     //
     private static native boolean initIDs();
 
-    private native long CreateDisplay(String name);
-    private native void DestroyDisplay(long handle);
+    private native void CompleteDisplay(long handle);
 
     private native void DispatchMessages(long display, long javaObjectAtom, long windowDeleteAtom);
 
-    private void displayCreated(long javaObjectAtom, long windowDeleteAtom) {
+    private void displayCompleted(long javaObjectAtom, long windowDeleteAtom) {
         this.javaObjectAtom=javaObjectAtom;
         this.windowDeleteAtom=windowDeleteAtom;
     }

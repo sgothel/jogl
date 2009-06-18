@@ -95,7 +95,7 @@
         <property name="tmp.version" value="${jogl_base_version}-pre-${timestamp}" />
     </target>
 
-    <target name="developer-zip-archive" depends="gluegen.cpptasks.detect.os,setup-version-RI,setup-version-non-RI">
+    <target name="developer-zip-archive" depends="gluegen.cpptasks.detect.os,setup-version-RI,setup-version-non-RI" unless="build.noarchives">
         <property name="archive.name" value="jogl-${tmp.version}-${os.and.arch}" />
         <property name="archive.dir" value="${build}/${archive.name}" />
         <delete includeEmptyDirs="true" quiet="true" dir="${archive.dir}" failonerror="false" />
@@ -137,7 +137,7 @@
        - This must be called after all of the build targets complete.
       -->
 
-    <target name="source-archive" depends="setup-version-RI,setup-version-non-RI">
+    <target name="source-archive" depends="setup-version-RI,setup-version-non-RI" unless="build.noarchives">
         <!-- NOTE that if you are using multiple rootrel.build directories within the same
              repository, the exclude lists here won't work well enough and you will wind up
              archiving binary bits from other rootrel.build settings in the source archive.

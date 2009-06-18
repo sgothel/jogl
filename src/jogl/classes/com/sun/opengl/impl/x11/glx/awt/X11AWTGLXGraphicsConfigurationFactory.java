@@ -94,8 +94,10 @@ public class X11AWTGLXGraphicsConfigurationFactory extends GraphicsConfiguration
                 if(DEBUG) {
                     System.err.println("X11AWTGLXGraphicsConfigurationFactory: using a thread local X11 display");
                 }
-            } else if(DEBUG) {
-                System.err.println("X11AWTGLXGraphicsConfigurationFactory: using AWT X11 display 0x"+Long.toHexString(displayHandle));
+            } else {
+                if(DEBUG) {
+                    System.err.println("X11AWTGLXGraphicsConfigurationFactory: using AWT X11 display 0x"+Long.toHexString(displayHandle));
+                }
             }
             ((AWTGraphicsDevice)awtScreen.getDevice()).setHandle(displayHandle);
             x11Device = new X11GraphicsDevice(displayHandle);

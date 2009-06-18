@@ -11,6 +11,8 @@ extern Display *XOpenDisplay(
     _Xconst char*	/* display_name */
 );
 
+extern int XCloseDisplay(Display *display);
+
 extern XVisualInfo *XGetVisualInfo(
     Display*		/* display */,
     long		/* vinfo_mask */,

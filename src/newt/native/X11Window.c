@@ -156,7 +156,7 @@ static jmethodID windowCreatedID = NULL;
 static jmethodID sendMouseEventID = NULL;
 static jmethodID sendKeyEventID = NULL;
 
-static jmethodID displayCreatedID = NULL;
+static jmethodID displayCompletedID = NULL;
 
 static void _throwNewRuntimeException(JNIEnv *env, const char* msg, ...)
 {
@@ -184,8 +184,8 @@ JNIEXPORT jboolean JNICALL Java_com_sun_javafx_newt_x11_X11Display_initIDs
 {
     jclass c;
 
-    displayCreatedID = (*env)->GetMethodID(env, clazz, "displayCreated", "(JJ)V");
-    if (displayCreatedID == NULL) {
+    displayCompletedID = (*env)->GetMethodID(env, clazz, "displayCompleted", "(JJ)V");
+    if (displayCompletedID == NULL) {
         return JNI_FALSE;
     }
 
@@ -223,60 +223,34 @@ JNIEXPORT jboolean JNICALL Java_com_sun_javafx_newt_x11_X11Display_initIDs
 
 /*
  * Class:     com_sun_javafx_newt_x11_X11Display
- * Method:    CreateDisplay
- * Signature: (Ljava/lang/String;)J
+ * Method:    CompleteDisplay
+ * Signature: (J)V
  */
-JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_x11_X11Display_CreateDisplay
-  (JNIEnv *env, jobject obj, jstring displayName)
+JNIEXPORT void JNICALL Java_com_sun_javafx_newt_x11_X11Display_CompleteDisplay
+  (JNIEnv *env, jobject obj, jlong display)
 {
-    Display * dpy = NULL;
-    const char * _displayName = NULL;
+    Display * dpy = (Display *)(intptr_t)display;
     jlong javaObjectAtom;
     jlong windowDeleteAtom;
-    if(displayName!=0) {
-        _displayName = (*env)->GetStringUTFChars(env, displayName, 0);
-    }
-    DBG_PRINT1("open display connection for %s ..\n", ((NULL==_displayName)?"NULL":_displayName));
-    dpy = XOpenDisplay(_displayName);
     if(dpy==NULL) {
-        _throwNewRuntimeException(env, "couldn't open display connection for %s\n", ((NULL==_displayName)?"NULL":_displayName));
-    }
-    if(_displayName!=0) {
-        (*env)->ReleaseStringChars(env, displayName, (const jchar *)_displayName);
+        _throwNewRuntimeException(env, "given display connection is NULL\n");
     }
 
     javaObjectAtom = (jlong) XInternAtom(dpy, "JOGL_JAVA_OBJECT", False);
     if(None==javaObjectAtom) {
-        XCloseDisplay(dpy);
         _throwNewRuntimeException(env, "could not create Atom JOGL_JAVA_OBJECT, bail out!\n");
-        return 0;
+        return;
     }
 
     windowDeleteAtom = (jlong) XInternAtom(dpy, "WM_DELETE_WINDOW", False);
     if(None==windowDeleteAtom) {
-        XCloseDisplay(dpy);
         _throwNewRuntimeException(env, "could not create Atom WM_DELETE_WINDOW, bail out!\n");
-        return 0;
+        return;
     }
 
-    DBG_PRINT1("X11Display_CreateDisplay dpy %p\n", dpy);
+    DBG_PRINT1("X11Display_completeDisplay dpy %p\n", dpy);
 
-    (*env)->CallVoidMethod(env, obj, displayCreatedID, javaObjectAtom, windowDeleteAtom);
-
-    return (jlong) (intptr_t) dpy;
-}
-
-/*
- * Class:     com_sun_javafx_newt_x11_X11Display
- * Method:    DestroyDisplay
- * Signature: (J)V
- */
-JNIEXPORT void JNICALL Java_com_sun_javafx_newt_x11_X11Display_DestroyDisplay
-  (JNIEnv *env, jobject obj, jlong display)
-{
-    Display * dpy = (Display *)(intptr_t)display;
-    DBG_PRINT1("X11Display_DestroyDisplay dpy %p\n", dpy);
-    XCloseDisplay(dpy);
+    (*env)->CallVoidMethod(env, obj, displayCompletedID, javaObjectAtom, windowDeleteAtom);
 }
 
 static int putPtrIn32Long(unsigned long * dst, uintptr_t src) {
