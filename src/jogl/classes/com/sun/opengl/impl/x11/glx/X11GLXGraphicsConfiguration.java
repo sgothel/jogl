@@ -288,10 +288,7 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
 
   // FBConfig
 
-  // sgothel: The synchronized was added, due to bugs within the GLX implementation on my platform
-  //          in regards to multithreading (FIXME).
-
-  public synchronized static GLCapabilities GLXFBConfig2GLCapabilities(GLProfile glp, long display, long fbcfg, boolean isMultisampleEnabled) {
+  public static GLCapabilities GLXFBConfig2GLCapabilities(GLProfile glp, long display, long fbcfg, boolean isMultisampleEnabled) {
     int[] tmp = new int[1];
     int val;
     val = glXGetFBConfig(display, fbcfg, GLX.GLX_RENDER_TYPE, tmp, 0);
@@ -336,7 +333,7 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
     return res;
   }
 
-  private synchronized static String glXGetFBConfigErrorCode(int err) {
+  private static String glXGetFBConfigErrorCode(int err) {
     switch (err) {
       case GLX.GLX_NO_EXTENSION:  return "GLX_NO_EXTENSION";
       case GLX.GLX_BAD_ATTRIBUTE: return "GLX_BAD_ATTRIBUTE";
@@ -344,7 +341,7 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
     }
   }
 
-  public synchronized static int glXGetFBConfig(long display, long cfg, int attrib, int[] tmp, int tmp_offset) {
+  public static int glXGetFBConfig(long display, long cfg, int attrib, int[] tmp, int tmp_offset) {
     if (display == 0) {
       throw new GLException("No display connection");
     }

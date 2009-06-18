@@ -127,11 +127,12 @@ public abstract class NativeWindowFactory {
             } catch (Exception e) { }
         }
 
-        boolean toolkitLockDisabled = Boolean.getBoolean("java.awt.headless");
-        
-        if( !toolkitLockDisabled && TYPE_X11.equals(nativeWindowingTypeCustom) ) {
-            NativeWindowFactory _factory = null;
+        boolean toolkitLockForced   = Boolean.getBoolean("nativewindow.locking");
+        boolean awtToolkitLockDisabled = Boolean.getBoolean("java.awt.headless");
 
+        NativeWindowFactory _factory = null;
+        
+        if( !awtToolkitLockDisabled && null!=componentClass && TYPE_X11.equals(nativeWindowingTypeCustom) ) {
             // There are certain operations that may be done by
             // user-level native code which must share the display
             // connection with the underlying window toolkit. In JOGL,
@@ -177,17 +178,23 @@ public abstract class NativeWindowFactory {
             // toolkits like Newt even when running on Java SE when
             // the AWT is available.
 
-            if (componentClass != null) {
-                try {
-                    Constructor factoryConstructor =
-                        NWReflection.getConstructor("com.sun.nativewindow.impl.x11.awt.X11AWTNativeWindowFactory", new Class[] {});
-                    _factory = (NativeWindowFactory) factoryConstructor.newInstance(null);
-                } catch (Exception e) { }
-            }
+            try {
+                Constructor factoryConstructor =
+                    NWReflection.getConstructor("com.sun.nativewindow.impl.x11.awt.X11AWTNativeWindowFactory", new Class[] {});
+                _factory = (NativeWindowFactory) factoryConstructor.newInstance(null);
+            } catch (Exception e) { }
+        }
 
-            if (null !=_factory) {
-                factory = _factory;
-            }
+        if (toolkitLockForced && null==_factory) {
+            try {
+                Constructor factoryConstructor =
+                    NWReflection.getConstructor("com.sun.nativewindow.impl.LockingNativeWindowFactory", new Class[] {});
+                _factory = (NativeWindowFactory) factoryConstructor.newInstance(null);
+            } catch (Exception e) { }
+        }
+
+        if (null !=_factory) {
+            factory = _factory;
         }
 
         if(null!=componentClass) {
@@ -195,8 +202,10 @@ public abstract class NativeWindowFactory {
             registerFactory(componentClass, factory);
         }
         defaultFactory = factory;
+
         if(DEBUG) {
-            System.err.println("NativeWindowFactory defaultFactory "+factory);
+            System.err.println("NativeWindowFactory toolkitLockForced "+toolkitLockForced+
+                               ", awtToolkitLockDisabled "+awtToolkitLockDisabled+", defaultFactory "+factory);
         }
     }
 
