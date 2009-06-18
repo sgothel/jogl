@@ -50,15 +50,6 @@ public class JVMUtil {
     private static final boolean DEBUG = Debug.debug("JVMUtil");
 
     static {
-        initSingleton();
-    }
-
-    private static volatile boolean isInit = false;
-
-    public static synchronized void initSingleton() {
-        if(isInit) return;
-        isInit=true;
-
         NativeLibLoaderBase.loadNativeWindow("jvm");
 
         ByteBuffer buffer = InternalBufferUtil.newByteBuffer(64);
@@ -69,6 +60,9 @@ public class JVMUtil {
             Exception e = new Exception("JVMUtil.initSingleton() .. initialized "+Thread.currentThread().getName());
             e.printStackTrace();
         }
+    }
+
+    public static void initSingleton() {
     }
 
     private JVMUtil() {}
