@@ -43,7 +43,7 @@ import java.nio.*;
 
 /** Utility routines available only to the JOGL implementation. */
 
-public class InternalBufferUtils {
+class InternalBufferUtils {
   /** Allocates a new direct byte buffer at the given address with the
       given capacity. This is exposed only because of glMapBufferARB
       and its semantics; it is undesirable to allocate a new buffer
@@ -51,5 +51,5 @@ public class InternalBufferUtils {
       application would typically need to re-slice the buffer every
       frame. Instead we cache these ByteBuffer objects up in Java and
       look them up in a HashMap by base address and capacity. */
-  public static native ByteBuffer newDirectByteBuffer(long address, int capacity);
+  static native ByteBuffer newDirectByteBuffer(long address, int capacity);
 }
