@@ -2,12 +2,13 @@
 
 . ../../setenv-build-jogl-x86_64.sh
 
+# -Djogl.cg=1 -Dx11.cg.lib=../../lib-linux-x86_64
 #    -Dc.compiler.debug=true 
 #    -Dbuild.noarchives=true
 
 ant \
+    -Djogl.cg=1 -Dx11.cg.lib=../../lib-linux-x86_64 \
     -Dc.compiler.debug=true \
-    -Dbuild.noarchives=true \
     -Drootrel.build=build-x86_64 \
     -Dgluegen.cpptasks.detected.os=true \
     -DisUnix=true \

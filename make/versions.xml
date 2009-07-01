@@ -19,6 +19,7 @@
        official release builds and intermediate release builds, but
        commented out for nightly builds. -->
   <!-- <property name="jogl.ri" value="true" /> -->
+  <property name="jogl.ri" value="true" />
 
   <!-- Base version of the NativeWindow interface, following the same
        rules as above -->
@@ -30,6 +31,7 @@
        official release builds and intermediate release builds, but
        commented out for nightly builds. -->
   <!-- <property name="nativewindow.ri" value="true" /> -->
+  <property name="nativewindow.ri" value="true" />
 
   <!-- Base version of the Newt library, following the same
        rules as above -->
@@ -42,5 +44,6 @@
        official release builds and intermediate release builds, but
        commented out for nightly builds.  -->
   <!-- <property name="newt.ri" value="true" /> -->
+  <property name="newt.ri" value="true" />
 
 </project>

@@ -124,6 +124,11 @@
             <fileset dir="${build}/newt" includes="*.jar" excludes="*natives*.jar" />
             <fileset dir="${build}/newt/obj" includes="*.${native.library.suffix}" />
         </copy>
+        <mkdir dir="${archive.dir}/etc" />
+        <copy todir="${archive.dir}/etc">
+            <fileset dir="${project.root}/etc" includes="*" />
+        </copy>
+        <delete quiet="true" file="${build}/${archive.name}.zip"/>
         <zip destfile="${build}/${archive.name}.zip"
              basedir="${build}"
              includes="${archive.name}/**" />
@@ -143,6 +148,7 @@
              archiving binary bits from other rootrel.build settings in the source archive.
              This is inevitable given that we don't want to specialize this target to
              explicitly include top level files and directories, to make it future-proof. -->
+        <delete quiet="true" file="${build}/jogl-${tmp.version}-src.zip"/>
         <zip destfile="${build}/jogl-${tmp.version}-src.zip"
              basedir="${project.root}/.."
              excludes="gluegen/${rootrel.build}/**,gluegen/build/**gluegen/build-temp/**,jogl/${rootrel.build}/**,jogl/build/**,jogl/build-temp/**,jogl/www/**"

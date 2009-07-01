@@ -56,9 +56,14 @@ public class X11GraphicsScreen extends DefaultGraphicsScreen implements Cloneabl
 
     /** Creates a new X11GraphicsScreen using a thread local display connection */
     public static AbstractGraphicsScreen createDefault() {
-        long display = X11Util.getThreadLocalDefaultDisplay();
-        int scrnIdx = X11Lib.DefaultScreen(display);
-        return createScreenDevice(display, scrnIdx);
+        NativeWindowFactory.getDefaultFactory().getToolkitLock().lock();
+        try {
+            long display = X11Util.getThreadLocalDefaultDisplay();
+            int scrnIdx = X11Lib.DefaultScreen(display);
+            return createScreenDevice(display, scrnIdx);
+        } finally {
+            NativeWindowFactory.getDefaultFactory().getToolkitLock().unlock();
+        }
     }
 
     public long getDefaultVisualID() {
@@ -74,8 +79,14 @@ public class X11GraphicsScreen extends DefaultGraphicsScreen implements Cloneabl
     }
 
     private static int fetchScreen(X11GraphicsDevice device, int screen) {
-        if(!X11Lib.XineramaEnabled(device.getHandle())) {
-            return screen;
+        // It still could be an AWT hold handle ..
+        NativeWindowFactory.getDefaultFactory().getToolkitLock().lock();
+        try {
+            if(!X11Lib.XineramaEnabled(device.getHandle())) {
+                return screen;
+            }
+        } finally {
+            NativeWindowFactory.getDefaultFactory().getToolkitLock().unlock();
         }
         return 0;
     }

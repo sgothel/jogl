@@ -7,5 +7,6 @@ set CLASSPATH=.;%THISDIR%\build-win32\classes
 REM    -Dc.compiler.debug=true 
 REM    -DuseOpenMAX=true 
 REM    -DuseKD=true
+REM    -Djogl.cg=1 -D-Dwindows.cg.lib=C:\Cg-2.2
 
-ant -Drootrel.build=build-win32 > make.jogl.all.win32.log 2>&1
+ant -Drootrel.build=build-win32 -Djogl.cg=1 -D-Dwindows.cg.lib=C:\Cg-2.2 > make.jogl.all.win32.log 2>&1
