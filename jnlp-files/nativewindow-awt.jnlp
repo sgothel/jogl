@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<jnlp codebase="JOGL_CODEBASE_TAG/"
+      href="nativewindow-awt.jnlp">
+  <information>
+    <title>Java(tm) NativeWindow Interface API (AWT)</title>
+    <vendor>Sun Microsystems, Inc.</vendor>
+    <homepage href="http://nativewindow.dev.java.net/"/>
+    <description>Java API for a binding to a native windowing system - 2.0 (beta2) - AWT</description>
+    <description kind="short">Java API for a binding to a native windowing system - 2.0 (beta2) - AWT</description>
+    <offline-allowed/>
+  </information>
+  <security>
+      <all-permissions/>
+  </security>
+    <resources>
+      <jar href="nativewindow.awt.jar" main="true" />
+      <extension name="nativewindow" href="JOGL_CODEBASE_TAG/nativewindow.jnlp" />
+    </resources>
+  <component-desc />
+</jnlp>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<jnlp codebase="JOGL_CODEBASE_TAG/"
+      href="newt-jogl.jnlp">
+  <information>
+    <title>NEWT - New Windowing Toolkit (JOGL)</title>
+    <vendor>Sun Microsystems, Inc.</vendor>
+    <homepage href="http://jogl.dev.java.net/"/>
+    <description>NEWT - A NativeWindow Interface implementation (beta2) - JOGL</description>
+    <description kind="short">NEWT - A NativeWindow Interface implementation (beta2) - JOGL</description>
+    <offline-allowed/>
+  </information>
+  <security>
+      <all-permissions/>
+  </security>
+    <resources>
+      <jar href="newt.ogl.jar" main="true"/>
+      <extension name="newt" href="JOGL_CODEBASE_TAG/newt.jnlp" />
+      <extension name="jogl-core" href="JOGL_CODEBASE_TAG/jogl-core.jnlp" />
+    </resources>
+  <component-desc />
+</jnlp>

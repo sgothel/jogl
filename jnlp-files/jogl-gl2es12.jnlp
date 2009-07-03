@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<jnlp codebase="JOGL_CODEBASE_TAG/"
+      href="jogl-gl2es12.jnlp">
+  <information>
+    <title>Java(tm) Binding to the OpenGL(r) API (GL2ES12)</title>
+    <vendor>Sun Microsystems, Inc.</vendor>
+    <homepage href="http://jogl.dev.java.net/"/>
+    <description>Java Binding to the OpenGL API - JSR-231 2.0.0 (beta2) - GL2ES12</description>
+    <description kind="short">Java programming language binding for the OpenGL 3D graphics API - GL2ES12.</description>
+    <offline-allowed/>
+  </information>
+  <security>
+      <all-permissions/>
+  </security>
+    <resources>
+      <jar href="jogl.glu.mipmap.jar" />
+      <jar href="jogl.glu.tess.jar" />
+
+      <jar href="jogl.util.fixedfuncemu.jar" />
+
+      <!-- jar href="jogl.sdk.jar" /-->
+
+      <extension name="jogl-core" href="JOGL_CODEBASE_TAG/jogl-core.jnlp" />
+    </resources>
+
+    <resources os="Mobile-Embedded">
+      <jar href="jogl.egl.jar" />
+      <jar href="jogl.gles1.jar" />
+      <jar href="jogl.gles1.dbg.jar" />
+      <jar href="jogl.gles2.jar" />
+      <jar href="jogl.gles2.dbg.jar" />
+    </resources>
+    <resources os="Windows">
+      <jar href="jogl.gl2es12.win.jar" />
+      <jar href="jogl.gl2es12.dbg.jar" />
+    </resources>
+    <resources os="SunOS Linux">
+      <jar href="jogl.gl2es12.x11.jar" />
+      <jar href="jogl.gl2es12.dbg.jar" />
+    </resources>
+    <resources os="Mac\ OS\ X">
+      <jar href="jogl.gl2es12.osx.jar" />
+      <jar href="jogl.gl2es12.dbg.jar" />
+    </resources>
+
+  <component-desc />
+</jnlp>

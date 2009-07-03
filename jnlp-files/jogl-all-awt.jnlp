@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<jnlp codebase="JOGL_CODEBASE_TAG/"
+      href="jogl-all-awt.jnlp">
+  <information>
+    <title>Java(tm) Binding to the OpenGL(r) API (ALL.AWT)</title>
+    <vendor>Sun Microsystems, Inc.</vendor>
+    <homepage href="http://jogl.dev.java.net/"/>
+    <description>Java Binding to the OpenGL API - JSR-231 2.0.0 (beta2) - ALL.AWT</description>
+    <description kind="short">Java programming language binding for the OpenGL 3D graphics API - ALL.AWT</description>
+    <offline-allowed/>
+  </information>
+  <security>
+      <all-permissions/>
+  </security>
+    <resources>
+      <jar href="jogl.awt.jar" />
+      <jar href="jogl.util.awt.jar" />
+
+      <extension name="jogl-all" href="JOGL_CODEBASE_TAG/jogl-all.jnlp" />
+      <extension name="nativewindow-awt" href="JOGL_CODEBASE_TAG/nativewindow-awt.jnlp" />
+    </resources>
+  <component-desc />
+</jnlp>
