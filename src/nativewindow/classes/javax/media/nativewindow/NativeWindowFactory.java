@@ -98,8 +98,9 @@ public abstract class NativeWindowFactory {
         JVMUtil.initSingleton();
 
         // Gather the windowing OS first
-        nativeOSNamePure = Debug.getProperty("os.name", false);
-        nativeOSNameCustom = Debug.getProperty("nativewindow.ws.name", true);
+        AccessControlContext acc = AccessController.getContext();
+        nativeOSNamePure = Debug.getProperty("os.name", false, acc);
+        nativeOSNameCustom = Debug.getProperty("nativewindow.ws.name", true, acc);
         if(null==nativeOSNameCustom||nativeOSNameCustom.length()==0) {
               nativeOSNameCustom = nativeOSNamePure;
         }
@@ -127,8 +128,8 @@ public abstract class NativeWindowFactory {
             } catch (Exception e) { }
         }
 
-        boolean toolkitLockForced   = Debug.getBooleanProperty("nativewindow.locking", true);
-        boolean awtToolkitLockDisabled = Debug.getBooleanProperty("java.awt.headless", false);
+        boolean toolkitLockForced   = Debug.getBooleanProperty("nativewindow.locking", true, acc);
+        boolean awtToolkitLockDisabled = Debug.getBooleanProperty("java.awt.headless", false, acc);
 
         NativeWindowFactory _factory = null;
         

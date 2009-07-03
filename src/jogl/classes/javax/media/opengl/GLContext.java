@@ -56,8 +56,6 @@ import java.util.HashMap;
     refer to a given context. */
 
 public abstract class GLContext {
-  protected static final boolean DEBUG = Debug.isPropertyDefined("jogl.debug.GLContext"); // Debug.debug("GLContext");
-
   /** Indicates that the context was not made current during the last call to {@link #makeCurrent makeCurrent}. */
   public static final int CONTEXT_NOT_CURRENT = 0;
   /** Indicates that the context was made current during the last call to {@link #makeCurrent makeCurrent}. */
@@ -180,11 +178,6 @@ public abstract class GLContext {
    * new GLContext implementations; not for use by end users.
    */
   protected static void setCurrent(GLContext cur) {
-    if(DEBUG) {
-        Exception e = new Exception("setCurrent: "+Thread.currentThread()+", "+currentContext.get()+" -> "+cur);
-        e.printStackTrace();
-    }
-
     currentContext.set(cur);
   }
   

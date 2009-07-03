@@ -41,6 +41,7 @@ package javax.media.opengl;
 
 import javax.media.opengl.glu.*;
 import com.sun.opengl.impl.Debug;
+import java.security.*;
 
 /** A higher-level abstraction than {@link GLDrawable} which supplies
     an event based mechanism ({@link GLEventListener}) for performing
@@ -112,7 +113,7 @@ public interface GLAutoDrawable extends GLDrawable {
   /** Flag reflecting wheather the drawable reconfiguration will be issued in 
     * case a screen device change occured, e.g. in a multihead environment,
     * where you drag the window to another monitor. */
-  public static final boolean SCREEN_CHANGE_ACTION_ENABLED = Debug.getBooleanProperty("jogl.screenchange.action", true);
+  public static final boolean SCREEN_CHANGE_ACTION_ENABLED = Debug.getBooleanProperty("jogl.screenchange.action", true, AccessController.getContext());
 
   /** FIXME:
   ** Invalid state, the resources are not yet ready to render. *

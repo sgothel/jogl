@@ -47,10 +47,12 @@ public class Debug {
   // Some common properties
   private static boolean verbose;
   private static boolean debugAll;
+  private static AccessControlContext localACC;
   
   static {
-    verbose = isPropertyDefined("nativewindow.verbose");
-    debugAll = isPropertyDefined("nativewindow.debug");
+    localACC=AccessController.getContext();
+    verbose = isPropertyDefined("nativewindow.verbose", true);
+    debugAll = isPropertyDefined("nativewindow.debug", true);
     if (verbose) {
        Package p = Package.getPackage("javax.media.nativewindow");
        System.err.println("NativeWindow specification version " + p.getSpecificationVersion());
@@ -59,34 +61,67 @@ public class Debug {
     }
   }
 
-  public static int getIntProperty(final String property, final boolean jnlpAlias) {
+  protected static int getIntProperty(final String property, final boolean jnlpAlias) {
+      return getIntProperty(property, jnlpAlias, localACC);
+  }
+
+  public static int getIntProperty(final String property, final boolean jnlpAlias, final AccessControlContext acc) {
     int i=0;
     try {
-        Integer iv = Integer.valueOf(Debug.getProperty(property, jnlpAlias));
+        Integer iv = Integer.valueOf(Debug.getProperty(property, jnlpAlias, acc));
         i = iv.intValue();
     } catch (NumberFormatException nfe) {}
     return i;
   }
 
-  public static boolean getBooleanProperty(final String property, final boolean jnlpAlias) {
-    Boolean b = Boolean.valueOf(Debug.getProperty(property, jnlpAlias));
+  protected static boolean getBooleanProperty(final String property, final boolean jnlpAlias) {
+    return getBooleanProperty(property, jnlpAlias, localACC);
+  }
+
+  public static boolean getBooleanProperty(final String property, final boolean jnlpAlias, final AccessControlContext acc) {
+    Boolean b = Boolean.valueOf(Debug.getProperty(property, jnlpAlias, acc));
     return b.booleanValue();
   }
 
-  public static boolean isPropertyDefined(final String property) {
-    return (Debug.getProperty(property, true) != null) ? true : false;
+  protected static boolean isPropertyDefined(final String property, final boolean jnlpAlias) {
+    return isPropertyDefined(property, jnlpAlias, localACC);
   }
 
-  public static String getProperty(final String property, final boolean jnlpAlias) {
-    String s = (String) AccessController.doPrivileged(new PrivilegedAction() {
-        public Object run() {
-          String val = System.getProperty(property);
-          if(null==val && jnlpAlias && !property.startsWith(jnlp_prefix)) {
-              val = System.getProperty(jnlp_prefix + property);
-          }
-          return val;
+  public static boolean isPropertyDefined(final String property, final boolean jnlpAlias, final AccessControlContext acc) {
+    return (Debug.getProperty(property, jnlpAlias, acc) != null) ? true : false;
+  }
+
+  protected static String getProperty(final String property, final boolean jnlpAlias) {
+    return getProperty(property, jnlpAlias, localACC);
+  }
+
+  public static String getProperty(final String property, final boolean jnlpAlias, final AccessControlContext acc) {
+    String s=null;
+    if(null!=acc && acc.equals(localACC)) {
+        s = (String) AccessController.doPrivileged(new PrivilegedAction() {
+            public Object run() {
+              String val=null;
+              try {
+                  val = System.getProperty(property);
+              } catch (Exception e) {}
+              if(null==val && jnlpAlias && !property.startsWith(jnlp_prefix)) {
+                  try {
+                      val = System.getProperty(jnlp_prefix + property);
+                  } catch (Exception e) {}
+              }
+              return val;
+            }
+          });
+    } else {
+        try {
+            s = System.getProperty(property);
+        } catch (Exception e) {}
+        if(null==s && jnlpAlias && !property.startsWith(jnlp_prefix)) {
+            try {
+                s = System.getProperty(jnlp_prefix + property);
+            } catch (Exception e) {}
         }
-      });
+    }
     return s;
   }
   public static final String jnlp_prefix = "jnlp." ;
@@ -100,6 +135,6 @@ public class Debug {
   }
 
   public static boolean debug(String subcomponent) {
-    return debugAll() || isPropertyDefined("nativewindow.debug." + subcomponent);
+    return debugAll() || isPropertyDefined("nativewindow.debug." + subcomponent, true);
   }
 }

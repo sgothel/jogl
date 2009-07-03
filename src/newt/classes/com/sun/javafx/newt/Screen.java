@@ -36,6 +36,7 @@ package com.sun.javafx.newt;
 import com.sun.javafx.newt.impl.*;
 
 import javax.media.nativewindow.*;
+import java.security.*;
 
 public abstract class Screen {
 
@@ -62,8 +63,8 @@ public abstract class Screen {
     protected static Screen create(String type, Display display, int idx) {
         try {
             if(usrWidth<0 || usrHeight<0) {
-                usrWidth  = Debug.getIntProperty("newt.ws.swidth", true);
-                usrHeight = Debug.getIntProperty("newt.ws.sheight", true);
+                usrWidth  = Debug.getIntProperty("newt.ws.swidth", true, localACC);
+                usrHeight = Debug.getIntProperty("newt.ws.sheight", true, localACC);
                 System.out.println("User screen size "+usrWidth+"x"+usrHeight);
             }
             Class screenClass = getScreenClass(type);
@@ -137,5 +138,6 @@ public abstract class Screen {
     protected AbstractGraphicsScreen aScreen;
     protected int width=-1, height=-1; // detected values: set using setScreenSize
     protected static int usrWidth=-1, usrHeight=-1; // property values: newt.ws.swidth and newt.ws.sheight
+    private static AccessControlContext localACC = AccessController.getContext();
 }
 

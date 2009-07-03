@@ -37,6 +37,7 @@
 package com.sun.opengl.util.texture;
 
 import java.nio.*;
+import java.security.*;
 
 import javax.media.opengl.*;
 import javax.media.opengl.glu.*;
@@ -168,12 +169,14 @@ public class Texture {
     /** An estimate of the amount of texture memory this texture consumes. */
     private int estimatedMemorySize;
 
+    private static final AccessControlContext localACC = AccessController.getContext();
+
     private static final boolean DEBUG = Debug.debug("Texture");
     private static final boolean VERBOSE = Debug.verbose();
 
     // For testing alternate code paths on more capable hardware
-    private static final boolean disableNPOT    = Debug.isPropertyDefined("jogl.texture.nonpot");
-    private static final boolean disableTexRect = Debug.isPropertyDefined("jogl.texture.notexrect");
+    private static final boolean disableNPOT    = Debug.isPropertyDefined("jogl.texture.nonpot", true, localACC);
+    private static final boolean disableTexRect = Debug.isPropertyDefined("jogl.texture.notexrect", true, localACC);
 
     public Texture(TextureData data) throws GLException {
         GL gl = GLContext.getCurrentGL();

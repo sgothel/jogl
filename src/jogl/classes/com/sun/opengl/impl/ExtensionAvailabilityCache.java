@@ -52,7 +52,7 @@ import java.lang.reflect.*;
  */
 public final class ExtensionAvailabilityCache {
   private static final boolean DEBUG = Debug.debug("ExtensionAvailabilityCache");
-  private static final boolean DEBUG_AVAILABILITY = Debug.isPropertyDefined("ExtensionAvailabilityCache");
+  private static final boolean DEBUG_AVAILABILITY = Debug.isPropertyDefined("ExtensionAvailabilityCache", true);
 
   ExtensionAvailabilityCache(GLContextImpl context)
   {

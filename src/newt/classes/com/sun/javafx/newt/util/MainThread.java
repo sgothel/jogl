@@ -39,6 +39,7 @@ package com.sun.javafx.newt.util;
 import java.util.*;
 import java.lang.reflect.Method;
 import java.lang.reflect.InvocationTargetException;
+import java.security.*;
 
 import javax.media.nativewindow.*;
 
@@ -81,8 +82,9 @@ import com.sun.nativewindow.impl.NWReflection;
  * Which starts 4 threads, each with a window and OpenGL rendering.<br>
  */
 public class MainThread {
+    private static AccessControlContext localACC = AccessController.getContext();
     public static final boolean USE_MAIN_THREAD = NativeWindowFactory.TYPE_MACOSX.equals(NativeWindowFactory.getNativeWindowType(false)) ||
-                                                  Debug.getBooleanProperty("newt.MainThread.force", true);
+                                                  Debug.getBooleanProperty("newt.MainThread.force", true, localACC);
 
     protected static final boolean DEBUG = Debug.debug("MainThread");
 

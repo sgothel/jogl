@@ -110,20 +110,22 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
   // Used by all backends either directly or indirectly to hook up callbacks
   private Updater updater = new Updater();
 
+  private static final AccessControlContext localACC = AccessController.getContext();
+
   // Turns off the pbuffer-based backend (used by default, unless the
   // Java 2D / OpenGL pipeline is in use)
   private static boolean hardwareAccelerationDisabled =
-    Debug.isPropertyDefined("jogl.gljpanel.nohw");
+    Debug.isPropertyDefined("jogl.gljpanel.nohw", true, localACC);
 
   // Turns off the fallback to software-based rendering from
   // pbuffer-based rendering
   private static boolean softwareRenderingDisabled =
-    Debug.isPropertyDefined("jogl.gljpanel.nosw");
+    Debug.isPropertyDefined("jogl.gljpanel.nosw", true, localACC);
 
   // Indicates whether the Java 2D OpenGL pipeline is enabled
   private boolean oglPipelineEnabled =
     Java2D.isOGLPipelineActive() &&
-    !Debug.isPropertyDefined("jogl.gljpanel.noogl");
+    !Debug.isPropertyDefined("jogl.gljpanel.noogl", true, localACC);
 
   // For handling reshape events lazily
   private int reshapeX;

@@ -49,7 +49,7 @@ public class GLDrawableHelper {
   private volatile List listeners = new ArrayList();
   private static final boolean DEBUG = Debug.debug("GLDrawableHelper");
   private static final boolean VERBOSE = Debug.verbose();
-  private static final boolean NVIDIA_CRASH_WORKAROUND = Debug.isPropertyDefined("jogl.nvidia.crash.workaround");
+  private static final boolean NVIDIA_CRASH_WORKAROUND = Debug.isPropertyDefined("jogl.nvidia.crash.workaround", true);
   private boolean autoSwapBufferMode = true;
 
   public GLDrawableHelper() {

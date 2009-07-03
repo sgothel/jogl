@@ -17,7 +17,7 @@ public class MacOSXPbufferCGLContext extends MacOSXCGLContext {
   private static boolean isTigerOrLater;
 
   static {
-    String osVersion = Debug.getProperty("os.version", false);
+    String osVersion = Debug.getProperty("os.version", false, AccessController.getContext());
     StringTokenizer tok = new StringTokenizer(osVersion, ". ");
     int major = Integer.parseInt(tok.nextToken());
     int minor = Integer.parseInt(tok.nextToken());
