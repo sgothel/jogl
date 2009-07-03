@@ -59,25 +59,37 @@ public class Debug {
     }
   }
 
-  public static boolean getBooleanProperty(final String property) {
-    Boolean b = (Boolean) AccessController.doPrivileged(new PrivilegedAction() {
-        public Object run() {
-          boolean val = Boolean.getBoolean(property);
-          return (val ? Boolean.TRUE : Boolean.FALSE);
-        }
-      });
+  public static int getIntProperty(final String property, final boolean jnlpAlias) {
+    int i=0;
+    try {
+        Integer iv = Integer.valueOf(Debug.getProperty(property, jnlpAlias));
+        i = iv.intValue();
+    } catch (NumberFormatException nfe) {}
+    return i;
+  }
+
+  public static boolean getBooleanProperty(final String property, final boolean jnlpAlias) {
+    Boolean b = Boolean.valueOf(Debug.getProperty(property, jnlpAlias));
     return b.booleanValue();
   }
 
   public static boolean isPropertyDefined(final String property) {
-    Boolean b = (Boolean) AccessController.doPrivileged(new PrivilegedAction() {
+    return (Debug.getProperty(property, true) != null) ? true : false;
+  }
+
+  public static String getProperty(final String property, final boolean jnlpAlias) {
+    String s = (String) AccessController.doPrivileged(new PrivilegedAction() {
         public Object run() {
           String val = System.getProperty(property);
-          return (val != null ? Boolean.TRUE : Boolean.FALSE);
+          if(null==val && jnlpAlias && !property.startsWith(jnlp_prefix)) {
+              val = System.getProperty(jnlp_prefix + property);
+          }
+          return val;
         }
       });
-    return b.booleanValue();
+    return s;
   }
+  public static final String jnlp_prefix = "jnlp." ;
 
   public static boolean verbose() {
     return verbose;

@@ -8,6 +8,7 @@
 #    -Dbuild.noarchives=true
 
 ant \
+    -Dbuild.noarchives=true \
     -Djogl.cg=1 -Dx11.cg.lib=../../lib-linux-x86 \
     -Drootrel.build=build-x86 \
     -Dgluegen.cpptasks.detected.os=true \

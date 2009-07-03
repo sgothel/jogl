@@ -99,13 +99,8 @@ public class NativeLibLoader extends NativeLibLoaderBase {
 
   static {
     NativeLibLoaderBase.setLoadingAction(new NEWTAction());
-    AccessController.doPrivileged(new PrivilegedAction() {
-        public Object run() {
-          String sunAppletLauncher = System.getProperty("sun.jnlp.applet.launcher");
-          usingJNLPAppletLauncher = Boolean.valueOf(sunAppletLauncher).booleanValue();
-          return null;
-        }
-      });
+    String sunAppletLauncher = Debug.getProperty("sun.jnlp.applet.launcher", false);
+    usingJNLPAppletLauncher = Boolean.valueOf(sunAppletLauncher).booleanValue();
   }
 
   // I hate the amount of delegation currently in this class
@@ -133,7 +128,7 @@ public class NativeLibLoader extends NativeLibLoaderBase {
         }
     } else {
       // FIXME: remove
-      // System.out.println("sun.boot.library.path=" + System.getProperty("sun.boot.library.path"));
+      // System.out.println("sun.boot.library.path=" + Debug.getProperty("sun.boot.library.path", false));
       System.loadLibrary(libraryName);
       if(DEBUG) {
           System.err.println("NEWT NativeLibLoader loaded "+libraryName);

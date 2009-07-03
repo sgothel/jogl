@@ -62,7 +62,7 @@ public class ThreadingImpl {
         Object threadingPluginTmp =
             AccessController.doPrivileged(new PrivilegedAction() {
                     public Object run() {
-                        String workaround = System.getProperty("opengl.1thread");
+                        String workaround = Debug.getProperty("jogl.1thread", true);
                         // Default to using the AWT thread on all platforms except
                         // Windows. On OS X there is instability apparently due to
                         // using the JAWT on non-AWT threads. On X11 platforms there

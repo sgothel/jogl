@@ -33,6 +33,8 @@
 
 package com.sun.javafx.newt;
 
+import com.sun.javafx.newt.impl.*;
+
 import javax.media.nativewindow.*;
 
 public abstract class Screen {
@@ -60,8 +62,8 @@ public abstract class Screen {
     protected static Screen create(String type, Display display, int idx) {
         try {
             if(usrWidth<0 || usrHeight<0) {
-                usrWidth  = NewtFactory.getPropertyIntValue("newt.ws.swidth");
-                usrHeight = NewtFactory.getPropertyIntValue("newt.ws.sheight");
+                usrWidth  = Debug.getIntProperty("newt.ws.swidth", true);
+                usrHeight = Debug.getIntProperty("newt.ws.sheight", true);
                 System.out.println("User screen size "+usrWidth+"x"+usrHeight);
             }
             Class screenClass = getScreenClass(type);

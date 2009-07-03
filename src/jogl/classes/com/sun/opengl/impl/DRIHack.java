@@ -83,7 +83,7 @@ public class DRIHack {
   public static void begin() {
     AccessController.doPrivileged(new PrivilegedAction() {
         public Object run() {
-          String os = System.getProperty("os.name").toLowerCase();
+          String os = Debug.getProperty("os.name", false).toLowerCase();
           // Do DRI hack on all Linux distributions for best robustness
           driHackNeeded =
             (os.startsWith("linux") ||
@@ -91,7 +91,7 @@ public class DRIHack {
              new File("/usr/X11R6/lib/modules/dri").exists());
           // Allow manual overriding for now as a workaround for
           // problems seen in some situations -- needs more investigation
-          if (System.getProperty("jogl.drihack.disable") != null) {
+          if (Debug.getProperty("jogl.drihack.disable", true) != null) {
             driHackNeeded = false;
           }
           return null;

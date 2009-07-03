@@ -70,15 +70,11 @@ public abstract class GraphicsConfigurationFactory {
     }
 
     private static void initialize() {
-        String osName = System.getProperty("os.name");
-        String osNameLowerCase = osName.toLowerCase();
         String factoryClassName = null;
 
         abstractGraphicsDeviceClass = javax.media.nativewindow.AbstractGraphicsDevice.class;
         
-        if (!osNameLowerCase.startsWith("wind") &&
-            !osNameLowerCase.startsWith("mac os x")) {
-            // Assume X11 platform -- should probably test for these explicitly
+        if (NativeWindowFactory.TYPE_X11.equals(NativeWindowFactory.getNativeWindowType(false))) {
             try {
                 GraphicsConfigurationFactory factory = (GraphicsConfigurationFactory)
                     NWReflection.createInstance("com.sun.nativewindow.impl.x11.X11GraphicsConfigurationFactory", new Object[] {});

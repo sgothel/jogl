@@ -46,17 +46,6 @@ public abstract class NewtFactory {
         Window.init(NativeWindowFactory.getNativeWindowType(true));
     }
 
-    static int getPropertyIntValue(String propname) {
-        int i=0;
-        String s = System.getProperty(propname);
-        if(null!=s) {
-            try {
-                i = Integer.valueOf(s).intValue();
-            } catch (NumberFormatException nfe) {}
-        }
-        return i;
-    }
-
     /**
      * Create a Display entity, incl native creation
      */

@@ -109,13 +109,7 @@ public abstract class GLDrawableFactory {
     String factoryClassName = null;
     tmp = null;
     try {
-        factoryClassName =
-            (String) AccessController.doPrivileged(new PrivilegedAction() {
-                public Object run() {
-                  return System.getProperty("opengl.factory.class.name");
-                }
-              });
-
+        factoryClassName = Debug.getProperty("jogl.gldrawablefactory.class.name", true);
         if (null == factoryClassName) {
             if ( nativeOSType.equals(NativeWindowFactory.TYPE_EGL) ) {
               // use egl*Factory ..

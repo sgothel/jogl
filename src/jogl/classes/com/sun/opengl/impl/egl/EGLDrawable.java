@@ -118,7 +118,7 @@ public abstract class EGLDrawable extends GLDrawableImpl {
                     // create a new EGL config ..
                     ownEGLDisplay=true;
                     long nDisplay;
-                    if( NativeWindowFactory.getNativeWindowType(false)==NativeWindowFactory.TYPE_WINDOWS ) {
+                    if( NativeWindowFactory.TYPE_WINDOWS.equals(NativeWindowFactory.getNativeWindowType(false)) ) {
                         nDisplay = component.getSurfaceHandle(); // don't even ask ..
                     } else {
                         nDisplay = aDevice.getHandle(); // 0 == EGL.EGL_DEFAULT_DISPLAY

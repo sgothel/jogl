@@ -40,6 +40,7 @@ import java.nio.*;
 
 import javax.media.opengl.*;
 import javax.media.opengl.glu.*;
+import javax.media.nativewindow.NativeWindowFactory;
 import com.sun.opengl.impl.*;
 import com.sun.opengl.util.texture.*;
 import com.sun.opengl.util.texture.spi.*;
@@ -1096,8 +1097,7 @@ public class Texture {
         // Prefer GL_ARB_texture_rectangle on ATI hardware on Mac OS X
         // due to software fallbacks
 
-        String osName = System.getProperty("os.name").toLowerCase();
-        if (osName.startsWith("mac os x")) {
+        if (NativeWindowFactory.TYPE_MACOSX.equals(NativeWindowFactory.getNativeWindowType(false))) {
             String vendor = gl.glGetString(GL.GL_VENDOR);
             if (vendor != null && vendor.startsWith("ATI")) {
                 return true;

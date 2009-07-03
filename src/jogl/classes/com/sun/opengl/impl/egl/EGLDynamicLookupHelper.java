@@ -181,7 +181,7 @@ public abstract class EGLDynamicLookupHelper implements DynamicLookupHelper {
     private long dynamicLookupFunctionOnLibs(String glFuncName) {
         String funcName=glFuncName;
         long addr = dynamicLookupFunctionOnLibsImpl(funcName);
-        if( 0==addr && NativeWindowFactory.getNativeWindowType(false)==NativeWindowFactory.TYPE_WINDOWS ) {
+        if( 0==addr && NativeWindowFactory.TYPE_WINDOWS.equals(NativeWindowFactory.getNativeWindowType(false)) ) {
             // Hack: try some C++ decoration here for Imageon's emulation libraries ..
             final int argAlignment=4;  // 4 byte alignment of each argument
             final int maxArguments=12; // experience ..
