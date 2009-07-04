@@ -84,8 +84,10 @@ public class X11AWTGLXGraphicsConfigurationFactory extends GraphicsConfiguration
             System.err.println("X11AWTGLXGraphicsConfigurationFactory: got "+absScreen);
         }
         
+        GraphicsConfiguration gc;
+        X11GraphicsConfiguration x11Config;
+
         // Need the lock here, since it could be an AWT owned display connection
-        X11GraphicsDevice x11Device;
         NativeWindowFactory.getDefaultFactory().getToolkitLock().lock();
         try {
             long displayHandle = X11SunJDKReflection.graphicsDeviceGetDisplay(device);
@@ -100,42 +102,42 @@ public class X11AWTGLXGraphicsConfigurationFactory extends GraphicsConfiguration
                 }
             }
             ((AWTGraphicsDevice)awtScreen.getDevice()).setHandle(displayHandle);
-            x11Device = new X11GraphicsDevice(displayHandle);
-        } finally {
-            NativeWindowFactory.getDefaultFactory().getToolkitLock().unlock();
-        }
+            X11GraphicsDevice x11Device = new X11GraphicsDevice(displayHandle);
 
-        X11GraphicsScreen x11Screen = new X11GraphicsScreen(x11Device, awtScreen.getIndex());
-        if(DEBUG) {
-            System.err.println("X11AWTGLXGraphicsConfigurationFactory: made "+x11Screen);
-        }
+            X11GraphicsScreen x11Screen = new X11GraphicsScreen(x11Device, awtScreen.getIndex());
+            if(DEBUG) {
+                System.err.println("X11AWTGLXGraphicsConfigurationFactory: made "+x11Screen);
+            }
 
-        GraphicsConfiguration gc = device.getDefaultConfiguration();
-        AWTGraphicsConfiguration.setupCapabilitiesRGBABits(capabilities, gc);
-        if(DEBUG) {
-            System.err.println("AWT Colormodel compatible: "+capabilities);
-        }
+            gc = device.getDefaultConfiguration();
+            AWTGraphicsConfiguration.setupCapabilitiesRGBABits(capabilities, gc);
+            if(DEBUG) {
+                System.err.println("AWT Colormodel compatible: "+capabilities);
+            }
 
-        X11GraphicsConfiguration x11Config = (X11GraphicsConfiguration)
-            GraphicsConfigurationFactory.getFactory(x11Device).chooseGraphicsConfiguration(capabilities,
-                                                                                           chooser,
-                                                                                           x11Screen);
-        if (x11Config == null) {
-            throw new GLException("Unable to choose a GraphicsConfiguration: "+capabilities+",\n\t"+chooser+"\n\t"+x11Screen);
-        }
+            x11Config = (X11GraphicsConfiguration)
+                GraphicsConfigurationFactory.getFactory(x11Device).chooseGraphicsConfiguration(capabilities,
+                                                                                               chooser,
+                                                                                               x11Screen);
+            if (x11Config == null) {
+                throw new GLException("Unable to choose a GraphicsConfiguration: "+capabilities+",\n\t"+chooser+"\n\t"+x11Screen);
+            }
 
-        long visualID = x11Config.getVisualID();
-        // Now figure out which GraphicsConfiguration corresponds to this
-        // visual by matching the visual ID
-        GraphicsConfiguration[] configs = device.getConfigurations();
-        for (int i = 0; i < configs.length; i++) {
-            GraphicsConfiguration config = configs[i];
-            if (config != null) {
-                if (X11SunJDKReflection.graphicsConfigurationGetVisualID(config) == visualID) {
-                    return new AWTGraphicsConfiguration(awtScreen, x11Config.getChosenCapabilities(), x11Config.getRequestedCapabilities(), 
-                                                        config, x11Config);
+            long visualID = x11Config.getVisualID();
+            // Now figure out which GraphicsConfiguration corresponds to this
+            // visual by matching the visual ID
+            GraphicsConfiguration[] configs = device.getConfigurations();
+            for (int i = 0; i < configs.length; i++) {
+                GraphicsConfiguration config = configs[i];
+                if (config != null) {
+                    if (X11SunJDKReflection.graphicsConfigurationGetVisualID(config) == visualID) {
+                        return new AWTGraphicsConfiguration(awtScreen, x11Config.getChosenCapabilities(), x11Config.getRequestedCapabilities(), 
+                                                            config, x11Config);
+                    }
                 }
             }
+        } finally {
+            NativeWindowFactory.getDefaultFactory().getToolkitLock().unlock();
         }
         // Either we weren't able to reflectively introspect on the
         // X11GraphicsConfig or something went wrong in the steps above;

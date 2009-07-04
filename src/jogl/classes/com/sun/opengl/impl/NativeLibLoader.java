@@ -49,8 +49,6 @@ import java.util.HashSet;
 import com.sun.nativewindow.impl.NativeLibLoaderBase;
 
 public class NativeLibLoader extends NativeLibLoaderBase {
-  protected static final boolean DEBUG = Debug.debug("NativeLibLoader");
-  
   public static void loadNEWT() {
     AccessController.doPrivileged(new PrivilegedAction() {
       public Object run() {
@@ -106,82 +104,6 @@ public class NativeLibLoader extends NativeLibLoaderBase {
     });
   }
 
-  //----------------------------------------------------------------------
-  // Support for the new JNLPAppletLauncher
-  //
-
-  private static class JOGLAction implements NativeLibLoaderBase.LoaderAction {
-    public void loadLibrary(String libname, String[] preload,
-        boolean preloadIgnoreError) {
-      if (null!=preload) {
-        for (int i=0; i<preload.length; i++) {
-          if(!isLoaded(preload[i])) {
-              try {
-                if(DEBUG) {
-                    System.err.println("JOGL NativeLibLoader preload "+preload[i]);
-                }
-                loadLibraryInternal(preload[i]);
-                addLoaded(preload[i]);
-              }
-              catch (UnsatisfiedLinkError e) {
-                if(DEBUG) e.printStackTrace();
-                if (!preloadIgnoreError && e.getMessage().indexOf("already loaded") < 0) {
-                  throw e;
-                }
-              }
-          }
-        }
-      }
-      
-      if(DEBUG) {
-          System.err.println("JOGL NativeLibLoader    load "+libname);
-      }
-      loadLibraryInternal(libname);
-      addLoaded(libname);
-    }
-  }
-
   private static final String[] nativeOSPreload = { "nativewindow_x11" };
-  private static boolean usingJNLPAppletLauncher;
-  private static Method  jnlpLoadLibraryMethod;
-
-  static {
-    NativeLibLoaderBase.setLoadingAction(new JOGLAction());
-    String sunAppletLauncher = Debug.getProperty("sun.jnlp.applet.launcher", false);
-    usingJNLPAppletLauncher = Boolean.valueOf(sunAppletLauncher).booleanValue();
-  }
-
-  // I hate the amount of delegation currently in this class
-  private static void loadLibraryInternal(String libraryName) {
-    // Note: special-casing JAWT which is built in to the JDK
-    if (usingJNLPAppletLauncher && !libraryName.equals("jawt")) {
-        try {
-          if (jnlpLoadLibraryMethod == null) {
-            Class jnlpAppletLauncherClass = Class.forName("org.jdesktop.applet.util.JNLPAppletLauncher");
-            jnlpLoadLibraryMethod = jnlpAppletLauncherClass.getDeclaredMethod("loadLibrary", new Class[] { String.class });
-          }
-          jnlpLoadLibraryMethod.invoke(null, new Object[] { libraryName });
-        } catch (Exception e) {
-          Throwable t = e;
-          if(DEBUG) t.printStackTrace();
-          if (t instanceof InvocationTargetException) {
-            t = ((InvocationTargetException) t).getTargetException();
-          }
-          if (t instanceof Error)
-            throw (Error) t;
-          if (t instanceof RuntimeException) {
-            throw (RuntimeException) t;
-          }
-          // Throw UnsatisfiedLinkError for best compatibility with System.loadLibrary()
-          throw (UnsatisfiedLinkError) new UnsatisfiedLinkError().initCause(e);
-        }
-    } else {
-      // FIXME: remove
-      // System.out.println("sun.boot.library.path=" + Debug.getProperty("sun.boot.library.path", false));
-      System.loadLibrary(libraryName);
-      if(DEBUG) {
-        System.err.println("JOGL Loaded Native Library: "+libraryName);
-      }
-    }
-  }
 }
+

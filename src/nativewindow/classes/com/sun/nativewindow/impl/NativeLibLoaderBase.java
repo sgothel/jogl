@@ -70,7 +70,7 @@ public class NativeLibLoaderBase {
         for (int i=0; i<preload.length; i++) {
           if(!isLoaded(preload[i])) {
               try {
-                System.loadLibrary(preload[i]);
+                loadLibraryInternal(preload[i]);
                 addLoaded(preload[i]);
                 if(DEBUG) {
                     System.err.println("NativeLibLoaderBase preloaded "+preload[i]);
@@ -85,7 +85,7 @@ public class NativeLibLoaderBase {
           }
         }
       }
-      System.loadLibrary(libname);
+      loadLibraryInternal(libname);
       addLoaded(libname);
       if(DEBUG) {
           System.err.println("NativeLibLoaderBase    loaded "+libname);
@@ -134,5 +134,69 @@ public class NativeLibLoaderBase {
         return null;
       }
     });
+  }
+
+
+  private static final Class  customLauncherClass;
+  private static final Method customLoadLibraryMethod;
+
+  static {
+    Class launcherClass = null;
+    Method loadLibraryMethod = null;
+
+    if ( Debug.getBooleanProperty("sun.jnlp.applet.launcher", false) ) {
+        try {
+            launcherClass = Class.forName("org.jdesktop.applet.util.JNLPAppletLauncher");
+            loadLibraryMethod = launcherClass.getDeclaredMethod("loadLibrary", new Class[] { String.class });
+        } catch (Throwable t) { 
+            if(DEBUG) {
+                t.printStackTrace();
+            }
+            launcherClass = null;
+            loadLibraryMethod = null;
+        }
+    }
+
+    if(null==launcherClass) {
+        String launcherClassName = Debug.getProperty("jnlp.launcher.class", false);
+        if(null!=launcherClassName) {
+            try {
+                launcherClass = Class.forName(launcherClassName);
+                loadLibraryMethod = launcherClass.getDeclaredMethod("loadLibrary", new Class[] { String.class });
+            } catch (Throwable t) { 
+                if(DEBUG) {
+                    t.printStackTrace();
+                }
+                launcherClass = null;
+                loadLibraryMethod = null;
+            }
+        }
+    }
+    customLauncherClass = launcherClass;
+    customLoadLibraryMethod = loadLibraryMethod;
+  }
+
+  private static void loadLibraryInternal(String libraryName) {
+    // Note: special-casing JAWT which is built in to the JDK
+    if (null!=customLoadLibraryMethod && !libraryName.equals("jawt")) {
+        try {
+          customLoadLibraryMethod.invoke(null, new Object[] { libraryName });
+        } catch (Exception e) {
+          Throwable t = e;
+          if (t instanceof InvocationTargetException) {
+            t = ((InvocationTargetException) t).getTargetException();
+          }
+          if (t instanceof Error)
+            throw (Error) t;
+          if (t instanceof RuntimeException) {
+            throw (RuntimeException) t;
+          }
+          // Throw UnsatisfiedLinkError for best compatibility with System.loadLibrary()
+          throw (UnsatisfiedLinkError) new UnsatisfiedLinkError().initCause(e);
+        }
+    } else {
+      // System.out.println("sun.boot.library.path=" + Debug.getProperty("sun.boot.library.path", false));
+      System.loadLibrary(libraryName);
+    }
   }
 }

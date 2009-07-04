@@ -46,7 +46,7 @@ public class JAWTUtil {
 
   static {
     JAWTNativeLibLoader.loadAWTImpl();
-    NativeLibLoaderBase.loadNativeWindow("awt");
+    JAWTNativeLibLoader.loadNativeWindow("awt");
 
     lockedStack   = null;
     headlessMode = GraphicsEnvironment.isHeadless();
