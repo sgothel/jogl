@@ -61,7 +61,7 @@ public class Debug {
     }
   }
 
-  protected static int getIntProperty(final String property, final boolean jnlpAlias) {
+  static int getIntProperty(final String property, final boolean jnlpAlias) {
       return getIntProperty(property, jnlpAlias, localACC);
   }
 
@@ -74,7 +74,7 @@ public class Debug {
     return i;
   }
 
-  protected static boolean getBooleanProperty(final String property, final boolean jnlpAlias) {
+  static boolean getBooleanProperty(final String property, final boolean jnlpAlias) {
     return getBooleanProperty(property, jnlpAlias, localACC);
   }
 
@@ -83,7 +83,7 @@ public class Debug {
     return b.booleanValue();
   }
 
-  protected static boolean isPropertyDefined(final String property, final boolean jnlpAlias) {
+  static boolean isPropertyDefined(final String property, final boolean jnlpAlias) {
     return isPropertyDefined(property, jnlpAlias, localACC);
   }
 
@@ -91,7 +91,7 @@ public class Debug {
     return (Debug.getProperty(property, jnlpAlias, acc) != null) ? true : false;
   }
 
-  protected static String getProperty(final String property, final boolean jnlpAlias) {
+  static String getProperty(final String property, final boolean jnlpAlias) {
     return getProperty(property, jnlpAlias, localACC);
   }
 
