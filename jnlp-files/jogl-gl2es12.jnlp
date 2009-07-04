@@ -38,7 +38,7 @@
       <jar href="jogl.gl2es12.x11.jar" />
       <jar href="jogl.gl2es12.dbg.jar" />
     </resources>
-    <resources os="Mac\ OS\ X">
+    <resources os="Mac OS X">
       <jar href="jogl.gl2es12.osx.jar" />
       <jar href="jogl.gl2es12.dbg.jar" />
     </resources>

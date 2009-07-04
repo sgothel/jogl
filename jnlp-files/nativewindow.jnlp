@@ -53,10 +53,10 @@
     <resources os="Linux" arch="x86_64">
       <nativelib href = "nativewindow-natives-linux-amd64.jar" />
     </resources>
-    <resources os="Mac\ OS\ X" arch="i386">
+    <resources os="Mac OS X" arch="i386">
       <nativelib href = "nativewindow-natives-macosx-universal.jar" />
     </resources>
-    <resources os="Mac\ OS\ X" arch="x86_64">
+    <resources os="Mac OS X" arch="x86_64">
       <nativelib href = "nativewindow-natives-macosx-universal.jar" />
     </resources>
 

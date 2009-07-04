@@ -44,7 +44,7 @@
       <jar href="jogl.glu.gl2.jar" />
       <jar href="jogl.gl2.dbg.jar" />
     </resources>
-    <resources os="Mac\ OS\ X">
+    <resources os="Mac OS X">
       <jar href="jogl.gl2.osx.jar" />
       <jar href="jogl.util.gl2.jar" />
       <jar href="jogl.glu.gl2.jar" />

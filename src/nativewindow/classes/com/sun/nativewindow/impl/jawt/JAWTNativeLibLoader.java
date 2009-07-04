@@ -62,7 +62,14 @@ public class JAWTNativeLibLoader extends NativeLibLoaderBase {
         // will succeed since JAWT shared object isn't in
         // default library path
         if ( ! NativeWindowFactory.TYPE_MACOSX.equals( NativeWindowFactory.getNativeWindowType(false) ) ) {
-            loadLibrary("jawt", null, true);
+            try {
+                loadLibrary("jawt", null, true);
+            } catch (Throwable t) {
+                // It might be ok .. if it's already loaded
+                if(DEBUG) {
+                    t.printStackTrace();
+                }
+            }
         }
         return null;
       }
