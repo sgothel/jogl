@@ -13,10 +13,10 @@
       <all-permissions/>
   </security>
     <resources>
-      <jar href="jogl.glu.mipmap.jar" />
-      <jar href="jogl.glu.tess.jar" />
+      <jar href="jogl.glu.mipmap.jar" download="lazy"/>
+      <jar href="jogl.glu.tess.jar" download="lazy"/>
 
-      <jar href="jogl.util.fixedfuncemu.jar" />
+      <jar href="jogl.util.fixedfuncemu.jar" download="lazy"/>
 
       <!-- jar href="jogl.sdk.jar" /-->
 
@@ -26,21 +26,21 @@
     <resources os="Mobile-Embedded">
       <jar href="jogl.egl.jar" />
       <jar href="jogl.gles1.jar" />
-      <jar href="jogl.gles1.dbg.jar" />
+      <jar href="jogl.gles1.dbg.jar" download="lazy"/>
       <jar href="jogl.gles2.jar" />
-      <jar href="jogl.gles2.dbg.jar" />
+      <jar href="jogl.gles2.dbg.jar" download="lazy"/>
     </resources>
     <resources os="Windows">
       <jar href="jogl.gl2es12.win.jar" />
-      <jar href="jogl.gl2es12.dbg.jar" />
+      <jar href="jogl.gl2es12.dbg.jar" download="lazy"/>
     </resources>
     <resources os="SunOS Linux">
       <jar href="jogl.gl2es12.x11.jar" />
-      <jar href="jogl.gl2es12.dbg.jar" />
+      <jar href="jogl.gl2es12.dbg.jar" download="lazy"/>
     </resources>
     <resources os="Mac OS X">
       <jar href="jogl.gl2es12.osx.jar" />
-      <jar href="jogl.gl2es12.dbg.jar" />
+      <jar href="jogl.gl2es12.dbg.jar" download="lazy"/>
     </resources>
 
   <component-desc />
