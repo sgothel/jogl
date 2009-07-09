@@ -1,6 +1,9 @@
 #! /bin/sh
 
-. ../../setenv-build-jogl-x86_64.sh
+if [ -e ../../setenv-build-jogl-x86_64.sh ] ; then
+    . ../../setenv-build-jogl-x86_64.sh
+fi
+
 
 ant -v  \
     -Dbuild.noarchives=true \

@@ -1,6 +1,8 @@
 #! /bin/sh
 
-. ../../setenv-build-jogl.sh
+if [ -e ../../setenv-build-jogl-x86.sh ] ; then
+    . ../../setenv-build-jogl-x86.sh
+fi
 
 #    -Dc.compiler.debug=true 
 #

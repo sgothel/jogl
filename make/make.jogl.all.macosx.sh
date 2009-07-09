@@ -1,6 +1,9 @@
 #! /bin/sh
 
-. /devtools/etc/profile.ant
+if [ -e /devtools/etc/profile.ant ] ; then
+    . /devtools/etc/profile.ant
+fi
+
 
 #    -Dc.compiler.debug=true 
 #    -Dbuild.noarchives=true

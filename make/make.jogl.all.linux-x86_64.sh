@@ -1,6 +1,8 @@
 #! /bin/sh
 
-. ../../setenv-build-jogl-x86_64.sh
+if [ -e ../../setenv-build-jogl-x86_64.sh ] ; then
+    . ../../setenv-build-jogl-x86_64.sh
+fi
 
 # -Djogl.cg=1 -Dx11.cg.lib=../../lib-linux-x86_64
 #    -Dc.compiler.debug=true 
