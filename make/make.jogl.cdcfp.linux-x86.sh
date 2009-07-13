@@ -15,7 +15,7 @@ fi
 ant -v \
     -Dbuild.noarchives=true \
     -Drootrel.build=build-cdcfp-x86 \
-    -Djogl.cdcfp=true \
+    -Dsetup.cdcfp=true \
     -Dgluegen.cpptasks.detected.os=true \
     -DisUnix=true \
     -DisLinux=true \

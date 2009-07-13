@@ -41,6 +41,8 @@ import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
 import com.sun.opengl.impl.x11.glx.*;
 
+import com.sun.gluegen.runtime.PointerBuffer;
+
 /** Subclass of GraphicsConfigurationFactory used when non-AWT tookits
     are used on X11 platforms. Toolkits will likely need to delegate
     to this one to change the accepted and returned types of the
@@ -89,7 +91,7 @@ public class X11GLXGraphicsConfigurationFactory extends GraphicsConfigurationFac
 
           int[] attribs = X11GLXGraphicsConfiguration.GLCapabilities2AttribList(caps, true, isMultisampleAvailable, usePBuffer, 0, 0);
           int[] count = { -1 };
-          java.nio.LongBuffer fbcfgsL = GLX.glXChooseFBConfigCopied(display, screen, attribs, 0, count, 0);
+          PointerBuffer fbcfgsL = GLX.glXChooseFBConfigCopied(display, screen, attribs, 0, count, 0);
           if (fbcfgsL == null || fbcfgsL.limit()<1) {
               throw new Exception("Could not fetch FBConfig for "+caps);
           }
@@ -166,7 +168,7 @@ public class X11GLXGraphicsConfigurationFactory extends GraphicsConfigurationFac
                                                                                      boolean usePBuffer) {
         int recommendedIndex = -1;
         GLCapabilities[] caps = null;
-        java.nio.LongBuffer fbcfgsL = null;
+        PointerBuffer fbcfgsL = null;
         int chosen=-1;
         int retFBID=-1;
         XVisualInfo retXVisualInfo = null;

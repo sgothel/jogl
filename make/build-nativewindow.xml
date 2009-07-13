@@ -131,6 +131,14 @@
 
         <!-- condition excludes -->
 
+        <condition property="isCDCFP">
+           <isset property="setup.cdcfp"/>
+        </condition>
+
+        <condition property="setup.noAWT">
+           <isset property="setup.cdcfp"/> 
+        </condition>
+
         <condition property="java.excludes.awt"
                    value="${java.part.awt}">
            <isset property="setup.noAWT"/> 
@@ -276,8 +284,8 @@
 
         <!-- The resulting nativewindow.jar. -->
         <property name="nativewindow.core.jar" value="${build}/nativewindow.core.jar" />
-        <property name="nativewindow.awt.jar" value="${build}/nativewindow.awt.jar" />
-        <property name="nativewindow.all.jar" value="${build}/nativewindow.all.jar" />
+        <property name="nativewindow.awt.jar"  value="${build}/nativewindow.awt.jar"  />
+        <property name="nativewindow.all.jar"  value="${build}/nativewindow.all.jar"  />
 
         <!-- The javadoc dirs. -->
         <property name="javadoc" value="${project.root}/javadoc_nativewindow_public" />
@@ -747,7 +755,7 @@
       </sequential>
     </macrodef>  
 
-    <target name="c.fixup.jawt.version.macosx" if="isOSX">
+    <target name="c.fixup.jawt.version.macosx" if="isOSX" unless="setup.noAWT">
       <!-- Edit the link to the JAWT version in the resulting jnilib
            file; this isn't strictly needed but seems to allow the
            universal binaries to work on 10.3 machines as well, which
@@ -768,7 +776,7 @@
                linker.cfg.id="${linker.cfg.id.oswin}"/>
     </target>
 
-    <target name="c.build.nativewindow.awt">
+    <target name="c.build.nativewindow.awt" unless="setup.noAWT">
       <c.build c.compiler.src.files="c.src.files.awt"
                c.compiler.use-jawt="true"
                output.lib.name="nativewindow_awt"
@@ -809,17 +817,14 @@
     <target name="jar" depends="java.compile,build-jars"/>
 
     <target name="setup-manifestfile">
-      <condition property="manifestfile" value="nativewindowRIversion">
-        <isset property="nativewindow.ri" />
-      </condition>
-      <condition property="manifestfile" value="nativewindowversion">
-        <not>
+        <condition property="manifestfile" value="nativewindowRIversion">
           <isset property="nativewindow.ri" />
-        </not>
-      </condition>
-    </target>
-
-    <target name="build-jars" depends="setup-manifestfile">
+        </condition>
+        <condition property="manifestfile" value="nativewindowversion">
+          <not>
+            <isset property="nativewindow.ri" />
+          </not>
+        </condition>
         <tstamp>
              <format property="timestamp" pattern="yyyyMMdd-HH:mm:ss"/>
         </tstamp>
@@ -831,22 +836,31 @@
               <filter token="BASEVERSION" value="${nativewindow_base_version}"/>
           </filterset>
         </copy>
+    </target>
 
-        <jar manifest="tempversion" destfile="${nativewindow.core.jar}">
-            <fileset dir="${classes}"
-                     includes="${java.part.core}"
-                     excludes="${java.part.awt}"/>
-        </jar>
+    <target name="build-jars-awt" depends="setup-manifestfile" unless="setup.noAWT">
         <jar manifest="tempversion" destfile="${nativewindow.awt.jar}">
             <fileset dir="${classes}"
-                     includes="${java.part.awt}"/>
+                     includes="${java.part.awt}"
+                     excludes="${java.excludes.awt}"/>
         </jar>
+    </target>
+
+    <target name="build-jars-all" depends="setup-manifestfile" unless="setup.cdcfp">
         <jar manifest="tempversion" destfile="${nativewindow.all.jar}">
             <fileset dir="${classes}">
                 <include name="javax/media/nativewindow/**" />
                 <include name="com/sun/nativewindow/**" />
                 <include name="com/sun/gluegen/runtime/**" />
             </fileset>
+        </jar>
+    </target>
+
+    <target name="build-jars" depends="setup-manifestfile,build-jars-awt,build-jars-all">
+        <jar manifest="tempversion" destfile="${nativewindow.core.jar}">
+            <fileset dir="${classes}"
+                     includes="${java.part.core}"
+                     excludes="${java.part.awt}"/>
         </jar>
 
         <delete file="tempversion"/>

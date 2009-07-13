@@ -73,11 +73,11 @@
       -->
     <target name="base.init">
 
-        <condition property="setup.noAWT">
-           <isset property="setup.cdcfp"/> 
-        </condition>
         <condition property="isCDCFP">
            <isset property="setup.cdcfp"/>
+        </condition>
+        <condition property="setup.noAWT">
+           <isset property="setup.cdcfp"/> 
         </condition>
         <condition property="javac.bootclasspath.jar"
                    value="../../gluegen/make/lib/cdc_fp.jar">
@@ -179,8 +179,10 @@
         <property name="rootrel.obj" value="${rootrel.build.newt}/obj" />
 
         <property name="gluegen-rt.jar" value="../../gluegen/${rootrel.build}/gluegen-rt.jar" />
-        <property name="nativewindow.all.jar" value="../${rootrel.build}/nativewindow/nativewindow.all.jar" />
-        <property name="jogl.all.jar" value="../${rootrel.build}/jogl/jogl.all.jar" />
+        <property name="nativewindow.core.jar" value="../${rootrel.build}/nativewindow/nativewindow.core.jar" />
+        <property name="nativewindow.awt.jar" value="../${rootrel.build}/nativewindow/nativewindow.awt.jar" />
+        <property name="jogl.core.jar" value="../${rootrel.build}/jogl/jogl.core.jar" />
+        <property name="jogl.egl.jar" value="../${rootrel.build}/jogl/jogl.egl.jar" />
 
         <!-- The source directories. -->
         <property name="src.java" value="${project.root}/${rootrel.src.java}" />
@@ -196,9 +198,11 @@
         <property name="obj"      value="${project.root}/${rootrel.obj}" />
 
         <path id="nativewindow_gluegen_jogl.classpath">
-            <pathelement location="${nativewindow.all.jar}" />
+            <pathelement location="${nativewindow.core.jar}" />
+            <pathelement location="${nativewindow.awt.jar}" />
             <pathelement location="${gluegen-rt.jar}" />
-            <pathelement location="${jogl.all.jar}" />
+            <pathelement location="${jogl.core.jar}" />
+            <pathelement location="${jogl.egl.jar}" />
         </path>
 
         <!-- The resulting newt.jar. -->
@@ -206,6 +210,7 @@
         <property name="newt.ogl.jar"  value="${build}/newt.ogl.jar" />
         <property name="newt.awt.jar"  value="${build}/newt.awt.jar" />
         <property name="newt.all.jar"  value="${build}/newt.all.jar" />
+        <property name="newt.cdcfp.jar" value="${build}/newt.cdcfp.jar" />
 
         <!-- The javadoc dirs. -->
         <property name="javadoc" value="${project.root}/javadoc_newt_public" />
@@ -509,10 +514,10 @@
     </macrodef>  
 
     <target name="c.build.newt.prepare">
-      <javah destdir="../${rootrel.build.newt}/gensrc/native/newt/Windows" classpath="${newt.all.jar}" class="com.sun.javafx.newt.windows.WindowsWindow" />
-      <javah destdir="../${rootrel.build.newt}/gensrc/native/newt/MacOSX" classpath="${newt.all.jar}" class="com.sun.javafx.newt.macosx.MacWindow" />
-      <javah destdir="../${rootrel.build.newt}/gensrc/native/newt/X11" classpath="${newt.all.jar}" class="com.sun.javafx.newt.x11.X11Window" />
-      <javah destdir="../${rootrel.build.newt}/gensrc/native/newt/KD" classpath="${newt.all.jar}" class="com.sun.javafx.newt.opengl.kd.KDWindow" />
+      <javah destdir="../${rootrel.build.newt}/gensrc/native/newt/Windows" classpath="${newt.cdcfp.jar}" class="com.sun.javafx.newt.windows.WindowsWindow" />
+      <javah destdir="../${rootrel.build.newt}/gensrc/native/newt/MacOSX" classpath="${newt.cdcfp.jar}" class="com.sun.javafx.newt.macosx.MacWindow" />
+      <javah destdir="../${rootrel.build.newt}/gensrc/native/newt/X11" classpath="${newt.cdcfp.jar}" class="com.sun.javafx.newt.x11.X11Window" />
+      <javah destdir="../${rootrel.build.newt}/gensrc/native/newt/KD" classpath="${newt.cdcfp.jar}" class="com.sun.javafx.newt.opengl.kd.KDWindow" />
     </target>
 
     <target name="c.build.newt.windowlib">
@@ -544,17 +549,14 @@
     <target name="jar" depends="java.compile,build-jars"/>
 
     <target name="setup-manifestfile">
-      <condition property="manifestfile" value="newtRIversion">
-        <isset property="newt.ri" />
-      </condition>
-      <condition property="manifestfile" value="newtversion">
-        <not>
+        <condition property="manifestfile" value="newtRIversion">
           <isset property="newt.ri" />
-        </not>
-      </condition>
-    </target>
-
-    <target name="build-jars" depends="setup-manifestfile">
+        </condition>
+        <condition property="manifestfile" value="newtversion">
+          <not>
+            <isset property="newt.ri" />
+          </not>
+        </condition>
         <tstamp>
              <format property="timestamp" pattern="yyyyMMdd-HH:mm:ss"/>
         </tstamp>
@@ -567,22 +569,37 @@
           </filterset>
         </copy>
 
-        <jar manifest="tempversion" destfile="${newt.core.jar}">
-            <fileset dir="${classes}"
-                     includes="${java.part.core}"/>
-        </jar>
-        <jar manifest="tempversion" destfile="${newt.ogl.jar}">
-            <fileset dir="${classes}"
-                     includes="${java.part.core}, ${java.part.opengl}"/>
-        </jar>
+    </target>
+
+    <target name="build-jars-awt" depends="setup-manifestfile" unless="setup.noAWT">
         <jar manifest="tempversion" destfile="${newt.awt.jar}">
             <fileset dir="${classes}"
                      includes="${java.part.awt}"/>
         </jar>
+    </target>
+
+    <target name="build-jars-opengl" depends="setup-manifestfile" unless="setup.noOpenGL">
+        <jar manifest="tempversion" destfile="${newt.ogl.jar}">
+            <fileset dir="${classes}"
+                     includes="${java.part.opengl}"/>
+        </jar>
+    </target>
+
+    <target name="build-jars-all" depends="setup-manifestfile" unless="setup.cdcfp">
         <jar manifest="tempversion" destfile="${newt.all.jar}">
-            <fileset dir="${classes}">
-                <include name="com/sun/javafx/newt/**" />
-            </fileset>
+            <fileset dir="${classes}"
+                     includes="com/sun/javafx/newt/**" />
+        </jar>
+    </target>
+
+    <target name="build-jars" depends="setup-manifestfile,build-jars-awt,build-jars-opengl,build-jars-all">
+        <jar manifest="tempversion" destfile="${newt.core.jar}">
+            <fileset dir="${classes}"
+                     includes="${java.part.core}"/>
+        </jar>
+        <jar manifest="tempversion" destfile="${newt.cdcfp.jar}">
+            <fileset dir="${classes}"
+                     includes="${java.part.core} ${java.part.opengl}"/>
         </jar>
 
         <delete file="tempversion"/>

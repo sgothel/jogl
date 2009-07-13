@@ -75,6 +75,14 @@ public class InternalBufferUtil {
         return bb.asIntBuffer();
     }
     
+    /** Allocates a new direct ShortBuffer with the specified number of
+        elements. The returned buffer will have its byte order set to
+        the host platform's native byte order. */
+    public static ShortBuffer newShortBuffer(int numElements) {
+        ByteBuffer bb = newByteBuffer(numElements * SIZEOF_SHORT);
+        return bb.asShortBuffer();
+    }
+    
     /** Allocates a new direct FloatBuffer with the specified number of
         elements. The returned buffer will have its byte order set to
         the host platform's native byte order. */
@@ -83,24 +91,6 @@ public class InternalBufferUtil {
         return bb.asFloatBuffer();
     }
     
-    //----------------------------------------------------------------------
-    // Copy routines (type-to-type)
-    //
-
-    /** Copies the <i>remaining</i> elements (as defined by
-        <code>limit() - position()</code>) in the passed ByteBuffer into
-        a newly-allocated direct ByteBuffer. The returned buffer will
-        have its byte order set to the host platform's native byte
-        order. The position of the newly-allocated buffer will be zero,
-        and the position of the passed buffer is unchanged (though its
-        mark is changed). */
-    public static ByteBuffer copyByteBuffer(ByteBuffer orig) {
-        ByteBuffer dest = newByteBuffer(orig.remaining());
-        dest.put(orig);
-        dest.rewind();
-        return dest;
-    }
-
     //----------------------------------------------------------------------
     // Copy routines (type-to-ByteBuffer)
     //
@@ -143,6 +133,20 @@ public class InternalBufferUtil {
     public static ByteBuffer copyShortBufferAsByteBuffer(ShortBuffer orig) {
         ByteBuffer dest = newByteBuffer(orig.remaining() * SIZEOF_SHORT);
         dest.asShortBuffer().put(orig);
+        dest.rewind();
+        return dest;
+    }
+
+    /** Copies the <i>remaining</i> elements (as defined by
+        <code>limit() - position()</code>) in the passed ByteBuffer into
+        a newly-allocated direct ByteBuffer. The returned buffer will
+        have its byte order set to the host platform's native byte
+        order. The position of the newly-allocated buffer will be zero,
+        and the position of the passed buffer is unchanged (though its
+        mark is changed). */
+    public static ByteBuffer copyByteBuffer(ByteBuffer orig) {
+        ByteBuffer dest = newByteBuffer(orig.remaining());
+        dest.put(orig);
         dest.rewind();
         return dest;
     }

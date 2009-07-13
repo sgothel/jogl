@@ -88,6 +88,8 @@ public abstract class GLDrawableFactory {
   private static final GLDrawableFactory eglFactory;
   private static final GLDrawableFactory nativeOSFactory;
   private static final String nativeOSType;
+  static final String macosxFactoryClassNameCGL = "com.sun.opengl.impl.macosx.cgl.MacOSXCGLDrawableFactory";
+  static final String macosxFactoryClassNameAWTCGL = "com.sun.opengl.impl.macosx.cgl.awt.MacOSXAWTCGLDrawableFactory";
 
   /**
    * Instantiate singleton factories if available, EGLES1, EGLES2 and the OS native ones.
@@ -118,8 +120,11 @@ public abstract class GLDrawableFactory {
             } else if ( nativeOSType.equals(NativeWindowFactory.TYPE_WINDOWS) ) {
               factoryClassName = "com.sun.opengl.impl.windows.wgl.WindowsWGLDrawableFactory";
             } else if ( nativeOSType.equals(NativeWindowFactory.TYPE_MACOSX) ) {
-              // FIXME: remove this residual dependence on the AWT
-              factoryClassName = "com.sun.opengl.impl.macosx.cgl.awt.MacOSXAWTCGLDrawableFactory";
+                if(NWReflection.isClassAvailable(macosxFactoryClassNameAWTCGL)) {
+                    factoryClassName = macosxFactoryClassNameAWTCGL;
+                } else {
+                    factoryClassName = macosxFactoryClassNameCGL;
+                }
             } else {
               throw new GLException("Unsupported NativeWindow type: "+nativeOSType);
             }

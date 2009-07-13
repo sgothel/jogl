@@ -46,8 +46,6 @@ import com.sun.opengl.impl.x11.glx.*;
 import com.sun.nativewindow.impl.NullWindow;
 import com.sun.nativewindow.impl.x11.*;
 
-import java.nio.LongBuffer;
-
 public class X11PbufferGLXDrawable extends X11GLXDrawable {
   protected X11PbufferGLXDrawable(GLDrawableFactory factory, AbstractGraphicsScreen screen,
                                   GLCapabilities caps, 

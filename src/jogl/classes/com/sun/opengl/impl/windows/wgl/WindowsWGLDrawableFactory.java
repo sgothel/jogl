@@ -275,7 +275,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl implements 
   }
 
   protected Buffer getGammaRamp() {
-    ShortBuffer rampData = ShortBuffer.allocate(3 * GAMMA_RAMP_LENGTH);
+    ShortBuffer rampData = ShortBuffer.wrap(new short[3 * GAMMA_RAMP_LENGTH]);
     long screenDC = WGL.GetDC(0);
     boolean res = WGL.GetDeviceGammaRamp(screenDC, rampData);
     WGL.ReleaseDC(0, screenDC);

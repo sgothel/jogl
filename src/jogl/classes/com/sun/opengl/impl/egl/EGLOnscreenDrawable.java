@@ -45,8 +45,6 @@ import javax.media.nativewindow.egl.*;
 import com.sun.opengl.impl.*;
 import com.sun.nativewindow.impl.NullWindow;
 
-import java.nio.LongBuffer;
-
 public class EGLOnscreenDrawable extends EGLDrawable {
     protected EGLOnscreenDrawable(EGLDrawableFactory factory, NativeWindow component) throws GLException {
         super(factory, component);

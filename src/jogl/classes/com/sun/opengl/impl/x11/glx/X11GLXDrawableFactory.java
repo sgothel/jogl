@@ -49,7 +49,6 @@ import com.sun.opengl.impl.x11.glx.*;
 import com.sun.nativewindow.impl.NullWindow;
 import com.sun.nativewindow.impl.NWReflection;
 import com.sun.nativewindow.impl.x11.*;
-import com.sun.nativewindow.impl.jawt.x11.*;
 
 public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements DynamicLookupHelper {
   public X11GLXDrawableFactory() {
@@ -229,7 +228,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
 
   protected Buffer getGammaRamp() {
     int size = getGammaRampLength();
-    ShortBuffer rampData = ShortBuffer.allocate(3 * size);
+    ShortBuffer rampData = ShortBuffer.wrap(new short[3 * size]);
     rampData.position(0);
     rampData.limit(size);
     ShortBuffer redRampData = rampData.slice();

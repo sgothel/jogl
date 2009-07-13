@@ -45,7 +45,7 @@ import com.sun.opengl.impl.*;
 import com.sun.nativewindow.impl.NullWindow;
 import com.sun.nativewindow.impl.x11.*;
 
-import java.nio.LongBuffer;
+import com.sun.gluegen.runtime.PointerBuffer;
 
 public class X11ExternalGLXDrawable extends X11GLXDrawable {
   private int fbConfigID;
@@ -193,7 +193,7 @@ public class X11ExternalGLXDrawable extends X11GLXDrawable {
       };
       float[] fattributes = new float[0];
       int[] nelementsTmp = new int[1];
-      LongBuffer fbConfigs = GLX.glXChooseFBConfigCopied(display, screen, iattributes, 0, nelementsTmp, 0);
+      PointerBuffer fbConfigs = GLX.glXChooseFBConfigCopied(display, screen, iattributes, 0, nelementsTmp, 0);
       int nelements = nelementsTmp[0];
       if (nelements <= 0) {
         throw new GLException("context creation error: couldn't find a suitable frame buffer configuration");

@@ -45,8 +45,6 @@ import javax.media.nativewindow.egl.*;
 import com.sun.opengl.impl.*;
 import com.sun.nativewindow.impl.NullWindow;
 
-import java.nio.LongBuffer;
-
 public class EGLPbufferDrawable extends EGLDrawable {
     private int width, height;
     private int texFormat;
