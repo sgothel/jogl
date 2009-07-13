@@ -12,9 +12,11 @@ fi
 #    -Djava.generate.skip=true \
 #    -Dbuild.noarchives=true
 
+BUILD_SUBDIR=build-cdcfp-x86
+
 ant -v \
     -Dbuild.noarchives=true \
-    -Drootrel.build=build-cdcfp-x86 \
+    -Drootrel.build=$BUILD_SUBDIR \
     -Dsetup.cdcfp=true \
     -Dgluegen.cpptasks.detected.os=true \
     -DisUnix=true \
@@ -24,3 +26,13 @@ ant -v \
     -DuseKD=true \
     -DuseOpenMAX=true \
     $* 2>&1 | tee make.jogl.cdcfp.linux-x86.log
+
+rm -rf ../$BUILD_SUBDIR/lib
+mkdir -p ../$BUILD_SUBDIR/lib
+for i in `find ../$BUILD_SUBDIR/ -name \*so` ; do
+    cp -v $i ../$BUILD_SUBDIR/lib/$(basename $i .so).so
+done
+for i in `find ../../gluegen/$BUILD_SUBDIR/ -name \*so` ; do
+    cp -v $i ../$BUILD_SUBDIR/lib/$(basename $i .so).so
+done
+
