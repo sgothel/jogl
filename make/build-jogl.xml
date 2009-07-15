@@ -51,25 +51,10 @@
    -
    - Some environment defs affecting compilation
 
-       setup.cdcfp     - Using the CDC Java runtime library
-                            - no DoubleBuffer 
-                            - no LongBuffer
-
-                        This will set
-                            -> setup.nogl2
-                                -> setup.noAWT (depends on gl2)
-                            -> setup.nogl3
-
    - Internal settings, may not be necessary to set them manually,
      since all JAR archives are orthogonal.
-       setup.noes1
-       setup.noes2
-       setup.nogl2es12
-       setup.nogl2 [ -> setup.noAWT (still depends on gl2), setup.nogl3 (contained in the gl2 jar) ]
-       setup.nogl3 [ -> setup.nogl2 (contained in the gl2 jar) ]
        setup.noAWT
-       setup.noX11WindowsMacOsX [ -> setup.noX11, setup.noWindows, setup.noMacOsX ]
-          is also triggered by [ setup.nogl2 && setup.nogl3 && setup.nogl2es12 ]
+       setup.noCDC
    -->
 <project name="JOGL" basedir="." default="all">
 
@@ -88,91 +73,14 @@
       -->
     <target name="base.init">
 
-        <condition property="setup.noes">
-           <and>
-               <isset property="setup.noes1"/> 
-               <isset property="setup.noes2"/> 
-           </and>
-        </condition>
-
-        <condition property="isCDCFP">
-           <isset property="setup.cdcfp"/>
-        </condition>
-
-        <condition property="setup.nogl2">
-           <or>
-               <isset property="setup.cdcfp"/> 
-               <isset property="setup.nogl3"/> 
-           </or>
-        </condition>
-
-        <condition property="setup.nogl3">
-           <or>
-               <isset property="setup.cdcfp"/> 
-               <isset property="setup.nogl2"/> 
-           </or>
-        </condition>
-
-        <condition property="setup.noAWT">
-          <isset property="setup.nogl2"/> 
-        </condition>
-
-        <condition property="javac.bootclasspath.jar"
-                   value="../../gluegen/make/lib/cdc_fp.jar">
-           <isset property="setup.cdcfp"/> 
-        </condition>
-        <echo message="setup.cdcfp: ${setup.cdcfp}" />
         <echo message="setup.noAWT: ${setup.noAWT}" />
-        <echo message="javac.bootclasspath.jar: ${javac.bootclasspath.jar}" />
-        <echo message="setup.noes : ${setup.noes}" />
-        <echo message="setup.noes1: ${setup.noes1}" />
-        <echo message="setup.noes2: ${setup.noes2}" />
-        <echo message="setup.nogl2es12: ${setup.nogl2es12}" />
-        <echo message="setup.nogl2: ${setup.nogl2}" />
-        <echo message="setup.nogl3: ${setup.nogl3}" />
-
-        <condition property="setup.noX11WindowsMacOsX">
-          <and>
-           <isset property="setup.nogl2es12"/> 
-           <isset property="setup.nogl2"/> 
-           <isset property="setup.nogl3"/> 
-          </and>
-        </condition>
-
-        <condition property="setup.noX11WindowsMacOsX">
-          <and>
-           <isset property="setup.noX11"/> 
-           <isset property="setup.noWindows"/> 
-           <isset property="setup.noMacOsX"/> 
-          </and>
-        </condition>
-
-        <condition property="setup.noX11">
-            <isset property="setup.noX11WindowsMacOsX"/>
-        </condition>
-
-        <condition property="setup.noWindows">
-            <isset property="setup.noX11WindowsMacOsX" />
-        </condition>
-
-        <condition property="setup.noMacOsX">
-            <isset property="setup.noX11WindowsMacOsX" />
-        </condition>
-
-        <echo message="setup.noX11WindowsMacOsX: ${setup.noX11WindowsMacOsX}" />
-        <echo message="setup.noX11: ${setup.noX11}" />
-        <echo message="setup.noWindows: ${setup.noWindows}" />
-        <echo message="setup.noMacOsX: ${setup.noMacOsX}" />
+        <echo message="setup.noCDC: ${setup.noCDC}" />
 
         <!-- partitioning -->
 
         <property name="java.part.core" 
                   value="javax/media/opengl/* javax/media/opengl/fixedfunc/* javax/media/opengl/glu/* javax/media/opengl/glu/gl2es1/* com/sun/opengl/impl/* com/sun/opengl/impl/glu/* com/sun/opengl/impl/glu/error/*"/>
         <property name="java.part.core.exclude" value="javax/media/opengl/Debug* javax/media/opengl/Trace*"/>
-
-        <property name="java.part.nv-cg"
-                  value="com/sun/opengl/cg com/sun/opengl/cg/*"/>
-
 
         <property name="java.part.nv-cg"
                   value="com/sun/opengl/cg com/sun/opengl/cg/*"/>
@@ -193,7 +101,7 @@
                   value="com/sun/openmax/**"/>
 
         <property name="java.part.sdk"
-                  value="javax/media/opengl/sdk/**"/>
+                  value="com/sun/opengl/util/glsl/sdk/**"/>
 
         <property name="java.part.glx"
                   value="com/sun/opengl/impl/x11/glx/*"/>
@@ -241,13 +149,13 @@
                   value="com/sun/opengl/util/* com/sun/opengl/util/texture/** com/sun/opengl/util/packrect/**"/>
 
         <property name="java.part.util.awt"
-                  value="com/sun/opengl/util/**/awt/**"/>
+                  value="com/sun/opengl/util/**/awt/** com/sun/opengl/util/AWTAnimatorImpl*"/>
 
         <property name="java.part.util.gl2"
                   value="com/sun/opengl/util/**/gl2/**"/>
 
         <property name="java.part.util.glsl"
-                  value="com/sun/opengl/util/glsl/* com/sun/opengl/util/glsl/fixedfunc/* com/sun/opengl/util/glsl/sdk/*"/>
+                  value="com/sun/opengl/util/glsl/* com/sun/opengl/util/glsl/fixedfunc/*"/>
 
         <property name="java.part.util.fixedfuncemu"
                   value="com/sun/opengl/util/glsl/fixedfunc/impl/**"/>
@@ -257,68 +165,17 @@
 
         <!-- condition excludes -->
 
-        <condition property="java.excludes.cg"
+        <condition property="java.excludes.nv-cg"
                    value="${java.part.nv-cg}">
           <not>
            <isset property="jogl.cg"/> 
           </not>
         </condition>
 
-        <condition property="java.excludes.egl"
-                   value="${java.part.egl}">
-          <and>
-           <isset property="setup.noes1"/> 
-           <isset property="setup.noes2"/> 
-          </and>
-        </condition>
-
-        <condition property="java.excludes.glx"
-                   value="${java.part.glx}">
-           <isset property="setup.noX11"/> 
-        </condition>
-
-        <condition property="java.excludes.wgl"
-                   value="${java.part.wgl}">
-           <isset property="setup.noWindows"/> 
-        </condition>
-
-        <condition property="java.excludes.cgl"
-                   value="${java.part.cgl}">
-           <isset property="setup.noMacOsX"/> 
-        </condition>
-
-        <condition property="java.excludes.gl3"
-                   value="${java.part.gl3} ${java.part.gl3.dbg}">
-           <isset property="setup.nogl3"/> 
-        </condition>
-
-        <condition property="java.excludes.gl2es12"
-                   value="${java.part.gl2es12} ${java.part.gl2es12.dbg}">
-           <isset property="setup.nogl2es12"/> 
-        </condition>
-
-        <condition property="java.excludes.gl2"
-                   value="${java.part.gl2} ${java.part.gl2.dbg} ${java.part.util.gl2} ${java.part.glugl2}">
-           <isset property="setup.nogl2"/> 
-        </condition>
-
-        <condition property="java.excludes.es1"
-                   value="${java.part.es1} ${java.part.es1.dbg}">
-          <isset property="setup.noes1"/> 
-        </condition>
-
-        <condition property="java.excludes.es2"
-                   value="${java.part.es2} ${java.part.es2.dbg}">
-          <isset property="setup.noes2"/> 
-        </condition>
-
         <condition property="java.excludes.awt"
-                   value="${java.part.awt} ${java.part.util.awt} com/sun/opengl/util/AWTAnimatorImpl* com/sun/opengl/util/texture/spi/awt/** ">
+                   value="${java.part.awt} ${java.part.util.awt}">
            <isset property="setup.noAWT"/> 
         </condition>
-
-        <property name="java.excludes.cdcfp"
-                  value="com/sun/opengl/util/TGAWriter* com/sun/opengl/util/AWTAnimatorImpl*"/>
 
         <property name="java.excludes.javadoc.packagenames"
                   value="com.sun.opengl.impl.gl2.fixme.*,com.sun.javafx.audio.windows.waveout.TestSpatialization"/>
@@ -326,7 +183,10 @@
         <property name="java.excludes.fixme" 
                   value="com/sun/opengl/impl/gl2/fixme/** com/sun/javafx/audio/windows/waveout/TestSpatialization.java" />
 
-        <property name="java.excludes.all" value="${java.excludes.fixme} ${java.excludes.cg} ${java.excludes.egl} ${java.excludes.gl2es12} ${java.excludes.gl2} ${java.excludes.gl3} ${java.excludes.es1} ${java.excludes.es2} ${java.excludes.awt} ${java.excludes.glugl2} ${java.excludes.glx} ${java.excludes.wgl} ${java.excludes.cgl} ${java.excludes.cdcfp}" />
+        <property name="java.excludes.cdcfp"
+                  value="${java.excludes.fixme} ${java.part.nv-cg} ${java.part.gl2} ${java.part.gl2.dbg} ${java.part.gl3} ${java.part.gl3.dbg} ${java.part.awt} ${java.part.glugl2} ${java.part.util.awt} ${java.part.util.gl2} com/sun/opengl/util/TGAWriter.java"/>
+
+        <property name="java.excludes.all" value="${java.excludes.fixme} ${java.excludes.nv-cg} ${java.excludes.awt}" />
         <echo message="java.excludes.all: ${java.excludes.all}" />
 
         <!-- Set the project root directory to be up one directory. -->
@@ -397,6 +257,8 @@
         <property name="rootrel.obj.jogl" value="${rootrel.obj}/jogl" />
         <property name="rootrel.obj.cg" value="${rootrel.obj}/jogl_cg" />
 
+        <property name="javac.bootclasspath-cdc.jar" value="../../gluegen/make/lib/cdc_fp.jar"/>
+
         <!-- GlueGen properties. -->
         <!-- NOTE that these require a checked-out GlueGen workspace as a -->
         <!-- sibling of the JOGL workspace. -->
@@ -404,6 +266,7 @@
         <property name="gluegen.build.xml" value="${gluegen.make.dir}/build.xml" />
         <property name="gluegen.jar" value="../../gluegen/${rootrel.build}/gluegen.jar" />
         <property name="gluegen-rt.jar" value="../../gluegen/${rootrel.build}/gluegen-rt.jar" />
+        <property name="gluegen-rt-cdc.jar" value="../../gluegen/${rootrel.build}/gluegen-rt-cdc.jar" />
         <property name="nativewindow.core.jar" value="../${rootrel.build}/nativewindow/nativewindow.core.jar" />
         <property name="nativewindow.awt.jar" value="../${rootrel.build}/nativewindow/nativewindow.awt.jar" />
                                                 
@@ -416,13 +279,15 @@
         <!-- The generated source directories. -->
         <property name="src.generated" value="${build}/gensrc" />
         <property name="src.generated.java" value="${src.generated}/classes" />
-        <property name="src.generated.java.cg" value="${src.generated}/classes/com/sun/opengl/cg" />
+        <property name="src.generated.java-cdc" value="${src.generated}/classes-cdc" />
+        <property name="src.generated.java.cg" value="${src.generated.java}/com/sun/opengl/cg" />
         <property name="src.generated.c" value="${src.generated}/native/jogl" />
         <property name="src.generated.c.openmax" value="${src.generated}/native/openmax" />
         <property name="src.generated.c.cg" value="${src.generated}/native/jogl_cg" />
         
         <!-- The compiler output directories. -->
         <property name="classes" value="${build}/classes" />
+        <property name="classes-cdc" value="${build}/classes-cdc" />
         <property name="obj"      value="${project.root}/${rootrel.obj}" />
         <property name="obj.jogl" value="${project.root}/${rootrel.obj.jogl}" />
         <property name="obj.cg"   value="${project.root}/${rootrel.obj.cg}" />
@@ -484,6 +349,11 @@
             <pathelement location="${gluegen-rt.jar}" />
         </path>
 
+        <path id="nativewindow_gluegen.classpath-cdc">
+            <pathelement location="${nativewindow.core.jar}" />
+            <pathelement location="${gluegen-rt-cdc.jar}" />
+        </path>
+
         <!-- Create the classpath that includes GlueGen and
            - the current classes for building the composable pipelines.
            -->
@@ -492,7 +362,7 @@
           <pathelement location="${classes}" />
         </path>
 
-        <!-- The resulting jogl.jar. -->
+        <!-- The resulting J2SE jogl.jar. -->
         <property name="jogl.core.jar" value="${build}/jogl.core.jar" />
         <property name="jogl.cg.jar" value="${build}/jogl.cg.jar" />
         <property name="jogl.gles1.jar" value="${build}/jogl.gles1.jar" />
@@ -506,7 +376,6 @@
         <property name="jogl.gl2es12.x11.jar" value="${build}/jogl.gl2es12.x11.jar" />
         <property name="jogl.gl2es12.win.jar" value="${build}/jogl.gl2es12.win.jar" />
         <property name="jogl.gl2es12.osx.jar" value="${build}/jogl.gl2es12.osx.jar" />
-        <property name="jogl.gl2es12.dbg.jar" value="${build}/jogl.gl2es12.dbg.jar" />
         <property name="jogl.gl2.x11.jar" value="${build}/jogl.gl2.x11.jar" />
         <property name="jogl.gl2.win.jar" value="${build}/jogl.gl2.win.jar" />
         <property name="jogl.gl2.osx.jar" value="${build}/jogl.gl2.osx.jar" />
@@ -517,10 +386,23 @@
         <property name="jogl.util.awt.jar" value="${build}/jogl.util.awt.jar" />
         <property name="jogl.util.fixedfuncemu.jar" value="${build}/jogl.util.fixedfuncemu.jar" />
         <property name="jogl.sdk.jar" value="${build}/jogl.sdk.jar" />
-
-        <!-- The *ALL* targets for different flavours -->
-        <property name="jogl.cdcfp.jar" value="${build}/jogl.cdcfp.jar"/>
         <property name="jogl.all.jar" value="${build}/jogl.all.jar"/>
+
+        <!-- The resulting CDC jogl.jar. -->
+        <property name="jogl.core.cdc.jar" value="${build}/jogl.core.cdc.jar" />
+        <property name="jogl.gles1.cdc.jar" value="${build}/jogl.gles1.cdc.jar" />
+        <property name="jogl.gles1.dbg.cdc.jar" value="${build}/jogl.gles1-cdc.dbg.cdc.jar" />
+        <property name="jogl.gles2.cdc.jar" value="${build}/jogl.gles2-cdc.cdc.jar" />
+        <property name="jogl.gles2.dbg.cdc.jar" value="${build}/jogl.gles2-cdc.dbg.cdc.jar" />
+        <property name="jogl.egl.cdc.jar" value="${build}/jogl.egl.cdc.jar" />
+        <property name="jogl.glutess.cdc.jar" value="${build}/jogl.glu.tess.cdc.jar" />
+        <property name="jogl.glumipmap.cdc.jar" value="${build}/jogl.glu.mipmap.cdc.jar" />
+        <property name="jogl.gl2es12.x11.cdc.jar" value="${build}/jogl.gl2es12.x11.cdc.jar" />
+        <property name="jogl.gl2es12.win.cdc.jar" value="${build}/jogl.gl2es12.win.cdc.jar" />
+        <property name="jogl.gl2es12.osx.cdc.jar" value="${build}/jogl.gl2es12.osx.cdc.jar" />
+        <property name="jogl.util.cdc.jar" value="${build}/jogl.util.cdc.jar" />
+        <property name="jogl.util.fixedfuncemu.cdc.jar" value="${build}/jogl.util.fixedfuncemu.cdc.jar" />
+        <property name="jogl.all.cdc.jar" value="${build}/jogl.all.cdc.jar"/>
 
         <!-- The javadoc dirs. -->
         <property name="javadoc" value="${project.root}/javadoc_jogl_public" />
@@ -537,27 +419,45 @@
     <property name="javadoc.bottom" value="Copyright 2005 Sun Microsystems, Inc. All rights reserved. Use is subject to &lt;a href=&quot;http://jcp.org/en/jsr/detail?id=231&quot;&gt;license terms&lt;/a&gt;." />
     </target>
     
-    <target name="declare.gl.gles1" unless="setup.noes1">
+    <target name="declare.gl.gles1">
         <property name="gles1.headers" value="${stub.includes.dir}/opengl/GLES/*.h" /> <!-- NOTE:  this MUST be relative for FileSet --> <!-- CHECK:  this may need to be pruned for each platform -->
     </target>
 
-    <target name="declare.gl.gles2" unless="setup.noes2">
+    <target name="declare.gl.gles2">
         <property name="gles2.headers" value="${stub.includes.dir}/opengl/GLES2/*.h" /> <!-- NOTE:  this MUST be relative for FileSet --> <!-- CHECK:  this may need to be pruned for each platform -->
     </target>
 
-    <target name="declare.gl.gles" unless="setup.noes" depends="declare.gl.gles1, declare.gl.gles2">
+    <target name="declare.gl.gles" depends="declare.gl.gles1, declare.gl.gles2">
         <!-- Prepare to build the EGL interface -->
         <property name="window.es.cfg"                             value="${config}/egl.cfg" />
         <property name="window.es.ext.cfg"                         value="${config}/eglext.cfg" />
         <property name="window.es.system"                          value="egl"/>
     </target>
 
-    <target name="declare.gl.gl2" unless="setup.nogl2">
+    <target name="declare.gl.gl2">
         <property name="gl2.headers" value="${stub.includes.dir}/opengl/GL/*.h" /> <!-- NOTE:  this MUST be relative for FileSet --> <!-- CHECK:  this may need to be pruned for each platform -->
     </target>
 
     <!-- Declarations that have to come after both the common setup and the GLES tests -->
     <target name="declare.common.2">
+    </target>
+
+    <target name="setup.javacdc">
+        <copy file="../src/jogl/classes/com/sun/opengl/impl/SystemUtil.java.javame_cdc_fp" tofile="${src.generated.java-cdc}/com/sun/opengl/impl/SystemUtil.java" />
+        <copy file="../src/jogl/classes/com/sun/opengl/util/BufferUtil.java.javame_cdc_fp" tofile="${src.generated.java-cdc}/com/sun/opengl/util/BufferUtil.java" />
+        <copy file="../src/jogl/classes/com/sun/opengl/impl/InternalBufferUtil.java.javame_cdc_fp" tofile="${src.generated.java-cdc}/com/sun/opengl/impl/InternalBufferUtil.java" />
+        <copy file="../src/jogl/classes/com/sun/opengl/util/texture/TextureIO.java.javame_cdc_fp" tofile="${src.generated.java-cdc}/com/sun/opengl/util/texture/TextureIO.java" />
+        <copy file="../src/jogl/classes/com/sun/opengl/util/texture/spi/DDSImage.java.javame_cdc_fp" tofile="${src.generated.java-cdc}/com/sun/opengl/util/texture/spi/DDSImage.java" />
+        <copy file="../src/jogl/classes/com/sun/opengl/util/texture/spi/TGAImage.java.javame_cdc_fp" tofile="${src.generated.java-cdc}/com/sun/opengl/util/texture/spi/TGAImage.java" />
+    </target>
+
+    <target name="setup.javase">
+        <copy file="../src/jogl/classes/com/sun/opengl/impl/SystemUtil.java.javase" tofile="${src.generated.java}/com/sun/opengl/impl/SystemUtil.java" />
+        <copy file="../src/jogl/classes/com/sun/opengl/util/BufferUtil.java.javase" tofile="${src.generated.java}/com/sun/opengl/util/BufferUtil.java" />
+        <copy file="../src/jogl/classes/com/sun/opengl/impl/InternalBufferUtil.java.javase" tofile="${src.generated.java}/com/sun/opengl/impl/InternalBufferUtil.java" />
+        <copy file="../src/jogl/classes/com/sun/opengl/util/texture/TextureIO.java.javase" tofile="${src.generated.java}/com/sun/opengl/util/texture/TextureIO.java" />
+        <copy file="../src/jogl/classes/com/sun/opengl/util/texture/spi/DDSImage.java.javase" tofile="${src.generated.java}/com/sun/opengl/util/texture/spi/DDSImage.java" />
+        <copy file="../src/jogl/classes/com/sun/opengl/util/texture/spi/TGAImage.java.javase" tofile="${src.generated.java}/com/sun/opengl/util/texture/spi/TGAImage.java" />
     </target>
 
     <!-- ================================================================== -->
@@ -571,15 +471,21 @@
         
         <!-- Create the required output directories. -->
         <mkdir dir="${src.generated.java}" />
+        <mkdir dir="${src.generated.java-cdc}" />
         <mkdir dir="${src.generated.c}" />
         <mkdir dir="${src.generated.c}/MacOSX" />
         <mkdir dir="${src.generated.c}/Windows" />
         <mkdir dir="${src.generated.c}/X11" />
         <mkdir dir="${src.generated.c.openmax}" />
         <mkdir dir="${classes}" />
+        <mkdir dir="${classes-cdc}" />
         <mkdir dir="${obj}" />
         <mkdir dir="${obj.jogl}" />
         <mkdir dir="${obj.cg}" />
+
+        <!-- Set up Java SE and Java CDC files -->
+        <antcall target="setup.javase"  inheritRefs="true" />
+        <antcall target="setup.javacdc" inheritRefs="true" />
     </target>
 
     <!-- ================================================================== -->
@@ -596,7 +502,6 @@
           <propertyset>
             <propertyref name="antlr.jar" />
             <!--propertyref name="gluegen.nsig" /-->
-            <propertyref name="isCDCFP" />
           </propertyset>
         </ant>
     </target>
@@ -665,7 +570,7 @@
 
     <target name="java.generate.copy2temp">
         <copy todir="${tempdir}">
-            <fileset dir="../${rootrel.build.jogl}"
+            <fileset dir="${build}"
                      includes="gensrc/classes/**" />
         </copy>
     </target>
@@ -674,7 +579,7 @@
         <echo message="Generating GL interface" />
         <antcall target="java.generate.copy2temp" inheritRefs="true" />
         <gluegen src="${stub.includes.opengl}/gles2.c"
-                 outputRootDir="../${rootrel.build.jogl}"
+                 outputRootDir="${build}"
                  config="${config}/gl-if-gl.cfg"
                  includeRefid="stub.includes.fileset.all.gl2"
                  emitter="com.sun.gluegen.opengl.GLEmitter">
@@ -686,7 +591,7 @@
         <echo message="Generating GL2_ES1 interface" />
         <antcall target="java.generate.copy2temp" inheritRefs="true" />
         <gluegen src="${stub.includes.opengl}/gles1.c"
-                 outputRootDir="../${rootrel.build.jogl}"
+                 outputRootDir="${build}"
                  config="${config}/gl-if-gl2_es1.cfg" 
                  includeRefid="stub.includes.fileset.all.gl2"
                  emitter="com.sun.gluegen.opengl.GLEmitter">
@@ -698,7 +603,7 @@
         <echo message="Generating GL2_ES2 interface" />
         <antcall target="java.generate.copy2temp" inheritRefs="true" />
         <gluegen src="${stub.includes.opengl}/gles2.c"
-                 outputRootDir="../${rootrel.build.jogl}"
+                 outputRootDir="${build}"
                  config="${config}/gl-if-gl2_es2.cfg" 
                  includeRefid="stub.includes.fileset.all.gl2"
                  emitter="com.sun.gluegen.opengl.GLEmitter">
@@ -710,7 +615,7 @@
         <echo message="Generating GL2 interface and implementation" />
         <antcall target="java.generate.copy2temp" inheritRefs="true" />
         <gluegen src="${stub.includes.opengl}/gl2.c" 
-                 outputRootDir="../${rootrel.build.jogl}"
+                 outputRootDir="${build}"
                  config="${config}/gl-gl2.cfg"
                  includeRefid="stub.includes.fileset.all.gl2"
                  emitter="com.sun.gluegen.opengl.GLEmitter">
@@ -722,7 +627,7 @@
         <echo message="Generating GL3 interface and implementation" />
         <antcall target="java.generate.copy2temp" inheritRefs="true" />
         <gluegen src="${stub.includes.opengl}/gl3.c" 
-                 outputRootDir="../${rootrel.build.jogl}"
+                 outputRootDir="${build}"
                  config="${config}/gl-gl3.cfg"
                  includeRefid="stub.includes.fileset.all.gl2"
                  emitter="com.sun.gluegen.opengl.GLEmitter">
@@ -734,7 +639,7 @@
         <echo message="Generating GL2ES12 interface and implementation" />
         <antcall target="java.generate.copy2temp" inheritRefs="true" />
         <gluegen src="${stub.includes.opengl}/gl2es12.c" 
-                 outputRootDir="../${rootrel.build.jogl}"
+                 outputRootDir="${build}"
                  config="${config}/gl-gl2es12.cfg"
                  includeRefid="stub.includes.fileset.all.gl2"
                  emitter="com.sun.gluegen.opengl.GLEmitter">
@@ -746,7 +651,7 @@
         <echo message="Generating GLES1 interface and implementation" />
         <antcall target="java.generate.copy2temp" inheritRefs="true" />
         <gluegen src="${stub.includes.opengl}/gles1.c" 
-                 outputRootDir="../${rootrel.build.jogl}"
+                 outputRootDir="${build}"
                  config="${config}/gl-es1.cfg"
                  includeRefid="stub.includes.fileset.all.gl2"
                  emitter="com.sun.gluegen.opengl.GLEmitter">
@@ -758,7 +663,7 @@
         <echo message="Generating GLES2 interface and implementation" />
         <antcall target="java.generate.copy2temp" inheritRefs="true" />
         <gluegen src="${stub.includes.opengl}/gles2.c" 
-                 outputRootDir="../${rootrel.build.jogl}"
+                 outputRootDir="${build}"
                  config="${config}/gl-es2.cfg"
                  includeRefid="stub.includes.fileset.all.gl2"
                  emitter="com.sun.gluegen.opengl.GLEmitter">
@@ -782,7 +687,7 @@
         <echo message="Generating GLU class" />
         <antcall target="java.generate.copy2temp" inheritRefs="true" />
         <gluegen src="${stub.includes.opengl}/glu.c" 
-                 outputRootDir="../${rootrel.build.jogl}"
+                 outputRootDir="${build}"
                  config="${config}/glu-base.cfg"
                  includeRefid="stub.includes.fileset.all.gl2"
                  emitter="com.sun.gluegen.opengl.GLEmitter">
@@ -794,7 +699,7 @@
         <echo message="Generating GLU class" />
         <antcall target="java.generate.copy2temp" inheritRefs="true" />
         <gluegen src="${stub.includes.opengl}/glu.c" 
-                 outputRootDir="../${rootrel.build.jogl}"
+                 outputRootDir="${build}"
                  config="${config}/glu-gl2es1.cfg"
                  includeRefid="stub.includes.fileset.all.gl2"
                  emitter="com.sun.gluegen.opengl.GLEmitter">
@@ -806,7 +711,7 @@
         <echo message="Generating GLU class" />
         <antcall target="java.generate.copy2temp" inheritRefs="true" />
         <gluegen src="${stub.includes.opengl}/glu.c" 
-                 outputRootDir="../${rootrel.build.jogl}"
+                 outputRootDir="${build}"
                  config="${config}/glu-gl2.cfg"
                  includeRefid="stub.includes.fileset.all.gl2"
                  emitter="com.sun.gluegen.opengl.GLEmitter">
@@ -818,7 +723,7 @@
         <echo message="Generating platform-specific OpenGL extension class: ${window.os.system}" />
         <antcall target="java.generate.copy2temp" inheritRefs="true" />
         <gluegen src="${glext.platform.header}" 
-                 outputRootDir="../${rootrel.build.jogl}"
+                 outputRootDir="${build}"
                  config="${glext.platform.cfg}"
                  includeRefid="stub.includes.fileset.all.gl2"
                  emitter="com.sun.gluegen.opengl.GLEmitter">
@@ -831,7 +736,7 @@
         <antcall target="java.generate.copy2temp" inheritRefs="true" />
         <dirset id="stub.includes.fileset.platform" dir="." includes="${stub.includes.dir}/${window.es.system}/** ${stub.includes.dir}/common/**" />
         <gluegen src="${stub.includes.dir}/${window.es.system}/window-system.c"
-                 outputRootDir="../${rootrel.build.jogl}"
+                 outputRootDir="${build}"
                  config="${window.es.cfg}"
                  includeRefid="stub.includes.fileset.platform"
                  emitter="com.sun.gluegen.opengl.GLEmitter">
@@ -839,12 +744,12 @@
         </gluegen>
     </target>
 
-    <target name="java.generate.window.system.es.ext" if="window.es.ext.cfg" unless="setup.noes">
+    <target name="java.generate.window.system.es.ext" if="window.es.ext.cfg">
         <echo message="Generating EGLExt implementation class" />
         <antcall target="java.generate.copy2temp" inheritRefs="true" />
         <dirset id="stub.includes.fileset.platform" dir="." includes="${stub.includes.dir}/${window.es.system}/** ${stub.includes.dir}/common/**" />
         <gluegen src="${stub.includes.dir}/${window.es.system}/window-system-ext.c"
-                 outputRootDir="../${rootrel.build.jogl}"
+                 outputRootDir="${build}"
                  config="${window.es.ext.cfg}"
                  includeRefid="stub.includes.fileset.platform"
                  emitter="com.sun.gluegen.opengl.GLEmitter">
@@ -856,60 +761,13 @@
         <echo message="Generating window system glue impl: ${window.os.system}" />
         <antcall target="java.generate.copy2temp" inheritRefs="true" />
         <gluegen src="${stub.includes.dir}/${window.os.system}/window-system.c"
-                 outputRootDir="../${rootrel.build.jogl}"
+                 outputRootDir="${build}"
                  config="${window.os.cfg}"
                  includeRefid="stub.includes.fileset.platform"
                  emitter="com.sun.gluegen.opengl.GLEmitter">
             <classpath refid="gluegen.classpath" />
         </gluegen>
     </target>
-
-    <target name="java.generate.SystemUtil.javame_cdc_fp" if="setup.cdcfp">
-        <copy file="../src/jogl/classes/com/sun/opengl/impl/SystemUtil.java.javame_cdc_fp" tofile="../${rootrel.build.jogl}/gensrc/classes/com/sun/opengl/impl/SystemUtil.java" />
-    </target>
-
-    <target name="java.generate.SystemUtil.javase" unless="setup.cdcfp">
-        <copy file="../src/jogl/classes/com/sun/opengl/impl/SystemUtil.java.javase" tofile="../${rootrel.build.jogl}/gensrc/classes/com/sun/opengl/impl/SystemUtil.java" />
-    </target>
-
-    <!-- Generate the SystemUtil class for this particular profile -->
-    <target name="java.generate.SystemUtil" depends="java.generate.SystemUtil.javase, java.generate.SystemUtil.javame_cdc_fp" />
-
-    <target name="java.generate.BufferUtil.javame_cdc_fp" if="setup.cdcfp">
-        <copy file="../src/jogl/classes/com/sun/opengl/util/BufferUtil.java.javame_cdc_fp" tofile="../${rootrel.build.jogl}/gensrc/classes/com/sun/opengl/util/BufferUtil.java" />
-        <copy file="../src/jogl/classes/com/sun/opengl/impl/InternalBufferUtil.java.javame_cdc_fp" tofile="../${rootrel.build.jogl}/gensrc/classes/com/sun/opengl/impl/InternalBufferUtil.java" />
-    </target>
-
-    <target name="java.generate.BufferUtil.javase" unless="setup.cdcfp">
-        <copy file="../src/jogl/classes/com/sun/opengl/util/BufferUtil.java.javase" tofile="../${rootrel.build.jogl}/gensrc/classes/com/sun/opengl/util/BufferUtil.java" />
-        <copy file="../src/jogl/classes/com/sun/opengl/impl/InternalBufferUtil.java.javase" tofile="../${rootrel.build.jogl}/gensrc/classes/com/sun/opengl/impl/InternalBufferUtil.java" />
-    </target>
-
-    <!-- Generate the BufferUtil classes for this particular profile -->
-    <target name="java.generate.BufferUtil" depends="java.generate.BufferUtil.javase, java.generate.BufferUtil.javame_cdc_fp" />
-
-    <target name="java.generate.TextureIO.javame_cdc_fp" if="setup.cdcfp">
-        <copy file="../src/jogl/classes/com/sun/opengl/util/texture/TextureIO.java.javame_cdc_fp" tofile="../${rootrel.build.jogl}/gensrc/classes/com/sun/opengl/util/texture/TextureIO.java" />
-        <copy file="../src/jogl/classes/com/sun/opengl/util/texture/spi/DDSImage.java.javame_cdc_fp" tofile="../${rootrel.build.jogl}/gensrc/classes/com/sun/opengl/util/texture/spi/DDSImage.java" />
-        <copy file="../src/jogl/classes/com/sun/opengl/util/texture/spi/TGAImage.java.javame_cdc_fp" tofile="../${rootrel.build.jogl}/gensrc/classes/com/sun/opengl/util/texture/spi/TGAImage.java" />
-    </target>
-
-    <target name="java.generate.TextureIO.javase" unless="setup.cdcfp">
-        <!-- For debugging -->
-<!--
-        <copy file="../src/jogl/classes/com/sun/opengl/util/texture/TextureIO.java.javame_cdc_fp" tofile="../${rootrel.build.jogl}/gensrc/classes/com/sun/opengl/util/texture/TextureIO.java" />
-        <copy file="../src/jogl/classes/com/sun/opengl/util/texture/spi/DDSImage.java.javame_cdc_fp" tofile="../${rootrel.build.jogl}/gensrc/classes/com/sun/opengl/util/texture/spi/DDSImage.java" />
-        <copy file="../src/jogl/classes/com/sun/opengl/util/texture/spi/TGAImage.java.javame_cdc_fp" tofile="../${rootrel.build.jogl}/gensrc/classes/com/sun/opengl/util/texture/spi/TGAImage.java" />
--->
-
-        <copy file="../src/jogl/classes/com/sun/opengl/util/texture/TextureIO.java.javase" tofile="../${rootrel.build.jogl}/gensrc/classes/com/sun/opengl/util/texture/TextureIO.java" />
-        <copy file="../src/jogl/classes/com/sun/opengl/util/texture/spi/DDSImage.java.javase" tofile="../${rootrel.build.jogl}/gensrc/classes/com/sun/opengl/util/texture/spi/DDSImage.java" />
-        <copy file="../src/jogl/classes/com/sun/opengl/util/texture/spi/TGAImage.java.javase" tofile="../${rootrel.build.jogl}/gensrc/classes/com/sun/opengl/util/texture/spi/TGAImage.java" />
-
-    </target>
-
-    <!-- Generate the TextureIO classes for this particular profile -->
-    <target name="java.generate.TextureIO" depends="java.generate.TextureIO.javase, java.generate.TextureIO.javame_cdc_fp" />
 
     <target name="java.generate.gl.platforms" >
         <dirset id="stub.includes.fileset.platform" dir="." includes="${stub.includes.dir}/${window.os.system}/** ${stub.includes.dir}/${window.es.system}/** ${stub.includes.dir}/common/** ${stub.includes.dir}/opengl/**" />
@@ -923,7 +781,7 @@
        - from the C GL headers.  This involves setting the taskdef and creating
        - the classpath reference id then running the task on each header.
       -->
-    <target name="java.generate" depends="build.gluegen, java.generate.SystemUtil, java.generate.BufferUtil, java.generate.TextureIO, java.generate.check" unless="java.generate.skip">
+    <target name="java.generate" depends="build.gluegen, java.generate.check" unless="java.generate.skip">
 
         <!-- Add the GlueGen and BuildStaticGLInfo tasks to ANT -->
         <taskdef name="gluegen" classname="com.sun.gluegen.ant.GlueGenTask"
@@ -1006,7 +864,7 @@
 
         <!-- Generate CgGL interface class -->
         <gluegen src="${stub.includes.opengl}/cg.c" 
-                 outputRootDir="../${rootrel.build.jogl}"
+                 outputRootDir="${build}"
                  config="${config}/cg-common.cfg"
                  includeRefid="stub.includes.cg.fileset.all"
                  emitter="com.sun.gluegen.JavaEmitter">
@@ -1018,7 +876,7 @@
     <!-- 
        - Build and dependency rules for the composable pipeline
       -->
-    <target name="java.generate.composable.pipeline.check.es1" unless="setup.noes1">
+    <target name="java.generate.composable.pipeline.check.es1">
         <!-- Blow away the DebugGL*.java and TraceGL*.java sources if GL*.class has changed
              (the uptodate element doesn't support arbitrary source and destination files) -->
         <dependset>
@@ -1034,7 +892,7 @@
 
     </target>        
 
-    <target name="java.generate.composable.pipeline.check.es2" unless="setup.noes2">
+    <target name="java.generate.composable.pipeline.check.es2">
         <!-- Blow away the DebugGL*.java and TraceGL*.java sources if GL*.class has changed
              (the uptodate element doesn't support arbitrary source and destination files) -->
         <dependset>
@@ -1050,7 +908,7 @@
 
     </target>        
 
-    <target name="java.generate.composable.pipeline.check.gl2es12" unless="setup.nogl2">
+    <target name="java.generate.composable.pipeline.check.gl2es12">
         <!-- Blow away the DebugGL*.java and TraceGL*.java sources if GL*.class has changed
              (the uptodate element doesn't support arbitrary source and destination files) -->
         <dependset>
@@ -1065,7 +923,7 @@
                   targetfile="${src.generated.java}/javax/media/opengl/DebugGL2ES12.java" />
     </target>        
 
-    <target name="java.generate.composable.pipeline.check.gl2" unless="setup.nogl2">
+    <target name="java.generate.composable.pipeline.check.gl2">
         <!-- Blow away the DebugGL*.java and TraceGL*.java sources if GL*.class has changed
              (the uptodate element doesn't support arbitrary source and destination files) -->
         <dependset>
@@ -1080,7 +938,7 @@
                   targetfile="${src.generated.java}/javax/media/opengl/DebugGL2.java" />
     </target>        
 
-    <target name="java.generate.composable.pipeline.check.gl3" unless="setup.nogl3">
+    <target name="java.generate.composable.pipeline.check.gl3">
         <!-- Blow away the DebugGL*.java and TraceGL*.java sources if GL*.class has changed
              (the uptodate element doesn't support arbitrary source and destination files) -->
         <dependset>
@@ -1101,6 +959,10 @@
             <arg value="${src.generated.java}/javax/media/opengl" />
             <classpath refid="pipeline.classpath" />
         </java>
+        <copy todir="${src.generated.java-cdc}">
+            <fileset dir="${src.generated.java}"
+                     includes="javax/media/opengl/DebugGLES1.java javax/media/opengl/TraceGLES1.java" />
+        </copy>
     </target>          
 
     <target name="java.generate.composable.pipeline.es2" depends="java.generate.composable.pipeline.check.es2" unless="java.generate.composable.pipeline.skip.es2">
@@ -1109,14 +971,10 @@
             <arg value="${src.generated.java}/javax/media/opengl" />
             <classpath refid="pipeline.classpath" />
         </java>
-    </target>          
-
-    <target name="java.generate.composable.pipeline.gl2es12" depends="java.generate.composable.pipeline.check.gl2es12" unless="java.generate.composable.pipeline.skip.gl2es12">
-        <java classname="com.sun.gluegen.opengl.BuildComposablePipeline" fork="yes" failonerror="true">
-            <arg value="javax.media.opengl.GL2ES12" />
-            <arg value="${src.generated.java}/javax/media/opengl" />
-            <classpath refid="pipeline.classpath" />
-        </java>
+        <copy todir="${src.generated.java-cdc}">
+            <fileset dir="${src.generated.java}"
+                     includes="javax/media/opengl/DebugGLES2.java javax/media/opengl/TraceGLES2.java" />
+        </copy>
     </target>          
 
     <target name="java.generate.composable.pipeline.gl2" depends="java.generate.composable.pipeline.check.gl2" unless="java.generate.composable.pipeline.skip.gl2">
@@ -1125,6 +983,10 @@
             <arg value="${src.generated.java}/javax/media/opengl" />
             <classpath refid="pipeline.classpath" />
         </java>
+        <copy todir="${src.generated.java-cdc}">
+            <fileset dir="${src.generated.java}"
+                     includes="javax/media/opengl/DebugGL2.java javax/media/opengl/TraceGL2.java" />
+        </copy>
     </target>          
 
     <target name="java.generate.composable.pipeline.gl3" depends="java.generate.composable.pipeline.check.gl3" unless="java.generate.composable.pipeline.skip.gl3">
@@ -1133,23 +995,13 @@
             <arg value="${src.generated.java}/javax/media/opengl" />
             <classpath refid="pipeline.classpath" />
         </java>
+        <copy todir="${src.generated.java-cdc}">
+            <fileset dir="${src.generated.java}"
+                     includes="javax/media/opengl/DebugGL3.java javax/media/opengl/TraceGL3.java" />
+        </copy>
     </target>          
 
-    <target name="java.generate.composable.pipeline.check">
-        <condition property="java.generate.composable.pipeline.skip.es1">
-          <isset property="setup.noes1"/>
-        </condition>
-        <condition property="java.generate.composable.pipeline.skip.es2">
-          <isset property="setup.noes2"/>
-        </condition>
-        <condition property="java.generate.composable.pipeline.skip.gl2">
-          <isset property="setup.nogl2"/>
-        </condition>
-        <condition property="java.generate.composable.pipeline.skip.gl3">
-          <isset property="setup.nogl3"/>
-        </condition>
-    </target>
-    <target name="java.generate.composable.pipeline" depends="java.generate.composable.pipeline.check, java.generate.composable.pipeline.es1, java.generate.composable.pipeline.es2, java.generate.composable.pipeline.gl2, java.generate.composable.pipeline.gl3">
+    <target name="java.generate.composable.pipeline" depends="java.generate.composable.pipeline.es1, java.generate.composable.pipeline.es2, java.generate.composable.pipeline.gl2, java.generate.composable.pipeline.gl3">
     </target>
 
     <target name="java.generate.composable.pipeline.custom.check.glfixfunc">
@@ -1178,8 +1030,12 @@
             <arg value="prolog_xor_downstream" />
             <classpath refid="pipeline.classpath" />
         </java>
+        <copy todir="${src.generated.java-cdc}">
+            <fileset dir="${src.generated.java}"
+                     includes="com/sun/opengl/util/glsl/fixedfunc/impl/FixedFuncImpl.java" />
+        </copy>
     </target>          
-    <target name="java.generate.composable.pipeline.custom" depends="init, build.gluegen, java.generate.composable.pipeline.check, java.generate.composable.pipeline.custom.glfixfunc">
+    <target name="java.generate.composable.pipeline.custom" depends="init, build.gluegen, java.generate.composable.pipeline.custom.glfixfunc">
     </target>
 
     <!-- ================================================================== -->
@@ -1200,24 +1056,19 @@
             <src path="${src.java}" />
             <src path="${src.generated.java}" />
         </javac>
+
+        <copy todir="${src.generated.java-cdc}">
+            <fileset dir="${src.generated.java}"
+                     includes="**" 
+                     excludes="com/sun/opengl/cg/** com/sun/opengl/impl/gl2/** com/sun/opengl/impl/gl3/** com/sun/opengl/impl/glu/gl2/** javax/media/opengl/glu/gl2/**"/>
+        </copy>
+        <copy todir="${classes-cdc}">
+            <fileset dir="${classes}"
+                     includes="**" />
+        </copy>
     </target>
 
-    <target name="java.compile.secondpass.1" if="javac.bootclasspath.jar">
-        <!-- Perform the second pass Java compile; everything except portion of fixed function emulation depending on generated code. -->
-        <javac destdir="${classes}"
-               excludes="com/sun/opengl/util/glsl/fixedfunc/FixedFuncUtil.java,${java.excludes.all}"
-               source="${jogl.sourcelevel}"
-               bootclasspath="${javac.bootclasspath.jar}"
-               fork="yes"
-               memoryMaximumSize="${javac.memorymax}"
-               debug="${javacdebug}" debuglevel="${javacdebuglevel}">
-            <classpath refid="nativewindow_gluegen.classpath"/>
-            <src path="${src.java}" />
-            <src path="${src.generated.java}" />
-        </javac>
-    </target>
-
-    <target name="java.compile.secondpass.2" unless="javac.bootclasspath.jar">
+    <target name="java.compile.secondpass.javase">
         <!-- Perform the second pass Java compile; everything except portion of fixed function emulation depending on generated code. -->
         <javac destdir="${classes}"
                excludes="com/sun/opengl/util/glsl/fixedfunc/FixedFuncUtil.java,${java.excludes.all}"
@@ -1231,14 +1082,28 @@
         </javac>
     </target>
 
-    <target name="java.compile.secondpass" depends="java.generate.composable.pipeline,java.compile.secondpass.1,java.compile.secondpass.2" />
+    <target name="java.compile.secondpass.javacdc" unless="setup.noCDC">
+        <!-- Perform the second pass Java compile; everything except portion of fixed function emulation depending on generated code. -->
+        <javac destdir="${classes-cdc}"
+               excludes="com/sun/opengl/util/glsl/fixedfunc/FixedFuncUtil.java,${java.excludes.all},${java.excludes.cdcfp}"
+               source="${jogl.sourcelevel}"
+               bootclasspath="${javac.bootclasspath-cdc.jar}"
+               fork="yes"
+               memoryMaximumSize="${javac.memorymax}"
+               debug="${javacdebug}" debuglevel="${javacdebuglevel}">
+            <classpath refid="nativewindow_gluegen.classpath-cdc"/>
+            <src path="${src.java}" />
+            <src path="${src.generated.java-cdc}" />
+        </javac>
+    </target>
 
-    <target name="java.compile.thirdpass.1" if="javac.bootclasspath.jar">
+    <target name="java.compile.secondpass" depends="java.generate.composable.pipeline, java.compile.secondpass.javase, java.compile.secondpass.javacdc" />
+
+    <target name="java.compile.thirdpass.javase">
         <!-- Perform the third pass Java compile; everything including fixed function emulation. -->
         <javac destdir="${classes}"
                excludes="${java.excludes.all}"
                source="${jogl.sourcelevel}"
-               bootclasspath="${javac.bootclasspath.jar}"
                fork="yes"
                memoryMaximumSize="${javac.memorymax}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
@@ -1248,21 +1113,22 @@
         </javac>
     </target>
 
-    <target name="java.compile.thirdpass.2" unless="javac.bootclasspath.jar">
+    <target name="java.compile.thirdpass.javacdc" unless="setup.noCDC">
         <!-- Perform the third pass Java compile; everything including fixed function emulation. -->
-        <javac destdir="${classes}"
-               excludes="${java.excludes.all}"
+        <javac destdir="${classes-cdc}"
+               excludes="${java.excludes.all},${java.excludes.cdcfp}"
                source="${jogl.sourcelevel}"
+               bootclasspath="${javac.bootclasspath-cdc.jar}"
                fork="yes"
                memoryMaximumSize="${javac.memorymax}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
-            <classpath refid="nativewindow_gluegen.classpath"/>
+            <classpath refid="nativewindow_gluegen.classpath-cdc"/>
             <src path="${src.java}" />
-            <src path="${src.generated.java}" />
+            <src path="${src.generated.java-cdc}" />
         </javac>
     </target>
 
-    <target name="java.compile.thirdpass" depends="java.generate.composable.pipeline.custom,java.compile.thirdpass.1,java.compile.thirdpass.2" />
+    <target name="java.compile.thirdpass" depends="java.generate.composable.pipeline.custom, java.compile.thirdpass.javase, java.compile.thirdpass.javacdc" />
 
     <target name="java.compile" depends="java.compile.firstpass,java.compile.secondpass,java.compile.thirdpass" />
 
@@ -1486,6 +1352,7 @@
 
     <target name="rename.dylib" if="isOSX">
         <move file="${src}" tofile="${dest}" />
+        <copy file="${dest}" tofile="${dst-cdc}" />
     </target>
 
     <macrodef name="c.build">
@@ -1616,6 +1483,7 @@
         <antcall target="rename.dylib" inheritRefs="true">
             <param name="src"  value="${build}/obj/lib@{output.lib.name}.dylib" />
             <param name="dest" value="${build}/obj/lib@{output.lib.name}.jnilib" />
+            <param name="dest-cdc" value="${build}/obj/lib@{output.lib.name}.so" />
         </antcall>
 
         <!-- FIXME: this is a hack; the cpptask should have an option to change the
@@ -1628,37 +1496,37 @@
     </macrodef>  
 
     <target name="c.build.jogl.prepare.openMAX" if="useOpenMAX">
-      <javah destdir="../${rootrel.build.jogl}/gensrc/native/openmax" classpath="${jogl.cdcfp.jar}" class="com.sun.openmax.OMXInstance" />
+      <javah destdir="${build}/gensrc/native/openmax" classpath="${jogl.all.cdc.jar}" class="com.sun.openmax.OMXInstance" />
     </target>
 
     <target name="c.build.jogl.prepare" depends="c.build.jogl.prepare.openMAX">
       <!-- Generate the waveout Mixer header -->
       <!-- FIXME: this is temporary until we move this to another workspace -->
-      <!--javah destdir="../${rootrel.build.jogl}/gensrc/native/jogl" classpath="${jogl.cdcfp.jar}" class="com.sun.javafx.audio.windows.waveout.Mixer" /-->
+      <!--javah destdir="${build}/gensrc/native/jogl" classpath="${jogl.all.jar}" class="com.sun.javafx.audio.windows.waveout.Mixer" /-->
     </target>
 
-    <target name="c.build.jogl.gl2" unless="setup.nogl2">
+    <target name="c.build.jogl.gl2">
       <c.build c.compiler.src.files="c.src.files.jogl.gl2"
                output.lib.name="jogl_gl2"
                compiler.cfg.id="${compiler.cfg.id}"
                linker.cfg.id="${linker.cfg.id.gl2}"/>
     </target>
 
-    <target name="c.build.jogl.gl2es12" unless="setup.nogl2es12">
+    <target name="c.build.jogl.gl2es12">
       <c.build c.compiler.src.files="c.src.files.jogl.gl2es12"
                output.lib.name="jogl_gl2es12"
                compiler.cfg.id="${compiler.cfg.id}"
                linker.cfg.id="${linker.cfg.id.gl2}"/>
     </target>
 
-    <target name="c.build.jogl.es2" unless="setup.noes1">
+    <target name="c.build.jogl.es2">
       <c.build c.compiler.src.files="c.src.files.jogl.es2"
                output.lib.name="jogl_es2"
                compiler.cfg.id="${compiler.cfg.id}"
                linker.cfg.id="${linker.cfg.id.base}"/>
     </target>
 
-    <target name="c.build.jogl.es1" unless="setup.noes2">
+    <target name="c.build.jogl.es1">
       <c.build c.compiler.src.files="c.src.files.jogl.es1"
                output.lib.name="jogl_es1"
                compiler.cfg.id="${compiler.cfg.id}"
@@ -1693,13 +1561,20 @@
           <include name="*.${native.library.suffix}" />
         </fileset>
       </jar>
+      <jar destfile="${build}/jogl-cdc-natives-${os.and.arch}.jar">
+        <fileset dir="${obj}">
+          <include name="*_es1.${native.library.suffix-cdc}" />
+          <include name="*_es2.${native.library.suffix-cdc}" />
+          <include name="*_gl2es12.${native.library.suffix-cdc}" />
+        </fileset>
+      </jar>
     </target>
 
     <!-- ================================================================== -->
     <!--
        - Build the jogl.jar files.
       -->
-    <target name="jar" depends="java.compile,build-jars,build-cg-jar"/>
+    <target name="jar" depends="java.compile,build-jars-javase,build-jars-cdc"/>
 
     <target name="setup-manifestfile">
         <condition property="manifestfile" value="joglRIversion">
@@ -1725,6 +1600,30 @@
         </copy>
     </target>
 
+    <target name="setup-manifestfile-cdc" unless="setup.noCDC">
+        <condition property="manifestfile" value="joglRIversion-cdc">
+            <isset property="jogl.ri" />
+        </condition>
+        <condition property="manifestfile" value="joglversion-cdc">
+            <not>
+                <isset property="jogl.ri" />
+            </not>
+        </condition>
+        <tstamp>
+             <format property="timestamp" pattern="yyyyMMdd-HH:mm:ss"/>
+        </tstamp>
+        <copy file="${manifestfile}"
+            tofile="${build}/tempversion-cdc"
+            overwrite="true">
+            <filterset>
+                <!-- This token only exists in the non-RI version of the manifest -->
+                <filter token="VERSION" value="${jogl_base_version}-pre-${timestamp}"/>
+                <!-- This token exists in both the RI and non-RI versions of the manifest -->
+                <filter token="BASEVERSION" value="${jogl_base_version}"/>
+            </filterset>
+        </copy>
+    </target>
+
     <target name="build-cg-jar" depends="setup-manifestfile" if="jogl.cg">
         <jar manifest="${build}/tempversion" destfile="${jogl.cg.jar}">
             <fileset dir="${classes}"
@@ -1732,15 +1631,12 @@
         </jar>
     </target>
 
-    <target name="build-jars-egl" depends="setup-manifestfile">
+    <target name="build-jars-es" depends="setup-manifestfile">
         <jar manifest="${build}/tempversion" destfile="${jogl.egl.jar}">
             <fileset dir="${classes}"
                      includes="${java.part.egl}"
                      excludes="${java.part.awt}"/>
         </jar>
-    </target>
-
-    <target name="build-jars-es1" depends="setup-manifestfile,build-jars-egl" unless="setup.noes1">
         <jar manifest="${build}/tempversion" destfile="${jogl.gles1.jar}">
             <fileset dir="${classes}"
                      includes="${java.part.es1}"
@@ -1750,9 +1646,6 @@
             <fileset dir="${classes}"
                      includes="${java.part.es1.dbg}"/>
         </jar>
-    </target>
-
-    <target name="build-jars-es2" depends="setup-manifestfile,build-jars-egl" unless="setup.noes2">
         <jar manifest="${build}/tempversion" destfile="${jogl.gles2.jar}">
             <fileset dir="${classes}"
                      includes="${java.part.es2}, ${java.part.openmax}"
@@ -1762,9 +1655,6 @@
             <fileset dir="${classes}"
                      includes="${java.part.es2.dbg}"/>
         </jar>
-    </target>
-
-    <target name="build-jars-gl2es12" depends="setup-manifestfile" unless="setup.nogl2es12">
         <jar manifest="${build}/tempversion" destfile="${jogl.gl2es12.x11.jar}">
             <fileset dir="${classes}"
                      includes="${java.part.glx}, ${java.part.gl2es12}, ${java.part.openmax}"
@@ -1780,13 +1670,100 @@
                      includes="${java.part.cgl}, ${java.part.gl2es12}, ${java.part.openmax}"
                      excludes="${java.part.gl2es12.dbg}, ${java.part.glugl2}"/>
         </jar>
-        <jar manifest="${build}/tempversion" destfile="${jogl.gl2es12.dbg.jar}">
-            <fileset dir="${classes}"
-                     includes="${java.part.gl2es12.dbg}"/>
+    </target>
+
+    <target name="build-jars-es-cdc" depends="setup-manifestfile-cdc" unless="setup.noCDC">
+        <jar manifest="${build}/tempversion-cdc" destfile="${jogl.egl.cdc.jar}">
+            <fileset dir="${classes-cdc}"
+                     includes="${java.part.egl}"
+                     excludes="${java.part.awt}"/>
+        </jar>
+        <jar manifest="${build}/tempversion-cdc" destfile="${jogl.gles1.cdc.jar}">
+            <fileset dir="${classes-cdc}"
+                     includes="${java.part.es1}"
+                     excludes="${java.part.es1.dbg}"/>
+        </jar>
+        <jar manifest="${build}/tempversion-cdc" destfile="${jogl.gles1.dbg.cdc.jar}">
+            <fileset dir="${classes-cdc}"
+                     includes="${java.part.es1.dbg}"/>
+        </jar>
+        <jar manifest="${build}/tempversion-cdc" destfile="${jogl.gles2.cdc.jar}">
+            <fileset dir="${classes-cdc}"
+                     includes="${java.part.es2}, ${java.part.openmax}"
+                     excludes="${java.part.es2.dbg}"/>
+        </jar>
+        <jar manifest="${build}/tempversion-cdc" destfile="${jogl.gles2.dbg.cdc.jar}">
+            <fileset dir="${classes-cdc}"
+                     includes="${java.part.es2.dbg}"/>
+        </jar>
+        <jar manifest="${build}/tempversion-cdc" destfile="${jogl.gl2es12.x11.cdc.jar}">
+            <fileset dir="${classes-cdc}"
+                     includes="${java.part.glx}, ${java.part.gl2es12}, ${java.part.openmax}"
+                     excludes="${java.part.gl2es12.dbg}, ${java.part.glugl2}"/>
+        </jar>
+        <jar manifest="${build}/tempversion-cdc" destfile="${jogl.gl2es12.win.cdc.jar}">
+            <fileset dir="${classes-cdc}"
+                     includes="${java.part.wgl}, ${java.part.gl2es12}, ${java.part.openmax}"
+                     excludes="${java.part.gl2es12.dbg}, ${java.part.glugl2}"/>
+        </jar>
+        <jar manifest="${build}/tempversion-cdc" destfile="${jogl.gl2es12.osx.cdc.jar}">
+            <fileset dir="${classes-cdc}"
+                     includes="${java.part.cgl}, ${java.part.gl2es12}, ${java.part.openmax}"
+                     excludes="${java.part.gl2es12.dbg}, ${java.part.glugl2}"/>
         </jar>
     </target>
 
-    <target name="build-jars-gl2" depends="setup-manifestfile" unless="setup.nogl2">
+    <target name="build-jars-awt" depends="setup-manifestfile" unless="setup.noAWT">
+        <jar manifest="${build}/tempversion" destfile="${jogl.awt.jar}">
+            <fileset dir="${classes}"
+                     includes="${java.part.awt}" />
+        </jar>
+        <jar manifest="${build}/tempversion" destfile="${jogl.util.awt.jar}">
+            <fileset dir="${classes}"
+                     includes="${java.part.util.awt}"/>
+        </jar>
+    </target>
+
+    <target name="build-jars-cdc" depends="setup-manifestfile-cdc,build-jars-es-cdc" unless="setup.noCDC">
+        <jar manifest="${build}/tempversion-cdc" destfile="${jogl.core.cdc.jar}">
+            <fileset dir="${classes-cdc}"
+                     includes="${java.part.core}"
+                     excludes="${java.part.core.exclude}"/>
+        </jar>
+        <jar manifest="${build}/tempversion-cdc" destfile="${jogl.glutess.cdc.jar}">
+            <fileset dir="${classes-cdc}"
+                     includes="${java.part.glutess}"/>
+        </jar>
+        <jar manifest="${build}/tempversion-cdc" destfile="${jogl.glumipmap.cdc.jar}">
+            <fileset dir="${classes-cdc}"
+                     includes="${java.part.glumipmap}"/>
+        </jar>
+        <jar manifest="${build}/tempversion-cdc" destfile="${jogl.util.cdc.jar}">
+            <fileset dir="${classes-cdc}"
+                     includes="${java.part.util} ${java.part.util.glsl}"
+                     excludes="${java.part.util.awt} ${java.part.util.gl2} ${java.part.util.fixedfuncemu}"/>
+        </jar>
+        <jar manifest="${build}/tempversion-cdc" destfile="${jogl.util.fixedfuncemu.cdc.jar}">
+            <fileset dir="${classes-cdc}"
+                     includes="${java.part.util.fixedfuncemu}"/>
+            <fileset dir="${src.java}"
+                     includes="${java.part.util.fixedfuncemu.shadercode}"/>
+        </jar>
+        <jar manifest="${build}/tempversion-cdc" destfile="${jogl.all.cdc.jar}">
+            <fileset dir="${classes-cdc}"
+                     includes="${java.part.core} ${java.part.egl} ${java.part.glutess} ${java.part.glumipmap} ${java.part.openmax} ${java.part.sdk} ${java.part.glx} ${java.part.cgl} ${java.part.gl2es12} ${java.part.wgl} ${java.part.gl2es12.dbg} ${java.part.es1} ${java.part.es1.dbg} ${java.part.es2} ${java.part.es2.dbg} ${java.part.util} ${java.part.util.glsl} ${java.part.util.fixedfuncemu}"
+                     excludes="${java.excludes.cdcfp}"/>
+            <fileset dir="${src.java}"
+                     includes="${java.part.util.fixedfuncemu.shadercode}"/>
+        </jar>
+    </target>
+
+    <target name="build-jars-javase" depends="setup-manifestfile, build-jars-es, build-jars-awt, build-cg-jar">
+        <jar manifest="${build}/tempversion" destfile="${jogl.core.jar}">
+            <fileset dir="${classes}"
+                     includes="${java.part.core}"
+                     excludes="${java.part.core.exclude}"/>
+        </jar>
         <jar manifest="${build}/tempversion" destfile="${jogl.gl2.x11.jar}">
             <fileset dir="${classes}"
                      includes="${java.part.glx}, ${java.part.gl2}, ${java.part.gl3}, ${java.part.openmax}"
@@ -1815,40 +1792,6 @@
                      includes="${java.part.util.gl2}"
                      excludes="com/sun/opengl/**/awt/**"/>
         </jar>
-    </target>
-
-    <target name="build-jars-awt" depends="setup-manifestfile" unless="setup.noAWT">
-        <jar manifest="${build}/tempversion" destfile="${jogl.awt.jar}">
-            <fileset dir="${classes}"
-                     includes="${java.part.awt}" />
-        </jar>
-        <jar manifest="${build}/tempversion" destfile="${jogl.util.awt.jar}">
-            <fileset dir="${classes}"
-                     includes="${java.part.util.awt}"/>
-        </jar>
-    </target>
-
-    <target name="build-jars-all" depends="setup-manifestfile" unless="setup.cdcfp">
-        <jar manifest="${build}/tempversion" destfile="${jogl.all.jar}">
-            <fileset dir="${classes}">
-                <include name="javax/media/opengl/**" />
-                <include name="com/sun/gluegen/runtime/**" />
-                <include name="com/sun/opengl/**" />
-                <include name="${java.part.openmax}" />
-                <!-- FIXME: this is temporary until we move these classes to another workspace -->
-                <include name="com/sun/javafx/**" />
-            </fileset>
-            <fileset dir="${src.java}"
-                     includes="${java.part.util.fixedfunc.shaders}"/>
-        </jar>
-    </target>
-
-    <target name="build-jars" depends="setup-manifestfile,build-jars-es1,build-jars-es2,build-jars-gl2es12,build-jars-gl2,build-jars-awt,build-jars-all">
-        <jar manifest="${build}/tempversion" destfile="${jogl.core.jar}">
-            <fileset dir="${classes}"
-                     includes="${java.part.core}"
-                     excludes="${java.part.core.exclude}"/>
-        </jar>
         <jar manifest="${build}/tempversion" destfile="${jogl.sdk.jar}">
             <fileset dir="${classes}"
                      includes="${java.part.sdk}"/>
@@ -1872,13 +1815,18 @@
             <fileset dir="${src.java}"
                      includes="${java.part.util.fixedfuncemu.shadercode}"/>
         </jar>
-        <jar manifest="${build}/tempversion" destfile="${jogl.cdcfp.jar}">
-            <fileset dir="${classes}"
-                     includes="${java.part.core} ${java.part.egl} ${java.part.glutess} ${java.part.glumipmap} ${java.part.openmax} ${java.part.sdk} ${java.part.glx} ${java.part.cgl} ${java.part.gl2es12} ${java.part.wgl} ${java.part.gl2es12.dbg} ${java.part.es1} ${java.part.es1.dbg} ${java.part.es2} ${java.part.es2.dbg} ${java.part.util} ${java.part.util.glsl} ${java.part.util.fixedfuncemu}"
-                     excludes="${java.excludes.fixme} ${java.part.nv-cg} ${java.part.gl2} ${java.part.gl2.dbg} ${java.part.gl3} ${java.part.gl3.dbg} ${java.part.awt} ${java.part.glugl2} ${java.part.util.awt} ${java.part.util.gl2} ${java.excludes.cdcfp}"/>
+        <jar manifest="${build}/tempversion" destfile="${jogl.all.jar}">
+            <fileset dir="${classes}">
+                <include name="javax/media/opengl/**" />
+                <include name="com/sun/gluegen/runtime/**" />
+                <include name="com/sun/opengl/**" />
+                <include name="${java.part.openmax}" />
+                <!-- FIXME: this is temporary until we move these classes to another workspace -->
+                <include name="com/sun/javafx/**" />
+            </fileset>
             <fileset dir="${src.java}"
-                     includes="${java.part.util.fixedfuncemu.shadercode}"/>
-    </jar>
+                     includes="${java.part.util.fixedfunc.shaders}"/>
+        </jar>
     </target>
 
     <!-- ================================================================== -->

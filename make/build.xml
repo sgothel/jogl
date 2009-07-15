@@ -113,16 +113,15 @@
             </filterset>
         </copy>
         <mkdir dir="${archive.dir}/lib" />
-        <copy file="${project.root}/../gluegen/${rootrel.build}/gluegen-rt.jar" todir="${archive.dir}/lib" />
         <copy todir="${archive.dir}/lib">
-            <fileset dir="${project.root}/../gluegen/${rootrel.build}" includes="gluegen-rt.jar" />
-            <fileset dir="${project.root}/../gluegen/${rootrel.build}/obj" includes="*.${native.library.suffix}" />
+            <fileset dir="${project.root}/../gluegen/${rootrel.build}" includes="gluegen-rt.jar gluegen-rt-cdc.jar" />
+            <fileset dir="${project.root}/../gluegen/${rootrel.build}/obj" includes="*.${native.library.suffix} *.${native.library.suffix-cdc}" />
             <fileset dir="${build}/jogl" includes="*.jar" excludes="*natives*.jar" />
-            <fileset dir="${build}/jogl/obj" includes="*.${native.library.suffix}" />
+            <fileset dir="${build}/jogl/obj" includes="*.${native.library.suffix} *.${native.library.suffix-cdc}" />
             <fileset dir="${build}/nativewindow" includes="*.jar" excludes="*natives*.jar" />
-            <fileset dir="${build}/nativewindow/obj" includes="*.${native.library.suffix}" />
+            <fileset dir="${build}/nativewindow/obj" includes="*.${native.library.suffix} *.${native.library.suffix-cdc}" />
             <fileset dir="${build}/newt" includes="*.jar" excludes="*natives*.jar" />
-            <fileset dir="${build}/newt/obj" includes="*.${native.library.suffix}" />
+            <fileset dir="${build}/newt/obj" includes="*.${native.library.suffix} *.${native.library.suffix-cdc}" />
         </copy>
         <mkdir dir="${archive.dir}/etc" />
         <copy todir="${archive.dir}/etc">
