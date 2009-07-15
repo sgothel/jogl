@@ -425,7 +425,7 @@
 
     <target name="rename.dylib" if="isOSX">
         <move file="${src}" tofile="${dest}" />
-        <copy file="${dest}" tofile="${dst-cdc}" />
+        <copy file="${dest}" tofile="${dest-cdc}" />
     </target>
 
     <macrodef name="c.build">
