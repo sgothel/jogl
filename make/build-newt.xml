@@ -537,7 +537,7 @@
           <include name="*.${native.library.suffix}" />
         </fileset>
       </jar>
-      <jar destfile="${build}/newt-cdc-natives-${os.and.arch}.jar">
+      <jar destfile="${build}/newt-natives-${os.and.arch}-cdc.jar">
         <fileset dir="${obj}">
           <include name="*.${native.library.suffix-cdc}" />
         </fileset>

@@ -287,6 +287,8 @@
         <property name="nativewindow.awt.jar"  value="${build}/nativewindow.awt.jar"  />
         <property name="nativewindow.all.jar"  value="${build}/nativewindow.all.jar"  />
 
+        <property name="nativewindow.core.cdc.jar" value="${build}/nativewindow.core.cdc.jar" />
+
         <!-- The javadoc dirs. -->
         <property name="javadoc" value="${project.root}/javadoc_nativewindow_public" />
         <property name="javadoc.spec" value="${project.root}/javadoc_nativewindow_spec" />
@@ -810,7 +812,7 @@
           <include name="*.${native.library.suffix}" />
         </fileset>
       </jar>
-      <jar destfile="${build}/nativewindow-cdc-natives-${os.and.arch}.jar">
+      <jar destfile="${build}/nativewindow-natives-${os.and.arch}-cdc.jar">
         <fileset dir="${obj}">
           <include name="*_jvm.${native.library.suffix-cdc}" />
           <include name="*_x11.${native.library.suffix-cdc}" />
@@ -870,6 +872,7 @@
                      includes="${java.part.core}"
                      excludes="${java.part.awt}"/>
         </jar>
+        <copy file="${nativewindow.core.jar}" tofile="${nativewindow.core.cdc.jar}" />
 
         <delete file="tempversion"/>
     </target>
