@@ -648,6 +648,7 @@
 
     <target name="rename.dylib" if="isOSX">
         <move file="${src}" tofile="${dest}" />
+        <copy file="${dest}" tofile="${dest-cdc}" />
     </target>
 
     <macrodef name="c.build">
@@ -744,6 +745,7 @@
         <antcall target="rename.dylib" inheritRefs="true">
             <param name="src"  value="${build}/obj/lib@{output.lib.name}.dylib" />
             <param name="dest" value="${build}/obj/lib@{output.lib.name}.jnilib" />
+            <param name="dest-cdc" value="${build}/obj/lib@{output.lib.name}.so" />
         </antcall>
 
         <!-- FIXME: this is a hack; the cpptask should have an option to change the
@@ -806,6 +808,12 @@
       <jar destfile="${build}/nativewindow-natives-${os.and.arch}.jar">
         <fileset dir="${obj}">
           <include name="*.${native.library.suffix}" />
+        </fileset>
+      </jar>
+      <jar destfile="${build}/nativewindow-cdc-natives-${os.and.arch}.jar">
+        <fileset dir="${obj}">
+          <include name="*_jvm.${native.library.suffix-cdc}" />
+          <include name="*_x11.${native.library.suffix-cdc}" />
         </fileset>
       </jar>
     </target>

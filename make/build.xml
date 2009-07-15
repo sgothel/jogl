@@ -78,6 +78,18 @@
         <ant antfile="${newt.build.xml}" dir="${newt.make.dir}" target="all" inheritAll="false"/>
     </target>
 
+    <target name="one-lib-dir" depends="init,gluegen.cpptasks.detect.os">
+        <property name="lib.dir" value="${build}/lib" />
+        <delete includeEmptyDirs="true" quiet="true" dir="${lib.dir}" failonerror="false" />
+        <mkdir dir="${lib.dir}" />
+        <copy todir="${lib.dir}">
+            <fileset dir="${project.root}/../gluegen/${rootrel.build}/obj" includes="*.${native.library.suffix} *.${native.library.suffix-cdc}" />
+            <fileset dir="${build}/jogl/obj" includes="*.${native.library.suffix} *.${native.library.suffix-cdc}" />
+            <fileset dir="${build}/nativewindow/obj" includes="*.${native.library.suffix} *.${native.library.suffix-cdc}" />
+            <fileset dir="${build}/newt/obj" includes="*.${native.library.suffix} *.${native.library.suffix-cdc}" />
+        </copy>
+    </target>
+
     <!-- ================================================================== -->
     <!--
        - Build the per-platform binary zip archive for developers.
@@ -164,7 +176,7 @@
        - Main build target.
       -->
 
-    <target name="all" description="Build nativewindow, jogl and newt projects" depends="init,build.nativewindow,build.jogl,build.newt,developer-zip-archive,source-archive" />
+    <target name="all" description="Build nativewindow, jogl and newt projects" depends="init,build.nativewindow,build.jogl,build.newt,one-lib-dir,developer-zip-archive,source-archive" />
 
     <target name="clean" depends="init">
         <ant antfile="${nativewindow.build.xml}" dir="${nativewindow.make.dir}" target="clean" inheritAll="false"/>
