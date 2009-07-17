@@ -55,7 +55,7 @@ done
 rm -rf nope
 mkdir -p nope
 
-mv *.cdcfp.lst *.all.lst nope/
+mv *.cdc.lst *.all.lst nope/
 
 mv jogl.gl2es12.*.lst jogl.gl2.*.lst nope/
 echo duplicates - w/o gl2es12.* gl2.*
@@ -63,11 +63,11 @@ echo
 sort jogl*.lst | uniq -d
 mv nope/* .
 
-mv *.cdcfp.lst *.all.lst nope/
+mv *.cdc.lst *.all.lst nope/
 cat *.lst | sort -u > allparts.lst
 mv nope/* .
 cat *.all.lst   | sort -u > allall.lst
-cat jogl.cdcfp.lst newt.cdcfp.lst nativewindow.core.lst | sort -u > allcdcfp.lst
+cat jogl.all.cdc.lst newt.all.cdc.lst nativewindow.core.lst | sort -u > allcdc.lst
 
 echo all vs allparts delta
 echo
@@ -108,15 +108,15 @@ report nativewindow.core.$JAR_SUFFIX jogl.core.$JAR_SUFFIX jogl.util.$JAR_SUFFIX
 echo
 
 echo JOGL GL2 AWT
-report nativewindow.core.$JAR_SUFFIX nativewindow.awt.$JAR_SUFFIX jogl.core.$JAR_SUFFIX jogl.util.$JAR_SUFFIX jogl.gl2.$OSS.$JAR_SUFFIX jogl.awt.$JAR_SUFFIX libjogl_gl2.so.gz libjogl_awt.so.gz libnativewindow_$OSS.so.gz libnativewindow_awt.so.gz libnativewindow_jvm.so.gz
+report nativewindow.core.$JAR_SUFFIX nativewindow.awt.$JAR_SUFFIX jogl.core.$JAR_SUFFIX jogl.util.$JAR_SUFFIX jogl.gl2.$OSS.$JAR_SUFFIX jogl.awt.$JAR_SUFFIX libjogl_gl2.so.gz libnativewindow_$OSS.so.gz libnativewindow_awt.so.gz libnativewindow_jvm.so.gz
 echo
 
 echo JOGL ALL
-report nativewindow.all.$JAR_SUFFIX jogl.all.$JAR_SUFFIX newt.all.$JAR_SUFFIX libjogl_gl2.so.gz libjogl_awt.so.gz libnativewindow_$OSS.so.gz libnativewindow_awt.so.gz libnativewindow_jvm.so.gz libnewt.so.gz
+report nativewindow.all.$JAR_SUFFIX jogl.all.$JAR_SUFFIX newt.all.$JAR_SUFFIX libjogl_gl2.so.gz libnativewindow_$OSS.so.gz libnativewindow_awt.so.gz libnativewindow_jvm.so.gz libnewt.so.gz
 echo
 
 echo JOGL CDCFP
-report nativewindow.core.$JAR_SUFFIX jogl.cdcfp.$JAR_SUFFIX newt.cdcfp.$JAR_SUFFIX libjogl_gl2es12.so.gz libnativewindow_$OSS.so.gz libnativewindow_jvm.so.gz libnewt.so.gz
+report nativewindow.core.$JAR_SUFFIX jogl.all.cdc.$JAR_SUFFIX newt.all.cdc.$JAR_SUFFIX libjogl_gl2es12.so.gz libnativewindow_$OSS.so.gz libnativewindow_jvm.so.gz libnewt.so.gz
 echo
 
 echo JOGL GLU

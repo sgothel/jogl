@@ -115,9 +115,6 @@
         <property name="java.part.gl2es12"
                   value="com/sun/opengl/impl/gl2es12/**"/>
 
-        <property name="java.part.gl2es12.dbg"
-                  value="javax/media/opengl/TraceGL2ES12.* javax/media/opengl/DebugGL2ES12.*"/>
-
         <property name="java.part.gl3"
                   value="com/sun/opengl/impl/**/gl3/**"/>
 
@@ -134,13 +131,13 @@
                   value="javax/media/opengl/**/es1/** com/sun/opengl/**/es1/**"/>
 
         <property name="java.part.es1.dbg"
-                  value="javax/media/opengl/TraceGLES1.* javax/media/opengl/DebugGLES1.*"/>
+                  value="javax/media/opengl/TraceGLES1.* javax/media/opengl/DebugGLES1.* javax/media/opengl/TraceGL2ES1.* javax/media/opengl/DebugGL2ES1.*"/>
 
         <property name="java.part.es2"
                   value="javax/media/opengl/**/es2/** com/sun/opengl/**/es2/**"/>
 
         <property name="java.part.es2.dbg"
-                  value="javax/media/opengl/TraceGLES2.* javax/media/opengl/DebugGLES2.*"/>
+                  value="javax/media/opengl/TraceGLES2.* javax/media/opengl/DebugGLES2.* javax/media/opengl/TraceGL2ES2.* javax/media/opengl/DebugGL2ES2.*"/>
 
         <property name="java.part.awt"
                   value="javax/media/opengl/awt/** com/sun/opengl/impl/**/awt/**"/>
@@ -959,9 +956,14 @@
             <arg value="${src.generated.java}/javax/media/opengl" />
             <classpath refid="pipeline.classpath" />
         </java>
+        <java classname="com.sun.gluegen.opengl.BuildComposablePipeline" fork="yes" failonerror="true">
+            <arg value="javax.media.opengl.GL2ES1" />
+            <arg value="${src.generated.java}/javax/media/opengl" />
+            <classpath refid="pipeline.classpath" />
+        </java>
         <copy todir="${src.generated.java-cdc}">
             <fileset dir="${src.generated.java}"
-                     includes="javax/media/opengl/DebugGLES1.java javax/media/opengl/TraceGLES1.java" />
+                     includes="javax/media/opengl/DebugGLES1.java javax/media/opengl/TraceGLES1.java javax/media/opengl/DebugGL2ES1.java javax/media/opengl/TraceGL2ES1.java" />
         </copy>
     </target>          
 
@@ -971,9 +973,14 @@
             <arg value="${src.generated.java}/javax/media/opengl" />
             <classpath refid="pipeline.classpath" />
         </java>
+        <java classname="com.sun.gluegen.opengl.BuildComposablePipeline" fork="yes" failonerror="true">
+            <arg value="javax.media.opengl.GL2ES2" />
+            <arg value="${src.generated.java}/javax/media/opengl" />
+            <classpath refid="pipeline.classpath" />
+        </java>
         <copy todir="${src.generated.java-cdc}">
             <fileset dir="${src.generated.java}"
-                     includes="javax/media/opengl/DebugGLES2.java javax/media/opengl/TraceGLES2.java" />
+                     includes="javax/media/opengl/DebugGLES2.java javax/media/opengl/TraceGLES2.java javax/media/opengl/DebugGL2ES2.java javax/media/opengl/TraceGL2ES2.java" />
         </copy>
     </target>          
 
@@ -1658,17 +1665,17 @@
         <jar manifest="${build}/tempversion" destfile="${jogl.gl2es12.x11.jar}">
             <fileset dir="${classes}"
                      includes="${java.part.glx}, ${java.part.gl2es12}, ${java.part.openmax}"
-                     excludes="${java.part.gl2es12.dbg}, ${java.part.glugl2}"/>
+                     excludes="${java.part.glugl2}"/>
         </jar>
         <jar manifest="${build}/tempversion" destfile="${jogl.gl2es12.win.jar}">
             <fileset dir="${classes}"
                      includes="${java.part.wgl}, ${java.part.gl2es12}, ${java.part.openmax}"
-                     excludes="${java.part.gl2es12.dbg}, ${java.part.glugl2}"/>
+                     excludes="${java.part.glugl2}"/>
         </jar>
         <jar manifest="${build}/tempversion" destfile="${jogl.gl2es12.osx.jar}">
             <fileset dir="${classes}"
                      includes="${java.part.cgl}, ${java.part.gl2es12}, ${java.part.openmax}"
-                     excludes="${java.part.gl2es12.dbg}, ${java.part.glugl2}"/>
+                     excludes="${java.part.glugl2}"/>
         </jar>
     </target>
 
@@ -1699,17 +1706,17 @@
         <jar manifest="${build}/tempversion-cdc" destfile="${jogl.gl2es12.x11.cdc.jar}">
             <fileset dir="${classes-cdc}"
                      includes="${java.part.glx}, ${java.part.gl2es12}, ${java.part.openmax}"
-                     excludes="${java.part.gl2es12.dbg}, ${java.part.glugl2}"/>
+                     excludes="${java.part.glugl2}"/>
         </jar>
         <jar manifest="${build}/tempversion-cdc" destfile="${jogl.gl2es12.win.cdc.jar}">
             <fileset dir="${classes-cdc}"
                      includes="${java.part.wgl}, ${java.part.gl2es12}, ${java.part.openmax}"
-                     excludes="${java.part.gl2es12.dbg}, ${java.part.glugl2}"/>
+                     excludes="${java.part.glugl2}"/>
         </jar>
         <jar manifest="${build}/tempversion-cdc" destfile="${jogl.gl2es12.osx.cdc.jar}">
             <fileset dir="${classes-cdc}"
                      includes="${java.part.cgl}, ${java.part.gl2es12}, ${java.part.openmax}"
-                     excludes="${java.part.gl2es12.dbg}, ${java.part.glugl2}"/>
+                     excludes="${java.part.glugl2}"/>
         </jar>
     </target>
 
@@ -1751,7 +1758,7 @@
         </jar>
         <jar manifest="${build}/tempversion-cdc" destfile="${jogl.all.cdc.jar}">
             <fileset dir="${classes-cdc}"
-                     includes="${java.part.core} ${java.part.egl} ${java.part.glutess} ${java.part.glumipmap} ${java.part.openmax} ${java.part.sdk} ${java.part.glx} ${java.part.cgl} ${java.part.gl2es12} ${java.part.wgl} ${java.part.gl2es12.dbg} ${java.part.es1} ${java.part.es1.dbg} ${java.part.es2} ${java.part.es2.dbg} ${java.part.util} ${java.part.util.glsl} ${java.part.util.fixedfuncemu}"
+                     includes="${java.part.core} ${java.part.egl} ${java.part.glutess} ${java.part.glumipmap} ${java.part.openmax} ${java.part.sdk} ${java.part.glx} ${java.part.cgl} ${java.part.gl2es12} ${java.part.wgl} ${java.part.es1} ${java.part.es1.dbg} ${java.part.es2} ${java.part.es2.dbg} ${java.part.util} ${java.part.util.glsl} ${java.part.util.fixedfuncemu}"
                      excludes="${java.excludes.cdcfp}"/>
             <fileset dir="${src.java}"
                      includes="${java.part.util.fixedfuncemu.shadercode}"/>
