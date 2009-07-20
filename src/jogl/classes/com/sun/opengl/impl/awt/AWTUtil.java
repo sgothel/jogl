@@ -83,17 +83,18 @@ public class AWTUtil {
       try {
         if( !((Boolean)isOGLPipelineActive.invoke(null, null)).booleanValue() ||
             !((Boolean)isQueueFlusherThread.invoke(null, null)).booleanValue() ) {
-          JAWT.getJAWT().Lock();
+          JAWTUtil.lockToolkit();
         }
       } catch (Exception e) { j2dOk=false; }
     } 
     if(!j2dOk) {
-      JAWT.getJAWT().Lock();
+      JAWTUtil.lockToolkit();
     }
   }
 
   public static synchronized void unlockToolkit() {
     if (lockedToolkit) {
+        lockedToolkit = false;
         if (headlessMode) {
           // Workaround for running (to some degree) in headless
           // environments but still supporting rendering via pbuffers
@@ -105,14 +106,13 @@ public class AWTUtil {
           try {
             if( !((Boolean)isOGLPipelineActive.invoke(null, null)).booleanValue() ||
                 !((Boolean)isQueueFlusherThread.invoke(null, null)).booleanValue() ) {
-              JAWT.getJAWT().Unlock();
+              JAWTUtil.unlockToolkit();
             }
           } catch (Exception e) { j2dOk=false; }
         } 
         if(!j2dOk) {
-          JAWT.getJAWT().Unlock();
+          JAWTUtil.unlockToolkit();
         }
-        lockedToolkit = false;
     }
   }
 
