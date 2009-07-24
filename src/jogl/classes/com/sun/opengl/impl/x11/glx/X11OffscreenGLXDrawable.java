@@ -47,14 +47,13 @@ import com.sun.nativewindow.impl.x11.*;
 
 public class X11OffscreenGLXDrawable extends X11GLXDrawable {
   private long pixmap;
-  private boolean isDoubleBuffered;
 
   protected X11OffscreenGLXDrawable(GLDrawableFactory factory, AbstractGraphicsScreen screen,
                                     GLCapabilities caps,
                                     GLCapabilitiesChooser chooser,
                                     int width,
                                     int height) {
-    super(factory, new NullWindow(X11GLXGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(caps, chooser, screen, false)), true);
+    super(factory, new NullWindow(X11GLXGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(caps, chooser, screen, false, false)), true);
     ((NullWindow) getNativeWindow()).setSize(width, height);
     create();
   }
@@ -87,7 +86,6 @@ public class X11OffscreenGLXDrawable extends X11GLXDrawable {
         throw new GLException("glXCreateGLXPixmap failed");
       }
       nw.setSurfaceHandle(drawable);
-      isDoubleBuffered = (X11GLXGraphicsConfiguration.glXGetConfig(dpy, vis, GLX.GLX_DOUBLEBUFFER, new int[1], 0) != 0);
       if (DEBUG) {
         System.err.println("Created pixmap " + toHexString(pixmap) +
                            ", GLXPixmap " + toHexString(drawable) +
@@ -135,8 +133,6 @@ public class X11OffscreenGLXDrawable extends X11GLXDrawable {
       getFactoryImpl().unlockToolkit();
     }
   }
-
-  public boolean isDoubleBuffered() {
-    return isDoubleBuffered;
+  public void swapBuffers() throws GLException {
   }
 }

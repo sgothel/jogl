@@ -54,7 +54,7 @@ public class WindowsOffscreenWGLDrawable extends WindowsWGLDrawable {
                                      GLCapabilitiesChooser chooser,
                                      int width,
                                      int height) {
-    super(factory, new NullWindow(WindowsWGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(requestedCapabilities, chooser, absScreen, true)), true);
+    super(factory, new NullWindow(WindowsWGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(requestedCapabilities, chooser, absScreen, false, false)), true);
     ((NullWindow) getNativeWindow()).setSize(width, height);
     create();
   }
@@ -111,7 +111,7 @@ public class WindowsOffscreenWGLDrawable extends WindowsWGLDrawable {
       throw new GLException("Error selecting bitmap into new device context");
     }
         
-    config.updateGraphicsConfiguration(getFactory(), nw, true);
+    config.updateGraphicsConfiguration(getFactory(), nw);
   }
   
   public void destroy() {
@@ -126,4 +126,8 @@ public class WindowsOffscreenWGLDrawable extends WindowsWGLDrawable {
       nw.setSurfaceHandle(0);
     }
   }
+
+  public void swapBuffers() throws GLException {
+  }
+
 }

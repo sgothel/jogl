@@ -117,8 +117,15 @@ public abstract class X11GLXContext extends GLContextImpl {
   /**
    * Creates and initializes an appropriate OpenGL context. Should only be
    * called by {@link create()}.
+   * Note: The direct parameter may be overwritten by the direct state of a shared context.
    */
-  protected void createContext(boolean onscreen) {
+  protected void createContext(boolean direct) {
+    X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)drawable.getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration();
+    if(DEBUG) {
+          System.err.println("X11GLXContext.createContext got "+config);
+    }
+    long display = config.getScreen().getDevice().getHandle();
+
     X11GLXContext other = (X11GLXContext) GLContextShareSet.getShareContext(this);
     long share = 0;
     if (other != null) {
@@ -126,14 +133,10 @@ public abstract class X11GLXContext extends GLContextImpl {
       if (share == 0) {
         throw new GLException("GLContextShareSet returned an invalid OpenGL context");
       }
+      direct = GLX.glXIsDirect(display, share);
     }
 
-    X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)drawable.getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration();
-    if(DEBUG) {
-          System.err.println("X11GLXContext.createContext got "+config);
-    }
     GLCapabilities glCaps = (GLCapabilities) config.getChosenCapabilities();
-    long display = config.getScreen().getDevice().getHandle();
     isVendorATI = GLXUtil.isVendorATI(display);
 
     if(config.getFBConfigID()<0) {
@@ -141,7 +144,7 @@ public abstract class X11GLXContext extends GLContextImpl {
         if(glCaps.getGLProfile().isGL3()) {
           throw new GLException("Unable to create OpenGL 3.1 context");
         }
-        context = GLX.glXCreateContext(display, config.getXVisualInfo(), share, onscreen);
+        context = GLX.glXCreateContext(display, config.getXVisualInfo(), share, direct);
         if (context == 0) {
           throw new GLException("Unable to create OpenGL context");
         }
@@ -160,7 +163,7 @@ public abstract class X11GLXContext extends GLContextImpl {
 
         // To use GLX_ARB_create_context, we have to make a temp context current,
         // so we are able to use GetProcAddress
-        long temp_context = GLX.glXCreateNewContext(display, config.getFBConfig(), GLX.GLX_RGBA_TYPE, share, onscreen);
+        long temp_context = GLX.glXCreateNewContext(display, config.getFBConfig(), GLX.GLX_RGBA_TYPE, share, direct);
         if (temp_context == 0) {
             throw new GLException("Unable to create temp OpenGL context");
         } else {
@@ -205,7 +208,7 @@ public abstract class X11GLXContext extends GLContextImpl {
                     attribs[5] |= GLX.GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB /* | GLX.GLX_CONTEXT_DEBUG_BIT_ARB */;
                 }
 
-                context = glXExt.glXCreateContextAttribsARB(display, config.getFBConfig(), share, onscreen, attribs, 0);
+                context = glXExt.glXCreateContextAttribsARB(display, config.getFBConfig(), share, direct, attribs, 0);
                 if(0==context) {
                     if(glCaps.getGLProfile().isGL3()) {
                       if (!GLX.glXMakeContextCurrent(display, 0, 0, 0)) {
@@ -245,41 +248,46 @@ public abstract class X11GLXContext extends GLContextImpl {
   }
 
   protected int makeCurrentImpl() throws GLException {
-    if (drawable.getNativeWindow().getSurfaceHandle() == 0) {
-        if (DEBUG) {
-          System.err.println("drawable not properly initialized");
+    getDrawableImpl().getFactoryImpl().lockToolkit();
+    try {
+        if (drawable.getNativeWindow().getSurfaceHandle() == 0) {
+            if (DEBUG) {
+              System.err.println("drawable not properly initialized");
+            }
+            return CONTEXT_NOT_CURRENT;
         }
-        return CONTEXT_NOT_CURRENT;
-    }
-    boolean created = false;
-    if (context == 0) {
-      create();
-      if (DEBUG) {
-        System.err.println(getThreadName() + ": !!! Created GL context for " + getClass().getName());
-      }
-      created = true;
-    }
+        boolean created = false;
+        if (context == 0) {
+          create();
+          if (DEBUG) {
+            System.err.println(getThreadName() + ": !!! Created GL context for " + getClass().getName());
+          }
+          created = true;
+        }
 
-    if (GLX.glXGetCurrentContext() != context) {
-        if (!GLX.glXMakeContextCurrent(drawable.getNativeWindow().getDisplayHandle(), 
-                                       drawable.getNativeWindow().getSurfaceHandle(), 
-                                       drawable.getNativeWindow().getSurfaceHandle(), 
-                                       context)) {
-          throw new GLException("Error making context current");
+        if (GLX.glXGetCurrentContext() != context) {
+            if (!GLX.glXMakeContextCurrent(drawable.getNativeWindow().getDisplayHandle(), 
+                                           drawable.getNativeWindow().getSurfaceHandle(), 
+                                           drawable.getNativeWindow().getSurfaceHandle(), 
+                                           context)) {
+              throw new GLException("Error making context current");
+            }
+            if (DEBUG && (VERBOSE || created)) {
+              System.err.println(getThreadName() + ": glXMakeCurrent(display " + 
+                                 toHexString(drawable.getNativeWindow().getDisplayHandle()) +
+                                 ", drawable " + toHexString(drawable.getNativeWindow().getSurfaceHandle()) +
+                                 ", context " + toHexString(context) + ") succeeded");
+            }
         }
-        if (DEBUG && (VERBOSE || created)) {
-          System.err.println(getThreadName() + ": glXMakeCurrent(display " + 
-                             toHexString(drawable.getNativeWindow().getDisplayHandle()) +
-                             ", drawable " + toHexString(drawable.getNativeWindow().getSurfaceHandle()) +
-                             ", context " + toHexString(context) + ") succeeded");
-        }
-    }
 
-    if (created) {
-      setGLFunctionAvailability(false);
-      return CONTEXT_CURRENT_NEW;
+        if (created) {
+          setGLFunctionAvailability(false);
+          return CONTEXT_CURRENT_NEW;
+        }
+        return CONTEXT_CURRENT;
+    } finally {
+        getDrawableImpl().getFactoryImpl().unlockToolkit();
     }
-    return CONTEXT_CURRENT;
   }
 
   protected void releaseImpl() throws GLException {
@@ -386,14 +394,23 @@ public abstract class X11GLXContext extends GLContextImpl {
   }
 
 
+  private int hasSwapIntervalSGI = 0;
+
   public void setSwapInterval(int interval) {
     getDrawableImpl().getFactoryImpl().lockToolkit();
     try {
       // FIXME: make the context current first? Currently assumes that
       // will not be necessary. Make the caller do this?
       GLXExt glXExt = getGLXExt();
-      if (glXExt.isExtensionAvailable("GLX_SGI_swap_control")) {
-        glXExt.glXSwapIntervalSGI(interval);
+      if(0==hasSwapIntervalSGI) {
+        try {
+            hasSwapIntervalSGI = glXExt.isExtensionAvailable("GLX_SGI_swap_control")?1:-1;
+        } catch (Throwable t) { hasSwapIntervalSGI=1; }
+      }
+      if (hasSwapIntervalSGI>0) {
+        try {
+            glXExt.glXSwapIntervalSGI(interval);
+        } catch (Throwable t) { hasSwapIntervalSGI=-1; }
       }
     } finally {
       getDrawableImpl().getFactoryImpl().unlockToolkit();

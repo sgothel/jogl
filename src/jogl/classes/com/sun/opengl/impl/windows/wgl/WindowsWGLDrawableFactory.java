@@ -166,8 +166,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl implements 
   }
 
   public GLContext createExternalGLContext() {
-    AbstractGraphicsScreen aScreen = DefaultGraphicsScreen.createDefault();
-    return new WindowsExternalWGLContext(aScreen);
+    return WindowsExternalWGLContext.create(this, null);
   }
 
   public boolean canCreateExternalGLDrawable() {
@@ -175,8 +174,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl implements 
   }
 
   public GLDrawable createExternalGLDrawable() {
-    AbstractGraphicsScreen aScreen = DefaultGraphicsScreen.createDefault();
-    return WindowsExternalWGLDrawable.create(this, aScreen);
+    return WindowsExternalWGLDrawable.create(this, null);
   }
 
   public void loadOpenGL32Library() {

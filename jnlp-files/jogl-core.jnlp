@@ -5,7 +5,7 @@
     <title>Java(tm) Binding to the OpenGL(r) API (CORE)</title>
     <vendor>Sun Microsystems, Inc.</vendor>
     <homepage href="http://jogl.dev.java.net/"/>
-    <description>Java Binding to the OpenGL API - JSR-231 2.0.0 (beta2) - CORE</description>
+    <description>Java Binding to the OpenGL API - JSR-231 2.0.0 - CORE</description>
     <description kind="short">Java programming language binding for the OpenGL 3D graphics API - CORE.</description>
     <offline-allowed/>
   </information>

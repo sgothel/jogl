@@ -5,8 +5,8 @@
     <title>NEWT - New Windowing Toolkit (AWT)</title>
     <vendor>Sun Microsystems, Inc.</vendor>
     <homepage href="http://jogl.dev.java.net/"/>
-    <description>NEWT - A NativeWindow Interface implementation (beta2) - AWT</description>
-    <description kind="short">NEWT - A NativeWindow Interface implementation (beta2) - AWT</description>
+    <description>NEWT - A NativeWindow Interface implementation - AWT</description>
+    <description kind="short">NEWT - A NativeWindow Interface implementation - AWT</description>
     <offline-allowed/>
   </information>
   <security>

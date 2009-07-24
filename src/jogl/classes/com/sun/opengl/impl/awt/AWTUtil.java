@@ -56,12 +56,14 @@ public class AWTUtil {
   static {
     lockedToolkit = false;
     headlessMode = GraphicsEnvironment.isHeadless();
-    try {
-        j2dClazz = Class.forName("com.sun.opengl.impl.awt.Java2D");
-        isOGLPipelineActive = j2dClazz.getMethod("isOGLPipelineActive", null);
-        isQueueFlusherThread = j2dClazz.getMethod("isQueueFlusherThread", null);
-        j2dOk = true;
-    } catch (Exception e) {}
+    if(!headlessMode) {
+        try {
+            j2dClazz = Class.forName("com.sun.opengl.impl.awt.Java2D");
+            isOGLPipelineActive = j2dClazz.getMethod("isOGLPipelineActive", null);
+            isQueueFlusherThread = j2dClazz.getMethod("isQueueFlusherThread", null);
+            j2dOk = true;
+        } catch (Exception e) {}
+    }
   }
 
   private static boolean lockedToolkit;
@@ -117,7 +119,7 @@ public class AWTUtil {
   }
 
   public static boolean isToolkitLocked() {
-    return lockedToolkit;
+    return JAWTUtil.isToolkitLocked();
   }
 
 }

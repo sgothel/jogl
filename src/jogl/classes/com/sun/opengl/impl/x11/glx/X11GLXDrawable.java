@@ -67,11 +67,35 @@ public abstract class X11GLXDrawable extends GLDrawableImpl {
     try {
         X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration();
         config.updateGraphicsConfiguration();
+
         if (DEBUG) {
           System.err.println("!!! X11GLXDrawable.setRealized(true): "+config);
         }
     } finally {
         unlockSurface();
+    }
+  }
+
+  public void swapBuffers() throws GLException {
+    GLCapabilities caps = (GLCapabilities)getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities();
+    if (caps.getDoubleBuffered()) {
+        boolean didLock = false;
+        try {
+          if ( !isSurfaceLocked() ) {
+              // Usually the surface shall be locked within [makeCurrent .. swap .. release]
+              if (lockSurface() == NativeWindow.LOCK_SURFACE_NOT_READY) {
+                  return;
+              }
+              didLock=true;
+          }
+
+          GLX.glXSwapBuffers(component.getDisplayHandle(), component.getSurfaceHandle());
+
+        } finally {
+          if(didLock) {
+              unlockSurface();
+          }
+        }
     }
   }
 

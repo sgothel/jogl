@@ -41,8 +41,17 @@ import com.sun.nativewindow.impl.*;
 import javax.media.nativewindow.*;
 
 import java.awt.GraphicsEnvironment;
+import java.lang.reflect.*;
 
 public class JAWTUtil {
+
+  // See whether we're running in headless mode
+  private static final boolean headlessMode;
+
+  // Java2D magic ..
+  private static final Class j2dClazz;
+  private static final Method isQueueFlusherThread;
+  private static final boolean j2dExist;
 
   static {
     JAWTNativeLibLoader.loadAWTImpl();
@@ -50,10 +59,21 @@ public class JAWTUtil {
 
     lockedStack   = null;
     headlessMode = GraphicsEnvironment.isHeadless();
-  }
 
-  // See whether we're running in headless mode
-  private static final boolean headlessMode;
+    boolean ok=false;
+    Class jC=null;
+    Method m=null;
+    if(!headlessMode) {
+        try {
+            jC = Class.forName("com.sun.opengl.impl.awt.Java2D");
+            m = jC.getMethod("isQueueFlusherThread", null);
+            ok = true;
+        } catch (Exception e) {}
+    }
+    j2dClazz = jC;
+    isQueueFlusherThread = m;
+    j2dExist = ok;
+  }
 
   private static Exception lockedStack;
 
@@ -61,11 +81,27 @@ public class JAWTUtil {
   // ie loading the native libraries ..
   public static void init() { }
 
+  public static final boolean hasJava2D() {
+    return j2dExist;
+  }
+
+  public static final boolean isJava2DQueueFlusherThread() {
+    boolean b = false;
+    if(j2dExist) {
+        try {
+            b = ((Boolean)isQueueFlusherThread.invoke(null, null)).booleanValue();
+        } catch (Exception e) {}
+    }
+    return b;
+  }
+
   public static boolean isHeadlessMode() {
     return headlessMode;
   }
 
   public static synchronized void lockToolkit() throws NativeWindowException {
+    if (isJava2DQueueFlusherThread()) return;
+
     if (null!=lockedStack) {
       lockedStack.printStackTrace();
       throw new NativeWindowException("JAWT Toolkit already locked - "+Thread.currentThread().getName());
@@ -83,6 +119,8 @@ public class JAWTUtil {
   }
 
   public static synchronized void unlockToolkit() {
+    if (isJava2DQueueFlusherThread()) return;
+
     if (null!=lockedStack) {
         lockedStack = null;
         if (headlessMode) {

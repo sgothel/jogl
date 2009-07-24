@@ -54,6 +54,7 @@ import javax.media.nativewindow.Capabilities;
     configuration on all supported window systems. */
 public class GLCapabilities extends Capabilities implements Cloneable {
   private GLProfile glProfile = null;
+  private boolean pbuffer = false;
   private boolean doubleBuffered = true;
   private boolean stereo         = false;
   private boolean hardwareAccelerated = true;
@@ -97,7 +98,7 @@ public class GLCapabilities extends Capabilities implements Cloneable {
     GLCapabilities other = (GLCapabilities)obj;
     boolean res = super.equals(obj) &&
                   other.getGLProfile()==glProfile &&
-                  other.getDoubleBuffered()==doubleBuffered &&
+                  other.isPBuffer()==pbuffer &&
                   other.getStereo()==stereo &&
                   other.getHardwareAccelerated()==hardwareAccelerated &&
                   other.getDepthBits()==depthBits &&
@@ -124,6 +125,16 @@ public class GLCapabilities extends Capabilities implements Cloneable {
   /** Sets the GL profile you desire */
   public void setGLProfile(GLProfile profile) {
     glProfile=profile;
+  }
+
+  /** Indicates whether pbuffer is used/requested. */
+  public boolean isPBuffer() {
+    return pbuffer;
+  }
+
+  /** Enables or disables pbuffer usage. */
+  public void setPBuffer(boolean onOrOff) {
+    pbuffer = onOrOff;
   }
 
   /** Indicates whether double-buffering is enabled. */
@@ -310,6 +321,7 @@ public class GLCapabilities extends Capabilities implements Cloneable {
     msg.append("GLCapabilities[");
     msg.append(super.toString());
     msg.append(", GL profile: " + glProfile +
+        ", PBuffer: " + pbuffer +
         ", DoubleBuffered: " + doubleBuffered +
 	    ", Stereo: " + stereo + 
         ", HardwareAccelerated: " + hardwareAccelerated +

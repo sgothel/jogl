@@ -40,6 +40,7 @@
 package com.sun.opengl.impl.x11.glx;
 
 import javax.media.nativewindow.*;
+import javax.media.nativewindow.x11.*;
 import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
 import com.sun.nativewindow.impl.NullWindow;
@@ -50,21 +51,42 @@ public class X11ExternalGLXContext extends X11GLXContext {
   private boolean created = true;
   private GLContext lastContext;
 
-  public X11ExternalGLXContext(AbstractGraphicsScreen screen) {
-    super(null, null);
-    getDrawableImpl().getFactoryImpl().lockToolkit();
-    try {
-      context = GLX.glXGetCurrentContext();
-      if (context == 0) {
-        throw new GLException("Error: attempted to make an external GLContext without a drawable/context current");
-      }
-      NullWindow nw = new NullWindow(X11GLXGraphicsConfigurationFactory.createDefaultGraphicsConfiguration(screen, false));
-      drawable = new Drawable(getGLDrawable().getFactory(), nw);
-    } finally {
-      getDrawableImpl().getFactoryImpl().unlockToolkit();
-    }
+  private X11ExternalGLXContext(Drawable drawable, long context) {
+    super(drawable, null);
+    this.drawable = drawable;
+    this.context = context;
     GLContextShareSet.contextCreated(this);
     setGLFunctionAvailability(false);
+  }
+
+  protected static X11ExternalGLXContext create(GLDrawableFactory factory, GLProfile glp) {
+    ((GLDrawableFactoryImpl)factory).lockToolkit();
+    try {
+        long context = GLX.glXGetCurrentContext();
+        if (context == 0) {
+          throw new GLException("Error: current context null");
+        }
+        long display = GLX.glXGetCurrentDisplay();
+        if (display == 0) {
+          throw new GLException("Error: current display null");
+        }
+        long drawable = GLX.glXGetCurrentDrawable();
+        if (drawable == 0) {
+          throw new GLException("Error: attempted to make an external GLDrawable without a drawable/context current");
+        }
+        int[] val = new int[1];
+        GLX.glXQueryContext(display, context, GLX.GLX_SCREEN, val, 0);
+        X11GraphicsScreen x11Screen = (X11GraphicsScreen) X11GraphicsScreen.createScreenDevice(display, val[0]);
+
+        GLX.glXQueryContext(display, context, GLX.GLX_FBCONFIG_ID, val, 0);
+        X11GLXGraphicsConfiguration cfg = X11GLXGraphicsConfiguration.create(glp, x11Screen, val[0]);
+
+        NullWindow nw = new NullWindow(cfg);
+        nw.setSurfaceHandle(drawable);
+        return new X11ExternalGLXContext(new Drawable(factory, nw), context);
+    } finally {
+        ((GLDrawableFactoryImpl)factory).unlockToolkit();
+    }
   }
 
   protected void create() {
@@ -108,7 +130,7 @@ public class X11ExternalGLXContext extends X11GLXContext {
   }
 
   // Need to provide the display connection to extension querying APIs
-  class Drawable extends X11GLXDrawable {
+  static class Drawable extends X11GLXDrawable {
     Drawable(GLDrawableFactory factory, NativeWindow comp) {
       super(factory, comp, true);
     }

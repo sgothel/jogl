@@ -34,8 +34,6 @@ package javax.media.nativewindow.x11;
 
 import javax.media.nativewindow.*;
 
-import com.sun.nativewindow.impl.x11.*;
-
 /** Encapsulates a graphics device on X11 platforms.
  */
 

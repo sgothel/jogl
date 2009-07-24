@@ -5,8 +5,8 @@
     <title>NEWT - New Windowing Toolkit (JOGL)</title>
     <vendor>Sun Microsystems, Inc.</vendor>
     <homepage href="http://jogl.dev.java.net/"/>
-    <description>NEWT - A NativeWindow Interface implementation (beta2) - JOGL</description>
-    <description kind="short">NEWT - A NativeWindow Interface implementation (beta2) - JOGL</description>
+    <description>NEWT - A NativeWindow Interface implementation - JOGL</description>
+    <description kind="short">NEWT - A NativeWindow Interface implementation - JOGL</description>
     <offline-allowed/>
   </information>
   <security>

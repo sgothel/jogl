@@ -33,8 +33,8 @@
 package javax.media.nativewindow.x11;
 
 import javax.media.nativewindow.*;
-
-import com.sun.nativewindow.impl.x11.*;
+import com.sun.nativewindow.impl.x11.X11Util;
+import com.sun.nativewindow.impl.x11.X11Lib;
 
 /** Encapsulates a screen index on X11
     platforms. Objects of this type are passed to {@link

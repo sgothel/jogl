@@ -81,7 +81,7 @@ import javax.media.nativewindow.NativeWindowException;
 */
 
 public class DefaultGLCapabilitiesChooser implements GLCapabilitiesChooser {
-  private static final boolean DEBUG = false; // FIXME: Debug.debug("DefaultGLCapabilitiesChooser");
+  private static final boolean DEBUG = true; // FIXME: Debug.debug("DefaultGLCapabilitiesChooser");
 
   public int chooseCapabilities(Capabilities desired,
                                 Capabilities[] available,
@@ -126,6 +126,9 @@ public class DefaultGLCapabilitiesChooser implements GLCapabilitiesChooser {
     for (int i = 0; i < scores.length; i++) {
       GLCapabilities cur = _available[i];
       if (cur == null) {
+        continue;
+      }
+      if (_desired.isOnscreen() != cur.isOnscreen()) {
         continue;
       }
       if (_desired.getStereo() != cur.getStereo()) {

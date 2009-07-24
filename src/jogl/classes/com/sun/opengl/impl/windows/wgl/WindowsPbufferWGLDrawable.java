@@ -61,7 +61,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
                                    WindowsWGLDrawable dummyDrawable,
                                    WGLExt wglExt) {
     super(factory, new NullWindow(WindowsWGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(
-                                        requestedCapabilities, chooser, absScreen, true) ), true);
+                                        requestedCapabilities, chooser, absScreen, false, true) ), true);
     if (width <= 0 || height <= 0) {
       throw new GLException("Width and height of pbuffer must be positive (were (" +
 			    width + ", " + height + "))");
@@ -108,20 +108,6 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
   }
 
   public void swapBuffers() throws GLException {
-    // FIXME: this doesn't make sense any more because we don't have
-    // access to our OpenGL context here
-    /*
-    // FIXME: do we need to do anything if the pbuffer is double-buffered?
-    // For now, just grab the pixels for the render-to-texture support.
-    if (rtt && !hasRTT) {
-      if (DEBUG) {
-        System.err.println("Copying pbuffer data to GL_TEXTURE_2D state");
-      }
-
-      GL gl = getGL();
-      gl.glCopyTexSubImage2D(textureTarget, 0, 0, 0, 0, 0, width, height);
-    }
-    */
   }
 
   private void createPbuffer(long parentHdc, WGLExt wglExt) {
@@ -301,10 +287,13 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
       iattributes[niattribs++] = WGLExt.WGL_DRAW_TO_PBUFFER_ARB;
       int[] ivalues = new int[niattribs];
       if (wglExt.wglGetPixelFormatAttribivARB(parentHdc, pformats[whichFormat], 0, niattribs, iattributes, 0, ivalues, 0)) {
-        GLCapabilities newCaps = WindowsWGLGraphicsConfiguration.AttribList2GLCapabilities(glProfile, iattributes, niattribs, ivalues, false);
+        GLCapabilities newCaps = WindowsWGLGraphicsConfiguration.AttribList2GLCapabilities(glProfile, iattributes, niattribs, ivalues, true, false, true);
         PIXELFORMATDESCRIPTOR pfd = WindowsWGLGraphicsConfiguration.createPixelFormatDescriptor();
         if (WGL.DescribePixelFormat(parentHdc, pformats[whichFormat], pfd.size(), pfd) == 0) {
           throw new GLException("Unable to describe pixel format " + pformats[whichFormat]);
+        }
+        if(newCaps.isOnscreen()) {
+          throw new GLException("Error: Selected Onscreen Caps for PBuffer: "+newCaps);
         }
         config.setCapsPFD(newCaps, pfd, pformats[whichFormat]);
       } else {
@@ -312,7 +301,10 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
         if (WGL.DescribePixelFormat(parentHdc, pformats[whichFormat], pfd.size(), pfd) == 0) {
           throw new GLException("Unable to describe pixel format " + pformats[whichFormat]);
         }
-        GLCapabilities newCaps = WindowsWGLGraphicsConfiguration.PFD2GLCapabilities(glProfile, pfd);
+        GLCapabilities newCaps = WindowsWGLGraphicsConfiguration.PFD2GLCapabilities(glProfile, pfd, false, true);
+        if(newCaps.isOnscreen()) {
+          throw new GLException("Error: Selected Onscreen Caps for PBuffer: "+newCaps);
+        }
         config.setCapsPFD(newCaps, pfd, pformats[whichFormat]);
       }
     }

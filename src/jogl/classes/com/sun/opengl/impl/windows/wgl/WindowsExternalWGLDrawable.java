@@ -46,19 +46,31 @@ import com.sun.nativewindow.impl.NullWindow;
 
 public class WindowsExternalWGLDrawable extends WindowsWGLDrawable {
 
-  public WindowsExternalWGLDrawable(GLDrawableFactory factory, NativeWindow component) {
+  private WindowsExternalWGLDrawable(GLDrawableFactory factory, NativeWindow component) {
     super(factory, component, true);
   }
 
-  public static WindowsExternalWGLDrawable create(GLDrawableFactory factory, AbstractGraphicsScreen absScreen) {
+  protected static WindowsExternalWGLDrawable create(GLDrawableFactory factory, GLProfile glp) {
     long hdc = WGL.wglGetCurrentDC();
-    NullWindow nw = new NullWindow(WindowsWGLGraphicsConfigurationFactory.createDefaultGraphicsConfiguration(absScreen, false));
-    nw.setSurfaceHandle(hdc);
-    if (nw.getSurfaceHandle() == 0) {
-      throw new GLException("Error: attempted to make an external GLDrawable without a drawable/context current");
+    if (0==hdc) {
+      throw new GLException("Error: attempted to make an external GLDrawable without a drawable current");
     }
+    int pfdID = WGL.GetPixelFormat(hdc);
+    if (pfdID == 0) {
+      throw new GLException("Error: attempted to make an external GLContext without a valid pixelformat");
+    }
+
+    AbstractGraphicsScreen aScreen = DefaultGraphicsScreen.createDefault();
+    WindowsWGLGraphicsConfiguration cfg = WindowsWGLGraphicsConfiguration.create(glp, aScreen, hdc, pfdID, true, true);
+
+    NullWindow nw = new NullWindow(cfg);
+    nw.setSurfaceHandle(hdc);
+
+    // cfg.updateGraphicsConfiguration(factory, nw);
+
     return new WindowsExternalWGLDrawable(factory, nw);
   }
+
 
   public GLContext createContext(GLContext shareWith) {
     return new WindowsWGLContext(this, shareWith);

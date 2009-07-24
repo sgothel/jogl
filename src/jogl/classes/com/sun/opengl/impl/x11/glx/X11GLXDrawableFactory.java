@@ -140,8 +140,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
   }
 
   public GLContext createExternalGLContext() {
-    AbstractGraphicsScreen screen = X11GraphicsScreen.createDefault();
-    return new X11ExternalGLXContext(screen);
+    return X11ExternalGLXContext.create(this, null);
   }
 
   public boolean canCreateExternalGLDrawable() {
@@ -149,8 +148,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
   }
 
   public GLDrawable createExternalGLDrawable() {
-    AbstractGraphicsScreen screen = X11GraphicsScreen.createDefault();
-    return X11ExternalGLXDrawable.create(this, screen);
+    return X11ExternalGLXDrawable.create(this, null);
   }
 
   public void loadGLULibrary() {

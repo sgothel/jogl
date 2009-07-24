@@ -47,7 +47,7 @@ public class WindowsDummyWGLDrawable extends WindowsWGLDrawable {
   private long hwnd, hdc;
 
   public WindowsDummyWGLDrawable(GLDrawableFactory factory) {
-    super(factory, new NullWindow(WindowsWGLGraphicsConfigurationFactory.createDefaultGraphicsConfiguration(null, false)), true);
+    super(factory, new NullWindow(WindowsWGLGraphicsConfigurationFactory.createDefaultGraphicsConfiguration(null, true, true)), true);
     // All entries to CreateDummyWindow must synchronize on one object
     // to avoid accidentally registering the dummy window class twice
     synchronized (WindowsDummyWGLDrawable.class) {
@@ -59,7 +59,7 @@ public class WindowsDummyWGLDrawable extends WindowsWGLDrawable {
     // Choose a (hopefully hardware-accelerated) OpenGL pixel format for this device context
     GLCapabilities caps = new GLCapabilities(null);
     caps.setDepthBits(16);
-    PIXELFORMATDESCRIPTOR pfd = WindowsWGLGraphicsConfiguration.GLCapabilities2PFD(caps, true);
+    PIXELFORMATDESCRIPTOR pfd = WindowsWGLGraphicsConfiguration.GLCapabilities2PFD(caps);
     int pixelFormat = WGL.ChoosePixelFormat(hdc, pfd);
     if ((pixelFormat == 0) ||
         (!WGL.SetPixelFormat(hdc, pixelFormat, pfd))) {

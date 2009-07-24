@@ -57,6 +57,9 @@ public class Capabilities implements Cloneable {
   private int     transparentValueBlue = -1;
   private int     transparentValueAlpha = -1;
 
+  // Switch for on- or offscreen
+  private boolean onscreen  = true;
+
   /** Creates a Capabilities object. All attributes are in a default
       state.
     */
@@ -79,7 +82,8 @@ public class Capabilities implements Cloneable {
                   other.getGreenBits()==greenBits &&
                   other.getBlueBits()==blueBits &&
                   other.getAlphaBits()==alphaBits &&
-                  other.isBackgroundOpaque()==backgroundOpaque;
+                  other.isBackgroundOpaque()==backgroundOpaque &&
+                  other.isOnscreen()==onscreen;
     if(!backgroundOpaque) {
      res = res && other.getTransparentRedValue()==transparentValueRed &&
                   other.getTransparentGreenValue()==transparentValueGreen &&
@@ -184,6 +188,20 @@ public class Capabilities implements Cloneable {
     return backgroundOpaque;
   }
 
+  /** Sets whether the drawable surface supports onscreen.
+      Defaults to true.
+  */
+  public void setOnscreen(boolean onscreen) {
+    this.onscreen=onscreen;
+  }
+
+  /** Indicates whether the drawable surface is onscreen.
+      Defaults to true.
+  */
+  public boolean isOnscreen() {
+    return onscreen;
+  }
+
   /** Gets the transparent red value for the frame buffer configuration.
     * This value is undefined if {@link #isBackgroundOpaque()} equals true.
     * @see #setTransparentRedValue
@@ -242,7 +260,8 @@ public class Capabilities implements Cloneable {
   public String toString() {
     StringBuffer msg = new StringBuffer();
     msg.append("Capabilities[");
-	msg.append("Red: " + redBits +
+	msg.append("Onscreen: "+ onscreen +
+        ", Red: " + redBits +
 	    ", Green: " + greenBits +
 	    ", Blue: " + blueBits +
 	    ", Alpha: " + alphaBits +

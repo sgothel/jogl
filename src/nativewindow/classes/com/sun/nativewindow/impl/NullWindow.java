@@ -44,7 +44,6 @@ public class NullWindow implements NativeWindow {
   protected long surfaceHandle, displayHandle;
   protected AbstractGraphicsConfiguration config;
 
-
   public NullWindow(AbstractGraphicsConfiguration cfg) {
     invalidate();
     config = cfg;
@@ -128,4 +127,12 @@ public class NullWindow implements NativeWindow {
   public int getHeight() {
     return height;
   }
+
+  public String toString() {
+    return "NullWindow[config "+config+
+                ", displayHandle 0x"+Long.toHexString(getDisplayHandle())+
+                ", surfaceHandle 0x"+Long.toHexString(getSurfaceHandle())+
+                ", size "+getWidth()+"x"+getHeight()+"]";
+  }
+
 }
