@@ -97,6 +97,22 @@
             </or>
         </condition>
 
+        <condition property="useKD">
+            <not>
+                <isset property="${setup.noOpenGL}" />
+            </not>
+        </condition>
+
+        <condition property="setup.nonatives">
+            <and>
+                <isfalse value="${isWindows}" />
+                <isfalse value="${isOSX}" />
+                <isfalse value="${isX11}" />
+                <isfalse value="${useKD}" />
+            </and>
+        </condition>
+
+        <echo message="setup.nonatives: ${setup.nonatives}" />
         <echo message="setup.nodesktop: ${setup.nodesktop}" />
         <echo message="setup.noall: ${setup.noall}" />
         <echo message="setup.noall-cdc: ${setup.noall-cdc}" />
@@ -104,6 +120,7 @@
         <echo message="setup.noAWT: ${setup.noAWT}" />
         <echo message="setup.noOpenGL: ${setup.noOpenGL}" />
         <echo message="javac.bootclasspath-cdc.jar: ${javac.bootclasspath-cdc.jar}" />
+        <echo message="useKD: ${useKD}" />
 
         <!-- partitioning -->
 
@@ -569,7 +586,7 @@
       </sequential>
     </macrodef>  
 
-    <target name="c.build.newt.prepare.opengl" unless="setup.noOpenGL">
+    <target name="c.build.newt.prepare.KD" if="useKD">
       <javah destdir="../${rootrel.build.newt}/gensrc/native/newt/KD" classpath="${classes}" class="com.sun.javafx.newt.opengl.kd.KDWindow" />
     </target>
 
@@ -579,9 +596,9 @@
       <javah destdir="../${rootrel.build.newt}/gensrc/native/newt/X11" classpath="${classes}" class="com.sun.javafx.newt.x11.X11Window" />
     </target>
 
-    <target name="c.build.newt.prepare" depends="c.build.newt.prepare.opengl,c.build.newt.prepare.desktop" />
+    <target name="c.build.newt.prepare" depends="c.build.newt.prepare.KD,c.build.newt.prepare.desktop" />
 
-    <target name="c.build.newt.windowlib">
+    <target name="c.build.newt.windowlib" unless="setup.nonatives">
       <c.build c.compiler.src.files="c.src.files.newt"
                output.lib.name="newt"
                compiler.cfg.id="${compiler.cfg.id}"
@@ -593,7 +610,10 @@
       <msvc.manifest objdir="${obj}" dllname="newt" />
     </target>
 
-    <target name="c.build.newt" depends="c.configure,c.build.newt.prepare,c.build.newt.windowlib">
+    <target name="c.build.newt.natives" depends="c.build.newt.windowlib" unless="setup.nonatives">
+    </target>
+
+    <target name="c.build.newt" depends="c.configure,c.build.newt.prepare,c.build.newt.natives">
       <antcall target="c.manifest" inheritRefs="true" />
       <!-- Create the Java Web Start jar file for the built native code -->
       <jar destfile="${build}/newt-natives-${os.and.arch}.jar">
