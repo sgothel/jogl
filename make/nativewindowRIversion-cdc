@@ -1,0 +1,8 @@
+Specification-Title: Native Window Interface API Specification CDC
+Specification-Version: @BASEVERSION@
+Specification-Vendor: Sun Microsystems, Inc.
+Implementation-Title: Native Window Interface Runtime Environment CDC
+Implementation-Version: @BASEVERSION@
+Implementation-Vendor: Sun Microsystems, Inc.
+Extension-Name: javax.media.nativewindow
+Implementation-Vendor-Id: com.sun

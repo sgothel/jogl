@@ -58,7 +58,8 @@ public class X11OffscreenGLXContext extends X11GLXContext {
   }
   
   public int getOffscreenContextReadBuffer() {
-    if (drawable.isDoubleBuffered()) {
+    GLCapabilities caps = (GLCapabilities)drawable.getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities();
+    if (caps.getDoubleBuffered()) {
       return GL.GL_BACK;
     }
     return GL.GL_FRONT;
@@ -68,15 +69,6 @@ public class X11OffscreenGLXContext extends X11GLXContext {
     // There doesn't seem to be a way to do this in the construction
     // of the Pixmap or GLXPixmap
     return true;
-  }
-
-  protected int makeCurrentImpl() throws GLException {
-    getDrawableImpl().getFactoryImpl().lockToolkit();
-    try {
-      return super.makeCurrentImpl();
-    } finally {
-      getDrawableImpl().getFactoryImpl().unlockToolkit();
-    }
   }
 
   protected void create() {

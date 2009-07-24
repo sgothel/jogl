@@ -50,15 +50,8 @@ public class FBObject {
     }        
 
 
-    public boolean validateStatus(GL gl)
-    {
-        if(!gl.glIsFramebuffer(fb)) {
-            vStatus=-1;
-            return false;
-        }
-        vStatus=gl.glCheckFramebufferStatus(gl.GL_FRAMEBUFFER);
-        //vStatus=gl.glCheckFramebufferStatus(fb);
-
+    public boolean validateStatus(GL gl) {
+        vStatus = getStatus(gl, fb);
         switch(vStatus) {
             case GL.GL_FRAMEBUFFER_COMPLETE:
                 return true;
@@ -76,9 +69,20 @@ public class FBObject {
         }
     }
 
-    public String getStatusString()
-    {
-        switch(vStatus) {
+    public static int getStatus(GL gl, int fb) {
+        if(!gl.glIsFramebuffer(fb)) {
+            return -1;
+        }
+        return gl.glCheckFramebufferStatus(gl.GL_FRAMEBUFFER);
+        //return gl.glCheckFramebufferStatus(fb);
+    }
+
+    public String getStatusString() {
+        return getStatusString(vStatus);
+    }
+
+    public static String getStatusString(int fbStatus) {
+        switch(fbStatus) {
             case -1:
                 return "NOT A FBO";
             case GL.GL_FRAMEBUFFER_COMPLETE:

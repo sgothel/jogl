@@ -40,6 +40,7 @@
 package com.sun.opengl.impl.x11.glx;
 
 import javax.media.nativewindow.*;
+import javax.media.nativewindow.x11.*;
 import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
 import com.sun.nativewindow.impl.NullWindow;
@@ -50,54 +51,58 @@ import com.sun.gluegen.runtime.PointerBuffer;
 public class X11ExternalGLXDrawable extends X11GLXDrawable {
   private int fbConfigID;
   private int renderType;
-  private long readDrawable;
 
-  private X11ExternalGLXDrawable(GLDrawableFactory factory, NativeWindow component) {
+  private X11ExternalGLXDrawable(GLDrawableFactory factory, NativeWindow component, int renderType) {
     super(factory, component, true);
 
-    readDrawable = GLX.glXGetCurrentReadDrawable();
+    this.renderType = renderType;
 
     // Need GLXFBConfig ID in order to properly create new contexts
     // on this drawable
-    long display = getNativeWindow().getDisplayHandle();
-    long context = GLX.glXGetCurrentContext();
-    int[] val = new int[1];
-    GLX.glXQueryContext(display, context, GLX.GLX_FBCONFIG_ID, val, 0);
-    fbConfigID = val[0];
-    renderType = GLX.GLX_RGBA_TYPE;
-    GLX.glXQueryContext(display, context, GLX.GLX_RENDER_TYPE, val, 0);
-    if ((val[0] & GLX.GLX_RGBA_BIT) == 0) {
-        if (DEBUG) {
-          System.err.println("X11ExternalGLXDrawable: WARNING: forcing GLX_RGBA_TYPE for newly created contexts");
-        }
-    }
+    X11GLXGraphicsConfiguration cfg = (X11GLXGraphicsConfiguration) component.getGraphicsConfiguration();
+    fbConfigID = cfg.getFBConfigID();
   }
 
-  protected static X11ExternalGLXDrawable create(GLDrawableFactory factory, AbstractGraphicsScreen aScreen) {
-    ((GLDrawableFactoryImpl) factory).lockToolkit();
+  protected static X11ExternalGLXDrawable create(GLDrawableFactory factory, GLProfile glp) {
+    ((GLDrawableFactoryImpl)factory).lockToolkit();
     try {
-      long display = GLX.glXGetCurrentDisplay();
-      long context = GLX.glXGetCurrentContext();
-      int[] val = new int[1];
-      GLX.glXQueryContext(display, context, GLX.GLX_SCREEN, val, 0);
-      int screen = val[0];
-      long drawable = GLX.glXGetCurrentDrawable();
-      if (drawable == 0) {
-        throw new GLException("Error: attempted to make an external GLDrawable without a drawable/context current");
-      }
+        long context = GLX.glXGetCurrentContext();
+        if (context == 0) {
+          throw new GLException("Error: current context null");
+        }
+        long display = GLX.glXGetCurrentDisplay();
+        if (display == 0) {
+          throw new GLException("Error: current display null");
+        }
+        long drawable = GLX.glXGetCurrentDrawable();
+        if (drawable == 0) {
+          throw new GLException("Error: attempted to make an external GLDrawable without a drawable current");
+        }
+        int[] val = new int[1];
+        GLX.glXQueryContext(display, context, GLX.GLX_SCREEN, val, 0);
+        X11GraphicsScreen x11Screen = (X11GraphicsScreen) X11GraphicsScreen.createScreenDevice(display, val[0]);
 
-      if(screen!=aScreen.getIndex()) {
-        throw new GLException("Error: Passed AbstractGraphicsScreen's index is not current: "+aScreen+", GLX-screen "+screen);
-      }
-      if(display!=aScreen.getDevice().getHandle()) {
-        throw new GLException("Error: Passed AbstractGraphicsScreen's display is not current: "+aScreen+", GLX-display 0x"+Long.toHexString(display));
-      }
+        GLX.glXQueryContext(display, context, GLX.GLX_FBCONFIG_ID, val, 0);
+        X11GLXGraphicsConfiguration cfg = X11GLXGraphicsConfiguration.create(glp, x11Screen, val[0]);
 
-      NullWindow nw = new NullWindow(X11GLXGraphicsConfigurationFactory.createDefaultGraphicsConfiguration(aScreen, false));
-      nw.setSurfaceHandle(drawable);
-      return new X11ExternalGLXDrawable(factory, nw);
+        int w, h;
+        GLX.glXQueryDrawable(display, drawable, GLX.GLX_WIDTH, val, 0);
+        w=val[0];
+        GLX.glXQueryDrawable(display, drawable, GLX.GLX_HEIGHT, val, 0);
+        h=val[0];
+
+        GLX.glXQueryContext(display, context, GLX.GLX_RENDER_TYPE, val, 0);
+        if ((val[0] & GLX.GLX_RGBA_TYPE) == 0) {
+          if (DEBUG) {
+            System.err.println("X11ExternalGLXDrawable: WARNING: forcing GLX_RGBA_TYPE for newly created contexts (current 0x"+Integer.toHexString(val[0])+")");
+          }
+        }
+        NullWindow nw = new NullWindow(cfg);
+        nw.setSurfaceHandle(drawable);
+        nw.setSize(w, h);
+        return new X11ExternalGLXDrawable(factory, nw, GLX.GLX_RGBA_TYPE);
     } finally {
-      ((GLDrawableFactoryImpl) factory).unlockToolkit();
+        ((GLDrawableFactoryImpl)factory).unlockToolkit();
     }
   }
 
@@ -110,11 +115,11 @@ public class X11ExternalGLXDrawable extends X11GLXDrawable {
   }
 
   public int getWidth() {
-    throw new GLException("Should not call this");
+    return getNativeWindow().getWidth();
   }  
 
   public int getHeight() {
-    throw new GLException("Should not call this");
+    return getNativeWindow().getHeight();
   }  
 
   class Context extends X11GLXContext {
@@ -122,113 +127,8 @@ public class X11ExternalGLXDrawable extends X11GLXDrawable {
       super(drawable, shareWith);
     }
 
-    protected int makeCurrentImpl() throws GLException {
-      if (drawable.getNativeWindow().getSurfaceHandle() == 0) {
-        // parent drawable not properly initialized
-        // FIXME: signal error?
-        if (DEBUG) {
-          System.err.println("parent drawable not properly initialized");
-        }
-        return CONTEXT_NOT_CURRENT;
-      }
-
-      // Note that we have to completely override makeCurrentImpl
-      // because the underlying makeCurrent call differs from the norm
-      getFactoryImpl().lockToolkit();
-      try {
-        boolean created = false;
-        if (context == 0) {
-          create();
-          if (DEBUG) {
-            System.err.println(getThreadName() + ": !!! Created GL context for " + getClass().getName());
-          }
-          created = true;
-        }
-
-        if (!GLX.glXMakeContextCurrent(drawable.getNativeWindow().getDisplayHandle(),
-                                       drawable.getNativeWindow().getSurfaceHandle(),
-                                       readDrawable,
-                                       context)) {
-          throw new GLException("Error making context current");
-        } else {
-          if (DEBUG && VERBOSE) {
-            System.err.println(getThreadName() + ": glXMakeCurrent(display " + toHexString(drawable.getNativeWindow().getDisplayHandle()) +
-                               ", drawable " + toHexString(drawable.getNativeWindow().getSurfaceHandle()) +
-                               ", context " + toHexString(context) + ") succeeded");
-          }
-        }
-
-        if (created) {
-          setGLFunctionAvailability(false);
-          return CONTEXT_CURRENT_NEW;
-        }
-        return CONTEXT_CURRENT;
-      } finally {
-        getFactoryImpl().unlockToolkit();
-      }
-    }
-
-    protected void releaseImpl() throws GLException {
-      getFactoryImpl().lockToolkit();
-      try {
-        if (!GLX.glXMakeContextCurrent(drawable.getNativeWindow().getDisplayHandle(), 0, 0, 0)) {
-          throw new GLException("Error freeing OpenGL context");
-        }
-      } finally {
-        getFactoryImpl().unlockToolkit();
-      }
-    }
-
     protected void create() {
-      long display = getNativeWindow().getDisplayHandle();
-      int screen = getNativeWindow().getScreenIndex();
-      // We already have the GLXFBConfig ID for the context. All we
-      // need to do is use it to choose the GLXFBConfig and then
-      // create a context with it.
-      int[]   iattributes = new int[] {
-        GLX.GLX_FBCONFIG_ID,
-        fbConfigID,
-        0,
-        0
-      };
-      float[] fattributes = new float[0];
-      int[] nelementsTmp = new int[1];
-      PointerBuffer fbConfigs = GLX.glXChooseFBConfigCopied(display, screen, iattributes, 0, nelementsTmp, 0);
-      int nelements = nelementsTmp[0];
-      if (nelements <= 0) {
-        throw new GLException("context creation error: couldn't find a suitable frame buffer configuration");
-      }
-      if (nelements != 1) {
-        throw new GLException("context creation error: shouldn't get more than one GLXFBConfig");
-      }
-      // Note that we currently don't allow selection of anything but
-      // the first GLXFBConfig in the returned list (there should be only one)
-      long fbConfig = fbConfigs.get(0);
-      // Create a gl context for the drawable
-      X11GLXContext other = (X11GLXContext) GLContextShareSet.getShareContext(this);
-      long share = 0;
-      if (other != null) {
-        share = other.getContext();
-        if (share == 0) {
-          throw new GLException("GLContextShareSet returned an invalid OpenGL context");
-        }
-      }
-      // FIXME: how to determine "direct" bit?
-      context = GLX.glXCreateNewContext(display, fbConfig, renderType, share, true);
-      if (context == 0) {
-        String detail = "  display=" + toHexString(display) +
-          " fbconfig=" + fbConfig +
-          " fbconfigID=" + toHexString(fbConfigID) +
-          " renderType=" + toHexString(renderType) +
-          " share=" + toHexString(share);
-        throw new GLException("context creation error: glXCreateNewContext() failed: " + detail);
-      }
-      GLContextShareSet.contextCreated(this);
-
-      if (DEBUG) {
-        System.err.println("Created context " + toHexString(context) +
-                           " for GLXDrawable " + toHexString(drawable.getNativeWindow().getSurfaceHandle()));
-      }
+      createContext(true);
     }
   }
 }

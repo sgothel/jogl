@@ -44,24 +44,44 @@ import java.util.*;
 import javax.media.opengl.*;
 import javax.media.nativewindow.*;
 import com.sun.opengl.impl.*;
+import com.sun.nativewindow.impl.NullWindow;
 
 public class WindowsExternalWGLContext extends WindowsWGLContext {
   private boolean firstMakeCurrent = true;
   private boolean created = true;
   private GLContext lastContext;
 
-  public WindowsExternalWGLContext(AbstractGraphicsScreen absScreen) {
-    // FIXME: figure out how to hook back in the Java 2D / JOGL bridge
-    super(null, null);
-    hglrc = WGL.wglGetCurrentContext();
-    if (hglrc == 0) {
-      throw new GLException("Error: attempted to make an external GLContext without a drawable/context current");
-    }
+  private WindowsExternalWGLContext(Drawable drawable, long hglrc) {
+    super(drawable, null);
+    this.hglrc = hglrc;
     if (DEBUG) {
       System.err.println(getThreadName() + ": !!! Created external OpenGL context " + toHexString(hglrc) + " for " + this);
     }
     GLContextShareSet.contextCreated(this);
     setGLFunctionAvailability(false);
+  }
+
+  protected static WindowsExternalWGLContext create(GLDrawableFactory factory, GLProfile glp) {
+    long hdc = WGL.wglGetCurrentDC();
+    if (0==hdc) {
+      throw new GLException("Error: attempted to make an external GLDrawable without a drawable current");
+    }
+    long hglrc = WGL.wglGetCurrentContext();
+    if (hglrc == 0) {
+      throw new GLException("Error: attempted to make an external GLContext without a context current");
+    }
+    int pfdID = WGL.GetPixelFormat(hdc);
+    if (pfdID == 0) {
+      throw new GLException("Error: attempted to make an external GLContext without a valid pixelformat");
+    }
+
+    AbstractGraphicsScreen aScreen = DefaultGraphicsScreen.createDefault();
+    WindowsWGLGraphicsConfiguration cfg = WindowsWGLGraphicsConfiguration.create(glp, aScreen, hdc, pfdID, true, true);
+
+    NullWindow nw = new NullWindow(cfg);
+    nw.setSurfaceHandle(hdc);
+
+    return new WindowsExternalWGLContext(new Drawable(factory, nw), hglrc);
   }
 
   public int makeCurrent() throws GLException {
@@ -99,5 +119,28 @@ public class WindowsExternalWGLContext extends WindowsWGLContext {
 
   public boolean isCreated() {
     return created;
+  }
+
+  // Need to provide the display connection to extension querying APIs
+  static class Drawable extends WindowsWGLDrawable {
+    Drawable(GLDrawableFactory factory, NativeWindow comp) {
+      super(factory, comp, true);
+    }
+
+    public GLContext createContext(GLContext shareWith) {
+      throw new GLException("Should not call this");
+    }
+
+    public int getWidth() {
+      throw new GLException("Should not call this");
+    }
+
+    public int getHeight() {
+      throw new GLException("Should not call this");
+    }
+
+    public void setSize(int width, int height) {
+      throw new GLException("Should not call this");
+    }
   }
 }

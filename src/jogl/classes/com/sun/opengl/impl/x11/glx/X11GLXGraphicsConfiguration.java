@@ -38,6 +38,7 @@ import javax.media.nativewindow.x11.*;
 import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
 import com.sun.gluegen.runtime.NativeLibrary;
+import com.sun.gluegen.runtime.PointerBuffer;
 import com.sun.nativewindow.impl.x11.*;
 
 public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implements Cloneable {
@@ -55,6 +56,30 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
         this.chooser=chooser;
         fbConfig = fbcfg;
         fbConfigID = fbcfgID;
+    }
+
+    public static X11GLXGraphicsConfiguration create(GLProfile glp, X11GraphicsScreen x11Screen, int fbcfgID) {
+      long display = x11Screen.getDevice().getHandle();
+      if(0==display) {
+          throw new GLException("Display null of "+x11Screen);
+      }
+      int screen = x11Screen.getIndex();
+      long fbcfg = glXFBConfigID2FBConfig(display, screen, fbcfgID);
+      if(0==fbcfg) {
+          throw new GLException("FBConfig null of 0x"+Integer.toHexString(fbcfgID));
+      }
+      if(null==glp) {
+        glp = GLProfile.getDefault();
+      }
+      GLCapabilities caps = GLXFBConfig2GLCapabilities(glp, display, fbcfg, true, true, true, GLXUtil.isMultisampleAvailable(display));
+      if(null==caps) {
+          throw new GLException("GLCapabilities null of 0x"+Long.toHexString(fbcfg));
+      }
+      XVisualInfo xvi = GLX.glXGetVisualFromFBConfigCopied(display, fbcfg);
+      if(null==xvi) {
+          throw new GLException("XVisualInfo null of 0x"+Long.toHexString(fbcfg));
+      }
+      return new X11GLXGraphicsConfiguration(x11Screen, caps, caps, new DefaultGLCapabilitiesChooser(), xvi, fbcfg, fbcfgID);
     }
 
     public Object clone() {
@@ -84,7 +109,6 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
     public static int[] GLCapabilities2AttribList(GLCapabilities caps,
                                                   boolean forFBAttr,
                                                   boolean isMultisampleAvailable,
-                                                  boolean usePBuffer,
                                                   long display,
                                                   int screen) 
     {
@@ -99,7 +123,7 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
 
         if (forFBAttr) {
           res[idx++] = GLX.GLX_DRAWABLE_TYPE;
-          res[idx++] = usePBuffer?GLX.GLX_PBUFFER_BIT:GLX.GLX_WINDOW_BIT;
+          res[idx++] = caps.isOnscreen() ? ( GLX.GLX_WINDOW_BIT ) : ( caps.isPBuffer() ? GLX.GLX_PBUFFER_BIT : GLX.GLX_PIXMAP_BIT ) ;
         }
 
         if (forFBAttr) {
@@ -169,7 +193,7 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
           res[idx++] = GLX.GLX_SAMPLES;
           res[idx++] = caps.getNumSamples();
         }
-        if (usePBuffer) {
+        if (caps.isPBuffer()) {
           if (caps.getPbufferFloatingPointBuffers()) {
             String glXExtensions = GLX.glXQueryExtensionsString(display, screen);
             if (glXExtensions == null ||
@@ -184,111 +208,33 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
         return res;
   }
 
-  public static GLCapabilities AttribList2GLCapabilities(GLProfile glp, 
-                                                         int[] iattribs,
-                                                         int niattribs,
-                                                         int[] ivalues,
-                                                         boolean usePBuffer) {
-    GLCapabilities caps = new GLCapabilities(glp);
-
-    for (int i = 0; i < niattribs; i++) {
-      int attr = iattribs[i];
-      switch (attr) {
-        case GLX.GLX_DOUBLEBUFFER:
-          caps.setDoubleBuffered(ivalues[i] != GL.GL_FALSE);
-          break;
-
-        case GLX.GLX_STEREO:
-          caps.setStereo(ivalues[i] != GL.GL_FALSE);
-          break;
-
-        case GLX.GLX_RED_SIZE:
-          caps.setRedBits(ivalues[i]);
-          break;
-
-        case GLX.GLX_GREEN_SIZE:
-          caps.setGreenBits(ivalues[i]);
-          break;
-
-        case GLX.GLX_BLUE_SIZE:
-          caps.setBlueBits(ivalues[i]);
-          break;
-
-        case GLX.GLX_ALPHA_SIZE:
-          caps.setAlphaBits(ivalues[i]);
-          break;
-
-        case GLX.GLX_DEPTH_SIZE:
-          caps.setDepthBits(ivalues[i]);
-          break;
-
-        case GLX.GLX_STENCIL_SIZE:
-          caps.setStencilBits(ivalues[i]);
-          break;
-
-        case GLX.GLX_ACCUM_RED_SIZE:
-          caps.setAccumRedBits(ivalues[i]);
-          break;
-
-        case GLX.GLX_ACCUM_GREEN_SIZE:
-          caps.setAccumGreenBits(ivalues[i]);
-          break;
-
-        case GLX.GLX_ACCUM_BLUE_SIZE:
-          caps.setAccumBlueBits(ivalues[i]);
-          break;
-
-        case GLX.GLX_ACCUM_ALPHA_SIZE:
-          caps.setAccumAlphaBits(ivalues[i]);
-          break;
-
-        case GLX.GLX_SAMPLE_BUFFERS:
-          caps.setSampleBuffers(ivalues[i] != GL.GL_FALSE);
-          break;
-
-        case GLX.GLX_SAMPLES:
-          caps.setNumSamples(ivalues[i]);
-          break;
-
-        case GLX.GLX_CONFIG_CAVEAT:
-          caps.setHardwareAccelerated(ivalues[i] != GLX.GLX_SLOW_CONFIG);
-          break;
-          
-        case GLX.GLX_TRANSPARENT_TYPE:
-          caps.setBackgroundOpaque(ivalues[i] == GLX.GLX_NONE);
-          break;
-          
-        case GLXExt.GLX_FLOAT_COMPONENTS_NV:
-          caps.setPbufferFloatingPointBuffers(ivalues[i] != GL.GL_FALSE);
-          break;
-
-        case GLX.GLX_TRANSPARENT_RED_VALUE:
-          caps.setTransparentRedValue(ivalues[i]);
-          break;
-
-        case GLX.GLX_TRANSPARENT_GREEN_VALUE:
-          caps.setTransparentGreenValue(ivalues[i]);
-          break;
-
-        case GLX.GLX_TRANSPARENT_BLUE_VALUE:
-          caps.setTransparentBlueValue(ivalues[i]);
-          break;
-
-        case GLX.GLX_TRANSPARENT_ALPHA_VALUE:
-          caps.setTransparentAlphaValue(ivalues[i]);
-          break;
-
-        default:
-          break;
-      }
-    }
-
-    return caps;
-  }
-
   // FBConfig
 
-  public static GLCapabilities GLXFBConfig2GLCapabilities(GLProfile glp, long display, long fbcfg, boolean isMultisampleEnabled) {
+  public static boolean GLXFBConfigValid(long display, long fbcfg) {
+    int[] tmp = new int[1];
+    if(GLX.GLX_BAD_ATTRIBUTE == GLX.glXGetFBConfigAttrib(display, fbcfg, GLX.GLX_RENDER_TYPE, tmp, 0)) {
+      return false;
+    }
+    return true;
+  }
+
+  public static boolean GLXFBConfigDrawableTypeVerify(int val, boolean onscreen, boolean usePBuffer) {
+    boolean res;
+
+    if ( onscreen ) {
+        res = ( 0 != (val & GLX.GLX_WINDOW_BIT) ) ;
+    } else {
+        res = ( 0 != (val & GLX.GLX_PIXMAP_BIT) ) || usePBuffer ;
+    }
+    if ( usePBuffer ) {
+        res = res && ( 0 != (val & GLX.GLX_PBUFFER_BIT) ) ;
+    }
+
+    return res;
+  }
+
+  public static GLCapabilities GLXFBConfig2GLCapabilities(GLProfile glp, long display, long fbcfg, 
+                                                          boolean relaxed, boolean onscreen, boolean usePBuffer, boolean isMultisampleEnabled) {
     int[] tmp = new int[1];
     int val;
     val = glXGetFBConfig(display, fbcfg, GLX.GLX_RENDER_TYPE, tmp, 0);
@@ -296,6 +242,17 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
       throw new GLException("Visual does not support RGBA");
     }
     GLCapabilities res = new GLCapabilities(glp);
+
+    val = glXGetFBConfig(display, fbcfg, GLX.GLX_DRAWABLE_TYPE, tmp, 0);
+    if(GLXFBConfigDrawableTypeVerify(val, onscreen, usePBuffer)) {
+        res.setOnscreen(onscreen);
+        res.setPBuffer(usePBuffer);
+    } else if(relaxed) {
+        res.setOnscreen( 0 != (val & GLX.GLX_WINDOW_BIT) );
+        res.setPBuffer ( 0 != (val & GLX.GLX_PBUFFER_BIT) );
+    } else {
+        return null;
+    }
     res.setDoubleBuffered(glXGetFBConfig(display, fbcfg, GLX.GLX_DOUBLEBUFFER,     tmp, 0) != 0);
     res.setStereo        (glXGetFBConfig(display, fbcfg, GLX.GLX_STEREO,           tmp, 0) != 0);
     res.setHardwareAccelerated(glXGetFBConfig(display, fbcfg, GLX.GLX_CONFIG_CAVEAT, tmp, 0) != GLX.GLX_SLOW_CONFIG);
@@ -352,6 +309,21 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
     return tmp[tmp_offset];
   }
 
+  public static int glXFBConfig2FBConfigID(long display, long cfg) {
+      int[] tmpID = new int[1];
+      return glXGetFBConfig(display, cfg, GLX.GLX_FBCONFIG_ID, tmpID, 0);
+  }
+
+  public static long glXFBConfigID2FBConfig(long display, int screen, int id) {
+      int[] attribs = new int[] { GLX.GLX_FBCONFIG_ID, id, 0 };
+      int[] count = { -1 };
+      PointerBuffer fbcfgsL = GLX.glXChooseFBConfigCopied(display, screen, attribs, 0, count, 0);
+      if (fbcfgsL == null || fbcfgsL.limit()<1) {
+          return 0;
+      }
+      return fbcfgsL.get(0);
+  }
+
   // Visual Info
 
   public static XVisualInfo XVisualID2XVisualInfo(long display, long visualID) {
@@ -376,7 +348,7 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
       return res;
   }
 
-  public static GLCapabilities XVisualInfo2GLCapabilities(GLProfile glp, long display, XVisualInfo info, boolean isMultisampleEnabled) {
+  public static GLCapabilities XVisualInfo2GLCapabilities(GLProfile glp, long display, XVisualInfo info, boolean onscreen, boolean usePBuffer, boolean isMultisampleEnabled) {
     int[] tmp = new int[1];
     int val = glXGetConfig(display, info, GLX.GLX_USE_GL, tmp, 0);
     if (val == 0) {
@@ -387,6 +359,8 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
       throw new GLException("Visual does not support RGBA");
     }
     GLCapabilities res = new GLCapabilities(glp);
+    res.setOnscreen      (onscreen);
+    res.setPBuffer       (usePBuffer);
     res.setDoubleBuffered(glXGetConfig(display, info, GLX.GLX_DOUBLEBUFFER,     tmp, 0) != 0);
     res.setStereo        (glXGetConfig(display, info, GLX.GLX_STEREO,           tmp, 0) != 0);
     // Note: use of hardware acceleration is determined by

@@ -44,20 +44,12 @@
    -
    - Some environment defs affecting compilation
 
-       setup.cdcfp     - Using the CDC Java runtime library
-                            - no DoubleBuffer 
-                            - no LongBuffer
-
-                        This will set
-                            -> setup.noAWT
+   - setup.noAWT is set iff:
+        !isWindows && !isOSX && !noX11
 
    - Internal settings, may not be necessary to set them manually,
      since all JAR archives are orthogonal.
        setup.noAWT
-       setup.noX11WindowsMacOsX, which implies:
-           setup.noX11
-           setup.noWindows
-           setup.noMacOsX
    -->
 <project name="NativeWindow" basedir="." default="all">
 
@@ -77,66 +69,48 @@
     <target name="base.init">
 
         <condition property="setup.noAWT">
-           <isset property="setup.cdcfp"/> 
+            <and>
+                <isfalse value="${isWindows}" />
+                <isfalse value="${isOSX}" />
+                <isfalse value="${isX11}" />
+            </and>
         </condition>
-        <condition property="isCDCFP">
-           <isset property="setup.cdcfp"/>
+
+        <condition property="setup.noall">
+            <or>
+                <isset property="noX11"/> 
+                <isset property="setup.noAWT"/> 
+            </or>
         </condition>
-        <condition property="javac.bootclasspath.jar"
-                   value="../../gluegen/make/lib/cdc_fp.jar">
-           <isset property="setup.cdcfp"/> 
+        <condition property="setup.noall-cdc">
+            <or>
+                <isset property="noX11"/> 
+            </or>
         </condition>
-        <echo message="setup.cdcfp: ${setup.cdcfp}" />
+
+        <property name="javac.bootclasspath-cdc.jar" value="../../gluegen/make/lib/cdc_fp.jar" />
+
+        <echo message="setup.noall: ${setup.noall}" />
+        <echo message="setup.noall-cdc: ${setup.noall-cdc}" />
         <echo message="setup.noAWT: ${setup.noAWT}" />
-        <echo message="javac.bootclasspath.jar: ${javac.bootclasspath.jar}" />
-
-        <condition property="setup.noX11WindowsMacOsX">
-          <and>
-           <isset property="setup.noX11"/> 
-           <isset property="setup.noWindows"/> 
-           <isset property="setup.noMacOsX"/> 
-          </and>
-        </condition>
-
-        <condition property="setup.noX11">
-            <isset property="setup.noX11WindowsMacOsX"/>
-        </condition>
-
-        <condition property="setup.noWindows">
-            <isset property="setup.noX11WindowsMacOsX" />
-        </condition>
-
-        <condition property="setup.noMacOsX">
-            <isset property="setup.noX11WindowsMacOsX" />
-        </condition>
-
-        <echo message="setup.noX11WindowsMacOsX: ${setup.noX11WindowsMacOsX}" />
-        <echo message="setup.noX11: ${setup.noX11}" />
-        <echo message="setup.noWindows: ${setup.noWindows}" />
-        <echo message="setup.noMacOsX: ${setup.noMacOsX}" />
+        <echo message="javac.bootclasspath-cdc.jar: ${javac.bootclasspath-cdc.jar}" />
 
         <!-- partitioning -->
 
         <property name="java.part.core"
-                  value="javax/media/nativewindow/*, javax/media/nativewindow/egl/*, javax/media/nativewindow/x11/*, javax/media/nativewindow/macosx/*, javax/media/nativewindow/windows/*, com/sun/nativewindow/impl/*, com/sun/nativewindow/impl/jvm/*, com/sun/nativewindow/impl/x11/*"/>
-
-        <!-- property name="java.part.win"
-                  value="com/sun/nativewindow/impl/win/**"/ NOTHING TO DO HERE -->
-
-        <!-- property name="java.part.macosx"
-                  value="com/sun/nativewindow/impl/macosx/**"/ NOTHING TO DO HERE -->
+                  value="javax/media/nativewindow/*, javax/media/nativewindow/egl/*, javax/media/nativewindow/macosx/*, javax/media/nativewindow/windows/*, com/sun/nativewindow/impl/*, com/sun/nativewindow/impl/jvm/*"/>
 
         <property name="java.part.awt"
                   value="javax/media/nativewindow/awt/*, com/sun/nativewindow/impl/jawt/**, com/sun/nativewindow/impl/**/awt/**"/>
 
+        <property name="java.part.x11"
+                  value="com/sun/nativewindow/impl/x11/** javax/media/nativewindow/x11/*" />
+
         <!-- condition excludes -->
 
-        <condition property="isCDCFP">
-           <isset property="setup.cdcfp"/>
-        </condition>
-
-        <condition property="setup.noAWT">
-           <isset property="setup.cdcfp"/> 
+        <condition property="java.excludes.x11"
+                   value="${java.part.x11}">
+           <isset property="noX11"/> 
         </condition>
 
         <condition property="java.excludes.awt"
@@ -144,22 +118,7 @@
            <isset property="setup.noAWT"/> 
         </condition>
 
-        <condition property="java.excludes.win"
-                   value="${java.part.win}">
-           <isset property="setup.noWindows"/> 
-        </condition>
-
-        <condition property="java.excludes.macosx"
-                   value="${java.part.macosx}">
-           <isset property="setup.noMacOsX"/> 
-        </condition>
-
-        <condition property="java.excludes.cdcfp"
-                   value="">
-           <isset property="setup.cdcfp"/> 
-        </condition>
-
-        <property name="java.excludes.all" value="${java.excludes.awt}, ${java.excludes.win}, ${java.excludes.macosx}, ${java.excludes.cdcfp}" />
+        <property name="java.excludes.all" value="${java.excludes.awt} ${java.excludes.x11}" />
         <echo message="java.excludes.all: ${java.excludes.all}" />
 
 
@@ -233,6 +192,7 @@
         <property name="gluegen.build.xml" value="${gluegen.make.dir}/build.xml" />
         <property name="gluegen.jar" value="../../gluegen/${rootrel.build}/gluegen.jar" />
         <property name="gluegen-rt.jar" value="../../gluegen/${rootrel.build}/gluegen-rt.jar" />
+        <property name="gluegen-rt-cdc.jar" value="../../gluegen/${rootrel.build}/gluegen-rt-cdc.jar" />
                                                 
         <!-- The source directories. -->
         <property name="src.java" value="${project.root}/${rootrel.src.java}" />
@@ -242,10 +202,12 @@
         <!-- The generated source directories. -->
         <property name="src.generated" value="${build}/gensrc" />
         <property name="src.generated.java" value="${src.generated}/classes" />
+        <property name="src.generated.java-cdc" value="${src.generated}/classes-cdc" />
         <property name="src.generated.c" value="${src.generated}/native" />
         
         <!-- The compiler output directories. -->
         <property name="classes" value="${build}/classes" />
+        <property name="classes-cdc" value="${build}/classes-cdc" />
         <property name="obj"      value="${project.root}/${rootrel.obj}" />
 
         <!-- The headers from which Java files are generated -->
@@ -285,9 +247,12 @@
         <!-- The resulting nativewindow.jar. -->
         <property name="nativewindow.core.jar" value="${build}/nativewindow.core.jar" />
         <property name="nativewindow.awt.jar"  value="${build}/nativewindow.awt.jar"  />
+        <property name="nativewindow.x11.jar"  value="${build}/nativewindow.x11.jar"  />
         <property name="nativewindow.all.jar"  value="${build}/nativewindow.all.jar"  />
 
         <property name="nativewindow.core.cdc.jar" value="${build}/nativewindow.core.cdc.jar" />
+        <property name="nativewindow.x11.cdc.jar"  value="${build}/nativewindow.x11.cdc.jar"  />
+        <property name="nativewindow.all.cdc.jar"  value="${build}/nativewindow.all.cdc.jar"  />
 
         <!-- The javadoc dirs. -->
         <property name="javadoc" value="${project.root}/javadoc_nativewindow_public" />
@@ -315,11 +280,13 @@
         
         <!-- Create the required output directories. -->
         <mkdir dir="${src.generated.java}" />
+        <mkdir dir="${src.generated.java-cdc}" />
         <mkdir dir="${src.generated.c}" />
         <mkdir dir="${src.generated.c}/MacOSX" />
         <mkdir dir="${src.generated.c}/Windows" />
         <mkdir dir="${src.generated.c}/X11" />
         <mkdir dir="${classes}" />
+        <mkdir dir="${classes-cdc}" />
         <mkdir dir="${obj}" />
     </target>
 
@@ -337,7 +304,6 @@
           <propertyset>
             <propertyref name="antlr.jar" />
             <!--propertyref name="gluegen.nsig" /-->
-            <propertyref name="isCDCFP" />
           </propertyset>
         </ant>
     </target>
@@ -393,6 +359,10 @@
                  emitter="com.sun.gluegen.JavaEmitter">
             <classpath refid="gluegen.classpath" />
         </gluegen>
+        <copy todir="${src.generated.java-cdc}">
+            <fileset dir="${src.generated.java}"
+                     includes="com/sun/nativewindow/impl/x11/**" />
+        </copy>
     </target>
 
     <target name="java.generate.jawt" unless="setup.noAWT">
@@ -409,6 +379,10 @@
                  emitter="com.sun.gluegen.JavaEmitter">
             <classpath refid="gluegen.classpath" />
         </gluegen>
+        <copy todir="${src.generated.java-cdc}">
+            <fileset dir="${src.generated.java}"
+                     includes="com/sun/nativewindow/impl/jawt/**" />
+        </copy>
     </target>
 
     <target name="java.generate.platforms" >
@@ -468,22 +442,22 @@
        - Compile the original and generated source.  The composable pipelines
        - will be generated.
       -->
-    <target name="java.compile.1" depends="java.generate" if="javac.bootclasspath.jar">
+    <target name="java.compile.javacdc" depends="java.generate" unless="setup.noCDC">
         <!-- Perform the first pass Java compile; everything -->
-        <javac destdir="${classes}"
-               excludes="${java.excludes.all}"
+        <javac destdir="${classes-cdc}"
+               excludes="${java.part.awt} ${java.excludes.all}"
                source="${nativewindow.sourcelevel}"
-               classpath="${gluegen-rt.jar}"
-               bootclasspath="${javac.bootclasspath.jar}"
+               classpath="${gluegen-rt-cdc.jar}"
+               bootclasspath="${javac.bootclasspath-cdc.jar}"
                fork="yes"
                memoryMaximumSize="128m"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <src path="${src.java}" />
-            <src path="${src.generated.java}" />
+            <src path="${src.generated.java-cdc}" />
         </javac>
     </target>
 
-    <target name="java.compile.2" depends="java.generate" unless="javac.bootclasspath.jar">
+    <target name="java.compile.javase" depends="java.generate">
         <!-- Perform the second pass Java compile; everything. -->
         <javac destdir="${classes}"
                excludes="${java.excludes.all}"
@@ -497,7 +471,7 @@
         </javac>
     </target>
 
-    <target name="java.compile" depends="java.compile.1,java.compile.2" />
+    <target name="java.compile" depends="java.compile.javase,java.compile.javacdc" />
 
     <!-- ================================================================== -->
     <!-- 
@@ -824,7 +798,7 @@
     <!--
        - Build the nativewindow.jar files.
       -->
-    <target name="jar" depends="java.compile,build-jars"/>
+    <target name="jar" depends="java.compile,build-jars-javase,build-jars-cdc"/>
 
     <target name="setup-manifestfile">
         <condition property="manifestfile" value="nativewindowRIversion">
@@ -848,6 +822,29 @@
         </copy>
     </target>
 
+    <target name="setup-manifestfile-cdc">
+        <condition property="manifestfile" value="nativewindowRIversion-cdc">
+          <isset property="nativewindow.ri" />
+        </condition>
+        <condition property="manifestfile" value="nativewindowversion-cdc">
+          <not>
+            <isset property="nativewindow.ri" />
+          </not>
+        </condition>
+        <tstamp>
+             <format property="timestamp" pattern="yyyyMMdd-HH:mm:ss"/>
+        </tstamp>
+        <copy file="${manifestfile}"
+          tofile="tempversion-cdc"
+          overwrite="true">
+          <filterset>
+              <filter token="VERSION" value="${nativewindow_base_version}-pre-${timestamp}"/>
+              <filter token="BASEVERSION" value="${nativewindow_base_version}"/>
+          </filterset>
+        </copy>
+    </target>
+
+
     <target name="build-jars-awt" depends="setup-manifestfile" unless="setup.noAWT">
         <jar manifest="tempversion" destfile="${nativewindow.awt.jar}">
             <fileset dir="${classes}"
@@ -856,9 +853,32 @@
         </jar>
     </target>
 
-    <target name="build-jars-all" depends="setup-manifestfile" unless="setup.cdcfp">
+    <target name="build-jars-x11" depends="setup-manifestfile" unless="noX11">
+        <jar manifest="tempversion" destfile="${nativewindow.x11.jar}">
+            <fileset dir="${classes}"
+                     includes="${java.part.x11}" />
+        </jar>
+    </target>
+    <target name="build-jars-x11-cdc" depends="setup-manifestfile-cdc" unless="noX11">
+        <jar manifest="tempversion-cdc" destfile="${nativewindow.x11.cdc.jar}">
+            <fileset dir="${classes-cdc}"
+                     includes="${java.part.x11}" />
+        </jar>
+    </target>
+
+    <target name="build-jars-all" depends="setup-manifestfile" unless="setup.noall">
         <jar manifest="tempversion" destfile="${nativewindow.all.jar}">
             <fileset dir="${classes}">
+                <include name="javax/media/nativewindow/**" />
+                <include name="com/sun/nativewindow/**" />
+                <include name="com/sun/gluegen/runtime/**" />
+                <exclude name="${java.part.x11}" />
+            </fileset>
+        </jar>
+    </target>
+    <target name="build-jars-all-cdc" depends="setup-manifestfile-cdc" unless="setup.noall-cdc">
+        <jar manifest="tempversion-cdc" destfile="${nativewindow.all.cdc.jar}">
+            <fileset dir="${classes-cdc}">
                 <include name="javax/media/nativewindow/**" />
                 <include name="com/sun/nativewindow/**" />
                 <include name="com/sun/gluegen/runtime/**" />
@@ -866,15 +886,23 @@
         </jar>
     </target>
 
-    <target name="build-jars" depends="setup-manifestfile,build-jars-awt,build-jars-all">
+    <target name="build-jars-javase" depends="setup-manifestfile,build-jars-awt,build-jars-x11,build-jars-all">
         <jar manifest="tempversion" destfile="${nativewindow.core.jar}">
             <fileset dir="${classes}"
                      includes="${java.part.core}"
-                     excludes="${java.part.awt}"/>
+                     excludes="${java.part.awt} ${java.part.x11}"/>
         </jar>
-        <copy file="${nativewindow.core.jar}" tofile="${nativewindow.core.cdc.jar}" />
-
         <delete file="tempversion"/>
+    </target>
+
+    <target name="build-jars-cdc" depends="setup-manifestfile-cdc,build-jars-x11-cdc,build-jars-all-cdc">
+        <jar manifest="tempversion-cdc" destfile="${nativewindow.core.cdc.jar}">
+            <fileset dir="${classes-cdc}"
+                     includes="${java.part.core}"
+                     excludes="${java.part.awt} ${java.part.x11}"/>
+        </jar>
+
+        <delete file="tempversion-cdc"/>
     </target>
 
     <!-- ================================================================== -->
@@ -889,7 +917,7 @@
         <javadoc packagenames="${javadoc.packagenames}"
                  excludepackagenames="${java.excludes.javadoc.packagenames}"
                  sourcepath="${src.java};${src.generated.java}"        
-                 classpath="${gluegen-rt.jar}"
+                 classpath="${gluegen-rt-cdc.jar}"
                  destdir="${javadoc}" windowtitle="${javadoc.windowtitle}"
                  overview="${javadoc.overview}" 
                  source="1.4"
@@ -903,7 +931,7 @@
         <javadoc packagenames="${javadoc.spec.packagenames}"
                  excludepackagenames="${java.excludes.javadoc.packagenames}"
                  sourcepath="${src.java};${src.generated.java}"
-                 classpath="${gluegen-rt.jar}"
+                 classpath="${gluegen-rt-cdc.jar}"
                  destdir="${javadoc.spec}" windowtitle="${javadoc.windowtitle}"
                  overview="${javadoc.overview}"
                  source="1.4"
@@ -917,7 +945,7 @@
         <javadoc packagenames="${javadoc.dev.packagenames}"
                  excludepackagenames="${java.excludes.javadoc.packagenames}"
                  sourcepath="${src.java};${src.generated.java}"        
-                 classpath="${gluegen-rt.jar}"
+                 classpath="${gluegen-rt-cdc.jar}"
                  destdir="${javadoc.dev}" windowtitle="${javadoc.windowtitle}"
                  overview="${javadoc.overview}" 
                  source="1.4"

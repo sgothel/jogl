@@ -58,12 +58,27 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
         this.pixelfmtID = pixelfmtID;
     }
 
+    public static WindowsWGLGraphicsConfiguration create(GLProfile glp, AbstractGraphicsScreen screen, long hdc, int pfdID, boolean onscreen, boolean usePBuffer) {
+        PIXELFORMATDESCRIPTOR pfd = createPixelFormatDescriptor();
+        if (WGL.DescribePixelFormat(hdc, pfdID, pfd.size(), pfd) == 0) {
+            throw new GLException("Unable to describe pixel format " + pfdID);
+        }
+        if(null==glp) {
+          glp = GLProfile.getDefault();
+        }
+        GLCapabilities caps = PFD2GLCapabilities(glp, pfd, onscreen, usePBuffer);
+        WindowsWGLGraphicsConfiguration cfg = new WindowsWGLGraphicsConfiguration(screen, caps, caps, pfd, pfdID, new DefaultGLCapabilitiesChooser());
+        cfg.setCapsPFD(caps, pfd, pfdID);
+
+        return cfg;
+    }
+
     public Object clone() {
         return super.clone();
     }
 
-    protected void updateGraphicsConfiguration(GLDrawableFactory factory, NativeWindow nativeWindow, boolean useOffScreen) {
-        WindowsWGLGraphicsConfigurationFactory.updateGraphicsConfiguration(chooser, factory, nativeWindow, useOffScreen);
+    protected void updateGraphicsConfiguration(GLDrawableFactory factory, NativeWindow nativeWindow) {
+        WindowsWGLGraphicsConfigurationFactory.updateGraphicsConfiguration(chooser, factory, nativeWindow);
     }
     protected void setCapsPFD(GLCapabilities caps, PIXELFORMATDESCRIPTOR pfd, int pfdID) {
         // FIXME: setScreen ( .. )
@@ -236,20 +251,67 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
         return true;
     }
 
-    public static GLCapabilities AttribList2GLCapabilities(GLProfile glp, int[] iattribs,
-                                                         int niattribs,
-                                                         int[] iresults,
-                                                         boolean requireRenderToWindow) {
-        GLCapabilities res = new GLCapabilities(glp);
+    public static final int WINDOW_BIT  = 1 << 0 ;
+    public static final int BITMAP_BIT  = 1 << 1 ;
+    public static final int PBUFFER_BIT = 1 << 2 ;
+
+    public static int WGLConfig2DrawableTypeBits(int[] iattribs,
+                                                 int niattribs,
+                                                 int[] iresults) {
+        int val = 0;
+
         for (int i = 0; i < niattribs; i++) {
           int attr = iattribs[i];
           switch (attr) {
             case WGLExt.WGL_DRAW_TO_WINDOW_ARB:
-              if (requireRenderToWindow && iresults[i] != GL.GL_TRUE) {
-                return null;
-              }
-              break;
+                if(iresults[i] == GL.GL_TRUE) val |= WINDOW_BIT;
+                break;
+            case WGLExt.WGL_DRAW_TO_BITMAP_ARB:
+                if(iresults[i] == GL.GL_TRUE) val |= BITMAP_BIT;
+                break;
+            case WGLExt.WGL_DRAW_TO_PBUFFER_ARB:
+                if(iresults[i] == GL.GL_TRUE) val |= PBUFFER_BIT;
+                break;
+            }
+        }
+        return val;
+    }
 
+    public static boolean WGLConfigDrawableTypeVerify(int val, boolean onscreen, boolean usePBuffer) {
+        boolean res;
+
+        if ( onscreen ) {
+            res = ( 0 != (val & WINDOW_BIT) ) ;
+        } else {
+            res = ( 0 != (val & BITMAP_BIT) ) || usePBuffer ;
+        }
+        if ( usePBuffer ) {
+            res = res && ( 0 != (val & PBUFFER_BIT) ) ;
+        }
+
+        return res;
+    }
+    public static GLCapabilities AttribList2GLCapabilities(GLProfile glp, int[] iattribs,
+                                                         int niattribs,
+                                                         int[] iresults,
+                                                         boolean relaxed, boolean onscreen, boolean usePBuffer) {
+        GLCapabilities res = new GLCapabilities(glp);
+        int drawableTypeBits = WGLConfig2DrawableTypeBits(iattribs, niattribs, iresults);
+        if(WGLConfigDrawableTypeVerify(drawableTypeBits, onscreen, usePBuffer)) {
+            res.setOnscreen(onscreen);
+            res.setPBuffer(usePBuffer);
+        } else if(relaxed) {
+            res.setOnscreen( 0 != (drawableTypeBits & WINDOW_BIT) );
+            res.setPBuffer ( 0 != (drawableTypeBits & PBUFFER_BIT) );
+        } else {
+            return null;
+        }
+
+        for (int i = 0; i < niattribs; i++) {
+          int attr = iattribs[i];
+          switch (attr) {
+            case WGLExt.WGL_DRAW_TO_WINDOW_ARB:
+            case WGLExt.WGL_DRAW_TO_BITMAP_ARB:
             case WGLExt.WGL_DRAW_TO_PBUFFER_ARB:
               break;
 
@@ -342,7 +404,7 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
 
   // PIXELFORMAT
 
-    public static GLCapabilities PFD2GLCapabilities(GLProfile glp, PIXELFORMATDESCRIPTOR pfd) {
+    public static GLCapabilities PFD2GLCapabilities(GLProfile glp, PIXELFORMATDESCRIPTOR pfd, boolean onscreen, boolean usePBuffer) {
         if ((pfd.dwFlags() & WGL.PFD_SUPPORT_OPENGL) == 0) {
           return null;
         }
@@ -359,8 +421,10 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
         res.setStencilBits   (pfd.cStencilBits());
         res.setDoubleBuffered((pfd.dwFlags() & WGL.PFD_DOUBLEBUFFER) != 0);
         res.setStereo        ((pfd.dwFlags() & WGL.PFD_STEREO) != 0);
-        res.setHardwareAccelerated(((pfd.dwFlags() & WGL.PFD_GENERIC_FORMAT) == 0) ||
-                       ((pfd.dwFlags() & WGL.PFD_GENERIC_ACCELERATED) != 0));
+        res.setHardwareAccelerated( ((pfd.dwFlags() & WGL.PFD_GENERIC_FORMAT) == 0) ||
+                                    ((pfd.dwFlags() & WGL.PFD_GENERIC_ACCELERATED) != 0) );
+        res.setOnscreen      ( onscreen && ((pfd.dwFlags() & WGL.PFD_DRAW_TO_WINDOW) != 0) );
+        res.setPBuffer       ( usePBuffer );
         /* FIXME: Missing ??
         if (GLXUtil.isMultisampleAvailable()) {
           res.setSampleBuffers(glXGetFBConfig(display, fbcfg, GLX.GLX_SAMPLE_BUFFERS, tmp, 0) != 0);
@@ -374,7 +438,7 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
         return res;
   }
 
-  public static PIXELFORMATDESCRIPTOR GLCapabilities2PFD(GLCapabilities caps, boolean offscreen) {
+  public static PIXELFORMATDESCRIPTOR GLCapabilities2PFD(GLCapabilities caps) {
     int colorDepth = (caps.getRedBits() +
                       caps.getGreenBits() +
                       caps.getBlueBits());
@@ -387,10 +451,10 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
     if (caps.getDoubleBuffered()) {
       pfdFlags |= WGL.PFD_DOUBLEBUFFER;
     }
-    if (offscreen) {
-      pfdFlags |= WGL.PFD_DRAW_TO_BITMAP;
-    } else {
+    if (caps.isOnscreen()) {
       pfdFlags |= WGL.PFD_DRAW_TO_WINDOW;
+    } else {
+      pfdFlags |= WGL.PFD_DRAW_TO_BITMAP;
     }
     if (caps.getStereo()) {
       pfdFlags |= WGL.PFD_STEREO;

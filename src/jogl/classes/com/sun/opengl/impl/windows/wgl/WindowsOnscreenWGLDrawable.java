@@ -44,15 +44,6 @@ import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
 
 public class WindowsOnscreenWGLDrawable extends WindowsWGLDrawable {
-  private static final boolean PROFILING = Debug.debug("WindowsOnscreenWGLDrawable.profiling");
-  private static final int PROFILING_TICKS = 200;
-  private int  profilingLockSurfaceTicks;
-  private long profilingLockSurfaceTime;
-  private int  profilingUnlockSurfaceTicks;
-  private long profilingUnlockSurfaceTime;
-  private int  profilingSwapBuffersTicks;
-  private long profilingSwapBuffersTime;
-
   protected WindowsOnscreenWGLDrawable(GLDrawableFactory factory, NativeWindow component) {
     super(factory, component, false);
   }
@@ -67,45 +58,6 @@ public class WindowsOnscreenWGLDrawable extends WindowsWGLDrawable {
 
   public int getHeight() {
     return component.getHeight();
-  }
-
-  public void swapBuffers() throws GLException {
-    boolean didLock = false;
-
-    try {
-        if ( !isSurfaceLocked() ) {
-            // Usually the surface shall be locked within [makeCurrent .. swap .. release]
-            if (lockSurface() == NativeWindow.LOCK_SURFACE_NOT_READY) {
-                return;
-            }
-            didLock = true;
-        }
-
-        long startTime = 0;
-        if (PROFILING) {
-          startTime = System.currentTimeMillis();
-        }
-
-        if (!WGL.SwapBuffers(getNativeWindow().getSurfaceHandle()) && (WGL.GetLastError() != 0)) {
-          throw new GLException("Error swapping buffers");
-        }
-
-        if (PROFILING) {
-          long endTime = System.currentTimeMillis();
-          profilingSwapBuffersTime += (endTime - startTime);
-          int ticks = PROFILING_TICKS;
-          if (++profilingSwapBuffersTicks == ticks) {
-            System.err.println("SwapBuffers calls: " + profilingSwapBuffersTime + " ms / " + ticks + "  calls (" +
-                               ((float) profilingSwapBuffersTime / (float) ticks) + " ms/call)");
-            profilingSwapBuffersTime = 0;
-            profilingSwapBuffersTicks = 0;
-          }
-        }
-    } finally {
-        if (didLock) {
-          unlockSurface();
-        }
-    }
   }
 
 }

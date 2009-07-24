@@ -129,7 +129,8 @@ public abstract class NativeWindowFactory {
         }
 
         boolean toolkitLockForced   = Debug.getBooleanProperty("nativewindow.locking", true, acc);
-        boolean awtToolkitLockDisabled = Debug.getBooleanProperty("java.awt.headless", false, acc);
+        boolean awtToolkitLockDisabled = Debug.getBooleanProperty("java.awt.headless", false, acc) ||
+                                         Debug.getBooleanProperty("nativewindow.nolocking", true, acc) ;
 
         NativeWindowFactory _factory = null;
         
@@ -166,13 +167,6 @@ public abstract class NativeWindowFactory {
             // primitives in its OpenGL window system binding) makes
             // the JOGL library more powerful.
             // 
-            // (FIXME: from code examination, it looks like there are
-            // regressions in the support for external GLDrawables in
-            // JOGL 2 compared to JOGL 1.1.1. Note that the "default"
-            // X display connection from X11Util is being used during
-            // construction of the X11ExternalGLXDrawable instead of
-            // the result of glXGetCurrentDisplay().)
-            //
             // The X11AWTNativeWindowFactory provides a locking
             // mechanism compatible with the AWT. It may be desirable
             // to replace this window factory when using third-party

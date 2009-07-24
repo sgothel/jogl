@@ -51,7 +51,7 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
                                   GLCapabilities caps, 
                                   GLCapabilitiesChooser chooser,
                                   int width, int height) {
-    super(factory, new NullWindow(X11GLXGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(caps, chooser, screen, true)), true);
+    super(factory, new NullWindow(X11GLXGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(caps, chooser, screen, false, true)), true);
     if (width <= 0 || height <= 0) {
       throw new GLException("Width and height of pbuffer must be positive (were (" +
 			    width + ", " + height + "))");
@@ -146,5 +146,8 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
   public int getFloatingPointMode() {
     // Floating-point pbuffers currently require NVidia hardware on X11
     return GLPbuffer.NV_FLOAT;
+  }
+
+  public void swapBuffers() throws GLException {
   }
 }
