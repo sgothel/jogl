@@ -98,9 +98,7 @@
         </condition>
 
         <condition property="useKD">
-            <not>
-                <isset property="${setup.noOpenGL}" />
-            </not>
+            <isset property="${setup.useKD}" />
         </condition>
 
         <condition property="setup.nonatives">
@@ -710,7 +708,7 @@
         </jar>
         <jar manifest="tempversion" destfile="${newt.osx.jar}">
             <fileset dir="${classes}"
-                     includes="${java.part.osx}"/>
+                     includes="${java.part.macosx}"/>
         </jar>
     </target>
 
@@ -725,7 +723,7 @@
         </jar>
         <jar manifest="tempversion-cdc" destfile="${newt.osx.cdc.jar}">
             <fileset dir="${classes-cdc}"
-                     includes="${java.part.osx}"/>
+                     includes="${java.part.macosx}"/>
         </jar>
     </target>
 
