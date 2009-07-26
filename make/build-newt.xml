@@ -69,7 +69,7 @@
     <!-- 
        - Base initialization and detection of operating system.
       -->
-    <target name="base.init">
+    <target name="base.init" depends="gluegen.cpptasks.detect.os">
 
         <property name="javac.bootclasspath-cdc.jar" value="../../gluegen/make/lib/cdc_fp.jar"/>
 
