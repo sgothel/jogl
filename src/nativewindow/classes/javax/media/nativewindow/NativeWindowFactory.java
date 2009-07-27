@@ -80,7 +80,7 @@ public abstract class NativeWindowFactory {
     }
 
     private static String _getNativeWindowingType(String osNameLowerCase) {
-        if (osNameLowerCase.startsWith("kd")) {
+        if (osNameLowerCase.startsWith("kd") || osNameLowerCase.startsWith("linux")) {
               return TYPE_EGL;
         } else if (osNameLowerCase.startsWith("wind")) {
               return TYPE_WINDOWS;
@@ -101,6 +101,8 @@ public abstract class NativeWindowFactory {
         AccessControlContext acc = AccessController.getContext();
         nativeOSNamePure = Debug.getProperty("os.name", false, acc);
         nativeOSNameCustom = Debug.getProperty("nativewindow.ws.name", true, acc);
+        System.out.println(nativeOSNamePure);
+        System.out.println(nativeOSNameCustom);
         if(null==nativeOSNameCustom||nativeOSNameCustom.length()==0) {
               nativeOSNameCustom = nativeOSNamePure;
         }

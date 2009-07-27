@@ -137,7 +137,7 @@
                   value="com/sun/javafx/newt/macosx/*"/>
 
         <property name="java.part.opengl"
-                  value="com/sun/javafx/newt/opengl/*, com/sun/javafx/newt/opengl/kd/*"/>
+                  value="com/sun/javafx/newt/opengl/*, com/sun/javafx/newt/opengl/egl/*, com/sun/javafx/newt/opengl/kd/*"/>
 
         <property name="java.part.awt"
                   value="com/sun/javafx/newt/awt/*"/>
@@ -367,8 +367,6 @@
       <!-- linker configuration -->
  
       <linker id="linker.cfg.linux.newt.x11" extends="linker.cfg.linux">
-        <syslibset dir="/usr/X11R6/lib" libs="X11"/>
-        <syslibset dir="/usr/X11R6/lib" libs="Xxf86vm" />
       </linker>
 
       <linker id="linker.cfg.linux.amd64.newt.x11" extends="linker.cfg.linux.amd64">

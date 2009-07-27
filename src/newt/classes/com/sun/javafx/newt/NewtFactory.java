@@ -50,6 +50,7 @@ public abstract class NewtFactory {
      * Create a Display entity, incl native creation
      */
     public static Display createDisplay(String name) {
+        System.out.println("NewtFactory: NAME: " + name);
       return Display.create(NativeWindowFactory.getNativeWindowType(true), name);
     }
 
@@ -57,6 +58,8 @@ public abstract class NewtFactory {
      * Create a Display entity using the given implementation type, incl native creation
      */
     public static Display createDisplay(String type, String name) {
+        System.out.println("NewtFactory: TYPE: " + type);
+        System.out.println("NewtFactory: NAME: " + name);
       return Display.create(type, name);
     }
 

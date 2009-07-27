@@ -1204,6 +1204,10 @@
         <syslibset dir="/usr/X11R6/lib" libs="Xxf86vm" />
       </linker>
 
+      <linker id="linker.cfg.linux.jogl.egl" extends="linker.cfg.linux">
+        <syslibset dir="/nfsroot/lg/lib" libs="EglUtil"/>
+      </linker>
+
       <linker id="linker.cfg.linux.jogl.gl2" extends="linker.cfg.linux.jogl.x11">
         <syslibset dir="/usr/X11R6/lib" libs="GL"/>
       </linker>
@@ -1331,7 +1335,11 @@
       <property name="linker.cfg.id.cg"                     value="linker.cfg.linux.jogl.cg" />
     </target>
 
-    <target name="c.configure.linux" depends="c.configure.linux.x86,c.configure.linux.amd64,c.configure.linux.ia64,c.configure.x11" if="isLinux" />
+    <target name="c.configure.linux" 
+            depends="c.configure.linux.x86,c.configure.linux.amd64,c.configure.linux.ia64,c.configure.x11" 
+            if="isLinux">
+      <property name="linker.cfg.id.egl"                     value="linker.cfg.linux.jogl.egl" />
+    </target>
 
     <target name="c.configure.solaris32" depends="c.configure.x11" if="isSolaris32Bit">
       <echo message="Solaris" />

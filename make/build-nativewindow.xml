@@ -490,8 +490,6 @@
       <!-- linker configuration -->
  
       <linker id="linker.cfg.linux.nativewindow.x11" extends="linker.cfg.linux">
-        <syslibset dir="/usr/X11R6/lib" libs="X11"/>
-        <syslibset dir="/usr/X11R6/lib" libs="Xxf86vm" />
       </linker>
 
       <linker id="linker.cfg.linux.amd64.nativewindow.x11" extends="linker.cfg.linux.amd64">

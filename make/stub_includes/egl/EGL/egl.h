@@ -297,6 +297,11 @@ EGLAPI EGLBoolean EGLAPIENTRY eglSwapBuffers(EGLDisplay dpy, EGLSurface surface)
 EGLAPI EGLBoolean EGLAPIENTRY eglCopyBuffers(EGLDisplay dpy, EGLSurface surface,
 			  EGLNativePixmapType target);
 
+EGLAPI EGLDisplay EGLAPIENTRY EGLUtil_CreateDisplayByNative(EGLint w, EGLint h);
+
+EGLAPI EGLSurface EGLAPIENTRY EGLUtil_CreateWindowByNative(EGLDisplay dpy, EGLint xx,
+                                                           EGLint *wvalue, EGLint *hvalue);
+
 typedef void (* EGLAPIENTRY __EGLFuncPtr)(void);
 EGLAPI __EGLFuncPtr eglGetProcAddress(const char *procname);
 

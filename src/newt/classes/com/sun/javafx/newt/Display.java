@@ -45,7 +45,8 @@ public abstract class Display implements Runnable {
     {
         Class displayClass = null;
         if (NativeWindowFactory.TYPE_EGL.equals(type)) {
-            displayClass = Class.forName("com.sun.javafx.newt.opengl.kd.KDDisplay");
+            // displayClass = Class.forName("com.sun.javafx.newt.opengl.kd.KDDisplay");
+            displayClass = Class.forName("com.sun.javafx.newt.opengl.egl.EGLDisplay");
         } else if (NativeWindowFactory.TYPE_WINDOWS.equals(type)) {
             displayClass = Class.forName("com.sun.javafx.newt.windows.WindowsDisplay");
         } else if (NativeWindowFactory.TYPE_MACOSX.equals(type)) {
