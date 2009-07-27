@@ -75,7 +75,7 @@
     <!-- 
        - Base initialization and detection of operating system.
       -->
-    <target name="base.init">
+    <target name="base.init" depends="gluegen.cpptasks.detect.os">
 
         <condition property="setup.noAWT">
             <and>
