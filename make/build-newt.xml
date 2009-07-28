@@ -432,12 +432,6 @@
       <echo message="Linux.x86" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.linux" />
       <property name="linker.cfg.id.core"                   value="linker.cfg.linux" />
-
-      <echo message="isX11 ${isX11}" />
-      <echo message="useBroadcomEGL ${useBroadcomEGL}" />
-      <echo message="linker.cfg.linux.newt.x11 ${linker.cfg.linux.newt.x11}" />
-      <echo message="linker.cfg.linux.newt.broadcom_egl ${linker.cfg.linux.newt.broadcom_egl}" />
-
       <condition property="linker.cfg.id.oswin"             value="linker.cfg.linux.newt.x11" >
           <isset property="isX11" />
       </condition>
