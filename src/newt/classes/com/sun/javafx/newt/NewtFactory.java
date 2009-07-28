@@ -39,6 +39,8 @@ import java.util.Iterator;
 import com.sun.nativewindow.impl.jvm.JVMUtil;
 
 public abstract class NewtFactory {
+    public static final String TYPE_BROADCOM_EGL = "BroadcomEGL";
+
     // Work-around for initialization order problems on Mac OS X
     // between native Newt and (apparently) Fmod
     static {
@@ -50,7 +52,6 @@ public abstract class NewtFactory {
      * Create a Display entity, incl native creation
      */
     public static Display createDisplay(String name) {
-        System.out.println("NewtFactory: NAME: " + name);
       return Display.create(NativeWindowFactory.getNativeWindowType(true), name);
     }
 
@@ -58,8 +59,6 @@ public abstract class NewtFactory {
      * Create a Display entity using the given implementation type, incl native creation
      */
     public static Display createDisplay(String type, String name) {
-        System.out.println("NewtFactory: TYPE: " + type);
-        System.out.println("NewtFactory: NAME: " + name);
       return Display.create(type, name);
     }
 

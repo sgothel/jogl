@@ -74,6 +74,8 @@ public abstract class Window implements NativeWindow
             windowClass = Class.forName("com.sun.javafx.newt.x11.X11Window");
         } else if (NativeWindowFactory.TYPE_AWT.equals(type)) {
             windowClass = Class.forName("com.sun.javafx.newt.awt.AWTWindow");
+        } else if (NewtFactory.TYPE_BROADCOM_EGL.equals(type)) {
+            windowClass = Class.forName("com.sun.javafx.newt.opengl.broadcom.BCEGLWindow");
         } else {
             throw new NativeWindowException("Unknown window type \"" + type + "\"");
         }

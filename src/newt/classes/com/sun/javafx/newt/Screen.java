@@ -54,6 +54,8 @@ public abstract class Screen {
             screenClass = Class.forName("com.sun.javafx.newt.x11.X11Screen");
         } else if (NativeWindowFactory.TYPE_AWT.equals(type)) {
             screenClass = Class.forName("com.sun.javafx.newt.awt.AWTScreen");
+        } else if (NewtFactory.TYPE_BROADCOM_EGL.equals(type)) {
+            screenClass = Class.forName("com.sun.javafx.newt.opengl.broadcom.BCEGLScreen");
         } else {
             throw new RuntimeException("Unknown window type \"" + type + "\"");
         }

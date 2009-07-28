@@ -31,55 +31,34 @@
  * 
  */
 
-package com.sun.javafx.newt.opengl.egl;
+package com.sun.javafx.newt.opengl.broadcom;
 
 import com.sun.javafx.newt.*;
 import com.sun.javafx.newt.impl.*;
-import com.sun.opengl.impl.egl.*;
 import javax.media.nativewindow.*;
-import javax.media.nativewindow.egl.*;
 
-public class EGLDisplay extends Display {
+public class BCEGLScreen extends Screen {
 
     static {
-        NativeLibLoader.loadNEWT();
-
-        System.loadLibrary("EglUtil");
-    }
-
-    public static void initSingleton() {
-        // just exist to ensure static init has been run
+        BCEGLDisplay.initSingleton();
     }
 
 
-    public EGLDisplay() {
+    public BCEGLScreen() {
     }
 
-    protected void createNative() {
-        try {
-            int windowWidth = 1920, windowHeight = 1080;
-            int width[] = { windowWidth };
-            int height[] = { windowHeight };
-            long eglDisplayHandle = 
-                    EGL.EGLUtil_CreateDisplayByNative(windowWidth, windowHeight);
-            long eglSurfaceHandle = 
-                    EGL.EGLUtil_CreateWindowByNative(eglDisplayHandle, 1,
-                                                      width, 0, height, 0);
-        } catch (Throwable th) {
-            th.printStackTrace();
-        }
+    protected void createNative(int index) {
+        aScreen = new DefaultGraphicsScreen(getDisplay().getGraphicsDevice(), index);
+        setScreenSize(fixedWidth, fixedHeight);
     }
 
-    protected void closeNative() {
-        if (aDevice.getHandle() != EGL.EGL_NO_DISPLAY) {
-            EGL.eglTerminate(aDevice.getHandle());
-        }
-    }
+    protected void closeNative() { }
 
-    protected void dispatchMessages() {
-        DispatchMessages();
-    }
+    //----------------------------------------------------------------------
+    // Internals only
+    //
 
-    private native void DispatchMessages();
+    static final int fixedWidth = 1920;
+    static final int fixedHeight = 1080;
 }
 

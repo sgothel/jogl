@@ -490,6 +490,8 @@
       <!-- linker configuration -->
  
       <linker id="linker.cfg.linux.nativewindow.x11" extends="linker.cfg.linux">
+        <syslibset dir="/usr/X11R6/lib" libs="X11"/>
+        <syslibset dir="/usr/X11R6/lib" libs="Xxf86vm" />
       </linker>
 
       <linker id="linker.cfg.linux.amd64.nativewindow.x11" extends="linker.cfg.linux.amd64">
@@ -531,35 +533,30 @@
     <target name="c.configure.win32.vc" if="isVCFamily">
       <echo message="Win32.VC" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.win32.msvc" />
-      <property name="linker.cfg.id.core"                   value="linker.cfg.win32.msvc" />
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.win32.msvc.nativewindow" />
     </target>
     
     <target name="c.configure.win32.mingw" if="isMingW">
       <echo message="Win32.MingW" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.win32.mingw" />
-      <property name="linker.cfg.id.core"                   value="linker.cfg.win32.mingw" />
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.win32.mingw.nativewindow" />
     </target>
 
     <target name="c.configure.linux.x86" if="isLinuxX86">
       <echo message="Linux.x86" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.linux" />
-      <property name="linker.cfg.id.core"                   value="linker.cfg.linux" />
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.linux.nativewindow.x11" />
     </target>
     
     <target name="c.configure.linux.amd64" if="isLinuxAMD64">
       <echo message="Linux.AMD64" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.linux.amd64" />
-      <property name="linker.cfg.id.core"                   value="linker.cfg.linux.amd64" />
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.linux.amd64.nativewindow.x11" />
     </target>
     
     <target name="c.configure.linux.ia64" if="isLinuxIA64">
       <echo message="Linux.IA64" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.linux" />
-      <property name="linker.cfg.id.core"                   value="linker.cfg.linux" />
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.linux.nativewindow.x11" />
     </target>
 
@@ -568,7 +565,6 @@
     <target name="c.configure.solaris32" depends="c.configure.x11" if="isSolaris32Bit">
       <echo message="Solaris" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.solaris" />
-      <property name="linker.cfg.id.core"                   value="linker.cfg.solaris" />
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.solaris.nativewindow.x11" />
     </target>
   
@@ -576,7 +572,6 @@
     <target name="c.configure.solaris.sparcv9" depends="c.configure.x11" if="isSolarisSparcv9">
       <echo message="SolarisSparcv9" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.solaris.sparcv9" />
-      <property name="linker.cfg.id.core"                   value="linker.cfg.solaris.sparcv9" />
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.solaris.sparcv9.nativewindow.x11" />
     </target>
    
@@ -584,21 +579,18 @@
     <target name="c.configure.solaris.amd64" depends="c.configure.x11" if="isSolarisAMD64">
       <echo message="SolarisAMD64" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.solaris.amd64" />
-      <property name="linker.cfg.id.core"                   value="linker.cfg.solaris.amd64" />
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.solaris.amd64.nativewindow.x11" />
     </target>
    
     <target name="c.configure.freebsd" depends="c.configure.x11" if="isFreeBSD">
       <echo message="FreeBSD" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.freebsd.nativewindow" />
-      <property name="linker.cfg.id.core"                   value="linker.cfg.linux" />
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.linux.nativewindow.x11" />
     </target>
 
     <target name="c.configure.hpux" depends="c.configure.x11" if="isHPUX">
       <echo message="HP-UX" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.hpux" />
-      <property name="linker.cfg.id.core"                   value="linker.cfg.hpux" />
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.hpux.nativewindow.x11" />
     </target>
 
@@ -608,7 +600,6 @@
 
     <target name="c.configure.macosx" if="isOSX">
       <property name="compiler.cfg.id"                      value="compiler.cfg.macosx" />
-      <property name="linker.cfg.id.core"                   value="linker.cfg.macosx" />
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.macosx.nativewindow" />
     </target>
     
@@ -749,7 +740,7 @@
       <c.build c.compiler.src.files="c.src.files.jvm"
                output.lib.name="nativewindow_jvm"
                compiler.cfg.id="${compiler.cfg.id}"
-               linker.cfg.id="${linker.cfg.id.oswin}"/>
+               linker.cfg.id="${linker.cfg.id.base}"/>
     </target>
 
     <target name="c.build.nativewindow.awt" unless="setup.noAWT">
