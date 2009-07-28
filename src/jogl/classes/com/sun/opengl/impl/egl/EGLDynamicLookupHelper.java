@@ -50,7 +50,7 @@ import com.sun.gluegen.runtime.DynamicLookupHelper;
  * Currently two implementations exist, one for ES1 and one for ES2.
  */
 public abstract class EGLDynamicLookupHelper implements DynamicLookupHelper {
-    protected static final boolean DEBUG = com.sun.opengl.impl.Debug.debug("EGL");
+    protected static final boolean DEBUG = true; /* com.sun.opengl.impl.Debug.debug("EGL"); */
 
     private static final EGLDynamicLookupHelper eglES1DynamicLookupHelper;
     private static final EGLDynamicLookupHelper eglES2DynamicLookupHelper;
@@ -136,9 +136,13 @@ public abstract class EGLDynamicLookupHelper implements DynamicLookupHelper {
 
     private NativeLibrary loadFirstAvailable(List/*<String>*/ libNames, ClassLoader loader) {
         for (Iterator iter = libNames.iterator(); iter.hasNext(); ) {
-            NativeLibrary lib = NativeLibrary.open((String) iter.next(), loader, false /*global*/);
+            String libname = (String) iter.next();
+            NativeLibrary lib = NativeLibrary.open(libname, loader, false /*global*/);
             if (lib != null) {
+                System.out.println("found: " + libname);
                 return lib;
+            } else {
+                System.out.println("looked for: " + libname);
             }
         }
         return null;
@@ -164,9 +168,11 @@ public abstract class EGLDynamicLookupHelper implements DynamicLookupHelper {
             // EGL libraries ..
             lib = loadFirstAvailable(eglLibNames, loader);
             if (lib == null) {
-                throw new GLException("Unable to dynamically load EGL library for profile ES" + esProfile);
+                // throw new GLException("Unable to dynamically load EGL library for profile ES" + esProfile);
+                System.out.println("Unable to dynamically load EGL library for profile ES" + esProfile);
+            } else {
+                glesLibraries.add(lib);
             }
-            glesLibraries.add(lib);
         }
 
         if (esProfile==2) {

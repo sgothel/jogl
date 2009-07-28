@@ -85,7 +85,7 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_opengl_broadcom_BCEGLDisplay_Cr
 {
     (void) env;
     (void) obj;
-    EGLDisplay dpy = EGLUtil_CreateDisplay( (GLuint) width, (GLuint) height );
+    EGLDisplay dpy = EGLUtil_CreateDisplayByNative( (GLuint) width, (GLuint) height );
     if(NULL==dpy) {
         fprintf(stderr, "[CreateDisplay] failed: NULL\n");
     } else {
@@ -131,7 +131,7 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_opengl_broadcom_BCEGLWindow_Cre
         return 0;
     }
 
-    window = EGLUtil_CreateWindow( dpy, chromaKey, &uiWidth, &uiHeight );
+    window = EGLUtil_CreateWindowByNative( dpy, chromaKey, &uiWidth, &uiHeight );
     // EGLUtil_DestroyWindow( dpy, window );
 
     if(NULL==window) {

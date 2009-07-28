@@ -48,6 +48,9 @@ import com.sun.nativewindow.impl.jvm.JVMUtil;
 public abstract class NativeWindowFactory {
     protected static final boolean DEBUG = Debug.debug("NativeWindow");
 
+    /** Broadcom EGL type */
+    public static final String TYPE_BROADCOM_EGL = "BroadcomEGL";
+
     /** OpenKODE/EGL type */
     public static final String TYPE_EGL = "EGL";
 
@@ -82,6 +85,8 @@ public abstract class NativeWindowFactory {
     private static String _getNativeWindowingType(String osNameLowerCase) {
         if (osNameLowerCase.startsWith("kd")) {
               return TYPE_EGL;
+        } else if (osNameLowerCase.startsWith(TYPE_BROADCOM_EGL.toLowerCase())) {
+              return TYPE_BROADCOM_EGL;
         } else if (osNameLowerCase.startsWith("wind")) {
               return TYPE_WINDOWS;
         } else if (osNameLowerCase.startsWith("mac os x") ||

@@ -58,6 +58,8 @@ public class EGLES1DynamicLookupHelper extends EGLDynamicLookupHelper {
     protected List/*<String>*/ getGLESLibNames() {
         List/*<String>*/ glesLibNames = new ArrayList();
 
+        glesLibNames.add("nexus");
+        
         glesLibNames.add("GLES_CM");
         glesLibNames.add("GLES_CL");
         glesLibNames.add("GLESv1_CM");
