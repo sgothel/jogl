@@ -50,8 +50,12 @@ public class BCEGLWindow extends Window {
     }
 
     protected void createNative(Capabilities caps) {
-        // just save the GLProfile here, create window later ..
-        glProfile = ((GLCapabilities)caps).getGLProfile();
+        // query a good configuration .. even thought we drop this one 
+        // and reuse the EGLUtil choosen one later.
+        config = GraphicsConfigurationFactory.getFactory(getScreen().getDisplay().getGraphicsDevice()).chooseGraphicsConfiguration(caps, null, getScreen().getGraphicsScreen());
+        if (config == null) {
+            throw new NativeWindowException("Error choosing GraphicsConfiguration creating window: "+this);
+        }
     }
 
     protected void closeNative() {
@@ -115,12 +119,12 @@ public class BCEGLWindow extends Window {
     private void windowCreated(int cfgID, int width, int height) {
         this.width = width;
         this.height = height;
-        config = EGLGraphicsConfiguration.create(glProfile, screen.getGraphicsScreen(), cfgID);
+        GLCapabilities capsReq = (GLCapabilities) config.getRequestedCapabilities();
+        config = EGLGraphicsConfiguration.create(capsReq, screen.getGraphicsScreen(), cfgID);
         if (config == null) {
             throw new NativeWindowException("Error creating EGLGraphicsConfiguration from id: "+cfgID+", "+this);
         }
     }
 
     private long   windowHandleClose;
-    private GLProfile glProfile;
 }

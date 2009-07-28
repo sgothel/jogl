@@ -62,7 +62,7 @@ public class EGLGraphicsConfiguration extends DefaultGraphicsConfiguration imple
         configID = cfgID;
     }
 
-    public static EGLGraphicsConfiguration create(GLProfile glp, AbstractGraphicsScreen absScreen, int cfgID) {
+    public static EGLGraphicsConfiguration create(GLCapabilities capsRequested, AbstractGraphicsScreen absScreen, int cfgID) {
         AbstractGraphicsDevice absDevice = absScreen.getDevice();
         if(null==absDevice || !(absDevice instanceof EGLGraphicsDevice)) {
             throw new GLException("GraphicsDevice must be a valid EGLGraphicsDevice");
@@ -71,9 +71,10 @@ public class EGLGraphicsConfiguration extends DefaultGraphicsConfiguration imple
         if (dpy == EGL.EGL_NO_DISPLAY) {
             throw new GLException("Invalid EGL display: "+absDevice);
         }
+        GLProfile glp = capsRequested.getGLProfile();
         _EGLConfig _cfg = EGLConfigId2EGLConfig(glp, dpy, cfgID);
         GLCapabilities caps = EGLConfig2Capabilities(glp, dpy, _cfg);
-        return new EGLGraphicsConfiguration(absScreen, caps, caps, new DefaultGLCapabilitiesChooser(), _cfg, cfgID);
+        return new EGLGraphicsConfiguration(absScreen, caps, capsRequested, new DefaultGLCapabilitiesChooser(), _cfg, cfgID);
     }
 
     public Object clone() {
