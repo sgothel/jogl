@@ -709,6 +709,8 @@ public class GLProfile implements Cloneable {
             System.err.println("GLProfile.static hasGL3Impl "+hasGL3Impl);
             System.err.println("GLProfile.static hasGL2Impl "+hasGL2Impl);
             System.err.println("GLProfile.static hasGL2ES12Impl "+hasGL2ES12Impl);
+            System.err.println("GLProfile.static hasEGLDynLookup "+hasEGLDynLookup);
+            System.err.println("GLProfile.static hasEGLDrawableFactory "+hasEGLDrawableFactory);
             System.err.println("GLProfile.static hasGLES2Impl "+hasGLES2Impl);
             System.err.println("GLProfile.static hasGLES1Impl "+hasGLES1Impl);
         }

@@ -42,6 +42,7 @@ import com.sun.opengl.impl.*;
 import com.sun.nativewindow.impl.*;
 import com.sun.gluegen.runtime.NativeLibrary;
 import com.sun.gluegen.runtime.DynamicLookupHelper;
+import java.security.*;
 
 /**
  * Abstract implementation of the DynamicLookupHelper for EGL,
@@ -51,12 +52,16 @@ import com.sun.gluegen.runtime.DynamicLookupHelper;
  */
 public abstract class EGLDynamicLookupHelper implements DynamicLookupHelper {
     protected static final boolean DEBUG = com.sun.opengl.impl.Debug.debug("EGL");
+    protected static final boolean DEBUG_LOOKUP;
 
     private static final EGLDynamicLookupHelper eglES1DynamicLookupHelper;
     private static final EGLDynamicLookupHelper eglES2DynamicLookupHelper;
     private List/*<NativeLibrary>*/ glesLibraries;
 
     static {
+        AccessControlContext localACC=AccessController.getContext();
+        DEBUG_LOOKUP = com.sun.opengl.impl.Debug.isPropertyDefined("jogl.debug.DynamicLookup", true, localACC);
+
         EGLDynamicLookupHelper tmp=null;
         try {
             tmp = new EGLES1DynamicLookupHelper();
@@ -190,7 +195,7 @@ public abstract class EGLDynamicLookupHelper implements DynamicLookupHelper {
                 addr = dynamicLookupFunctionOnLibsImpl(funcName);
             }
         }
-        if(DEBUG) {
+        if(DEBUG_LOOKUP) {
             if(0!=addr) {
                 System.err.println("Lookup-Native: "+glFuncName+" / "+funcName+" 0x"+Long.toHexString(addr));
             } else {
@@ -236,7 +241,7 @@ public abstract class EGLDynamicLookupHelper implements DynamicLookupHelper {
         }
 
         long addr = EGL.eglGetProcAddress(eglGetProcAddressHandle, glFuncName);
-        if(DEBUG) {
+        if(DEBUG_LOOKUP) {
             if(0!=addr) {
                 System.err.println("Lookup-EGL: <"+glFuncName+"> 0x"+Long.toHexString(addr));
             }
