@@ -51,10 +51,10 @@
 
 typedef unsigned int    GLuint;
 
-EGLDisplay EGLUtil_CreateDisplay( GLuint uiWidth, GLuint uiHeight );
+EGLDisplay EGLUtil_CreateDisplayByNative( GLuint uiWidth, GLuint uiHeight );
 void EGLUtil_DestroyDisplay( EGLDisplay eglDisplay );
 
-EGLSurface EGLUtil_CreateWindow( EGLDisplay eglDisplay, /* bool */ GLuint bChromakey, GLuint *puiWidth, GLuint *puiHeight );
+EGLSurface EGLUtil_CreateWindowByNative( EGLDisplay eglDisplay, /* bool */ GLuint bChromakey, GLuint *puiWidth, GLuint *puiHeight );
 void EGLUtil_DestroyWindow( EGLDisplay eglDisplay, EGLSurface eglSurface );
 void EGLUtil_SwapWindow( EGLDisplay eglDisplay, EGLSurface eglSurface );
 
@@ -132,7 +132,6 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_opengl_broadcom_BCEGLWindow_Cre
     }
 
     window = EGLUtil_CreateWindowByNative( dpy, chromaKey, &uiWidth, &uiHeight );
-    // EGLUtil_DestroyWindow( dpy, window );
 
     if(NULL==window) {
         fprintf(stderr, "[RealizeWindow.Create] failed: NULL\n");
@@ -161,10 +160,20 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_opengl_broadcom_BCEGLWindow_Cre
 JNIEXPORT void JNICALL Java_com_sun_javafx_newt_opengl_broadcom_BCEGLWindow_CloseWindow
   (JNIEnv *env, jobject obj, jlong display, jlong window)
 {
-    EGLDisplay dpy  = (EGLDisplay)(intptr_t)display;
+    EGLDisplay dpy  = (EGLDisplay) (intptr_t) display;
     EGLSurface surf = (EGLSurface) (intptr_t) window;
     EGLUtil_DestroyWindow(dpy, surf);
 
     DBG_PRINT( "[CloseWindow]\n");
+}
+
+JNIEXPORT void JNICALL Java_com_sun_javafx_newt_opengl_broadcom_BCEGLWindow_SwapWindow
+  (JNIEnv *env, jobject obj, jlong display, jlong window)
+{
+    EGLDisplay dpy  = (EGLDisplay) (intptr_t) display;
+    EGLSurface surf = (EGLSurface) (intptr_t) window;
+    EGLUtil_SwapWindow( dpy, surf );
+
+    DBG_PRINT( "[SwapWindow]\n");
 }
 

@@ -71,7 +71,16 @@ public abstract class GLDrawableImpl implements GLDrawable {
   }
 
   public void swapBuffers() throws GLException {
+    GLCapabilities caps = (GLCapabilities)component.getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities();
+    if (caps.getDoubleBuffered()) {
+        if(!component.surfaceSwap()) {
+            swapBuffersImpl();
+        }
+    }
+    component.surfaceUpdated();
   }
+
+  protected abstract void swapBuffersImpl();
 
   public static String toHexString(long hex) {
     return GLContextImpl.toHexString(hex);

@@ -127,7 +127,7 @@ public class WindowsOffscreenWGLDrawable extends WindowsWGLDrawable {
     }
   }
 
-  public void swapBuffers() throws GLException {
+  protected void swapBuffersImpl() {
   }
 
 }

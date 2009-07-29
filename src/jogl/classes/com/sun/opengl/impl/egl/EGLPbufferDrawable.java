@@ -118,5 +118,6 @@ public class EGLPbufferDrawable extends EGLDrawable {
         return new EGLPbufferContext(this, shareWith);
     }
 
+    protected void swapBuffersImpl() { }
 }
 

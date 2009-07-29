@@ -85,10 +85,10 @@ public class BCEGLWindow extends Window {
     void setSizeImpl(int width, int height) {
         if(0!=windowHandle) {
             // n/a in BroadcomEGL
-            System.err.println("setSize n/a in BroadcomEGL with realized window");
+            System.err.println("BCEGLWindow.setSizeImpl n/a in BroadcomEGL with realized window");
         } else {
             if(DEBUG_IMPLEMENTATION) {
-                Exception e = new Exception("BCEGLWindow.setSize() "+this.width+"x"+this.height+" -> "+width+"x"+height);
+                Exception e = new Exception("BCEGLWindow.setSizeImpl() "+this.width+"x"+this.height+" -> "+width+"x"+height);
                 e.printStackTrace();
             }
             this.width = width;
@@ -107,6 +107,14 @@ public class BCEGLWindow extends Window {
         return false;
     }
 
+    public boolean surfaceSwap() {
+        if ( 0!=windowHandle ) {
+            SwapWindow(getDisplayHandle(), windowHandle);
+            return true;
+        }
+        return false;
+    }
+
     //----------------------------------------------------------------------
     // Internals only
     //
@@ -114,6 +122,7 @@ public class BCEGLWindow extends Window {
     protected static native boolean initIDs();
     private        native long CreateWindow(long eglDisplayHandle, boolean chromaKey, int width, int height);
     private        native void CloseWindow(long eglDisplayHandle, long eglWindowHandle);
+    private        native void SwapWindow(long eglDisplayHandle, long eglWindowHandle);
 
 
     private long realizeWindow(boolean chromaKey, int width, int height) {

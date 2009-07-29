@@ -87,7 +87,7 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
     return pBuffer;
   }
   
-  public void swapBuffers() throws GLException {
+  protected void swapBuffersImpl() {
     // FIXME: do we need to do anything if the pbuffer is double-buffered?
   }
 

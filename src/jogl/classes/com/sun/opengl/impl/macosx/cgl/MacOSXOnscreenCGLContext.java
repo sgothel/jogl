@@ -102,7 +102,7 @@ public class MacOSXOnscreenCGLContext extends MacOSXCGLContext {
     }
   }
 
-  public void swapBuffers() throws GLException {
+  protected void swapBuffers() {
     if (!CGL.flushBuffer(nsContext)) {
       throw new GLException("Error swapping buffers");
     }

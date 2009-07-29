@@ -82,44 +82,41 @@ public abstract class WindowsWGLDrawable extends GLDrawableImpl {
     }
   }
 
-  public void swapBuffers() throws GLException {
-    GLCapabilities caps = (GLCapabilities)getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities();
-    if (caps.getDoubleBuffered()) {
-        boolean didLock = false;
+  protected void swapBuffersImpl() {
+    boolean didLock = false;
 
-        try {
-            if ( !isSurfaceLocked() ) {
-                // Usually the surface shall be locked within [makeCurrent .. swap .. release]
-                if (lockSurface() == NativeWindow.LOCK_SURFACE_NOT_READY) {
-                    return;
-                }
-                didLock = true;
+    try {
+        if ( !isSurfaceLocked() ) {
+            // Usually the surface shall be locked within [makeCurrent .. swap .. release]
+            if (lockSurface() == NativeWindow.LOCK_SURFACE_NOT_READY) {
+                return;
             }
+            didLock = true;
+        }
 
-            long startTime = 0;
-            if (PROFILING) {
-              startTime = System.currentTimeMillis();
-            }
+        long startTime = 0;
+        if (PROFILING) {
+          startTime = System.currentTimeMillis();
+        }
 
-            if (!WGL.SwapBuffers(getNativeWindow().getSurfaceHandle()) && (WGL.GetLastError() != 0)) {
-              throw new GLException("Error swapping buffers");
-            }
+        if (!WGL.SwapBuffers(getNativeWindow().getSurfaceHandle()) && (WGL.GetLastError() != 0)) {
+          throw new GLException("Error swapping buffers");
+        }
 
-            if (PROFILING) {
-              long endTime = System.currentTimeMillis();
-              profilingSwapBuffersTime += (endTime - startTime);
-              int ticks = PROFILING_TICKS;
-              if (++profilingSwapBuffersTicks == ticks) {
-                System.err.println("SwapBuffers calls: " + profilingSwapBuffersTime + " ms / " + ticks + "  calls (" +
-                                   ((float) profilingSwapBuffersTime / (float) ticks) + " ms/call)");
-                profilingSwapBuffersTime = 0;
-                profilingSwapBuffersTicks = 0;
-              }
-            }
-        } finally {
-            if (didLock) {
-              unlockSurface();
-            }
+        if (PROFILING) {
+          long endTime = System.currentTimeMillis();
+          profilingSwapBuffersTime += (endTime - startTime);
+          int ticks = PROFILING_TICKS;
+          if (++profilingSwapBuffersTicks == ticks) {
+            System.err.println("SwapBuffers calls: " + profilingSwapBuffersTime + " ms / " + ticks + "  calls (" +
+                               ((float) profilingSwapBuffersTime / (float) ticks) + " ms/call)");
+            profilingSwapBuffersTime = 0;
+            profilingSwapBuffersTicks = 0;
+          }
+        }
+    } finally {
+        if (didLock) {
+          unlockSurface();
         }
     }
   }

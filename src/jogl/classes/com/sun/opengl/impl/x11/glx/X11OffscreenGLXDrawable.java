@@ -133,6 +133,6 @@ public class X11OffscreenGLXDrawable extends X11GLXDrawable {
       getFactoryImpl().unlockToolkit();
     }
   }
-  public void swapBuffers() throws GLException {
+  protected void swapBuffersImpl() {
   }
 }

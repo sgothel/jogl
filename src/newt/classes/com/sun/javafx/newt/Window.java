@@ -269,6 +269,12 @@ public abstract class Window implements NativeWindow
         y=0;
     }
 
+    public boolean surfaceSwap() { 
+        return false;
+    }
+
+    public void surfaceUpdated() {}
+
     protected void clearEventMask() {
         eventMask=0;
     }

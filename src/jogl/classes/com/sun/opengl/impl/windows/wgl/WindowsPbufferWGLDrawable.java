@@ -107,7 +107,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
     return floatMode;
   }
 
-  public void swapBuffers() throws GLException {
+  protected void swapBuffersImpl() {
   }
 
   private void createPbuffer(long parentHdc, WGLExt wglExt) {

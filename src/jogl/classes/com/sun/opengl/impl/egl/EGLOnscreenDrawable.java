@@ -64,7 +64,7 @@ public class EGLOnscreenDrawable extends EGLDrawable {
         return surf;
     }
 
-    public void swapBuffers() throws GLException {
+    protected void swapBuffersImpl() {
         boolean didLock = false;
         try {
           if ( !isSurfaceLocked() ) {
