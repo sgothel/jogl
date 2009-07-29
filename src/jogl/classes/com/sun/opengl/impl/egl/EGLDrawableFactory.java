@@ -50,7 +50,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         new EGLGraphicsConfigurationFactory();
 
         // Check for other underlying stuff ..
-        if(NativeWindowFactory.TYPE_X11.equals(NativeWindowFactory.getNativeWindowType(false))) {
+        if(NativeWindowFactory.TYPE_X11.equals(NativeWindowFactory.getNativeWindowType(true))) {
             try {
                 NWReflection.createInstance("com.sun.opengl.impl.x11.glx.X11GLXGraphicsConfigurationFactory");
             } catch (Throwable t) {}
