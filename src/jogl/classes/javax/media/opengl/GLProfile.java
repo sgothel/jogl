@@ -54,7 +54,7 @@ import com.sun.nativewindow.impl.jvm.JVMUtil;
  * or more specialized versions using the other static GetProfile methods.
  */
 public class GLProfile implements Cloneable {
-    public static final boolean DEBUG = true; /* Debug.debug("GLProfile"); */
+    public static final boolean DEBUG = Debug.debug("GLProfile");
 
     //
     // Public (user-visible) profiles
@@ -736,8 +736,8 @@ public class GLProfile implements Cloneable {
             }
         }
         mappedProfiles = _mappedProfiles; // final ..
-        if (null==defaultGLProfile) {
-            System.out.println("No profile available: "+list2String(GL_PROFILE_LIST_ALL));
+        if(null==defaultGLProfile) {
+            throw new GLException("No profile available: "+list2String(GL_PROFILE_LIST_ALL));
         }
     }
 

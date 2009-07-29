@@ -58,7 +58,7 @@ EGLSurface EGLUtil_CreateWindow( EGLDisplay eglDisplay, /* bool */ GLuint bChrom
 void EGLUtil_DestroyWindow( EGLDisplay eglDisplay, EGLSurface eglSurface );
 void EGLUtil_SwapWindow( EGLDisplay eglDisplay, EGLSurface eglSurface );
 
-#define VERBOSE_ON 1
+// #define VERBOSE_ON 1
 
 #ifdef VERBOSE_ON
     #define DBG_PRINT(...) fprintf(stdout, __VA_ARGS__)

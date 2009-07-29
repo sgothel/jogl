@@ -51,8 +51,8 @@
    -
    - Some environment defs affecting compilation
 
-   - setup.noAWT is set iff:
-        !isWindows && !isOSX && !noX11
+   - setup.nodesktop is set iff:
+        !isWindows && !isOSX && !isX11
 
    - Internal settings, may not be necessary to set them manually,
      since all JAR archives are orthogonal.
@@ -77,7 +77,7 @@
       -->
     <target name="base.init" depends="gluegen.cpptasks.detect.os">
 
-        <condition property="setup.noAWT">
+        <condition property="setup.nodesktop">
             <and>
                 <isfalse value="${isWindows}" />
                 <isfalse value="${isOSX}" />
@@ -86,25 +86,11 @@
         </condition>
 
         <condition property="setup.noall">
-            <or>
-                <isset property="noX11"/> 
-                <isset property="setup.noAWT"/> 
-            </or>
-        </condition>
-        <condition property="setup.noall-cdc">
-            <or>
-                <isset property="noX11"/> 
-            </or>
-        </condition>
-        <condition property="setup.nodesktop">
-            <or>
-                <isset property="noX11"/> 
-            </or>
+            <isset property="setup.noAWT"/> 
         </condition>
 
         <echo message="setup.nodesktop: ${setup.nodesktop}" />
         <echo message="setup.noall: ${setup.noall}" />
-        <echo message="setup.noall-cdc: ${setup.noall-cdc}" />
         <echo message="setup.noAWT: ${setup.noAWT}" />
         <echo message="setup.noCDC: ${setup.noCDC}" />
 
@@ -1769,7 +1755,7 @@
                      includes="${java.part.util.fixedfunc.shaders}"/>
         </jar>
     </target>
-    <target name="build-jars-all-cdc" depends="setup-manifestfile" unless="setup.noall-cdc">
+    <target name="build-jars-all-cdc" depends="setup-manifestfile">
         <jar manifest="${build}/tempversion-cdc" destfile="${jogl.all.cdc.jar}">
             <fileset dir="${classes-cdc}"
                      includes="${java.part.core} ${java.part.egl} ${java.part.glutess} ${java.part.glumipmap} ${java.part.openmax} ${java.part.sdk} ${java.part.glx} ${java.part.cgl} ${java.part.gl2es12} ${java.part.wgl} ${java.part.es1} ${java.part.es1.dbg} ${java.part.es2} ${java.part.es2.dbg} ${java.part.util} ${java.part.util.glsl} ${java.part.util.fixedfuncemu}"

@@ -44,8 +44,8 @@
    -
    - Some environment defs affecting compilation
 
-   - setup.noAWT is set iff:
-        !isWindows && !isOSX && !noX11
+   - setup.nodesktop is set iff:
+        !isWindows && !isOSX && !isX11
 
    - Internal settings, may not be necessary to set them manually,
      since all JAR archives are orthogonal.
@@ -68,7 +68,7 @@
       -->
     <target name="base.init" depends="gluegen.cpptasks.detect.os">
 
-        <condition property="setup.noAWT">
+        <condition property="setup.nodesktop">
             <and>
                 <isfalse value="${isWindows}" />
                 <isfalse value="${isOSX}" />
@@ -77,21 +77,13 @@
         </condition>
 
         <condition property="setup.noall">
-            <or>
-                <isset property="noX11"/> 
-                <isset property="setup.noAWT"/> 
-            </or>
-        </condition>
-        <condition property="setup.noall-cdc">
-            <or>
-                <isset property="noX11"/> 
-            </or>
+            <isset property="setup.noAWT"/> 
         </condition>
 
         <property name="javac.bootclasspath-cdc.jar" value="../../gluegen/make/lib/cdc_fp.jar" />
 
+        <echo message="setup.nodesktop: ${setup.nodesktop}" />
         <echo message="setup.noall: ${setup.noall}" />
-        <echo message="setup.noall-cdc: ${setup.noall-cdc}" />
         <echo message="setup.noAWT: ${setup.noAWT}" />
         <echo message="javac.bootclasspath-cdc.jar: ${javac.bootclasspath-cdc.jar}" />
 
@@ -108,17 +100,12 @@
 
         <!-- condition excludes -->
 
-        <condition property="java.excludes.x11"
-                   value="${java.part.x11}">
-           <isset property="noX11"/> 
-        </condition>
-
         <condition property="java.excludes.awt"
                    value="${java.part.awt}">
            <isset property="setup.noAWT"/> 
         </condition>
 
-        <property name="java.excludes.all" value="${java.excludes.awt} ${java.excludes.x11}" />
+        <property name="java.excludes.all" value="${java.excludes.awt}" />
         <echo message="java.excludes.all: ${java.excludes.all}" />
 
 
@@ -842,13 +829,13 @@
         </jar>
     </target>
 
-    <target name="build-jars-x11" depends="setup-manifestfile" unless="noX11">
+    <target name="build-jars-x11" depends="setup-manifestfile">
         <jar manifest="tempversion" destfile="${nativewindow.x11.jar}">
             <fileset dir="${classes}"
                      includes="${java.part.x11}" />
         </jar>
     </target>
-    <target name="build-jars-x11-cdc" depends="setup-manifestfile-cdc" unless="noX11">
+    <target name="build-jars-x11-cdc" depends="setup-manifestfile-cdc">
         <jar manifest="tempversion-cdc" destfile="${nativewindow.x11.cdc.jar}">
             <fileset dir="${classes-cdc}"
                      includes="${java.part.x11}" />
@@ -865,7 +852,7 @@
             </fileset>
         </jar>
     </target>
-    <target name="build-jars-all-cdc" depends="setup-manifestfile-cdc" unless="setup.noall-cdc">
+    <target name="build-jars-all-cdc" depends="setup-manifestfile-cdc">
         <jar manifest="tempversion-cdc" destfile="${nativewindow.all.cdc.jar}">
             <fileset dir="${classes-cdc}">
                 <include name="javax/media/nativewindow/**" />

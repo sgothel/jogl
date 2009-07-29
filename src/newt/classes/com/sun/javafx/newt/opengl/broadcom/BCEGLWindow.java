@@ -124,6 +124,9 @@ public class BCEGLWindow extends Window {
         if (config == null) {
             throw new NativeWindowException("Error creating EGLGraphicsConfiguration from id: "+cfgID+", "+this);
         }
+        if(DEBUG_IMPLEMENTATION) {
+            System.out.println("BCEGLWindow.windowCreated: 0x"+Integer.toHexString(cfgID)+", "+width+"x"+height+", "+config);
+        }
     }
 
     private long   windowHandleClose;

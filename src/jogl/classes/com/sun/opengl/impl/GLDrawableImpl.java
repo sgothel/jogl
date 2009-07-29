@@ -52,24 +52,7 @@ public abstract class GLDrawableImpl implements GLDrawable {
       this.factory = factory;
       this.component = comp;
       this.realized = realized;
-      
-      AbstractGraphicsConfiguration agc = component.getGraphicsConfiguration();
-      if (agc == null) {
-          System.out.println("GLDrawableImpl no AbstractGraphicsConfiguration");
-          System.out.println(component.getClass().getName());
-          return;
-      }
-      AbstractGraphicsConfiguration ngc = agc.getNativeGraphicsConfiguration();
-      if (ngc == null) {
-          System.out.println("GLDrawableImpl no native AbstractGraphicsConfiguration");
-          return;
-      }
-      Capabilities caps = ngc.getRequestedCapabilities();
-      if (caps == null) {
-          System.out.println("GLDrawableImpl no native Capabilities");
-          return;
-      }
-      this.requestedCapabilities = (GLCapabilities)caps; // a copy ..
+      this.requestedCapabilities = (GLCapabilities)component.getGraphicsConfiguration().getNativeGraphicsConfiguration().getRequestedCapabilities(); // a copy ..
   }
 
   /** 

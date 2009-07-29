@@ -40,7 +40,7 @@ import java.lang.reflect.*;
 import javax.media.nativewindow.*;
 
 public final class NWReflection {
-  public static final boolean DEBUG = true; /* Debug.debug("NWReflection"); */
+  public static final boolean DEBUG = Debug.debug("NWReflection");
 
   public static final boolean isClassAvailable(String clazzName) {
     try {
@@ -69,11 +69,7 @@ public final class NWReflection {
         try {
             factory = factoryClass.getDeclaredConstructor( cstrArgTypes );
         } catch(NoSuchMethodException nsme) {
-            nsme.printStackTrace();
-            throw new NativeWindowException("Constructor: '" + clazzName + "("+cstrArgTypes+")' not found");
-        } catch (Throwable th) {
-            th.printStackTrace();
-            throw new NativeWindowException(th);
+          throw new NativeWindowException("Constructor: '" + clazzName + "("+cstrArgTypes+")' not found");
         }
         return factory;
     } catch (Throwable e) { 
@@ -95,9 +91,6 @@ public final class NWReflection {
         factory = getConstructor(clazzName, cstrArgTypes);
         return factory.newInstance( cstrArgs ) ;
     } catch (Exception e) {
-      if (DEBUG) {
-          e.printStackTrace();
-      }
       throw new NativeWindowException(e);
     }
   }

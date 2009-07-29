@@ -50,8 +50,8 @@
        setup.noAWT
        setup.noOpenGL
 
-   - setup.noAWT is set iff:
-        !isWindows && !isOSX && !noX11
+   - setup.nodesktop is set iff:
+        !isWindows && !isOSX && !isX11
 
    -->
 <project name="NEWT" basedir="." default="all">
@@ -73,28 +73,16 @@
 
         <property name="javac.bootclasspath-cdc.jar" value="../../gluegen/make/lib/cdc_fp.jar"/>
 
-        <condition property="setup.noAWT">
+        <condition property="setup.nodesktop">
             <and>
                 <isfalse value="${isWindows}" />
                 <isfalse value="${isOSX}" />
                 <isfalse value="${isX11}" />
             </and>
         </condition>
+
         <condition property="setup.noall">
-            <or>
-                <isset property="noX11"/> 
-                <isset property="setup.noAWT"/> 
-            </or>
-        </condition>
-        <condition property="setup.noall-cdc">
-            <or>
-                <isset property="noX11"/> 
-            </or>
-        </condition>
-        <condition property="setup.nodesktop">
-            <or>
-                <isset property="noX11"/> 
-            </or>
+            <isset property="setup.noAWT"/> 
         </condition>
 
         <condition property="setup.nonatives">
@@ -110,7 +98,6 @@
         <echo message="setup.nonatives: ${setup.nonatives}" />
         <echo message="setup.nodesktop: ${setup.nodesktop}" />
         <echo message="setup.noall: ${setup.noall}" />
-        <echo message="setup.noall-cdc: ${setup.noall-cdc}" />
         <echo message="setup.noCDC: ${setup.noCDC}" />
         <echo message="setup.noAWT: ${setup.noAWT}" />
         <echo message="setup.noOpenGL: ${setup.noOpenGL}" />
@@ -764,10 +751,11 @@
         </jar>
     </target>
 
-    <target name="build-jars-all-cdc" depends="setup-manifestfile-cdc" unless="setup.noall-cdc">
+    <target name="build-jars-all-cdc" depends="setup-manifestfile-cdc">
         <jar manifest="tempversion-cdc" destfile="${newt.all.cdc.jar}">
             <fileset dir="${classes-cdc}"
-                     includes="${java.part.core} ${java.part.opengl} ${java.part.broadcomegl}"/>
+                     includes="com/sun/javafx/newt/**"
+                     excludes="${java.excludes.cdcfp}" />
         </jar>
     </target>
 
