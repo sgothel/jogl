@@ -58,7 +58,7 @@ EGLSurface EGLUtil_CreateWindowByNative( EGLDisplay eglDisplay, /* bool */ GLuin
 void EGLUtil_DestroyWindow( EGLDisplay eglDisplay, EGLSurface eglSurface );
 void EGLUtil_SwapWindow( EGLDisplay eglDisplay, EGLSurface eglSurface );
 
-// #define VERBOSE_ON 1
+#define VERBOSE_ON 1
 
 #ifdef VERBOSE_ON
     #define DBG_PRINT(...) fprintf(stdout, __VA_ARGS__)
@@ -100,7 +100,11 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_opengl_broadcom_BCEGLDisplay_Des
     EGLDisplay dpy  = (EGLDisplay)(intptr_t)display;
     (void) env;
     (void) obj;
+    DBG_PRINT( "[DestroyDisplay] dpy %p\n", dpy);
+
     EGLUtil_DestroyDisplay(dpy);
+
+    DBG_PRINT( "[DestroyDisplay] X\n");
 }
 
 /**
@@ -130,6 +134,7 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_opengl_broadcom_BCEGLWindow_Cre
         fprintf(stderr, "[RealizeWindow] invalid display connection..\n");
         return 0;
     }
+    DBG_PRINT( "[RealizeWindow.Create] dpy %p %ux%u\n", dpy, uiWidth, uiHeight);
 
     window = EGLUtil_CreateWindowByNative( dpy, chromaKey, &uiWidth, &uiHeight );
 
@@ -144,16 +149,20 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_opengl_broadcom_BCEGLWindow_Cre
         return 0;
     }
     (*env)->CallVoidMethod(env, obj, windowCreatedID, (jint) cfgID, (jint)uiWidth, (jint)uiHeight);
-    DBG_PRINT( "[RealizeWindow.Create] ok: %p, cfgid %d, %ux%u\n", window, cfgID, uiWidth, uiHeight);
+    DBG_PRINT( "[RealizeWindow.Create] ok: win %p, cfgid %d, %ux%u\n", window, cfgID, uiWidth, uiHeight);
 
     // release and destroy already made context ..
     EGLContext ctx = eglGetCurrentContext();
+    DBG_PRINT( "[RealizeWindow.Create] ctx %p\n", ctx);
     eglMakeCurrent(dpy,
                   EGL_NO_SURFACE,
                   EGL_NO_SURFACE,
                   EGL_NO_CONTEXT);
-    eglDestroyContext(dpy, ctx);
+    DBG_PRINT( "[RealizeWindow.Create] 2\n");
+    eglDestroyContext(dpy, ctx); // culprit ? FIXME ?
     
+    DBG_PRINT( "[RealizeWindow.Create] X\n");
+
     return (jlong) (intptr_t) window;
 }
 
@@ -162,9 +171,12 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_opengl_broadcom_BCEGLWindow_Clos
 {
     EGLDisplay dpy  = (EGLDisplay) (intptr_t) display;
     EGLSurface surf = (EGLSurface) (intptr_t) window;
+
+    DBG_PRINT( "[CloseWindow] dpy %p, win %p\n", dpy, surf);
+
     EGLUtil_DestroyWindow(dpy, surf);
 
-    DBG_PRINT( "[CloseWindow]\n");
+    DBG_PRINT( "[CloseWindow] X\n");
 }
 
 JNIEXPORT void JNICALL Java_com_sun_javafx_newt_opengl_broadcom_BCEGLWindow_SwapWindow
@@ -172,8 +184,11 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_opengl_broadcom_BCEGLWindow_Swap
 {
     EGLDisplay dpy  = (EGLDisplay) (intptr_t) display;
     EGLSurface surf = (EGLSurface) (intptr_t) window;
+
+    DBG_PRINT( "[SwapWindow] dpy %p, win %p\n", dpy, surf);
+
     EGLUtil_SwapWindow( dpy, surf );
 
-    DBG_PRINT( "[SwapWindow]\n");
+    DBG_PRINT( "[SwapWindow] X\n");
 }
 

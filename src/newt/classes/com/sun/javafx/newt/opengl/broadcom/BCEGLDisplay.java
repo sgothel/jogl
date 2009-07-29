@@ -72,7 +72,7 @@ public class BCEGLDisplay extends Display {
     }
 
     protected void dispatchMessages() {
-        DispatchMessages();
+        // n/a .. DispatchMessages();
     }
 
     private native long CreateDisplay(int width, int height);
