@@ -78,10 +78,13 @@ public class GLProfile implements Cloneable {
     /** The intersection of the desktop GL3, GL2 and embedded ES2 profile */
     public static final String GL2ES2 = "GL2ES2";
 
+    /** The intersection of the desktop GL3 and GL2 profile */
+    public static final String GL2GL3 = "GL2GL3";
+
     /** 
-     * All GL Profiles in the order of default detection: GL2, GL2ES2, GL2ES1, GLES2, GLES1, GL3
+     * All GL Profiles in the order of default detection: GL2, GL2ES2, GL2ES1, GLES2, GLES1, GL2GL3, GL3
      */
-    public static final String[] GL_PROFILE_LIST_ALL = new String[] { GL2, GL2ES2, GL2ES1, GLES2, GLES1, GL3 };
+    public static final String[] GL_PROFILE_LIST_ALL = new String[] { GL2, GL2ES2, GL2ES1, GLES2, GLES1, GL2GL3, GL3 };
 
     /**
      * All GL2ES2 Profiles in the order of default detection: GL2ES2, GL2, GLES2, GL3
@@ -271,6 +274,11 @@ public class GLProfile implements Cloneable {
     /** Indicates whether this profile is capable os GL2ES2. */
     public final boolean isGL2ES2() {
         return GL2ES2.equals(profile) || isGL2() || isGL3() || isGLES2() ;
+    }
+
+    /** Indicates whether this profile is capable os GL2GL3. */
+    public final boolean isGL2GL3() {
+        return GL2GL3.equals(profile) || isGL2() || isGL3() ;
     }
 
     /** Indicates whether this profile uses the native OpenGL ES1 implementations. */
@@ -780,6 +788,8 @@ public class GLProfile implements Cloneable {
         } else if(GL3.equals(profile) && hasGL3Impl) {
             return GL3;
         } else if(GL2.equals(profile) && hasGL2Impl) {
+            return GL2;
+        } else if(GL2GL3.equals(profile) && hasGL2Impl) {
             return GL2;
         } else if(GLES2.equals(profile) && hasGLES2Impl) {
             return GLES2;

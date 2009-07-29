@@ -56,7 +56,7 @@ public class BCEGLWindow extends Window {
         if (config == null) {
             throw new NativeWindowException("Error choosing GraphicsConfiguration creating window: "+this);
         }
-        setSize(getScreen().getWidth(), getScreen().getHeight());
+        setSizeImpl(getScreen().getWidth(), getScreen().getHeight());
     }
 
     protected void closeNative() {
@@ -79,6 +79,10 @@ public class BCEGLWindow extends Window {
     }
 
     public void setSize(int width, int height) {
+        System.err.println("setSize "+width+"x"+height+" n/a in BroadcomEGL");
+    }
+
+    void setSizeImpl(int width, int height) {
         if(0!=windowHandle) {
             // n/a in BroadcomEGL
             System.err.println("setSize n/a in BroadcomEGL with realized window");

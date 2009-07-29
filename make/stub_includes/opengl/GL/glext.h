@@ -4475,7 +4475,7 @@ GLAPI void APIENTRY glEndTransformFeedback (void);
 GLAPI void APIENTRY glBindBufferRange (GLenum, GLuint, GLuint, GLintptr, GLsizeiptr);
 GLAPI void APIENTRY glBindBufferBase (GLenum, GLuint, GLuint);
 GLAPI void APIENTRY glTransformFeedbackVaryings (GLuint, GLsizei, const GLchar **, GLenum);
-GLAPI void APIENTRY glGetTransformFeedbackVarying (GLuint, GLuint, GLint *);
+GLAPI void APIENTRY glGetTransformFeedbackVarying (GLuint, GLuint, GLsizei, GLsizei *, GLsizei *, GLenum *, GLchar *);
 GLAPI void APIENTRY glClampColor (GLenum, GLenum);
 GLAPI void APIENTRY glBeginConditionalRender (GLuint, GLenum);
 GLAPI void APIENTRY glEndConditionalRender (void);
@@ -4534,7 +4534,7 @@ typedef void (APIENTRYP PFNGLENDTRANSFORMFEEDBACKPROC) (void);
 typedef void (APIENTRYP PFNGLBINDBUFFERRANGEPROC) (GLenum target, GLuint index, GLuint buffer, GLintptr offset, GLsizeiptr size);
 typedef void (APIENTRYP PFNGLBINDBUFFERBASEPROC) (GLenum target, GLuint index, GLuint buffer);
 typedef void (APIENTRYP PFNGLTRANSFORMFEEDBACKVARYINGSPROC) (GLuint program, GLsizei count, const GLint *locations, GLenum bufferMode);
-typedef void (APIENTRYP PFNGLGETTRANSFORMFEEDBACKVARYINGPROC) (GLuint program, GLuint index, GLint *location);
+typedef void (APIENTRYP PFNGLGETTRANSFORMFEEDBACKVARYINGPROC) (GLuint program, GLuint index, GLsizei bufSize, GLsizei *length, GLsizei *size, GLenum *type, GLchar *name);
 typedef void (APIENTRYP PFNGLCLAMPCOLORPROC) (GLenum target, GLenum clamp);
 typedef void (APIENTRYP PFNGLBEGINCONDITIONALRENDERPROC) (GLuint id, GLenum mode);
 typedef void (APIENTRYP PFNGLENDCONDITIONALRENDERPROC) (void);
@@ -5255,10 +5255,10 @@ typedef void (APIENTRYP PFNGLVERTEXATTRIBDIVISORPROC) (GLuint index, GLuint divi
 #ifndef GL_ARB_map_buffer_range
 #define GL_ARB_map_buffer_range 1
 #ifdef GL_GLEXT_PROTOTYPES
-GLAPI void APIENTRY glMapBufferRange (GLenum, GLintptr, GLsizeiptr, GLbitfield);
+GLAPI GLvoid* APIENTRY glMapBufferRange (GLenum, GLintptr, GLsizeiptr, GLbitfield);
 GLAPI void APIENTRY glFlushMappedBufferRange (GLenum, GLintptr, GLsizeiptr);
 #endif /* GL_GLEXT_PROTOTYPES */
-typedef void (APIENTRYP PFNGLMAPBUFFERRANGEPROC) (GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access);
+typedef GLvoid* (APIENTRYP PFNGLMAPBUFFERRANGEPROC) (GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access);
 typedef void (APIENTRYP PFNGLFLUSHMAPPEDBUFFERRANGEPROC) (GLenum target, GLintptr offset, GLsizeiptr length);
 #endif
 

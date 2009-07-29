@@ -53,6 +53,10 @@ public final boolean isGL2ES2() {
     return true;
 }
 
+public final boolean isGL2GL3() {
+    return true;
+}
+
 public final boolean hasGLSL() {
     return true;
 }
@@ -82,6 +86,10 @@ public final GL2ES1 getGL2ES1() throws GLException {
 }
 
 public final GL2ES2 getGL2ES2() throws GLException {
+    return this;
+}
+
+public final GL2GL3 getGL2GL3() throws GLException {
     return this;
 }
 

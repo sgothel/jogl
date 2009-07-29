@@ -10,7 +10,7 @@ fi
 idir=$BUILDDIR/jogl/gensrc/classes/javax/media/opengl
 
 echo GL2 to GL3 enums
-sort $idir/GL2.java $idir/GL3.java $idir/GL2ES2.java | uniq -d | grep GL_ | awk ' { print $5 } '
+sort $idir/GL2.java $idir/GL3.java $idir/GL2ES2.java $idir/GL2GL3.java | uniq -d | grep GL_ | awk ' { print $5 } '
 
 echo GL2 to GL3 functions
-sort $idir/GL2.java $idir/GL3.java $idir/GL2ES2.java | uniq -d | grep "public [a-z0-9_]* gl"
+sort $idir/GL2.java $idir/GL3.java $idir/GL2ES2.java $idir/GL2GL3.java | uniq -d | grep "public [a-z0-9_]* gl"
