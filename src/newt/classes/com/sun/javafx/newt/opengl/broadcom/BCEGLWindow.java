@@ -56,6 +56,7 @@ public class BCEGLWindow extends Window {
         if (config == null) {
             throw new NativeWindowException("Error choosing GraphicsConfiguration creating window: "+this);
         }
+        setSize(getScreen().getWidth(), getScreen().getHeight());
     }
 
     protected void closeNative() {
@@ -82,6 +83,10 @@ public class BCEGLWindow extends Window {
             // n/a in BroadcomEGL
             System.err.println("setSize n/a in BroadcomEGL with realized window");
         } else {
+            if(DEBUG_IMPLEMENTATION) {
+                Exception e = new Exception("BCEGLWindow.setSize() "+this.width+"x"+this.height+" -> "+width+"x"+height);
+                e.printStackTrace();
+            }
             this.width = width;
             this.height = height;
         }
@@ -108,6 +113,9 @@ public class BCEGLWindow extends Window {
 
 
     private long realizeWindow(boolean chromaKey, int width, int height) {
+        if(DEBUG_IMPLEMENTATION) {
+            System.out.println("BCEGLWindow.realizeWindow() with: chroma "+chromaKey+", "+width+"x"+height+", "+config);
+        }
         long handle = CreateWindow(getDisplayHandle(), chromaKey, width, height);
         if (0 == handle) {
             throw new NativeWindowException("Error native Window Handle is null");
@@ -125,7 +133,7 @@ public class BCEGLWindow extends Window {
             throw new NativeWindowException("Error creating EGLGraphicsConfiguration from id: "+cfgID+", "+this);
         }
         if(DEBUG_IMPLEMENTATION) {
-            System.out.println("BCEGLWindow.windowCreated: 0x"+Integer.toHexString(cfgID)+", "+width+"x"+height+", "+config);
+            System.out.println("BCEGLWindow.windowCreated(): 0x"+Integer.toHexString(cfgID)+", "+width+"x"+height+", "+config);
         }
     }
 

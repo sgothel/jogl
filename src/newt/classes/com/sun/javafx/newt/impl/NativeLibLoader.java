@@ -53,8 +53,7 @@ public class NativeLibLoader extends NativeLibLoaderBase {
   public static void loadNEWT() {
     AccessController.doPrivileged(new PrivilegedAction() {
       public Object run() {
-        String[] preload = { "nativewindow" };
-        loadLibrary("newt", preload, true);
+        loadLibrary("newt", null, true);
         return null;
       }
     });

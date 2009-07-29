@@ -357,8 +357,8 @@
       <!-- linker configuration -->
  
       <linker id="linker.cfg.linux.newt.broadcom_egl" extends="linker.cfg.linux">
-        <syslibset dir="/nfsroot/lg/lib" libs="EglUtil"/>
-        <syslibset dir="/nfsroot/lg/lib" libs="nexus"/>
+        <syslibset dir="/nfsroot/lg/lib" libs="EGL"/>
+        <syslibset dir="/nfsroot/lg/lib" libs="GLES_CM"/>
       </linker>
 
       <linker id="linker.cfg.linux.newt.x11" extends="linker.cfg.linux">
