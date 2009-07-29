@@ -619,6 +619,7 @@ public class BuildComposablePipeline
       emitGLIsMethod(output, "GLES2");
       emitGLIsMethod(output, "GL2ES1");
       emitGLIsMethod(output, "GL2ES2");
+      emitGLIsMethod(output, "GL2GL3");
       output.println("  public boolean isGLES() {");
       output.println("    return isGLES2() || isGLES1();");
       output.println("  }");
@@ -648,6 +649,7 @@ public class BuildComposablePipeline
       emitGLGetMethod(output, "GLES2");
       emitGLGetMethod(output, "GL2ES1");
       emitGLGetMethod(output, "GL2ES2");
+      emitGLGetMethod(output, "GL2GL3");
       output.println("  public GLProfile getGLProfile() {");
       output.println("    return "+getDownstreamObjectName()+".getGLProfile();");
       output.println("  }");
