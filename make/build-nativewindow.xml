@@ -76,6 +76,13 @@
             </and>
         </condition>
 
+        <condition property="setup.noNativeAWT">
+            <or>
+                <isset property="setup.noAWT"/> 
+                <isset property="setup.nodesktop"/> 
+            </or>
+        </condition>
+
         <condition property="setup.noall">
             <isset property="setup.noAWT"/> 
         </condition>
@@ -85,6 +92,7 @@
         <echo message="setup.nodesktop: ${setup.nodesktop}" />
         <echo message="setup.noall: ${setup.noall}" />
         <echo message="setup.noAWT: ${setup.noAWT}" />
+        <echo message="setup.noNativeAWT: ${setup.noNativeAWT}" />
         <echo message="javac.bootclasspath-cdc.jar: ${javac.bootclasspath-cdc.jar}" />
 
         <!-- partitioning -->
@@ -709,7 +717,7 @@
       </sequential>
     </macrodef>  
 
-    <target name="c.fixup.jawt.version.macosx" if="isOSX" unless="setup.noAWT">
+    <target name="c.fixup.jawt.version.macosx" if="isOSX" unless="setup.noNativeAWT">
       <!-- Edit the link to the JAWT version in the resulting jnilib
            file; this isn't strictly needed but seems to allow the
            universal binaries to work on 10.3 machines as well, which
@@ -730,7 +738,7 @@
                linker.cfg.id="${linker.cfg.id.base}"/>
     </target>
 
-    <target name="c.build.nativewindow.awt" unless="setup.noAWT">
+    <target name="c.build.nativewindow.awt" unless="setup.noNativeAWT">
       <c.build c.compiler.src.files="c.src.files.awt"
                c.compiler.use-jawt="true"
                output.lib.name="nativewindow_awt"
