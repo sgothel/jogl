@@ -1,6 +1,4 @@
 
-  public GLProfile getGLProfile();
-
   public void glClearDepth( double depth );
 
   public void glDepthRange(double zNear, double zFar);
