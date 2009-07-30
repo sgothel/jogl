@@ -168,8 +168,15 @@ public abstract class EGLContext extends GLContextImpl {
             throw new GLException("Error: attempted to create an OpenGL context without a graphics configuration");
         }
 
-        if(!EGL.eglBindAPI(EGL.EGL_OPENGL_ES_API)) {
-            throw new GLException("eglBindAPI to ES failed , error 0x"+Integer.toHexString(EGL.eglGetError()));
+        try {
+            // might be unavailable on EGL < 1.2
+            if(!EGL.eglBindAPI(EGL.EGL_OPENGL_ES_API)) {
+                throw new GLException("eglBindAPI to ES failed , error 0x"+Integer.toHexString(EGL.eglGetError()));
+            }
+        } catch (GLException glex) {
+            if (DEBUG) {
+                glex.printStackTrace();
+            }
         }
 
         EGLContext other = (EGLContext) GLContextShareSet.getShareContext(this);
