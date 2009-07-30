@@ -153,13 +153,14 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_opengl_broadcom_BCEGLWindow_Cre
 
     // release and destroy already made context ..
     EGLContext ctx = eglGetCurrentContext();
-    DBG_PRINT( "[RealizeWindow.Create] ctx %p\n", ctx);
-    eglMakeCurrent(dpy,
+    DBG_PRINT( "[RealizeWindow.Create] ctx %p - KEEP ALIVE \n", ctx);
+    /*eglMakeCurrent(dpy,
                   EGL_NO_SURFACE,
                   EGL_NO_SURFACE,
-                  EGL_NO_CONTEXT);
+                  EGL_NO_CONTEXT); */
     DBG_PRINT( "[RealizeWindow.Create] 2\n");
-    eglDestroyContext(dpy, ctx); // culprit ? FIXME ?
+    // eglDestroyContext(dpy, ctx); // culprit ? FIXME ?
+    DBG_PRINT( "[RealizeWindow.Create] 2 - eglDestroyContext - DISABLED - Duh ?\n");
     
     DBG_PRINT( "[RealizeWindow.Create] X\n");
 
