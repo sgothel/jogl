@@ -14,6 +14,7 @@ fi
 #    -DisLinux=true \
 #    -DisLinuxX86=true \
 #    -DisX11=true \
+#    -Djogl.cg=1 -Dx11.cg.lib=../../lib-linux-x86 \
 
 ant \
     -Dbuild.noarchives=true \
