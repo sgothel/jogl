@@ -261,6 +261,12 @@ public abstract class EGLContext extends GLContextImpl {
         }
     }
 
+    protected void setSwapIntervalImpl(int interval) {
+        if (EGL.eglSwapInterval(drawable.getDisplay(), interval)) {
+            currentSwapInterval = interval ;
+        }
+    }
+
     public abstract void bindPbufferToTexture();
 
     public abstract void releasePbufferFromTexture();

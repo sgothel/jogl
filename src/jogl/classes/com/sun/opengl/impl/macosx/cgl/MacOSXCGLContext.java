@@ -337,11 +337,12 @@ public abstract class MacOSXCGLContext extends GLContextImpl
     return "";
   }
 	
-  public void setSwapInterval(int interval) {
+  protected void setSwapIntervalImpl(int interval) {
     if (nsContext == 0) {
       throw new GLException("OpenGL context not current");
     }
     CGL.setSwapInterval(nsContext, interval);
+    currentSwapInterval = interval ;
   }
 
   public ByteBuffer glAllocateMemoryNV(int arg0, float arg1, float arg2, float arg3) {

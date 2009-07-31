@@ -227,8 +227,23 @@ public interface GLBase {
        until swapping buffers. The default, which is platform-specific,
        is usually either 0 or 1. This function is not guaranteed to
        have an effect, and in particular only affects heavyweight
-       onscreen components. */
+       onscreen components.
+       
+       @see #getSwapInterval
+       @throws GLException if this context is not the current
+    */
    public void setSwapInterval(int interval);
+
+   /** Provides a platform-independent way to get the swap
+       interval set by {@link #setSwapInterval}. <br>
+
+       If the interval is not set by {@link #setSwapInterval} yet, 
+       -1 is returned, indicating that the platforms default 
+       is being used.
+
+       @see #setSwapInterval
+     */
+   public int getSwapInterval();
 
    /**
     * Returns an object through which platform-specific OpenGL extensions

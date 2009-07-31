@@ -284,11 +284,23 @@ public abstract class GLContextImpl extends GLContext {
 
   public abstract ByteBuffer glAllocateMemoryNV(int arg0, float arg1, float arg2, float arg3);
 
-  /*
-   * Sets the swap interval for onscreen OpenGL contexts. Has no
-   * effect for offscreen contexts.
-   */
   public void setSwapInterval(final int interval) {
+    GLContext current = getCurrent();
+    if (current != this) {
+        throw new GLException("This context is not current. Current context: "+current+
+                              ", this context "+this);
+    }
+    setSwapIntervalImpl(interval);
+  }
+
+  protected int currentSwapInterval = -1; // default: not set yet ..
+
+  public int getSwapInterval() {
+    return currentSwapInterval;
+  }
+
+  protected void setSwapIntervalImpl(final int interval) {
+    // nop per default ..
   }
 
   /** Maps the given "platform-independent" function name to a real function

@@ -332,29 +332,12 @@ public class WindowsWGLContext extends GLContextImpl {
     }
   }
 
-  public boolean isFunctionAvailable(String glFunctionName)
-  {
-    boolean available = super.isFunctionAvailable(glFunctionName);
-    
-    // Sanity check for implementations that use proc addresses for run-time
-    // linking: if the function IS available, then make sure there's a proc
-    // address for it if it's an extension or not part of the OpenGL 1.1 core
-    // (post GL 1.1 functions are run-time linked on windows).
-    /* FIXME: 
-    assert(!available ||
-           (getGLProcAddressTable().getAddressFor(mapToRealGLFunctionName(glFunctionName)) != 0 ||
-            FunctionAvailabilityCache.isPartOfGLCore("1.1", mapToRealGLFunctionName(glFunctionName)))
-           ); */
-
-    return available;
-  }
-  
-  public void setSwapInterval(int interval) {
-    // FIXME: make the context current first? Currently assumes that
-    // will not be necessary. Make the caller do this?
+  protected void setSwapIntervalImpl(int interval) {
     WGLExt wglExt = getWGLExt();
     if (wglExt.isExtensionAvailable("WGL_EXT_swap_control")) {
-      wglExt.wglSwapIntervalEXT(interval);
+      if ( wglExt.wglSwapIntervalEXT(interval) ) {
+        currentSwapInterval = interval ;
+      }
     }
   }
 

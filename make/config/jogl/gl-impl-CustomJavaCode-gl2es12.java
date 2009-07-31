@@ -127,6 +127,10 @@ public void setSwapInterval(int interval) {
   _context.setSwapInterval(interval);
 }
 
+public int getSwapInterval() {
+  return _context.getSwapInterval();
+}
+
 public Object getPlatformGLExtensions() {
   return _context.getPlatformGLExtensions();
 }

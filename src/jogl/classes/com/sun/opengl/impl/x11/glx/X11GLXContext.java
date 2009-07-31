@@ -396,11 +396,9 @@ public abstract class X11GLXContext extends GLContextImpl {
 
   private int hasSwapIntervalSGI = 0;
 
-  public void setSwapInterval(int interval) {
+  protected void setSwapIntervalImpl(int interval) {
     getDrawableImpl().getFactoryImpl().lockToolkit();
     try {
-      // FIXME: make the context current first? Currently assumes that
-      // will not be necessary. Make the caller do this?
       GLXExt glXExt = getGLXExt();
       if(0==hasSwapIntervalSGI) {
         try {
@@ -409,7 +407,9 @@ public abstract class X11GLXContext extends GLContextImpl {
       }
       if (hasSwapIntervalSGI>0) {
         try {
-            glXExt.glXSwapIntervalSGI(interval);
+            if( 0 == glXExt.glXSwapIntervalSGI(interval) ) {
+                currentSwapInterval = interval;
+            }
         } catch (Throwable t) { hasSwapIntervalSGI=-1; }
       }
     } finally {
