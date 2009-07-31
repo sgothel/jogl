@@ -1,3 +1,7 @@
+Changes between JOGL 1.1.1 and today:
+
+ - Please refere to the repository log file
+
 Changes between JOGL 1.1.0 and 1.1.1:
 
  - Fixed a bug in the checking of incoming buffers' sizes to
