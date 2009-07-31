@@ -765,12 +765,12 @@
       <antcall target="c.fixup.jawt.version.macosx" inheritrefs="true" />
       <antcall target="c.manifest" inheritRefs="true" />
       <!-- Create the Java Web Start jar file for the built native code -->
-      <jar destfile="${build}/nativewindow-natives-${os.and.arch}.jar">
+      <jar destfile="${build}/nativewindow-natives-${os.and.arch}.jar" filesonly="true">
         <fileset dir="${obj}">
           <include name="*.${native.library.suffix}" />
         </fileset>
       </jar>
-      <jar destfile="${build}/nativewindow-natives-${os.and.arch}-cdc.jar">
+      <jar destfile="${build}/nativewindow-natives-${os.and.arch}-cdc.jar" filesonly="true">
         <fileset dir="${obj}">
           <include name="*_jvm.${native.library.suffix-cdc}" />
           <include name="*_x11.${native.library.suffix-cdc}" />
@@ -830,7 +830,7 @@
 
 
     <target name="build-jars-awt" depends="setup-manifestfile" unless="setup.noAWT">
-        <jar manifest="tempversion" destfile="${nativewindow.awt.jar}">
+        <jar manifest="tempversion" destfile="${nativewindow.awt.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.awt}"
                      excludes="${java.excludes.awt}"/>
@@ -838,20 +838,20 @@
     </target>
 
     <target name="build-jars-x11" depends="setup-manifestfile">
-        <jar manifest="tempversion" destfile="${nativewindow.x11.jar}">
+        <jar manifest="tempversion" destfile="${nativewindow.x11.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.x11}" />
         </jar>
     </target>
     <target name="build-jars-x11-cdc" depends="setup-manifestfile-cdc">
-        <jar manifest="tempversion-cdc" destfile="${nativewindow.x11.cdc.jar}">
+        <jar manifest="tempversion-cdc" destfile="${nativewindow.x11.cdc.jar}" filesonly="true">
             <fileset dir="${classes-cdc}"
                      includes="${java.part.x11}" />
         </jar>
     </target>
 
     <target name="build-jars-all" depends="setup-manifestfile" unless="setup.noall">
-        <jar manifest="tempversion" destfile="${nativewindow.all.jar}">
+        <jar manifest="tempversion" destfile="${nativewindow.all.jar}" filesonly="true">
             <fileset dir="${classes}">
                 <include name="javax/media/nativewindow/**" />
                 <include name="com/sun/nativewindow/**" />
@@ -861,7 +861,7 @@
         </jar>
     </target>
     <target name="build-jars-all-cdc" depends="setup-manifestfile-cdc">
-        <jar manifest="tempversion-cdc" destfile="${nativewindow.all.cdc.jar}">
+        <jar manifest="tempversion-cdc" destfile="${nativewindow.all.cdc.jar}" filesonly="true">
             <fileset dir="${classes-cdc}">
                 <include name="javax/media/nativewindow/**" />
                 <include name="com/sun/nativewindow/**" />
@@ -871,7 +871,7 @@
     </target>
 
     <target name="build-jars-javase" depends="setup-manifestfile,build-jars-awt,build-jars-x11,build-jars-all">
-        <jar manifest="tempversion" destfile="${nativewindow.core.jar}">
+        <jar manifest="tempversion" destfile="${nativewindow.core.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.core}"
                      excludes="${java.part.awt} ${java.part.x11}"/>
@@ -880,7 +880,7 @@
     </target>
 
     <target name="build-jars-cdc" depends="setup-manifestfile-cdc,build-jars-x11-cdc,build-jars-all-cdc">
-        <jar manifest="tempversion-cdc" destfile="${nativewindow.core.cdc.jar}">
+        <jar manifest="tempversion-cdc" destfile="${nativewindow.core.cdc.jar}" filesonly="true">
             <fileset dir="${classes-cdc}"
                      includes="${java.part.core}"
                      excludes="${java.part.awt} ${java.part.x11}"/>

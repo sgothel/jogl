@@ -1591,12 +1591,12 @@
     <target name="c.build.jogl" depends="c.configure,c.build.jogl.prepare,c.build.jogl.gl2es12,c.build.jogl.gl2,c.build.jogl.es2,c.build.jogl.es1,c.build.jogl.cg">
       <antcall target="c.manifest" inheritRefs="true" />
       <!-- Create the Java Web Start jar file for the built native code -->
-      <jar destfile="${build}/jogl-natives-${os.and.arch}.jar">
+      <jar destfile="${build}/jogl-natives-${os.and.arch}.jar" filesonly="true">
         <fileset dir="${obj}">
           <include name="*.${native.library.suffix}" />
         </fileset>
       </jar>
-      <jar destfile="${build}/jogl-natives-${os.and.arch}-cdc.jar">
+      <jar destfile="${build}/jogl-natives-${os.and.arch}-cdc.jar" filesonly="true">
         <fileset dir="${obj}">
           <include name="*_es1.${native.library.suffix-cdc}" />
           <include name="*_es2.${native.library.suffix-cdc}" />
@@ -1660,24 +1660,24 @@
     </target>
 
     <target name="build-cg-jar" depends="setup-manifestfile" if="jogl.cg">
-        <jar manifest="${build}/tempversion" destfile="${jogl.cg.jar}">
+        <jar manifest="${build}/tempversion" destfile="${jogl.cg.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.nv-cg}"/>
         </jar>
     </target>
 
     <target name="build-jars-es-desktop" depends="setup-manifestfile" unless="setup.nodesktop">
-        <jar manifest="${build}/tempversion" destfile="${jogl.gl2es12.x11.jar}">
+        <jar manifest="${build}/tempversion" destfile="${jogl.gl2es12.x11.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.glx}, ${java.part.gl2es12}, ${java.part.openmax}"
                      excludes="${java.part.glugl2}"/>
         </jar>
-        <jar manifest="${build}/tempversion" destfile="${jogl.gl2es12.win.jar}">
+        <jar manifest="${build}/tempversion" destfile="${jogl.gl2es12.win.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.wgl}, ${java.part.gl2es12}, ${java.part.openmax}"
                      excludes="${java.part.glugl2}"/>
         </jar>
-        <jar manifest="${build}/tempversion" destfile="${jogl.gl2es12.osx.jar}">
+        <jar manifest="${build}/tempversion" destfile="${jogl.gl2es12.osx.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.cgl}, ${java.part.gl2es12}, ${java.part.openmax}"
                      excludes="${java.part.glugl2}"/>
@@ -1685,43 +1685,43 @@
     </target>
 
     <target name="build-jars-es" depends="setup-manifestfile,build-jars-es-desktop">
-        <jar manifest="${build}/tempversion" destfile="${jogl.egl.jar}">
+        <jar manifest="${build}/tempversion" destfile="${jogl.egl.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.egl}"
                      excludes="${java.part.awt}"/>
         </jar>
-        <jar manifest="${build}/tempversion" destfile="${jogl.gles1.jar}">
+        <jar manifest="${build}/tempversion" destfile="${jogl.gles1.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.es1}"
                      excludes="${java.part.es1.dbg}"/>
         </jar>
-        <jar manifest="${build}/tempversion" destfile="${jogl.gles1.dbg.jar}">
+        <jar manifest="${build}/tempversion" destfile="${jogl.gles1.dbg.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.es1.dbg}"/>
         </jar>
-        <jar manifest="${build}/tempversion" destfile="${jogl.gles2.jar}">
+        <jar manifest="${build}/tempversion" destfile="${jogl.gles2.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.es2}, ${java.part.openmax}"
                      excludes="${java.part.es2.dbg}"/>
         </jar>
-        <jar manifest="${build}/tempversion" destfile="${jogl.gles2.dbg.jar}">
+        <jar manifest="${build}/tempversion" destfile="${jogl.gles2.dbg.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.es2.dbg}"/>
         </jar>
     </target>
 
     <target name="build-jars-es-desktop-cdc" depends="setup-manifestfile-cdc" unless="setup.nodesktop">
-        <jar manifest="${build}/tempversion-cdc" destfile="${jogl.gl2es12.x11.cdc.jar}">
+        <jar manifest="${build}/tempversion-cdc" destfile="${jogl.gl2es12.x11.cdc.jar}" filesonly="true">
             <fileset dir="${classes-cdc}"
                      includes="${java.part.glx}, ${java.part.gl2es12}, ${java.part.openmax}"
                      excludes="${java.part.glugl2}"/>
         </jar>
-        <jar manifest="${build}/tempversion-cdc" destfile="${jogl.gl2es12.win.cdc.jar}">
+        <jar manifest="${build}/tempversion-cdc" destfile="${jogl.gl2es12.win.cdc.jar}" filesonly="true">
             <fileset dir="${classes-cdc}"
                      includes="${java.part.wgl}, ${java.part.gl2es12}, ${java.part.openmax}"
                      excludes="${java.part.glugl2}"/>
         </jar>
-        <jar manifest="${build}/tempversion-cdc" destfile="${jogl.gl2es12.osx.cdc.jar}">
+        <jar manifest="${build}/tempversion-cdc" destfile="${jogl.gl2es12.osx.cdc.jar}" filesonly="true">
             <fileset dir="${classes-cdc}"
                      includes="${java.part.cgl}, ${java.part.gl2es12}, ${java.part.openmax}"
                      excludes="${java.part.glugl2}"/>
@@ -1729,44 +1729,44 @@
     </target>
 
     <target name="build-jars-es-cdc" depends="setup-manifestfile-cdc,build-jars-es-desktop-cdc" unless="setup.noCDC">
-        <jar manifest="${build}/tempversion-cdc" destfile="${jogl.egl.cdc.jar}">
+        <jar manifest="${build}/tempversion-cdc" destfile="${jogl.egl.cdc.jar}" filesonly="true">
             <fileset dir="${classes-cdc}"
                      includes="${java.part.egl}"
                      excludes="${java.part.awt}"/>
         </jar>
-        <jar manifest="${build}/tempversion-cdc" destfile="${jogl.gles1.cdc.jar}">
+        <jar manifest="${build}/tempversion-cdc" destfile="${jogl.gles1.cdc.jar}" filesonly="true">
             <fileset dir="${classes-cdc}"
                      includes="${java.part.es1}"
                      excludes="${java.part.es1.dbg}"/>
         </jar>
-        <jar manifest="${build}/tempversion-cdc" destfile="${jogl.gles1.dbg.cdc.jar}">
+        <jar manifest="${build}/tempversion-cdc" destfile="${jogl.gles1.dbg.cdc.jar}" filesonly="true">
             <fileset dir="${classes-cdc}"
                      includes="${java.part.es1.dbg}"/>
         </jar>
-        <jar manifest="${build}/tempversion-cdc" destfile="${jogl.gles2.cdc.jar}">
+        <jar manifest="${build}/tempversion-cdc" destfile="${jogl.gles2.cdc.jar}" filesonly="true">
             <fileset dir="${classes-cdc}"
                      includes="${java.part.es2}, ${java.part.openmax}"
                      excludes="${java.part.es2.dbg}"/>
         </jar>
-        <jar manifest="${build}/tempversion-cdc" destfile="${jogl.gles2.dbg.cdc.jar}">
+        <jar manifest="${build}/tempversion-cdc" destfile="${jogl.gles2.dbg.cdc.jar}" filesonly="true">
             <fileset dir="${classes-cdc}"
                      includes="${java.part.es2.dbg}"/>
         </jar>
     </target>
 
     <target name="build-jars-awt" depends="setup-manifestfile" unless="setup.noAWT">
-        <jar manifest="${build}/tempversion" destfile="${jogl.awt.jar}">
+        <jar manifest="${build}/tempversion" destfile="${jogl.awt.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.awt}" />
         </jar>
-        <jar manifest="${build}/tempversion" destfile="${jogl.util.awt.jar}">
+        <jar manifest="${build}/tempversion" destfile="${jogl.util.awt.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.util.awt}"/>
         </jar>
     </target>
 
     <target name="build-jars-all" depends="setup-manifestfile" unless="setup.noall">
-        <jar manifest="${build}/tempversion" destfile="${jogl.all.jar}">
+        <jar manifest="${build}/tempversion" destfile="${jogl.all.jar}" filesonly="true">
             <fileset dir="${classes}">
                 <include name="javax/media/opengl/**" />
                 <include name="com/sun/gluegen/runtime/**" />
@@ -1780,7 +1780,7 @@
         </jar>
     </target>
     <target name="build-jars-all-cdc" depends="setup-manifestfile">
-        <jar manifest="${build}/tempversion-cdc" destfile="${jogl.all.cdc.jar}">
+        <jar manifest="${build}/tempversion-cdc" destfile="${jogl.all.cdc.jar}" filesonly="true">
             <fileset dir="${classes-cdc}"
                      includes="${java.part.core} ${java.part.egl} ${java.part.glutess} ${java.part.glumipmap} ${java.part.openmax} ${java.part.sdk} ${java.part.glx} ${java.part.cgl} ${java.part.gl2es12} ${java.part.wgl} ${java.part.es1} ${java.part.es1.dbg} ${java.part.es2} ${java.part.es2.dbg} ${java.part.util} ${java.part.util.glsl} ${java.part.util.fixedfuncemu}"
                      excludes="${java.excludes.cdcfp}"/>
@@ -1791,25 +1791,25 @@
 
 
     <target name="build-jars-cdc" depends="setup-manifestfile-cdc, build-jars-es-cdc, build-jars-all-cdc" unless="setup.noCDC">
-        <jar manifest="${build}/tempversion-cdc" destfile="${jogl.core.cdc.jar}">
+        <jar manifest="${build}/tempversion-cdc" destfile="${jogl.core.cdc.jar}" filesonly="true">
             <fileset dir="${classes-cdc}"
                      includes="${java.part.core}"
                      excludes="${java.part.core.exclude}"/>
         </jar>
-        <jar manifest="${build}/tempversion-cdc" destfile="${jogl.glutess.cdc.jar}">
+        <jar manifest="${build}/tempversion-cdc" destfile="${jogl.glutess.cdc.jar}" filesonly="true">
             <fileset dir="${classes-cdc}"
                      includes="${java.part.glutess}"/>
         </jar>
-        <jar manifest="${build}/tempversion-cdc" destfile="${jogl.glumipmap.cdc.jar}">
+        <jar manifest="${build}/tempversion-cdc" destfile="${jogl.glumipmap.cdc.jar}" filesonly="true">
             <fileset dir="${classes-cdc}"
                      includes="${java.part.glumipmap}"/>
         </jar>
-        <jar manifest="${build}/tempversion-cdc" destfile="${jogl.util.cdc.jar}">
+        <jar manifest="${build}/tempversion-cdc" destfile="${jogl.util.cdc.jar}" filesonly="true">
             <fileset dir="${classes-cdc}"
                      includes="${java.part.util} ${java.part.util.glsl}"
                      excludes="${java.part.util.awt} ${java.part.util.gl2} ${java.part.util.fixedfuncemu}"/>
         </jar>
-        <jar manifest="${build}/tempversion-cdc" destfile="${jogl.util.fixedfuncemu.cdc.jar}">
+        <jar manifest="${build}/tempversion-cdc" destfile="${jogl.util.fixedfuncemu.cdc.jar}" filesonly="true">
             <fileset dir="${classes-cdc}"
                      includes="${java.part.util.fixedfuncemu}"/>
             <fileset dir="${src.java}"
@@ -1818,30 +1818,30 @@
     </target>
 
     <target name="build-jars-desktop-javase" depends="setup-manifestfile" unless="setup.nodesktop">
-        <jar manifest="${build}/tempversion" destfile="${jogl.gl2.x11.jar}">
+        <jar manifest="${build}/tempversion" destfile="${jogl.gl2.x11.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.glx}, ${java.part.gl2}, ${java.part.gl3}, ${java.part.openmax}"
                      excludes="${java.part.gl2.dbg}, ${java.part.gl3.dbg}, ${java.part.glugl2}"/>
         </jar>
-        <jar manifest="${build}/tempversion" destfile="${jogl.gl2.win.jar}">
+        <jar manifest="${build}/tempversion" destfile="${jogl.gl2.win.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.wgl}, ${java.part.gl2}, $${java.part.gl3}, {java.part.openmax}"
                      excludes="${java.part.gl2.dbg}, ${java.part.gl3.dbg}, ${java.part.glugl2}"/>
         </jar>
-        <jar manifest="${build}/tempversion" destfile="${jogl.gl2.osx.jar}">
+        <jar manifest="${build}/tempversion" destfile="${jogl.gl2.osx.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.cgl}, ${java.part.gl2}, $${java.part.gl3}, {java.part.openmax}"
                      excludes="${java.part.gl2.dbg}, ${java.part.gl3.dbg}, ${java.part.glugl2}"/>
         </jar>
-        <jar manifest="${build}/tempversion" destfile="${jogl.gl2.dbg.jar}">
+        <jar manifest="${build}/tempversion" destfile="${jogl.gl2.dbg.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.gl2.dbg} ${java.part.gl3.dbg}"/>
         </jar>
-        <jar manifest="${build}/tempversion" destfile="${jogl.glugl2.jar}">
+        <jar manifest="${build}/tempversion" destfile="${jogl.glugl2.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.glugl2}"/>
         </jar>
-        <jar manifest="${build}/tempversion" destfile="${jogl.util.gl2.jar}">
+        <jar manifest="${build}/tempversion" destfile="${jogl.util.gl2.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.util.gl2}"
                      excludes="com/sun/opengl/**/awt/**"/>
@@ -1849,29 +1849,29 @@
     </target>
 
     <target name="build-jars-javase" depends="setup-manifestfile, build-jars-es, build-jars-awt, build-cg-jar, build-jars-all, build-jars-desktop-javase">
-        <jar manifest="${build}/tempversion" destfile="${jogl.core.jar}">
+        <jar manifest="${build}/tempversion" destfile="${jogl.core.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.core}"
                      excludes="${java.part.core.exclude}"/>
         </jar>
-        <jar manifest="${build}/tempversion" destfile="${jogl.sdk.jar}">
+        <jar manifest="${build}/tempversion" destfile="${jogl.sdk.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.sdk}"/>
         </jar>
-        <jar manifest="${build}/tempversion" destfile="${jogl.glutess.jar}">
+        <jar manifest="${build}/tempversion" destfile="${jogl.glutess.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.glutess}"/>
         </jar>
-        <jar manifest="${build}/tempversion" destfile="${jogl.glumipmap.jar}">
+        <jar manifest="${build}/tempversion" destfile="${jogl.glumipmap.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.glumipmap}"/>
         </jar>
-        <jar manifest="${build}/tempversion" destfile="${jogl.util.jar}">
+        <jar manifest="${build}/tempversion" destfile="${jogl.util.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.util} ${java.part.util.glsl}"
                      excludes="${java.part.util.awt} ${java.part.util.gl2} ${java.part.util.fixedfuncemu}"/>
         </jar>
-        <jar manifest="${build}/tempversion" destfile="${jogl.util.fixedfuncemu.jar}">
+        <jar manifest="${build}/tempversion" destfile="${jogl.util.fixedfuncemu.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.util.fixedfuncemu}"/>
             <fileset dir="${src.java}"

@@ -140,10 +140,10 @@ public abstract class GLDrawableImpl implements GLDrawable {
 
   public String toString() {
     return getClass().getName()+"[realized "+getRealized()+
-                ",\n\trequested "+getRequestedGLCapabilities()+
-                ",\n\tchosen    "+getChosenGLCapabilities()+
+                ",\n\tfactory   "+getFactory()+
                 ",\n\twindow    "+getNativeWindow()+
-                ",\n\tfactory   "+getFactory()+"]";
+                ",\n\trequested "+getRequestedGLCapabilities()+
+                ",\n\tchosen    "+getChosenGLCapabilities()+"]";
   }
 
   protected GLDrawableFactory factory;

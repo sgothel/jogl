@@ -51,7 +51,7 @@ public class WindowsExternalWGLContext extends WindowsWGLContext {
   private boolean created = true;
   private GLContext lastContext;
 
-  private WindowsExternalWGLContext(Drawable drawable, long hglrc) {
+  private WindowsExternalWGLContext(Drawable drawable, long hglrc, WindowsWGLGraphicsConfiguration cfg) {
     super(drawable, null);
     this.hglrc = hglrc;
     if (DEBUG) {
@@ -59,6 +59,7 @@ public class WindowsExternalWGLContext extends WindowsWGLContext {
     }
     GLContextShareSet.contextCreated(this);
     setGLFunctionAvailability(false);
+    cfg.updateCapabilitiesByWGL(this);
   }
 
   protected static WindowsExternalWGLContext create(GLDrawableFactory factory, GLProfile glp) {
@@ -76,12 +77,12 @@ public class WindowsExternalWGLContext extends WindowsWGLContext {
     }
 
     AbstractGraphicsScreen aScreen = DefaultGraphicsScreen.createDefault();
-    WindowsWGLGraphicsConfiguration cfg = WindowsWGLGraphicsConfiguration.create(glp, aScreen, hdc, pfdID, true, true);
+    WindowsWGLGraphicsConfiguration cfg = WindowsWGLGraphicsConfiguration.create(hdc, pfdID, glp, aScreen, true, true);
 
     NullWindow nw = new NullWindow(cfg);
     nw.setSurfaceHandle(hdc);
 
-    return new WindowsExternalWGLContext(new Drawable(factory, nw), hglrc);
+    return new WindowsExternalWGLContext(new Drawable(factory, nw), hglrc, cfg);
   }
 
   public int makeCurrent() throws GLException {

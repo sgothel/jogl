@@ -59,7 +59,7 @@ public class WindowsWindow extends Window {
             hmon = MonitorFromWindow(windowHandle);
             if(DEBUG_IMPLEMENTATION || DEBUG_WINDOW_EVENT) {
                 Exception e = new Exception("!!! Window new surface handle "+Thread.currentThread().getName()+
-                                            ",HDC 0x"+Long.toHexString(hdc)+", HMON 0x"+Long.toHexString(hmon));
+                                            ", HWND 0x"+Long.toHexString(windowHandle)+", HDC 0x"+Long.toHexString(hdc)+", HMON 0x"+Long.toHexString(hmon));
                 e.printStackTrace();
             }
         }
@@ -105,6 +105,11 @@ public class WindowsWindow extends Window {
             throw new NativeWindowException("Error creating window");
         }
         windowHandleClose = windowHandle;
+        if(DEBUG_IMPLEMENTATION || DEBUG_WINDOW_EVENT) {
+            Exception e = new Exception("!!! Window new window handle "+Thread.currentThread().getName()+
+                                        ", HWND 0x"+Long.toHexString(windowHandle));
+            e.printStackTrace();
+        }
     }
 
     protected void closeNative() {

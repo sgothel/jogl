@@ -76,8 +76,19 @@ public boolean isFunctionAvailable(String gluFunctionName)
 // Utility routines
 //
 
-private static Class gl2Class;
-private static Class gl2es1Class;
+private static final Class gl2Class;
+private static final Class gl2es1Class;
+
+static {
+    Class _gl2Class=null;
+    Class _gl2es1Class=null;
+    try {
+        _gl2Class = Class.forName("javax.media.opengl.glu.gl2.GLUgl2");
+        _gl2es1Class = Class.forName("javax.media.opengl.glu.gl2es1.GLUgl2es1");
+    } catch (Throwable t) {}
+    gl2Class = _gl2Class;
+    gl2es1Class = _gl2es1Class;
+}
 
 /**
  * Instantiates a GLU implementation object in respect to the given GL profile
@@ -94,32 +105,20 @@ public static final GLU createGLU() throws GLException {
 public static final GLU createGLU(GL gl) throws GLException {
   try {
       Class c = null;
-      if(gl.isGL2()) {
-        if (gl2Class == null) {
-          gl2Class = Class.forName("javax.media.opengl.glu.gl2.GLUgl2");
-        }
+      if(gl.isGL2() && null!=gl2Class) {
         c = gl2Class;
-      } else if (gl.isGL2ES1()) {
-        if (gl2es1Class == null) {
-          gl2es1Class = Class.forName("javax.media.opengl.glu.gl2es1.GLUgl2es1");
-        }
+      } else if(gl.isGL2ES1() && null!=gl2es1Class) {
         c = gl2es1Class;
+      /** There is no specialized ES 2 GLU at this time
+      } else if(gl.isGL2ES2() && null!=gl2es2Class) {
+        c = gl2es2Class; */
+      } else {
+        c = GLU.class;
       }
-      if (c != null) {
-        return (GLU) c.newInstance();
-      }
+      return (GLU) c.newInstance();
   } catch (Exception e) {
     throw new GLException(e);
   }
-  // There is no specialized ES 2 GLU at this time
-  /*
-      try {
-          if(GLProfile.GL2ES12.equals(profile) || GLProfile.GL2.equals(profile) || GLProfile.GLES2.equals(profile)) {
-            return (GLU) NWReflection.createInstance("javax.media.opengl.glu.gl2es2.GLUgl2es2");
-          } 
-      } catch (GLException e) { e.printStackTrace(); }
-  */
-  return new GLU();
 }
 
 public GLU()

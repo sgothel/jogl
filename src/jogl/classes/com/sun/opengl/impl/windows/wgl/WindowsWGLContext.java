@@ -264,6 +264,11 @@ public class WindowsWGLContext extends GLContextImpl {
 
     if (created) {
       setGLFunctionAvailability(false);
+
+      WindowsWGLGraphicsConfiguration config = 
+        (WindowsWGLGraphicsConfiguration)drawable.getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration();
+      config.updateCapabilitiesByWGL(this);
+
       return CONTEXT_CURRENT_NEW;
     }
     return CONTEXT_CURRENT;

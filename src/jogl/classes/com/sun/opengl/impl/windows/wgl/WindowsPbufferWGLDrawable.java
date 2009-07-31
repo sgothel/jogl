@@ -295,7 +295,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
         if(newCaps.isOnscreen()) {
           throw new GLException("Error: Selected Onscreen Caps for PBuffer: "+newCaps);
         }
-        config.setCapsPFD(newCaps, pfd, pformats[whichFormat]);
+        config.setCapsPFD(newCaps, pfd, pformats[whichFormat], true);
       } else {
         PIXELFORMATDESCRIPTOR pfd = WindowsWGLGraphicsConfiguration.createPixelFormatDescriptor();
         if (WGL.DescribePixelFormat(parentHdc, pformats[whichFormat], pfd.size(), pfd) == 0) {
@@ -305,7 +305,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
         if(newCaps.isOnscreen()) {
           throw new GLException("Error: Selected Onscreen Caps for PBuffer: "+newCaps);
         }
-        config.setCapsPFD(newCaps, pfd, pformats[whichFormat]);
+        config.setCapsPFD(newCaps, pfd, pformats[whichFormat], false);
       }
     }
 
