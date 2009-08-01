@@ -3,14 +3,17 @@ package com.sun.opengl.util.glsl;
 
 import javax.media.opengl.*;
 import com.sun.opengl.util.*;
+import com.sun.opengl.impl.Debug;
 
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.nio.*;
 import java.io.PrintStream;
+import java.security.*;
 
 public class ShaderState {
+    public static final boolean DEBUG = Debug.isPropertyDefined("jogl.debug.GLSLState", true, AccessController.getContext());
 
     public ShaderState() {
     }
@@ -77,8 +80,10 @@ public class ShaderState {
             int curId = (null!=shaderProgram)?shaderProgram.id():-1;
             int newId = (null!=prog)?prog.id():-1;
             System.err.println("Info: attachShaderProgram: "+curId+" -> "+newId+"\n\t"+shaderProgram+"\n\t"+prog);
-            Throwable tX = new Throwable("Info: attachShaderProgram: Trace");
-            tX.printStackTrace();
+            if(verbose) {
+                Throwable tX = new Throwable("Info: attachShaderProgram: Trace");
+                tX.printStackTrace();
+            }
         }
         if(null!=shaderProgram) {
             if(shaderProgram.equals(prog)) {
@@ -635,7 +640,6 @@ public class ShaderState {
         return buf.toString();
     }
 
-    protected static final boolean DEBUG = false;
     protected boolean verbose = false;
     protected ShaderProgram shaderProgram=null;
     protected HashMap attribMap2Idx = new HashMap();

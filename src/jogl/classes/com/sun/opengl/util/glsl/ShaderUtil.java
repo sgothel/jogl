@@ -60,6 +60,14 @@ public class ShaderUtil {
         public abstract void attachShader(GL gl, int program, IntBuffer shaders);
         public abstract void detachShader(GL gl, int program, IntBuffer shaders);
         public abstract void deleteShader(GL gl, IntBuffer shaders);
+
+        public abstract boolean createAndLoadShader(GL gl, IntBuffer shader, int shaderType,
+                                                    int binFormat, java.nio.Buffer bin,
+                                                    PrintStream verboseOut);
+
+        public abstract boolean createAndCompileShader(GL gl, IntBuffer shader, int shaderType,
+                                                       java.lang.String[][] sources, 
+                                                       PrintStream verboseOut);
     }
 
     static class GL2ES2Impl extends Impl {
@@ -307,6 +315,64 @@ public class ShaderUtil {
 
             }
         }
+
+        public boolean createAndLoadShader(GL _gl, IntBuffer shader, int shaderType,
+                                           int binFormat, java.nio.Buffer bin,
+                                           PrintStream verboseOut)
+        {
+            GL2ES2 gl = _gl.getGL2ES2();
+            int err = gl.glGetError(); // flush previous errors ..
+            if(err!=GL.GL_NO_ERROR && null!=verboseOut) {
+                verboseOut.println("createAndLoadShader: Pre GL Error: 0x"+Integer.toHexString(err));
+            }
+
+            createShader(gl, shaderType, shader);
+            err = gl.glGetError(); 
+            if(err!=GL.GL_NO_ERROR) {
+                throw new GLException("createAndLoadShader: CreateShader failed, GL Error: 0x"+Integer.toHexString(err));
+            }
+
+
+            shaderBinary(gl, shader, binFormat, bin);
+
+            err = gl.glGetError();
+            if(err!=GL.GL_NO_ERROR && null!=verboseOut) {
+                verboseOut.println("createAndLoadShader: ShaderBinary failed, GL Error: 0x"+Integer.toHexString(err));
+            }
+            return err == GL.GL_NO_ERROR;
+        }
+
+        public boolean createAndCompileShader(GL _gl, IntBuffer shader, int shaderType,
+                                              java.lang.String[][] sources, 
+                                              PrintStream verboseOut)
+        {
+            GL2ES2 gl = _gl.getGL2ES2();
+            int err = gl.glGetError(); // flush previous errors ..
+            if(err!=GL.GL_NO_ERROR && null!=verboseOut) {
+                verboseOut.println("createAndCompileShader: Pre GL Error: 0x"+Integer.toHexString(err));
+            }
+
+            createShader(gl, shaderType, shader);
+            err = gl.glGetError(); 
+            if(err!=GL.GL_NO_ERROR) {
+                throw new GLException("createAndCompileShader: CreateShader failed, GL Error: 0x"+Integer.toHexString(err));
+            }
+
+            shaderSource(gl, shader, sources);
+            err = gl.glGetError(); 
+            if(err!=GL.GL_NO_ERROR) {
+                throw new GLException("createAndCompileShader: ShaderSource failed, GL Error: 0x"+Integer.toHexString(err));
+            }
+
+            compileShader(gl, shader);
+            err = gl.glGetError(); 
+            if(err!=GL.GL_NO_ERROR && null!=verboseOut) {
+                verboseOut.println("createAndCompileShader: CompileShader failed, GL Error: 0x"+Integer.toHexString(err));
+            }
+
+            return isShaderStatusValid(gl, shader, gl.GL_COMPILE_STATUS, verboseOut) && err == GL.GL_NO_ERROR;
+        }
+
     }
 
     public static String getShaderInfoLog(GL gl, int shaderObj) {
@@ -383,6 +449,18 @@ public class ShaderUtil {
 
     public static void deleteShader(GL gl, IntBuffer shaders) {
         getImpl(gl).deleteShader(gl, shaders);
+    }
+
+    public static boolean createAndLoadShader(GL gl, IntBuffer shader, int shaderType,
+                                              int binFormat, java.nio.Buffer bin,
+                                              PrintStream verboseOut) {
+        return getImpl(gl).createAndLoadShader(gl, shader, shaderType, binFormat, bin, verboseOut);
+    }
+
+    public static boolean createAndCompileShader(GL gl, IntBuffer shader, int shaderType,
+                                                 java.lang.String[][] sources, 
+                                                 PrintStream verboseOut) {
+        return getImpl(gl).createAndCompileShader(gl, shader, shaderType, sources, verboseOut);
     }
 
     private static Impl getImpl(GL _gl) {
