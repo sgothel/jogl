@@ -768,10 +768,10 @@ public class GLProfile implements Cloneable {
      */
     private static String computeProfileImpl(String profile) {
         if (GL2ES1.equals(profile)) {
-            if(hasGL2Impl) {
-                return GL2;
-            } else if(hasGL2ES12Impl) {
+            if(hasGL2ES12Impl) {
                 return GL2ES12;
+            } else if(hasGL2Impl) {
+                return GL2;
             } else if(hasGLES1Impl) {
                 return GLES1;
             }
