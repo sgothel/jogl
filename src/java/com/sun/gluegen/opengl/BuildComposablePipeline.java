@@ -746,9 +746,9 @@ public class BuildComposablePipeline
       output.println(" * ");
       output.println("<PRE>");
       if(null!=prologNameOpt) {
-          output.println("     drawable.setGL( new "+className+"( drawable.getGL().getGL2ES2(), new "+prologNameOpt+"( drawable.getGL().getGL2ES2() ) ) );");
+          output.println("     GL gl = drawable.setGL( new "+className+"( drawable.getGL().getGL2ES2(), new "+prologNameOpt+"( drawable.getGL().getGL2ES2() ) ) );");
       } else {
-          output.println("     drawable.setGL( new "+className+"( drawable.getGL().getGL2ES2() ) );");
+          output.println("     GL gl = drawable.setGL( new "+className+"( drawable.getGL().getGL2ES2() ) );");
       }
       output.println("</PRE>");
       output.println("*/");
@@ -898,7 +898,7 @@ public class BuildComposablePipeline
       output.println("    Sample code which installs this pipeline: </P>");
       output.println();
       output.println("<PRE>");
-      output.println("     drawable.setGL(new DebugGL(drawable.getGL()));");
+      output.println("     GL gl = drawable.setGL(new DebugGL(drawable.getGL()));");
       output.println("</PRE>");
       output.println("*/");
     }
@@ -1036,7 +1036,7 @@ public class BuildComposablePipeline
       output.println("    before and after each OpenGL method call. Sample code which installs this pipeline: </P>");
       output.println();
       output.println("<PRE>");
-      output.println("     drawable.setGL(new TraceGL(drawable.getGL(), System.err));");
+      output.println("     GL gl = drawable.setGL(new TraceGL(drawable.getGL(), System.err));");
       output.println("</PRE>");
       output.println("*/");
     }
@@ -1057,7 +1057,7 @@ public class BuildComposablePipeline
         output.println("printIndent();");
       }
       
-      output.print("    println(");
+      output.print("    print(");
           printFunctionCallString(output, m);
       output.println(");");
     }
@@ -1095,10 +1095,10 @@ public class BuildComposablePipeline
         } else if(params[i].equals(int.class)) {
             output.print("+\"<"+params[i].getName()+"> 0x\"+Integer.toHexString(arg"+i+").toUpperCase()");
         } else {
-            output.print("+\"<"+params[i].getName()+">\"+arg"+i);
+            output.print("+\"<"+params[i].getName()+"> \"+arg"+i);
         }
         if ( i < params.length-1) {
-          output.print("+\",\"");      
+          output.print("+\", \"");      
         }
       }
       output.print("+\")\"");
