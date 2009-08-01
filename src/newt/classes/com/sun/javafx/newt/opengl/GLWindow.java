@@ -441,10 +441,12 @@ public class GLWindow extends Window implements GLAutoDrawable {
         return context.getGL();
     }
 
-    public void setGL(GL gl) {
+    public GL setGL(GL gl) {
         if (context != null) {
             context.setGL(gl);
+            return gl;
         }
+        return null;
     }
 
     public void addGLEventListener(GLEventListener listener) {

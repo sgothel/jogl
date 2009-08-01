@@ -208,6 +208,7 @@ public interface GLAutoDrawable extends GLDrawable {
       This should only be called from within the GLEventListener's
       callback methods, and usually only from within the init()
       method, in order to install a composable pipeline. See the JOGL
-      demos for examples. */
-  public void setGL(GL gl);
+      demos for examples.
+      @return the set GL pipeline or null if not successful */
+  public GL setGL(GL gl);
 }

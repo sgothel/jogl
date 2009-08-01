@@ -404,11 +404,13 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
     return (context == null) ? null : context.getGL();
   }
 
-  public void setGL(GL gl) {
+  public GL setGL(GL gl) {
     GLContext context = getContext();
     if (context != null) {
       context.setGL(gl);
+      return gl;
     }
+    return null;
   }
 
   public void setAutoSwapBufferMode(boolean onOrOff) {

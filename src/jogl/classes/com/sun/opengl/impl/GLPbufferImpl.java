@@ -129,8 +129,8 @@ public class GLPbufferImpl implements GLPbuffer {
     return getContext().getGL();
   }
 
-  public void setGL(GL gl) {
-    getContext().setGL(gl);
+  public GL setGL(GL gl) {
+    return getContext().setGL(gl);
   }
 
   public void setAutoSwapBufferMode(boolean onOrOff) {

@@ -205,8 +205,10 @@ public abstract class GLContext {
 
   /**
    * Sets the GL pipeline object for this GLContext.
+   *
+   * @return the set GL pipeline or null if not successful
    */
-  public abstract void setGL(GL gl);
+  public abstract GL setGL(GL gl);
 
   /**
    * Returns the attached user object for the given name to this GLContext.
