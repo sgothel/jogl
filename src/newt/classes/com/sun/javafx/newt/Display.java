@@ -52,6 +52,8 @@ public abstract class Display implements Runnable {
             displayClass = Class.forName("com.sun.javafx.newt.macosx.MacDisplay");
         } else if (NativeWindowFactory.TYPE_X11.equals(type)) {
             displayClass = Class.forName("com.sun.javafx.newt.x11.X11Display");
+        } else if (NativeWindowFactory.TYPE_AWT.equals(type)) {
+            displayClass = Class.forName("com.sun.javafx.newt.awt.AWTDisplay");
         } else if (NewtFactory.TYPE_BROADCOM_EGL.equals(type)) {
             displayClass = Class.forName("com.sun.javafx.newt.opengl.broadcom.BCEGLDisplay");
         } else {
