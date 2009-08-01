@@ -99,6 +99,12 @@ public abstract class EGLContext extends GLContextImpl {
         }
         boolean created = false;
         if (eglContext == 0) {
+            // FIXME - Broadcom !
+            eglContext = EGL.eglGetCurrentContext(); 
+            created = ( 0 != eglContext ) ;
+            System.err.println(getThreadName() + ": !!! Re-Use: Ctx: 0x"+Long.toHexString(eglContext));
+        }
+        if (eglContext == 0) {
             create();
             if (DEBUG) {
                 System.err.println(getThreadName() + ": !!! Created GL context 0x" +
