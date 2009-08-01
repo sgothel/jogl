@@ -313,7 +313,6 @@ public class WindowsWGLContext extends GLContextImpl {
   }
 
   protected void updateGLProcAddressTable() {
-    super.updateGLProcAddressTable();
     if (DEBUG) {
       System.err.println(getThreadName() + ": !!! Initializing WGL extension address table for " + this);
     }
@@ -323,6 +322,7 @@ public class WindowsWGLContext extends GLContextImpl {
       wglExtProcAddressTable = new WGLExtProcAddressTable();
     }          
     resetProcAddressTable(getWGLExtProcAddressTable());
+    super.updateGLProcAddressTable();
   }
   
   public String getPlatformExtensionsString() {

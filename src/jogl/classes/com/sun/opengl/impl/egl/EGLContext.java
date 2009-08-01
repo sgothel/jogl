@@ -225,7 +225,6 @@ public abstract class EGLContext extends GLContextImpl {
     }
 
     protected void updateGLProcAddressTable() {
-        super.updateGLProcAddressTable();
         if (DEBUG) {
           System.err.println(getThreadName() + ": !!! Initializing EGL extension address table");
         }
@@ -235,6 +234,7 @@ public abstract class EGLContext extends GLContextImpl {
           eglExtProcAddressTable = new EGLExtProcAddressTable();
         }          
         resetProcAddressTable(getEGLExtProcAddressTable());
+        super.updateGLProcAddressTable();
     }
   
     public synchronized String getPlatformExtensionsString() {

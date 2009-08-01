@@ -320,7 +320,6 @@ public abstract class MacOSXCGLContext extends GLContextImpl
   }
 
   protected void updateGLProcAddressTable() {
-    super.updateGLProcAddressTable();
     if (DEBUG) {
       System.err.println("!!! Initializing CGL extension address table");
     }
@@ -330,6 +329,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
       cglExtProcAddressTable = new CGLExtProcAddressTable();
     }          
     resetProcAddressTable(getCGLExtProcAddressTable());
+    super.updateGLProcAddressTable();
   }
 	
   public String getPlatformExtensionsString()

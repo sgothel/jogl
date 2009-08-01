@@ -349,7 +349,6 @@ public abstract class X11GLXContext extends GLContextImpl {
   }
 
   protected void updateGLProcAddressTable() {
-    super.updateGLProcAddressTable();
     if (DEBUG) {
       System.err.println(getThreadName() + ": !!! Initializing GLX extension address table");
     }
@@ -359,6 +358,7 @@ public abstract class X11GLXContext extends GLContextImpl {
       glXExtProcAddressTable = new GLXExtProcAddressTable();
     }          
     resetProcAddressTable(getGLXExtProcAddressTable());
+    super.updateGLProcAddressTable();
   }
 
   public synchronized String getPlatformExtensionsString() {
