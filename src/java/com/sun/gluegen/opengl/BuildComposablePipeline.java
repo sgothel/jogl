@@ -330,15 +330,29 @@ public class BuildComposablePipeline
 
       PrintWriter output = new PrintWriter(new BufferedWriter(new FileWriter(file)));
 
+      List baseInterfaces = Arrays.asList(baseInterfaceClass.getInterfaces());
       HashSet clazzList = new HashSet();
       clazzList.add(baseInterfaceClass);
-      clazzList.addAll(Arrays.asList(baseInterfaceClass.getInterfaces()));
+      clazzList.addAll(baseInterfaces);
+      int ifNamesNumber = clazzList.size();
 
-      String[] ifNames = new String[clazzList.size()];
+      // keep original order ..
+      clazzList.clear();
+      String[] ifNames = new String[ifNamesNumber];
       {
           int i=0;
-          for (Iterator iter=clazzList.iterator(); iter.hasNext(); ) {
-                ifNames[i++] = new String(((Class)iter.next()).getName());
+
+          for (Iterator iter=baseInterfaces.iterator(); iter.hasNext(); ) {
+                Class ifClass = (Class)iter.next();
+                if(!clazzList.contains(ifClass)) {
+                    ifNames[i++] = new String(ifClass.getName());
+                    clazzList.add(ifClass);
+                }
+          }
+
+          if(null!=baseInterfaceClass && !clazzList.contains(baseInterfaceClass)) {
+              ifNames[i++] = new String(baseInterfaceClass.getName());
+              clazzList.add(baseInterfaceClass);
           }
       }
 
