@@ -1776,7 +1776,7 @@
                 <include name="com/sun/javafx/**" />
             </fileset>
             <fileset dir="${src.java}"
-                     includes="${java.part.util.fixedfunc.shaders}"/>
+                     includes="${java.part.util.fixedfuncemu.shadercode}"/>
         </jar>
     </target>
     <target name="build-jars-all-cdc" depends="setup-manifestfile">
