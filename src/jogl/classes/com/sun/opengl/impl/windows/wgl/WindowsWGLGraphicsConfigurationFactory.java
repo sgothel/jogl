@@ -246,12 +246,21 @@ public class WindowsWGLGraphicsConfigurationFactory extends GraphicsConfiguratio
                   try {
                     pixelFormat = chooser.chooseCapabilities(capabilities, availableCaps, recommendedPixelFormat) + 1;
                   } catch (NativeWindowException e) {
-                    throw new GLException(e);
+                    if(DEBUG) {
+                          e.printStackTrace();
+                    }
+                    pixelFormat = -1;
                   }
               } else {
                   pixelFormat = recommendedPixelFormat;
               }
-              if ((pixelFormat <= 0) || (pixelFormat > numFormats)) {
+              if (pixelFormat <= 0) {
+                  // keep on going ..
+                  if(DEBUG) {
+                      System.err.println("WindowsWGLGraphicsConfigurationFactory.updateGraphicsConfiguration .. unable to choose config, using first");
+                  }
+                  pixelFormat = 1; // default ..
+              } else if ( pixelFormat > numFormats ) {
                 throw new GLException("Invalid result " + pixelFormat +
                                       " from GLCapabilitiesChooser (should be between 1 and " +
                                       numFormats + ")");

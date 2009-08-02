@@ -215,11 +215,19 @@ public class X11GLXGraphicsConfigurationFactory extends GraphicsConfigurationFac
                 try {
                   chosen = chooser.chooseCapabilities(capabilities, caps, recommendedIndex);
                 } catch (NativeWindowException e) {
-                  throw new GLException(e);
+                  if(DEBUG) {
+                      e.printStackTrace();
+                  }
+                  chosen = -1;
                 }
             }
-
-            if (chosen < 0 || chosen >= caps.length) {
+            if (chosen < 0) {
+              // keep on going ..
+              if(DEBUG) {
+                  System.err.println("X11GLXGraphicsConfiguration.chooseGraphicsConfigurationFBConfig .. unable to choose config, using first");
+              }
+              chosen = 0; // default ..
+            } else if (chosen >= caps.length) {
                 throw new GLException("GLCapabilitiesChooser specified invalid index (expected 0.." + (caps.length - 1) + ")");
             }
 
@@ -255,7 +263,7 @@ public class X11GLXGraphicsConfigurationFactory extends GraphicsConfigurationFac
         GLCapabilities[] caps = null;
         int recommendedIndex = -1;
         XVisualInfo retXVisualInfo = null;
-        int chosen;
+        int chosen=-1;
 
         NativeWindowFactory.getDefaultFactory().getToolkitLock().lock();
         try {
@@ -293,9 +301,18 @@ public class X11GLXGraphicsConfigurationFactory extends GraphicsConfigurationFac
             try {
               chosen = chooser.chooseCapabilities(capabilities, caps, recommendedIndex);
             } catch (NativeWindowException e) {
-              throw new GLException(e);
+              if(DEBUG) {
+                  e.printStackTrace();
+              }
+              chosen = -1;
             }
-            if (chosen < 0 || chosen >= caps.length) {
+            if (chosen < 0) {
+              // keep on going ..
+              if(DEBUG) {
+                  System.err.println("X11GLXGraphicsConfiguration.chooseGraphicsConfigurationXVisual .. unable to choose config, using first");
+              }
+              chosen = 0; // default ..
+            } else if (chosen >= caps.length) {
                 throw new GLException("GLCapabilitiesChooser specified invalid index (expected 0.." + (caps.length - 1) + ")");
             }
             if (infos[chosen] == null) {
