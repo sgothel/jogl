@@ -148,7 +148,7 @@ public abstract class GLDrawableFactory {
   /** 
    * Returns the sole GLDrawableFactory instance. 
    * 
-   * @arg glProfile GLProfile to determine the factory type, ie EGLDrawableFactory, 
+   * @param glProfile GLProfile to determine the factory type, ie EGLDrawableFactory, 
    *                or one of the native GLDrawableFactory's, ie X11/GLX, Windows/WGL or MacOSX/CGL.
    */
   public static GLDrawableFactory getFactory(GLProfile glProfile) throws GLException {

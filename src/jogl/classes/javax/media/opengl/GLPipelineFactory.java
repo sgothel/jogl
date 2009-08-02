@@ -54,7 +54,7 @@ public class GLPipelineFactory {
      * The upstream GL instance is determined as follows:
      * <ul>
      *   <li> Use <code>pipelineClazzBaseName</code> as the class name's full basename, incl. package name</li>
-     *   <li> For the <code>downstream</code> classe and it's superclasses, do:</li>
+     *   <li> For the <code>downstream</code> class and it's superclasses, do:</li>
      *   <ul>
      *      <li> For all <code>downstream</code> class and superclass interfaces, do:</li>
      *      <ul>
@@ -65,10 +65,10 @@ public class GLPipelineFactory {
      *   </ul>
      * </ul><br>
      *
-     * @arg pipelineClazzBaseName the basename of the pipline class name
-     * @arg reqInterface optional requested interface to be used, may be null, in which case the first matching one is used
-     * @arg downstream is always the 1st argument for the upstream constructor
-     * @arg additionalArgs additional arguments for the upstream constructor
+     * @param pipelineClazzBaseName the basename of the pipline class name
+     * @param reqInterface optional requested interface to be used, may be null, in which case the first matching one is used
+     * @param downstream is always the 1st argument for the upstream constructor
+     * @param additionalArgs additional arguments for the upstream constructor
      */
     public static final GL create(String pipelineClazzBaseName, Class reqInterface, GL downstream, Object[] additionalArgs) {
         Class downstreamClazz = downstream.getClass();

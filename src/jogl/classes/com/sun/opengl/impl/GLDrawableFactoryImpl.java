@@ -69,7 +69,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
   /**
    * Returns the sole GLDrawableFactoryImpl instance.
    *
-   * @arg glProfile GLProfile to determine the factory type, ie EGLDrawableFactory,
+   * @param glProfile GLProfile to determine the factory type, ie EGLDrawableFactory,
    *                or one of the native GLDrawableFactory's, ie X11/GLX, Windows/WGL or MacOSX/CGL.
    */
   public static GLDrawableFactoryImpl getFactoryImpl(GLProfile glp) {

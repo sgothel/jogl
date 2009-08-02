@@ -10,7 +10,7 @@ public class GLUniformData {
      *
      * Number of objects is 1
      *
-     * @arg components number of elements of one object, ie 4 for GL_FLOAT_VEC4,
+     * @param components number of elements of one object, ie 4 for GL_FLOAT_VEC4,
      */
     public GLUniformData(String name, int val) {
         init(name, 1, new Integer(val));
@@ -21,7 +21,7 @@ public class GLUniformData {
      *
      * Number of objects is 1
      *
-     * @arg components number of elements of one object, ie 4 for GL_FLOAT_VEC4,
+     * @param components number of elements of one object, ie 4 for GL_FLOAT_VEC4,
      */
     public GLUniformData(String name, float val) {
         init(name, 1, new Float(val));
@@ -32,7 +32,7 @@ public class GLUniformData {
      *
      * Number of objects is calculated by data.limit()/components
      *
-     * @arg components number of elements of one object, ie 4 for GL_FLOAT_VEC4,
+     * @param components number of elements of one object, ie 4 for GL_FLOAT_VEC4,
      */
     public GLUniformData(String name, int components, IntBuffer data) {
         init(name, components, data);
@@ -43,7 +43,7 @@ public class GLUniformData {
      *
      * Number of objects is calculated by data.limit()/components
      *
-     * @arg components number of elements of one object, ie 4 for GL_FLOAT_VEC4,
+     * @param components number of elements of one object, ie 4 for GL_FLOAT_VEC4,
      */
     public GLUniformData(String name, int components, FloatBuffer data) {
         init(name, components, data);
@@ -54,8 +54,8 @@ public class GLUniformData {
      *
      * Number of objects is calculated by data.limit()/(rows*columns)
      *
-     * @arg rows the matrix rows
-     * @arg column the matrix column
+     * @param rows the matrix rows
+     * @param column the matrix column
      */
     public GLUniformData(String name, int rows, int columns, FloatBuffer data) {
         init(name, rows, columns, data);

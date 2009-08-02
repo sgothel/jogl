@@ -318,7 +318,7 @@ public class ShaderState {
      * Even if the attribute is not found in the current shader,
      * it is stored in this state.
      *
-     * @arg data the GLArrayData's name must match the attributes one,
+     * @param data the GLArrayData's name must match the attributes one,
      *      it's index will be set with the attribute's location,
      *      if found.
      *
@@ -549,7 +549,7 @@ public class ShaderState {
      * Even if the uniform is not found in the current shader,
      * it is stored in this state.
      *
-     * @arg data the GLUniforms's name must match the uniform one,
+     * @param data the GLUniforms's name must match the uniform one,
      *      it's index will be set with the uniforms's location,
      *      if found.
      *
