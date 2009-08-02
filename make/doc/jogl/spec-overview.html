@@ -53,7 +53,7 @@ bindings to the native OpenGL(R) 3D graphics library profiles:
         This interface contains all core desktop OpenGL methods through
 version 3.0, inclusive, as well as most of it's extensions defined at the
 time of this specification.  Early OpenGL extensions whose functionality
-was incorporated into core OpenGL by version 2.0, inclusive, are specifically
+was incorporated into core OpenGL by version 3.0, inclusive, are specifically
 excluded.<br> 
         Future extensions will be added with a <a href="#maintenanceupdates">maintenance update</a></li><br>
 
@@ -304,11 +304,16 @@ according the following rules: <br>
  
 <ul>
   <li>
-   <li>All functions in core OpenGL 2.0, inclusive, have been included.</li>
+   <li>All functions in core OpenGL 3.0, inclusive, have been included.</li>
    <li>If the functionality of the OpenGL extension was subsumed into core 
-OpenGL by version 2.0, then the extension was dropped from the Java bindings.
+OpenGL by version 3.0, then the extension was dropped from the Java bindings.
        However, if the core function name is not available in the native OpenGL implementation,
-       the extension named equivalent is used instead, e.g. <i>GL_ARB_framebuffer_object</i>.</li>
+       the extension named equivalent is used instead, e.g. <i>GL_ARB_framebuffer_object</i>.
+       In general the native method name will be looked up as follows
+       <ul>
+          <li> Try the interface name</li>
+          <li> Try the extension name: ARB, EXT, ..</li>
+       </ul> </li>
    <li>Functions that deal with explicit pointer values in such a way that 
 they cannot be properly implemented in Java have been excluded.&nbsp; This 
 includes retrieval methods with a C void ** in the OpenGL signature like glGetBufferPointerv,
@@ -370,8 +375,8 @@ implementation.<br>
  
 <h3>OpenGL Version on Runtime System</h3>
  Even though OpenGL extensions whose functionality was included into core 
-OpenGL by version 2.0, inclusive, are not included in the bindings, it should 
-be noted that OpenGL version 2.0 is not an absolute requirement on the runtime 
+OpenGL by version 3.0, inclusive, are not included in the bindings, it should 
+be noted that OpenGL version 3.0 is not an absolute requirement on the runtime 
 system.&nbsp; This is because a user could query whether any particular function 
 is available before calling certain core APIs that might not be present.&nbsp; 
 Also, if the core function name is not available in the native OpenGL implementation,
@@ -422,6 +427,15 @@ http://www.khronos.org/registry/cl/</a></blockquote>
 <blockquote><a
  href="http://www.opengl.org/registry/doc/glspec31.20090324.pdf"> 
 http://www.opengl.org/registry/doc/glspec31.20090324.pdf</a></blockquote>
+    
+<ul>
+    <li>OpenGL 3.0 Specification</li>
+   
+</ul>
+    
+<blockquote><a
+ href="http://www.opengl.org/registry/doc/glspec30.20080923.pdf"> 
+http://www.opengl.org/registry/doc/glspec30.20080923.pdf</a></blockquote>
     
 <ul>
     <li>OpenGL 2.1 Specification</li>

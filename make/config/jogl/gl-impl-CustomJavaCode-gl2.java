@@ -15,6 +15,7 @@ public void setObjectTracker(GLObjectTracker tracker) {
 
 */
 
+
 public GL2Impl(GLProfile glp, GLContextImpl context) {
   this._context = context; 
   this.bufferSizeTracker = context.getBufferSizeTracker();

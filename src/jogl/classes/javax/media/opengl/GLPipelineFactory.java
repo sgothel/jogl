@@ -54,13 +54,12 @@ public class GLPipelineFactory {
      * The upstream GL instance is determined as follows:
      * <ul>
      *   <li> Use <code>pipelineClazzBaseName</code> as the class name's full basename, incl. package name</li>
-     *   <li> For all <code>downstream</code> classes, do:</li>
+     *   <li> For the <code>downstream</code> classe and it's superclasses, do:</li>
      *   <ul>
-     *      <li> For all <code>downstream</code> class interfaces, do:</li>
+     *      <li> For all <code>downstream</code> class and superclass interfaces, do:</li>
      *      <ul>
-     *        <li> If <code>reqInterface</code> is not null and the interface is unequal, continue.</li>
-     *        <li> If <code>downstream</code> is not instance of interface, continue.</li> 
-     *        <li> If <code>downstream</code> is not instance of interface, continue.</li> 
+     *        <li> If <code>reqInterface</code> is not null and the interface is unequal, continue loop.</li>
+     *        <li> If <code>downstream</code> is not instance of interface, continue loop.</li> 
      *        <li> If upstream class is available use it, end loop.</li>
      *      </ul>
      *   </ul>
