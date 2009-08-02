@@ -55,6 +55,9 @@ version 3.0, inclusive, as well as most of it's extensions defined at the
 time of this specification.  Early OpenGL extensions whose functionality
 was incorporated into core OpenGL by version 3.0, inclusive, are specifically
 excluded.<br> 
+        Note: OpenGL 3.0 is the last subsumed version in the specification. 
+        You need to use a {@link javax.media.opengl.GL3} OpenGL 3.1+ context to benefit
+        from new functionality and versions.<br>
         Future extensions will be added with a <a href="#maintenanceupdates">maintenance update</a></li><br>
 
         <li> {@link javax.media.opengl.GL3 javax.media.opengl.GL3} interface<br>
@@ -62,6 +65,9 @@ excluded.<br>
         This interface contains all core desktop OpenGL methods starting from 3.1,
 inclusive - forward compatible only, as well as most of it's extensions defined at the
 time of this specification. <br>
+        Note: OpenGL 3.0 forward compatible, non deprecated functionality is included in the 
+        3.1 specification, hence the {@link javax.media.opengl.GL2GL3} implemented interface.<br>
+        Note: OpenGL 3.1 (forward compatible) no more includes fixed point functionality.<br>
         Future extensions will be added with a <a href="#maintenanceupdates">maintenance update</a></li><br>
 
         <li> {@link javax.media.opengl.GLES1 javax.media.opengl.GLES1} interface<br>
@@ -105,7 +111,8 @@ time of this specification. <br>
 
         <li> {@link javax.media.opengl.GL2GL3 javax.media.opengl.GL2GL3} interface<br>
         <br>
-        Interface containing the common subset of GL3 and GL2.<br>
+        Interface containing the common subset of GL3 (OpenGL 3.1+) and GL2 (OpenGL 2.0),
+        also known as the OpenGL 3.0 forward compatible, non deprecated subset.<br>
         This interface reflects only the programmable shader functionality of desktop OpenGL</li><br>
     </ul>
   </li><br>

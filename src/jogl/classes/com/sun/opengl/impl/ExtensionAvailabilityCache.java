@@ -212,19 +212,16 @@ public final class ExtensionAvailabilityCache {
         }
 
         switch (major) {
-        case 2:
-          if(gl.isGL3() && major==2) {
+        case 3:
+          if(gl.isGL3()) {
               // GL3 is a GL 3.1 forward compatible context,
               // hence no 2.0, 1.0 - 1.5 GL versions are supported.
               major=0; 
-          } else {
-              // make sure 2.0 is added ..
-              minor = 0;
-              availableExtensionCache.add("GL_VERSION_" + major + "_" + minor);
-              if (DEBUG) {
-                System.err.println("ExtensionAvailabilityCache: Added GL_VERSION_" + major + "_" + minor + " to known extensions");
-              }
           }
+          // Restart loop at version 2.1
+          minor = 1;
+          break;
+        case 2:
           // Restart loop at version 1.5
           minor = 5;
           break;
