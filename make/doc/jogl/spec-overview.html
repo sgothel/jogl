@@ -12,7 +12,7 @@
 bindings to the native OpenGL(R) 3D graphics library profiles:
 <ul>
     <li> Desktop OpenGL 1.0 - 3.0 </li>
-    <li> Desktop OpenGL 3.x, with x >= 1 </li>
+    <li> Desktop OpenGL 3.x, with x >= 1, forward compatible, core profile </li>
     <li> Embedded OpenGL ES 1.x, with x >= 0 </li>
     <li> Embedded OpenGL ES 2.x, with x >= 0 </li>
 </ul><br>
@@ -55,9 +55,8 @@ bindings to the native OpenGL(R) 3D graphics library profiles:
     <ul> 
         <li> {@link javax.media.opengl.GL3 javax.media.opengl.GL3} interface<br>
         <br>
-        This interface contains all core desktop OpenGL methods starting from 3.1,
-inclusive - forward compatible only, as well as most of it's extensions defined at the
-time of this specification. <br>
+        This interface contains all core, forward compatible, OpenGL methods starting from 3.1,
+inclusive, as well as most of it's extensions defined at the time of this specification. <br>
         Note: OpenGL 3.0 forward compatible, non deprecated functionality is included in the 
         3.1 specification, hence the {@link javax.media.opengl.GL2GL3} implemented interface.<br>
         Note: OpenGL 3.1 forward compatible no more includes fixed point functionality.<br>
@@ -323,7 +322,7 @@ according the following rules: <br>
   <a name="GL3InclusionCriteria"/>
   <li> {@link javax.media.opengl.GL3 javax.media.opengl.GL3} interface
    <ul>
-       <li>All functions in core OpenGL 3.1 - forward compatible, inclusive, have been included,
+       <li>All functions in core, forward compatible, OpenGL 3.1, inclusive, have been included,
            as described in the header files <code>GL3/gl3.h</code>.</li>
        <li>Reason for starting a new profile beginning with 3.1 are:
            <ul>
@@ -335,6 +334,7 @@ according the following rules: <br>
             <li> It shares a commont subset with ES2.x</li>
             <li> It is not guaranteed to be provided by all vendors.</li>
             <li> It is not guaranteed to be provided in future versions.</li>
+            <li> OpenGL 3.2 core profile is compatible with OpenGL 3.1 forward compatible spec.</li>
            </ul></li>
    </ul></li>
   <a name="GL2InclusionCriteria"/>
@@ -468,6 +468,15 @@ javax.media.opengl namespace via future maintenance updates to the API.<br>
 <blockquote><a
  href="http://www.khronos.org/registry/cl/"> 
 http://www.khronos.org/registry/cl/</a></blockquote>
+    
+<ul>
+    <li>OpenGL 3.2 Core Specification</li>
+   
+</ul>
+    
+<blockquote><a
+ href="http://www.opengl.org/registry/doc/glspec32.core.20090803.pdf"> 
+http://www.opengl.org/registry/doc/glspec32.core.20090803.pdf</a></blockquote>
     
 <ul>
     <li>OpenGL 3.1 Specification</li>
