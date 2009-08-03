@@ -52,6 +52,7 @@ import com.sun.gluegen.procaddress.*;
 public class GLJavaMethodBindingEmitter extends ProcAddressJavaMethodBindingEmitter {
   protected boolean bufferObjectVariant;
   protected GLEmitter glEmitter;
+  protected CommentEmitter glCommentEmitter = new GLCommentEmitter();
   
   public GLJavaMethodBindingEmitter(JavaMethodBindingEmitter methodToWrap,
                                     boolean callThroughProcAddress,
@@ -66,6 +67,7 @@ public class GLJavaMethodBindingEmitter extends ProcAddressJavaMethodBindingEmit
           emitter);
     this.bufferObjectVariant = bufferObjectVariant;
     this.glEmitter=emitter;
+    setCommentEmitter(glCommentEmitter);
   }
 
   public GLJavaMethodBindingEmitter(ProcAddressJavaMethodBindingEmitter methodToWrap,
@@ -74,6 +76,7 @@ public class GLJavaMethodBindingEmitter extends ProcAddressJavaMethodBindingEmit
     super(methodToWrap);
     this.bufferObjectVariant = bufferObjectVariant;
     this.glEmitter=emitter;
+    setCommentEmitter(glCommentEmitter);
   }
 
   public GLJavaMethodBindingEmitter(GLJavaMethodBindingEmitter methodToWrap) {
@@ -99,5 +102,19 @@ public class GLJavaMethodBindingEmitter extends ProcAddressJavaMethodBindingEmit
     }
 
     return name;
+  }
+
+  protected class GLCommentEmitter
+    extends JavaMethodBindingEmitter.DefaultCommentEmitter
+  {
+    protected void emitBindingCSignature(MethodBinding binding, PrintWriter writer) {      
+      super.emitBindingCSignature(binding, writer);
+      String extensionName = glEmitter.getGLConfig().getExtension(binding.getCSymbol().getName());
+      if(null!=extensionName) {
+          writer.print("<br>Part of <code>"+extensionName+"</code>");
+      } else {
+          writer.print("<br>Part of <code>unknown extension</code>");
+      }
+    }
   }
 }

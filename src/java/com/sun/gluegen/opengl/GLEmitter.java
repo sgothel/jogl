@@ -305,6 +305,21 @@ public class GLEmitter extends ProcAddressEmitter
     return bufferObjectMethodBindings.containsKey(binding);
   }
 
+  public void emitDefine(String name, String value, String optionalComment) throws Exception {
+      String extensionName = getGLConfig().getExtension(name);
+      StringBuffer newComment = new StringBuffer();
+      if(null!=extensionName) {
+          newComment.append("Part of <code>"+extensionName+"</code>");
+      } else {
+          newComment.append("Part of <code>unknown extension</code>");
+      }
+      if(null!=optionalComment) {
+        newComment.append(" ");
+        newComment.append(optionalComment);
+      }
+      super.emitDefine(name, value, newComment.toString());
+  }
+
   //----------------------------------------------------------------------
   // Internals only below this point
   //
@@ -319,10 +334,9 @@ public class GLEmitter extends ProcAddressEmitter
     for (Iterator iter = superEmitters.iterator(); iter.hasNext(); ) {
         JavaMethodBindingEmitter emitter = (JavaMethodBindingEmitter) iter.next();
         if (emitter instanceof ProcAddressJavaMethodBindingEmitter) {
-          emitters.add(new GLJavaMethodBindingEmitter((ProcAddressJavaMethodBindingEmitter) emitter, this, bufferObjectVariant));
-        } else {
-          emitters.add(emitter);
+          emitter = new GLJavaMethodBindingEmitter((ProcAddressJavaMethodBindingEmitter) emitter, this, bufferObjectVariant);
         }
+        emitters.add(emitter);
     }
   }
 

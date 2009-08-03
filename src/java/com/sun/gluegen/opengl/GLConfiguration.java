@@ -202,6 +202,13 @@ public class GLConfiguration extends ProcAddressConfiguration {
     super.dumpIgnores();
   }
 
+  protected String getExtension(String symbol) {
+    if (glInfo != null) {
+        return glInfo.getExtension(symbol);
+    }
+    return null;
+  }
+
   protected boolean shouldIgnoreExtension(String symbol, boolean criteria) {
     if (criteria && glInfo != null) {
       String extension = glInfo.getExtension(symbol);
