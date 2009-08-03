@@ -38,6 +38,38 @@ typedef void (APIENTRYP PFNGLFRAMEBUFFERTEXTURELAYERARBPROC) (GLenum target, GLe
 typedef void (APIENTRYP PFNGLFRAMEBUFFERTEXTUREFACEARBPROC) (GLenum target, GLenum attachment, GLuint texture, GLint level, GLenum face);
 #endif
 
+
+/*
+ * ------------------------------------------------
+ * Everything here and below was added manually
+ * to the version of glext.h obtained from:
+ * http://oss.sgi.com/projects/ogl-sample/registry/index.html
+ * ------------------------------------------------
+ */
+  
+
+/**
+ * http://www.opengl.org/registry/specs/AMD/vertex_shader_tessellator.txt
+ */
+#ifndef GL_AMD_vertex_shader_tessellator
+#define GL_SAMPLER_BUFFER_AMD                0x9001
+#define GL_INT_SAMPLER_BUFFER_AMD            0x9002
+#define GL_UNSIGNED_INT_SAMPLER_BUFFER_AMD   0x9003
+#define GL_DISCRETE_AMD                      0x9006
+#define GL_CONTINUOUS_AMD                    0x9007
+#define GL_TESSELLATION_MODE_AMD             0x9004
+#define GL_TESSELLATION_FACTOR_AMD           0x9005
 #endif
 
+#ifndef GL_AMD_vertex_shader_tessellator
+#define GL_AMD_vertex_shader_tessellator
+#ifdef GL_GL3EXT_PROTOTYPES
+GLAPI void APIENTRY glTessellationFactorAMD(GLfloat factor);
+GLAPI void APIENTRY glTessellationModeAMD(GLenum mode);
+#endif
+typedef void (APIENTRYP PFNGLTESSELLATIONFACTORAMDPROC) (GLfloat factor);
+typedef void (APIENTRYP PFNGLTESSELLATIONMODEAMDPROC) (GLenum mode);
+#endif
+
+#endif
 
