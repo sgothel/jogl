@@ -147,7 +147,7 @@ public class WindowsWGLContext extends GLContextImpl {
       throw new GLException("Unable to create temp OpenGL context for device context " + toHexString(drawable.getNativeWindow().getSurfaceHandle()));
     } else {
         if (!WGL.wglMakeCurrent(drawable.getNativeWindow().getSurfaceHandle(), temp_hglrc)) {
-            throw new GLException("Error making temp context current: " + WGL.GetLastError());
+            throw new GLException("Error making temp context current: 0x" + Integer.toHexString(WGL.GetLastError()));
         }
         setGLFunctionAvailability(true);
 
@@ -177,30 +177,16 @@ public class WindowsWGLContext extends GLContextImpl {
             };
 
             if(glCaps.getGLProfile().isGL3()) {
-                if(tryGLContext3_2) {
-                    // Try >= 3.2 core first !
-                    // and verify with a None drawable binding (default framebuffer)
-                    attribs[0+1]  = 3;
-                    attribs[2+1]  = 2;
-                    attribs[6+0]  = WGLExt.WGL_CONTEXT_PROFILE_MASK_ARB;
-                    attribs[6+1]  = WGLExt.WGL_CONTEXT_CORE_PROFILE_BIT_ARB;
-                    hglrc = wglExt.wglCreateContextAttribsARB(drawable.getNativeWindow().getSurfaceHandle(), hglrc2, attribs, 0); 
-                    if(0!=hglrc) {
-                        if (!WGL.wglMakeCurrent(0, hglrc)) {
-                            if(DEBUG) {
-                              System.err.println("WindowsWGLContext.createContext couldn't make >= 3.2 core context current - fallback");
-                            }
-                            WGL.wglMakeCurrent(0, 0);
-                            WGL.wglDeleteContext(hglrc);
-                            hglrc = 0;
-                        } else if(DEBUG) {
-                          System.err.println("WindowsWGLContext.createContext >= 3.2 available 0x"+Long.toHexString(hglrc));
-                        }
-                    }
-                }
+                // Try >= 3.2 core first !
+                // In contrast to GLX no verify with a None drawable binding (default framebuffer) is necessary.
+                attribs[0+1]  = 3;
+                attribs[2+1]  = 2;
+                attribs[6+0]  = WGLExt.WGL_CONTEXT_PROFILE_MASK_ARB;
+                attribs[6+1]  = WGLExt.WGL_CONTEXT_CORE_PROFILE_BIT_ARB;
+                hglrc = wglExt.wglCreateContextAttribsARB(drawable.getNativeWindow().getSurfaceHandle(), hglrc2, attribs, 0); 
                 if(0==hglrc) {
-                    if(tryGLContext3_2 && DEBUG) {
-                      System.err.println("WindowsWGLContext.createContext couldn't create >= 3.2 core context");
+                    if(DEBUG) {
+                        System.err.println("WindowsWGLContext.createContext couldn't create >= 3.2 core context");
                     }
                     // Try >= 3.1 forward compatible - last resort for GL3 !
                     attribs[0+1]  = 3;
@@ -208,6 +194,8 @@ public class WindowsWGLContext extends GLContextImpl {
                     attribs[4+1] |= WGLExt.WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB;
                     attribs[6+0]  = 0;
                     attribs[6+1]  = 0;
+                } else if(DEBUG) {
+                  System.err.println("WindowsWGLContext.createContext >= 3.2 available 0x"+Long.toHexString(hglrc));
                 }
             }
             if(0==hglrc) {
@@ -225,7 +213,7 @@ public class WindowsWGLContext extends GLContextImpl {
                 // continue with temp context for GL < 3.0
                 hglrc = temp_hglrc;
                 if (!WGL.wglMakeCurrent(drawable.getNativeWindow().getSurfaceHandle(), hglrc)) {
-                    throw new GLException("Error making old context current: " + WGL.GetLastError());
+                    throw new GLException("Error making old context current: 0x" + Integer.toHexString(WGL.GetLastError()));
                 }
                 if(DEBUG) {
                   System.err.println("WindowsWGLContext.create done (old ctx < 3.0 - no 3.0) 0x"+Long.toHexString(hglrc));
@@ -236,7 +224,7 @@ public class WindowsWGLContext extends GLContextImpl {
                 WGL.wglDeleteContext(temp_hglrc);
 
                 if (!WGL.wglMakeCurrent(drawable.getNativeWindow().getSurfaceHandle(), hglrc)) {
-                    throw new GLException("Error making new context current: " + WGL.GetLastError());
+                    throw new GLException("Error making new context current: 0x" + Integer.toHexString(WGL.GetLastError()));
                 }
                 updateGLProcAddressTable();
                 if(DEBUG) {
@@ -248,8 +236,8 @@ public class WindowsWGLContext extends GLContextImpl {
     if(0!=hglrc2) {
         if (!WGL.wglShareLists(hglrc2, hglrc)) {
             throw new GLException("wglShareLists(" + toHexString(hglrc2) +
-                                  ", " + toHexString(hglrc) + ") failed: error code " +
-                                  WGL.GetLastError());
+                                  ", " + toHexString(hglrc) + ") failed: error code 0x" +
+                                  Integer.toHexString(WGL.GetLastError()));
         }
     }
     GLContextShareSet.contextCreated(this);
@@ -276,7 +264,7 @@ public class WindowsWGLContext extends GLContextImpl {
 
     if (WGL.wglGetCurrentContext() != hglrc) {
       if (!WGL.wglMakeCurrent(drawable.getNativeWindow().getSurfaceHandle(), hglrc)) {
-        throw new GLException("Error making context current: " + WGL.GetLastError());
+        throw new GLException("Error making context current: 0x" + Integer.toHexString(WGL.GetLastError()));
       } else {
         if (DEBUG && VERBOSE) {
           System.err.println(getThreadName() + ": wglMakeCurrent(hdc " + toHexString(drawable.getNativeWindow().getSurfaceHandle()) +
@@ -299,7 +287,7 @@ public class WindowsWGLContext extends GLContextImpl {
 
   protected void releaseImpl() throws GLException {
     if (!WGL.wglMakeCurrent(0, 0)) {
-        throw new GLException("Error freeing OpenGL context: " + WGL.GetLastError());
+        throw new GLException("Error freeing OpenGL context: 0x" + Integer.toHexString(WGL.GetLastError()));
     }
   }
 

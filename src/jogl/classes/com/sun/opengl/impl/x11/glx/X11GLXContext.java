@@ -207,8 +207,8 @@ public abstract class X11GLXContext extends GLContextImpl {
                         // and verify with a None drawable binding (default framebuffer)
                         attribs[0+1]  = 3;
                         attribs[2+1]  = 2;
-                        attribs[8+0]  = GLX.GLX_CONTEXT_PROFILE_MASK_ARB;
-                        attribs[8+1]  = GLX.GLX_CONTEXT_CORE_PROFILE_BIT_ARB;
+                        // FIXME: attribs[8+0]  = GLX.GLX_CONTEXT_PROFILE_MASK_ARB;
+                        // FIXME: attribs[8+1]  = GLX.GLX_CONTEXT_CORE_PROFILE_BIT_ARB;
 
                         context = glXExt.glXCreateContextAttribsARB(display, config.getFBConfig(), share, direct, attribs, 0);
                         if(0!=context) {
@@ -222,12 +222,11 @@ public abstract class X11GLXContext extends GLContextImpl {
                             } else if(DEBUG) {
                               System.err.println("X11GLXContext.createContext >= 3.2 available 0x"+Long.toHexString(context));
                             }
+                        } else if(DEBUG) {
+                          System.err.println("X11GLXContext.createContext couldn't create >= 3.2 core context - fallback");
                         }
                     }
                     if(0==context) {
-                        if(tryGLContext3_2 && DEBUG) {
-                          System.err.println("X11GLXContext.createContext couldn't create >= 3.2 core context - fallback");
-                        }
                         // Try >= 3.1 forward compatible - last resort for GL3 !
                         attribs[0+1]  = 3;
                         attribs[2+1]  = 1;
