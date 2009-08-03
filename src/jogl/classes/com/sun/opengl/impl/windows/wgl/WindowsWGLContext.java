@@ -154,13 +154,9 @@ public class WindowsWGLContext extends GLContextImpl {
         if( !isFunctionAvailable("wglCreateContextAttribsARB") ||
             !isExtensionAvailable("WGL_ARB_create_context") ) {
             if(glCaps.getGLProfile().isGL3()) {
-              if (!WGL.wglMakeCurrent(0, 0)) {
-                throw new GLException("Error freeing temp OpenGL context: " + WGL.GetLastError());
-              }
-              if (!WGL.wglDeleteContext(temp_hglrc)) {
-                throw new GLException("Unable to delete OpenGL context");
-              }
-              throw new GLException("Unable to create OpenGL 3.1 context (no WGL_ARB_create_context)");
+              WGL.wglMakeCurrent(0, 0);
+              WGL.wglDeleteContext(temp_hglrc);
+              throw new GLException("Unable to create OpenGL >= 3.1 context (no WGL_ARB_create_context)");
             }
 
             // continue with temp context for GL < 3.0
@@ -173,44 +169,71 @@ public class WindowsWGLContext extends GLContextImpl {
 
             // preset with default values
             int attribs[] = {
-                WGLExt.WGL_CONTEXT_MAJOR_VERSION_ARB, 3,
-                WGLExt.WGL_CONTEXT_MINOR_VERSION_ARB, 0,
-                WGLExt.WGL_CONTEXT_FLAGS_ARB, 0,      
-                0
+                /*  0 */ WGLExt.WGL_CONTEXT_MAJOR_VERSION_ARB, 3,
+                /*  2 */ WGLExt.WGL_CONTEXT_MINOR_VERSION_ARB, 0,
+                /*  4 */ WGLExt.WGL_CONTEXT_FLAGS_ARB,         0 /* WGLExt.WGL_CONTEXT_DEBUG_BIT_ARB */,
+                /*  6 */ 0,                                    0,
+                /*  8 */ 0
             };
 
             if(glCaps.getGLProfile().isGL3()) {
-                attribs[1] |= 3;
-                attribs[3] |= 1;
-                // attribs[5] |= WGLExt.WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB ; // NVidia WGL driver doesn't support this one ..
-                // attribs[5] |= WGLExt.WGL_CONTEXT_DEBUG_BIT_ARB ;
+                if(tryGLContext3_2) {
+                    // Try >= 3.2 core first !
+                    // and verify with a None drawable binding (default framebuffer)
+                    attribs[0+1]  = 3;
+                    attribs[2+1]  = 2;
+                    attribs[6+0]  = WGLExt.WGL_CONTEXT_PROFILE_MASK_ARB;
+                    attribs[6+1]  = WGLExt.WGL_CONTEXT_CORE_PROFILE_BIT_ARB;
+                    hglrc = wglExt.wglCreateContextAttribsARB(drawable.getNativeWindow().getSurfaceHandle(), hglrc2, attribs, 0); 
+                    if(0!=hglrc) {
+                        if (!WGL.wglMakeCurrent(0, hglrc)) {
+                            if(DEBUG) {
+                              System.err.println("WindowsWGLContext.createContext couldn't make >= 3.2 core context current - fallback");
+                            }
+                            WGL.wglMakeCurrent(0, 0);
+                            WGL.wglDeleteContext(hglrc);
+                            hglrc = 0;
+                        } else if(DEBUG) {
+                          System.err.println("WindowsWGLContext.createContext >= 3.2 available 0x"+Long.toHexString(hglrc));
+                        }
+                    }
+                }
+                if(0==hglrc) {
+                    if(tryGLContext3_2 && DEBUG) {
+                      System.err.println("WindowsWGLContext.createContext couldn't create >= 3.2 core context");
+                    }
+                    // Try >= 3.1 forward compatible - last resort for GL3 !
+                    attribs[0+1]  = 3;
+                    attribs[2+1]  = 1;
+                    attribs[4+1] |= WGLExt.WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB;
+                    attribs[6+0]  = 0;
+                    attribs[6+1]  = 0;
+                }
+            }
+            if(0==hglrc) {
+                // 3.1 or 3.0 ..
+                hglrc = wglExt.wglCreateContextAttribsARB(drawable.getNativeWindow().getSurfaceHandle(), hglrc2, attribs, 0); 
             }
 
-            hglrc = wglExt.wglCreateContextAttribsARB(drawable.getNativeWindow().getSurfaceHandle(), hglrc2, attribs, 0); 
             if(0==hglrc) {
                 if(glCaps.getGLProfile().isGL3()) {
-                  if (!WGL.wglMakeCurrent(0, 0)) {
-                    throw new GLException("Error freeing temp OpenGL context: " + WGL.GetLastError());
-                  }
-                  if (!WGL.wglDeleteContext(temp_hglrc)) {
-                    throw new GLException("Unable to delete OpenGL context");
-                  }
-                  throw new GLException("Unable to create OpenGL 3.1 context (have WGL_ARB_create_context)");
+                  WGL.wglMakeCurrent(0, 0);
+                  WGL.wglDeleteContext(temp_hglrc);
+                  throw new GLException("Unable to create OpenGL >= 3.1 context (have WGL_ARB_create_context)");
                 }
 
                 // continue with temp context for GL < 3.0
                 hglrc = temp_hglrc;
+                if (!WGL.wglMakeCurrent(drawable.getNativeWindow().getSurfaceHandle(), hglrc)) {
+                    throw new GLException("Error making old context current: " + WGL.GetLastError());
+                }
                 if(DEBUG) {
                   System.err.println("WindowsWGLContext.create done (old ctx < 3.0 - no 3.0) 0x"+Long.toHexString(hglrc));
                 }
             } else {
                 hglrc2 = 0; // mark as shared ..
-                if (!WGL.wglMakeCurrent(0, 0)) {
-                    throw new GLException("Error freeing temp OpenGL context: " + WGL.GetLastError());
-                }
-                if (!WGL.wglDeleteContext(temp_hglrc)) {
-                    throw new GLException("Unable to delete temp OpenGL context");
-                }
+                WGL.wglMakeCurrent(0, 0);
+                WGL.wglDeleteContext(temp_hglrc);
 
                 if (!WGL.wglMakeCurrent(drawable.getNativeWindow().getSurfaceHandle(), hglrc)) {
                     throw new GLException("Error making new context current: " + WGL.GetLastError());

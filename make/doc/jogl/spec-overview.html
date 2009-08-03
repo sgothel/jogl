@@ -329,12 +329,13 @@ according the following rules: <br>
             <li> OpenGL 3.1 requires a new native context, incompatible with prior versions.</li>
             <li> OpenGL 3.1 forward compatible profile drops fixed functionality.</li>
            </ul></li>
-       <li>Forward compatibility, dropping fixed functionality, is choosen because:
+       <li>Forward compatibility, aka core, ie a context without <code>GL_ARB_compatibility</code>, is chosen because:
            <ul>
             <li> It shares a commont subset with ES2.x</li>
             <li> It is not guaranteed to be provided by all vendors.</li>
             <li> It is not guaranteed to be provided in future versions.</li>
             <li> OpenGL 3.2 core profile is compatible with OpenGL 3.1 forward compatible spec.</li>
+            <li> OpenGL 3.2 Spec Appendix E.1: It is not possible to implement both core and compatibility profiles in a single GL context, ..</li>
            </ul></li>
    </ul></li>
   <a name="GL2InclusionCriteria"/>

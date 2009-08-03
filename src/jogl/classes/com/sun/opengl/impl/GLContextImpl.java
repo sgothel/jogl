@@ -61,6 +61,7 @@ public abstract class GLContextImpl extends GLContext {
   // platforms anyway in particular with the disabling of the
   // GLWorkerThread which we found to be necessary in 1.0 beta 4.
   protected boolean optimizationEnabled = Debug.isPropertyDefined("jogl.GLContext.optimize", true);
+  protected boolean tryGLContext3_2 = Debug.isPropertyDefined("jogl.GLContext.3_2", true);
 
   // Cache of the functions that are available to be called at the current
   // moment in time
