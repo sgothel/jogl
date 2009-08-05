@@ -59,7 +59,8 @@ public class GLConfiguration extends ProcAddressConfiguration {
   // This directive is off by default but can help automatically
   // indicate which extensions have been folded into the core OpenGL
   // namespace, and if not, then why not
-  private boolean autoUnifyExtensions;
+  private boolean autoUnifyExtensions=false;
+  private boolean allowNonGLExtensions=false;
 
   public GLConfiguration(GLEmitter emitter) {
     super();
@@ -81,6 +82,10 @@ public class GLConfiguration extends ProcAddressConfiguration {
       {
         String sym = readString("RenameExtensionIntoCore", tok, filename, lineNo);
         extensionsRenamedIntoCore.add(sym);
+      }
+    else if (cmd.equalsIgnoreCase("AllowNonGLExtensions"))
+      {
+        allowNonGLExtensions = readBoolean("AllowNonGLExtensions", tok, filename, lineNo).booleanValue();
       }
     else if (cmd.equalsIgnoreCase("AutoUnifyExtensions"))
       {
@@ -248,6 +253,13 @@ public class GLConfiguration extends ProcAddressConfiguration {
   public boolean getAutoUnifyExtensions() {
     return autoUnifyExtensions;
   }
+
+  /** If true, accept all non encapsulated defines and functions,
+    * as it is mandatory for GL declarations. */
+  public boolean getAllowNonGLExtensions() {
+    return allowNonGLExtensions;
+  }
+
 
   /** shall the non unified (uniq) vendor extensions be dropped ?  */
   public boolean getDropUniqVendorExtensions(String extName) {

@@ -114,13 +114,17 @@ public class GLJavaMethodBindingEmitter extends ProcAddressJavaMethodBindingEmit
       StringBuffer newComment = new StringBuffer();
       newComment.append("Part of <code>");
       if(0==glEmitter.addExtensionsOfSymbols2Buffer(newComment, ", ", symbolRenamed, binding.getAliasedNames())) {
-          StringBuffer sb = new StringBuffer();
-          JavaEmitter.addStrings2Buffer(sb, ", ", symbolRenamed, binding.getAliasedNames());
-          RuntimeException ex = new RuntimeException("Couldn't find extension to: "+binding+" ; "+sb.toString());
-          ex.printStackTrace();
-          glEmitter.getGLConfig().getGLInfo().dump();
-          // glEmitter.getGLConfig().dumpRenames();
-          throw ex;
+          if(glEmitter.getGLConfig().getAllowNonGLExtensions()) {
+              newComment.append("CORE FUNC");
+          } else {
+              StringBuffer sb = new StringBuffer();
+              JavaEmitter.addStrings2Buffer(sb, ", ", symbolRenamed, binding.getAliasedNames());
+              RuntimeException ex = new RuntimeException("Couldn't find extension to: "+binding+" ; "+sb.toString());
+              ex.printStackTrace();
+              glEmitter.getGLConfig().getGLInfo().dump();
+              // glEmitter.getGLConfig().dumpRenames();
+              throw ex;
+          }
       }
       newComment.append("</code>");
       writer.print(newComment.toString());

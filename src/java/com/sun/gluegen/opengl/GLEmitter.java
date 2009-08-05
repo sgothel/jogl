@@ -325,20 +325,24 @@ public class GLEmitter extends ProcAddressEmitter
           if(null!=enumName) {
               newComment.append(enumName);
           } else {
-              newComment.append("ENUM");
+              newComment.append("CORE ENUM");
           }
         } else {
-          // Note: All GL defines must be contained within an extension marker !
-          // #ifndef GL_EXT_lala
-          // #define GL_EXT_lala 1
-          // ...
-          // #endif
-          if(JavaConfiguration.DEBUG_IGNORES) {
-              StringBuffer sb = new StringBuffer();
-              JavaEmitter.addStrings2Buffer(sb, ", ", symbolRenamed, def.getAliasedNames());
-              System.err.println("Dropping marker: "+sb.toString());
+          if(getGLConfig().getAllowNonGLExtensions()) {
+              newComment.append("CORE DEF");
+          } else {
+              // Note: All GL defines must be contained within an extension marker !
+              // #ifndef GL_EXT_lala
+              // #define GL_EXT_lala 1
+              // ...
+              // #endif
+              if(JavaConfiguration.DEBUG_IGNORES) {
+                  StringBuffer sb = new StringBuffer();
+                  JavaEmitter.addStrings2Buffer(sb, ", ", symbolRenamed, def.getAliasedNames());
+                  System.err.println("Dropping marker: "+sb.toString());
+              }
+              return;
           }
-          return;
         }
       }
       newComment.append("</code>");

@@ -96,11 +96,11 @@ public class BuildStaticGLInfo
     Pattern.compile("^(GLAPI|GL_API|GL_APICALL|EGLAPI|extern)?(\\s*)((unsigned|const)\\s+)?(\\w+)(\\s*\\*)?(\\s+)(GLAPIENTRY|GL_APIENTRY|APIENTRY|EGLAPIENTRY|WINAPI)?(\\s*)([ew]?gl\\w+)\\s?(\\(.*)");
 
   protected static Pattern associationPattern =
-    Pattern.compile("\\#ifndef ([CEW]?GL[XU]?_[A-Za-z0-9_]+)\\s*");
+    Pattern.compile("\\#ifndef ([CEW]?GL[XU]?_[A-Za-z0-9_]+)(.*)");
 
   protected static int defineIdentifierGroup = 1;
   protected static Pattern definePattern =
-    Pattern.compile("\\#define (([CEW]?GL[XU]?|PFD)_[A-Za-z0-9_]+)\\s*([A-Za-z0-9_]+)\\s*");
+    Pattern.compile("\\#define ([CEW]?GL[XU]?_[A-Za-z0-9_]+)\\s*([A-Za-z0-9_]+)(.*)");
 
   // Maps function / #define names to the names of the extensions they're declared in
   protected Map declarationToExtensionMap = new HashMap();
