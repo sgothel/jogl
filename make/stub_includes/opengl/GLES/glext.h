@@ -244,7 +244,6 @@ typedef void* GLeglImageOES;
 #define GL_3DC_XY_AMD                                           0x87FA
 #endif
 
-/* GL_AMD_compressed_ATC_texture */
 #ifndef GL_AMD_compressed_ATC_texture
 #define GL_ATC_RGB_AMD                                          0x8C92
 #define GL_ATC_RGBA_EXPLICIT_ALPHA_AMD                          0x8C93
@@ -634,7 +633,6 @@ typedef void (GL_APIENTRYP PFNGLGETBUFFERPOINTERVOESPROC) (GLenum target, GLenum
 #define GL_AMD_compressed_3DC_texture 1
 #endif
 
-/* GL_AMD_compressed_ATC_texture */
 #ifndef GL_AMD_compressed_ATC_texture
 #define GL_AMD_compressed_ATC_texture 1
 #endif

@@ -202,27 +202,30 @@ public abstract class X11GLXContext extends GLContextImpl {
                 };
 
                 if(glCaps.getGLProfile().isGL3()) {
-                    if(tryGLContext3_2) {
-                        // Try >= 3.2 core first 
-                        // and verify with a None drawable binding (default framebuffer)
-                        attribs[0+1]  = 3;
-                        attribs[2+1]  = 2;
-                        // FIXME: attribs[8+0]  = GLX.GLX_CONTEXT_PROFILE_MASK_ARB;
-                        // FIXME: attribs[8+1]  = GLX.GLX_CONTEXT_CORE_PROFILE_BIT_ARB;
+                    // Try >= 3.2 core first 
+                    // and verify with a None drawable binding (default framebuffer)
+                    attribs[0+1]  = 3;
+                    attribs[2+1]  = 2;
+                    // FIXME NV Bug: attribs[8+0]  = GLX.GLX_CONTEXT_PROFILE_MASK_ARB;
+                    // FIXME NV Bug: attribs[8+1]  = GLX.GLX_CONTEXT_CORE_PROFILE_BIT_ARB;
 
-                        context = glXExt.glXCreateContextAttribsARB(display, config.getFBConfig(), share, direct, attribs, 0);
-                        if(0!=context) {
-                            if (!GLX.glXMakeContextCurrent(display, 0, 0, context)) {
-                                if(DEBUG) {
-                                  System.err.println("X11GLXContext.createContext couldn't make >= 3.2 core context current - fallback");
-                                }
-                                GLX.glXMakeContextCurrent(display, 0, 0, 0);
-                                GLX.glXDestroyContext(display, context);
-                                context = 0;
-                            } else if(DEBUG) {
-                              System.err.println("X11GLXContext.createContext >= 3.2 available 0x"+Long.toHexString(context));
+                    context = glXExt.glXCreateContextAttribsARB(display, config.getFBConfig(), share, direct, attribs, 0);
+                    if(0!=context) {
+                        if (!GLX.glXMakeContextCurrent(display,
+                                                       drawable.getNativeWindow().getSurfaceHandle(), 
+                                                       drawable.getNativeWindow().getSurfaceHandle(), 
+                                                       context)) {
+                            if(DEBUG) {
+                              System.err.println("X11GLXContext.createContext couldn't make >= 3.2 core context current - fallback");
                             }
+                            GLX.glXMakeContextCurrent(display, 0, 0, 0);
+                            GLX.glXDestroyContext(display, context);
+                            context = 0;
                         } else if(DEBUG) {
+                          System.err.println("X11GLXContext.createContext >= 3.2 available 0x"+Long.toHexString(context));
+                        }
+                    } else {
+                        if(DEBUG) {
                           System.err.println("X11GLXContext.createContext couldn't create >= 3.2 core context - fallback");
                         }
                     }
@@ -238,6 +241,25 @@ public abstract class X11GLXContext extends GLContextImpl {
                 if(0==context) {
                     // 3.1 or 3.0 ..
                     context = glXExt.glXCreateContextAttribsARB(display, config.getFBConfig(), share, direct, attribs, 0);
+                    if(0!=context) {
+                        if (!GLX.glXMakeContextCurrent(display,
+                                                       drawable.getNativeWindow().getSurfaceHandle(), 
+                                                       drawable.getNativeWindow().getSurfaceHandle(), 
+                                                       context)) {
+                            if(DEBUG) {
+                              System.err.println("X11GLXContext.createContext couldn't make >= 3.0 core context current - fallback");
+                            }
+                            GLX.glXMakeContextCurrent(display, 0, 0, 0);
+                            GLX.glXDestroyContext(display, context);
+                            context = 0;
+                        } else if(DEBUG) {
+                          System.err.println("X11GLXContext.createContext >= 3.0 available 0x"+Long.toHexString(context));
+                        }
+                    } else {
+                        if(DEBUG) {
+                          System.err.println("X11GLXContext.createContext couldn't create >= 3.0 core context - fallback");
+                        }
+                    }
                 }
 
                 if(0==context) {
@@ -253,22 +275,17 @@ public abstract class X11GLXContext extends GLContextImpl {
                                                    drawable.getNativeWindow().getSurfaceHandle(), 
                                                    drawable.getNativeWindow().getSurfaceHandle(), 
                                                    context)) {
+                      GLX.glXMakeContextCurrent(display, 0, 0, 0);
+                      GLX.glXDestroyContext(display, temp_context);
                       throw new GLException("Error making context (old) current: display 0x"+Long.toHexString(display)+", context 0x"+Long.toHexString(context)+", drawable "+drawable);
                     }
                     if(DEBUG) {
                       System.err.println("X11GLXContext.createContext done (old ctx < 3.0 - no 3.0) 0x"+Long.toHexString(context));
                     }
                 } else {
-                    GLX.glXMakeContextCurrent(display, 0, 0, 0);
                     GLX.glXDestroyContext(display, temp_context);
 
                     // need to update the GL func table ..
-                    if (!GLX.glXMakeContextCurrent(display,
-                                                   drawable.getNativeWindow().getSurfaceHandle(), 
-                                                   drawable.getNativeWindow().getSurfaceHandle(), 
-                                                   context)) {
-                      throw new GLException("Error making context (new) current: display 0x"+Long.toHexString(display)+", context 0x"+Long.toHexString(context)+", drawable "+drawable);
-                    }
                     updateGLProcAddressTable();
                     if(DEBUG) {
                       System.err.println("X11GLXContext.createContext done (new ctx >= 3.0) 0x"+Long.toHexString(context));

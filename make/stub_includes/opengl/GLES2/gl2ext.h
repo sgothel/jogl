@@ -61,9 +61,7 @@ extern "C" {
 
 #define GL_NVIDIA_PLATFORM_BINARY_NV                            0x890B
 
-#define GL_OES_EGL_image                  1
-
-#ifdef GL_OES_EGL_image
+#ifndef GL_OES_EGL_image
 /** sgothel: wrong defines and/or numbers:
  *
 #define GL_TEXTURE_2D_OES                     0x1
@@ -76,12 +74,17 @@ extern "C" {
 #define GL_RENDERBUFFER_OES                   0x9
 #define GL_TEXTURE_RECTANGLE_NV_OES           0xb
  */
+#endif /*  GL_OES_EGL_image */
 
+#ifndef GL_OES_EGL_image
 typedef void *GLeglImageOES;
+#endif /*  GL_OES_EGL_image */
+
+#ifndef GL_OES_EGL_image
+#define GL_OES_EGL_image                  1
 GL_APICALL void GL_APIENTRY glEGLImageTargetTexture2DOES(GLenum target, GLeglImageOES image);
 #ifdef GL_GLEXT_PROTOTYPES
 typedef void  (GL_APIENTRYP PFNGLEGLIMAGETARGETTEXTURE2DOESPROC) (GLenum target, GLeglImageOES image);
-
 #endif
 #endif
 

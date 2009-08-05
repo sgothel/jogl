@@ -266,16 +266,13 @@ extern "C" {
 
 typedef void (*__GLXextFuncPtr)(void);
 
-#ifdef GLX_GLXEXT_PROTOTYPES
-extern __GLXextFuncPtr glXGetProcAddress (const GLubyte *);
-#endif /* GLX_GLXEXT_PROTOTYPES */
-typedef __GLXextFuncPtr ( * PFNGLXGETPROCADDRESSPROC) (const GLubyte *procName);
-
 #ifndef GLX_ARB_get_proc_address
 #define GLX_ARB_get_proc_address 1
 #ifdef GLX_GLXEXT_PROTOTYPES
+extern __GLXextFuncPtr glXGetProcAddress (const GLubyte *);
 extern __GLXextFuncPtr glXGetProcAddressARB (const GLubyte *);
 #endif /* GLX_GLXEXT_PROTOTYPES */
+typedef __GLXextFuncPtr ( * PFNGLXGETPROCADDRESSPROC) (const GLubyte *procName);
 typedef __GLXextFuncPtr ( * PFNGLXGETPROCADDRESSARBPROC) (const GLubyte *procName);
 #endif
 
@@ -868,9 +865,9 @@ typedef void ( * PFNGLXRELEASETEXIMAGEEXTPROC) (Display *dpy,
 #endif
 
 #ifndef GLX_NV_present_video
-#define GLX_NV_present_video
+#define GLX_NV_present_video 1
 #ifdef GLX_GLXEXT_PROTOTYPES
-extern unsigned int *glXEnumerateVideoDevicesNV(Display *dpy,
+extern unsigned int* glXEnumerateVideoDevicesNV(Display *dpy,
                                                 int screen,
                                                 int *nelements);
 extern int glXBindVideoDeviceNV(Display *dpy,

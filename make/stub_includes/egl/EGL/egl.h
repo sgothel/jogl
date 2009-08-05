@@ -39,6 +39,8 @@ typedef void *EGLClientBuffer;
 #define EGL_VERSION_1_3			1
 #define EGL_VERSION_1_4			1
 
+#ifndef EGL_VERSION_1_X
+
 /* EGL Enumerants. Bitmasks and other exceptional cases aside, most
  * enums are assigned unique values starting at 0x3000.
  */
@@ -226,7 +228,10 @@ typedef void *EGLClientBuffer;
  * a bug in Khronos Bugzilla against task "Registry".
  */
 
+#endif /* EGL_VERSION_1_X */
 
+#ifndef EGL_VERSION_1_X
+#define EGL_VERSION_1_X 1
 
 /* EGL Functions */
 
@@ -299,6 +304,8 @@ EGLAPI EGLBoolean EGLAPIENTRY eglCopyBuffers(EGLDisplay dpy, EGLSurface surface,
 
 typedef void (* EGLAPIENTRY __EGLFuncPtr)(void);
 EGLAPI __EGLFuncPtr eglGetProcAddress(const char *procname);
+
+#endif /* EGL_VERSION_1_X */
 
 #ifdef __cplusplus
 }

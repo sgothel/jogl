@@ -178,7 +178,8 @@ public class WindowsWGLContext extends GLContextImpl {
 
             if(glCaps.getGLProfile().isGL3()) {
                 // Try >= 3.2 core first !
-                // In contrast to GLX no verify with a None drawable binding (default framebuffer) is necessary.
+                // In contrast to GLX no verify with a None drawable binding (default framebuffer) is necessary,
+                // if no 3.2 is available creation fails already!
                 attribs[0+1]  = 3;
                 attribs[2+1]  = 2;
                 attribs[6+0]  = WGLExt.WGL_CONTEXT_PROFILE_MASK_ARB;
@@ -186,7 +187,7 @@ public class WindowsWGLContext extends GLContextImpl {
                 hglrc = wglExt.wglCreateContextAttribsARB(drawable.getNativeWindow().getSurfaceHandle(), hglrc2, attribs, 0); 
                 if(0==hglrc) {
                     if(DEBUG) {
-                        System.err.println("WindowsWGLContext.createContext couldn't create >= 3.2 core context");
+                        System.err.println("WindowsWGLContext.createContext couldn't create >= 3.2 core context - fallback");
                     }
                     // Try >= 3.1 forward compatible - last resort for GL3 !
                     attribs[0+1]  = 3;
@@ -201,6 +202,13 @@ public class WindowsWGLContext extends GLContextImpl {
             if(0==hglrc) {
                 // 3.1 or 3.0 ..
                 hglrc = wglExt.wglCreateContextAttribsARB(drawable.getNativeWindow().getSurfaceHandle(), hglrc2, attribs, 0); 
+                if(DEBUG) {
+                  if(0==hglrc) {
+                      System.err.println("WindowsWGLContext.createContext couldn't create >= 3.0 context - fallback");
+                  } else {
+                      System.err.println("WindowsWGLContext.createContext >= 3.0 available 0x"+Long.toHexString(hglrc));
+                  }
+                }
             }
 
             if(0==hglrc) {

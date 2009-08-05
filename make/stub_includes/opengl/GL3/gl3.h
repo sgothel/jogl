@@ -1059,7 +1059,7 @@ typedef void GLvoid;
 #define GL_UNIFORM_BLOCK_REFERENCED_BY_VERTEX_SHADER 0x8A44
 #define GL_UNIFORM_BLOCK_REFERENCED_BY_GEOMETRY_SHADER 0x8A45
 #define GL_UNIFORM_BLOCK_REFERENCED_BY_FRAGMENT_SHADER 0x8A46
-#define GL_INVALID_INDEX                  0xFFFFFFFFu
+/** Manual: #define GL_INVALID_INDEX                  -1 == (int) 0xFFFFFFFFu */
 #endif
 
 #ifndef GL_ARB_copy_buffer
@@ -1102,8 +1102,6 @@ typedef unsigned short GLhalfARB;
 #ifndef GL_NV_half_float
 typedef unsigned short GLhalfNV;
 #endif
-
-#include "glext-64bit-types.h"
 
 #ifndef GL_VERSION_1_0
 #define GL_VERSION_1_0 1

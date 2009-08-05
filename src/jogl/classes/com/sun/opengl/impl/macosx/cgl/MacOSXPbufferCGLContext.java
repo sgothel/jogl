@@ -86,7 +86,7 @@ public class MacOSXPbufferCGLContext extends MacOSXCGLContext {
           rect = false;
         }
       }
-      textureTarget = (rect ? GL2.GL_TEXTURE_RECTANGLE_EXT: GL.GL_TEXTURE_2D);
+      textureTarget = (rect ? GL2.GL_TEXTURE_RECTANGLE : GL.GL_TEXTURE_2D);
       int[] tmp = new int[1];
       gl.glGenTextures(1, tmp, 0);
       texture = tmp[0];

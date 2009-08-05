@@ -1185,6 +1185,13 @@ extern "C" {
 #define GL_MAX_RECTANGLE_TEXTURE_SIZE_ARB 0x84F8
 #endif
 
+#ifndef GL_EXT_texture_rectangle
+#define GL_TEXTURE_RECTANGLE_EXT          0x84F5
+#define GL_TEXTURE_BINDING_RECTANGLE_EXT  0x84F6
+#define GL_PROXY_TEXTURE_RECTANGLE_EXT    0x84F7
+#define GL_MAX_RECTANGLE_TEXTURE_SIZE_EXT 0x84F8
+#endif
+
 #ifndef GL_ARB_color_buffer_float
 #define GL_RGBA_FLOAT_MODE_ARB            0x8820
 #define GL_CLAMP_VERTEX_COLOR_ARB         0x891A
@@ -3150,16 +3157,6 @@ extern "C" {
 #define GL_LOCAL_CONSTANT_DATATYPE_EXT    0x87ED
 #endif
 
-/* Support for GL_EXT_texture_rectangle on non-nVidia cards */ 
-#ifndef GL_EXT_texture_rectangle 
-#define GL_EXT_texture_rectangle 	  1 
-#define GL_TEXTURE_RECTANGLE_EXT	  0x84F5 
-#define GL_TEXTURE_BINDING_RECTANGLE_EXT  0x84F6 
-#define GL_PROXY_TEXTURE_RECTANGLE_EXT    0x84F7 
-#define GL_MAX_RECTANGLE_TEXTURE_SIZE_EXT 0x84F8 
-#endif /* GL_TEXTURE_RECTANGLE_EXT */ 
-
-
 #ifndef GL_ATI_vertex_streams
 #define GL_MAX_VERTEX_STREAMS_ATI         0x876B
 #define GL_VERTEX_STREAM0_ATI             0x876C
@@ -3316,6 +3313,23 @@ extern "C" {
 #define GL_MODULATE_ADD_ATI               0x8744
 #define GL_MODULATE_SIGNED_ADD_ATI        0x8745
 #define GL_MODULATE_SUBTRACT_ATI          0x8746
+#endif
+
+#ifndef GL_APPLE_float_pixels
+#define GL_HALF_APPLE                      0x140B
+#define GL_COLOR_FLOAT_APPLE               0x8A0F
+#define GL_RGBA_FLOAT32_APPLE              0x8814
+#define GL_RGB_FLOAT32_APPLE               0x8815
+#define GL_ALPHA_FLOAT32_APPLE             0x8816
+#define GL_INTENSITY_FLOAT32_APPLE         0x8817
+#define GL_LUMINANCE_FLOAT32_APPLE         0x8818
+#define GL_LUMINANCE_ALPHA_FLOAT32_APPLE   0x8819
+#define GL_RGBA_FLOAT16_APPLE              0x881A
+#define GL_RGB_FLOAT16_APPLE               0x881B
+#define GL_ALPHA_FLOAT16_APPLE             0x881C
+#define GL_INTENSITY_FLOAT16_APPLE         0x881D
+#define GL_LUMINANCE_FLOAT16_APPLE         0x881E
+#define GL_LUMINANCE_ALPHA_FLOAT16_APPLE   0x881F
 #endif
 
 #ifndef GL_ATI_texture_float
@@ -3792,7 +3806,7 @@ extern "C" {
 #define GL_MAX_PROGRAM_GENERIC_RESULTS_NV 0x8DA6
 #endif
 
-#ifndef NV_parameter_buffer_object
+#ifndef GL_NV_parameter_buffer_object
 #define GL_MAX_PROGRAM_PARAMETER_BUFFER_BINDINGS_NV 0x8DA0
 #define GL_MAX_PROGRAM_PARAMETER_BUFFER_SIZE_NV 0x8DA1
 #define GL_VERTEX_PROGRAM_PARAMETER_BUFFER_NV 0x8DA2
@@ -3810,9 +3824,9 @@ extern "C" {
 #endif
 
 #ifndef GL_EXT_texture_compression_rgtc 
-#define GL_COMPRESSED_RED_RGTC1_EXT       0x8DBB
-#define GL_COMPRESSED_SIGNED_RED_RGTC1_EXT 0x8DBC
-#define GL_COMPRESSED_RED_GREEN_RGTC2_EXT 0x8DBD
+#define GL_COMPRESSED_RED_RGTC1_EXT              0x8DBB
+#define GL_COMPRESSED_SIGNED_RED_RGTC1_EXT       0x8DBC
+#define GL_COMPRESSED_RED_GREEN_RGTC2_EXT        0x8DBD
 #define GL_COMPRESSED_SIGNED_RED_GREEN_RGTC2_EXT 0x8DBE
 #endif
 
@@ -5140,6 +5154,10 @@ typedef void (APIENTRYP PFNGLDRAWBUFFERSARBPROC) (GLsizei n, const GLenum *bufs)
 
 #ifndef GL_ARB_texture_rectangle
 #define GL_ARB_texture_rectangle 1
+#endif
+
+#ifndef GL_EXT_texture_rectangle 
+#define GL_EXT_texture_rectangle 1 
 #endif
 
 #ifndef GL_ARB_color_buffer_float
@@ -7329,6 +7347,10 @@ typedef void (APIENTRYP PFNGLDRAWBUFFERSATIPROC) (GLsizei n, const GLenum *bufs)
 #define GL_ATI_texture_env_combine3 1
 #endif
 
+#ifndef GL_APPLE_float_pixels
+#define GL_APPLE_float_pixels 1
+#endif
+
 #ifndef GL_ATI_texture_float
 #define GL_ATI_texture_float 1
 #endif
@@ -8035,7 +8057,7 @@ GLAPI void APIENTRY glBindBufferRangeEXT (GLenum, GLuint, GLuint, GLintptr, GLsi
 GLAPI void APIENTRY glBindBufferOffsetEXT (GLenum, GLuint, GLuint, GLintptr);
 GLAPI void APIENTRY glBindBufferBaseEXT (GLenum, GLuint, GLuint);
 GLAPI void APIENTRY glTransformFeedbackVaryingsEXT (GLuint, GLsizei, const GLchar **, GLenum);
-GLAPI void APIENTRY glGetTransformFeedbackVaryingEXT (GLuint, GLuint, GLint *);
+GLAPI void APIENTRY glGetTransformFeedbackVaryingEXT (GLuint, GLuint, GLsizei, GLsizei *, GLsizei *, GLenum *, GLchar *);
 #endif /* GL_GLEXT_PROTOTYPES */
 typedef void (APIENTRYP PFNGLBEGINTRANSFORMFEEDBACKEXTPROC) (GLenum primitiveMode);
 typedef void (APIENTRYP PFNGLENDTRANSFORMFEEDBACKEXTPROC) (void);
@@ -8043,7 +8065,7 @@ typedef void (APIENTRYP PFNGLBINDBUFFERRANGEEXTPROC) (GLenum target, GLuint inde
 typedef void (APIENTRYP PFNGLBINDBUFFEROFFSETEXTPROC) (GLenum target, GLuint index, GLuint buffer, GLintptr offset);
 typedef void (APIENTRYP PFNGLBINDBUFFERBASEEXTPROC) (GLenum target, GLuint index, GLuint buffer);
 typedef void (APIENTRYP PFNGLTRANSFORMFEEDBACKVARYINGSEXTPROC) (GLuint program, GLsizei count, const GLint *locations, GLenum bufferMode);
-typedef void (APIENTRYP PFNGLGETTRANSFORMFEEDBACKVARYINGEXTPROC) (GLuint program, GLuint index, GLint *location);
+typedef void (APIENTRYP PFNGLGETTRANSFORMFEEDBACKVARYINGEXTPROC) (GLuint program, GLuint index, GLsizei bufSize, GLsizei *length, GLsizei *size, GLenum *type, GLchar *name);
 #endif
 
 #ifndef GL_EXT_direct_state_access
@@ -8436,6 +8458,7 @@ typedef void (APIENTRYP PFNGLMULTITEXRENDERBUFFEREXTPROC) (GLenum texunit, GLenu
 /**
  * http://www.opengl.org/registry/specs/AMD/vertex_shader_tessellator.txt
  */
+
 #ifndef GL_AMD_vertex_shader_tessellator
 #define GL_SAMPLER_BUFFER_AMD                0x9001
 #define GL_INT_SAMPLER_BUFFER_AMD            0x9002
@@ -8447,7 +8470,7 @@ typedef void (APIENTRYP PFNGLMULTITEXRENDERBUFFEREXTPROC) (GLenum texunit, GLenu
 #endif
 
 #ifndef GL_AMD_vertex_shader_tessellator
-#define GL_AMD_vertex_shader_tessellator
+#define GL_AMD_vertex_shader_tessellator 1
 #ifdef GL_GLEXT_PROTOTYPES
 GLAPI void APIENTRY glTessellationFactorAMD(GLfloat factor);
 GLAPI void APIENTRY glTessellationModeAMD(GLenum mode);
@@ -8520,23 +8543,6 @@ GLAPI void glGetTexParameterPointervAPPLE(GLenum target, GLenum pname, GLvoid **
 #endif
 typedef void (APIENTRY * PFNGLTEXTURERANGEAPPLEPROC) (GLenum target, GLsizei length, const GLvoid *pointer);
 typedef void (APIENTRY * PFNGLGETTEXPARAMETERPOINTERVAPPLEPROC) (GLenum target, GLenum pname, GLvoid **params);
-#endif
-
-#ifndef GL_APPLE_float_pixels
-#define GL_HALF_APPLE                      0x140B
-#define GL_COLOR_FLOAT_APPLE               0x8A0F
-#define GL_RGBA_FLOAT32_APPLE              0x8814
-#define GL_RGB_FLOAT32_APPLE               0x8815
-#define GL_ALPHA_FLOAT32_APPLE             0x8816
-#define GL_INTENSITY_FLOAT32_APPLE         0x8817
-#define GL_LUMINANCE_FLOAT32_APPLE         0x8818
-#define GL_LUMINANCE_ALPHA_FLOAT32_APPLE   0x8819
-#define GL_RGBA_FLOAT16_APPLE              0x881A
-#define GL_RGB_FLOAT16_APPLE               0x881B
-#define GL_ALPHA_FLOAT16_APPLE             0x881C
-#define GL_INTENSITY_FLOAT16_APPLE         0x881D
-#define GL_LUMINANCE_FLOAT16_APPLE         0x881E
-#define GL_LUMINANCE_ALPHA_FLOAT16_APPLE   0x881F
 #endif
 
 #ifndef GL_APPLE_pixel_buffer

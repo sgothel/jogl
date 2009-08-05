@@ -90,7 +90,7 @@ typedef EGLBoolean (EGLAPIENTRYP PFNEGLUNLOCKSURFACEKHRPROC) (EGLDisplay display
 #define EGL_KHR_image 1
 #define EGL_NATIVE_PIXMAP_KHR			0x30B0	/* eglCreateImageKHR target */
 typedef void *EGLImageKHR;
-#define EGL_NO_IMAGE_KHR ((EGLImageKHR)0)
+/* Manual: #define EGL_NO_IMAGE_KHR ((EGLImageKHR)0) */
 #ifdef EGL_EGLEXT_PROTOTYPES
 EGLAPI EGLImageKHR EGLAPIENTRY eglCreateImageKHR (EGLDisplay dpy, EGLContext ctx, EGLenum target, EGLClientBuffer buffer, EGLint *attr_list);
 EGLAPI EGLBoolean EGLAPIENTRY eglDestroyImageKHR (EGLDisplay dpy, EGLImageKHR image);
@@ -160,8 +160,8 @@ typedef EGLBoolean (EGLAPIENTRYP PFNEGLDESTROYIMAGEKHRPROC) (EGLDisplay dpy, EGL
 #define EGL_RAW_VALUE_NV               0x1239
 #define EGL_PERCENTAGE_VALUE_NV        0x1240
 #define EGL_BAD_CURRENT_PERFMONITOR_NV 0x1241
-#define EGL_NO_PERFMONITOR_NV ((EGLPerfMonitorNV)0)
-#define EGL_DEFAULT_PERFMARKER_NV ((EGLPerfMarkerNV)0)
+/* Manual: #define EGL_NO_PERFMONITOR_NV ((EGLPerfMonitorNV)0) */
+/* Manual: #define EGL_DEFAULT_PERFMARKER_NV ((EGLPerfMarkerNV)0) */
 typedef void *EGLPerfMonitorNV;
 typedef void *EGLPerfMarkerNV;
 #ifdef USE_GLUEGEN
@@ -272,31 +272,10 @@ EGLAPI EGLBoolean EGLAPIENTRY eglNvmaOutputSurfacePbufferUnlock(EGLDisplay displ
 #endif
 
 
-/* EGL_KHR_sync
+/**
+ * EGL_KHR_sync
  */
 #ifndef EGL_KHR_sync
-#define EGL_KHR_sync 1
-typedef void* EGLSyncKHR;
-typedef void* NativeSyncKHR;
-typedef uint64_t EGLTimeKHR;
-#ifdef EGL_EGLEXT_PROTOTYPES
-EGLSyncKHR eglCreateFenceSyncKHR( EGLDisplay dpy, EGLenum condition, const EGLint *attrib_list ); 
-NativeSyncKHR eglCreateNativeSyncKHR( EGLSyncKHR sync );
-EGLBoolean eglDestroySyncKHR( EGLSyncKHR sync );
-EGLBoolean eglFenceKHR( EGLSyncKHR sync );
-EGLint eglClientWaitSyncKHR( EGLSyncKHR sync, EGLint flags, EGLTimeKHR timeout );
-EGLBoolean eglSignalSyncKHR( EGLSyncKHR sync, EGLenum mode );
-EGLBoolean eglGetSyncAttribKHR( EGLSyncKHR sync, EGLint attribute, EGLint *value );
-#else
-typedef EGLSyncKHR (EGLAPIENTRYP PFNEGLCREATEFENCESYNCKHRPROC)( EGLDisplay dpy, EGLenum condition, const EGLint *attrib_list ); 
-typedef NativeSyncKHR (EGLAPIENTRYP PFNEGLCREATENATIVESYNCKHRPROC)( EGLSyncKHR sync );
-typedef EGLBoolean (EGLAPIENTRYP PFNEGLDESTROYSYNCKHRPROC)( EGLSyncKHR sync );
-typedef EGLBoolean (EGLAPIENTRYP PFNEGLFENCEKHRPROC)( EGLSyncKHR sync );
-typedef EGLint (EGLAPIENTRYP PFNEGLCLIENTWAITSYNCKHRPROC)( EGLSyncKHR sync, EGLint flags, EGLTimeKHR timeout );
-typedef EGLBoolean (EGLAPIENTRYP PFNEGLSIGNALSYNCKHRPROC)( EGLSyncKHR sync, EGLenum mode );
-typedef EGLBoolean (EGLAPIENTRYP PFNEGLGETSYNCATTRIBKHRPROC)( EGLSyncKHR sync, EGLint attribute, EGLint *value );
-#endif
-
 /* !!!!! TODO: Get correct values for these defines !!!! 
    Do not rely on these values...THEY WILL CHANGE!
    And it WILL BREAK binary compatibility when they do! */
@@ -306,7 +285,7 @@ typedef EGLBoolean (EGLAPIENTRYP PFNEGLGETSYNCATTRIBKHRPROC)( EGLSyncKHR sync, E
 #define EGL_SIGNALED_KHR                         0x3103
 #define EGL_UNSIGNALED_KHR                       0x3104
 #define EGL_SYNC_FLUSH_COMMANDS_BIT_KHR          0x0001
-#define EGL_FOREVER_KHR                          0xFFFFFFFFFFFFFFFFull
+/* Manual: #define EGL_FOREVER_KHR                          0xFFFFFFFFFFFFFFFFull */
 #define EGL_ALREADY_SIGNALED_KHR                 0x3105
 #define EGL_TIMEOUT_EXPIRED_KHR                  0x3106
 #define EGL_CONDITION_SATISFIED_KHR              0x3107
@@ -314,9 +293,32 @@ typedef EGLBoolean (EGLAPIENTRYP PFNEGLGETSYNCATTRIBKHRPROC)( EGLSyncKHR sync, E
 #define EGL_SYNC_CONDITION_KHR                   0x3109
 #define EGL_SYNC_FENCE_KHR                       0x310A
 #define EGL_NO_SYNC_KHR                          0x0000
+
+typedef void* EGLSyncKHR;
+typedef void* NativeSyncKHR;
+typedef uint64_t EGLTimeKHR;
+
 #endif
 
-
+#ifndef EGL_KHR_sync
+#define EGL_KHR_sync 1
+#ifdef EGL_EGLEXT_PROTOTYPES
+EGLSyncKHR eglCreateFenceSyncKHR( EGLDisplay dpy, EGLenum condition, const EGLint *attrib_list ); 
+NativeSyncKHR eglCreateNativeSyncKHR( EGLSyncKHR sync );
+EGLBoolean eglDestroySyncKHR( EGLSyncKHR sync );
+EGLBoolean eglFenceKHR( EGLSyncKHR sync );
+EGLint eglClientWaitSyncKHR( EGLSyncKHR sync, EGLint flags, EGLTimeKHR timeout );
+EGLBoolean eglSignalSyncKHR( EGLSyncKHR sync, EGLenum mode );
+EGLBoolean eglGetSyncAttribKHR( EGLSyncKHR sync, EGLint attribute, EGLint *value );
+#endif
+typedef EGLSyncKHR (EGLAPIENTRYP PFNEGLCREATEFENCESYNCKHRPROC)( EGLDisplay dpy, EGLenum condition, const EGLint *attrib_list );
+typedef NativeSyncKHR (EGLAPIENTRYP PFNEGLCREATENATIVESYNCKHRPROC)( EGLSyncKHR sync );
+typedef EGLBoolean (EGLAPIENTRYP PFNEGLDESTROYSYNCKHRPROC)( EGLSyncKHR sync );
+typedef EGLBoolean (EGLAPIENTRYP PFNEGLFENCEKHRPROC)( EGLSyncKHR sync );
+typedef EGLint (EGLAPIENTRYP PFNEGLCLIENTWAITSYNCKHRPROC)( EGLSyncKHR sync, EGLint flags, EGLTimeKHR timeout );
+typedef EGLBoolean (EGLAPIENTRYP PFNEGLSIGNALSYNCKHRPROC)( EGLSyncKHR sync, EGLenum mode );
+typedef EGLBoolean (EGLAPIENTRYP PFNEGLGETSYNCATTRIBKHRPROC)( EGLSyncKHR sync, EGLint attribute, EGLint *value );
+#endif
 
 /* EGL_NV_omx_il_sink
  */

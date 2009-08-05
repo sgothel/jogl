@@ -71,6 +71,8 @@ typedef int             GLsizeiptr;
 #define GL_VERSION_ES_CM_1_1              1
 #define GL_VERSION_ES_CL_1_1              1
 
+#ifndef GL_VERSION_ES_1_0
+
 /* ClearBufferMask */
 #define GL_DEPTH_BUFFER_BIT               0x00000100
 #define GL_STENCIL_BUFFER_BIT             0x00000400
@@ -576,6 +578,8 @@ typedef int             GLsizeiptr;
 #define GL_DOT3_RGB                       0x86AE
 #define GL_DOT3_RGBA                      0x86AF
 
+#endif /* GL_VERSION_ES_1_0 */
+
 /*------------------------------------------------------------------------*
  * required OES extension tokens
  *------------------------------------------------------------------------*/
@@ -617,6 +621,8 @@ typedef int             GLsizeiptr;
 
 /*************************************************************/
 
+#ifndef GL_VERSION_ES_CM
+#define GL_VERSION_ES_CM 1
 /* Available only in Common profile */
 GL_API void GL_APIENTRY glAlphaFunc (GLenum func, GLclampf ref);
 GL_API void GL_APIENTRY glClearColor (GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha);
@@ -658,7 +664,10 @@ GL_API void GL_APIENTRY glTexEnvfv (GLenum target, GLenum pname, const GLfloat *
 GL_API void GL_APIENTRY glTexParameterf (GLenum target, GLenum pname, GLfloat param);
 GL_API void GL_APIENTRY glTexParameterfv (GLenum target, GLenum pname, const GLfloat *params);
 GL_API void GL_APIENTRY glTranslatef (GLfloat x, GLfloat y, GLfloat z);
+#endif /* GL_VERSION_ES_CM */
 
+#ifndef GL_VERSION_ES_CL_CM
+#define GL_VERSION_ES_CL 1
 /* Available in both Common and Common-Lite profiles */
 GL_API void GL_APIENTRY glActiveTexture (GLenum texture);
 GL_API void GL_APIENTRY glAlphaFuncx (GLenum func, GLclampx ref);
@@ -768,6 +777,7 @@ GL_API void GL_APIENTRY glTexSubImage2D (GLenum target, GLint level, GLint xoffs
 GL_API void GL_APIENTRY glTranslatex (GLfixed x, GLfixed y, GLfixed z);
 GL_API void GL_APIENTRY glVertexPointer (GLint size, GLenum type, GLsizei stride, const GLvoid *pointer);
 GL_API void GL_APIENTRY glViewport (GLint x, GLint y, GLsizei width, GLsizei height);
+#endif /* GL_VERSION_ES_CL */
 
 /*------------------------------------------------------------------------*
  * Required OES extension functions

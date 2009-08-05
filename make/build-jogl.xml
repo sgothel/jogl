@@ -640,14 +640,14 @@
     <target name="java.generate.gl2_gl3_if">
         <echo message="Generating GL2_GL3 interface" />
         <antcall target="java.generate.copy2temp" inheritRefs="true" />
-        <gluegen src="${stub.includes.opengl}/gl2.c" 
+        <gluegen src="${stub.includes.opengl}/gl3.c" 
                  outputRootDir="${build}"
-                 config="${config}/gl-gl2-set.cfg"
+                 config="${config}/gl-gl3-set.cfg"
                  includeRefid="stub.includes.fileset.all.gl2"
                  emitter="com.sun.gluegen.opengl.GLEmitter">
             <classpath refid="gluegen.classpath" />
         </gluegen>
-        <gluegen src="${stub.includes.opengl}/gl3.c" 
+        <gluegen src="${stub.includes.opengl}/gl2.c" 
                  outputRootDir="${build}"
                  config="${config}/gl-if-gl2_gl3.cfg"
                  includeRefid="stub.includes.fileset.all.gl2"
