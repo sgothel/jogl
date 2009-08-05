@@ -91,16 +91,16 @@ import java.util.regex.*;
 public class BuildStaticGLInfo
 {
   // Handles function pointer 
-  protected static int funcIdentifierGroup = 9;
+  protected static int funcIdentifierGroup = 10;
   protected static Pattern funcPattern =
-    Pattern.compile("^(GLAPI|GL_API|GL_APICALL|EGLAPI|extern)?(\\s*)(const\\s+)?(\\w+)(\\s*\\*)?(\\s+)(GLAPIENTRY|GL_APIENTRY|APIENTRY|EGLAPIENTRY|WINAPI)?(\\s*)([ew]?gl\\w+)\\s?(\\(.*)");
+    Pattern.compile("^(GLAPI|GL_API|GL_APICALL|EGLAPI|extern)?(\\s*)((unsigned|const)\\s+)?(\\w+)(\\s*\\*)?(\\s+)(GLAPIENTRY|GL_APIENTRY|APIENTRY|EGLAPIENTRY|WINAPI)?(\\s*)([ew]?gl\\w+)\\s?(\\(.*)");
 
   protected static Pattern associationPattern =
-    Pattern.compile("\\#ifndef ([EW]?GL[X]?_[A-Za-z0-9_]+)\\s*");
+    Pattern.compile("\\#ifndef ([CEW]?GL[XU]?_[A-Za-z0-9_]+)\\s*");
 
   protected static int defineIdentifierGroup = 1;
   protected static Pattern definePattern =
-    Pattern.compile("\\#define ([EW]?GL[X]?_[A-Za-z0-9_]+)\\s*([A-Za-z0-9_]+)\\s*");
+    Pattern.compile("\\#define ([CEW]?GL[XU]?_[A-Za-z0-9_]+)\\s*([A-Za-z0-9_]+)\\s*");
 
   // Maps function / #define names to the names of the extensions they're declared in
   protected Map declarationToExtensionMap = new HashMap();
