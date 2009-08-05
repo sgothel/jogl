@@ -112,7 +112,7 @@ public class GLJavaMethodBindingEmitter extends ProcAddressJavaMethodBindingEmit
 
       String symbolRenamed = binding.getName();
       StringBuffer newComment = new StringBuffer();
-      newComment.append("Part of <code>");
+      newComment.append("<br>Part of <code>");
       if(0==glEmitter.addExtensionsOfSymbols2Buffer(newComment, ", ", symbolRenamed, binding.getAliasedNames())) {
           if(glEmitter.getGLConfig().getAllowNonGLExtensions()) {
               newComment.append("CORE FUNC");

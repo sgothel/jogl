@@ -348,7 +348,7 @@ public class GLEmitter extends ProcAddressEmitter
       newComment.append("</code>");
 
       if(null!=optionalComment) {
-        newComment.append(" ");
+        newComment.append("<br>");
         newComment.append(optionalComment);
       }
 
