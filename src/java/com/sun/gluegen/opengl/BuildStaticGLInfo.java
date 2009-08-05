@@ -100,7 +100,7 @@ public class BuildStaticGLInfo
 
   protected static int defineIdentifierGroup = 1;
   protected static Pattern definePattern =
-    Pattern.compile("\\#define ([CEW]?GL[XU]?_[A-Za-z0-9_]+)\\s*([A-Za-z0-9_]+)\\s*");
+    Pattern.compile("\\#define (([CEW]?GL[XU]?|PFD)_[A-Za-z0-9_]+)\\s*([A-Za-z0-9_]+)\\s*");
 
   // Maps function / #define names to the names of the extensions they're declared in
   protected Map declarationToExtensionMap = new HashMap();

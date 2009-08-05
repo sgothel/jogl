@@ -320,7 +320,15 @@ public class GLEmitter extends ProcAddressEmitter
       StringBuffer newComment = new StringBuffer();
       newComment.append("Part of <code>");
       if(0==addExtensionsOfSymbols2Buffer(newComment, ", ", symbolRenamed, def.getAliasedNames())) {
-          // Note: All GL enums must be contained within an extension marker !
+        if(def.isEnum()) {
+          String enumName = def.getEnumName();
+          if(null!=enumName) {
+              newComment.append(enumName);
+          } else {
+              newComment.append("ENUM");
+          }
+        } else {
+          // Note: All GL defines must be contained within an extension marker !
           // #ifndef GL_EXT_lala
           // #define GL_EXT_lala 1
           // ...
@@ -331,6 +339,7 @@ public class GLEmitter extends ProcAddressEmitter
               System.err.println("Dropping marker: "+sb.toString());
           }
           return;
+        }
       }
       newComment.append("</code>");
 
