@@ -91,17 +91,23 @@ import java.util.regex.*;
 public class BuildStaticGLInfo
 {
   // Handles function pointer 
+  protected static int funcIdentifierGroup = 9;
   protected static Pattern funcPattern =
-    Pattern.compile("^(GLAPI|GL_API|GL_APICALL|EGLAPI|extern)?(\\s*)(\\w+)(\\*)?(\\s+)(GLAPIENTRY|GL_APIENTRY|APIENTRY|EGLAPIENTRY|WINAPI)?(\\s*)([ew]?gl\\w+)\\s?(\\(.*)");
+    Pattern.compile("^(GLAPI|GL_API|GL_APICALL|EGLAPI|extern)?(\\s*)(const\\s+)?(\\w+)(\\s*\\*)?(\\s+)(GLAPIENTRY|GL_APIENTRY|APIENTRY|EGLAPIENTRY|WINAPI)?(\\s*)([ew]?gl\\w+)\\s?(\\(.*)");
+
   protected static Pattern associationPattern =
-    Pattern.compile("\\#ifndef ([EW]?GL[X]?_[A-Za-z0-9_]+)");
+    Pattern.compile("\\#ifndef ([EW]?GL[X]?_[A-Za-z0-9_]+)\\s*");
+
+  protected static int defineIdentifierGroup = 1;
   protected static Pattern definePattern =
-    Pattern.compile("\\#define ([EW]?GL[X]?_[A-Za-z0-9_]+)\\s*([A-Za-z0-9_]+)");
+    Pattern.compile("\\#define ([EW]?GL[X]?_[A-Za-z0-9_]+)\\s*([A-Za-z0-9_]+)\\s*");
+
   // Maps function / #define names to the names of the extensions they're declared in
   protected Map declarationToExtensionMap = new HashMap();
   // Maps extension names to Set of identifiers (both #defines and
   // function names) this extension declares
   protected Map/*<String, Set<String>*/ extensionToDeclarationMap = new HashMap();
+  protected boolean debug = false;
 
   /**
    * The first argument is the package to which the StaticGLInfo class
@@ -113,6 +119,7 @@ public class BuildStaticGLInfo
   {
     if (args.length > 0 && args[0].equals("-test")) {
       BuildStaticGLInfo builder = new BuildStaticGLInfo();
+      builder.setDebug(true);
       String[] newArgs = new String[args.length - 1];
       System.arraycopy(args, 1, newArgs, 0, args.length - 1);
       builder.parse(newArgs);
@@ -157,6 +164,9 @@ public class BuildStaticGLInfo
     }
   }
 
+  public void setDebug(boolean v) {
+      debug = v;
+  }
   
   /** Parses the supplied C header files and adds the function
       associations contained therein to the internal map. */
@@ -173,14 +183,20 @@ public class BuildStaticGLInfo
     String line, activeAssociation = null;
     Matcher m = null;
     while ((line = reader.readLine()) != null) {
+      int type = 0; // 1-define, 2-function
       // see if we're inside a #ifndef GL_XXX block and matching a function
       if (activeAssociation != null) {
         String identifier = null;
         if ((m = funcPattern.matcher(line)).matches()) {
-          identifier = m.group(8);
+          identifier = m.group(funcIdentifierGroup).trim();
+          type =2;
         } else if ((m = definePattern.matcher(line)).matches()) {
-          identifier = m.group(1);
+          identifier = m.group(defineIdentifierGroup).trim();
+          type =1;
         } else if (line.startsWith("#endif")) {
+          if(debug) {
+              System.err.println("END ASSOCIATION BLOCK: <" + activeAssociation + ">");
+          }
           activeAssociation = null;
         }
         if ((identifier != null) &&
@@ -188,13 +204,17 @@ public class BuildStaticGLInfo
             // Handles #ifndef GL_... #define GL_...
             !identifier.equals(activeAssociation)) {
           addAssociation(identifier, activeAssociation);
-          // System.err.println("  ADDING ASSOCIATION: " + identifier + " " + activeAssociation);
+          if(debug) {
+              System.err.println("  ADDING ASSOCIATION: <" + identifier + "> <" + activeAssociation + "> ; type "+type);
+          }
         }
       } else if ((m = associationPattern.matcher(line)).matches()) {
         // found a new #ifndef GL_XXX block
-        activeAssociation = m.group(1);
+        activeAssociation = m.group(1).trim();
         
-        // System.err.println("FOUND NEW ASSOCIATION BLOCK: " + activeAssociation);
+        if(debug) {
+            System.err.println("BEGIN ASSOCIATION BLOCK: <" + activeAssociation + ">");
+        }
       }
     }
     reader.close();
@@ -204,12 +224,12 @@ public class BuildStaticGLInfo
     for (Iterator i1 = extensionToDeclarationMap.keySet().iterator(); i1.hasNext(); ) {
       String name = (String) i1.next();
       Set decls = (Set) extensionToDeclarationMap.get(name);
-      System.out.println(name + ":");
+      System.out.println("<"+name+"> :");
       List l = new ArrayList();
       l.addAll(decls);
       Collections.sort(l);
       for (Iterator i2 = l.iterator(); i2.hasNext(); ) {
-        System.out.println("  " + (String) i2.next());
+        System.out.println("  <" + (String) i2.next() + ">");
       }
     }
   }

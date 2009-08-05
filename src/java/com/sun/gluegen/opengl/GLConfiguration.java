@@ -202,13 +202,6 @@ public class GLConfiguration extends ProcAddressConfiguration {
     super.dumpIgnores();
   }
 
-  protected String getExtension(String symbol) {
-    if (glInfo != null) {
-        return glInfo.getExtension(symbol);
-    }
-    return null;
-  }
-
   protected boolean shouldIgnoreExtension(String symbol, boolean criteria) {
     if (criteria && glInfo != null) {
       String extension = glInfo.getExtension(symbol);
@@ -216,14 +209,14 @@ public class GLConfiguration extends ProcAddressConfiguration {
           ignoredExtensions.contains(extension)) {
           return true;
       }
-      boolean isGLFunc = GLExtensionNames.isGLFunction(symbol);
       boolean isGLEnum = GLExtensionNames.isGLEnumeration(symbol);
+      boolean isGLFunc = GLExtensionNames.isGLFunction(symbol);
       if(isGLFunc || isGLEnum) {
         if(GLExtensionNames.isExtensionVEN(symbol, isGLFunc)) {
           String extSuffix = GLExtensionNames.getExtensionSuffix(symbol, isGLFunc);
           if( getDropUniqVendorExtensions(extSuffix) ) {
             if(DEBUG_IGNORES) {
-              System.err.println("Ignore UniqVendorEXT: "+symbol);
+              System.err.println("Ignore UniqVendorEXT: "+symbol+", vendor "+extSuffix);
             }
             return true;
           }

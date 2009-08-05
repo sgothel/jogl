@@ -109,12 +109,21 @@ public class GLJavaMethodBindingEmitter extends ProcAddressJavaMethodBindingEmit
   {
     protected void emitBindingCSignature(MethodBinding binding, PrintWriter writer) {      
       super.emitBindingCSignature(binding, writer);
-      String extensionName = glEmitter.getGLConfig().getExtension(binding.getCSymbol().getName());
-      if(null!=extensionName) {
-          writer.print("<br>Part of <code>"+extensionName+"</code>");
-      } else {
-          writer.print("<br>Part of <code>unknown extension</code>");
+
+      String symbolRenamed = binding.getName();
+      StringBuffer newComment = new StringBuffer();
+      newComment.append("Part of <code>");
+      if(0==glEmitter.addExtensionsOfSymbols2Buffer(newComment, ", ", symbolRenamed, binding.getAliasedNames())) {
+          StringBuffer sb = new StringBuffer();
+          JavaEmitter.addStrings2Buffer(sb, ", ", symbolRenamed, binding.getAliasedNames());
+          RuntimeException ex = new RuntimeException("Couldn't find extension to: "+binding+" ; "+sb.toString());
+          ex.printStackTrace();
+          glEmitter.getGLConfig().getGLInfo().dump();
+          // glEmitter.getGLConfig().dumpRenames();
+          throw ex;
       }
+      newComment.append("</code>");
+      writer.print(newComment.toString());
     }
   }
 }
