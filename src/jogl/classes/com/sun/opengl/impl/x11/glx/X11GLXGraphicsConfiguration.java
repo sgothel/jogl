@@ -198,7 +198,7 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
             String glXExtensions = GLX.glXQueryExtensionsString(display, screen);
             if (glXExtensions == null ||
                 glXExtensions.indexOf("GLX_NV_float_buffer") < 0) {
-              throw new GLException("Floating-point pbuffers on X11 currently require NVidia hardware");
+              throw new GLException("Floating-point pbuffers on X11 currently require NVidia hardware: "+glXExtensions);
             }
             res[idx++] = GLXExt.GLX_FLOAT_COMPONENTS_NV;
             res[idx++] = GL.GL_TRUE;
