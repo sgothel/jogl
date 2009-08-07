@@ -43,6 +43,12 @@ bindings to the native OpenGL(R) 3D graphics library profiles:
   </ul>
   <br>
 
+<h3>OpenGL Profile Model</h3>
+  OpenGL today is not just a single set of functionality, it offers many profiles for different
+  purposes, e.g. ES1 and ES2 for mobile, etc.<br>
+  JOGL reflects these profiles <a href="../doc/bouml/html/">with an OO abstraction model</a>,
+  specifying interfaces encapsulating common subsets.<br> 
+   
 <h3>Package Structure</h3>
   The packages defined by this specification include:<br>
    
@@ -68,12 +74,12 @@ inclusive, as well as most of it's extensions defined at the time of this specif
         <br>
         This interface contains all core desktop OpenGL methods through
 version 3.0, inclusive, as well as most of it's extensions defined at the
-time of this specification.  Early OpenGL extensions whose functionality
-was incorporated into core OpenGL by version 3.0, inclusive, are specifically
-excluded.<br> 
-        Note: OpenGL 3.0 is the last subsumed version in the specification. 
+time of this specification.  OpenGL extensions whose functionality
+was incorporated into core OpenGL until version 3.1, inclusive, are subsumed into the core namespace.<br> 
+        Note: OpenGL 3.0 is the last completly subsumed version in the specification. 
         You need to use a {@link javax.media.opengl.GL3} OpenGL 3.1+ context to benefit
         from new functionality and versions.<br>
+        Note: Intersecting OpenGL 3.1 subsumed extensions are subsumed in GL2 as well, to offer the best common GL2GL3 intersection.<br>
         See <a href="#GL2InclusionCriteria">GL2 Inclusion Criteria</a>.<br>
         See <a href="#GL2RuntimeVersion">GL2 Runtime Requirements</a>.<br>
         Future extensions will be added with a <a href="#maintenanceupdates">maintenance update</a></li><br>
@@ -119,7 +125,7 @@ time of this specification. <br>
 
         <li> {@link javax.media.opengl.GL2GL3 javax.media.opengl.GL2GL3} interface<br>
         <br>
-        Interface containing the common subset of GL3 (OpenGL 3.1+) and GL2 (OpenGL 2.0),
+        Interface containing the common subset of GL3 (OpenGL 3.1+) and GL2 (OpenGL 3.0),
         also known as the OpenGL 3.0 forward compatible, non deprecated subset.<br>
         This interface reflects only the programmable shader functionality of desktop OpenGL</li><br>
     </ul>
@@ -322,7 +328,7 @@ according the following rules: <br>
   <a name="GL3InclusionCriteria"/>
   <li> {@link javax.media.opengl.GL3 javax.media.opengl.GL3} interface
    <ul>
-       <li>All functions in core, forward compatible, OpenGL 3.1, inclusive, have been included,
+       <li>All functions in core, forward compatible, OpenGL 3.1 - 3.2, inclusive, have been included,
            as described in the header files <code>GL3/gl3.h</code>.</li>
        <li>Reason for starting a new profile beginning with 3.1 are:
            <ul>
