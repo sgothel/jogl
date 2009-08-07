@@ -1,7 +1,7 @@
 window_sizes 1800 1050 450 1344 851 120
 diagrams
   active  classdiagram_ref 128069 // OpenGL Interfaces
-    1075 797 100 15 0 0
+    1135 830 100 15 57 0
 end
 show_stereotypes
 selected classdiagram_ref 128069 // OpenGL Interfaces

@@ -24,16 +24,15 @@ Documentation</title>
 <h1 class ="view">1 Class View javax.media.opengl</h1>
 <div class="sub">
 <a name="refclass diagram128069"></a>
-<p align="center"><embed src="fig128069.svg" width="1003" height="696"/></p>
+<p align="center"><embed src="fig128069.svg" width="1003" height="814"/></p>
  <p align="center"><b>OpenGL Interfaces</b></p><p><br /></p><p><br /></p>
 <a name="refclass128069"></a>
 <h2 class ="class">1.1 Class GL</h2>
-<p>Declaration :</p><ul><li>Java : public interface GL </li><li>Php : public interface GL </li></ul><p>Directly inherited by : <a href="index.html#refclass128197"><b>GL2ES1</b></a> <a href="index.html#refclass128581"><b>GL2ES2</b></a> </p>
+<p>Declaration :</p><ul><li>Java : public interface GL extends <a href="index.html#refclass132549"><b>GLBase</b></a> </li><li>Php : public interface GL </li></ul><p>Directly inherited by : <a href="index.html#refclass128197"><b>GL2ES1</b></a> <a href="index.html#refclass128581"><b>GL2ES2</b></a> </p>
 <p>Stereotype: interface</p>
 <div class="sub">
 <div class="sub">
-<a name="refrelation130373"></a>
-<table><tr><td><div class="element">Relation <b>&lt;association&gt;</b></div></td></tr></table><p>Declaration :</p><ul><li>Uml : -  : <a href="index.html#refclass130117"><b>GLContext</b></a>, multiplicity : 1</li><li>Java : private <a href="index.html#refclass130117"><b>GLContext</b></a> </li></ul></div>
+</div>
 </div>
 <a name="refclass128197"></a>
 <h2 class ="class">1.2 Class GL2ES1</h2>
@@ -95,9 +94,9 @@ Documentation</title>
 <h2 class ="class">1.9 Class GLContext</h2>
 <p>Declaration :</p><ul><li>Java : package abstract class GLContext </li></ul><div class="sub">
 <div class="sub">
-<a name="refrelation130501"></a>
-<table><tr><td><div class="element">Relation <b>&lt;association&gt;</b></div></td></tr></table><p>Declaration :</p><ul><li>Uml : -  : <a href="index.html#refclass128069"><b>GL</b></a>, multiplicity : 1</li><li>Java : private <a href="index.html#refclass128069"><b>GL</b></a> </li></ul><a name="refrelation130757"></a>
-<table><tr><td><div class="element">Relation <b>&lt;association&gt;</b></div></td></tr></table><p>Declaration :</p><ul><li>Uml : -  : <a href="index.html#refclass130245"><b>GLDrawable</b></a>, multiplicity : 1</li><li>Java : private <a href="index.html#refclass130245"><b>GLDrawable</b></a> </li></ul></div>
+<a name="refrelation130757"></a>
+<table><tr><td><div class="element">Relation <b>&lt;association&gt;</b></div></td></tr></table><p>Declaration :</p><ul><li>Uml : -  : <a href="index.html#refclass130245"><b>GLDrawable</b></a>, multiplicity : 1</li><li>Java : private <a href="index.html#refclass130245"><b>GLDrawable</b></a> </li></ul><a name="refrelation134341"></a>
+<table><tr><td><div class="element">Relation <b>&lt;association&gt;</b></div></td></tr></table><p>Declaration :</p><ul><li>Uml : -  : <a href="index.html#refclass132549"><b>GLBase</b></a>, multiplicity : 1</li><li>Java : private <a href="index.html#refclass132549"><b>GLBase</b></a> </li></ul></div>
 </div>
 <a name="refclass130245"></a>
 <h2 class ="class">1.10 Class GLDrawable</h2>
@@ -177,6 +176,15 @@ Documentation</title>
 <a name="refrelation132549"></a>
 <table><tr><td><div class="element">Relation <b>&lt;association&gt;</b></div></td></tr></table><p>Declaration :</p><ul><li>Uml : -  : <a href="index.html#refclass131141"><b>GLCapabilities</b></a></li><li>Java : private <a href="index.html#refclass131141"><b>GLCapabilities</b></a> </li></ul><a name="refrelation132805"></a>
 <table><tr><td><div class="element">Relation <b>&lt;association&gt;</b></div></td></tr></table><p>Declaration :</p><ul><li>Uml : -  : <a href="index.html#refclass131141"><b>GLCapabilities</b></a></li><li>Java : private <a href="index.html#refclass131141"><b>GLCapabilities</b></a> </li></ul></div>
+</div>
+<a name="refclass132549"></a>
+<h2 class ="class">1.20 Class GLBase</h2>
+<p>Declaration :</p><ul><li>Java : public interface GLBase </li><li>Php : public interface GLBase </li></ul><p>Directly inherited by : <a href="index.html#refclass128069"><b>GL</b></a> </p>
+<p>Stereotype: interface</p>
+<div class="sub">
+<div class="sub">
+<a name="refrelation134213"></a>
+<table><tr><td><div class="element">Relation <b>&lt;association&gt;</b></div></td></tr></table><p>Declaration :</p><ul><li>Uml : -  : <a href="index.html#refclass130117"><b>GLContext</b></a>, multiplicity : 1</li><li>Java : private <a href="index.html#refclass130117"><b>GLContext</b></a> </li></ul></div>
 </div>
 </div>
 </body>

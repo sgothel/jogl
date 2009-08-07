@@ -1,6 +1,6 @@
 format 62
 "jogl"
-  revision 3
+  revision 4
   modified_by 69 "sg215889"
 
 
@@ -74,16 +74,12 @@ ${members}};
 "
       explicit_switch_type ""
       
-      classrelation 130373 // <association>
-	relation 130373 ----
-	  a role_name "" multiplicity "1" private
-	    java "  ${comment}${@}${visibility}${static}${final}${transient}${volatile}${type} ${name}${value};
-"
-	    classrelation_ref 130373 // <association>
-	  b role_name "" multiplicity "1" private
-	    java "  ${comment}${@}${visibility}${static}${final}${transient}${volatile}${type} ${name}${value};
-"
-	    classrelation_ref 130501 // <association>
+      classrelation 134085 // <generalisation>
+	relation 133061 ---|>
+	  a public
+	    java "${type}"
+	    classrelation_ref 134085 // <generalisation>
+	  b parent class_ref 132549 // GLBase
       end
     end
 
@@ -274,12 +270,12 @@ ${members}}
       idl_decl ""
       explicit_switch_type ""
       
-      classrelation 130501 // <association>
-	relation_ref 130373 // <association>
-      end
-
       classrelation 130757 // <association>
 	relation_ref 130501 // <association>
+      end
+
+      classrelation 134341 // <association>
+	relation_ref 133189 // <association>
       end
     end
 
@@ -552,6 +548,34 @@ ${members}}
 	    java "  ${comment}${@}${visibility}${static}${final}${transient}${volatile}${type} ${name}${value};
 "
 	    classrelation_ref 132933 // <association>
+      end
+    end
+
+    class 132549 "GLBase"
+      visibility public stereotype "interface"
+      cpp_decl ""
+      java_decl "${comment}${@}${visibility}interface ${name}${extends} {
+${members}}
+"
+      php_decl "${comment}${visibility}interface ${name} {
+${members}}
+"
+      python_2_2 python_decl ""
+      idl_decl "${comment}${abstract}${local}interface ${name}${inherit} {
+${members}};
+"
+      explicit_switch_type ""
+      
+      classrelation 134213 // <association>
+	relation 133189 ----
+	  a role_name "" multiplicity "1" private
+	    java "  ${comment}${@}${visibility}${static}${final}${transient}${volatile}${type} ${name}${value};
+"
+	    classrelation_ref 134213 // <association>
+	  b role_name "" multiplicity "1" private
+	    java "  ${comment}${@}${visibility}${static}${final}${transient}${volatile}${type} ${name}${value};
+"
+	    classrelation_ref 134341 // <association>
       end
     end
   end
