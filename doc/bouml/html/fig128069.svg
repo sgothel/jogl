@@ -26,16 +26,13 @@
 	<line stroke="black" stroke-opacity="1" x1="386" y1="205" x2="386" y2="193" />
 </g>
 <g>
+	<line stroke="black" stroke-dasharray="20,4" stroke-opacity="1" x1="238" y1="392" x2="685" y2="392" />
+</g>
+<g>
 	<line stroke="black" stroke-dasharray="20,4" stroke-opacity="1" x1="238" y1="569" x2="685" y2="569" />
 </g>
 <g>
 	<line stroke="black" stroke-dasharray="20,4" stroke-opacity="1" x1="238" y1="304" x2="685" y2="304" />
-</g>
-<g>
-	<line stroke="black" stroke-dasharray="20,4" stroke-opacity="1" x1="238" y1="392" x2="685" y2="392" />
-</g>
-<g>
-	<line stroke="black" stroke-opacity="1" x1="237" y1="42" x2="533" y2="42" />
 </g>
 <g>
 	<line stroke="black" stroke-opacity="1" x1="115" y1="225" x2="154" y2="178" />
@@ -143,6 +140,9 @@
 	<line stroke="black" stroke-opacity="1" x1="183" y1="80" x2="195" y2="80" />
 </g>
 <g>
+	<line stroke="black" stroke-opacity="1" x1="237" y1="42" x2="533" y2="42" />
+</g>
+<g>
 	<rect fill="#808080" stroke="none" stroke-opacity="1" x="232" y="116" width="3" height="57" />
 	<rect fill="#808080" stroke="none" stroke-opacity="1" x="146" y="170" width="89" height="3" />
 	<rect fill="#ffffc0" stroke="black" stroke-width="1" stroke-opacity="1" x="142" y="112" width="90" height="58" />
@@ -150,15 +150,6 @@
 	<text font-family="Helvetica" font-size="10" fill="#000000" xml:space="preserve" font-weight="bold" text-anchor="middle" x="187" y="145">GL</text>
 	<line stroke="black" stroke-opacity="1" x1="142" y1="154" x2="232" y2="154" />
 	<line stroke="black" stroke-opacity="1" x1="142" y1="162" x2="232" y2="162" />
-</g>
-<g>
-	<rect fill="#808080" stroke="none" stroke-opacity="1" x="131" y="405" width="3" height="57" />
-	<rect fill="#808080" stroke="none" stroke-opacity="1" x="45" y="459" width="89" height="3" />
-	<rect fill="#ffffc0" stroke="black" stroke-width="1" stroke-opacity="1" x="41" y="401" width="90" height="58" />
-	<text font-family="Helvetica" font-size="10" fill="#000000" xml:space="preserve" text-anchor="middle" x="86" y="413">&lt;&lt;interface&gt;&gt;</text>
-	<text font-family="Helvetica" font-size="10" fill="#000000" xml:space="preserve" font-weight="bold" text-anchor="middle" x="86" y="434">GLES1</text>
-	<line stroke="black" stroke-opacity="1" x1="41" y1="443" x2="131" y2="443" />
-	<line stroke="black" stroke-opacity="1" x1="41" y1="451" x2="131" y2="451" />
 </g>
 <g>
 	<rect fill="#808080" stroke="none" stroke-opacity="1" x="132" y="230" width="3" height="57" />
@@ -297,6 +288,15 @@
 	<line stroke="black" stroke-opacity="1" x1="143" y1="62" x2="233" y2="62" />
 </g>
 	<text font-family="Helvetica" font-size="10" fill="#000000" xml:space="preserve" x="273" y="152">Common GL Stuff</text>
+<g>
+	<rect fill="#808080" stroke="none" stroke-opacity="1" x="131" y="405" width="3" height="57" />
+	<rect fill="#808080" stroke="none" stroke-opacity="1" x="45" y="459" width="89" height="3" />
+	<rect fill="#ffffc0" stroke="black" stroke-width="1" stroke-opacity="1" x="41" y="401" width="90" height="58" />
+	<text font-family="Helvetica" font-size="10" fill="#000000" xml:space="preserve" text-anchor="middle" x="86" y="413">&lt;&lt;interface&gt;&gt;</text>
+	<text font-family="Helvetica" font-size="10" fill="#000000" xml:space="preserve" font-weight="bold" text-anchor="middle" x="86" y="434">GLES1</text>
+	<line stroke="black" stroke-opacity="1" x1="41" y1="443" x2="131" y2="443" />
+	<line stroke="black" stroke-opacity="1" x1="41" y1="451" x2="131" y2="451" />
+</g>
 	<text font-family="Helvetica" font-size="10" fill="#000000" xml:space="preserve" x="544" y="341">Common Desktop</text>
 	<text font-family="Helvetica" font-size="10" fill="#000000" xml:space="preserve" x="544" y="359">Profile</text>
 <g>
