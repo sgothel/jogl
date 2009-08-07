@@ -222,6 +222,10 @@ ${docstring}${members}
   python_default_operation_definition "${@}${static}${abstract}def ${name}${(}${)}:
 ${docstring}${body}
 "
+  python_default_initoperation_definition "${@}${static}${abstract}def ${name}${(}${p0}${v0}${)}:
+${docstring}super(${class}, ${p0}).__init__()
+${body}
+"
   python_get "get${Name}"
   python_set "set${Name}"
   idl_default_src_content "#ifndef ${MODULE}_${NAME}_H

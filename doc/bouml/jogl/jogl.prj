@@ -1,6 +1,6 @@
-format 62
+format 67
 "jogl"
-  revision 4
+  revision 5
   modified_by 69 "sg215889"
 
 
@@ -30,14 +30,14 @@ format 62
   package_name_in_tab no show_context no show_opaque_action_definition no auto_label_position yes write_flow_label_horizontally no draw_all_relations yes shadow yes
   show_infonote yes drawing_language uml show_stereotype_properties no
   
-  class_color yellow duration_color transparent continuation_color gray note_color blue fragment_color transparent subject_color transparent usecase_color yellow package_color transparent component_color green artifact_color green deploymentnode_color gray state_color yellow stateaction_color transparent activity_color transparent activityregion_color transparent activityaction_color transparent parameterpin_color white 
+  class_color yellow duration_color transparent continuation_color gray note_color blue fragment_color transparent subject_color transparent usecase_color yellow package_color transparent component_color green artifact_color green deploymentnode_color gray state_color yellow stateaction_color transparent activity_color transparent activityregion_color transparent activitypartition_color transparent activityaction_color transparent parameterpin_color white 
   font_size 10
   diagram_format A4
 
   mark_for_import
   
   ncouples 1
-  key "html dir" value "/usr/local/projects/SUN/JOGL/jogl/doc/bouml/html/"
+  key "html dir" value "/net/jordan/usr/local/projects/SUN/JOGL/jogl/doc/bouml/html/"
   classview 128069 "javax.media.opengl"
     //class diagram settings
     draw_all_relations default hide_attributes default hide_operations default show_members_full_definition default show_members_visibility default show_members_stereotype default show_members_multiplicity default show_members_initialization default show_attribute_modifiers default member_max_width 0 show_parameter_dir default show_parameter_name default package_name_in_tab default class_drawing_mode default drawing_language default show_context_mode default auto_label_position default show_relation_modifiers default show_infonote default shadow default show_stereotype_properties default

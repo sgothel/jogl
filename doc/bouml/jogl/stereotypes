@@ -38,6 +38,8 @@
   activitynode_stereotypes  0
   activityaction_stereotypes  0
   activityobject_stereotypes  2 "datastore" "centralBuffer"
+  expansionregion_stereotypes  0
+  activitypartition_stereotypes  0
   pin_stereotypes  0
   component_stereotypes  6 "buildComponent" "entity" "implement" "process" "service" "subsystem"
   deploymentnode_stereotypes  3 "cpu" "device" "executionEnvironment"
