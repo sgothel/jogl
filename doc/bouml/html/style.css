@@ -1,0 +1,30 @@
+div.title { font-size: 150%; background: #87ceff; text-align: center; font-weight: bold; }
+
+div.sub { margin-left : 20px; }
+div.element { background: #d3d3d3; }
+
+h1.package { background: #ffe4c4; }
+h1.view { background: #98fb98; }
+
+h2.package { background: #ffe4c4; }
+h2.view { background: #98fb98; }
+h2.class { background: #87ceff; }
+h2.usecase { background: #87ceff; }
+h2.state { background: #87ceff; }
+h2.activity { background: #87ceff; }
+
+h3.package { background: #ffe4c4; }
+h3.view { background: #98fb98; }
+h3.class { background: #87ceff; }
+h3.usecase { background: #87ceff; }
+h3.state { background: #87ceff; }
+h3.stateregion { background: #87ceff; }
+h3.activity { background: #87ceff; }
+
+h4.package { background: #ffe4c4; }
+h4.view { background: #98fb98; }
+h4.class { background: #87ceff; }
+h4.usecase { background: #87ceff; }
+h4.state { background: #87ceff; }
+h4.stateregion { background: #87ceff; }
+h4.activity { background: #87ceff; }
