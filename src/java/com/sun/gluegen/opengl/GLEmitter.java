@@ -85,9 +85,15 @@ public class GLEmitter extends ProcAddressEmitter
     // renaming mechanisms that are built elsewhere.
     
     GLConfiguration config = getGLConfig();
+    Set extensionsRenamedIntoCore = config.getExtensionsRenamedIntoCore();
     BuildStaticGLInfo glInfo = config.getGLInfo();
-    for (Iterator iter = config.getExtensionsRenamedIntoCore().iterator();
-         iter.hasNext(); ) {
+    if(null==glInfo) {
+        if(extensionsRenamedIntoCore.size()>0) {
+            throw new RuntimeException("ExtensionRenamedIntoCore (num: "+extensionsRenamedIntoCore.size()+"), but no GLHeader");
+        }
+        return;
+    }
+    for (Iterator iter = extensionsRenamedIntoCore.iterator(); iter.hasNext(); ) {
       String extension = (String) iter.next();
       Set/*<String>*/ declarations = glInfo.getDeclarations(extension);
       if (declarations != null) {
@@ -305,6 +311,83 @@ public class GLEmitter extends ProcAddressEmitter
     return bufferObjectMethodBindings.containsKey(binding);
   }
 
+  public void emitDefine(ConstantDefinition def, String optionalComment) throws Exception {
+      BuildStaticGLInfo glInfo = getGLConfig().getGLInfo();
+      if(null==glInfo) {
+        throw new Exception("No GLInfo for: "+def);
+      }
+      String symbolRenamed = def.getName();
+      StringBuffer newComment = new StringBuffer();
+      newComment.append("Part of <code>");
+      if(0==addExtensionsOfSymbols2Buffer(newComment, ", ", symbolRenamed, def.getAliasedNames())) {
+        if(def.isEnum()) {
+          String enumName = def.getEnumName();
+          if(null!=enumName) {
+              newComment.append(enumName);
+          } else {
+              newComment.append("CORE ENUM");
+          }
+        } else {
+          if(getGLConfig().getAllowNonGLExtensions()) {
+              newComment.append("CORE DEF");
+          } else {
+              // Note: All GL defines must be contained within an extension marker !
+              // #ifndef GL_EXT_lala
+              // #define GL_EXT_lala 1
+              // ...
+              // #endif
+              if(JavaConfiguration.DEBUG_IGNORES) {
+                  StringBuffer sb = new StringBuffer();
+                  JavaEmitter.addStrings2Buffer(sb, ", ", symbolRenamed, def.getAliasedNames());
+                  System.err.println("Dropping marker: "+sb.toString());
+              }
+              return;
+          }
+        }
+      }
+      newComment.append("</code>");
+
+      if(null!=optionalComment) {
+        newComment.append("<br>");
+        newComment.append(optionalComment);
+      }
+
+      super.emitDefine(def, newComment.toString());
+  }
+
+  public int addExtensionsOfSymbols2Buffer(StringBuffer buf, String sep, String first, Collection col) {
+    BuildStaticGLInfo glInfo = getGLConfig().getGLInfo();
+    if(null==glInfo) {
+        throw new RuntimeException("No GLInfo for: "+first);
+    }
+    int num = 0;
+    if(null==buf) buf=new StringBuffer();
+    String extensionName;
+
+    Iterator iter=col.iterator();
+    if(null!=first) {
+        extensionName = glInfo.getExtension(first);
+        if(null!=extensionName) {
+            buf.append(extensionName);
+            if( iter.hasNext() ) {
+                buf.append(sep);
+            }
+            num++;
+        }
+    }
+    while( iter.hasNext() ) {
+        extensionName = glInfo.getExtension((String)iter.next());
+        if(null!=extensionName) {
+            buf.append(extensionName);
+            if( iter.hasNext() ) {
+                buf.append(sep);
+            }
+            num++;
+        }
+    }
+    return num;
+  }
+
   //----------------------------------------------------------------------
   // Internals only below this point
   //
@@ -319,10 +402,9 @@ public class GLEmitter extends ProcAddressEmitter
     for (Iterator iter = superEmitters.iterator(); iter.hasNext(); ) {
         JavaMethodBindingEmitter emitter = (JavaMethodBindingEmitter) iter.next();
         if (emitter instanceof ProcAddressJavaMethodBindingEmitter) {
-          emitters.add(new GLJavaMethodBindingEmitter((ProcAddressJavaMethodBindingEmitter) emitter, this, bufferObjectVariant));
-        } else {
-          emitters.add(emitter);
+          emitter = new GLJavaMethodBindingEmitter((ProcAddressJavaMethodBindingEmitter) emitter, this, bufferObjectVariant);
         }
+        emitters.add(emitter);
     }
   }
 
@@ -385,23 +467,4 @@ public class GLEmitter extends ProcAddressEmitter
     w.flush();
     w.close();
   }
-
-  protected void emitProcAddressTableEntryForSymbol(FunctionSymbol cFunc)
-  {
-    emitProcAddressTableEntryForString(cFunc.getName());
-  }
-
-  protected void emitProcAddressTableEntryForString(String str)
-  {
-    // Deal gracefully with forced proc address generation in the face
-    // of having the function pointer typedef in the header file too
-    if (emittedTableEntries.contains(str))
-      return;
-    emittedTableEntries.add(str);
-    tableWriter.print("  public long ");
-    tableWriter.print(PROCADDRESS_VAR_PREFIX);
-    tableWriter.print(str);
-    tableWriter.println(";");
-  }
-
 }

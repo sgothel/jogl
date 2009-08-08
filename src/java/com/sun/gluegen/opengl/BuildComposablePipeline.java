@@ -330,15 +330,29 @@ public class BuildComposablePipeline
 
       PrintWriter output = new PrintWriter(new BufferedWriter(new FileWriter(file)));
 
+      List baseInterfaces = Arrays.asList(baseInterfaceClass.getInterfaces());
       HashSet clazzList = new HashSet();
       clazzList.add(baseInterfaceClass);
-      clazzList.addAll(Arrays.asList(baseInterfaceClass.getInterfaces()));
+      clazzList.addAll(baseInterfaces);
+      int ifNamesNumber = clazzList.size();
 
-      String[] ifNames = new String[clazzList.size()];
+      // keep original order ..
+      clazzList.clear();
+      String[] ifNames = new String[ifNamesNumber];
       {
           int i=0;
-          for (Iterator iter=clazzList.iterator(); iter.hasNext(); ) {
-                ifNames[i++] = new String(((Class)iter.next()).getName());
+
+          for (Iterator iter=baseInterfaces.iterator(); iter.hasNext(); ) {
+                Class ifClass = (Class)iter.next();
+                if(!clazzList.contains(ifClass)) {
+                    ifNames[i++] = new String(ifClass.getName());
+                    clazzList.add(ifClass);
+                }
+          }
+
+          if(null!=baseInterfaceClass && !clazzList.contains(baseInterfaceClass)) {
+              ifNames[i++] = new String(baseInterfaceClass.getName());
+              clazzList.add(baseInterfaceClass);
           }
       }
 
@@ -619,6 +633,7 @@ public class BuildComposablePipeline
       emitGLIsMethod(output, "GLES2");
       emitGLIsMethod(output, "GL2ES1");
       emitGLIsMethod(output, "GL2ES2");
+      emitGLIsMethod(output, "GL2GL3");
       output.println("  public boolean isGLES() {");
       output.println("    return isGLES2() || isGLES1();");
       output.println("  }");
@@ -648,6 +663,7 @@ public class BuildComposablePipeline
       emitGLGetMethod(output, "GLES2");
       emitGLGetMethod(output, "GL2ES1");
       emitGLGetMethod(output, "GL2ES2");
+      emitGLGetMethod(output, "GL2GL3");
       output.println("  public GLProfile getGLProfile() {");
       output.println("    return "+getDownstreamObjectName()+".getGLProfile();");
       output.println("  }");
@@ -744,9 +760,9 @@ public class BuildComposablePipeline
       output.println(" * ");
       output.println("<PRE>");
       if(null!=prologNameOpt) {
-          output.println("     drawable.setGL( new "+className+"( drawable.getGL().getGL2ES2(), new "+prologNameOpt+"( drawable.getGL().getGL2ES2() ) ) );");
+          output.println("     GL gl = drawable.setGL( new "+className+"( drawable.getGL().getGL2ES2(), new "+prologNameOpt+"( drawable.getGL().getGL2ES2() ) ) );");
       } else {
-          output.println("     drawable.setGL( new "+className+"( drawable.getGL().getGL2ES2() ) );");
+          output.println("     GL gl = drawable.setGL( new "+className+"( drawable.getGL().getGL2ES2() ) );");
       }
       output.println("</PRE>");
       output.println("*/");
@@ -896,7 +912,7 @@ public class BuildComposablePipeline
       output.println("    Sample code which installs this pipeline: </P>");
       output.println();
       output.println("<PRE>");
-      output.println("     drawable.setGL(new DebugGL(drawable.getGL()));");
+      output.println("     GL gl = drawable.setGL(new DebugGL(drawable.getGL()));");
       output.println("</PRE>");
       output.println("*/");
     }
@@ -1034,7 +1050,7 @@ public class BuildComposablePipeline
       output.println("    before and after each OpenGL method call. Sample code which installs this pipeline: </P>");
       output.println();
       output.println("<PRE>");
-      output.println("     drawable.setGL(new TraceGL(drawable.getGL(), System.err));");
+      output.println("     GL gl = drawable.setGL(new TraceGL(drawable.getGL(), System.err));");
       output.println("</PRE>");
       output.println("*/");
     }
@@ -1055,7 +1071,7 @@ public class BuildComposablePipeline
         output.println("printIndent();");
       }
       
-      output.print("    println(");
+      output.print("    print(");
           printFunctionCallString(output, m);
       output.println(");");
     }
@@ -1093,10 +1109,10 @@ public class BuildComposablePipeline
         } else if(params[i].equals(int.class)) {
             output.print("+\"<"+params[i].getName()+"> 0x\"+Integer.toHexString(arg"+i+").toUpperCase()");
         } else {
-            output.print("+\"<"+params[i].getName()+">\"+arg"+i);
+            output.print("+\"<"+params[i].getName()+"> \"+arg"+i);
         }
         if ( i < params.length-1) {
-          output.print("+\",\"");      
+          output.print("+\", \"");      
         }
       }
       output.print("+\")\"");

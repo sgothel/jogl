@@ -52,6 +52,7 @@ import com.sun.gluegen.procaddress.*;
 public class GLJavaMethodBindingEmitter extends ProcAddressJavaMethodBindingEmitter {
   protected boolean bufferObjectVariant;
   protected GLEmitter glEmitter;
+  protected CommentEmitter glCommentEmitter = new GLCommentEmitter();
   
   public GLJavaMethodBindingEmitter(JavaMethodBindingEmitter methodToWrap,
                                     boolean callThroughProcAddress,
@@ -66,6 +67,7 @@ public class GLJavaMethodBindingEmitter extends ProcAddressJavaMethodBindingEmit
           emitter);
     this.bufferObjectVariant = bufferObjectVariant;
     this.glEmitter=emitter;
+    setCommentEmitter(glCommentEmitter);
   }
 
   public GLJavaMethodBindingEmitter(ProcAddressJavaMethodBindingEmitter methodToWrap,
@@ -74,6 +76,7 @@ public class GLJavaMethodBindingEmitter extends ProcAddressJavaMethodBindingEmit
     super(methodToWrap);
     this.bufferObjectVariant = bufferObjectVariant;
     this.glEmitter=emitter;
+    setCommentEmitter(glCommentEmitter);
   }
 
   public GLJavaMethodBindingEmitter(GLJavaMethodBindingEmitter methodToWrap) {
@@ -99,5 +102,32 @@ public class GLJavaMethodBindingEmitter extends ProcAddressJavaMethodBindingEmit
     }
 
     return name;
+  }
+
+  protected class GLCommentEmitter
+    extends JavaMethodBindingEmitter.DefaultCommentEmitter
+  {
+    protected void emitBindingCSignature(MethodBinding binding, PrintWriter writer) {      
+      super.emitBindingCSignature(binding, writer);
+
+      String symbolRenamed = binding.getName();
+      StringBuffer newComment = new StringBuffer();
+      newComment.append("<br>Part of <code>");
+      if(0==glEmitter.addExtensionsOfSymbols2Buffer(newComment, ", ", symbolRenamed, binding.getAliasedNames())) {
+          if(glEmitter.getGLConfig().getAllowNonGLExtensions()) {
+              newComment.append("CORE FUNC");
+          } else {
+              StringBuffer sb = new StringBuffer();
+              JavaEmitter.addStrings2Buffer(sb, ", ", symbolRenamed, binding.getAliasedNames());
+              RuntimeException ex = new RuntimeException("Couldn't find extension to: "+binding+" ; "+sb.toString());
+              ex.printStackTrace();
+              glEmitter.getGLConfig().getGLInfo().dump();
+              // glEmitter.getGLConfig().dumpRenames();
+              throw ex;
+          }
+      }
+      newComment.append("</code>");
+      writer.print(newComment.toString());
+    }
   }
 }
