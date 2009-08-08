@@ -474,9 +474,9 @@ public class NativeSignatureJavaMethodBindingEmitter extends GLJavaMethodBinding
   protected String getImplMethodName(boolean direct) {
     String name = null;
     if (direct) {
-      name = binding.getRenamedMethodName() + "$0";
+      name = binding.getName() + "$0";
     } else {
-      name = binding.getRenamedMethodName() + "$1";
+      name = binding.getName() + "$1";
     }
     if (bufferObjectVariant) {
       return name + "BufObj";

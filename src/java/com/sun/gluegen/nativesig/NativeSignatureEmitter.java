@@ -50,9 +50,9 @@ import com.sun.gluegen.procaddress.*;
 /** Emitter producing NativeSignature attributes. */
 
 public class NativeSignatureEmitter extends GLEmitter {
-  protected List generateMethodBindingEmitters(FunctionSymbol sym) throws Exception {
+  protected List generateMethodBindingEmitters(HashSet/*<MethodBinding>*/ methodBindingSet, FunctionSymbol sym) throws Exception {
     // Allow superclass to do most of the work for us
-    List res = super.generateMethodBindingEmitters(sym);
+    List res = super.generateMethodBindingEmitters(methodBindingSet, sym);
 
     // Filter out all non-JavaMethodBindingEmitters
     for (Iterator iter = res.iterator(); iter.hasNext(); ) {
