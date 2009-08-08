@@ -58,12 +58,17 @@ build system, but are not officially supported.
 <P>
 Here are the steps that are required in order to build the JOGL OpenGL
 binding from a fresh copy of the source distribution, which can be
-obtained either from <a
-href="https://jogl.dev.java.net/source/browse/jogl/">CVS</a> or a <a
-href="https://jogl.dev.java.net/servlets/ProjectDocumentList">release
-build</a>.
-
+obtained either from
+<a href="http://kenai.com/projects/jogl/sources/">GIT</a> or an
+<a href="http://download.java.net/media/jogl/builds/archive/">archived build</a>.
 </P>
+
+<P>
+JOGL depends on our GlueGen project, which can be optained either from
+<a href="http://kenai.com/projects/gluegen/sources/">GIT</a> or an
+<a href="http://download.java.net/media/gluegen/builds/archive/">archived build</a>.
+</P>
+
 <OL>
   <LI> <B>Install the JDK:</B> <br> the JOGL build requires JDK 1.4.2 or later. On AMD64 platforms such as Linux/AMD64, Solaris/AMD64 and Windows/AMD64, the build requires the Sun JDK 5.0 or later, as the 1.4.2 releases did not have an AMD64-specific JVM. On these platforms, it is also currently necessary to have e.g. <code>bin/amd64/java</code> in your PATH, although from a technical standpoint this could be worked around in the build process.
   <LI> <B>Install Ant:</B> <br> Download and unpack the latest version of Ant from <a href="http://ant.apache.org/">http://ant.apache.org</a> and add the <code>bin/</code> subdirectory to your PATH environment variable.
@@ -93,7 +98,7 @@ build</a>.
   <LI> <B>Add JOGL and the GlueGen runtime to your CLASSPATH:</B> <br> To be able to use JOGL once built, you must add the build process' resulting jogl.jar (.../jogl/build/jogl.jar) and gluegen-rt.jar (.../gluegen/build/gluegen-rt.jar) to your CLASSPATH environment variable.
   <LI> <B>Add JOGL and the GlueGen runtime to your PATH, LD_LIBRARY_PATH, or DYLD_LIBRARY_PATH:</B> <br> To be able to use JOGL once built, you must also add the build process's JNI code library directories (.../jogl/build/obj and .../gluegen/build/obj) to your PATH (on Windows), LD_LIBRARY_PATH (on most Unix platforms), or DYLD_LIBRARY_PATH (on Mac OS X) environment variable.
 
-  <LI> <B>Test if everything's working:</B> <br> To test if everything went well, you should check out the source code for the <B>jogl-demos</B> project (available at <a href = "http://jogl-demos.dev.java.net/">http://jogl-demos.dev.java.net/</a>), build the demos using the supplied instructions, and run the Gears demo ("java demos.gears.Gears").
+  <LI> <B>Test if everything's working:</B> <br> To test if everything went well, you should check out the source code for the <B>jogl-demos</B> project (available at <a href = "http://download.java.net/media/jogl/demos/www/">http://download.java.net/media/jogl/demos/www/</a>), build the demos using the supplied instructions, and run the Gears demo ("java demos.gears.Gears").
   <LI> <B>Build Javadoc:</B> <br> "ant javadoc" will produce the end-user documentation for JOGL along with some auxiliary utility packages. The developers' documentation, including that for the GlueGen tool, can be generated for your current platform using one of the following commands: "ant javadoc.dev.win32", "ant javadoc.dev.x11", or "ant javadoc.dev.macosx". (The javadoc for the Cg binding can be built by inserting <code>-Djogl.cg=1</code> into the command line as above.)
 </OL>
  

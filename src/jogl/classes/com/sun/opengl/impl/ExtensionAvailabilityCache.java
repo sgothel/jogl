@@ -65,7 +65,25 @@ public final class ExtensionAvailabilityCache {
    */
   public void flush()
   {
+    if(DEBUG) {
+        System.out.println("ExtensionAvailabilityCache: Flush availability OpenGL "+majorVersion+"."+minorVersion);
+    }
     availableExtensionCache.clear();
+    initialized = false;
+    majorVersion = 1;
+    minorVersion = 0;
+  }
+
+  /**
+   * Flush the cache and rebuild the cache.
+   */
+  public void reset() {
+    flush();
+    initAvailableExtensions();
+  }
+
+  public boolean isInitialized() {
+    return initialized && !availableExtensionCache.isEmpty() ;
   }
 
   public boolean isExtensionAvailable(String glExtensionName) {
@@ -73,19 +91,101 @@ public final class ExtensionAvailabilityCache {
     return availableExtensionCache.contains(mapGLExtensionName(glExtensionName));
   }
 
-  protected void initAvailableExtensions() {
+  public String getPlatformExtensionsString() {
+    initAvailableExtensions();
+    return glXExtensions;
+  }
+
+  public String getGLExtensions() {
+    initAvailableExtensions();
+    if(DEBUG) {
+        System.err.println("ExtensionAvailabilityCache: getGLExtensions() called");
+    }
+    return glExtensions;
+  }
+
+  public int getMajorVersion() {
+    initAvailableExtensions();
+    return majorVersion;
+  }
+
+  public int getMinorVersion() {
+    initAvailableExtensions();
+    return minorVersion;
+  }
+
+  private void initAvailableExtensions() {
     // if hash is empty (meaning it was flushed), pre-cache it with the list
     // of extensions that are in the GL_EXTENSIONS string
-    if (availableExtensionCache.isEmpty()) {
+    if (availableExtensionCache.isEmpty() || !initialized) {
       GL gl = context.getGL();
+
       if (DEBUG) {
-        System.err.println("!!! Pre-caching extension availability");
+         System.err.println("ExtensionAvailabilityCache: Pre-caching init "+gl+", GL_VERSION "+gl.glGetString(GL.GL_VERSION));
       }
-      String allAvailableExtensions =
-        gl.glGetString(GL.GL_EXTENSIONS) + " " + context.getPlatformExtensionsString();
+
+      // Set version
+      Version version = new Version(gl.glGetString(GL.GL_VERSION));
+      if (version.isValid()) {
+        majorVersion = version.getMajor();
+        minorVersion = version.getMinor();
+
+        if( !gl.isGL3() &&
+            ( majorVersion > 3 ||
+              ( majorVersion == 3 && minorVersion >= 1 ) ) ) {
+            // downsize version to 3.0 in case we are not using GL3 (3.1)
+            majorVersion = 3;
+            minorVersion = 0;
+        }
+      }
+
+      boolean useGetStringi = false;
+
+      if ( majorVersion > 3 ||
+           ( majorVersion == 3 && minorVersion >= 0 ) ||
+           gl.isGL3() ) {
+          if ( ! gl.isGL2GL3() ) {
+            if(DEBUG) {
+                System.err.println("ExtensionAvailabilityCache: GL >= 3.1 usage, but no GL2GL3 interface: "+gl.getClass().getName());
+            }
+          } else if ( ! gl.isFunctionAvailable("glGetStringi") ) {
+            if(DEBUG) {
+                System.err.println("ExtensionAvailabilityCache: GL >= 3.1 usage, but no glGetStringi");
+            }
+          } else {
+              useGetStringi = true;
+          }
+      }
+
       if (DEBUG) {
-        System.err.println("!!! Available extensions: " + allAvailableExtensions);
-        System.err.println("!!! GL vendor: " + gl.glGetString(GL.GL_VENDOR));
+        System.err.println("ExtensionAvailabilityCache: Pre-caching extension availability OpenGL "+majorVersion+"."+minorVersion+
+                           ", use "+ ( useGetStringi ? "glGetStringi" : "glGetString" ) );
+      }
+
+      StringBuffer sb = new StringBuffer();
+      if(useGetStringi) {
+        GL2GL3 gl2gl3 = gl.getGL2GL3();
+        int[] numExtensions = { 0 } ;
+        gl2gl3.glGetIntegerv(gl2gl3.GL_NUM_EXTENSIONS, numExtensions, 0);
+        for (int i = 0; i < numExtensions[0]; i++) {
+            sb.append(gl2gl3.glGetStringi(gl2gl3.GL_EXTENSIONS, i));
+            if(i < numExtensions[0]) {
+                sb.append(" ");
+            }
+        }
+      } else {
+        sb.append(gl.glGetString(GL.GL_EXTENSIONS));
+      }
+      glExtensions = sb.toString();
+      glXExtensions = context.getPlatformExtensionsString();
+
+      sb.append(" ");
+      sb.append(glXExtensions);
+
+      String allAvailableExtensions = sb.toString();
+      if (DEBUG_AVAILABILITY) {
+        System.err.println("ExtensionAvailabilityCache: Available extensions: " + allAvailableExtensions);
+        System.err.println("ExtensionAvailabilityCache: GL vendor: " + gl.glGetString(GL.GL_VENDOR));
       }
       StringTokenizer tok = new StringTokenizer(allAvailableExtensions);
       while (tok.hasMoreTokens()) {
@@ -93,42 +193,50 @@ public final class ExtensionAvailabilityCache {
         availableExt = availableExt.intern();
         availableExtensionCache.add(availableExt);
         if (DEBUG_AVAILABILITY) {
-          System.err.println("!!!   Available: " + availableExt);
+          System.err.println("ExtensionAvailabilityCache:   Available: " + availableExt);
         }
       }
 
       // Put GL version strings in the table as well
-      Version version = new Version(gl.glGetString(GL.GL_VERSION));
-      if (version.isValid()) {
-        int major = version.getMajor();
-        int minor = version.getMinor();
-        // FIXME: this needs to be adjusted when the major rev changes
-        // beyond the known ones
-        while (major > 0) {
-          while (minor >= 0) {
-            availableExtensionCache.add("GL_VERSION_" + major + "_" + minor);
-            if (DEBUG) {
-              System.err.println("!!! Added GL_VERSION_" + major + "_" + minor + " to known extensions");
-            }
-            --minor;
+      // FIXME: this needs to be adjusted when the major rev changes
+      // beyond the known ones
+      int major = majorVersion;
+      int minor = minorVersion;
+      while (major > 0) {
+        while (minor >= 0) {
+          availableExtensionCache.add("GL_VERSION_" + major + "_" + minor);
+          if (DEBUG) {
+            System.err.println("ExtensionAvailabilityCache: Added GL_VERSION_" + major + "_" + minor + " to known extensions");
           }
-
-          switch (major) {
-          case 2:
-            // Restart loop at version 1.5
-            minor = 5;
-            break;
-          case 1:
-            break;
-          }
-
-          --major;
+          --minor;
         }
+
+        switch (major) {
+        case 3:
+          if(gl.isGL3()) {
+              // GL3 is a GL 3.1 forward compatible context,
+              // hence no 2.0, 1.0 - 1.5 GL versions are supported.
+              major=0; 
+          }
+          // Restart loop at version 2.1
+          minor = 1;
+          break;
+        case 2:
+          // Restart loop at version 1.5
+          minor = 5;
+          break;
+        case 1:
+          break;
+        }
+
+        --major;
       }
 
       // put a dummy var in here so that the cache is no longer empty even if
       // no extensions are in the GL_EXTENSIONS string
       availableExtensionCache.add("<INTERNAL_DUMMY_PLACEHOLDER>");
+
+      initialized = true;
     }
   }
 
@@ -146,6 +254,11 @@ public final class ExtensionAvailabilityCache {
   // Internals only below this point
   //
 
+  private boolean initialized = false;
+  private int majorVersion = 1;
+  private int minorVersion = 0;
+  private String glExtensions = null;
+  private String glXExtensions = null;
   private HashSet availableExtensionCache = new HashSet(50);
   private GLContextImpl context;
 
@@ -236,7 +349,7 @@ public final class ExtensionAvailabilityCache {
       {
         // FIXME: refactor desktop OpenGL dependencies and make this
         // class work properly for OpenGL ES
-        System.err.println("FunctionAvailabilityCache.Version.<init>: "+e);
+        System.err.println("ExtensionAvailabilityCache: FunctionAvailabilityCache.Version.<init>: "+e);
         major = 1;
         minor = 0;
         /*

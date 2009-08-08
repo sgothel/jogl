@@ -44,8 +44,8 @@
    -
    - Some environment defs affecting compilation
 
-   - setup.noAWT is set iff:
-        !isWindows && !isOSX && !noX11
+   - setup.nodesktop is set iff:
+        !isWindows && !isOSX && !isX11
 
    - Internal settings, may not be necessary to set them manually,
      since all JAR archives are orthogonal.
@@ -66,9 +66,9 @@
     <!-- 
        - Base initialization and detection of operating system.
       -->
-    <target name="base.init">
+    <target name="base.init" depends="gluegen.cpptasks.detect.os">
 
-        <condition property="setup.noAWT">
+        <condition property="setup.nodesktop">
             <and>
                 <isfalse value="${isWindows}" />
                 <isfalse value="${isOSX}" />
@@ -76,23 +76,23 @@
             </and>
         </condition>
 
-        <condition property="setup.noall">
+        <condition property="setup.noNativeAWT">
             <or>
-                <isset property="noX11"/> 
                 <isset property="setup.noAWT"/> 
+                <isset property="setup.nodesktop"/> 
             </or>
         </condition>
-        <condition property="setup.noall-cdc">
-            <or>
-                <isset property="noX11"/> 
-            </or>
+
+        <condition property="setup.noall">
+            <isset property="setup.noAWT"/> 
         </condition>
 
         <property name="javac.bootclasspath-cdc.jar" value="../../gluegen/make/lib/cdc_fp.jar" />
 
+        <echo message="setup.nodesktop: ${setup.nodesktop}" />
         <echo message="setup.noall: ${setup.noall}" />
-        <echo message="setup.noall-cdc: ${setup.noall-cdc}" />
         <echo message="setup.noAWT: ${setup.noAWT}" />
+        <echo message="setup.noNativeAWT: ${setup.noNativeAWT}" />
         <echo message="javac.bootclasspath-cdc.jar: ${javac.bootclasspath-cdc.jar}" />
 
         <!-- partitioning -->
@@ -108,17 +108,12 @@
 
         <!-- condition excludes -->
 
-        <condition property="java.excludes.x11"
-                   value="${java.part.x11}">
-           <isset property="noX11"/> 
-        </condition>
-
         <condition property="java.excludes.awt"
                    value="${java.part.awt}">
            <isset property="setup.noAWT"/> 
         </condition>
 
-        <property name="java.excludes.all" value="${java.excludes.awt} ${java.excludes.x11}" />
+        <property name="java.excludes.all" value="${java.excludes.awt}" />
         <echo message="java.excludes.all: ${java.excludes.all}" />
 
 
@@ -533,35 +528,30 @@
     <target name="c.configure.win32.vc" if="isVCFamily">
       <echo message="Win32.VC" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.win32.msvc" />
-      <property name="linker.cfg.id.core"                   value="linker.cfg.win32.msvc" />
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.win32.msvc.nativewindow" />
     </target>
     
     <target name="c.configure.win32.mingw" if="isMingW">
       <echo message="Win32.MingW" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.win32.mingw" />
-      <property name="linker.cfg.id.core"                   value="linker.cfg.win32.mingw" />
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.win32.mingw.nativewindow" />
     </target>
 
     <target name="c.configure.linux.x86" if="isLinuxX86">
       <echo message="Linux.x86" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.linux" />
-      <property name="linker.cfg.id.core"                   value="linker.cfg.linux" />
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.linux.nativewindow.x11" />
     </target>
     
     <target name="c.configure.linux.amd64" if="isLinuxAMD64">
       <echo message="Linux.AMD64" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.linux.amd64" />
-      <property name="linker.cfg.id.core"                   value="linker.cfg.linux.amd64" />
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.linux.amd64.nativewindow.x11" />
     </target>
     
     <target name="c.configure.linux.ia64" if="isLinuxIA64">
       <echo message="Linux.IA64" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.linux" />
-      <property name="linker.cfg.id.core"                   value="linker.cfg.linux" />
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.linux.nativewindow.x11" />
     </target>
 
@@ -570,7 +560,6 @@
     <target name="c.configure.solaris32" depends="c.configure.x11" if="isSolaris32Bit">
       <echo message="Solaris" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.solaris" />
-      <property name="linker.cfg.id.core"                   value="linker.cfg.solaris" />
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.solaris.nativewindow.x11" />
     </target>
   
@@ -578,7 +567,6 @@
     <target name="c.configure.solaris.sparcv9" depends="c.configure.x11" if="isSolarisSparcv9">
       <echo message="SolarisSparcv9" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.solaris.sparcv9" />
-      <property name="linker.cfg.id.core"                   value="linker.cfg.solaris.sparcv9" />
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.solaris.sparcv9.nativewindow.x11" />
     </target>
    
@@ -586,21 +574,18 @@
     <target name="c.configure.solaris.amd64" depends="c.configure.x11" if="isSolarisAMD64">
       <echo message="SolarisAMD64" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.solaris.amd64" />
-      <property name="linker.cfg.id.core"                   value="linker.cfg.solaris.amd64" />
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.solaris.amd64.nativewindow.x11" />
     </target>
    
     <target name="c.configure.freebsd" depends="c.configure.x11" if="isFreeBSD">
       <echo message="FreeBSD" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.freebsd.nativewindow" />
-      <property name="linker.cfg.id.core"                   value="linker.cfg.linux" />
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.linux.nativewindow.x11" />
     </target>
 
     <target name="c.configure.hpux" depends="c.configure.x11" if="isHPUX">
       <echo message="HP-UX" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.hpux" />
-      <property name="linker.cfg.id.core"                   value="linker.cfg.hpux" />
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.hpux.nativewindow.x11" />
     </target>
 
@@ -610,7 +595,6 @@
 
     <target name="c.configure.macosx" if="isOSX">
       <property name="compiler.cfg.id"                      value="compiler.cfg.macosx" />
-      <property name="linker.cfg.id.core"                   value="linker.cfg.macosx" />
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.macosx.nativewindow" />
     </target>
     
@@ -733,7 +717,7 @@
       </sequential>
     </macrodef>  
 
-    <target name="c.fixup.jawt.version.macosx" if="isOSX" unless="setup.noAWT">
+    <target name="c.fixup.jawt.version.macosx" if="isOSX" unless="setup.noNativeAWT">
       <!-- Edit the link to the JAWT version in the resulting jnilib
            file; this isn't strictly needed but seems to allow the
            universal binaries to work on 10.3 machines as well, which
@@ -751,10 +735,10 @@
       <c.build c.compiler.src.files="c.src.files.jvm"
                output.lib.name="nativewindow_jvm"
                compiler.cfg.id="${compiler.cfg.id}"
-               linker.cfg.id="${linker.cfg.id.oswin}"/>
+               linker.cfg.id="${linker.cfg.id.base}"/>
     </target>
 
-    <target name="c.build.nativewindow.awt" unless="setup.noAWT">
+    <target name="c.build.nativewindow.awt" unless="setup.noNativeAWT">
       <c.build c.compiler.src.files="c.src.files.awt"
                c.compiler.use-jawt="true"
                output.lib.name="nativewindow_awt"
@@ -781,12 +765,12 @@
       <antcall target="c.fixup.jawt.version.macosx" inheritrefs="true" />
       <antcall target="c.manifest" inheritRefs="true" />
       <!-- Create the Java Web Start jar file for the built native code -->
-      <jar destfile="${build}/nativewindow-natives-${os.and.arch}.jar">
+      <jar destfile="${build}/nativewindow-natives-${os.and.arch}.jar" filesonly="true">
         <fileset dir="${obj}">
           <include name="*.${native.library.suffix}" />
         </fileset>
       </jar>
-      <jar destfile="${build}/nativewindow-natives-${os.and.arch}-cdc.jar">
+      <jar destfile="${build}/nativewindow-natives-${os.and.arch}-cdc.jar" filesonly="true">
         <fileset dir="${obj}">
           <include name="*_jvm.${native.library.suffix-cdc}" />
           <include name="*_x11.${native.library.suffix-cdc}" />
@@ -846,28 +830,28 @@
 
 
     <target name="build-jars-awt" depends="setup-manifestfile" unless="setup.noAWT">
-        <jar manifest="tempversion" destfile="${nativewindow.awt.jar}">
+        <jar manifest="tempversion" destfile="${nativewindow.awt.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.awt}"
                      excludes="${java.excludes.awt}"/>
         </jar>
     </target>
 
-    <target name="build-jars-x11" depends="setup-manifestfile" unless="noX11">
-        <jar manifest="tempversion" destfile="${nativewindow.x11.jar}">
+    <target name="build-jars-x11" depends="setup-manifestfile">
+        <jar manifest="tempversion" destfile="${nativewindow.x11.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.x11}" />
         </jar>
     </target>
-    <target name="build-jars-x11-cdc" depends="setup-manifestfile-cdc" unless="noX11">
-        <jar manifest="tempversion-cdc" destfile="${nativewindow.x11.cdc.jar}">
+    <target name="build-jars-x11-cdc" depends="setup-manifestfile-cdc">
+        <jar manifest="tempversion-cdc" destfile="${nativewindow.x11.cdc.jar}" filesonly="true">
             <fileset dir="${classes-cdc}"
                      includes="${java.part.x11}" />
         </jar>
     </target>
 
     <target name="build-jars-all" depends="setup-manifestfile" unless="setup.noall">
-        <jar manifest="tempversion" destfile="${nativewindow.all.jar}">
+        <jar manifest="tempversion" destfile="${nativewindow.all.jar}" filesonly="true">
             <fileset dir="${classes}">
                 <include name="javax/media/nativewindow/**" />
                 <include name="com/sun/nativewindow/**" />
@@ -876,8 +860,8 @@
             </fileset>
         </jar>
     </target>
-    <target name="build-jars-all-cdc" depends="setup-manifestfile-cdc" unless="setup.noall-cdc">
-        <jar manifest="tempversion-cdc" destfile="${nativewindow.all.cdc.jar}">
+    <target name="build-jars-all-cdc" depends="setup-manifestfile-cdc">
+        <jar manifest="tempversion-cdc" destfile="${nativewindow.all.cdc.jar}" filesonly="true">
             <fileset dir="${classes-cdc}">
                 <include name="javax/media/nativewindow/**" />
                 <include name="com/sun/nativewindow/**" />
@@ -887,7 +871,7 @@
     </target>
 
     <target name="build-jars-javase" depends="setup-manifestfile,build-jars-awt,build-jars-x11,build-jars-all">
-        <jar manifest="tempversion" destfile="${nativewindow.core.jar}">
+        <jar manifest="tempversion" destfile="${nativewindow.core.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.core}"
                      excludes="${java.part.awt} ${java.part.x11}"/>
@@ -896,7 +880,7 @@
     </target>
 
     <target name="build-jars-cdc" depends="setup-manifestfile-cdc,build-jars-x11-cdc,build-jars-all-cdc">
-        <jar manifest="tempversion-cdc" destfile="${nativewindow.core.cdc.jar}">
+        <jar manifest="tempversion-cdc" destfile="${nativewindow.core.cdc.jar}" filesonly="true">
             <fileset dir="${classes-cdc}"
                      includes="${java.part.core}"
                      excludes="${java.part.awt} ${java.part.x11}"/>

@@ -115,6 +115,12 @@ public abstract class JAWTWindow implements NativeWindow {
     return lockedStack;
   }
 
+  public boolean surfaceSwap() {
+    return false;
+  }
+
+  public void surfaceUpdated() { }
+
   public long getDisplayHandle() {
     return config.getScreen().getDevice().getHandle();
   }

@@ -86,7 +86,7 @@ public class MacOSXPbufferCGLContext extends MacOSXCGLContext {
           rect = false;
         }
       }
-      textureTarget = (rect ? GL2.GL_TEXTURE_RECTANGLE_EXT: GL.GL_TEXTURE_2D);
+      textureTarget = (rect ? GL2.GL_TEXTURE_RECTANGLE : GL.GL_TEXTURE_2D);
       int[] tmp = new int[1];
       gl.glGenTextures(1, tmp, 0);
       texture = tmp[0];
@@ -121,11 +121,12 @@ public class MacOSXPbufferCGLContext extends MacOSXCGLContext {
     }
   }
 
-  public void setSwapInterval(int interval) {
+  protected void setSwapIntervalImpl(int interval) {
     if (nsContext == 0) {
       throw new GLException("OpenGL context not current");
     }
     impl.setSwapInterval(nsContext, interval);
+    currentSwapInterval = impl.getSwapInterval() ;
   }
 
   public int getFloatingPointMode() {
@@ -210,6 +211,7 @@ public class MacOSXPbufferCGLContext extends MacOSXCGLContext {
     public boolean makeCurrent(long ctx);
     public boolean release(long ctx);
     public void    setSwapInterval(long ctx, int interval);
+    public int     getSwapInterval();
   }
 
   // NSOpenGLContext-based implementation
@@ -241,8 +243,14 @@ public class MacOSXPbufferCGLContext extends MacOSXCGLContext {
       return CGL.clearCurrentContext(ctx);
     }
 
+    private int currentSwapInterval = 0 ;
+
     public void setSwapInterval(long ctx, int interval) {
       CGL.setSwapInterval(ctx, interval);      
+      currentSwapInterval = interval ;
+    }
+    public int getSwapInterval() {
+        return currentSwapInterval;
     }
   }
 
@@ -343,6 +351,9 @@ public class MacOSXPbufferCGLContext extends MacOSXCGLContext {
 
     public void setSwapInterval(long ctx, int interval) {
       // For now not supported (not really relevant for off-screen contexts anyway)
+    }
+    public int getSwapInterval() {
+        return 0;
     }
   }
 }

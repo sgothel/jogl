@@ -37,6 +37,7 @@ package com.sun.opengl.impl.egl;
 
 import java.util.*;
 import javax.media.nativewindow.*;
+import javax.media.nativewindow.egl.*;
 import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
 import com.sun.gluegen.runtime.NativeLibrary;
@@ -52,13 +53,28 @@ public class EGLGraphicsConfiguration extends DefaultGraphicsConfiguration imple
         return configID;
     }
 
-    public EGLGraphicsConfiguration(AbstractGraphicsScreen screen, 
+    public EGLGraphicsConfiguration(AbstractGraphicsScreen absScreen, 
                                     GLCapabilities capsChosen, GLCapabilities capsRequested, GLCapabilitiesChooser chooser,
                                     _EGLConfig cfg, int cfgID) {
-        super(screen, capsChosen, capsRequested);
+        super(absScreen, capsChosen, capsRequested);
         this.chooser = chooser;
         _config = cfg;
         configID = cfgID;
+    }
+
+    public static EGLGraphicsConfiguration create(GLCapabilities capsRequested, AbstractGraphicsScreen absScreen, int cfgID) {
+        AbstractGraphicsDevice absDevice = absScreen.getDevice();
+        if(null==absDevice || !(absDevice instanceof EGLGraphicsDevice)) {
+            throw new GLException("GraphicsDevice must be a valid EGLGraphicsDevice");
+        }
+        long dpy = absDevice.getHandle();
+        if (dpy == EGL.EGL_NO_DISPLAY) {
+            throw new GLException("Invalid EGL display: "+absDevice);
+        }
+        GLProfile glp = capsRequested.getGLProfile();
+        _EGLConfig _cfg = EGLConfigId2EGLConfig(glp, dpy, cfgID);
+        GLCapabilities caps = EGLConfig2Capabilities(glp, dpy, _cfg);
+        return new EGLGraphicsConfiguration(absScreen, caps, capsRequested, new DefaultGLCapabilitiesChooser(), _cfg, cfgID);
     }
 
     public Object clone() {

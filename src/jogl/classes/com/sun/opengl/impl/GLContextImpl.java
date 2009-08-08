@@ -228,7 +228,7 @@ public abstract class GLContextImpl extends GLContext {
     return gl;
   }
 
-  public void setGL(GL gl) {
+  public GL setGL(GL gl) {
     if(DEBUG) {
         String sgl1 = (null!=this.gl)?this.gl.getClass().toString()+", "+this.gl.toString():new String("<null>");
         String sgl2 = (null!=gl)?gl.getClass().toString()+", "+gl.toString():new String("<null>");
@@ -236,6 +236,7 @@ public abstract class GLContextImpl extends GLContext {
         e.printStackTrace();
     }
     this.gl = gl;
+    return gl;
   }
 
   public abstract Object getPlatformGLExtensions();
@@ -284,11 +285,23 @@ public abstract class GLContextImpl extends GLContext {
 
   public abstract ByteBuffer glAllocateMemoryNV(int arg0, float arg1, float arg2, float arg3);
 
-  /*
-   * Sets the swap interval for onscreen OpenGL contexts. Has no
-   * effect for offscreen contexts.
-   */
   public void setSwapInterval(final int interval) {
+    GLContext current = getCurrent();
+    if (current != this) {
+        throw new GLException("This context is not current. Current context: "+current+
+                              ", this context "+this);
+    }
+    setSwapIntervalImpl(interval);
+  }
+
+  protected int currentSwapInterval = -1; // default: not set yet ..
+
+  public int getSwapInterval() {
+    return currentSwapInterval;
+  }
+
+  protected void setSwapIntervalImpl(final int interval) {
+    // nop per default ..
   }
 
   /** Maps the given "platform-independent" function name to a real function
@@ -342,7 +355,6 @@ public abstract class GLContextImpl extends GLContext {
     if(null==this.gl) {
         throw new GLException("setGLFunctionAvailability not called yet");
     }
-    extensionAvailability.flush();
     if (DEBUG) {
       System.err.println(getThreadName() + ": !!! Initializing OpenGL extension address table for " + this);
     }
@@ -352,6 +364,8 @@ public abstract class GLContextImpl extends GLContext {
       // share them among contexts with the same capabilities
     }
     resetProcAddressTable(getGLProcAddressTable());
+
+    extensionAvailability.reset();
   }
 
   /**
@@ -412,6 +426,26 @@ public abstract class GLContextImpl extends GLContext {
    */
   public boolean isExtensionAvailable(String glExtensionName) {
       return extensionAvailability.isExtensionAvailable(mapToRealGLExtensionName(glExtensionName));
+  }
+
+  public String getPlatformExtensionsString() {
+      return extensionAvailability.getPlatformExtensionsString();
+  }
+
+  public String getGLExtensions() {
+      return extensionAvailability.getGLExtensions();
+  }
+
+  public int getMajorVersion() {
+      return extensionAvailability.getMajorVersion();
+  }
+
+  public int getMinorVersion() {
+      return extensionAvailability.getMinorVersion();
+  }
+
+  public boolean isExtensionCacheInitialized() {
+      return extensionAvailability.isInitialized();
   }
 
   /** Indicates which floating-point pbuffer implementation is in

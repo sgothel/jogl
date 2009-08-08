@@ -107,7 +107,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
     return floatMode;
   }
 
-  public void swapBuffers() throws GLException {
+  protected void swapBuffersImpl() {
   }
 
   private void createPbuffer(long parentHdc, WGLExt wglExt) {
@@ -290,12 +290,14 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
         GLCapabilities newCaps = WindowsWGLGraphicsConfiguration.AttribList2GLCapabilities(glProfile, iattributes, niattribs, ivalues, true, false, true);
         PIXELFORMATDESCRIPTOR pfd = WindowsWGLGraphicsConfiguration.createPixelFormatDescriptor();
         if (WGL.DescribePixelFormat(parentHdc, pformats[whichFormat], pfd.size(), pfd) == 0) {
-          throw new GLException("Unable to describe pixel format " + pformats[whichFormat]);
+          if (DEBUG) {
+              System.err.println("Unable to describe pixel format (Continue: true) " + whichFormat + "/" + nformats + " pfdID " + pformats[whichFormat]+":\n\t"+newCaps);
+          }
         }
         if(newCaps.isOnscreen()) {
-          throw new GLException("Error: Selected Onscreen Caps for PBuffer: "+newCaps);
+          throw new GLException("Error: Selected Onscreen Caps for PBuffer: "+newCaps+"\n\t"+newCaps);
         }
-        config.setCapsPFD(newCaps, pfd, pformats[whichFormat]);
+        config.setCapsPFD(newCaps, pfd, pformats[whichFormat], true);
       } else {
         PIXELFORMATDESCRIPTOR pfd = WindowsWGLGraphicsConfiguration.createPixelFormatDescriptor();
         if (WGL.DescribePixelFormat(parentHdc, pformats[whichFormat], pfd.size(), pfd) == 0) {
@@ -303,9 +305,9 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
         }
         GLCapabilities newCaps = WindowsWGLGraphicsConfiguration.PFD2GLCapabilities(glProfile, pfd, false, true);
         if(newCaps.isOnscreen()) {
-          throw new GLException("Error: Selected Onscreen Caps for PBuffer: "+newCaps);
+          throw new GLException("Error: Selected Onscreen Caps for PBuffer: "+newCaps+"\n\t"+newCaps);
         }
-        config.setCapsPFD(newCaps, pfd, pformats[whichFormat]);
+        config.setCapsPFD(newCaps, pfd, pformats[whichFormat], false);
       }
     }
 

@@ -148,6 +148,6 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
     return GLPbuffer.NV_FLOAT;
   }
 
-  public void swapBuffers() throws GLException {
+  protected void swapBuffersImpl() {
   }
 }

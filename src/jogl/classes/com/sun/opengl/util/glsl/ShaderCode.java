@@ -3,13 +3,18 @@ package com.sun.opengl.util.glsl;
 
 import javax.media.opengl.*;
 import com.sun.opengl.util.*;
+import com.sun.opengl.impl.Debug;
 
 import java.util.*;
 import java.nio.*;
 import java.io.*;
 import java.net.*;
+import java.security.*;
 
 public class ShaderCode {
+    public static final boolean DEBUG = Debug.debug("GLSLCode");
+    public static final boolean DEBUG_CODE = Debug.isPropertyDefined("jogl.debug.GLSLCode", true, AccessController.getContext());
+
     public static final String SUFFIX_VERTEX_SOURCE   =  "vp" ;
     public static final String SUFFIX_VERTEX_BINARY   = "bvp" ;
     public static final String SUFFIX_FRAGMENT_SOURCE =  "fp" ;
@@ -31,6 +36,11 @@ public class ShaderCode {
         shaderType   = type;
         shader = BufferUtil.newIntBuffer(number);
         id = getNextID();
+
+        if(DEBUG_CODE) {
+            System.out.println("Created: "+toString());
+            dumpShaderSource(System.out);
+        }
     }
 
     public ShaderCode(int type, int number, int binFormat, Buffer binary) {
@@ -134,61 +144,6 @@ public class ShaderCode {
         return res;
     }
 
-    public static boolean createAndLoadShader(GL2ES2 gl, IntBuffer shader, int shaderType,
-                                              int binFormat, java.nio.Buffer bin,
-                                              PrintStream verboseOut)
-    {
-        int err = gl.glGetError(); // flush previous errors ..
-        if(err!=GL.GL_NO_ERROR && null!=verboseOut) {
-            verboseOut.println("createAndLoadShader: Pre GL Error: 0x"+Integer.toHexString(err));
-        }
-
-        ShaderUtil.createShader(gl, shaderType, shader);
-        err = gl.glGetError(); 
-        if(err!=GL.GL_NO_ERROR) {
-            throw new GLException("createAndLoadShader: CreateShader failed, GL Error: 0x"+Integer.toHexString(err));
-        }
-
-
-        ShaderUtil.shaderBinary(gl, shader, binFormat, bin);
-
-        err = gl.glGetError();
-        if(err!=GL.GL_NO_ERROR && null!=verboseOut) {
-            verboseOut.println("createAndLoadShader: ShaderBinary failed, GL Error: 0x"+Integer.toHexString(err));
-        }
-        return err == GL.GL_NO_ERROR;
-    }
-
-    public static boolean createAndCompileShader(GL2ES2 gl, IntBuffer shader, int shaderType,
-                                                 java.lang.String[][] sources, 
-                                                 PrintStream verboseOut)
-    {
-        int err = gl.glGetError(); // flush previous errors ..
-        if(err!=GL.GL_NO_ERROR && null!=verboseOut) {
-            verboseOut.println("createAndCompileShader: Pre GL Error: 0x"+Integer.toHexString(err));
-        }
-
-        ShaderUtil.createShader(gl, shaderType, shader);
-        err = gl.glGetError(); 
-        if(err!=GL.GL_NO_ERROR) {
-            throw new GLException("createAndCompileShader: CreateShader failed, GL Error: 0x"+Integer.toHexString(err));
-        }
-
-        ShaderUtil.shaderSource(gl, shader, sources);
-        err = gl.glGetError(); 
-        if(err!=GL.GL_NO_ERROR) {
-            throw new GLException("createAndCompileShader: ShaderSource failed, GL Error: 0x"+Integer.toHexString(err));
-        }
-
-        ShaderUtil.compileShader(gl, shader);
-        err = gl.glGetError(); 
-        if(err!=GL.GL_NO_ERROR && null!=verboseOut) {
-            verboseOut.println("createAndCompileShader: CompileShader failed, GL Error: 0x"+Integer.toHexString(err));
-        }
-
-        return ShaderUtil.isShaderStatusValid(gl, shader, gl.GL_COMPILE_STATUS, verboseOut) && err == GL.GL_NO_ERROR;
-    }
-
     /**
      * returns the uniq shader id as an integer
      * @see #key()
@@ -231,11 +186,11 @@ public class ShaderCode {
 
         // Create & Compile the vertex/fragment shader objects
         if(null!=shaderSource) {
-            valid=createAndCompileShader(gl, shader, shaderType,
-                                         shaderSource, verboseOut);
+            valid=ShaderUtil.createAndCompileShader(gl, shader, shaderType,
+                                                    shaderSource, verboseOut);
         } else if(null!=shaderBinary) {
-            valid=createAndLoadShader(gl, shader, shaderType,
-                                      shaderBinaryFormat, shaderBinary, verboseOut);
+            valid=ShaderUtil.createAndLoadShader(gl, shader, shaderType,
+                                                 shaderBinaryFormat, shaderBinary, verboseOut);
         } else {
             throw new GLException("no code (source or binary)");
         }
@@ -280,6 +235,31 @@ public class ShaderCode {
             buf.append(", binary "+shaderBinary+"]");
         }
         return buf.toString();
+    }
+
+    public void dumpShaderSource(PrintStream out) {
+        if(null==shaderSource) {
+            out.println("<no shader source>");
+            return;
+        }
+        int sourceNum = (null!=shaderSource)?shaderSource.length:0;
+        int shaderNum = (null!=shader)?shader.capacity():0;
+        for(int i=0; i<shaderNum; i++) {
+            out.println("");
+            out.println("Shader #"+i+"/"+shaderNum+" name "+shader.get(i));
+            out.println("--------------------------------------------------------------");
+            if(i>=sourceNum) {
+                out.println("<no shader source>");
+            } else {
+                String[] src = shaderSource[i];
+                for(int j=0; j<src.length; j++) {
+                    out.println("Segment "+j+"/"+src.length+" :");
+                    out.println(src[j]);
+                    out.println("");
+                }
+            }
+            out.println("--------------------------------------------------------------");
+        }
     }
 
     public static void readShaderSource(ClassLoader context, String path, URL url, StringBuffer result) {

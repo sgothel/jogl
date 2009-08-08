@@ -4,17 +4,6 @@ Random, somewhat old to-do list:
 - Non-const array types must be properly released with JNI_COMMIT in
   order to see side effects if the array was copied.
 
-- Figure out how to implement GLEventListener.displayChanged(bool,bool). 
-  I believe we need additional support in J2SE before this will be possible
-  to detect and implement. The basic problem is that we need to find a way 
-  to determine when a GLCanvas has moved to a different
-  display device, so we can re-load the GL function addresses using
-  wgl/glXGetProcAddress. See comments at top of GLCanvas.java. Also need a
-  way to determine with the display mode (e.g., bit depth) of the GLDrawable
-  has changed. Once both of these problems are solved, we'll need to hook it
-  into GLEventListener.displayChanged() and also be sure to reset the
-  GLDrawable's glProcAddress table as appropriate.
-
 - Think about e.g. protected access for Impl classes
 
 - Fix glProgramStringARB and glGetProgramString{NV,ARB} so that they

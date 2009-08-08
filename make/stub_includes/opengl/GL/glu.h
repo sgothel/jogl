@@ -62,6 +62,13 @@ extern "C" {
 
 /*************************************************************/
 
+/* Version */
+#define GLU_VERSION_1_1                    1
+#define GLU_VERSION_1_2                    1
+#define GLU_VERSION_1_3                    1
+
+#ifndef GLU_VERSION_1_X
+
 /* Extensions */
 #define GLU_EXT_object_space_tess          1
 #define GLU_EXT_nurbs_tessellator          1
@@ -69,11 +76,6 @@ extern "C" {
 /* Boolean */
 #define GLU_FALSE                          0
 #define GLU_TRUE                           1
-
-/* Version */
-#define GLU_VERSION_1_1                    1
-#define GLU_VERSION_1_2                    1
-#define GLU_VERSION_1_3                    1
 
 /* StringName */
 #define GLU_VERSION                        100800
@@ -280,6 +282,11 @@ typedef GLUtesselator GLUtriangulatorObj;
 /* Internal convenience typedefs */
 typedef void (GLAPIENTRY *_GLUfuncptr)();
 
+#endif  /* GLX_VERSION_1_X */
+
+#ifndef GLU_VERSION_1_X
+#define GLU_VERSION_1_X 1
+
 GLAPI void GLAPIENTRY gluBeginCurve (GLUnurbs* nurb);
 GLAPI void GLAPIENTRY gluBeginPolygon (GLUtesselator* tess);
 GLAPI void GLAPIENTRY gluBeginSurface (GLUnurbs* nurb);
@@ -400,6 +407,8 @@ typedef void (GLAPIENTRY * PFNGLUTESSPROPERTYPROC) (GLUtesselator* tess, GLenum 
 typedef void (GLAPIENTRY * PFNGLUTESSVERTEXPROC) (GLUtesselator* tess, GLdouble *location, GLvoid* data);
 typedef GLint (GLAPIENTRY * PFNGLUUNPROJECTPROC) (GLdouble winX, GLdouble winY, GLdouble winZ, const GLdouble *model, const GLdouble *proj, const GLint *view, GLdouble* objX, GLdouble* objY, GLdouble* objZ);
 typedef GLint (GLAPIENTRY * PFNGLUUNPROJECT4PROC) (GLdouble winX, GLdouble winY, GLdouble winZ, GLdouble clipW, const GLdouble *model, const GLdouble *proj, const GLint *view, GLdouble nearVal, GLdouble farVal, GLdouble* objX, GLdouble* objY, GLdouble* objZ, GLdouble* objW);
+
+#endif  /* GLU_VERSION_1_X */
 
 #ifdef __cplusplus
 }

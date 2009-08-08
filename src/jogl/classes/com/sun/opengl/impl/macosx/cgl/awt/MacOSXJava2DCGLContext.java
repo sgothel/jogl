@@ -144,10 +144,6 @@ public class MacOSXJava2DCGLContext extends MacOSXCGLContext implements Java2DGL
     }
   }
 
-  public void setSwapInterval(int interval) {
-    // Not supported in this context implementation
-  }
-
   public void setOpenGLMode(int mode) {
     if (mode != MacOSXCGLDrawable.CGL_MODE)
       throw new GLException("OpenGL mode switching not supported for Java2D GLContexts");

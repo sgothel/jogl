@@ -1,15 +1,19 @@
 Organization of the JOGL source tree
 ------------------------------------
 
-doc/   Build and user documentation
-make/  Ant build scripts
-       Configuration files for glue code generation
-       Header files for glue code generation
-       See top of build.xml for brief invocation instructions
-src/   Java and native source code for JOGL
-       (Currently also contains source code for GlueGen tool; in
-        process of being split into its own project)
+doc/                Build and user documentation
+make/               Ant build scripts,
+                    see top of build.xml for brief invocation instructions
+make/config         Configuration files for glue code generation
+make/stub_includes  Header files for glue code generation
+src/                Java and native source code for:
+src/jogl            - JOGL
+src/nativewindow    - NativeWindow Interface
+src/newt            - NEWT
+
 www/   Web pages and older Java Web Start binaries for JOGL
+
+NativeWindow and NEWT may be build seperately.
 
 Acknowledgments
 ---------------
@@ -54,6 +58,9 @@ Christopher Campbell collaborated closely with the JOGL development
 team to enable interoperability between Sun's OpenGL pipeline for
 Java2D and JOGL in Java SE 6, and also co-authored the TextureIO
 subsystem.
+
+Sven Gothel refactored the windowing subsystem layer to be generic,
+introduced the support for multiple GL profiles, realized NEWT and more..
 
 The following individuals made significant contributions to various
 areas of the project:

@@ -45,10 +45,10 @@ import javax.media.opengl.*;
 
 public abstract class EGLDrawable extends GLDrawableImpl {
     protected boolean ownEGLDisplay = false;
+    protected boolean ownEGLSurface = false;
     private EGLGraphicsConfiguration eglConfig;
     protected long eglDisplay;
     protected long eglSurface;
-    private int[] tmp = new int[1];
 
     protected EGLDrawable(EGLDrawableFactory factory,
                        NativeWindow component) throws GLException {
@@ -78,13 +78,16 @@ public abstract class EGLDrawable extends GLDrawableImpl {
     protected abstract long createSurface(long eglDpy, _EGLConfig eglNativeCfg);
 
     private void recreateSurface() {
-        if(EGL.EGL_NO_SURFACE!=eglSurface) {
-            EGL.eglDestroySurface(eglDisplay, eglSurface);
-        }
-        eglSurface = createSurface(eglDisplay, eglConfig.getNativeConfig());
+        if(ownEGLSurface) {
+            // create a new EGLSurface ..
+            if(EGL.EGL_NO_SURFACE!=eglSurface) {
+                EGL.eglDestroySurface(eglDisplay, eglSurface);
+            }
+            eglSurface = createSurface(eglDisplay, eglConfig.getNativeConfig());
 
-        if(DEBUG) {
-            System.err.println("setSurface using component: handle 0x"+Long.toHexString(component.getWindowHandle())+" -> 0x"+Long.toHexString(eglSurface));
+            if(DEBUG) {
+                System.err.println("setSurface using component: handle 0x"+Long.toHexString(component.getWindowHandle())+" -> 0x"+Long.toHexString(eglSurface));
+            }
         }
     }
 
@@ -110,13 +113,28 @@ public abstract class EGLDrawable extends GLDrawableImpl {
                         if (null == eglConfig) {
                             throw new GLException("Null EGLGraphicsConfiguration from "+aConfig);
                         }
-                        eglConfig.updateGraphicsConfiguration();
+                        int[] tmp = new int[1];
+                        if (EGL.eglQuerySurface(eglDisplay, component.getWindowHandle(), EGL.EGL_CONFIG_ID, tmp, 0)) {
+                            // component holds static EGLSurface
+                            eglSurface = component.getWindowHandle();
+                            if(DEBUG) {
+                                System.err.println("setSurface re-using component's EGLSurface: handle 0x"+Long.toHexString(eglSurface));
+                            }
+                        } else {
+                            // EGLSurface is ours ..
+                            ownEGLSurface=true;
+                            
+                            eglConfig.updateGraphicsConfiguration();
+                        }
                     } else {
                         throw new GLException("EGLGraphicsConfiguration doesn't carry a EGLGraphicsDevice: "+aConfig);
                     }
                 } else {
                     // create a new EGL config ..
                     ownEGLDisplay=true;
+                    // EGLSurface is ours ..
+                    ownEGLSurface=true;
+
                     long nDisplay;
                     if( NativeWindowFactory.TYPE_WINDOWS.equals(NativeWindowFactory.getNativeWindowType(false)) ) {
                         nDisplay = component.getSurfaceHandle(); // don't even ask ..
@@ -153,7 +171,7 @@ public abstract class EGLDrawable extends GLDrawableImpl {
             } finally {
               unlockSurface();
             }
-        } else if (eglSurface != EGL.EGL_NO_SURFACE) {
+        } else if (ownEGLSurface && eglSurface != EGL.EGL_NO_SURFACE) {
             // Destroy the window surface
             if (!EGL.eglDestroySurface(eglDisplay, eglSurface)) {
                 throw new GLException("Error destroying window surface (eglDestroySurface)");
@@ -168,6 +186,7 @@ public abstract class EGLDrawable extends GLDrawableImpl {
     }
 
     public int getWidth() {
+        int[] tmp = new int[1];
         if (!EGL.eglQuerySurface(eglDisplay, eglSurface, EGL.EGL_WIDTH, tmp, 0)) {
             throw new GLException("Error querying surface width");
         }
@@ -175,6 +194,7 @@ public abstract class EGLDrawable extends GLDrawableImpl {
     }
 
     public int getHeight() {
+        int[] tmp = new int[1];
         if (!EGL.eglQuerySurface(eglDisplay, eglSurface, EGL.EGL_HEIGHT, tmp, 0)) {
             throw new GLException("Error querying surface height");
         }

@@ -6,6 +6,8 @@
  *
  */
 
+#ifndef WGL_GDI_VERSION_1_X
+
 typedef struct tagRGBQUAD {
         BYTE    rgbBlue;
         BYTE    rgbGreen;
@@ -163,6 +165,11 @@ typedef struct tagPIXELFORMATDESCRIPTOR
 #define SW_FORCEMINIMIZE    11
 #define SW_MAX              11
 
+#endif /*  WGL_GDI_VERSION_1_X */
+
+#ifndef WGL_GDI_VERSION_1_X
+#define WGL_GDI_VERSION_1_X
+
 // Windows routines
 WINBASEAPI DWORD WINAPI GetLastError(VOID);
 WINBASEAPI HMODULE WINAPI LoadLibraryA(LPCSTR lpLibFileName);
@@ -214,3 +221,5 @@ WINUSERAPI BOOL WINAPI DestroyWindow(HWND hWnd);
 // Routines for changing gamma ramp of display device
 WINGDIAPI BOOL        WINAPI GetDeviceGammaRamp(HDC,LPVOID);
 WINGDIAPI BOOL        WINAPI SetDeviceGammaRamp(HDC,LPVOID);
+
+#endif /*  WGL_GDI_VERSION_1_X */

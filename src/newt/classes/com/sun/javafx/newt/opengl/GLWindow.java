@@ -441,10 +441,12 @@ public class GLWindow extends Window implements GLAutoDrawable {
         return context.getGL();
     }
 
-    public void setGL(GL gl) {
+    public GL setGL(GL gl) {
         if (context != null) {
             context.setGL(gl);
+            return gl;
         }
+        return null;
     }
 
     public void addGLEventListener(GLEventListener listener) {
@@ -652,6 +654,19 @@ public class GLWindow extends Window implements GLAutoDrawable {
     public synchronized Exception getLockedStack() {
         if(null!=drawable) return drawable.getNativeWindow().getLockedStack();
         return null;
+    }
+
+    public boolean surfaceSwap() { 
+        if(null!=drawable) return drawable.getNativeWindow().surfaceSwap();
+        return super.surfaceSwap();
+    }
+
+    public void surfaceUpdated() {
+        if(null!=drawable) {
+            drawable.getNativeWindow().surfaceUpdated();
+        } else {
+            super.surfaceUpdated();
+        }
     }
 
     public long getWindowHandle() {

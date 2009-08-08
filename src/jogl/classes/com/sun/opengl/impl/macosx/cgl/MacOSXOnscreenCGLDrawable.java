@@ -78,7 +78,7 @@ public class MacOSXOnscreenCGLDrawable extends MacOSXCGLDrawable {
     return component.getHeight();
   }
 
-  public void swapBuffers() throws GLException {
+  protected void swapBuffersImpl() {
     for (Iterator iter = createdContexts.iterator(); iter.hasNext(); ) {
       WeakReference ref = (WeakReference) iter.next();
       MacOSXOnscreenCGLContext ctx = (MacOSXOnscreenCGLContext) ref.get();

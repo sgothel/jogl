@@ -111,6 +111,24 @@ public interface NativeWindow {
    */
   public Exception getLockedStack();
 
+  /**
+   * Provide a mechanism to utilize custom (pre-) swap surface
+   * code. This method is called before the render toolkit (e.g. JOGL) 
+   * swaps the buffer/surface. The implementation may itself apply the swapping,
+   * in which case true shall be returned.
+   *
+   * @return true if this method completed swapping the surface,
+   *         otherwise false, in which case eg the GLDrawable 
+   *         implementation has to swap the code.
+   */
+  public boolean surfaceSwap();
+
+  /**
+   * Method invoked after the render toolkit (e.g. JOGL)
+   * swapped/changed the buffer/surface.
+   */
+  public void    surfaceUpdated();
+
   /** 
    * render all native window information invalid,
    * as if the native window was destroyed

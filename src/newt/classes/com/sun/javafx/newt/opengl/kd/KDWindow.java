@@ -79,7 +79,7 @@ public class KDWindow extends Window {
     }
 
     public void setVisible(boolean visible) {
-        if(this.visible!=visible) {
+        if(0!=eglWindowHandle && this.visible!=visible) {
             this.visible=visible;
             setVisible0(eglWindowHandle, visible);
             if ( 0==windowHandle ) {
@@ -93,7 +93,9 @@ public class KDWindow extends Window {
     }
 
     public void setSize(int width, int height) {
-        setSize0(eglWindowHandle, width, height);
+        if(0!=eglWindowHandle) {
+            setSize0(eglWindowHandle, width, height);
+        }
     }
 
     public void setPosition(int x, int y) {
@@ -102,7 +104,7 @@ public class KDWindow extends Window {
     }
 
     public boolean setFullscreen(boolean fullscreen) {
-        if(this.fullscreen!=fullscreen) {
+        if(0!=eglWindowHandle && this.fullscreen!=fullscreen) {
             this.fullscreen=fullscreen;
             if(this.fullscreen) {
                 setFullScreen0(eglWindowHandle, true);

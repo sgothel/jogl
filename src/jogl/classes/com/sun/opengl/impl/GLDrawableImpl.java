@@ -71,7 +71,16 @@ public abstract class GLDrawableImpl implements GLDrawable {
   }
 
   public void swapBuffers() throws GLException {
+    GLCapabilities caps = (GLCapabilities)component.getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities();
+    if (caps.getDoubleBuffered()) {
+        if(!component.surfaceSwap()) {
+            swapBuffersImpl();
+        }
+    }
+    component.surfaceUpdated();
   }
+
+  protected abstract void swapBuffersImpl();
 
   public static String toHexString(long hex) {
     return GLContextImpl.toHexString(hex);
@@ -131,10 +140,10 @@ public abstract class GLDrawableImpl implements GLDrawable {
 
   public String toString() {
     return getClass().getName()+"[realized "+getRealized()+
-                ",\n\trequested "+getRequestedGLCapabilities()+
-                ",\n\tchosen    "+getChosenGLCapabilities()+
+                ",\n\tfactory   "+getFactory()+
                 ",\n\twindow    "+getNativeWindow()+
-                ",\n\tfactory   "+getFactory()+"]";
+                ",\n\trequested "+getRequestedGLCapabilities()+
+                ",\n\tchosen    "+getChosenGLCapabilities()+"]";
   }
 
   protected GLDrawableFactory factory;

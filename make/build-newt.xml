@@ -50,8 +50,8 @@
        setup.noAWT
        setup.noOpenGL
 
-   - setup.noAWT is set iff:
-        !isWindows && !isOSX && !noX11
+   - setup.nodesktop is set iff:
+        !isWindows && !isOSX && !isX11
 
    -->
 <project name="NEWT" basedir="." default="all">
@@ -69,41 +69,42 @@
     <!-- 
        - Base initialization and detection of operating system.
       -->
-    <target name="base.init">
+    <target name="base.init" depends="gluegen.cpptasks.detect.os">
 
         <property name="javac.bootclasspath-cdc.jar" value="../../gluegen/make/lib/cdc_fp.jar"/>
 
-        <condition property="setup.noAWT">
+        <condition property="setup.nodesktop">
             <and>
                 <isfalse value="${isWindows}" />
                 <isfalse value="${isOSX}" />
                 <isfalse value="${isX11}" />
             </and>
         </condition>
+
         <condition property="setup.noall">
-            <or>
-                <isset property="noX11"/> 
-                <isset property="setup.noAWT"/> 
-            </or>
-        </condition>
-        <condition property="setup.noall-cdc">
-            <or>
-                <isset property="noX11"/> 
-            </or>
-        </condition>
-        <condition property="setup.nodesktop">
-            <or>
-                <isset property="noX11"/> 
-            </or>
+            <isset property="setup.noAWT"/> 
         </condition>
 
+        <condition property="setup.nonatives">
+            <and>
+                <isfalse value="${isWindows}" />
+                <isfalse value="${isOSX}" />
+                <isfalse value="${isX11}" />
+                <isfalse value="${useKD}" />
+                <isfalse value="${useBroadcomEGL}" />
+            </and>
+        </condition>
+
+        <echo message="setup.nonatives: ${setup.nonatives}" />
         <echo message="setup.nodesktop: ${setup.nodesktop}" />
         <echo message="setup.noall: ${setup.noall}" />
-        <echo message="setup.noall-cdc: ${setup.noall-cdc}" />
         <echo message="setup.noCDC: ${setup.noCDC}" />
         <echo message="setup.noAWT: ${setup.noAWT}" />
         <echo message="setup.noOpenGL: ${setup.noOpenGL}" />
         <echo message="javac.bootclasspath-cdc.jar: ${javac.bootclasspath-cdc.jar}" />
+        <echo message="isX11: ${isX11}" />
+        <echo message="useKD: ${useKD}" />
+        <echo message="useBroadcomEGL: ${useBroadcomEGL}" />
 
         <!-- partitioning -->
 
@@ -122,6 +123,9 @@
         <property name="java.part.opengl"
                   value="com/sun/javafx/newt/opengl/*, com/sun/javafx/newt/opengl/kd/*"/>
 
+        <property name="java.part.broadcomegl"
+                  value="com/sun/javafx/newt/opengl/broadcom/*"/>
+
         <property name="java.part.awt"
                   value="com/sun/javafx/newt/awt/*"/>
 
@@ -133,7 +137,7 @@
         </condition>
 
         <condition property="java.excludes.opengl"
-                   value="${java.part.opengl}">
+                   value="${java.part.opengl} ${java.part.broadcomegl}">
            <isset property="setup.noOpenGL"/> 
         </condition>
 
@@ -256,6 +260,7 @@
         <property name="newt.win.jar"  value="${build}/newt.win.jar" />
         <property name="newt.osx.jar"  value="${build}/newt.osx.jar" />
         <property name="newt.ogl.jar"  value="${build}/newt.ogl.jar" />
+        <property name="newt.broadcomegl.jar"  value="${build}/newt.broadcomegl.jar" />
         <property name="newt.awt.jar"  value="${build}/newt.awt.jar" />
         <property name="newt.all.jar"  value="${build}/newt.all.jar" />
 
@@ -264,6 +269,7 @@
         <property name="newt.win.cdc.jar"  value="${build}/newt.win.cdc.jar" />
         <property name="newt.osx.cdc.jar"  value="${build}/newt.osx.cdc.jar" />
         <property name="newt.ogl.cdc.jar"  value="${build}/newt.ogl.cdc.jar" />
+        <property name="newt.broadcomegl.cdc.jar"  value="${build}/newt.broadcomegl.cdc.jar" />
         <property name="newt.all.cdc.jar" value="${build}/newt.all.cdc.jar" />
 
         <!-- The javadoc dirs. -->
@@ -293,6 +299,7 @@
         <mkdir dir="${src.generated.c}" />
         <mkdir dir="${src.generated.c}/X11" />
         <mkdir dir="${src.generated.c}/KD" />
+        <mkdir dir="${src.generated.c}/BroadcomEGL" />
         <mkdir dir="${src.generated.c}/MacOSX" />
         <mkdir dir="${src.generated.c}/Windows" />
         <mkdir dir="${classes}" />
@@ -349,6 +356,11 @@
 
       <!-- linker configuration -->
  
+      <linker id="linker.cfg.linux.newt.broadcom_egl" extends="linker.cfg.linux">
+        <syslibset dir="/nfsroot/lg/lib" libs="EGL"/>
+        <syslibset dir="/nfsroot/lg/lib" libs="GLES_CM"/>
+      </linker>
+
       <linker id="linker.cfg.linux.newt.x11" extends="linker.cfg.linux">
         <syslibset dir="/usr/X11R6/lib" libs="X11"/>
         <syslibset dir="/usr/X11R6/lib" libs="Xxf86vm" />
@@ -408,7 +420,13 @@
       <echo message="Linux.x86" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.linux" />
       <property name="linker.cfg.id.core"                   value="linker.cfg.linux" />
-      <property name="linker.cfg.id.oswin"                  value="linker.cfg.linux.newt.x11" />
+      <condition property="linker.cfg.id.oswin"             value="linker.cfg.linux.newt.x11" >
+          <isset property="isX11" />
+      </condition>
+      <condition property="linker.cfg.id.oswin"             value="linker.cfg.linux.newt.broadcom_egl" >
+          <isset property="useBroadcomEGL" />
+      </condition>
+      <echo message="linker.cfg.id.oswin ${linker.cfg.id.oswin}" />
     </target>
     
     <target name="c.configure.linux.amd64" if="isLinuxAMD64">
@@ -508,6 +526,7 @@
           <include name="${rootrel.src.c}/*.m" if="isOSX"/>
           <include name="${rootrel.src.c}/X11Window.c" if="isX11"/>
           <include name="${rootrel.src.c}/KDWindow.c"  if="useKD"/>
+          <include name="${rootrel.src.c}/BroadcomEGL.c"  if="useBroadcomEGL"/>
         </patternset>
 
         <echo message="Compiling @{output.lib.name}" />
@@ -540,7 +559,8 @@
             <includepath path="${src.generated.c}/X11" if="isX11"/>
             <includepath path="${src.generated.c}/MacOSX" if="isOSX"/>
             <includepath path="${src.generated.c}/Windows" if="isWindows"/>
-            <includepath path="${src.generated.c}/KD"/>
+            <includepath path="${src.generated.c}/KD" if="useKD" />
+            <includepath path="${src.generated.c}/BroadcomEGL" if="useBroadcomEGL" />
   
             <!-- This must come last to not override real include paths -->
             <!-- includepath path="stub_includes/macosx" if="isOSX" / -->
@@ -569,19 +589,23 @@
       </sequential>
     </macrodef>  
 
-    <target name="c.build.newt.prepare.opengl" unless="setup.noOpenGL">
-      <javah destdir="../${rootrel.build.newt}/gensrc/native/newt/KD" classpath="${classes}" class="com.sun.javafx.newt.opengl.kd.KDWindow" />
+    <target name="c.build.newt.prepare.KD" if="useKD">
+      <javah destdir="${src.generated.c}/KD" classpath="${classes}" class="com.sun.javafx.newt.opengl.kd.KDWindow" />
+    </target>
+
+    <target name="c.build.newt.prepare.BroadcomEGL" if="useBroadcomEGL">
+      <javah destdir="${src.generated.c}/BroadcomEGL" classpath="${classes}" class="com.sun.javafx.newt.opengl.broadcom.BCEGLWindow" />
     </target>
 
     <target name="c.build.newt.prepare.desktop" unless="setup.nodesktop">
-      <javah destdir="../${rootrel.build.newt}/gensrc/native/newt/Windows" classpath="${classes}" class="com.sun.javafx.newt.windows.WindowsWindow" />
-      <javah destdir="../${rootrel.build.newt}/gensrc/native/newt/MacOSX" classpath="${classes}" class="com.sun.javafx.newt.macosx.MacWindow" />
-      <javah destdir="../${rootrel.build.newt}/gensrc/native/newt/X11" classpath="${classes}" class="com.sun.javafx.newt.x11.X11Window" />
+      <javah destdir="${src.generated.c}/Windows" classpath="${classes}" class="com.sun.javafx.newt.windows.WindowsWindow" />
+      <javah destdir="${src.generated.c}/MacOSX" classpath="${classes}" class="com.sun.javafx.newt.macosx.MacWindow" />
+      <javah destdir="${src.generated.c}/X11" classpath="${classes}" class="com.sun.javafx.newt.x11.X11Window" />
     </target>
 
-    <target name="c.build.newt.prepare" depends="c.build.newt.prepare.opengl,c.build.newt.prepare.desktop" />
+    <target name="c.build.newt.prepare" depends="c.build.newt.prepare.KD,c.build.newt.prepare.BroadcomEGL,c.build.newt.prepare.desktop" />
 
-    <target name="c.build.newt.windowlib">
+    <target name="c.build.newt.windowlib" unless="setup.nonatives">
       <c.build c.compiler.src.files="c.src.files.newt"
                output.lib.name="newt"
                compiler.cfg.id="${compiler.cfg.id}"
@@ -593,15 +617,18 @@
       <msvc.manifest objdir="${obj}" dllname="newt" />
     </target>
 
-    <target name="c.build.newt" depends="c.configure,c.build.newt.prepare,c.build.newt.windowlib">
+    <target name="c.build.newt.natives" depends="c.build.newt.windowlib" unless="setup.nonatives">
+    </target>
+
+    <target name="c.build.newt" depends="c.configure,c.build.newt.prepare,c.build.newt.natives">
       <antcall target="c.manifest" inheritRefs="true" />
       <!-- Create the Java Web Start jar file for the built native code -->
-      <jar destfile="${build}/newt-natives-${os.and.arch}.jar">
+      <jar destfile="${build}/newt-natives-${os.and.arch}.jar" filesonly="true">
         <fileset dir="${obj}">
           <include name="*.${native.library.suffix}" />
         </fileset>
       </jar>
-      <jar destfile="${build}/newt-natives-${os.and.arch}-cdc.jar">
+      <jar destfile="${build}/newt-natives-${os.and.arch}-cdc.jar" filesonly="true">
         <fileset dir="${obj}">
           <include name="*.${native.library.suffix-cdc}" />
         </fileset>
@@ -659,72 +686,81 @@
     </target>
 
     <target name="build-jars-awt" depends="setup-manifestfile" unless="setup.noAWT">
-        <jar manifest="tempversion" destfile="${newt.awt.jar}">
+        <jar manifest="tempversion" destfile="${newt.awt.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.awt}"/>
         </jar>
     </target>
 
     <target name="build-jars-opengl" depends="setup-manifestfile" unless="setup.noOpenGL">
-        <jar manifest="tempversion" destfile="${newt.ogl.jar}">
+        <jar manifest="tempversion" destfile="${newt.ogl.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.opengl}"/>
+        </jar>
+        <jar manifest="tempversion" destfile="${newt.broadcomegl.jar}" filesonly="true">
+            <fileset dir="${classes}"
+                     includes="${java.part.broadcomegl}"/>
         </jar>
     </target>
 
     <target name="build-jars-opengl-cdc" depends="setup-manifestfile-cdc" unless="setup.noOpenGL">
-        <jar manifest="tempversion-cdc" destfile="${newt.ogl.cdc.jar}">
+        <jar manifest="tempversion-cdc" destfile="${newt.ogl.cdc.jar}" filesonly="true">
             <fileset dir="${classes-cdc}"
                      includes="${java.part.opengl}"/>
+        </jar>
+        <jar manifest="tempversion-cdc" destfile="${newt.broadcomegl.cdc.jar}" filesonly="true">
+            <fileset dir="${classes-cdc}"
+                     includes="${java.part.broadcomegl}"/>
         </jar>
     </target>
 
     <target name="build-jars-desktop" depends="setup-manifestfile" unless="setup.nodesktop">
-        <jar manifest="tempversion" destfile="${newt.x11.jar}">
+        <jar manifest="tempversion" destfile="${newt.x11.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.x11}"/>
         </jar>
-        <jar manifest="tempversion" destfile="${newt.win.jar}">
+        <jar manifest="tempversion" destfile="${newt.win.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.windows}"/>
         </jar>
-        <jar manifest="tempversion" destfile="${newt.osx.jar}">
+        <jar manifest="tempversion" destfile="${newt.osx.jar}" filesonly="true">
             <fileset dir="${classes}"
-                     includes="${java.part.osx}"/>
+                     includes="${java.part.macosx}"/>
         </jar>
     </target>
 
     <target name="build-jars-desktop-cdc" depends="setup-manifestfile-cdc" unless="setup.nodesktop">
-        <jar manifest="tempversion-cdc" destfile="${newt.x11.cdc.jar}">
+        <jar manifest="tempversion-cdc" destfile="${newt.x11.cdc.jar}" filesonly="true">
             <fileset dir="${classes-cdc}"
                      includes="${java.part.x11}"/>
         </jar>
-        <jar manifest="tempversion-cdc" destfile="${newt.win.cdc.jar}">
+        <jar manifest="tempversion-cdc" destfile="${newt.win.cdc.jar}" filesonly="true">
             <fileset dir="${classes-cdc}"
                      includes="${java.part.windows}"/>
         </jar>
-        <jar manifest="tempversion-cdc" destfile="${newt.osx.cdc.jar}">
+        <jar manifest="tempversion-cdc" destfile="${newt.osx.cdc.jar}" filesonly="true">
             <fileset dir="${classes-cdc}"
-                     includes="${java.part.osx}"/>
+                     includes="${java.part.macosx}"/>
         </jar>
     </target>
 
     <target name="build-jars-all" depends="setup-manifestfile" unless="setup.noall">
-        <jar manifest="tempversion" destfile="${newt.all.jar}">
+        <jar manifest="tempversion" destfile="${newt.all.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="com/sun/javafx/newt/**" />
         </jar>
     </target>
 
-    <target name="build-jars-all-cdc" depends="setup-manifestfile-cdc" unless="setup.noall-cdc">
-        <jar manifest="tempversion-cdc" destfile="${newt.all.cdc.jar}">
+    <target name="build-jars-all-cdc" depends="setup-manifestfile-cdc">
+        <jar manifest="tempversion-cdc" destfile="${newt.all.cdc.jar}" filesonly="true">
             <fileset dir="${classes-cdc}"
-                     includes="${java.part.core} ${java.part.opengl}"/>
+                     includes="com/sun/javafx/newt/**"
+                     excludes="${java.excludes.cdcfp}" />
         </jar>
     </target>
 
     <target name="build-jars-javase" depends="setup-manifestfile,build-jars-awt,build-jars-opengl,build-jars-all,build-jars-desktop">
-        <jar manifest="tempversion" destfile="${newt.core.jar}">
+        <jar manifest="tempversion" destfile="${newt.core.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.core}"/>
         </jar>
@@ -732,7 +768,7 @@
     </target>
 
     <target name="build-jars-cdc" depends="setup-manifestfile-cdc,build-jars-opengl-cdc,build-jars-all-cdc,build-jars-desktop-cdc" unless="setup.noCDC">
-        <jar manifest="tempversion-cdc" destfile="${newt.core.cdc.jar}">
+        <jar manifest="tempversion-cdc" destfile="${newt.core.cdc.jar}" filesonly="true">
             <fileset dir="${classes-cdc}"
                      includes="${java.part.core}"/>
         </jar>

@@ -69,7 +69,7 @@ public class NativeWindowFactoryImpl extends NativeWindowFactory {
     private NativeWindow getAWTNativeWindow(Object winObj, AbstractGraphicsConfiguration config) {
         if (nativeWindowConstructor == null) {
             try {
-                String osType = getNativeWindowType(false);
+                String osType = getNativeWindowType(true);
                 String windowClassName = null;
 
                 // We break compile-time dependencies on the AWT here to

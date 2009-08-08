@@ -66,9 +66,9 @@ extern "C" {
 #define GLX_VERSION_1_4		1
   */
 
+#ifndef GLX_VERSION_1_X
+
 #define GLX_EXTENSION_NAME   "GLX"
-
-
 
 /*
  * Tokens for glXChooseVisual and glXGetConfig:
@@ -192,7 +192,11 @@ typedef XID GLXContextID;
 typedef XID GLXWindow;
 typedef XID GLXPbuffer;
 
+#endif  /* GLX_VERSION_1_X */
 
+
+#ifndef GLX_VERSION_1_X
+#define GLX_VERSION_1_X 1
 
 extern XVisualInfo* glXChooseVisual( Display *dpy, int screen,
 				     int *attribList );
@@ -299,6 +303,8 @@ extern void glXGetSelectedEvent( Display *dpy, GLXDrawable drawable,
 
 /* GLX 1.4 and later */
 extern void (*glXGetProcAddress(const GLubyte *procname))();
+
+#endif  /* GLX_VERSION_1_X */
 
 #ifndef GLX_GLXEXT_LEGACY
 

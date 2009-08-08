@@ -106,16 +106,14 @@ public abstract class GLDrawableFactory {
     }
     eglFactory = tmp;
 
-    nativeOSType = NativeWindowFactory.getNativeWindowType(false);
+    nativeOSType = NativeWindowFactory.getNativeWindowType(true);
 
     String factoryClassName = null;
     tmp = null;
     try {
         factoryClassName = Debug.getProperty("jogl.gldrawablefactory.class.name", true, AccessController.getContext());
         if (null == factoryClassName) {
-            if ( nativeOSType.equals(NativeWindowFactory.TYPE_EGL) ) {
-              // use egl*Factory ..
-            } else if ( nativeOSType.equals(NativeWindowFactory.TYPE_X11) ) {
+            if ( nativeOSType.equals(NativeWindowFactory.TYPE_X11) ) {
               factoryClassName = "com.sun.opengl.impl.x11.glx.X11GLXDrawableFactory";
             } else if ( nativeOSType.equals(NativeWindowFactory.TYPE_WINDOWS) ) {
               factoryClassName = "com.sun.opengl.impl.windows.wgl.WindowsWGLDrawableFactory";
@@ -126,10 +124,16 @@ public abstract class GLDrawableFactory {
                     factoryClassName = macosxFactoryClassNameCGL;
                 }
             } else {
-              throw new GLException("Unsupported NativeWindow type: "+nativeOSType);
+              // may use egl*Factory ..
+              if (GLProfile.DEBUG) {
+                  System.err.println("GLDrawableFactory.static - No Native OS Factory for: "+nativeOSType);
+              }
             }
         }
         if (null != factoryClassName) {
+          if (GLProfile.DEBUG) {
+              System.err.println("GLDrawableFactory.static - Native OS Factory for: "+nativeOSType+": "+factoryClassName);
+          }
           tmp = (GLDrawableFactory) NWReflection.createInstance(factoryClassName);
         }
     } catch (Throwable t) {
@@ -144,7 +148,7 @@ public abstract class GLDrawableFactory {
   /** 
    * Returns the sole GLDrawableFactory instance. 
    * 
-   * @arg glProfile GLProfile to determine the factory type, ie EGLDrawableFactory, 
+   * @param glProfile GLProfile to determine the factory type, ie EGLDrawableFactory, 
    *                or one of the native GLDrawableFactory's, ie X11/GLX, Windows/WGL or MacOSX/CGL.
    */
   public static GLDrawableFactory getFactory(GLProfile glProfile) throws GLException {

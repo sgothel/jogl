@@ -54,12 +54,12 @@ public class WindowsWindow extends Window {
     }
 
     public long getSurfaceHandle() {
-        if (hdc == 0) {
+        if (hdc == 0 && 0!=windowHandle) {
             hdc = GetDC(windowHandle);
             hmon = MonitorFromWindow(windowHandle);
             if(DEBUG_IMPLEMENTATION || DEBUG_WINDOW_EVENT) {
                 Exception e = new Exception("!!! Window new surface handle "+Thread.currentThread().getName()+
-                                            ",HDC 0x"+Long.toHexString(hdc)+", HMON 0x"+Long.toHexString(hmon));
+                                            ", HWND 0x"+Long.toHexString(windowHandle)+", HDC 0x"+Long.toHexString(hdc)+", HMON 0x"+Long.toHexString(hmon));
                 e.printStackTrace();
             }
         }
@@ -67,21 +67,23 @@ public class WindowsWindow extends Window {
     }
 
     public boolean hasDeviceChanged() {
-        long _hmon = MonitorFromWindow(windowHandle);
-        if (hmon != _hmon) {
-            if(DEBUG_IMPLEMENTATION || DEBUG_WINDOW_EVENT) {
-                Exception e = new Exception("!!! Window Device Changed "+Thread.currentThread().getName()+
-                                            ", HMON 0x"+Long.toHexString(hmon)+" -> 0x"+Long.toHexString(_hmon));
-                e.printStackTrace();
+        if(0!=windowHandle) {
+            long _hmon = MonitorFromWindow(windowHandle);
+            if (hmon != _hmon) {
+                if(DEBUG_IMPLEMENTATION || DEBUG_WINDOW_EVENT) {
+                    Exception e = new Exception("!!! Window Device Changed "+Thread.currentThread().getName()+
+                                                ", HMON 0x"+Long.toHexString(hmon)+" -> 0x"+Long.toHexString(_hmon));
+                    e.printStackTrace();
+                }
+                hmon = _hmon;
+                return true;
             }
-            hmon = _hmon;
-            return true;
         }
         return false;
     }
 
     public void disposeSurfaceHandle() {
-        if (hdc != 0) {
+        if (0!=hdc && 0!=windowHandle) {
             ReleaseDC(windowHandle, hdc);
             hdc=0;
             if(DEBUG_IMPLEMENTATION || DEBUG_WINDOW_EVENT) {
@@ -103,6 +105,11 @@ public class WindowsWindow extends Window {
             throw new NativeWindowException("Error creating window");
         }
         windowHandleClose = windowHandle;
+        if(DEBUG_IMPLEMENTATION || DEBUG_WINDOW_EVENT) {
+            Exception e = new Exception("!!! Window new window handle "+Thread.currentThread().getName()+
+                                        ", HWND 0x"+Long.toHexString(windowHandle));
+            e.printStackTrace();
+        }
     }
 
     protected void closeNative() {
@@ -124,7 +131,7 @@ public class WindowsWindow extends Window {
     }
 
     public void setVisible(boolean visible) {
-        if(this.visible!=visible) {
+        if(this.visible!=visible && 0!=windowHandle) {
             this.visible=visible;
             setVisible0(windowHandle, visible);
         }
@@ -132,7 +139,7 @@ public class WindowsWindow extends Window {
 
     // @Override
     public void setSize(int width, int height) {
-        if (width != this.width || this.height != height) {
+        if (0!=windowHandle && (width != this.width || this.height != height)) {
             if(!fullscreen) {
                 nfs_width=width;
                 nfs_height=height;
@@ -145,7 +152,7 @@ public class WindowsWindow extends Window {
 
     //@Override
     public void setPosition(int x, int y) {
-        if (this.x != x || this.y != y) {
+        if (0!=windowHandle && (this.x != x || this.y != y)) {
             if(!fullscreen) {
                 nfs_x=x;
                 nfs_y=y;
@@ -157,7 +164,7 @@ public class WindowsWindow extends Window {
     }
 
     public boolean setFullscreen(boolean fullscreen) {
-        if(this.fullscreen!=fullscreen) {
+        if(0!=windowHandle && (this.fullscreen!=fullscreen)) {
             int x,y,w,h;
             this.fullscreen=fullscreen;
             if(fullscreen) {
@@ -191,7 +198,7 @@ public class WindowsWindow extends Window {
         if (title == null) {
             title = "";
         }
-        if (!title.equals(getTitle())) {
+        if (0!=windowHandle && !title.equals(getTitle())) {
             super.setTitle(title);
             setTitle(windowHandle, title);
         }

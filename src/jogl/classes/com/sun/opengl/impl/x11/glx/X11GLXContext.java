@@ -142,7 +142,7 @@ public abstract class X11GLXContext extends GLContextImpl {
     if(config.getFBConfigID()<0) {
         // not able to use FBConfig
         if(glCaps.getGLProfile().isGL3()) {
-          throw new GLException("Unable to create OpenGL 3.1 context");
+          throw new GLException("Unable to create OpenGL >= 3.1 context");
         }
         context = GLX.glXCreateContext(display, config.getXVisualInfo(), share, direct);
         if (context == 0) {
@@ -178,11 +178,9 @@ public abstract class X11GLXContext extends GLContextImpl {
             if( !isFunctionAvailable("glXCreateContextAttribsARB") ||
                 !isExtensionAvailable("GLX_ARB_create_context") )  {
                 if(glCaps.getGLProfile().isGL3()) {
-                  if (!GLX.glXMakeContextCurrent(display, 0, 0, 0)) {
-                    throw new GLException("Error freeing temp OpenGL context");
-                  }
+                  GLX.glXMakeContextCurrent(display, 0, 0, 0);
                   GLX.glXDestroyContext(display, temp_context);
-                  throw new GLException("Unable to create OpenGL 3.1 context (no GLX_ARB_create_context)");
+                  throw new GLException("Unable to create OpenGL >= 3.1 context (no GLX_ARB_create_context)");
                 }
 
                 // continue with temp context for GL < 3.0
@@ -195,47 +193,99 @@ public abstract class X11GLXContext extends GLContextImpl {
 
                 // preset with default values
                 int attribs[] = {
-                    GLX.GLX_CONTEXT_MAJOR_VERSION_ARB, 3,
-                    GLX.GLX_CONTEXT_MINOR_VERSION_ARB, 0,
-                    GLX.GLX_CONTEXT_FLAGS_ARB, 0,      
-                    GLX.GLX_RENDER_TYPE, GLX.GLX_RGBA_TYPE,
-                    0
+                    /*  0 */ GLX.GLX_CONTEXT_MAJOR_VERSION_ARB, 3,
+                    /*  2 */ GLX.GLX_CONTEXT_MINOR_VERSION_ARB, 0,
+                    /*  4 */ GLX.GLX_RENDER_TYPE,               GLX.GLX_RGBA_TYPE,
+                    /*  6 */ GLX.GLX_CONTEXT_FLAGS_ARB,         0 /* GLX.GLX_CONTEXT_DEBUG_BIT_ARB */,      
+                    /*  8 */ 0,                                 0,
+                    /* 10 */ 0
                 };
 
                 if(glCaps.getGLProfile().isGL3()) {
-                    attribs[1] |= 3;
-                    attribs[3] |= 1;
-                    attribs[5] |= GLX.GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB /* | GLX.GLX_CONTEXT_DEBUG_BIT_ARB */;
+                    // Try >= 3.2 core first 
+                    // and verify with a None drawable binding (default framebuffer)
+                    attribs[0+1]  = 3;
+                    attribs[2+1]  = 2;
+                    // FIXME NV Bug: attribs[8+0]  = GLX.GLX_CONTEXT_PROFILE_MASK_ARB;
+                    // FIXME NV Bug: attribs[8+1]  = GLX.GLX_CONTEXT_CORE_PROFILE_BIT_ARB;
+
+                    context = glXExt.glXCreateContextAttribsARB(display, config.getFBConfig(), share, direct, attribs, 0);
+                    if(0!=context) {
+                        if (!GLX.glXMakeContextCurrent(display,
+                                                       drawable.getNativeWindow().getSurfaceHandle(), 
+                                                       drawable.getNativeWindow().getSurfaceHandle(), 
+                                                       context)) {
+                            if(DEBUG) {
+                              System.err.println("X11GLXContext.createContext couldn't make >= 3.2 core context current - fallback");
+                            }
+                            GLX.glXMakeContextCurrent(display, 0, 0, 0);
+                            GLX.glXDestroyContext(display, context);
+                            context = 0;
+                        } else if(DEBUG) {
+                          System.err.println("X11GLXContext.createContext >= 3.2 available 0x"+Long.toHexString(context));
+                        }
+                    } else {
+                        if(DEBUG) {
+                          System.err.println("X11GLXContext.createContext couldn't create >= 3.2 core context - fallback");
+                        }
+                    }
+                    if(0==context) {
+                        // Try >= 3.1 forward compatible - last resort for GL3 !
+                        attribs[0+1]  = 3;
+                        attribs[2+1]  = 1;
+                        attribs[6+1] |= GLX.GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB;
+                        attribs[8+0]  = 0;
+                        attribs[8+1]  = 0;
+                    }
+                }
+                if(0==context) {
+                    // 3.1 or 3.0 ..
+                    context = glXExt.glXCreateContextAttribsARB(display, config.getFBConfig(), share, direct, attribs, 0);
+                    if(0!=context) {
+                        if (!GLX.glXMakeContextCurrent(display,
+                                                       drawable.getNativeWindow().getSurfaceHandle(), 
+                                                       drawable.getNativeWindow().getSurfaceHandle(), 
+                                                       context)) {
+                            if(DEBUG) {
+                              System.err.println("X11GLXContext.createContext couldn't make >= 3.0 core context current - fallback");
+                            }
+                            GLX.glXMakeContextCurrent(display, 0, 0, 0);
+                            GLX.glXDestroyContext(display, context);
+                            context = 0;
+                        } else if(DEBUG) {
+                          System.err.println("X11GLXContext.createContext >= 3.0 available 0x"+Long.toHexString(context));
+                        }
+                    } else {
+                        if(DEBUG) {
+                          System.err.println("X11GLXContext.createContext couldn't create >= 3.0 core context - fallback");
+                        }
+                    }
                 }
 
-                context = glXExt.glXCreateContextAttribsARB(display, config.getFBConfig(), share, direct, attribs, 0);
                 if(0==context) {
                     if(glCaps.getGLProfile().isGL3()) {
-                      if (!GLX.glXMakeContextCurrent(display, 0, 0, 0)) {
-                        throw new GLException("Error freeing temp OpenGL context");
-                      }
+                      GLX.glXMakeContextCurrent(display, 0, 0, 0);
                       GLX.glXDestroyContext(display, temp_context);
-                      throw new GLException("Unable to create OpenGL 3.1 context (have GLX_ARB_create_context)");
+                      throw new GLException("Unable to create OpenGL >= 3.1 context (have GLX_ARB_create_context)");
                     }
 
                     // continue with temp context for GL < 3.0
                     context = temp_context;
-                    if(DEBUG) {
-                      System.err.println("X11GLXContext.createContext done (old ctx < 3.0 - no 3.0) 0x"+Long.toHexString(context));
-                    }
-                } else {
-                    if (!GLX.glXMakeContextCurrent(display, 0, 0, 0)) {
-                        throw new GLException("Error freeing temp OpenGL context");
-                    }
-                    GLX.glXDestroyContext(display, temp_context);
-
-                    // need to update the GL func table ..
                     if (!GLX.glXMakeContextCurrent(display,
                                                    drawable.getNativeWindow().getSurfaceHandle(), 
                                                    drawable.getNativeWindow().getSurfaceHandle(), 
                                                    context)) {
-                      throw new GLException("Error making context (new) current: display 0x"+Long.toHexString(display)+", context 0x"+Long.toHexString(context)+", drawable "+drawable);
+                      GLX.glXMakeContextCurrent(display, 0, 0, 0);
+                      GLX.glXDestroyContext(display, temp_context);
+                      throw new GLException("Error making context (old) current: display 0x"+Long.toHexString(display)+", context 0x"+Long.toHexString(context)+", drawable "+drawable);
                     }
+                    if(DEBUG) {
+                      System.err.println("X11GLXContext.createContext done (old ctx < 3.0 - no 3.0) 0x"+Long.toHexString(context));
+                    }
+                } else {
+                    GLX.glXDestroyContext(display, temp_context);
+
+                    // need to update the GL func table ..
                     updateGLProcAddressTable();
                     if(DEBUG) {
                       System.err.println("X11GLXContext.createContext done (new ctx >= 3.0) 0x"+Long.toHexString(context));
@@ -349,7 +399,6 @@ public abstract class X11GLXContext extends GLContextImpl {
   }
 
   protected void updateGLProcAddressTable() {
-    super.updateGLProcAddressTable();
     if (DEBUG) {
       System.err.println(getThreadName() + ": !!! Initializing GLX extension address table");
     }
@@ -359,6 +408,7 @@ public abstract class X11GLXContext extends GLContextImpl {
       glXExtProcAddressTable = new GLXExtProcAddressTable();
     }          
     resetProcAddressTable(getGLXExtProcAddressTable());
+    super.updateGLProcAddressTable();
   }
 
   public synchronized String getPlatformExtensionsString() {
@@ -396,11 +446,9 @@ public abstract class X11GLXContext extends GLContextImpl {
 
   private int hasSwapIntervalSGI = 0;
 
-  public void setSwapInterval(int interval) {
+  protected void setSwapIntervalImpl(int interval) {
     getDrawableImpl().getFactoryImpl().lockToolkit();
     try {
-      // FIXME: make the context current first? Currently assumes that
-      // will not be necessary. Make the caller do this?
       GLXExt glXExt = getGLXExt();
       if(0==hasSwapIntervalSGI) {
         try {
@@ -409,7 +457,9 @@ public abstract class X11GLXContext extends GLContextImpl {
       }
       if (hasSwapIntervalSGI>0) {
         try {
-            glXExt.glXSwapIntervalSGI(interval);
+            if( 0 == glXExt.glXSwapIntervalSGI(interval) ) {
+                currentSwapInterval = interval;
+            }
         } catch (Throwable t) { hasSwapIntervalSGI=-1; }
       }
     } finally {

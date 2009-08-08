@@ -1,0 +1,11 @@
+window_sizes 1800 1050 450 1344 847 120
+diagrams
+  active  classdiagram_ref 128069 // OpenGL Interfaces
+    1135 830 100 18 0 0
+end
+show_stereotypes
+selected classdiagram_ref 128069 // OpenGL Interfaces
+open
+  classview_ref 128069 // javax.media.opengl
+end
+end

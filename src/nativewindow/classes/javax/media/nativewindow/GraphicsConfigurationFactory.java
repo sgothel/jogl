@@ -74,7 +74,7 @@ public abstract class GraphicsConfigurationFactory {
 
         abstractGraphicsDeviceClass = javax.media.nativewindow.AbstractGraphicsDevice.class;
         
-        if (NativeWindowFactory.TYPE_X11.equals(NativeWindowFactory.getNativeWindowType(false))) {
+        if (NativeWindowFactory.TYPE_X11.equals(NativeWindowFactory.getNativeWindowType(true))) {
             try {
                 GraphicsConfigurationFactory factory = (GraphicsConfigurationFactory)
                     NWReflection.createInstance("com.sun.nativewindow.impl.x11.X11GraphicsConfigurationFactory", new Object[] {});

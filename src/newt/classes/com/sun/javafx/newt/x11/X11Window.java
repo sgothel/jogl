@@ -84,7 +84,7 @@ public class X11Window extends Window {
     }
 
     public void setVisible(boolean visible) {
-        if(this.visible!=visible) {
+        if(0!=windowHandle && this.visible!=visible) {
             this.visible=visible;
             setVisible0(getDisplayHandle(), windowHandle, visible);
             clearEventMask();
@@ -96,6 +96,7 @@ public class X11Window extends Window {
     }
 
     public void setSize(int width, int height) {
+        if(0==windowHandle) return;
         if(!fullscreen) {
             nfs_width=width;
             nfs_height=height;
@@ -104,6 +105,7 @@ public class X11Window extends Window {
     }
 
     public void setPosition(int x, int y) {
+        if(0==windowHandle) return;
         if(!fullscreen) {
             nfs_x=x;
             nfs_y=y;
@@ -112,7 +114,7 @@ public class X11Window extends Window {
     }
 
     public boolean setFullscreen(boolean fullscreen) {
-        if(this.fullscreen!=fullscreen) {
+        if(0!=windowHandle && this.fullscreen!=fullscreen) {
             int x,y,w,h;
             this.fullscreen=fullscreen;
             if(fullscreen) {

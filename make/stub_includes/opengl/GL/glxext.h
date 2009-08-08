@@ -77,11 +77,14 @@ extern "C" {
 #endif
 
 #ifndef GLX_ARB_create_context
-#define GLX_CONTEXT_DEBUG_BIT_ARB          0x00000001
-#define GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB 0x00000002
+#define GLX_CONTEXT_DEBUG_BIT_ARB                 0x00000001
+#define GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB    0x00000002
+#define GLX_CONTEXT_CORE_PROFILE_BIT_ARB          0x00000001
+#define GLX_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB 0x00000002
 #define GLX_CONTEXT_MAJOR_VERSION_ARB      0x2091
 #define GLX_CONTEXT_MINOR_VERSION_ARB      0x2092
 #define GLX_CONTEXT_FLAGS_ARB              0x2094
+#define GLX_CONTEXT_PROFILE_MASK_ARB       0x9126
 #endif
 
 #ifndef GLX_SGIS_multisample
@@ -263,16 +266,13 @@ extern "C" {
 
 typedef void (*__GLXextFuncPtr)(void);
 
-#ifdef GLX_GLXEXT_PROTOTYPES
-extern __GLXextFuncPtr glXGetProcAddress (const GLubyte *);
-#endif /* GLX_GLXEXT_PROTOTYPES */
-typedef __GLXextFuncPtr ( * PFNGLXGETPROCADDRESSPROC) (const GLubyte *procName);
-
 #ifndef GLX_ARB_get_proc_address
 #define GLX_ARB_get_proc_address 1
 #ifdef GLX_GLXEXT_PROTOTYPES
+extern __GLXextFuncPtr glXGetProcAddress (const GLubyte *);
 extern __GLXextFuncPtr glXGetProcAddressARB (const GLubyte *);
 #endif /* GLX_GLXEXT_PROTOTYPES */
+typedef __GLXextFuncPtr ( * PFNGLXGETPROCADDRESSPROC) (const GLubyte *procName);
 typedef __GLXextFuncPtr ( * PFNGLXGETPROCADDRESSARBPROC) (const GLubyte *procName);
 #endif
 
@@ -865,9 +865,9 @@ typedef void ( * PFNGLXRELEASETEXIMAGEEXTPROC) (Display *dpy,
 #endif
 
 #ifndef GLX_NV_present_video
-#define GLX_NV_present_video
+#define GLX_NV_present_video 1
 #ifdef GLX_GLXEXT_PROTOTYPES
-extern unsigned int *glXEnumerateVideoDevicesNV(Display *dpy,
+extern unsigned int* glXEnumerateVideoDevicesNV(Display *dpy,
                                                 int screen,
                                                 int *nelements);
 extern int glXBindVideoDeviceNV(Display *dpy,

@@ -21,13 +21,13 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
    * EnableVertexAttribArray and VertexAttribPointer calls,
    * and a predefined vertex attribute variable name will be choosen.
    *
-   * @arg index The GL array index
-   * @arg name  The optional custom name for the GL array index, maybe null.
+   * @param index The GL array index
+   * @param name  The optional custom name for the GL array index, maybe null.
    *            If null, the default name mapping will be used, see 'getPredefinedArrayIndexName(int)'.
    *            This name might be used as the shader attribute name.
-   * @arg comps The array component number
-   * @arg dataType The array index GL data type
-   * @arg normalized Wheather the data shall be normalized
+   * @param comps The array component number
+   * @param dataType The array index GL data type
+   * @param normalized Wheather the data shall be normalized
    *
    * @see javax.media.opengl.GLContext#getPredefinedArrayIndexName(int)
    */

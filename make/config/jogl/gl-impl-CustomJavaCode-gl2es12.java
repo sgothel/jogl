@@ -56,6 +56,10 @@ public final boolean isGL2ES2() {
     return isGL2ES2;
 }
 
+public final boolean isGL2GL3() {
+    return false;
+}
+
 public final boolean hasGLSL() {
     return isGL2ES2;
 }
@@ -94,6 +98,10 @@ public final GL2ES2 getGL2ES2() throws GLException {
     throw new GLException("Not a GL2ES2 implementation");
 }
 
+public final GL2GL3 getGL2GL3() throws GLException {
+    throw new GLException("Not a GL2GL3 implementation");
+}
+
 public boolean isFunctionAvailable(String glFunctionName) {
   return _context.isFunctionAvailable(glFunctionName);
 }
@@ -115,16 +123,12 @@ public GLContext getContext() {
 
 private GLContextImpl _context;
 
-/**
- * Provides platform-independent access to the wglAllocateMemoryNV /
- * glXAllocateMemoryNV extension.
- */
-public java.nio.ByteBuffer glAllocateMemoryNV(int arg0, float arg1, float arg2, float arg3) {
-  return _context.glAllocateMemoryNV(arg0, arg1, arg2, arg3);
-}
-
 public void setSwapInterval(int interval) {
   _context.setSwapInterval(interval);
+}
+
+public int getSwapInterval() {
+  return _context.getSwapInterval();
 }
 
 public Object getPlatformGLExtensions() {

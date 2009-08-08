@@ -404,11 +404,13 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
     return (context == null) ? null : context.getGL();
   }
 
-  public void setGL(GL gl) {
+  public GL setGL(GL gl) {
     GLContext context = getContext();
     if (context != null) {
       context.setGL(gl);
+      return gl;
     }
+    return null;
   }
 
   public void setAutoSwapBufferMode(boolean onOrOff) {
@@ -1322,16 +1324,16 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
                                " with width " + width[0] + ", height " + height[0]);
           }
                     
-          gl.glBindRenderbuffer(GL2.GL_RENDERBUFFER, frameBufferDepthBuffer[0]);
+          gl.glBindRenderbuffer(GL.GL_RENDERBUFFER, frameBufferDepthBuffer[0]);
           // FIXME: may need a loop here like in Java2D
-          gl.glRenderbufferStorage(GL2.GL_RENDERBUFFER, GL2.GL_DEPTH_COMPONENT24, width[0], height[0]);
+          gl.glRenderbufferStorage(GL.GL_RENDERBUFFER, GL2GL3.GL_DEPTH_COMPONENT24, width[0], height[0]);
 
           gl.glBindRenderbuffer(GL2.GL_RENDERBUFFER, 0);
           createNewDepthBuffer = false;
         }
 
         gl.glBindTexture(fboTextureTarget, 0);
-        gl.glBindFramebuffer(GL2.GL_FRAMEBUFFER, frameBuffer[0]);
+        gl.glBindFramebuffer(GL.GL_FRAMEBUFFER, frameBuffer[0]);
 
         if (fbObjectWorkarounds) {
           // Hook up the color and depth buffer attachment points for this framebuffer
@@ -1435,29 +1437,29 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
 
               j2dContext.makeCurrent();
               GL gl = j2dContext.getGL();
-              if ((getGLInteger(gl, GL2.GL_RED_BITS)         < offscreenCaps.getRedBits())        ||
-                  (getGLInteger(gl, GL2.GL_GREEN_BITS)       < offscreenCaps.getGreenBits())      ||
-                  (getGLInteger(gl, GL2.GL_BLUE_BITS)        < offscreenCaps.getBlueBits())       ||
-                  //                  (getGLInteger(gl, GL2.GL_ALPHA_BITS)       < offscreenCaps.getAlphaBits())      ||
+              if ((getGLInteger(gl, GL.GL_RED_BITS)         < offscreenCaps.getRedBits())        ||
+                  (getGLInteger(gl, GL.GL_GREEN_BITS)       < offscreenCaps.getGreenBits())      ||
+                  (getGLInteger(gl, GL.GL_BLUE_BITS)        < offscreenCaps.getBlueBits())       ||
+                  //                  (getGLInteger(gl, GL.GL_ALPHA_BITS)       < offscreenCaps.getAlphaBits())      ||
                   (getGLInteger(gl, GL2.GL_ACCUM_RED_BITS)   < offscreenCaps.getAccumRedBits())   ||
                   (getGLInteger(gl, GL2.GL_ACCUM_GREEN_BITS) < offscreenCaps.getAccumGreenBits()) ||
                   (getGLInteger(gl, GL2.GL_ACCUM_BLUE_BITS)  < offscreenCaps.getAccumBlueBits())  ||
                   (getGLInteger(gl, GL2.GL_ACCUM_ALPHA_BITS) < offscreenCaps.getAccumAlphaBits()) ||
                   //          (getGLInteger(gl, GL2.GL_DEPTH_BITS)       < offscreenCaps.getDepthBits())      ||
-                  (getGLInteger(gl, GL2.GL_STENCIL_BITS)     < offscreenCaps.getStencilBits())) {
+                  (getGLInteger(gl, GL.GL_STENCIL_BITS)     < offscreenCaps.getStencilBits())) {
                 if (DEBUG) {
                   System.err.println("GLJPanel: Falling back to pbuffer-based support because Java2D context insufficient");
                   System.err.println("                    Available              Required");
-                  System.err.println("GL_RED_BITS         " + getGLInteger(gl, GL2.GL_RED_BITS)         + "              " + offscreenCaps.getRedBits());
-                  System.err.println("GL_GREEN_BITS       " + getGLInteger(gl, GL2.GL_GREEN_BITS)       + "              " + offscreenCaps.getGreenBits());
-                  System.err.println("GL_BLUE_BITS        " + getGLInteger(gl, GL2.GL_BLUE_BITS)        + "              " + offscreenCaps.getBlueBits());
-                  System.err.println("GL_ALPHA_BITS       " + getGLInteger(gl, GL2.GL_ALPHA_BITS)       + "              " + offscreenCaps.getAlphaBits());
+                  System.err.println("GL_RED_BITS         " + getGLInteger(gl, GL.GL_RED_BITS)         + "              " + offscreenCaps.getRedBits());
+                  System.err.println("GL_GREEN_BITS       " + getGLInteger(gl, GL.GL_GREEN_BITS)       + "              " + offscreenCaps.getGreenBits());
+                  System.err.println("GL_BLUE_BITS        " + getGLInteger(gl, GL.GL_BLUE_BITS)        + "              " + offscreenCaps.getBlueBits());
+                  System.err.println("GL_ALPHA_BITS       " + getGLInteger(gl, GL.GL_ALPHA_BITS)       + "              " + offscreenCaps.getAlphaBits());
                   System.err.println("GL_ACCUM_RED_BITS   " + getGLInteger(gl, GL2.GL_ACCUM_RED_BITS)   + "              " + offscreenCaps.getAccumRedBits());
                   System.err.println("GL_ACCUM_GREEN_BITS " + getGLInteger(gl, GL2.GL_ACCUM_GREEN_BITS) + "              " + offscreenCaps.getAccumGreenBits());
                   System.err.println("GL_ACCUM_BLUE_BITS  " + getGLInteger(gl, GL2.GL_ACCUM_BLUE_BITS)  + "              " + offscreenCaps.getAccumBlueBits());
                   System.err.println("GL_ACCUM_ALPHA_BITS " + getGLInteger(gl, GL2.GL_ACCUM_ALPHA_BITS) + "              " + offscreenCaps.getAccumAlphaBits());
-                  System.err.println("GL_DEPTH_BITS       " + getGLInteger(gl, GL2.GL_DEPTH_BITS)       + "              " + offscreenCaps.getDepthBits());
-                  System.err.println("GL_STENCIL_BITS     " + getGLInteger(gl, GL2.GL_STENCIL_BITS)     + "              " + offscreenCaps.getStencilBits());
+                  System.err.println("GL_DEPTH_BITS       " + getGLInteger(gl, GL.GL_DEPTH_BITS)       + "              " + offscreenCaps.getDepthBits());
+                  System.err.println("GL_STENCIL_BITS     " + getGLInteger(gl, GL.GL_STENCIL_BITS)     + "              " + offscreenCaps.getStencilBits());
                 }
                 isInitialized = false;
                 backend = null;
@@ -1587,7 +1589,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
 
         if (!checkedGLVendor) {
           checkedGLVendor = true;
-          String vendor = gl.glGetString(GL2.GL_VENDOR);
+          String vendor = gl.glGetString(GL.GL_VENDOR);
 
           if ((vendor != null) &&
               vendor.startsWith("ATI")) {

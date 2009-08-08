@@ -15,6 +15,7 @@ public void setObjectTracker(GLObjectTracker tracker) {
 
 */
 
+
 public GL2Impl(GLProfile glp, GLContextImpl context) {
   this._context = context; 
   this.bufferSizeTracker = context.getBufferSizeTracker();
@@ -53,6 +54,10 @@ public final boolean isGL2ES2() {
     return true;
 }
 
+public final boolean isGL2GL3() {
+    return true;
+}
+
 public final boolean hasGLSL() {
     return true;
 }
@@ -82,6 +87,10 @@ public final GL2ES1 getGL2ES1() throws GLException {
 }
 
 public final GL2ES2 getGL2ES2() throws GLException {
+    return this;
+}
+
+public final GL2GL3 getGL2GL3() throws GLException {
     return this;
 }
 
@@ -116,6 +125,10 @@ public java.nio.ByteBuffer glAllocateMemoryNV(int arg0, float arg1, float arg2, 
 
 public void setSwapInterval(int interval) {
   _context.setSwapInterval(interval);
+}
+
+public int getSwapInterval() {
+  return _context.getSwapInterval();
 }
 
 public Object getPlatformGLExtensions() {

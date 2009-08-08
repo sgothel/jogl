@@ -76,26 +76,23 @@ public abstract class X11GLXDrawable extends GLDrawableImpl {
     }
   }
 
-  public void swapBuffers() throws GLException {
-    GLCapabilities caps = (GLCapabilities)getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities();
-    if (caps.getDoubleBuffered()) {
-        boolean didLock = false;
-        try {
-          if ( !isSurfaceLocked() ) {
-              // Usually the surface shall be locked within [makeCurrent .. swap .. release]
-              if (lockSurface() == NativeWindow.LOCK_SURFACE_NOT_READY) {
-                  return;
-              }
-              didLock=true;
+  protected void swapBuffersImpl() {
+    boolean didLock = false;
+    try {
+      if ( !isSurfaceLocked() ) {
+          // Usually the surface shall be locked within [makeCurrent .. swap .. release]
+          if (lockSurface() == NativeWindow.LOCK_SURFACE_NOT_READY) {
+              return;
           }
+          didLock=true;
+      }
 
-          GLX.glXSwapBuffers(component.getDisplayHandle(), component.getSurfaceHandle());
+      GLX.glXSwapBuffers(component.getDisplayHandle(), component.getSurfaceHandle());
 
-        } finally {
-          if(didLock) {
-              unlockSurface();
-          }
-        }
+    } finally {
+      if(didLock) {
+          unlockSurface();
+      }
     }
   }
 

@@ -39,6 +39,8 @@ import java.util.Iterator;
 import com.sun.nativewindow.impl.jvm.JVMUtil;
 
 public abstract class NewtFactory {
+    public static final String TYPE_BROADCOM_EGL = "BroadcomEGL";
+
     // Work-around for initialization order problems on Mac OS X
     // between native Newt and (apparently) Fmod
     static {

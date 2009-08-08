@@ -88,6 +88,12 @@ public class NullWindow implements NativeWindow {
     return lockedStack;
   }
 
+  public boolean surfaceSwap() {
+    return false;
+  }
+
+  public void surfaceUpdated() { }
+
   public long getDisplayHandle() {
     return displayHandle;
   }

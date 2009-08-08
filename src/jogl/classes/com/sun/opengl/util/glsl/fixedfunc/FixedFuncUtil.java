@@ -14,12 +14,12 @@ import com.sun.opengl.util.glsl.fixedfunc.impl.*;
  */
 public class FixedFuncUtil {
     /**
-     * @return If gl is a GL2ES1, return the type cast object,
+     * @return If gl is a GL2ES1 and force is false, return the type cast object,
      *         otherwise create a fixed function emulation pipeline with the GL2ES2 impl.
      * @throws GLException if the GL object is neither GL2ES1 nor GL2ES2
      */
-    public static final GL2ES1 getFixedFuncImpl(GL gl) {
-        if(gl.isGL2ES1()) {
+    public static final GL2ES1 getFixedFuncImpl(GL gl, boolean force) {
+        if(!force && gl.isGL2ES1()) {
             return gl.getGL2ES1();
         } else if(gl.isGL2ES2()) {
             GL2ES2 es2 = gl.getGL2ES2();
@@ -29,6 +29,15 @@ public class FixedFuncUtil {
             return impl;
         }
         throw new GLException("GL Object is neither GL2ES1 nor GL2ES2");
+    }
+
+    /**
+     * @return If gl is a GL2ES1, return the type cast object,
+     *         otherwise create a fixed function emulation pipeline with the GL2ES2 impl.
+     * @throws GLException if the GL object is neither GL2ES1 nor GL2ES2
+     */
+    public static final GL2ES1 getFixedFuncImpl(GL gl) {
+        return getFixedFuncImpl(gl, false);
     }
 
     /**
