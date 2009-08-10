@@ -57,6 +57,10 @@ public class NullWindow implements NativeWindow {
   protected void initNative() throws NativeWindowException {
   }
 
+  public void destroy() {
+    invalidate();
+  }
+
   public synchronized void invalidate() {
     displayHandle=0;
     scrnIndex=-1;

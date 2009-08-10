@@ -39,6 +39,7 @@ package com.sun.nativewindow.impl.jawt;
 import com.sun.nativewindow.impl.*;
 
 import java.awt.Component;
+import java.awt.Window;
 import java.awt.GraphicsEnvironment;
 import javax.media.nativewindow.*;
 import com.sun.nativewindow.impl.*;
@@ -79,6 +80,15 @@ public abstract class JAWTWindow implements NativeWindow {
   public synchronized void invalidate() {
     component = null;
     drawable= 0;
+  }
+
+  public synchronized void destroy() {
+    if(null!=component) {
+        if(component instanceof Window) {
+            ((Window)component).dispose();
+        }
+    }
+    invalidate();
   }
 
   private volatile Exception lockedStack = null;

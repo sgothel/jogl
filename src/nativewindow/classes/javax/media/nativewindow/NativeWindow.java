@@ -132,8 +132,16 @@ public interface NativeWindow {
   /** 
    * render all native window information invalid,
    * as if the native window was destroyed
+   *
+   * @see #destroy
    */
   public void invalidate();
+
+  /** 
+   * destroys the window and releases
+   * windowing related resources.
+   */
+  public void destroy();
 
   /**
    * Returns the window handle for this NativeWindow. <P>
