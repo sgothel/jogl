@@ -651,4 +651,46 @@ public abstract class Window implements NativeWindow
             }
         }
     }
+
+
+    //
+    // WindowListener Support
+    //
+
+    private ArrayList paintListeners = new ArrayList();
+
+    public void addPaintListener(PaintListener l) {
+        if(l == null) {
+            return;
+        }
+        synchronized(paintListeners) {
+            ArrayList newPaintListeners = (ArrayList) paintListeners.clone();
+            newPaintListeners.add(l);
+            paintListeners = newPaintListeners;
+        }
+    }
+
+    public void removePaintListener(PaintListener l) {
+        if (l == null) {
+            return;
+        }
+        synchronized(paintListeners) {
+            ArrayList newPaintListeners = (ArrayList) paintListeners.clone();
+            newPaintListeners.remove(l);
+            paintListeners = newPaintListeners;
+        }
+    }
+
+    protected void sendPaintEvent(int eventType, int x, int y, int w, int h) {
+        PaintEvent e =
+            new PaintEvent(eventType, this, System.currentTimeMillis(), x, y, w, h);
+        ArrayList listeners = null;
+        synchronized(paintListeners) {
+            listeners = paintListeners;
+        }
+        for(Iterator i = listeners.iterator(); i.hasNext(); ) {
+            PaintListener l = (PaintListener) i.next();
+            l.exposed(e);
+        }
+    }
 }

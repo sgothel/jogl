@@ -103,6 +103,7 @@ static jmethodID windowDestroyNotifyID = NULL;
 static jmethodID windowDestroyedID = NULL;
 static jmethodID sendMouseEventID = NULL;
 static jmethodID sendKeyEventID = NULL;
+static jmethodID sendPaintEventID = NULL;
 
 typedef struct {
     JNIEnv* jenv;
@@ -761,6 +762,20 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
         useDefWindowProc = 1;
         break;
 
+    case WM_PAINT: {
+        RECT r;
+        if (GetUpdateRect(wnd, &r, FALSE)) {
+            if ((r.right-r.left) > 0 && (r.bottom-r.top) > 0) {
+                (*env)->CallVoidMethod(env, window, sendPaintEventID,
+                                       0, r.left, r.top, r.right-r.left, r.bottom-r.top);
+            }
+            ValidateRect(wnd, &r);
+            useDefWindowProc = 0;
+        } else {
+            useDefWindowProc = 1;
+        }
+        break;
+    }
     case WM_ERASEBKGND:
         // ignore erase background
         useDefWindowProc = 0;
@@ -902,13 +917,16 @@ JNIEXPORT jboolean JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_initID
     windowDestroyedID = (*env)->GetMethodID(env, clazz, "windowDestroyed", "()V");
     sendMouseEventID = (*env)->GetMethodID(env, clazz, "sendMouseEvent", "(IIIIII)V");
     sendKeyEventID = (*env)->GetMethodID(env, clazz, "sendKeyEvent", "(IIIC)V");
+    sendPaintEventID = (*env)->GetMethodID(env, clazz, "sendPaintEvent", "(IIIII)V");
     if (sizeChangedID == NULL ||
         positionChangedID == NULL ||
         focusChangedID == NULL ||
         windowDestroyNotifyID == NULL ||
         windowDestroyedID == NULL ||
         sendMouseEventID == NULL ||
-        sendKeyEventID == NULL) {
+        sendPaintEventID == NULL ||
+        sendKeyEventID == NULL)
+    {
         return JNI_FALSE;
     }
     BuildDynamicKeyMapTable();
