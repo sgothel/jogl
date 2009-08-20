@@ -47,6 +47,7 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.*;
 import com.sun.javafx.newt.Window;
+import java.awt.Insets;
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.awt.*;
 
@@ -159,9 +160,26 @@ public class AWTWindow extends Window {
         /** An AWT event on setSize() would bring us in a deadlock situation, hence invokeLater() */
         runOnEDT(false, new Runnable() {
                 public void run() {
-                    frame.setSize(width, height);
+                    Insets insets = frame.getInsets();
+                    frame.setSize(width + insets.left + insets.right,
+                                  height + insets.top + insets.bottom);
                 }
             });
+    }
+
+    public com.sun.javafx.newt.Insets getInsets() {
+        final int insets[] = new int[] { 0, 0, 0, 0 };
+        runOnEDT(true, new Runnable() {
+                public void run() {
+                    Insets frameInsets = frame.getInsets();
+                    insets[0] = frameInsets.top;
+                    insets[1] = frameInsets.left;
+                    insets[2] = frameInsets.bottom;
+                    insets[3] = frameInsets.right;
+                }
+            });
+        return new com.sun.javafx.newt.
+            Insets(insets[0],insets[1],insets[2],insets[3]);
     }
 
     public void setPosition(final int x, final int y) {

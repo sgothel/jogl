@@ -339,6 +339,10 @@ public class GLWindow extends Window implements GLAutoDrawable {
         window.setPosition(x, y);
     }
 
+    public Insets getInsets() {
+        return window.getInsets();
+    }
+
     public boolean setFullscreen(boolean fullscreen) {
         return window.setFullscreen(fullscreen);
     }
