@@ -34,9 +34,7 @@
 package com.sun.javafx.newt.windows;
 
 import javax.media.nativewindow.*;
-
 import com.sun.javafx.newt.*;
-import com.sun.javafx.newt.impl.*;
 
 public class WindowsWindow extends Window {
 
@@ -45,6 +43,7 @@ public class WindowsWindow extends Window {
     private long windowHandleClose;
     // non fullscreen dimensions ..
     private int nfs_width, nfs_height, nfs_x, nfs_y;
+    private final Insets insets = new Insets(0, 0, 0, 0);
 
     static {
         WindowsDisplay.initSingleton();
@@ -204,6 +203,10 @@ public class WindowsWindow extends Window {
         }
     }
 
+    public Insets getInsets() {
+        return (Insets)insets.clone();
+    }
+
     //----------------------------------------------------------------------
     // Internals only
     //
@@ -223,6 +226,14 @@ public class WindowsWindow extends Window {
     private static native void setTitle(long windowHandle, String title);
     private static native void requestFocus(long windowHandle);
 
+    private void insetsChanged(int left, int top, int right, int bottom) {
+        if (left != -1 && top != -1 && right != -1 && bottom != -1) {
+            insets.left = left;
+            insets.top = top;
+            insets.right = right;
+            insets.bottom = bottom;
+        }
+    }
     private void sizeChanged(int newWidth, int newHeight) {
         width = newWidth;
         height = newHeight;

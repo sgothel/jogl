@@ -130,6 +130,7 @@ public class MacWindow extends Window {
     private volatile long surfaceHandle;
     // non fullscreen dimensions ..
     private int nfs_width, nfs_height, nfs_x, nfs_y;
+    private final Insets insets = new Insets(0,0,0,0);
 
     static {
         MacDisplay.initSingleton();
@@ -178,6 +179,31 @@ public class MacWindow extends Window {
         nsViewLock.lock();
         try {
             return surfaceHandle;
+        } finally {
+            nsViewLock.unlock();
+        }
+    }
+
+    class EnsureWindowCreatedAction implements Runnable {
+        public void run() {
+            nsViewLock.lock();
+            try {
+                createWindow(false);
+            } finally {
+                nsViewLock.unlock();
+            }
+        }
+    }
+    private EnsureWindowCreatedAction ensureWindowCreatedAction =
+        new EnsureWindowCreatedAction();
+
+    public Insets getInsets() {
+        // in order to properly calculate insets we need the window to be
+        // created
+        MainThread.invoke(true, ensureWindowCreatedAction);
+        nsViewLock.lock();
+        try {
+            return (Insets) insets.clone();
         } finally {
             nsViewLock.unlock();
         }
@@ -233,6 +259,9 @@ public class MacWindow extends Window {
                 if(DEBUG_IMPLEMENTATION) System.out.println("MacWindow.VisibleAction "+visible+" "+Thread.currentThread().getName());
                 if (visible) {
                     createWindow(false);
+                    if (windowHandle != 0) {
+                        makeKeyAndOrderFront(windowHandle);
+                    }
                 } else {
                     if (windowHandle != 0) {
                         orderOut(windowHandle);
@@ -344,6 +373,9 @@ public class MacWindow extends Window {
                     System.err.println("MacWindow fs: "+fullscreen+" "+x+"/"+y+" "+width+"x"+height);
                 }
                 createWindow(true);
+                if (windowHandle != 0) {
+                    makeKeyAndOrderFront(windowHandle);
+                }
             } finally {
                 nsViewLock.unlock();
             }
@@ -384,6 +416,19 @@ public class MacWindow extends Window {
             System.out.println("  Posted WINDOW_RESIZED event");
         }
         sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED);
+    }
+
+    private void insetsChanged(int left, int top, int right, int bottom) {
+        if (DEBUG_IMPLEMENTATION) {
+            System.out.println(Thread.currentThread().getName()+
+                " Insets changed to " + left + ", " + top + ", " + right + ", " + bottom);
+        }
+        if (left != -1 && top != -1 && right != -1 && bottom != -1) {
+            insets.left = left;
+            insets.top = top;
+            insets.right = right;
+            insets.bottom = bottom;
+        }
     }
 
     private void positionChanged(int newX, int newY) {
@@ -527,7 +572,8 @@ public class MacWindow extends Window {
         }
         surfaceHandle = contentView(windowHandle);
         setTitle0(windowHandle, getTitle());
-        makeKeyAndOrderFront(windowHandle);
+        // don't make the window visible on window creation
+//        makeKeyAndOrderFront(windowHandle);
         sendWindowEvent(WindowEvent.EVENT_WINDOW_MOVED);
         sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED);
         sendWindowEvent(WindowEvent.EVENT_WINDOW_GAINED_FOCUS);

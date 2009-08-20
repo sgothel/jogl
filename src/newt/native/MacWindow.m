@@ -55,7 +55,8 @@ NSString* jstringToNSString(JNIEnv* env, jstring jstr)
 void setFrameTopLeftPoint(NSWindow* win, jint x, jint y)
 {
     NSScreen* screen = [NSScreen mainScreen];
-    NSRect visibleScreenRect = [screen visibleFrame];
+    // this allows for better compatibility with awt behavior
+    NSRect visibleScreenRect = [screen frame];
     NSPoint pt;
     
     pt = NSMakePoint(x, visibleScreenRect.origin.y + visibleScreenRect.size.height - y);
@@ -88,6 +89,10 @@ NS_ENDHANDLER
         [newView setJNIEnv: env];
     }
     [win setContentView: newView];
+
+    // make sure the insets are updated in the java object
+    NewtMacWindow* newtw = (NewtMacWindow*)win;
+    [newtw updateInsets: env];
 
     return oldView;
 }

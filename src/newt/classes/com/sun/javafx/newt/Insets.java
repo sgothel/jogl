@@ -33,10 +33,11 @@
 package com.sun.javafx.newt;
 
 /**
- *
+ * Simple class representing insets.
+ * 
  * @author tdv
  */
-public class Insets {
+public class Insets implements Cloneable {
     public int top;
     public int left;
     public int bottom;
@@ -91,6 +92,14 @@ public class Insets {
     public String toString() {
     	return getClass().getName() + "[top="  + top + ",left=" + left +
             ",bottom=" + bottom + ",right=" + right + "]";
+    }
+
+    public Object clone() {
+        try {
+            return super.clone();
+        } catch (CloneNotSupportedException ex) {
+            throw new InternalError();
+        }
     }
 
 }

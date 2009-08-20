@@ -61,6 +61,8 @@
 
 + (BOOL) initNatives: (JNIEnv*) env forClass: (jobject) clazz;
 
+- (void) updateInsets: (JNIEnv*) env;
+
 - (id) initWithContentRect: (NSRect) contentRect
        styleMask: (NSUInteger) windowStyle
        backing: (NSBackingStoreType) bufferingType

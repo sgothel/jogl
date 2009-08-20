@@ -67,6 +67,7 @@
 
 static jmethodID sendMouseEventID  = NULL;
 static jmethodID sendKeyEventID    = NULL;
+static jmethodID insetsChangedID   = NULL;
 static jmethodID sizeChangedID     = NULL;
 static jmethodID positionChangedID = NULL;
 static jmethodID focusChangedID    = NULL;
@@ -80,14 +81,44 @@ static jmethodID windowDestroyedID = NULL;
     sendMouseEventID  = (*env)->GetMethodID(env, clazz, "sendMouseEvent",  "(IIIIII)V");
     sendKeyEventID    = (*env)->GetMethodID(env, clazz, "sendKeyEvent",    "(IIIC)V");
     sizeChangedID     = (*env)->GetMethodID(env, clazz, "sizeChanged",     "(II)V");
+    insetsChangedID     = (*env)->GetMethodID(env, clazz, "insetsChanged", "(IIII)V");
     positionChangedID = (*env)->GetMethodID(env, clazz, "positionChanged", "(II)V");
     focusChangedID = (*env)->GetMethodID(env, clazz, "focusChanged", "(Z)V");
     windowDestroyNotifyID    = (*env)->GetMethodID(env, clazz, "windowDestroyNotify",    "()V");
     windowDestroyedID    = (*env)->GetMethodID(env, clazz, "windowDestroyed",    "()V");
-    if (sendMouseEventID && sendKeyEventID && sizeChangedID && positionChangedID && focusChangedID && windowDestroyedID && windowDestroyNotifyID) {
+    if (sendMouseEventID && sendKeyEventID && sizeChangedID && insetsChangedID &&
+        positionChangedID && focusChangedID && windowDestroyedID && windowDestroyNotifyID)
+    {
         return YES;
     }
     return NO;
+}
+
+- (void) updateInsets: (JNIEnv*) env
+{
+    NSView* nsview = [self contentView];
+    if( ! [nsview isMemberOfClass:[NewtView class]] ) {
+        return;
+    }
+    NewtView* view = (NewtView *) nsview;
+    jobject javaWindowObject = [view getJavaWindowObject];
+    if (env==NULL || javaWindowObject == NULL) {
+        return;
+    }
+    
+    NSRect frameRect = [self frame];
+    NSRect contentRect = [self contentRectForFrameRect: frameRect];
+
+    // note: this is a simplistic implementation which doesn't take
+    // into account DPI and scaling factor
+    CGFloat l = contentRect.origin.x - frameRect.origin.x;
+    jint top = (jint)(frameRect.size.height - contentRect.size.height);
+    jint left = (jint)l;
+    jint bottom = (jint)(contentRect.origin.y - frameRect.origin.y);
+    jint right = (jint)(frameRect.size.width - (contentRect.size.width + l));
+
+    (*env)->CallVoidMethod(env, javaWindowObject, insetsChangedID,
+                           left, top, right, bottom);
 }
 
 - (id) initWithContentRect: (NSRect) contentRect
@@ -299,6 +330,9 @@ static jint mods2JavaMods(NSUInteger mods)
         return;
     }
 
+    // update insets on every window resize for lack of better hook place
+    [self updateInsets: env];
+
     NSRect frameRect = [self frame];
     NSRect contentRect = [self contentRectForFrameRect: frameRect];
 
@@ -321,14 +355,13 @@ static jint mods2JavaMods(NSUInteger mods)
     }
 
     NSRect rect = [self frame];
-    NSScreen* menuBarScreen = NULL;
     NSScreen* screen = NULL;
     NSRect screenRect;
     NSPoint pt;
 
-    // FIXME: unclear whether this works correctly in multiple monitor situations
     screen = [self screen];
-    screenRect = [screen visibleFrame];
+    // this allows for better compatibility with awt behavior
+    screenRect = [screen frame];
     pt = NSMakePoint(rect.origin.x, screenRect.origin.y + screenRect.size.height - rect.origin.y - rect.size.height);
 
     (*env)->CallVoidMethod(env, javaWindowObject, positionChangedID,

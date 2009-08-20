@@ -97,6 +97,7 @@
 #include "KeyEvent.h"
 
 static jmethodID sizeChangedID = NULL;
+static jmethodID insetsChangedID = NULL;
 static jmethodID positionChangedID = NULL;
 static jmethodID focusChangedID = NULL;
 static jmethodID windowDestroyNotifyID = NULL;
@@ -104,6 +105,8 @@ static jmethodID windowDestroyedID = NULL;
 static jmethodID sendMouseEventID = NULL;
 static jmethodID sendKeyEventID = NULL;
 static jmethodID sendPaintEventID = NULL;
+
+static RECT* UpdateInsets(JNIEnv *env, HWND hwnd, jobject window);
 
 typedef struct {
     JNIEnv* jenv;
@@ -590,10 +593,91 @@ static int WmKeyUp(JNIEnv *env, jobject window, UINT wkey, UINT repCnt,
     return 0;
 }
 
+static RECT * UpdateInsets(JNIEnv *env, HWND hwnd, jobject window)
+{
+    // being naughty here
+    static RECT m_insets = { 0, 0, 0, 0 };
+    RECT outside;
+    RECT inside;
+
+    if (IsIconic(hwnd)) {
+        m_insets.left = m_insets.top = m_insets.right = m_insets.bottom = -1;
+        return FALSE;
+    }
+
+    m_insets.left = m_insets.top = m_insets.right = m_insets.bottom = 0;
+
+    GetClientRect(hwnd, &inside);
+    GetWindowRect(hwnd, &outside);
+
+    if (outside.right - outside.left > 0 && outside.bottom - outside.top > 0) {
+        MapWindowPoints(hwnd, 0, (LPPOINT)&inside, 2);
+        m_insets.top = inside.top - outside.top;
+        m_insets.bottom = outside.bottom - inside.bottom;
+        m_insets.left = inside.left - outside.left;
+        m_insets.right = outside.right - inside.right;
+    } else {
+        m_insets.top = -1;
+    }
+    if (m_insets.left < 0 || m_insets.top < 0 ||
+        m_insets.right < 0 || m_insets.bottom < 0)
+    {
+        LONG style = GetWindowLong(hwnd, GWL_STYLE);
+        // TODO: TDV: better undecorated checking needed
+        BOOL bIsUndecorated = (style & (WS_POPUP|WS_SYSMENU)) != 0;
+        if (!bIsUndecorated) {
+            /* Get outer frame sizes. */
+            if (style & WS_THICKFRAME) {
+                m_insets.left = m_insets.right =
+                    GetSystemMetrics(SM_CXSIZEFRAME);
+                m_insets.top = m_insets.bottom =
+                    GetSystemMetrics(SM_CYSIZEFRAME);
+            } else {
+                m_insets.left = m_insets.right =
+                    GetSystemMetrics(SM_CXDLGFRAME);
+                m_insets.top = m_insets.bottom =
+                    GetSystemMetrics(SM_CYDLGFRAME);
+            }
+
+            /* Add in title. */
+            m_insets.top += GetSystemMetrics(SM_CYCAPTION);
+        } else {
+            /* undo the -1 set above */
+            m_insets.left = m_insets.top = m_insets.right = m_insets.bottom = 0;
+        }
+    }
+
+    (*env)->CallVoidMethod(env, window, insetsChangedID,
+                           m_insets.left, m_insets.top,
+                           m_insets.right, m_insets.bottom);
+    return &m_insets;
+}
+
+static void WmSize(JNIEnv *env, HWND wnd, jobject window, UINT type)
+{
+    RECT rc;
+    int w, h;
+
+    // make sure insets are up to date
+    (void)UpdateInsets(env, wnd, window);
+
+    if (type == SIZE_MINIMIZED) {
+        // TODO: deal with minimized window sizing
+        return;
+    }
+
+    GetClientRect(wnd, &rc);
+    
+    // we report back the dimensions of the client area
+    w = rc.right  - rc.left;
+    h = rc.bottom - rc.top;
+
+    (*env)->CallVoidMethod(env, window, sizeChangedID, w, h);
+}
+
 static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
                                 WPARAM wParam, LPARAM lParam)
 {
-    RECT rc;
     int useDefWindowProc = 0;
     JNIEnv *env = NULL;
     jobject window = NULL;
@@ -660,9 +744,19 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
         break;
 
     case WM_SIZE:
-        GetClientRect(wnd, &rc);
-        (*env)->CallVoidMethod(env, window, sizeChangedID, (jint) rc.right, (jint) rc.bottom);
+        WmSize(env, wnd, window, (UINT)wParam);
         break;
+
+    case WM_SETTINGCHANGE:
+        if (wParam == SPI_SETNONCLIENTMETRICS) {
+            // make sure insets are updated, we don't need to resize the window 
+            // because the size of the client area doesn't change
+            (void)UpdateInsets(env, wnd, window);
+        } else {
+            useDefWindowProc = 1;
+        }
+        break;
+
 
     case WM_LBUTTONDOWN:
         (*env)->CallVoidMethod(env, window, sendMouseEventID,
@@ -911,6 +1005,7 @@ JNIEXPORT jboolean JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_initID
   (JNIEnv *env, jclass clazz)
 {
     sizeChangedID = (*env)->GetMethodID(env, clazz, "sizeChanged", "(II)V");
+    insetsChangedID = (*env)->GetMethodID(env, clazz, "insetsChanged", "(IIII)V");
     positionChangedID = (*env)->GetMethodID(env, clazz, "positionChanged", "(II)V");
     focusChangedID = (*env)->GetMethodID(env, clazz, "focusChanged", "(JZ)V");
     windowDestroyNotifyID    = (*env)->GetMethodID(env, clazz, "windowDestroyNotify", "()V");
@@ -919,6 +1014,7 @@ JNIEXPORT jboolean JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_initID
     sendKeyEventID = (*env)->GetMethodID(env, clazz, "sendKeyEvent", "(IIIC)V");
     sendPaintEventID = (*env)->GetMethodID(env, clazz, "sendPaintEvent", "(IIIII)V");
     if (sizeChangedID == NULL ||
+        insetsChangedID == NULL ||
         positionChangedID == NULL ||
         focusChangedID == NULL ||
         windowDestroyNotifyID == NULL ||
@@ -980,6 +1076,9 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_CreateWin
 #else
         SetWindowLongPtr(window, GWLP_USERDATA, (intptr_t) wud);
 #endif
+
+        UpdateInsets(env, window, obj);
+
         ShowWindow(window, SW_SHOWNORMAL);
     }
 
@@ -988,6 +1087,7 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_CreateWin
 #else
     (*env)->ReleaseStringUTFChars(env, jWndName, wndName);
 #endif
+
 
     return (jlong) (intptr_t) window;
 }
@@ -1066,8 +1166,17 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_setSize0
 {
     RECT r;
     HWND w = (HWND) window;
+    // since width, height are the size of the client area, we need to add
+    // insets
+    RECT *pInsets = UpdateInsets(env, w, obj);
+    int nWidth, nHeight;
+
     GetWindowRect(w, &r);
-    MoveWindow(w, r.left, r.top, width, height, TRUE);
+
+    nWidth = width + pInsets->left + pInsets->right;
+    nHeight = height + pInsets->top + pInsets->bottom;
+    MoveWindow(w, r.left, r.top, nWidth, nHeight, TRUE);
+    // we report back the size of client area
     (*env)->CallVoidMethod(env, obj, sizeChangedID, (jint) width, (jint) height);
 }
 

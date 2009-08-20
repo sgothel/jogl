@@ -306,12 +306,31 @@ public abstract class Window implements NativeWindow
         return config;
     }
 
+    /**
+     * Returns the width of the client area of this window
+     * @return width of the client area
+     */
     public int getWidth() {
         return width;
     }
 
+    /**
+     * Returns the height of the client area of this window
+     * @return height of the client area
+     */
     public int getHeight() {
         return height;
+    }
+
+    /**
+     * Returns the insets for this native window (the difference between the
+     * size of the toplevel window with the decorations and the client area).
+     * 
+     * @return insets for this platform window
+     */
+    // this probably belongs to NativeWindow interface
+    public Insets getInsets() {
+        return new Insets(0,0,0,0);
     }
 
     /** If this Window actually wraps one from another toolkit such as
@@ -381,7 +400,21 @@ public abstract class Window implements NativeWindow
     }
 
     public abstract void    setVisible(boolean visible);
+    /**
+     * Sets the size of the client area of the window, excluding decorations
+     * Total size of the window will be
+     * {@code width+insets.left+insets.right, height+insets.top+insets.bottom}
+     * @param width of the client area of the window
+     * @param height of the client area of the window
+     */
     public abstract void    setSize(int width, int height);
+    /**
+     * Sets the location of the top left corner of the window, including
+     * decorations (so the client area will be placed at
+     * {@code x+insets.left,y+insets.top}.
+     * @param x coord of the top left corner
+     * @param y coord of the top left corner
+     */
     public abstract void    setPosition(int x, int y);
     public abstract boolean setFullscreen(boolean fullscreen);
 
