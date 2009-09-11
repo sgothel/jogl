@@ -413,6 +413,7 @@
         <property name="jogl.util.fixedfuncemu.jar" value="${build}/jogl.util.fixedfuncemu.jar" />
         <property name="jogl.sdk.jar" value="${build}/jogl.sdk.jar" />
         <property name="jogl.all.jar" value="${build}/jogl.all.jar"/>
+        <property name="jogl.all-noawt.jar" value="${build}/jogl.all-noawt.jar"/>
 
         <!-- The resulting CDC jogl.jar. -->
         <property name="jogl.core.cdc.jar" value="${build}/jogl.core.cdc.jar" />
@@ -1765,7 +1766,7 @@
         </jar>
     </target>
 
-    <target name="build-jars-all" depends="setup-manifestfile" unless="setup.noall">
+    <target name="build-jars-all-awt" depends="setup-manifestfile" unless="setup.noall">
         <jar manifest="${build}/tempversion" destfile="${jogl.all.jar}" filesonly="true">
             <fileset dir="${classes}">
                 <include name="javax/media/opengl/**" />
@@ -1774,6 +1775,16 @@
                 <include name="${java.part.openmax}" />
                 <!-- FIXME: this is temporary until we move these classes to another workspace -->
                 <include name="com/sun/javafx/**" />
+            </fileset>
+            <fileset dir="${src.java}"
+                     includes="${java.part.util.fixedfuncemu.shadercode}"/>
+        </jar>
+    </target>
+    <target name="build-jars-all-noawt" depends="setup-manifestfile">
+        <jar manifest="${build}/tempversion" destfile="${jogl.all-noawt.jar}" filesonly="true">
+            <fileset dir="${classes}"
+                includes="javax/media/opengl/** com/sun/gluegen/runtime/** com/sun/opengl/** ${java.part.openmax} com/sun/javafx/**"
+                excludes="${java.part.awt} ${java.part.util.awt}">
             </fileset>
             <fileset dir="${src.java}"
                      includes="${java.part.util.fixedfuncemu.shadercode}"/>
@@ -1848,7 +1859,7 @@
         </jar>
     </target>
 
-    <target name="build-jars-javase" depends="setup-manifestfile, build-jars-es, build-jars-awt, build-cg-jar, build-jars-all, build-jars-desktop-javase">
+    <target name="build-jars-javase" depends="setup-manifestfile, build-jars-es, build-jars-awt, build-cg-jar, build-jars-all-awt, build-jars-all-noawt, build-jars-desktop-javase">
         <jar manifest="${build}/tempversion" destfile="${jogl.core.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.core}"

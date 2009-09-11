@@ -13,8 +13,9 @@ fi
 #    -DisLinux=true \
 #    -DisLinuxAMD64=true \
 #    -DisX11=true \
+#    -Dbuild.noarchives=true \
 
-ant \
+ant  \
     -Dbuild.noarchives=true \
     -Djogl.cg=1 -Dx11.cg.lib=../../lib-linux-x86_64 \
     -Dc.compiler.debug=true \

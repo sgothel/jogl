@@ -263,6 +263,7 @@
         <property name="newt.broadcomegl.jar"  value="${build}/newt.broadcomegl.jar" />
         <property name="newt.awt.jar"  value="${build}/newt.awt.jar" />
         <property name="newt.all.jar"  value="${build}/newt.all.jar" />
+        <property name="newt.all-noawt.jar"  value="${build}/newt.all-noawt.jar" />
 
         <property name="newt.core.cdc.jar" value="${build}/newt.core.cdc.jar" />
         <property name="newt.x11.cdc.jar"  value="${build}/newt.x11.cdc.jar" />
@@ -744,10 +745,18 @@
         </jar>
     </target>
 
-    <target name="build-jars-all" depends="setup-manifestfile" unless="setup.noall">
+    <target name="build-jars-all-awt" depends="setup-manifestfile" unless="setup.noall">
         <jar manifest="tempversion" destfile="${newt.all.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="com/sun/javafx/newt/**" />
+        </jar>
+    </target>
+
+    <target name="build-jars-all-noawt" depends="setup-manifestfile">
+        <jar manifest="tempversion" destfile="${newt.all-noawt.jar}" filesonly="true">
+            <fileset dir="${classes}"
+                     includes="com/sun/javafx/newt/**"
+                     excludes="${java.part.awt}" />
         </jar>
     </target>
 
@@ -759,7 +768,7 @@
         </jar>
     </target>
 
-    <target name="build-jars-javase" depends="setup-manifestfile,build-jars-awt,build-jars-opengl,build-jars-all,build-jars-desktop">
+    <target name="build-jars-javase" depends="setup-manifestfile,build-jars-awt,build-jars-opengl,build-jars-all-noawt,build-jars-all-awt,build-jars-desktop">
         <jar manifest="tempversion" destfile="${newt.core.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.core}"/>
