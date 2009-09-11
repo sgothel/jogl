@@ -36,6 +36,42 @@
 #import "KeyEvent.h"
 #import "MouseEvent.h"
 
+jint GetDeltaY(NSEvent *event, jint javaMods) {
+    CGFloat deltaY = 0.0;
+    CGEventRef cgEvent = [event CGEvent];
+
+    if (CGEventGetIntegerValueField(cgEvent, kCGScrollWheelEventIsContinuous)) {
+        // mouse pad case
+        deltaY =
+            CGEventGetIntegerValueField(cgEvent, kCGScrollWheelEventPointDeltaAxis1);
+    } else {
+        // traditional mouse wheel case
+        deltaY = [event deltaY];
+        if (deltaY == 0.0 && (javaMods & EVENT_SHIFT_MASK) != 0) {
+            // shift+vertical wheel scroll produces horizontal scroll
+            // we convert it to vertical
+            deltaY = [event deltaX];
+        }
+        if (deltaY < 1.0  && deltaY > -1.0) {
+            deltaY *= 10.0;
+        } else {
+            if (deltaY < 0.0) {
+                deltaY = deltaY - 0.5f;
+            } else {
+                deltaY = deltaY + 0.5f;
+            }
+        }
+    }
+
+    if (deltaY > 0) {
+        return (NSInteger)deltaY;
+    } else if (deltaY < 0) {
+        return -(NSInteger)deltaY;
+    }
+
+    return 0;
+}
+
 @implementation NewtView
 - (void) setJNIEnv: (JNIEnv*) theEnv
 {
@@ -225,8 +261,14 @@ static jint mods2JavaMods(NSUInteger mods)
                                    curLocation.y - frameRect.origin.y);
 
     // convert to 1-based button number (or use zero if no button is involved)
-    jint javaButtonNum;
+    // TODO: detect mouse button when mouse wheel scrolled  
+    jint javaButtonNum = 0;
+    jint scrollDeltaY = 0;
     switch ([event type]) {
+    case NSScrollWheel: {
+        scrollDeltaY = GetDeltaY(event, javaMods);
+        break;
+    }
     case NSLeftMouseDown:
     case NSLeftMouseUp:
     case NSLeftMouseDragged:
@@ -247,11 +289,15 @@ static jint mods2JavaMods(NSUInteger mods)
         break;
     }
 
+    if (evType == EVENT_MOUSE_WHEEL_MOVED && scrollDeltaY == 0) {
+        // ignore 0 increment wheel scroll events
+        return;
+    }
     (*env)->CallVoidMethod(env, javaWindowObject, sendMouseEventID,
                            evType, javaMods,
                            (jint) location.x,
                            (jint) (contentRect.size.height - location.y),
-                           javaButtonNum, 0);
+                           javaButtonNum, scrollDeltaY);
 }
 
 - (void) mouseEntered: (NSEvent*) theEvent
@@ -267,6 +313,11 @@ static jint mods2JavaMods(NSUInteger mods)
 - (void) mouseMoved: (NSEvent*) theEvent
 {
     [self sendMouseEvent: theEvent eventType: EVENT_MOUSE_MOVED];
+}
+
+- (void) scrollWheel: (NSEvent*) theEvent
+{
+    [self sendMouseEvent: theEvent eventType: EVENT_MOUSE_WHEEL_MOVED];
 }
 
 - (void) mouseDown: (NSEvent*) theEvent
