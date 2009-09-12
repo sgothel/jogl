@@ -578,7 +578,7 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_x11_X11Window_CreateWindow
         pVisualQuery=NULL;
     }
 
-    if(NULL==windowParent) {
+    if(0==windowParent) {
         windowParent = XRootWindowOfScreen(scrn);
     }
 
@@ -710,18 +710,23 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_x11_X11Window_setVisible0
  * Signature: (JIJIIIIIZ)V
  */
 JNIEXPORT void JNICALL Java_com_sun_javafx_newt_x11_X11Window_setSize0
-  (JNIEnv *env, jobject obj, jlong display, jint screen_index, jlong window, jint x, jint y, jint width, jint height, jint decorationToggle, jboolean isVisible)
+  (JNIEnv *env, jobject obj, jlong jparent, jlong display, jint screen_index, jlong window, jint x, jint y, jint width, jint height, jint decorationToggle, jboolean setVisible)
 {
     Display * dpy = (Display *) (intptr_t) display;
     Window w = (Window)window;
     Screen * scrn = ScreenOfDisplay(dpy, (int)screen_index);
-    Window parent = XRootWindowOfScreen(scrn);
+    Window parent = (0!=jparent)?(Window)jparent:XRootWindowOfScreen(scrn);
 
     XWindowChanges xwc;
 
     DBG_PRINT4( "setSize0 %dx%d, dec %d, vis %d\n", width, height, decorationToggle, isVisible);
 
     XSync(dpy, False);
+
+    if(setVisible==JNI_TRUE) {
+        XMapRaised(dpy, w);
+        XSync(dpy, False);
+    }
 
     if(0!=decorationToggle) {
 #ifdef MWM_FULLSCREEN
@@ -755,16 +760,6 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_x11_X11Window_setSize0
     XReparentWindow( dpy, w, parent, x, y );
 
     XSync(dpy, False);
-
-    /** if(isVisible==JNI_TRUE) {
-        // this ..
-        XSetInputFocus(dpy, w, RevertToNone, CurrentTime);
-
-        // or this ..
-        unsigned long wmleader[1] = { (unsigned long) w};
-        Atom prop = XInternAtom( dpy, "WM_CLIENT_LEADER", False );
-        XChangeProperty( dpy, w, prop, prop, 32, PropModeReplace, (unsigned char *)&wmleader, 1);
-    } */
 
     DBG_PRINT0( "setSize0 . sizeChangedID call\n");
     (*env)->CallVoidMethod(env, obj, sizeChangedID, (jint) width, (jint) height);

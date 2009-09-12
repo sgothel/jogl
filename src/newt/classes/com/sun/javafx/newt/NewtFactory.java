@@ -80,26 +80,43 @@ public abstract class NewtFactory {
      * Create a Window entity, incl native creation
      */
     public static Window createWindow(Screen screen, Capabilities caps) {
-        return Window.create(0, NativeWindowFactory.getNativeWindowType(true), screen, caps, false);
+        return Window.create(NativeWindowFactory.getNativeWindowType(true), 0, screen, caps, false);
     }
 
     public static Window createWindow(Screen screen, Capabilities caps, boolean undecorated) {
-        return Window.create(0, NativeWindowFactory.getNativeWindowType(true), screen, caps, undecorated);
+        return Window.create(NativeWindowFactory.getNativeWindowType(true), 0, screen, caps, undecorated);
     }
 
     public static Window createWindow(long parentWindowHandle, Screen screen, Capabilities caps, boolean undecorated) {
-        return Window.create(parentWindowHandle, NativeWindowFactory.getNativeWindowType(true), screen, caps, undecorated);
+        return Window.create(NativeWindowFactory.getNativeWindowType(true), parentWindowHandle, screen, caps, undecorated);
+    }
+
+    /**
+     * Ability to try a Window type with a construnctor argument, if supported ..<p>
+     * Currently only valid is <code> AWTWindow(Frame frame) </code>,
+     * to support an external created AWT Frame, ie the browsers embedded frame.
+     */
+    public static Window createWindow(Object[] cstrArguments, Screen screen, Capabilities caps, boolean undecorated) {
+        return Window.create(NativeWindowFactory.getNativeWindowType(true), cstrArguments, screen, caps, undecorated);
     }
 
     /**
      * Create a Window entity using the given implementation type, incl native creation
      */
     public static Window createWindow(String type, Screen screen, Capabilities caps) {
-        return Window.create(0, type, screen, caps, false);
+        return Window.create(type, 0, screen, caps, false);
     }
 
-    public static Window createWindow(long parentWindowHandle, String type, Screen screen, Capabilities caps, boolean undecorated) {
-        return Window.create(parentWindowHandle, type, screen, caps, undecorated);
+    public static Window createWindow(String type, Screen screen, Capabilities caps, boolean undecorated) {
+        return Window.create(type, 0, screen, caps, undecorated);
+    }
+
+    public static Window createWindow(String type, long parentWindowHandle, Screen screen, Capabilities caps, boolean undecorated) {
+        return Window.create(type, parentWindowHandle, screen, caps, undecorated);
+    }
+
+    public static Window createWindow(String type, Object[] cstrArguments, Screen screen, Capabilities caps, boolean undecorated) {
+        return Window.create(type, cstrArguments, screen, caps, undecorated);
     }
 
     /**

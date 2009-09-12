@@ -58,11 +58,17 @@ import javax.media.nativewindow.awt.*;
 public class AWTWindow extends Window {
 
     public AWTWindow() {
-        super();
-        title = "AWT NewtWindow";
+        this(null);
     }
 
-    private Frame frame;
+    public AWTWindow(Frame frame) {
+        super();
+        title = "AWT NewtWindow";
+        this.frame = frame;
+    }
+
+    private boolean owningFrame;
+    private Frame frame = null;
     private AWTCanvas canvas;
     // non fullscreen dimensions ..
     private int nfs_width, nfs_height, nfs_x, nfs_y;
@@ -80,12 +86,21 @@ public class AWTWindow extends Window {
 
     protected void createNative(long parentWindowHandle, final Capabilities caps) {
 
+        if(0!=parentWindowHandle) {
+            throw new RuntimeException("Window parenting not supported in AWT, use AWTWindow(Frame) cstr for wrapping instead");
+        }
+
         final AWTWindow awtWindow = this;
 
         runOnEDT(true, new Runnable() {
                 public void run() {
-                    frame = new Frame(getTitle());
-                    frame.setUndecorated(isUndecorated());
+                    if(null==frame) {
+                        frame = new Frame();
+                        owningFrame=true;
+                    } else {
+                        owningFrame=false;
+                    }
+                    frame.setTitle(getTitle());
                     frame.setLayout(new BorderLayout());
                     canvas = new AWTCanvas(caps);
                     Listener listener = new Listener(awtWindow);
@@ -96,6 +111,7 @@ public class AWTWindow extends Window {
                     frame.add(canvas, BorderLayout.CENTER);
                     frame.setSize(width, height);
                     frame.setLocation(x, y);
+                    frame.setUndecorated(undecorated||fullscreen);
                     frame.addComponentListener(new MoveListener(awtWindow));
                     frame.addWindowListener(new WindowEventListener(awtWindow));
                 }
@@ -105,7 +121,10 @@ public class AWTWindow extends Window {
     protected void closeNative() {
         runOnEDT(true, new Runnable() {
                 public void run() {
-                    frame.dispose();
+                    if(owningFrame) {
+                        frame.dispose();
+                        owningFrame=false;
+                    }
                     frame = null;
                 }
             });
@@ -217,7 +236,7 @@ public class AWTWindow extends Window {
             runOnEDT(false, new Runnable() {
                     public void run() {
                         if(!frame.isDisplayable()) {
-                            frame.setUndecorated(fullscreen);
+                            frame.setUndecorated(undecorated||fullscreen);
                         } else {
                             if(DEBUG_IMPLEMENTATION || DEBUG_WINDOW_EVENT) {
                                 System.err.println("AWTWindow can't undecorate already created frame");

@@ -34,7 +34,9 @@
 package com.sun.javafx.newt;
 
 import com.sun.javafx.newt.impl.Debug;
+
 import javax.media.nativewindow.*;
+import com.sun.nativewindow.impl.NWReflection;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -82,7 +84,7 @@ public abstract class Window implements NativeWindow
         return windowClass;
     }
 
-    protected static Window create(long parentWindowHandle, String type, Screen screen, Capabilities caps, boolean undecorated) {
+    protected static Window create(String type, long parentWindowHandle, Screen screen, Capabilities caps, boolean undecorated) {
         try {
             Class windowClass = getWindowClass(type);
             Window window = (Window) windowClass.newInstance();
@@ -90,6 +92,21 @@ public abstract class Window implements NativeWindow
             window.screen   = screen;
             window.setUndecorated(undecorated);
             window.createNative(parentWindowHandle, caps);
+            return window;
+        } catch (Throwable t) {
+            t.printStackTrace();
+            throw new NativeWindowException(t);
+        }
+    }
+
+    protected static Window create(String type, Object[] cstrArguments, Screen screen, Capabilities caps, boolean undecorated) {
+        try {
+            Class windowClass = getWindowClass(type);
+            Window window = (Window) NWReflection.createInstance( windowClass, cstrArguments ) ;
+            window.invalidate();
+            window.screen   = screen;
+            window.setUndecorated(undecorated);
+            window.createNative(0, caps);
             return window;
         } catch (Throwable t) {
             t.printStackTrace();
@@ -146,6 +163,8 @@ public abstract class Window implements NativeWindow
                     ", surfaceHandle 0x"+Long.toHexString(getSurfaceHandle())+
                     ", pos "+getX()+"/"+getY()+", size "+getWidth()+"x"+getHeight()+
                     ", visible "+isVisible()+
+                    ", undecorated "+undecorated+
+                    ", fullscreen "+fullscreen+
                     ", "+screen+
                     ", wrappedWindow "+getWrappedWindow());
 

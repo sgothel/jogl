@@ -66,10 +66,23 @@ public final class NWReflection {
         if (factoryClass == null) {
           throw new NativeWindowException(clazzName + " not available");
         }
+        return getConstructor(factoryClass, cstrArgTypes);
+    } catch (Throwable e) { 
+      if (DEBUG) {
+          e.printStackTrace();
+      }
+      throw new NativeWindowException(e);
+    }
+  }
+
+  public static final Constructor getConstructor(Class clazz, Class[] cstrArgTypes) {
+    Constructor factory = null;
+
+    try {
         try {
-            factory = factoryClass.getDeclaredConstructor( cstrArgTypes );
+            factory = clazz.getDeclaredConstructor( cstrArgTypes );
         } catch(NoSuchMethodException nsme) {
-          throw new NativeWindowException("Constructor: '" + clazzName + "("+cstrArgTypes+")' not found");
+          throw new NativeWindowException("Constructor: '" + clazz + "("+cstrArgTypes+")' not found");
         }
         return factory;
     } catch (Throwable e) { 
@@ -82,6 +95,25 @@ public final class NWReflection {
 
   public static final Constructor getConstructor(String clazzName) {
     return getConstructor(clazzName, new Class[0]);
+  }
+
+  public static final Object createInstance(Class clazz, Class[] cstrArgTypes, Object[] cstrArgs) {
+    Constructor factory = null;
+
+    try {
+        factory = getConstructor(clazz, cstrArgTypes);
+        return factory.newInstance( cstrArgs ) ;
+    } catch (Exception e) {
+      throw new NativeWindowException(e);
+    }
+  }
+
+  public static final Object createInstance(Class clazz, Object[] cstrArgs) {
+    Class[] cstrArgTypes = new Class[cstrArgs.length];
+    for(int i=0; i<cstrArgs.length; i++) {
+        cstrArgTypes[i] = cstrArgs[i].getClass();
+    }
+    return createInstance(clazz, cstrArgTypes, cstrArgs);
   }
 
   public static final Object createInstance(String clazzName, Class[] cstrArgTypes, Object[] cstrArgs) {
