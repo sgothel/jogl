@@ -78,7 +78,7 @@ public class AWTWindow extends Window {
             });
     }
 
-    protected void createNative(final Capabilities caps) {
+    protected void createNative(long parentWindowHandle, final Capabilities caps) {
 
         final AWTWindow awtWindow = this;
 

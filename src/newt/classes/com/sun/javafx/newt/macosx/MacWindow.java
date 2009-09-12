@@ -128,6 +128,8 @@ public class MacWindow extends Window {
     private static final int NSModeSwitchFunctionKey     = 0xF747;
 
     private volatile long surfaceHandle;
+    private long parentWindowHandle;
+
     // non fullscreen dimensions ..
     private int nfs_width, nfs_height, nfs_x, nfs_y;
     private final Insets insets = new Insets(0,0,0,0);
@@ -139,7 +141,8 @@ public class MacWindow extends Window {
     public MacWindow() {
     }
     
-    protected void createNative(Capabilities caps) {
+    protected void createNative(long parentWindowHandle, Capabilities caps) {
+        this.parentWindowHandle=parentWindowHandle;
         config = GraphicsConfigurationFactory.getFactory(getScreen().getDisplay().getGraphicsDevice()).chooseGraphicsConfiguration(caps, null, getScreen().getGraphicsScreen());
         if (config == null) {
             throw new NativeWindowException("Error choosing GraphicsConfiguration creating window: "+this);
@@ -188,7 +191,7 @@ public class MacWindow extends Window {
         public void run() {
             nsViewLock.lock();
             try {
-                createWindow(false);
+                createWindow(parentWindowHandle, false);
             } finally {
                 nsViewLock.unlock();
             }
@@ -258,7 +261,7 @@ public class MacWindow extends Window {
             try {
                 if(DEBUG_IMPLEMENTATION) System.out.println("MacWindow.VisibleAction "+visible+" "+Thread.currentThread().getName());
                 if (visible) {
-                    createWindow(false);
+                    createWindow(parentWindowHandle, false);
                     if (windowHandle != 0) {
                         makeKeyAndOrderFront(windowHandle);
                     }
@@ -372,7 +375,7 @@ public class MacWindow extends Window {
                 if(DEBUG_IMPLEMENTATION || DEBUG_WINDOW_EVENT) {
                     System.err.println("MacWindow fs: "+fullscreen+" "+x+"/"+y+" "+width+"x"+height);
                 }
-                createWindow(true);
+                createWindow(parentWindowHandle, true);
                 if (windowHandle != 0) {
                     makeKeyAndOrderFront(windowHandle);
                 }
@@ -546,7 +549,7 @@ public class MacWindow extends Window {
         super.sendKeyEvent(eventType, modifiers, key, keyChar);
     }
 
-    private void createWindow(boolean recreate) {
+    private void createWindow(long parentWindowHandle, boolean recreate) {
         if(0!=windowHandle && !recreate) {
             return;
         }
@@ -561,7 +564,8 @@ public class MacWindow extends Window {
         } else {
             surfaceHandle = 0;
         }
-        windowHandle = createWindow0(getX(), getY(), getWidth(), getHeight(), fullscreen,
+        windowHandle = createWindow0(parentWindowHandle, 
+                                     getX(), getY(), getWidth(), getHeight(), fullscreen,
                                      (isUndecorated() ?
                                      NSBorderlessWindowMask :
                                      NSTitledWindowMask|NSClosableWindowMask|NSMiniaturizableWindowMask|NSResizableWindowMask),
@@ -580,7 +584,7 @@ public class MacWindow extends Window {
     }
     
     protected static native boolean initIDs();
-    private native long createWindow0(int x, int y, int w, int h,
+    private native long createWindow0(long parentWindowHandle, int x, int y, int w, int h,
                                      boolean fullscreen, int windowStyle,
                                      int backingStoreType,
                                      int screen_idx, long view);

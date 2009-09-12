@@ -237,10 +237,10 @@ JNIEXPORT jboolean JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_initIDs
 /*
  * Class:     com_sun_javafx_newt_macosx_MacWindow
  * Method:    createWindow0
- * Signature: (IIIIZIIIJ)J
+ * Signature: (JIIIIZIIIJ)J
  */
 JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_createWindow0
-  (JNIEnv *env, jobject jthis, jint x, jint y, jint w, jint h, jboolean fullscreen, jint styleMask, 
+  (JNIEnv *env, jobject jthis, jlong parent, jint x, jint y, jint w, jint h, jboolean fullscreen, jint styleMask, 
    jint bufferingType, jint screen_idx, jlong jview)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
@@ -263,6 +263,12 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_createWindow0
                                                styleMask: (NSUInteger) styleMask
                                                backing: (NSBackingStoreType) bufferingType
                                                screen: screen] retain];
+
+    /** FIXME: test ..
+    NSWindow* parentWindow = (NSWindow*) ((intptr_t) parent);
+    if(NULL!=parentWindow) {
+        [window setParentWindow: parentWindow];
+    } */
 
     if (fullscreen) {
         [window setOpaque: YES];

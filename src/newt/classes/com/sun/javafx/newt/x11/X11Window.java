@@ -50,7 +50,7 @@ public class X11Window extends Window {
     public X11Window() {
     }
 
-    protected void createNative(Capabilities caps) {
+    protected void createNative(long parentWindowHandle, Capabilities caps) {
         X11Screen screen = (X11Screen) getScreen();
         X11Display display = (X11Display) screen.getDisplay();
         config = GraphicsConfigurationFactory.getFactory(display.getGraphicsDevice()).chooseGraphicsConfiguration(caps, null, screen.getGraphicsScreen());
@@ -59,8 +59,9 @@ public class X11Window extends Window {
         }
         X11GraphicsConfiguration x11config = (X11GraphicsConfiguration) config;
         long visualID = x11config.getVisualID();
-        long w = CreateWindow(display.getHandle(), screen.getIndex(), visualID, 
-                         display.getJavaObjectAtom(), display.getWindowDeleteAtom(), x, y, width, height);
+        long w = CreateWindow(parentWindowHandle, 
+                              display.getHandle(), screen.getIndex(), visualID, 
+                              display.getJavaObjectAtom(), display.getWindowDeleteAtom(), x, y, width, height);
         if (w == 0 || w!=windowHandle) {
             throw new NativeWindowException("Error creating window: "+w);
         }
@@ -140,7 +141,7 @@ public class X11Window extends Window {
     //
 
     protected static native boolean initIDs();
-    private        native long CreateWindow(long display, int screen_index, 
+    private        native long CreateWindow(long parentWindowHandle, long display, int screen_index, 
                                             long visualID, long javaObjectAtom, long windowDeleteAtom, int x, int y, int width, int height);
     private        native void CloseWindow(long display, long windowHandle, long javaObjectAtom);
     private        native void setVisible0(long display, long windowHandle, boolean visible);

@@ -53,7 +53,10 @@ public class KDWindow extends Window {
     public KDWindow() {
     }
 
-    protected void createNative(Capabilities caps) {
+    protected void createNative(long parentWindowHandle, Capabilities caps) {
+        if(0!=parentWindowHandle) {
+            throw new RuntimeException("Window parenting not supported (yet)");
+        }
         config = GraphicsConfigurationFactory.getFactory(getScreen().getDisplay().getGraphicsDevice()).chooseGraphicsConfiguration(caps, null, getScreen().getGraphicsScreen());
         if (config == null) {
             throw new NativeWindowException("Error choosing GraphicsConfiguration creating window: "+this);

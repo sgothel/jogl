@@ -1032,10 +1032,10 @@ JNIEXPORT jboolean JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_initID
 /*
  * Class:     com_sun_javafx_newt_windows_WindowsWindow
  * Method:    CreateWindow
- * Signature: (ILjava/lang/String;JJZIIII)J
+ * Signature: (JILjava/lang/String;JJZIIII)J
  */
 JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_CreateWindow
-  (JNIEnv *env, jobject obj, jint wndClassAtom, jstring jWndName, jlong hInstance, jlong visualID,
+  (JNIEnv *env, jobject obj, jlong parent, jint wndClassAtom, jstring jWndName, jlong hInstance, jlong visualID,
         jboolean bIsUndecorated,
         jint jx, jint jy, jint defaultWidth, jint defaultHeight)
 {
@@ -1063,7 +1063,7 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_CreateWin
 
     window = CreateWindow(MAKEINTATOM(wndClassAtom), wndName, windowStyle,
                           x, y, width, height,
-                          NULL, NULL,
+                          (HWND)parent, NULL,
                           (HINSTANCE) hInstance,
                           NULL);
 

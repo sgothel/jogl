@@ -92,14 +92,16 @@ public class WindowsWindow extends Window {
         }
     }
 
-    protected void createNative(Capabilities caps) {
+    protected void createNative(long parentWindowHandle, Capabilities caps) {
         WindowsScreen  screen = (WindowsScreen) getScreen();
         WindowsDisplay display = (WindowsDisplay) screen.getDisplay();
         config = GraphicsConfigurationFactory.getFactory(display.getGraphicsDevice()).chooseGraphicsConfiguration(caps, null, screen.getGraphicsScreen());
         if (config == null) {
             throw new NativeWindowException("Error choosing GraphicsConfiguration creating window: "+this);
         }
-        windowHandle = CreateWindow(display.getWindowClassAtom(), display.WINDOW_CLASS_NAME, display.getHInstance(), 0, undecorated, x, y, width, height);
+        windowHandle = CreateWindow(parentWindowHandle, 
+                                    display.getWindowClassAtom(), display.WINDOW_CLASS_NAME, display.getHInstance(), 
+                                    0, undecorated, x, y, width, height);
         if (windowHandle == 0) {
             throw new NativeWindowException("Error creating window");
         }
@@ -211,7 +213,8 @@ public class WindowsWindow extends Window {
     // Internals only
     //
     protected static native boolean initIDs();
-    private        native long CreateWindow(int wndClassAtom, String wndName, 
+    private        native long CreateWindow(long parentWindowHandle, 
+                                            int wndClassAtom, String wndName, 
                                             long hInstance, long visualID,
                                             boolean isUndecorated,
                                             int x, int y, int width, int height);

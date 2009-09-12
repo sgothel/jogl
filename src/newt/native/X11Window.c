@@ -511,17 +511,17 @@ JNIEXPORT jboolean JNICALL Java_com_sun_javafx_newt_x11_X11Window_initIDs
 /*
  * Class:     com_sun_javafx_newt_x11_X11Window
  * Method:    CreateWindow
- * Signature: (JIJIIII)J
+ * Signature: (JJIJIIII)J
  */
 JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_x11_X11Window_CreateWindow
-  (JNIEnv *env, jobject obj, jlong display, jint screen_index, 
+  (JNIEnv *env, jobject obj, jlong parent, jlong display, jint screen_index, 
                              jlong visualID, 
                              jlong javaObjectAtom, jlong windowDeleteAtom, 
                              jint x, jint y, jint width, jint height)
 {
     Display * dpy  = (Display *)(intptr_t)display;
     int       scrn_idx = (int)screen_index;
-    Window  windowParent = 0;
+    Window  windowParent = (Window) parent;
     Window  window = 0;
 
     XVisualInfo visualTemplate;
@@ -578,7 +578,9 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_x11_X11Window_CreateWindow
         pVisualQuery=NULL;
     }
 
-    windowParent = XRootWindowOfScreen(scrn);
+    if(NULL==windowParent) {
+        windowParent = XRootWindowOfScreen(scrn);
+    }
 
     attrMask  = (CWBackPixel | CWBorderPixel | CWColormap | CWEventMask | CWOverrideRedirect) ;
 

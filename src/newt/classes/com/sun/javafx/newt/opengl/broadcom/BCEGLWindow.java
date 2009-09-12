@@ -49,7 +49,10 @@ public class BCEGLWindow extends Window {
     public BCEGLWindow() {
     }
 
-    protected void createNative(Capabilities caps) {
+    protected void createNative(long parentWindowHandle, Capabilities caps) {
+        if(0!=parentWindowHandle) {
+            throw new RuntimeException("Window parenting not supported (yet)");
+        }
         // query a good configuration .. even thought we drop this one 
         // and reuse the EGLUtil choosen one later.
         config = GraphicsConfigurationFactory.getFactory(getScreen().getDisplay().getGraphicsDevice()).chooseGraphicsConfiguration(caps, null, getScreen().getGraphicsScreen());

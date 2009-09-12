@@ -135,21 +135,16 @@ public class GLWindow extends Window implements GLAutoDrawable {
         return create(null, caps, undecorated);
     }
 
-    /** Creates a new GLWindow referring to the given window, and with the given GLCapabilities. */
-    public static GLWindow create(Window window, GLCapabilities caps) {
-        return create(window, caps, false);
-    }
-
-    public static GLWindow create(Window window, 
-                                  GLCapabilities caps,
-                                  boolean undecorated) {
-        if (caps == null) {
-            caps = new GLCapabilities(null); // default ..
-        }
-
+    /** Either or: window (prio), or caps and undecorated (2nd choice) */
+    private static GLWindow create(Window window, 
+                                   GLCapabilities caps,
+                                   boolean undecorated) {
         Display display;
         boolean ownerOfDisplayAndScreen=false;
         if (window == null) {
+            if (caps == null) {
+                caps = new GLCapabilities(null); // default ..
+            }
             ownerOfDisplayAndScreen = true;
             display = NewtFactory.createDisplay(null); // local display
             Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
@@ -177,7 +172,7 @@ public class GLWindow extends Window implements GLAutoDrawable {
         runPumpMessages = onoff;
     }
 
-    protected void createNative(Capabilities caps) {
+    protected void createNative(long parentWindowHandle, Capabilities caps) {
         shouldNotCallThis();
     }
 

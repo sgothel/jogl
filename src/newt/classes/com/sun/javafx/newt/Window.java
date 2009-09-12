@@ -82,18 +82,14 @@ public abstract class Window implements NativeWindow
         return windowClass;
     }
 
-    protected static Window create(String type, Screen screen, Capabilities caps) {
-        return create(type, screen, caps, false);
-    }
-
-    protected static Window create(String type, Screen screen, Capabilities caps, boolean undecorated) {
+    protected static Window create(long parentWindowHandle, String type, Screen screen, Capabilities caps, boolean undecorated) {
         try {
             Class windowClass = getWindowClass(type);
             Window window = (Window) windowClass.newInstance();
             window.invalidate();
             window.screen   = screen;
             window.setUndecorated(undecorated);
-            window.createNative(caps);
+            window.createNative(parentWindowHandle, caps);
             return window;
         } catch (Throwable t) {
             t.printStackTrace();
@@ -128,10 +124,13 @@ public abstract class Window implements NativeWindow
     /**
      * Create native windowHandle, ie creates a new native invisible window.
      *
+     * The parentWindowHandle may be null, in which case no window parenting 
+     * is requested.
+     *
      * Shall use the capabilities to determine the graphics configuration
      * and shall set the chosen capabilities.
      */
-    protected abstract void createNative(Capabilities caps);
+    protected abstract void createNative(long parentWindowHandle, Capabilities caps);
 
     protected abstract void closeNative();
 
