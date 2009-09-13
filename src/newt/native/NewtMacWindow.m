@@ -99,6 +99,14 @@ jint GetDeltaY(NSEvent *event, jint javaMods) {
         [next rightMouseDown: theEvent];
     }
 }
+
+/** FIXME: Tried child window: message reception ..
+- (void)viewWillDraw
+{
+    fprintf(stderr, "*************** viewWillDraw: 0x%p", javaWindowObject); fflush(stderr);
+    [super viewWillDraw];
+} */
+
 @end
 
 static jmethodID sendMouseEventID  = NULL;

@@ -76,7 +76,7 @@ void setFrameTopLeftPoint(NSWindow* pwin, NSWindow* win, jint x, jint y)
     [win setFrameTopLeftPoint: pt];
 }
 
-static NewtView * changeContentView(JNIEnv *env, jobject javaWindowObject, NSWindow *win, NewtView *newView) {
+static NewtView * changeContentView(JNIEnv *env, jobject javaWindowObject, NSWindow *pwin, NSWindow *win, NewtView *newView) {
     NSView* oldNSView = [win contentView];
     NewtView* oldView = NULL;
 
@@ -95,11 +95,21 @@ NS_ENDHANDLER
             (*env)->DeleteGlobalRef(env, globJavaWindowObject);
             [oldView setJavaWindowObject: NULL];
         }
+        /** FIXME: Tried child window: auto clip or message reception ..
+        if(NULL!=pwin) {
+            [oldView removeFromSuperview];
+        } */
     }
     if(NULL!=newView) {
         jobject globJavaWindowObject = (*env)->NewGlobalRef(env, javaWindowObject);
         [newView setJavaWindowObject: globJavaWindowObject];
         [newView setJNIEnv: env];
+
+        /** FIXME: Tried child window: auto clip or message reception ..
+        if(NULL!=pwin) {
+            NSView* pview = [pwin contentView];
+            [pview addSubview: newView];
+        } */
     }
     [win setContentView: newView];
 
@@ -304,7 +314,7 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_createWindow0
     NewtView* view = (0==jview)? [[NewtView alloc] initWithFrame: rect] : (NewtView*) ((intptr_t) jview) ;
 
     // Set the content view
-    (void) changeContentView(env, jthis, window, view);
+    (void) changeContentView(env, jthis, parentWindow, window, view);
 
 NS_DURING
     // Available >= 10.5 - Makes the menubar disapear
@@ -427,13 +437,14 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_contentView
  * Signature: (J)J
  */
 JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_changeContentView
-  (JNIEnv *env, jobject jthis, jlong window, jlong jview)
+  (JNIEnv *env, jobject jthis, jlong parent, jlong window, jlong jview)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+    NSWindow* pwin = (NewtMacWindow*) ((intptr_t) parent);
     NSWindow* win = (NewtMacWindow*) ((intptr_t) window);
     NewtView* newView = (NewtView *) ((intptr_t) jview);
 
-    NewtView* oldView = changeContentView(env, jthis, win, newView);
+    NewtView* oldView = changeContentView(env, jthis, pwin, win, newView);
 
     [pool release];
 

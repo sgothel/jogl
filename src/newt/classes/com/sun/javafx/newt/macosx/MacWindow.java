@@ -555,7 +555,7 @@ public class MacWindow extends Window {
         }
         if(0!=windowHandle) {
             // save the view .. close the window
-            surfaceHandle = changeContentView(windowHandle, 0);
+            surfaceHandle = changeContentView(parentWindowHandle, windowHandle, 0);
             if(recreate && 0==surfaceHandle) {
                 throw new NativeWindowException("Internal Error - recreate, window but no view");
             }
@@ -594,7 +594,7 @@ public class MacWindow extends Window {
     private native void close0(long window);
     private native void setTitle0(long window, String title);
     private native long contentView(long window);
-    private native long changeContentView(long window, long view);
+    private native long changeContentView(long parentWindowHandle, long window, long view);
     private native void setContentSize(long window, int w, int h);
     private native void setFrameTopLeftPoint(long parentWindowHandle, long window, int x, int y);
 }
