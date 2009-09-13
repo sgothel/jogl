@@ -300,8 +300,10 @@ public class AWTWindow extends Window {
         }
 
         public void componentMoved(ComponentEvent e) {
-            x = frame.getX();
-            y = frame.getY();
+            if(null!=frame) {
+                x = frame.getX();
+                y = frame.getY();
+            }
             display.enqueueEvent(window, com.sun.javafx.newt.WindowEvent.EVENT_WINDOW_MOVED, null);
         }
 
