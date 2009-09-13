@@ -9,4 +9,4 @@ REM    -DuseOpenMAX=true
 REM    -DuseKD=true
 REM    -Djogl.cg=1 -D-Dwindows.cg.lib=C:\Cg-2.2
 
-ant -Dbuild.noarchives=true -Dc.compiler.debug=true -Drootrel.build=build-win32 -Djogl.cg=1 -Dwindows.cg.lib=C:\Cg-2.2\lib > make.jogl.all.win32.log 2>&1
+ant -Dbuild.noarchives=true -Dc.compiler.debug=true -Drootrel.build=build-win32 -Djogl.cg=1 -Dwindows.cg.lib=C:\Cg-2.2\lib %1 %2 %3 %4 %5 %6 %7 %8 %9 > make.jogl.all.win32.log 2>&1

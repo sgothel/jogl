@@ -96,6 +96,14 @@
 #include "InputEvent.h"
 #include "KeyEvent.h"
 
+// #define VERBOSE_ON 1
+
+#ifdef VERBOSE_ON
+    #define DBG_PRINT(...) fprintf(stderr, __VA_ARGS__); fflush(stderr) 
+#else
+    #define DBG_PRINT(...)
+#endif
+
 static jmethodID sizeChangedID = NULL;
 static jmethodID insetsChangedID = NULL;
 static jmethodID positionChangedID = NULL;
@@ -624,7 +632,8 @@ static RECT * UpdateInsets(JNIEnv *env, HWND hwnd, jobject window)
     {
         LONG style = GetWindowLong(hwnd, GWL_STYLE);
         // TODO: TDV: better undecorated checking needed
-        BOOL bIsUndecorated = (style & (WS_POPUP|WS_SYSMENU)) != 0;
+
+        BOOL bIsUndecorated = (style & (WS_CHILD|WS_POPUP|WS_SYSMENU)) != 0;
         if (!bIsUndecorated) {
             /* Get outer frame sizes. */
             if (style & WS_THICKFRAME) {
@@ -646,6 +655,9 @@ static RECT * UpdateInsets(JNIEnv *env, HWND hwnd, jobject window)
             m_insets.left = m_insets.top = m_insets.right = m_insets.bottom = 0;
         }
     }
+
+    DBG_PRINT("*** WindowsWindow: UpdateInsets window %p, %d/%d %dx%d\n", hwnd, 
+        m_insets.left, m_insets.top, m_insets.right-m_insets.left, m_insets.top-m_insets.bottom);
 
     (*env)->CallVoidMethod(env, window, insetsChangedID,
                            m_insets.left, m_insets.top,
@@ -851,6 +863,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
         break;
 
     case WM_MOVE:
+        DBG_PRINT("*** WindowsWindow: WM_MOVE window %p, %d/%d\n", wnd, (int)LOWORD(lParam), (int)HIWORD(lParam));
         (*env)->CallVoidMethod(env, window, positionChangedID,
                                (jint)LOWORD(lParam), (jint)HIWORD(lParam));
         useDefWindowProc = 1;
@@ -944,7 +957,7 @@ JNIEXPORT jint JNICALL Java_com_sun_javafx_newt_windows_WindowsDisplay_RegisterW
     wc.cbWndExtra = 0;
     /* This cast is legal because the HMODULE for a DLL is the same as
        its HINSTANCE -- see MSDN docs for DllMain */
-    wc.hInstance = (HINSTANCE) hInstance;
+    wc.hInstance = (HINSTANCE) (intptr_t) hInstance;
     wc.hIcon = NULL;
     wc.hCursor = LoadCursor(NULL, MAKEINTRESOURCE(IDC_ARROW));
     wc.hbrBackground = GetStockObject(BLACK_BRUSH);
@@ -971,7 +984,7 @@ JNIEXPORT jint JNICALL Java_com_sun_javafx_newt_windows_WindowsDisplay_RegisterW
 JNIEXPORT void JNICALL Java_com_sun_javafx_newt_windows_WindowsDisplay_UnregisterWindowClass
   (JNIEnv *env, jclass clazz, jint wndClassAtom, jlong hInstance)
 {
-    UnregisterClass(MAKEINTATOM(wndClassAtom), (HINSTANCE) hInstance);
+    UnregisterClass(MAKEINTATOM(wndClassAtom), (HINSTANCE) (intptr_t) hInstance);
 }
 
 /*
@@ -1039,6 +1052,7 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_CreateWin
         jboolean bIsUndecorated,
         jint jx, jint jy, jint defaultWidth, jint defaultHeight)
 {
+    HWND parentWindow = (HWND) (intptr_t) parent;
     const TCHAR* wndName = NULL;
     DWORD windowStyle = WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_VISIBLE;
     int x=(int)jx, y=(int)jy;
@@ -1051,23 +1065,27 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_CreateWin
     wndName = (*env)->GetStringUTFChars(env, jWndName, NULL);
 #endif
 
-    x = CW_USEDEFAULT;
-    y = 0;
-    if (bIsUndecorated) {
+    if(NULL!=parentWindow) {
+        windowStyle |= WS_CHILD ;
+    } else if (bIsUndecorated) {
         windowStyle |= WS_POPUP | WS_SYSMENU | WS_MAXIMIZEBOX | WS_MINIMIZEBOX;
     } else {
         windowStyle |= WS_OVERLAPPEDWINDOW;
+        x = CW_USEDEFAULT;
+        y = 0;
     }
 
     (void) visualID; // FIXME: use the visualID ..
 
     window = CreateWindow(MAKEINTATOM(wndClassAtom), wndName, windowStyle,
                           x, y, width, height,
-                          (HWND)parent, NULL,
-                          (HINSTANCE) hInstance,
+                          parentWindow, NULL,
+                          (HINSTANCE) (intptr_t) hInstance,
                           NULL);
 
-    if (window != NULL) {
+    DBG_PRINT("*** WindowsWindow: CreateWindow parent %p, window %p, %d/%d %dx%d\n", parentWindow, window, x, y, width, height);
+
+    if (NULL != window) {
         WindowUserData * wud = (WindowUserData *) malloc(sizeof(WindowUserData));
         wud->jinstance = (*env)->NewGlobalRef(env, obj);
         wud->jenv = env;
@@ -1100,7 +1118,7 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_CreateWin
 JNIEXPORT void JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_DestroyWindow
   (JNIEnv *env, jobject obj, jlong window)
 {
-    DestroyWindow((HWND) window);
+    DestroyWindow((HWND) (intptr_t) window);
 }
 
 /*
@@ -1111,7 +1129,7 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_DestroyWin
 JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_GetDC
   (JNIEnv *env, jobject obj, jlong window)
 {
-    return (jlong) GetDC((HWND) window);
+    return (jlong) (intptr_t) GetDC((HWND) (intptr_t) window);
 }
 
 /*
@@ -1122,7 +1140,7 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_GetDC
 JNIEXPORT void JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_ReleaseDC
   (JNIEnv *env, jobject obj, jlong window, jlong dc)
 {
-    ReleaseDC((HWND) window, (HDC) dc);
+    ReleaseDC((HWND) (intptr_t) window, (HDC) (intptr_t) dc);
 }
 
 /*
@@ -1134,7 +1152,7 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_MonitorFr
   (JNIEnv *env, jobject obj, jlong window)
 {
     #if (_WIN32_WINNT >= 0x0500 || _WIN32_WINDOWS >= 0x0410 || WINVER >= 0x0500) && !defined(_WIN32_WCE)
-        return (jlong)MonitorFromWindow((HWND)window, MONITOR_DEFAULTTOPRIMARY);
+        return (jlong) (intptr_t) MonitorFromWindow((HWND) (intptr_t) window, MONITOR_DEFAULTTOPRIMARY);
     #else
         return 0;
     #endif
@@ -1149,6 +1167,7 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_setVisible
   (JNIEnv *_env, jclass clazz, jlong window, jboolean visible)
 {
     HWND hWnd = (HWND) (intptr_t) window;
+    DBG_PRINT("*** WindowsWindow: setVisible window %p, visible: %d\n", hWnd, (int)visible);
     if (visible) {
         ShowWindow(hWnd, SW_SHOW);
     } else {
@@ -1162,20 +1181,33 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_setVisible
  * Signature: (JII)V
  */
 JNIEXPORT void JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_setSize0
-  (JNIEnv *env, jobject obj, jlong window, jint width, jint height)
+  (JNIEnv *env, jobject obj, jlong parent, jlong window, jint x, jint y, jint width, jint height)
 {
-    RECT r;
-    HWND w = (HWND) window;
-    // since width, height are the size of the client area, we need to add
-    // insets
-    RECT *pInsets = UpdateInsets(env, w, obj);
-    int nWidth, nHeight;
+    HWND hwndP = (HWND) (intptr_t) parent;
+    HWND hwnd = (HWND) (intptr_t) window;
+    int nWidth=width, nHeight=height;
+    int nX=x, nY=y;
 
-    GetWindowRect(w, &r);
+    if(NULL==hwndP) {
+        // since width, height are the size of the client area, we need to add
+        // insets
+        RECT *pInsets = UpdateInsets(env, hwnd, obj);
 
-    nWidth = width + pInsets->left + pInsets->right;
-    nHeight = height + pInsets->top + pInsets->bottom;
-    MoveWindow(w, r.left, r.top, nWidth, nHeight, TRUE);
+        RECT r;
+        GetWindowRect(hwnd, &r);
+
+        nWidth = width + pInsets->left + pInsets->right;
+        nHeight = height + pInsets->top + pInsets->bottom;
+        nX=r.left; nY=r.top; // FIXME: really ?
+    }
+
+    DBG_PRINT("*** WindowsWindow: setSize parent %p, window %p, %d/%d %dx%d -> %d/%d %dx%d\n", 
+        hwndP, hwnd, 
+        x, y, width, height,
+        nX, nY, nWidth, nHeight);
+
+    MoveWindow(hwnd, nX, nY, nWidth, nHeight, TRUE);
+
     // we report back the size of client area
     (*env)->CallVoidMethod(env, obj, sizeChangedID, (jint) width, (jint) height);
 }
@@ -1186,14 +1218,19 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_setSize0
  * Signature: (JII)V
  */
 JNIEXPORT void JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_setPosition
-  (JNIEnv *env, jobject obj, jlong window, jint x, jint y)
+  (JNIEnv *env, jobject obj, jlong parent, jlong window, jint x, jint y)
 {
-    UINT flags = SWP_NOACTIVATE | SWP_NOZORDER;
-    HWND hwnd = (HWND)window;
-    RECT r;
+    UINT flags = SWP_NOACTIVATE | SWP_NOSIZE;
+    HWND hwndP = (HWND) (intptr_t) parent;
+    HWND hwnd = (HWND) (intptr_t) window;
 
-    GetWindowRect(hwnd, &r);
-    SetWindowPos(hwnd, 0, x, y, (r.right-r.left), (r.bottom-r.top), flags);
+    if(NULL==hwndP) {
+        flags |= SWP_NOZORDER;
+    }
+
+    DBG_PRINT("*** WindowsWindow: setPosition parent %p, window %p, %d/%d\n", hwndP, hwnd, x, y);
+
+    SetWindowPos(hwnd, hwndP, x, y, 0, 0, flags);
 }
 
 /*
@@ -1202,14 +1239,17 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_setPositio
  * Signature: (JIIIIZZ)V
  */
 JNIEXPORT void JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_setFullscreen0
-  (JNIEnv *env, jobject obj, jlong window, jint x, jint y, jint width, jint height, jboolean bIsUndecorated, jboolean on)
+  (JNIEnv *env, jobject obj, jlong parent, jlong window, jint x, jint y, jint width, jint height, jboolean bIsUndecorated, jboolean on)
 {
     UINT flags;
-    HWND hwnd = (HWND)window;
+    HWND hwndP = (HWND) (intptr_t) parent;
+    HWND hwnd = (HWND) (intptr_t) window;
     HWND hWndInsertAfter;
     DWORD windowStyle = WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_VISIBLE;
 
-    if (bIsUndecorated || on) {
+    if(NULL!=hwndP) {
+        windowStyle |= WS_CHILD ;
+    } else if (bIsUndecorated || on) {
         windowStyle |= WS_POPUP | WS_SYSMENU | WS_MAXIMIZEBOX | WS_MINIMIZEBOX;
     } else {
         windowStyle |= WS_OVERLAPPEDWINDOW;
@@ -1237,7 +1277,7 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_setFullscr
 JNIEXPORT void JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_setTitle
   (JNIEnv *env, jclass clazz, jlong window, jstring title)
 {
-    HWND hwnd = (HWND)window;
+    HWND hwnd = (HWND) (intptr_t) window;
     if (title != NULL) {
         jchar *titleString = GetNullTerminatedStringChars(env, title);
         if (titleString != NULL) {
@@ -1255,7 +1295,7 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_setTitle
 JNIEXPORT void JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_requestFocus
   (JNIEnv *env, jclass clazz, jlong window)
 {
-    HWND hwnd = (HWND)window;
+    HWND hwnd = (HWND) (intptr_t) window;
 
     if (IsWindow(hwnd)) {
         SetFocus(hwnd);
