@@ -137,9 +137,6 @@ public class WindowsWindow extends Window {
         if(this.visible!=visible && 0!=windowHandle) {
             this.visible=visible;
             setVisible0(windowHandle, visible);
-            if(visible) {
-                setPosition(x, y);
-            }
         }
     }
 
