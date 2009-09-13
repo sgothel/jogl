@@ -99,6 +99,11 @@ public class X11Window extends Window {
 
     public void setSize(int width, int height) {
         if(0==windowHandle) return;
+        if(!visible) {
+            // set values, since no event roundtrip will happen to set them
+            this.width = width;
+            this.height = height;
+        }
         if(!fullscreen) {
             nfs_width=width;
             nfs_height=height;
@@ -108,6 +113,11 @@ public class X11Window extends Window {
 
     public void setPosition(int x, int y) {
         if(0==windowHandle) return;
+        if(!visible) {
+            // set values, since no event roundtrip will happen to set them
+            this.x = x;
+            this.y = y;
+        }
         if(!fullscreen) {
             nfs_x=x;
             nfs_y=y;
@@ -150,24 +160,25 @@ public class X11Window extends Window {
                                         int x, int y, int width, int height, int decorationToggle, boolean setVisible);
     private        native void setPosition0(long display, long windowHandle, int x, int y);
 
-    private void sizeChanged(int newWidth, int newHeight) {
-        width = newWidth;
-        height = newHeight;
-        if(!fullscreen) {
-            nfs_width=width;
-            nfs_height=height;
+    private void windowChanged(int newX, int newY, int newWidth, int newHeight) {
+        if(width != newWidth || height != newHeight) {
+            width = newWidth;
+            height = newHeight;
+            if(!fullscreen) {
+                nfs_width=width;
+                nfs_height=height;
+            }
+            sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED);
         }
-        sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED);
-    }
-
-    private void positionChanged(int newX, int newY) {
-        x = newX;
-        y = newY;
-        if(!fullscreen) {
-            nfs_x=x;
-            nfs_y=y;
+        if(x != newX || y != newY) {
+            x = newX;
+            y = newY;
+            if(!fullscreen) {
+                nfs_x=x;
+                nfs_y=y;
+            }
+            sendWindowEvent(WindowEvent.EVENT_WINDOW_MOVED);
         }
-        sendWindowEvent(WindowEvent.EVENT_WINDOW_MOVED);
     }
 
     private void windowCreated(long windowHandle) {

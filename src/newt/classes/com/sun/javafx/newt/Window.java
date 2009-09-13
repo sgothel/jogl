@@ -90,7 +90,7 @@ public abstract class Window implements NativeWindow
             Window window = (Window) windowClass.newInstance();
             window.invalidate();
             window.screen   = screen;
-            window.setUndecorated(undecorated);
+            window.setUndecorated(undecorated||0!=parentWindowHandle);
             window.createNative(parentWindowHandle, caps);
             return window;
         } catch (Throwable t) {

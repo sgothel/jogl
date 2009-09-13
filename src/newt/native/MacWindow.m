@@ -52,14 +52,27 @@ NSString* jstringToNSString(JNIEnv* env, jstring jstr)
     return str;
 }
 
-void setFrameTopLeftPoint(NSWindow* win, jint x, jint y)
+void setFrameTopLeftPoint(NSWindow* pwin, NSWindow* win, jint x, jint y)
 {
     NSScreen* screen = [NSScreen mainScreen];
+
     // this allows for better compatibility with awt behavior
-    NSRect visibleScreenRect = [screen frame];
+    NSRect visibleRect; // either screen or parent-window 
     NSPoint pt;
+    int d_pty=0; // parent titlebar height
     
-    pt = NSMakePoint(x, visibleScreenRect.origin.y + visibleScreenRect.size.height - y);
+    if(NULL==pwin) {
+        visibleRect = [screen frame];
+    } else {
+        visibleRect = [pwin frame];
+
+        NSView* pview = [pwin contentView];
+        NSRect viewRect = [pview frame];
+        d_pty = visibleRect.size.height - viewRect.size.height;
+    }
+
+    pt = NSMakePoint(visibleRect.origin.x + x, visibleRect.origin.y + visibleRect.size.height - y - d_pty);
+
     [win setFrameTopLeftPoint: pt];
 }
 
@@ -264,11 +277,11 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_createWindow0
                                                backing: (NSBackingStoreType) bufferingType
                                                screen: screen] retain];
 
-    /** FIXME: test ..
     NSWindow* parentWindow = (NSWindow*) ((intptr_t) parent);
     if(NULL!=parentWindow) {
+        [parentWindow addChildWindow: window ordered: NSWindowAbove];
         [window setParentWindow: parentWindow];
-    } */
+    }
 
     if (fullscreen) {
         [window setOpaque: YES];
@@ -282,7 +295,7 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_createWindow0
     }
 
     // Immediately re-position the window based on an upper-left coordinate system
-    setFrameTopLeftPoint(window, x, y);
+    setFrameTopLeftPoint(parentWindow, window, x, y);
 
     // specify we want mouse-moved events
     [window setAcceptsMouseMovedEvents:YES];
@@ -448,11 +461,12 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_setContentSize
  * Signature: (JII)V
  */
 JNIEXPORT void JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_setFrameTopLeftPoint
-  (JNIEnv *env, jobject unused, jlong window, jint x, jint y)
+  (JNIEnv *env, jobject unused, jlong parent, jlong window, jint x, jint y)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+    NSWindow* pwin = (NSWindow*) ((intptr_t) parent);
     NSWindow* win = (NSWindow*) ((intptr_t) window);
-    setFrameTopLeftPoint(win, x, y);
+    setFrameTopLeftPoint(pwin, win, x, y);
     [pool release];
 }
 

@@ -349,7 +349,7 @@ public class MacWindow extends Window {
             nsViewLock.lock();
             try {
                 if (windowHandle != 0) {
-                    setFrameTopLeftPoint(windowHandle, x, y);
+                    setFrameTopLeftPoint(parentWindowHandle, windowHandle, x, y);
                 }
             } finally {
                 nsViewLock.unlock();
@@ -596,5 +596,5 @@ public class MacWindow extends Window {
     private native long contentView(long window);
     private native long changeContentView(long window, long view);
     private native void setContentSize(long window, int w, int h);
-    private native void setFrameTopLeftPoint(long window, int x, int y);
+    private native void setFrameTopLeftPoint(long parentWindowHandle, long window, int x, int y);
 }

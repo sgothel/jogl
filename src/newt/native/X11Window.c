@@ -51,17 +51,18 @@
 #include "EventListener.h"
 #include "MouseEvent.h"
 #include "KeyEvent.h"
+#include "WindowEvent.h"
 
 // #define VERBOSE_ON 1
 
 #ifdef VERBOSE_ON
     // Workaround for ancient compiler on Solaris/SPARC
-    // #define DBG_PRINT(args...) fprintf(stderr, args); fflush(stderr)
-    #define DBG_PRINT0(str) fprintf(stderr, str); flush(stderr)
-    #define DBG_PRINT1(str, arg1) fprintf(stderr, str, arg1); flush(stderr)
-    #define DBG_PRINT2(str, arg1, arg2) fprintf(stderr, str, arg1, arg2); flush(stderr)
-    #define DBG_PRINT3(str, arg1, arg2, arg3) fprintf(stderr, str, arg1, arg2, arg3); flush(stderr)
-    #define DBG_PRINT4(str, arg1, arg2, arg3, arg4) fprintf(stderr, str, arg1, arg2, arg3, arg4); flush(stderr)
+    // #define DBG_PRINT(args...) fprintf(stderr, args);
+    #define DBG_PRINT0(str) fprintf(stderr, str);
+    #define DBG_PRINT1(str, arg1) fprintf(stderr, str, arg1);
+    #define DBG_PRINT2(str, arg1, arg2) fprintf(stderr, str, arg1, arg2);
+    #define DBG_PRINT3(str, arg1, arg2, arg3) fprintf(stderr, str, arg1, arg2, arg3);
+    #define DBG_PRINT4(str, arg1, arg2, arg3, arg4) fprintf(stderr, str, arg1, arg2, arg3, arg4);
 
     #define DUMP_VISUAL_INFO(a,b) _dumpVisualInfo((a),(b))
 
@@ -148,8 +149,7 @@ static const char * const ClazzNameNewtWindow =
                             "com/sun/javafx/newt/Window";
 static jclass    newtWindowClz=NULL;
 
-static jmethodID sizeChangedID = NULL;
-static jmethodID positionChangedID = NULL;
+static jmethodID windowChangedID = NULL;
 static jmethodID windowDestroyNotifyID = NULL;
 static jmethodID windowDestroyedID = NULL;
 static jmethodID windowCreatedID = NULL;
@@ -400,9 +400,6 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_x11_X11Display_DispatchMessages
                                       (jint) evt.xkey.state, 
                                       X11KeySym2NewtVKey(keySym), (jchar) keyChar);
                 break;
-            case FocusIn:
-            case FocusOut:
-                break;
             case DestroyNotify:
                 DBG_PRINT1( "event . DestroyNotify call 0x%X\n", evt.xdestroywindow.window);
                 (*env)->CallVoidMethod(env, jwindow, windowDestroyedID);
@@ -410,6 +407,28 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_x11_X11Display_DispatchMessages
             case CreateNotify:
                 DBG_PRINT1( "event . CreateNotify call 0x%X\n", evt.xcreatewindow.window);
                 (*env)->CallVoidMethod(env, jwindow, windowCreatedID);
+                break;
+            case ConfigureNotify:
+                DBG_PRINT3( "event . ConfigureNotify call 0x%X %dx%d\n", evt.xconfigure.window, evt.xconfigure.width, evt.xconfigure.height);
+                (*env)->CallVoidMethod(env, jwindow, windowChangedID, 
+                                        (jint) evt.xconfigure.x, (jint) evt.xconfigure.y,
+                                        (jint) evt.xconfigure.width, (jint) evt.xconfigure.height);
+                break;
+            case ClientMessage:
+                if (evt.xclient.send_event==True && evt.xclient.data.l[0]==(Atom)wmDeleteAtom) {
+                    DBG_PRINT2( "event . ClientMessage call 0x%X type 0x%X !!!\n", evt.xclient.window, evt.xclient.message_type);
+                    (*env)->CallVoidMethod(env, jwindow, windowDestroyNotifyID);
+                    // Called by Window.java: CloseWindow(); 
+                }
+                break;
+
+            // unhandled events .. yet ..
+
+            case FocusIn:
+                DBG_PRINT1( "event . FocusIn call 0x%X\n", evt.xvisibility.window);
+                break;
+            case FocusOut:
+                DBG_PRINT1( "event . FocusOut call 0x%X\n", evt.xvisibility.window);
                 break;
             case VisibilityNotify:
                 DBG_PRINT1( "event . VisibilityNotify call 0x%X\n", evt.xvisibility.window);
@@ -421,13 +440,8 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_x11_X11Display_DispatchMessages
             case UnmapNotify:
                 DBG_PRINT1( "event . UnmapNotify call 0x%X\n", evt.xunmap.window);
                 break;
-            case ClientMessage:
-                if (evt.xclient.send_event==True && evt.xclient.data.l[0]==(Atom)wmDeleteAtom) {
-                    DBG_PRINT2( "event . ClientMessage call 0x%X type 0x%X !!!\n", evt.xclient.window, evt.xclient.message_type);
-                    (*env)->CallVoidMethod(env, jwindow, windowDestroyNotifyID);
-                    // Called by Window.java: CloseWindow(); 
-                }
-                break;
+            default:
+                DBG_PRINT3("event . unhandled %d 0x%X call 0x%X\n", evt.type, evt.type, evt.xunmap.window);
         }
     } 
 }
@@ -488,16 +502,14 @@ JNIEXPORT jint JNICALL Java_com_sun_javafx_newt_x11_X11Screen_getHeight0
 JNIEXPORT jboolean JNICALL Java_com_sun_javafx_newt_x11_X11Window_initIDs
   (JNIEnv *env, jclass clazz)
 {
-    sizeChangedID = (*env)->GetMethodID(env, clazz, "sizeChanged", "(II)V");
-    positionChangedID = (*env)->GetMethodID(env, clazz, "positionChanged", "(II)V");
+    windowChangedID = (*env)->GetMethodID(env, clazz, "windowChanged", "(IIII)V");
     windowDestroyNotifyID = (*env)->GetMethodID(env, clazz, "windowDestroyNotify", "()V");
     windowDestroyedID = (*env)->GetMethodID(env, clazz, "windowDestroyed", "()V");
     windowCreatedID = (*env)->GetMethodID(env, clazz, "windowCreated", "(J)V");
     sendMouseEventID = (*env)->GetMethodID(env, clazz, "sendMouseEvent", "(IIIIII)V");
     sendKeyEventID = (*env)->GetMethodID(env, clazz, "sendKeyEvent", "(IIIC)V");
 
-    if (sizeChangedID == NULL ||
-        positionChangedID == NULL ||
+    if (windowChangedID == NULL ||
         windowDestroyNotifyID == NULL ||
         windowDestroyedID == NULL ||
         windowCreatedID == NULL ||
@@ -719,7 +731,7 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_x11_X11Window_setSize0
 
     XWindowChanges xwc;
 
-    DBG_PRINT4( "setSize0 %dx%d, dec %d, vis %d\n", width, height, decorationToggle, isVisible);
+    DBG_PRINT4( "setSize0 %dx%d, dec %d, vis %d\n", width, height, decorationToggle, setVisible);
 
     XSync(dpy, False);
 
@@ -761,8 +773,8 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_x11_X11Window_setSize0
 
     XSync(dpy, False);
 
-    DBG_PRINT0( "setSize0 . sizeChangedID call\n");
-    (*env)->CallVoidMethod(env, obj, sizeChangedID, (jint) width, (jint) height);
+    // DBG_PRINT0( "setSize0 . windowChangedID call\n");
+    // (*env)->CallVoidMethod(env, obj, windowChangedID, (jint) x, (jint) y, (jint) width, (jint) height);
 }
 
 /*
@@ -782,7 +794,5 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_x11_X11Window_setPosition0
     xwc.y=y;
     XConfigureWindow(dpy, w, CWX|CWY, &xwc);
     XSync(dpy, False);
-
-    // (*env)->CallVoidMethod(env, obj, positionChangedID, (jint) width, (jint) height);
 }
 
