@@ -40,6 +40,7 @@ import com.sun.nativewindow.impl.NWReflection;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.lang.reflect.Method;
 
 public abstract class Window implements NativeWindow
 {
@@ -102,7 +103,15 @@ public abstract class Window implements NativeWindow
     protected static Window create(String type, Object[] cstrArguments, Screen screen, Capabilities caps, boolean undecorated) {
         try {
             Class windowClass = getWindowClass(type);
-            Window window = (Window) NWReflection.createInstance( windowClass, cstrArguments ) ;
+            Class[] cstrArgumentTypes = getCustomConstructorArgumentTypes(windowClass);
+            if(null==cstrArgumentTypes) {
+                throw new NativeWindowException("WindowClass "+windowClass+" doesn't support custom arguments in constructor");
+            }
+            int argsChecked = verifyConstructorArgumentTypes(cstrArgumentTypes, cstrArguments);
+            if ( argsChecked < cstrArguments.length ) {
+                throw new NativeWindowException("WindowClass "+windowClass+" constructor mismatch at argument #"+argsChecked+"; Constructor: "+getTypeStrList(cstrArgumentTypes)+", arguments: "+getArgsStrList(cstrArguments));
+            }
+            Window window = (Window) NWReflection.createInstance( windowClass, cstrArgumentTypes, cstrArguments ) ;
             window.invalidate();
             window.screen   = screen;
             window.setUndecorated(undecorated);
@@ -744,4 +753,52 @@ public abstract class Window implements NativeWindow
             l.exposed(e);
         }
     }
+
+    //
+    // Reflection helper ..
+    //
+
+    private static Class[] getCustomConstructorArgumentTypes(Class windowClass) {
+        Class[] argTypes = null;
+        try {
+            Method m = windowClass.getDeclaredMethod("getCustomConstructorArgumentTypes", new Class[] {});
+            argTypes = (Class[]) m.invoke(null, null);
+        } catch (Throwable t) {}
+        return argTypes;
+    }
+
+    private static int verifyConstructorArgumentTypes(Class[] types, Object[] args) {
+        if(types.length != args.length) {
+            return -1;
+        }
+        for(int i=0; i<args.length; i++) {
+            if(!types[i].isInstance(args[i])) {
+                return i;
+            }
+        }
+        return args.length;
+    }
+
+    private static String getArgsStrList(Object[] args) {
+        StringBuffer sb = new StringBuffer();
+        for(int i=0; i<args.length; i++) {
+            sb.append(args[i].getClass());
+            if(i<args.length) {
+                sb.append(", ");
+            }
+        }
+        return sb.toString();
+    }
+
+    private static String getTypeStrList(Class[] types) {
+        StringBuffer sb = new StringBuffer();
+        for(int i=0; i<types.length; i++) {
+            sb.append(types[i]);
+            if(i<types.length) {
+                sb.append(", ");
+            }
+        }
+        return sb.toString();
+    }
+
 }

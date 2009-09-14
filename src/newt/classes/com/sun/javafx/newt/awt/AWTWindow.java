@@ -35,6 +35,7 @@ package com.sun.javafx.newt.awt;
 
 import java.awt.BorderLayout;
 import java.awt.Canvas;
+import java.awt.Container;
 import java.awt.DisplayMode;
 import java.awt.EventQueue;
 import java.awt.Frame;
@@ -61,14 +62,22 @@ public class AWTWindow extends Window {
         this(null);
     }
 
-    public AWTWindow(Frame frame) {
+    public static Class[] getCustomConstructorArgumentTypes() {
+        return new Class[] { Container.class } ;
+    }
+
+    public AWTWindow(Container container) {
         super();
         title = "AWT NewtWindow";
-        this.frame = frame;
+        this.container = container;
+        if(container instanceof Frame) {
+            frame = (Frame) container;
+        }
     }
 
     private boolean owningFrame;
-    private Frame frame = null;
+    private Container container = null;
+    private Frame frame = null; // same instance as container, just for impl. convenience
     private AWTCanvas canvas;
     // non fullscreen dimensions ..
     private int nfs_width, nfs_height, nfs_x, nfs_y;
@@ -94,26 +103,31 @@ public class AWTWindow extends Window {
 
         runOnEDT(true, new Runnable() {
                 public void run() {
-                    if(null==frame) {
+                    if(null==container) {
                         frame = new Frame();
+                        container = frame;
                         owningFrame=true;
                     } else {
                         owningFrame=false;
                     }
-                    frame.setTitle(getTitle());
-                    frame.setLayout(new BorderLayout());
+                    if(null!=frame) {
+                        frame.setTitle(getTitle());
+                    }
+                    container.setLayout(new BorderLayout());
                     canvas = new AWTCanvas(caps);
                     Listener listener = new Listener(awtWindow);
                     canvas.addMouseListener(listener);
                     canvas.addMouseMotionListener(listener);
                     canvas.addKeyListener(listener);
                     canvas.addComponentListener(listener);
-                    frame.add(canvas, BorderLayout.CENTER);
-                    frame.setSize(width, height);
-                    frame.setLocation(x, y);
-                    frame.setUndecorated(undecorated||fullscreen);
-                    frame.addComponentListener(new MoveListener(awtWindow));
-                    frame.addWindowListener(new WindowEventListener(awtWindow));
+                    container.add(canvas, BorderLayout.CENTER);
+                    container.setSize(width, height);
+                    container.setLocation(x, y);
+                    container.addComponentListener(new MoveListener(awtWindow));
+                    if(null!=frame) {
+                        frame.setUndecorated(undecorated||fullscreen);
+                        frame.addWindowListener(new WindowEventListener(awtWindow));
+                    }
                 }
             });
     }
@@ -121,7 +135,7 @@ public class AWTWindow extends Window {
     protected void closeNative() {
         runOnEDT(true, new Runnable() {
                 public void run() {
-                    if(owningFrame) {
+                    if(owningFrame && null!=frame) {
                         frame.dispose();
                         owningFrame=false;
                     }
@@ -145,7 +159,7 @@ public class AWTWindow extends Window {
     public void setVisible(final boolean visible) {
         runOnEDT(true, new Runnable() {
                 public void run() {
-                    frame.setVisible(visible);
+                    container.setVisible(visible);
                 }
             });
 
@@ -179,9 +193,9 @@ public class AWTWindow extends Window {
         /** An AWT event on setSize() would bring us in a deadlock situation, hence invokeLater() */
         runOnEDT(false, new Runnable() {
                 public void run() {
-                    Insets insets = frame.getInsets();
-                    frame.setSize(width + insets.left + insets.right,
-                                  height + insets.top + insets.bottom);
+                    Insets insets = container.getInsets();
+                    container.setSize(width + insets.left + insets.right,
+                                      height + insets.top + insets.bottom);
                 }
             });
     }
@@ -190,11 +204,11 @@ public class AWTWindow extends Window {
         final int insets[] = new int[] { 0, 0, 0, 0 };
         runOnEDT(true, new Runnable() {
                 public void run() {
-                    Insets frameInsets = frame.getInsets();
-                    insets[0] = frameInsets.top;
-                    insets[1] = frameInsets.left;
-                    insets[2] = frameInsets.bottom;
-                    insets[3] = frameInsets.right;
+                    Insets contInsets = container.getInsets();
+                    insets[0] = contInsets.top;
+                    insets[1] = contInsets.left;
+                    insets[2] = contInsets.bottom;
+                    insets[3] = contInsets.right;
                 }
             });
         return new com.sun.javafx.newt.
@@ -210,7 +224,7 @@ public class AWTWindow extends Window {
         }
         runOnEDT(true, new Runnable() {
                 public void run() {
-                    frame.setLocation(x, y);
+                    container.setLocation(x, y);
                 }
             });
     }
@@ -235,15 +249,17 @@ public class AWTWindow extends Window {
             /** An AWT event on setSize() would bring us in a deadlock situation, hence invokeLater() */
             runOnEDT(false, new Runnable() {
                     public void run() {
-                        if(!frame.isDisplayable()) {
-                            frame.setUndecorated(undecorated||fullscreen);
-                        } else {
-                            if(DEBUG_IMPLEMENTATION || DEBUG_WINDOW_EVENT) {
-                                System.err.println("AWTWindow can't undecorate already created frame");
+                        if(null!=frame) {
+                            if(!container.isDisplayable()) {
+                                frame.setUndecorated(undecorated||fullscreen);
+                            } else {
+                                if(DEBUG_IMPLEMENTATION || DEBUG_WINDOW_EVENT) {
+                                    System.err.println("AWTWindow can't undecorate already created frame");
+                                }
                             }
                         }
-                        frame.setLocation(x, y);
-                        frame.setSize(w, h);
+                        container.setLocation(x, y);
+                        container.setSize(w, h);
                     }
                 });
         }
@@ -300,9 +316,9 @@ public class AWTWindow extends Window {
         }
 
         public void componentMoved(ComponentEvent e) {
-            if(null!=frame) {
-                x = frame.getX();
-                y = frame.getY();
+            if(null!=container) {
+                x = container.getX();
+                y = container.getY();
             }
             display.enqueueEvent(window, com.sun.javafx.newt.WindowEvent.EVENT_WINDOW_MOVED, null);
         }
