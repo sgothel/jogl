@@ -109,6 +109,10 @@ public class AWTWindow extends Window {
                         owningFrame=true;
                     } else {
                         owningFrame=false;
+                        width = container.getWidth();
+                        height = container.getHeight();
+                        x = container.getX();
+                        y = container.getY();
                     }
                     if(null!=frame) {
                         frame.setTitle(getTitle());
