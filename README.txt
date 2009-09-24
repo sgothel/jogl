@@ -36,7 +36,7 @@ Pepijn Van Eeckhoudt and Nathan Parker Burg contributed the Java port
 of the GLU tessellator. Pepijn also contributed the initial version of
 the FPSAnimator utility class.
 
-User GKW on the javagaming.org forums contributed the substantial port
+James Walsh (GKW) contributed the substantial port
 of the GLU mipmap generation code to Java, as well as robustness fixes
 in the Windows implementation and other areas.
 

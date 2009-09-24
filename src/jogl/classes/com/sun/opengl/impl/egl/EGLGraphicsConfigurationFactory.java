@@ -146,13 +146,24 @@ public class EGLGraphicsConfigurationFactory extends GraphicsConfigurationFactor
         fixedCaps.setGreenBits(6);
         fixedCaps.setBlueBits(5);
         fixedCaps.setDepthBits(16);
+        /**
         fixedCaps.setSampleBuffers(true);
-        fixedCaps.setNumSamples(4);
+        fixedCaps.setNumSamples(4); */
         if(DEBUG) {
             System.err.println("trying fixed caps: "+fixedCaps);
         }
 
-        res = eglChooseConfig(eglDisplay, fixedCaps, capabilities, chooser, absScreen, eglSurfaceType);
+        chosen = -1;
+        try {
+            chosen = chooser.chooseCapabilities(fixedCaps, caps, -1);
+        } catch (NativeWindowException e) { throw new GLException(e); }
+        if(chosen<0) {
+            throw new GLException("Graphics configuration chooser fixed failed");
+        }
+        if(DEBUG) {
+            System.err.println("Choosen fixed "+caps[chosen]);
+        }
+        res = eglChooseConfig(eglDisplay, caps[chosen], capabilities, chooser, absScreen, eglSurfaceType);
         if(null==res) {
             throw new GLException("Graphics configuration failed [direct caps, eglGetConfig/chooser and fixed-caps]");
         }
