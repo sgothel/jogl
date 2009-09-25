@@ -1067,6 +1067,52 @@ typedef void GLvoid;
 #define GL_COPY_WRITE_BUFFER              0x8F37
 #endif
 
+#ifndef GL_ARB_depth_buffer_float
+#define GL_DEPTH_COMPONENT32F             0x8CAC
+#define GL_DEPTH32F_STENCIL8              0x8CAD
+#define GL_FLOAT_32_UNSIGNED_INT_24_8_REV 0x8DAD
+#endif
+
+#ifndef GL_ARB_framebuffer_sRGB
+#define GL_FRAMEBUFFER_SRGB               0x8DB9
+#endif
+
+#ifndef GL_ARB_half_float_pixel
+#define GL_HALF_FLOAT_ARB                 0x140B
+#endif
+
+#ifndef GL_ARB_texture_compression_rgtc
+#define GL_COMPRESSED_RED_RGTC1           0x8DBB
+#define GL_COMPRESSED_SIGNED_RED_RGTC1    0x8DBC
+#define GL_COMPRESSED_RG_RGTC2            0x8DBD
+#define GL_COMPRESSED_SIGNED_RG_RGTC2     0x8DBE
+#endif
+
+#ifndef GL_ARB_texture_rg
+#define GL_RG                             0x8227
+#define GL_RG_INTEGER                     0x8228
+#define GL_R8                             0x8229
+#define GL_R16                            0x822A
+#define GL_RG8                            0x822B
+#define GL_RG16                           0x822C
+#define GL_R16F                           0x822D
+#define GL_R32F                           0x822E
+#define GL_RG16F                          0x822F
+#define GL_RG32F                          0x8230
+#define GL_R8I                            0x8231
+#define GL_R8UI                           0x8232
+#define GL_R16I                           0x8233
+#define GL_R16UI                          0x8234
+#define GL_R32I                           0x8235
+#define GL_R32UI                          0x8236
+#define GL_RG8I                           0x8237
+#define GL_RG8UI                          0x8238
+#define GL_RG16I                          0x8239
+#define GL_RG16UI                         0x823A
+#define GL_RG32I                          0x823B
+#define GL_RG32UI                         0x823C
+#endif
+
 
 /*************************************************************/
 
