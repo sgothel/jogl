@@ -212,7 +212,7 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
     }
 
     public void destroy(long pbuffer) {
-      CGL.destroyPBuffer(0, pbuffer);
+      CGL.destroyPBuffer(pbuffer);
     }
   }
 
