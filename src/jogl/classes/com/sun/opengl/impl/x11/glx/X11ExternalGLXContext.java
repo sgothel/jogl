@@ -53,7 +53,6 @@ public class X11ExternalGLXContext extends X11GLXContext {
 
   private X11ExternalGLXContext(Drawable drawable, long context) {
     super(drawable, null);
-    this.drawable = drawable;
     this.context = context;
     GLContextShareSet.contextCreated(this);
     setGLFunctionAvailability(false);

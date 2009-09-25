@@ -105,8 +105,7 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl implements D
   }
 
   public GLContext createExternalGLContext() {
-    AbstractGraphicsScreen aScreen = DefaultGraphicsScreen.createDefault();
-    return new MacOSXExternalCGLContext(aScreen);
+    return MacOSXExternalCGLContext.create(this, null);
   }
 
   public boolean canCreateExternalGLDrawable() {

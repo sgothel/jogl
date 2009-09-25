@@ -78,7 +78,7 @@ public class MacOSXCGLGraphicsConfigurationFactory extends GraphicsConfiguration
             capabilities = new GLCapabilities(null);
         }
 
-        return new MacOSXCGLGraphicsConfiguration(absScreen, (GLCapabilities)capabilities, (GLCapabilities)capabilities);
+        return new MacOSXCGLGraphicsConfiguration(absScreen, (GLCapabilities)capabilities, (GLCapabilities)capabilities, 0);
     }
 }
 

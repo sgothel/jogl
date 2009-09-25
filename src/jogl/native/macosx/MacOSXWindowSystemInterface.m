@@ -382,7 +382,7 @@ void* createPixelFormat(int* iattrs, int niattrs, int* ivalues) {
 
   int idx = 0;
   int i;
-  for (i = 0; i < niattrs; i++) {
+  for (i = 0; i < niattrs && iattrs[i]>0; i++) {
     int attr = iattrs[i];
     switch (attr) {
       case NSOpenGLPFAPixelBuffer:
@@ -451,7 +451,7 @@ void queryPixelFormat(void* pixelFormat, int* iattrs, int niattrs, int* ivalues)
   int virtualScreen = 0;
 
   int i;
-  for (i = 0; i < niattrs; i++) {
+  for (i = 0; i < niattrs && iattrs[i]>0; i++) {
     [fmt getValues: &tmp
          forAttribute: (NSOpenGLPixelFormatAttribute) iattrs[i]
          forVirtualScreen: virtualScreen];
@@ -524,8 +524,37 @@ void* createContext(void* shareContext,
 	return nsContext;
 }
 
-Bool makeCurrentContext(void* context) {
-  NSOpenGLContext *nsContext = (NSOpenGLContext*)context;
+void * getCurrentContext() {
+  NSOpenGLContext *nsContext = NULL;
+	
+  NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+  nsContext = [NSOpenGLContext currentContext];
+  [pool release];
+  return nsContext;;
+}
+
+void * getCGLContext(void* nsJContext) {
+  NSOpenGLContext *nsContext = (NSOpenGLContext*)nsJContext;
+  void * cglContext = NULL;
+	
+  NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+  cglContext = [nsContext CGLContextObj];
+  [pool release];
+  return cglContext;
+}
+
+void * getNSView(void* nsJContext) {
+  NSOpenGLContext *nsContext = (NSOpenGLContext*)nsJContext;
+  void * view = NULL;
+	
+  NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+  view = [nsContext view];
+  [pool release];
+  return view;
+}
+
+Bool makeCurrentContext(void* nsJContext) {
+  NSOpenGLContext *nsContext = (NSOpenGLContext*)nsJContext;
 	
   NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
   [nsContext makeCurrentContext];
@@ -533,15 +562,21 @@ Bool makeCurrentContext(void* context) {
   return true;
 }
 
-Bool clearCurrentContext(void* context) {
+Bool clearCurrentContext(void* nsJContext) {
+  NSOpenGLContext *nsContext = (NSOpenGLContext*)nsJContext;
+
   NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+  NSOpenGLContext *currentNSContext = [NSOpenGLContext currentContext];
+  if( currentNSContext != nsContext ) {
+      [nsContext makeCurrentContext];
+  }
   [NSOpenGLContext clearCurrentContext];
   [pool release];
   return true;
 }
 
-Bool deleteContext(void* context) {
-  NSOpenGLContext *nsContext = (NSOpenGLContext*)context;
+Bool deleteContext(void* nsJContext) {
+  NSOpenGLContext *nsContext = (NSOpenGLContext*)nsJContext;
 	
   NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
   [nsContext clearDrawable];
@@ -550,8 +585,8 @@ Bool deleteContext(void* context) {
   return true;
 }
 
-Bool flushBuffer(void* context) {
-  NSOpenGLContext *nsContext = (NSOpenGLContext*)context;
+Bool flushBuffer(void* nsJContext) {
+  NSOpenGLContext *nsContext = (NSOpenGLContext*)nsJContext;
 	
   NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
   [nsContext flushBuffer];
@@ -559,14 +594,14 @@ Bool flushBuffer(void* context) {
   return true;
 }
 
-void setContextOpacity(void* context, int opacity) {
-  NSOpenGLContext *nsContext = (NSOpenGLContext*)context;
+void setContextOpacity(void* nsJContext, int opacity) {
+  NSOpenGLContext *nsContext = (NSOpenGLContext*)nsJContext;
   
   [nsContext setValues:&opacity forParameter:NSOpenGLCPSurfaceOpacity];
 }
 
-void updateContext(void* context) {
-  NSOpenGLContext *nsContext = (NSOpenGLContext*)context;
+void updateContext(void* nsJContext) {
+  NSOpenGLContext *nsContext = (NSOpenGLContext*)nsJContext;
 	
   NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
   [nsContext update];
@@ -579,8 +614,8 @@ void copyContext(void* destContext, void* srcContext, int mask) {
   [dst copyAttributesFromContext: src withMask: mask];
 }
 
-void* updateContextRegister(void* context, void* view) {
-  NSOpenGLContext *nsContext = (NSOpenGLContext*)context;
+void* updateContextRegister(void* nsJContext, void* view) {
+  NSOpenGLContext *nsContext = (NSOpenGLContext*)nsJContext;
   NSView *nsView = (NSView*)view;
 	
   NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
@@ -590,7 +625,7 @@ void* updateContextRegister(void* context, void* view) {
   return NULL;
 }
 
-void updateContextUnregister(void* context, void* view, void* updater) {
+void updateContextUnregister(void* updater) {
   ContextUpdater *contextUpdater = (ContextUpdater *)updater;
 	
   NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
@@ -610,10 +645,8 @@ void* createPBuffer(int renderTarget, int internalFormat, int width, int height)
   return pBuffer;
 }
 
-Bool destroyPBuffer(void* context, void* buffer) {
+Bool destroyPBuffer(void* buffer) {
   /* FIXME: not clear whether we need to perform the clearDrawable below */
-  /* FIXME: remove the context argument -- don't need it any more */
-  /*  NSOpenGLContext *nsContext = (NSOpenGLContext*)context; */
   NSOpenGLPixelBuffer *pBuffer = (NSOpenGLPixelBuffer*)buffer;
 	
   NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
@@ -628,8 +661,8 @@ Bool destroyPBuffer(void* context, void* buffer) {
   return true;
 }
 
-void setContextPBuffer(void* context, void* buffer) {
-  NSOpenGLContext *nsContext = (NSOpenGLContext*)context;
+void setContextPBuffer(void* nsJContext, void* buffer) {
+  NSOpenGLContext *nsContext = (NSOpenGLContext*)nsJContext;
   NSOpenGLPixelBuffer *pBuffer = (NSOpenGLPixelBuffer*)buffer;
 
   NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
@@ -640,8 +673,8 @@ void setContextPBuffer(void* context, void* buffer) {
   [pool release];
 }
 
-void setContextTextureImageToPBuffer(void* context, void* buffer, int colorBuffer) {
-  NSOpenGLContext *nsContext = (NSOpenGLContext*)context;
+void setContextTextureImageToPBuffer(void* nsJContext, void* buffer, int colorBuffer) {
+  NSOpenGLContext *nsContext = (NSOpenGLContext*)nsJContext;
   NSOpenGLPixelBuffer *pBuffer = (NSOpenGLPixelBuffer*)buffer;
 
   NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
@@ -686,8 +719,8 @@ void* getProcAddress(const char *procname) {
   return NULL;
 }
 
-void setSwapInterval(void* context, int interval) {
-  NSOpenGLContext *nsContext = (NSOpenGLContext*)context;
+void setSwapInterval(void* nsJContext, int interval) {
+  NSOpenGLContext *nsContext = (NSOpenGLContext*)nsJContext;
   long swapInterval = interval;
   [nsContext setValues: &swapInterval forParameter: NSOpenGLCPSwapInterval];
 }

@@ -49,7 +49,8 @@ import com.sun.gluegen.runtime.ProcAddressTable;
 public abstract class MacOSXCGLContext extends GLContextImpl
 {	
   protected MacOSXCGLDrawable drawable;
-  protected long nsContext; // NSOpenGLContext
+  protected long nsContext;  // NSOpenGLContext
+  protected long cglContext; // CGLContextObj
   private CGLExt cglExt;
   // Table that holds the addresses of the native C-language entry points for
   // CGL extension functions.
@@ -111,44 +112,23 @@ public abstract class MacOSXCGLContext extends GLContextImpl
       }
     }
     MacOSXCGLGraphicsConfiguration config = (MacOSXCGLGraphicsConfiguration) drawable.getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration();
-    GLCapabilities capabilities = (GLCapabilities)config.getRequestedCapabilities();
-    GLProfile glProfile = capabilities.getGLProfile();
+    GLCapabilities capabilitiesRequested = (GLCapabilities)config.getRequestedCapabilities();
+    GLProfile glProfile = capabilitiesRequested.getGLProfile();
     if(glProfile.isGL3()) {
         throw new GLException("GL3 profile currently not supported on MacOSX, due to the lack of a OpenGL 3.1 implementation");
     }
-    // FIXME: Shall being moved to MacOSXCGLGraphicsConfiguration !
-    int[] viewNotReady = new int[1];
-    int[] iattribs = new int[128];
-    int[] ivalues = new int[128];
-    int idx = 0;
-    if (pbuffer) {
-      iattribs[idx] = CGL.NSOpenGLPFAPixelBuffer;   ivalues[idx] = 1;  idx++;
-    }
-    if (floatingPoint) {
-      iattribs[idx] = CGL.kCGLPFAColorFloat;        ivalues[idx] = 1;  idx++;
-    }
-    iattribs[idx] = CGL.NSOpenGLPFADoubleBuffer;  ivalues[idx] = (capabilities.getDoubleBuffered() ? 1 : 0);  idx++;
-    iattribs[idx] = CGL.NSOpenGLPFAStereo;        ivalues[idx] = (capabilities.getStereo() ? 1 : 0);          idx++;
-    iattribs[idx] = CGL.NSOpenGLPFAColorSize;     ivalues[idx] = (capabilities.getRedBits() +
-                                                              capabilities.getGreenBits() +
-                                                              capabilities.getBlueBits());                    idx++;
-    iattribs[idx] = CGL.NSOpenGLPFAAlphaSize;     ivalues[idx] = capabilities.getAlphaBits();                 idx++;
-    iattribs[idx] = CGL.NSOpenGLPFADepthSize;     ivalues[idx] = capabilities.getDepthBits();                 idx++;
-    iattribs[idx] = CGL.NSOpenGLPFAAccumSize;     ivalues[idx] = (capabilities.getAccumRedBits() +
-                                                              capabilities.getAccumGreenBits() +
-                                                              capabilities.getAccumBlueBits() +
-                                                              capabilities.getAccumAlphaBits());              idx++;
-    iattribs[idx] = CGL.NSOpenGLPFAStencilSize;   ivalues[idx] = capabilities.getStencilBits();               idx++;
-    if (capabilities.getSampleBuffers()) {
-      iattribs[idx] = CGL.NSOpenGLPFASampleBuffers; ivalues[idx] = 1;                             idx++;
-      iattribs[idx] = CGL.NSOpenGLPFASamples;       ivalues[idx] = capabilities.getNumSamples();  idx++;
-    }
+    // HACK .. bring in OnScreen/PBuffer selection to the DrawableFactory !!
+    GLCapabilities capabilities = (GLCapabilities) capabilitiesRequested.clone();
+    capabilities.setPBuffer(pbuffer);
+    capabilities.setPbufferFloatingPointBuffers(floatingPoint);
 
-    long pixelFormat = CGL.createPixelFormat(iattribs, 0, idx, ivalues, 0);
+    long pixelFormat = MacOSXCGLGraphicsConfiguration.GLCapabilities2NSPixelFormat(capabilities);
     if (pixelFormat == 0) {
       throw new GLException("Unable to allocate pixel format with requested GLCapabilities");
     }
+    config.setChosenPixelFormat(pixelFormat);
     try {
+      int[] viewNotReady = new int[1];
       // Try to allocate a context with this
       nsContext = CGL.createContext(share,
                                     drawable.getNativeWindow().getSurfaceHandle(),
@@ -170,80 +150,8 @@ public abstract class MacOSXCGLContext extends GLContextImpl
           CGL.setContextOpacity(nsContext, 0);
       }
 
-      // On this platform the pixel format is associated with the
-      // context and not the drawable. However it's a reasonable
-      // approximation to just store the chosen pixel format up in the
-      // NativeWindow's AbstractGraphicsConfiguration, 
-      // since the public API doesn't provide for a different GLCapabilities per context.
-      // Note: These restrictions of the platform's API might be considered as a bug anyways.
-      {
-        // Figure out what attributes we really got
-        GLCapabilities caps = new GLCapabilities(glProfile);
-        CGL.queryPixelFormat(pixelFormat, iattribs, 0, idx, ivalues, 0);
-        for (int i = 0; i < idx; i++) {
-          int attr = iattribs[i];
-          switch (attr) {
-          case CGL.kCGLPFAColorFloat:
-            caps.setPbufferFloatingPointBuffers(ivalues[i] != 0);
-            break;
-
-          case CGL.NSOpenGLPFADoubleBuffer:
-            caps.setDoubleBuffered(ivalues[i] != 0);
-            break;
-
-          case CGL.NSOpenGLPFAStereo:
-            caps.setStereo(ivalues[i] != 0);
-            break;
-
-          case CGL.NSOpenGLPFAColorSize:
-            {
-              int bitSize = ivalues[i];
-              if (bitSize == 32)
-                bitSize = 24;
-              bitSize /= 3;
-              caps.setRedBits(bitSize);
-              caps.setGreenBits(bitSize);
-              caps.setBlueBits(bitSize);
-            }
-            break;
-
-          case CGL.NSOpenGLPFAAlphaSize:
-            caps.setAlphaBits(ivalues[i]);
-            break;
-
-          case CGL.NSOpenGLPFADepthSize:
-            caps.setDepthBits(ivalues[i]);
-            break;
-
-          case CGL.NSOpenGLPFAAccumSize:
-            {
-              int bitSize = ivalues[i] / 4;
-              caps.setAccumRedBits(bitSize);
-              caps.setAccumGreenBits(bitSize);
-              caps.setAccumBlueBits(bitSize);
-              caps.setAccumAlphaBits(bitSize);
-            }
-            break;
-
-          case CGL.NSOpenGLPFAStencilSize:
-            caps.setStencilBits(ivalues[i]);
-            break;
-
-          case CGL.NSOpenGLPFASampleBuffers:
-            caps.setSampleBuffers(ivalues[i] != 0);
-            break;
-
-          case CGL.NSOpenGLPFASamples:
-            caps.setNumSamples(ivalues[i]);
-            break;
-
-          default:
-            break;
-          }
-        }
-
-        config.setChosenCapabilities(caps);
-      }
+      GLCapabilities caps = MacOSXCGLGraphicsConfiguration.NSPixelFormat2GLCapabilities(glProfile, pixelFormat);
+      config.setChosenCapabilities(caps);
     } finally {
       CGL.deletePixelFormat(pixelFormat);
     }
@@ -256,14 +164,14 @@ public abstract class MacOSXCGLContext extends GLContextImpl
   }    
 	
   protected int makeCurrentImpl() throws GLException {
-    if (drawable.getNativeWindow().getSurfaceHandle() == 0) {
+    if (0 == cglContext && drawable.getNativeWindow().getSurfaceHandle() == 0) {
         if (DEBUG) {
           System.err.println("drawable not properly initialized");
         }
         return CONTEXT_NOT_CURRENT;
     }
     boolean created = false;
-    if (nsContext == 0) {
+    if ( 0 == cglContext && 0 == nsContext) {
       if (!create()) {
         return CONTEXT_NOT_CURRENT;
       }
@@ -273,8 +181,14 @@ public abstract class MacOSXCGLContext extends GLContextImpl
       created = true;
     }
             
-    if (!CGL.makeCurrentContext(nsContext)) {
-      throw new GLException("Error making nsContext current");
+    if ( 0 != cglContext ) {
+        if (CGL.kCGLNoError != CGL.CGLSetCurrentContext(cglContext)) {
+          throw new GLException("Error making cglContext current");
+        }
+    } else {
+        if (!CGL.makeCurrentContext(nsContext)) {
+          throw new GLException("Error making nsContext current");
+        }
     }
             
     if (created) {
@@ -285,38 +199,64 @@ public abstract class MacOSXCGLContext extends GLContextImpl
   }
 	
   protected void releaseImpl() throws GLException {
-    if (!CGL.clearCurrentContext(nsContext)) {
-      throw new GLException("Error freeing OpenGL nsContext");
+    if ( 0 != cglContext ) {
+        CGL.CGLReleaseContext(cglContext);
+    } else {
+        if (!CGL.clearCurrentContext(nsContext)) {
+          throw new GLException("Error freeing OpenGL nsContext");
+        }
     }
   }
 	
   protected void destroyImpl() throws GLException {
-    if (nsContext != 0) {
-      if (!CGL.deleteContext(nsContext)) {
-        throw new GLException("Unable to delete OpenGL context");
+    boolean hadContext = isCreated();
+    if ( 0 != cglContext ) {
+      if (CGL.kCGLNoError != CGL.CGLDestroyContext(cglContext)) {
+        throw new GLException("Unable to delete OpenGL cglContext");
       }
       if (DEBUG) {
-        System.err.println("!!! Destroyed OpenGL context " + nsContext);
+        System.err.println("!!! Destroyed OpenGL cglContext " + cglContext);
+      }
+      cglContext = 0;
+      GLContextShareSet.contextDestroyed(this);
+    } else if ( 0 != nsContext ) {
+      if (!CGL.deleteContext(nsContext)) {
+        throw new GLException("Unable to delete OpenGL nsContext");
+      }
+      if (DEBUG) {
+        System.err.println("!!! Destroyed OpenGL nsContext " + nsContext);
       }
       nsContext = 0;
+    }
+    if(hadContext) {
       GLContextShareSet.contextDestroyed(this);
     }
   }
 
   public boolean isCreated() {
-    return (nsContext != 0);
+    return 0 != cglContext || 0 != nsContext ;
   }
 	
   public void copy(GLContext source, int mask) throws GLException {
-    long dst = getNSContext();
-    long src = ((MacOSXCGLContext) source).getNSContext();
-    if (src == 0) {
-      throw new GLException("Source OpenGL context has not been created");
+    long dst = getCGLContext();
+    long src = 0;
+    if( 0 != dst ) {
+        src = ((MacOSXCGLContext) source).getCGLContext();
+        if (src == 0) {
+          throw new GLException("Source OpenGL cglContext has not been created ; Destination has a cglContext.");
+        }
+        CGL.CGLCopyContext(src, dst, mask);
+    } else {
+        dst = getNSContext();
+        src = ((MacOSXCGLContext) source).getNSContext();
+        if (src == 0) {
+          throw new GLException("Source OpenGL nsContext has not been created");
+        }
+        if (dst == 0) {
+          throw new GLException("Destination OpenGL nsContext has not been created");
+        }
+        CGL.copyContext(dst, src, mask);
     }
-    if (dst == 0) {
-      throw new GLException("Destination OpenGL context has not been created");
-    }
-    CGL.copyContext(dst, src, mask);
   }
 
   protected void updateGLProcAddressTable() {
@@ -338,10 +278,14 @@ public abstract class MacOSXCGLContext extends GLContextImpl
   }
 	
   protected void setSwapIntervalImpl(int interval) {
-    if (nsContext == 0) {
+    if ( 0 != cglContext ) {
+        int[] lval = new int[] { (int) interval } ;
+        CGL.CGLSetParameter(cglContext, CGL.kCGLCPSwapInterval, lval, 0);
+    } else if ( 0 != nsContext ) {
+        CGL.setSwapInterval(nsContext, interval);
+    } else {
       throw new GLException("OpenGL context not current");
     }
-    CGL.setSwapInterval(nsContext, interval);
     currentSwapInterval = interval ;
   }
 
@@ -391,6 +335,9 @@ public abstract class MacOSXCGLContext extends GLContextImpl
   // Internals only below this point
   //
 	
+  public long getCGLContext() {
+    return cglContext;
+  }
   public long getNSContext() {
     return nsContext;
   }

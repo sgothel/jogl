@@ -1408,6 +1408,7 @@
         <condition property="c.compiler.use-debug"><istrue value="${c.compiler.debug}"/></condition>
 
         <patternset id="c.src.files.jogl.gl2">
+          <include name="${rootrel.src.c}/macosx/MacOSXCustomCGLCode.c" if="isOSX"/>
           <include name="${rootrel.src.c}/macosx/MacOSXWindowSystemInterface.m" if="isOSX"/>
           <include name="${rootrel.src.c}/macosx/ContextUpdater.m" if="isOSX"/>
           <include name="${rootrel.src.c}/GLXGetProcAddressARB.c" if="isX11"/>
@@ -1426,6 +1427,7 @@
         </patternset>
 
         <patternset id="c.src.files.jogl.gl2es12">
+          <include name="${rootrel.src.c}/macosx/MacOSXCustomCGLCode.c" if="isOSX"/>
           <include name="${rootrel.src.c}/macosx/MacOSXWindowSystemInterface.m" if="isOSX"/>
           <include name="${rootrel.src.c}/macosx/ContextUpdater.m" if="isOSX"/>
           <include name="${rootrel.src.c}/GLXGetProcAddressARB.c" if="isX11"/>

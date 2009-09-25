@@ -9,27 +9,36 @@
 
 typedef int Bool;
 
+// CGL ..
+void CGLQueryPixelFormat(void* pixelFormat, int* iattrs, int niattrs, int* ivalues);
+
+// NS ..
 void* createPixelFormat(int* iattrs, int niattrs, int* ivalues);
 void queryPixelFormat(void* pixelFormat, int* iattrs, int niattrs, int* ivalues);
 void deletePixelFormat(void* pixelFormat);
+
+// NS ..
+void *getCurrentContext(void);
+void *getNSView(void* nsContext);
 
 void* createContext(void* shareContext,
                     void* nsView,
                     void* pixelFormat,
                     int* viewNotReady);
+void *getCGLContext(void* nsContext);
 Bool  makeCurrentContext(void* nsContext);
-Bool  clearCurrentContext(void* nsContext);
+Bool  clearCurrentContext(void *nsContext);
 Bool  deleteContext(void* nsContext);
 Bool  flushBuffer(void* nsContext);
-void  setContextOpacity(void* context, int opacity);
+void  setContextOpacity(void* nsContext, int opacity);
 void  updateContext(void* nsContext);
 void  copyContext(void* destContext, void* srcContext, int mask);
 
 void* updateContextRegister(void* nsContext, void* nsView);
-void  updateContextUnregister(void* nsContext, void* nsView, void* updater);
+void  updateContextUnregister(void* updater);
 
 void* createPBuffer(int renderTarget, int internalFormat, int width, int height);
-Bool destroyPBuffer(void* nsContext, void* pBuffer);
+Bool destroyPBuffer(void* pBuffer);
 void setContextPBuffer(void* nsContext, void* pBuffer);
 void setContextTextureImageToPBuffer(void* nsContext, void* pBuffer, int colorBuffer);
 

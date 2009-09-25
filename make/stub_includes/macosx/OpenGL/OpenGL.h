@@ -73,18 +73,44 @@ typedef enum _CGLError {
 	kCGLBadConnection      = 10017 	/* invalid CoreGraphics connection */
 } CGLError;
 
+typedef enum _CGLContextParameter {
+   kCGLCPSwapRectangle    = 200,
+   kCGLCPSwapInterval     = 222,
+   kCGLCPDispatchTableSize = 224,
+   kCGLCPClientStorage    = 226,
+   kCGLCPSurfaceTexture    = 228,
+   kCGLCPSurfaceOrder      = 235,
+   kCGLCPSurfaceOpacity    = 236,
+   kCGLCPSurfaceBackingSize = 304,
+   kCGLCPSurfaceSurfaceVolatile = 306,
+   kCGLCPReclaimResources  = 308,
+   kCGLCPCurrentRendererID  = 309,
+   kCGLCPGPUVertexProcessing  = 310,
+   kCGLCPGPUFragmentProcessing  = 311,
+   kCGLCPHasDrawable             = 314,
+   kCGLCPMPSwapsInFlight         = 315,
+} CGLContextParameter;
+
 /* Pixel format manipulation */
 CGLError CGLChoosePixelFormat(const CGLPixelFormatAttribute *attribs,
                               CGLPixelFormatObj *pix,
                               long *npix);
 CGLError CGLDestroyPixelFormat(CGLPixelFormatObj pix);
+CGLPixelFormatObj CGLGetPixelFormat ( CGLContextObj ctx );
 
 /* Context manipulation */
 CGLError CGLCreateContext(CGLPixelFormatObj pix,
                           CGLContextObj share,
                           CGLContextObj* ctx);
+void CGLReleaseContext(CGLContextObj ctx);
 CGLError CGLDestroyContext(CGLContextObj ctx);
 CGLError CGLSetCurrentContext(CGLContextObj ctx);
+CGLContextObj CGLGetCurrentContext (void);
+CGLError CGLFlushDrawable ( CGLContextObj ctx);
+CGLError CGLSetParameter ( CGLContextObj ctx, CGLContextParameter pname, const int *params );
+CGLError CGLCopyContext ( CGLContextObj src, CGLContextObj dst, int mask );
+
+
 
 /* PBuffer manipulation */
 CGLError CGLCreatePBuffer(long width,
