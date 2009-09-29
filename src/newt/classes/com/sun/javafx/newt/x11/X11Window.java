@@ -98,31 +98,37 @@ public class X11Window extends Window {
     }
 
     public void setSize(int width, int height) {
-        if(0==windowHandle) return;
-        if(!visible) {
-            // set values, since no event roundtrip will happen to set them
-            this.width = width;
-            this.height = height;
+        if(DEBUG_IMPLEMENTATION) {
+            System.err.println("X11Window setSize: "+this.x+"/"+this.y+" "+this.width+"x"+this.height+" -> "+width+"x"+height);
+            // Exception e = new Exception("XXXXXXXXXX");
+            // e.printStackTrace();
         }
+        this.width = width;
+        this.height = height;
         if(!fullscreen) {
             nfs_width=width;
             nfs_height=height;
         }
-        setSize0(parentWindowHandle, getDisplayHandle(), getScreenIndex(), windowHandle, x, y, width, height, (undecorated||fullscreen)?-1:1, false);
+        if(0!=windowHandle) {
+            setSize0(parentWindowHandle, getDisplayHandle(), getScreenIndex(), windowHandle, x, y, width, height, (undecorated||fullscreen)?-1:1, false);
+        }
     }
 
     public void setPosition(int x, int y) {
-        if(0==windowHandle) return;
-        if(!visible) {
-            // set values, since no event roundtrip will happen to set them
-            this.x = x;
-            this.y = y;
+        if(DEBUG_IMPLEMENTATION) {
+            System.err.println("X11Window setPosition: "+this.x+"/"+this.y+" -> "+x+"/"+y);
+            // Exception e = new Exception("XXXXXXXXXX");
+            // e.printStackTrace();
         }
+        this.x = x;
+        this.y = y;
         if(!fullscreen) {
             nfs_x=x;
             nfs_y=y;
         }
-        setPosition0(getDisplayHandle(), windowHandle, x, y);
+        if(0!=windowHandle) {
+            setPosition0(getDisplayHandle(), windowHandle, x, y);
+        }
     }
 
     public boolean setFullscreen(boolean fullscreen) {
@@ -162,6 +168,9 @@ public class X11Window extends Window {
 
     private void windowChanged(int newX, int newY, int newWidth, int newHeight) {
         if(width != newWidth || height != newHeight) {
+            if(DEBUG_IMPLEMENTATION) {
+                System.err.println("X11Window windowChanged size: "+this.width+"x"+this.height+" -> "+newWidth+"x"+newHeight);
+            }
             width = newWidth;
             height = newHeight;
             if(!fullscreen) {
@@ -170,7 +179,10 @@ public class X11Window extends Window {
             }
             sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED);
         }
-        if(x != newX || y != newY) {
+        if( 0==parentWindowHandle && ( x != newX || y != newY ) ) {
+            if(DEBUG_IMPLEMENTATION) {
+                System.err.println("X11Window windowChanged position: "+this.x+"/"+this.y+" -> "+newX+"x"+newY);
+            }
             x = newX;
             y = newY;
             if(!fullscreen) {
