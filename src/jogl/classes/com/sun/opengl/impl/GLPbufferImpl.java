@@ -62,6 +62,18 @@ public class GLPbufferImpl implements GLPbuffer {
 
   public GLPbufferImpl(GLDrawableImpl pbufferDrawable,
                        GLContext parentContext) {
+    GLCapabilities caps = (GLCapabilities) 
+         pbufferDrawable.getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities();
+    if(caps.isOnscreen()) {
+        if(caps.isPBuffer()) {
+            throw new IllegalArgumentException("Error: Given drawable is Onscreen and Pbuffer: "+pbufferDrawable);
+        }
+        throw new IllegalArgumentException("Error: Given drawable is Onscreen: "+pbufferDrawable);
+    } else {
+        if(!caps.isPBuffer()) {
+            throw new IllegalArgumentException("Error: Given drawable is not Pbuffer: "+pbufferDrawable);
+        }
+    }
     this.pbufferDrawable = pbufferDrawable;
     context = (GLContextImpl) pbufferDrawable.createContext(parentContext);
     context.setSynchronized(true);

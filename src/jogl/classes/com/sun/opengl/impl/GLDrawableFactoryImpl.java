@@ -57,7 +57,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
   //---------------------------------------------------------------------------
   // Dispatching GLDrawable construction in respect to the NativeWindow Capabilities
   //
-  public GLDrawable createGLDrawable(NativeWindow target) {
+  public GLDrawable createGLDrawable(NativeWindow target, GLCapabilitiesChooser chooser) {
     if (target == null) {
       throw new IllegalArgumentException("Null target");
     }
@@ -74,13 +74,13 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
         if(caps.isPBuffer() && canCreateGLPbuffer()) {
             // PBUFFER
             result = createGLPbufferDrawable(caps,
-                                     null /* GLCapabilitiesChooser */,
+                                     chooser,
                                      target.getWidth(),
                                      target.getHeight());
         }
         if(null==result) {
             result = createOffscreenDrawable(caps,
-                                             null /* GLCapabilitiesChooser */,
+                                             chooser,
                                              target.getWidth(),
                                              target.getHeight());
         }
@@ -89,6 +89,10 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
         System.out.println("GLDrawableFactoryImpl.createGLDrawable: "+result);
     }
     return result;
+  }
+
+  public GLDrawable createGLDrawable(NativeWindow target) {
+    return createGLDrawable(target, null);
   }
 
   /** Creates a (typically hw-accelerated) Pbuffer GLDrawable. */
@@ -107,6 +111,11 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
 
   /** Creates a (typically hw-accelerated) onscreen GLDrawable. */
   public abstract GLDrawableImpl createOnscreenDrawable(NativeWindow target);
+
+  public GLPbuffer createGLPbuffer(GLDrawable pbufferDrawable,
+                                   GLContext shareWith) {
+      return new GLPbufferImpl((GLDrawableImpl)pbufferDrawable, shareWith);
+  }
 
   protected GLDrawableFactoryImpl() {
     super();
