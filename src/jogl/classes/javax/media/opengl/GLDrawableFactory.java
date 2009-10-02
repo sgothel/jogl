@@ -126,7 +126,7 @@ public abstract class GLDrawableFactory {
             } else {
               // may use egl*Factory ..
               if (GLProfile.DEBUG) {
-                  System.err.println("GLDrawableFactory.static - No Native OS Factory for: "+nativeOSType);
+                  System.err.println("GLDrawableFactory.static - No native OS Factory for: "+nativeOSType+"; May use EGLDrawableFactory, if available." );
               }
             }
         }
@@ -157,11 +157,16 @@ public abstract class GLDrawableFactory {
 
   protected static GLDrawableFactory getFactoryImpl(String glProfileImplName) throws GLException {
     if ( GLProfile.usesNativeGLES(glProfileImplName) ) {
-        if(null==eglFactory) throw new GLException("GLDrawableFactory unavailable for EGL: "+glProfileImplName);
+        if(null==eglFactory) throw new GLException("EGLDrawableFactory unavailable: "+glProfileImplName);
         return eglFactory;
     }
-    if(null==nativeOSFactory) throw new GLException("GLDrawableFactory unavailable for Native Platform "+nativeOSType);
-    return nativeOSFactory;
+    if(null!=nativeOSFactory) {
+        return nativeOSFactory;
+    }
+    if(null!=eglFactory) {
+        return eglFactory;
+    }
+    throw new GLException("No native platform GLDrawableFactory, nor EGLDrawableFactory available: "+glProfileImplName);
   }
 
   /** Shuts down this GLDrawableFactory, releasing resources

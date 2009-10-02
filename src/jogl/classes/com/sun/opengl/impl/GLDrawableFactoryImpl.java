@@ -54,6 +54,45 @@ import java.lang.reflect.*;
 public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
   protected static final boolean DEBUG = Debug.debug("GLDrawableFactory");
 
+  //---------------------------------------------------------------------------
+  // Dispatching GLDrawable construction in respect to the NativeWindow Capabilities
+  //
+  public GLDrawable createGLDrawable(NativeWindow target) {
+    if (target == null) {
+      throw new IllegalArgumentException("Null target");
+    }
+    AbstractGraphicsConfiguration config = target.getGraphicsConfiguration().getNativeGraphicsConfiguration();
+    target = NativeWindowFactory.getNativeWindow(target, config);
+    GLCapabilities caps = (GLCapabilities) target.getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities();
+    GLDrawable result = null;
+    if(caps.isOnscreen()) {
+        if(caps.isPBuffer()) {
+            throw new IllegalArgumentException("Onscreen target can't be PBuffer: "+caps);
+        }
+        result = createOnscreenDrawable(target);
+    } else {
+        if(caps.isPBuffer() && canCreateGLPbuffer()) {
+            // PBUFFER
+            result = createGLPbuffer(caps,
+                                     null /* GLCapabilitiesChooser */,
+                                     target.getWidth(),
+                                     target.getHeight(),
+                                     null /* shareContext */ ) ;
+
+        }
+        if(null==result) {
+            result = createOffscreenDrawable(caps,
+                                             null /* GLCapabilitiesChooser */,
+                                             target.getWidth(),
+                                             target.getHeight());
+        }
+    }
+    if(DEBUG) {
+        System.out.println("GLDrawableFactoryImpl.createGLDrawable: "+result);
+    }
+    return result;
+  }
+
   /** Creates a (typically software-accelerated) offscreen GLDrawable
       used to implement the fallback rendering path of the
       GLJPanel. */
@@ -61,6 +100,9 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
                                                          GLCapabilitiesChooser chooser,
                                                          int width,
                                                          int height);
+
+  /** Creates a (typically hw-accelerated) onscreen GLDrawable. */
+  public abstract GLDrawableImpl createOnscreenDrawable(NativeWindow target);
 
   protected GLDrawableFactoryImpl() {
     super();

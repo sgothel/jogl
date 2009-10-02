@@ -31,20 +31,19 @@
  * 
  */
 
-package com.sun.javafx.newt.opengl.broadcom;
+package com.sun.javafx.newt.opengl.broadcom.egl;
 
-import com.sun.javafx.newt.*;
 import com.sun.javafx.newt.impl.*;
 import javax.media.nativewindow.*;
 
-public class BCEGLScreen extends Screen {
+public class Screen extends com.sun.javafx.newt.Screen {
 
     static {
-        BCEGLDisplay.initSingleton();
+        Display.initSingleton();
     }
 
 
-    public BCEGLScreen() {
+    public Screen() {
     }
 
     protected void createNative(int index) {

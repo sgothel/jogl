@@ -66,21 +66,21 @@ public abstract class Window implements NativeWindow
     private static Class getWindowClass(String type) 
         throws ClassNotFoundException 
     {
-        Class windowClass = null;
-        if (NativeWindowFactory.TYPE_EGL.equals(type)) {
-            windowClass = Class.forName("com.sun.javafx.newt.opengl.kd.KDWindow");
-        } else if (NativeWindowFactory.TYPE_WINDOWS.equals(type)) {
-            windowClass = Class.forName("com.sun.javafx.newt.windows.WindowsWindow");
-        } else if (NativeWindowFactory.TYPE_MACOSX.equals(type)) {
-            windowClass = Class.forName("com.sun.javafx.newt.macosx.MacWindow");
-        } else if (NativeWindowFactory.TYPE_X11.equals(type)) {
-            windowClass = Class.forName("com.sun.javafx.newt.x11.X11Window");
-        } else if (NativeWindowFactory.TYPE_AWT.equals(type)) {
-            windowClass = Class.forName("com.sun.javafx.newt.awt.AWTWindow");
-        } else if (NewtFactory.TYPE_BROADCOM_EGL.equals(type)) {
-            windowClass = Class.forName("com.sun.javafx.newt.opengl.broadcom.BCEGLWindow");
-        } else {
-            throw new NativeWindowException("Unknown window type \"" + type + "\"");
+        Class windowClass = NewtFactory.getCustomClass(type, "Window");
+        if(null==windowClass) {
+            if (NativeWindowFactory.TYPE_EGL.equals(type)) {
+                windowClass = Class.forName("com.sun.javafx.newt.opengl.kd.KDWindow");
+            } else if (NativeWindowFactory.TYPE_WINDOWS.equals(type)) {
+                windowClass = Class.forName("com.sun.javafx.newt.windows.WindowsWindow");
+            } else if (NativeWindowFactory.TYPE_MACOSX.equals(type)) {
+                windowClass = Class.forName("com.sun.javafx.newt.macosx.MacWindow");
+            } else if (NativeWindowFactory.TYPE_X11.equals(type)) {
+                windowClass = Class.forName("com.sun.javafx.newt.x11.X11Window");
+            } else if (NativeWindowFactory.TYPE_AWT.equals(type)) {
+                windowClass = Class.forName("com.sun.javafx.newt.awt.AWTWindow");
+            } else {
+                throw new NativeWindowException("Unknown window type \"" + type + "\"");
+            }
         }
         return windowClass;
     }

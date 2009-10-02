@@ -43,21 +43,21 @@ public abstract class Screen {
     private static Class getScreenClass(String type) 
         throws ClassNotFoundException 
     {
-        Class screenClass = null;
-        if (NativeWindowFactory.TYPE_EGL.equals(type)) {
-            screenClass = Class.forName("com.sun.javafx.newt.opengl.kd.KDScreen");
-        } else if (NativeWindowFactory.TYPE_WINDOWS.equals(type)) {
-            screenClass = Class.forName("com.sun.javafx.newt.windows.WindowsScreen");
-        } else if (NativeWindowFactory.TYPE_MACOSX.equals(type)) {
-            screenClass = Class.forName("com.sun.javafx.newt.macosx.MacScreen");
-        } else if (NativeWindowFactory.TYPE_X11.equals(type)) {
-            screenClass = Class.forName("com.sun.javafx.newt.x11.X11Screen");
-        } else if (NativeWindowFactory.TYPE_AWT.equals(type)) {
-            screenClass = Class.forName("com.sun.javafx.newt.awt.AWTScreen");
-        } else if (NewtFactory.TYPE_BROADCOM_EGL.equals(type)) {
-            screenClass = Class.forName("com.sun.javafx.newt.opengl.broadcom.BCEGLScreen");
-        } else {
-            throw new RuntimeException("Unknown window type \"" + type + "\"");
+        Class screenClass = NewtFactory.getCustomClass(type, "Screen");
+        if(null==screenClass) {
+            if (NativeWindowFactory.TYPE_EGL.equals(type)) {
+                screenClass = Class.forName("com.sun.javafx.newt.opengl.kd.KDScreen");
+            } else if (NativeWindowFactory.TYPE_WINDOWS.equals(type)) {
+                screenClass = Class.forName("com.sun.javafx.newt.windows.WindowsScreen");
+            } else if (NativeWindowFactory.TYPE_MACOSX.equals(type)) {
+                screenClass = Class.forName("com.sun.javafx.newt.macosx.MacScreen");
+            } else if (NativeWindowFactory.TYPE_X11.equals(type)) {
+                screenClass = Class.forName("com.sun.javafx.newt.x11.X11Screen");
+            } else if (NativeWindowFactory.TYPE_AWT.equals(type)) {
+                screenClass = Class.forName("com.sun.javafx.newt.awt.AWTScreen");
+            } else {
+                throw new RuntimeException("Unknown window type \"" + type + "\"");
+            }
         }
         return screenClass;
     }

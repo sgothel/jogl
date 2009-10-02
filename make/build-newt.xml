@@ -91,6 +91,7 @@
                 <isfalse value="${isOSX}" />
                 <isfalse value="${isX11}" />
                 <isfalse value="${useKD}" />
+                <isfalse value="${useIntelGDL}" />
                 <isfalse value="${useBroadcomEGL}" />
             </and>
         </condition>
@@ -104,12 +105,13 @@
         <echo message="javac.bootclasspath-cdc.jar: ${javac.bootclasspath-cdc.jar}" />
         <echo message="isX11: ${isX11}" />
         <echo message="useKD: ${useKD}" />
+        <echo message="useIntelGDL: ${useIntelGDL}" />
         <echo message="useBroadcomEGL: ${useBroadcomEGL}" />
 
         <!-- partitioning -->
 
         <property name="java.part.core"
-                  value="com/sun/javafx/newt/*, com/sun/javafx/newt/util/*, com/sun/javafx/newt/impl/*"/>
+                  value="com/sun/javafx/newt/*, com/sun/javafx/newt/util/*, com/sun/javafx/newt/impl/*, com/sun/javafx/newt/intel/gdl/*"/>
 
         <property name="java.part.x11"
                   value="com/sun/javafx/newt/x11/*"/>
@@ -124,7 +126,7 @@
                   value="com/sun/javafx/newt/opengl/*, com/sun/javafx/newt/opengl/kd/*"/>
 
         <property name="java.part.broadcomegl"
-                  value="com/sun/javafx/newt/opengl/broadcom/*"/>
+                  value="com/sun/javafx/newt/opengl/broadcom/egl/*"/>
 
         <property name="java.part.awt"
                   value="com/sun/javafx/newt/awt/*"/>
@@ -299,10 +301,11 @@
         
         <mkdir dir="${src.generated.c}" />
         <mkdir dir="${src.generated.c}/X11" />
-        <mkdir dir="${src.generated.c}/KD" />
-        <mkdir dir="${src.generated.c}/BroadcomEGL" />
         <mkdir dir="${src.generated.c}/MacOSX" />
         <mkdir dir="${src.generated.c}/Windows" />
+        <mkdir dir="${src.generated.c}/KD" />
+        <mkdir dir="${src.generated.c}/IntelGDL" />
+        <mkdir dir="${src.generated.c}/BroadcomEGL" />
         <mkdir dir="${classes}" />
         <mkdir dir="${classes-cdc}" />
         <mkdir dir="${obj}" />
@@ -527,6 +530,7 @@
           <include name="${rootrel.src.c}/*.m" if="isOSX"/>
           <include name="${rootrel.src.c}/X11Window.c" if="isX11"/>
           <include name="${rootrel.src.c}/KDWindow.c"  if="useKD"/>
+          <include name="${rootrel.src.c}/IntelGDL.c"  if="useIntelGDL"/>
           <include name="${rootrel.src.c}/BroadcomEGL.c"  if="useBroadcomEGL"/>
         </patternset>
 
@@ -561,6 +565,8 @@
             <includepath path="${src.generated.c}/MacOSX" if="isOSX"/>
             <includepath path="${src.generated.c}/Windows" if="isWindows"/>
             <includepath path="${src.generated.c}/KD" if="useKD" />
+            <includepath path="${src.generated.c}/IntelGDL" if="useIntelGDL" />
+            <includepath path="stub_includes/embedded/IntelGDL" if="useIntelGDL" />
             <includepath path="${src.generated.c}/BroadcomEGL" if="useBroadcomEGL" />
   
             <!-- This must come last to not override real include paths -->
@@ -594,8 +600,14 @@
       <javah destdir="${src.generated.c}/KD" classpath="${classes}" class="com.sun.javafx.newt.opengl.kd.KDWindow" />
     </target>
 
+    <target name="c.build.newt.prepare.IntelGDL" if="useIntelGDL">
+      <javah destdir="${src.generated.c}/IntelGDL" classpath="${classes}" class="com.sun.javafx.newt.intel.gdl.Display" />
+      <javah destdir="${src.generated.c}/IntelGDL" classpath="${classes}" class="com.sun.javafx.newt.intel.gdl.Screen" />
+      <javah destdir="${src.generated.c}/IntelGDL" classpath="${classes}" class="com.sun.javafx.newt.intel.gdl.Window" />
+    </target>
+
     <target name="c.build.newt.prepare.BroadcomEGL" if="useBroadcomEGL">
-      <javah destdir="${src.generated.c}/BroadcomEGL" classpath="${classes}" class="com.sun.javafx.newt.opengl.broadcom.BCEGLWindow" />
+      <javah destdir="${src.generated.c}/BroadcomEGL" classpath="${classes}" class="com.sun.javafx.newt.opengl.broadcom.egl.Window" />
     </target>
 
     <target name="c.build.newt.prepare.desktop" unless="setup.nodesktop">
@@ -604,7 +616,7 @@
       <javah destdir="${src.generated.c}/X11" classpath="${classes}" class="com.sun.javafx.newt.x11.X11Window" />
     </target>
 
-    <target name="c.build.newt.prepare" depends="c.build.newt.prepare.KD,c.build.newt.prepare.BroadcomEGL,c.build.newt.prepare.desktop" />
+    <target name="c.build.newt.prepare" depends="c.build.newt.prepare.KD,c.build.newt.prepare.IntelGDL,c.build.newt.prepare.BroadcomEGL,c.build.newt.prepare.desktop" />
 
     <target name="c.build.newt.windowlib" unless="setup.nonatives">
       <c.build c.compiler.src.files="c.src.files.newt"

@@ -71,11 +71,10 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl implements 
     loadOpenGL32Library();
   }
 
-  public GLDrawable createGLDrawable(NativeWindow target) {
+  public GLDrawableImpl createOnscreenDrawable(NativeWindow target) {
     if (target == null) {
       throw new IllegalArgumentException("Null target");
     }
-    target = NativeWindowFactory.getNativeWindow(target, null);
     return new WindowsOnscreenWGLDrawable(this, target);
   }
 

@@ -61,8 +61,10 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         super();
     }
 
-    public GLDrawable createGLDrawable(NativeWindow target) {
-        target = NativeWindowFactory.getNativeWindow(target, null);
+    public GLDrawableImpl createOnscreenDrawable(NativeWindow target) {
+        if (target == null) {
+          throw new IllegalArgumentException("Null target");
+        }
         return new EGLOnscreenDrawable(this, target);
     }
 
@@ -81,9 +83,6 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                                      final int initialWidth,
                                      final int initialHeight,
                                      final GLContext shareWith) {
-        if (!canCreateGLPbuffer()) {
-          throw new GLException("Pbuffer support not available with this EGL implementation");
-        }
         EGLPbufferDrawable pbufferDrawable = new EGLPbufferDrawable(this, capabilities, chooser,
                                                                   initialWidth,
                                                                   initialHeight);

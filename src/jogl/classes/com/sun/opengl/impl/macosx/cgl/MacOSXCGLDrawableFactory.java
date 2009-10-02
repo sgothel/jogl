@@ -62,12 +62,10 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl implements D
     } catch (Throwable t) { }
   }
 
-  public GLDrawable createGLDrawable(NativeWindow target) {
+  public GLDrawableImpl createOnscreenDrawable(NativeWindow target) {
     if (target == null) {
       throw new IllegalArgumentException("Null target");
     }
-    NativeWindowFactory factory = NativeWindowFactory.getFactory(target.getClass());
-    target = NativeWindowFactory.getNativeWindow(target, null);
     return new MacOSXOnscreenCGLDrawable(this, target);
   }
 

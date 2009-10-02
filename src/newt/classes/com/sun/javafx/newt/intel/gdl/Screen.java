@@ -31,52 +31,38 @@
  * 
  */
 
-package com.sun.javafx.newt.opengl.broadcom;
+package com.sun.javafx.newt.intel.gdl;
 
-import com.sun.javafx.newt.*;
 import com.sun.javafx.newt.impl.*;
-import com.sun.opengl.impl.egl.*;
 import javax.media.nativewindow.*;
-import javax.media.nativewindow.egl.*;
 
-public class BCEGLDisplay extends Display {
+public class Screen extends com.sun.javafx.newt.Screen {
 
     static {
-        NativeLibLoader.loadNEWT();
-
-        if (!BCEGLWindow.initIDs()) {
-            throw new NativeWindowException("Failed to initialize BCEGLWindow jmethodIDs");
-        }
+        Display.initSingleton();
     }
 
-    public static void initSingleton() {
-        // just exist to ensure static init has been run
+    public Screen() {
     }
 
-
-    public BCEGLDisplay() {
+    protected void createNative(int index) {
+        AbstractGraphicsDevice adevice = getDisplay().getGraphicsDevice();
+        GetScreenInfo(adevice.getHandle(), index);
+        aScreen = new DefaultGraphicsScreen(adevice, index);
     }
 
-    protected void createNative() {
-        long handle = CreateDisplay(BCEGLScreen.fixedWidth, BCEGLScreen.fixedHeight);
-        if (handle == EGL.EGL_NO_DISPLAY) {
-            throw new NativeWindowException("BC EGL CreateDisplay failed");
-        }
-        aDevice = new EGLGraphicsDevice(handle);
-    }
+    protected void closeNative() { }
 
-    protected void closeNative() {
-        if (aDevice.getHandle() != EGL.EGL_NO_DISPLAY) {
-            DestroyDisplay(aDevice.getHandle());
-        }
-    }
+    //----------------------------------------------------------------------
+    // Internals only
+    //
 
-    protected void dispatchMessages() {
-        // n/a .. DispatchMessages();
-    }
+    protected static native boolean initIDs();
+    private          native void GetScreenInfo(long displayHandle, int screen_idx);
 
-    private native long CreateDisplay(int width, int height);
-    private native void DestroyDisplay(long dpy);
-    private native void DispatchMessages();
+    // called by GetScreenInfo() ..
+    private void screenCreated(int width, int height) {
+        setScreenSize(width, height);
+    }
 }
 

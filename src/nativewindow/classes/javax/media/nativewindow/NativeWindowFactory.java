@@ -85,7 +85,7 @@ public abstract class NativeWindowFactory {
         } else if (osNameLowerCase.startsWith("wind")) {
               return TYPE_WINDOWS;
         } else if (osNameLowerCase.startsWith("mac os x") ||
-                     osNameLowerCase.startsWith("darwin")) {
+                   osNameLowerCase.startsWith("darwin")) {
               return TYPE_MACOSX;
         } else if (osNameLowerCase.equals("awt")) {
               return TYPE_AWT;
@@ -100,12 +100,14 @@ public abstract class NativeWindowFactory {
         // Gather the windowing OS first
         AccessControlContext acc = AccessController.getContext();
         nativeOSNamePure = Debug.getProperty("os.name", false, acc);
+        nativeWindowingTypePure = _getNativeWindowingType(nativeOSNamePure.toLowerCase());
         nativeOSNameCustom = Debug.getProperty("nativewindow.ws.name", true, acc);
         if(null==nativeOSNameCustom||nativeOSNameCustom.length()==0) {
-              nativeOSNameCustom = nativeOSNamePure;
+            nativeOSNameCustom = nativeOSNamePure;
+            nativeWindowingTypeCustom = nativeWindowingTypePure;
+        } else {
+            nativeWindowingTypeCustom = nativeOSNameCustom;
         }
-        nativeWindowingTypePure = _getNativeWindowingType(nativeOSNamePure.toLowerCase());
-        nativeWindowingTypeCustom = _getNativeWindowingType(nativeOSNameCustom.toLowerCase());
 
         registeredFactories = Collections.synchronizedMap(new HashMap());
 

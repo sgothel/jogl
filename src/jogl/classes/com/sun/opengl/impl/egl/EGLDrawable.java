@@ -127,7 +127,7 @@ public abstract class EGLDrawable extends GLDrawableImpl {
                             eglConfig.updateGraphicsConfiguration();
                         }
                     } else {
-                        throw new GLException("EGLGraphicsConfiguration doesn't carry a EGLGraphicsDevice: "+aConfig);
+                        throw new GLException("EGLGraphicsDevice hold by non EGLGraphicsConfiguration: "+aConfig);
                     }
                 } else {
                     // create a new EGL config ..

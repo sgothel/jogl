@@ -31,9 +31,8 @@
  * 
  */
 
-package com.sun.javafx.newt.opengl.broadcom;
+package com.sun.javafx.newt.opengl.broadcom.egl;
 
-import com.sun.javafx.newt.*;
 import com.sun.javafx.newt.impl.*;
 import com.sun.opengl.impl.egl.*;
 import javax.media.nativewindow.*;
@@ -41,12 +40,12 @@ import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;
 import javax.media.nativewindow.NativeWindowException;
 
-public class BCEGLWindow extends Window {
+public class Window extends com.sun.javafx.newt.Window {
     static {
-        BCEGLDisplay.initSingleton();
+        Display.initSingleton();
     }
 
-    public BCEGLWindow() {
+    public Window() {
     }
 
     protected void createNative(long parentWindowHandle, Capabilities caps) {
@@ -88,10 +87,10 @@ public class BCEGLWindow extends Window {
     void setSizeImpl(int width, int height) {
         if(0!=windowHandle) {
             // n/a in BroadcomEGL
-            System.err.println("BCEGLWindow.setSizeImpl n/a in BroadcomEGL with realized window");
+            System.err.println("BCEGL Window.setSizeImpl n/a in BroadcomEGL with realized window");
         } else {
             if(DEBUG_IMPLEMENTATION) {
-                Exception e = new Exception("BCEGLWindow.setSizeImpl() "+this.width+"x"+this.height+" -> "+width+"x"+height);
+                Exception e = new Exception("BCEGL Window.setSizeImpl() "+this.width+"x"+this.height+" -> "+width+"x"+height);
                 e.printStackTrace();
             }
             this.width = width;
@@ -130,7 +129,7 @@ public class BCEGLWindow extends Window {
 
     private long realizeWindow(boolean chromaKey, int width, int height) {
         if(DEBUG_IMPLEMENTATION) {
-            System.out.println("BCEGLWindow.realizeWindow() with: chroma "+chromaKey+", "+width+"x"+height+", "+config);
+            System.out.println("BCEGL Window.realizeWindow() with: chroma "+chromaKey+", "+width+"x"+height+", "+config);
         }
         long handle = CreateWindow(getDisplayHandle(), chromaKey, width, height);
         if (0 == handle) {
@@ -149,7 +148,7 @@ public class BCEGLWindow extends Window {
             throw new NativeWindowException("Error creating EGLGraphicsConfiguration from id: "+cfgID+", "+this);
         }
         if(DEBUG_IMPLEMENTATION) {
-            System.out.println("BCEGLWindow.windowCreated(): 0x"+Integer.toHexString(cfgID)+", "+width+"x"+height+", "+config);
+            System.out.println("BCEGL Window.windowCreated(): 0x"+Integer.toHexString(cfgID)+", "+width+"x"+height+", "+config);
         }
     }
 
