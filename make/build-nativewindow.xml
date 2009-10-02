@@ -59,9 +59,6 @@
   <property name="gluegen.root" value="../../gluegen" />
   <import file="${gluegen.root}/make/gluegen-cpptasks.xml" />
 
-  <available file="${user.home}/nativewindow.compiler.xml" property="nwi.compiler.present"/>
-  <import file="${user.home}/nativewindow.compiler.xml" optional="true" />
-
     <!-- ================================================================== -->
     <!-- 
        - Base initialization and detection of operating system.
@@ -473,7 +470,7 @@
        - Compile the native C code for JOGL (and optionally the Cg binding).
       -->
 
-    <target name="c.configure.1" depends="gluegen.cpptasks.detect.os,gluegen.cpptasks.setup.compiler" unless="nativewindow.compiler.present">
+    <target name="c.configure.1" depends="gluegen.cpptasks.detect.os,gluegen.cpptasks.setup.compiler">
       <!-- compiler configuration -->
       <!-- Note that we can use the base setups in the gluegen-cpptasks for most of these -->
 

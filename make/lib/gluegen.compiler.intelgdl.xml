@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    This is an example of how to add custom compiler/linker arguments
+    for a crosscompiler and a custom NEWT windowing implementation.
+
+    You can use such files with setting the property 'gluegen.user.compiler.file', ie:
+
+        -Dgluegen.user.compiler.file=`pwd`/lib/gluegen.compiler.intelgdl.xml
+
+    or by having such file in your home directory, ie:
+
+            ~/gluegen.compiler.xml
+  -->
+      
+<project name="GlueGen-cpptasks" basedir=".">
+    <target name="gluegen.cpptasks.configure.compiler" depends="setup.java.home.dir">
+        <linker id="linker.cfg.linux" name="gcc">
+            <linkerarg value="-m32" />
+            <linkerarg value="-L/usr/lib" />
+            <linkerarg value="-L../../import/crossroots.intel-ce3100-x86-libs-1.0/nfsroot.intel-ce3110-x86-glibc/i686-linux-elf/lib" />
+            <syslibset dir="../../import/crossroots.intel-ce3100-x86-libs-1.0/nfsroot.intel-ce3110-x86-glibc/i686-linux-elf/lib" libs="gdl"/>
+            <syslibset dir="../../import/crossroots.intel-ce3100-x86-libs-1.0/nfsroot.intel-ce3110-x86-glibc/i686-linux-elf/lib" libs="srv_um"/>
+            <syslibset dir="../../import/crossroots.intel-ce3100-x86-libs-1.0/nfsroot.intel-ce3110-x86-glibc/i686-linux-elf/lib" libs="osal"/>
+            <syslibset dir="../../import/crossroots.intel-ce3100-x86-libs-1.0/nfsroot.intel-ce3110-x86-glibc/i686-linux-elf/lib" libs="GLESv2"/>
+            <syslibset dir="../../import/crossroots.intel-ce3100-x86-libs-1.0/nfsroot.intel-ce3110-x86-glibc/i686-linux-elf/lib" libs="IMGegl"/>
+            <syslibset dir="../../import/crossroots.intel-ce3100-x86-libs-1.0/nfsroot.intel-ce3110-x86-glibc/i686-linux-elf/lib" libs="EGL"/>
+            <syslibset dir="../../import/crossroots.intel-ce3100-x86-libs-1.0/nfsroot.intel-ce3110-x86-glibc/i686-linux-elf/lib" libs="GLES_CM"/>
+        </linker>
+        <linker id="linker.cfg.linux.amd64" name="gcc">
+            <linkerarg value="-L/usr/lib64" />
+            <linkerarg value="-L../../import/crossroots.intel-ce3100-x86-libs-1.0/nfsroot.intel-ce3110-x86-glibc/i686-linux-elf/lib" />
+            <syslibset dir="../../import/crossroots.intel-ce3100-x86-libs-1.0/nfsroot.intel-ce3110-x86-glibc/i686-linux-elf/lib" libs="gdl"/>
+            <syslibset dir="../../import/crossroots.intel-ce3100-x86-libs-1.0/nfsroot.intel-ce3110-x86-glibc/i686-linux-elf/lib" libs="srv_um"/>
+            <syslibset dir="../../import/crossroots.intel-ce3100-x86-libs-1.0/nfsroot.intel-ce3110-x86-glibc/i686-linux-elf/lib" libs="osal"/>
+            <syslibset dir="../../import/crossroots.intel-ce3100-x86-libs-1.0/nfsroot.intel-ce3110-x86-glibc/i686-linux-elf/lib" libs="GLESv2"/>
+            <syslibset dir="../../import/crossroots.intel-ce3100-x86-libs-1.0/nfsroot.intel-ce3110-x86-glibc/i686-linux-elf/lib" libs="IMGegl"/>
+            <syslibset dir="../../import/crossroots.intel-ce3100-x86-libs-1.0/nfsroot.intel-ce3110-x86-glibc/i686-linux-elf/lib" libs="EGL"/>
+            <syslibset dir="../../import/crossroots.intel-ce3100-x86-libs-1.0/nfsroot.intel-ce3110-x86-glibc/i686-linux-elf/lib" libs="GLES_CM"/>
+        </linker>
+    </target>
+</project>
