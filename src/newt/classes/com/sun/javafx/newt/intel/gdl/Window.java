@@ -89,28 +89,65 @@ public class Window extends com.sun.javafx.newt.Window {
     }
 
     public void setSize(int width, int height) {
+        Screen  screen = (Screen) getScreen();
+        if((x+width)>screen.getWidth()) {
+            width=screen.getWidth()-x;
+        }
+        if((y+height)>screen.getHeight()) {
+            height=screen.getHeight()-y;
+        }
+        this.width = width;
+        this.height = height;
+        if(!fullscreen) {
+            nfs_width=width;
+            nfs_height=height;
+        }
         if(0!=surfaceHandle) {
-            System.err.println("setSize "+width+"x"+height+" n/a in IntelGDL _after_ surface established");
-        } else {
-            Screen  screen = (Screen) getScreen();
-            if(width>screen.getWidth() || height>screen.getHeight()) {
-                width=screen.getWidth();
-                height=screen.getHeight();
-            }
-            this.width = width;
-            this.height = height;
+            SetBounds0(surfaceHandle, screen.getWidth(), screen.getHeight(), x, y, width, height);
         }
     }
 
     public void setPosition(int x, int y) {
-        // n/a in IntelGDL
-        System.err.println("setPosition n/a in IntelGDL");
+        Screen  screen = (Screen) getScreen();
+        if((x+width)>screen.getWidth()) {
+            x=screen.getWidth()-width;
+        }
+        if((y+height)>screen.getHeight()) {
+            y=screen.getHeight()-height;
+        }
+        this.x = x;
+        this.y = y;
+        if(!fullscreen) {
+            nfs_x=x;
+            nfs_y=y;
+        }
+        if(0!=surfaceHandle) {
+            SetBounds0(surfaceHandle, screen.getWidth(), screen.getHeight(), x, y, width, height);
+        }
     }
 
     public boolean setFullscreen(boolean fullscreen) {
-        // n/a in IntelGDL
-        System.err.println("setFullscreen n/a in IntelGDL");
-        return false;
+        if(this.fullscreen!=fullscreen) {
+            int x,y,w,h;
+            this.fullscreen=fullscreen;
+            if(fullscreen) {
+                x = 0; y = 0;
+                w = screen.getWidth();
+                h = screen.getHeight();
+            } else {
+                x = nfs_x;
+                y = nfs_y;
+                w = nfs_width;
+                h = nfs_height;
+            }
+            if(DEBUG_IMPLEMENTATION || DEBUG_WINDOW_EVENT) {
+                System.err.println("IntelGDL Window fs: "+fullscreen+" "+x+"/"+y+" "+w+"x"+h);
+            }
+            if(0!=surfaceHandle) {
+                SetBounds0(surfaceHandle, screen.getWidth(), screen.getHeight(), x, y, w, h);
+            }
+        }
+        return fullscreen;
     }
 
     public void requestFocus() {
@@ -126,9 +163,9 @@ public class Window extends com.sun.javafx.newt.Window {
     //
 
     protected static native boolean initIDs();
-    private        native long CreateSurface(long displayHandle, int width, int height);
+    private        native long CreateSurface(long displayHandle, int scrn_width, int scrn_height, int x, int y, int width, int height);
     private        native void CloseSurface(long displayHandle, long surfaceHandle);
-
+    private        native void SetBounds0(long surfaceHandle, int scrn_width, int scrn_height, int x, int y, int width, int height);
 
     private void updateBounds(int x, int y, int width, int height) {
         this.x = x;
@@ -138,4 +175,5 @@ public class Window extends com.sun.javafx.newt.Window {
     }
 
     private long   surfaceHandle;
+    private int nfs_width, nfs_height, nfs_x, nfs_y;
 }

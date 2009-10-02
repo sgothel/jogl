@@ -267,16 +267,16 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_intel_gdl_Window_CreateSurface
     DBG_PRINT("[CreateSurface: screen %dx%d, win %d/%d %dx%d plane %d]\n", 
         scr_width, scr_height, x, y, width, height, plane);
 
-    srcRect.origin.x = 0;
-    srcRect.origin.y = 0;
-    srcRect.width = scr_width;
-    srcRect.height = scr_height;
-
-    /** Overwrite - TEST - Check semantics of dstRect! */
+    /** Overwrite - TEST - Check semantics of dstRect!
     x = 0; 
     y = 0;
     width = scr_width;
-    height = scr_height;
+    height = scr_height; */
+
+    srcRect.origin.x = x;
+    srcRect.origin.y = y;
+    srcRect.width = width;
+    srcRect.height = height;
 
     dstRect.origin.x = x;
     dstRect.origin.y = y;
@@ -348,4 +348,55 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_intel_gdl_Window_CloseSurface
     DBG_PRINT("[CloseSurface] plane %d\n", plane);
 }
 
+JNIEXPORT void JNICALL Java_com_sun_javafx_newt_intel_gdl_Window_SetBounds0
+  (JNIEnv *env, jobject obj, jlong surface, jint scr_width, jint scr_height, jint x, jint y, jint width, jint height) {
+
+    gdl_plane_id_t plane = (gdl_plane_id_t) (intptr_t) surface ;
+    gdl_ret_t retval;
+    gdl_rectangle_t srcRect, dstRect;
+
+    (void) env;
+    (void) obj;
+    
+    DBG_PRINT("[SetBounds0: screen %dx%d, win %d/%d %dx%d plane %d]\n", 
+        scr_width, scr_height, x, y, width, height, plane);
+
+    srcRect.origin.x = x;
+    srcRect.origin.y = y;
+    srcRect.width = width;
+    srcRect.height = height;
+
+    dstRect.origin.x = x;
+    dstRect.origin.y = y;
+    dstRect.width = width;
+    dstRect.height = height;
+
+    retval = gdl_plane_config_begin(plane);
+    if (retval != GDL_SUCCESS) {
+        JNI_ThrowNew(env, "java/lang/IllegalStateException", "gdl_plane_config_begin");
+        return;
+    }
+
+    retval = gdl_plane_set_attr(GDL_PLANE_DST_RECT, &dstRect);
+    if (retval != GDL_SUCCESS) {
+        JNI_ThrowNew(env, "java/lang/IllegalStateException", "gdl_plane_set_attr dstRect");
+        return;
+    }
+
+    retval = gdl_plane_set_attr(GDL_PLANE_SRC_RECT, &srcRect);
+    if (retval != GDL_SUCCESS) {
+        JNI_ThrowNew(env, "java/lang/IllegalStateException", "gdl_plane_set_attr srcRect");
+        return;
+    }
+
+    retval = gdl_plane_config_end(GDL_FALSE);
+    if (retval != GDL_SUCCESS) {
+        JNI_ThrowNew(env, "java/lang/IllegalStateException", "gdl_plane_config_end");
+        return;
+    }
+
+    (*env)->CallVoidMethod(env, obj, updateBoundsID, (jint)x, (jint)y, (jint)width, (jint)height);
+
+    DBG_PRINT("[SetBounds0] returning plane %d\n", plane);
+}
 
