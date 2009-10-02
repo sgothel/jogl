@@ -78,14 +78,22 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     public boolean canCreateGLPbuffer() {
         return true;
     }
+    public GLDrawableImpl createGLPbufferDrawable(final GLCapabilities capabilities,
+                                   final GLCapabilitiesChooser chooser,
+                                   final int initialWidth,
+                                   final int initialHeight) {
+        return new EGLPbufferDrawable(this, capabilities, chooser,
+                                      initialWidth, initialHeight);
+    }
+
     public GLPbuffer createGLPbuffer(final GLCapabilities capabilities,
                                      final GLCapabilitiesChooser chooser,
                                      final int initialWidth,
                                      final int initialHeight,
                                      final GLContext shareWith) {
-        EGLPbufferDrawable pbufferDrawable = new EGLPbufferDrawable(this, capabilities, chooser,
-                                                                  initialWidth,
-                                                                  initialHeight);
+        GLDrawableImpl pbufferDrawable = createGLPbufferDrawable(
+                                            capabilities,
+                                            chooser, initialWidth, initialHeight);
         return new GLPbufferImpl(pbufferDrawable, shareWith);
     }
 

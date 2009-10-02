@@ -121,11 +121,10 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl implements 
     return canCreateGLPbuffer;
   }
 
-  public GLPbuffer createGLPbuffer(final GLCapabilities capabilities,
+  public GLDrawableImpl createGLPbufferDrawable(final GLCapabilities capabilities,
                                    final GLCapabilitiesChooser chooser,
                                    final int initialWidth,
-                                   final int initialHeight,
-                                   final GLContext shareWith) {
+                                   final int initialHeight) {
     if (!canCreateGLPbuffer()) {
       throw new GLException("Pbuffer support not available with current graphics card");
     }
@@ -143,13 +142,12 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl implements 
           WGLExt dummyWGLExt = dummyContext.getWGLExt();
           try {
             AbstractGraphicsScreen aScreen = DefaultGraphicsScreen.createDefault();
-            WindowsPbufferWGLDrawable pbufferDrawable = new WindowsPbufferWGLDrawable(factory, aScreen, capabilities, chooser,
-                                                                                    initialWidth,
-                                                                                    initialHeight,
-                                                                                    dummyDrawable,
-                                                                                    dummyWGLExt);
-            GLPbufferImpl pbuffer = new GLPbufferImpl(pbufferDrawable, shareWith);
-            returnList.add(pbuffer);
+            GLDrawableImpl pbufferDrawable = new WindowsPbufferWGLDrawable(factory, aScreen, capabilities, chooser,
+                                                                           initialWidth,
+                                                                           initialHeight,
+                                                                           dummyDrawable,
+                                                                           dummyWGLExt);
+            returnList.add(pbufferDrawable);
             dummyContext.release();
             dummyContext.destroy();
             dummyDrawable.destroy();
@@ -161,7 +159,17 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl implements 
         }
       };
     maybeDoSingleThreadedWorkaround(r);
-    return (GLPbuffer) returnList.get(0);
+    return (GLDrawableImpl) returnList.get(0);
+  }
+
+  public GLPbuffer createGLPbuffer(final GLCapabilities capabilities,
+                                   final GLCapabilitiesChooser chooser,
+                                   final int initialWidth,
+                                   final int initialHeight,
+                                   final GLContext shareWith) {
+    GLDrawableImpl pbufferDrawable = createGLPbufferDrawable(
+                                        capabilities, chooser, initialWidth, initialHeight);
+    return new GLPbufferImpl(pbufferDrawable, shareWith);
   }
 
   public GLContext createExternalGLContext() {

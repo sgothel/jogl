@@ -114,28 +114,25 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
     return canCreateGLPbuffer;
   }
 
+  public GLDrawableImpl createGLPbufferDrawable(final GLCapabilities capabilities,
+                                   final GLCapabilitiesChooser chooser,
+                                   final int initialWidth,
+                                   final int initialHeight) {
+    if (!canCreateGLPbuffer()) {
+      throw new GLException("Pbuffer support not available with current graphics card");
+    }
+    AbstractGraphicsScreen screen = X11GraphicsScreen.createDefault();
+    return new X11PbufferGLXDrawable(this, screen, capabilities, chooser,
+                                     initialWidth, initialHeight);
+  }
+
   public GLPbuffer createGLPbuffer(final GLCapabilities capabilities,
                                    final GLCapabilitiesChooser chooser,
                                    final int initialWidth,
                                    final int initialHeight,
                                    final GLContext shareWith) {
-    if (!canCreateGLPbuffer()) {
-      throw new GLException("Pbuffer support not available with current graphics card");
-    }
-    final List returnList = new ArrayList();
-    final GLDrawableFactory factory = this;
-    Runnable r = new Runnable() {
-        public void run() {
-          AbstractGraphicsScreen screen = X11GraphicsScreen.createDefault();
-          X11PbufferGLXDrawable pbufferDrawable = new X11PbufferGLXDrawable(factory, screen, capabilities, chooser,
-                                                                            initialWidth,
-                                                                            initialHeight);
-          GLPbufferImpl pbuffer = new GLPbufferImpl(pbufferDrawable, shareWith);
-          returnList.add(pbuffer);
-        }
-      };
-    maybeDoSingleThreadedWorkaround(r);
-    return (GLPbuffer) returnList.get(0);
+    GLDrawableImpl drawable = createGLPbufferDrawable( capabilities, chooser, initialWidth, initialHeight);
+    return new GLPbufferImpl(drawable, shareWith);
   }
 
   public GLContext createExternalGLContext() {
@@ -162,15 +159,6 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
       res = X11Lib.dlsym(glFuncName);
     }
     return res;
-  }
-
-  private void maybeDoSingleThreadedWorkaround(Runnable action) {
-    if (Threading.isSingleThreaded() &&
-        !Threading.isOpenGLThread()) {
-      Threading.invokeOnOpenGLThread(action);
-    } else {
-      action.run();
-    }
   }
 
   public boolean canCreateContextOnJava2DSurface() {

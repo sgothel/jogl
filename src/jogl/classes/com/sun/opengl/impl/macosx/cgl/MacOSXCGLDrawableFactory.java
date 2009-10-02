@@ -81,25 +81,22 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl implements D
     return true;
   }
 
+  public GLDrawableImpl createGLPbufferDrawable(GLCapabilities capabilities,
+                                   final GLCapabilitiesChooser chooser,
+                                   final int initialWidth,
+                                   final int initialHeight) {
+    AbstractGraphicsScreen screen = DefaultGraphicsScreen.createDefault();
+    return new MacOSXPbufferCGLDrawable(this, screen, capabilities, chooser,
+                                     initialWidth, initialHeight);
+  }
+
   public GLPbuffer createGLPbuffer(final GLCapabilities capabilities,
                                    final GLCapabilitiesChooser chooser,
                                    final int initialWidth,
                                    final int initialHeight,
                                    final GLContext shareWith) {
-    final List returnList = new ArrayList();
-    final GLDrawableFactory factory = this;
-    Runnable r = new Runnable() {
-        public void run() {
-          AbstractGraphicsScreen aScreen = DefaultGraphicsScreen.createDefault();
-          MacOSXPbufferCGLDrawable pbufferDrawable = new MacOSXPbufferCGLDrawable(factory, aScreen, capabilities, chooser,
-										initialWidth,
-										initialHeight);
-          GLPbufferImpl pbuffer = new GLPbufferImpl(pbufferDrawable, shareWith);
-          returnList.add(pbuffer);
-        }
-      };
-    maybeDoSingleThreadedWorkaround(r);
-    return (GLPbuffer) returnList.get(0);
+    GLDrawableImpl drawable = createGLPbufferDrawable( capabilities, chooser, initialWidth, initialHeight);
+    return new GLPbufferImpl(drawable, shareWith);
   }
 
   public GLContext createExternalGLContext() {
@@ -122,15 +119,6 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl implements D
 
   public long dynamicLookupFunction(String glFuncName) {
     return CGL.getProcAddress(glFuncName);
-  }
-
-  private void maybeDoSingleThreadedWorkaround(Runnable action) {
-    if (Threading.isSingleThreaded() &&
-        !Threading.isOpenGLThread()) {
-      Threading.invokeOnOpenGLThread(action);
-    } else {
-      action.run();
-    }
   }
 
   public boolean canCreateContextOnJava2DSurface() {

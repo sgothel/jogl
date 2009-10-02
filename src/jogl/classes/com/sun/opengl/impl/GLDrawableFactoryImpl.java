@@ -73,12 +73,10 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
     } else {
         if(caps.isPBuffer() && canCreateGLPbuffer()) {
             // PBUFFER
-            result = createGLPbuffer(caps,
+            result = createGLPbufferDrawable(caps,
                                      null /* GLCapabilitiesChooser */,
                                      target.getWidth(),
-                                     target.getHeight(),
-                                     null /* shareContext */ ) ;
-
+                                     target.getHeight());
         }
         if(null==result) {
             result = createOffscreenDrawable(caps,
@@ -92,6 +90,12 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
     }
     return result;
   }
+
+  /** Creates a (typically hw-accelerated) Pbuffer GLDrawable. */
+  public abstract GLDrawableImpl createGLPbufferDrawable(GLCapabilities capabilities,
+                                                         GLCapabilitiesChooser chooser,
+                                                         int initialWidth,
+                                                         int initialHeight);
 
   /** Creates a (typically software-accelerated) offscreen GLDrawable
       used to implement the fallback rendering path of the
