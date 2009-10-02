@@ -57,7 +57,7 @@
 #endif
 
 static jmethodID screenCreatedID = NULL;
-static jmethodID updateSizeID = NULL;
+static jmethodID updateBoundsID = NULL;
 
 #define NUM_PLANES 5
 static jobject newtWindows[NUM_PLANES] = { NULL, NULL, NULL, NULL, NULL } ;
@@ -237,8 +237,8 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_intel_gdl_Screen_GetScreenInfo
 JNIEXPORT jboolean JNICALL Java_com_sun_javafx_newt_intel_gdl_Window_initIDs
   (JNIEnv *env, jclass clazz)
 {
-    updateSizeID = (*env)->GetMethodID(env, clazz, "updateSize", "(II)V");
-    if (updateSizeID == NULL) {
+    updateBoundsID = (*env)->GetMethodID(env, clazz, "updateBounds", "(IIII)V");
+    if (updateBoundsID == NULL) {
         DBG_PRINT("initIDs failed\n" );
         return JNI_FALSE;
     }
@@ -247,7 +247,7 @@ JNIEXPORT jboolean JNICALL Java_com_sun_javafx_newt_intel_gdl_Window_initIDs
 }
 
 JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_intel_gdl_Window_CreateSurface
-  (JNIEnv *env, jobject obj, jlong displayHandle, jint width, jint height) {
+  (JNIEnv *env, jobject obj, jlong displayHandle, jint scr_width, jint scr_height, jint x, jint y, jint width, jint height) {
 
     gdl_driver_info_t * p_driver_info = (gdl_driver_info_t *) (intptr_t) displayHandle;
     gdl_ret_t retval;
@@ -264,15 +264,22 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_intel_gdl_Window_CreateSurface
         return 0;
     }
 
-    DBG_PRINT("[CreateSurface: width %d height %d plane %d]\n", width, height, plane);
+    DBG_PRINT("[CreateSurface: screen %dx%d, win %d/%d %dx%d plane %d]\n", 
+        scr_width, scr_height, x, y, width, height, plane);
 
     srcRect.origin.x = 0;
     srcRect.origin.y = 0;
-    srcRect.width = width;
-    srcRect.height = height;
+    srcRect.width = scr_width;
+    srcRect.height = scr_height;
 
-    dstRect.origin.x = 0;
-    dstRect.origin.y = 0;
+    /** Overwrite - TEST - Check semantics of dstRect! */
+    x = 0; 
+    y = 0;
+    width = scr_width;
+    height = scr_height;
+
+    dstRect.origin.x = x;
+    dstRect.origin.y = y;
     dstRect.width = width;
     dstRect.height = height;
 
@@ -325,7 +332,7 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_intel_gdl_Window_CreateSurface
         return (jlong)0;
     }
 
-    (*env)->CallVoidMethod(env, obj, updateSizeID, (jint)width, (jint)height);
+    (*env)->CallVoidMethod(env, obj, updateBoundsID, (jint)x, (jint)y, (jint)width, (jint)height);
 
     DBG_PRINT("[CreateSurface] returning plane %d\n", plane);
     

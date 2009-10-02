@@ -78,7 +78,7 @@ public class Window extends com.sun.javafx.newt.Window {
             if(visible && 0==surfaceHandle) {
                 synchronized(Window.class) {
                     AbstractGraphicsDevice aDevice = screen.getDisplay().getGraphicsDevice();
-                    surfaceHandle = CreateSurface(aDevice.getHandle(), width, height);
+                    surfaceHandle = CreateSurface(aDevice.getHandle(), screen.getWidth(), screen.getHeight(), x, y, width, height);
                 }
                 if (surfaceHandle == 0) {
                     throw new NativeWindowException("Error creating window");
@@ -117,6 +117,10 @@ public class Window extends com.sun.javafx.newt.Window {
         ((Display)screen.getDisplay()).setFocus(this);
     }
 
+    public long getSurfaceHandle() {
+        return surfaceHandle;
+    }
+
     //----------------------------------------------------------------------
     // Internals only
     //
@@ -126,7 +130,9 @@ public class Window extends com.sun.javafx.newt.Window {
     private        native void CloseSurface(long displayHandle, long surfaceHandle);
 
 
-    private void updateSize(int width, int height) {
+    private void updateBounds(int x, int y, int width, int height) {
+        this.x = x;
+        this.y = y;
         this.width = width;
         this.height = height;
     }
