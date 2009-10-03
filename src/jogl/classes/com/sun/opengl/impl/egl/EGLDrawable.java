@@ -83,6 +83,11 @@ public abstract class EGLDrawable extends GLDrawableImpl {
             if(EGL.EGL_NO_SURFACE!=eglSurface) {
                 EGL.eglDestroySurface(eglDisplay, eglSurface);
             }
+
+            if(DEBUG) {
+                System.err.println("createSurface using eglDisplay 0x"+Long.toHexString(eglDisplay)+", "+eglConfig);
+            }
+
             eglSurface = createSurface(eglDisplay, eglConfig.getNativeConfig());
 
             if(DEBUG) {

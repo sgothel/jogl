@@ -41,6 +41,7 @@ package javax.media.opengl;
 
 import javax.media.nativewindow.Capabilities;
 import javax.media.nativewindow.NativeWindowException;
+import com.sun.opengl.impl.Debug;
 
 /** <P> The default implementation of the {@link
     GLCapabilitiesChooser} interface, which provides consistent visual
@@ -81,7 +82,7 @@ import javax.media.nativewindow.NativeWindowException;
 */
 
 public class DefaultGLCapabilitiesChooser implements GLCapabilitiesChooser {
-  private static final boolean DEBUG = true; // FIXME: Debug.debug("DefaultGLCapabilitiesChooser");
+  private static final boolean DEBUG = Debug.debug("CapabilitiesChooser");
 
   public int chooseCapabilities(Capabilities desired,
                                 Capabilities[] available,
