@@ -284,7 +284,6 @@ public class GLPbufferImpl implements GLPbuffer {
   private DisplayAction displayAction = new DisplayAction();
 
   class SwapBuffersAction implements Runnable {
-    // FIXME: currently a no-op
     public void run() {
       pbufferDrawable.swapBuffers();
     }

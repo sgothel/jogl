@@ -87,7 +87,12 @@ public abstract class Window implements NativeWindow
 
     protected static Window create(String type, long parentWindowHandle, Screen screen, Capabilities caps, boolean undecorated) {
         try {
-            Class windowClass = getWindowClass(type);
+            Class windowClass;
+            if(caps.isOnscreen()) {
+                windowClass = getWindowClass(type);
+            } else {
+                windowClass = OffscreenWindow.class;
+            }
             Window window = (Window) windowClass.newInstance();
             window.invalidate();
             window.screen   = screen;
