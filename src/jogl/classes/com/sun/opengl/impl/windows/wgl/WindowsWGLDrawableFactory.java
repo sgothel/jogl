@@ -83,6 +83,8 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl implements 
                                                 int width,
                                                 int height) {
     AbstractGraphicsScreen aScreen = DefaultGraphicsScreen.createDefault();
+    capabilities.setOnscreen(false);
+    capabilities.setPBuffer(false);
     return new WindowsOffscreenWGLDrawable(this, aScreen, capabilities, chooser, width, height);
   }
 
@@ -128,6 +130,9 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl implements 
     if (!canCreateGLPbuffer()) {
       throw new GLException("Pbuffer support not available with current graphics card");
     }
+    capabilities.setOnscreen(false);
+    capabilities.setPBuffer(true);
+    final GLCapabilities caps = capabilities;
     final List returnList = new ArrayList();
     final GLDrawableFactory factory = this;
     Runnable r = new Runnable() {
@@ -142,7 +147,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl implements 
           WGLExt dummyWGLExt = dummyContext.getWGLExt();
           try {
             AbstractGraphicsScreen aScreen = DefaultGraphicsScreen.createDefault();
-            GLDrawableImpl pbufferDrawable = new WindowsPbufferWGLDrawable(factory, aScreen, capabilities, chooser,
+            GLDrawableImpl pbufferDrawable = new WindowsPbufferWGLDrawable(factory, aScreen, caps, chooser,
                                                                            initialWidth,
                                                                            initialHeight,
                                                                            dummyDrawable,

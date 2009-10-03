@@ -50,7 +50,6 @@ import com.sun.nativewindow.impl.x11.*;
 import com.sun.gluegen.runtime.ProcAddressTable;
 
 public abstract class X11GLXContext extends GLContextImpl {
-  protected X11GLXDrawable drawable;
   protected long context;
   private boolean glXQueryExtensionsStringInitialized;
   private boolean glXQueryExtensionsStringAvailable;
@@ -66,10 +65,14 @@ public abstract class X11GLXContext extends GLContextImpl {
     functionNameMap.put("glFreeMemoryNV", "glXFreeMemoryNV");
   }
 
-  public X11GLXContext(X11GLXDrawable drawable,
+  public X11GLXContext(GLDrawableImpl drawable, GLDrawableImpl drawableRead,
                       GLContext shareWith) {
-    super(drawable.getGLProfile(), shareWith);
-    this.drawable = drawable;
+    super(drawable, drawableRead, shareWith);
+  }
+
+  public X11GLXContext(GLDrawableImpl drawable,
+                      GLContext shareWith) {
+    this(drawable, null, shareWith);
   }
   
   public final ProcAddressTable getPlatformExtProcAddressTable() {
@@ -89,10 +92,6 @@ public abstract class X11GLXContext extends GLContextImpl {
       glXExt = new GLXExtImpl(this);
     }
     return glXExt;
-  }
-
-  public GLDrawable getGLDrawable() {
-    return drawable;
   }
 
   protected String mapToRealGLFunctionName(String glFunctionName) {
@@ -150,7 +149,7 @@ public abstract class X11GLXContext extends GLContextImpl {
         }
         if (!GLX.glXMakeContextCurrent(display,
                                        drawable.getNativeWindow().getSurfaceHandle(), 
-                                       drawable.getNativeWindow().getSurfaceHandle(), 
+                                       drawableRead.getNativeWindow().getSurfaceHandle(), 
                                        context)) {
           throw new GLException("Error making temp context (old2) current: display 0x"+Long.toHexString(display)+", context 0x"+Long.toHexString(context)+", drawable "+drawable);
         }
@@ -169,7 +168,7 @@ public abstract class X11GLXContext extends GLContextImpl {
         } else {
             if (!GLX.glXMakeContextCurrent(display,
                                            drawable.getNativeWindow().getSurfaceHandle(), 
-                                           drawable.getNativeWindow().getSurfaceHandle(), 
+                                           drawableRead.getNativeWindow().getSurfaceHandle(), 
                                            temp_context)) {
               throw new GLException("Error making temp context (old) current: display 0x"+Long.toHexString(display)+", context 0x"+Long.toHexString(context)+", drawable "+drawable);
             }
@@ -213,7 +212,7 @@ public abstract class X11GLXContext extends GLContextImpl {
                     if(0!=context) {
                         if (!GLX.glXMakeContextCurrent(display,
                                                        drawable.getNativeWindow().getSurfaceHandle(), 
-                                                       drawable.getNativeWindow().getSurfaceHandle(), 
+                                                       drawableRead.getNativeWindow().getSurfaceHandle(), 
                                                        context)) {
                             if(DEBUG) {
                               System.err.println("X11GLXContext.createContext couldn't make >= 3.2 core context current - fallback");
@@ -244,7 +243,7 @@ public abstract class X11GLXContext extends GLContextImpl {
                     if(0!=context) {
                         if (!GLX.glXMakeContextCurrent(display,
                                                        drawable.getNativeWindow().getSurfaceHandle(), 
-                                                       drawable.getNativeWindow().getSurfaceHandle(), 
+                                                       drawableRead.getNativeWindow().getSurfaceHandle(), 
                                                        context)) {
                             if(DEBUG) {
                               System.err.println("X11GLXContext.createContext couldn't make >= 3.0 core context current - fallback");
@@ -273,7 +272,7 @@ public abstract class X11GLXContext extends GLContextImpl {
                     context = temp_context;
                     if (!GLX.glXMakeContextCurrent(display,
                                                    drawable.getNativeWindow().getSurfaceHandle(), 
-                                                   drawable.getNativeWindow().getSurfaceHandle(), 
+                                                   drawableRead.getNativeWindow().getSurfaceHandle(), 
                                                    context)) {
                       GLX.glXMakeContextCurrent(display, 0, 0, 0);
                       GLX.glXDestroyContext(display, temp_context);
@@ -316,9 +315,10 @@ public abstract class X11GLXContext extends GLContextImpl {
         }
 
         if (GLX.glXGetCurrentContext() != context) {
+            
             if (!GLX.glXMakeContextCurrent(drawable.getNativeWindow().getDisplayHandle(), 
                                            drawable.getNativeWindow().getSurfaceHandle(), 
-                                           drawable.getNativeWindow().getSurfaceHandle(), 
+                                           drawableRead.getNativeWindow().getSurfaceHandle(), 
                                            context)) {
               throw new GLException("Error making context current");
             }
@@ -326,6 +326,7 @@ public abstract class X11GLXContext extends GLContextImpl {
               System.err.println(getThreadName() + ": glXMakeCurrent(display " + 
                                  toHexString(drawable.getNativeWindow().getDisplayHandle()) +
                                  ", drawable " + toHexString(drawable.getNativeWindow().getSurfaceHandle()) +
+                                 ", drawableRead " + toHexString(drawableRead.getNativeWindow().getSurfaceHandle()) +
                                  ", context " + toHexString(context) + ") succeeded");
             }
         }
@@ -402,6 +403,9 @@ public abstract class X11GLXContext extends GLContextImpl {
     if (DEBUG) {
       System.err.println(getThreadName() + ": !!! Initializing GLX extension address table");
     }
+    glXQueryExtensionsStringInitialized = false;
+    glXQueryExtensionsStringAvailable = false;
+
     if (glXExtProcAddressTable == null) {
       // FIXME: cache ProcAddressTables by capability bits so we can
       // share them among contexts with the same capabilities

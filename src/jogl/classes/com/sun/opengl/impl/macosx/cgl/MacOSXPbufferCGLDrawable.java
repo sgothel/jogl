@@ -88,7 +88,9 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
   }
   
   protected void swapBuffersImpl() {
-    // FIXME: do we need to do anything if the pbuffer is double-buffered?
+    if(DEBUG) {
+        System.err.println("unhandled swapBuffersImpl() called for: "+this);
+    }
   }
 
   private void createPbuffer() {

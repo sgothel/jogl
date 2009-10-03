@@ -73,9 +73,12 @@ public abstract class GLContextImpl extends GLContext {
   // repeated glGet calls upon glMapBuffer operations
   private GLBufferSizeTracker bufferSizeTracker;
 
+  protected GLDrawableImpl drawable;
+  protected GLDrawableImpl drawableRead;
+
   protected GL gl;
 
-  public GLContextImpl(GLProfile glp, GLContext shareWith) {
+  public GLContextImpl(GLDrawableImpl drawable, GLDrawableImpl drawableRead, GLContext shareWith) {
     extensionAvailability = new ExtensionAvailabilityCache(this);
     if (shareWith != null) {
       GLContextShareSet.registerSharing(this, shareWith);
@@ -83,7 +86,33 @@ public abstract class GLContextImpl extends GLContext {
     GLContextShareSet.registerForBufferObjectSharing(shareWith, this);
     // This must occur after the above calls into the
     // GLContextShareSet, which set up state needed by the GL object
-    setGL(createGL(glp));
+    setGL(createGL(drawable.getGLProfile()));
+
+    this.drawable = drawable;
+    setGLDrawableRead(drawableRead);
+  }
+
+  public GLContextImpl(GLDrawableImpl drawable, GLContext shareWith) {
+    this(drawable, null, shareWith);
+  }
+
+  public void setGLDrawableRead(GLDrawable read) {
+    boolean lockHeld = lock.isHeld();
+    if(lockHeld) {
+        release();
+    }
+    drawableRead = ( null != read ) ? (GLDrawableImpl) read : drawable;
+    if(lockHeld) {
+        makeCurrent();
+    }
+  }
+
+  public GLDrawable getGLDrawable() {
+    return drawable;
+  }
+
+  public GLDrawable getGLDrawableRead() {
+    return drawableRead;
   }
 
   public GLDrawableImpl getDrawableImpl() {

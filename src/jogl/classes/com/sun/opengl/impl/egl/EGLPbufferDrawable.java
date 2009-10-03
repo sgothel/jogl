@@ -118,6 +118,10 @@ public class EGLPbufferDrawable extends EGLDrawable {
         return new EGLPbufferContext(this, shareWith);
     }
 
-    protected void swapBuffersImpl() { }
+    protected void swapBuffersImpl() { 
+        if(DEBUG) {
+            System.err.println("unhandled swapBuffersImpl() called for: "+this);
+        }
+    }
 }
 

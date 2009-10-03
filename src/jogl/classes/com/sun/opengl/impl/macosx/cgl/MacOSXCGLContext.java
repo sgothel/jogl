@@ -48,7 +48,6 @@ import com.sun.gluegen.runtime.ProcAddressTable;
 
 public abstract class MacOSXCGLContext extends GLContextImpl
 {	
-  protected MacOSXCGLDrawable drawable;
   protected long nsContext;  // NSOpenGLContext
   protected long cglContext; // CGLContextObj
   private CGLExt cglExt;
@@ -56,13 +55,16 @@ public abstract class MacOSXCGLContext extends GLContextImpl
   // CGL extension functions.
   private CGLExtProcAddressTable cglExtProcAddressTable;
   
-  public MacOSXCGLContext(MacOSXCGLDrawable drawable,
-                         GLContext shareWith)
-  {
-    super(drawable.getGLProfile(), shareWith);
-    this.drawable = drawable;
+  public MacOSXCGLContext(GLDrawableImpl drawable, GLDrawableImpl drawableRead,
+                          GLContext shareWith) {
+    super(drawable, drawableRead, shareWith);
   }
-	
+
+  public MacOSXCGLContext(GLDrawableImpl drawable,
+                          GLContext shareWith) {
+    this(drawable, null, shareWith);
+  }
+  
   public Object getPlatformGLExtensions() {
     return getCGLExt();
   }
@@ -80,10 +82,6 @@ public abstract class MacOSXCGLContext extends GLContextImpl
 
   public final CGLExtProcAddressTable getCGLExtProcAddressTable() {
     return cglExtProcAddressTable;
-  }
-
-  public GLDrawable getGLDrawable() {
-    return drawable;
   }
 
   protected String mapToRealGLFunctionName(String glFunctionName)

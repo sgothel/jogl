@@ -55,36 +55,38 @@ public class WindowsWGLGraphicsConfigurationFactory extends GraphicsConfiguratio
                                                                      CapabilitiesChooser chooser,
                                                                      AbstractGraphicsScreen absScreen) {
         GLCapabilities caps = (GLCapabilities)capabilities;
-        return chooseGraphicsConfigurationStatic(caps, chooser, absScreen, caps.isOnscreen(), caps.isPBuffer());
+        return chooseGraphicsConfigurationStatic(caps, chooser, absScreen);
     }
 
     protected static WindowsWGLGraphicsConfiguration createDefaultGraphicsConfiguration(AbstractGraphicsScreen absScreen, boolean onscreen, boolean usePBuffer) {
         GLCapabilities caps = new GLCapabilities(null);
         caps.setOnscreen  (onscreen);
         caps.setPBuffer   (usePBuffer);
-        if(!onscreen) {
-            caps.setDoubleBuffered(false);
+
+        GLCapabilities caps2 = (GLCapabilities) caps.clone();
+        if(!caps2.isOnscreen()) {
+            // OFFSCREEN !DOUBLE_BUFFER
+            caps2.setDoubleBuffered(false);
         }
 
         if(null==absScreen) {
             absScreen = DefaultGraphicsScreen.createScreenDevice(0);
         }
-        return new WindowsWGLGraphicsConfiguration(absScreen, caps, caps, WindowsWGLGraphicsConfiguration.GLCapabilities2PFD(caps), -1, null);
+        return new WindowsWGLGraphicsConfiguration(absScreen, caps2, caps, WindowsWGLGraphicsConfiguration.GLCapabilities2PFD(caps2), -1, null);
     }
 
     protected static WindowsWGLGraphicsConfiguration chooseGraphicsConfigurationStatic(GLCapabilities caps,
                                                                                        CapabilitiesChooser chooser,
-                                                                                       AbstractGraphicsScreen absScreen, 
-                                                                                       boolean onscreen, boolean usePBuffer) {
+                                                                                       AbstractGraphicsScreen absScreen) {
         if(null==absScreen) {
             absScreen = DefaultGraphicsScreen.createScreenDevice(0);
         }
-        caps.setOnscreen  (onscreen);
-        caps.setPBuffer   (usePBuffer);
-        if(!onscreen) {
-            caps.setDoubleBuffered(false);
+        GLCapabilities caps2 = (GLCapabilities) caps.clone();
+        if(!caps2.isOnscreen()) {
+            // OFFSCREEN !DOUBLE_BUFFER
+            caps2.setDoubleBuffered(false);
         }
-        return new WindowsWGLGraphicsConfiguration(absScreen, caps, caps, WindowsWGLGraphicsConfiguration.GLCapabilities2PFD(caps), -1, 
+        return new WindowsWGLGraphicsConfiguration(absScreen, caps2, caps, WindowsWGLGraphicsConfiguration.GLCapabilities2PFD(caps2), -1, 
                                                    (GLCapabilitiesChooser)chooser);
     }
 

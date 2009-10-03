@@ -72,16 +72,20 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                                                   GLCapabilitiesChooser chooser,
                                                   int width,
                                                   int height) {
+        capabilities.setOnscreen(false);
+        capabilities.setPBuffer(false);
         throw new GLException("Not yet implemented");
     }
 
     public boolean canCreateGLPbuffer() {
         return true;
     }
-    public GLDrawableImpl createGLPbufferDrawable(final GLCapabilities capabilities,
+    public GLDrawableImpl createGLPbufferDrawable(GLCapabilities capabilities,
                                    final GLCapabilitiesChooser chooser,
                                    final int initialWidth,
                                    final int initialHeight) {
+        capabilities.setOnscreen(false);
+        capabilities.setPBuffer(true);
         return new EGLPbufferDrawable(this, capabilities, chooser,
                                       initialWidth, initialHeight);
     }

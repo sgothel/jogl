@@ -72,9 +72,14 @@ public abstract class GLDrawableImpl implements GLDrawable {
 
   public void swapBuffers() throws GLException {
     GLCapabilities caps = (GLCapabilities)component.getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities();
-    if (caps.getDoubleBuffered()) {
+    if ( caps.getDoubleBuffered() ) {
         if(!component.surfaceSwap()) {
             swapBuffersImpl();
+        }
+    } else {
+        GLContext ctx = GLContext.getCurrent();
+        if(ctx.getGLDrawable()==this) { 
+            ctx.getGL().glFinish();
         }
     }
     component.surfaceUpdated();

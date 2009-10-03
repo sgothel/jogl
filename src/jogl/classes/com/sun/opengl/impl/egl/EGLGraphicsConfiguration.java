@@ -73,7 +73,7 @@ public class EGLGraphicsConfiguration extends DefaultGraphicsConfiguration imple
         }
         GLProfile glp = capsRequested.getGLProfile();
         _EGLConfig _cfg = EGLConfigId2EGLConfig(glp, dpy, cfgID);
-        GLCapabilities caps = EGLConfig2Capabilities(glp, dpy, _cfg);
+        GLCapabilities caps = EGLConfig2Capabilities(glp, dpy, _cfg, capsRequested.isOnscreen(), capsRequested.isPBuffer());
         return new EGLGraphicsConfiguration(absScreen, caps, capsRequested, new DefaultGLCapabilitiesChooser(), _cfg, cfgID);
     }
 
@@ -116,7 +116,8 @@ public class EGLGraphicsConfiguration extends DefaultGraphicsConfiguration imple
         return configs[0];
     }
 
-    public static GLCapabilities EGLConfig2Capabilities(GLProfile glp, long display, _EGLConfig _config) {
+    public static GLCapabilities EGLConfig2Capabilities(GLProfile glp, long display, _EGLConfig _config, 
+                                                        boolean onscreen, boolean pbuffer) {
         GLCapabilities caps = new GLCapabilities(glp);
         int[] val = new int[1];
 
@@ -161,6 +162,9 @@ public class EGLGraphicsConfiguration extends DefaultGraphicsConfiguration imple
                 caps.setTransparentAlphaValue(val[0]==EGL.EGL_DONT_CARE?-1:val[0]);
             } */
         }
+        caps.setOnscreen(onscreen);
+        caps.setDoubleBuffered(onscreen);
+        caps.setPBuffer(pbuffer);
         return caps;
     }
 

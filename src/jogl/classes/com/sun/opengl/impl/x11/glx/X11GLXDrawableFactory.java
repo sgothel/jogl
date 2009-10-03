@@ -77,6 +77,8 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
                                                 int width,
                                                 int height) {
     AbstractGraphicsScreen screen = X11GraphicsScreen.createDefault();
+    capabilities.setOnscreen(false);
+    capabilities.setPBuffer(false);
     return new X11OffscreenGLXDrawable(this, screen, capabilities, chooser, width, height);
   }
 
@@ -114,13 +116,16 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
     return canCreateGLPbuffer;
   }
 
-  public GLDrawableImpl createGLPbufferDrawable(final GLCapabilities capabilities,
+  public GLDrawableImpl createGLPbufferDrawable(GLCapabilities capabilities,
                                    final GLCapabilitiesChooser chooser,
                                    final int initialWidth,
                                    final int initialHeight) {
     if (!canCreateGLPbuffer()) {
       throw new GLException("Pbuffer support not available with current graphics card");
     }
+
+    capabilities.setOnscreen(false);
+    capabilities.setPBuffer(true);
     AbstractGraphicsScreen screen = X11GraphicsScreen.createDefault();
     return new X11PbufferGLXDrawable(this, screen, capabilities, chooser,
                                      initialWidth, initialHeight);
@@ -131,7 +136,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
                                    final int initialWidth,
                                    final int initialHeight,
                                    final GLContext shareWith) {
-    GLDrawableImpl drawable = createGLPbufferDrawable( capabilities, chooser, initialWidth, initialHeight);
+    GLDrawableImpl drawable = createGLPbufferDrawable(capabilities, chooser, initialWidth, initialHeight);
     return new GLPbufferImpl(drawable, shareWith);
   }
 
@@ -159,6 +164,15 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
       res = X11Lib.dlsym(glFuncName);
     }
     return res;
+  }
+
+  private void maybeDoSingleThreadedWorkaround(Runnable action) {
+    if (Threading.isSingleThreaded() &&
+        !Threading.isOpenGLThread()) {
+      Threading.invokeOnOpenGLThread(action);
+    } else {
+      action.run();
+    }
   }
 
   public boolean canCreateContextOnJava2DSurface() {

@@ -53,7 +53,7 @@ public class X11OffscreenGLXDrawable extends X11GLXDrawable {
                                     GLCapabilitiesChooser chooser,
                                     int width,
                                     int height) {
-    super(factory, new NullWindow(X11GLXGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(caps, chooser, screen, false, false)), true);
+    super(factory, new NullWindow(X11GLXGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(caps, chooser, screen)), true);
     ((NullWindow) getNativeWindow()).setSize(width, height);
     create();
   }
@@ -134,5 +134,8 @@ public class X11OffscreenGLXDrawable extends X11GLXDrawable {
     }
   }
   protected void swapBuffersImpl() {
+    if(DEBUG) {
+        System.err.println("unhandled swapBuffersImpl() called for: "+this);
+    }
   }
 }

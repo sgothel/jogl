@@ -515,6 +515,10 @@ public class GLWindow extends Window implements GLAutoDrawable {
     }
 
     public void display() {
+        display(false);
+    }
+
+    public void display(boolean forceReshape) {
         if(getSurfaceHandle()!=0) {
             if(runPumpMessages) {
                 displayPumpMessage.run(window.getScreen().getDisplay());
@@ -526,6 +530,9 @@ public class GLWindow extends Window implements GLAutoDrawable {
                 destroy();
                 sendDestroy=false;
             } else {
+                if(forceReshape) {
+                    sendReshape = true;
+                }
                 helper.invokeGL(drawable, context, displayAction, initAction);
             }
         }

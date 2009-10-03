@@ -58,7 +58,7 @@ public class X11GLXGraphicsConfigurationFactory extends GraphicsConfigurationFac
     public AbstractGraphicsConfiguration chooseGraphicsConfiguration(Capabilities capabilities,
                                                                      CapabilitiesChooser chooser,
                                                                      AbstractGraphicsScreen absScreen) {
-        return chooseGraphicsConfigurationStatic(capabilities, chooser, absScreen, capabilities.isOnscreen(), false);
+        return chooseGraphicsConfigurationStatic(capabilities, chooser, absScreen);
     }
 
     protected static X11GLXGraphicsConfiguration createDefaultGraphicsConfiguration(AbstractGraphicsScreen absScreen, boolean onscreen, boolean usePBuffer) {
@@ -114,8 +114,7 @@ public class X11GLXGraphicsConfigurationFactory extends GraphicsConfigurationFac
 
     protected static X11GLXGraphicsConfiguration chooseGraphicsConfigurationStatic(Capabilities capabilities,
                                                                                    CapabilitiesChooser chooser,
-                                                                                   AbstractGraphicsScreen absScreen, 
-                                                                                   boolean onscreen, boolean usePBuffer) {
+                                                                                   AbstractGraphicsScreen absScreen) {
         if (absScreen == null) {
             throw new IllegalArgumentException("AbstractGraphicsScreen is null");
         }
@@ -138,21 +137,25 @@ public class X11GLXGraphicsConfigurationFactory extends GraphicsConfigurationFac
         if (capabilities == null) {
             capabilities = new GLCapabilities(null);
         }
-        capabilities.setOnscreen  (onscreen);
-        ((GLCapabilities)capabilities).setPBuffer   (usePBuffer);
-        if(!onscreen) {
-            ((GLCapabilities)capabilities).setDoubleBuffered(false);
+
+        boolean onscreen = capabilities.isOnscreen();
+        boolean usePBuffer = ((GLCapabilities)capabilities).isPBuffer();
+
+        GLCapabilities caps2 = (GLCapabilities) capabilities.clone();
+        if(!caps2.isOnscreen()) {
+            // OFFSCREEN !DOUBLE_BUFFER
+            caps2.setDoubleBuffered(false);
         }
     
         X11GLXGraphicsConfiguration res;
-        res = chooseGraphicsConfigurationFBConfig((GLCapabilities) capabilities,
+        res = chooseGraphicsConfigurationFBConfig((GLCapabilities) caps2,
                                                   (GLCapabilitiesChooser) chooser,
                                                   x11Screen);
         if(null==res) {
             if(usePBuffer) {
                 throw new GLException("Error: Couldn't create X11GLXGraphicsConfiguration based on FBConfig");
             }
-            res = chooseGraphicsConfigurationXVisual((GLCapabilities) capabilities,
+            res = chooseGraphicsConfigurationXVisual((GLCapabilities) caps2,
                                                      (GLCapabilitiesChooser) chooser,
                                                      x11Screen);
         }
@@ -160,7 +163,7 @@ public class X11GLXGraphicsConfigurationFactory extends GraphicsConfigurationFac
             throw new GLException("Error: Couldn't create X11GLXGraphicsConfiguration");
         }
         if(DEBUG) {
-            System.err.println("X11GLXGraphicsConfiguration.chooseGraphicsConfigurationStatic("+x11Screen+","+capabilities+", pbuffer "+usePBuffer+"): "+res);
+            System.err.println("X11GLXGraphicsConfiguration.chooseGraphicsConfigurationStatic("+x11Screen+","+caps2+"): "+res);
         }
         return res;
     }

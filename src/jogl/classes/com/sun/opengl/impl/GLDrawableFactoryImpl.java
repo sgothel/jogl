@@ -69,17 +69,28 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
         if(caps.isPBuffer()) {
             throw new IllegalArgumentException("Onscreen target can't be PBuffer: "+caps);
         }
+        if(DEBUG) {
+            System.out.println("GLDrawableFactoryImpl.createGLDrawable -> OnscreenDrawable: "+target);
+        }
         result = createOnscreenDrawable(target);
     } else {
-        if(caps.isPBuffer() && canCreateGLPbuffer()) {
-            // PBUFFER
-            result = createGLPbufferDrawable(caps,
+        GLCapabilities caps2 = (GLCapabilities) caps.clone();
+        // OFFSCREEN !DOUBLE_BUFFER
+        caps2.setDoubleBuffered(false);
+        if(caps2.isPBuffer() && canCreateGLPbuffer()) {
+            if(DEBUG) {
+                System.out.println("GLDrawableFactoryImpl.createGLDrawable -> PbufferDrawable: "+target);
+            }
+            result = createGLPbufferDrawable(caps2,
                                      chooser,
                                      target.getWidth(),
                                      target.getHeight());
         }
         if(null==result) {
-            result = createOffscreenDrawable(caps,
+            if(DEBUG) {
+                System.out.println("GLDrawableFactoryImpl.createGLDrawable -> OffScreenDrawable: "+target);
+            }
+            result = createOffscreenDrawable(caps2,
                                              chooser,
                                              target.getWidth(),
                                              target.getHeight());

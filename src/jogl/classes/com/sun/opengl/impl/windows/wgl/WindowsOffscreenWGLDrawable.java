@@ -54,7 +54,7 @@ public class WindowsOffscreenWGLDrawable extends WindowsWGLDrawable {
                                      GLCapabilitiesChooser chooser,
                                      int width,
                                      int height) {
-    super(factory, new NullWindow(WindowsWGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(requestedCapabilities, chooser, absScreen, false, false)), true);
+    super(factory, new NullWindow(WindowsWGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(requestedCapabilities, chooser, absScreen)), true);
     ((NullWindow) getNativeWindow()).setSize(width, height);
     create();
   }
@@ -128,6 +128,9 @@ public class WindowsOffscreenWGLDrawable extends WindowsWGLDrawable {
   }
 
   protected void swapBuffersImpl() {
+    if(DEBUG) {
+        System.err.println("unhandled swapBuffersImpl() called for: "+this);
+    }
   }
 
 }

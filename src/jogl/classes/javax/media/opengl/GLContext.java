@@ -74,6 +74,19 @@ public abstract class GLContext {
   public abstract GLDrawable getGLDrawable();
 
   /**
+   * Set the GLDrawable from which this context may be used to
+   * read.<br>
+   * If read is null, the default write drawable will be used.
+   */
+  public abstract void setGLDrawableRead(GLDrawable read);
+
+  /**
+   * Returns the GLDrawable from which this context may be used to
+   * read.
+   */
+  public abstract GLDrawable getGLDrawableRead();
+
+  /**
    * Makes this GLContext current on the calling thread.
    *
    * There are two return values that indicate success and one that
@@ -244,8 +257,21 @@ public abstract class GLContext {
    * Classname, GL, GLDrawable
    */
   public final String toString() {
-    return getClass().getName()+" ["+getGL()+
-           ",\n\tDrawable: "+ getGLDrawable()+"] ";
+    StringBuffer sb = new StringBuffer();
+    sb.append(getClass().getName());
+    sb.append(" [");
+    sb.append(getGL());
+    if(getGLDrawable()!=getGLDrawableRead()) {
+        sb.append(",\n\tDrawable Read : ");
+        sb.append(getGLDrawableRead());
+        sb.append(",\n\tDrawable Write: ");
+        sb.append(getGLDrawable());
+    } else {
+        sb.append(",\n\tDrawable Read/Write: ");
+        sb.append(getGLDrawable());
+    }
+    sb.append("] ");
+    return sb.toString();
   }
 
   /** Returns a non-null (but possibly empty) string containing the

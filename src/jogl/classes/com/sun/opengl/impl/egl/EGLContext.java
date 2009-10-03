@@ -43,7 +43,6 @@ import java.nio.*;
 import java.util.*;
 
 public abstract class EGLContext extends GLContextImpl {
-    protected EGLDrawable drawable;
     private long eglContext;
     private boolean eglQueryStringInitialized;
     private boolean eglQueryStringAvailable;
@@ -52,9 +51,14 @@ public abstract class EGLContext extends GLContextImpl {
     // EGL extension functions.
     private EGLExtProcAddressTable eglExtProcAddressTable;
 
-    public EGLContext(EGLDrawable drawable, GLContext shareWith) {
-        super(drawable.getGLProfile(), shareWith);
-        this.drawable = drawable;
+    public EGLContext(GLDrawableImpl drawable, GLDrawableImpl drawableRead,
+                      GLContext shareWith) {
+        super(drawable, drawableRead, shareWith);
+    }
+
+    public EGLContext(GLDrawableImpl drawable,
+                      GLContext shareWith) {
+        this(drawable, null, shareWith);
     }
 
     public Object getPlatformGLExtensions() {
@@ -76,10 +80,6 @@ public abstract class EGLContext extends GLContextImpl {
         return eglExtProcAddressTable;
     }
 
-    public GLDrawable getGLDrawable() {
-        return drawable;
-    }
-
     protected String mapToRealGLFunctionName(String glFunctionName) {
         return glFunctionName;
     }
@@ -93,7 +93,7 @@ public abstract class EGLContext extends GLContextImpl {
     }
 
     protected int makeCurrentImpl() throws GLException {
-        if(EGL.EGL_NO_DISPLAY==drawable.getDisplay() ) {
+        if(EGL.EGL_NO_DISPLAY==((EGLDrawable)drawable).getDisplay() ) {
             System.err.println("drawable not properly initialized");
             return CONTEXT_NOT_CURRENT;
         }
@@ -107,9 +107,9 @@ public abstract class EGLContext extends GLContextImpl {
             created = true;
         }
         if (EGL.eglGetCurrentContext() != eglContext) {
-            if (!EGL.eglMakeCurrent(drawable.getDisplay(),
-                                    drawable.getSurface(),
-                                    drawable.getSurface(),
+            if (!EGL.eglMakeCurrent(((EGLDrawable)drawable).getDisplay(),
+                                    ((EGLDrawable)drawable).getSurface(),
+                                    ((EGLDrawable)drawableRead).getSurface(),
                                     eglContext)) {
                 throw new GLException("Error making context 0x" +
                                       Long.toHexString(eglContext) + " current: error code " + EGL.eglGetError());
@@ -126,7 +126,7 @@ public abstract class EGLContext extends GLContextImpl {
     protected void releaseImpl() throws GLException {
       getDrawableImpl().getFactoryImpl().lockToolkit();
       try {
-          if (!EGL.eglMakeCurrent(drawable.getDisplay(),
+          if (!EGL.eglMakeCurrent(((EGLDrawable)drawable).getDisplay(),
                                   EGL.EGL_NO_SURFACE,
                                   EGL.EGL_NO_SURFACE,
                                   EGL.EGL_NO_CONTEXT)) {
@@ -142,7 +142,7 @@ public abstract class EGLContext extends GLContextImpl {
       getDrawableImpl().getFactoryImpl().lockToolkit();
       try {
           if (eglContext != 0) {
-              if (!EGL.eglDestroyContext(drawable.getDisplay(), eglContext)) {
+              if (!EGL.eglDestroyContext(((EGLDrawable)drawable).getDisplay(), eglContext)) {
                   throw new GLException("Error destroying OpenGL context 0x" +
                                         Long.toHexString(eglContext) + ": error code " + EGL.eglGetError());
               }
@@ -155,8 +155,8 @@ public abstract class EGLContext extends GLContextImpl {
     }
 
     protected void create() throws GLException {
-        long eglDisplay = drawable.getDisplay();
-        EGLGraphicsConfiguration config = drawable.getGraphicsConfiguration();
+        long eglDisplay = ((EGLDrawable)drawable).getDisplay();
+        EGLGraphicsConfiguration config = ((EGLDrawable)drawable).getGraphicsConfiguration();
         GLProfile glProfile = drawable.getGLProfile();
         _EGLConfig eglConfig = config.getNativeConfig();
         long shareWith = EGL.EGL_NO_CONTEXT;
@@ -207,12 +207,12 @@ public abstract class EGLContext extends GLContextImpl {
         if (DEBUG) {
             System.err.println(getThreadName() + ": !!! Created OpenGL context 0x" +
                                Long.toHexString(eglContext) + " for " + this +
-                               ", surface 0x" + Long.toHexString(drawable.getSurface()) +
+                               ", surface 0x" + Long.toHexString(((EGLDrawable)drawable).getSurface()) +
                                ", sharing with 0x" + Long.toHexString(shareWith));
         }
-        if (!EGL.eglMakeCurrent(drawable.getDisplay(),
-                                drawable.getSurface(),
-                                drawable.getSurface(),
+        if (!EGL.eglMakeCurrent(((EGLDrawable)drawable).getDisplay(),
+                                ((EGLDrawable)drawable).getSurface(),
+                                ((EGLDrawable)drawableRead).getSurface(),
                                 eglContext)) {
             throw new GLException("Error making context 0x" +
                                   Long.toHexString(eglContext) + " current: error code " + EGL.eglGetError());
@@ -228,6 +228,9 @@ public abstract class EGLContext extends GLContextImpl {
         if (DEBUG) {
           System.err.println(getThreadName() + ": !!! Initializing EGL extension address table");
         }
+        eglQueryStringInitialized = false;
+        eglQueryStringAvailable = false;
+
         if (eglExtProcAddressTable == null) {
           // FIXME: cache ProcAddressTables by capability bits so we can
           // share them among contexts with the same capabilities
@@ -247,7 +250,7 @@ public abstract class EGLContext extends GLContextImpl {
           GLDrawableFactoryImpl factory = getDrawableImpl().getFactoryImpl();
           factory.lockToolkit();
           try {
-            String ret = EGL.eglQueryString(drawable.getDisplay(), 
+            String ret = EGL.eglQueryString(((EGLDrawable)drawable).getDisplay(), 
                                             EGL.EGL_EXTENSIONS);
             if (DEBUG) {
               System.err.println("!!! EGL extensions: " + ret);
@@ -262,7 +265,7 @@ public abstract class EGLContext extends GLContextImpl {
     }
 
     protected void setSwapIntervalImpl(int interval) {
-        if (EGL.eglSwapInterval(drawable.getDisplay(), interval)) {
+        if (EGL.eglSwapInterval(((EGLDrawable)drawable).getDisplay(), interval)) {
             currentSwapInterval = interval ;
         }
     }

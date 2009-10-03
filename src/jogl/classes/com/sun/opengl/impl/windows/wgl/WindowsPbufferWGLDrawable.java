@@ -61,7 +61,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
                                    WindowsWGLDrawable dummyDrawable,
                                    WGLExt wglExt) {
     super(factory, new NullWindow(WindowsWGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(
-                                        requestedCapabilities, chooser, absScreen, false, true) ), true);
+                                        requestedCapabilities, chooser, absScreen) ), true);
     if (width <= 0 || height <= 0) {
       throw new GLException("Width and height of pbuffer must be positive (were (" +
 			    width + ", " + height + "))");
@@ -108,6 +108,9 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
   }
 
   protected void swapBuffersImpl() {
+    if(DEBUG) {
+        System.err.println("unhandled swapBuffersImpl() called for: "+this);
+    }
   }
 
   private void createPbuffer(long parentHdc, WGLExt wglExt) {
