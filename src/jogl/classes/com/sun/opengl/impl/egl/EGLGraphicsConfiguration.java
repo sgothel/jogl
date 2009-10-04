@@ -73,7 +73,7 @@ public class EGLGraphicsConfiguration extends DefaultGraphicsConfiguration imple
         }
         GLProfile glp = capsRequested.getGLProfile();
         _EGLConfig _cfg = EGLConfigId2EGLConfig(glp, dpy, cfgID);
-        GLCapabilities caps = EGLConfig2Capabilities(glp, dpy, _cfg, capsRequested.isOnscreen(), capsRequested.isPBuffer());
+        GLCapabilities caps = EGLConfig2Capabilities(glp, dpy, _cfg);
         return new EGLGraphicsConfiguration(absScreen, caps, capsRequested, new DefaultGLCapabilitiesChooser(), _cfg, cfgID);
     }
 
@@ -116,8 +116,7 @@ public class EGLGraphicsConfiguration extends DefaultGraphicsConfiguration imple
         return configs[0];
     }
 
-    public static GLCapabilities EGLConfig2Capabilities(GLProfile glp, long display, _EGLConfig _config, 
-                                                        boolean onscreen, boolean pbuffer) {
+    public static GLCapabilities EGLConfig2Capabilities(GLProfile glp, long display, _EGLConfig _config) {
         GLCapabilities caps = new GLCapabilities(glp);
         int[] val = new int[1];
 
@@ -162,27 +161,36 @@ public class EGLGraphicsConfiguration extends DefaultGraphicsConfiguration imple
                 caps.setTransparentAlphaValue(val[0]==EGL.EGL_DONT_CARE?-1:val[0]);
             } */
         }
-        caps.setOnscreen(onscreen);
-        caps.setDoubleBuffered(onscreen);
-        caps.setPBuffer(pbuffer);
+        if(EGL.eglGetConfigAttrib(display, _config, EGL.EGL_SURFACE_TYPE, val, 0)) {
+            switch(val[0]) {
+                case EGL.EGL_WINDOW_BIT:
+                    caps.setOnscreen(true);
+                    caps.setPBuffer(false);
+                    break;
+                case EGL.EGL_PBUFFER_BIT:
+                    caps.setOnscreen(false);
+                    caps.setPBuffer(true);
+                    break;
+                case EGL.EGL_PIXMAP_BIT:
+                    caps.setOnscreen(false);
+                    caps.setPBuffer(false);
+                    break;
+                default:
+                    throw new GLException("Invalid EGL_SURFACE_TYPE 0x"+Integer.toHexString(val[0]));
+            }
+        } else {
+            throw new GLException("Could not determine EGL_SURFACE_TYPE");
+        }
+
         return caps;
     }
 
-    public static int[] GLCapabilities2AttribList(GLCapabilities caps, int eglSurfaceType) {
+    public static int[] GLCapabilities2AttribList(GLCapabilities caps) {
         int[] attrs = new int[32];
         int idx=0;
 
-        switch(eglSurfaceType) {
-            case EGL.EGL_WINDOW_BIT:
-            case EGL.EGL_PBUFFER_BIT:
-            case EGL.EGL_PIXMAP_BIT:
-                break;
-            default:
-                throw new GLException("Invalid EGL_SURFACE_TYPE 0x"+Integer.toHexString(eglSurfaceType));
-        }
-
         attrs[idx++] = EGL.EGL_SURFACE_TYPE;
-        attrs[idx++] = eglSurfaceType;
+        attrs[idx++] = caps.isOnscreen() ? ( EGL.EGL_WINDOW_BIT ) : ( caps.isPBuffer() ? EGL.EGL_PBUFFER_BIT : EGL.EGL_PIXMAP_BIT ) ;
 
         attrs[idx++] = EGL.EGL_RED_SIZE;
         attrs[idx++] = caps.getRedBits();

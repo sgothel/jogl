@@ -82,6 +82,12 @@ public class EGLPbufferDrawable extends EGLDrawable {
     }
 
     protected static EGLGraphicsConfiguration createEGLGraphicsConfiguration(GLCapabilities caps, GLCapabilitiesChooser chooser) {
+        if(caps.isOnscreen()) {
+            throw new GLException("Error: Onscreen set: "+caps);
+        }
+        if(!caps.isPBuffer()) {
+            throw new GLException("Error: PBuffer not set: "+caps);
+        }
         long eglDisplay = EGL.eglGetDisplay(EGL.EGL_DEFAULT_DISPLAY);
         if (eglDisplay == EGL.EGL_NO_DISPLAY) {
             throw new GLException("Failed to created EGL default display: error 0x"+Integer.toHexString(EGL.eglGetError()));
@@ -93,7 +99,7 @@ public class EGLPbufferDrawable extends EGLDrawable {
         }
         EGLGraphicsDevice e = new EGLGraphicsDevice(eglDisplay);
         DefaultGraphicsScreen s = new DefaultGraphicsScreen(e, 0);
-        EGLGraphicsConfiguration eglConfig = EGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(caps, chooser, s, EGL.EGL_PBUFFER_BIT);
+        EGLGraphicsConfiguration eglConfig = EGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(caps, chooser, s);
         if (null == eglConfig) {
             EGL.eglTerminate(eglDisplay);
             throw new GLException("Couldn't create EGLGraphicsConfiguration from "+s);
