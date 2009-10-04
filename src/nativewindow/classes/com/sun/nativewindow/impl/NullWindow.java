@@ -96,7 +96,17 @@ public class NullWindow implements NativeWindow {
     return false;
   }
 
-  public void surfaceUpdated(Object updater) { }
+  NativeWindow upstreamNW = null;
+
+  public void setUpstreamNativeWindow(NativeWindow upstream) {
+    upstreamNW = upstream;
+  }
+
+  public void surfaceUpdated(Object updater, NativeWindow window, long when) { 
+    if(null!=upstreamNW) {
+        upstreamNW.surfaceUpdated(updater, upstreamNW, when);
+    }
+  }
 
   public long getDisplayHandle() {
     return displayHandle;
@@ -142,7 +152,8 @@ public class NullWindow implements NativeWindow {
     return "NullWindow[config "+config+
                 ", displayHandle 0x"+Long.toHexString(getDisplayHandle())+
                 ", surfaceHandle 0x"+Long.toHexString(getSurfaceHandle())+
-                ", size "+getWidth()+"x"+getHeight()+"]";
+                ", size "+getWidth()+"x"+getHeight()+
+                ", upstream "+upstreamNW+"]";
   }
 
 }

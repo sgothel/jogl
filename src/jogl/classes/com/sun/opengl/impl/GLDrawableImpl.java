@@ -82,7 +82,7 @@ public abstract class GLDrawableImpl implements GLDrawable {
             ctx.getGL().glFinish();
         }
     }
-    component.surfaceUpdated(this);
+    component.surfaceUpdated(this, component, System.currentTimeMillis());
   }
 
   protected abstract void swapBuffersImpl();

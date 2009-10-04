@@ -52,7 +52,7 @@ package javax.media.nativewindow;
     it, and any time it is visible and locked, provide information
     such as the window handle.
 */
-public interface NativeWindow {
+public interface NativeWindow extends SurfaceUpdatedListener {
   /** Returned by {@link #lockSurface()} if the surface is not ready to be locked. */
   public static final int LOCK_SURFACE_NOT_READY = 1;
 
@@ -122,15 +122,6 @@ public interface NativeWindow {
    *         implementation has to swap the code.
    */
   public boolean surfaceSwap();
-
-  /**
-   * Method invoked after the render toolkit (e.g. JOGL)
-   * swapped/changed the buffer/surface.
-   *
-   * @param updater is the caller object who updated the surface,
-   *                e.g. a JOGL GLDrawable.
-   */
-  public void surfaceUpdated(Object updater);
 
   /** 
    * render all native window information invalid,

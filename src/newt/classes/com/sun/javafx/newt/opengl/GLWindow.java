@@ -366,6 +366,19 @@ public class GLWindow extends Window implements GLAutoDrawable {
         return window.isFullscreen();
     }
 
+    public void addSurfaceUpdatedListener(SurfaceUpdatedListener l) {
+        window.addSurfaceUpdatedListener(l);
+    }
+    public void removeSurfaceUpdatedListener(SurfaceUpdatedListener l) {
+        window.removeSurfaceUpdatedListener(l);
+    }
+    public SurfaceUpdatedListener[] getSurfaceUpdatedListener() {
+        return window.getSurfaceUpdatedListener();
+    }
+    public void surfaceUpdated(Object updater, NativeWindow window0, long when) { 
+        window.surfaceUpdated(updater, window, when);
+    }
+
     public void addMouseListener(MouseListener l) {
         window.addMouseListener(l);
     }
@@ -403,7 +416,7 @@ public class GLWindow extends Window implements GLAutoDrawable {
     }
 
     public String toString() {
-        return "NEWT-GLWindow[ "+drawable+", \n\t"+window+", \n\t"+helper+", \n\t"+factory+"]";
+        return "NEWT-GLWindow[ \n\tDrawable: "+drawable+", \n\tWindow: "+window+", \n\tHelper: "+helper+", \n\tFactory: "+factory+"]";
     }
 
     //----------------------------------------------------------------------

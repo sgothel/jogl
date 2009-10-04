@@ -31,11 +31,9 @@
  * 
  */
 
-package com.sun.javafx.newt;
+package javax.media.nativewindow;
 
-import javax.media.nativewindow.NativeWindow;
-
-public interface SurfaceUpdatedListener extends EventListener {
+public interface SurfaceUpdatedListener {
     /** Notification of a surface update event. 
      *
      * @param updater is the caller object who updated the surface,

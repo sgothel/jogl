@@ -186,7 +186,7 @@ public abstract class Window implements NativeWindow
         for (Iterator iter = surfaceUpdatedListeners.iterator(); iter.hasNext(); ) {
           sb.append(iter.next()+", ");
         }
-        sb.append(", WindowListeners num "+windowListeners.size()+" [");
+        sb.append("], WindowListeners num "+windowListeners.size()+" [");
         for (Iterator iter = windowListeners.iterator(); iter.hasNext(); ) {
           sb.append(iter.next()+", ");
         }
@@ -488,16 +488,14 @@ public abstract class Window implements NativeWindow
         }
     }
 
-    public void surfaceUpdated(Object updater) {
-        long when = System.currentTimeMillis();
-
+    public void surfaceUpdated(Object updater, NativeWindow window, long when) { 
         ArrayList listeners = null;
         synchronized(surfaceUpdatedListeners) {
             listeners = surfaceUpdatedListeners;
         }
         for(Iterator i = listeners.iterator(); i.hasNext(); ) {
             SurfaceUpdatedListener l = (SurfaceUpdatedListener) i.next();
-            l.surfaceUpdated(updater, this, when);
+            l.surfaceUpdated(updater, window, when);
         }
     }
 

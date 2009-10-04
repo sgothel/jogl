@@ -44,6 +44,7 @@ import javax.media.nativewindow.*;
 import javax.media.opengl.*;
 import com.sun.gluegen.runtime.*;
 import com.sun.nativewindow.impl.NWReflection;
+import com.sun.nativewindow.impl.NullWindow;
 import java.lang.reflect.*;
 
 /** Extends GLDrawableFactory with a few methods for handling
@@ -57,43 +58,48 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
   //---------------------------------------------------------------------------
   // Dispatching GLDrawable construction in respect to the NativeWindow Capabilities
   //
-  public GLDrawable createGLDrawable(NativeWindow target, GLCapabilitiesChooser chooser) {
-    if (target == null) {
+  public GLDrawable createGLDrawable(NativeWindow target0, GLCapabilitiesChooser chooser) {
+    if (target0 == null) {
       throw new IllegalArgumentException("Null target");
     }
-    AbstractGraphicsConfiguration config = target.getGraphicsConfiguration().getNativeGraphicsConfiguration();
-    target = NativeWindowFactory.getNativeWindow(target, config);
-    GLCapabilities caps = (GLCapabilities) target.getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities();
+    AbstractGraphicsConfiguration config = target0.getGraphicsConfiguration().getNativeGraphicsConfiguration();
+    NativeWindow target1 = NativeWindowFactory.getNativeWindow(target0, config);
+    GLCapabilities caps = (GLCapabilities) target1.getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities();
     GLDrawable result = null;
     if(caps.isOnscreen()) {
         if(caps.isPBuffer()) {
             throw new IllegalArgumentException("Onscreen target can't be PBuffer: "+caps);
         }
         if(DEBUG) {
-            System.out.println("GLDrawableFactoryImpl.createGLDrawable -> OnscreenDrawable: "+target);
+            System.out.println("GLDrawableFactoryImpl.createGLDrawable -> OnscreenDrawable: "+target1);
         }
-        result = createOnscreenDrawable(target);
+        result = createOnscreenDrawable(target1);
     } else {
         GLCapabilities caps2 = (GLCapabilities) caps.clone();
         // OFFSCREEN !DOUBLE_BUFFER
         caps2.setDoubleBuffered(false);
         if(caps2.isPBuffer() && canCreateGLPbuffer()) {
             if(DEBUG) {
-                System.out.println("GLDrawableFactoryImpl.createGLDrawable -> PbufferDrawable: "+target);
+                System.out.println("GLDrawableFactoryImpl.createGLDrawable -> PbufferDrawable: "+target1);
             }
             result = createGLPbufferDrawable(caps2,
                                      chooser,
-                                     target.getWidth(),
-                                     target.getHeight());
+                                     target1.getWidth(),
+                                     target1.getHeight());
         }
         if(null==result) {
             if(DEBUG) {
-                System.out.println("GLDrawableFactoryImpl.createGLDrawable -> OffScreenDrawable: "+target);
+                System.out.println("GLDrawableFactoryImpl.createGLDrawable -> OffScreenDrawable: "+target1);
             }
             result = createOffscreenDrawable(caps2,
                                              chooser,
-                                             target.getWidth(),
-                                             target.getHeight());
+                                             target1.getWidth(),
+                                             target1.getHeight());
+        }
+        // Set upstream NativeWindow from caller to NullWindow for SurfaceUpdatedListener event
+        NativeWindow nw = result.getNativeWindow();
+        if(nw instanceof NullWindow) {
+            ((NullWindow)nw).setUpstreamNativeWindow(target0);
         }
     }
     if(DEBUG) {
