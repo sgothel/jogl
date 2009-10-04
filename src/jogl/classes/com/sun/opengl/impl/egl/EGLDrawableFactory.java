@@ -72,6 +72,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                                                   GLCapabilitiesChooser chooser,
                                                   int width,
                                                   int height) {
+        capabilities.setDoubleBuffered(false); // FIXME
         capabilities.setOnscreen(false);
         capabilities.setPBuffer(false);
         throw new GLException("Not yet implemented");
@@ -84,6 +85,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                                    final GLCapabilitiesChooser chooser,
                                    final int initialWidth,
                                    final int initialHeight) {
+        capabilities.setDoubleBuffered(false); // FIXME
         capabilities.setOnscreen(false);
         capabilities.setPBuffer(true);
         return new EGLPbufferDrawable(this, capabilities, chooser,

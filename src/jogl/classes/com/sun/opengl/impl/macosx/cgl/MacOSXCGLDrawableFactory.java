@@ -74,6 +74,7 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl implements D
                                                 int width,
                                                 int height) {
     AbstractGraphicsScreen aScreen = DefaultGraphicsScreen.createDefault();
+    capabilities.setDoubleBuffered(false); // FIXME
     capabilities.setOnscreen(false);
     capabilities.setPBuffer(false);
     return new MacOSXOffscreenCGLDrawable(this, aScreen, capabilities, chooser, width, height);
@@ -88,6 +89,7 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl implements D
                                    final int initialWidth,
                                    final int initialHeight) {
     AbstractGraphicsScreen screen = DefaultGraphicsScreen.createDefault();
+    capabilities.setDoubleBuffered(false); // FIXME
     capabilities.setOnscreen(false);
     capabilities.setPBuffer(true);
     return new MacOSXPbufferCGLDrawable(this, screen, capabilities, chooser,

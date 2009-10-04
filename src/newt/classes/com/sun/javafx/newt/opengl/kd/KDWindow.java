@@ -63,7 +63,7 @@ public class KDWindow extends Window {
         }
 
         GLCapabilities eglCaps = (GLCapabilities)config.getChosenCapabilities();
-        int[] eglAttribs = EGLGraphicsConfiguration.GLCapabilities2AttribList(eglCaps, EGL.EGL_WINDOW_BIT);
+        int[] eglAttribs = EGLGraphicsConfiguration.GLCapabilities2AttribList(eglCaps);
 
         windowHandle = 0;
         eglWindowHandle = CreateWindow(getDisplayHandle(), eglAttribs);

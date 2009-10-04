@@ -60,6 +60,7 @@ public class WindowsWGLGraphicsConfigurationFactory extends GraphicsConfiguratio
 
     protected static WindowsWGLGraphicsConfiguration createDefaultGraphicsConfiguration(AbstractGraphicsScreen absScreen, boolean onscreen, boolean usePBuffer) {
         GLCapabilities caps = new GLCapabilities(null);
+        caps.setDoubleBuffered(onscreen); // FIXME
         caps.setOnscreen  (onscreen);
         caps.setPBuffer   (usePBuffer);
 

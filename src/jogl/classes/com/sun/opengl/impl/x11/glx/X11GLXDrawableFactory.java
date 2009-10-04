@@ -77,6 +77,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
                                                 int width,
                                                 int height) {
     AbstractGraphicsScreen screen = X11GraphicsScreen.createDefault();
+    capabilities.setDoubleBuffered(false); // FIXME
     capabilities.setOnscreen(false);
     capabilities.setPBuffer(false);
     return new X11OffscreenGLXDrawable(this, screen, capabilities, chooser, width, height);
@@ -124,6 +125,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
       throw new GLException("Pbuffer support not available with current graphics card");
     }
 
+    capabilities.setDoubleBuffered(false); // FIXME
     capabilities.setOnscreen(false);
     capabilities.setPBuffer(true);
     AbstractGraphicsScreen screen = X11GraphicsScreen.createDefault();

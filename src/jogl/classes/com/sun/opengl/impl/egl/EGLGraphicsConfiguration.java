@@ -164,14 +164,17 @@ public class EGLGraphicsConfiguration extends DefaultGraphicsConfiguration imple
         if(EGL.eglGetConfigAttrib(display, _config, EGL.EGL_SURFACE_TYPE, val, 0)) {
             switch(val[0]) {
                 case EGL.EGL_WINDOW_BIT:
+                    caps.setDoubleBuffered(true);
                     caps.setOnscreen(true);
                     caps.setPBuffer(false);
                     break;
                 case EGL.EGL_PBUFFER_BIT:
+                    caps.setDoubleBuffered(false);
                     caps.setOnscreen(false);
                     caps.setPBuffer(true);
                     break;
                 case EGL.EGL_PIXMAP_BIT:
+                    caps.setDoubleBuffered(false);
                     caps.setOnscreen(false);
                     caps.setPBuffer(false);
                     break;
