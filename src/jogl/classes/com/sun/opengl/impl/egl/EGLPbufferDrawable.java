@@ -46,7 +46,6 @@ import com.sun.opengl.impl.*;
 import com.sun.nativewindow.impl.NullWindow;
 
 public class EGLPbufferDrawable extends EGLDrawable {
-    private int width, height;
     private int texFormat;
     protected static final boolean useTexture = false; // No yet ..
 
@@ -63,8 +62,6 @@ public class EGLPbufferDrawable extends EGLDrawable {
         // get choosen ones ..
         caps = (GLCapabilities) getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities();
 
-        this.width=width;
-        this.height=height;
         if(useTexture) {
             this.texFormat = caps.getAlphaBits() > 0 ? EGL.EGL_TEXTURE_RGBA : EGL.EGL_TEXTURE_RGB ;
         } else {
@@ -110,13 +107,15 @@ public class EGLPbufferDrawable extends EGLDrawable {
     }
 
     protected long createSurface(long eglDpy, _EGLConfig eglNativeCfg, long surfaceHandle) {
-        int[] attrs = EGLGraphicsConfiguration.CreatePBufferSurfaceAttribList(width, height, texFormat);
+        NullWindow nw = (NullWindow) getNativeWindow();
+        int[] attrs = EGLGraphicsConfiguration.CreatePBufferSurfaceAttribList(nw.getWidth(), nw.getHeight(), texFormat);
         long surf = EGL.eglCreatePbufferSurface(eglDpy, eglNativeCfg, attrs, 0);
         if (EGL.EGL_NO_SURFACE==surf) {
-            throw new GLException("Creation of window surface (eglCreatePbufferSurface) failed, dim "+width+"x"+height+", error 0x"+Integer.toHexString(EGL.eglGetError()));
+            throw new GLException("Creation of window surface (eglCreatePbufferSurface) failed, dim "+nw.getWidth()+"x"+nw.getHeight()+", error 0x"+Integer.toHexString(EGL.eglGetError()));
         } else if(DEBUG) {
             System.err.println("setSurface result: eglSurface 0x"+Long.toHexString(surf));
         }
+        nw.setSurfaceHandle(surf);
         return surf;
     }
 

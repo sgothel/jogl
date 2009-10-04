@@ -143,7 +143,7 @@ public abstract class EGLDrawable extends GLDrawableImpl {
                     // EGLSurface is ours ..
                     ownEGLSurface=true;
 
-                    long nDisplay;
+                    long nDisplay=0;
                     if( NativeWindowFactory.TYPE_WINDOWS.equals(NativeWindowFactory.getNativeWindowType(false)) ) {
                         nDisplay = component.getSurfaceHandle(); // don't even ask ..
                     } else {
@@ -225,10 +225,12 @@ public abstract class EGLDrawable extends GLDrawableImpl {
     }
 
     public String toString() {
-        return "EGLDrawable[ realized "+getRealized()+
-                           ", window "+getNativeWindow()+
-                           ", egl surface " + eglSurface +
-                           ", "+eglConfig+
-                           ", factory "+getFactory()+"]";
+        return getClass().getName()+"[realized "+getRealized()+
+                    ",\n\tfactory    "+getFactory()+
+                    ",\n\twindow     "+getNativeWindow()+
+                    ",\n\teglSurface  0x"+Long.toHexString(eglSurface)+
+                    ",\n\teglConfig  "+eglConfig+
+                    ",\n\trequested  "+getRequestedGLCapabilities()+
+                    ",\n\tchosen     "+getChosenGLCapabilities()+"]";
     }
 }

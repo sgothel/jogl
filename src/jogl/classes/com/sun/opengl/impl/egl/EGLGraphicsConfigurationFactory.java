@@ -124,7 +124,8 @@ public class EGLGraphicsConfigurationFactory extends GraphicsConfigurationFactor
         if (numConfigs[0] == 0) {
             throw new GLException("Graphics configuration fetch (eglGetConfigs) - no EGLConfig found");
         }
-        GLCapabilities[] caps = eglConfigs2GLCaps(glp, eglDisplay, configs, numConfigs[0]);
+        GLCapabilities[] caps = eglConfigs2GLCaps(glp, eglDisplay, configs, numConfigs[0],
+                                                    caps2.isOnscreen(), caps2.isPBuffer());
         if(DEBUG) {
             System.err.println("EGL Get Configs: "+numConfigs[0]+", Caps "+caps.length);
             printCaps("eglGetConfigs", caps, System.err);
@@ -214,7 +215,8 @@ public class EGLGraphicsConfigurationFactory extends GraphicsConfigurationFactor
         }
         if (numConfigs[0] > 0) {
             if(DEBUG) {
-                GLCapabilities[] caps = eglConfigs2GLCaps(glp, eglDisplay, configs, numConfigs[0]);
+                GLCapabilities[] caps = eglConfigs2GLCaps(glp, eglDisplay, configs, numConfigs[0],
+                                                    capsChosen0.isOnscreen(), capsChosen0.isPBuffer());
                 System.err.println("EGL Choose Configs: "+numConfigs[0]+", Caps "+caps.length);
                 printCaps("eglChooseConfig", caps, System.err);
             }
@@ -227,7 +229,8 @@ public class EGLGraphicsConfigurationFactory extends GraphicsConfigurationFactor
                 }
                 val[0]=0;
             }
-            GLCapabilities capsChosen1 = EGLGraphicsConfiguration.EGLConfig2Capabilities(glp, eglDisplay, configs[0]);
+            GLCapabilities capsChosen1 = EGLGraphicsConfiguration.EGLConfig2Capabilities(glp, eglDisplay, configs[0],
+                                                                    false, capsChosen0.isOnscreen(), capsChosen0.isPBuffer());
             if(DEBUG) {
                 System.err.println("eglChooseConfig found: eglDisplay 0x"+Long.toHexString(eglDisplay)+
                                                                         ", eglConfig ID 0x"+Integer.toHexString(val[0])+
@@ -244,10 +247,12 @@ public class EGLGraphicsConfigurationFactory extends GraphicsConfigurationFactor
         return null;
     }
 
-    protected static GLCapabilities[] eglConfigs2GLCaps(GLProfile glp, long eglDisplay, _EGLConfig[] configs, int num) {
+    protected static GLCapabilities[] eglConfigs2GLCaps(GLProfile glp, long eglDisplay, _EGLConfig[] configs, int num,
+                                                        boolean onscreen, boolean usePBuffer) {
         GLCapabilities[] caps = new GLCapabilities[num];
         for(int i=0; i<num; i++) {
-            caps[i] = EGLGraphicsConfiguration.EGLConfig2Capabilities(glp, eglDisplay, configs[i]);
+            caps[i] = EGLGraphicsConfiguration.EGLConfig2Capabilities(glp, eglDisplay, configs[i],
+                                            true, onscreen, usePBuffer);
         }
         return caps;
     }
