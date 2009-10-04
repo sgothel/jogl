@@ -179,17 +179,14 @@ public class Texture {
     private static final boolean disableTexRect = Debug.isPropertyDefined("jogl.texture.notexrect", true, localACC);
 
     public Texture(TextureData data) throws GLException {
-        GL gl = GLContext.getCurrentGL();
-        texID = createTextureID(gl); 
-
+        texID = 0;
         updateImage(data);
     }
 
     // Constructor for use when creating e.g. cube maps, where there is
     // no initial texture data
     public Texture(int target) throws GLException {
-        GL gl = GLContext.getCurrentGL();
-        texID = createTextureID(gl); 
+        texID = 0;
         this.target = target;
     }
 
@@ -260,6 +257,7 @@ public class Texture {
      * OpenGL-related errors occurred
      */
     public void bind() throws GLException {
+        validateTexID(null, true);
         GLContext.getCurrentGL().glBindTexture(target, texID); 
     }
 
@@ -290,8 +288,10 @@ public class Texture {
      * @throws GLException if any OpenGL-related errors occurred
      */
     public void destroy(GL gl) throws GLException {
-        gl.glDeleteTextures(1, new int[] {texID}, 0);
-        texID = 0;
+        if(0<texID) {
+            gl.glDeleteTextures(1, new int[] {texID}, 0);
+            texID = 0;
+        }
     }
 
     /**
@@ -443,6 +443,7 @@ public class Texture {
      */
     public void updateImage(TextureData data, int target) throws GLException {
         GL gl = GLContext.getCurrentGL();
+        validateTexID(gl, true);
 
         imgWidth = data.getWidth();
         imgHeight = data.getHeight();
@@ -855,6 +856,7 @@ public class Texture {
      * handled automatically by the bind() and dispose() APIs.
      */
     public int getTextureObject() {
+        validateTexID(null, false);
         return texID;
     }
 
@@ -1071,16 +1073,22 @@ public class Texture {
         }
     }
 
-    /**
-     * Creates a new texture ID.
-     *
-     * @param gl the GL object associated with the current OpenGL context
-     * @return a new texture ID
-     */
-    private static int createTextureID(GL gl) {
-        int[] tmp = new int[1];
-        gl.glGenTextures(1, tmp, 0);
-        return tmp[0];
+    private void validateTexID(GL gl, boolean throwException) {
+        if( 0 < texID ) return;
+        if(null==gl) {
+            GLContext ctx = GLContext.getCurrent();
+            if(null!=ctx) {
+                gl = ctx.getGL();
+            } else if(throwException) {
+                throw new GLException("No context current, can't create texture ID");
+            }
+        }
+
+        if(null!=gl) {
+            int[] tmp = new int[1];
+            gl.glGenTextures(1, tmp, 0);
+            texID = tmp[0];
+        }
     }
 
     // Helper routines for disabling certain codepaths
