@@ -33,12 +33,16 @@
 
 package com.sun.javafx.newt;
 
-public interface EventListener
-{
-    public static final int WINDOW  = 1 << 0;
-    public static final int MOUSE   = 1 << 1;
-    public static final int KEY     = 1 << 2;
-    public static final int SURFACE = 1 << 3;
+import javax.media.nativewindow.NativeWindow;
 
+public interface SurfaceUpdatedListener extends EventListener {
+    /** Notification of a surface update event. 
+     *
+     * @param updater is the caller object who updated the surface,
+     *                e.g. a JOGL GLDrawable.
+     * @param window  the NativeWindow, which surface is updated
+     * @param when    the time in ms, when the surface was updated
+     */
+    public void surfaceUpdated(Object updater, NativeWindow window, long when) ;
 }
 

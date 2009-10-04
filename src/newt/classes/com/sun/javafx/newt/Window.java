@@ -182,6 +182,10 @@ public abstract class Window implements NativeWindow
                     ", "+screen+
                     ", wrappedWindow "+getWrappedWindow());
 
+        sb.append(", SurfaceUpdatedListeners num "+surfaceUpdatedListeners.size()+" [");
+        for (Iterator iter = surfaceUpdatedListeners.iterator(); iter.hasNext(); ) {
+          sb.append(iter.next()+", ");
+        }
         sb.append(", WindowListeners num "+windowListeners.size()+" [");
         for (Iterator iter = windowListeners.iterator(); iter.hasNext(); ) {
           sb.append(iter.next()+", ");
@@ -267,6 +271,9 @@ public abstract class Window implements NativeWindow
         if(DEBUG_WINDOW_EVENT) {
             System.out.println("Window.destroy() start "+Thread.currentThread().getName());
         }
+        synchronized(surfaceUpdatedListeners) {
+            surfaceUpdatedListeners = new ArrayList();
+        }
         synchronized(windowListeners) {
             windowListeners = new ArrayList();
         }
@@ -304,8 +311,6 @@ public abstract class Window implements NativeWindow
     public boolean surfaceSwap() { 
         return false;
     }
-
-    public void surfaceUpdated() {}
 
     protected void clearEventMask() {
         eventMask=0;
@@ -449,6 +454,52 @@ public abstract class Window implements NativeWindow
      */
     public abstract void    setPosition(int x, int y);
     public abstract boolean setFullscreen(boolean fullscreen);
+
+    //
+    // SurfaceUpdatedListener Support
+    //
+    private ArrayList surfaceUpdatedListeners = new ArrayList();
+
+    public void addSurfaceUpdatedListener(SurfaceUpdatedListener l) {
+        if(l == null) {
+            return;
+        }
+        synchronized(surfaceUpdatedListeners) {
+            ArrayList newSurfaceUpdatedListeners = (ArrayList) surfaceUpdatedListeners.clone();
+            newSurfaceUpdatedListeners.add(l);
+            surfaceUpdatedListeners = newSurfaceUpdatedListeners;
+        }
+    }
+
+    public void removeSurfaceUpdatedListener(SurfaceUpdatedListener l) {
+        if (l == null) {
+            return;
+        }
+        synchronized(surfaceUpdatedListeners) {
+            ArrayList newSurfaceUpdatedListeners = (ArrayList) surfaceUpdatedListeners.clone();
+            newSurfaceUpdatedListeners.remove(l);
+            surfaceUpdatedListeners = newSurfaceUpdatedListeners;
+        }
+    }
+
+    public SurfaceUpdatedListener[] getSurfaceUpdatedListener() {
+        synchronized(surfaceUpdatedListeners) {
+            return (SurfaceUpdatedListener[]) surfaceUpdatedListeners.toArray();
+        }
+    }
+
+    public void surfaceUpdated(Object updater) {
+        long when = System.currentTimeMillis();
+
+        ArrayList listeners = null;
+        synchronized(surfaceUpdatedListeners) {
+            listeners = surfaceUpdatedListeners;
+        }
+        for(Iterator i = listeners.iterator(); i.hasNext(); ) {
+            SurfaceUpdatedListener l = (SurfaceUpdatedListener) i.next();
+            l.surfaceUpdated(updater, this, when);
+        }
+    }
 
     //
     // MouseListener Support
@@ -805,5 +856,4 @@ public abstract class Window implements NativeWindow
         }
         return sb.toString();
     }
-
 }

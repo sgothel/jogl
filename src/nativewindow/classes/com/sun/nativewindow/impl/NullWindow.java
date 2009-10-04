@@ -96,7 +96,7 @@ public class NullWindow implements NativeWindow {
     return false;
   }
 
-  public void surfaceUpdated() { }
+  public void surfaceUpdated(Object updater) { }
 
   public long getDisplayHandle() {
     return displayHandle;

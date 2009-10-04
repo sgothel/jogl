@@ -129,7 +129,7 @@ public abstract class JAWTWindow implements NativeWindow {
     return false;
   }
 
-  public void surfaceUpdated() { }
+  public void surfaceUpdated(Object updater) { }
 
   public long getDisplayHandle() {
     return config.getScreen().getDevice().getHandle();

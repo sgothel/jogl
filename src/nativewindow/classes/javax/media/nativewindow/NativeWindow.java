@@ -126,8 +126,11 @@ public interface NativeWindow {
   /**
    * Method invoked after the render toolkit (e.g. JOGL)
    * swapped/changed the buffer/surface.
+   *
+   * @param updater is the caller object who updated the surface,
+   *                e.g. a JOGL GLDrawable.
    */
-  public void    surfaceUpdated();
+  public void surfaceUpdated(Object updater);
 
   /** 
    * render all native window information invalid,
@@ -199,4 +202,5 @@ public interface NativeWindow {
    *   AbstractGraphicsConfiguration . AbstractGraphicsScreen
    */
   public int  getScreenIndex();
+
 }

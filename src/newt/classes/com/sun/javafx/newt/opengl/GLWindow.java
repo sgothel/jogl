@@ -667,14 +667,6 @@ public class GLWindow extends Window implements GLAutoDrawable {
         return super.surfaceSwap();
     }
 
-    public void surfaceUpdated() {
-        if(null!=drawable) {
-            drawable.getNativeWindow().surfaceUpdated();
-        } else {
-            super.surfaceUpdated();
-        }
-    }
-
     public long getWindowHandle() {
         if(null!=drawable) return drawable.getNativeWindow().getWindowHandle();
         return super.getWindowHandle();
