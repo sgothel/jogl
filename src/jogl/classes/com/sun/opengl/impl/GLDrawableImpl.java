@@ -78,7 +78,7 @@ public abstract class GLDrawableImpl implements GLDrawable {
         }
     } else {
         GLContext ctx = GLContext.getCurrent();
-        if(ctx.getGLDrawable()==this) { 
+        if(null!=ctx && ctx.getGLDrawable()==this) { 
             ctx.getGL().glFinish();
         }
     }
