@@ -206,9 +206,11 @@ public abstract class EGLContext extends GLContextImpl {
         GLContextShareSet.contextCreated(this);
         if (DEBUG) {
             System.err.println(getThreadName() + ": !!! Created OpenGL context 0x" +
-                               Long.toHexString(eglContext) + " for " + this +
-                               ", surface 0x" + Long.toHexString(((EGLDrawable)drawable).getSurface()) +
-                               ", sharing with 0x" + Long.toHexString(shareWith));
+                               Long.toHexString(eglContext) + 
+                               ",\n\twrite surface 0x" + Long.toHexString(((EGLDrawable)drawable).getSurface()) +
+                               ",\n\tread  surface 0x" + Long.toHexString(((EGLDrawable)drawableRead).getSurface())+
+                               ",\n\t"+this+
+                               ",\n\tsharing with 0x" + Long.toHexString(shareWith));
         }
         if (!EGL.eglMakeCurrent(((EGLDrawable)drawable).getDisplay(),
                                 ((EGLDrawable)drawable).getSurface(),
