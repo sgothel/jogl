@@ -122,9 +122,9 @@ public abstract class EGLDrawable extends GLDrawableImpl {
                             throw new GLException("Null EGLGraphicsConfiguration from "+aConfig);
                         }
                         int[] tmp = new int[1];
-                        if (EGL.eglQuerySurface(eglDisplay, component.getWindowHandle(), EGL.EGL_CONFIG_ID, tmp, 0)) {
+                        if (EGL.eglQuerySurface(eglDisplay, component.getSurfaceHandle(), EGL.EGL_CONFIG_ID, tmp, 0)) {
                             // component holds static EGLSurface
-                            eglSurface = component.getWindowHandle();
+                            eglSurface = component.getSurfaceHandle();
                             if(DEBUG) {
                                 System.err.println("setSurface re-using component's EGLSurface: handle 0x"+Long.toHexString(eglSurface));
                             }
