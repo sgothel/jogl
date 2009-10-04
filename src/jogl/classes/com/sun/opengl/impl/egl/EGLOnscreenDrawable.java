@@ -54,14 +54,8 @@ public class EGLOnscreenDrawable extends EGLDrawable {
         return new EGLOnscreenContext(this, shareWith);
     }
 
-    protected long createSurface(long eglDpy, _EGLConfig eglNativeCfg) {
-        long surf = EGL.eglCreateWindowSurface(eglDpy, eglNativeCfg, component.getWindowHandle(), null);
-        if (EGL.EGL_NO_SURFACE==surf) {
-            throw new GLException("Creation of window surface (eglCreateWindowSurface) failed, component: "+component+", error 0x"+Integer.toHexString(EGL.eglGetError()));
-        } else if(DEBUG) {
-            System.err.println("setSurface result: eglSurface 0x"+Long.toHexString(surf));
-        }
-        return surf;
+    protected long createSurface(long eglDpy, _EGLConfig eglNativeCfg, long surfaceHandle) {
+        return EGL.eglCreateWindowSurface(eglDpy, eglNativeCfg, surfaceHandle, null);
     }
 
     protected void swapBuffersImpl() {

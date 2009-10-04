@@ -75,7 +75,7 @@ public abstract class EGLDrawable extends GLDrawableImpl {
 
     public abstract GLContext createContext(GLContext shareWith);
 
-    protected abstract long createSurface(long eglDpy, _EGLConfig eglNativeCfg);
+    protected abstract long createSurface(long eglDpy, _EGLConfig eglNativeCfg, long surfaceHandle);
 
     private void recreateSurface() {
         if(ownEGLSurface) {
@@ -88,10 +88,13 @@ public abstract class EGLDrawable extends GLDrawableImpl {
                 System.err.println("createSurface using eglDisplay 0x"+Long.toHexString(eglDisplay)+", "+eglConfig);
             }
 
-            eglSurface = createSurface(eglDisplay, eglConfig.getNativeConfig());
+            eglSurface = createSurface(eglDisplay, eglConfig.getNativeConfig(), component.getSurfaceHandle());
+            if (EGL.EGL_NO_SURFACE==eglSurface) {
+                throw new GLException("Creation of window surface failed: "+eglConfig+", error 0x"+Integer.toHexString(EGL.eglGetError()));
+            }
 
             if(DEBUG) {
-                System.err.println("setSurface using component: handle 0x"+Long.toHexString(component.getWindowHandle())+" -> 0x"+Long.toHexString(eglSurface));
+                System.err.println("setSurface using component: handle 0x"+Long.toHexString(component.getSurfaceHandle())+" -> 0x"+Long.toHexString(eglSurface));
             }
         }
     }
@@ -171,6 +174,17 @@ public abstract class EGLDrawable extends GLDrawableImpl {
                     } else if(DEBUG) {
                         System.err.println("Chosen eglConfig: "+eglConfig);
                     }
+                    /**
+                    eglSurface = createSurface(eglDisplay, eglConfig.getNativeConfig(), component.getSurfaceHandle());
+                    while ( EGL.EGL_NO_SURFACE == eglSurface ) {
+                        - blacklist EGLConfig entry
+                        - retry ..
+                        if ( no more EGLConfigs available ) {
+                            break .. or .. exception
+                        }
+                        eglConfig.updateGraphicsConfiguration();
+                        eglSurface = createSurface(eglDisplay, eglConfig.getNativeConfig(), component.getSurfaceHandle());
+                    } */
                 }
                 recreateSurface();
             } finally {

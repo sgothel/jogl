@@ -103,7 +103,7 @@ public class EGLPbufferDrawable extends EGLDrawable {
         return eglConfig;
     }
 
-    protected long createSurface(long eglDpy, _EGLConfig eglNativeCfg) {
+    protected long createSurface(long eglDpy, _EGLConfig eglNativeCfg, long surfaceHandle) {
         int[] attrs = EGLGraphicsConfiguration.CreatePBufferSurfaceAttribList(width, height, texFormat);
         long surf = EGL.eglCreatePbufferSurface(eglDpy, eglNativeCfg, attrs, 0);
         if (EGL.EGL_NO_SURFACE==surf) {

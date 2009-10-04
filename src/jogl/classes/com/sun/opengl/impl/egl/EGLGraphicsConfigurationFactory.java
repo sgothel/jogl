@@ -149,33 +149,50 @@ public class EGLGraphicsConfigurationFactory extends GraphicsConfigurationFactor
         }
 
         // Last try .. add a fixed embedded profile [ATI, Nokia, Intel, ..]
+        //
+        // rgb888 - d16, s4
         GLCapabilities fixedCaps = new GLCapabilities(glp);
-        /**
-        fixedCaps.setRedBits(5);
-        fixedCaps.setGreenBits(6);
-        fixedCaps.setBlueBits(5); */
+        fixedCaps.setRedBits(8);
+        fixedCaps.setGreenBits(8);
+        fixedCaps.setBlueBits(8);
         fixedCaps.setDepthBits(16);
         fixedCaps.setSampleBuffers(true);
         fixedCaps.setNumSamples(4);
         if(DEBUG) {
-            System.err.println("trying fixed caps: "+fixedCaps);
+            System.err.println("trying fixed caps (1): "+fixedCaps);
+        }
+        res = eglChooseConfig(eglDisplay, fixedCaps, capabilities, chooser, absScreen, eglSurfaceType);
+        if(null!=res) {
+            return res;
         }
 
-        chosen = -1;
-        try {
-            chosen = chooser.chooseCapabilities(fixedCaps, caps, -1);
-        } catch (NativeWindowException e) { throw new GLException(e); }
-        if(chosen<0) {
-            throw new GLException("Graphics configuration chooser fixed failed");
-        }
+        //
+        // rgb565 - d16, s0
+        fixedCaps = new GLCapabilities(glp);
+        fixedCaps.setRedBits(5);
+        fixedCaps.setGreenBits(6);
+        fixedCaps.setBlueBits(5);
+        fixedCaps.setDepthBits(16);
         if(DEBUG) {
-            System.err.println("Chosen fixed "+caps[chosen]);
+            System.err.println("trying fixed caps (2): "+fixedCaps);
         }
-        res = eglChooseConfig(eglDisplay, caps[chosen], capabilities, chooser, absScreen, eglSurfaceType);
-        if(null==res) {
-            throw new GLException("Graphics configuration failed [direct caps, eglGetConfig/chooser and fixed-caps]");
+        res = eglChooseConfig(eglDisplay, fixedCaps, capabilities, chooser, absScreen, eglSurfaceType);
+        if(null!=res) {
+            return res;
         }
-        return res;
+
+        //
+        // rgb565 - d16, s4
+        fixedCaps.setSampleBuffers(true);
+        fixedCaps.setNumSamples(4);
+        if(DEBUG) {
+            System.err.println("trying fixed caps (3): "+fixedCaps);
+        }
+        res = eglChooseConfig(eglDisplay, fixedCaps, capabilities, chooser, absScreen, eglSurfaceType);
+        if(null!=res) {
+            return res;
+        }
+        throw new GLException("Graphics configuration failed [direct caps, eglGetConfig/chooser and fixed-caps(1-3)]");
     }
 
     protected static EGLGraphicsConfiguration eglChooseConfig(long eglDisplay, 
