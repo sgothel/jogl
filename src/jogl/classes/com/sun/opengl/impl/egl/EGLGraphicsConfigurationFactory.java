@@ -262,5 +262,30 @@ public class EGLGraphicsConfigurationFactory extends GraphicsConfigurationFactor
             out.println(prefix+"["+i+"] "+caps[i]);
         }
     }
+
+    protected static EGLGraphicsConfiguration createOffscreenGraphicsConfiguration(GLCapabilities caps, GLCapabilitiesChooser chooser) {
+        if(caps.isOnscreen()) {
+            throw new GLException("Error: Onscreen set: "+caps);
+        }
+        long eglDisplay = EGL.eglGetDisplay(EGL.EGL_DEFAULT_DISPLAY);
+        if (eglDisplay == EGL.EGL_NO_DISPLAY) {
+            throw new GLException("Failed to created EGL default display: error 0x"+Integer.toHexString(EGL.eglGetError()));
+        } else if(DEBUG) {
+            System.err.println("eglDisplay(EGL_DEFAULT_DISPLAY): 0x"+Long.toHexString(eglDisplay));
+        }
+        if (!EGL.eglInitialize(eglDisplay, null, null)) {
+            throw new GLException("eglInitialize failed"+", error 0x"+Integer.toHexString(EGL.eglGetError()));
+        }
+        EGLGraphicsDevice e = new EGLGraphicsDevice(eglDisplay);
+        DefaultGraphicsScreen s = new DefaultGraphicsScreen(e, 0);
+        EGLGraphicsConfiguration eglConfig = chooseGraphicsConfigurationStatic(caps, chooser, s);
+        if (null == eglConfig) {
+            EGL.eglTerminate(eglDisplay);
+            throw new GLException("Couldn't create EGLGraphicsConfiguration from "+s);
+        } else if(DEBUG) {
+            System.err.println("Chosen eglConfig: "+eglConfig);
+        }
+        return eglConfig;
+    }
 }
 

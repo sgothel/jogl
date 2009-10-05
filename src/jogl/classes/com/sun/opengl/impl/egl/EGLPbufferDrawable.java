@@ -43,24 +43,17 @@ import javax.media.opengl.*;
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.egl.*;
 import com.sun.opengl.impl.*;
-import com.sun.nativewindow.impl.NullWindow;
 
 public class EGLPbufferDrawable extends EGLDrawable {
     private int texFormat;
     protected static final boolean useTexture = false; // No yet ..
 
-    protected EGLPbufferDrawable(EGLDrawableFactory factory,
-                               GLCapabilities caps, 
-                               GLCapabilitiesChooser chooser,
-                               int width, int height) {
-        super(factory, new NullWindow(createEGLGraphicsConfiguration(caps, chooser)));
-        if (width <= 0 || height <= 0) {
-          throw new GLException("Width and height of pbuffer must be positive (were (" +
-                    width + ", " + height + "))");
-        }
+    protected EGLPbufferDrawable(EGLDrawableFactory factory, NativeWindow target) {
+        super(factory, target);
+        ownEGLDisplay = true;
 
         // get choosen ones ..
-        caps = (GLCapabilities) getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities();
+        GLCapabilities caps = (GLCapabilities) getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities();
 
         if(useTexture) {
             this.texFormat = caps.getAlphaBits() > 0 ? EGL.EGL_TEXTURE_RGBA : EGL.EGL_TEXTURE_RGB ;
@@ -68,54 +61,28 @@ public class EGLPbufferDrawable extends EGLDrawable {
             this.texFormat = EGL.EGL_NO_TEXTURE;
         }
 
-        NullWindow nw = (NullWindow) getNativeWindow();
-        nw.setSize(width, height);
-
-        ownEGLDisplay = true;
-
         if (DEBUG) {
           System.out.println("Pbuffer config: " + getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration());
         }
-    }
 
-    protected static EGLGraphicsConfiguration createEGLGraphicsConfiguration(GLCapabilities caps, GLCapabilitiesChooser chooser) {
-        if(caps.isOnscreen()) {
-            throw new GLException("Error: Onscreen set: "+caps);
+        setRealized(true);
+
+        if (DEBUG) {
+          System.out.println("Created pbuffer: " + this);
         }
-        if(!caps.isPBuffer()) {
-            throw new GLException("Error: PBuffer not set: "+caps);
-        }
-        long eglDisplay = EGL.eglGetDisplay(EGL.EGL_DEFAULT_DISPLAY);
-        if (eglDisplay == EGL.EGL_NO_DISPLAY) {
-            throw new GLException("Failed to created EGL default display: error 0x"+Integer.toHexString(EGL.eglGetError()));
-        } else if(DEBUG) {
-            System.err.println("eglDisplay(EGL_DEFAULT_DISPLAY): 0x"+Long.toHexString(eglDisplay));
-        }
-        if (!EGL.eglInitialize(eglDisplay, null, null)) {
-            throw new GLException("eglInitialize failed"+", error 0x"+Integer.toHexString(EGL.eglGetError()));
-        }
-        EGLGraphicsDevice e = new EGLGraphicsDevice(eglDisplay);
-        DefaultGraphicsScreen s = new DefaultGraphicsScreen(e, 0);
-        EGLGraphicsConfiguration eglConfig = EGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(caps, chooser, s);
-        if (null == eglConfig) {
-            EGL.eglTerminate(eglDisplay);
-            throw new GLException("Couldn't create EGLGraphicsConfiguration from "+s);
-        } else if(DEBUG) {
-            System.err.println("Chosen eglConfig: "+eglConfig);
-        }
-        return eglConfig;
+
     }
 
     protected long createSurface(long eglDpy, _EGLConfig eglNativeCfg, long surfaceHandle) {
-        NullWindow nw = (NullWindow) getNativeWindow();
+        NativeWindow nw = getNativeWindow();
         int[] attrs = EGLGraphicsConfiguration.CreatePBufferSurfaceAttribList(nw.getWidth(), nw.getHeight(), texFormat);
         long surf = EGL.eglCreatePbufferSurface(eglDpy, eglNativeCfg, attrs, 0);
         if (EGL.EGL_NO_SURFACE==surf) {
             throw new GLException("Creation of window surface (eglCreatePbufferSurface) failed, dim "+nw.getWidth()+"x"+nw.getHeight()+", error 0x"+Integer.toHexString(EGL.eglGetError()));
         } else if(DEBUG) {
-            System.err.println("setSurface result: eglSurface 0x"+Long.toHexString(surf));
+            System.err.println("PBuffer setSurface result: eglSurface 0x"+Long.toHexString(surf));
         }
-        nw.setSurfaceHandle(surf);
+        ((SurfaceChangeable)nw).setSurfaceHandle(surf);
         return surf;
     }
 

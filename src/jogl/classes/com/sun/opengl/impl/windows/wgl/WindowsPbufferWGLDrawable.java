@@ -42,7 +42,6 @@ package com.sun.opengl.impl.windows.wgl;
 import javax.media.opengl.*;
 import javax.media.nativewindow.*;
 import com.sun.opengl.impl.*;
-import com.sun.nativewindow.impl.NullWindow;
 
 public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
   private long cachedParentHdc;
@@ -52,28 +51,20 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
 
   private int floatMode;
 
-  public WindowsPbufferWGLDrawable(GLDrawableFactory factory,
-                                   AbstractGraphicsScreen absScreen,
-                                   GLCapabilities requestedCapabilities,
-                                   final GLCapabilitiesChooser chooser,
-                                   int width,
-                                   int height,
+  public WindowsPbufferWGLDrawable(GLDrawableFactory factory, NativeWindow target,
                                    WindowsWGLDrawable dummyDrawable,
                                    WGLExt wglExt) {
-    super(factory, new NullWindow(WindowsWGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(
-                                        requestedCapabilities, chooser, absScreen) ), true);
-    if (width <= 0 || height <= 0) {
-      throw new GLException("Width and height of pbuffer must be positive (were (" +
-			    width + ", " + height + "))");
-    }
-    NullWindow nw = (NullWindow) getNativeWindow();
-    nw.setSize(width, height);
+    super(factory, target, true);
 
     if (DEBUG) {
-      System.out.println("Pbuffer caps: " + requestedCapabilities);
+        System.out.println("Pbuffer config: " + getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration());
     }
 
     createPbuffer(dummyDrawable.getNativeWindow().getSurfaceHandle(), wglExt);
+
+    if (DEBUG) {
+        System.err.println("Created pbuffer " + this);
+    }
   }
 
   public GLContext createContext(GLContext shareWith) {
@@ -81,7 +72,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
   }
 
   public void destroy() {
-    NullWindow nw = (NullWindow) getNativeWindow();
+    NativeWindow nw = getNativeWindow();
     if (nw.getSurfaceHandle() != 0) {
       // Must release DC and pbuffer
       // NOTE that since the context is not current, glGetError() can
@@ -91,7 +82,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
       if (wglExt.wglReleasePbufferDCARB(buffer, nw.getSurfaceHandle()) == 0) {
         throw new GLException("Error releasing pbuffer device context: error code " + WGL.GetLastError());
       }
-      nw.setSurfaceHandle(0);
+      ((SurfaceChangeable)nw).setSurfaceHandle(0);
       if (!wglExt.wglDestroyPbufferARB(buffer)) {
         throw new GLException("Error destroying pbuffer: error code " + WGL.GetLastError());
       }
@@ -261,10 +252,10 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
       throw new GLException("pbuffer creation error: wglGetPbufferDC() failed");
     }
 
-    NullWindow nw = (NullWindow) getNativeWindow();
+    NativeWindow nw = getNativeWindow();
     // Set up instance variables
     buffer = tmpBuffer;
-    nw.setSurfaceHandle(tmpHdc);
+    ((SurfaceChangeable)nw).setSurfaceHandle(tmpHdc);
     cachedWGLExt = wglExt;
     cachedParentHdc = parentHdc;
 
@@ -320,11 +311,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
     width = tmp[0];
     wglExt.wglQueryPbufferARB( buffer, WGLExt.WGL_PBUFFER_HEIGHT_ARB, tmp, 0 );
     height = tmp[0];
-    nw.setSize(width, height);
-
-    if (DEBUG) {
-      System.err.println("Created pbuffer " + width + " x " + height);
-    }
+    ((SurfaceChangeable)nw).setSize(width, height);
   }
 
   private static String wglGetLastError() {

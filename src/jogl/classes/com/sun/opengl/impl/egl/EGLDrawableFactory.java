@@ -68,39 +68,22 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         return new EGLOnscreenDrawable(this, target);
     }
 
-    public GLDrawableImpl createOffscreenDrawable(GLCapabilities capabilities,
-                                                  GLCapabilitiesChooser chooser,
-                                                  int width,
-                                                  int height) {
-        capabilities.setDoubleBuffered(false); // FIXME
-        capabilities.setOnscreen(false);
-        capabilities.setPBuffer(false);
+    protected GLDrawableImpl createOffscreenDrawable(NativeWindow target) {
         throw new GLException("Not yet implemented");
     }
 
     public boolean canCreateGLPbuffer() {
         return true;
     }
-    public GLDrawableImpl createGLPbufferDrawable(GLCapabilities capabilities,
-                                   final GLCapabilitiesChooser chooser,
-                                   final int initialWidth,
-                                   final int initialHeight) {
-        capabilities.setDoubleBuffered(false); // FIXME
-        capabilities.setOnscreen(false);
-        capabilities.setPBuffer(true);
-        return new EGLPbufferDrawable(this, capabilities, chooser,
-                                      initialWidth, initialHeight);
+
+    protected GLDrawableImpl createGLPbufferDrawableImpl(NativeWindow target) {
+        return new EGLPbufferDrawable(this, target);
     }
 
-    public GLPbuffer createGLPbuffer(final GLCapabilities capabilities,
-                                     final GLCapabilitiesChooser chooser,
-                                     final int initialWidth,
-                                     final int initialHeight,
-                                     final GLContext shareWith) {
-        GLDrawableImpl pbufferDrawable = createGLPbufferDrawable(
-                                            capabilities,
-                                            chooser, initialWidth, initialHeight);
-        return new GLPbufferImpl(pbufferDrawable, shareWith);
+    protected NativeWindow createOffscreenWindow(GLCapabilities capabilities, GLCapabilitiesChooser chooser, int width, int height) {
+        NullWindow nw = new NullWindow(EGLGraphicsConfigurationFactory.createOffscreenGraphicsConfiguration(capabilities, chooser));
+        nw.setSize(width, height);
+        return nw;
     }
 
     public GLContext createExternalGLContext() {

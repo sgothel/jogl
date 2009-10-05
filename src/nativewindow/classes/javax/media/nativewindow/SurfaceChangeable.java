@@ -37,20 +37,12 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.sun.opengl.impl.macosx.cgl;
+package javax.media.nativewindow;
 
-import javax.media.opengl.*;
-import javax.media.nativewindow.*;
-import com.sun.opengl.impl.*;
+public interface SurfaceChangeable {
 
-public class MacOSXOffscreenCGLDrawable extends MacOSXPbufferCGLDrawable {
+  public void setSurfaceHandle(long surfaceHandle);
+  public void setSize(int width, int height);
 
-  public MacOSXOffscreenCGLDrawable(GLDrawableFactory factory,
-                                    NativeWindow target) {
-    super(factory, target);
-  }
-
-  public GLContext createContext(GLContext shareWith) {
-    return new MacOSXOffscreenCGLContext(this, shareWith);
-  }
 }
+

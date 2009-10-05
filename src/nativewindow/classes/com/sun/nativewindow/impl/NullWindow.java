@@ -38,7 +38,7 @@ package com.sun.nativewindow.impl;
 
 import javax.media.nativewindow.*;
 
-public class NullWindow implements NativeWindow {
+public class NullWindow implements NativeWindow, SurfaceChangeable {
   private Exception lockedStack = null;
   protected int width, height, scrnIndex;
   protected long surfaceHandle, displayHandle;
@@ -96,17 +96,7 @@ public class NullWindow implements NativeWindow {
     return false;
   }
 
-  NativeWindow upstreamNW = null;
-
-  public void setUpstreamNativeWindow(NativeWindow upstream) {
-    upstreamNW = upstream;
-  }
-
-  public void surfaceUpdated(Object updater, NativeWindow window, long when) { 
-    if(null!=upstreamNW) {
-        upstreamNW.surfaceUpdated(updater, upstreamNW, when);
-    }
-  }
+  public void surfaceUpdated(Object updater, NativeWindow window, long when) { }
 
   public long getDisplayHandle() {
     return displayHandle;
@@ -120,8 +110,8 @@ public class NullWindow implements NativeWindow {
   public long getSurfaceHandle() {
     return surfaceHandle;
   }
-  public void setSurfaceHandle(long handle) {
-    surfaceHandle=handle;
+  public void setSurfaceHandle(long surfaceHandle) {
+    this.surfaceHandle=surfaceHandle;
   }
   public AbstractGraphicsConfiguration getGraphicsConfiguration() {
     return config;
@@ -152,8 +142,7 @@ public class NullWindow implements NativeWindow {
     return "NullWindow[config "+config+
                 ", displayHandle 0x"+Long.toHexString(getDisplayHandle())+
                 ", surfaceHandle 0x"+Long.toHexString(getSurfaceHandle())+
-                ", size "+getWidth()+"x"+getHeight()+
-                ", upstream "+upstreamNW+"]";
+                ", size "+getWidth()+"x"+getHeight()+"]";
   }
 
 }

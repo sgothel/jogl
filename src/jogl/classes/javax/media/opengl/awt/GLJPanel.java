@@ -909,10 +909,11 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
 
     public void initialize() {
       // Fall-through path: create an offscreen context instead
-      offscreenDrawable = factory.createOffscreenDrawable(offscreenCaps,
-                                                          chooser,
-                                                          Math.max(1, panelWidth),
-                                                          Math.max(1, panelHeight));
+      offscreenDrawable = (GLDrawableImpl) factory.createOffscreenDrawable(
+                                                offscreenCaps,
+                                                chooser,
+                                                Math.max(1, panelWidth),
+                                                Math.max(1, panelHeight));
       offscreenContext = (GLContextImpl) offscreenDrawable.createContext(shareWith);
       offscreenContext.setSynchronized(true);
       isInitialized = true;

@@ -172,7 +172,7 @@ public abstract class Window implements NativeWindow
     public String toString() {
         StringBuffer sb = new StringBuffer();
 
-        sb.append("NEWT-Window[config "+config+
+        sb.append(getClass().getName()+"[config "+config+
                     ", windowHandle 0x"+Long.toHexString(getWindowHandle())+
                     ", surfaceHandle 0x"+Long.toHexString(getSurfaceHandle())+
                     ", pos "+getX()+"/"+getY()+", size "+getWidth()+"x"+getHeight()+

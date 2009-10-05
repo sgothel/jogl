@@ -48,14 +48,8 @@ public class WindowsOffscreenWGLDrawable extends WindowsWGLDrawable {
   private long origbitmap;
   private long hbitmap;
 
-  public WindowsOffscreenWGLDrawable(GLDrawableFactory factory, 
-                                     AbstractGraphicsScreen absScreen,
-                                     GLCapabilities requestedCapabilities,
-                                     GLCapabilitiesChooser chooser,
-                                     int width,
-                                     int height) {
-    super(factory, new NullWindow(WindowsWGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(requestedCapabilities, chooser, absScreen)), true);
-    ((NullWindow) getNativeWindow()).setSize(width, height);
+  public WindowsOffscreenWGLDrawable(GLDrawableFactory factory, NativeWindow target) {
+    super(factory, target, true);
     create();
   }
 
@@ -94,7 +88,7 @@ public class WindowsOffscreenWGLDrawable extends WindowsWGLDrawable {
       System.out.println("LastError: " + WGL.GetLastError());
       throw new GLException("Error creating device context for offscreen OpenGL context");
     }
-    nw.setSurfaceHandle(hdc);
+    ((SurfaceChangeable)nw).setSurfaceHandle(hdc);
 
     hbitmap = WGL.CreateDIBSection(hdc, info, WGL.DIB_RGB_COLORS, 0, 0, 0);
     if (hbitmap == 0) {
@@ -115,7 +109,7 @@ public class WindowsOffscreenWGLDrawable extends WindowsWGLDrawable {
   }
   
   public void destroy() {
-    NullWindow nw = (NullWindow) getNativeWindow();
+    NativeWindow nw = getNativeWindow();
     if (nw.getSurfaceHandle() != 0) {
       // Must destroy bitmap and device context
       WGL.SelectObject(nw.getSurfaceHandle(), origbitmap);
@@ -123,7 +117,7 @@ public class WindowsOffscreenWGLDrawable extends WindowsWGLDrawable {
       WGL.DeleteDC(nw.getSurfaceHandle());
       origbitmap = 0;
       hbitmap = 0;
-      nw.setSurfaceHandle(0);
+      ((SurfaceChangeable)nw).setSurfaceHandle(0);
     }
   }
 

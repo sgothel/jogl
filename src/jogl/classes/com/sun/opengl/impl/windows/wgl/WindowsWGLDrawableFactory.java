@@ -46,6 +46,7 @@ import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
 import com.sun.nativewindow.impl.NWReflection;
 import com.sun.gluegen.runtime.DynamicLookupHelper;
+import com.sun.nativewindow.impl.NullWindow;
 
 public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl implements DynamicLookupHelper {
   private static final boolean VERBOSE = Debug.verbose();
@@ -78,15 +79,8 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl implements 
     return new WindowsOnscreenWGLDrawable(this, target);
   }
 
-  public GLDrawableImpl createOffscreenDrawable(GLCapabilities capabilities,
-                                                GLCapabilitiesChooser chooser,
-                                                int width,
-                                                int height) {
-    AbstractGraphicsScreen aScreen = DefaultGraphicsScreen.createDefault();
-    capabilities.setDoubleBuffered(false); // FIXME
-    capabilities.setOnscreen(false);
-    capabilities.setPBuffer(false);
-    return new WindowsOffscreenWGLDrawable(this, aScreen, capabilities, chooser, width, height);
+  protected GLDrawableImpl createOffscreenDrawable(NativeWindow target) {
+    return new WindowsOffscreenWGLDrawable(this, target);
   }
 
   private boolean pbufferSupportInitialized = false;
@@ -124,17 +118,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl implements 
     return canCreateGLPbuffer;
   }
 
-  public GLDrawableImpl createGLPbufferDrawable(final GLCapabilities capabilities,
-                                   final GLCapabilitiesChooser chooser,
-                                   final int initialWidth,
-                                   final int initialHeight) {
-    if (!canCreateGLPbuffer()) {
-      throw new GLException("Pbuffer support not available with current graphics card");
-    }
-    capabilities.setDoubleBuffered(false); // FIXME
-    capabilities.setOnscreen(false);
-    capabilities.setPBuffer(true);
-    final GLCapabilities caps = capabilities;
+  protected GLDrawableImpl createGLPbufferDrawableImpl(final NativeWindow target) {
     final List returnList = new ArrayList();
     final GLDrawableFactory factory = this;
     Runnable r = new Runnable() {
@@ -148,10 +132,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl implements 
           dummyContext.makeCurrent();
           WGLExt dummyWGLExt = dummyContext.getWGLExt();
           try {
-            AbstractGraphicsScreen aScreen = DefaultGraphicsScreen.createDefault();
-            GLDrawableImpl pbufferDrawable = new WindowsPbufferWGLDrawable(factory, aScreen, caps, chooser,
-                                                                           initialWidth,
-                                                                           initialHeight,
+            GLDrawableImpl pbufferDrawable = new WindowsPbufferWGLDrawable(factory, target,
                                                                            dummyDrawable,
                                                                            dummyWGLExt);
             returnList.add(pbufferDrawable);
@@ -169,16 +150,14 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl implements 
     return (GLDrawableImpl) returnList.get(0);
   }
 
-  public GLPbuffer createGLPbuffer(final GLCapabilities capabilities,
-                                   final GLCapabilitiesChooser chooser,
-                                   final int initialWidth,
-                                   final int initialHeight,
-                                   final GLContext shareWith) {
-    GLDrawableImpl pbufferDrawable = createGLPbufferDrawable(
-                                        capabilities, chooser, initialWidth, initialHeight);
-    return new GLPbufferImpl(pbufferDrawable, shareWith);
+  protected NativeWindow createOffscreenWindow(GLCapabilities capabilities, GLCapabilitiesChooser chooser, int width, int height) {
+    AbstractGraphicsScreen screen = DefaultGraphicsScreen.createDefault();
+    NullWindow nw = new NullWindow(WindowsWGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(
+                                   capabilities, chooser, screen) );
+    nw.setSize(width, height);
+    return nw;
   }
-
+ 
   public GLContext createExternalGLContext() {
     return WindowsExternalWGLContext.create(this, null);
   }

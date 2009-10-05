@@ -177,28 +177,23 @@ public abstract class GLDrawableFactory {
   public void shutdown() {
   }
 
+  //----------------------------------------------------------------------
+  // Methods to create high-level objects
+
   /**
-   * Returns a GLDrawable according to it's chosen Capabilities.
+   * Returns a GLDrawable according to it's chosen Capabilities,<br>
+   * which determines pixel format, on- and offscreen incl. PBuffer type.
    * <p>
-   * The chosen Capabilties are referenced within the target
+   * The native platform's chosen Capabilties are referenced within the target
    * NativeWindow's AbstractGraphicsConfiguration.<p>
    *
    * In case {@link javax.media.nativewindow.Capabilties#isOnscreen()} is true,<br>
-   * it wraps a platform-specific window system
-   * object, such as an AWT or LCDUI Canvas. 
-   * On platforms which support pixel format, the NativeWindow's AbstractGraphicsConfiguration
-   * is being used, hence the <code>chooser</code> is redundant in this case.
+   * an onscreen GLDrawable will be realized.
    * <p>
    * In case {@link javax.media.nativewindow.Capabilties#isOnscreen()} is false,<br>
    * either a Pbuffer drawable is created if {@link javax.media.opengl.GLCapabilities#isPBuffer()} is true,<br>
-   * or a simple offscreen drawable is creates, the latter is unlikely to be hardware accelerated.<br>
-   * The <code>chooser</code> will be used to determine the pixel format.
+   * or a simple offscreen drawable is creates. The latter is unlikely to be hardware accelerated.<br>
    * <p>
-   * GLCapabilities, or if the passed GLCapabilities object is null,
-   * uses a default set of capabilities. On these platforms, uses
-   * either the supplied GLCapabilitiesChooser object, or if the
-   * passed GLCapabilitiesChooser object is null, uses a
-   * DefaultGLCapabilitiesChooser instance.
    *
    * @throws IllegalArgumentException if the passed target is null
    * @throws GLException if any window system-specific errors caused
@@ -206,17 +201,19 @@ public abstract class GLDrawableFactory {
    *
    * @see javax.media.nativewindow.GraphicsConfigurationFactory#chooseGraphicsConfiguration(Capabilities, CapabilitiesChooser, AbstractGraphicsScreen)
    */
-  public abstract GLDrawable createGLDrawable(NativeWindow target, GLCapabilitiesChooser chooser)
-    throws IllegalArgumentException, GLException;
-
-  /** 
-   * @see #createGLDrawable(NativeWindow, GLCapabilitiesChooser)
-   */
   public abstract GLDrawable createGLDrawable(NativeWindow target)
     throws IllegalArgumentException, GLException;
-  
-  //----------------------------------------------------------------------
-  // Methods to create high-level objects
+
+  /**
+   * Creates a Offscreen GLDrawable with the given capabilites and dimensions. <P>
+   *
+   * @throws GLException if any window system-specific errors caused
+   *         the creation of the Offscreen to fail.
+   */
+  public abstract GLDrawable createOffscreenDrawable(GLCapabilities capabilities,
+                                                     GLCapabilitiesChooser chooser,
+                                                     int width, int height)
+    throws GLException;
 
   /**
    * Returns true if it is possible to create a GLPbuffer. Some older
@@ -225,19 +222,15 @@ public abstract class GLDrawableFactory {
   public abstract boolean canCreateGLPbuffer();
 
   /**
-   * Creates a GLPbuffer with the given drawable, which must be Pbuffer drawable,
-   * created by {@link #createGLDrawable}.<p>
-   *
-   * See the note in the overview documentation on
-   * <a href="../../../overview-summary.html#SHARING">context sharing</a>.
+   * Creates a Pbuffer GLDrawable with the given capabilites and dimensions. <P>
    *
    * @throws GLException if any window system-specific errors caused
    *         the creation of the GLPbuffer to fail.
-   *
-   * @see #createGLDrawable(NativeWindow, GLCapabilitiesChooser)
    */
-  public abstract GLPbuffer createGLPbuffer(GLDrawable pbufferDrawable,
-                                            GLContext shareWith)
+  public abstract GLDrawable createGLPbufferDrawable(GLCapabilities capabilities,
+                                                     GLCapabilitiesChooser chooser,
+                                                     int initialWidth,
+                                                     int initialHeight)
     throws GLException;
 
   /**

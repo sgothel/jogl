@@ -44,7 +44,6 @@ import javax.media.nativewindow.*;
 import javax.media.opengl.*;
 import com.sun.gluegen.runtime.*;
 import com.sun.nativewindow.impl.NWReflection;
-import com.sun.nativewindow.impl.NullWindow;
 import java.lang.reflect.*;
 
 /** Extends GLDrawableFactory with a few methods for handling
@@ -58,48 +57,36 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
   //---------------------------------------------------------------------------
   // Dispatching GLDrawable construction in respect to the NativeWindow Capabilities
   //
-  public GLDrawable createGLDrawable(NativeWindow target0, GLCapabilitiesChooser chooser) {
-    if (target0 == null) {
+  public GLDrawable createGLDrawable(NativeWindow target) {
+    if (target == null) {
       throw new IllegalArgumentException("Null target");
     }
-    AbstractGraphicsConfiguration config = target0.getGraphicsConfiguration().getNativeGraphicsConfiguration();
-    NativeWindow target1 = NativeWindowFactory.getNativeWindow(target0, config);
-    GLCapabilities caps = (GLCapabilities) target1.getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities();
+    AbstractGraphicsConfiguration config = target.getGraphicsConfiguration().getNativeGraphicsConfiguration();
+    GLCapabilities caps = (GLCapabilities) target.getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities();
     GLDrawable result = null;
     if(caps.isOnscreen()) {
         if(caps.isPBuffer()) {
             throw new IllegalArgumentException("Onscreen target can't be PBuffer: "+caps);
         }
         if(DEBUG) {
-            System.out.println("GLDrawableFactoryImpl.createGLDrawable -> OnscreenDrawable: "+target1);
+            System.out.println("GLDrawableFactoryImpl.createGLDrawable -> OnscreenDrawable: "+target);
         }
-        result = createOnscreenDrawable(target1);
+        result = createOnscreenDrawable(target);
     } else {
-        GLCapabilities caps2 = (GLCapabilities) caps.clone();
-        // OFFSCREEN !DOUBLE_BUFFER
-        caps2.setDoubleBuffered(false);
-        if(caps2.isPBuffer() && canCreateGLPbuffer()) {
+        if( ! ( target instanceof SurfaceChangeable ) ) {
+            throw new IllegalArgumentException("Passed NativeWindow must implement SurfaceChangeable for offscreen: "+target);
+        }
+        if(caps.isPBuffer() && canCreateGLPbuffer()) {
             if(DEBUG) {
-                System.out.println("GLDrawableFactoryImpl.createGLDrawable -> PbufferDrawable: "+target1);
+                System.out.println("GLDrawableFactoryImpl.createGLDrawable -> PbufferDrawable: "+target);
             }
-            result = createGLPbufferDrawable(caps2,
-                                     chooser,
-                                     target1.getWidth(),
-                                     target1.getHeight());
+            result = createGLPbufferDrawable(target);
         }
         if(null==result) {
             if(DEBUG) {
-                System.out.println("GLDrawableFactoryImpl.createGLDrawable -> OffScreenDrawable: "+target1);
+                System.out.println("GLDrawableFactoryImpl.createGLDrawable -> OffScreenDrawable: "+target);
             }
-            result = createOffscreenDrawable(caps2,
-                                             chooser,
-                                             target1.getWidth(),
-                                             target1.getHeight());
-        }
-        // Set upstream NativeWindow from caller to NullWindow for SurfaceUpdatedListener event
-        NativeWindow nw = result.getNativeWindow();
-        if(nw instanceof NullWindow) {
-            ((NullWindow)nw).setUpstreamNativeWindow(target0);
+            result = createOffscreenDrawable(target);
         }
     }
     if(DEBUG) {
@@ -108,31 +95,79 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
     return result;
   }
 
-  public GLDrawable createGLDrawable(NativeWindow target) {
-    return createGLDrawable(target, null);
+  //---------------------------------------------------------------------------
+  //
+  // Onscreen GLDrawable construction 
+  //
+
+  protected abstract GLDrawableImpl createOnscreenDrawable(NativeWindow target);
+
+  //---------------------------------------------------------------------------
+  //
+  // PBuffer GLDrawable construction 
+  //
+
+  /** Target must implement SurfaceChangeable */
+  protected abstract GLDrawableImpl createGLPbufferDrawableImpl(NativeWindow target);
+
+  protected GLDrawableImpl createGLPbufferDrawable(NativeWindow target) {
+    if (!canCreateGLPbuffer()) {
+        throw new GLException("Pbuffer support not available with current graphics card");
+    }
+    return createGLPbufferDrawableImpl(target);
   }
 
-  /** Creates a (typically hw-accelerated) Pbuffer GLDrawable. */
-  public abstract GLDrawableImpl createGLPbufferDrawable(GLCapabilities capabilities,
-                                                         GLCapabilitiesChooser chooser,
-                                                         int initialWidth,
-                                                         int initialHeight);
+  public GLDrawable createGLPbufferDrawable(GLCapabilities capabilities,
+                                            GLCapabilitiesChooser chooser,
+                                            int width,
+                                            int height) {
+    if(height<=0 || height<=0) {
+        throw new GLException("Width and height of pbuffer must be positive (were (" +
+                        width + ", " + height + "))");
+    }
+    capabilities.setDoubleBuffered(false); // FIXME
+    capabilities.setOnscreen(false);
+    capabilities.setPBuffer(true);
+    return createGLPbufferDrawable( createOffscreenWindow(capabilities, chooser, height, height) );
+  }
 
-  /** Creates a (typically software-accelerated) offscreen GLDrawable
-      used to implement the fallback rendering path of the
-      GLJPanel. */
-  public abstract GLDrawableImpl createOffscreenDrawable(GLCapabilities capabilities,
-                                                         GLCapabilitiesChooser chooser,
-                                                         int width,
-                                                         int height);
-
-  /** Creates a (typically hw-accelerated) onscreen GLDrawable. */
-  public abstract GLDrawableImpl createOnscreenDrawable(NativeWindow target);
-
-  public GLPbuffer createGLPbuffer(GLDrawable pbufferDrawable,
+  public GLPbuffer createGLPbuffer(GLCapabilities capabilities,
+                                   GLCapabilitiesChooser chooser,
+                                   int width,
+                                   int height,
                                    GLContext shareWith) {
-      return new GLPbufferImpl((GLDrawableImpl)pbufferDrawable, shareWith);
+    return new GLPbufferImpl( (GLDrawableImpl) createGLPbufferDrawable(capabilities, chooser, height, height),
+                              shareWith);
   }
+
+
+  //---------------------------------------------------------------------------
+  //
+  // Offscreen GLDrawable construction 
+  //
+
+  protected abstract GLDrawableImpl createOffscreenDrawable(NativeWindow target) ;
+
+  public GLDrawable createOffscreenDrawable(GLCapabilities capabilities,
+                                            GLCapabilitiesChooser chooser,
+                                            int width,
+                                            int height) {
+    if(width<=0 || height<=0) {
+        throw new GLException("Width and height of pbuffer must be positive (were (" +
+                        width + ", " + height + "))");
+    }
+    capabilities.setDoubleBuffered(false); // FIXME
+    capabilities.setOnscreen(false);
+    capabilities.setPBuffer(false);
+    return createOffscreenDrawable( createOffscreenWindow(capabilities, chooser, width, height) );
+  }
+
+  /**
+   * creates an offscreen NativeWindow, which must implement SurfaceChangeable as well,
+   * so the windowing system related implementation is able to set the surface handle.
+   */
+  protected abstract NativeWindow createOffscreenWindow(GLCapabilities capabilities, GLCapabilitiesChooser chooser, 
+                                                        int width, int height);
 
   protected GLDrawableFactoryImpl() {
     super();

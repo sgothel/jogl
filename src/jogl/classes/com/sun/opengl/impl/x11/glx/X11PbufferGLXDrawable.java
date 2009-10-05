@@ -43,27 +43,24 @@ import javax.media.opengl.*;
 import javax.media.nativewindow.*;
 import com.sun.opengl.impl.*;
 import com.sun.opengl.impl.x11.glx.*;
-import com.sun.nativewindow.impl.NullWindow;
 import com.sun.nativewindow.impl.x11.*;
 
 public class X11PbufferGLXDrawable extends X11GLXDrawable {
-  protected X11PbufferGLXDrawable(GLDrawableFactory factory, AbstractGraphicsScreen screen,
-                                  GLCapabilities caps, 
+  protected X11PbufferGLXDrawable(GLDrawableFactory factory, NativeWindow target) {
+                                  /* GLCapabilities caps, 
                                   GLCapabilitiesChooser chooser,
-                                  int width, int height) {
-    super(factory, new NullWindow(X11GLXGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(caps, chooser, screen)), true);
-    if (width <= 0 || height <= 0) {
-      throw new GLException("Width and height of pbuffer must be positive (were (" +
-			    width + ", " + height + "))");
-    }
-    NullWindow nw = (NullWindow) getNativeWindow();
-    nw.setSize(width, height);
+                                  int width, int height */
+    super(factory, target, true);
 
     if (DEBUG) {
-      System.out.println("Pbuffer config: " + getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration());
+        System.out.println("Pbuffer config: " + getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration());
     }
 
     createPbuffer();
+
+    if (DEBUG) {
+        System.err.println("Created pbuffer " + this);
+    }
   }
 
   public GLContext createContext(GLContext shareWith) {
@@ -73,7 +70,7 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
   public void destroy() {
     getFactoryImpl().lockToolkit();
     try {
-        NullWindow nw = (NullWindow) getNativeWindow();
+        NativeWindow nw = getNativeWindow();
         if (nw.getSurfaceHandle() != 0) {
           GLX.glXDestroyPbuffer(nw.getDisplayHandle(), nw.getSurfaceHandle());
         }
@@ -96,7 +93,7 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
         throw new GLException("Null display");
       }
 
-      NullWindow nw = (NullWindow) getNativeWindow();
+      NativeWindow nw = getNativeWindow();
     
       GLCapabilities capabilities = (GLCapabilities)config.getChosenCapabilities();
 
@@ -118,26 +115,22 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
       iattributes[niattribs++] = nw.getHeight();
       iattributes[niattribs++] = 0;
 
-      long drawable = GLX.glXCreatePbuffer(display, config.getFBConfig(), iattributes, 0);
-      if (drawable == 0) {
+      long pbuffer = GLX.glXCreatePbuffer(display, config.getFBConfig(), iattributes, 0);
+      if (pbuffer == 0) {
         // FIXME: query X error code for detail error message
         throw new GLException("pbuffer creation error: glXCreatePbuffer() failed");
       }
 
       // Set up instance variables
-      nw.setSurfaceHandle(drawable);
+      ((SurfaceChangeable)nw).setSurfaceHandle(pbuffer);
       
       // Determine the actual width and height we were able to create.
       int[] tmp = new int[1];
-      GLX.glXQueryDrawable(display, drawable, GLX.GLX_WIDTH, tmp, 0);
+      GLX.glXQueryDrawable(display, pbuffer, GLX.GLX_WIDTH, tmp, 0);
       int width = tmp[0];
-      GLX.glXQueryDrawable(display, drawable, GLX.GLX_HEIGHT, tmp, 0);
+      GLX.glXQueryDrawable(display, pbuffer, GLX.GLX_HEIGHT, tmp, 0);
       int height = tmp[0];
-      nw.setSize(width, height);
-
-      if (DEBUG) {
-        System.err.println("Created pbuffer " + width + " x " + height);
-      }
+      ((SurfaceChangeable)nw).setSize(width, height);
     } finally {
       getFactoryImpl().unlockToolkit();
     }

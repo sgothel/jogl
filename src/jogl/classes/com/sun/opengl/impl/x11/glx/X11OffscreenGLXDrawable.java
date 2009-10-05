@@ -42,19 +42,13 @@ package com.sun.opengl.impl.x11.glx;
 import javax.media.nativewindow.*;
 import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
-import com.sun.nativewindow.impl.NullWindow;
 import com.sun.nativewindow.impl.x11.*;
 
 public class X11OffscreenGLXDrawable extends X11GLXDrawable {
   private long pixmap;
 
-  protected X11OffscreenGLXDrawable(GLDrawableFactory factory, AbstractGraphicsScreen screen,
-                                    GLCapabilities caps,
-                                    GLCapabilitiesChooser chooser,
-                                    int width,
-                                    int height) {
-    super(factory, new NullWindow(X11GLXGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(caps, chooser, screen)), true);
-    ((NullWindow) getNativeWindow()).setSize(width, height);
+  protected X11OffscreenGLXDrawable(GLDrawableFactory factory, NativeWindow target) {
+    super(factory, target, true);
     create();
   }
 
@@ -63,7 +57,7 @@ public class X11OffscreenGLXDrawable extends X11GLXDrawable {
   }
   
   private void create() {
-    NullWindow nw = (NullWindow) getNativeWindow();
+    NativeWindow nw = getNativeWindow();
     X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration) nw.getGraphicsConfiguration().getNativeGraphicsConfiguration();
     XVisualInfo vis = config.getXVisualInfo();
     int bitsPerPixel = vis.depth();
@@ -85,7 +79,7 @@ public class X11OffscreenGLXDrawable extends X11GLXDrawable {
         pixmap = 0;
         throw new GLException("glXCreateGLXPixmap failed");
       }
-      nw.setSurfaceHandle(drawable);
+      ((SurfaceChangeable)nw).setSurfaceHandle(drawable);
       if (DEBUG) {
         System.err.println("Created pixmap " + toHexString(pixmap) +
                            ", GLXPixmap " + toHexString(drawable) +

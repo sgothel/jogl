@@ -35,12 +35,14 @@ package com.sun.javafx.newt;
 
 import javax.media.nativewindow.*;
 
-public class OffscreenWindow extends Window {
+public class OffscreenWindow extends Window implements SurfaceChangeable {
+
+    long surfaceHandle = 0;
 
     public OffscreenWindow() {
     }
 
-    static long nextWindowHandle = 1;
+    static long nextWindowHandle = 0x100; // start here - a marker
 
     protected void createNative(long parentWindowHandle, Capabilities caps) {
         if(0!=parentWindowHandle) {
@@ -50,7 +52,7 @@ public class OffscreenWindow extends Window {
             throw new NativeWindowException("Capabilities is onscreen");
         }
         AbstractGraphicsScreen aScreen = screen.getGraphicsScreen();
-        config = new DefaultGraphicsConfiguration(aScreen, caps, caps);
+        config = GraphicsConfigurationFactory.getFactory(aScreen.getDevice()).chooseGraphicsConfiguration(caps, null, aScreen);
         if (config == null) {
             throw new NativeWindowException("Error choosing GraphicsConfiguration creating window: "+this);
         }
@@ -62,6 +64,22 @@ public class OffscreenWindow extends Window {
 
     protected void closeNative() {
         // nop
+    }
+
+    public void disposeSurfaceHandle() {
+        surfaceHandle = 0;
+    }
+
+    public synchronized void destroy() {
+        disposeSurfaceHandle();
+    }
+
+    public void setSurfaceHandle(long handle) {
+        surfaceHandle = handle ;
+    }
+
+    public long getSurfaceHandle() {
+        return surfaceHandle;
     }
 
     public void setVisible(boolean visible) {

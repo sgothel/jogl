@@ -72,15 +72,8 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
     return new X11OnscreenGLXDrawable(this, target);
   }
 
-  public GLDrawableImpl createOffscreenDrawable(GLCapabilities capabilities,
-                                                GLCapabilitiesChooser chooser,
-                                                int width,
-                                                int height) {
-    AbstractGraphicsScreen screen = X11GraphicsScreen.createDefault();
-    capabilities.setDoubleBuffered(false); // FIXME
-    capabilities.setOnscreen(false);
-    capabilities.setPBuffer(false);
-    return new X11OffscreenGLXDrawable(this, screen, capabilities, chooser, width, height);
+  protected GLDrawableImpl createOffscreenDrawable(NativeWindow target) {
+    return new X11OffscreenGLXDrawable(this, target);
   }
 
   private boolean pbufferSupportInitialized = false;
@@ -117,29 +110,15 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
     return canCreateGLPbuffer;
   }
 
-  public GLDrawableImpl createGLPbufferDrawable(GLCapabilities capabilities,
-                                   final GLCapabilitiesChooser chooser,
-                                   final int initialWidth,
-                                   final int initialHeight) {
-    if (!canCreateGLPbuffer()) {
-      throw new GLException("Pbuffer support not available with current graphics card");
-    }
-
-    capabilities.setDoubleBuffered(false); // FIXME
-    capabilities.setOnscreen(false);
-    capabilities.setPBuffer(true);
-    AbstractGraphicsScreen screen = X11GraphicsScreen.createDefault();
-    return new X11PbufferGLXDrawable(this, screen, capabilities, chooser,
-                                     initialWidth, initialHeight);
+  protected GLDrawableImpl createGLPbufferDrawableImpl(NativeWindow target) {
+    return new X11PbufferGLXDrawable(this, target);
   }
 
-  public GLPbuffer createGLPbuffer(final GLCapabilities capabilities,
-                                   final GLCapabilitiesChooser chooser,
-                                   final int initialWidth,
-                                   final int initialHeight,
-                                   final GLContext shareWith) {
-    GLDrawableImpl drawable = createGLPbufferDrawable(capabilities, chooser, initialWidth, initialHeight);
-    return new GLPbufferImpl(drawable, shareWith);
+  protected NativeWindow createOffscreenWindow(GLCapabilities capabilities, GLCapabilitiesChooser chooser, int width, int height) {
+    AbstractGraphicsScreen screen = X11GraphicsScreen.createDefault();
+    NullWindow nw = new NullWindow(X11GLXGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(capabilities, chooser, screen));
+    nw.setSize(width, height);
+    return nw;
   }
 
   public GLContext createExternalGLContext() {

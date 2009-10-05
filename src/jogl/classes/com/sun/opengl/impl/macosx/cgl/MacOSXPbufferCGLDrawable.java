@@ -42,7 +42,6 @@ package com.sun.opengl.impl.macosx.cgl;
 import javax.media.opengl.*;
 import javax.media.nativewindow.*;
 import com.sun.opengl.impl.*;
-import com.sun.nativewindow.impl.NullWindow;
 
 public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
   private static final boolean DEBUG = Debug.debug("MacOSXPbufferCGLDrawable");
@@ -57,16 +56,19 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
   // semantic is that contains an NSView
   protected long pBuffer;
 
-  public MacOSXPbufferCGLDrawable(GLDrawableFactory factory, 
-                                  AbstractGraphicsScreen absScreen, 
-                                  GLCapabilities caps, 
-                                  GLCapabilitiesChooser chooser,
-                                  int width, int height) {
-    super(factory, new NullWindow(MacOSXCGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(caps, chooser, absScreen, true)), true);
-    NullWindow nw = (NullWindow) getNativeWindow();
-    nw.setSize(width, height);
+  public MacOSXPbufferCGLDrawable(GLDrawableFactory factory, NativeWindow target) {
+    super(factory, target, true);
+
+    if (DEBUG) {
+        System.out.println("Pbuffer config: " + getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration());
+    }
+
     initOpenGLImpl();
     createPbuffer();
+
+    if (DEBUG) {
+        System.err.println("Created pbuffer " + this);
+    }
   }
 
   public GLContext createContext(GLContext shareWith) {
@@ -94,7 +96,7 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
   }
 
   private void createPbuffer() {
-    NullWindow nw = (NullWindow) getNativeWindow();
+    NativeWindow nw = getNativeWindow();
     DefaultGraphicsConfiguration config = (DefaultGraphicsConfiguration) nw.getGraphicsConfiguration().getNativeGraphicsConfiguration();
     GLCapabilities capabilities = (GLCapabilities)config.getChosenCapabilities();
     GLProfile glProfile = capabilities.getGLProfile();
@@ -104,7 +106,7 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
     } else {
       int w = getNextPowerOf2(getWidth());
       int h = getNextPowerOf2(getHeight());
-      nw.setSize(w, h);
+      ((SurfaceChangeable)nw).setSize(w, h);
       renderTarget = GL.GL_TEXTURE_2D;
     }
 
@@ -134,10 +136,9 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
     if (pBuffer == 0) {
       throw new GLException("pbuffer creation error: CGL.createPBuffer() failed");
     }
-        
-    if (DEBUG) {
-      System.err.println("Created pbuffer " + nw + " for " + this);
-    }
+
+    ((SurfaceChangeable)nw).setSurfaceHandle(pBuffer);
+
   }
 
   private int getNextPowerOf2(int number) {
