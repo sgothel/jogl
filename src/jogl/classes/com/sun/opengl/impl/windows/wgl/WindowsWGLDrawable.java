@@ -60,9 +60,7 @@ public abstract class WindowsWGLDrawable extends GLDrawableImpl {
     super(factory, comp, realized);
   }
 
-  public void setRealized(boolean realized) {
-    super.setRealized(realized);
-
+  protected void setRealizedImpl() {
     if(!realized) {
         return; // nothing todo ..
     }

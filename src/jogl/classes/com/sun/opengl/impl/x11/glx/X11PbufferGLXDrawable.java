@@ -63,6 +63,14 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
     }
   }
 
+  protected void setRealizedImpl() {
+    if(realized) {
+        createPbuffer();
+    } else {
+        destroy();
+    }
+  }
+
   public GLContext createContext(GLContext shareWith) {
     return new X11PbufferGLXContext(this, shareWith);
   }
@@ -74,7 +82,7 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
         if (nw.getSurfaceHandle() != 0) {
           GLX.glXDestroyPbuffer(nw.getDisplayHandle(), nw.getSurfaceHandle());
         }
-        nw.invalidate();
+        ((SurfaceChangeable)nw).setSurfaceHandle(0);
     } finally {
         getFactoryImpl().unlockToolkit();
     }

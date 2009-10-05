@@ -53,6 +53,14 @@ public class WindowsOffscreenWGLDrawable extends WindowsWGLDrawable {
     create();
   }
 
+  protected void setRealizedImpl() {
+    if(realized) {
+        create();
+    } else {
+        destroy();
+    }
+  }
+
   public GLContext createContext(GLContext shareWith) {
     return new WindowsOffscreenWGLContext(this, shareWith);
   }

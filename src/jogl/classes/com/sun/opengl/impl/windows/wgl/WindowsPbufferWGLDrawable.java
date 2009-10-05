@@ -67,6 +67,14 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
     }
   }
 
+  protected void setRealizedImpl() {
+    if(realized) {
+        throw new GLException("Recreation via setRealized not supported.");
+    } else {
+        destroy();
+    }
+  }
+
   public GLContext createContext(GLContext shareWith) {
     return new WindowsPbufferWGLContext(this, shareWith);
   }

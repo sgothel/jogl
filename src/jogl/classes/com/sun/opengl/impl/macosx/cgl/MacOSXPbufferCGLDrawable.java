@@ -71,14 +71,24 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
     }
   }
 
+  protected void setRealizedImpl() {
+    if(realized) {
+        createPbuffer();
+    } else {
+        destroy();
+    }
+  }
+
   public GLContext createContext(GLContext shareWith) {
     return new MacOSXPbufferCGLContext(this, shareWith);
   }
 
   public void destroy() {
     if (this.pBuffer != 0) {
+      NativeWindow nw = getNativeWindow();
       impl.destroy(pBuffer);
       this.pBuffer = 0;
+      ((SurfaceChangeable)nw).setSurfaceHandle(0);
       if (DEBUG) {
         System.err.println("Destroyed pbuffer: " + pBuffer);
       }

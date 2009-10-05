@@ -476,7 +476,12 @@ void* createContext(void* shareContext,
 	
 	NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
 
-	NSView *nsView = (NSView*)view;
+	NSView *nsView = NULL;
+    NSObject *nsObj = (NSObject*) view;
+
+    if( nsObj != NULL && [nsObj isKindOfClass:[NSView class]] ) {
+        nsView = (NSView*)nsObj;
+    }
 
 	if (nsView != NULL)
 	{

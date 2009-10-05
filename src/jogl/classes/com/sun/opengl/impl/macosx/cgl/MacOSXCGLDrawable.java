@@ -82,9 +82,7 @@ public abstract class MacOSXCGLDrawable extends GLDrawableImpl {
     super(factory, comp, realized);
  }
 
-  public void setRealized(boolean realized) {
-    super.setRealized(realized);
-
+  protected void setRealizedImpl() {
     if(realized) {
         if( NativeWindow.LOCK_SURFACE_NOT_READY == lockSurface() ) {
             throw new GLException("Couldn't lock surface");

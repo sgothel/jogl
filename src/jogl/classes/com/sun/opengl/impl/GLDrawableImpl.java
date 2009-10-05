@@ -112,8 +112,17 @@ public abstract class GLDrawableImpl implements GLDrawable {
   }
 
   public void setRealized(boolean realized) {
-    this.realized = realized;
+    if ( this.realized != realized ) {
+        if(DEBUG) {
+            System.err.println("setRealized: "+getClass().getName()+" "+this.realized+" -> "+realized);
+        }
+        this.realized = realized;
+        setRealizedImpl();
+    } else if(DEBUG) {
+        System.err.println("setRealized: "+getClass().getName()+" "+this.realized+" == "+realized);
+    }
   }
+  protected abstract void setRealizedImpl();
 
   public boolean getRealized() {
     return realized;

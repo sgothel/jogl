@@ -222,15 +222,6 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl implements 
     return detail;
   }
 
-  private void maybeDoSingleThreadedWorkaround(Runnable action) {
-    if (Threading.isSingleThreaded() &&
-        !Threading.isOpenGLThread()) {
-      Threading.invokeOnOpenGLThread(action);
-    } else {
-      action.run();
-    }
-  }
-
   public boolean canCreateContextOnJava2DSurface() {
     return false;
   }

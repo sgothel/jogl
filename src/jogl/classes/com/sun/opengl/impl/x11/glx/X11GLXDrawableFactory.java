@@ -110,9 +110,23 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
     return canCreateGLPbuffer;
   }
 
-  protected GLDrawableImpl createGLPbufferDrawableImpl(NativeWindow target) {
+  protected GLDrawableImpl createGLPbufferDrawableImpl(final NativeWindow target) {
+    /** 
+     * FIXME: Think about this ..
+     * should not be necessary ? ..
+    final List returnList = new ArrayList();
+    final GLDrawableFactory factory = this;
+    Runnable r = new Runnable() {
+        public void run() {
+          returnList.add(new X11PbufferGLXDrawable(factory, target));
+        }
+      };
+    maybeDoSingleThreadedWorkaround(r);
+    return (GLDrawableImpl) returnList.get(0);
+    */
     return new X11PbufferGLXDrawable(this, target);
   }
+
 
   protected NativeWindow createOffscreenWindow(GLCapabilities capabilities, GLCapabilitiesChooser chooser, int width, int height) {
     AbstractGraphicsScreen screen = X11GraphicsScreen.createDefault();
@@ -145,15 +159,6 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
       res = X11Lib.dlsym(glFuncName);
     }
     return res;
-  }
-
-  private void maybeDoSingleThreadedWorkaround(Runnable action) {
-    if (Threading.isSingleThreaded() &&
-        !Threading.isOpenGLThread()) {
-      Threading.invokeOnOpenGLThread(action);
-    } else {
-      action.run();
-    }
   }
 
   public boolean canCreateContextOnJava2DSurface() {

@@ -54,9 +54,7 @@ public abstract class X11GLXDrawable extends GLDrawableImpl {
     return (X11GLXDrawableFactory) getFactoryImpl() ;
   }
 
-  public void setRealized(boolean realized) {
-    super.setRealized(realized);
-
+  protected void setRealizedImpl() {
     if(!realized) {
         return; // nothing to do 
     }

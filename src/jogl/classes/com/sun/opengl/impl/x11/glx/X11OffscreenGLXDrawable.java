@@ -52,6 +52,14 @@ public class X11OffscreenGLXDrawable extends X11GLXDrawable {
     create();
   }
 
+  protected void setRealizedImpl() {
+    if(realized) {
+        create();
+    } else {
+        destroy();
+    }
+  }
+
   public GLContext createContext(GLContext shareWith) {
     return new X11OffscreenGLXContext(this, shareWith);
   }
@@ -123,6 +131,7 @@ public class X11OffscreenGLXDrawable extends X11GLXDrawable {
       drawable = 0;
       pixmap = 0;
       display = 0;
+      ((SurfaceChangeable)nw).setSurfaceHandle(0);
     } finally {
       getFactoryImpl().unlockToolkit();
     }

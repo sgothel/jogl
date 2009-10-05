@@ -77,7 +77,20 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl implements D
     return true;
   }
 
-  protected GLDrawableImpl createGLPbufferDrawableImpl(NativeWindow target) {
+  protected GLDrawableImpl createGLPbufferDrawableImpl(final NativeWindow target) {
+    /** 
+     * FIXME: Think about this ..
+     * should not be necessary ? ..
+    final List returnList = new ArrayList();
+    final GLDrawableFactory factory = this;
+    Runnable r = new Runnable() {
+        public void run() {
+          returnList.add(new MacOSXPbufferCGLDrawable(factory, target));
+        }
+      };
+    maybeDoSingleThreadedWorkaround(r);
+    return (GLDrawableImpl) returnList.get(0);
+    */
     return new MacOSXPbufferCGLDrawable(this, target);
   }
 
