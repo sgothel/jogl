@@ -267,6 +267,7 @@ public class EGLGraphicsConfigurationFactory extends GraphicsConfigurationFactor
         if(caps.isOnscreen()) {
             throw new GLException("Error: Onscreen set: "+caps);
         }
+        caps.setDoubleBuffered(false); // FIXME
         long eglDisplay = EGL.eglGetDisplay(EGL.EGL_DEFAULT_DISPLAY);
         if (eglDisplay == EGL.EGL_NO_DISPLAY) {
             throw new GLException("Failed to created EGL default display: error 0x"+Integer.toHexString(EGL.eglGetError()));
