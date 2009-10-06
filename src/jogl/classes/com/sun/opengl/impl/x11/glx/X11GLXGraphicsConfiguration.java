@@ -251,7 +251,7 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
         res.setOnscreen( 0 != (val & GLX.GLX_WINDOW_BIT) );
         res.setPBuffer ( 0 != (val & GLX.GLX_PBUFFER_BIT) );
     } else {
-        return null;
+        throw new GLException("GLX_DRAWABLE_TYPE does not match !!!");
     }
     res.setDoubleBuffered(glXGetFBConfig(display, fbcfg, GLX.GLX_DOUBLEBUFFER,     tmp, 0) != 0);
     res.setStereo        (glXGetFBConfig(display, fbcfg, GLX.GLX_STEREO,           tmp, 0) != 0);

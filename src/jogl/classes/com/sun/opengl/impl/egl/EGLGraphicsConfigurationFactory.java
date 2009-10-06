@@ -227,17 +227,23 @@ public class EGLGraphicsConfigurationFactory extends GraphicsConfigurationFactor
                     // FIXME: this happens on a ATI PC Emulation ..
                     System.err.println("EGL couldn't retrieve ConfigID for already chosen eglConfig "+capsChosen0+", error 0x"+Integer.toHexString(EGL.eglGetError()));
                 }
-                val[0]=0;
+                return null;
             }
             GLCapabilities capsChosen1 = EGLGraphicsConfiguration.EGLConfig2Capabilities(glp, eglDisplay, configs[0],
-                                                                    false, capsChosen0.isOnscreen(), capsChosen0.isPBuffer());
-            if(DEBUG) {
-                System.err.println("eglChooseConfig found: eglDisplay 0x"+Long.toHexString(eglDisplay)+
-                                                                        ", eglConfig ID 0x"+Integer.toHexString(val[0])+
-                                                                        ", "+capsChosen0+" -> "+capsChosen1);
+                                                                    true, capsChosen0.isOnscreen(), capsChosen0.isPBuffer());
+            if(null!=capsChosen1) {
+                if(DEBUG) {
+                    System.err.println("eglChooseConfig found: eglDisplay 0x"+Long.toHexString(eglDisplay)+
+                                                            ", eglConfig ID 0x"+Integer.toHexString(val[0])+
+                                                            ", "+capsChosen0+" -> "+capsChosen1);
+                }
+                return new EGLGraphicsConfiguration(absScreen, capsChosen1, capsRequested, chooser, configs[0], val[0]);
             }
-
-            return new EGLGraphicsConfiguration(absScreen, capsChosen1, capsRequested, chooser, configs[0], val[0]);
+            if(DEBUG) {
+                System.err.println("eglChooseConfig couldn't verify: eglDisplay 0x"+Long.toHexString(eglDisplay)+
+                                                                        ", eglConfig ID 0x"+Integer.toHexString(val[0])+
+                                                                        ", for "+capsChosen0);
+            }
         } else {
             if(DEBUG) {
                 System.err.println("EGL Choose Configs: None using eglDisplay 0x"+Long.toHexString(eglDisplay)+

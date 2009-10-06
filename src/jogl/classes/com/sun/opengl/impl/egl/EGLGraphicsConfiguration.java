@@ -187,10 +187,17 @@ public class EGLGraphicsConfiguration extends DefaultGraphicsConfiguration imple
                 caps.setOnscreen( 0 != (val[0] & EGL.EGL_WINDOW_BIT) );
                 caps.setPBuffer ( 0 != (val[0] & EGL.EGL_PBUFFER_BIT) );
             } else {
-                return null;
+                throw new GLException("EGL_SURFACE_TYPE does not match !!!");
             }
         } else {
-            throw new GLException("Could not determine EGL_SURFACE_TYPE");
+            if(relaxed) {
+                if(DEBUG) {
+                    System.err.println("Could not determine EGL_SURFACE_TYPE !!!");
+                }
+                return null;
+            } else {
+                throw new GLException("Could not determine EGL_SURFACE_TYPE !!!");
+            }
         }
 
         return caps;

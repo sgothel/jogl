@@ -149,9 +149,22 @@ public abstract class EGLDynamicLookupHelper implements DynamicLookupHelper {
         return null;
     }
 
+    private boolean loadEGLLibrary(ClassLoader loader, List/*<String>*/ eglLibNames) {
+        NativeLibrary lib = null;
+        if(null!=eglLibNames && eglLibNames.size()>0) {
+            // EGL libraries ..
+            lib = loadFirstAvailable(eglLibNames, loader);
+            if ( null != lib ) {
+                glesLibraries.add(lib);
+            }
+        }
+        return null!=lib;
+    }
+
     private void loadGLESLibrary(int esProfile) {
         List/*<String>*/ glesLibNames = getGLESLibNames();
         List/*<String>*/ eglLibNames = getEGLLibNames();
+        boolean eglLoaded = false;
 
         ClassLoader loader = getClass().getClassLoader();
         NativeLibrary lib = null;
@@ -160,18 +173,22 @@ public abstract class EGLDynamicLookupHelper implements DynamicLookupHelper {
 
         // ES libraries ..
         lib = loadFirstAvailable(glesLibNames, loader);
-        if (lib == null) {
+        if ( null == lib ) {
+            /*** FIXME: Have to think about this ..
+            // try again with EGL loaded first ..
+            if ( !eglLoaded && loadEGLLibrary(loader, eglLibNames) ) {
+                eglLoaded = true ;
+                lib = loadFirstAvailable(glesLibNames, loader);
+            }
+            if ( null == lib ) {
+                throw new GLException("Unable to dynamically load OpenGL ES library for profile ES" + esProfile);
+            } */
             throw new GLException("Unable to dynamically load OpenGL ES library for profile ES" + esProfile);
         }
         glesLibraries.add(lib);
 
-        if(null!=eglLibNames && eglLibNames.size()>0) {
-            // EGL libraries ..
-            lib = loadFirstAvailable(eglLibNames, loader);
-            if (lib == null) {
-                throw new GLException("Unable to dynamically load EGL library for profile ES" + esProfile);
-            }
-            glesLibraries.add(lib);
+        if ( !eglLoaded && !loadEGLLibrary(loader, eglLibNames) ) {
+            throw new GLException("Unable to dynamically load EGL library for profile ES" + esProfile);
         }
 
         if (esProfile==2) {

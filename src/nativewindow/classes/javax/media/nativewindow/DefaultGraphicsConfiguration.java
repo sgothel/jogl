@@ -57,11 +57,11 @@ public class DefaultGraphicsConfiguration implements Cloneable, AbstractGraphics
     }
 
     public Capabilities getChosenCapabilities() {
-        return (Capabilities)capabilitiesChosen.clone();
+        return (null!=capabilitiesChosen)?(Capabilities)capabilitiesChosen.clone():null;
     }
 
     public Capabilities getRequestedCapabilities() {
-        return (Capabilities)capabilitiesRequested.clone();
+        return (null!=capabilitiesRequested)?(Capabilities)capabilitiesRequested.clone():null;
     }
 
     public AbstractGraphicsConfiguration getNativeGraphicsConfiguration() {

@@ -435,7 +435,7 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
             res.setOnscreen( 0 != (drawableTypeBits & WINDOW_BIT) );
             res.setPBuffer ( 0 != (drawableTypeBits & PBUFFER_BIT) );
         } else {
-            return null;
+            throw new GLException("WGL DrawableType does not match !!!");
         }
 
         for (int i = 0; i < niattribs; i++) {
