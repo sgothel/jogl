@@ -6,13 +6,21 @@ shift
 joglbuilddir=$1
 shift 
 
-if [ -z "$url" -o -z "$joglbuilddir" ] ; then
-    echo usage $0 codebase-url jogl-builddir
+wsdir=$1
+shift 
+
+if [ -z "$url" -o -z "$joglbuilddir" -o -z "$wsdir" ] ; then
+    echo usage $0 codebase-url jogl-builddir webstartdir
     exit 1
 fi
 
 if [ ! -e $joglbuilddir ] ; then
     echo $joglbuilddir does not exist
+    exit 1
+fi
+
+if [ ! -e $wsdir ] ; then
+    echo $wsdir does not exist
     exit 1
 fi
 
@@ -39,9 +47,6 @@ if [ ! -e $jnlpdir_demos ] ; then
     echo $jnlpdir_demos does not exist
     exit 1
 fi
-
-wsdir=$joglbuilddir/webstart
-mkdir -p $wsdir
 
 cp -v $jnlpdir_demos/*.html $wsdir
 

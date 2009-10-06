@@ -3,13 +3,21 @@
 joglbuilddir=$1
 shift 
 
-if [ -z "$joglbuilddir" ] ; then
-    echo usage $0 jogl-builddir
+wsdir=$1
+shift 
+
+if [ -z "$joglbuilddir" -o -z "$wsdir" ] ; then
+    echo usage $0 jogl-builddir webstartdir
     exit 1
 fi
 
 if [ ! -e $joglbuilddir ] ; then
     echo $joglbuilddir does not exist
+    exit 1
+fi
+
+if [ ! -e $wsdir ] ; then
+    echo $wsdir does not exist
     exit 1
 fi
 
@@ -36,9 +44,6 @@ if [ ! -e $jnlpdir_demos ] ; then
     echo $jnlpdir_demos does not exist
     exit 1
 fi
-
-wsdir=$joglbuilddir/webstart
-mkdir -p $wsdir
 
 cp -v $gluegenroot/$builddirbase/*.jar $wsdir
 cp -v $gluegenroot/$builddirbase/obj/lib*.so $wsdir
