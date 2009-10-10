@@ -166,10 +166,14 @@ static jmethodID sendKeyEventID = NULL;
 
 static jmethodID displayCompletedID = NULL;
 
-static void _throwNewRuntimeException(JNIEnv *env, const char* msg, ...)
+static void _throwNewRuntimeException(Display * unlockDisplay, JNIEnv *env, const char* msg, ...)
 {
     char buffer[512];
     va_list ap;
+
+    if(NULL!=unlockDisplay) {
+        XUnlockDisplay(unlockDisplay);
+    }
 
     va_start(ap, msg);
     vsnprintf(buffer, sizeof(buffer), msg, ap);
@@ -191,6 +195,10 @@ JNIEXPORT jboolean JNICALL Java_com_sun_javafx_newt_x11_X11Display_initIDs
   (JNIEnv *env, jclass clazz)
 {
     jclass c;
+
+    if( 0 == XInitThreads() ) {
+        fprintf(stderr, "Warning: XInitThreads() failed\n");
+    }
 
     displayCompletedID = (*env)->GetMethodID(env, clazz, "displayCompleted", "(JJ)V");
     if (displayCompletedID == NULL) {
@@ -228,6 +236,37 @@ JNIEXPORT jboolean JNICALL Java_com_sun_javafx_newt_x11_X11Display_initIDs
     return JNI_TRUE;
 }
 
+/*
+ * Class:     com_sun_javafx_newt_x11_X11Display
+ * Method:    LockDisplay
+ * Signature: (J)V
+ */
+JNIEXPORT void JNICALL Java_com_sun_javafx_newt_x11_X11Display_LockDisplay
+  (JNIEnv *env, jobject obj, jlong display)
+{
+    Display * dpy = (Display *)(intptr_t)display;
+    if(dpy==NULL) {
+        _throwNewRuntimeException(NULL, env, "given display connection is NULL\n");
+    }
+    XLockDisplay(dpy) ;
+}
+
+
+/*
+ * Class:     com_sun_javafx_newt_x11_X11Display
+ * Method:    UnlockDisplay
+ * Signature: (J)V
+ */
+JNIEXPORT void JNICALL Java_com_sun_javafx_newt_x11_X11Display_UnlockDisplay
+  (JNIEnv *env, jobject obj, jlong display)
+{
+    Display * dpy = (Display *)(intptr_t)display;
+    if(dpy==NULL) {
+        _throwNewRuntimeException(NULL, env, "given display connection is NULL\n");
+    }
+    XUnlockDisplay(dpy) ;
+}
+
 
 /*
  * Class:     com_sun_javafx_newt_x11_X11Display
@@ -240,21 +279,26 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_x11_X11Display_CompleteDisplay
     Display * dpy = (Display *)(intptr_t)display;
     jlong javaObjectAtom;
     jlong windowDeleteAtom;
+
     if(dpy==NULL) {
-        _throwNewRuntimeException(env, "given display connection is NULL\n");
+        _throwNewRuntimeException(NULL, env, "given display connection is NULL\n");
     }
+    XLockDisplay(dpy) ;
 
     javaObjectAtom = (jlong) XInternAtom(dpy, "JOGL_JAVA_OBJECT", False);
     if(None==javaObjectAtom) {
-        _throwNewRuntimeException(env, "could not create Atom JOGL_JAVA_OBJECT, bail out!\n");
+        _throwNewRuntimeException(dpy, env, "could not create Atom JOGL_JAVA_OBJECT, bail out!\n");
         return;
     }
 
     windowDeleteAtom = (jlong) XInternAtom(dpy, "WM_DELETE_WINDOW", False);
     if(None==windowDeleteAtom) {
-        _throwNewRuntimeException(env, "could not create Atom WM_DELETE_WINDOW, bail out!\n");
+        _throwNewRuntimeException(dpy, env, "could not create Atom WM_DELETE_WINDOW, bail out!\n");
         return;
     }
+
+    // XSetCloseDownMode(dpy, RetainTemporary); // Just a try ..
+    XUnlockDisplay(dpy) ;
 
     DBG_PRINT1("X11: X11Display_completeDisplay dpy %p\n", dpy);
 
@@ -285,7 +329,8 @@ static void setJavaWindowProperty(JNIEnv *env, Display *dpy, Window window, jlon
     {
         jobject test = (jobject) getPtrOut32Long(jogl_java_object_data);
         if( ! (jwindow==test) ) {
-            _throwNewRuntimeException(env, "Internal Error .. Encoded Window ref not the same %p != %p !\n", jwindow, test);
+            _throwNewRuntimeException(dpy, env, "Internal Error .. Encoded Window ref not the same %p != %p !\n", jwindow, test);
+            return;
         }
     }
 
@@ -311,24 +356,25 @@ static jobject getJavaWindowProperty(JNIEnv *env, Display *dpy, Window window, j
                                  &nitems_return, &bytes_after_return, &jogl_java_object_data_pp);
 
         if ( Success != res ) {
-            _throwNewRuntimeException(env, "could not fetch Atom JOGL_JAVA_OBJECT window property (res %d) nitems_return %ld, bytes_after_return %ld, bail out!\n",
+            _throwNewRuntimeException(dpy, env, "could not fetch Atom JOGL_JAVA_OBJECT window property (res %d) nitems_return %ld, bytes_after_return %ld, bail out!\n",
                 res, nitems_return, bytes_after_return);
             return NULL;
         }
 
         if(actual_type_return!=(Atom)javaObjectAtom || nitems_return<nitems_32 || NULL==jogl_java_object_data_pp) {
             XFree(jogl_java_object_data_pp);
-            _throwNewRuntimeException(env, "could not fetch Atom JOGL_JAVA_OBJECT window property (res %d) nitems_return %ld, bytes_after_return %ld, actual_type_return %ld, JOGL_JAVA_OBJECT %ld, bail out!\n",
+            _throwNewRuntimeException(dpy, env, "could not fetch Atom JOGL_JAVA_OBJECT window property (res %d) nitems_return %ld, bytes_after_return %ld, actual_type_return %ld, JOGL_JAVA_OBJECT %ld, bail out!\n",
                 res, nitems_return, bytes_after_return, (long)actual_type_return, javaObjectAtom);
             return NULL;
         }
     }
+
     jwindow = (jobject) getPtrOut32Long( (unsigned long *) jogl_java_object_data_pp ) ;
     XFree(jogl_java_object_data_pp);
 
 #ifdef VERBOSE_ON
     if(JNI_FALSE == (*env)->IsInstanceOf(env, jwindow, newtWindowClz)) {
-        _throwNewRuntimeException(env, "fetched Atom JOGL_JAVA_OBJECT window is not a NEWT Window: javaWindow 0x%X !\n", jwindow);
+        _throwNewRuntimeException(NULL, env, "fetched Atom JOGL_JAVA_OBJECT window is not a NEWT Window: javaWindow 0x%X !\n", jwindow);
     }
 #endif
     return jwindow;
@@ -343,10 +389,24 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_x11_X11Display_DispatchMessages
   (JNIEnv *env, jobject obj, jlong display, jlong javaObjectAtom, jlong wmDeleteAtom)
 {
     Display * dpy = (Display *) (intptr_t) display;
-    int num_events = 0;
+    int num_events = 100;
+
+    if ( NULL == dpy ) {
+        return;
+    }
 
     // Periodically take a break
-    while( num_events<100 && XPending(dpy)>0 ) {
+    while( num_events > 0 ) {
+
+        XLockDisplay(dpy) ;
+
+        // num_events = XPending(dpy); // XEventsQueued(dpy, QueuedAfterFlush); // I/O Flush ..
+        // num_events = XEventsQueued(dpy, QueuedAlready); // Better, no I/O ..
+        if ( 0 >= XEventsQueued(dpy, QueuedAlready) ) {
+            XUnlockDisplay(dpy) ;
+            return;
+        }
+
         jobject jwindow = NULL;
         XEvent evt;
         KeySym keySym;
@@ -354,22 +414,40 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_x11_X11Display_DispatchMessages
         char text[255];
 
         XNextEvent(dpy, &evt);
-        num_events++;
+        num_events--;
 
         if( 0==evt.xany.window ) {
-            _throwNewRuntimeException(env, "event window NULL, bail out!\n");
+            _throwNewRuntimeException(dpy, env, "event window NULL, bail out!\n");
+            return ;
         }
 
         if(dpy!=evt.xany.display) {
-            _throwNewRuntimeException(env, "wrong display");
-            continue;
+            _throwNewRuntimeException(dpy, env, "wrong display, bail out!\n");
+            return ;
         }
         jwindow = getJavaWindowProperty(env, dpy, evt.xany.window, javaObjectAtom);
+
         if(NULL==jwindow) {
             // just leave .. _throwNewRuntimeException(env, "could not fetch Java Window object, bail out!\n");
+            XUnlockDisplay(dpy) ;
             return;
         }
  
+        switch(evt.type) {
+            case KeyRelease:
+            case KeyPress:
+                if(XLookupString(&evt.xkey,text,255,&keySym,0)==1) {
+                    keyChar=text[0];
+                } else {
+                    keyChar=0;
+                }
+                break;
+            default:
+                break;
+        }
+
+        XUnlockDisplay(dpy) ;
+
         switch(evt.type) {
             case ButtonPress:
                 (*env)->CallVoidMethod(env, jwindow, sendMouseEventID, (jint) EVENT_MOUSE_PRESSED, 
@@ -387,21 +465,11 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_x11_X11Display_DispatchMessages
                                       (jint) evt.xmotion.x, (jint) evt.xmotion.y, (jint) 0, 0 /*rotation*/); 
                 break;
             case KeyPress:
-                if(XLookupString(&evt.xkey,text,255,&keySym,0)==1) {
-                    keyChar=text[0];
-                } else {
-                    keyChar=0;
-                }
                 (*env)->CallVoidMethod(env, jwindow, sendKeyEventID, (jint) EVENT_KEY_PRESSED, 
                                       (jint) evt.xkey.state, 
                                       X11KeySym2NewtVKey(keySym), (jchar) keyChar);
                 break;
             case KeyRelease:
-                if(XLookupString(&evt.xkey,text,255,&keySym,0)==1) {
-                    keyChar=text[0];
-                } else {
-                    keyChar=0;
-                }
                 (*env)->CallVoidMethod(env, jwindow, sendKeyEventID, (jint) EVENT_KEY_RELEASED, 
                                       (jint) evt.xkey.state, 
                                       X11KeySym2NewtVKey(keySym), (jchar) keyChar);
@@ -456,7 +524,7 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_x11_X11Display_DispatchMessages
             default:
                 DBG_PRINT3("X11: event . unhandled %d 0x%X call 0x%X\n", evt.type, evt.type, evt.xunmap.window);
         }
-    } 
+    }
 }
 
 
@@ -474,10 +542,13 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_x11_X11Screen_GetScreen
 {
     Display * dpy = (Display *)(intptr_t)display;
     Screen  * scrn= NULL;
+
     if(dpy==NULL) {
-        fprintf(stderr, "[GetScreen] invalid display connection..\n");
+        _throwNewRuntimeException(NULL, env, "invalid display connection..\n");
         return 0;
     }
+    XLockDisplay(dpy);
+
     scrn = ScreenOfDisplay(dpy,screen_index);
     if(scrn==NULL) {
         scrn=DefaultScreenOfDisplay(dpy);
@@ -485,6 +556,7 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_x11_X11Screen_GetScreen
     if(scrn==NULL) {
         fprintf(stderr, "couldn't get screen ..\n");
     }
+    XUnlockDisplay(dpy) ;
     return (jlong) (intptr_t) scrn;
 }
 
@@ -564,14 +636,16 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_x11_X11Window_CreateWindow
     DBG_PRINT4( "X11: CreateWindow %x/%d %dx%d\n", x, y, width, height);
 
     if(dpy==NULL) {
-        fprintf(stderr, "[CreateWindow] invalid display connection..\n");
+        _throwNewRuntimeException(NULL, env, "invalid display connection..\n");
         return 0;
     }
 
     if(visualID<0) {
-        fprintf(stderr, "[CreateWindow] invalid VisualID ..\n");
+        _throwNewRuntimeException(NULL, env, "invalid VisualID ..\n");
         return 0;
     }
+
+    XLockDisplay(dpy) ;
 
     XSync(dpy, False);
 
@@ -594,7 +668,7 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_x11_X11Window_CreateWindow
 
     if (visual==NULL)
     { 
-        _throwNewRuntimeException(env, "could not query Visual by given VisualID, bail out!\n");
+        _throwNewRuntimeException(dpy, env, "could not query Visual by given VisualID, bail out!\n");
         return 0;
     } 
 
@@ -652,6 +726,8 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_x11_X11Window_CreateWindow
         */
     }
 
+    XUnlockDisplay(dpy) ;
+
     DBG_PRINT2( "X11: [CreateWindow] created window %p on display %p\n", window, dpy);
     (*env)->CallVoidMethod(env, obj, windowCreatedID, (jlong) window);
 
@@ -670,13 +746,20 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_x11_X11Window_CloseWindow
     Window w = (Window)window;
     jobject jwindow;
 
+    if(dpy==NULL) {
+        _throwNewRuntimeException(NULL, env, "invalid display connection..\n");
+        return;
+    }
+    XLockDisplay(dpy) ;
+
     jwindow = getJavaWindowProperty(env, dpy, w, javaObjectAtom);
     if(NULL==jwindow) {
-        _throwNewRuntimeException(env, "could not fetch Java Window object, bail out!\n");
+        _throwNewRuntimeException(dpy, env, "could not fetch Java Window object, bail out!\n");
         return;
     }
     if ( JNI_FALSE == (*env)->IsSameObject(env, jwindow, obj) ) {
-        _throwNewRuntimeException(env, "Internal Error .. Window global ref not the same!\n");
+        _throwNewRuntimeException(dpy, env, "Internal Error .. Window global ref not the same!\n");
+        return;
     }
     (*env)->DeleteGlobalRef(env, jwindow);
 
@@ -690,6 +773,9 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_x11_X11Window_CloseWindow
     XSync(dpy, False);
     XDestroyWindow(dpy, w);
     XSync(dpy, False);
+
+    XUnlockDisplay(dpy) ;
+
     (*env)->CallVoidMethod(env, obj, windowDestroyedID);
 }
 
@@ -704,6 +790,13 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_x11_X11Window_setVisible0
     Display * dpy = (Display *) (intptr_t) display;
     Window w = (Window)window;
     DBG_PRINT1( "X11: setVisible0 vis %d\n", visible);
+
+    if(dpy==NULL) {
+        _throwNewRuntimeException(NULL, env, "invalid display connection..\n");
+        return;
+    }
+    XLockDisplay(dpy) ;
+
     XSync(dpy, False);
     if(visible==JNI_TRUE) {
         XMapRaised(dpy, w);
@@ -720,6 +813,7 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_x11_X11Window_setVisible0
         XUnmapWindow(dpy, w);
         XSync(dpy, False);
     }
+    XUnlockDisplay(dpy) ;
 }
 
 #define MWM_FULLSCREEN 1
@@ -745,6 +839,12 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_x11_X11Window_setSize0
     XWindowChanges xwc;
 
     DBG_PRINT6( "X11: setSize0 %d/%d %dx%d, dec %d, vis %d\n", x, y, width, height, decorationToggle, setVisible);
+
+    if(dpy==NULL) {
+        _throwNewRuntimeException(NULL, env, "invalid display connection..\n");
+        return;
+    }
+    XLockDisplay(dpy) ;
 
     XSync(dpy, False);
 
@@ -784,6 +884,7 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_x11_X11Window_setSize0
     XReparentWindow( dpy, w, parent, x, y );
 
     XSync(dpy, False);
+    XUnlockDisplay(dpy) ;
 }
 
 /*
@@ -799,9 +900,17 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_x11_X11Window_setPosition0
     XWindowChanges xwc;
 
     DBG_PRINT2( "X11: setPos0 . XConfigureWindow %d/%d\n", x, y);
+    if(dpy==NULL) {
+        _throwNewRuntimeException(NULL, env, "invalid display connection..\n");
+        return;
+    }
+    XLockDisplay(dpy) ;
+
     xwc.x=x;
     xwc.y=y;
     XConfigureWindow(dpy, w, CWX|CWY, &xwc);
     XSync(dpy, False);
+
+    XUnlockDisplay(dpy) ;
 }
 

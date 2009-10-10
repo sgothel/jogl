@@ -94,11 +94,13 @@ public abstract class JAWTWindow implements NativeWindow {
   private volatile Exception lockedStack = null;
 
   public synchronized int lockSurface() throws NativeWindowException {
-    // We have to be the owner of the JAWT ToolkitLock 'lock' to benefit from the
-    // recursive lock capabitlites. Otherwise a followup ToolkitLock would
-    // deadlock, since we already have locked JAWT with the surface lock.
+    // We have to be the owner of the JAWT ToolkitLock 'lock' to benefit from it's
+    // recursive and blocking lock capabitlites. 
+    // Otherwise a followup ToolkitLock would deadlock, 
+    // since we already have locked JAWT with the surface lock.
     NativeWindowFactory.getDefaultFactory().getToolkitLock().lock();
 
+    // recursion not necessary here, due to the blocking ToolkitLock ..
     if (null!=lockedStack) {
       lockedStack.printStackTrace();
       throw new NativeWindowException("JAWT Surface already locked - "+Thread.currentThread().getName()+" "+this);

@@ -85,6 +85,25 @@ public class X11Window extends Window {
         super.windowDestroyed();
     }
 
+    public synchronized int lockSurface() throws NativeWindowException {
+        int res = super.lockSurface();
+        if(LOCK_SUCCESS == res) {
+            ((X11Display)(screen.getDisplay())).lockDisplay();
+        }
+        return res;
+    }
+
+    public synchronized void unlockSurface() {
+        // prevalidate, before we change data ..
+        Thread cur = Thread.currentThread();
+        if ( getSurfaceLockOwner() != cur ) {
+            getLockedStack().printStackTrace();
+            throw new NativeWindowException(cur+": Not owner, owner is "+getSurfaceLockOwner());
+        }
+        ((X11Display)(screen.getDisplay())).unlockDisplay();
+        super.unlockSurface();
+    }
+
     public void setVisible(boolean visible) {
         if(0!=windowHandle && this.visible!=visible) {
             this.visible=visible;

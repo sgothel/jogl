@@ -41,45 +41,22 @@ import java.util.*;
 
 /**
  * An implementation of {@link Window} which is customized for OpenGL
- * use, and which implements the {@link
- * javax.media.opengl.GLAutoDrawable} interface. For convenience, this
- * window class guarantees that its OpenGL context is current inside
- * the various EventListeners' callbacks (MouseListener, KeyListener,
- * etc.).<P>
- *
- * Best performance is currently achieved with default settings,
- * {@link #setEventHandlerMode} to {@link #EVENT_HANDLER_GL_NONE}
- * and one thread per GLWindow. To ensure compatibility with the
- * underlying platform, window shall also be created within your 
- * working thread. See comment at {@link #setRunPumpMessages}.
+ * use, and which implements the {@link javax.media.opengl.GLAutoDrawable} interface.
+ * <P>
+ * This implementation does not make the OpenGL context current<br>
+ * before calling the various input EventListener callbacks (MouseListener, KeyListener,
+ * etc.).<br>
+ * This design decision is made to favor a more performant and simplified
+ * implementation, as well as the event dispatcher shall be allowed
+ * not having a notion about OpenGL.
+ * <p>
  */
 public class GLWindow extends Window implements GLAutoDrawable {
-    /**
-     * Event handling mode: EVENT_HANDLER_GL_NONE.
-     * No GL context is current, while calling the EventListener.
-     * This might be inconvenient, but don't impact the performance.
-     * Also 
-     *
-     * @see com.sun.javafx.newt.GLWindow#setEventHandlerMode(int)
-     */
-    public static final int EVENT_HANDLER_GL_NONE    =       0;
-
-    /**
-     * Event handling mode: EVENT_HANDLER_GL_CURRENT.
-     * The GL context is made current, while calling the EventListener.
-     * This might be convenient, but impacts the performance
-     * due to context switches.
-     *
-     * This is the default setting!
-     *
-     * @see com.sun.javafx.newt.GLWindow#setEventHandlerMode(int)
-     */
-    public static final int EVENT_HANDLER_GL_CURRENT = (1 << 0);
-
     private static List/*GLWindow*/ glwindows = new ArrayList();
 
+    private boolean ownerOfDisplayAndScreen;
     private Window window;
-    private boolean runPumpMessages = true;
+    private boolean runPumpMessages;
 
     /** Constructor. Do not call this directly -- use {@link
         create()} instead. */
@@ -87,6 +64,7 @@ public class GLWindow extends Window implements GLAutoDrawable {
         this.ownerOfDisplayAndScreen = ownerOfDisplayAndScreen;
         this.window = window;
         this.window.setAutoDrawableClient(true);
+        this.runPumpMessages = ( null == getScreen().getDisplay().getEDT() ) ;
         window.addWindowListener(new WindowListener() {
                 public void windowResized(WindowEvent e) {
                     sendReshape = true;
@@ -166,9 +144,16 @@ public class GLWindow extends Window implements GLAutoDrawable {
      *
      * Best performance has been achieved with one GLWindow per thread.<br> 
      *
+     * Enabling local pump messages while using the EDT, 
+     * {@link com.sun.javafx.newt.NewtFactory#setUseEDT(boolean)},
+     * will result in an exception.
+     *
      * @deprecated EXPERIMENTAL, semantic is about to be removed after further verification.
      */
     public void setRunPumpMessages(boolean onoff) {
+        if( onoff && null!=getScreen().getDisplay().getEDT() ) {
+            throw new GLException("GLWindow.setRunPumpMessages(true) - Can't do with EDT on");
+        }
         runPumpMessages = onoff;
     }
 
@@ -182,7 +167,7 @@ public class GLWindow extends Window implements GLAutoDrawable {
 
     protected void dispose(boolean regenerate) {
         if(Window.DEBUG_WINDOW_EVENT || window.DEBUG_IMPLEMENTATION) {
-            Exception e1 = new Exception("GLWindow.dispose("+regenerate+") "+Thread.currentThread().getName()+", 1: "+this);
+            Exception e1 = new Exception("GLWindow.dispose("+regenerate+") "+Thread.currentThread()+", 1: "+this);
             e1.printStackTrace();
         }
 
@@ -213,21 +198,22 @@ public class GLWindow extends Window implements GLAutoDrawable {
             }
             drawable = factory.createGLDrawable(nw);
             drawable.setRealized(true);
-            if(getSurfaceHandle()==0) {
-                throw new GLException("SurfaceHandle==NULL after setRealize(true) "+this);
-            }
             context = drawable.createContext(null);
             sendReshape = true; // ensure a reshape event is send ..
         }
 
         if(Window.DEBUG_WINDOW_EVENT || window.DEBUG_IMPLEMENTATION) {
-            System.out.println("GLWindow.dispose("+regenerate+") "+Thread.currentThread().getName()+", fin: "+this);
+            System.out.println("GLWindow.dispose("+regenerate+") "+Thread.currentThread()+", fin: "+this);
         }
     }
 
     public synchronized void destroy() {
+        destroy(false);
+    }
+
+    public synchronized void destroy(boolean deep) {
         if(Window.DEBUG_WINDOW_EVENT || window.DEBUG_IMPLEMENTATION) {
-            Exception e1 = new Exception("GLWindow.destroy "+Thread.currentThread().getName()+", 1: "+this);
+            Exception e1 = new Exception("GLWindow.destroy "+Thread.currentThread()+", 1: "+this);
             e1.printStackTrace();
         }
 
@@ -240,17 +226,17 @@ public class GLWindow extends Window implements GLAutoDrawable {
         Screen _screen = null;
         Display _device = null;
         if(null!=window) {
-            if(ownerOfDisplayAndScreen) {
+            if(!deep && ownerOfDisplayAndScreen) {
                 _screen = getScreen();
                 if(null != _screen) {
                     _device = _screen.getDisplay();
                 }
             }
-            window.destroy();
+            window.destroy(deep);
         } 
 
         if(Window.DEBUG_WINDOW_EVENT || window.DEBUG_IMPLEMENTATION) {
-            System.out.println("GLWindow.destroy "+Thread.currentThread().getName()+", fin: "+this);
+            System.out.println("GLWindow.destroy "+Thread.currentThread()+", fin: "+this);
         }
 
         drawable = null;
@@ -271,21 +257,11 @@ public class GLWindow extends Window implements GLAutoDrawable {
         perfLog = v;
     }
 
-    /**
-     * Sets the event handling mode.
-     *
-     * @see com.sun.javafx.newt.GLWindow#EVENT_HANDLER_GL_NONE
-     * @see com.sun.javafx.newt.GLWindow#EVENT_HANDLER_GL_CURRENT
-     */
-    public void setEventHandlerMode(int mode) {
-        eventHandlerMode = mode;
-    }
-
-    public int getEventHandlerMode() {
-        return eventHandlerMode;
-    }
- 
     public void setVisible(boolean visible) {
+        if(Window.DEBUG_WINDOW_EVENT || window.DEBUG_IMPLEMENTATION) {
+            System.out.println(Thread.currentThread()+" GLWindow.setVisible("+visible+") START ; isVisible "+this.visible+" ; has context "+(null!=context));
+        }
+        this.visible=visible;
         window.setVisible(visible);
         if (visible && context == null) {
             NativeWindow nw;
@@ -298,11 +274,11 @@ public class GLWindow extends Window implements GLAutoDrawable {
             factory = GLDrawableFactory.getFactory(glCaps.getGLProfile());
             drawable = factory.createGLDrawable(nw);
             drawable.setRealized(true);
-            if(getSurfaceHandle()==0) {
-                throw new GLException("SurfaceHandle==NULL after setRealize(true) "+this);
-            }
             context = drawable.createContext(null);
             sendReshape = true; // ensure a reshape event is send ..
+        }
+        if(Window.DEBUG_WINDOW_EVENT || window.DEBUG_IMPLEMENTATION) {
+            System.out.println(Thread.currentThread()+" GLWindow.setVisible("+visible+") END  ; has context "+(null!=context));
         }
     }
 
@@ -423,8 +399,6 @@ public class GLWindow extends Window implements GLAutoDrawable {
     // OpenGL-related methods and state
     //
 
-    private static int eventHandlerMode = EVENT_HANDLER_GL_CURRENT;
-    private static boolean autoSwapBufferMode = true;
     private GLDrawableFactory factory;
     private GLDrawable drawable;
     private GLContext context;
@@ -469,72 +443,14 @@ public class GLWindow extends Window implements GLAutoDrawable {
         helper.removeGLEventListener(listener);
     }
 
-    class DisplayPumpMessage implements Display.Action {
-        public void run(Display display) {
-            if( 0 == (eventHandlerMode & EVENT_HANDLER_GL_CURRENT) ) {
-                display.run();
-            } else {
-                helper.setAutoSwapBufferMode(false);
-                try {
-                    helper.invokeGL(drawable, context, display, initAction);
-                } finally {
-                    helper.setAutoSwapBufferMode(autoSwapBufferMode);
-                }
-            }
-        }
-    }
-    private DisplayPumpMessage displayPumpMessage = new DisplayPumpMessage();
-
-    static class DisplayPumpMessageStatic implements Display.Action {
-        public void run(Display display) {
-            display.run();
-        }
-    }
-    private static DisplayPumpMessageStatic displayPumpMessageStatic = new DisplayPumpMessageStatic();
-
-    /**
-     * @see #setRunPumpMessages
-     * @deprecated EXPERIMENTAL, semantic is about to be removed after further verification.
-     */
-    public static void runCurrentThreadPumpMessage() {
-        Exception safedE = null;
-
-        if( 0 != (eventHandlerMode & EVENT_HANDLER_GL_CURRENT) ) {
-            // for all: setup / init / makeCurrent
-            for(Iterator i = glwindows.iterator(); i.hasNext(); ) {
-               GLWindow glw = (GLWindow) i.next();
-               glw.helper.setAutoSwapBufferMode(false);
-               glw.helper.invokeGL(glw.drawable, glw.context, null, glw.initAction);
-            }
-        }
-
-        try {
-            Display.runCurrentThreadDisplaysAction(displayPumpMessageStatic);
-        } catch (Exception e) {
-            safedE=e;
-        }
-
-        if( 0 != (eventHandlerMode & EVENT_HANDLER_GL_CURRENT) ) {
-            // for all: reset
-            for(Iterator i = glwindows.iterator(); i.hasNext(); ) {
-               GLWindow glw = (GLWindow) i.next();
-               glw.helper.setAutoSwapBufferMode(autoSwapBufferMode);
-            }
-        }
-
-        if(null!=safedE) {
-            throw new GLException(safedE);
-        }
-    }
-
     public void display() {
         display(false);
     }
 
     public void display(boolean forceReshape) {
-        if(getSurfaceHandle()!=0) {
+        if(window!=null && drawable!=null && context != null) {
             if(runPumpMessages) {
-                displayPumpMessage.run(window.getScreen().getDisplay());
+                window.getScreen().getDisplay().pumpMessages();
             }
             if(window.hasDeviceChanged() && GLAutoDrawable.SCREEN_CHANGE_ACTION_ENABLED) {
                 dispose(true);
@@ -552,24 +468,24 @@ public class GLWindow extends Window implements GLAutoDrawable {
     }
 
     private void sendDisposeEvent() {
-        if(disposeAction!=null && drawable!=null && context != null && window!=null && getSurfaceHandle()!=0) {
+        if(drawable!=null && context != null) {
             helper.invokeGL(drawable, context, disposeAction, null);
         }
     }
 
     /** This implementation uses a static value */
     public void setAutoSwapBufferMode(boolean onOrOff) {
-        autoSwapBufferMode = onOrOff;
+        helper.setAutoSwapBufferMode(onOrOff);
     }
 
     /** This implementation uses a static value */
     public boolean getAutoSwapBufferMode() {
-        return autoSwapBufferMode;
+        return helper.getAutoSwapBufferMode();
     }
 
     public void swapBuffers() {
-        if(getSurfaceHandle()!=0) {
-            if (context != null && context != GLContext.getCurrent()) {
+        if(drawable!=null && context != null) {
+            if (context != GLContext.getCurrent()) {
                 // Assume we should try to make the context current before swapping the buffers
                 helper.invokeGL(drawable, context, swapBuffersAction, initAction);
             } else {
@@ -638,7 +554,6 @@ public class GLWindow extends Window implements GLAutoDrawable {
     private long curTime = 0;
     private long lastCheck  = 0;
     private int  totalFrames = 0, lastFrames = 0;
-    private boolean ownerOfDisplayAndScreen;
 
     class SwapBuffersAction implements Runnable {
         public void run() {

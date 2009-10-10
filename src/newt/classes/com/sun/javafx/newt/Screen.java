@@ -84,6 +84,8 @@ public abstract class Screen {
 
     public synchronized void destroy() {
         closeNative();
+        display = null;
+        aScreen = null;
     }
 
     protected static Screen wrapHandle(String type, Display display, AbstractGraphicsScreen aScreen) {

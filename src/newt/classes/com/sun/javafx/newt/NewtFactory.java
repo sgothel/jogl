@@ -57,6 +57,20 @@ public abstract class NewtFactory {
         return clazz;
     }
 
+    private static boolean useEDT = true;
+
+    /** 
+     * Toggles the usage of an EventDispatchThread while creating a Display.<br>
+     * The default is enabled.<br>
+     * The EventDispatchThread is thread local to the Display instance.<br>
+     */
+    public static synchronized void setUseEDT(boolean onoff) {
+        useEDT = onoff;
+    }
+
+    /** @see #setUseEDT(boolean) */
+    public static boolean useEDT() { return useEDT; }
+
     /**
      * Create a Display entity, incl native creation
      */

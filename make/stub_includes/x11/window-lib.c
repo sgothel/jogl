@@ -13,6 +13,10 @@ extern Display *XOpenDisplay(
 
 extern int XCloseDisplay(Display *display);
 
+extern void XLockDisplay(Display *display);
+
+extern void XUnlockDisplay(Display *display);
+
 extern XVisualInfo *XGetVisualInfo(
     Display*		/* display */,
     long		/* vinfo_mask */,

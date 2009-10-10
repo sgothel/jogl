@@ -34,6 +34,7 @@
 package com.sun.javafx.newt;
 
 import com.sun.javafx.newt.impl.Debug;
+import com.sun.javafx.newt.util.EventDispatchThread;
 
 import javax.media.nativewindow.*;
 import com.sun.nativewindow.impl.NWReflection;
@@ -85,7 +86,7 @@ public abstract class Window implements NativeWindow
         return windowClass;
     }
 
-    protected static Window create(String type, long parentWindowHandle, Screen screen, Capabilities caps, boolean undecorated) {
+    protected static Window create(String type, final long parentWindowHandle, Screen screen, final Capabilities caps, boolean undecorated) {
         try {
             Class windowClass;
             if(caps.isOnscreen()) {
@@ -97,7 +98,17 @@ public abstract class Window implements NativeWindow
             window.invalidate();
             window.screen   = screen;
             window.setUndecorated(undecorated||0!=parentWindowHandle);
-            window.createNative(parentWindowHandle, caps);
+            EventDispatchThread edt = screen.getDisplay().getEDT();
+            if(null!=edt) {
+                final Window f_win = window;
+                edt.invokeAndWait(new Runnable() {
+                    public void run() {
+                        f_win.createNative(parentWindowHandle, caps);
+                    }
+                } );
+            } else {
+                window.createNative(parentWindowHandle, caps);
+            }
             return window;
         } catch (Throwable t) {
             t.printStackTrace();
@@ -105,7 +116,7 @@ public abstract class Window implements NativeWindow
         }
     }
 
-    protected static Window create(String type, Object[] cstrArguments, Screen screen, Capabilities caps, boolean undecorated) {
+    protected static Window create(String type, Object[] cstrArguments, Screen screen, final Capabilities caps, boolean undecorated) {
         try {
             Class windowClass = getWindowClass(type);
             Class[] cstrArgumentTypes = getCustomConstructorArgumentTypes(windowClass);
@@ -120,7 +131,17 @@ public abstract class Window implements NativeWindow
             window.invalidate();
             window.screen   = screen;
             window.setUndecorated(undecorated);
-            window.createNative(0, caps);
+            EventDispatchThread edt = screen.getDisplay().getEDT();
+            if(null!=edt) {
+                final Window f_win = window;
+                edt.invokeAndWait(new Runnable() {
+                    public void run() {
+                        f_win.createNative(0, caps);
+                    }
+                } );
+            } else {
+                window.createNative(0, caps);
+            }
             return window;
         } catch (Throwable t) {
             t.printStackTrace();
@@ -152,6 +173,25 @@ public abstract class Window implements NativeWindow
         }
     }
 
+    public static String toHexString(int hex) {
+        return "0x" + Integer.toHexString(hex);
+    }
+
+    public static String toHexString(long hex) {
+        return "0x" + Long.toHexString(hex);
+    }
+
+    protected Screen screen;
+
+    protected AbstractGraphicsConfiguration config;
+    protected long   windowHandle;
+    protected boolean fullscreen, visible;
+    protected int width, height, x, y;
+    protected int     eventMask;
+
+    protected String title = "Newt Window";
+    protected boolean undecorated = false;
+
     /**
      * Create native windowHandle, ie creates a new native invisible window.
      *
@@ -173,8 +213,8 @@ public abstract class Window implements NativeWindow
         StringBuffer sb = new StringBuffer();
 
         sb.append(getClass().getName()+"[config "+config+
-                    ", windowHandle 0x"+Long.toHexString(getWindowHandle())+
-                    ", surfaceHandle 0x"+Long.toHexString(getSurfaceHandle())+
+                    ", windowHandle "+toHexString(getWindowHandle())+
+                    ", surfaceHandle "+toHexString(getSurfaceHandle())+
                     ", pos "+getX()+"/"+getY()+", size "+getWidth()+"x"+getHeight()+
                     ", visible "+isVisible()+
                     ", undecorated "+undecorated+
@@ -202,18 +242,6 @@ public abstract class Window implements NativeWindow
         return sb.toString();
     }
 
-    protected Screen screen;
-
-    protected AbstractGraphicsConfiguration config;
-    protected long   windowHandle;
-    protected Exception lockedStack = null;
-    protected boolean fullscreen, visible;
-    protected int width, height, x, y;
-    protected int     eventMask;
-
-    protected String title = "Newt Window";
-    protected boolean undecorated = false;
-
     public String getTitle() {
         return title;
     }
@@ -236,31 +264,55 @@ public abstract class Window implements NativeWindow
     //
     // NativeWindow impl
     //
+    private Thread owner;
+    private int recursionCount;
+    protected Exception lockedStack = null;
 
-    public synchronized int lockSurface() throws NativeWindowException {
+    /** Recursive and blocking lockSurface() implementation */
+    public synchronized int lockSurface() {
         // We leave the ToolkitLock lock to the specializtion's discretion, 
         // ie the implicit JAWTWindow in case of AWTWindow
-        if (null!=lockedStack) {
-          lockedStack.printStackTrace();
-          throw new NativeWindowException("NEWT Surface already locked - "+Thread.currentThread().getName()+" "+this);
+        Thread cur = Thread.currentThread();
+        if (owner == cur) {
+            ++recursionCount;
+            return LOCK_SUCCESS;
         }
-
-        lockedStack = new Exception("NEWT Surface previously locked by "+Thread.currentThread().getName());
+        while (owner != null) {
+            try {
+                wait();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        owner = cur;
+        lockedStack = new Exception("NEWT Surface previously locked by "+Thread.currentThread());
         return LOCK_SUCCESS;
     }
 
-    public synchronized void unlockSurface() {
-        if (null!=lockedStack) {
-            lockedStack = null;
-        } else {
-            throw new NativeWindowException("NEWT Surface not locked");
+    /** Recursive and unblocking unlockSurface() implementation */
+    public synchronized void unlockSurface() throws NativeWindowException {
+        Thread cur = Thread.currentThread();
+        if (owner != cur) {
+            lockedStack.printStackTrace();
+            throw new NativeWindowException(cur+": Not owner, owner is "+owner);
         }
+        if (recursionCount > 0) {
+            --recursionCount;
+            return;
+        }
+        owner = null;
+        lockedStack = null;
+        notifyAll();
         // We leave the ToolkitLock unlock to the specializtion's discretion, 
         // ie the implicit JAWTWindow in case of AWTWindow
     }
 
     public synchronized boolean isSurfaceLocked() {
-        return null!=lockedStack;
+        return null!=owner;
+    }
+
+    public synchronized Thread getSurfaceLockOwner() {
+        return owner;
     }
 
     public synchronized Exception getLockedStack() {
@@ -268,8 +320,13 @@ public abstract class Window implements NativeWindow
     }
 
     public synchronized void destroy() {
+        destroy(false);
+    }
+
+    /** @param deep If true, the linked Screen and Display will be destroyed as well. */
+    public synchronized void destroy(boolean deep) {
         if(DEBUG_WINDOW_EVENT) {
-            System.out.println("Window.destroy() start "+Thread.currentThread().getName());
+            System.out.println("Window.destroy() start (deep "+deep+" - "+Thread.currentThread());
         }
         synchronized(surfaceUpdatedListeners) {
             surfaceUpdatedListeners = new ArrayList();
@@ -283,16 +340,32 @@ public abstract class Window implements NativeWindow
         synchronized(keyListeners) {
             keyListeners = new ArrayList();
         }
-        closeNative();
+        Screen scr = screen;
+        Display dpy = screen.getDisplay();
+        EventDispatchThread edt = dpy.getEDT();
+        if(null!=edt) {
+            final Window f_win = this;
+            edt.invokeAndWait(new Runnable() {
+                public void run() {
+                    f_win.closeNative();
+                }
+            } );
+        } else {
+            closeNative();
+        }
         invalidate();
+        if(deep) {
+            scr.destroy();
+            dpy.destroy();
+        }
         if(DEBUG_WINDOW_EVENT) {
-            System.out.println("Window.destroy() end "+Thread.currentThread().getName());
+            System.out.println("Window.destroy() end "+Thread.currentThread());
         }
     }
 
     public void invalidate() {
         if(DEBUG_IMPLEMENTATION || DEBUG_WINDOW_EVENT) {
-            Exception e = new Exception("!!! Window Invalidate "+Thread.currentThread().getName());
+            Exception e = new Exception("!!! Window Invalidate "+Thread.currentThread());
             e.printStackTrace();
         }
         screen   = null;
@@ -415,7 +488,7 @@ public abstract class Window implements NativeWindow
 
     protected void windowDestroyNotify() {
         if(DEBUG_WINDOW_EVENT) {
-            System.out.println("Window.windowDestroyeNotify start "+Thread.currentThread().getName());
+            System.out.println("Window.windowDestroyeNotify start "+Thread.currentThread());
         }
 
         sendWindowEvent(WindowEvent.EVENT_WINDOW_DESTROY_NOTIFY);
@@ -425,13 +498,13 @@ public abstract class Window implements NativeWindow
         }
 
         if(DEBUG_WINDOW_EVENT) {
-            System.out.println("Window.windowDestroyeNotify end "+Thread.currentThread().getName());
+            System.out.println("Window.windowDestroyeNotify end "+Thread.currentThread());
         }
     }
 
     protected void windowDestroyed() {
         if(DEBUG_WINDOW_EVENT) {
-            System.out.println("Window.windowDestroyed "+Thread.currentThread().getName());
+            System.out.println("Window.windowDestroyed "+Thread.currentThread());
         }
         invalidate();
     }

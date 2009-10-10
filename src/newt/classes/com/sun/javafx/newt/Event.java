@@ -74,4 +74,13 @@ public class Event {
     public String toString() {
         return "Event[sys:"+isSystemEvent()+", source:"+getSource()+", when:"+getWhen()+"]";
     }
+
+    public static String toHexString(int hex) {
+        return "0x" + Integer.toHexString(hex);
+    }
+
+    public static String toHexString(long hex) {
+        return "0x" + Long.toHexString(hex);
+    }
+
 }

@@ -711,6 +711,8 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
         return DefWindowProc(wnd, message, wParam, lParam);
     }
 
+    // DBG_PRINT("*** WindowsWindow: window %p -> %p, 0x%X %d/%d\n", wnd, window, message, (int)LOWORD(lParam), (int)HIWORD(lParam));
+
     switch (message) {
 
     //

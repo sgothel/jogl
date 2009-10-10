@@ -87,10 +87,22 @@ public class X11Display extends Display {
     protected long getJavaObjectAtom() { return javaObjectAtom; }
     protected long getWindowDeleteAtom() { return windowDeleteAtom; }
 
+    protected void lockDisplay() {
+        LockDisplay(getHandle());
+    }
+
+    protected void unlockDisplay() {
+        UnlockDisplay(getHandle());
+    }
+
+
     //----------------------------------------------------------------------
     // Internals only
     //
     private static native boolean initIDs();
+
+    private native void LockDisplay(long handle);
+    private native void UnlockDisplay(long handle);
 
     private native void CompleteDisplay(long handle);
 

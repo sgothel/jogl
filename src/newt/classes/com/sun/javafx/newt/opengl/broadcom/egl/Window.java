@@ -148,7 +148,7 @@ public class Window extends com.sun.javafx.newt.Window {
             throw new NativeWindowException("Error creating EGLGraphicsConfiguration from id: "+cfgID+", "+this);
         }
         if(DEBUG_IMPLEMENTATION) {
-            System.out.println("BCEGL Window.windowCreated(): 0x"+Integer.toHexString(cfgID)+", "+width+"x"+height+", "+config);
+            System.out.println("BCEGL Window.windowCreated(): "+toHexString(cfgID)+", "+width+"x"+height+", "+config);
         }
     }
 

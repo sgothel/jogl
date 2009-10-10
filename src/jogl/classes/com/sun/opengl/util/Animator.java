@@ -53,28 +53,46 @@ import javax.media.opengl.*;
 */
 
 public class Animator {
+    protected static final boolean DEBUG = com.sun.opengl.impl.Debug.debug("Animator");
+
     private volatile ArrayList/*<GLAutoDrawable>*/ drawables = new ArrayList();
     private AnimatorImpl impl;
     private Runnable runnable;
     private boolean runAsFastAsPossible;
+    protected ThreadGroup threadGroup;
     protected Thread thread;
     protected volatile boolean shouldStop;
     protected boolean ignoreExceptions;
     protected boolean printExceptions;
 
     /** Creates a new, empty Animator. */
-    public Animator() {
+    public Animator(ThreadGroup tg) {
         try {
             // Try to use the AWT-capable Animator implementation by default
             impl = (AnimatorImpl) Class.forName("com.sun.opengl.util.awt.AWTAnimatorImpl").newInstance();
         } catch (Exception e) {
             impl = new AnimatorImpl();
         }
+        threadGroup = tg;
+
+        if(DEBUG) {
+            System.out.println("Animator created, ThreadGroup: "+threadGroup);
+        }
+    }
+
+    public Animator() {
+        this((ThreadGroup)null);
     }
 
     /** Creates a new Animator for a particular drawable. */
     public Animator(GLAutoDrawable drawable) {
-        this();
+        this((ThreadGroup)null);
+        add(drawable);
+    }
+
+    /** Creates a new Animator for a particular drawable. */
+    public Animator(ThreadGroup tg, GLAutoDrawable drawable) {
+        this(tg);
         add(drawable);
     }
 
@@ -134,6 +152,9 @@ public class Animator {
     class MainLoop implements Runnable {
         public void run() {
             try {
+                if(DEBUG) {
+                    System.out.println("Animator started: "+Thread.currentThread());
+                }
                 while (!shouldStop) {
                     // Don't consume CPU unless there is work to be done
                     if (drawables.size() == 0) {
@@ -151,6 +172,9 @@ public class Animator {
                         // Avoid swamping the CPU
                         Thread.yield();
                     }
+                }
+                if(DEBUG) {
+                    System.out.println("Animator stopped: "+Thread.currentThread());
                 }
             } finally {
                 shouldStop = false;
@@ -170,7 +194,11 @@ public class Animator {
         if (runnable == null) {
             runnable = new MainLoop();
         }
-        thread = new Thread(runnable);
+        if(null==threadGroup) {
+            thread = new Thread(runnable);
+        } else {
+            thread = new Thread(threadGroup, runnable);
+        }
         thread.start();
     }
 

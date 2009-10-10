@@ -53,16 +53,40 @@ public class WindowsWindow extends Window {
     public WindowsWindow() {
     }
 
-    public long getSurfaceHandle() {
-        if (hdc == 0 && 0!=windowHandle) {
+    Thread hdcOwner = null;
+
+    public synchronized int lockSurface() throws NativeWindowException {
+        int res = super.lockSurface(); 
+        if(LOCK_SUCCESS==res && 0!=windowHandle) {
+            if(hdc!=0) {
+                throw new NativeWindowException("NEWT Surface handle set HDC "+toHexString(hdc)+" - "+Thread.currentThread().getName()+" ; "+this);
+            }
             hdc = GetDC(windowHandle);
             hmon = MonitorFromWindow(windowHandle);
-            if(DEBUG_IMPLEMENTATION || DEBUG_WINDOW_EVENT) {
-                Exception e = new Exception("!!! Window new surface handle "+Thread.currentThread().getName()+
-                                            ", HWND 0x"+Long.toHexString(windowHandle)+", HDC 0x"+Long.toHexString(hdc)+", HMON 0x"+Long.toHexString(hmon));
-                e.printStackTrace();
-            }
+            hdcOwner = Thread.currentThread();
         }
+        return res;
+    }
+
+    public synchronized void unlockSurface() {
+        // prevalidate, before we change data ..
+        Thread cur = Thread.currentThread();
+        if ( getSurfaceLockOwner() != cur ) {
+            getLockedStack().printStackTrace();
+            throw new NativeWindowException(cur+": Not owner, owner is "+getSurfaceLockOwner());
+        }
+        if (0!=hdc && 0!=windowHandle) {
+            if(hdcOwner != cur) {
+                throw new NativeWindowException("NEWT Surface handle set HDC "+toHexString(hdc)+" by other thread "+hdcOwner+", this "+cur+" ; "+this);
+            }
+            ReleaseDC(windowHandle, hdc);
+            hdc=0;
+            hdcOwner=null;
+        }
+        super.unlockSurface();
+    }
+
+    public long getSurfaceHandle() {
         return hdc;
     }
 
@@ -72,7 +96,7 @@ public class WindowsWindow extends Window {
             if (hmon != _hmon) {
                 if(DEBUG_IMPLEMENTATION || DEBUG_WINDOW_EVENT) {
                     Exception e = new Exception("!!! Window Device Changed "+Thread.currentThread().getName()+
-                                                ", HMON 0x"+Long.toHexString(hmon)+" -> 0x"+Long.toHexString(_hmon));
+                                                ", HMON "+toHexString(hmon)+" -> "+toHexString(_hmon));
                     e.printStackTrace();
                 }
                 hmon = _hmon;
@@ -87,7 +111,7 @@ public class WindowsWindow extends Window {
             ReleaseDC(windowHandle, hdc);
             hdc=0;
             if(DEBUG_IMPLEMENTATION || DEBUG_WINDOW_EVENT) {
-                Exception e = new Exception("!!! Window surface handle disposed "+Thread.currentThread().getName());
+                Exception e = new Exception("!!! Window surface handle disposed "+Thread.currentThread().getName()+", "+Thread.currentThread());
                 e.printStackTrace();
             }
         }
@@ -110,7 +134,8 @@ public class WindowsWindow extends Window {
         windowHandleClose = windowHandle;
         if(DEBUG_IMPLEMENTATION || DEBUG_WINDOW_EVENT) {
             Exception e = new Exception("!!! Window new window handle "+Thread.currentThread().getName()+
-                                        ", HWND 0x"+Long.toHexString(windowHandle));
+                                        " (Parent HWND "+toHexString(parentWindowHandle)+
+                                        ") : HWND "+toHexString(windowHandle)+", "+Thread.currentThread());
             e.printStackTrace();
         }
     }
