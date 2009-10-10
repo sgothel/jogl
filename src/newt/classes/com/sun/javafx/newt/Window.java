@@ -341,8 +341,8 @@ public abstract class Window implements NativeWindow
             keyListeners = new ArrayList();
         }
         Screen scr = screen;
-        Display dpy = screen.getDisplay();
-        EventDispatchThread edt = dpy.getEDT();
+        Display dpy = (null!=screen) ? screen.getDisplay() : null;
+        EventDispatchThread edt = (null!=dpy) ? dpy.getEDT() : null;
         if(null!=edt) {
             final Window f_win = this;
             edt.invokeAndWait(new Runnable() {
@@ -355,8 +355,12 @@ public abstract class Window implements NativeWindow
         }
         invalidate();
         if(deep) {
-            scr.destroy();
-            dpy.destroy();
+            if(null!=scr) {
+                scr.destroy();
+            }
+            if(null!=dpy) {
+                dpy.destroy();
+            }
         }
         if(DEBUG_WINDOW_EVENT) {
             System.out.println("Window.destroy() end "+Thread.currentThread());

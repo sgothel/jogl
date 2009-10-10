@@ -37,9 +37,12 @@
 package com.sun.javafx.newt.util;
 
 import com.sun.javafx.newt.Display;
+import com.sun.javafx.newt.impl.Debug;
 import java.util.*;
 
 public class EventDispatchThread {
+    public static final boolean DEBUG = Debug.debug("EDT");
+
     private ThreadGroup threadGroup; 
     private volatile boolean shouldStop = false;
     private TaskWorker taskWorker = null;
@@ -92,6 +95,9 @@ public class EventDispatchThread {
                 shouldStop = true;
             }
             taskWorkerLock.notifyAll();
+            if(DEBUG) {
+                System.out.println(Thread.currentThread()+": EDT signal STOP");
+            }
         }
     }
 
@@ -168,6 +174,9 @@ public class EventDispatchThread {
         }
 
         public void run() {
+            if(DEBUG) {
+                System.out.println(Thread.currentThread()+": EDT run() START");
+            }
             while(!shouldStop) {
                 try {
                     // wait for something todo ..
@@ -202,6 +211,9 @@ public class EventDispatchThread {
                 synchronized(taskWorkerLock) {
                     taskWorkerLock.notifyAll();
                 }
+            }
+            if(DEBUG) {
+                System.out.println(Thread.currentThread()+": EDT run() EXIT");
             }
         }
     }
