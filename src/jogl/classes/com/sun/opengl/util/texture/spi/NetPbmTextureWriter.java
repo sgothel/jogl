@@ -58,7 +58,7 @@ public class NetPbmTextureWriter implements TextureWriter {
     /**
      * supported magic values are:<br>
      * <pre>
-     *   magic 0 - auto
+     *   magic 0 - detect by file suffix (TextureIO compliant)
      *   magic 6 - PPM binary RGB
      *   magic 7 - PAM binary RGB or RGBA
      * </pre>
@@ -77,13 +77,25 @@ public class NetPbmTextureWriter implements TextureWriter {
 
     public int getMagic() { return magic; }
 
-    public static String getPPMSuffix() { return "ppm"; }
-    public static String getPAMSuffix() { return "pam"; }
+    public static final String PPM     = "ppm";
+    public static final String PAM     = "pam";
 
-    public String getSuffix() { return (magic==6)?getPPMSuffix():getPAMSuffix(); }
+    public String getSuffix() { return (magic==6)?PPM:PAM; }
 
     public boolean write(File file,
                          TextureData data) throws IOException {
+
+        // file suffix selection 
+        if (0==magic) {
+            if (PPM.equals(FileUtil.getFileSuffix(file))) {
+                magic = 6;
+            } else if (PAM.equals(FileUtil.getFileSuffix(file))) {
+                magic = 7;
+            } else {
+                return false;
+            }
+        }
+
         int pixelFormat = data.getPixelFormat();
         int pixelType   = data.getPixelType();
         if ((pixelFormat == GL.GL_RGB ||
@@ -92,10 +104,6 @@ public class NetPbmTextureWriter implements TextureWriter {
              pixelType == GL.GL_UNSIGNED_BYTE)) {
     
             int comps = ( pixelFormat == GL.GL_RGBA ) ? 4 : 3 ;
-
-            if(0==magic) {
-                magic = ( comps == 4 ) ? 7 : 6 ;
-            }
 
             if(magic==6 && comps==4) {
                 throw new IOException("NetPbmTextureWriter magic 6 (PPM) doesn't RGBA pixel format, use magic 7 (PAM)");

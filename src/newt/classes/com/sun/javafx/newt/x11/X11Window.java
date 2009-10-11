@@ -71,7 +71,7 @@ public class X11Window extends Window {
     }
 
     protected void closeNative() {
-        if(0!=displayHandleClose && 0!=windowHandleClose) {
+        if(0!=displayHandleClose && 0!=windowHandleClose && null!=getScreen() ) {
             X11Display display = (X11Display) getScreen().getDisplay();
             CloseWindow(displayHandleClose, windowHandleClose, display.getJavaObjectAtom());
             windowHandleClose = 0;
@@ -83,25 +83,6 @@ public class X11Window extends Window {
         windowHandleClose = 0;
         displayHandleClose = 0;
         super.windowDestroyed();
-    }
-
-    public synchronized int lockSurface() throws NativeWindowException {
-        int res = super.lockSurface();
-        if(LOCK_SUCCESS == res) {
-            ((X11Display)(screen.getDisplay())).lockDisplay();
-        }
-        return res;
-    }
-
-    public synchronized void unlockSurface() {
-        // prevalidate, before we change data ..
-        Thread cur = Thread.currentThread();
-        if ( getSurfaceLockOwner() != cur ) {
-            getLockedStack().printStackTrace();
-            throw new NativeWindowException(cur+": Not owner, owner is "+getSurfaceLockOwner());
-        }
-        ((X11Display)(screen.getDisplay())).unlockDisplay();
-        super.unlockSurface();
     }
 
     public void setVisible(boolean visible) {

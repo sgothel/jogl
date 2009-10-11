@@ -605,6 +605,9 @@ public class GLProfile implements Cloneable {
     // This is here only to avoid having separate GL2ES1Impl and GL2ES2Impl classes
     private static final String GL2ES12 = "GL2ES12";
 
+    private static final boolean isAWTAvailable;
+    private static final boolean isAWTJOGLAvailable;
+
     private static final boolean hasGL3Impl;
     private static final boolean hasGL2Impl;
     private static final boolean hasGL2ES12Impl;
@@ -623,6 +626,15 @@ public class GLProfile implements Cloneable {
      */
     static {
         JVMUtil.initSingleton();
+
+        AccessControlContext acc = AccessController.getContext();
+
+        isAWTAvailable = !Debug.getBooleanProperty("java.awt.headless", true, acc) &&
+                          NWReflection.isClassAvailable("java.awt.Component") ;
+
+        isAWTJOGLAvailable = isAWTAvailable &&
+                             NWReflection.isClassAvailable("javax.media.nativewindow.awt.AWTGraphicsDevice") && // NativeWindow
+                             NWReflection.isClassAvailable("javax.media.opengl.awt.GLCanvas") ; // JOGL
 
         boolean hasDesktopGL = false;
         boolean hasDesktopGLES12 = false;
@@ -711,6 +723,8 @@ public class GLProfile implements Cloneable {
         hasGLES1Impl     = btest;
 
         if (DEBUG) {
+            System.err.println("GLProfile.static isAWTAvailable "+isAWTAvailable);
+            System.err.println("GLProfile.static isAWTJOGLAvailable "+isAWTJOGLAvailable);
             System.err.println("GLProfile.static hasNativeOSFactory "+hasNativeOSFactory);
             System.err.println("GLProfile.static hasDesktopGLES12 "+hasDesktopGLES12);
             System.err.println("GLProfile.static hasDesktopGL "+hasDesktopGL);
@@ -798,6 +812,9 @@ public class GLProfile implements Cloneable {
         }
         return null;
     }
+
+    public static boolean isAWTAvailable() { return isAWTAvailable; }
+    public static boolean isAWTJOGLAvailable() { return isAWTJOGLAvailable; }
 
     public static String getGLTypeName(int type) {
         switch (type) {

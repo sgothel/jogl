@@ -43,6 +43,8 @@ import java.util.*;
 
 import javax.media.opengl.*;
 
+import com.sun.opengl.impl.Debug;
+
 /** <P> An Animator can be attached to one or more {@link
     GLAutoDrawable}s to drive their display() methods in a loop. </P>
 
@@ -53,7 +55,7 @@ import javax.media.opengl.*;
 */
 
 public class Animator {
-    protected static final boolean DEBUG = com.sun.opengl.impl.Debug.debug("Animator");
+    protected static final boolean DEBUG = Debug.debug("Animator");
 
     private volatile ArrayList/*<GLAutoDrawable>*/ drawables = new ArrayList();
     private AnimatorImpl impl;
@@ -67,10 +69,13 @@ public class Animator {
 
     /** Creates a new, empty Animator. */
     public Animator(ThreadGroup tg) {
-        try {
-            // Try to use the AWT-capable Animator implementation by default
-            impl = (AnimatorImpl) Class.forName("com.sun.opengl.util.awt.AWTAnimatorImpl").newInstance();
-        } catch (Exception e) {
+
+        if(GLProfile.isAWTJOGLAvailable()) {
+            try {
+                impl = (AnimatorImpl) Class.forName("com.sun.opengl.util.awt.AWTAnimatorImpl").newInstance();
+            } catch (Exception e) { }
+        }
+        if(null==impl) {
             impl = new AnimatorImpl();
         }
         threadGroup = tg;

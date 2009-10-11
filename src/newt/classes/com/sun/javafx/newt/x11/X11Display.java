@@ -84,17 +84,18 @@ public class X11Display extends Display {
         DispatchMessages(getHandle(), javaObjectAtom, windowDeleteAtom);
     }
 
-    protected long getJavaObjectAtom() { return javaObjectAtom; }
-    protected long getWindowDeleteAtom() { return windowDeleteAtom; }
-
     protected void lockDisplay() {
+        super.lockDisplay();
         LockDisplay(getHandle());
     }
 
     protected void unlockDisplay() {
         UnlockDisplay(getHandle());
+        super.unlockDisplay();
     }
 
+    protected long getJavaObjectAtom() { return javaObjectAtom; }
+    protected long getWindowDeleteAtom() { return windowDeleteAtom; }
 
     //----------------------------------------------------------------------
     // Internals only

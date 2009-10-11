@@ -640,6 +640,10 @@ public class TextureIO {
             }
         }
 
+        write(data, file);
+    }
+  
+    public static void write(TextureData data, File file) throws IOException, GLException {
         for (Iterator iter = textureWriters.iterator(); iter.hasNext(); ) {
             TextureWriter writer = (TextureWriter) iter.next();
             if (writer.write(file, data)) {
@@ -647,9 +651,9 @@ public class TextureIO {
             }
         }
 
-        throw new IOException("No suitable texture writer found");
+        throw new IOException("No suitable texture writer found for "+file.getAbsolutePath());
     }
-  
+
     //----------------------------------------------------------------------
     // SPI support
     //
@@ -710,15 +714,17 @@ public class TextureIO {
 
     static {
         /*
-        // ImageIO provider, the fall-back, must be the first one added
-        try {
-            // Use reflection to avoid compile-time dependencies on AWT-related classes
-            TextureProvider provider = (TextureProvider)
-                Class.forName("com.sun.opengl.util.texture.spi.awt.IIOTextureProvider").newInstance();
-            addTextureProvider(provider);
-        } catch (Exception e) {
-            if (DEBUG) {
-                e.printStackTrace();
+        if(GLProfile.isAWTJOGLAvailable()) {
+            // ImageIO provider, the fall-back, must be the first one added
+            try {
+                // Use reflection to avoid compile-time dependencies on AWT-related classes
+                TextureProvider provider = (TextureProvider)
+                    Class.forName("com.sun.opengl.util.texture.spi.awt.IIOTextureProvider").newInstance();
+                addTextureProvider(provider);
+            } catch (Exception e) {
+                if (DEBUG) {
+                    e.printStackTrace();
+                }
             }
         }
         */
@@ -730,14 +736,16 @@ public class TextureIO {
 
         /*
         // ImageIO writer, the fall-back, must be the first one added
-        try {
-            // Use reflection to avoid compile-time dependencies on AWT-related classes
-            TextureWriter writer = (TextureWriter)
-                Class.forName("com.sun.opengl.util.texture.spi.awt.IIOTextureWriter").newInstance();
-            addTextureWriter(writer);
-        } catch (Exception e) {
-            if (DEBUG) {
-                e.printStackTrace();
+        if(GLProfile.isAWTJOGLAvailable()) {
+            try {
+                // Use reflection to avoid compile-time dependencies on AWT-related classes
+                TextureWriter writer = (TextureWriter)
+                    Class.forName("com.sun.opengl.util.texture.spi.awt.IIOTextureWriter").newInstance();
+                addTextureWriter(writer);
+            } catch (Exception e) {
+                if (DEBUG) {
+                    e.printStackTrace();
+                }
             }
         }
         */
@@ -746,6 +754,7 @@ public class TextureIO {
         addTextureWriter(new DDSTextureWriter());
         addTextureWriter(new SGITextureWriter());
         addTextureWriter(new TGATextureWriter());
+        addTextureWriter(new NetPbmTextureWriter());
     }
 
     // Implementation methods
@@ -772,7 +781,7 @@ public class TextureIO {
             }
         }
 
-        throw new IOException("No suitable reader for given file");
+        throw new IOException("No suitable reader for given file "+file.getAbsolutePath());
     }
 
     private static TextureData newTextureDataImpl(InputStream stream,
@@ -829,7 +838,7 @@ public class TextureIO {
             }
         }
 
-        throw new IOException("No suitable reader for given URL");
+        throw new IOException("No suitable reader for given URL "+url);
     }
 
     //----------------------------------------------------------------------

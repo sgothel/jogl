@@ -296,7 +296,38 @@ public abstract class X11GLXContext extends GLContextImpl {
     GLContextShareSet.contextCreated(this);
   }
 
+  // Note: Usually the surface shall be locked within [makeCurrent .. swap .. release]
   protected int makeCurrentImpl() throws GLException {
+    int lockRes = drawable.lockSurface();
+    boolean exceptionOccurred = false;
+    try {
+      if (lockRes == NativeWindow.LOCK_SURFACE_NOT_READY) {
+        return CONTEXT_NOT_CURRENT;
+      }
+      return makeCurrentImplAfterLock();
+    } catch (RuntimeException e) {
+      exceptionOccurred = true;
+      throw e;
+    } finally {
+      if (exceptionOccurred ||
+          (isOptimizable() && lockRes != NativeWindow.LOCK_SURFACE_NOT_READY) && drawable.isSurfaceLocked()) {
+        drawable.unlockSurface();
+      }
+    }
+  }
+
+  // Note: Usually the surface shall be locked within [makeCurrent .. swap .. release]
+  protected void releaseImpl() throws GLException {
+    try {
+      releaseImplAfterLock();
+    } finally {
+      if (!isOptimizable() && drawable.isSurfaceLocked()) {
+        drawable.unlockSurface();
+      }
+    }
+  }
+
+  protected int makeCurrentImplAfterLock() throws GLException {
     getDrawableImpl().getFactoryImpl().lockToolkit();
     try {
         if (drawable.getNativeWindow().getSurfaceHandle() == 0) {
@@ -341,7 +372,7 @@ public abstract class X11GLXContext extends GLContextImpl {
     }
   }
 
-  protected void releaseImpl() throws GLException {
+  protected void releaseImplAfterLock() throws GLException {
     getDrawableImpl().getFactoryImpl().lockToolkit();
     try {
         if (!GLX.glXMakeContextCurrent(drawable.getNativeWindow().getDisplayHandle(), 0, 0, 0)) {

@@ -261,6 +261,12 @@ public abstract class Display {
 
     protected abstract void dispatchMessages();
 
+    /** Default impl. nop - Currently only X11 needs a Display lock */
+    protected void lockDisplay() { }
+
+    /** Default impl. nop - Currently only X11 needs a Display lock */
+    protected void unlockDisplay() { }
+
     protected EventDispatchThread eventDispatchThread = null;
     protected String name;
     protected int refCount;

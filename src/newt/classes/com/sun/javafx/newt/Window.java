@@ -286,6 +286,7 @@ public abstract class Window implements NativeWindow
         }
         owner = cur;
         lockedStack = new Exception("NEWT Surface previously locked by "+Thread.currentThread());
+        screen.getDisplay().lockDisplay();
         return LOCK_SUCCESS;
     }
 
@@ -302,6 +303,7 @@ public abstract class Window implements NativeWindow
         }
         owner = null;
         lockedStack = null;
+        screen.getDisplay().unlockDisplay();
         notifyAll();
         // We leave the ToolkitLock unlock to the specializtion's discretion, 
         // ie the implicit JAWTWindow in case of AWTWindow

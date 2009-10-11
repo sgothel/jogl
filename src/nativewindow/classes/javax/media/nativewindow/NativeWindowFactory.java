@@ -131,7 +131,7 @@ public abstract class NativeWindowFactory {
         }
 
         boolean toolkitLockForced   = Debug.getBooleanProperty("nativewindow.locking", true, acc);
-        boolean awtToolkitLockDisabled = Debug.getBooleanProperty("java.awt.headless", false, acc) ||
+        boolean awtToolkitLockDisabled = Debug.getBooleanProperty("java.awt.headless", true, acc) ||
                                          Debug.getBooleanProperty("nativewindow.nolocking", true, acc) ;
 
         NativeWindowFactory _factory = null;
