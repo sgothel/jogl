@@ -181,17 +181,22 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
       return gammaRampLength;
     }
 
-    int[] size = new int[1];
     long display = X11Util.getThreadLocalDefaultDisplay();
-    boolean res = X11Lib.XF86VidModeGetGammaRampSize(display,
-                                                  X11Lib.DefaultScreen(display),
-                                                  size, 0);
-    if (!res) {
-      return 0;
+    try {
+        X11Lib.XLockDisplay(display);
+        int[] size = new int[1];
+        boolean res = X11Lib.XF86VidModeGetGammaRampSize(display,
+                                                      X11Lib.DefaultScreen(display),
+                                                      size, 0);
+        if (!res) {
+          return 0;
+        }
+        gotGammaRampLength = true;
+        gammaRampLength = size[0];
+        return gammaRampLength;
+    } finally {
+        X11Lib.XUnlockDisplay(display);
     }
-    gotGammaRampLength = true;
-    gammaRampLength = size[0];
-    return gammaRampLength;
   }
 
   protected boolean setGammaRamp(float[] ramp) {
@@ -202,13 +207,18 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
     }
 
     long display = X11Util.getThreadLocalDefaultDisplay();
-    boolean res = X11Lib.XF86VidModeSetGammaRamp(display,
-                                              X11Lib.DefaultScreen(display),
-                                              rampData.length,
-                                              rampData, 0,
-                                              rampData, 0,
-                                              rampData, 0);
-    return res;
+    try {
+        X11Lib.XLockDisplay(display);
+        boolean res = X11Lib.XF86VidModeSetGammaRamp(display,
+                                                  X11Lib.DefaultScreen(display),
+                                                  rampData.length,
+                                                  rampData, 0,
+                                                  rampData, 0,
+                                                  rampData, 0);
+        return res;
+    } finally {
+        X11Lib.XUnlockDisplay(display);
+    }
   }
 
   protected Buffer getGammaRamp() {
@@ -224,16 +234,21 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
     rampData.limit(3 * size);
     ShortBuffer blueRampData = rampData.slice();
     long display = X11Util.getThreadLocalDefaultDisplay();
-    boolean res = X11Lib.XF86VidModeGetGammaRamp(display,
-                                              X11Lib.DefaultScreen(display),
-                                              size,
-                                              redRampData,
-                                              greenRampData,
-                                              blueRampData);
-    if (!res) {
-      return null;
+    try {
+        X11Lib.XLockDisplay(display);
+        boolean res = X11Lib.XF86VidModeGetGammaRamp(display,
+                                                  X11Lib.DefaultScreen(display),
+                                                  size,
+                                                  redRampData,
+                                                  greenRampData,
+                                                  blueRampData);
+        if (!res) {
+          return null;
+        }
+        return rampData;
+    } finally {
+        X11Lib.XUnlockDisplay(display);
     }
-    return rampData;
   }
 
   protected void resetGammaRamp(Buffer originalGammaRamp) {
@@ -255,11 +270,16 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
     rampData.limit(3 * size);
     ShortBuffer blueRampData = rampData.slice();
     long display = X11Util.getThreadLocalDefaultDisplay();
-    X11Lib.XF86VidModeSetGammaRamp(display,
-                                X11Lib.DefaultScreen(display),
-                                size,
-                                redRampData,
-                                greenRampData,
-                                blueRampData);
+    try {
+        X11Lib.XLockDisplay(display);
+        X11Lib.XF86VidModeSetGammaRamp(display,
+                                    X11Lib.DefaultScreen(display),
+                                    size,
+                                    redRampData,
+                                    greenRampData,
+                                    blueRampData);
+    } finally {
+        X11Lib.XUnlockDisplay(display);
+    }
   }
 }

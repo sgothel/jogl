@@ -68,15 +68,11 @@ public class OffscreenWindow extends Window implements SurfaceChangeable {
 
     public void invalidate() {
         super.invalidate();
-        disposeSurfaceHandle();
-    }
-
-    public void disposeSurfaceHandle() {
         surfaceHandle = 0;
     }
 
     public synchronized void destroy() {
-        disposeSurfaceHandle();
+        surfaceHandle = 0;
     }
 
     public void setSurfaceHandle(long handle) {

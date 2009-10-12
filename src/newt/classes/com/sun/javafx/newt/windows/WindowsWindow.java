@@ -106,17 +106,6 @@ public class WindowsWindow extends Window {
         return false;
     }
 
-    public void disposeSurfaceHandle() {
-        if (0!=hdc && 0!=windowHandle) {
-            ReleaseDC(windowHandle, hdc);
-            hdc=0;
-            if(DEBUG_IMPLEMENTATION || DEBUG_WINDOW_EVENT) {
-                Exception e = new Exception("!!! Window surface handle disposed "+Thread.currentThread().getName()+", "+Thread.currentThread());
-                e.printStackTrace();
-            }
-        }
-    }
-
     protected void createNative(long parentWindowHandle, Capabilities caps) {
         WindowsScreen  screen = (WindowsScreen) getScreen();
         WindowsDisplay display = (WindowsDisplay) screen.getDisplay();

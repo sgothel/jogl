@@ -79,9 +79,10 @@ public class X11GLXGraphicsConfigurationFactory extends GraphicsConfigurationFac
       // Utilizing FBConfig
       //
       GLCapabilities capsFB = null;
-      NativeWindowFactory.getDefaultFactory().getToolkitLock().lock();
+      long display = x11Screen.getDevice().getHandle();
       try {
-          long display = x11Screen.getDevice().getHandle();
+          NativeWindowFactory.getDefaultFactory().getToolkitLock().lock();
+          X11Lib.XLockDisplay(display);
           int screen = x11Screen.getIndex();
           boolean isMultisampleAvailable = GLXUtil.isMultisampleAvailable(display);
 
@@ -106,6 +107,7 @@ public class X11GLXGraphicsConfigurationFactory extends GraphicsConfigurationFac
           }
       } catch (Throwable t) {
       } finally {
+          X11Lib.XUnlockDisplay(display);
           NativeWindowFactory.getDefaultFactory().getToolkitLock().unlock();
       }
 
@@ -183,11 +185,12 @@ public class X11GLXGraphicsConfigurationFactory extends GraphicsConfigurationFac
 
         // Utilizing FBConfig
         //
-        NativeWindowFactory.getDefaultFactory().getToolkitLock().lock();
+        AbstractGraphicsDevice absDevice = x11Screen.getDevice();
+        long display = absDevice.getHandle();
         try {
+            NativeWindowFactory.getDefaultFactory().getToolkitLock().lock();
+            X11Lib.XLockDisplay(display);
             int screen = x11Screen.getIndex();
-            AbstractGraphicsDevice absDevice = x11Screen.getDevice();
-            long display = absDevice.getHandle();
             boolean isMultisampleAvailable = GLXUtil.isMultisampleAvailable(display);
             int[] attribs = X11GLXGraphicsConfiguration.GLCapabilities2AttribList(capabilities, true, isMultisampleAvailable, display, screen);
             int[] count = { -1 };
@@ -247,6 +250,7 @@ public class X11GLXGraphicsConfigurationFactory extends GraphicsConfigurationFac
                 }
             }
         } finally {
+            X11Lib.XUnlockDisplay(display);
             NativeWindowFactory.getDefaultFactory().getToolkitLock().unlock();
         }
 
@@ -271,11 +275,12 @@ public class X11GLXGraphicsConfigurationFactory extends GraphicsConfigurationFac
         XVisualInfo retXVisualInfo = null;
         int chosen=-1;
 
-        NativeWindowFactory.getDefaultFactory().getToolkitLock().lock();
+        AbstractGraphicsDevice absDevice = x11Screen.getDevice();
+        long display = absDevice.getHandle();
         try {
+            NativeWindowFactory.getDefaultFactory().getToolkitLock().lock();
+            X11Lib.XLockDisplay(display);
             int screen = x11Screen.getIndex();
-            AbstractGraphicsDevice absDevice = x11Screen.getDevice();
-            long display = absDevice.getHandle();
             boolean isMultisampleAvailable = GLXUtil.isMultisampleAvailable(display);
             int[] attribs = X11GLXGraphicsConfiguration.GLCapabilities2AttribList(capabilities, false, isMultisampleAvailable, display, screen);
             XVisualInfo[] infos = null;
@@ -326,6 +331,7 @@ public class X11GLXGraphicsConfigurationFactory extends GraphicsConfigurationFac
             }
             retXVisualInfo = XVisualInfo.create(infos[chosen]);
         } finally {
+            X11Lib.XUnlockDisplay(display);
             NativeWindowFactory.getDefaultFactory().getToolkitLock().unlock();
         }
         return new X11GLXGraphicsConfiguration(x11Screen, caps[chosen], capabilities, chooser, retXVisualInfo, 0, -1);

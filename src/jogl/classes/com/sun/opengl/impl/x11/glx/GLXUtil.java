@@ -40,17 +40,27 @@ import com.sun.nativewindow.impl.x11.*;
 
 public class GLXUtil {
     public static boolean isMultisampleAvailable(long display) {
-        String exts = GLX.glXGetClientString(display, GLX.GLX_EXTENSIONS);
-        if (exts != null) {
-            return (exts.indexOf("GLX_ARB_multisample") >= 0);
+        try {
+            X11Lib.XLockDisplay(display);
+            String exts = GLX.glXGetClientString(display, GLX.GLX_EXTENSIONS);
+            if (exts != null) {
+                return (exts.indexOf("GLX_ARB_multisample") >= 0);
+            }
+            return false;
+        } finally {
+            X11Lib.XUnlockDisplay(display);
         }
-        return false;
     }
 
     /** Workaround for apparent issue with ATI's proprietary drivers
         where direct contexts still send GLX tokens for GL calls */
     public static boolean isVendorATI(long display) {
-        String vendor = GLX.glXGetClientString(display, GLX.GLX_VENDOR);
-        return vendor != null && vendor.startsWith("ATI") ;
+        try {
+            X11Lib.XLockDisplay(display);
+            String vendor = GLX.glXGetClientString(display, GLX.GLX_VENDOR);
+            return vendor != null && vendor.startsWith("ATI") ;
+        } finally {
+            X11Lib.XUnlockDisplay(display);
+        }
     }
 }

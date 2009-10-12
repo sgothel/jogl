@@ -203,20 +203,21 @@ public abstract class Display {
             }
             if(null!=eventDispatchThread) {
                 final Display f_dpy = this;
+                final EventDispatchThread f_edt = eventDispatchThread;
                 eventDispatchThread.invokeAndWait(new Runnable() {
                     public void run() {
                         f_dpy.closeNative();
+                        f_edt.stop();
                     }
                 } );
             } else {
                 closeNative();
             }
-            aDevice = null;
             if(null!=eventDispatchThread) { 
-                eventDispatchThread.stop();
                 eventDispatchThread.waitUntilStopped();
                 eventDispatchThread=null;
             }
+            aDevice = null;
         } else {
             if(DEBUG) {
                 System.err.println("Display.destroy("+name+") KEEP: refCount "+refCount+", "+this+" "+Thread.currentThread());

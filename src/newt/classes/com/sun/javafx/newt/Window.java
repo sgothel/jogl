@@ -411,13 +411,6 @@ public abstract class Window implements NativeWindow
         return windowHandle; // default: return window handle
     }
 
-    /** Special method to dispose a surface handle,
-        in case of a device change _and_ where there 
-        is a different semantics of window handle and surface handle.
-        This is currently only true for Windows. */
-    public void disposeSurfaceHandle() {
-    }
-
     public AbstractGraphicsConfiguration getGraphicsConfiguration() {
         return config;
     }

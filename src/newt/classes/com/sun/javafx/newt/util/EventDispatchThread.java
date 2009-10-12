@@ -55,7 +55,7 @@ public class EventDispatchThread {
     public EventDispatchThread(Display display, ThreadGroup tg, String name) {
         this.display = display;
         this.threadGroup = tg;
-        this.name=new String("EDT-"+name);
+        this.name=new String("EDT-Display_"+display.getName()+"-"+name);
     }
 
     public String getName() { return name; }
@@ -101,8 +101,12 @@ public class EventDispatchThread {
         }
     }
 
-    public boolean isEDTThread(Thread thread) {
-        return taskWorker == thread;
+    public boolean isThreadEDT(Thread thread) {
+        return null!=taskWorker && taskWorker == thread;
+    }
+
+    public boolean isCurrentThreadEDT() {
+        return null!=taskWorker && taskWorker == Thread.currentThread();
     }
 
     public boolean isRunning() {
@@ -114,8 +118,13 @@ public class EventDispatchThread {
             return;
         }
         synchronized(taskWorkerLock) {
-            tasks.add(task);
-            taskWorkerLock.notifyAll();
+            if(null!=taskWorker && taskWorker.isRunning() && taskWorker != Thread.currentThread() ) {
+                tasks.add(task);
+                taskWorkerLock.notifyAll();
+            } else {
+                // if !running or isEDTThread, do it right away
+                task.run();
+            }
         }
     }
 
@@ -173,29 +182,39 @@ public class EventDispatchThread {
             }
         }
 
+        /** 
+         * Utilizing taskWorkerLock only for local resources and task execution,
+         * not for event dispatching.
+         */
         public void run() {
             if(DEBUG) {
                 System.out.println(Thread.currentThread()+": EDT run() START");
             }
             while(!shouldStop) {
                 try {
-                    // wait for something todo ..
-                    synchronized(taskWorkerLock) {
-                        while(!shouldStop && tasks.size()==0) {
-                            try {
-                                display.pumpMessages(); // event dispatch
-                                taskWorkerLock.wait(edtPollGranularity);
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
+                    // wait for something todo
+                    while(!shouldStop && tasks.size()==0) {
+                        synchronized(taskWorkerLock) {
+                            if(!shouldStop && tasks.size()==0) {
+                                try {
+                                    taskWorkerLock.wait(edtPollGranularity);
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                }
                             }
                         }
-                        if(tasks.size()>0) {
-                            Runnable task = (Runnable) tasks.remove(0);
-                            task.run();
-                            taskWorkerLock.notifyAll();
-                        }
+                        display.pumpMessages(); // event dispatch
                     }
-                    display.pumpMessages(); // event dispatch
+                    if(!shouldStop && tasks.size()>0) {
+                        synchronized(taskWorkerLock) {
+                            if(!shouldStop && tasks.size()>0) {
+                                Runnable task = (Runnable) tasks.remove(0);
+                                task.run();
+                                taskWorkerLock.notifyAll();
+                            }
+                        }
+                        display.pumpMessages(); // event dispatch
+                    }
                 } catch (Throwable t) {
                     // handle errors ..
                     t.printStackTrace();

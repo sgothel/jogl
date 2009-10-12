@@ -54,14 +54,14 @@ import java.util.*;
 public class GLWindow extends Window implements GLAutoDrawable {
     private static List/*GLWindow*/ glwindows = new ArrayList();
 
-    private boolean ownerOfDisplayAndScreen;
+    private boolean ownerOfWinScrDpy;
     private Window window;
     private boolean runPumpMessages;
 
     /** Constructor. Do not call this directly -- use {@link
         create()} instead. */
-    protected GLWindow(Window window, boolean ownerOfDisplayAndScreen) {
-        this.ownerOfDisplayAndScreen = ownerOfDisplayAndScreen;
+    protected GLWindow(Window window, boolean ownerOfWinScrDpy) {
+        this.ownerOfWinScrDpy = ownerOfWinScrDpy;
         this.window = window;
         this.window.setAutoDrawableClient(true);
         this.runPumpMessages = ( null == getScreen().getDisplay().getEDT() ) ;
@@ -118,18 +118,18 @@ public class GLWindow extends Window implements GLAutoDrawable {
                                    GLCapabilities caps,
                                    boolean undecorated) {
         Display display;
-        boolean ownerOfDisplayAndScreen=false;
+        boolean ownerOfWinScrDpy=false;
         if (window == null) {
             if (caps == null) {
                 caps = new GLCapabilities(null); // default ..
             }
-            ownerOfDisplayAndScreen = true;
+            ownerOfWinScrDpy = true;
             display = NewtFactory.createDisplay(null); // local display
             Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
             window = NewtFactory.createWindow(screen, caps, undecorated);
         }
 
-        return new GLWindow(window, ownerOfDisplayAndScreen);
+        return new GLWindow(window, ownerOfWinScrDpy);
     }
     
     /** 
@@ -165,23 +165,21 @@ public class GLWindow extends Window implements GLAutoDrawable {
         shouldNotCallThis();
     }
 
-    protected void dispose(boolean regenerate) {
+    protected void dispose(boolean regenerate, boolean sendEvent) {
         if(Window.DEBUG_WINDOW_EVENT || window.DEBUG_IMPLEMENTATION) {
-            Exception e1 = new Exception("GLWindow.dispose("+regenerate+") "+Thread.currentThread()+", 1: "+this);
+            Exception e1 = new Exception("GLWindow.dispose("+regenerate+") "+Thread.currentThread()+", 1");
             e1.printStackTrace();
         }
 
-        sendDisposeEvent();
+        if(sendEvent) {
+            sendDisposeEvent();
+        }
 
         if (context != null) {
             context.destroy();
         }
         if (drawable != null) {
             drawable.setRealized(false);
-        }
-
-        if(null!=window) {
-            window.disposeSurfaceHandle();
         }
 
         if(regenerate) {
@@ -208,10 +206,11 @@ public class GLWindow extends Window implements GLAutoDrawable {
     }
 
     public synchronized void destroy() {
-        destroy(false);
+        destroy(true);
     }
 
-    public synchronized void destroy(boolean deep) {
+    /** @param sendDisposeEvent should be false in a [time,reliable] critical shutdown */
+    public synchronized void destroy(boolean sendDisposeEvent) {
         if(Window.DEBUG_WINDOW_EVENT || window.DEBUG_IMPLEMENTATION) {
             Exception e1 = new Exception("GLWindow.destroy "+Thread.currentThread()+", 1: "+this);
             e1.printStackTrace();
@@ -221,34 +220,21 @@ public class GLWindow extends Window implements GLAutoDrawable {
         newglw.remove(this);
         glwindows=newglw;
 
-        dispose(false);
+        dispose(false, sendDisposeEvent);
 
-        Screen _screen = null;
-        Display _device = null;
         if(null!=window) {
-            if(!deep && ownerOfDisplayAndScreen) {
-                _screen = getScreen();
-                if(null != _screen) {
-                    _device = _screen.getDisplay();
-                }
+            if(ownerOfWinScrDpy) {
+                window.destroy(true);
             }
-            window.destroy(deep);
-        } 
-
-        if(Window.DEBUG_WINDOW_EVENT || window.DEBUG_IMPLEMENTATION) {
-            System.out.println("GLWindow.destroy "+Thread.currentThread()+", fin: "+this);
         }
 
         drawable = null;
         context = null;
-
-        if(null != _screen) {
-            _screen.destroy();
-        }
-        if(null != _device) {
-            _device.destroy();
-        }
         window = null;
+
+        if(Window.DEBUG_WINDOW_EVENT || window.DEBUG_IMPLEMENTATION) {
+            System.out.println("GLWindow.destroy "+Thread.currentThread()+", fin: "+this);
+        }
     }
 
     public boolean getPerfLogEnabled() { return perfLog; }
@@ -453,7 +439,7 @@ public class GLWindow extends Window implements GLAutoDrawable {
                 window.getScreen().getDisplay().pumpMessages();
             }
             if(window.hasDeviceChanged() && GLAutoDrawable.SCREEN_CHANGE_ACTION_ENABLED) {
-                dispose(true);
+                dispose(true, true);
             }
             if (sendDestroy) {
                 destroy();
