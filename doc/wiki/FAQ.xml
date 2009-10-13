@@ -1,0 +1,417 @@
+<h1>JOGL FAQ</h1>
+
+Please read and edit this page ..
+
+__TOC__
+
+== Get the Source Code ==
+
+Create a local copy/branch of the git repository,
+either anonymous:
+
+* git clone git://kenai.com/gluegen~gluegen-git gluegen
+* git clone git://kenai.com/jogl~jogl-git jogl
+* git clone git://kenai.com/jogl~jogl-demos-git jogl-demos
+
+or via SSH and your user credential, so you can easily push back your
+changes to the kenai server:
+
+* git clone ssh://username@git.kenai.com/gluegen~gluegen-git gluegen
+* git clone ssh://username@git.kenai.com/jogl~jogl-git jogl
+* git clone ssh://username@git.kenai.com/jogl~jogl-demos-git jogl-demos
+
+== How to participate and use git ==
+
+Yes, gluegen, jogl and all the stuff has been [http://blog.jausoft.com/2009/07/08/svn-to-git-migration-1/ migrated to git],
+thanks to the great git toolchain.
+
+In the past we were using a centralized repository only, ''SVN'',
+and you really needed access to it as a developer.
+
+Thanks to the distributed nature of git, this is no more a real issue.
+The only thing left is to provide a media to offer your branch to one of us,
+this can be via [http://www.kernel.org/pub/software/scm/git/docs/everyday.html#Individual%20Developer%20%28Participant%29 email], [http://weblog.masukomi.org/wp-content/uploads/2008/03/config_remote_repo.svg http],  [http://kernel.org/pub/software/scm/git/docs/howto/use-git-daemon.txt git], ssh, whatever you wish - it's easy.
+For bigger projects maintained in a branch or if you don't have your own public server
+to offer yours, ''we are pleased to grant you write access'' to our repository!
+
+However, '''don't just modify the master branch without our permission''', 
+or any other existing branch which is not assigned to you!
+''We will just trust you here'', but if you misbehave, your privileges will be removed.
+Instead, '''create a branch of your own and push it to the server''', then you will ask
+one of us to pull your branch, which we will verify and merge, if it's fine. Thanks to git, this is so easy now.
+And this is the current way [http://whygitisbetterthanx.com/#any-workflow how you collaborate] using a [http://whygitisbetterthanx.com/#distributed distributed SCM].
+
+== How to develop Cross-Device Applications ==
+First you have to pick your lowest common denominator of an OpenGL profile, ie OpenGL ES1 or ES2.
+For either we offer an intersecting desktop GL profile, GL2ES1 or GL2ES2.
+Use the latter while creating your GLCapabilities.
+Build and run your application with the minimum GL profile JARS, e.g. on the desktop use:
+
+ ~/jogl-demos> . ./setenv-jogl.sh JOGL_GL2ES12_MIN ../jogl/build
+
+Here you are on a Unix platform (not Window) and your common build subdirectory is 'build'.
+''jogl-demos/setenv-jogl.sh'' is provided within ''jogl-demos'', which itself utilizes ''jogl/etc/profile.jogl''.
+
+This uses the GlueGen/JOGL JARS:
+* gluegen-rt.jar
+* nativewindow.core.jar
+* jogl.core.jar
+* jogl.util.jar
+* jogl.gl2es12.x11.jar
+* jogl.util.fixedfuncemu.jar
+* newt.core.jar
+* newt.ogl.jar
+
+On a mobile device using CVM, you would use:
+* gluegen-rt-cdc.jar
+* nativewindow.core.cdc.jar
+* jogl.core.cdc.jar
+* jogl.util.cdc.jar
+* jogl.egl.cdc.jar
+* jogl.gles1.cdc.jar or jogl.gles2.cdc.jar
+* jogl.util.fixedfuncemu.cdc.jar
+* newt.core.cdc.jar
+* newt.ogl.cdc.jar
+
+Now, the same Java application shall run on all devices, desktop and mobile.
+See ''demos.es1.RedSquare'' of the ''jogl-demos'' repository.
+
+On the desktop you may run the ES1 demo:
+
+ ~/jogl-demos> sh java-run-newt.sh demos.es1.RedSquare -GL2ES1
+
+and the output is:
+ null RedSquare.run() 0                                                                                                                    
+ User screen size 0x0                                                                                                                                              
+ Detected screen size 1920x1200                                                                                                                   
+ GLProfile[GL2ES1/GL2ES12] Entering initialization                                                                        
+ GLProfile[GL2ES1/GL2ES12] GL Profile: GLProfile[GL2ES1/GL2ES12]                                                                   
+ GLProfile[GL2ES1/GL2ES12] GL:com.sun.opengl.impl.gl2es12.GL2ES12Impl@b815859
+ GLProfile[GL2ES1/GL2ES12] GL_VERSION=3.0.0 NVIDIA 185.18.14                               
+ GLProfile[GL2ES1/GL2ES12] GL_EXTENSIONS: ..            
+
+== What are the Runtime OpenGL Version Requirements ? ==
+The current JOGL2 spec is in WIP state, but mostly finished.
+We do not require any extra features of GL versions > 1.1,
+hence it shall just work.
+
+E.g. if you want to
+* support OpenGL platforms not supporting a version &gt; 1.2
+* use GL &ge; 1.3 features optionally
+Just query their availability e.g.:
+ gl.isExtensionAvailable("GL_VERSION_1_3")
+
+If you call a &gt; 1.2 GL function where it is not available,
+a GLException is thrown.
+
+'''JOGL requires at least an OpenGL version 1.1''',
+due to it's dynamical function binding starting with OpenGL 1.2.
+
+== Bugreports & Testing ==
+For all bug reports, please add the following information to your email:
+* Test case
+** Source code, or reference to it
+** Invocation command-line
+* Platform
+** OS & version
+** Architecture
+** Java version (java -version)
+* JOGL Source/build versions
+** GIT revision incl. URL and/or
+** Autobuild version (date, filename and URL)
+** Exceptions, stdout/stderr log file
+
+If possible, please add the following system properties to enable DEBUG logging:
+''-Dnewt.debug=all -Dnativewindow.debug=all -Djogl.debug=all''
+
+For example:
+
+ java -Djava.awt.headless=true -Dnewt.debug=all -Dnativewindow.debug=all \
+ -Djogl.debug=all demos.es2.RedSquare 2>&1 | tee RedSquare.report.log
+
+To test applets use the jcontrol panel or edit ''~/.java/deployment.properties'' directly and
+
+* Add JRE Arguments: <pre>-Djava.awt.headless=true -Dnewt.debug=all -Dnativewindow.debug=all -Djogl.debug=all</pre>
+* Enable logging/trace
+* Show the console window, or just use th latest log-file in <pre>~/.java/deployment/log/</pre>
+
+
+== Test Autobuilds & Shell Scripts == 
+I like to summarize how to manually test the JOGL autobuilds, starting with 2009-07-02.
+
+The general nightly download sites are
+* http://download.java.net/media/jogl/builds/nightly/
+
+Let’s assume we are in the test directory ‘test’, from which we operate from this point.
+
+* Get [http://download.java.net/media/jogl/builds/nightly/jogl-demos.zip jogl-demos.zip]. Extract the archive, i.e. <pre>unzip jogl-demos.zip</pre>
+
+* Get [http://download.java.net/media/jogl/builds/nightly/ jogl-2.0-pre-20090702-linux-amd64.zip]. In case we have build a reference implementation (RI) the substring ‘pre-yyyymmdd-’ will be dropped. Replace the version 2.0 with the latest available and the OS/arch linux-amd64 with your test platform. Extract the archive, ie <pre>unzip jogl-2.0-pre-20090702-linux-amd64.zip</pre>. Create a symbolic link or rename the archive directory from ''jogl-2.0-pre-20090702-linux-amd64'' to ''jogl'', ie <pre>ln -s jogl-2.0-pre-20090702-linux-amd64 jogl</pre>.
+* If you like to test the binding to NV’s Cg, [http://developer.nvidia.com/object/cg_download.html download and install]
+
+We assume java is in your binary search path.
+
+On X11/Unix and MaxOSX you can test the build as follows:
+
+ sh java-run-newt.sh demos.es2.RedSquare -GL2 -GL2 -GL2
+ sh java-run.sh demos.gears.Gears
+
+and with debug output
+
+ sh java-dbg-newt.sh demos.es2.RedSquare -GL2 -GL2 -GL2
+ sh java-dbg.sh demos.gears.Gears
+
+On Windows you shall be able to run:
+
+ java-win32.bat demos.es2.RedSquare -GL2 -GL2 -GL2
+ java-win32.bat demos.gears.Gears
+
+and with debug output
+
+ java-win32-dbg.bat demos.es2.RedSquare -GL2 -GL2 -GL2
+ java-win32-dbg.bat demos.gears.Gears
+
+The windows scripts are pretty simple and flat.
+
+The magic unix scripts offer more features and can be used either in the autobuild environment or in your development one.
+* <pre>setenv-jogl.sh <JOGL-PROFILE> [<jogl-build-dir>]</pre>
+Looks up and invokes profile.jogl, finds gluegen, sets the environment variables (CLASSPATH, LD_LIBRARY_PATH & PATH).
+* <pre>jogl/etc/profile.jogl <JOGL-PROFILE> [<jogl-build-dir>]</pre>
+JOGL profiles are one of JOGL_ALL, JOGL_ES1_MIN, JOGL_ES1_MAX, JOGL_ES2_MIN, JOGL_ES2_MAX,
+JOGL_GL2ES12_MIN, JOGL_GL2ES12_MAX, JOGL_GL2_MIN, JOGL_GL2_MAX.
+Looks up the set of JAR files necessary to satisfy the chosen JOGL-PROFILE.
+
+This allows you to test a specific environment, ie ES2 without GL2 and AWT, using JOGL_ES2_MIN.
+For this case I would recommend the native ES2 implementation from imageon SDK_OGLES2_LINUX_PCEMULATION_2.02.22.0756.
+
+
+== How to use JOGL in Applets (part 1) ==
+A Java Applet using JOGL may utilize 2 methods
+* [https://jdk6.dev.java.net/plugin2/jnlp/ New  JNLP Applet]
+* [https://applet-launcher.dev.java.net/ Applet-Launcher]
+
+Standard JNLP Applets are supported starting with Java 6u14, however, if you run MacOSX or an older version of  Java,
+you may need to use the Applet-Launcher.
+
+Below we utilize both, the standard JNLP mechanism of 6u14 as the default,
+or falling back to our  Applet-Launcher.
+
+You will find the JNLP file applet-gears.jnlp further below, which is being used in case of a JNLP launch,
+otherwise it is ignored and the archive tags are being used, hence the applet-launcher will be started.
+
+The below demo is [http://download.java.net/media/jogl/demos/www/applettest-jnlp.html online here].
+
+Note: It is important for the startup time to have the same JVM arguments in the applet tags,
+as well as within the JNLP applet description, here see property sun.java2d.noddraw.
+Only if JVM arguments of the JNLP applet description are satisfied by the applet tag’s JVM,
+the plugin will not need to start a new JVM. OF course, the applet tag’s JVM spec may exceed the JNLP applet’s one.
+
+Note: A bug on MacOSX is known, launching 2 JOGL applets in 2 tabs.
+
+<pre>
+<applet code="org.jdesktop.applet.util.JNLPAppletLauncher"
+      width=600
+      height=400
+      archive="http://download.java.net/media/applet-launcher/applet-launcher.jar,
+               http://download.java.net/media/jogl/jsr-231-2.x-webstart/nativewindow.all.jar,
+               http://download.java.net/media/jogl/jsr-231-2.x-webstart/jogl.all.jar,
+               http://download.java.net/media/gluegen/webstart-2.x/gluegen-rt.jar,
+               http://download.java.net/media/jogl/jsr-231-2.x-demos-webstart/jogl-demos.jar">
+   <param name="codebase_lookup" value="false">
+   <param name="subapplet.classname" value="demos.applets.GearsApplet">
+   <param name="subapplet.displayname" value="JOGL Gears Applet">
+   <param name="noddraw.check" value="true">
+   <param name="progressbar" value="true">
+   <param name="jnlpNumExtensions" value="1">
+   <param name="jnlpExtension1"
+          value="http://download.java.net/media/jogl/jsr-231-2.x-webstart/jogl-core.jnlp">
+   <param name="java_arguments" value="-Dsun.java2d.noddraw=true">
+   <param name="jnlp_href" value="applet-gears.jnlp">
+</applet>
+</pre>
+
+Where the referenced JNLP file applet-gears.jnlp looks as follow:
+
+<pre>
+<?xml version="1.0" encoding="utf-8"?>
+<jnlp href="applet-gears.jnlp">
+  <information>
+    <title>JOGL JNLP Applet Gears Demo</title>
+    <vendor>Sun Microsystems, Inc.</vendor>
+    <homepage href="http://jogl-demos.dev.java.net/"/>
+    <description>Gears Demo</description>
+    <description kind="short">Brian Paul's Gears demo ported to Java and JOGL.</description>
+    <offline-allowed/>
+  </information>
+
+    <resources>
+      <j2se href="http://java.sun.com/products/autodl/j2se" version="1.4+"/>
+      <property name="sun.java2d.noddraw" value="true"/>
+      <jar href="http://download.java.net/media/jogl/jsr-231-2.x-demos-webstart/jogl-demos.jar" main="true"/>
+      <jar href="http://download.java.net/media/jogl/jsr-231-2.x-demos-webstart/jogl-demos-util.jar"/>
+      <extension name="jogl-all-awt" href="http://download.java.net/media/jogl/jsr-231-2.x-webstart/jogl-all-awt.jnlp" />
+    </resources>
+
+  <applet-desc
+      name="Gears-Applet"
+      main-class="demos.applets.GearsApplet"
+      width="640"
+      height="480">
+  </applet-desc>
+</jnlp>
+</pre>
+
+== What is ''Newt's'' Threading Model for native window events ? ==
+As of today, Newt's default threading model to handle native events 
+is the event dispatch thread (EDT) model.
+
+It's introduction was necessary to allow a 'peace of mind',
+high performance and reactive solution of the dispatch event problem.
+Some OS, especially MS-Windows, require one to create the native Window
+and dispatch it's events from the same native thread.
+As it was easy to handle these requirements from a simple test application,
+as it is difficult to solve this from a framework operating with multiple temporary threads,
+a web browser for example.
+
+Newt's EDT impl. creates one EDT per Display and calling thread,
+as the Display instance is unique per thread.
+
+Using EDT is not mandatory, and you can turn it off in the NewtFactory,
+and deal with the event dispatch manually.
+
+== How to use ''Newt'' with multiple Windows & Threads ==
+Newt is capable of handling multiple threads and windows.
+
+For best performance, you may create one thread per window, if possible.
+
+Below you see the invocation of the ES2 RedSquare jogl-demos utilizing multiple threads.
+
+* Single thread (Unix, Win32) <pre>java -Djava.awt.headless=true demos.es2.RedSquare -GL2</pre>
+* Single thread (MacOSX) <pre>java -XstartOnFirstThread -Djava.awt.headless=true demos.es2.RedSquare -GL2</pre>
+* Multiple threads & windows (Unix, Win32) <pre>java -Djava.awt.headless=true demos.es2.RedSquare -GL2 -GL2 -GL2 -GL2</pre>
+* Multiple threads & windows (MacOSX) <pre>java -XstartOnFirstThread -Djava.awt.headless=true com.sun.javafx.newt.util.MainThread demos.es2.RedSquare -GL2 -GL2 -GL2 -GL2</pre>
+
+The serialization of the main Java class through ''com.sun.javafx.newt.util.MainThread''
+may be used for all platforms, since it only takes effect on ''MacOSX''.
+This allows you an almost platform independent invocation of your multithreaded Java applications.
+
+On ''MacOSX'', ''com.sun.javafx.newt.util.MainThread'' will occupy the main thread and
+serializes all native window related tasks through it.
+This mechanism is thread safe utilizes reentrant locking.
+
+== Why using AWT for high performance is not a good idea ? ==
+
+AWT (on many implementations) holds the lock to the underlying native resources,
+e.g. X11 display, screen and window surface, hence we have to obey these
+locks for any GL action bound to such. 
+
+This is still pretty standard matter as long these locks only have to be applied to
+the actual resource in use.
+
+On AWT, it turns out that we have to use the global JAWT toolkit lock 
+for any native operation, ie OpenGL.
+This might not be a problem for a single threaded GL application,
+but if you start a multithreaded beast, you will recognize that it will
+stumble around.
+
+You can verify this behavior with the ES1 RedSquare demo:
+
+* AWT - No VSync - One Thread
+<pre>
+  java demos.es1.RedSquare -awt -swapi 0 -GL2
+      5s: 3379f, 675 fps, 1 ms/f; total: 5s, 675 fps, 1 ms/f
+</pre>
+Even here you may experience some stuttering ..
+
+If you force disabling the toolkit lock:
+<pre>
+     java -Dnativewindow.nolocking=true demos.es1.RedSquare -awt -swapi 0 -GL2
+</pre>
+The demo may freeze forever .. due to native locking.
+
+* NEWT - No VSync - One Thread
+<pre>
+    java -Djava.awt.headless=true demos.es1.RedSquare -swapi 0 -GL2
+      5s: 5958f, 1191 fps, 0 ms/f; total: 5s, 1191 fps, 0 ms/f
+</pre>
+Runs much smoother .. without the stuttering locking experience ..
+
+This becomes much clearer with more threads:
+
+* AWT - No VSync - Three Threads
+<pre>
+    java demos.es1.RedSquare -awt -swapi 0 -GL2 -GL2 -GL2
+      5s: 772f, 151 fps, 6 ms/f; total: 5s, 151 fps, 6 ms/f
+</pre>
+
+* NEWT - No VSync - Three Threads
+<pre>
+    java -Djava.awt.headless=true demos.es1.RedSquare -swapi 0 -GL2 -GL2 -GL2
+      5s: 1669f, 333 fps, 2 ms/f; total: 5s, 333 fps, 2 ms/f
+</pre>
+
+== Why using Swing for high performance is not a good idea ? ==
+First, all this inherents all arguments from '''Why using AWT for high performance is not a good idea ?''
+
+Second, it involves compositioning using different methods,
+some may not be available on some platforms.
+
+From fast to slow:
+
+<h5> 1.) External Java2D's GLContext and FBO object. </h5>
+* GL stuff HW accelerated. 
+* Available on some platforms: Linux/Windows Sun's Java2D impl.
+* Setup with System property 'sun.java2d.opengl' to 'true'.
+* Renders directly into Java2D's FBO object, if available.
+
+<h5> 2.) Own PBuffer GLContext, which has to be composed. </h5>
+* GL stuff HW accelerated.
+* Available on most platforms: No dependency to Java2D implementation.
+* Renders into an own offscreen drawable, and copies it over to AWT's BufferedImage.
+
+<h5> 3.) Own Pixmap GLContext, which has to be composed. </h5>
+* GL stuff unlikely hw accelerated.
+* Available on most platforms: No dependency to Java2D impl.
+* Renders into an own offscreen drawable, and copies it over to AWT's BufferedImage.
+
+As you see, no straight forward HW rendering is involved,
+assuming that even the windowing manager is using offscreen 
+surfaces - you would have 2 compositions here already.
+
+At least (1) would be 'acceptable' here, if available,
+but if only (2) is available - the performance would
+not match the state of the art!
+
+Sure, it might be enough for some UIs or static pictures .. or so,
+otherwise, I would prefer the 'overlay' method, ie using a
+GLCanvas within a Swing component, while no menu is being shown.
+
+However you do it .. the generic AWT 'restrictions' apply here 
+as well.
+
+== OpenGL Profiles explained ==
+Copied from Michael Bien's [http://michael-bien.com/mbien/entry/jogl_2_opengl_profiles_explained original article].
+
+[http://download.java.net/media/jogl/doc/bouml/html/ JOGL 2 supports several OpenGL Profiles]. This entry explains what profiles are and why they are needed.
+
+<h5> History </h5>
+SGI released the first OpenGL specification 1992. Since this point OpenGL 1.x constantly evolved (under the ARB and later Khronos Group) by adding new functions to the core API. This went well until programmable graphics hardware became mainstream and shaders became suddenly more flexible and efficient as the generic fixed function pipeline.
+
+<h5>OpenGL 2.x </h5>
+It was the last version in which you could freely mix the fixed function pipeline with the programmable pipeline (as a core feature).
+
+With the release of OpenGL 3.0 the whole fixed function pipeline has been deprecated but you could still use it if you haven't requested a forward compatible context.
+
+<h5>OpenGL ES 1.x and ES 2.x</h5>
+It specifies a subset of OpenGL intended to be used on embedded devices.
+ES 1.x is a subset of the OpenGL fixed function pipeline, where ES 2.x is a subset of the 
+programmable shader hardware only.
+
+<h5>OpenGL 3.1 and 3.2 </h5>
+It removed most deprecated functionality from core specification, however some implementations (e.g. Nvidia drivers) still allow to get them back via an optional compatibility extension. Since 3.1 was the first release which broke compatibility, it is often seen as major OpenGL 3 release. 
+
+<h5>JOGL 2</h5>
+
+JOGL 1.1.1 lived in the timeframe up to OpenGL 2.1 which made it easy to stay in sync with the spec. To be able to solve the issue with the deprecation of functionality, 
+JOGL 2 [http://download.java.net/media/jogl/doc/bouml/html/ introduces an abstraction] of the original OpenGL versioning called Profile. Profiles allow Java applications to be written in a way which allows compatibility with multiple OpenGL versions at the same time. Since OpenGL ES (GL for embedded systems) has overlapping functionality with OpenGL itself it opened the opportunity to add even Profiles which bridge desktop and embedded implementations. The class diagram below shows the dependencies between all available Profiles.
+
