@@ -397,6 +397,11 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_x11_X11Display_DispatchMessages
 
     // Periodically take a break
     while( num_events > 0 ) {
+        jobject jwindow = NULL;
+        XEvent evt;
+        KeySym keySym;
+        char keyChar;
+        char text[255];
 
         XLockDisplay(dpy) ;
 
@@ -406,12 +411,6 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_x11_X11Display_DispatchMessages
             XUnlockDisplay(dpy) ;
             return;
         }
-
-        jobject jwindow = NULL;
-        XEvent evt;
-        KeySym keySym;
-        char keyChar;
-        char text[255];
 
         XNextEvent(dpy, &evt);
         num_events--;

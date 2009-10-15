@@ -81,20 +81,22 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
 
   public void destroy() {
     NativeWindow nw = getNativeWindow();
-    if (nw.getSurfaceHandle() != 0) {
-      // Must release DC and pbuffer
-      // NOTE that since the context is not current, glGetError() can
-      // not be called here, so we skip the use of any composable
-      // pipelines (see WindowsOnscreenWGLContext.makeCurrentImpl)
-      WGLExt wglExt = cachedWGLExt;
-      if (wglExt.wglReleasePbufferDCARB(buffer, nw.getSurfaceHandle()) == 0) {
-        throw new GLException("Error releasing pbuffer device context: error code " + WGL.GetLastError());
-      }
-      ((SurfaceChangeable)nw).setSurfaceHandle(0);
-      if (!wglExt.wglDestroyPbufferARB(buffer)) {
-        throw new GLException("Error destroying pbuffer: error code " + WGL.GetLastError());
-      }
-      buffer = 0;
+    if(0!=buffer) {
+        WGLExt wglExt = cachedWGLExt;
+        if (nw.getSurfaceHandle() != 0) {
+          // Must release DC and pbuffer
+          // NOTE that since the context is not current, glGetError() can
+          // not be called here, so we skip the use of any composable
+          // pipelines (see WindowsOnscreenWGLContext.makeCurrentImpl)
+          if (wglExt.wglReleasePbufferDCARB(buffer, nw.getSurfaceHandle()) == 0) {
+            throw new GLException("Error releasing pbuffer device context: error code " + WGL.GetLastError());
+          }
+          ((SurfaceChangeable)nw).setSurfaceHandle(0);
+        }
+        if (!wglExt.wglDestroyPbufferARB(buffer)) {
+            throw new GLException("Error destroying pbuffer: error code " + WGL.GetLastError());
+        }
+        buffer = 0;
     }
   }
 
