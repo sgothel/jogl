@@ -66,7 +66,7 @@ public class WindowsOffscreenWGLDrawable extends WindowsWGLDrawable {
   }
 
   private void create() {
-    NullWindow nw = (NullWindow) getNativeWindow();
+    NativeWindow nw = getNativeWindow();
     WindowsWGLGraphicsConfiguration config = (WindowsWGLGraphicsConfiguration)nw.getGraphicsConfiguration().getNativeGraphicsConfiguration();
     GLCapabilities capabilities = (GLCapabilities)config.getRequestedCapabilities();
     int width = getWidth();
@@ -75,7 +75,8 @@ public class WindowsOffscreenWGLDrawable extends WindowsWGLDrawable {
     BITMAPINFOHEADER header = info.bmiHeader();
     int bitsPerPixel = (capabilities.getRedBits() +
                         capabilities.getGreenBits() +
-                        capabilities.getBlueBits());
+                        capabilities.getBlueBits() +
+                        capabilities.getAlphaBits());
     header.biSize(header.size());
     header.biWidth(width);
     // NOTE: negating the height causes the DIB to be in top-down row
