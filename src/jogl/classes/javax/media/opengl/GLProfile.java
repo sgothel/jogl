@@ -171,14 +171,14 @@ public class GLProfile implements Cloneable {
      * This requires an EGL interface.
      */
     public static final boolean usesNativeGLES1(String profileImpl) {
-        return GLES1.equals(profileImpl) || GL2ES1.equals(profileImpl) ;
+        return GLES1.equals(profileImpl);
     }
 
     /** Indicates whether the native OpenGL ES2 profile is in use. 
      * This requires an EGL interface.
      */
     public static final boolean usesNativeGLES2(String profileImpl) {
-        return GLES2.equals(profileImpl) || GL2ES2.equals(profileImpl) ;
+        return GLES2.equals(profileImpl);
     }
 
     /** Indicates whether either of the native OpenGL ES profiles are in use. */
@@ -283,17 +283,32 @@ public class GLProfile implements Cloneable {
 
     /** Indicates whether this profile uses the native OpenGL ES1 implementations. */
     public final boolean usesNativeGLES1() {
-        return GLES1.equals(profileImpl) || GL2ES1.equals(profileImpl) ;
+        return GLES1.equals(profileImpl);
     }
 
     /** Indicates whether this profile uses the native OpenGL ES2 implementations. */
     public final boolean usesNativeGLES2() {
-        return GLES2.equals(profileImpl) || GL2ES2.equals(profileImpl) ;
+        return GLES2.equals(profileImpl);
     }
 
     /** Indicates whether this profile uses either of the native OpenGL ES implementations. */
     public final boolean usesNativeGLES() {
         return usesNativeGLES2() || usesNativeGLES1();
+    }
+
+    /** Indicates whether this profile uses the native desktop OpenGL GL2 implementations. */
+    public final boolean usesNativeGL2() {
+        return GL2.equals(profileImpl) || GL2ES12.equals(profileImpl) ;
+    }
+
+    /** Indicates whether this profile uses the native desktop OpenGL GL3 implementations. */
+    public final boolean usesNativeGL3() {
+        return GL3.equals(profileImpl);
+    }
+
+    /** Indicates whether this profile uses the native desktop OpenGL GL2 or GL3 implementations. */
+    public final boolean usesNativeGL2GL3() {
+        return usesNativeGL2() || usesNativeGL3() ;
     }
 
     /** Indicates whether this profile supports GLSL. */
