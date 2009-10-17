@@ -71,7 +71,9 @@ public abstract class GLContextImpl extends GLContext {
 
   // Tracks creation and initialization of buffer objects to avoid
   // repeated glGet calls upon glMapBuffer operations
-  private GLBufferSizeTracker bufferSizeTracker;
+  private GLBufferSizeTracker bufferSizeTracker; // Singleton - Set by GLContextShareSet
+  private GLBufferStateTracker bufferStateTracker = new GLBufferStateTracker();
+  private GLStateTracker glStateTracker = new GLStateTracker();
 
   protected GLDrawableImpl drawable;
   protected GLDrawableImpl drawableRead;
@@ -231,6 +233,14 @@ public abstract class GLContextImpl extends GLContext {
       // when we destroy contexts
       if (bufferSizeTracker != null) {
           bufferSizeTracker.clearCachedBufferSizes();
+      }
+
+      if (bufferStateTracker != null) {
+          bufferStateTracker.clearBufferObjectState();
+      }
+  
+      if (glStateTracker != null) {
+          glStateTracker.clearStates();
       }
   
       destroyImpl();
@@ -510,6 +520,14 @@ public abstract class GLContextImpl extends GLContext {
 
   public GLBufferSizeTracker getBufferSizeTracker() {
     return bufferSizeTracker;
+  }
+
+  public GLBufferStateTracker getBufferStateTracker() {
+    return bufferStateTracker;
+  }
+
+  public GLStateTracker getGLStateTracker() {
+    return glStateTracker;
   }
 
   //---------------------------------------------------------------------------

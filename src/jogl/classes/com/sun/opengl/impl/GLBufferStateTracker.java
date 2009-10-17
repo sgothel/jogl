@@ -45,10 +45,8 @@ import javax.media.opengl.*;
 /**
  * Tracks as closely as possible which OpenGL buffer object is bound
  * to which binding target in the current OpenGL context.
- * GLBufferStateTracker objects are allocated on a per-GLImpl basis,
- * which is basically identical to a per-OpenGL-context basis
- * (assuming correct usage of the GLImpl objects, which is checked by
- * the DebugGL). This class is used to verify that e.g. the vertex
+ * GLBufferStateTracker objects are allocated on a per-OpenGL-context basis.
+ * This class is used to verify that e.g. the vertex
  * buffer object extension is in use when the glVertexPointer variant
  * taking a long as argument is called. <P>
  * 
@@ -101,8 +99,7 @@ public class GLBufferStateTracker {
   }
 
   public void setBoundBufferObject(int target, int buffer) {
-    Integer key = box(target);
-    bindingMap.put(key, box(buffer));
+    bindingMap.put(box(target), box(buffer));
   }
 
   /** Note: returns an unspecified value if the binding for the
@@ -110,8 +107,7 @@ public class GLBufferStateTracker {
       You must use isBoundBufferObjectKnown() to see whether the
       return value is valid. */
   public int getBoundBufferObject(int target, GL caller) {
-    Integer key = box(target);
-    Integer value = (Integer) bindingMap.get(key);
+    Integer value = (Integer) bindingMap.get(box(target));
     if (value == null) {
       // User probably either called glPushClientAttrib /
       // glPopClientAttrib or is querying an unknown target. See

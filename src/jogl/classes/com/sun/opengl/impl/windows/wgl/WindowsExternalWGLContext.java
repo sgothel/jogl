@@ -60,6 +60,7 @@ public class WindowsExternalWGLContext extends WindowsWGLContext {
     GLContextShareSet.contextCreated(this);
     setGLFunctionAvailability(false);
     cfg.updateCapabilitiesByWGL(this);
+    getGLStateTracker().setEnabled(false); // external context usage can't track state in Java
   }
 
   protected static WindowsExternalWGLContext create(GLDrawableFactory factory, GLProfile glp) {

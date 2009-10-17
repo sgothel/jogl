@@ -48,6 +48,7 @@ public class EGLExternalContext extends EGLContext {
         super(null, null);
         GLContextShareSet.contextCreated(this);
         setGLFunctionAvailability(false);
+        getGLStateTracker().setEnabled(false); // external context usage can't track state in Java
     }
 
     public int makeCurrent() throws GLException {

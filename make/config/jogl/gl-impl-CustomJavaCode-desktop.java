@@ -3,7 +3,7 @@ private int[] imageSizeTemp = new int[1];
 /** Helper for more precise computation of number of bytes that will
     be touched by a pixel pack or unpack operation. */
 private int imageSizeInBytes(int bytesPerElement,
-                             int w, int h, int d,
+                             int width, int height, int depth,
                              int dimensions,
                              boolean pack) {
     int rowLength = 0;
@@ -45,14 +45,16 @@ private int imageSizeInBytes(int bytesPerElement,
         }
     }
     // Try to deal somewhat correctly with potentially invalid values
-    rowLength   = Math.max(0, rowLength);
+    height      = Math.max(0, height);
     skipRows    = Math.max(0, skipRows);
     skipPixels  = Math.max(0, skipPixels);
     alignment   = Math.max(1, alignment);
     imageHeight = Math.max(0, imageHeight);
     skipImages  = Math.max(0, skipImages);
-    rowLength   = Math.max(rowLength, w + skipPixels);
+
+    rowLength   = Math.max(Math.max(0, rowLength), width); // > 0 && >= width
     int rowLengthInBytes = rowLength * bytesPerElement;
+
     if (alignment > 1) {
         int modulus = rowLengthInBytes % alignment;
         if (modulus > 0) {
@@ -60,15 +62,19 @@ private int imageSizeInBytes(int bytesPerElement,
         }
     }
 
-    int size = 0;
-    if (dimensions == 1) {
-        return (w + skipPixels) * bytesPerElement;
-    } else {
-        int size2D = ((skipRows + h - 1) * rowLengthInBytes) + (w + skipPixels) * bytesPerElement;
-        if (dimensions == 2) {
-            return size2D;
-        }
-        int imageSizeInBytes = imageHeight * rowLength;
-        return ((skipImages + d - 1) * imageSizeInBytes) + size2D;
+    /**
+     * skipPixels and skipRows is a static one time offset
+     *
+     * rowlenght is the actual repeating offset 
+     * from line-start to the next line-start.
+     */
+    int size = height * rowLengthInBytes; // height == 1 for 1D
+    if(dimensions==3) {
+       size *= (skipImages + depth);
     }
+
+    int skipOffset = skipPixels * bytesPerElement +
+                     skipRows * rowLengthInBytes;
+
+    return size + skipOffset;
 }

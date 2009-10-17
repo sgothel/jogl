@@ -17,7 +17,9 @@ public void setObjectTracker(GLObjectTracker tracker) {
 
 public GL2ES12Impl(GLProfile glp, GLContextImpl context) {
   this._context = context; 
-  this.bufferSizeTracker = context.getBufferSizeTracker();
+  this.bufferSizeTracker  = context.getBufferSizeTracker();
+  this.bufferStateTracker = context.getBufferStateTracker();
+  this.glStateTracker     = context.getGLStateTracker();
   this.isGL2ES2 = glp.isGL2ES2();
   this.glProfile = glp;
 }
@@ -203,8 +205,9 @@ private int imageSizeInBytes(int format, int type, int w, int h, int d,
   return imageSizeInBytes(elements * esize, w, h, d, dimensions, pack);
 }
 
-private GLBufferStateTracker bufferStateTracker = new GLBufferStateTracker();
 private GLBufferSizeTracker  bufferSizeTracker;
+private GLBufferStateTracker bufferStateTracker;
+private GLStateTracker       glStateTracker;
 
 private boolean bufferObjectExtensionsInitialized = false;
 private boolean haveGL15;

@@ -3,10 +3,10 @@ private int[] imageSizeTemp = new int[1];
 /** Helper for more precise computation of number of bytes that will
     be touched by a pixel pack or unpack operation. */
 private int imageSizeInBytes(int bytesPerElement,
-                             int w, int h, int d,
+                             int width, int height, int depth,
                              int dimensions,
                              boolean pack) {
-    int rowLength = w;
+    int rowLength;
     int alignment = 1;
 
     if (pack) {
@@ -17,10 +17,12 @@ private int imageSizeInBytes(int bytesPerElement,
         alignment = imageSizeTemp[0];
     }
     // Try to deal somewhat correctly with potentially invalid values
-    rowLength   = Math.max(0, rowLength);
+    height      = Math.max(0, height);
     alignment   = Math.max(1, alignment);
-    h           = Math.max(0, h);
+
+    rowLength   = Math.max(0, width); // > 0 && >= width
     int rowLengthInBytes = rowLength * bytesPerElement;
+
     if (alignment > 1) {
         int modulus = rowLengthInBytes % alignment;
         if (modulus > 0) {
@@ -28,10 +30,10 @@ private int imageSizeInBytes(int bytesPerElement,
         }
     }
 
-    int size = 0;
-    if (dimensions == 1) {
-        return rowLengthInBytes;
-    } else {
-        return h * rowLengthInBytes;
+    int size = height * rowLengthInBytes; // height == 1 for 1D
+    if(dimensions==3) {
+       size *= depth;
     }
+
+    return size;
 }
