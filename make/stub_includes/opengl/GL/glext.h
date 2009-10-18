@@ -8455,30 +8455,6 @@ typedef void (APIENTRYP PFNGLMULTITEXRENDERBUFFEREXTPROC) (GLenum texunit, GLenu
  */
   
 
-/**
- * http://www.opengl.org/registry/specs/AMD/vertex_shader_tessellator.txt
- */
-
-#ifndef GL_AMD_vertex_shader_tessellator
-#define GL_SAMPLER_BUFFER_AMD                0x9001
-#define GL_INT_SAMPLER_BUFFER_AMD            0x9002
-#define GL_UNSIGNED_INT_SAMPLER_BUFFER_AMD   0x9003
-#define GL_DISCRETE_AMD                      0x9006
-#define GL_CONTINUOUS_AMD                    0x9007
-#define GL_TESSELLATION_MODE_AMD             0x9004
-#define GL_TESSELLATION_FACTOR_AMD           0x9005
-#endif
-
-#ifndef GL_AMD_vertex_shader_tessellator
-#define GL_AMD_vertex_shader_tessellator 1
-#ifdef GL_GLEXT_PROTOTYPES
-GLAPI void APIENTRY glTessellationFactorAMD(GLfloat factor);
-GLAPI void APIENTRY glTessellationModeAMD(GLenum mode);
-#endif
-typedef void (APIENTRYP PFNGLTESSELLATIONFACTORAMDPROC) (GLfloat factor);
-typedef void (APIENTRYP PFNGLTESSELLATIONMODEAMDPROC) (GLenum mode);
-#endif
-
 #ifndef GL_NV_element_array
 #define GL_ELEMENT_ARRAY_TYPE_NV          0x8769
 #define GL_ELEMENT_ARRAY_POINTER_NV       0x876A
@@ -8591,6 +8567,128 @@ GLAPI void APIENTRY glSwapAPPLE(void);
 typedef void (APIENTRY * PFNGLFLUSHRENDERAPPLEPROC) (void);
 typedef void (APIENTRY * PFNGLFINISHRENDERAPPLEPROC) (void);
 typedef void (APIENTRY * PFNGLSWAPAPPLEPROC) (void);
+#endif
+
+/**
+ * http://www.opengl.org/registry/specs/AMD/vertex_shader_tessellator.txt
+ */
+#ifndef GL_AMD_vertex_shader_tessellator
+#define GL_SAMPLER_BUFFER_AMD                0x9001
+#define GL_INT_SAMPLER_BUFFER_AMD            0x9002
+#define GL_UNSIGNED_INT_SAMPLER_BUFFER_AMD   0x9003
+#define GL_DISCRETE_AMD                      0x9006
+#define GL_CONTINUOUS_AMD                    0x9007
+#define GL_TESSELLATION_MODE_AMD             0x9004
+#define GL_TESSELLATION_FACTOR_AMD           0x9005
+#endif
+
+#ifndef GL_AMD_vertex_shader_tessellator
+#define GL_AMD_vertex_shader_tessellator 1
+#ifdef GL_GLEXT_PROTOTYPES
+GLAPI void APIENTRY glTessellationFactorAMD(GLfloat factor);
+GLAPI void APIENTRY glTessellationModeAMD(GLenum mode);
+#endif
+typedef void (APIENTRYP PFNGLTESSELLATIONFACTORAMDPROC) (GLfloat factor);
+typedef void (APIENTRYP PFNGLTESSELLATIONMODEAMDPROC) (GLenum mode);
+#endif
+
+/**
+ * http://www.opengl.org/registry/specs/NV/shader_buffer_load.txt
+ */
+#ifndef GL_NV_shader_buffer_load
+#define GL_BUFFER_GPU_ADDRESS_NV          0x8F1D
+#define GL_GPU_ADDRESS_NV                 0x8F34
+#define GL_MAX_SHADER_BUFFER_ADDRESS_NV   0x8F35
+#endif
+#ifndef GL_NV_shader_buffer_load
+#define GL_NV_shader_buffer_load 1
+#ifdef GL_GLEXT_PROTOTYPES
+GLAPI void APIENTRY glMakeBufferResidentNV(GLenum target, GLenum access);
+GLAPI void APIENTRY glMakeBufferNonResidentNV(GLenum target);
+GLAPI GLboolean APIENTRY glIsBufferResidentNV(GLenum target);
+GLAPI void APIENTRY glNamedMakeBufferResidentNV(GLuint buffer, GLenum access);
+GLAPI void APIENTRY glNamedMakeBufferNonResidentNV(GLuint buffer);
+GLAPI GLboolean APIENTRY glIsNamedBufferResidentNV(GLuint buffer);
+GLAPI void APIENTRY glGetBufferParameterui64vNV(GLenum target, GLenum pname, GLuint64EXT *params);
+GLAPI void APIENTRY glGetNamedBufferParameterui64vNV(GLuint buffer, GLenum pname, GLuint64EXT *params);
+GLAPI void APIENTRY glGetIntegerui64vNV(GLenum value, GLuint64EXT *result);
+GLAPI void APIENTRY glUniformui64NV(GLint location, GLuint64EXT value);
+GLAPI void APIENTRY glUniformui64vNV(GLint location, GLsizei count, GLuint64EXT *value);
+GLAPI void APIENTRY glGetUniformui64vNV(GLuint program, GLint location, GLuint64EXT *params);
+GLAPI void APIENTRY glProgramUniformui64NV(GLuint program, GLint location, GLuint64EXT value);
+GLAPI void APIENTRY glProgramUniformui64vNV(GLuint program, GLint location, GLsizei count, GLuint64EXT *value);
+#endif /* GL_GLEXT_PROTOTYPES */
+typedef void (APIENTRYP PFNGLMAKEBUFFERRESIDENTNVPROC) (GLenum target, GLenum access);
+typedef void (APIENTRYP PFNGLMAKEBUFFERNONRESIDENTNVPROC) (GLenum target);
+typedef GLboolean (APIENTRYP PFNGLISBUFFERRESIDENTNVPROC) (GLenum target);
+typedef void (APIENTRYP PFNGLNAMEDMAKEBUFFERRESIDENTNVPROC) (GLuint buffer, GLenum access);
+typedef void (APIENTRYP PFNGLNAMEDMAKEBUFFERNONRESIDENTNVPROC) (GLuint buffer);
+typedef GLboolean (APIENTRYP PFNGLISNAMEDBUFFERRESIDENTNVPROC) (GLuint buffer);
+typedef void (APIENTRYP PFNGLGETBUFFERPARAMETERUI64VNVPROC) (GLenum target, GLenum pname, GLuint64EXT *params);
+typedef void (APIENTRYP PFNGLGETNAMEDBUFFERPARAMETERUI64VNVPROC) (GLuint buffer, GLenum pname, GLuint64EXT *params);
+typedef void (APIENTRYP PFNGLGETINTEGERUI64VNVPROC) (GLenum value, GLuint64EXT *result);
+typedef void (APIENTRYP PFNGLUNIFORMUI64NVPROC) (GLint location, GLuint64EXT value);
+typedef void (APIENTRYP PFNGLUNIFORMUI64VNVPROC) (GLint location, GLsizei count, const GLuint64EXT *value);
+typedef void (APIENTRYP PFNGLGETUNIFORMUI64VNVPROC) (GLuint program, GLint location, GLuint64EXT *params);
+typedef void (APIENTRYP PFNGLPROGRAMUNIFORMUI64NVPROC) (GLuint program, GLint location, GLuint64EXT value);
+typedef void (APIENTRYP PFNGLPROGRAMUNIFORMUI64VNVPROC) (GLuint program, GLint location, GLsizei count, const GLuint64EXT *value);
+#endif
+
+/**
+ * http://www.opengl.org/registry/specs/NV/vertex_buffer_unified_memory.txt
+ */
+#ifndef GL_NV_vertex_buffer_unified_memory
+#define GL_VERTEX_ATTRIB_ARRAY_UNIFIED_NV   0x8F1E
+#define GL_ELEMENT_ARRAY_UNIFIED_NV         0x8F1F
+#define GL_VERTEX_ATTRIB_ARRAY_ADDRESS_NV   0x8F20
+#define GL_VERTEX_ARRAY_ADDRESS_NV          0x8F21
+#define GL_NORMAL_ARRAY_ADDRESS_NV          0x8F22
+#define GL_COLOR_ARRAY_ADDRESS_NV           0x8F23
+#define GL_INDEX_ARRAY_ADDRESS_NV           0x8F24
+#define GL_TEXTURE_COORD_ARRAY_ADDRESS_NV   0x8F25
+#define GL_EDGE_FLAG_ARRAY_ADDRESS_NV       0x8F26
+#define GL_SECONDARY_COLOR_ARRAY_ADDRESS_NV 0x8F27
+#define GL_FOG_COORD_ARRAY_ADDRESS_NV       0x8F28
+#define GL_ELEMENT_ARRAY_ADDRESS_NV         0x8F29
+#define GL_VERTEX_ATTRIB_ARRAY_LENGTH_NV    0x8F2A
+#define GL_VERTEX_ARRAY_LENGTH_NV           0x8F2B
+#define GL_NORMAL_ARRAY_LENGTH_NV           0x8F2C
+#define GL_COLOR_ARRAY_LENGTH_NV            0x8F2D
+#define GL_INDEX_ARRAY_LENGTH_NV            0x8F2E
+#define GL_TEXTURE_COORD_ARRAY_LENGTH_NV    0x8F2F
+#define GL_EDGE_FLAG_ARRAY_LENGTH_NV        0x8F30
+#define GL_SECONDARY_COLOR_ARRAY_LENGTH_NV  0x8F31
+#define GL_FOG_COORD_ARRAY_LENGTH_NV        0x8F32
+#define GL_ELEMENT_ARRAY_LENGTH_NV          0x8F33
+#endif
+#ifndef GL_NV_vertex_buffer_unified_memory
+#define GL_NV_vertex_buffer_unified_memory 1
+#ifdef GL_GLEXT_PROTOTYPES
+GLAPI void APIENTRY glBufferAddressRangeNV(GLenum pname, GLuint index, GLuint64EXT address, GLsizeiptr length);
+GLAPI void APIENTRY glVertexFormatNV(GLint size, GLenum type, GLsizei stride);
+GLAPI void APIENTRY glNormalFormatNV(GLenum type, GLsizei stride);
+GLAPI void APIENTRY glColorFormatNV(GLint size, GLenum type, GLsizei stride);
+GLAPI void APIENTRY glIndexFormatNV(GLenum type, GLsizei stride);
+GLAPI void APIENTRY glTexCoordFormatNV(GLint size, GLenum type, GLsizei stride);
+GLAPI void APIENTRY glEdgeFlagFormatNV(GLsizei stride);
+GLAPI void APIENTRY glSecondaryColorFormatNV(GLint size, GLenum type, GLsizei stride);
+GLAPI void APIENTRY glFogCoordFormatNV(GLenum type, GLsizei stride);
+GLAPI void APIENTRY glVertexAttribFormatNV(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride);
+GLAPI void APIENTRY glVertexAttribIFormatNV(GLuint index, GLint size, GLenum type, GLsizei stride);
+GLAPI void APIENTRY glGetIntegerui64i_vNV(GLenum value, GLuint index, GLuint64EXT *result);
+#endif /* GL_GLEXT_PROTOTYPES */
+typedef void (APIENTRYP PFNGLBUFFERADDRESSRANGENVPROC) (GLenum pname, GLuint index, GLuint64EXT address, GLsizeiptr length);
+typedef void (APIENTRYP PFNGLVERTEXFORMATNVPROC) (GLint size, GLenum type, GLsizei stride);
+typedef void (APIENTRYP PFNGLNORMALFORMATNVPROC) (GLenum type, GLsizei stride);
+typedef void (APIENTRYP PFNGLCOLORFORMATNVPROC) (GLint size, GLenum type, GLsizei stride);
+typedef void (APIENTRYP PFNGLINDEXFORMATNVPROC) (GLenum type, GLsizei stride);
+typedef void (APIENTRYP PFNGLTEXCOORDFORMATNVPROC) (GLint size, GLenum type, GLsizei stride);
+typedef void (APIENTRYP PFNGLEDGEFLAGFORMATNVPROC) (GLsizei stride);
+typedef void (APIENTRYP PFNGLSECONDARYCOLORFORMATNVPROC) (GLint size, GLenum type, GLsizei stride);
+typedef void (APIENTRYP PFNGLFOGCOORDFORMATNVPROC) (GLenum type, GLsizei stride);
+typedef void (APIENTRYP PFNGLVERTEXATTRIBFORMATNVPROC) (GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride);
+typedef void (APIENTRYP PFNGLVERTEXATTRIBIFORMATNVPROC) (GLuint index, GLint size, GLenum type, GLsizei stride);
+typedef void (APIENTRYP PFNGLGETINTEGERUI64I_VNVPROC) (GLenum value, GLuint index, GLuint64EXT *result);
 #endif
 
 #ifdef __cplusplus

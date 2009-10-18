@@ -438,13 +438,13 @@ GLAPI void APIENTRY glTessellationModeAMD(GLenum mode);
  * http://www.opengl.org/registry/specs/NV/shader_buffer_load.txt
  */
 #ifndef GL_NV_shader_buffer_load
-#define GL_BUFFER_GPU_ADDRESS_NV             0x8F1D
-#define GL_GPU_ADDRESS_NV                    0x8F34
-#define GL_MAX_SHADER_BUFFER_ADDRESS_NV      0x8F35
+#define GL_BUFFER_GPU_ADDRESS_NV          0x8F1D
+#define GL_GPU_ADDRESS_NV                 0x8F34
+#define GL_MAX_SHADER_BUFFER_ADDRESS_NV   0x8F35
 #endif
 #ifndef GL_NV_shader_buffer_load
 #define GL_NV_shader_buffer_load 1
-#ifdef GL_GL3EXT_PROTOTYPE
+#ifdef GL_GL3EXT_PROTOTYPES
 GLAPI void APIENTRY glMakeBufferResidentNV(GLenum target, GLenum access);
 GLAPI void APIENTRY glMakeBufferNonResidentNV(GLenum target);
 GLAPI GLboolean APIENTRY glIsBufferResidentNV(GLenum target);
@@ -459,7 +459,7 @@ GLAPI void APIENTRY glUniformui64vNV(GLint location, GLsizei count, GLuint64 *va
 GLAPI void APIENTRY glGetUniformui64vNV(GLuint program, GLint location, GLuint64 *params);
 GLAPI void APIENTRY glProgramUniformui64NV(GLuint program, GLint location, GLuint64 value);
 GLAPI void APIENTRY glProgramUniformui64vNV(GLuint program, GLint location, GLsizei count, GLuint64 *value);
-#endif
+#endif /* GL_GL3EXT_PROTOTYPES */
 /* No need for explicit function pointer: we force generation of ProcAddress .. */
 #endif
 
@@ -467,35 +467,35 @@ GLAPI void APIENTRY glProgramUniformui64vNV(GLuint program, GLint location, GLsi
  * http://www.opengl.org/registry/specs/NV/vertex_buffer_unified_memory.txt
  */
 #ifndef GL_NV_vertex_buffer_unified_memory
-#define GL_VERTEX_ATTRIB_ARRAY_UNIFIED_NV    0x8F1E
-#define GL_ELEMENT_ARRAY_UNIFIED_NV          0x8F1F
-#define GL_VERTEX_ATTRIB_ARRAY_ADDRESS_NV    0x8F20
-#define GL_TEXTURE_COORD_ARRAY_ADDRESS_NV    0x8F25
-#define GL_VERTEX_ARRAY_ADDRESS_NV           0x8F21
-#define GL_NORMAL_ARRAY_ADDRESS_NV           0x8F22
-#define GL_COLOR_ARRAY_ADDRESS_NV            0x8F23
-#define GL_INDEX_ARRAY_ADDRESS_NV            0x8F24
-#define GL_EDGE_FLAG_ARRAY_ADDRESS_NV        0x8F26
-#define GL_SECONDARY_COLOR_ARRAY_ADDRESS_NV  0x8F27
-#define GL_FOG_COORD_ARRAY_ADDRESS_NV        0x8F28
-#define GL_ELEMENT_ARRAY_ADDRESS_NV          0x8F29
-#define GL_VERTEX_ATTRIB_ARRAY_LENGTH_NV     0x8F2A
-#define GL_TEXTURE_COORD_ARRAY_LENGTH_NV     0x8F2F
-#define GL_VERTEX_ARRAY_LENGTH_NV            0x8F2B
-#define GL_NORMAL_ARRAY_LENGTH_NV            0x8F2C
-#define GL_COLOR_ARRAY_LENGTH_NV             0x8F2D
-#define GL_INDEX_ARRAY_LENGTH_NV             0x8F2E
-#define GL_EDGE_FLAG_ARRAY_LENGTH_NV         0x8F30
-#define GL_SECONDARY_COLOR_ARRAY_LENGTH_NV   0x8F31
-#define GL_FOG_COORD_ARRAY_LENGTH_NV         0x8F32
-#define GL_ELEMENT_ARRAY_LENGTH_NV           0x8F33
+#define GL_VERTEX_ATTRIB_ARRAY_UNIFIED_NV   0x8F1E
+#define GL_ELEMENT_ARRAY_UNIFIED_NV         0x8F1F
+#define GL_VERTEX_ATTRIB_ARRAY_ADDRESS_NV   0x8F20
+#define GL_VERTEX_ARRAY_ADDRESS_NV          0x8F21
+#define GL_NORMAL_ARRAY_ADDRESS_NV          0x8F22
+#define GL_COLOR_ARRAY_ADDRESS_NV           0x8F23
+#define GL_INDEX_ARRAY_ADDRESS_NV           0x8F24
+#define GL_TEXTURE_COORD_ARRAY_ADDRESS_NV   0x8F25
+#define GL_EDGE_FLAG_ARRAY_ADDRESS_NV       0x8F26
+#define GL_SECONDARY_COLOR_ARRAY_ADDRESS_NV 0x8F27
+#define GL_FOG_COORD_ARRAY_ADDRESS_NV       0x8F28
+#define GL_ELEMENT_ARRAY_ADDRESS_NV         0x8F29
+#define GL_VERTEX_ATTRIB_ARRAY_LENGTH_NV    0x8F2A
+#define GL_VERTEX_ARRAY_LENGTH_NV           0x8F2B
+#define GL_NORMAL_ARRAY_LENGTH_NV           0x8F2C
+#define GL_COLOR_ARRAY_LENGTH_NV            0x8F2D
+#define GL_INDEX_ARRAY_LENGTH_NV            0x8F2E
+#define GL_TEXTURE_COORD_ARRAY_LENGTH_NV    0x8F2F
+#define GL_EDGE_FLAG_ARRAY_LENGTH_NV        0x8F30
+#define GL_SECONDARY_COLOR_ARRAY_LENGTH_NV  0x8F31
+#define GL_FOG_COORD_ARRAY_LENGTH_NV        0x8F32
+#define GL_ELEMENT_ARRAY_LENGTH_NV          0x8F33
 #endif
 #ifndef GL_NV_vertex_buffer_unified_memory
 #define GL_NV_vertex_buffer_unified_memory 1
 #ifdef GL_GL3EXT_PROTOTYPES
-GLAPI GLboolean APIENTRY glIsEnabled( GLenum cap );
-GLAPI void APIENTRY glEnableClientState( GLenum cap );
-GLAPI void APIENTRY glDisableClientState( GLenum cap );
+GLAPI GLboolean APIENTRY glIsEnabled( GLenum cap );     // extra requirement in core GL3
+GLAPI void APIENTRY glEnableClientState( GLenum cap );  // extra requirement in core GL3
+GLAPI void APIENTRY glDisableClientState( GLenum cap ); // extra requirement in core GL3
 GLAPI void APIENTRY glBufferAddressRangeNV(GLenum pname, GLuint index, GLuint64 address, GLsizeiptr length);
 GLAPI void APIENTRY glVertexFormatNV(GLint size, GLenum type, GLsizei stride);
 GLAPI void APIENTRY glNormalFormatNV(GLenum type, GLsizei stride);
@@ -507,11 +507,10 @@ GLAPI void APIENTRY glSecondaryColorFormatNV(GLint size, GLenum type, GLsizei st
 GLAPI void APIENTRY glFogCoordFormatNV(GLenum type, GLsizei stride);
 GLAPI void APIENTRY glVertexAttribFormatNV(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride);
 GLAPI void APIENTRY glVertexAttribIFormatNV(GLuint index, GLint size, GLenum type, GLsizei stride);
-GLAPI void APIENTRY glGetIntegerui64i_vNV(GLenum value, GLuint index, GLuint64 result[]);
-#endif
+GLAPI void APIENTRY glGetIntegerui64i_vNV(GLenum value, GLuint index, GLuint64 *result);
+#endif /* GL_GL3EXT_PROTOTYPES */
 /* No need for explicit function pointer: we force generation of ProcAddress .. */
 #endif
-
 
 
 #ifndef GL_APPLE_float_pixels
