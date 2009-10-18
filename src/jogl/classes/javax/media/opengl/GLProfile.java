@@ -60,7 +60,11 @@ public class GLProfile implements Cloneable {
     // Public (user-visible) profiles
     //
 
-    /** The desktop OpenGL profile 3.x, with x >= 1 */
+    /** The desktop OpenGL compatibility profile 3.x, with x >= 1, ie GL2 plus GL3.<br>
+        <code>bc</code> stands for backward compatibility. */
+    public static final String GL3bc = "GL3bc";
+
+    /** The desktop OpenGL core profile 3.x, with x >= 1 */
     public static final String GL3   = "GL3";
 
     /** The desktop OpenGL profile 1.x up to 3.0 */
@@ -84,12 +88,12 @@ public class GLProfile implements Cloneable {
     /** 
      * All GL Profiles in the order of default detection: GL2, GL2ES2, GL2ES1, GLES2, GLES1, GL2GL3, GL3
      */
-    public static final String[] GL_PROFILE_LIST_ALL = new String[] { GL2, GL2ES2, GL2ES1, GLES2, GLES1, GL2GL3, GL3 };
+    public static final String[] GL_PROFILE_LIST_ALL = new String[] { GL2, GL2ES2, GL2ES1, GLES2, GLES1, GL2GL3, GL3bc, GL3 };
 
     /**
      * All GL2ES2 Profiles in the order of default detection: GL2ES2, GL2, GLES2, GL3
      */
-    public static final String[] GL_PROFILE_LIST_GL2ES2 = new String[] { GL2ES2, GL2, GLES2, GL3 };
+    public static final String[] GL_PROFILE_LIST_GL2ES2 = new String[] { GL2ES2, GL2, GLES2, GL3bc, GL3 };
 
     /**
      * All GL2ES1 Profiles in the order of default detection: GL2ES1, GL2, GLES1
@@ -187,7 +191,9 @@ public class GLProfile implements Cloneable {
     }
 
     private static final String getGLImplBaseClassName(String profileImpl) {
-        if(GL3.equals(profileImpl)) {
+        if(GL3bc.equals(profileImpl)) {
+            return "com.sun.opengl.impl.gl3.GL3bc";
+        } else if(GL3.equals(profileImpl)) {
             return "com.sun.opengl.impl.gl3.GL3";
         } else if(GL2.equals(profileImpl)) {
             return "com.sun.opengl.impl.gl2.GL2";
@@ -246,9 +252,14 @@ public class GLProfile implements Cloneable {
         return profileImpl;
     }
 
+    /** Indicates whether this profile is capable of GL3bc. */
+    public final boolean isGL3bc() {
+        return GL3bc.equals(profile);
+    }
+
     /** Indicates whether this profile is capable of GL3. */
     public final boolean isGL3() {
-        return GL3.equals(profile);
+        return isGL3bc() || GL3.equals(profile);
     }
 
     /** Indicates whether this profile is capable of GL2. */
@@ -301,9 +312,14 @@ public class GLProfile implements Cloneable {
         return GL2.equals(profileImpl) || GL2ES12.equals(profileImpl) ;
     }
 
+    /** Indicates whether this profile uses the native desktop OpenGL GL3bc implementations. */
+    public final boolean usesNativeGL3bc() {
+        return GL3bc.equals(profileImpl);
+    }
+
     /** Indicates whether this profile uses the native desktop OpenGL GL3 implementations. */
     public final boolean usesNativeGL3() {
-        return GL3.equals(profileImpl);
+        return usesNativeGL3bc() || GL3.equals(profileImpl);
     }
 
     /** Indicates whether this profile uses the native desktop OpenGL GL2 or GL3 implementations. */
@@ -623,6 +639,7 @@ public class GLProfile implements Cloneable {
     private static final boolean isAWTAvailable;
     private static final boolean isAWTJOGLAvailable;
 
+    private static final boolean hasGL3bcImpl;
     private static final boolean hasGL3Impl;
     private static final boolean hasGL2Impl;
     private static final boolean hasGL2ES12Impl;
@@ -698,6 +715,7 @@ public class GLProfile implements Cloneable {
         }
 
         // FIXME: check for real GL3 availability .. ?
+        hasGL3bcImpl   = hasDesktopGL && NWReflection.isClassAvailable("com.sun.opengl.impl.gl3.GL3bcImpl");
         hasGL3Impl     = hasDesktopGL && NWReflection.isClassAvailable("com.sun.opengl.impl.gl3.GL3Impl");
         hasGL2Impl     = hasDesktopGL && NWReflection.isClassAvailable("com.sun.opengl.impl.gl2.GL2Impl");
 
@@ -743,6 +761,7 @@ public class GLProfile implements Cloneable {
             System.err.println("GLProfile.static hasNativeOSFactory "+hasNativeOSFactory);
             System.err.println("GLProfile.static hasDesktopGLES12 "+hasDesktopGLES12);
             System.err.println("GLProfile.static hasDesktopGL "+hasDesktopGL);
+            System.err.println("GLProfile.static hasGL3bcImpl "+hasGL3bcImpl);
             System.err.println("GLProfile.static hasGL3Impl "+hasGL3Impl);
             System.err.println("GLProfile.static hasGL2Impl "+hasGL2Impl);
             System.err.println("GLProfile.static hasGL2ES12Impl "+hasGL2ES12Impl);
@@ -811,11 +830,19 @@ public class GLProfile implements Cloneable {
                 return GL2;
             } else if(hasGL3Impl) {
                 return GL3;
+            } else if(hasGL3bcImpl) {
+                return GL3bc;
             } else if(hasGLES2Impl) {
                 return GLES2;
             }
-        } else if(GL3.equals(profile) && hasGL3Impl) {
-            return GL3;
+        } else if(GL3bc.equals(profile) && hasGL3bcImpl) {
+            return GL3bc;
+        } else if(GL3.equals(profile)) {
+            if(hasGL3Impl) {
+                return GL3;
+            } else if(hasGL3bcImpl) {
+                return GL3bc;
+            }
         } else if(GL2.equals(profile) && hasGL2Impl) {
             return GL2;
         } else if(GL2GL3.equals(profile) && hasGL2Impl) {

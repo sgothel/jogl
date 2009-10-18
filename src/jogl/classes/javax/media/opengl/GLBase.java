@@ -64,9 +64,16 @@ public interface GLBase {
   public boolean isGL();
 
   /**
-   * Indicates whether this GL object conforms to the GL3 profile.
-   * The GL3 profile reflects OpenGL versions greater or equal 3.1
-   * @return whether this GL object conforms to the GL3 profile
+   * Indicates whether this GL object conforms to the GL3 compatibility profile.
+   * The GL3 compatibility profile merges the GL2 profile and GL3 core profile.
+   * @return whether this GL object conforms to the GL3 compatibility profile
+   */
+  public boolean isGL3bc();
+
+  /**
+   * Indicates whether this GL object conforms to the GL3 core profile.
+   * The GL3 core profile reflects OpenGL versions greater or equal 3.1
+   * @return whether this GL object conforms to the GL3 core profile
    */
   public boolean isGL3();
 
@@ -122,6 +129,13 @@ public interface GLBase {
    * @throws GLException if this GLObject is not a GL implementation
    */
   public GL getGL() throws GLException;
+
+  /**
+   * Casts this object to the GL3bc interface.
+   * @return this object cast to the GL3bc interface
+   * @throws GLException if this GLObject is not a GL3bc implementation
+   */
+  public GL3bc getGL3bc() throws GLException;
 
   /**
    * Casts this object to the GL3 interface.

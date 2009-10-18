@@ -205,8 +205,18 @@ public abstract class X11GLXContext extends GLContextImpl {
                     // and verify with a None drawable binding (default framebuffer)
                     attribs[0+1]  = 3;
                     attribs[2+1]  = 2;
-                    // FIXME NV Bug: attribs[8+0]  = GLX.GLX_CONTEXT_PROFILE_MASK_ARB;
-                    // FIXME NV Bug: attribs[8+1]  = GLX.GLX_CONTEXT_CORE_PROFILE_BIT_ARB;
+                    if(glCaps.getGLProfile().isGL3bc()) {
+                        attribs[8+0]  = GLX.GLX_CONTEXT_PROFILE_MASK_ARB;
+                        attribs[8+1]  = GLX.GLX_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB;
+                    }
+                    /**
+                     * don't stricten requirements any further, even compatible would be fine
+                     *
+                     } else {
+                        attribs[8+0]  = GLX.GLX_CONTEXT_PROFILE_MASK_ARB;
+                        attribs[8+1]  = GLX.GLX_CONTEXT_CORE_PROFILE_BIT_ARB;
+                     } 
+                     */
 
                     context = glXExt.glXCreateContextAttribsARB(display, config.getFBConfig(), share, direct, attribs, 0);
                     if(0!=context) {
@@ -232,7 +242,9 @@ public abstract class X11GLXContext extends GLContextImpl {
                         // Try >= 3.1 forward compatible - last resort for GL3 !
                         attribs[0+1]  = 3;
                         attribs[2+1]  = 1;
-                        attribs[6+1] |= GLX.GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB;
+                        if(!glCaps.getGLProfile().isGL3bc()) {
+                            attribs[6+1] |= GLX.GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB;
+                        }
                         attribs[8+0]  = 0;
                         attribs[8+1]  = 0;
                     }

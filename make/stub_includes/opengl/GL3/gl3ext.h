@@ -26,6 +26,153 @@
  *    #endif
  */
   
+
+#ifndef GL_VERSION_3_1
+#define GL_SAMPLER_2D_RECT                0x8B63
+#define GL_SAMPLER_2D_RECT_SHADOW         0x8B64
+#define GL_SAMPLER_BUFFER                 0x8DC2
+#define GL_INT_SAMPLER_2D_RECT            0x8DCD
+#define GL_INT_SAMPLER_BUFFER             0x8DD0
+#define GL_UNSIGNED_INT_SAMPLER_2D_RECT   0x8DD5
+#define GL_UNSIGNED_INT_SAMPLER_BUFFER    0x8DD8
+#define GL_TEXTURE_BUFFER                 0x8C2A
+#define GL_MAX_TEXTURE_BUFFER_SIZE        0x8C2B
+#define GL_TEXTURE_BINDING_BUFFER         0x8C2C
+#define GL_TEXTURE_BUFFER_DATA_STORE_BINDING 0x8C2D
+#define GL_TEXTURE_BUFFER_FORMAT          0x8C2E
+#define GL_TEXTURE_RECTANGLE              0x84F5
+#define GL_TEXTURE_BINDING_RECTANGLE      0x84F6
+#define GL_PROXY_TEXTURE_RECTANGLE        0x84F7
+#define GL_MAX_RECTANGLE_TEXTURE_SIZE     0x84F8
+#define GL_RED_SNORM                      0x8F90
+#define GL_RG_SNORM                       0x8F91
+#define GL_RGB_SNORM                      0x8F92
+#define GL_RGBA_SNORM                     0x8F93
+#define GL_R8_SNORM                       0x8F94
+#define GL_RG8_SNORM                      0x8F95
+#define GL_RGB8_SNORM                     0x8F96
+#define GL_RGBA8_SNORM                    0x8F97
+#define GL_R16_SNORM                      0x8F98
+#define GL_RG16_SNORM                     0x8F99
+#define GL_RGB16_SNORM                    0x8F9A
+#define GL_RGBA16_SNORM                   0x8F9B
+#define GL_SIGNED_NORMALIZED              0x8F9C
+#define GL_PRIMITIVE_RESTART              0x8F9D
+#define GL_PRIMITIVE_RESTART_INDEX        0x8F9E
+/* Reuse tokens from ARB_copy_buffer */
+/* reuse GL_COPY_READ_BUFFER */
+/* reuse GL_COPY_WRITE_BUFFER */
+/* Would reuse tokens from ARB_draw_instanced, but it has none */
+/* Reuse tokens from ARB_uniform_buffer_object */
+/* reuse GL_UNIFORM_BUFFER */
+/* reuse GL_UNIFORM_BUFFER_BINDING */
+/* reuse GL_UNIFORM_BUFFER_START */
+/* reuse GL_UNIFORM_BUFFER_SIZE */
+/* reuse GL_MAX_VERTEX_UNIFORM_BLOCKS */
+/* reuse GL_MAX_FRAGMENT_UNIFORM_BLOCKS */
+/* reuse GL_MAX_COMBINED_UNIFORM_BLOCKS */
+/* reuse GL_MAX_UNIFORM_BUFFER_BINDINGS */
+/* reuse GL_MAX_UNIFORM_BLOCK_SIZE */
+/* reuse GL_MAX_COMBINED_VERTEX_UNIFORM_COMPONENTS */
+/* reuse GL_MAX_COMBINED_FRAGMENT_UNIFORM_COMPONENTS */
+/* reuse GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT */
+/* reuse GL_ACTIVE_UNIFORM_BLOCK_MAX_NAME_LENGTH */
+/* reuse GL_ACTIVE_UNIFORM_BLOCKS */
+/* reuse GL_UNIFORM_TYPE */
+/* reuse GL_UNIFORM_SIZE */
+/* reuse GL_UNIFORM_NAME_LENGTH */
+/* reuse GL_UNIFORM_BLOCK_INDEX */
+/* reuse GL_UNIFORM_OFFSET */
+/* reuse GL_UNIFORM_ARRAY_STRIDE */
+/* reuse GL_UNIFORM_MATRIX_STRIDE */
+/* reuse GL_UNIFORM_IS_ROW_MAJOR */
+/* reuse GL_UNIFORM_BLOCK_BINDING */
+/* reuse GL_UNIFORM_BLOCK_DATA_SIZE */
+/* reuse GL_UNIFORM_BLOCK_NAME_LENGTH */
+/* reuse GL_UNIFORM_BLOCK_ACTIVE_UNIFORMS */
+/* reuse GL_UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES */
+/* reuse GL_UNIFORM_BLOCK_REFERENCED_BY_VERTEX_SHADER */
+/* reuse GL_UNIFORM_BLOCK_REFERENCED_BY_FRAGMENT_SHADER */
+/* reuse GL_INVALID_INDEX */
+#endif
+#ifndef GL_VERSION_3_1
+#define GL_VERSION_3_1 1
+/* OpenGL 3.1 also reuses entry points from these extensions: */
+/* ARB_copy_buffer */
+/* ARB_uniform_buffer_object */
+#ifdef GL3_PROTOTYPES
+GLAPI void APIENTRY glDrawArraysInstanced (GLenum, GLint, GLsizei, GLsizei);
+GLAPI void APIENTRY glDrawElementsInstanced (GLenum, GLsizei, GLenum, const GLvoid *, GLsizei);
+GLAPI void APIENTRY glTexBuffer (GLenum, GLenum, GLuint);
+GLAPI void APIENTRY glPrimitiveRestartIndex (GLuint);
+#endif /* GL3_PROTOTYPES */
+/* No need for explicit function pointer: we force generation of ProcAddress .. */
+#endif
+
+
+#ifndef GL_ARB_copy_buffer
+#define GL_COPY_READ_BUFFER               0x8F36
+#define GL_COPY_WRITE_BUFFER              0x8F37
+#endif
+#ifndef GL_ARB_copy_buffer
+#define GL_ARB_copy_buffer 1
+#ifdef GL3_PROTOTYPES
+GLAPI void APIENTRY glCopyBufferSubData (GLenum, GLenum, GLintptr, GLintptr, GLsizeiptr);
+#endif /* GL3_PROTOTYPES */
+/* No need for explicit function pointer: we force generation of ProcAddress .. */
+#endif
+
+
+#ifndef GL_ARB_uniform_buffer_object
+#define GL_UNIFORM_BUFFER                 0x8A11
+#define GL_UNIFORM_BUFFER_BINDING         0x8A28
+#define GL_UNIFORM_BUFFER_START           0x8A29
+#define GL_UNIFORM_BUFFER_SIZE            0x8A2A
+#define GL_MAX_VERTEX_UNIFORM_BLOCKS      0x8A2B
+#define GL_MAX_GEOMETRY_UNIFORM_BLOCKS    0x8A2C
+#define GL_MAX_FRAGMENT_UNIFORM_BLOCKS    0x8A2D
+#define GL_MAX_COMBINED_UNIFORM_BLOCKS    0x8A2E
+#define GL_MAX_UNIFORM_BUFFER_BINDINGS    0x8A2F
+#define GL_MAX_UNIFORM_BLOCK_SIZE         0x8A30
+#define GL_MAX_COMBINED_VERTEX_UNIFORM_COMPONENTS 0x8A31
+#define GL_MAX_COMBINED_GEOMETRY_UNIFORM_COMPONENTS 0x8A32
+#define GL_MAX_COMBINED_FRAGMENT_UNIFORM_COMPONENTS 0x8A33
+#define GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT 0x8A34
+#define GL_ACTIVE_UNIFORM_BLOCK_MAX_NAME_LENGTH 0x8A35
+#define GL_ACTIVE_UNIFORM_BLOCKS          0x8A36
+#define GL_UNIFORM_TYPE                   0x8A37
+#define GL_UNIFORM_SIZE                   0x8A38
+#define GL_UNIFORM_NAME_LENGTH            0x8A39
+#define GL_UNIFORM_BLOCK_INDEX            0x8A3A
+#define GL_UNIFORM_OFFSET                 0x8A3B
+#define GL_UNIFORM_ARRAY_STRIDE           0x8A3C
+#define GL_UNIFORM_MATRIX_STRIDE          0x8A3D
+#define GL_UNIFORM_IS_ROW_MAJOR           0x8A3E
+#define GL_UNIFORM_BLOCK_BINDING          0x8A3F
+#define GL_UNIFORM_BLOCK_DATA_SIZE        0x8A40
+#define GL_UNIFORM_BLOCK_NAME_LENGTH      0x8A41
+#define GL_UNIFORM_BLOCK_ACTIVE_UNIFORMS  0x8A42
+#define GL_UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES 0x8A43
+#define GL_UNIFORM_BLOCK_REFERENCED_BY_VERTEX_SHADER 0x8A44
+#define GL_UNIFORM_BLOCK_REFERENCED_BY_GEOMETRY_SHADER 0x8A45
+#define GL_UNIFORM_BLOCK_REFERENCED_BY_FRAGMENT_SHADER 0x8A46
+/** Manual: #define GL_INVALID_INDEX                  -1 == (int) 0xFFFFFFFFu */
+#endif
+#ifndef GL_ARB_uniform_buffer_object
+#define GL_ARB_uniform_buffer_object 1
+#ifdef GL3_PROTOTYPES
+GLAPI void APIENTRY glGetUniformIndices (GLuint, GLsizei, const GLchar* *, GLuint *);
+GLAPI void APIENTRY glGetActiveUniformsiv (GLuint, GLsizei, const GLuint *, GLenum, GLint *);
+GLAPI void APIENTRY glGetActiveUniformName (GLuint, GLuint, GLsizei, GLsizei *, GLchar *);
+GLAPI GLuint APIENTRY glGetUniformBlockIndex (GLuint, const GLchar *);
+GLAPI void APIENTRY glGetActiveUniformBlockiv (GLuint, GLuint, GLenum, GLint *);
+GLAPI void APIENTRY glGetActiveUniformBlockName (GLuint, GLuint, GLsizei, GLsizei *, GLchar *);
+GLAPI void APIENTRY glUniformBlockBinding (GLuint, GLuint, GLuint);
+#endif /* GL3_PROTOTYPES */
+/* No need for explicit function pointer: we force generation of ProcAddress .. */
+#endif
+
+
 #ifndef GL_VERSION_3_2
 #define GL_VERSION_3_2 1
 /* OpenGL 3.2 also reuses entry points from these extensions: */
@@ -284,9 +431,88 @@ GLAPI void      APIENTRY glGetSynciv(GLsync sync, GLenum pname, GLsizei bufSize,
 GLAPI void APIENTRY glTessellationFactorAMD(GLfloat factor);
 GLAPI void APIENTRY glTessellationModeAMD(GLenum mode);
 #endif
-typedef void (APIENTRYP PFNGLTESSELLATIONFACTORAMDPROC) (GLfloat factor);
-typedef void (APIENTRYP PFNGLTESSELLATIONMODEAMDPROC) (GLenum mode);
+/* No need for explicit function pointer: we force generation of ProcAddress .. */
 #endif
+
+/**
+ * http://www.opengl.org/registry/specs/NV/shader_buffer_load.txt
+ */
+#ifndef GL_NV_shader_buffer_load
+#define GL_BUFFER_GPU_ADDRESS_NV             0x8F1D
+#define GL_GPU_ADDRESS_NV                    0x8F34
+#define GL_MAX_SHADER_BUFFER_ADDRESS_NV      0x8F35
+#endif
+#ifndef GL_NV_shader_buffer_load
+#define GL_NV_shader_buffer_load 1
+#ifdef GL_GL3EXT_PROTOTYPE
+GLAPI void APIENTRY glMakeBufferResidentNV(GLenum target, GLenum access);
+GLAPI void APIENTRY glMakeBufferNonResidentNV(GLenum target);
+GLAPI GLboolean APIENTRY glIsBufferResidentNV(GLenum target);
+GLAPI void APIENTRY glNamedMakeBufferResidentNV(GLuint buffer, GLenum access);
+GLAPI void APIENTRY glNamedMakeBufferNonResidentNV(GLuint buffer);
+GLAPI GLboolean APIENTRY glIsNamedBufferResidentNV(GLuint buffer);
+GLAPI void APIENTRY glGetBufferParameterui64vNV(GLenum target, GLenum pname, GLuint64 *params);
+GLAPI void APIENTRY glGetNamedBufferParameterui64vNV(GLuint buffer, GLenum pname, GLuint64 *params);
+GLAPI void APIENTRY glGetIntegerui64vNV(GLenum value, GLuint64 *result);
+GLAPI void APIENTRY glUniformui64NV(GLint location, GLuint64 value);
+GLAPI void APIENTRY glUniformui64vNV(GLint location, GLsizei count, GLuint64 *value);
+GLAPI void APIENTRY glGetUniformui64vNV(GLuint program, GLint location, GLuint64 *params);
+GLAPI void APIENTRY glProgramUniformui64NV(GLuint program, GLint location, GLuint64 value);
+GLAPI void APIENTRY glProgramUniformui64vNV(GLuint program, GLint location, GLsizei count, GLuint64 *value);
+#endif
+/* No need for explicit function pointer: we force generation of ProcAddress .. */
+#endif
+
+/**
+ * http://www.opengl.org/registry/specs/NV/vertex_buffer_unified_memory.txt
+ */
+#ifndef GL_NV_vertex_buffer_unified_memory
+#define GL_VERTEX_ATTRIB_ARRAY_UNIFIED_NV    0x8F1E
+#define GL_ELEMENT_ARRAY_UNIFIED_NV          0x8F1F
+#define GL_VERTEX_ATTRIB_ARRAY_ADDRESS_NV    0x8F20
+#define GL_TEXTURE_COORD_ARRAY_ADDRESS_NV    0x8F25
+#define GL_VERTEX_ARRAY_ADDRESS_NV           0x8F21
+#define GL_NORMAL_ARRAY_ADDRESS_NV           0x8F22
+#define GL_COLOR_ARRAY_ADDRESS_NV            0x8F23
+#define GL_INDEX_ARRAY_ADDRESS_NV            0x8F24
+#define GL_EDGE_FLAG_ARRAY_ADDRESS_NV        0x8F26
+#define GL_SECONDARY_COLOR_ARRAY_ADDRESS_NV  0x8F27
+#define GL_FOG_COORD_ARRAY_ADDRESS_NV        0x8F28
+#define GL_ELEMENT_ARRAY_ADDRESS_NV          0x8F29
+#define GL_VERTEX_ATTRIB_ARRAY_LENGTH_NV     0x8F2A
+#define GL_TEXTURE_COORD_ARRAY_LENGTH_NV     0x8F2F
+#define GL_VERTEX_ARRAY_LENGTH_NV            0x8F2B
+#define GL_NORMAL_ARRAY_LENGTH_NV            0x8F2C
+#define GL_COLOR_ARRAY_LENGTH_NV             0x8F2D
+#define GL_INDEX_ARRAY_LENGTH_NV             0x8F2E
+#define GL_EDGE_FLAG_ARRAY_LENGTH_NV         0x8F30
+#define GL_SECONDARY_COLOR_ARRAY_LENGTH_NV   0x8F31
+#define GL_FOG_COORD_ARRAY_LENGTH_NV         0x8F32
+#define GL_ELEMENT_ARRAY_LENGTH_NV           0x8F33
+#endif
+#ifndef GL_NV_vertex_buffer_unified_memory
+#define GL_NV_vertex_buffer_unified_memory 1
+#ifdef GL_GL3EXT_PROTOTYPES
+GLAPI GLboolean APIENTRY glIsEnabled( GLenum cap );
+GLAPI void APIENTRY glEnableClientState( GLenum cap );
+GLAPI void APIENTRY glDisableClientState( GLenum cap );
+GLAPI void APIENTRY glBufferAddressRangeNV(GLenum pname, GLuint index, GLuint64 address, GLsizeiptr length);
+GLAPI void APIENTRY glVertexFormatNV(GLint size, GLenum type, GLsizei stride);
+GLAPI void APIENTRY glNormalFormatNV(GLenum type, GLsizei stride);
+GLAPI void APIENTRY glColorFormatNV(GLint size, GLenum type, GLsizei stride);
+GLAPI void APIENTRY glIndexFormatNV(GLenum type, GLsizei stride);
+GLAPI void APIENTRY glTexCoordFormatNV(GLint size, GLenum type, GLsizei stride);
+GLAPI void APIENTRY glEdgeFlagFormatNV(GLsizei stride);
+GLAPI void APIENTRY glSecondaryColorFormatNV(GLint size, GLenum type, GLsizei stride);
+GLAPI void APIENTRY glFogCoordFormatNV(GLenum type, GLsizei stride);
+GLAPI void APIENTRY glVertexAttribFormatNV(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride);
+GLAPI void APIENTRY glVertexAttribIFormatNV(GLuint index, GLint size, GLenum type, GLsizei stride);
+GLAPI void APIENTRY glGetIntegerui64i_vNV(GLenum value, GLuint index, GLuint64 result[]);
+#endif
+/* No need for explicit function pointer: we force generation of ProcAddress .. */
+#endif
+
+
 
 #ifndef GL_APPLE_float_pixels
 #define GL_HALF_APPLE                      0x140B

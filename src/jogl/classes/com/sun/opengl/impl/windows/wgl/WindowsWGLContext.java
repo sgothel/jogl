@@ -202,8 +202,18 @@ public class WindowsWGLContext extends GLContextImpl {
                 // if no 3.2 is available creation fails already!
                 attribs[0+1]  = 3;
                 attribs[2+1]  = 2;
-                attribs[6+0]  = WGLExt.WGL_CONTEXT_PROFILE_MASK_ARB;
-                attribs[6+1]  = WGLExt.WGL_CONTEXT_CORE_PROFILE_BIT_ARB;
+                if(glCaps.getGLProfile().isGL3bc()) {
+                    attribs[6+0]  = WGLExt.WGL_CONTEXT_PROFILE_MASK_ARB;
+                    attribs[6+1]  = WGLExt.WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB;
+                }
+                /**
+                 * don't stricten requirements any further, even compatible would be fine
+                 *
+                 } else {
+                    attribs[6+0]  = WGLExt.WGL_CONTEXT_PROFILE_MASK_ARB;
+                    attribs[6+1]  = WGLExt.WGL_CONTEXT_CORE_PROFILE_BIT_ARB;
+                 } 
+                 */
                 hglrc = wglExt.wglCreateContextAttribsARB(drawable.getNativeWindow().getSurfaceHandle(), hglrc2, attribs, 0); 
                 if(0==hglrc) {
                     if(DEBUG) {
@@ -212,7 +222,9 @@ public class WindowsWGLContext extends GLContextImpl {
                     // Try >= 3.1 forward compatible - last resort for GL3 !
                     attribs[0+1]  = 3;
                     attribs[2+1]  = 1;
-                    attribs[4+1] |= WGLExt.WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB;
+                    if(!glCaps.getGLProfile().isGL3bc()) {
+                        attribs[4+1] |= WGLExt.WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB;
+                    }
                     attribs[6+0]  = 0;
                     attribs[6+1]  = 0;
                 } else if(DEBUG) {

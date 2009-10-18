@@ -30,6 +30,10 @@ public final boolean isGL() {
     return true;
 }
 
+public final boolean isGL3bc() {
+    return false;
+}
+
 public final boolean isGL3() {
     return false;
 }
@@ -68,6 +72,10 @@ public final boolean hasGLSL() {
 
 public final GL getGL() throws GLException {
     return this;
+}
+
+public final GL3bc getGL3bc() throws GLException {
+    throw new GLException("Not a GL3bc implementation");
 }
 
 public final GL3 getGL3() throws GLException {
@@ -147,7 +155,7 @@ public Object getPlatformGLExtensions() {
     based on code in the SGI OpenGL sample implementation. */
 
 private int imageSizeInBytes(int format, int type, int w, int h, int d,
-                             int dimensions, boolean pack) {
+                             boolean pack) {
   int elements = 0;
   int esize = 0;
   
@@ -202,7 +210,7 @@ private int imageSizeInBytes(int format, int type, int w, int h, int d,
   default:
     return 0;
   }
-  return imageSizeInBytes(elements * esize, w, h, d, dimensions, pack);
+  return imageSizeInBytes(elements * esize, w, h, d, pack);
 }
 
 private GLBufferSizeTracker  bufferSizeTracker;
