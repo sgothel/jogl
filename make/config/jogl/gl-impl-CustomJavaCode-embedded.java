@@ -3,10 +3,7 @@ private int[] imageSizeTemp = new int[1];
 /** Helper for more precise computation of number of bytes that will
     be touched by a pixel pack or unpack operation. */
 private int imageSizeInBytes(int bytesPerElement,
-                             int width, int height, int depth,
-                             int dimensions,
-                             boolean pack) {
-    int rowLength;
+                             int rowLength, int imageHeight, int depth, boolean pack) {
     int alignment = 1;
 
     if (pack) {
@@ -17,23 +14,27 @@ private int imageSizeInBytes(int bytesPerElement,
         alignment = imageSizeTemp[0];
     }
     // Try to deal somewhat correctly with potentially invalid values
-    height      = Math.max(0, height);
+    rowLength   = Math.max(0, rowLength );
+    imageHeight = Math.max(1, imageHeight); // min 1D
+    depth       = Math.max(1, depth );      // min 1 * imageSize
     alignment   = Math.max(1, alignment);
 
-    rowLength   = Math.max(0, width); // > 0 && >= width
     int rowLengthInBytes = rowLength * bytesPerElement;
 
     if (alignment > 1) {
-        int modulus = rowLengthInBytes % alignment;
-        if (modulus > 0) {
-            rowLengthInBytes += alignment - modulus;
+        int padding = rowLengthInBytes % alignment;
+        if (padding > 0) {
+            rowLengthInBytes += alignment - padding;
         }
     }
 
-    int size = height * rowLengthInBytes; // height == 1 for 1D
-    if(dimensions==3) {
-       size *= depth;
-    }
+    /**
+     * depth is in multiples of image size.
+     *
+     * rowlenght is the actual repeating offset 
+     * to go from line n to line n+1 at the same x-axis position.
+     */
+    int imageSize = imageHeight * rowLengthInBytes;
 
-    return size;
+    return imageSize * depth;
 }

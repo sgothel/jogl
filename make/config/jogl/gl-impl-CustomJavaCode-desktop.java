@@ -3,9 +3,7 @@ private int[] imageSizeTemp = new int[1];
 /** Helper for more precise computation of number of bytes that will
     be touched by a pixel pack or unpack operation. */
 private int imageSizeInBytes(int bytesPerElement,
-                             int width, int height, int depth,
-                             int dimensions,
-                             boolean pack) {
+                             int width, int height, int depth, boolean pack) {
     int rowLength = 0;
     int skipRows = 0;
     int skipPixels = 0;
@@ -22,7 +20,7 @@ private int imageSizeInBytes(int bytesPerElement,
         skipPixels = imageSizeTemp[0];
         glGetIntegerv(GL_PACK_ALIGNMENT, imageSizeTemp, 0);
         alignment = imageSizeTemp[0];
-        if (dimensions > 2) {
+        if (depth > 1) {
             glGetIntegerv(GL_PACK_IMAGE_HEIGHT, imageSizeTemp, 0);
             imageHeight = imageSizeTemp[0];
             glGetIntegerv(GL_PACK_SKIP_IMAGES, imageSizeTemp, 0);
@@ -37,7 +35,7 @@ private int imageSizeInBytes(int bytesPerElement,
         skipPixels = imageSizeTemp[0];
         glGetIntegerv(GL_UNPACK_ALIGNMENT, imageSizeTemp, 0);
         alignment = imageSizeTemp[0];
-        if (dimensions > 2) {
+        if (depth > 1) {
             glGetIntegerv(GL_UNPACK_IMAGE_HEIGHT, imageSizeTemp, 0);
             imageHeight = imageSizeTemp[0];
             glGetIntegerv(GL_UNPACK_SKIP_IMAGES, imageSizeTemp, 0);
@@ -45,36 +43,40 @@ private int imageSizeInBytes(int bytesPerElement,
         }
     }
     // Try to deal somewhat correctly with potentially invalid values
-    height      = Math.max(0, height);
+    width       = Math.max(0, width );
+    height      = Math.max(1, height); // min 1D
+    depth       = Math.max(1, depth ); // min 1 * imageSize
     skipRows    = Math.max(0, skipRows);
     skipPixels  = Math.max(0, skipPixels);
     alignment   = Math.max(1, alignment);
-    imageHeight = Math.max(0, imageHeight);
     skipImages  = Math.max(0, skipImages);
 
-    rowLength   = Math.max(Math.max(0, rowLength), width); // > 0 && >= width
+    imageHeight = ( imageHeight > 0 ) ? imageHeight : height;
+    rowLength   = ( rowLength   > 0 ) ? rowLength   : width;
+
     int rowLengthInBytes = rowLength * bytesPerElement;
 
     if (alignment > 1) {
-        int modulus = rowLengthInBytes % alignment;
-        if (modulus > 0) {
-            rowLengthInBytes += alignment - modulus;
+        int padding = rowLengthInBytes % alignment;
+        if (padding > 0) {
+            rowLengthInBytes += alignment - padding;
         }
     }
 
     /**
-     * skipPixels and skipRows is a static one time offset
+     * skipPixels and skipRows is a static one time offset.
+     *
+     * skipImages and depth are in multiples of image size.
      *
      * rowlenght is the actual repeating offset 
-     * from line-start to the next line-start.
+     * to go from line n to line n+1 at the same x-axis position.
      */
-    int size = height * rowLengthInBytes; // height == 1 for 1D
-    if(dimensions==3) {
-       size *= (skipImages + depth);
-    }
+    int imageSize = imageHeight * rowLengthInBytes;
 
-    int skipOffset = skipPixels * bytesPerElement +
-                     skipRows * rowLengthInBytes;
+    int skipOffset = skipImages * imageSize +
+                     skipRows   * rowLengthInBytes +
+                     skipPixels * bytesPerElement;
 
-    return size + skipOffset;
+    return skipOffset + imageSize * depth;
 }
+
