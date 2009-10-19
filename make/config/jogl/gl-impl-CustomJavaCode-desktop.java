@@ -71,12 +71,9 @@ private int imageSizeInBytes(int bytesPerElement,
      * rowlenght is the actual repeating offset 
      * to go from line n to line n+1 at the same x-axis position.
      */
-    int imageSize = imageHeight * rowLengthInBytes;
-
-    int skipOffset = skipImages * imageSize +
-                     skipRows   * rowLengthInBytes +
-                     skipPixels * bytesPerElement;
-
-    return skipOffset + imageSize * depth;
+    return 
+        ( skipImages + depth  - 1 ) * imageHeight * rowLengthInBytes + // whole images
+        ( skipRows   + height - 1 ) * rowLengthInBytes +               // lines with padding
+        ( skipPixels + width      ) * bytesPerElement;                 // last line
 }
 

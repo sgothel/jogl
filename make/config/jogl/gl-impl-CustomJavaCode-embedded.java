@@ -34,7 +34,9 @@ private int imageSizeInBytes(int bytesPerElement,
      * rowlenght is the actual repeating offset 
      * to go from line n to line n+1 at the same x-axis position.
      */
-    int imageSize = imageHeight * rowLengthInBytes;
-
-    return imageSize * depth;
+    return 
+        ( depth       - 1 ) * imageHeight * rowLengthInBytes + // whole images
+        ( imageHeight - 1 ) * rowLengthInBytes +               // lines with padding
+        ( rowLength       ) * bytesPerElement;                 // last line
 }
+
