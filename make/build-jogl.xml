@@ -1926,6 +1926,7 @@
                  destdir="${javadoc}" windowtitle="${javadoc.windowtitle}"
                  overview="${javadoc.overview}" 
                  source="1.4"
+                 maxmemory="512m"
                  linkoffline="${javadoc.link} 142-packages"
          bottom="${javadoc.bottom}" >
           <classpath refid="nativewindow_gluegen.classpath"/>
@@ -1942,6 +1943,7 @@
                  destdir="${javadoc}" windowtitle="${javadoc.windowtitle}"
                  overview="${javadoc.overview}" 
                  source="1.4"
+                 maxmemory="512m"
                  linkoffline="${javadoc.link} 142-packages"
          bottom="${javadoc.bottom}" >
           <classpath refid="nativewindow_gluegen.classpath"/>
@@ -1959,6 +1961,7 @@
                  destdir="${javadoc.spec}" windowtitle="${javadoc.windowtitle}"
                  overview="${javadoc.overview}"
                  source="1.4"
+                 maxmemory="512m"
                  linkoffline="${javadoc.link} 142-packages"
                  bottom="${javadoc.bottom}" >
           <classpath refid="nativewindow_gluegen.classpath"/>
@@ -1975,6 +1978,7 @@
                  destdir="${javadoc.spec}" windowtitle="${javadoc.windowtitle}"
                  overview="${javadoc.overview}"
                  source="1.4"
+                 maxmemory="512m"
                  linkoffline="${javadoc.link} 142-packages"
                  bottom="${javadoc.bottom}" >
           <classpath refid="nativewindow_gluegen.classpath"/>
@@ -1992,6 +1996,7 @@
                  destdir="${javadoc.dev}" windowtitle="${javadoc.windowtitle}"
                  overview="${javadoc.overview}" 
                  source="1.4"
+                 maxmemory="512m"
                  linkoffline="${javadoc.link} 142-packages"
          bottom="${javadoc.bottom}" >
           <classpath refid="nativewindow_gluegen.classpath"/>
@@ -2008,6 +2013,7 @@
                  destdir="${javadoc.dev}" windowtitle="${javadoc.windowtitle}"
                  overview="${javadoc.overview}" 
                  source="1.4"
+                 maxmemory="512m"
                  linkoffline="${javadoc.link} 142-packages"
          bottom="${javadoc.bottom}" >
           <classpath refid="nativewindow_gluegen.classpath"/>

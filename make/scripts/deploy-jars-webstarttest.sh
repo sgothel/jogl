@@ -46,15 +46,15 @@ if [ ! -e $jnlpdir_demos ] ; then
 fi
 
 cp -v $gluegenroot/$builddirbase/*.jar $wsdir
-cp -v $gluegenroot/$builddirbase/obj/lib*.so $wsdir
+#cp -v $gluegenroot/$builddirbase/obj/lib*.so $wsdir
 
 cp -v $joglbuilddir/nativewindow/*.jar $wsdir
 cp -v $joglbuilddir/jogl/*.jar $wsdir
 cp -v $joglbuilddir/newt/*.jar $wsdir
 
-cp -v $joglbuilddir/nativewindow/obj/lib*.so $wsdir
-cp -v $joglbuilddir/jogl/obj/lib*.so $wsdir
-cp -v $joglbuilddir/newt/obj/lib*.so $wsdir
+#cp -v $joglbuilddir/nativewindow/obj/lib*.so $wsdir
+#cp -v $joglbuilddir/jogl/obj/lib*.so $wsdir
+#cp -v $joglbuilddir/newt/obj/lib*.so $wsdir
 
 cp -v $demosroot/$builddirbase/*.jar $wsdir
 

@@ -195,6 +195,7 @@
                  destdir="${javadoc}" windowtitle="${javadoc.windowtitle}"
                  overview="${javadoc.overview}" 
                  source="1.4"
+                 maxmemory="512m"
          bottom="${javadoc.bottom}" >
          <classpath refid="all.classpath"/>
          <link offline="true" href="${javadoc.link}" packagelistLoc="142-packages" />
@@ -210,6 +211,7 @@
                  destdir="${javadoc.spec}" windowtitle="${javadoc.spec.windowtitle}"
                  overview="${javadoc.overview}"
                  source="1.4"
+                 maxmemory="512m"
                  bottom="${javadoc.bottom}" >
          <classpath refid="all.classpath"/>
          <link offline="true" href="${javadoc.link}" packagelistLoc="142-packages" />
@@ -226,6 +228,7 @@
                  destdir="${javadoc.dev}" windowtitle="${javadoc.windowtitle}"
                  overview="${javadoc.overview}" 
                  source="1.4"
+                 maxmemory="512m"
          bottom="${javadoc.bottom}" >
          <classpath refid="all.classpath"/>
          <link offline="true" href="${javadoc.link}" packagelistLoc="142-packages" />
@@ -241,6 +244,7 @@
                  destdir="${javadoc.nw.spec}" windowtitle="${javadoc.nw.spec.windowtitle}"
                  overview="${javadoc.nw.overview}"
                  source="1.4"
+                 maxmemory="512m"
                  bottom="${javadoc.bottom}" >
          <classpath refid="all.classpath"/>
          <link offline="true" href="${javadoc.link}" packagelistLoc="142-packages" />
