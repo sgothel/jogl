@@ -9,16 +9,16 @@ __TOC__
 Create a local copy/branch of the git repository,
 either anonymous:
 
-* git clone git://kenai.com/gluegen~gluegen-git gluegen
-* git clone git://kenai.com/jogl~jogl-git jogl
-* git clone git://kenai.com/jogl~jogl-demos-git jogl-demos
+* git clone git://github.com/sgothel/gluegen.git gluegen
+* git clone git://github.com/sgothel/jogl.git jogl
+* git clone git://github.com/sgothel/jogl-demos.git jogl-demos
 
 or via SSH and your user credential, so you can easily push back your
-changes to the kenai server:
+changes to the github server:
 
-* git clone ssh://username@git.kenai.com/gluegen~gluegen-git gluegen
-* git clone ssh://username@git.kenai.com/jogl~jogl-git jogl
-* git clone ssh://username@git.kenai.com/jogl~jogl-demos-git jogl-demos
+* git clone git@github.com:username/gluegen.git gluegen
+* git clone git@github.com:username/jogl.git jogl
+* git clone git@github.com:username/jogl-demos.git jogl-demos
 
 == How to participate and use git ==
 
