@@ -64,7 +64,7 @@ public class X11GraphicsConfiguration extends DefaultGraphicsConfiguration imple
     }
 
     public long getVisualID() {
-        return (null!=info)?info.visualid():0;
+        return (null!=info)?info.getVisualid():0;
     }
     
     public String toString() {

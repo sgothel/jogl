@@ -68,7 +68,7 @@ public class X11OffscreenGLXDrawable extends X11GLXDrawable {
     NativeWindow nw = getNativeWindow();
     X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration) nw.getGraphicsConfiguration().getNativeGraphicsConfiguration();
     XVisualInfo vis = config.getXVisualInfo();
-    int bitsPerPixel = vis.depth();
+    int bitsPerPixel = vis.getDepth();
     AbstractGraphicsScreen aScreen = config.getScreen();
     AbstractGraphicsDevice aDevice = aScreen.getDevice();
     long dpy = aDevice.getHandle();

@@ -72,25 +72,25 @@ public class WindowsOffscreenWGLDrawable extends WindowsWGLDrawable {
     int width = getWidth();
     int height = getHeight();
     BITMAPINFO info = BITMAPINFO.create();
-    BITMAPINFOHEADER header = info.bmiHeader();
+    BITMAPINFOHEADER header = info.getBmiHeader();
     int bitsPerPixel = (capabilities.getRedBits() +
                         capabilities.getGreenBits() +
                         capabilities.getBlueBits() +
                         capabilities.getAlphaBits());
-    header.biSize(header.size());
-    header.biWidth(width);
+    header.setBiSize(header.size());
+    header.setBiWidth(width);
     // NOTE: negating the height causes the DIB to be in top-down row
     // order rather than bottom-up; ends up being correct during pixel
     // readback
-    header.biHeight(-1 * height);
-    header.biPlanes((short) 1);
-    header.biBitCount((short) bitsPerPixel);
-    header.biXPelsPerMeter(0);
-    header.biYPelsPerMeter(0);
-    header.biClrUsed(0);
-    header.biClrImportant(0);
-    header.biCompression(WGL.BI_RGB);
-    header.biSizeImage(width * height * bitsPerPixel / 8);
+    header.setBiHeight(-1 * height);
+    header.setBiPlanes((short) 1);
+    header.setBiBitCount((short) bitsPerPixel);
+    header.setBiXPelsPerMeter(0);
+    header.setBiYPelsPerMeter(0);
+    header.setBiClrUsed(0);
+    header.setBiClrImportant(0);
+    header.setBiCompression(WGL.BI_RGB);
+    header.setBiSizeImage(width * height * bitsPerPixel / 8);
 
     long hdc = WGL.CreateCompatibleDC(0);
     if (hdc == 0) {

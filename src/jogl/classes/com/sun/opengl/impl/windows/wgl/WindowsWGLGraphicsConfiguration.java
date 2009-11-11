@@ -536,25 +536,25 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
   // PIXELFORMAT
 
     public static GLCapabilities PFD2GLCapabilities(GLProfile glp, PIXELFORMATDESCRIPTOR pfd, boolean onscreen, boolean usePBuffer) {
-        if ((pfd.dwFlags() & WGL.PFD_SUPPORT_OPENGL) == 0) {
+        if ((pfd.getDwFlags() & WGL.PFD_SUPPORT_OPENGL) == 0) {
           return null;
         }
         GLCapabilities res = new GLCapabilities(glp);
-        res.setRedBits       (pfd.cRedBits());
-        res.setGreenBits     (pfd.cGreenBits());
-        res.setBlueBits      (pfd.cBlueBits());
-        res.setAlphaBits     (pfd.cAlphaBits());
-        res.setAccumRedBits  (pfd.cAccumRedBits());
-        res.setAccumGreenBits(pfd.cAccumGreenBits());
-        res.setAccumBlueBits (pfd.cAccumBlueBits());
-        res.setAccumAlphaBits(pfd.cAccumAlphaBits());
-        res.setDepthBits     (pfd.cDepthBits());
-        res.setStencilBits   (pfd.cStencilBits());
-        res.setDoubleBuffered((pfd.dwFlags() & WGL.PFD_DOUBLEBUFFER) != 0);
-        res.setStereo        ((pfd.dwFlags() & WGL.PFD_STEREO) != 0);
-        res.setHardwareAccelerated( ((pfd.dwFlags() & WGL.PFD_GENERIC_FORMAT) == 0) ||
-                                    ((pfd.dwFlags() & WGL.PFD_GENERIC_ACCELERATED) != 0) );
-        res.setOnscreen      ( onscreen && ((pfd.dwFlags() & WGL.PFD_DRAW_TO_WINDOW) != 0) );
+        res.setRedBits       (pfd.getCRedBits());
+        res.setGreenBits     (pfd.getCGreenBits());
+        res.setBlueBits      (pfd.getCBlueBits());
+        res.setAlphaBits     (pfd.getCAlphaBits());
+        res.setAccumRedBits  (pfd.getCAccumRedBits());
+        res.setAccumGreenBits(pfd.getCAccumGreenBits());
+        res.setAccumBlueBits (pfd.getCAccumBlueBits());
+        res.setAccumAlphaBits(pfd.getCAccumAlphaBits());
+        res.setDepthBits     (pfd.getCDepthBits());
+        res.setStencilBits   (pfd.getCStencilBits());
+        res.setDoubleBuffered((pfd.getDwFlags() & WGL.PFD_DOUBLEBUFFER) != 0);
+        res.setStereo        ((pfd.getDwFlags() & WGL.PFD_STEREO) != 0);
+        res.setHardwareAccelerated( ((pfd.getDwFlags() & WGL.PFD_GENERIC_FORMAT) == 0) ||
+                                    ((pfd.getDwFlags() & WGL.PFD_GENERIC_ACCELERATED) != 0) );
+        res.setOnscreen      ( onscreen && ((pfd.getDwFlags() & WGL.PFD_DRAW_TO_WINDOW) != 0) );
         res.setPBuffer       ( usePBuffer );
         /* FIXME: Missing ??
         if (GLXUtil.isMultisampleAvailable()) {
@@ -590,24 +590,24 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
     if (caps.getStereo()) {
       pfdFlags |= WGL.PFD_STEREO;
     }
-    pfd.dwFlags(pfdFlags);
-    pfd.iPixelType((byte) WGL.PFD_TYPE_RGBA);
-    pfd.cColorBits((byte) colorDepth);
-    pfd.cRedBits  ((byte) caps.getRedBits());
-    pfd.cGreenBits((byte) caps.getGreenBits());
-    pfd.cBlueBits ((byte) caps.getBlueBits());
-    pfd.cAlphaBits((byte) caps.getAlphaBits());
+    pfd.setDwFlags(pfdFlags);
+    pfd.setIPixelType((byte) WGL.PFD_TYPE_RGBA);
+    pfd.setCColorBits((byte) colorDepth);
+    pfd.setCRedBits  ((byte) caps.getRedBits());
+    pfd.setCGreenBits((byte) caps.getGreenBits());
+    pfd.setCBlueBits ((byte) caps.getBlueBits());
+    pfd.setCAlphaBits((byte) caps.getAlphaBits());
     int accumDepth = (caps.getAccumRedBits() +
                       caps.getAccumGreenBits() +
                       caps.getAccumBlueBits());
-    pfd.cAccumBits     ((byte) accumDepth);
-    pfd.cAccumRedBits  ((byte) caps.getAccumRedBits());
-    pfd.cAccumGreenBits((byte) caps.getAccumGreenBits());
-    pfd.cAccumBlueBits ((byte) caps.getAccumBlueBits());
-    pfd.cAccumAlphaBits((byte) caps.getAccumAlphaBits());
-    pfd.cDepthBits((byte) caps.getDepthBits());
-    pfd.cStencilBits((byte) caps.getStencilBits());
-    pfd.iLayerType((byte) WGL.PFD_MAIN_PLANE);
+    pfd.setCAccumBits     ((byte) accumDepth);
+    pfd.setCAccumRedBits  ((byte) caps.getAccumRedBits());
+    pfd.setCAccumGreenBits((byte) caps.getAccumGreenBits());
+    pfd.setCAccumBlueBits ((byte) caps.getAccumBlueBits());
+    pfd.setCAccumAlphaBits((byte) caps.getAccumAlphaBits());
+    pfd.setCDepthBits((byte) caps.getDepthBits());
+    pfd.setCStencilBits((byte) caps.getStencilBits());
+    pfd.setILayerType((byte) WGL.PFD_MAIN_PLANE);
 
     /* FIXME: Missing: 
       caps.getSampleBuffers()
@@ -623,8 +623,8 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
 
   public static PIXELFORMATDESCRIPTOR createPixelFormatDescriptor() {
     PIXELFORMATDESCRIPTOR pfd = PIXELFORMATDESCRIPTOR.create();
-    pfd.nSize((short) pfd.size());
-    pfd.nVersion((short) 1);
+    pfd.setNSize((short) pfd.size());
+    pfd.setNVersion((short) 1);
     return pfd;
   }
 

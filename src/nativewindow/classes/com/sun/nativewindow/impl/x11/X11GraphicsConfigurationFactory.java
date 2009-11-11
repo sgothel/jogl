@@ -53,8 +53,8 @@ public class X11GraphicsConfigurationFactory extends GraphicsConfigurationFactor
     public static XVisualInfo getXVisualInfo(AbstractGraphicsScreen screen, long visualID)
     {
         XVisualInfo xvi_temp = XVisualInfo.create();
-        xvi_temp.visualid(visualID);
-        xvi_temp.screen(screen.getIndex());
+        xvi_temp.setVisualid(visualID);
+        xvi_temp.setScreen(screen.getIndex());
         int num[] = { -1 };
         long display = screen.getDevice().getHandle();
 
@@ -86,8 +86,8 @@ public class X11GraphicsConfigurationFactory extends GraphicsConfigurationFactor
         int[] num = { -1 };
 
         XVisualInfo vinfo_template = XVisualInfo.create();
-        vinfo_template.screen(screen.getIndex());
-        vinfo_template.c_class(c_class);
+        vinfo_template.setScreen(screen.getIndex());
+        vinfo_template.setC_class(c_class);
         long display = screen.getDevice().getHandle();
 
         try {
@@ -97,14 +97,14 @@ public class X11GraphicsConfigurationFactory extends GraphicsConfigurationFactor
             int rdepth = capabilities.getRedBits() + capabilities.getGreenBits() + capabilities.getBlueBits() + capabilities.getAlphaBits();
             for (int i = 0; vinfos!=null && i < num[0]; i++) {
                 if ( best == null || 
-                     best.depth() < vinfos[i].depth() ) 
+                     best.getDepth() < vinfos[i].getDepth() )
                 {
                     best = vinfos[i];
-                    if(rdepth <= best.depth())
+                    if(rdepth <= best.getDepth())
                         break;
                 }
             }
-            if ( null!=best && ( rdepth <= best.depth() || 24 == best.depth()) ) {
+            if ( null!=best && ( rdepth <= best.getDepth() || 24 == best.getDepth()) ) {
                 ret = XVisualInfo.create(best);
             }
             best = null;

@@ -105,7 +105,7 @@ public class WindowsJAWTWindow extends JAWTWindow {
       super.unlockSurface();
       return LOCK_SURFACE_NOT_READY;
     }
-    drawable = win32dsi.hdc();
+    drawable = win32dsi.getHdc();
     if (drawable == 0) {
       // Widget not yet realized
       ds.FreeDrawingSurfaceInfo(dsi);

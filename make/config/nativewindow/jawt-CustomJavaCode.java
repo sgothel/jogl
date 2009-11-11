@@ -12,7 +12,7 @@ public static JAWT getJAWT() {
         AccessController.doPrivileged(new PrivilegedAction() {
             public Object run() {
               JAWT j = JAWT.create();
-              j.version(JAWTFactory.JAWT_VERSION_1_4);
+              j.setVersion(JAWTFactory.JAWT_VERSION_1_4);
               if (!JAWTFactory.JAWT_GetAWT(j)) {
                 throw new RuntimeException("Unable to initialize JAWT");
               }

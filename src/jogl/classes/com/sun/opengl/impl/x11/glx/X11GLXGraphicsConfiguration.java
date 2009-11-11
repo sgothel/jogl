@@ -332,7 +332,7 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
       try{
           int[] count = new int[1];
           XVisualInfo template = XVisualInfo.create();
-          template.visualid(visualID);
+          template.setVisualid(visualID);
           XVisualInfo[] infos = X11Lib.XGetVisualInfoCopied(display, X11Lib.VisualIDMask, template, count, 0);
           if (infos == null || infos.length == 0) {
             return null;
@@ -343,7 +343,7 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
       }
       if (DEBUG) {
         System.err.println("!!! Fetched XVisualInfo for visual ID 0x" + Long.toHexString(visualID));
-        System.err.println("!!! Resulting XVisualInfo: visualid = 0x" + Long.toHexString(res.visualid()));
+        System.err.println("!!! Resulting XVisualInfo: visualid = 0x" + Long.toHexString(res.getVisualid()));
       }
       return res;
   }

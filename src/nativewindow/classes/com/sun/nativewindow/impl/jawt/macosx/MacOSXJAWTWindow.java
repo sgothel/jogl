@@ -111,7 +111,7 @@ public class MacOSXJAWTWindow extends JAWTWindow {
       super.unlockSurface();
       return NativeWindow.LOCK_SURFACE_NOT_READY;
     }
-    drawable = macosxdsi.cocoaViewRef();
+    drawable = macosxdsi.getCocoaViewRef();
 
     if (drawable == 0) {
       // Widget not yet realized

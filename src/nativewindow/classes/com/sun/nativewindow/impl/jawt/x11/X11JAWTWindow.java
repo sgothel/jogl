@@ -99,7 +99,7 @@ public class X11JAWTWindow extends JAWTWindow {
       super.unlockSurface();
       return LOCK_SURFACE_NOT_READY;
     }
-    drawable = x11dsi.drawable();
+    drawable = x11dsi.getDrawable();
     if (drawable == 0) {
       // Widget not yet realized
       ds.FreeDrawingSurfaceInfo(dsi);

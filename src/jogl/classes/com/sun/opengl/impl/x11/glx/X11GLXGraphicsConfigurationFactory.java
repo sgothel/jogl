@@ -291,12 +291,12 @@ public class X11GLXGraphicsConfigurationFactory extends GraphicsConfigurationFac
                 if (recommendedVis == null) {
                     System.err.println("null visual");
                 } else {
-                    System.err.println("visual id 0x" + Long.toHexString(recommendedVis.visualid()));
+                    System.err.println("visual id 0x" + Long.toHexString(recommendedVis.getVisualid()));
                 }
             }
             int[] count = new int[1];
             XVisualInfo template = XVisualInfo.create();
-            template.screen(screen);
+            template.setScreen(screen);
             infos = X11Lib.XGetVisualInfoCopied(display, X11Lib.VisualScreenMask, template, count, 0);
             if (infos == null || infos.length<1) {
                 throw new GLException("Error while enumerating available XVisualInfos");
@@ -305,7 +305,7 @@ public class X11GLXGraphicsConfigurationFactory extends GraphicsConfigurationFac
             for (int i = 0; i < infos.length; i++) {
                 caps[i] = X11GLXGraphicsConfiguration.XVisualInfo2GLCapabilities(glProfile, display, infos[i], onscreen, false, isMultisampleAvailable);
                 // Attempt to find the visual chosen by glXChooseVisual
-                if (recommendedVis != null && recommendedVis.visualid() == infos[i].visualid()) {
+                if (recommendedVis != null && recommendedVis.getVisualid() == infos[i].getVisualid()) {
                     recommendedIndex = i;
                 }
             }
