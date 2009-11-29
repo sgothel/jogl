@@ -51,8 +51,8 @@
         <property name="java.excludes.javadoc.packagenames" value="com.sun.opengl.impl.gl2.fixme.*,com.sun.javafx.audio.windows.waveout.TestSpatialization"/>
         <property name="javadoc.bottom" value="Copyright 2005 Sun Microsystems, Inc. All rights reserved. Use is subject to &lt;a href=&quot;http://jcp.org/en/jsr/detail?id=231&quot;&gt;license terms&lt;/a&gt;." />
 
-        <property name="gluegen.jar" value="../../gluegen/${rootrel.build}/gluegen.jar" />
-        <property name="gluegen-rt.jar" value="../../gluegen/${rootrel.build}/gluegen-rt.jar" />
+        <property name="gluegen.jar" value="${gluegen.root}/${rootrel.build}/gluegen.jar" />
+        <property name="gluegen-rt.jar" value="${gluegen.root}/${rootrel.build}/gluegen-rt.jar" />
         <property name="nativewindow.all.jar" value="../${rootrel.build}/nativewindow/nativewindow.all.jar" />
         <property name="jogl.all.jar" value="../${rootrel.build}/jogl/jogl.all.jar" />
         <property name="newt.all.jar" value="../${rootrel.build}/newt/newt.all.jar" />
@@ -83,7 +83,7 @@
         <delete includeEmptyDirs="true" quiet="true" dir="${lib.dir}" failonerror="false" />
         <mkdir dir="${lib.dir}" />
         <copy todir="${lib.dir}">
-            <fileset dir="${project.root}/../gluegen/${rootrel.build}/obj" includes="*.${native.library.suffix} *.${native.library.suffix-cdc}" />
+            <fileset dir="${gluegen.root}/${rootrel.build}/obj" includes="*.${native.library.suffix} *.${native.library.suffix-cdc}" />
             <fileset dir="${build}/jogl/obj" includes="*.${native.library.suffix} *.${native.library.suffix-cdc}" />
             <fileset dir="${build}/nativewindow/obj" includes="*.${native.library.suffix} *.${native.library.suffix-cdc}" />
             <fileset dir="${build}/newt/obj" includes="*.${native.library.suffix} *.${native.library.suffix-cdc}" />
@@ -126,8 +126,8 @@
         </copy>
         <mkdir dir="${archive.dir}/lib" />
         <copy todir="${archive.dir}/lib">
-            <fileset dir="${project.root}/../gluegen/${rootrel.build}" includes="gluegen-rt.jar gluegen-rt-cdc.jar" />
-            <fileset dir="${project.root}/../gluegen/${rootrel.build}/obj" includes="*.${native.library.suffix} *.${native.library.suffix-cdc}" />
+            <fileset dir="${gluegen.root}/${rootrel.build}" includes="gluegen-rt.jar gluegen-rt-cdc.jar" />
+            <fileset dir="${gluegen.root}/${rootrel.build}/obj" includes="*.${native.library.suffix} *.${native.library.suffix-cdc}" />
             <fileset dir="${build}/jogl" includes="*.jar" excludes="*natives*.jar" />
             <fileset dir="${build}/jogl/obj" includes="*.${native.library.suffix} *.${native.library.suffix-cdc}" />
             <fileset dir="${build}/nativewindow" includes="*.jar" excludes="*natives*.jar" />
@@ -162,8 +162,8 @@
         <delete quiet="true" file="${build}/jogl-${tmp.version}-src.zip"/>
         <zip destfile="${build}/jogl-${tmp.version}-src.zip"
              basedir="${project.root}/.."
-             excludes="gluegen/${rootrel.build}/**,gluegen/build/**gluegen/build-temp/**,jogl/${rootrel.build}/**,jogl/build/**,jogl/build-temp/**,jogl/www/**"
-             includes="gluegen/**, jogl/**" />
+             excludes="${gluegen.root}/${rootrel.build}/**,${gluegen.root}/build/**${gluegen.root}/build-temp/**,jogl/${rootrel.build}/**,jogl/build/**,jogl/build-temp/**,jogl/www/**"
+             includes="${gluegen.root}/**, jogl/**" />
         <!-- Now add in certain portions of the generated source code for developers -->
         <zip update="true"
              destfile="${build}/jogl-${tmp.version}-src.zip"

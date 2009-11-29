@@ -84,7 +84,7 @@
             <isset property="setup.noAWT"/> 
         </condition>
 
-        <property name="javac.bootclasspath-cdc.jar" value="../../gluegen/make/lib/cdc_fp.jar" />
+        <property name="javac.bootclasspath-cdc.jar" value="${gluegen.root}/make/lib/cdc_fp.jar" />
 
         <echo message="setup.nodesktop: ${setup.nodesktop}" />
         <echo message="setup.noall: ${setup.noall}" />
@@ -180,11 +180,11 @@
         <!-- GlueGen properties. -->
         <!-- NOTE that these require a checked-out GlueGen workspace as a -->
         <!-- sibling of the NativeWindow workspace. -->
-        <property name="gluegen.make.dir" value="../../gluegen/make" />
+        <property name="gluegen.make.dir" value="${gluegen.root}/make" />
         <property name="gluegen.build.xml" value="${gluegen.make.dir}/build.xml" />
-        <property name="gluegen.jar" value="../../gluegen/${rootrel.build}/gluegen.jar" />
-        <property name="gluegen-rt.jar" value="../../gluegen/${rootrel.build}/gluegen-rt.jar" />
-        <property name="gluegen-rt-cdc.jar" value="../../gluegen/${rootrel.build}/gluegen-rt-cdc.jar" />
+        <property name="gluegen.jar" value="${gluegen.root}/${rootrel.build}/gluegen.jar" />
+        <property name="gluegen-rt.jar" value="${gluegen.root}/${rootrel.build}/gluegen-rt.jar" />
+        <property name="gluegen-rt-cdc.jar" value="${gluegen.root}/${rootrel.build}/gluegen-rt-cdc.jar" />
                                                 
         <!-- The source directories. -->
         <property name="src.java" value="${project.root}/${rootrel.src.java}" />

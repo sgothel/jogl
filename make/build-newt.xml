@@ -68,7 +68,7 @@
       -->
     <target name="base.init" depends="gluegen.cpptasks.detect.os">
 
-        <property name="javac.bootclasspath-cdc.jar" value="../../gluegen/make/lib/cdc_fp.jar"/>
+        <property name="javac.bootclasspath-cdc.jar" value="${gluegen.root}/make/lib/cdc_fp.jar"/>
 
         <condition property="setup.nodesktop">
             <and>
@@ -209,14 +209,14 @@
         <property name="rootrel.src.c" value="${rootrel.src}/native" />
         <property name="rootrel.obj" value="${rootrel.build.newt}/obj" />
 
-        <property name="gluegen-rt.jar" value="../../gluegen/${rootrel.build}/gluegen-rt.jar" />
+        <property name="gluegen-rt.jar" value="${gluegen.root}/${rootrel.build}/gluegen-rt.jar" />
         <property name="nativewindow.core.jar" value="../${rootrel.build}/nativewindow/nativewindow.core.jar" />
         <property name="nativewindow.x11.jar" value="../${rootrel.build}/nativewindow/nativewindow.x11.jar" />
         <property name="nativewindow.awt.jar" value="../${rootrel.build}/nativewindow/nativewindow.awt.jar" />
         <property name="jogl.core.jar" value="../${rootrel.build}/jogl/jogl.core.jar" />
         <property name="jogl.egl.jar" value="../${rootrel.build}/jogl/jogl.egl.jar" />
 
-        <property name="gluegen-rt-cdc.jar" value="../../gluegen/${rootrel.build}/gluegen-rt-cdc.jar" />
+        <property name="gluegen-rt-cdc.jar" value="${gluegen.root}/${rootrel.build}/gluegen-rt-cdc.jar" />
         <property name="nativewindow.core.cdc.jar" value="../${rootrel.build}/nativewindow/nativewindow.core.cdc.jar" />
         <property name="nativewindow.x11.cdc.jar" value="../${rootrel.build}/nativewindow/nativewindow.x11.cdc.jar" />
         <property name="jogl.core.cdc.jar" value="../${rootrel.build}/jogl/jogl.core.cdc.jar" />
