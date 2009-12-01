@@ -103,10 +103,11 @@ public class BuildStaticGLInfo
     Pattern.compile("\\#define ([CEW]?GL[XU]?_[A-Za-z0-9_]+)\\s*([A-Za-z0-9_]+)(.*)");
 
   // Maps function / #define names to the names of the extensions they're declared in
-  protected Map declarationToExtensionMap = new HashMap();
+  protected Map<String, String> declarationToExtensionMap = new HashMap<String, String>();
+
   // Maps extension names to Set of identifiers (both #defines and
   // function names) this extension declares
-  protected Map/*<String, Set<String>*/ extensionToDeclarationMap = new HashMap();
+  protected Map<String, Set<String>> extensionToDeclarationMap = new HashMap<String, Set<String>>();
   protected boolean debug = false;
 
   /**
@@ -221,28 +222,27 @@ public class BuildStaticGLInfo
   }
 
   public void dump() {
-    for (Iterator i1 = extensionToDeclarationMap.keySet().iterator(); i1.hasNext(); ) {
-      String name = (String) i1.next();
-      Set decls = (Set) extensionToDeclarationMap.get(name);
+    for (String name : extensionToDeclarationMap.keySet()) {
+      Set<String> decls = extensionToDeclarationMap.get(name);
       System.out.println("<"+name+"> :");
-      List l = new ArrayList();
+      List<String> l = new ArrayList<String>();
       l.addAll(decls);
       Collections.sort(l);
-      for (Iterator i2 = l.iterator(); i2.hasNext(); ) {
-        System.out.println("  <" + (String) i2.next() + ">");
+      for (String str : l) {
+        System.out.println("  <" + str + ">");
       }
     }
   }
 
   public String getExtension(String identifier) {
-    return (String) declarationToExtensionMap.get(identifier);
+    return declarationToExtensionMap.get(identifier);
   }
   
-  public Set/*<String>*/ getDeclarations(String extension) {
-    return (Set) extensionToDeclarationMap.get(extension);
+  public Set<String> getDeclarations(String extension) {
+    return extensionToDeclarationMap.get(extension);
   }
 
-  public Set/*<String>*/ getExtensions() {
+  public Set<String> getExtensions() {
     return extensionToDeclarationMap.keySet();
   }
 
@@ -298,8 +298,7 @@ public class BuildStaticGLInfo
 
     // Compute max capacity
     int maxCapacity = 0;
-    for (Iterator iter = declarationToExtensionMap.keySet().iterator(); iter.hasNext(); ) {
-      String name = (String) iter.next();
+    for (String name : declarationToExtensionMap.keySet()) {
       if (!name.startsWith("GL")) {
         ++maxCapacity;
       }
@@ -307,18 +306,17 @@ public class BuildStaticGLInfo
 
     output.println("    funcToAssocMap = new HashMap(" + maxCapacity + "); // approximate max capacity");
     output.println("    String group;");
-    ArrayList sets = new ArrayList(extensionToDeclarationMap.keySet());
+    ArrayList<String> sets = new ArrayList<String>(extensionToDeclarationMap.keySet());
     Collections.sort(sets);
-    for (Iterator iter = sets.iterator(); iter.hasNext(); ) {
-      String groupName = (String) iter.next();
-      Set funcs = (Set) extensionToDeclarationMap.get(groupName);
-      List l = new ArrayList();
+    for (String groupName : sets) {
+      Set<String> funcs = extensionToDeclarationMap.get(groupName);
+      List<String> l = new ArrayList<String>();
       l.addAll(funcs);
       Collections.sort(l);
-      Iterator funcIter = l.iterator();
+      Iterator<String> funcIter = l.iterator();
       boolean printedHeader = false;
       while (funcIter.hasNext()) {
-        String funcName = (String)funcIter.next();
+        String funcName = funcIter.next();
         if (!funcName.startsWith("GL")) {
           if (!printedHeader) {
             output.println();
@@ -343,9 +341,9 @@ public class BuildStaticGLInfo
 
   protected void addAssociation(String identifier, String association) {
     declarationToExtensionMap.put(identifier, association);
-    Set/*<String>*/ identifiers = (Set) extensionToDeclarationMap.get(association);
+    Set<String> identifiers = extensionToDeclarationMap.get(association);
     if (identifiers == null) {
-      identifiers = new HashSet/*<String>*/();
+      identifiers = new HashSet<String>();
       extensionToDeclarationMap.put(association, identifiers);
     }
     identifiers.add(identifier);

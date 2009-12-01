@@ -48,14 +48,14 @@ import com.sun.gluegen.runtime.opengl.GLExtensionNames;
 
 public class GLConfiguration extends ProcAddressConfiguration {
   // The following data members support ignoring an entire extension at a time
-  private List/*<String>*/ glHeaders = new ArrayList();
-  private Set/*<String>*/ ignoredExtensions = new HashSet();
-  private Set/*<String>*/ extensionsRenamedIntoCore = new HashSet();
+  private List<String> glHeaders = new ArrayList<String>();
+  private Set<String> ignoredExtensions = new HashSet<String>();
+  private Set<String> extensionsRenamedIntoCore = new HashSet<String>();
   private BuildStaticGLInfo glInfo;
   // Maps function names to the kind of buffer object it deals with
-  private Map/*<String,GLEmitter.BufferObjectKind>*/ bufferObjectKinds = new HashMap();
+  private Map<String,GLEmitter.BufferObjectKind> bufferObjectKinds = new HashMap<String,GLEmitter.BufferObjectKind>();
   private GLEmitter emitter;
-  private Set/*String*/ dropUniqVendorExtensions = new HashSet();
+  private Set<String> dropUniqVendorExtensions = new HashSet<String>();
   // This directive is off by default but can help automatically
   // indicate which extensions have been folded into the core OpenGL
   // namespace, and if not, then why not
@@ -72,44 +72,30 @@ public class GLConfiguration extends ProcAddressConfiguration {
     }
   }
 
-  protected void dispatch(String cmd, StringTokenizer tok, File file, String filename, int lineNo) throws IOException {
-    if (cmd.equalsIgnoreCase("IgnoreExtension"))
-      {
-        String sym = readString("IgnoreExtension", tok, filename, lineNo);
-        ignoredExtensions.add(sym);
-      }
-    else if (cmd.equalsIgnoreCase("RenameExtensionIntoCore"))
-      {
-        String sym = readString("RenameExtensionIntoCore", tok, filename, lineNo);
-        extensionsRenamedIntoCore.add(sym);
-      }
-    else if (cmd.equalsIgnoreCase("AllowNonGLExtensions"))
-      {
-        allowNonGLExtensions = readBoolean("AllowNonGLExtensions", tok, filename, lineNo).booleanValue();
-      }
-    else if (cmd.equalsIgnoreCase("AutoUnifyExtensions"))
-      {
-        autoUnifyExtensions = readBoolean("AutoUnifyExtensions", tok, filename, lineNo).booleanValue();
-      }
-    else if (cmd.equalsIgnoreCase("GLHeader"))
-      {
-        String sym = readString("GLHeader", tok, filename, lineNo);
-        glHeaders.add(sym);
-      }
-    else if (cmd.equalsIgnoreCase("BufferObjectKind"))
-      {
-        readBufferObjectKind(tok, filename, lineNo);
-      }
-    else if (cmd.equalsIgnoreCase("DropUniqVendorExtensions"))
-      {
-        String sym = readString("DropUniqVendorExtensions", tok, filename, lineNo);
-        dropUniqVendorExtensions.add(sym);
-      }
-    else
-      {
-        super.dispatch(cmd,tok,file,filename,lineNo);
-      }
-  }  
+    @Override
+    protected void dispatch(String cmd, StringTokenizer tok, File file, String filename, int lineNo) throws IOException {
+        if (cmd.equalsIgnoreCase("IgnoreExtension")) {
+            String sym = readString("IgnoreExtension", tok, filename, lineNo);
+            ignoredExtensions.add(sym);
+        } else if (cmd.equalsIgnoreCase("RenameExtensionIntoCore")) {
+            String sym = readString("RenameExtensionIntoCore", tok, filename, lineNo);
+            extensionsRenamedIntoCore.add(sym);
+        } else if (cmd.equalsIgnoreCase("AllowNonGLExtensions")) {
+            allowNonGLExtensions = readBoolean("AllowNonGLExtensions", tok, filename, lineNo).booleanValue();
+        } else if (cmd.equalsIgnoreCase("AutoUnifyExtensions")) {
+            autoUnifyExtensions = readBoolean("AutoUnifyExtensions", tok, filename, lineNo).booleanValue();
+        } else if (cmd.equalsIgnoreCase("GLHeader")) {
+            String sym = readString("GLHeader", tok, filename, lineNo);
+            glHeaders.add(sym);
+        } else if (cmd.equalsIgnoreCase("BufferObjectKind")) {
+            readBufferObjectKind(tok, filename, lineNo);
+        } else if (cmd.equalsIgnoreCase("DropUniqVendorExtensions")) {
+            String sym = readString("DropUniqVendorExtensions", tok, filename, lineNo);
+            dropUniqVendorExtensions.add(sym);
+        } else {
+            super.dispatch(cmd, tok, file, filename, lineNo);
+        }
+    }
 
   protected void readBufferObjectKind(StringTokenizer tok, String filename, int lineNo) {
     try {
@@ -140,12 +126,10 @@ public class GLConfiguration extends ProcAddressConfiguration {
   /** Overrides javaPrologueForMethod in superclass and
       automatically generates prologue code for functions associated
       with buffer objects. */
-  public List/*<String>*/ javaPrologueForMethod(MethodBinding binding,
-                                                boolean forImplementingMethodCall,
-                                                boolean eraseBufferAndArrayTypes) {
-    List/*<String>*/ res = super.javaPrologueForMethod(binding,
-                                                       forImplementingMethodCall,
-                                                       eraseBufferAndArrayTypes);
+  @Override
+  public List<String> javaPrologueForMethod(MethodBinding binding, boolean forImplementingMethodCall, boolean eraseBufferAndArrayTypes) {
+
+    List<String> res = super.javaPrologueForMethod(binding, forImplementingMethodCall, eraseBufferAndArrayTypes);
     GLEmitter.BufferObjectKind kind = getBufferObjectKind(binding.getName());
     if (kind != null) {
       // Need to generate appropriate prologue based on both buffer
@@ -154,7 +138,7 @@ public class GLConfiguration extends ProcAddressConfiguration {
       //
       // NOTE we MUST NOT mutate the array returned from the super
       // call!
-      ArrayList res2 = new ArrayList();
+      ArrayList<String> res2 = new ArrayList<String>();
       if (res != null) {
         res2.addAll(res);
       }
@@ -187,8 +171,8 @@ public class GLConfiguration extends ProcAddressConfiguration {
       // Must also filter out bogus rangeCheck directives for VBO/PBO
       // variants
       if (emitter.isBufferObjectMethodBinding(binding)) {
-        for (Iterator iter = res.iterator(); iter.hasNext(); ) {
-          String line = (String) iter.next();
+        for (Iterator<String> iter = res.iterator(); iter.hasNext(); ) {
+          String line = iter.next();
           if (line.indexOf("BufferFactory.rangeCheck") >= 0) {
             iter.remove();
           }
@@ -199,10 +183,11 @@ public class GLConfiguration extends ProcAddressConfiguration {
     return res;
   }
 
+  @Override
   public void dumpIgnores() {
     System.err.println("GL Ignored extensions: ");
-    for (Iterator iter = ignoredExtensions.iterator(); iter.hasNext(); ) {
-        System.err.println("\t"+(String)iter.next());
+    for (String str : ignoredExtensions) {
+        System.err.println("\t"+str);
     }
     super.dumpIgnores();
   }
@@ -231,6 +216,7 @@ public class GLConfiguration extends ProcAddressConfiguration {
     return false;
   }
 
+  @Override
   public boolean shouldIgnoreInInterface(String symbol) {
     return shouldIgnoreInInterface(symbol, true);
   }
@@ -239,6 +225,7 @@ public class GLConfiguration extends ProcAddressConfiguration {
     return shouldIgnoreExtension(symbol, checkEXT) || super.shouldIgnoreInInterface(symbol);
   }
 
+  @Override
   public boolean shouldIgnoreInImpl(String symbol) {
     return shouldIgnoreInImpl(symbol, true);
   }
@@ -268,8 +255,8 @@ public class GLConfiguration extends ProcAddressConfiguration {
 
   /** Returns the kind of buffer object this function deals with, or
       null if none. */
-  public GLEmitter.BufferObjectKind getBufferObjectKind(String name) {
-    return (GLEmitter.BufferObjectKind) bufferObjectKinds.get(name);
+  GLEmitter.BufferObjectKind getBufferObjectKind(String name) {
+    return bufferObjectKinds.get(name);
   }
 
   public boolean isBufferObjectFunction(String name) {
@@ -281,8 +268,7 @@ public class GLConfiguration extends ProcAddressConfiguration {
   public void parseGLHeaders(GlueEmitterControls controls) throws IOException {
     if (!glHeaders.isEmpty()) {
       glInfo = new BuildStaticGLInfo();
-      for (Iterator iter = glHeaders.iterator(); iter.hasNext(); ) {
-        String file = (String) iter.next();
+      for (String file : glHeaders) {
         String fullPath = controls.findHeaderFile(file);
         if (fullPath == null) {
           throw new IOException("Unable to locate header file \"" + file + "\"");
@@ -303,7 +289,7 @@ public class GLConfiguration extends ProcAddressConfiguration {
       constant definitions and functions renamed into the core
       namespace; for example, glGenFramebuffersEXT to
       glGenFramebuffers and GL_FRAMEBUFFER_EXT to GL_FRAMEBUFFER. */
-  public Set/*<String>*/ getExtensionsRenamedIntoCore() {
+  public Set<String> getExtensionsRenamedIntoCore() {
     return extensionsRenamedIntoCore;
   }
 }

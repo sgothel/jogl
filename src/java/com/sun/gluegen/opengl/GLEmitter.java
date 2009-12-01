@@ -45,20 +45,20 @@ import java.util.*;
 import com.sun.gluegen.*;
 import com.sun.gluegen.cgram.types.*;
 import com.sun.gluegen.procaddress.*;
-import com.sun.gluegen.runtime.*;
 import com.sun.gluegen.runtime.opengl.GLExtensionNames;
 
 /**
  * A subclass of ProcAddressEmitter with special OpenGL-specific
  * configuration abilities.
  */
-public class GLEmitter extends ProcAddressEmitter
-{
+public class GLEmitter extends ProcAddressEmitter {
+
   // Keeps track of which MethodBindings were created for handling
   // Buffer Object variants. Used as a Set rather than a Map.
-  private Map/*<MethodBinding>*/ bufferObjectMethodBindings = new IdentityHashMap();
+  private Map<MethodBinding, MethodBinding> bufferObjectMethodBindings = new IdentityHashMap<MethodBinding, MethodBinding>();
 
   static class BufferObjectKind {
+
     private BufferObjectKind() {}
 
     static final BufferObjectKind UNPACK_PIXEL = new BufferObjectKind();
@@ -67,8 +67,8 @@ public class GLEmitter extends ProcAddressEmitter
     static final BufferObjectKind ELEMENT      = new BufferObjectKind();
   }
   
-  public void beginEmission(GlueEmitterControls controls) throws IOException
-  {
+  @Override
+  public void beginEmission(GlueEmitterControls controls) throws IOException  {
     getGLConfig().parseGLHeaders(controls);
     renameExtensionsIntoCore();
     if (getGLConfig().getAutoUnifyExtensions()) {
@@ -85,7 +85,7 @@ public class GLEmitter extends ProcAddressEmitter
     // renaming mechanisms that are built elsewhere.
     
     GLConfiguration config = getGLConfig();
-    Set extensionsRenamedIntoCore = config.getExtensionsRenamedIntoCore();
+    Set<String> extensionsRenamedIntoCore = config.getExtensionsRenamedIntoCore();
     BuildStaticGLInfo glInfo = config.getGLInfo();
     if(null==glInfo) {
         if(extensionsRenamedIntoCore.size()>0) {
@@ -93,9 +93,8 @@ public class GLEmitter extends ProcAddressEmitter
         }
         return;
     }
-    for (Iterator iter = extensionsRenamedIntoCore.iterator(); iter.hasNext(); ) {
-      String extension = (String) iter.next();
-      Set/*<String>*/ declarations = glInfo.getDeclarations(extension);
+    for (String extension : extensionsRenamedIntoCore) {
+      Set<String> declarations = glInfo.getDeclarations(extension);
       if (declarations != null) {
         for (Iterator i2 = declarations.iterator(); i2.hasNext(); ) {
           String decl = (String) i2.next();
@@ -116,21 +115,21 @@ public class GLEmitter extends ProcAddressEmitter
   }
 
   class ExtensionUnifier implements SymbolFilter {
-      private List/*<ConstantDefinition>*/ constants;
-      private List/*<FunctionSymbol>*/ functions;
+      private List<ConstantDefinition> constants;
+      private List<FunctionSymbol> functions;
 
-      public void filterSymbols(List/*<ConstantDefinition>*/ constants,
-                                List/*<FunctionSymbol>*/ functions) {
+      public void filterSymbols(List<ConstantDefinition> constants,
+                                List<FunctionSymbol> functions) {
           this.constants = constants;
           this.functions = functions;
           doWork();
       }
 
-      public List/*<ConstantDefinition>*/ getConstants() {
+      public List<ConstantDefinition> getConstants() {
           return constants;
       }
       
-      public List/*<FunctionSymbol>*/ getFunctions() {
+      public List<FunctionSymbol> getFunctions() {
           return functions;
       }
 
@@ -140,8 +139,8 @@ public class GLEmitter extends ProcAddressEmitter
               return;
           }
           // Try to retain a "good" ordering for these symbols
-          Map/*<String, ConstantDefinition>*/ constantMap = new LinkedHashMap();
-          Map/*<String, FunctionSymbol>*/ functionMap = new LinkedHashMap();
+          Map<String, ConstantDefinition> constantMap = new LinkedHashMap();
+          Map<String, FunctionSymbol> functionMap = new LinkedHashMap();
           for (Iterator iter = constants.iterator(); iter.hasNext(); ) {
               ConstantDefinition def = (ConstantDefinition) iter.next();
               constantMap.put(def.getName(), def);
@@ -158,10 +157,10 @@ public class GLEmitter extends ProcAddressEmitter
           // that doesn't support the core version of these APIs, the runtime
           // will take care of looking up the extension version of these entry
           // points.
-          Set/*<String>*/ extensionNames = glInfo.getExtensions();
+          Set<String> extensionNames = glInfo.getExtensions();
           for (Iterator iter1 = extensionNames.iterator(); iter1.hasNext(); ) {
               String extension = (String) iter1.next();
-              Set/*<String>*/ declarations = glInfo.getDeclarations(extension);
+              Set<String> declarations = glInfo.getDeclarations(extension);
               boolean isExtension = true;
               boolean shouldUnify = true;
               String cause = null;
@@ -253,14 +252,14 @@ public class GLEmitter extends ProcAddressEmitter
       (i.e., mutators for argument names). We also would need to
       inform the CMethodBindingEmitter that it is overloaded in this
       case (though we default to true currently). */
-  protected List/*<MethodBinding>*/ expandMethodBinding(MethodBinding binding) {
-    List/*<MethodBinding>*/ bindings = super.expandMethodBinding(binding);
+  protected List<MethodBinding> expandMethodBinding(MethodBinding binding) {
+    List<MethodBinding> bindings = super.expandMethodBinding(binding);
     
     if (!getGLConfig().isBufferObjectFunction(binding.getName())) {
       return bindings;
     }
 
-    List/*<MethodBinding>*/ newBindings = new ArrayList();
+    List<MethodBinding> newBindings = new ArrayList();
     newBindings.addAll(bindings);
 
     // Need to expand each one of the generated bindings to take a

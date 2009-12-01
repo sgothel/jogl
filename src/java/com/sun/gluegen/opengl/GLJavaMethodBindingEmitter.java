@@ -40,7 +40,6 @@
 package com.sun.gluegen.opengl;
 
 import java.io.*;
-import java.util.*;
 import com.sun.gluegen.*;
 import com.sun.gluegen.cgram.types.*;
 import com.sun.gluegen.procaddress.*;
@@ -83,6 +82,7 @@ public class GLJavaMethodBindingEmitter extends ProcAddressJavaMethodBindingEmit
     this(methodToWrap, methodToWrap.glEmitter, methodToWrap.bufferObjectVariant);
   }
 
+  @Override
   protected String getArgumentName(int i) {
     String name = super.getArgumentName(i);
 
@@ -104,9 +104,9 @@ public class GLJavaMethodBindingEmitter extends ProcAddressJavaMethodBindingEmit
     return name;
   }
 
-  protected class GLCommentEmitter
-    extends JavaMethodBindingEmitter.DefaultCommentEmitter
-  {
+  protected class GLCommentEmitter extends JavaMethodBindingEmitter.DefaultCommentEmitter  {
+      
+    @Override
     protected void emitBindingCSignature(MethodBinding binding, PrintWriter writer) {      
       super.emitBindingCSignature(binding, writer);
 
