@@ -23,7 +23,7 @@
     _res = glXChooseFBConfigCopied1(dpy, screen, attribList, BufferFactory.SIZEOF_INT * attribList_offset, nitems, BufferFactory.SIZEOF_INT * nitems_offset);
 
     if (_res == null) return null;
-    return PointerBuffer.wrapNative2Java(_res, false);
+    return PointerBuffer.wrap(_res);
   }
 
   /** Entry point to C language function: - Alias for: <br> <code> GLXFBConfig *  glXChooseFBConfigSGIX, glXChooseFBConfig(Display *  dpy, int screen, const int *  attribList, int *  nitems); </code>    */
