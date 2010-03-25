@@ -56,6 +56,9 @@ public class AWTTextureData extends TextureData {
     private boolean expectingEXTABGR;
     private boolean expectingGL12;
 
+    private int scanlineStride;
+    private BufferedImage glDependingImage; // indicator wheather GL depening initialization has been passed
+
     private static final ColorModel rgbaColorModel =
         new ComponentColorModel(ColorSpace.getInstance(ColorSpace.CS_sRGB),
                                 new int[] {8, 8, 8, 8}, true, true, 
@@ -99,20 +102,14 @@ public class AWTTextureData extends TextureData {
         } else {
             this.internalFormat = internalFormat;
         }
-        createFromImage(image);
+        createFromImagePre(image);
+
         this.mipmap = mipmap;
-        if (buffer != null) {
-            estimatedMemorySize = estimatedMemorySize(buffer);
-        } else {
-            // In the lazy custom conversion case we don't yet have a buffer
-            if (imageForLazyCustomConversion != null) {
-                estimatedMemorySize = estimatedMemorySize(wrapImageDataBuffer(imageForLazyCustomConversion));
-            }
-        }
     }
 
     /** Returns the intended OpenGL pixel format of the texture data. */
     public int getPixelFormat() {
+        glPostInitInt();
         if (imageForLazyCustomConversion != null) {
             if (!((expectingEXTABGR && haveEXTABGR) ||
                   (expectingGL12    && haveGL12))) {
@@ -123,6 +120,7 @@ public class AWTTextureData extends TextureData {
     }
     /** Returns the intended OpenGL pixel type of the texture data. */
     public int getPixelType() {
+        glPostInitInt();
         if (imageForLazyCustomConversion != null) {
             if (!((expectingEXTABGR && haveEXTABGR) ||
                   (expectingGL12    && haveGL12))) {
@@ -134,6 +132,7 @@ public class AWTTextureData extends TextureData {
 
     /** Returns the texture data, or null if it is specified as a set of mipmaps. */
     public Buffer getBuffer() {
+        glPostInitInt();
         if (imageForLazyCustomConversion != null) {
             if (!((expectingEXTABGR && haveEXTABGR) ||
                   (expectingGL12    && haveGL12))) {
@@ -146,14 +145,13 @@ public class AWTTextureData extends TextureData {
         return buffer;
     }
 
-    private void createFromImage(BufferedImage image) {
+    private void createFromImagePre(BufferedImage image) {
         pixelType = 0; // Determine from image
         mustFlipVertically = true;
 
         width = image.getWidth();
         height = image.getHeight();
 
-        int scanlineStride;
         SampleModel sm = image.getRaster().getSampleModel();
         if (sm instanceof SinglePixelPackedSampleModel) {
             scanlineStride =
@@ -169,8 +167,22 @@ public class AWTTextureData extends TextureData {
             setupLazyCustomConversion(image);
             return;
         }
+        glDependingImage = image; // earmark for post init
+    }
 
-        GLProfile glp = GLContext.getCurrentGL().getGLProfile();
+    protected void glPostInit() {
+        if(null == glDependingImage) return; 
+
+        GLContext current = GLContext.getCurrent();
+        if(null == current) return;
+
+        BufferedImage image = glDependingImage;
+        glDependingImage = null;
+
+        GLProfile glp = current.getGL().getGLProfile();
+
+        width = image.getWidth();
+        height = image.getHeight();
 
         if (glp.isGL2()) {
             switch (image.getType()) {
@@ -365,6 +377,15 @@ public class AWTTextureData extends TextureData {
         }
 
         createNIOBufferFromImage(image);
+
+        if (buffer != null) {
+            estimatedMemorySize = estimatedMemorySize(buffer);
+        } else {
+            // In the lazy custom conversion case we don't yet have a buffer
+            if (imageForLazyCustomConversion != null) {
+                estimatedMemorySize = estimatedMemorySize(wrapImageDataBuffer(imageForLazyCustomConversion));
+            }
+        }
     }
 
     private void setupLazyCustomConversion(BufferedImage image) {

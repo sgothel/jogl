@@ -215,6 +215,7 @@
 
     <target name="base.init.sourcelevel.1">
         <property name="jogl.sourcelevel" value="1.4" />
+        <property name="junit.sourcelevel" value="1.5" />
     </target>
 
     <!--target name="base.init.sourcelevel.2" if="gluegen.nsig">
@@ -264,6 +265,7 @@
         </condition>
         <property name="rootrel.build.jogl" value="${rootrel.build}/jogl" />
         <property name="rootrel.src.java" value="src/jogl/classes" />
+        <property name="rootrel.src.junit" value="src/jogl/junit" />
         <property name="rootrel.src.c" value="src/jogl/native" />
         <property name="rootrel.src.c.openmax" value="src/jogl/native/openmax" />
 
@@ -283,16 +285,22 @@
         <property name="gluegen.build.xml" value="${gluegen.make.dir}/build.xml" />
         <property name="gluegen.jar" value="${gluegen.root}/${rootrel.build}/gluegen.jar" />
         <property name="gluegen-rt.jar" value="${gluegen.root}/${rootrel.build}/gluegen-rt.jar" />
+        <property name="gluegen.so.dir" value="${gluegen.root}/${rootrel.build}/obj" />
+        <property name="junit.jar" value="${gluegen.make.dir}/lib/junit-4.5.jar" />
         <property name="nativewindow.core.jar" value="../${rootrel.build}/nativewindow/nativewindow.core.jar" />
         <property name="nativewindow.x11.jar" value="../${rootrel.build}/nativewindow/nativewindow.x11.jar" />
         <property name="nativewindow.awt.jar" value="../${rootrel.build}/nativewindow/nativewindow.awt.jar" />
+        <property name="nativewindow.so.dir" value="../${rootrel.build}/nativewindow/obj" />
 
         <property name="gluegen-rt-cdc.jar" value="${gluegen.root}/${rootrel.build}/gluegen-rt-cdc.jar" />
         <property name="nativewindow.core.cdc.jar" value="../${rootrel.build}/nativewindow/nativewindow.core.cdc.jar" />
         <property name="nativewindow.x11.cdc.jar" value="../${rootrel.build}/nativewindow/nativewindow.x11.cdc.jar" />
                                                 
+        <property name="newt.so.dir" value="../${rootrel.build}/newt/obj" />
+
         <!-- The source directories. -->
         <property name="src.java" value="${project.root}/${rootrel.src.java}" />
+        <property name="src.junit" value="${project.root}/${rootrel.src.junit}" />
         <property name="src.c"    value="${project.root}/${rootrel.src.c}" />
         <property name="build"    value="${project.root}/${rootrel.build.jogl}" />
         <property name="tempdir"  value="${project.root}/build-temp" />
@@ -312,6 +320,8 @@
         <property name="obj"      value="${project.root}/${rootrel.obj}" />
         <property name="obj.jogl" value="${project.root}/${rootrel.obj.jogl}" />
         <property name="obj.cg"   value="${project.root}/${rootrel.obj.cg}" />
+
+        <property name="all.so.dir" value="${gluegen.so.dir}:${nativewindow.so.dir}:${obj}:${newt.so.dir}" />
 
         <!-- The GL headers from which Java files are generated -->
         <property name="config" value="${make}/config/jogl" />
@@ -411,6 +421,7 @@
         <property name="jogl.sdk.jar" value="${build}/jogl.sdk.jar" />
         <property name="jogl.all.jar" value="${build}/jogl.all.jar"/>
         <property name="jogl.all-noawt.jar" value="${build}/jogl.all-noawt.jar"/>
+        <property name="jogl.test.jar" value="${build}/jogl.test.jar"/>
 
         <!-- The resulting CDC jogl.jar. -->
         <property name="jogl.core.cdc.jar" value="${build}/jogl.core.cdc.jar" />
@@ -427,6 +438,25 @@
         <property name="jogl.util.cdc.jar" value="${build}/jogl.util.cdc.jar" />
         <property name="jogl.util.fixedfuncemu.cdc.jar" value="${build}/jogl.util.fixedfuncemu.cdc.jar" />
         <property name="jogl.all.cdc.jar" value="${build}/jogl.all.cdc.jar"/>
+
+        <path id="jogl_junit.compile.classpath">
+            <pathelement location="${junit.jar}" />
+            <pathelement location="${gluegen-rt.jar}" />
+            <pathelement location="${nativewindow.core.jar}" />
+            <pathelement location="${nativewindow.x11.jar}" />
+            <pathelement location="${nativewindow.awt.jar}" />
+            <pathelement location="${jogl.all.jar}" />
+        </path>
+
+        <path id="jogl_junit.run.classpath">
+            <pathelement location="${junit.jar}" />
+            <pathelement location="${gluegen-rt.jar}" />
+            <pathelement location="${nativewindow.core.jar}" />
+            <pathelement location="${nativewindow.x11.jar}" />
+            <pathelement location="${nativewindow.awt.jar}" />
+            <pathelement location="${jogl.all.jar}" />
+            <pathelement location="${jogl.test.jar}" />
+        </path>
 
         <!-- The javadoc dirs. -->
         <property name="javadoc" value="${project.root}/javadoc_jogl_public" />
@@ -2041,9 +2071,52 @@
 
     <!-- ================================================================== -->
     <!--
+       - Build/run junit.
+      -->
+    <target name="junit.compile">
+        <!-- Perform the junit pass Java compile -->
+        <javac destdir="${classes}"
+               source="${junit.sourcelevel}"
+               fork="yes"
+               memoryMaximumSize="${javac.memorymax}"
+               debug="${javacdebug}" debuglevel="${javacdebuglevel}">
+            <classpath refid="jogl_junit.compile.classpath"/>
+            <src path="${src.junit}" />
+        </javac>
+        <jar destfile="${jogl.test.jar}" filesonly="true">
+            <fileset dir="${classes}">
+                <include name="com/jogamp/opengl/test/**" />
+            </fileset>
+        </jar>
+    </target>
+
+    <target name="junit.run" depends="declare.common">
+        <condition property="system.env.library.path"
+                   value="LD_LIBRARY_PATH">
+          <not>
+           <isset property="isWindows"/> 
+          </not>
+        </condition>
+        <condition property="system.env.library.path"
+                   value="PATH">
+          <isset property="isWindows"/> 
+        </condition>
+
+        <!-- Perform the junit pass Java compile -->
+        <java fork="true"
+              classname="org.junit.runner.JUnitCore"
+              failonerror="true">
+            <env key="${system.env.library.path}" path="${all.so.dir}"/>
+            <arg value="com.jogamp.opengl.test.junit.texture.awt.Texture1"/>
+            <classpath refid="jogl_junit.run.classpath"/>
+        </java>
+    </target>
+
+    <!-- ================================================================== -->
+    <!--
        - Build everything.
       -->
-    <target name="all" description="Build JOGL JAR file(s) and native libraries." depends="load.user.properties,init,jar,c.build.jogl,generate.version.txt" />
+    <target name="all" description="Build JOGL JAR file(s) and native libraries." depends="load.user.properties,init,jar,c.build.jogl,generate.version.txt,junit.compile" />
 
     <target name="setup-version-RI" if="jogl.ri">
         <property name="tmp.version" value="${jogl_base_version}" />

@@ -71,6 +71,10 @@ public class TextureData {
     protected int alignment; // 1, 2, or 4 bytes
     protected int estimatedMemorySize;
 
+    // specialization of this class might need GL dependent post initialization 
+    protected Object glPostInitSync = new Object(); 
+    protected volatile boolean glPostInitDone = false;
+
     // These booleans are a concession to the AWTTextureData subclass
     protected boolean haveEXTABGR;
     protected boolean haveGL12;
@@ -207,45 +211,71 @@ public class TextureData {
     }
 
     /** Used only by subclasses */
-    protected TextureData() {
-    }
+    protected TextureData() { }
 
     /** Returns the width in pixels of the texture data. */
     public int getWidth() { return width; }
     /** Returns the height in pixels of the texture data. */
     public int getHeight() { return height; }
     /** Returns the border in pixels of the texture data. */
-    public int getBorder() { return border; }
+    public int getBorder() { 
+        glPostInitInt();
+        return border; 
+    }
     /** Returns the intended OpenGL pixel format of the texture data. */
     public int getPixelFormat() {
+        glPostInitInt();
         return pixelFormat;
     }
     /** Returns the intended OpenGL pixel type of the texture data. */
     public int getPixelType() {
+        glPostInitInt();
         return pixelType;
     }
     /** Returns the intended OpenGL internal format of the texture data. */
-    public int getInternalFormat() { return internalFormat; }
+    public int getInternalFormat() { 
+        glPostInitInt();
+        return internalFormat; 
+    }
     /** Returns whether mipmaps should be generated for the texture data. */
-    public boolean getMipmap() { return mipmap; }
+    public boolean getMipmap() { 
+        glPostInitInt();
+        return mipmap; 
+    }
     /** Indicates whether the texture data is in compressed form. */
-    public boolean isDataCompressed() { return dataIsCompressed; }
+    public boolean isDataCompressed() { 
+        glPostInitInt();
+        return dataIsCompressed; 
+    }
     /** Indicates whether the texture coordinates must be flipped
         vertically for proper display. */
-    public boolean getMustFlipVertically() { return mustFlipVertically; }
+    public boolean getMustFlipVertically() { 
+        glPostInitInt();
+        return mustFlipVertically; 
+    }
     /** Returns the texture data, or null if it is specified as a set of mipmaps. */
     public Buffer getBuffer() {
+        glPostInitInt();
         return buffer;
     }
     /** Returns all mipmap levels for the texture data, or null if it is
         specified as a single image. */
-    public Buffer[] getMipmapData() { return mipmapData; }
+    public Buffer[] getMipmapData() { 
+        glPostInitInt();
+        return mipmapData; 
+    }
     /** Returns the required byte alignment for the texture data. */
-    public int getAlignment() { return alignment; }
+    public int getAlignment() { 
+        glPostInitInt();
+        return alignment; 
+    }
     /** Returns the row length needed for correct GL_UNPACK_ROW_LENGTH
         specification. This is currently only supported for
         non-mipmapped, non-compressed textures. */
-    public int getRowLength() { return rowLength; }
+    public int getRowLength() { 
+        glPostInitInt();
+        return rowLength; 
+    }
 
     /** Sets the width in pixels of the texture data. */
     public void setWidth(int width) { this.width = width; }
@@ -303,6 +333,7 @@ public class TextureData {
     /** Flushes resources associated with this TextureData by calling
         Flusher.flush(). */
     public void flush() {
+        glPostInitInt();
         if (flusher != null) {
             flusher.flush();
             flusher = null;
@@ -332,6 +363,19 @@ public class TextureData {
     //----------------------------------------------------------------------
     // Internals only below this point
     //
+
+    protected void glPostInit() { }
+
+    protected final void glPostInitInt() {
+        if(glPostInitDone) return;
+        synchronized(glPostInitSync) {
+            if(!glPostInitDone) {
+                glPostInit();
+                glPostInitDone = true;
+            }
+            glPostInitSync.notifyAll();
+        }
+    }
 
     protected static int estimatedMemorySize(Buffer buffer) {
         if (buffer == null) {
