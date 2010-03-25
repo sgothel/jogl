@@ -15,7 +15,7 @@ fi
 BUILD_SUBDIR=build-cdcfp-x86
 
 ant -v \
-    -Dgluegen.user.compiler.file=`pwd`/lib/gluegen.compiler.linux-32bit.xml \
+    -Dgluegen.user.compiler.file=`pwd`/../../gluegen/make/lib/gluegen.compiler.linux-32bit.xml \
     -Dbuild.noarchives=true \
     -Drootrel.build=$BUILD_SUBDIR \
     -Dsetup.cdcfp=true \
