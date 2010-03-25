@@ -2102,14 +2102,17 @@
           <isset property="isWindows"/> 
         </condition>
 
-        <!-- Perform the junit pass Java compile -->
-        <java fork="true"
-              classname="org.junit.runner.JUnitCore"
-              failonerror="true">
+        <!-- Perform the junit tests-->
+        <mkdir dir="${build}/results"/>
+        <junit forkmode="once" showoutput="true" fork="true" haltonerror="true">
             <env key="${system.env.library.path}" path="${all.so.dir}"/>
-            <arg value="com.jogamp.opengl.test.junit.texture.awt.Texture1"/>
+            <formatter usefile="false" type="plain"/>
+            <formatter usefile="true" type="xml"/>
             <classpath refid="jogl_junit.run.classpath"/>
-        </java>
+
+            <test name="com.jogamp.opengl.test.junit.texture.awt.Texture1" todir="${build}/results"/>
+
+        </junit>
     </target>
 
     <!-- ================================================================== -->
