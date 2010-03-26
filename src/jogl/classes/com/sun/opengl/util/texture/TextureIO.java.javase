@@ -155,6 +155,8 @@ public class TextureIO {
     /**
      * Creates a TextureData from the given file. Does no OpenGL work.
      *
+     * @param glp the OpenGL Profile this texture data should be
+     *                  created for.
      * @param file the file from which to read the texture data
      * @param mipmap     whether mipmaps should be produced for this
      *                   texture either by autogenerating them or
@@ -171,18 +173,20 @@ public class TextureIO {
      *         registered texture providers could read the file
      * @throws IOException if an error occurred while reading the file
      */
-    public static TextureData newTextureData(File file,
+    public static TextureData newTextureData(GLProfile glp, File file,
                                              boolean mipmap,
                                              String fileSuffix) throws IOException {
         if (fileSuffix == null) {
             fileSuffix = FileUtil.getFileSuffix(file);
         }
-        return newTextureDataImpl(file, 0, 0, mipmap, fileSuffix);
+        return newTextureDataImpl(glp, file, 0, 0, mipmap, fileSuffix);
     }
 
     /**
      * Creates a TextureData from the given stream. Does no OpenGL work.
      *
+     * @param glp the OpenGL Profile this texture data should be
+     *                  created for.
      * @param stream the stream from which to read the texture data
      * @param mipmap     whether mipmaps should be produced for this
      *                   texture either by autogenerating them or
@@ -199,15 +203,17 @@ public class TextureIO {
      *         registered texture providers could read the stream
      * @throws IOException if an error occurred while reading the stream
      */
-    public static TextureData newTextureData(InputStream stream,
+    public static TextureData newTextureData(GLProfile glp, InputStream stream,
                                              boolean mipmap,
                                              String fileSuffix) throws IOException {
-        return newTextureDataImpl(stream, 0, 0, mipmap, fileSuffix);
+        return newTextureDataImpl(glp, stream, 0, 0, mipmap, fileSuffix);
     }
 
     /**
      * Creates a TextureData from the given URL. Does no OpenGL work.
      *
+     * @param glp the OpenGL Profile this texture data should be
+     *                  created for.
      * @param url the URL from which to read the texture data
      * @param mipmap     whether mipmaps should be produced for this
      *                   texture either by autogenerating them or
@@ -224,13 +230,13 @@ public class TextureIO {
      *         registered texture providers could read the URL
      * @throws IOException if an error occurred while reading the URL
      */
-    public static TextureData newTextureData(URL url,
+    public static TextureData newTextureData(GLProfile glp, URL url,
                                              boolean mipmap,
                                              String fileSuffix) throws IOException {
         if (fileSuffix == null) {
             fileSuffix = FileUtil.getFileSuffix(url.getPath());
         }
-        return newTextureDataImpl(url, 0, 0, mipmap, fileSuffix);
+        return newTextureDataImpl(glp, url, 0, 0, mipmap, fileSuffix);
     }
 
     //----------------------------------------------------------------------
@@ -248,6 +254,8 @@ public class TextureIO {
      * variant of this method which does not take these arguments. Does
      * no OpenGL work.
      *
+     * @param glp the OpenGL Profile this texture data should be
+     *                  created for.
      * @param file the file from which to read the texture data
      * @param internalFormat the OpenGL internal format of the texture
      *                   which will eventually result from the TextureData
@@ -270,7 +278,7 @@ public class TextureIO {
      *                                  pixelFormat was 0
      * @throws IOException if an error occurred while reading the file
      */
-    public static TextureData newTextureData(File file,
+    public static TextureData newTextureData(GLProfile glp, File file,
                                              int internalFormat,
                                              int pixelFormat,
                                              boolean mipmap,
@@ -283,7 +291,7 @@ public class TextureIO {
             fileSuffix = FileUtil.getFileSuffix(file);
         }
 
-        return newTextureDataImpl(file, internalFormat, pixelFormat, mipmap, fileSuffix);
+        return newTextureDataImpl(glp, file, internalFormat, pixelFormat, mipmap, fileSuffix);
     }
 
     /**
@@ -294,6 +302,8 @@ public class TextureIO {
      * variant of this method which does not take these arguments. Does
      * no OpenGL work.
      *
+     * @param glp the OpenGL Profile this texture data should be
+     *                  created for.
      * @param stream the stream from which to read the texture data
      * @param internalFormat the OpenGL internal format of the texture
      *                   which will eventually result from the TextureData
@@ -316,7 +326,7 @@ public class TextureIO {
      *                                  pixelFormat was 0
      * @throws IOException if an error occurred while reading the stream
      */
-    public static TextureData newTextureData(InputStream stream,
+    public static TextureData newTextureData(GLProfile glp, InputStream stream,
                                              int internalFormat,
                                              int pixelFormat,
                                              boolean mipmap,
@@ -325,7 +335,7 @@ public class TextureIO {
             throw new IllegalArgumentException("internalFormat and pixelFormat must be non-zero");
         }
 
-        return newTextureDataImpl(stream, internalFormat, pixelFormat, mipmap, fileSuffix);
+        return newTextureDataImpl(glp, stream, internalFormat, pixelFormat, mipmap, fileSuffix);
     }
 
     /**
@@ -336,6 +346,8 @@ public class TextureIO {
      * variant of this method which does not take these arguments. Does
      * no OpenGL work.
      *
+     * @param glp the OpenGL Profile this texture data should be
+     *                  created for.
      * @param url the URL from which to read the texture data
      * @param internalFormat the OpenGL internal format of the texture
      *                   which will eventually result from the TextureData
@@ -358,7 +370,7 @@ public class TextureIO {
      *                                  pixelFormat was 0
      * @throws IOException if an error occurred while reading the URL
      */
-    public static TextureData newTextureData(URL url,
+    public static TextureData newTextureData(GLProfile glp, URL url,
                                              int internalFormat,
                                              int pixelFormat,
                                              boolean mipmap,
@@ -371,7 +383,7 @@ public class TextureIO {
             fileSuffix = FileUtil.getFileSuffix(url.getPath());
         }
 
-        return newTextureDataImpl(url, internalFormat, pixelFormat, mipmap, fileSuffix);
+        return newTextureDataImpl(glp, url, internalFormat, pixelFormat, mipmap, fileSuffix);
     }
 
     //----------------------------------------------------------------------
@@ -410,7 +422,8 @@ public class TextureIO {
      *                     OpenGL error occurred
      */
     public static Texture newTexture(File file, boolean mipmap) throws IOException, GLException {
-        TextureData data = newTextureData(file, mipmap, FileUtil.getFileSuffix(file));
+        GLProfile glp = GLContext.getCurrentGL().getGLProfile();
+        TextureData data = newTextureData(glp, file, mipmap, FileUtil.getFileSuffix(file));
         Texture texture = newTexture(data);
         data.flush();
         return texture;
@@ -437,7 +450,8 @@ public class TextureIO {
      *                     OpenGL error occurred
      */
     public static Texture newTexture(InputStream stream, boolean mipmap, String fileSuffix) throws IOException, GLException {
-        TextureData data = newTextureData(stream, mipmap, fileSuffix);
+        GLProfile glp = GLContext.getCurrentGL().getGLProfile();
+        TextureData data = newTextureData(glp, stream, mipmap, fileSuffix);
         Texture texture = newTexture(data);
         data.flush();
         return texture;
@@ -467,7 +481,8 @@ public class TextureIO {
         if (fileSuffix == null) {
             fileSuffix = FileUtil.getFileSuffix(url.getPath());
         }
-        TextureData data = newTextureData(url, mipmap, fileSuffix);
+        GLProfile glp = GLContext.getCurrentGL().getGLProfile();
+        TextureData data = newTextureData(glp, url, mipmap, fileSuffix);
         Texture texture = newTexture(data);
         data.flush();
         return texture;
@@ -580,7 +595,7 @@ public class TextureIO {
             int size   = glGetTexLevelParameteri(gl, GL.GL_TEXTURE_2D, 0, GL2.GL_TEXTURE_COMPRESSED_IMAGE_SIZE);
             ByteBuffer res = ByteBuffer.allocate(size);
             gl.glGetCompressedTexImage(GL.GL_TEXTURE_2D, 0, res);
-            data = new TextureData(internalFormat, width, height, border, internalFormat, GL.GL_UNSIGNED_BYTE,
+            data = new TextureData(gl.getGLProfile(), internalFormat, width, height, border, internalFormat, GL.GL_UNSIGNED_BYTE,
                                    false, true, true, res, null);
         } else {
             int bytesPerPixel = 0;
@@ -631,7 +646,7 @@ public class TextureIO {
             gl.glPixelStorei(GL2.GL_PACK_SKIP_PIXELS, packSkipPixels);
             gl.glPixelStorei(GL2.GL_PACK_SWAP_BYTES, packSwapBytes);
       
-            data = new TextureData(internalFormat, width, height, border, fetchedFormat, GL.GL_UNSIGNED_BYTE,
+            data = new TextureData(gl.getGLProfile(), internalFormat, width, height, border, fetchedFormat, GL.GL_UNSIGNED_BYTE,
                                    false, false, false, res, null);
 
             if (DEBUG) {
@@ -758,7 +773,7 @@ public class TextureIO {
     }
 
     // Implementation methods
-    private static TextureData newTextureDataImpl(File file,
+    private static TextureData newTextureDataImpl(GLProfile glp, File file,
                                                   int internalFormat,
                                                   int pixelFormat,
                                                   boolean mipmap,
@@ -771,7 +786,7 @@ public class TextureIO {
 
         for (Iterator iter = textureProviders.iterator(); iter.hasNext(); ) {
             TextureProvider provider = (TextureProvider) iter.next();
-            TextureData data = provider.newTextureData(file,
+            TextureData data = provider.newTextureData(glp, file,
                                                        internalFormat,
                                                        pixelFormat,
                                                        mipmap,
@@ -784,7 +799,7 @@ public class TextureIO {
         throw new IOException("No suitable reader for given file "+file.getAbsolutePath());
     }
 
-    private static TextureData newTextureDataImpl(InputStream stream,
+    private static TextureData newTextureDataImpl(GLProfile glp, InputStream stream,
                                                   int internalFormat,
                                                   int pixelFormat,
                                                   boolean mipmap,
@@ -802,7 +817,7 @@ public class TextureIO {
 
         for (Iterator iter = textureProviders.iterator(); iter.hasNext(); ) {
             TextureProvider provider = (TextureProvider) iter.next();
-            TextureData data = provider.newTextureData(stream,
+            TextureData data = provider.newTextureData(glp, stream,
                                                        internalFormat,
                                                        pixelFormat,
                                                        mipmap,
@@ -815,7 +830,7 @@ public class TextureIO {
         throw new IOException("No suitable reader for given stream");
     }
 
-    private static TextureData newTextureDataImpl(URL url,
+    private static TextureData newTextureDataImpl(GLProfile glp, URL url,
                                                   int internalFormat,
                                                   int pixelFormat,
                                                   boolean mipmap,
@@ -828,7 +843,7 @@ public class TextureIO {
 
         for (Iterator iter = textureProviders.iterator(); iter.hasNext(); ) {
             TextureProvider provider = (TextureProvider) iter.next();
-            TextureData data = provider.newTextureData(url,
+            TextureData data = provider.newTextureData(glp, url,
                                                        internalFormat,
                                                        pixelFormat,
                                                        mipmap,
@@ -844,7 +859,7 @@ public class TextureIO {
     //----------------------------------------------------------------------
     // DDS provider -- supports files only for now
     static class DDSTextureProvider implements TextureProvider {
-        public TextureData newTextureData(File file,
+        public TextureData newTextureData(GLProfile glp, File file,
                                           int internalFormat,
                                           int pixelFormat,
                                           boolean mipmap,
@@ -852,13 +867,13 @@ public class TextureIO {
             if (DDS.equals(fileSuffix) ||
                 DDS.equals(FileUtil.getFileSuffix(file))) {
                 DDSImage image = DDSImage.read(file);
-                return newTextureData(image, internalFormat, pixelFormat, mipmap);
+                return newTextureData(glp, image, internalFormat, pixelFormat, mipmap);
             }
 
             return null;
         }
 
-        public TextureData newTextureData(InputStream stream,
+        public TextureData newTextureData(GLProfile glp, InputStream stream,
                                           int internalFormat,
                                           int pixelFormat,
                                           boolean mipmap,
@@ -868,26 +883,26 @@ public class TextureIO {
                 byte[] data = StreamUtil.readAll2Array(stream);
                 ByteBuffer buf = ByteBuffer.wrap(data);
                 DDSImage image = DDSImage.read(buf);
-                return newTextureData(image, internalFormat, pixelFormat, mipmap);
+                return newTextureData(glp, image, internalFormat, pixelFormat, mipmap);
             }
 
             return null;
         }
 
-        public TextureData newTextureData(URL url,
+        public TextureData newTextureData(GLProfile glp, URL url,
                                           int internalFormat,
                                           int pixelFormat,
                                           boolean mipmap,
                                           String fileSuffix) throws IOException {
             InputStream stream = new BufferedInputStream(url.openStream());
             try {
-                return newTextureData(stream, internalFormat, pixelFormat, mipmap, fileSuffix);
+                return newTextureData(glp, stream, internalFormat, pixelFormat, mipmap, fileSuffix);
             } finally {
                 stream.close();
             }
         }
 
-        private TextureData newTextureData(final DDSImage image,
+        private TextureData newTextureData(GLProfile glp, final DDSImage image,
                                            int internalFormat,
                                            int pixelFormat,
                                            boolean mipmap) {
@@ -939,7 +954,7 @@ public class TextureIO {
                 for (int i = 0; i < image.getNumMipMaps(); i++) {
                     mipmapData[i] = image.getMipMap(i).getData();
                 }
-                data = new TextureData(internalFormat,
+                data = new TextureData(glp, internalFormat,
                                        info.getWidth(),
                                        info.getHeight(),
                                        0,
@@ -953,7 +968,7 @@ public class TextureIO {
                 // Fix this up for the end user because we can't generate
                 // mipmaps for compressed textures
                 mipmap = false;
-                data = new TextureData(internalFormat,
+                data = new TextureData(glp, internalFormat,
                                        info.getWidth(),
                                        info.getHeight(),
                                        0,
@@ -972,7 +987,7 @@ public class TextureIO {
     //----------------------------------------------------------------------
     // Base class for SGI RGB and TGA image providers
     static abstract class StreamBasedTextureProvider implements TextureProvider {
-        public TextureData newTextureData(File file,
+        public TextureData newTextureData(GLProfile glp, File file,
                                           int internalFormat,
                                           int pixelFormat,
                                           boolean mipmap,
@@ -982,7 +997,7 @@ public class TextureIO {
                 // The SGIImage and TGAImage implementations use InputStreams
                 // anyway so there isn't much point in having a separate code
                 // path for files
-                return newTextureData(inStream,
+                return newTextureData(glp, inStream,
                                       internalFormat,
                                       pixelFormat,
                                       mipmap,
@@ -992,14 +1007,14 @@ public class TextureIO {
             }
         }
 
-        public TextureData newTextureData(URL url,
+        public TextureData newTextureData(GLProfile glp, URL url,
                                           int internalFormat,
                                           int pixelFormat,
                                           boolean mipmap,
                                           String fileSuffix) throws IOException {
             InputStream stream = new BufferedInputStream(url.openStream());
             try {
-                return newTextureData(stream, internalFormat, pixelFormat, mipmap, fileSuffix);
+                return newTextureData(glp, stream, internalFormat, pixelFormat, mipmap, fileSuffix);
             } finally {
                 stream.close();
             }
@@ -1009,7 +1024,7 @@ public class TextureIO {
     //----------------------------------------------------------------------
     // SGI RGB image provider
     static class SGITextureProvider extends StreamBasedTextureProvider {
-        public TextureData newTextureData(InputStream stream,
+        public TextureData newTextureData(GLProfile glp, InputStream stream,
                                           int internalFormat,
                                           int pixelFormat,
                                           boolean mipmap,
@@ -1024,7 +1039,7 @@ public class TextureIO {
                 if (internalFormat == 0) {
                     internalFormat = image.getFormat();
                 }
-                return new TextureData(internalFormat,
+                return new TextureData(glp, internalFormat,
                                        image.getWidth(),
                                        image.getHeight(),
                                        0,
@@ -1044,7 +1059,7 @@ public class TextureIO {
     //----------------------------------------------------------------------
     // TGA (Targa) image provider
     static class TGATextureProvider extends StreamBasedTextureProvider {
-        public TextureData newTextureData(InputStream stream,
+        public TextureData newTextureData(GLProfile glp, InputStream stream,
                                           int internalFormat,
                                           int pixelFormat,
                                           boolean mipmap,
@@ -1062,7 +1077,7 @@ public class TextureIO {
                         internalFormat = (image.getBytesPerPixel()==4)?GL.GL_RGBA:GL.GL_RGB;
                     }
                 }
-                return new TextureData(internalFormat,
+                return new TextureData(glp, internalFormat,
                                        image.getWidth(),
                                        image.getHeight(),
                                        0,

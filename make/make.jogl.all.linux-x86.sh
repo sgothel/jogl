@@ -17,7 +17,7 @@ fi
 #    -Djogl.cg=1 -Dx11.cg.lib=../../lib-linux-x86 \
 
 ant \
-    -Dgluegen.user.compiler.file=`pwd`/../../gluegen/make/lib/gluegen.compiler.linux-32bit.xml \
+    -Dgluegen-cpptasks.file=`pwd`/../../gluegen/make/lib/gluegen-cpptasks-linux-32bit.xml \
     -Dbuild.noarchives=true \
     -Djogl.cg=1 -Dx11.cg.lib=../../lib-linux-x86 \
     -Drootrel.build=build-x86 \

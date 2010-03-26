@@ -49,6 +49,7 @@ import com.sun.opengl.util.*;
  *
  * @author Chris Campbell
  * @author Kenneth Russell
+ * @author Sven Gothel
  */
 
 public class TextureData {
@@ -71,13 +72,10 @@ public class TextureData {
     protected int alignment; // 1, 2, or 4 bytes
     protected int estimatedMemorySize;
 
-    // specialization of this class might need GL dependent post initialization 
-    protected Object glPostInitSync = new Object(); 
-    protected volatile boolean glPostInitDone = false;
-
     // These booleans are a concession to the AWTTextureData subclass
     protected boolean haveEXTABGR;
     protected boolean haveGL12;
+    protected GLProfile glProfile;
 
     /** 
      * Constructs a new TextureData object with the specified parameters
@@ -87,6 +85,8 @@ public class TextureData {
      * memory-mapped files that might otherwise require a garbage
      * collection to reclaim and close.
      *
+     * @param glp the OpenGL Profile this texture data should be
+     *                  created for.
      * @param internalFormat the OpenGL internal format for the
      *                       resulting texture; must be specified, may
      *                       not be 0
@@ -117,7 +117,8 @@ public class TextureData {
      *   data were invalid, such as requesting mipmap generation for a
      *   compressed texture
      */
-    public TextureData(int internalFormat,
+    public TextureData(GLProfile glp, 
+                       int internalFormat,
                        int width,
                        int height,
                        int border,
@@ -132,6 +133,7 @@ public class TextureData {
             throw new IllegalArgumentException("Can not generate mipmaps for compressed textures");
         }
 
+        this.glProfile = glp;
         this.width = width;
         this.height = height;
         this.border = border;
@@ -155,6 +157,8 @@ public class TextureData {
      * complete; for example, closing of memory-mapped files that might
      * otherwise require a garbage collection to reclaim and close.
      *
+     * @param glp the OpenGL Profile this texture data should be
+     *                  created for.
      * @param internalFormat the OpenGL internal format for the
      *                       resulting texture; must be specified, may
      *                       not be 0
@@ -184,7 +188,8 @@ public class TextureData {
      *   data were invalid, such as requesting mipmap generation for a
      *   compressed texture
      */
-    public TextureData(int internalFormat,
+    public TextureData(GLProfile glp,
+                       int internalFormat,
                        int width,
                        int height,
                        int border,
@@ -194,6 +199,7 @@ public class TextureData {
                        boolean mustFlipVertically,
                        Buffer[] mipmapData,
                        Flusher flusher) throws IllegalArgumentException {
+        this.glProfile = glp;
         this.width = width;
         this.height = height;
         this.border = border;
@@ -211,7 +217,7 @@ public class TextureData {
     }
 
     /** Used only by subclasses */
-    protected TextureData() { }
+    protected TextureData(GLProfile glp) { this.glProfile = glp; }
 
     /** Returns the width in pixels of the texture data. */
     public int getWidth() { return width; }
@@ -219,61 +225,50 @@ public class TextureData {
     public int getHeight() { return height; }
     /** Returns the border in pixels of the texture data. */
     public int getBorder() { 
-        glPostInitInt();
         return border; 
     }
     /** Returns the intended OpenGL pixel format of the texture data. */
     public int getPixelFormat() {
-        glPostInitInt();
         return pixelFormat;
     }
     /** Returns the intended OpenGL pixel type of the texture data. */
     public int getPixelType() {
-        glPostInitInt();
         return pixelType;
     }
     /** Returns the intended OpenGL internal format of the texture data. */
     public int getInternalFormat() { 
-        glPostInitInt();
         return internalFormat; 
     }
     /** Returns whether mipmaps should be generated for the texture data. */
     public boolean getMipmap() { 
-        glPostInitInt();
         return mipmap; 
     }
     /** Indicates whether the texture data is in compressed form. */
     public boolean isDataCompressed() { 
-        glPostInitInt();
         return dataIsCompressed; 
     }
     /** Indicates whether the texture coordinates must be flipped
         vertically for proper display. */
     public boolean getMustFlipVertically() { 
-        glPostInitInt();
         return mustFlipVertically; 
     }
     /** Returns the texture data, or null if it is specified as a set of mipmaps. */
     public Buffer getBuffer() {
-        glPostInitInt();
         return buffer;
     }
     /** Returns all mipmap levels for the texture data, or null if it is
         specified as a single image. */
     public Buffer[] getMipmapData() { 
-        glPostInitInt();
         return mipmapData; 
     }
     /** Returns the required byte alignment for the texture data. */
     public int getAlignment() { 
-        glPostInitInt();
         return alignment; 
     }
     /** Returns the row length needed for correct GL_UNPACK_ROW_LENGTH
         specification. This is currently only supported for
         non-mipmapped, non-compressed textures. */
     public int getRowLength() { 
-        glPostInitInt();
         return rowLength; 
     }
 
@@ -321,6 +316,9 @@ public class TextureData {
         this.haveGL12 = haveGL12;
     }
 
+    /** Returns the GLProfile this texture data is intended and created for. */
+    public GLProfile getGLProfile() { return glProfile; }
+
     /** Returns an estimate of the amount of memory in bytes this
         TextureData will consume once uploaded to the graphics card. It
         should only be treated as an estimate; most applications should
@@ -333,7 +331,6 @@ public class TextureData {
     /** Flushes resources associated with this TextureData by calling
         Flusher.flush(). */
     public void flush() {
-        glPostInitInt();
         if (flusher != null) {
             flusher.flush();
             flusher = null;
@@ -363,19 +360,6 @@ public class TextureData {
     //----------------------------------------------------------------------
     // Internals only below this point
     //
-
-    protected void glPostInit() { }
-
-    protected final void glPostInitInt() {
-        if(glPostInitDone) return;
-        synchronized(glPostInitSync) {
-            if(!glPostInitDone) {
-                glPostInit();
-                glPostInitDone = true;
-            }
-            glPostInitSync.notifyAll();
-        }
-    }
 
     protected static int estimatedMemorySize(Buffer buffer) {
         if (buffer == null) {

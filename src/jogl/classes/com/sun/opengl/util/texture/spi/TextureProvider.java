@@ -41,6 +41,7 @@ package com.sun.opengl.util.texture.spi;
 
 import java.io.*;
 import java.net.*;
+import javax.media.opengl.GLProfile;
 
 import com.sun.opengl.util.texture.*;
 
@@ -58,6 +59,8 @@ public interface TextureProvider {
      * do any OpenGL-related work. The resulting TextureData can be
      * converted into an OpenGL texture in a later step.
      *
+     * @param glp the OpenGL Profile this texture data should be
+     *                  created for.
      * @param file         the file from which to read the texture data
      *
      * @param internalFormat the OpenGL internal format to be used for
@@ -83,7 +86,7 @@ public interface TextureProvider {
      *
      * @throws IOException if an error occurred while reading the file
      */
-    public TextureData newTextureData(File file,
+    public TextureData newTextureData(GLProfile glp, File file,
                                       int internalFormat,
                                       int pixelFormat,
                                       boolean mipmap,
@@ -95,6 +98,8 @@ public interface TextureProvider {
      * not do any OpenGL-related work. The resulting TextureData can be
      * converted into an OpenGL texture in a later step.
      *
+     * @param glp the OpenGL Profile this texture data should be
+     *                  created for.
      * @param stream       the stream from which to read the texture data
      *
      * @param internalFormat the OpenGL internal format to be used for
@@ -120,7 +125,7 @@ public interface TextureProvider {
      *
      * @throws IOException if an error occurred while reading the stream
      */
-    public TextureData newTextureData(InputStream stream,
+    public TextureData newTextureData(GLProfile glp, InputStream stream,
                                       int internalFormat,
                                       int pixelFormat,
                                       boolean mipmap,
@@ -132,6 +137,8 @@ public interface TextureProvider {
      * do any OpenGL-related work. The resulting TextureData can be
      * converted into an OpenGL texture in a later step.
      *
+     * @param glp the OpenGL Profile this texture data should be
+     *                  created for.
      * @param url          the URL from which to read the texture data
      *
      * @param internalFormat the OpenGL internal format to be used for
@@ -157,7 +164,7 @@ public interface TextureProvider {
      *
      * @throws IOException if an error occurred while reading the URL
      */
-    public TextureData newTextureData(URL url,
+    public TextureData newTextureData(GLProfile glp, URL url,
                                       int internalFormat,
                                       int pixelFormat,
                                       boolean mipmap,

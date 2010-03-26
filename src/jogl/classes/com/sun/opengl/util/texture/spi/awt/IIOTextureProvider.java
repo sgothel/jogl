@@ -44,6 +44,7 @@ import java.awt.image.*;
 import java.io.*;
 import java.net.*;
 import javax.imageio.*;
+import javax.media.opengl.GLProfile;
 
 import com.sun.opengl.impl.Debug;
 import com.sun.opengl.util.texture.*;
@@ -53,7 +54,7 @@ import com.sun.opengl.util.texture.spi.*;
 public class IIOTextureProvider implements TextureProvider {
     private static final boolean DEBUG = Debug.debug("TextureIO");
 
-    public TextureData newTextureData(File file,
+    public TextureData newTextureData(GLProfile glp, File file,
                                       int internalFormat,
                                       int pixelFormat,
                                       boolean mipmap,
@@ -66,10 +67,10 @@ public class IIOTextureProvider implements TextureProvider {
             System.out.println("TextureIO.newTextureData(): BufferedImage type for " + file + " = " +
                                img.getType());
         }
-        return new AWTTextureData(internalFormat, pixelFormat, mipmap, img);
+        return new AWTTextureData(glp, internalFormat, pixelFormat, mipmap, img);
     }
 
-    public TextureData newTextureData(InputStream stream,
+    public TextureData newTextureData(GLProfile glp, InputStream stream,
                                       int internalFormat,
                                       int pixelFormat,
                                       boolean mipmap,
@@ -82,17 +83,17 @@ public class IIOTextureProvider implements TextureProvider {
             System.out.println("TextureIO.newTextureData(): BufferedImage type for stream = " +
                                img.getType());
         }
-        return new AWTTextureData(internalFormat, pixelFormat, mipmap, img);
+        return new AWTTextureData(glp, internalFormat, pixelFormat, mipmap, img);
     }
 
-    public TextureData newTextureData(URL url,
+    public TextureData newTextureData(GLProfile glp, URL url,
                                       int internalFormat,
                                       int pixelFormat,
                                       boolean mipmap,
                                       String fileSuffix) throws IOException {
         InputStream stream = url.openStream();
         try {
-            return newTextureData(stream, internalFormat, pixelFormat, mipmap, fileSuffix);
+            return newTextureData(glp, stream, internalFormat, pixelFormat, mipmap, fileSuffix);
         } finally {
             stream.close();
         }

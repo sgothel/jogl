@@ -59,6 +59,7 @@
        setup.noAWT
        setup.noCDC
 
+   - Skip gluegen: java.generate.skip
    -->
 <project name="JOGL" basedir="." default="all">
 
@@ -2073,7 +2074,7 @@
     <!--
        - Build/run junit.
       -->
-    <target name="junit.compile">
+    <target name="junit.compile" depends="init">
         <!-- Perform the junit pass Java compile -->
         <javac destdir="${classes}"
                source="${junit.sourcelevel}"

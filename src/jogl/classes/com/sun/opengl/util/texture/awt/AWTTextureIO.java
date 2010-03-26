@@ -48,15 +48,20 @@ public class AWTTextureIO extends TextureIO {
     /**
      * Creates a TextureData from the given BufferedImage. Does no
      * OpenGL work.
+     * We assume a desktop GLProfile GL2GL3, otherwise use the other factory.
      *
+     * @param glp the OpenGL Profile this texture data should be
+     *                  created for.
      * @param image the BufferedImage containing the texture data
      * @param mipmap     whether mipmaps should be produced for this
      *                   texture by autogenerating them
      * @return the texture data from the image
+     *
+     * @see #newTextureData(GLProfile, BufferedImage, boolean)
      */
-    public static TextureData newTextureData(BufferedImage image,
+    public static TextureData newTextureData(GLProfile glp, BufferedImage image,
                                              boolean mipmap) {
-        return newTextureDataImpl(image, 0, 0, mipmap);
+        return newTextureDataImpl(glp, image, 0, 0, mipmap);
     }
 
     /**
@@ -67,6 +72,8 @@ public class AWTTextureIO extends TextureIO {
      * the variant of this method which does not take these
      * arguments. Does no OpenGL work.
      *
+     * @param glp the OpenGL Profile this texture data should be
+     *                  created for.
      * @param image the BufferedImage containing the texture data
      * @param internalFormat the OpenGL internal format of the texture
      *                   which will eventually result from the TextureData
@@ -82,7 +89,7 @@ public class AWTTextureIO extends TextureIO {
      * @throws IllegalArgumentException if either internalFormat or
      *                                  pixelFormat was 0
      */
-    public static TextureData newTextureData(BufferedImage image,
+    public static TextureData newTextureData(GLProfile glp, BufferedImage image,
                                              int internalFormat,
                                              int pixelFormat,
                                              boolean mipmap) throws IllegalArgumentException {
@@ -90,30 +97,33 @@ public class AWTTextureIO extends TextureIO {
             throw new IllegalArgumentException("internalFormat and pixelFormat must be non-zero");
         }
 
-        return newTextureDataImpl(image, internalFormat, pixelFormat, mipmap);
+        return newTextureDataImpl(glp, image, internalFormat, pixelFormat, mipmap);
     }
 
     /** 
      * Creates an OpenGL texture object from the specified BufferedImage
      * using the current OpenGL context.
      *
+     * @param glp the OpenGL Profile this texture data should be
+     *                  created for.
      * @param image the BufferedImage from which to read the texture data
      * @param mipmap     whether mipmaps should be produced for this
      *                   texture by autogenerating them
      * @throws GLException if no OpenGL context is current or if an
      *                     OpenGL error occurred
      */
-    public static Texture newTexture(BufferedImage image, boolean mipmap) throws GLException {
-        TextureData data = newTextureData(image, mipmap);
+    public static Texture newTexture(GLProfile glp, BufferedImage image, boolean mipmap) throws GLException {
+        TextureData data = newTextureData(glp, image, mipmap);
         Texture texture = newTexture(data);
         data.flush();
         return texture;
     }
 
-    private static TextureData newTextureDataImpl(BufferedImage image,
+    private static TextureData newTextureDataImpl(GLProfile glp, 
+                                                  BufferedImage image,
                                                   int internalFormat,
                                                   int pixelFormat,
                                                   boolean mipmap) {
-        return new AWTTextureData(internalFormat, pixelFormat, mipmap, image);
+        return new AWTTextureData(glp, internalFormat, pixelFormat, mipmap, image);
     }
 }

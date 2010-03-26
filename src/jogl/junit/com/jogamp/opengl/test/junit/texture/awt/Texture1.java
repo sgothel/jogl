@@ -34,6 +34,8 @@ package com.jogamp.opengl.test.junit.texture.awt;
 
 import com.jogamp.opengl.test.junit.texture.util.gl2.TextureGL2ListenerDraw1;
 
+import javax.media.opengl.GLProfile;
+import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES1;
 import javax.media.opengl.GL2;
@@ -92,12 +94,13 @@ public class Texture1 {
 
     @Test
     public void test1() {
-        GLCanvas glCanvas = new GLCanvas();
+        GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GL2GL3));
+        GLCanvas glCanvas = new GLCanvas(caps);
         frame.add(glCanvas);
         frame.setSize(512, 512);
 
         // create texture    
-        TextureData textureData = AWTTextureIO.newTextureData(textureImage, false);
+        TextureData textureData = AWTTextureIO.newTextureData(caps.getGLProfile(), textureImage, false);
         glCanvas.addGLEventListener(new TextureGL2ListenerDraw1(textureData));
 
         Animator animator = new Animator(glCanvas);
