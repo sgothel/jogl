@@ -631,7 +631,7 @@ public class TextureRenderer {
     // BufferedImage; it's just a reference to the contents but we
     // need it in order to update sub-regions of the underlying
     // texture
-    textureData = new AWTTextureData(internalFormat, 0, mipmap, image);
+    textureData = new AWTTextureData(gl.getGLProfile(), internalFormat, 0, mipmap, image);
     // For now, always reallocate the underlying OpenGL texture when
     // the backing store size changes
     mustReallocateTexture = true;
