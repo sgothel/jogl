@@ -240,7 +240,7 @@ public abstract class GLContextImpl extends GLContext {
       }
   
       if (glStateTracker != null) {
-          glStateTracker.clearStates();
+          glStateTracker.clearStates(false);
       }
   
       destroyImpl();

@@ -52,7 +52,7 @@ import javax.media.opengl.*;
 public class GLStateTracker {
   private static final boolean DEBUG = Debug.debug("GLStateTracker");
 
-  private boolean enabled = true;
+  private volatile boolean enabled = true;
 
   private Map/*<Integer,Integer>*/ pixelStateMap = new HashMap/*<Integer,Integer>*/();
 
@@ -75,7 +75,8 @@ public class GLStateTracker {
     resetStates();
   }
 
-  public void clearStates() {
+  public void clearStates(boolean enable) {
+    enabled = enable;    
     pixelStateMap.clear();
   }
 
@@ -91,7 +92,13 @@ public class GLStateTracker {
     if(enabled) {
         Integer key = boxKey(pname);
         if(null!=key) {
-            params[params_offset] = ((Integer) pixelStateMap.get(key)).intValue();
+            Integer value = (Integer) pixelStateMap.get(key);
+            if(null!=value) {
+                params[params_offset] = value.intValue();
+            } else {
+                GLException re = new GLException("Key (0x"+Integer.toHexString(key.intValue())+") is not mapped");
+                throw re;
+            }
             return true;
         }
     }
@@ -102,7 +109,13 @@ public class GLStateTracker {
     if(enabled) {
         Integer key = boxKey(pname);
         if(null!=key) {
-            params.put(params.position(), ((Integer) pixelStateMap.get(key)).intValue());
+            Integer value = (Integer) pixelStateMap.get(key);
+            if(null!=value) {
+                params.put(params.position(), value.intValue());
+            } else {
+                GLException re = new GLException("Key (0x"+Integer.toHexString(key.intValue())+") is not mapped");
+                throw re;
+            }
             return true;
         }
     }
@@ -138,11 +151,11 @@ public class GLStateTracker {
             throw new GLException("null stack element (remaining stack size "+stack.size()+")");
         }
 
-        clearStates();
-
+        Map/*<Integer,Integer>*/ pixelStateMapNew = new HashMap/*<Integer,Integer>*/();
         if ( null != state.getPixelStateMap() ) {
-            pixelStateMap.putAll(state.getPixelStateMap());
+            pixelStateMapNew.putAll(state.getPixelStateMap());
         }
+        pixelStateMap = pixelStateMapNew;
     }
   }
 
