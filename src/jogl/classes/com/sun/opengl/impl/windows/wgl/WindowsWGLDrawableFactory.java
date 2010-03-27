@@ -45,7 +45,7 @@ import javax.media.nativewindow.*;
 import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
 import com.sun.nativewindow.impl.NWReflection;
-import com.sun.gluegen.runtime.DynamicLookupHelper;
+import com.jogamp.gluegen.runtime.DynamicLookupHelper;
 import com.sun.nativewindow.impl.NullWindow;
 
 public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl implements DynamicLookupHelper {

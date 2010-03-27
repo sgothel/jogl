@@ -37,8 +37,8 @@ import javax.media.nativewindow.*;
 import javax.media.nativewindow.x11.*;
 import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
-import com.sun.gluegen.runtime.NativeLibrary;
-import com.sun.gluegen.runtime.PointerBuffer;
+import com.jogamp.gluegen.runtime.NativeLibrary;
+import com.jogamp.gluegen.runtime.PointerBuffer;
 import com.sun.nativewindow.impl.x11.*;
 
 public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implements Cloneable {

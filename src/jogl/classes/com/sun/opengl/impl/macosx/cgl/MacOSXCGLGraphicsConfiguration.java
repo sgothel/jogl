@@ -35,11 +35,8 @@
 
 package com.sun.opengl.impl.macosx.cgl;
 
-import java.util.*;
 import javax.media.nativewindow.*;
 import javax.media.opengl.*;
-import com.sun.opengl.impl.*;
-import com.sun.gluegen.runtime.NativeLibrary;
 
 public class MacOSXCGLGraphicsConfiguration extends DefaultGraphicsConfiguration implements Cloneable {
     long pixelformat;

@@ -257,7 +257,7 @@
 
         <property name="javadoc.packagenames" value="${javadoc.spec.packagenames}" />
 
-        <property name="javadoc.dev.packagenames" value="${javadoc.packagenames},com.sun.nativewindow.impl.*,com.sun.gluegen,com.sun.gluegen.runtime" />
+        <property name="javadoc.dev.packagenames" value="${javadoc.packagenames},com.sun.nativewindow.impl.*,com.sun.gluegen,com.jogamp.gluegen.runtime" />
     <property name="javadoc.bottom" value="Copyright 2005 Sun Microsystems, Inc. All rights reserved. Use is subject to &lt;a href=&quot;http://jcp.org/en/jsr/detail?id=231&quot;&gt;license terms&lt;/a&gt;." />
     </target>
     

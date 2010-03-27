@@ -41,7 +41,7 @@ package com.sun.opengl.impl;
 
 import java.io.*;
 import java.security.*;
-import com.sun.gluegen.runtime.*;
+import com.jogamp.gluegen.runtime.*;
 
 /**
  * Helper class for working around problems with open-source DRI

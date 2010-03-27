@@ -41,7 +41,7 @@ import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
 import com.sun.opengl.impl.x11.glx.*;
 
-import com.sun.gluegen.runtime.PointerBuffer;
+import com.jogamp.gluegen.runtime.PointerBuffer;
 
 /** Subclass of GraphicsConfigurationFactory used when non-AWT tookits
     are used on X11 platforms. Toolkits will likely need to delegate

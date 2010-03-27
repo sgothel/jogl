@@ -38,7 +38,7 @@ package com.sun.opengl.impl.egl;
 import javax.media.nativewindow.*;
 import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
-import com.sun.gluegen.runtime.ProcAddressTable;
+import com.jogamp.gluegen.runtime.ProcAddressTable;
 import java.nio.*;
 import java.util.*;
 

@@ -41,7 +41,7 @@ package com.sun.opengl.impl;
 
 import javax.media.nativewindow.*;
 import javax.media.opengl.*;
-import com.sun.gluegen.runtime.DynamicLookupHelper;
+import com.jogamp.gluegen.runtime.DynamicLookupHelper;
 
 public abstract class GLDrawableImpl implements GLDrawable {
   protected static final boolean DEBUG = Debug.debug("GLDrawable");

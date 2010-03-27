@@ -13,7 +13,7 @@
 
 
   /** Interface to C language function: <br> - Alias for: <br> <code> GLXFBConfig *  glXChooseFBConfigSGIX, glXChooseFBConfig(Display *  dpy, int screen, const int *  attribList, int *  nitems); </code>    */
-  public static com.sun.gluegen.runtime.PointerBuffer glXChooseFBConfigCopied(long dpy, int screen, int[] attribList, int attribList_offset, int[] nitems, int nitems_offset)
+  public static com.jogamp.gluegen.runtime.PointerBuffer glXChooseFBConfigCopied(long dpy, int screen, int[] attribList, int attribList_offset, int[] nitems, int nitems_offset)
   {
     if(attribList != null && attribList.length <= attribList_offset)
       throw new GLException("array offset argument \"attribList_offset\" (" + attribList_offset + ") equals or exceeds array length (" + attribList.length + ")");

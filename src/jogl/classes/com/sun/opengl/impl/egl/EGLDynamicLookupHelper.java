@@ -40,8 +40,8 @@ import javax.media.nativewindow.*;
 import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
 import com.sun.nativewindow.impl.*;
-import com.sun.gluegen.runtime.NativeLibrary;
-import com.sun.gluegen.runtime.DynamicLookupHelper;
+import com.jogamp.gluegen.runtime.NativeLibrary;
+import com.jogamp.gluegen.runtime.DynamicLookupHelper;
 import java.security.*;
 
 /**

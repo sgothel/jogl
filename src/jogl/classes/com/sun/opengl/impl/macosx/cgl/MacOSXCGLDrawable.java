@@ -42,7 +42,7 @@ package com.sun.opengl.impl.macosx.cgl;
 import javax.media.nativewindow.*;
 import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
-import com.sun.gluegen.runtime.DynamicLookupHelper;
+import com.jogamp.gluegen.runtime.DynamicLookupHelper;
 
 public abstract class MacOSXCGLDrawable extends GLDrawableImpl {
   // The Java2D/OpenGL pipeline on OS X uses low-level CGLContextObjs

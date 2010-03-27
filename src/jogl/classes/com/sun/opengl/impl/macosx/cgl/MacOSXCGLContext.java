@@ -44,7 +44,7 @@ import java.util.*;
 import javax.media.opengl.*;
 import javax.media.nativewindow.*;
 import com.sun.opengl.impl.*;
-import com.sun.gluegen.runtime.ProcAddressTable;
+import com.jogamp.gluegen.runtime.ProcAddressTable;
 
 public abstract class MacOSXCGLContext extends GLContextImpl
 {	

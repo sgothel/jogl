@@ -39,8 +39,6 @@
 
 package com.sun.opengl.impl.windows.wgl;
 
-import java.nio.*;
-import java.util.*;
 import javax.media.opengl.*;
 import javax.media.nativewindow.*;
 import com.sun.opengl.impl.*;
@@ -53,7 +51,7 @@ public class WindowsExternalWGLContext extends WindowsWGLContext {
 
   private WindowsExternalWGLContext(Drawable drawable, long hglrc, WindowsWGLGraphicsConfiguration cfg) {
     super(drawable, null);
-    this.hglrc = hglrc;
+    this.context = hglrc;
     if (DEBUG) {
       System.err.println(getThreadName() + ": !!! Created external OpenGL context " + toHexString(hglrc) + " for " + this);
     }

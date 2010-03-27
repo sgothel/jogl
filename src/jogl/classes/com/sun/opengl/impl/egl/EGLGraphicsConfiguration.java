@@ -40,7 +40,7 @@ import javax.media.nativewindow.*;
 import javax.media.nativewindow.egl.*;
 import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
-import com.sun.gluegen.runtime.NativeLibrary;
+import com.jogamp.gluegen.runtime.NativeLibrary;
 
 public class EGLGraphicsConfiguration extends DefaultGraphicsConfiguration implements Cloneable {
     protected static final boolean DEBUG = Debug.debug("GraphicsConfiguration");

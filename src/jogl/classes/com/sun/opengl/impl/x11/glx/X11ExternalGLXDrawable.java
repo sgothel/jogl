@@ -46,7 +46,7 @@ import com.sun.opengl.impl.*;
 import com.sun.nativewindow.impl.NullWindow;
 import com.sun.nativewindow.impl.x11.*;
 
-import com.sun.gluegen.runtime.PointerBuffer;
+import com.jogamp.gluegen.runtime.PointerBuffer;
 
 public class X11ExternalGLXDrawable extends X11GLXDrawable {
   private int fbConfigID;

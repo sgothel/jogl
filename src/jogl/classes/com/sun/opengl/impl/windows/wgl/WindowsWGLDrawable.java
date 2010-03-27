@@ -42,7 +42,7 @@ package com.sun.opengl.impl.windows.wgl;
 import javax.media.nativewindow.*;
 import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
-import com.sun.gluegen.runtime.DynamicLookupHelper;
+import com.jogamp.gluegen.runtime.DynamicLookupHelper;
 
 public abstract class WindowsWGLDrawable extends GLDrawableImpl {
   private static final int MAX_SET_PIXEL_FORMAT_FAIL_COUNT = 5;

@@ -40,7 +40,7 @@ import javax.media.nativewindow.*;
 import javax.media.opengl.*;
 import com.sun.opengl.impl.*;
 import com.sun.nativewindow.impl.*;
-import com.sun.gluegen.runtime.NativeLibrary;
+import com.jogamp.gluegen.runtime.NativeLibrary;
 
 /**
  * Implementation of the EGLDynamicLookupHelper for ES1.

@@ -42,7 +42,7 @@ package com.sun.opengl.impl;
 import java.nio.*;
 import javax.media.nativewindow.*;
 import javax.media.opengl.*;
-import com.sun.gluegen.runtime.*;
+import com.jogamp.gluegen.runtime.*;
 import com.sun.nativewindow.impl.NWReflection;
 import java.lang.reflect.*;
 

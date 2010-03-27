@@ -44,8 +44,8 @@ import java.lang.reflect.*;
 
 import javax.media.opengl.*;
 import com.sun.nativewindow.impl.NWReflection;
-import com.sun.gluegen.runtime.*;
-import com.sun.gluegen.runtime.opengl.*;
+import com.jogamp.gluegen.runtime.*;
+import com.jogamp.gluegen.runtime.opengl.*;
 
 public abstract class GLContextImpl extends GLContext {
   protected GLContextLock lock = new GLContextLock();
