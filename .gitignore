@@ -1,1 +1,6 @@
 build
+javadoc_public
+build-temp
+make/temp*
+.idea/workspace.xml
+**~
