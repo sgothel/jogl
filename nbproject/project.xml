@@ -75,6 +75,10 @@
                         </arity>
                     </context>
                 </action>
+                <action name="test">
+                    <script>${ant.script}</script>
+                    <target>junit.run</target>
+                </action>
             </ide-actions>
             <export>
                 <type>folder</type>
@@ -112,6 +116,7 @@
                     <ide-action name="build"/>
                     <ide-action name="rebuild"/>
                     <ide-action name="clean"/>
+                    <ide-action name="test"/>
                 </context-menu>
             </view>
             <subprojects/>

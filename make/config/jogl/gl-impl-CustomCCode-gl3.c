@@ -4,7 +4,7 @@
  *     C function: void * glMapBuffer(GLenum target, GLenum access);
  */
 JNIEXPORT jlong JNICALL 
-Java_com_sun_opengl_impl_gl3_GL3Impl_dispatch_1glMapBuffer(JNIEnv *env, jobject _unused, jint target, jint access, jlong glProcAddress) {
+Java_com_jogamp_opengl_impl_gl3_GL3Impl_dispatch_1glMapBuffer(JNIEnv *env, jobject _unused, jint target, jint access, jlong glProcAddress) {
   PFNGLMAPBUFFERPROC ptr_glMapBuffer;
   void * _res;
   ptr_glMapBuffer = (PFNGLMAPBUFFERPROC) (intptr_t) glProcAddress;
@@ -19,6 +19,6 @@ Java_com_sun_opengl_impl_gl3_GL3Impl_dispatch_1glMapBuffer(JNIEnv *env, jobject 
  *     C function: jobject newDirectByteBuffer(jlong addr, jint capacity);
  */
 JNIEXPORT jobject JNICALL
-Java_com_sun_opengl_impl_gl3_GL3Impl_newDirectByteBuffer(JNIEnv *env, jobject _unused, jlong addr, jint capacity) {
+Java_com_jogamp_opengl_impl_gl3_GL3Impl_newDirectByteBuffer(JNIEnv *env, jobject _unused, jlong addr, jint capacity) {
   return (*env)->NewDirectByteBuffer(env, (void*) (intptr_t) addr, capacity);
 }
