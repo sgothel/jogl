@@ -37,7 +37,7 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.sun.opengl.cg;
+package com.jogamp.opengl.cg;
 
 /**
  * A generic exception for errors that occur throughout the NVidia Cg

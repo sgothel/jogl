@@ -35,7 +35,7 @@ package com.sun.javafx.newt.opengl.kd;
 
 import com.sun.javafx.newt.*;
 import com.sun.javafx.newt.impl.*;
-import com.sun.opengl.impl.egl.*;
+import com.jogamp.opengl.impl.egl.*;
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.egl.*;
 

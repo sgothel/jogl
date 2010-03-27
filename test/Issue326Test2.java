@@ -2,7 +2,7 @@ import java.awt.Font;
 import java.awt.Frame;
 import java.awt.event.*;
 import javax.media.opengl.*;
-import com.sun.opengl.util.j2d.*;
+import com.jogamp.opengl.util.j2d.*;
 
 /**
  * Another test case demonstrating corruption with older version of

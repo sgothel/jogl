@@ -65,7 +65,7 @@ public class JAWTUtil {
     Method m=null;
     if(!headlessMode) {
         try {
-            jC = Class.forName("com.sun.opengl.impl.awt.Java2D");
+            jC = Class.forName("com.jogamp.opengl.impl.awt.Java2D");
             m = jC.getMethod("isQueueFlusherThread", null);
             ok = true;
         } catch (Exception e) {}

@@ -37,7 +37,7 @@ import java.lang.reflect.*;
 import java.nio.*;
 
 /** Internal copy of selected routines from BufferUtil to avoid
-    outward dependencies on com.sun.opengl.util package. */
+    outward dependencies on com.jogamp.opengl.util package. */
 public class InternalBufferUtil {
     public static final int SIZEOF_BYTE = 1;
     public static final int SIZEOF_SHORT = 2;

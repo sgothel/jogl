@@ -3,12 +3,12 @@ package com.sun.openmax;
 
 import javax.media.opengl.*;
 import javax.media.opengl.glu.GLU;
-import com.sun.opengl.util.texture.*;
+import com.jogamp.opengl.util.texture.*;
 
-import com.sun.opengl.impl.egl.EGL;
-import com.sun.opengl.impl.egl.EGLContext;
-import com.sun.opengl.impl.egl.EGLDrawable;
-import com.sun.opengl.impl.egl.EGLExt;
+import com.jogamp.opengl.impl.egl.EGL;
+import com.jogamp.opengl.impl.egl.EGLContext;
+import com.jogamp.opengl.impl.egl.EGLDrawable;
+import com.jogamp.opengl.impl.egl.EGLExt;
 
 import java.net.URL;
 import java.nio.ByteBuffer;
@@ -50,13 +50,13 @@ public class OMXInstance {
     protected long o_totalFrames = 0; // duration in frames
     
     static class EGLImageTexture {
-        public EGLImageTexture(com.sun.opengl.util.texture.Texture t, long i, long s) {
+        public EGLImageTexture(com.jogamp.opengl.util.texture.Texture t, long i, long s) {
             texture = t; image = i; sync = s;
         }
         public String toString() {
             return "EGLImageTexture[" + texture + ", image " + image + ", sync "+sync+"]";
         }
-        protected com.sun.opengl.util.texture.Texture texture;
+        protected com.jogamp.opengl.util.texture.Texture texture;
         protected long image;
         protected long sync;
     }
@@ -219,7 +219,7 @@ public class OMXInstance {
             _setStreamEGLImageTexture2D(moviePtr, i, tex, image, sync);
 
             eglImgTexs[i] = new EGLImageTexture(
-                com.sun.opengl.util.texture.TextureIO.newTexture(tex,
+                com.jogamp.opengl.util.texture.TextureIO.newTexture(tex,
                                                                  javax.media.opengl.GL2.GL_TEXTURE_2D,
                                                                  width,
                                                                  height,
