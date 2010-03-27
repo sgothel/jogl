@@ -374,7 +374,7 @@ public class BuildComposablePipeline
       CodeGenUtils.emitJavaHeaders(output, 
                   outputPackage,
                   outputClassName,
-                  "com.sun.gluegen.runtime", // FIXME: should make configurable
+                  "com.jogamp.gluegen.runtime", // FIXME: should make configurable
                   true,
                   importNames,
                   new String[] { "public" },

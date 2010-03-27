@@ -282,9 +282,9 @@ public class BuildStaticGLInfo
     output.println("  public static String getFunctionAssociation(String glFunctionName)");
     output.println("  {");
     output.println("    String mappedName = null;");
-    output.println("    int  funcNamePermNum = com.sun.gluegen.runtime.opengl.GLExtensionNames.getFuncNamePermutationNumber(glFunctionName);");
+    output.println("    int  funcNamePermNum = com.jogamp.gluegen.runtime.opengl.GLExtensionNames.getFuncNamePermutationNumber(glFunctionName);");
     output.println("    for(int i = 0; null==mappedName && i < funcNamePermNum; i++) {");
-    output.println("        String tmp = com.sun.gluegen.runtime.opengl.GLExtensionNames.getFuncNamePermutation(glFunctionName, i);");
+    output.println("        String tmp = com.jogamp.gluegen.runtime.opengl.GLExtensionNames.getFuncNamePermutation(glFunctionName, i);");
     output.println("        try {");
     output.println("          mappedName = (String)funcToAssocMap.get(tmp);");
     output.println("        } catch (Exception e) { }");

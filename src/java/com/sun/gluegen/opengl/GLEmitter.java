@@ -45,7 +45,7 @@ import java.util.*;
 import com.sun.gluegen.*;
 import com.sun.gluegen.cgram.types.*;
 import com.sun.gluegen.procaddress.*;
-import com.sun.gluegen.runtime.opengl.GLExtensionNames;
+import com.jogamp.gluegen.runtime.opengl.GLExtensionNames;
 
 /**
  * A subclass of ProcAddressEmitter with special OpenGL-specific
@@ -433,12 +433,12 @@ public class GLEmitter extends ProcAddressEmitter {
     w.println("   *   it was statically linked.");
     w.println("   */");
     w.println("  public long getAddressFor(String functionNameUsr) {");
-    w.println("    String functionNameBase = com.sun.gluegen.runtime.opengl.GLExtensionNames.normalizeVEN(com.sun.gluegen.runtime.opengl.GLExtensionNames.normalizeARB(functionNameUsr, true), true);");
+    w.println("    String functionNameBase = com.jogamp.gluegen.runtime.opengl.GLExtensionNames.normalizeVEN(com.jogamp.gluegen.runtime.opengl.GLExtensionNames.normalizeARB(functionNameUsr, true), true);");
     w.println("    String addressFieldNameBase = " + getProcAddressConfig().gluegenRuntimePackage() + ".ProcAddressHelper.PROCADDRESS_VAR_PREFIX + functionNameBase;");
     w.println("    java.lang.reflect.Field addressField = null;");
-    w.println("    int  funcNamePermNum = com.sun.gluegen.runtime.opengl.GLExtensionNames.getFuncNamePermutationNumber(functionNameBase);");
+    w.println("    int  funcNamePermNum = com.jogamp.gluegen.runtime.opengl.GLExtensionNames.getFuncNamePermutationNumber(functionNameBase);");
     w.println("    for(int i = 0; null==addressField && i < funcNamePermNum; i++) {");
-    w.println("        String addressFieldName = com.sun.gluegen.runtime.opengl.GLExtensionNames.getFuncNamePermutation(addressFieldNameBase, i);");
+    w.println("        String addressFieldName = com.jogamp.gluegen.runtime.opengl.GLExtensionNames.getFuncNamePermutation(addressFieldNameBase, i);");
     w.println("        try {");
     w.println("          addressField = getClass().getField(addressFieldName);");
     w.println("        } catch (Exception e) { }");

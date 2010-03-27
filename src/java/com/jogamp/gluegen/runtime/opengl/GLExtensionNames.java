@@ -35,10 +35,10 @@
  * 
  */
 
-package com.sun.gluegen.runtime.opengl;
+package com.jogamp.gluegen.runtime.opengl;
 
 import java.util.*;
-import com.sun.gluegen.runtime.*;
+import com.jogamp.gluegen.runtime.*;
 
 public class GLExtensionNames {
     //GL_XYZ : GL_XYZ, GL_XYZ_GL2, GL_XYZ_ARB, GL_XYZ_OES, GL_XYZ_OML
