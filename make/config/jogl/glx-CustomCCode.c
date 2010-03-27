@@ -15,7 +15,7 @@
 /* We expect glXGetProcAddressARB to be defined */
 extern void (*glXGetProcAddressARB(const GLubyte *procname))();
 
-static const char * clazzNameInternalBufferUtil = "com/sun/opengl/impl/InternalBufferUtil";
+static const char * clazzNameInternalBufferUtil = "com/jogamp/opengl/impl/InternalBufferUtil";
 static const char * clazzNameInternalBufferUtilStaticCstrName = "copyByteBuffer";
 static const char * clazzNameInternalBufferUtilStaticCstrSignature = "(Ljava/nio/ByteBuffer;)Ljava/nio/ByteBuffer;";
 static const char * clazzNameByteBuffer = "java/nio/ByteBuffer";
@@ -60,7 +60,7 @@ static void _initClazzAccess(JNIEnv *env) {
 }
 
 /*   Java->C glue code:
- *   Java package: com.sun.opengl.impl.x11.glx.GLX
+ *   Java package: com.jogamp.opengl.impl.x11.glx.GLX
  *    Java method: XVisualInfo glXGetVisualFromFBConfig(long dpy, long config)
  *     C function: XVisualInfo *  glXGetVisualFromFBConfig(Display *  dpy, GLXFBConfig config);
  */
@@ -85,7 +85,7 @@ Java_com_sun_opengl_impl_x11_glx_GLX_glXGetVisualFromFBConfigCopied0__JJ(JNIEnv 
 }
 
 /*   Java->C glue code:
- *   Java package: com.sun.opengl.impl.x11.glx.GLX
+ *   Java package: com.jogamp.opengl.impl.x11.glx.GLX
  *    Java method: java.nio.LongBuffer glXChooseFBConfig(long dpy, int screen, java.nio.IntBuffer attribList, java.nio.IntBuffer nitems)
  *     C function: GLXFBConfig *  glXChooseFBConfig(Display *  dpy, int screen, const int *  attribList, int *  nitems);
  */
@@ -126,7 +126,7 @@ Java_com_sun_opengl_impl_x11_glx_GLX_glXChooseFBConfigCopied1__JILjava_lang_Obje
 }
 
 /*   Java->C glue code:
- *   Java package: com.sun.opengl.impl.x11.glx.GLX
+ *   Java package: com.jogamp.opengl.impl.x11.glx.GLX
  *    Java method: XVisualInfo glXChooseVisual(long dpy, int screen, java.nio.IntBuffer attribList)
  *     C function: XVisualInfo *  glXChooseVisual(Display *  dpy, int screen, int *  attribList);
  */

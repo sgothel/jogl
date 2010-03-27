@@ -1,6 +1,6 @@
 typedef GLvoid* (GL_APIENTRY* PFNGLMAPBUFFERPROC) (GLenum target, GLenum access);
 /*   Java->C glue code:
- *   Java package: com.sun.opengl.impl.es1.GLES1Impl
+ *   Java package: com.jogamp.opengl.impl.es1.GLES1Impl
  *    Java method: long dispatch_glMapBuffer(int target, int access)
  *     C function: void * glMapBuffer(GLenum target, GLenum access);
  */
@@ -15,7 +15,7 @@ Java_com_sun_opengl_impl_es1_GLES1Impl_dispatch_1glMapBuffer(JNIEnv *env, jobjec
 }
 
 /*   Java->C glue code:
- *   Java package: com.sun.opengl.impl.es1.GLES1Impl
+ *   Java package: com.jogamp.opengl.impl.es1.GLES1Impl
  *    Java method: ByteBuffer newDirectByteBuffer(long addr, int capacity);
  *     C function: jobject newDirectByteBuffer(jlong addr, jint capacity);
  */

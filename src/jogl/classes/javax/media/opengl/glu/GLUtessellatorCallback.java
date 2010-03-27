@@ -352,5 +352,5 @@ public interface GLUtessellatorCallback {
    */
   public void errorData(int errnum, Object polygonData);
 
-  //void mesh(com.sun.opengl.impl.tessellator.GLUmesh mesh);
+  //void mesh(com.jogamp.opengl.impl.tessellator.GLUmesh mesh);
 }

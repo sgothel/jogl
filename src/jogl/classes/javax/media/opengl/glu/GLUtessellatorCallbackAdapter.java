@@ -68,7 +68,7 @@ public class GLUtessellatorCallbackAdapter implements GLUtessellatorCallback {
     public void edgeFlag(boolean boundaryEdge) {}
     public void vertex(Object vertexData) {}
     public void end() {}
-//  public void mesh(com.sun.opengl.impl.tessellator.GLUmesh mesh) {}
+//  public void mesh(com.jogamp.opengl.impl.tessellator.GLUmesh mesh) {}
     public void error(int errnum) {}
     public void combine(double[] coords, Object[] data,
                             float[] weight, Object[] outData) {}
