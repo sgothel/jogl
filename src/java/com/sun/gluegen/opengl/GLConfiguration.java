@@ -44,7 +44,7 @@ import java.util.*;
 
 import com.sun.gluegen.*;
 import com.sun.gluegen.procaddress.*;
-import com.sun.gluegen.runtime.opengl.GLExtensionNames;
+import com.jogamp.gluegen.runtime.opengl.GLExtensionNames;
 
 public class GLConfiguration extends ProcAddressConfiguration {
   // The following data members support ignoring an entire extension at a time

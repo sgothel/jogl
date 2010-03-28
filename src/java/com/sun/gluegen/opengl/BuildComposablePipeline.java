@@ -374,7 +374,7 @@ public class BuildComposablePipeline
       CodeGenUtils.emitJavaHeaders(output, 
                   outputPackage,
                   outputClassName,
-                  "com.sun.gluegen.runtime", // FIXME: should make configurable
+                  "com.jogamp.gluegen.runtime", // FIXME: should make configurable
                   true,
                   importNames,
                   new String[] { "public" },
@@ -563,7 +563,7 @@ public class BuildComposablePipeline
      * method wrappers have been generated.
      */
     protected void preMethodEmissionHook(PrintWriter output) {
-      output.println("  public static final boolean DEBUG = com.sun.opengl.impl.Debug.debug(\""+getOutputName()+"\");");
+      output.println("  public static final boolean DEBUG = com.jogamp.opengl.impl.Debug.debug(\""+getOutputName()+"\");");
     }
 
     /**
