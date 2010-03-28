@@ -226,7 +226,7 @@ public abstract class EGLDynamicLookupHelper implements DynamicLookupHelper {
         // Look up this function name in all known libraries
         for (Iterator iter = glesLibraries.iterator(); iter.hasNext(); ) {
             NativeLibrary lib = (NativeLibrary) iter.next();
-            long addr = lib.lookupFunction(glFuncName);
+            long addr = lib.dynamicLookupFunction(glFuncName);
             if (addr != 0) {
                 return addr;
             }
