@@ -41,20 +41,17 @@ package javax.media.opengl.awt;
 
 import javax.media.opengl.*;
 import javax.media.nativewindow.*;
-import javax.media.nativewindow.awt.*;
 
 import java.awt.*;
 import java.awt.geom.*;
 import java.awt.image.*;
 import java.beans.*;
-import javax.swing.*;
 import java.nio.*;
 import java.security.*;
-import javax.swing.JComponent;
 import javax.swing.JPanel;
-import com.sun.opengl.util.FBObject;
-import com.sun.opengl.impl.*;
-import com.sun.opengl.impl.awt.*;
+import com.jogamp.opengl.util.FBObject;
+import com.jogamp.opengl.impl.*;
+import com.jogamp.opengl.impl.awt.*;
 
 // FIXME: Subclasses need to call resetGLFunctionAvailability() on their
 // context whenever the displayChanged() function is called on their
@@ -1429,7 +1426,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
                 System.err.println("-- Created External Context: "+j2dContext);
               }
               if (DEBUG) {
-                j2dContext.setGL(new DebugGL2(j2dContext.getGL().getGL2()));
+//                j2dContext.setGL(new DebugGL2(j2dContext.getGL().getGL2()));
               }
 
               // Check to see whether we can support the requested

@@ -169,7 +169,7 @@ protected static boolean checkedGLUtessellatorImpl = false;
 
 protected static final void validateGLUtessellatorImpl() {
     if(!checkedGLUtessellatorImpl) {
-        availableGLUtessellatorImpl = NWReflection.isClassAvailable("com.sun.opengl.impl.glu.tessellator.GLUtessellatorImpl");
+        availableGLUtessellatorImpl = NWReflection.isClassAvailable("com.jogamp.opengl.impl.glu.tessellator.GLUtessellatorImpl");
         checkedGLUtessellatorImpl = true;
     }
     if(!availableGLUtessellatorImpl) {
@@ -1220,7 +1220,7 @@ protected static final void validateGLUquadricImpl() {
     if(!checkedGLUquadricImpl) {
         synchronized (syncObject) {
             if(!checkedGLUquadricImpl) {
-                availableGLUquadricImpl = NWReflection.isClassAvailable("com.sun.opengl.impl.glu.GLUquadricImpl");
+                availableGLUquadricImpl = NWReflection.isClassAvailable("com.jogamp.opengl.impl.glu.GLUquadricImpl");
                 checkedGLUquadricImpl = true;
             }
         }

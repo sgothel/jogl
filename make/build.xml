@@ -43,12 +43,12 @@
         <property name="javadoc.spec.packagenames" value="javax.media.opengl.*" />
 
         <property name="javadoc.windowtitle" value="JOGL, NativeWindow and NEWT APIs" />
-        <property name="javadoc.packagenames" value="${javadoc.nw.spec.packagenames},${javadoc.spec.packagenames},com.sun.opengl.util.*,com.sun.javafx.newt, com.sun.javafx.newt.opengl" />
+        <property name="javadoc.packagenames" value="${javadoc.nw.spec.packagenames},${javadoc.spec.packagenames},com.jogamp.opengl.util.*,com.sun.javafx.newt, com.sun.javafx.newt.opengl" />
 
         <property name="javadoc.dev" value="${project.root}/javadoc_dev" />
-        <property name="javadoc.dev.packagenames" value="${javadoc.packagenames},com.sun.opengl.impl.*,com.sun.nativewindow.impl.*,com.sun.javafx.newt.*,com.sun.gluegen,com.sun.gluegen.runtime" />
+        <property name="javadoc.dev.packagenames" value="${javadoc.packagenames},com.jogamp.opengl.impl.*,com.sun.nativewindow.impl.*,com.sun.javafx.newt.*,com.sun.gluegen,com.jogamp.gluegen.runtime" />
 
-        <property name="java.excludes.javadoc.packagenames" value="com.sun.opengl.impl.gl2.fixme.*,com.sun.javafx.audio.windows.waveout.TestSpatialization"/>
+        <property name="java.excludes.javadoc.packagenames" value="com.jogamp.opengl.impl.gl2.fixme.*,com.sun.javafx.audio.windows.waveout.TestSpatialization"/>
         <property name="javadoc.bottom" value="Copyright 2005 Sun Microsystems, Inc. All rights reserved. Use is subject to &lt;a href=&quot;http://jcp.org/en/jsr/detail?id=231&quot;&gt;license terms&lt;/a&gt;." />
 
         <property name="gluegen.jar" value="${gluegen.root}/${rootrel.build}/gluegen.jar" />

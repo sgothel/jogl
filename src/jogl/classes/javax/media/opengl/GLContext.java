@@ -39,7 +39,6 @@
 
 package javax.media.opengl;
 
-import com.sun.opengl.impl.Debug;
 import java.util.HashMap;
 
 /** Abstraction for an OpenGL rendering context. In order to perform
@@ -66,6 +65,8 @@ public abstract class GLContext {
   private static ThreadLocal currentContext = new ThreadLocal();
 
   private HashMap/*<int, Object>*/ attachedObjects = new HashMap();
+
+  protected long context;
 
   /**
    * Returns the GLDrawable to which this context may be used to

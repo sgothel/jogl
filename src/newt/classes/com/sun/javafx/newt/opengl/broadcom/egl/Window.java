@@ -34,7 +34,7 @@
 package com.sun.javafx.newt.opengl.broadcom.egl;
 
 import com.sun.javafx.newt.impl.*;
-import com.sun.opengl.impl.egl.*;
+import com.jogamp.opengl.impl.egl.*;
 import javax.media.nativewindow.*;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;

@@ -86,7 +86,7 @@ and the output is:
  Detected screen size 1920x1200                                                                                                                   
  GLProfile[GL2ES1/GL2ES12] Entering initialization                                                                        
  GLProfile[GL2ES1/GL2ES12] GL Profile: GLProfile[GL2ES1/GL2ES12]                                                                   
- GLProfile[GL2ES1/GL2ES12] GL:com.sun.opengl.impl.gl2es12.GL2ES12Impl@b815859
+ GLProfile[GL2ES1/GL2ES12] GL:com.jogamp.opengl.impl.gl2es12.GL2ES12Impl@b815859
  GLProfile[GL2ES1/GL2ES12] GL_VERSION=3.0.0 NVIDIA 185.18.14                               
  GLProfile[GL2ES1/GL2ES12] GL_EXTENSIONS: ..            
 

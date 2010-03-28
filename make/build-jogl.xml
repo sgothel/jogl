@@ -95,86 +95,86 @@
         <!-- partitioning -->
 
         <property name="java.part.core" 
-                  value="javax/media/opengl/* javax/media/opengl/fixedfunc/* javax/media/opengl/glu/* javax/media/opengl/glu/gl2es1/* com/sun/opengl/impl/* com/sun/opengl/impl/glu/* com/sun/opengl/impl/glu/error/*"/>
+                  value="javax/media/opengl/* javax/media/opengl/fixedfunc/* javax/media/opengl/glu/* javax/media/opengl/glu/gl2es1/* com/jogamp/opengl/impl/* com/jogamp/opengl/impl/glu/* com/jogamp/opengl/impl/glu/error/*"/>
         <property name="java.part.core.exclude" value="javax/media/opengl/Debug* javax/media/opengl/Trace*"/>
 
         <property name="java.part.nv-cg"
-                  value="com/sun/opengl/cg com/sun/opengl/cg/*"/>
+                  value="com/jogamp/opengl/cg com/jogamp/opengl/cg/*"/>
 
         <property name="java.part.egl"
-                  value="com/sun/opengl/impl/egl/*"/>
+                  value="com/jogamp/opengl/impl/egl/*"/>
 
         <property name="java.part.glutess"
-                  value="com/sun/opengl/impl/glu/tessellator/**"/>
+                  value="com/jogamp/opengl/impl/glu/tessellator/**"/>
 
         <property name="java.part.glumipmap"
-                  value="com/sun/opengl/impl/glu/mipmap/**"/>
+                  value="com/jogamp/opengl/impl/glu/mipmap/**"/>
 
         <property name="java.part.glugl2"
-                  value="com/sun/opengl/impl/glu/gl2/** com/sun/opengl/impl/glu/nurbs/** com/sun/opengl/impl/glu/registry/** javax/media/opengl/glu/gl2/**"/>
+                  value="com/jogamp/opengl/impl/glu/gl2/** com/jogamp/opengl/impl/glu/nurbs/** com/jogamp/opengl/impl/glu/registry/** javax/media/opengl/glu/gl2/**"/>
 
         <property name="java.part.openmax"
                   value="com/sun/openmax/**"/>
 
         <property name="java.part.sdk"
-                  value="com/sun/opengl/util/glsl/sdk/**"/>
+                  value="com/jogamp/opengl/util/glsl/sdk/**"/>
 
         <property name="java.part.glx"
-                  value="com/sun/opengl/impl/x11/glx/*"/>
+                  value="com/jogamp/opengl/impl/x11/glx/*"/>
 
         <property name="java.part.wgl"
-                  value="com/sun/opengl/impl/windows/wgl/*"/>
+                  value="com/jogamp/opengl/impl/windows/wgl/*"/>
 
         <property name="java.part.cgl"
-                  value="com/sun/opengl/impl/macosx/cgl/*"/>
+                  value="com/jogamp/opengl/impl/macosx/cgl/*"/>
 
         <property name="java.part.gl2es12"
-                  value="com/sun/opengl/impl/gl2es12/**"/>
+                  value="com/jogamp/opengl/impl/gl2es12/**"/>
 
         <property name="java.part.gl3"
-                  value="com/sun/opengl/impl/**/gl3/**"/>
+                  value="com/jogamp/opengl/impl/**/gl3/**"/>
 
         <property name="java.part.gl3.dbg"
                   value="javax/media/opengl/TraceGL3.* javax/media/opengl/DebugGL3.* javax/media/opengl/TraceGL3bc.* javax/media/opengl/DebugGL3bc.*"/>
 
         <property name="java.part.gl2"
-                  value="com/sun/opengl/impl/**/gl2/**"/>
+                  value="com/jogamp/opengl/impl/**/gl2/**"/>
 
         <property name="java.part.gl2.dbg"
                   value="javax/media/opengl/TraceGL2.* javax/media/opengl/DebugGL2.* javax/media/opengl/TraceGL2GL3.* javax/media/opengl/DebugGL2GL3.*"/>
 
         <property name="java.part.es1"
-                  value="javax/media/opengl/**/es1/** com/sun/opengl/**/es1/**"/>
+                  value="javax/media/opengl/**/es1/** com/jogamp/opengl/**/es1/**"/>
 
         <property name="java.part.es1.dbg"
                   value="javax/media/opengl/TraceGLES1.* javax/media/opengl/DebugGLES1.* javax/media/opengl/TraceGL2ES1.* javax/media/opengl/DebugGL2ES1.*"/>
 
         <property name="java.part.es2"
-                  value="javax/media/opengl/**/es2/** com/sun/opengl/**/es2/**"/>
+                  value="javax/media/opengl/**/es2/** com/jogamp/opengl/**/es2/**"/>
 
         <property name="java.part.es2.dbg"
                   value="javax/media/opengl/TraceGLES2.* javax/media/opengl/DebugGLES2.* javax/media/opengl/TraceGL2ES2.* javax/media/opengl/DebugGL2ES2.*"/>
 
         <property name="java.part.awt"
-                  value="javax/media/opengl/awt/** com/sun/opengl/impl/**/awt/**"/>
+                  value="javax/media/opengl/awt/** com/jogamp/opengl/impl/**/awt/**"/>
 
         <property name="java.part.util"
-                  value="com/sun/opengl/util/* com/sun/opengl/util/texture/** com/sun/opengl/util/packrect/**"/>
+                  value="com/jogamp/opengl/util/* com/jogamp/opengl/util/texture/** com/jogamp/opengl/util/packrect/**"/>
 
         <property name="java.part.util.awt"
-                  value="com/sun/opengl/util/**/awt/** com/sun/opengl/util/AWTAnimatorImpl*"/>
+                  value="com/jogamp/opengl/util/**/awt/** com/jogamp/opengl/util/AWTAnimatorImpl*"/>
 
         <property name="java.part.util.gl2"
-                  value="com/sun/opengl/util/**/gl2/**"/>
+                  value="com/jogamp/opengl/util/**/gl2/**"/>
 
         <property name="java.part.util.glsl"
-                  value="com/sun/opengl/util/glsl/* com/sun/opengl/util/glsl/fixedfunc/*"/>
+                  value="com/jogamp/opengl/util/glsl/* com/jogamp/opengl/util/glsl/fixedfunc/*"/>
 
         <property name="java.part.util.fixedfuncemu"
-                  value="com/sun/opengl/util/glsl/fixedfunc/impl/**"/>
+                  value="com/jogamp/opengl/util/glsl/fixedfunc/impl/**"/>
 
         <property name="java.part.util.fixedfuncemu.shadercode"
-                  value="com/sun/opengl/util/glsl/fixedfunc/impl/shaders/* com/sun/opengl/util/glsl/fixedfunc/impl/shaders/bin/**"/>
+                  value="com/jogamp/opengl/util/glsl/fixedfunc/impl/shaders/* com/jogamp/opengl/util/glsl/fixedfunc/impl/shaders/bin/**"/>
 
         <!-- condition excludes -->
 
@@ -191,13 +191,13 @@
         </condition>
 
         <property name="java.excludes.javadoc.packagenames"
-                  value="com.sun.opengl.impl.gl2.fixme.*,com.sun.javafx.audio.windows.waveout.TestSpatialization"/>
+                  value="com.jogamp.opengl.impl.gl2.fixme.*,com.sun.javafx.audio.windows.waveout.TestSpatialization"/>
 
         <property name="java.excludes.fixme" 
-                  value="com/sun/opengl/impl/gl2/fixme/** com/sun/javafx/audio/windows/waveout/TestSpatialization.java" />
+                  value="com/jogamp/opengl/impl/gl2/fixme/** com/sun/javafx/audio/windows/waveout/TestSpatialization.java" />
 
         <property name="java.excludes.cdcfp"
-                  value="${java.excludes.fixme} ${java.part.nv-cg} ${java.part.gl2} ${java.part.gl2.dbg} ${java.part.gl3} ${java.part.gl3.dbg} ${java.part.awt} ${java.part.glugl2} ${java.part.util.awt} ${java.part.util.gl2} com/sun/opengl/util/TGAWriter.java"/>
+                  value="${java.excludes.fixme} ${java.part.nv-cg} ${java.part.gl2} ${java.part.gl2.dbg} ${java.part.gl3} ${java.part.gl3.dbg} ${java.part.awt} ${java.part.glugl2} ${java.part.util.awt} ${java.part.util.gl2} com/jogamp/opengl/util/TGAWriter.java"/>
 
         <condition property="java.excludes.desktop"
                    value="${java.part.glx} ${java.excludes.cdcfp}">
@@ -310,7 +310,7 @@
         <property name="src.generated" value="${build}/gensrc" />
         <property name="src.generated.java" value="${src.generated}/classes" />
         <property name="src.generated.java-cdc" value="${src.generated}/classes-cdc" />
-        <property name="src.generated.java.cg" value="${src.generated.java}/com/sun/opengl/cg" />
+        <property name="src.generated.java.cg" value="${src.generated.java}/com/jogamp/opengl/cg" />
         <property name="src.generated.c" value="${src.generated}/native/jogl" />
         <property name="src.generated.c.openmax" value="${src.generated}/native/openmax" />
         <property name="src.generated.c.cg" value="${src.generated}/native/jogl_cg" />
@@ -468,9 +468,9 @@
         <property name="javadoc.overview" value="doc/jogl/spec-overview.html" />
         <property name="javadoc.spec.packagenames" value="javax.media.opengl.*" />
 
-        <property name="javadoc.packagenames" value="${javadoc.spec.packagenames},com.sun.opengl.util.*" />
+        <property name="javadoc.packagenames" value="${javadoc.spec.packagenames},com.jogamp.opengl.util.*" />
 
-        <property name="javadoc.dev.packagenames" value="${javadoc.packagenames},com.sun.opengl.impl.*,com.sun.gluegen,com.sun.gluegen.runtime" />
+        <property name="javadoc.dev.packagenames" value="${javadoc.packagenames},com.jogamp.opengl.impl.*,com.sun.gluegen,com.jogamp.gluegen.runtime" />
     <property name="javadoc.bottom" value="Copyright 2005 Sun Microsystems, Inc. All rights reserved. Use is subject to &lt;a href=&quot;http://jcp.org/en/jsr/detail?id=231&quot;&gt;license terms&lt;/a&gt;." />
     </target>
     
@@ -498,21 +498,21 @@
     </target>
 
     <target name="setup.javacdc">
-        <copy file="../src/jogl/classes/com/sun/opengl/impl/SystemUtil.java.javame_cdc_fp" tofile="${src.generated.java-cdc}/com/sun/opengl/impl/SystemUtil.java" />
-        <copy file="../src/jogl/classes/com/sun/opengl/util/BufferUtil.java.javame_cdc_fp" tofile="${src.generated.java-cdc}/com/sun/opengl/util/BufferUtil.java" />
-        <copy file="../src/jogl/classes/com/sun/opengl/impl/InternalBufferUtil.java.javame_cdc_fp" tofile="${src.generated.java-cdc}/com/sun/opengl/impl/InternalBufferUtil.java" />
-        <copy file="../src/jogl/classes/com/sun/opengl/util/texture/TextureIO.java.javame_cdc_fp" tofile="${src.generated.java-cdc}/com/sun/opengl/util/texture/TextureIO.java" />
-        <copy file="../src/jogl/classes/com/sun/opengl/util/texture/spi/DDSImage.java.javame_cdc_fp" tofile="${src.generated.java-cdc}/com/sun/opengl/util/texture/spi/DDSImage.java" />
-        <copy file="../src/jogl/classes/com/sun/opengl/util/texture/spi/TGAImage.java.javame_cdc_fp" tofile="${src.generated.java-cdc}/com/sun/opengl/util/texture/spi/TGAImage.java" />
+        <copy file="../src/jogl/classes/com/jogamp/opengl/impl/SystemUtil.java.javame_cdc_fp" tofile="${src.generated.java-cdc}/com/jogamp/opengl/impl/SystemUtil.java" />
+        <copy file="../src/jogl/classes/com/jogamp/opengl/util/BufferUtil.java.javame_cdc_fp" tofile="${src.generated.java-cdc}/com/jogamp/opengl/util/BufferUtil.java" />
+        <copy file="../src/jogl/classes/com/jogamp/opengl/impl/InternalBufferUtil.java.javame_cdc_fp" tofile="${src.generated.java-cdc}/com/jogamp/opengl/impl/InternalBufferUtil.java" />
+        <copy file="../src/jogl/classes/com/jogamp/opengl/util/texture/TextureIO.java.javame_cdc_fp" tofile="${src.generated.java-cdc}/com/jogamp/opengl/util/texture/TextureIO.java" />
+        <copy file="../src/jogl/classes/com/jogamp/opengl/util/texture/spi/DDSImage.java.javame_cdc_fp" tofile="${src.generated.java-cdc}/com/jogamp/opengl/util/texture/spi/DDSImage.java" />
+        <copy file="../src/jogl/classes/com/jogamp/opengl/util/texture/spi/TGAImage.java.javame_cdc_fp" tofile="${src.generated.java-cdc}/com/jogamp/opengl/util/texture/spi/TGAImage.java" />
     </target>
 
     <target name="setup.javase">
-        <copy file="../src/jogl/classes/com/sun/opengl/impl/SystemUtil.java.javase" tofile="${src.generated.java}/com/sun/opengl/impl/SystemUtil.java" />
-        <copy file="../src/jogl/classes/com/sun/opengl/util/BufferUtil.java.javase" tofile="${src.generated.java}/com/sun/opengl/util/BufferUtil.java" />
-        <copy file="../src/jogl/classes/com/sun/opengl/impl/InternalBufferUtil.java.javase" tofile="${src.generated.java}/com/sun/opengl/impl/InternalBufferUtil.java" />
-        <copy file="../src/jogl/classes/com/sun/opengl/util/texture/TextureIO.java.javase" tofile="${src.generated.java}/com/sun/opengl/util/texture/TextureIO.java" />
-        <copy file="../src/jogl/classes/com/sun/opengl/util/texture/spi/DDSImage.java.javase" tofile="${src.generated.java}/com/sun/opengl/util/texture/spi/DDSImage.java" />
-        <copy file="../src/jogl/classes/com/sun/opengl/util/texture/spi/TGAImage.java.javase" tofile="${src.generated.java}/com/sun/opengl/util/texture/spi/TGAImage.java" />
+        <copy file="../src/jogl/classes/com/jogamp/opengl/impl/SystemUtil.java.javase" tofile="${src.generated.java}/com/jogamp/opengl/impl/SystemUtil.java" />
+        <copy file="../src/jogl/classes/com/jogamp/opengl/util/BufferUtil.java.javase" tofile="${src.generated.java}/com/jogamp/opengl/util/BufferUtil.java" />
+        <copy file="../src/jogl/classes/com/jogamp/opengl/impl/InternalBufferUtil.java.javase" tofile="${src.generated.java}/com/jogamp/opengl/impl/InternalBufferUtil.java" />
+        <copy file="../src/jogl/classes/com/jogamp/opengl/util/texture/TextureIO.java.javase" tofile="${src.generated.java}/com/jogamp/opengl/util/texture/TextureIO.java" />
+        <copy file="../src/jogl/classes/com/jogamp/opengl/util/texture/spi/DDSImage.java.javase" tofile="${src.generated.java}/com/jogamp/opengl/util/texture/spi/DDSImage.java" />
+        <copy file="../src/jogl/classes/com/jogamp/opengl/util/texture/spi/TGAImage.java.javase" tofile="${src.generated.java}/com/jogamp/opengl/util/texture/spi/TGAImage.java" />
     </target>
 
     <!-- ================================================================== -->
@@ -932,7 +932,7 @@
         <!-- Now check for the presence of one well-known file -->
         <uptodate property="java.generate.cg.skip">
             <srcfiles refid="stub.includes.cg.dependencies.fileset" />
-            <mapper type="merge" to="${src.generated.java}/com/sun/opengl/cg/CgGL.java" />
+            <mapper type="merge" to="${src.generated.java}/com/jogamp/opengl/cg/CgGL.java" />
         </uptodate>
     </target>
 
@@ -1017,7 +1017,7 @@
             <targetfileset dir="${src.generated.java}/javax/media/opengl"
                            includes="DebugGL2.java,TraceGL2.java" />
         </dependset>
-                           
+
         <!-- Now choose one of the two to test to see if we have to regenerate -->
         <uptodate property="java.generate.composable.pipeline.skip.gl2"
                   srcfile="${classes}/javax/media/opengl/GL2.class"
@@ -1119,31 +1119,31 @@
         <!-- Blow away the DebugGL*.java and TraceGL*.java sources if GL*.class has changed
              (the uptodate element doesn't support arbitrary source and destination files) -->
         <dependset>
-            <srcfilelist dir="${classes}/com/sun/opengl/util/glsl/fixedfunc" files="FixedFuncHook.class" />
+            <srcfilelist dir="${classes}/com/jogamp/opengl/util/glsl/fixedfunc" files="FixedFuncHook.class" />
             <srcfilelist dir="${classes}/javax/media/opengl" files="GL2ES1.class" />
             <srcfilelist dir="${classes}/javax/media/opengl" files="GL2ES2.class" />
-            <targetfileset dir="${src.generated.java}/com/sun/opengl/util/glsl/fixedfunc/impl"
+            <targetfileset dir="${src.generated.java}/com/jogamp/opengl/util/glsl/fixedfunc/impl"
                            includes="FixedFuncImpl.java" />
         </dependset>
                            
         <!-- Now choose one of the two to test to see if we have to regenerate -->
         <uptodate property="java.generate.composable.pipeline.custom.skip.glfixfunc"
                   srcfile="${classes}/javax/media/opengl/GL2ES1.class"
-                  targetfile="${src.generated.java}/com/sun/opengl/util/glsl/fixedfunc/impl/FixedFuncImpl.java" />
+                  targetfile="${src.generated.java}/com/jogamp/opengl/util/glsl/fixedfunc/impl/FixedFuncImpl.java" />
     </target>        
     <target name="java.generate.composable.pipeline.custom.glfixfunc" depends="java.generate.composable.pipeline.custom.check.glfixfunc" unless="java.generate.composable.pipeline.custom.skip.glfixfunc">
         <java classname="com.sun.gluegen.opengl.BuildComposablePipeline" fork="yes" failonerror="true">
             <arg value="javax.media.opengl.GL2ES1" />
-            <arg value="${src.generated.java}/com/sun/opengl/util/glsl/fixedfunc/impl" />
-            <arg value="com.sun.opengl.util.glsl.fixedfunc.impl.FixedFuncImpl" />
-            <arg value="com.sun.opengl.util.glsl.fixedfunc.impl.FixedFuncHook" />
+            <arg value="${src.generated.java}/com/jogamp/opengl/util/glsl/fixedfunc/impl" />
+            <arg value="com.jogamp.opengl.util.glsl.fixedfunc.impl.FixedFuncImpl" />
+            <arg value="com.jogamp.opengl.util.glsl.fixedfunc.impl.FixedFuncHook" />
             <arg value="javax.media.opengl.GL2ES2" />
             <arg value="prolog_xor_downstream" />
             <classpath refid="pipeline.classpath" />
         </java>
         <copy todir="${src.generated.java-cdc}">
             <fileset dir="${src.generated.java}"
-                     includes="com/sun/opengl/util/glsl/fixedfunc/impl/FixedFuncImpl.java" />
+                     includes="com/jogamp/opengl/util/glsl/fixedfunc/impl/FixedFuncImpl.java" />
         </copy>
     </target>          
     <target name="java.generate.composable.pipeline.custom" depends="init, build.gluegen, java.generate.composable.pipeline.custom.glfixfunc">
@@ -1171,7 +1171,7 @@
         <copy todir="${src.generated.java-cdc}">
             <fileset dir="${src.generated.java}"
                      includes="**" 
-                     excludes="com/sun/opengl/cg/** com/sun/opengl/impl/gl2/** com/sun/opengl/impl/gl3/** com/sun/opengl/impl/glu/gl2/** javax/media/opengl/glu/gl2/**"/>
+                     excludes="com/jogamp/opengl/cg/** com/jogamp/opengl/impl/gl2/** com/jogamp/opengl/impl/gl3/** com/jogamp/opengl/impl/glu/gl2/** javax/media/opengl/glu/gl2/**"/>
         </copy>
         <copy todir="${classes-cdc}">
             <fileset dir="${classes}"
@@ -1182,7 +1182,7 @@
     <target name="java.compile.secondpass.javase">
         <!-- Perform the second pass Java compile; everything except portion of fixed function emulation depending on generated code. -->
         <javac destdir="${classes}"
-               excludes="com/sun/opengl/util/glsl/fixedfunc/FixedFuncUtil.java,${java.excludes.all}"
+               excludes="com/jogamp/opengl/util/glsl/fixedfunc/FixedFuncUtil.java,${java.excludes.all}"
                source="${jogl.sourcelevel}"
                fork="yes"
                memoryMaximumSize="${javac.memorymax}"
@@ -1196,7 +1196,7 @@
     <target name="java.compile.secondpass.javacdc" unless="setup.noCDC">
         <!-- Perform the second pass Java compile; everything except portion of fixed function emulation depending on generated code. -->
         <javac destdir="${classes-cdc}"
-               excludes="com/sun/opengl/util/glsl/fixedfunc/FixedFuncUtil.java,${java.excludes.all},${java.excludes.cdcfp}"
+               excludes="com/jogamp/opengl/util/glsl/fixedfunc/FixedFuncUtil.java,${java.excludes.all},${java.excludes.cdcfp}"
                source="${jogl.sourcelevel}"
                bootclasspath="${javac.bootclasspath-cdc.jar}"
                fork="yes"
@@ -1823,7 +1823,7 @@
             <fileset dir="${classes}">
                 <include name="javax/media/opengl/**" />
                 <include name="com/sun/gluegen/runtime/**" />
-                <include name="com/sun/opengl/**" />
+                <include name="com/jogamp/opengl/**" />
                 <include name="${java.part.openmax}" />
                 <!-- FIXME: this is temporary until we move these classes to another workspace -->
                 <include name="com/sun/javafx/**" />
@@ -1835,7 +1835,7 @@
     <target name="build-jars-all-noawt" depends="setup-manifestfile">
         <jar manifest="${build}/tempversion" destfile="${jogl.all-noawt.jar}" filesonly="true">
             <fileset dir="${classes}"
-                includes="javax/media/opengl/** com/sun/gluegen/runtime/** com/sun/opengl/** ${java.part.openmax} com/sun/javafx/**"
+                includes="javax/media/opengl/** com/sun/gluegen/runtime/** com/jogamp/opengl/** ${java.part.openmax} com/sun/javafx/**"
                 excludes="${java.part.awt} ${java.part.util.awt}">
             </fileset>
             <fileset dir="${src.java}"
@@ -1907,7 +1907,7 @@
         <jar manifest="${build}/tempversion" destfile="${jogl.util.gl2.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.util.gl2}"
-                     excludes="com/sun/opengl/**/awt/**"/>
+                     excludes="com/jogamp/opengl/**/awt/**"/>
         </jar>
     </target>
 
@@ -1968,7 +1968,7 @@
     <!-- Same as above but with Cg directories added -->
     <target name="javadoc.cg" depends="load.user.properties,init" if="jogl.cg">
         <!-- Build the general public Javadoc with CG -->
-        <javadoc packagenames="${javadoc.packagenames},com.sun.opengl.cg"
+        <javadoc packagenames="${javadoc.packagenames},com.jogamp.opengl.cg"
                  excludepackagenames="${java.excludes.javadoc.packagenames}"
                  sourcepath="${src.java};${src.generated.java}"        
                  destdir="${javadoc}" windowtitle="${javadoc.windowtitle}"
@@ -2038,7 +2038,7 @@
     <!-- Same as above but with Cg directories added -->
     <target name="javadoc.dev.cg" if="jogl.cg">
         <!-- Build the internal developer Javadoc -->
-        <javadoc packagenames="${javadoc.dev.packagenames},com.sun.opengl.cg"
+        <javadoc packagenames="${javadoc.dev.packagenames},com.jogamp.opengl.cg"
                  excludepackagenames="${java.excludes.javadoc.packagenames}"
                  sourcepath="${src.java};${src.generated.java}"        
                  destdir="${javadoc.dev}" windowtitle="${javadoc.windowtitle}"

@@ -1,7 +1,7 @@
 package javax.media.opengl.glu;
 
 import javax.media.opengl.GL;
-import com.sun.opengl.util.ImmModeSink;
+import com.jogamp.opengl.util.ImmModeSink;
 
 /**
  * Wrapper for a GLU quadric object.

@@ -36,13 +36,15 @@
 
 package javax.media.opengl;
 
-import javax.media.opengl.fixedfunc.*;
-import java.lang.reflect.*;
-import java.util.HashMap;
-import java.security.*;
-import com.sun.opengl.impl.*;
+import com.jogamp.opengl.impl.DRIHack;
+import com.jogamp.opengl.impl.Debug;
+import com.jogamp.opengl.impl.NativeLibLoader;
 import com.sun.nativewindow.impl.NWReflection;
 import com.sun.nativewindow.impl.jvm.JVMUtil;
+import java.util.HashMap;
+import java.security.AccessControlContext;
+import java.security.AccessController;
+import javax.media.opengl.fixedfunc.GLPointerFunc;
 
 /**
  * Specifies the the OpenGL profile.
@@ -192,17 +194,17 @@ public class GLProfile implements Cloneable {
 
     private static final String getGLImplBaseClassName(String profileImpl) {
         if(GL3bc.equals(profileImpl)) {
-            return "com.sun.opengl.impl.gl3.GL3bc";
+            return "com.jogamp.opengl.impl.gl3.GL3bc";
         } else if(GL3.equals(profileImpl)) {
-            return "com.sun.opengl.impl.gl3.GL3";
+            return "com.jogamp.opengl.impl.gl3.GL3";
         } else if(GL2.equals(profileImpl)) {
-            return "com.sun.opengl.impl.gl2.GL2";
+            return "com.jogamp.opengl.impl.gl2.GL2";
         } else if(GL2ES12.equals(profileImpl)) {
-            return "com.sun.opengl.impl.gl2es12.GL2ES12";
+            return "com.jogamp.opengl.impl.gl2es12.GL2ES12";
         } else if(GLES1.equals(profileImpl) || GL2ES1.equals(profileImpl)) {
-            return "com.sun.opengl.impl.es1.GLES1";
+            return "com.jogamp.opengl.impl.es1.GLES1";
         } else if(GLES2.equals(profileImpl) || GL2ES2.equals(profileImpl)) {
-            return "com.sun.opengl.impl.es2.GLES2";
+            return "com.jogamp.opengl.impl.es2.GLES2";
         } else {
             throw new GLException("unsupported profile \"" + profileImpl + "\"");
         }
@@ -715,22 +717,22 @@ public class GLProfile implements Cloneable {
         }
 
         // FIXME: check for real GL3 availability .. ?
-        hasGL3bcImpl   = hasDesktopGL && NWReflection.isClassAvailable("com.sun.opengl.impl.gl3.GL3bcImpl");
-        hasGL3Impl     = hasDesktopGL && NWReflection.isClassAvailable("com.sun.opengl.impl.gl3.GL3Impl");
-        hasGL2Impl     = hasDesktopGL && NWReflection.isClassAvailable("com.sun.opengl.impl.gl2.GL2Impl");
+        hasGL3bcImpl   = hasDesktopGL && NWReflection.isClassAvailable("com.jogamp.opengl.impl.gl3.GL3bcImpl");
+        hasGL3Impl     = hasDesktopGL && NWReflection.isClassAvailable("com.jogamp.opengl.impl.gl3.GL3Impl");
+        hasGL2Impl     = hasDesktopGL && NWReflection.isClassAvailable("com.jogamp.opengl.impl.gl2.GL2Impl");
 
-        hasGL2ES12Impl = hasDesktopGLES12 && NWReflection.isClassAvailable("com.sun.opengl.impl.gl2es12.GL2ES12Impl");
+        hasGL2ES12Impl = hasDesktopGLES12 && NWReflection.isClassAvailable("com.jogamp.opengl.impl.gl2es12.GL2ES12Impl");
 
         boolean btest = false;
 
-        boolean hasEGLDynLookup = NWReflection.isClassAvailable("com.sun.opengl.impl.egl.EGLDynamicLookupHelper");
+        boolean hasEGLDynLookup = NWReflection.isClassAvailable("com.jogamp.opengl.impl.egl.EGLDynamicLookupHelper");
         boolean hasEGLDrawableFactory = false;
         try {
             if(hasEGLDynLookup) {
                 hasEGLDrawableFactory = null!=GLDrawableFactory.getFactoryImpl(GLES2);
                 btest = hasEGLDrawableFactory &&
-                        NWReflection.isClassAvailable("com.sun.opengl.impl.es2.GLES2Impl") &&
-                        null!=com.sun.opengl.impl.egl.EGLDynamicLookupHelper.getDynamicLookupHelper(2);
+                        NWReflection.isClassAvailable("com.jogamp.opengl.impl.es2.GLES2Impl") &&
+                        null!=com.jogamp.opengl.impl.egl.EGLDynamicLookupHelper.getDynamicLookupHelper(2);
             }
         } catch (Throwable t) {
             if (DEBUG) {
@@ -744,8 +746,8 @@ public class GLProfile implements Cloneable {
         try {
             if(hasEGLDynLookup) {
                 btest = hasEGLDrawableFactory &&
-                        NWReflection.isClassAvailable("com.sun.opengl.impl.es1.GLES1Impl") &&
-                        null!=com.sun.opengl.impl.egl.EGLDynamicLookupHelper.getDynamicLookupHelper(1);
+                        NWReflection.isClassAvailable("com.jogamp.opengl.impl.es1.GLES1Impl") &&
+                        null!=com.jogamp.opengl.impl.egl.EGLDynamicLookupHelper.getDynamicLookupHelper(1);
             }
         } catch (Throwable t) {
             if (DEBUG) {

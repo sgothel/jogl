@@ -43,7 +43,7 @@ import javax.media.opengl.*;
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.awt.*;
 
-import com.sun.opengl.impl.*;
+import com.jogamp.opengl.impl.*;
 
 import java.awt.Canvas;
 import java.awt.Color;

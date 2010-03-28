@@ -42,12 +42,12 @@ import javax.media.opengl.GL2;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.awt.GLCanvas;
-import com.sun.opengl.util.texture.Texture;
-import com.sun.opengl.util.texture.TextureCoords;
-import com.sun.opengl.util.texture.TextureData;
-import com.sun.opengl.util.texture.TextureIO;
-import com.sun.opengl.util.texture.awt.AWTTextureIO;
-import com.sun.opengl.util.Animator;
+import com.jogamp.opengl.util.texture.Texture;
+import com.jogamp.opengl.util.texture.TextureCoords;
+import com.jogamp.opengl.util.texture.TextureData;
+import com.jogamp.opengl.util.texture.TextureIO;
+import com.jogamp.opengl.util.texture.awt.AWTTextureIO;
+import com.jogamp.opengl.util.Animator;
 
 import java.awt.AlphaComposite;
 import java.awt.Color;

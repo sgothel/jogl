@@ -40,7 +40,7 @@
 package javax.media.opengl;
 
 import javax.media.opengl.glu.*;
-import com.sun.opengl.impl.Debug;
+import com.jogamp.opengl.impl.Debug;
 import java.security.*;
 
 /** A higher-level abstraction than {@link GLDrawable} which supplies

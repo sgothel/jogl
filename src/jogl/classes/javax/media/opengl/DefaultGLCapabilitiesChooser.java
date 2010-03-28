@@ -41,7 +41,7 @@ package javax.media.opengl;
 
 import javax.media.nativewindow.Capabilities;
 import javax.media.nativewindow.NativeWindowException;
-import com.sun.opengl.impl.Debug;
+import com.jogamp.opengl.impl.Debug;
 
 /** <P> The default implementation of the {@link
     GLCapabilitiesChooser} interface, which provides consistent visual
