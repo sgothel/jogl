@@ -34,7 +34,7 @@ package com.jogamp.opengl.impl.windows.wgl;
 
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.windows.*;
-import com.sun.nativewindow.impl.*;
+import com.jogamp.nativewindow.impl.*;
 
 import javax.media.opengl.*;
 import com.jogamp.opengl.impl.*;

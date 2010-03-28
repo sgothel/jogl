@@ -40,7 +40,7 @@
 #include <jni.h>
 
 JNIEXPORT jboolean JNICALL
-Java_com_sun_nativewindow_impl_jvm_JVMUtil_initialize(JNIEnv *env, jclass _unused, jobject nioBuffer) {
+Java_com_jogamp_nativewindow_impl_jvm_JVMUtil_initialize(JNIEnv *env, jclass _unused, jobject nioBuffer) {
   int res;
   void * ptr = NULL;
   if (nioBuffer != NULL) {

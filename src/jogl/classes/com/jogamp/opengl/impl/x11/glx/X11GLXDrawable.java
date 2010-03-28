@@ -42,7 +42,7 @@ package com.jogamp.opengl.impl.x11.glx;
 import javax.media.nativewindow.*;
 import javax.media.opengl.*;
 import com.jogamp.opengl.impl.*;
-import com.sun.nativewindow.impl.x11.*;
+import com.jogamp.nativewindow.impl.x11.*;
 import com.jogamp.gluegen.runtime.DynamicLookupHelper;
 
 public abstract class X11GLXDrawable extends GLDrawableImpl {

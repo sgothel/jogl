@@ -43,7 +43,7 @@ import javax.media.nativewindow.*;
 
 import java.security.*;
 import com.jogamp.opengl.impl.*;
-import com.sun.nativewindow.impl.NWReflection;
+import com.jogamp.nativewindow.impl.NWReflection;
 
 /** <P> Provides a virtual machine- and operating system-independent
     mechanism for creating {@link GLDrawable}s. </P>

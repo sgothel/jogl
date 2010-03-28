@@ -35,7 +35,7 @@ package com.jogamp.opengl.impl.egl;
 import java.io.PrintStream;
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.egl.*;
-import com.sun.nativewindow.impl.*;
+import com.jogamp.nativewindow.impl.*;
 
 import javax.media.opengl.*;
 import com.jogamp.opengl.impl.*;

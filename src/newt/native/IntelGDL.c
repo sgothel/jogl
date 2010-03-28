@@ -37,9 +37,9 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "com_sun_javafx_newt_intel_gdl_Display.h"
-#include "com_sun_javafx_newt_intel_gdl_Screen.h"
-#include "com_sun_javafx_newt_intel_gdl_Window.h"
+#include "com_jogamp_javafx_newt_intel_gdl_Display.h"
+#include "com_jogamp_javafx_newt_intel_gdl_Screen.h"
+#include "com_jogamp_javafx_newt_intel_gdl_Window.h"
 
 #include "EventListener.h"
 #include "MouseEvent.h"
@@ -123,7 +123,7 @@ static void JNI_ThrowNew(JNIEnv *env, const char *throwable, const char* message
  * Display
  */
 
-JNIEXPORT void JNICALL Java_com_sun_javafx_newt_intel_gdl_Display_DispatchMessages
+JNIEXPORT void JNICALL Java_com_jogamp_javafx_newt_intel_gdl_Display_DispatchMessages
   (JNIEnv *env, jobject obj, jlong displayHandle, jobject focusedWindow)
 {
     // FIXME: n/a
@@ -138,7 +138,7 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_intel_gdl_Display_DispatchMessag
     } */
 }
 
-JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_intel_gdl_Display_CreateDisplay
+JNIEXPORT jlong JNICALL Java_com_jogamp_javafx_newt_intel_gdl_Display_CreateDisplay
   (JNIEnv *env, jobject obj)
 {
     gdl_ret_t retval;
@@ -171,7 +171,7 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_intel_gdl_Display_CreateDisplay
     return (jlong) (intptr_t) p_driver_info;
 }
 
-JNIEXPORT void JNICALL Java_com_sun_javafx_newt_intel_gdl_Display_DestroyDisplay
+JNIEXPORT void JNICALL Java_com_jogamp_javafx_newt_intel_gdl_Display_DestroyDisplay
   (JNIEnv *env, jobject obj, jlong displayHandle)
 {
     gdl_driver_info_t * p_driver_info = (gdl_driver_info_t *) (intptr_t) displayHandle;
@@ -190,7 +190,7 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_intel_gdl_Display_DestroyDisplay
  * Screen
  */
 
-JNIEXPORT jboolean JNICALL Java_com_sun_javafx_newt_intel_gdl_Screen_initIDs
+JNIEXPORT jboolean JNICALL Java_com_jogamp_javafx_newt_intel_gdl_Screen_initIDs
   (JNIEnv *env, jclass clazz)
 {
     screenCreatedID = (*env)->GetMethodID(env, clazz, "screenCreated", "(II)V");
@@ -202,7 +202,7 @@ JNIEXPORT jboolean JNICALL Java_com_sun_javafx_newt_intel_gdl_Screen_initIDs
     return JNI_TRUE;
 }
 
-JNIEXPORT void JNICALL Java_com_sun_javafx_newt_intel_gdl_Screen_GetScreenInfo
+JNIEXPORT void JNICALL Java_com_jogamp_javafx_newt_intel_gdl_Screen_GetScreenInfo
   (JNIEnv *env, jobject obj, jlong displayHandle, jint idx)
 {
     gdl_driver_info_t * p_driver_info = (gdl_driver_info_t *) (intptr_t) displayHandle;
@@ -234,7 +234,7 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_intel_gdl_Screen_GetScreenInfo
  * Window
  */
 
-JNIEXPORT jboolean JNICALL Java_com_sun_javafx_newt_intel_gdl_Window_initIDs
+JNIEXPORT jboolean JNICALL Java_com_jogamp_javafx_newt_intel_gdl_Window_initIDs
   (JNIEnv *env, jclass clazz)
 {
     updateBoundsID = (*env)->GetMethodID(env, clazz, "updateBounds", "(IIII)V");
@@ -246,7 +246,7 @@ JNIEXPORT jboolean JNICALL Java_com_sun_javafx_newt_intel_gdl_Window_initIDs
     return JNI_TRUE;
 }
 
-JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_intel_gdl_Window_CreateSurface
+JNIEXPORT jlong JNICALL Java_com_jogamp_javafx_newt_intel_gdl_Window_CreateSurface
   (JNIEnv *env, jobject obj, jlong displayHandle, jint scr_width, jint scr_height, jint x, jint y, jint width, jint height) {
 
     gdl_driver_info_t * p_driver_info = (gdl_driver_info_t *) (intptr_t) displayHandle;
@@ -339,7 +339,7 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_intel_gdl_Window_CreateSurface
     return (jlong) (intptr_t) plane;
 }
 
-JNIEXPORT void JNICALL Java_com_sun_javafx_newt_intel_gdl_Window_CloseSurface
+JNIEXPORT void JNICALL Java_com_jogamp_javafx_newt_intel_gdl_Window_CloseSurface
   (JNIEnv *env, jobject obj, jlong display, jlong surface)
 {
     gdl_plane_id_t plane = (gdl_plane_id_t) (intptr_t) surface ;
@@ -348,7 +348,7 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_intel_gdl_Window_CloseSurface
     DBG_PRINT("[CloseSurface] plane %d\n", plane);
 }
 
-JNIEXPORT void JNICALL Java_com_sun_javafx_newt_intel_gdl_Window_SetBounds0
+JNIEXPORT void JNICALL Java_com_jogamp_javafx_newt_intel_gdl_Window_SetBounds0
   (JNIEnv *env, jobject obj, jlong surface, jint scr_width, jint scr_height, jint x, jint y, jint width, jint height) {
 
     gdl_plane_id_t plane = (gdl_plane_id_t) (intptr_t) surface ;

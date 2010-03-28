@@ -42,9 +42,9 @@ import javax.media.opengl.*;
 import javax.media.opengl.awt.*;
 
 import com.jogamp.opengl.impl.*;
-import com.sun.nativewindow.impl.jawt.*;
-import com.sun.nativewindow.impl.jawt.x11.*;
-import com.sun.nativewindow.impl.x11.*;
+import com.jogamp.nativewindow.impl.jawt.*;
+import com.jogamp.nativewindow.impl.jawt.x11.*;
+import com.jogamp.nativewindow.impl.x11.*;
 import com.jogamp.opengl.impl.x11.*;
 import com.jogamp.opengl.impl.x11.glx.*;
 

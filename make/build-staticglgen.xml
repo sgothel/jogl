@@ -17,7 +17,7 @@
       -->
     <target name="declare" description="Declare properties">
         <!-- The location of the BuildStaticGLInfo source. -->
-        <property name="static.gl.src" value="${src.java}/com/sun/gluegen/opengl" />
+        <property name="static.gl.src" value="${src.java}/com/jogamp/gluegen/opengl" />
     </target>
 
     <!-- ================================================================== -->

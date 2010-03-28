@@ -36,7 +36,7 @@
 package com.jogamp.opengl.impl.egl;
 
 import com.jogamp.opengl.impl.GLDrawableImpl;
-import com.sun.nativewindow.impl.NWReflection;
+import com.jogamp.nativewindow.impl.NWReflection;
 import com.jogamp.gluegen.runtime.DynamicLookupHelper;
 
 import javax.media.nativewindow.*;

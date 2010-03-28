@@ -38,7 +38,7 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 
 import javax.media.nativewindow.NativeWindowFactory;
-import com.sun.nativewindow.impl.NWReflection;
+import com.jogamp.nativewindow.impl.NWReflection;
 import javax.media.opengl.GLException;
 
 /** Implementation of the {@link javax.media.opengl.Threading} class. */

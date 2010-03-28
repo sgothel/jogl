@@ -3,7 +3,7 @@ package com.jogamp.opengl.util;
 
 import javax.media.opengl.*;
 import javax.media.opengl.fixedfunc.*;
-import com.sun.nativewindow.impl.NWReflection;
+import com.jogamp.nativewindow.impl.NWReflection;
 import java.nio.*;
 import java.util.Iterator;
 import java.util.ArrayList;

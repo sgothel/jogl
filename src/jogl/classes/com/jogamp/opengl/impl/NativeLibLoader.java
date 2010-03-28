@@ -46,7 +46,7 @@ import java.lang.reflect.Method;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.HashSet;
-import com.sun.nativewindow.impl.NativeLibLoaderBase;
+import com.jogamp.nativewindow.impl.NativeLibLoaderBase;
 
 public class NativeLibLoader extends NativeLibLoaderBase {
   public static void loadNEWT() {

@@ -43,7 +43,7 @@ import javax.media.nativewindow.*;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import javax.media.nativewindow.AbstractGraphicsDevice;
-import com.sun.nativewindow.impl.*;
+import com.jogamp.nativewindow.impl.*;
 
 /** A wrapper for an AWT GraphicsDevice allowing it to be
     handled in a toolkit-independent manner. */

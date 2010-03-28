@@ -44,7 +44,7 @@ import java.awt.GraphicsConfiguration;
 import java.awt.Transparency;
 import java.awt.image.ColorModel;
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
-import com.sun.nativewindow.impl.Debug;
+import com.jogamp.nativewindow.impl.Debug;
 
 /** A wrapper for an AWT GraphicsConfiguration allowing it to be
     handled in a toolkit-independent manner. */

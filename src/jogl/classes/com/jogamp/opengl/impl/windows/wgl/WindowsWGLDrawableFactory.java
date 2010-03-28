@@ -44,9 +44,9 @@ import java.util.*;
 import javax.media.nativewindow.*;
 import javax.media.opengl.*;
 import com.jogamp.opengl.impl.*;
-import com.sun.nativewindow.impl.NWReflection;
+import com.jogamp.nativewindow.impl.NWReflection;
 import com.jogamp.gluegen.runtime.DynamicLookupHelper;
-import com.sun.nativewindow.impl.NullWindow;
+import com.jogamp.nativewindow.impl.NullWindow;
 
 public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl implements DynamicLookupHelper {
   private static final boolean VERBOSE = Debug.verbose();

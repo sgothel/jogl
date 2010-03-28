@@ -50,7 +50,7 @@
 #endif
 
 JNIEXPORT jobject JNICALL
-Java_com_sun_nativewindow_impl_jawt_JAWT_1DrawingSurfaceInfo_platformInfo0(JNIEnv* env, jobject unused, jobject jthis0) {
+Java_com_jogamp_nativewindow_impl_jawt_JAWT_1DrawingSurfaceInfo_platformInfo0(JNIEnv* env, jobject unused, jobject jthis0) {
   JAWT_DrawingSurfaceInfo* dsi;
   dsi = (*env)->GetDirectBufferAddress(env, jthis0);
   if (dsi == NULL) {

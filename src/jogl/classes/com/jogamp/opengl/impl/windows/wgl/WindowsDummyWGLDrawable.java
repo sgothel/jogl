@@ -41,7 +41,7 @@ package com.jogamp.opengl.impl.windows.wgl;
 
 import javax.media.opengl.*;
 import com.jogamp.opengl.impl.*;
-import com.sun.nativewindow.impl.NullWindow;
+import com.jogamp.nativewindow.impl.NullWindow;
 
 public class WindowsDummyWGLDrawable extends WindowsWGLDrawable {
   private long hwnd, hdc;

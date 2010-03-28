@@ -43,7 +43,7 @@ import java.nio.*;
 import javax.media.nativewindow.*;
 import javax.media.opengl.*;
 import com.jogamp.gluegen.runtime.*;
-import com.sun.nativewindow.impl.NWReflection;
+import com.jogamp.nativewindow.impl.NWReflection;
 import java.lang.reflect.*;
 
 /** Extends GLDrawableFactory with a few methods for handling

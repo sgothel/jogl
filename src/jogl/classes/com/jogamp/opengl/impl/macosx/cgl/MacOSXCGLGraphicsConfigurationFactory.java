@@ -34,7 +34,7 @@ package com.jogamp.opengl.impl.macosx.cgl;
 
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.macosx.*;
-import com.sun.nativewindow.impl.*;
+import com.jogamp.nativewindow.impl.*;
 
 import javax.media.opengl.*;
 import com.jogamp.opengl.impl.*;

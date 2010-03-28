@@ -43,8 +43,8 @@ import javax.media.opengl.awt.*;
 
 import com.jogamp.opengl.impl.*;
 import com.jogamp.opengl.impl.windows.wgl.*;
-import com.sun.nativewindow.impl.jawt.*;
-import com.sun.nativewindow.impl.jawt.windows.*;
+import com.jogamp.nativewindow.impl.jawt.*;
+import com.jogamp.nativewindow.impl.jawt.windows.*;
 
 public class WindowsAWTWGLGraphicsConfigurationFactory extends GraphicsConfigurationFactory {
     protected static final boolean DEBUG = com.jogamp.opengl.impl.Debug.debug("GraphicsConfiguration");

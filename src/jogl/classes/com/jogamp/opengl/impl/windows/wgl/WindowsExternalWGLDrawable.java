@@ -42,7 +42,7 @@ package com.jogamp.opengl.impl.windows.wgl;
 import javax.media.nativewindow.*;
 import javax.media.opengl.*;
 import com.jogamp.opengl.impl.*;
-import com.sun.nativewindow.impl.NullWindow;
+import com.jogamp.nativewindow.impl.NullWindow;
 
 public class WindowsExternalWGLDrawable extends WindowsWGLDrawable {
 

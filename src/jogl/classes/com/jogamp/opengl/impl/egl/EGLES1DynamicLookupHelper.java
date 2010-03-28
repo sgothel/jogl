@@ -39,7 +39,7 @@ import java.util.*;
 import javax.media.nativewindow.*;
 import javax.media.opengl.*;
 import com.jogamp.opengl.impl.*;
-import com.sun.nativewindow.impl.*;
+import com.jogamp.nativewindow.impl.*;
 import com.jogamp.gluegen.runtime.NativeLibrary;
 
 /**

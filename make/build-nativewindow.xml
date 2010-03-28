@@ -95,13 +95,13 @@
         <!-- partitioning -->
 
         <property name="java.part.core"
-                  value="javax/media/nativewindow/*, javax/media/nativewindow/egl/*, javax/media/nativewindow/macosx/*, javax/media/nativewindow/windows/*, com/sun/nativewindow/impl/*, com/sun/nativewindow/impl/jvm/*"/>
+                  value="javax/media/nativewindow/*, javax/media/nativewindow/egl/*, javax/media/nativewindow/macosx/*, javax/media/nativewindow/windows/*, com/jogamp/nativewindow/impl/*, com/jogamp/nativewindow/impl/jvm/*"/>
 
         <property name="java.part.awt"
-                  value="javax/media/nativewindow/awt/*, com/sun/nativewindow/impl/jawt/**, com/sun/nativewindow/impl/**/awt/**"/>
+                  value="javax/media/nativewindow/awt/*, com/jogamp/nativewindow/impl/jawt/**, com/jogamp/nativewindow/impl/**/awt/**"/>
 
         <property name="java.part.x11"
-                  value="com/sun/nativewindow/impl/x11/** javax/media/nativewindow/x11/*" />
+                  value="com/jogamp/nativewindow/impl/x11/** javax/media/nativewindow/x11/*" />
 
         <!-- condition excludes -->
 
@@ -257,7 +257,7 @@
 
         <property name="javadoc.packagenames" value="${javadoc.spec.packagenames}" />
 
-        <property name="javadoc.dev.packagenames" value="${javadoc.packagenames},com.sun.nativewindow.impl.*,com.sun.gluegen,com.jogamp.gluegen.runtime" />
+        <property name="javadoc.dev.packagenames" value="${javadoc.packagenames},com.jogamp.nativewindow.impl.*,com.sun.gluegen,com.jogamp.gluegen.runtime" />
     <property name="javadoc.bottom" value="Copyright 2005 Sun Microsystems, Inc. All rights reserved. Use is subject to &lt;a href=&quot;http://jcp.org/en/jsr/detail?id=231&quot;&gt;license terms&lt;/a&gt;." />
     </target>
     
@@ -320,13 +320,13 @@
 
         <!-- Now check for the presence of one well-known file -->
         <uptodate property="java.generate.skip.x11windowlib"
-                  targetfile="${src.generated.java}/com/sun/nativewindow/impl/x11/X11Lib.java">
+                  targetfile="${src.generated.java}/com/jogamp/nativewindow/impl/x11/X11Lib.java">
             <srcfiles refid="stub.includes.dependencies.fileset.1" />
             <srcfiles refid="stub.includes.dependencies.fileset.2" />
             <srcfiles refid="stub.includes.dependencies.fileset.3" />
         </uptodate>
         <uptodate property="java.generate.skip.jawt"
-                  targetfile="${src.generated.java}/com/sun/nativewindow/impl/jawt/JAWT.java">
+                  targetfile="${src.generated.java}/com/jogamp/nativewindow/impl/jawt/JAWT.java">
             <srcfiles refid="stub.includes.dependencies.fileset.1" />
             <srcfiles refid="stub.includes.dependencies.fileset.2" />
             <srcfiles refid="stub.includes.dependencies.fileset.3" />
@@ -353,7 +353,7 @@
         </gluegen>
         <copy todir="${src.generated.java-cdc}">
             <fileset dir="${src.generated.java}"
-                     includes="com/sun/nativewindow/impl/x11/**" />
+                     includes="com/jogamp/nativewindow/impl/x11/**" />
         </copy>
     </target>
 
@@ -373,7 +373,7 @@
         </gluegen>
         <copy todir="${src.generated.java-cdc}">
             <fileset dir="${src.generated.java}"
-                     includes="com/sun/nativewindow/impl/jawt/**" />
+                     includes="com/jogamp/nativewindow/impl/jawt/**" />
         </copy>
     </target>
 
@@ -851,8 +851,8 @@
         <jar manifest="tempversion" destfile="${nativewindow.all.jar}" filesonly="true">
             <fileset dir="${classes}">
                 <include name="javax/media/nativewindow/**" />
-                <include name="com/sun/nativewindow/**" />
-                <include name="com/sun/gluegen/runtime/**" />
+                <include name="com/jogamp/nativewindow/**" />
+                <include name="com/jogamp/gluegen/runtime/**" />
                 <exclude name="${java.part.x11}" />
             </fileset>
         </jar>
@@ -861,8 +861,8 @@
         <jar manifest="tempversion-cdc" destfile="${nativewindow.all.cdc.jar}" filesonly="true">
             <fileset dir="${classes-cdc}">
                 <include name="javax/media/nativewindow/**" />
-                <include name="com/sun/nativewindow/**" />
-                <include name="com/sun/gluegen/runtime/**" />
+                <include name="com/jogamp/nativewindow/**" />
+                <include name="com/jogamp/gluegen/runtime/**" />
             </fileset>
         </jar>
     </target>

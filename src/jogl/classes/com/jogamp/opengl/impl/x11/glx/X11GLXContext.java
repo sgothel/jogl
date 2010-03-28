@@ -46,7 +46,7 @@ import javax.media.nativewindow.*;
 import javax.media.nativewindow.x11.*;
 import com.jogamp.opengl.impl.*;
 import com.jogamp.opengl.impl.x11.glx.*;
-import com.sun.nativewindow.impl.x11.*;
+import com.jogamp.nativewindow.impl.x11.*;
 import com.jogamp.gluegen.runtime.ProcAddressTable;
 
 public abstract class X11GLXContext extends GLContextImpl {

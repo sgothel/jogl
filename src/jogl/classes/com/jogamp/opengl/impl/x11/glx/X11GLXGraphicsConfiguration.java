@@ -39,7 +39,7 @@ import javax.media.opengl.*;
 import com.jogamp.opengl.impl.*;
 import com.jogamp.gluegen.runtime.NativeLibrary;
 import com.jogamp.gluegen.runtime.PointerBuffer;
-import com.sun.nativewindow.impl.x11.*;
+import com.jogamp.nativewindow.impl.x11.*;
 
 public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implements Cloneable {
     protected static final boolean DEBUG = Debug.debug("GraphicsConfiguration");

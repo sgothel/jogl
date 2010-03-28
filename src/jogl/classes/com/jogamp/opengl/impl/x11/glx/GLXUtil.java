@@ -36,7 +36,7 @@ import javax.media.opengl.*;
 
 import com.jogamp.opengl.impl.*;
 import javax.media.nativewindow.NativeWindowFactory;
-import com.sun.nativewindow.impl.x11.*;
+import com.jogamp.nativewindow.impl.x11.*;
 
 public class GLXUtil {
     public static boolean isMultisampleAvailable(long display) {

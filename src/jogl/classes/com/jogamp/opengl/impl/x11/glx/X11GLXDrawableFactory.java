@@ -46,9 +46,9 @@ import com.jogamp.gluegen.runtime.*;
 import com.jogamp.gluegen.runtime.opengl.*;
 import com.jogamp.opengl.impl.*;
 import com.jogamp.opengl.impl.x11.glx.*;
-import com.sun.nativewindow.impl.NullWindow;
-import com.sun.nativewindow.impl.NWReflection;
-import com.sun.nativewindow.impl.x11.*;
+import com.jogamp.nativewindow.impl.NullWindow;
+import com.jogamp.nativewindow.impl.NWReflection;
+import com.jogamp.nativewindow.impl.x11.*;
 
 public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements DynamicLookupHelper {
   public X11GLXDrawableFactory() {

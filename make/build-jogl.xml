@@ -114,7 +114,7 @@
                   value="com/jogamp/opengl/impl/glu/gl2/** com/jogamp/opengl/impl/glu/nurbs/** com/jogamp/opengl/impl/glu/registry/** javax/media/opengl/glu/gl2/**"/>
 
         <property name="java.part.openmax"
-                  value="com/sun/openmax/**"/>
+                  value="com/jogamp/openmax/**"/>
 
         <property name="java.part.sdk"
                   value="com/jogamp/opengl/util/glsl/sdk/**"/>
@@ -191,10 +191,10 @@
         </condition>
 
         <property name="java.excludes.javadoc.packagenames"
-                  value="com.jogamp.opengl.impl.gl2.fixme.*,com.sun.javafx.audio.windows.waveout.TestSpatialization"/>
+                  value="com.jogamp.opengl.impl.gl2.fixme.*,com.jogamp.javafx.audio.windows.waveout.TestSpatialization"/>
 
         <property name="java.excludes.fixme" 
-                  value="com/jogamp/opengl/impl/gl2/fixme/** com/sun/javafx/audio/windows/waveout/TestSpatialization.java" />
+                  value="com/jogamp/opengl/impl/gl2/fixme/** com/jogamp/javafx/audio/windows/waveout/TestSpatialization.java" />
 
         <property name="java.excludes.cdcfp"
                   value="${java.excludes.fixme} ${java.part.nv-cg} ${java.part.gl2} ${java.part.gl2.dbg} ${java.part.gl3} ${java.part.gl3.dbg} ${java.part.awt} ${java.part.glugl2} ${java.part.util.awt} ${java.part.util.gl2} com/jogamp/opengl/util/TGAWriter.java"/>
@@ -1465,7 +1465,7 @@
           <!-- FIXME: the Mixer should be moved to another library -->
           <!--include name="${rootrel.src.c}/Mixer.cpp" if="isWindows"/-->
           <include name="${rootrel.src.c.openmax}/omx_tool.c"  if="useOpenMAX"/>
-          <include name="${rootrel.src.c.openmax}/com_sun_openmax_OMXInstance.c"  if="useOpenMAX"/>
+          <include name="${rootrel.src.c.openmax}/com_jogamp_openmax_OMXInstance.c"  if="useOpenMAX"/>
 
           <include name="${rootrel.generated.c.jogl}/gl2/GL2Impl_JNI.c"/>
           <include name="${rootrel.generated.c.jogl}/gl3/GL3Impl_JNI.c"/>
@@ -1484,7 +1484,7 @@
           <!-- FIXME: the Mixer should be moved to another library -->
           <!--include name="${rootrel.src.c}/Mixer.cpp" if="isWindows"/-->
           <include name="${rootrel.src.c.openmax}/omx_tool.c"  if="useOpenMAX"/>
-          <include name="${rootrel.src.c.openmax}/com_sun_openmax_OMXInstance.c"  if="useOpenMAX"/>
+          <include name="${rootrel.src.c.openmax}/com_jogamp_openmax_OMXInstance.c"  if="useOpenMAX"/>
 
           <include name="${rootrel.generated.c.jogl}/gl2es12/GL2ES12Impl_JNI.c"/>
           <!--include name="${rootrel.generated.c.jogl}/GLU_JNI.c"/ EMPTY -->
@@ -1497,7 +1497,7 @@
         <patternset id="c.src.files.jogl.es2">
           <include name="${rootrel.src.c}/GLXGetProcAddressARB.c" if="isX11"/>
           <include name="${rootrel.src.c.openmax}/omx_tool.c"  if="useOpenMAX"/>
-          <include name="${rootrel.src.c.openmax}/com_sun_openmax_OMXInstance.c"  if="useOpenMAX"/>
+          <include name="${rootrel.src.c.openmax}/com_jogamp_openmax_OMXInstance.c"  if="useOpenMAX"/>
 
           <include name="${rootrel.generated.c.jogl}/egl/EGL_JNI.c"/>
           <include name="${rootrel.generated.c.jogl}/egl/EGLExtImpl_JNI.c"/>
@@ -1507,7 +1507,7 @@
         <patternset id="c.src.files.jogl.es1">
           <include name="${rootrel.src.c}/GLXGetProcAddressARB.c" if="isX11"/>
           <include name="${rootrel.src.c.openmax}/omx_tool.c"  if="useOpenMAX"/>
-          <include name="${rootrel.src.c.openmax}/com_sun_openmax_OMXInstance.c"  if="useOpenMAX"/>
+          <include name="${rootrel.src.c.openmax}/com_jogamp_openmax_OMXInstance.c"  if="useOpenMAX"/>
 
           <include name="${rootrel.generated.c.jogl}/egl/EGL_JNI.c"/>
           <include name="${rootrel.generated.c.jogl}/egl/EGLExtImpl_JNI.c"/>
@@ -1584,13 +1584,13 @@
     </macrodef>  
 
     <target name="c.build.jogl.prepare.openMAX" if="useOpenMAX">
-      <javah destdir="${src.generated.c.openmax}" classpath="${classes-cdc}" class="com.sun.openmax.OMXInstance" />
+      <javah destdir="${src.generated.c.openmax}" classpath="${classes-cdc}" class="com.jogamp.openmax.OMXInstance" />
     </target>
 
     <target name="c.build.jogl.prepare" depends="c.build.jogl.prepare.openMAX">
       <!-- Generate the waveout Mixer header -->
       <!-- FIXME: this is temporary until we move this to another workspace -->
-      <!--javah destdir="${build}/gensrc/native/jogl" classpath="${classes}" class="com.sun.javafx.audio.windows.waveout.Mixer" /-->
+      <!--javah destdir="${build}/gensrc/native/jogl" classpath="${classes}" class="com.jogamp.javafx.audio.windows.waveout.Mixer" /-->
     </target>
 
     <target name="c.build.jogl.gl2" unless="setup.nodesktop">
@@ -1822,11 +1822,11 @@
         <jar manifest="${build}/tempversion" destfile="${jogl.all.jar}" filesonly="true">
             <fileset dir="${classes}">
                 <include name="javax/media/opengl/**" />
-                <include name="com/sun/gluegen/runtime/**" />
+                <include name="com/jogamp/gluegen/runtime/**" />
                 <include name="com/jogamp/opengl/**" />
                 <include name="${java.part.openmax}" />
                 <!-- FIXME: this is temporary until we move these classes to another workspace -->
-                <include name="com/sun/javafx/**" />
+                <include name="com/jogamp/javafx/**" />
             </fileset>
             <fileset dir="${src.java}"
                      includes="${java.part.util.fixedfuncemu.shadercode}"/>
@@ -1835,7 +1835,7 @@
     <target name="build-jars-all-noawt" depends="setup-manifestfile">
         <jar manifest="${build}/tempversion" destfile="${jogl.all-noawt.jar}" filesonly="true">
             <fileset dir="${classes}"
-                includes="javax/media/opengl/** com/sun/gluegen/runtime/** com/jogamp/opengl/** ${java.part.openmax} com/sun/javafx/**"
+                includes="javax/media/opengl/** com/jogamp/gluegen/runtime/** com/jogamp/opengl/** ${java.part.openmax} com/jogamp/javafx/**"
                 excludes="${java.part.awt} ${java.part.util.awt}">
             </fileset>
             <fileset dir="${src.java}"

@@ -34,8 +34,8 @@ package com.jogamp.opengl.impl.x11.glx;
 
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.x11.*;
-import com.sun.nativewindow.impl.NativeWindowFactoryImpl;
-import com.sun.nativewindow.impl.x11.*;
+import com.jogamp.nativewindow.impl.NativeWindowFactoryImpl;
+import com.jogamp.nativewindow.impl.x11.*;
 
 import javax.media.opengl.*;
 import com.jogamp.opengl.impl.*;

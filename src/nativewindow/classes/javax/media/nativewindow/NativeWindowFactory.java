@@ -36,8 +36,8 @@ import java.lang.reflect.*;
 import java.security.*;
 import java.util.*;
 
-import com.sun.nativewindow.impl.*;
-import com.sun.nativewindow.impl.jvm.JVMUtil;
+import com.jogamp.nativewindow.impl.*;
+import com.jogamp.nativewindow.impl.jvm.JVMUtil;
 
 /** Provides a pluggable mechanism for arbitrary window toolkits to
     adapt their components to the {@link NativeWindow} interface,
@@ -177,7 +177,7 @@ public abstract class NativeWindowFactory {
 
             try {
                 Constructor factoryConstructor =
-                    NWReflection.getConstructor("com.sun.nativewindow.impl.x11.awt.X11AWTNativeWindowFactory", new Class[] {});
+                    NWReflection.getConstructor("com.jogamp.nativewindow.impl.x11.awt.X11AWTNativeWindowFactory", new Class[] {});
                 _factory = (NativeWindowFactory) factoryConstructor.newInstance(null);
             } catch (Exception e) { }
         }
@@ -185,7 +185,7 @@ public abstract class NativeWindowFactory {
         if (toolkitLockForced && null==_factory) {
             try {
                 Constructor factoryConstructor =
-                    NWReflection.getConstructor("com.sun.nativewindow.impl.LockingNativeWindowFactory", new Class[] {});
+                    NWReflection.getConstructor("com.jogamp.nativewindow.impl.LockingNativeWindowFactory", new Class[] {});
                 _factory = (NativeWindowFactory) factoryConstructor.newInstance(null);
             } catch (Exception e) { }
         }

@@ -43,7 +43,7 @@ import javax.media.opengl.*;
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.egl.*;
 import com.jogamp.opengl.impl.*;
-import com.sun.nativewindow.impl.NullWindow;
+import com.jogamp.nativewindow.impl.NullWindow;
 
 public class EGLOnscreenDrawable extends EGLDrawable {
     protected EGLOnscreenDrawable(EGLDrawableFactory factory, NativeWindow component) throws GLException {

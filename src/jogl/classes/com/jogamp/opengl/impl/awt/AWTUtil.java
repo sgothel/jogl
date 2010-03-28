@@ -36,7 +36,7 @@
 
 package com.jogamp.opengl.impl.awt;
 
-import com.sun.nativewindow.impl.jawt.*;
+import com.jogamp.nativewindow.impl.jawt.*;
 
 import com.jogamp.opengl.impl.*;
 
