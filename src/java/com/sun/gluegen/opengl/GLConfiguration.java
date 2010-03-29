@@ -173,7 +173,7 @@ public class GLConfiguration extends ProcAddressConfiguration {
       if (emitter.isBufferObjectMethodBinding(binding)) {
         for (Iterator<String> iter = res.iterator(); iter.hasNext(); ) {
           String line = iter.next();
-          if (line.indexOf("BufferFactory.rangeCheck") >= 0) {
+          if (line.indexOf("Buffers.rangeCheck") >= 0) {
             iter.remove();
           }
         }
