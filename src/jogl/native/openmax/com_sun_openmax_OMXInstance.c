@@ -1,5 +1,5 @@
 /*
- *  javafx_media_video_Movie.c
+ *  media_video_Movie.c
  *  JFXFramework
  *
  *  Created by sun on 17/02/08.
@@ -21,8 +21,8 @@ static const char * const ClazzNameRuntimeException =
                             "java/lang/RuntimeException";
 static jclass    runtimeExceptionClz=NULL;
 #ifdef _WIN32_WCE
-    #define STDOUT_FILE "\\Storage Card\\javafx_demos\\stdout.txt"
-    #define STDERR_FILE "\\Storage Card\\javafx_demos\\stderr.txt"
+    #define STDOUT_FILE "\\Storage Card\\demos\\stdout.txt"
+    #define STDERR_FILE "\\Storage Card\\demos\\stderr.txt"
 #endif
 
 static void _initStatics(JNIEnv *env)
