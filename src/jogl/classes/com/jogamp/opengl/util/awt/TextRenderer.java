@@ -38,6 +38,7 @@
  */
 package com.jogamp.opengl.util.awt;
 
+import com.jogamp.gluegen.runtime.Buffers;
 import com.jogamp.opengl.impl.Debug;
 import com.jogamp.opengl.util.*;
 import com.jogamp.opengl.util.packrect.*;
@@ -1707,8 +1708,8 @@ public class TextRenderer {
 
         Pipelined_QuadRenderer() {
             GL2 gl = GLContext.getCurrentGL().getGL2();
-            mVertCoords = BufferUtil.newFloatBuffer(kTotalBufferSizeCoordsVerts);
-            mTexCoords = BufferUtil.newFloatBuffer(kTotalBufferSizeCoordsTex);
+            mVertCoords = Buffers.newDirectFloatBuffer(kTotalBufferSizeCoordsVerts);
+            mTexCoords = Buffers.newDirectFloatBuffer(kTotalBufferSizeCoordsTex);
 
             usingVBOs = is15Available(gl);
 

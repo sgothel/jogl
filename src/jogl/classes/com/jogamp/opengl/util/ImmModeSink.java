@@ -817,7 +817,7 @@ public class ImmModeSink {
         count  = elements;
         bSize  = count * ( vWidth + cWidth + nWidth + tWidth ) ;
 
-        buffer = BufferUtil.newByteBuffer(bSize);
+        buffer = BufferUtil.newDirectByteBuffer(bSize);
 
         int pos = 0;
         int size= count * vWidth ;

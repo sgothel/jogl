@@ -36,31 +36,23 @@
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
-
 package com.jogamp.opengl.util;
 
+import com.jogamp.gluegen.runtime.Buffers;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
 import javax.media.opengl.GL2ES2;
-import javax.media.opengl.GLException;
-import javax.media.opengl.GLProfile;
 
 import java.nio.*;
-import java.util.*;
 
-import java.lang.reflect.*;
+/**
+ * Utility routines for dealing with direct buffers.
+ * @author Kenneth Russel
+ * @author Michael Bien
+ */
+public class BufferUtil extends Buffers {
 
-/** Utility routines for dealing with direct buffers. */
-
-public class BufferUtil {
-  public static final int SIZEOF_BYTE = 1;
-  public static final int SIZEOF_SHORT = 2;
-  public static final int SIZEOF_INT = 4;
-  public static final int SIZEOF_FLOAT = 4;
-  public static final int SIZEOF_LONG = 8;
-  public static final int SIZEOF_DOUBLE = 8;
-
-  public static final int sizeOfGLType(int glType) {
+    public static final int sizeOfGLType(int glType) {
         switch (glType) {
             case GL.GL_UNSIGNED_BYTE:
                 return SIZEOF_BYTE;
@@ -82,9 +74,9 @@ public class BufferUtil {
                 return SIZEOF_DOUBLE;
         }
         return -1;
-  }
+    }
 
-  public static final int sizeOfBufferElem(Buffer buffer) {
+    public static final int sizeOfBufferElem(Buffer buffer) {
         if (buffer == null) {
             return 0;
         }
@@ -99,38 +91,34 @@ public class BufferUtil {
         } else if (buffer instanceof DoubleBuffer) {
             return BufferUtil.SIZEOF_DOUBLE;
         }
-        throw new RuntimeException("Unexpected buffer type " +
-                                   buffer.getClass().getName());
-  }
+        throw new RuntimeException("Unexpected buffer type "
+                + buffer.getClass().getName());
+    }
 
-  private BufferUtil() {}
-
-  //----------------------------------------------------------------------
-  // Allocation routines
-  //
-
-  public static final Buffer newGLBuffer(int glType, int numElements) {
+    public static final Buffer newDirectGLBuffer(int glType, int numElements) {
         switch (glType) {
             case GL.GL_UNSIGNED_BYTE:
             case GL.GL_BYTE:
-                return newByteBuffer(numElements);
+                return newDirectByteBuffer(numElements);
             case GL.GL_UNSIGNED_SHORT:
             case GL.GL_SHORT:
-                return newShortBuffer(numElements);
+                return newDirectShortBuffer(numElements);
             case GL.GL_FLOAT:
-                return newFloatBuffer(numElements);
+                return newDirectFloatBuffer(numElements);
             case GL.GL_FIXED:
             case GL2ES2.GL_INT:
             case GL2ES2.GL_UNSIGNED_INT:
-                return newIntBuffer(numElements);
+                return newDirectIntBuffer(numElements);
             case GL2.GL_DOUBLE:
-                return newDoubleBuffer(numElements);
+                return newDirectDoubleBuffer(numElements);
         }
         return null;
-  }
+    }
 
-  public static final Buffer sliceGLBuffer(ByteBuffer parent, int bytePos, int byteLen, int glType) {
-        if(parent==null || byteLen==0) return null;
+    public static final Buffer sliceGLBuffer(ByteBuffer parent, int bytePos, int byteLen, int glType) {
+        if (parent == null || byteLen == 0) {
+            return null;
+        }
         parent.position(bytePos);
         parent.limit(bytePos + byteLen);
 
@@ -151,349 +139,18 @@ public class BufferUtil {
                 return parent.asDoubleBuffer();
         }
         return null;
-  }
+    }
 
-  /** Allocates a new direct ByteBuffer with the specified number of
-      elements. The returned buffer will have its byte order set to
-      the host platform's native byte order. */
-  public static ByteBuffer newByteBuffer(int numElements) {
-    ByteBuffer bb = ByteBuffer.allocateDirect(numElements);
-    nativeOrder(bb);
-    return bb;
-  }
-    
-  public static ByteBuffer newByteBuffer(byte[] values, int offset, int len) {
-    ByteBuffer bb = newByteBuffer(len);
-    bb.put(values, offset, len);
-    bb.rewind();
-    return bb;
-  }
-    
-  public static ByteBuffer newByteBuffer(byte[] values, int offset) {
-    return newByteBuffer(values, offset, values.length-offset);
-  }
-    
-  public static ByteBuffer newByteBuffer(byte[] values) {
-    return newByteBuffer(values, 0);
-  }
-    
-    
-  /** Allocates a new direct DoubleBuffer with the specified number of
-      elements. The returned buffer will have its byte order set to
-      the host platform's native byte order. */
-  public static DoubleBuffer newDoubleBuffer(int numElements) {
-    ByteBuffer bb = newByteBuffer(numElements * SIZEOF_DOUBLE);
-    return bb.asDoubleBuffer();
-  }
-
-  public static DoubleBuffer newDoubleBuffer(double[] values, int offset) {
-    int len = values.length-offset;
-    DoubleBuffer bb = newDoubleBuffer(len);
-    bb.put(values, offset, len);
-    bb.rewind();
-    return bb;
-  }
-    
-  public static DoubleBuffer newDoubleBuffer(double[] values) {
-    return newDoubleBuffer(values, 0);
-  }
-    
-
-  /** Allocates a new direct FloatBuffer with the specified number of
-      elements. The returned buffer will have its byte order set to
-      the host platform's native byte order. */
-  public static FloatBuffer newFloatBuffer(int numElements) {
-    ByteBuffer bb = newByteBuffer(numElements * SIZEOF_FLOAT);
-    return bb.asFloatBuffer();
-  }
-    
-  public static FloatBuffer newFloatBuffer(float[] values, int offset, int len) {
-    FloatBuffer bb = newFloatBuffer(len);
-    bb.put(values, offset, len);
-    bb.rewind();
-    return bb;
-  }
-    
-  public static FloatBuffer newFloatBuffer(float[] values, int offset) {
-    return newFloatBuffer(values, 0, values.length-offset);
-  }
-
-  public static FloatBuffer newFloatBuffer(float[] values) {
-    return newFloatBuffer(values, 0);
-  }
-    
-    
-  /** Allocates a new direct IntBuffer with the specified number of
-      elements. The returned buffer will have its byte order set to
-      the host platform's native byte order. */
-  public static IntBuffer newIntBuffer(int numElements) {
-    ByteBuffer bb = newByteBuffer(numElements * SIZEOF_INT);
-    return bb.asIntBuffer();
-  }
-    
-  public static IntBuffer newIntBuffer(int[] values, int offset, int len) {
-    IntBuffer bb = newIntBuffer(len);
-    bb.put(values, offset, len);
-    bb.rewind();
-    return bb;
-  }
-    
-  public static IntBuffer newIntBuffer(int[] values, int offset) {
-    return newIntBuffer(values, 0, values.length-offset);
-  }
-
-  public static IntBuffer newIntBuffer(int[] values) {
-    return newIntBuffer(values, 0);
-  }
-    
-  /** Allocates a new direct LongBuffer with the specified number of
-      elements. The returned buffer will have its byte order set to
-      the host platform's native byte order. */
-  public static LongBuffer newLongBuffer(int numElements) {
-    ByteBuffer bb = newByteBuffer(numElements * SIZEOF_LONG);
-    return bb.asLongBuffer();
-  }
-
-  /** Allocates a new direct ShortBuffer with the specified number of
-      elements. The returned buffer will have its byte order set to
-      the host platform's native byte order. */
-  public static ShortBuffer newShortBuffer(int numElements) {
-    ByteBuffer bb = newByteBuffer(numElements * SIZEOF_SHORT);
-    return bb.asShortBuffer();
-  }
-
-  public static ShortBuffer newShortBuffer(short[] values, int offset, int len) {
-    ShortBuffer bb = newShortBuffer(len);
-    bb.put(values, offset, len);
-    bb.rewind();
-    return bb;
-  }
-    
-  public static ShortBuffer newShortBuffer(short[] values, int offset) {
-    return newShortBuffer(values, 0, values.length-offset);
-  }
-
-  public static ShortBuffer newShortBuffer(short[] values) {
-    return newShortBuffer(values, 0);
-  }
-    
-  //----------------------------------------------------------------------
-  // Copy routines (type-to-type)
-  //
-  
-  /** Copies the <i>remaining</i> elements (as defined by
-      <code>limit() - position()</code>) in the passed ByteBuffer into
-      a newly-allocated direct ByteBuffer. The returned buffer will
-      have its byte order set to the host platform's native byte
-      order. The position of the newly-allocated buffer will be zero,
-      and the position of the passed buffer is unchanged (though its
-      mark is changed). */
-  public static ByteBuffer copyByteBuffer(ByteBuffer orig) {
-    ByteBuffer dest = newByteBuffer(orig.remaining());
-    dest.put(orig);
-    dest.rewind();
-    return dest;
-  }
-  
-  /** Copies the <i>remaining</i> elements (as defined by
-      <code>limit() - position()</code>) in the passed FloatBuffer
-      into a newly-allocated direct FloatBuffer. The returned buffer
-      will have its byte order set to the host platform's native byte
-      order. The position of the newly-allocated buffer will be zero,
-      and the position of the passed buffer is unchanged (though its
-      mark is changed). */
-  public static FloatBuffer copyFloatBuffer(FloatBuffer orig) {
-    return copyFloatBufferAsByteBuffer(orig).asFloatBuffer();
-  }
-  
-  /** Copies the <i>remaining</i> elements (as defined by
-      <code>limit() - position()</code>) in the passed IntBuffer
-      into a newly-allocated direct IntBuffer. The returned buffer
-      will have its byte order set to the host platform's native byte
-      order. The position of the newly-allocated buffer will be zero,
-      and the position of the passed buffer is unchanged (though its
-      mark is changed). */
-  public static IntBuffer copyIntBuffer(IntBuffer orig) {
-    return copyIntBufferAsByteBuffer(orig).asIntBuffer();
-  }
-  
-  /** Copies the <i>remaining</i> elements (as defined by
-      <code>limit() - position()</code>) in the passed ShortBuffer
-      into a newly-allocated direct ShortBuffer. The returned buffer
-      will have its byte order set to the host platform's native byte
-      order. The position of the newly-allocated buffer will be zero,
-      and the position of the passed buffer is unchanged (though its
-      mark is changed). */
-  public static ShortBuffer copyShortBuffer(ShortBuffer orig) {
-    return copyShortBufferAsByteBuffer(orig).asShortBuffer();
-  }
-  
-  //----------------------------------------------------------------------
-  // Copy routines (type-to-ByteBuffer)
-  //
-  
-  /** Copies the <i>remaining</i> elements (as defined by
-      <code>limit() - position()</code>) in the passed FloatBuffer
-      into a newly-allocated direct ByteBuffer. The returned buffer
-      will have its byte order set to the host platform's native byte
-      order. The position of the newly-allocated buffer will be zero,
-      and the position of the passed buffer is unchanged (though its
-      mark is changed). */
-  public static ByteBuffer copyFloatBufferAsByteBuffer(FloatBuffer orig) {
-    ByteBuffer dest = newByteBuffer(orig.remaining() * SIZEOF_FLOAT);
-    dest.asFloatBuffer().put(orig);
-    dest.rewind();
-    return dest;
-  }
-  
-  /** Copies the <i>remaining</i> elements (as defined by
-      <code>limit() - position()</code>) in the passed IntBuffer into
-      a newly-allocated direct ByteBuffer. The returned buffer will
-      have its byte order set to the host platform's native byte
-      order. The position of the newly-allocated buffer will be zero,
-      and the position of the passed buffer is unchanged (though its
-      mark is changed). */
-  public static ByteBuffer copyIntBufferAsByteBuffer(IntBuffer orig) {
-    ByteBuffer dest = newByteBuffer(orig.remaining() * SIZEOF_INT);
-    dest.asIntBuffer().put(orig);
-    dest.rewind();
-    return dest;
-  }
-  
-  /** Copies the <i>remaining</i> elements (as defined by
-      <code>limit() - position()</code>) in the passed ShortBuffer
-      into a newly-allocated direct ByteBuffer. The returned buffer
-      will have its byte order set to the host platform's native byte
-      order. The position of the newly-allocated buffer will be zero,
-      and the position of the passed buffer is unchanged (though its
-      mark is changed). */
-  public static ByteBuffer copyShortBufferAsByteBuffer(ShortBuffer orig) {
-    ByteBuffer dest = newByteBuffer(orig.remaining() * SIZEOF_SHORT);
-    dest.asShortBuffer().put(orig);
-    dest.rewind();
-    return dest;
-  }
-
-  //----------------------------------------------------------------------
-  // Conversion routines 
-  //
-  
-  public final static float[] getFloatArray(double[] source) {
-      int i=source.length;
-      float[] dest = new float[i--];
-      while(i>=0) { dest[i]=(float)source[i]; i--; }
-      return dest;
-  }
-
-  public final static FloatBuffer getFloatBuffer(DoubleBuffer source) {
-      source.rewind();
-      FloatBuffer dest = BufferUtil.newFloatBuffer(source.limit());
-      while(source.hasRemaining()) { dest.put((float)source.get()); }
-      return dest;
-  }
-
-  public static ByteBuffer nativeOrder(ByteBuffer buf) {
-    if (!isCDCFP) {
-      try {
-        if (byteOrderClass == null) {
-          byteOrderClass = Class.forName("java.nio.ByteOrder");
-          orderMethod = ByteBuffer.class.getMethod("order", new Class[] { byteOrderClass });
-          Method nativeOrderMethod = byteOrderClass.getMethod("nativeOrder", null);
-          nativeOrderObject = nativeOrderMethod.invoke(null, null);
+    //----------------------------------------------------------------------
+    // Conversion routines
+    //
+    public final static float[] getFloatArray(double[] source) {
+        int i = source.length;
+        float[] dest = new float[i--];
+        while (i >= 0) {
+            dest[i] = (float) source[i];
+            i--;
         }
-      } catch (Throwable t) {
-        // Must be running on CDC / FP
-        isCDCFP = true;
-      }
-
-      if (!isCDCFP) {
-        try {
-          orderMethod.invoke(buf, new Object[] { nativeOrderObject });
-        } catch (Throwable t) {
-        }
-      }
+        return dest;
     }
-    return buf;
-  }
-
-  //----------------------------------------------------------------------
-  // Convenient GL put methods with generic target Buffer
-  //
-  public static void put(Buffer dest, Buffer v) {
-    if((dest instanceof ByteBuffer) && (v instanceof ByteBuffer)) {
-        ((ByteBuffer)dest).put((ByteBuffer)v);
-    } else if((dest instanceof ShortBuffer) && (v instanceof ShortBuffer)) {
-        ((ShortBuffer)dest).put((ShortBuffer)v);
-    } else if((dest instanceof IntBuffer) && (v instanceof IntBuffer)) {
-        ((IntBuffer)dest).put((IntBuffer)v);
-    } else if((dest instanceof FloatBuffer) && (v instanceof FloatBuffer)) {
-        ((FloatBuffer)dest).put((FloatBuffer)v);
-    } else {
-        throw new GLException("Incompatible Buffer classes: dest = "+dest.getClass().getName() + ", src = " + v.getClass().getName());
-    }
-  }
-
-  public static void putb(Buffer dest, byte v) {
-    if(dest instanceof ByteBuffer) {
-        ((ByteBuffer)dest).put(v);
-    } else if(dest instanceof ShortBuffer) {
-        ((ShortBuffer)dest).put((short)v);
-    } else if(dest instanceof IntBuffer) {
-        ((IntBuffer)dest).put((int)v);
-    } else {
-        throw new GLException("Byte doesn't match Buffer Class: "+dest);
-    }
-  }
-
-  public static void puts(Buffer dest, short v) {
-    if(dest instanceof ShortBuffer) {
-        ((ShortBuffer)dest).put(v);
-    } else if(dest instanceof IntBuffer) {
-        ((IntBuffer)dest).put((int)v);
-    } else {
-        throw new GLException("Short doesn't match Buffer Class: "+dest);
-    }
-  }
-
-  public static void puti(Buffer dest, int v) {
-    if(dest instanceof IntBuffer) {
-        ((IntBuffer)dest).put(v);
-    } else {
-        throw new GLException("Integer doesn't match Buffer Class: "+dest);
-    }
-  }
-
-  public static void putx(Buffer dest, int v) {
-    puti(dest, v);
-  }
-
-  public static void putf(Buffer dest, float v) {
-    if(dest instanceof FloatBuffer) {
-        ((FloatBuffer)dest).put(v);
-    } else if(dest instanceof IntBuffer) {
-        ((IntBuffer)dest).put(FixedPoint.toFixed(v));
-    } else {
-        throw new GLException("Float doesn't match Buffer Class: "+dest);
-    }
-  }
-
-  public static void putd(Buffer dest, double v) {
-    if(dest instanceof FloatBuffer) {
-        ((FloatBuffer)dest).put((float)v);
-    } else {
-        throw new GLException("Double doesn't match Buffer Class: "+dest);
-    }
-  }
-
-  //----------------------------------------------------------------------
-  // Internals only below this point
-  //
-
-  // NOTE that this work must be done reflectively at the present time
-  // because this code must compile and run correctly on both CDC/FP and J2SE
-  private static boolean isCDCFP;
-  private static Class byteOrderClass;
-  private static Object nativeOrderObject;
-  private static Method orderMethod;
-
 }

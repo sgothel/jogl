@@ -1,6 +1,7 @@
 
 package com.jogamp.opengl.util.glsl;
 
+import com.jogamp.gluegen.runtime.Buffers;
 import javax.media.opengl.*;
 import com.jogamp.opengl.util.*;
 import com.jogamp.opengl.impl.Debug;
@@ -34,7 +35,7 @@ public class ShaderCode {
         shaderBinaryFormat = -1;
         shaderBinary = null;
         shaderType   = type;
-        shader = BufferUtil.newIntBuffer(number);
+        shader = Buffers.newDirectIntBuffer(number);
         id = getNextID();
 
         if(DEBUG_CODE) {
@@ -55,7 +56,7 @@ public class ShaderCode {
         shaderBinaryFormat = binFormat;
         shaderBinary = binary;
         shaderType   = type;
-        shader = BufferUtil.newIntBuffer(number);
+        shader = Buffers.newDirectIntBuffer(number);
         id = getNextID();
     }
 
