@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <mmsystem.h>
 #include <mmreg.h>
-#include "com_jogamp_javafx_audio_windows_waveout_Mixer.h"
+#include "com_jogamp_audio_windows_waveout_Mixer.h"
 
 static HANDLE event = NULL;
 static HWAVEOUT output = NULL;
@@ -57,7 +57,7 @@ void CALLBACK playbackCallback(HWAVEOUT output,
     }
 }
 
-JNIEXPORT jboolean JNICALL Java_com_jogamp_javafx_audio_windows_waveout_Mixer_initializeWaveOut
+JNIEXPORT jboolean JNICALL Java_com_jogamp_audio_windows_waveout_Mixer_initializeWaveOut
   (JNIEnv *env, jclass unused, jlong eventObject)
 {
     event = (HANDLE) eventObject;
@@ -98,7 +98,7 @@ JNIEXPORT jboolean JNICALL Java_com_jogamp_javafx_audio_windows_waveout_Mixer_in
     return JNI_TRUE;
 }
 
-JNIEXPORT void JNICALL Java_com_jogamp_javafx_audio_windows_waveout_Mixer_shutdownWaveOut
+JNIEXPORT void JNICALL Java_com_jogamp_audio_windows_waveout_Mixer_shutdownWaveOut
   (JNIEnv *env, jclass unused)
 {
     //    writeString("Pausing\n");
@@ -109,7 +109,7 @@ JNIEXPORT void JNICALL Java_com_jogamp_javafx_audio_windows_waveout_Mixer_shutdo
     waveOutClose(output);
 }
 
-JNIEXPORT jlong JNICALL Java_com_jogamp_javafx_audio_windows_waveout_Mixer_getNextMixerBuffer
+JNIEXPORT jlong JNICALL Java_com_jogamp_audio_windows_waveout_Mixer_getNextMixerBuffer
   (JNIEnv *env, jclass unused)
 {
     WAVEHDR* hdr = NULL;
@@ -123,28 +123,28 @@ JNIEXPORT jlong JNICALL Java_com_jogamp_javafx_audio_windows_waveout_Mixer_getNe
     return (jlong) hdr;
 }
 
-JNIEXPORT jobject JNICALL Java_com_jogamp_javafx_audio_windows_waveout_Mixer_getMixerBufferData
+JNIEXPORT jobject JNICALL Java_com_jogamp_audio_windows_waveout_Mixer_getMixerBufferData
   (JNIEnv *env, jclass unused, jlong mixerBuffer)
 {
     WAVEHDR* hdr = (WAVEHDR*) mixerBuffer;
     return env->NewDirectByteBuffer(hdr->lpData, hdr->dwBufferLength);
 }
 
-JNIEXPORT jlong JNICALL Java_com_jogamp_javafx_audio_windows_waveout_Mixer_getMixerBufferDataAddress
+JNIEXPORT jlong JNICALL Java_com_jogamp_audio_windows_waveout_Mixer_getMixerBufferDataAddress
   (JNIEnv *env, jclass unused, jlong mixerBuffer)
 {
     WAVEHDR* hdr = (WAVEHDR*) mixerBuffer;
     return (jlong) hdr->lpData;
 }
 
-JNIEXPORT jint JNICALL Java_com_jogamp_javafx_audio_windows_waveout_Mixer_getMixerBufferDataCapacity
+JNIEXPORT jint JNICALL Java_com_jogamp_audio_windows_waveout_Mixer_getMixerBufferDataCapacity
   (JNIEnv *env, jclass unused, jlong mixerBuffer)
 {
     WAVEHDR* hdr = (WAVEHDR*) mixerBuffer;
     return (jint) hdr->dwBufferLength;
 }
 
-JNIEXPORT jboolean JNICALL Java_com_jogamp_javafx_audio_windows_waveout_Mixer_prepareMixerBuffer
+JNIEXPORT jboolean JNICALL Java_com_jogamp_audio_windows_waveout_Mixer_prepareMixerBuffer
   (JNIEnv *env, jclass unused, jlong mixerBuffer)
 {
     MMRESULT res = waveOutPrepareHeader(output,
@@ -156,7 +156,7 @@ JNIEXPORT jboolean JNICALL Java_com_jogamp_javafx_audio_windows_waveout_Mixer_pr
     return JNI_FALSE;
 }
 
-JNIEXPORT jboolean JNICALL Java_com_jogamp_javafx_audio_windows_waveout_Mixer_writeMixerBuffer
+JNIEXPORT jboolean JNICALL Java_com_jogamp_audio_windows_waveout_Mixer_writeMixerBuffer
   (JNIEnv *env, jclass unused, jlong mixerBuffer)
 {
     MMRESULT res = waveOutWrite(output,
@@ -170,13 +170,13 @@ JNIEXPORT jboolean JNICALL Java_com_jogamp_javafx_audio_windows_waveout_Mixer_wr
     return JNI_FALSE;
 }
 
-JNIEXPORT jlong JNICALL Java_com_jogamp_javafx_audio_windows_waveout_Mixer_CreateEvent
+JNIEXPORT jlong JNICALL Java_com_jogamp_audio_windows_waveout_Mixer_CreateEvent
   (JNIEnv *env, jclass unused)
 {
     return (jlong) CreateEvent(NULL, FALSE, TRUE, NULL);
 }
 
-JNIEXPORT jboolean JNICALL Java_com_jogamp_javafx_audio_windows_waveout_Mixer_WaitForSingleObject
+JNIEXPORT jboolean JNICALL Java_com_jogamp_audio_windows_waveout_Mixer_WaitForSingleObject
   (JNIEnv *env, jclass unused, jlong eventObject)
 {
     DWORD res = WaitForSingleObject((HANDLE) eventObject, INFINITE);
@@ -186,13 +186,13 @@ JNIEXPORT jboolean JNICALL Java_com_jogamp_javafx_audio_windows_waveout_Mixer_Wa
     return JNI_FALSE;
 }
 
-JNIEXPORT void JNICALL Java_com_jogamp_javafx_audio_windows_waveout_Mixer_SetEvent
+JNIEXPORT void JNICALL Java_com_jogamp_audio_windows_waveout_Mixer_SetEvent
   (JNIEnv *env, jclass unused, jlong eventObject)
 {
     SetEvent((HANDLE) eventObject);
 }
 
-JNIEXPORT void JNICALL Java_com_jogamp_javafx_audio_windows_waveout_Mixer_CloseHandle
+JNIEXPORT void JNICALL Java_com_jogamp_audio_windows_waveout_Mixer_CloseHandle
   (JNIEnv *env, jclass unused, jlong eventObject)
 {
     CloseHandle((HANDLE) eventObject);

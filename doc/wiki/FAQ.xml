@@ -289,13 +289,13 @@ Below you see the invocation of the ES2 RedSquare jogl-demos utilizing multiple 
 * Single thread (Unix, Win32) <pre>java -Djava.awt.headless=true demos.es2.RedSquare -GL2</pre>
 * Single thread (MacOSX) <pre>java -XstartOnFirstThread -Djava.awt.headless=true demos.es2.RedSquare -GL2</pre>
 * Multiple threads & windows (Unix, Win32) <pre>java -Djava.awt.headless=true demos.es2.RedSquare -GL2 -GL2 -GL2 -GL2</pre>
-* Multiple threads & windows (MacOSX) <pre>java -XstartOnFirstThread -Djava.awt.headless=true com.jogamp.javafx.newt.util.MainThread demos.es2.RedSquare -GL2 -GL2 -GL2 -GL2</pre>
+* Multiple threads & windows (MacOSX) <pre>java -XstartOnFirstThread -Djava.awt.headless=true com.jogamp.newt.util.MainThread demos.es2.RedSquare -GL2 -GL2 -GL2 -GL2</pre>
 
-The serialization of the main Java class through ''com.jogamp.javafx.newt.util.MainThread''
+The serialization of the main Java class through ''com.jogamp.newt.util.MainThread''
 may be used for all platforms, since it only takes effect on ''MacOSX''.
 This allows you an almost platform independent invocation of your multithreaded Java applications.
 
-On ''MacOSX'', ''com.jogamp.javafx.newt.util.MainThread'' will occupy the main thread and
+On ''MacOSX'', ''com.jogamp.newt.util.MainThread'' will occupy the main thread and
 serializes all native window related tasks through it.
 This mechanism is thread safe utilizes reentrant locking.
 

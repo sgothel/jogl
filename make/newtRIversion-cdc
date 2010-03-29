@@ -4,5 +4,5 @@ Specification-Vendor: Sun Microsystems, Inc.
 Implementation-Title: NEWT Runtime Environment CDC
 Implementation-Version: @BASEVERSION@
 Implementation-Vendor: Sun Microsystems, Inc.
-Extension-Name: com.sun.javafx.newt
+Extension-Name: com.sun.newt
 Implementation-Vendor-Id: com.sun

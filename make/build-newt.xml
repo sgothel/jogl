@@ -108,25 +108,25 @@
         <!-- partitioning -->
 
         <property name="java.part.core"
-                  value="com/jogamp/javafx/newt/*, com/jogamp/javafx/newt/util/*, com/jogamp/javafx/newt/impl/*, com/jogamp/javafx/newt/intel/gdl/*"/>
+                  value="com/jogamp/newt/*, com/jogamp/newt/util/*, com/jogamp/newt/impl/*, com/jogamp/newt/intel/gdl/*"/>
 
         <property name="java.part.x11"
-                  value="com/jogamp/javafx/newt/x11/*"/>
+                  value="com/jogamp/newt/x11/*"/>
 
         <property name="java.part.windows"
-                  value="com/jogamp/javafx/newt/windows/*"/>
+                  value="com/jogamp/newt/windows/*"/>
 
         <property name="java.part.macosx"
-                  value="com/jogamp/javafx/newt/macosx/*"/>
+                  value="com/jogamp/newt/macosx/*"/>
 
         <property name="java.part.opengl"
-                  value="com/jogamp/javafx/newt/opengl/*, com/jogamp/javafx/newt/opengl/kd/*"/>
+                  value="com/jogamp/newt/opengl/*, com/jogamp/newt/opengl/kd/*"/>
 
         <property name="java.part.broadcomegl"
-                  value="com/jogamp/javafx/newt/opengl/broadcom/egl/*"/>
+                  value="com/jogamp/newt/opengl/broadcom/egl/*"/>
 
         <property name="java.part.awt"
-                  value="com/jogamp/javafx/newt/awt/*"/>
+                  value="com/jogamp/newt/awt/*"/>
 
         <!-- condition excludes -->
 
@@ -279,11 +279,11 @@
         <property name="javadoc.link" value="http://java.sun.com/j2se/1.4.2/docs/api/" />
         <property name="javadoc.windowtitle" value="NEWT API -- ${newt_base_version} Specification" />
         <property name="javadoc.overview" value="spec-overview.html" />
-        <property name="javadoc.spec.packagenames" value="com.jogamp.javafx.newt, com.jogamp.javafx.newt.opengl" />
+        <property name="javadoc.spec.packagenames" value="com.jogamp.newt, com.jogamp.newt.opengl" />
 
         <property name="javadoc.packagenames" value="${javadoc.spec.packagenames}" />
 
-        <property name="javadoc.dev.packagenames" value="${javadoc.packagenames},com.jogamp.javafx.newt.*" />
+        <property name="javadoc.dev.packagenames" value="${javadoc.packagenames},com.jogamp.newt.*" />
     <property name="javadoc.bottom" value="Copyright 2005 Sun Microsystems, Inc. All rights reserved. Use is subject to &lt;a href=&quot;http://jcp.org/en/jsr/detail?id=231&quot;&gt;license terms&lt;/a&gt;." />
     </target>
 
@@ -596,23 +596,23 @@
     </macrodef>
 
     <target name="c.build.newt.prepare.KD" if="useKD">
-      <javah destdir="${src.generated.c}/KD" classpath="${classes}" class="com.jogamp.javafx.newt.opengl.kd.KDWindow" />
+      <javah destdir="${src.generated.c}/KD" classpath="${classes}" class="com.jogamp.newt.opengl.kd.KDWindow" />
     </target>
 
     <target name="c.build.newt.prepare.IntelGDL" if="useIntelGDL">
-      <javah destdir="${src.generated.c}/IntelGDL" classpath="${classes}" class="com.jogamp.javafx.newt.intel.gdl.Display" />
-      <javah destdir="${src.generated.c}/IntelGDL" classpath="${classes}" class="com.jogamp.javafx.newt.intel.gdl.Screen" />
-      <javah destdir="${src.generated.c}/IntelGDL" classpath="${classes}" class="com.jogamp.javafx.newt.intel.gdl.Window" />
+      <javah destdir="${src.generated.c}/IntelGDL" classpath="${classes}" class="com.jogamp.newt.intel.gdl.Display" />
+      <javah destdir="${src.generated.c}/IntelGDL" classpath="${classes}" class="com.jogamp.newt.intel.gdl.Screen" />
+      <javah destdir="${src.generated.c}/IntelGDL" classpath="${classes}" class="com.jogamp.newt.intel.gdl.Window" />
     </target>
 
     <target name="c.build.newt.prepare.BroadcomEGL" if="useBroadcomEGL">
-      <javah destdir="${src.generated.c}/BroadcomEGL" classpath="${classes}" class="com.jogamp.javafx.newt.opengl.broadcom.egl.Window" />
+      <javah destdir="${src.generated.c}/BroadcomEGL" classpath="${classes}" class="com.jogamp.newt.opengl.broadcom.egl.Window" />
     </target>
 
     <target name="c.build.newt.prepare.desktop" unless="setup.nodesktop">
-      <javah destdir="${src.generated.c}/Windows" classpath="${classes}" class="com.jogamp.javafx.newt.windows.WindowsWindow" />
-      <javah destdir="${src.generated.c}/MacOSX" classpath="${classes}" class="com.jogamp.javafx.newt.macosx.MacWindow" />
-      <javah destdir="${src.generated.c}/X11" classpath="${classes}" class="com.jogamp.javafx.newt.x11.X11Window" />
+      <javah destdir="${src.generated.c}/Windows" classpath="${classes}" class="com.jogamp.newt.windows.WindowsWindow" />
+      <javah destdir="${src.generated.c}/MacOSX" classpath="${classes}" class="com.jogamp.newt.macosx.MacWindow" />
+      <javah destdir="${src.generated.c}/X11" classpath="${classes}" class="com.jogamp.newt.x11.X11Window" />
     </target>
 
     <target name="c.build.newt.prepare" depends="c.build.newt.prepare.KD,c.build.newt.prepare.IntelGDL,c.build.newt.prepare.BroadcomEGL,c.build.newt.prepare.desktop" />
@@ -759,14 +759,14 @@
     <target name="build-jars-all-awt" depends="setup-manifestfile" unless="setup.noall">
         <jar manifest="tempversion" destfile="${newt.all.jar}" filesonly="true">
             <fileset dir="${classes}"
-                     includes="com/jogamp/javafx/newt/**" />
+                     includes="com/jogamp/newt/**" />
         </jar>
     </target>
 
     <target name="build-jars-all-noawt" depends="setup-manifestfile">
         <jar manifest="tempversion" destfile="${newt.all-noawt.jar}" filesonly="true">
             <fileset dir="${classes}"
-                     includes="com/jogamp/javafx/newt/**"
+                     includes="com/jogamp/newt/**"
                      excludes="${java.part.awt}" />
         </jar>
     </target>
@@ -774,7 +774,7 @@
     <target name="build-jars-all-cdc" depends="setup-manifestfile-cdc">
         <jar manifest="tempversion-cdc" destfile="${newt.all.cdc.jar}" filesonly="true">
             <fileset dir="${classes-cdc}"
-                     includes="com/jogamp/javafx/newt/**"
+                     includes="com/jogamp/newt/**"
                      excludes="${java.excludes.cdcfp}" />
         </jar>
     </target>
