@@ -146,10 +146,10 @@ public class NativeSignatureJavaMethodBindingEmitter extends GLJavaMethodBinding
       if (type.isNIOBuffer() && !directNIOOnly) {
         // Emit declarations for variables holding primitive arrays as type Object
         // We don't know 100% sure we're going to use these at this point in the code, though
-        writer.println("  Object " + getNIOBufferArrayName(i) + " = (_direct ? null : BufferFactory.getArray(" +
+        writer.println("  Object " + getNIOBufferArrayName(i) + " = (_direct ? null : Buffers.getArray(" +
                        getArgumentName(i) + "));");
       } else if (type.isString()) {
-        writer.println("    long " + binding.getArgumentName(i) + "_c_str = BufferFactoryInternal.newCString(" + binding.getArgumentName(i) + ");");
+        writer.println("    long " + binding.getArgumentName(i) + "_c_str = BuffersInternal.newCString(" + binding.getArgumentName(i) + ");");
       }
       // FIXME: going to need more of these for Buffer[] and String[], at least
     }
@@ -275,9 +275,9 @@ public class NativeSignatureJavaMethodBindingEmitter extends GLJavaMethodBinding
     if (needsResultAssignment) {
       writer.print("  _res = ");
       if (returnType.isString()) {
-        writer.print("BufferFactoryInternal.newJavaString(");
+        writer.print("BuffersInternal.newJavaString(");
       } else if (returnType.isNIOByteBuffer()) {
-        writer.print("BufferFactoryInternal.newDirectByteBuffer(");
+        writer.print("BuffersInternal.newDirectByteBuffer(");
       }
     } else {
       writer.print("  ");
@@ -352,7 +352,7 @@ public class NativeSignatureJavaMethodBindingEmitter extends GLJavaMethodBinding
     if (binding.hasContainingType()) {
       // Emit this pointer
       assert(binding.getContainingType().isCompoundTypeWrapper());
-      writer.print("BufferFactoryInternal.getDirectBufferAddress(");
+      writer.print("BuffersInternal.getDirectBufferAddress(");
       writer.print("getBuffer()");
       writer.print(")");
       needComma = true;
@@ -377,7 +377,7 @@ public class NativeSignatureJavaMethodBindingEmitter extends GLJavaMethodBinding
       }
 
       if (type.isCompoundTypeWrapper()) {
-        writer.print("BufferFactoryInternal.getDirectBufferAddress(");
+        writer.print("BuffersInternal.getDirectBufferAddress(");
         writer.print("((");
       }
 
@@ -385,7 +385,7 @@ public class NativeSignatureJavaMethodBindingEmitter extends GLJavaMethodBinding
         if (!direct) {
           writer.print(getNIOBufferArrayName(i));
         } else {
-          writer.print("BufferFactoryInternal.getDirectBufferAddress(");
+          writer.print("BuffersInternal.getDirectBufferAddress(");
           writer.print(getArgumentName(i));
           writer.print(")");
         }
@@ -402,11 +402,11 @@ public class NativeSignatureJavaMethodBindingEmitter extends GLJavaMethodBinding
 
       if (type.isNIOBuffer()) {
         if (direct) {
-          writer.print("+ BufferFactory.getDirectBufferByteOffset(" + getArgumentName(i) + ")");
+          writer.print("+ Buffers.getDirectBufferByteOffset(" + getArgumentName(i) + ")");
         } else {
-          writer.print(", BufferFactoryInternal.arrayBaseOffset(" +
+          writer.print(", BuffersInternal.arrayBaseOffset(" +
                        getNIOBufferArrayName(i) +
-                       ") + BufferFactory.getIndirectBufferByteOffset(" + getArgumentName(i) + ")");
+                       ") + Buffers.getIndirectBufferByteOffset(" + getArgumentName(i) + ")");
         }
       } else if (type.isNIOBufferArray()) {
         writer.print(", " + byteOffsetArrayArgName(i));
@@ -415,19 +415,19 @@ public class NativeSignatureJavaMethodBindingEmitter extends GLJavaMethodBinding
       // Add Array offset parameter for primitive arrays
       if (type.isPrimitiveArray()) {
         writer.print(", ");
-        writer.print("BufferFactoryInternal.arrayBaseOffset(" + getArgumentName(i) + ") + ");
+        writer.print("BuffersInternal.arrayBaseOffset(" + getArgumentName(i) + ") + ");
         if(type.isFloatArray()) {
-          writer.print("BufferFactory.SIZEOF_FLOAT * ");
+          writer.print("Buffers.SIZEOF_FLOAT * ");
         } else if(type.isDoubleArray()) {
-          writer.print("BufferFactory.SIZEOF_DOUBLE * ");
+          writer.print("Buffers.SIZEOF_DOUBLE * ");
         } else if(type.isByteArray()) {
           writer.print("1 * ");
         } else if(type.isLongArray()) {
-          writer.print("BufferFactory.SIZEOF_LONG * ");
+          writer.print("Buffers.SIZEOF_LONG * ");
         } else if(type.isShortArray()) {
-          writer.print("BufferFactory.SIZEOF_SHORT * ");
+          writer.print("Buffers.SIZEOF_SHORT * ");
         } else if(type.isIntArray()) {
-          writer.print("BufferFactory.SIZEOF_INT * ");
+          writer.print("Buffers.SIZEOF_INT * ");
         } else {
           throw new RuntimeException("Unsupported type for calculating array offset argument for " +
                                      getArgumentName(i) +
@@ -455,7 +455,7 @@ public class NativeSignatureJavaMethodBindingEmitter extends GLJavaMethodBinding
       JavaType type = binding.getJavaArgumentType(i);
       if (type.isString()) {
         writer.println(";");
-        writer.println("    BufferFactoryInternal.freeCString(" + binding.getArgumentName(i) + "_c_str);");
+        writer.println("    BuffersInternal.freeCString(" + binding.getArgumentName(i) + "_c_str);");
       }
       // FIXME: will need more of these cleanups for things like Buffer[] and String[] (see above)
     }
