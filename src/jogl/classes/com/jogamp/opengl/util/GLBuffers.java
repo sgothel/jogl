@@ -50,7 +50,7 @@ import java.nio.*;
  * @author Kenneth Russel
  * @author Michael Bien
  */
-public class BufferUtil extends Buffers {
+public class GLBuffers extends Buffers {
 
     public static final int sizeOfGLType(int glType) {
         switch (glType) {
@@ -74,25 +74,6 @@ public class BufferUtil extends Buffers {
                 return SIZEOF_DOUBLE;
         }
         return -1;
-    }
-
-    public static final int sizeOfBufferElem(Buffer buffer) {
-        if (buffer == null) {
-            return 0;
-        }
-        if (buffer instanceof ByteBuffer) {
-            return BufferUtil.SIZEOF_BYTE;
-        } else if (buffer instanceof IntBuffer) {
-            return BufferUtil.SIZEOF_INT;
-        } else if (buffer instanceof ShortBuffer) {
-            return BufferUtil.SIZEOF_SHORT;
-        } else if (buffer instanceof FloatBuffer) {
-            return BufferUtil.SIZEOF_FLOAT;
-        } else if (buffer instanceof DoubleBuffer) {
-            return BufferUtil.SIZEOF_DOUBLE;
-        }
-        throw new RuntimeException("Unexpected buffer type "
-                + buffer.getClass().getName());
     }
 
     public static final Buffer newDirectGLBuffer(int glType, int numElements) {

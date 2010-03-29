@@ -128,7 +128,7 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
         pmvMatrix.glLoadMatrixf(m);
     }
     public void glLoadMatrixf(float[] m, int m_offset) {
-        glLoadMatrixf(BufferUtil.newDirectFloatBuffer(m, m_offset));
+        glLoadMatrixf(GLBuffers.newDirectFloatBuffer(m, m_offset));
     }
     public void glPopMatrix() {
         pmvMatrix.glPopMatrix();
@@ -143,7 +143,7 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
         pmvMatrix.glMultMatrixf(m);
     }
     public void glMultMatrixf(float[] m, int m_offset) {
-        glMultMatrixf(BufferUtil.newDirectFloatBuffer(m, m_offset));
+        glMultMatrixf(GLBuffers.newDirectFloatBuffer(m, m_offset));
     }
     public void glTranslatef(float x, float y, float z) {
         pmvMatrix.glTranslatef(x, y, z);
@@ -165,23 +165,23 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
     // LightingIf
     //
     public void glColor4f(float red, float green, float blue, float alpha) {
-      fixedFunction.glColor4fv(gl, BufferUtil.newDirectFloatBuffer(new float[] { red, green, blue, alpha }));
+      fixedFunction.glColor4fv(gl, GLBuffers.newDirectFloatBuffer(new float[] { red, green, blue, alpha }));
     }
 
     public void glLightfv(int light, int pname, java.nio.FloatBuffer params) {
       fixedFunction.glLightfv(gl, light, pname, params);
     }
     public void glLightfv(int light, int pname, float[] params, int params_offset) {
-        glLightfv(light, pname, BufferUtil.newDirectFloatBuffer(params, params_offset));
+        glLightfv(light, pname, GLBuffers.newDirectFloatBuffer(params, params_offset));
     }
     public void glMaterialfv(int face, int pname, java.nio.FloatBuffer params) {
       fixedFunction.glMaterialfv(gl, face, pname, params);
     }
     public void glMaterialfv(int face, int pname, float[] params, int params_offset) {
-        glMaterialfv(face, pname, BufferUtil.newDirectFloatBuffer(params, params_offset));
+        glMaterialfv(face, pname, GLBuffers.newDirectFloatBuffer(params, params_offset));
     }
     public void glMaterialf(int face, int pname, float param) {
-        glMaterialfv(face, pname, BufferUtil.newDirectFloatBuffer(new float[] { param }));
+        glMaterialfv(face, pname, GLBuffers.newDirectFloatBuffer(new float[] { param }));
     }
     public void glShadeModel(int mode) {
       fixedFunction.glShadeModel(gl, mode);

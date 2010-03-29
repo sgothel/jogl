@@ -365,6 +365,6 @@ public class TextureData {
         if (buffer == null) {
             return 0;
         }
-        return buffer.capacity() * BufferUtil.sizeOfBufferElem(buffer);
+        return buffer.capacity() * GLBuffers.sizeOfBufferElem(buffer);
     }
 }
