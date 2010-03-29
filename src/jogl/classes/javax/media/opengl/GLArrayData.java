@@ -21,10 +21,10 @@ public interface GLArrayData {
      * The index of the predefined array index, see list below,
      * or -1 in case of a shader attribute array.
      *
-     * @see javax.media.opengl.GL#GL_VERTEX_ARRAY
-     * @see javax.media.opengl.GL#GL_NORMAL_ARRAY
-     * @see javax.media.opengl.GL#GL_COLOR_ARRAY
-     * @see javax.media.opengl.GL#GL_TEXTURE_COORD_ARRAY
+     * @see javax.media.opengl.GL2#GL_VERTEX_ARRAY
+     * @see javax.media.opengl.GL2#GL_NORMAL_ARRAY
+     * @see javax.media.opengl.GL2#GL_COLOR_ARRAY
+     * @see javax.media.opengl.GL2#GL_TEXTURE_COORD_ARRAY
      */
     public int getIndex();
 
@@ -49,7 +49,7 @@ public interface GLArrayData {
      * Sets the determined location of the shader attribute
      * This is usually done within ShaderState.
      *
-     * @see javax.media.opengl.glsl.ShaderState#glVertexAttribPointer(GL2ES2, GLArrayData)
+     * @see com.jogamp.opengl.util.glsl.ShaderState#glVertexAttribPointer(GL2ES2, GLArrayData)
      */
     public void setLocation(int v);
 

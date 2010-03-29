@@ -295,7 +295,7 @@ public class PMVMatrix implements GLMatrixFunc {
     }
 
   /**
-   * @param pname GL_MODELVIEW, GL_PROJECTION or GL.GL_TEXTURE
+   * @param matrixName GL_MODELVIEW, GL_PROJECTION or GL.GL_TEXTURE
    * @return the given matrix
    */
     public final FloatBuffer glGetMatrixf(final int matrixName) {

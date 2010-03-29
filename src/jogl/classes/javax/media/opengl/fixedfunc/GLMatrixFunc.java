@@ -6,8 +6,6 @@ package javax.media.opengl.fixedfunc;
 
 import java.nio.*;
 
-import javax.media.opengl.*;
-
 public interface GLMatrixFunc {
 
   public static final int GL_MATRIX_MODE = 0x0BA0;
@@ -56,7 +54,7 @@ public interface GLMatrixFunc {
 
   /**
    * glMultMatrixf
-   * @param params the FloatBuffer's position remains unchanged,
+   * @param m the FloatBuffer's position remains unchanged,
    *        which is the same behavior than the native JOGL GL impl
    */
   public void glMultMatrixf(java.nio.FloatBuffer m) ;

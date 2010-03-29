@@ -186,10 +186,10 @@ public abstract class GLDrawableFactory {
    * The native platform's chosen Capabilties are referenced within the target
    * NativeWindow's AbstractGraphicsConfiguration.<p>
    *
-   * In case {@link javax.media.nativewindow.Capabilties#isOnscreen()} is true,<br>
+   * In case {@link javax.media.nativewindow.Capabilities#isOnscreen()} is true,<br>
    * an onscreen GLDrawable will be realized.
    * <p>
-   * In case {@link javax.media.nativewindow.Capabilties#isOnscreen()} is false,<br>
+   * In case {@link javax.media.nativewindow.Capabilities#isOnscreen()} is false,<br>
    * either a Pbuffer drawable is created if {@link javax.media.opengl.GLCapabilities#isPBuffer()} is true,<br>
    * or a simple offscreen drawable is creates. The latter is unlikely to be hardware accelerated.<br>
    * <p>
