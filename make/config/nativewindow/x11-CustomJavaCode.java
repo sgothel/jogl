@@ -5,10 +5,10 @@
     if(arg3 != null && arg3.length <= arg3_offset)
       throw new RuntimeException("array offset argument \"arg3_offset\" (" + arg3_offset + ") equals or exceeds array length (" + arg3.length + ")");
     java.nio.ByteBuffer _res;
-    _res = XGetVisualInfoCopied1(arg0, arg1, ((arg2 == null) ? null : arg2.getBuffer()), arg3, BufferFactory.SIZEOF_INT * arg3_offset);
+    _res = XGetVisualInfoCopied1(arg0, arg1, ((arg2 == null) ? null : arg2.getBuffer()), arg3, Buffers.SIZEOF_INT * arg3_offset);
 
     if (_res == null) return null;
-    BufferFactory.nativeOrder(_res);
+    Buffers.nativeOrder(_res);
     XVisualInfo[] _retarray = new XVisualInfo[getFirstElement(arg3, arg3_offset)];
     for (int _count = 0; _count < getFirstElement(arg3, arg3_offset); _count++) {
       _res.position(_count * XVisualInfo.size());

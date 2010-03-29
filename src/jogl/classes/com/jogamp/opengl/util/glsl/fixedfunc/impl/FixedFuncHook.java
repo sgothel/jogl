@@ -7,7 +7,7 @@ package com.jogamp.opengl.util.glsl.fixedfunc.impl;
 import javax.media.opengl.*;
 import javax.media.opengl.fixedfunc.*;
 import javax.media.opengl.glu.*;
-import com.jogamp.gluegen.runtime.BufferFactory;
+import com.jogamp.gluegen.runtime.Buffers;
 import com.jogamp.opengl.util.*;
 import com.jogamp.opengl.util.glsl.*;
 import java.nio.*;
@@ -206,8 +206,8 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
           if(gl.glIsVBOArrayEnabled()) {
             throw new GLException("VBO array is not disabled: "+array);
           }
-          BufferFactory.rangeCheck(array.getBuffer(), 1);
-          if (!BufferFactory.isDirect(array.getBuffer())) {
+          Buffers.rangeCheck(array.getBuffer(), 1);
+          if (!Buffers.isDirect(array.getBuffer())) {
             throw new GLException("Argument \"pointer\" was not a direct buffer"); }
       }
       fixedFunction.glVertexPointer(gl, array);
@@ -234,8 +234,8 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
           if(gl.glIsVBOArrayEnabled()) {
             throw new GLException("VBO array is not disabled: "+array);
           }
-          BufferFactory.rangeCheck(array.getBuffer(), 1);
-          if (!BufferFactory.isDirect(array.getBuffer())) {
+          Buffers.rangeCheck(array.getBuffer(), 1);
+          if (!Buffers.isDirect(array.getBuffer())) {
             throw new GLException("Argument \"pointer\" was not a direct buffer"); }
       }
       fixedFunction.glColorPointer(gl, array);
@@ -265,8 +265,8 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
           if(gl.glIsVBOArrayEnabled()) {
             throw new GLException("VBO array is not disabled: "+array);
           }
-          BufferFactory.rangeCheck(array.getBuffer(), 1);
-          if (!BufferFactory.isDirect(array.getBuffer())) {
+          Buffers.rangeCheck(array.getBuffer(), 1);
+          if (!Buffers.isDirect(array.getBuffer())) {
             throw new GLException("Argument \"pointer\" was not a direct buffer"); }
       }
       fixedFunction.glNormalPointer(gl, array);
@@ -293,8 +293,8 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
           if(gl.glIsVBOArrayEnabled()) {
             throw new GLException("VBO array is not disabled: "+array);
           }
-          BufferFactory.rangeCheck(array.getBuffer(), 1);
-          if (!BufferFactory.isDirect(array.getBuffer())) {
+          Buffers.rangeCheck(array.getBuffer(), 1);
+          if (!Buffers.isDirect(array.getBuffer())) {
             throw new GLException("Argument \"pointer\" was not a direct buffer"); }
       }
       fixedFunction.glTexCoordPointer(gl, array);

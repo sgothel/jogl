@@ -20,7 +20,7 @@
     if(nitems != null && nitems.length <= nitems_offset)
       throw new GLException("array offset argument \"nitems_offset\" (" + nitems_offset + ") equals or exceeds array length (" + nitems.length + ")");
     java.nio.ByteBuffer _res;
-    _res = glXChooseFBConfigCopied1(dpy, screen, attribList, BufferFactory.SIZEOF_INT * attribList_offset, nitems, BufferFactory.SIZEOF_INT * nitems_offset);
+    _res = glXChooseFBConfigCopied1(dpy, screen, attribList, Buffers.SIZEOF_INT * attribList_offset, nitems, Buffers.SIZEOF_INT * nitems_offset);
 
     if (_res == null) return null;
     return PointerBuffer.wrap(_res);
@@ -35,7 +35,7 @@
     if(attribList != null && attribList.length <= attribList_offset)
       throw new GLException("array offset argument \"attribList_offset\" (" + attribList_offset + ") equals or exceeds array length (" + attribList.length + ")");
     java.nio.ByteBuffer _res;
-    _res = glXChooseVisualCopied1(dpy, screen, attribList, BufferFactory.SIZEOF_INT * attribList_offset);
+    _res = glXChooseVisualCopied1(dpy, screen, attribList, Buffers.SIZEOF_INT * attribList_offset);
 
     if (_res == null) return null;
     return XVisualInfo.create(_res);
