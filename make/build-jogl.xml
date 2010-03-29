@@ -396,7 +396,7 @@
           <pathelement location="${classes}" />
         </path>
 
-        <!-- The resulting J2SE jogl.jar. -->
+        <!-- The resulting Java SE jogl.jar. -->
         <property name="jogl.core.jar" value="${build}/jogl.core.jar" />
         <property name="jogl.cg.jar" value="${build}/jogl.cg.jar" />
         <property name="jogl.gles1.jar" value="${build}/jogl.gles1.jar" />
@@ -407,13 +407,20 @@
         <property name="jogl.glutess.jar" value="${build}/jogl.glu.tess.jar" />
         <property name="jogl.glumipmap.jar" value="${build}/jogl.glu.mipmap.jar" />
         <property name="jogl.glugl2.jar"    value="${build}/jogl.glu.gl2.jar" />
+
         <property name="jogl.gl2es12.x11.jar" value="${build}/jogl.gl2es12.x11.jar" />
         <property name="jogl.gl2es12.win.jar" value="${build}/jogl.gl2es12.win.jar" />
         <property name="jogl.gl2es12.osx.jar" value="${build}/jogl.gl2es12.osx.jar" />
+
         <property name="jogl.gl2.x11.jar" value="${build}/jogl.gl2.x11.jar" />
         <property name="jogl.gl2.win.jar" value="${build}/jogl.gl2.win.jar" />
         <property name="jogl.gl2.osx.jar" value="${build}/jogl.gl2.osx.jar" />
         <property name="jogl.gl2.dbg.jar" value="${build}/jogl.gl2.dbg.jar" />
+        <property name="jogl.gl3.x11.jar" value="${build}/jogl.gl3.x11.jar" />
+        <property name="jogl.gl3.win.jar" value="${build}/jogl.gl3.win.jar" />
+        <property name="jogl.gl3.osx.jar" value="${build}/jogl.gl3.osx.jar" />
+        <property name="jogl.gl3.dbg.jar" value="${build}/jogl.gl3.dbg.jar" />
+
         <property name="jogl.awt.jar" value="${build}/jogl.awt.jar" />
         <property name="jogl.util.jar" value="${build}/jogl.util.jar" />
         <property name="jogl.util.gl2.jar" value="${build}/jogl.util.gl2.jar" />
@@ -1879,21 +1886,41 @@
     </target>
 
     <target name="build-jars-desktop-javase" depends="setup-manifestfile" unless="setup.nodesktop">
+        <!--os specific gl2-->
         <jar manifest="${build}/tempversion" destfile="${jogl.gl2.x11.jar}" filesonly="true">
             <fileset dir="${classes}"
-                     includes="${java.part.glx}, ${java.part.gl2}, ${java.part.gl3}, ${java.part.openmax}"
+                     includes="${java.part.glx}, ${java.part.gl2}, ${java.part.openmax}"
                      excludes="${java.part.gl2.dbg}, ${java.part.gl3.dbg}, ${java.part.glugl2}"/>
         </jar>
         <jar manifest="${build}/tempversion" destfile="${jogl.gl2.win.jar}" filesonly="true">
             <fileset dir="${classes}"
-                     includes="${java.part.wgl}, ${java.part.gl2}, $${java.part.gl3}, {java.part.openmax}"
+                     includes="${java.part.wgl}, ${java.part.gl2}, {java.part.openmax}"
                      excludes="${java.part.gl2.dbg}, ${java.part.gl3.dbg}, ${java.part.glugl2}"/>
         </jar>
         <jar manifest="${build}/tempversion" destfile="${jogl.gl2.osx.jar}" filesonly="true">
             <fileset dir="${classes}"
-                     includes="${java.part.cgl}, ${java.part.gl2}, $${java.part.gl3}, {java.part.openmax}"
+                     includes="${java.part.cgl}, ${java.part.gl2}, {java.part.openmax}"
                      excludes="${java.part.gl2.dbg}, ${java.part.gl3.dbg}, ${java.part.glugl2}"/>
         </jar>
+
+        <!--os specific gl3-->
+        <jar manifest="${build}/tempversion" destfile="${jogl.gl3.x11.jar}" filesonly="true">
+            <fileset dir="${classes}"
+                     includes="${java.part.glx}, ${java.part.gl3}, ${java.part.openmax}"
+                     excludes="${java.part.gl2.dbg}, ${java.part.gl2.dbg}, ${java.part.glugl2}"/>
+        </jar>
+        <jar manifest="${build}/tempversion" destfile="${jogl.gl3.win.jar}" filesonly="true">
+            <fileset dir="${classes}"
+                     includes="${java.part.wgl}, ${java.part.gl3}, {java.part.openmax}"
+                     excludes="${java.part.gl2.dbg}, ${java.part.gl2.dbg}, ${java.part.glugl2}"/>
+        </jar>
+        <jar manifest="${build}/tempversion" destfile="${jogl.gl3.osx.jar}" filesonly="true">
+            <fileset dir="${classes}"
+                     includes="${java.part.cgl}, ${java.part.gl3}, {java.part.openmax}"
+                     excludes="${java.part.gl2.dbg}, ${java.part.gl2.dbg}, ${java.part.glugl2}"/>
+        </jar>
+
+        <!-- misc -->
         <jar manifest="${build}/tempversion" destfile="${jogl.gl2.dbg.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.gl2.dbg} ${java.part.gl3.dbg}"/>
