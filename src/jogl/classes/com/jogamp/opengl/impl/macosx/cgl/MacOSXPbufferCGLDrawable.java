@@ -42,6 +42,7 @@ package com.jogamp.opengl.impl.macosx.cgl;
 import javax.media.opengl.*;
 import javax.media.nativewindow.*;
 import com.jogamp.opengl.impl.*;
+import com.jogamp.gluegen.runtime.PointerBuffer;
 
 public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
   private static final boolean DEBUG = Debug.debug("MacOSXPbufferCGLDrawable");
@@ -232,12 +233,12 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
   // CGL implementation
   class CGLImpl implements Impl {
     public long create(int renderTarget, int internalFormat, int width, int height) {
-      long[] pbuffer = new long[1];
-      int res = CGL.CGLCreatePBuffer(width, height, renderTarget, internalFormat, 0, pbuffer, 0);
+      PointerBuffer pbuffer = PointerBuffer.allocateDirect(1);
+      int res = CGL.CGLCreatePBuffer(width, height, renderTarget, internalFormat, 0, pbuffer);
       if (res != CGL.kCGLNoError) {
         throw new GLException("Error creating CGL-based pbuffer: error code " + res);
       }
-      return pbuffer[0];
+      return pbuffer.get(0);
     }
 
     public void destroy(long pbuffer) {

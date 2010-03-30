@@ -40,6 +40,8 @@ import com.jogamp.nativewindow.impl.*;
 import javax.media.opengl.*;
 import com.jogamp.opengl.impl.*;
 
+import com.jogamp.gluegen.runtime.PointerBuffer;
+
 /** Subclass of GraphicsConfigurationFactory used when non-AWT tookits
     are used on X11 platforms. Toolkits will likely need to delegate
     to this one to change the accepted and returned types of the
@@ -115,10 +117,10 @@ public class EGLGraphicsConfigurationFactory extends GraphicsConfigurationFactor
             chooser = new DefaultGLCapabilitiesChooser();
         }
 
-        _EGLConfig[] configs = new _EGLConfig[10];
+        PointerBuffer configs = PointerBuffer.allocateDirect(10);
         int[] numConfigs = new int[1];
 
-        if(!EGL.eglGetConfigs(eglDisplay, configs, configs.length, numConfigs, 0)) {
+        if(!EGL.eglGetConfigs(eglDisplay, configs, configs.capacity(), numConfigs, 0)) {
             throw new GLException("Graphics configuration fetch (eglGetConfigs) failed");
         }
         if (numConfigs[0] == 0) {
@@ -205,11 +207,11 @@ public class EGLGraphicsConfigurationFactory extends GraphicsConfigurationFactor
                                                               AbstractGraphicsScreen absScreen) {
         GLProfile glp = capsChosen0.getGLProfile();
         int[] attrs = EGLGraphicsConfiguration.GLCapabilities2AttribList(capsChosen0);
-        _EGLConfig[] configs = new _EGLConfig[1];
+        PointerBuffer configs = PointerBuffer.allocateDirect(1);
         int[] numConfigs = new int[1];
         if (!EGL.eglChooseConfig(eglDisplay,
                                  attrs, 0,
-                                 configs, configs.length,
+                                 configs, configs.capacity(),
                                  numConfigs, 0)) {
             throw new GLException("Graphics configuration selection (eglChooseConfig) failed for "+capsChosen0);
         }
@@ -222,14 +224,14 @@ public class EGLGraphicsConfigurationFactory extends GraphicsConfigurationFactor
             }
             int[] val = new int[1];
             // get the configID 
-            if(!EGL.eglGetConfigAttrib(eglDisplay, configs[0], EGL.EGL_CONFIG_ID, val, 0)) {
+            if(!EGL.eglGetConfigAttrib(eglDisplay, configs.get(0), EGL.EGL_CONFIG_ID, val, 0)) {
                 if(DEBUG) {
                     // FIXME: this happens on a ATI PC Emulation ..
                     System.err.println("EGL couldn't retrieve ConfigID for already chosen eglConfig "+capsChosen0+", error 0x"+Integer.toHexString(EGL.eglGetError()));
                 }
                 return null;
             }
-            GLCapabilities capsChosen1 = EGLGraphicsConfiguration.EGLConfig2Capabilities(glp, eglDisplay, configs[0],
+            GLCapabilities capsChosen1 = EGLGraphicsConfiguration.EGLConfig2Capabilities(glp, eglDisplay, configs.get(0),
                                                                     true, capsChosen0.isOnscreen(), capsChosen0.isPBuffer());
             if(null!=capsChosen1) {
                 if(DEBUG) {
@@ -237,7 +239,7 @@ public class EGLGraphicsConfigurationFactory extends GraphicsConfigurationFactor
                                                             ", eglConfig ID 0x"+Integer.toHexString(val[0])+
                                                             ", "+capsChosen0+" -> "+capsChosen1);
                 }
-                return new EGLGraphicsConfiguration(absScreen, capsChosen1, capsRequested, chooser, configs[0], val[0]);
+                return new EGLGraphicsConfiguration(absScreen, capsChosen1, capsRequested, chooser, configs.get(0), val[0]);
             }
             if(DEBUG) {
                 System.err.println("eglChooseConfig couldn't verify: eglDisplay 0x"+Long.toHexString(eglDisplay)+
@@ -253,11 +255,11 @@ public class EGLGraphicsConfigurationFactory extends GraphicsConfigurationFactor
         return null;
     }
 
-    protected static GLCapabilities[] eglConfigs2GLCaps(GLProfile glp, long eglDisplay, _EGLConfig[] configs, int num,
+    protected static GLCapabilities[] eglConfigs2GLCaps(GLProfile glp, long eglDisplay, PointerBuffer configs, int num,
                                                         boolean onscreen, boolean usePBuffer) {
         GLCapabilities[] caps = new GLCapabilities[num];
         for(int i=0; i<num; i++) {
-            caps[i] = EGLGraphicsConfiguration.EGLConfig2Capabilities(glp, eglDisplay, configs[i],
+            caps[i] = EGLGraphicsConfiguration.EGLConfig2Capabilities(glp, eglDisplay, configs.get(i),
                                             true, onscreen, usePBuffer);
         }
         return caps;

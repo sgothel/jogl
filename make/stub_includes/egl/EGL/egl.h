@@ -20,13 +20,7 @@ extern "C" {
 typedef int32_t EGLint;
 typedef unsigned int EGLBoolean;
 typedef unsigned int EGLenum;
-#ifdef USE_GLUEGEN
-    /* GlueGen currently needs this form of typedef to produce distinct
-       types for each of these pointer types */
-    typedef struct {} _EGLConfig, *EGLConfig;
-#else
-    typedef void *EGLConfig;
-#endif
+typedef void *EGLConfig;
 typedef void *EGLContext;
 typedef void *EGLDisplay;
 typedef void *EGLSurface;

@@ -6,6 +6,7 @@ import java.util.*;
 import javax.media.opengl.*;
 import javax.media.nativewindow.*;
 import com.jogamp.opengl.impl.*;
+import com.jogamp.gluegen.runtime.PointerBuffer;
 
 public class MacOSXPbufferCGLContext extends MacOSXCGLContext {
   protected MacOSXPbufferCGLDrawable drawable;
@@ -312,29 +313,29 @@ public class MacOSXPbufferCGLContext extends MacOSXCGLContext {
       }
 
       // Use attribute array to select pixel format
-      long[] fmt = new long[1];
+      PointerBuffer fmt = PointerBuffer.allocateDirect(1);
       long[] numScreens = new long[1];
-      int res = CGL.CGLChoosePixelFormat(attrs, 0, fmt, 0, numScreens, 0);
+      int res = CGL.CGLChoosePixelFormat(attrs, 0, fmt, numScreens, 0);
       if (res != CGL.kCGLNoError) {
         throw new GLException("Error code " + res + " while choosing pixel format");
       }
       
       // Create new context
-      long[] ctx = new long[1];
+      PointerBuffer ctx = PointerBuffer.allocateDirect(1);
       if (DEBUG) {
         System.err.println("Share context for CGL-based pbuffer context is " + toHexString(share));
       }
-      res = CGL.CGLCreateContext(fmt[0], share, ctx, 0);
-      CGL.CGLDestroyPixelFormat(fmt[0]);
+      res = CGL.CGLCreateContext(fmt.get(0), share, ctx);
+      CGL.CGLDestroyPixelFormat(fmt.get(0));
       if (res != CGL.kCGLNoError) {
         throw new GLException("Error code " + res + " while creating context");
       }
       // Attach newly-created context to the pbuffer
-      res = CGL.CGLSetPBuffer(ctx[0], drawable.getPbuffer(), 0, 0, 0);
+      res = CGL.CGLSetPBuffer(ctx.get(0), drawable.getPbuffer(), 0, 0, 0);
       if (res != CGL.kCGLNoError) {
         throw new GLException("Error code " + res + " while attaching context to pbuffer");
       }
-      return ctx[0];
+      return ctx.get(0);
     }
     
     public boolean destroy(long ctx) {

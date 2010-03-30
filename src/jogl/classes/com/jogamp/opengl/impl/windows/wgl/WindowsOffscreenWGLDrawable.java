@@ -99,7 +99,7 @@ public class WindowsOffscreenWGLDrawable extends WindowsWGLDrawable {
     }
     ((SurfaceChangeable)nw).setSurfaceHandle(hdc);
 
-    hbitmap = WGL.CreateDIBSection(hdc, info, WGL.DIB_RGB_COLORS, 0, 0, 0);
+    hbitmap = WGL.CreateDIBSection(hdc, info, WGL.DIB_RGB_COLORS, null, 0, 0);
     if (hbitmap == 0) {
       WGL.DeleteDC(hdc);
       hdc = 0;

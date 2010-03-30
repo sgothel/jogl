@@ -73,7 +73,7 @@ public class EGLPbufferDrawable extends EGLDrawable {
 
     }
 
-    protected long createSurface(long eglDpy, _EGLConfig eglNativeCfg, long surfaceHandle) {
+    protected long createSurface(long eglDpy, long eglNativeCfg, long surfaceHandle) {
         NativeWindow nw = getNativeWindow();
         int[] attrs = EGLGraphicsConfiguration.CreatePBufferSurfaceAttribList(nw.getWidth(), nw.getHeight(), texFormat);
         long surf = EGL.eglCreatePbufferSurface(eglDpy, eglNativeCfg, attrs, 0);

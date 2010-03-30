@@ -75,7 +75,7 @@ public abstract class EGLDrawable extends GLDrawableImpl {
 
     public abstract GLContext createContext(GLContext shareWith);
 
-    protected abstract long createSurface(long eglDpy, _EGLConfig eglNativeCfg, long surfaceHandle);
+    protected abstract long createSurface(long eglDpy, long eglNativeCfg, long surfaceHandle);
 
     private void recreateSurface() {
         // create a new EGLSurface ..
