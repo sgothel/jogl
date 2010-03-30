@@ -79,6 +79,10 @@
                     <script>${ant.script}</script>
                     <target>junit.run</target>
                 </action>
+                <action name="javadoc">
+                    <script>${ant.script}</script>
+                    <target>javadoc</target>
+                </action>
             </ide-actions>
             <export>
                 <type>folder</type>
@@ -116,6 +120,7 @@
                     <ide-action name="build"/>
                     <ide-action name="rebuild"/>
                     <ide-action name="clean"/>
+                    <ide-action name="javadoc"/>
                     <ide-action name="test"/>
                 </context-menu>
             </view>

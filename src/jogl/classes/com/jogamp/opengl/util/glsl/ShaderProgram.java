@@ -5,7 +5,6 @@ import javax.media.opengl.*;
 
 import java.util.HashMap;
 import java.util.Iterator;
-import java.nio.*;
 import java.io.PrintStream;
 
 public class ShaderProgram {
@@ -104,16 +103,20 @@ public class ShaderProgram {
      * Refetches all previously bin/get attribute names
      * and resets all attribute data as well
      *
-     * @see getAttribLocation
      * @param gl 
      * @param oldShaderID the to be replace Shader
      * @param newShader   the new ShaderCode
      * @param verboseOut  the optional verbose outputstream
      * @throws GLException is the program is not linked
      *
-     * @see #glRefetchAttribLocations
-     * @see #glResetAllVertexAttributes
-     * @see #glReplaceShader
+     * @see ShaderState#glEnableVertexAttribArray
+     * @see ShaderState#glDisableVertexAttribArray
+     * @see ShaderState#glVertexAttribPointer
+     * @see ShaderState#getVertexAttribPointer
+     * @see ShaderState#glReleaseAllVertexAttributes
+     * @see ShaderState#glResetAllVertexAttributes
+     * @see ShaderState#glResetAllVertexAttributes
+     * @see ShaderState#glResetAllVertexAttributes
      */
     public synchronized boolean glReplaceShader(GL2ES2 gl, int oldShaderID, ShaderCode newShader, PrintStream verboseOut) {
         if(!programLinked) throw new GLException("Program is not linked");

@@ -499,7 +499,6 @@
 
     <target name="setup.javacdc">
         <copy file="../src/jogl/classes/com/jogamp/opengl/impl/SystemUtil.java.javame_cdc_fp" tofile="${src.generated.java-cdc}/com/jogamp/opengl/impl/SystemUtil.java" />
-        <copy file="../src/jogl/classes/com/jogamp/opengl/util/BufferUtil.java.javame_cdc_fp" tofile="${src.generated.java-cdc}/com/jogamp/opengl/util/BufferUtil.java" />
         <copy file="../src/jogl/classes/com/jogamp/opengl/impl/InternalBufferUtil.java.javame_cdc_fp" tofile="${src.generated.java-cdc}/com/jogamp/opengl/impl/InternalBufferUtil.java" />
         <copy file="../src/jogl/classes/com/jogamp/opengl/util/texture/TextureIO.java.javame_cdc_fp" tofile="${src.generated.java-cdc}/com/jogamp/opengl/util/texture/TextureIO.java" />
         <copy file="../src/jogl/classes/com/jogamp/opengl/util/texture/spi/DDSImage.java.javame_cdc_fp" tofile="${src.generated.java-cdc}/com/jogamp/opengl/util/texture/spi/DDSImage.java" />
@@ -508,7 +507,6 @@
 
     <target name="setup.javase">
         <copy file="../src/jogl/classes/com/jogamp/opengl/impl/SystemUtil.java.javase" tofile="${src.generated.java}/com/jogamp/opengl/impl/SystemUtil.java" />
-        <copy file="../src/jogl/classes/com/jogamp/opengl/util/BufferUtil.java.javase" tofile="${src.generated.java}/com/jogamp/opengl/util/BufferUtil.java" />
         <copy file="../src/jogl/classes/com/jogamp/opengl/impl/InternalBufferUtil.java.javase" tofile="${src.generated.java}/com/jogamp/opengl/impl/InternalBufferUtil.java" />
         <copy file="../src/jogl/classes/com/jogamp/opengl/util/texture/TextureIO.java.javase" tofile="${src.generated.java}/com/jogamp/opengl/util/texture/TextureIO.java" />
         <copy file="../src/jogl/classes/com/jogamp/opengl/util/texture/spi/DDSImage.java.javase" tofile="${src.generated.java}/com/jogamp/opengl/util/texture/spi/DDSImage.java" />
@@ -1193,12 +1191,12 @@
         </javac>
     </target>
 
+           <!--    bootclasspath="${javac.bootclasspath-cdc.jar}" -->
     <target name="java.compile.secondpass.javacdc" unless="setup.noCDC">
         <!-- Perform the second pass Java compile; everything except portion of fixed function emulation depending on generated code. -->
         <javac destdir="${classes-cdc}"
                excludes="com/jogamp/opengl/util/glsl/fixedfunc/FixedFuncUtil.java,${java.excludes.all},${java.excludes.cdcfp}"
                source="${jogl.sourcelevel}"
-               bootclasspath="${javac.bootclasspath-cdc.jar}"
                fork="yes"
                memoryMaximumSize="${javac.memorymax}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">

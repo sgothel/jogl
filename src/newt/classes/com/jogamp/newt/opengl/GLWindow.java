@@ -58,8 +58,9 @@ public class GLWindow extends Window implements GLAutoDrawable {
     private Window window;
     private boolean runPumpMessages;
 
-    /** Constructor. Do not call this directly -- use {@link
-        create()} instead. */
+    /**
+     * Constructor. Do not call this directly -- use {@link #create()} instead.
+     */
     protected GLWindow(Window window, boolean ownerOfWinScrDpy) {
         this.ownerOfWinScrDpy = ownerOfWinScrDpy;
         this.window = window;

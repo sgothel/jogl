@@ -42,13 +42,11 @@ import java.nio.channels.*;
 
 /**
  * Utility class which helps take fast screenshots of OpenGL rendering
- * results into Targa-format files. Used by the {@link
- * com.jogamp.opengl.util.gl2.Screenshot Screenshot} class; can also be used
- * in conjunction with the {@link com.jogamp.opengl.util.gl2.TileRenderer
- * TileRenderer} class. <P>
+ * results into Targa-format files. Used by the {@link com.jogamp.opengl.util.awt.Screenshot}
+ * class; can also be used in conjunction with the {@link com.jogamp.opengl.util.gl2.TileRenderer} class.
  */
-
 public class TGAWriter {
+    
   private static final int TARGA_HEADER_SIZE = 18;
 
   private FileChannel ch;

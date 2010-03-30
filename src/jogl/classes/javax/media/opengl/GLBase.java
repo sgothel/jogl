@@ -220,7 +220,7 @@ public interface GLBase {
     * 
     * @param glFunctionName the name of the OpenGL function (e.g., use
     * "glBindRenderbufferEXT" or "glBindRenderbuffer" to check if {@link
-    * #glBindRenderbuffer(int,int)} is available).
+    * GL#glBindRenderbuffer(int,int)} is available).
     */
    public boolean isFunctionAvailable(String glFunctionName);
 

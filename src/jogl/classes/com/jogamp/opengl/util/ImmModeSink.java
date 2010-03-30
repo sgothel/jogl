@@ -35,8 +35,8 @@ public class ImmModeSink {
    * a ShaderState must be current, using ShaderState.glUseProgram().
    *
    * @see #draw(GL, boolean)
-   * @see javax.media.opengl.glsl.ShaderState#glUseProgram(GL2ES2, boolean)
-   * @see javax.media.opengl.glsl.ShaderState#getCurrent()
+   * @see com.jogamp.opengl.util.glsl.ShaderState#glUseProgram(GL2ES2, boolean)
+   * @see com.jogamp.opengl.util.glsl.ShaderState#getCurrent()
    */
   public static ImmModeSink createGLSL(GL gl, int glBufferUsage, int initialSize,
                                        int vComps, int vDataType,
@@ -361,79 +361,79 @@ public class ImmModeSink {
 
     public void glVertexv(Buffer v) {
         checkSeal(false);
-        BufferUtil.put(vertexArray, v);
+        GLBuffers.put(vertexArray, v);
     }
     public void glNormalv(Buffer v) {
         checkSeal(false);
-        BufferUtil.put(normalArray, v);
+        GLBuffers.put(normalArray, v);
     }
     public void glColorv(Buffer v) {
         checkSeal(false);
-        BufferUtil.put(colorArray, v);
+        GLBuffers.put(colorArray, v);
     }
     public void glTexCoordv(Buffer v) {
         checkSeal(false);
-        BufferUtil.put(textCoordArray, v);
+        GLBuffers.put(textCoordArray, v);
     }
 
     public void glVertex2b(byte x, byte y) {
         checkSeal(false);
         growBufferIfNecessary(VERTEX, 2);
         if(vComps>0) 
-            BufferUtil.putb(vertexArray, x);
+            GLBuffers.putb(vertexArray, x);
         if(vComps>1) 
-            BufferUtil.putb(vertexArray, y);
+            GLBuffers.putb(vertexArray, y);
         padding(VERTEX, vComps-2);
     }
     public void glVertex3b(byte x, byte y, byte z) {
         checkSeal(false);
         growBufferIfNecessary(VERTEX, 3);
         if(vComps>0) 
-            BufferUtil.putb(vertexArray, x);
+            GLBuffers.putb(vertexArray, x);
         if(vComps>1) 
-            BufferUtil.putb(vertexArray, y);
+            GLBuffers.putb(vertexArray, y);
         if(vComps>2) 
-            BufferUtil.putb(vertexArray, z);
+            GLBuffers.putb(vertexArray, z);
         padding(VERTEX, vComps-3);
     }
     public void glVertex2s(short x, short y) {
         checkSeal(false);
         growBufferIfNecessary(VERTEX, 2);
         if(vComps>0) 
-            BufferUtil.puts(vertexArray, x);
+            GLBuffers.puts(vertexArray, x);
         if(vComps>1) 
-            BufferUtil.puts(vertexArray, y);
+            GLBuffers.puts(vertexArray, y);
         padding(VERTEX, vComps-2);
     }
     public void glVertex3s(short x, short y, short z) {
         checkSeal(false);
         growBufferIfNecessary(VERTEX, 3);
         if(vComps>0) 
-            BufferUtil.puts(vertexArray, x);
+            GLBuffers.puts(vertexArray, x);
         if(vComps>1) 
-            BufferUtil.puts(vertexArray, y);
+            GLBuffers.puts(vertexArray, y);
         if(vComps>2) 
-            BufferUtil.puts(vertexArray, z);
+            GLBuffers.puts(vertexArray, z);
         padding(VERTEX, vComps-3);
     }
     public void glVertex2f(float x, float y) {
         checkSeal(false);
         growBufferIfNecessary(VERTEX, 2);
         if(vComps>0) 
-            BufferUtil.putf(vertexArray, x);
+            GLBuffers.putf(vertexArray, x);
         if(vComps>1) 
-            BufferUtil.putf(vertexArray, y);
+            GLBuffers.putf(vertexArray, y);
         padding(VERTEX, vComps-2);
     }
     public void glVertex3f(float x, float y, float z) {
         checkSeal(false);
         growBufferIfNecessary(VERTEX, 3);
         if(vComps>0) 
-            BufferUtil.putf(vertexArray, x);
+            GLBuffers.putf(vertexArray, x);
         if(vComps>1) 
-            BufferUtil.putf(vertexArray, y);
+            GLBuffers.putf(vertexArray, y);
         if(vComps>2) 
-            BufferUtil.putf(vertexArray, z);
+            GLBuffers.putf(vertexArray, z);
         padding(VERTEX, vComps-3);
     }
 
@@ -441,33 +441,33 @@ public class ImmModeSink {
         checkSeal(false);
         growBufferIfNecessary(NORMAL, 3);
         if(nComps>0) 
-            BufferUtil.putb(normalArray, x);
+            GLBuffers.putb(normalArray, x);
         if(nComps>1) 
-            BufferUtil.putb(normalArray, y);
+            GLBuffers.putb(normalArray, y);
         if(nComps>2) 
-            BufferUtil.putb(normalArray, z);
+            GLBuffers.putb(normalArray, z);
         padding(NORMAL, nComps-3);
     }
     public void glNormal3s(short x, short y, short z) {
         checkSeal(false);
         growBufferIfNecessary(NORMAL, 3);
         if(nComps>0) 
-            BufferUtil.puts(normalArray, x);
+            GLBuffers.puts(normalArray, x);
         if(nComps>1) 
-            BufferUtil.puts(normalArray, y);
+            GLBuffers.puts(normalArray, y);
         if(nComps>2) 
-            BufferUtil.puts(normalArray, z);
+            GLBuffers.puts(normalArray, z);
         padding(NORMAL, nComps-3);
     }
     public void glNormal3f(float x, float y, float z) {
         checkSeal(false);
         growBufferIfNecessary(NORMAL, 3);
         if(nComps>0) 
-            BufferUtil.putf(normalArray, x);
+            GLBuffers.putf(normalArray, x);
         if(nComps>1) 
-            BufferUtil.putf(normalArray, y);
+            GLBuffers.putf(normalArray, y);
         if(nComps>2) 
-            BufferUtil.putf(normalArray, z);
+            GLBuffers.putf(normalArray, z);
         padding(NORMAL, nComps-3);
     }
 
@@ -475,72 +475,72 @@ public class ImmModeSink {
         checkSeal(false);
         growBufferIfNecessary(COLOR, 3);
         if(cComps>0) 
-            BufferUtil.putb(colorArray, r);
+            GLBuffers.putb(colorArray, r);
         if(cComps>1) 
-            BufferUtil.putb(colorArray, g);
+            GLBuffers.putb(colorArray, g);
         if(cComps>2) 
-            BufferUtil.putb(colorArray, b);
+            GLBuffers.putb(colorArray, b);
         padding(COLOR, cComps-3);
     }
     public void glColor4b(byte r, byte g, byte b, byte a) {
         checkSeal(false);
         growBufferIfNecessary(COLOR, 4);
         if(cComps>0) 
-            BufferUtil.putb(colorArray, r);
+            GLBuffers.putb(colorArray, r);
         if(cComps>1) 
-            BufferUtil.putb(colorArray, g);
+            GLBuffers.putb(colorArray, g);
         if(cComps>2) 
-            BufferUtil.putb(colorArray, b);
+            GLBuffers.putb(colorArray, b);
         if(cComps>3) 
-            BufferUtil.putb(colorArray, a);
+            GLBuffers.putb(colorArray, a);
         padding(COLOR, cComps-4);
     }
     public void glColor3s(short r, short g, short b) {
         checkSeal(false);
         growBufferIfNecessary(COLOR, 3);
         if(cComps>0) 
-            BufferUtil.puts(colorArray, r);
+            GLBuffers.puts(colorArray, r);
         if(cComps>1) 
-            BufferUtil.puts(colorArray, g);
+            GLBuffers.puts(colorArray, g);
         if(cComps>2) 
-            BufferUtil.puts(colorArray, b);
+            GLBuffers.puts(colorArray, b);
         padding(COLOR, cComps-3);
     }
     public void glColor4s(short r, short g, short b, short a) {
         checkSeal(false);
         growBufferIfNecessary(COLOR, 4);
         if(cComps>0) 
-            BufferUtil.puts(colorArray, r);
+            GLBuffers.puts(colorArray, r);
         if(cComps>1) 
-            BufferUtil.puts(colorArray, g);
+            GLBuffers.puts(colorArray, g);
         if(cComps>2) 
-            BufferUtil.puts(colorArray, b);
+            GLBuffers.puts(colorArray, b);
         if(cComps>3) 
-            BufferUtil.puts(colorArray, a);
+            GLBuffers.puts(colorArray, a);
         padding(COLOR, cComps-4);
     }
     public void glColor3f(float r, float g, float b) {
         checkSeal(false);
         growBufferIfNecessary(COLOR, 3);
         if(cComps>0) 
-            BufferUtil.putf(colorArray, r);
+            GLBuffers.putf(colorArray, r);
         if(cComps>1) 
-            BufferUtil.putf(colorArray, g);
+            GLBuffers.putf(colorArray, g);
         if(cComps>2) 
-            BufferUtil.putf(colorArray, b);
+            GLBuffers.putf(colorArray, b);
         padding(COLOR, cComps-3);
     }
     public void glColor4f(float r, float g, float b, float a) {
         checkSeal(false);
         growBufferIfNecessary(COLOR, 4);
         if(cComps>0) 
-            BufferUtil.putf(colorArray, r);
+            GLBuffers.putf(colorArray, r);
         if(cComps>1) 
-            BufferUtil.putf(colorArray, g);
+            GLBuffers.putf(colorArray, g);
         if(cComps>2) 
-            BufferUtil.putf(colorArray, b);
+            GLBuffers.putf(colorArray, b);
         if(cComps>3) 
-            BufferUtil.putf(colorArray, a);
+            GLBuffers.putf(colorArray, a);
         padding(COLOR, cComps-4);
     }
 
@@ -548,60 +548,60 @@ public class ImmModeSink {
         checkSeal(false);
         growBufferIfNecessary(TEXTCOORD, 2);
         if(tComps>0) 
-            BufferUtil.putb(textCoordArray, x);
+            GLBuffers.putb(textCoordArray, x);
         if(tComps>1) 
-            BufferUtil.putb(textCoordArray, y);
+            GLBuffers.putb(textCoordArray, y);
         padding(TEXTCOORD, tComps-2);
     }
     public void glTexCoord3b(byte x, byte y, byte z) {
         checkSeal(false);
         growBufferIfNecessary(TEXTCOORD, 3);
         if(tComps>0) 
-            BufferUtil.putb(textCoordArray, x);
+            GLBuffers.putb(textCoordArray, x);
         if(tComps>1) 
-            BufferUtil.putb(textCoordArray, y);
+            GLBuffers.putb(textCoordArray, y);
         if(tComps>2) 
-            BufferUtil.putb(textCoordArray, z);
+            GLBuffers.putb(textCoordArray, z);
         padding(TEXTCOORD, tComps-3);
     }
     public void glTexCoord2s(short x, short y) {
         checkSeal(false);
         growBufferIfNecessary(TEXTCOORD, 2);
         if(tComps>0) 
-            BufferUtil.puts(textCoordArray, x);
+            GLBuffers.puts(textCoordArray, x);
         if(tComps>1) 
-            BufferUtil.puts(textCoordArray, y);
+            GLBuffers.puts(textCoordArray, y);
         padding(TEXTCOORD, tComps-2);
     }
     public void glTexCoord3s(short x, short y, short z) {
         checkSeal(false);
         growBufferIfNecessary(TEXTCOORD, 3);
         if(tComps>0) 
-            BufferUtil.puts(textCoordArray, x);
+            GLBuffers.puts(textCoordArray, x);
         if(tComps>1) 
-            BufferUtil.puts(textCoordArray, y);
+            GLBuffers.puts(textCoordArray, y);
         if(tComps>2) 
-            BufferUtil.puts(textCoordArray, z);
+            GLBuffers.puts(textCoordArray, z);
         padding(TEXTCOORD, tComps-3);
     }
     public void glTexCoord2f(float x, float y) {
         checkSeal(false);
         growBufferIfNecessary(TEXTCOORD, 2);
         if(tComps>0) 
-            BufferUtil.putf(textCoordArray, x);
+            GLBuffers.putf(textCoordArray, x);
         if(tComps>1) 
-            BufferUtil.putf(textCoordArray, y);
+            GLBuffers.putf(textCoordArray, y);
         padding(TEXTCOORD, tComps-2);
     }
     public void glTexCoord3f(float x, float y, float z) {
         checkSeal(false);
         growBufferIfNecessary(TEXTCOORD, 3);
         if(tComps>0) 
-            BufferUtil.putf(textCoordArray, x);
+            GLBuffers.putf(textCoordArray, x);
         if(tComps>1) 
-            BufferUtil.putf(textCoordArray, y);
+            GLBuffers.putf(textCoordArray, y);
         if(tComps>2) 
-            BufferUtil.putf(textCoordArray, z);
+            GLBuffers.putf(textCoordArray, z);
         padding(TEXTCOORD, tComps-3);
     }
 
@@ -809,20 +809,20 @@ public class ImmModeSink {
     // non public matters
 
     protected void allocateBuffer(int elements) {
-        int vWidth = vComps * BufferUtil.sizeOfGLType(vDataType);
-        int cWidth = cComps * BufferUtil.sizeOfGLType(cDataType);
-        int nWidth = nComps * BufferUtil.sizeOfGLType(nDataType);
-        int tWidth = tComps * BufferUtil.sizeOfGLType(tDataType);
+        int vWidth = vComps * GLBuffers.sizeOfGLType(vDataType);
+        int cWidth = cComps * GLBuffers.sizeOfGLType(cDataType);
+        int nWidth = nComps * GLBuffers.sizeOfGLType(nDataType);
+        int tWidth = tComps * GLBuffers.sizeOfGLType(tDataType);
 
         count  = elements;
         bSize  = count * ( vWidth + cWidth + nWidth + tWidth ) ;
 
-        buffer = BufferUtil.newByteBuffer(bSize);
+        buffer = GLBuffers.newDirectByteBuffer(bSize);
 
         int pos = 0;
         int size= count * vWidth ;
         if(size>0) {
-            vertexArray = BufferUtil.sliceGLBuffer(buffer, pos, size, vDataType);
+            vertexArray = GLBuffers.sliceGLBuffer(buffer, pos, size, vDataType);
         } else {
             vertexArray = null;
         }
@@ -831,7 +831,7 @@ public class ImmModeSink {
 
         size= count * cWidth ;
         if(size>0) {
-            colorArray = BufferUtil.sliceGLBuffer(buffer, pos, size, cDataType);
+            colorArray = GLBuffers.sliceGLBuffer(buffer, pos, size, cDataType);
         } else {
             colorArray = null;
         }
@@ -840,7 +840,7 @@ public class ImmModeSink {
 
         size= count * nWidth ;
         if(size>0) {
-            normalArray = BufferUtil.sliceGLBuffer(buffer, pos, size, nDataType);
+            normalArray = GLBuffers.sliceGLBuffer(buffer, pos, size, nDataType);
         } else {
             normalArray = null;
         }
@@ -849,7 +849,7 @@ public class ImmModeSink {
 
         size= count * tWidth ;
         if(size>0) {
-            textCoordArray = BufferUtil.sliceGLBuffer(buffer, pos, size, tDataType);
+            textCoordArray = GLBuffers.sliceGLBuffer(buffer, pos, size, tDataType);
         } else {
             textCoordArray = null;
         }
@@ -905,19 +905,19 @@ public class ImmModeSink {
 
         if(null!=_vertexArray) {
             _vertexArray.flip();
-            BufferUtil.put(vertexArray, _vertexArray);
+            GLBuffers.put(vertexArray, _vertexArray);
         }
         if(null!=_colorArray) {
             _colorArray.flip();
-            BufferUtil.put(colorArray, _colorArray);
+            GLBuffers.put(colorArray, _colorArray);
         }
         if(null!=_normalArray) {
             _normalArray.flip();
-            BufferUtil.put(normalArray, _normalArray);
+            GLBuffers.put(normalArray, _normalArray);
         }
         if(null!=_textCoordArray) {
             _textCoordArray.flip();
-            BufferUtil.put(textCoordArray, _textCoordArray);
+            GLBuffers.put(textCoordArray, _textCoordArray);
         }
     }
 
@@ -944,7 +944,7 @@ public class ImmModeSink {
         if ( null==dest ) return;
 
         while((fill--)>0) {
-            BufferUtil.putb(dest, (byte)0);
+            GLBuffers.putb(dest, (byte)0);
         }
     }
 

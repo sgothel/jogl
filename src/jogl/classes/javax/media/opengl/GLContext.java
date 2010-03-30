@@ -137,14 +137,14 @@ public abstract class GLContext {
    * copied. <code>mask</code> contains the bitwise OR of the same
    * symbolic names that are passed to the GL command {@link
    * GL#glPushAttrib glPushAttrib}. The single symbolic constant
-   * {@link GL#GL_ALL_ATTRIB_BITS GL_ALL_ATTRIB_BITS} can be used to
+   * {@link GL2#GL_ALL_ATTRIB_BITS GL_ALL_ATTRIB_BITS} can be used to
    * copy the maximum possible portion of rendering state. <P>
    *
    * Not all values for GL state can be copied. For example, pixel
    * pack and unpack state, render mode state, and select and feedback
    * state are not copied. The state that can be copied is exactly the
    * state that is manipulated by the GL command {@link
-   * GL#glPushAttrib glPushAttrib}. <P>
+   * GL2#glPushAttrib glPushAttrib}. <P>
    *
    * On most platforms, this context may not be current to any thread,
    * including the calling thread, when this method is called. Some
@@ -165,7 +165,7 @@ public abstract class GLContext {
    * If no context is current, throw an GLException
    *
    * @return the current context's GL object on this thread
-   * @thows GLException if no context is current
+   * @throws GLException if no context is current
    */
   public static GL getCurrentGL() throws GLException {
     GLContext glc = getCurrent();

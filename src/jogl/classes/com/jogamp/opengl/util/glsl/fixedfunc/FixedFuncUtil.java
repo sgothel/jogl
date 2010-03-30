@@ -66,25 +66,25 @@ public class FixedFuncUtil {
 
     /**
      * String name for
-     * @see javax.media.opengl.GL#GL_VERTEX_ARRAY
+     * @see javax.media.opengl.GL2#GL_VERTEX_ARRAY
      */
     public static final String mgl_Vertex = FixedFuncPipeline.mgl_Vertex;
 
     /**
      * String name for
-     * @see javax.media.opengl.GL#GL_NORMAL_ARRAY
+     * @see javax.media.opengl.GL2#GL_NORMAL_ARRAY
      */
     public static final String mgl_Normal = FixedFuncPipeline.mgl_Normal;
 
     /**
      * String name for
-     * @see javax.media.opengl.GL#GL_COLOR_ARRAY
+     * @see javax.media.opengl.GL2#GL_COLOR_ARRAY
      */
     public static final String mgl_Color = FixedFuncPipeline.mgl_Color;
 
     /**
      * String name for
-     * @see javax.media.opengl.GL#GL_TEXTURE_COORD_ARRAY
+     * @see javax.media.opengl.GL2#GL_TEXTURE_COORD_ARRAY
      */
     public static final String mgl_MultiTexCoord = FixedFuncPipeline.mgl_MultiTexCoord;
 }

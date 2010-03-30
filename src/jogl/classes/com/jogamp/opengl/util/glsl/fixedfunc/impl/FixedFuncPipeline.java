@@ -1,11 +1,11 @@
 
 package com.jogamp.opengl.util.glsl.fixedfunc.impl;
 
+import com.jogamp.gluegen.runtime.Buffers;
 import javax.media.opengl.*;
 import javax.media.opengl.fixedfunc.*;
 import com.jogamp.opengl.util.*;
 import com.jogamp.opengl.util.glsl.*;
-import com.jogamp.opengl.util.glsl.fixedfunc.*;
 import java.nio.*;
 
 public class FixedFuncPipeline {
@@ -490,14 +490,14 @@ public class FixedFuncPipeline {
     protected boolean verbose=false;
 
     protected boolean textureEnabled=false;
-    protected IntBuffer textureCoordsEnabled = BufferUtil.newIntBuffer(new int[] { 0, 0, 0, 0, 0, 0, 0, 0 });
+    protected IntBuffer textureCoordsEnabled = Buffers.newDirectIntBuffer(new int[] { 0, 0, 0, 0, 0, 0, 0, 0 });
     protected boolean textureCoordsEnabledDirty = false;
     protected int     activeTextureUnit=0;
 
     protected int cullFace=-2; // <=0 disabled, 1: front, 2: back (default, but disabled), 3: front & back
 
     protected boolean lightingEnabled=false;
-    protected IntBuffer lightsEnabled = BufferUtil.newIntBuffer(new int[] { 0, 0, 0, 0, 0, 0, 0, 0 });
+    protected IntBuffer lightsEnabled = Buffers.newDirectIntBuffer(new int[] { 0, 0, 0, 0, 0, 0, 0, 0 });
     protected boolean   lightsEnabledDirty = false;
 
     protected PMVMatrix pmvMatrix;
@@ -525,23 +525,23 @@ public class FixedFuncPipeline {
 
     protected static final String mgl_CullFace         = "mgl_CullFace";   //  1i
 
-    protected static final FloatBuffer zero4f     = BufferUtil.newFloatBuffer(new float[] { 0.0f, 0.0f, 0.0f, 0.0f });
+    protected static final FloatBuffer zero4f     = Buffers.newDirectFloatBuffer(new float[] { 0.0f, 0.0f, 0.0f, 0.0f });
 
-    public static final FloatBuffer defAmbient = BufferUtil.newFloatBuffer(new float[] { 0f, 0f, 0f, 1f });
+    public static final FloatBuffer defAmbient = Buffers.newDirectFloatBuffer(new float[] { 0f, 0f, 0f, 1f });
     public static final FloatBuffer defDiffuse = zero4f;
     public static final FloatBuffer defSpecular= zero4f;
-    public static final FloatBuffer defPosition= BufferUtil.newFloatBuffer(new float[] { 0f, 0f, 1f, 0f });
-    public static final FloatBuffer defSpotDir = BufferUtil.newFloatBuffer(new float[] { 0f, 0f, -1f });
+    public static final FloatBuffer defPosition= Buffers.newDirectFloatBuffer(new float[] { 0f, 0f, 1f, 0f });
+    public static final FloatBuffer defSpotDir = Buffers.newDirectFloatBuffer(new float[] { 0f, 0f, -1f });
     public static final float defSpotExponent  = 0f;
     public static final float defSpotCutoff    = 180f;
     public static final float defConstantAtten = 1f;
     public static final float defLinearAtten   = 0f;
     public static final float defQuadraticAtten= 0f;
 
-    public static final FloatBuffer defMatAmbient = BufferUtil.newFloatBuffer(new float[] { 0.2f, 0.2f, 0.2f, 1.0f });
-    public static final FloatBuffer defMatDiffuse = BufferUtil.newFloatBuffer(new float[] { 0.8f, 0.8f, 0.8f, 1.0f });
-    public static final FloatBuffer defMatSpecular= BufferUtil.newFloatBuffer(new float[] { 0f, 0f, 0f, 1f});
-    public static final FloatBuffer defMatEmission= BufferUtil.newFloatBuffer(new float[] { 0f, 0f, 0f, 1f});
+    public static final FloatBuffer defMatAmbient = Buffers.newDirectFloatBuffer(new float[] { 0.2f, 0.2f, 0.2f, 1.0f });
+    public static final FloatBuffer defMatDiffuse = Buffers.newDirectFloatBuffer(new float[] { 0.8f, 0.8f, 0.8f, 1.0f });
+    public static final FloatBuffer defMatSpecular= Buffers.newDirectFloatBuffer(new float[] { 0f, 0f, 0f, 1f});
+    public static final FloatBuffer defMatEmission= Buffers.newDirectFloatBuffer(new float[] { 0f, 0f, 0f, 1f});
     public static final float       defMatShininess = 0f;
 
     protected static final String vertexColorFileDef          = "FixedFuncColor";

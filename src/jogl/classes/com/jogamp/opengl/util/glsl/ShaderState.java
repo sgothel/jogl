@@ -2,14 +2,11 @@
 package com.jogamp.opengl.util.glsl;
 
 import javax.media.opengl.*;
-import com.jogamp.opengl.util.*;
 import com.jogamp.opengl.impl.Debug;
 
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.nio.*;
-import java.io.PrintStream;
 import java.security.*;
 
 public class ShaderState {
@@ -25,8 +22,8 @@ public class ShaderState {
     /**
      * Fetches the current shader state from the thread local storage (TLS)
      *
-     * @see javax.media.opengl.glsl.ShaderState#glUseProgram(GL2ES2, boolean)
-     * @see javax.media.opengl.glsl.ShaderState#getCurrent()
+     * @see com.jogamp.opengl.util.glsl.ShaderState#glUseProgram(GL2ES2, boolean)
+     * @see com.jogamp.opengl.util.glsl.ShaderState#getCurrent()
      */
     public static synchronized ShaderState getCurrent() { 
         GLContext current = GLContext.getCurrent();
@@ -41,8 +38,8 @@ public class ShaderState {
      * Puts this ShaderState to to the thread local storage (TLS),
      * if <code>on</code> is <code>true</code>.
      *
-     * @see javax.media.opengl.glsl.ShaderState#glUseProgram(GL2ES2, boolean)
-     * @see javax.media.opengl.glsl.ShaderState#getCurrent()
+     * @see com.jogamp.opengl.util.glsl.ShaderState#glUseProgram(GL2ES2, boolean)
+     * @see com.jogamp.opengl.util.glsl.ShaderState#getCurrent()
      */
     public synchronized void glUseProgram(GL2ES2 gl, boolean on) {
         if(on) {
@@ -178,7 +175,7 @@ public class ShaderState {
      * @see #glGetAttribLocation
      * @see javax.media.opengl.GL2ES2#glGetAttribLocation
      * @see #getAttribLocation
-     * @see #glReplaceShader
+     * @see ShaderProgram#glReplaceShader
      */
     public void glBindAttribLocation(GL2ES2 gl, int index, String name) {
         if(null==shaderProgram) throw new GLException("No program is attached");
@@ -203,7 +200,7 @@ public class ShaderState {
      * @see #glGetAttribLocation
      * @see javax.media.opengl.GL2ES2#glGetAttribLocation
      * @see #getAttribLocation
-     * @see #glReplaceShader
+     * @see ShaderProgram#glReplaceShader
      */
     public int glGetAttribLocation(GL2ES2 gl, String name) {
         if(!shaderProgram.linked()) throw new GLException("Program is not linked");
@@ -240,17 +237,17 @@ public class ShaderState {
      * Even if the attribute is not found in the current shader,
      * it is stored in this state.
      *
-     * @returns false, if the name is not found, otherwise true
+     * @return false, if the name is not found, otherwise true
      *
      * @throws GLException if the program is not in use
      *
      * @see #glEnableVertexAttribArray
      * @see #glDisableVertexAttribArray
      * @see #glVertexAttribPointer
-     * @see #getVertexAttributePointer
+     * @see #getVertexAttribPointer
      * @see #glReleaseAllVertexAttributes
      * @see #glResetAllVertexAttributes
-     * @see #glReplaceShader
+     * @see ShaderProgram#glReplaceShader
      */
     public boolean glEnableVertexAttribArray(GL2ES2 gl, String name) {
         if(!shaderProgram.inUse()) throw new GLException("Program is not in use");
@@ -281,17 +278,17 @@ public class ShaderState {
      * Even if the attribute is not found in the current shader,
      * it is removed from this state.
      *
-     * @returns false, if the name is not found, otherwise true
+     * @return false, if the name is not found, otherwise true
      *
      * @throws GLException if the program is not in use
      *
      * @see #glEnableVertexAttribArray
      * @see #glDisableVertexAttribArray
      * @see #glVertexAttribPointer
-     * @see #getVertexAttributePointer
+     * @see #getVertexAttribPointer
      * @see #glReleaseAllVertexAttributes
      * @see #glResetAllVertexAttributes
-     * @see #glReplaceShader
+     * @see ShaderProgram#glReplaceShader
      */
     public boolean glDisableVertexAttribArray(GL2ES2 gl, String name) {
         if(!shaderProgram.inUse()) throw new GLException("Program is not in use");
@@ -322,17 +319,17 @@ public class ShaderState {
      *      it's index will be set with the attribute's location,
      *      if found.
      *
-     * @returns false, if the name is not found, otherwise true
+     * @return false, if the name is not found, otherwise true
      *
      * @throws GLException if the program is not in use
      *
      * @see #glEnableVertexAttribArray
      * @see #glDisableVertexAttribArray
      * @see #glVertexAttribPointer
-     * @see #getVertexAttributePointer
+     * @see #getVertexAttribPointer
      * @see #glReleaseAllVertexAttributes
      * @see #glResetAllVertexAttributes
-     * @see #glReplaceShader
+     * @see ShaderProgram#glReplaceShader
      */
     public boolean glVertexAttribPointer(GL2ES2 gl, GLArrayData data) {
         if(!shaderProgram.inUse()) throw new GLException("Program is not in use");
@@ -367,15 +364,15 @@ public class ShaderState {
     /**
      * Get the vertex attribute data, previously set.
      *
-     * @returns the GLArrayData object, null if not previously set.
+     * @return the GLArrayData object, null if not previously set.
      *
      * @see #glEnableVertexAttribArray
      * @see #glDisableVertexAttribArray
      * @see #glVertexAttribPointer
-     * @see #getVertexAttributePointer
+     * @see #getVertexAttribPointer
      * @see #glReleaseAllVertexAttributes
      * @see #glResetAllVertexAttributes
-     * @see #glReplaceShader
+     * @see ShaderProgram#glReplaceShader
      */
     public GLArrayData getVertexAttribPointer(String name) {
         return (GLArrayData) vertexAttribMap2Data.get(name);
@@ -390,11 +387,11 @@ public class ShaderState {
      * @see #glEnableVertexAttribArray
      * @see #glDisableVertexAttribArray
      * @see #glVertexAttribPointer
-     * @see #getVertexAttributePointer
+     * @see #getVertexAttribPointer
      * @see #glReleaseAllVertexAttributes
      * @see #glResetAllVertexAttributes
      * @see #glResetAllVertexAttributes
-     * @see #glReplaceShader
+     * @see ShaderProgram#glReplaceShader
      */
     public void glReleaseAllVertexAttributes(GL2ES2 gl) {
         if(null!=shaderProgram) {
@@ -428,11 +425,11 @@ public class ShaderState {
      * @see #glEnableVertexAttribArray
      * @see #glDisableVertexAttribArray
      * @see #glVertexAttribPointer
-     * @see #getVertexAttributePointer
+     * @see #getVertexAttribPointer
      * @see #glReleaseAllVertexAttributes
      * @see #glResetAllVertexAttributes
      * @see #glResetAllVertexAttributes
-     * @see #glReplaceShader
+     * @see ShaderProgram#glReplaceShader
      */
     public void glDisableAllVertexAttributeArrays(GL2ES2 gl, boolean removeFromState) {
         if(!shaderProgram.inUse()) throw new GLException("Program is not in use");
@@ -458,10 +455,10 @@ public class ShaderState {
      * @see #glEnableVertexAttribArray
      * @see #glDisableVertexAttribArray
      * @see #glVertexAttribPointer
-     * @see #getVertexAttributePointer
+     * @see #getVertexAttribPointer
      * @see #glReleaseAllVertexAttributes
      * @see #glResetAllVertexAttributes
-     * @see #glReplaceShader
+     * @see ShaderProgram#glReplaceShader
      */
     public void glResetAllVertexAttributes(GL2ES2 gl) {
         if(!shaderProgram.inUse()) throw new GLException("Program is not in use");
@@ -520,7 +517,7 @@ public class ShaderState {
      * @see #glGetUniformLocation
      * @see javax.media.opengl.GL2ES2#glGetUniformLocation
      * @see #getUniformLocation
-     * @see #glReplaceShader
+     * @see ShaderProgram#glReplaceShader
      */
     protected int glGetUniformLocation(GL2ES2 gl, String name) {
         if(!shaderProgram.inUse()) throw new GLException("Program is not in use");
@@ -554,14 +551,14 @@ public class ShaderState {
      *      if found.
      *
      *
-     * @returns false, if the name is not found, otherwise true
+     * @return false, if the name is not found, otherwise true
      *
      * @throws GLException if the program is not in use
      *
      * @see #glGetUniformLocation
      * @see javax.media.opengl.GL2ES2#glGetUniformLocation
      * @see #getUniformLocation
-     * @see #glReplaceShader
+     * @see ShaderProgram#glReplaceShader
      */
     public boolean glUniform(GL2ES2 gl, GLUniformData data) {
         if(!shaderProgram.inUse()) throw new GLException("Program is not in use");
@@ -581,7 +578,7 @@ public class ShaderState {
     /**
      * Get the uniform data, previously set.
      *
-     * @returns the GLUniformData object, null if not previously set.
+     * @return the GLUniformData object, null if not previously set.
      */
     public GLUniformData getUniform(String name) {
         return (GLUniformData) uniformMap2Data.get(name);

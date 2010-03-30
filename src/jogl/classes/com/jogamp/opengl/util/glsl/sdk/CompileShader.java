@@ -7,16 +7,17 @@ import com.jogamp.opengl.util.glsl.*;
 import java.io.*;
 import java.net.*;
 
-/** Precompiles a shader into a vendor binary format. Input is the
-    resource name of the shader, such as
-    "com/jogamp/opengl/impl/glsl/fixed/shader/a.fp".
-    Output is "com/jogamp/opengl/impl/glsl/fixed/shader/bin/nvidia/a.bfp".
-
-    All path and suffixes are determined by the ShaderCode class,
-    which ensures runtime compatibility.
-
-    @see javax.media.opengl.glsl.ShaderCode
-  */
+/**
+ * Precompiles a shader into a vendor binary format. Input is the
+ * resource name of the shader, such as
+ * "com/jogamp/opengl/impl/glsl/fixed/shader/a.fp".
+ * Output is "com/jogamp/opengl/impl/glsl/fixed/shader/bin/nvidia/a.bfp".
+ *
+ * All path and suffixes are determined by the ShaderCode class,
+ * which ensures runtime compatibility.
+ *
+ * @see com.jogamp.opengl.util.glsl.ShaderCode
+ */
 
 public abstract class CompileShader {
 

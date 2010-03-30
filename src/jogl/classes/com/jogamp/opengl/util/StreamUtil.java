@@ -59,7 +59,7 @@ public class StreamUtil {
 
     public static ByteBuffer readAll2Buffer(InputStream stream) throws IOException {
         BytesRead bytesRead = readAllImpl(stream);
-        return BufferUtil.newByteBuffer(bytesRead.data, 0, bytesRead.payloadLen);
+        return GLBuffers.newDirectByteBuffer(bytesRead.data, 0, bytesRead.payloadLen);
     }
 
     private static BytesRead readAllImpl(InputStream stream) throws IOException {

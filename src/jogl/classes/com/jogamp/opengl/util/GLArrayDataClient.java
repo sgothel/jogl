@@ -1,6 +1,7 @@
 
 package com.jogamp.opengl.util;
 
+import com.jogamp.gluegen.runtime.Buffers;
 import java.security.*;
 
 import javax.media.opengl.*;
@@ -189,7 +190,7 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
   public void padding(int done) {
     if ( buffer==null || sealed ) return;
     while(done<strideL) {
-        BufferUtil.putb(buffer, (byte)0);
+        Buffers.putb(buffer, (byte)0);
         done++;
     }
   }
@@ -206,25 +207,25 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
         throw new GLException("Buffer length ("+v.remaining()+") is not a multiple of component-stride:\n\t"+this);
     }
     growBufferIfNecessary(v.remaining());
-    BufferUtil.put(buffer, v);
+    Buffers.put(buffer, v);
   }
 
   public void putb(byte v) {
     if ( buffer==null || sealed ) return;
     growBufferIfNecessary(1);
-    BufferUtil.putb(buffer, v);
+    Buffers.putb(buffer, v);
   }
 
   public void puts(short v) {
     if ( buffer==null || sealed ) return;
     growBufferIfNecessary(1);
-    BufferUtil.puts(buffer, v);
+    Buffers.puts(buffer, v);
   }
 
   public void puti(int v) {
     if ( buffer==null || sealed ) return;
     growBufferIfNecessary(1);
-    BufferUtil.puti(buffer, v);
+    Buffers.puti(buffer, v);
   }
 
   public void putx(int v) {
@@ -234,7 +235,7 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
   public void putf(float v) {
     if ( buffer==null || sealed ) return;
     growBufferIfNecessary(1);
-    BufferUtil.putf(buffer, v);
+    Buffers.putf(buffer, v);
   }
 
   public String toString() {
@@ -274,28 +275,28 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
     if(components>0) {
         int osize = (buffer!=null)?buffer.capacity():0;
         if(clazz==ByteBuffer.class) {
-            ByteBuffer newBBuffer = BufferUtil.newByteBuffer( (osize+additional) * components );
+            ByteBuffer newBBuffer = Buffers.newDirectByteBuffer( (osize+additional) * components );
             if(buffer!=null) {
                 buffer.flip();
                 newBBuffer.put((ByteBuffer)buffer);
             }
             buffer = newBBuffer;
         } else if(clazz==ShortBuffer.class) {
-            ShortBuffer newSBuffer = BufferUtil.newShortBuffer( (osize+additional) * components );
+            ShortBuffer newSBuffer = Buffers.newDirectShortBuffer( (osize+additional) * components );
             if(buffer!=null) {
                 buffer.flip();
                 newSBuffer.put((ShortBuffer)buffer);
             }
             buffer = newSBuffer;
         } else if(clazz==IntBuffer.class) {
-            IntBuffer newIBuffer = BufferUtil.newIntBuffer( (osize+additional) * components );
+            IntBuffer newIBuffer = Buffers.newDirectIntBuffer( (osize+additional) * components );
             if(buffer!=null) {
                 buffer.flip();
                 newIBuffer.put((IntBuffer)buffer);
             }
             buffer = newIBuffer;
         } else if(clazz==FloatBuffer.class) {
-            FloatBuffer newFBuffer = BufferUtil.newFloatBuffer( (osize+additional) * components );
+            FloatBuffer newFBuffer = Buffers.newDirectFloatBuffer( (osize+additional) * components );
             if(buffer!=null) {
                 buffer.flip();
                 newFBuffer.put((FloatBuffer)buffer);

@@ -10,7 +10,6 @@ public class GLUniformData {
      *
      * Number of objects is 1
      *
-     * @param components number of elements of one object, ie 4 for GL_FLOAT_VEC4,
      */
     public GLUniformData(String name, int val) {
         init(name, 1, new Integer(val));
@@ -21,7 +20,6 @@ public class GLUniformData {
      *
      * Number of objects is 1
      *
-     * @param components number of elements of one object, ie 4 for GL_FLOAT_VEC4,
      */
     public GLUniformData(String name, float val) {
         init(name, 1, new Float(val));

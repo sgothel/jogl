@@ -65,16 +65,16 @@ public class GLArrayDataWrapper implements GLArrayData {
 
   public final int getComponentSize() {
     if(clazz==ByteBuffer.class) {
-        return BufferUtil.SIZEOF_BYTE;
+        return GLBuffers.SIZEOF_BYTE;
     }
     if(clazz==ShortBuffer.class) {
-        return BufferUtil.SIZEOF_SHORT;
+        return GLBuffers.SIZEOF_SHORT;
     }
     if(clazz==IntBuffer.class) {
-        return BufferUtil.SIZEOF_INT;
+        return GLBuffers.SIZEOF_INT;
     }
     if(clazz==FloatBuffer.class) {
-        return BufferUtil.SIZEOF_FLOAT;
+        return GLBuffers.SIZEOF_FLOAT;
     }
     throw new GLException("Given Buffer Class not supported: "+clazz+":\n\t"+this);
   }

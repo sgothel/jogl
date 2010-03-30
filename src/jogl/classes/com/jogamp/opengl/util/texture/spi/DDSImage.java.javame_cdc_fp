@@ -478,7 +478,7 @@ public class DDSImage {
         }
         if (size == 0)
             size = 1;
-        return BufferUtil.newByteBuffer(size);
+        return GLBuffers.newDirectByteBuffer(size);
     }
 
     public void debugPrint() {

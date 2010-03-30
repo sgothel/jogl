@@ -33,6 +33,7 @@
 
 package com.jogamp.opengl.util;
 
+import com.jogamp.gluegen.runtime.Buffers;
 import com.jogamp.opengl.impl.ProjectFloat;
 
 import java.nio.*;
@@ -47,7 +48,7 @@ public class PMVMatrix implements GLMatrixFunc {
     public PMVMatrix() {
           projectFloat = new ProjectFloat();
 
-          matrixIdent = BufferUtil.newFloatBuffer(1*16);
+          matrixIdent = Buffers.newDirectFloatBuffer(1*16);
           projectFloat.gluMakeIdentityf(matrixIdent);
           matrixIdent.rewind();
 
@@ -57,7 +58,7 @@ public class PMVMatrix implements GLMatrixFunc {
           // Mvi  Modelview-Inverse
           // Mvit Modelview-Inverse-Transpose
           // Pmv  P * Mv
-          matrixTPMvMvitPmv = BufferUtil.newFloatBuffer(6*16);     // grouping T + P  + Mv + Mvi + Mvit + Pmv
+          matrixTPMvMvitPmv = Buffers.newDirectFloatBuffer(6*16);     // grouping T + P  + Mv + Mvi + Mvit + Pmv
           matrixPMvMvitPmv = slice(matrixTPMvMvitPmv, 1*16, 5*16); // grouping     P  + Mv + Mvi + Mvit + Pmv
           matrixT       = slice(matrixTPMvMvitPmv, 0*16, 1*16);    //          T
           matrixPMvMvit = slice(matrixTPMvMvitPmv, 1*16, 4*16);    // grouping     P  + Mv + Mvi + Mvit
@@ -70,9 +71,9 @@ public class PMVMatrix implements GLMatrixFunc {
           matrixPmv     = slice(matrixTPMvMvitPmv, 5*16, 1*16);    //                                     Pmv
           matrixTPMvMvitPmv.rewind();
 
-          matrixMvit3 = BufferUtil.newFloatBuffer(3*3);
+          matrixMvit3 = Buffers.newDirectFloatBuffer(3*3);
 
-          localBuf = BufferUtil.newFloatBuffer(6*16);
+          localBuf = Buffers.newDirectFloatBuffer(6*16);
 
           matrixMult=slice(localBuf, 0*16, 16);
 
@@ -294,7 +295,7 @@ public class PMVMatrix implements GLMatrixFunc {
     }
 
   /**
-   * @param pname GL_MODELVIEW, GL_PROJECTION or GL.GL_TEXTURE
+   * @param matrixName GL_MODELVIEW, GL_PROJECTION or GL.GL_TEXTURE
    * @return the given matrix
    */
     public final FloatBuffer glGetMatrixf(final int matrixName) {
