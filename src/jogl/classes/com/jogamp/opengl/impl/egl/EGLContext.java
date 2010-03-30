@@ -158,13 +158,13 @@ public abstract class EGLContext extends GLContextImpl {
         long eglDisplay = ((EGLDrawable)drawable).getDisplay();
         EGLGraphicsConfiguration config = ((EGLDrawable)drawable).getGraphicsConfiguration();
         GLProfile glProfile = drawable.getGLProfile();
-        _EGLConfig eglConfig = config.getNativeConfig();
+        long eglConfig = config.getNativeConfig();
         long shareWith = EGL.EGL_NO_CONTEXT;
 
         if (eglDisplay == 0) {
             throw new GLException("Error: attempted to create an OpenGL context without a display connection");
         }
-        if (eglConfig == null) {
+        if (eglConfig == 0) {
             throw new GLException("Error: attempted to create an OpenGL context without a graphics configuration");
         }
 
