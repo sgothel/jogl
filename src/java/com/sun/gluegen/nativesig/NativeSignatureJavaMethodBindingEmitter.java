@@ -40,16 +40,14 @@
 package com.sun.gluegen.nativesig;
 
 import java.io.*;
-import java.util.*;
-import java.text.MessageFormat;
 
 import com.sun.gluegen.*;
 import com.sun.gluegen.cgram.types.*;
-import com.sun.gluegen.cgram.*;
 import com.sun.gluegen.opengl.*;
 import com.sun.gluegen.procaddress.*;
 
 public class NativeSignatureJavaMethodBindingEmitter extends GLJavaMethodBindingEmitter {
+
   public NativeSignatureJavaMethodBindingEmitter(GLJavaMethodBindingEmitter methodToWrap) {
     super(methodToWrap);
   }
@@ -58,11 +56,11 @@ public class NativeSignatureJavaMethodBindingEmitter extends GLJavaMethodBinding
     super(methodToWrap, false);
   }
 
-  public NativeSignatureJavaMethodBindingEmitter(JavaMethodBindingEmitter methodToWrap,
-                                                 NativeSignatureEmitter emitter) {
+  public NativeSignatureJavaMethodBindingEmitter(JavaMethodBindingEmitter methodToWrap, NativeSignatureEmitter emitter) {
     super(methodToWrap, false, null, false, false, emitter);
   }
 
+    @Override
   protected void emitSignature(PrintWriter writer) {
     writer.print(getBaseIndentString());
     emitNativeSignatureAnnotation(writer);
