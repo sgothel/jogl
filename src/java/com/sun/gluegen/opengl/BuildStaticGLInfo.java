@@ -88,8 +88,8 @@ import java.util.regex.*;
    * with the symbol
    *   <code> GL_ARB_texture_compression </code>.
    * */
-public class BuildStaticGLInfo
-{
+public class BuildStaticGLInfo {
+
   // Handles function pointer 
   protected static int funcIdentifierGroup = 10;
   protected static Pattern funcPattern =
@@ -110,242 +110,237 @@ public class BuildStaticGLInfo
   protected Map<String, Set<String>> extensionToDeclarationMap = new HashMap<String, Set<String>>();
   protected boolean debug = false;
 
-  /**
-   * The first argument is the package to which the StaticGLInfo class
-   * belongs, the second is the path to the directory in which that package's
-   * classes reside, and the remaining arguments are paths to the C header
-   * files that should be parsed
-   */
-  public static void main(String[] args) throws IOException
-  {
-    if (args.length > 0 && args[0].equals("-test")) {
-      BuildStaticGLInfo builder = new BuildStaticGLInfo();
-      builder.setDebug(true);
-      String[] newArgs = new String[args.length - 1];
-      System.arraycopy(args, 1, newArgs, 0, args.length - 1);
-      builder.parse(newArgs);
-      builder.dump();
-      System.exit(0);
-    }
-
-    String packageName = args[0];
-    String packageDir = args[1];
-
-    String[] cHeaderFilePaths = new String[args.length-2];
-    System.arraycopy(args, 2, cHeaderFilePaths, 0, cHeaderFilePaths.length);
-    
-    BuildStaticGLInfo builder = new BuildStaticGLInfo();
-    try {
-      builder.parse(cHeaderFilePaths);
-
-      File file = new File(packageDir + File.separatorChar + "StaticGLInfo.java");
-      String parentDir = file.getParent();
-      if (parentDir != null) {
-        File pDirFile = new File(parentDir);
-        pDirFile.mkdirs();
-      }
-
-      PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(file)));
-      builder.emitJavaCode(writer, packageName);
-
-      writer.flush();
-      writer.close();
-    }
-    catch (Exception e)
-    {
-      StringBuffer buf = new StringBuffer("{ ");
-      for (int i = 0; i < cHeaderFilePaths.length; ++i)
-      {
-        buf.append(cHeaderFilePaths[i]);
-        buf.append(" ");
-      }
-      buf.append('}');
-      throw new RuntimeException(
-        "Error building StaticGLInfo.java from " + buf.toString(), e);        
-    }
-  }
-
-  public void setDebug(boolean v) {
-      debug = v;
-  }
-  
-  /** Parses the supplied C header files and adds the function
-      associations contained therein to the internal map. */
-  public void parse(String[] cHeaderFilePaths) throws IOException {
-    for (int i = 0; i < cHeaderFilePaths.length; i++) {
-      parse(cHeaderFilePaths[i]);
-    }
-  }
-
-  /** Parses the supplied C header file and adds the function
-      associations contained therein to the internal map. */
-  public void parse(String cHeaderFilePath) throws IOException {
-    BufferedReader reader = new BufferedReader(new FileReader(cHeaderFilePath));
-    String line, activeAssociation = null;
-    Matcher m = null;
-    while ((line = reader.readLine()) != null) {
-      int type = 0; // 1-define, 2-function
-      // see if we're inside a #ifndef GL_XXX block and matching a function
-      if (activeAssociation != null) {
-        String identifier = null;
-        if ((m = funcPattern.matcher(line)).matches()) {
-          identifier = m.group(funcIdentifierGroup).trim();
-          type =2;
-        } else if ((m = definePattern.matcher(line)).matches()) {
-          identifier = m.group(defineIdentifierGroup).trim();
-          type =1;
-        } else if (line.startsWith("#endif")) {
-          if(debug) {
-              System.err.println("END ASSOCIATION BLOCK: <" + activeAssociation + ">");
-          }
-          activeAssociation = null;
+    /**
+     * The first argument is the package to which the StaticGLInfo class
+     * belongs, the second is the path to the directory in which that package's
+     * classes reside, and the remaining arguments are paths to the C header
+     * files that should be parsed
+     */
+    public static void main(String[] args) throws IOException {
+        if (args.length > 0 && args[0].equals("-test")) {
+            BuildStaticGLInfo builder = new BuildStaticGLInfo();
+            builder.setDebug(true);
+            String[] newArgs = new String[args.length - 1];
+            System.arraycopy(args, 1, newArgs, 0, args.length - 1);
+            builder.parse(newArgs);
+            builder.dump();
+            System.exit(0);
         }
-        if ((identifier != null) &&
-            (activeAssociation != null) &&
-            // Handles #ifndef GL_... #define GL_...
-            !identifier.equals(activeAssociation)) {
-          addAssociation(identifier, activeAssociation);
-          if(debug) {
-              System.err.println("  ADDING ASSOCIATION: <" + identifier + "> <" + activeAssociation + "> ; type "+type);
-          }
+
+        String packageName = args[0];
+        String packageDir = args[1];
+
+        String[] cHeaderFilePaths = new String[args.length - 2];
+        System.arraycopy(args, 2, cHeaderFilePaths, 0, cHeaderFilePaths.length);
+
+        BuildStaticGLInfo builder = new BuildStaticGLInfo();
+        try {
+            builder.parse(cHeaderFilePaths);
+
+            File file = new File(packageDir + File.separatorChar + "StaticGLInfo.java");
+            String parentDir = file.getParent();
+            if (parentDir != null) {
+                File pDirFile = new File(parentDir);
+                pDirFile.mkdirs();
+            }
+
+            PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(file)));
+            builder.emitJavaCode(writer, packageName);
+
+            writer.flush();
+            writer.close();
+        } catch (Exception e) {
+            StringBuilder buf = new StringBuilder("{ ");
+            for (int i = 0; i < cHeaderFilePaths.length; ++i) {
+                buf.append(cHeaderFilePaths[i]);
+                buf.append(" ");
+            }
+            buf.append('}');
+            throw new RuntimeException(
+                    "Error building StaticGLInfo.java from " + buf.toString(), e);
         }
-      } else if ((m = associationPattern.matcher(line)).matches()) {
-        // found a new #ifndef GL_XXX block
-        activeAssociation = m.group(1).trim();
-        
-        if(debug) {
-            System.err.println("BEGIN ASSOCIATION BLOCK: <" + activeAssociation + ">");
+    }
+
+    public void setDebug(boolean v) {
+        debug = v;
+    }
+
+    /** Parses the supplied C header files and adds the function
+    associations contained therein to the internal map. */
+    public void parse(String[] cHeaderFilePaths) throws IOException {
+        for (int i = 0; i < cHeaderFilePaths.length; i++) {
+            parse(cHeaderFilePaths[i]);
         }
-      }
-    }
-    reader.close();
-  }
-
-  public void dump() {
-    for (String name : extensionToDeclarationMap.keySet()) {
-      Set<String> decls = extensionToDeclarationMap.get(name);
-      System.out.println("<"+name+"> :");
-      List<String> l = new ArrayList<String>();
-      l.addAll(decls);
-      Collections.sort(l);
-      for (String str : l) {
-        System.out.println("  <" + str + ">");
-      }
-    }
-  }
-
-  public String getExtension(String identifier) {
-    return declarationToExtensionMap.get(identifier);
-  }
-  
-  public Set<String> getDeclarations(String extension) {
-    return extensionToDeclarationMap.get(extension);
-  }
-
-  public Set<String> getExtensions() {
-    return extensionToDeclarationMap.keySet();
-  }
-
-  public void emitJavaCode(PrintWriter output, String packageName) {
-    output.println("package " + packageName + ";");
-    output.println();
-    output.println("import java.util.*;");
-    output.println();
-    output.println("public final class StaticGLInfo");
-    output.println("{");
-
-    output.println("  // maps function names to the extension string or OpenGL");
-    output.println("  // specification version string to which they correspond.");
-    output.println("  private static HashMap funcToAssocMap;");
-    output.println();
-
-    output.println("  /**");
-    output.println("   * Returns the OpenGL extension string or GL_VERSION string with which the");
-    output.println("   * given function is associated. <P>");
-    output.println("   *");
-    output.println("   * If the");
-    output.println("   * function is part of the OpenGL core, the returned value will be");
-    output.println("   * GL_VERSION_XXX where XXX represents the OpenGL version of which the");
-    output.println("   * function is a member (XXX will be of the form \"A\" or \"A_B\" or \"A_B_C\";");
-    output.println("   * e.g., GL_VERSION_1_2_1 for OpenGL version 1.2.1).");
-    output.println("   *");
-    output.println("   * If the function is an extension function, the returned value will the");
-    output.println("   * OpenGL extension string for the extension to which the function");
-    output.println("   * corresponds. For example, if glLoadTransposeMatrixfARB is the argument,");
-    output.println("   * GL_ARB_transpose_matrix will be the value returned.");
-    output.println("   * Please see http://oss.sgi.com/projects/ogl-sample/registry/index.html for");
-    output.println("   * a list of extension names and the functions they expose.");
-    output.println("   *");
-    output.println("   * If the function specified is not part of any known OpenGL core version or");
-    output.println("   * extension, then NULL will be returned.");
-    output.println("   */");
-    output.println("  public static String getFunctionAssociation(String glFunctionName)");
-    output.println("  {");
-    output.println("    String mappedName = null;");
-    output.println("    int  funcNamePermNum = com.jogamp.gluegen.runtime.opengl.GLExtensionNames.getFuncNamePermutationNumber(glFunctionName);");
-    output.println("    for(int i = 0; null==mappedName && i < funcNamePermNum; i++) {");
-    output.println("        String tmp = com.jogamp.gluegen.runtime.opengl.GLExtensionNames.getFuncNamePermutation(glFunctionName, i);");
-    output.println("        try {");
-    output.println("          mappedName = (String)funcToAssocMap.get(tmp);");
-    output.println("        } catch (Exception e) { }");
-    output.println("    }");
-    output.println("    return mappedName;");
-    output.println("  }");
-    output.println();
-
-    output.println("  static");
-    output.println("  {");
-
-    // Compute max capacity
-    int maxCapacity = 0;
-    for (String name : declarationToExtensionMap.keySet()) {
-      if (!name.startsWith("GL")) {
-        ++maxCapacity;
-      }
     }
 
-    output.println("    funcToAssocMap = new HashMap(" + maxCapacity + "); // approximate max capacity");
-    output.println("    String group;");
-    ArrayList<String> sets = new ArrayList<String>(extensionToDeclarationMap.keySet());
-    Collections.sort(sets);
-    for (String groupName : sets) {
-      Set<String> funcs = extensionToDeclarationMap.get(groupName);
-      List<String> l = new ArrayList<String>();
-      l.addAll(funcs);
-      Collections.sort(l);
-      Iterator<String> funcIter = l.iterator();
-      boolean printedHeader = false;
-      while (funcIter.hasNext()) {
-        String funcName = funcIter.next();
-        if (!funcName.startsWith("GL")) {
-          if (!printedHeader) {
-            output.println();
-            output.println("    //----------------------------------------------------------------");
-            output.println("    //                 " + groupName);
-            output.println("    //----------------------------------------------------------------");
-            output.println("    group = \"" + groupName + "\";");
-            printedHeader = true;
-          }
+    /** Parses the supplied C header file and adds the function
+    associations contained therein to the internal map. */
+    public void parse(String cHeaderFilePath) throws IOException {
+        BufferedReader reader = new BufferedReader(new FileReader(cHeaderFilePath));
+        String line, activeAssociation = null;
+        Matcher m = null;
+        while ((line = reader.readLine()) != null) {
+            int type = 0; // 1-define, 2-function
+            // see if we're inside a #ifndef GL_XXX block and matching a function
+            if (activeAssociation != null) {
+                String identifier = null;
+                if ((m = funcPattern.matcher(line)).matches()) {
+                    identifier = m.group(funcIdentifierGroup).trim();
+                    type = 2;
+                } else if ((m = definePattern.matcher(line)).matches()) {
+                    identifier = m.group(defineIdentifierGroup).trim();
+                    type = 1;
+                } else if (line.startsWith("#endif")) {
+                    if (debug) {
+                        System.err.println("END ASSOCIATION BLOCK: <" + activeAssociation + ">");
+                    }
+                    activeAssociation = null;
+                }
+                if ((identifier != null)
+                        && (activeAssociation != null)
+                        && // Handles #ifndef GL_... #define GL_...
+                        !identifier.equals(activeAssociation)) {
+                    addAssociation(identifier, activeAssociation);
+                    if (debug) {
+                        System.err.println("  ADDING ASSOCIATION: <" + identifier + "> <" + activeAssociation + "> ; type " + type);
+                    }
+                }
+            } else if ((m = associationPattern.matcher(line)).matches()) {
+                // found a new #ifndef GL_XXX block
+                activeAssociation = m.group(1).trim();
 
-          output.println("    funcToAssocMap.put(\"" + funcName + "\", group);");
+                if (debug) {
+                    System.err.println("BEGIN ASSOCIATION BLOCK: <" + activeAssociation + ">");
+                }
+            }
         }
-      }
+        reader.close();
     }
-    output.println("  }");
-    output.println("} // end class StaticGLInfo");
-  }
 
-  //----------------------------------------------------------------------
-  // Internals only below this point
-  //
-
-  protected void addAssociation(String identifier, String association) {
-    declarationToExtensionMap.put(identifier, association);
-    Set<String> identifiers = extensionToDeclarationMap.get(association);
-    if (identifiers == null) {
-      identifiers = new HashSet<String>();
-      extensionToDeclarationMap.put(association, identifiers);
+    public void dump() {
+        for (String name : extensionToDeclarationMap.keySet()) {
+            Set<String> decls = extensionToDeclarationMap.get(name);
+            System.out.println("<" + name + "> :");
+            List<String> l = new ArrayList<String>();
+            l.addAll(decls);
+            Collections.sort(l);
+            for (String str : l) {
+                System.out.println("  <" + str + ">");
+            }
+        }
     }
-    identifiers.add(identifier);
-  }
+
+    public String getExtension(String identifier) {
+        return declarationToExtensionMap.get(identifier);
+    }
+
+    public Set<String> getDeclarations(String extension) {
+        return extensionToDeclarationMap.get(extension);
+    }
+
+    public Set<String> getExtensions() {
+        return extensionToDeclarationMap.keySet();
+    }
+
+    public void emitJavaCode(PrintWriter output, String packageName) {
+        output.println("package " + packageName + ";");
+        output.println();
+        output.println("import java.util.*;");
+        output.println();
+        output.println("public final class StaticGLInfo");
+        output.println("{");
+
+        output.println("  // maps function names to the extension string or OpenGL");
+        output.println("  // specification version string to which they correspond.");
+        output.println("  private static HashMap funcToAssocMap;");
+        output.println();
+
+        output.println("  /**");
+        output.println("   * Returns the OpenGL extension string or GL_VERSION string with which the");
+        output.println("   * given function is associated. <P>");
+        output.println("   *");
+        output.println("   * If the");
+        output.println("   * function is part of the OpenGL core, the returned value will be");
+        output.println("   * GL_VERSION_XXX where XXX represents the OpenGL version of which the");
+        output.println("   * function is a member (XXX will be of the form \"A\" or \"A_B\" or \"A_B_C\";");
+        output.println("   * e.g., GL_VERSION_1_2_1 for OpenGL version 1.2.1).");
+        output.println("   *");
+        output.println("   * If the function is an extension function, the returned value will the");
+        output.println("   * OpenGL extension string for the extension to which the function");
+        output.println("   * corresponds. For example, if glLoadTransposeMatrixfARB is the argument,");
+        output.println("   * GL_ARB_transpose_matrix will be the value returned.");
+        output.println("   * Please see http://oss.sgi.com/projects/ogl-sample/registry/index.html for");
+        output.println("   * a list of extension names and the functions they expose.");
+        output.println("   *");
+        output.println("   * If the function specified is not part of any known OpenGL core version or");
+        output.println("   * extension, then NULL will be returned.");
+        output.println("   */");
+        output.println("  public static String getFunctionAssociation(String glFunctionName)");
+        output.println("  {");
+        output.println("    String mappedName = null;");
+        output.println("    int  funcNamePermNum = com.jogamp.gluegen.runtime.opengl.GLExtensionNames.getFuncNamePermutationNumber(glFunctionName);");
+        output.println("    for(int i = 0; null==mappedName && i < funcNamePermNum; i++) {");
+        output.println("        String tmp = com.jogamp.gluegen.runtime.opengl.GLExtensionNames.getFuncNamePermutation(glFunctionName, i);");
+        output.println("        try {");
+        output.println("          mappedName = (String)funcToAssocMap.get(tmp);");
+        output.println("        } catch (Exception e) { }");
+        output.println("    }");
+        output.println("    return mappedName;");
+        output.println("  }");
+        output.println();
+
+        output.println("  static");
+        output.println("  {");
+
+        // Compute max capacity
+        int maxCapacity = 0;
+        for (String name : declarationToExtensionMap.keySet()) {
+            if (!name.startsWith("GL")) {
+                ++maxCapacity;
+            }
+        }
+
+        output.println("    funcToAssocMap = new HashMap(" + maxCapacity + "); // approximate max capacity");
+        output.println("    String group;");
+        ArrayList<String> sets = new ArrayList<String>(extensionToDeclarationMap.keySet());
+        Collections.sort(sets);
+        for (String groupName : sets) {
+            Set<String> funcs = extensionToDeclarationMap.get(groupName);
+            List<String> l = new ArrayList<String>();
+            l.addAll(funcs);
+            Collections.sort(l);
+            Iterator<String> funcIter = l.iterator();
+            boolean printedHeader = false;
+            while (funcIter.hasNext()) {
+                String funcName = funcIter.next();
+                if (!funcName.startsWith("GL")) {
+                    if (!printedHeader) {
+                        output.println();
+                        output.println("    //----------------------------------------------------------------");
+                        output.println("    //                 " + groupName);
+                        output.println("    //----------------------------------------------------------------");
+                        output.println("    group = \"" + groupName + "\";");
+                        printedHeader = true;
+                    }
+
+                    output.println("    funcToAssocMap.put(\"" + funcName + "\", group);");
+                }
+            }
+        }
+        output.println("  }");
+        output.println("} // end class StaticGLInfo");
+    }
+
+    //----------------------------------------------------------------------
+    // Internals only below this point
+    //
+    protected void addAssociation(String identifier, String association) {
+        declarationToExtensionMap.put(identifier, association);
+        Set<String> identifiers = extensionToDeclarationMap.get(association);
+        if (identifiers == null) {
+            identifiers = new HashSet<String>();
+            extensionToDeclarationMap.put(association, identifiers);
+        }
+        identifiers.add(identifier);
+    }
 }
