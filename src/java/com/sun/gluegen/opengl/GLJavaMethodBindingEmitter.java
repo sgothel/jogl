@@ -36,7 +36,6 @@
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
-
 package com.sun.gluegen.opengl;
 
 import java.io.*;
@@ -45,89 +44,80 @@ import com.sun.gluegen.cgram.types.*;
 import com.sun.gluegen.procaddress.*;
 
 /** A specialization of the proc address emitter which knows how to
-    change argument names to take into account Vertex Buffer Object /
-    Pixel Buffer Object variants. */
-
+change argument names to take into account Vertex Buffer Object /
+Pixel Buffer Object variants. */
 public class GLJavaMethodBindingEmitter extends ProcAddressJavaMethodBindingEmitter {
-  protected boolean bufferObjectVariant;
-  protected GLEmitter glEmitter;
-  protected CommentEmitter glCommentEmitter = new GLCommentEmitter();
-  
-  public GLJavaMethodBindingEmitter(JavaMethodBindingEmitter methodToWrap,
-                                    boolean callThroughProcAddress,
-                                    String  getProcAddressTableExpr,
-                                    boolean changeNameAndArguments,
-                                    boolean bufferObjectVariant,
-                                    GLEmitter emitter) {
-    super(methodToWrap,
-          callThroughProcAddress,
-          getProcAddressTableExpr,
-          changeNameAndArguments,
-          emitter);
-    this.bufferObjectVariant = bufferObjectVariant;
-    this.glEmitter=emitter;
-    setCommentEmitter(glCommentEmitter);
-  }
 
-  public GLJavaMethodBindingEmitter(ProcAddressJavaMethodBindingEmitter methodToWrap,
-                                    GLEmitter emitter,
-                                    boolean bufferObjectVariant) {
-    super(methodToWrap);
-    this.bufferObjectVariant = bufferObjectVariant;
-    this.glEmitter=emitter;
-    setCommentEmitter(glCommentEmitter);
-  }
+    protected boolean bufferObjectVariant;
+    protected GLEmitter glEmitter;
+    protected CommentEmitter glCommentEmitter = new GLCommentEmitter();
 
-  public GLJavaMethodBindingEmitter(GLJavaMethodBindingEmitter methodToWrap) {
-    this(methodToWrap, methodToWrap.glEmitter, methodToWrap.bufferObjectVariant);
-  }
+    public GLJavaMethodBindingEmitter(JavaMethodBindingEmitter methodToWrap, boolean callThroughProcAddress,
+            String getProcAddressTableExpr, boolean changeNameAndArguments, boolean bufferObjectVariant, GLEmitter emitter) {
 
-  @Override
-  protected String getArgumentName(int i) {
-    String name = super.getArgumentName(i);
-
-    if (!bufferObjectVariant) {
-      return name;
+        super(methodToWrap, callThroughProcAddress, getProcAddressTableExpr, changeNameAndArguments, emitter);
+        this.bufferObjectVariant = bufferObjectVariant;
+        this.glEmitter = emitter;
+        setCommentEmitter(glCommentEmitter);
     }
 
-    // Emitters for VBO/PBO-related routines change the outgoing
-    // argument name for the buffer
-    if (binding.getJavaArgumentType(i).isLong()) {
-      Type cType = binding.getCArgumentType(i);
-      if (cType.isPointer() &&
-          (cType.asPointer().getTargetType().isVoid() ||
-           cType.asPointer().getTargetType().isPrimitive())) {
-        return name + "_buffer_offset";
-      }
+    public GLJavaMethodBindingEmitter(ProcAddressJavaMethodBindingEmitter methodToWrap, GLEmitter emitter, boolean bufferObjectVariant) {
+        super(methodToWrap);
+        this.bufferObjectVariant = bufferObjectVariant;
+        this.glEmitter = emitter;
+        setCommentEmitter(glCommentEmitter);
     }
 
-    return name;
-  }
+    public GLJavaMethodBindingEmitter(GLJavaMethodBindingEmitter methodToWrap) {
+        this(methodToWrap, methodToWrap.glEmitter, methodToWrap.bufferObjectVariant);
+    }
 
-  protected class GLCommentEmitter extends JavaMethodBindingEmitter.DefaultCommentEmitter  {
-      
     @Override
-    protected void emitBindingCSignature(MethodBinding binding, PrintWriter writer) {      
-      super.emitBindingCSignature(binding, writer);
+    protected String getArgumentName(int i) {
+        String name = super.getArgumentName(i);
 
-      String symbolRenamed = binding.getName();
-      StringBuffer newComment = new StringBuffer();
-      newComment.append("<br>Part of <code>");
-      if(0==glEmitter.addExtensionsOfSymbols2Buffer(newComment, ", ", symbolRenamed, binding.getAliasedNames())) {
-          if(glEmitter.getGLConfig().getAllowNonGLExtensions()) {
-              newComment.append("CORE FUNC");
-          } else {
-              StringBuffer sb = new StringBuffer();
-              JavaEmitter.addStrings2Buffer(sb, ", ", symbolRenamed, binding.getAliasedNames());
-              RuntimeException ex = new RuntimeException("Couldn't find extension to: "+binding+" ; "+sb.toString());
-              ex.printStackTrace();
-              glEmitter.getGLConfig().getGLInfo().dump();
-              // glEmitter.getGLConfig().dumpRenames();
-              throw ex;
-          }
-      }
-      newComment.append("</code>");
-      writer.print(newComment.toString());
+        if (!bufferObjectVariant) {
+            return name;
+        }
+
+        // Emitters for VBO/PBO-related routines change the outgoing
+        // argument name for the buffer
+        if (binding.getJavaArgumentType(i).isLong()) {
+            Type cType = binding.getCArgumentType(i);
+            Type targetType = cType.asPointer().getTargetType();
+            if (cType.isPointer() && (targetType.isVoid() || targetType.isPrimitive())) {
+                return name + "_buffer_offset";
+            }
+        }
+
+        return name;
     }
-  }
+
+    protected class GLCommentEmitter extends JavaMethodBindingEmitter.DefaultCommentEmitter {
+
+        @Override
+        protected void emitBindingCSignature(MethodBinding binding, PrintWriter writer) {
+
+            super.emitBindingCSignature(binding, writer);
+
+            String symbolRenamed = binding.getName();
+            StringBuilder newComment = new StringBuilder();
+
+            newComment.append("<br>Part of <code>");
+            if (0 == glEmitter.addExtensionsOfSymbols2Buffer(newComment, ", ", symbolRenamed, binding.getAliasedNames())) {
+                if (glEmitter.getGLConfig().getAllowNonGLExtensions()) {
+                    newComment.append("CORE FUNC");
+                } else {
+                    StringBuilder sb = new StringBuilder();
+                    JavaEmitter.addStrings2Buffer(sb, ", ", symbolRenamed, binding.getAliasedNames());
+                    RuntimeException ex = new RuntimeException("Couldn't find extension to: " + binding + " ; " + sb.toString());
+                    glEmitter.getGLConfig().getGLInfo().dump();
+                    // glEmitter.getGLConfig().dumpRenames();
+                    throw ex;
+                }
+            }
+            newComment.append("</code>");
+            writer.print(newComment.toString());
+        }
+    }
 }
