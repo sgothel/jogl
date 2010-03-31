@@ -39,8 +39,8 @@
 
 package com.jogamp.opengl.impl;
 
+import com.jogamp.common.os.DynamicLookupHelper;
 import java.nio.*;
-import java.lang.reflect.*;
 
 import javax.media.opengl.*;
 import com.jogamp.nativewindow.impl.NWReflection;

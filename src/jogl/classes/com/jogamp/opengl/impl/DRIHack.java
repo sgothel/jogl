@@ -39,9 +39,9 @@
 
 package com.jogamp.opengl.impl;
 
+import com.jogamp.common.os.NativeLibrary;
 import java.io.*;
 import java.security.*;
-import com.jogamp.gluegen.runtime.*;
 
 /**
  * Helper class for working around problems with open-source DRI

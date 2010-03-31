@@ -35,13 +35,12 @@
 
 package com.jogamp.opengl.impl.egl;
 
+import com.jogamp.common.nio.PointerBuffer;
 import java.util.*;
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.egl.*;
 import javax.media.opengl.*;
 import com.jogamp.opengl.impl.*;
-import com.jogamp.gluegen.runtime.NativeLibrary;
-import com.jogamp.gluegen.runtime.PointerBuffer;
 
 public class EGLGraphicsConfiguration extends DefaultGraphicsConfiguration implements Cloneable {
     protected static final boolean DEBUG = Debug.debug("GraphicsConfiguration");

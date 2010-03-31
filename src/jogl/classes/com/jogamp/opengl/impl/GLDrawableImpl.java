@@ -39,9 +39,9 @@
 
 package com.jogamp.opengl.impl;
 
+import com.jogamp.common.os.DynamicLookupHelper;
 import javax.media.nativewindow.*;
 import javax.media.opengl.*;
-import com.jogamp.gluegen.runtime.DynamicLookupHelper;
 
 public abstract class GLDrawableImpl implements GLDrawable {
   protected static final boolean DEBUG = Debug.debug("GLDrawable");

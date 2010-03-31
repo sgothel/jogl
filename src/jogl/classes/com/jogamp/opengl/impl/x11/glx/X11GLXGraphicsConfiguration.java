@@ -32,13 +32,11 @@
 
 package com.jogamp.opengl.impl.x11.glx;
 
-import java.util.*;
+import com.jogamp.common.nio.PointerBuffer;
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.x11.*;
 import javax.media.opengl.*;
 import com.jogamp.opengl.impl.*;
-import com.jogamp.gluegen.runtime.NativeLibrary;
-import com.jogamp.gluegen.runtime.PointerBuffer;
 import com.jogamp.nativewindow.impl.x11.*;
 
 public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implements Cloneable {

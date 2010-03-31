@@ -32,15 +32,13 @@
 
 package com.jogamp.opengl.impl.egl;
 
+import com.jogamp.common.nio.PointerBuffer;
 import java.io.PrintStream;
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.egl.*;
-import com.jogamp.nativewindow.impl.*;
 
 import javax.media.opengl.*;
-import com.jogamp.opengl.impl.*;
 
-import com.jogamp.gluegen.runtime.PointerBuffer;
 
 /** Subclass of GraphicsConfigurationFactory used when non-AWT tookits
     are used on X11 platforms. Toolkits will likely need to delegate

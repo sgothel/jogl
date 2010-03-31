@@ -38,7 +38,7 @@
  */
 package com.jogamp.opengl.util.awt;
 
-import com.jogamp.gluegen.runtime.Buffers;
+import com.jogamp.common.nio.Buffers;
 import com.jogamp.opengl.impl.Debug;
 import com.jogamp.opengl.util.*;
 import com.jogamp.opengl.util.packrect.*;

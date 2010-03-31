@@ -1,12 +1,12 @@
 package com.jogamp.opengl.impl.macosx.cgl;
 
+import com.jogamp.common.nio.PointerBuffer;
 import java.security.*;
 import java.util.*;
 
 import javax.media.opengl.*;
 import javax.media.nativewindow.*;
 import com.jogamp.opengl.impl.*;
-import com.jogamp.gluegen.runtime.PointerBuffer;
 
 public class MacOSXPbufferCGLContext extends MacOSXCGLContext {
   protected MacOSXPbufferCGLDrawable drawable;

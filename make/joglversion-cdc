@@ -3,6 +3,6 @@ Specification-Version: @BASEVERSION@
 Specification-Vendor: Sun Microsystems, Inc.
 Implementation-Title: Java Bindings for OpenGL Runtime Environment CDC
 Implementation-Version: @VERSION@
-Implementation-Vendor: java.net JOGL community
+Implementation-Vendor: JogAmp community
 Extension-Name: javax.media.opengl
-Implementation-Vendor-Id: com.sun
+Implementation-Vendor-Id: com.jogamp

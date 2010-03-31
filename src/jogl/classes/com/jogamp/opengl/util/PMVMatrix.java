@@ -33,7 +33,7 @@
 
 package com.jogamp.opengl.util;
 
-import com.jogamp.gluegen.runtime.Buffers;
+import com.jogamp.common.nio.Buffers;
 import com.jogamp.opengl.impl.ProjectFloat;
 
 import java.nio.*;

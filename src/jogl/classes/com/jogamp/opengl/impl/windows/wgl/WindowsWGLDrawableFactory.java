@@ -39,13 +39,13 @@
 
 package com.jogamp.opengl.impl.windows.wgl;
 
+import com.jogamp.common.os.DynamicLookupHelper;
 import java.nio.*;
 import java.util.*;
 import javax.media.nativewindow.*;
 import javax.media.opengl.*;
 import com.jogamp.opengl.impl.*;
 import com.jogamp.nativewindow.impl.NWReflection;
-import com.jogamp.gluegen.runtime.DynamicLookupHelper;
 import com.jogamp.nativewindow.impl.NullWindow;
 
 public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl implements DynamicLookupHelper {

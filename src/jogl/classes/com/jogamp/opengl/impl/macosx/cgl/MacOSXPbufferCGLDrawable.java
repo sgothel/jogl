@@ -39,10 +39,10 @@
 
 package com.jogamp.opengl.impl.macosx.cgl;
 
+import com.jogamp.common.nio.PointerBuffer;
 import javax.media.opengl.*;
 import javax.media.nativewindow.*;
 import com.jogamp.opengl.impl.*;
-import com.jogamp.gluegen.runtime.PointerBuffer;
 
 public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
   private static final boolean DEBUG = Debug.debug("MacOSXPbufferCGLDrawable");

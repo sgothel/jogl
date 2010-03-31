@@ -1,7 +1,7 @@
 
 package com.jogamp.opengl.util.glsl.fixedfunc.impl;
 
-import com.jogamp.gluegen.runtime.Buffers;
+import com.jogamp.common.nio.Buffers;
 import javax.media.opengl.*;
 import javax.media.opengl.fixedfunc.*;
 import com.jogamp.opengl.util.*;

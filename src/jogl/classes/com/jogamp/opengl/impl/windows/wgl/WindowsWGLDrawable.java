@@ -39,10 +39,10 @@
 
 package com.jogamp.opengl.impl.windows.wgl;
 
+import com.jogamp.common.os.DynamicLookupHelper;
 import javax.media.nativewindow.*;
 import javax.media.opengl.*;
 import com.jogamp.opengl.impl.*;
-import com.jogamp.gluegen.runtime.DynamicLookupHelper;
 
 public abstract class WindowsWGLDrawable extends GLDrawableImpl {
   private static final int MAX_SET_PIXEL_FORMAT_FAIL_COUNT = 5;

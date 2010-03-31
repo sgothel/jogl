@@ -36,11 +36,6 @@
 package com.jogamp.opengl.impl.egl;
 
 import java.util.*;
-import javax.media.nativewindow.*;
-import javax.media.opengl.*;
-import com.jogamp.opengl.impl.*;
-import com.jogamp.nativewindow.impl.*;
-import com.jogamp.gluegen.runtime.NativeLibrary;
 
 /**
  * Implementation of the EGLDynamicLookupHelper for ES2.

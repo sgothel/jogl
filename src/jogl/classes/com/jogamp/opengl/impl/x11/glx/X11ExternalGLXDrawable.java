@@ -44,9 +44,7 @@ import javax.media.nativewindow.x11.*;
 import javax.media.opengl.*;
 import com.jogamp.opengl.impl.*;
 import com.jogamp.nativewindow.impl.NullWindow;
-import com.jogamp.nativewindow.impl.x11.*;
 
-import com.jogamp.gluegen.runtime.PointerBuffer;
 
 public class X11ExternalGLXDrawable extends X11GLXDrawable {
   private int fbConfigID;

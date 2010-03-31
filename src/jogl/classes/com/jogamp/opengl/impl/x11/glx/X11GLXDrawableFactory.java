@@ -36,16 +36,13 @@
 
 package com.jogamp.opengl.impl.x11.glx;
 
+import com.jogamp.common.os.DynamicLookupHelper;
 import java.nio.*;
-import java.security.*;
-import java.util.*;
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.x11.*;
 import javax.media.opengl.*;
-import com.jogamp.gluegen.runtime.*;
 import com.jogamp.gluegen.runtime.opengl.*;
 import com.jogamp.opengl.impl.*;
-import com.jogamp.opengl.impl.x11.glx.*;
 import com.jogamp.nativewindow.impl.NullWindow;
 import com.jogamp.nativewindow.impl.NWReflection;
 import com.jogamp.nativewindow.impl.x11.*;
