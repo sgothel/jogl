@@ -43,6 +43,7 @@ import com.sun.gluegen.*;
 import java.lang.reflect.*;
 import java.io.*;
 import java.util.*;
+import java.util.ArrayList;
 
 public class BuildComposablePipeline {
 
@@ -348,22 +349,19 @@ public class BuildComposablePipeline {
                 clazzList.add(prologClassOpt);
             }
 
-            String[] importNames = new String[clazzList.size() + 2];
-            {
-                int i = 0;
-                importNames[i++] = "java.io.*";
-                importNames[i++] = "javax.media.opengl.*";
-                for (Iterator<Class<?>> iter = clazzList.iterator(); iter.hasNext();) {
-                    importNames[i++] = iter.next().getName();
-                }
+            ArrayList<String> imports = new ArrayList<String>();
+            imports.add("java.io.*");
+            imports.add("javax.media.opengl.*");
+            imports.add("com.jogamp.gluegen.runtime.*");
+            for (Class<?> clasS : clazzList) {
+                imports.add(clasS.getName());
             }
 
             CodeGenUtils.emitJavaHeaders(output,
                     outputPackage,
                     outputClassName,
-                    "com.jogamp.gluegen.runtime", // FIXME: should make configurable
                     true,
-                    importNames,
+                    imports,
                     new String[]{"public"},
                     ifNames,
                     null,
