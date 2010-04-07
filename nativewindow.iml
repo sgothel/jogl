@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="JAVA_MODULE" version="4">
+  <component name="NewModuleRootManager" inherit-compiler-output="true">
+    <exclude-output />
+    <content url="file://$MODULE_DIR$/build/nativewindow">
+      <sourceFolder url="file://$MODULE_DIR$/build/nativewindow/gensrc/classes-cdc" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/build/nativewindow/gensrc/classes" isTestSource="false" />
+    </content>
+    <content url="file://$MODULE_DIR$/src/nativewindow">
+      <sourceFolder url="file://$MODULE_DIR$/src/nativewindow/classes" isTestSource="false" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="module" module-name="gluegen" />
+    <orderEntry type="library" name="junit" level="application" />
+  </component>
+</module>
+
