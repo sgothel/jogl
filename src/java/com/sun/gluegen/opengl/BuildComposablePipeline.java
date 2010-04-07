@@ -42,6 +42,7 @@ import com.sun.gluegen.*;
 
 import java.lang.reflect.*;
 import java.io.*;
+import java.nio.Buffer;
 import java.util.*;
 import java.util.ArrayList;
 
@@ -353,6 +354,7 @@ public class BuildComposablePipeline {
             imports.add("java.io.*");
             imports.add("javax.media.opengl.*");
             imports.add("com.jogamp.gluegen.runtime.*");
+            imports.add(Buffer.class.getPackage().getName()+".*");
             for (Class<?> clasS : clazzList) {
                 imports.add(clasS.getName());
             }
