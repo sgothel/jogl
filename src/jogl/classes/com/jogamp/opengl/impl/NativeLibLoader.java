@@ -61,7 +61,7 @@ public class NativeLibLoader extends NativeLibLoaderBase {
   public static void loadGLDesktop() {
     AccessController.doPrivileged(new PrivilegedAction() {
       public Object run() {
-        loadLibrary("jogl_gl2", nativeOSPreload, true);
+        loadLibrary("jogl_desktop", nativeOSPreload, true);
         return null;
       }
     });

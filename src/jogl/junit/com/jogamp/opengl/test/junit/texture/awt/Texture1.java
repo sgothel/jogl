@@ -118,4 +118,8 @@ public class Texture1 {
         frame.dispose();
         frame=null;
     }
+
+    public static void main(String args[]) {
+        org.junit.runner.JUnitCore.main(Texture1.class.getName());
+    }
 }

@@ -78,10 +78,6 @@
             </and>
         </condition>
 
-        <condition property="setup.noall">
-            <isset property="setup.noAWT"/>
-        </condition>
-
         <condition property="setup.nonatives">
             <and>
                 <isfalse value="${isWindows}" />
@@ -95,7 +91,6 @@
 
         <echo message="setup.nonatives: ${setup.nonatives}" />
         <echo message="setup.nodesktop: ${setup.nodesktop}" />
-        <echo message="setup.noall: ${setup.noall}" />
         <echo message="setup.noCDC: ${setup.noCDC}" />
         <echo message="setup.noAWT: ${setup.noAWT}" />
         <echo message="setup.noOpenGL: ${setup.noOpenGL}" />
@@ -211,14 +206,14 @@
 
         <property name="gluegen-rt.jar" value="${gluegen.root}/${rootrel.build}/gluegen-rt.jar" />
         <property name="nativewindow.core.jar" value="../${rootrel.build}/nativewindow/nativewindow.core.jar" />
-        <property name="nativewindow.x11.jar" value="../${rootrel.build}/nativewindow/nativewindow.x11.jar" />
+        <property name="nativewindow.os.x11.jar" value="../${rootrel.build}/nativewindow/nativewindow.os.x11.jar" />
         <property name="nativewindow.awt.jar" value="../${rootrel.build}/nativewindow/nativewindow.awt.jar" />
         <property name="jogl.core.jar" value="../${rootrel.build}/jogl/jogl.core.jar" />
         <property name="jogl.egl.jar" value="../${rootrel.build}/jogl/jogl.egl.jar" />
 
         <property name="gluegen-rt-cdc.jar" value="${gluegen.root}/${rootrel.build}/gluegen-rt-cdc.jar" />
         <property name="nativewindow.core.cdc.jar" value="../${rootrel.build}/nativewindow/nativewindow.core.cdc.jar" />
-        <property name="nativewindow.x11.cdc.jar" value="../${rootrel.build}/nativewindow/nativewindow.x11.cdc.jar" />
+        <property name="nativewindow.os.x11.cdc.jar" value="../${rootrel.build}/nativewindow/nativewindow.os.x11.cdc.jar" />
         <property name="jogl.core.cdc.jar" value="../${rootrel.build}/jogl/jogl.core.cdc.jar" />
         <property name="jogl.egl.cdc.jar" value="../${rootrel.build}/jogl/jogl.egl.cdc.jar" />
 
@@ -239,7 +234,7 @@
         <path id="nativewindow_gluegen_jogl.classpath">
             <pathelement location="${gluegen-rt.jar}" />
             <pathelement location="${nativewindow.core.jar}" />
-            <pathelement location="${nativewindow.x11.jar}" />
+            <pathelement location="${nativewindow.os.x11.jar}" />
             <pathelement location="${nativewindow.awt.jar}" />
             <pathelement location="${jogl.core.jar}" />
             <pathelement location="${jogl.egl.jar}" />
@@ -248,16 +243,16 @@
         <path id="nativewindow_gluegen_jogl.classpath-cdc">
             <pathelement location="${gluegen-rt-cdc.jar}" />
             <pathelement location="${nativewindow.core.cdc.jar}" />
-            <pathelement location="${nativewindow.x11.cdc.jar}" />
+            <pathelement location="${nativewindow.os.x11.cdc.jar}" />
             <pathelement location="${jogl.core.cdc.jar}" />
             <pathelement location="${jogl.egl.cdc.jar}" />
         </path>
 
         <!-- The resulting newt.jar. -->
         <property name="newt.core.jar" value="${build}/newt.core.jar" />
-        <property name="newt.x11.jar"  value="${build}/newt.x11.jar" />
-        <property name="newt.win.jar"  value="${build}/newt.win.jar" />
-        <property name="newt.osx.jar"  value="${build}/newt.osx.jar" />
+        <property name="newt.os.x11.jar"  value="${build}/newt.os.x11.jar" />
+        <property name="newt.os.win.jar"  value="${build}/newt.os.win.jar" />
+        <property name="newt.os.osx.jar"  value="${build}/newt.os.osx.jar" />
         <property name="newt.ogl.jar"  value="${build}/newt.ogl.jar" />
         <property name="newt.broadcomegl.jar"  value="${build}/newt.broadcomegl.jar" />
         <property name="newt.awt.jar"  value="${build}/newt.awt.jar" />
@@ -265,9 +260,9 @@
         <property name="newt.all-noawt.jar"  value="${build}/newt.all-noawt.jar" />
 
         <property name="newt.core.cdc.jar" value="${build}/newt.core.cdc.jar" />
-        <property name="newt.x11.cdc.jar"  value="${build}/newt.x11.cdc.jar" />
-        <property name="newt.win.cdc.jar"  value="${build}/newt.win.cdc.jar" />
-        <property name="newt.osx.cdc.jar"  value="${build}/newt.osx.cdc.jar" />
+        <property name="newt.os.x11.cdc.jar"  value="${build}/newt.os.x11.cdc.jar" />
+        <property name="newt.os.win.cdc.jar"  value="${build}/newt.os.win.cdc.jar" />
+        <property name="newt.os.osx.cdc.jar"  value="${build}/newt.os.osx.cdc.jar" />
         <property name="newt.ogl.cdc.jar"  value="${build}/newt.ogl.cdc.jar" />
         <property name="newt.broadcomegl.cdc.jar"  value="${build}/newt.broadcomegl.cdc.jar" />
         <property name="newt.all.cdc.jar" value="${build}/newt.all.cdc.jar" />
@@ -633,6 +628,10 @@
     </target>
 
     <target name="c.build.newt" depends="c.configure,c.build.newt.prepare,c.build.newt.natives">
+      <antcall target="gluegen.cpptasks.striplibs" inheritRefs="true">
+          <param name="libdir" value="${obj}"/>
+      </antcall>
+
       <antcall target="c.manifest" inheritRefs="true" />
       <!-- Create the Java Web Start jar file for the built native code -->
       <jar destfile="${build}/newt-natives-${os.and.arch}.jar" filesonly="true">
@@ -727,36 +726,36 @@
     </target>
 
     <target name="build-jars-desktop" depends="setup-manifestfile" unless="setup.nodesktop">
-        <jar manifest="tempversion" destfile="${newt.x11.jar}" filesonly="true">
+        <jar manifest="tempversion" destfile="${newt.os.x11.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.x11}"/>
         </jar>
-        <jar manifest="tempversion" destfile="${newt.win.jar}" filesonly="true">
+        <jar manifest="tempversion" destfile="${newt.os.win.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.windows}"/>
         </jar>
-        <jar manifest="tempversion" destfile="${newt.osx.jar}" filesonly="true">
+        <jar manifest="tempversion" destfile="${newt.os.osx.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.macosx}"/>
         </jar>
     </target>
 
     <target name="build-jars-desktop-cdc" depends="setup-manifestfile-cdc" unless="setup.nodesktop">
-        <jar manifest="tempversion-cdc" destfile="${newt.x11.cdc.jar}" filesonly="true">
+        <jar manifest="tempversion-cdc" destfile="${newt.os.x11.cdc.jar}" filesonly="true">
             <fileset dir="${classes-cdc}"
                      includes="${java.part.x11}"/>
         </jar>
-        <jar manifest="tempversion-cdc" destfile="${newt.win.cdc.jar}" filesonly="true">
+        <jar manifest="tempversion-cdc" destfile="${newt.os.win.cdc.jar}" filesonly="true">
             <fileset dir="${classes-cdc}"
                      includes="${java.part.windows}"/>
         </jar>
-        <jar manifest="tempversion-cdc" destfile="${newt.osx.cdc.jar}" filesonly="true">
+        <jar manifest="tempversion-cdc" destfile="${newt.os.osx.cdc.jar}" filesonly="true">
             <fileset dir="${classes-cdc}"
                      includes="${java.part.macosx}"/>
         </jar>
     </target>
 
-    <target name="build-jars-all-awt" depends="setup-manifestfile" unless="setup.noall">
+    <target name="build-jars-all-awt" depends="setup-manifestfile" unless="setup.noAWT">
         <jar manifest="tempversion" destfile="${newt.all.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="com/jogamp/newt/**" />

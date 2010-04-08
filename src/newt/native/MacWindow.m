@@ -33,7 +33,7 @@
 
 #import <inttypes.h>
 
-#import "com_sun_newt_macosx_MacWindow.h"
+#import "com_jogamp_newt_macosx_MacWindow.h"
 #import "NewtMacWindow.h"
 
 #import "EventListener.h"

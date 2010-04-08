@@ -80,14 +80,9 @@
             </or>
         </condition>
 
-        <condition property="setup.noall">
-            <isset property="setup.noAWT"/> 
-        </condition>
-
         <property name="javac.bootclasspath-cdc.jar" value="${gluegen.root}/make/lib/cdc_fp.jar" />
 
         <echo message="setup.nodesktop: ${setup.nodesktop}" />
-        <echo message="setup.noall: ${setup.noall}" />
         <echo message="setup.noAWT: ${setup.noAWT}" />
         <echo message="setup.noNativeAWT: ${setup.noNativeAWT}" />
         <echo message="javac.bootclasspath-cdc.jar: ${javac.bootclasspath-cdc.jar}" />
@@ -239,11 +234,12 @@
         <!-- The resulting nativewindow.jar. -->
         <property name="nativewindow.core.jar" value="${build}/nativewindow.core.jar" />
         <property name="nativewindow.awt.jar"  value="${build}/nativewindow.awt.jar"  />
-        <property name="nativewindow.x11.jar"  value="${build}/nativewindow.x11.jar"  />
+        <property name="nativewindow.os.x11.jar"  value="${build}/nativewindow.os.x11.jar"  />
         <property name="nativewindow.all.jar"  value="${build}/nativewindow.all.jar"  />
+        <property name="nativewindow.all-noawt.jar"  value="${build}/nativewindow.all-noawt.jar" />
 
         <property name="nativewindow.core.cdc.jar" value="${build}/nativewindow.core.cdc.jar" />
-        <property name="nativewindow.x11.cdc.jar"  value="${build}/nativewindow.x11.cdc.jar"  />
+        <property name="nativewindow.os.x11.cdc.jar"  value="${build}/nativewindow.os.x11.cdc.jar"  />
         <property name="nativewindow.all.cdc.jar"  value="${build}/nativewindow.all.cdc.jar"  />
 
         <!-- The javadoc dirs. -->
@@ -759,6 +755,10 @@
     </target>
 
     <target name="c.build.nativewindow" depends="c.configure,c.build.nativewindow.windowlib,c.build.nativewindow.jvm,c.build.nativewindow.awt">
+      <antcall target="gluegen.cpptasks.striplibs" inheritRefs="true">
+          <param name="libdir" value="${obj}"/>
+      </antcall>
+
       <antcall target="c.fixup.jawt.version.macosx" inheritrefs="true" />
       <antcall target="c.manifest" inheritRefs="true" />
       <!-- Create the Java Web Start jar file for the built native code -->
@@ -835,39 +835,39 @@
     </target>
 
     <target name="build-jars-x11" depends="setup-manifestfile">
-        <jar manifest="tempversion" destfile="${nativewindow.x11.jar}" filesonly="true">
+        <jar manifest="tempversion" destfile="${nativewindow.os.x11.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.x11}" />
         </jar>
     </target>
     <target name="build-jars-x11-cdc" depends="setup-manifestfile-cdc">
-        <jar manifest="tempversion-cdc" destfile="${nativewindow.x11.cdc.jar}" filesonly="true">
+        <jar manifest="tempversion-cdc" destfile="${nativewindow.os.x11.cdc.jar}" filesonly="true">
             <fileset dir="${classes-cdc}"
                      includes="${java.part.x11}" />
         </jar>
     </target>
 
-    <target name="build-jars-all" depends="setup-manifestfile" unless="setup.noall">
+    <target name="build-jars-all" depends="setup-manifestfile" unless="setup.noAWT">
         <jar manifest="tempversion" destfile="${nativewindow.all.jar}" filesonly="true">
-            <fileset dir="${classes}">
-                <include name="javax/media/nativewindow/**" />
-                <include name="com/jogamp/nativewindow/**" />
-                <include name="com/jogamp/gluegen/runtime/**" />
-                <exclude name="${java.part.x11}" />
-            </fileset>
+            <fileset dir="${classes}"
+                     includes="javax/media/nativewindow/** com/jogamp/nativewindow/**" />
+        </jar>
+    </target>
+    <target name="build-jars-all-noawt" depends="setup-manifestfile">
+        <jar manifest="tempversion" destfile="${nativewindow.all-noawt.jar}" filesonly="true">
+            <fileset dir="${classes}"
+                     includes="javax/media/nativewindow/**, com/jogamp/nativewindow/**" 
+                     excludes="${java.part.awt}"/>
         </jar>
     </target>
     <target name="build-jars-all-cdc" depends="setup-manifestfile-cdc">
         <jar manifest="tempversion-cdc" destfile="${nativewindow.all.cdc.jar}" filesonly="true">
-            <fileset dir="${classes-cdc}">
-                <include name="javax/media/nativewindow/**" />
-                <include name="com/jogamp/nativewindow/**" />
-                <include name="com/jogamp/gluegen/runtime/**" />
-            </fileset>
+            <fileset dir="${classes-cdc}"
+                     includes="javax/media/nativewindow/** com/jogamp/nativewindow/**" />
         </jar>
     </target>
 
-    <target name="build-jars-javase" depends="setup-manifestfile,build-jars-awt,build-jars-x11,build-jars-all">
+    <target name="build-jars-javase" depends="setup-manifestfile,build-jars-awt,build-jars-x11,build-jars-all,build-jars-all-noawt">
         <jar manifest="tempversion" destfile="${nativewindow.core.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.core}"

@@ -1,0 +1,540 @@
+cp: cannot stat `../../gluegen/build-x86_64/gluegen-rt-natives-linux-i586.jar': No such file or directory
+cp: cannot stat `../../gluegen/build-x86_64/gluegen-rt-natives-linux-i586-cdc.jar': No such file or directory
+Native Libraries
+4	libgluegen-rt.so.gz
+24	libjogl_cg.so.gz
+144	libjogl_desktop.so.gz
+36	libjogl_es1.so.gz
+36	libjogl_es2.so.gz
+40	libjogl_gl2es12.so.gz
+4	libnativewindow_awt.so.gz
+4	libnativewindow_jvm.so.gz
+8	libnativewindow_x11.so.gz
+12	libnewt.so.gz
+312	total
+
+list gluegen-rt-cdc.jar to gluegen-rt-cdc.lst
+list gluegen-rt.jar to gluegen-rt.lst
+list jogl.all.cdc.jar to jogl.all.cdc.lst
+list jogl.all.jar to jogl.all.lst
+list jogl.all-noawt.jar to jogl.all-noawt.lst
+list jogl.awt.jar to jogl.awt.lst
+list jogl.cg.jar to jogl.cg.lst
+list jogl.core.cdc.jar to jogl.core.cdc.lst
+list jogl.core.jar to jogl.core.lst
+list jogl.egl.cdc.jar to jogl.egl.cdc.lst
+list jogl.egl.jar to jogl.egl.lst
+list jogl.gl2.dbg.jar to jogl.gl2.dbg.lst
+list jogl.gl2es12.cdc.jar to jogl.gl2es12.cdc.lst
+list jogl.gl2es12.jar to jogl.gl2es12.lst
+list jogl.gl2.jar to jogl.gl2.lst
+list jogl.gl3.dbg.jar to jogl.gl3.dbg.lst
+list jogl.gl3.jar to jogl.gl3.lst
+list jogl.gl4.dbg.jar to jogl.gl4.dbg.lst
+list jogl.gl4.jar to jogl.gl4.lst
+list jogl.gles1.cdc.jar to jogl.gles1.cdc.lst
+list jogl.gles1.dbg.cdc.jar to jogl.gles1.dbg.cdc.lst
+list jogl.gles1.dbg.jar to jogl.gles1.dbg.lst
+list jogl.gles1.jar to jogl.gles1.lst
+list jogl.gles2.cdc.jar to jogl.gles2.cdc.lst
+list jogl.gles2.dbg.cdc.jar to jogl.gles2.dbg.cdc.lst
+list jogl.gles2.dbg.jar to jogl.gles2.dbg.lst
+list jogl.gles2.jar to jogl.gles2.lst
+list jogl.glu.gl2.jar to jogl.glu.gl2.lst
+list jogl.glu.mipmap.cdc.jar to jogl.glu.mipmap.cdc.lst
+list jogl.glu.mipmap.jar to jogl.glu.mipmap.lst
+list jogl.glu.tess.cdc.jar to jogl.glu.tess.cdc.lst
+list jogl.glu.tess.jar to jogl.glu.tess.lst
+list jogl-natives-linux-amd64-cdc.jar to jogl-natives-linux-amd64-cdc.lst
+list jogl-natives-linux-amd64.jar to jogl-natives-linux-amd64.lst
+list jogl.os.osx.cdc.jar to jogl.os.osx.cdc.lst
+list jogl.os.osx.jar to jogl.os.osx.lst
+list jogl.os.win.cdc.jar to jogl.os.win.cdc.lst
+list jogl.os.win.jar to jogl.os.win.lst
+list jogl.os.x11.cdc.jar to jogl.os.x11.cdc.lst
+list jogl.os.x11.jar to jogl.os.x11.lst
+list jogl.sdk.jar to jogl.sdk.lst
+list jogl.test.jar to jogl.test.lst
+list jogl.util.awt.jar to jogl.util.awt.lst
+list jogl.util.cdc.jar to jogl.util.cdc.lst
+list jogl.util.fixedfuncemu.cdc.jar to jogl.util.fixedfuncemu.cdc.lst
+list jogl.util.fixedfuncemu.jar to jogl.util.fixedfuncemu.lst
+list jogl.util.gl2.jar to jogl.util.gl2.lst
+list jogl.util.jar to jogl.util.lst
+list nativewindow.all.cdc.jar to nativewindow.all.cdc.lst
+list nativewindow.all.jar to nativewindow.all.lst
+list nativewindow.all-noawt.jar to nativewindow.all-noawt.lst
+list nativewindow.awt.jar to nativewindow.awt.lst
+list nativewindow.core.cdc.jar to nativewindow.core.cdc.lst
+list nativewindow.core.jar to nativewindow.core.lst
+list nativewindow-natives-linux-amd64-cdc.jar to nativewindow-natives-linux-amd64-cdc.lst
+list nativewindow-natives-linux-amd64.jar to nativewindow-natives-linux-amd64.lst
+list nativewindow.os.x11.cdc.jar to nativewindow.os.x11.cdc.lst
+list nativewindow.os.x11.jar to nativewindow.os.x11.lst
+list newt.all.cdc.jar to newt.all.cdc.lst
+list newt.all.jar to newt.all.lst
+list newt.all-noawt.jar to newt.all-noawt.lst
+list newt.awt.jar to newt.awt.lst
+list newt.broadcomegl.cdc.jar to newt.broadcomegl.cdc.lst
+list newt.broadcomegl.jar to newt.broadcomegl.lst
+list newt.core.cdc.jar to newt.core.cdc.lst
+list newt.core.jar to newt.core.lst
+list newt-natives-linux-amd64-cdc.jar to newt-natives-linux-amd64-cdc.lst
+list newt-natives-linux-amd64.jar to newt-natives-linux-amd64.lst
+list newt.ogl.cdc.jar to newt.ogl.cdc.lst
+list newt.ogl.jar to newt.ogl.lst
+list newt.os.osx.jar to newt.os.osx.lst
+list newt.os.win.jar to newt.os.win.lst
+list newt.os.x11.jar to newt.os.x11.lst
+mv: cannot stat `jogl.all.cdc.lst': No such file or directory
+mv: cannot stat `nativewindow.all.cdc.lst': No such file or directory
+mv: cannot stat `newt.all.cdc.lst': No such file or directory
+mv: cannot stat `jogl.gl2es12.*.lst': No such file or directory
+duplicates - w/o gl2es12.* gl2.*
+
+com/jogamp/openmax/OMXEventListener.class
+com/jogamp/openmax/OMXInstance.class
+com/jogamp/openmax/OMXInstance$EGLImageTexture.class
+mv: cannot stat `jogl.all.cdc.lst': No such file or directory
+mv: cannot stat `nativewindow.all.cdc.lst': No such file or directory
+mv: cannot stat `newt.all.cdc.lst': No such file or directory
+all vs allparts delta
+
+--- allparts.lst	2010-04-06 14:27:30.945355748 +0200
++++ allall.lst	2010-04-06 14:27:31.002253659 +0200
+@@ -1,3 +1,10 @@
++com/jogamp/audio/windows/waveout/Audio.class
++com/jogamp/audio/windows/waveout/Mixer.class
++com/jogamp/audio/windows/waveout/Mixer$FillerThread.class
++com/jogamp/audio/windows/waveout/Mixer$MixerThread.class
++com/jogamp/audio/windows/waveout/SoundBuffer.class
++com/jogamp/audio/windows/waveout/Track.class
++com/jogamp/audio/windows/waveout/Vec3f.class
+ com/jogamp/common/nio/AbstractBuffer.class
+ com/jogamp/common/nio/AbstractLongBuffer.class
+ com/jogamp/common/nio/Buffers.class
+JOGL Deployment Payload for jar
+
+JOGL ES1 NEWT CORE
+44	gluegen-rt.jar
+48	nativewindow.all-noawt.jar
+148	jogl.core.jar
+116	jogl.util.jar
+44	jogl.egl.jar
+28	jogl.gles1.jar
+88	newt.all-noawt.jar
+4	libgluegen-rt.so.gz
+4	libnativewindow_jvm.so.gz
+36	libjogl_es1.so.gz
+12	libnewt.so.gz
+572	total
+
+JOGL ES2 NEWT CORE
+44	gluegen-rt.jar
+48	nativewindow.all-noawt.jar
+148	jogl.core.jar
+116	jogl.util.jar
+44	jogl.egl.jar
+32	jogl.gles2.jar
+88	newt.all-noawt.jar
+4	libgluegen-rt.so.gz
+4	libnativewindow_jvm.so.gz
+36	libjogl_es2.so.gz
+12	libnewt.so.gz
+576	total
+
+JOGL ES2 NEWT CORE FIXED
+44	gluegen-rt.jar
+48	nativewindow.all-noawt.jar
+148	jogl.core.jar
+116	jogl.util.jar
+44	jogl.egl.jar
+32	jogl.gles2.jar
+28	jogl.util.fixedfuncemu.jar
+88	newt.all-noawt.jar
+4	libgluegen-rt.so.gz
+4	libnativewindow_jvm.so.gz
+36	libjogl_es2.so.gz
+12	libnewt.so.gz
+604	total
+
+JOGL GL2ES12 NEWT
+44	gluegen-rt.jar
+48	nativewindow.all-noawt.jar
+148	jogl.core.jar
+116	jogl.util.jar
+56	jogl.os.x11.jar
+36	jogl.gl2es12.jar
+88	newt.all-noawt.jar
+4	libgluegen-rt.so.gz
+40	libjogl_gl2es12.so.gz
+12	libnewt.so.gz
+8	libnativewindow_x11.so.gz
+4	libnativewindow_jvm.so.gz
+604	total
+
+JOGL GL2 NEWT
+44	gluegen-rt.jar
+48	nativewindow.all-noawt.jar
+148	jogl.core.jar
+116	jogl.util.jar
+56	jogl.os.x11.jar
+120	jogl.gl2.jar
+88	newt.all-noawt.jar
+4	libgluegen-rt.so.gz
+144	libjogl_desktop.so.gz
+12	libnewt.so.gz
+8	libnativewindow_x11.so.gz
+4	libnativewindow_jvm.so.gz
+792	total
+
+JOGL GL2 AWT
+44	gluegen-rt.jar
+84	nativewindow.all.jar
+148	jogl.core.jar
+116	jogl.util.jar
+56	jogl.os.x11.jar
+120	jogl.gl2.jar
+64	jogl.awt.jar
+4	libgluegen-rt.so.gz
+144	libjogl_desktop.so.gz
+8	libnativewindow_x11.so.gz
+4	libnativewindow_awt.so.gz
+4	libnativewindow_jvm.so.gz
+796	total
+
+JOGL ALL AWT
+44	gluegen-rt.jar
+84	nativewindow.all.jar
+1876	jogl.all.jar
+4	libgluegen-rt.so.gz
+144	libjogl_desktop.so.gz
+8	libnativewindow_x11.so.gz
+4	libnativewindow_awt.so.gz
+4	libnativewindow_jvm.so.gz
+2168	total
+
+JOGL ALL No AWT
+44	gluegen-rt.jar
+48	nativewindow.all-noawt.jar
+1772	jogl.all-noawt.jar
+88	newt.all-noawt.jar
+4	libgluegen-rt.so.gz
+144	libjogl_desktop.so.gz
+8	libnativewindow_x11.so.gz
+4	libnativewindow_jvm.so.gz
+12	libnewt.so.gz
+2124	total
+
+JOGL CDCFP DESKTOP
+44	gluegen-rt-cdc.jar
+84	nativewindow.all.jar
+792	jogl.all.cdc.jar
+88	newt.all.cdc.jar
+4	libgluegen-rt.so.gz
+40	libjogl_gl2es12.so.gz
+8	libnativewindow_x11.so.gz
+4	libnativewindow_jvm.so.gz
+12	libnewt.so.gz
+1076	total
+
+JOGL CDCFP ES1 MOBILE
+44	gluegen-rt-cdc.jar
+148	jogl.core.cdc.jar
+44	jogl.egl.cdc.jar
+28	jogl.gles1.cdc.jar
+116	jogl.util.cdc.jar
+48	nativewindow.all.cdc.jar
+88	newt.all.cdc.jar
+4	libgluegen-rt.so.gz
+36	libjogl_es1.so.gz
+4	libnativewindow_jvm.so.gz
+12	libnewt.so.gz
+572	total
+
+JOGL CDCFP ES2 MOBILE
+44	gluegen-rt-cdc.jar
+148	jogl.core.cdc.jar
+44	jogl.egl.cdc.jar
+32	jogl.gles2.cdc.jar
+116	jogl.util.cdc.jar
+48	nativewindow.all.cdc.jar
+88	newt.all.cdc.jar
+4	libgluegen-rt.so.gz
+36	libjogl_es2.so.gz
+4	libnativewindow_jvm.so.gz
+12	libnewt.so.gz
+576	total
+
+JOGL GLU
+56	jogl.glu.gl2.jar
+68	jogl.glu.mipmap.cdc.jar
+68	jogl.glu.mipmap.jar
+48	jogl.glu.tess.cdc.jar
+48	jogl.glu.tess.jar
+288	total
+
+JOGL EVERYTHING
+1876	jogl.all.jar
+84	nativewindow.all.jar
+108	newt.all.jar
+4	libgluegen-rt.so.gz
+4	libnativewindow_jvm.so.gz
+8	libnativewindow_x11.so.gz
+4	libnativewindow_awt.so.gz
+144	libjogl_desktop.so.gz
+36	libjogl_es1.so.gz
+36	libjogl_es2.so.gz
+40	libjogl_gl2es12.so.gz
+12	libnewt.so.gz
+2356	total
+
+pack200 gluegen-rt-cdc.pack.gz gluegen-rt-cdc.jar
+pack200 gluegen-rt.pack.gz gluegen-rt.jar
+pack200 jogl.all.cdc.pack.gz jogl.all.cdc.jar
+pack200 jogl.all.pack.gz jogl.all.jar
+pack200 jogl.all-noawt.pack.gz jogl.all-noawt.jar
+pack200 jogl.awt.pack.gz jogl.awt.jar
+pack200 jogl.cg.pack.gz jogl.cg.jar
+pack200 jogl.core.cdc.pack.gz jogl.core.cdc.jar
+pack200 jogl.core.pack.gz jogl.core.jar
+pack200 jogl.egl.cdc.pack.gz jogl.egl.cdc.jar
+pack200 jogl.egl.pack.gz jogl.egl.jar
+pack200 jogl.gl2.dbg.pack.gz jogl.gl2.dbg.jar
+pack200 jogl.gl2es12.cdc.pack.gz jogl.gl2es12.cdc.jar
+pack200 jogl.gl2es12.pack.gz jogl.gl2es12.jar
+pack200 jogl.gl2.pack.gz jogl.gl2.jar
+pack200 jogl.gl3.dbg.pack.gz jogl.gl3.dbg.jar
+pack200 jogl.gl3.pack.gz jogl.gl3.jar
+pack200 jogl.gl4.dbg.pack.gz jogl.gl4.dbg.jar
+pack200 jogl.gl4.pack.gz jogl.gl4.jar
+pack200 jogl.gles1.cdc.pack.gz jogl.gles1.cdc.jar
+pack200 jogl.gles1.dbg.cdc.pack.gz jogl.gles1.dbg.cdc.jar
+pack200 jogl.gles1.dbg.pack.gz jogl.gles1.dbg.jar
+pack200 jogl.gles1.pack.gz jogl.gles1.jar
+pack200 jogl.gles2.cdc.pack.gz jogl.gles2.cdc.jar
+pack200 jogl.gles2.dbg.cdc.pack.gz jogl.gles2.dbg.cdc.jar
+pack200 jogl.gles2.dbg.pack.gz jogl.gles2.dbg.jar
+pack200 jogl.gles2.pack.gz jogl.gles2.jar
+pack200 jogl.glu.gl2.pack.gz jogl.glu.gl2.jar
+pack200 jogl.glu.mipmap.cdc.pack.gz jogl.glu.mipmap.cdc.jar
+pack200 jogl.glu.mipmap.pack.gz jogl.glu.mipmap.jar
+pack200 jogl.glu.tess.cdc.pack.gz jogl.glu.tess.cdc.jar
+pack200 jogl.glu.tess.pack.gz jogl.glu.tess.jar
+pack200 jogl-natives-linux-amd64-cdc.pack.gz jogl-natives-linux-amd64-cdc.jar
+pack200 jogl-natives-linux-amd64.pack.gz jogl-natives-linux-amd64.jar
+pack200 jogl.os.osx.cdc.pack.gz jogl.os.osx.cdc.jar
+pack200 jogl.os.osx.pack.gz jogl.os.osx.jar
+pack200 jogl.os.win.cdc.pack.gz jogl.os.win.cdc.jar
+pack200 jogl.os.win.pack.gz jogl.os.win.jar
+pack200 jogl.os.x11.cdc.pack.gz jogl.os.x11.cdc.jar
+pack200 jogl.os.x11.pack.gz jogl.os.x11.jar
+pack200 jogl.sdk.pack.gz jogl.sdk.jar
+pack200 jogl.test.pack.gz jogl.test.jar
+pack200 jogl.util.awt.pack.gz jogl.util.awt.jar
+pack200 jogl.util.cdc.pack.gz jogl.util.cdc.jar
+pack200 jogl.util.fixedfuncemu.cdc.pack.gz jogl.util.fixedfuncemu.cdc.jar
+pack200 jogl.util.fixedfuncemu.pack.gz jogl.util.fixedfuncemu.jar
+pack200 jogl.util.gl2.pack.gz jogl.util.gl2.jar
+pack200 jogl.util.pack.gz jogl.util.jar
+pack200 nativewindow.all.cdc.pack.gz nativewindow.all.cdc.jar
+pack200 nativewindow.all.pack.gz nativewindow.all.jar
+pack200 nativewindow.all-noawt.pack.gz nativewindow.all-noawt.jar
+pack200 nativewindow.awt.pack.gz nativewindow.awt.jar
+pack200 nativewindow.core.cdc.pack.gz nativewindow.core.cdc.jar
+pack200 nativewindow.core.pack.gz nativewindow.core.jar
+pack200 nativewindow-natives-linux-amd64-cdc.pack.gz nativewindow-natives-linux-amd64-cdc.jar
+pack200 nativewindow-natives-linux-amd64.pack.gz nativewindow-natives-linux-amd64.jar
+pack200 nativewindow.os.x11.cdc.pack.gz nativewindow.os.x11.cdc.jar
+pack200 nativewindow.os.x11.pack.gz nativewindow.os.x11.jar
+pack200 newt.all.cdc.pack.gz newt.all.cdc.jar
+pack200 newt.all.pack.gz newt.all.jar
+pack200 newt.all-noawt.pack.gz newt.all-noawt.jar
+pack200 newt.awt.pack.gz newt.awt.jar
+pack200 newt.broadcomegl.cdc.pack.gz newt.broadcomegl.cdc.jar
+pack200 newt.broadcomegl.pack.gz newt.broadcomegl.jar
+pack200 newt.core.cdc.pack.gz newt.core.cdc.jar
+pack200 newt.core.pack.gz newt.core.jar
+pack200 newt-natives-linux-amd64-cdc.pack.gz newt-natives-linux-amd64-cdc.jar
+pack200 newt-natives-linux-amd64.pack.gz newt-natives-linux-amd64.jar
+pack200 newt.ogl.cdc.pack.gz newt.ogl.cdc.jar
+pack200 newt.ogl.pack.gz newt.ogl.jar
+pack200 newt.os.osx.pack.gz newt.os.osx.jar
+pack200 newt.os.win.pack.gz newt.os.win.jar
+pack200 newt.os.x11.pack.gz newt.os.x11.jar
+JOGL Deployment Payload for pack.gz
+
+JOGL ES1 NEWT CORE
+16	gluegen-rt.pack.gz
+12	nativewindow.all-noawt.pack.gz
+56	jogl.core.pack.gz
+44	jogl.util.pack.gz
+16	jogl.egl.pack.gz
+12	jogl.gles1.pack.gz
+28	newt.all-noawt.pack.gz
+4	libgluegen-rt.so.gz
+4	libnativewindow_jvm.so.gz
+36	libjogl_es1.so.gz
+12	libnewt.so.gz
+240	total
+
+JOGL ES2 NEWT CORE
+16	gluegen-rt.pack.gz
+12	nativewindow.all-noawt.pack.gz
+56	jogl.core.pack.gz
+44	jogl.util.pack.gz
+16	jogl.egl.pack.gz
+16	jogl.gles2.pack.gz
+28	newt.all-noawt.pack.gz
+4	libgluegen-rt.so.gz
+4	libnativewindow_jvm.so.gz
+36	libjogl_es2.so.gz
+12	libnewt.so.gz
+244	total
+
+JOGL ES2 NEWT CORE FIXED
+16	gluegen-rt.pack.gz
+12	nativewindow.all-noawt.pack.gz
+56	jogl.core.pack.gz
+44	jogl.util.pack.gz
+16	jogl.egl.pack.gz
+16	jogl.gles2.pack.gz
+16	jogl.util.fixedfuncemu.pack.gz
+28	newt.all-noawt.pack.gz
+4	libgluegen-rt.so.gz
+4	libnativewindow_jvm.so.gz
+36	libjogl_es2.so.gz
+12	libnewt.so.gz
+260	total
+
+JOGL GL2ES12 NEWT
+16	gluegen-rt.pack.gz
+12	nativewindow.all-noawt.pack.gz
+56	jogl.core.pack.gz
+44	jogl.util.pack.gz
+24	jogl.os.x11.pack.gz
+16	jogl.gl2es12.pack.gz
+28	newt.all-noawt.pack.gz
+4	libgluegen-rt.so.gz
+40	libjogl_gl2es12.so.gz
+12	libnewt.so.gz
+8	libnativewindow_x11.so.gz
+4	libnativewindow_jvm.so.gz
+264	total
+
+JOGL GL2 NEWT
+16	gluegen-rt.pack.gz
+12	nativewindow.all-noawt.pack.gz
+56	jogl.core.pack.gz
+44	jogl.util.pack.gz
+24	jogl.os.x11.pack.gz
+60	jogl.gl2.pack.gz
+28	newt.all-noawt.pack.gz
+4	libgluegen-rt.so.gz
+144	libjogl_desktop.so.gz
+12	libnewt.so.gz
+8	libnativewindow_x11.so.gz
+4	libnativewindow_jvm.so.gz
+412	total
+
+JOGL GL2 AWT
+16	gluegen-rt.pack.gz
+20	nativewindow.all.pack.gz
+56	jogl.core.pack.gz
+44	jogl.util.pack.gz
+24	jogl.os.x11.pack.gz
+60	jogl.gl2.pack.gz
+20	jogl.awt.pack.gz
+4	libgluegen-rt.so.gz
+144	libjogl_desktop.so.gz
+8	libnativewindow_x11.so.gz
+4	libnativewindow_awt.so.gz
+4	libnativewindow_jvm.so.gz
+404	total
+
+JOGL ALL AWT
+16	gluegen-rt.pack.gz
+20	nativewindow.all.pack.gz
+680	jogl.all.pack.gz
+4	libgluegen-rt.so.gz
+144	libjogl_desktop.so.gz
+8	libnativewindow_x11.so.gz
+4	libnativewindow_awt.so.gz
+4	libnativewindow_jvm.so.gz
+880	total
+
+JOGL ALL No AWT
+16	gluegen-rt.pack.gz
+12	nativewindow.all-noawt.pack.gz
+612	jogl.all-noawt.pack.gz
+28	newt.all-noawt.pack.gz
+4	libgluegen-rt.so.gz
+144	libjogl_desktop.so.gz
+8	libnativewindow_x11.so.gz
+4	libnativewindow_jvm.so.gz
+12	libnewt.so.gz
+840	total
+
+JOGL CDCFP DESKTOP
+16	gluegen-rt-cdc.pack.gz
+20	nativewindow.all.pack.gz
+232	jogl.all.cdc.pack.gz
+28	newt.all.cdc.pack.gz
+4	libgluegen-rt.so.gz
+40	libjogl_gl2es12.so.gz
+8	libnativewindow_x11.so.gz
+4	libnativewindow_jvm.so.gz
+12	libnewt.so.gz
+364	total
+
+JOGL CDCFP ES1 MOBILE
+16	gluegen-rt-cdc.pack.gz
+56	jogl.core.cdc.pack.gz
+16	jogl.egl.cdc.pack.gz
+12	jogl.gles1.cdc.pack.gz
+44	jogl.util.cdc.pack.gz
+12	nativewindow.all.cdc.pack.gz
+28	newt.all.cdc.pack.gz
+4	libgluegen-rt.so.gz
+36	libjogl_es1.so.gz
+4	libnativewindow_jvm.so.gz
+12	libnewt.so.gz
+240	total
+
+JOGL CDCFP ES2 MOBILE
+16	gluegen-rt-cdc.pack.gz
+56	jogl.core.cdc.pack.gz
+16	jogl.egl.cdc.pack.gz
+16	jogl.gles2.cdc.pack.gz
+44	jogl.util.cdc.pack.gz
+12	nativewindow.all.cdc.pack.gz
+28	newt.all.cdc.pack.gz
+4	libgluegen-rt.so.gz
+36	libjogl_es2.so.gz
+4	libnativewindow_jvm.so.gz
+12	libnewt.so.gz
+244	total
+
+JOGL GLU
+20	jogl.glu.gl2.pack.gz
+24	jogl.glu.mipmap.cdc.pack.gz
+24	jogl.glu.mipmap.pack.gz
+20	jogl.glu.tess.cdc.pack.gz
+20	jogl.glu.tess.pack.gz
+108	total
+
+JOGL EVERYTHING
+680	jogl.all.pack.gz
+20	nativewindow.all.pack.gz
+32	newt.all.pack.gz
+4	libgluegen-rt.so.gz
+4	libnativewindow_jvm.so.gz
+8	libnativewindow_x11.so.gz
+4	libnativewindow_awt.so.gz
+144	libjogl_desktop.so.gz
+36	libjogl_es1.so.gz
+36	libjogl_es2.so.gz
+40	libjogl_gl2es12.so.gz
+12	libnewt.so.gz
+1020	total
+

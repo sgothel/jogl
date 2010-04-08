@@ -55,7 +55,7 @@
 
 @end
 
-@interface NewtMacWindow : NSWindow
+@interface NewtMacWindow : NSWindow <NSWindowDelegate>
 {
 }
 
