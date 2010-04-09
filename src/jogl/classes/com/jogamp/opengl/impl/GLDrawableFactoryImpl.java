@@ -125,7 +125,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
         throw new GLException("Width and height of pbuffer must be positive (were (" +
                         width + ", " + height + "))");
     }
-    capabilities.setDoubleBuffered(false); // FIXME
+    capabilities.setDoubleBuffered(false); // FIXME DBLBUFOFFSCRN
     capabilities.setOnscreen(false);
     capabilities.setPBuffer(true);
     return createGLPbufferDrawable( createOffscreenWindow(capabilities, chooser, height, height) );
@@ -156,7 +156,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
         throw new GLException("Width and height of pbuffer must be positive (were (" +
                         width + ", " + height + "))");
     }
-    capabilities.setDoubleBuffered(false); // FIXME
+    capabilities.setDoubleBuffered(false); // FIXME DBLBUFOFFSCRN
     capabilities.setOnscreen(false);
     capabilities.setPBuffer(false);
     return createOffscreenDrawable( createOffscreenWindow(capabilities, chooser, width, height) );

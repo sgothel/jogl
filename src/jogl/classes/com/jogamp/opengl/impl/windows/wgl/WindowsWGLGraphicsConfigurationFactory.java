@@ -60,13 +60,13 @@ public class WindowsWGLGraphicsConfigurationFactory extends GraphicsConfiguratio
 
     protected static WindowsWGLGraphicsConfiguration createDefaultGraphicsConfiguration(AbstractGraphicsScreen absScreen, boolean onscreen, boolean usePBuffer) {
         GLCapabilities caps = new GLCapabilities(null);
-        caps.setDoubleBuffered(onscreen); // FIXME
+        caps.setDoubleBuffered(onscreen); // FIXME DBLBUFOFFSCRN
         caps.setOnscreen  (onscreen);
         caps.setPBuffer   (usePBuffer);
 
         GLCapabilities caps2 = (GLCapabilities) caps.clone();
         if(!caps2.isOnscreen()) {
-            // OFFSCREEN !DOUBLE_BUFFER
+            // OFFSCREEN !DOUBLE_BUFFER // FIXME DBLBUFOFFSCRN
             caps2.setDoubleBuffered(false);
         }
 
@@ -84,7 +84,7 @@ public class WindowsWGLGraphicsConfigurationFactory extends GraphicsConfiguratio
         }
         GLCapabilities caps2 = (GLCapabilities) caps.clone();
         if(!caps2.isOnscreen()) {
-            // OFFSCREEN !DOUBLE_BUFFER
+            // OFFSCREEN !DOUBLE_BUFFER // FIXME DBLBUFOFFSCRN
             caps2.setDoubleBuffered(false);
         }
         return new WindowsWGLGraphicsConfiguration(absScreen, caps2, caps, WindowsWGLGraphicsConfiguration.GLCapabilities2PFD(caps2), -1, 

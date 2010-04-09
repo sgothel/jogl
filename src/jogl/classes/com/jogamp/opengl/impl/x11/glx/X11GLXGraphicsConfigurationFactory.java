@@ -143,7 +143,7 @@ public class X11GLXGraphicsConfigurationFactory extends GraphicsConfigurationFac
 
         GLCapabilities caps2 = (GLCapabilities) capabilities.clone();
         if(!caps2.isOnscreen()) {
-            // OFFSCREEN !DOUBLE_BUFFER
+            // OFFSCREEN !DOUBLE_BUFFER // FIXME DBLBUFOFFSCRN
             caps2.setDoubleBuffered(false);
         }
     

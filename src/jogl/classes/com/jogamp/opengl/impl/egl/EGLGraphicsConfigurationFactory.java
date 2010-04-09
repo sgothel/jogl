@@ -99,7 +99,7 @@ public class EGLGraphicsConfigurationFactory extends GraphicsConfigurationFactor
 
         GLCapabilities caps2 = (GLCapabilities) capabilities.clone();
         if(!caps2.isOnscreen()) {
-            // OFFSCREEN !DOUBLE_BUFFER
+            // OFFSCREEN !DOUBLE_BUFFER // FIXME DBLBUFOFFSCRN
             caps2.setDoubleBuffered(false);
         }
 
@@ -273,7 +273,7 @@ public class EGLGraphicsConfigurationFactory extends GraphicsConfigurationFactor
         if(caps.isOnscreen()) {
             throw new GLException("Error: Onscreen set: "+caps);
         }
-        caps.setDoubleBuffered(false); // FIXME
+        caps.setDoubleBuffered(false); // FIXME DBLBUFOFFSCRN
         long eglDisplay = EGL.eglGetDisplay(EGL.EGL_DEFAULT_DISPLAY);
         if (eglDisplay == EGL.EGL_NO_DISPLAY) {
             throw new GLException("Failed to created EGL default display: error 0x"+Integer.toHexString(EGL.eglGetError()));
