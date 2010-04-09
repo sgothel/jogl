@@ -79,14 +79,16 @@ public class WindowUtilNEWT {
                            GLWindow windowOnScreen, WindowListener wl, MouseListener ml, 
                            SurfaceUpdatedListener ul, int frames, boolean debug) {
         try {
-            if(debug) {
+            if(debug && null!=demo) {
                 MiscUtils.setField(demo, "glDebug", new Boolean(true));
                 MiscUtils.setField(demo, "glTrace", new Boolean(true));
             }
-            if(!MiscUtils.setField(demo, "window", windowOffscreen)) {
-                MiscUtils.setField(demo, "glWindow", windowOffscreen);
+            if(null!=demo) {
+                if(!MiscUtils.setField(demo, "window", windowOffscreen)) {
+                    MiscUtils.setField(demo, "glWindow", windowOffscreen);
+                }
+                windowOffscreen.addGLEventListener(demo);
             }
-            windowOffscreen.addGLEventListener(demo);
 
             if ( null != windowOnScreen ) {
                 if(null!=wl) {

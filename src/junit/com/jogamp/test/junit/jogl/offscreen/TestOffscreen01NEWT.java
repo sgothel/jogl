@@ -65,8 +65,26 @@ public class TestOffscreen01NEWT {
     }
 
     @Test
-    public void test1() {
-        if(false) {
+    public void test01OffscreenWindow() {
+        if(true) {
+        GLWindow windowOffscreen = WindowUtilNEWT.createGLWindow(caps, width, height, false, true, false);
+        GLEventListener demo = new RedSquare();
+        GLWindow windowOnScreen = null;
+        WindowListener wl=null;
+        MouseListener ml=null;
+        SurfaceUpdatedListener ul=null;
+
+        WindowUtilNEWT.run(windowOffscreen, null, windowOnScreen, wl, ml, ul, 2, true /*debug*/);
+        try {
+            Thread.sleep(1000); // 1000 ms
+        } catch (Exception e) {}
+        WindowUtilNEWT.shutdown(windowOffscreen, windowOnScreen);
+        }
+    }
+
+    @Test
+    public void test02OffscreenSnapshotWithDemo() {
+        if(true) {
         GLWindow windowOffscreen = WindowUtilNEWT.createGLWindow(caps, width, height, false, true, false);
         GLEventListener demo = new RedSquare();
         GLWindow windowOnScreen = null;
@@ -75,6 +93,9 @@ public class TestOffscreen01NEWT {
         SurfaceUpdatedListener ul=null;
 
         WindowUtilNEWT.run(windowOffscreen, demo, windowOnScreen, wl, ml, ul, 2, true /*debug*/);
+        try {
+            Thread.sleep(1000); // 1000 ms
+        } catch (Exception e) {}
         WindowUtilNEWT.shutdown(windowOffscreen, windowOnScreen);
         }
     }
