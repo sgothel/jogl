@@ -77,7 +77,7 @@ public class WindowUtilNEWT {
 
     public static void run(GLWindow windowOffscreen, GLEventListener demo, 
                            GLWindow windowOnScreen, WindowListener wl, MouseListener ml, 
-                           SurfaceUpdatedListener ul, int frames, boolean debug) {
+                           SurfaceUpdatedListener ul, int frames, boolean snapshot, boolean debug) {
         try {
             if(debug && null!=demo) {
                 MiscUtils.setField(demo, "glDebug", new Boolean(true));
@@ -103,22 +103,28 @@ public class WindowUtilNEWT {
             GLDrawable readDrawable = windowOffscreen.getContext().getGLDrawable() ;
 
             if ( null == windowOnScreen ) {
-                ReadBuffer2File readDemo = new ReadBuffer2File( readDrawable ) ;
+                if(snapshot) {
+                    Surface2File s2f = new Surface2File();
+                    windowOffscreen.addSurfaceUpdatedListener(s2f);
+                }
             } else {
                 ReadBuffer2Screen readDemo = new ReadBuffer2Screen( readDrawable ) ;
                 windowOnScreen.addGLEventListener(readDemo);
-                if(null!=wl) {
-                    windowOffscreen.addSurfaceUpdatedListener(ul);
-                }
+            }
+            if(null!=ul) {
+                windowOffscreen.addSurfaceUpdatedListener(ul);
             }
 
-            System.out.println("+++++++++++++++++++++++++++");
-            System.out.println(windowOffscreen);
-            System.out.println("+++++++++++++++++++++++++++");
+            if(debug) {
+                System.out.println("+++++++++++++++++++++++++++");
+                System.out.println(windowOffscreen);
+                System.out.println("+++++++++++++++++++++++++++");
+            }
 
             while ( windowOffscreen.getTotalFrames() < frames) {
                 windowOffscreen.display();
             }
+            windowOffscreen.removeAllSurfaceUpdatedListener();
 
         } catch (GLException e) {
             e.printStackTrace();

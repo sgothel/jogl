@@ -949,6 +949,7 @@
                includes="javax/media/opengl/fixedfunc/** javax/media/opengl/GLDrawableFactory.java javax/media/opengl/GLDrawable.java javax/media/opengl/GLContext.java javax/media/opengl/GL.java javax/media/opengl/GL2ES1.java javax/media/opengl/GL2ES2.java javax/media/opengl/GL2GL3.java javax/media/opengl/GL2.java javax/media/opengl/GLES1.java javax/media/opengl/GLES2.java javax/media/opengl/GL3.java javax/media/opengl/GL3bc.java"
                fork="yes"
                memoryMaximumSize="${javac.memorymax}"
+               includeAntRuntime="false"
                source="1.4" debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="nativewindow_gluegen.classpath"/>
             <src path="${src.java}" />
@@ -973,6 +974,7 @@
                source="${target.sourcelevel}"
                fork="yes"
                memoryMaximumSize="${javac.memorymax}"
+               includeAntRuntime="false"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="nativewindow_gluegen.classpath"/>
             <src path="${src.java}" />
@@ -988,6 +990,7 @@
                source="${target.sourcelevel}"
                fork="yes"
                memoryMaximumSize="${javac.memorymax}"
+               includeAntRuntime="false"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="nativewindow_gluegen.classpath-cdc"/>
             <src path="${src.java}" />
@@ -1004,6 +1007,7 @@
                source="${target.sourcelevel}"
                fork="yes"
                memoryMaximumSize="${javac.memorymax}"
+               includeAntRuntime="false"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="nativewindow_gluegen.classpath"/>
             <src path="${src.java}" />
@@ -1019,6 +1023,7 @@
                bootclasspath="${javac.bootclasspath-cdc.jar}"
                fork="yes"
                memoryMaximumSize="${javac.memorymax}"
+               includeAntRuntime="false"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="nativewindow_gluegen.classpath-cdc"/>
             <src path="${src.java}" />

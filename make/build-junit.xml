@@ -6,6 +6,10 @@
 
     <import file="build-common.xml"/>
 
+    <taskdef resource="net/sf/antcontrib/antlib.xml">
+      <classpath> <pathelement location="${ant-contrib.jar}"/> </classpath>
+    </taskdef>
+
     <!-- ================================================================== -->
     <!-- 
        - Declare all paths and user defined variables.
@@ -15,9 +19,12 @@
         <property name="src.junit"            value="${project.root}/${rootrel.src.junit}" />
 
         <property name="classes"              value="${build.junit}/classes" />
+        <property name="classes.path"         location="${classes}"/> <!-- absolute path -->
 
         <property name="java.dir.test"        value="com/jogamp/test"/>
         <property name="java.part.test"       value="${java.dir.test}/**"/>
+
+        <property name="batchtest.timeout"    value="10000"/>
 
     </target>
     
@@ -52,6 +59,7 @@
                source="${host.sourcelevel}"
                fork="yes"
                memoryMaximumSize="${javac.memorymax}"
+               includeAntRuntime="false"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="junit_jogl_newt.compile.classpath"/>
             <src path="${src.junit}" />
@@ -63,10 +71,73 @@
         </jar>
     </target>
 
-    <target name="junit.run" depends="declare.common">
+    <target name="junit.run" depends="junit.compile">
         <!-- Perform the junit tests-->
         <mkdir dir="${results.junit}" />
-        <junit forkmode="once" showoutput="true" fork="true" haltonerror="off" timeout="30000">
+        <delete quiet="true">
+            <fileset dir="${results.junit}" includes="**"/>
+        </delete>
+
+        <condition property="jvmarg.newt" value="-XstartOnFirstThread -Djava.awt.headless=true"><isset property="isOSX"/></condition>
+        <condition property="jvmarg.newt" value="-Djava.awt.headless=true"><not><isset property="isOSX"/></not></condition>
+
+        <!-- Test*NEWT* 
+
+             Emulation of junit task,
+             due to the fact that we have to place invoke our MainThread class first (-> MacOSX).
+
+             Utilizing Ant-1.8.0 and ant-contrib-1.0b3 (loops, mutable properties).
+          --> 
+        <for param="test.class.path.m" keepgoing="true">
+            <!-- results in absolute path -->
+            <fileset dir="${classes}">
+                <include name="${java.dir.test}/**/Test*NEWT*"/>
+            </fileset>
+          <sequential>
+            <var name="test.class.path" unset="true"/>
+            <property name="test.class.path" basedir="${classes}" relative="true" location="@{test.class.path.m}"/>
+            <var name="test.class.fqn" unset="true"/>
+            <pathconvert property="test.class.fqn">
+              <fileset file="${classes}/${test.class.path}"/>
+              <chainedmapper>
+                  <globmapper    from="${classes.path}/*" to="*"/> <!-- rel. -->
+                  <packagemapper from="*.class"           to="*"/> <!-- FQCN -->
+              </chainedmapper>
+            </pathconvert>
+            <var name="test.class.result.file" value="${results.junit}/TEST-${test.class.fqn}.xml"/>
+            <echo message="Testing ${test.class.fqn} -> ${test.class.result.file}"/>
+            <apply dir="." executable="java" 
+                 parallel="false" 
+                 timeout="${batchtest.timeout}"
+                 vmlauncher="false"
+                 relative="true"
+                 failonerror="false">
+                <env key="${system.env.library.path}" path="${obj.all.paths}"/>
+                <env key="CLASSPATH" value="${ant.home}/lib/ant.jar${path.separator}${ant.home}/lib/ant-junit.jar${path.separator}${junit_jogl_newt.run.jars}"/>
+                <arg value="-Djava.library.path=${obj.all.paths}"/>
+                <arg line="${jvmarg.newt}"/>
+                <arg line="com.jogamp.newt.util.MainThread"/>
+                <arg line="org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner"/>
+                <srcfile/>
+                <arg line="filtertrace=true"/>
+                <arg line="haltOnError=false"/>
+                <arg line="haltOnFailure=false"/>
+                <arg line="showoutput=true"/>
+                <arg line="outputtoformatters=true"/>
+                <arg line="logfailedtests=true"/>
+                <arg line="logtestlistenerevents=true"/>
+                <arg line="formatter=org.apache.tools.ant.taskdefs.optional.junit.PlainJUnitResultFormatter"/>
+                <arg line="formatter=org.apache.tools.ant.taskdefs.optional.junit.XMLJUnitResultFormatter,${test.class.result.file}"/>
+                <mappedresources>
+                    <fileset dir="${classes}" includes="${test.class.path}"/>
+                    <packagemapper from="*.class" to="*"/>
+                </mappedresources>
+            </apply>
+          </sequential>
+        </for>
+
+        <!-- Test*AWT* -->
+        <junit forkmode="once" showoutput="true" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
             <env key="${system.env.library.path}" path="${obj.all.paths}"/>
             <jvmarg value="-Djava.library.path=${obj.all.paths}"/>
 
@@ -88,13 +159,13 @@
 
             <batchtest todir="${results.junit}">
               <fileset dir="${classes}">
-                  <include name="${java.dir.test}/**/Test*"/>
+                  <include name="${java.dir.test}/**/Test*AWT*"/>
               </fileset>
               <formatter usefile="false" type="brief"/>
               <formatter usefile="true" type="xml"/>
             </batchtest>
-
         </junit>
+
     </target>
 
     <!-- ================================================================== -->

@@ -19,12 +19,18 @@ public class RedSquare implements GLEventListener {
     public static boolean useAnimator = false;
     public static int swapInterval = -1;
 
+    boolean debug = false;
     long startTime = 0;
     long curTime = 0;
 
     GLU glu = null;
 
     public RedSquare() {
+        this(false);
+    }
+
+    public RedSquare(boolean debug) {
+        this.debug = debug;
     }
 
     // FIXME: we must add storage of the pointers in the GL state to
@@ -75,14 +81,16 @@ public class RedSquare implements GLEventListener {
 
         glu = GLU.createGLU(gl);
 
-        System.err.println(Thread.currentThread()+" Entering initialization");
-        System.err.println(Thread.currentThread()+" GL Profile: "+gl.getGLProfile());
-        System.err.println(Thread.currentThread()+" GL:" + gl);
-        System.err.println(Thread.currentThread()+" GL_VERSION=" + gl.glGetString(gl.GL_VERSION));
-        System.err.println(Thread.currentThread()+" GL_EXTENSIONS:");
-        System.err.println(Thread.currentThread()+"   " + gl.glGetString(gl.GL_EXTENSIONS));
-        System.err.println(Thread.currentThread()+" swapInterval: " + swapInterval + " (GL: "+gl.getSwapInterval()+")");
-        System.err.println(Thread.currentThread()+" GLU: " + glu);
+        if(debug) {
+            System.err.println(Thread.currentThread()+" Entering initialization");
+            System.err.println(Thread.currentThread()+" GL Profile: "+gl.getGLProfile());
+            System.err.println(Thread.currentThread()+" GL:" + gl);
+            System.err.println(Thread.currentThread()+" GL_VERSION=" + gl.glGetString(gl.GL_VERSION));
+            System.err.println(Thread.currentThread()+" GL_EXTENSIONS:");
+            System.err.println(Thread.currentThread()+"   " + gl.glGetString(gl.GL_EXTENSIONS));
+            System.err.println(Thread.currentThread()+" swapInterval: " + swapInterval + " (GL: "+gl.getSwapInterval()+")");
+            System.err.println(Thread.currentThread()+" GLU: " + glu);
+        }
 
         // Allocate vertex arrays
         colors   = Buffers.newDirectFloatBuffer(16);
@@ -140,7 +148,9 @@ public class RedSquare implements GLEventListener {
 
     public void dispose(GLAutoDrawable drawable) {
         GL2ES1 gl = drawable.getGL().getGL2ES1();
-        System.out.println(Thread.currentThread()+" RedSquare.dispose: "+gl.getContext());
+        if(debug) {
+            System.out.println(Thread.currentThread()+" RedSquare.dispose: "+gl.getContext());
+        }
         gl.glDisableClientState(gl.GL_VERTEX_ARRAY);
         gl.glDisableClientState(gl.GL_COLOR_ARRAY);
         glu.destroy();
@@ -149,7 +159,9 @@ public class RedSquare implements GLEventListener {
         colors   = null;
         vertices.clear();
         vertices = null;
-        System.out.println(Thread.currentThread()+" RedSquare.dispose: FIN");
+        if(debug) {
+            System.out.println(Thread.currentThread()+" RedSquare.dispose: FIN");
+        }
     }
 
     public void displayChanged(GLAutoDrawable drawable, boolean modeChanged, boolean deviceChanged) {

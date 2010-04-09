@@ -55,10 +55,12 @@ public class TestDrawable01NEWT {
     Window window;
     GLDrawable drawable;
     GLContext context;
+    GLDrawableFactory factory;
 
     @BeforeClass
     public static void initClass() {
         glp = GLProfile.getDefault();
+        Assert.assertNotNull(glp);
         width  = 640;
         height = 480;
     }
@@ -66,56 +68,91 @@ public class TestDrawable01NEWT {
     @Before
     public void initTest() {
         caps = new GLCapabilities(glp);
+        Assert.assertNotNull(caps);
     }
 
     void createWindow(boolean onscreen, boolean pbuffer, boolean undecorated) {
         caps.setOnscreen(onscreen);
         caps.setPBuffer(!onscreen && pbuffer);
         caps.setDoubleBuffered(!onscreen);
-        System.out.println("**********************************************************");
-        System.out.println("**********************************************************");
-        System.out.println("Requested: "+caps);
+        // System.out.println("Requested: "+caps);
 
         //
         // Create native windowing resources .. X11/Win/OSX
         // 
         Display display = NewtFactory.createDisplay(null); // local display
+        Assert.assertNotNull(display);
+
         Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
+        Assert.assertNotNull(screen);
+
         window = NewtFactory.createWindow(screen, caps, onscreen && undecorated);
+        Assert.assertNotNull(window);
         window.setSize(width, height);
         window.setVisible(true);
-        System.out.println("**********************************************************");
-        System.out.println("**********************************************************");
-        System.out.println("Created: "+window);
+        // System.out.println("Created: "+window);
 
         //
         // Create native OpenGL resources .. XGL/WGL/CGL .. 
         // equivalent to GLAutoDrawable methods: setVisible(true)
         // 
         GLCapabilities glCaps = (GLCapabilities) window.getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities();
+        Assert.assertNotNull(glCaps);
+        Assert.assertTrue(glCaps.getGreenBits()>5);
+        Assert.assertTrue(glCaps.getBlueBits()>5);
+        Assert.assertTrue(glCaps.getRedBits()>5);
+        Assert.assertTrue(glCaps.isOnscreen()==onscreen);
+        Assert.assertTrue(glCaps.isPBuffer()==(!onscreen && pbuffer));
+        Assert.assertTrue(glCaps.getDoubleBuffered()==!onscreen);
+        Assert.assertTrue(glCaps.getDepthBits()>4);
 
-        GLDrawableFactory factory = GLDrawableFactory.getFactory(glCaps.getGLProfile());
-        System.out.println(factory);
+        factory = GLDrawableFactory.getFactory(glCaps.getGLProfile());
+        Assert.assertNotNull(factory);
         drawable = factory.createGLDrawable(window);
-        System.out.println("**********************************************************");
-        System.out.println("**********************************************************");
-        System.out.println("Pre: "+drawable);
+        Assert.assertNotNull(drawable);
+        // System.out.println("Pre: "+drawable);
+        //
         drawable.setRealized(true);
-        System.out.println("**********************************************************");
-        System.out.println("**********************************************************");
-        System.out.println("Post: "+drawable);
-        context = drawable.createContext(null);
-        System.out.println(context);
+        Assert.assertTrue(width==drawable.getWidth());
+        Assert.assertTrue(height==drawable.getHeight());
+        // Assert.assertTrue(glCaps==drawable.getChosenGLCapabilities());
+        Assert.assertTrue(window==drawable.getNativeWindow());
+        // System.out.println("Post: "+drawable);
 
-        System.out.println("**********************************************************");
-        System.out.println("**********************************************************");
-        System.out.println("Final: "+window);
+        context = drawable.createContext(null);
+        Assert.assertNotNull(context);
+        // System.out.println(context);
+        
+        int res = context.makeCurrent();
+        Assert.assertTrue(GLContext.CONTEXT_CURRENT_NEW==res || GLContext.CONTEXT_CURRENT==res);
+
+        // draw something ..
+
+        drawable.swapBuffers();
+        context.release();
+
+        // System.out.println("Final: "+window);
     }
 
     void destroyWindow() {
+        // GLWindow.dispose(..) sequence
+        Assert.assertNotNull(context);
         context.destroy();
+
+        Assert.assertNotNull(drawable);
         drawable.setRealized(false);
+
+        // GLWindow.destroy(..) sequence cont..
+        Assert.assertNotNull(window);
         window.destroy(true); // incl screen + display
+
+        drawable = null;
+        context = null;
+        window = null;
+
+        // test code cont ..
+        factory.shutdown();
+        factory = null;
     }
 
     @Test

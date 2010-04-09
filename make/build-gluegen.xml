@@ -88,6 +88,7 @@
            - NOTE:  GlueGenTask is NOT built at this time.  It is done in
            -        a separate task.  -->
         <javac destdir="${classes}" includes="**/gluegen/**" excludes="**/GlueGenTask.java"
+               includeAntRuntime="false"
                source="1.4" debug="true" debuglevel="source,lines">
             <src path="${src.java}" />
             <src path="${src.generated.java}" />
@@ -140,7 +141,8 @@
         <!-- Build the GlueGen ANT task.
            - NOTE:  ONLY the GlueGenTask is built at this time.  GlueGen 
            -        itself is built in a separate task.  -->
-        <javac destdir="${classes}" includes="**/GlueGenTask.java" source="1.4" debug="true" debuglevel="source,lines">
+        <javac destdir="${classes}" includes="**/GlueGenTask.java" source="1.4" debug="true" debuglevel="source,lines"
+               includeAntRuntime="false">
             <src path="${src.java}" />
             <classpath refid="antlr.classpath" />
         </javac>

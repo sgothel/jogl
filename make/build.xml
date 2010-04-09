@@ -30,15 +30,15 @@
     </target>
 
     <target name="build.nativewindow" depends="init">
-        <ant antfile="${nativewindow.build.xml}" dir="${nativewindow.make}" target="all" inheritAll="false"/>
+        <ant antfile="${nativewindow.build.xml}" dir="${nativewindow.make}" target="all" inheritRefs="true" inheritAll="true"/>
     </target>
 
     <target name="build.jogl" depends="init">
-        <ant antfile="${jogl.build.xml}" dir="${jogl.make}" target="all" inheritAll="false"/>
+        <ant antfile="${jogl.build.xml}" dir="${jogl.make}" target="all" inheritRefs="true" inheritAll="true"/>
     </target>
 
     <target name="build.newt" depends="init">
-        <ant antfile="${newt.build.xml}" dir="${newt.make}" target="all" inheritAll="false"/>
+        <ant antfile="${newt.build.xml}" dir="${newt.make}" target="all" inheritRefs="true" inheritAll="true"/>
     </target>
 
     <target name="one-lib-dir" depends="init,gluegen.cpptasks.detect.os">
@@ -128,18 +128,18 @@
     <target name="all" description="Build nativewindow, jogl and newt projects, incl. all junit tests " depends="init,build.nativewindow,build.jogl,build.newt,junit.compile,one-lib-dir,developer-zip-archive,source-archive" />
 
     <target name="junit.compile">
-      <ant antfile="build-junit.xml" target="junit.compile"/>
+      <ant antfile="build-junit.xml" target="junit.compile" inheritRefs="true" inheritAll="true"/>
     </target>
 
     <target name="test" depends="junit.run"/>
     <target name="junit.run" description="Run JUNIT tests in nativewindow, jogl and newt projects">
-      <ant antfile="build-junit.xml" target="junit.run"/>
+      <ant antfile="build-junit.xml" target="junit.run" inheritRefs="true" inheritAll="true"/>
     </target>
 
     <target name="clean" depends="init">
-        <ant antfile="${nativewindow.build.xml}" dir="${nativewindow.make}" target="clean" inheritAll="false"/>
-        <ant antfile="${jogl.build.xml}" dir="${jogl.make}" target="clean" inheritAll="false"/>
-        <ant antfile="${newt.build.xml}" dir="${newt.make}" target="clean" inheritAll="false"/>
+        <ant antfile="${nativewindow.build.xml}" dir="${nativewindow.make}" target="clean" inheritRefs="true" inheritAll="true"/>
+        <ant antfile="${jogl.build.xml}" dir="${jogl.make}" target="clean" inheritRefs="true" inheritAll="true"/>
+        <ant antfile="${newt.build.xml}" dir="${newt.make}" target="clean" inheritRefs="true" inheritAll="true"/>
         <delete includeEmptyDirs="true" quiet="true">
             <fileset dir="${build}" />
         </delete>

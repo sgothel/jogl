@@ -60,9 +60,7 @@ public class ReadBuffer2File extends ReadBufferBase {
       try {
         File file = File.createTempFile("shot"+shotNum+"-", ".ppm");
         TextureIO.write(readBufferUtil.getTextureData(), file);
-        if(0==shotNum) {
-            System.out.println("Wrote: "+file.getAbsolutePath()+", ...");
-        }
+        System.out.println("Wrote: "+file.getAbsolutePath()+", ...");
         shotNum++;
       } catch (IOException ioe) { ioe.printStackTrace(); }
       readBufferUtil.rewindPixelBuffer();

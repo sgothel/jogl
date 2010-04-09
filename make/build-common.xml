@@ -8,6 +8,8 @@
     <property name="gluegen.root" value="../../gluegen" />
     <import file="${gluegen.root}/make/gluegen-cpptasks.xml" />
 
+    <property name="ant-contrib.jar"  value="${gluegen.root}/make/lib/ant-contrib-1.0b3.jar" />
+
     <condition property="rootrel.build" value="build">
       <not>
           <isset property="rootrel.build"/>
@@ -191,6 +193,8 @@
             <pathelement location="${newt.all.jar}" />
             <pathelement location="${jogl.test.jar}" />
         </path>
+        <property name="junit_jogl_newt.run.jars"
+                  value="${junit.jar}${path.separator}${gluegen-rt.jar}${path.separator}${nativewindow.all.jar}${path.separator}${jogl.all.jar}${path.separator}${newt.all.jar}${path.separator}${jogl.test.jar}"/>
 
         <!-- JavaSE combinations . NO.AWT -->
         <property name="nativewindow.all-noawt.jar" value="${build.nativewindow}/nativewindow.all-noawt.jar" />

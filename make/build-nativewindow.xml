@@ -319,6 +319,7 @@
                classpath="${gluegen-rt-cdc.jar}"
                bootclasspath="${javac.bootclasspath-cdc.jar}"
                fork="yes"
+               includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <src path="${src.java}" />
@@ -333,6 +334,7 @@
                source="${target.sourcelevel}"
                classpath="${gluegen-rt.jar}"
                fork="yes"
+               includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <src path="${src.java}" />

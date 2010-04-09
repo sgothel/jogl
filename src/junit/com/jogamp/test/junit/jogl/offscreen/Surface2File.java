@@ -55,7 +55,11 @@ public class Surface2File implements SurfaceUpdatedListener {
             GLDrawable drawable = (GLDrawable) updater;
             GLContext ctx = GLContext.getCurrent();
             if(null!=ctx && ctx.getGLDrawable()==drawable) {
-                readBufferUtil.fetchOffscreenTexture(drawable, ctx.getGL());
+                GL gl = ctx.getGL();
+                // FIXME glFinish() is an expensive paranoia sync, should not be necessary due to spec
+                gl.glFinish(); 
+                readBufferUtil.fetchOffscreenTexture(drawable, gl);
+                gl.glFinish();
                 surface2File("shot");
             }
         }
@@ -67,9 +71,7 @@ public class Surface2File implements SurfaceUpdatedListener {
       try {
         File file = File.createTempFile(basename+shotNum+"-", ".ppm");
         TextureIO.write(readBufferUtil.getTextureData(), file);
-        if(0==shotNum) {
-            System.out.println("Wrote: "+file.getAbsolutePath()+", ...");
-        }
+        System.out.println("Wrote: "+file.getAbsolutePath()+", ...");
         shotNum++;
       } catch (IOException ioe) { ioe.printStackTrace(); }
       readBufferUtil.rewindPixelBuffer();
