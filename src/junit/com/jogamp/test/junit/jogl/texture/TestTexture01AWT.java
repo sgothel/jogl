@@ -30,7 +30,7 @@
  * SVEN GOTHEL HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  */
 
-package com.jogamp.test.junit.jogl.awt.texture;
+package com.jogamp.test.junit.jogl.texture;
 
 import com.jogamp.test.junit.jogl.util.texture.gl2.TextureGL2ListenerDraw1;
 
@@ -65,7 +65,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-public class Texture1 {
+public class TestTexture01AWT {
     Frame frame;
     BufferedImage textureImage;
 
@@ -108,7 +108,7 @@ public class Texture1 {
         animator.start();
 
         try {
-            Thread.sleep(100); // 100 ms
+            Thread.sleep(1000); // 1000 ms
         } catch (Exception e) {}
 
         animator.stop();
@@ -120,6 +120,6 @@ public class Texture1 {
     }
 
     public static void main(String args[]) {
-        org.junit.runner.JUnitCore.main(Texture1.class.getName());
+        org.junit.runner.JUnitCore.main(TestTexture01AWT.class.getName());
     }
 }

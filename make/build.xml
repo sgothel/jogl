@@ -37,10 +37,6 @@
         <ant antfile="${jogl.build.xml}" dir="${jogl.make}" target="all" inheritAll="false"/>
     </target>
 
-    <target name="junit.run.jogl" depends="init">
-        <ant antfile="${jogl.build.xml}" dir="${jogl.make}" target="junit.run" inheritAll="false"/>
-    </target>
-
     <target name="build.newt" depends="init">
         <ant antfile="${newt.build.xml}" dir="${newt.make}" target="all" inheritAll="false"/>
     </target>
@@ -129,9 +125,16 @@
        - Main build target.
       -->
 
-    <target name="all" description="Build nativewindow, jogl and newt projects" depends="init,build.nativewindow,build.jogl,build.newt,one-lib-dir,developer-zip-archive,source-archive" />
+    <target name="all" description="Build nativewindow, jogl and newt projects, incl. all junit tests " depends="init,build.nativewindow,build.jogl,build.newt,junit.compile,one-lib-dir,developer-zip-archive,source-archive" />
 
-    <target name="junit.run" description="Run JUNIT tests in nativewindow, jogl and newt projects" depends="init,junit.run.jogl" />
+    <target name="junit.compile">
+      <ant antfile="build-junit.xml" target="junit.compile"/>
+    </target>
+
+    <target name="test" depends="junit.run"/>
+    <target name="junit.run" description="Run JUNIT tests in nativewindow, jogl and newt projects">
+      <ant antfile="build-junit.xml" target="junit.run"/>
+    </target>
 
     <target name="clean" depends="init">
         <ant antfile="${nativewindow.build.xml}" dir="${nativewindow.make}" target="clean" inheritAll="false"/>

@@ -74,11 +74,9 @@
             <jvmarg value="-Dgluegen.debug.NativeLibrary=true"/>
             <jvmarg value="-Dgluegen.debug.ProcAddressHelper=true"/>
             <jvmarg value="-Djogl.debug.GLSLState"/>
-            -->
             <jvmarg value="-Dnativewindow.debug=all"/>
             <jvmarg value="-Djogl.debug=all"/>
             <jvmarg value="-Dnewt.debug=all"/>
-            <!--
             <jvmarg value="-verbose:jni"/> 
             <jvmarg value="-client"/>
             <jvmarg value="-d32"/>
