@@ -441,7 +441,7 @@ static jint mods2JavaMods(NSUInteger mods)
     }
 
     (*env)->CallVoidMethod(env, javaWindowObject, windowDestroyNotifyID);
-    // Will be called by Window.java (*env)->CallVoidMethod(env, javaWindowObject, windowDestroyedID);
+    (*env)->CallVoidMethod(env, javaWindowObject, windowDestroyedID); // No OSX hook for DidClose, so do it here 
 
     // EOL ..
     (*env)->DeleteGlobalRef(env, javaWindowObject);

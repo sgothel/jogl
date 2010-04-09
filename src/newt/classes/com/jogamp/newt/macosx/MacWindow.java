@@ -212,38 +212,7 @@ public class MacWindow extends Window {
         }
     }
 
-    private ToolkitLock nsViewLock = new ToolkitLock() {
-            private Thread owner;
-            private int recursionCount;
-            
-            public synchronized void lock() {
-                Thread cur = Thread.currentThread();
-                if (owner == cur) {
-                    ++recursionCount;
-                    return;
-                }
-                while (owner != null) {
-                    try {
-                        wait();
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-                owner = cur;
-            }
-
-            public synchronized void unlock() {
-                if (owner != Thread.currentThread()) {
-                    throw new RuntimeException("Not owner");
-                }
-                if (recursionCount > 0) {
-                    --recursionCount;
-                    return;
-                }
-                owner = null;
-                notifyAll();
-            }
-        };
+    private WindowToolkitLock nsViewLock = new WindowToolkitLock();
 
     public synchronized int lockSurface() throws NativeWindowException {
         nsViewLock.lock();

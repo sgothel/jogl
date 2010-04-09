@@ -335,6 +335,9 @@ public class GLWindow extends Window implements GLAutoDrawable {
     public void removeSurfaceUpdatedListener(SurfaceUpdatedListener l) {
         window.removeSurfaceUpdatedListener(l);
     }
+    public void removeAllSurfaceUpdatedListener() {
+        window.removeAllSurfaceUpdatedListener();
+    }
     public SurfaceUpdatedListener[] getSurfaceUpdatedListener() {
         return window.getSurfaceUpdatedListener();
     }

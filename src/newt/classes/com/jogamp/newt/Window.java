@@ -321,12 +321,12 @@ public abstract class Window implements NativeWindow
         return lockedStack;
     }
 
-    public synchronized void destroy() {
+    public void destroy() {
         destroy(false);
     }
 
     /** @param deep If true, the linked Screen and Display will be destroyed as well. */
-    public synchronized void destroy(boolean deep) {
+    public void destroy(boolean deep) {
         if(DEBUG_WINDOW_EVENT) {
             System.out.println("Window.destroy() start (deep "+deep+" - "+Thread.currentThread());
         }
@@ -342,26 +342,33 @@ public abstract class Window implements NativeWindow
         synchronized(keyListeners) {
             keyListeners = new ArrayList();
         }
-        Screen scr = screen;
-        Display dpy = (null!=screen) ? screen.getDisplay() : null;
-        EventDispatchThread edt = (null!=dpy) ? dpy.getEDT() : null;
-        if(null!=edt) {
-            final Window f_win = this;
-            edt.invokeAndWait(new Runnable() {
-                public void run() {
-                    f_win.closeNative();
+        synchronized(this) {
+            destructionLock.lock();
+            try {
+                Screen scr = screen;
+                Display dpy = (null!=screen) ? screen.getDisplay() : null;
+                EventDispatchThread edt = (null!=dpy) ? dpy.getEDT() : null;
+                if(null!=edt) {
+                    final Window f_win = this;
+                    edt.invokeAndWait(new Runnable() {
+                        public void run() {
+                            f_win.closeNative();
+                        }
+                    } );
+                } else {
+                    closeNative();
                 }
-            } );
-        } else {
-            closeNative();
-        }
-        invalidate();
-        if(deep) {
-            if(null!=scr) {
-                scr.destroy();
-            }
-            if(null!=dpy) {
-                dpy.destroy();
+                invalidate();
+                if(deep) {
+                    if(null!=scr) {
+                        scr.destroy();
+                    }
+                    if(null!=dpy) {
+                        dpy.destroy();
+                    }
+                }
+            } finally {
+                destructionLock.unlock();
             }
         }
         if(DEBUG_WINDOW_EVENT) {
@@ -487,12 +494,12 @@ public abstract class Window implements NativeWindow
 
     protected void windowDestroyNotify() {
         if(DEBUG_WINDOW_EVENT) {
-            System.out.println("Window.windowDestroyeNotify start "+Thread.currentThread());
+            System.out.println("Window.windowDestroyNotify start "+Thread.currentThread());
         }
 
         sendWindowEvent(WindowEvent.EVENT_WINDOW_DESTROY_NOTIFY);
 
-        if(!autoDrawableMember) {
+        if(!autoDrawableMember && !destructionLock.isLocked()) {
             destroy();
         }
 
@@ -505,7 +512,9 @@ public abstract class Window implements NativeWindow
         if(DEBUG_WINDOW_EVENT) {
             System.out.println("Window.windowDestroyed "+Thread.currentThread());
         }
-        invalidate();
+        if(!destructionLock.isLocked()) {
+            invalidate();
+        }
     }
 
     public abstract void    setVisible(boolean visible);
@@ -551,6 +560,12 @@ public abstract class Window implements NativeWindow
             ArrayList newSurfaceUpdatedListeners = (ArrayList) surfaceUpdatedListeners.clone();
             newSurfaceUpdatedListeners.remove(l);
             surfaceUpdatedListeners = newSurfaceUpdatedListeners;
+        }
+    }
+
+    public void removeAllSurfaceUpdatedListener() {
+        synchronized(surfaceUpdatedListeners) {
+            surfaceUpdatedListeners = new ArrayList();
         }
     }
 
@@ -926,4 +941,54 @@ public abstract class Window implements NativeWindow
         }
         return sb.toString();
     }
+
+    //
+    // Reentrance locking toolkit
+    // 
+    public static class WindowToolkitLock implements ToolkitLock {
+            private Thread owner;
+            private int recursionCount;
+            
+            public boolean isOwner() {
+                return isOwner(Thread.currentThread());
+            }
+
+            public synchronized boolean isOwner(Thread thread) {
+                return owner == thread ;
+            }
+
+            public synchronized boolean isLocked() {
+                return null != owner;
+            }
+
+            public synchronized void lock() {
+                Thread cur = Thread.currentThread();
+                if (owner == cur) {
+                    ++recursionCount;
+                    return;
+                }
+                while (owner != null) {
+                    try {
+                        wait();
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+                owner = cur;
+            }
+
+            public synchronized void unlock() {
+                if (owner != Thread.currentThread()) {
+                    throw new RuntimeException("Not owner");
+                }
+                if (recursionCount > 0) {
+                    --recursionCount;
+                    return;
+                }
+                owner = null;
+                notifyAll();
+            }
+    }
+    private WindowToolkitLock destructionLock = new WindowToolkitLock();
 }
+
