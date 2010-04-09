@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="JOGLTest" basedir="." default="all">
+
+    <description>JUNIT Tests JOGL</description>
+
+    <import file="build-common.xml"/>
+
+    <!-- ================================================================== -->
+    <!-- 
+       - Declare all paths and user defined variables.
+      -->
+    <target name="declare.common" description="Declare properties" depends="common.init">
+        <property name="rootrel.src.junit"    value="src/junit" />
+        <property name="src.junit"            value="${project.root}/${rootrel.src.junit}" />
+
+        <property name="classes"              value="${build.junit}/classes" />
+
+        <property name="java.dir.test"        value="com/jogamp/test"/>
+        <property name="java.part.test"       value="${java.dir.test}/**"/>
+
+    </target>
+    
+    <!-- ================================================================== -->
+    <!-- 
+       - Initialize all parameters required for the build and create any
+       - required directories.
+      -->
+    <target name="init" depends="declare.common">
+        <!-- Create the required output directories. -->
+        <mkdir dir="${obj.junit}" />
+        <mkdir dir="${classes}" />
+    </target>
+
+    <!-- ================================================================== -->
+    <!--
+       - Clean up all that is built.
+      -->
+    <target name="clean" description="Remove all build products" depends="declare.common">
+        <delete includeEmptyDirs="true" quiet="true">
+            <fileset dir="${build.junit}" />
+        </delete>
+    </target>
+
+    <!-- ================================================================== -->
+    <!--
+       - Build/run junit.
+      -->
+    <target name="junit.compile" depends="init">
+        <!-- Perform the junit pass Java compile -->
+        <javac destdir="${classes}"
+               source="${host.sourcelevel}"
+               fork="yes"
+               memoryMaximumSize="${javac.memorymax}"
+               debug="${javacdebug}" debuglevel="${javacdebuglevel}">
+            <classpath refid="junit_jogl_newt.compile.classpath"/>
+            <src path="${src.junit}" />
+        </javac>
+        <jar destfile="${jogl.test.jar}" filesonly="true">
+            <fileset dir="${classes}">
+                <include name="${java.part.test}"/>
+            </fileset>
+        </jar>
+    </target>
+
+    <target name="junit.run" depends="declare.common">
+        <!-- Perform the junit tests-->
+        <mkdir dir="${results.junit}" />
+        <junit forkmode="once" showoutput="true" fork="true" haltonerror="true">
+            <env key="${system.env.library.path}" path="${obj.all.paths}"/>
+            <jvmarg value="-Djava.library.path=${obj.all.paths}"/>
+
+            <!--
+            <jvmarg value="-Dgluegen.debug.NativeLibrary=true"/>
+            <jvmarg value="-Dgluegen.debug.ProcAddressHelper=true"/>
+            <jvmarg value="-Djogl.debug.GLSLState"/>
+            -->
+            <jvmarg value="-Dnativewindow.debug=all"/>
+            <jvmarg value="-Djogl.debug=all"/>
+            <jvmarg value="-Dnewt.debug=all"/>
+            <!--
+            <jvmarg value="-verbose:jni"/> 
+            <jvmarg value="-client"/>
+            <jvmarg value="-d32"/>
+            -->
+
+            <formatter usefile="false" type="plain"/>
+            <formatter usefile="true" type="xml"/>
+            <classpath refid="junit_jogl_newt.run.classpath"/>
+
+            <batchtest todir="${results.junit}">
+              <fileset dir="${classes}">
+                  <include name="${java.dir.test}/**/Test*"/>
+              </fileset>
+              <formatter usefile="false" type="brief"/>
+              <formatter usefile="true" type="xml"/>
+            </batchtest>
+
+        </junit>
+    </target>
+
+    <!-- ================================================================== -->
+    <!--
+       - Build everything.
+      -->
+    <target name="all" description="Build JOGL JUNIT tests and run them." depends="junit.compile, junit.run" />
+
+</project>

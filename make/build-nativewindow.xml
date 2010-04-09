@@ -53,25 +53,13 @@
    -->
 <project name="NativeWindow" basedir="." default="all">
 
-  <import file="versions.xml" />
-
-  <!-- Pull in GlueGen cpptasks build file -->
-  <property name="gluegen.root" value="../../gluegen" />
-  <import file="${gluegen.root}/make/gluegen-cpptasks.xml" />
+  <import file="build-common.xml"/>
 
     <!-- ================================================================== -->
     <!-- 
        - Base initialization and detection of operating system.
       -->
-    <target name="base.init" depends="gluegen.cpptasks.detect.os">
-
-        <condition property="setup.nodesktop">
-            <and>
-                <isfalse value="${isWindows}" />
-                <isfalse value="${isOSX}" />
-                <isfalse value="${isX11}" />
-            </and>
-        </condition>
+    <target name="base.init" depends="common.init">
 
         <condition property="setup.noNativeAWT">
             <or>
@@ -80,12 +68,7 @@
             </or>
         </condition>
 
-        <property name="javac.bootclasspath-cdc.jar" value="${gluegen.root}/make/lib/cdc_fp.jar" />
-
-        <echo message="setup.nodesktop: ${setup.nodesktop}" />
-        <echo message="setup.noAWT: ${setup.noAWT}" />
         <echo message="setup.noNativeAWT: ${setup.noNativeAWT}" />
-        <echo message="javac.bootclasspath-cdc.jar: ${javac.bootclasspath-cdc.jar}" />
 
         <!-- partitioning -->
 
@@ -107,109 +90,47 @@
 
         <property name="java.excludes.all" value="${java.excludes.awt}" />
         <echo message="java.excludes.all: ${java.excludes.all}" />
-
-
-        <!-- Set the project root directory to be up one directory. -->
-        <property name="project.root" value=".." />
-    
-        <!-- Set the configuration and build files to this directory. -->
-        <property name="make" value="." />
     </target>
 
-    <target name="base.init.sourcelevel.1">
-        <property name="nativewindow.sourcelevel" value="1.4" />
-    </target>
-
-    <!--target name="base.init.sourcelevel.2" if="gluegen.nsig">
-        <property name="nativewindow.sourcelevel" value="1.5" />
-    </target-->
-
-    <!-- ================================================================== -->
-    <!-- 
-       - Load user properties which override build defaults.
-      -->
-    <target name="load.user.properties" depends="base.init,base.init.sourcelevel.1" unless="user.properties.file">
-        <!-- Load the user specified properties file that defines various host
-           - specific paths.  The user will be notified if this is does not
-           - exist. -->
-        <property name="user.properties.file" value="${user.home}/nativewindow.properties" />
-        <property file="${user.properties.file}" />
-        <echo message="Loaded ${user.properties.file}." />
-        <property file="${user.home}/gluegen.properties" />
-        <echo message="Loaded ${user.home}/gluegen.properties." />
-        <fail message="antlr.jar was not specified in nativewindow.properties or gluegen.properties. Please see README.txt for instructions" unless="antlr.jar"/>
-        <echo message="antlr.jar=${antlr.jar}" />
-    </target>
 
     <!-- ================================================================== -->
     <!-- 
        - Declare all paths and user defined variables.
       -->
-    <target name="declare.common" description="Declare properties" depends="load.user.properties">
-        <!-- The location and name of the configuration ANT file that will 
-           - validate to ensure that all user-define variables are set. -->
-        <property name="validate.user.properties" value="${make}/validate-properties.xml" />
-           
-        <!-- NOTE: the value of the debug and optimise attributes will not be overridden if already set externally -->
-        <property name="javacdebug"       value="true" /> 
-        <property name="javacdebuglevel"  value="source,lines" /> 
+    <target name="declare.common" description="Declare properties" depends="base.init">
 
-        <!-- Names of directories relative to the project root.
-             Some of these are used in FileMappers later for dependence information
-             and need exact string matching, which is why they use file.separator
-             instead of "/". -->
-        <condition property="rootrel.build" value="build">
-          <not>
-              <isset property="rootrel.build"/>
-          </not>
-        </condition>
-        <property name="rootrel.build.nativewindow" value="${rootrel.build}/nativewindow" />
+        <property name="config.nativewindow" value="${config}/nativewindow" />
+
         <property name="rootrel.src" value="src/nativewindow" />
         <property name="rootrel.src.java" value="${rootrel.src}/classes" />
         <property name="rootrel.src.c" value="${rootrel.src}/native" />
 
-        <property name="rootrel.src.generated" value="${rootrel.build.nativewindow}/gensrc" />
+        <property name="rootrel.src.generated" value="${rootrel.build}/nativewindow/gensrc" />
         <property name="rootrel.generated.c" value="${rootrel.src.generated}/native" />
-        <property name="rootrel.obj" value="${rootrel.build.nativewindow}/obj" />
 
-        <!-- GlueGen properties. -->
-        <!-- NOTE that these require a checked-out GlueGen workspace as a -->
-        <!-- sibling of the NativeWindow workspace. -->
-        <property name="gluegen.make.dir" value="${gluegen.root}/make" />
-        <property name="gluegen.build.xml" value="${gluegen.make.dir}/build.xml" />
-        <property name="gluegen.jar" value="${gluegen.root}/${rootrel.build}/gluegen.jar" />
-        <property name="gluegen-rt.jar" value="${gluegen.root}/${rootrel.build}/gluegen-rt.jar" />
-        <property name="gluegen-rt-cdc.jar" value="${gluegen.root}/${rootrel.build}/gluegen-rt-cdc.jar" />
-                                                
         <!-- The source directories. -->
         <property name="src.java" value="${project.root}/${rootrel.src.java}" />
         <property name="src.c"    value="${project.root}/${rootrel.src.c}" />
-        <property name="build"    value="${project.root}/${rootrel.build.nativewindow}" />
         
         <!-- The generated source directories. -->
-        <property name="src.generated" value="${build}/gensrc" />
+        <property name="src.generated" value="${build.nativewindow}/gensrc" />
         <property name="src.generated.java" value="${src.generated}/classes" />
         <property name="src.generated.java-cdc" value="${src.generated}/classes-cdc" />
         <property name="src.generated.c" value="${src.generated}/native" />
         
         <!-- The compiler output directories. -->
-        <property name="classes" value="${build}/classes" />
-        <property name="classes-cdc" value="${build}/classes-cdc" />
-        <property name="obj"      value="${project.root}/${rootrel.obj}" />
+        <property name="classes" value="${build.nativewindow}/classes" />
+        <property name="classes-cdc" value="${build.nativewindow}/classes-cdc" />
 
         <!-- The headers from which Java files are generated -->
-        <property name="config" value="${make}/config/nativewindow" />
-        <property name="stub.includes" value="${make}/stub_includes" />
-        <property name="stub.includes.dir" value="stub_includes" /> <!-- NOTE:  this MUST be relative for FileSet -->
-        <property name="stub.includes.common" value="${stub.includes}/common" />
         <dirset id="stub.includes.fileset.all" dir=".">
-            <include name="${stub.includes.dir}/macosx/**" />
-            <include name="${stub.includes.dir}/win32/**" />
-            <include name="${stub.includes.dir}/x11/**" />
-            <include name="${stub.includes.dir}/common/**" />
-            <include name="${stub.includes.dir}/jni/**" />
+            <include name="${stub.includes}/macosx/**" />
+            <include name="${stub.includes}/win32/**" />
+            <include name="${stub.includes}/x11/**" />
+            <include name="${stub.includes}/common/**" />
+            <include name="${stub.includes}/jni/**" />
         </dirset>
-        <fileset id="stub.includes.dependencies.fileset.1" dir="${stub.includes.dir}">
+        <fileset id="stub.includes.dependencies.fileset.1" dir="${stub.includes}">
             <include name="macosx/**" />
             <include name="win32/**" />
             <include name="x11/**" />
@@ -217,30 +138,11 @@
             <include name="jni/**" />
         </fileset>
         <fileset id="stub.includes.dependencies.fileset.2" file="${gluegen.jar}" />
-        <fileset id="stub.includes.dependencies.fileset.3" dir="${config}">
+        <fileset id="stub.includes.dependencies.fileset.3" dir="${config.nativewindow}">
             <include name="*.cfg" />
             <include name="*.java" />
             <include name="*.c" />
         </fileset>
-
-        <!-- Create the classpath that includes GlueGen and
-           - ANTLR. This requires the user-defined "antlr.jar"
-           - property. -->
-        <path id="gluegen.classpath">
-          <pathelement location="${gluegen.jar}" />
-          <pathelement location="${antlr.jar}" />
-        </path>
-
-        <!-- The resulting nativewindow.jar. -->
-        <property name="nativewindow.core.jar" value="${build}/nativewindow.core.jar" />
-        <property name="nativewindow.awt.jar"  value="${build}/nativewindow.awt.jar"  />
-        <property name="nativewindow.os.x11.jar"  value="${build}/nativewindow.os.x11.jar"  />
-        <property name="nativewindow.all.jar"  value="${build}/nativewindow.all.jar"  />
-        <property name="nativewindow.all-noawt.jar"  value="${build}/nativewindow.all-noawt.jar" />
-
-        <property name="nativewindow.core.cdc.jar" value="${build}/nativewindow.core.cdc.jar" />
-        <property name="nativewindow.os.x11.cdc.jar"  value="${build}/nativewindow.os.x11.cdc.jar"  />
-        <property name="nativewindow.all.cdc.jar"  value="${build}/nativewindow.all.cdc.jar"  />
 
         <!-- The javadoc dirs. -->
         <property name="javadoc" value="${project.root}/javadoc_nativewindow_public" />
@@ -263,9 +165,6 @@
        - required directories.
       -->
     <target name="init" depends="declare.common">
-        <!-- Call the external config validator script to make sure the config is ok and consistent -->
-        <ant antfile="${validate.user.properties}" inheritall="true"/>
-        
         <!-- Create the required output directories. -->
         <mkdir dir="${src.generated.java}" />
         <mkdir dir="${src.generated.java-cdc}" />
@@ -275,25 +174,7 @@
         <mkdir dir="${src.generated.c}/X11" />
         <mkdir dir="${classes}" />
         <mkdir dir="${classes-cdc}" />
-        <mkdir dir="${obj}" />
-    </target>
-
-    <!-- ================================================================== -->
-    <!-- GlueGen and BuildStaticGLInfo creation, task setup and Java file generation -->
-    <!--
-       - Build GlueGen
-      -->
-    <target name="build.gluegen" depends="init">
-        <!-- Run the GlueGen build to ensure that the GlueGen ANT task
-           - has been built. -->
-        <!-- FIXME: remove passing down of antlr.jar when gluegen.properties is on all
-             nightly build machines -->
-        <ant antfile="${gluegen.build.xml}" dir="${gluegen.make.dir}" target="all" inheritAll="false">
-          <propertyset>
-            <propertyref name="antlr.jar" />
-            <!--propertyref name="gluegen.nsig" /-->
-          </propertyset>
-        </ant>
+        <mkdir dir="${obj.nativewindow}" />
     </target>
 
     <!--
@@ -340,8 +221,8 @@
 
     <target name="java.generate.windowlib" if="windowlib.os.cfg">
         <echo message="Generating Windowing Lib implementation class" />
-        <gluegen src="${stub.includes.dir}/${window.os.system}/window-lib.c"
-                 outputRootDir="../${rootrel.build.nativewindow}"
+        <gluegen src="${stub.includes}/${window.os.system}/window-lib.c"
+                 outputRootDir="${build.nativewindow}"
                  config="${windowlib.os.cfg}"
                  includeRefid="stub.includes.fileset.platform"
                  emitter="com.sun.gluegen.JavaEmitter">
@@ -360,9 +241,9 @@
         <echo message="Generating JAWT interface class" />
         <echo message="java.home.dir=${java.home.dir}" />
         <gluegen src="${jawt.platform.header}"
-                 outputRootDir="../${rootrel.build.nativewindow}"
+                 outputRootDir="${build.nativewindow}"
                  config="${jawt.cfg}"
-                 literalInclude="${stub.includes.dir}/jni"
+                 literalInclude="${stub.includes}/jni"
                  includeRefid="stub.includes.fileset.platform"
                  emitter="com.sun.gluegen.JavaEmitter">
             <classpath refid="gluegen.classpath" />
@@ -375,7 +256,7 @@
 
     <target name="java.generate.platforms" >
         <echo message="Generating platform-specifics: os: ${window.os.system}, cfgs: ${windowlib.os.cfg}, ${jawt.cfg}" />
-        <dirset id="stub.includes.fileset.platform" dir="." includes="${stub.includes.dir}/${window.os.system}/** ${stub.includes.dir}/common/**" />
+        <dirset id="stub.includes.fileset.platform" dir="." includes="${stub.includes}/${window.os.system}/** ${stub.includes}/common/**" />
         <antcall target="java.generate.windowlib" inheritRefs="true" />
         <antcall target="java.generate.jawt" inheritRefs="true" />
     </target>
@@ -385,7 +266,7 @@
        - from the C GL headers.  This involves setting the taskdef and creating
        - the classpath reference id then running the task on each header.
       -->
-    <target name="java.generate" depends="build.gluegen, java.generate.check" unless="java.generate.skip">
+    <target name="java.generate" depends="common.gluegen.build, java.generate.check" unless="java.generate.skip">
 
         <!-- Add the GlueGen and BuildStaticGLInfo tasks to ANT -->
         <taskdef name="gluegen" classname="com.sun.gluegen.ant.GlueGenTask"
@@ -399,23 +280,23 @@
         <echo message="Generating platform-specifics: X11" />
         <antcall target="java.generate.platforms" inheritRefs="true">
             <param name="window.os.system"                       value="x11"/>
-            <param name="windowlib.os.cfg"                       value="${config}/x11-lib.cfg" />
-            <param name="jawt.cfg"                               value="${config}/jawt-x11.cfg" />
-            <param name="jawt.platform.header"                   value="${stub.includes.dir}/jni/x11/jawt_md.h" />
+            <param name="windowlib.os.cfg"                       value="${config.nativewindow}/x11-lib.cfg" />
+            <param name="jawt.cfg"                               value="${config.nativewindow}/jawt-x11.cfg" />
+            <param name="jawt.platform.header"                   value="${stub.includes}/jni/x11/jawt_md.h" />
         </antcall>
 
         <echo message="Generating platform-specifics: Win32" />
         <antcall target="java.generate.platforms" inheritRefs="true">
             <param name="window.os.system"                       value="win32"/>
-            <param name="jawt.cfg"                               value="${config}/jawt-win32.cfg" />
-            <param name="jawt.platform.header"                   value="${stub.includes.dir}/jni/win32/jawt_md.h" />
+            <param name="jawt.cfg"                               value="${config.nativewindow}/jawt-win32.cfg" />
+            <param name="jawt.platform.header"                   value="${stub.includes}/jni/win32/jawt_md.h" />
         </antcall>          
 
         <echo message="Generating platform-specifics: MaxOsX" />
         <antcall target="java.generate.platforms" inheritRefs="true">
           <param name="window.os.system"                     value="macosx"/>
-          <param name="jawt.cfg"                             value="${config}/jawt-macosx.cfg" />
-          <param name="jawt.platform.header"                 value="${stub.includes.dir}/jni/macosx/jawt_md.h" />
+          <param name="jawt.cfg"                             value="${config.nativewindow}/jawt-macosx.cfg" />
+          <param name="jawt.platform.header"                 value="${stub.includes}/jni/macosx/jawt_md.h" />
         </antcall>
     
         <!-- Inform the user that the generators have successfully created 
@@ -434,11 +315,11 @@
         <!-- Perform the first pass Java compile; everything -->
         <javac destdir="${classes-cdc}"
                excludes="${java.part.awt} ${java.excludes.all}"
-               source="${nativewindow.sourcelevel}"
+               source="${target.sourcelevel}"
                classpath="${gluegen-rt-cdc.jar}"
                bootclasspath="${javac.bootclasspath-cdc.jar}"
                fork="yes"
-               memoryMaximumSize="128m"
+               memoryMaximumSize="${javac.memorymax}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <src path="${src.java}" />
             <src path="${src.generated.java-cdc}" />
@@ -449,10 +330,10 @@
         <!-- Perform the second pass Java compile; everything. -->
         <javac destdir="${classes}"
                excludes="${java.excludes.all}"
-               source="${nativewindow.sourcelevel}"
+               source="${target.sourcelevel}"
                classpath="${gluegen-rt.jar}"
                fork="yes"
-               memoryMaximumSize="128m"
+               memoryMaximumSize="${javac.memorymax}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <src path="${src.java}" />
             <src path="${src.generated.java}" />
@@ -656,8 +537,8 @@
         <echo message="Compiling @{output.lib.name}" />
 
         <cc outtype="shared" 
-            objdir="${obj}" 
-            outfile="${obj}/@{output.lib.name}"
+            objdir="${obj.nativewindow}" 
+            outfile="${obj.nativewindow}/@{output.lib.name}"
             optimize="${c.compiler.optimise}" 
             debug="${c.compiler.debug}"
             multithreaded="true" 
@@ -696,16 +577,16 @@
         <!-- FIXME: this is a hack; the cpptask should have an option to change the
              suffix or at least understand the override from dylib to jnilib -->
         <antcall target="rename.dylib" inheritRefs="true">
-            <param name="src"  value="${build}/obj/lib@{output.lib.name}.dylib" />
-            <param name="dest" value="${build}/obj/lib@{output.lib.name}.jnilib" />
-            <param name="dest-cdc" value="${build}/obj/lib@{output.lib.name}.so" />
+            <param name="src"  value="${build.nativewindow}/obj/lib@{output.lib.name}.dylib" />
+            <param name="dest" value="${build.nativewindow}/obj/lib@{output.lib.name}.jnilib" />
+            <param name="dest-cdc" value="${build.nativewindow}/obj/lib@{output.lib.name}.so" />
         </antcall>
 
         <!-- FIXME: this is a hack; the cpptask should have an option to change the
              suffix or at least understand the override from dylib to jnilib -->
         <antcall target="rename.mingw.dll" inheritRefs="true">
-            <param name="src"  value="${build}/obj/lib@{output.lib.name}.so" />
-            <param name="dest" value="${build}/obj/@{output.lib.name}.dll" />
+            <param name="src"  value="${build.nativewindow}/obj/lib@{output.lib.name}.so" />
+            <param name="dest" value="${build.nativewindow}/obj/@{output.lib.name}.dll" />
         </antcall>
       </sequential>
     </macrodef>  
@@ -720,7 +601,7 @@
         <arg value="/System/Library/Frameworks/JavaVM.framework/Versions/1.5.0/Libraries/libjawt.dylib" />
         <arg value="/System/Library/Frameworks/JavaVM.framework/Libraries/libjawt.dylib" />
         <srcfile />
-        <fileset dir="${obj}" includes="libnativewindow_awt.jnilib" />
+        <fileset dir="${obj.nativewindow}" includes="libnativewindow_awt.jnilib" />
       </apply>
     </target>
 
@@ -750,25 +631,25 @@
 
     <target name="c.manifest" if="isVC8Family">
       <!-- exec mt, the Microsoft Manifest Tool, to include DLL manifests in order to resolve the location of msvcr80.dll -->
-      <msvc.manifest objdir="${obj}" dllname="nativewindow_jvm" />
-      <msvc.manifest objdir="${obj}" dllname="nativewindow_awt" />
+      <msvc.manifest objdir="${obj.nativewindow}" dllname="nativewindow_jvm" />
+      <msvc.manifest objdir="${obj.nativewindow}" dllname="nativewindow_awt" />
     </target>
 
     <target name="c.build.nativewindow" depends="c.configure,c.build.nativewindow.windowlib,c.build.nativewindow.jvm,c.build.nativewindow.awt">
       <antcall target="gluegen.cpptasks.striplibs" inheritRefs="true">
-          <param name="libdir" value="${obj}"/>
+          <param name="libdir" value="${obj.nativewindow}"/>
       </antcall>
 
       <antcall target="c.fixup.jawt.version.macosx" inheritrefs="true" />
       <antcall target="c.manifest" inheritRefs="true" />
       <!-- Create the Java Web Start jar file for the built native code -->
-      <jar destfile="${build}/nativewindow-natives-${os.and.arch}.jar" filesonly="true">
-        <fileset dir="${obj}">
+      <jar destfile="${build.nativewindow}/nativewindow-natives-${os.and.arch}.jar" filesonly="true">
+        <fileset dir="${obj.nativewindow}">
           <include name="*.${native.library.suffix}" />
         </fileset>
       </jar>
-      <jar destfile="${build}/nativewindow-natives-${os.and.arch}-cdc.jar" filesonly="true">
-        <fileset dir="${obj}">
+      <jar destfile="${build.nativewindow}/nativewindow-natives-${os.and.arch}-cdc.jar" filesonly="true">
+        <fileset dir="${obj.nativewindow}">
           <include name="*_jvm.${native.library.suffix-cdc}" />
           <include name="*_x11.${native.library.suffix-cdc}" />
         </fileset>
@@ -889,11 +770,11 @@
     <!-- ================================================================== -->
     <!--
        - Build the Javadocs for the sources.
-       - NOTE:  these are not entirely correct as the javadocs targets depend 
+       - NOTE:  these are not entirely correct as the javadoc targets depend 
        -        on the platform specific build targets.  To circumvent any 
        -        errors, ensure that the source is built first.
       -->
-    <target name="javadoc" depends="load.user.properties,init">
+    <target name="javadoc" depends="init">
         <!-- Build the general public Javadoc -->
         <javadoc packagenames="${javadoc.packagenames}"
                  excludepackagenames="${java.excludes.javadoc.packagenames}"
@@ -907,7 +788,7 @@
         </javadoc>
     </target>
 
-    <target name="javadoc.spec" depends="load.user.properties,init">
+    <target name="javadoc.spec" depends="init">
         <!-- Build the specification Javadoc -->
         <javadoc packagenames="${javadoc.spec.packagenames}"
                  excludepackagenames="${java.excludes.javadoc.packagenames}"
@@ -921,7 +802,7 @@
         </javadoc>
     </target>
                                                                                                                                    
-    <target name="javadoc.dev" depends="load.user.properties,init">
+    <target name="javadoc.dev" depends="init">
         <!-- Build the internal developer Javadoc -->
         <javadoc packagenames="${javadoc.dev.packagenames}"
                  excludepackagenames="${java.excludes.javadoc.packagenames}"
@@ -943,7 +824,7 @@
       -->
     <target name="clean" description="Remove all build products" depends="declare.common">
         <delete includeEmptyDirs="true" quiet="true">
-            <fileset dir="${build}" />
+            <fileset dir="${build.nativewindow}" />
             <fileset dir="${javadoc}" />
             <fileset dir="${javadoc.spec}" />
             <fileset dir="${javadoc.dev}" />
@@ -954,22 +835,11 @@
     <!--
        - Build everything.
       -->
-    <target name="all" description="Build NativeWindow JAR file(s) and native libraries." depends="load.user.properties,init,jar,c.build.nativewindow,generate.version.txt" />
+    <target name="all" description="Build NativeWindow JAR file(s) and native libraries." depends="init,jar,c.build.nativewindow,generate.version.txt" />
 
-    <target name="setup-version-RI" if="nativewindow.ri">
-        <property name="tmp.version" value="${nativewindow_base_version}" />
-    </target>
-
-    <target name="setup-version-non-RI" unless="nativewindow.ri">
-        <tstamp>
-             <format property="version.timestamp" pattern="yyyyMMdd"/>
-        </tstamp>
-        <property name="tmp.version" value="${nativewindow_base_version}-pre-${version.timestamp}" />
-    </target>
-
-    <target name="generate.version.txt" depends="setup-version-RI,setup-version-non-RI">
+    <target name="generate.version.txt" depends="init">
         <!-- Create a version.txt file indicating which version we just built -->
-        <echo message="${tmp.version}" file="${build}/version.txt" />
+        <echo message="${nativewindow.version}" file="${build.nativewindow}/version.txt" />
     </target>
 
     <!-- ================================================================== -->

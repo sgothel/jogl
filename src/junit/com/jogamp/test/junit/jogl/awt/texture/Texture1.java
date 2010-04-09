@@ -30,9 +30,9 @@
  * SVEN GOTHEL HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  */
 
-package com.jogamp.opengl.test.junit.texture.awt;
+package com.jogamp.test.junit.jogl.awt.texture;
 
-import com.jogamp.opengl.test.junit.texture.util.gl2.TextureGL2ListenerDraw1;
+import com.jogamp.test.junit.jogl.util.texture.gl2.TextureGL2ListenerDraw1;
 
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.GLCapabilities;
