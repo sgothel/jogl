@@ -98,15 +98,15 @@
             <property name="test.class.path" basedir="${classes}" relative="true" location="@{test.class.path.m}"/>
             <var name="test.class.fqn" unset="true"/>
             <pathconvert property="test.class.fqn">
-              <fileset file="${classes}/${test.class.path}"/>
+              <fileset file="${classes}${file.separator}${test.class.path}"/>
               <chainedmapper>
-                  <globmapper    from="${classes.path}/*" to="*"/> <!-- rel. -->
+                  <globmapper    from="${classes.path}${file.separator}*" to="*"/> <!-- rel. -->
                   <packagemapper from="*.class"           to="*"/> <!-- FQCN -->
               </chainedmapper>
             </pathconvert>
             <var name="test.class.result.file" value="${results.junit}/TEST-${test.class.fqn}.xml"/>
             <echo message="Testing ${test.class.fqn} -> ${test.class.result.file}"/>
-            <apply dir="." executable="java" 
+            <apply dir="." executable="${java.home}/bin/java" 
                  parallel="false" 
                  timeout="${batchtest.timeout}"
                  vmlauncher="false"
