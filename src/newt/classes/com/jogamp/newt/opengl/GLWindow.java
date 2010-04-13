@@ -65,7 +65,7 @@ public class GLWindow extends Window implements GLAutoDrawable {
         this.ownerOfWinScrDpy = ownerOfWinScrDpy;
         this.window = window;
         this.window.setAutoDrawableClient(true);
-        this.runPumpMessages = ( null == getScreen().getDisplay().getEDT() ) ;
+        this.runPumpMessages = ( null == getScreen().getDisplay().getEDTUtil() ) ;
         window.addWindowListener(new WindowListener() {
                 public void windowResized(WindowEvent e) {
                     sendReshape = true;
@@ -152,7 +152,7 @@ public class GLWindow extends Window implements GLAutoDrawable {
      * @deprecated EXPERIMENTAL, semantic is about to be removed after further verification.
      */
     public void setRunPumpMessages(boolean onoff) {
-        if( onoff && null!=getScreen().getDisplay().getEDT() ) {
+        if( onoff && null!=getScreen().getDisplay().getEDTUtil() ) {
             throw new GLException("GLWindow.setRunPumpMessages(true) - Can't do with EDT on");
         }
         runPumpMessages = onoff;
@@ -382,7 +382,7 @@ public class GLWindow extends Window implements GLAutoDrawable {
     }
 
     public String toString() {
-        return "NEWT-GLWindow[ \n\tDrawable: "+drawable+", \n\tWindow: "+window+", \n\tHelper: "+helper+", \n\tFactory: "+factory+"]";
+        return "NEWT-GLWindow[ \n\tHelper: "+helper+", \n\tDrawable: "+drawable + /** ", \n\tWindow: "+window+", \n\tFactory: "+factory+ */ "]";
     }
 
     //----------------------------------------------------------------------

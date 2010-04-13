@@ -186,6 +186,57 @@ static void _throwNewRuntimeException(Display * unlockDisplay, JNIEnv *env, cons
  * Display
  */
 
+
+static XErrorHandler origErrorHandler = NULL ;
+
+static int displayDispatchErrorHandler(Display *dpy, XErrorEvent *e)
+{
+    fprintf(stderr, "Warning: NEWT X11 Error: DisplayDispatch %p, Code 0x%X\n", dpy, e->error_code);
+    
+    if (e->error_code == BadAtom)
+    {
+        fprintf(stderr, "         BadAtom (%p): Atom probably already removed\n", e->resourceid);
+    } else if (e->error_code == BadWindow)
+    {
+        fprintf(stderr, "         BadWindow (%p): Window probably already removed\n", e->resourceid);
+    } else {
+        return origErrorHandler(dpy, e);
+    }
+
+    return 0;
+}
+
+static void displayDispatchErrorHandlerEnable(int onoff) {
+    if(onoff) {
+        if(NULL==origErrorHandler) {
+            origErrorHandler = XSetErrorHandler(displayDispatchErrorHandler);
+        }
+    } else {
+        XSetErrorHandler(origErrorHandler);
+        origErrorHandler = NULL;
+    }
+}
+
+static XIOErrorHandler origIOErrorHandler = NULL;
+
+static int displayDispatchIOErrorHandler(Display *dpy)
+{
+    fprintf(stderr, "Fatal: NEWT X11 IOError: Display %p not available\n", dpy);
+    return 0;
+}
+
+static void displayDispatchIOErrorHandlerEnable(int onoff) {
+    if(onoff) {
+        if(NULL==origIOErrorHandler) {
+            origIOErrorHandler = XSetIOErrorHandler(displayDispatchIOErrorHandler);
+        }
+    } else {
+        XSetIOErrorHandler(origIOErrorHandler);
+        origIOErrorHandler = NULL;
+    }
+}
+
+
 /*
  * Class:     com_jogamp_newt_x11_X11Display
  * Method:    initIDs
@@ -197,7 +248,7 @@ JNIEXPORT jboolean JNICALL Java_com_jogamp_newt_x11_X11Display_initIDs
     jclass c;
 
     if( 0 == XInitThreads() ) {
-        fprintf(stderr, "Warning: XInitThreads() failed\n");
+        fprintf(stderr, "Warning: NEWT X11Window: XInitThreads() failed\n");
     }
 
     displayCompletedID = (*env)->GetMethodID(env, clazz, "displayCompleted", "(JJ)V");
@@ -249,6 +300,7 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_x11_X11Display_LockDisplay
         _throwNewRuntimeException(NULL, env, "given display connection is NULL\n");
     }
     XLockDisplay(dpy) ;
+    DBG_PRINT1( "X11: LockDisplay 0x%X\n", dpy); 
 }
 
 
@@ -265,6 +317,7 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_x11_X11Display_UnlockDisplay
         _throwNewRuntimeException(NULL, env, "given display connection is NULL\n");
     }
     XUnlockDisplay(dpy) ;
+    DBG_PRINT1( "X11: UnlockDisplay 0x%X\n", dpy); 
 }
 
 
@@ -356,14 +409,13 @@ static jobject getJavaWindowProperty(JNIEnv *env, Display *dpy, Window window, j
                                  &nitems_return, &bytes_after_return, &jogl_java_object_data_pp);
 
         if ( Success != res ) {
-            _throwNewRuntimeException(dpy, env, "could not fetch Atom JOGL_JAVA_OBJECT window property (res %d) nitems_return %ld, bytes_after_return %ld, bail out!\n",
-                res, nitems_return, bytes_after_return);
+            fprintf(stderr, "Warning: NEWT X11Window: Could not fetch Atom JOGL_JAVA_OBJECT window property (res %d) nitems_return %ld, bytes_after_return %ld, result 0!\n", res, nitems_return, bytes_after_return);
             return NULL;
         }
 
         if(actual_type_return!=(Atom)javaObjectAtom || nitems_return<nitems_32 || NULL==jogl_java_object_data_pp) {
             XFree(jogl_java_object_data_pp);
-            _throwNewRuntimeException(dpy, env, "could not fetch Atom JOGL_JAVA_OBJECT window property (res %d) nitems_return %ld, bytes_after_return %ld, actual_type_return %ld, JOGL_JAVA_OBJECT %ld, bail out!\n",
+            fprintf(stderr, "Warning: NEWT X11Window: Fetched invalid Atom JOGL_JAVA_OBJECT window property (res %d) nitems_return %ld, bytes_after_return %ld, actual_type_return %ld, JOGL_JAVA_OBJECT %ld, result 0!\n", 
                 res, nitems_return, bytes_after_return, (long)actual_type_return, javaObjectAtom);
             return NULL;
         }
@@ -374,7 +426,7 @@ static jobject getJavaWindowProperty(JNIEnv *env, Display *dpy, Window window, j
 
 #ifdef VERBOSE_ON
     if(JNI_FALSE == (*env)->IsInstanceOf(env, jwindow, newtWindowClz)) {
-        _throwNewRuntimeException(NULL, env, "fetched Atom JOGL_JAVA_OBJECT window is not a NEWT Window: javaWindow 0x%X !\n", jwindow);
+        _throwNewRuntimeException(dpy, env, "fetched Atom JOGL_JAVA_OBJECT window is not a NEWT Window: javaWindow 0x%X !\n", jwindow);
     }
 #endif
     return jwindow;
@@ -395,6 +447,8 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_x11_X11Display_DispatchMessages
         return;
     }
 
+    displayDispatchIOErrorHandlerEnable(1);
+
     // Periodically take a break
     while( num_events > 0 ) {
         jobject jwindow = NULL;
@@ -408,12 +462,15 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_x11_X11Display_DispatchMessages
         // num_events = XPending(dpy); // XEventsQueued(dpy, QueuedAfterFlush); // I/O Flush ..
         // num_events = XEventsQueued(dpy, QueuedAlready); // Better, no I/O ..
         if ( 0 >= XEventsQueued(dpy, QueuedAlready) ) {
+            displayDispatchIOErrorHandlerEnable(0);
             XUnlockDisplay(dpy) ;
             return;
         }
 
         XNextEvent(dpy, &evt);
         num_events--;
+
+        displayDispatchIOErrorHandlerEnable(0);
 
         if( 0==evt.xany.window ) {
             _throwNewRuntimeException(dpy, env, "event window NULL, bail out!\n");
@@ -424,10 +481,16 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_x11_X11Display_DispatchMessages
             _throwNewRuntimeException(dpy, env, "wrong display, bail out!\n");
             return ;
         }
+
+        displayDispatchErrorHandlerEnable(1);
+
         jwindow = getJavaWindowProperty(env, dpy, evt.xany.window, javaObjectAtom);
 
+        displayDispatchErrorHandlerEnable(0);
+
         if(NULL==jwindow) {
-            // just leave .. _throwNewRuntimeException(env, "could not fetch Java Window object, bail out!\n");
+            fprintf(stderr, "Warning: NEWT X11 DisplayDispatch %p, Couldn't handle event %d for invalid X11 window %p\n", 
+                dpy, evt.type, evt.xany.window);
             XUnlockDisplay(dpy) ;
             return;
         }

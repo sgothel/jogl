@@ -66,38 +66,102 @@ public class TestOffscreen01NEWT {
 
     @Test
     public void test01OffscreenWindow() {
-        GLWindow windowOffscreen = WindowUtilNEWT.createGLWindow(caps, width, height, false, true, false);
-        GLEventListener demo = new RedSquare();
+        GLCapabilities caps2 = WindowUtilNEWT.fixCaps(caps, false, true, false);
+
+        Display display = NewtFactory.createDisplay(null); // local display
+        Assert.assertNotNull(display);
+        Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
+        Assert.assertNotNull(screen);
+        Window window = NewtFactory.createWindow(screen, caps2, false /* undecorated */);
+        Assert.assertNotNull(window);
+        window.setSize(width, height);
+        GLWindow windowOffScreen = GLWindow.create(window);
+        Assert.assertNotNull(windowOffScreen);
+        windowOffScreen.setVisible(true);
+
         GLWindow windowOnScreen = null;
         WindowListener wl=null;
         MouseListener ml=null;
         SurfaceUpdatedListener ul=null;
 
-        WindowUtilNEWT.run(windowOffscreen, null, windowOnScreen, wl, ml, ul, 2, false /*snapshot*/, false /*debug*/);
+        WindowUtilNEWT.run(windowOffScreen, null, windowOnScreen, wl, ml, ul, 2, false /*snapshot*/, false /*debug*/);
         try {
             Thread.sleep(1000); // 1000 ms
         } catch (Exception e) {}
-        WindowUtilNEWT.shutdown(windowOffscreen, windowOnScreen);
+
+        if(null!=windowOnScreen) {
+            windowOnScreen.destroy();
+        }
+        if(null!=windowOffScreen) {
+            windowOffScreen.destroy();
+        }
+        if(null!=screen) {
+            screen.destroy();
+        }
+        if(null!=display) {
+            display.destroy();
+        }
     }
 
     @Test
     public void test02OffscreenSnapshotWithDemo() {
-        GLWindow windowOffscreen = WindowUtilNEWT.createGLWindow(caps, width, height, false, true, false);
-        GLEventListener demo = new RedSquare();
+        GLCapabilities caps2 = WindowUtilNEWT.fixCaps(caps, false, true, false);
+
+        Display display = NewtFactory.createDisplay(null); // local display
+        Assert.assertNotNull(display);
+        Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
+        Assert.assertNotNull(screen);
+        Window window = NewtFactory.createWindow(screen, caps2, false /* undecorated */);
+        Assert.assertNotNull(window);
+        window.setSize(width, height);
+        GLWindow windowOffScreen = GLWindow.create(window);
+        Assert.assertNotNull(windowOffScreen);
+        windowOffScreen.setVisible(true);
+
         GLWindow windowOnScreen = null;
         WindowListener wl=null;
         MouseListener ml=null;
         SurfaceUpdatedListener ul=null;
 
-        WindowUtilNEWT.run(windowOffscreen, demo, windowOnScreen, wl, ml, ul, 2, true /*snapshot*/, false /*debug*/);
+        GLEventListener demo = new RedSquare();
+        Assert.assertNotNull(demo);
+
+        WindowUtilNEWT.run(windowOffScreen, demo, windowOnScreen, wl, ml, ul, 2, true /*snapshot*/, false /*debug*/);
         try {
             Thread.sleep(1000); // 1000 ms
         } catch (Exception e) {}
-        WindowUtilNEWT.shutdown(windowOffscreen, windowOnScreen);
+
+        if(null!=windowOnScreen) {
+            windowOnScreen.destroy();
+        }
+        if(null!=windowOffScreen) {
+            windowOffScreen.destroy();
+        }
+        if(null!=screen) {
+            screen.destroy();
+        }
+        if(null!=display) {
+            display.destroy();
+        }
     }
 
     public static void main(String args[]) {
-        org.junit.runner.JUnitCore.main(TestOffscreen01NEWT.class.getName());
+        String tstname = TestOffscreen01NEWT.class.getName();
+        try {
+        org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner.main(new String[] {
+            tstname,
+            "filtertrace=true",
+            "haltOnError=false",
+            "haltOnFailure=false",
+            "showoutput=true",
+            "outputtoformatters=true",
+            "logfailedtests=true",
+            "logtestlistenerevents=true",
+            "formatter=org.apache.tools.ant.taskdefs.optional.junit.PlainJUnitResultFormatter",
+            "formatter=org.apache.tools.ant.taskdefs.optional.junit.XMLJUnitResultFormatter,TEST-"+tstname+".xml" } );
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 }

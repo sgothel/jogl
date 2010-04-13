@@ -35,7 +35,7 @@ package com.jogamp.newt;
 
 import javax.media.nativewindow.*;
 import com.jogamp.newt.impl.Debug;
-import com.jogamp.newt.util.EventDispatchThread;
+import com.jogamp.newt.util.EDTUtil;
 import java.util.*;
 
 public abstract class Display {
@@ -141,11 +141,16 @@ public abstract class Display {
                 display.refCount=1;
 
                 if(NewtFactory.useEDT()) {
-                    Thread current = Thread.currentThread();
-                    display.eventDispatchThread = new EventDispatchThread(display, current.getThreadGroup(), current.getName());
-                    display.eventDispatchThread.start();
                     final Display f_dpy = display;
-                    display.eventDispatchThread.invokeAndWait(new Runnable() {
+                    Thread current = Thread.currentThread();
+                    display.edtUtil = new EDTUtil(current.getThreadGroup(), 
+                                                  "Display_"+display.getName()+"-"+current.getName(),
+                                                  new Runnable() {
+                                                    public void run() {
+                                                        f_dpy.pumpMessagesImpl();
+                                                    } } );
+                    display.edt = display.edtUtil.start();
+                    display.edtUtil.invokeAndWait(new Runnable() {
                         public void run() {
                             f_dpy.createNative();
                         }
@@ -189,7 +194,7 @@ public abstract class Display {
         }
     }
 
-    public EventDispatchThread getEDT() { return eventDispatchThread; }
+    public EDTUtil getEDTUtil() { return edtUtil; }
 
     public synchronized void destroy() {
         if(DEBUG) {
@@ -201,10 +206,10 @@ public abstract class Display {
             if(DEBUG) {
                 System.err.println("Display.destroy("+name+") REMOVE: "+this+" "+Thread.currentThread());
             }
-            if(null!=eventDispatchThread) {
+            if(null!=edtUtil) {
                 final Display f_dpy = this;
-                final EventDispatchThread f_edt = eventDispatchThread;
-                eventDispatchThread.invokeAndWait(new Runnable() {
+                final EDTUtil f_edt = edtUtil;
+                edtUtil.invokeAndWait(new Runnable() {
                     public void run() {
                         f_dpy.closeNative();
                         f_edt.stop();
@@ -213,9 +218,9 @@ public abstract class Display {
             } else {
                 closeNative();
             }
-            if(null!=eventDispatchThread) { 
-                eventDispatchThread.waitUntilStopped();
-                eventDispatchThread=null;
+            if(null!=edtUtil) { 
+                edtUtil.waitUntilStopped();
+                edtUtil=null;
             }
             aDevice = null;
         } else {
@@ -246,14 +251,13 @@ public abstract class Display {
         return aDevice;
     }
 
-    public void pumpMessages() {
-        if(null!=eventDispatchThread) { 
-            dispatchMessages();
-        } else {
-            synchronized(this) {
-                dispatchMessages();
-            }
-        }
+    public synchronized void pumpMessages() {
+        pumpMessagesImpl();
+    }
+
+    private void pumpMessagesImpl() {
+        if(0==refCount) return;
+        dispatchMessages();
     }
 
     public String toString() {
@@ -268,7 +272,8 @@ public abstract class Display {
     /** Default impl. nop - Currently only X11 needs a Display lock */
     protected void unlockDisplay() { }
 
-    protected EventDispatchThread eventDispatchThread = null;
+    protected EDTUtil edtUtil = null;
+    protected Thread  edt = null;
     protected String name;
     protected int refCount;
     protected AbstractGraphicsDevice aDevice;

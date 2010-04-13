@@ -34,6 +34,8 @@ package com.jogamp.test.junit.jogl.offscreen;
 
 import com.jogamp.test.junit.util.*;
 
+import org.junit.Assert;
+
 import java.lang.reflect.*;
 import javax.media.opengl.*;
 import javax.media.nativewindow.*;
@@ -42,52 +44,29 @@ import com.jogamp.newt.opengl.*;
 
 public class WindowUtilNEWT {
 
-    public static Window createWindow(GLCapabilities caps, int w, int h, boolean onscreen, boolean pbuffer, boolean undecorated) {
+    public static GLCapabilities fixCaps(GLCapabilities caps, boolean onscreen, boolean pbuffer, boolean undecorated) {
         GLCapabilities caps2 = (GLCapabilities) caps.clone();
         caps2.setOnscreen(onscreen);
         caps2.setPBuffer(!onscreen && pbuffer);
         caps2.setDoubleBuffered(!onscreen);
-
-        Display display = NewtFactory.createDisplay(null); // local display
-        Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
-        Window window = NewtFactory.createWindow(screen, caps2, onscreen && undecorated);
-
-        GLCapabilities glCaps = (GLCapabilities) window.getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities();
-
-        GLDrawableFactory factory = GLDrawableFactory.getFactory(glCaps.getGLProfile());
-        GLDrawable drawable = factory.createGLDrawable(window);
-        drawable.setRealized(true);
-        GLContext context = drawable.createContext(null);
-
-        window.setSize(w, h);
-        window.setVisible(true);
-        return window;
+        return caps2;
     }
 
-    public static GLWindow createGLWindow(GLCapabilities caps, int w, int h, boolean onscreen, boolean pbuffer, boolean undecorated) {
-        GLCapabilities caps2 = (GLCapabilities) caps.clone();
-        caps2.setOnscreen(onscreen);
-        caps2.setPBuffer(!onscreen && pbuffer);
-        caps2.setDoubleBuffered(!onscreen);
-        GLWindow window = GLWindow.create(caps2, onscreen && undecorated);
-        window.setSize(w, h);
-        window.setVisible(true);
-        return window;
-    }
-
-    public static void run(GLWindow windowOffscreen, GLEventListener demo, 
+    public static void run(GLWindow windowOffScreen, GLEventListener demo, 
                            GLWindow windowOnScreen, WindowListener wl, MouseListener ml, 
                            SurfaceUpdatedListener ul, int frames, boolean snapshot, boolean debug) {
         try {
+            Assert.assertNotNull(windowOffScreen);
+
             if(debug && null!=demo) {
                 MiscUtils.setField(demo, "glDebug", new Boolean(true));
                 MiscUtils.setField(demo, "glTrace", new Boolean(true));
             }
             if(null!=demo) {
-                if(!MiscUtils.setField(demo, "window", windowOffscreen)) {
-                    MiscUtils.setField(demo, "glWindow", windowOffscreen);
+                if(!MiscUtils.setField(demo, "window", windowOffScreen)) {
+                    MiscUtils.setField(demo, "glWindow", windowOffScreen);
                 }
-                windowOffscreen.addGLEventListener(demo);
+                windowOffScreen.addGLEventListener(demo);
             }
 
             if ( null != windowOnScreen ) {
@@ -100,47 +79,35 @@ public class WindowUtilNEWT {
                 windowOnScreen.setVisible(true);
             }
 
-            GLDrawable readDrawable = windowOffscreen.getContext().getGLDrawable() ;
+            GLDrawable readDrawable = windowOffScreen.getContext().getGLDrawable() ;
 
             if ( null == windowOnScreen ) {
                 if(snapshot) {
                     Surface2File s2f = new Surface2File();
-                    windowOffscreen.addSurfaceUpdatedListener(s2f);
+                    windowOffScreen.addSurfaceUpdatedListener(s2f);
                 }
             } else {
                 ReadBuffer2Screen readDemo = new ReadBuffer2Screen( readDrawable ) ;
                 windowOnScreen.addGLEventListener(readDemo);
             }
             if(null!=ul) {
-                windowOffscreen.addSurfaceUpdatedListener(ul);
+                windowOffScreen.addSurfaceUpdatedListener(ul);
             }
 
             if(debug) {
                 System.out.println("+++++++++++++++++++++++++++");
-                System.out.println(windowOffscreen);
+                System.out.println(windowOffScreen);
                 System.out.println("+++++++++++++++++++++++++++");
             }
 
-            while ( windowOffscreen.getTotalFrames() < frames) {
-                windowOffscreen.display();
+            while ( windowOffScreen.getTotalFrames() < frames) {
+                windowOffScreen.display();
             }
-            windowOffscreen.removeAllSurfaceUpdatedListener();
+            windowOffScreen.removeAllSurfaceUpdatedListener();
 
         } catch (GLException e) {
             e.printStackTrace();
         }
     }
 
-    public static void shutdown(GLWindow windowOffscreen, GLWindow windowOnscreen) {
-        // Shut things down cooperatively
-        if(null!=windowOnscreen) {
-            windowOnscreen.destroy();
-        }
-        if(null!=windowOffscreen) {
-            windowOffscreen.destroy();
-        }
-        if(null!=windowOnscreen) {
-            windowOnscreen.getFactory().shutdown();
-        }
-    }
 }

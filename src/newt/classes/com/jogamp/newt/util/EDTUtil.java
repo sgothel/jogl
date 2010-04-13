@@ -40,30 +40,30 @@ import com.jogamp.newt.Display;
 import com.jogamp.newt.impl.Debug;
 import java.util.*;
 
-public class EventDispatchThread {
+public class EDTUtil {
     public static final boolean DEBUG = Debug.debug("EDT");
 
     private ThreadGroup threadGroup; 
     private volatile boolean shouldStop = false;
-    private TaskWorker taskWorker = null;
-    private Object taskWorkerLock = new Object();
+    private EventDispatchThread edt = null;
+    private Object edtLock = new Object();
     private ArrayList tasks = new ArrayList(); // one shot tasks
-    private Display display = null;
     private String name;
-    private long edtPollGranularity = 10;
+    private Runnable pumpMessages;
+    private long edtPollGranularity = 10; // 10ms, 1/100s
 
-    public EventDispatchThread(Display display, ThreadGroup tg, String name) {
-        this.display = display;
+    public EDTUtil(ThreadGroup tg, String name, Runnable pumpMessages) {
         this.threadGroup = tg;
-        this.name=new String("EDT-Display_"+display.getName()+"-"+name);
+        this.name=new String("EDT-"+name);
+        this.pumpMessages=pumpMessages;
     }
 
     public String getName() { return name; }
 
     public ThreadGroup getThreadGroup() { return threadGroup; }
 
-    public void start() {
-        start(false);
+    public Thread start() {
+        return start(false);
     }
 
     /**
@@ -75,52 +75,56 @@ public class EventDispatchThread {
      *         Usefull in combination with externalStimuli=true,
      *         so an external stimuli can call it.
      */
-    public Runnable start(boolean externalStimuli) {
-        synchronized(taskWorkerLock) { 
-            if(null==taskWorker) {
-                taskWorker = new TaskWorker(threadGroup, name);
+    public Thread start(boolean externalStimuli) {
+        synchronized(edtLock) { 
+            if(null==edt) {
+                edt = new EventDispatchThread(threadGroup, name);
             }
-            if(!taskWorker.isRunning()) {
+            if(!edt.isRunning()) {
                 shouldStop = false;
-                taskWorker.start(externalStimuli);
+                edt.start(externalStimuli);
             }
-            taskWorkerLock.notifyAll();
+            edtLock.notifyAll();
         }
-        return taskWorker;
+        return edt;
     }
 
     public void stop() {
-        synchronized(taskWorkerLock) { 
-            if(null!=taskWorker && taskWorker.isRunning()) {
+        synchronized(edtLock) { 
+            if(null!=edt && edt.isRunning()) {
                 shouldStop = true;
             }
-            taskWorkerLock.notifyAll();
+            edtLock.notifyAll();
             if(DEBUG) {
                 System.out.println(Thread.currentThread()+": EDT signal STOP");
             }
         }
     }
 
+    public Thread getEDT() {
+        return edt;
+    }
+
     public boolean isThreadEDT(Thread thread) {
-        return null!=taskWorker && taskWorker == thread;
+        return null!=edt && edt == thread;
     }
 
     public boolean isCurrentThreadEDT() {
-        return null!=taskWorker && taskWorker == Thread.currentThread();
+        return null!=edt && edt == Thread.currentThread();
     }
 
     public boolean isRunning() {
-        return null!=taskWorker && taskWorker.isRunning() ;
+        return null!=edt && edt.isRunning() ;
     }
 
     public void invokeLater(Runnable task) {
         if(task == null) {
             return;
         }
-        synchronized(taskWorkerLock) {
-            if(null!=taskWorker && taskWorker.isRunning() && taskWorker != Thread.currentThread() ) {
+        synchronized(edtLock) {
+            if(null!=edt && edt.isRunning() && edt != Thread.currentThread() ) {
                 tasks.add(task);
-                taskWorkerLock.notifyAll();
+                edtLock.notifyAll();
             } else {
                 // if !running or isEDTThread, do it right away
                 task.run();
@@ -137,10 +141,10 @@ public class EventDispatchThread {
     }
 
     public void waitOnWorker() {
-        synchronized(taskWorkerLock) {
-            if(null!=taskWorker && taskWorker.isRunning() && tasks.size()>0 && taskWorker != Thread.currentThread() ) {
+        synchronized(edtLock) {
+            if(null!=edt && edt.isRunning() && tasks.size()>0 && edt != Thread.currentThread() ) {
                 try {
-                    taskWorkerLock.wait();
+                    edtLock.wait();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -149,10 +153,10 @@ public class EventDispatchThread {
     }
 
     public void waitUntilStopped() {
-        synchronized(taskWorkerLock) {
-            while(null!=taskWorker && taskWorker.isRunning() && taskWorker != Thread.currentThread() ) {
+        synchronized(edtLock) {
+            while(null!=edt && edt.isRunning() && edt != Thread.currentThread() ) {
                 try {
-                    taskWorkerLock.wait();
+                    edtLock.wait();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -160,11 +164,11 @@ public class EventDispatchThread {
         }
     }
 
-    class TaskWorker extends Thread {
+    class EventDispatchThread extends Thread {
         boolean isRunning = false;
         boolean externalStimuli = false;
 
-        public TaskWorker(ThreadGroup tg, String name) {
+        public EventDispatchThread(ThreadGroup tg, String name) {
             super(tg, name);
         }
 
@@ -183,7 +187,7 @@ public class EventDispatchThread {
         }
 
         /** 
-         * Utilizing taskWorkerLock only for local resources and task execution,
+         * Utilizing edtLock only for local resources and task execution,
          * not for event dispatching.
          */
         public void run() {
@@ -194,26 +198,26 @@ public class EventDispatchThread {
                 try {
                     // wait for something todo
                     while(!shouldStop && tasks.size()==0) {
-                        synchronized(taskWorkerLock) {
+                        synchronized(edtLock) {
                             if(!shouldStop && tasks.size()==0) {
                                 try {
-                                    taskWorkerLock.wait(edtPollGranularity);
+                                    edtLock.wait(edtPollGranularity);
                                 } catch (InterruptedException e) {
                                     e.printStackTrace();
                                 }
                             }
                         }
-                        display.pumpMessages(); // event dispatch
+                        pumpMessages.run(); // event dispatch
                     }
                     if(!shouldStop && tasks.size()>0) {
-                        synchronized(taskWorkerLock) {
+                        synchronized(edtLock) {
                             if(!shouldStop && tasks.size()>0) {
                                 Runnable task = (Runnable) tasks.remove(0);
                                 task.run();
-                                taskWorkerLock.notifyAll();
+                                edtLock.notifyAll();
                             }
                         }
-                        display.pumpMessages(); // event dispatch
+                        pumpMessages.run(); // event dispatch
                     }
                 } catch (Throwable t) {
                     // handle errors ..
@@ -227,8 +231,8 @@ public class EventDispatchThread {
                 isRunning = !shouldStop;
             }
             if(!isRunning) {
-                synchronized(taskWorkerLock) {
-                    taskWorkerLock.notifyAll();
+                synchronized(edtLock) {
+                    edtLock.notifyAll();
                 }
             }
             if(DEBUG) {

@@ -34,7 +34,7 @@
 package com.jogamp.newt;
 
 import com.jogamp.newt.impl.Debug;
-import com.jogamp.newt.util.EventDispatchThread;
+import com.jogamp.newt.util.EDTUtil;
 
 import javax.media.nativewindow.*;
 import com.jogamp.nativewindow.impl.NWReflection;
@@ -98,10 +98,10 @@ public abstract class Window implements NativeWindow
             window.invalidate();
             window.screen   = screen;
             window.setUndecorated(undecorated||0!=parentWindowHandle);
-            EventDispatchThread edt = screen.getDisplay().getEDT();
-            if(null!=edt) {
+            EDTUtil edtUtil = screen.getDisplay().getEDTUtil();
+            if(null!=edtUtil) {
                 final Window f_win = window;
-                edt.invokeAndWait(new Runnable() {
+                edtUtil.invokeAndWait(new Runnable() {
                     public void run() {
                         f_win.createNative(parentWindowHandle, caps);
                     }
@@ -131,10 +131,10 @@ public abstract class Window implements NativeWindow
             window.invalidate();
             window.screen   = screen;
             window.setUndecorated(undecorated);
-            EventDispatchThread edt = screen.getDisplay().getEDT();
-            if(null!=edt) {
+            EDTUtil edtUtil = screen.getDisplay().getEDTUtil();
+            if(null!=edtUtil) {
                 final Window f_win = window;
-                edt.invokeAndWait(new Runnable() {
+                edtUtil.invokeAndWait(new Runnable() {
                     public void run() {
                         f_win.createNative(0, caps);
                     }
@@ -212,15 +212,15 @@ public abstract class Window implements NativeWindow
     public String toString() {
         StringBuffer sb = new StringBuffer();
 
-        sb.append(getClass().getName()+"[config "+config+
-                    ", windowHandle "+toHexString(getWindowHandle())+
-                    ", surfaceHandle "+toHexString(getSurfaceHandle())+
-                    ", pos "+getX()+"/"+getY()+", size "+getWidth()+"x"+getHeight()+
-                    ", visible "+isVisible()+
-                    ", undecorated "+undecorated+
-                    ", fullscreen "+fullscreen+
+        sb.append(getClass().getName()+"[Config "+config+
+                    ", WindowHandle "+toHexString(getWindowHandle())+
+                    ", SurfaceHandle "+toHexString(getSurfaceHandle())+
+                    ", Pos "+getX()+"/"+getY()+", size "+getWidth()+"x"+getHeight()+
+                    ", Visible "+isVisible()+
+                    ", Undecorated "+undecorated+
+                    ", Fullscreen "+fullscreen+
                     ", "+screen+
-                    ", wrappedWindow "+getWrappedWindow());
+                    ", WrappedWindow "+getWrappedWindow());
 
         sb.append(", SurfaceUpdatedListeners num "+surfaceUpdatedListeners.size()+" [");
         for (Iterator iter = surfaceUpdatedListeners.iterator(); iter.hasNext(); ) {
@@ -343,25 +343,28 @@ public abstract class Window implements NativeWindow
             keyListeners = new ArrayList();
         }
         synchronized(this) {
-            destructionLock.lock();
             try {
-                Screen scr = screen;
-                Display dpy = (null!=screen) ? screen.getDisplay() : null;
-                EventDispatchThread edt = (null!=dpy) ? dpy.getEDT() : null;
-                if(null!=edt) {
-                    final Window f_win = this;
-                    edt.invokeAndWait(new Runnable() {
-                        public void run() {
-                            f_win.closeNative();
-                        }
-                    } );
-                } else {
-                    closeNative();
+                destructionLock.lock();
+                Display dpy = null;
+                if( null != screen && 0 != windowHandle ) {
+                    Screen scr = screen;
+                    dpy = (null!=screen) ? screen.getDisplay() : null;
+                    EDTUtil edtUtil = (null!=dpy) ? dpy.getEDTUtil() : null;
+                    if(null!=edtUtil) {
+                        final Window f_win = this;
+                        edtUtil.invokeAndWait(new Runnable() {
+                            public void run() {
+                                f_win.closeNative();
+                            }
+                        } );
+                    } else {
+                        closeNative();
+                    }
                 }
                 invalidate();
                 if(deep) {
-                    if(null!=scr) {
-                        scr.destroy();
+                    if(null!=screen) {
+                        screen.destroy();
                     }
                     if(null!=dpy) {
                         dpy.destroy();
