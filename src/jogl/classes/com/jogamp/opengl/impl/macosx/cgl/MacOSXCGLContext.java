@@ -84,16 +84,10 @@ public abstract class MacOSXCGLContext extends GLContextImpl
     return cglExtProcAddressTable;
   }
 
-  protected String mapToRealGLFunctionName(String glFunctionName)
-  {
-    return glFunctionName;
-  }
-	
-  protected String mapToRealGLExtensionName(String glExtensionName)
-  {
-    return glExtensionName;
-  }
-	
+  protected Map/*<String, String>*/ getFunctionNameMap() { return null; }
+
+  protected Map/*<String, String>*/ getExtensionNameMap() { return null; }
+
   protected abstract boolean create();
 
   /**

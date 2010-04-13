@@ -113,11 +113,11 @@ public class X11Util {
             return 0;
         }
         long dpy = namedDpy.getHandle();
-        X11Lib.XCloseDisplay(dpy);
         if(DEBUG) {
-            Exception e = new Exception("X11Util.Display: Closed TLS Display("+name+") with handle 0x"+Long.toHexString(dpy)+" in thread "+Thread.currentThread().getName());
+            Exception e = new Exception("X11Util.Display: Closing TLS Display("+name+") with handle 0x"+Long.toHexString(dpy)+" in thread "+Thread.currentThread().getName());
             e.printStackTrace();
         }
+        X11Lib.XCloseDisplay(dpy);
         return dpy;
     }
 

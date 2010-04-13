@@ -118,21 +118,9 @@ public class WindowsWGLContext extends GLContextImpl {
     return wglExtProcAddressTable;
   }
 
-  protected String mapToRealGLFunctionName(String glFunctionName) {
-    String lookup = (String) functionNameMap.get(glFunctionName);
-    if (lookup != null) {
-      return lookup;
-    }
-    return glFunctionName;
-  }
+  protected Map/*<String, String>*/ getFunctionNameMap() { return functionNameMap; }
 
-  protected String mapToRealGLExtensionName(String glExtensionName) {
-    String lookup = (String) extensionNameMap.get(glExtensionName);
-    if (lookup != null) {
-      return lookup;
-    }
-    return glExtensionName;
-  }
+  protected Map/*<String, String>*/ getExtensionNameMap() { return extensionNameMap; }
 
   /**
    * Creates and initializes an appropriate OpenGL context. Should only be
@@ -306,7 +294,7 @@ public class WindowsWGLContext extends GLContextImpl {
 
     if (WGL.wglGetCurrentContext() != hglrc) {
       if (!wglMakeContextCurrent(drawable.getNativeWindow().getSurfaceHandle(), drawableRead.getNativeWindow().getSurfaceHandle(), hglrc)) {
-        throw new GLException("Error making context current: 0x" + Integer.toHexString(WGL.GetLastError()));
+        throw new GLException("Error making context current: 0x" + Integer.toHexString(WGL.GetLastError()) + ", " + this);
       } else {
         if (DEBUG && VERBOSE) {
           System.err.println(getThreadName() + ": wglMakeCurrent(hdc " + toHexString(drawable.getNativeWindow().getSurfaceHandle()) +

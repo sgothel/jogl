@@ -24,3 +24,8 @@
   /** Entry point to C language function: <code> XVisualInfo *  XGetVisualInfo(Display * , long, XVisualInfo * , int * ); </code>    */
   private static native java.nio.ByteBuffer XGetVisualInfoCopied1(long arg0, long arg1, java.nio.ByteBuffer arg2, Object arg3, int arg3_byte_offset);
 
+  public static native long XOpenDisplay(String arg0);
+  public static native int XCloseDisplay(long display);
+  public static native long dlopen(String name);
+  public static native long dlsym(String name);
+

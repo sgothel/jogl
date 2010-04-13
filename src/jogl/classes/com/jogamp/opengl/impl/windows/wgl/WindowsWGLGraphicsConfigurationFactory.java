@@ -58,22 +58,17 @@ public class WindowsWGLGraphicsConfigurationFactory extends GraphicsConfiguratio
         return chooseGraphicsConfigurationStatic(caps, chooser, absScreen);
     }
 
-    protected static WindowsWGLGraphicsConfiguration createDefaultGraphicsConfiguration(AbstractGraphicsScreen absScreen, boolean onscreen, boolean usePBuffer) {
-        GLCapabilities caps = new GLCapabilities(null);
+    protected static WindowsWGLGraphicsConfiguration createDefaultGraphicsConfiguration(GLProfile glp, AbstractGraphicsScreen absScreen, boolean onscreen, boolean usePBuffer) {
+        GLCapabilities caps = new GLCapabilities(glp);
         caps.setDoubleBuffered(onscreen); // FIXME DBLBUFOFFSCRN
         caps.setOnscreen  (onscreen);
         caps.setPBuffer   (usePBuffer);
 
-        GLCapabilities caps2 = (GLCapabilities) caps.clone();
-        if(!caps2.isOnscreen()) {
-            // OFFSCREEN !DOUBLE_BUFFER // FIXME DBLBUFOFFSCRN
-            caps2.setDoubleBuffered(false);
-        }
-
         if(null==absScreen) {
             absScreen = DefaultGraphicsScreen.createScreenDevice(0);
         }
-        return new WindowsWGLGraphicsConfiguration(absScreen, caps2, caps, WindowsWGLGraphicsConfiguration.GLCapabilities2PFD(caps2), -1, null);
+        return new WindowsWGLGraphicsConfiguration(absScreen, caps, caps, WindowsWGLGraphicsConfiguration.GLCapabilities2PFD(caps), -1, null);
+
     }
 
     protected static WindowsWGLGraphicsConfiguration chooseGraphicsConfigurationStatic(GLCapabilities caps,
@@ -143,7 +138,7 @@ public class WindowsWGLGraphicsConfigurationFactory extends GraphicsConfiguratio
           GLContextImpl     dummyContext  = null;
           WGLExt            dummyWGLExt   = null;
           if (capabilities.getSampleBuffers()) {
-              dummyDrawable = new WindowsDummyWGLDrawable(factory);
+              dummyDrawable = new WindowsDummyWGLDrawable(factory, glProfile);
               dummyContext  = (GLContextImpl) dummyDrawable.createContext(null);
               if (dummyContext != null) {
                 dummyContext.makeCurrent();

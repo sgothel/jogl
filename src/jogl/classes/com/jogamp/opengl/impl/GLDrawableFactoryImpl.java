@@ -54,6 +54,9 @@ import java.lang.reflect.*;
 public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
   protected static final boolean DEBUG = Debug.debug("GLDrawableFactory");
 
+  public void shutdown() { 
+  }
+
   //---------------------------------------------------------------------------
   // Dispatching GLDrawable construction in respect to the NativeWindow Capabilities
   //
@@ -76,7 +79,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
         if( ! ( target instanceof SurfaceChangeable ) ) {
             throw new IllegalArgumentException("Passed NativeWindow must implement SurfaceChangeable for offscreen: "+target);
         }
-        if(caps.isPBuffer() && canCreateGLPbuffer()) {
+        if(caps.isPBuffer()) {
             if(DEBUG) {
                 System.out.println("GLDrawableFactoryImpl.createGLDrawable -> PbufferDrawable: "+target);
             }
@@ -111,7 +114,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
   protected abstract GLDrawableImpl createGLPbufferDrawableImpl(NativeWindow target);
 
   protected GLDrawableImpl createGLPbufferDrawable(NativeWindow target) {
-    if (!canCreateGLPbuffer()) {
+    if (!canCreateGLPbuffer(target.getGraphicsConfiguration().getNativeGraphicsConfiguration().getScreen().getDevice())) {
         throw new GLException("Pbuffer support not available with current graphics card");
     }
     return createGLPbufferDrawableImpl(target);
@@ -215,7 +218,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
   // implement this functionality on all other platforms
   //
 
-  public abstract boolean canCreateContextOnJava2DSurface();
+  public abstract boolean canCreateContextOnJava2DSurface(AbstractGraphicsDevice device);
 
   public abstract GLContext createContextOnJava2DSurface(Object graphics, GLContext shareWith)
     throws GLException;
@@ -312,7 +315,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
       throw new IllegalArgumentException("Should not call this unless setDisplayGamma called first");
     }
     resetGammaRamp(originalGammaRamp);
-    unregisterGammeShutdownHook();
+    unregisterGammaShutdownHook();
   }
 
   //------------------------------------------------------
@@ -364,7 +367,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
     gammaShutdownHookRegistered = true;
   }
 
-  private synchronized void unregisterGammeShutdownHook() {
+  private synchronized void unregisterGammaShutdownHook() {
     if (!gammaShutdownHookRegistered)
       return;
     if (gammaShutdownHook == null) {

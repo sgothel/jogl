@@ -113,7 +113,7 @@
                  relative="true"
                  failonerror="false">
                 <env key="${system.env.library.path}" path="${obj.all.paths}"/>
-                <env key="CLASSPATH" value="${ant.home}/lib/ant.jar${path.separator}${ant.home}/lib/ant-junit.jar${path.separator}${junit_jogl_newt.run.jars}"/>
+                <env key="CLASSPATH" value="${junit_jogl_newt.run.jars}"/>
                 <arg value="-Djava.library.path=${obj.all.paths}"/>
                 <arg line="${jvmarg.newt}"/>
                 <arg line="com.jogamp.newt.util.MainThread"/>

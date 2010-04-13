@@ -46,8 +46,8 @@ import com.jogamp.nativewindow.impl.NullWindow;
 public class WindowsDummyWGLDrawable extends WindowsWGLDrawable {
   private long hwnd, hdc;
 
-  public WindowsDummyWGLDrawable(GLDrawableFactory factory) {
-    super(factory, new NullWindow(WindowsWGLGraphicsConfigurationFactory.createDefaultGraphicsConfiguration(null, true, true)), true);
+  public WindowsDummyWGLDrawable(GLDrawableFactory factory, GLProfile glp) {
+    super(factory, new NullWindow(WindowsWGLGraphicsConfigurationFactory.createDefaultGraphicsConfiguration(glp, null, true, true)), true);
     // All entries to CreateDummyWindow must synchronize on one object
     // to avoid accidentally registering the dummy window class twice
     synchronized (WindowsDummyWGLDrawable.class) {
@@ -56,8 +56,9 @@ public class WindowsDummyWGLDrawable extends WindowsWGLDrawable {
     hdc = WGL.GetDC(hwnd);
     NullWindow nw = (NullWindow) getNativeWindow();
     nw.setSurfaceHandle(hdc);
+    WindowsWGLGraphicsConfiguration config = (WindowsWGLGraphicsConfiguration)nw.getGraphicsConfiguration().getNativeGraphicsConfiguration();
     // Choose a (hopefully hardware-accelerated) OpenGL pixel format for this device context
-    GLCapabilities caps = new GLCapabilities(null);
+    GLCapabilities caps = (GLCapabilities) config.getChosenCapabilities();
     caps.setDepthBits(16);
     PIXELFORMATDESCRIPTOR pfd = WindowsWGLGraphicsConfiguration.GLCapabilities2PFD(caps);
     int pixelFormat = WGL.ChoosePixelFormat(hdc, pfd);

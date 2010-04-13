@@ -173,8 +173,7 @@ public abstract class GLDrawableFactory {
       destroy any GLContexts and GLDrawables that have been created
       and are still in use. No further OpenGL calls may be made after
       shutting down the GLDrawableFactory. */
-  public void shutdown() {
-  }
+  public abstract void shutdown();
 
   //----------------------------------------------------------------------
   // Methods to create high-level objects
@@ -218,7 +217,7 @@ public abstract class GLDrawableFactory {
    * Returns true if it is possible to create a GLPbuffer. Some older
    * graphics cards do not have this capability.
    */
-  public abstract boolean canCreateGLPbuffer();
+  public abstract boolean canCreateGLPbuffer(AbstractGraphicsDevice device);
 
   /**
    * Creates a Pbuffer GLDrawable with the given capabilites and dimensions. <P>
@@ -280,7 +279,7 @@ public abstract class GLDrawableFactory {
    * Returns true if it is possible to create an external GLDrawable
    * object via {@link #createExternalGLDrawable}.
    */
-  public abstract boolean canCreateExternalGLDrawable();
+  public abstract boolean canCreateExternalGLDrawable(AbstractGraphicsDevice device);
 
   /**
    * <P> Creates a {@link GLDrawable} object representing an existing

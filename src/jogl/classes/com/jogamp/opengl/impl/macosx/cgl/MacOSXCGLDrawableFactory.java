@@ -71,7 +71,7 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl implements D
     return new MacOSXOffscreenCGLDrawable(this, target);
   }
 
-  public boolean canCreateGLPbuffer() {
+  public boolean canCreateGLPbuffer(AbstractGraphicsDevice device) {
     return true;
   }
 
@@ -103,7 +103,7 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl implements D
     return MacOSXExternalCGLContext.create(this, null);
   }
 
-  public boolean canCreateExternalGLDrawable() {
+  public boolean canCreateExternalGLDrawable(AbstractGraphicsDevice device) {
     return false;
   }
 
@@ -121,7 +121,7 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl implements D
     return CGL.getProcAddress(glFuncName);
   }
 
-  public boolean canCreateContextOnJava2DSurface() {
+  public boolean canCreateContextOnJava2DSurface(AbstractGraphicsDevice device) {
     return false;
   }
 

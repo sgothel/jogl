@@ -167,3 +167,64 @@ Java_com_jogamp_nativewindow_impl_x11_X11Lib_XGetVisualInfoCopied1__JJLjava_nio_
   return jbyteCopy;
 }
 
+
+static XIOErrorHandler origIOErrorHandler = NULL;
+
+static int displayIOErrorHandler(Display *dpy)
+{
+    fprintf(stderr, "Fatal: Nativewindow X11 IOError: Display %p not available\n", dpy);
+    origIOErrorHandler(dpy);
+    return 0;
+}
+
+static void displayIOErrorHandlerEnable(int onoff) {
+    if(onoff) {
+        if(NULL==origIOErrorHandler) {
+            origIOErrorHandler = XSetIOErrorHandler(displayIOErrorHandler);
+        }
+    } else {
+        XSetIOErrorHandler(origIOErrorHandler);
+        origIOErrorHandler = NULL;
+    }
+}
+
+/*   Java->C glue code:
+ *   Java package: com.jogamp.nativewindow.impl.x11.X11Lib
+ *    Java method: int XCloseDisplay(long display)
+ *     C function: int XCloseDisplay(Display *  display);
+ */
+JNIEXPORT jint JNICALL 
+Java_com_jogamp_nativewindow_impl_x11_X11Lib_XCloseDisplay__J(JNIEnv *env, jclass _unused, jlong display) {
+  int _res;
+  // fprintf(stderr, "X11Lib.XCloseDisplay: %p\n", (Display *) (intptr_t) display);
+  displayIOErrorHandlerEnable(1);
+  _res = XCloseDisplay((Display *) (intptr_t) display);
+  displayIOErrorHandlerEnable(0);
+  return _res;
+}
+
+/*   Java->C glue code:
+ *   Java package: com.jogamp.nativewindow.impl.x11.X11Lib
+ *    Java method: long XOpenDisplay(java.lang.String arg0)
+ *     C function: Display *  XOpenDisplay(const char * );
+ */
+JNIEXPORT jlong JNICALL 
+Java_com_jogamp_nativewindow_impl_x11_X11Lib_XOpenDisplay__Ljava_lang_String_2(JNIEnv *env, jclass _unused, jstring arg0) {
+  const char* _strchars_arg0 = NULL;
+  Display *  _res;
+  if ( NULL != arg0 ) {
+    _strchars_arg0 = (*env)->GetStringUTFChars(env, arg0, (jboolean*)NULL);
+  if ( NULL == _strchars_arg0 ) {
+      (*env)->ThrowNew(env, (*env)->FindClass(env, "java/lang/OutOfMemoryError"),
+                       "Failed to get UTF-8 chars for argument \"arg0\" in native dispatcher for \"XOpenDisplay\"");
+      return 0;
+    }
+  }
+  _res = XOpenDisplay((char *) _strchars_arg0);
+  // fprintf(stderr, "X11Lib.XOpenDisplay: %s -> %p\n", _strchars_arg0, _res);
+  if ( NULL != arg0 ) {
+    (*env)->ReleaseStringUTFChars(env, arg0, _strchars_arg0);
+  }
+  return (jlong) (intptr_t) _res;
+}
+

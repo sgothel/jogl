@@ -54,6 +54,7 @@ public abstract class X11GLXContext extends GLContextImpl {
   private boolean glXQueryExtensionsStringInitialized;
   private boolean glXQueryExtensionsStringAvailable;
   private static final Map/*<String, String>*/ functionNameMap;
+  private static final Map/*<String, String>*/ extensionNameMap;
   private GLXExt glXExt;
   // Table that holds the addresses of the native C-language entry points for
   // GLX extension functions.
@@ -63,6 +64,10 @@ public abstract class X11GLXContext extends GLContextImpl {
     functionNameMap = new HashMap();
     functionNameMap.put("glAllocateMemoryNV", "glXAllocateMemoryNV");
     functionNameMap.put("glFreeMemoryNV", "glXFreeMemoryNV");
+
+    extensionNameMap = new HashMap();
+    extensionNameMap.put("GL_ARB_pbuffer",      "GLX_SGIX_pbuffer");
+    extensionNameMap.put("GL_ARB_pixel_format", "GLX_SGIX_pbuffer"); // good enough
   }
 
   public X11GLXContext(GLDrawableImpl drawable, GLDrawableImpl drawableRead,
@@ -94,17 +99,9 @@ public abstract class X11GLXContext extends GLContextImpl {
     return glXExt;
   }
 
-  protected String mapToRealGLFunctionName(String glFunctionName) {
-    String lookup = (String) functionNameMap.get(glFunctionName);
-    if (lookup != null) {
-      return lookup;
-    }
-    return glFunctionName;
-  }
+  protected Map/*<String, String>*/ getFunctionNameMap() { return functionNameMap; }
 
-  protected String mapToRealGLExtensionName(String glExtensionName) {
-    return glExtensionName;
-  }
+  protected Map/*<String, String>*/ getExtensionNameMap() { return extensionNameMap; }
 
   /** Helper routine which usually just turns around and calls
    * createContext (except for pbuffers, which use a different context
@@ -363,7 +360,7 @@ public abstract class X11GLXContext extends GLContextImpl {
                                            drawable.getNativeWindow().getSurfaceHandle(), 
                                            drawableRead.getNativeWindow().getSurfaceHandle(), 
                                            context)) {
-              throw new GLException("Error making context current");
+              throw new GLException("Error making context current: "+this);
             }
             if (DEBUG && (VERBOSE || created)) {
               System.err.println(getThreadName() + ": glXMakeCurrent(display " + 
@@ -485,7 +482,8 @@ public abstract class X11GLXContext extends GLContextImpl {
   public boolean isExtensionAvailable(String glExtensionName) {
     if (glExtensionName.equals("GL_ARB_pbuffer") ||
         glExtensionName.equals("GL_ARB_pixel_format")) {
-      return getGLDrawable().getFactory().canCreateGLPbuffer();
+      return getGLDrawable().getFactory().canCreateGLPbuffer(
+          drawable.getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration().getScreen().getDevice() );
     }
     return super.isExtensionAvailable(glExtensionName);
   }

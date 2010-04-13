@@ -73,14 +73,29 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
     return new X11OffscreenGLXDrawable(this, target);
   }
 
-  private boolean pbufferSupportInitialized = false;
-  private boolean canCreateGLPbuffer = false;
-  public boolean canCreateGLPbuffer() {
-    if (!pbufferSupportInitialized) {
-        long display = X11Util.getThreadLocalDefaultDisplay();
+  public boolean canCreateGLPbuffer(AbstractGraphicsDevice device) { 
+      return glxVersionGreaterEqualThan(device, 1, 3); 
+  }
+
+  private boolean glxVersionsQueried = false;
+  private int     glxVersionMajor=0, glxVersionMinor=0;
+  public boolean glxVersionGreaterEqualThan(AbstractGraphicsDevice device, int majorReq, int minorReq) { 
+    if (!glxVersionsQueried) {
+        if(null == device) {
+            GLContext ctx = GLContext.getCurrent();
+            if( null != ctx) {
+                device = ctx.getGLDrawable().getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration().getScreen().getDevice();
+            }
+        }
+        if(null == device) {
+            GLException gle = new GLException("FIXME: No AbstractGraphicsDevice (passed or queried via current context - Fallback to ThreadLocal Display ..");
+            gle.printStackTrace();
+
+            device = new X11GraphicsDevice(X11Util.getThreadLocalDisplay(null));
+        }
+        long display = device.getHandle();
         int[] major = new int[1];
         int[] minor = new int[1];
-        int screen = 0; // FIXME: provide way to specify this?
 
         if (!GLX.glXQueryVersion(display, major, 0, minor, 0)) {
           throw new GLException("glXQueryVersion failed");
@@ -94,34 +109,51 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
         // only implement GLX version 1.2 on the server side
         if (major[0] == 1 && minor[0] == 2) {
           String str = GLX.glXGetClientString(display, GLX.GLX_VERSION);
-          if (str != null && str.startsWith("1.") &&
-             (str.charAt(2) >= '3')) {
-            canCreateGLPbuffer = true;
+          try {
+              major[0] = Integer.valueOf(str.substring(0, 1)).intValue();
+              minor[0] = Integer.valueOf(str.substring(2, 3)).intValue();
+          } catch (NumberFormatException nfe) {
+              major[0] = 1;
+              minor[0] = 2;
           }
-        } else {
-          canCreateGLPbuffer = ((major[0] > 1) || (minor[0] > 2));
         }
 
-        pbufferSupportInitialized = true;        
+        glxVersionMajor = major[0];
+        glxVersionMinor = minor[0];
+        glxVersionsQueried = true;        
     }
-    return canCreateGLPbuffer;
+    return ( glxVersionMajor > majorReq ) || ( glxVersionMajor == majorReq && glxVersionMinor >= minorReq ) ;
   }
 
   protected GLDrawableImpl createGLPbufferDrawableImpl(final NativeWindow target) {
+    GLDrawableImpl pbufferDrawable;
+    X11DummyGLXDrawable dummyDrawable=null;
+    GLContext           dummyContext=null;
+
     /** 
-     * FIXME: Think about this ..
-     * should not be necessary ? ..
-    final List returnList = new ArrayList();
-    final GLDrawableFactory factory = this;
-    Runnable r = new Runnable() {
-        public void run() {
-          returnList.add(new X11PbufferGLXDrawable(factory, target));
+     * Due to the ATI Bug https://bugzilla.mozilla.org/show_bug.cgi?id=486277,
+     * we need to have a context current on the same Display to create a PBuffer.
+     * The dummy context shall also use the same Display,
+     * since switching Display in this regard is another ATI bug.
+     */
+    if( null == GLContext.getCurrent() ) {
+        X11GraphicsScreen screen = (X11GraphicsScreen) target.getGraphicsConfiguration().getNativeGraphicsConfiguration().getScreen();
+        dummyDrawable = new X11DummyGLXDrawable(screen, this, null);
+        dummyContext  = dummyDrawable.createContext(null);
+        dummyContext.makeCurrent();
+    }
+    try {
+        pbufferDrawable = new X11PbufferGLXDrawable(this, target);
+    } finally {
+        if(null!=dummyContext) {
+            dummyContext.release();
+            dummyContext.destroy();
         }
-      };
-    maybeDoSingleThreadedWorkaround(r);
-    return (GLDrawableImpl) returnList.get(0);
-    */
-    return new X11PbufferGLXDrawable(this, target);
+        if(null!=dummyDrawable) {
+            dummyDrawable.destroy();
+        }
+    }
+    return pbufferDrawable;
   }
 
 
@@ -136,8 +168,8 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
     return X11ExternalGLXContext.create(this, null);
   }
 
-  public boolean canCreateExternalGLDrawable() {
-    return canCreateGLPbuffer();
+  public boolean canCreateExternalGLDrawable(AbstractGraphicsDevice device) {
+    return canCreateGLPbuffer(device);
   }
 
   public GLDrawable createExternalGLDrawable() {
@@ -158,7 +190,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
     return res;
   }
 
-  public boolean canCreateContextOnJava2DSurface() {
+  public boolean canCreateContextOnJava2DSurface(AbstractGraphicsDevice device) {
     return false;
   }
 

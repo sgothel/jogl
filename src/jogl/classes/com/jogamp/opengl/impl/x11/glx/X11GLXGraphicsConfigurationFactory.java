@@ -59,7 +59,8 @@ public class X11GLXGraphicsConfigurationFactory extends GraphicsConfigurationFac
         return chooseGraphicsConfigurationStatic(capabilities, chooser, absScreen);
     }
 
-    protected static X11GLXGraphicsConfiguration createDefaultGraphicsConfiguration(AbstractGraphicsScreen absScreen, boolean onscreen, boolean usePBuffer) {
+    /**
+    protected static X11GLXGraphicsConfiguration createDefaultGraphicsConfigurationFBConfig(AbstractGraphicsScreen absScreen, boolean onscreen, boolean usePBuffer) {
       if (absScreen == null) {
         throw new IllegalArgumentException("AbstractGraphicsScreen is null");
       }
@@ -110,7 +111,7 @@ public class X11GLXGraphicsConfigurationFactory extends GraphicsConfigurationFac
       }
 
       return new X11GLXGraphicsConfiguration(x11Screen, (null!=capsFB)?capsFB:caps, caps, null, xvis, fbcfg, fbid);
-    }
+    } */
 
     protected static X11GLXGraphicsConfiguration chooseGraphicsConfigurationStatic(Capabilities capabilities,
                                                                                    CapabilitiesChooser chooser,

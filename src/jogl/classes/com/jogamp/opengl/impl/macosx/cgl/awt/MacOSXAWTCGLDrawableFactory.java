@@ -42,6 +42,7 @@ package com.jogamp.opengl.impl.macosx.cgl.awt;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.*;
 import java.util.*;
+import javax.media.nativewindow.*;
 import javax.media.opengl.*;
 import com.jogamp.opengl.impl.*;
 import com.jogamp.opengl.impl.awt.*;
@@ -53,7 +54,7 @@ public class MacOSXAWTCGLDrawableFactory extends MacOSXCGLDrawableFactory {
     super();
   }
 
-  public boolean canCreateContextOnJava2DSurface() {
+  public boolean canCreateContextOnJava2DSurface(AbstractGraphicsDevice device) {
     return true;
   }
 

@@ -396,7 +396,7 @@
           <and>
               <isset property="java.generate.skip.es1"/>
               <isset property="java.generate.skip.es2"/>
-              <!--isset property="java.generate.skip.gl2"/-->
+              <isset property="java.generate.skip.gl2"/>
               <isset property="java.generate.skip.glu"/>
           </and>
         </condition>

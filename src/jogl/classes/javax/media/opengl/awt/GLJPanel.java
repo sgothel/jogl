@@ -494,7 +494,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
           backend = new J2DOGLBackend();
         } else {
           if (!hardwareAccelerationDisabled &&
-              factory.canCreateGLPbuffer()) {
+              factory.canCreateGLPbuffer(null)) {
             backend = new PbufferBackend();
           } else {
             if (softwareRenderingDisabled) {
@@ -1509,7 +1509,8 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
                   }
                 }
                 if (joglContext == null) {
-                  if (factory.canCreateExternalGLDrawable()) {
+                  AbstractGraphicsDevice device = j2dContext.getGLDrawable().getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration().getScreen().getDevice();
+                  if (factory.canCreateExternalGLDrawable(device)) {
                     joglDrawable = factory.createExternalGLDrawable();
                     // FIXME: Need to share with j2d context, due to FBO resource .. 
                     // - ORIG: joglContext = joglDrawable.createContext(shareWith);
@@ -1518,7 +1519,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable {
                         System.err.println("-- Created External Drawable: "+joglDrawable);
                         System.err.println("-- Created Context: "+joglContext);
                     }
-                  } else if (factory.canCreateContextOnJava2DSurface()) {
+                  } else if (factory.canCreateContextOnJava2DSurface(device)) {
                     // Mac OS X code path
                     // FIXME: Need to share with j2d context, due to FBO resource .. 
                     // - ORIG: joglContext = factory.createContextOnJava2DSurface(g, shareWith);

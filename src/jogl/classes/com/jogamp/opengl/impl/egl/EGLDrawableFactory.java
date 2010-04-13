@@ -70,7 +70,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         throw new GLException("Not yet implemented");
     }
 
-    public boolean canCreateGLPbuffer() {
+    public boolean canCreateGLPbuffer(AbstractGraphicsDevice device) {
         return true;
     }
 
@@ -89,7 +89,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         return new EGLExternalContext(absScreen);
     }
 
-    public boolean canCreateExternalGLDrawable() {
+    public boolean canCreateExternalGLDrawable(AbstractGraphicsDevice device) {
         return false;
     }
 
@@ -100,7 +100,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     public void loadGLULibrary() {
     }
 
-    public boolean canCreateContextOnJava2DSurface() {
+    public boolean canCreateContextOnJava2DSurface(AbstractGraphicsDevice device) {
         return false;
     }
 

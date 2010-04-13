@@ -121,6 +121,8 @@
         <property name="obj.gluegen"                value="${build.gluegen}/obj"/>
         <property name="gluegen.jar"                value="${build.gluegen}/gluegen.jar" />
         <property name="junit.jar"                  value="${gluegen.make}/lib/junit-4.5.jar" />
+        <property name="ant.jar"                    value="${ant.home}/lib/ant.jar" />
+        <property name="ant-junit.jar"              value="${ant.home}/lib/ant-junit.jar" />
 
         <property name="nativewindow.make"          value="." />
         <property name="nativewindow.build.xml"     value="${nativewindow.make}/build-nativewindow.xml" />
@@ -179,6 +181,8 @@
 
         <path id="junit_jogl_newt.compile.classpath">
             <pathelement location="${junit.jar}" />
+            <pathelement location="${ant.jar}" />
+            <pathelement location="${ant-junit.jar}" />
             <pathelement location="${gluegen-rt.jar}" />
             <pathelement location="${nativewindow.all.jar}" />
             <pathelement location="${jogl.all.jar}" />
@@ -187,6 +191,8 @@
 
         <path id="junit_jogl_newt.run.classpath">
             <pathelement location="${junit.jar}" />
+            <pathelement location="${ant.jar}" />
+            <pathelement location="${ant-junit.jar}" />
             <pathelement location="${gluegen-rt.jar}" />
             <pathelement location="${nativewindow.all.jar}" />
             <pathelement location="${jogl.all.jar}" />
@@ -194,7 +200,7 @@
             <pathelement location="${jogl.test.jar}" />
         </path>
         <property name="junit_jogl_newt.run.jars"
-                  value="${junit.jar}${path.separator}${gluegen-rt.jar}${path.separator}${nativewindow.all.jar}${path.separator}${jogl.all.jar}${path.separator}${newt.all.jar}${path.separator}${jogl.test.jar}"/>
+                  value="${junit.jar}${path.separator}${ant.jar}${path.separator}${ant-junit.jar}${path.separator}${gluegen-rt.jar}${path.separator}${nativewindow.all.jar}${path.separator}${jogl.all.jar}${path.separator}${newt.all.jar}${path.separator}${jogl.test.jar}"/>
 
         <!-- JavaSE combinations . NO.AWT -->
         <property name="nativewindow.all-noawt.jar" value="${build.nativewindow}/nativewindow.all-noawt.jar" />

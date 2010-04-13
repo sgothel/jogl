@@ -85,12 +85,12 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl implements 
 
   private boolean pbufferSupportInitialized = false;
   private boolean canCreateGLPbuffer = false;
-  public boolean canCreateGLPbuffer() {
+  public boolean canCreateGLPbuffer(AbstractGraphicsDevice device) {
     if (!pbufferSupportInitialized) {
       final GLDrawableFactory factory = this;
       Runnable r = new Runnable() {
           public void run() {
-            WindowsDummyWGLDrawable dummyDrawable = new WindowsDummyWGLDrawable(factory);
+            WindowsDummyWGLDrawable dummyDrawable = new WindowsDummyWGLDrawable(factory, null);
             GLContext dummyContext  = dummyDrawable.createContext(null);
             if (dummyContext != null) {
               GLContext lastContext = GLContext.getCurrent();
@@ -123,7 +123,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl implements 
     final GLDrawableFactory factory = this;
     Runnable r = new Runnable() {
         public void run() {
-          WindowsDummyWGLDrawable dummyDrawable = new WindowsDummyWGLDrawable(factory);
+          WindowsDummyWGLDrawable dummyDrawable = new WindowsDummyWGLDrawable(factory, null);
           WindowsWGLContext       dummyContext  = (WindowsWGLContext) dummyDrawable.createContext(null);
           GLContext lastContext = GLContext.getCurrent();
           if (lastContext != null) {
@@ -136,10 +136,14 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl implements 
                                                                            dummyDrawable,
                                                                            dummyWGLExt);
             returnList.add(pbufferDrawable);
-            dummyContext.release();
-            dummyContext.destroy();
-            dummyDrawable.destroy();
           } finally {
+            if(null!=dummyContext) {
+                dummyContext.release();
+                dummyContext.destroy();
+            }
+            if(null!=dummyDrawable) {
+                dummyDrawable.destroy();
+            }
             if (lastContext != null) {
               lastContext.makeCurrent();
             }
@@ -162,7 +166,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl implements 
     return WindowsExternalWGLContext.create(this, null);
   }
 
-  public boolean canCreateExternalGLDrawable() {
+  public boolean canCreateExternalGLDrawable(AbstractGraphicsDevice device) {
     return true;
   }
 
@@ -222,7 +226,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl implements 
     return detail;
   }
 
-  public boolean canCreateContextOnJava2DSurface() {
+  public boolean canCreateContextOnJava2DSurface(AbstractGraphicsDevice device) {
     return false;
   }
 

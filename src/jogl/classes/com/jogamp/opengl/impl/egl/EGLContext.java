@@ -80,13 +80,9 @@ public abstract class EGLContext extends GLContextImpl {
         return eglExtProcAddressTable;
     }
 
-    protected String mapToRealGLFunctionName(String glFunctionName) {
-        return glFunctionName;
-    }
+    protected Map/*<String, String>*/ getFunctionNameMap() { return null; }
 
-    protected String mapToRealGLExtensionName(String glExtensionName) {
-        return glExtensionName;
-    }
+    protected Map/*<String, String>*/ getExtensionNameMap() { return null; }
 
     public long getContext() {
         return eglContext;
