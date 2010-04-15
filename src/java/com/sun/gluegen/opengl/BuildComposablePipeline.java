@@ -608,6 +608,8 @@ public class BuildComposablePipeline {
          */
         protected void emitGLIsMethods(PrintWriter output) {
             emitGLIsMethod(output, "GL");
+            emitGLIsMethod(output, "GL4bc");
+            emitGLIsMethod(output, "GL4");
             emitGLIsMethod(output, "GL3bc");
             emitGLIsMethod(output, "GL3");
             emitGLIsMethod(output, "GL2");
@@ -640,6 +642,8 @@ public class BuildComposablePipeline {
          */
         protected void emitGLGetMethods(PrintWriter output) {
             emitGLGetMethod(output, "GL");
+            emitGLGetMethod(output, "GL4bc");
+            emitGLGetMethod(output, "GL4");
             emitGLGetMethod(output, "GL3bc");
             emitGLGetMethod(output, "GL3");
             emitGLGetMethod(output, "GL2");
