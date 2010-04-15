@@ -52,6 +52,7 @@ import com.jogamp.newt.opengl.*;
 
 import com.jogamp.test.junit.jogl.demos.gl2.gears.Gears;
 import com.jogamp.test.junit.jogl.demos.es1.RedSquare;
+import java.io.IOException;
 
 public class TestOffscreen01NEWT {
     static GLProfile glp;
@@ -357,9 +358,8 @@ public class TestOffscreen01NEWT {
             display.destroy();
         }
     }
-    public static void main(String args[]) {
+    public static void main(String args[]) throws IOException {
         String tstname = TestOffscreen01NEWT.class.getName();
-        try {
         org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner.main(new String[] {
             tstname,
             "filtertrace=true",
@@ -371,9 +371,6 @@ public class TestOffscreen01NEWT {
             "logtestlistenerevents=true",
             "formatter=org.apache.tools.ant.taskdefs.optional.junit.PlainJUnitResultFormatter",
             "formatter=org.apache.tools.ant.taskdefs.optional.junit.XMLJUnitResultFormatter,TEST-"+tstname+".xml" } );
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
 }

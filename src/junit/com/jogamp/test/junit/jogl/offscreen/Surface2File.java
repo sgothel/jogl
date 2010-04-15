@@ -29,7 +29,6 @@
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SVEN GOTHEL HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  */
-
 package com.jogamp.test.junit.jogl.offscreen;
 
 import javax.media.opengl.*;
@@ -44,37 +43,40 @@ import javax.media.nativewindow.*;
 public class Surface2File implements SurfaceUpdatedListener {
 
     ReadBufferUtil readBufferUtil = new ReadBufferUtil();
-    int shotNum=0;
+    int shotNum = 0;
 
     public void dispose() {
         readBufferUtil.dispose();
     }
 
     public void surfaceUpdated(Object updater, NativeWindow window, long when) {
-        if(updater instanceof GLDrawable) {
+        if (updater instanceof GLDrawable) {
             GLDrawable drawable = (GLDrawable) updater;
             GLContext ctx = GLContext.getCurrent();
-            if(null!=ctx && ctx.getGLDrawable()==drawable) {
+            if (null != ctx && ctx.getGLDrawable() == drawable) {
                 GL gl = ctx.getGL();
                 // FIXME glFinish() is an expensive paranoia sync, should not be necessary due to spec
-                gl.glFinish(); 
+                gl.glFinish();
                 readBufferUtil.fetchOffscreenTexture(drawable, gl);
                 gl.glFinish();
-                surface2File("shot");
+                try {
+                    surface2File("shot");
+                } catch (IOException ex) {
+                    throw new RuntimeException("can not write survace to file", ex);
+                }
             }
         }
     }
 
-    public void surface2File(String basename) {
-      if(!readBufferUtil.isValid()) return;
+    public void surface2File(String basename) throws IOException {
+        if (!readBufferUtil.isValid()) {
+            return;
+        }
 
-      try {
-        File file = File.createTempFile(basename+shotNum+"-", ".ppm");
+        File file = File.createTempFile(basename + shotNum + "-", ".ppm");
         TextureIO.write(readBufferUtil.getTextureData(), file);
-        System.out.println("Wrote: "+file.getAbsolutePath()+", ...");
+        System.out.println("Wrote: " + file.getAbsolutePath() + ", ...");
         shotNum++;
-      } catch (IOException ioe) { ioe.printStackTrace(); }
-      readBufferUtil.rewindPixelBuffer();
+        readBufferUtil.rewindPixelBuffer();
     }
 }
-

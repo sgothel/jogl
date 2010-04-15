@@ -35,10 +35,14 @@ package com.jogamp.test.junit.util;
 import java.lang.reflect.*;
 
 public class MiscUtils {
+    @Deprecated
     public static int str2int(String str, int def) {
         try {
             return Integer.parseInt(str);
-        } catch (Exception ex) { ex.printStackTrace(); }
+        } catch (Exception ex) {
+            // FIXME
+            ex.printStackTrace();
+        }
         return def;
     }
 
@@ -51,10 +55,10 @@ public class MiscUtils {
             } else {
                 System.out.println(instance.getClass()+" '"+fieldName+"' field not assignable with "+value.getClass()+", it's a: "+f.getType());
             }
+        } catch (IllegalAccessException ex) {
+            throw new RuntimeException(ex);
         } catch (NoSuchFieldException nsfe) {
-            System.out.println(instance.getClass()+" has no '"+fieldName+"' field");
-        } catch (Throwable t) {
-            t.printStackTrace();
+            throw new RuntimeException(instance.getClass()+" has no '"+fieldName+"' field", nsfe);
         }
         return false;
     }

@@ -76,10 +76,10 @@ public class ReadBufferUtil {
                            null /* Flusher */);
                 newData = true;
             } catch (Exception e) {
-                e.printStackTrace();
                 readTextureData = null;
                 readPixelBuffer = null;
                 readPixelSizeLast = 0;
+                throw new RuntimeException("can not fetch offscreen texture", e);
             }
         }
         if(null!=readPixelBuffer) {
@@ -98,6 +98,7 @@ public class ReadBufferUtil {
         }
     }
 
+    @SuppressWarnings("deprecation")
     public void dispose() {
         readTexture.dispose();
         readTextureData = null;

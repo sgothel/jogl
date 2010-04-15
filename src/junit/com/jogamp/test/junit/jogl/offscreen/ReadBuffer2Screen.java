@@ -54,6 +54,7 @@ public class ReadBuffer2Screen extends ReadBufferBase {
         super(externalRead);
     }
 
+    @Override
     public void init(GLAutoDrawable drawable) {
         super.init(drawable);
 
@@ -84,6 +85,7 @@ public class ReadBuffer2Screen extends ReadBufferBase {
         gl.glClearColor(0.5f, 0.5f, 0.5f, 0.4f);
     }
 
+    @Override
     public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
         super.reshape(drawable, x, y, width, height);
 
@@ -103,24 +105,25 @@ public class ReadBuffer2Screen extends ReadBufferBase {
         }
 
         // Identity ..
-        pmvMatrix.glMatrixMode(pmvMatrix.GL_MODELVIEW);
+        pmvMatrix.glMatrixMode(PMVMatrix.GL_MODELVIEW);
         pmvMatrix.glLoadIdentity();
         pmvMatrix.glTranslatef(0, 0, -2.5f);
         if(null!=glM) {
-            glM.glMatrixMode(pmvMatrix.GL_MODELVIEW);
+            glM.glMatrixMode(PMVMatrix.GL_MODELVIEW);
             glM.glLoadMatrixf(pmvMatrix.glGetMvMatrixf());
         }
 
         // Set location in front of camera
-        pmvMatrix.glMatrixMode(pmvMatrix.GL_PROJECTION);
+        pmvMatrix.glMatrixMode(PMVMatrix.GL_PROJECTION);
         pmvMatrix.glLoadIdentity();
         pmvMatrix.gluPerspective(45.0f, (float)width / (float)height, 1.0f, 100.0f);
         if(null!=glM) {
-            glM.glMatrixMode(pmvMatrix.GL_PROJECTION);
+            glM.glMatrixMode(PMVMatrix.GL_PROJECTION);
             glM.glLoadMatrixf(pmvMatrix.glGetPMatrixf());
         }
     }
 
+    @Override
     public void dispose(GLAutoDrawable drawable) {
         super.dispose(drawable);
     }
@@ -172,6 +175,7 @@ public class ReadBuffer2Screen extends ReadBufferBase {
         }
     }
 
+    @Override
     public void display(GLAutoDrawable drawable) {
         super.display(drawable);
 

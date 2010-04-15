@@ -32,23 +32,17 @@
 
 package com.jogamp.test.junit.jogl.drawable;
 
-import java.lang.reflect.*;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.AfterClass;
-import org.junit.After;
 import org.junit.Test;
 
 import javax.media.opengl.*;
-import javax.media.nativewindow.*;
 
 import com.jogamp.newt.*;
-import com.jogamp.newt.opengl.*;
+import java.io.IOException;
 
 public class TestDrawable01NEWT {
     static GLProfile glp;
@@ -160,26 +154,21 @@ public class TestDrawable01NEWT {
     }
 
     @Test
-    public void testOnScreenDecorated() {
+    public void testOnScreenDecorated() throws InterruptedException {
         createWindow(true, false, false);
-        try {
-            Thread.sleep(1000); // 1000 ms
-        } catch (Exception e) {}
+        Thread.sleep(1000); // 1000 ms
         destroyWindow();
     }
 
     @Test
-    public void testOnScreenUndecorated() {
+    public void testOnScreenUndecorated() throws InterruptedException {
         createWindow(true, false, true);
-        try {
-            Thread.sleep(1000); // 1000 ms
-        } catch (Exception e) {}
+        Thread.sleep(1000); // 1000 ms
         destroyWindow();
     }
 
-    public static void main(String args[]) {
+    public static void main(String args[]) throws IOException {
         String tstname = TestDrawable01NEWT.class.getName();
-        try {
         org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner.main(new String[] {
             tstname,
             "filtertrace=true",
@@ -191,9 +180,6 @@ public class TestDrawable01NEWT {
             "logtestlistenerevents=true",
             "formatter=org.apache.tools.ant.taskdefs.optional.junit.PlainJUnitResultFormatter",
             "formatter=org.apache.tools.ant.taskdefs.optional.junit.XMLJUnitResultFormatter,TEST-"+tstname+".xml" } );
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
 }

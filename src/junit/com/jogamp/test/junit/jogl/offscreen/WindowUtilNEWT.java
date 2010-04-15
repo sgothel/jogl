@@ -36,7 +36,6 @@ import com.jogamp.test.junit.util.*;
 
 import org.junit.Assert;
 
-import java.lang.reflect.*;
 import javax.media.opengl.*;
 import javax.media.nativewindow.*;
 import com.jogamp.newt.*;
@@ -56,8 +55,8 @@ public class WindowUtilNEWT {
         Assert.assertNotNull(demo);
         Assert.assertNotNull(window);
         if(debug) {
-            MiscUtils.setField(demo, "glDebug", new Boolean(true));
-            MiscUtils.setField(demo, "glTrace", new Boolean(true));
+            MiscUtils.setField(demo, "glDebug", true);
+            MiscUtils.setField(demo, "glTrace", true);
         }
         if(!MiscUtils.setField(demo, "window", window)) {
             MiscUtils.setField(demo, "glWindow", glWindow);
@@ -67,52 +66,48 @@ public class WindowUtilNEWT {
     public static void run(GLWindow windowOffScreen, GLEventListener demo, 
                            GLWindow windowOnScreen, WindowListener wl, MouseListener ml, 
                            SurfaceUpdatedListener ul, int frames, boolean snapshot, boolean debug) {
-        try {
-            Assert.assertNotNull(windowOffScreen);
-            Assert.assertNotNull(demo);
+        Assert.assertNotNull(windowOffScreen);
+        Assert.assertNotNull(demo);
 
-            setDemoFields(demo, windowOffScreen, windowOffScreen, debug);
-            windowOffScreen.addGLEventListener(demo);
+        setDemoFields(demo, windowOffScreen, windowOffScreen, debug);
+        windowOffScreen.addGLEventListener(demo);
 
-            if ( null != windowOnScreen ) {
-                if(null!=wl) {
-                    windowOnScreen.addWindowListener(wl);
-                }
-                if(null!=ml) {
-                    windowOnScreen.addMouseListener(ml);
-                }
-                windowOnScreen.setVisible(true);
+        if ( null != windowOnScreen ) {
+            if(null!=wl) {
+                windowOnScreen.addWindowListener(wl);
             }
-
-            GLDrawable readDrawable = windowOffScreen.getContext().getGLDrawable() ;
-
-            if ( null == windowOnScreen ) {
-                if(snapshot) {
-                    Surface2File s2f = new Surface2File();
-                    windowOffScreen.addSurfaceUpdatedListener(s2f);
-                }
-            } else {
-                ReadBuffer2Screen readDemo = new ReadBuffer2Screen( readDrawable ) ;
-                windowOnScreen.addGLEventListener(readDemo);
+            if(null!=ml) {
+                windowOnScreen.addMouseListener(ml);
             }
-            if(null!=ul) {
-                windowOffScreen.addSurfaceUpdatedListener(ul);
-            }
-
-            if(debug) {
-                System.out.println("+++++++++++++++++++++++++++");
-                System.out.println(windowOffScreen);
-                System.out.println("+++++++++++++++++++++++++++");
-            }
-
-            while ( windowOffScreen.getTotalFrames() < frames) {
-                windowOffScreen.display();
-            }
-            windowOffScreen.removeAllSurfaceUpdatedListener();
-
-        } catch (GLException e) {
-            e.printStackTrace();
+            windowOnScreen.setVisible(true);
         }
+
+        GLDrawable readDrawable = windowOffScreen.getContext().getGLDrawable() ;
+
+        if ( null == windowOnScreen ) {
+            if(snapshot) {
+                Surface2File s2f = new Surface2File();
+                windowOffScreen.addSurfaceUpdatedListener(s2f);
+            }
+        } else {
+            ReadBuffer2Screen readDemo = new ReadBuffer2Screen( readDrawable ) ;
+            windowOnScreen.addGLEventListener(readDemo);
+        }
+        if(null!=ul) {
+            windowOffScreen.addSurfaceUpdatedListener(ul);
+        }
+
+        if(debug) {
+            System.out.println("+++++++++++++++++++++++++++");
+            System.out.println(windowOffScreen);
+            System.out.println("+++++++++++++++++++++++++++");
+        }
+
+        while ( windowOffScreen.getTotalFrames() < frames) {
+            windowOffScreen.display();
+        }
+        windowOffScreen.removeAllSurfaceUpdatedListener();
+
     }
 
 }

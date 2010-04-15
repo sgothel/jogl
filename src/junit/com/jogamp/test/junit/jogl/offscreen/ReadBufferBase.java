@@ -54,13 +54,17 @@ public class ReadBufferBase implements GLEventListener {
         if(glDebug) {
             try {
                 _gl = _gl.getContext().setGL( GLPipelineFactory.create("javax.media.opengl.Debug", null, _gl, null) );
-            } catch (Exception e) {e.printStackTrace();} 
+            } catch (Exception e) {
+                throw new RuntimeException("can not set debug pipeline", e);
+            }
         }
 
         if(glTrace) {
             try {
                 _gl = _gl.getContext().setGL( GLPipelineFactory.create("javax.media.opengl.Trace", null, _gl, new Object[] { System.err } ) );
-            } catch (Exception e) {e.printStackTrace();} 
+            } catch (Exception e) {
+                throw new RuntimeException("can not set trace pipeline", e);
+            }
         }
 
         System.out.println(_gl);
