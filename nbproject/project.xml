@@ -47,6 +47,12 @@
                     <location>src/nativewindow/classes</location>
                     <encoding>UTF-8</encoding>
                 </source-folder>
+                <source-folder>
+                    <label>src/junit</label>
+                    <type>java</type>
+                    <location>src/junit</location>
+                    <encoding>UTF-8</encoding>
+                </source-folder>
             </folders>
             <ide-actions>
                 <action name="build">
@@ -112,6 +118,10 @@
                         <label>nativewindow</label>
                         <location>src/nativewindow/classes</location>
                     </source-folder>
+                    <source-folder style="packages">
+                        <label>src/junit</label>
+                        <location>src/junit</location>
+                    </source-folder>
                     <source-file>
                         <location>${ant.script}</location>
                     </source-file>
@@ -130,12 +140,13 @@
             <compilation-unit>
                 <package-root>src/newt/classes</package-root>
                 <package-root>src/jogl/classes</package-root>
-                <package-root>build/jogl/gensrc/classes</package-root>
                 <package-root>src/nativewindow/classes</package-root>
+                <package-root>build/jogl/gensrc/classes</package-root>
                 <package-root>build/nativewindow/gensrc/classes</package-root>
-                <classpath mode="compile">../gluegen/build/gluegen.jar</classpath>
+                <package-root>src/junit</package-root>
+                <classpath mode="compile">../gluegen/build/gluegen-rt.jar:../gluegen/make/lib/junit-4.5.jar</classpath>
                 <built-to>bin</built-to>
-                <source-level>1.4</source-level>
+                <source-level>1.5</source-level>
             </compilation-unit>
         </java-data>
     </configuration>
