@@ -43,6 +43,7 @@ import com.jogamp.common.os.DynamicLookupHelper;
 import java.nio.*;
 import java.util.*;
 import javax.media.nativewindow.*;
+import javax.media.nativewindow.windows.*;
 import javax.media.opengl.*;
 import com.jogamp.opengl.impl.*;
 import com.jogamp.nativewindow.impl.NWReflection;
@@ -72,7 +73,45 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl implements 
     loadOpenGL32Library();
   }
 
+  WindowsDummyWGLDrawable sharedDrawable=null;
+  WindowsWGLContext sharedContext=null;
+  boolean canCreateGLPbuffer = false;
+
+  void initShared() {
+    if(null==sharedDrawable) {
+        sharedDrawable = new WindowsDummyWGLDrawable(this, null);
+        sharedContext  = (WindowsWGLContext) sharedDrawable.createContext(null);
+        sharedContext.makeCurrent();
+        canCreateGLPbuffer = sharedContext.getGL().isExtensionAvailable("GL_ARB_pbuffer");
+        sharedContext.release();
+        if (DEBUG) {
+          System.err.println("!!! SharedContext: "+sharedContext+", pbuffer supported "+canCreateGLPbuffer);
+        }
+        if(null==sharedContext) {
+            throw new GLException("Couldn't init shared resources");
+        }
+    }
+  }
+
+  public void shutdown() {
+     super.shutdown();
+     if (DEBUG) {
+          System.err.println("!!! Shutdown Shared:");
+          System.err.println("!!!          CTX     : "+sharedContext);
+          System.err.println("!!!          Drawable: "+sharedDrawable);
+          Exception e = new Exception("Debug");
+          e.printStackTrace();
+     }
+     if(null!=sharedContext) {
+        sharedContext.destroy(); // implies release, if current
+     }
+     if(null!=sharedDrawable) {
+        sharedDrawable.destroy();
+     }
+  }
+
   public GLDrawableImpl createOnscreenDrawable(NativeWindow target) {
+    validate();
     if (target == null) {
       throw new IllegalArgumentException("Null target");
     }
@@ -83,67 +122,33 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl implements 
     return new WindowsOffscreenWGLDrawable(this, target);
   }
 
-  private boolean pbufferSupportInitialized = false;
-  private boolean canCreateGLPbuffer = false;
   public boolean canCreateGLPbuffer(AbstractGraphicsDevice device) {
-    if (!pbufferSupportInitialized) {
-      final GLDrawableFactory factory = this;
-      Runnable r = new Runnable() {
-          public void run() {
-            WindowsDummyWGLDrawable dummyDrawable = new WindowsDummyWGLDrawable(factory, null);
-            GLContext dummyContext  = dummyDrawable.createContext(null);
-            if (dummyContext != null) {
-              GLContext lastContext = GLContext.getCurrent();
-              if (lastContext != null) {
-                lastContext.release();
-              }
-              dummyContext.makeCurrent();
-              GL dummyGL = dummyContext.getGL();
-              canCreateGLPbuffer = dummyGL.isExtensionAvailable("GL_ARB_pbuffer");
-              pbufferSupportInitialized = true;
-              dummyContext.release();
-              dummyContext.destroy();
-              dummyDrawable.destroy();
-              if (lastContext != null) {
-                lastContext.makeCurrent();
-              }
-            }
-          }
-        };
-      maybeDoSingleThreadedWorkaround(r);
-    }
-    if (DEBUG) {
-      System.err.println("WindowsWGLDrawableFactory.canCreateGLPbuffer() = " + canCreateGLPbuffer);
-    }
+    validate();
+    initShared();
     return canCreateGLPbuffer;
   }
 
   protected GLDrawableImpl createGLPbufferDrawableImpl(final NativeWindow target) {
+    initShared();
     final List returnList = new ArrayList();
     final GLDrawableFactory factory = this;
+    final WindowsWGLContext _sharedContext = sharedContext;
+    final WindowsDummyWGLDrawable _sharedDrawable = sharedDrawable;
     Runnable r = new Runnable() {
         public void run() {
-          WindowsDummyWGLDrawable dummyDrawable = new WindowsDummyWGLDrawable(factory, null);
-          WindowsWGLContext       dummyContext  = (WindowsWGLContext) dummyDrawable.createContext(null);
           GLContext lastContext = GLContext.getCurrent();
           if (lastContext != null) {
             lastContext.release();
           }
-          dummyContext.makeCurrent();
-          WGLExt dummyWGLExt = dummyContext.getWGLExt();
+          _sharedContext.makeCurrent();
+          WGLExt wglExt = _sharedContext.getWGLExt();
           try {
             GLDrawableImpl pbufferDrawable = new WindowsPbufferWGLDrawable(factory, target,
-                                                                           dummyDrawable,
-                                                                           dummyWGLExt);
+                                                                           _sharedDrawable,
+                                                                           wglExt);
             returnList.add(pbufferDrawable);
           } finally {
-            if(null!=dummyContext) {
-                dummyContext.release();
-                dummyContext.destroy();
-            }
-            if(null!=dummyDrawable) {
-                dummyDrawable.destroy();
-            }
+            _sharedContext.release();
             if (lastContext != null) {
               lastContext.makeCurrent();
             }
@@ -163,18 +168,22 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl implements 
   }
  
   public GLContext createExternalGLContext() {
+    validate();
     return WindowsExternalWGLContext.create(this, null);
   }
 
   public boolean canCreateExternalGLDrawable(AbstractGraphicsDevice device) {
+    validate();
     return true;
   }
 
   public GLDrawable createExternalGLDrawable() {
+    validate();
     return WindowsExternalWGLDrawable.create(this, null);
   }
 
   public void loadOpenGL32Library() {
+    validate();
     if (hopengl32 == 0) {
       hopengl32 = WGL.LoadLibraryA("OpenGL32");
       if (DEBUG) {
@@ -186,6 +195,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl implements 
   }
 
   public void loadGLULibrary() {
+    validate();
     if (hglu32 == 0) {
       hglu32 = WGL.LoadLibraryA("GLU32");
       if (hglu32 == 0) {
@@ -195,6 +205,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl implements 
   }
 
   public long dynamicLookupFunction(String glFuncName) {
+    validate();
     long res = WGL.wglGetProcAddress(glFuncName);
     if (res == 0) {
       // It may happen that a driver doesn't return the OpenGL32 core function pointer
@@ -227,11 +238,13 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl implements 
   }
 
   public boolean canCreateContextOnJava2DSurface(AbstractGraphicsDevice device) {
+    validate();
     return false;
   }
 
   public GLContext createContextOnJava2DSurface(Object graphics, GLContext shareWith)
     throws GLException {
+    validate();
     throw new GLException("Unimplemented on this platform");
   }
 

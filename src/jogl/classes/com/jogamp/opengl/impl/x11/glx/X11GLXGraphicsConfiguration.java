@@ -250,10 +250,7 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
     GLCapabilities res = new GLCapabilities(glp);
 
     val = glXGetFBConfig(display, fbcfg, GLX.GLX_DRAWABLE_TYPE, tmp, 0);
-    if(GLXFBConfigDrawableTypeVerify(val, onscreen, usePBuffer)) {
-        res.setOnscreen(onscreen);
-        res.setPBuffer(usePBuffer);
-    } else if(relaxed) {
+    if(GLXFBConfigDrawableTypeVerify(val, onscreen, usePBuffer) || relaxed) {
         res.setOnscreen( 0 != (val & GLX.GLX_WINDOW_BIT) );
         res.setPBuffer ( 0 != (val & GLX.GLX_PBUFFER_BIT) );
     } else {

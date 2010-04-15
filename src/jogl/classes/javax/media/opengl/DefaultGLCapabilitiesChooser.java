@@ -138,8 +138,8 @@ public class DefaultGLCapabilitiesChooser implements GLCapabilitiesChooser {
       if (_desired.isOnscreen() != cur.isOnscreen()) {
         continue;
       }
-      if (_desired.isPBuffer() != cur.isPBuffer()) {
-        continue;
+      if (!_desired.isOnscreen() && _desired.isPBuffer() && !cur.isPBuffer()) {
+        continue; // only skip if requested Offscreen && PBuffer, but no PBuffer available
       }
       if (_desired.getStereo() != cur.getStereo()) {
         continue;

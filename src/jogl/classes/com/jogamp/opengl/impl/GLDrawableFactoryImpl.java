@@ -79,9 +79,6 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
     GLCapabilities caps = (GLCapabilities) target.getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities();
     GLDrawable result = null;
     if(caps.isOnscreen()) {
-        if(caps.isPBuffer()) {
-            throw new IllegalArgumentException("Onscreen target can't be PBuffer: "+caps);
-        }
         if(DEBUG) {
             System.out.println("GLDrawableFactoryImpl.createGLDrawable -> OnscreenDrawable: "+target);
         }

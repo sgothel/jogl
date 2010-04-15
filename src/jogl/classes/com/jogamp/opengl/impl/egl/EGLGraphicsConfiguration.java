@@ -179,11 +179,7 @@ public class EGLGraphicsConfiguration extends DefaultGraphicsConfiguration imple
             } */
         }
         if(EGL.eglGetConfigAttrib(display, config, EGL.EGL_SURFACE_TYPE, val, 0)) {
-            if(EGLConfigDrawableTypeVerify(val[0], onscreen, usePBuffer)) {
-                caps.setDoubleBuffered(onscreen);
-                caps.setOnscreen(onscreen);
-                caps.setPBuffer(usePBuffer);
-            } else if(relaxed) {
+            if(EGLConfigDrawableTypeVerify(val[0], onscreen, usePBuffer) || relaxed) {
                 caps.setDoubleBuffered( 0 != (val[0] & EGL.EGL_WINDOW_BIT) );
                 caps.setOnscreen( 0 != (val[0] & EGL.EGL_WINDOW_BIT) );
                 caps.setPBuffer ( 0 != (val[0] & EGL.EGL_PBUFFER_BIT) );

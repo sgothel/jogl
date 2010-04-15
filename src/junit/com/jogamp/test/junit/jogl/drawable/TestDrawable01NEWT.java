@@ -112,7 +112,7 @@ public class TestDrawable01NEWT {
         Assert.assertTrue(glCaps.getBlueBits()>5);
         Assert.assertTrue(glCaps.getRedBits()>5);
         Assert.assertTrue(glCaps.isOnscreen()==onscreen);
-        Assert.assertTrue(glCaps.isPBuffer()==(!onscreen && pbuffer));
+        Assert.assertTrue(onscreen || !pbuffer || glCaps.isPBuffer()); // pass if onscreen, or !pbuffer req. or have pbuffer
         Assert.assertTrue(glCaps.getDoubleBuffered()==!onscreen);
         Assert.assertTrue(glCaps.getDepthBits()>4);
 

@@ -428,10 +428,7 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
                                                          boolean relaxed, boolean onscreen, boolean usePBuffer) {
         GLCapabilities res = new GLCapabilities(glp);
         int drawableTypeBits = WGLConfig2DrawableTypeBits(iattribs, niattribs, iresults);
-        if(WGLConfigDrawableTypeVerify(drawableTypeBits, onscreen, usePBuffer)) {
-            res.setOnscreen(onscreen);
-            res.setPBuffer(usePBuffer);
-        } else if(relaxed) {
+        if(WGLConfigDrawableTypeVerify(drawableTypeBits, onscreen, usePBuffer) || relaxed) {
             res.setOnscreen( 0 != (drawableTypeBits & WINDOW_BIT) );
             res.setPBuffer ( 0 != (drawableTypeBits & PBUFFER_BIT) );
         } else {

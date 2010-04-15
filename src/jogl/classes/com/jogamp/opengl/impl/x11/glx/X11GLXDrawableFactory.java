@@ -99,6 +99,9 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
         if (DEBUG) {
           System.err.println("!!! SharedContext: "+sharedContext);
         }
+        if(null==sharedContext) {
+            throw new GLException("Couldn't init shared resources");
+        }
     }
   }
 
