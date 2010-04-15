@@ -57,7 +57,7 @@ public class X11GraphicsScreen extends DefaultGraphicsScreen implements Cloneabl
     /** Creates a new X11GraphicsScreen using a thread local display connection */
     public static AbstractGraphicsScreen createDefault() {
         NativeWindowFactory.getDefaultFactory().getToolkitLock().lock();
-        long display = X11Util.getThreadLocalDefaultDisplay();
+        long display = X11Util.createThreadLocalDefaultDisplay();
         try {
             X11Lib.XLockDisplay(display);
             int scrnIdx = X11Lib.DefaultScreen(display);

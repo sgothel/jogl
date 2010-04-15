@@ -42,6 +42,8 @@ import com.jogamp.nativewindow.impl.x11.*;
 
 public class X11DummyGLXDrawable extends X11OnscreenGLXDrawable {
 
+  // private long dummyWindow = 0;
+
   /** 
    * Due to the ATI Bug https://bugzilla.mozilla.org/show_bug.cgi?id=486277,
    * we cannot switch the Display as we please, 
@@ -57,12 +59,17 @@ public class X11DummyGLXDrawable extends X11OnscreenGLXDrawable {
     X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)nw.getGraphicsConfiguration().getNativeGraphicsConfiguration();
     GLCapabilities caps = (GLCapabilities) config.getChosenCapabilities();
 
-    long dpy = config.getScreen().getDevice().getHandle();
-    int scrn = config.getScreen().getIndex();
-    // System.out.println("X11DummyGLXDrawable: dpy "+toHexString(dpy)+", scrn "+scrn);
+    X11GraphicsDevice device = (X11GraphicsDevice) screen.getDevice();
+    long dpy = device.getHandle();
+    int scrn = screen.getIndex();
+    // long visualID = config.getVisualID();
+    // System.out.println("X11DummyGLXDrawable: dpy "+toHexString(dpy)+", scrn "+scrn+", visualID "+toHexString(visualID));
+
     X11Lib.XLockDisplay(dpy);
     try{
         nw.setSurfaceHandle( X11Lib.RootWindow(dpy, scrn) );
+        // dummyWindow = X11Lib.CreateDummyWindow(dpy, scrn, visualID);
+        // nw.setSurfaceHandle( dummyWindow );
     } finally {
         X11Lib.XUnlockDisplay(dpy);
     }
@@ -80,6 +87,11 @@ public class X11DummyGLXDrawable extends X11OnscreenGLXDrawable {
   }
 
   public void destroy() {
-    // nothing to do, but allowed
+    /**
+    if(0!=dummyWindow) {
+        X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration();
+        long dpy = config.getScreen().getDevice().getHandle();
+        X11Lib.DestroyDummyWindow(dpy, dummyWindow);
+    } */
   }
 }

@@ -530,6 +530,7 @@
 
         <patternset id="c.src.files.x11">
           <include name="${rootrel.generated.c}/X11/X11*.c" if="isX11"/>
+          <include name="${rootrel.src.c}/x11/Xmisc.c" if="isX11"/>
           <include name="${rootrel.src.c}/x11/XineramaHelper.c" if="isX11"/>
           <!-- Xinerama supporting functions for Linux only (for now) -->
           <!-- Also supported on Solaris, but works differently -->
@@ -623,6 +624,8 @@
     </target>
 
     <target name="c.build.nativewindow.windowlib.x11" if="isX11">
+      <javah destdir="${src.generated.c}/X11" classpath="${classes}" class="com.jogamp.nativewindow.impl.x11.X11Lib" />
+
       <c.build c.compiler.src.files="c.src.files.x11"
                output.lib.name="nativewindow_x11"
                compiler.cfg.id="${compiler.cfg.id}"

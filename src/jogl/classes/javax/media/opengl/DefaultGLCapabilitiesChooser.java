@@ -89,11 +89,17 @@ public class DefaultGLCapabilitiesChooser implements GLCapabilitiesChooser {
                                 int windowSystemRecommendedChoice) {
     GLCapabilities _desired = (GLCapabilities) desired;
     GLCapabilities[] _available = (GLCapabilities[]) available;
+    int availnum = 0;
+
+    for (int i = 0; i < _available.length; i++) {
+      if(null != _available[i]) { availnum++; }
+    }
 
     if (DEBUG) {
       System.err.println("Desired: " + _desired);
+      System.err.println("Available: Valid " + availnum + "/" + _available.length);
       for (int i = 0; i < _available.length; i++) {
-        System.err.println("Available " + i + ": " + _available[i]);
+        System.err.println(i + ": " + _available[i]);
       }
       System.err.println("Window system's recommended choice: " + windowSystemRecommendedChoice);
     }
@@ -130,6 +136,9 @@ public class DefaultGLCapabilitiesChooser implements GLCapabilitiesChooser {
         continue;
       }
       if (_desired.isOnscreen() != cur.isOnscreen()) {
+        continue;
+      }
+      if (_desired.isPBuffer() != cur.isPBuffer()) {
         continue;
       }
       if (_desired.getStereo() != cur.getStereo()) {

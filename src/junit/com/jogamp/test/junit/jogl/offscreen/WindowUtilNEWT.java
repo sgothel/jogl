@@ -52,22 +52,27 @@ public class WindowUtilNEWT {
         return caps2;
     }
 
+    public static void setDemoFields(GLEventListener demo, Window window, GLWindow glWindow, boolean debug) {
+        Assert.assertNotNull(demo);
+        Assert.assertNotNull(window);
+        if(debug) {
+            MiscUtils.setField(demo, "glDebug", new Boolean(true));
+            MiscUtils.setField(demo, "glTrace", new Boolean(true));
+        }
+        if(!MiscUtils.setField(demo, "window", window)) {
+            MiscUtils.setField(demo, "glWindow", glWindow);
+        }
+    }
+
     public static void run(GLWindow windowOffScreen, GLEventListener demo, 
                            GLWindow windowOnScreen, WindowListener wl, MouseListener ml, 
                            SurfaceUpdatedListener ul, int frames, boolean snapshot, boolean debug) {
         try {
             Assert.assertNotNull(windowOffScreen);
+            Assert.assertNotNull(demo);
 
-            if(debug && null!=demo) {
-                MiscUtils.setField(demo, "glDebug", new Boolean(true));
-                MiscUtils.setField(demo, "glTrace", new Boolean(true));
-            }
-            if(null!=demo) {
-                if(!MiscUtils.setField(demo, "window", windowOffScreen)) {
-                    MiscUtils.setField(demo, "glWindow", windowOffScreen);
-                }
-                windowOffScreen.addGLEventListener(demo);
-            }
+            setDemoFields(demo, windowOffScreen, windowOffScreen, debug);
+            windowOffScreen.addGLEventListener(demo);
 
             if ( null != windowOnScreen ) {
                 if(null!=wl) {

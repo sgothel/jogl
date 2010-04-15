@@ -260,9 +260,11 @@ public class WindowsWGLGraphicsConfigurationFactory extends GraphicsConfiguratio
                   }
                   pixelFormat = 1; // default ..
               } else if ( pixelFormat > numFormats ) {
-                throw new GLException("Invalid result " + pixelFormat +
-                                      " from GLCapabilitiesChooser (should be between 1 and " +
-                                      numFormats + ")");
+                  // keep on going ..
+                  if(DEBUG) {
+                    System.err.println("GLCapabilitiesChooser specified invalid index (expected 1.." + numFormats + ", got "+pixelFormat+")");
+                  }
+                  pixelFormat = 1; // default ..
               }
           }
           chosenCaps = availableCaps[pixelFormat-1];

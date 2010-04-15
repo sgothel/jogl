@@ -75,9 +75,9 @@ public class X11OffscreenGLXDrawable extends X11GLXDrawable {
     int screen = aScreen.getIndex();
 
     getFactoryImpl().lockToolkit();
+    X11Lib.XLockDisplay(dpy);
     try {
-      X11Lib.XLockDisplay(dpy);
-      pixmap = X11Lib.XCreatePixmap(dpy, (int) X11Lib.RootWindow(dpy, screen), 
+      pixmap = X11Lib.XCreatePixmap(dpy, X11Lib.RootWindow(dpy, screen), 
                                     component.getWidth(), component.getHeight(), bitsPerPixel);
       if (pixmap == 0) {
         throw new GLException("XCreatePixmap failed");
@@ -105,10 +105,10 @@ public class X11OffscreenGLXDrawable extends X11GLXDrawable {
 
     NativeWindow nw = getNativeWindow();
     long display = nw.getDisplayHandle();
-    try {
-      getFactoryImpl().lockToolkit();
-      X11Lib.XLockDisplay(display);
 
+    getFactoryImpl().lockToolkit();
+    X11Lib.XLockDisplay(display);
+    try {
       long drawable = nw.getSurfaceHandle();
       if (DEBUG) {
         System.err.println("Destroying pixmap " + toHexString(pixmap) +
@@ -135,11 +135,11 @@ public class X11OffscreenGLXDrawable extends X11GLXDrawable {
       X11Lib.XFreePixmap(display, pixmap);
       drawable = 0;
       pixmap = 0;
-      display = 0;
       ((SurfaceChangeable)nw).setSurfaceHandle(0);
     } finally {
       X11Lib.XUnlockDisplay(display);
       getFactoryImpl().unlockToolkit();
+      display = 0;
     }
   }
   protected void swapBuffersImpl() {

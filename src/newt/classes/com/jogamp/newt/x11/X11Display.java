@@ -61,7 +61,7 @@ public class X11Display extends Display {
     }
 
     protected void createNative() {
-        long handle= X11Util.getThreadLocalDisplay(name);
+        long handle= X11Util.createThreadLocalDisplay(name);
         if (handle == 0 ) {
             throw new RuntimeException("Error creating display: "+name);
         }
@@ -75,9 +75,7 @@ public class X11Display extends Display {
     }
 
     protected void closeNative() {
-        if(0==X11Util.closeThreadLocalDisplay(name)) {
-            throw new NativeWindowException(this+" was not mapped");
-        }
+        X11Util.closeThreadLocalDisplay(name);
     }
 
     protected void dispatchMessages() {

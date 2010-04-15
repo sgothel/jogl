@@ -133,7 +133,7 @@ public abstract class X11GLXContext extends GLContextImpl {
     }
 
     GLCapabilities glCaps = (GLCapabilities) config.getChosenCapabilities();
-    isVendorATI = GLXUtil.isVendorATI(display);
+    isVendorATI = ((X11GLXDrawableFactory)(drawable.getFactoryImpl())).isVendorATI();
 
     if(config.getFBConfigID()<0) {
         // not able to use FBConfig
@@ -148,11 +148,11 @@ public abstract class X11GLXContext extends GLContextImpl {
                                        drawable.getNativeWindow().getSurfaceHandle(), 
                                        drawableRead.getNativeWindow().getSurfaceHandle(), 
                                        context)) {
-          throw new GLException("Error making temp context (old2) current: display 0x"+Long.toHexString(display)+", context 0x"+Long.toHexString(context)+", drawable "+drawable);
+          throw new GLException("Error making temp context (old2) current: display "+toHexString(display)+", context "+toHexString(context)+", drawable "+drawable);
         }
         setGLFunctionAvailability(true);
         if(DEBUG) {
-              System.err.println("X11GLXContext.createContext done (old2 ctx) 0x"+Long.toHexString(context));
+              System.err.println("X11GLXContext.createContext done (old2 ctx) "+toHexString(context));
         }
 
     } else {
@@ -167,7 +167,7 @@ public abstract class X11GLXContext extends GLContextImpl {
                                            drawable.getNativeWindow().getSurfaceHandle(), 
                                            drawableRead.getNativeWindow().getSurfaceHandle(), 
                                            temp_context)) {
-              throw new GLException("Error making temp context (old) current: display 0x"+Long.toHexString(display)+", context 0x"+Long.toHexString(context)+", drawable "+drawable);
+              throw new GLException("Error making temp context (old) current: display "+toHexString(display)+", context "+toHexString(context)+", drawable "+drawable);
             }
             setGLFunctionAvailability(true);
 
@@ -182,7 +182,7 @@ public abstract class X11GLXContext extends GLContextImpl {
                 // continue with temp context for GL < 3.0
                 context = temp_context;
                 if(DEBUG) {
-                  System.err.println("X11GLXContext.createContext done (old ctx < 3.0 - no GLX_ARB_create_context) 0x"+Long.toHexString(context));
+                  System.err.println("X11GLXContext.createContext done (old ctx < 3.0 - no GLX_ARB_create_context) "+toHexString(context));
                 }
             } else {
                 GLXExt glXExt = getGLXExt();
@@ -209,7 +209,7 @@ public abstract class X11GLXContext extends GLContextImpl {
                     /**
                      * don't stricten requirements any further, even compatible would be fine
                      *
-                     } else {
+                     else {
                         attribs[8+0]  = GLX.GLX_CONTEXT_PROFILE_MASK_ARB;
                         attribs[8+1]  = GLX.GLX_CONTEXT_CORE_PROFILE_BIT_ARB;
                      } 
@@ -228,7 +228,7 @@ public abstract class X11GLXContext extends GLContextImpl {
                             GLX.glXDestroyContext(display, context);
                             context = 0;
                         } else if(DEBUG) {
-                          System.err.println("X11GLXContext.createContext >= 3.2 available 0x"+Long.toHexString(context));
+                          System.err.println("X11GLXContext.createContext >= 3.2 available "+toHexString(context));
                         }
                     } else {
                         if(DEBUG) {
@@ -261,7 +261,7 @@ public abstract class X11GLXContext extends GLContextImpl {
                             GLX.glXDestroyContext(display, context);
                             context = 0;
                         } else if(DEBUG) {
-                          System.err.println("X11GLXContext.createContext >= 3.0 available 0x"+Long.toHexString(context));
+                          System.err.println("X11GLXContext.createContext >= 3.0 available "+toHexString(context));
                         }
                     } else {
                         if(DEBUG) {
@@ -285,10 +285,10 @@ public abstract class X11GLXContext extends GLContextImpl {
                                                    context)) {
                       GLX.glXMakeContextCurrent(display, 0, 0, 0);
                       GLX.glXDestroyContext(display, temp_context);
-                      throw new GLException("Error making context (old) current: display 0x"+Long.toHexString(display)+", context 0x"+Long.toHexString(context)+", drawable "+drawable);
+                      throw new GLException("Error making context (old) current: display "+toHexString(display)+", context "+toHexString(context)+", drawable "+drawable);
                     }
                     if(DEBUG) {
-                      System.err.println("X11GLXContext.createContext done (old ctx < 3.0 - no 3.0) 0x"+Long.toHexString(context));
+                      System.err.println("X11GLXContext.createContext done (old ctx < 3.0 - no 3.0) "+toHexString(context));
                     }
                 } else {
                     GLX.glXDestroyContext(display, temp_context);
@@ -296,7 +296,7 @@ public abstract class X11GLXContext extends GLContextImpl {
                     // need to update the GL func table ..
                     updateGLProcAddressTable();
                     if(DEBUG) {
-                      System.err.println("X11GLXContext.createContext done (new ctx >= 3.0) 0x"+Long.toHexString(context));
+                      System.err.println("X11GLXContext.createContext done (new ctx >= 3.0) "+toHexString(context));
                     }
                 }
             }
@@ -337,6 +337,8 @@ public abstract class X11GLXContext extends GLContextImpl {
   }
 
   protected int makeCurrentImplAfterLock() throws GLException {
+    long dpy = drawable.getNativeWindow().getDisplayHandle();
+
     getDrawableImpl().getFactoryImpl().lockToolkit();
     try {
         if (drawable.getNativeWindow().getSurfaceHandle() == 0) {
@@ -356,7 +358,7 @@ public abstract class X11GLXContext extends GLContextImpl {
 
         if (GLX.glXGetCurrentContext() != context) {
             
-            if (!GLX.glXMakeContextCurrent(drawable.getNativeWindow().getDisplayHandle(), 
+            if (!GLX.glXMakeContextCurrent(dpy,
                                            drawable.getNativeWindow().getSurfaceHandle(), 
                                            drawableRead.getNativeWindow().getSurfaceHandle(), 
                                            context)) {
@@ -364,7 +366,7 @@ public abstract class X11GLXContext extends GLContextImpl {
             }
             if (DEBUG && (VERBOSE || created)) {
               System.err.println(getThreadName() + ": glXMakeCurrent(display " + 
-                                 toHexString(drawable.getNativeWindow().getDisplayHandle()) +
+                                 toHexString(dpy)+
                                  ", drawable " + toHexString(drawable.getNativeWindow().getSurfaceHandle()) +
                                  ", drawableRead " + toHexString(drawableRead.getNativeWindow().getSurfaceHandle()) +
                                  ", context " + toHexString(context) + ") succeeded");
@@ -397,10 +399,10 @@ public abstract class X11GLXContext extends GLContextImpl {
     try {
         if (context != 0) {
             if (DEBUG) {
-              System.err.println("glXDestroyContext(0x" +
-                                 Long.toHexString(drawable.getNativeWindow().getDisplayHandle()) +
-                                 ", 0x" +
-                                 Long.toHexString(context) + ")");
+              System.err.println("glXDestroyContext(" +
+                                 toHexString(drawable.getNativeWindow().getDisplayHandle()) +
+                                 ", " +
+                                 toHexString(context) + ")");
             }
             GLX.glXDestroyContext(drawable.getNativeWindow().getDisplayHandle(), context);
             if (DEBUG) {

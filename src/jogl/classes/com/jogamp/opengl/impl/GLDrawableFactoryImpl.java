@@ -54,13 +54,24 @@ import java.lang.reflect.*;
 public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
   protected static final boolean DEBUG = Debug.debug("GLDrawableFactory");
 
+  private boolean isValid = false;
+
   public void shutdown() { 
+     validate();
+     isValid = false;
+  }
+
+  protected final void validate() {
+    if(!isValid) {
+        throw new GLException("GLDrawableFactory is already shutdown!");
+    }
   }
 
   //---------------------------------------------------------------------------
   // Dispatching GLDrawable construction in respect to the NativeWindow Capabilities
   //
   public GLDrawable createGLDrawable(NativeWindow target) {
+    validate();
     if (target == null) {
       throw new IllegalArgumentException("Null target");
     }
@@ -124,6 +135,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
                                             GLCapabilitiesChooser chooser,
                                             int width,
                                             int height) {
+    validate();
     if(height<=0 || height<=0) {
         throw new GLException("Width and height of pbuffer must be positive (were (" +
                         width + ", " + height + "))");
@@ -139,6 +151,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
                                    int width,
                                    int height,
                                    GLContext shareWith) {
+    validate();
     return new GLPbufferImpl( (GLDrawableImpl) createGLPbufferDrawable(capabilities, chooser, height, height),
                               shareWith);
   }
@@ -155,6 +168,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
                                             GLCapabilitiesChooser chooser,
                                             int width,
                                             int height) {
+    validate();
     if(width<=0 || height<=0) {
         throw new GLException("Width and height of pbuffer must be positive (were (" +
                         width + ", " + height + "))");
@@ -174,6 +188,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
 
   protected GLDrawableFactoryImpl() {
     super();
+    isValid = true;
   }
 
   protected void maybeDoSingleThreadedWorkaround(Runnable action) {
@@ -279,6 +294,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
    *   out-of-bounds
    */
   public boolean setDisplayGamma(float gamma, float brightness, float contrast) throws IllegalArgumentException {
+    validate();
     if ((brightness < -1.0f) || (brightness > 1.0f)) {
       throw new IllegalArgumentException("Brightness must be between -1.0 and 1.0");
     }
@@ -311,6 +327,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
   }
 
   public synchronized void resetDisplayGamma() {
+    validate();
     if (gammaShutdownHook == null) {
       throw new IllegalArgumentException("Should not call this unless setDisplayGamma called first");
     }

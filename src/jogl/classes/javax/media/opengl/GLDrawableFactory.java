@@ -216,6 +216,7 @@ public abstract class GLDrawableFactory {
   /**
    * Returns true if it is possible to create a GLPbuffer. Some older
    * graphics cards do not have this capability.
+   * @param passing the device for the query, may be null
    */
   public abstract boolean canCreateGLPbuffer(AbstractGraphicsDevice device);
 
@@ -278,6 +279,7 @@ public abstract class GLDrawableFactory {
   /**
    * Returns true if it is possible to create an external GLDrawable
    * object via {@link #createExternalGLDrawable}.
+   * @param passing the device for the query, may be null
    */
   public abstract boolean canCreateExternalGLDrawable(AbstractGraphicsDevice device);
 

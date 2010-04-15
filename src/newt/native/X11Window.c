@@ -149,6 +149,19 @@ static jint X11KeySym2NewtVKey(KeySym keySym) {
     return keySym;
 }
 
+static void _FatalError(JNIEnv *env, const char* msg, ...)
+{
+    char buffer[512];
+    va_list ap;
+
+    va_start(ap, msg);
+    vsnprintf(buffer, sizeof(buffer), msg, ap);
+    va_end(ap);
+
+    fprintf(stderr, buffer);
+    (*env)->FatalError(env, buffer);
+}
+
 static const char * const ClazzNameRuntimeException = 
                             "java/lang/RuntimeException";
 static jclass    runtimeExceptionClz=NULL;
@@ -217,26 +230,6 @@ static void displayDispatchErrorHandlerEnable(int onoff) {
     }
 }
 
-static XIOErrorHandler origIOErrorHandler = NULL;
-
-static int displayDispatchIOErrorHandler(Display *dpy)
-{
-    fprintf(stderr, "Fatal: NEWT X11 IOError: Display %p not available\n", dpy);
-    return 0;
-}
-
-static void displayDispatchIOErrorHandlerEnable(int onoff) {
-    if(onoff) {
-        if(NULL==origIOErrorHandler) {
-            origIOErrorHandler = XSetIOErrorHandler(displayDispatchIOErrorHandler);
-        }
-    } else {
-        XSetIOErrorHandler(origIOErrorHandler);
-        origIOErrorHandler = NULL;
-    }
-}
-
-
 /*
  * Class:     com_jogamp_newt_x11_X11Display
  * Method:    initIDs
@@ -259,28 +252,24 @@ JNIEXPORT jboolean JNICALL Java_com_jogamp_newt_x11_X11Display_initIDs
     if(NULL==newtWindowClz) {
         c = (*env)->FindClass(env, ClazzNameNewtWindow);
         if(NULL==c) {
-            fprintf(stderr, "FatalError: NEWT X11Window: can't find %s\n", ClazzNameNewtWindow);
-            return JNI_FALSE;
+            _FatalError(env, "NEWT X11Window: can't find %s", ClazzNameNewtWindow);
         }
         newtWindowClz = (jclass)(*env)->NewGlobalRef(env, c);
         (*env)->DeleteLocalRef(env, c);
         if(NULL==newtWindowClz) {
-            fprintf(stderr, "FatalError: NEWT X11Window: can't use %s\n", ClazzNameNewtWindow);
-            return JNI_FALSE;
+            _FatalError(env, "NEWT X11Window: can't use %s", ClazzNameNewtWindow);
         }
     }
 
     if(NULL==runtimeExceptionClz) {
         c = (*env)->FindClass(env, ClazzNameRuntimeException);
         if(NULL==c) {
-            fprintf(stderr, "FatalError: NEWT X11Window: can't find %s\n", ClazzNameRuntimeException);
-            return JNI_FALSE;
+            _FatalError(env, "NEWT X11Window: can't find %s", ClazzNameRuntimeException);
         }
         runtimeExceptionClz = (jclass)(*env)->NewGlobalRef(env, c);
         (*env)->DeleteLocalRef(env, c);
         if(NULL==runtimeExceptionClz) {
-            fprintf(stderr, "FatalError: NEWT X11Window: can't use %s\n", ClazzNameRuntimeException);
-            return JNI_FALSE;
+            _FatalError(env, "NEWT X11Window: can't use %s", ClazzNameRuntimeException);
         }
     }
 
@@ -297,7 +286,7 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_x11_X11Display_LockDisplay
 {
     Display * dpy = (Display *)(intptr_t)display;
     if(dpy==NULL) {
-        _throwNewRuntimeException(NULL, env, "given display connection is NULL\n");
+        _FatalError(env, "invalid display connection..");
     }
     XLockDisplay(dpy) ;
     DBG_PRINT1( "X11: LockDisplay 0x%X\n", dpy); 
@@ -314,7 +303,7 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_x11_X11Display_UnlockDisplay
 {
     Display * dpy = (Display *)(intptr_t)display;
     if(dpy==NULL) {
-        _throwNewRuntimeException(NULL, env, "given display connection is NULL\n");
+        _FatalError(env, "invalid display connection..");
     }
     XUnlockDisplay(dpy) ;
     DBG_PRINT1( "X11: UnlockDisplay 0x%X\n", dpy); 
@@ -334,7 +323,7 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_x11_X11Display_CompleteDisplay
     jlong windowDeleteAtom;
 
     if(dpy==NULL) {
-        _throwNewRuntimeException(NULL, env, "given display connection is NULL\n");
+        _FatalError(env, "invalid display connection..");
     }
     XLockDisplay(dpy) ;
 
@@ -447,8 +436,6 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_x11_X11Display_DispatchMessages
         return;
     }
 
-    displayDispatchIOErrorHandlerEnable(1);
-
     // Periodically take a break
     while( num_events > 0 ) {
         jobject jwindow = NULL;
@@ -462,15 +449,12 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_x11_X11Display_DispatchMessages
         // num_events = XPending(dpy); // XEventsQueued(dpy, QueuedAfterFlush); // I/O Flush ..
         // num_events = XEventsQueued(dpy, QueuedAlready); // Better, no I/O ..
         if ( 0 >= XEventsQueued(dpy, QueuedAlready) ) {
-            displayDispatchIOErrorHandlerEnable(0);
             XUnlockDisplay(dpy) ;
             return;
         }
 
         XNextEvent(dpy, &evt);
         num_events--;
-
-        displayDispatchIOErrorHandlerEnable(0);
 
         if( 0==evt.xany.window ) {
             _throwNewRuntimeException(dpy, env, "event window NULL, bail out!\n");
@@ -606,8 +590,7 @@ JNIEXPORT jlong JNICALL Java_com_jogamp_newt_x11_X11Screen_GetScreen
     Screen  * scrn= NULL;
 
     if(dpy==NULL) {
-        _throwNewRuntimeException(NULL, env, "invalid display connection..\n");
-        return 0;
+        _FatalError(env, "invalid display connection..");
     }
     XLockDisplay(dpy);
 
@@ -698,8 +681,7 @@ JNIEXPORT jlong JNICALL Java_com_jogamp_newt_x11_X11Window_CreateWindow
     DBG_PRINT4( "X11: CreateWindow %x/%d %dx%d\n", x, y, width, height);
 
     if(dpy==NULL) {
-        _throwNewRuntimeException(NULL, env, "invalid display connection..\n");
-        return 0;
+        _FatalError(env, "invalid display connection..");
     }
 
     if(visualID<0) {
@@ -711,7 +693,7 @@ JNIEXPORT jlong JNICALL Java_com_jogamp_newt_x11_X11Window_CreateWindow
 
     XSync(dpy, False);
 
-    scrn = ScreenOfDisplay(dpy, screen_index);
+    scrn = ScreenOfDisplay(dpy, scrn_idx);
 
     // try given VisualID on screen
     memset(&visualTemplate, 0, sizeof(XVisualInfo));
@@ -809,8 +791,7 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_x11_X11Window_CloseWindow
     jobject jwindow;
 
     if(dpy==NULL) {
-        _throwNewRuntimeException(NULL, env, "invalid display connection..\n");
-        return;
+        _FatalError(env, "invalid display connection..");
     }
     XLockDisplay(dpy) ;
 
@@ -854,8 +835,7 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_x11_X11Window_setVisible0
     DBG_PRINT1( "X11: setVisible0 vis %d\n", visible);
 
     if(dpy==NULL) {
-        _throwNewRuntimeException(NULL, env, "invalid display connection..\n");
-        return;
+        _FatalError(env, "invalid display connection..");
     }
     XLockDisplay(dpy) ;
 
@@ -903,8 +883,7 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_x11_X11Window_setSize0
     DBG_PRINT6( "X11: setSize0 %d/%d %dx%d, dec %d, vis %d\n", x, y, width, height, decorationToggle, setVisible);
 
     if(dpy==NULL) {
-        _throwNewRuntimeException(NULL, env, "invalid display connection..\n");
-        return;
+        _FatalError(env, "invalid display connection..");
     }
     XLockDisplay(dpy) ;
 
@@ -963,8 +942,7 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_x11_X11Window_setPosition0
 
     DBG_PRINT2( "X11: setPos0 . XConfigureWindow %d/%d\n", x, y);
     if(dpy==NULL) {
-        _throwNewRuntimeException(NULL, env, "invalid display connection..\n");
-        return;
+        _FatalError(env, "invalid display connection..");
     }
     XLockDisplay(dpy) ;
 

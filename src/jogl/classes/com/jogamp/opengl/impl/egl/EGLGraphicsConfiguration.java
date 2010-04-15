@@ -122,10 +122,11 @@ public class EGLGraphicsConfiguration extends DefaultGraphicsConfiguration imple
         if ( onscreen ) {
             res = ( 0 != (val & EGL.EGL_WINDOW_BIT) ) ;
         } else {
-            res = ( 0 != (val & EGL.EGL_PIXMAP_BIT) ) || usePBuffer ;
-        }
-        if ( usePBuffer ) {
-            res = res && ( 0 != (val & EGL.EGL_PBUFFER_BIT) ) ;
+            if ( usePBuffer ) {
+                res = ( 0 != (val & EGL.EGL_PBUFFER_BIT) ) ;
+            } else {
+                res = ( 0 != (val & EGL.EGL_PIXMAP_BIT) ) ;
+            }
         }
 
         return res;
@@ -187,17 +188,13 @@ public class EGLGraphicsConfiguration extends DefaultGraphicsConfiguration imple
                 caps.setOnscreen( 0 != (val[0] & EGL.EGL_WINDOW_BIT) );
                 caps.setPBuffer ( 0 != (val[0] & EGL.EGL_PBUFFER_BIT) );
             } else {
-                throw new GLException("EGL_SURFACE_TYPE does not match !!!");
-            }
-        } else {
-            if(relaxed) {
                 if(DEBUG) {
-                    System.err.println("Could not determine EGL_SURFACE_TYPE !!!");
+                  System.err.println("EGL_SURFACE_TYPE does not match: req(onscrn "+onscreen+", pbuffer "+usePBuffer+"), got(onscreen "+( 0 != (val[0] & EGL.EGL_WINDOW_BIT) )+", pbuffer "+( 0 != (val[0] & EGL.EGL_PBUFFER_BIT) )+", pixmap "+( 0 != (val[0] & EGL.EGL_PIXMAP_BIT) )+")");
                 }
                 return null;
-            } else {
-                throw new GLException("Could not determine EGL_SURFACE_TYPE !!!");
             }
+        } else {
+            throw new GLException("Could not determine EGL_SURFACE_TYPE !!!");
         }
 
         return caps;

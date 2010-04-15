@@ -64,18 +64,18 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
       int screen = x11Screen.getIndex();
       long fbcfg = glXFBConfigID2FBConfig(display, screen, fbcfgID);
       if(0==fbcfg) {
-          throw new GLException("FBConfig null of 0x"+Integer.toHexString(fbcfgID));
+          throw new GLException("FBConfig null of "+toHexString(fbcfgID));
       }
       if(null==glp) {
         glp = GLProfile.getDefault();
       }
       GLCapabilities caps = GLXFBConfig2GLCapabilities(glp, display, fbcfg, true, true, true, GLXUtil.isMultisampleAvailable(display));
       if(null==caps) {
-          throw new GLException("GLCapabilities null of 0x"+Long.toHexString(fbcfg));
+          throw new GLException("GLCapabilities null of "+toHexString(fbcfg));
       }
       XVisualInfo xvi = GLX.glXGetVisualFromFBConfigCopied(display, fbcfg);
       if(null==xvi) {
-          throw new GLException("XVisualInfo null of 0x"+Long.toHexString(fbcfg));
+          throw new GLException("XVisualInfo null of "+toHexString(fbcfg));
       }
       return new X11GLXGraphicsConfiguration(x11Screen, caps, caps, new DefaultGLCapabilitiesChooser(), xvi, fbcfg, fbcfgID);
     }
@@ -102,6 +102,10 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
                 System.err.println("!!! updateGraphicsConfiguration: "+this);
             }
         }
+    }
+
+    private static int nonZeroOrDontCare(int value) {
+        return value != 0 ? value : (int)GLX.GLX_DONT_CARE ;
     }
 
     public static int[] GLCapabilities2AttribList(GLCapabilities caps,
@@ -222,10 +226,11 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
     if ( onscreen ) {
         res = ( 0 != (val & GLX.GLX_WINDOW_BIT) ) ;
     } else {
-        res = ( 0 != (val & GLX.GLX_PIXMAP_BIT) ) || usePBuffer ;
-    }
-    if ( usePBuffer ) {
-        res = res && ( 0 != (val & GLX.GLX_PBUFFER_BIT) ) ;
+        if ( usePBuffer ) {
+            res = ( 0 != (val & GLX.GLX_PBUFFER_BIT) ) ;
+        } else {
+            res = ( 0 != (val & GLX.GLX_PIXMAP_BIT) ) ;
+        }
     }
 
     return res;
@@ -237,7 +242,10 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
     int val;
     val = glXGetFBConfig(display, fbcfg, GLX.GLX_RENDER_TYPE, tmp, 0);
     if (val != GLX.GLX_RGBA_BIT) {
-      throw new GLException("Visual does not support RGBA");
+      if(DEBUG) {
+        System.err.println("FBConfig ("+toHexString(fbcfg)+") does not support RGBA: "+toHexString(val));
+      }
+      return null;
     }
     GLCapabilities res = new GLCapabilities(glp);
 
@@ -249,7 +257,10 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
         res.setOnscreen( 0 != (val & GLX.GLX_WINDOW_BIT) );
         res.setPBuffer ( 0 != (val & GLX.GLX_PBUFFER_BIT) );
     } else {
-        throw new GLException("GLX_DRAWABLE_TYPE does not match !!!");
+        if(DEBUG) {
+          System.err.println("FBConfig ("+toHexString(fbcfg)+") GLX_DRAWABLE_TYPE does not match: req(onscrn "+onscreen+", pbuffer "+usePBuffer+"), got(onscreen "+( 0 != (val & GLX.GLX_WINDOW_BIT) )+", pbuffer "+( 0 != (val & GLX.GLX_PBUFFER_BIT) )+", pixmap "+( 0 != (val & GLX.GLX_PIXMAP_BIT) )+")");
+        }
+        return null;
     }
     res.setDoubleBuffered(glXGetFBConfig(display, fbcfg, GLX.GLX_DOUBLEBUFFER,     tmp, 0) != 0);
     res.setStereo        (glXGetFBConfig(display, fbcfg, GLX.GLX_STEREO,           tmp, 0) != 0);
@@ -302,7 +313,7 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
     }
     int res = GLX.glXGetFBConfigAttrib(display, cfg, attrib, tmp, tmp_offset);
     if (res != 0) {
-      throw new GLException("glXGetFBConfig(0x"+Long.toHexString(attrib)+") failed: error code " + glXGetFBConfigErrorCode(res));
+      throw new GLException("glXGetFBConfig("+toHexString(attrib)+") failed: error code " + glXGetFBConfigErrorCode(res));
     }
     return tmp[tmp_offset];
   }
@@ -340,8 +351,8 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
           NativeWindowFactory.getDefaultFactory().getToolkitLock().unlock();
       }
       if (DEBUG) {
-        System.err.println("!!! Fetched XVisualInfo for visual ID 0x" + Long.toHexString(visualID));
-        System.err.println("!!! Resulting XVisualInfo: visualid = 0x" + Long.toHexString(res.getVisualid()));
+        System.err.println("!!! Fetched XVisualInfo for visual ID " + toHexString(visualID));
+        System.err.println("!!! Resulting XVisualInfo: visualid = " + toHexString(res.getVisualid()));
       }
       return res;
   }
@@ -350,11 +361,17 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
     int[] tmp = new int[1];
     int val = glXGetConfig(display, info, GLX.GLX_USE_GL, tmp, 0);
     if (val == 0) {
-      throw new GLException("Visual does not support OpenGL");
+      if(DEBUG) {
+        System.err.println("Visual ("+toHexString(info.getVisualid())+") does not support OpenGL");
+      }
+      return null;
     }
     val = glXGetConfig(display, info, GLX.GLX_RGBA, tmp, 0);
     if (val == 0) {
-      throw new GLException("Visual does not support RGBA");
+      if(DEBUG) {
+        System.err.println("Visual ("+toHexString(info.getVisualid())+") does not support RGBA");
+      }
+      return null;
     }
     GLCapabilities res = new GLCapabilities(glp);
     res.setOnscreen      (onscreen);
@@ -399,13 +416,21 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
     }
     int res = GLX.glXGetConfig(display, info, attrib, tmp, tmp_offset);
     if (res != 0) {
-      throw new GLException("glXGetConfig(0x"+Long.toHexString(attrib)+") failed: error code " + glXGetConfigErrorCode(res));
+      throw new GLException("glXGetConfig("+toHexString(attrib)+") failed: error code " + glXGetConfigErrorCode(res));
     }
     return tmp[tmp_offset];
   }
 
+  public static String toHexString(int val) {
+    return "0x"+Integer.toHexString(val);
+  }
+
+  public static String toHexString(long val) {
+    return "0x"+Long.toHexString(val);
+  }
+
   public String toString() {
-    return "X11GLXGraphicsConfiguration["+getScreen()+", visualID 0x" + Long.toHexString(getVisualID()) + ", fbConfigID 0x" + Long.toHexString(fbConfigID) + 
+    return "X11GLXGraphicsConfiguration["+getScreen()+", visualID " + toHexString(getVisualID()) + ", fbConfigID " + toHexString(fbConfigID) + 
                                         ",\n\trequested " + getRequestedCapabilities()+
                                         ",\n\tchosen    " + getChosenCapabilities()+
                                         "]";

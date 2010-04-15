@@ -92,7 +92,7 @@ public class X11AWTGLXGraphicsConfigurationFactory extends GraphicsConfiguration
         try {
             long displayHandle = X11SunJDKReflection.graphicsDeviceGetDisplay(device);
             if(0==displayHandle) {
-                displayHandle = X11Util.getThreadLocalDefaultDisplay();
+                displayHandle = X11Util.createThreadLocalDefaultDisplay();
                 if(DEBUG) {
                     System.err.println("X11AWTGLXGraphicsConfigurationFactory: using a thread local X11 display");
                 }

@@ -54,13 +54,55 @@ public class GLXUtil {
 
     /** Workaround for apparent issue with ATI's proprietary drivers
         where direct contexts still send GLX tokens for GL calls */
-    public static boolean isVendorATI(long display) {
+    public static String getVendorName(long display) {
         try {
             X11Lib.XLockDisplay(display);
-            String vendor = GLX.glXGetClientString(display, GLX.GLX_VENDOR);
-            return vendor != null && vendor.startsWith("ATI") ;
+            return GLX.glXGetClientString(display, GLX.GLX_VENDOR);
         } finally {
             X11Lib.XUnlockDisplay(display);
+        }
+    }
+
+    public static boolean isVendorNVIDIA(String vendor) {
+        return vendor != null && vendor.startsWith("NVIDIA") ;
+    }
+
+    public static boolean isVendorATI(String vendor) {
+        return vendor != null && vendor.startsWith("ATI") ;
+    }
+
+    public static boolean isVendorATI(long display) {
+        return isVendorATI(getVendorName(display));
+    }
+
+    public static boolean isVendorNVIDIA(long display) {
+        return isVendorNVIDIA(getVendorName(display));
+    }
+
+    public static void getGLXVersion(long display, int major[], int minor[]) { 
+        if(0 == display) {
+            throw new GLException("null display handle");
+        }
+        if(major.length<1||minor.length<1) {
+            throw new GLException("passed int arrays size is not >= 1");
+        }
+
+        if (!GLX.glXQueryVersion(display, major, 0, minor, 0)) {
+          throw new GLException("glXQueryVersion failed");
+        }
+
+        // Work around bugs in ATI's Linux drivers where they report they
+        // only implement GLX version 1.2 on the server side
+        if (major[0] == 1 && minor[0] == 2) {
+          String str = GLX.glXGetClientString(display, GLX.GLX_VERSION);
+          try {
+              // e.g. "1.3"
+              major[0] = Integer.valueOf(str.substring(0, 1)).intValue();
+              minor[0] = Integer.valueOf(str.substring(2, 3)).intValue();
+          } catch (Exception e) {
+              major[0] = 1;
+              minor[0] = 2;
+          }
         }
     }
 }

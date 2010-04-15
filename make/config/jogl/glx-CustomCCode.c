@@ -78,7 +78,7 @@ Java_com_jogamp_opengl_impl_x11_glx_GLX_glXGetVisualFromFBConfigCopied0__JJ(JNIE
   jbyteCopy   = (*env)->CallStaticObjectMethod(env,
                                                clazzInternalBufferUtil, cstrInternalBufferUtil, jbyteSource);
 
-  // FIXME: remove reference/gc jbyteSource ?? 
+  (*env)->DeleteLocalRef(env, jbyteSource);
   XFree(_res);
 
   return jbyteCopy;
@@ -118,8 +118,7 @@ Java_com_jogamp_opengl_impl_x11_glx_GLX_glXChooseFBConfigCopied1__JILjava_lang_O
   jbyteSource = (*env)->NewDirectByteBuffer(env, _res, count * sizeof(GLXFBConfig));
   jbyteCopy   = (*env)->CallStaticObjectMethod(env,
                                                clazzInternalBufferUtil, cstrInternalBufferUtil, jbyteSource);
-
-  // FIXME: remove reference/gc jbyteSource ?? 
+  (*env)->DeleteLocalRef(env, jbyteSource);
   XFree(_res);
 
   return jbyteCopy;
@@ -151,7 +150,7 @@ Java_com_jogamp_opengl_impl_x11_glx_GLX_glXChooseVisualCopied1__JILjava_lang_Obj
   jbyteCopy   = (*env)->CallStaticObjectMethod(env,
                                                clazzInternalBufferUtil, cstrInternalBufferUtil, jbyteSource);
 
-  // FIXME: remove reference/gc jbyteSource ?? 
+  (*env)->DeleteLocalRef(env, jbyteSource);
   XFree(_res);
 
   return jbyteCopy;

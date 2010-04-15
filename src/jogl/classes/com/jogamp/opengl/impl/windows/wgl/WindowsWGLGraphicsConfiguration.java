@@ -412,14 +412,16 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
         if ( onscreen ) {
             res = ( 0 != (val & WINDOW_BIT) ) ;
         } else {
-            res = ( 0 != (val & BITMAP_BIT) ) || usePBuffer ;
-        }
-        if ( usePBuffer ) {
-            res = res && ( 0 != (val & PBUFFER_BIT) ) ;
+            if ( usePBuffer ) {
+                res = ( 0 != (val & PBUFFER_BIT) ) ;
+            } else {
+                res = ( 0 != (val & BITMAP_BIT) ) ;
+            }
         }
 
         return res;
     }
+
     public static GLCapabilities AttribList2GLCapabilities(GLProfile glp, int[] iattribs,
                                                          int niattribs,
                                                          int[] iresults,
@@ -433,7 +435,10 @@ public class WindowsWGLGraphicsConfiguration extends DefaultGraphicsConfiguratio
             res.setOnscreen( 0 != (drawableTypeBits & WINDOW_BIT) );
             res.setPBuffer ( 0 != (drawableTypeBits & PBUFFER_BIT) );
         } else {
-            throw new GLException("WGL DrawableType does not match !!!");
+            if(DEBUG) {
+              System.err.println("WGL DrawableType does not match: req(onscrn "+onscreen+", pbuffer "+usePBuffer+"), got(onscreen "+( 0 != (drawableTypeBits & WINDOW_BIT) )+", pbuffer "+( 0 != (drawableTypeBits & PBUFFER_BIT) )+", pixmap "+( 0 != (drawableTypeBits & BITMAP_BIT))+")");
+            }
+            return null;
         }
 
         for (int i = 0; i < niattribs; i++) {

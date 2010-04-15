@@ -40,6 +40,8 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.AfterClass;
+import org.junit.After;
 import org.junit.Test;
 
 import javax.media.opengl.*;
@@ -50,19 +52,27 @@ import com.jogamp.newt.opengl.*;
 
 public class TestDrawable01NEWT {
     static GLProfile glp;
+    static GLDrawableFactory factory;
     static int width, height;
     GLCapabilities caps;
     Window window;
     GLDrawable drawable;
     GLContext context;
-    GLDrawableFactory factory;
 
     @BeforeClass
     public static void initClass() {
         glp = GLProfile.getDefault();
         Assert.assertNotNull(glp);
+        factory = GLDrawableFactory.getFactory(glp);
+        Assert.assertNotNull(factory);
         width  = 640;
         height = 480;
+    }
+
+    @AfterClass
+    public static void releaseClass() {
+        factory.shutdown();
+        factory=null;
     }
 
     @Before
@@ -106,8 +116,6 @@ public class TestDrawable01NEWT {
         Assert.assertTrue(glCaps.getDoubleBuffered()==!onscreen);
         Assert.assertTrue(glCaps.getDepthBits()>4);
 
-        factory = GLDrawableFactory.getFactory(glCaps.getGLProfile());
-        Assert.assertNotNull(factory);
         drawable = factory.createGLDrawable(window);
         Assert.assertNotNull(drawable);
         // System.out.println("Pre: "+drawable);
@@ -149,10 +157,6 @@ public class TestDrawable01NEWT {
         drawable = null;
         context = null;
         window = null;
-
-        // test code cont ..
-        factory.shutdown();
-        factory = null;
     }
 
     @Test
@@ -174,7 +178,22 @@ public class TestDrawable01NEWT {
     }
 
     public static void main(String args[]) {
-        org.junit.runner.JUnitCore.main(TestDrawable01NEWT.class.getName());
+        String tstname = TestDrawable01NEWT.class.getName();
+        try {
+        org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner.main(new String[] {
+            tstname,
+            "filtertrace=true",
+            "haltOnError=false",
+            "haltOnFailure=false",
+            "showoutput=true",
+            "outputtoformatters=true",
+            "logfailedtests=true",
+            "logtestlistenerevents=true",
+            "formatter=org.apache.tools.ant.taskdefs.optional.junit.PlainJUnitResultFormatter",
+            "formatter=org.apache.tools.ant.taskdefs.optional.junit.XMLJUnitResultFormatter,TEST-"+tstname+".xml" } );
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 }
