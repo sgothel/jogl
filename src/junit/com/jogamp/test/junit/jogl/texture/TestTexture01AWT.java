@@ -36,16 +36,8 @@ import com.jogamp.test.junit.jogl.util.texture.gl2.TextureGL2ListenerDraw1;
 
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GL;
-import javax.media.opengl.GL2ES1;
-import javax.media.opengl.GL2;
-import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLEventListener;
 import javax.media.opengl.awt.GLCanvas;
-import com.jogamp.opengl.util.texture.Texture;
-import com.jogamp.opengl.util.texture.TextureCoords;
 import com.jogamp.opengl.util.texture.TextureData;
-import com.jogamp.opengl.util.texture.TextureIO;
 import com.jogamp.opengl.util.texture.awt.AWTTextureIO;
 import com.jogamp.opengl.util.Animator;
 
@@ -54,15 +46,9 @@ import java.awt.Color;
 import java.awt.Frame;
 import java.awt.GradientPaint;
 import java.awt.Graphics2D;
-import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 
-import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class TestTexture01AWT {
@@ -93,7 +79,7 @@ public class TestTexture01AWT {
     }
 
     @Test
-    public void test1() {
+    public void test1() throws InterruptedException {
         GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GL2GL3));
         GLCanvas glCanvas = new GLCanvas(caps);
         frame.add(glCanvas);
@@ -107,9 +93,7 @@ public class TestTexture01AWT {
         frame.setVisible(true);
         animator.start();
 
-        try {
-            Thread.sleep(1000); // 1000 ms
-        } catch (Exception e) {}
+        Thread.sleep(1000); // 1000 ms
 
         animator.stop();
         frame.setVisible(false);

@@ -29,46 +29,45 @@
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SVEN GOTHEL HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  */
-
 package com.jogamp.test.junit.jogl.offscreen;
 
-import java.nio.*;
+import java.io.IOException;
 import javax.media.opengl.*;
 
-import com.jogamp.opengl.util.texture.TextureData;
 import com.jogamp.opengl.util.texture.TextureIO;
 import java.io.File;
-import java.io.IOException;
-
-import javax.media.nativewindow.*;
 
 public class ReadBuffer2File extends ReadBufferBase {
 
-    public ReadBuffer2File (GLDrawable externalRead) {
+    public ReadBuffer2File(GLDrawable externalRead) {
         super(externalRead);
     }
 
+    @Override
     public void dispose(GLAutoDrawable drawable) {
         super.dispose(drawable);
     }
+    int shotNum = 0;
 
-    int shotNum=0;
+    void copyTextureData2File() throws IOException {
+        if (!readBufferUtil.isValid()) {
+            return;
+        }
 
-    void copyTextureData2File() {
-      if(!readBufferUtil.isValid()) return;
-
-      try {
-        File file = File.createTempFile("shot"+shotNum+"-", ".ppm");
+        File file = File.createTempFile("shot" + shotNum + "-", ".ppm");
         TextureIO.write(readBufferUtil.getTextureData(), file);
-        System.out.println("Wrote: "+file.getAbsolutePath()+", ...");
+        System.out.println("Wrote: " + file.getAbsolutePath() + ", ...");
         shotNum++;
-      } catch (IOException ioe) { ioe.printStackTrace(); }
-      readBufferUtil.rewindPixelBuffer();
+        readBufferUtil.rewindPixelBuffer();
     }
 
+    @Override
     public void display(GLAutoDrawable drawable) {
         super.display(drawable);
-        copyTextureData2File();
+        try {
+            copyTextureData2File();
+        } catch (IOException ex) {
+            throw new RuntimeException("can not read buffer to file", ex);
+        }
     }
 }
-

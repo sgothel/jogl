@@ -47,6 +47,7 @@ import org.junit.Test;
 import javax.media.nativewindow.*;
 
 import com.jogamp.newt.*;
+import java.io.IOException;
 
 public class TestWindows01NEWT {
     static int width, height;
@@ -79,7 +80,7 @@ public class TestWindows01NEWT {
         // Create native OpenGL resources .. XGL/WGL/CGL .. 
         // equivalent to GLAutoDrawable methods: setVisible(true)
         // 
-        caps = (Capabilities) window.getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities();
+        caps = window.getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities();
         Assert.assertNotNull(caps);
         Assert.assertTrue(caps.getGreenBits()>5);
         Assert.assertTrue(caps.getBlueBits()>5);
@@ -102,7 +103,7 @@ public class TestWindows01NEWT {
     }
 
     @Test
-    public void testWindowDecor01Simple() {
+    public void testWindowDecor01Simple() throws InterruptedException {
         Capabilities caps = new Capabilities();
         Assert.assertNotNull(caps);
         Display display = NewtFactory.createDisplay(null); // local display
@@ -111,14 +112,12 @@ public class TestWindows01NEWT {
         Assert.assertNotNull(screen);
 
         Window window = createWindow(screen, caps, width, height, true /* onscreen */, false /* undecorated */);
-        try {
-            Thread.sleep(1000); // 1000 ms
-        } catch (Exception e) {}
+        Thread.sleep(1000); // 1000 ms
         destroyWindow(display, screen, window);
     }
 
     @Test
-    public void testWindowDecor02DestroyWinTwiceA() {
+    public void testWindowDecor02DestroyWinTwiceA() throws InterruptedException {
         Capabilities caps = new Capabilities();
         Assert.assertNotNull(caps);
         Display display = NewtFactory.createDisplay(null); // local display
@@ -127,15 +126,13 @@ public class TestWindows01NEWT {
         Assert.assertNotNull(screen);
 
         Window window = createWindow(screen, caps, width, height, true /* onscreen */, false /* undecorated */);
-        try {
-            Thread.sleep(1000); // 1000 ms
-        } catch (Exception e) {}
+        Thread.sleep(1000); // 1000 ms
         destroyWindow(null, null, window);
         destroyWindow(display, screen, window);
     }
 
     @Test
-    public void testWindowDecor03TwoWin() {
+    public void testWindowDecor03TwoWin() throws InterruptedException {
         Capabilities caps = new Capabilities();
         Assert.assertNotNull(caps);
         Display display = NewtFactory.createDisplay(null); // local display
@@ -145,16 +142,13 @@ public class TestWindows01NEWT {
 
         Window window1 = createWindow(screen, caps, width, height, true /* onscreen */, false /* undecorated */);
         Window window2 = createWindow(screen, caps, width, height, true /* onscreen */, false /* undecorated */);
-        try {
-            Thread.sleep(1000); // 1000 ms
-        } catch (Exception e) {}
+        Thread.sleep(1000); // 1000 ms
         destroyWindow(null, null, window2);
         destroyWindow(display, screen, window1);
     }
 
-    public static void main(String args[]) {
+    public static void main(String args[]) throws IOException {
         String tstname = TestWindows01NEWT.class.getName();
-        try {
         org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner.main(new String[] {
             tstname,
             "filtertrace=true",
@@ -166,9 +160,6 @@ public class TestWindows01NEWT {
             "logtestlistenerevents=true",
             "formatter=org.apache.tools.ant.taskdefs.optional.junit.PlainJUnitResultFormatter",
             "formatter=org.apache.tools.ant.taskdefs.optional.junit.XMLJUnitResultFormatter,TEST-"+tstname+".xml" } );
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
 }
