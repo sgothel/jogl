@@ -40,13 +40,12 @@ public class MiscUtils {
         try {
             return Integer.parseInt(str);
         } catch (Exception ex) {
-            // FIXME
             ex.printStackTrace();
         }
         return def;
     }
 
-    public static boolean setField(Object instance, String fieldName, Object value) {
+    public static boolean setFieldIfExists(Object instance, String fieldName, Object value) {
         try {
             Field f = instance.getClass().getField(fieldName);
             if(value instanceof Boolean || f.getType().isInstance(value)) {
@@ -58,7 +57,7 @@ public class MiscUtils {
         } catch (IllegalAccessException ex) {
             throw new RuntimeException(ex);
         } catch (NoSuchFieldException nsfe) {
-            throw new RuntimeException(instance.getClass()+" has no '"+fieldName+"' field", nsfe);
+            // OK - throw new RuntimeException(instance.getClass()+" has no '"+fieldName+"' field", nsfe);
         }
         return false;
     }

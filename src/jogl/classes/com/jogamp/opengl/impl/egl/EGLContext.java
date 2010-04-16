@@ -90,8 +90,7 @@ public abstract class EGLContext extends GLContextImpl {
 
     protected int makeCurrentImpl() throws GLException {
         if(EGL.EGL_NO_DISPLAY==((EGLDrawable)drawable).getDisplay() ) {
-            System.err.println("drawable not properly initialized");
-            return CONTEXT_NOT_CURRENT;
+            throw new GLException("drawable not properly initialized: "+drawable);
         }
         boolean created = false;
         if (eglContext == 0) {

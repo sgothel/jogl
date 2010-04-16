@@ -282,10 +282,7 @@ public class WindowsWGLContext extends GLContextImpl {
   
   protected int makeCurrentImpl() throws GLException {
     if (drawable.getNativeWindow().getSurfaceHandle() == 0) {
-        if (DEBUG) {
-          System.err.println("drawable not properly initialized");
-        }
-        return CONTEXT_NOT_CURRENT;
+        throw new GLException("drawable not properly initialized: "+drawable);
     }
     boolean created = false;
     if (hglrc == 0) {

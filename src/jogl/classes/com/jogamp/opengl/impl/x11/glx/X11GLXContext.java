@@ -335,10 +335,7 @@ public abstract class X11GLXContext extends GLContextImpl {
     getDrawableImpl().getFactoryImpl().lockToolkit();
     try {
         if (drawable.getNativeWindow().getSurfaceHandle() == 0) {
-            if (DEBUG) {
-              System.err.println("drawable not properly initialized");
-            }
-            return CONTEXT_NOT_CURRENT;
+            throw new GLException("drawable not properly initialized: "+drawable);
         }
         boolean created = false;
         if (context == 0) {

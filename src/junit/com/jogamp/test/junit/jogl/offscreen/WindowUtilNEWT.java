@@ -55,11 +55,11 @@ public class WindowUtilNEWT {
         Assert.assertNotNull(demo);
         Assert.assertNotNull(window);
         if(debug) {
-            MiscUtils.setField(demo, "glDebug", true);
-            MiscUtils.setField(demo, "glTrace", true);
+            MiscUtils.setFieldIfExists(demo, "glDebug", true);
+            MiscUtils.setFieldIfExists(demo, "glTrace", true);
         }
-        if(!MiscUtils.setField(demo, "window", window)) {
-            MiscUtils.setField(demo, "glWindow", glWindow);
+        if(!MiscUtils.setFieldIfExists(demo, "window", window)) {
+            MiscUtils.setFieldIfExists(demo, "glWindow", glWindow);
         }
     }
 
