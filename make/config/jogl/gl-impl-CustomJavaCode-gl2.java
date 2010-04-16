@@ -28,6 +28,14 @@ public final boolean isGL() {
     return true;
 }
   
+public final boolean isGL4bc() {
+    return false;
+}
+
+public final boolean isGL4() {
+    return false;
+}
+
 public final boolean isGL3bc() {
     return false;
 }
@@ -70,6 +78,14 @@ public final boolean hasGLSL() {
 
 public final GL getGL() throws GLException {
     return this;
+}
+
+public final GL4bc getGL4bc() throws GLException {
+    throw new GLException("Not a GL4bc implementation");
+}
+
+public final GL4 getGL4() throws GLException {
+    throw new GLException("Not a GL4 implementation");
 }
 
 public final GL3bc getGL3bc() throws GLException {

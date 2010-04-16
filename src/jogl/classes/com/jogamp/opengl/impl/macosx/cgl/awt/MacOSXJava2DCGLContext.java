@@ -87,7 +87,7 @@ public class MacOSXJava2DCGLContext extends MacOSXCGLContext implements Java2DGL
     }
             
     if (created) {
-      setGLFunctionAvailability(false);
+      setGLFunctionAvailability(false, -1, -1, -1);
       return CONTEXT_CURRENT_NEW;
     }
     return CONTEXT_CURRENT;

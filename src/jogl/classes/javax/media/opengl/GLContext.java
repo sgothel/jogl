@@ -260,7 +260,9 @@ public abstract class GLContext {
   public final String toString() {
     StringBuffer sb = new StringBuffer();
     sb.append(getClass().getName());
-    sb.append(" [");
+    sb.append(" [OpenGL ");
+    sb.append(getGLVersion());
+    sb.append(", ");
     sb.append(getGL());
     if(getGLDrawable()!=getGLDrawableRead()) {
         sb.append(",\n\tDrawable Read : ");
@@ -280,4 +282,68 @@ public abstract class GLContext {
       GLX) extensions. Can only be called while this context is
       current. */
   public abstract String getPlatformExtensionsString();
+
+  public final int getGLVersionMajor() { return ctxMajorVersion; }
+  public final int getGLVersionMinor() { return ctxMajorVersion; }
+  public final boolean isGLCompatibilityProfile() { return ( 0 != ( CTX_PROFILE_COMPAT & ctxOptions ) ); }
+  public final boolean isGLForwardCompatible()    { return ( 0 != ( CTX_OPTION_FORWARD & ctxOptions ) ); }
+
+  /** 
+   * Returns a valid OpenGL version string, ie 
+   *     <code>major.minor ([option]?[options,]*) - gl-version</code>
+   *
+   * <ul>
+   *   <li> options
+   *   <ul>
+   *     <li> <code>old</code> refers to the non ARB_create_context created context
+   *     <li> <code>new</code> refers to the ARB_create_context created context
+   *     <li> <code>compatible profile</code>
+   *     <li> <code>core profile</code>
+   *     <li> <code>forward compatible</code>
+   *     <li> <code>any</code> refers to the non forward compatible context
+   *     <li> <code>ES</code>  refers to the GLES context variant
+   *   </ul>
+   *   <li> <i>gl-version</i> the GL_VERSION string
+   * </ul>
+   *
+   * e.g.:
+   * <table border="0">
+   * <tr> <td></td> <td></td> </tr>
+   * <tr>
+   * <td>row 2, cell 1</td>
+   * <td>row 2, cell 2</td>
+   * </tr>
+   * </table> 
+   *
+   * <table border="0">
+   *     <tr><td></td>   <td>ES2</td>  <td><code>2.0 (ES, any, new) - 2.0 ES Profile</code></td></tr>
+   *     <tr><td>ATI</td><td>GL2</td>  <td><code>3.0 (compatibility profile, any, new) - 3.2.9704 Compatibility Profile Context</code></td></tr>
+   *     <tr><td>ATI</td><td>GL3</td>  <td><code>3.3 (core profile, any, new) - 1.4 (3.2.9704 Compatibility Profile Context)</code></td></tr>
+   *     <tr><td>ATI</td><td>GL3bc</td><td><code>3.3 (compatibility profile, any, new) - 1.4 (3.2.9704 Compatibility Profile Context)</code></td></tr>
+   *     <tr><td>NV</td><td>GL2</td>   <td><code>3.0 (compatibility profile, any, new) - 3.0.0 NVIDIA 195.36.07.03</code></td></tr>
+   *     <tr><td>NV</td><td>GL3</td>   <td><code>3.3 (core profile, any, new) - 3.3.0 NVIDIA 195.36.07.03</code></td></tr>
+   *     <tr><td>NV</td><td>GL3bc</td> <td><code>3.3 (compatibility profile, any, new) - 3.3.0 NVIDIA 195.36.07.03</code></td></tr>
+   * </table> 
+   */
+  public final String getGLVersion() {
+    return ctxVersionString;
+  }
+
+  protected int ctxMajorVersion=-1;
+  protected int ctxMinorVersion=-1;
+  protected int ctxOptions=0;
+  protected String ctxVersionString=null;
+
+  /** <code>ARB_create_context</code> related: created via ARB_create_context */
+  protected static final int CTX_IS_ARB_CREATED = 1 << 0;
+  /** <code>ARB_create_context</code> related: compatibility profile */
+  protected static final int CTX_PROFILE_COMPAT = 1 << 1;
+  /** <code>ARB_create_context</code> related: core profile */
+  protected static final int CTX_PROFILE_CORE   = 1 << 2;
+  /** <code>ARB_create_context</code> related: flag forward compatible */
+  protected static final int CTX_OPTION_FORWARD = 1 << 3;
+  /** <code>ARB_create_context</code> related: not flag forward compatible */
+  protected static final int CTX_OPTION_ANY     = 1 << 4;
+  /** <code>ARB_create_context</code> related: flag debug */
+  protected static final int CTX_OPTION_DEBUG   = 1 << 5;
 }

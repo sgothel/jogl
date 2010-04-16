@@ -62,6 +62,13 @@ public class GLProfile implements Cloneable {
     // Public (user-visible) profiles
     //
 
+    /** The desktop OpenGL compatibility profile 4.x, with x >= 0, ie GL2 plus GL4.<br>
+        <code>bc</code> stands for backward compatibility. */
+    public static final String GL4bc = "GL4bc";
+
+    /** The desktop OpenGL core profile 4.x, with x >= 0 */
+    public static final String GL4   = "GL4";
+
     /** The desktop OpenGL compatibility profile 3.x, with x >= 1, ie GL2 plus GL3.<br>
         <code>bc</code> stands for backward compatibility. */
     public static final String GL3bc = "GL3bc";
@@ -90,12 +97,12 @@ public class GLProfile implements Cloneable {
     /** 
      * All GL Profiles in the order of default detection: GL2, GL2ES2, GL2ES1, GLES2, GLES1, GL2GL3, GL3
      */
-    public static final String[] GL_PROFILE_LIST_ALL = new String[] { GL2, GL2ES2, GL2ES1, GLES2, GLES1, GL2GL3, GL3bc, GL3 };
+    public static final String[] GL_PROFILE_LIST_ALL = new String[] { GL2, GL2ES2, GL2ES1, GLES2, GLES1, GL2GL3, GL4bc, GL3bc, GL4, GL3  };
 
     /**
      * All GL2ES2 Profiles in the order of default detection: GL2ES2, GL2, GLES2, GL3
      */
-    public static final String[] GL_PROFILE_LIST_GL2ES2 = new String[] { GL2ES2, GL2, GLES2, GL3bc, GL3 };
+    public static final String[] GL_PROFILE_LIST_GL2ES2 = new String[] { GL2ES2, GL2, GLES2, GL4bc, GL3bc, GL4, GL3 };
 
     /**
      * All GL2ES1 Profiles in the order of default detection: GL2ES1, GL2, GLES1
@@ -193,7 +200,11 @@ public class GLProfile implements Cloneable {
     }
 
     private static final String getGLImplBaseClassName(String profileImpl) {
-        if(GL3bc.equals(profileImpl)) {
+        if(GL4bc.equals(profileImpl)) {
+            return "com.jogamp.opengl.impl.gl4.GL4bc";
+        } else if(GL4.equals(profileImpl)) {
+            return "com.jogamp.opengl.impl.gl4.GL4";
+        } else if(GL3bc.equals(profileImpl)) {
             return "com.jogamp.opengl.impl.gl3.GL3bc";
         } else if(GL3.equals(profileImpl)) {
             return "com.jogamp.opengl.impl.gl3.GL3";
@@ -254,19 +265,29 @@ public class GLProfile implements Cloneable {
         return profileImpl;
     }
 
+    /** Indicates whether this profile is capable of GL4bc. */
+    public final boolean isGL4bc() {
+        return GL4bc.equals(profile);
+    }
+
+    /** Indicates whether this profile is capable of GL4. */
+    public final boolean isGL4() {
+        return isGL4bc() || GL4.equals(profile);
+    }
+
     /** Indicates whether this profile is capable of GL3bc. */
     public final boolean isGL3bc() {
-        return GL3bc.equals(profile);
+        return isGL4bc() || GL3bc.equals(profile);
     }
 
     /** Indicates whether this profile is capable of GL3. */
     public final boolean isGL3() {
-        return isGL3bc() || GL3.equals(profile);
+        return isGL4() || isGL3bc() || GL3.equals(profile);
     }
 
     /** Indicates whether this profile is capable of GL2. */
     public final boolean isGL2() {
-        return GL2.equals(profile);
+        return isGL3bc() || GL2.equals(profile);
     }
 
     /** Indicates whether this profile is capable of GLES1. */
@@ -294,6 +315,36 @@ public class GLProfile implements Cloneable {
         return GL2GL3.equals(profile) || isGL2() || isGL3() ;
     }
 
+    /** Indicates whether this profile uses the native desktop OpenGL GL4bc implementations. */
+    public final boolean usesNativeGL4bc() {
+        return GL4bc.equals(profileImpl);
+    }
+
+    /** Indicates whether this profile uses the native desktop OpenGL GL4 implementations. */
+    public final boolean usesNativeGL4() {
+        return usesNativeGL4bc() || GL4.equals(profileImpl);
+    }
+
+    /** Indicates whether this profile uses the native desktop OpenGL GL3bc implementations. */
+    public final boolean usesNativeGL3bc() {
+        return GL3bc.equals(profileImpl);
+    }
+
+    /** Indicates whether this profile uses the native desktop OpenGL GL3 implementations. */
+    public final boolean usesNativeGL3() {
+        return usesNativeGL3bc() || GL3.equals(profileImpl);
+    }
+
+    /** Indicates whether this profile uses the native desktop OpenGL GL2 implementations. */
+    public final boolean usesNativeGL2() {
+        return GL2.equals(profileImpl) || GL2ES12.equals(profileImpl) ;
+    }
+
+    /** Indicates whether this profile uses the native desktop OpenGL GL2 or GL3 implementations. */
+    public final boolean usesNativeGL2GL3() {
+        return usesNativeGL2() || usesNativeGL3() || usesNativeGL4();
+    }
+
     /** Indicates whether this profile uses the native OpenGL ES1 implementations. */
     public final boolean usesNativeGLES1() {
         return GLES1.equals(profileImpl);
@@ -307,26 +358,6 @@ public class GLProfile implements Cloneable {
     /** Indicates whether this profile uses either of the native OpenGL ES implementations. */
     public final boolean usesNativeGLES() {
         return usesNativeGLES2() || usesNativeGLES1();
-    }
-
-    /** Indicates whether this profile uses the native desktop OpenGL GL2 implementations. */
-    public final boolean usesNativeGL2() {
-        return GL2.equals(profileImpl) || GL2ES12.equals(profileImpl) ;
-    }
-
-    /** Indicates whether this profile uses the native desktop OpenGL GL3bc implementations. */
-    public final boolean usesNativeGL3bc() {
-        return GL3bc.equals(profileImpl);
-    }
-
-    /** Indicates whether this profile uses the native desktop OpenGL GL3 implementations. */
-    public final boolean usesNativeGL3() {
-        return usesNativeGL3bc() || GL3.equals(profileImpl);
-    }
-
-    /** Indicates whether this profile uses the native desktop OpenGL GL2 or GL3 implementations. */
-    public final boolean usesNativeGL2GL3() {
-        return usesNativeGL2() || usesNativeGL3() ;
     }
 
     /** Indicates whether this profile supports GLSL. */
@@ -632,6 +663,49 @@ public class GLProfile implements Cloneable {
 
     public String toString() {
         return "GLProfile[" + profile + "/" + profileImpl + "]";
+    }
+
+    public static final int GL_VERSIONS[][] = {
+        /* 0.*/ { -1 },
+        /* 1.*/ { 0, 1, 2, 3, 4, 5 },
+        /* 2.*/ { 0, 1 },
+        /* 3.*/ { 0, 1, 2, 3 },
+        /* 4.*/ { 0 } };
+
+    public static final int getMaxMajor() {
+        return GL_VERSIONS.length-1;
+    }
+
+    public static final int getMaxMinor(int major) {
+        if(1>major || major>=GL_VERSIONS.length) return -1;
+        return GL_VERSIONS[major].length-1;
+    }
+
+    public static final boolean isValidGLVersion(int major, int minor) {
+        if(1>major || major>=GL_VERSIONS.length) return false;
+        if(0>minor || minor>=GL_VERSIONS[major].length) return false;
+        return true;
+    }
+
+    public static final boolean decrementGLVersion(int major[], int minor[]) {
+        if(null==major || major.length<1 ||null==minor || minor.length<1) {
+            throw new GLException("invalid array arguments");
+        }
+        int m = major[0];
+        int n = minor[0];
+        if(!isValidGLVersion(m, n)) return false;
+
+        // decrement ..
+        n -= 1;
+        if(n < 0) {
+            m -= 1;
+            n = GL_VERSIONS[m].length-1;
+        }
+        if(!isValidGLVersion(m, n)) return false;
+        major[0]=m;
+        minor[0]=n;
+
+        return true;
     }
 
     // The intersection between desktop OpenGL and the union of the OpenGL ES profiles

@@ -66,12 +66,10 @@ public final class ExtensionAvailabilityCache {
   public void flush()
   {
     if(DEBUG) {
-        System.out.println("ExtensionAvailabilityCache: Flush availability OpenGL "+majorVersion+"."+minorVersion);
+        System.out.println("ExtensionAvailabilityCache: Flush availability OpenGL "+context.getGLVersion());
     }
     availableExtensionCache.clear();
     initialized = false;
-    majorVersion = 1;
-    minorVersion = 0;
   }
 
   /**
@@ -104,53 +102,23 @@ public final class ExtensionAvailabilityCache {
     return glExtensions;
   }
 
-  public int getMajorVersion() {
-    initAvailableExtensions();
-    return majorVersion;
-  }
-
-  public int getMinorVersion() {
-    initAvailableExtensions();
-    return minorVersion;
-  }
-
   private void initAvailableExtensions() {
+    GL gl = context.getGL();
     // if hash is empty (meaning it was flushed), pre-cache it with the list
     // of extensions that are in the GL_EXTENSIONS string
     if (availableExtensionCache.isEmpty() || !initialized) {
-      GL gl = context.getGL();
-
       if (DEBUG) {
-         System.err.println("ExtensionAvailabilityCache: Pre-caching init "+gl+", GL_VERSION "+gl.glGetString(GL.GL_VERSION));
-      }
-
-      // Set version
-      Version version = new Version(gl.glGetString(GL.GL_VERSION));
-      if (version.isValid()) {
-        majorVersion = version.getMajor();
-        minorVersion = version.getMinor();
-
-        if( !gl.isGL3() &&
-            ( majorVersion > 3 ||
-              ( majorVersion == 3 && minorVersion >= 1 ) ) ) {
-            // downsize version to 3.0 in case we are not using GL3 (3.1)
-            majorVersion = 3;
-            minorVersion = 0;
-        }
+         System.err.println("ExtensionAvailabilityCache: Pre-caching init "+gl+", OpenGL "+context.getGLVersion());
       }
 
       boolean useGetStringi = false;
 
-      if ( majorVersion > 3 ||
-           ( majorVersion == 3 && minorVersion >= 0 ) ||
+      if ( context.getGLVersionMajor() > 3 ||
+           ( context.getGLVersionMajor() == 3 && context.getGLVersionMinor() >= 0 ) ||
            gl.isGL3() ) {
-          if ( ! gl.isGL2GL3() ) {
+          if ( ! gl.isFunctionAvailable("glGetStringi") ) {
             if(DEBUG) {
-                System.err.println("ExtensionAvailabilityCache: GL >= 3.1 usage, but no GL2GL3 interface: "+gl.getClass().getName());
-            }
-          } else if ( ! gl.isFunctionAvailable("glGetStringi") ) {
-            if(DEBUG) {
-                System.err.println("ExtensionAvailabilityCache: GL >= 3.1 usage, but no glGetStringi");
+                System.err.println("GLContext: GL >= 3.1 usage, but no glGetStringi");
             }
           } else {
               useGetStringi = true;
@@ -158,7 +126,7 @@ public final class ExtensionAvailabilityCache {
       }
 
       if (DEBUG) {
-        System.err.println("ExtensionAvailabilityCache: Pre-caching extension availability OpenGL "+majorVersion+"."+minorVersion+
+        System.err.println("ExtensionAvailabilityCache: Pre-caching extension availability OpenGL "+context.getGLVersion()+
                            ", use "+ ( useGetStringi ? "glGetStringi" : "glGetString" ) );
       }
 
@@ -197,39 +165,21 @@ public final class ExtensionAvailabilityCache {
         }
       }
 
-      // Put GL version strings in the table as well
-      // FIXME: this needs to be adjusted when the major rev changes
-      // beyond the known ones
-      int major = majorVersion;
-      int minor = minorVersion;
-      while (major > 0) {
-        while (minor >= 0) {
-          availableExtensionCache.add("GL_VERSION_" + major + "_" + minor);
-          if (DEBUG) {
-            System.err.println("ExtensionAvailabilityCache: Added GL_VERSION_" + major + "_" + minor + " to known extensions");
-          }
-          --minor;
+      int major[] = new int[] { context.getGLVersionMajor() };
+      int minor[] = new int[] { context.getGLVersionMinor() };
+      if( !gl.isGL3() && !gl.isGL4() &&
+            ( major[0] > 3 ||
+              ( major[0] == 3 && minor[0] >= 1 ) ) ) {
+            // downsize version to 3.0 in case we are not using GL3 (>=3.1)
+            major[0] = 3;
+            minor[0] = 0;
+      }
+      while (GLProfile.isValidGLVersion(major[0], minor[0])) {
+        availableExtensionCache.add("GL_VERSION_" + major[0] + "_" + minor[0]);
+        if (DEBUG) {
+            System.err.println("ExtensionAvailabilityCache: Added GL_VERSION_" + major[0] + "_" + minor[0] + " to known extensions");
         }
-
-        switch (major) {
-        case 3:
-          if(gl.isGL3()) {
-              // GL3 is a GL 3.1 forward compatible context,
-              // hence no 2.0, 1.0 - 1.5 GL versions are supported.
-              major=0; 
-          }
-          // Restart loop at version 2.1
-          minor = 1;
-          break;
-        case 2:
-          // Restart loop at version 1.5
-          minor = 5;
-          break;
-        case 1:
-          break;
-        }
-
-        --major;
+        if(!GLProfile.decrementGLVersion(major, minor)) break;
       }
 
       // put a dummy var in here so that the cache is no longer empty even if
@@ -255,136 +205,9 @@ public final class ExtensionAvailabilityCache {
   //
 
   private boolean initialized = false;
-  private int majorVersion = 1;
-  private int minorVersion = 0;
   private String glExtensions = null;
   private String glXExtensions = null;
   private HashSet availableExtensionCache = new HashSet(50);
   private GLContextImpl context;
 
-  /**
-   * A class for storing and comparing OpenGL version numbers.
-   * This only works for desktop OpenGL at the moment.
-   */
-  private static class Version implements Comparable
-  {
-    private boolean valid;
-    private int major, minor, sub;
-    public Version(int majorRev, int minorRev, int subMinorRev)
-    {
-      major = majorRev;
-      minor = minorRev;
-      sub = subMinorRev;
-    }
-
-    /**
-     * @param versionString must be of the form "GL_VERSION_X" or
-     * "GL_VERSION_X_Y" or "GL_VERSION_X_Y_Z" or "X.Y", where X, Y,
-     * and Z are integers.
-     *
-     * @exception IllegalArgumentException if the argument is not a valid
-     * OpenGL version identifier
-     */
-    public Version(String versionString)
-    {
-      try 
-      {
-        if (versionString.startsWith("GL_VERSION_"))
-        {
-          StringTokenizer tok = new StringTokenizer(versionString, "_");
-
-          tok.nextToken(); // GL_
-          tok.nextToken(); // VERSION_ 
-          if (!tok.hasMoreTokens()) { major = 0; return; }
-          major = Integer.valueOf(tok.nextToken()).intValue();
-          if (!tok.hasMoreTokens()) { minor = 0; return; }
-          minor = Integer.valueOf(tok.nextToken()).intValue();
-          if (!tok.hasMoreTokens()) { sub = 0; return; }
-          sub = Integer.valueOf(tok.nextToken()).intValue();
-        }
-        else
-        {
-          int radix = 10;
-          if (versionString.length() > 2) {
-            if (Character.isDigit(versionString.charAt(0)) &&
-                versionString.charAt(1) == '.' &&
-                Character.isDigit(versionString.charAt(2))) {
-              major = Character.digit(versionString.charAt(0), radix);
-              minor = Character.digit(versionString.charAt(2), radix);
-
-              // See if there's version-specific information which might
-              // imply a more recent OpenGL version
-              StringTokenizer tok = new StringTokenizer(versionString, " ");
-              if (tok.hasMoreTokens()) {
-                tok.nextToken();
-                if (tok.hasMoreTokens()) {
-                  String token = tok.nextToken();
-                  int i = 0;
-                  while (i < token.length() && !Character.isDigit(token.charAt(i))) {
-                    i++;
-                  }
-                  if (i < token.length() - 2 &&
-                      Character.isDigit(token.charAt(i)) &&
-                      token.charAt(i+1) == '.' &&
-                      Character.isDigit(token.charAt(i+2))) {
-                    int altMajor = Character.digit(token.charAt(i), radix);
-                    int altMinor = Character.digit(token.charAt(i+2), radix);
-                    // Avoid possibly confusing situations by putting some
-                    // constraints on the upgrades we do to the major and
-                    // minor versions
-                    if ((altMajor == major && altMinor > minor) ||
-                        altMajor == major + 1) {
-                      major = altMajor;
-                      minor = altMinor;
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-        valid = true;
-      }
-      catch (Exception e)
-      {
-        // FIXME: refactor desktop OpenGL dependencies and make this
-        // class work properly for OpenGL ES
-        System.err.println("ExtensionAvailabilityCache: FunctionAvailabilityCache.Version.<init>: "+e);
-        major = 1;
-        minor = 0;
-        /*
-        throw (IllegalArgumentException)
-          new IllegalArgumentException(
-            "Illegally formatted version identifier: \"" + versionString + "\"")
-              .initCause(e);
-        */
-      }
-    }
-
-    public boolean isValid() {
-      return valid;
-    }
-
-    public int compareTo(Object o)
-    {
-      Version vo = (Version)o;
-      if (major > vo.major) return 1; 
-      else if (major < vo.major) return -1; 
-      else if (minor > vo.minor) return 1; 
-      else if (minor < vo.minor) return -1; 
-      else if (sub > vo.sub) return 1; 
-      else if (sub < vo.sub) return -1; 
-
-      return 0; // they are equal
-    }
-
-    public int getMajor() {
-      return major;
-    }
-
-    public int getMinor() {
-      return minor;
-    }
-    
-  } // end class Version
 }

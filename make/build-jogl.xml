@@ -946,7 +946,7 @@
 
         <!-- Perform the first pass Java compile. -->
         <javac destdir="${classes}"
-               includes="javax/media/opengl/fixedfunc/** javax/media/opengl/GLDrawableFactory.java javax/media/opengl/GLDrawable.java javax/media/opengl/GLContext.java javax/media/opengl/GL.java javax/media/opengl/GL2ES1.java javax/media/opengl/GL2ES2.java javax/media/opengl/GL2GL3.java javax/media/opengl/GL2.java javax/media/opengl/GLES1.java javax/media/opengl/GLES2.java javax/media/opengl/GL3.java javax/media/opengl/GL3bc.java"
+               includes="javax/media/opengl/fixedfunc/** javax/media/opengl/GLDrawableFactory.java javax/media/opengl/GLDrawable.java javax/media/opengl/GLContext.java javax/media/opengl/GL.java javax/media/opengl/GL2ES1.java javax/media/opengl/GL2ES2.java javax/media/opengl/GL2GL3.java javax/media/opengl/GL2.java javax/media/opengl/GLES1.java javax/media/opengl/GLES2.java javax/media/opengl/GL3.java javax/media/opengl/GL3bc.java javax/media/opengl/GL4.java javax/media/opengl/GL4bc.java"
                fork="yes"
                memoryMaximumSize="${javac.memorymax}"
                includeAntRuntime="false"
@@ -1261,6 +1261,7 @@
 
           <include name="${rootrel.generated.c.jogl}/gl2/GL2Impl_JNI.c"/>
           <include name="${rootrel.generated.c.jogl}/gl3/GL3Impl_JNI.c"/>
+          <include name="${rootrel.generated.c.jogl}/gl3/GL3bcImpl_JNI.c"/>
           <!--include name="${rootrel.generated.c.jogl}/GLU_JNI.c"/ EMPTY -->
           <include name="${rootrel.generated.c.jogl}/gl2/GLUgl2_JNI.c"/>
           <include name="${rootrel.generated.c.jogl}/X11/GLX*.c" if="isX11"/>

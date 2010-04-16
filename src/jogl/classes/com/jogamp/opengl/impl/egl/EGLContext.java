@@ -113,7 +113,7 @@ public abstract class EGLContext extends GLContextImpl {
         }
 
         if (created) {
-            setGLFunctionAvailability(false);
+            setGLFunctionAvailability(false, -1, -1, -1);
             return CONTEXT_CURRENT_NEW;
         }
         return CONTEXT_CURRENT;
@@ -148,6 +148,10 @@ public abstract class EGLContext extends GLContextImpl {
       } finally {
           getDrawableImpl().getFactoryImpl().unlockToolkit();
       }
+    }
+
+    protected long createContextARBImpl(long share, boolean direct, int ctp, int major, int minor) {
+        return 0; // FIXME
     }
 
     protected void create() throws GLException {
@@ -215,14 +219,14 @@ public abstract class EGLContext extends GLContextImpl {
             throw new GLException("Error making context 0x" +
                                   Long.toHexString(eglContext) + " current: error code " + EGL.eglGetError());
         }
-        setGLFunctionAvailability(true);
+        setGLFunctionAvailability(true, contextAttrs[1], 0, CTX_IS_ARB_CREATED|CTX_PROFILE_CORE|CTX_OPTION_ANY);
     }
 
     public boolean isCreated() {
         return (eglContext != 0);
     }
 
-    protected void updateGLProcAddressTable() {
+    protected void updateGLProcAddressTable(int major, int minor, int ctp) {
         if (DEBUG) {
           System.err.println(getThreadName() + ": !!! Initializing EGL extension address table");
         }
@@ -235,7 +239,7 @@ public abstract class EGLContext extends GLContextImpl {
           eglExtProcAddressTable = new EGLExtProcAddressTable();
         }          
         resetProcAddressTable(getEGLExtProcAddressTable());
-        super.updateGLProcAddressTable();
+        super.updateGLProcAddressTable(major, minor, ctp);
     }
   
     public synchronized String getPlatformExtensionsString() {

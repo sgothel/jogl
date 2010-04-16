@@ -44,6 +44,7 @@ import java.nio.*;
 import java.util.*;
 
 import javax.media.opengl.*;
+import javax.media.nativewindow.*;
 import com.jogamp.nativewindow.impl.NWReflection;
 import com.jogamp.gluegen.runtime.*;
 import com.jogamp.gluegen.runtime.opengl.*;
@@ -120,6 +121,108 @@ public abstract class GLContextImpl extends GLContext {
 
   public GLDrawableImpl getDrawableImpl() {
     return (GLDrawableImpl) getGLDrawable();
+  }
+
+  /** 
+   * Platform dependent but harmonized implementation of the <code>ARB_create_context</code>
+   * mechanism to create a context.<br>
+   * The implementation shall verify this context, ie issue a
+   * <code>MakeCurrent</code> call if necessary.<br>
+   *
+   * @param share the shared context or null
+   * @param direct flag if direct is requested
+   * @param ctxOptionFlags <code>ARB_create_context</code> related, see references below
+   * @param major major number
+   * @param minor minor number
+   * @return the valid context if successfull, or null
+   *
+   * @see #CTX_PROFILE_COMPAT
+   * @see #CTX_OPTION_FORWARD
+   * @see #CTX_OPTION_DEBUG
+   */
+  protected abstract long createContextARBImpl(long share, boolean direct, int ctxOptionFlags, 
+                                               int major, int minor);
+
+  private long createContextARB(long share, boolean direct, int ctxOptionFlags, 
+                                int majorMax, int minorMax, 
+                                int majorMin, int minorMin, 
+                                int major[], int minor[]) {
+    major[0]=majorMax;
+    minor[0]=minorMax;
+    long _context=0;
+
+    while ( 0==_context &&
+            GLProfile.isValidGLVersion(major[0], minor[0]) &&
+            ( major[0]>majorMin || major[0]==majorMin && minor[0] >=minorMin ) ) {
+
+        _context = createContextARBImpl(share, direct, ctxOptionFlags, major[0], minor[0]);
+
+        if(0==_context) {
+            if(!GLProfile.decrementGLVersion(major, minor)) break;
+        }
+    }
+    return _context;
+  }
+
+  /**
+   * Platform independent part of using the <code>ARB_create_context</code>
+   * mechanism to create a context.<br>
+   */
+  protected long createContextARB(long share, boolean direct,
+                                  int major[], int minor[], int ctp[]) 
+  {
+    AbstractGraphicsConfiguration config = drawable.getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration();
+    GLCapabilities glCaps = (GLCapabilities) config.getChosenCapabilities();
+    GLProfile glp = glCaps.getGLProfile();
+    long _context = 0;
+
+    ctp[0] = CTX_IS_ARB_CREATED | CTX_PROFILE_CORE | CTX_OPTION_ANY; // default
+    boolean isBackwardCompatibility = glp.isGL2() || glp.isGL3bc() || glp.isGL4bc() ;
+    int majorMin, minorMin;
+    int majorMax, minorMax;
+    if( glp.isGL4() ) {
+        // ?? majorMax=GLProfile.getMaxMajor(); minorMax=GLProfile.getMaxMinor(majorMax);
+        majorMax=4; minorMax=GLProfile.getMaxMinor(majorMax);
+        majorMin=4; minorMin=0;
+    } else if( glp.isGL3() ) {
+        majorMax=3; minorMax=GLProfile.getMaxMinor(majorMax);
+        majorMin=3; minorMin=1;
+    } else /* if( glp.isGL2() ) */ {
+        majorMax=3; minorMax=0;
+        majorMin=1; minorMin=1; // our minimum desktop OpenGL runtime requirements
+    }
+    // Try the requested ..
+    if(isBackwardCompatibility) {
+        ctp[0] &= ~CTX_PROFILE_CORE ;
+        ctp[0] |=  CTX_PROFILE_COMPAT ;
+    }
+    _context = createContextARB(share, direct, ctp[0], 
+                               /* max */ majorMax, minorMax,
+                               /* min */ majorMin, minorMin,
+                               /* res */ major, minor);
+
+    if(0==_context && !isBackwardCompatibility) {
+        ctp[0] &= ~CTX_PROFILE_COMPAT ;
+        ctp[0] |=  CTX_PROFILE_CORE ;
+        ctp[0] &= ~CTX_OPTION_ANY ;
+        ctp[0] |=  CTX_OPTION_FORWARD ;
+        _context = createContextARB(share, direct, ctp[0], 
+                                   /* max */ majorMax, minorMax,
+                                   /* min */ majorMin, minorMin,
+                                   /* res */ major, minor);
+       if(0==_context) {
+            // Try a compatible one .. even though not requested .. last resort
+            ctp[0] &= ~CTX_PROFILE_CORE ;
+            ctp[0] |=  CTX_PROFILE_COMPAT ;
+            ctp[0] &= ~CTX_OPTION_FORWARD ;
+            ctp[0] |=  CTX_OPTION_ANY ;
+            _context = createContextARB(share, direct, ctp[0], 
+                                       /* max */ majorMax, minorMax,
+                                       /* min */ majorMin, minorMin,
+                                       /* res */ major, minor);
+       }
+    }
+    return _context;
   }
 
   public int makeCurrent() throws GLException {
@@ -272,7 +375,7 @@ public abstract class GLContextImpl extends GLContext {
     if(DEBUG) {
         String sgl1 = (null!=this.gl)?this.gl.getClass().toString()+", "+this.gl.toString():new String("<null>");
         String sgl2 = (null!=gl)?gl.getClass().toString()+", "+gl.toString():new String("<null>");
-        Exception e = new Exception("setGL: "+Thread.currentThread()+", "+sgl1+" -> "+sgl2);
+        Exception e = new Exception("setGL (OpenGL "+getGLVersion()+"): "+Thread.currentThread()+", "+sgl1+" -> "+sgl2);
         e.printStackTrace();
     }
     this.gl = gl;
@@ -280,6 +383,77 @@ public abstract class GLContextImpl extends GLContext {
   }
 
   public abstract Object getPlatformGLExtensions();
+
+  //----------------------------------------------------------------------
+  // Managing the actual OpenGL version, usually figured at creation time.
+  // As a last resort, the GL_VERSION string may be used ..
+  //
+
+  /** 
+   * If major > 0 || minor > 0 : Use passed values, determined at creation time 
+   * If major==0 && minor == 0 : Use GL_VERSION
+   * Otherwise .. don't touch ..
+   */
+  protected void setContextVersion(int major, int minor, int ctp) {
+      if(major>0 || minor>0) {
+          ctxMajorVersion = major;
+          ctxMinorVersion = minor;
+          ctxOptions = ctp;
+          ctxVersionString = getGLVersion(gl, ctxMajorVersion, ctxMinorVersion, ctxOptions, getGL().glGetString(GL.GL_VERSION));
+          return;
+      }
+
+      if(major==0 && minor==0) {
+          String versionStr = getGL().glGetString(GL.GL_VERSION);
+          if(null==versionStr) {
+            throw new GLException("GL_VERSION is NULL: "+this);
+          }
+
+          // Set version
+          Version version = new Version(versionStr);
+          if (version.isValid()) {
+            ctxMajorVersion = version.getMajor();
+            ctxMinorVersion = version.getMinor();
+
+            ctxVersionString = getGLVersion(gl, ctxMajorVersion, ctxMinorVersion, ctxOptions, versionStr);
+            return;
+          }
+      }
+  }
+
+  private static boolean appendString(StringBuffer sb, String string, boolean needColon, boolean condition) {
+    if(condition) {
+        if(needColon) {
+            sb.append(", ");
+        }
+        sb.append(string);
+        needColon=true;
+    }
+    return needColon;
+  }
+
+  protected static String getGLVersion(GL gl, int major, int minor, int ctp, String gl_version) {
+    boolean needColon = false;
+    StringBuffer sb = new StringBuffer();
+    sb.append(major);
+    sb.append(".");
+    sb.append(minor);
+    sb.append(" (");
+    needColon = appendString(sb, "ES", needColon, null!=gl && gl.isGLES());
+    needColon = appendString(sb, "compatibility profile", needColon, 0 != ( CTX_PROFILE_COMPAT & ctp ));
+    needColon = appendString(sb, "core profile",          needColon, 0 != ( CTX_PROFILE_CORE & ctp ));
+    needColon = appendString(sb, "forward compatible",    needColon, 0 != ( CTX_OPTION_FORWARD & ctp ));
+    needColon = appendString(sb, "any",                   needColon, 0 != ( CTX_OPTION_ANY & ctp ));
+    needColon = appendString(sb, "new",                   needColon, 0 != ( CTX_IS_ARB_CREATED & ctp ));
+    needColon = appendString(sb, "old",                   needColon, 0 == ( CTX_IS_ARB_CREATED & ctp ));
+    sb.append(") - ");
+    if(null!=gl_version) {
+        sb.append(gl_version);
+    } else {
+        sb.append("n/a");
+    }
+    return sb.toString();
+  }
 
   //----------------------------------------------------------------------
   // Helpers for various context implementations
@@ -391,8 +565,10 @@ public abstract class GLContextImpl extends GLContext {
    *
    * @param force force the setting, even if is already being set.
    *              This might be usefull if you change the OpenGL implementation.
+   *
+   * @see #setContextVersion
    */
-  protected void setGLFunctionAvailability(boolean force) {
+  protected void setGLFunctionAvailability(boolean force, int major, int minor, int ctp) {
     if(null!=this.gl && null!=glProcAddressTable && !force) {
         return; // already done and not forced
     }
@@ -400,15 +576,17 @@ public abstract class GLContextImpl extends GLContext {
         setGL(createGL(getGLDrawable().getGLProfile()));
     }
 
-    updateGLProcAddressTable();
+    updateGLProcAddressTable(major, minor, ctp);
   }
 
   /**
    * Updates the cache of which GL functions are available for calling through this
    * context. See {@link #isFunctionAvailable(String)} for more information on
    * the definition of "available".
+   *
+   * @see #setContextVersion
    */
-  protected void updateGLProcAddressTable() {
+  protected void updateGLProcAddressTable(int major, int minor, int ctp) {
     if(null==this.gl) {
         throw new GLException("setGLFunctionAvailability not called yet");
     }
@@ -421,6 +599,8 @@ public abstract class GLContextImpl extends GLContext {
       // share them among contexts with the same capabilities
     }
     resetProcAddressTable(getGLProcAddressTable());
+
+    setContextVersion(major, minor, ctp);
 
     extensionAvailability.reset();
   }
@@ -491,14 +671,6 @@ public abstract class GLContextImpl extends GLContext {
 
   public String getGLExtensions() {
       return extensionAvailability.getGLExtensions();
-  }
-
-  public int getMajorVersion() {
-      return extensionAvailability.getMajorVersion();
-  }
-
-  public int getMinorVersion() {
-      return extensionAvailability.getMinorVersion();
   }
 
   public boolean isExtensionCacheInitialized() {
@@ -616,5 +788,132 @@ public abstract class GLContextImpl extends GLContext {
   private GLObjectTracker deletedObjectTracker;
 
   */
+
+  /**
+   * A class for storing and comparing OpenGL version numbers.
+   * This only works for desktop OpenGL at the moment.
+   */
+  private static class Version implements Comparable
+  {
+    private boolean valid;
+    private int major, minor, sub;
+    public Version(int majorRev, int minorRev, int subMinorRev)
+    {
+      major = majorRev;
+      minor = minorRev;
+      sub = subMinorRev;
+    }
+
+    /**
+     * @param versionString must be of the form "GL_VERSION_X" or
+     * "GL_VERSION_X_Y" or "GL_VERSION_X_Y_Z" or "X.Y", where X, Y,
+     * and Z are integers.
+     *
+     * @exception IllegalArgumentException if the argument is not a valid
+     * OpenGL version identifier
+     */
+    public Version(String versionString)
+    {
+      try 
+      {
+        if (versionString.startsWith("GL_VERSION_"))
+        {
+          StringTokenizer tok = new StringTokenizer(versionString, "_");
+
+          tok.nextToken(); // GL_
+          tok.nextToken(); // VERSION_ 
+          if (!tok.hasMoreTokens()) { major = 0; return; }
+          major = Integer.valueOf(tok.nextToken()).intValue();
+          if (!tok.hasMoreTokens()) { minor = 0; return; }
+          minor = Integer.valueOf(tok.nextToken()).intValue();
+          if (!tok.hasMoreTokens()) { sub = 0; return; }
+          sub = Integer.valueOf(tok.nextToken()).intValue();
+        }
+        else
+        {
+          int radix = 10;
+          if (versionString.length() > 2) {
+            if (Character.isDigit(versionString.charAt(0)) &&
+                versionString.charAt(1) == '.' &&
+                Character.isDigit(versionString.charAt(2))) {
+              major = Character.digit(versionString.charAt(0), radix);
+              minor = Character.digit(versionString.charAt(2), radix);
+
+              // See if there's version-specific information which might
+              // imply a more recent OpenGL version
+              StringTokenizer tok = new StringTokenizer(versionString, " ");
+              if (tok.hasMoreTokens()) {
+                tok.nextToken();
+                if (tok.hasMoreTokens()) {
+                  String token = tok.nextToken();
+                  int i = 0;
+                  while (i < token.length() && !Character.isDigit(token.charAt(i))) {
+                    i++;
+                  }
+                  if (i < token.length() - 2 &&
+                      Character.isDigit(token.charAt(i)) &&
+                      token.charAt(i+1) == '.' &&
+                      Character.isDigit(token.charAt(i+2))) {
+                    int altMajor = Character.digit(token.charAt(i), radix);
+                    int altMinor = Character.digit(token.charAt(i+2), radix);
+                    // Avoid possibly confusing situations by putting some
+                    // constraints on the upgrades we do to the major and
+                    // minor versions
+                    if ((altMajor == major && altMinor > minor) ||
+                        altMajor == major + 1) {
+                      major = altMajor;
+                      minor = altMinor;
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+        valid = true;
+      }
+      catch (Exception e)
+      {
+        e.printStackTrace();
+        // FIXME: refactor desktop OpenGL dependencies and make this
+        // class work properly for OpenGL ES
+        System.err.println("ExtensionAvailabilityCache: FunctionAvailabilityCache.Version.<init>: "+e);
+        major = 1;
+        minor = 0;
+        /*
+        throw (IllegalArgumentException)
+          new IllegalArgumentException(
+            "Illegally formatted version identifier: \"" + versionString + "\"")
+              .initCause(e);
+        */
+      }
+    }
+
+    public boolean isValid() {
+      return valid;
+    }
+
+    public int compareTo(Object o)
+    {
+      Version vo = (Version)o;
+      if (major > vo.major) return 1; 
+      else if (major < vo.major) return -1; 
+      else if (minor > vo.minor) return 1; 
+      else if (minor < vo.minor) return -1; 
+      else if (sub > vo.sub) return 1; 
+      else if (sub < vo.sub) return -1; 
+
+      return 0; // they are equal
+    }
+
+    public int getMajor() {
+      return major;
+    }
+
+    public int getMinor() {
+      return minor;
+    }
+    
+  } // end class Version
 
 }

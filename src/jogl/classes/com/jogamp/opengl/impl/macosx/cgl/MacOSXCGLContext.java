@@ -90,6 +90,10 @@ public abstract class MacOSXCGLContext extends GLContextImpl
 
   protected abstract boolean create();
 
+    protected long createContextARBImpl(long share, boolean direct, int ctp, int major, int minor) {
+        return 0; // FIXME
+    }
+
   /**
    * Creates and initializes an appropriate OpenGl nsContext. Should only be
    * called by {@link makeCurrentImpl()}.
@@ -150,7 +154,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
     if (!CGL.makeCurrentContext(nsContext)) {
       throw new GLException("Error making nsContext current");
     }
-    setGLFunctionAvailability(true);
+    setGLFunctionAvailability(true, 0, 0, 0);
     GLContextShareSet.contextCreated(this);
     return true;
   }    
@@ -184,7 +188,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
     }
             
     if (created) {
-      setGLFunctionAvailability(false);
+      setGLFunctionAvailability(false, -1, -1, -1);
       return CONTEXT_CURRENT_NEW;
     }
     return CONTEXT_CURRENT;
@@ -251,7 +255,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
     }
   }
 
-  protected void updateGLProcAddressTable() {
+  protected void updateGLProcAddressTable(int major, int minor, int ctp) {
     if (DEBUG) {
       System.err.println("!!! Initializing CGL extension address table");
     }
@@ -261,7 +265,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
       cglExtProcAddressTable = new CGLExtProcAddressTable();
     }          
     resetProcAddressTable(getCGLExtProcAddressTable());
-    super.updateGLProcAddressTable();
+    super.updateGLProcAddressTable(major, minor, ctp);
   }
 	
   public String getPlatformExtensionsString()
