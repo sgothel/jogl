@@ -77,13 +77,22 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl implements 
   WindowsWGLContext sharedContext=null;
   boolean canCreateGLPbuffer = false;
 
+  // package private ..
+  final WindowsWGLContext getSharedContext() {
+    validate();
+    return sharedContext; 
+  }
+
   void initShared() {
     if(null==sharedDrawable) {
         sharedDrawable = new WindowsDummyWGLDrawable(this, null);
-        sharedContext  = (WindowsWGLContext) sharedDrawable.createContext(null);
-        sharedContext.makeCurrent();
-        canCreateGLPbuffer = sharedContext.getGL().isExtensionAvailable("GL_ARB_pbuffer");
-        sharedContext.release();
+        WindowsWGLContext _sharedContext  = (WindowsWGLContext) sharedDrawable.createContext(null);
+        {
+            _sharedContext.makeCurrent();
+            canCreateGLPbuffer = _sharedContext.getGL().isExtensionAvailable("GL_ARB_pbuffer");
+            _sharedContext.release();
+        }
+        _sharedContext = _sharedContext;
         if (DEBUG) {
           System.err.println("!!! SharedContext: "+sharedContext+", pbuffer supported "+canCreateGLPbuffer);
         }
@@ -115,20 +124,30 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl implements 
     if (target == null) {
       throw new IllegalArgumentException("Null target");
     }
+    initShared();
     return new WindowsOnscreenWGLDrawable(this, target);
   }
 
   protected GLDrawableImpl createOffscreenDrawable(NativeWindow target) {
+    validate();
+    if (target == null) {
+      throw new IllegalArgumentException("Null target");
+    }
+    initShared();
     return new WindowsOffscreenWGLDrawable(this, target);
   }
 
   public boolean canCreateGLPbuffer(AbstractGraphicsDevice device) {
     validate();
-    initShared();
+    initShared(); // setup canCreateGLPBuffer
     return canCreateGLPbuffer;
   }
 
   protected GLDrawableImpl createGLPbufferDrawableImpl(final NativeWindow target) {
+    validate();
+    if (target == null) {
+      throw new IllegalArgumentException("Null target");
+    }
     initShared();
     final List returnList = new ArrayList();
     final GLDrawableFactory factory = this;
@@ -160,6 +179,8 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl implements 
   }
 
   protected NativeWindow createOffscreenWindow(GLCapabilities capabilities, GLCapabilitiesChooser chooser, int width, int height) {
+    validate();
+    initShared();
     AbstractGraphicsScreen screen = DefaultGraphicsScreen.createDefault();
     NullWindow nw = new NullWindow(WindowsWGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(
                                    capabilities, chooser, screen) );
@@ -169,6 +190,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl implements 
  
   public GLContext createExternalGLContext() {
     validate();
+    initShared();
     return WindowsExternalWGLContext.create(this, null);
   }
 
@@ -179,6 +201,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl implements 
 
   public GLDrawable createExternalGLDrawable() {
     validate();
+    initShared();
     return WindowsExternalWGLDrawable.create(this, null);
   }
 

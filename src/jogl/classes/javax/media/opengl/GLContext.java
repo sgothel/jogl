@@ -287,6 +287,7 @@ public abstract class GLContext {
   public final int getGLVersionMinor() { return ctxMajorVersion; }
   public final boolean isGLCompatibilityProfile() { return ( 0 != ( CTX_PROFILE_COMPAT & ctxOptions ) ); }
   public final boolean isGLForwardCompatible()    { return ( 0 != ( CTX_OPTION_FORWARD & ctxOptions ) ); }
+  public final boolean isCreatedWithARBMethod()   { return ( 0 != ( CTX_IS_ARB_CREATED & ctxOptions ) ); }
 
   /** 
    * Returns a valid OpenGL version string, ie 

@@ -715,6 +715,8 @@ public class GLProfile implements Cloneable {
     private static final boolean isAWTAvailable;
     private static final boolean isAWTJOGLAvailable;
 
+    private static final boolean hasGL4bcImpl;
+    private static final boolean hasGL4Impl;
     private static final boolean hasGL3bcImpl;
     private static final boolean hasGL3Impl;
     private static final boolean hasGL2Impl;
@@ -791,6 +793,8 @@ public class GLProfile implements Cloneable {
         }
 
         // FIXME: check for real GL3 availability .. ?
+        hasGL4bcImpl   = hasDesktopGL && NWReflection.isClassAvailable("com.jogamp.opengl.impl.gl4.GL4bcImpl");
+        hasGL4Impl     = hasDesktopGL && NWReflection.isClassAvailable("com.jogamp.opengl.impl.gl4.GL4Impl");
         hasGL3bcImpl   = hasDesktopGL && NWReflection.isClassAvailable("com.jogamp.opengl.impl.gl3.GL3bcImpl");
         hasGL3Impl     = hasDesktopGL && NWReflection.isClassAvailable("com.jogamp.opengl.impl.gl3.GL3Impl");
         hasGL2Impl     = hasDesktopGL && NWReflection.isClassAvailable("com.jogamp.opengl.impl.gl2.GL2Impl");
@@ -837,6 +841,8 @@ public class GLProfile implements Cloneable {
             System.err.println("GLProfile.static hasNativeOSFactory "+hasNativeOSFactory);
             System.err.println("GLProfile.static hasDesktopGLES12 "+hasDesktopGLES12);
             System.err.println("GLProfile.static hasDesktopGL "+hasDesktopGL);
+            System.err.println("GLProfile.static hasGL4bcImpl "+hasGL4bcImpl);
+            System.err.println("GLProfile.static hasGL4Impl "+hasGL4Impl);
             System.err.println("GLProfile.static hasGL3bcImpl "+hasGL3bcImpl);
             System.err.println("GLProfile.static hasGL3Impl "+hasGL3Impl);
             System.err.println("GLProfile.static hasGL2Impl "+hasGL2Impl);
@@ -891,6 +897,7 @@ public class GLProfile implements Cloneable {
      * Returns the profile implementation
      */
     private static String computeProfileImpl(String profile) {
+    // FIXME Order of return profiles, after we can test their availability
         if (GL2ES1.equals(profile)) {
             if(hasGL2ES12Impl) {
                 return GL2ES12;
@@ -908,8 +915,20 @@ public class GLProfile implements Cloneable {
                 return GL3;
             } else if(hasGL3bcImpl) {
                 return GL3bc;
+            } else if(hasGL4Impl) {
+                return GL4;
+            } else if(hasGL4bcImpl) {
+                return GL4bc;
             } else if(hasGLES2Impl) {
                 return GLES2;
+            }
+        } else if(GL4bc.equals(profile) && hasGL4bcImpl) {
+            return GL4bc;
+        } else if(GL4.equals(profile)) {
+            if(hasGL4Impl) {
+                return GL4;
+            } else if(hasGL4bcImpl) {
+                return GL4bc;
             }
         } else if(GL3bc.equals(profile) && hasGL3bcImpl) {
             return GL3bc;
