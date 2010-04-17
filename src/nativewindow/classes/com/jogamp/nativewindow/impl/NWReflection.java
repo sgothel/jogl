@@ -40,73 +40,83 @@ import java.lang.reflect.*;
 import javax.media.nativewindow.*;
 
 public final class NWReflection {
+    
   public static final boolean DEBUG = Debug.debug("NWReflection");
 
-  public static final boolean isClassAvailable(String clazzName) {
-    try {
-        Class clazz = Class.forName(clazzName, false, NWReflection.class.getClassLoader());
-        return null!=clazz;
-    } catch (Throwable e) { }
-    return false;
-  }
-
-  public static final Class getClass(String clazzName, boolean initialize) {
-    try {
-        return Class.forName(clazzName, initialize, NWReflection.class.getClassLoader());
-    } catch (Throwable e) { }
-    return null;
-  }
-
-  public static final Constructor getConstructor(String clazzName, Class[] cstrArgTypes) {
-    Class factoryClass = null;
-    Constructor factory = null;
-
-    try {
-        factoryClass = getClass(clazzName, true);
-        if (factoryClass == null) {
-          throw new NativeWindowException(clazzName + " not available");
-        }
-        return getConstructor(factoryClass, cstrArgTypes);
-    } catch (Throwable e) { 
-      if (DEBUG) {
-          e.printStackTrace();
-      }
-      throw new NativeWindowException(e);
-    }
-  }
-
-  public static final Constructor getConstructor(Class clazz, Class[] cstrArgTypes) {
-    Constructor factory = null;
-
-    try {
+    /**
+     * Returns true only if the class could be loaded.
+     */
+    public static final boolean isClassAvailable(String clazzName) {
         try {
-            factory = clazz.getDeclaredConstructor( cstrArgTypes );
-        } catch(NoSuchMethodException nsme) {
-          throw new NativeWindowException("Constructor: '" + clazz + "("+cstrArgTypes+")' not found");
+            return null != Class.forName(clazzName, false, NWReflection.class.getClassLoader());
+        } catch (ClassNotFoundException e) {
+            return false;
         }
-        return factory;
-    } catch (Throwable e) { 
-      if (DEBUG) {
-          e.printStackTrace();
-      }
-      throw new NativeWindowException(e);
     }
-  }
+
+    /**
+     * Loads and returns the class or null.
+     * @see Class#forName(java.lang.String, boolean, java.lang.ClassLoader)
+     */
+    public static final Class getClass(String clazzName, boolean initialize) {
+        try {
+            return getClassImpl(clazzName, initialize);
+        } catch (ClassNotFoundException e) {
+            return null;
+        }
+    }
+
+    private static Class getClassImpl(String clazzName, boolean initialize) throws ClassNotFoundException {
+        return Class.forName(clazzName, initialize, NWReflection.class.getClassLoader());
+    }
+
+    /**
+     * @throws NativeWindowException if the constructor can not be delivered.
+     */
+    public static final Constructor getConstructor(String clazzName, Class[] cstrArgTypes) {
+        try {
+            return getConstructor(getClassImpl(clazzName, true), cstrArgTypes);
+        } catch (ClassNotFoundException ex) {
+            throw new NativeWindowException(clazzName + " not available", ex);
+        }
+    }
+
+    /**
+     * @throws NativeWindowException if the constructor can not be delivered.
+     */
+    public static final Constructor getConstructor(Class clazz, Class[] cstrArgTypes) {
+        try {
+            return clazz.getDeclaredConstructor(cstrArgTypes);
+        } catch (NoSuchMethodException ex) {
+            String args = "";
+            for (int i = 0; i < cstrArgTypes.length; i++) {
+                args += cstrArgTypes[i].getName();
+                if(i != cstrArgTypes.length-1) {
+                     args+= ", ";
+                }
+            }
+            throw new NativeWindowException("Constructor: '" + clazz + "(" + args + ")' not found", ex);
+        }
+    }
 
   public static final Constructor getConstructor(String clazzName) {
     return getConstructor(clazzName, new Class[0]);
   }
 
-  public static final Object createInstance(Class clazz, Class[] cstrArgTypes, Object[] cstrArgs) {
-    Constructor factory = null;
-
-    try {
-        factory = getConstructor(clazz, cstrArgTypes);
-        return factory.newInstance( cstrArgs ) ;
-    } catch (Exception e) {
-      throw new NativeWindowException(e);
+    /**
+     * @throws NativeWindowException if the instance can not be created.
+     */
+    public static final Object createInstance(Class clazz, Class[] cstrArgTypes, Object[] cstrArgs) {
+        try {
+            return getConstructor(clazz, cstrArgTypes).newInstance(cstrArgs);
+        } catch (InstantiationException ex) {
+            throw new NativeWindowException("can not create instance of class "+clazz, ex);
+        } catch (InvocationTargetException ex) {
+            throw new NativeWindowException("can not create instance of class "+clazz, ex);
+        } catch (IllegalAccessException ex) {
+            throw new NativeWindowException("can not create instance of class "+clazz, ex);
+        }
     }
-  }
 
   public static final Object createInstance(Class clazz, Object[] cstrArgs) {
     Class[] cstrArgTypes = new Class[cstrArgs.length];
@@ -116,16 +126,13 @@ public final class NWReflection {
     return createInstance(clazz, cstrArgTypes, cstrArgs);
   }
 
-  public static final Object createInstance(String clazzName, Class[] cstrArgTypes, Object[] cstrArgs) {
-    Constructor factory = null;
-
-    try {
-        factory = getConstructor(clazzName, cstrArgTypes);
-        return factory.newInstance( cstrArgs ) ;
-    } catch (Exception e) {
-      throw new NativeWindowException(e);
+    public static final Object createInstance(String clazzName, Class[] cstrArgTypes, Object[] cstrArgs) {
+        try {
+            return createInstance(getClassImpl(clazzName, true), cstrArgTypes, cstrArgs);
+        } catch (ClassNotFoundException ex) {
+            throw new NativeWindowException(clazzName + " not available", ex);
+        }
     }
-  }
 
   public static final Object createInstance(String clazzName, Object[] cstrArgs) {
     Class[] cstrArgTypes = new Class[cstrArgs.length];
