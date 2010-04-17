@@ -40,6 +40,7 @@
 package com.jogamp.opengl.impl;
 
 import com.jogamp.common.os.NativeLibrary;
+import com.jogamp.common.os.Platform;
 import java.io.*;
 import java.security.*;
 
@@ -76,27 +77,31 @@ import java.security.*;
  */
 
 public class DRIHack {
+
   private static final boolean DEBUG = Debug.debug("DRIHack");
   private static boolean driHackNeeded;
   private static NativeLibrary oglLib;
 
-  public static void begin() {
-    AccessController.doPrivileged(new PrivilegedAction() {
-        public Object run() {
-          String os = Debug.getProperty("os.name", false).toLowerCase();
-          // Do DRI hack on all Linux distributions for best robustness
-          driHackNeeded =
-            (os.startsWith("linux") ||
-             new File("/usr/lib/dri").exists() ||
-             new File("/usr/X11R6/lib/modules/dri").exists());
-          // Allow manual overriding for now as a workaround for
-          // problems seen in some situations -- needs more investigation
-          if (Debug.getProperty("jogl.drihack.disable", true) != null) {
+    static {
+        // Allow manual overriding for now as a workaround for
+        // problems seen in some situations -- needs more investigation
+        if (Debug.getProperty("jogl.drihack.disable", true) != null) {
             driHackNeeded = false;
-          }
-          return null;
+        } else {
+            AccessController.doPrivileged(new PrivilegedAction() {
+                public Object run() {
+                    String os = Platform.getOS().toLowerCase();
+                    // Do DRI hack on all Linux distributions for best robustness
+                    driHackNeeded = os.startsWith("linux")
+                                || new File("/usr/lib/dri").exists()
+                                || new File("/usr/X11R6/lib/modules/dri").exists();
+                    return null;
+                }
+            });
         }
-      });
+    }
+
+  public static void begin() {
 
     if (driHackNeeded) {
       if (DEBUG) {
@@ -106,12 +111,17 @@ public class DRIHack {
       // Try a few different variants for best robustness
       // In theory probably only the first is necessary
       oglLib = NativeLibrary.open("libGL.so.1", null);
-      if (DEBUG && oglLib != null) System.err.println(" Found libGL.so.1");
+      if (DEBUG && oglLib != null) {
+          System.err.println(" Found libGL.so.1");
+      }
       if (oglLib == null) {
         oglLib = NativeLibrary.open("/usr/lib/libGL.so.1", null);
-        if (DEBUG && oglLib != null) System.err.println(" Found /usr/lib/libGL.so.1");
+        if (DEBUG && oglLib != null) {
+            System.err.println(" Found /usr/lib/libGL.so.1");
+        }
       }
     }
+
   }
 
   public static void end() {
