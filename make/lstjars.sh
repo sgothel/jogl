@@ -35,47 +35,47 @@ function listdeployment() {
     echo
 
     echo JOGL ES1 NEWT CORE
-    report gluegen-rt.$JAR_SUFFIX nativewindow.all-noawt.$JAR_SUFFIX jogl.core.$JAR_SUFFIX jogl.util.$JAR_SUFFIX jogl.egl.$JAR_SUFFIX jogl.gles1.$JAR_SUFFIX newt.all-noawt.$JAR_SUFFIX libgluegen-rt.so.gz libnativewindow_jvm.so.gz libjogl_es1.so.gz libnewt.so.gz
+    report gluegen-rt.$JAR_SUFFIX nativewindow.all-noawt.$JAR_SUFFIX jogl.core.$JAR_SUFFIX jogl.util.$JAR_SUFFIX jogl.egl.$JAR_SUFFIX jogl.gles1.$JAR_SUFFIX newt.all-noawt.$JAR_SUFFIX libgluegen-rt.so.gz libjogl_es1.so.gz libnewt.so.gz
     echo
 
     echo JOGL ES2 NEWT CORE
-    report gluegen-rt.$JAR_SUFFIX nativewindow.all-noawt.$JAR_SUFFIX jogl.core.$JAR_SUFFIX jogl.util.$JAR_SUFFIX jogl.egl.$JAR_SUFFIX jogl.gles2.$JAR_SUFFIX newt.all-noawt.$JAR_SUFFIX libgluegen-rt.so.gz libnativewindow_jvm.so.gz libjogl_es2.so.gz libnewt.so.gz
+    report gluegen-rt.$JAR_SUFFIX nativewindow.all-noawt.$JAR_SUFFIX jogl.core.$JAR_SUFFIX jogl.util.$JAR_SUFFIX jogl.egl.$JAR_SUFFIX jogl.gles2.$JAR_SUFFIX newt.all-noawt.$JAR_SUFFIX libgluegen-rt.so.gz libjogl_es2.so.gz libnewt.so.gz
     echo
 
     echo JOGL ES2 NEWT CORE FIXED
-    report gluegen-rt.$JAR_SUFFIX nativewindow.all-noawt.$JAR_SUFFIX jogl.core.$JAR_SUFFIX jogl.util.$JAR_SUFFIX jogl.egl.$JAR_SUFFIX jogl.gles2.$JAR_SUFFIX jogl.util.fixedfuncemu.$JAR_SUFFIX newt.all-noawt.$JAR_SUFFIX libgluegen-rt.so.gz libnativewindow_jvm.so.gz libjogl_es2.so.gz libnewt.so.gz
+    report gluegen-rt.$JAR_SUFFIX nativewindow.all-noawt.$JAR_SUFFIX jogl.core.$JAR_SUFFIX jogl.util.$JAR_SUFFIX jogl.egl.$JAR_SUFFIX jogl.gles2.$JAR_SUFFIX jogl.util.fixedfuncemu.$JAR_SUFFIX newt.all-noawt.$JAR_SUFFIX libgluegen-rt.so.gz libjogl_es2.so.gz libnewt.so.gz
     echo
 
     echo JOGL GL2ES12 NEWT 
-    report gluegen-rt.$JAR_SUFFIX nativewindow.all-noawt.$JAR_SUFFIX jogl.core.$JAR_SUFFIX jogl.util.$JAR_SUFFIX jogl.os.$OSS.$JAR_SUFFIX jogl.gl2es12.$JAR_SUFFIX newt.all-noawt.$JAR_SUFFIX libgluegen-rt.so.gz libjogl_gl2es12.so.gz libnewt.so.gz libnativewindow_$OSS.so.gz libnativewindow_jvm.so.gz
+    report gluegen-rt.$JAR_SUFFIX nativewindow.all-noawt.$JAR_SUFFIX jogl.core.$JAR_SUFFIX jogl.util.$JAR_SUFFIX jogl.os.$OSS.$JAR_SUFFIX newt.all-noawt.$JAR_SUFFIX libgluegen-rt.so.gz libnewt.so.gz libnativewindow_$OSS.so.gz
     echo
 
     echo JOGL GL2 NEWT 
-    report gluegen-rt.$JAR_SUFFIX nativewindow.all-noawt.$JAR_SUFFIX jogl.core.$JAR_SUFFIX jogl.util.$JAR_SUFFIX jogl.os.$OSS.$JAR_SUFFIX jogl.gl2.$JAR_SUFFIX newt.all-noawt.$JAR_SUFFIX libgluegen-rt.so.gz libjogl_desktop.so.gz libnewt.so.gz libnativewindow_$OSS.so.gz libnativewindow_jvm.so.gz
+    report gluegen-rt.$JAR_SUFFIX nativewindow.all-noawt.$JAR_SUFFIX jogl.core.$JAR_SUFFIX jogl.util.$JAR_SUFFIX jogl.os.$OSS.$JAR_SUFFIX jogl.gl2.$JAR_SUFFIX newt.all-noawt.$JAR_SUFFIX libgluegen-rt.so.gz libjogl_desktop.so.gz libnewt.so.gz libnativewindow_$OSS.so.gz
     echo
 
     echo JOGL GL2 AWT
-    report gluegen-rt.$JAR_SUFFIX nativewindow.all.$JAR_SUFFIX jogl.core.$JAR_SUFFIX jogl.util.$JAR_SUFFIX jogl.os.$OSS.$JAR_SUFFIX jogl.gl2.$JAR_SUFFIX jogl.awt.$JAR_SUFFIX libgluegen-rt.so.gz libjogl_desktop.so.gz libnativewindow_$OSS.so.gz libnativewindow_awt.so.gz libnativewindow_jvm.so.gz
+    report gluegen-rt.$JAR_SUFFIX nativewindow.all.$JAR_SUFFIX jogl.core.$JAR_SUFFIX jogl.util.$JAR_SUFFIX jogl.os.$OSS.$JAR_SUFFIX jogl.gl2.$JAR_SUFFIX jogl.awt.$JAR_SUFFIX libgluegen-rt.so.gz libjogl_desktop.so.gz libnativewindow_$OSS.so.gz libnativewindow_awt.so.gz
     echo
 
     echo JOGL ALL AWT
-    report gluegen-rt.$JAR_SUFFIX nativewindow.all.$JAR_SUFFIX jogl.all.$JAR_SUFFIX libgluegen-rt.so.gz libjogl_desktop.so.gz libnativewindow_$OSS.so.gz libnativewindow_awt.so.gz libnativewindow_jvm.so.gz
+    report gluegen-rt.$JAR_SUFFIX nativewindow.all.$JAR_SUFFIX jogl.all.$JAR_SUFFIX libgluegen-rt.so.gz libjogl_desktop.so.gz libnativewindow_$OSS.so.gz libnativewindow_awt.so.gz
     echo
 
     echo JOGL ALL No AWT
-    report gluegen-rt.$JAR_SUFFIX nativewindow.all-noawt.$JAR_SUFFIX jogl.all-noawt.$JAR_SUFFIX newt.all-noawt.$JAR_SUFFIX libgluegen-rt.so.gz libjogl_desktop.so.gz libnativewindow_$OSS.so.gz libnativewindow_jvm.so.gz libnewt.so.gz
+    report gluegen-rt.$JAR_SUFFIX nativewindow.all-noawt.$JAR_SUFFIX jogl.all-noawt.$JAR_SUFFIX newt.all-noawt.$JAR_SUFFIX libgluegen-rt.so.gz libjogl_desktop.so.gz libnativewindow_$OSS.so.gz libnewt.so.gz
     echo
 
     echo JOGL CDCFP DESKTOP
-    report gluegen-rt-cdc.$JAR_SUFFIX nativewindow.all.$JAR_SUFFIX jogl.all.cdc.$JAR_SUFFIX newt.all.cdc.$JAR_SUFFIX libgluegen-rt.so.gz libjogl_gl2es12.so.gz libnativewindow_$OSS.so.gz libnativewindow_jvm.so.gz libnewt.so.gz
+    report gluegen-rt-cdc.$JAR_SUFFIX nativewindow.all.$JAR_SUFFIX jogl.all.cdc.$JAR_SUFFIX newt.all.cdc.$JAR_SUFFIX libgluegen-rt.so.gz libnativewindow_$OSS.so.gz libnewt.so.gz
     echo
 
     echo JOGL CDCFP ES1 MOBILE
-    report gluegen-rt-cdc.$JAR_SUFFIX jogl.core.cdc.$JAR_SUFFIX jogl.egl.cdc.$JAR_SUFFIX jogl.gles1.cdc.$JAR_SUFFIX jogl.util.cdc.$JAR_SUFFIX nativewindow.all.cdc.$JAR_SUFFIX newt.all.cdc.$JAR_SUFFIX libgluegen-rt.so.gz libjogl_es1.so.gz libnativewindow_jvm.so.gz libnewt.so.gz
+    report gluegen-rt-cdc.$JAR_SUFFIX jogl.core.cdc.$JAR_SUFFIX jogl.egl.cdc.$JAR_SUFFIX jogl.gles1.cdc.$JAR_SUFFIX jogl.util.cdc.$JAR_SUFFIX nativewindow.all.cdc.$JAR_SUFFIX newt.all.cdc.$JAR_SUFFIX libgluegen-rt.so.gz libjogl_es1.so.gz libnewt.so.gz
     echo
 
     echo JOGL CDCFP ES2 MOBILE
-    report gluegen-rt-cdc.$JAR_SUFFIX jogl.core.cdc.$JAR_SUFFIX jogl.egl.cdc.$JAR_SUFFIX jogl.gles2.cdc.$JAR_SUFFIX jogl.util.cdc.$JAR_SUFFIX nativewindow.all.cdc.$JAR_SUFFIX newt.all.cdc.$JAR_SUFFIX libgluegen-rt.so.gz libjogl_es2.so.gz libnativewindow_jvm.so.gz libnewt.so.gz
+    report gluegen-rt-cdc.$JAR_SUFFIX jogl.core.cdc.$JAR_SUFFIX jogl.egl.cdc.$JAR_SUFFIX jogl.gles2.cdc.$JAR_SUFFIX jogl.util.cdc.$JAR_SUFFIX nativewindow.all.cdc.$JAR_SUFFIX newt.all.cdc.$JAR_SUFFIX libgluegen-rt.so.gz libjogl_es2.so.gz libnewt.so.gz
     echo
 
     echo JOGL GLU
@@ -83,7 +83,7 @@ function listdeployment() {
     echo
 
     echo JOGL EVERYTHING
-    report *.all.$JAR_SUFFIX libgluegen-rt.so.gz libnativewindow_jvm.so.gz libnativewindow_$OSS.so.gz libnativewindow_awt.so.gz libjogl_desktop.so.gz  libjogl_es1.so.gz  libjogl_es2.so.gz  libjogl_gl2es12.so.gz libnewt.so.gz
+    report *.all.$JAR_SUFFIX libgluegen-rt.so.gz libnativewindow_$OSS.so.gz libnativewindow_awt.so.gz libjogl_desktop.so.gz  libjogl_es1.so.gz  libjogl_es2.so.gz  libnewt.so.gz
     echo
 }
 
@@ -125,8 +125,8 @@ mkdir -p nope
 
 mv *.cdc.lst *.all*.lst nope/
 
-mv jogl.gl2es12.*.lst jogl.gl2.*.lst nope/
-echo duplicates - w/o gl2es12.* gl2.*
+mv jogl.gl2.*.lst nope/
+echo duplicates - w/o gl2.*
 echo
 sort jogl*.lst | uniq -d
 mv nope/* .
