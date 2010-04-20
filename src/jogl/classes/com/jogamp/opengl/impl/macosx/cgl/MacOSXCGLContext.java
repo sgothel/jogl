@@ -88,11 +88,13 @@ public abstract class MacOSXCGLContext extends GLContextImpl
 
   protected Map/*<String, String>*/ getExtensionNameMap() { return null; }
 
-  protected abstract boolean create();
+  protected long createContextARBImpl(long share, boolean direct, int ctp, int major, int minor) {
+      return 0; // FIXME
+  }
 
-    protected long createContextARBImpl(long share, boolean direct, int ctp, int major, int minor) {
-        return 0; // FIXME
-    }
+  protected void destroyContextARBImpl(long _context) {
+      // FIXME
+  }
 
   /**
    * Creates and initializes an appropriate OpenGl nsContext. Should only be
@@ -154,7 +156,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
     if (!CGL.makeCurrentContext(nsContext)) {
       throw new GLException("Error making nsContext current");
     }
-    setGLFunctionAvailability(true, 0, 0, 0);
+    setGLFunctionAvailability(true, 0, 0, CTX_PROFILE_COMPAT|CTX_OPTION_ANY);
     GLContextShareSet.contextCreated(this);
     return true;
   }    
@@ -165,13 +167,14 @@ public abstract class MacOSXCGLContext extends GLContextImpl
     }
     boolean created = false;
     if ( 0 == cglContext && 0 == nsContext) {
-      if (!create()) {
+      create();
+      created = 0 != cglContext || 0 != nsContext ;
+      if(!created) {
         return CONTEXT_NOT_CURRENT;
       }
       if (DEBUG) {
         System.err.println("!!! Created OpenGL context " + toHexString(nsContext) + " for " + getClass().getName());
       }
-      created = true;
     }
             
     if ( 0 != cglContext ) {
@@ -185,7 +188,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
     }
             
     if (created) {
-      setGLFunctionAvailability(false, -1, -1, -1);
+      setGLFunctionAvailability(false, -1, -1, CTX_PROFILE_COMPAT|CTX_OPTION_ANY);
       return CONTEXT_CURRENT_NEW;
     }
     return CONTEXT_CURRENT;

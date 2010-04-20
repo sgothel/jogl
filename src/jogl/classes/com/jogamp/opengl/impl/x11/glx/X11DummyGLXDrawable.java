@@ -42,7 +42,7 @@ import com.jogamp.nativewindow.impl.x11.*;
 
 public class X11DummyGLXDrawable extends X11OnscreenGLXDrawable {
 
-  // private long dummyWindow = 0;
+  private long dummyWindow = 0;
 
   /** 
    * Due to the ATI Bug https://bugzilla.mozilla.org/show_bug.cgi?id=486277,
@@ -62,17 +62,15 @@ public class X11DummyGLXDrawable extends X11OnscreenGLXDrawable {
     X11GraphicsDevice device = (X11GraphicsDevice) screen.getDevice();
     long dpy = device.getHandle();
     int scrn = screen.getIndex();
-    // long visualID = config.getVisualID();
-    // System.out.println("X11DummyGLXDrawable: dpy "+toHexString(dpy)+", scrn "+scrn+", visualID "+toHexString(visualID));
+    long visualID = config.getVisualID();
 
     X11Lib.XLockDisplay(dpy);
     try{
-        nw.setSurfaceHandle( X11Lib.RootWindow(dpy, scrn) );
-        // dummyWindow = X11Lib.CreateDummyWindow(dpy, scrn, visualID);
-        // nw.setSurfaceHandle( dummyWindow );
+        dummyWindow = X11Lib.CreateDummyWindow(dpy, scrn, visualID);
     } finally {
         X11Lib.XUnlockDisplay(dpy);
     }
+    nw.setSurfaceHandle( dummyWindow );
   }
 
   public void setSize(int width, int height) {
@@ -87,11 +85,10 @@ public class X11DummyGLXDrawable extends X11OnscreenGLXDrawable {
   }
 
   public void destroy() {
-    /**
     if(0!=dummyWindow) {
         X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration();
         long dpy = config.getScreen().getDevice().getHandle();
         X11Lib.DestroyDummyWindow(dpy, dummyWindow);
-    } */
+    }
   }
 }

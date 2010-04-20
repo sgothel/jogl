@@ -45,8 +45,9 @@ import java.util.*;
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.windows.*;
 import javax.media.opengl.*;
+import com.jogamp.common.JogampRuntimeException;
+import com.jogamp.common.util.*;
 import com.jogamp.opengl.impl.*;
-import com.jogamp.nativewindow.impl.NWReflection;
 import com.jogamp.nativewindow.impl.NullWindow;
 
 public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl implements DynamicLookupHelper {
@@ -66,40 +67,38 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl implements 
     // The act of constructing them causes them to be registered
     new WindowsWGLGraphicsConfigurationFactory();
     try {
-      NWReflection.createInstance("com.jogamp.opengl.impl.windows.wgl.awt.WindowsAWTWGLGraphicsConfigurationFactory",
+      ReflectionUtil.createInstance("com.jogamp.opengl.impl.windows.wgl.awt.WindowsAWTWGLGraphicsConfigurationFactory",
                                   new Object[] {});
-    } catch (Throwable t) { }
+    } catch (JogampRuntimeException jre) { /* n/a .. */ }
 
     loadOpenGL32Library();
+
+    sharedDrawable = new WindowsDummyWGLDrawable(this, null);
+    WindowsWGLContext ctx  = (WindowsWGLContext) sharedDrawable.createContext(null);
+    ctx.makeCurrent();
+    canCreateGLPbuffer = ctx.getGL().isExtensionAvailable("GL_ARB_pbuffer");
+    ctx.release();
+    sharedContext = ctx;
+    if(null==sharedContext) {
+        throw new GLException("Couldn't init shared resources");
+    }
+    if (DEBUG) {
+      System.err.println("!!! SharedContext: "+sharedContext+", pbuffer supported "+canCreateGLPbuffer);
+    }
   }
 
   WindowsDummyWGLDrawable sharedDrawable=null;
   WindowsWGLContext sharedContext=null;
   boolean canCreateGLPbuffer = false;
 
-  // package private ..
-  final WindowsWGLContext getSharedContext() {
+  protected final GLDrawableImpl getSharedDrawable() {
     validate();
-    return sharedContext; 
+    return sharedDrawable; 
   }
 
-  void initShared() {
-    if(null==sharedDrawable) {
-        sharedDrawable = new WindowsDummyWGLDrawable(this, null);
-        WindowsWGLContext _sharedContext  = (WindowsWGLContext) sharedDrawable.createContext(null);
-        {
-            _sharedContext.makeCurrent();
-            canCreateGLPbuffer = _sharedContext.getGL().isExtensionAvailable("GL_ARB_pbuffer");
-            _sharedContext.release();
-        }
-        _sharedContext = _sharedContext;
-        if (DEBUG) {
-          System.err.println("!!! SharedContext: "+sharedContext+", pbuffer supported "+canCreateGLPbuffer);
-        }
-        if(null==sharedContext) {
-            throw new GLException("Couldn't init shared resources");
-        }
-    }
+  protected final GLContextImpl getSharedContext() {
+    validate();
+    return sharedContext; 
   }
 
   public void shutdown() {
@@ -124,7 +123,6 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl implements 
     if (target == null) {
       throw new IllegalArgumentException("Null target");
     }
-    initShared();
     return new WindowsOnscreenWGLDrawable(this, target);
   }
 
@@ -133,13 +131,11 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl implements 
     if (target == null) {
       throw new IllegalArgumentException("Null target");
     }
-    initShared();
     return new WindowsOffscreenWGLDrawable(this, target);
   }
 
   public boolean canCreateGLPbuffer(AbstractGraphicsDevice device) {
     validate();
-    initShared(); // setup canCreateGLPBuffer
     return canCreateGLPbuffer;
   }
 
@@ -148,7 +144,6 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl implements 
     if (target == null) {
       throw new IllegalArgumentException("Null target");
     }
-    initShared();
     final List returnList = new ArrayList();
     final GLDrawableFactory factory = this;
     final WindowsWGLContext _sharedContext = sharedContext;
@@ -180,7 +175,6 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl implements 
 
   protected NativeWindow createOffscreenWindow(GLCapabilities capabilities, GLCapabilitiesChooser chooser, int width, int height) {
     validate();
-    initShared();
     AbstractGraphicsScreen screen = DefaultGraphicsScreen.createDefault();
     NullWindow nw = new NullWindow(WindowsWGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(
                                    capabilities, chooser, screen) );
@@ -190,7 +184,6 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl implements 
  
   public GLContext createExternalGLContext() {
     validate();
-    initShared();
     return WindowsExternalWGLContext.create(this, null);
   }
 
@@ -201,7 +194,6 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl implements 
 
   public GLDrawable createExternalGLDrawable() {
     validate();
-    initShared();
     return WindowsExternalWGLDrawable.create(this, null);
   }
 

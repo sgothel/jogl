@@ -59,13 +59,14 @@ public class MacOSXPbufferCGLContext extends MacOSXCGLContext {
 
     boolean created = false;
     if (nsContext == 0) {
-      if (!create()) {
+      create();
+      created = 0 != nsContext ;
+      if(!created) {
         return CONTEXT_NOT_CURRENT;
       }
       if (DEBUG) {
         System.err.println("!!! Created OpenGL context " + toHexString(nsContext) + " for " + getClass().getName());
       }
-      created = true;
     }
     
     if (!impl.makeCurrent(nsContext)) {
@@ -73,7 +74,7 @@ public class MacOSXPbufferCGLContext extends MacOSXCGLContext {
     }
             
     if (created) {
-      setGLFunctionAvailability(false, -1, -1, -1);
+      setGLFunctionAvailability(false, -1, -1, CTX_PROFILE_COMPAT|CTX_OPTION_ANY);
 
       // Initialize render-to-texture support if requested
       DefaultGraphicsConfiguration config = (DefaultGraphicsConfiguration) drawable.getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration();
@@ -134,7 +135,7 @@ public class MacOSXPbufferCGLContext extends MacOSXCGLContext {
     return GLPbuffer.APPLE_FLOAT;
   }
 
-  protected boolean create() {
+  protected void create() {
     DefaultGraphicsConfiguration config = (DefaultGraphicsConfiguration) drawable.getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration();
     GLCapabilities capabilities = (GLCapabilities)config.getChosenCapabilities();
     if (capabilities.getPbufferFloatingPointBuffers() &&
@@ -152,9 +153,7 @@ public class MacOSXPbufferCGLContext extends MacOSXCGLContext {
     if (!impl.makeCurrent(nsContext)) {
       throw new GLException("Error making nsContext current");
     }
-    setGLFunctionAvailability(true, 0, 0, 0);
-            
-    return true;
+    setGLFunctionAvailability(true, 0, 0, CTX_PROFILE_COMPAT|CTX_OPTION_ANY);
   }
 
   //---------------------------------------------------------------------------

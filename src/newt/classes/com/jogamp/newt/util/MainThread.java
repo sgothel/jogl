@@ -43,10 +43,10 @@ import java.security.*;
 
 import javax.media.nativewindow.*;
 
+import com.jogamp.common.util.*;
 import com.jogamp.newt.*;
 import com.jogamp.newt.impl.*;
 import com.jogamp.newt.macosx.MacDisplay;
-import com.jogamp.nativewindow.impl.NWReflection;
 
 /**
  * NEWT Utility class MainThread<P>
@@ -116,7 +116,7 @@ public class MainThread {
 
             // start user app ..
             try {
-                Class mainClass = NWReflection.getClass(mainClassName, true);
+                Class mainClass = ReflectionUtil.getClass(mainClassName, true);
                 if(null==mainClass) {
                     throw new RuntimeException(new ClassNotFoundException("MainThread couldn't find main class "+mainClassName));
                 }
@@ -159,7 +159,7 @@ public class MainThread {
             System.arraycopy(args, 1, mainClassArgs, 0, args.length-1);
         }
 
-        NativeLibLoader.loadNEWT();
+        NEWTJNILibLoader.loadNEWT();
         
         shouldStop = false;
         tasks = new ArrayList();

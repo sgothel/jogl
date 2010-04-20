@@ -41,7 +41,7 @@ import com.jogamp.newt.util.MainThread;
 
 public class MacDisplay extends Display {
     static {
-        NativeLibLoader.loadNEWT();
+        NEWTJNILibLoader.loadNEWT();
 
         if(!initNSApplication()) {
             throw new NativeWindowException("Failed to initialize native Application hook");

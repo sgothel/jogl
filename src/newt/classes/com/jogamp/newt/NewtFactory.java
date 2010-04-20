@@ -36,7 +36,7 @@ package com.jogamp.newt;
 import javax.media.nativewindow.*;
 import java.util.ArrayList;
 import java.util.Iterator;
-import com.jogamp.nativewindow.impl.jvm.JVMUtil;
+import com.jogamp.common.jvm.JVMUtil;
 
 public abstract class NewtFactory {
     // Work-around for initialization order problems on Mac OS X

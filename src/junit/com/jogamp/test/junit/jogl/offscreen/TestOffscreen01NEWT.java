@@ -55,16 +55,16 @@ import com.jogamp.test.junit.jogl.demos.es1.RedSquare;
 import java.io.IOException;
 
 public class TestOffscreen01NEWT {
-    static GLProfile glp;
+    static GLProfile glpDefault;
     static GLDrawableFactory factory;
     static int width, height;
-    GLCapabilities caps;
+    GLCapabilities capsDefault;
 
     @BeforeClass
     public static void initClass() {
-        glp = GLProfile.getDefault();
-        Assert.assertNotNull(glp);
-        factory = GLDrawableFactory.getFactory(glp);
+        glpDefault = GLProfile.getDefault();
+        Assert.assertNotNull(glpDefault);
+        factory = GLDrawableFactory.getFactory(glpDefault);
         Assert.assertNotNull(factory);
         width  = 640;
         height = 480;
@@ -78,7 +78,8 @@ public class TestOffscreen01NEWT {
 
     @Before
     public void init() {
-        caps = new GLCapabilities(glp);
+        capsDefault = new GLCapabilities(glpDefault);
+        Assert.assertNotNull(capsDefault);
     }
 
     private void do01OffscreenWindowPBuffer(GLCapabilities caps) {
@@ -115,20 +116,20 @@ public class TestOffscreen01NEWT {
 
     @Test
     public void test01aOffscreenWindowPBuffer() {
-        GLCapabilities caps2 = WindowUtilNEWT.fixCaps(caps, false, true, false);
+        GLCapabilities caps2 = WindowUtilNEWT.fixCaps(capsDefault, false, true, false);
         do01OffscreenWindowPBuffer(caps2);
     }
 
     @Test
     public void test01bOffscreenWindowPBufferStencil() {
-        GLCapabilities caps2 = WindowUtilNEWT.fixCaps(caps, false, true, false);
+        GLCapabilities caps2 = WindowUtilNEWT.fixCaps(capsDefault, false, true, false);
         caps2.setStencilBits(8);
         do01OffscreenWindowPBuffer(caps2);
     }
 
     @Test
     public void test01cOffscreenWindowPBufferStencilAlpha() {
-        GLCapabilities caps2 = WindowUtilNEWT.fixCaps(caps, false, true, false);
+        GLCapabilities caps2 = WindowUtilNEWT.fixCaps(capsDefault, false, true, false);
         caps2.setStencilBits(8);
         caps2.setAlphaBits(8);
         do01OffscreenWindowPBuffer(caps2);
@@ -136,7 +137,7 @@ public class TestOffscreen01NEWT {
 
     @Test
     public void test01cOffscreenWindowPBuffer555() {
-        GLCapabilities caps2 = WindowUtilNEWT.fixCaps(caps, false, true, false);
+        GLCapabilities caps2 = WindowUtilNEWT.fixCaps(capsDefault, false, true, false);
         caps2.setRedBits(5);
         caps2.setGreenBits(5);
         caps2.setBlueBits(5);
@@ -145,7 +146,7 @@ public class TestOffscreen01NEWT {
 
     @Test
     public void test02Offscreen3Windows1DisplayPBuffer() {
-        GLCapabilities caps2 = WindowUtilNEWT.fixCaps(caps, false, true, false);
+        GLCapabilities caps2 = WindowUtilNEWT.fixCaps(capsDefault, false, true, false);
         int winnum = 3, i;
         Window windows[] = new Window[winnum];
         GLWindow glWindows[] = new GLWindow[winnum];
@@ -192,7 +193,7 @@ public class TestOffscreen01NEWT {
 
     @Test
     public void test03Offscreen3Windows3DisplaysPBuffer() {
-        GLCapabilities caps2 = WindowUtilNEWT.fixCaps(caps, false, true, false);
+        GLCapabilities caps2 = WindowUtilNEWT.fixCaps(capsDefault, false, true, false);
         int winnum = 3, i;
         Display displays[] = new Display[winnum];
         Screen screens[] = new Screen[winnum];
@@ -240,7 +241,7 @@ public class TestOffscreen01NEWT {
 
     @Test
     public void test04OffscreenSnapshotWithDemoPBuffer() {
-        GLCapabilities caps2 = WindowUtilNEWT.fixCaps(caps, false, true, false);
+        GLCapabilities caps2 = WindowUtilNEWT.fixCaps(capsDefault, false, true, false);
 
         System.out.println("Create Window 1");
         Display display = NewtFactory.createDisplay(null); // local display
@@ -283,6 +284,12 @@ public class TestOffscreen01NEWT {
 
     @Test
     public void test11OffscreenWindowPixmap() {
+        // Offscreen doesn't work on >= GL3 (ATI)
+        GLProfile glp = GLProfile.get(GLProfile.GL2);
+        Assert.assertNotNull(glp);
+        GLCapabilities caps = new GLCapabilities(glp);
+        Assert.assertNotNull(caps);
+
         GLCapabilities caps2 = WindowUtilNEWT.fixCaps(caps, false, false, false);
 
         Display display = NewtFactory.createDisplay(null); // local display
@@ -318,6 +325,12 @@ public class TestOffscreen01NEWT {
 
     @Test
     public void test14OffscreenSnapshotWithDemoPixmap() {
+        // Offscreen doesn't work on >= GL3 (ATI)
+        GLProfile glp = GLProfile.get(GLProfile.GL2);
+        Assert.assertNotNull(glp);
+        GLCapabilities caps = new GLCapabilities(glp);
+        Assert.assertNotNull(caps);
+
         GLCapabilities caps2 = WindowUtilNEWT.fixCaps(caps, false, false, false);
 
         System.out.println("Create Window 1");

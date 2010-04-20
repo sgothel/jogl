@@ -45,7 +45,7 @@ public class WindowsDisplay extends Display {
     private static long hInstance;
 
     static {
-        NativeLibLoader.loadNEWT();
+        NEWTJNILibLoader.loadNEWT();
 
         if (!WindowsWindow.initIDs()) {
             throw new NativeWindowException("Failed to initialize WindowsWindow jmethodIDs");

@@ -128,6 +128,7 @@ static void _FatalError(JNIEnv *env, const char* msg, ...)
     va_end(ap);
 
     fprintf(stderr, buffer);
+    fprintf(stderr, "\n");
     (*env)->FatalError(env, buffer);
 }
 
@@ -201,32 +202,54 @@ static void _throwNewRuntimeException(Display * unlockDisplay, JNIEnv *env, cons
     (*env)->ThrowNew(env, clazzRuntimeException, buffer);
 }
 
-static XIOErrorHandler origIOErrorHandler = NULL;
-static JNIEnv * displayIOErrorHandlerJNIEnv = NULL;
+static JNIEnv * x11ErrorHandlerJNIEnv = NULL;
+static XErrorHandler origErrorHandler = NULL ;
 
-static int displayIOErrorHandler(Display *dpy)
+static int x11ErrorHandler(Display *dpy, XErrorEvent *e)
 {
-    _FatalError(displayIOErrorHandlerJNIEnv, "Nativewindow X11 IOError: Display %p not available", dpy);
+    _throwNewRuntimeException(NULL, x11ErrorHandlerJNIEnv, "Nativewindow X11 Error: Display %p, Code 0x%X", dpy, e->error_code);
+
+    return 0;
+}
+
+static void x11ErrorHandlerEnable(int onoff, JNIEnv * env) {
+    if(onoff) {
+        if(NULL==origErrorHandler) {
+            x11ErrorHandlerJNIEnv = env;
+            origErrorHandler = XSetErrorHandler(x11ErrorHandler);
+        }
+    } else {
+        XSetErrorHandler(origErrorHandler);
+        origErrorHandler = NULL;
+    }
+}
+
+
+static XIOErrorHandler origIOErrorHandler = NULL;
+
+static int x11IOErrorHandler(Display *dpy)
+{
+    _FatalError(x11ErrorHandlerJNIEnv, "Nativewindow X11 IOError: Display %p not available", dpy);
     origIOErrorHandler(dpy);
     return 0;
 }
 
-static void displayIOErrorHandlerEnable(int onoff, JNIEnv * env) {
+static void x11IOErrorHandlerEnable(int onoff, JNIEnv * env) {
     if(onoff) {
         if(NULL==origIOErrorHandler) {
-            displayIOErrorHandlerJNIEnv = env;
-            origIOErrorHandler = XSetIOErrorHandler(displayIOErrorHandler);
+            x11ErrorHandlerJNIEnv = env;
+            origIOErrorHandler = XSetIOErrorHandler(x11IOErrorHandler);
         }
     } else {
         XSetIOErrorHandler(origIOErrorHandler);
         origIOErrorHandler = NULL;
-        displayIOErrorHandlerJNIEnv = NULL;
     }
 }
 
 JNIEXPORT void JNICALL 
 Java_com_jogamp_nativewindow_impl_x11_X11Util_installIOErrorHandler(JNIEnv *env, jclass _unused) {
-    displayIOErrorHandlerEnable(1, env);
+    x11ErrorHandlerEnable(1, env);
+    x11IOErrorHandlerEnable(1, env);
 }
 
 JNIEXPORT jlong JNICALL 
@@ -345,6 +368,7 @@ Java_com_jogamp_nativewindow_impl_x11_X11Lib_XCloseDisplay__J(JNIEnv *env, jclas
  * Class:     com_jogamp_nativewindow_impl_x11_X11Lib
  * Method:    CreateDummyWindow
  * Signature: (JIJ)J
+ */
 JNIEXPORT jlong JNICALL Java_com_jogamp_nativewindow_impl_x11_X11Lib_CreateDummyWindow
   (JNIEnv *env, jobject obj, jlong display, jint screen_index, jlong visualID)
 {
@@ -370,7 +394,7 @@ JNIEXPORT jlong JNICALL Java_com_jogamp_nativewindow_impl_x11_X11Lib_CreateDummy
     }
 
     if(visualID<0) {
-        _throwNewRuntimeException(NULL, env, "invalid VisualID ..\n");
+        _throwNewRuntimeException(NULL, env, "invalid VisualID ..");
         return 0;
     }
 
@@ -396,7 +420,7 @@ JNIEXPORT jlong JNICALL Java_com_jogamp_nativewindow_impl_x11_X11Lib_CreateDummy
 
     if (visual==NULL)
     { 
-        _throwNewRuntimeException(dpy, env, "could not query Visual by given VisualID, bail out!\n");
+        _throwNewRuntimeException(dpy, env, "could not query Visual by given VisualID, bail out!");
         return 0;
     } 
 
@@ -440,13 +464,13 @@ JNIEXPORT jlong JNICALL Java_com_jogamp_nativewindow_impl_x11_X11Lib_CreateDummy
 
     return (jlong) window;
 }
- */
 
 
 /*
  * Class:     com_jogamp_nativewindow_impl_x11_X11Lib
  * Method:    DestroyDummyWindow
  * Signature: (JJ)V
+ */
 JNIEXPORT void JNICALL Java_com_jogamp_nativewindow_impl_x11_X11Lib_DestroyDummyWindow
   (JNIEnv *env, jobject obj, jlong display, jlong window)
 {
@@ -454,7 +478,7 @@ JNIEXPORT void JNICALL Java_com_jogamp_nativewindow_impl_x11_X11Lib_DestroyDummy
     Window      w = (Window) window;
 
     if(NULL==dpy) {
-        _throwNewRuntimeException(NULL, env, "invalid display connection..\n");
+        _throwNewRuntimeException(NULL, env, "invalid display connection..");
         return;
     }
     XLockDisplay(dpy) ;
@@ -467,5 +491,3 @@ JNIEXPORT void JNICALL Java_com_jogamp_nativewindow_impl_x11_X11Lib_DestroyDummy
 
     XUnlockDisplay(dpy) ;
 }
- */
-

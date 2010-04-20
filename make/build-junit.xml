@@ -81,6 +81,24 @@
         <condition property="jvmarg.newt" value="-XstartOnFirstThread -Djava.awt.headless=true"><isset property="isOSX"/></condition>
         <condition property="jvmarg.newt" value="-Djava.awt.headless=true"><not><isset property="isOSX"/></not></condition>
 
+        <!-- Test*CORE* -->
+        <junit forkmode="once" showoutput="true" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
+            <env key="${system.env.library.path}" path="${obj.all.paths}"/>
+            <jvmarg value="-Djava.library.path=${obj.all.paths}"/>
+
+            <formatter usefile="false" type="plain"/>
+            <formatter usefile="true" type="xml"/>
+            <classpath refid="junit_jogl_newt.run.classpath"/>
+
+            <batchtest todir="${results.junit}">
+              <fileset dir="${classes}">
+                  <include name="${java.dir.test}/**/Test*CORE*"/>
+              </fileset>
+              <formatter usefile="false" type="brief"/>
+              <formatter usefile="true" type="xml"/>
+            </batchtest>
+        </junit>
+
         <!-- Test*NEWT* 
 
              Emulation of junit task,

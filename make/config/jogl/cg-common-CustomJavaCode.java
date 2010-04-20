@@ -1,5 +1,5 @@
 static {
-  com.jogamp.opengl.impl.NativeLibLoader.loadCgImpl();
+  com.jogamp.opengl.impl.GLJNILibLoader.loadCgImpl();
 }
 
 /** A convenience method which reads all available data from the InputStream and then calls cgCreateProgram. */

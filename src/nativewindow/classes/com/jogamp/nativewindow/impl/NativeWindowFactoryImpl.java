@@ -32,6 +32,7 @@
 
 package com.jogamp.nativewindow.impl;
 
+import com.jogamp.common.util.*;
 import java.lang.reflect.*;
 import java.security.*;
 
@@ -55,7 +56,7 @@ public class NativeWindowFactoryImpl extends NativeWindowFactory {
             throw new IllegalArgumentException("AbstractGraphicsConfiguration is null with a non NativeWindow object");
         }
 
-        if (NWReflection.isAWTComponent(winObj)) {
+        if (ReflectionUtil.instanceOf(winObj, "java.awt.Component")) {
             return getAWTNativeWindow(winObj, config);
         }
 
@@ -86,7 +87,7 @@ public class NativeWindowFactoryImpl extends NativeWindowFactory {
                     throw new IllegalArgumentException("OS " + getNativeOSName(false) + " not yet supported");
                 }
 
-                nativeWindowConstructor = NWReflection.getConstructor(windowClassName, new Class[] { Object.class, AbstractGraphicsConfiguration.class });
+                nativeWindowConstructor = ReflectionUtil.getConstructor(windowClassName, new Class[] { Object.class, AbstractGraphicsConfiguration.class });
             } catch (Exception e) {
                 throw (IllegalArgumentException) new IllegalArgumentException().initCause(e);
             }

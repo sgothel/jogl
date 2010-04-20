@@ -517,10 +517,6 @@
           </and>
         </condition> 
 
-        <patternset id="c.src.files.jvm">
-          <include name="${rootrel.src.c}/JVM*.c"/>
-        </patternset>
-
         <patternset id="c.src.files.awt">
           <include name="${rootrel.src.c}/JAWT*.c"/>
           <include name="${rootrel.generated.c}/X11/JAWT*.c" if="isX11"/>
@@ -608,13 +604,6 @@
       </apply>
     </target>
 
-    <target name="c.build.nativewindow.jvm">
-      <c.build c.compiler.src.files="c.src.files.jvm"
-               output.lib.name="nativewindow_jvm"
-               compiler.cfg.id="${compiler.cfg.id}"
-               linker.cfg.id="${linker.cfg.id.base}"/>
-    </target>
-
     <target name="c.build.nativewindow.awt" unless="setup.noNativeAWT">
       <c.build c.compiler.src.files="c.src.files.awt"
                c.compiler.use-jawt="true"
@@ -636,11 +625,10 @@
 
     <target name="c.manifest" if="isVC8Family">
       <!-- exec mt, the Microsoft Manifest Tool, to include DLL manifests in order to resolve the location of msvcr80.dll -->
-      <msvc.manifest objdir="${obj.nativewindow}" dllname="nativewindow_jvm" />
       <msvc.manifest objdir="${obj.nativewindow}" dllname="nativewindow_awt" />
     </target>
 
-    <target name="c.build.nativewindow" depends="c.configure,c.build.nativewindow.windowlib,c.build.nativewindow.jvm,c.build.nativewindow.awt">
+    <target name="c.build.nativewindow" depends="c.configure,c.build.nativewindow.windowlib,c.build.nativewindow.awt">
       <antcall target="gluegen.cpptasks.striplibs" inheritRefs="true">
           <param name="libdir" value="${obj.nativewindow}"/>
       </antcall>

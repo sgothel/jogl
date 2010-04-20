@@ -88,7 +88,7 @@ public abstract class GLDrawableImpl implements GLDrawable {
   protected abstract void swapBuffersImpl();
 
   public static String toHexString(long hex) {
-    return GLContextImpl.toHexString(hex);
+    return "0x" + Long.toHexString(hex);
   }
 
   public GLProfile getGLProfile() {

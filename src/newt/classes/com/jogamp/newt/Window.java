@@ -36,8 +36,8 @@ package com.jogamp.newt;
 import com.jogamp.newt.impl.Debug;
 import com.jogamp.newt.util.EDTUtil;
 
+import com.jogamp.common.util.*;
 import javax.media.nativewindow.*;
-import com.jogamp.nativewindow.impl.NWReflection;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -127,7 +127,7 @@ public abstract class Window implements NativeWindow
             if ( argsChecked < cstrArguments.length ) {
                 throw new NativeWindowException("WindowClass "+windowClass+" constructor mismatch at argument #"+argsChecked+"; Constructor: "+getTypeStrList(cstrArgumentTypes)+", arguments: "+getArgsStrList(cstrArguments));
             }
-            Window window = (Window) NWReflection.createInstance( windowClass, cstrArgumentTypes, cstrArguments ) ;
+            Window window = (Window) ReflectionUtil.createInstance( windowClass, cstrArgumentTypes, cstrArguments ) ;
             window.invalidate();
             window.screen   = screen;
             window.setUndecorated(undecorated);
@@ -144,7 +144,6 @@ public abstract class Window implements NativeWindow
             }
             return window;
         } catch (Throwable t) {
-            t.printStackTrace();
             throw new NativeWindowException(t);
         }
     }

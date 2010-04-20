@@ -37,26 +37,42 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.jogamp.newt.impl;
+package com.jogamp.nativewindow.impl.jawt;
 
-// FIXME: refactor Java SE dependencies
-//import java.awt.Toolkit;
+import javax.media.nativewindow.NativeWindowFactory;
+import com.jogamp.nativewindow.impl.NWJNILibLoader;
+
+import java.awt.Toolkit;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
-import java.util.HashSet;
-import com.jogamp.nativewindow.impl.NativeLibLoaderBase;
 
-public class NativeLibLoader extends NativeLibLoaderBase {
-  
-  public static void loadNEWT() {
+public class JAWTJNILibLoader extends NWJNILibLoader {
+  public static void loadAWTImpl() {
     AccessController.doPrivileged(new PrivilegedAction() {
       public Object run() {
-        loadLibrary("newt", null, true);
+        // Make sure that awt.dll is loaded before loading jawt.dll. Otherwise
+        // a Dialog with "awt.dll not found" might pop up.
+        // See http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4481947.
+        Toolkit.getDefaultToolkit();
+        
+        // Must pre-load JAWT on all non-Mac platforms to
+        // ensure references from jogl_awt shared object
+        // will succeed since JAWT shared object isn't in
+        // default library path
+        if ( ! NativeWindowFactory.TYPE_MACOSX.equals( NativeWindowFactory.getNativeWindowType(false) ) ) {
+            try {
+                loadLibrary("jawt", null, true);
+            } catch (Throwable t) {
+                // It might be ok .. if it's already loaded
+                if(DEBUG) {
+                    t.printStackTrace();
+                }
+            }
+        }
         return null;
       }
     });
   }
-
 }

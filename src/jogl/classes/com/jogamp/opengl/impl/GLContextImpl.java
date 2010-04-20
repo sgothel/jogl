@@ -45,9 +45,10 @@ import java.util.*;
 
 import javax.media.opengl.*;
 import javax.media.nativewindow.*;
-import com.jogamp.nativewindow.impl.NWReflection;
 import com.jogamp.gluegen.runtime.*;
 import com.jogamp.gluegen.runtime.opengl.*;
+import com.jogamp.common.JogampRuntimeException;
+import com.jogamp.common.util.ReflectionUtil;
 
 public abstract class GLContextImpl extends GLContext {
   protected GLContextLock lock = new GLContextLock();
@@ -123,171 +124,33 @@ public abstract class GLContextImpl extends GLContext {
     return (GLDrawableImpl) getGLDrawable();
   }
 
-  /** 
-   * Platform dependent but harmonized implementation of the <code>ARB_create_context</code>
-   * mechanism to create a context.<br>
-   * The implementation shall verify this context, ie issue a
-   * <code>MakeCurrent</code> call if necessary.<br>
-   *
-   * @param share the shared context or null
-   * @param direct flag if direct is requested
-   * @param ctxOptionFlags <code>ARB_create_context</code> related, see references below
-   * @param major major number
-   * @param minor minor number
-   * @return the valid context if successfull, or null
-   *
-   * @see #CTX_PROFILE_COMPAT
-   * @see #CTX_OPTION_FORWARD
-   * @see #CTX_OPTION_DEBUG
-   */
-  protected abstract long createContextARBImpl(long share, boolean direct, int ctxOptionFlags, 
-                                               int major, int minor);
-
-  private long createContextARB(long share, boolean direct, int ctxOptionFlags, 
-                                int majorMax, int minorMax, 
-                                int majorMin, int minorMin, 
-                                int major[], int minor[]) {
-    major[0]=majorMax;
-    minor[0]=minorMax;
-    long _context=0;
-
-    while ( 0==_context &&
-            GLProfile.isValidGLVersion(major[0], minor[0]) &&
-            ( major[0]>majorMin || major[0]==majorMin && minor[0] >=minorMin ) ) {
-
-        _context = createContextARBImpl(share, direct, ctxOptionFlags, major[0], minor[0]);
-
-        if(0==_context) {
-            if(!GLProfile.decrementGLVersion(major, minor)) break;
-        }
-    }
-    return _context;
+  public final GL getGL() {
+    return gl;
   }
 
-  /**
-   * Platform independent part of using the <code>ARB_create_context</code>
-   * mechanism to create a context.<br>
-   */
-  protected long createContextARB(long share, boolean direct,
-                                  int major[], int minor[], int ctp[]) 
-  {
-    AbstractGraphicsConfiguration config = drawable.getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration();
-    GLCapabilities glCaps = (GLCapabilities) config.getChosenCapabilities();
-    GLProfile glp = glCaps.getGLProfile();
-    long _context = 0;
-
-    ctp[0] = CTX_IS_ARB_CREATED | CTX_PROFILE_CORE | CTX_OPTION_ANY; // default
-    boolean isBackwardCompatibility = glp.isGL2() || glp.isGL3bc() || glp.isGL4bc() ;
-    int majorMin, minorMin;
-    int majorMax, minorMax;
-    if( glp.isGL4() ) {
-        // ?? majorMax=GLProfile.getMaxMajor(); minorMax=GLProfile.getMaxMinor(majorMax);
-        majorMax=4; minorMax=GLProfile.getMaxMinor(majorMax);
-        majorMin=4; minorMin=0;
-    } else if( glp.isGL3() ) {
-        majorMax=3; minorMax=GLProfile.getMaxMinor(majorMax);
-        majorMin=3; minorMin=1;
-    } else /* if( glp.isGL2() ) */ {
-        majorMax=3; minorMax=0;
-        majorMin=1; minorMin=1; // our minimum desktop OpenGL runtime requirements
+  public GL setGL(GL gl) {
+    if(DEBUG) {
+        String sgl1 = (null!=this.gl)?this.gl.getClass().toString()+", "+this.gl.toString():new String("<null>");
+        String sgl2 = (null!=gl)?gl.getClass().toString()+", "+gl.toString():new String("<null>");
+        Exception e = new Exception("setGL (OpenGL "+getGLVersion()+"): "+Thread.currentThread()+", "+sgl1+" -> "+sgl2);
+        e.printStackTrace();
     }
-    // Try the requested ..
-    if(isBackwardCompatibility) {
-        ctp[0] &= ~CTX_PROFILE_CORE ;
-        ctp[0] |=  CTX_PROFILE_COMPAT ;
-    }
-    _context = createContextARB(share, direct, ctp[0], 
-                               /* max */ majorMax, minorMax,
-                               /* min */ majorMin, minorMin,
-                               /* res */ major, minor);
-
-    if(0==_context && !isBackwardCompatibility) {
-        ctp[0] &= ~CTX_PROFILE_COMPAT ;
-        ctp[0] |=  CTX_PROFILE_CORE ;
-        ctp[0] &= ~CTX_OPTION_ANY ;
-        ctp[0] |=  CTX_OPTION_FORWARD ;
-        _context = createContextARB(share, direct, ctp[0], 
-                                   /* max */ majorMax, minorMax,
-                                   /* min */ majorMin, minorMin,
-                                   /* res */ major, minor);
-       if(0==_context) {
-            // Try a compatible one .. even though not requested .. last resort
-            ctp[0] &= ~CTX_PROFILE_CORE ;
-            ctp[0] |=  CTX_PROFILE_COMPAT ;
-            ctp[0] &= ~CTX_OPTION_FORWARD ;
-            ctp[0] |=  CTX_OPTION_ANY ;
-            _context = createContextARB(share, direct, ctp[0], 
-                                       /* max */ majorMax, minorMax,
-                                       /* min */ majorMin, minorMin,
-                                       /* res */ major, minor);
-       }
-    }
-    return _context;
+    this.gl = gl;
+    return gl;
   }
 
-  public int makeCurrent() throws GLException {
-    // Support calls to makeCurrent() over and over again with
-    // different contexts without releasing them
-    // Could implement this more efficiently without explicit
-    // releasing of the underlying context; would require more error
-    // checking during the makeCurrentImpl phase
-    GLContext current = getCurrent();
-    if (current != null) {
-      if (current == this) {
-        // Assume we don't need to make this context current again
-        // For Mac OS X, however, we need to update the context to track resizes
-        update();
-        return CONTEXT_CURRENT;
-      } else {
-        current.release();
-      }
-    }
+  // This is only needed for Mac OS X on-screen contexts
+  protected void update() throws GLException { }
 
-    if (GLWorkerThread.isStarted() &&
-        !GLWorkerThread.isWorkerThread()) {
-      // Kick the GLWorkerThread off its current context
-      GLWorkerThread.invokeLater(new Runnable() { public void run() {} });
-    }
-
-    lock.lock();
-    int res = 0;
-    try {
-      res = makeCurrentImpl();
-
-      /* FIXME: refactor dependence on Java 2D / JOGL bridge
-      if ((tracker != null) &&
-          (res == CONTEXT_CURRENT_NEW)) {
-        // Increase reference count of GLObjectTracker
-        tracker.ref();
-      }
-      */
-    } catch (GLException e) {
-      lock.unlock();
-      throw(e);
-    }
-    if (res == CONTEXT_NOT_CURRENT) {
-      lock.unlock();
-    } else {
-      if(res == CONTEXT_CURRENT_NEW) {
-        // check if the drawable's and the GL's GLProfile are equal
-        // throws an GLException if not 
-        getGLDrawable().getGLProfile().verifyEquality(gl.getGLProfile());
-      }
-      setCurrent(this);
-
-      /* FIXME: refactor dependence on Java 2D / JOGL bridge
-
-      // Try cleaning up any stale server-side OpenGL objects
-      // FIXME: not sure what to do here if this throws
-      if (deletedObjectTracker != null) {
-        deletedObjectTracker.clean(getGL());
-      }
-      */
-    }
-    return res;
+  public boolean isSynchronized() {
+    return !lock.getFailFastMode();
   }
 
-  protected abstract int makeCurrentImpl() throws GLException;
+  public void setSynchronized(boolean isSynchronized) {
+    lock.setFailFastMode(!isSynchronized);
+  }
+
+  public abstract Object getPlatformGLExtensions();
 
   public void release() throws GLException {
     if (!lock.isHeld()) {
@@ -355,34 +218,304 @@ public abstract class GLContextImpl extends GLContext {
 
   protected abstract void destroyImpl() throws GLException;
 
-  // This is only needed for Mac OS X on-screen contexts
-  protected void update() throws GLException {
-  }
+  //----------------------------------------------------------------------
+  //
 
-  public boolean isSynchronized() {
-    return !lock.getFailFastMode();
-  }
-
-  public void setSynchronized(boolean isSynchronized) {
-    lock.setFailFastMode(!isSynchronized);
-  }
-
-  public final GL getGL() {
-    return gl;
-  }
-
-  public GL setGL(GL gl) {
-    if(DEBUG) {
-        String sgl1 = (null!=this.gl)?this.gl.getClass().toString()+", "+this.gl.toString():new String("<null>");
-        String sgl2 = (null!=gl)?gl.getClass().toString()+", "+gl.toString():new String("<null>");
-        Exception e = new Exception("setGL (OpenGL "+getGLVersion()+"): "+Thread.currentThread()+", "+sgl1+" -> "+sgl2);
-        e.printStackTrace();
+  /**
+   * MakeCurrent functionality, which also issues the creation of the actual OpenGL context.<br>
+   * The complete callgraph for general OpenGL context creation is:<br>
+   * <ul>
+   *    <li> {@link #makeCurrent} <i>GLContextImpl</i>
+   *    <li> {@link #makeCurrentImpl} <i>Platform Implementation</i>
+   *    <li> {@link #create} <i>Platform Implementation</i>
+   *    <li> If <code>ARB_create_context</code> is supported:
+   *    <ul>
+   *        <li> {@link #createContextARB} <i>GLContextImpl</i>
+   *        <li> {@link #createContextARBImpl} <i>Platform Implementation</i>
+   *    </ul>
+   * </ul><br>
+   *
+   * Once at startup, ie triggered by the singleton {@link GLDrawableImpl} constructor,
+   * calling {@link #createContextARB} will query all available OpenGL versions:<br>
+   * <ul>
+   *    <li> <code>FOR ALL GL* DO</code>:
+   *    <ul>
+   *        <li> {@link #createContextARBMapVersionsAvailable}
+   *        <ul>
+   *            <li> {@link #createContextARBVersions}
+   *        </ul>
+   *        <li> {@link #mapVersionAvailable}
+   *    </ul>
+   * </ul><br>
+   *
+   * @see #makeCurrentImpl
+   * @see #create
+   * @see #createContextARB
+   * @see #createContextARBImpl
+   * @see #mapVersionAvailable
+   * @see #destroyContextARBImpl
+   */
+  public int makeCurrent() throws GLException {
+    // Support calls to makeCurrent() over and over again with
+    // different contexts without releasing them
+    // Could implement this more efficiently without explicit
+    // releasing of the underlying context; would require more error
+    // checking during the makeCurrentImpl phase
+    GLContext current = getCurrent();
+    if (current != null) {
+      if (current == this) {
+        // Assume we don't need to make this context current again
+        // For Mac OS X, however, we need to update the context to track resizes
+        update();
+        return CONTEXT_CURRENT;
+      } else {
+        current.release();
+      }
     }
-    this.gl = gl;
-    return gl;
+
+    if (GLWorkerThread.isStarted() &&
+        !GLWorkerThread.isWorkerThread()) {
+      // Kick the GLWorkerThread off its current context
+      GLWorkerThread.invokeLater(new Runnable() { public void run() {} });
+    }
+
+    lock.lock();
+    int res = 0;
+    try {
+      res = makeCurrentImpl();
+
+      /* FIXME: refactor dependence on Java 2D / JOGL bridge
+      if ((tracker != null) &&
+          (res == CONTEXT_CURRENT_NEW)) {
+        // Increase reference count of GLObjectTracker
+        tracker.ref();
+      }
+      */
+    } catch (GLException e) {
+      lock.unlock();
+      throw(e);
+    }
+    if (res == CONTEXT_NOT_CURRENT) {
+      lock.unlock();
+    } else {
+      if(res == CONTEXT_CURRENT_NEW) {
+        // check if the drawable's and the GL's GLProfile are equal
+        // throws an GLException if not 
+        getGLDrawable().getGLProfile().verifyEquality(gl.getGLProfile());
+      }
+      setCurrent(this);
+
+      /* FIXME: refactor dependence on Java 2D / JOGL bridge
+
+      // Try cleaning up any stale server-side OpenGL objects
+      // FIXME: not sure what to do here if this throws
+      if (deletedObjectTracker != null) {
+        deletedObjectTracker.clean(getGL());
+      }
+      */
+    }
+    return res;
   }
 
-  public abstract Object getPlatformGLExtensions();
+  /**
+   * @see #makeCurrent
+   */
+  protected abstract int makeCurrentImpl() throws GLException;
+
+  /**
+   * @see #makeCurrent
+   */
+  protected abstract void create() throws GLException ;
+
+  /** 
+   * Platform dependent but harmonized implementation of the <code>ARB_create_context</code>
+   * mechanism to create a context.<br>
+   *
+   * This method is called from {@link #createContextARB}.<br>
+   *
+   * The implementation shall verify this context with a 
+   * <code>MakeContextCurrent</code> call.<br>
+   *
+   * @param share the shared context or null
+   * @param direct flag if direct is requested
+   * @param ctxOptionFlags <code>ARB_create_context</code> related, see references below
+   * @param major major number
+   * @param minor minor number
+   * @return the valid context if successfull, or null
+   *
+   * @see #makeCurrent
+   * @see #CTX_PROFILE_COMPAT
+   * @see #CTX_OPTION_FORWARD
+   * @see #CTX_OPTION_DEBUG
+   * @see #makeCurrentImpl
+   * @see #create
+   * @see #createContextARB
+   * @see #createContextARBImpl
+   * @see #destroyContextARBImpl
+   */
+  protected abstract long createContextARBImpl(long share, boolean direct, int ctxOptionFlags, 
+                                               int major, int minor);
+
+  /**
+   * Destroy the context created by {@link #createContextARBImpl}.
+   *
+   * @see #makeCurrent
+   * @see #makeCurrentImpl
+   * @see #create
+   * @see #createContextARB
+   * @see #createContextARBImpl
+   * @see #destroyContextARBImpl
+   */
+  protected abstract void destroyContextARBImpl(long context);
+
+  /**
+   * Platform independent part of using the <code>ARB_create_context</code>
+   * mechanism to create a context.<br>
+   *
+   * The implementation of {@link #create} shall use this protocol in case the platform supports <code>ARB_create_context</code>.<br>
+   *
+   * This method may call {@link #createContextARBImpl} and {@link #destroyContextARBImpl}. <br>
+   *
+   * This method will also query all available native OpenGL context when first called,<br>
+   * usually the first call should happen with the shared GLContext of the DrawableFactory.<br>
+   *
+   * @see #makeCurrentImpl
+   * @see #create
+   * @see #createContextARB
+   * @see #createContextARBImpl
+   * @see #destroyContextARBImpl
+   */
+  protected long createContextARB(long share, boolean direct,
+                                  int major[], int minor[], int ctp[]) 
+  {
+    AbstractGraphicsConfiguration config = drawable.getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration();
+    GLCapabilities glCaps = (GLCapabilities) config.getChosenCapabilities();
+    GLProfile glp = glCaps.getGLProfile();
+    long _context = 0;
+
+    if( !mappedVersionsAvailableSet ) {
+        synchronized(mappedVersionsAvailableLock) {
+            if( !mappedVersionsAvailableSet ) {
+                createContextARBMapVersionsAvailable(4, false /* compat */); // GL4
+                createContextARBMapVersionsAvailable(4, true /* compat */);  // GL4bc
+                createContextARBMapVersionsAvailable(3, false /* compat */); // GL3
+                createContextARBMapVersionsAvailable(3, true /* compat */);  // GL3bc
+                createContextARBMapVersionsAvailable(2, true /* compat */);  // GL2
+                mappedVersionsAvailableSet=true;
+            }
+        }
+    }
+
+    int reqMajor;
+    if(glp.isGL4()) {
+        reqMajor=4;
+    } else if (glp.isGL3()) {
+        reqMajor=3;
+    } else /* if (glp.isGL2()) */ {
+        reqMajor=2;
+    }
+    boolean compat = glp.isGL2(); // incl GL3bc and GL4bc
+    
+    int key = compose8bit(reqMajor, compat?CTX_PROFILE_COMPAT:CTX_PROFILE_CORE, 0, 0);
+    int val = mappedVersionsAvailable.get( key );
+    long _ctx = 0;
+    if(val>0) {
+        int _major = getComposed8bit(val, 1);
+        int _minor = getComposed8bit(val, 2);
+        int _ctp   = getComposed8bit(val, 3);
+
+        _ctx = createContextARBImpl(share, direct, _ctp, _major, _minor);
+        if(0!=_ctx) {
+            setGLFunctionAvailability(true, _major, _minor, _ctp);
+        }
+    }
+    return _ctx;
+  }
+
+  private void createContextARBMapVersionsAvailable(int reqMajor, boolean compat)
+  {
+    long _context;
+    int ctp = CTX_IS_ARB_CREATED | CTX_PROFILE_CORE | CTX_OPTION_ANY; // default
+    if(compat) {
+        ctp &= ~CTX_PROFILE_CORE ;
+        ctp |=  CTX_PROFILE_COMPAT ;
+    }
+
+    // FIXME GL3GL4:
+    // To avoid OpenGL implementation bugs and raise compatibility
+    // within JOGL, we map to the proper GL version.
+    // This may change later when GL3 and GL4 drivers become more mature!
+    // Bug: To ensure GL profile compatibility within the JOGL application
+    // Bug: we always try to map against the highest GL version,
+    // Bug: so the use can always cast to a higher one
+    // Bug: int majorMax=GLContext.getMaxMajor(); 
+    // Bug: int minorMax=GLContext.getMaxMinor(majorMax);
+    int majorMax, minorMax;
+    int majorMin, minorMin;
+    int major[] = new int[1];
+    int minor[] = new int[1];
+    if( 4 == reqMajor ) {
+        majorMax=4; minorMax=GLContext.getMaxMinor(majorMax);
+        majorMin=4; minorMin=0;
+    } else if( 3 == reqMajor ) {
+        majorMax=3; minorMax=GLContext.getMaxMinor(majorMax);
+        majorMin=3; minorMin=1;
+    } else /* if( glp.isGL2() ) */ {
+        majorMax=3; minorMax=0;
+        majorMin=1; minorMin=1; // our minimum desktop OpenGL runtime requirements
+    }
+    _context = createContextARBVersions(0, true, ctp, 
+                                        /* max */ majorMax, minorMax,
+                                        /* min */ majorMin, minorMin,
+                                        /* res */ major, minor);
+
+    if(0==_context && !compat) {
+        ctp &= ~CTX_PROFILE_COMPAT ;
+        ctp |=  CTX_PROFILE_CORE ;
+        ctp &= ~CTX_OPTION_ANY ;
+        ctp |=  CTX_OPTION_FORWARD ;
+        _context = createContextARBVersions(0, true, ctp, 
+                                            /* max */ majorMax, minorMax,
+                                            /* min */ majorMin, minorMin,
+                                            /* res */ major, minor);
+       if(0==_context) {
+            // Try a compatible one .. even though not requested .. last resort
+            ctp &= ~CTX_PROFILE_CORE ;
+            ctp |=  CTX_PROFILE_COMPAT ;
+            ctp &= ~CTX_OPTION_FORWARD ;
+            ctp |=  CTX_OPTION_ANY ;
+            _context = createContextARBVersions(0, true, ctp, 
+                                       /* max */ majorMax, minorMax,
+                                       /* min */ majorMin, minorMin,
+                                       /* res */ major, minor);
+       }
+    }
+    if(0!=_context) {
+        destroyContextARBImpl(_context);
+        mapVersionAvailable(reqMajor, compat, major[0], minor[0], ctp);
+    }
+  }
+
+  private long createContextARBVersions(long share, boolean direct, int ctxOptionFlags, 
+                                        int majorMax, int minorMax, 
+                                        int majorMin, int minorMin, 
+                                        int major[], int minor[]) {
+    major[0]=majorMax;
+    minor[0]=minorMax;
+    long _context=0;
+
+    while ( 0==_context &&
+            GLContext.isValidGLVersion(major[0], minor[0]) &&
+            ( major[0]>majorMin || major[0]==majorMin && minor[0] >=minorMin ) ) {
+
+        _context = createContextARBImpl(share, direct, ctxOptionFlags, major[0], minor[0]);
+
+        if(0==_context) {
+            if(!GLContext.decrementGLVersion(major, minor)) break;
+        }
+    }
+    return _context;
+  }
 
   //----------------------------------------------------------------------
   // Managing the actual OpenGL version, usually figured at creation time.
@@ -395,7 +528,15 @@ public abstract class GLContextImpl extends GLContext {
    * Otherwise .. don't touch ..
    */
   protected void setContextVersion(int major, int minor, int ctp) {
+      if (0==ctp) {
+        GLException e = new GLException("Invalid GL Version "+major+"."+minor+", ctp "+toHexString(ctp));
+        throw e;
+      }
       if(major>0 || minor>0) {
+          if (!GLContext.isValidGLVersion(major, minor)) {
+            GLException e = new GLException("Invalid GL Version "+major+"."+minor+", ctp "+toHexString(ctp));
+            throw e;
+          }
           ctxMajorVersion = major;
           ctxMinorVersion = minor;
           ctxOptions = ctp;
@@ -408,6 +549,7 @@ public abstract class GLContextImpl extends GLContext {
           if(null==versionStr) {
             throw new GLException("GL_VERSION is NULL: "+this);
           }
+          ctxOptions = ctp;
 
           // Set version
           Version version = new Version(versionStr);
@@ -460,7 +602,10 @@ public abstract class GLContextImpl extends GLContext {
   //
 
   private Object createInstance(GLProfile glp, String suffix, Class[] cstrArgTypes, Object[] cstrArgs) {
-    return NWReflection.createInstance(glp.getGLImplBaseClassName()+suffix, cstrArgTypes, cstrArgs);
+    try {
+        return ReflectionUtil.createInstance(glp.getGLImplBaseClassName()+suffix, cstrArgTypes, cstrArgs);
+    } catch (JogampRuntimeException jre) { /* n/a .. */ }
+    return null;
   }
 
   /** Create the GL for this context. */
@@ -695,10 +840,6 @@ public abstract class GLContextImpl extends GLContext {
 
   protected static String getThreadName() {
     return Thread.currentThread().getName();
-  }
-
-  public static String toHexString(long hex) {
-    return "0x" + Long.toHexString(hex);
   }
 
   //----------------------------------------------------------------------

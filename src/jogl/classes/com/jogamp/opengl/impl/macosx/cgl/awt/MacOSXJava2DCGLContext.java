@@ -73,7 +73,9 @@ public class MacOSXJava2DCGLContext extends MacOSXCGLContext implements Java2DGL
   protected int makeCurrentImpl() throws GLException {
     boolean created = false;
     if (nsContext == 0) {
-      if (!create()) {
+      create();
+      created = 0 != nsContext ;
+      if(!created) {
         return CONTEXT_NOT_CURRENT;
       }
       if (DEBUG) {
@@ -87,13 +89,13 @@ public class MacOSXJava2DCGLContext extends MacOSXCGLContext implements Java2DGL
     }
             
     if (created) {
-      setGLFunctionAvailability(false, -1, -1, -1);
+      setGLFunctionAvailability(false, -1, -1, CTX_PROFILE_COMPAT|CTX_OPTION_ANY);
       return CONTEXT_CURRENT_NEW;
     }
     return CONTEXT_CURRENT;
   }
 
-  protected boolean create() {
+  protected void create() {
     // Find and configure share context
     MacOSXCGLContext other = (MacOSXCGLContext) GLContextShareSet.getShareContext(this);
     long share = 0;
@@ -119,11 +121,10 @@ public class MacOSXJava2DCGLContext extends MacOSXCGLContext implements Java2DGL
 
     long ctx = Java2D.createOGLContextOnSurface(graphics, share);
     if (ctx == 0) {
-      return false;
+      return;
     }
     // FIXME: think about GLContext sharing
     nsContext = ctx;
-    return true;
   }
 
   protected void releaseImpl() throws GLException {

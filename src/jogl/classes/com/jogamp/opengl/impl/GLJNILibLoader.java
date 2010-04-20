@@ -37,42 +37,64 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.jogamp.nativewindow.impl.jawt;
+package com.jogamp.opengl.impl;
 
-import javax.media.nativewindow.NativeWindowFactory;
-import com.jogamp.nativewindow.impl.NativeLibLoaderBase;
-
-import java.awt.Toolkit;
+// FIXME: refactor Java SE dependencies
+//import java.awt.Toolkit;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+import java.util.HashSet;
+import com.jogamp.common.jvm.JNILibLoaderBase;
 
-public class JAWTNativeLibLoader extends NativeLibLoaderBase {
-  public static void loadAWTImpl() {
+public class GLJNILibLoader extends JNILibLoaderBase {
+  public static void loadNEWT() {
     AccessController.doPrivileged(new PrivilegedAction() {
       public Object run() {
-        // Make sure that awt.dll is loaded before loading jawt.dll. Otherwise
-        // a Dialog with "awt.dll not found" might pop up.
-        // See http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4481947.
-        Toolkit.getDefaultToolkit();
-        
-        // Must pre-load JAWT on all non-Mac platforms to
-        // ensure references from jogl_awt shared object
-        // will succeed since JAWT shared object isn't in
-        // default library path
-        if ( ! NativeWindowFactory.TYPE_MACOSX.equals( NativeWindowFactory.getNativeWindowType(false) ) ) {
-            try {
-                loadLibrary("jawt", null, true);
-            } catch (Throwable t) {
-                // It might be ok .. if it's already loaded
-                if(DEBUG) {
-                    t.printStackTrace();
-                }
-            }
-        }
+        loadLibrary("newt", nativeOSPreload, true);
         return null;
       }
     });
   }
+
+  public static void loadGLDesktop() {
+    AccessController.doPrivileged(new PrivilegedAction() {
+      public Object run() {
+        loadLibrary("jogl_desktop", nativeOSPreload, true);
+        return null;
+      }
+    });
+  }
+
+  public static void loadES2() {
+    AccessController.doPrivileged(new PrivilegedAction() {
+      public Object run() {
+        loadLibrary("jogl_es2", nativeOSPreload, true);
+        return null;
+      }
+    });
+  }
+
+  public static void loadES1() {
+    AccessController.doPrivileged(new PrivilegedAction() {
+      public Object run() {
+        loadLibrary("jogl_es1", nativeOSPreload, true);
+        return null;
+      }
+    });
+  }
+
+  public static void loadCgImpl() {
+    AccessController.doPrivileged(new PrivilegedAction() {
+      public Object run() {
+        String[] preload = { "nativewindow", "cg", "cgGL" };
+        loadLibrary("jogl_cg", preload, true);
+        return null;
+      }
+    });
+  }
+
+  private static final String[] nativeOSPreload = { "nativewindow_x11" };
 }
+

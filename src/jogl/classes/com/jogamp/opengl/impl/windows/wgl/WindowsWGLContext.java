@@ -122,13 +122,18 @@ public class WindowsWGLContext extends GLContextImpl {
 
   protected Map/*<String, String>*/ getExtensionNameMap() { return extensionNameMap; }
 
+  protected void destroyContextARBImpl(long context) {
+    WGL.wglMakeCurrent(0, 0);
+    WGL.wglDeleteContext(context);
+  }
+
   protected long createContextARBImpl(long share, boolean direct, int ctp, int major, int minor) {
     WindowsWGLDrawableFactory factory = (WindowsWGLDrawableFactory)drawable.getFactoryImpl();
     WGLExt wglExt;
     if(null==factory.getSharedContext()) {
         wglExt = getWGLExt();
     } else {
-        wglExt = factory.getSharedContext().getWGLExt();
+        wglExt = ((WindowsWGLContext)factory.getSharedContext()).getWGLExt();
     }
 
     boolean ctBwdCompat = 0 != ( CTX_PROFILE_COMPAT & ctp ) ;
@@ -235,7 +240,7 @@ public class WindowsWGLContext extends GLContextImpl {
         if (!WGL.wglMakeCurrent(drawable.getNativeWindow().getSurfaceHandle(), temp_hglrc)) {
             throw new GLException("Error making temp context current: 0x" + Integer.toHexString(WGL.GetLastError()));
         }
-        setGLFunctionAvailability(true, 0, 0, 0);
+        setGLFunctionAvailability(true, 0, 0, CTX_PROFILE_COMPAT|CTX_OPTION_ANY);
 
         if( createContextARBTried ||
             !isFunctionAvailable("wglCreateContextAttribsARB") ||
@@ -256,9 +261,6 @@ public class WindowsWGLContext extends GLContextImpl {
     
     if(0!=hglrc) {
         share = 0; // mark as shared ..
-
-        // need to update the GL func table ..
-        setGLFunctionAvailability(true, major[0], minor[0], ctp[0]);
 
         WGL.wglMakeCurrent(0, 0);
         WGL.wglDeleteContext(temp_hglrc);
@@ -302,10 +304,10 @@ public class WindowsWGLContext extends GLContextImpl {
     boolean created = false;
     if (hglrc == 0) {
       create();
+      created = true;
       if (DEBUG) {
         System.err.println(getThreadName() + ": !!! Created GL context for " + getClass().getName());
       }
-      created = true;
     }
 
     if (WGL.wglGetCurrentContext() != hglrc) {
@@ -320,7 +322,7 @@ public class WindowsWGLContext extends GLContextImpl {
     }
 
     if (created) {
-      setGLFunctionAvailability(false, -1, -1, -1);
+      setGLFunctionAvailability(false, -1, -1, CTX_PROFILE_COMPAT|CTX_OPTION_ANY);
 
       WindowsWGLGraphicsConfiguration config = 
         (WindowsWGLGraphicsConfiguration)drawable.getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration();

@@ -37,7 +37,7 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.jogamp.opengl.impl;
+package com.jogamp.newt.impl;
 
 // FIXME: refactor Java SE dependencies
 //import java.awt.Toolkit;
@@ -46,64 +46,17 @@ import java.lang.reflect.Method;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.HashSet;
-import com.jogamp.nativewindow.impl.NativeLibLoaderBase;
+import com.jogamp.common.jvm.JNILibLoaderBase;
 
-public class NativeLibLoader extends NativeLibLoaderBase {
+public class NEWTJNILibLoader extends JNILibLoaderBase {
+  
   public static void loadNEWT() {
     AccessController.doPrivileged(new PrivilegedAction() {
       public Object run() {
-        loadLibrary("newt", nativeOSPreload, true);
+        loadLibrary("newt", null, true);
         return null;
       }
     });
   }
 
-  public static void loadGLDesktop() {
-    AccessController.doPrivileged(new PrivilegedAction() {
-      public Object run() {
-        loadLibrary("jogl_desktop", nativeOSPreload, true);
-        return null;
-      }
-    });
-  }
-
-  public static void loadGLDesktopES12() {
-    AccessController.doPrivileged(new PrivilegedAction() {
-      public Object run() {
-        loadLibrary("jogl_gl2es12", nativeOSPreload, true);
-        return null;
-      }
-    });
-  }
-
-  public static void loadES2() {
-    AccessController.doPrivileged(new PrivilegedAction() {
-      public Object run() {
-        loadLibrary("jogl_es2", nativeOSPreload, true);
-        return null;
-      }
-    });
-  }
-
-  public static void loadES1() {
-    AccessController.doPrivileged(new PrivilegedAction() {
-      public Object run() {
-        loadLibrary("jogl_es1", nativeOSPreload, true);
-        return null;
-      }
-    });
-  }
-
-  public static void loadCgImpl() {
-    AccessController.doPrivileged(new PrivilegedAction() {
-      public Object run() {
-        String[] preload = { "nativewindow", "cg", "cgGL" };
-        loadLibrary("jogl_cg", preload, true);
-        return null;
-      }
-    });
-  }
-
-  private static final String[] nativeOSPreload = { "nativewindow_x11" };
 }
-

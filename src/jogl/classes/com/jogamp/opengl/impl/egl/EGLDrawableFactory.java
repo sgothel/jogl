@@ -37,8 +37,10 @@ package com.jogamp.opengl.impl.egl;
 
 import javax.media.nativewindow.*;
 import javax.media.opengl.*;
+import com.jogamp.common.JogampRuntimeException;
+import com.jogamp.common.util.*;
 import com.jogamp.opengl.impl.*;
-import com.jogamp.nativewindow.impl.*;
+import com.jogamp.nativewindow.impl.NullWindow;
 
 public class EGLDrawableFactory extends GLDrawableFactoryImpl {
   
@@ -50,14 +52,18 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         // Check for other underlying stuff ..
         if(NativeWindowFactory.TYPE_X11.equals(NativeWindowFactory.getNativeWindowType(true))) {
             try {
-                NWReflection.createInstance("com.jogamp.opengl.impl.x11.glx.X11GLXGraphicsConfigurationFactory");
-            } catch (Throwable t) {}
+                ReflectionUtil.createInstance("com.jogamp.opengl.impl.x11.glx.X11GLXGraphicsConfigurationFactory");
+            } catch (JogampRuntimeException jre) { /* n/a .. */ }
         }
     }
 
     public EGLDrawableFactory() {
         super();
     }
+
+   
+    protected final GLDrawableImpl getSharedDrawable() { return null; }
+    protected final GLContextImpl getSharedContext() { return null; }
 
     public GLDrawableImpl createOnscreenDrawable(NativeWindow target) {
         if (target == null) {

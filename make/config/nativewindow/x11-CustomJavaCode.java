@@ -26,9 +26,8 @@
 
   public static native long DefaultVisualID(long display, int screen);
 
-  /**
   public static native long CreateDummyWindow(long display, int screen_index, long visualID);
-  public static native void DestroyDummyWindow(long display, long window); */
+  public static native void DestroyDummyWindow(long display, long window);
 
   public static native long dlopen(String name);
   public static native long dlsym(String name);

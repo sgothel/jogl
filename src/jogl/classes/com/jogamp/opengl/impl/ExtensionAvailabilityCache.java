@@ -174,12 +174,12 @@ public final class ExtensionAvailabilityCache {
             major[0] = 3;
             minor[0] = 0;
       }
-      while (GLProfile.isValidGLVersion(major[0], minor[0])) {
+      while (GLContext.isValidGLVersion(major[0], minor[0])) {
         availableExtensionCache.add("GL_VERSION_" + major[0] + "_" + minor[0]);
         if (DEBUG) {
             System.err.println("ExtensionAvailabilityCache: Added GL_VERSION_" + major[0] + "_" + minor[0] + " to known extensions");
         }
-        if(!GLProfile.decrementGLVersion(major, minor)) break;
+        if(!GLContext.decrementGLVersion(major, minor)) break;
       }
 
       // put a dummy var in here so that the cache is no longer empty even if

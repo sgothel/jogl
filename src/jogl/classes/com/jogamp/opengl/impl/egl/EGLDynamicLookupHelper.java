@@ -64,9 +64,9 @@ public abstract class EGLDynamicLookupHelper implements DynamicLookupHelper {
         EGLDynamicLookupHelper tmp=null;
         try {
             tmp = new EGLES1DynamicLookupHelper();
-        } catch (Throwable t) {
+        } catch (GLException gle) {
             if(DEBUG) {
-                t.printStackTrace();
+                gle.printStackTrace();
             }
         }
         eglES1DynamicLookupHelper = tmp;
@@ -74,9 +74,9 @@ public abstract class EGLDynamicLookupHelper implements DynamicLookupHelper {
         tmp=null;
         try {
             tmp = new EGLES2DynamicLookupHelper();
-        } catch (Throwable t) {
+        } catch (GLException gle) {
             if(DEBUG) {
-                t.printStackTrace();
+                gle.printStackTrace();
             }
         }
         eglES2DynamicLookupHelper = tmp;
@@ -191,9 +191,9 @@ public abstract class EGLDynamicLookupHelper implements DynamicLookupHelper {
         }
 
         if (esProfile==2) {
-            NativeLibLoader.loadES2();
+            GLJNILibLoader.loadES2();
         } else if (esProfile==1) {
-            NativeLibLoader.loadES1();
+            GLJNILibLoader.loadES1();
         } else {
             throw new GLException("Unsupported: ES"+esProfile);
         }

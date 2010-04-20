@@ -42,8 +42,8 @@ package com.jogamp.opengl.impl;
 import java.nio.*;
 import javax.media.nativewindow.*;
 import javax.media.opengl.*;
+import com.jogamp.common.util.*;
 import com.jogamp.gluegen.runtime.*;
-import com.jogamp.nativewindow.impl.NWReflection;
 import java.lang.reflect.*;
 
 /** Extends GLDrawableFactory with a few methods for handling
@@ -182,6 +182,9 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
    */
   protected abstract NativeWindow createOffscreenWindow(GLCapabilities capabilities, GLCapabilitiesChooser chooser, 
                                                         int width, int height);
+
+  protected abstract GLDrawableImpl getSharedDrawable();
+  protected abstract GLContextImpl getSharedContext();
 
   protected GLDrawableFactoryImpl() {
     super();

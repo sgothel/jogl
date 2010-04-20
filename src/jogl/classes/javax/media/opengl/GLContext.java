@@ -40,6 +40,7 @@
 package javax.media.opengl;
 
 import java.util.HashMap;
+import com.jogamp.common.util.IntIntHashMap;
 
 /** Abstraction for an OpenGL rendering context. In order to perform
     OpenGL rendering, a context must be "made current" on the current
@@ -261,6 +262,12 @@ public abstract class GLContext {
     StringBuffer sb = new StringBuffer();
     sb.append(getClass().getName());
     sb.append(" [OpenGL ");
+    sb.append(getGLVersionMajor());
+    sb.append(".");
+    sb.append(getGLVersionMinor());
+    sb.append(", options 0x");
+    sb.append(Integer.toHexString(ctxOptions));
+    sb.append(", ");
     sb.append(getGLVersion());
     sb.append(", ");
     sb.append(getGL());
@@ -284,7 +291,7 @@ public abstract class GLContext {
   public abstract String getPlatformExtensionsString();
 
   public final int getGLVersionMajor() { return ctxMajorVersion; }
-  public final int getGLVersionMinor() { return ctxMajorVersion; }
+  public final int getGLVersionMinor() { return ctxMinorVersion; }
   public final boolean isGLCompatibilityProfile() { return ( 0 != ( CTX_PROFILE_COMPAT & ctxOptions ) ); }
   public final boolean isGLForwardCompatible()    { return ( 0 != ( CTX_OPTION_FORWARD & ctxOptions ) ); }
   public final boolean isCreatedWithARBMethod()   { return ( 0 != ( CTX_IS_ARB_CREATED & ctxOptions ) ); }
@@ -342,9 +349,181 @@ public abstract class GLContext {
   /** <code>ARB_create_context</code> related: core profile */
   protected static final int CTX_PROFILE_CORE   = 1 << 2;
   /** <code>ARB_create_context</code> related: flag forward compatible */
-  protected static final int CTX_OPTION_FORWARD = 1 << 3;
+  protected static final int CTX_PROFILE_ES     = 1 << 3;
+  /** <code>ARB_create_context</code> related: flag forward compatible */
+  protected static final int CTX_OPTION_FORWARD = 1 << 4;
   /** <code>ARB_create_context</code> related: not flag forward compatible */
-  protected static final int CTX_OPTION_ANY     = 1 << 4;
+  protected static final int CTX_OPTION_ANY     = 1 << 5;
   /** <code>ARB_create_context</code> related: flag debug */
-  protected static final int CTX_OPTION_DEBUG   = 1 << 5;
+  protected static final int CTX_OPTION_DEBUG   = 1 << 6;
+
+  
+  public final boolean isGL4bc() {
+      return ctxMajorVersion>=4 && CTX_PROFILE_COMPAT==(ctxOptions & (CTX_PROFILE_COMPAT|CTX_PROFILE_ES));
+  }
+
+  public final boolean isGL4() {
+      return ctxMajorVersion>=4 && 0==(ctxOptions & (CTX_PROFILE_ES));
+  }
+
+  public final boolean isGL3bc() {
+      return ctxMajorVersion>=3 && CTX_PROFILE_COMPAT==(ctxOptions & (CTX_PROFILE_COMPAT|CTX_PROFILE_ES));
+  }
+
+  public final boolean isGL3() {
+      return ctxMajorVersion>=3 && 0==(ctxOptions & (CTX_PROFILE_ES));
+  }
+
+  public final boolean isGL2() {
+      return ctxMajorVersion>=1 && CTX_PROFILE_COMPAT==(ctxOptions & (CTX_PROFILE_COMPAT|CTX_PROFILE_ES));
+  }
+
+  public final boolean isGLES1() {
+      return ctxMajorVersion==1 && CTX_PROFILE_ES==(ctxOptions & CTX_PROFILE_ES);
+  }
+
+  public final boolean isGLES2() {
+      return ctxMajorVersion==2 && CTX_PROFILE_ES==(ctxOptions & CTX_PROFILE_ES);
+  }
+
+  public final boolean isGLES() {
+      return CTX_PROFILE_ES==(ctxOptions & CTX_PROFILE_ES);
+  }
+
+  public final boolean isGL2ES1() {
+      return isGL2() || isGLES1() ;
+  }
+
+  public final boolean isGL2ES2() {
+      return isGL2() || isGL3() || isGLES2() ;
+  }
+
+  public final boolean isGL2GL3() {
+      return isGL2() || isGL3();
+  }
+
+  public final boolean hasGLSL() {
+      return isGL2ES2() ;
+  }
+
+  public static final int GL_VERSIONS[][] = {
+      /* 0.*/ { -1 },
+      /* 1.*/ { 0, 1, 2, 3, 4, 5 },
+      /* 2.*/ { 0, 1 },
+      /* 3.*/ { 0, 1, 2, 3 },
+      /* 4.*/ { 0 } };
+
+  public static final int getMaxMajor() {
+      return GL_VERSIONS.length-1;
+  }
+
+  public static final int getMaxMinor(int major) {
+      if(1>major || major>=GL_VERSIONS.length) return -1;
+      return GL_VERSIONS[major].length-1;
+  }
+
+  public static final boolean isValidGLVersion(int major, int minor) {
+      if(1>major || major>=GL_VERSIONS.length) return false;
+      if(0>minor || minor>=GL_VERSIONS[major].length) return false;
+      return true;
+  }
+
+  public static final boolean decrementGLVersion(int major[], int minor[]) {
+      if(null==major || major.length<1 ||null==minor || minor.length<1) {
+          throw new GLException("invalid array arguments");
+      }
+      int m = major[0];
+      int n = minor[0];
+      if(!isValidGLVersion(m, n)) return false;
+
+      // decrement ..
+      n -= 1;
+      if(n < 0) {
+          m -= 1;
+          n = GL_VERSIONS[m].length-1;
+      }
+      if(!isValidGLVersion(m, n)) return false;
+      major[0]=m;
+      minor[0]=n;
+
+      return true;
+  }
+
+  public static final boolean isGLVersionAvailable(int major, boolean compatibility) {
+      int key = compose8bit(major, compatibility?CTX_PROFILE_COMPAT:CTX_PROFILE_CORE, 0, 0);
+      int val = mappedVersionsAvailable.get( key );
+      return val>0;
+  }
+  public static final boolean isGL4bcAvailable() { return isGLVersionAvailable(4, true); }
+  public static final boolean isGL4Available() { return isGLVersionAvailable(4, false); }
+  public static final boolean isGL3bcAvailable() { return isGLVersionAvailable(3, true); }
+  public static final boolean isGL3Available() { return isGLVersionAvailable(3, false); }
+  public static final boolean isGL2Available() { return isGLVersionAvailable(2, true); }
+
+  protected static final IntIntHashMap mappedVersionsAvailable;
+  protected static volatile boolean mappedVersionsAvailableSet;
+  protected static Object mappedVersionsAvailableLock;
+
+  static {
+      mappedVersionsAvailableLock = new Object();
+      mappedVersionsAvailableSet = false;
+      mappedVersionsAvailable = new IntIntHashMap();
+      mappedVersionsAvailable.setKeyNotFoundValue(-1);
+  }
+
+  /**
+   * Called by {@link GLContextImpl#createContextARBMapVersionsAvailable} not intendet to be used by 
+   * implementations. However, if {@link #createContextARB} is not being used within the 
+   * {@link GLDrawableImpl} constructor, GLProfile has to map the available versions.
+   *
+   * @see #createContextARBMapVersionsAvailable
+   */
+  protected static void mapVersionAvailable(int reqMajor, boolean reqCompat, int resMajor, int resMinor, int resCtp)
+  {
+    int key = compose8bit(reqMajor, reqCompat?CTX_PROFILE_COMPAT:CTX_PROFILE_CORE, 0, 0);
+    int val = compose8bit(resMajor, resMinor, resCtp, 0);
+    mappedVersionsAvailable.put( key, val );
+  }
+
+  protected static int compose8bit(int one, int two, int three, int four) {
+    return  ( ( one   & 0x000000FF ) << 24 ) |
+            ( ( two   & 0x000000FF ) << 16 ) |
+            ( ( three & 0x000000FF ) <<  8 ) |
+            ( ( four  & 0x000000FF )       ) ;
+  }
+
+  protected static int getComposed8bit(int bits32, int which ) {
+    switch (which) {
+        case 1: return ( bits32 & 0xFF000000 ) >> 24 ;
+        case 2: return ( bits32 & 0x00FF0000 ) >> 16 ;
+        case 3: return ( bits32 & 0x0000FF00 ) >>  8 ;
+        case 4: return ( bits32 & 0xFF0000FF )       ;
+    }
+    throw new GLException("argument which out of range: "+which);
+  }
+
+  protected static String composed8BitToString(int bits32, boolean hex1, boolean hex2, boolean hex3, boolean hex4) {
+    int a = getComposed8bit(bits32, 1);
+    int b = getComposed8bit(bits32, 2);
+    int c = getComposed8bit(bits32, 3);
+    int d = getComposed8bit(bits32, 4);
+    return "["+toString(a, hex1)+", "+toString(b, hex2)+", "+toString(c, hex3)+", "+toString(d, hex4)+"]";
+  }
+
+  protected static String toString(int val, boolean hex) {
+    if(hex) {
+        return "0x" + Integer.toHexString(val);
+    }
+    return String.valueOf(val);
+  }
+
+  protected static String toHexString(int hex) {
+    return "0x" + Integer.toHexString(hex);
+  }
+
+  protected static String toHexString(long hex) {
+    return "0x" + Long.toHexString(hex);
+  }
+
 }
+

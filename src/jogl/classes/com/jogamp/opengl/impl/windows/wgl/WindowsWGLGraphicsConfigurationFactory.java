@@ -135,7 +135,6 @@ public class WindowsWGLGraphicsConfigurationFactory extends GraphicsConfiguratio
           pfd = WindowsWGLGraphicsConfiguration.createPixelFormatDescriptor();
           // Produce a recommended pixel format selection for the GLCapabilitiesChooser.
           // Use wglChoosePixelFormatARB if user requested multisampling and if we have it available
-          factory.initShared();
           factory.sharedContext.makeCurrent();
           WGLExt wglExt = factory.sharedContext.getWGLExt();
 

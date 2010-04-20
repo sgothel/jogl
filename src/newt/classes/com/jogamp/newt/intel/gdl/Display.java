@@ -40,7 +40,7 @@ public class Display extends com.jogamp.newt.Display {
     static int initCounter = 0;
 
     static {
-        NativeLibLoader.loadNEWT();
+        NEWTJNILibLoader.loadNEWT();
 
         if (!Screen.initIDs()) {
             throw new NativeWindowException("Failed to initialize GDL Screen jmethodIDs");

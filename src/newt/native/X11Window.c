@@ -159,11 +159,11 @@ static void _FatalError(JNIEnv *env, const char* msg, ...)
     va_end(ap);
 
     fprintf(stderr, buffer);
+    fprintf(stderr, "\n");
     (*env)->FatalError(env, buffer);
 }
 
-static const char * const ClazzNameRuntimeException = 
-                            "java/lang/RuntimeException";
+static const char * const ClazzNameRuntimeException = "java/lang/RuntimeException";
 static jclass    runtimeExceptionClz=NULL;
 
 static const char * const ClazzNameNewtWindow = 
@@ -200,6 +200,7 @@ static void _throwNewRuntimeException(Display * unlockDisplay, JNIEnv *env, cons
  */
 
 
+static JNIEnv * x11ErrorHandlerJNIEnv = NULL;
 static XErrorHandler origErrorHandler = NULL ;
 
 static int displayDispatchErrorHandler(Display *dpy, XErrorEvent *e)
@@ -213,15 +214,16 @@ static int displayDispatchErrorHandler(Display *dpy, XErrorEvent *e)
     {
         fprintf(stderr, "         BadWindow (%p): Window probably already removed\n", e->resourceid);
     } else {
-        return origErrorHandler(dpy, e);
+        _throwNewRuntimeException(NULL, x11ErrorHandlerJNIEnv, "NEWT X11 Error: Display %p, Code 0x%X", dpy, e->error_code);
     }
 
     return 0;
 }
 
-static void displayDispatchErrorHandlerEnable(int onoff) {
+static void displayDispatchErrorHandlerEnable(int onoff, JNIEnv * env) {
     if(onoff) {
         if(NULL==origErrorHandler) {
+            x11ErrorHandlerJNIEnv = env;
             origErrorHandler = XSetErrorHandler(displayDispatchErrorHandler);
         }
     } else {
@@ -329,13 +331,13 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_x11_X11Display_CompleteDisplay
 
     javaObjectAtom = (jlong) XInternAtom(dpy, "JOGL_JAVA_OBJECT", False);
     if(None==javaObjectAtom) {
-        _throwNewRuntimeException(dpy, env, "could not create Atom JOGL_JAVA_OBJECT, bail out!\n");
+        _throwNewRuntimeException(dpy, env, "could not create Atom JOGL_JAVA_OBJECT, bail out!");
         return;
     }
 
     windowDeleteAtom = (jlong) XInternAtom(dpy, "WM_DELETE_WINDOW", False);
     if(None==windowDeleteAtom) {
-        _throwNewRuntimeException(dpy, env, "could not create Atom WM_DELETE_WINDOW, bail out!\n");
+        _throwNewRuntimeException(dpy, env, "could not create Atom WM_DELETE_WINDOW, bail out!");
         return;
     }
 
@@ -371,7 +373,7 @@ static void setJavaWindowProperty(JNIEnv *env, Display *dpy, Window window, jlon
     {
         jobject test = (jobject) getPtrOut32Long(jogl_java_object_data);
         if( ! (jwindow==test) ) {
-            _throwNewRuntimeException(dpy, env, "Internal Error .. Encoded Window ref not the same %p != %p !\n", jwindow, test);
+            _throwNewRuntimeException(dpy, env, "Internal Error .. Encoded Window ref not the same %p != %p !", jwindow, test);
             return;
         }
     }
@@ -415,7 +417,7 @@ static jobject getJavaWindowProperty(JNIEnv *env, Display *dpy, Window window, j
 
 #ifdef VERBOSE_ON
     if(JNI_FALSE == (*env)->IsInstanceOf(env, jwindow, newtWindowClz)) {
-        _throwNewRuntimeException(dpy, env, "fetched Atom JOGL_JAVA_OBJECT window is not a NEWT Window: javaWindow 0x%X !\n", jwindow);
+        _throwNewRuntimeException(dpy, env, "fetched Atom JOGL_JAVA_OBJECT window is not a NEWT Window: javaWindow 0x%X !", jwindow);
     }
 #endif
     return jwindow;
@@ -457,20 +459,20 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_x11_X11Display_DispatchMessages
         num_events--;
 
         if( 0==evt.xany.window ) {
-            _throwNewRuntimeException(dpy, env, "event window NULL, bail out!\n");
+            _throwNewRuntimeException(dpy, env, "event window NULL, bail out!");
             return ;
         }
 
         if(dpy!=evt.xany.display) {
-            _throwNewRuntimeException(dpy, env, "wrong display, bail out!\n");
+            _throwNewRuntimeException(dpy, env, "wrong display, bail out!");
             return ;
         }
 
-        displayDispatchErrorHandlerEnable(1);
+        displayDispatchErrorHandlerEnable(1, env);
 
         jwindow = getJavaWindowProperty(env, dpy, evt.xany.window, javaObjectAtom);
 
-        displayDispatchErrorHandlerEnable(0);
+        displayDispatchErrorHandlerEnable(0, env);
 
         if(NULL==jwindow) {
             fprintf(stderr, "Warning: NEWT X11 DisplayDispatch %p, Couldn't handle event %d for invalid X11 window %p\n", 
@@ -685,7 +687,7 @@ JNIEXPORT jlong JNICALL Java_com_jogamp_newt_x11_X11Window_CreateWindow
     }
 
     if(visualID<0) {
-        _throwNewRuntimeException(NULL, env, "invalid VisualID ..\n");
+        _throwNewRuntimeException(NULL, env, "invalid VisualID ..");
         return 0;
     }
 
@@ -712,7 +714,7 @@ JNIEXPORT jlong JNICALL Java_com_jogamp_newt_x11_X11Window_CreateWindow
 
     if (visual==NULL)
     { 
-        _throwNewRuntimeException(dpy, env, "could not query Visual by given VisualID, bail out!\n");
+        _throwNewRuntimeException(dpy, env, "could not query Visual by given VisualID, bail out!");
         return 0;
     } 
 
@@ -797,11 +799,11 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_x11_X11Window_CloseWindow
 
     jwindow = getJavaWindowProperty(env, dpy, w, javaObjectAtom);
     if(NULL==jwindow) {
-        _throwNewRuntimeException(dpy, env, "could not fetch Java Window object, bail out!\n");
+        _throwNewRuntimeException(dpy, env, "could not fetch Java Window object, bail out!");
         return;
     }
     if ( JNI_FALSE == (*env)->IsSameObject(env, jwindow, obj) ) {
-        _throwNewRuntimeException(dpy, env, "Internal Error .. Window global ref not the same!\n");
+        _throwNewRuntimeException(dpy, env, "Internal Error .. Window global ref not the same!");
         return;
     }
     (*env)->DeleteGlobalRef(env, jwindow);

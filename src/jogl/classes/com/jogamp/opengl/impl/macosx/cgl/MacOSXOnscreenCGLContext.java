@@ -115,8 +115,8 @@ public class MacOSXOnscreenCGLContext extends MacOSXCGLContext {
     CGL.updateContext(nsContext);
   }
 
-  protected boolean create() {
-    return create(false, false);
+  protected void create() {
+    create(false, false);
   }
 
   public void setOpenGLMode(int mode) {

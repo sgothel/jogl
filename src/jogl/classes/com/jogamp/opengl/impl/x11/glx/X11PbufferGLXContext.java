@@ -68,33 +68,6 @@ public class X11PbufferGLXContext extends X11GLXContext {
   }
 
   protected void create() {
-    if (DEBUG) {
-      System.err.println("Creating context for pbuffer " + drawable.getWidth() +
-                         " x " + drawable.getHeight());
-    }
-
-    // Create a gl context for the p-buffer.
-    X11GLXContext other = (X11GLXContext) GLContextShareSet.getShareContext(this);
-    long share = 0;
-    if (other != null) {
-      share = other.getContext();
-      if (share == 0) {
-        throw new GLException("GLContextShareSet returned an invalid OpenGL context");
-      }
-    }
-    X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)
-        getGLDrawable().getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration();
-
-    context = GLX.glXCreateNewContext(drawable.getNativeWindow().getDisplayHandle(), 
-                                      config.getFBConfig(), GLX.GLX_RGBA_TYPE, share, true);
-    if (context == 0) {
-      throw new GLException("pbuffer creation error: glXCreateNewContext() failed");
-    }
-    GLContextShareSet.contextCreated(this);
-
-    if (DEBUG) {
-      System.err.println("Created context for pbuffer " + drawable.getWidth() +
-                         " x " + drawable.getHeight());
-    }
+    createContext(true);
   }
 }

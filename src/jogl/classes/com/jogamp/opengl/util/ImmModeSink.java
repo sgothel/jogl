@@ -1,9 +1,9 @@
 
 package com.jogamp.opengl.util;
 
+import com.jogamp.common.util.*;
 import javax.media.opengl.*;
 import javax.media.opengl.fixedfunc.*;
-import com.jogamp.nativewindow.impl.NWReflection;
 import java.nio.*;
 import java.util.Iterator;
 import java.util.ArrayList;
@@ -341,9 +341,9 @@ public class ImmModeSink {
             } else {
                 Class clazz = indices.getClass();
                 int type=-1;
-                if(NWReflection.instanceOf(clazz, ByteBuffer.class.getName())) {
+                if(ReflectionUtil.instanceOf(clazz, ByteBuffer.class.getName())) {
                     type =  GL.GL_UNSIGNED_BYTE;
-                } else if(NWReflection.instanceOf(clazz, ShortBuffer.class.getName())) {
+                } else if(ReflectionUtil.instanceOf(clazz, ShortBuffer.class.getName())) {
                     type =  GL.GL_UNSIGNED_SHORT;
                 }
                 if(0>type) {

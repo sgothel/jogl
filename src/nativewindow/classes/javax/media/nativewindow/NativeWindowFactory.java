@@ -36,8 +36,9 @@ import java.lang.reflect.*;
 import java.security.*;
 import java.util.*;
 
+import com.jogamp.common.util.*;
+import com.jogamp.common.jvm.JVMUtil;
 import com.jogamp.nativewindow.impl.*;
-import com.jogamp.nativewindow.impl.jvm.JVMUtil;
 
 /** Provides a pluggable mechanism for arbitrary window toolkits to
     adapt their components to the {@link NativeWindow} interface,
@@ -123,10 +124,10 @@ public abstract class NativeWindowFactory {
         // make it easier to run this code on mobile devices
 
         Class componentClass = null;
-        if ( NWReflection.isClassAvailable("java.awt.Component") &&
-             NWReflection.isClassAvailable("javax.media.nativewindow.awt.AWTGraphicsDevice") ) {
+        if ( ReflectionUtil.isClassAvailable("java.awt.Component") &&
+             ReflectionUtil.isClassAvailable("javax.media.nativewindow.awt.AWTGraphicsDevice") ) {
             try {
-                componentClass = NWReflection.getClass("java.awt.Component", false);
+                componentClass = ReflectionUtil.getClass("java.awt.Component", false);
             } catch (Exception e) { }
         }
 
@@ -177,7 +178,7 @@ public abstract class NativeWindowFactory {
 
             try {
                 Constructor factoryConstructor =
-                    NWReflection.getConstructor("com.jogamp.nativewindow.impl.x11.awt.X11AWTNativeWindowFactory", new Class[] {});
+                    ReflectionUtil.getConstructor("com.jogamp.nativewindow.impl.x11.awt.X11AWTNativeWindowFactory", new Class[] {});
                 _factory = (NativeWindowFactory) factoryConstructor.newInstance(null);
             } catch (Exception e) { }
         }
@@ -185,7 +186,7 @@ public abstract class NativeWindowFactory {
         if (toolkitLockForced && null==_factory) {
             try {
                 Constructor factoryConstructor =
-                    NWReflection.getConstructor("com.jogamp.nativewindow.impl.LockingNativeWindowFactory", new Class[] {});
+                    ReflectionUtil.getConstructor("com.jogamp.nativewindow.impl.LockingNativeWindowFactory", new Class[] {});
                 _factory = (NativeWindowFactory) factoryConstructor.newInstance(null);
             } catch (Exception e) { }
         }

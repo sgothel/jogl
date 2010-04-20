@@ -53,7 +53,7 @@ public class X11Util {
     private static final boolean DEBUG = Debug.debug("X11Util");
 
     static {
-        NativeLibLoaderBase.loadNativeWindow("x11");
+        NWJNILibLoader.loadNativeWindow("x11");
         installIOErrorHandler();
     }
 

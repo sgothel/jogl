@@ -42,7 +42,7 @@ import javax.media.nativewindow.egl.*;
 public class KDDisplay extends Display {
 
     static {
-        NativeLibLoader.loadNEWT();
+        NEWTJNILibLoader.loadNEWT();
 
         if (!KDWindow.initIDs()) {
             throw new NativeWindowException("Failed to initialize KDWindow jmethodIDs");

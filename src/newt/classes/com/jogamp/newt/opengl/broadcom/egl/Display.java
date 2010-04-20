@@ -41,7 +41,7 @@ import javax.media.nativewindow.egl.*;
 public class Display extends com.jogamp.newt.Display {
 
     static {
-        NativeLibLoader.loadNEWT();
+        NEWTJNILibLoader.loadNEWT();
 
         if (!Window.initIDs()) {
             throw new NativeWindowException("Failed to initialize BCEGL Window jmethodIDs");

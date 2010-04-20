@@ -41,7 +41,7 @@ import com.jogamp.nativewindow.impl.x11.X11Util;
 
 public class X11Display extends Display {
     static {
-        NativeLibLoader.loadNEWT();
+        NEWTJNILibLoader.loadNEWT();
 
         if (!initIDs()) {
             throw new NativeWindowException("Failed to initialize X11Display jmethodIDs");

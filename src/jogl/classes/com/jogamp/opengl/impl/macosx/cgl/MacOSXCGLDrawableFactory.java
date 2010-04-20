@@ -43,8 +43,10 @@ import com.jogamp.common.os.DynamicLookupHelper;
 import java.nio.*;
 import javax.media.nativewindow.*;
 import javax.media.opengl.*;
+import com.jogamp.common.JogampRuntimeException;
+import com.jogamp.common.util.*;
 import com.jogamp.opengl.impl.*;
-import com.jogamp.nativewindow.impl.*;
+import com.jogamp.nativewindow.impl.NullWindow;
 
 public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl implements DynamicLookupHelper {
   public MacOSXCGLDrawableFactory() {
@@ -55,10 +57,13 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl implements D
     new MacOSXCGLGraphicsConfigurationFactory();
 
     try {
-      NWReflection.createInstance("com.jogamp.opengl.impl.macosx.cgl.awt.MacOSXAWTCGLGraphicsConfigurationFactory",
+      ReflectionUtil.createInstance("com.jogamp.opengl.impl.macosx.cgl.awt.MacOSXAWTCGLGraphicsConfigurationFactory",
                                   new Object[] {});
-    } catch (Throwable t) { }
+    } catch (JogampRuntimeException jre) { /* n/a .. */ }
   }
+
+  protected final GLDrawableImpl getSharedDrawable() { return null; }
+  protected final GLContextImpl getSharedContext() { return null; }
 
   public GLDrawableImpl createOnscreenDrawable(NativeWindow target) {
     if (target == null) {

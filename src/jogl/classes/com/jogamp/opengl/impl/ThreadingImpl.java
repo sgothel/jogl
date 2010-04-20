@@ -37,8 +37,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 
+import com.jogamp.common.JogampRuntimeException;
+import com.jogamp.common.util.*;
 import javax.media.nativewindow.NativeWindowFactory;
-import com.jogamp.nativewindow.impl.NWReflection;
 import javax.media.opengl.GLException;
 
 /** Implementation of the {@link javax.media.opengl.Threading} class. */
@@ -71,8 +72,8 @@ public class ThreadingImpl {
                         // while holding the AWT lock. The optimization of
                         // makeCurrent / release calls isn't worth these stability
                         // problems.
-                        hasAWT = NWReflection.isClassAvailable("java.awt.Canvas") &&
-                            NWReflection.isClassAvailable("javax.media.opengl.awt.GLCanvas");
+                        hasAWT = ReflectionUtil.isClassAvailable("java.awt.Canvas") &&
+                                 ReflectionUtil.isClassAvailable("javax.media.opengl.awt.GLCanvas");
 
                         String osType = NativeWindowFactory.getNativeWindowType(false);
                         _isX11 = NativeWindowFactory.TYPE_X11.equals(osType);
@@ -102,8 +103,8 @@ public class ThreadingImpl {
                         Object threadingPluginObj=null;
                         // try to fetch the AWTThreadingPlugin
                         try {
-                            threadingPluginObj = NWReflection.createInstance("com.jogamp.opengl.impl.awt.AWTThreadingPlugin");
-                        } catch (Throwable t) { }
+                            threadingPluginObj = ReflectionUtil.createInstance("com.jogamp.opengl.impl.awt.AWTThreadingPlugin");
+                        } catch (JogampRuntimeException jre) { /* n/a .. */ }
                         return threadingPluginObj;
                     }
                 });

@@ -28,7 +28,7 @@ public class FixedFuncUtil {
             gl.getContext().setGL(impl);
             return impl;
         }
-        throw new GLException("GL Object is neither GL2ES1 nor GL2ES2");
+        throw new GLException("GL Object is neither GL2ES1 nor GL2ES2: "+gl.getContext());
     }
 
     /**

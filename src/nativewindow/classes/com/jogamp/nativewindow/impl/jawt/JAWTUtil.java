@@ -54,8 +54,8 @@ public class JAWTUtil {
   private static final boolean j2dExist;
 
   static {
-    JAWTNativeLibLoader.loadAWTImpl();
-    JAWTNativeLibLoader.loadNativeWindow("awt");
+    JAWTJNILibLoader.loadAWTImpl();
+    JAWTJNILibLoader.loadNativeWindow("awt");
 
     lockedStack   = null;
     headlessMode = GraphicsEnvironment.isHeadless();

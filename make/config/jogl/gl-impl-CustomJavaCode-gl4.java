@@ -15,8 +15,7 @@ public void setObjectTracker(GLObjectTracker tracker) {
 
 */
 
-
-public GL3bcImpl(GLProfile glp, GLContextImpl context) {
+public GL3Impl(GLProfile glp, GLContextImpl context) {
   this._context = context; 
   this.bufferSizeTracker  = context.getBufferSizeTracker();
   this.bufferStateTracker = context.getBufferStateTracker();
@@ -24,141 +23,12 @@ public GL3bcImpl(GLProfile glp, GLContextImpl context) {
   this.glProfile = glp;
 }
 
-public final boolean isGL() {
-    return true;
-}
-  
-public final boolean isGL4bc() {
-    return false;
-}
-
-public final boolean isGL4() {
-    return false;
-}
-
-public final boolean isGL3bc() {
-    return true;
-}
-
-public final boolean isGL3() {
-    return true;
-}
-
-public final boolean isGL2() {
-    return true;
-}
-  
-public final boolean isGLES1() {
-    return false;
-}
-
-public final boolean isGLES2() {
-    return false;
-}
-
-public final boolean isGLES() {
-    return false;
-}
-
-public final boolean isGL2ES1() {
-    return true;
-}
-
-public final boolean isGL2ES2() {
-    return true;
-}
-
-public final boolean isGL2GL3() {
-    return true;
-}
-
-public final boolean hasGLSL() {
-    return true;
-}
-
-public final GL getGL() throws GLException {
-    return this;
-}
-
-public final GL4bc getGL4bc() throws GLException {
-    throw new GLException("Not a GL4bc implementation");
-}
-
-public final GL4 getGL4() throws GLException {
-    throw new GLException("Not a GL4 implementation");
-}
-
-public final GL3bc getGL3bc() throws GLException {
-    return this;
-}
-
-public final GL3 getGL3() throws GLException {
-    return this;
-}
-
-public final GL2 getGL2() throws GLException {
-    return this;
-}
-
-public final GLES1 getGLES1() throws GLException {
-    throw new GLException("Not a GLES1 implementation");
-}
-
-public final GLES2 getGLES2() throws GLException {
-    throw new GLException("Not a GLES2 implementation");
-}
-
-public final GL2ES1 getGL2ES1() throws GLException {
-    return this;
-}
-
-public final GL2ES2 getGL2ES2() throws GLException {
-    return this;
-}
-
-public final GL2GL3 getGL2GL3() throws GLException {
-    return this;
-}
-
-public boolean isFunctionAvailable(String glFunctionName) {
-  return _context.isFunctionAvailable(glFunctionName);
-}
-
-public boolean isExtensionAvailable(String glExtensionName) {
-  return _context.isExtensionAvailable(glExtensionName);
-}
-
-public Object getExtension(String extensionName) {
-  // At this point we don't expose any extensions using this mechanism
-  return null;
-}
-
-/** Returns the context this GL object is associated with for better
-    error checking by DebugGL. */
-public GLContext getContext() {
-  return _context;
-}
-
-private GLContextImpl _context;
-
 /**
  * Provides platform-independent access to the wglAllocateMemoryNV /
  * glXAllocateMemoryNV extension.
  */
 public java.nio.ByteBuffer glAllocateMemoryNV(int arg0, float arg1, float arg2, float arg3) {
   return _context.glAllocateMemoryNV(arg0, arg1, arg2, arg3);
-}
-
-public void setSwapInterval(int interval) {
-  _context.setSwapInterval(interval);
-}
-
-public int getSwapInterval() {
-  return _context.getSwapInterval();
-}
-
-public Object getPlatformGLExtensions() {
-  return _context.getPlatformGLExtensions();
 }
 
 //
@@ -179,7 +49,6 @@ private int imageSizeInBytes(int format, int type, int w, int h, int d,
   if (h < 0) return 0;
   if (d < 0) return 0;
   switch (format) {
-  case GL_COLOR_INDEX:
   case GL_STENCIL_INDEX:
     elements = 1;
     break;
@@ -200,7 +69,6 @@ private int imageSizeInBytes(int format, int type, int w, int h, int d,
     break;
   case GL_RGBA:
   case GL_BGRA:
-  case GL_ABGR_EXT:
     elements = 4;
     break;
   /* FIXME ?? 
@@ -211,12 +79,6 @@ private int imageSizeInBytes(int format, int type, int w, int h, int d,
     return 0;
   }
   switch (type) {
-  case GL_BITMAP:
-    if (format == GL_COLOR_INDEX) {
-      return (d * (h * ((w+7)/8)));
-    } else {
-      return 0;
-    }
   case GL_BYTE:
   case GL_UNSIGNED_BYTE:
     esize = 1;
@@ -433,7 +295,7 @@ private Map/*<ARBVBOKey, ByteBuffer>*/ arbVBOCache = new HashMap();
 
 /** Entry point to C language function: <br> <code> LPVOID glMapBuffer(GLenum target, GLenum access); </code>    */
 public java.nio.ByteBuffer glMapBuffer(int target, int access) {
-  final long __addr_ = ((GL3bcProcAddressTable)_context.getGLProcAddressTable())._addressof_glMapBuffer;
+  final long __addr_ = ((GL3ProcAddressTable)_context.getGLProcAddressTable())._addressof_glMapBuffer;
   if (__addr_ == 0) {
     throw new GLException("Method \"glMapBuffer\" not available");
   }
@@ -474,41 +336,4 @@ native private ByteBuffer newDirectByteBuffer(long addr, int capacity);
   public void glReleaseShaderCompiler() {
     // nothing to do 
   }
-
-    public void glVertexPointer(GLArrayData array) {
-      if(array.getComponentNumber()==0) return;
-      if(array.isVBO()) {
-          glVertexPointer(array.getComponentNumber(), array.getComponentType(), array.getStride(), array.getOffset());
-      } else {
-          glVertexPointer(array.getComponentNumber(), array.getComponentType(), array.getStride(), array.getBuffer());
-      }
-    }
-    public void glColorPointer(GLArrayData array) {
-      if(array.getComponentNumber()==0) return;
-      if(array.isVBO()) {
-          glColorPointer(array.getComponentNumber(), array.getComponentType(), array.getStride(), array.getOffset());
-      } else {
-          glColorPointer(array.getComponentNumber(), array.getComponentType(), array.getStride(), array.getBuffer());
-      }
-
-    }
-    public void glNormalPointer(GLArrayData array) {
-      if(array.getComponentNumber()==0) return;
-      if(array.getComponentNumber()!=3) {
-        throw new GLException("Only 3 components per normal allowed");
-      }
-      if(array.isVBO()) {
-          glNormalPointer(array.getComponentType(), array.getStride(), array.getOffset());
-      } else {
-          glNormalPointer(array.getComponentType(), array.getStride(), array.getBuffer());
-      }
-    }
-    public void glTexCoordPointer(GLArrayData array) {
-      if(array.getComponentNumber()==0) return;
-      if(array.isVBO()) {
-          glTexCoordPointer(array.getComponentNumber(), array.getComponentType(), array.getStride(), array.getOffset());
-      } else {
-          glTexCoordPointer(array.getComponentNumber(), array.getComponentType(), array.getStride(), array.getBuffer());
-      }
-    }
 

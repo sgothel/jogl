@@ -30,64 +30,49 @@
  * SVEN GOTHEL HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  */
 
-package com.jogamp.test.junit.jogl.texture;
-
-import com.jogamp.test.junit.jogl.util.texture.gl2.TextureGL2ListenerDraw1;
+package com.jogamp.test.junit.jogl.awt;
 
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.awt.GLCanvas;
-import com.jogamp.opengl.util.texture.TextureData;
-import com.jogamp.opengl.util.texture.awt.AWTTextureIO;
 import com.jogamp.opengl.util.Animator;
 
-import java.awt.AlphaComposite;
-import java.awt.Color;
+import com.jogamp.test.junit.jogl.demos.gl2.gears.Gears;
 import java.awt.Frame;
-import java.awt.GradientPaint;
-import java.awt.Graphics2D;
-import java.awt.image.BufferedImage;
 
+import org.junit.Assert;
 import org.junit.Before;
+import org.junit.After;
 import org.junit.Test;
 
-public class TestTexture01AWT {
-    Frame frame;
-    BufferedImage textureImage;
+public class TestAWT01GLn {
+    Frame frame=null;
+    GLCanvas glCanvas=null;
 
     @Before
     public void init() {
-        // create base image
-        BufferedImage baseImage = new BufferedImage(256, 256, BufferedImage.TYPE_INT_RGB);
-        Graphics2D g = baseImage.createGraphics();
-        g.setPaint(new GradientPaint(0, 0, Color.CYAN,
-                                 baseImage.getWidth(), baseImage.getHeight(), Color.BLUE));
-        g.fillRect(0, 0, baseImage.getWidth(), baseImage.getHeight());
-        g.dispose();
-
-        // create texture image
-        int imageType = BufferedImage.TYPE_INT_RGB;
-        textureImage = new BufferedImage(baseImage.getWidth(),
-                                         baseImage.getHeight(),
-                                         imageType);
-        g = textureImage.createGraphics();
-        g.setComposite(AlphaComposite.Src);
-        g.drawImage(baseImage, 0, 0, null);
-        g.dispose();
-
         frame = new Frame("Texture Test");
+        Assert.assertNotNull(frame);
     }
 
-    @Test
-    public void test1() throws InterruptedException {
-        GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GL2GL3));
-        GLCanvas glCanvas = new GLCanvas(caps);
+    @After
+    public void release() {
+        Assert.assertNotNull(frame);
+        Assert.assertNotNull(glCanvas);
+        frame.setVisible(false);
+        frame.remove(glCanvas);
+        frame.dispose();
+        frame=null;
+        glCanvas=null;
+    }
+
+    protected void runTestGL(GLCapabilities caps) throws InterruptedException {
+        glCanvas = new GLCanvas(caps);
+        Assert.assertNotNull(glCanvas);
         frame.add(glCanvas);
         frame.setSize(512, 512);
 
-        // create texture    
-        TextureData textureData = AWTTextureIO.newTextureData(caps.getGLProfile(), textureImage, false);
-        glCanvas.addGLEventListener(new TextureGL2ListenerDraw1(textureData));
+        glCanvas.addGLEventListener(new Gears());
 
         Animator animator = new Animator(glCanvas);
         frame.setVisible(true);
@@ -96,14 +81,26 @@ public class TestTexture01AWT {
         Thread.sleep(500); // 500 ms
 
         animator.stop();
-        frame.setVisible(false);
-
-        frame.remove(glCanvas);
-        frame.dispose();
-        frame=null;
     }
 
+    @Test
+    public void test01GLDefault() throws InterruptedException {
+        GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
+        runTestGL(caps);
+    }
+
+    /** Both fail on ATI .. if GLn n>2
+    public void test02GL3bc() throws InterruptedException {
+        GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GL3bc));
+        runTestGL(caps);
+    }
+
+    public void test03GLMaxFixed() throws InterruptedException {
+        GLCapabilities caps = new GLCapabilities(GLProfile.getMaxFixedFunc());
+        runTestGL(caps);
+    } */
+
     public static void main(String args[]) {
-        org.junit.runner.JUnitCore.main(TestTexture01AWT.class.getName());
+        org.junit.runner.JUnitCore.main(TestAWT01GLn.class.getName());
     }
 }
