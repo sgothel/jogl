@@ -367,7 +367,7 @@ static uintptr_t getPtrOut32Long(unsigned long * src) {
 }
 
 static void setJavaWindowProperty(JNIEnv *env, Display *dpy, Window window, jlong javaObjectAtom, jobject jwindow) {
-    unsigned long jogl_java_object_data[2];
+    unsigned long jogl_java_object_data[2]; // FIXME uint32_t ?
     int nitems_32 = putPtrIn32Long( jogl_java_object_data, (uintptr_t) jwindow);
 
     {
