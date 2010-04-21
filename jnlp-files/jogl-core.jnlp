@@ -9,6 +9,7 @@
     <description kind="short">Java programming language binding for the OpenGL 3D graphics API - CORE.</description>
     <offline-allowed/>
   </information>
+  <update check="background" policy="always"/>
   <security>
       <all-permissions/>
   </security>

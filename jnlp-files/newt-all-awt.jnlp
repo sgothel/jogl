@@ -9,6 +9,7 @@
     <description kind="short">NEWT - A NativeWindow Interface implementation - ALL.AWT</description>
     <offline-allowed/>
   </information>
+  <update check="background" policy="always"/>
   <security>
       <all-permissions/>
   </security>
