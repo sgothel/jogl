@@ -34,7 +34,7 @@
     </target>
 
     <target name="jogl.setup-version-non-RI" unless="jogl.ri">
-        <property name="jogl.version" value="${jogl_base_version}-pre-${timestamp}" />
+        <property name="jogl.version" value="${jogl_base_version}-pre-${version.timestamp}" />
     </target>
 
     <target name="newt.setup-version-RI" if="newt.ri">
@@ -60,7 +60,7 @@
         <property name="src"                        value="${project.root}/src" />
         <property name="lib"                        value="${build}/lib" />
 
-        <property name="archive.name"               value="jogl-${tmp.version}-${os.and.arch}" />
+        <property name="archive.name"               value="jogl-${jogl.version}-${os.and.arch}" />
         <property name="archive"                    value="${build}/${archive.name}" />
 
         <property name="all.srcj.path" value="${src}/nativewindow/classes;${src}/jogl/classes;${src}/newt/classes" />
