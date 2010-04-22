@@ -58,8 +58,8 @@ public class X11GraphicsConfigurationFactory extends GraphicsConfigurationFactor
         int num[] = { -1 };
         long display = screen.getDevice().getHandle();
 
+        X11Lib.XLockDisplay(display);
         try {
-            X11Lib.XLockDisplay(display);
             XVisualInfo[] xvis = X11Lib.XGetVisualInfoCopied(display, X11Lib.VisualIDMask|X11Lib.VisualScreenMask, xvi_temp, num, 0);
 
             if(xvis==null || num[0]<1) {
@@ -90,8 +90,8 @@ public class X11GraphicsConfigurationFactory extends GraphicsConfigurationFactor
         vinfo_template.setC_class(c_class);
         long display = screen.getDevice().getHandle();
 
+        X11Lib.XLockDisplay(display);
         try {
-            X11Lib.XLockDisplay(display);
             XVisualInfo[] vinfos = X11Lib.XGetVisualInfoCopied(display, X11Lib.VisualScreenMask, vinfo_template, num, 0);
             XVisualInfo best=null;
             int rdepth = capabilities.getRedBits() + capabilities.getGreenBits() + capabilities.getBlueBits() + capabilities.getAlphaBits();

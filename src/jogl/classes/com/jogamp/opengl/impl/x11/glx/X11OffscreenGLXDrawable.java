@@ -41,7 +41,6 @@ package com.jogamp.opengl.impl.x11.glx;
 
 import javax.media.nativewindow.*;
 import javax.media.opengl.*;
-import com.jogamp.opengl.impl.*;
 import com.jogamp.nativewindow.impl.x11.*;
 
 public class X11OffscreenGLXDrawable extends X11GLXDrawable {
@@ -75,27 +74,31 @@ public class X11OffscreenGLXDrawable extends X11GLXDrawable {
     int screen = aScreen.getIndex();
 
     getFactoryImpl().lockToolkit();
-    X11Lib.XLockDisplay(dpy);
     try {
-      pixmap = X11Lib.XCreatePixmap(dpy, X11Lib.RootWindow(dpy, screen), 
-                                    component.getWidth(), component.getHeight(), bitsPerPixel);
-      if (pixmap == 0) {
-        throw new GLException("XCreatePixmap failed");
-      }
-      long drawable = GLX.glXCreateGLXPixmap(dpy, vis, pixmap);
-      if (drawable == 0) {
-        X11Lib.XFreePixmap(dpy, pixmap);
-        pixmap = 0;
-        throw new GLException("glXCreateGLXPixmap failed");
-      }
-      ((SurfaceChangeable)nw).setSurfaceHandle(drawable);
-      if (DEBUG) {
-        System.err.println("Created pixmap " + toHexString(pixmap) +
-                           ", GLXPixmap " + toHexString(drawable) +
-                           ", display " + toHexString(dpy));
-      }
+        X11Lib.XLockDisplay(dpy);
+        try{
+
+          pixmap = X11Lib.XCreatePixmap(dpy, X11Lib.RootWindow(dpy, screen),
+                                        component.getWidth(), component.getHeight(), bitsPerPixel);
+          if (pixmap == 0) {
+            throw new GLException("XCreatePixmap failed");
+          }
+          long drawable = GLX.glXCreateGLXPixmap(dpy, vis, pixmap);
+          if (drawable == 0) {
+            X11Lib.XFreePixmap(dpy, pixmap);
+            pixmap = 0;
+            throw new GLException("glXCreateGLXPixmap failed");
+          }
+          ((SurfaceChangeable)nw).setSurfaceHandle(drawable);
+          if (DEBUG) {
+            System.err.println("Created pixmap " + toHexString(pixmap) +
+                               ", GLXPixmap " + toHexString(drawable) +
+                               ", display " + toHexString(dpy));
+          }
+        }finally{
+          X11Lib.XUnlockDisplay(dpy);
+        }
     } finally {
-      X11Lib.XUnlockDisplay(dpy);
       getFactoryImpl().unlockToolkit();
     }
   }
@@ -107,37 +110,41 @@ public class X11OffscreenGLXDrawable extends X11GLXDrawable {
     long display = nw.getDisplayHandle();
 
     getFactoryImpl().lockToolkit();
-    X11Lib.XLockDisplay(display);
     try {
-      long drawable = nw.getSurfaceHandle();
-      if (DEBUG) {
-        System.err.println("Destroying pixmap " + toHexString(pixmap) +
-                           ", GLXPixmap " + toHexString(drawable) +
-                           ", display " + toHexString(display));
-      }
+        X11Lib.XLockDisplay(display);
+        try{
+          long drawable = nw.getSurfaceHandle();
+          if (DEBUG) {
+            System.err.println("Destroying pixmap " + toHexString(pixmap) +
+                               ", GLXPixmap " + toHexString(drawable) +
+                               ", display " + toHexString(display));
+          }
 
-      // Must destroy pixmap and GLXPixmap
+          // Must destroy pixmap and GLXPixmap
 
-      if (DEBUG) {
-        long cur = GLX.glXGetCurrentContext();
-        if (cur != 0) {
-          System.err.println("WARNING: found context " + toHexString(cur) + " current during pixmap destruction");
+          if (DEBUG) {
+            long cur = GLX.glXGetCurrentContext();
+            if (cur != 0) {
+              System.err.println("WARNING: found context " + toHexString(cur) + " current during pixmap destruction");
+            }
+          }
+
+          // FIXME: workaround for crashes on NVidia hardware when
+          // destroying pixmap (no context is current at the point of the
+          // crash, at least from the point of view of
+          // glXGetCurrentContext)
+          GLX.glXMakeCurrent(display, 0, 0);
+
+          GLX.glXDestroyGLXPixmap(display, drawable);
+          X11Lib.XFreePixmap(display, pixmap);
+          drawable = 0;
+          pixmap = 0;
+          ((SurfaceChangeable)nw).setSurfaceHandle(0);
+
+        }finally{
+          X11Lib.XUnlockDisplay(display);
         }
-      }
-
-      // FIXME: workaround for crashes on NVidia hardware when
-      // destroying pixmap (no context is current at the point of the
-      // crash, at least from the point of view of
-      // glXGetCurrentContext)
-      GLX.glXMakeCurrent(display, 0, 0);
-
-      GLX.glXDestroyGLXPixmap(display, drawable);
-      X11Lib.XFreePixmap(display, pixmap);
-      drawable = 0;
-      pixmap = 0;
-      ((SurfaceChangeable)nw).setSurfaceHandle(0);
     } finally {
-      X11Lib.XUnlockDisplay(display);
       getFactoryImpl().unlockToolkit();
       display = 0;
     }
