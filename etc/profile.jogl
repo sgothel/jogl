@@ -2,7 +2,7 @@
 
 function print_usage()
 {
-    echo "Usage: $0 {JOGL_ALL|JOGL_ALL_NOAWT|JOGL_ES1_MIN|JOGL_ES1_MAX|JOGL_ES2_MIN|JOGL_ES2_MAX|JOGL_GL2ES12_MIN|JOGL_GL2ES12_MAX|JOGL_GL2_MIN|JOGL_GL2_MAX} [jogl-build-dir]"
+    echo "Usage: $0 {JOGL_ALL|JOGL_ALL_NOAWT|JOGL_ES1_MIN|JOGL_ES1_MAX|JOGL_ES2_MIN|JOGL_ES2_MAX|JOGL_GL2ES12_MIN|JOGL_GL2ES12_MAX|JOGL_GLDESKTOP_MIN|JOGL_GLDESKTOP_MAX} [jogl-build-dir]"
 }
 
 function concat_jogl_list()
@@ -32,7 +32,7 @@ JOGL_CORE="nativewindow.core.jar nativewindow.os.$OSS.jar jogl.core.jar jogl.os.
 
 JOGL_TEST="jogl.test.jar"
 
-JOGL_JAR_ALL_NOAWT="$JOGL_CORE jogl.gles1.jar jogl.gles1.dbg.jar jogl.gles2.jar jogl.gles2.dbg.jar jogl.egl.jar jogl.os.$OSS.jar jogl.gl2es12.jar jogl.gl2.jar jogl.gl2.dbg.jar jogl.util.gl2.jar jogl.gl3.jar jogl.gl3.dbg.jar jogl.gl4.jar jogl.gl4.dbg.jar jogl.glu.tess.jar jogl.glu.mipmap.jar jogl.glu.gl2.jar jogl.util.gl2.jar jogl.util.fixedfuncemu.jar jogl.cg.jar"
+JOGL_JAR_ALL_NOAWT="$JOGL_CORE jogl.gles1.jar jogl.gles1.dbg.jar jogl.gles2.jar jogl.gles2.dbg.jar jogl.egl.jar jogl.os.$OSS.jar jogl.gl2es12.jar jogl.gldesktop.jar jogl.gldesktop.dbg.jar jogl.util.gldesktop.jar jogl.glu.tess.jar jogl.glu.mipmap.jar jogl.glu.gldesktop.jar jogl.util.gldesktop.jar jogl.util.fixedfuncemu.jar jogl.cg.jar"
 JOGL_JAR_ALL="$JOGL_JAR_ALL_NOAWT $JOGL_AWT"
 JOGL_LIB_ALL="libjogl_desktop.so libjogl_es1.so libjogl_es2.so libnewt.so libjogl_awt.so"
 
@@ -51,13 +51,13 @@ JOGL_JAR_GL2ES12_MAX="$JOGL_CORE jogl.os.$OSS.jar jogl.gl2es12.jar jogl.gles1.db
 JOGL_LIB_GL2ES12_MIN="libjogl_gl2es12.so libnewt.so libnativewindow_x11.so libnativewindow_awt.so"
 JOGL_LIB_GL2ES12_MAX="libjogl_gl2es12.so libnewt.so libnativewindow_x11.so libnativewindow_awt.so"
 
-JOGL_JAR_GL2_MIN="$JOGL_CORE jogl.os.$OSS.jar jogl.gl2.jar jogl.gl2.dbg.jar"
-JOGL_JAR_GL2_MAX="$JOGL_CORE jogl.os.$OSS.jar jogl.gl2.jar jogl.gl2.dbg.jar jogl.glu.tess.jar jogl.glu.mipmap.jar jogl.glu.gl2.jar jogl.util.gl2.jar $JOGL_AWT jogl.cg.jar"
-JOGL_LIB_GL2_MIN="libjogl_desktop.so libnewt.so libnativewindow_x11.so libnativewindow_awt.so"
-JOGL_LIB_GL2_MAX="libjogl_desktop.so libnewt.so libnativewindow_x11.so libnativewindow_awt.so"
+JOGL_JAR_GLDESKTOP_MIN="$JOGL_CORE jogl.os.$OSS.jar jogl.gldesktop.jar jogl.gldesktop.dbg.jar"
+JOGL_JAR_GLDESKTOP_MAX="$JOGL_CORE jogl.os.$OSS.jar jogl.gldesktop.jar jogl.gldesktop.dbg.jar jogl.glu.tess.jar jogl.glu.mipmap.jar jogl.glu.gldesktop.jar jogl.util.gldesktop.jar $JOGL_AWT jogl.cg.jar"
+JOGL_LIB_GLDESKTOP_MIN="libjogl_desktop.so libnewt.so libnativewindow_x11.so libnativewindow_awt.so"
+JOGL_LIB_GLDESKTOP_MAX="libjogl_desktop.so libnewt.so libnativewindow_x11.so libnativewindow_awt.so"
 
-export JOGL_JAR_ALL JOGL_JAR_ALL_NOAWT JOGL_JAR_ES1_MIN JOGL_JAR_ES1_MAX JOGL_JAR_ES2_MIN JOGL_JAR_ES2_MAX JOGL_JAR_GL2ES12_MIN JOGL_JAR_GL2ES12_MAX JOGL_JAR_GL2_MIN JOGL_JAR_GL2_MAX
-export JOGL_LIB_ALL JOGL_LIB_ES1_MIN JOGL_LIB_ES1_MAX JOGL_LIB_ES2_MIN JOGL_LIB_ES2_MAX JOGL_LIB_GL2ES12_MIN JOGL_LIB_GL2ES12_MAX JOGL_LIB_GL2_MIN JOGL_LIB_GL2_MAX
+export JOGL_JAR_ALL JOGL_JAR_ALL_NOAWT JOGL_JAR_ES1_MIN JOGL_JAR_ES1_MAX JOGL_JAR_ES2_MIN JOGL_JAR_ES2_MAX JOGL_JAR_GL2ES12_MIN JOGL_JAR_GL2ES12_MAX JOGL_JAR_GLDESKTOP_MIN JOGL_JAR_GLDESKTOP_MAX
+export JOGL_LIB_ALL JOGL_LIB_ES1_MIN JOGL_LIB_ES1_MAX JOGL_LIB_ES2_MIN JOGL_LIB_ES2_MAX JOGL_LIB_GL2ES12_MIN JOGL_LIB_GL2ES12_MAX JOGL_LIB_GLDESKTOP_MIN JOGL_LIB_GLDESKTOP_MAX
 
 THISDIR=`dirname $0`
 
@@ -125,11 +125,11 @@ if [ ! -z "$JOGL_PROFILE" ] ; then
         JOGL_GL2ES12_MAX)
             JOGL_CLASSPATH=$(concat_jogl_list $JOGL_BUILD_DIR $JOGL_JAR_GL2ES12_MAX)
             ;;
-        JOGL_GL2_MIN)
-            JOGL_CLASSPATH=$(concat_jogl_list $JOGL_BUILD_DIR $JOGL_JAR_GL2_MIN)
+        JOGL_GLDESKTOP_MIN)
+            JOGL_CLASSPATH=$(concat_jogl_list $JOGL_BUILD_DIR $JOGL_JAR_GLDESKTOP_MIN)
             ;;
-        JOGL_GL2_MAX)
-            JOGL_CLASSPATH=$(concat_jogl_list $JOGL_BUILD_DIR $JOGL_JAR_GL2_MAX)
+        JOGL_GLDESKTOP_MAX)
+            JOGL_CLASSPATH=$(concat_jogl_list $JOGL_BUILD_DIR $JOGL_JAR_GLDESKTOP_MAX)
             ;;
     esac
 

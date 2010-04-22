@@ -4,6 +4,14 @@
 
     <description>Common JOGL Stuff</description>
 
+    <fail message="Please build using Ant 1.8.0 or higher.">
+        <condition>
+            <not>
+                <antversion atleast="1.8.0"/>
+            </not>
+        </condition>
+    </fail>
+
     <!-- Pull in GlueGen cpptasks build file -->
     <property name="gluegen.root" value="../../gluegen" />
     <import file="${gluegen.root}/make/gluegen-cpptasks.xml" />
@@ -254,7 +262,7 @@
         <property name="jogl.egl.jar"                   value="${build.jogl}/jogl.egl.jar" />
         <property name="jogl.glutess.jar"               value="${build.jogl}/jogl.glu.tess.jar" />
         <property name="jogl.glumipmap.jar"             value="${build.jogl}/jogl.glu.mipmap.jar" />
-        <property name="jogl.glugl2.jar"                value="${build.jogl}/jogl.glu.gl2.jar" />
+        <property name="jogl.glugldesktop.jar"                value="${build.jogl}/jogl.glu.gldesktop.jar" />
 
         <property name="jogl.os.x11.jar"                value="${build.jogl}/jogl.os.x11.jar" />
         <property name="jogl.os.win.jar"                value="${build.jogl}/jogl.os.win.jar" />
@@ -262,20 +270,14 @@
 
         <property name="jogl.gl2es12.jar"               value="${build.jogl}/jogl.gl2es12.jar" />
 
-        <property name="jogl.gl2.jar"                   value="${build.jogl}/jogl.gl2.jar" />
-        <property name="jogl.gl2.dbg.jar"               value="${build.jogl}/jogl.gl2.dbg.jar" />
-
-        <property name="jogl.gl3.jar"                   value="${build.jogl}/jogl.gl3.jar" />
-        <property name="jogl.gl3.dbg.jar"               value="${build.jogl}/jogl.gl3.dbg.jar" />
-
-        <property name="jogl.gl4.jar"                   value="${build.jogl}/jogl.gl4.jar" />
-        <property name="jogl.gl4.dbg.jar"               value="${build.jogl}/jogl.gl4.dbg.jar" />
+        <property name="jogl.gldesktop.jar"             value="${build.jogl}/jogl.gldesktop.jar" />
+        <property name="jogl.gldesktop.dbg.jar"         value="${build.jogl}/jogl.gldesktop.dbg.jar" />
 
         <property name="jogl.omx.jar"                   value="${build.jogl}/jogl.omx.jar" />
 
         <property name="jogl.awt.jar"                   value="${build.jogl}/jogl.awt.jar" />
         <property name="jogl.util.jar"                  value="${build.jogl}/jogl.util.jar" />
-        <property name="jogl.util.gl2.jar"              value="${build.jogl}/jogl.util.gl2.jar" />
+        <property name="jogl.util.gldesktop.jar"              value="${build.jogl}/jogl.util.gldesktop.jar" />
         <property name="jogl.util.awt.jar"              value="${build.jogl}/jogl.util.awt.jar" />
         <property name="jogl.util.fixedfuncemu.jar"     value="${build.jogl}/jogl.util.fixedfuncemu.jar" />
         <property name="jogl.sdk.jar"                   value="${build.jogl}/jogl.sdk.jar" />

@@ -51,11 +51,11 @@ function listdeployment() {
     echo
 
     echo JOGL GL2 NEWT 
-    report gluegen-rt.$JAR_SUFFIX nativewindow.all-noawt.$JAR_SUFFIX jogl.core.$JAR_SUFFIX jogl.util.$JAR_SUFFIX jogl.os.$OSS.$JAR_SUFFIX jogl.gl2.$JAR_SUFFIX newt.all-noawt.$JAR_SUFFIX libgluegen-rt.so.gz libjogl_desktop.so.gz libnewt.so.gz libnativewindow_$OSS.so.gz
+    report gluegen-rt.$JAR_SUFFIX nativewindow.all-noawt.$JAR_SUFFIX jogl.core.$JAR_SUFFIX jogl.util.$JAR_SUFFIX jogl.os.$OSS.$JAR_SUFFIX jogl.gldesktop.$JAR_SUFFIX newt.all-noawt.$JAR_SUFFIX libgluegen-rt.so.gz libjogl_desktop.so.gz libnewt.so.gz libnativewindow_$OSS.so.gz
     echo
 
     echo JOGL GL2 AWT
-    report gluegen-rt.$JAR_SUFFIX nativewindow.all.$JAR_SUFFIX jogl.core.$JAR_SUFFIX jogl.util.$JAR_SUFFIX jogl.os.$OSS.$JAR_SUFFIX jogl.gl2.$JAR_SUFFIX jogl.awt.$JAR_SUFFIX libgluegen-rt.so.gz libjogl_desktop.so.gz libnativewindow_$OSS.so.gz libnativewindow_awt.so.gz
+    report gluegen-rt.$JAR_SUFFIX nativewindow.all.$JAR_SUFFIX jogl.core.$JAR_SUFFIX jogl.util.$JAR_SUFFIX jogl.os.$OSS.$JAR_SUFFIX jogl.gldesktop.$JAR_SUFFIX jogl.awt.$JAR_SUFFIX libgluegen-rt.so.gz libjogl_desktop.so.gz libnativewindow_$OSS.so.gz libnativewindow_awt.so.gz
     echo
 
     echo JOGL ALL AWT
@@ -125,8 +125,8 @@ mkdir -p nope
 
 mv *.cdc.lst *.all*.lst nope/
 
-mv jogl.gl2.*.lst nope/
-echo duplicates - w/o gl2.*
+mv jogl.gldesktop.*.lst nope/
+echo duplicates - w/o gldesktop.*
 echo
 sort jogl*.lst | uniq -d
 mv nope/* .

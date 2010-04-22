@@ -367,14 +367,13 @@ static uintptr_t getPtrOut32Long(unsigned long * src) {
 }
 
 static void setJavaWindowProperty(JNIEnv *env, Display *dpy, Window window, jlong javaObjectAtom, jobject jwindow) {
-    unsigned long jogl_java_object_data[2]; // FIXME uint32_t ?
+    unsigned long jogl_java_object_data[2]; // X11 is based on 'unsigned long'
     int nitems_32 = putPtrIn32Long( jogl_java_object_data, (uintptr_t) jwindow);
 
     {
         jobject test = (jobject) getPtrOut32Long(jogl_java_object_data);
         if( ! (jwindow==test) ) {
-            _throwNewRuntimeException(dpy, env, "Internal Error .. Encoded Window ref not the same %p != %p !", jwindow, test);
-            return;
+            _FatalError(env, "Internal Error .. Encoded Window ref not the same %p != %p !", jwindow, test);
         }
     }
 

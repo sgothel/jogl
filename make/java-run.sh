@@ -7,7 +7,7 @@ function print_usage() {
 if [ -z "$1" ] ; then
     echo JOGL BUILD DIR missing
     print_usage
-    return
+    exit
 fi
 
 . ./setenv-jogl.sh $1

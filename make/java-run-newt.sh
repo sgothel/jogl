@@ -7,7 +7,7 @@ function print_usage() {
 if [ -z "$1" ] ; then
     echo JOGL BUILD DIR missing
     print_usage
-    return
+    exit
 fi
 
 . ./setenv-jogl.sh $1
@@ -21,7 +21,7 @@ if [ $MOSX -eq 1 ] ; then
 fi
 
 # D_ARGS="-Dgluegen.debug.ProcAddressHelper=true -Dgluegen.debug.NativeLibrary=true -Dnativewindow.debug=all -Djogl.debug=all -Dnewt.debug=all"
-# D_ARGS="-Dnativewindow.debug=all -Djogl.debug=all -Dnewt.debug=all -Djogl.debug.GLSLState"
+D_ARGS="-Dnativewindow.debug=all -Djogl.debug=all -Dnewt.debug=all -Djogl.debug.GLSLState"
 # D_ARGS="-Dnativewindow.debug.X11Util=true -Djogl.debug.GLDrawableFactory=true"
 # D_ARGS="-Dnativewindow.debug.X11Util=true"
 
