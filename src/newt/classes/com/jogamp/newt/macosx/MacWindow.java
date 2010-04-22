@@ -216,7 +216,12 @@ public class MacWindow extends Window {
 
     public synchronized int lockSurface() throws NativeWindowException {
         nsViewLock.lock();
-        return super.lockSurface();
+        try {
+            return super.lockSurface();
+        } catch (RuntimeException re) {
+            nsViewLock.unlock();
+            throw re;
+        }
     }
 
     public void unlockSurface() {
