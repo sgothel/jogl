@@ -101,7 +101,7 @@ public class WindowsPbufferWGLContext extends WindowsWGLContext {
       // Initialize render-to-texture support if requested
       GL gl = getGL();
       rtt  = capabilities.getPbufferRenderToTexture();
-      rect = gl.isGL2() && capabilities.getPbufferRenderToTextureRectangle();
+      rect = gl.isGL2GL3() && capabilities.getPbufferRenderToTextureRectangle();
 
       if (rtt) {
         if (DEBUG) {

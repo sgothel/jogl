@@ -46,6 +46,7 @@ package com.jogamp.opengl.impl.glu.mipmap;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
+import javax.media.opengl.GL2GL3;
 import javax.media.opengl.glu.GLU;
 import javax.media.opengl.GLException;
 import java.nio.*;
@@ -125,7 +126,7 @@ public class Mipmap {
     if( !legalFormat( format ) || !legalType( type ) ) {
       return( GLU.GLU_INVALID_ENUM );
     }
-    if( format == GL2.GL_STENCIL_INDEX ) {
+    if( format == GL2GL3.GL_STENCIL_INDEX ) {
       return( GLU.GLU_INVALID_ENUM );
     }
     if( !isLegalFormatForPackedPixelType( format, type ) ) {
@@ -137,18 +138,18 @@ public class Mipmap {
   public static boolean legalFormat( int format ) {
     switch( format ) {
       case( GL2.GL_COLOR_INDEX ):
-      case( GL2.GL_STENCIL_INDEX ):
-      case( GL2.GL_DEPTH_COMPONENT ):
-      case( GL2.GL_RED ):
-      case( GL2.GL_GREEN ):
-      case( GL2.GL_BLUE ):
-      case( GL2.GL_ALPHA ):
-      case( GL2.GL_RGB ):
-      case( GL2.GL_RGBA ):
-      case( GL2.GL_LUMINANCE ):
-      case( GL2.GL_LUMINANCE_ALPHA ):
-      case( GL2.GL_BGR ):
-      case( GL2.GL_BGRA ):
+      case( GL2GL3.GL_STENCIL_INDEX ):
+      case( GL2GL3.GL_DEPTH_COMPONENT ):
+      case( GL2GL3.GL_RED ):
+      case( GL2GL3.GL_GREEN ):
+      case( GL2GL3.GL_BLUE ):
+      case( GL2GL3.GL_ALPHA ):
+      case( GL2GL3.GL_RGB ):
+      case( GL2GL3.GL_RGBA ):
+      case( GL2GL3.GL_LUMINANCE ):
+      case( GL2GL3.GL_LUMINANCE_ALPHA ):
+      case( GL2GL3.GL_BGR ):
+      case( GL2GL3.GL_BGRA ):
         return( true );
       default:
         return( false );
@@ -158,25 +159,25 @@ public class Mipmap {
   public static boolean legalType( int type ) {
     switch( type ) {
       case( GL2.GL_BITMAP ):
-      case( GL2.GL_BYTE ):
-      case( GL2.GL_UNSIGNED_BYTE ):
-      case( GL2.GL_SHORT ):
-      case( GL2.GL_UNSIGNED_SHORT ):
-      case( GL2.GL_INT ):
-      case( GL2.GL_UNSIGNED_INT ):
-      case( GL2.GL_FLOAT ):
-      case( GL2.GL_UNSIGNED_BYTE_3_3_2 ):
-      case( GL2.GL_UNSIGNED_BYTE_2_3_3_REV ):
-      case( GL2.GL_UNSIGNED_SHORT_5_6_5 ):
-      case( GL2.GL_UNSIGNED_SHORT_5_6_5_REV ):
-      case( GL2.GL_UNSIGNED_SHORT_4_4_4_4 ):
-      case( GL2.GL_UNSIGNED_SHORT_4_4_4_4_REV ):
-      case( GL2.GL_UNSIGNED_SHORT_5_5_5_1 ):
-      case( GL2.GL_UNSIGNED_SHORT_1_5_5_5_REV ):
-      case( GL2.GL_UNSIGNED_INT_8_8_8_8 ):
-      case( GL2.GL_UNSIGNED_INT_8_8_8_8_REV ):
-      case( GL2.GL_UNSIGNED_INT_10_10_10_2 ):
-      case( GL2.GL_UNSIGNED_INT_2_10_10_10_REV ):
+      case( GL2GL3.GL_BYTE ):
+      case( GL2GL3.GL_UNSIGNED_BYTE ):
+      case( GL2GL3.GL_SHORT ):
+      case( GL2GL3.GL_UNSIGNED_SHORT ):
+      case( GL2GL3.GL_INT ):
+      case( GL2GL3.GL_UNSIGNED_INT ):
+      case( GL2GL3.GL_FLOAT ):
+      case( GL2GL3.GL_UNSIGNED_BYTE_3_3_2 ):
+      case( GL2GL3.GL_UNSIGNED_BYTE_2_3_3_REV ):
+      case( GL2GL3.GL_UNSIGNED_SHORT_5_6_5 ):
+      case( GL2GL3.GL_UNSIGNED_SHORT_5_6_5_REV ):
+      case( GL2GL3.GL_UNSIGNED_SHORT_4_4_4_4 ):
+      case( GL2GL3.GL_UNSIGNED_SHORT_4_4_4_4_REV ):
+      case( GL2GL3.GL_UNSIGNED_SHORT_5_5_5_1 ):
+      case( GL2GL3.GL_UNSIGNED_SHORT_1_5_5_5_REV ):
+      case( GL2GL3.GL_UNSIGNED_INT_8_8_8_8 ):
+      case( GL2GL3.GL_UNSIGNED_INT_8_8_8_8_REV ):
+      case( GL2GL3.GL_UNSIGNED_INT_10_10_10_2 ):
+      case( GL2GL3.GL_UNSIGNED_INT_2_10_10_10_REV ):
         return( true );
       default:
         return( false );
@@ -186,18 +187,18 @@ public class Mipmap {
   public static boolean isTypePackedPixel( int type ) {
     assert( legalType( type ) );
     
-    if( type == GL2.GL_UNSIGNED_BYTE_3_3_2 ||
-        type == GL2.GL_UNSIGNED_BYTE_2_3_3_REV ||
-        type == GL2.GL_UNSIGNED_SHORT_5_6_5 ||
-        type == GL2.GL_UNSIGNED_SHORT_5_6_5_REV ||
-        type == GL2.GL_UNSIGNED_SHORT_4_4_4_4 ||
-        type == GL2.GL_UNSIGNED_SHORT_4_4_4_4_REV ||
-        type == GL2.GL_UNSIGNED_SHORT_5_5_5_1 ||
-        type == GL2.GL_UNSIGNED_SHORT_1_5_5_5_REV ||
-        type == GL2.GL_UNSIGNED_INT_8_8_8_8 ||
-        type == GL2.GL_UNSIGNED_INT_8_8_8_8_REV ||
-        type == GL2.GL_UNSIGNED_INT_10_10_10_2 ||
-        type == GL2.GL_UNSIGNED_INT_2_10_10_10_REV ) {
+    if( type == GL2GL3.GL_UNSIGNED_BYTE_3_3_2 ||
+        type == GL2GL3.GL_UNSIGNED_BYTE_2_3_3_REV ||
+        type == GL2GL3.GL_UNSIGNED_SHORT_5_6_5 ||
+        type == GL2GL3.GL_UNSIGNED_SHORT_5_6_5_REV ||
+        type == GL2GL3.GL_UNSIGNED_SHORT_4_4_4_4 ||
+        type == GL2GL3.GL_UNSIGNED_SHORT_4_4_4_4_REV ||
+        type == GL2GL3.GL_UNSIGNED_SHORT_5_5_5_1 ||
+        type == GL2GL3.GL_UNSIGNED_SHORT_1_5_5_5_REV ||
+        type == GL2GL3.GL_UNSIGNED_INT_8_8_8_8 ||
+        type == GL2GL3.GL_UNSIGNED_INT_8_8_8_8_REV ||
+        type == GL2GL3.GL_UNSIGNED_INT_10_10_10_2 ||
+        type == GL2GL3.GL_UNSIGNED_INT_2_10_10_10_REV ) {
           return( true );
     }
     return( false );
@@ -210,23 +211,23 @@ public class Mipmap {
     }
     
     // 3_3_2/2_3_3_REV & 5_6_5/5_6_5_REV are only compatible with RGB
-    if( (type == GL2.GL_UNSIGNED_BYTE_3_3_2 || type == GL2.GL_UNSIGNED_BYTE_2_3_3_REV ||
-        type == GL2.GL_UNSIGNED_SHORT_5_6_5 || type == GL2.GL_UNSIGNED_SHORT_5_6_5_REV )
-        & format != GL2.GL_RGB ) {
+    if( (type == GL2GL3.GL_UNSIGNED_BYTE_3_3_2 || type == GL2GL3.GL_UNSIGNED_BYTE_2_3_3_REV ||
+        type == GL2GL3.GL_UNSIGNED_SHORT_5_6_5 || type == GL2GL3.GL_UNSIGNED_SHORT_5_6_5_REV )
+        & format != GL2GL3.GL_RGB ) {
           return( false );
     }
     
     // 4_4_4_4/4_4_4_4_REV & 5_5_5_1/1_5_5_5_REV & 8_8_8_8/8_8_8_8_REV &
     // 10_10_10_2/2_10_10_10_REV are only campatible with RGBA, BGRA & ARGB_EXT
-    if( ( type == GL2.GL_UNSIGNED_SHORT_4_4_4_4 ||
-          type == GL2.GL_UNSIGNED_SHORT_4_4_4_4_REV ||
-          type == GL2.GL_UNSIGNED_SHORT_5_5_5_1 ||
-          type == GL2.GL_UNSIGNED_SHORT_1_5_5_5_REV ||
-          type == GL2.GL_UNSIGNED_INT_8_8_8_8 ||
-          type == GL2.GL_UNSIGNED_INT_8_8_8_8_REV ||
-          type == GL2.GL_UNSIGNED_INT_10_10_10_2 ||
-          type == GL2.GL_UNSIGNED_INT_2_10_10_10_REV ) &&
-          (format != GL2.GL_RGBA && format != GL2.GL_BGRA) ) {
+    if( ( type == GL2GL3.GL_UNSIGNED_SHORT_4_4_4_4 ||
+          type == GL2GL3.GL_UNSIGNED_SHORT_4_4_4_4_REV ||
+          type == GL2GL3.GL_UNSIGNED_SHORT_5_5_5_1 ||
+          type == GL2GL3.GL_UNSIGNED_SHORT_1_5_5_5_REV ||
+          type == GL2GL3.GL_UNSIGNED_INT_8_8_8_8 ||
+          type == GL2GL3.GL_UNSIGNED_INT_8_8_8_8_REV ||
+          type == GL2GL3.GL_UNSIGNED_INT_10_10_10_2 ||
+          type == GL2GL3.GL_UNSIGNED_INT_2_10_10_10_REV ) &&
+          (format != GL2GL3.GL_RGBA && format != GL2GL3.GL_BGRA) ) {
             return( false );
     }
     return( true );
@@ -272,27 +273,27 @@ public class Mipmap {
           assert( heightAtLevelOne > 0 );
         
           // does width x height at level 1 & all their mipmaps fit?
-          if( target == GL2.GL_TEXTURE_2D || target == GL2.GL_PROXY_TEXTURE_2D ) {
-            proxyTarget = GL2.GL_PROXY_TEXTURE_2D;
+          if( target == GL2GL3.GL_TEXTURE_2D || target == GL2GL3.GL_PROXY_TEXTURE_2D ) {
+            proxyTarget = GL2GL3.GL_PROXY_TEXTURE_2D;
             gl.glTexImage2D( proxyTarget, 1, internalFormat, widthAtLevelOne,
                              heightAtLevelOne, 0, format, type, null );
-          } else if( (target == GL2.GL_TEXTURE_CUBE_MAP_POSITIVE_X) || 
-                     (target == GL2.GL_TEXTURE_CUBE_MAP_NEGATIVE_X) || 
-                     (target == GL2.GL_TEXTURE_CUBE_MAP_POSITIVE_Y) || 
-                     (target == GL2.GL_TEXTURE_CUBE_MAP_NEGATIVE_Y) || 
-                     (target == GL2.GL_TEXTURE_CUBE_MAP_POSITIVE_Z) || 
-                     (target == GL2.GL_TEXTURE_CUBE_MAP_NEGATIVE_Z) ) {
-            proxyTarget = GL2.GL_PROXY_TEXTURE_CUBE_MAP;
+          } else if( (target == GL2GL3.GL_TEXTURE_CUBE_MAP_POSITIVE_X) || 
+                     (target == GL2GL3.GL_TEXTURE_CUBE_MAP_NEGATIVE_X) || 
+                     (target == GL2GL3.GL_TEXTURE_CUBE_MAP_POSITIVE_Y) || 
+                     (target == GL2GL3.GL_TEXTURE_CUBE_MAP_NEGATIVE_Y) || 
+                     (target == GL2GL3.GL_TEXTURE_CUBE_MAP_POSITIVE_Z) || 
+                     (target == GL2GL3.GL_TEXTURE_CUBE_MAP_NEGATIVE_Z) ) {
+            proxyTarget = GL2GL3.GL_PROXY_TEXTURE_CUBE_MAP;
             gl.glTexImage2D( proxyTarget, 1, internalFormat, widthAtLevelOne,
                              heightAtLevelOne, 0, format, type, null );
           } else {
-            assert( target == GL2.GL_TEXTURE_1D || target == GL2.GL_PROXY_TEXTURE_1D );
-            proxyTarget = GL2.GL_PROXY_TEXTURE_1D;
-            gl.getGL2().glTexImage1D( proxyTarget, 1, internalFormat, widthAtLevelOne, 
+            assert( target == GL2GL3.GL_TEXTURE_1D || target == GL2GL3.GL_PROXY_TEXTURE_1D );
+            proxyTarget = GL2GL3.GL_PROXY_TEXTURE_1D;
+            gl.getGL2GL3().glTexImage1D( proxyTarget, 1, internalFormat, widthAtLevelOne, 
                              0, format, type, null );
           }
-          if(gl.isGL2()) {
-            gl.getGL2().glGetTexLevelParameteriv( proxyTarget, 1, GL2.GL_TEXTURE_WIDTH, proxyWidth, 0 );
+          if(gl.isGL2GL3()) {
+            gl.getGL2GL3().glGetTexLevelParameteriv( proxyTarget, 1, GL2GL3.GL_TEXTURE_WIDTH, proxyWidth, 0 );
           } else {
             proxyWidth[0] = 0;
           }
@@ -324,7 +325,7 @@ public class Mipmap {
       }
     }
     int[] maxsize = new int[1];
-    gl.glGetIntegerv( GL2.GL_MAX_TEXTURE_SIZE, maxsize , 0);
+    gl.glGetIntegerv( GL2GL3.GL_MAX_TEXTURE_SIZE, maxsize , 0);
     // clamp user's texture sizes to maximum sizes, if necessary
     newWidth[0] = nearestPower( width );
     if( newWidth[0] > maxsize[0] ) {
@@ -355,13 +356,13 @@ public class Mipmap {
       assert( depthAtLevelOne > 0 );
       
       // does width x height x depth at level 1 & all their mipmaps fit?
-      if( target == GL2.GL_TEXTURE_3D || target == GL2.GL_PROXY_TEXTURE_3D ) {
-        proxyTarget = GL2.GL_PROXY_TEXTURE_3D;
-        gl.getGL2().glTexImage3D( proxyTarget, 1, internalFormat, widthAtLevelOne,
+      if( target == GL2GL3.GL_TEXTURE_3D || target == GL2GL3.GL_PROXY_TEXTURE_3D ) {
+        proxyTarget = GL2GL3.GL_PROXY_TEXTURE_3D;
+        gl.getGL2GL3().glTexImage3D( proxyTarget, 1, internalFormat, widthAtLevelOne,
                 heightAtLevelOne, depthAtLevelOne, 0, format, type, null );
       }
-      if(gl.isGL2()) {
-        gl.getGL2().glGetTexLevelParameteriv( proxyTarget, 1, GL2.GL_TEXTURE_WIDTH, proxyWidth, 0 );
+      if(gl.isGL2GL3()) {
+        gl.getGL2GL3().glGetTexLevelParameteriv( proxyTarget, 1, GL2GL3.GL_TEXTURE_WIDTH, proxyWidth, 0 );
       } else {
         proxyWidth[0] = 0;
       }
@@ -388,30 +389,30 @@ public class Mipmap {
     // Return the number of elements per grtoup of a specified gromat
     
     // If the type is packedpixels then answer is 1
-    if( type == GL2.GL_UNSIGNED_BYTE_3_3_2 ||
-        type == GL2.GL_UNSIGNED_BYTE_2_3_3_REV ||
-        type == GL2.GL_UNSIGNED_SHORT_5_6_5 ||
-        type == GL2.GL_UNSIGNED_SHORT_5_6_5_REV ||
-        type == GL2.GL_UNSIGNED_SHORT_4_4_4_4 ||
-        type == GL2.GL_UNSIGNED_SHORT_4_4_4_4_REV ||
-        type == GL2.GL_UNSIGNED_SHORT_5_5_5_1 ||
-        type == GL2.GL_UNSIGNED_SHORT_1_5_5_5_REV ||
-        type == GL2.GL_UNSIGNED_INT_8_8_8_8 ||
-        type == GL2.GL_UNSIGNED_INT_8_8_8_8_REV ||
-        type == GL2.GL_UNSIGNED_INT_10_10_10_2 ||
-        type == GL2.GL_UNSIGNED_INT_2_10_10_10_REV ) {
+    if( type == GL2GL3.GL_UNSIGNED_BYTE_3_3_2 ||
+        type == GL2GL3.GL_UNSIGNED_BYTE_2_3_3_REV ||
+        type == GL2GL3.GL_UNSIGNED_SHORT_5_6_5 ||
+        type == GL2GL3.GL_UNSIGNED_SHORT_5_6_5_REV ||
+        type == GL2GL3.GL_UNSIGNED_SHORT_4_4_4_4 ||
+        type == GL2GL3.GL_UNSIGNED_SHORT_4_4_4_4_REV ||
+        type == GL2GL3.GL_UNSIGNED_SHORT_5_5_5_1 ||
+        type == GL2GL3.GL_UNSIGNED_SHORT_1_5_5_5_REV ||
+        type == GL2GL3.GL_UNSIGNED_INT_8_8_8_8 ||
+        type == GL2GL3.GL_UNSIGNED_INT_8_8_8_8_REV ||
+        type == GL2GL3.GL_UNSIGNED_INT_10_10_10_2 ||
+        type == GL2GL3.GL_UNSIGNED_INT_2_10_10_10_REV ) {
           return( 1 );
     }
     
     // Types are not packed pixels so get elements per group
     switch( format ) {
-      case( GL2.GL_RGB ):
-      case( GL2.GL_BGR ):
+      case( GL2GL3.GL_RGB ):
+      case( GL2GL3.GL_BGR ):
         return( 3 );
-      case( GL2.GL_LUMINANCE_ALPHA ):
+      case( GL2GL3.GL_LUMINANCE_ALPHA ):
         return( 2 );
-      case( GL2.GL_RGBA ):
-      case( GL2.GL_BGRA ):
+      case( GL2GL3.GL_RGBA ):
+      case( GL2GL3.GL_BGRA ):
         return( 4 );
       default:
         return( 1 );
@@ -423,27 +424,27 @@ public class Mipmap {
     
     switch( type ) {
       case( GL2.GL_BITMAP ):
-      case( GL2.GL_BYTE ):
-      case( GL2.GL_UNSIGNED_BYTE ):
-      case( GL2.GL_UNSIGNED_BYTE_3_3_2 ):
-      case( GL2.GL_UNSIGNED_BYTE_2_3_3_REV ):
+      case( GL2GL3.GL_BYTE ):
+      case( GL2GL3.GL_UNSIGNED_BYTE ):
+      case( GL2GL3.GL_UNSIGNED_BYTE_3_3_2 ):
+      case( GL2GL3.GL_UNSIGNED_BYTE_2_3_3_REV ):
         return( 1 );
-      case( GL2.GL_SHORT ):
-      case( GL2.GL_UNSIGNED_SHORT ):
-      case( GL2.GL_UNSIGNED_SHORT_5_6_5 ):
-      case( GL2.GL_UNSIGNED_SHORT_5_6_5_REV ):
-      case( GL2.GL_UNSIGNED_SHORT_4_4_4_4 ):
-      case( GL2.GL_UNSIGNED_SHORT_4_4_4_4_REV ):
-      case( GL2.GL_UNSIGNED_SHORT_5_5_5_1 ):
-      case( GL2.GL_UNSIGNED_SHORT_1_5_5_5_REV ):
+      case( GL2GL3.GL_SHORT ):
+      case( GL2GL3.GL_UNSIGNED_SHORT ):
+      case( GL2GL3.GL_UNSIGNED_SHORT_5_6_5 ):
+      case( GL2GL3.GL_UNSIGNED_SHORT_5_6_5_REV ):
+      case( GL2GL3.GL_UNSIGNED_SHORT_4_4_4_4 ):
+      case( GL2GL3.GL_UNSIGNED_SHORT_4_4_4_4_REV ):
+      case( GL2GL3.GL_UNSIGNED_SHORT_5_5_5_1 ):
+      case( GL2GL3.GL_UNSIGNED_SHORT_1_5_5_5_REV ):
         return( 2 );
-      case( GL2.GL_INT ):
-      case( GL2.GL_UNSIGNED_INT ):
-      case( GL2.GL_UNSIGNED_INT_8_8_8_8 ):
-      case( GL2.GL_UNSIGNED_INT_8_8_8_8_REV ):
-      case( GL2.GL_UNSIGNED_INT_10_10_10_2 ):
-      case( GL2.GL_UNSIGNED_INT_2_10_10_10_REV ):
-      case( GL2.GL_FLOAT ):
+      case( GL2GL3.GL_INT ):
+      case( GL2GL3.GL_UNSIGNED_INT ):
+      case( GL2GL3.GL_UNSIGNED_INT_8_8_8_8 ):
+      case( GL2GL3.GL_UNSIGNED_INT_8_8_8_8_REV ):
+      case( GL2GL3.GL_UNSIGNED_INT_10_10_10_2 ):
+      case( GL2GL3.GL_UNSIGNED_INT_2_10_10_10_REV ):
+      case( GL2GL3.GL_FLOAT ):
         return( 4 );
       default:
         return( 4 );
@@ -451,7 +452,7 @@ public class Mipmap {
   }
   
   public static boolean is_index( int format ) {
-    return( format == GL2.GL_COLOR_INDEX || format == GL2.GL_STENCIL_INDEX );
+    return( format == GL2.GL_COLOR_INDEX || format == GL2GL3.GL_STENCIL_INDEX );
   }
   
   /* Compute memory required for internal packed array of data of given type and format. */
@@ -483,67 +484,67 @@ public class Mipmap {
   
   public static void retrieveStoreModes( GL gl, PixelStorageModes psm ) {
     int[] a = new int[1];
-    gl.glGetIntegerv( GL2.GL_UNPACK_ALIGNMENT, a, 0);
+    gl.glGetIntegerv( GL2GL3.GL_UNPACK_ALIGNMENT, a, 0);
     psm.setUnpackAlignment( a[0] );
-    gl.glGetIntegerv( GL2.GL_UNPACK_ROW_LENGTH, a, 0);
+    gl.glGetIntegerv( GL2GL3.GL_UNPACK_ROW_LENGTH, a, 0);
     psm.setUnpackRowLength( a[0] );
-    gl.glGetIntegerv( GL2.GL_UNPACK_SKIP_ROWS, a, 0);
+    gl.glGetIntegerv( GL2GL3.GL_UNPACK_SKIP_ROWS, a, 0);
     psm.setUnpackSkipRows( a[0] );
-    gl.glGetIntegerv( GL2.GL_UNPACK_SKIP_PIXELS, a, 0);
+    gl.glGetIntegerv( GL2GL3.GL_UNPACK_SKIP_PIXELS, a, 0);
     psm.setUnpackSkipPixels( a[0] );
-    gl.glGetIntegerv( GL2.GL_UNPACK_LSB_FIRST, a, 0);
+    gl.glGetIntegerv( GL2GL3.GL_UNPACK_LSB_FIRST, a, 0);
     psm.setUnpackLsbFirst( ( a[0] == 1 ) );
-    gl.glGetIntegerv( GL2.GL_UNPACK_SWAP_BYTES, a, 0);
+    gl.glGetIntegerv( GL2GL3.GL_UNPACK_SWAP_BYTES, a, 0);
     psm.setUnpackSwapBytes( ( a[0] == 1 ) );
     
-    gl.glGetIntegerv( GL2.GL_PACK_ALIGNMENT, a, 0);
+    gl.glGetIntegerv( GL2GL3.GL_PACK_ALIGNMENT, a, 0);
     psm.setPackAlignment( a[0] );
-    gl.glGetIntegerv( GL2.GL_PACK_ROW_LENGTH, a, 0);
+    gl.glGetIntegerv( GL2GL3.GL_PACK_ROW_LENGTH, a, 0);
     psm.setPackRowLength( a[0] );
-    gl.glGetIntegerv( GL2.GL_PACK_SKIP_ROWS, a, 0);
+    gl.glGetIntegerv( GL2GL3.GL_PACK_SKIP_ROWS, a, 0);
     psm.setPackSkipRows( a[0] );
-    gl.glGetIntegerv( GL2.GL_PACK_SKIP_PIXELS, a, 0);
+    gl.glGetIntegerv( GL2GL3.GL_PACK_SKIP_PIXELS, a, 0);
     psm.setPackSkipPixels( a[0] );
-    gl.glGetIntegerv( GL2.GL_PACK_LSB_FIRST, a, 0);
+    gl.glGetIntegerv( GL2GL3.GL_PACK_LSB_FIRST, a, 0);
     psm.setPackLsbFirst( ( a[0] == 1 ) );
-    gl.glGetIntegerv( GL2.GL_PACK_SWAP_BYTES, a, 0);
+    gl.glGetIntegerv( GL2GL3.GL_PACK_SWAP_BYTES, a, 0);
     psm.setPackSwapBytes( ( a[0] == 1 ) );
   }
   
   public static void retrieveStoreModes3D( GL gl, PixelStorageModes psm ) {
     int[] a = new int[1];
-    gl.glGetIntegerv( GL2.GL_UNPACK_ALIGNMENT, a, 0);
+    gl.glGetIntegerv( GL2GL3.GL_UNPACK_ALIGNMENT, a, 0);
     psm.setUnpackAlignment( a[0] );
-    gl.glGetIntegerv( GL2.GL_UNPACK_ROW_LENGTH, a, 0);
+    gl.glGetIntegerv( GL2GL3.GL_UNPACK_ROW_LENGTH, a, 0);
     psm.setUnpackRowLength( a[0] );
-    gl.glGetIntegerv( GL2.GL_UNPACK_SKIP_ROWS, a, 0);
+    gl.glGetIntegerv( GL2GL3.GL_UNPACK_SKIP_ROWS, a, 0);
     psm.setUnpackSkipRows( a[0] );
-    gl.glGetIntegerv( GL2.GL_UNPACK_SKIP_PIXELS, a, 0);
+    gl.glGetIntegerv( GL2GL3.GL_UNPACK_SKIP_PIXELS, a, 0);
     psm.setUnpackSkipPixels( a[0] );
-    gl.glGetIntegerv( GL2.GL_UNPACK_LSB_FIRST, a, 0);
+    gl.glGetIntegerv( GL2GL3.GL_UNPACK_LSB_FIRST, a, 0);
     psm.setUnpackLsbFirst( ( a[0] == 1 ) );
-    gl.glGetIntegerv( GL2.GL_UNPACK_SWAP_BYTES, a, 0);
+    gl.glGetIntegerv( GL2GL3.GL_UNPACK_SWAP_BYTES, a, 0);
     psm.setUnpackSwapBytes( ( a[0] == 1 ) );
-    gl.glGetIntegerv( GL2.GL_UNPACK_SKIP_IMAGES, a, 0);
+    gl.glGetIntegerv( GL2GL3.GL_UNPACK_SKIP_IMAGES, a, 0);
     psm.setUnpackSkipImages( a[0] );
-    gl.glGetIntegerv( GL2.GL_UNPACK_IMAGE_HEIGHT, a, 0);
+    gl.glGetIntegerv( GL2GL3.GL_UNPACK_IMAGE_HEIGHT, a, 0);
     psm.setUnpackImageHeight( a[0] );
     
-    gl.glGetIntegerv( GL2.GL_PACK_ALIGNMENT, a, 0);
+    gl.glGetIntegerv( GL2GL3.GL_PACK_ALIGNMENT, a, 0);
     psm.setPackAlignment( a[0] );
-    gl.glGetIntegerv( GL2.GL_PACK_ROW_LENGTH, a, 0);
+    gl.glGetIntegerv( GL2GL3.GL_PACK_ROW_LENGTH, a, 0);
     psm.setPackRowLength( a[0] );
-    gl.glGetIntegerv( GL2.GL_PACK_SKIP_ROWS, a, 0);
+    gl.glGetIntegerv( GL2GL3.GL_PACK_SKIP_ROWS, a, 0);
     psm.setPackSkipRows( a[0] );
-    gl.glGetIntegerv( GL2.GL_PACK_SKIP_PIXELS, a, 0 );
+    gl.glGetIntegerv( GL2GL3.GL_PACK_SKIP_PIXELS, a, 0 );
     psm.setPackSkipPixels( a[0] );
-    gl.glGetIntegerv( GL2.GL_PACK_LSB_FIRST, a, 0 );
+    gl.glGetIntegerv( GL2GL3.GL_PACK_LSB_FIRST, a, 0 );
     psm.setPackLsbFirst( ( a[0] == 1 ) );
-    gl.glGetIntegerv( GL2.GL_PACK_SWAP_BYTES, a, 0 );
+    gl.glGetIntegerv( GL2GL3.GL_PACK_SWAP_BYTES, a, 0 );
     psm.setPackSwapBytes( ( a[0] == 1 ) );
-    gl.glGetIntegerv( GL2.GL_PACK_SKIP_IMAGES, a, 0 );
+    gl.glGetIntegerv( GL2GL3.GL_PACK_SKIP_IMAGES, a, 0 );
     psm.setPackSkipImages( a[0] );
-    gl.glGetIntegerv( GL2.GL_PACK_IMAGE_HEIGHT, a, 0 );
+    gl.glGetIntegerv( GL2GL3.GL_PACK_IMAGE_HEIGHT, a, 0 );
     psm.setPackImageHeight( a[0] );
   }
   
@@ -574,8 +575,8 @@ public class Mipmap {
       if( !isLegalFormatForPackedPixelType( format, typeout ) ) {
         return( GLU.GLU_INVALID_OPERATION );
       }
-      beforeimage = InternalBufferUtil.nativeOrder(ByteBuffer.allocateDirect( image_size( widthin, heightin, format, GL2.GL_UNSIGNED_SHORT ) ));
-      afterimage = InternalBufferUtil.nativeOrder(ByteBuffer.allocateDirect( image_size( widthout, heightout, format, GL2.GL_UNSIGNED_SHORT ) ));
+      beforeimage = InternalBufferUtil.nativeOrder(ByteBuffer.allocateDirect( image_size( widthin, heightin, format, GL2GL3.GL_UNSIGNED_SHORT ) ));
+      afterimage = InternalBufferUtil.nativeOrder(ByteBuffer.allocateDirect( image_size( widthout, heightout, format, GL2GL3.GL_UNSIGNED_SHORT ) ));
       if( beforeimage == null || afterimage == null ) {
         return( GLU.GLU_OUT_OF_MEMORY );
       }

@@ -378,6 +378,10 @@ public abstract class GLContext {
       return ctxMajorVersion>=1 && CTX_PROFILE_COMPAT==(ctxOptions & (CTX_PROFILE_COMPAT|CTX_PROFILE_ES));
   }
 
+  public final boolean isGL2GL3() {
+      return isGL2() || isGL3();
+  }
+
   public final boolean isGLES1() {
       return ctxMajorVersion==1 && CTX_PROFILE_ES==(ctxOptions & CTX_PROFILE_ES);
   }
@@ -395,11 +399,7 @@ public abstract class GLContext {
   }
 
   public final boolean isGL2ES2() {
-      return isGL2() || isGL3() || isGLES2() ;
-  }
-
-  public final boolean isGL2GL3() {
-      return isGL2() || isGL3();
+      return isGL2GL3() || isGLES2() ;
   }
 
   public final boolean hasGLSL() {

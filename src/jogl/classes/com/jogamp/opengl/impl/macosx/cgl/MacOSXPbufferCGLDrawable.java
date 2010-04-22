@@ -112,7 +112,7 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
     GLCapabilities capabilities = (GLCapabilities)config.getChosenCapabilities();
     GLProfile glProfile = capabilities.getGLProfile();
     int renderTarget;
-    if (glProfile.isGL2() && capabilities.getPbufferRenderToTextureRectangle()) {
+    if (glProfile.isGL2GL3() && capabilities.getPbufferRenderToTextureRectangle()) {
       renderTarget = GL2.GL_TEXTURE_RECTANGLE;
     } else {
       int w = getNextPowerOf2(getWidth());
@@ -132,7 +132,7 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
         throw new GLException("Floating-point support (GL_APPLE_float_pixels) not available");
         }
       */
-      if(glProfile.isGL2()) {
+      if(glProfile.isGL2GL3()) {
         switch (capabilities.getRedBits()) {
         case 16: internalFormat = GL2.GL_RGBA_FLOAT16_APPLE; break;
         case 32: internalFormat = GL2.GL_RGBA_FLOAT32_APPLE; break;

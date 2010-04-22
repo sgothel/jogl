@@ -221,7 +221,7 @@ public class ShaderUtil {
                         v = true;
                     }
                     shaderCompilerAvailable = new Boolean(v);
-                } else if( gl.isGL2() || gl.isGL2ES2() ) {
+                } else if( gl.isGL2ES2() ) {
                     shaderCompilerAvailable = new Boolean(true);
                 } else {
                     throw new GLException("Invalid OpenGL profile");
