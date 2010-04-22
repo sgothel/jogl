@@ -1,0 +1,22 @@
+// rules for automatic jogl 1.1.1 -> jogl 2 refactorings
+
+//'JOGL2 API change: javax.media.opengl.GLCanvas -> javax.media.opengl.awt.GLCanvas':
+//javax.media.opengl.GLCanvas=>javax.media.opengl.awt.GLCanvas;;
+
+//'JOGL2 API change: javax.media.opengl.GLJPanel -> javax.media.opengl.awt.GLJPanel':
+//javax.media.opengl.GLJPanel=>javax.media.opengl.awt.GLJPanel;;
+
+'JOGL2 API change: javax.media.opengl.GL -> javax.media.opengl.GL2':
+javax.media.opengl.GL=>javax.media.opengl.GL2;;
+
+'JOGL2 API change: new javax.media.opengl.GLCapabilities(javax.media.opengl.GLProfile)':
+new javax.media.opengl.GLCapabilities()=>
+new javax.media.opengl.GLCapabilities(javax.media.opengl.GLProfile.get(javax.media.opengl.GLProfile.GL2));;
+
+'JOGL2 API change: GL gl = drawable.getGL() -> GL2 gl = drawable.getGL().getGL2()':
+$d.getGL() :: $d instanceof javax.media.opengl.GLAutoDrawable=>
+$d.getGL().getGL2();; 
+
+//public void init($D $drawable)=>
+//public void dispose(GLAutoDrawable drawable){}
+//public void init($D $drawable);;

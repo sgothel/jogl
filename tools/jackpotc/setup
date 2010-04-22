@@ -1,0 +1,5 @@
+#!/bin/bash
+mkdir lib
+cd ./lib
+wget http://bitbucket.org/jlahoda/jackpot30/downloads/jackpotc.zip
+unzip -oj jackpotc.zip
