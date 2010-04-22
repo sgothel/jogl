@@ -308,8 +308,8 @@ public class TGAImage {
         GL gl = GLContext.getCurrentGL();
         if (header.pixelDepth() == 24) {
             bpp=3;
-            if(gl.isGL2()) {
-                format = GL2.GL_BGR;
+            if(gl.isGL2GL3()) {
+                format = GL2GL3.GL_BGR;
             } else {
                 format = GL.GL_RGB;
                 swapBGR(tmpData, rawWidth, header.height(), bpp);
@@ -318,8 +318,8 @@ public class TGAImage {
             assert header.pixelDepth() == 32;
             bpp=4;
 
-            if(gl.isGL2()) {
-                format = GL2.GL_BGRA;
+            if(gl.isGL2GL3()) {
+                format = GL2GL3.GL_BGRA;
             } else {
                 format = GL.GL_RGBA;
                 swapBGR(tmpData, rawWidth, header.height(), bpp);

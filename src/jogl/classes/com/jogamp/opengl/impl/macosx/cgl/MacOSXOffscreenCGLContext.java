@@ -51,7 +51,7 @@ public class MacOSXOffscreenCGLContext extends MacOSXPbufferCGLContext
 	
   public int getOffscreenContextPixelDataType() {
     GL gl = getGL();
-    return gl.isGL2()?GL2.GL_UNSIGNED_INT_8_8_8_8_REV:GL.GL_UNSIGNED_SHORT_5_5_5_1;
+    return gl.isGL2GL3()?GL2GL3.GL_UNSIGNED_INT_8_8_8_8_REV:GL.GL_UNSIGNED_SHORT_5_5_5_1;
   }
 
   public int getOffscreenContextReadBuffer() {

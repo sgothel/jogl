@@ -80,7 +80,7 @@ public class MacOSXPbufferCGLContext extends MacOSXCGLContext {
       DefaultGraphicsConfiguration config = (DefaultGraphicsConfiguration) drawable.getNativeWindow().getGraphicsConfiguration().getNativeGraphicsConfiguration();
       GLCapabilities capabilities = (GLCapabilities)config.getChosenCapabilities();
       GL gl = getGL();
-      boolean rect = gl.isGL2() && capabilities.getPbufferRenderToTextureRectangle();
+      boolean rect = gl.isGL2GL3() && capabilities.getPbufferRenderToTextureRectangle();
       if (rect) {
         if (!gl.isExtensionAvailable("GL_EXT_texture_rectangle")) {
           System.err.println("MacOSXPbufferCGLContext: WARNING: GL_EXT_texture_rectangle extension not " +

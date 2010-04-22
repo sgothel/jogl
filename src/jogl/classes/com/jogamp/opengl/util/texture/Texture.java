@@ -487,7 +487,7 @@ public class Texture {
         }
 
         if (!done && preferTexRect(gl) && !isPOT &&
-            haveTexRect(gl) && !data.isDataCompressed() && gl.isGL2()) {
+            haveTexRect(gl) && !data.isDataCompressed() && !gl.isGL3() && !gl.isGLES()) {
             // GL_ARB_texture_rectangle does not work for compressed textures
             if (DEBUG) {
                 System.err.println("Using GL_ARB_texture_rectangle preferentially on this hardware");
@@ -514,7 +514,7 @@ public class Texture {
             done = true;
         }
 
-        if (!done && haveTexRect(gl) && !data.isDataCompressed() && gl.isGL2()) {
+        if (!done && haveTexRect(gl) && !data.isDataCompressed() && !gl.isGL3() && !gl.isGLES()) {
             // GL_ARB_texture_rectangle does not work for compressed textures
             if (DEBUG) {
                 System.err.println("Using GL_ARB_texture_rectangle");
@@ -1013,10 +1013,10 @@ public class Texture {
             int[] skipRows = { 0 };
             int[] skipPixels = { 0 };
             gl.glGetIntegerv(GL.GL_UNPACK_ALIGNMENT,   align,      0); // save alignment
-            if(gl.isGL2()) {
-                gl.glGetIntegerv(GL2.GL_UNPACK_ROW_LENGTH,  rowLength,  0); // save row length
-                gl.glGetIntegerv(GL2.GL_UNPACK_SKIP_ROWS,   skipRows,   0); // save skipped rows
-                gl.glGetIntegerv(GL2.GL_UNPACK_SKIP_PIXELS, skipPixels, 0); // save skipped pixels
+            if(gl.isGL2GL3()) {
+                gl.glGetIntegerv(GL2GL3.GL_UNPACK_ROW_LENGTH,  rowLength,  0); // save row length
+                gl.glGetIntegerv(GL2GL3.GL_UNPACK_SKIP_ROWS,   skipRows,   0); // save skipped rows
+                gl.glGetIntegerv(GL2GL3.GL_UNPACK_SKIP_PIXELS, skipPixels, 0); // save skipped pixels
             }
             gl.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, data.getAlignment());
             if (DEBUG && VERBOSE) {
@@ -1028,10 +1028,10 @@ public class Texture {
                 System.out.println("width       = " + width);
                 System.out.println("height      = " + height);
             }
-            if(gl.isGL2()) {
-                gl.glPixelStorei(GL2.GL_UNPACK_ROW_LENGTH, rowlen);
-                gl.glPixelStorei(GL2.GL_UNPACK_SKIP_ROWS, srcy);
-                gl.glPixelStorei(GL2.GL_UNPACK_SKIP_PIXELS, srcx);
+            if(gl.isGL2GL3()) {
+                gl.glPixelStorei(GL2GL3.GL_UNPACK_ROW_LENGTH, rowlen);
+                gl.glPixelStorei(GL2GL3.GL_UNPACK_SKIP_ROWS, srcy);
+                gl.glPixelStorei(GL2GL3.GL_UNPACK_SKIP_PIXELS, srcx);
             } else {
                 if ( rowlen!=0 && rowlen!=width &&
                      srcy!=0 && srcx!=0 ) {
@@ -1044,10 +1044,10 @@ public class Texture {
                                data.getPixelFormat(), data.getPixelType(),
                                buffer);
             gl.glPixelStorei(GL.GL_UNPACK_ALIGNMENT,   align[0]);      // restore alignment
-            if(gl.isGL2()) {
-                gl.glPixelStorei(GL2.GL_UNPACK_ROW_LENGTH,  rowLength[0]);  // restore row length
-                gl.glPixelStorei(GL2.GL_UNPACK_SKIP_ROWS,   skipRows[0]);   // restore skipped rows
-                gl.glPixelStorei(GL2.GL_UNPACK_SKIP_PIXELS, skipPixels[0]); // restore skipped pixels
+            if(gl.isGL2GL3()) {
+                gl.glPixelStorei(GL2GL3.GL_UNPACK_ROW_LENGTH,  rowLength[0]);  // restore row length
+                gl.glPixelStorei(GL2GL3.GL_UNPACK_SKIP_ROWS,   skipRows[0]);   // restore skipped rows
+                gl.glPixelStorei(GL2GL3.GL_UNPACK_SKIP_PIXELS, skipPixels[0]); // restore skipped pixels
             }
         }
     }
