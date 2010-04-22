@@ -67,6 +67,15 @@ public class GLJNILibLoader extends JNILibLoaderBase {
     });
   }
 
+  public static void loadGLDesktopES12() {
+    AccessController.doPrivileged(new PrivilegedAction() {
+      public Object run() {
+        loadLibrary("jogl_gl2es12", nativeOSPreload, true);
+        return null;
+      }
+    });
+  }
+
   public static void loadES2() {
     AccessController.doPrivileged(new PrivilegedAction() {
       public Object run() {

@@ -113,9 +113,7 @@ public final class ExtensionAvailabilityCache {
 
       boolean useGetStringi = false;
 
-      if ( context.getGLVersionMajor() > 3 ||
-           ( context.getGLVersionMajor() == 3 && context.getGLVersionMinor() >= 0 ) ||
-           gl.isGL3() ) {
+      if ( gl.isGL2GL3() ) {
           if ( ! gl.isFunctionAvailable("glGetStringi") ) {
             if(DEBUG) {
                 System.err.println("GLContext: GL >= 3.1 usage, but no glGetStringi");

@@ -104,6 +104,9 @@
         <property name="java.part.cgl"
                   value="com/jogamp/opengl/impl/macosx/cgl/*"/>
 
+        <property name="java.part.gl2es12"
+                  value="com/jogamp/opengl/impl/gl2es12/**"/>
+
         <property name="java.part.gldesktop"
                   value="com/jogamp/opengl/impl/**/gl2/** com/jogamp/opengl/impl/**/gl3/** com/jogamp/opengl/impl/**/gl4/**"/>
 
@@ -517,6 +520,18 @@
         </gluegen>
     </target>
 
+    <target name="java.generate.gl2es12">
+        <echo message="Generating GL2ES12 implementation" />
+        <antcall target="java.generate.copy2temp" inheritRefs="true" />
+        <gluegen src="${stub.includes.opengl}/gl2es12.c" 
+                 outputRootDir="${build.jogl}"
+                 config="${config.jogl}/gl-gl2es12.cfg"
+                 includeRefid="stub.includes.fileset.all.gldesktop"
+                 emitter="com.sun.gluegen.opengl.GLEmitter">
+            <classpath refid="gluegen.classpath" />
+        </gluegen>
+    </target>  
+
     <target name="java.generate.gles1">
         <echo message="Generating GLES1 interface and implementation" />
         <antcall target="java.generate.copy2temp" inheritRefs="true" />
@@ -541,7 +556,7 @@
         </gluegen>
     </target>
 
-    <target name="java.generate.gl.all" depends="java.generate.gl_if, java.generate.gl2_es1_if, java.generate.gl2_es2_if, java.generate.gl2_gl3_if, java.generate.gl2, java.generate.gl3, java.generate.gl3bc, java.generate.gl4, java.generate.gl4bc, java.generate.gles1, java.generate.gles2"/>
+    <target name="java.generate.gl.all" depends="java.generate.gl_if, java.generate.gl2_es1_if, java.generate.gl2_es2_if, java.generate.gl2_gl3_if, java.generate.gl2, java.generate.gl3, java.generate.gl3bc, java.generate.gl4, java.generate.gl4bc, java.generate.gl2es12, java.generate.gles1, java.generate.gles2"/>
 
     <!-- target name="java.generate.gl.nsig" if="gluegen.nsig">
         <echo message="Generating GL interface and implementation" />
@@ -777,6 +792,21 @@
                   targetfile="${src.generated.java}/javax/media/opengl/DebugGLES2.java" />
 
     </target>        
+
+    <target name="java.generate.composable.pipeline.check.gl2es12">
+        <!-- Blow away the DebugGL*.java and TraceGL*.java sources if GL*.class has changed
+             (the uptodate element doesn't support arbitrary source and destination files) -->
+        <dependset>
+            <srcfilelist dir="${classes}/javax/media/opengl" files="GL2ES12.class" />
+            <targetfileset dir="${src.generated.java}/javax/media/opengl"
+                           includes="DebugGL2ES12.java,TraceGL2ES12.java" />
+        </dependset>
+                           
+        <!-- Now choose one of the two to test to see if we have to regenerate -->
+        <uptodate property="java.generate.composable.pipeline.skip.gl2es12"
+                  srcfile="${classes}/javax/media/opengl/GL2ES12.class"
+                  targetfile="${src.generated.java}/javax/media/opengl/DebugGL2ES12.java" />
+    </target>   
 
     <target name="java.generate.composable.pipeline.check.gl2">
         <!-- Blow away the DebugGL*.java and TraceGL*.java sources if GL*.class has changed
@@ -1286,6 +1316,22 @@
           <include name="${rootrel.generated.c.jogl}/Windows/WGL*.c" if="isWindows"/>
         </patternset>
 
+        <patternset id="c.src.files.jogl.gl2es12">
+          <include name="${rootrel.src.c}/macosx/MacOSXCustomCGLCode.c" if="isOSX"/>
+          <include name="${rootrel.src.c}/macosx/MacOSXWindowSystemInterface.m" if="isOSX"/>
+          <include name="${rootrel.src.c}/macosx/ContextUpdater.m" if="isOSX"/>
+          <include name="${rootrel.src.c}/GLXGetProcAddressARB.c" if="isX11"/>
+          <include name="${rootrel.src.c.openmax}/omx_tool.c"  if="useOpenMAX"/>
+          <include name="${rootrel.src.c.openmax}/com_jogamp_openmax_OMXInstance.c"  if="useOpenMAX"/>
+
+          <include name="${rootrel.generated.c.jogl}/gl2es12/GL2ES12Impl_JNI.c"/>
+          <!--include name="${rootrel.generated.c.jogl}/GLU_JNI.c"/ EMPTY -->
+          <!--include name="${rootrel.generated.c.jogl}/gl2es12/GLUgl2es12_JNI.c"/ SKIPPED -->
+          <include name="${rootrel.generated.c.jogl}/X11/GLX*.c" if="isX11"/>
+          <include name="${rootrel.generated.c.jogl}/MacOSX/CGL*.c" if="isOSX"/>
+          <include name="${rootrel.generated.c.jogl}/Windows/WGL*.c" if="isWindows"/>
+        </patternset>
+
         <patternset id="c.src.files.jogl.es2">
           <include name="${rootrel.src.c}/GLXGetProcAddressARB.c" if="isX11"/>
           <include name="${rootrel.src.c.openmax}/omx_tool.c"  if="useOpenMAX"/>
@@ -1392,6 +1438,13 @@
                linker.cfg.id="${linker.cfg.id.gl2}"/>
     </target>
 
+    <target name="c.build.jogl.gl2es12" unless="setup.nodesktop">
+      <c.build c.compiler.src.files="c.src.files.jogl.gl2es12"
+               output.lib.name="jogl_gl2es12"
+               compiler.cfg.id="${compiler.cfg.id}"
+               linker.cfg.id="${linker.cfg.id.gl2}"/>
+    </target>
+
     <target name="c.build.jogl.es2">
       <c.build c.compiler.src.files="c.src.files.jogl.es2"
                output.lib.name="jogl_es2"
@@ -1421,11 +1474,12 @@
       <!-- exec mt, the Microsoft Manifest Tool, to include DLL manifests in order to resolve the location of msvcr80.dll -->
       <msvc.manifest objdir="${obj.jogl}" dllname="jogl_es1" />
       <msvc.manifest objdir="${obj.jogl}" dllname="jogl_es2" />
+      <msvc.manifest objdir="${obj.jogl}" dllname="jogl_gl2es12" />
       <msvc.manifest objdir="${obj.jogl}" dllname="jogl_desktop" />
       <antcall target="c.manifest.cg" inheritRefs="true" />
     </target>
 
-    <target name="c.build.jogl" depends="c.configure,c.build.jogl.prepare,c.build.jogl.desktop,c.build.jogl.es2,c.build.jogl.es1,c.build.jogl.cg">
+    <target name="c.build.jogl" depends="c.configure,c.build.jogl.prepare,c.build.jogl.gl2es12,c.build.jogl.desktop,c.build.jogl.es2,c.build.jogl.es1,c.build.jogl.cg">
       <antcall target="gluegen.cpptasks.striplibs" inheritRefs="true">
           <param name="libdir" value="${obj.jogl}"/>
       </antcall>
@@ -1441,6 +1495,7 @@
         <fileset dir="${obj.jogl}">
           <include name="*_es1.${native.library.suffix-cdc}" />
           <include name="*_es2.${native.library.suffix-cdc}" />
+          <include name="*_gl2es12.${native.library.suffix-cdc}" />
         </fileset>
       </jar>
     </target>
@@ -1556,7 +1611,15 @@
         </jar>
     </target>
 
-    <target name="build-jars-es-cdc" depends="setup-manifestfile-cdc" unless="setup.noCDC">
+    <target name="build-jars-es-desktop-cdc" depends="setup-manifestfile-cdc,build-jars-os-desktop-cdc" unless="setup.nodesktop">
+        <jar manifest="${build.jogl}/tempversion-cdc" destfile="${jogl.gl2es12.cdc.jar}" filesonly="true">
+            <fileset dir="${classes-cdc}"
+                     includes="${java.part.gl2es12}, ${java.part.openmax}"
+                     excludes="${java.part.glugldesktop}"/>
+        </jar>
+    </target>
+
+    <target name="build-jars-es-cdc" depends="setup-manifestfile-cdc, build-jars-es-desktop-cdc" unless="setup.noCDC">
         <jar manifest="${build.jogl}/tempversion-cdc" destfile="${jogl.egl.cdc.jar}" filesonly="true">
             <fileset dir="${classes-cdc}"
                      includes="${java.part.egl}"
@@ -1602,6 +1665,7 @@
                 <include name="${java.part.openmax}" />
                 <!-- FIXME: this is temporary until we move these classes to another workspace -->
                 <include name="com/jogamp/**" />
+                <exclude name="${java.part.gl2es12}"/>
             </fileset>
             <fileset dir="${src.java}"
                      includes="${java.part.util.fixedfuncemu.shadercode}"/>
@@ -1611,7 +1675,7 @@
         <jar manifest="${build.jogl}/tempversion" destfile="${jogl.all-noawt.jar}" filesonly="true">
             <fileset dir="${classes}"
                 includes="javax/media/opengl/** com/jogamp/gluegen/runtime/** com/jogamp/opengl/** ${java.part.openmax} com/jogamp/**"
-                excludes="${java.part.awt} ${java.part.util.awt}">
+                excludes="${java.part.awt} ${java.part.util.awt} ${java.part.gl2es12}">
             </fileset>
             <fileset dir="${src.java}"
                      includes="${java.part.util.fixedfuncemu.shadercode}"/>
@@ -1620,7 +1684,7 @@
     <target name="build-jars-all-cdc" depends="setup-manifestfile">
         <jar manifest="${build.jogl}/tempversion-cdc" destfile="${jogl.all.cdc.jar}" filesonly="true">
             <fileset dir="${classes-cdc}"
-                     includes="${java.part.core} ${java.part.egl} ${java.part.glutess} ${java.part.glumipmap} ${java.part.openmax} ${java.part.sdk} ${java.part.glx} ${java.part.cgl} ${java.part.wgl} ${java.part.es1} ${java.part.es1.dbg} ${java.part.es2} ${java.part.es2.dbg} ${java.part.util} ${java.part.util.glsl} ${java.part.util.fixedfuncemu}"
+                     includes="${java.part.core} ${java.part.egl} ${java.part.glutess} ${java.part.glumipmap} ${java.part.openmax} ${java.part.sdk} ${java.part.glx} ${java.part.cgl} ${java.part.wgl} ${java.part.es1} ${java.part.es1.dbg} ${java.part.es2} ${java.part.es2.dbg} ${java.part.gl2es12} ${java.part.util} ${java.part.util.glsl} ${java.part.util.fixedfuncemu}"
                      excludes="${java.excludes.cdcfp}"/>
             <fileset dir="${src.java}"
                      includes="${java.part.util.fixedfuncemu.shadercode}"/>
@@ -1660,7 +1724,11 @@
         <jar manifest="${build.jogl}/tempversion" destfile="${jogl.gldesktop.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.gldesktop}, ${java.part.openmax}"
-                     excludes="${java.part.gldesktop.dbg}, ${java.part.glugldesktop}"/>
+                     excludes="${java.part.gldesktop.dbg}, ${java.part.glugldesktop}, ${java.part.gl2es12}"/>
+        </jar>
+        <jar manifest="${build.jogl}/tempversion" destfile="${jogl.gl2es12.jar}" filesonly="true">
+            <fileset dir="${classes}" includes="${java.part.gl2es12}, ${java.part.openmax}"
+                     excludes="${java.part.glugldesktop}"/>
         </jar>
 
         <!-- misc -->

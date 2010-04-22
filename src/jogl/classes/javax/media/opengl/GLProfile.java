@@ -63,29 +63,36 @@ public class GLProfile implements Cloneable {
     // Query platform available OpenGL implementation
     //
 
-    public static final boolean isGL4bcAvailable() { return hasGL4bcImpl; }
-    public static final boolean isGL4Available() { return hasGL4Impl; }
-    public static final boolean isGL3bcAvailable() { return hasGL3bcImpl; }
-    public static final boolean isGL3Available() { return hasGL3Impl; }
-    public static final boolean isGL2Available() { return hasGL2Impl; }
-    public static final boolean isGLES2Available() { return hasGLES2Impl; }
-    public static final boolean isGLES1Available() { return hasGLES1Impl; }
+    public static final boolean isGL4bcAvailable()   { return null != mappedProfiles.get(GL4bc); }
+    public static final boolean isGL4Available()     { return null != mappedProfiles.get(GL4); }
+    public static final boolean isGL3bcAvailable()   { return null != mappedProfiles.get(GL3bc); }
+    public static final boolean isGL3Available()     { return null != mappedProfiles.get(GL3); }
+    public static final boolean isGL2Available()     { return null != mappedProfiles.get(GL2); }
+    public static final boolean isGLES2Available()   { return null != mappedProfiles.get(GLES2); }
+    public static final boolean isGLES1Available()   { return null != mappedProfiles.get(GLES1); }
+    public static final boolean isGL2ES1Available()  { return null != mappedProfiles.get(GL2ES1); }
+    public static final boolean isGL2ES2Available()  { return null != mappedProfiles.get(GL2ES2); }
+
     public static final String glAvailabilityToString() {
         StringBuffer sb = new StringBuffer();
         sb.append("GLAvailability[Native[GL4bc ");
-        sb.append(hasGL4bcImpl);
+        sb.append(isGL4bcAvailable());
         sb.append(", GL4 ");
-        sb.append(hasGL4Impl);
+        sb.append(isGL4Available());
         sb.append(", GL3bc ");
-        sb.append(hasGL3bcImpl);
+        sb.append(isGL3bcAvailable());
         sb.append(", GL3 ");
-        sb.append(hasGL3Impl);
+        sb.append(isGL3Available());
         sb.append(", GL2 ");
-        sb.append(hasGL2Impl);
+        sb.append(isGL2Available());
+        sb.append(", GL2ES1 ");
+        sb.append(isGL2ES1Available());
         sb.append(", GLES1 ");
-        sb.append(hasGLES1Impl);
+        sb.append(isGLES1Available());
+        sb.append(", GL2ES2 ");
+        sb.append(isGL2ES2Available());
         sb.append(", GLES2 ");
-        sb.append(hasGLES2Impl);
+        sb.append(isGLES2Available());
         sb.append("], Profiles[");
         for(Iterator i=mappedProfiles.values().iterator(); i.hasNext(); ) {
             sb.append(((GLProfile)i.next()).toString());
@@ -344,6 +351,8 @@ public class GLProfile implements Cloneable {
              GL3.equals(profileImpl)   ||
              GL2.equals(profileImpl) ) {
             return "com.jogamp.opengl.impl.gl4.GL4bc";
+        } else if(GL2ES12.equals(profileImpl)) {
+            return "com.jogamp.opengl.impl.gl2es12.GL2ES12";
         } else if(GLES1.equals(profileImpl) || GL2ES1.equals(profileImpl)) {
             return "com.jogamp.opengl.impl.es1.GLES1";
         } else if(GLES2.equals(profileImpl) || GL2ES2.equals(profileImpl)) {
@@ -767,6 +776,10 @@ public class GLProfile implements Cloneable {
         return "GLProfile[" + profile + "/" + profileImpl + "]";
     }
 
+    // The intersection between desktop OpenGL and the union of the OpenGL ES profiles
+    // This is here only to avoid having separate GL2ES1Impl and GL2ES2Impl classes
+    private static final String GL2ES12 = "GL2ES12";
+
     private static final boolean isAWTAvailable;
     private static final boolean isAWTJOGLAvailable;
 
@@ -776,6 +789,7 @@ public class GLProfile implements Cloneable {
     private static /*final*/ boolean hasGL3bcImpl;
     private static /*final*/ boolean hasGL3Impl;
     private static /*final*/ boolean hasGL2Impl;
+    private static /*final*/ boolean hasGL2ES12Impl;
     private static /*final*/ boolean hasGLES2Impl;
     private static /*final*/ boolean hasGLES1Impl;
 
@@ -802,6 +816,7 @@ public class GLProfile implements Cloneable {
                              ReflectionUtil.isClassAvailable("javax.media.opengl.awt.GLCanvas") ; // JOGL
 
         boolean hasDesktopGL = false;
+        boolean hasDesktopGLES12 = false;
         boolean hasNativeOSFactory = false;
         Throwable t;
 
@@ -833,12 +848,37 @@ public class GLProfile implements Cloneable {
             }
         }
 
+        t=null;
+        try {
+            // See DRIHack.java for an explanation of why this is necessary
+            DRIHack.begin();
+            GLJNILibLoader.loadGLDesktopES12();
+            DRIHack.end();
+            hasDesktopGLES12 = true;
+        } catch (UnsatisfiedLinkError ule) {
+            t=ule;
+        } catch (SecurityException se) {
+            t=se;
+        } catch (NullPointerException npe) {
+            t=npe;
+        } catch (RuntimeException re) {
+            t=re;
+        }
+        if(null!=t) {
+            if (DEBUG) {
+                System.err.println("GLProfile.static Desktop GLES12 Library not available");
+                t.printStackTrace();
+            }
+        }
+
+
         hasGL234Impl   = hasDesktopGL && ReflectionUtil.isClassAvailable("com.jogamp.opengl.impl.gl4.GL4bcImpl");
         hasGL4bcImpl   = hasGL234Impl;
         hasGL4Impl     = hasGL234Impl;
         hasGL3bcImpl   = hasGL234Impl;
         hasGL3Impl     = hasGL234Impl;
         hasGL2Impl     = hasGL234Impl;
+        hasGL2ES12Impl = hasDesktopGLES12 && ReflectionUtil.isClassAvailable("com.jogamp.opengl.impl.gl2es12.GL2ES12Impl");
         mappedProfiles = computeProfileMap();
 
         //
@@ -849,7 +889,7 @@ public class GLProfile implements Cloneable {
         //   which will register at GLContext ..
         // 
 
-        if(hasDesktopGL) {
+        if(hasDesktopGL||hasDesktopGLES12) {
             // if successfull it has a shared dummy drawable and context created
             try {
                 hasNativeOSFactory = null != GLDrawableFactory.getFactoryImpl(GL2);
@@ -872,13 +912,15 @@ public class GLProfile implements Cloneable {
             hasGL4Impl     = false;
             hasGL3bcImpl   = false;
             hasGL3Impl     = false;
+            hasGL2ES12Impl = false;
             hasGL2Impl     = false;
         } else {
-            hasGL4bcImpl   = GLContext.isGL4bcAvailable();
-            hasGL4Impl     = GLContext.isGL4Available();
-            hasGL3bcImpl   = GLContext.isGL3bcAvailable();
-            hasGL3Impl     = GLContext.isGL3Available();
-            hasGL2Impl     = GLContext.isGL2Available();
+            hasGL4bcImpl   = hasGL4bcImpl   && GLContext.isGL4bcAvailable();
+            hasGL4Impl     = hasGL4Impl     && GLContext.isGL4Available();
+            hasGL3bcImpl   = hasGL3bcImpl   && GLContext.isGL3bcAvailable();
+            hasGL3Impl     = hasGL3Impl     && GLContext.isGL3Available();
+            hasGL2Impl     = hasGL2Impl     && GLContext.isGL2Available();
+            hasGL2ES12Impl = hasGL2ES12Impl && GLContext.isGL2Available();
         }
 
         boolean btest = false;
@@ -934,7 +976,7 @@ public class GLProfile implements Cloneable {
 
         mappedProfiles = computeProfileMap();
         if(null==defaultGLProfile) {
-            throw new GLException("No profile available: "+list2String(GL_PROFILE_LIST_ALL));
+            throw new GLException("No profile available: "+list2String(GL_PROFILE_LIST_ALL)+", "+glAvailabilityToString());
         }
 
         if (DEBUG) {
@@ -942,6 +984,7 @@ public class GLProfile implements Cloneable {
             System.err.println("GLProfile.static isAWTJOGLAvailable "+isAWTJOGLAvailable);
             System.err.println("GLProfile.static hasNativeOSFactory "+hasNativeOSFactory);
             System.err.println("GLProfile.static hasDesktopGL "+hasDesktopGL);
+            System.err.println("GLProfile.static hasDesktopGLES12 "+hasDesktopGLES12);
             System.err.println("GLProfile.static hasEGLDynLookup "+hasEGLDynLookup);
             System.err.println("GLProfile.static hasEGLDrawableFactory "+hasEGLDrawableFactory);
             System.err.println("GLProfile.static hasGL234Impl "+hasGL234Impl);
@@ -993,7 +1036,9 @@ public class GLProfile implements Cloneable {
      */
     private static String computeProfileImpl(String profile) {
         if (GL2ES1.equals(profile)) {
-            if(hasGL2Impl) {
+            if(hasGL2ES12Impl) {
+                return GL2ES12;
+            } else if(hasGL2Impl) {
                 return GL2;
             } else if(hasGL3bcImpl) {
                 return GL3bc;
@@ -1003,7 +1048,9 @@ public class GLProfile implements Cloneable {
                 return GLES1;
             }
         } else if (GL2ES2.equals(profile)) {
-            if(hasGL2Impl) {
+            if(hasGL2ES12Impl) {
+                return GL2ES12;
+            } else if(hasGL2Impl) {
                 return GL2;
             } else if(hasGL3Impl) {
                 return GL3;

@@ -602,10 +602,7 @@ public abstract class GLContextImpl extends GLContext {
   //
 
   private Object createInstance(GLProfile glp, String suffix, Class[] cstrArgTypes, Object[] cstrArgs) {
-    try {
-        return ReflectionUtil.createInstance(glp.getGLImplBaseClassName()+suffix, cstrArgTypes, cstrArgs);
-    } catch (JogampRuntimeException jre) { /* n/a .. */ }
-    return null;
+    return ReflectionUtil.createInstance(glp.getGLImplBaseClassName()+suffix, cstrArgTypes, cstrArgs);
   }
 
   /** Create the GL for this context. */

@@ -47,7 +47,7 @@ function listdeployment() {
     echo
 
     echo JOGL GL2ES12 NEWT 
-    report gluegen-rt.$JAR_SUFFIX nativewindow.all-noawt.$JAR_SUFFIX jogl.core.$JAR_SUFFIX jogl.util.$JAR_SUFFIX jogl.os.$OSS.$JAR_SUFFIX newt.all-noawt.$JAR_SUFFIX libgluegen-rt.so.gz libnewt.so.gz libnativewindow_$OSS.so.gz
+    report gluegen-rt.$JAR_SUFFIX nativewindow.all-noawt.$JAR_SUFFIX jogl.core.$JAR_SUFFIX jogl.util.$JAR_SUFFIX jogl.os.$OSS.$JAR_SUFFIX jogl.gl2es12.$JAR_SUFFIX newt.all-noawt.$JAR_SUFFIX libgluegen-rt.so.gz libjogl_gl2es12.so.gz libnewt.so.gz libnativewindow_$OSS.so.gz
     echo
 
     echo JOGL GL2 NEWT 
@@ -125,8 +125,8 @@ mkdir -p nope
 
 mv *.cdc.lst *.all*.lst nope/
 
-mv jogl.gldesktop.*.lst nope/
-echo duplicates - w/o gldesktop.*
+mv jogl.gl2es12.*.lst jogl.gldesktop.*.lst nope/
+echo duplicates - w/o gl2es12.* gldesktop.*
 echo
 sort jogl*.lst | uniq -d
 mv nope/* .

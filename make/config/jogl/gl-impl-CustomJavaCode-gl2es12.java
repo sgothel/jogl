@@ -15,21 +15,109 @@ public void setObjectTracker(GLObjectTracker tracker) {
 
 */
 
-
-public GL2Impl(GLProfile glp, GLContextImpl context) {
+public GL2ES12Impl(GLProfile glp, GLContextImpl context) {
   this._context = context; 
   this.bufferSizeTracker  = context.getBufferSizeTracker();
   this.bufferStateTracker = context.getBufferStateTracker();
   this.glStateTracker     = context.getGLStateTracker();
+  this.isGL2ES2 = glp.isGL2ES2();
   this.glProfile = glp;
 }
 
-/**
- * Provides platform-independent access to the wglAllocateMemoryNV /
- * glXAllocateMemoryNV extension.
- */
-public java.nio.ByteBuffer glAllocateMemoryNV(int arg0, float arg1, float arg2, float arg3) {
-  return _context.glAllocateMemoryNV(arg0, arg1, arg2, arg3);
+private boolean isGL2ES2;
+
+public final boolean isGL4bc() {
+    return false;
+}
+
+public final boolean isGL4() {
+    return false;
+}
+
+public final boolean isGL3bc() {
+    return false;
+}
+
+public final boolean isGL3() {
+    return false;
+}
+
+public final boolean isGL2() {
+    return false;
+}
+
+public final boolean isGLES1() {
+    return false;
+}
+
+public final boolean isGLES2() {
+    return false;
+}
+
+public final boolean isGLES() {
+    return false;
+}
+
+public final boolean isGL2ES1() {
+    return !isGL2ES2;
+}
+
+public final boolean isGL2ES2() {
+    return isGL2ES2;
+}
+
+public final boolean isGL2GL3() {
+    return false;
+}
+
+public final boolean hasGLSL() {
+    return isGL2ES2;
+}
+
+public final GL4bc getGL4bc() throws GLException {
+    throw new GLException("Not a GL4bc implementation");
+}
+
+public final GL4 getGL4() throws GLException {
+    throw new GLException("Not a GL4 implementation");
+}
+
+public final GL3bc getGL3bc() throws GLException {
+    throw new GLException("Not a GL3bc implementation");
+}
+
+public final GL3 getGL3() throws GLException {
+    throw new GLException("Not a GL3 implementation");
+}
+
+public final GL2 getGL2() throws GLException {
+    throw new GLException("Not a GL2 implementation");
+}
+
+public final GLES1 getGLES1() throws GLException {
+    throw new GLException("Not a GLES1 implementation");
+}
+
+public final GLES2 getGLES2() throws GLException {
+    throw new GLException("Not a GLES2 implementation");
+}
+
+public final GL2ES1 getGL2ES1() throws GLException {
+    if (isGL2ES1()) {
+        return this;
+    }
+    throw new GLException("Not a GL2ES1 implementation");
+}
+
+public final GL2ES2 getGL2ES2() throws GLException {
+    if (isGL2ES2()) {
+        return this;
+    }
+    throw new GLException("Not a GL2ES2 implementation");
+}
+
+public final GL2GL3 getGL2GL3() throws GLException {
+    throw new GLException("Not a GL2GL3 implementation");
 }
 
 //
@@ -50,13 +138,9 @@ private int imageSizeInBytes(int format, int type, int w, int h, int d,
   if (h < 0) return 0;
   if (d < 0) return 0;
   switch (format) {
-  case GL_COLOR_INDEX:
   case GL_STENCIL_INDEX:
     elements = 1;
     break;
-  case GL_RED:
-  case GL_GREEN:
-  case GL_BLUE:
   case GL_ALPHA:
   case GL_LUMINANCE:
   case GL_DEPTH_COMPONENT:
@@ -66,12 +150,9 @@ private int imageSizeInBytes(int format, int type, int w, int h, int d,
     elements = 2;
     break;
   case GL_RGB:
-  case GL_BGR:
     elements = 3;
     break;
   case GL_RGBA:
-  case GL_BGRA:
-  case GL_ABGR_EXT:
     elements = 4;
     break;
   /* FIXME ?? 
@@ -82,31 +163,17 @@ private int imageSizeInBytes(int format, int type, int w, int h, int d,
     return 0;
   }
   switch (type) {
-  case GL_BITMAP:
-    if (format == GL_COLOR_INDEX) {
-      return (d * (h * ((w+7)/8)));
-    } else {
-      return 0;
-    }
   case GL_BYTE:
   case GL_UNSIGNED_BYTE:
     esize = 1;
-    break;
-  case GL_UNSIGNED_BYTE_3_3_2:
-  case GL_UNSIGNED_BYTE_2_3_3_REV:
-    esize = 1;
-    elements = 1;
     break;
   case GL_SHORT:
   case GL_UNSIGNED_SHORT:
     esize = 2;
     break;
   case GL_UNSIGNED_SHORT_5_6_5:
-  case GL_UNSIGNED_SHORT_5_6_5_REV:
   case GL_UNSIGNED_SHORT_4_4_4_4:
-  case GL_UNSIGNED_SHORT_4_4_4_4_REV:
   case GL_UNSIGNED_SHORT_5_5_5_1:
-  case GL_UNSIGNED_SHORT_1_5_5_5_REV:
     esize = 2;
     elements = 1;
     break;
@@ -114,13 +181,6 @@ private int imageSizeInBytes(int format, int type, int w, int h, int d,
   case GL_UNSIGNED_INT:
   case GL_FLOAT:
     esize = 4;
-    break;
-  case GL_UNSIGNED_INT_8_8_8_8:
-  case GL_UNSIGNED_INT_8_8_8_8_REV:
-  case GL_UNSIGNED_INT_10_10_10_2:
-  case GL_UNSIGNED_INT_2_10_10_10_REV:
-    esize = 4;
-    elements = 1;
     break;
   default:
     return 0;
@@ -133,8 +193,6 @@ private GLBufferStateTracker bufferStateTracker;
 private GLStateTracker       glStateTracker;
 
 private boolean bufferObjectExtensionsInitialized = false;
-private boolean haveARBPixelBufferObject;
-private boolean haveEXTPixelBufferObject;
 private boolean haveGL15;
 private boolean haveGL21;
 private boolean haveARBVertexBufferObject;
@@ -143,8 +201,6 @@ private void initBufferObjectExtensionChecks() {
   if (bufferObjectExtensionsInitialized)
     return;
   bufferObjectExtensionsInitialized = true;
-  haveARBPixelBufferObject  = isExtensionAvailable("GL_ARB_pixel_buffer_object");
-  haveEXTPixelBufferObject  = isExtensionAvailable("GL_EXT_pixel_buffer_object");
   haveGL15                  = isExtensionAvailable("GL_VERSION_1_5");
   haveGL21                  = isExtensionAvailable("GL_VERSION_2_1");
   haveARBVertexBufferObject = isExtensionAvailable("GL_ARB_vertex_buffer_object");
@@ -228,51 +284,23 @@ private boolean checkElementVBOEnabled(boolean throwException) {
 }
 
 private boolean checkUnpackPBODisabled(boolean throwException) { 
-  initBufferObjectExtensionChecks();
-  return checkBufferObject(haveARBPixelBufferObject,
-                    haveEXTPixelBufferObject,
-                    haveGL21,
-                    false,
-                    GL2.GL_PIXEL_UNPACK_BUFFER,
-                    "unpack pixel_buffer_object", throwException);
+  // PBO n/a for ES 1.1 or ES 2.0
+  return true;
 }
 
 private boolean checkUnpackPBOEnabled(boolean throwException) { 
-  initBufferObjectExtensionChecks();
-  return checkBufferObject(haveARBPixelBufferObject,
-                    haveEXTPixelBufferObject,
-                    haveGL21,
-                    true,
-                    GL2.GL_PIXEL_UNPACK_BUFFER,
-                    "unpack pixel_buffer_object", throwException);
+  // PBO n/a for ES 1.1 or ES 2.0
+  return false;
 }
 
 private boolean checkPackPBODisabled(boolean throwException) { 
-  initBufferObjectExtensionChecks();
-  return checkBufferObject(haveARBPixelBufferObject,
-                    haveEXTPixelBufferObject,
-                    haveGL21,
-                    false,
-                    GL2.GL_PIXEL_PACK_BUFFER,
-                    "pack pixel_buffer_object", throwException);
+  // PBO n/a for ES 1.1 or ES 2.0
+  return true;
 }
 
 private boolean checkPackPBOEnabled(boolean throwException) { 
-  initBufferObjectExtensionChecks();
-  return checkBufferObject(haveARBPixelBufferObject,
-                    haveEXTPixelBufferObject,
-                    haveGL21,
-                    true,
-                    GL2.GL_PIXEL_PACK_BUFFER,
-                    "pack pixel_buffer_object", throwException);
-}
-
-public boolean glIsPBOPackEnabled() {
-    return checkPackPBOEnabled(false);
-}
-
-public boolean glIsPBOUnpackEnabled() {
-    return checkUnpackPBOEnabled(false);
+  // PBO n/a for ES 1.1 or ES 2.0
+  return false;
 }
 
 // Attempt to return the same ByteBuffer object from glMapBuffer if
@@ -304,7 +332,7 @@ private Map/*<ARBVBOKey, ByteBuffer>*/ arbVBOCache = new HashMap();
 
 /** Entry point to C language function: <br> <code> LPVOID glMapBuffer(GLenum target, GLenum access); </code>    */
 public java.nio.ByteBuffer glMapBuffer(int target, int access) {
-  final long __addr_ = ((GL2ProcAddressTable)_context.getGLProcAddressTable())._addressof_glMapBuffer;
+  final long __addr_ = ((GL2ES12ProcAddressTable)_context.getGLProcAddressTable())._addressof_glMapBuffer;
   if (__addr_ == 0) {
     throw new GLException("Method \"glMapBuffer\" not available");
   }
@@ -382,4 +410,5 @@ native private ByteBuffer newDirectByteBuffer(long addr, int capacity);
           glTexCoordPointer(array.getComponentNumber(), array.getComponentType(), array.getStride(), array.getBuffer());
       }
     }
+
 

@@ -16,6 +16,7 @@ fi
 #    -Dbuild.noarchives=true \
 
 ant  \
+    -Dbuild.noarchives=true \
     -Djogl.cg=1 -Dx11.cg.lib=../../lib-linux-x86_64 \
     -Drootrel.build=build-x86_64 \
     -DuseKD=true \
