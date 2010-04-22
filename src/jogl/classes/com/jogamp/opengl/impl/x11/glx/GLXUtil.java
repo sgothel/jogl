@@ -34,14 +34,12 @@ package com.jogamp.opengl.impl.x11.glx;
 
 import javax.media.opengl.*;
 
-import com.jogamp.opengl.impl.*;
-import javax.media.nativewindow.NativeWindowFactory;
 import com.jogamp.nativewindow.impl.x11.*;
 
 public class GLXUtil {
     public static boolean isMultisampleAvailable(long display) {
+        X11Lib.XLockDisplay(display);
         try {
-            X11Lib.XLockDisplay(display);
             String exts = GLX.glXGetClientString(display, GLX.GLX_EXTENSIONS);
             if (exts != null) {
                 return (exts.indexOf("GLX_ARB_multisample") >= 0);
@@ -55,8 +53,8 @@ public class GLXUtil {
     /** Workaround for apparent issue with ATI's proprietary drivers
         where direct contexts still send GLX tokens for GL calls */
     public static String getVendorName(long display) {
+        X11Lib.XLockDisplay(display);
         try {
-            X11Lib.XLockDisplay(display);
             return GLX.glXGetClientString(display, GLX.GLX_VENDOR);
         } finally {
             X11Lib.XUnlockDisplay(display);

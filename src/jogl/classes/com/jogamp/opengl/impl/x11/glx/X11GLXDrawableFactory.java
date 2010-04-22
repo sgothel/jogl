@@ -72,12 +72,15 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
     }
     sharedScreen = new X11GraphicsScreen(sharedDevice, 0);
     X11Lib.XLockDisplay(sharedScreen.getDevice().getHandle());
-    sharedDrawable = new X11DummyGLXDrawable(sharedScreen, this, null);
-    X11GLXContext ctx  = (X11GLXContext) sharedDrawable.createContext(null);
-    ctx.makeCurrent();
-    ctx.release();
-    sharedContext = ctx;
-    X11Lib.XUnlockDisplay(sharedScreen.getDevice().getHandle());
+    try{
+        sharedDrawable = new X11DummyGLXDrawable(sharedScreen, this, null);
+        X11GLXContext ctx  = (X11GLXContext) sharedDrawable.createContext(null);
+        ctx.makeCurrent();
+        ctx.release();
+        sharedContext = ctx;
+    }finally{
+        X11Lib.XUnlockDisplay(sharedScreen.getDevice().getHandle());
+    }
     if(null==sharedContext) {
         throw new GLException("Couldn't init shared resources");
     }
@@ -226,10 +229,16 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
 
   protected NativeWindow createOffscreenWindow(GLCapabilities capabilities, GLCapabilitiesChooser chooser, int width, int height) {
     validate();
+    NullWindow nw = null;
     X11Lib.XLockDisplay(sharedScreen.getDevice().getHandle());
-    NullWindow nw = new NullWindow(X11GLXGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(capabilities, chooser, sharedScreen));
-    X11Lib.XUnlockDisplay(sharedScreen.getDevice().getHandle());
-    nw.setSize(width, height);
+    try{
+        nw = new NullWindow(X11GLXGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(capabilities, chooser, sharedScreen));
+    }finally{
+        X11Lib.XUnlockDisplay(sharedScreen.getDevice().getHandle());
+    }
+    if(nw != null) {
+        nw.setSize(width, height);
+    }
     return nw;
   }
 
