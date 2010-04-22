@@ -291,7 +291,7 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_x11_X11Display_LockDisplay
         _FatalError(env, "invalid display connection..");
     }
     XLockDisplay(dpy) ;
-    DBG_PRINT1( "X11: LockDisplay 0x%X\n", dpy); 
+    // DBG_PRINT1( "X11: LockDisplay 0x%X\n", dpy); 
 }
 
 
@@ -308,7 +308,7 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_x11_X11Display_UnlockDisplay
         _FatalError(env, "invalid display connection..");
     }
     XUnlockDisplay(dpy) ;
-    DBG_PRINT1( "X11: UnlockDisplay 0x%X\n", dpy); 
+    // DBG_PRINT1( "X11: UnlockDisplay 0x%X\n", dpy); 
 }
 
 
@@ -447,10 +447,12 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_x11_X11Display_DispatchMessages
 
         XLockDisplay(dpy) ;
 
-        // num_events = XPending(dpy); // XEventsQueued(dpy, QueuedAfterFlush); // I/O Flush ..
-        // num_events = XEventsQueued(dpy, QueuedAlready); // Better, no I/O ..
-        if ( 0 >= XEventsQueued(dpy, QueuedAlready) ) {
+        // num_events = XPending(dpy); // I/O Flush ..
+        // num_events = XEventsQueued(dpy, QueuedAfterFlush); // I/O Flush only of no already queued events are available
+        // num_events = XEventsQueued(dpy, QueuedAlready); // no I/O Flush at all, doesn't work on some cards (eg ATI)
+        if ( 0 >= XEventsQueued(dpy, QueuedAfterFlush) ) {
             XUnlockDisplay(dpy) ;
+            // DBG_PRINT1( "X11: DispatchMessages 0x%X - Leave 1\n", dpy); 
             return;
         }
 
@@ -477,6 +479,7 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_x11_X11Display_DispatchMessages
             fprintf(stderr, "Warning: NEWT X11 DisplayDispatch %p, Couldn't handle event %d for invalid X11 window %p\n", 
                 dpy, evt.type, evt.xany.window);
             XUnlockDisplay(dpy) ;
+            // DBG_PRINT1( "X11: DispatchMessages 0x%X - Leave 2\n", dpy); 
             return;
         }
  
@@ -494,6 +497,7 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_x11_X11Display_DispatchMessages
         }
 
         XUnlockDisplay(dpy) ;
+        // DBG_PRINT3( "X11: DispatchMessages 0x%X - Window %p, Event %d\n", dpy, jwindow, evt.type); 
 
         switch(evt.type) {
             case ButtonPress:
