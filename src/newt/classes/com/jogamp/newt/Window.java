@@ -263,61 +263,38 @@ public abstract class Window implements NativeWindow
     //
     // NativeWindow impl
     //
-    private Thread owner;
-    private int recursionCount;
-    protected Exception lockedStack = null;
 
     /** Recursive and blocking lockSurface() implementation */
     public synchronized int lockSurface() {
         // We leave the ToolkitLock lock to the specializtion's discretion, 
         // ie the implicit JAWTWindow in case of AWTWindow
-        Thread cur = Thread.currentThread();
-        if (owner == cur) {
-            ++recursionCount;
-            return LOCK_SUCCESS;
-        }
-        while (owner != null) {
-            try {
-                wait();
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-        }
-        owner = cur;
-        lockedStack = new Exception("NEWT Surface previously locked by "+Thread.currentThread());
+        surfaceLock.lock();
         screen.getDisplay().lockDisplay();
         return LOCK_SUCCESS;
     }
 
     /** Recursive and unblocking unlockSurface() implementation */
     public synchronized void unlockSurface() throws NativeWindowException {
-        Thread cur = Thread.currentThread();
-        if (owner != cur) {
-            lockedStack.printStackTrace();
-            throw new NativeWindowException(cur+": Not owner, owner is "+owner);
-        }
-        if (recursionCount > 0) {
-            --recursionCount;
-            return;
-        }
-        owner = null;
-        lockedStack = null;
-        screen.getDisplay().unlockDisplay();
-        notifyAll();
+        surfaceLock.unlock( new Runnable() {
+                                final Screen f_screen = screen;
+                                public void run() {
+                                    screen.getDisplay().unlockDisplay();
+                                }
+                            } );
         // We leave the ToolkitLock unlock to the specializtion's discretion, 
         // ie the implicit JAWTWindow in case of AWTWindow
     }
 
     public synchronized boolean isSurfaceLocked() {
-        return null!=owner;
+        return surfaceLock.isLocked();
     }
 
     public synchronized Thread getSurfaceLockOwner() {
-        return owner;
+        return surfaceLock.getOwner();
     }
 
     public synchronized Exception getLockedStack() {
-        return lockedStack;
+        return surfaceLock.getLockedStack();
     }
 
     public void destroy() {
@@ -950,7 +927,16 @@ public abstract class Window implements NativeWindow
     public static class WindowToolkitLock implements ToolkitLock {
             private Thread owner;
             private int recursionCount;
-            
+            private Exception lockedStack = null;
+
+            public Exception getLockedStack() {
+                return lockedStack;
+            }
+
+            public Thread getOwner() {
+                return owner;
+            }
+
             public boolean isOwner() {
                 return isOwner(Thread.currentThread());
             }
@@ -963,11 +949,11 @@ public abstract class Window implements NativeWindow
                 return null != owner;
             }
 
+            /** Recursive and blocking lockSurface() implementation */
             public synchronized void lock() {
                 Thread cur = Thread.currentThread();
                 if (owner == cur) {
                     ++recursionCount;
-                    return;
                 }
                 while (owner != null) {
                     try {
@@ -977,20 +963,35 @@ public abstract class Window implements NativeWindow
                     }
                 }
                 owner = cur;
+                lockedStack = new Exception("Previously locked by "+owner);
+            }
+            
+
+            /** Recursive and unblocking unlockSurface() implementation */
+            public synchronized void unlock() {
+                unlock(null);
             }
 
-            public synchronized void unlock() {
-                if (owner != Thread.currentThread()) {
-                    throw new RuntimeException("Not owner");
+            /** Recursive and unblocking unlockSurface() implementation */
+            public synchronized void unlock(Runnable releaseAfterUnlockBeforeNotify) {
+                Thread cur = Thread.currentThread();
+                if (owner != cur) {
+                    lockedStack.printStackTrace();
+                    throw new RuntimeException(cur+": Not owner, owner is "+owner);
                 }
                 if (recursionCount > 0) {
                     --recursionCount;
                     return;
                 }
                 owner = null;
+                lockedStack = null;
+                if(null!=releaseAfterUnlockBeforeNotify) {
+                    releaseAfterUnlockBeforeNotify.run();
+                }
                 notifyAll();
             }
     }
     private WindowToolkitLock destructionLock = new WindowToolkitLock();
+    private WindowToolkitLock surfaceLock = new WindowToolkitLock();
 }
 
