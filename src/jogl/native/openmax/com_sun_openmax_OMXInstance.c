@@ -1,5 +1,5 @@
 /*
- *  javafx_media_video_Movie.c
+ *  media_video_Movie.c
  *  JFXFramework
  *
  *  Created by sun on 17/02/08.
@@ -13,7 +13,7 @@
 // http://developer.apple.com/qa/qa2001/qa1149.html
 // http://developer.apple.com/qa/qa2001/qa1262.html
 
-#include "com_sun_openmax_OMXInstance.h"
+#include "com_jogamp_openmax_OMXInstance.h"
 #include "omx_tool.h"
 #include <stdarg.h>
 
@@ -21,8 +21,8 @@ static const char * const ClazzNameRuntimeException =
                             "java/lang/RuntimeException";
 static jclass    runtimeExceptionClz=NULL;
 #ifdef _WIN32_WCE
-    #define STDOUT_FILE "\\Storage Card\\javafx_demos\\stdout.txt"
-    #define STDERR_FILE "\\Storage Card\\javafx_demos\\stderr.txt"
+    #define STDOUT_FILE "\\Storage Card\\demos\\stdout.txt"
+    #define STDERR_FILE "\\Storage Card\\demos\\stderr.txt"
 #endif
 
 static void _initStatics(JNIEnv *env)
@@ -105,7 +105,7 @@ void OMXInstance_UpdateJavaAttributes(OMXToolBasicAV_t *pOMXAV, KDboolean issueJ
     }
 }
 
-JNIEXPORT jlong JNICALL Java_com_sun_openmax_OMXInstance__1createInstance
+JNIEXPORT jlong JNICALL Java_com_jogamp_openmax_OMXInstance__1createInstance
   (JNIEnv *env, jobject instance)
 {
     OMXToolBasicAV_t * pOMXAV;
@@ -132,7 +132,7 @@ JNIEXPORT jlong JNICALL Java_com_sun_openmax_OMXInstance__1createInstance
     return (jlong) (intptr_t) (void *)pOMXAV;
 }
 
-JNIEXPORT void JNICALL Java_com_sun_openmax_OMXInstance__1setStream
+JNIEXPORT void JNICALL Java_com_jogamp_openmax_OMXInstance__1setStream
   (JNIEnv *env, jobject instance, jlong ptr, jint vBufferNum, jstring jpath)
 {
     jboolean iscopy;
@@ -150,7 +150,7 @@ JNIEXPORT void JNICALL Java_com_sun_openmax_OMXInstance__1setStream
     fprintf(stdout, "setStream 3 ..\n"); fflush(stdout); // JAU
 }
 
-JNIEXPORT void JNICALL Java_com_sun_openmax_OMXInstance__1setStreamEGLImageTexture2D
+JNIEXPORT void JNICALL Java_com_jogamp_openmax_OMXInstance__1setStreamEGLImageTexture2D
   (JNIEnv *env, jobject instance, jlong ptr, jint i, jint tex, jlong image, jlong sync)
 {
   OMXToolBasicAV_t *pOMXAV = (OMXToolBasicAV_t *)((void *)((intptr_t)ptr));
@@ -161,7 +161,7 @@ JNIEXPORT void JNICALL Java_com_sun_openmax_OMXInstance__1setStreamEGLImageTextu
   }
 }
 
-JNIEXPORT void JNICALL Java_com_sun_openmax_OMXInstance__1activateStream
+JNIEXPORT void JNICALL Java_com_jogamp_openmax_OMXInstance__1activateStream
   (JNIEnv *env, jobject instance, jlong ptr)
 {
     OMXToolBasicAV_t *pOMXAV = (OMXToolBasicAV_t *)((void *)((intptr_t)ptr));
@@ -171,28 +171,28 @@ JNIEXPORT void JNICALL Java_com_sun_openmax_OMXInstance__1activateStream
     }
 }
 
-JNIEXPORT void JNICALL Java_com_sun_openmax_OMXInstance__1attachVideoRenderer
+JNIEXPORT void JNICALL Java_com_jogamp_openmax_OMXInstance__1attachVideoRenderer
   (JNIEnv *env, jobject instance, jlong ptr)
 {
   OMXToolBasicAV_t *pOMXAV = (OMXToolBasicAV_t *)((void *)((intptr_t)ptr));
   OMXToolBasicAV_AttachVideoRenderer(pOMXAV);
 }
 
-JNIEXPORT void JNICALL Java_com_sun_openmax_OMXInstance__1detachVideoRenderer
+JNIEXPORT void JNICALL Java_com_jogamp_openmax_OMXInstance__1detachVideoRenderer
   (JNIEnv *env, jobject instance, jlong ptr)
 {
   OMXToolBasicAV_t *pOMXAV = (OMXToolBasicAV_t *)((void *)((intptr_t)ptr));
   OMXToolBasicAV_DetachVideoRenderer(pOMXAV);
 }
 
-JNIEXPORT void JNICALL Java_com_sun_openmax_OMXInstance__1setPlaySpeed
+JNIEXPORT void JNICALL Java_com_jogamp_openmax_OMXInstance__1setPlaySpeed
   (JNIEnv *env, jobject instance, jlong ptr, jfloat scale)
 {
   OMXToolBasicAV_t *pOMXAV = (OMXToolBasicAV_t *)((void *)((intptr_t)ptr));
   OMXToolBasicAV_SetPlaySpeed(pOMXAV, scale);
 }
 
-JNIEXPORT jfloat JNICALL Java_com_sun_openmax_OMXInstance__1play
+JNIEXPORT jfloat JNICALL Java_com_jogamp_openmax_OMXInstance__1play
   (JNIEnv *env, jobject instance, jlong ptr)
 {
   OMXToolBasicAV_t *pOMXAV = (OMXToolBasicAV_t *)((void *)((intptr_t)ptr));
@@ -200,7 +200,7 @@ JNIEXPORT jfloat JNICALL Java_com_sun_openmax_OMXInstance__1play
   return OMXToolBasicAV_GetCurrentPosition(pOMXAV);
 }
 
-JNIEXPORT jfloat JNICALL Java_com_sun_openmax_OMXInstance__1pause
+JNIEXPORT jfloat JNICALL Java_com_jogamp_openmax_OMXInstance__1pause
   (JNIEnv *env, jobject instance, jlong ptr)
 {
   OMXToolBasicAV_t *pOMXAV = (OMXToolBasicAV_t *)((void *)((intptr_t)ptr));
@@ -208,7 +208,7 @@ JNIEXPORT jfloat JNICALL Java_com_sun_openmax_OMXInstance__1pause
   return OMXToolBasicAV_GetCurrentPosition(pOMXAV);
 }
 
-JNIEXPORT jfloat JNICALL Java_com_sun_openmax_OMXInstance__1stop
+JNIEXPORT jfloat JNICALL Java_com_jogamp_openmax_OMXInstance__1stop
   (JNIEnv *env, jobject instance, jlong ptr)
 {
     OMXToolBasicAV_t *pOMXAV = (OMXToolBasicAV_t *)((void *)((intptr_t)ptr));
@@ -216,7 +216,7 @@ JNIEXPORT jfloat JNICALL Java_com_sun_openmax_OMXInstance__1stop
     return OMXToolBasicAV_GetCurrentPosition(pOMXAV);
 }
 
-JNIEXPORT jfloat JNICALL Java_com_sun_openmax_OMXInstance__1seek
+JNIEXPORT jfloat JNICALL Java_com_jogamp_openmax_OMXInstance__1seek
   (JNIEnv *env, jobject instance, jlong ptr, jfloat pos)
 {
     OMXToolBasicAV_t *pOMXAV = (OMXToolBasicAV_t *)((void *)((intptr_t)ptr));
@@ -224,7 +224,7 @@ JNIEXPORT jfloat JNICALL Java_com_sun_openmax_OMXInstance__1seek
     return OMXToolBasicAV_GetCurrentPosition(pOMXAV);
 }
 
-JNIEXPORT jint JNICALL Java_com_sun_openmax_OMXInstance__1getNextTextureID
+JNIEXPORT jint JNICALL Java_com_jogamp_openmax_OMXInstance__1getNextTextureID
   (JNIEnv *env, jobject instance, jlong ptr)
 {
   jint textureID = 0xffffffff;
@@ -235,7 +235,7 @@ JNIEXPORT jint JNICALL Java_com_sun_openmax_OMXInstance__1getNextTextureID
   return textureID;
 }
 
-JNIEXPORT jfloat JNICALL Java_com_sun_openmax_OMXInstance__1getCurrentPosition
+JNIEXPORT jfloat JNICALL Java_com_jogamp_openmax_OMXInstance__1getCurrentPosition
   (JNIEnv *env, jobject instance, jlong ptr)
 {
     OMXToolBasicAV_t *pOMXAV = (OMXToolBasicAV_t *)((void *)((intptr_t)ptr));
@@ -243,7 +243,7 @@ JNIEXPORT jfloat JNICALL Java_com_sun_openmax_OMXInstance__1getCurrentPosition
 }
 
 
-JNIEXPORT void JNICALL Java_com_sun_openmax_OMXInstance__1destroyInstance
+JNIEXPORT void JNICALL Java_com_jogamp_openmax_OMXInstance__1destroyInstance
   (JNIEnv *env, jobject instance, jlong ptr)
 {
   OMXToolBasicAV_t *pOMXAV = (OMXToolBasicAV_t *)((void *)((intptr_t)ptr));

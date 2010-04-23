@@ -6,7 +6,7 @@
 /*
 ** License Applicability. Except to the extent portions of this file are
 ** made subject to an alternative license as permitted in the SGI Free
-** Software License B, Version 1.1 (the "License"), the contents of this
+** Software License B, Version 2.0 (the "License"), the contents of this
 ** file are subject only to the provisions of the License. You may not use
 ** this file except in compliance with the License. You may obtain a copy
 ** of the License at Silicon Graphics, Inc., attn: Legal Services, 1600
@@ -352,5 +352,5 @@ public interface GLUtessellatorCallback {
    */
   public void errorData(int errnum, Object polygonData);
 
-  //void mesh(com.sun.opengl.impl.tessellator.GLUmesh mesh);
+  //void mesh(com.jogamp.opengl.impl.tessellator.GLUmesh mesh);
 }

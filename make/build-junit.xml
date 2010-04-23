@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="JOGLTest" basedir="." default="all">
+
+    <description>JUNIT Tests JOGL</description>
+
+    <import file="build-common.xml"/>
+
+    <taskdef resource="net/sf/antcontrib/antlib.xml">
+      <classpath> <pathelement location="${ant-contrib.jar}"/> </classpath>
+    </taskdef>
+
+    <!-- ================================================================== -->
+    <!-- 
+       - Declare all paths and user defined variables.
+      -->
+    <target name="declare.common" description="Declare properties" depends="common.init">
+        <property name="rootrel.src.junit"    value="src/junit" />
+        <property name="src.junit"            value="${project.root}/${rootrel.src.junit}" />
+
+        <property name="classes"              value="${build.junit}/classes" />
+        <property name="classes.path"         location="${classes}"/> <!-- absolute path -->
+
+        <property name="java.dir.test"        value="com/jogamp/test"/>
+        <property name="java.part.test"       value="${java.dir.test}/**"/>
+
+        <property name="batchtest.timeout"    value="10000"/>
+
+    </target>
+    
+    <!-- ================================================================== -->
+    <!-- 
+       - Initialize all parameters required for the build and create any
+       - required directories.
+      -->
+    <target name="init" depends="declare.common">
+        <!-- Create the required output directories. -->
+        <mkdir dir="${obj.junit}" />
+        <mkdir dir="${classes}" />
+    </target>
+
+    <!-- ================================================================== -->
+    <!--
+       - Clean up all that is built.
+      -->
+    <target name="clean" description="Remove all build products" depends="declare.common">
+        <delete includeEmptyDirs="true" quiet="true">
+            <fileset dir="${build.junit}" />
+        </delete>
+    </target>
+
+    <!-- ================================================================== -->
+    <!--
+       - Build/run junit.
+      -->
+    <target name="junit.compile" depends="init">
+        <!-- Perform the junit pass Java compile -->
+        <javac destdir="${classes}"
+               source="${host.sourcelevel}"
+               fork="yes"
+               memoryMaximumSize="${javac.memorymax}"
+               includeAntRuntime="false"
+               debug="${javacdebug}" debuglevel="${javacdebuglevel}">
+            <classpath refid="junit_jogl_newt.compile.classpath"/>
+            <src path="${src.junit}" />
+        </javac>
+        <jar destfile="${jogl.test.jar}" filesonly="true">
+            <fileset dir="${classes}">
+                <include name="${java.part.test}"/>
+            </fileset>
+        </jar>
+    </target>
+
+    <target name="junit.run" depends="junit.compile">
+        <!-- Perform the junit tests-->
+        <mkdir dir="${results.junit}" />
+        <delete quiet="true">
+            <fileset dir="${results.junit}" includes="**"/>
+        </delete>
+
+        <condition property="jvmarg.newt" value="-XstartOnFirstThread -Djava.awt.headless=true"><isset property="isOSX"/></condition>
+        <condition property="jvmarg.newt" value="-Djava.awt.headless=true"><not><isset property="isOSX"/></not></condition>
+
+        <!-- Test*CORE* -->
+        <junit forkmode="once" showoutput="true" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
+            <env key="${system.env.library.path}" path="${obj.all.paths}"/>
+            <jvmarg value="-Djava.library.path=${obj.all.paths}"/>
+
+            <formatter usefile="false" type="plain"/>
+            <formatter usefile="true" type="xml"/>
+            <classpath refid="junit_jogl_newt.run.classpath"/>
+
+            <batchtest todir="${results.junit}">
+              <fileset dir="${classes}">
+                  <include name="${java.dir.test}/**/Test*CORE*"/>
+              </fileset>
+              <formatter usefile="false" type="brief"/>
+              <formatter usefile="true" type="xml"/>
+            </batchtest>
+        </junit>
+
+        <!-- Test*NEWT* 
+
+             Emulation of junit task,
+             due to the fact that we have to place invoke our MainThread class first (-> MacOSX).
+
+             Utilizing Ant-1.8.0 and ant-contrib-1.0b3 (loops, mutable properties).
+          --> 
+        <for param="test.class.path.m" keepgoing="true">
+            <!-- results in absolute path -->
+            <fileset dir="${classes}">
+                <include name="${java.dir.test}/**/Test*NEWT*"/>
+            </fileset>
+          <sequential>
+            <var name="test.class.path" unset="true"/>
+            <property name="test.class.path" basedir="${classes}" relative="true" location="@{test.class.path.m}"/>
+            <var name="test.class.fqn" unset="true"/>
+            <pathconvert property="test.class.fqn">
+              <fileset file="${classes}${file.separator}${test.class.path}"/>
+              <chainedmapper>
+                  <globmapper    from="${classes.path}${file.separator}*" to="*"/> <!-- rel. -->
+                  <packagemapper from="*.class"           to="*"/> <!-- FQCN -->
+              </chainedmapper>
+            </pathconvert>
+            <var name="test.class.result.file" value="${results.junit}/TEST-${test.class.fqn}.xml"/>
+            <echo message="Testing ${test.class.fqn} -> ${test.class.result.file}"/>
+            <apply dir="." executable="${java.home}/bin/java" 
+                 parallel="false" 
+                 timeout="${batchtest.timeout}"
+                 vmlauncher="false"
+                 relative="true"
+                 failonerror="false">
+                <env key="${system.env.library.path}" path="${obj.all.paths}"/>
+                <env key="CLASSPATH" value="${junit_jogl_newt.run.jars}"/>
+                <arg value="-Djava.library.path=${obj.all.paths}"/>
+                <arg line="${jvmarg.newt}"/>
+                <arg line="com.jogamp.newt.util.MainThread"/>
+                <arg line="org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner"/>
+                <srcfile/>
+                <arg line="filtertrace=true"/>
+                <arg line="haltOnError=false"/>
+                <arg line="haltOnFailure=false"/>
+                <arg line="showoutput=true"/>
+                <arg line="outputtoformatters=true"/>
+                <arg line="logfailedtests=true"/>
+                <arg line="logtestlistenerevents=true"/>
+                <arg line="formatter=org.apache.tools.ant.taskdefs.optional.junit.PlainJUnitResultFormatter"/>
+                <arg line="formatter=org.apache.tools.ant.taskdefs.optional.junit.XMLJUnitResultFormatter,${test.class.result.file}"/>
+                <mappedresources>
+                    <fileset dir="${classes}" includes="${test.class.path}"/>
+                    <packagemapper from="*.class" to="*"/>
+                </mappedresources>
+            </apply>
+          </sequential>
+        </for>
+
+        <!-- Test*AWT* -->
+        <junit forkmode="once" showoutput="true" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
+            <env key="${system.env.library.path}" path="${obj.all.paths}"/>
+            <jvmarg value="-Djava.library.path=${obj.all.paths}"/>
+
+            <!--
+            <jvmarg value="-Dgluegen.debug.NativeLibrary=true"/>
+            <jvmarg value="-Dgluegen.debug.ProcAddressHelper=true"/>
+            <jvmarg value="-Djogl.debug.GLSLState"/>
+            <jvmarg value="-Dnativewindow.debug=all"/>
+            <jvmarg value="-Djogl.debug=all"/>
+            <jvmarg value="-Dnewt.debug=all"/>
+            <jvmarg value="-verbose:jni"/> 
+            <jvmarg value="-client"/>
+            <jvmarg value="-d32"/>
+            -->
+
+            <formatter usefile="false" type="plain"/>
+            <formatter usefile="true" type="xml"/>
+            <classpath refid="junit_jogl_newt.run.classpath"/>
+
+            <batchtest todir="${results.junit}">
+              <fileset dir="${classes}">
+                  <include name="${java.dir.test}/**/Test*AWT*"/>
+              </fileset>
+              <formatter usefile="false" type="brief"/>
+              <formatter usefile="true" type="xml"/>
+            </batchtest>
+        </junit>
+
+    </target>
+
+    <!-- ================================================================== -->
+    <!--
+       - Build everything.
+      -->
+    <target name="all" description="Build JOGL JUNIT tests and run them." depends="junit.compile, junit.run" />
+
+</project>

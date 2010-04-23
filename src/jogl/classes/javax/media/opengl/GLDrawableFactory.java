@@ -41,10 +41,10 @@ package javax.media.opengl;
 
 import javax.media.nativewindow.*;
 
-import java.lang.reflect.*;
 import java.security.*;
-import com.sun.opengl.impl.*;
-import com.sun.nativewindow.impl.NWReflection;
+import com.jogamp.common.JogampRuntimeException;
+import com.jogamp.common.util.*;
+import com.jogamp.opengl.impl.*;
 
 /** <P> Provides a virtual machine- and operating system-independent
     mechanism for creating {@link GLDrawable}s. </P>
@@ -88,8 +88,8 @@ public abstract class GLDrawableFactory {
   private static final GLDrawableFactory eglFactory;
   private static final GLDrawableFactory nativeOSFactory;
   private static final String nativeOSType;
-  static final String macosxFactoryClassNameCGL = "com.sun.opengl.impl.macosx.cgl.MacOSXCGLDrawableFactory";
-  static final String macosxFactoryClassNameAWTCGL = "com.sun.opengl.impl.macosx.cgl.awt.MacOSXAWTCGLDrawableFactory";
+  static final String macosxFactoryClassNameCGL = "com.jogamp.opengl.impl.macosx.cgl.MacOSXCGLDrawableFactory";
+  static final String macosxFactoryClassNameAWTCGL = "com.jogamp.opengl.impl.macosx.cgl.awt.MacOSXAWTCGLDrawableFactory";
 
   /**
    * Instantiate singleton factories if available, EGLES1, EGLES2 and the OS native ones.
@@ -97,50 +97,49 @@ public abstract class GLDrawableFactory {
   static {
     GLDrawableFactory tmp = null;
     try {
-        tmp = (GLDrawableFactory) NWReflection.createInstance("com.sun.opengl.impl.egl.EGLDrawableFactory");
-    } catch (Throwable t) {
+        tmp = (GLDrawableFactory) ReflectionUtil.createInstance("com.jogamp.opengl.impl.egl.EGLDrawableFactory");
+    } catch (JogampRuntimeException jre) {
         if (GLProfile.DEBUG) {
             System.err.println("GLDrawableFactory.static - EGLDrawableFactory - not available");
-            t.printStackTrace();
+            jre.printStackTrace();
         }
     }
     eglFactory = tmp;
 
     nativeOSType = NativeWindowFactory.getNativeWindowType(true);
 
-    String factoryClassName = null;
     tmp = null;
-    try {
-        factoryClassName = Debug.getProperty("jogl.gldrawablefactory.class.name", true, AccessController.getContext());
-        if (null == factoryClassName) {
-            if ( nativeOSType.equals(NativeWindowFactory.TYPE_X11) ) {
-              factoryClassName = "com.sun.opengl.impl.x11.glx.X11GLXDrawableFactory";
-            } else if ( nativeOSType.equals(NativeWindowFactory.TYPE_WINDOWS) ) {
-              factoryClassName = "com.sun.opengl.impl.windows.wgl.WindowsWGLDrawableFactory";
-            } else if ( nativeOSType.equals(NativeWindowFactory.TYPE_MACOSX) ) {
-                if(NWReflection.isClassAvailable(macosxFactoryClassNameAWTCGL)) {
-                    factoryClassName = macosxFactoryClassNameAWTCGL;
-                } else {
-                    factoryClassName = macosxFactoryClassNameCGL;
-                }
+    String factoryClassName = Debug.getProperty("jogl.gldrawablefactory.class.name", true, AccessController.getContext());
+    if (null == factoryClassName) {
+        if ( nativeOSType.equals(NativeWindowFactory.TYPE_X11) ) {
+          factoryClassName = "com.jogamp.opengl.impl.x11.glx.X11GLXDrawableFactory";
+        } else if ( nativeOSType.equals(NativeWindowFactory.TYPE_WINDOWS) ) {
+          factoryClassName = "com.jogamp.opengl.impl.windows.wgl.WindowsWGLDrawableFactory";
+        } else if ( nativeOSType.equals(NativeWindowFactory.TYPE_MACOSX) ) {
+            if(ReflectionUtil.isClassAvailable(macosxFactoryClassNameAWTCGL)) {
+                factoryClassName = macosxFactoryClassNameAWTCGL;
             } else {
-              // may use egl*Factory ..
-              if (GLProfile.DEBUG) {
-                  System.err.println("GLDrawableFactory.static - No native OS Factory for: "+nativeOSType+"; May use EGLDrawableFactory, if available." );
-              }
+                factoryClassName = macosxFactoryClassNameCGL;
             }
-        }
-        if (null != factoryClassName) {
+        } else {
+          // may use egl*Factory ..
           if (GLProfile.DEBUG) {
-              System.err.println("GLDrawableFactory.static - Native OS Factory for: "+nativeOSType+": "+factoryClassName);
+              System.err.println("GLDrawableFactory.static - No native OS Factory for: "+nativeOSType+"; May use EGLDrawableFactory, if available." );
           }
-          tmp = (GLDrawableFactory) NWReflection.createInstance(factoryClassName);
         }
-    } catch (Throwable t) {
-        if (GLProfile.DEBUG) {
-            System.err.println("GLDrawableFactory.static - Native Platform: "+nativeOSType+" - not available: "+factoryClassName);
-            t.printStackTrace();
-        }
+    }
+    if (null != factoryClassName) {
+      if (GLProfile.DEBUG) {
+          System.err.println("GLDrawableFactory.static - Native OS Factory for: "+nativeOSType+": "+factoryClassName);
+      }
+      try {
+          tmp = (GLDrawableFactory) ReflectionUtil.createInstance(factoryClassName);
+      } catch (JogampRuntimeException jre) { 
+          if (GLProfile.DEBUG) {
+              System.err.println("GLDrawableFactory.static - Native Platform: "+nativeOSType+" - not available: "+factoryClassName);
+              jre.printStackTrace();
+          }
+      }
     }
     nativeOSFactory = tmp;
   }
@@ -174,8 +173,7 @@ public abstract class GLDrawableFactory {
       destroy any GLContexts and GLDrawables that have been created
       and are still in use. No further OpenGL calls may be made after
       shutting down the GLDrawableFactory. */
-  public void shutdown() {
-  }
+  public abstract void shutdown();
 
   //----------------------------------------------------------------------
   // Methods to create high-level objects
@@ -187,10 +185,10 @@ public abstract class GLDrawableFactory {
    * The native platform's chosen Capabilties are referenced within the target
    * NativeWindow's AbstractGraphicsConfiguration.<p>
    *
-   * In case {@link javax.media.nativewindow.Capabilties#isOnscreen()} is true,<br>
+   * In case {@link javax.media.nativewindow.Capabilities#isOnscreen()} is true,<br>
    * an onscreen GLDrawable will be realized.
    * <p>
-   * In case {@link javax.media.nativewindow.Capabilties#isOnscreen()} is false,<br>
+   * In case {@link javax.media.nativewindow.Capabilities#isOnscreen()} is false,<br>
    * either a Pbuffer drawable is created if {@link javax.media.opengl.GLCapabilities#isPBuffer()} is true,<br>
    * or a simple offscreen drawable is creates. The latter is unlikely to be hardware accelerated.<br>
    * <p>
@@ -218,8 +216,9 @@ public abstract class GLDrawableFactory {
   /**
    * Returns true if it is possible to create a GLPbuffer. Some older
    * graphics cards do not have this capability.
+   * @param passing the device for the query, may be null
    */
-  public abstract boolean canCreateGLPbuffer();
+  public abstract boolean canCreateGLPbuffer(AbstractGraphicsDevice device);
 
   /**
    * Creates a Pbuffer GLDrawable with the given capabilites and dimensions. <P>
@@ -280,8 +279,9 @@ public abstract class GLDrawableFactory {
   /**
    * Returns true if it is possible to create an external GLDrawable
    * object via {@link #createExternalGLDrawable}.
+   * @param passing the device for the query, may be null
    */
-  public abstract boolean canCreateExternalGLDrawable();
+  public abstract boolean canCreateExternalGLDrawable(AbstractGraphicsDevice device);
 
   /**
    * <P> Creates a {@link GLDrawable} object representing an existing

@@ -35,7 +35,8 @@ package javax.media.nativewindow;
 import java.lang.reflect.*;
 import java.util.*;
 
-import com.sun.nativewindow.impl.*;
+import com.jogamp.common.util.*;
+import com.jogamp.nativewindow.impl.*;
 
 /**
  * Provides the mechanism by which the graphics configuration for a
@@ -77,7 +78,7 @@ public abstract class GraphicsConfigurationFactory {
         if (NativeWindowFactory.TYPE_X11.equals(NativeWindowFactory.getNativeWindowType(true))) {
             try {
                 GraphicsConfigurationFactory factory = (GraphicsConfigurationFactory)
-                    NWReflection.createInstance("com.sun.nativewindow.impl.x11.X11GraphicsConfigurationFactory", new Object[] {});
+                    ReflectionUtil.createInstance("com.jogamp.nativewindow.impl.x11.X11GraphicsConfigurationFactory", new Object[] {});
                 registerFactory(javax.media.nativewindow.x11.X11GraphicsDevice.class, factory);
             } catch (Exception e) {
                 throw new RuntimeException(e);

@@ -39,7 +39,7 @@ package javax.media.opengl;
 import java.lang.reflect.*;
 import java.util.StringTokenizer;
 
-import com.sun.opengl.impl.*;
+import com.jogamp.opengl.impl.*;
 
 /**
  * Factory for pipelining GL instances

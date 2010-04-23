@@ -5,10 +5,10 @@
     if(arg3 != null && arg3.length <= arg3_offset)
       throw new RuntimeException("array offset argument \"arg3_offset\" (" + arg3_offset + ") equals or exceeds array length (" + arg3.length + ")");
     java.nio.ByteBuffer _res;
-    _res = XGetVisualInfoCopied1(arg0, arg1, ((arg2 == null) ? null : arg2.getBuffer()), arg3, BufferFactory.SIZEOF_INT * arg3_offset);
+    _res = XGetVisualInfoCopied1(arg0, arg1, ((arg2 == null) ? null : arg2.getBuffer()), arg3, Buffers.SIZEOF_INT * arg3_offset);
 
     if (_res == null) return null;
-    BufferFactory.nativeOrder(_res);
+    Buffers.nativeOrder(_res);
     XVisualInfo[] _retarray = new XVisualInfo[getFirstElement(arg3, arg3_offset)];
     for (int _count = 0; _count < getFirstElement(arg3, arg3_offset); _count++) {
       _res.position(_count * XVisualInfo.size());
@@ -23,4 +23,16 @@
 
   /** Entry point to C language function: <code> XVisualInfo *  XGetVisualInfo(Display * , long, XVisualInfo * , int * ); </code>    */
   private static native java.nio.ByteBuffer XGetVisualInfoCopied1(long arg0, long arg1, java.nio.ByteBuffer arg2, Object arg3, int arg3_byte_offset);
+
+  public static native long DefaultVisualID(long display, int screen);
+
+  public static native long CreateDummyWindow(long display, int screen_index, long visualID);
+  public static native void DestroyDummyWindow(long display, long window);
+
+  public static native long dlopen(String name);
+  public static native long dlsym(String name);
+
+  public static native int XCloseDisplay(long display);
+  public static native void XUnlockDisplay(long display);
+  public static native void XLockDisplay(long display);
 

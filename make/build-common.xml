@@ -1,0 +1,345 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="JOGLCommonStuff" basedir="." default="common.init">
+
+    <description>Common JOGL Stuff</description>
+
+    <fail message="Please build using Ant 1.8.0 or higher.">
+        <condition>
+            <not>
+                <antversion atleast="1.8.0"/>
+            </not>
+        </condition>
+    </fail>
+
+    <!-- Pull in GlueGen cpptasks build file -->
+    <property name="gluegen.root" value="../../gluegen" />
+    <import file="${gluegen.root}/make/gluegen-cpptasks.xml" />
+
+    <property name="ant-contrib.jar"  value="${gluegen.root}/make/lib/ant-contrib-1.0b3.jar" />
+
+    <condition property="rootrel.build" value="build">
+      <not>
+          <isset property="rootrel.build"/>
+      </not>
+    </condition>
+
+    <import file="versions.xml" />
+
+    <tstamp>
+         <format property="version.timestamp" pattern="yyyyMMdd"/>
+    </tstamp>
+
+    <target name="nativewindow.setup-version-RI" if="nativewindow.ri">
+        <property name="nativewindow.version" value="${nativewindow_base_version}" />
+    </target>
+
+    <target name="nativewindow.setup-version-non-RI" unless="nativewindow.ri">
+        <property name="nativewindow.version" value="${nativewindow_base_version}-pre-${version.timestamp}" />
+    </target>
+    <target name="jogl.setup-version-RI" if="jogl.ri">
+        <property name="jogl.version" value="${jogl_base_version}" />
+    </target>
+
+    <target name="jogl.setup-version-non-RI" unless="jogl.ri">
+        <property name="jogl.version" value="${jogl_base_version}-pre-${version.timestamp}" />
+    </target>
+
+    <target name="newt.setup-version-RI" if="newt.ri">
+        <property name="newt.version" value="${newt_base_version}" />
+    </target>
+
+    <target name="newt.setup-version-non-RI" unless="newt.ri">
+        <property name="newt.version" value="${newt_base_version}-pre-${version.timestamp}" />
+    </target>
+
+    <target name="setup-versions" depends="nativewindow.setup-version-RI, nativewindow.setup-version-non-RI, jogl.setup-version-RI, jogl.setup-version-non-RI, newt.setup-version-RI, newt.setup-version-non-RI"/>
+
+    <!-- ================================================================== -->
+    <!-- 
+       - Base initialization of properties and detection of operating system.
+      -->
+    <target name="common.init" depends="gluegen.cpptasks.detect.os,setup-versions" unless="common.init.done">
+        <property name="common.init.done" value="true" />
+
+        <!-- Set the project root directory to be up one directory. -->
+        <property name="project.root"               value=".." />
+        <property name="build"                      value="${project.root}/${rootrel.build}" />
+        <property name="src"                        value="${project.root}/src" />
+        <property name="lib"                        value="${build}/lib" />
+
+        <property name="archive.name"               value="jogl-${jogl.version}-${os.and.arch}" />
+        <property name="archive"                    value="${build}/${archive.name}" />
+
+        <property name="all.srcj.path" value="${src}/nativewindow/classes;${src}/jogl/classes;${src}/newt/classes" />
+        <!-- No generated classes for Newt at the present time -->
+        <property name="all.genj.path" value="${build}/nativewindow/gensrc/classes;${build}/jogl/gensrc/classes" />
+
+        <!-- Set the configuration and build files to this directory. -->
+        <property name="make"                       value="." />
+        <property name="config"                     value="${make}/config" />
+        <property name="stub.includes"              value="stub_includes" /> <!-- NOTE:  this MUST be relative for FileSet -->
+        <property name="stub.includes.common"       value="${stub.includes}/common" />
+
+        <condition property="setup.nodesktop">
+            <and>
+                <isfalse value="${isWindows}" />
+                <isfalse value="${isOSX}" />
+                <isfalse value="${isX11}" />
+            </and>
+        </condition>
+
+        <echo message="setup.nodesktop: ${setup.nodesktop}" />
+        <echo message="setup.noAWT: ${setup.noAWT}" />
+        <echo message="setup.noCDC: ${setup.noCDC}" />
+
+        <!-- Load the user specified properties file that defines various host
+           - specific paths.  The user will be notified if this is does not
+           - exist. -->
+        <property name="user.properties.file" value="${user.home}/jogl.properties" />
+        <property file="${user.properties.file}" />
+        <echo message="Loaded ${user.properties.file}." />
+        <property file="${user.home}/gluegen.properties" />
+        <echo message="Loaded ${user.home}/gluegen.properties." />
+        <fail message="antlr.jar was not specified in jogl.properties or gluegen.properties. Please see README.txt for instructions" unless="antlr.jar"/>
+        <echo message="antlr.jar=${antlr.jar}" />
+
+        <property name="target.sourcelevel" value="1.4" />
+        <property name="host.sourcelevel"   value="1.5" />
+
+        <!-- NOTE: the value of the debug and optimise attributes will not be overridden if already set externally -->
+        <property name="javacdebug"       value="true" /> 
+        <property name="javacdebuglevel"  value="source,lines" /> 
+        <!-- property name="javac.memorymax"  value="128m" /-->  <!-- I ran out of memory with these .. linux x86_64 6u14 -->
+        <property name="javac.memorymax"  value="512m" /> 
+
+        <!-- Names of directories relative to the project root.
+             Some of these are used in FileMappers later for dependence information
+             and need exact string matching, which is why they use file.separator
+             instead of "/". -->
+
+        <property name="javac.bootclasspath-cdc.jar" value="${gluegen.root}/make/lib/cdc_fp.jar"/>
+        <echo message="javac.bootclasspath-cdc.jar: ${javac.bootclasspath-cdc.jar}" />
+
+        <!-- NOTE that these require a checked-out GlueGen, etc workspace as a -->
+        <!-- sibling of the JOGL workspace. -->
+        <property name="gluegen.make"               value="${gluegen.root}/make" />
+        <property name="gluegen.build.xml"          value="${gluegen.make}/build.xml" />
+        <property name="build.gluegen"              value="${gluegen.root}/${rootrel.build}" />
+        <property name="obj.gluegen"                value="${build.gluegen}/obj"/>
+        <property name="gluegen.jar"                value="${build.gluegen}/gluegen.jar" />
+        <property name="junit.jar"                  value="${gluegen.make}/lib/junit-4.5.jar" />
+        <property name="ant.jar"                    value="${ant.home}/lib/ant.jar" />
+        <property name="ant-junit.jar"              value="${ant.home}/lib/ant-junit.jar" />
+
+        <property name="nativewindow.make"          value="." />
+        <property name="nativewindow.build.xml"     value="${nativewindow.make}/build-nativewindow.xml" />
+        <property name="build.nativewindow"         value="${build}/nativewindow" />
+        <property name="obj.nativewindow"           value="${build.nativewindow}/obj"/>
+
+        <property name="jogl.make"                  value="." />
+        <property name="jogl.build.xml"             value="${jogl.make}/build-jogl.xml" />
+        <property name="build.jogl"                 value="${build}/jogl" />
+        <property name="obj.jogl"                   value="${build.jogl}/obj"/>
+
+        <property name="newt.make"                  value="." />
+        <property name="newt.build.xml"             value="${newt.make}/build-newt.xml" />
+        <property name="build.newt"                 value="${build}/newt" />
+        <property name="obj.newt"                   value="${build.newt}/obj"/>
+
+        <property name="junit.make"                 value="." />
+        <property name="junit.build.xml"            value="${junit.make}/build-junit.xml" />
+        <property name="results.junit"              value="${build}/test/results" />
+        <property name="build.junit"                value="${build}/test/build" />
+        <property name="obj.junit"                  value="${build.junit}/obj"/>
+
+        <property name="obj.all.paths"              value="${obj.gluegen}${path.separator}${obj.nativewindow}${path.separator}${obj.jogl}${path.separator}${obj.newt}${path.separator}${obj.junit}" />
+
+        <path id="gluegen.classpath">
+          <pathelement location="${gluegen.jar}" />
+          <pathelement location="${antlr.jar}" />
+        </path>
+
+        <!-- JavaSE combinations -->
+        <property name="gluegen-rt.jar"             value="${build.gluegen}/gluegen-rt.jar" />
+        <property name="jogl.test.jar"              value="${build.jogl}/jogl.test.jar"/>
+
+        <!-- JavaSE combinations . AWT -->
+        <property name="nativewindow.all.jar"       value="${build.nativewindow}/nativewindow.all.jar" />
+        <property name="jogl.all.jar"               value="${build.jogl}/jogl.all.jar" />
+        <property name="newt.all.jar"               value="${build.newt}/newt.all.jar" />
+
+        <path id="nativewindow_gluegen.classpath">
+            <pathelement location="${gluegen-rt.jar}" />
+            <pathelement location="${nativewindow.all.jar}" />
+        </path>
+
+        <path id="nativewindow_gluegen_jogl.classpath">
+            <pathelement location="${gluegen-rt.jar}" />
+            <pathelement location="${nativewindow.all.jar}" />
+            <pathelement location="${jogl.all.jar}" />
+        </path>
+
+        <path id="jogl_newt_all.classpath">
+            <pathelement location="${gluegen-rt.jar}" />
+            <pathelement location="${nativewindow.all.jar}" />
+            <pathelement location="${jogl.all.jar}" />
+            <pathelement location="${newt.all.jar}" />
+        </path>
+
+        <path id="junit_jogl_newt.compile.classpath">
+            <pathelement location="${junit.jar}" />
+            <pathelement location="${ant.jar}" />
+            <pathelement location="${ant-junit.jar}" />
+            <pathelement location="${gluegen-rt.jar}" />
+            <pathelement location="${nativewindow.all.jar}" />
+            <pathelement location="${jogl.all.jar}" />
+            <pathelement location="${newt.all.jar}" />
+        </path>
+
+        <path id="junit_jogl_newt.run.classpath">
+            <pathelement location="${junit.jar}" />
+            <pathelement location="${ant.jar}" />
+            <pathelement location="${ant-junit.jar}" />
+            <pathelement location="${gluegen-rt.jar}" />
+            <pathelement location="${nativewindow.all.jar}" />
+            <pathelement location="${jogl.all.jar}" />
+            <pathelement location="${newt.all.jar}" />
+            <pathelement location="${jogl.test.jar}" />
+        </path>
+        <property name="junit_jogl_newt.run.jars"
+                  value="${junit.jar}${path.separator}${ant.jar}${path.separator}${ant-junit.jar}${path.separator}${gluegen-rt.jar}${path.separator}${nativewindow.all.jar}${path.separator}${jogl.all.jar}${path.separator}${newt.all.jar}${path.separator}${jogl.test.jar}"/>
+
+        <!-- JavaSE combinations . NO.AWT -->
+        <property name="nativewindow.all-noawt.jar" value="${build.nativewindow}/nativewindow.all-noawt.jar" />
+        <property name="jogl.all-noawt.jar"         value="${build.jogl}/jogl.all-noawt.jar" />
+        <property name="newt.all-noawt.jar"         value="${build.newt}/newt.all-noawt.jar" />
+
+        <path id="jogl_newt_all-noawt.classpath">
+            <pathelement location="${gluegen-rt.jar}" />
+            <pathelement location="${nativewindow.all-noawt.jar}" />
+            <pathelement location="${jogl.all-noawt.jar}" />
+            <pathelement location="${newt.all-noawt.jar}" />
+        </path>
+
+        <!-- CDC combinations . NO.AWT -->
+        <property name="gluegen-rt-cdc.jar"         value="${build.gluegen}/gluegen-rt-cdc.jar" />
+
+        <property name="nativewindow.all.cdc.jar"   value="${build.nativewindow}/nativewindow.all.cdc.jar" />
+        <property name="jogl.all.cdc.jar"           value="${build.jogl}/jogl.all.cdc.jar" />
+        <property name="newt.all.cdc.jar"           value="${build.newt}/newt.all.cdc.jar" />
+
+        <path id="nativewindow_gluegen.classpath-cdc">
+            <pathelement location="${gluegen-rt-cdc.jar}" />
+            <pathelement location="${nativewindow.all.cdc.jar}" />
+        </path>
+
+        <path id="nativewindow_gluegen_jogl.classpath-cdc">
+            <pathelement location="${gluegen-rt-cdc.jar}" />
+            <pathelement location="${nativewindow.all.cdc.jar}" />
+            <pathelement location="${jogl.all.cdc.jar}" />
+        </path>
+
+        <path id="jogl_newt_all.classpath-cdc">
+            <pathelement location="${gluegen-rt-cdc.jar}" />
+            <pathelement location="${nativewindow.all.cdc.jar}" />
+            <pathelement location="${jogl.all.cdc.jar}" />
+            <pathelement location="${newt.all.cdc.jar}" />
+        </path>
+
+        <!-- Atomic JavaSE JARS -->
+
+        <property name="nativewindow.core.jar"         value="${build.nativewindow}/nativewindow.core.jar" />
+        <property name="nativewindow.awt.jar"          value="${build.nativewindow}/nativewindow.awt.jar"  />
+        <property name="nativewindow.os.x11.jar"       value="${build.nativewindow}/nativewindow.os.x11.jar"  />
+        
+        <property name="jogl.core.jar"                  value="${build.jogl}/jogl.core.jar" />
+        <property name="jogl.cg.jar"                    value="${build.jogl}/jogl.cg.jar" />
+        <property name="jogl.gles1.jar"                 value="${build.jogl}/jogl.gles1.jar" />
+        <property name="jogl.gles1.dbg.jar"             value="${build.jogl}/jogl.gles1.dbg.jar" />
+        <property name="jogl.gles2.jar"                 value="${build.jogl}/jogl.gles2.jar" />
+        <property name="jogl.gles2.dbg.jar"             value="${build.jogl}/jogl.gles2.dbg.jar" />
+        <property name="jogl.egl.jar"                   value="${build.jogl}/jogl.egl.jar" />
+        <property name="jogl.glutess.jar"               value="${build.jogl}/jogl.glu.tess.jar" />
+        <property name="jogl.glumipmap.jar"             value="${build.jogl}/jogl.glu.mipmap.jar" />
+        <property name="jogl.glugldesktop.jar"                value="${build.jogl}/jogl.glu.gldesktop.jar" />
+
+        <property name="jogl.os.x11.jar"                value="${build.jogl}/jogl.os.x11.jar" />
+        <property name="jogl.os.win.jar"                value="${build.jogl}/jogl.os.win.jar" />
+        <property name="jogl.os.osx.jar"                value="${build.jogl}/jogl.os.osx.jar" />
+
+        <property name="jogl.gl2es12.jar"               value="${build.jogl}/jogl.gl2es12.jar" />
+
+        <property name="jogl.gldesktop.jar"             value="${build.jogl}/jogl.gldesktop.jar" />
+        <property name="jogl.gldesktop.dbg.jar"         value="${build.jogl}/jogl.gldesktop.dbg.jar" />
+
+        <property name="jogl.omx.jar"                   value="${build.jogl}/jogl.omx.jar" />
+
+        <property name="jogl.awt.jar"                   value="${build.jogl}/jogl.awt.jar" />
+        <property name="jogl.util.jar"                  value="${build.jogl}/jogl.util.jar" />
+        <property name="jogl.util.gldesktop.jar"              value="${build.jogl}/jogl.util.gldesktop.jar" />
+        <property name="jogl.util.awt.jar"              value="${build.jogl}/jogl.util.awt.jar" />
+        <property name="jogl.util.fixedfuncemu.jar"     value="${build.jogl}/jogl.util.fixedfuncemu.jar" />
+        <property name="jogl.sdk.jar"                   value="${build.jogl}/jogl.sdk.jar" />
+
+        <property name="newt.core.jar"                  value="${build.newt}/newt.core.jar" />
+        <property name="newt.os.x11.jar"                value="${build.newt}/newt.os.x11.jar" />
+        <property name="newt.os.win.jar"                value="${build.newt}/newt.os.win.jar" />
+        <property name="newt.os.osx.jar"                value="${build.newt}/newt.os.osx.jar" />
+        <property name="newt.ogl.jar"                   value="${build.newt}/newt.ogl.jar" />
+        <property name="newt.broadcomegl.jar"           value="${build.newt}/newt.broadcomegl.jar" />
+        <property name="newt.awt.jar"                   value="${build.newt}/newt.awt.jar" />
+
+        <!-- Atomic CDC JARS -->
+        <property name="nativewindow.core.cdc.jar"      value="${build.nativewindow}/nativewindow.core.cdc.jar" />
+        <property name="nativewindow.os.x11.cdc.jar"    value="${build.nativewindow}/nativewindow.os.x11.cdc.jar"  />
+
+        <property name="jogl.core.cdc.jar"              value="${build.jogl}/jogl.core.cdc.jar" />
+        <property name="jogl.gles1.cdc.jar"             value="${build.jogl}/jogl.gles1.cdc.jar" />
+        <property name="jogl.gles1.dbg.cdc.jar"         value="${build.jogl}/jogl.gles1.dbg.cdc.jar" />
+        <property name="jogl.gles2.cdc.jar"             value="${build.jogl}/jogl.gles2.cdc.jar" />
+        <property name="jogl.gles2.dbg.cdc.jar"         value="${build.jogl}/jogl.gles2.dbg.cdc.jar" />
+        <property name="jogl.egl.cdc.jar"               value="${build.jogl}/jogl.egl.cdc.jar" />
+        <property name="jogl.glutess.cdc.jar"           value="${build.jogl}/jogl.glu.tess.cdc.jar" />
+        <property name="jogl.glumipmap.cdc.jar"         value="${build.jogl}/jogl.glu.mipmap.cdc.jar" />
+        <property name="jogl.os.x11.cdc.jar"            value="${build.jogl}/jogl.os.x11.cdc.jar" />
+        <property name="jogl.os.win.cdc.jar"            value="${build.jogl}/jogl.os.win.cdc.jar" />
+        <property name="jogl.os.osx.cdc.jar"            value="${build.jogl}/jogl.os.osx.cdc.jar" />
+        <property name="jogl.gl2es12.cdc.jar"           value="${build.jogl}/jogl.gl2es12.cdc.jar" />
+        <property name="jogl.util.cdc.jar"              value="${build.jogl}/jogl.util.cdc.jar" />
+        <property name="jogl.util.fixedfuncemu.cdc.jar" value="${build.jogl}/jogl.util.fixedfuncemu.cdc.jar" />
+
+        <property name="newt.core.cdc.jar"              value="${build.newt}/newt.core.cdc.jar" />
+        <property name="newt.os.x11.cdc.jar"            value="${build.newt}/newt.os.x11.cdc.jar" />
+        <property name="newt.os.win.cdc.jar"            value="${build.newt}/newt.os.win.cdc.jar" />
+        <property name="newt.os.osx.cdc.jar"            value="${build.newt}/newt.os.osx.cdc.jar" />
+        <property name="newt.ogl.cdc.jar"               value="${build.newt}/newt.ogl.cdc.jar" />
+        <property name="newt.broadcomegl.cdc.jar"       value="${build.newt}/newt.broadcomegl.cdc.jar" />
+
+        <!-- The location and name of the configuration ANT file that will 
+           - validate to ensure that all user-define variables are set. -->
+        <property name="validate.user.properties" value="${make}/validate-properties.xml" />
+    </target>
+
+    <!-- ================================================================== -->
+    <!-- GlueGen and BuildStaticGLInfo creation, task setup and Java file generation -->
+    <!--
+       - Build GlueGen
+      -->
+    <target name="common.gluegen.build" depends="common.init" unless="common.gluegen.build.done">
+        <property name="common.gluegen.build.done" value="true" />
+
+        <!-- Run the GlueGen build to ensure that the GlueGen ANT task
+           - has been built. -->
+        <!-- FIXME: remove passing down of antlr.jar when gluegen.properties is on all
+             nightly build machines -->
+        <ant antfile="${gluegen.build.xml}" dir="${gluegen.make}" target="all" inheritAll="false">
+          <propertyset>
+            <propertyref name="antlr.jar" />
+            <!--propertyref name="gluegen.nsig" /-->
+          </propertyset>
+        </ant>
+    </target>
+
+
+</project>

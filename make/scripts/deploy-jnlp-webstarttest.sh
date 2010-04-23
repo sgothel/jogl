@@ -11,6 +11,9 @@ shift
 
 if [ -z "$url" -o -z "$joglbuilddir" -o -z "$wsdir" ] ; then
     echo usage $0 codebase-url jogl-builddir webstartdir
+    echo Examples
+    echo    sh $0 file:////usr/local/projects/JOGL/webstart ../build-x86_64 ../../webstart
+    echo    sh $0 http://domain.org/jogl/webstart ../build-win32 ../../webstart
     exit 1
 fi
 

@@ -15,7 +15,7 @@
 /* We expect glXGetProcAddressARB to be defined */
 extern void (*glXGetProcAddressARB(const GLubyte *procname))();
 
-static const char * clazzNameInternalBufferUtil = "com/sun/opengl/impl/InternalBufferUtil";
+static const char * clazzNameInternalBufferUtil = "com/jogamp/opengl/impl/InternalBufferUtil";
 static const char * clazzNameInternalBufferUtilStaticCstrName = "copyByteBuffer";
 static const char * clazzNameInternalBufferUtilStaticCstrSignature = "(Ljava/nio/ByteBuffer;)Ljava/nio/ByteBuffer;";
 static const char * clazzNameByteBuffer = "java/nio/ByteBuffer";
@@ -30,29 +30,29 @@ static void _initClazzAccess(JNIEnv *env) {
 
     c = (*env)->FindClass(env, clazzNameInternalBufferUtil);
     if(NULL==c) {
-        fprintf(stderr, "FatalError: Java_com_sun_opengl_impl_x11_glx_GLX: can't find %s\n", clazzNameInternalBufferUtil);
+        fprintf(stderr, "FatalError: Java_com_jogamp_opengl_impl_x11_glx_GLX: can't find %s\n", clazzNameInternalBufferUtil);
         (*env)->FatalError(env, clazzNameInternalBufferUtil);
     }
     clazzInternalBufferUtil = (jclass)(*env)->NewGlobalRef(env, c);
     if(NULL==clazzInternalBufferUtil) {
-        fprintf(stderr, "FatalError: Java_com_sun_opengl_impl_x11_glx_GLX: can't use %s\n", clazzNameInternalBufferUtil);
+        fprintf(stderr, "FatalError: Java_com_jogamp_opengl_impl_x11_glx_GLX: can't use %s\n", clazzNameInternalBufferUtil);
         (*env)->FatalError(env, clazzNameInternalBufferUtil);
     }
     c = (*env)->FindClass(env, clazzNameByteBuffer);
     if(NULL==c) {
-        fprintf(stderr, "FatalError: Java_com_sun_opengl_impl_x11_glx_GLX: can't find %s\n", clazzNameByteBuffer);
+        fprintf(stderr, "FatalError: Java_com_jogamp_opengl_impl_x11_glx_GLX: can't find %s\n", clazzNameByteBuffer);
         (*env)->FatalError(env, clazzNameByteBuffer);
     }
     clazzByteBuffer = (jclass)(*env)->NewGlobalRef(env, c);
     if(NULL==c) {
-        fprintf(stderr, "FatalError: Java_com_sun_opengl_impl_x11_glx_GLX: can't use %s\n", clazzNameByteBuffer);
+        fprintf(stderr, "FatalError: Java_com_jogamp_opengl_impl_x11_glx_GLX: can't use %s\n", clazzNameByteBuffer);
         (*env)->FatalError(env, clazzNameByteBuffer);
     }
 
     cstrInternalBufferUtil = (*env)->GetStaticMethodID(env, clazzInternalBufferUtil, 
                             clazzNameInternalBufferUtilStaticCstrName, clazzNameInternalBufferUtilStaticCstrSignature);
     if(NULL==cstrInternalBufferUtil) {
-        fprintf(stderr, "FatalError: Java_com_sun_opengl_impl_x11_glx_GLX:: can't create %s.%s %s\n",
+        fprintf(stderr, "FatalError: Java_com_jogamp_opengl_impl_x11_glx_GLX:: can't create %s.%s %s\n",
             clazzNameInternalBufferUtil,
             clazzNameInternalBufferUtilStaticCstrName, clazzNameInternalBufferUtilStaticCstrSignature);
         (*env)->FatalError(env, clazzNameInternalBufferUtilStaticCstrName);
@@ -60,12 +60,12 @@ static void _initClazzAccess(JNIEnv *env) {
 }
 
 /*   Java->C glue code:
- *   Java package: com.sun.opengl.impl.x11.glx.GLX
+ *   Java package: com.jogamp.opengl.impl.x11.glx.GLX
  *    Java method: XVisualInfo glXGetVisualFromFBConfig(long dpy, long config)
  *     C function: XVisualInfo *  glXGetVisualFromFBConfig(Display *  dpy, GLXFBConfig config);
  */
 JNIEXPORT jobject JNICALL 
-Java_com_sun_opengl_impl_x11_glx_GLX_glXGetVisualFromFBConfigCopied0__JJ(JNIEnv *env, jclass _unused, jlong dpy, jlong config) {
+Java_com_jogamp_opengl_impl_x11_glx_GLX_glXGetVisualFromFBConfigCopied0__JJ(JNIEnv *env, jclass _unused, jlong dpy, jlong config) {
   XVisualInfo *  _res;
   jobject jbyteSource;
   jobject jbyteCopy;
@@ -78,19 +78,19 @@ Java_com_sun_opengl_impl_x11_glx_GLX_glXGetVisualFromFBConfigCopied0__JJ(JNIEnv 
   jbyteCopy   = (*env)->CallStaticObjectMethod(env,
                                                clazzInternalBufferUtil, cstrInternalBufferUtil, jbyteSource);
 
-  // FIXME: remove reference/gc jbyteSource ?? 
+  (*env)->DeleteLocalRef(env, jbyteSource);
   XFree(_res);
 
   return jbyteCopy;
 }
 
 /*   Java->C glue code:
- *   Java package: com.sun.opengl.impl.x11.glx.GLX
+ *   Java package: com.jogamp.opengl.impl.x11.glx.GLX
  *    Java method: java.nio.LongBuffer glXChooseFBConfig(long dpy, int screen, java.nio.IntBuffer attribList, java.nio.IntBuffer nitems)
  *     C function: GLXFBConfig *  glXChooseFBConfig(Display *  dpy, int screen, const int *  attribList, int *  nitems);
  */
 JNIEXPORT jobject JNICALL 
-Java_com_sun_opengl_impl_x11_glx_GLX_glXChooseFBConfigCopied1__JILjava_lang_Object_2ILjava_lang_Object_2I(JNIEnv *env, jclass _unused, jlong dpy, jint screen, jobject attribList, jint attribList_byte_offset, jobject nitems, jint nitems_byte_offset) {
+Java_com_jogamp_opengl_impl_x11_glx_GLX_glXChooseFBConfigCopied1__JILjava_lang_Object_2ILjava_lang_Object_2I(JNIEnv *env, jclass _unused, jlong dpy, jint screen, jobject attribList, jint attribList_byte_offset, jobject nitems, jint nitems_byte_offset) {
   int * _ptr2 = NULL;
   int * _ptr3 = NULL;
   GLXFBConfig *  _res;
@@ -118,20 +118,19 @@ Java_com_sun_opengl_impl_x11_glx_GLX_glXChooseFBConfigCopied1__JILjava_lang_Obje
   jbyteSource = (*env)->NewDirectByteBuffer(env, _res, count * sizeof(GLXFBConfig));
   jbyteCopy   = (*env)->CallStaticObjectMethod(env,
                                                clazzInternalBufferUtil, cstrInternalBufferUtil, jbyteSource);
-
-  // FIXME: remove reference/gc jbyteSource ?? 
+  (*env)->DeleteLocalRef(env, jbyteSource);
   XFree(_res);
 
   return jbyteCopy;
 }
 
 /*   Java->C glue code:
- *   Java package: com.sun.opengl.impl.x11.glx.GLX
+ *   Java package: com.jogamp.opengl.impl.x11.glx.GLX
  *    Java method: XVisualInfo glXChooseVisual(long dpy, int screen, java.nio.IntBuffer attribList)
  *     C function: XVisualInfo *  glXChooseVisual(Display *  dpy, int screen, int *  attribList);
  */
 JNIEXPORT jobject JNICALL 
-Java_com_sun_opengl_impl_x11_glx_GLX_glXChooseVisualCopied1__JILjava_lang_Object_2I(JNIEnv *env, jclass _unused, jlong dpy, jint screen, jobject attribList, jint attribList_byte_offset) {
+Java_com_jogamp_opengl_impl_x11_glx_GLX_glXChooseVisualCopied1__JILjava_lang_Object_2I(JNIEnv *env, jclass _unused, jlong dpy, jint screen, jobject attribList, jint attribList_byte_offset) {
   int * _ptr2 = NULL;
   XVisualInfo *  _res;
   jobject jbyteSource;
@@ -151,7 +150,7 @@ Java_com_sun_opengl_impl_x11_glx_GLX_glXChooseVisualCopied1__JILjava_lang_Object
   jbyteCopy   = (*env)->CallStaticObjectMethod(env,
                                                clazzInternalBufferUtil, cstrInternalBufferUtil, jbyteSource);
 
-  // FIXME: remove reference/gc jbyteSource ?? 
+  (*env)->DeleteLocalRef(env, jbyteSource);
   XFree(_res);
 
   return jbyteCopy;

@@ -4,17 +4,18 @@
     This is an example of how to add custom compiler/linker arguments
     for a crosscompiler and a custom NEWT windowing implementation.
 
-    You can use such files with setting the property 'gluegen.user.compiler.file', ie:
+    You can use such files with setting the property 'gluegen-cpptasks.file', ie:
 
-        -Dgluegen.user.compiler.file=`pwd`/lib/gluegen.compiler.intelgdl.xml
+        -Dgluegen-cpptasks.file=`pwd`/lib/gluegen.compiler.intelgdl.xml
 
-    or by having such file in your home directory, ie:
-
-            ~/gluegen.compiler.xml
   -->
       
 <project name="GlueGen-cpptasks" basedir=".">
+
+    <import file="../gluegen-cpptasks-base.xml" optional="false" />
+
     <target name="gluegen.cpptasks.configure.compiler" depends="setup.java.home.dir">
+        <echo message="Custom forced linker.cfg.linux, linker.cfg.linux.amd64" />
         <linker id="linker.cfg.linux" name="gcc">
             <linkerarg value="-m32" />
             <linkerarg value="-L/usr/lib" />

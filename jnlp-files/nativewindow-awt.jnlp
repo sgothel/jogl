@@ -9,6 +9,7 @@
     <description kind="short">Java API for a binding to a native windowing system - 2.0 - AWT</description>
     <offline-allowed/>
   </information>
+  <update check="background" policy="always"/>
   <security>
       <all-permissions/>
   </security>

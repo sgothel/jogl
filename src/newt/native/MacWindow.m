@@ -33,7 +33,7 @@
 
 #import <inttypes.h>
 
-#import "com_sun_javafx_newt_macosx_MacWindow.h"
+#import "com_jogamp_newt_macosx_MacWindow.h"
 #import "NewtMacWindow.h"
 
 #import "EventListener.h"
@@ -121,11 +121,11 @@ NS_ENDHANDLER
 }
 
 /*
- * Class:     com_sun_javafx_newt_macosx_MacDisplay
+ * Class:     com_jogamp_newt_macosx_MacDisplay
  * Method:    initIDs
  * Signature: ()Z
  */
-JNIEXPORT jboolean JNICALL Java_com_sun_javafx_newt_macosx_MacDisplay_initNSApplication
+JNIEXPORT jboolean JNICALL Java_com_jogamp_newt_macosx_MacDisplay_initNSApplication
   (JNIEnv *env, jclass clazz)
 {
     static int initialized = 0;
@@ -155,11 +155,11 @@ JNIEXPORT jboolean JNICALL Java_com_sun_javafx_newt_macosx_MacDisplay_initNSAppl
 }
 
 /*
- * Class:     com_sun_javafx_newt_macosx_MacDisplay
+ * Class:     com_jogamp_newt_macosx_MacDisplay
  * Method:    dispatchMessages0
  * Signature: ()V
  */
-JNIEXPORT void JNICALL Java_com_sun_javafx_newt_macosx_MacDisplay_dispatchMessages0
+JNIEXPORT void JNICALL Java_com_jogamp_newt_macosx_MacDisplay_dispatchMessages0
   (JNIEnv *env, jobject unused, jlong window, jint eventMask)
 {
     NSEvent* event = NULL;
@@ -195,11 +195,11 @@ NS_ENDHANDLER
 }
 
 /*
- * Class:     com_sun_javafx_newt_macosx_MacScreen
+ * Class:     com_jogamp_newt_macosx_MacScreen
  * Method:    getWidthImpl
  * Signature: (I)I
  */
-JNIEXPORT jint JNICALL Java_com_sun_javafx_newt_macosx_MacScreen_getWidthImpl
+JNIEXPORT jint JNICALL Java_com_jogamp_newt_macosx_MacScreen_getWidthImpl
   (JNIEnv *env, jclass clazz, jint screen_idx)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
@@ -216,11 +216,11 @@ JNIEXPORT jint JNICALL Java_com_sun_javafx_newt_macosx_MacScreen_getWidthImpl
 }
 
 /*
- * Class:     com_sun_javafx_newt_macosx_MacScreen
+ * Class:     com_jogamp_newt_macosx_MacScreen
  * Method:    getHeightImpl
  * Signature: (I)I
  */
-JNIEXPORT jint JNICALL Java_com_sun_javafx_newt_macosx_MacScreen_getHeightImpl
+JNIEXPORT jint JNICALL Java_com_jogamp_newt_macosx_MacScreen_getHeightImpl
   (JNIEnv *env, jclass clazz, jint screen_idx)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
@@ -237,11 +237,11 @@ JNIEXPORT jint JNICALL Java_com_sun_javafx_newt_macosx_MacScreen_getHeightImpl
 }
 
 /*
- * Class:     com_sun_javafx_newt_macosx_MacWindow
+ * Class:     com_jogamp_newt_macosx_MacWindow
  * Method:    initIDs
  * Signature: ()Z
  */
-JNIEXPORT jboolean JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_initIDs
+JNIEXPORT jboolean JNICALL Java_com_jogamp_newt_macosx_MacWindow_initIDs
   (JNIEnv *env, jclass clazz)
 {
     static int initialized = 0;
@@ -258,11 +258,11 @@ JNIEXPORT jboolean JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_initIDs
 }
 
 /*
- * Class:     com_sun_javafx_newt_macosx_MacWindow
+ * Class:     com_jogamp_newt_macosx_MacWindow
  * Method:    createWindow0
  * Signature: (JIIIIZIIIJ)J
  */
-JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_createWindow0
+JNIEXPORT jlong JNICALL Java_com_jogamp_newt_macosx_MacWindow_createWindow0
   (JNIEnv *env, jobject jthis, jlong parent, jint x, jint y, jint w, jint h, jboolean fullscreen, jint styleMask, 
    jint bufferingType, jint screen_idx, jlong jview)
 {
@@ -334,11 +334,11 @@ NS_ENDHANDLER
 }
 
 /*
- * Class:     com_sun_javafx_newt_macosx_MacWindow
+ * Class:     com_jogamp_newt_macosx_MacWindow
  * Method:    makeKeyAndOrderFront
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_makeKeyAndOrderFront
+JNIEXPORT void JNICALL Java_com_jogamp_newt_macosx_MacWindow_makeKeyAndOrderFront
   (JNIEnv *env, jobject unused, jlong window)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
@@ -348,11 +348,11 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_makeKeyAndOrder
 }
 
 /*
- * Class:     com_sun_javafx_newt_macosx_MacWindow
+ * Class:     com_jogamp_newt_macosx_MacWindow
  * Method:    makeKey
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_makeKey
+JNIEXPORT void JNICALL Java_com_jogamp_newt_macosx_MacWindow_makeKey
   (JNIEnv *env, jobject unused, jlong window)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
@@ -362,11 +362,11 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_makeKey
 }
 
 /*
- * Class:     com_sun_javafx_newt_macosx_MacWindow
+ * Class:     com_jogamp_newt_macosx_MacWindow
  * Method:    orderOut
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_orderOut
+JNIEXPORT void JNICALL Java_com_jogamp_newt_macosx_MacWindow_orderOut
   (JNIEnv *env, jobject unused, jlong window)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
@@ -376,11 +376,11 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_orderOut
 }
 
 /*
- * Class:     com_sun_javafx_newt_macosx_MacWindow
+ * Class:     com_jogamp_newt_macosx_MacWindow
  * Method:    close0
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_close0
+JNIEXPORT void JNICALL Java_com_jogamp_newt_macosx_MacWindow_close0
   (JNIEnv *env, jobject unused, jlong window)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
@@ -401,11 +401,11 @@ NS_ENDHANDLER
 }
 
 /*
- * Class:     com_sun_javafx_newt_macosx_MacWindow
+ * Class:     com_jogamp_newt_macosx_MacWindow
  * Method:    setTitle0
  * Signature: (JLjava/lang/String;)V
  */
-JNIEXPORT void JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_setTitle0
+JNIEXPORT void JNICALL Java_com_jogamp_newt_macosx_MacWindow_setTitle0
   (JNIEnv *env, jobject unused, jlong window, jstring title)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
@@ -417,11 +417,11 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_setTitle0
 }
 
 /*
- * Class:     com_sun_javafx_newt_macosx_MacWindow
+ * Class:     com_jogamp_newt_macosx_MacWindow
  * Method:    contentView
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_contentView
+JNIEXPORT jlong JNICALL Java_com_jogamp_newt_macosx_MacWindow_contentView
   (JNIEnv *env, jobject unused, jlong window)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
@@ -432,11 +432,11 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_contentView
 }
 
 /*
- * Class:     com_sun_javafx_newt_macosx_MacWindow
+ * Class:     com_jogamp_newt_macosx_MacWindow
  * Method:    changeContentView
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_changeContentView
+JNIEXPORT jlong JNICALL Java_com_jogamp_newt_macosx_MacWindow_changeContentView
   (JNIEnv *env, jobject jthis, jlong parent, jlong window, jlong jview)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
@@ -452,11 +452,11 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_changeContentV
 }
 
 /*
- * Class:     com_sun_javafx_newt_macosx_MacWindow
+ * Class:     com_jogamp_newt_macosx_MacWindow
  * Method:    setContentSize
  * Signature: (JII)V
  */
-JNIEXPORT void JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_setContentSize
+JNIEXPORT void JNICALL Java_com_jogamp_newt_macosx_MacWindow_setContentSize
   (JNIEnv *env, jobject unused, jlong window, jint w, jint h)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
@@ -467,11 +467,11 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_setContentSize
 }
 
 /*
- * Class:     com_sun_javafx_newt_macosx_MacWindow
+ * Class:     com_jogamp_newt_macosx_MacWindow
  * Method:    setFrameTopLeftPoint
  * Signature: (JII)V
  */
-JNIEXPORT void JNICALL Java_com_sun_javafx_newt_macosx_MacWindow_setFrameTopLeftPoint
+JNIEXPORT void JNICALL Java_com_jogamp_newt_macosx_MacWindow_setFrameTopLeftPoint
   (JNIEnv *env, jobject unused, jlong parent, jlong window, jint x, jint y)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];

@@ -33,8 +33,8 @@
 package javax.media.nativewindow.x11;
 
 import javax.media.nativewindow.*;
-import com.sun.nativewindow.impl.x11.X11Util;
-import com.sun.nativewindow.impl.x11.X11Lib;
+import com.jogamp.nativewindow.impl.x11.X11Util;
+import com.jogamp.nativewindow.impl.x11.X11Lib;
 
 /** Encapsulates a screen index on X11
     platforms. Objects of this type are passed to {@link
@@ -57,13 +57,16 @@ public class X11GraphicsScreen extends DefaultGraphicsScreen implements Cloneabl
     /** Creates a new X11GraphicsScreen using a thread local display connection */
     public static AbstractGraphicsScreen createDefault() {
         NativeWindowFactory.getDefaultFactory().getToolkitLock().lock();
-        long display = X11Util.getThreadLocalDefaultDisplay();
         try {
+            long display = X11Util.createThreadLocalDefaultDisplay();
             X11Lib.XLockDisplay(display);
-            int scrnIdx = X11Lib.DefaultScreen(display);
-            return createScreenDevice(display, scrnIdx);
+            try{
+                int scrnIdx = X11Lib.DefaultScreen(display);
+                return createScreenDevice(display, scrnIdx);
+            }finally{
+                X11Lib.XUnlockDisplay(display);
+            }
         } finally {
-            X11Lib.XUnlockDisplay(display);
             NativeWindowFactory.getDefaultFactory().getToolkitLock().unlock();
         }
     }
@@ -71,13 +74,16 @@ public class X11GraphicsScreen extends DefaultGraphicsScreen implements Cloneabl
     public long getDefaultVisualID() {
         // It still could be an AWT hold handle ..
         NativeWindowFactory.getDefaultFactory().getToolkitLock().lock();
-        long display = getDevice().getHandle();
         try {
+            long display = getDevice().getHandle();
             X11Lib.XLockDisplay(display);
-            int scrnIdx = X11Lib.DefaultScreen(display);
-            return X11Lib.DefaultVisualID(display, scrnIdx);
+            try{
+                int scrnIdx = X11Lib.DefaultScreen(display);
+                return X11Lib.DefaultVisualID(display, scrnIdx);
+            }finally{
+                X11Lib.XUnlockDisplay(display);
+            }
         } finally {
-            X11Lib.XUnlockDisplay(display);
             NativeWindowFactory.getDefaultFactory().getToolkitLock().unlock();
         }
     }
@@ -85,14 +91,17 @@ public class X11GraphicsScreen extends DefaultGraphicsScreen implements Cloneabl
     private static int fetchScreen(X11GraphicsDevice device, int screen) {
         // It still could be an AWT hold handle ..
         NativeWindowFactory.getDefaultFactory().getToolkitLock().lock();
-        long display = device.getHandle();
         try {
+            long display = device.getHandle();
             X11Lib.XLockDisplay(display);
-            if(X11Lib.XineramaEnabled(display)) {
-                screen = 0; // Xinerama -> 1 screen
+            try{
+                if(X11Lib.XineramaEnabled(display)) {
+                    screen = 0; // Xinerama -> 1 screen
+                }
+            }finally{
+                X11Lib.XUnlockDisplay(display);
             }
         } finally {
-            X11Lib.XUnlockDisplay(display);
             NativeWindowFactory.getDefaultFactory().getToolkitLock().unlock();
         }
         return screen;

@@ -4,5 +4,5 @@ Specification-Vendor: Sun Microsystems, Inc.
 Implementation-Title: NEWT Runtime Environment
 Implementation-Version: @VERSION@
 Implementation-Vendor: java.net JOGL community
-Extension-Name: com.sun.javafx.newt
+Extension-Name: com.sun.newt
 Implementation-Vendor-Id: com.sun

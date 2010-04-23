@@ -13,17 +13,17 @@
 
 
   /** Interface to C language function: <br> - Alias for: <br> <code> GLXFBConfig *  glXChooseFBConfigSGIX, glXChooseFBConfig(Display *  dpy, int screen, const int *  attribList, int *  nitems); </code>    */
-  public static com.sun.gluegen.runtime.PointerBuffer glXChooseFBConfigCopied(long dpy, int screen, int[] attribList, int attribList_offset, int[] nitems, int nitems_offset)
+  public static com.jogamp.common.nio.PointerBuffer glXChooseFBConfigCopied(long dpy, int screen, int[] attribList, int attribList_offset, int[] nitems, int nitems_offset)
   {
     if(attribList != null && attribList.length <= attribList_offset)
       throw new GLException("array offset argument \"attribList_offset\" (" + attribList_offset + ") equals or exceeds array length (" + attribList.length + ")");
     if(nitems != null && nitems.length <= nitems_offset)
       throw new GLException("array offset argument \"nitems_offset\" (" + nitems_offset + ") equals or exceeds array length (" + nitems.length + ")");
     java.nio.ByteBuffer _res;
-    _res = glXChooseFBConfigCopied1(dpy, screen, attribList, BufferFactory.SIZEOF_INT * attribList_offset, nitems, BufferFactory.SIZEOF_INT * nitems_offset);
+    _res = glXChooseFBConfigCopied1(dpy, screen, attribList, Buffers.SIZEOF_INT * attribList_offset, nitems, Buffers.SIZEOF_INT * nitems_offset);
 
     if (_res == null) return null;
-    return PointerBuffer.wrapNative2Java(_res, false);
+    return PointerBuffer.wrap(_res);
   }
 
   /** Entry point to C language function: - Alias for: <br> <code> GLXFBConfig *  glXChooseFBConfigSGIX, glXChooseFBConfig(Display *  dpy, int screen, const int *  attribList, int *  nitems); </code>    */
@@ -35,7 +35,7 @@
     if(attribList != null && attribList.length <= attribList_offset)
       throw new GLException("array offset argument \"attribList_offset\" (" + attribList_offset + ") equals or exceeds array length (" + attribList.length + ")");
     java.nio.ByteBuffer _res;
-    _res = glXChooseVisualCopied1(dpy, screen, attribList, BufferFactory.SIZEOF_INT * attribList_offset);
+    _res = glXChooseVisualCopied1(dpy, screen, attribList, Buffers.SIZEOF_INT * attribList_offset);
 
     if (_res == null) return null;
     return XVisualInfo.create(_res);

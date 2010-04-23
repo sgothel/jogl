@@ -1,33 +1,9 @@
 
 <project name="JOGL_ALL" basedir="." default="all">
 
-    <import file="versions.xml" />
+    <import file="build-common.xml"/>
 
-  <!-- Pull in GlueGen cpptasks build file to pick up os.and.arch -->
-  <property name="gluegen.root" value="../../gluegen" />
-  <import file="${gluegen.root}/make/gluegen-cpptasks.xml" />
-
-    <target name="init">
-        <property name="project.root" value=".." />
-        <condition property="rootrel.build" value="build">
-          <not>
-              <isset property="rootrel.build"/>
-          </not>
-        </condition>
-        <property name="build" value="${project.root}/${rootrel.build}" />
-        <property name="src" value="${project.root}/src" />
-
-        <property name="nativewindow.make.dir" value="." />
-        <property name="nativewindow.build.xml" value="${nativewindow.make.dir}/build-nativewindow.xml" />
-        <property name="jogl.make.dir" value="." />
-        <property name="jogl.build.xml" value="${jogl.make.dir}/build-jogl.xml" />
-        <property name="newt.make.dir" value="." />
-        <property name="newt.build.xml" value="${newt.make.dir}/build-newt.xml" />
-
-        <property name="all.srcj.path" value="${src}/nativewindow/classes;${src}/jogl/classes;${src}/newt/classes" />
-        <!-- No generated classes for Newt at the present time -->
-        <property name="all.genj.path" value="${build}/nativewindow/gensrc/classes;${build}/jogl/gensrc/classes" />
-
+    <target name="init" depends="common.init">
         <!-- The javadoc dirs. -->
         <property name="javadoc" value="${project.root}/javadoc_public" />
         <property name="javadoc.link" value="http://java.sun.com/j2se/1.4.2/docs/api/" />
@@ -43,47 +19,33 @@
         <property name="javadoc.spec.packagenames" value="javax.media.opengl.*" />
 
         <property name="javadoc.windowtitle" value="JOGL, NativeWindow and NEWT APIs" />
-        <property name="javadoc.packagenames" value="${javadoc.nw.spec.packagenames},${javadoc.spec.packagenames},com.sun.opengl.util.*,com.sun.javafx.newt, com.sun.javafx.newt.opengl" />
+        <property name="javadoc.packagenames" value="${javadoc.nw.spec.packagenames},${javadoc.spec.packagenames},com.jogamp.opengl.util.*,com.jogamp.newt, com.jogamp.newt.opengl" />
 
         <property name="javadoc.dev" value="${project.root}/javadoc_dev" />
-        <property name="javadoc.dev.packagenames" value="${javadoc.packagenames},com.sun.opengl.impl.*,com.sun.nativewindow.impl.*,com.sun.javafx.newt.*,com.sun.gluegen,com.sun.gluegen.runtime" />
+        <property name="javadoc.dev.packagenames" value="${javadoc.packagenames},com.jogamp.opengl.impl.*,com.jogamp.nativewindow.impl.*,com.jogamp.newt.*,com.sun.gluegen,com.jogamp.gluegen.runtime" />
 
-        <property name="java.excludes.javadoc.packagenames" value="com.sun.opengl.impl.gl2.fixme.*,com.sun.javafx.audio.windows.waveout.TestSpatialization"/>
+        <property name="java.excludes.javadoc.packagenames" value="com.jogamp.opengl.impl.gl2.fixme.*,com.jogamp.audio.windows.waveout.TestSpatialization"/>
         <property name="javadoc.bottom" value="Copyright 2005 Sun Microsystems, Inc. All rights reserved. Use is subject to &lt;a href=&quot;http://jcp.org/en/jsr/detail?id=231&quot;&gt;license terms&lt;/a&gt;." />
-
-        <property name="gluegen.jar" value="../../gluegen/${rootrel.build}/gluegen.jar" />
-        <property name="gluegen-rt.jar" value="../../gluegen/${rootrel.build}/gluegen-rt.jar" />
-        <property name="nativewindow.all.jar" value="../${rootrel.build}/nativewindow/nativewindow.all.jar" />
-        <property name="jogl.all.jar" value="../${rootrel.build}/jogl/jogl.all.jar" />
-        <property name="newt.all.jar" value="../${rootrel.build}/newt/newt.all.jar" />
-
-        <path id="all.classpath">
-            <pathelement location="${nativewindow.all.jar}" />
-            <pathelement location="${gluegen-rt.jar}" />
-            <pathelement location="${jogl.all.jar}" />
-            <pathelement location="${newt.all.jar}" />
-        </path>
 
     </target>
 
     <target name="build.nativewindow" depends="init">
-        <ant antfile="${nativewindow.build.xml}" dir="${nativewindow.make.dir}" target="all" inheritAll="false"/>
+        <ant antfile="${nativewindow.build.xml}" dir="${nativewindow.make}" target="all" inheritRefs="true" inheritAll="true"/>
     </target>
 
     <target name="build.jogl" depends="init">
-        <ant antfile="${jogl.build.xml}" dir="${jogl.make.dir}" target="all" inheritAll="false"/>
+        <ant antfile="${jogl.build.xml}" dir="${jogl.make}" target="all" inheritRefs="true" inheritAll="true"/>
     </target>
 
     <target name="build.newt" depends="init">
-        <ant antfile="${newt.build.xml}" dir="${newt.make.dir}" target="all" inheritAll="false"/>
+        <ant antfile="${newt.build.xml}" dir="${newt.make}" target="all" inheritRefs="true" inheritAll="true"/>
     </target>
 
     <target name="one-lib-dir" depends="init,gluegen.cpptasks.detect.os">
-        <property name="lib.dir" value="${build}/lib" />
-        <delete includeEmptyDirs="true" quiet="true" dir="${lib.dir}" failonerror="false" />
-        <mkdir dir="${lib.dir}" />
-        <copy todir="${lib.dir}">
-            <fileset dir="${project.root}/../gluegen/${rootrel.build}/obj" includes="*.${native.library.suffix} *.${native.library.suffix-cdc}" />
+        <delete includeEmptyDirs="true" quiet="true" dir="${lib}" failonerror="false" />
+        <mkdir dir="${lib}" />
+        <copy todir="${lib}">
+            <fileset dir="${gluegen.root}/${rootrel.build}/obj" includes="*.${native.library.suffix} *.${native.library.suffix-cdc}" />
             <fileset dir="${build}/jogl/obj" includes="*.${native.library.suffix} *.${native.library.suffix-cdc}" />
             <fileset dir="${build}/nativewindow/obj" includes="*.${native.library.suffix} *.${native.library.suffix-cdc}" />
             <fileset dir="${build}/newt/obj" includes="*.${native.library.suffix} *.${native.library.suffix-cdc}" />
@@ -96,38 +58,25 @@
        - This must be called after all of the build targets complete.
       -->
 
-    <target name="setup-version-RI" if="jogl.ri">
-        <property name="tmp.version" value="${jogl_base_version}" />
-    </target>
-
-    <target name="setup-version-non-RI" unless="jogl.ri">
-        <tstamp>
-             <format property="timestamp" pattern="yyyyMMdd"/>
-        </tstamp>
-        <property name="tmp.version" value="${jogl_base_version}-pre-${timestamp}" />
-    </target>
-
-    <target name="developer-zip-archive" depends="gluegen.cpptasks.detect.os,setup-version-RI,setup-version-non-RI" unless="build.noarchives">
-        <property name="archive.name" value="jogl-${tmp.version}-${os.and.arch}" />
-        <property name="archive.dir" value="${build}/${archive.name}" />
-        <delete includeEmptyDirs="true" quiet="true" dir="${archive.dir}" failonerror="false" />
-        <mkdir dir="${archive.dir}" />
+    <target name="developer-zip-archive" depends="init" unless="build.noarchives">
+        <delete includeEmptyDirs="true" quiet="true" dir="${archive}" failonerror="false" />
+        <mkdir dir="${archive}" />
         <!-- Copy the appropriate pieces into the archive directory -->
-        <copy file="../CHANGELOG.txt"  todir="${archive.dir}" />
-        <copy file="../COPYRIGHT.txt"  todir="${archive.dir}" />
-        <copy file="../LICENSE.txt"    todir="${archive.dir}" />
-        <copy file="../doc/userguide/index.html" tofile="${archive.dir}/Userguide.html" />
+        <copy file="../CHANGELOG.txt"  todir="${archive}" />
+        <copy file="../COPYRIGHT.txt"  todir="${archive}" />
+        <copy file="../LICENSE.txt"    todir="${archive}" />
+        <copy file="../doc/userguide/index.html" tofile="${archive}/Userguide.html" />
         <copy file="README-zip-bundles.txt"
-            tofile="${archive.dir}/README.txt"
+            tofile="${archive}/README.txt"
             overwrite="true">
             <filterset>
-                <filter token="VERSION" value="${tmp.version}"/>
+                <filter token="VERSION" value="${jogl.version}"/>
             </filterset>
         </copy>
-        <mkdir dir="${archive.dir}/lib" />
-        <copy todir="${archive.dir}/lib">
-            <fileset dir="${project.root}/../gluegen/${rootrel.build}" includes="gluegen-rt.jar gluegen-rt-cdc.jar" />
-            <fileset dir="${project.root}/../gluegen/${rootrel.build}/obj" includes="*.${native.library.suffix} *.${native.library.suffix-cdc}" />
+        <mkdir dir="${archive}/lib" />
+        <copy todir="${archive}/lib">
+            <fileset dir="${gluegen.root}/${rootrel.build}" includes="gluegen-rt.jar gluegen-rt-cdc.jar" />
+            <fileset dir="${gluegen.root}/${rootrel.build}/obj" includes="*.${native.library.suffix} *.${native.library.suffix-cdc}" />
             <fileset dir="${build}/jogl" includes="*.jar" excludes="*natives*.jar" />
             <fileset dir="${build}/jogl/obj" includes="*.${native.library.suffix} *.${native.library.suffix-cdc}" />
             <fileset dir="${build}/nativewindow" includes="*.jar" excludes="*natives*.jar" />
@@ -135,8 +84,8 @@
             <fileset dir="${build}/newt" includes="*.jar" excludes="*natives*.jar" />
             <fileset dir="${build}/newt/obj" includes="*.${native.library.suffix} *.${native.library.suffix-cdc}" />
         </copy>
-        <mkdir dir="${archive.dir}/etc" />
-        <copy todir="${archive.dir}/etc">
+        <mkdir dir="${archive}/etc" />
+        <copy todir="${archive}/etc">
             <fileset dir="${project.root}/etc" includes="*" />
         </copy>
         <delete quiet="true" file="${build}/${archive.name}.zip"/>
@@ -144,7 +93,7 @@
              basedir="${build}"
              includes="${archive.name}/**" />
         <!-- Clean up after ourselves -->
-        <delete includeEmptyDirs="true" quiet="true" dir="${archive.dir}" failonerror="false" />
+        <delete includeEmptyDirs="true" quiet="true" dir="${archive}" failonerror="false" />
     </target>
 
     <!-- ================================================================== -->
@@ -153,20 +102,20 @@
        - This must be called after all of the build targets complete.
       -->
 
-    <target name="source-archive" depends="setup-version-RI,setup-version-non-RI" unless="build.noarchives">
+    <target name="source-archive" depends="init" unless="build.noarchives">
         <!-- NOTE that if you are using multiple rootrel.build directories within the same
              repository, the exclude lists here won't work well enough and you will wind up
              archiving binary bits from other rootrel.build settings in the source archive.
              This is inevitable given that we don't want to specialize this target to
              explicitly include top level files and directories, to make it future-proof. -->
-        <delete quiet="true" file="${build}/jogl-${tmp.version}-src.zip"/>
-        <zip destfile="${build}/jogl-${tmp.version}-src.zip"
+        <delete quiet="true" file="${build}/jogl-${jogl.version}-src.zip"/>
+        <zip destfile="${build}/jogl-${jogl.version}-src.zip"
              basedir="${project.root}/.."
-             excludes="gluegen/${rootrel.build}/**,gluegen/build/**gluegen/build-temp/**,jogl/${rootrel.build}/**,jogl/build/**,jogl/build-temp/**,jogl/www/**"
-             includes="gluegen/**, jogl/**" />
+             excludes="${gluegen.root}/${rootrel.build}/**,${gluegen.root}/build/**${gluegen.root}/build-temp/**,jogl/${rootrel.build}/**,jogl/build/**,jogl/build-temp/**,jogl/www/**"
+             includes="${gluegen.root}/**, jogl/**" />
         <!-- Now add in certain portions of the generated source code for developers -->
         <zip update="true"
-             destfile="${build}/jogl-${tmp.version}-src.zip"
+             destfile="${build}/jogl-${jogl.version}-src.zip"
              basedir="${project.root}/.."
              includes="jogl/${rootrel.build}/jogl/gensrc/classes/javax/media/opengl/**" />
     </target>
@@ -176,12 +125,21 @@
        - Main build target.
       -->
 
-    <target name="all" description="Build nativewindow, jogl and newt projects" depends="init,build.nativewindow,build.jogl,build.newt,one-lib-dir,developer-zip-archive,source-archive" />
+    <target name="all" description="Build nativewindow, jogl and newt projects, incl. all junit tests " depends="init,build.nativewindow,build.jogl,build.newt,junit.compile,one-lib-dir,developer-zip-archive,source-archive" />
+
+    <target name="junit.compile">
+      <ant antfile="build-junit.xml" target="junit.compile" inheritRefs="true" inheritAll="true"/>
+    </target>
+
+    <target name="test" depends="junit.run"/>
+    <target name="junit.run" description="Run JUNIT tests in nativewindow, jogl and newt projects">
+      <ant antfile="build-junit.xml" target="junit.run" inheritRefs="true" inheritAll="true"/>
+    </target>
 
     <target name="clean" depends="init">
-        <ant antfile="${nativewindow.build.xml}" dir="${nativewindow.make.dir}" target="clean" inheritAll="false"/>
-        <ant antfile="${jogl.build.xml}" dir="${jogl.make.dir}" target="clean" inheritAll="false"/>
-        <ant antfile="${newt.build.xml}" dir="${newt.make.dir}" target="clean" inheritAll="false"/>
+        <ant antfile="${nativewindow.build.xml}" dir="${nativewindow.make}" target="clean" inheritRefs="true" inheritAll="true"/>
+        <ant antfile="${jogl.build.xml}" dir="${jogl.make}" target="clean" inheritRefs="true" inheritAll="true"/>
+        <ant antfile="${newt.build.xml}" dir="${newt.make}" target="clean" inheritRefs="true" inheritAll="true"/>
         <delete includeEmptyDirs="true" quiet="true">
             <fileset dir="${build}" />
         </delete>
@@ -196,10 +154,11 @@
                  overview="${javadoc.overview}" 
                  source="1.4"
                  maxmemory="512m"
-         bottom="${javadoc.bottom}" >
-         <classpath refid="all.classpath"/>
-         <link offline="true" href="${javadoc.link}" packagelistLoc="142-packages" />
-          <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.jar}" />
+                 bottom="${javadoc.bottom}" >
+            <classpath refid="jogl_newt_all.classpath"/>
+            <link offline="true" href="${javadoc.link}" packagelistLoc="142-packages" />
+            <arg line="-J-Dnativetaglet.mapping=${basedir}/native-taglet.properties"/>
+            <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.jar}" />
         </javadoc>
     </target>
 
@@ -213,10 +172,11 @@
                  source="1.4"
                  maxmemory="512m"
                  bottom="${javadoc.bottom}" >
-         <classpath refid="all.classpath"/>
-         <link offline="true" href="${javadoc.link}" packagelistLoc="142-packages" />
-         <link offline="false" href="${javadoc.nw.spec}" />
-          <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.jar}" />
+            <classpath refid="jogl_newt_all.classpath"/>
+            <link offline="true" href="${javadoc.link}" packagelistLoc="142-packages" />
+            <arg line="-J-Dnativetaglet.mapping=${basedir}/native-taglet.properties"/>
+            <link offline="false" href="${javadoc.nw.spec}" />
+            <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.jar}" />
         </javadoc>
     </target>
                                                                                                                                    
@@ -229,10 +189,11 @@
                  overview="${javadoc.overview}" 
                  source="1.4"
                  maxmemory="512m"
-         bottom="${javadoc.bottom}" >
-         <classpath refid="all.classpath"/>
-         <link offline="true" href="${javadoc.link}" packagelistLoc="142-packages" />
-          <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.jar}" />
+                 bottom="${javadoc.bottom}" >
+            <classpath refid="jogl_newt_all.classpath"/>
+            <link offline="true" href="${javadoc.link}" packagelistLoc="142-packages" />
+            <arg line="-J-Dnativetaglet.mapping=${basedir}/native-taglet.properties"/>
+            <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.jar}" />
         </javadoc>
     </target>
 
@@ -246,9 +207,10 @@
                  source="1.4"
                  maxmemory="512m"
                  bottom="${javadoc.bottom}" >
-         <classpath refid="all.classpath"/>
-         <link offline="true" href="${javadoc.link}" packagelistLoc="142-packages" />
-         <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.jar}" />
+            <classpath refid="jogl_newt_all.classpath"/>
+            <link offline="true" href="${javadoc.link}" packagelistLoc="142-packages" />
+            <arg line="-J-Dnativetaglet.mapping=${basedir}/native-taglet.properties"/>
+            <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.jar}" />
         </javadoc>
     </target>
                                                                                                                                    

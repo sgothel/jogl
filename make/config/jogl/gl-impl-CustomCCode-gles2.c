@@ -1,11 +1,11 @@
 typedef GLvoid* (GL_APIENTRY* PFNGLMAPBUFFERPROC) (GLenum target, GLenum access);
 /*   Java->C glue code:
- *   Java package: com.sun.opengl.impl.es2.GLES2Impl
+ *   Java package: com.jogamp.opengl.impl.es2.GLES2Impl
  *    Java method: long dispatch_glMapBuffer(int target, int access)
  *     C function: void * glMapBuffer(GLenum target, GLenum access);
  */
 JNIEXPORT jlong JNICALL 
-Java_com_sun_opengl_impl_es2_GLES2Impl_dispatch_1glMapBuffer(JNIEnv *env, jobject _unused, jint target, jint access, jlong glProcAddress) {
+Java_com_jogamp_opengl_impl_es2_GLES2Impl_dispatch_1glMapBuffer(JNIEnv *env, jobject _unused, jint target, jint access, jlong glProcAddress) {
   PFNGLMAPBUFFERPROC ptr_glMapBuffer;
   void * _res;
   ptr_glMapBuffer = (PFNGLMAPBUFFERPROC) (intptr_t) glProcAddress;
@@ -15,11 +15,11 @@ Java_com_sun_opengl_impl_es2_GLES2Impl_dispatch_1glMapBuffer(JNIEnv *env, jobjec
 }
 
 /*   Java->C glue code:
- *   Java package: com.sun.opengl.impl.es2.GLES2Impl
+ *   Java package: com.jogamp.opengl.impl.es2.GLES2Impl
  *    Java method: ByteBuffer newDirectByteBuffer(long addr, int capacity);
  *     C function: jobject newDirectByteBuffer(jlong addr, jint capacity);
  */
 JNIEXPORT jobject JNICALL
-Java_com_sun_opengl_impl_es2_GLES2Impl_newDirectByteBuffer(JNIEnv *env, jobject _unused, jlong addr, jint capacity) {
+Java_com_jogamp_opengl_impl_es2_GLES2Impl_newDirectByteBuffer(JNIEnv *env, jobject _unused, jlong addr, jint capacity) {
   return (*env)->NewDirectByteBuffer(env, (void*) (intptr_t) addr, capacity);
 }

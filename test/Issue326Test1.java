@@ -13,8 +13,8 @@ import javax.media.opengl.GLCanvas;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.glu.GLU;
 
-import com.sun.opengl.util.Animator;
-import com.sun.opengl.util.j2d.TextRenderer;
+import com.jogamp.opengl.util.Animator;
+import com.jogamp.opengl.util.j2d.TextRenderer;
 
 /** 
  * Demonstrates corruption with older versions of TextRenderer. Two
@@ -65,7 +65,7 @@ public class Issue326Test1 extends Frame implements GLEventListener {
         gl.glLoadIdentity();
 		
         tr.beginRendering(800,800);
-        tr.draw( "die Marktwirtschaft. Da regelt sich – angeblich", 16, 32);
+        tr.draw( "die Marktwirtschaft. Da regelt sich ï¿½ angeblich", 16, 32);
         tr.draw( "Hello World! This text is scrambled", 16, 16);
         tr.endRendering();
 		

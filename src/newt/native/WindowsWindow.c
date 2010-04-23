@@ -89,7 +89,7 @@
 #define MONITOR_DEFAULTTONEAREST 2
 #endif
 
-#include "com_sun_javafx_newt_windows_WindowsWindow.h"
+#include "com_jogamp_newt_windows_WindowsWindow.h"
 
 #include "EventListener.h"
 #include "MouseEvent.h"
@@ -902,11 +902,11 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
 }
 
 /*
- * Class:     com_sun_javafx_newt_windows_WindowsDisplay
+ * Class:     com_jogamp_newt_windows_WindowsDisplay
  * Method:    DispatchMessages
  * Signature: ()V
  */
-JNIEXPORT void JNICALL Java_com_sun_javafx_newt_windows_WindowsDisplay_DispatchMessages
+JNIEXPORT void JNICALL Java_com_jogamp_newt_windows_WindowsDisplay_DispatchMessages
   (JNIEnv *env, jclass clazz)
 {
     int i = 0;
@@ -925,11 +925,11 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_windows_WindowsDisplay_DispatchM
 }
 
 /*
- * Class:     com_sun_javafx_newt_windows_WindowsDisplay
+ * Class:     com_jogamp_newt_windows_WindowsDisplay
  * Method:    LoadLibraryW
  * Signature: (Ljava/lang/String;)J
  */
-JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_windows_WindowsDisplay_LoadLibraryW
+JNIEXPORT jlong JNICALL Java_com_jogamp_newt_windows_WindowsDisplay_LoadLibraryW
   (JNIEnv *env, jclass clazz, jstring dllName)
 {
     jchar* _dllName = GetNullTerminatedStringChars(env, dllName);
@@ -939,11 +939,11 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_windows_WindowsDisplay_LoadLibr
 }
 
 /*
- * Class:     com_sun_javafx_newt_windows_WindowsDisplay
+ * Class:     com_jogamp_newt_windows_WindowsDisplay
  * Method:    RegisterWindowClass
  * Signature: (Ljava/lang/String;J)I
  */
-JNIEXPORT jint JNICALL Java_com_sun_javafx_newt_windows_WindowsDisplay_RegisterWindowClass
+JNIEXPORT jint JNICALL Java_com_jogamp_newt_windows_WindowsDisplay_RegisterWindowClass
   (JNIEnv *env, jclass clazz, jstring wndClassName, jlong hInstance)
 {
     ATOM res;
@@ -979,44 +979,44 @@ JNIEXPORT jint JNICALL Java_com_sun_javafx_newt_windows_WindowsDisplay_RegisterW
 }
 
 /*
- * Class:     com_sun_javafx_newt_windows_WindowsDisplay
+ * Class:     com_jogamp_newt_windows_WindowsDisplay
  * Method:    CleanupWindowResources
  * Signature: (java/lang/String;J)V
  */
-JNIEXPORT void JNICALL Java_com_sun_javafx_newt_windows_WindowsDisplay_UnregisterWindowClass
+JNIEXPORT void JNICALL Java_com_jogamp_newt_windows_WindowsDisplay_UnregisterWindowClass
   (JNIEnv *env, jclass clazz, jint wndClassAtom, jlong hInstance)
 {
     UnregisterClass(MAKEINTATOM(wndClassAtom), (HINSTANCE) (intptr_t) hInstance);
 }
 
 /*
- * Class:     com_sun_javafx_newt_windows_WindowsScreen
+ * Class:     com_jogamp_newt_windows_WindowsScreen
  * Method:    getWidthImpl
  * Signature: (I)I
  */
-JNIEXPORT jint JNICALL Java_com_sun_javafx_newt_windows_WindowsScreen_getWidthImpl
+JNIEXPORT jint JNICALL Java_com_jogamp_newt_windows_WindowsScreen_getWidthImpl
   (JNIEnv *env, jobject obj, jint scrn_idx)
 {
     return (jint)GetSystemMetrics(SM_CXSCREEN);
 }
 
 /*
- * Class:     com_sun_javafx_newt_windows_WindowsScreen
+ * Class:     com_jogamp_newt_windows_WindowsScreen
  * Method:    getWidthImpl
  * Signature: (I)I
  */
-JNIEXPORT jint JNICALL Java_com_sun_javafx_newt_windows_WindowsScreen_getHeightImpl
+JNIEXPORT jint JNICALL Java_com_jogamp_newt_windows_WindowsScreen_getHeightImpl
   (JNIEnv *env, jobject obj, jint scrn_idx)
 {
     return (jint)GetSystemMetrics(SM_CYSCREEN);
 }
 
 /*
- * Class:     com_sun_javafx_newt_windows_WindowsWindow
+ * Class:     com_jogamp_newt_windows_WindowsWindow
  * Method:    initIDs
  * Signature: ()Z
  */
-JNIEXPORT jboolean JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_initIDs
+JNIEXPORT jboolean JNICALL Java_com_jogamp_newt_windows_WindowsWindow_initIDs
   (JNIEnv *env, jclass clazz)
 {
     sizeChangedID = (*env)->GetMethodID(env, clazz, "sizeChanged", "(II)V");
@@ -1045,11 +1045,11 @@ JNIEXPORT jboolean JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_initID
 }
 
 /*
- * Class:     com_sun_javafx_newt_windows_WindowsWindow
+ * Class:     com_jogamp_newt_windows_WindowsWindow
  * Method:    CreateWindow
  * Signature: (JILjava/lang/String;JJZIIII)J
  */
-JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_CreateWindow
+JNIEXPORT jlong JNICALL Java_com_jogamp_newt_windows_WindowsWindow_CreateWindow
   (JNIEnv *env, jobject obj, jlong parent, jint wndClassAtom, jstring jWndName, jlong hInstance, jlong visualID,
         jboolean bIsUndecorated,
         jint jx, jint jy, jint defaultWidth, jint defaultHeight)
@@ -1113,44 +1113,44 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_CreateWin
 }
 
 /*
- * Class:     com_sun_javafx_newt_windows_WindowsWindow
+ * Class:     com_jogamp_newt_windows_WindowsWindow
  * Method:    DestroyWindow
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_DestroyWindow
+JNIEXPORT void JNICALL Java_com_jogamp_newt_windows_WindowsWindow_DestroyWindow
   (JNIEnv *env, jobject obj, jlong window)
 {
     DestroyWindow((HWND) (intptr_t) window);
 }
 
 /*
- * Class:     com_sun_javafx_newt_windows_WindowsWindow
+ * Class:     com_jogamp_newt_windows_WindowsWindow
  * Method:    GetDC
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_GetDC
+JNIEXPORT jlong JNICALL Java_com_jogamp_newt_windows_WindowsWindow_GetDC
   (JNIEnv *env, jobject obj, jlong window)
 {
     return (jlong) (intptr_t) GetDC((HWND) (intptr_t) window);
 }
 
 /*
- * Class:     com_sun_javafx_newt_windows_WindowsWindow
+ * Class:     com_jogamp_newt_windows_WindowsWindow
  * Method:    ReleaseDC
  * Signature: (JJ)V
  */
-JNIEXPORT void JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_ReleaseDC
+JNIEXPORT void JNICALL Java_com_jogamp_newt_windows_WindowsWindow_ReleaseDC
   (JNIEnv *env, jobject obj, jlong window, jlong dc)
 {
     ReleaseDC((HWND) (intptr_t) window, (HDC) (intptr_t) dc);
 }
 
 /*
- * Class:     com_sun_javafx_newt_windows_WindowsWindow
+ * Class:     com_jogamp_newt_windows_WindowsWindow
  * Method:    MonitorFromWindow
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_MonitorFromWindow
+JNIEXPORT jlong JNICALL Java_com_jogamp_newt_windows_WindowsWindow_MonitorFromWindow
   (JNIEnv *env, jobject obj, jlong window)
 {
     #if (_WIN32_WINNT >= 0x0500 || _WIN32_WINDOWS >= 0x0410 || WINVER >= 0x0500) && !defined(_WIN32_WCE)
@@ -1161,11 +1161,11 @@ JNIEXPORT jlong JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_MonitorFr
 }
 
 /*
- * Class:     com_sun_javafx_newt_windows_WindowsWindow
+ * Class:     com_jogamp_newt_windows_WindowsWindow
  * Method:    setVisible0
  * Signature: (JZ)V
  */
-JNIEXPORT void JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_setVisible0
+JNIEXPORT void JNICALL Java_com_jogamp_newt_windows_WindowsWindow_setVisible0
   (JNIEnv *_env, jclass clazz, jlong window, jboolean visible)
 {
     HWND hWnd = (HWND) (intptr_t) window;
@@ -1178,11 +1178,11 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_setVisible
 }
 
 /*
- * Class:     com_sun_javafx_newt_windows_WindowsWindow
+ * Class:     com_jogamp_newt_windows_WindowsWindow
  * Method:    setSize0
  * Signature: (JII)V
  */
-JNIEXPORT void JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_setSize0
+JNIEXPORT void JNICALL Java_com_jogamp_newt_windows_WindowsWindow_setSize0
   (JNIEnv *env, jobject obj, jlong parent, jlong window, jint x, jint y, jint width, jint height)
 {
     HWND hwndP = (HWND) (intptr_t) parent;
@@ -1215,11 +1215,11 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_setSize0
 }
 
 /*
- * Class:     com_sun_javafx_newt_windows_WindowsWindow
+ * Class:     com_jogamp_newt_windows_WindowsWindow
  * Method:    setPosition
  * Signature: (JII)V
  */
-JNIEXPORT void JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_setPosition
+JNIEXPORT void JNICALL Java_com_jogamp_newt_windows_WindowsWindow_setPosition
   (JNIEnv *env, jobject obj, jlong parent, jlong window, jint x, jint y)
 {
     UINT flags = SWP_NOACTIVATE | SWP_NOSIZE;
@@ -1236,11 +1236,11 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_setPositio
 }
 
 /*
- * Class:     com_sun_javafx_newt_windows_WindowsWindow
+ * Class:     com_jogamp_newt_windows_WindowsWindow
  * Method:    setFullscreen
  * Signature: (JIIIIZZ)V
  */
-JNIEXPORT void JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_setFullscreen0
+JNIEXPORT void JNICALL Java_com_jogamp_newt_windows_WindowsWindow_setFullscreen0
   (JNIEnv *env, jobject obj, jlong parent, jlong window, jint x, jint y, jint width, jint height, jboolean bIsUndecorated, jboolean on)
 {
     UINT flags;
@@ -1272,11 +1272,11 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_setFullscr
 }
 
 /*
- * Class:     com_sun_javafx_newt_windows_WindowsWindow
+ * Class:     com_jogamp_newt_windows_WindowsWindow
  * Method:    setTitle
  * Signature: (JLjava/lang/String;)V
  */
-JNIEXPORT void JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_setTitle
+JNIEXPORT void JNICALL Java_com_jogamp_newt_windows_WindowsWindow_setTitle
   (JNIEnv *env, jclass clazz, jlong window, jstring title)
 {
     HWND hwnd = (HWND) (intptr_t) window;
@@ -1290,11 +1290,11 @@ JNIEXPORT void JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_setTitle
 }
 
 /*
- * Class:     com_sun_javafx_newt_windows_WindowsWindow
+ * Class:     com_jogamp_newt_windows_WindowsWindow
  * Method:    requestFocus
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_com_sun_javafx_newt_windows_WindowsWindow_requestFocus
+JNIEXPORT void JNICALL Java_com_jogamp_newt_windows_WindowsWindow_requestFocus
   (JNIEnv *env, jclass clazz, jlong window)
 {
     HWND hwnd = (HWND) (intptr_t) window;

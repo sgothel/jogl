@@ -64,6 +64,20 @@ public interface GLBase {
   public boolean isGL();
 
   /**
+   * Indicates whether this GL object conforms to the GL4 compatibility profile.
+   * The GL4 compatibility profile merges the GL2 profile and GL4 core profile.
+   * @return whether this GL object conforms to the GL4 compatibility profile
+   */
+  public boolean isGL4bc();
+
+  /**
+   * Indicates whether this GL object conforms to the GL4 core profile.
+   * The GL4 core profile reflects OpenGL versions greater or equal 3.1
+   * @return whether this GL object conforms to the GL4 core profile
+   */
+  public boolean isGL4();
+
+  /**
    * Indicates whether this GL object conforms to the GL3 compatibility profile.
    * The GL3 compatibility profile merges the GL2 profile and GL3 core profile.
    * @return whether this GL object conforms to the GL3 compatibility profile
@@ -129,6 +143,20 @@ public interface GLBase {
    * @throws GLException if this GLObject is not a GL implementation
    */
   public GL getGL() throws GLException;
+
+  /**
+   * Casts this object to the GL4bc interface.
+   * @return this object cast to the GL4bc interface
+   * @throws GLException if this GLObject is not a GL4bc implementation
+   */
+  public GL4bc getGL4bc() throws GLException;
+
+  /**
+   * Casts this object to the GL4 interface.
+   * @return this object cast to the GL4 interface
+   * @throws GLException if this GLObject is not a GL4 implementation
+   */
+  public GL4 getGL4() throws GLException;
 
   /**
    * Casts this object to the GL3bc interface.
@@ -220,7 +248,7 @@ public interface GLBase {
     * 
     * @param glFunctionName the name of the OpenGL function (e.g., use
     * "glBindRenderbufferEXT" or "glBindRenderbuffer" to check if {@link
-    * #glBindRenderbuffer(int,int)} is available).
+    * GL#glBindRenderbuffer(int,int)} is available).
     */
    public boolean isFunctionAvailable(String glFunctionName);
 

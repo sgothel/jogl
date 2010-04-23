@@ -7,8 +7,8 @@ import java.awt.geom.*;
 
 import javax.media.opengl.*;
 import javax.media.opengl.glu.*;
-import com.sun.opengl.util.*;
-import com.sun.opengl.util.j2d.*;
+import com.jogamp.opengl.util.*;
+import com.jogamp.opengl.util.j2d.*;
 
 /** Test Code adapted from TextCube.java (in JOGL demos)
  *
