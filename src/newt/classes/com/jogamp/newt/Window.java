@@ -109,6 +109,9 @@ public abstract class Window implements NativeWindow
             } else {
                 window.createNative(parentWindowHandle, caps);
             }
+            if(DEBUG_WINDOW_EVENT) {
+                System.out.println("Window.create-1() done ("+Thread.currentThread()+", "+window+")");
+            }
             return window;
         } catch (Throwable t) {
             t.printStackTrace();
@@ -141,6 +144,9 @@ public abstract class Window implements NativeWindow
                 } );
             } else {
                 window.createNative(0, caps);
+            }
+            if(DEBUG_WINDOW_EVENT) {
+                System.out.println("Window.create-2() done ("+Thread.currentThread()+", "+window+")");
             }
             return window;
         } catch (Throwable t) {
@@ -212,14 +218,14 @@ public abstract class Window implements NativeWindow
         StringBuffer sb = new StringBuffer();
 
         sb.append(getClass().getName()+"[Config "+config+
-                    ", WindowHandle "+toHexString(getWindowHandle())+
-                    ", SurfaceHandle "+toHexString(getSurfaceHandle())+
-                    ", Pos "+getX()+"/"+getY()+", size "+getWidth()+"x"+getHeight()+
-                    ", Visible "+isVisible()+
-                    ", Undecorated "+undecorated+
-                    ", Fullscreen "+fullscreen+
-                    ", "+screen+
-                    ", WrappedWindow "+getWrappedWindow());
+                    "\n, "+screen+
+                    "\n, WindowHandle "+toHexString(getWindowHandle())+
+                    "\n, SurfaceHandle "+toHexString(getSurfaceHandle())+
+                    "\n, Pos "+getX()+"/"+getY()+", size "+getWidth()+"x"+getHeight()+
+                    "\n, Visible "+isVisible()+
+                    "\n, Undecorated "+undecorated+
+                    "\n, Fullscreen "+fullscreen+
+                    "\n, WrappedWindow "+getWrappedWindow());
 
         sb.append(", SurfaceUpdatedListeners num "+surfaceUpdatedListeners.size()+" [");
         for (Iterator iter = surfaceUpdatedListeners.iterator(); iter.hasNext(); ) {
@@ -304,7 +310,7 @@ public abstract class Window implements NativeWindow
     /** @param deep If true, the linked Screen and Display will be destroyed as well. */
     public void destroy(boolean deep) {
         if(DEBUG_WINDOW_EVENT) {
-            System.out.println("Window.destroy() start (deep "+deep+" - "+Thread.currentThread());
+            System.out.println("Window.destroy() start (deep "+deep+" - "+Thread.currentThread()+", "+this+")");
         }
         synchronized(surfaceUpdatedListeners) {
             surfaceUpdatedListeners = new ArrayList();

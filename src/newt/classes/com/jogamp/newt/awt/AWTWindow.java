@@ -134,18 +134,30 @@ public class AWTWindow extends Window {
                     }
                 }
             });
+        this.windowHandle = 1; // just a marker ..
     }
 
     protected void closeNative() {
-        runOnEDT(true, new Runnable() {
-                public void run() {
-                    if(owningFrame && null!=frame) {
+        this.windowHandle = 0; // just a marker ..
+        if(null!=container) {
+            runOnEDT(true, new Runnable() {
+                    public void run() {
+                        container.setVisible(false);
+                        container.remove(canvas);
+                        container.setEnabled(false);
+                        canvas.setEnabled(false);
+                    }
+                });
+        }
+        if(owningFrame && null!=frame) {
+            runOnEDT(true, new Runnable() {
+                    public void run() {
                         frame.dispose();
                         owningFrame=false;
+                        frame = null;
                     }
-                    frame = null;
-                }
-            });
+                });
+        }
     }
 
     public boolean hasDeviceChanged() {
