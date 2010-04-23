@@ -87,11 +87,8 @@ public abstract class MacOSXCGLDrawable extends GLDrawableImpl {
         if( NativeWindow.LOCK_SURFACE_NOT_READY == lockSurface() ) {
             throw new GLException("Couldn't lock surface");
         }
-        try {
-            // don't remove this block .. locking the surface is essential to update surface data
-        } finally {
-            unlockSurface();
-        }
+        // locking the surface is essential to update surface data
+        unlockSurface();
     }
   }
 

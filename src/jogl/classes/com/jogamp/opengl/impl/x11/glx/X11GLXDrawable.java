@@ -73,25 +73,23 @@ public abstract class X11GLXDrawable extends GLDrawableImpl {
     }
   }
 
-  protected void swapBuffersImpl() {
-    boolean didLock = false;
-    try {
-      if ( !isSurfaceLocked() ) {
-          // Usually the surface shall be locked within [makeCurrent .. swap .. release]
-          if (lockSurface() == NativeWindow.LOCK_SURFACE_NOT_READY) {
-              return;
-          }
-          didLock=true;
-      }
-
-      GLX.glXSwapBuffers(component.getDisplayHandle(), component.getSurfaceHandle());
-
-    } finally {
-      if(didLock) {
-          unlockSurface();
-      }
+    protected void swapBuffersImpl() {
+        boolean didLock = false;
+        if (!isSurfaceLocked()) {
+            // Usually the surface shall be locked within [makeCurrent .. swap .. release]
+            if (lockSurface() == NativeWindow.LOCK_SURFACE_NOT_READY) {
+                return;
+            }
+            didLock = true;
+        }
+        try {
+            GLX.glXSwapBuffers(component.getDisplayHandle(), component.getSurfaceHandle());
+        } finally {
+            if (didLock) {
+                unlockSurface();
+            }
+        }
     }
-  }
 
   //---------------------------------------------------------------------------
   // Internals only below this point

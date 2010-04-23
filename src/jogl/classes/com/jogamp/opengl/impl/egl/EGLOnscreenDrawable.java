@@ -60,21 +60,19 @@ public class EGLOnscreenDrawable extends EGLDrawable {
 
     protected void swapBuffersImpl() {
         boolean didLock = false;
+        if (!isSurfaceLocked()) {
+            // Usually the surface shall be locked within [makeCurrent .. swap .. release]
+            if (lockSurface() == NativeWindow.LOCK_SURFACE_NOT_READY) {
+                return;
+            }
+            didLock = true;
+        }
         try {
-          if ( !isSurfaceLocked() ) {
-              // Usually the surface shall be locked within [makeCurrent .. swap .. release]
-              if (lockSurface() == NativeWindow.LOCK_SURFACE_NOT_READY) {
-                  return;
-              }
-              didLock = true;
-          }
-
-          EGL.eglSwapBuffers(eglDisplay, eglSurface);
-
+            EGL.eglSwapBuffers(eglDisplay, eglSurface);
         } finally {
-          if(didLock) {
-              unlockSurface();
-          }
+            if (didLock) {
+                unlockSurface();
+            }
         }
     }
 

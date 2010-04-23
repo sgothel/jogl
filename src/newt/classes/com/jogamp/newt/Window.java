@@ -342,8 +342,8 @@ public abstract class Window implements NativeWindow
             keyListeners = new ArrayList();
         }
         synchronized(this) {
+            destructionLock.lock();
             try {
-                destructionLock.lock();
                 Display dpy = null;
                 if( null != screen && 0 != windowHandle ) {
                     Screen scr = screen;

@@ -83,14 +83,14 @@ public abstract class WindowsWGLDrawable extends GLDrawableImpl {
   protected void swapBuffersImpl() {
     boolean didLock = false;
 
-    try {
-        if ( !isSurfaceLocked() ) {
-            // Usually the surface shall be locked within [makeCurrent .. swap .. release]
-            if (lockSurface() == NativeWindow.LOCK_SURFACE_NOT_READY) {
-                return;
-            }
-            didLock = true;
+    if ( !isSurfaceLocked() ) {
+        // Usually the surface shall be locked within [makeCurrent .. swap .. release]
+        if (lockSurface() == NativeWindow.LOCK_SURFACE_NOT_READY) {
+            return;
         }
+        didLock = true;
+    }
+    try {
 
         long startTime = 0;
         if (PROFILING) {
