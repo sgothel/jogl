@@ -242,6 +242,7 @@ static jint mods2JavaMods(NSUInteger mods)
 - (void) keyUp: (NSEvent*) theEvent
 {
     [self sendKeyEvent: theEvent eventType: EVENT_KEY_RELEASED];
+    [self sendKeyEvent: theEvent eventType: EVENT_KEY_TYPED];
 }
 
 - (void) sendMouseEvent: (NSEvent*) event eventType: (jint) evType
