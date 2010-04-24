@@ -31,69 +31,35 @@
  * 
  */
 
-package com.jogamp.newt.event;
+package com.jogamp.newt.impl.awt;
 
 import com.jogamp.newt.*;
+import java.awt.DisplayMode;
+import javax.media.nativewindow.*;
+import javax.media.nativewindow.awt.*;
 
-public abstract class InputEvent extends NEWTEvent
-{
- public static final int  SHIFT_MASK     = 1 << 0;
- public static final int  CTRL_MASK      = 1 << 1;
- public static final int  META_MASK      = 1 << 2;
- public static final int  ALT_MASK       = 1 << 3;
- public static final int  ALT_GRAPH_MASK = 1 << 5;
- public static final int  BUTTON1_MASK   = 1 << 6;
- public static final int  BUTTON2_MASK   = 1 << 7;
- public static final int  BUTTON3_MASK   = 1 << 8;
+public class AWTScreen extends Screen {
+    public AWTScreen() {
+    }
 
- protected InputEvent(int eventType, Object source, long when, int modifiers) {
-    super(eventType, source, when);
-    this.consumed=false;
-    this.modifiers=modifiers;
- }
+    protected void createNative(int index) {
+        aScreen = new AWTGraphicsScreen((AWTGraphicsDevice)display.getGraphicsDevice());
+        
+        DisplayMode mode = ((AWTGraphicsDevice)getDisplay().getGraphicsDevice()).getGraphicsDevice().getDisplayMode();
+        int w = mode.getWidth();
+        int h = mode.getHeight();
+        setScreenSize(w, h);
+    }
 
- public void consume() {
-    consumed=true;
- }
+    protected void setAWTGraphicsScreen(AWTGraphicsScreen s) {
+        aScreen = s;
+    }
 
- public boolean isConsumed() {
-    return consumed;
- }
- public int getModifiers() {
-    return modifiers;
- }
- public boolean isAltDown() {
-    return (modifiers&ALT_MASK)!=0;
- }
- public boolean isAltGraphDown() {
-    return (modifiers&ALT_GRAPH_MASK)!=0;
- }
- public boolean isControlDown() {
-    return (modifiers&CTRL_MASK)!=0;
- }
- public boolean isMetaDown() {
-    return (modifiers&META_MASK)!=0;
- }
- public boolean isShiftDown()  {
-    return (modifiers&SHIFT_MASK)!=0;
- }
+    // done by AWTWindow ..
+    protected void setScreenSize(int w, int h) {
+        super.setScreenSize(w, h);
+    }
 
- public boolean isButton1Down()  {
-    return (modifiers&BUTTON1_MASK)!=0;
- }
+    protected void closeNative() { }
 
- public boolean isButton2Down()  {
-    return (modifiers&BUTTON2_MASK)!=0;
- }
-
- public boolean isButton3Down()  {
-    return (modifiers&BUTTON3_MASK)!=0;
- }
-
- public String toString() {
-     return "InputEvent[modifiers:"+modifiers+", "+super.toString()+"]";
- }
-
- private boolean consumed;
- private int modifiers;
 }

@@ -19,7 +19,7 @@
         <property name="javadoc.spec.packagenames" value="javax.media.opengl.*" />
 
         <property name="javadoc.windowtitle" value="JOGL, NativeWindow and NEWT APIs" />
-        <property name="javadoc.packagenames" value="${javadoc.nw.spec.packagenames},${javadoc.spec.packagenames},com.jogamp.opengl.util.*,com.jogamp.newt, com.jogamp.newt.opengl" />
+        <property name="javadoc.packagenames" value="${javadoc.nw.spec.packagenames},${javadoc.spec.packagenames},com.jogamp.opengl.util.*,com.jogamp.newt, com.jogamp.newt.event.*, com.jogamp.newt.opengl" />
 
         <property name="javadoc.dev" value="${project.root}/javadoc_dev" />
         <property name="javadoc.dev.packagenames" value="${javadoc.packagenames},com.jogamp.opengl.impl.*,com.jogamp.nativewindow.impl.*,com.jogamp.newt.*,com.sun.gluegen,com.jogamp.gluegen.runtime" />

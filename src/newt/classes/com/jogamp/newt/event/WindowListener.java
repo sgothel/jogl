@@ -35,7 +35,7 @@ package com.jogamp.newt.event;
 
 import com.jogamp.newt.*;
 
-public interface WindowListener extends EventListener {
+public interface WindowListener extends NEWTEventListener {
     public void windowResized(WindowEvent e);
     public void windowMoved(WindowEvent e);
     public void windowDestroyNotify(WindowEvent e);

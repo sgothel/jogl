@@ -48,15 +48,15 @@ public abstract class Display {
         Class displayClass = NewtFactory.getCustomClass(type, "Display");
         if(null==displayClass) {
             if (NativeWindowFactory.TYPE_EGL.equals(type)) {
-                displayClass = Class.forName("com.jogamp.newt.opengl.kd.KDDisplay");
+                displayClass = Class.forName("com.jogamp.newt.impl.opengl.kd.KDDisplay");
             } else if (NativeWindowFactory.TYPE_WINDOWS.equals(type)) {
-                displayClass = Class.forName("com.jogamp.newt.windows.WindowsDisplay");
+                displayClass = Class.forName("com.jogamp.newt.impl.windows.WindowsDisplay");
             } else if (NativeWindowFactory.TYPE_MACOSX.equals(type)) {
-                displayClass = Class.forName("com.jogamp.newt.macosx.MacDisplay");
+                displayClass = Class.forName("com.jogamp.newt.impl.macosx.MacDisplay");
             } else if (NativeWindowFactory.TYPE_X11.equals(type)) {
-                displayClass = Class.forName("com.jogamp.newt.x11.X11Display");
+                displayClass = Class.forName("com.jogamp.newt.impl.x11.X11Display");
             } else if (NativeWindowFactory.TYPE_AWT.equals(type)) {
-                displayClass = Class.forName("com.jogamp.newt.awt.AWTDisplay");
+                displayClass = Class.forName("com.jogamp.newt.impl.awt.AWTDisplay");
             } else {
                 throw new RuntimeException("Unknown display type \"" + type + "\"");
             }
@@ -267,14 +267,14 @@ public abstract class Display {
 
     protected abstract void dispatchMessagesNative();
 
-    private LinkedList/*<Event>*/ events = new LinkedList();
+    private LinkedList/*<NEWTEvent>*/ events = new LinkedList();
 
     protected void dispatchMessages() {
-        Event e;
+        NEWTEvent e;
         do {
             synchronized(events) {
                 if (!events.isEmpty()) {
-                    e = (Event) events.removeFirst();
+                    e = (NEWTEvent) events.removeFirst();
                 } else {
                     e = null;
                 }
@@ -292,7 +292,7 @@ public abstract class Display {
         dispatchMessagesNative();
     }
 
-    public void enqueueEvent(com.jogamp.newt.event.Event e) {
+    public void enqueueEvent(NEWTEvent e) {
         synchronized(events) {
             events.add(e);
         }

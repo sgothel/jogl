@@ -46,7 +46,7 @@ import javax.media.nativewindow.*;
 import com.jogamp.common.util.*;
 import com.jogamp.newt.*;
 import com.jogamp.newt.impl.*;
-import com.jogamp.newt.macosx.MacDisplay;
+import com.jogamp.newt.impl.macosx.MacDisplay;
 
 /**
  * NEWT Utility class MainThread<P>

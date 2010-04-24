@@ -41,7 +41,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "com_jogamp_newt_opengl_broadcom_egl_Window.h"
+#include "com_jogamp_newt_impl_opengl_broadcom_egl_Window.h"
 
 #include "EventListener.h"
 #include "MouseEvent.h"
@@ -72,7 +72,7 @@ static jmethodID windowCreatedID = NULL;
  * Display
  */
 
-JNIEXPORT void JNICALL Java_com_jogamp_newt_opengl_broadcom_egl_Display_DispatchMessages
+JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_opengl_broadcom_egl_Display_DispatchMessages
   (JNIEnv *env, jobject obj)
 {
     // FIXME: n/a
@@ -80,7 +80,7 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_opengl_broadcom_egl_Display_Dispatch
     (void) obj;
 }
 
-JNIEXPORT jlong JNICALL Java_com_jogamp_newt_opengl_broadcom_egl_Display_CreateDisplay
+JNIEXPORT jlong JNICALL Java_com_jogamp_newt_impl_opengl_broadcom_egl_Display_CreateDisplay
   (JNIEnv *env, jobject obj, jint width, jint height)
 {
     (void) env;
@@ -94,7 +94,7 @@ JNIEXPORT jlong JNICALL Java_com_jogamp_newt_opengl_broadcom_egl_Display_CreateD
     return (jlong) (intptr_t) dpy;
 }
 
-JNIEXPORT void JNICALL Java_com_jogamp_newt_opengl_broadcom_egl_Display_DestroyDisplay
+JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_opengl_broadcom_egl_Display_DestroyDisplay
   (JNIEnv *env, jobject obj, jlong display)
 {
     EGLDisplay dpy  = (EGLDisplay)(intptr_t)display;
@@ -111,7 +111,7 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_opengl_broadcom_egl_Display_DestroyD
  * Window
  */
 
-JNIEXPORT jboolean JNICALL Java_com_jogamp_newt_opengl_broadcom_egl_Window_initIDs
+JNIEXPORT jboolean JNICALL Java_com_jogamp_newt_impl_opengl_broadcom_egl_Window_initIDs
   (JNIEnv *env, jclass clazz)
 {
     windowCreatedID = (*env)->GetMethodID(env, clazz, "windowCreated", "(III)V");
@@ -123,7 +123,7 @@ JNIEXPORT jboolean JNICALL Java_com_jogamp_newt_opengl_broadcom_egl_Window_initI
     return JNI_TRUE;
 }
 
-JNIEXPORT jlong JNICALL Java_com_jogamp_newt_opengl_broadcom_egl_Window_CreateWindow
+JNIEXPORT jlong JNICALL Java_com_jogamp_newt_impl_opengl_broadcom_egl_Window_CreateWindow
   (JNIEnv *env, jobject obj, jlong display, jboolean chromaKey, jint width, jint height)
 {
     EGLDisplay dpy  = (EGLDisplay)(intptr_t)display;
@@ -167,7 +167,7 @@ JNIEXPORT jlong JNICALL Java_com_jogamp_newt_opengl_broadcom_egl_Window_CreateWi
     return (jlong) (intptr_t) window;
 }
 
-JNIEXPORT void JNICALL Java_com_jogamp_newt_opengl_broadcom_egl_Window_CloseWindow
+JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_opengl_broadcom_egl_Window_CloseWindow
   (JNIEnv *env, jobject obj, jlong display, jlong window)
 {
     EGLDisplay dpy  = (EGLDisplay) (intptr_t) display;
@@ -180,7 +180,7 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_opengl_broadcom_egl_Window_CloseWind
     DBG_PRINT( "[CloseWindow] X\n");
 }
 
-JNIEXPORT void JNICALL Java_com_jogamp_newt_opengl_broadcom_egl_Window_SwapWindow
+JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_opengl_broadcom_egl_Window_SwapWindow
   (JNIEnv *env, jobject obj, jlong display, jlong window)
 {
     EGLDisplay dpy  = (EGLDisplay) (intptr_t) display;

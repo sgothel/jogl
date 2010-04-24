@@ -4,7 +4,7 @@ package com.jogamp.test.junit.jogl.demos.gl2.gears;
 import javax.media.opengl.*;
 import javax.media.opengl.awt.*;
 import com.jogamp.newt.event.*;
-import com.jogamp.newt.awt.event.*;
+import com.jogamp.newt.event.awt.*;
 
 import java.awt.Component;
 import com.jogamp.newt.Window;
@@ -64,7 +64,7 @@ public class Gears implements GLEventListener {
             
     gl.glEnable(GL2.GL_NORMALIZE);
                 
-    GearsMouseAdapter gearsMouse = new GearsMouseAdapter();
+    MouseListener gearsMouse = new TraceMouseAdapter(new GearsMouseAdapter());
 
     if (drawable instanceof Component) {
         Component comp = (Component) drawable;

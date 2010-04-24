@@ -71,15 +71,15 @@ public abstract class Window implements NativeWindow
         Class windowClass = NewtFactory.getCustomClass(type, "Window");
         if(null==windowClass) {
             if (NativeWindowFactory.TYPE_EGL.equals(type)) {
-                windowClass = Class.forName("com.jogamp.newt.opengl.kd.KDWindow");
+                windowClass = Class.forName("com.jogamp.newt.impl.opengl.kd.KDWindow");
             } else if (NativeWindowFactory.TYPE_WINDOWS.equals(type)) {
-                windowClass = Class.forName("com.jogamp.newt.windows.WindowsWindow");
+                windowClass = Class.forName("com.jogamp.newt.impl.windows.WindowsWindow");
             } else if (NativeWindowFactory.TYPE_MACOSX.equals(type)) {
-                windowClass = Class.forName("com.jogamp.newt.macosx.MacWindow");
+                windowClass = Class.forName("com.jogamp.newt.impl.macosx.MacWindow");
             } else if (NativeWindowFactory.TYPE_X11.equals(type)) {
-                windowClass = Class.forName("com.jogamp.newt.x11.X11Window");
+                windowClass = Class.forName("com.jogamp.newt.impl.x11.X11Window");
             } else if (NativeWindowFactory.TYPE_AWT.equals(type)) {
-                windowClass = Class.forName("com.jogamp.newt.awt.AWTWindow");
+                windowClass = Class.forName("com.jogamp.newt.impl.awt.AWTWindow");
             } else {
                 throw new NativeWindowException("Unknown window type \"" + type + "\"");
             }
@@ -576,7 +576,7 @@ public abstract class Window implements NativeWindow
     // Generic Event Support
     //
 
-    protected void sendEvent(Event e) {
+    protected void sendEvent(NEWTEvent e) {
         if(e instanceof WindowEvent) {
             sendWindowEvent((WindowEvent)e);
         } else if(e instanceof KeyEvent) {

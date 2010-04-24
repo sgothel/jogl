@@ -283,12 +283,13 @@
         <property name="jogl.sdk.jar"                   value="${build.jogl}/jogl.sdk.jar" />
 
         <property name="newt.core.jar"                  value="${build.newt}/newt.core.jar" />
+        <property name="newt.awt.jar"                   value="${build.newt}/newt.awt.jar" />
         <property name="newt.os.x11.jar"                value="${build.newt}/newt.os.x11.jar" />
         <property name="newt.os.win.jar"                value="${build.newt}/newt.os.win.jar" />
         <property name="newt.os.osx.jar"                value="${build.newt}/newt.os.osx.jar" />
         <property name="newt.ogl.jar"                   value="${build.newt}/newt.ogl.jar" />
         <property name="newt.broadcomegl.jar"           value="${build.newt}/newt.broadcomegl.jar" />
-        <property name="newt.awt.jar"                   value="${build.newt}/newt.awt.jar" />
+        <property name="newt.intelgdl.jar"              value="${build.newt}/newt.intelgdl.jar" />
 
         <!-- Atomic CDC JARS -->
         <property name="nativewindow.core.cdc.jar"      value="${build.nativewindow}/nativewindow.core.cdc.jar" />
@@ -315,6 +316,7 @@
         <property name="newt.os.osx.cdc.jar"            value="${build.newt}/newt.os.osx.cdc.jar" />
         <property name="newt.ogl.cdc.jar"               value="${build.newt}/newt.ogl.cdc.jar" />
         <property name="newt.broadcomegl.cdc.jar"       value="${build.newt}/newt.broadcomegl.cdc.jar" />
+        <property name="newt.intelgdl.cdc.jar"          value="${build.newt}/newt.intelgdl.cdc.jar" />
 
         <!-- The location and name of the configuration ANT file that will 
            - validate to ensure that all user-define variables are set. -->

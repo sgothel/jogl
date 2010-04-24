@@ -39,7 +39,7 @@ import com.jogamp.newt.*;
  *
  * @author tdv
  */
-public class PaintEvent extends Event {
+public class PaintEvent extends NEWTEvent {
 
     // bounds of the damage region
     private int x, y, width, height;
