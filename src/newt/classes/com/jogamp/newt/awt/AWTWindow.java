@@ -33,6 +33,8 @@
 
 package com.jogamp.newt.awt;
 
+import com.jogamp.newt.awt.event.*;
+
 import java.awt.BorderLayout;
 import java.awt.Canvas;
 import java.awt.Container;
@@ -43,7 +45,6 @@ import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.lang.reflect.Method;
 import java.lang.reflect.InvocationTargetException;
-import java.awt.event.*;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.*;
@@ -119,18 +120,20 @@ public class AWTWindow extends Window {
                     }
                     container.setLayout(new BorderLayout());
                     canvas = new AWTCanvas(caps);
-                    Listener listener = new Listener(awtWindow);
-                    canvas.addMouseListener(listener);
-                    canvas.addMouseMotionListener(listener);
-                    canvas.addKeyListener(listener);
-                    canvas.addComponentListener(listener);
+
+                    addWindowListener(new LocalWindowListener());
+
+                    new AWTMouseAdapter(awtWindow).addTo(canvas); // fwd all AWT Mouse events to here
+                    new AWTKeyAdapter(awtWindow).addTo(canvas); // fwd all AWT Key events to here
+
+                    // canvas.addComponentListener(listener);
                     container.add(canvas, BorderLayout.CENTER);
                     container.setSize(width, height);
                     container.setLocation(x, y);
-                    container.addComponentListener(new MoveListener(awtWindow));
+                    new AWTWindowAdapter(awtWindow).addTo(container); // fwd all AWT Window events to here
+
                     if(null!=frame) {
                         frame.setUndecorated(undecorated||fullscreen);
-                        frame.addWindowListener(new WindowEventListener(awtWindow));
                     }
                 }
             });
@@ -315,127 +318,18 @@ public class AWTWindow extends Window {
         }
     }
 
-    private static final int WINDOW_EVENT = 1;
-    private static final int KEY_EVENT = 2;
-    private static final int MOUSE_EVENT = 3;
-
-    class MoveListener implements ComponentListener {
-        private AWTWindow window;
-        private AWTDisplay display;
-
-        public MoveListener(AWTWindow w) {
-            window = w;
-            display = (AWTDisplay)window.getScreen().getDisplay();
-        }
-
-        public void componentResized(ComponentEvent e) {
-        }
-
-        public void componentMoved(ComponentEvent e) {
+    class LocalWindowListener extends com.jogamp.newt.event.WindowAdapter { 
+        public void windowMoved(com.jogamp.newt.event.WindowEvent e) {
             if(null!=container) {
                 x = container.getX();
                 y = container.getY();
             }
-            display.enqueueEvent(window, com.jogamp.newt.WindowEvent.EVENT_WINDOW_MOVED, null);
         }
-
-        public void componentShown(ComponentEvent e) {
-        }
-
-        public void componentHidden(ComponentEvent e) {
-        }
-
-    }
-
-    class Listener implements ComponentListener, MouseListener, MouseMotionListener, KeyListener {
-        private AWTWindow window;
-        private AWTDisplay display;
-
-        public Listener(AWTWindow w) {
-            window = w;
-            display = (AWTDisplay)window.getScreen().getDisplay();
-        }
-
-        public void componentResized(ComponentEvent e) {
-            width = canvas.getWidth();
-            height = canvas.getHeight();
-            display.enqueueEvent(window, com.jogamp.newt.WindowEvent.EVENT_WINDOW_RESIZED, null);
-        }
-
-        public void componentMoved(ComponentEvent e) {
-        }
-
-        public void componentShown(ComponentEvent e) {
-        }
-
-        public void componentHidden(ComponentEvent e) {
-        }
-
-        public void mouseClicked(MouseEvent e) {
-            // We ignore these as we synthesize them ourselves out of
-            // mouse pressed and released events
-        }
-
-        public void mouseEntered(MouseEvent e) {
-            display.enqueueEvent(window, com.jogamp.newt.MouseEvent.EVENT_MOUSE_ENTERED, e);
-        }
-
-        public void mouseExited(MouseEvent e) {
-            display.enqueueEvent(window, com.jogamp.newt.MouseEvent.EVENT_MOUSE_EXITED, e);
-        }
-
-        public void mousePressed(MouseEvent e) {
-            display.enqueueEvent(window, com.jogamp.newt.MouseEvent.EVENT_MOUSE_PRESSED, e);
-        }
-
-        public void mouseReleased(MouseEvent e) {
-            display.enqueueEvent(window, com.jogamp.newt.MouseEvent.EVENT_MOUSE_RELEASED, e);
-        }
-
-        public void mouseMoved(MouseEvent e) {
-            display.enqueueEvent(window, com.jogamp.newt.MouseEvent.EVENT_MOUSE_MOVED, e);
-        }
-
-        public void mouseDragged(MouseEvent e) {
-            display.enqueueEvent(window, com.jogamp.newt.MouseEvent.EVENT_MOUSE_DRAGGED, e);
-        }
-
-        public void keyPressed(KeyEvent e) {
-            display.enqueueEvent(window, com.jogamp.newt.KeyEvent.EVENT_KEY_PRESSED, e);
-        }
-
-        public void keyReleased(KeyEvent e) {
-            display.enqueueEvent(window, com.jogamp.newt.KeyEvent.EVENT_KEY_RELEASED, e);
-        }
-
-        public void keyTyped(KeyEvent e)  {
-            display.enqueueEvent(window, com.jogamp.newt.KeyEvent.EVENT_KEY_TYPED, e);
-        }
-    }
-
-    class WindowEventListener implements WindowListener {
-        private AWTWindow window;
-        private AWTDisplay display;
-
-        public WindowEventListener(AWTWindow w) {
-            window = w;
-            display = (AWTDisplay)window.getScreen().getDisplay();
-        }
-
-        public void windowActivated(WindowEvent e) {
-        }
-        public void windowClosed(WindowEvent e) {
-        }
-        public void windowClosing(WindowEvent e) {
-            display.enqueueEvent(window, com.jogamp.newt.WindowEvent.EVENT_WINDOW_DESTROY_NOTIFY, null);
-        }
-        public void windowDeactivated(WindowEvent e) {
-        }
-        public void windowDeiconified(WindowEvent e) {
-        }
-        public void windowIconified(WindowEvent e) {
-        }
-        public void windowOpened(WindowEvent e) {
+        public void windowResized(com.jogamp.newt.event.WindowEvent e) {
+            if(null!=canvas) {
+                width = canvas.getWidth();
+                height = canvas.getHeight();
+            }
         }
     }
 }

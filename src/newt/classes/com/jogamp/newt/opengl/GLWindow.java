@@ -34,6 +34,7 @@
 package com.jogamp.newt.opengl;
 
 import com.jogamp.newt.*;
+import com.jogamp.newt.event.*;
 import javax.media.nativewindow.*;
 import javax.media.opengl.*;
 import com.jogamp.opengl.impl.GLDrawableHelper;
@@ -66,18 +67,9 @@ public class GLWindow extends Window implements GLAutoDrawable {
         this.window = window;
         this.window.setAutoDrawableClient(true);
         this.runPumpMessages = ( null == getScreen().getDisplay().getEDTUtil() ) ;
-        window.addWindowListener(new WindowListener() {
+        window.addWindowListener(new WindowAdapter() {
                 public void windowResized(WindowEvent e) {
                     sendReshape = true;
-                }
-
-                public void windowMoved(WindowEvent e) {
-                }
-
-                public void windowGainedFocus(WindowEvent e) {
-                }
-
-                public void windowLostFocus(WindowEvent e) {
                 }
 
                 public void windowDestroyNotify(WindowEvent e) {

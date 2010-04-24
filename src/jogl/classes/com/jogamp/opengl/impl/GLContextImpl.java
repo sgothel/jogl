@@ -256,11 +256,8 @@ public abstract class GLContextImpl extends GLContext {
    * @see #destroyContextARBImpl
    */
   public int makeCurrent() throws GLException {
-    // Support calls to makeCurrent() over and over again with
-    // different contexts without releasing them
-    // Could implement this more efficiently without explicit
-    // releasing of the underlying context; would require more error
-    // checking during the makeCurrentImpl phase
+    // One context can only be current by one thread,
+    // and one thread can only have one context current!
     GLContext current = getCurrent();
     if (current != null) {
       if (current == this) {

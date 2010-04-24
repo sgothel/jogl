@@ -46,20 +46,15 @@ import java.io.IOException;
 
 public class TestGLProfile01CORE {
     static GLProfile glp;
-    static GLDrawableFactory factory;
 
     @BeforeClass
     public static void initClass() {
         glp = GLProfile.getDefault();
         Assert.assertNotNull(glp);
-        factory = GLDrawableFactory.getFactory(glp);
-        Assert.assertNotNull(factory);
     }
 
     @AfterClass
     public static void releaseClass() {
-        factory.shutdown();
-        factory=null;
     }
 
     @Test
@@ -69,12 +64,52 @@ public class TestGLProfile01CORE {
 
     @Test
     public void test02GLProfileMaxFixedFunc() {
-        System.out.println("GLProfile <static> getMaxFixedFunc(): "+GLProfile.getMaxFixedFunc());
+        // Assuming at least one fixed profile is available
+        GLProfile maxFixed = GLProfile.getMaxFixedFunc();
+        System.out.println("GLProfile <static> getMaxFixedFunc(): "+maxFixed);
+        if(maxFixed.getName().equals(GLProfile.GL4bc)) {
+            Assert.assertTrue(GLProfile.isGL4bcAvailable());
+            Assert.assertTrue(GLProfile.isGL3bcAvailable());
+            Assert.assertTrue(GLProfile.isGL2Available());
+            Assert.assertTrue(GLProfile.isGL2ES1Available());
+            Assert.assertTrue(GLProfile.isGL2ES2Available());
+        } else if(maxFixed.getName().equals(GLProfile.GL3bc)) {
+            Assert.assertTrue(GLProfile.isGL3bcAvailable());
+            Assert.assertTrue(GLProfile.isGL2Available());
+            Assert.assertTrue(GLProfile.isGL2ES1Available());
+            Assert.assertTrue(GLProfile.isGL2ES2Available());
+        } else if(maxFixed.getName().equals(GLProfile.GL2)) {
+            Assert.assertTrue(GLProfile.isGL2Available());
+            Assert.assertTrue(GLProfile.isGL2ES1Available());
+            Assert.assertTrue(GLProfile.isGL2ES2Available());
+        } else if(maxFixed.getName().equals(GLProfile.GL2ES1)) {
+            Assert.assertTrue(GLProfile.isGL2ES1Available());
+        }
     }
 
     @Test
     public void test02GLProfileMaxProgrammable() {
-        System.out.println("GLProfile <static> getMaxProgrammable(): "+GLProfile.getMaxProgrammable());
+        // Assuming at least one programmable profile is available
+        GLProfile maxProgrammable = GLProfile.getMaxProgrammable();
+        System.out.println("GLProfile <static> getMaxProgrammable(): "+maxProgrammable);
+        if(maxProgrammable.getName().equals(GLProfile.GL4)) {
+            Assert.assertTrue(GLProfile.isGL4Available());
+            Assert.assertTrue(GLProfile.isGL3Available());
+            Assert.assertTrue(GLProfile.isGL2Available());
+            Assert.assertTrue(GLProfile.isGL2ES1Available());
+            Assert.assertTrue(GLProfile.isGL2ES2Available());
+        } else if(maxProgrammable.getName().equals(GLProfile.GL3)) {
+            Assert.assertTrue(GLProfile.isGL3Available());
+            Assert.assertTrue(GLProfile.isGL2Available());
+            Assert.assertTrue(GLProfile.isGL2ES1Available());
+            Assert.assertTrue(GLProfile.isGL2ES2Available());
+        } else if(maxProgrammable.getName().equals(GLProfile.GL2)) {
+            Assert.assertTrue(GLProfile.isGL2Available());
+            Assert.assertTrue(GLProfile.isGL2ES1Available());
+            Assert.assertTrue(GLProfile.isGL2ES2Available());
+        } else if(maxProgrammable.getName().equals(GLProfile.GL2ES2)) {
+            Assert.assertTrue(GLProfile.isGL2ES2Available());
+        }
     }
 
     public static void main(String args[]) throws IOException {

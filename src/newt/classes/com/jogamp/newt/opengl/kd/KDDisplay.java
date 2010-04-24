@@ -75,7 +75,7 @@ public class KDDisplay extends Display {
         }
     }
 
-    protected void dispatchMessages() {
+    protected void dispatchMessagesNative() {
         DispatchMessages();
     }
 

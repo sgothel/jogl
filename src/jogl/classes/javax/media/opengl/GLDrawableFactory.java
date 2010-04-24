@@ -168,13 +168,6 @@ public abstract class GLDrawableFactory {
     throw new GLException("No native platform GLDrawableFactory, nor EGLDrawableFactory available: "+glProfileImplName);
   }
 
-  /** Shuts down this GLDrawableFactory, releasing resources
-      associated with it. Before calling this method you should first
-      destroy any GLContexts and GLDrawables that have been created
-      and are still in use. No further OpenGL calls may be made after
-      shutting down the GLDrawableFactory. */
-  public abstract void shutdown();
-
   //----------------------------------------------------------------------
   // Methods to create high-level objects
 

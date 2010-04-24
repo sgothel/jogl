@@ -33,6 +33,7 @@
 
 package com.jogamp.newt;
 
+import com.jogamp.newt.event.*;
 import com.jogamp.newt.impl.Debug;
 import com.jogamp.newt.util.EDTUtil;
 
@@ -571,8 +572,24 @@ public abstract class Window implements NativeWindow
         }
     }
 
+    // 
+    // Generic Event Support
     //
-    // MouseListener Support
+
+    protected void sendEvent(Event e) {
+        if(e instanceof WindowEvent) {
+            sendWindowEvent((WindowEvent)e);
+        } else if(e instanceof KeyEvent) {
+            sendKeyEvent((KeyEvent)e);
+        } else if(e instanceof MouseEvent) {
+            sendMouseEvent((MouseEvent)e);
+        } else if(e instanceof PaintEvent) {
+            sendPaintEvent((PaintEvent)e);
+        }
+    }
+
+    //
+    // MouseListener/Event Support
     //
 
     public void addMouseListener(MouseListener l) {
@@ -609,6 +626,7 @@ public abstract class Window implements NativeWindow
     private int  lastMouseClickCount = 0; // last mouse button click count
     public  static final int ClickTimeout = 300;
 
+    /** Be aware that this method synthesizes the events: MouseClicked and MouseDragged */
     protected void sendMouseEvent(int eventType, int modifiers,
                                   int x, int y, int button, int rotation) {
         if(x<0||y<0||x>=width||y>=height) {
@@ -633,13 +651,13 @@ public abstract class Window implements NativeWindow
             }
             lastMousePressed=when;
             mouseButtonPressed=button;
-            e = new MouseEvent(true, eventType, this, when,
+            e = new MouseEvent(eventType, this, when,
                                modifiers, x, y, lastMouseClickCount, button, 0);
         } else if(MouseEvent.EVENT_MOUSE_RELEASED==eventType) {
-            e = new MouseEvent(true, eventType, this, when,
+            e = new MouseEvent(eventType, this, when,
                                modifiers, x, y, lastMouseClickCount, button, 0);
             if(when-lastMousePressed<ClickTimeout) {
-                eClicked = new MouseEvent(true, MouseEvent.EVENT_MOUSE_CLICKED, this, when,
+                eClicked = new MouseEvent(MouseEvent.EVENT_MOUSE_CLICKED, this, when,
                                           modifiers, x, y, lastMouseClickCount, button, 0);
             } else {
                 lastMouseClickCount=0;
@@ -648,23 +666,29 @@ public abstract class Window implements NativeWindow
             mouseButtonPressed=0;
         } else if(MouseEvent.EVENT_MOUSE_MOVED==eventType) {
             if (mouseButtonPressed>0) {
-                e = new MouseEvent(true, MouseEvent.EVENT_MOUSE_DRAGGED, this, when,
+                e = new MouseEvent(MouseEvent.EVENT_MOUSE_DRAGGED, this, when,
                                    modifiers, x, y, 1, mouseButtonPressed, 0);
             } else {
-                e = new MouseEvent(true, eventType, this, when,
+                e = new MouseEvent(eventType, this, when,
                                    modifiers, x, y, 0, button, 0);
             }
         } else if(MouseEvent.EVENT_MOUSE_WHEEL_MOVED==eventType) {
-            e = new MouseEvent(true, eventType, this, when, modifiers, x, y, 0, button, rotation);
+            e = new MouseEvent(eventType, this, when, modifiers, x, y, 0, button, rotation);
         } else {
-            e = new MouseEvent(true, eventType, this, when, modifiers, x, y, 0, button, 0);
+            e = new MouseEvent(eventType, this, when, modifiers, x, y, 0, button, 0);
         }
+        sendMouseEvent(e);
+        if(null!=eClicked) {
+            if(DEBUG_MOUSE_EVENT) {
+                System.out.println("sendMouseEvent: synthesized MOUSE_CLICKED event");
+            }
+            sendMouseEvent(eClicked);
+        }
+    }
 
+    protected void sendMouseEvent(MouseEvent e) {
         if(DEBUG_MOUSE_EVENT) {
             System.out.println("sendMouseEvent: event:         "+e);
-            if(null!=eClicked) {
-                System.out.println("sendMouseEvent: event Clicked: "+eClicked);
-            }
         }
 
         ArrayList listeners = null;
@@ -688,9 +712,6 @@ public abstract class Window implements NativeWindow
                     break;
                 case MouseEvent.EVENT_MOUSE_RELEASED:
                     l.mouseReleased(e);
-                    if(null!=eClicked) {
-                        l.mouseClicked(eClicked);
-                    }
                     break;
                 case MouseEvent.EVENT_MOUSE_MOVED:
                     l.mouseMoved(e);
@@ -708,7 +729,7 @@ public abstract class Window implements NativeWindow
     }
 
     //
-    // KeyListener Support
+    // KeyListener/Event Support
     //
 
     public void addKeyListener(KeyListener l) {
@@ -742,8 +763,11 @@ public abstract class Window implements NativeWindow
     private ArrayList keyListeners = new ArrayList();
 
     protected void sendKeyEvent(int eventType, int modifiers, int keyCode, char keyChar) {
-        KeyEvent e = new KeyEvent(true, eventType, this, System.currentTimeMillis(),
-                                      modifiers, keyCode, keyChar);
+        sendKeyEvent(new KeyEvent(eventType, this, System.currentTimeMillis(),
+                                  modifiers, keyCode, keyChar) );
+    }
+
+    protected void sendKeyEvent(KeyEvent e) {
         if(DEBUG_KEY_EVENT) {
             System.out.println("sendKeyEvent: "+e);
         }
@@ -753,7 +777,7 @@ public abstract class Window implements NativeWindow
         }
         for(Iterator i = listeners.iterator(); i.hasNext(); ) {
             KeyListener l = (KeyListener) i.next();
-            switch(eventType) {
+            switch(e.getEventType()) {
                 case KeyEvent.EVENT_KEY_PRESSED:
                     l.keyPressed(e);
                     break;
@@ -770,7 +794,7 @@ public abstract class Window implements NativeWindow
     }
 
     //
-    // WindowListener Support
+    // WindowListener/Event Support
     //
 
     private ArrayList windowListeners = new ArrayList();
@@ -804,7 +828,10 @@ public abstract class Window implements NativeWindow
     }
 
     protected void sendWindowEvent(int eventType) {
-        WindowEvent e = new WindowEvent(true, eventType, this, System.currentTimeMillis());
+        sendWindowEvent( new WindowEvent(eventType, this, System.currentTimeMillis()) );
+    }
+
+    protected void sendWindowEvent(WindowEvent e) {
         if(DEBUG_WINDOW_EVENT) {
             System.out.println("sendWindowEvent: "+e);
         }
@@ -814,7 +841,7 @@ public abstract class Window implements NativeWindow
         }
         for(Iterator i = listeners.iterator(); i.hasNext(); ) {
             WindowListener l = (WindowListener) i.next();
-            switch(eventType) {
+            switch(e.getEventType()) {
                 case WindowEvent.EVENT_WINDOW_RESIZED:
                     l.windowResized(e);
                     break;
@@ -840,7 +867,7 @@ public abstract class Window implements NativeWindow
 
 
     //
-    // WindowListener Support
+    // PaintListener/Event Support
     //
 
     private ArrayList paintListeners = new ArrayList();
@@ -868,8 +895,10 @@ public abstract class Window implements NativeWindow
     }
 
     protected void sendPaintEvent(int eventType, int x, int y, int w, int h) {
-        PaintEvent e =
-            new PaintEvent(eventType, this, System.currentTimeMillis(), x, y, w, h);
+        sendPaintEvent( new PaintEvent(eventType, this, System.currentTimeMillis(), x, y, w, h) );
+    }
+
+    protected void sendPaintEvent(PaintEvent e) {
         ArrayList listeners = null;
         synchronized(paintListeners) {
             listeners = paintListeners;

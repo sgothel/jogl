@@ -34,6 +34,7 @@
 package com.jogamp.newt.opengl.kd;
 
 import com.jogamp.newt.*;
+import com.jogamp.newt.event.*;
 import com.jogamp.newt.impl.*;
 import com.jogamp.opengl.impl.egl.*;
 import javax.media.nativewindow.*;

@@ -65,7 +65,7 @@ public class TestDrawable01NEWT {
 
     @AfterClass
     public static void releaseClass() {
-        factory.shutdown();
+        Assert.assertNotNull(factory);
         factory=null;
     }
 

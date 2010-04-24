@@ -39,6 +39,7 @@ import org.junit.Assert;
 import javax.media.opengl.*;
 import javax.media.nativewindow.*;
 import com.jogamp.newt.*;
+import com.jogamp.newt.event.*;
 import com.jogamp.newt.opengl.*;
 
 public class WindowUtilNEWT {

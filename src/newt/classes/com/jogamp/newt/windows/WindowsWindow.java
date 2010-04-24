@@ -35,6 +35,7 @@ package com.jogamp.newt.windows;
 
 import javax.media.nativewindow.*;
 import com.jogamp.newt.*;
+import com.jogamp.newt.event.*;
 
 public class WindowsWindow extends Window {
 

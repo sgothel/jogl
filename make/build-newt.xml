@@ -87,7 +87,7 @@
         <!-- partitioning -->
 
         <property name="java.part.core"
-                  value="com/jogamp/newt/*, com/jogamp/newt/util/*, com/jogamp/newt/impl/*, com/jogamp/newt/intel/gdl/*"/>
+                  value="com/jogamp/newt/*, com/jogamp/newt/event/*, com/jogamp/newt/util/*, com/jogamp/newt/impl/*, com/jogamp/newt/intel/gdl/*"/>
 
         <property name="java.part.x11"
                   value="com/jogamp/newt/x11/*"/>
@@ -105,7 +105,7 @@
                   value="com/jogamp/newt/opengl/broadcom/egl/*"/>
 
         <property name="java.part.awt"
-                  value="com/jogamp/newt/awt/*"/>
+                  value="com/jogamp/newt/awt/**"/>
 
         <!-- condition excludes -->
 

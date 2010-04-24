@@ -92,17 +92,14 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl implements 
   boolean canCreateGLPbuffer = false;
 
   protected final GLDrawableImpl getSharedDrawable() {
-    validate();
     return sharedDrawable; 
   }
 
   protected final GLContextImpl getSharedContext() {
-    validate();
     return sharedContext; 
   }
 
-  public void shutdown() {
-     super.shutdown();
+  protected void shutdown() {
      if (DEBUG) {
           System.err.println("!!! Shutdown Shared:");
           System.err.println("!!!          CTX     : "+sharedContext);
@@ -119,7 +116,6 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl implements 
   }
 
   public GLDrawableImpl createOnscreenDrawable(NativeWindow target) {
-    validate();
     if (target == null) {
       throw new IllegalArgumentException("Null target");
     }
@@ -127,7 +123,6 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl implements 
   }
 
   protected GLDrawableImpl createOffscreenDrawable(NativeWindow target) {
-    validate();
     if (target == null) {
       throw new IllegalArgumentException("Null target");
     }
@@ -135,12 +130,10 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl implements 
   }
 
   public boolean canCreateGLPbuffer(AbstractGraphicsDevice device) {
-    validate();
     return canCreateGLPbuffer;
   }
 
   protected GLDrawableImpl createGLPbufferDrawableImpl(final NativeWindow target) {
-    validate();
     if (target == null) {
       throw new IllegalArgumentException("Null target");
     }
@@ -174,7 +167,6 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl implements 
   }
 
   protected NativeWindow createOffscreenWindow(GLCapabilities capabilities, GLCapabilitiesChooser chooser, int width, int height) {
-    validate();
     AbstractGraphicsScreen screen = DefaultGraphicsScreen.createDefault();
     NullWindow nw = new NullWindow(WindowsWGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(
                                    capabilities, chooser, screen) );
@@ -183,22 +175,18 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl implements 
   }
  
   public GLContext createExternalGLContext() {
-    validate();
     return WindowsExternalWGLContext.create(this, null);
   }
 
   public boolean canCreateExternalGLDrawable(AbstractGraphicsDevice device) {
-    validate();
     return true;
   }
 
   public GLDrawable createExternalGLDrawable() {
-    validate();
     return WindowsExternalWGLDrawable.create(this, null);
   }
 
   public void loadOpenGL32Library() {
-    validate();
     if (hopengl32 == 0) {
       hopengl32 = WGL.LoadLibraryA("OpenGL32");
       if (DEBUG) {
@@ -210,7 +198,6 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl implements 
   }
 
   public void loadGLULibrary() {
-    validate();
     if (hglu32 == 0) {
       hglu32 = WGL.LoadLibraryA("GLU32");
       if (hglu32 == 0) {
@@ -220,7 +207,6 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl implements 
   }
 
   public long dynamicLookupFunction(String glFuncName) {
-    validate();
     long res = WGL.wglGetProcAddress(glFuncName);
     if (res == 0) {
       // It may happen that a driver doesn't return the OpenGL32 core function pointer
@@ -253,13 +239,11 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl implements 
   }
 
   public boolean canCreateContextOnJava2DSurface(AbstractGraphicsDevice device) {
-    validate();
     return false;
   }
 
   public GLContext createContextOnJava2DSurface(Object graphics, GLContext shareWith)
     throws GLException {
-    validate();
     throw new GLException("Unimplemented on this platform");
   }
 

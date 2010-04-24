@@ -154,12 +154,19 @@ public class Animator {
         impl.display(this, ignoreExceptions, printExceptions);
     }
 
+    private long startTime = 0;
+    private long curTime = 0;
+    private int  totalFrames = 0;
+
     class MainLoop implements Runnable {
         public void run() {
             try {
                 if(DEBUG) {
                     System.out.println("Animator started: "+Thread.currentThread());
                 }
+                startTime = System.currentTimeMillis();
+                curTime   = startTime;
+
                 while (!shouldStop) {
                     // Don't consume CPU unless there is work to be done
                     if (drawables.size() == 0) {
@@ -173,6 +180,8 @@ public class Animator {
                         }
                     }
                     display();
+                    curTime = System.currentTimeMillis();
+                    totalFrames++;
                     if (!runAsFastAsPossible) {
                         // Avoid swamping the CPU
                         Thread.yield();
@@ -190,6 +199,11 @@ public class Animator {
             }
         }
     }
+
+    public long getStartTime()   { return startTime; }
+    public long getCurrentTime() { return curTime; }
+    public long getDuration()    { return curTime-startTime; }
+    public int  getTotalFrames() { return totalFrames; }
 
     /** Starts this animator. */
     public synchronized void start() {

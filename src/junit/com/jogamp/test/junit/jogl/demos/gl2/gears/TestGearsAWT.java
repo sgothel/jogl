@@ -30,44 +30,44 @@
  * SVEN GOTHEL HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  */
 
-package com.jogamp.test.junit.jogl.awt;
+package com.jogamp.test.junit.jogl.demos.gl2.gears;
 
-import javax.media.opengl.GLProfile;
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.awt.GLCanvas;
+import javax.media.opengl.*;
 import com.jogamp.opengl.util.Animator;
+import javax.media.opengl.awt.GLCanvas;
+import com.jogamp.newt.awt.event.AWTKeyAdapter;
 
 import com.jogamp.test.junit.jogl.demos.gl2.gears.Gears;
 import java.awt.Frame;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.AfterClass;
 import org.junit.After;
 import org.junit.Test;
 
-public class TestAWT01GLn {
-    Frame frame=null;
-    GLCanvas glCanvas=null;
+public class TestGearsAWT {
+    static GLProfile glp;
+    static int width, height;
 
-    @Before
-    public void init() {
-        frame = new Frame("Texture Test");
-        Assert.assertNotNull(frame);
+    @BeforeClass
+    public static void initClass() {
+        glp = GLProfile.getDefault();
+        Assert.assertNotNull(glp);
+        width  = 512;
+        height = 512;
     }
 
-    @After
-    public void release() {
-        Assert.assertNotNull(frame);
-        Assert.assertNotNull(glCanvas);
-        frame.setVisible(false);
-        frame.remove(glCanvas);
-        frame.dispose();
-        frame=null;
-        glCanvas=null;
+    @AfterClass
+    public static void releaseClass() {
     }
 
     protected void runTestGL(GLCapabilities caps) throws InterruptedException {
-        glCanvas = new GLCanvas(caps);
+        Frame frame = new Frame("Gears AWT Test");
+        Assert.assertNotNull(frame);
+
+        GLCanvas glCanvas = new GLCanvas(caps);
         Assert.assertNotNull(glCanvas);
         frame.add(glCanvas);
         frame.setSize(512, 512);
@@ -75,27 +75,47 @@ public class TestAWT01GLn {
         glCanvas.addGLEventListener(new Gears());
 
         Animator animator = new Animator(glCanvas);
+        QuitKeyAdapter quitKeyAdapter = new QuitKeyAdapter();
+
+        new AWTKeyAdapter(new DebugKeyAdapter()).addTo(glCanvas);
+        new AWTKeyAdapter(quitKeyAdapter).addTo(glCanvas);
+
         frame.setVisible(true);
         animator.start();
 
-        Thread.sleep(500); // 500 ms
+        while(!quitKeyAdapter.shouldQuit() && animator.isAnimating() && animator.getDuration()<duration) {
+            Thread.sleep(100);
+        }
+
+        Assert.assertNotNull(frame);
+        Assert.assertNotNull(glCanvas);
+        Assert.assertNotNull(animator);
 
         animator.stop();
+        frame.setVisible(false);
+        frame.remove(glCanvas);
+        frame.dispose();
+        frame=null;
+        glCanvas=null;
     }
 
     @Test
-    public void test01GLDefault() throws InterruptedException {
+    public void test01() throws InterruptedException {
         GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
         runTestGL(caps);
     }
 
-    @Test
-    public void test03GLMaxFixed() throws InterruptedException {
-        GLCapabilities caps = new GLCapabilities(GLProfile.getMaxFixedFunc());
-        runTestGL(caps);
-    }
+    static long duration = 500; // ms
 
     public static void main(String args[]) {
-        org.junit.runner.JUnitCore.main(TestAWT01GLn.class.getName());
+        for(int i=0; i<args.length; i++) {
+            if(args[i].equals("-time")) {
+                i++;
+                try {
+                    duration = Integer.parseInt(args[i]);
+                } catch (Exception ex) { ex.printStackTrace(); }
+            }
+        }
+        org.junit.runner.JUnitCore.main(TestGearsAWT.class.getName());
     }
 }

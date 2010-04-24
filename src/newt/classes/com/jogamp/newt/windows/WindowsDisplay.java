@@ -69,7 +69,7 @@ public class WindowsDisplay extends Display {
         // UnregisterWindowClass(getWindowClassAtom(), getHInstance());
     }
 
-    protected void dispatchMessages() {
+    protected void dispatchMessagesNative() {
         DispatchMessages();
     }
 

@@ -1,5 +1,6 @@
+
 /*
- * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 Sven Gothel. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -12,7 +13,7 @@
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
  * 
- * Neither the name of Sun Microsystems, Inc. or the names of
+ * Neither the name Sven Gothel or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
  * 
@@ -27,55 +28,24 @@
  * DIRECT, INDIRECT, SPECIAL, CONSEQUENTIAL, INCIDENTAL OR PUNITIVE
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
- * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ * SVEN GOTHEL HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  */
 
-package com.jogamp.newt.opengl.broadcom.egl;
+package com.jogamp.test.junit.jogl.demos.gl2.gears;
 
-import com.jogamp.newt.impl.*;
-import com.jogamp.opengl.impl.egl.*;
-import javax.media.nativewindow.*;
-import javax.media.nativewindow.egl.*;
+import com.jogamp.opengl.util.Animator;
+import com.jogamp.newt.event.*;
 
-public class Display extends com.jogamp.newt.Display {
+class QuitKeyAdapter extends KeyAdapter {
+    boolean shouldQuit = false;
 
-    static {
-        NEWTJNILibLoader.loadNEWT();
+    public boolean shouldQuit() { return shouldQuit; }
 
-        if (!Window.initIDs()) {
-            throw new NativeWindowException("Failed to initialize BCEGL Window jmethodIDs");
+    public void keyTyped(KeyEvent e) {
+        if(e.getKeyChar()=='q') {
+            System.out.println("QUIT "+Thread.currentThread());
+            shouldQuit = true;
         }
     }
-
-    public static void initSingleton() {
-        // just exist to ensure static init has been run
-    }
-
-
-    public Display() {
-    }
-
-    protected void createNative() {
-        long handle = CreateDisplay(Screen.fixedWidth, Screen.fixedHeight);
-        if (handle == EGL.EGL_NO_DISPLAY) {
-            throw new NativeWindowException("BC EGL CreateDisplay failed");
-        }
-        aDevice = new EGLGraphicsDevice(handle);
-    }
-
-    protected void closeNative() {
-        if (aDevice.getHandle() != EGL.EGL_NO_DISPLAY) {
-            DestroyDisplay(aDevice.getHandle());
-        }
-    }
-
-    protected void dispatchMessagesNative() {
-        // n/a .. DispatchMessages();
-    }
-
-    private native long CreateDisplay(int width, int height);
-    private native void DestroyDisplay(long dpy);
-    private native void DispatchMessages();
 }
 

@@ -66,7 +66,7 @@ public class MacDisplay extends Display {
     }
     private DispatchAction dispatchAction = new DispatchAction();
 
-    public void dispatchMessages() {
+    protected void dispatchMessagesNative() {
         MainThread.invoke(false, dispatchAction);
     }
     

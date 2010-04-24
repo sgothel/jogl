@@ -37,6 +37,7 @@ import javax.media.nativewindow.*;
 
 import com.jogamp.newt.util.MainThread;
 import com.jogamp.newt.*;
+import com.jogamp.newt.event.*;
 import com.jogamp.newt.impl.*;
 
 public class MacWindow extends Window {

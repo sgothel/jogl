@@ -78,7 +78,7 @@ public class X11Display extends Display {
         X11Util.closeThreadLocalDisplay(name);
     }
 
-    protected void dispatchMessages() {
+    protected void dispatchMessagesNative() {
         DispatchMessages(getHandle(), javaObjectAtom, windowDeleteAtom);
     }
 

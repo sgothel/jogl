@@ -48,6 +48,7 @@ import javax.media.opengl.*;
 import javax.media.nativewindow.*;
 
 import com.jogamp.newt.*;
+import com.jogamp.newt.event.*;
 import com.jogamp.newt.opengl.*;
 
 import com.jogamp.test.junit.jogl.demos.gl2.gears.Gears;
@@ -56,7 +57,6 @@ import java.io.IOException;
 
 public class TestOffscreen01NEWT {
     static GLProfile glpDefault;
-    static GLDrawableFactory factory;
     static int width, height;
     GLCapabilities capsDefault;
 
@@ -64,16 +64,12 @@ public class TestOffscreen01NEWT {
     public static void initClass() {
         glpDefault = GLProfile.getDefault();
         Assert.assertNotNull(glpDefault);
-        factory = GLDrawableFactory.getFactory(glpDefault);
-        Assert.assertNotNull(factory);
         width  = 640;
         height = 480;
     }
 
     @AfterClass
     public static void releaseClass() {
-        factory.shutdown();
-        factory=null;
     }
 
     @Before

@@ -31,23 +31,76 @@
  * 
  */
 
-package com.jogamp.newt;
+package com.jogamp.newt.event;
+
+import com.jogamp.newt.*;
+import java.util.*;
 
 public class Event {
     private boolean isSystemEvent;
     private int eventType;
-    private Window source;
+    private Object source;
     private long when;
 
-    Event(boolean isSystemEvent, int eventType, Window source, long when) {
-        this.isSystemEvent = isSystemEvent;
+    static final boolean DEBUG = false;
+
+    //  0: Event.java
+    //  1:   InputEvent.java
+    //  2:       KeyEvent.java  
+    //  3:          com.jogamp.newt.Window
+    //  3:          com.jogamp.newt.awt.event.AWTNewtEventFactory
+    //  2:       MouseEvent.java  
+    //  3:          com.jogamp.newt.Window
+    //  3:          com.jogamp.newt.awt.event.AWTNewtEventFactory
+    //  1:   PaintEvent.java  
+    //  2:       com.jogamp.newt.Window
+    //  2:       com.jogamp.newt.awt.event.AWTNewtEventFactory
+    //  1:   WindowEvent.java
+    //  2:       com.jogamp.newt.Window
+    //  2:       com.jogamp.newt.awt.event.AWTNewtEventFactory
+    //
+    static final String WindowClazzName = "com.jogamp.newt.Window" ;
+    static final String AWTNewtEventFactoryClazzName = "com.jogamp.newt.awt.event.AWTNewtEventFactory" ;
+
+    static final boolean evaluateIsSystemEvent(Event event, Throwable t) {
+        StackTraceElement[] stack = t.getStackTrace();
+        if(stack.length==0 || null==stack[0]) {
+            return false;
+        }
+        if(DEBUG) {
+            for (int i = 0; i < stack.length && i<5; i++) {
+             System.out.println(i+": " + stack[i].getClassName()+ "." + stack[i].getMethodName());
+            }
+        }
+
+        String clazzName = null;
+
+        if( (event instanceof com.jogamp.newt.event.WindowEvent) ||
+            (event instanceof com.jogamp.newt.event.PaintEvent) ) {
+            if ( stack.length > 2 ) {
+                clazzName = stack[2].getClassName();
+            }
+        } else if( (event instanceof com.jogamp.newt.event.MouseEvent) ||
+                   (event instanceof com.jogamp.newt.event.KeyEvent) ) {
+            if ( stack.length > 3 ) {
+                clazzName = stack[3].getClassName();
+            }
+        }
+
+        boolean res = null!=clazzName && (
+                        clazzName.equals(WindowClazzName) || 
+                        clazzName.equals(AWTNewtEventFactoryClazzName) ) ;
+        if(DEBUG) {
+            System.out.println("system: "+res);
+        }
+        return res;
+    }
+
+    protected Event(int eventType, Object source, long when) {
+        this.isSystemEvent = evaluateIsSystemEvent(this, new Throwable());
         this.eventType = eventType;
         this.source = source;
         this.when = when;
-    }
-
-    protected Event(int eventType, Window source, long when) {
-        this(false, eventType, source, when);
     }
 
     /** Indicates whether this event was produced by the system or
@@ -61,8 +114,8 @@ public class Event {
         return eventType;
     }
 
-    /** Returns the source Window which produced this Event. */
-    public final Window getSource() {
+    /** Returns the source Object which produced this Event. */
+    public final Object getSource() {
         return source;
     }
 

@@ -104,17 +104,14 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
   private X11GLXContext sharedContext=null;
 
   protected final GLDrawableImpl getSharedDrawable() {
-    validate();
     return sharedDrawable; 
   }
 
   protected final GLContextImpl getSharedContext() {
-    validate();
     return sharedContext; 
   }
 
-  public void shutdown() {
-     super.shutdown();
+  protected void shutdown() {
      if (DEBUG) {
           System.err.println("!!! Shutdown Shared:");
           System.err.println("!!!          CTX     : "+sharedContext);
@@ -131,16 +128,14 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
      }
      if(null!=sharedScreen) {
          X11GraphicsDevice sharedDevice = (X11GraphicsDevice) sharedScreen.getDevice();
-         if(null!=sharedDevice) {
-             X11Util.closeThreadLocalDisplay(null);
-         }
          sharedScreen = null;
      }
-     X11Util.shutdown( !isVendorATI(), DEBUG );
+     // X11Util.shutdown( !isVendorATI(), DEBUG ); // works NV .. but ..
+     // X11Util.shutdown( true, DEBUG ); // fails ATI, works NV .. but
+     X11Util.shutdown( false, DEBUG );
   }
 
   public GLDrawableImpl createOnscreenDrawable(NativeWindow target) {
-    validate();
     if (target == null) {
       throw new IllegalArgumentException("Null target");
     }
@@ -151,7 +146,6 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
   }
 
   protected GLDrawableImpl createOffscreenDrawable(NativeWindow target) {
-    validate();
     if (target == null) {
       throw new IllegalArgumentException("Null target");
     }
@@ -162,14 +156,12 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
   }
 
   public boolean canCreateGLPbuffer(AbstractGraphicsDevice device) { 
-      validate();
       return glxVersionGreaterEqualThan(device, 1, 3); 
   }
 
   private boolean glxVersionsQueried = false;
   private int     glxVersionMajor=0, glxVersionMinor=0;
   public boolean glxVersionGreaterEqualThan(AbstractGraphicsDevice device, int majorReq, int minorReq) { 
-    validate();
     if (!glxVersionsQueried) {
         if(null == device) {
             device = (X11GraphicsDevice) sharedScreen.getDevice();
@@ -195,7 +187,6 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
   }
 
   protected GLDrawableImpl createGLPbufferDrawableImpl(final NativeWindow target) {
-    validate();
     if (target == null) {
       throw new IllegalArgumentException("Null target");
     }
@@ -228,7 +219,6 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
 
 
   protected NativeWindow createOffscreenWindow(GLCapabilities capabilities, GLCapabilitiesChooser chooser, int width, int height) {
-    validate();
     NullWindow nw = null;
     X11Lib.XLockDisplay(sharedScreen.getDevice().getHandle());
     try{
@@ -243,22 +233,18 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
   }
 
   public GLContext createExternalGLContext() {
-    validate();
     return X11ExternalGLXContext.create(this, null);
   }
 
   public boolean canCreateExternalGLDrawable(AbstractGraphicsDevice device) {
-    validate();
     return canCreateGLPbuffer(device);
   }
 
   public GLDrawable createExternalGLDrawable() {
-    validate();
     return X11ExternalGLXDrawable.create(this, null);
   }
 
   public void loadGLULibrary() {
-    validate();
     X11Lib.dlopen("/usr/lib/libGLU.so");
   }
 
@@ -273,7 +259,6 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
   }
 
   public boolean canCreateContextOnJava2DSurface(AbstractGraphicsDevice device) {
-    validate();
     return false;
   }
 

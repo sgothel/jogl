@@ -34,6 +34,7 @@
 package com.jogamp.newt.x11;
 
 import com.jogamp.newt.*;
+import com.jogamp.newt.event.*;
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.x11.*;
 

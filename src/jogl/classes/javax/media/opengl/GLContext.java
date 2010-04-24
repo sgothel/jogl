@@ -188,6 +188,13 @@ public abstract class GLContext {
   }
 
   /**
+   * @return true if this GLContext is current on this thread
+   */
+  public final boolean isCurrent() {
+    return getCurrent() == this ; 
+  }
+
+  /**
    * Sets the thread-local variable returned by {@link #getCurrent}
    * and has no other side-effects. For use by third parties adding
    * new GLContext implementations; not for use by end users.

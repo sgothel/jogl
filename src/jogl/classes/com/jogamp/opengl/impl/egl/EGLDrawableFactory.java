@@ -61,7 +61,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         super();
     }
 
-   
+    protected void shutdown() {}
     protected final GLDrawableImpl getSharedDrawable() { return null; }
     protected final GLContextImpl getSharedContext() { return null; }
 

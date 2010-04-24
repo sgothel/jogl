@@ -33,6 +33,7 @@
 
 package com.jogamp.newt;
 
+import com.jogamp.newt.event.*;
 import javax.media.nativewindow.*;
 import com.jogamp.newt.impl.Debug;
 import com.jogamp.newt.util.EDTUtil;
@@ -264,7 +265,39 @@ public abstract class Display {
         return "NEWT-Display["+name+", refCount "+refCount+", "+aDevice+"]";
     }
 
-    protected abstract void dispatchMessages();
+    protected abstract void dispatchMessagesNative();
+
+    private LinkedList/*<Event>*/ events = new LinkedList();
+
+    protected void dispatchMessages() {
+        Event e;
+        do {
+            synchronized(events) {
+                if (!events.isEmpty()) {
+                    e = (Event) events.removeFirst();
+                } else {
+                    e = null;
+                }
+            }
+            if (e != null) {
+                Object source = e.getSource();
+                if(source instanceof Window) {
+                    ((Window)source).sendEvent(e);
+                } else {
+                    throw new RuntimeException("Event source not a NEWT Window: "+source.getClass().getName()+", "+source);
+                }
+            }
+        } while (e != null);
+
+        dispatchMessagesNative();
+    }
+
+    public void enqueueEvent(com.jogamp.newt.event.Event e) {
+        synchronized(events) {
+            events.add(e);
+        }
+    }
+
 
     /** Default impl. nop - Currently only X11 needs a Display lock */
     protected void lockDisplay() { }

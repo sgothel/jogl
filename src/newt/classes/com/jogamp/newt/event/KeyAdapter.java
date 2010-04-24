@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 Sven Gothel. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -12,7 +12,7 @@
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
  * 
- * Neither the name of Sun Microsystems, Inc. or the names of
+ * Neither the name Sven Gothel or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
  * 
@@ -27,33 +27,19 @@
  * DIRECT, INDIRECT, SPECIAL, CONSEQUENTIAL, INCIDENTAL OR PUNITIVE
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
- * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ * SVEN GOTHEL HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  */
+package com.jogamp.newt.event;
 
-package com.jogamp.newt.awt;
+import com.jogamp.newt.*;
 
-import java.awt.event.*;
-import com.jogamp.newt.Display;
-import com.jogamp.newt.Window;
-import javax.media.nativewindow.*;
-import javax.media.nativewindow.awt.*;
-import java.util.*;
-
-public class AWTDisplay extends Display {
-    public AWTDisplay() {
-    }
-
-    protected void createNative() {
-        aDevice = (AWTGraphicsDevice) AWTGraphicsDevice.createDevice(null); // default 
-    }
-
-    protected void setAWTGraphicsDevice(AWTGraphicsDevice d) {
-        aDevice = d;
-    }
-
-    protected void closeNative() { }
-
-    protected void dispatchMessagesNative() { /* nop */ }
+public abstract class KeyAdapter implements KeyListener
+{
+ public void keyPressed(KeyEvent e) {
+ }
+ public void keyReleased(KeyEvent e) {
+ }
+ public void keyTyped(KeyEvent e)  {
+ }
 }
 

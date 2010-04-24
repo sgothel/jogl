@@ -85,7 +85,7 @@ public class Display extends com.jogamp.newt.Display {
         }
     }
 
-    protected void dispatchMessages() {
+    protected void dispatchMessagesNative() {
         if(0!=displayHandle) {
             DispatchMessages(displayHandle, focusedWindow);
         }

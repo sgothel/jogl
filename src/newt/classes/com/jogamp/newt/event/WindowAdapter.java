@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 Sven Gothel. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -12,7 +12,7 @@
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
  * 
- * Neither the name of Sun Microsystems, Inc. or the names of
+ * Neither the name Sven Gothel or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
  * 
@@ -27,55 +27,22 @@
  * DIRECT, INDIRECT, SPECIAL, CONSEQUENTIAL, INCIDENTAL OR PUNITIVE
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
- * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ * SVEN GOTHEL HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  */
+package com.jogamp.newt.event;
 
-package com.jogamp.newt.opengl.broadcom.egl;
+import com.jogamp.newt.*;
 
-import com.jogamp.newt.impl.*;
-import com.jogamp.opengl.impl.egl.*;
-import javax.media.nativewindow.*;
-import javax.media.nativewindow.egl.*;
-
-public class Display extends com.jogamp.newt.Display {
-
-    static {
-        NEWTJNILibLoader.loadNEWT();
-
-        if (!Window.initIDs()) {
-            throw new NativeWindowException("Failed to initialize BCEGL Window jmethodIDs");
-        }
+public abstract class WindowAdapter implements WindowListener
+{
+    public void windowResized(WindowEvent e) {
     }
-
-    public static void initSingleton() {
-        // just exist to ensure static init has been run
+    public void windowMoved(WindowEvent e) {
     }
-
-
-    public Display() {
+    public void windowDestroyNotify(WindowEvent e) {
     }
-
-    protected void createNative() {
-        long handle = CreateDisplay(Screen.fixedWidth, Screen.fixedHeight);
-        if (handle == EGL.EGL_NO_DISPLAY) {
-            throw new NativeWindowException("BC EGL CreateDisplay failed");
-        }
-        aDevice = new EGLGraphicsDevice(handle);
+    public void windowGainedFocus(WindowEvent e) {
     }
-
-    protected void closeNative() {
-        if (aDevice.getHandle() != EGL.EGL_NO_DISPLAY) {
-            DestroyDisplay(aDevice.getHandle());
-        }
+    public void windowLostFocus(WindowEvent e) {
     }
-
-    protected void dispatchMessagesNative() {
-        // n/a .. DispatchMessages();
-    }
-
-    private native long CreateDisplay(int width, int height);
-    private native void DestroyDisplay(long dpy);
-    private native void DispatchMessages();
 }
-
