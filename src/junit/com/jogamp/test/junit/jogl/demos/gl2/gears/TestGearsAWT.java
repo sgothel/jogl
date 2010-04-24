@@ -35,7 +35,8 @@ package com.jogamp.test.junit.jogl.demos.gl2.gears;
 import javax.media.opengl.*;
 import com.jogamp.opengl.util.Animator;
 import javax.media.opengl.awt.GLCanvas;
-import com.jogamp.newt.awt.event.AWTKeyAdapter;
+import com.jogamp.newt.event.awt.AWTKeyAdapter;
+import com.jogamp.newt.event.TraceKeyAdapter;
 
 import com.jogamp.test.junit.jogl.demos.gl2.gears.Gears;
 import java.awt.Frame;
@@ -77,7 +78,7 @@ public class TestGearsAWT {
         Animator animator = new Animator(glCanvas);
         QuitKeyAdapter quitKeyAdapter = new QuitKeyAdapter();
 
-        new AWTKeyAdapter(new DebugKeyAdapter()).addTo(glCanvas);
+        new AWTKeyAdapter(new TraceKeyAdapter()).addTo(glCanvas);
         new AWTKeyAdapter(quitKeyAdapter).addTo(glCanvas);
 
         frame.setVisible(true);

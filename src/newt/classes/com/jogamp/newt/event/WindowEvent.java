@@ -35,7 +35,7 @@ package com.jogamp.newt.event;
 
 import com.jogamp.newt.*;
 
-public class WindowEvent extends Event {
+public class WindowEvent extends NEWTEvent {
     public static final int EVENT_WINDOW_RESIZED = 100;
     public static final int EVENT_WINDOW_MOVED   = 101; 
     public static final int EVENT_WINDOW_DESTROY_NOTIFY = 102;

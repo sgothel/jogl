@@ -35,7 +35,7 @@ package com.jogamp.newt.event;
 
 import com.jogamp.newt.*;
 
-public interface MouseListener extends EventListener
+public interface MouseListener extends NEWTEventListener
 {
  public void mouseClicked(MouseEvent e);
  public void mouseEntered(MouseEvent e);

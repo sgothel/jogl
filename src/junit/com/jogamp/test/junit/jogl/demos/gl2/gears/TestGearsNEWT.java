@@ -37,6 +37,7 @@ import com.jogamp.opengl.util.Animator;
 
 import com.jogamp.test.junit.jogl.demos.gl2.gears.Gears;
 import com.jogamp.newt.*;
+import com.jogamp.newt.event.*;
 import com.jogamp.newt.opengl.*;
 
 import org.junit.Assert;
@@ -65,13 +66,14 @@ public class TestGearsNEWT {
     protected void runTestGL(GLCapabilities caps) throws InterruptedException {
         GLWindow glWindow = GLWindow.create(caps);
         Assert.assertNotNull(glWindow);
+        glWindow.setTitle("Gears NEWT Test");
 
         glWindow.addGLEventListener(new Gears());
 
         Animator animator = new Animator(glWindow);
         QuitKeyAdapter quitKeyAdapter = new QuitKeyAdapter();
 
-        glWindow.addKeyListener(new DebugKeyAdapter());
+        glWindow.addKeyListener(new TraceKeyAdapter());
         glWindow.addKeyListener(quitKeyAdapter);
 
         glWindow.setSize(width, height);

@@ -31,69 +31,39 @@
  * 
  */
 
-package com.jogamp.newt.event;
+package com.jogamp.newt.impl.x11;
 
 import com.jogamp.newt.*;
+import javax.media.nativewindow.x11.*;
 
-public abstract class InputEvent extends NEWTEvent
-{
- public static final int  SHIFT_MASK     = 1 << 0;
- public static final int  CTRL_MASK      = 1 << 1;
- public static final int  META_MASK      = 1 << 2;
- public static final int  ALT_MASK       = 1 << 3;
- public static final int  ALT_GRAPH_MASK = 1 << 5;
- public static final int  BUTTON1_MASK   = 1 << 6;
- public static final int  BUTTON2_MASK   = 1 << 7;
- public static final int  BUTTON3_MASK   = 1 << 8;
+public class X11Screen extends Screen {
 
- protected InputEvent(int eventType, Object source, long when, int modifiers) {
-    super(eventType, source, when);
-    this.consumed=false;
-    this.modifiers=modifiers;
- }
+    static {
+        X11Display.initSingleton();
+    }
 
- public void consume() {
-    consumed=true;
- }
 
- public boolean isConsumed() {
-    return consumed;
- }
- public int getModifiers() {
-    return modifiers;
- }
- public boolean isAltDown() {
-    return (modifiers&ALT_MASK)!=0;
- }
- public boolean isAltGraphDown() {
-    return (modifiers&ALT_GRAPH_MASK)!=0;
- }
- public boolean isControlDown() {
-    return (modifiers&CTRL_MASK)!=0;
- }
- public boolean isMetaDown() {
-    return (modifiers&META_MASK)!=0;
- }
- public boolean isShiftDown()  {
-    return (modifiers&SHIFT_MASK)!=0;
- }
+    public X11Screen() {
+    }
 
- public boolean isButton1Down()  {
-    return (modifiers&BUTTON1_MASK)!=0;
- }
+    protected void createNative(int index) {
+        long handle = GetScreen(display.getHandle(), index);
+        if (handle == 0 ) {
+            throw new RuntimeException("Error creating screen: "+index);
+        }
+        aScreen = new X11GraphicsScreen((X11GraphicsDevice)getDisplay().getGraphicsDevice(), index);
+        setScreenSize(getWidth0(display.getHandle(), index),
+                      getHeight0(display.getHandle(), index));
+    }
 
- public boolean isButton2Down()  {
-    return (modifiers&BUTTON2_MASK)!=0;
- }
+    protected void closeNative() { }
 
- public boolean isButton3Down()  {
-    return (modifiers&BUTTON3_MASK)!=0;
- }
+    //----------------------------------------------------------------------
+    // Internals only
+    //
 
- public String toString() {
-     return "InputEvent[modifiers:"+modifiers+", "+super.toString()+"]";
- }
-
- private boolean consumed;
- private int modifiers;
+    private native long GetScreen(long dpy, int scrn_idx);
+    private native int  getWidth0(long display, int scrn_idx);
+    private native int  getHeight0(long display, int scrn_idx);
 }
+

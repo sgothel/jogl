@@ -31,69 +31,52 @@
  * 
  */
 
-package com.jogamp.newt.event;
+package com.jogamp.newt.impl.macosx;
 
+import javax.media.nativewindow.*;
+import javax.media.nativewindow.macosx.*;
 import com.jogamp.newt.*;
+import com.jogamp.newt.impl.*;
+import com.jogamp.newt.util.MainThread;
 
-public abstract class InputEvent extends NEWTEvent
-{
- public static final int  SHIFT_MASK     = 1 << 0;
- public static final int  CTRL_MASK      = 1 << 1;
- public static final int  META_MASK      = 1 << 2;
- public static final int  ALT_MASK       = 1 << 3;
- public static final int  ALT_GRAPH_MASK = 1 << 5;
- public static final int  BUTTON1_MASK   = 1 << 6;
- public static final int  BUTTON2_MASK   = 1 << 7;
- public static final int  BUTTON3_MASK   = 1 << 8;
+public class MacDisplay extends Display {
+    static {
+        NEWTJNILibLoader.loadNEWT();
 
- protected InputEvent(int eventType, Object source, long when, int modifiers) {
-    super(eventType, source, when);
-    this.consumed=false;
-    this.modifiers=modifiers;
- }
+        if(!initNSApplication()) {
+            throw new NativeWindowException("Failed to initialize native Application hook");
+        }
+        if(!MacWindow.initIDs()) {
+            throw new NativeWindowException("Failed to initialize jmethodIDs");
+        }
+        if(DEBUG) System.out.println("MacDisplay.init App and IDs OK "+Thread.currentThread().getName());
+    }
 
- public void consume() {
-    consumed=true;
- }
+    public static void initSingleton() {
+        // just exist to ensure static init has been run
+    }
+    
+    public MacDisplay() {
+    }
 
- public boolean isConsumed() {
-    return consumed;
- }
- public int getModifiers() {
-    return modifiers;
- }
- public boolean isAltDown() {
-    return (modifiers&ALT_MASK)!=0;
- }
- public boolean isAltGraphDown() {
-    return (modifiers&ALT_GRAPH_MASK)!=0;
- }
- public boolean isControlDown() {
-    return (modifiers&CTRL_MASK)!=0;
- }
- public boolean isMetaDown() {
-    return (modifiers&META_MASK)!=0;
- }
- public boolean isShiftDown()  {
-    return (modifiers&SHIFT_MASK)!=0;
- }
+    class DispatchAction implements Runnable {
+        public void run() {
+            dispatchMessages0();
+        }
+    }
+    private DispatchAction dispatchAction = new DispatchAction();
 
- public boolean isButton1Down()  {
-    return (modifiers&BUTTON1_MASK)!=0;
- }
+    protected void dispatchMessagesNative() {
+        MainThread.invoke(false, dispatchAction);
+    }
+    
+    protected void createNative() {
+        aDevice = new MacOSXGraphicsDevice();
+    }
 
- public boolean isButton2Down()  {
-    return (modifiers&BUTTON2_MASK)!=0;
- }
+    protected void closeNative() { }
 
- public boolean isButton3Down()  {
-    return (modifiers&BUTTON3_MASK)!=0;
- }
-
- public String toString() {
-     return "InputEvent[modifiers:"+modifiers+", "+super.toString()+"]";
- }
-
- private boolean consumed;
- private int modifiers;
+    private static native boolean initNSApplication();
+    protected native void dispatchMessages0();
 }
+

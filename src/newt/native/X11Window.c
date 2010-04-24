@@ -46,7 +46,7 @@
 #include <X11/Xutil.h>
 #include <X11/keysym.h>
 
-#include "com_jogamp_newt_x11_X11Window.h"
+#include "com_jogamp_newt_impl_x11_X11Window.h"
 
 #include "EventListener.h"
 #include "MouseEvent.h"
@@ -233,11 +233,11 @@ static void displayDispatchErrorHandlerEnable(int onoff, JNIEnv * env) {
 }
 
 /*
- * Class:     com_jogamp_newt_x11_X11Display
+ * Class:     com_jogamp_newt_impl_x11_X11Display
  * Method:    initIDs
  * Signature: ()Z
  */
-JNIEXPORT jboolean JNICALL Java_com_jogamp_newt_x11_X11Display_initIDs
+JNIEXPORT jboolean JNICALL Java_com_jogamp_newt_impl_x11_X11Display_initIDs
   (JNIEnv *env, jclass clazz)
 {
     jclass c;
@@ -279,11 +279,11 @@ JNIEXPORT jboolean JNICALL Java_com_jogamp_newt_x11_X11Display_initIDs
 }
 
 /*
- * Class:     com_jogamp_newt_x11_X11Display
+ * Class:     com_jogamp_newt_impl_x11_X11Display
  * Method:    LockDisplay
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_com_jogamp_newt_x11_X11Display_LockDisplay
+JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Display_LockDisplay
   (JNIEnv *env, jobject obj, jlong display)
 {
     Display * dpy = (Display *)(intptr_t)display;
@@ -296,11 +296,11 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_x11_X11Display_LockDisplay
 
 
 /*
- * Class:     com_jogamp_newt_x11_X11Display
+ * Class:     com_jogamp_newt_impl_x11_X11Display
  * Method:    UnlockDisplay
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_com_jogamp_newt_x11_X11Display_UnlockDisplay
+JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Display_UnlockDisplay
   (JNIEnv *env, jobject obj, jlong display)
 {
     Display * dpy = (Display *)(intptr_t)display;
@@ -313,11 +313,11 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_x11_X11Display_UnlockDisplay
 
 
 /*
- * Class:     com_jogamp_newt_x11_X11Display
+ * Class:     com_jogamp_newt_impl_x11_X11Display
  * Method:    CompleteDisplay
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_com_jogamp_newt_x11_X11Display_CompleteDisplay
+JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Display_CompleteDisplay
   (JNIEnv *env, jobject obj, jlong display)
 {
     Display * dpy = (Display *)(intptr_t)display;
@@ -423,11 +423,11 @@ static jobject getJavaWindowProperty(JNIEnv *env, Display *dpy, Window window, j
 }
 
 /*
- * Class:     com_jogamp_newt_x11_X11Display
+ * Class:     com_jogamp_newt_impl_x11_X11Display
  * Method:    DispatchMessages
  * Signature: (JIJJ)V
  */
-JNIEXPORT void JNICALL Java_com_jogamp_newt_x11_X11Display_DispatchMessages
+JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Display_DispatchMessages
   (JNIEnv *env, jobject obj, jlong display, jlong javaObjectAtom, jlong wmDeleteAtom)
 {
     Display * dpy = (Display *) (intptr_t) display;
@@ -584,11 +584,11 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_x11_X11Display_DispatchMessages
  */
 
 /*
- * Class:     com_jogamp_newt_x11_X11Screen
+ * Class:     com_jogamp_newt_impl_x11_X11Screen
  * Method:    GetScreen
  * Signature: (JI)J
  */
-JNIEXPORT jlong JNICALL Java_com_jogamp_newt_x11_X11Screen_GetScreen
+JNIEXPORT jlong JNICALL Java_com_jogamp_newt_impl_x11_X11Screen_GetScreen
   (JNIEnv *env, jobject obj, jlong display, jint screen_index)
 {
     Display * dpy = (Display *)(intptr_t)display;
@@ -610,14 +610,14 @@ JNIEXPORT jlong JNICALL Java_com_jogamp_newt_x11_X11Screen_GetScreen
     return (jlong) (intptr_t) scrn;
 }
 
-JNIEXPORT jint JNICALL Java_com_jogamp_newt_x11_X11Screen_getWidth0
+JNIEXPORT jint JNICALL Java_com_jogamp_newt_impl_x11_X11Screen_getWidth0
   (JNIEnv *env, jobject obj, jlong display, jint scrn_idx)
 {
     Display * dpy = (Display *) (intptr_t) display;
     return (jint) XDisplayWidth( dpy, scrn_idx);
 }
 
-JNIEXPORT jint JNICALL Java_com_jogamp_newt_x11_X11Screen_getHeight0
+JNIEXPORT jint JNICALL Java_com_jogamp_newt_impl_x11_X11Screen_getHeight0
   (JNIEnv *env, jobject obj, jlong display, jint scrn_idx)
 {
     Display * dpy = (Display *) (intptr_t) display;
@@ -630,11 +630,11 @@ JNIEXPORT jint JNICALL Java_com_jogamp_newt_x11_X11Screen_getHeight0
  */
 
 /*
- * Class:     com_jogamp_newt_x11_X11Window
+ * Class:     com_jogamp_newt_impl_x11_X11Window
  * Method:    initIDs
  * Signature: ()Z
  */
-JNIEXPORT jboolean JNICALL Java_com_jogamp_newt_x11_X11Window_initIDs
+JNIEXPORT jboolean JNICALL Java_com_jogamp_newt_impl_x11_X11Window_initIDs
   (JNIEnv *env, jclass clazz)
 {
     windowChangedID = (*env)->GetMethodID(env, clazz, "windowChanged", "(IIII)V");
@@ -656,11 +656,11 @@ JNIEXPORT jboolean JNICALL Java_com_jogamp_newt_x11_X11Window_initIDs
 }
 
 /*
- * Class:     com_jogamp_newt_x11_X11Window
+ * Class:     com_jogamp_newt_impl_x11_X11Window
  * Method:    CreateWindow
  * Signature: (JJIJIIII)J
  */
-JNIEXPORT jlong JNICALL Java_com_jogamp_newt_x11_X11Window_CreateWindow
+JNIEXPORT jlong JNICALL Java_com_jogamp_newt_impl_x11_X11Window_CreateWindow
   (JNIEnv *env, jobject obj, jlong parent, jlong display, jint screen_index, 
                              jlong visualID, 
                              jlong javaObjectAtom, jlong windowDeleteAtom, 
@@ -784,11 +784,11 @@ JNIEXPORT jlong JNICALL Java_com_jogamp_newt_x11_X11Window_CreateWindow
 }
 
 /*
- * Class:     com_jogamp_newt_x11_X11Window
+ * Class:     com_jogamp_newt_impl_x11_X11Window
  * Method:    CloseWindow
  * Signature: (JJ)V
  */
-JNIEXPORT void JNICALL Java_com_jogamp_newt_x11_X11Window_CloseWindow
+JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Window_CloseWindow
   (JNIEnv *env, jobject obj, jlong display, jlong window, jlong javaObjectAtom)
 {
     Display * dpy = (Display *) (intptr_t) display;
@@ -828,11 +828,11 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_x11_X11Window_CloseWindow
 }
 
 /*
- * Class:     com_jogamp_newt_x11_X11Window
+ * Class:     com_jogamp_newt_impl_x11_X11Window
  * Method:    setVisible0
  * Signature: (JJZ)V
  */
-JNIEXPORT void JNICALL Java_com_jogamp_newt_x11_X11Window_setVisible0
+JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Window_setVisible0
   (JNIEnv *env, jobject obj, jlong display, jlong window, jboolean visible)
 {
     Display * dpy = (Display *) (intptr_t) display;
@@ -871,11 +871,11 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_x11_X11Window_setVisible0
 #endif
 
 /*
- * Class:     com_jogamp_newt_x11_X11Window
+ * Class:     com_jogamp_newt_impl_x11_X11Window
  * Method:    setSize0
  * Signature: (JIJIIIIIZ)V
  */
-JNIEXPORT void JNICALL Java_com_jogamp_newt_x11_X11Window_setSize0
+JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Window_setSize0
   (JNIEnv *env, jobject obj, jlong jparent, jlong display, jint screen_index, jlong window, jint x, jint y, jint width, jint height, jint decorationToggle, jboolean setVisible)
 {
     Display * dpy = (Display *) (intptr_t) display;
@@ -934,11 +934,11 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_x11_X11Window_setSize0
 }
 
 /*
- * Class:     com_jogamp_newt_x11_X11Window
+ * Class:     com_jogamp_newt_impl_x11_X11Window
  * Method:    setPosition0
  * Signature: (JJII)V
  */
-JNIEXPORT void JNICALL Java_com_jogamp_newt_x11_X11Window_setPosition0
+JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Window_setPosition0
   (JNIEnv *env, jobject obj, jlong display, jlong window, jint x, jint y)
 {
     Display * dpy = (Display *) (intptr_t) display;
