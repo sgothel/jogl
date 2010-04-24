@@ -547,8 +547,8 @@ private static final GLUgl2ProcAddressTable getGLUProcAddressTable() {
     if (curContext == null) {
         throw new GLException("No OpenGL context current on this thread");
     }
-    GLUgl2ProcAddressTable tmp = new GLUgl2ProcAddressTable();
-    GLProcAddressHelper.resetProcAddressTable(tmp, ((GLDrawableImpl)curContext.getGLDrawable()).getDynamicLookupHelper());
+    GLUgl2ProcAddressTable tmp = new GLUgl2ProcAddressTable(new GLProcAddressResolver());
+    tmp.resetProcAddressTable(((GLDrawableImpl)curContext.getGLDrawable()).getDynamicLookupHelper());
     gluProcAddressTable = tmp;
   }
   return gluProcAddressTable;

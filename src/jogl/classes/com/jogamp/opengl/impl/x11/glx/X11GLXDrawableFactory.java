@@ -54,7 +54,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
     super();
     // Must initialize GLX support eagerly in case a pbuffer is the
     // first thing instantiated
-    GLProcAddressHelper.resetProcAddressTable(GLX.getGLXProcAddressTable(), this);
+    GLX.getGLXProcAddressTable().resetProcAddressTable(this);
     // Register our GraphicsConfigurationFactory implementations
     // The act of constructing them causes them to be registered
     new X11GLXGraphicsConfigurationFactory();
