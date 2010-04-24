@@ -41,7 +41,7 @@ import java.nio.*;
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.x11.*;
 import javax.media.opengl.*;
-import com.jogamp.gluegen.runtime.opengl.*;
+
 import com.jogamp.opengl.impl.*;
 import com.jogamp.common.JogampRuntimeException;
 import com.jogamp.common.util.*;
@@ -54,7 +54,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
     super();
     // Must initialize GLX support eagerly in case a pbuffer is the
     // first thing instantiated
-    GLProcAddressHelper.resetProcAddressTable(GLX.getGLXProcAddressTable(), this);
+    GLX.getGLXProcAddressTable().reset(this);
     // Register our GraphicsConfigurationFactory implementations
     // The act of constructing them causes them to be registered
     new X11GLXGraphicsConfigurationFactory();
