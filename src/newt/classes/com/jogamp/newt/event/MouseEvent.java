@@ -31,7 +31,9 @@
  * 
  */
 
-package com.jogamp.newt;
+package com.jogamp.newt.event;
+
+import com.jogamp.newt.*;
 
 public class MouseEvent extends InputEvent
 {
@@ -43,21 +45,16 @@ public class MouseEvent extends InputEvent
   public static final int BUTTON6 = 6;
   public static final int BUTTON_NUMBER = 6;
 
- protected MouseEvent(boolean sysEvent, int eventType, Window source, long when,
-                      int modifiers, int x, int y, int clickCount, int button,
-                      int rotation)
+ public MouseEvent(int eventType, Object source, long when,
+                   int modifiers, int x, int y, int clickCount, int button,
+                   int rotation)
  {
-     super(sysEvent, eventType, source, when, modifiers); 
+     super(eventType, source, when, modifiers); 
      this.x=x;
      this.y=y;
      this.clickCount=clickCount;
      this.button=button;
      this.wheelRotation = rotation;
- }
- public MouseEvent(int eventType, Window source, long when, int modifiers,
-                   int x, int y, int clickCount, int button, int rotation) {
-     this(false, eventType, source, when, modifiers, x, y, clickCount, button,
-          rotation);
  }
 
  public int getButton() {

@@ -31,17 +31,16 @@
  * 
  */
 
-package com.jogamp.newt;
+package com.jogamp.newt.event;
+
+import com.jogamp.newt.*;
 
 public class KeyEvent extends InputEvent
 {
- KeyEvent(boolean sysEvent, int eventType, Window source, long when, int modifiers, int keyCode, char keyChar) {
-     super(sysEvent, eventType, source, when, modifiers); 
+ public KeyEvent(int eventType, Object source, long when, int modifiers, int keyCode, char keyChar) {
+     super(eventType, source, when, modifiers); 
      this.keyCode=keyCode;
      this.keyChar=keyChar;
- }
- public KeyEvent(int eventType, Window source, long when, int modifiers, int keyCode, char keyChar) {
-     this(false, eventType, source, when, modifiers, keyCode, keyChar);
  }
 
  public char getKeyChar() {

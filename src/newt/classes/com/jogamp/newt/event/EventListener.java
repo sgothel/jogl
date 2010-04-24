@@ -31,9 +31,11 @@
  * 
  */
 
-package com.jogamp.newt;
+package com.jogamp.newt.event;
 
-public interface EventListener
+import com.jogamp.newt.*;
+
+public interface EventListener extends java.util.EventListener
 {
     public static final int WINDOW  = 1 << 0;
     public static final int MOUSE   = 1 << 1;

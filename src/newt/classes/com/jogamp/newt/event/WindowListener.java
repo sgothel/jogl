@@ -31,17 +31,14 @@
  * 
  */
 
-package com.jogamp.newt;
+package com.jogamp.newt.event;
 
-public interface MouseListener extends EventListener
-{
- public void mouseClicked(MouseEvent e);
- public void mouseEntered(MouseEvent e);
- public void mouseExited(MouseEvent e);
- public void mousePressed(MouseEvent e);
- public void mouseReleased(MouseEvent e);
- public void mouseMoved(MouseEvent e);
- public void mouseDragged(MouseEvent e);
- public void mouseWheelMoved(MouseEvent e);
+import com.jogamp.newt.*;
+
+public interface WindowListener extends EventListener {
+    public void windowResized(WindowEvent e);
+    public void windowMoved(WindowEvent e);
+    public void windowDestroyNotify(WindowEvent e);
+    public void windowGainedFocus(WindowEvent e);
+    public void windowLostFocus(WindowEvent e);
 }
-

@@ -31,37 +31,19 @@
  * 
  */
 
-package com.jogamp.newt;
+package com.jogamp.newt.event;
 
-public class WindowEvent extends Event {
-    public static final int EVENT_WINDOW_RESIZED = 100;
-    public static final int EVENT_WINDOW_MOVED   = 101; 
-    public static final int EVENT_WINDOW_DESTROY_NOTIFY = 102;
-    public static final int EVENT_WINDOW_GAINED_FOCUS = 103;
-    public static final int EVENT_WINDOW_LOST_FOCUS = 104;
-    // public static final int EVENT_WINDOW_REPAINT = 105; // TODO
+import com.jogamp.newt.*;
 
-    public WindowEvent(int eventType, Window source, long when) {
-        this(false, eventType, source, when);
-    }
-
-    WindowEvent(boolean isSystemEvent, int eventType, Window source, long when) {
-        super(isSystemEvent, eventType, source, when);
-    }
-
-    public static String getEventTypeString(int type) {
-        switch(type) {
-            case EVENT_WINDOW_RESIZED: return "WINDOW_RESIZED";
-            case EVENT_WINDOW_MOVED:   return "WINDOW_MOVED";
-            case EVENT_WINDOW_DESTROY_NOTIFY:   return "EVENT_WINDOW_DESTROY_NOTIFY";
-            case EVENT_WINDOW_GAINED_FOCUS:   return "EVENT_WINDOW_GAINED_FOCUS";
-            case EVENT_WINDOW_LOST_FOCUS:   return "EVENT_WINDOW_LOST_FOCUS";
-            // case EVENT_WINDOW_REPAINT:   return "EVENT_WINDOW_REPAINT";
-            default: return "unknown (" + type + ")";
-        }
-    }
-    public String toString() {
-        return "WindowEvent["+getEventTypeString(getEventType()) +
-            ", " + super.toString() + "]";
-    }
+public interface MouseListener extends EventListener
+{
+ public void mouseClicked(MouseEvent e);
+ public void mouseEntered(MouseEvent e);
+ public void mouseExited(MouseEvent e);
+ public void mousePressed(MouseEvent e);
+ public void mouseReleased(MouseEvent e);
+ public void mouseMoved(MouseEvent e);
+ public void mouseDragged(MouseEvent e);
+ public void mouseWheelMoved(MouseEvent e);
 }
+
