@@ -239,7 +239,7 @@ private static GLUProcAddressTable getGLUProcAddressTable() {
   }
   if (gluProcAddressTable == null) {
     GLUProcAddressTable tmp = new GLUProcAddressTable(new GLProcAddressResolver());
-    tmp.resetProcAddressTable(GLDrawableFactoryImpl.getFactoryImpl());
+    tmp.reset(GLDrawableFactoryImpl.getFactoryImpl());
     gluProcAddressTable = tmp;
   }
   return gluProcAddressTable;
