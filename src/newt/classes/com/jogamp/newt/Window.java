@@ -989,6 +989,7 @@ public abstract class Window implements NativeWindow
                 Thread cur = Thread.currentThread();
                 if (owner == cur) {
                     ++recursionCount;
+                    return;
                 }
                 while (owner != null) {
                     try {
