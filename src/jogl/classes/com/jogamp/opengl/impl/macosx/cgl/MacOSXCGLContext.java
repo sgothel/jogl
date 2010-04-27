@@ -163,9 +163,6 @@ public abstract class MacOSXCGLContext extends GLContextImpl
   }    
 	
   protected int makeCurrentImpl() throws GLException {
-    if (0 == cglContext && drawable.getNativeWindow().getSurfaceHandle() == 0) {
-        throw new GLException("drawable not properly initialized: "+drawable);
-    }
     boolean created = false;
     if ( 0 == cglContext && 0 == nsContext) {
       create();

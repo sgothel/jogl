@@ -89,11 +89,13 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
         ctx.makeCurrent();
         ctx.release();
         sharedContext = ctx;
+    } catch (Throwable t) {
+        throw new GLException("X11GLXDrawableFactory - Could not initialize shared resources", t);
     } finally {
         X11Util.XUnlockDisplay(sharedScreen.getDevice().getHandle());
     }
     if(null==sharedContext) {
-        throw new GLException("Couldn't init shared context");
+        throw new GLException("X11GLXDrawableFactory - Shared Context is null");
     }
     if (DEBUG) {
       System.err.println("!!! Vendor: "+vendorName+", ATI: "+isVendorATI+", NV: "+isVendorNVIDIA);

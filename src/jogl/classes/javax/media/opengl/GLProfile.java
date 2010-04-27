@@ -864,11 +864,9 @@ public class GLProfile implements Cloneable {
         } catch (RuntimeException re) {
             t=re;
         }
-        if(null!=t) {
-            if (DEBUG) {
-                System.err.println("GLProfile.static Desktop GLES12 Library not available");
-                t.printStackTrace();
-            }
+        if(DEBUG && null!=t) {
+            System.err.println("GLProfile.static Desktop GLES12 Library not available");
+            t.printStackTrace();
         }
 
 
@@ -890,12 +888,18 @@ public class GLProfile implements Cloneable {
         // 
 
         if(hasDesktopGL||hasDesktopGLES12) {
+            t=null;
             // if successfull it has a shared dummy drawable and context created
             try {
                 hasNativeOSFactory = null != GLDrawableFactory.getFactoryImpl(GL2);
+            } catch (LinkageError le) {
+                t=le;
             } catch (RuntimeException re) {
+                t=re;
+            }
+            if(DEBUG && null!=t) {
                 System.err.println("GLProfile.static - Native platform GLDrawable factory not available");
-                re.printStackTrace();
+                t.printStackTrace();
             }
         }
 
@@ -923,33 +927,26 @@ public class GLProfile implements Cloneable {
             hasGL2ES12Impl = hasGL2ES12Impl && GLContext.isGL2Available();
         }
 
-        boolean btest = false;
-
         boolean hasEGLDynLookup = ReflectionUtil.isClassAvailable("com.jogamp.opengl.impl.egl.EGLDynamicLookupHelper");
         boolean hasEGLDrawableFactory = false;
-        t=null;
-        try {
-            if(hasEGLDynLookup) {
+        boolean btest = false;
+        if(hasEGLDynLookup) {
+            t=null;
+            try {
                 hasEGLDrawableFactory = null!=GLDrawableFactory.getFactoryImpl(GLES2);
-                try {
-                    btest = hasEGLDrawableFactory &&
-                            ReflectionUtil.isClassAvailable("com.jogamp.opengl.impl.es2.GLES2Impl") &&
-                            null!=com.jogamp.opengl.impl.egl.EGLDynamicLookupHelper.getDynamicLookupHelper(2);
-                } catch (GLException gle) {
-                    // n/a ..
-                }
+                btest = hasEGLDrawableFactory &&
+                        ReflectionUtil.isClassAvailable("com.jogamp.opengl.impl.es2.GLES2Impl") &&
+                        null!=com.jogamp.opengl.impl.egl.EGLDynamicLookupHelper.getDynamicLookupHelper(2);
+            } catch (LinkageError le) {
+                t=le;
+            } catch (SecurityException se) {
+                t=se;
+            } catch (NullPointerException npe) {
+                t=npe;
+            } catch (RuntimeException re) {
+                t=re;
             }
-        } catch (UnsatisfiedLinkError ule) {
-            t=ule;
-        } catch (SecurityException se) {
-            t=se;
-        } catch (NullPointerException npe) {
-            t=npe;
-        } catch (RuntimeException re) {
-            t=re;
-        }
-        if(null!=t) {
-            if (DEBUG) {
+            if(DEBUG && null!=t) {
                 System.err.println("GLProfile.static - GL ES2 Factory/Library not available");
                 t.printStackTrace();
             }
@@ -961,12 +958,23 @@ public class GLProfile implements Cloneable {
 
         btest = false;
         if(hasEGLDynLookup) {
+            t=null;
             try {
                 btest = hasEGLDrawableFactory &&
                         ReflectionUtil.isClassAvailable("com.jogamp.opengl.impl.es1.GLES1Impl") &&
                         null!=com.jogamp.opengl.impl.egl.EGLDynamicLookupHelper.getDynamicLookupHelper(1);
-            } catch (GLException jre) {
-                /* just not available .. */ 
+            } catch (LinkageError le) {
+                t=le;
+            } catch (SecurityException se) {
+                t=se;
+            } catch (NullPointerException npe) {
+                t=npe;
+            } catch (RuntimeException re) {
+                t=re;
+            }
+            if(DEBUG && null!=t) {
+                System.err.println("GLProfile.static - GL ES1 Factory/Library not available");
+                t.printStackTrace();
             }
         }
         hasGLES1Impl     = btest;

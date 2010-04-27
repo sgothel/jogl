@@ -203,9 +203,6 @@ public class WindowsWGLContext extends GLContextImpl {
     WindowsWGLDrawableFactory factory = (WindowsWGLDrawableFactory)drawable.getFactoryImpl();
     GLCapabilities glCaps = drawable.getChosenGLCapabilities();
 
-    if (drawable.getNativeWindow().getSurfaceHandle() == 0) {
-      throw new GLException("Internal error: attempted to create OpenGL context without an associated drawable");
-    }
     // Windows can set up sharing of display lists after creation time
     WindowsWGLContext other = (WindowsWGLContext) GLContextShareSet.getShareContext(this);
     long share = 0;

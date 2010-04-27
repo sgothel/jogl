@@ -275,6 +275,16 @@ public abstract class GLContextImpl extends GLContext {
       GLWorkerThread.invokeLater(new Runnable() { public void run() {} });
     }
 
+    if (!isCreated()) {
+        // verify if the drawable if valid ..
+        if (0 == getGLDrawable().getNativeWindow().getSurfaceHandle()) {
+            throw new GLException("drawable has invalid surface handle: "+getGLDrawable());
+        }
+        if (null == getGLDrawable().getChosenGLCapabilities()) {
+            throw new GLException("drawable has no chosen GLCapabilities: "+getGLDrawable());
+        }
+    }
+
     lock.lock();
     int res = 0;
     try {

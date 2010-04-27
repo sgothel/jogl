@@ -73,14 +73,18 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl implements 
 
     loadOpenGL32Library();
 
-    sharedDrawable = new WindowsDummyWGLDrawable(this, null);
-    WindowsWGLContext ctx  = (WindowsWGLContext) sharedDrawable.createContext(null);
-    ctx.makeCurrent();
-    canCreateGLPbuffer = ctx.getGL().isExtensionAvailable("GL_ARB_pbuffer");
-    ctx.release();
-    sharedContext = ctx;
+    try {
+        sharedDrawable = new WindowsDummyWGLDrawable(this, null);
+        WindowsWGLContext ctx  = (WindowsWGLContext) sharedDrawable.createContext(null);
+        ctx.makeCurrent();
+        canCreateGLPbuffer = ctx.getGL().isExtensionAvailable("GL_ARB_pbuffer");
+        ctx.release();
+        sharedContext = ctx;
+    } catch (Throwable t) {
+        throw new GLException("WindowsWGLDrawableFactory - Could not initialize shared resources", t);
+    }
     if(null==sharedContext) {
-        throw new GLException("Couldn't init shared resources");
+        throw new GLException("WindowsWGLDrawableFactory - Shared Context is null");
     }
     if (DEBUG) {
       System.err.println("!!! SharedContext: "+sharedContext+", pbuffer supported "+canCreateGLPbuffer);

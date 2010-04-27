@@ -66,6 +66,7 @@ public class TestOffscreen01NEWT {
         glpDefault = GLProfile.getDefault();
         Assert.assertNotNull(glpDefault);
         glDrawableFactory = GLDrawableFactory.getFactory(glpDefault);
+        System.out.println("INFO: PBuffer supported: "+ glDrawableFactory.canCreateGLPbuffer(null));
         width  = 640;
         height = 480;
     }
