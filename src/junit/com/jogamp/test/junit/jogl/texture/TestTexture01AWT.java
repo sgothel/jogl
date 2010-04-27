@@ -48,6 +48,7 @@ import java.awt.GradientPaint;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -75,7 +76,18 @@ public class TestTexture01AWT {
         g.drawImage(baseImage, 0, 0, null);
         g.dispose();
 
+        baseImage.flush();
+        baseImage=null;
+
         frame = new Frame("Texture Test");
+    }
+
+    @After
+    public void cleanup() {
+        textureImage.flush();
+        textureImage=null;
+        frame.dispose();
+        frame=null;
     }
 
     @Test
@@ -98,8 +110,6 @@ public class TestTexture01AWT {
         animator.stop();
         frame.setVisible(false);
         frame.remove(glCanvas);
-        frame.dispose();
-        frame=null;
         glCanvas=null;
     }
 
