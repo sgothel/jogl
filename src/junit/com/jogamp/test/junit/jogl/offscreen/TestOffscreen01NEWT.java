@@ -57,6 +57,7 @@ import java.io.IOException;
 
 public class TestOffscreen01NEWT {
     static GLProfile glpDefault;
+    static GLDrawableFactory glDrawableFactory;
     static int width, height;
     GLCapabilities capsDefault;
 
@@ -64,6 +65,7 @@ public class TestOffscreen01NEWT {
     public static void initClass() {
         glpDefault = GLProfile.getDefault();
         Assert.assertNotNull(glpDefault);
+        glDrawableFactory = GLDrawableFactory.getFactory(glpDefault);
         width  = 640;
         height = 480;
     }
@@ -112,12 +114,20 @@ public class TestOffscreen01NEWT {
 
     @Test
     public void test01aOffscreenWindowPBuffer() {
+        if(!glDrawableFactory.canCreateGLPbuffer(null)) {
+            System.out.println("WARNING: PBuffer not supported on this platform - cannot test");
+            return;
+        }
         GLCapabilities caps2 = WindowUtilNEWT.fixCaps(capsDefault, false, true, false);
         do01OffscreenWindowPBuffer(caps2);
     }
 
     @Test
     public void test01bOffscreenWindowPBufferStencil() {
+        if(!glDrawableFactory.canCreateGLPbuffer(null)) {
+            System.out.println("WARNING: PBuffer not supported on this platform - cannot test");
+            return;
+        }
         GLCapabilities caps2 = WindowUtilNEWT.fixCaps(capsDefault, false, true, false);
         caps2.setStencilBits(8);
         do01OffscreenWindowPBuffer(caps2);
@@ -125,6 +135,10 @@ public class TestOffscreen01NEWT {
 
     @Test
     public void test01cOffscreenWindowPBufferStencilAlpha() {
+        if(!glDrawableFactory.canCreateGLPbuffer(null)) {
+            System.out.println("WARNING: PBuffer not supported on this platform - cannot test");
+            return;
+        }
         GLCapabilities caps2 = WindowUtilNEWT.fixCaps(capsDefault, false, true, false);
         caps2.setStencilBits(8);
         caps2.setAlphaBits(8);
@@ -133,6 +147,10 @@ public class TestOffscreen01NEWT {
 
     @Test
     public void test01cOffscreenWindowPBuffer555() {
+        if(!glDrawableFactory.canCreateGLPbuffer(null)) {
+            System.out.println("WARNING: PBuffer not supported on this platform - cannot test");
+            return;
+        }
         GLCapabilities caps2 = WindowUtilNEWT.fixCaps(capsDefault, false, true, false);
         caps2.setRedBits(5);
         caps2.setGreenBits(5);
@@ -142,6 +160,10 @@ public class TestOffscreen01NEWT {
 
     @Test
     public void test02Offscreen3Windows1DisplayPBuffer() {
+        if(!glDrawableFactory.canCreateGLPbuffer(null)) {
+            System.out.println("WARNING: PBuffer not supported on this platform - cannot test");
+            return;
+        }
         GLCapabilities caps2 = WindowUtilNEWT.fixCaps(capsDefault, false, true, false);
         int winnum = 3, i;
         Window windows[] = new Window[winnum];
@@ -189,6 +211,10 @@ public class TestOffscreen01NEWT {
 
     @Test
     public void test03Offscreen3Windows3DisplaysPBuffer() {
+        if(!glDrawableFactory.canCreateGLPbuffer(null)) {
+            System.out.println("WARNING: PBuffer not supported on this platform - cannot test");
+            return;
+        }
         GLCapabilities caps2 = WindowUtilNEWT.fixCaps(capsDefault, false, true, false);
         int winnum = 3, i;
         Display displays[] = new Display[winnum];
@@ -237,6 +263,10 @@ public class TestOffscreen01NEWT {
 
     @Test
     public void test04OffscreenSnapshotWithDemoPBuffer() {
+        if(!glDrawableFactory.canCreateGLPbuffer(null)) {
+            System.out.println("WARNING: PBuffer not supported on this platform - cannot test");
+            return;
+        }
         GLCapabilities caps2 = WindowUtilNEWT.fixCaps(capsDefault, false, true, false);
 
         System.out.println("Create Window 1");

@@ -7,7 +7,7 @@ function print_usage() {
 if [ -z "$1" ] ; then
     echo JOGL BUILD DIR missing
     print_usage
-    return
+    exit
 fi
 
 if [ -e /devtools/etc/profile.ant ] ; then
@@ -27,7 +27,7 @@ if [ -e "$JOGL_BUILDDIR" ] ; then
 else
     echo JOGL_BUILDDIR $JOGL_BUILDDIR not exist or not given
     print_usage
-    return
+    exit
 fi
 
 gpf=`find ../../gluegen/make -name dynlink-unix.cfg`
@@ -37,7 +37,7 @@ fi
 if [ -z "$gpf" ] ; then
     echo GLUEGEN_BUILDDIR not found
     print_usage
-    return
+    exit
 fi
 
 GLUEGEN_DIR=`dirname $gpf`/..
@@ -45,19 +45,25 @@ GLUEGEN_BUILDDIR=$GLUEGEN_DIR/$JOGL_BUILDDIR_BASE
 if [ ! -e "$GLUEGEN_BUILDDIR" ] ; then
     echo GLUEGEN_BUILDDIR $GLUEGEN_BUILDDIR does not exist
     print_usage
-    return
+    exit
 fi
 GLUEGEN_JAR=$GLUEGEN_BUILDDIR/gluegen-rt.jar
 GLUEGEN_OS=$GLUEGEN_BUILDDIR/obj
 JUNIT_JAR=$GLUEGEN_DIR/make/lib/junit-4.5.jar
 
 if [ -z "$ANT_PATH" ] ; then
+    if [ -e /usr/share/ant/bin/ant -a -e /usr/share/ant/lib/ant.jar ] ; then
+        ANT_PATH=/usr/share/ant
+        export ANT_PATH
+        echo autosetting ANT_PATH to $ANT_PATH
+    fi
+fi
+if [ -z "$ANT_PATH" ] ; then
     echo ANT_PATH does not exist, set it
     print_usage
-    return
-else
-    ANT_JARS=$ANT_PATH/lib/ant.jar:$ANT_PATH/lib/ant-junit.jar
+    exit
 fi
+ANT_JARS=$ANT_PATH/lib/ant.jar:$ANT_PATH/lib/ant-junit.jar
 
 echo GLUEGEN BUILDDIR: $GLUEGEN_BUILDDIR
 echo JOGL DIR: $JOGL_DIR
