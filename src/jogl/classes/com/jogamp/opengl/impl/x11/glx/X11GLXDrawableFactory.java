@@ -50,6 +50,10 @@ import com.jogamp.nativewindow.impl.x11.*;
 
 public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements DynamicLookupHelper {
   
+  static {
+    X11Util.initSingleton(); // ensure it's loaded and setup
+  }
+
   public X11GLXDrawableFactory() {
     super();
     // Must initialize GLX support eagerly in case a pbuffer is the
@@ -63,32 +67,104 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
                                   new Object[] {});
     } catch (JogampRuntimeException jre) { /* n/a .. */ }
 
-    X11GraphicsDevice sharedDevice = new X11GraphicsDevice(X11Util.createThreadLocalDisplay(null));
-    vendorName = GLXUtil.getVendorName(sharedDevice.getHandle());
-    isVendorATI = GLXUtil.isVendorATI(vendorName);
-    isVendorNVIDIA = GLXUtil.isVendorNVIDIA(vendorName);
-    if( isVendorATI() ) {
-        X11Util.markGlobalDisplayUndeletable(sharedDevice.getHandle()); // ATI hack ..
+    shareableResourceThread = new ShareableResourceThread(GLProfile.getDefault(), GLProfile.isAWTJOGLAvailable());
+    shareableResourceThread.start();
+    while (!shareableResourceThread.isInitialized()) {
+        synchronized(shareableResourceThread) {
+            try {
+                shareableResourceThread.wait();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
     }
-    sharedScreen = new X11GraphicsScreen(sharedDevice, 0);
-    X11Lib.XLockDisplay(sharedScreen.getDevice().getHandle());
+    if(null==sharedScreen || null==sharedDrawable) {
+        throw new GLException("Couldn't init shared screen("+sharedScreen+")/drawable("+sharedDrawable+")");
+    }
+    // We have to keep this within this thread,
+    // since we have a 'chicken-and-egg' problem otherwise on the <init> lock of this thread.
+    X11Util.XLockDisplay(sharedScreen.getDevice().getHandle());
     try{
-        sharedDrawable = new X11DummyGLXDrawable(sharedScreen, this, null);
         X11GLXContext ctx  = (X11GLXContext) sharedDrawable.createContext(null);
         ctx.makeCurrent();
         ctx.release();
         sharedContext = ctx;
-    }finally{
-        X11Lib.XUnlockDisplay(sharedScreen.getDevice().getHandle());
+    } finally {
+        X11Util.XUnlockDisplay(sharedScreen.getDevice().getHandle());
     }
     if(null==sharedContext) {
-        throw new GLException("Couldn't init shared resources");
+        throw new GLException("Couldn't init shared context");
     }
     if (DEBUG) {
       System.err.println("!!! Vendor: "+vendorName+", ATI: "+isVendorATI+", NV: "+isVendorNVIDIA);
       System.err.println("!!! SharedScreen: "+sharedScreen);
       System.err.println("!!! SharedContext: "+sharedContext);
     }
+  }
+
+  ShareableResourceThread shareableResourceThread;
+
+  class ShareableResourceThread extends Thread {
+        volatile boolean shutdown  = false;
+        volatile boolean initialized = false;
+        GLProfile glp;
+        boolean mayUseAWT;
+
+        final void shutdown() { shutdown = true; }
+        final boolean isInitialized() { return initialized; }
+
+        public ShareableResourceThread(GLProfile glp, boolean mayUseAWT) {
+            super("ShareableResourceThread-"+Thread.currentThread().getName());
+            this.glp = glp;
+            this.mayUseAWT = mayUseAWT;
+        }
+
+        public void run() {
+            synchronized(this) {
+                long tlsDisplay = X11Util.createThreadLocalDisplay(null);
+                X11GraphicsDevice sharedDevice = new X11GraphicsDevice(tlsDisplay);
+                vendorName = GLXUtil.getVendorName(sharedDevice.getHandle());
+                isVendorATI = GLXUtil.isVendorATI(vendorName);
+                isVendorNVIDIA = GLXUtil.isVendorNVIDIA(vendorName);
+                sharedScreen = new X11GraphicsScreen(sharedDevice, 0);
+                X11Util.XLockDisplay(sharedScreen.getDevice().getHandle());
+                try{
+                    sharedDrawable = new X11DummyGLXDrawable(sharedScreen, X11GLXDrawableFactory.this, glp);
+                } finally {
+                    X11Util.XUnlockDisplay(sharedScreen.getDevice().getHandle());
+                }
+                if(isVendorATI() && mayUseAWT) {
+                    X11Util.markThreadLocalDisplayUncloseable(tlsDisplay); // failure to close with ATI and AWT usage
+                }
+                initialized = true;
+                this.notifyAll();
+
+                while (!shutdown) {
+                    synchronized(this) {
+                        try {
+                            this.wait();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+
+                if(null!=sharedDrawable) {
+                    sharedDrawable.destroy();
+                    sharedDrawable=null;
+                }
+                if(null!=sharedScreen) {
+                     X11Util.closeThreadLocalDisplay(null);
+                     sharedScreen = null;
+                     sharedDevice=null;
+                }
+                // don't close pending XDisplay, since they might be a different thread as the opener
+                X11Util.shutdown( false, DEBUG );
+
+                initialized = false;
+                this.notifyAll();
+            }
+        }
   }
 
   private X11GraphicsScreen sharedScreen;
@@ -112,35 +188,35 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
   }
 
   protected void shutdown() {
-     if (DEBUG) {
+    if (DEBUG) {
           System.err.println("!!! Shutdown Shared:");
           System.err.println("!!!          CTX     : "+sharedContext);
           System.err.println("!!!          Drawable: "+sharedDrawable);
           System.err.println("!!!          Screen  : "+sharedScreen);
-          Exception e = new Exception("Debug");
-          e.printStackTrace();
-     }
-     if(null!=sharedContext) {
+    }
+    if(null!=sharedContext) {
         sharedContext.destroy(); // implies release, if current
-     }
-     if(null!=sharedDrawable) {
-        sharedDrawable.destroy();
-     }
-     if(null!=sharedScreen) {
-         X11GraphicsDevice sharedDevice = (X11GraphicsDevice) sharedScreen.getDevice();
-         sharedScreen = null;
-     }
-     // X11Util.shutdown( !isVendorATI(), DEBUG ); // works NV .. but ..
-     // X11Util.shutdown( true, DEBUG ); // fails ATI, works NV .. but
-     X11Util.shutdown( false, DEBUG );
+        sharedContext=null;
+    }
+    synchronized(shareableResourceThread) {
+        if (shareableResourceThread.isInitialized()) {
+            shareableResourceThread.shutdown();
+            shareableResourceThread.notifyAll();
+            while (shareableResourceThread.isInitialized()) {
+                try {
+                    shareableResourceThread.wait();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+    shareableResourceThread = null;
   }
 
   public GLDrawableImpl createOnscreenDrawable(NativeWindow target) {
     if (target == null) {
       throw new IllegalArgumentException("Null target");
-    }
-    if( isVendorATI() ) {
-        X11Util.markGlobalDisplayUndeletable(target.getDisplayHandle()); // ATI hack ..
     }
     return new X11OnscreenGLXDrawable(this, target);
   }
@@ -148,9 +224,6 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
   protected GLDrawableImpl createOffscreenDrawable(NativeWindow target) {
     if (target == null) {
       throw new IllegalArgumentException("Null target");
-    }
-    if( isVendorATI() ) {
-        X11Util.markGlobalDisplayUndeletable(target.getDisplayHandle()); // ATI hack ..
     }
     return new X11OffscreenGLXDrawable(this, target);
   }
@@ -204,9 +277,6 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
         sharedContext.makeCurrent();
         usedSharedContext=true;
     }
-    if( isVendorATI() ) {
-        X11Util.markGlobalDisplayUndeletable(target.getDisplayHandle()); // ATI hack ..
-    }
     try {
         pbufferDrawable = new X11PbufferGLXDrawable(this, target);
     } finally {
@@ -220,11 +290,11 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
 
   protected NativeWindow createOffscreenWindow(GLCapabilities capabilities, GLCapabilitiesChooser chooser, int width, int height) {
     NullWindow nw = null;
-    X11Lib.XLockDisplay(sharedScreen.getDevice().getHandle());
+    X11Util.XLockDisplay(sharedScreen.getDevice().getHandle());
     try{
         nw = new NullWindow(X11GLXGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(capabilities, chooser, sharedScreen));
     }finally{
-        X11Lib.XUnlockDisplay(sharedScreen.getDevice().getHandle());
+        X11Util.XUnlockDisplay(sharedScreen.getDevice().getHandle());
     }
     if(nw != null) {
         nw.setSize(width, height);
@@ -280,7 +350,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
 
     long display = sharedScreen.getDevice().getHandle();
 
-    X11Lib.XLockDisplay(display);
+    X11Util.XLockDisplay(display);
     try {
         int[] size = new int[1];
         boolean res = X11Lib.XF86VidModeGetGammaRampSize(display,
@@ -293,7 +363,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
         gammaRampLength = size[0];
         return gammaRampLength;
     } finally {
-        X11Lib.XUnlockDisplay(display);
+        X11Util.XUnlockDisplay(display);
     }
   }
 
@@ -305,7 +375,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
     }
 
     long display = sharedScreen.getDevice().getHandle();
-    X11Lib.XLockDisplay(display);
+    X11Util.XLockDisplay(display);
     try {
         boolean res = X11Lib.XF86VidModeSetGammaRamp(display,
                                                   X11Lib.DefaultScreen(display),
@@ -315,7 +385,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
                                                   rampData, 0);
         return res;
     } finally {
-        X11Lib.XUnlockDisplay(display);
+        X11Util.XUnlockDisplay(display);
     }
   }
 
@@ -332,7 +402,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
     rampData.limit(3 * size);
     ShortBuffer blueRampData = rampData.slice();
     long display = sharedScreen.getDevice().getHandle();
-    X11Lib.XLockDisplay(display);
+    X11Util.XLockDisplay(display);
     try {
         boolean res = X11Lib.XF86VidModeGetGammaRamp(display,
                                                   X11Lib.DefaultScreen(display),
@@ -345,7 +415,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
         }
         return rampData;
     } finally {
-        X11Lib.XUnlockDisplay(display);
+        X11Util.XUnlockDisplay(display);
     }
   }
 
@@ -368,7 +438,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
     rampData.limit(3 * size);
     ShortBuffer blueRampData = rampData.slice();
     long display = sharedScreen.getDevice().getHandle();
-    X11Lib.XLockDisplay(display);
+    X11Util.XLockDisplay(display);
     try {
         X11Lib.XF86VidModeSetGammaRamp(display,
                                     X11Lib.DefaultScreen(display),
@@ -377,7 +447,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
                                     greenRampData,
                                     blueRampData);
     } finally {
-        X11Lib.XUnlockDisplay(display);
+        X11Util.XUnlockDisplay(display);
     }
   }
 }

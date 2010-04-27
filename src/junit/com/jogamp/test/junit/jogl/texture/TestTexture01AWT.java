@@ -97,10 +97,10 @@ public class TestTexture01AWT {
 
         animator.stop();
         frame.setVisible(false);
-
         frame.remove(glCanvas);
         frame.dispose();
         frame=null;
+        glCanvas=null;
     }
 
     public static void main(String args[]) {

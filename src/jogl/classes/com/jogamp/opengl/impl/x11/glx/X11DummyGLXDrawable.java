@@ -64,11 +64,11 @@ public class X11DummyGLXDrawable extends X11OnscreenGLXDrawable {
     int scrn = screen.getIndex();
     long visualID = config.getVisualID();
 
-    X11Lib.XLockDisplay(dpy);
+    X11Util.XLockDisplay(dpy);
     try{
         dummyWindow = X11Lib.CreateDummyWindow(dpy, scrn, visualID);
     } finally {
-        X11Lib.XUnlockDisplay(dpy);
+        X11Util.XUnlockDisplay(dpy);
     }
     nw.setSurfaceHandle( dummyWindow );
   }

@@ -193,8 +193,6 @@ static void _throwNewRuntimeException(Display * unlockDisplay, JNIEnv *env, cons
         XUnlockDisplay(unlockDisplay);
     }
 
-    _initClazzAccess(env);
-
     va_start(ap, msg);
     vsnprintf(buffer, sizeof(buffer), msg, ap);
     va_end(ap);
@@ -246,10 +244,16 @@ static void x11IOErrorHandlerEnable(int onoff, JNIEnv * env) {
     }
 }
 
+static int _initialized=0;
+
 JNIEXPORT void JNICALL 
-Java_com_jogamp_nativewindow_impl_x11_X11Util_installIOErrorHandler(JNIEnv *env, jclass _unused) {
-    x11ErrorHandlerEnable(1, env);
-    x11IOErrorHandlerEnable(1, env);
+Java_com_jogamp_nativewindow_impl_x11_X11Util_initialize(JNIEnv *env, jclass _unused) {
+    if(0==_initialized) {
+        _initClazzAccess(env);
+        x11ErrorHandlerEnable(1, env);
+        x11IOErrorHandlerEnable(1, env);
+        _initialized=1;
+    }
 }
 
 JNIEXPORT jlong JNICALL 
@@ -300,8 +304,6 @@ Java_com_jogamp_nativewindow_impl_x11_X11Lib_XGetVisualInfoCopied1__JJLjava_nio_
     (*env)->ReleasePrimitiveArrayCritical(env, arg3, _ptr3, 0);
   }
   if (_res == NULL) return NULL;
-
-  _initClazzAccess(env);
 
   jbyteSource = (*env)->NewDirectByteBuffer(env, _res, count * sizeof(XVisualInfo));
   jbyteCopy   = (*env)->CallStaticObjectMethod(env,

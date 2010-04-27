@@ -148,7 +148,9 @@ public abstract class Display {
                                                   "Display_"+display.getName()+"-"+current.getName(),
                                                   new Runnable() {
                                                     public void run() {
-                                                        f_dpy.pumpMessagesImpl();
+                                                        if(null!=f_dpy.getGraphicsDevice()) {
+                                                            f_dpy.pumpMessagesImpl();
+                                                        }
                                                     } } );
                     display.edt = display.edtUtil.start();
                     display.edtUtil.invokeAndWait(new Runnable() {

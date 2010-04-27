@@ -35,39 +35,7 @@ package com.jogamp.nativewindow.impl;
 import javax.media.nativewindow.*;
 
 public class LockingNativeWindowFactory extends NativeWindowFactoryImpl {
-    // Provides a generic basic and recursive locking mechanism for your discretion.
-    private ToolkitLock toolkitLock = new ToolkitLock() {
-            private Thread owner;
-            private int recursionCount;
-            
-            public synchronized void lock() {
-                Thread cur = Thread.currentThread();
-                if (owner == cur) {
-                    ++recursionCount;
-                    return;
-                }
-                while (owner != null) {
-                    try {
-                        wait();
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-                owner = cur;
-            }
-
-            public synchronized void unlock() {
-                if (owner != Thread.currentThread()) {
-                    throw new RuntimeException("Not owner");
-                }
-                if (recursionCount > 0) {
-                    --recursionCount;
-                    return;
-                }
-                owner = null;
-                notifyAll();
-            }
-        };
+    private ToolkitLock toolkitLock = new RecursiveToolkitLock();
 
     public ToolkitLock getToolkitLock() {
         return toolkitLock;

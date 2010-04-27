@@ -45,6 +45,7 @@ import javax.media.opengl.*;
 import javax.media.nativewindow.*;
 import com.jogamp.opengl.impl.*;
 import com.jogamp.gluegen.runtime.ProcAddressTable;
+import com.jogamp.gluegen.runtime.opengl.GLProcAddressResolver;
 
 public abstract class MacOSXCGLContext extends GLContextImpl
 {	
@@ -262,7 +263,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
     if (cglExtProcAddressTable == null) {
       // FIXME: cache ProcAddressTables by capability bits so we can
       // share them among contexts with the same capabilities
-      cglExtProcAddressTable = new CGLExtProcAddressTable();
+      cglExtProcAddressTable = new CGLExtProcAddressTable(new GLProcAddressResolver());
     }          
     resetProcAddressTable(getCGLExtProcAddressTable());
     super.updateGLProcAddressTable(major, minor, ctp);

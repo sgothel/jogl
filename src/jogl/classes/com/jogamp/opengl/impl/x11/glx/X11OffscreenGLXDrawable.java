@@ -75,7 +75,7 @@ public class X11OffscreenGLXDrawable extends X11GLXDrawable {
 
     getFactoryImpl().lockToolkit();
     try {
-        X11Lib.XLockDisplay(dpy);
+        X11Util.XLockDisplay(dpy);
         try{
 
           pixmap = X11Lib.XCreatePixmap(dpy, X11Lib.RootWindow(dpy, screen),
@@ -96,7 +96,7 @@ public class X11OffscreenGLXDrawable extends X11GLXDrawable {
                                ", display " + toHexString(dpy));
           }
         }finally{
-          X11Lib.XUnlockDisplay(dpy);
+          X11Util.XUnlockDisplay(dpy);
         }
     } finally {
       getFactoryImpl().unlockToolkit();
@@ -111,7 +111,7 @@ public class X11OffscreenGLXDrawable extends X11GLXDrawable {
 
     getFactoryImpl().lockToolkit();
     try {
-        X11Lib.XLockDisplay(display);
+        X11Util.XLockDisplay(display);
         try{
           long drawable = nw.getSurfaceHandle();
           if (DEBUG) {
@@ -142,7 +142,7 @@ public class X11OffscreenGLXDrawable extends X11GLXDrawable {
           ((SurfaceChangeable)nw).setSurfaceHandle(0);
 
         }finally{
-          X11Lib.XUnlockDisplay(display);
+          X11Util.XUnlockDisplay(display);
         }
     } finally {
       getFactoryImpl().unlockToolkit();

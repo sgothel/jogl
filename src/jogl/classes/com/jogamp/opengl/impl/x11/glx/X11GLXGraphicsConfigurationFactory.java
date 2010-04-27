@@ -81,7 +81,7 @@ public class X11GLXGraphicsConfigurationFactory extends GraphicsConfigurationFac
       long display = x11Screen.getDevice().getHandle();
 
       NativeWindowFactory.getDefaultFactory().getToolkitLock().lock();
-      X11Lib.XLockDisplay(display);
+      X11Util.XLockDisplay(display);
       try {
           int screen = x11Screen.getIndex();
           boolean isMultisampleAvailable = GLXUtil.isMultisampleAvailable(display);
@@ -107,7 +107,7 @@ public class X11GLXGraphicsConfigurationFactory extends GraphicsConfigurationFac
           }
       } catch (Throwable t) {
       } finally {
-          X11Lib.XUnlockDisplay(display);
+          X11Util.XUnlockDisplay(display);
           NativeWindowFactory.getDefaultFactory().getToolkitLock().unlock();
       }
 
@@ -191,7 +191,7 @@ public class X11GLXGraphicsConfigurationFactory extends GraphicsConfigurationFac
 
         NativeWindowFactory.getDefaultFactory().getToolkitLock().lock();
         try {
-            X11Lib.XLockDisplay(display);
+            X11Util.XLockDisplay(display);
             try{
                 int screen = x11Screen.getIndex();
                 boolean isMultisampleAvailable = GLXUtil.isMultisampleAvailable(display);
@@ -292,7 +292,7 @@ public class X11GLXGraphicsConfigurationFactory extends GraphicsConfigurationFac
                     }
                 }
             }finally{
-                X11Lib.XUnlockDisplay(display);
+                X11Util.XUnlockDisplay(display);
             }
         } finally {
             NativeWindowFactory.getDefaultFactory().getToolkitLock().unlock();
@@ -324,7 +324,7 @@ public class X11GLXGraphicsConfigurationFactory extends GraphicsConfigurationFac
 
         NativeWindowFactory.getDefaultFactory().getToolkitLock().lock();
         try {
-            X11Lib.XLockDisplay(display);
+            X11Util.XLockDisplay(display);
             try{
                 int screen = x11Screen.getIndex();
                 boolean isMultisampleAvailable = GLXUtil.isMultisampleAvailable(display);
@@ -377,7 +377,7 @@ public class X11GLXGraphicsConfigurationFactory extends GraphicsConfigurationFac
                 }
                 retXVisualInfo = XVisualInfo.create(infos[chosen]);
             }finally{
-                X11Lib.XUnlockDisplay(display);
+                X11Util.XUnlockDisplay(display);
             }
         } finally {
             NativeWindowFactory.getDefaultFactory().getToolkitLock().unlock();

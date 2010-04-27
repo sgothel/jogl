@@ -59,12 +59,12 @@ public class X11GraphicsScreen extends DefaultGraphicsScreen implements Cloneabl
         NativeWindowFactory.getDefaultFactory().getToolkitLock().lock();
         try {
             long display = X11Util.createThreadLocalDefaultDisplay();
-            X11Lib.XLockDisplay(display);
+            X11Util.XLockDisplay(display);
             try{
                 int scrnIdx = X11Lib.DefaultScreen(display);
                 return createScreenDevice(display, scrnIdx);
             }finally{
-                X11Lib.XUnlockDisplay(display);
+                X11Util.XUnlockDisplay(display);
             }
         } finally {
             NativeWindowFactory.getDefaultFactory().getToolkitLock().unlock();
@@ -76,12 +76,12 @@ public class X11GraphicsScreen extends DefaultGraphicsScreen implements Cloneabl
         NativeWindowFactory.getDefaultFactory().getToolkitLock().lock();
         try {
             long display = getDevice().getHandle();
-            X11Lib.XLockDisplay(display);
+            X11Util.XLockDisplay(display);
             try{
                 int scrnIdx = X11Lib.DefaultScreen(display);
                 return X11Lib.DefaultVisualID(display, scrnIdx);
             }finally{
-                X11Lib.XUnlockDisplay(display);
+                X11Util.XUnlockDisplay(display);
             }
         } finally {
             NativeWindowFactory.getDefaultFactory().getToolkitLock().unlock();
@@ -93,13 +93,13 @@ public class X11GraphicsScreen extends DefaultGraphicsScreen implements Cloneabl
         NativeWindowFactory.getDefaultFactory().getToolkitLock().lock();
         try {
             long display = device.getHandle();
-            X11Lib.XLockDisplay(display);
+            X11Util.XLockDisplay(display);
             try{
                 if(X11Lib.XineramaEnabled(display)) {
                     screen = 0; // Xinerama -> 1 screen
                 }
             }finally{
-                X11Lib.XUnlockDisplay(display);
+                X11Util.XUnlockDisplay(display);
             }
         } finally {
             NativeWindowFactory.getDefaultFactory().getToolkitLock().unlock();

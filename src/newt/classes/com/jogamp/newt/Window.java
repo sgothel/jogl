@@ -39,6 +39,7 @@ import com.jogamp.newt.util.EDTUtil;
 
 import com.jogamp.common.util.*;
 import javax.media.nativewindow.*;
+import com.jogamp.nativewindow.impl.RecursiveToolkitLock;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -283,7 +284,6 @@ public abstract class Window implements NativeWindow
     /** Recursive and unblocking unlockSurface() implementation */
     public synchronized void unlockSurface() throws NativeWindowException {
         surfaceLock.unlock( new Runnable() {
-                                final Screen f_screen = screen;
                                 public void run() {
                                     screen.getDisplay().unlockDisplay();
                                 }
@@ -956,78 +956,7 @@ public abstract class Window implements NativeWindow
         return sb.toString();
     }
 
-    //
-    // Reentrance locking toolkit
-    // 
-    public static class WindowToolkitLock implements ToolkitLock {
-            private Thread owner;
-            private int recursionCount;
-            private Exception lockedStack = null;
-
-            public Exception getLockedStack() {
-                return lockedStack;
-            }
-
-            public Thread getOwner() {
-                return owner;
-            }
-
-            public boolean isOwner() {
-                return isOwner(Thread.currentThread());
-            }
-
-            public synchronized boolean isOwner(Thread thread) {
-                return owner == thread ;
-            }
-
-            public synchronized boolean isLocked() {
-                return null != owner;
-            }
-
-            /** Recursive and blocking lockSurface() implementation */
-            public synchronized void lock() {
-                Thread cur = Thread.currentThread();
-                if (owner == cur) {
-                    ++recursionCount;
-                    return;
-                }
-                while (owner != null) {
-                    try {
-                        wait();
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-                owner = cur;
-                lockedStack = new Exception("Previously locked by "+owner);
-            }
-            
-
-            /** Recursive and unblocking unlockSurface() implementation */
-            public synchronized void unlock() {
-                unlock(null);
-            }
-
-            /** Recursive and unblocking unlockSurface() implementation */
-            public synchronized void unlock(Runnable releaseAfterUnlockBeforeNotify) {
-                Thread cur = Thread.currentThread();
-                if (owner != cur) {
-                    lockedStack.printStackTrace();
-                    throw new RuntimeException(cur+": Not owner, owner is "+owner);
-                }
-                if (recursionCount > 0) {
-                    --recursionCount;
-                    return;
-                }
-                owner = null;
-                lockedStack = null;
-                if(null!=releaseAfterUnlockBeforeNotify) {
-                    releaseAfterUnlockBeforeNotify.run();
-                }
-                notifyAll();
-            }
-    }
-    private WindowToolkitLock destructionLock = new WindowToolkitLock();
-    private WindowToolkitLock surfaceLock = new WindowToolkitLock();
+    private RecursiveToolkitLock destructionLock = new RecursiveToolkitLock();
+    private RecursiveToolkitLock surfaceLock = new RecursiveToolkitLock();
 }
 

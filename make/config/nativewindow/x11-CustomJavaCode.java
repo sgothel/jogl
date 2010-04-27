@@ -1,3 +1,6 @@
+  static {
+      X11Util.initSingleton(); // ensure it's loaded and setup
+  } 
 
   /** Interface to C language function: <br> <code> XVisualInfo *  XGetVisualInfo(Display * , long, XVisualInfo * , int * ); </code>    */
   public static XVisualInfo[] XGetVisualInfoCopied(long arg0, long arg1, XVisualInfo arg2, int[] arg3, int arg3_offset)

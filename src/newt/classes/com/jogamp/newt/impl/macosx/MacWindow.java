@@ -34,6 +34,7 @@
 package com.jogamp.newt.impl.macosx;
 
 import javax.media.nativewindow.*;
+import com.jogamp.nativewindow.impl.RecursiveToolkitLock;
 
 import com.jogamp.newt.util.MainThread;
 import com.jogamp.newt.*;
@@ -213,7 +214,7 @@ public class MacWindow extends Window {
         }
     }
 
-    private WindowToolkitLock nsViewLock = new WindowToolkitLock();
+    private RecursiveToolkitLock nsViewLock = new RecursiveToolkitLock();
 
     public synchronized int lockSurface() throws NativeWindowException {
         nsViewLock.lock();

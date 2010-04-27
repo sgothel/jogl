@@ -48,6 +48,7 @@ import com.jogamp.opengl.impl.*;
 import com.jogamp.opengl.impl.x11.glx.*;
 import com.jogamp.nativewindow.impl.x11.*;
 import com.jogamp.gluegen.runtime.ProcAddressTable;
+import com.jogamp.gluegen.runtime.opengl.GLProcAddressResolver;
 
 public abstract class X11GLXContext extends GLContextImpl {
   protected long context;
@@ -407,13 +408,14 @@ public abstract class X11GLXContext extends GLContextImpl {
   }
 
   protected void releaseImplAfterLock() throws GLException {
-    getDrawableImpl().getFactoryImpl().lockToolkit();
+    X11GLXDrawableFactory factory = (X11GLXDrawableFactory)drawable.getFactoryImpl();
+    factory.lockToolkit();
     try {
         if (!glXMakeContextCurrent(drawable.getNativeWindow().getDisplayHandle(), 0, 0, 0)) {
             throw new GLException("Error freeing OpenGL context");
         }
     } finally {
-        getDrawableImpl().getFactoryImpl().unlockToolkit();
+        factory.unlockToolkit();
     }
   }
 
@@ -474,7 +476,7 @@ public abstract class X11GLXContext extends GLContextImpl {
     if (glXExtProcAddressTable == null) {
       // FIXME: cache ProcAddressTables by capability bits so we can
       // share them among contexts with the same capabilities
-      glXExtProcAddressTable = new GLXExtProcAddressTable();
+      glXExtProcAddressTable = new GLXExtProcAddressTable(new GLProcAddressResolver());
     }          
     resetProcAddressTable(getGLXExtProcAddressTable());
     super.updateGLProcAddressTable(major, minor, ctp);

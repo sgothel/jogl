@@ -62,27 +62,17 @@ public class EDTUtil {
 
     public ThreadGroup getThreadGroup() { return threadGroup; }
 
-    public Thread start() {
-        return start(false);
-    }
-
     /**
-     * @param externalStimuli true indicates that another thread stimulates, 
-     *                        ie. calls this TaskManager's run() loop method.
-     *                        Hence no own thread is started in this case.
-     *
      * @return The started Runnable, which handles the run-loop.
-     *         Usefull in combination with externalStimuli=true,
-     *         so an external stimuli can call it.
      */
-    public Thread start(boolean externalStimuli) {
+    public Thread start() {
         synchronized(edtLock) { 
             if(null==edt) {
                 edt = new EventDispatchThread(threadGroup, name);
             }
             if(!edt.isRunning()) {
                 shouldStop = false;
-                edt.start(externalStimuli);
+                edt.start();
             }
             edtLock.notifyAll();
         }
@@ -166,7 +156,6 @@ public class EDTUtil {
 
     class EventDispatchThread extends Thread {
         boolean isRunning = false;
-        boolean externalStimuli = false;
 
         public EventDispatchThread(ThreadGroup tg, String name) {
             super(tg, name);
@@ -176,14 +165,11 @@ public class EDTUtil {
             return isRunning;
         }
 
-        public void start(boolean externalStimuli) throws IllegalThreadStateException {
+        public void start() throws IllegalThreadStateException {
             synchronized(this) {
-                this.externalStimuli = externalStimuli;
                 isRunning = true;
             }
-            if(!externalStimuli) {
-                super.start();
-            }
+            super.start();
         }
 
         /** 
@@ -194,8 +180,8 @@ public class EDTUtil {
             if(DEBUG) {
                 System.out.println(Thread.currentThread()+": EDT run() START");
             }
-            while(!shouldStop) {
-                try {
+            try {
+                while(!shouldStop) {
                     // wait for something todo
                     while(!shouldStop && tasks.size()==0) {
                         synchronized(edtLock) {
@@ -219,24 +205,23 @@ public class EDTUtil {
                         }
                         pumpMessages.run(); // event dispatch
                     }
-                } catch (Throwable t) {
-                    // handle errors ..
-                    t.printStackTrace();
-                } finally {
-                    // epilog - unlock locked stuff
                 }
-                if(externalStimuli) break; // no loop if called by external stimuli
-            }
-            synchronized(this) {
-                isRunning = !shouldStop;
-            }
-            if(!isRunning) {
-                synchronized(edtLock) {
-                    edtLock.notifyAll();
+            } catch (Throwable t) {
+                // handle errors ..
+                shouldStop = true;
+                throw new RuntimeException(t);
+            } finally {
+                synchronized(this) {
+                    isRunning = !shouldStop;
                 }
-            }
-            if(DEBUG) {
-                System.out.println(Thread.currentThread()+": EDT run() EXIT");
+                if(!isRunning) {
+                    synchronized(edtLock) {
+                        edtLock.notifyAll();
+                    }
+                }
+                if(DEBUG) {
+                    System.out.println(Thread.currentThread()+": EDT run() EXIT");
+                }
             }
         }
     }

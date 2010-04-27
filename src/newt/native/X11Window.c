@@ -280,40 +280,6 @@ JNIEXPORT jboolean JNICALL Java_com_jogamp_newt_impl_x11_X11Display_initIDs
 
 /*
  * Class:     com_jogamp_newt_impl_x11_X11Display
- * Method:    LockDisplay
- * Signature: (J)V
- */
-JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Display_LockDisplay
-  (JNIEnv *env, jobject obj, jlong display)
-{
-    Display * dpy = (Display *)(intptr_t)display;
-    if(dpy==NULL) {
-        _FatalError(env, "invalid display connection..");
-    }
-    XLockDisplay(dpy) ;
-    // DBG_PRINT1( "X11: LockDisplay 0x%X\n", dpy); 
-}
-
-
-/*
- * Class:     com_jogamp_newt_impl_x11_X11Display
- * Method:    UnlockDisplay
- * Signature: (J)V
- */
-JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Display_UnlockDisplay
-  (JNIEnv *env, jobject obj, jlong display)
-{
-    Display * dpy = (Display *)(intptr_t)display;
-    if(dpy==NULL) {
-        _FatalError(env, "invalid display connection..");
-    }
-    XUnlockDisplay(dpy) ;
-    // DBG_PRINT1( "X11: UnlockDisplay 0x%X\n", dpy); 
-}
-
-
-/*
- * Class:     com_jogamp_newt_impl_x11_X11Display
  * Method:    CompleteDisplay
  * Signature: (J)V
  */

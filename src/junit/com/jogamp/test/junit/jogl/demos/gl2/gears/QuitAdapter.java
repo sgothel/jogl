@@ -36,16 +36,23 @@ package com.jogamp.test.junit.jogl.demos.gl2.gears;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.newt.event.*;
 
-class QuitKeyAdapter extends KeyAdapter {
+class QuitAdapter extends WindowAdapter implements WindowListener, KeyListener {
     boolean shouldQuit = false;
 
     public boolean shouldQuit() { return shouldQuit; }
 
+    public void windowDestroyNotify(WindowEvent e) {
+        System.out.println("QUIT Window "+Thread.currentThread());
+        shouldQuit = true;
+    }
+
     public void keyTyped(KeyEvent e) {
         if(e.getKeyChar()=='q') {
-            System.out.println("QUIT "+Thread.currentThread());
+            System.out.println("QUIT Key "+Thread.currentThread());
             shouldQuit = true;
         }
     }
+    public void keyPressed(KeyEvent e) {}
+    public void keyReleased(KeyEvent e) {}
 }
 

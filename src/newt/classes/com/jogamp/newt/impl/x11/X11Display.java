@@ -79,16 +79,19 @@ public class X11Display extends Display {
     }
 
     protected void dispatchMessagesNative() {
+        if(0==getHandle()) {
+            throw new RuntimeException("display handle null");
+        }
         DispatchMessages(getHandle(), javaObjectAtom, windowDeleteAtom);
     }
 
     protected void lockDisplay() {
         super.lockDisplay();
-        LockDisplay(getHandle());
+        X11Util.XLockDisplay(getHandle());
     }
 
     protected void unlockDisplay() {
-        UnlockDisplay(getHandle());
+        X11Util.XUnlockDisplay(getHandle());
         super.unlockDisplay();
     }
 
@@ -99,9 +102,6 @@ public class X11Display extends Display {
     // Internals only
     //
     private static native boolean initIDs();
-
-    private native void LockDisplay(long handle);
-    private native void UnlockDisplay(long handle);
 
     private native void CompleteDisplay(long handle);
 

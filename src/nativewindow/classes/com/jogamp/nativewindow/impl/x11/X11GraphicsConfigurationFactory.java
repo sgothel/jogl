@@ -58,7 +58,7 @@ public class X11GraphicsConfigurationFactory extends GraphicsConfigurationFactor
         int num[] = { -1 };
         long display = screen.getDevice().getHandle();
 
-        X11Lib.XLockDisplay(display);
+        X11Util.XLockDisplay(display);
         try {
             XVisualInfo[] xvis = X11Lib.XGetVisualInfoCopied(display, X11Lib.VisualIDMask|X11Lib.VisualScreenMask, xvi_temp, num, 0);
 
@@ -68,7 +68,7 @@ public class X11GraphicsConfigurationFactory extends GraphicsConfigurationFactor
 
             return XVisualInfo.create(xvis[0]);
         } finally {
-            X11Lib.XUnlockDisplay(display);
+            X11Util.XUnlockDisplay(display);
         }
 
     }
@@ -90,7 +90,7 @@ public class X11GraphicsConfigurationFactory extends GraphicsConfigurationFactor
         vinfo_template.setC_class(c_class);
         long display = screen.getDevice().getHandle();
 
-        X11Lib.XLockDisplay(display);
+        X11Util.XLockDisplay(display);
         try {
             XVisualInfo[] vinfos = X11Lib.XGetVisualInfoCopied(display, X11Lib.VisualScreenMask, vinfo_template, num, 0);
             XVisualInfo best=null;
@@ -111,7 +111,7 @@ public class X11GraphicsConfigurationFactory extends GraphicsConfigurationFactor
 
             return ret;
         } finally {
-            X11Lib.XUnlockDisplay(display);
+            X11Util.XUnlockDisplay(display);
         }
     }
 }

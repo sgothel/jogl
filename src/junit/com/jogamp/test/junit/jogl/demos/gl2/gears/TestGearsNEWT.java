@@ -71,16 +71,16 @@ public class TestGearsNEWT {
         glWindow.addGLEventListener(new Gears());
 
         Animator animator = new Animator(glWindow);
-        QuitKeyAdapter quitKeyAdapter = new QuitKeyAdapter();
+        QuitAdapter quitAdapter = new QuitAdapter();
 
-        glWindow.addKeyListener(new TraceKeyAdapter());
-        glWindow.addKeyListener(quitKeyAdapter);
+        glWindow.addKeyListener(new TraceKeyAdapter(quitAdapter));
+        glWindow.addWindowListener(new TraceWindowAdapter(quitAdapter));
 
         glWindow.setSize(width, height);
         glWindow.setVisible(true);
         animator.start();
 
-        while(!quitKeyAdapter.shouldQuit() && animator.isAnimating() && animator.getDuration()<duration) {
+        while(!quitAdapter.shouldQuit() && animator.isAnimating() && animator.getDuration()<duration) {
             Thread.sleep(100);
         }
 

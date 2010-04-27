@@ -732,7 +732,9 @@ public abstract class GLContextImpl extends GLContext {
       System.err.println(getThreadName() + ": !!! Initializing OpenGL extension address table for " + this);
     }
     if (glProcAddressTable == null) {
-      glProcAddressTable = (ProcAddressTable) createInstance(gl.getGLProfile(), "ProcAddressTable", new Class[0], null);
+      glProcAddressTable = (ProcAddressTable) createInstance(gl.getGLProfile(), "ProcAddressTable", 
+                                                             new Class[] { FunctionAddressResolver.class } , 
+                                                             new Object[] { new GLProcAddressResolver() } );
       // FIXME: cache ProcAddressTables by capability bits so we can
       // share them among contexts with the same capabilities
     }

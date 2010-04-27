@@ -45,6 +45,7 @@ import javax.media.opengl.*;
 import javax.media.nativewindow.*;
 import com.jogamp.opengl.impl.*;
 import com.jogamp.gluegen.runtime.ProcAddressTable;
+import com.jogamp.gluegen.runtime.opengl.GLProcAddressResolver;
 
 public class WindowsWGLContext extends GLContextImpl {
   protected long hglrc;
@@ -384,7 +385,7 @@ public class WindowsWGLContext extends GLContextImpl {
     if (wglExtProcAddressTable == null) {
       // FIXME: cache ProcAddressTables by capability bits so we can
       // share them among contexts with the same capabilities
-      wglExtProcAddressTable = new WGLExtProcAddressTable();
+      wglExtProcAddressTable = new WGLExtProcAddressTable(new GLProcAddressResolver());
     }          
     resetProcAddressTable(getWGLExtProcAddressTable());
     super.updateGLProcAddressTable(major, minor, ctp);

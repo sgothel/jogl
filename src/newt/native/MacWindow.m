@@ -160,7 +160,7 @@ JNIEXPORT jboolean JNICALL Java_com_jogamp_newt_impl_macosx_MacDisplay_initNSApp
  * Signature: ()V
  */
 JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_macosx_MacDisplay_dispatchMessages0
-  (JNIEnv *env, jobject unused, jlong window, jint eventMask)
+  (JNIEnv *env, jobject unused)
 {
     NSEvent* event = NULL;
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];

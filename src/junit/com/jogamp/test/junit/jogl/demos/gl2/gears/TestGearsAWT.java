@@ -36,7 +36,9 @@ import javax.media.opengl.*;
 import com.jogamp.opengl.util.Animator;
 import javax.media.opengl.awt.GLCanvas;
 import com.jogamp.newt.event.awt.AWTKeyAdapter;
+import com.jogamp.newt.event.awt.AWTWindowAdapter;
 import com.jogamp.newt.event.TraceKeyAdapter;
+import com.jogamp.newt.event.TraceWindowAdapter;
 
 import com.jogamp.test.junit.jogl.demos.gl2.gears.Gears;
 import java.awt.Frame;
@@ -76,15 +78,15 @@ public class TestGearsAWT {
         glCanvas.addGLEventListener(new Gears());
 
         Animator animator = new Animator(glCanvas);
-        QuitKeyAdapter quitKeyAdapter = new QuitKeyAdapter();
+        QuitAdapter quitAdapter = new QuitAdapter();
 
-        new AWTKeyAdapter(new TraceKeyAdapter()).addTo(glCanvas);
-        new AWTKeyAdapter(quitKeyAdapter).addTo(glCanvas);
+        new AWTKeyAdapter(new TraceKeyAdapter(quitAdapter)).addTo(glCanvas);
+        new AWTWindowAdapter(new TraceWindowAdapter(quitAdapter)).addTo(frame);
 
         frame.setVisible(true);
         animator.start();
 
-        while(!quitKeyAdapter.shouldQuit() && animator.isAnimating() && animator.getDuration()<duration) {
+        while(!quitAdapter.shouldQuit() && animator.isAnimating() && animator.getDuration()<duration) {
             Thread.sleep(100);
         }
 

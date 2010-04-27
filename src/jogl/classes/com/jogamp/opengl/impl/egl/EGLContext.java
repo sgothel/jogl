@@ -39,6 +39,7 @@ import javax.media.nativewindow.*;
 import javax.media.opengl.*;
 import com.jogamp.opengl.impl.*;
 import com.jogamp.gluegen.runtime.ProcAddressTable;
+import com.jogamp.gluegen.runtime.opengl.GLProcAddressResolver;
 import java.nio.*;
 import java.util.*;
 
@@ -239,7 +240,7 @@ public abstract class EGLContext extends GLContextImpl {
         if (eglExtProcAddressTable == null) {
           // FIXME: cache ProcAddressTables by capability bits so we can
           // share them among contexts with the same capabilities
-          eglExtProcAddressTable = new EGLExtProcAddressTable();
+          eglExtProcAddressTable = new EGLExtProcAddressTable(new GLProcAddressResolver());
         }          
         resetProcAddressTable(getEGLExtProcAddressTable());
         super.updateGLProcAddressTable(major, minor, ctp);
