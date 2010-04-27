@@ -1,8 +1,21 @@
 #! /bin/sh
 
 function print_usage() {
-    echo "Usage: $0 jogl-build-dir ..."
+    echo "Usage: $0 [-libdir pre-lib-dir] jogl-build-dir ..."
 }
+
+if [ "$1" = "-libdir" ] ; then
+    shift
+    if [ -z "$1" ] ; then
+        echo libdir argument missing
+        print_usage
+        exit
+    fi
+    PRELIB=$1
+    shift
+    LD_LIBRARY_PATH=$PRELIB:$LD_LIBRARY_PATH
+    export LD_LIBRARY_PATH
+fi
 
 if [ -z "$1" ] ; then
     echo JOGL BUILD DIR missing

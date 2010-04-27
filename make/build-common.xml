@@ -153,7 +153,11 @@
         <property name="build.junit"                value="${build}/test/build" />
         <property name="obj.junit"                  value="${build.junit}/obj"/>
 
-        <property name="obj.all.paths"              value="${obj.gluegen}${path.separator}${obj.nativewindow}${path.separator}${obj.jogl}${path.separator}${obj.newt}${path.separator}${obj.junit}" />
+        <condition property="obj.custom" value="${custom.libdir}${path.separator}">
+          <isset property="custom.libdir"/>
+        </condition>
+
+        <property name="obj.all.paths"              value="${obj.custom}${obj.gluegen}${path.separator}${obj.nativewindow}${path.separator}${obj.jogl}${path.separator}${obj.newt}${path.separator}${obj.junit}" />
 
         <path id="gluegen.classpath">
           <pathelement location="${gluegen.jar}" />
