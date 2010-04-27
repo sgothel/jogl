@@ -3,3 +3,18 @@ mkdir lib
 cd ./lib
 wget http://bitbucket.org/jlahoda/jackpot30/downloads/jackpotc.zip
 unzip -oj jackpotc.zip
+
+cd ../test
+mkdir oldgears/lib
+mkdir oldgears/lib/new 
+mkdir oldgears/lib/old 
+cd oldgears/lib/new
+
+#TOCO temporary location
+wget http://people.fh-landshut.de/~mbien/jogamp/ref/new/jogl.all.jar
+wget http://people.fh-landshut.de/~mbien/jogamp/ref/new/jogl.awt.jar
+wget http://people.fh-landshut.de/~mbien/jogamp/ref/new/gluegen-rt.jar
+
+cd ../old
+wget http://people.fh-landshut.de/~mbien/jogamp/ref/old/jogl.jar
+wget http://people.fh-landshut.de/~mbien/jogamp/ref/old/gluegen-rt.jar
