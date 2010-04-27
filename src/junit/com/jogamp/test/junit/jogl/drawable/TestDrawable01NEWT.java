@@ -78,7 +78,7 @@ public class TestDrawable01NEWT {
     void createWindow(boolean onscreen, boolean pbuffer, boolean undecorated) {
         caps.setOnscreen(onscreen);
         caps.setPBuffer(!onscreen && pbuffer);
-        caps.setDoubleBuffered(!onscreen);
+        caps.setDoubleBuffered(onscreen);
         // System.out.println("Requested: "+caps);
 
         //
@@ -107,7 +107,7 @@ public class TestDrawable01NEWT {
         Assert.assertTrue(glCaps.getRedBits()>5);
         Assert.assertTrue(glCaps.isOnscreen()==onscreen);
         Assert.assertTrue(onscreen || !pbuffer || glCaps.isPBuffer()); // pass if onscreen, or !pbuffer req. or have pbuffer
-        Assert.assertTrue(glCaps.getDoubleBuffered()==!onscreen);
+        Assert.assertTrue(glCaps.getDoubleBuffered()==onscreen);
         Assert.assertTrue(glCaps.getDepthBits()>4);
 
         drawable = factory.createGLDrawable(window);
