@@ -39,23 +39,23 @@ import com.jogamp.gluegen.runtime.FunctionAddressResolver;
  */
 public class GLProcAddressResolver implements FunctionAddressResolver {
 
+    public static final boolean DEBUG = false;
 
     public long resolve(String name, DynamicLookupHelper lookup) {
 
+        long newProcAddress = 0;
         int permutations = GLExtensionNames.getFuncNamePermutationNumber(name);
 
-        for (int i = 0; i < permutations; i++) {
+        for (int i = 0; 0 == newProcAddress && i < permutations; i++) {
             String funcName = GLExtensionNames.getFuncNamePermutation(name, i);
             try {
-                return lookup.dynamicLookupFunction(funcName);
+                newProcAddress = lookup.dynamicLookupFunction(funcName);
             } catch (Exception e) {
-//                if (DEBUG) {
-//                    dout.println(e);
-//                    e.printStackTrace();
-//                }
+                if (DEBUG) {
+                    e.printStackTrace();
+                }
             }
         }
-
-        throw new RuntimeException("unresolveable function name: "+name);
+        return newProcAddress;
     }
 }
