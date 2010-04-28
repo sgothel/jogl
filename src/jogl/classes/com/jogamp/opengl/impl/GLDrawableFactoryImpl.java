@@ -45,6 +45,7 @@ import javax.media.opengl.*;
 import com.jogamp.common.util.*;
 import com.jogamp.gluegen.runtime.*;
 import java.lang.reflect.*;
+import java.security.*;
 
 /** Extends GLDrawableFactory with a few methods for handling
     typically software-accelerated offscreen rendering (Device
@@ -185,7 +186,12 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
           }
         });
     }
-    Runtime.getRuntime().addShutdownHook(factoryShutdownHook);
+    AccessController.doPrivileged(new PrivilegedAction() {
+        public Object run() {
+              Runtime.getRuntime().addShutdownHook(factoryShutdownHook);
+              return null;
+            }
+    });
     factoryShutdownHookRegistered = true;
   }
 
