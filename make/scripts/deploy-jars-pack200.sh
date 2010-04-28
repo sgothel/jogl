@@ -18,26 +18,16 @@ THISDIR=`pwd`
 cd $wsdir
 
 mkdir -p DLLS
-mv *linux*.jar DLLS/
-mv *windows*.jar DLLS/
-mv *macosx*.jar DLLS/
-
-mkdir -p JAVAS
-mv *.jar JAVAS
-
-cd JAVAS
+mv *natives*.jar DLLS/
 
 for i in *.jar ; do
     echo pack200 -E9 $i.pack.gz $i
     pack200 -E9 $i.pack.gz $i
 done
 
-cd $wsdir
-
-mv JAVAS/* .
 mv DLLS/* .
 
-rm -rf JAVAS DLLS
+rm -rf DLLS
 
 cd $THISDIR
 

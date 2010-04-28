@@ -13,13 +13,18 @@ if [ ! -e $wsdir ] ; then
     exit 1
 fi
 
+THISDIR=`pwd`
+
 cd $wsdir
 
-rm -rf orig-jnlp
-mkdir orig-jnlp
+rm -rf orig-jars
+mkdir -p orig-jars
 
-for i in *.jnlp ; do
-    mv $i orig-jnlp
-    sed -e 's/<security>//g' -e 's/<\/security>//g' -e 's/<all-permissions\/>//g' orig/$i > $i
+for i in *.jar ; do
+    cp -a $i orig-jars
+    echo pack200 --repack $i
+    pack200 --repack $i
 done
+
+cd $THISDIR
 

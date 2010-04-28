@@ -52,6 +52,34 @@
         </copy>
     </target>
 
+    <target name="one-jar-dir" depends="init,gluegen.cpptasks.detect.os">
+        <delete includeEmptyDirs="true" quiet="true" dir="${jar}" failonerror="false" />
+        <mkdir dir="${jar}" />
+        <copy todir="${jar}">
+            <fileset dir="${gluegen.root}/${rootrel.build}" includes="gluegen-rt*.jar" />
+            <fileset dir="${build}/jogl" includes="*.jar" />
+            <fileset dir="${build}/nativewindow" includes="*.jar" />
+            <fileset dir="${build}/newt" includes="*.jar" />
+        </copy>
+    </target>
+
+    <target name="repack-jars" depends="one-jar-dir">
+        <!-- Re-pack jars we have the intent to compress later, after signing -->
+        <mkdir dir="${jar}/orig" />
+        <copy todir="${jar}/orig">
+            <fileset dir="${jar}" includes="*.jar" />
+        </copy>
+        <apply dir="${jar}" executable="${java.home}/bin/pack200" 
+             parallel="false" 
+             vmlauncher="false"
+             relative="true"
+             failonerror="false">
+            <arg line="--repack"/>
+            <srcfile/>
+            <fileset dir="${jar}" includes="*.jar" />
+        </apply>
+    </target>
+
     <!-- ================================================================== -->
     <!--
        - Build the per-platform binary zip archive for developers.
@@ -125,7 +153,7 @@
        - Main build target.
       -->
 
-    <target name="all" description="Build nativewindow, jogl and newt projects, incl. all junit tests " depends="init,build.nativewindow,build.jogl,build.newt,junit.compile,one-lib-dir,developer-zip-archive,source-archive" />
+    <target name="all" description="Build nativewindow, jogl and newt projects, incl. all junit tests " depends="init,build.nativewindow,build.jogl,build.newt,junit.compile,one-lib-dir,one-jar-dir,developer-zip-archive,source-archive" />
 
     <target name="junit.compile">
       <ant antfile="build-junit.xml" target="junit.compile" inheritRefs="true" inheritAll="true"/>

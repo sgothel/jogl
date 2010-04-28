@@ -33,6 +33,25 @@ if [ ! -e $wsdir ] ; then
 fi
 
 sh scripts/deploy-jars-webstarttest.sh $joglbuilddir $wsdir
-# sh scripts/deploy-jars-webstarttest_pack200.sh $wsdir
+#
+# repack it .. so the signed jars can be pack200'ed
+# sh scripts/deploy-jars-repack200.sh $wsdir
+#
+# sign it
+# sh scripts/deploy-jars-sign.sh $wsdir KEY_STORE_FILE STORE_PASSWORD SOME_ARGUMENT
+#
+# pack200
+# sh scripts/deploy-jars-pack200.sh $wsdir
+#
 sh scripts/deploy-jnlp-webstarttest.sh $url $joglbuilddir $wsdir
-sh scripts/deploy-jnlp-webstarttest-filter.sh $wsdir
+#
+# In case you don't sign it ..
+#
+# sh scripts/deploy-jnlp-webstarttest-filter.sh $wsdir
+#
+# Add to HOME/.java.policy
+#
+# grant codeBase "file:////usr/local/projects/JOGL/webstart/-" {
+#      permission java.security.AllPermission;
+# };
+

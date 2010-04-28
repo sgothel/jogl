@@ -67,6 +67,7 @@
         <property name="build"                      value="${project.root}/${rootrel.build}" />
         <property name="src"                        value="${project.root}/src" />
         <property name="lib"                        value="${build}/lib" />
+        <property name="jar"                        value="${build}/jar" />
 
         <property name="archive.name"               value="jogl-${jogl.version}-${os.and.arch}" />
         <property name="archive"                    value="${build}/${archive.name}" />
