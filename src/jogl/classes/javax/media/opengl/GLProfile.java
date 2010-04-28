@@ -43,8 +43,7 @@ import com.jogamp.opengl.impl.GLJNILibLoader;
 import com.jogamp.common.jvm.JVMUtil;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.security.AccessControlContext;
-import java.security.AccessController;
+import java.security.*;
 import javax.media.opengl.fixedfunc.GLPointerFunc;
 
 /**
@@ -780,8 +779,8 @@ public class GLProfile implements Cloneable {
     // This is here only to avoid having separate GL2ES1Impl and GL2ES2Impl classes
     private static final String GL2ES12 = "GL2ES12";
 
-    private static final boolean isAWTAvailable;
-    private static final boolean isAWTJOGLAvailable;
+    private static /*final*/ boolean isAWTAvailable;
+    private static /*final*/ boolean isAWTJOGLAvailable;
 
     private static /*final*/ boolean hasGL234Impl;
     private static /*final*/ boolean hasGL4bcImpl;
@@ -804,6 +803,11 @@ public class GLProfile implements Cloneable {
      * Throws an GLException if no profile could be found at all.
      */
     static {
+        // run the whole static initialization privileged to speed up,
+        // since this skips checking further access
+        AccessController.doPrivileged(new PrivilegedAction() {
+            public Object run() {
+
         JVMUtil.initSingleton();
 
         AccessControlContext acc = AccessController.getContext();
@@ -983,9 +987,6 @@ public class GLProfile implements Cloneable {
         }
 
         mappedProfiles = computeProfileMap();
-        if(null==defaultGLProfile) {
-            throw new GLException("No profile available: "+list2String(GL_PROFILE_LIST_ALL)+", "+glAvailabilityToString());
-        }
 
         if (DEBUG) {
             System.err.println("GLProfile.static isAWTAvailable "+isAWTAvailable);
@@ -997,6 +998,14 @@ public class GLProfile implements Cloneable {
             System.err.println("GLProfile.static hasEGLDrawableFactory "+hasEGLDrawableFactory);
             System.err.println("GLProfile.static hasGL234Impl "+hasGL234Impl);
             System.err.println("GLProfile.static "+glAvailabilityToString());
+        }
+
+        return null;
+        }
+        });
+
+        if(null==defaultGLProfile) {
+            throw new GLException("No profile available: "+list2String(GL_PROFILE_LIST_ALL)+", "+glAvailabilityToString());
         }
     }
 
