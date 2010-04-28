@@ -219,7 +219,7 @@ public class WindowsWGLContext extends GLContextImpl {
     boolean createContextARBTried = false;
 
     // utilize the shared context's GLXExt in case it was using the ARB method and it already exists
-    if(null!=factory.getSharedContext() && factory.getSharedContext().isCreatedWithARBMethod()) {
+    if(false && null!=factory.getSharedContext() && factory.getSharedContext().isCreatedWithARBMethod()) { // FIXME JAU
         if(DEBUG) {
           System.err.println("WindowsWGLContext.createContext using shared Context: "+factory.getSharedContext());
         }
@@ -253,8 +253,8 @@ public class WindowsWGLContext extends GLContextImpl {
             hglrc = temp_hglrc;
             return;
         } 
-        hglrc = createContextARB(share, true, major, minor, ctp);
-        createContextARBTried=true;
+        // FIXME JAU hglrc = createContextARB(share, true, major, minor, ctp);
+        // FIXME JAU createContextARBTried=true;
     }
     
     if(0!=hglrc) {

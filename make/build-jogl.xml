@@ -1485,26 +1485,13 @@
       </antcall>
 
       <antcall target="c.manifest" inheritRefs="true" />
-      <!-- Create the Java Web Start jar file for the built native code -->
-      <jar destfile="${build.jogl}/jogl-natives-${os.and.arch}.jar" filesonly="true">
-        <fileset dir="${obj.jogl}">
-          <include name="*.${native.library.suffix}" />
-        </fileset>
-      </jar>
-      <jar destfile="${build.jogl}/jogl-natives-${os.and.arch}-cdc.jar" filesonly="true">
-        <fileset dir="${obj.jogl}">
-          <include name="*_es1.${native.library.suffix-cdc}" />
-          <include name="*_es2.${native.library.suffix-cdc}" />
-          <include name="*_gl2es12.${native.library.suffix-cdc}" />
-        </fileset>
-      </jar>
     </target>
 
     <!-- ================================================================== -->
     <!--
        - Build the jogl.jar files.
       -->
-    <target name="jar" depends="java.compile,build-jars-javase,build-jars-cdc"/>
+    <target name="build-jars" depends="gluegen.cpptasks.detect.os,build-jars-javase,build-jars-cdc" />
 
     <target name="setup-manifestfile">
         <condition property="manifestfile" value="joglRIversion">
@@ -1717,6 +1704,13 @@
             <fileset dir="${src.java}"
                      includes="${java.part.util.fixedfuncemu.shadercode}"/>
         </jar>
+        <jar manifest="${build.jogl}/tempversion-cdc" destfile="${build.jogl}/jogl-natives-${os.and.arch}-cdc.jar" filesonly="true">
+            <fileset dir="${obj.jogl}">
+              <include name="*_es1.${native.library.suffix-cdc}" />
+              <include name="*_es2.${native.library.suffix-cdc}" />
+              <include name="*_gl2es12.${native.library.suffix-cdc}" />
+            </fileset>
+        </jar>
     </target>
 
     <target name="build-jars-desktop-javase" depends="setup-manifestfile,build-jars-os-desktop-javase" unless="setup.nodesktop">
@@ -1775,6 +1769,11 @@
                      includes="${java.part.util.fixedfuncemu}"/>
             <fileset dir="${src.java}"
                      includes="${java.part.util.fixedfuncemu.shadercode}"/>
+        </jar>
+        <jar manifest="${build.jogl}/tempversion" destfile="${build.jogl}/jogl-natives-${os.and.arch}.jar" filesonly="true">
+            <fileset dir="${obj.jogl}">
+              <include name="*.${native.library.suffix}" />
+            </fileset>
         </jar>
     </target>
 
@@ -1910,7 +1909,7 @@
     <!--
        - Build everything.
       -->
-    <target name="all" description="Build JOGL JAR file(s) and native libraries." depends="init,jar,c.build.jogl,generate.version.txt" />
+    <target name="all" description="Build JOGL JAR file(s) and native libraries." depends="init,java.compile,c.build.jogl,build-jars,generate.version.txt" />
 
     <target name="generate.version.txt" depends="init">
         <!-- Create a version.txt file indicating which version we just built -->

@@ -1,8 +1,9 @@
 Specification-Title: NEWT API Specification CDC
 Specification-Version: @BASEVERSION@
-Specification-Vendor: Sun Microsystems, Inc.
+Specification-Vendor: JogAmp community
 Implementation-Title: NEWT Runtime Environment CDC
 Implementation-Version: @BASEVERSION@
-Implementation-Vendor: Sun Microsystems, Inc.
-Extension-Name: com.sun.newt
-Implementation-Vendor-Id: com.sun
+Implementation-Vendor: JogAmp community
+Extension-Name: com.jogamp.newt
+Implementation-Vendor-Id: com.jogamp
+Trusted-Library: true

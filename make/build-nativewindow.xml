@@ -635,25 +635,13 @@
 
       <antcall target="c.fixup.jawt.version.macosx" inheritrefs="true" />
       <antcall target="c.manifest" inheritRefs="true" />
-      <!-- Create the Java Web Start jar file for the built native code -->
-      <jar destfile="${build.nativewindow}/nativewindow-natives-${os.and.arch}.jar" filesonly="true">
-        <fileset dir="${obj.nativewindow}">
-          <include name="*.${native.library.suffix}" />
-        </fileset>
-      </jar>
-      <jar destfile="${build.nativewindow}/nativewindow-natives-${os.and.arch}-cdc.jar" filesonly="true">
-        <fileset dir="${obj.nativewindow}">
-          <include name="*_jvm.${native.library.suffix-cdc}" />
-          <include name="*_x11.${native.library.suffix-cdc}" />
-        </fileset>
-      </jar>
     </target>
 
     <!-- ================================================================== -->
     <!--
        - Build the nativewindow.jar files.
       -->
-    <target name="jar" depends="java.compile,build-jars-javase,build-jars-cdc"/>
+    <target name="build-jars" depends="gluegen.cpptasks.detect.os,build-jars-javase,build-jars-cdc" />
 
     <target name="setup-manifestfile">
         <condition property="manifestfile" value="nativewindowRIversion">
@@ -747,6 +735,11 @@
                      includes="${java.part.core}"
                      excludes="${java.part.awt} ${java.part.x11}"/>
         </jar>
+        <jar manifest="tempversion" destfile="${build.nativewindow}/nativewindow-natives-${os.and.arch}.jar" filesonly="true">
+            <fileset dir="${obj.nativewindow}">
+              <include name="*.${native.library.suffix}" />
+            </fileset>
+        </jar>
         <delete file="tempversion"/>
     </target>
 
@@ -755,6 +748,12 @@
             <fileset dir="${classes-cdc}"
                      includes="${java.part.core}"
                      excludes="${java.part.awt} ${java.part.x11}"/>
+        </jar>
+        <jar manifest="tempversion-cdc" destfile="${build.nativewindow}/nativewindow-natives-${os.and.arch}-cdc.jar" filesonly="true">
+            <fileset dir="${obj.nativewindow}">
+              <include name="*_jvm.${native.library.suffix-cdc}" />
+              <include name="*_x11.${native.library.suffix-cdc}" />
+            </fileset>
         </jar>
 
         <delete file="tempversion-cdc"/>
@@ -828,7 +827,7 @@
     <!--
        - Build everything.
       -->
-    <target name="all" description="Build NativeWindow JAR file(s) and native libraries." depends="init,jar,c.build.nativewindow,generate.version.txt" />
+    <target name="all" description="Build NativeWindow JAR file(s) and native libraries." depends="init,java.compile,c.build.nativewindow,build-jars,generate.version.txt" />
 
     <target name="generate.version.txt" depends="init">
         <!-- Create a version.txt file indicating which version we just built -->
