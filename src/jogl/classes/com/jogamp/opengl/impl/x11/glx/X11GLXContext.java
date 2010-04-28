@@ -333,11 +333,14 @@ public abstract class X11GLXContext extends GLContextImpl {
 
   // Note: Usually the surface shall be locked within [makeCurrent .. swap .. release]
   protected int makeCurrentImpl() throws GLException {
-    int lockRes = drawable.lockSurface();
     boolean exceptionOccurred = false;
+    int lockRes = drawable.lockSurface();
     try {
       if (lockRes == NativeWindow.LOCK_SURFACE_NOT_READY) {
         return CONTEXT_NOT_CURRENT;
+      }
+      if (0 == drawable.getNativeWindow().getSurfaceHandle()) {
+          throw new GLException("drawable has invalid surface handle: "+drawable);
       }
       return makeCurrentImplAfterLock();
     } catch (RuntimeException e) {

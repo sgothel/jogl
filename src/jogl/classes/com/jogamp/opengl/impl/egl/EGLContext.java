@@ -91,7 +91,10 @@ public abstract class EGLContext extends GLContextImpl {
 
     protected int makeCurrentImpl() throws GLException {
         if(EGL.EGL_NO_DISPLAY==((EGLDrawable)drawable).getDisplay() ) {
-            throw new GLException("drawable not properly initialized: "+drawable);
+            throw new GLException("drawable not properly initialized, NO DISPLAY: "+drawable);
+        }
+        if (0 == drawable.getNativeWindow().getSurfaceHandle()) {
+            throw new GLException("drawable has invalid surface handle: "+drawable);
         }
         boolean created = false;
         if (eglContext == 0) {

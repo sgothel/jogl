@@ -296,8 +296,8 @@ public class WindowsWGLContext extends GLContextImpl {
   }
   
   protected int makeCurrentImpl() throws GLException {
-    if (drawable.getNativeWindow().getSurfaceHandle() == 0) {
-        throw new GLException("drawable not properly initialized: "+drawable);
+    if (0 == drawable.getNativeWindow().getSurfaceHandle()) {
+        throw new GLException("drawable has invalid surface handle: "+drawable);
     }
     boolean created = false;
     if (hglrc == 0) {

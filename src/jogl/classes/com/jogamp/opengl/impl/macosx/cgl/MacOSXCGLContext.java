@@ -164,6 +164,9 @@ public abstract class MacOSXCGLContext extends GLContextImpl
 	
   protected int makeCurrentImpl() throws GLException {
     boolean created = false;
+    if (0 == drawable.getNativeWindow().getSurfaceHandle()) {
+        throw new GLException("drawable has invalid surface handle: "+drawable);
+    }
     if ( 0 == cglContext && 0 == nsContext) {
       create();
       created = 0 != cglContext || 0 != nsContext ;
