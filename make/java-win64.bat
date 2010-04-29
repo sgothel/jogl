@@ -1,7 +1,7 @@
 
 set BLD_SUB=build-win32
-set J2RE_HOME=c:\jre1.6.0_20_x32
-set JAVA_HOME=c:\jdk1.6.0_20_x32
+set J2RE_HOME=c:\jre1.6.0_20_x64
+set JAVA_HOME=c:\jdk1.6.0_20_x64
 set ANT_PATH=C:\apache-ant-1.8.0
 
 set PATH=%JAVA_HOME%\bin;%ANT_PATH%\bin;c:\mingw\bin;%PATH%
@@ -13,4 +13,4 @@ set CP_ALL=.;%BLD_DIR%\jogl\jogl.all.jar;%BLD_DIR%\nativewindow\nativewindow.all
 
 echo CP_ALL %CP_ALL%
 
-%J2RE_HOME%\bin\java -classpath %CP_ALL% "-Djava.library.path=%LIB_DIR%" "-Dnativewindow.debug=all" "-Djogl.debug=all" "-Dnewt.debug=all" "-Dsun.java2d.noddraw=true" "-Dsun.awt.noerasebackground=true" %1 %2 %3 %4 %5 %6 %7 %8 %9 > java-win32-dbg.log 2>&1
+%J2RE_HOME%\bin\java -classpath %CP_ALL% "-Djava.library.path=%LIB_DIR%" "-Dsun.java2d.noddraw=true" "-Dsun.awt.noerasebackground=true" %1 %2 %3 %4 %5 %6 %7 %8 %9 > java-win32.log 2>&1
