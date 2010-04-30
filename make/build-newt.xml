@@ -245,13 +245,13 @@
       </linker>
 
       <linker id="linker.cfg.linux.newt.x11" extends="linker.cfg.linux">
-        <syslibset dir="/usr/X11R6/lib" libs="X11"/>
-        <syslibset dir="/usr/X11R6/lib" libs="Xxf86vm" />
+        <syslibset dir="/usr/lib" libs="X11"/>
+        <syslibset dir="/usr/lib" libs="Xxf86vm" />
       </linker>
 
       <linker id="linker.cfg.linux.amd64.newt.x11" extends="linker.cfg.linux.amd64">
-        <syslibset dir="/usr/X11R6/lib64" libs="X11"/>
-        <syslibset dir="/usr/X11R6/lib64" libs="Xxf86vm" />
+        <syslibset dir="/usr/lib64" libs="X11"/>
+        <syslibset dir="/usr/lib64" libs="Xxf86vm" />
       </linker>
 
       <linker id="linker.cfg.solaris.newt.x11" extends="linker.cfg.solaris">
