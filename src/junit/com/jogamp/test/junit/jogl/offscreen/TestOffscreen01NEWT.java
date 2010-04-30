@@ -94,6 +94,7 @@ public class TestOffscreen01NEWT {
         glWindow.setVisible(true);
         GLEventListener demo = new RedSquare();
         WindowUtilNEWT.setDemoFields(demo, window, glWindow, false);
+        glWindow.addGLEventListener(demo);
 
         while ( glWindow.getTotalFrames() < 2) {
             glWindow.display();
@@ -186,6 +187,7 @@ public class TestOffscreen01NEWT {
             glWindows[i].setVisible(true);
             demos[i] = new RedSquare();
             WindowUtilNEWT.setDemoFields(demos[i], windows[i], glWindows[i], false);
+            glWindows[i].addGLEventListener(demos[i]);
         }
 
         while ( glWindows[0].getTotalFrames() < 2) {
@@ -238,6 +240,7 @@ public class TestOffscreen01NEWT {
             glWindows[i].setVisible(true);
             demos[i] = new RedSquare();
             WindowUtilNEWT.setDemoFields(demos[i], windows[i], glWindows[i], false);
+            glWindows[i].addGLEventListener(demos[i]);
         }
 
         while ( glWindows[0].getTotalFrames() < 2) {
@@ -331,6 +334,7 @@ public class TestOffscreen01NEWT {
         glWindow.setVisible(true);
         GLEventListener demo = new RedSquare();
         WindowUtilNEWT.setDemoFields(demo, window, glWindow, false);
+        glWindow.addGLEventListener(demo);
 
         while ( glWindow.getTotalFrames() < 2) {
             glWindow.display();

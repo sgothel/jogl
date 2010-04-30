@@ -276,7 +276,7 @@ public abstract class X11GLXContext extends GLContextImpl {
                                    drawable.getNativeWindow().getSurfaceHandle(), 
                                    drawableRead.getNativeWindow().getSurfaceHandle(), 
                                    temp_context)) {
-          throw new GLException("Error making temp context(1) current: display "+toHexString(display)+", context "+toHexString(context)+", drawable "+drawable);
+          throw new GLException("Error making temp context(1) current: display "+toHexString(display)+", context "+toHexString(temp_context)+", drawable "+drawable);
         }
         setGLFunctionAvailability(true, 0, 0, CTX_PROFILE_COMPAT|CTX_OPTION_ANY); // use GL_VERSION
 
