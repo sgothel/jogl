@@ -151,12 +151,14 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl implements Dyna
                     }
                 }
 
+                // don't free native resources from this point on,
+                // since we might be in a critical shutdown hook sequence
                 if(null!=sharedDrawable) {
-                    sharedDrawable.destroy();
+                    // may cause deadlock: sharedDrawable.destroy();
                     sharedDrawable=null;
                 }
                 if(null!=sharedScreen) {
-                     X11Util.closeThreadLocalDisplay(null);
+                     // may cause deadlock: X11Util.closeThreadLocalDisplay(null);
                      sharedScreen = null;
                      sharedDevice=null;
                 }

@@ -111,11 +111,15 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl implements 
           Exception e = new Exception("Debug");
           e.printStackTrace();
      }
+    // don't free native resources from this point on,
+    // since we might be in a critical shutdown hook sequence
      if(null!=sharedContext) {
-        sharedContext.destroy(); // implies release, if current
+        // may cause deadlock: sharedContext.destroy(); // implies release, if current
+        sharedContext=null;
      }
      if(null!=sharedDrawable) {
-        sharedDrawable.destroy();
+        // may cause deadlock: sharedDrawable.destroy();
+        sharedDrawable=null;
      }
   }
 
