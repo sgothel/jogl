@@ -1,4 +1,4 @@
-#! /bin/sh
+#! /bin/bash
 
 function print_usage() {
     echo "Usage: $0 [-libdir pre-lib-dir] jogl-build-dir ..."
