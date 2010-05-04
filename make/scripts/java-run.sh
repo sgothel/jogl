@@ -1,5 +1,7 @@
 #! /bin/sh
 
+scriptdir=`dirname $0`
+
 function print_usage() {
     echo "Usage: $0 [-libdir pre-lib-dir] jogl-build-dir ..."
 }
@@ -23,7 +25,7 @@ if [ -z "$1" ] ; then
     exit
 fi
 
-. ./setenv-jogl.sh $1
+. $scriptdir/setenv-jogl.sh $1
 shift
 
 MOSX=0
