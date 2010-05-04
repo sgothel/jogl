@@ -96,6 +96,8 @@
 #include "InputEvent.h"
 #include "KeyEvent.h"
 
+#include "NewtCommon.h"
+
 // #define VERBOSE_ON 1
 
 #ifdef VERBOSE_ON
@@ -458,17 +460,6 @@ static void BuildDynamicKeyMapTable()
         }
 
     } // for each VK_OEM_*
-}
-
-// Really need to factor this out in to a separate run-time file
-static jchar* GetNullTerminatedStringChars(JNIEnv* env, jstring str)
-{
-    jchar* strChars = NULL;
-    strChars = calloc((*env)->GetStringLength(env, str) + 1, sizeof(jchar));
-    if (strChars != NULL) {
-        (*env)->GetStringRegion(env, str, 0, (*env)->GetStringLength(env, str), strChars);
-    }
-    return strChars;
 }
 
 static jint GetModifiers() {
@@ -932,7 +923,7 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_windows_WindowsDisplay_Dispatch
 JNIEXPORT jlong JNICALL Java_com_jogamp_newt_impl_windows_WindowsDisplay_LoadLibraryW
   (JNIEnv *env, jclass clazz, jstring dllName)
 {
-    jchar* _dllName = GetNullTerminatedStringChars(env, dllName);
+    jchar* _dllName = NewtCommon_GetNullTerminatedStringChars(env, dllName);
     HMODULE lib = LoadLibraryW(_dllName);
     free(_dllName);
     return (jlong) (intptr_t) lib;
@@ -965,7 +956,7 @@ JNIEXPORT jint JNICALL Java_com_jogamp_newt_impl_windows_WindowsDisplay_Register
     wc.hbrBackground = GetStockObject(BLACK_BRUSH);
     wc.lpszMenuName = NULL;
 #ifdef UNICODE
-    wc.lpszClassName = GetNullTerminatedStringChars(env, wndClassName);
+    wc.lpszClassName = NewtCommon_GetNullTerminatedStringChars(env, wndClassName);
 #else
     _wndClassName = (*env)->GetStringUTFChars(env, wndClassName, NULL);
     wc.lpszClassName = strdup(_wndClassName);
@@ -1062,7 +1053,7 @@ JNIEXPORT jlong JNICALL Java_com_jogamp_newt_impl_windows_WindowsWindow_CreateWi
     HWND window = NULL;
 
 #ifdef UNICODE
-    wndName = GetNullTerminatedStringChars(env, jWndName);
+    wndName = NewtCommon_GetNullTerminatedStringChars(env, jWndName);
 #else
     wndName = (*env)->GetStringUTFChars(env, jWndName, NULL);
 #endif
@@ -1281,7 +1272,7 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_windows_WindowsWindow_setTitle
 {
     HWND hwnd = (HWND) (intptr_t) window;
     if (title != NULL) {
-        jchar *titleString = GetNullTerminatedStringChars(env, title);
+        jchar *titleString = NewtCommon_GetNullTerminatedStringChars(env, title);
         if (titleString != NULL) {
             SetWindowTextW(hwnd, titleString);
             free(titleString);

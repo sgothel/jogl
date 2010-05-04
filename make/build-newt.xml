@@ -407,6 +407,7 @@
         <condition property="c.compiler.use-debug"><istrue value="${c.compiler.debug}"/></condition>
 
         <patternset id="c.src.files.newt">
+          <include name="${rootrel.src.c}/NewtCommon.c" />
           <include name="${rootrel.src.c}/WindowsWindow.c" if="isWindows"/>
           <include name="${rootrel.src.c}/*.m" if="isOSX"/>
           <include name="${rootrel.src.c}/X11Window.c" if="isX11"/>

@@ -60,6 +60,7 @@ import com.jogamp.test.junit.jogl.demos.gl2.gears.Gears;
 
 public class TestParenting01NEWT {
     static int width, height;
+    static long durationPerTest = 500;
 
     @BeforeClass
     public static void initClass() {
@@ -88,7 +89,7 @@ public class TestParenting01NEWT {
         Assert.assertTrue(true==window.isVisible());
         Assert.assertTrue(width==window.getWidth());
         Assert.assertTrue(height==window.getHeight());
-        // System.out.println("Created: "+window);
+        System.out.println("Created: "+window);
 
         //
         // Create native OpenGL resources .. XGL/WGL/CGL .. 
@@ -120,7 +121,7 @@ public class TestParenting01NEWT {
     }
 
     @Test
-    public void testWindowParentingNewtOnNewt() throws InterruptedException {
+    public void testWindowParenting01NewtOnNewtParentChildDraw() throws InterruptedException {
         GLCapabilities caps = new GLCapabilities(null);
         Assert.assertNotNull(caps);
         Display display = NewtFactory.createDisplay(null); // local display
@@ -128,39 +129,75 @@ public class TestParenting01NEWT {
         Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
         Assert.assertNotNull(screen);
 
-        Window window1 = createWindow(   null, screen, caps, width, height, true /* onscreen */, false /* undecorated */);
-        Window window2 = createWindow(window1, screen, caps, width/2, height/2, true /* onscreen */, false /* undecorated */);
+        int x = 1;
+        int y = 1;
 
+        NEWTEventFiFo eventFifo = new NEWTEventFiFo();
+
+        Window window1 = createWindow(   null, screen, caps, width, height, true /* onscreen */, false /* undecorated */);
+        Assert.assertNotNull(window1);
+        window1.setTitle("testWindowParenting01NewtOnNewtParentChildDraw - PARENT");
+        window1.setPosition(x,y);
+        window1.addKeyListener(new TraceKeyAdapter(new KeyAction(eventFifo)));
         GLWindow glWindow1 = GLWindow.create(window1);
         Assert.assertNotNull(glWindow1);
+
+        Window window2 = createWindow(window1, screen, caps, width/2, height/2, true /* onscreen */, false /* undecorated */);
+        Assert.assertNotNull(window2);
+        window2.setTitle("testWindowParenting01NewtOnNewtParentChildDraw - CHILD");
+        window2.setPosition(window1.getWidth()/2, window1.getHeight()/2);
+        window2.addKeyListener(new TraceKeyAdapter(new KeyAction(eventFifo)));
+        GLWindow glWindow2 = GLWindow.create(window2);
+        Assert.assertNotNull(glWindow2);
+
         GLEventListener demo1 = new RedSquare();
         setDemoFields(demo1, window1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
 
-        GLWindow glWindow2 = GLWindow.create(window2);
-        Assert.assertNotNull(glWindow2);
         GLEventListener demo2 = new Gears();
         setDemoFields(demo2, window2, glWindow2, false);
         glWindow2.addGLEventListener(demo2);
 
-        glWindow1.setVisible(true);
-        glWindow2.setVisible(true);
+        window2.setVisible(true);
+        window1.setVisible(true);
 
-        int x = window1.getX();
-        int y = window1.getY();
-        long duration = 2000;
+        glWindow2.setVisible(true);
+        glWindow1.setVisible(true);
+
+        glWindow2.display();
+        glWindow1.display();
+
+        long duration = durationPerTest;
         long step = 20;
-        while (duration>0) {
-            // glWindow1.display();
+        KeyEvent keyEvent;
+        boolean shouldQuit = false;
+
+        while (duration>0 && !shouldQuit) {
+            while( null != ( keyEvent = (KeyEvent) eventFifo.get() ) ) {
+                Window source = (Window) keyEvent.getSource();
+                switch(keyEvent.getKeyChar()) {
+                    case 'q':
+                        System.out.println(keyEvent);
+                        shouldQuit = true;
+                        break;
+                    case 'f':
+                        System.out.println(keyEvent);
+                        source.setFullscreen(!source.isFullscreen());
+                        break;
+                }
+            }
+            
+            glWindow1.display();
             glWindow2.display();
             Thread.sleep(step); // 1000 ms
             duration -= step;
-            x += 10;
-            y += 10;
-            // window1.setPosition(x,y);
+            x += 1;
+            y += 1;
+            window1.setPosition(x,y);
+            window2.setPosition(window1.getWidth()/2,window1.getHeight()/2-y);
         }
         destroyWindow(null, null, window2, glWindow2);
-        destroyWindow(display, screen, window1, null);
+        destroyWindow(display, screen, window1, glWindow1);
     }
 
     public static void setDemoFields(GLEventListener demo, Window window, GLWindow glWindow, boolean debug) {
@@ -176,6 +213,7 @@ public class TestParenting01NEWT {
     }
 
     public static void main(String args[]) throws IOException {
+        durationPerTest = 5000;
         String tstname = TestParenting01NEWT.class.getName();
         org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner.main(new String[] {
             tstname,

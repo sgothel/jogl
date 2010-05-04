@@ -64,8 +64,8 @@ public class Gears implements GLEventListener {
             
     gl.glEnable(GL2.GL_NORMALIZE);
                 
-    MouseListener gearsMouse = new TraceMouseAdapter(new GearsMouseAdapter());
-    // MouseListener gearsMouse = new GearsMouseAdapter();
+    // MouseListener gearsMouse = new TraceMouseAdapter(new GearsMouseAdapter());
+    MouseListener gearsMouse = new GearsMouseAdapter();
 
     if (drawable instanceof Component) {
         Component comp = (Component) drawable;

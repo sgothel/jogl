@@ -61,7 +61,8 @@ public class X11Window extends Window {
         long visualID = x11config.getVisualID();
         long w = CreateWindow(parentWindowHandle, 
                               display.getHandle(), screen.getIndex(), visualID, 
-                              display.getJavaObjectAtom(), display.getWindowDeleteAtom(), x, y, width, height);
+                              display.getJavaObjectAtom(), display.getWindowDeleteAtom(), 
+                              x, y, width, height, undecorated||0!=parentWindowHandle);
         if (w == 0 || w!=windowHandle) {
             throw new NativeWindowException("Error creating window: "+w);
         }
@@ -93,24 +94,22 @@ public class X11Window extends Window {
         }
     }
 
-    public void requestFocus() {
-        super.requestFocus();
-    }
-
     public void setSize(int width, int height) {
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("X11Window setSize: "+this.x+"/"+this.y+" "+this.width+"x"+this.height+" -> "+width+"x"+height);
             // Exception e = new Exception("XXXXXXXXXX");
             // e.printStackTrace();
         }
-        this.width = width;
-        this.height = height;
-        if(!fullscreen) {
-            nfs_width=width;
-            nfs_height=height;
-        }
-        if(0!=windowHandle) {
-            setSize0(parentWindowHandle, getDisplayHandle(), getScreenIndex(), windowHandle, x, y, width, height, (undecorated||fullscreen)?-1:1, false);
+        if (width != this.width || this.height != height) {
+            this.width = width;
+            this.height = height;
+            if(!fullscreen) {
+                nfs_width=width;
+                nfs_height=height;
+            }
+            if(0!=windowHandle && !fullscreen) {
+                setSize0(getDisplayHandle(), windowHandle, width, height);
+            }
         }
     }
 
@@ -120,14 +119,16 @@ public class X11Window extends Window {
             // Exception e = new Exception("XXXXXXXXXX");
             // e.printStackTrace();
         }
-        this.x = x;
-        this.y = y;
-        if(!fullscreen) {
-            nfs_x=x;
-            nfs_y=y;
-        }
-        if(0!=windowHandle) {
-            setPosition0(getDisplayHandle(), windowHandle, x, y);
+        if ( this.x != x || this.y != y ) {
+            this.x = x;
+            this.y = y;
+            if(!fullscreen) {
+                nfs_x=x;
+                nfs_y=y;
+            }
+            if(0!=windowHandle && !fullscreen) {
+                setPosition0(parentWindowHandle, getDisplayHandle(), windowHandle, x, y);
+            }
         }
     }
 
@@ -148,10 +149,33 @@ public class X11Window extends Window {
             if(DEBUG_IMPLEMENTATION || DEBUG_WINDOW_EVENT) {
                 System.err.println("X11Window fs: "+fullscreen+" "+x+"/"+y+" "+w+"x"+h);
             }
-            setSize0(parentWindowHandle, getDisplayHandle(), getScreenIndex(), windowHandle, x, y, w, h, (undecorated||fullscreen)?-1:1, false);
+            setPosSizeDecor0(fullscreen?0:parentWindowHandle, getDisplayHandle(), getScreenIndex(), windowHandle, x, y, w, h, (undecorated||fullscreen)?-1:1);
+            if(fullscreen) {
+                requestFocus0(getDisplayHandle(), windowHandle);
+            }
         }
         return fullscreen;
     }
+
+    // @Override
+    public void requestFocus() {
+        super.requestFocus();
+        if (windowHandle != 0L) {
+            requestFocus0(getDisplayHandle(), windowHandle);
+        }
+    }
+
+    // @Override
+    public void setTitle(String title) {
+        if (title == null) {
+            title = "";
+        }
+        if (0!=windowHandle && !title.equals(getTitle())) {
+            super.setTitle(title);
+            setTitle0(getDisplayHandle(), windowHandle, title);
+        }
+    }
+
 
     //----------------------------------------------------------------------
     // Internals only
@@ -159,12 +183,16 @@ public class X11Window extends Window {
 
     protected static native boolean initIDs();
     private        native long CreateWindow(long parentWindowHandle, long display, int screen_index, 
-                                            long visualID, long javaObjectAtom, long windowDeleteAtom, int x, int y, int width, int height);
+                                            long visualID, long javaObjectAtom, long windowDeleteAtom, 
+                                            int x, int y, int width, int height, boolean undecorated);
     private        native void CloseWindow(long display, long windowHandle, long javaObjectAtom);
     private        native void setVisible0(long display, long windowHandle, boolean visible);
-    private        native void setSize0(long parentWindowHandle, long display, int screen_index, long windowHandle, 
-                                        int x, int y, int width, int height, int decorationToggle, boolean setVisible);
-    private        native void setPosition0(long display, long windowHandle, int x, int y);
+    private        native void setSize0(long display, long windowHandle, int width, int height);
+    private        native void setPosSizeDecor0(long parentWindowHandle, long display, int screen_index, long windowHandle, 
+                                                int x, int y, int width, int height, int decorationToggle);
+    private        native void setTitle0(long display, long windowHandle, String title);
+    private        native void requestFocus0(long display, long windowHandle);
+    private        native void setPosition0(long parentWindowHandle, long display, long windowHandle, int x, int y);
 
     private void windowChanged(int newX, int newY, int newWidth, int newHeight) {
         if(width != newWidth || height != newHeight) {

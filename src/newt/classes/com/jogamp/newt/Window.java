@@ -254,6 +254,9 @@ public abstract class Window implements NativeWindow
     }
 
     public void setTitle(String title) {
+        if (title == null) {
+            title = "";
+        }
         this.title = title;
     }
 

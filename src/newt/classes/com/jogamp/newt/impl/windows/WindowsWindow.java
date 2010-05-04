@@ -157,27 +157,31 @@ public class WindowsWindow extends Window {
 
     // @Override
     public void setSize(int width, int height) {
-        if (0!=windowHandle && (width != this.width || this.height != height)) {
+        if (width != this.width || this.height != height) {
             if(!fullscreen) {
                 nfs_width=width;
                 nfs_height=height;
             }
             this.width = width;
             this.height = height;
-            setSize0(parentWindowHandle, windowHandle, x, y, width, height);
+            if(0!=windowHandle && !fullscreen) {
+                setSize0(parentWindowHandle, windowHandle, x, y, width, height);
+            }
         }
     }
 
     //@Override
     public void setPosition(int x, int y) {
-        if (0!=windowHandle && (this.x != x || this.y != y)) {
+        if ( this.x != x || this.y != y ) {
             if(!fullscreen) {
                 nfs_x=x;
                 nfs_y=y;
             }
             this.x = x;
             this.y = y;
-            setPosition(parentWindowHandle, windowHandle, x , y);
+            if(0!=windowHandle && !fullscreen) {
+                setPosition(parentWindowHandle, windowHandle, x , y);
+            }
         }
     }
 
