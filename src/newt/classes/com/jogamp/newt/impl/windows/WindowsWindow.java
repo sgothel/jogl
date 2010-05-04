@@ -159,13 +159,13 @@ public class WindowsWindow extends Window {
     public void setSize(int width, int height) {
         if (width != this.width || this.height != height) {
             if(!fullscreen) {
+                this.width=width;
+                this.height=height;
                 nfs_width=width;
                 nfs_height=height;
-            }
-            this.width = width;
-            this.height = height;
-            if(0!=windowHandle && !fullscreen) {
-                setSize0(parentWindowHandle, windowHandle, x, y, width, height);
+                if(0!=windowHandle) {
+                    setSize0(parentWindowHandle, windowHandle, x, y, width, height);
+                }
             }
         }
     }
@@ -174,13 +174,13 @@ public class WindowsWindow extends Window {
     public void setPosition(int x, int y) {
         if ( this.x != x || this.y != y ) {
             if(!fullscreen) {
+                this.x=x;
+                this.y=y;
                 nfs_x=x;
                 nfs_y=y;
-            }
-            this.x = x;
-            this.y = y;
-            if(0!=windowHandle && !fullscreen) {
-                setPosition(parentWindowHandle, windowHandle, x , y);
+                if(0!=windowHandle) {
+                    setPosition0(parentWindowHandle, windowHandle, x , y /*, width, height*/);
+                }
             }
         }
     }
@@ -245,7 +245,7 @@ public class WindowsWindow extends Window {
     private        native long MonitorFromWindow(long windowHandle);
     private static native void setVisible0(long windowHandle, boolean visible);
     private        native void setSize0(long parentWindowHandle, long windowHandle, int x, int y, int width, int height);
-    private        native void setPosition(long parentWindowHandle, long windowHandle, int x, int y);
+    private static native void setPosition0(long parentWindowHandle, long windowHandle, int x, int y /*, int width, int height*/);
     private        native void setFullscreen0(long parentWindowHandle, long windowHandle, int x, int y, int width, int height, boolean isUndecorated, boolean on);
     private static native void setTitle(long windowHandle, String title);
     private static native void requestFocus(long windowHandle);

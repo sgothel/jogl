@@ -95,39 +95,29 @@ public class X11Window extends Window {
     }
 
     public void setSize(int width, int height) {
-        if(DEBUG_IMPLEMENTATION) {
-            System.err.println("X11Window setSize: "+this.x+"/"+this.y+" "+this.width+"x"+this.height+" -> "+width+"x"+height);
-            // Exception e = new Exception("XXXXXXXXXX");
-            // e.printStackTrace();
-        }
         if (width != this.width || this.height != height) {
-            this.width = width;
-            this.height = height;
             if(!fullscreen) {
+                this.width = width;
+                this.height = height;
                 nfs_width=width;
                 nfs_height=height;
-            }
-            if(0!=windowHandle && !fullscreen) {
-                setSize0(getDisplayHandle(), windowHandle, width, height);
+                if(0!=windowHandle) {
+                    setSize0(getDisplayHandle(), windowHandle, width, height);
+                }
             }
         }
     }
 
     public void setPosition(int x, int y) {
-        if(DEBUG_IMPLEMENTATION) {
-            System.err.println("X11Window setPosition: "+this.x+"/"+this.y+" -> "+x+"/"+y);
-            // Exception e = new Exception("XXXXXXXXXX");
-            // e.printStackTrace();
-        }
         if ( this.x != x || this.y != y ) {
-            this.x = x;
-            this.y = y;
             if(!fullscreen) {
+                this.x = x;
+                this.y = y;
                 nfs_x=x;
                 nfs_y=y;
-            }
-            if(0!=windowHandle && !fullscreen) {
-                setPosition0(parentWindowHandle, getDisplayHandle(), windowHandle, x, y);
+                if(0!=windowHandle) {
+                    setPosition0(parentWindowHandle, getDisplayHandle(), windowHandle, x, y);
+                }
             }
         }
     }

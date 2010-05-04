@@ -507,22 +507,31 @@ public abstract class Window implements NativeWindow
     }
 
     public abstract void    setVisible(boolean visible);
+
     /**
      * Sets the size of the client area of the window, excluding decorations
      * Total size of the window will be
-     * {@code width+insets.left+insets.right, height+insets.top+insets.bottom}
+     * {@code width+insets.left+insets.right, height+insets.top+insets.bottom}<br>
+     *
+     * This call is ignored if in fullscreen mode.<br>
+     *
      * @param width of the client area of the window
      * @param height of the client area of the window
      */
     public abstract void    setSize(int width, int height);
+
     /**
      * Sets the location of the top left corner of the window, including
      * decorations (so the client area will be placed at
-     * {@code x+insets.left,y+insets.top}.
+     * {@code x+insets.left,y+insets.top}.<br>
+     *
+     * This call is ignored if in fullscreen mode.<br>
+     *
      * @param x coord of the top left corner
      * @param y coord of the top left corner
      */
     public abstract void    setPosition(int x, int y);
+
     public abstract boolean setFullscreen(boolean fullscreen);
 
     //

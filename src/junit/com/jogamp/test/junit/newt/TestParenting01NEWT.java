@@ -85,8 +85,6 @@ public class TestParenting01NEWT {
         Assert.assertNotNull(window);
         window.setSize(width, height);
         Assert.assertTrue(false==window.isVisible());
-        window.setVisible(true);
-        Assert.assertTrue(true==window.isVisible());
         Assert.assertTrue(width==window.getWidth());
         Assert.assertTrue(height==window.getHeight());
         System.out.println("Created: "+window);
@@ -138,15 +136,20 @@ public class TestParenting01NEWT {
         Assert.assertNotNull(window1);
         window1.setTitle("testWindowParenting01NewtOnNewtParentChildDraw - PARENT");
         window1.setPosition(x,y);
-        window1.addKeyListener(new TraceKeyAdapter(new KeyAction(eventFifo)));
+        // window1.addKeyListener(new TraceKeyAdapter(new KeyAction(eventFifo)));
         GLWindow glWindow1 = GLWindow.create(window1);
         Assert.assertNotNull(glWindow1);
 
         Window window2 = createWindow(window1, screen, caps, width/2, height/2, true /* onscreen */, false /* undecorated */);
         Assert.assertNotNull(window2);
         window2.setTitle("testWindowParenting01NewtOnNewtParentChildDraw - CHILD");
+        System.out.println("Window1: "+window1);
+        // Assert.assertTrue(width==window1.getWidth());
+        // Assert.assertTrue(height==window1.getHeight());
         window2.setPosition(window1.getWidth()/2, window1.getHeight()/2);
         window2.addKeyListener(new TraceKeyAdapter(new KeyAction(eventFifo)));
+        // window2.addMouseListener(new TraceMouseAdapter());
+        window2.requestFocus();
         GLWindow glWindow2 = GLWindow.create(window2);
         Assert.assertNotNull(glWindow2);
 

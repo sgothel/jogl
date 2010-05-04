@@ -7,7 +7,7 @@ set ANT_PATH=C:\apache-ant-1.8.0
 set PATH=%JAVA_HOME%\bin;%ANT_PATH%\bin;c:\mingw\bin;%PATH%
 
 set BLD_DIR=..\%BLD_SUB%
-set LIB_DIR=%BLD_DIR%\lib;..\..\gluegen\%BLD_SUB%\obj
+set LIB_DIR=..\..\gluegen\%BLD_SUB%\obj;%BLD_DIR%\nativewindow\obj;%BLD_DIR%\jogl\obj;%BLD_DIR%\newt\obj
 
 set CP_ALL=.;%BLD_DIR%\jogl\jogl.all.jar;%BLD_DIR%\nativewindow\nativewindow.all.jar;%BLD_DIR%\newt\newt.all.jar;%BLD_DIR%\jogl\jogl.test.jar;..\..\gluegen\%BLD_SUB%\gluegen-rt.jar;..\..\gluegen\make\lib\junit-4.5.jar;%ANT_PATH%\lib\ant.jar;%ANT_PATH%\lib\ant-junit.jar
 
