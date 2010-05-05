@@ -172,6 +172,7 @@ static const char * const ClazzNameNewtWindow =
 static jclass    newtWindowClz=NULL;
 
 static jmethodID windowChangedID = NULL;
+static jmethodID focusChangedID = NULL;
 static jmethodID windowDestroyNotifyID = NULL;
 static jmethodID windowDestroyedID = NULL;
 static jmethodID windowCreatedID = NULL;
@@ -389,6 +390,21 @@ static jobject getJavaWindowProperty(JNIEnv *env, Display *dpy, Window window, j
     return jwindow;
 }
 
+static void NewtWindows_requestFocus (Display *dpy, Window w) {
+    XWindowAttributes attributes;
+
+    XLockDisplay(dpy) ;
+
+    // Avoid 'BadMatch' errors from XSetInputFocus, ie if window is not viewable
+    XGetWindowAttributes(dpy, w, &attributes);
+    if(attributes.map_state == IsViewable) {
+        XSetInputFocus(dpy, w, RevertToParent, CurrentTime);
+        XSync(dpy, False);
+    }
+
+    XUnlockDisplay(dpy) ;
+}
+
 /*
  * Class:     com_jogamp_newt_impl_x11_X11Display
  * Method:    DispatchMessages
@@ -468,6 +484,7 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Display_DispatchMessages
 
         switch(evt.type) {
             case ButtonPress:
+                NewtWindows_requestFocus ( dpy, evt.xany.window );
                 (*env)->CallVoidMethod(env, jwindow, sendMouseEventID, (jint) EVENT_MOUSE_PRESSED, 
                                       (jint) evt.xbutton.state, 
                                       (jint) evt.xbutton.x, (jint) evt.xbutton.y, (jint) evt.xbutton.button, 0 /*rotation*/);
@@ -521,14 +538,18 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Display_DispatchMessages
                 }
                 break;
 
-            // unhandled events .. yet ..
-
             case FocusIn:
                 DBG_PRINT1( "X11: event . FocusIn call 0x%X\n", evt.xvisibility.window);
+                (*env)->CallVoidMethod(env, jwindow, focusChangedID, JNI_TRUE);
                 break;
+
             case FocusOut:
                 DBG_PRINT1( "X11: event . FocusOut call 0x%X\n", evt.xvisibility.window);
+                (*env)->CallVoidMethod(env, jwindow, focusChangedID, JNI_FALSE);
                 break;
+
+            // unhandled events .. yet ..
+
             case VisibilityNotify:
                 DBG_PRINT1( "X11: event . VisibilityNotify call 0x%X\n", evt.xvisibility.window);
                 break;
@@ -605,6 +626,7 @@ JNIEXPORT jboolean JNICALL Java_com_jogamp_newt_impl_x11_X11Window_initIDs
   (JNIEnv *env, jclass clazz)
 {
     windowChangedID = (*env)->GetMethodID(env, clazz, "windowChanged", "(IIII)V");
+    focusChangedID = (*env)->GetMethodID(env, clazz, "focusChanged", "(Z)V");
     windowDestroyNotifyID = (*env)->GetMethodID(env, clazz, "windowDestroyNotify", "()V");
     windowDestroyedID = (*env)->GetMethodID(env, clazz, "windowDestroyed", "()V");
     windowCreatedID = (*env)->GetMethodID(env, clazz, "windowCreated", "(J)V");
@@ -612,6 +634,7 @@ JNIEXPORT jboolean JNICALL Java_com_jogamp_newt_impl_x11_X11Window_initIDs
     sendKeyEventID = (*env)->GetMethodID(env, clazz, "sendKeyEvent", "(IIIC)V");
 
     if (windowChangedID == NULL ||
+        focusChangedID == NULL ||
         windowDestroyNotifyID == NULL ||
         windowDestroyedID == NULL ||
         windowCreatedID == NULL ||
@@ -704,7 +727,7 @@ JNIEXPORT jlong JNICALL Java_com_jogamp_newt_impl_x11_X11Window_CreateWindow
     xswa.override_redirect = ( JNI_TRUE == undecorated || 0 != parent ) ? True : False ;
     xswa.border_pixel = 255;
     xswa.background_pixel = 0;
-    xswa.event_mask = ExposureMask | StructureNotifyMask | KeyPressMask | KeyReleaseMask;
+    xswa.event_mask = FocusChangeMask | ExposureMask | StructureNotifyMask | KeyPressMask | KeyReleaseMask;
     xswa.colormap = XCreateColormap(dpy,
                                     windowParent, // XRootWindow(dpy, scrn_idx),
                                     visual,
@@ -721,6 +744,11 @@ JNIEXPORT jlong JNICALL Java_com_jogamp_newt_impl_x11_X11Window_CreateWindow
                            attrMask,
                            &xswa);
 
+    if(NULL==window) {
+        _throwNewRuntimeException(dpy, env, "could not create Window, bail out!");
+        return 0;
+    }
+
     wm_delete_atom = (Atom)windowDeleteAtom;
     XSetWMProtocols(dpy, window, &wm_delete_atom, 1);
 
@@ -730,9 +758,9 @@ JNIEXPORT jlong JNICALL Java_com_jogamp_newt_impl_x11_X11Window_CreateWindow
 
     {
         long xevent_mask = 0;
-        xevent_mask |= ButtonPressMask|ButtonReleaseMask|PointerMotionMask;
-        xevent_mask |= KeyPressMask|KeyReleaseMask;
-        xevent_mask |= ExposureMask | StructureNotifyMask | VisibilityNotify ;
+        xevent_mask |= ButtonPressMask | ButtonReleaseMask | PointerMotionMask;
+        xevent_mask |= KeyPressMask | KeyReleaseMask;
+        xevent_mask |= FocusChangeMask | ExposureMask | StructureNotifyMask | VisibilityNotify ;
         XSelectInput(dpy, window, xevent_mask);
     }
 
@@ -948,20 +976,7 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Window_setPosition0
 JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Window_requestFocus0
   (JNIEnv *env, jobject obj, jlong display, jlong window)
 {
-    Display * dpy = (Display *) (intptr_t) display;
-    Window w = (Window)window;
-    XWindowAttributes attributes;
-
-    XLockDisplay(dpy) ;
-
-    // Avoid 'BadMatch' errors from XSetInputFocus, ie if window is not viewable
-    XGetWindowAttributes(dpy, w, &attributes);
-    if(attributes.map_state == IsViewable) {
-        XSetInputFocus(dpy, w, RevertToParent, CurrentTime);
-        XSync(dpy, False);
-    }
-
-    XUnlockDisplay(dpy) ;
+    NewtWindows_requestFocus ( (Display *) (intptr_t) display, (Window)window ) ;
 }
 
 /*

@@ -211,6 +211,17 @@ public class X11Window extends Window {
         }
     }
 
+    /**
+     * @param focusGained
+     */
+    private void focusChanged(boolean focusGained) {
+        if (focusGained) {
+            sendWindowEvent(WindowEvent.EVENT_WINDOW_GAINED_FOCUS);
+        } else {
+            sendWindowEvent(WindowEvent.EVENT_WINDOW_LOST_FOCUS);
+        }
+    }
+
     private void windowCreated(long windowHandle) {
         this.windowHandle = windowHandle;
     }
