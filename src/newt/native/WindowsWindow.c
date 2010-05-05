@@ -1312,6 +1312,8 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_windows_WindowsWindow_setFullsc
 
     SetWindowPos(hwnd, hWndInsertAfter, x, y, width, height, flags);
 
+    NewtWindows_requestFocus ( wnd );
+
     (*env)->CallVoidMethod(env, obj, sizeChangedID, (jint) width, (jint) height);
 }
 

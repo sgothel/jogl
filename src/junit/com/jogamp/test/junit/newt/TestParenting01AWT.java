@@ -131,7 +131,7 @@ public class TestParenting01AWT {
 
         NEWTEventFiFo eventFifo = new NEWTEventFiFo();
 
-        Window window2 = NewtFactory.createWindow(overlayedAWTComponent, screen, caps);
+        Window window2 = NewtFactory.createWindow(overlayedAWTComponent, screen, caps, false);
         Assert.assertNotNull(window2);
 
         GLWindow glWindow2 = GLWindow.create(window2);
@@ -145,13 +145,11 @@ public class TestParenting01AWT {
         glWindow2.setTitle("NEWT - CHILD");
         glWindow2.addKeyListener(new TraceKeyAdapter(new KeyAction(eventFifo)));
         glWindow2.addWindowListener(new TraceWindowAdapter(new WindowAction(eventFifo)));
+        glWindow2.setVisible(true);
 
         GLEventListener demo2 = new Gears();
         setDemoFields(demo2, window2, glWindow2, false);
         glWindow2.addGLEventListener(demo2);
-
-        glWindow2.setVisible(true);
-        glWindow2.display();
 
         long duration = durationPerTest;
         long step = 20;

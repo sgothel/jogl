@@ -201,7 +201,6 @@ static void _throwNewRuntimeException(Display * unlockDisplay, JNIEnv *env, cons
  * Display
  */
 
-
 static JNIEnv * x11ErrorHandlerJNIEnv = NULL;
 static XErrorHandler origErrorHandler = NULL ;
 
@@ -405,6 +404,28 @@ static void NewtWindows_requestFocus (Display *dpy, Window w) {
     XUnlockDisplay(dpy) ;
 }
 
+/** changing this attribute while a window is established,
+  * didn't impact the decoration - only at window creation time.
+static void NewtWindows_setOverrideRedirect (Display *dpy, Window w, Bool val) {
+    XSetWindowAttributes xswa;
+    memset(&xswa, 0, sizeof(XSetWindowAttributes));
+    xswa.override_redirect = val; 
+    XChangeWindowAttributes(dpy, w, CWOverrideRedirect, &xswa);
+} */
+
+#define MWM_HINTS_DECORATIONS   (1L << 1)
+#define PROP_MWM_HINTS_ELEMENTS 5
+
+static void NewtWindows_setDecorations (Display *dpy, Window w, Bool val) {
+    unsigned long mwmhints[PROP_MWM_HINTS_ELEMENTS] = { 0, 0, 0, 0, 0 }; // flags, functions, decorations, input_mode, status
+    Atom prop;
+
+    mwmhints[0] = MWM_HINTS_DECORATIONS;
+    mwmhints[2] = val ;
+    prop = XInternAtom( dpy, "_MOTIF_WM_HINTS", False );
+    XChangeProperty( dpy, w, prop, prop, 32, PropModeReplace, (unsigned char *)&mwmhints, PROP_MWM_HINTS_ELEMENTS);
+}
+
 /*
  * Class:     com_jogamp_newt_impl_x11_X11Display
  * Method:    DispatchMessages
@@ -514,16 +535,16 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Display_DispatchMessages
                                       (jint) -1, (jchar) keyChar);
                 break;
             case DestroyNotify:
-                DBG_PRINT1( "X11: event . DestroyNotify call 0x%X\n", evt.xdestroywindow.window);
+                DBG_PRINT1( "X11: event . DestroyNotify call 0x%X\n", (unsigned int)evt.xdestroywindow.window);
                 (*env)->CallVoidMethod(env, jwindow, windowDestroyedID);
                 break;
             case CreateNotify:
-                DBG_PRINT1( "X11: event . CreateNotify call 0x%X\n", evt.xcreatewindow.window);
+                DBG_PRINT1( "X11: event . CreateNotify call 0x%X\n", (unsigned int)evt.xcreatewindow.window);
                 (*env)->CallVoidMethod(env, jwindow, windowCreatedID);
                 break;
             case ConfigureNotify:
                 DBG_PRINT8( "X11: event . ConfigureNotify call 0x%X (parent 0x%X, above 0x%X) %d/%d %dx%d %d\n", 
-                            evt.xconfigure.window, evt.xconfigure.event, evt.xconfigure.above,
+                            (unsigned int)evt.xconfigure.window, (unsigned int)evt.xconfigure.event, (unsigned int)evt.xconfigure.above,
                             evt.xconfigure.x, evt.xconfigure.y, evt.xconfigure.width, evt.xconfigure.height, 
                             evt.xconfigure.override_redirect);
                 (*env)->CallVoidMethod(env, jwindow, windowChangedID, 
@@ -532,36 +553,36 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Display_DispatchMessages
                 break;
             case ClientMessage:
                 if (evt.xclient.send_event==True && evt.xclient.data.l[0]==(Atom)wmDeleteAtom) {
-                    DBG_PRINT2( "X11: event . ClientMessage call 0x%X type 0x%X !!!\n", evt.xclient.window, evt.xclient.message_type);
+                    DBG_PRINT2( "X11: event . ClientMessage call 0x%X type 0x%X !!!\n", (unsigned int)evt.xclient.window, (unsigned int)evt.xclient.message_type);
                     (*env)->CallVoidMethod(env, jwindow, windowDestroyNotifyID);
                     // Called by Window.java: CloseWindow(); 
                 }
                 break;
 
             case FocusIn:
-                DBG_PRINT1( "X11: event . FocusIn call 0x%X\n", evt.xvisibility.window);
+                DBG_PRINT1( "X11: event . FocusIn call 0x%X\n", (unsigned int)evt.xvisibility.window);
                 (*env)->CallVoidMethod(env, jwindow, focusChangedID, JNI_TRUE);
                 break;
 
             case FocusOut:
-                DBG_PRINT1( "X11: event . FocusOut call 0x%X\n", evt.xvisibility.window);
+                DBG_PRINT1( "X11: event . FocusOut call 0x%X\n", (unsigned int)evt.xvisibility.window);
                 (*env)->CallVoidMethod(env, jwindow, focusChangedID, JNI_FALSE);
                 break;
 
             // unhandled events .. yet ..
 
             case VisibilityNotify:
-                DBG_PRINT1( "X11: event . VisibilityNotify call 0x%X\n", evt.xvisibility.window);
+                DBG_PRINT1( "X11: event . VisibilityNotify call 0x%X\n", (unsigned int)evt.xvisibility.window);
                 break;
             case Expose:
-                DBG_PRINT1( "X11: event . Expose call 0x%X\n", evt.xexpose.window);
+                DBG_PRINT1( "X11: event . Expose call 0x%X\n", (unsigned int)evt.xexpose.window);
                 /* FIXME: Might want to send a repaint event .. */
                 break;
             case UnmapNotify:
-                DBG_PRINT1( "X11: event . UnmapNotify call 0x%X\n", evt.xunmap.window);
+                DBG_PRINT1( "X11: event . UnmapNotify call 0x%X\n", (unsigned int)evt.xunmap.window);
                 break;
             default:
-                DBG_PRINT3("X11: event . unhandled %d 0x%X call 0x%X\n", evt.type, evt.type, evt.xunmap.window);
+                DBG_PRINT3("X11: event . unhandled %d 0x%X call 0x%X\n", evt.type, evt.type, (unsigned int)evt.xunmap.window);
         }
     }
 }
@@ -674,7 +695,7 @@ JNIEXPORT jlong JNICALL Java_com_jogamp_newt_impl_x11_X11Window_CreateWindow
     Screen* scrn;
     Atom wm_delete_atom;
 
-    DBG_PRINT4( "X11: CreateWindow %x/%d %dx%d\n", x, y, width, height);
+    DBG_PRINT5( "X11: CreateWindow %x/%d %dx%d, undeco %d\n", x, y, width, height, undecorated);
 
     if(dpy==NULL) {
         _FatalError(env, "invalid display connection..");
@@ -704,7 +725,8 @@ JNIEXPORT jlong JNICALL Java_com_jogamp_newt_impl_x11_X11Window_CreateWindow
         XFree(pVisualQuery);
         pVisualQuery=NULL;
     }
-    DBG_PRINT5( "X11: [CreateWindow] trying given (dpy %p, screen %d, visualID: %d, parent %p) found: %p\n", dpy, scrn_idx, (int)visualID, windowParent, visual);
+    DBG_PRINT5( "X11: [CreateWindow] trying given (dpy %p, screen %d, visualID: %d, parent 0x%X) found: %p\n", 
+        dpy, scrn_idx, (int)visualID, (unsigned int)windowParent, visual);
 
     if (visual==NULL)
     { 
@@ -725,7 +747,7 @@ JNIEXPORT jlong JNICALL Java_com_jogamp_newt_impl_x11_X11Window_CreateWindow
 
     memset(&xswa, 0, sizeof(xswa));
     xswa.override_redirect = ( JNI_TRUE == undecorated || 0 != parent ) ? True : False ;
-    xswa.border_pixel = 255;
+    xswa.border_pixel = 0;
     xswa.background_pixel = 0;
     xswa.event_mask = FocusChangeMask | ExposureMask | StructureNotifyMask | KeyPressMask | KeyReleaseMask;
     xswa.colormap = XCreateColormap(dpy,
@@ -744,7 +766,7 @@ JNIEXPORT jlong JNICALL Java_com_jogamp_newt_impl_x11_X11Window_CreateWindow
                            attrMask,
                            &xswa);
 
-    if(NULL==window) {
+    if(0==window) {
         _throwNewRuntimeException(dpy, env, "could not create Window, bail out!");
         return 0;
     }
@@ -764,9 +786,10 @@ JNIEXPORT jlong JNICALL Java_com_jogamp_newt_impl_x11_X11Window_CreateWindow
         XSelectInput(dpy, window, xevent_mask);
     }
 
+    XSync(dpy, False);
     XUnlockDisplay(dpy) ;
 
-    DBG_PRINT2( "X11: [CreateWindow] created window %p on display %p\n", window, dpy);
+    DBG_PRINT2( "X11: [CreateWindow] created window 0x%X on display %p\n", (unsigned int)window, dpy);
     (*env)->CallVoidMethod(env, obj, windowCreatedID, (jlong) window);
 
     return (jlong) window;
@@ -803,7 +826,6 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Window_CloseWindow
     XSync(dpy, False);
     XSelectInput(dpy, w, 0);
     XUnmapWindow(dpy, w);
-    XSync(dpy, False);
     XDestroyWindow(dpy, w);
     XSync(dpy, False);
 
@@ -829,7 +851,6 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Window_setVisible0
     }
     XLockDisplay(dpy) ;
 
-    XSync(dpy, False);
     if(visible==JNI_TRUE) {
         XMapRaised(dpy, w);
     } else {
@@ -851,14 +872,13 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Window_setSize0
     Window w = (Window)window;
     XWindowChanges xwc;
 
-    DBG_PRINT5( "X11: setSize0 %d/%d %dx%d, dec %d\n", x, y, width, height, decorationToggle);
+    DBG_PRINT2( "X11: setSize0 %dx%d\n", width, height);
 
     if(dpy==NULL) {
         _FatalError(env, "invalid display connection..");
     }
     XLockDisplay(dpy) ;
 
-    XSync(dpy, False);
     memset(&xwc, 0, sizeof(XWindowChanges));
     xwc.width=width;
     xwc.height=height;
@@ -868,13 +888,6 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Window_setSize0
     XUnlockDisplay(dpy) ;
 }
 
-#define MWM_FULLSCREEN 1
-
-#ifdef MWM_FULLSCREEN
-    #define MWM_HINTS_DECORATIONS   (1L << 1)
-    #define PROP_MWM_HINTS_ELEMENTS 5
-#endif
-
 /*
  * Class:     com_jogamp_newt_impl_x11_X11Window
  * Method:    setPosSizeDecor0
@@ -882,7 +895,7 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Window_setSize0
  */
 JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Window_setPosSizeDecor0
   (JNIEnv *env, jobject obj, jlong jparent, jlong display, jint screen_index, jlong window, 
-   jint x, jint y, jint width, jint height, jint decorationToggle) 
+   jint x, jint y, jint width, jint height, jboolean undecorated) 
 {
     Display * dpy = (Display *) (intptr_t) display;
     Window w = (Window)window;
@@ -891,7 +904,7 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Window_setPosSizeDecor0
 
     XWindowChanges xwc;
 
-    DBG_PRINT5( "X11: setSize0 %d/%d %dx%d, dec %d\n", x, y, width, height, decorationToggle);
+    DBG_PRINT5( "X11: setPosSizeDecor0 %d/%d %dx%d, undec %d\n", x, y, width, height, undecorated);
 
     if(dpy==NULL) {
         _FatalError(env, "invalid display connection..");
@@ -903,32 +916,7 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Window_setPosSizeDecor0
     XReparentWindow( dpy, w, parent, x, y );
     XRaiseWindow(dpy, w);
 
-    if(0!=decorationToggle) {
-#ifdef MWM_FULLSCREEN
-        unsigned long mwmhints[PROP_MWM_HINTS_ELEMENTS] = { 0, 0, 0, 0, 0 }; // flags, functions, decorations, input_mode, status
-        Atom prop;
-
-        mwmhints[0] = MWM_HINTS_DECORATIONS;
-        mwmhints[2] = (decorationToggle<0)?False:True;
-        prop = XInternAtom( dpy, "_MOTIF_WM_HINTS", False );
-        XChangeProperty( dpy, w, prop, prop, 32, PropModeReplace, (unsigned char *)&mwmhints, PROP_MWM_HINTS_ELEMENTS);
-#else
-        XSetWindowAttributes xswa;
-        unsigned long attrMask=CWOverrideRedirect;
-
-        memset(&xswa, 0, sizeof(XSetWindowAttributes));
-        if(decorationToggle<0) {
-            /* undecorated  */
-            xswa.override_redirect = True; 
-        } else {
-            /* decorated  */
-            xswa.override_redirect = False;
-        }
-        XChangeWindowAttributes(dpy, w, attrMask, &xswa);
-        XReparentWindow( dpy, w, parent, x, y );
-#endif
-    }
-    XSync(dpy, False);
+    NewtWindows_setDecorations (dpy, w, ( JNI_TRUE == undecorated ) ? False : True );
 
     memset(&xwc, 0, sizeof(XWindowChanges));
     xwc.x=x;
@@ -938,6 +926,7 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_x11_X11Window_setPosSizeDecor0
     XConfigureWindow(dpy, w, CWX|CWY|CWWidth|CWHeight, &xwc);
     XSync(dpy, False);
 
+    NewtWindows_requestFocus ( dpy, w );
     XUnlockDisplay(dpy) ;
 }
 

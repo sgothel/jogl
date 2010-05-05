@@ -83,14 +83,15 @@ public class AWTNewtFactory {
    * utilizing {@link #getNativeWindow(java.awt.Component)}.<br>
    * The actual wrapping implementation is {@link com.jogamp.nativewindow.impl.jawt.JAWTWindow}.<br></p>
    * <p>
-   * Second we create a child {@link com.jogamp.newt.Window}, utilizing {@link com.jogamp.newt.NewtFactory#createWindow(long, com.jogamp.newt.Screen, com.jogamp.newt.Capabilities)}, passing the AWT parent's native window handle retrieved via {@link com.jogamp.nativewindow.impl.jawt.JAWTWindow#getWindowHandle()}.<br></p>
+   * Second we create a child {@link com.jogamp.newt.Window}, utilizing {@link com.jogamp.newt.NewtFactory#createWindow(long, com.jogamp.newt.Screen, com.jogamp.newt.Capabilities, boolean)}, passing the AWT parent's native window handle retrieved via {@link com.jogamp.nativewindow.impl.jawt.JAWTWindow#getWindowHandle()}.<br></p>
    * <p>
    * Third we attach a {@link com.jogamp.newt.event.awt.AWTParentWindowAdapter} to the given AWT component.<br>
    * The adapter passes window related events to our new child window, look at the implementation<br></p>
    *
    * @param awtParentObject must be of type java.awt.Component
+   * @param undecorated only impacts if the window is in top-level state, while attached to a parent window it's rendered undecorated always
    */ 
-  public static Window createNativeChildWindow(Object awtParentObject, Screen newtScreen, Capabilities newtCaps) {
+  public static Window createNativeChildWindow(Object awtParentObject, Screen newtScreen, Capabilities newtCaps, boolean undecorated) {
       NativeWindow parent = getNativeWindow(awtParentObject); // also checks java.awt.Component type
       java.awt.Component awtParent = (java.awt.Component) awtParentObject;
       if(null==parent) {
@@ -102,7 +103,7 @@ public class AWTNewtFactory {
       if(0==windowHandle) {
         throw new NativeWindowException("Null window handle: "+parent);
       }
-      Window window = NewtFactory.createWindow(windowHandle, newtScreen, newtCaps);
+      Window window = NewtFactory.createWindow(windowHandle, newtScreen, newtCaps, undecorated);
       new AWTParentWindowAdapter(window).addTo(awtParent);
       return window;
   }

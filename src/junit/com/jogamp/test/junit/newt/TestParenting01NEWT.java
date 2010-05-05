@@ -70,21 +70,14 @@ public class TestParenting01NEWT {
 
     static Window createWindow(NativeWindow parent, Screen screen, Capabilities caps, int width, int height) {
         Assert.assertNotNull(caps);
-        //
-        // Create native windowing resources .. X11/Win/OSX
-        // 
         Window window;
-        window = ( null == parent ) ? NewtFactory.createWindow(screen, caps) : NewtFactory.createWindow(parent, screen, caps) ;
+        window = ( null == parent ) ? NewtFactory.createWindow(screen, caps, false) : NewtFactory.createWindow(parent, screen, caps, false) ;
         Assert.assertNotNull(window);
         window.setSize(width, height);
         Assert.assertTrue(false==window.isVisible());
         Assert.assertTrue(width==window.getWidth());
         Assert.assertTrue(height==window.getHeight());
 
-        //
-        // Create native OpenGL resources .. XGL/WGL/CGL .. 
-        // equivalent to GLAutoDrawable methods: setVisible(true)
-        // 
         caps = window.getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities();
         Assert.assertNotNull(caps);
         Assert.assertTrue(caps.getGreenBits()>5);
@@ -134,6 +127,7 @@ public class TestParenting01NEWT {
         glWindow1.setPosition(x,y);
         glWindow1.addKeyListener(new TraceKeyAdapter(new KeyAction(eventFifo)));
         glWindow1.addWindowListener(new TraceWindowAdapter());
+        glWindow1.setVisible(true);
 
         Window window2 = createWindow(window1, screen, caps, width/2, height/2);
         Assert.assertNotNull(window2);
@@ -146,6 +140,7 @@ public class TestParenting01NEWT {
         glWindow2.addKeyListener(new TraceKeyAdapter(new KeyAction(eventFifo)));
         glWindow2.addWindowListener(new TraceWindowAdapter(new WindowAction(eventFifo)));
         // glWindow2.addMouseListener(new TraceMouseAdapter());
+        glWindow2.setVisible(true);
 
         GLEventListener demo1 = new RedSquare();
         setDemoFields(demo1, window1, glWindow1, false);
@@ -154,15 +149,6 @@ public class TestParenting01NEWT {
         GLEventListener demo2 = new Gears();
         setDemoFields(demo2, window2, glWindow2, false);
         glWindow2.addGLEventListener(demo2);
-
-        glWindow2.setVisible(true);
-        glWindow1.setVisible(true);
-
-        glWindow2.setVisible(true);
-        glWindow1.setVisible(true);
-
-        glWindow2.display();
-        glWindow1.display();
 
         boolean shouldQuit = false;
         long duration = durationPerTest;
