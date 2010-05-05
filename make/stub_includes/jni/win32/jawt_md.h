@@ -21,11 +21,14 @@ extern "C" {
  */
 typedef struct jawt_Win32DrawingSurfaceInfo {
     /* Native window, DDB, or DIB handle */
+    /**
     union {
         HWND hwnd;
         HBITMAP hbitmap;
         void* pbits;
-    };
+    }; */
+    HWND handle;
+
     /*
      * This HDC should always be used instead of the HDC returned from
      * BeginPaint() or any calls to GetDC().

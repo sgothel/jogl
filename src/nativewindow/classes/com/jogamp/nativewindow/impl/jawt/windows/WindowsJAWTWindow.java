@@ -56,6 +56,11 @@ public class WindowsJAWTWindow extends JAWTWindow {
   protected void initNative() throws NativeWindowException {
   }
 
+  public synchronized void invalidate() {
+    super.invalidate();
+    windowHandle = 0;
+  }
+
   public int lockSurface() throws NativeWindowException {
     int ret = super.lockSurface();
     if(LOCK_SUCCESS != ret) {
@@ -105,8 +110,9 @@ public class WindowsJAWTWindow extends JAWTWindow {
       super.unlockSurface();
       return LOCK_SURFACE_NOT_READY;
     }
+    windowHandle = win32dsi.getHandle();
     drawable = win32dsi.getHdc();
-    if (drawable == 0) {
+    if (windowHandle == 0 || drawable == 0) {
       // Widget not yet realized
       ds.FreeDrawingSurfaceInfo(dsi);
       ds.Unlock();
@@ -157,6 +163,10 @@ public class WindowsJAWTWindow extends JAWTWindow {
     }
   }
 
+  public long getWindowHandle() {
+    return windowHandle;
+  }
+
   // Variables for lockSurface/unlockSurface
   private JAWT_DrawingSurface ds;
   private JAWT_DrawingSurfaceInfo dsi;
@@ -165,6 +175,8 @@ public class WindowsJAWTWindow extends JAWTWindow {
   private int  profilingLockSurfaceTicks = 0;
   private long profilingUnlockSurfaceTime = 0;
   private int  profilingUnlockSurfaceTicks = 0;
-  
+
+  // lifetime: valid after lock, forever until invalidate
+  protected long windowHandle;
 }
 
