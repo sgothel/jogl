@@ -83,9 +83,7 @@ public abstract class Display {
         Map displayMap = getCurrentDisplayMap();
         Display oldDisplay = null;
         synchronized(displayMap) {
-            String name = display.getName();
-            if(null==name) name="nil";
-            oldDisplay = (Display) displayMap.put(name, display);
+            oldDisplay = (Display) displayMap.put(display.getFQName(), display);
             displayMap.notifyAll();
         }
         return oldDisplay;
@@ -93,22 +91,20 @@ public abstract class Display {
 
     /** removes the mapping of the given name from the thread local display map
       * and notifies all threads synchronized to this display map. */
-    protected static Display removeCurrentDisplay(String name) {
-        if(null==name) name="nil";
+    protected static Display removeCurrentDisplay(String type, String name) {
         Map displayMap = getCurrentDisplayMap();
         Display oldDisplay = null;
         synchronized(displayMap) {
-            oldDisplay = (Display) displayMap.remove(name);
+            oldDisplay = (Display) displayMap.remove(getFQName(type,name));
             displayMap.notifyAll();
         }
         return oldDisplay;
     }
 
     /** Returns the thread local display mapped to the given name */
-    public static Display getCurrentDisplay(String name) {
-        if(null==name) name="nil";
+    public static Display getCurrentDisplay(String type, String name) {
         Map displayMap = getCurrentDisplayMap();
-        Display display = (Display) displayMap.get(name);
+        Display display = (Display) displayMap.get(getFQName(type,name));
         return display;
     }
 
@@ -132,20 +128,21 @@ public abstract class Display {
     protected static Display create(String type, String name) {
         try {
             if(DEBUG) {
-                dumpDisplayMap("Display.create("+name+") BEGIN");
+                dumpDisplayMap("Display.create("+getFQName(type, name)+") BEGIN");
             }
-            Display display = getCurrentDisplay(name);
+            Display display = getCurrentDisplay(type, name);
             if(null==display) {
                 Class displayClass = getDisplayClass(type);
                 display = (Display) displayClass.newInstance();
                 display.name=name;
+                display.type=type;
                 display.refCount=1;
 
                 if(NewtFactory.useEDT()) {
                     final Display f_dpy = display;
                     Thread current = Thread.currentThread();
                     display.edtUtil = new EDTUtil(current.getThreadGroup(), 
-                                                  "Display_"+display.getName()+"-"+current.getName(),
+                                                  "Display_"+display.getFQName()+"-"+current.getName(),
                                                   new Runnable() {
                                                     public void run() {
                                                         if(null!=f_dpy.getGraphicsDevice()) {
@@ -166,18 +163,18 @@ public abstract class Display {
                 }
                 setCurrentDisplay(display);
                 if(DEBUG) {
-                    System.err.println("Display.create("+name+") NEW: "+display+" "+Thread.currentThread());
+                    System.err.println("Display.create("+getFQName(type, name)+") NEW: "+display+" "+Thread.currentThread());
                 }
             } else {
                 synchronized(display) {
                     display.refCount++;
                     if(DEBUG) {
-                        System.err.println("Display.create("+name+") REUSE: refCount "+display.refCount+", "+display+" "+Thread.currentThread());
+                        System.err.println("Display.create("+getFQName(type, name)+") REUSE: refCount "+display.refCount+", "+display+" "+Thread.currentThread());
                     }
                 }
             }
             if(DEBUG) {
-                dumpDisplayMap("Display.create("+name+") END");
+                dumpDisplayMap("Display.create("+getFQName(type, name)+") END");
             }
             return display;
         } catch (Exception e) {
@@ -190,6 +187,7 @@ public abstract class Display {
             Class displayClass = getDisplayClass(type);
             Display display = (Display) displayClass.newInstance();
             display.name=name;
+            display.type=type;
             display.aDevice=aDevice;
             return display;
         } catch (Exception e) {
@@ -201,13 +199,13 @@ public abstract class Display {
 
     public synchronized void destroy() {
         if(DEBUG) {
-            dumpDisplayMap("Display.destroy("+name+") BEGIN");
+            dumpDisplayMap("Display.destroy("+getFQName()+") BEGIN");
         }
         refCount--;
         if(0==refCount) {
-            removeCurrentDisplay(name);
+            removeCurrentDisplay(type, name);
             if(DEBUG) {
-                System.err.println("Display.destroy("+name+") REMOVE: "+this+" "+Thread.currentThread());
+                System.err.println("Display.destroy("+getFQName()+") REMOVE: "+this+" "+Thread.currentThread());
             }
             if(null!=edtUtil) {
                 final Display f_dpy = this;
@@ -228,19 +226,35 @@ public abstract class Display {
             aDevice = null;
         } else {
             if(DEBUG) {
-                System.err.println("Display.destroy("+name+") KEEP: refCount "+refCount+", "+this+" "+Thread.currentThread());
+                System.err.println("Display.destroy("+getFQName()+") KEEP: refCount "+refCount+", "+this+" "+Thread.currentThread());
             }
         }
         if(DEBUG) {
-            dumpDisplayMap("Display.destroy("+name+") END");
+            dumpDisplayMap("Display.destroy("+getFQName()+") END");
         }
     }
 
     protected abstract void createNative();
     protected abstract void closeNative();
 
-    public String getName() {
+    public final String getType() {
+        return type;
+    }
+
+    public final String getName() {
         return name;
+    }
+
+    public final String getFQName() {
+        return getFQName(type, name);
+    }
+
+    static final String nilString = "nil" ;
+
+    public static final String getFQName(String type, String name) {
+        if(null==type) type=nilString;
+        if(null==name) name=nilString;
+        return type+":"+name;
     }
 
     public long getHandle() {
@@ -264,7 +278,7 @@ public abstract class Display {
     }
 
     public String toString() {
-        return "NEWT-Display["+name+", refCount "+refCount+", "+aDevice+"]";
+        return "NEWT-Display["+getFQName()+", refCount "+refCount+", "+aDevice+"]";
     }
 
     protected abstract void dispatchMessagesNative();
@@ -296,7 +310,7 @@ public abstract class Display {
 
     public void enqueueEvent(NEWTEvent e) {
         synchronized(events) {
-            events.add(e);
+            events.addLast(e);
         }
     }
 
@@ -310,6 +324,7 @@ public abstract class Display {
     protected EDTUtil edtUtil = null;
     protected Thread  edt = null;
     protected String name;
+    protected String type;
     protected int refCount;
     protected AbstractGraphicsDevice aDevice;
 }
