@@ -98,7 +98,7 @@
 
 #include "NewtCommon.h"
 
-// #define VERBOSE_ON 1
+#define VERBOSE_ON 1
 // #define DEBUG_KEYS 1
 
 #ifdef VERBOSE_ON
@@ -597,6 +597,7 @@ static int WmKeyUp(JNIEnv *env, jobject window, UINT wkey, UINT repCnt,
 
 static void NewtWindows_requestFocus (HWND hwnd) {
     if (IsWindow(hwnd)) {
+        SetWindowPos(hwnd, HWND_TOP, 0, 0, 0, 0, SWP_SHOWWINDOW | SWP_NOSIZE | SWP_NOMOVE);
         SetForegroundWindow(hwnd);  // Slightly Higher Priority
         SetFocus(hwnd);// Sets Keyboard Focus To TheWindow                 
     }
@@ -1088,6 +1089,10 @@ JNIEXPORT jlong JNICALL Java_com_jogamp_newt_impl_windows_WindowsWindow_CreateWi
 #endif
 
     if(NULL!=parentWindow) {
+        if (!IsWindow(parentWindow)) {
+            DBG_PRINT("*** WindowsWindow: CreateWindow failure: Passed parentWindow %p is invalid\n", parentWindow);
+            return 0;
+        }
         windowStyle |= WS_CHILD ;
     } else if (bIsUndecorated) {
         windowStyle |= WS_POPUP | WS_SYSMENU | WS_MAXIMIZEBOX | WS_MINIMIZEBOX;
@@ -1107,7 +1112,11 @@ JNIEXPORT jlong JNICALL Java_com_jogamp_newt_impl_windows_WindowsWindow_CreateWi
 
     DBG_PRINT("*** WindowsWindow: CreateWindow parent %p, window %p, %d/%d %dx%d\n", parentWindow, window, x, y, width, height);
 
-    if (NULL != window) {
+    if (NULL == window) {
+        int lastError = (int) GetLastError();
+        DBG_PRINT("*** WindowsWindow: CreateWindow failure: 0x%X %d\n", lastError, lastError);
+        return 0;
+    } else {
         WindowUserData * wud = (WindowUserData *) malloc(sizeof(WindowUserData));
         wud->jinstance = (*env)->NewGlobalRef(env, obj);
         wud->jenv = env;
@@ -1196,6 +1205,7 @@ JNIEXPORT void JNICALL Java_com_jogamp_newt_impl_windows_WindowsWindow_setVisibl
     HWND hWnd = (HWND) (intptr_t) window;
     DBG_PRINT("*** WindowsWindow: setVisible window %p, visible: %d\n", hWnd, (int)visible);
     if (visible) {
+        SetWindowPos(hWnd, HWND_TOP, 0, 0, 0, 0, SWP_SHOWWINDOW | SWP_NOSIZE | SWP_NOMOVE);
         ShowWindow(hWnd, SW_SHOW);
     } else {
         ShowWindow(hWnd, SW_HIDE);
