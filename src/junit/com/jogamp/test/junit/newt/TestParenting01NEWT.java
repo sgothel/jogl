@@ -122,7 +122,7 @@ public class TestParenting01NEWT {
         int x = 1;
         int y = 1;
 
-        final NEWTEventFiFo eventFifo = new NEWTEventFiFo();
+        NEWTEventFiFo eventFifo = new NEWTEventFiFo();
 
         Window window1 = createWindow( null, screen, caps, width, height );
         Assert.assertNotNull(window1);
@@ -144,11 +144,7 @@ public class TestParenting01NEWT {
         glWindow2.setTitle("testWindowParenting01NewtOnNewtParentChildDraw - CHILD");
         glWindow2.setPosition(glWindow1.getWidth()/2, glWindow1.getHeight()/2);
         glWindow2.addKeyListener(new TraceKeyAdapter(new KeyAction(eventFifo)));
-        glWindow2.addWindowListener(new TraceWindowAdapter(new WindowAdapter() {
-                    public void windowDestroyNotify(WindowEvent e) {
-                        eventFifo.put(e);
-                    }
-                }));
+        glWindow2.addWindowListener(new TraceWindowAdapter(new WindowAction(eventFifo)));
         // glWindow2.addMouseListener(new TraceMouseAdapter());
 
         GLEventListener demo1 = new RedSquare();

@@ -129,7 +129,7 @@ public class TestParenting01AWT {
         Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
         Assert.assertNotNull(screen);
 
-        final NEWTEventFiFo eventFifo = new NEWTEventFiFo();
+        NEWTEventFiFo eventFifo = new NEWTEventFiFo();
 
         Window window2 = NewtFactory.createWindow(overlayedAWTComponent, screen, caps);
         Assert.assertNotNull(window2);
@@ -144,11 +144,7 @@ public class TestParenting01AWT {
 
         glWindow2.setTitle("NEWT - CHILD");
         glWindow2.addKeyListener(new TraceKeyAdapter(new KeyAction(eventFifo)));
-        glWindow2.addWindowListener(new TraceWindowAdapter(new WindowAdapter() {
-                    public void windowDestroyNotify(WindowEvent e) {
-                        eventFifo.put(e);
-                    }
-                }));
+        glWindow2.addWindowListener(new TraceWindowAdapter(new WindowAction(eventFifo)));
 
         GLEventListener demo2 = new Gears();
         setDemoFields(demo2, window2, glWindow2, false);
