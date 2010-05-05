@@ -588,7 +588,7 @@ public abstract class Window implements NativeWindow
     // Generic Event Support
     //
 
-    protected void sendEvent(NEWTEvent e) {
+    public void sendEvent(NEWTEvent e) {
         if(e instanceof WindowEvent) {
             sendWindowEvent((WindowEvent)e);
         } else if(e instanceof KeyEvent) {

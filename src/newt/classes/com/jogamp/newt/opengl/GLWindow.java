@@ -281,6 +281,10 @@ public class GLWindow extends Window implements GLAutoDrawable {
         return window.isUndecorated();
     }
 
+    public void requestFocus() {
+        window.requestFocus();
+    }
+
     public void setSize(int width, int height) {
         window.setSize(width, height);
     }
@@ -335,6 +339,10 @@ public class GLWindow extends Window implements GLAutoDrawable {
     }
     public void surfaceUpdated(Object updater, NativeWindow window0, long when) { 
         window.surfaceUpdated(updater, window, when);
+    }
+
+    public void sendEvent(NEWTEvent e) {
+        window.sendEvent(e);
     }
 
     public void addMouseListener(MouseListener l) {
