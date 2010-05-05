@@ -1,4 +1,4 @@
-#! /bin/sh
+#! /bin/bash
 
 scriptdir=`dirname $0`
 
@@ -25,7 +25,7 @@ if [ -z "$1" ] ; then
     exit
 fi
 
-. $scriptdir/setenv-jogl.sh $1
+. $scriptdir/setenv-jogl.sh $1 JOGL_ALLALL
 shift
 
 MOSX=0
@@ -35,5 +35,7 @@ uname -a | grep -i Darwin && MOSX=1
 # D_ARGS="-Dnativewindow.debug=all -Djogl.debug=all -Dnewt.debug=all -Djogl.debug.GLSLState"
 # D_ARGS="-Dnativewindow.debug.X11Util=true -Djogl.debug.GLDrawableFactory=true"
 # D_ARGS="-Dnativewindow.debug.X11Util=true"
+# D_ARGS="-Dnewt.debug=all"
 
-java $X_ARGS $D_ARGS $* 2>&1 | tee java-run.log
+echo java $X_ARGS $D_ARGS $* 2>&1 | tee java-run.log
+java $X_ARGS $D_ARGS $* 2>&1 | tee -a java-run.log

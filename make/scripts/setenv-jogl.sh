@@ -1,7 +1,7 @@
 #! /bin/sh
 
 function print_usage() {
-    echo "Usage: $0 jogl-build-dir"
+    echo "Usage: $0 jogl-build-dir [JOGL_PROFILE]"
 }
 
 if [ -z "$1" ] ; then
@@ -14,10 +14,15 @@ if [ -e /devtools/etc/profile.ant ] ; then
     . /devtools/etc/profile.ant
 fi
 
-JOGL_PROFILE=JOGL_ALL
-
 JOGL_BUILDDIR=$1
 shift
+
+if [ -z "$1" ] ; then
+    JOGL_PROFILE=JOGL_ALL
+else
+    JOGL_PROFILE=$1
+    shift
+fi
 
 THISDIR=`pwd`
 
