@@ -44,8 +44,13 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Test;
 
+import java.awt.Button;
+import java.awt.BorderLayout;
+import java.awt.Canvas;
+import java.awt.Component;
+import java.awt.Frame;
+
 import javax.media.opengl.*;
-import javax.media.nativewindow.*;
 import javax.media.nativewindow.*;
 
 import com.jogamp.newt.*;
@@ -58,7 +63,7 @@ import com.jogamp.test.junit.util.*;
 import com.jogamp.test.junit.jogl.demos.es1.RedSquare;
 import com.jogamp.test.junit.jogl.demos.gl2.gears.Gears;
 
-public class TestParenting01NEWT {
+public class TestParenting01AWT {
     static int width, height;
     static long durationPerTest = 500;
 
@@ -66,33 +71,6 @@ public class TestParenting01NEWT {
     public static void initClass() {
         width  = 640;
         height = 480;
-    }
-
-    static Window createWindow(NativeWindow parent, Screen screen, Capabilities caps, int width, int height) {
-        Assert.assertNotNull(caps);
-        //
-        // Create native windowing resources .. X11/Win/OSX
-        // 
-        Window window;
-        window = ( null == parent ) ? NewtFactory.createWindow(screen, caps) : NewtFactory.createWindow(parent, screen, caps) ;
-        Assert.assertNotNull(window);
-        window.setSize(width, height);
-        Assert.assertTrue(false==window.isVisible());
-        Assert.assertTrue(width==window.getWidth());
-        Assert.assertTrue(height==window.getHeight());
-
-        //
-        // Create native OpenGL resources .. XGL/WGL/CGL .. 
-        // equivalent to GLAutoDrawable methods: setVisible(true)
-        // 
-        caps = window.getGraphicsConfiguration().getNativeGraphicsConfiguration().getChosenCapabilities();
-        Assert.assertNotNull(caps);
-        Assert.assertTrue(caps.getGreenBits()>5);
-        Assert.assertTrue(caps.getBlueBits()>5);
-        Assert.assertTrue(caps.getRedBits()>5);
-        Assert.assertTrue(caps.isOnscreen()==true);
-
-        return window;
     }
 
     static void destroyWindow(Display display, Screen screen, Window window, GLWindow glWindow) {
@@ -111,77 +89,83 @@ public class TestParenting01NEWT {
     }
 
     @Test
-    public void testWindowParenting01NewtOnNewtParentChildDraw() throws InterruptedException {
+    public void testWindowParenting01NewtChildOnAWTParentLayouted() throws InterruptedException {
+        runNewtChildOnAWTParent(true);
+    }
+
+    @Test
+    public void testWindowParenting02NewtChildOnAWTParentDirect() throws InterruptedException {
+        runNewtChildOnAWTParent(false);
+    }
+
+    public void runNewtChildOnAWTParent(boolean useLayout) throws InterruptedException {
+        Frame frame = new Frame("AWT Parent Frame");
+        Assert.assertNotNull(frame);
+        Component overlayedAWTComponent = null;
+
+        if(useLayout) {
+            overlayedAWTComponent = new Canvas();
+
+            frame.setLayout(new BorderLayout());
+            frame.add(new Button("North"), BorderLayout.NORTH);
+            frame.add(new Button("South"), BorderLayout.SOUTH);
+            frame.add(new Button("East"), BorderLayout.EAST);
+            frame.add(new Button("West"), BorderLayout.WEST);
+            frame.add(overlayedAWTComponent, BorderLayout.CENTER);
+
+        } else {
+            overlayedAWTComponent = frame;
+        }
+
+        Assert.assertNotNull(overlayedAWTComponent);
+        frame.setSize(width, height);
+        frame.setVisible(true); // should have native peers after this!
+
         GLCapabilities caps = new GLCapabilities(null);
         Assert.assertNotNull(caps);
         Display display = NewtFactory.createDisplay(null); // local display
         Assert.assertNotNull(display);
+        System.out.println("Display: "+display);
         Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
         Assert.assertNotNull(screen);
 
-        int x = 1;
-        int y = 1;
-
         final NEWTEventFiFo eventFifo = new NEWTEventFiFo();
 
-        Window window1 = createWindow( null, screen, caps, width, height );
-        Assert.assertNotNull(window1);
-        GLWindow glWindow1 = GLWindow.create(window1);
-        Assert.assertNotNull(glWindow1);
-        Assert.assertTrue(width==glWindow1.getWidth());
-        Assert.assertTrue(height==glWindow1.getHeight());
-        glWindow1.setTitle("testWindowParenting01NewtOnNewtParentChildDraw - PARENT");
-        glWindow1.setPosition(x,y);
-        glWindow1.addKeyListener(new TraceKeyAdapter(new KeyAction(eventFifo)));
-        glWindow1.addWindowListener(new TraceWindowAdapter());
-
-        Window window2 = createWindow(window1, screen, caps, width/2, height/2);
+        Window window2 = NewtFactory.createWindow(overlayedAWTComponent, screen, caps);
         Assert.assertNotNull(window2);
+
         GLWindow glWindow2 = GLWindow.create(window2);
         Assert.assertNotNull(glWindow2);
-        Assert.assertTrue(width/2==glWindow2.getWidth());
-        Assert.assertTrue(height/2==glWindow2.getHeight());
-        glWindow2.setTitle("testWindowParenting01NewtOnNewtParentChildDraw - CHILD");
-        glWindow2.setPosition(glWindow1.getWidth()/2, glWindow1.getHeight()/2);
+
+        glWindow2.setSize(width, height);
+        Assert.assertTrue(false==glWindow2.isVisible());
+        Assert.assertTrue(width==glWindow2.getWidth());
+        Assert.assertTrue(height==glWindow2.getHeight());
+
+        glWindow2.setTitle("NEWT - CHILD");
         glWindow2.addKeyListener(new TraceKeyAdapter(new KeyAction(eventFifo)));
         glWindow2.addWindowListener(new TraceWindowAdapter(new WindowAdapter() {
                     public void windowDestroyNotify(WindowEvent e) {
                         eventFifo.put(e);
                     }
                 }));
-        // glWindow2.addMouseListener(new TraceMouseAdapter());
-
-        GLEventListener demo1 = new RedSquare();
-        setDemoFields(demo1, window1, glWindow1, false);
-        glWindow1.addGLEventListener(demo1);
 
         GLEventListener demo2 = new Gears();
         setDemoFields(demo2, window2, glWindow2, false);
         glWindow2.addGLEventListener(demo2);
 
         glWindow2.setVisible(true);
-        glWindow1.setVisible(true);
-
-        glWindow2.setVisible(true);
-        glWindow1.setVisible(true);
-
         glWindow2.display();
-        glWindow1.display();
 
-        boolean shouldQuit = false;
         long duration = durationPerTest;
         long step = 20;
         NEWTEvent event;
+        boolean shouldQuit = false;
 
         while (duration>0 && !shouldQuit) {
-            glWindow1.display();
             glWindow2.display();
             Thread.sleep(step);
             duration -= step;
-            x += 1;
-            y += 1;
-            glWindow1.setPosition(x,y);
-            glWindow2.setPosition(glWindow1.getWidth()/2,glWindow1.getHeight()/2-y);
 
             while( null != ( event = (NEWTEvent) eventFifo.get() ) ) {
                 Window source = (Window) event.getSource();
@@ -201,7 +185,7 @@ public class TestParenting01NEWT {
             }
         }
         destroyWindow(null, null, window2, glWindow2);
-        destroyWindow(display, screen, window1, glWindow1);
+        frame.dispose();
     }
 
     public static void setDemoFields(GLEventListener demo, Window window, GLWindow glWindow, boolean debug) {
@@ -218,7 +202,7 @@ public class TestParenting01NEWT {
 
     public static void main(String args[]) throws IOException {
         durationPerTest = 5000;
-        String tstname = TestParenting01NEWT.class.getName();
+        String tstname = TestParenting01AWT.class.getName();
         org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner.main(new String[] {
             tstname,
             "filtertrace=true",

@@ -33,10 +33,13 @@
 
 package com.jogamp.newt;
 
+import com.jogamp.common.util.ReflectionUtil;
 import javax.media.nativewindow.*;
 import java.util.ArrayList;
 import java.util.Iterator;
 import com.jogamp.common.jvm.JVMUtil;
+import com.jogamp.newt.event.WindowAdapter;
+import com.jogamp.newt.event.WindowEvent;
 
 public abstract class NewtFactory {
     // Work-around for initialization order problems on Mac OS X
@@ -100,18 +103,87 @@ public abstract class NewtFactory {
     }
 
     /**
-     * Create a Window entity, incl native creation
+     * Create a top level Window entity, incl native creation
      */
     public static Window createWindow(Screen screen, Capabilities caps) {
         return Window.create(NativeWindowFactory.getNativeWindowType(true), 0, screen, caps, false);
     }
 
+    /**
+     * Create a top level Window entity, incl native creation
+     */
     public static Window createWindow(Screen screen, Capabilities caps, boolean undecorated) {
         return Window.create(NativeWindowFactory.getNativeWindowType(true), 0, screen, caps, undecorated);
     }
 
-    public static Window createWindow(long parentWindowHandle, Screen screen, Capabilities caps, boolean undecorated) {
-        return Window.create(NativeWindowFactory.getNativeWindowType(true), parentWindowHandle, screen, caps, undecorated);
+    /**
+     * Create a child Window entity attached to the given parent, incl native creation<br>
+     * <p>
+     * In case <code>parentWindowObject</code> is a {@link javax.media.nativewindow.NativeWindow},<br>
+     * we create a child {@link com.jogamp.newt.Window}, 
+     * utilizing {@link com.jogamp.newt.NewtFactory#createWindow(long, com.jogamp.newt.Screen, com.jogamp.newt.Capabilities)}, 
+     * passing the parent's native window handle retrieved via {@link javax.media.nativewindow.NativeWindow#getWindowHandle()}.<br></p>
+     * <p>
+     * In case <code>parentWindowObject</code> is even a {@link com.jogamp.newt.Window}, the following applies:<br>
+     * {@link com.jogamp.newt.event.WindowEvent#EVENT_WINDOW_RESIZED} is not propagated to the child window for e.g. layout<br>,
+     * you have to add an appropriate {@link com.jogamp.newt.event.WindowListener} for this use case.<br>
+     * However, {@link com.jogamp.newt.event.WindowEvent#EVENT_WINDOW_DESTROY_NOTIFY} is propagated to the child window, so it will be closed properly.<br>
+     * In case <code>parentWindowObject</code> is a different {@javax.media.nativewindow.NativeWindow} implementation,<br>
+     * you have to handle all events appropriatly.<br></p>
+     * <p>
+     * In case <code>parentWindowObject</code> is a {@link java.awt.Component},<br>
+     * we utilize the {@link com.jogamp.newt.impl.awt.AWTNewtFactory#createNativeChildWindow(Object, com.jogamp.newt.Screen, com.jogamp.newt.Capabilities)}
+     * factory method.<br>
+     * The factory adds a {@link com.jogamp.newt.event.WindowListener} to propagate {@link com.jogamp.newt.event.WindowEvent}'s so
+     * your NEWT Window integrates into the AWT layout.<br></p>
+     *
+     * @param parentWindowObject either a NativeWindow or java.awt.Component 
+     *
+     * @see com.jogamp.newt.NewtFactory#createWindow(long, com.jogamp.newt.Screen, com.jogamp.newt.Capabilities)
+     * @see com.jogamp.newt.impl.awt.AWTNewtFactory#createNativeChildWindow(Object, com.jogamp.newt.Screen, com.jogamp.newt.Capabilities)
+     */
+    public static Window createWindow(Object parentWindowObject, Screen screen, Capabilities caps) {
+        if(null==parentWindowObject) {
+            throw new RuntimeException("Null parentWindowObject");
+        }
+        if(parentWindowObject instanceof NativeWindow) {
+            NativeWindow nativeParentWindow = (NativeWindow) parentWindowObject;
+            nativeParentWindow.lockSurface();
+            long parentWindowHandle = nativeParentWindow.getWindowHandle();
+            nativeParentWindow.unlockSurface();
+            final Window win = createWindow(parentWindowHandle, screen, caps);
+            if ( nativeParentWindow instanceof Window) {
+                final Window f_nativeParentWindow = (Window) nativeParentWindow ;
+                f_nativeParentWindow.addWindowListener(new WindowAdapter() {
+                    public void windowDestroyNotify(WindowEvent e) {
+                        win.sendEvent(e);
+                    }
+                });
+            }
+            return win;
+        } else {
+            if(ReflectionUtil.instanceOf(parentWindowObject, "java.awt.Component")) {
+                if(ReflectionUtil.isClassAvailable("com.jogamp.newt.impl.awt.AWTNewtFactory")) {
+                    return (Window) ReflectionUtil.callStaticMethod("com.jogamp.newt.impl.awt.AWTNewtFactory",
+                                                                    "createNativeChildWindow",
+                                                                    new Class[]  { Object.class, Screen.class, Capabilities.class },
+                                                                    new Object[] { parentWindowObject, screen, caps } );
+                }
+            }
+        }
+        throw new RuntimeException("No NEWT child Window factory method for parent object: "+parentWindowObject);
+    }
+
+    /**
+     * Create a child Window entity attached to the given parent, incl native creation<br>
+     *
+     * @param parentWindowObject the native parent window handle
+     */
+    public static Window createWindow(long parentWindowHandle, Screen screen, Capabilities caps) {
+        if(0==parentWindowHandle) {
+            throw new RuntimeException("Null parentWindowHandle");
+        }
+        return Window.create(NativeWindowFactory.getNativeWindowType(true), parentWindowHandle, screen, caps, true);
     }
 
     /**
