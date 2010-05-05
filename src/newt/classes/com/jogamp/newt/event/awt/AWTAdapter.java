@@ -33,62 +33,71 @@ package com.jogamp.newt.event.awt;
 
 /**
  * Convenient adapter forwarding AWT events to NEWT via the event listener model.<br>
- *
+ * <p>
  * You may attach an instance of this adapter to an AWT Component. When an event happen,
- * it is converted to a NEWT event and the given NEWT listener is being called.<br>
- *
+ * it is converted to a NEWT event and the given NEWT listener is being called.<br></p>
+ * <p>
  * This adapter fullfills three use cases. First as a plain utility to write code AWT agnostic,
- * ie write an {@link javax.media.opengl.GLEvenListener} and some appropriate NEWT {@link com.jogamp.newt.event.NEWTEventListener}.<br>
- *
- * Attach the {@link javax.media.opengl.GLEvenListener} to a NEWT {@link javax.media.opengl.GLAutoDrawable}, e.g. {@link com.jogamp.newt.opengl.GLWindow},
+ * ie write an {@link javax.media.opengl.GLEvenListener} and some appropriate NEWT {@link com.jogamp.newt.event.NEWTEventListener}.<br></p>
+ * <p>
+ * Attach the {@link javax.media.opengl.GLEvenListener} to a NEWT {@link javax.media.opengl.GLAutoDrawable}, e.g. {@link com.jogamp.newt.opengl.GLWindow},<br>
  * or to an AWT {@link javax.media.opengl.GLAutoDrawable}, e.g. {@link javax.media.opengl.awt.GLCanvas}.<br>
- * Attach the NEWT {@link com.jogamp.newt.event.NEWTEventListener} to a NEWT component, e.g. {@link com.jogamp.newt.Window},
- * or to an AWT component, e.g. {@link java.awt.Component}.<br><br>
+ * <br>
+ * Attach the NEWT {@link com.jogamp.newt.event.NEWTEventListener} to a NEWT component, e.g. {@link com.jogamp.newt.Window},<br>
+ * or to an AWT component, e.g. {@link java.awt.Component}.<br></p>
+ * <p>
+ * Common:<br>
  * <code>
-    javax.media.opengl.GLEvenListener demo1 = new javax.media.opengl.GLEvenListener() { ... } ;
-    com.jogamp.newt.event.MouseListener mouseListener = new com.jogamp.newt.event.MouseAdapter() { ... } ;
-
-    // NEWT Usage
-    GLWindow glWindow = GLWindow.create();
-    glWindow.addGLEventListener(demo1);
-    glWindow.addMouseListener(mouseListener);
-    ..
-
-    // AWT Usage
-    GLCanvas glCanvas = new GLCanvas();
-    glCanvas.addGLEventListener(demo1);
-    new AWTMouseAdapter(mouseListener).addTo(glCanvas);
-
-    // This last line is nothing else but a simplified form of:
-    AWTMouseAdapter mouseAdapter = new AWTMouseAdapter(mouseListener);
-    glCanvas.addMouseListener(mouseAdapter);
-    glCanvas.addMouseMotionListener(mouseAdapter);
- * </code>
+    javax.media.opengl.GLEvenListener demo1 = new javax.media.opengl.GLEvenListener() { ... } ;<br>
+    com.jogamp.newt.event.MouseListener mouseListener = new com.jogamp.newt.event.MouseAdapter() { ... } ;<br>
+ * </code> </p>
+ * <p>
+ * NEWT Usage:<br>
+ * <code>
+    GLWindow glWindow = GLWindow.create();<br>
+    glWindow.addGLEventListener(demo1);<br>
+    glWindow.addMouseListener(mouseListener);<br>
+ * </code> </p>
+ * <p>
+ * AWT Usage:<br>
+ * <code>
+    GLCanvas glCanvas = new GLCanvas();<br>
+    glCanvas.addGLEventListener(demo1);<br>
+    <br>
+    new AWTMouseAdapter(mouseListener).addTo(glCanvas);<br>
+ * </code> </p>
+ * <p>
+ * AWT Usage (previous form in detail):<br>
+ * <code>
+    AWTMouseAdapter mouseAdapter = new AWTMouseAdapter(mouseListener);<br>
+    glCanvas.addMouseListener(mouseAdapter);<br>
+    glCanvas.addMouseMotionListener(mouseAdapter);<br>
+ * </code> </p>
  *
- * Second is just a litte variation, where we pass a NEWT Window 
- * to impersonate as the source of the event.<br>
- * 
+ * <p>
+ * Second is just a litte variation, where we pass a NEWT Window <br>
+ * to impersonate as the source of the event.<br></p>
+ * <p>
  * <code>
-    com.jogamp.newt.event.MouseListener mouseListener = new com.jogamp.newt.event.MouseAdapter() { ... } ;
-    Component comp = ... ;                 // the AWT  component
-    GLWindow glWindow = GLWindow.create(); // the NEWT component
-
-    new AWTMouseAdapter(mouseListener, glWindow).addTo(comp);
- * </code>
+    com.jogamp.newt.event.MouseListener mouseListener = new com.jogamp.newt.event.MouseAdapter() { ... } ;<br>
+    Component comp = ... ;                 // the AWT  component<br>
+    GLWindow glWindow = GLWindow.create(); // the NEWT component<br>
+    <br>
+    new AWTMouseAdapter(mouseListener, glWindow).addTo(comp);<br>
+ * </code> </p>
  * 
  * Last but not least, the AWTAdapter maybe used as a general AWT event forwarder to NEWT.<br>
  *
+ * <p>
  * <code>
-    com.jogamp.newt.event.MouseListener mouseListener = new com.jogamp.newt.event.MouseAdapter() { ... } ;
-    Component comp = ... ;                 // the AWT  component
-    GLWindow glWindow = GLWindow.create(); // the NEWT component
-    glWindow.addMouseListener(mouseListener); // add the custom EventListener to the NEWT component
-
-    new AWTMouseAdapter(glWindow).addTo(comp); // forward all AWT events to glWindow, as NEWT events
- * </code>
+    com.jogamp.newt.event.MouseListener mouseListener = new com.jogamp.newt.event.MouseAdapter() { ... } ;<br>
+    Component comp = ... ;                 // the AWT  component<br>
+    GLWindow glWindow = GLWindow.create(); // the NEWT component<br>
+    glWindow.addMouseListener(mouseListener); // add the custom EventListener to the NEWT component<br>
+    <br>
+    new AWTMouseAdapter(glWindow).addTo(comp); // forward all AWT events to glWindow, as NEWT events<br>
+ * </code> </p>
  * 
- * </code>
- *
  * @see #attachTo
  */
 public abstract class AWTAdapter implements java.util.EventListener

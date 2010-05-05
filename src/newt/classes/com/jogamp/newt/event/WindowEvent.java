@@ -35,6 +35,11 @@ package com.jogamp.newt.event;
 
 import com.jogamp.newt.*;
 
+/**
+ * NEWT Window events are provided for notification purposes ONLY.<br>
+ * NEWT will automatically handle component moves and resizes internally, regardless of whether a program is receiving these events or not. <br>
+ * The actual event semantic, here move and resize, is processed before the event is send.<br>
+ */
 public class WindowEvent extends NEWTEvent {
     public static final int EVENT_WINDOW_RESIZED = 100;
     public static final int EVENT_WINDOW_MOVED   = 101; 

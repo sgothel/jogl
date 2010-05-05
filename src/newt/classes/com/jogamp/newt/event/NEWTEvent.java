@@ -36,6 +36,11 @@ package com.jogamp.newt.event;
 import com.jogamp.newt.*;
 import java.util.*;
 
+/**
+ * NEWT events are provided for notification purposes ONLY;<br>
+ * The NEWT will automatically handle the event semantics internally, regardless of whether a program is receiving these events or not.<br>
+ * The actual event semantic is processed before the event is send.<br>
+ */
 public class NEWTEvent extends java.util.EventObject {
     private boolean isSystemEvent;
     private int eventType;
