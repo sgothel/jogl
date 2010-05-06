@@ -83,7 +83,10 @@ public class AWTNewtFactory {
    * utilizing {@link #getNativeWindow(java.awt.Component)}.<br>
    * The actual wrapping implementation is {@link com.jogamp.nativewindow.impl.jawt.JAWTWindow}.<br></p>
    * <p>
-   * Second we create a child {@link com.jogamp.newt.Window}, utilizing {@link com.jogamp.newt.NewtFactory#createWindow(long, com.jogamp.newt.Screen, com.jogamp.newt.Capabilities, boolean)}, passing the AWT parent's native window handle retrieved via {@link com.jogamp.nativewindow.impl.jawt.JAWTWindow#getWindowHandle()}.<br></p>
+   * Second we create a child {@link com.jogamp.newt.Window}, 
+   * utilizing {@link com.jogamp.newt.NewtFactory#createWindow(long, com.jogamp.newt.Screen, javax.media.nativewindow.Capabilities, boolean)},
+   * passing the AWT parent's native window handle retrieved via {@link com.jogamp.nativewindow.impl.jawt.JAWTWindow#getWindowHandle()}.<br></p>
+
    * <p>
    * Third we attach a {@link com.jogamp.newt.event.awt.AWTParentWindowAdapter} to the given AWT component.<br>
    * The adapter passes window related events to our new child window, look at the implementation<br></p>
