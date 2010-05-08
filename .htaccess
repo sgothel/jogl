@@ -1,0 +1,7 @@
+
+RewriteEngine On
+RewriteBase   /jogl
+
+RewriteRule ^$ www/ [R=301,L,NE]
+RewriteRule ^index\.html$ www/index.html [R=301,L,NE]
+
