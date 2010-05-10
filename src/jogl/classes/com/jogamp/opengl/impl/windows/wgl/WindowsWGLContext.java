@@ -219,7 +219,7 @@ public class WindowsWGLContext extends GLContextImpl {
     boolean createContextARBTried = false;
 
     // utilize the shared context's GLXExt in case it was using the ARB method and it already exists
-    if(false && null!=factory.getSharedContext() && factory.getSharedContext().isCreatedWithARBMethod()) { // FIXME JAU
+    if( null!=factory.getSharedContext() && factory.getSharedContext().isCreatedWithARBMethod() ) {
         if(DEBUG) {
           System.err.println("WindowsWGLContext.createContext using shared Context: "+factory.getSharedContext());
         }
@@ -253,8 +253,8 @@ public class WindowsWGLContext extends GLContextImpl {
             hglrc = temp_hglrc;
             return;
         } 
-        // FIXME JAU hglrc = createContextARB(share, true, major, minor, ctp);
-        // FIXME JAU createContextARBTried=true;
+        hglrc = createContextARB(share, true, major, minor, ctp);
+        createContextARBTried=true;
     }
     
     if(0!=hglrc) {
@@ -380,8 +380,8 @@ public class WindowsWGLContext extends GLContextImpl {
     wglMakeContextCurrentEXTAvailable=false;
 
     if (wglExtProcAddressTable == null) {
-      // FIXME: cache ProcAddressTables by capability bits so we can
-      // share them among contexts with the same capabilities
+      // FIXME: cache ProcAddressTables by OpenGL context type bits so we can
+      // share them among contexts classes (GL4, GL4bc, GL3, GL3bc, ..)
       wglExtProcAddressTable = new WGLExtProcAddressTable(new GLProcAddressResolver());
     }          
     resetProcAddressTable(getWGLExtProcAddressTable());

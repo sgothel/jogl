@@ -474,8 +474,8 @@ public abstract class X11GLXContext extends GLContextImpl {
     glXQueryExtensionsStringAvailable = false;
 
     if (glXExtProcAddressTable == null) {
-      // FIXME: cache ProcAddressTables by capability bits so we can
-      // share them among contexts with the same capabilities
+      // FIXME: cache ProcAddressTables by OpenGL context type bits so we can
+      // share them among contexts classes (GL4, GL4bc, GL3, GL3bc, ..)
       glXExtProcAddressTable = new GLXExtProcAddressTable(new GLProcAddressResolver());
     }          
     resetProcAddressTable(getGLXExtProcAddressTable());

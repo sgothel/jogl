@@ -5,7 +5,7 @@
 
     <target name="init" depends="common.init">
         <!-- The javadoc dirs. -->
-        <property name="javadoc" value="${project.root}/javadoc_public" />
+        <property name="javadoc" value="${build}/javadoc_public" />
         <property name="javadoc.link" value="http://java.sun.com/j2se/1.4.2/docs/api/" />
         <property name="javadoc.overview" value="doc/jogl/spec-overview.html" />
 
@@ -14,18 +14,18 @@
         <property name="javadoc.nw.spec.windowtitle" value="NativeWindow API -- ${nativewindow_base_version} Specification" />
         <property name="javadoc.nw.spec.packagenames" value="javax.media.nativewindow.*" />
 
-        <property name="javadoc.spec" value="${project.root}/javadoc_jogl_spec" />
+        <property name="javadoc.spec" value="${build}/javadoc_jogl_spec" />
         <property name="javadoc.spec.windowtitle" value="JOGL API -- JSR-231 ${jogl_base_version} Specification" />
         <property name="javadoc.spec.packagenames" value="javax.media.opengl.*" />
 
         <property name="javadoc.windowtitle" value="JOGL, NativeWindow and NEWT APIs" />
         <property name="javadoc.packagenames" value="${javadoc.nw.spec.packagenames},${javadoc.spec.packagenames},com.jogamp.opengl.util.*,com.jogamp.newt, com.jogamp.newt.event.*, com.jogamp.newt.opengl" />
 
-        <property name="javadoc.dev" value="${project.root}/javadoc_dev" />
+        <property name="javadoc.dev" value="${build}/javadoc_dev" />
         <property name="javadoc.dev.packagenames" value="${javadoc.packagenames},com.jogamp.opengl.impl.*,com.jogamp.nativewindow.impl.*,com.jogamp.newt.*,com.sun.gluegen,com.jogamp.gluegen.runtime" />
 
         <property name="java.excludes.javadoc.packagenames" value="com.jogamp.opengl.impl.gl2.fixme.*,com.jogamp.audio.windows.waveout.TestSpatialization"/>
-        <property name="javadoc.bottom" value="Copyright 2005 Sun Microsystems, Inc. All rights reserved. Use is subject to &lt;a href=&quot;http://jcp.org/en/jsr/detail?id=231&quot;&gt;license terms&lt;/a&gt;." />
+        <property name="javadoc.bottom" value="Copyright 2010 JogAmp Community." />
 
     </target>
 
@@ -188,6 +188,9 @@
             <arg line="-J-Dnativetaglet.mapping=${basedir}/native-taglet.properties"/>
             <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.jar}" />
         </javadoc>
+        <zip destfile="${build}/javadoc_public.zip"
+             basedir="${build}"
+             includes="javadoc_public/**" />
     </target>
 
     <target name="javadoc.jogl.spec" depends="init,javadoc.nw.spec">
@@ -206,6 +209,9 @@
             <link offline="false" href="${javadoc.nw.spec}" />
             <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.jar}" />
         </javadoc>
+        <zip destfile="${build}/javadoc_jogl_spec.zip"
+             basedir="${build}"
+             includes="javadoc_jogl_spec/**" />
     </target>
                                                                                                                                    
     <target name="javadoc.dev" depends="init">
@@ -223,6 +229,9 @@
             <arg line="-J-Dnativetaglet.mapping=${basedir}/native-taglet.properties"/>
             <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.jar}" />
         </javadoc>
+        <zip destfile="${build}/javadoc_dev.zip"
+             basedir="${build}"
+             includes="javadoc_dev/**" />
     </target>
 
     <target name="javadoc.nw.spec" depends="init">
