@@ -54,7 +54,7 @@ if [ ! -e "$GLUEGEN_BUILDDIR" ] ; then
 fi
 GLUEGEN_JAR=$GLUEGEN_BUILDDIR/gluegen-rt.jar
 GLUEGEN_OS=$GLUEGEN_BUILDDIR/obj
-JUNIT_JAR=$GLUEGEN_DIR/make/lib/junit-4.5.jar
+JUNIT_JAR=$GLUEGEN_DIR/make/lib/junit.jar
 
 if [ -z "$ANT_PATH" ] ; then
     if [ -e /usr/share/ant/bin/ant -a -e /usr/share/ant/lib/ant.jar ] ; then

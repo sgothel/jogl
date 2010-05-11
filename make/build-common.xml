@@ -102,8 +102,8 @@
         <echo message="Loaded ${user.properties.file}." />
         <property file="${user.home}/gluegen.properties" />
         <echo message="Loaded ${user.home}/gluegen.properties." />
-        <fail message="antlr.jar was not specified in jogl.properties or gluegen.properties. Please see README.txt for instructions" unless="antlr.jar"/>
         <echo message="antlr.jar=${antlr.jar}" />
+        <echo message="junit.jar=${junit.jar}" />
 
         <property name="target.sourcelevel" value="1.4" />
         <property name="host.sourcelevel"   value="1.5" />
@@ -129,7 +129,6 @@
         <property name="build.gluegen"              value="${gluegen.root}/${rootrel.build}" />
         <property name="obj.gluegen"                value="${build.gluegen}/obj"/>
         <property name="gluegen.jar"                value="${build.gluegen}/gluegen.jar" />
-        <property name="junit.jar"                  value="${gluegen.make}/lib/junit-4.5.jar" />
         <property name="ant.jar"                    value="${ant.home}/lib/ant.jar" />
         <property name="ant-junit.jar"              value="${ant.home}/lib/ant-junit.jar" />
 
