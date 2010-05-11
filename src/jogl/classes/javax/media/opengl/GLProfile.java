@@ -72,26 +72,76 @@ public class GLProfile implements Cloneable {
     public static final boolean isGL2ES1Available()  { return null != mappedProfiles.get(GL2ES1); }
     public static final boolean isGL2ES2Available()  { return null != mappedProfiles.get(GL2ES2); }
 
+    private static final void glAvailabilityToString(StringBuffer sb, int major, int profile) {
+        String str = GLContext.getGLVersionAvailable(major, profile);
+        if(null==str) {
+            throw new GLException("Internal Error");
+        }
+        sb.append("[");
+        sb.append(str);
+        sb.append("]");
+    }
+
     public static final String glAvailabilityToString() {
+        boolean avail;
+        String str;
         StringBuffer sb = new StringBuffer();
+
         sb.append("GLAvailability[Native[GL4bc ");
-        sb.append(isGL4bcAvailable());
+        avail=isGL4bcAvailable();
+        sb.append(avail);
+        if(avail) {
+            glAvailabilityToString(sb, 4, GLContext.CTX_PROFILE_COMPAT);
+        }
+
         sb.append(", GL4 ");
-        sb.append(isGL4Available());
+        avail=isGL4Available();
+        sb.append(avail);
+        if(avail) {
+            glAvailabilityToString(sb, 4, GLContext.CTX_PROFILE_CORE);
+        }
+
         sb.append(", GL3bc ");
-        sb.append(isGL3bcAvailable());
+        avail=isGL3bcAvailable();
+        sb.append(avail);
+        if(avail) {
+            glAvailabilityToString(sb, 3, GLContext.CTX_PROFILE_COMPAT);
+        }
+
         sb.append(", GL3 ");
-        sb.append(isGL3Available());
+        avail=isGL3Available();
+        sb.append(avail);
+        if(avail) {
+            glAvailabilityToString(sb, 3, GLContext.CTX_PROFILE_CORE);
+        }
+
         sb.append(", GL2 ");
-        sb.append(isGL2Available());
+        avail=isGL2Available();
+        sb.append(avail);
+        if(avail) {
+            glAvailabilityToString(sb, 2, GLContext.CTX_PROFILE_COMPAT);
+        }
+
         sb.append(", GL2ES1 ");
         sb.append(isGL2ES1Available());
+
         sb.append(", GLES1 ");
-        sb.append(isGLES1Available());
+        avail=isGLES1Available();
+        sb.append(avail);
+        if(avail) {
+            glAvailabilityToString(sb, 1, GLContext.CTX_PROFILE_ES);
+        }
+
         sb.append(", GL2ES2 ");
         sb.append(isGL2ES2Available());
+
         sb.append(", GLES2 ");
-        sb.append(isGLES2Available());
+        avail=isGLES2Available();
+        sb.append(avail);
+        if(avail) {
+            glAvailabilityToString(sb, 2, GLContext.CTX_PROFILE_ES);
+        }
+
         sb.append("], Profiles[");
         for(Iterator i=mappedProfiles.values().iterator(); i.hasNext(); ) {
             sb.append(((GLProfile)i.next()).toString());
@@ -910,7 +960,7 @@ public class GLProfile implements Cloneable {
         if(hasNativeOSFactory && !GLContext.mappedVersionsAvailableSet) {
             // nobody yet set the available desktop versions, see {@link GLContextImpl#makeCurrent},
             // so we have to add the usual suspect
-            GLContext.mapVersionAvailable(2, true, 1, 5, GLContext.CTX_PROFILE_COMPAT|GLContext.CTX_OPTION_ANY);
+            GLContext.mapVersionAvailable(2, GLContext.CTX_PROFILE_COMPAT, 1, 5, GLContext.CTX_PROFILE_COMPAT|GLContext.CTX_OPTION_ANY);
         }
 
         if(!hasNativeOSFactory) {
@@ -957,7 +1007,7 @@ public class GLProfile implements Cloneable {
         }
         hasGLES2Impl     = btest;
         if(hasGLES2Impl) {
-            GLContext.mapVersionAvailable(2, false, 2, 0, GLContext.CTX_PROFILE_ES|GLContext.CTX_PROFILE_CORE|GLContext.CTX_OPTION_ANY);
+            GLContext.mapVersionAvailable(2, GLContext.CTX_PROFILE_ES, 2, 0, GLContext.CTX_PROFILE_ES|GLContext.CTX_OPTION_ANY);
         }
 
         btest = false;
@@ -983,7 +1033,7 @@ public class GLProfile implements Cloneable {
         }
         hasGLES1Impl     = btest;
         if(hasGLES1Impl) {
-            GLContext.mapVersionAvailable(1, false, 1, 0, GLContext.CTX_PROFILE_ES|GLContext.CTX_PROFILE_CORE|GLContext.CTX_OPTION_ANY);
+            GLContext.mapVersionAvailable(1, GLContext.CTX_PROFILE_ES, 1, 0, GLContext.CTX_PROFILE_ES|GLContext.CTX_OPTION_ANY);
         }
 
         mappedProfiles = computeProfileMap();

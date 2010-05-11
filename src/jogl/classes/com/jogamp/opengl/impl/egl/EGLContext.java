@@ -116,7 +116,7 @@ public abstract class EGLContext extends GLContextImpl {
         }
 
         if (created) {
-            setGLFunctionAvailability(false, -1, -1, CTX_PROFILE_ES|CTX_PROFILE_CORE|CTX_OPTION_ANY);
+            setGLFunctionAvailability(false, -1, -1, CTX_PROFILE_ES|CTX_OPTION_ANY);
             return CONTEXT_CURRENT_NEW;
         }
         return CONTEXT_CURRENT;
@@ -226,7 +226,7 @@ public abstract class EGLContext extends GLContextImpl {
             throw new GLException("Error making context 0x" +
                                   Long.toHexString(eglContext) + " current: error code " + EGL.eglGetError());
         }
-        setGLFunctionAvailability(true, glProfile.usesNativeGLES2()?2:1, 0, CTX_PROFILE_ES|CTX_PROFILE_CORE|CTX_OPTION_ANY);
+        setGLFunctionAvailability(true, glProfile.usesNativeGLES2()?2:1, 0, CTX_PROFILE_ES|CTX_OPTION_ANY);
     }
 
     public boolean isCreated() {

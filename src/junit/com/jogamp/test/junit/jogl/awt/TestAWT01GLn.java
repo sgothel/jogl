@@ -43,12 +43,18 @@ import java.awt.Frame;
 import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.After;
 import org.junit.Test;
 
 public class TestAWT01GLn {
     Frame frame=null;
     GLCanvas glCanvas=null;
+
+    @BeforeClass
+    public static void startup() {
+        System.out.println("GLProfile <static> "+GLProfile.glAvailabilityToString());
+    }
 
     @Before
     public void init() {
@@ -93,13 +99,16 @@ public class TestAWT01GLn {
 
     @Test
     public void test01GLDefault() throws InterruptedException {
-        GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
+        GLProfile glp = GLProfile.getDefault();
+        System.out.println("GLProfile Default: "+glp);
+        GLCapabilities caps = new GLCapabilities(glp);
         runTestGL(caps);
     }
 
     @Test
     public void test03GLMaxFixed() throws InterruptedException {
         GLProfile maxFixed = GLProfile.getMaxFixedFunc();
+        System.out.println("GLProfile MaxFixed: "+maxFixed);
         GLCapabilities caps = new GLCapabilities(maxFixed);
         try {
             runTestGL(caps);

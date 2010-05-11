@@ -438,6 +438,7 @@ public abstract class GLContextImpl extends GLContext {
   private void createContextARBMapVersionsAvailable(int reqMajor, boolean compat)
   {
     long _context;
+    int reqProfile = compat ? CTX_PROFILE_COMPAT : CTX_PROFILE_CORE ;
     int ctp = CTX_IS_ARB_CREATED | CTX_PROFILE_CORE | CTX_OPTION_ANY; // default
     if(compat) {
         ctp &= ~CTX_PROFILE_CORE ;
@@ -495,7 +496,7 @@ public abstract class GLContextImpl extends GLContext {
     }
     if(0!=_context) {
         destroyContextARBImpl(_context);
-        mapVersionAvailable(reqMajor, compat, major[0], minor[0], ctp);
+        mapVersionAvailable(reqMajor, reqProfile, major[0], minor[0], ctp);
     }
   }
 
@@ -532,8 +533,7 @@ public abstract class GLContextImpl extends GLContext {
    */
   protected void setContextVersion(int major, int minor, int ctp) {
       if (0==ctp) {
-        GLException e = new GLException("Invalid GL Version "+major+"."+minor+", ctp "+toHexString(ctp));
-        throw e;
+        throw new GLException("Invalid GL Version "+major+"."+minor+", ctp "+toHexString(ctp));
       }
       if(major>0 || minor>0) {
           if (!GLContext.isValidGLVersion(major, minor)) {
@@ -543,7 +543,7 @@ public abstract class GLContextImpl extends GLContext {
           ctxMajorVersion = major;
           ctxMinorVersion = minor;
           ctxOptions = ctp;
-          ctxVersionString = getGLVersion(gl, ctxMajorVersion, ctxMinorVersion, ctxOptions, getGL().glGetString(GL.GL_VERSION));
+          ctxVersionString = getGLVersion(ctxMajorVersion, ctxMinorVersion, ctxOptions, getGL().glGetString(GL.GL_VERSION));
           return;
       }
 
@@ -560,44 +560,10 @@ public abstract class GLContextImpl extends GLContext {
             ctxMajorVersion = version.getMajor();
             ctxMinorVersion = version.getMinor();
 
-            ctxVersionString = getGLVersion(gl, ctxMajorVersion, ctxMinorVersion, ctxOptions, versionStr);
+            ctxVersionString = getGLVersion(ctxMajorVersion, ctxMinorVersion, ctxOptions, versionStr);
             return;
           }
       }
-  }
-
-  private static boolean appendString(StringBuffer sb, String string, boolean needColon, boolean condition) {
-    if(condition) {
-        if(needColon) {
-            sb.append(", ");
-        }
-        sb.append(string);
-        needColon=true;
-    }
-    return needColon;
-  }
-
-  protected static String getGLVersion(GL gl, int major, int minor, int ctp, String gl_version) {
-    boolean needColon = false;
-    StringBuffer sb = new StringBuffer();
-    sb.append(major);
-    sb.append(".");
-    sb.append(minor);
-    sb.append(" (");
-    needColon = appendString(sb, "ES", needColon, null!=gl && gl.isGLES());
-    needColon = appendString(sb, "compatibility profile", needColon, 0 != ( CTX_PROFILE_COMPAT & ctp ));
-    needColon = appendString(sb, "core profile",          needColon, 0 != ( CTX_PROFILE_CORE & ctp ));
-    needColon = appendString(sb, "forward compatible",    needColon, 0 != ( CTX_OPTION_FORWARD & ctp ));
-    needColon = appendString(sb, "any",                   needColon, 0 != ( CTX_OPTION_ANY & ctp ));
-    needColon = appendString(sb, "new",                   needColon, 0 != ( CTX_IS_ARB_CREATED & ctp ));
-    needColon = appendString(sb, "old",                   needColon, 0 == ( CTX_IS_ARB_CREATED & ctp ));
-    sb.append(") - ");
-    if(null!=gl_version) {
-        sb.append(gl_version);
-    } else {
-        sb.append("n/a");
-    }
-    return sb.toString();
   }
 
   //----------------------------------------------------------------------

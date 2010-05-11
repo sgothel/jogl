@@ -148,6 +148,9 @@ public abstract class X11GLXContext extends GLContextImpl {
 
     long _context=0;
 
+    final int idx_flags = 6;
+    final int idx_profile = 8;
+
     int attribs[] = {
         /*  0 */ GLX.GLX_CONTEXT_MAJOR_VERSION_ARB, major,
         /*  2 */ GLX.GLX_CONTEXT_MINOR_VERSION_ARB, minor,
@@ -159,20 +162,20 @@ public abstract class X11GLXContext extends GLContextImpl {
 
     if ( major > 3 || major == 3 && minor >= 2  ) {
         // FIXME: Verify with a None drawable binding (default framebuffer)
-        attribs[8+0]  = GLX.GLX_CONTEXT_PROFILE_MASK_ARB;
+        attribs[idx_profile+0]  = GLX.GLX_CONTEXT_PROFILE_MASK_ARB;
         if( ctBwdCompat ) {
-            attribs[8+1]  = GLX.GLX_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB;
+            attribs[idx_profile+1]  = GLX.GLX_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB;
         } else {
-            attribs[8+1]  = GLX.GLX_CONTEXT_CORE_PROFILE_BIT_ARB;
+            attribs[idx_profile+1]  = GLX.GLX_CONTEXT_CORE_PROFILE_BIT_ARB;
         } 
     } 
 
     if ( major >= 3 ) {
         if( !ctBwdCompat && ctFwdCompat ) {
-            attribs[6+1] |= GLX.GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB;
+            attribs[idx_flags+1] |= GLX.GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB;
         }
         if( ctDebug) {
-            attribs[6+1] |= GLX.GLX_CONTEXT_DEBUG_BIT_ARB;
+            attribs[idx_flags+1] |= GLX.GLX_CONTEXT_DEBUG_BIT_ARB;
         }
     }
 
@@ -180,21 +183,20 @@ public abstract class X11GLXContext extends GLContextImpl {
         _context = glXExt.glXCreateContextAttribsARB(display, config.getFBConfig(), share, direct, attribs, 0);
     } catch (RuntimeException re) {
         if(DEBUG) {
-          System.err.println("X11GLXContext.createContextARB glXCreateContextAttribsARB failed: "+re+", with "+getGLVersion(null, major, minor, ctp, "@creation"));
+          System.err.println("X11GLXContext.createContextARB glXCreateContextAttribsARB failed: "+re+", with "+getGLVersion(major, minor, ctp, "@creation"));
           re.printStackTrace();
         }
     }
-    if(0==_context) {
-        if(DEBUG) {
-          System.err.println("X11GLXContext.createContextARB couldn't create "+getGLVersion(null, major, minor, ctp, "@creation"));
-        }
-    } else {
+    if(DEBUG) {
+      System.err.println("X11GLXContext.createContextARB success: "+(0!=_context)+" - "+getGLVersion(major, minor, ctp, "@creation")+", bwdCompat "+ctBwdCompat+", fwdCompat "+ctFwdCompat);
+    }
+    if(0!=_context) {
         if (!glXMakeContextCurrent(display,
                                    drawable.getNativeWindow().getSurfaceHandle(), 
                                    drawableRead.getNativeWindow().getSurfaceHandle(), 
                                    _context)) {
             if(DEBUG) {
-              System.err.println("X11GLXContext.createContextARB couldn't make current "+getGLVersion(null, major, minor, ctp, "@creation"));
+              System.err.println("X11GLXContext.createContextARB couldn't make current "+getGLVersion(major, minor, ctp, "@creation"));
             }
             glXMakeContextCurrent(display, 0, 0, 0);
             GLX.glXDestroyContext(display, _context);
@@ -312,10 +314,10 @@ public abstract class X11GLXContext extends GLContextImpl {
         if(glp.isGL3()) {
           glXMakeContextCurrent(display, 0, 0, 0);
           GLX.glXDestroyContext(display, temp_context);
-          throw new GLException("X11GLXContext.createContext failed, but context > GL2 requested "+getGLVersion(null, major[0], minor[0], ctp[0], "@creation")+", ");
+          throw new GLException("X11GLXContext.createContext failed, but context > GL2 requested "+getGLVersion(major[0], minor[0], ctp[0], "@creation")+", ");
         }
         if(DEBUG) {
-          System.err.println("X11GLXContext.createContext failed, fall back to !ARB context "+getGLVersion(null, major[0], minor[0], ctp[0], "@creation"));
+          System.err.println("X11GLXContext.createContext failed, fall back to !ARB context "+getGLVersion(major[0], minor[0], ctp[0], "@creation"));
         }
 
         // continue with temp context for GL <= 3.0

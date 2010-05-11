@@ -300,6 +300,8 @@ public abstract class GLContext {
   public final int getGLVersionMajor() { return ctxMajorVersion; }
   public final int getGLVersionMinor() { return ctxMinorVersion; }
   public final boolean isGLCompatibilityProfile() { return ( 0 != ( CTX_PROFILE_COMPAT & ctxOptions ) ); }
+  public final boolean isGLCoreProfile()          { return ( 0 != ( CTX_PROFILE_CORE   & ctxOptions ) ); }
+  public final boolean isGLEmbeddedProfile()      { return ( 0 != ( CTX_PROFILE_ES     & ctxOptions ) ); }
   public final boolean isGLForwardCompatible()    { return ( 0 != ( CTX_OPTION_FORWARD & ctxOptions ) ); }
   public final boolean isCreatedWithARBMethod()   { return ( 0 != ( CTX_IS_ARB_CREATED & ctxOptions ) ); }
 
@@ -355,7 +357,7 @@ public abstract class GLContext {
   protected static final int CTX_PROFILE_COMPAT = 1 << 1;
   /** <code>ARB_create_context</code> related: core profile */
   protected static final int CTX_PROFILE_CORE   = 1 << 2;
-  /** <code>ARB_create_context</code> related: flag forward compatible */
+  /** <code>ARB_create_context</code> related: ES profile */
   protected static final int CTX_PROFILE_ES     = 1 << 3;
   /** <code>ARB_create_context</code> related: flag forward compatible */
   protected static final int CTX_OPTION_FORWARD = 1 << 4;
@@ -366,23 +368,23 @@ public abstract class GLContext {
 
   
   public final boolean isGL4bc() {
-      return ctxMajorVersion>=4 && CTX_PROFILE_COMPAT==(ctxOptions & (CTX_PROFILE_COMPAT|CTX_PROFILE_ES));
+      return ctxMajorVersion>=4 && 0!=(ctxOptions & CTX_PROFILE_COMPAT);
   }
 
   public final boolean isGL4() {
-      return ctxMajorVersion>=4 && 0==(ctxOptions & (CTX_PROFILE_ES));
+      return ctxMajorVersion>=4 && 0!=(ctxOptions & (CTX_PROFILE_COMPAT|CTX_PROFILE_CORE));
   }
 
   public final boolean isGL3bc() {
-      return ctxMajorVersion>=3 && CTX_PROFILE_COMPAT==(ctxOptions & (CTX_PROFILE_COMPAT|CTX_PROFILE_ES));
+      return ctxMajorVersion>=3 && 0!=(ctxOptions & CTX_PROFILE_COMPAT);
   }
 
   public final boolean isGL3() {
-      return ctxMajorVersion>=3 && 0==(ctxOptions & (CTX_PROFILE_ES));
+      return ctxMajorVersion>=3 && 0!=(ctxOptions & (CTX_PROFILE_COMPAT|CTX_PROFILE_CORE));
   }
 
   public final boolean isGL2() {
-      return ctxMajorVersion>=1 && CTX_PROFILE_COMPAT==(ctxOptions & (CTX_PROFILE_COMPAT|CTX_PROFILE_ES));
+      return ctxMajorVersion>=1 && 0!=(ctxOptions & CTX_PROFILE_COMPAT);
   }
 
   public final boolean isGL2GL3() {
@@ -390,15 +392,15 @@ public abstract class GLContext {
   }
 
   public final boolean isGLES1() {
-      return ctxMajorVersion==1 && CTX_PROFILE_ES==(ctxOptions & CTX_PROFILE_ES);
+      return ctxMajorVersion==1 && 0!=(ctxOptions & CTX_PROFILE_ES);
   }
 
   public final boolean isGLES2() {
-      return ctxMajorVersion==2 && CTX_PROFILE_ES==(ctxOptions & CTX_PROFILE_ES);
+      return ctxMajorVersion==2 && 0!=(ctxOptions & CTX_PROFILE_ES);
   }
 
   public final boolean isGLES() {
-      return CTX_PROFILE_ES==(ctxOptions & CTX_PROFILE_ES);
+      return isGLEmbeddedProfile();
   }
 
   public final boolean isGL2ES1() {
@@ -456,16 +458,79 @@ public abstract class GLContext {
       return true;
   }
 
-  public static final boolean isGLVersionAvailable(int major, boolean compatibility) {
-      int key = compose8bit(major, compatibility?CTX_PROFILE_COMPAT:CTX_PROFILE_CORE, 0, 0);
-      int val = mappedVersionsAvailable.get( key );
-      return val>0;
+  /**
+   * @param major Key Value either 1, 2, 3 or 4
+   * @param profile Key Value either {@link #CTX_PROFILE_COMPAT}, {@link #CTX_PROFILE_CORE} or {@link #CTX_PROFILE_ES}
+   */
+  public static final String getGLVersionAvailable(int major, int profile) {
+    int _major[] = { 0 };
+    int _minor[] = { 0 };
+    int _ctp[] = { 0 };
+    if(getGLVersionAvailable(major, profile, _major, _minor, _ctp)) {
+        return getGLVersion(_major[0], _minor[0], _ctp[0], null);
+    }
+    return null;
   }
-  public static final boolean isGL4bcAvailable() { return isGLVersionAvailable(4, true); }
-  public static final boolean isGL4Available() { return isGLVersionAvailable(4, false); }
-  public static final boolean isGL3bcAvailable() { return isGLVersionAvailable(3, true); }
-  public static final boolean isGL3Available() { return isGLVersionAvailable(3, false); }
-  public static final boolean isGL2Available() { return isGLVersionAvailable(2, true); }
+
+  /**
+   * @param reqMajor Key Value either 1, 2, 3 or 4
+   * @param reqProfile Key Value either {@link #CTX_PROFILE_COMPAT}, {@link #CTX_PROFILE_CORE} or {@link #CTX_PROFILE_ES}
+   * @param major if not null, returns the used major version
+   * @param minor if not null, returns the used minor version
+   * @param ctp if not null, returns the used context profile
+   */
+  public static final boolean getGLVersionAvailable(int reqMajor, int reqProfile, int[] major, int minor[], int ctp[]) {
+    int key = compose8bit(reqMajor, reqProfile, 0, 0);
+    int val = mappedVersionsAvailable.get( key );
+    if(val<=0) {
+        return false;
+    }
+    if(null!=major) {
+        major[0] = getComposed8bit(val, 1);
+    }
+    if(null!=minor) {
+        minor[0] = getComposed8bit(val, 2);
+    }
+    if(null!=ctp) {
+        ctp[0]   = getComposed8bit(val, 3);
+    }
+    return true;
+  }
+
+  /**
+   * @param major Key Value either 1, 2, 3 or 4
+   * @param profile Key Value either {@link #CTX_PROFILE_COMPAT}, {@link #CTX_PROFILE_CORE} or {@link #CTX_PROFILE_ES}
+   */
+  public static final boolean isGLVersionAvailable(int major, int profile) {
+      return getGLVersionAvailable(major, profile, null, null, null);
+  }
+  public static final boolean isGL4bcAvailable() { return isGLVersionAvailable(4, CTX_PROFILE_COMPAT); }
+  public static final boolean isGL4Available()   { return isGLVersionAvailable(4, CTX_PROFILE_CORE); }
+  public static final boolean isGL3bcAvailable() { return isGLVersionAvailable(3, CTX_PROFILE_COMPAT); }
+  public static final boolean isGL3Available()   { return isGLVersionAvailable(3, CTX_PROFILE_CORE); }
+  public static final boolean isGL2Available()   { return isGLVersionAvailable(2, CTX_PROFILE_COMPAT); }
+
+  public static String getGLVersion(int major, int minor, int ctp, String gl_version) {
+    boolean needColon = false;
+    StringBuffer sb = new StringBuffer();
+    sb.append(major);
+    sb.append(".");
+    sb.append(minor);
+    sb.append(" (");
+    needColon = appendString(sb, "ES",                    needColon, 0 != ( CTX_PROFILE_ES & ctp ));
+    needColon = appendString(sb, "compatibility profile", needColon, 0 != ( CTX_PROFILE_COMPAT & ctp ));
+    needColon = appendString(sb, "core profile",          needColon, 0 != ( CTX_PROFILE_CORE & ctp ));
+    needColon = appendString(sb, "forward compatible",    needColon, 0 != ( CTX_OPTION_FORWARD & ctp ));
+    needColon = appendString(sb, "any",                   needColon, 0 != ( CTX_OPTION_ANY & ctp ));
+    needColon = appendString(sb, "new",                   needColon, 0 != ( CTX_IS_ARB_CREATED & ctp ));
+    needColon = appendString(sb, "old",                   needColon, 0 == ( CTX_IS_ARB_CREATED & ctp ));
+    sb.append(")");
+    if(null!=gl_version) {
+        sb.append(" - ");
+        sb.append(gl_version);
+    }
+    return sb.toString();
+  }
 
   protected static final IntIntHashMap mappedVersionsAvailable;
   protected static volatile boolean mappedVersionsAvailableSet;
@@ -478,16 +543,32 @@ public abstract class GLContext {
       mappedVersionsAvailable.setKeyNotFoundValue(-1);
   }
 
+  private static void validateProfileBits(int bits, String argName) {
+    int num = 0;
+    if( 0 != ( CTX_PROFILE_COMPAT & bits ) ) { num++; }
+    if( 0 != ( CTX_PROFILE_CORE   & bits ) ) { num++; }
+    if( 0 != ( CTX_PROFILE_ES     & bits ) ) { num++; }
+    if(1!=num) {
+        throw new GLException("Internal Error: "+argName+": 1 != num-profiles: "+num);
+    }
+  }
+
   /**
    * Called by {@link GLContextImpl#createContextARBMapVersionsAvailable} not intendet to be used by 
    * implementations. However, if {@link #createContextARB} is not being used within the 
    * {@link GLDrawableImpl} constructor, GLProfile has to map the available versions.
    *
+   * @param reqMajor Key Value either 1, 2, 3 or 4
+   * @param profile Key Value either {@link #CTX_PROFILE_COMPAT}, {@link #CTX_PROFILE_CORE} or {@link #CTX_PROFILE_ES}
+
    * @see #createContextARBMapVersionsAvailable
    */
-  protected static void mapVersionAvailable(int reqMajor, boolean reqCompat, int resMajor, int resMinor, int resCtp)
+  protected static void mapVersionAvailable(int reqMajor, int profile, int resMajor, int resMinor, int resCtp)
   {
-    int key = compose8bit(reqMajor, reqCompat?CTX_PROFILE_COMPAT:CTX_PROFILE_CORE, 0, 0);
+    validateProfileBits(profile, "profile");
+    validateProfileBits(resCtp, "resCtp");
+
+    int key = compose8bit(reqMajor, profile, 0, 0);
     int val = compose8bit(resMajor, resMinor, resCtp, 0);
     mappedVersionsAvailable.put( key, val );
   }
@@ -530,6 +611,17 @@ public abstract class GLContext {
 
   protected static String toHexString(long hex) {
     return "0x" + Long.toHexString(hex);
+  }
+
+  private static boolean appendString(StringBuffer sb, String string, boolean needColon, boolean condition) {
+    if(condition) {
+        if(needColon) {
+            sb.append(", ");
+        }
+        sb.append(string);
+        needColon=true;
+    }
+    return needColon;
   }
 
 }

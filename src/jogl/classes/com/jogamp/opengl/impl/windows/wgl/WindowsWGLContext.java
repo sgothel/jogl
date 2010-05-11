@@ -143,46 +143,49 @@ public class WindowsWGLContext extends GLContextImpl {
 
     long _context=0;
 
+    final int idx_flags = 4;
+    final int idx_profile = 6;
+
+    /*  WGLExt.WGL_CONTEXT_LAYER_PLANE_ARB,   WGLExt.WGL_CONTEXT_LAYER_PLANE_ARB, */
+
     int attribs[] = {
         /*  0 */ WGLExt.WGL_CONTEXT_MAJOR_VERSION_ARB, major,
         /*  2 */ WGLExt.WGL_CONTEXT_MINOR_VERSION_ARB, minor,
-        /*  4 */ WGLExt.WGL_CONTEXT_LAYER_PLANE_ARB,   WGLExt.WGL_CONTEXT_LAYER_PLANE_ARB, // default
-        /*  6 */ WGLExt.WGL_CONTEXT_FLAGS_ARB,         0,
-        /*  8 */ 0,                                    0,
-        /* 10 */ 0
+        /*  4 */ WGLExt.WGL_CONTEXT_FLAGS_ARB,         0,
+        /*  6 */ 0,                                    0,
+        /*  8 */ 0
     };
 
     if ( major > 3 || major == 3 && minor >= 2  ) {
         // FIXME: Verify with a None drawable binding (default framebuffer)
-        attribs[8+0]  = WGLExt.WGL_CONTEXT_PROFILE_MASK_ARB;
+        attribs[idx_profile+0]  = WGLExt.WGL_CONTEXT_PROFILE_MASK_ARB;
         if( ctBwdCompat ) {
-            attribs[8+1]  = WGLExt.WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB;
+            attribs[idx_profile+1]  = WGLExt.WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB;
         } else {
-            attribs[8+1]  = WGLExt.WGL_CONTEXT_CORE_PROFILE_BIT_ARB;
+            attribs[idx_profile+1]  = WGLExt.WGL_CONTEXT_CORE_PROFILE_BIT_ARB;
         } 
     } 
 
     if ( major >= 3 ) {
         if( !ctBwdCompat && ctFwdCompat ) {
-            attribs[6+1] |= WGLExt.WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB;
+            attribs[idx_flags+1] |= WGLExt.WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB;
         }
         if( ctDebug) {
-            attribs[6+1] |= WGLExt.WGL_CONTEXT_DEBUG_BIT_ARB;
+            attribs[idx_flags+1] |= WGLExt.WGL_CONTEXT_DEBUG_BIT_ARB;
         }
     }
 
     _context = wglExt.wglCreateContextAttribsARB(drawable.getNativeWindow().getSurfaceHandle(), share, attribs, 0); 
-    if(0==_context) {
-        if(DEBUG) {
-          System.err.println("WindowsWGLContext.createContextARB couldn't create "+getGLVersion(null, major, minor, ctp, "@creation"));
-        }
-    } else {
+    if(DEBUG) {
+      System.err.println("WindowsWGLContext.createContextARB success: "+(0!=_context)+" - "+getGLVersion(major, minor, ctp, "@creation")+", bwdCompat "+ctBwdCompat+", fwdCompat "+ctFwdCompat);
+    }
+    if(0!=_context) {
         // In contrast to GLX no verification with a drawable binding, ie default framebuffer, is necessary,
         // if no 3.2 is available creation fails already!
         // Nevertheless .. we do it ..
         if (!WGL.wglMakeCurrent(drawable.getNativeWindow().getSurfaceHandle(), _context)) {
             if(DEBUG) {
-              System.err.println("WindowsWGLContext.createContextARB couldn't make current "+getGLVersion(null, major, minor, ctp, "@creation"));
+              System.err.println("WindowsWGLContext.createContextARB couldn't make current "+getGLVersion(major, minor, ctp, "@creation"));
             }
             WGL.wglMakeCurrent(0, 0);
             WGL.wglDeleteContext(_context);
@@ -270,10 +273,10 @@ public class WindowsWGLContext extends GLContextImpl {
         if(glCaps.getGLProfile().isGL3()) {
           WGL.wglMakeCurrent(0, 0);
           WGL.wglDeleteContext(temp_hglrc);
-          throw new GLException("WindowsWGLContext.createContext failed, but context > GL2 requested "+getGLVersion(null, major[0], minor[0], ctp[0], "@creation")+", ");
+          throw new GLException("WindowsWGLContext.createContext failed, but context > GL2 requested "+getGLVersion(major[0], minor[0], ctp[0], "@creation")+", ");
         }
         if(DEBUG) {
-          System.err.println("WindowsWGLContext.createContext failed, fall back to !ARB context "+getGLVersion(null, major[0], minor[0], ctp[0], "@creation"));
+          System.err.println("WindowsWGLContext.createContext failed, fall back to !ARB context "+getGLVersion(major[0], minor[0], ctp[0], "@creation"));
         }
 
         // continue with temp context for GL < 3.0
