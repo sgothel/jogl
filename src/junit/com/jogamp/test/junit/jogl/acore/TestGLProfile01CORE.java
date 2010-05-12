@@ -40,6 +40,8 @@ import org.junit.AfterClass;
 import org.junit.Test;
 
 import javax.media.opengl.*;
+import com.jogamp.newt.*;
+import com.jogamp.newt.opengl.*;
 
 import com.jogamp.newt.*;
 import java.io.IOException;
@@ -60,56 +62,74 @@ public class TestGLProfile01CORE {
     @Test
     public void test01GLProfileDefault() {
         System.out.println("GLProfile <static> "+GLProfile.glAvailabilityToString());
+        GLProfile glp = GLProfile.getDefault();
+        dumpVersion(glp);
     }
 
     @Test
     public void test02GLProfileMaxFixedFunc() {
         // Assuming at least one fixed profile is available
-        GLProfile maxFixed = GLProfile.getMaxFixedFunc();
-        System.out.println("GLProfile <static> getMaxFixedFunc(): "+maxFixed);
-        if(maxFixed.getName().equals(GLProfile.GL4bc)) {
+        GLProfile glp = GLProfile.getMaxFixedFunc();
+        System.out.println("GLProfile <static> getMaxFixedFunc(): "+glp);
+        if(glp.getName().equals(GLProfile.GL4bc)) {
             Assert.assertTrue(GLProfile.isGL4bcAvailable());
             Assert.assertTrue(GLProfile.isGL3bcAvailable());
             Assert.assertTrue(GLProfile.isGL2Available());
             Assert.assertTrue(GLProfile.isGL2ES1Available());
             Assert.assertTrue(GLProfile.isGL2ES2Available());
-        } else if(maxFixed.getName().equals(GLProfile.GL3bc)) {
+        } else if(glp.getName().equals(GLProfile.GL3bc)) {
             Assert.assertTrue(GLProfile.isGL3bcAvailable());
             Assert.assertTrue(GLProfile.isGL2Available());
             Assert.assertTrue(GLProfile.isGL2ES1Available());
             Assert.assertTrue(GLProfile.isGL2ES2Available());
-        } else if(maxFixed.getName().equals(GLProfile.GL2)) {
+        } else if(glp.getName().equals(GLProfile.GL2)) {
             Assert.assertTrue(GLProfile.isGL2Available());
             Assert.assertTrue(GLProfile.isGL2ES1Available());
             Assert.assertTrue(GLProfile.isGL2ES2Available());
-        } else if(maxFixed.getName().equals(GLProfile.GL2ES1)) {
+        } else if(glp.getName().equals(GLProfile.GL2ES1)) {
             Assert.assertTrue(GLProfile.isGL2ES1Available());
         }
+        dumpVersion(glp);
     }
 
     @Test
     public void test02GLProfileMaxProgrammable() {
         // Assuming at least one programmable profile is available
-        GLProfile maxProgrammable = GLProfile.getMaxProgrammable();
-        System.out.println("GLProfile <static> getMaxProgrammable(): "+maxProgrammable);
-        if(maxProgrammable.getName().equals(GLProfile.GL4)) {
+        GLProfile glp = GLProfile.getMaxProgrammable();
+        System.out.println("GLProfile <static> getMaxProgrammable(): "+glp);
+        if(glp.getName().equals(GLProfile.GL4)) {
             Assert.assertTrue(GLProfile.isGL4Available());
             Assert.assertTrue(GLProfile.isGL3Available());
             Assert.assertTrue(GLProfile.isGL2Available());
             Assert.assertTrue(GLProfile.isGL2ES1Available());
             Assert.assertTrue(GLProfile.isGL2ES2Available());
-        } else if(maxProgrammable.getName().equals(GLProfile.GL3)) {
+        } else if(glp.getName().equals(GLProfile.GL3)) {
             Assert.assertTrue(GLProfile.isGL3Available());
             Assert.assertTrue(GLProfile.isGL2Available());
             Assert.assertTrue(GLProfile.isGL2ES1Available());
             Assert.assertTrue(GLProfile.isGL2ES2Available());
-        } else if(maxProgrammable.getName().equals(GLProfile.GL2)) {
+        } else if(glp.getName().equals(GLProfile.GL2)) {
             Assert.assertTrue(GLProfile.isGL2Available());
             Assert.assertTrue(GLProfile.isGL2ES1Available());
             Assert.assertTrue(GLProfile.isGL2ES2Available());
-        } else if(maxProgrammable.getName().equals(GLProfile.GL2ES2)) {
+        } else if(glp.getName().equals(GLProfile.GL2ES2)) {
             Assert.assertTrue(GLProfile.isGL2ES2Available());
         }
+        dumpVersion(glp);
+    }
+
+    protected void dumpVersion(GLProfile glp) {
+        GLCapabilities caps = new GLCapabilities(glp);
+        GLWindow glWindow = GLWindow.create(caps);
+        Assert.assertNotNull(glWindow);
+        glWindow.setTitle("TestGLProfile01CORE");
+
+        glWindow.addGLEventListener(new DumpVersion());
+
+        glWindow.setSize(128, 128);
+        glWindow.setVisible(true);
+        glWindow.display();
+        glWindow.destroy(true);
     }
 
     public static void main(String args[]) throws IOException {
