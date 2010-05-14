@@ -1,50 +1,113 @@
 <!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+
 <html>
 <head>
-<title>How to build the JOGL OpenGL binding for Java</title>
+<title>How to build the JOGL OpenGL binding for Java on the Desktop</title>
 </head>
 <body>
 
-<h1>How to build the JOGL OpenGL binding for Java</h1>
+<h1>How to build the JOGL OpenGL binding for Java on the Desktop</h1>
 <hr>
+The embedded device HOWTO will reside in its own documentation soon.
 
+<h2>Platform and Component Requirements</h2>
+<hr>
 <P>
+Here is a list of platforms and components, we were able to build JOGL on,<br>
+if not stated otherwise.<br>
 
-The following are the supported build environments and
-platforms for JOGL. All require the <a
-href="http://www.antlr.org/">ANTLR</a> parser generator and the <a
-href="http://ant.apache.org/">Ant</a> build system version 1.6 or
-later to be installed. </p>
-                                                                        
 <ul>
-<li> Solaris/SPARC and Solaris/x86, 32- and 64-bit
+<li> <b>Java</b><br>
+    One of the following desktop Java SDK's:
+    <ul>
+    <li> <a href="http://openjdk.java.net/">OpenJDK</a> </li>
+    <li> <a href="http://icedtea.classpath.org/">IcedTea</a> </li>
+    <li> <a href="http://java.sun.com/j2se/">Sun JDK 1.6.0 or later</a> </li>
+    </ul>
+    or you may try one of the following embedded Java SDK's (not yet tested):
+    <ul>
+        <li> <a href="http://mail.openjdk.java.net/pipermail/jdk6-dev/2009-April/000455.html">OpenJDK6 for embedded ARM</a> may use <a href="http://icedtea.classpath.org/wiki/ZeroSharkFaq">Zero/Shark</a></li>
+        <li> <a href="http://java.sun.com/javase/embedded/">Sun JDK for Embedded Use</a></li>
+    </ul>
+    or even the JavaME SDK's (see notes):
+    <ul>
+        <li> <a href="https://phoneme.dev.java.net/">phoneME (tested with a proprietary VM build)</a><br>
+        (tested with a proprietary VM build)</li>
+        <li> <a href="http://jamvm.sourceforge.net/">JamVM (not yet tested)</a><br>
+        (not yet tested)</li>
+        <li> <a href="http://www.cacaovm.org/">CacaoVM (not yet tested)</a><br>
+        (not yet tested)</li>
+    </ul>
+</li>
+<li> <b><a href="http://ant.apache.org/">Ant</a></b> 1.8.0 or later</li>
+<li> <b><a href="http://www.kernel.org/pub/software/scm/git/docs/">Git</a></b> 1.6.0 or later<br>
+    <ul>
+        <li> <a href="http://www.kernel.org/pub/software/scm/git/">Source Code for GNU/Linux, MacOSX, ..</a></li>
+        <li> <a href="http://code.google.com/p/msysgit/">Git on Windows</a>, 
+            <a href="http://code.google.com/p/msysgit/downloads/list">download</a> version
+            <a href="http://code.google.com/p/msysgit/downloads/detail?name=Git-1.7.0.2-preview20100309.exe&can=2&q=">1.7.0</a> or later.</li>
+    </ul></li>
+<li> <b>GNU Linux</b> x86, 32- and 64-bit<br>
+  You may have to install a few developer packages ...
   <ul>
-  <li> <a href="http://www.sun.com/software/solaris/">Solaris 8 or later</a> </li>
-  <li> <a href="http://www.sun.com/software/products/studio/">Sun ONE Studio 8 Compiler Collection or later</a> </li>
-  <li> <a href="http://www.sun.com/software/graphics/opengl/">Sun OpenGL for Solaris</a> (or <a href="http://www.mesa3d.org/">Mesa</a> for Solaris 9 x86) </li>
-  <li> <a href="http://java.sun.com/j2se/1.4.2/">Sun JDK 1.4.2 or later</a> </li>
+  <li> [k]<b>Ubuntu</b> 10.04 or later</li>
+  <ul>
+    <li>gcc</li>
+    <li>libgl1-mesa-dev</li>
+    <li>libglu1-mesa-dev</li>
+    <li>libice-dev</li>
+    <li>libsm-dev</li>
+    <li>libx11-dev</li>
+    <li>libxext-dev</li>
+    <li>libxxf86vm-dev</li>
+    <li>xorg-dev</li>
+    <li>Optional: Your card vendor's proprietary driver</li>
+  </ul></li>
+  <li> <b>OpenSuSE</b> 10.2 or later </li>
+  <ul>
+    <li>gcc</li>
+    <li>x11-devel</li>
+    <li>mesa-devel</li>
+  </ul></li>
+  <li> <b>CentOS / Red Hat Enterprise Linux</b> 5.4 or later<br>
+  <ul>
+    <li>gcc</li>
+    <li>mesa-libGL-devel</li>
+    <li>libICE-devel</li>
+    <li>libSM-devel</li>
+    <li>libX11-devel</li>
+    <li>libXau-devel</li>
+    <li>libXdmcp-devel</li>
+    <li>libXt-devel</li>
+    <li>libXxf86vm-devel</li>
+    <li>xorg-x11-proto-devel</li>
+    <li>Optional: Your card vendor's proprietary driver</li>
+  </ul></li>
   </ul>
 </li>
-<li> Linux/x86, 32- and 64-bit
+<li> <b>OpenSolaris</b> SPARC and x86, 32- and 64-bit
   <ul>
-  <li> Red Hat Linux 7.3 or later </li>
-  <li> GCC </li>
-  <li> <a href="http://java.sun.com/j2se/1.4.2/">Sun JDK 1.4.2 or later</a> </li>
+  <li> <a href="http://opensolaris.org/">OpenSolaris 2009.06 or later</a></li>
   </ul>
 </li>
-<li> Macintosh PowerPC or Intel
+<li> <b>MacOSX</b> Intel
   <ul>
-  <li> Mac OS X 10.3 (note: will not work with earlier releases) </li>
-  <li> GCC </li>
-  <li> <a href="http://www.apple.com/java/">Java 1.4.2 or later for Mac OS X</a> </li>
+  <li> <a href="http://www.apple.com/macosx/">Mac OS X</a> 10.3 (note: will not work with earlier releases) </li>
+  <li> <a href="http://developer.apple.com/technologies/xcode.html">Xcode</a> for gcc, etc (included in OSX)</li>
   </ul>
 </li>
-<li> Windows/x86 (32-bit currently, but 64-bit is known to work)
+<li> <b>Windows</b>/x86 (32-bit)
   <ul>
-  <li> Windows 2000 or later </li>
-  <li> Microsoft Visual C++ 6.0 or later, or <a href="http://www.mingw.org/">MinGW</a> compilers </li>
-  <li> <a href="http://java.sun.com/j2se/1.4.2/">Sun JDK 1.4.2 or later</a> </li>
+  <li> Windows XP or later </li>
+  <li> <a href="http://www.mingw.org/">MinGW</a><br>
+    Read <a href="http://www.mingw.org/wiki/Getting_Started">MinGW Getting Started</a> and 
+    <a href="http://www.mingw.org/wiki/HOWTO_Install_the_MinGW_GCC_Compiler_Suite">HOWTO Install the MinGW GCC Compiler Suite</a>.<br></li>
+  <li> Not supported: Microsoft Visual C++ 6.0 or later</li>
   </ul>
+</li>
+<li> <b>Windows</b>/x86 (64-bit)<br>
+  Currently broken ..
+  </li>
 </li>
 </ul>
 
@@ -55,51 +118,51 @@ build system, but are not officially supported.
 
 </P>
 
+<h2>Build Steps</h2>
+<hr>
 <P>
-Here are the steps that are required in order to build the JOGL OpenGL
-binding from a fresh copy of the source distribution, which can be
-obtained either from
-<a href="http://kenai.com/projects/jogl/sources/">GIT</a> or an
-<a href="http://download.java.net/media/jogl/builds/archive/">archived build</a>.
+Here are the steps that are required in order to build JOGL.
 </P>
 
 <P>
-JOGL depends on our GlueGen project, which can be optained either from
-<a href="http://kenai.com/projects/gluegen/sources/">GIT</a> or an
-<a href="http://download.java.net/media/gluegen/builds/archive/">archived build</a>.
-</P>
 
 <OL>
-  <LI> <B>Install the JDK:</B> <br> the JOGL build requires JDK 1.4.2 or later. On AMD64 platforms such as Linux/AMD64, Solaris/AMD64 and Windows/AMD64, the build requires the Sun JDK 5.0 or later, as the 1.4.2 releases did not have an AMD64-specific JVM. On these platforms, it is also currently necessary to have e.g. <code>bin/amd64/java</code> in your PATH, although from a technical standpoint this could be worked around in the build process.
-  <LI> <B>Install Ant:</B> <br> Download and unpack the latest version of Ant from <a href="http://ant.apache.org/">http://ant.apache.org</a> and add the <code>bin/</code> subdirectory to your PATH environment variable.
-  <LI> <B>Install ANTLR:</B> <br> Download and unpack the latest version of ANTLR from <a href="http://www.antlr.org">http://www.antlr.org</a>. Only the jar file is needed.
+  <LI><B>Optain the source code</B> using git:
+    <ul>
+        <li><a href="http://github.com/sgothel/gluegen">Gluegen Dev GIT Repo</a></li>
+        <li><a href="http://github.com/sgothel/jogl">JOGL Dev GIT Repo</a></li>
+    </ul><br>
+    It is crucial that you checkout the source code under a common root directory:
+    <pre>
+        /home/dude/projects/jogamp> git clone git://github.com/sgothel/gluegen.git  gluegen
+        /home/dude/projects/jogamp> git clone git://github.com/sgothel/jogl.git jogl 
+    </pre>
+    Now you should have following directory structure:
+    <pre>
+        /home/dude/projects/jogamp
+        /home/dude/projects/jogamp/gluegen
+        /home/dude/projects/jogamp/jogl
+    </pre></li>
 
-  <LI> <B>Unset your CLASSPATH environment variable:</B> <br> The Ant build requires that the JOGL jars not be visible on the classpath. On Unix, type <code> unsetenv CLASSPATH </code> into a csh or tcsh shell, or <code> unset CLASSPATH </code> into a Bourne shell. On Windows, type <code> set CLASSPATH= </code> into a command prompt.
+  <LI> <B>Unset your CLASSPATH environment variable:</B> <br> The Ant build requires that the JOGL jars not be visible on the classpath. On Unix, type <code> unsetenv CLASSPATH </code> into a csh or tcsh shell, or <code> unset CLASSPATH </code> into a Bourne shell. On Windows, type <code> set CLASSPATH= </code> into a command prompt.</LI>
 
-  <LI> <B>Check out the GlueGen source tree:</B> <br> JOGL relies on the GlueGen project to autogenerate most of the Java and JNI code for the OpenGL interface. The <code>jogl/</code> and <code>gluegen/</code> workspaces must be side-by-side in order for JOGL to build properly.
+  <LI> <B>Optional</B>  <I>Copy and edit <B>gluegen.properties</B>:</I> <br>
+    To specify different basic options for components and compilers,<br>
+    copy <b>gluegen/make/gluegen.properties</b> into your home directory (pointed to by the Java system property <b>user.home</b>). <br></LI>
 
-  <LI> <B>Copy and edit gluegen.properties:</B> <br>
-    Copy <b>make/gluegen.properties</b> from the GlueGen workspace into your home directory (pointed to by the Java system property <b>user.home</b>). <br>
-    Edit the copy to change the location of the ANTLR jar file (typically <b>$HOME/antlr-2.7.2/antlr.jar</b>).
+  <LI> <B>Optional</B>  <I>Copy and edit <B>jogl.properties</B>:</I> <br>
+    To specify different basic options for the build,<br>
+    copy <b>jogl/make/jogl.properties</b> into your home directory (pointed to by the Java system property <b>user.home</b>). <br>
+    Edit the copy to change desired settings.</LI>
 
-  <LI> <B>Copy and edit jogl.properties:</B> <br>
-    Copy <b>make/jogl.properties</b> into your home directory (pointed to by the Java system property <b>user.home</b>). <br>
-    Edit the copy to change any settings that are necessary, in particular the setting of win32.c.compiler on Windows platforms (one of "vc6", "vc7", "vc8", "vc8_x64", or "mingw"). Note that on Windows 64-bit platforms the Professional edition of the Microsoft compilers is required.
-    <UL>
-      <LI>The Windows build requires one of Microsoft Visual C++ 6, 7 (Visual Studio .NET), 8 (Microsoft Visual C++ 2005) or the free MinGW (<a href="http://www.mingw.org/">http://www.mingw.org/</a>) compilers to be installed. Choose the appropriate setting of win32.c.compiler for the compiler being used. The C compiler executable (cl.exe, gcc.exe) must be in your PATH; see below.
-      <LI> When building with VC6, VC7, or VC8, you must first run the <code>vcvars32.bat</code> environment variable setup script from the appropriate version of Visual C++. The Windows C compiler you choose in jogl.properties (i.e., <code>win32.c.compiler=vc6</code>) must match the version of the compiler from which you executed <code>vcvars32.bat</code>. No error checking is done on the compiler version used, so please be careful.
-    </UL>  
-
-  <LI> <B>Build the source tree:</B> <br> Open a command shell in the "make" directory of the source tree and type "ant"</code>.
+  <LI> <B>Build the source tree:</B> <br> Open a command shell in the "jogl/make" directory of the source tree and type "ant"</code>.
       <UL>
-	<LI>An experimental binding to the high-level <a href="http://developer.nvidia.com/view.asp?PAGE=cg_main">Cg</a> language by NVidia corporation can be generated by specifying <code>-Djogl.cg=1</code> to ant; e.g. <code>ant -Djogl.cg=1</code>. The Cg binding has been tested on Windows, Linux, and Mac OS X.
-      </UL>
+	<LI>An experimental binding to the high-level <a href="http://developer.nvidia.com/view.asp?PAGE=cg_main">Cg</a> language by NVidia corporation can be generated by specifying <code>-Djogl.cg=1</code> to ant; e.g. <code>ant -Djogl.cg=1</code>. The Cg binding has been tested on Windows, Linux, and Mac OS X.</LI>
+      </UL></LI>
       
-  <LI> <B>Add JOGL and the GlueGen runtime to your CLASSPATH:</B> <br> To be able to use JOGL once built, you must add the build process' resulting jogl.jar (.../jogl/build/jogl.jar) and gluegen-rt.jar (.../gluegen/build/gluegen-rt.jar) to your CLASSPATH environment variable.
-  <LI> <B>Add JOGL and the GlueGen runtime to your PATH, LD_LIBRARY_PATH, or DYLD_LIBRARY_PATH:</B> <br> To be able to use JOGL once built, you must also add the build process's JNI code library directories (.../jogl/build/obj and .../gluegen/build/obj) to your PATH (on Windows), LD_LIBRARY_PATH (on most Unix platforms), or DYLD_LIBRARY_PATH (on Mac OS X) environment variable.
+  <LI> <B>Test your build:</B> <br> Stay in your command shell in the "jogl/make" directory of the source tree and type "ant junit.run"</code>.</LI>
 
-  <LI> <B>Test if everything's working:</B> <br> To test if everything went well, you should check out the source code for the <B>jogl-demos</B> project (available at <a href = "http://download.java.net/media/jogl/demos/www/">http://download.java.net/media/jogl/demos/www/</a>), build the demos using the supplied instructions, and run the Gears demo ("java demos.gears.Gears").
-  <LI> <B>Build Javadoc:</B> <br> "ant javadoc" will produce the end-user documentation for JOGL along with some auxiliary utility packages. The developers' documentation, including that for the GlueGen tool, can be generated for your current platform using one of the following commands: "ant javadoc.dev.win32", "ant javadoc.dev.x11", or "ant javadoc.dev.macosx". (The javadoc for the Cg binding can be built by inserting <code>-Djogl.cg=1</code> into the command line as above.)
+  <LI> <B>Build Javadoc:</B> <br> Stay in your command shell in the "jogl/make" directory of the source tree and type "ant javadoc". This will produce the end-user documentation for JOGL along with some auxiliary utility packages.</LI>
 </OL>
  
 Note that there are a lot of warnings produced by ANTLR about the 
@@ -128,7 +191,8 @@ directory of the JRE/JDK. On Windows and Linux, delete any ANTLR jars from jre/l
 
 </OL>
 
-- Christopher Kline and Kenneth Russell, June 2003 (revised November 2006)
+<i>- Christopher Kline and Kenneth Russell, June 2003 (revised November 2006)</i><br>
+<i>- Sven Gothel, May 2010</i><br>
 
 </body>
 </html>

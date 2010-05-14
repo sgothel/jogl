@@ -18,7 +18,7 @@
    -        be run from the "make" directory.
    -
    - Public targets:
-   -   all: (default; autodetects OS and chooses C compiler from jogl.properties)
+   -   all: (default; autodetects OS and chooses C compiler from gluegen.properties)
    -   clean:        clean all built
    -   javadoc:      create the standard developer Javadoc (recommended)
    -                 (Note: should build all first - may be dependence in the future)
@@ -28,11 +28,11 @@
    -                       to create the Javadoc for the platform on which you are
    -                       currently running.
    - 
-   - Note: on Windows the "win32.c.compiler" property in jogl.properties
+   - Note: on Windows the "win32.c.compiler" property in gluegen.properties
    - is required to select the appropriate C compiler. See the example
-   - jogl.properties in this directory for valid values. On Mac OS X
+   - gluegen.properties in this directory for valid values. On Mac OS X
    - universal binaries may also be built by setting the "macosxfat"
-   - property in jogl.properties; again see the example file in this
+   - property in gluegen.properties; again see the example file in this
    - directory.
    -   
    - Optional properties:
