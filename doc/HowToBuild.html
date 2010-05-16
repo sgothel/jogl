@@ -59,16 +59,19 @@ if not stated otherwise.<br>
 <li> <b><a href="http://ant.apache.org/">Ant</a></b> 1.8.0 or later</li>
 <li> <b><a href="http://www.kernel.org/pub/software/scm/git/docs/">Git</a></b> 1.6.0 or later<br>
     <ul>
-        <li> <a href="http://www.kernel.org/pub/software/scm/git/">Source Code for GNU/Linux, MacOSX, ..</a></li>
+        <li> Use your Unix distribution's version, if available, or</li>
+        <li> <a href="http://www.kernel.org/pub/software/scm/git/">Source Code for GNU/Linux, MacOSX, ..</a>, or</li>
         <li> <a href="http://code.google.com/p/msysgit/">Git on Windows</a>, 
             <a href="http://code.google.com/p/msysgit/downloads/list">download</a> version
             <a href="http://code.google.com/p/msysgit/downloads/detail?name=Git-1.7.0.2-preview20100309.exe&can=2&q=">1.7.0</a> or later.</li>
+        <li> <a href="http://code.google.com/p/git-osx-installer/">git-osx-installer</a> </li>
     </ul></li>
 <li> <b>GNU Linux</b> x86, 32- and 64-bit<br>
   You may have to install a few developer packages ...
   <ul>
   <li> [k]<b>Ubuntu</b> 10.04 or later</li>
   <ul>
+    <li>git</li>
     <li>gcc</li>
     <li>libgl1-mesa-dev</li>
     <li>libglu1-mesa-dev</li>
@@ -82,12 +85,14 @@ if not stated otherwise.<br>
   </ul></li>
   <li> <b>OpenSuSE</b> 10.2 or later </li>
   <ul>
+    <li>git</li>
     <li>gcc</li>
     <li>x11-devel</li>
     <li>mesa-devel</li>
   </ul></li>
   <li> <b>CentOS / Red Hat Enterprise Linux</b> 5.4 or later<br>
   <ul>
+    <li>git</li>
     <li>gcc</li>
     <li>mesa-libGL-devel</li>
     <li>libICE-devel</li>
@@ -109,13 +114,15 @@ if not stated otherwise.<br>
 </li>
 <li> <b>MacOSX</b> Intel
   <ul>
+  <li> git, see above </li>
   <li> <a href="http://www.apple.com/macosx/">Mac OS X</a> 10.3 (note: will not work with earlier releases) </li>
   <li> <a href="http://developer.apple.com/technologies/xcode.html">Xcode</a> for gcc, etc (included in OSX)</li>
   </ul>
 </li>
 <li> <b>Windows</b>/x86 (32-bit)
   <ul>
-  <li> Windows XP or later </li>
+  <li>Windows XP or later </li>
+  <li>git, see above</li>
   <li> <a href="http://www.mingw.org/">MinGW</a><br>
     Read <a href="http://www.mingw.org/wiki/Getting_Started">MinGW Getting Started</a>.<br>
     We used the download script <code>mingwdl.sh</code> shown at
@@ -125,7 +132,8 @@ if not stated otherwise.<br>
 </li>
 <li> <b>Windows</b>/x86_64 (64-bit)<br>
   <ul>
-  <li> Windows XP or later </li>
+  <li>Windows XP or later </li>
+  <li>git, see above</li>
   <li> <a href="http://mingw-w64.sourceforge.net/">MinGW64</a><br>
     We used the build <code>mingw-w64-bin_x86_64-mingw_20100515_sezero.zip</code> available at
     <a href="http://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win64/Personal%20Builds/sezero_20100515/">MingW64 Personal Builds - sezero</a>.<br></li>
