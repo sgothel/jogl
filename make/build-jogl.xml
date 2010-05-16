@@ -39,8 +39,10 @@
    -   -Djogl.cg=1 when combined with the build or javadoc targets will cause
    -               the experimental binding to NVidia's Cg language to be built.
    -               Then you need to define the location of your CG libraries:
-   -               -Dwindows.cg.lib=<PATH> for Windows and
-   -               -Dx11.cg.lib=<PATH> for X11/Unix
+   -               -Dwindows.cg.lib32=<PATH> for Windows x32 and
+   -               -Dwindows.cg.lib64=<PATH> for Windows x64 and
+   -               -Dx11.cg.lib32=<PATH> for X11/Unix x32
+   -               -Dx11.cg.lib64=<PATH> for X11/Unix x64
    -
    - Thanks to Rob Grzywinski and Artur Biesiadowski for the bulk of the
    - ANT build, including the GlueGen and StaticGLInfo tasks, the building of
@@ -1108,7 +1110,7 @@
       </linker>
 
       <linker id="linker.cfg.linux.jogl.cg" extends="linker.cfg.linux.jogl.gl2">
-        <syslibset dir="${x11.cg.lib}" libs="Cg, CgGL"/>
+        <syslibset dir="${x11.cg.lib32}" libs="Cg, CgGL"/>
       </linker>
 
       <linker id="linker.cfg.linux.amd64.jogl.x11" extends="linker.cfg.linux.amd64">
@@ -1121,7 +1123,7 @@
       </linker>
 
       <linker id="linker.cfg.linux.amd64.jogl.cg" extends="linker.cfg.linux.amd64.jogl.gl2">
-        <syslibset dir="${x11.cg.lib}" libs="Cg, CgGL"/>
+        <syslibset dir="${x11.cg.lib64}" libs="Cg, CgGL"/>
       </linker>
 
       <linker id="linker.cfg.solaris.jogl.x11" extends="linker.cfg.solaris">
@@ -1133,7 +1135,7 @@
       </linker>
 
       <linker id="linker.cfg.solaris.jogl.cg" extends="linker.cfg.solaris.jogl.gl2">
-        <syslibset dir="${x11.cg.lib}" libs="Cg, CgGL"/>
+        <syslibset dir="${x11.cg.lib32}" libs="Cg, CgGL"/>
       </linker>
 
       <linker id="linker.cfg.solaris.sparcv9.jogl.gl2" extends="linker.cfg.solaris.sparcv9">
@@ -1154,7 +1156,7 @@
       </linker>
 
       <linker id="linker.cfg.win32.mingw.jogl.cg" extends="linker.cfg.win32.mingw.jogl">
-        <syslibset dir="${windows.cg.lib}" libs="cg, cgGL"/>
+        <syslibset dir="${windows.cg.lib32}" libs="cg, cgGL"/>
       </linker>
 
       <linker id="linker.cfg.win64.mingw.jogl" extends="linker.cfg.win64.mingw">
@@ -1163,7 +1165,7 @@
       </linker>
 
       <linker id="linker.cfg.win64.mingw.jogl.cg" extends="linker.cfg.win64.mingw.jogl">
-        <syslibset dir="${windows.cg.lib}" libs="cg, cgGL"/>
+        <syslibset dir="${windows.cg.lib64}" libs="cg, cgGL"/>
       </linker>
 
       <linker id="linker.cfg.win32.msvc.jogl" extends="linker.cfg.win32.msvc">
@@ -1173,7 +1175,7 @@
       </linker>
 
       <linker id="linker.cfg.win32.msvc.jogl.cg" extends="linker.cfg.win32.msvc.jogl">
-        <syslibset dir="${windows.cg.lib}" libs="cg, cgGL"/>
+        <syslibset dir="${windows.cg.lib32}" libs="cg, cgGL"/>
       </linker>
 
       <linker id="linker.cfg.macosx.jogl" extends="linker.cfg.macosx">
