@@ -41,14 +41,14 @@
 // #endif
 
 /* This typedef is apparently needed for Microsoft compilers before VC8,
-   and on Windows CE */
-#if (_MSC_VER < 1400) || defined(UNDER_CE)
+   and on Windows CE and MingW32  */
+#if !defined(__MINGW64__) && ( defined(UNDER_CE) || _MSC_VER <= 1400 )
     #ifdef _WIN64
         typedef long long intptr_t;
     #else
         typedef int intptr_t;
     #endif
-#elif _MSC_VER <= 1500
+#elif !defined(__MINGW64__) && _MSC_VER <= 1500
     #ifdef _WIN64 // [
         typedef __int64           intptr_t;
     #else // _WIN64 ][
@@ -58,7 +58,7 @@
     #include <inttypes.h>
 #endif
 
-#if _MSC_VER <= 1500
+#if !defined(__MINGW64__) && _MSC_VER <= 1500
     // FIXME: Determine for which MSVC versions ..
     #define strdup(s) _strdup(s)
 #endif
@@ -706,7 +706,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
     }
 #endif
 
-#if defined(UNDER_CE) || _MSC_VER <= 1200
+#if !defined(__MINGW64__) && ( defined(UNDER_CE) || _MSC_VER <= 1200 )
     wud = (WindowUserData *) GetWindowLong(wnd, GWL_USERDATA);
 #else
     wud = (WindowUserData *) GetWindowLongPtr(wnd, GWLP_USERDATA);
@@ -736,7 +736,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
 
     case WM_DESTROY:
         {
-#if defined(UNDER_CE) || _MSC_VER <= 1200
+#if !defined(__MINGW64__) && ( defined(UNDER_CE) || _MSC_VER <= 1200 )
             SetWindowLong(wnd, GWL_USERDATA, (intptr_t) NULL);
 #else
             SetWindowLongPtr(wnd, GWLP_USERDATA, (intptr_t) NULL);
@@ -1120,7 +1120,7 @@ JNIEXPORT jlong JNICALL Java_com_jogamp_newt_impl_windows_WindowsWindow_CreateWi
         WindowUserData * wud = (WindowUserData *) malloc(sizeof(WindowUserData));
         wud->jinstance = (*env)->NewGlobalRef(env, obj);
         wud->jenv = env;
-#if defined(UNDER_CE) || _MSC_VER <= 1200
+#if !defined(__MINGW64__) && ( defined(UNDER_CE) || _MSC_VER <= 1200 )
         SetWindowLong(window, GWL_USERDATA, (intptr_t) wud);
 #else
         SetWindowLongPtr(window, GWLP_USERDATA, (intptr_t) wud);

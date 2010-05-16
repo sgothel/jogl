@@ -1157,6 +1157,15 @@
         <syslibset dir="${windows.cg.lib}" libs="cg, cgGL"/>
       </linker>
 
+      <linker id="linker.cfg.win64.mingw.jogl" extends="linker.cfg.win64.mingw">
+        <linkerarg value="-Wl,--kill-at" />        <!-- remove @ from function names -->
+        <syslibset libs="opengl32, glu32, gdi32, kernel32"/>
+      </linker>
+
+      <linker id="linker.cfg.win64.mingw.jogl.cg" extends="linker.cfg.win64.mingw.jogl">
+        <syslibset dir="${windows.cg.lib}" libs="cg, cgGL"/>
+      </linker>
+
       <linker id="linker.cfg.win32.msvc.jogl" extends="linker.cfg.win32.msvc">
         <syslibset libs="opengl32, gdi32, user32, kernel32" />
     <!-- This is temporary -->
@@ -1192,11 +1201,18 @@
       <property name="linker.cfg.id.cg"                     value="linker.cfg.win32.msvc.jogl.cg" />
     </target>
     
-    <target name="c.configure.win32.mingw" if="isMingW">
+    <target name="c.configure.win32.mingw" if="isMingW32">
       <echo message="Win32.MingW" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.win32.mingw" />
       <property name="linker.cfg.id.gl2"                    value="linker.cfg.win32.mingw.jogl" />
       <property name="linker.cfg.id.cg"                     value="linker.cfg.win32.mingw.jogl.cg" />
+    </target>
+
+    <target name="c.configure.win64.mingw" if="isMingW64">
+      <echo message="Win64.MingW" />
+      <property name="compiler.cfg.id"                      value="compiler.cfg.win64.mingw" />
+      <property name="linker.cfg.id.gl2"                    value="linker.cfg.win64.mingw.jogl" />
+      <property name="linker.cfg.id.cg"                     value="linker.cfg.win64.mingw.jogl.cg" />
     </target>
 
     <target name="c.configure.linux.x86" if="isLinuxX86">
@@ -1259,7 +1275,7 @@
       <property name="linker.cfg.id.cg"                     value="linker.cfg.hpux.jogl.cg" />
     </target>
 
-    <target name="c.configure.win32" depends="c.configure.win32.vc,c.configure.win32.mingw" if="isWindows" />
+    <target name="c.configure.win32" depends="c.configure.win32.vc,c.configure.win32.mingw,c.configure.win64.mingw" if="isWindows" />
 
     <target name="c.configure.x11" if="isX11" />
 

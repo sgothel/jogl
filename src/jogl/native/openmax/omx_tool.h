@@ -11,7 +11,7 @@
     #ifdef _MSC_VER
         /* This typedef is apparently needed for Microsoft compilers before VC8,
            and on Windows CE */
-        #if (_MSC_VER < 1400) || defined(UNDER_CE)
+        #if !defined(__MINGW64__) && ( defined(UNDER_CE) || _MSC_VER <= 1400 )
             #ifdef _WIN64
                 typedef long long intptr_t;
             #else

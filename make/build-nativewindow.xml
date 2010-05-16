@@ -387,6 +387,11 @@
         <syslibset libs="gdi32, kernel32"/>
       </linker>
 
+      <linker id="linker.cfg.win64.mingw.nativewindow" extends="linker.cfg.win64.mingw">
+        <linkerarg value="-Wl,--kill-at" />        <!-- remove @ from function names -->
+        <syslibset libs="gdi32, kernel32"/>
+      </linker>
+
       <linker id="linker.cfg.win32.msvc.nativewindow" extends="linker.cfg.win32.msvc">
         <syslibset libs="gdi32, user32, kernel32" />
       </linker>
@@ -407,10 +412,16 @@
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.win32.msvc.nativewindow" />
     </target>
     
-    <target name="c.configure.win32.mingw" if="isMingW">
+    <target name="c.configure.win32.mingw" if="isMingW32">
       <echo message="Win32.MingW" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.win32.mingw" />
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.win32.mingw.nativewindow" />
+    </target>
+
+    <target name="c.configure.win64.mingw" if="isMingW64">
+      <echo message="Win64.MingW" />
+      <property name="compiler.cfg.id"                      value="compiler.cfg.win64.mingw" />
+      <property name="linker.cfg.id.oswin"                  value="linker.cfg.win64.mingw.nativewindow" />
     </target>
 
     <target name="c.configure.linux.x86" if="isLinuxX86">
@@ -465,7 +476,7 @@
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.hpux.nativewindow.x11" />
     </target>
 
-    <target name="c.configure.win32" depends="c.configure.win32.vc,c.configure.win32.mingw" if="isWindows" />
+    <target name="c.configure.win32" depends="c.configure.win32.vc,c.configure.win32.mingw,c.configure.win64.mingw" if="isWindows" />
 
     <target name="c.configure.x11" if="isX11" />
 
