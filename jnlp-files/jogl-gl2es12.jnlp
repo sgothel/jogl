@@ -3,8 +3,8 @@
       href="jogl-gl2es12.jnlp">
   <information>
     <title>Java(tm) Binding to the OpenGL(r) API (GL2ES12)</title>
-    <vendor>Sun Microsystems, Inc.</vendor>
-    <homepage href="http://jogl.dev.java.net/"/>
+    <vendor>JogAmp Community</vendor>
+    <homepage href="http://jogamp.org/"/>
     <description>Java Binding to the OpenGL API - JSR-231 2.0.0 - GL2ES12</description>
     <description kind="short">Java programming language binding for the OpenGL 3D graphics API - GL2ES12.</description>
     <offline-allowed/>

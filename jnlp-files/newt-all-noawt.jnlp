@@ -3,8 +3,8 @@
       href="newt-all-noawt.jnlp">
   <information>
     <title>NEWT - New Windowing Toolkit (ALL.NO_AWT)</title>
-    <vendor>Sun Microsystems, Inc.</vendor>
-    <homepage href="http://jogl.dev.java.net/"/>
+    <vendor>JogAmp Community</vendor>
+    <homepage href="http://jogamp.org/"/>
     <description>NEWT - A NativeWindow Interface implementation - ALL.NO_AWT</description>
     <description kind="short">NEWT - A NativeWindow Interface implementation - ALL.NO_AWT</description>
     <offline-allowed/>

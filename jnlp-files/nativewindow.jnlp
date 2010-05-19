@@ -3,7 +3,7 @@
       href="nativewindow.jnlp">
   <information>
     <title>Java(tm) NativeWindow Interface API (CORE)</title>
-    <vendor>Sun Microsystems, Inc.</vendor>
+    <vendor>JogAmp Community</vendor>
     <homepage href="http://nativewindow.dev.java.net/"/>
     <description>Java API for a binding to a native windowing system - 2.0 - CORE</description>
     <description kind="short">Java API for a binding to a native windowing system - 2.0 - CORE</description>
