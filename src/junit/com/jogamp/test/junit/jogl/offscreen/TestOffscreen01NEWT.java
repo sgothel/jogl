@@ -92,7 +92,13 @@ public class TestOffscreen01NEWT {
         window.setSize(width, height);
         GLWindow glWindow = GLWindow.create(window);
         Assert.assertNotNull(glWindow);
-        glWindow.setVisible(true);
+        try {
+            glWindow.setVisible(true);
+        } catch (Throwable t) {
+             // stop test and ignore if pixmap cannot be used
+            t.printStackTrace();
+            Assume.assumeNoException(t);
+        }
         GLEventListener demo = new RedSquare();
         WindowUtilNEWT.setDemoFields(demo, window, glWindow, false);
         glWindow.addGLEventListener(demo);
@@ -191,7 +197,13 @@ public class TestOffscreen01NEWT {
             windows[i].setSize(width, height);
             glWindows[i] = GLWindow.create(windows[i]);
             Assert.assertNotNull(glWindows[i]);
-            glWindows[i].setVisible(true);
+            try {
+                glWindows[i].setVisible(true);
+            } catch (Throwable t) {
+                 // stop test and ignore if pixmap cannot be used
+                t.printStackTrace();
+                Assume.assumeNoException(t);
+            }
             demos[i] = new RedSquare();
             WindowUtilNEWT.setDemoFields(demos[i], windows[i], glWindows[i], false);
             glWindows[i].addGLEventListener(demos[i]);
@@ -250,7 +262,13 @@ public class TestOffscreen01NEWT {
             windows[i].setSize(width, height);
             glWindows[i] = GLWindow.create(windows[i]);
             Assert.assertNotNull(glWindows[i]);
-            glWindows[i].setVisible(true);
+            try {
+                glWindows[i].setVisible(true);
+            } catch (Throwable t) {
+                 // stop test and ignore if pixmap cannot be used
+                t.printStackTrace();
+                Assume.assumeNoException(t);
+            }
             demos[i] = new RedSquare();
             WindowUtilNEWT.setDemoFields(demos[i], windows[i], glWindows[i], false);
             glWindows[i].addGLEventListener(demos[i]);
@@ -303,7 +321,13 @@ public class TestOffscreen01NEWT {
         window.setSize(width, height);
         GLWindow glWindow = GLWindow.create(window);
         Assert.assertNotNull(glWindow);
-        glWindow.setVisible(true);
+        try {
+            glWindow.setVisible(true);
+        } catch (Throwable t) {
+             // stop test and ignore if pixmap cannot be used
+            t.printStackTrace();
+            Assume.assumeNoException(t);
+        }
 
         GLWindow windowOnScreen = null;
         WindowListener wl=null;
@@ -357,7 +381,13 @@ public class TestOffscreen01NEWT {
         window.setSize(width, height);
         GLWindow glWindow = GLWindow.create(window);
         Assert.assertNotNull(glWindow);
-        glWindow.setVisible(true);
+        try {
+            glWindow.setVisible(true);
+        } catch (Throwable t) {
+             // stop test and ignore if pixmap cannot be used
+            t.printStackTrace();
+            Assume.assumeNoException(t);
+        }
         GLEventListener demo = new RedSquare();
         WindowUtilNEWT.setDemoFields(demo, window, glWindow, false);
         glWindow.addGLEventListener(demo);
@@ -406,7 +436,13 @@ public class TestOffscreen01NEWT {
         window.setSize(width, height);
         GLWindow glWindow = GLWindow.create(window);
         Assert.assertNotNull(glWindow);
-        glWindow.setVisible(true);
+        try {
+            glWindow.setVisible(true);
+        } catch (Throwable t) {
+             // stop test and ignore if pixmap cannot be used
+            t.printStackTrace();
+            Assume.assumeNoException(t);
+        }
 
         GLWindow windowOnScreen = null;
         WindowListener wl=null;

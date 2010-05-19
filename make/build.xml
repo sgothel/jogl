@@ -10,7 +10,7 @@
         <property name="javadoc.overview" value="doc/jogl/spec-overview.html" />
 
         <property name="javadoc.nw.overview" value="../src/nativewindow/classes/javax/media/nativewindow/package.html" />
-        <property name="javadoc.nw.spec" value="${project.root}/javadoc_nativewindow_spec" />
+        <property name="javadoc.nw.spec" value="${build}/javadoc_nativewindow_spec" />
         <property name="javadoc.nw.spec.windowtitle" value="NativeWindow API -- ${nativewindow_base_version} Specification" />
         <property name="javadoc.nw.spec.packagenames" value="javax.media.nativewindow.*" />
 
@@ -249,6 +249,9 @@
             <arg line="-J-Dnativetaglet.mapping=${basedir}/native-taglet.properties"/>
             <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.jar}" />
         </javadoc>
+        <zip destfile="${build}/javadoc_nativewindow_spec.zip"
+             basedir="${build}"
+             includes="javadoc_nativewindow_spec/**" />
     </target>
                                                                                                                                    
     <target name="javadoc.spec" description="Build Specifications JOGL and Nativewindow" depends="init,javadoc.jogl.spec" />
