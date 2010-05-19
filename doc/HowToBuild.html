@@ -1,4 +1,4 @@
-<!DOCTYPE html PUBliC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
@@ -21,203 +21,225 @@
                     <li><a href="../../demos/www/">Demos</a></li>
                     <li><a href="../../wiki/">Wiki</a></li>
                     <li><a href="../../deployment/jogl-next/javadoc_public/">JavaDoc</a></li>
+                    <li><a href="../../blog/">Blogs</a></li>
+                    <li><a href="../../forum.html">Forums</a></li>
                 </ul>
             </div>
-            <div id="main" class="fill">
+            <div id="main">
+                <div id="text">
 
-<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+                    <h2>Platform and Component Requirements</h2>
+                    <hr/>
+                    Here is a list of platforms and components, we were able to build JOGL on,<br/>
+                    if not stated otherwise.<br/>
 
-<h2>Platform and Component Requirements</h2>
-<hr>
-<P>
-Here is a list of platforms and components, we were able to build JOGL on,<br>
-if not stated otherwise.<br>
+                    <ul>
+                        <li> <b>Java</b><br/>
+                            One of the following desktop Java SDK's:
+                            <ul>
+                                <li> <a href="http://openjdk.java.net/">OpenJDK</a> </li>
+                                <li> <a href="http://icedtea.classpath.org/">IcedTea</a> </li>
+                                <li> <a href="http://java.sun.com/j2se/">Sun JDK 1.6.0 or later</a> </li>
+                            </ul>
+                            or you may try one of the following embedded Java SDK's (not yet tested):
+                            <ul>
+                                <li> <a href="http://mail.openjdk.java.net/pipermail/jdk6-dev/2009-April/000455.html">OpenJDK6 for embedded ARM</a> may use <a href="http://icedtea.classpath.org/wiki/ZeroSharkFaq">Zero/Shark</a></li>
+                                <li> <a href="http://java.sun.com/javase/embedded/">Sun JDK for Embedded Use</a></li>
+                            </ul>
+                            or even the JavaME SDK's (see notes):
+                            <ul>
+                                <li> <a href="https://phoneme.dev.java.net/">phoneME (tested with a proprietary VM build)</a><br/>
+                                    (tested with a proprietary VM build)</li>
+                                <li> <a href="http://jamvm.sourceforge.net/">JamVM (not yet tested)</a><br/>
+                                    (not yet tested)</li>
+                                <li> <a href="http://www.cacaovm.org/">CacaoVM (not yet tested)</a><br/>
+                                    (not yet tested)</li>
+                            </ul>
+                        </li>
+                        <li> <b><a href="http://ant.apache.org/">Ant</a></b> 1.8.0 or later</li>
+                        <li> <b><a href="http://www.kernel.org/pub/software/scm/git/docs/">Git</a></b> 1.6.0 or later<br/>
+                            <ul>
+                                <li> <a href="http://www.kernel.org/pub/software/scm/git/">Source Code for GNU/Linux, MacOSX, ..</a></li>
+                                <li> <a href="http://code.google.com/p/msysgit/">Git on Windows</a>,
+                                    <a href="http://code.google.com/p/msysgit/downloads/list">download</a> version
+                                    <a href="http://code.google.com/p/msysgit/downloads/detail?name=Git-1.7.0.2-preview20100309.exe&can=2&q=">1.7.0</a> or later.</li>
+                            </ul></li>
+                        <li> <b>GNU Linux</b> x86, 32- and 64-bit<br/>
+                            You may have to install a few developer packages ...
+                            <ul>
+                                <li> <b>[K]Ubuntu</b> 10.04 or later
+                                    <ul>
+                                        <li>gcc</li>
+                                        <li>libgl1-mesa-dev</li>
+                                        <li>libglu1-mesa-dev</li>
+                                        <li>libice-dev</li>
+                                        <li>libsm-dev</li>
+                                        <li>libx11-dev</li>
+                                        <li>libxext-dev</li>
+                                        <li>libxxf86vm-dev</li>
+                                        <li>xorg-dev</li>
+                                        <li>Optional: Your card vendor's proprietary driver</li>
+                                    </ul>
 
-<ul>
-<li> <b>Java</b><br>
-    One of the following desktop Java SDK's:
-    <ul>
-    <li> <a href="http://openjdk.java.net/">OpenJDK</a> </li>
-    <li> <a href="http://icedtea.classpath.org/">IcedTea</a> </li>
-    <li> <a href="http://java.sun.com/j2se/">Sun JDK 1.6.0 or later</a> </li>
-    </ul>
-    or you may try one of the following embedded Java SDK's (not yet tested):
-    <ul>
-        <li> <a href="http://mail.openjdk.java.net/pipermail/jdk6-dev/2009-April/000455.html">OpenJDK6 for embedded ARM</a> may use <a href="http://icedtea.classpath.org/wiki/ZeroSharkFaq">Zero/Shark</a></li>
-        <li> <a href="http://java.sun.com/javase/embedded/">Sun JDK for Embedded Use</a></li>
-    </ul>
-    or even the JavaME SDK's (see notes):
-    <ul>
-        <li> <a href="https://phoneme.dev.java.net/">phoneME (tested with a proprietary VM build)</a><br>
-        (tested with a proprietary VM build)</li>
-        <li> <a href="http://jamvm.sourceforge.net/">JamVM (not yet tested)</a><br>
-        (not yet tested)</li>
-        <li> <a href="http://www.cacaovm.org/">CacaoVM (not yet tested)</a><br>
-        (not yet tested)</li>
-    </ul>
-</li>
-<li> <b><a href="http://ant.apache.org/">Ant</a></b> 1.8.0 or later</li>
-<li> <b><a href="http://www.kernel.org/pub/software/scm/git/docs/">Git</a></b> 1.6.0 or later<br>
-    <ul>
-        <li> <a href="http://www.kernel.org/pub/software/scm/git/">Source Code for GNU/Linux, MacOSX, ..</a></li>
-        <li> <a href="http://code.google.com/p/msysgit/">Git on Windows</a>, 
-            <a href="http://code.google.com/p/msysgit/downloads/list">download</a> version
-            <a href="http://code.google.com/p/msysgit/downloads/detail?name=Git-1.7.0.2-preview20100309.exe&can=2&q=">1.7.0</a> or later.</li>
-    </ul></li>
-<li> <b>GNU Linux</b> x86, 32- and 64-bit<br>
-  You may have to install a few developer packages ...
-  <ul>
-  <li> [k]<b>Ubuntu</b> 10.04 or later</li>
-  <ul>
-    <li>gcc</li>
-    <li>libgl1-mesa-dev</li>
-    <li>libglu1-mesa-dev</li>
-    <li>libice-dev</li>
-    <li>libsm-dev</li>
-    <li>libx11-dev</li>
-    <li>libxext-dev</li>
-    <li>libxxf86vm-dev</li>
-    <li>xorg-dev</li>
-    <li>Optional: Your card vendor's proprietary driver</li>
-  </ul></li>
-  <li> <b>OpenSuSE</b> 10.2 or later </li>
-  <ul>
-    <li>gcc</li>
-    <li>x11-devel</li>
-    <li>mesa-devel</li>
-  </ul></li>
-  <li> <b>CentOS / Red Hat Enterprise Linux</b> 5.4 or later<br>
-  <ul>
-    <li>gcc</li>
-    <li>mesa-libGL-devel</li>
-    <li>libICE-devel</li>
-    <li>libSM-devel</li>
-    <li>libX11-devel</li>
-    <li>libXau-devel</li>
-    <li>libXdmcp-devel</li>
-    <li>libXt-devel</li>
-    <li>libXxf86vm-devel</li>
-    <li>xorg-x11-proto-devel</li>
-    <li>Optional: Your card vendor's proprietary driver</li>
-  </ul></li>
-  </ul>
-</li>
-<li> <b>OpenSolaris</b> SPARC and x86, 32- and 64-bit
-  <ul>
-  <li> <a href="http://opensolaris.org/">OpenSolaris 2009.06 or later</a></li>
-  </ul>
-</li>
-<li> <b>MacOSX</b> Intel
-  <ul>
-  <li> <a href="http://www.apple.com/macosx/">Mac OS X</a> 10.3 (note: will not work with earlier releases) </li>
-  <li> <a href="http://developer.apple.com/technologies/xcode.html">Xcode</a> for gcc, etc (included in OSX)</li>
-  </ul>
-</li>
-<li> <b>Windows</b>/x86 (32-bit)
-  <ul>
-  <li> Windows XP or later </li>
-  <li> <a href="http://www.mingw.org/">MinGW</a><br>
-    Read <a href="http://www.mingw.org/wiki/Getting_Started">MinGW Getting Started</a> and 
-    <a href="http://www.mingw.org/wiki/HOWTO_Install_the_MinGW_GCC_Compiler_Suite">HOWTO Install the MinGW GCC Compiler Suite</a>.<br></li>
-  <li> Not supported: Microsoft Visual C++ 6.0 or later</li>
-  </ul>
-</li>
-<li> <b>Windows</b>/x86 (64-bit)<br>
-  Currently broken ..
-  </li>
-</li>
-</ul>
+                                </li>
+                            </ul>
+                        </li>
+                        <li> <b>OpenSuSE</b> 10.2 or later 
+                            <ul>
+                                <li>gcc</li>
+                                <li>x11-devel</li>
+                                <li>mesa-devel</li>
+                            </ul>
+                        </li>
+                        <li> <b>CentOS / Red Hat Enterprise Linux</b> 5.4 or later<br/>
+                            <ul>
+                                <li>gcc</li>
+                                <li>mesa-libGL-devel</li>
+                                <li>libICE-devel</li>
+                                <li>libSM-devel</li>
+                                <li>libX11-devel</li>
+                                <li>libXau-devel</li>
+                                <li>libXdmcp-devel</li>
+                                <li>libXt-devel</li>
+                                <li>libXxf86vm-devel</li>
+                                <li>xorg-x11-proto-devel</li>
+                                <li>Optional: Your card vendor's proprietary driver</li>
+                            </ul>
+                        </li>
+                        <li> <b>OpenSolaris</b> SPARC and x86, 32- and 64-bit
+                            <ul>
+                                <li> <a href="http://opensolaris.org/">OpenSolaris 2009.06 or later</a></li>
+                            </ul>
+                        </li>
+                        <li> <b>MacOSX</b> Intel
+                            <ul>
+                                <li> <a href="http://www.apple.com/macosx/">Mac OS X</a> 10.3 (note: will not work with earlier releases) </li>
+                                <li> <a href="http://developer.apple.com/technologies/xcode.html">Xcode</a> for gcc, etc (included in OSX)</li>
+                            </ul>
+                        </li>
+                        <li> <b>Windows</b>/x86 (32-bit)
+                            <ul>
+                                <li> Windows XP or later </li>
+                                <li> <a href="http://www.mingw.org/">MinGW</a><br/>
+                                    Read <a href="http://www.mingw.org/wiki/Getting_Started">MinGW Getting Started</a> and
+                                    <a href="http://www.mingw.org/wiki/HOWTO_Install_the_MinGW_GCC_Compiler_Suite">HOWTO Install the MinGW GCC Compiler Suite</a>.<br/></li>
+                                <li> Not supported: Microsoft Visual C++ 6.0 or later</li>
+                            </ul>
+                        </li>
+                        <li> <b>Windows</b>/x86 (64-bit)<br/>
+                            Currently broken ..
+                        </li>
+                    </ul>
 
-<P>
+                    <p>
+                        Additional platforms such as FreeBSD and HP/UX are handled by the
+                        build system, but are not officially supported.
+                    </p>
 
-Additional platforms such as FreeBSD and HP/UX are handled by the
-build system, but are not officially supported.
+                    <h2>Build Steps</h2>
+                    <hr/>
+                    <p>
+                        Here are the steps that are required in order to build JOGL.
+                    </p>
 
-</P>
+                    <ol>
+                        <li><b>Optain the source code</b> using git:
+                            <ul>
+                                <li><a href="http://github.com/sgothel/gluegen">Gluegen Dev GIT Repo</a></li>
+                                <li><a href="http://github.com/sgothel/jogl">JOGL Dev GIT Repo</a></li>
+                            </ul><br/>
+                            It is crucial that you checkout the source code under a common root directory:
+                            <pre>
+    /home/dude/projects/jogamp> git clone git://github.com/sgothel/gluegen.git  gluegen
+    /home/dude/projects/jogamp> git clone git://github.com/sgothel/jogl.git jogl
+                            </pre>
+                            Now you should have following directory structure:
+                            <pre>
+    /home/dude/projects/jogamp
+    /home/dude/projects/jogamp/gluegen
+    /home/dude/projects/jogamp/jogl
+                            </pre>
+                        </li>
 
-<h2>Build Steps</h2>
-<hr>
-<P>
-Here are the steps that are required in order to build JOGL.
-</P>
+                        <li> <b>Unset your CLASSPATH environment variable:</b> <br/>
+                            The Ant build requires that the JOGL jars not be visible on the classpath. On Unix, type
+                            <code> unsetenv CLASSPATH </code> into a csh or tcsh shell, or <code> unset CLASSPATH </code>
+                            into a Bourne shell. On Windows, type <code> set CLASSPATH= </code> into a command prompt.
+                        </li>
 
-<P>
+                        <li> <b>Optional</b>  <i>Copy and edit <b>gluegen.properties</b>:</i> <br/>
+                            To specify different basic options for components and compilers,<br/>
+                            copy <b>gluegen/make/gluegen.properties</b> into your home directory (pointed to by the Java system property <b>user.home</b>). <br/></li>
 
-<OL>
-  <LI><B>Optain the source code</B> using git:
-    <ul>
-        <li><a href="http://github.com/sgothel/gluegen">Gluegen Dev GIT Repo</a></li>
-        <li><a href="http://github.com/sgothel/jogl">JOGL Dev GIT Repo</a></li>
-    </ul><br>
-    It is crucial that you checkout the source code under a common root directory:
-    <pre>
-        /home/dude/projects/jogamp> git clone git://github.com/sgothel/gluegen.git  gluegen
-        /home/dude/projects/jogamp> git clone git://github.com/sgothel/jogl.git jogl 
-    </pre>
-    Now you should have following directory structure:
-    <pre>
-        /home/dude/projects/jogamp
-        /home/dude/projects/jogamp/gluegen
-        /home/dude/projects/jogamp/jogl
-    </pre></li>
+                        <li> <b>Optional</b>  <i>Copy and edit <b>jogl.properties</b>:</i> <br/>
+                            To specify different basic options for the build,<br/>
+                            copy <b>jogl/make/jogl.properties</b> into your home directory (pointed to by the Java system property
+                            <b>user.home</b>). <br/>
+                            Edit the copy to change desired settings.
+                        </li>
 
-  <LI> <B>Unset your CLASSPATH environment variable:</B> <br> The Ant build requires that the JOGL jars not be visible on the classpath. On Unix, type <code> unsetenv CLASSPATH </code> into a csh or tcsh shell, or <code> unset CLASSPATH </code> into a Bourne shell. On Windows, type <code> set CLASSPATH= </code> into a command prompt.</LI>
+                        <li> <b>Build the source tree:</b> <br/>
+                            Open a command shell in the "jogl/make" directory of the source tree and type <code>"ant"</code>.
+                            <ul>
+                                <li>
+                                    An experimental binding to the high-level <a href="http://developer.nvidia.com/view.asp?PAGE=cg_main">Cg</a>
+                                    language by NVidia corporation can be generated by specifying <code>-Djogl.cg=1</code> to ant; e.g.
+                                    <code>ant -Djogl.cg=1</code>. The Cg binding has been tested on Windows, Linux, and Mac OS X.
+                                </li>
+                            </ul>
+                        </li>
 
-  <LI> <B>Optional</B>  <I>Copy and edit <B>gluegen.properties</B>:</I> <br>
-    To specify different basic options for components and compilers,<br>
-    copy <b>gluegen/make/gluegen.properties</b> into your home directory (pointed to by the Java system property <b>user.home</b>). <br></LI>
+                        <li> <b>Test your build:</b> <br/> Stay in your command shell in the "jogl/make" directory of the source tree and type <code>"ant junit.run"</code>.</li>
 
-  <LI> <B>Optional</B>  <I>Copy and edit <B>jogl.properties</B>:</I> <br>
-    To specify different basic options for the build,<br>
-    copy <b>jogl/make/jogl.properties</b> into your home directory (pointed to by the Java system property <b>user.home</b>). <br>
-    Edit the copy to change desired settings.</LI>
+                        <li> <b>Build Javadoc:</b> <br/> Stay in your command shell in the "jogl/make" directory of the source tree and type "<code>ant javadoc"</code>.
+                            This will produce the end-user documentation for JOGL along with some auxiliary utility packages.
+                        </li>
+                    </ol>
 
-  <LI> <B>Build the source tree:</B> <br> Open a command shell in the "jogl/make" directory of the source tree and type "ant"</code>.
-      <UL>
-	<LI>An experimental binding to the high-level <a href="http://developer.nvidia.com/view.asp?PAGE=cg_main">Cg</a> language by NVidia corporation can be generated by specifying <code>-Djogl.cg=1</code> to ant; e.g. <code>ant -Djogl.cg=1</code>. The Cg binding has been tested on Windows, Linux, and Mac OS X.</LI>
-      </UL></LI>
-      
-  <LI> <B>Test your build:</B> <br> Stay in your command shell in the "jogl/make" directory of the source tree and type "ant junit.run"</code>.</LI>
+                    Note that there are a lot of warnings produced by ANTLR about the
+                    C grammar and our modifications to some of the signatures of the
+                    productions; the C grammar warnings have been documented by the
+                    author of the grammar as having been investigated completely and
+                    harmless, and the warnings about our modifications are also
+                    harmless. 
 
-  <LI> <B>Build Javadoc:</B> <br> Stay in your command shell in the "jogl/make" directory of the source tree and type "ant javadoc". This will produce the end-user documentation for JOGL along with some auxiliary utility packages.</LI>
-</OL>
- 
-Note that there are a lot of warnings produced by ANTLR about the 
-C grammar and our modifications to some of the signatures of the 
-productions; the C grammar warnings have been documented by the 
-author of the grammar as having been investigated completely and 
-harmless, and the warnings about our modifications are also 
-harmless. <P>
+                    <h2> Common build problems </h2>
 
-<h2> Common build problems </h2>
+                    <ol>
 
-<OL>
+                        <li>
+                            <b>Your CLASSPATH environment variable appears to be set (some JOGL classes are currently visible to the build.)</b>, and $CLASSPATH isn't set.
+                            An older version of JOGL was installed into the extension directory of the JDK you're using to build the
+                            current JOGL. On Windows and Linux, delete any ANTLR jars from jre/lib/ext, and on Mac OS X, delete them from
+                            /Library/Java/Extensions. It is generally not a good idea to drop JOGL directly into the extensions directory,
+                            as this can interfere with upgrades via Java Web Start.
+                        </li>
 
-<LI> <B>Your CLASSPATH environment variable appears to be set (some JOGL classes are currently visible to the build.)</B>, and $CLASSPATH isn't set.
+                        <li>
+                            <b>CharScanner; panic: ClassNotFoundException: com.sun.gluegen.cgram.CToken</b>
 
-<DL>
-<DD> An older version of JOGL was installed into the extension directory of the JDK you're using to build the current JOGL. On Windows and Linux, delete any ANTLR jars from jre/lib/ext, and on Mac OS X, delete them from /Library/Java/Extensions. It is generally not a good idea to drop JOGL directly into the extensions directory, as this can interfere with upgrades via Java Web Start.
-</DL>
+                            This occurs because ANTLR was dropped into the Extensions
+                            directory of the JRE/JDK. On Windows and Linux, delete any ANTLR jars from jre/lib/ext,
+                            and on Mac OS X, delete them from /Library/Java/Extensions. Use the antlr.jar property in the build.xml
+                            to point to a JRE-external location of this jar file.
+                        </li>
 
-<LI> <B>CharScanner; panic: ClassNotFoundException: com.sun.gluegen.cgram.CToken</B>
+                    </ol>
 
-<DL>
-<DD> This occurs because ANTLR was dropped into the Extensions
-directory of the JRE/JDK. On Windows and Linux, delete any ANTLR jars from jre/lib/ext, and on Mac OS X, delete them from /Library/Java/Extensions. Use the antlr.jar property in the build.xml to point to a JRE-external location of this jar file.
-</DL>
+                    <br/>
+                    <p>
+                        <i>- Christopher Kline and Kenneth Russell, June 2003 (revised November 2006)</i><br/>
+                        <i>- Sven Gothel and Michael Bien, May 2010</i><br/>
+                    </p>
 
-</OL>
-
-<i>- Christopher Kline and Kenneth Russell, June 2003 (revised November 2006)</i><br>
-<i>- Sven Gothel, May 2010</i><br>
-
+                </div>
             </div>
             <div id="footer">
                 <div id="footer_left">
-                    <span xmlns:dc="http://purl.org/dc/elements/1.1/" property="dc:title">JogAmp.org</span>
-                    by <a xmlns:cc="http://creativecommons.org/ns#" href="http://jogamp.org" property="cc:attributionName" rel="cc:attributionURL">http://jogamp.org</a>
+                    <span>JogAmp.org</span>
+                    by <a href="http://jogamp.org">http://jogamp.org</a>
                     is licensed under a <br/>
-                    <a rel="license" href="http://creativecommons.org/licenses/by/3.0/">Creative Commons Attribution 3.0 License</a>.
+                    <a href="http://creativecommons.org/licenses/by/3.0/us/">Creative Commons Attribution 3.0 License</a>.
                 </div>
             </div>
         </div>
